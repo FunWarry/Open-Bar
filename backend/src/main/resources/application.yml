@@ -1,0 +1,30 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/gestion_cocktail
+    username: postgres
+    password: postgres
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+  security:
+    jwt:
+      secret: this_is_a_secret_token_for_jwt_ #${JWT_SECRET}
+      expiration: 86400000 # 24 heures
+  main:
+    allow-circular-references: true
+
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+    com.bar.gestioncocktail: DEBUG
+    org.hibernate.SQL: DEBUG 
