@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -83,4 +84,18 @@ public class UserService implements UserDetailsService {
         user.setUpdatedAt(LocalDateTime.now());
         userRepository.save(user);
     }
+    
+    public void createAdminUser() {
+        if (!userRepository.existsByUsername("admin")) {
+            User admin = new User();
+            admin.setUsername("admin");
+            admin.setPassword(passwordEncoder.encode("admin"));
+            admin.setEmail("admin@cocktail.com");
+            admin.setRoles(Set.of(UserRole.ADMIN));
+            admin.setCreatedAt(LocalDateTime.now());
+            admin.setUpdatedAt(LocalDateTime.now());
+            userRepository.save(admin);
+        }
+    }
+    
 } 
