@@ -12,7 +12,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
-@RequestMapping("/ingredients")
+@RequestMapping("/api/ingredients")
 @CrossOrigin(origins = "*")
 public class IngredientController {
     private final IngredientService ingredientService;

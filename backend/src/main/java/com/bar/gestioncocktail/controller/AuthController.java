@@ -15,7 +15,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/auth")
 @CrossOrigin(origins = "*")
 public class AuthController {
     private final AuthenticationManager authenticationManager;
@@ -69,9 +69,4 @@ public class AuthController {
         SecurityContextHolder.clearContext();
         return ResponseEntity.ok().build();
     }
-    
-   @GetMapping("/health")
-   public String health() {
-       return "Le serveur fonctionne !";
-   }
 }

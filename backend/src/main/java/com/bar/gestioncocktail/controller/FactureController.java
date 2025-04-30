@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
-@RequestMapping("/factures")
+@RequestMapping("/api/factures")
 @CrossOrigin(origins = "*")
 public class FactureController {
     private final FactureService factureService;

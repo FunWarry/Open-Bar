@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
-@RequestMapping("/audit-logs")
+@RequestMapping("/api/audit-logs")
 @CrossOrigin(origins = "*")
 public class AuditLogController {
     private final AuditLogService auditLogService;

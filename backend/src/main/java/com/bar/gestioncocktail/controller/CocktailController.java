@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
-@RequestMapping("/cocktails")
+@RequestMapping("/api/cocktails")
 @CrossOrigin(origins = "*")
 public class CocktailController {
     private final CocktailService cocktailService;
