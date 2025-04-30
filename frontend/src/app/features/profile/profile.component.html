@@ -1,0 +1,81 @@
+<div class="profile-container">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>Mon Profil</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <form [formGroup]="profileForm" (ngSubmit)="onSubmit()">
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Nom d'utilisateur</mat-label>
+            <input matInput formControlName="username" required>
+            <mat-error *ngIf="profileForm.get('username')?.hasError('required')">
+              Le nom d'utilisateur est requis
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Email</mat-label>
+            <input matInput formControlName="email" type="email" required>
+            <mat-error *ngIf="profileForm.get('email')?.hasError('required')">
+              L'email est requis
+            </mat-error>
+            <mat-error *ngIf="profileForm.get('email')?.hasError('email')">
+              Format d'email invalide
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Nouveau mot de passe</mat-label>
+            <input matInput formControlName="newPassword" type="password">
+            <mat-error *ngIf="profileForm.get('newPassword')?.hasError('minlength')">
+              Le mot de passe doit contenir au moins 6 caractères
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Confirmer le mot de passe</mat-label>
+            <input matInput formControlName="confirmPassword" type="password">
+            <mat-error *ngIf="profileForm.hasError('passwordMismatch')">
+              Les mots de passe ne correspondent pas
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="form-actions">
+          <button mat-raised-button color="primary" type="submit" [disabled]="profileForm.invalid">
+            Enregistrer les modifications
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="info-card">
+    <mat-card-header>
+      <mat-card-title>Informations du compte</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="info-item">
+        <span class="label">Rôles :</span>
+        <span class="value">
+          <mat-chip-set>
+            <mat-chip *ngFor="let role of (currentUser$ | async)?.roles">
+              {{ role }}
+            </mat-chip>
+          </mat-chip-set>
+        </span>
+      </div>
+      <div class="info-item">
+        <span class="label">Compte créé le :</span>
+        <span class="value">{{ (currentUser$ | async)?.createdAt | date:'longDate' }}</span>
+      </div>
+      <div class="info-item">
+        <span class="label">Dernière modification :</span>
+        <span class="value">{{ (currentUser$ | async)?.updatedAt | date:'longDate' }}</span>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

@@ -19,7 +19,7 @@ import { DatePipe } from '@angular/common';
 @Component({
   selector: 'app-user-list',
   templateUrl: `./user-list.component.html`,
-  styleUrl: `./user-list.component.scss`,
+  styleUrl: `./user-list.component.css`,
   standalone: true,
   imports: [
     MatCardModule,

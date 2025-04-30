@@ -5,20 +5,8 @@ import {MatDialogModule} from '@angular/material/dialog';
 
 @Component({
   selector: 'app-error-dialog',
-  template: `
-    <h2 mat-dialog-title>Erreur</h2>
-    <mat-dialog-content>
-      <p>{{ data.message }}</p>
-    </mat-dialog-content>
-    <mat-dialog-actions align="end">
-      <button mat-button (click)="onClose()">Fermer</button>
-    </mat-dialog-actions>
-  `,
-  styles: [`
-    mat-dialog-content {
-      min-width: 300px;
-    }
-  `],
+  templateUrl: './error-dialog.component.html',
+  styleUrls: ['./error-dialog.component.scss'],
   standalone: true,
   imports: [MatDialogModule, MatButtonModule]
 })

@@ -14,71 +14,8 @@ import {MatListModule} from '@angular/material/list';
 
 @Component({
   selector: 'app-header',
-  template: `
-    <mat-toolbar color="primary">
-      <button mat-icon-button (click)="sidenav.toggle()">
-        <mat-icon>menu</mat-icon>
-      </button>
-      <span>Gestion Cocktail</span>
-      <span class="spacer"></span>
-      <ng-container *ngIf="currentUser$ | async as user">
-        <button mat-button [matMenuTriggerFor]="userMenu">
-          {{ user.username }}
-          <mat-icon>arrow_drop_down</mat-icon>
-        </button>
-        <mat-menu #userMenu="matMenu">
-          <button mat-menu-item (click)="onLogout()">
-            <mat-icon>exit_to_app</mat-icon>
-            <span>Déconnexion</span>
-          </button>
-        </mat-menu>
-      </ng-container>
-    </mat-toolbar>
-    <mat-sidenav-container>
-      <mat-sidenav #sidenav mode="side">
-        <mat-nav-list>
-          <a mat-list-item routerLink="/cocktails" routerLinkActive="active">
-            <mat-icon>local_bar</mat-icon>
-            <span>Cocktails</span>
-          </a>
-          <a mat-list-item routerLink="/commandes" routerLinkActive="active">
-            <mat-icon>receipt</mat-icon>
-            <span>Commandes</span>
-          </a>
-          <a mat-list-item routerLink="/tables" routerLinkActive="active">
-            <mat-icon>table_bar</mat-icon>
-            <span>Tables</span>
-          </a>
-          <ng-container *ngIf="(currentUser$ | async)?.roles?.includes('ADMIN')">
-            <a mat-list-item routerLink="/ingredients" routerLinkActive="active">
-              <mat-icon>inventory</mat-icon>
-              <span>Ingrédients</span>
-            </a>
-            <a mat-list-item routerLink="/admin" routerLinkActive="active">
-              <mat-icon>admin_panel_settings</mat-icon>
-              <span>Administration</span>
-            </a>
-          </ng-container>
-        </mat-nav-list>
-      </mat-sidenav>
-    </mat-sidenav-container>
-  `,
-  styles: [`
-    .spacer {
-      flex: 1 1 auto;
-    }
-    mat-sidenav {
-      width: 250px;
-    }
-    mat-nav-list a {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .active {
-      background-color: rgba(0, 0, 0, 0.04);
-    }
-  `],
+  templateUrl: './header.component.html',
+  styleUrls: ['./header.component.scss'],
   standalone: true,
   imports: [MatToolbarModule, MatIconModule, MatButtonModule, MatMenuModule, MatSidenavModule, MatListModule]
 })

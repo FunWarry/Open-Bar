@@ -17,82 +17,8 @@ import { CurrencyPipe } from '@angular/common';
 
 @Component({
     selector: 'app-commande-list',
-    template: `
-    <div class="commande-list-container">
-      <mat-card>
-        <mat-card-header>
-          <mat-card-title>Liste des Commandes</mat-card-title>
-          <button mat-raised-button color="primary" (click)="onAdd()">
-            <mat-icon>add</mat-icon>
-            Nouvelle Commande
-          </button>
-        </mat-card-header>
-        <mat-card-content>
-          <table mat-table [dataSource]="dataSource" matSort>
-            <ng-container matColumnDef="table">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header>Table</th>
-              <td mat-cell *matCellDef="let commande">{{commande.table}}</td>
-            </ng-container>
-
-            <ng-container matColumnDef="status">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header>Statut</th>
-              <td mat-cell *matCellDef="let commande">
-                <mat-chip [color]="getStatusColor(commande.status)" selected>
-                  {{commande.status}}
-                </mat-chip>
-              </td>
-            </ng-container>
-
-            <ng-container matColumnDef="total">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header>Total</th>
-              <td mat-cell *matCellDef="let commande">{{commande.total | currency:'EUR'}}</td>
-            </ng-container>
-
-            <ng-container matColumnDef="actions">
-              <th mat-header-cell *matHeaderCellDef>Actions</th>
-              <td mat-cell *matCellDef="let commande">
-                <button mat-icon-button color="primary" (click)="onView(commande)">
-                  <mat-icon>visibility</mat-icon>
-                </button>
-                <button mat-icon-button color="accent" (click)="onEdit(commande)">
-                  <mat-icon>edit</mat-icon>
-                </button>
-                <button mat-icon-button color="warn" (click)="onDelete(commande)">
-                  <mat-icon>delete</mat-icon>
-                </button>
-              </td>
-            </ng-container>
-
-            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-          </table>
-
-          <mat-paginator [pageSizeOptions]="[5, 10, 25, 100]" aria-label="Select page of commandes"></mat-paginator>
-        </mat-card-content>
-      </mat-card>
-    </div>
-  `,
-    styles: [`
-    .commande-list-container {
-      padding: 20px;
-    }
-    mat-card {
-      margin-bottom: 20px;
-    }
-    mat-card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-    }
-    table {
-      width: 100%;
-    }
-    .mat-column-actions {
-      width: 120px;
-      text-align: center;
-    }
-  `],
+    templateUrl: './commande-list.component.html',
+    styleUrls: ['./commande-list.component.css'],
     standalone: true,
     imports: [MatCardModule, MatCardHeader, MatCardTitle, MatCardContent, MatPaginatorModule, MatTableModule, MatSortModule, MatIconModule, MatButtonModule, MatChipsModule, CurrencyPipe]
 })
