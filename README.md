@@ -28,11 +28,15 @@ npm install
 
 ### Démarrage
 
+#### Démarrage normale : L'application sera accessible à l'adresse `http://localhost:4200`.
 ```bash
-npm start
+ng serve
 ```
 
-L'application sera accessible à l'adresse `http://localhost:4200`.
+#### Démarrage sur le réseau local : L'application sera accessible à l'adresse `http://<IP_LOCAL>:4200`.
+```bash
+ng serve --host 0.0.0.0
+```
 
 ## Backend
 
@@ -174,7 +178,7 @@ mvn clean install
 mvn spring-boot:run
 ```
 
-### Installation du Frontend (à venir)
+### Installation du Frontend
 ```bash
 cd frontend
 npm install

@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/cocktail-variantes")
+@RequestMapping("/cocktail-variantes")
 public class CocktailVarianteController {
     private final CocktailVarianteService cocktailVarianteService;
 
