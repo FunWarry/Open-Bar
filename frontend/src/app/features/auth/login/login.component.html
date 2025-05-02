@@ -6,13 +6,10 @@
     <mat-card-content>
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Email</mat-label>
-          <input matInput formControlName="email" type="email" required>
-          <mat-error *ngIf="loginForm.get('email')?.hasError('required')">
-            L'email est requis
-          </mat-error>
-          <mat-error *ngIf="loginForm.get('email')?.hasError('email')">
-            Format d'email invalide
+          <mat-label>Username</mat-label>
+          <input matInput formControlName="username" type="text" required>
+          <mat-error *ngIf="loginForm.get('username')?.hasError('required')">
+            Le nom d'utilisateur est requis
           </mat-error>
         </mat-form-field>
 

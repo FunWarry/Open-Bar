@@ -20,8 +20,8 @@ export class AuthService {
   ) {
   }
 
-  login(email: string, password: string): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.API_URL}/login`, {email, password}).pipe(
+  login(username: string, password: string): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.API_URL}/login`, {username: username, password}).pipe(
       tap(response => {
         this.setToken(response.token);
         this.store.dispatch(AuthActions.loginSuccess({
