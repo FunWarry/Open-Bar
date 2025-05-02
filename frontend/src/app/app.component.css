@@ -1,0 +1,5 @@
+.content {
+  padding-top: 64px; /* Hauteur de la barre de navigation */
+  min-height: calc(100vh - 64px);
+  background-color: #f5f5f5;
+}
