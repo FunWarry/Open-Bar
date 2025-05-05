@@ -31,5 +31,11 @@ export const authReducer = createReducer(
   })),
   on(AuthActions.logout, () => ({
     ...initialState
+  })),
+  on(AuthActions.initAuthFromStorage, (state, { token }) => ({
+    ...state,
+    token,
+    isAuthenticated: !!token,
+    error: null
   }))
 );

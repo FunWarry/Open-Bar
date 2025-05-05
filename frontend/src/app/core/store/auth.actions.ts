@@ -44,3 +44,8 @@ export const logoutFailure = createAction(
   '[Auth] Logout Failure',
   props<{ error: string }>()
 );
+
+export const initAuthFromStorage = createAction(
+  '[Auth] Init Auth From Storage',
+  props<{ token: string }>()
+);
