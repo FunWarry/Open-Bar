@@ -70,7 +70,16 @@ export class AuthService {
   }
 
   isAuthenticated(): boolean {
-    return !!this.getToken();
+    const token = this.getToken();
+    if (!token) {
+      return false;
+    }
+    try {
+      const decoded = JSON.parse(atob(token.split('.')[1]));
+      return decoded.exp > Date.now() / 1000;
+    } catch (e) {
+      return false;
+    }
   }
 
   private setToken(token: string): void {
