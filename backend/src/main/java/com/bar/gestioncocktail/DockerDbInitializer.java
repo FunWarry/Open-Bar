@@ -239,8 +239,18 @@ private boolean isDatabaseExists() {
     }
 }
 
+private boolean isDatabaseCreated() {
+    try (Connection conn = DriverManager.getConnection(dbUrl, dbUser, dbPass)) {
+        logger.info("Connexion à la base de données réussie.");
+        return true;
+    } catch (SQLException e) {
+        logger.warning("Erreur lors de la connexion à la base de données: " + e.getMessage());
+        return false;
+    }
+}
+
     private void startDockerCompose() throws IOException, InterruptedException {
-        File projectRoot = new File("../resources/docker-compose.yml").getAbsoluteFile();
+        File projectRoot = new File("backend/src/main/resources/docker-compose.yml").getAbsoluteFile().getParentFile();
         logger.info("Démarrage de docker-compose dans le répertoire: " + projectRoot.getAbsolutePath());
 
         Process process = new ProcessBuilder("docker-compose", "up", "-d")
@@ -269,7 +279,7 @@ private boolean isDatabaseExists() {
         logger.info("Tentatives de connexion à la base de données: " + retries + " avec délai de " + delay + "ms");
 
         while (retries-- > 0) {
-            if (isDatabaseExists()) {
+            if (isDatabaseCreated()) {
                 logger.info("Connexion à la base de données réussie après des tentatives.");
                 return;
             }
