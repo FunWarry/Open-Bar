@@ -6,6 +6,7 @@
 /out-tsc
 /bazel-out
 /target
+backend/target
 
 # Node
 /node_modules
@@ -41,4 +42,6 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+*.iml
+
 /frontend/node_modules
