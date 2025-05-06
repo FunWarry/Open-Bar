@@ -22,22 +22,18 @@ export class NavigationService {
           this.store.select(selectIsAdmin).pipe(
             take(1),
             map(isAdmin => {
-              if (isAdmin) {
-                this.router.navigate(['/admin']);
-              } else {
-                this.router.navigate(['/']);
-              }
+              this.router.navigate(['/']).then();
             })
           ).subscribe();
         } else {
-          this.router.navigate(['/auth/login']);
+          this.router.navigate(['/auth/login']).then();
         }
       })
     ).subscribe();
   }
 
   navigateToLogin(): void {
-    this.router.navigate(['/auth/login']);
+    this.router.navigate(['/auth/login']).then();
   }
 
   navigateToRegister(): void {
@@ -49,9 +45,9 @@ export class NavigationService {
       take(1),
       map(isAdmin => {
         if (isAdmin) {
-          this.router.navigate(['/admin']);
+          this.router.navigate(['/admin']).then();
         } else {
-          this.router.navigate(['/']);
+          this.router.navigate(['/']).then();
         }
       })
     ).subscribe();
@@ -62,9 +58,9 @@ export class NavigationService {
       take(1),
       map(isAuthenticated => {
         if (isAuthenticated) {
-          this.router.navigate(['/profile']);
+          this.router.navigate(['/profile']).then();
         } else {
-          this.router.navigate(['/auth/login']);
+          this.router.navigate(['/auth/login']).then();
         }
       })
     ).subscribe();
