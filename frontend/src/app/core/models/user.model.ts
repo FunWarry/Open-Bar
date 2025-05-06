@@ -4,6 +4,6 @@ export interface User {
   username: string;
   roles: string[];
   enabled: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-} 
+  createdAt: string | Date;
+  updatedAt: string | Date;
+}

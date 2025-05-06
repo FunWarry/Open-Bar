@@ -4,7 +4,7 @@ export interface AuthResponse {
   username: string;
   roles: string[];
   enabled: boolean;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: string | Date;
+  updatedAt: string | Date;
   token: string;
 }

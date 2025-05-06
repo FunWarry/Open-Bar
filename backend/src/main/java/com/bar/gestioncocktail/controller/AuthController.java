@@ -3,6 +3,7 @@ package com.bar.gestioncocktail.controller;
 import com.bar.gestioncocktail.dto.LoginRequest;
 import com.bar.gestioncocktail.dto.LoginResponse;
 import com.bar.gestioncocktail.model.User;
+import com.bar.gestioncocktail.model.UserRole;
 import com.bar.gestioncocktail.security.JwtTokenProvider;
 import com.bar.gestioncocktail.service.UserService;
 import jakarta.validation.Valid;
@@ -14,6 +15,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/auth")
 @CrossOrigin(origins = "*")
@@ -24,9 +27,9 @@ public class AuthController {
 
     @Autowired
     public AuthController(
-        AuthenticationManager authenticationManager,
-        JwtTokenProvider jwtTokenProvider,
-        UserService userService) {
+            AuthenticationManager authenticationManager,
+            JwtTokenProvider jwtTokenProvider,
+            UserService userService) {
         this.authenticationManager = authenticationManager;
         this.jwtTokenProvider = jwtTokenProvider;
         this.userService = userService;
@@ -35,21 +38,28 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
         Authentication authentication = authenticationManager.authenticate(
-            new UsernamePasswordAuthenticationToken(
-                loginRequest.getUsername(),
-                loginRequest.getPassword()
-            )
+                new UsernamePasswordAuthenticationToken(
+                        loginRequest.getUsername(),
+                        loginRequest.getPassword()
+                )
         );
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String token = jwtTokenProvider.generateToken(authentication);
         User user = userService.getUserByUsername(loginRequest.getUsername())
-            .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+        List<String> userRoles = user.getRoles()
+                .stream()
+                .map(UserRole::getName)
+                .toList();
 
         return ResponseEntity.ok(new LoginResponse(
-            token,
-            user.getUsername(),
-            user.getRoles().iterator().next().name()
+                token,
+                user.getUsername(),
+                userRoles,
+                user.getEmail(),
+                user.getCreatedAt(),
+                user.getUpdatedAt()
         ));
     }
 

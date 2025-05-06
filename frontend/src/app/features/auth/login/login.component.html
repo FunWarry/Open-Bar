@@ -7,7 +7,7 @@
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Username</mat-label>
-          <input matInput formControlName="username" type="text" required>
+          <input matInput formControlName="username" type="text" required autocomplete="username">
           <mat-error *ngIf="loginForm.get('username')?.hasError('required')">
             Le nom d'utilisateur est requis
           </mat-error>
@@ -15,7 +15,7 @@
 
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Mot de passe</mat-label>
-          <input matInput formControlName="password" type="password" required>
+          <input matInput formControlName="password" type="password" required autocomplete="current-password">
           <mat-error *ngIf="loginForm.get('password')?.hasError('required')">
             Le mot de passe est requis
           </mat-error>

@@ -39,9 +39,17 @@ export class ProfileComponent implements OnInit {
   ngOnInit(): void {
     this.currentUser$.subscribe(user => {
       if (user) {
+        // Convertir les chaînes de date en objets Date
+        const transformedUser = {
+          ...user,
+          createdAt: user.createdAt ? new Date(user.createdAt) : null,
+          updatedAt: user.updatedAt ? new Date(user.updatedAt) : null,
+          roles: user.roles.map(role => role.charAt(0).toUpperCase() + role.slice(1))
+        };
+
         this.profileForm.patchValue({
-          username: user.username,
-          email: user.email
+          username: transformedUser.username,
+          email: transformedUser.email
         });
       }
     });
