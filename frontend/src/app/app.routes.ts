@@ -1,5 +1,6 @@
 import {Routes} from '@angular/router';
 import {AuthGuard} from './core/guards/auth.guard';
+import {RoleGuard} from './core/guards/role.guard';
 
 export const routes: Routes = [
   {
@@ -18,7 +19,9 @@ export const routes: Routes = [
   },
   {
     path: 'auth/register',
-    loadComponent: () => import('./features/auth/register/register.component').then(m => m.RegisterComponent)
+    loadComponent: () => import('./features/auth/register/register.component').then(m => m.RegisterComponent),
+    canActivate: [AuthGuard, RoleGuard],
+    data: {roles: ['ADMIN']}
   },
   {
     path: 'cocktails',
@@ -28,12 +31,14 @@ export const routes: Routes = [
   {
     path: 'cocktails/new',
     loadComponent: () => import('./features/cocktails/cocktail-form/cocktail-form.component').then(m => m.CocktailFormComponent),
-    canActivate: [AuthGuard]
+    canActivate: [AuthGuard, RoleGuard],
+    data: {roles: ['ADMIN']}
   },
   {
     path: 'cocktails/:id/edit',
     loadComponent: () => import('./features/cocktails/cocktail-form/cocktail-form.component').then(m => m.CocktailFormComponent),
-    canActivate: [AuthGuard]
+    canActivate: [AuthGuard, RoleGuard],
+    data: {roles: ['ADMIN']}
   },
   {
     path: 'commandes',
@@ -78,12 +83,14 @@ export const routes: Routes = [
   {
     path: 'admin',
     loadComponent: () => import('./features/admin/admin.component').then(m => m.AdminComponent),
-    canActivate: [AuthGuard]
+    canActivate: [AuthGuard, RoleGuard],
+    data: {roles: ['ADMIN']}
   },
   {
     path: 'admin/users',
     loadComponent: () => import('./features/admin/users/user-list/user-list.component').then(m => m.UserListComponent),
-    canActivate: [AuthGuard]
+    canActivate: [AuthGuard, RoleGuard],
+    data: {roles: ['ADMIN']}
   },
   {
     path: '**',
