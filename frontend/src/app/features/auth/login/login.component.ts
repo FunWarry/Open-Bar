@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {Router} from '@angular/router';
 import {AuthService} from '../../../core/services/auth.service';
@@ -20,7 +20,7 @@ import { take } from 'rxjs/operators';
     standalone: true,
     imports: [MatCardModule, MatCardHeader, MatCardTitle, MatCardContent, MatFormFieldModule, MatInputModule, MatButtonModule, MatError, NgIf, ReactiveFormsModule]
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   loginForm: FormGroup;
 
   constructor(
@@ -33,13 +33,13 @@ export class LoginComponent {
       username: ['', Validators.required],
       password: ['', Validators.required]
     });
+  }
 
-    // Redirige vers la page d'accueil si déjà connecté
+  ngOnInit(): void {
     this.store.select(selectIsAuthenticated).pipe(take(1)).subscribe(isAuth => {
       if (isAuth) {
         this.router.navigate(['/']);
       }
-      // Sinon, on reste sur la page de login
     });
   }
 
