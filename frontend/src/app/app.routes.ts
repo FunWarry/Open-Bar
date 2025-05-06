@@ -87,6 +87,6 @@ export const routes: Routes = [
   },
   {
     path: '**',
-    redirectTo: 'home'
+    loadComponent: () => import('./features/error-404/error-404.component').then(m => m.Error404Component),
   }
 ];

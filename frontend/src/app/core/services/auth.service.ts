@@ -23,7 +23,7 @@ export class AuthService {
   login(username: string, password: string): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.API_URL}/login`, {username: username, password}).pipe(
       tap(response => {
-        this.setToken(response.token);
+        this.setTokenAndUser(response.token, response);
         this.store.dispatch(AuthActions.loginSuccess({
           user: {
             id: response.id,
@@ -43,7 +43,7 @@ export class AuthService {
   register(userData: Partial<User>): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.API_URL}/register`, userData).pipe(
       tap(response => {
-        this.setToken(response.token);
+        this.setTokenAndUser(response.token, response);
         this.store.dispatch(AuthActions.loginSuccess({
           user: {
             id: response.id,
@@ -62,6 +62,7 @@ export class AuthService {
 
   logout(): void {
     localStorage.removeItem(this.TOKEN_KEY);
+    localStorage.removeItem('auth_user');
     this.store.dispatch(AuthActions.logout());
   }
 
@@ -82,7 +83,21 @@ export class AuthService {
     }
   }
 
-  private setToken(token: string): void {
+  private setTokenAndUser(token: string, user: any): void {
     localStorage.setItem(this.TOKEN_KEY, token);
+    localStorage.setItem('auth_user', JSON.stringify({
+      id: user.id,
+      email: user.email,
+      username: user.username,
+      roles: user.roles,
+      enabled: user.enabled,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt
+    }));
+  }
+
+  getStoredUser(): User | null {
+    const user = localStorage.getItem('auth_user');
+    return user ? JSON.parse(user) : null;
   }
 }

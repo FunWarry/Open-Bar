@@ -9,6 +9,9 @@ import {MatInputModule} from '@angular/material/input';
 import {MatButtonModule} from '@angular/material/button';
 import {MatError} from '@angular/material/form-field';
 import { NgIf } from '@angular/common';
+import { selectIsAuthenticated } from '../../../core/store/auth.selectors';
+import { Store } from '@ngrx/store';
+import { take } from 'rxjs/operators';
 
 @Component({
     selector: 'app-login',
@@ -23,11 +26,20 @@ export class LoginComponent {
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private store: Store
   ) {
     this.loginForm = this.fb.group({
       username: ['', Validators.required],
       password: ['', Validators.required]
+    });
+
+    // Redirige vers la page d'accueil si déjà connecté
+    this.store.select(selectIsAuthenticated).pipe(take(1)).subscribe(isAuth => {
+      if (isAuth) {
+        this.router.navigate(['/']);
+      }
+      // Sinon, on reste sur la page de login
     });
   }
 
