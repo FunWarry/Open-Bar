@@ -21,8 +21,8 @@ export class NavigationService {
         if (isAuthenticated) {
           this.store.select(selectIsAdmin).pipe(
             take(1),
-            map(isAdmin => {
-              this.router.navigate(['/']).then();
+            map(() => {
+              this.router.navigate(['/app-home']).then();
             })
           ).subscribe();
         } else {
@@ -33,8 +33,10 @@ export class NavigationService {
   }
 
   navigateToLogin(): void {
+    console.log('Navigation vers login - Call stack:', new Error().stack);
     this.router.navigate(['/auth/login']).then();
   }
+
 
   navigateToRegister(): void {
     this.router.navigate(['/auth/register']);
@@ -47,7 +49,7 @@ export class NavigationService {
         if (isAdmin) {
           this.router.navigate(['/admin']).then();
         } else {
-          this.router.navigate(['/']).then();
+          this.router.navigate(['/app-home']).then();
         }
       })
     ).subscribe();

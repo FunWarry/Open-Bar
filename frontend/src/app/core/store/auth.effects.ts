@@ -1,26 +1,22 @@
-import { Injectable } from '@angular/core';
-import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { of } from 'rxjs';
-import { map, mergeMap, catchError, tap } from 'rxjs/operators';
-import { AuthService } from '../services/auth.service';
+import {Injectable} from '@angular/core';
+import {Actions, createEffect, ofType} from '@ngrx/effects';
+import {exhaustMap, of} from 'rxjs';
+import {catchError, map, tap} from 'rxjs/operators';
+import {AuthService} from '../services/auth.service';
 import * as AuthActions from './auth.actions';
-import { User } from '../models/user.model';
+import {NavigationService} from '../services/navigation.service';
 
 @Injectable()
 export class AuthEffects {
 
-  constructor(
-    private readonly actions$: Actions,
-    private readonly authService: AuthService
-  ) {}
-
   login$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AuthActions.login),
-      mergeMap(({ email, password }) =>
+      exhaustMap(({email, password}) =>
         this.authService.login(email, password).pipe(
           map(response => {
-            const user: User = {
+            console.log('Login réussi');
+            const user = {
               id: response.id,
               email: response.email,
               username: response.username,
@@ -29,9 +25,9 @@ export class AuthEffects {
               createdAt: new Date(response.createdAt),
               updatedAt: new Date(response.updatedAt)
             };
-            return AuthActions.loginSuccess({ user, token: response.token });
+            return AuthActions.loginSuccess({user, token: response.token});
           }),
-          catchError(error => of(AuthActions.loginFailure({ error: error.message })))
+          catchError(error => of(AuthActions.loginFailure({error: error.message})))
         )
       )
     )
@@ -40,10 +36,24 @@ export class AuthEffects {
   logout$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AuthActions.logout),
-      tap(() => this.authService.logout()),
-      map(() => AuthActions.logoutSuccess()),
-      catchError(error => of(AuthActions.logoutFailure({ error: error.message })))
+      tap(() => {
+        console.log('Effet logout déclenché');
+        this.authService.logout();
+
+        // Navigation après délai pour permettre la mise à jour du state
+        setTimeout(() => {
+          this.navigationService.navigateToLogin();
+        }, 300);
+      }),
+      map(() => AuthActions.logoutSuccess())
     )
   );
-  
+
+  constructor(
+    private actions$: Actions,
+    private authService: AuthService,
+    private navigationService: NavigationService
+  ) {
+  }
 }
+

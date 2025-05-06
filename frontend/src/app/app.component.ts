@@ -1,9 +1,7 @@
-import {Component} from '@angular/core';
-import {RouterOutlet} from '@angular/router';
+import {Component, OnInit} from '@angular/core';
+import {NavigationEnd, Router, RouterOutlet} from '@angular/router';
 import {NavbarComponent} from './core/components/navbar/navbar.component';
-import { Store } from '@ngrx/store';
-import * as AuthActions from './core/store/auth.actions';
-import { AuthService } from './core/services/auth.service';
+import {filter} from "rxjs";
 
 @Component({
   selector: 'app-root',
@@ -12,17 +10,20 @@ import { AuthService } from './core/services/auth.service';
   imports: [RouterOutlet, NavbarComponent],
   standalone: true
 })
-export class AppComponent {
-  title = 'Gestion Cocktail';
+export class AppComponent implements OnInit {
+  constructor(
+    private router: Router,
+  ) {
+  }
 
-  constructor(private store: Store, private authService: AuthService) {
-    const token = localStorage.getItem('auth_token');
-    const user = this.authService.getStoredUser();
-    if (token) {
-      this.store.dispatch(AuthActions.initAuthFromStorage({ token }));
-    }
-    if (user) {
-      this.store.dispatch(AuthActions.setCurrentUser({ user }));
-    }
+  ngOnInit() {
+    // Écouter les changements de route
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe((event: any) => {
+      if (event.url.includes('/auth/login')) {
+        console.log('Navigation vers la page de login');
+      }
+    });
   }
 }

@@ -29,10 +29,13 @@ export const authReducer = createReducer(
     ...state,
     error
   })),
-  on(AuthActions.logout, () => ({
+  on(AuthActions.logout, (state) => ({
+    ...state
+  })),
+  on(AuthActions.logoutSuccess, () => ({
     ...initialState
   })),
-  on(AuthActions.initAuthFromStorage, (state, { token }) => ({
+  on(AuthActions.initAuthFromStorage, (state, {token}) => ({
     ...state,
     token,
     isAuthenticated: !!token,

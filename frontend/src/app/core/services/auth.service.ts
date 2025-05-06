@@ -1,103 +1,88 @@
 import {Injectable} from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import {Store} from '@ngrx/store';
-import {Observable, tap} from 'rxjs';
+import {HttpClient} from '@angular/common/http';
+import {Observable, throwError} from 'rxjs';
 import {environment} from '../../../environments/environment';
-import {User} from '../models/user.model';
 import {AuthResponse} from '../models/auth-response.model';
-import * as AuthActions from '../store/auth.actions';
+import {tap} from "rxjs/operators";
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
   private readonly TOKEN_KEY = 'auth_token';
+  private readonly USER_KEY = 'auth_user';
   private readonly API_URL = `${environment.apiUrl}/auth`;
+  private inProgress = false;
 
   constructor(
-    private http: HttpClient,
-    private store: Store
+    private http: HttpClient
   ) {
   }
 
   login(username: string, password: string): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.API_URL}/login`, {username: username, password}).pipe(
-      tap(response => {
-        this.setTokenAndUser(response.token, response);
-        this.store.dispatch(AuthActions.loginSuccess({
-          user: {
-            id: response.id,
-            email: response.email,
-            username: response.username,
-            roles: response.roles,
-            enabled: response.enabled,
-            createdAt: new Date(response.createdAt),
-            updatedAt: new Date(response.updatedAt)
-          },
-          token: response.token
-        }));
-      })
-    );
-  }
+    if (this.inProgress) {
+      return throwError(() => new Error('Une opération est déjà en cours'));
+    }
 
-  register(userData: Partial<User>): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.API_URL}/register`, userData).pipe(
-      tap(response => {
-        this.setTokenAndUser(response.token, response);
-        this.store.dispatch(AuthActions.loginSuccess({
-          user: {
-            id: response.id,
-            email: response.email,
-            username: response.username,
-            roles: response.roles,
-            enabled: response.enabled,
-            createdAt: new Date(response.createdAt),
-            updatedAt: new Date(response.updatedAt)
-          },
-          token: response.token
-        }));
+    console.log('Appel login() service');
+    this.inProgress = true;
+
+    return this.http.post<AuthResponse>(`${this.API_URL}/login`, {username, password}).pipe(
+      tap({
+        next: (response) => {
+          // Stocker les données en local
+          this.saveUserData(response);
+          this.inProgress = false;
+        },
+        error: () => {
+          this.inProgress = false;
+        }
       })
     );
   }
 
   logout(): void {
+    if (this.inProgress) {
+      console.log('Opération déjà en cours');
+      return;
+    }
+
+    this.inProgress = true;
+
+    // Nettoyer le localStorage immédiatement
     localStorage.removeItem(this.TOKEN_KEY);
-    localStorage.removeItem('auth_user');
-    this.store.dispatch(AuthActions.logout());
+    localStorage.removeItem(this.USER_KEY);
+
+    // Nettoyer le session storage
+    sessionStorage.removeItem('store_hydrated');
+
+    // Attendre avant de terminer le processus
+    setTimeout(() => {
+      this.inProgress = false;
+    }, 1000);
   }
 
   getToken(): string | null {
-    return localStorage.getItem(this.TOKEN_KEY);
+    return this.inProgress ? null : localStorage.getItem(this.TOKEN_KEY);
   }
 
-  isAuthenticated(): boolean {
-    const token = this.getToken();
-    if (!token) {
-      return false;
-    }
-    try {
-      const decoded = JSON.parse(atob(token.split('.')[1]));
-      return decoded.exp > Date.now() / 1000;
-    } catch (e) {
-      return false;
-    }
-  }
+  getStoredUser() {
+    if (this.inProgress) return null;
 
-  private setTokenAndUser(token: string, user: any): void {
-    localStorage.setItem(this.TOKEN_KEY, token);
-    localStorage.setItem('auth_user', JSON.stringify({
-      id: user.id,
-      email: user.email,
-      username: user.username,
-      roles: user.roles,
-      enabled: user.enabled,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt
-    }));
-  }
-
-  getStoredUser(): User | null {
-    const user = localStorage.getItem('auth_user');
+    const user = localStorage.getItem(this.USER_KEY);
     return user ? JSON.parse(user) : null;
+  }
+
+  private saveUserData(response: AuthResponse): void {
+    localStorage.setItem(this.TOKEN_KEY, response.token);
+    localStorage.setItem(this.USER_KEY, JSON.stringify({
+      id: response.id,
+      email: response.email,
+      username: response.username,
+      roles: response.roles,
+      enabled: response.enabled,
+      createdAt: new Date(response.createdAt),
+      updatedAt: new Date(response.updatedAt)
+    }));
   }
 }
