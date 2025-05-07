@@ -2,8 +2,9 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
+  min-height: 100vh;
   background-color: #f5f5f5;
+  padding: 20px 0;
 }
 
 mat-card {
@@ -19,4 +20,8 @@ mat-card {
 
 button {
   width: 100%;
+}
+
+mat-card-title {
+  margin-bottom: 16px;
 }
