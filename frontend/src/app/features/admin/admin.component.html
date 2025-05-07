@@ -86,7 +86,7 @@
       </mat-card-header>
       <mat-card-content>
         <div class="action-buttons">
-          <button mat-raised-button color="primary">
+          <button mat-button (click)="navigationService.navigateToRegister()">
             <mat-icon>person_add</mat-icon>
             Créer un utilisateur
           </button>

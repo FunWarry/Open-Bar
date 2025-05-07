@@ -8,6 +8,8 @@ import {MatCardHeader, MatCardTitle, MatCardContent} from '@angular/material/car
 import {MatIconModule} from '@angular/material/icon';
 import {MatButtonModule} from '@angular/material/button';
 import { AsyncPipe } from '@angular/common';
+import {NavigationService} from "../../core/services/navigation.service";
+
 @Component({
   selector: 'app-admin',
   templateUrl: './admin.component.html',
@@ -18,8 +20,11 @@ import { AsyncPipe } from '@angular/common';
 export class AdminComponent implements OnInit {
   currentUser$: Observable<User | null>;
 
-  constructor(private store: Store) {
+  constructor(private store: Store
+  , protected navigationService: NavigationService
+  ) {
     this.currentUser$ = this.store.select(selectCurrentUser);
+    this.navigationService = navigationService;
   }
 
   ngOnInit(): void {
