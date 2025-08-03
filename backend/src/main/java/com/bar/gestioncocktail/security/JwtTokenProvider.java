@@ -1,25 +1,29 @@
 package com.bar.gestioncocktail.security;
 
+import com.bar.gestioncocktail.config.JwtProperties;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 import org.springframework.security.core.userdetails.User;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.security.Key;
 import java.util.Date;
 
 @Component
 public class JwtTokenProvider {
+    private static final Logger logger = LoggerFactory.getLogger(JwtTokenProvider.class);
     private final Key key;
     private final long jwtExpiration;
 
-    public JwtTokenProvider(
-        @Value("${spring.security.jwt.secret}") String jwtSecret,
-        @Value("${spring.security.jwt.expiration}") long jwtExpiration) {
-        this.key = Keys.secretKeyFor(SignatureAlgorithm.HS512);
-        this.jwtExpiration = jwtExpiration;
+    @Autowired
+    public JwtTokenProvider(JwtProperties jwtProperties) {
+        this.key = Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes());
+        this.jwtExpiration = jwtProperties.getExpiration();
     }
 
     public String generateToken(Authentication authentication) {
@@ -54,4 +58,4 @@ public class JwtTokenProvider {
             return false;
         }
     }
-} 
+}

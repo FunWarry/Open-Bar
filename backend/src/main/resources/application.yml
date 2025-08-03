@@ -13,7 +13,7 @@ spring:
         format_sql: true
   security:
     jwt:
-      secret: this_is_a_secret_token_for_jwt_ #${JWT_SECRET}
+      secret: "QW1wQ2h1bG9rZV9zZWNyZXQtbG9uZ19iYXNlNjRfZm9yX0pXVC1wcm9kdWN0aW9uLXNwcmluZy1ib290Ig=="
       expiration: 86400000 # 24 heures
   main:
     allow-circular-references: true
@@ -25,4 +25,4 @@ logging:
   level:
     org.springframework.security: DEBUG
     com.bar.gestioncocktail: DEBUG
-    org.hibernate.SQL: off 
+    org.hibernate.SQL: off
