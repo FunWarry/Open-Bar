@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>OpenBar — Design System (formalisé)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="tokens.css" />
+<link rel="stylesheet" href="components.css" />
+<link rel="stylesheet" href="doc.css" />
+</head>
+<body class="ob">
+<div class="layout">
+
+  <!-- ============ TOC ============ -->
+  <nav class="toc">
+    <div class="toc__brand"><span class="logo">🍸</span><span class="name">OpenBar</span></div>
+    <p class="toc__sub">Design System · v2 formalisé · Dark</p>
+
+    <div class="toc__group">Fondations</div>
+    <a href="#couleurs">Couleurs</a>
+    <a href="#typo">Typographie</a>
+    <a href="#espacement">Espacement</a>
+    <a href="#rayons">Rayons &amp; élévation</a>
+
+    <div class="toc__group">Atomes</div>
+    <a href="#boutons">Boutons</a>
+    <a href="#statuts">Badges de statut</a>
+    <a href="#indicateurs">Table · sévérité · priorité</a>
+    <a href="#chips">Chips &amp; filtres</a>
+    <a href="#avatar">Avatar &amp; rôles</a>
+    <a href="#inputs">Champs de formulaire</a>
+    <a href="#nav-atoms">Nav · colonnes · stepper</a>
+    <a href="#tablenode">Plan de salle</a>
+
+    <div class="toc__group">Composites</div>
+    <a href="#commande">Carte commande</a>
+    <a href="#stock">Ligne de stock</a>
+    <a href="#cocktail">Carte cocktail</a>
+    <a href="#stats">Stat · alerte · notes</a>
+    <a href="#qr">Client QR</a>
+
+    <div class="toc__group">Assemblages</div>
+    <a href="#navbar">NavBar &amp; Topbar</a>
+
+    <div class="toc__group">Code</div>
+    <a href="#tokens-css">Tokens CSS</a>
+    <a href="#ionic">Mapping Ionic</a>
+  </nav>
+
+  <!-- ============ CONTENT ============ -->
+  <main class="content">
+
+    <header class="page-head">
+      <span class="eyebrow">●&nbsp;&nbsp;Design System · Ippon Technologies</span>
+      <h1>OpenBar, formalisé.</h1>
+      <p>Reprise des ~30 composants existants : une primaire canonique, des échelles d'espacement et de rayon cohérentes, de l'auto-layout partout, des cibles tactiles de 44&nbsp;px et un contraste AA. Chaque composant indique le <b style="color:var(--primary-light)">correctif</b> appliqué par rapport au fichier d'origine.</p>
+      <div class="meta">
+        <span class="pill-meta"><b>30+</b> composants</span>
+        <span class="pill-meta">Primaire <b>#6C7FE8</b></span>
+        <span class="pill-meta">Dark · AA</span>
+        <span class="pill-meta">Tap <b>44px</b></span>
+        <span class="pill-meta">Tokens → <b>Ionic</b></span>
+      </div>
+    </header>
+
+    <!-- ===================== COULEURS ===================== -->
+    <section class="block" id="couleurs">
+      <div class="block__head">
+        <h2>Couleurs</h2>
+        <p>Une seule primaire canonique : le périwinkle <b>#6C7FE8</b> (le plus utilisé dans le fichier), qui remplace le violet <b>#7C3AED</b> documenté mais minoritaire. Les fonds suivent une échelle d'élévation par valeur ; les statuts métier sont fixes et sémantiques.</p>
+      </div>
+
+      <div class="subhead">Primaire — périwinkle</div>
+      <div class="grid-tokens" id="grid-primary"></div>
+
+      <div class="subhead">Fonds &amp; surfaces (élévation par valeur)</div>
+      <div class="grid-tokens" id="grid-surface"></div>
+
+      <div class="subhead">Texte (3 niveaux · AA garanti sur le fond global)</div>
+      <div class="grid-tokens" id="grid-text"></div>
+
+      <div class="subhead">Rôles</div>
+      <div class="grid-tokens" id="grid-roles"></div>
+
+      <div class="subhead">Statuts de commande</div>
+      <div class="grid-tokens" id="grid-status"></div>
+
+      <div class="spec" style="margin-top:var(--space-6)">
+        <div class="fix" style="border-top:none">
+          <span class="fix__icon">✓</span>
+          <span class="fix__body"><b>Correctif — dérive de primaire.</b> Le fichier mélangeait <span class="before">#7C3AED</span> (violet, tokens) et <span class="before">#6C7FE8</span> (périwinkle, usage réel). Unifié sur <span class="after">#6C7FE8</span>. Comme le périwinkle pur échoue au contraste sur texte blanc (3.6:1), les remplissages pleins utilisent <span class="after">#5A68D6</span> (4.8:1, AA).</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== TYPO ===================== -->
+    <section class="block" id="typo">
+      <div class="block__head">
+        <h2>Typographie</h2>
+        <p>Inter, échelle modulaire à 8 niveaux. Les libellés passent en 11&nbsp;px semibold majuscules tracés — au lieu du « bold 12&nbsp;px gris » d'origine, peu lisible et ambigu avec le corps de texte.</p>
+      </div>
+      <div id="type-scale"></div>
+      <div class="spec" style="margin-top:var(--space-6)">
+        <div class="fix" style="border-top:none">
+          <span class="fix__icon">✓</span>
+          <span class="fix__body"><b>Correctif — libellés.</b> <span class="before">Bold 12px · gris #666680</span> → <span class="after">11px · 600 · majuscules · tracking .06em</span>. Hiérarchie claire entre libellé, corps et titre.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== ESPACEMENT ===================== -->
+    <section class="block" id="espacement">
+      <div class="block__head">
+        <h2>Espacement</h2>
+        <p>Échelle 4-pt unique. Le fichier d'origine mélangeait des gaps de 2, 3, 6, 10, 12, 14, 40&nbsp;px sans logique : tout est ramené à des multiples de 4.</p>
+      </div>
+      <div id="space-scale"></div>
+      <div class="spec" style="margin-top:var(--space-6)">
+        <div class="fix" style="border-top:none">
+          <span class="fix__icon">✓</span>
+          <span class="fix__body"><b>Correctif — espacement.</b> <span class="before">gap: 2 / 3 / 6 / 10 / 14</span> → <span class="after">échelle 4-pt : 4 · 8 · 12 · 16 · 20 · 24 · 32 · 40</span>.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== RAYONS / ELEVATION ===================== -->
+    <section class="block" id="rayons">
+      <div class="block__head">
+        <h2>Rayons &amp; élévation</h2>
+        <p>Quatre rayons + pilule, et trois niveaux d'ombre. Le DS d'origine n'avait aucune ombre (zéro profondeur) et empilait 5/8/10/12/16&nbsp;px de rayon sur des composants équivalents.</p>
+      </div>
+      <div class="subhead">Rayons</div>
+      <div id="radius-row" style="display:flex;flex-wrap:wrap;gap:var(--space-5)"></div>
+      <div class="subhead">Élévation</div>
+      <div id="elev-row" style="display:flex;flex-wrap:wrap;gap:var(--space-6)"></div>
+      <div class="spec" style="margin-top:var(--space-6)">
+        <div class="fix" style="border-top:none">
+          <span class="fix__icon">✓</span>
+          <span class="fix__body"><b>Correctif — rayons &amp; profondeur.</b> <span class="before">5 / 8 / 10 / 12 / 16 mélangés · aucune ombre</span> → <span class="after">sm 6 · md 10 · lg 14 · xl 20 + 3 niveaux d'élévation</span>.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== BOUTONS ===================== -->
+    <section class="block" id="boutons">
+      <div class="block__head">
+        <h2>Boutons</h2>
+        <p>Un seul composant, 4 types (Primary / Secondary / Ghost / Danger) × états. Hauteur portée à 44&nbsp;px (cible tactile), anneau de focus visible, rayon unifié.</p>
+      </div>
+      <div class="spec">
+        <div class="spec__bar"><h3>ActionButton</h3><span class="tag">.btn · 4 types · 44px</span></div>
+        <div class="spec__stage col">
+          <div style="display:flex;gap:var(--space-3);flex-wrap:wrap">
+            <button class="btn btn--primary">▶ Démarrer</button>
+            <button class="btn btn--secondary">↑ Mettre à jour</button>
+            <button class="btn btn--ghost">+ Commander</button>
+            <button class="btn btn--danger">✕ Annuler</button>
+          </div>
+          <div style="display:flex;gap:var(--space-3);flex-wrap:wrap;align-items:center">
+            <button class="btn btn--primary">Default</button>
+            <button class="btn btn--primary" style="background:var(--primary)">Hover</button>
+            <button class="btn btn--primary" style="background:var(--primary-press)">Pressed</button>
+            <button class="btn btn--primary" disabled>Disabled</button>
+            <span class="specimen"><span class="cap">densité kanban</span><button class="btn btn--primary btn-sm">▶ Démarrer</button></span>
+          </div>
+        </div>
+        <div class="fix">
+          <span class="fix__icon">✓</span>
+          <span class="fix__body"><b>Correctif — cible tactile &amp; AA.</b> <span class="before">40px (et 32px dans les cartes), texte blanc sur #7C3AED non-AA</span> → <span class="after">44px, remplissage #5A68D6 AA, focus ring</span>. Variante <code>btn-sm</code> 36px réservée à la densité kanban, jamais en tactile primaire.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== STATUTS ===================== -->
+    <section class="block" id="statuts">
+      <div class="block__head">
+        <h2>Badges de statut</h2>
+        <p>Pastille colorée + fond teinté du statut (16&nbsp;%), pilule. Couleurs de statut alignées sur les tokens : fini la bordure « En attente » en <b>#FF8C00</b> qui ne correspondait pas au token <b>#F59E0B</b>.</p>
+      </div>
+      <div class="spec">
+        <div class="spec__bar"><h3>StatusBadge</h3><span class="tag">.badge[data-status] · 6 statuts</span></div>
+        <div class="spec__stage">
+          <span class="badge" data-status="attente"><span class="dot"></span>En attente</span>
+          <span class="badge" data-status="prepa"><span class="dot"></span>En préparation</span>
+          <span class="badge" data-status="prete"><span class="dot"></span>Prête</span>
+          <span class="badge" data-status="servie"><span class="dot"></span>Servie</span>
+          <span class="badge" data-status="annulee"><span class="dot"></span>Annulée</span>
+          <span class="badge" data-status="prio"><span class="dot"></span>⚡ Prioritaire</span>
+        </div>
+        <div class="fix">
+          <span class="fix__icon">✓</span>
+          <span class="fix__body"><b>Correctif — cohérence des couleurs.</b> Statuts ré-alignés sur des tokens uniques et teintes de fond calculées (color-mix), au lieu de valeurs RVB recopiées à la main qui divergeaient d'un écran à l'autre.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== INDICATEURS ===================== -->
+    <section class="block" id="indicateurs">
+      <div class="block__head">
+        <h2>Table · sévérité · priorité</h2>
+        <p>Petits indicateurs réutilisables.</p>
+      </div>
+      <div class="spec">
+        <div class="spec__bar"><h3>TableBadge · StockSeverityBadge · PrioBadge</h3><span class="tag">atomes</span></div>
+        <div class="spec__stage">
+          <span class="specimen"><span class="cap">Table</span><span style="display:flex;gap:8px"><span class="table-badge">T4</span><span class="table-badge">T12</span><span class="table-badge">#1025</span></span></span>
+          <span class="specimen"><span class="cap">Sévérité stock</span><span style="display:flex;gap:8px"><span class="sev" data-level="normal">● Normal</span><span class="sev" data-level="faible">● Faible</span><span class="sev" data-level="critique">● Critique</span></span></span>
+          <span class="specimen"><span class="cap">Priorité</span><span class="prio-badge">⚡ URGENT</span></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== CHIPS ===================== -->
+    <section class="block" id="chips">
+      <div class="block__head">
+        <h2>Chips &amp; filtres</h2>
+        <p>Chips de filtre (barman/stocks) et onglets de catégorie (client QR). État actif = teinte primaire + bordure, état par défaut = surface neutre.</p>
+      </div>
+      <div class="spec">
+        <div class="spec__bar"><h3>FilterChip</h3><span class="tag">.filter-chip[aria-pressed] · 36px</span></div>
+        <div class="spec__stage">
+          <button class="filter-chip" aria-pressed="true"><span class="dot"></span>Toutes</button>
+          <button class="filter-chip" aria-pressed="false"><span class="dot"></span>En attente</button>
+          <button class="filter-chip" aria-pressed="false"><span class="dot"></span>En préparation</button>
+          <button class="filter-chip" aria-pressed="false"><span class="dot"></span>Prêtes</button>
+        </div>
+      </div>
+      <div class="spec">
+        <div class="spec__bar"><h3>CategoryTab</h3><span class="tag">.cat-tab[aria-selected] · 44px</span></div>
+        <div class="spec__stage">
+          <button class="cat-tab" aria-selected="true">Cocktails</button>
+          <button class="cat-tab" aria-selected="false">Sans alcool</button>
+          <button class="cat-tab" aria-selected="false">Shots</button>
+          <button class="cat-tab" aria-selected="false">Softs</button>
+        </div>
+        <div class="fix">
+          <span class="fix__icon">✓</span>
+          <span class="fix__body"><b>Correctif.</b> Onglets QR client passés de <span class="before">32px</span> à <span class="after">44px</span> (usage tactile sur téléphone client).</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== AVATAR / ROLES ===================== -->
+    <section class="block" id="avatar">
+      <div class="block__head">
+        <h2>Avatar &amp; chips de rôle</h2>
+        <p>Identité par rôle, couleur dédiée. Admin = violet doux (maintenance technique), distinct des 3 rôles métier.</p>
+      </div>
+      <div class="spec">
+        <div class="spec__bar"><h3>Avatar · RoleBadge</h3><span class="tag">4 rôles</span></div>
+        <div class="spec__stage">
+          <span class="specimen"><span class="cap">Manager</span><span style="display:flex;gap:10px;align-items:center"><span class="avatar" data-role="manager">M</span><span class="role-chip" data-role="manager"><span class="dot"></span>Manager</span></span></span>
+          <span class="specimen"><span class="cap">Serveur</span><span style="display:flex;gap:10px;align-items:center"><span class="avatar" data-role="serveur">S</span><span class="role-chip" data-role="serveur"><span class="dot"></span>Serveur</span></span></span>
+          <span class="specimen"><span class="cap">Barman</span><span style="display:flex;gap:10px;align-items:center"><span class="avatar" data-role="barman">B</span><span class="role-chip" data-role="barman"><span class="dot"></span>Barman</span></span></span>
+          <span class="specimen"><span class="cap">Admin</span><span style="display:flex;gap:10px;align-items:center"><span class="avatar" data-role="admin">A</span><span class="role-chip" data-role="admin"><span class="dot"></span>Admin</span></span></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== INPUTS ===================== -->
+    <section class="block" id="inputs">
+      <div class="block__head">
+        <h2>Champs de formulaire</h2>
+        <p>Texte, zone de texte et select. Champs à 44&nbsp;px, label lisible, anneau de focus accessible.</p>
+      </div>
+      <div class="spec">
+        <div class="spec__bar"><h3>FormInput</h3><span class="tag">.field · 44px · focus ring</span></div>
+        <div class="spec__stage" style="gap:var(--space-6)">
+          <div class="field" style="max-width:260px"><label>Nom du cocktail</label><input class="input" placeholder="Mojito royal" /></div>
+          <div class="field" style="max-width:260px"><label>Catégorie</label><select class="select"><option>Cocktail alcoolisé</option><option>Sans alcool</option><option>Shot</option></select></div>
+          <div class="field" style="max-width:300px"><label>Recette</label><textarea class="textarea" placeholder="Étapes de préparation…"></textarea></div>
+        </div>
+        <div class="fix">
+          <span class="fix__icon">✓</span>
+          <span class="fix__body"><b>Correctif.</b> Label <span class="before">bold gris</span> → <span class="after">label majuscule lisible</span> ; ajout d'un état focus visible (anneau primaire) absent du fichier d'origine.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== NAV ATOMS ===================== -->
+    <section class="block" id="nav-atoms">
+      <div class="block__head">
+        <h2>Navigation · colonnes · stepper</h2>
+        <p>Entrée de nav (sidebar), en-tête de colonne kanban, sélecteur de quantité, barre de progression stock.</p>
+      </div>
+      <div class="spec">
+        <div class="spec__bar"><h3>NavItem · KanbanColHeader</h3><span class="tag">44px / 40px</span></div>
+        <div class="spec__stage">
+          <div style="display:flex;flex-direction:column;gap:6px;width:220px">
+            <a class="nav-item" aria-current="page"><span class="ico">▦</span>Commandes</a>
+            <a class="nav-item"><span class="ico">🍸</span>Cocktails</a>
+            <a class="nav-item"><span class="ico">▤</span>Stocks</a>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;width:240px">
+            <div class="kanban-head" data-status="attente">En attente <span class="count">3</span></div>
+            <div class="kanban-head" data-status="prepa">En préparation <span class="count">2</span></div>
+            <div class="kanban-head" data-status="prete">Prêtes à servir <span class="count">1</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="spec">
+        <div class="spec__bar"><h3>QuantityStepper · StockProgressBar</h3><span class="tag">atomes</span></div>
+        <div class="spec__stage">
+          <span class="specimen"><span class="cap">Stepper</span><span class="stepper"><button aria-label="moins">−</button><span class="val">2</span><button aria-label="plus">+</button></span></span>
+          <span class="specimen" style="width:280px"><span class="cap">Progression — normal</span><span class="progress" data-level="normal"><i style="width:72%"></i></span></span>
+          <span class="specimen" style="width:280px"><span class="cap">Faible</span><span class="progress" data-level="faible"><i style="width:34%"></i></span></span>
+          <span class="specimen" style="width:280px"><span class="cap">Critique</span><span class="progress" data-level="critique"><i style="width:12%"></i></span></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== TABLE NODE ===================== -->
+    <section class="block" id="tablenode">
+      <div class="block__head">
+        <h2>Plan de salle</h2>
+        <p>Nœud de table (rond / carré) × 6 statuts, et légende. Remplissage teinté + bordure de statut pour une lecture immédiate à distance (écran de bar).</p>
+      </div>
+      <div class="spec">
+        <div class="spec__bar"><h3>TableNode</h3><span class="tag">.table-node · round/square · 6 statuts</span></div>
+        <div class="spec__stage">
+          <span class="specimen"><span class="cap">Libre</span><span class="table-node round" data-status="libre"><span class="num">T1</span><span class="seats">4p</span></span></span>
+          <span class="specimen"><span class="cap">Occupée</span><span class="table-node round" data-status="occupee"><span class="num">T2</span><span class="seats">2p</span></span></span>
+          <span class="specimen"><span class="cap">Réservée</span><span class="table-node square" data-status="reservee"><span class="num">T3</span><span class="seats">6p</span></span></span>
+          <span class="specimen"><span class="cap">En prépa</span><span class="table-node square" data-status="prepa"><span class="num">T4</span><span class="seats">4p</span></span></span>
+          <span class="specimen"><span class="cap">Att. paiement</span><span class="table-node round" data-status="paiement"><span class="num">T5</span><span class="seats">2p</span></span></span>
+          <span class="specimen"><span class="cap">Annulée</span><span class="table-node square" data-status="annulee"><span class="num">T6</span><span class="seats">4p</span></span></span>
+        </div>
+        <div class="spec__stage" style="padding-top:0;background:var(--surface-1);background-image:none;border-top:1px solid var(--border-subtle)">
+          <span class="legend-item"><span class="sw" style="border-color:var(--tb-libre)"></span>Libre</span>
+          <span class="legend-item"><span class="sw" style="border-color:var(--tb-occupee)"></span>Occupée</span>
+          <span class="legend-item"><span class="sw" style="border-color:var(--tb-reservee)"></span>Réservée</span>
+          <span class="legend-item"><span class="sw" style="border-color:var(--tb-prepa)"></span>En prépa</span>
+          <span class="legend-item"><span class="sw" style="border-color:var(--tb-paiement)"></span>Att. paiement</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== COMMANDE CARD ===================== -->
+    <section class="block" id="commande">
+      <div class="block__head">
+        <h2>Carte commande</h2>
+        <p>Carte du kanban barman. La bordure de statut épaisse (3&nbsp;px tout autour) devient un liseré gauche de 4&nbsp;px — plus lisible, moins lourd — et les dividers SVG bricolés deviennent de vrais séparateurs.</p>
+      </div>
+      <div class="spec">
+        <div class="spec__bar"><h3>CommandeCard</h3><span class="tag">.cmd-card[data-status] · auto-layout</span></div>
+        <div class="spec__stage center">
+          <div class="cmd-card" data-status="attente">
+            <div class="cmd-card__head">
+              <div class="cmd-card__meta"><span class="cmd-card__num">T4</span><span class="cmd-card__time">07:32</span></div>
+              <span class="badge" data-status="attente"><span class="dot"></span>En attente</span>
+            </div>
+            <div class="cmd-card__divider"></div>
+            <div class="cmd-card__list">
+              <div class="ing-line"><b>×2</b> Mojito</div>
+              <div class="ing-line"><b>×1</b> Spritz</div>
+            </div>
+            <div class="cmd-card__divider"></div>
+            <div class="cmd-card__foot"><button class="btn btn--primary btn-sm">▶ Démarrer</button></div>
+          </div>
+
+          <div class="cmd-card prio" data-status="prepa">
+            <div class="cmd-card__head">
+              <div class="cmd-card__meta"><span class="cmd-card__num">T9</span><span class="cmd-card__time">02:11</span></div>
+              <span class="badge" data-status="prio"><span class="dot"></span>⚡ Prioritaire</span>
+            </div>
+            <div class="cmd-card__divider"></div>
+            <div class="cmd-card__list">
+              <div class="ing-line"><b>×3</b> Margarita</div>
+              <div class="ing-line"><b>×1</b> Virgin Colada</div>
+            </div>
+            <div class="cmd-card__divider"></div>
+            <div class="cmd-card__foot"><button class="btn btn--primary btn-sm">✓ Marquer prête</button><button class="btn btn--danger btn-sm">✕</button></div>
+          </div>
+
+          <div class="cmd-card" data-status="prete">
+            <div class="cmd-card__head">
+              <div class="cmd-card__meta"><span class="cmd-card__num">T2</span><span class="cmd-card__time">00:48</span></div>
+              <span class="badge" data-status="prete"><span class="dot"></span>Prête</span>
+            </div>
+            <div class="cmd-card__divider"></div>
+            <div class="cmd-card__list">
+              <div class="ing-line"><b>×1</b> Negroni</div>
+            </div>
+            <div class="cmd-card__divider"></div>
+            <div class="cmd-card__foot"><button class="btn btn--secondary btn-sm">🚀 Livrer</button></div>
+          </div>
+        </div>
+        <div class="fix">
+          <span class="fix__icon">✓</span>
+          <span class="fix__body"><b>Correctif — structure.</b> <span class="before">position:absolute, bordure 3px, dividers SVG hauteur 0</span> → <span class="after">flex column + gap, liseré gauche 4px, dividers réels</span>. La carte se redimensionne désormais avec son conteneur (responsive).</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== STOCK ROW ===================== -->
+    <section class="block" id="stock">
+      <div class="block__head">
+        <h2>Ligne de stock</h2>
+        <p>Ingrédient + sévérité + seuil/restant + progression + usage + actions. Grille à 1 colonne fluide au lieu d'un patchwork de positions absolues.</p>
+      </div>
+      <div class="spec">
+        <div class="spec__bar"><h3>StockRow</h3><span class="tag">.stock-row[data-level] · grid</span></div>
+        <div class="spec__stage col">
+          <div class="stock-row" data-level="critique" style="width:100%;max-width:560px">
+            <div class="stock-row__title">Rhum Havana Club 7 ans</div>
+            <span class="sev" data-level="critique">● Critique</span>
+            <div class="stock-row__meta"><span>Seuil : 2 L</span><span class="restant">Restant : 1.2 L</span></div>
+            <div class="stock-row__bar"><span class="progress" data-level="critique"><i style="width:14%"></i></span></div>
+            <div class="stock-row__use">Utilisé dans : Mojito, Dark'n Stormy, Ti'Punch</div>
+            <div class="stock-row__actions"><button class="btn btn--ghost btn-sm">+ Commander</button><button class="btn btn--secondary btn-sm">↑ Mettre à jour</button></div>
+          </div>
+          <div class="stock-row" data-level="normal" style="width:100%;max-width:560px">
+            <div class="stock-row__title">Citron vert</div>
+            <span class="sev" data-level="normal">● Normal</span>
+            <div class="stock-row__meta"><span>Seuil : 30 u.</span><span class="restant">Restant : 84 u.</span></div>
+            <div class="stock-row__bar"><span class="progress" data-level="normal"><i style="width:78%"></i></span></div>
+            <div class="stock-row__use">Utilisé dans : Mojito, Margarita, Caïpirinha</div>
+            <div class="stock-row__actions"><button class="btn btn--secondary btn-sm">↑ Mettre à jour</button></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== COCKTAIL CARD ===================== -->
+    <section class="block" id="cocktail">
+      <div class="block__head">
+        <h2>Carte cocktail</h2>
+        <p>Catalogue barman. Visuel en placeholder (à remplacer par la photo produit), badge catégorie, prix en accent.</p>
+      </div>
+      <div class="spec">
+        <div class="spec__bar"><h3>CocktailCard</h3><span class="tag">.cocktail-card</span></div>
+        <div class="spec__stage">
+          <div class="cocktail-card">
+            <div class="cocktail-card__media"><span class="tag badge" data-status="prete" style="background:color-mix(in srgb,var(--role-barman) 18%,transparent);color:var(--role-barman)"><span class="dot"></span>Alcoolisé</span></div>
+            <div class="cocktail-card__body">
+              <div class="cocktail-card__name">Mojito royal</div>
+              <div class="t-xs">Rhum · menthe · citron vert · champagne</div>
+              <div class="cocktail-card__row"><span class="sev" data-level="normal">● En stock</span><span class="cocktail-card__price">12 €</span></div>
+            </div>
+          </div>
+          <div class="cocktail-card">
+            <div class="cocktail-card__media"><span class="tag badge" data-status="servie"><span class="dot"></span>Sans alcool</span></div>
+            <div class="cocktail-card__body">
+              <div class="cocktail-card__name">Virgin Colada</div>
+              <div class="t-xs">Ananas · coco · citron</div>
+              <div class="cocktail-card__row"><span class="sev" data-level="faible">● Stock faible</span><span class="cocktail-card__price">8 €</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== STATS / ALERTE / NOTES ===================== -->
+    <section class="block" id="stats">
+      <div class="block__head">
+        <h2>Stat · alerte · notes</h2>
+        <p>Briques du dashboard manager et des panneaux contextuels.</p>
+      </div>
+      <div class="spec">
+        <div class="spec__bar"><h3>StatCard</h3><span class="tag">.stat-card</span></div>
+        <div class="spec__stage">
+          <div class="stat-card"><span class="stat-card__val accent">42</span><span class="stat-card__label">Commandes / h</span><span class="stat-card__trend up">▲ 12 %</span></div>
+          <div class="stat-card"><span class="stat-card__val">1 284 €</span><span class="stat-card__label">Recettes du soir</span><span class="stat-card__trend up">▲ 8 %</span></div>
+          <div class="stat-card"><span class="stat-card__val" style="color:var(--stock-critique)">3</span><span class="stat-card__label">Stocks critiques</span><span class="stat-card__trend down">▼ à traiter</span></div>
+        </div>
+      </div>
+      <div class="spec">
+        <div class="spec__bar"><h3>StockAlertBanner · NotesCard</h3><span class="tag">composites</span></div>
+        <div class="spec__stage col">
+          <div class="alert-banner" style="width:100%;max-width:560px"><span class="ico">⚠</span>3 ingrédients sous le seuil critique<button class="btn btn--danger btn-sm">Voir les stocks</button></div>
+          <div class="alert-banner info" style="width:100%;max-width:560px"><span class="ico">ℹ</span>Réassort Rhum prévu demain 9 h</div>
+          <div class="notes-card" style="width:100%;max-width:560px"><span class="ico">📝</span><div><div class="notes-card__label">Note serveur</div><div class="notes-card__text">Sans glace pour la table 4.</div></div></div>
+          <div class="notes-card" data-kind="allergie" style="width:100%;max-width:560px"><span class="ico">⚠</span><div><div class="notes-card__label">Allergie</div><div class="notes-card__text">Client allergique aux fruits à coque.</div></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== QR CLIENT ===================== -->
+    <section class="block" id="qr">
+      <div class="block__head">
+        <h2>Client QR (mobile)</h2>
+        <p>Interface client non authentifiée, ultra-légère. Header mobile, carte produit, panier.</p>
+      </div>
+      <div class="spec">
+        <div class="spec__bar"><h3>MobileHeader · ProductCard</h3><span class="tag">mobile-first</span></div>
+        <div class="spec__stage col">
+          <div class="mobile-header" style="width:100%;max-width:380px;border-radius:var(--radius-md)"><button class="back">←</button><span class="mobile-header__title">Table 4 · Carte</span></div>
+          <div class="product-card" style="width:100%;max-width:380px">
+            <div class="product-card__media"></div>
+            <div class="product-card__body">
+              <div class="product-card__name">Mojito royal</div>
+              <div class="product-card__desc">Rhum, menthe, citron vert, champagne</div>
+              <div class="product-card__foot"><span class="product-card__price">12 €</span><span class="stepper"><button aria-label="moins">−</button><span class="val">1</span><button aria-label="plus">+</button></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== NAVBAR / TOPBAR ===================== -->
+    <section class="block" id="navbar">
+      <div class="block__head">
+        <h2>NavBar &amp; Topbar (assemblage)</h2>
+        <p>Composition des atomes en chrome d'application : sidebar 240&nbsp;px (desktop/tablette) et barre supérieure. En mobile, la sidebar devient une bottom-nav (pattern Ionic).</p>
+      </div>
+      <div class="spec">
+        <div class="spec__bar"><h3>App shell — vue Barman</h3><span class="tag">NavBar + Topbar</span></div>
+        <div class="spec__stage" style="padding:var(--space-6);justify-content:center;background-image:none">
+          <div class="mockup-frame" style="display:flex;width:100%;max-width:760px;height:340px">
+            <aside class="navbar">
+              <div class="navbar__brand"><span class="logo">🍸</span><span class="name">OpenBar</span></div>
+              <div class="navbar__body">
+                <span class="role-chip" data-role="barman" style="align-self:flex-start"><span class="dot"></span>Barman</span>
+                <div class="navbar__list">
+                  <a class="nav-item" aria-current="page"><span class="ico">▦</span>Commandes</a>
+                  <a class="nav-item"><span class="ico">🍸</span>Cocktails</a>
+                  <a class="nav-item"><span class="ico">▤</span>Stocks</a>
+                </div>
+              </div>
+              <div class="navbar__foot">
+                <div class="user-footer"><span class="avatar" data-role="barman">B</span><div><div class="user-footer__name">Léa Martin</div><div class="user-footer__role">Barman</div></div></div>
+              </div>
+            </aside>
+            <div style="flex:1;display:flex;flex-direction:column;min-width:0">
+              <div class="topbar"><span class="topbar__title">Commandes</span><span class="topbar__spacer"></span><button class="filter-chip" aria-pressed="true"><span class="dot"></span>Toutes</button><button class="btn btn--primary btn-sm">+ Nouvelle</button></div>
+              <div style="flex:1;display:flex;gap:var(--space-3);padding:var(--space-4);overflow:hidden">
+                <div style="flex:1"><div class="kanban-head" data-status="attente" style="margin-bottom:8px">En attente <span class="count">2</span></div>
+                  <div class="cmd-card" data-status="attente" style="width:auto"><div class="cmd-card__head"><div class="cmd-card__meta"><span class="cmd-card__num">T4</span></div><span class="badge" data-status="attente"><span class="dot"></span>En attente</span></div><div class="cmd-card__divider"></div><div class="cmd-card__list"><div class="ing-line"><b>×2</b> Mojito</div></div></div>
+                </div>
+                <div style="flex:1"><div class="kanban-head" data-status="prepa" style="margin-bottom:8px">En prépa <span class="count">1</span></div>
+                  <div class="cmd-card prio" data-status="prepa" style="width:auto"><div class="cmd-card__head"><div class="cmd-card__meta"><span class="cmd-card__num">T9</span></div><span class="badge" data-status="prio"><span class="dot"></span>⚡</span></div><div class="cmd-card__divider"></div><div class="cmd-card__list"><div class="ing-line"><b>×3</b> Margarita</div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== TOKENS CSS ===================== -->
+    <section class="block" id="tokens-css">
+      <div class="block__head">
+        <h2>Tokens CSS</h2>
+        <p>La source de vérité. À copier dans <code>:root</code>. Tout composant ne consomme que ces variables — aucune valeur en dur.</p>
+      </div>
+      <pre class="code"><span class="c">/* Couleurs */</span>
+<span class="k">--bg-0</span>: <span class="v">#0f0f1a</span>;        <span class="c">/* fond global */</span>
+<span class="k">--surface-1</span>: <span class="v">#1a1a2e</span>;   <span class="c">/* cards */</span>
+<span class="k">--surface-2</span>: <span class="v">#21263f</span>;   <span class="c">/* inputs, surélevé */</span>
+<span class="k">--surface-3</span>: <span class="v">#2a3050</span>;   <span class="c">/* hover */</span>
+<span class="k">--text-primary</span>: <span class="v">#ECEEFB</span>;
+<span class="k">--text-secondary</span>: <span class="v">#A4ADD0</span>;
+<span class="k">--text-muted</span>: <span class="v">#7E87A8</span>;  <span class="c">/* AA 4.6:1 sur bg-0 */</span>
+<span class="k">--primary</span>: <span class="v">#6C7FE8</span>;       <span class="c">/* identité */</span>
+<span class="k">--primary-strong</span>: <span class="v">#5A68D6</span><span class="c">; /* remplissage + texte blanc, AA */</span>
+<span class="k">--role-manager</span>: <span class="v">#F0A33B</span>; <span class="k">--role-serveur</span>: <span class="v">#34C77B</span>; <span class="k">--role-barman</span>: <span class="v">#4FC3F7</span>;
+<span class="k">--st-attente</span>: <span class="v">#F4A52A</span>; <span class="k">--st-prepa</span>: <span class="v">#2BA8E8</span>; <span class="k">--st-prete</span>: <span class="v">#2FBF6B</span>; <span class="k">--st-servie</span>: <span class="v">#6E7AA8</span>;
+
+<span class="c">/* Espacement (4-pt) */</span>
+<span class="k">--space-1..8</span>: <span class="v">4 · 8 · 12 · 16 · 20 · 24 · 32 · 40px</span>;
+<span class="c">/* Rayons */</span>
+<span class="k">--radius-sm/md/lg/xl</span>: <span class="v">6 · 10 · 14 · 20px</span>; <span class="k">--radius-pill</span>: <span class="v">999px</span>;
+<span class="c">/* Élévation */</span>
+<span class="k">--elev-1/2/3</span> + <span class="k">--ring-focus</span>;
+<span class="c">/* Tactile */</span>
+<span class="k">--tap-min</span>: <span class="v">44px</span>;</pre>
+    </section>
+
+    <!-- ===================== IONIC ===================== -->
+    <section class="block" id="ionic">
+      <div class="block__head">
+        <h2>Mapping Ionic</h2>
+        <p>Pont vers les composants Ionic natifs. À coller dans le <code>:root</code> global (variables Ionic) pour que <code>ion-button</code>, <code>ion-toolbar</code>, <code>ion-card</code>… héritent automatiquement des tokens OpenBar.</p>
+      </div>
+      <pre class="code"><span class="c">/* global.scss — variables Ionic ← tokens OpenBar */</span>
+<span class="k">--ion-background-color</span>: <span class="v">var(--bg-0)</span>;
+<span class="k">--ion-text-color</span>: <span class="v">var(--text-primary)</span>;
+
+<span class="k">--ion-color-primary</span>: <span class="v">var(--primary-strong)</span>;
+<span class="k">--ion-color-primary-rgb</span>: <span class="v">90,104,214</span>;
+<span class="k">--ion-color-primary-contrast</span>: <span class="v">#ffffff</span>;
+<span class="k">--ion-color-primary-shade</span>: <span class="v">var(--primary-press)</span>;
+<span class="k">--ion-color-primary-tint</span>: <span class="v">var(--primary)</span>;
+
+<span class="k">--ion-color-success</span>: <span class="v">var(--success)</span>;
+<span class="k">--ion-color-warning</span>: <span class="v">var(--warning)</span>;
+<span class="k">--ion-color-danger</span>:  <span class="v">var(--danger)</span>;
+
+<span class="k">--ion-toolbar-background</span>: <span class="v">var(--surface-1)</span>;
+<span class="k">--ion-item-background</span>:    <span class="v">var(--surface-1)</span>;
+<span class="k">--ion-card-background</span>:    <span class="v">var(--surface-1)</span>;
+<span class="k">--ion-border-color</span>:       <span class="v">var(--border-default)</span>;
+
+<span class="c">/* paliers de gris (steps) — du fond au texte */</span>
+<span class="k">--ion-color-step-50</span>:  <span class="v">#15151f</span>;
+<span class="k">--ion-color-step-150</span>: <span class="v">#1a1a2e</span>;
+<span class="k">--ion-color-step-300</span>: <span class="v">#2a3050</span>;
+<span class="k">--ion-color-step-600</span>: <span class="v">#7E87A8</span>;
+<span class="k">--ion-color-step-850</span>: <span class="v">#A4ADD0</span>;
+<span class="k">--ion-color-step-950</span>: <span class="v">#ECEEFB</span>;</pre>
+
+      <div class="subhead">Table de tokens (référence rapide)</div>
+      <table class="tbl" id="token-table">
+        <thead><tr><th>Token</th><th>Valeur</th><th>Ionic</th><th>Usage</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <footer style="padding:var(--space-9) 0;color:var(--text-muted);font-size:var(--fs-xs)">
+      OpenBar Design System · formalisé à partir du fichier Figma d'origine · Ippon Technologies · 2026
+    </footer>
+
+  </main>
+</div>
+
+<template id="__bundler_thumbnail">
+  <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="100" fill="#0f0f1a"/>
+    <rect x="30" y="22" width="40" height="46" rx="6" fill="none" stroke="#6C7FE8" stroke-width="3"/>
+    <path d="M30 30 H70" stroke="#6C7FE8" stroke-width="3"/>
+    <circle cx="50" cy="74" r="4" fill="#34C77B"/>
+  </svg>
+</template>
+
+<script src="app.js"></script>
+</body>
+</html>
