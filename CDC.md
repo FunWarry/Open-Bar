@@ -71,7 +71,7 @@ Application web multi-rôles avec WebSocket pour la communication temps réel en
 
 | Outil | Détail |
 |-------|--------|
-| Figma | fileKey `XSVwFk64kgtqgUN9n5qoMw` — 5 pages, 39+ composants |
+| Figma | fileKey `XSVwFk64kgtqgUN9n5qoMw` — **6 pages, 60+ composants** (état juin 2026) |
 | Approche | Design first — tous les écrans designés en Figma avant implémentation |
 
 ### Architecture backend
@@ -195,6 +195,15 @@ Service frontend : `websocket.service.ts` — ⚠️ abonnements partiellement i
 | **Stock — vue rapide (shift)** | ✅ | ✅ | ✅ | — |
 | **Stock — vue globale (gestion complète)** | ✅ | ⚠️ partiel | ✅ designé | 🟡 Moyenne |
 | Plan de salle (manager) | ✅ | ✅ | ✅ | — |
+| **Vue Serveur — Plan de salle (lecture)** | ✅ | ❌ | ✅ designé | 🔴 Haute |
+| **Vue Serveur — Détail table + side panel** | ✅ | ❌ | ✅ designé | 🔴 Haute |
+| **Vue Serveur — Nouvelle commande** | ✅ | ⚠️ partiel | ✅ designé | 🔴 Haute |
+| **Vue Serveur — Suivi commandes (kanban)** | ✅ | ❌ | ✅ designé | 🟡 Moyenne |
+| **Login** | ✅ | ✅ | ✅ designé | — |
+| **Register / Create user** | ✅ | ✅ | ✅ designé | — |
+| **Profile / Mon compte** | ✅ | ✅ | ✅ designé | — |
+| **404 / Error page** | — | ✅ | ✅ designé | — |
+| **Loading / Splash screen** | — | — | ✅ designé | — |
 | Notifications WebSocket | ✅ | ⚠️ partiel | ✅ | 🔴 Haute |
 | Factures (frontend) | ✅ | ❌ | ⚠️ partiel | 🔴 Haute |
 | Déstockage auto à la commande | ❌ | — | — | 🔴 Haute |
@@ -210,7 +219,17 @@ Service frontend : `websocket.service.ts` — ⚠️ abonnements partiellement i
 
 ## 7. Design System Figma
 
-**Fichier** : `XSVwFk64kgtqgUN9n5qoMw` — 5 pages, **39 composants** (état mai 2026).
+**Fichier** : `XSVwFk64kgtqgUN9n5qoMw` — **6 pages, 60+ composants** (état juin 2026).
+
+**Pages :**
+| Page | ID | Contenu |
+|------|----|---------|
+| 🎨 Design System | `0:1` | Tous les composants DS |
+| 🍹 Vue Barman | `57:2` | 8 vues (y=210) |
+| 🗺 Vue Manager | `57:3` | 7 vues (y=1100) |
+| 👋 Vue Serveur | `57:4` | 4 vues + 2 variantes (y=210) |
+| 📱 Vue Client QR | `57:5` | 2 vues mobile |
+| Vue Système Commun | `522:3214` | 6 vues communes (Login, Register…) |
 
 > **Principe** : composants en cascade, comme Angular/React. Chaque composant parent n'utilise que des instances de composants enfants — jamais de primitives brutes (rectangles, ellipses, textes).
 
@@ -237,57 +256,70 @@ Service frontend : `websocket.service.ts` — ⚠️ abonnements partiellement i
 
 #### Atomiques (feuilles — aucune dépendance)
 
-| Composant | Variants | Taille | Usage |
-|-----------|----------|--------|-------|
-| `Avatar` | 3 (Barman/Manager/Serveur) | 32×32 | Initiale colorée dans UserFooter |
-| `StatusBadge` | 6 statuts commande | variable | Statut dans CommandeCard |
-| `TableBadge` | 5 | variable | Numéro de table |
-| `RoleBadge` | 3 rôles | 188×28 | Chip rôle dans NavBar |
-| `NavItem` | 2 (Active/Default) | 204×44 | Entrée de navigation sidebar |
-| `IngredientLine` | 2 (Dark/Light) | 180×18 | "× N Cocktail" dans CommandeCard |
-| `FilterChip` | 2 (Active/Default) | 132×32 | Filtres topbar barman, tabs stocks |
-| `KanbanColHeader` | 4 statuts | 220×40 | En-têtes colonnes kanban |
-| `ProgressSegment` | 4 statuts | 24×170 | Barre latérale sidebar barman |
-| `StockAlertBanner` | 1 | 960×44 | Bannière alerte stock |
-| `StockSeverityBadge` | 3 (Critique/Faible/Normal) | 96×22 | Niveau de stock |
-| `StockProgressBar` | 3 niveaux | 436×8 | Barre progression stock |
-| `TableNode` | 12 (Round/Square × 6 statuts) | 64×64 | Nœud plan de salle |
-| `LegendItem` | 6 statuts table | 120×20 | Légende plan de salle |
-| `QuantityStepper` | 2 (Active/Default) | 80×32 | Sélecteur quantité QR client |
-| `CategoryTab` | 2 (Active/Default) | 80×32 | Onglets catégories QR client |
-| `StatusBar` | 1 | 390×44 | Barre statut iOS (mobile) |
-| `PrioBadge` | 2 (Urgent/Normal) | 100×28 | Badge ⚡ URGENT dans modal |
-| `UrgencyStripe` | 2 (Urgent/Normal) | 800×6 | Barre déco haut du modal |
-| `SectionLabel` | 2 (Icon=None/Clock) | 200×20 | Titre de section dans modal |
+| Composant | ID Figma | Variants | Taille | Usage |
+|-----------|----------|----------|--------|-------|
+| `Avatar` | `120:8` | **4** (Barman/Manager/Serveur/Admin) | 40×40 | Initiale colorée dans UserFooter |
+| `StatusBadge` | `58:20` | 6 statuts commande | variable | Statut dans CommandeCard |
+| `RoleBadge` | `120:23` | **8** (4 rôles × Folded=true/false) | variable | Chip rôle dans NavBar |
+| `NavItem` | `120:16` | **4** (State × Folded) | 204×44 | Entrée de navigation sidebar |
+| `IngredientLine` | `121:22` | 2 (Dark/Light) | 180×18 | "× N Cocktail" dans CommandeCard |
+| `FilterChip` | `132:86` | 2 (Active/Default) | 46×31 | Filtres, tabs stocks |
+| `KanbanColHeader` | `132:107` | 4 statuts | 196×40 | En-têtes colonnes kanban |
+| `ProgressSegment` | `132:116` | 4 statuts | 24×170 | Barre latérale sidebar barman |
+| `StockAlertBanner` | `132:119` | **3** (StockWarning/BelowCritical/Notification) | 960×44 | Bannière alerte stock |
+| `StockSeverityBadge` | `133:86` | **3** (Critique/Faible/Normal ✅ ajouté) | variable | Niveau de stock |
+| `StockProgressBar` | `133:93` | 3 niveaux | 401×8 | Barre progression stock |
+| `TableNode` | `126:109` | **12** (Round/Square × Free/Occupied/InProgress/Reserved/InPayment/Merged ✅) | 64×64 | Nœud plan de salle |
+| `LegendItem` | `126:128` | 6 statuts table | variable | Légende plan de salle |
+| `QuantityStepper` | `128:79` | 2 (Active/Default) | 80×31 | Sélecteur quantité QR client |
+| `CategoryTab` | `128:84` | 2 (Active/Default) | 80×44 | Onglets catégories QR client |
+| `StatusBar` | `128:88` | 1 | 390×44 | Barre statut iOS (mobile) |
+| `PrioBadge` | `144:97` | 2 (Urgent/Normal) | 78×23 | Badge ⚡ URGENT dans modal |
+| `UrgencyStripe` | `149:94` | 2 (Urgent/Normal) | 800×6 | Barre déco haut du modal |
+| `SectionLabel` | `149:99` | 2 (Icon=None/Clock) | 200×20 | Titre de section dans modal |
+| `Toggle` | `534:910` | 2 (On/Off) | 44×24 | Switch settings, filtres |
+| `Spinner` | `534:920` | 3 (S/M/L — 16/24/32px) | variable | Loading states |
+| `CheckBox` | `426:2058` | 2 (Checked=True/False) | 24×24 | Formulaires |
 
 #### Composites intermédiaires (utilisent des atomiques)
 
-| Composant | Variants | Dépendances | Usage |
-|-----------|----------|-------------|-------|
-| `UserFooter` | 3 rôles | `Avatar` | Bas de NavBar |
-| `MobileHeader` | 2 (Home/Back) | — | Header mobile QR |
-| `ProductCard` | 2 (Default/InCart) | `QuantityStepper` | Carte produit QR |
-| `CartItem` | 1 | `QuantityStepper` | Item panier QR |
-| `StockRow` | 3 niveaux | `StockSeverityBadge` + `StockProgressBar` + `ActionButton`×2 | Ligne stock |
-| `PanelOrderItem` | 3 (En prépa/Prête/Servie) | — | Item commande side panel manager |
-| `TotalRow` | 1 | — | Ligne total side panel |
-| `ActivityLog` | 1 | — | Historique récent side panel |
-| `MiniCommandeCard` | 4 statuts | — | Carte mini kanban fond stocks |
-| `TimerWidget` | 1 | — | Timer modal détail barman |
-| `NotesCard` | 2 (Serveur/Allergie) | — | Carte notes contextuelles |
-| `CanvasToolbar` | 1 | — | Toolbar verticale plan de salle |
+| Composant | ID Figma | Variants | Dépendances | Usage |
+|-----------|----------|----------|-------------|-------|
+| `UserFooter` | `121:17` | **8** (4 rôles × Folded) | `Avatar` | Bas de NavBar |
+| `MobileHeader` | `128:98` | 2 (Home/Back) | — | Header mobile QR |
+| `ProductCard` | `129:95` | 2 (Default/InCart) | `QuantityStepper` | Carte produit QR |
+| `CartItem` | `129:104` | 1 | `QuantityStepper` | Item panier QR |
+| `StockRow` | `133:133` | 3 niveaux | `StockSeverityBadge` + `StockProgressBar` | Ligne stock |
+| `PanelOrderItem` | `159:136` | 3 (InProgress/Ready/Servie) | — | Item commande side panel |
+| `TotalRow` | `159:137` | 1 | — | Ligne total side panel |
+| `ActivityLog` | `159:141` | 1 | — | Historique récent side panel |
+| `MiniCommandeCard` | `139:157` | 4 statuts | — | Carte mini kanban fond stocks |
+| `TimerWidget` | `144:98` | 1 | — | Timer modal détail barman |
+| `NotesCard` | `144:112` | 2 (Serveur/Allergie) | — | Carte notes contextuelles |
+| `CanvasToolbar` | `159:152` | 1 | — | Toolbar verticale plan de salle |
+| `CocktailCard` | `199:167` | 3 (Normal/Faible/Critique) | — | Carte cocktail liste barman |
+| `IngredientCard` | `221:187` | 3 niveaux stock | — | Carte ingrédient gestion |
+| `FormInput` | `199:176` | 2 (Text/Textarea) | — | Champ saisie brut |
+| `InputField` | `535:942` | **4** (Default/Focus/Error/Disabled) | `FormInput` | Champ avec label + message d'erreur |
+| `PasswordInput` | `535:943` | **4** (Default/Focus/Error/Disabled) | `InputField` | Login, changement mot de passe |
+| `Toast` | `536:928` | **4** (Success/Error/Warning/Info) | — | Feedback après actions |
+| `EmptyState` | `536:929` | 1 | `ActionButton` | Listes vides partout |
+| `PageHeader` | `536:943` | **2** (NoBack/WithBack) | `ActionButton` | Header pages standalone |
+| `StatCard` | `199:189` | 3 (Default/Up/Down) | — | Carte statistique dashboard |
+| `TableEditionSidePanel` | `495:2978` | 2 (InProgress/InPayment) | `PanelOrderItem` + `ActionButton` | Panel détail table |
+| `CommandeModal` | `437:377` | 4 (Status × Urgence) | `OrderItem` + `StatusTimeline` | Modal détail commande barman |
 
 #### Composites hauts (niveau écran)
 
-| Composant | Variants | Dépendances | Usage |
-|-----------|----------|-------------|-------|
-| `NavBar` | 3 rôles | `NavItem` + `RoleBadge` + `UserFooter` → `Avatar` | 220×600 sidebar gauche |
-| `Topbar` | 2 (Manager/Serveur) | — | 1024×56 barre du haut |
-| `ActionButton` | 12 (Primary/Secondary/Danger/Ghost × Default/Hover/Disabled) | — | CTA partout |
-| `CommandeCard` | 8 variants | `StatusBadge` + `IngredientLine` + `ActionButton` | Carte kanban barman |
-| `OrderItem` | 4 (En prépa/Prête × Note=Oui/Non) | — | Ligne item modal commande |
-| `StatusTimeline` | 1 | — | Timeline statuts modal commande |
-| `ConfirmModal` | 1 | `ActionButton`×2 | Dialog confirmation fusion |
+| Composant | ID Figma | Variants | Dépendances | Usage |
+|-----------|----------|----------|-------------|-------|
+| `NavBar` | `62:59` | **6** (3 rôles × Compact=true/false) | `NavItem` + `RoleBadge` + `UserFooter` | 64–220px sidebar gauche |
+| `Topbar` | `126:141` | 2 (Manager/Serveur) | — | 984×64 barre du haut |
+| `ActionButton` | `374:210` | **24** (6 types × 4 états) — Primary/Secondary/Ghost/Danger/Edit/Mark | — | CTA partout |
+| `CommandeCard` | `61:90` | 8 variants (4 statuts × 2 priorités) | `StatusBadge` + `IngredientLine` + `ActionButton` | Carte kanban barman |
+| `OrderItem` | `139:118` | 4 (En prépa/Prête × Note=Oui/Non) | — | Ligne item modal commande |
+| `StatusTimeline` | `437:634` | 5 états | `StatusTimelineStep` | Timeline statuts modal commande |
+| `ConfirmModal` | `159:163` | 1 | `ActionButton`×2 | Dialog confirmation fusion |
 
 ### 7.3 État des vues
 
@@ -304,23 +336,53 @@ Service frontend : `websocket.service.ts` — ⚠️ abonnements partiellement i
 | Barman — Gestion Ingrédients | Élevé | ✅ Nouveau | StockRow × 5, AlertBanner, FilterChips |
 | Barman — Vue Globale Stock | Élevé | ✅ Nouveau | Stat cards, StockRow par catégorie, actions |
 
-#### Vue Manager (4 écrans)
+#### Vue Manager (7 écrans) — page `57:3`
 
-| Écran | Score composants | Statut | Reste à faire |
-|-------|-----------------|--------|---------------|
-| Plan de salle | ~20 instances | ✅ Complet | — |
-| Serveur — Plan | ~23 instances | ✅ Complet | Frame Statut à peaufiner |
-| Manager — Fusion | ~13 instances | ✅ Complet | — |
-| Fusion — Résultat | ~12 instances | ⚠️ Partiel | T4/T6 fusionnées = primitives brutes |
+| Écran | Frame ID | Statut | Notes |
+|-------|----------|--------|-------|
+| Manager — Plan de salle | `492:1302` | ✅ Complet | Canvas + zones + légende |
+| Manager — Plan Détail Table | `492:1346` | ✅ Complet | Canvas + TableEditionSidePanel |
+| Manager — Fusion | `492:1388` | ✅ Complet | ConfirmModal overlay |
+| Manager — Fusion Résultat | `492:1430` | ✅ **Corrigé** | T4+T5 = instances `TableNode/Merged` 64×64 |
+| Manager — Dashboard | `492:1472` | ✅ Complet | StatCards + TopCocktailRow + Kanban mini |
+| Manager — Gestion Employés | `492:1514` | ✅ Complet | EmployeeRow × 6, pagination |
+| Manager — EDT Planning | `492:1556` | ✅ Complet | Grille 7j × 7 employés, ShiftCell |
+
+#### Vue Serveur (4 vues + 2 variantes) — page `57:4`
+
+| Écran | Frame ID | Statut | Notes |
+|-------|----------|--------|-------|
+| Serveur — Plan de salle | `516:738` | ✅ Créé | Zones + tables (Free/Occupied/InProgress/Reserved) + légende 6 items |
+| Serveur — Détail Table | `516:777` | ✅ Créé | Canvas + T4 ring sélection + TableEditionSidePanel |
+| Serveur — Nouvelle commande | `516:814` | ✅ Créé | Types chips + CocktailCard grid + Side panel Table + Validate/Cancel |
+| Serveur — Suivi commandes | `516:851` | ✅ Créé | Banner notif + filter tables + kanban 4 colonnes (Cancel/Edit/Mark delivered) |
+| Serveur — Nouvelle commande compact | `525:5433` | ✅ Variante | Version compacte 1 ligne |
+| Serveur — Suivi commandes (variante) | `526:6194` | ✅ Variante | Variante alternative du kanban |
+
+**Corrections appliquées sur Vue Serveur :**
+- Topbar : "Label" → titres contextuels (Floor Plan / New Order / My Orders)
+- "⇄ Wedge" → "⇄ Merge" dans le side panel de Détail Table
+- "Start" → "Cancel" dans la colonne Pending du kanban (action barman → action serveur)
+- Légende Vue 1 : LegendItem "Cancelled" ajouté (6 items complets)
 
 #### Autres vues
 
-| Vue / Écran | Score composants | Statut | Reste à faire |
-|-------------|-----------------|--------|---------------|
-| Vue Client QR — Phone | Élevé | ✅ Complet | — |
-| Vue Client QR — Panier | Élevé | ✅ Complet | — |
-| Vue Serveur | 0 | ❌ Vide | Page à créer from scratch |
-| Dashboard / Stats | 0 | ❌ Non designé | À créer from scratch |
+| Vue / Écran | Statut | Notes |
+|-------------|--------|-------|
+| Vue Client QR — Phone | ✅ Complet | — |
+| Vue Client QR — Panier | ✅ Complet | — |
+| Dashboard Manager / Stats | ❌ Non designé | À créer from scratch |
+
+#### Vue Système Commun — page `522:3214`
+
+| Vue | Frame ID | Composants DS | Statut |
+|-----|----------|---------------|--------|
+| Login | `538:906` | InputField, PasswordInput, Toast Error | ✅ Créé |
+| Register | `538:936` | InputField, PasswordInput, RoleBadge × 3 | ✅ Créé |
+| Profile | `540:946` | Avatar, InputField, PasswordInput, Toggle, ActionButton | ✅ Créé |
+| 404 Not Found | `540:1040` | ActionButton | ✅ Créé |
+| Loading | `540:1049` | Spinner L, logo text | ✅ Créé |
+| Empty States | `540:1056` | EmptyState × 3 contextes | ✅ Créé |
 
 ### 7.4 Conventions scripting plugin Figma
 
@@ -525,35 +587,75 @@ Architecture validée : `/topic/commandes`, `/topic/commandes/{id}`, `/topic/tab
 
 ### TableNode comme composant Figma
 
-Les tables sont représentées par le composant `TableNode` (12 variants : Round/Square × 6 statuts), positionné librement sur le canvas Figma. Les zones sont des frames de délimitation.
+Les tables sont représentées par le composant `TableNode` (12 variants : Round/Square × 6 statuts : Free/Occupied/InProgress/Reserved/InPayment/**Merged**), positionné librement sur le canvas Figma. Les zones sont des frames de délimitation.
+
+### UI entièrement en anglais
+
+Tous les labels, boutons, titres et textes visibles dans l'interface sont en anglais. Le CDC et la documentation restent en français. Cette décision garantit la cohérence avec les composants du DS (Status=Pending, Ready to Serve, Mark delivered…).
+
+### Post-login : redirection directe par rôle
+
+Après une authentification réussie, l'utilisateur est redirigé directement vers sa vue principale sans écran intermédiaire : Barman → Kanban, Serveur → Floor Plan, Manager → Floor Plan. Pas de home dashboard commun.
 
 ---
 
-## 12. Prochaine session
+## 12. État Figma — juin 2026
 
-### Figma — éléments restants
+### Corrections appliquées
 
-- **Vue Serveur** : page entièrement vide à créer (prise de commande, suivi état)
-- **Fusion — Résultat** : `T4 (fusionnée)` et `T6 (fusionnée)` sont des `RECTANGLE`/`ELLIPSE` bruts → remplacer par des `TableNode` instances avec un variant "fusionné"
-- **Barman — Stocks** : le frame `Statut` dans le Side Panel T4 est vide après nettoyage → ajouter une instance `StatusBadge`
-- **Dashboard manager** : aucun écran designé → à créer from scratch (stats temps réel)
-- **Vue Barman** : 5 nouveaux écrans créés (Liste Cocktails, Détail, Création, Gestion Ingrédients, Vue Globale Stock) — à componentiser avec le pattern cascade DS
+| Élément | Correction | Statut |
+|---------|------------|--------|
+| `CeckBox` | Renommé `CheckBox` (typo) — id `426:2058` | ✅ |
+| `StockSeverityBadge` | Variant `Level=Normal` ajouté (vert #22c55e) — id `506:737` | ✅ |
+| `TableNode` | Variants `Status=Merged` ajoutés Round + Square (violet #7c3aed) — ids `506:741`/`506:744` | ✅ |
+| Fusion Résultat `492:1430` | T5 étiré remplacé par T4 + T5 instances `Square/Merged` 64×64 côte à côte | ✅ |
+| Vue Serveur — Topbar | "Label" → titres contextuels (Floor Plan / New Order / My Orders) | ✅ |
+| Vue Serveur — Side panel | "Wedge" → "Merge" | ✅ |
+| Vue Serveur — Kanban | "Start" → "Cancel" dans colonne Pending (action serveur ≠ barman) | ✅ |
+| Vue Serveur — Légende | `LegendItem Cancelled` ajouté (6 items complets) | ✅ |
 
-### Backend — priorités code
+### Nouveaux composants DS créés (juin 2026)
 
-- 🐛 **BUG** : corriger `dateLivraison` dans `CommandeService` (set sur `PRET` → doit être `LIVREE`)
-- 🔐 Externaliser le secret JWT (`application.yml` → variable d'environnement)
-- 🧪 Ajouter tests unitaires sur `CommandeService` (cycle de vie commande)
-- 📦 Implémenter le déstockage auto : hook dans `changerStatut()` sur `EN_PREPARATION`
+| Composant | ID | Description |
+|-----------|-----|-------------|
+| `Toggle` | `534:910` | State=On/Off — 44×24px, Accent actif |
+| `Spinner` | `534:920` | Size=S/M/L (16/24/32px) — arc accent sur track |
+| `InputField` | `535:942` | 4 états — label + input + message erreur |
+| `PasswordInput` | `535:943` | 4 états — dots + toggle "Show" accent |
+| `Toast` | `536:928` | 4 types — barre latérale colorée + icône + message + × |
+| `EmptyState` | `536:929` | Icon placeholder + Title + Subtitle + CTA Ghost |
+| `PageHeader` | `536:943` | NoBack / WithBack — titre 28px + sous-titre |
 
-### Frontend — priorités
+### Vues restantes à designer
 
-- Compléter les abonnements WebSocket dans `websocket.service.ts`
-- Créer le module Facturation (API backend prête, UI manquante)
-- Connecter les guards de rôle aux routes de Vue Serveur
+- **Dashboard Manager** — aucun écran designé, à créer from scratch (StatCards, TopCocktailRow, Kanban mini temps réel)
+- **Barman — Stocks Side Panel** : frame `Statut` toujours vide → ajouter `StatusBadge`
+
+---
+
+## 13. Prochaine session — priorités
+
+### Backend
+
+- 🐛 Corriger `dateLivraison` dans `CommandeService` (set sur `PRET` → doit être `LIVREE`)
+- 🔐 Externaliser secret JWT (`application.yml` → variable d'environnement)
+- 🧪 Tests unitaires `CommandeService` (cycle de vie commande)
+- 📦 Déstockage auto : hook dans `changerStatut()` sur `EN_PREPARATION`
+
+### Frontend
+
+- Compléter abonnements WebSocket (`websocket.service.ts`)
+- Créer module Facturation (API backend prête, UI manquante)
+- Implémenter Vue Serveur Angular/Ionic depuis le design Figma
+
+### Figma
+
+- Dashboard Manager (from scratch)
+- Peaufiner les vues Serveur si retours utilisateur
 
 ### Rappels plugin Figma
 
 > **CRITIQUE** : toujours appeler `await figma.setCurrentPageAsync(page)` AVANT de lire `page.children`.
+> `clone()` sur un COMPONENT dans un COMPONENT_SET place le clone sur la page, pas dans le set — utiliser `set.appendChild(clone)` ensuite.
+> `layoutSizingHorizontal = 'HUG'` uniquement sur les auto-layout frames ET les TEXT enfants d'auto-layout. Sur les INSTANCE : utiliser `FIXED` + `resize()`.
 > Utiliser `figma.getNodeById(id)` pour éviter les références stales entre scripts.
-> Snapshot avant boucle : `const snap = [...node.children]` puis utiliser les IDs.
