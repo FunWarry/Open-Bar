@@ -10,7 +10,10 @@
       "Bash(rtk gh *)",
       "Bash(gh auth *)",
       "mcp__plugin_github_github__list_issues",
-      "mcp__plugin_github_github__search_issues"
+      "mcp__plugin_github_github__search_issues",
+      "Bash(rtk --version)",
+      "Bash(java --version)",
+      "Bash(mvn --version)"
     ]
   }
 }
