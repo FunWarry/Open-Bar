@@ -4,7 +4,13 @@
       "Bash(mkdir -p /sessions/youthful-quirky-goodall/mnt/.claude/skills/openbar-dev)",
       "Bash(mkdir -p /sessions/youthful-quirky-goodall/mnt/OpenBar/.claude/skills/openbar-dev)",
       "mcp__2d4adff4-71e4-47fa-b0a3-642a8b4b53f7__create_new_file",
-      "mcp__2d4adff4-71e4-47fa-b0a3-642a8b4b53f7__use_figma"
+      "mcp__2d4adff4-71e4-47fa-b0a3-642a8b4b53f7__use_figma",
+      "mcp__plugin_github_github__get_me",
+      "mcp__plugin_github_github__search_repositories",
+      "Bash(rtk gh *)",
+      "Bash(gh auth *)",
+      "mcp__plugin_github_github__list_issues",
+      "mcp__plugin_github_github__search_issues"
     ]
   }
 }
