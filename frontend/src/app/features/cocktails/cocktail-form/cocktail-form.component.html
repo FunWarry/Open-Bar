@@ -1,0 +1,54 @@
+<mat-card>
+  <mat-card-header>
+    <mat-card-title>{{ isEditMode ? 'Modifier le Cocktail' : 'Nouveau Cocktail' }}</mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <form (ngSubmit)="onSubmit()" [formGroup]="cocktailForm">
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Nom</mat-label>
+        <input formControlName="name" matInput required>
+        <mat-error *ngIf="cocktailForm.get('name')?.hasError('required')">
+          Le nom est requis
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Description</mat-label>
+        <textarea formControlName="description" matInput required></textarea>
+        <mat-error *ngIf="cocktailForm.get('description')?.hasError('required')">
+          La description est requise
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Prix</mat-label>
+        <input formControlName="price" matInput required type="number">
+        <mat-error *ngIf="cocktailForm.get('price')?.hasError('required')">
+          Le prix est requis
+        </mat-error>
+        <mat-error *ngIf="cocktailForm.get('price')?.hasError('min')">
+          Le prix doit être positif
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="fill" class="full-width">
+        <mat-label>Catégorie</mat-label>
+        <mat-select formControlName="category" required>
+          <mat-option value="cocktail">Cocktail</mat-option>
+          <mat-option value="mocktail">Mocktail</mat-option>
+          <mat-option value="shot">Shot</mat-option>
+        </mat-select>
+        <mat-error *ngIf="cocktailForm.get('category')?.hasError('required')">
+          La catégorie est requise
+        </mat-error>
+      </mat-form-field>
+
+      <div class="button-row">
+        <button (click)="router.navigate(['/cocktails'])" mat-button type="button">Annuler</button>
+        <button [disabled]="!cocktailForm.valid" color="primary" mat-raised-button type="submit">
+          {{ isEditMode ? 'Modifier' : 'Créer' }}
+        </button>
+      </div>
+    </form>
+  </mat-card-content>
+</mat-card>

@@ -1,0 +1,53 @@
+<div class="ingredient-list-container">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>Liste des Ingrédients</mat-card-title>
+      <button *ngIf="isAdmin$ | async" mat-raised-button color="primary" (click)="onAdd()">
+        <mat-icon>add</mat-icon>
+        Nouvel Ingrédient
+      </button>
+    </mat-card-header>
+    <mat-card-content>
+      <table mat-table [dataSource]="dataSource" matSort>
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Nom</th>
+          <td mat-cell *matCellDef="let ingredient">{{ ingredient.name }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="category">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Catégorie</th>
+          <td mat-cell *matCellDef="let ingredient">{{ ingredient.category }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="stock">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Stock</th>
+          <td mat-cell *matCellDef="let ingredient">
+            <mat-chip [color]="getStockColor(ingredient.stock)" selected>
+              {{ ingredient.stock }} {{ ingredient.unit }}
+            </mat-chip>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef>Actions</th>
+          <td mat-cell *matCellDef="let ingredient">
+            <button mat-icon-button color="primary" (click)="onView(ingredient)">
+              <mat-icon>visibility</mat-icon>
+            </button>
+            <button mat-icon-button color="accent" (click)="onEdit(ingredient)">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button color="warn" (click)="onDelete(ingredient)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+
+      <mat-paginator [pageSizeOptions]="[5, 10, 25, 100]" aria-label="Select page of ingredients"></mat-paginator>
+    </mat-card-content>
+  </mat-card>
+</div>
