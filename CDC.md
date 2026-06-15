@@ -17,7 +17,7 @@
 9. [Roadmap](#9-roadmap)
 10. [Conventions de code](#10-conventions-de-code)
 11. [Décisions actées](#11-décisions-actées)
-12. [Prochaine session](#12-prochaine-session)
+12. [Prochaine session](#13-prochaine-session--priorités)
 
 ---
 
@@ -181,30 +181,34 @@ Service frontend : `websocket.service.ts` — ⚠️ abonnements partiellement i
 
 ## 6. Fonctionnalités
 
+> Légende frontend : ✅ complet et connecté à l'API · ⚠️ squelette (composant existe, pas de service HTTP) · ❌ inexistant
+
 | Feature | Backend | Frontend | Design Figma | Priorité |
 |---------|---------|----------|--------------|----------|
 | Auth JWT | ✅ | ✅ | ✅ | — |
 | Gestion users (admin) | ✅ | ✅ | ✅ | — |
-| **Cocktails CRUD (liste barman)** | ✅ | ✅ | ✅ designé | — |
-| **Cocktail — détail / fiche recette** | ✅ | ✅ | ✅ designé | — |
-| **Cocktail — création / édition** | ✅ | ✅ | ✅ designé | — |
-| Ingrédients CRUD | ✅ | ✅ | ✅ | — |
-| **Ingrédients — gestion détaillée** | ✅ | ✅ | ✅ designé | — |
-| Tables | ✅ | ✅ | ✅ | — |
-| Commandes (kanban barman) | ✅ | ✅ | ✅ | — |
-| **Stock — vue rapide (shift)** | ✅ | ✅ | ✅ | — |
-| **Stock — vue globale (gestion complète)** | ✅ | ⚠️ partiel | ✅ designé | 🟡 Moyenne |
-| Plan de salle (manager) | ✅ | ✅ | ✅ | — |
+| **Cocktails CRUD (liste barman)** | ✅ | ⚠️ squelette | ✅ designé | — |
+| **Cocktail — détail / fiche recette** | ✅ | ⚠️ squelette | ✅ designé | — |
+| **Cocktail — création / édition** | ✅ | ⚠️ squelette | ✅ designé | — |
+| Ingrédients CRUD | ✅ | ⚠️ squelette | ✅ | — |
+| **Ingrédients — gestion détaillée** | ✅ | ⚠️ squelette | ✅ designé | — |
+| Tables | ✅ | ⚠️ squelette | ✅ | — |
+| Commandes (kanban barman) | ✅ | ⚠️ squelette | ✅ | — |
+| **Stock — vue rapide (shift)** | ✅ | ⚠️ squelette | ✅ | — |
+| **Stock — vue globale (gestion complète)** | ✅ | ⚠️ squelette | ✅ designé | 🟡 Moyenne |
+| Plan de salle (manager) | ✅ | ⚠️ squelette | ✅ | — |
 | **Vue Serveur — Plan de salle (lecture)** | ✅ | ❌ | ✅ designé | 🔴 Haute |
 | **Vue Serveur — Détail table + side panel** | ✅ | ❌ | ✅ designé | 🔴 Haute |
-| **Vue Serveur — Nouvelle commande** | ✅ | ⚠️ partiel | ✅ designé | 🔴 Haute |
+| **Vue Serveur — Nouvelle commande** | ✅ | ❌ | ✅ designé | 🔴 Haute |
 | **Vue Serveur — Suivi commandes (kanban)** | ✅ | ❌ | ✅ designé | 🟡 Moyenne |
 | **Login** | ✅ | ✅ | ✅ designé | — |
-| **Register / Create user** | ✅ | ✅ | ✅ designé | — |
-| **Profile / Mon compte** | ✅ | ✅ | ✅ designé | — |
+| **Register / Create user** | ✅ | ⚠️ squelette | ✅ designé | — |
+| **Profile / Mon compte** | ✅ | ⚠️ squelette | ✅ designé | — |
 | **404 / Error page** | — | ✅ | ✅ designé | — |
 | **Loading / Splash screen** | — | — | ✅ designé | — |
-| Notifications WebSocket | ✅ | ⚠️ partiel | ✅ | 🔴 Haute |
+| Services HTTP frontend | ✅ | ❌ | — | 🔴 Haute |
+| WebSocketService | ✅ | ❌ vide | — | 🔴 Haute |
+| Notifications temps réel | ✅ | ❌ | ✅ | 🔴 Haute |
 | Factures (frontend) | ✅ | ❌ | ⚠️ partiel | 🔴 Haute |
 | Déstockage auto à la commande | ❌ | — | — | 🔴 Haute |
 | Dashboard / statistiques | ❌ | ❌ | ❌ | 🟡 Moyenne |
