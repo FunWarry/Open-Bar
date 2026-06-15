@@ -1,0 +1,49 @@
+<mat-card>
+  <mat-card-header>
+    <mat-card-title>Détails de la Commande #{{ commandeId }}</mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <div *ngIf="commande">
+      <div class="detail-row">
+        <span class="label">Table:</span>
+        <span>{{ commande.tableId }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="label">Statut:</span>
+        <mat-chip [color]="getStatusColor(commande.status)" selected>
+          {{ commande.status }}
+        </mat-chip>
+      </div>
+      <div class="detail-row">
+        <span class="label">Total:</span>
+        <span>{{ commande.total | currency:'EUR' }}</span>
+      </div>
+
+      <h3>Items de la commande</h3>
+      <table [dataSource]="commande.items" class="full-width" mat-table>
+        <ng-container matColumnDef="name">
+          <th *matHeaderCellDef mat-header-cell>Nom</th>
+          <td *matCellDef="let item" mat-cell>{{ item.name }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="quantity">
+          <th *matHeaderCellDef mat-header-cell>Quantité</th>
+          <td *matCellDef="let item" mat-cell>{{ item.quantity }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="price">
+          <th *matHeaderCellDef mat-header-cell>Prix</th>
+          <td *matCellDef="let item" mat-cell>{{ item.price | currency:'EUR' }}</td>
+        </ng-container>
+
+        <tr *matHeaderRowDef="['name', 'quantity', 'price']" mat-header-row></tr>
+        <tr *matRowDef="let row; columns: ['name', 'quantity', 'price'];" mat-row></tr>
+      </table>
+    </div>
+  </mat-card-content>
+  <mat-card-actions>
+    <button (click)="router.navigate(['/commandes'])" mat-button>Retour</button>
+    <button (click)="onEdit()" color="primary" mat-raised-button>Modifier</button>
+    <button (click)="onDelete()" color="warn" mat-raised-button>Supprimer</button>
+  </mat-card-actions>
+</mat-card>
