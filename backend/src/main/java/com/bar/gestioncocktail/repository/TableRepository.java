@@ -1,4 +1,4 @@
-package com.bar.gestioncocktail.repository;
+﻿package com.bar.gestioncocktail.repository;
 
 import com.bar.gestioncocktail.model.TableEntity;
 import com.bar.gestioncocktail.model.TableZone;
@@ -13,4 +13,4 @@ public interface TableRepository extends JpaRepository<TableEntity, Long> {
     List<TableEntity> findByServeurId(Long serveurId);
 
     long countByOccupeeTrue();
-} 
+}

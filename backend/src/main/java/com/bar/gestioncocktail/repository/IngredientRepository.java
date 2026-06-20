@@ -1,4 +1,4 @@
-package com.bar.gestioncocktail.repository;
+﻿package com.bar.gestioncocktail.repository;
 
 import com.bar.gestioncocktail.model.Ingredient;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -17,4 +17,4 @@ public interface IngredientRepository extends JpaRepository<Ingredient, Long> {
 
     @Query("SELECT COUNT(i) FROM Ingredient i WHERE i.quantiteStock <= i.seuilAlerte")
     long countIngredientsSousSeuil();
-} 
+}

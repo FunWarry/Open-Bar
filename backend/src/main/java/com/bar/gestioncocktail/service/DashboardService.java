@@ -1,11 +1,14 @@
-package com.bar.gestioncocktail.service;
+﻿package com.bar.gestioncocktail.service;
 
 import com.bar.gestioncocktail.dto.DashboardStatsDTO;
+import com.bar.gestioncocktail.dto.TopCocktailDTO;
 import com.bar.gestioncocktail.model.CommandeStatut;
 import com.bar.gestioncocktail.repository.CommandeRepository;
 import com.bar.gestioncocktail.repository.FactureRepository;
 import com.bar.gestioncocktail.repository.IngredientRepository;
 import com.bar.gestioncocktail.repository.TableRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +21,7 @@ import java.util.List;
 @Service
 public class DashboardService {
 
+    private static final Logger log = LoggerFactory.getLogger(DashboardService.class);
     private static final int TOP_COCKTAILS_LIMIT = 5;
 
     private final CommandeRepository commandeRepository;
@@ -54,7 +58,7 @@ public class DashboardService {
         long tablesOccupees = tableRepository.countByOccupeeTrue();
         long tablesTotales = tableRepository.count();
 
-        List<DashboardStatsDTO.TopCocktailDTO> topCocktails = commandeRepository
+        List<TopCocktailDTO> topCocktails = commandeRepository
             .findTopCocktails(PageRequest.of(0, TOP_COCKTAILS_LIMIT));
 
         long stockCritique = ingredientRepository.countIngredientsSousSeuil();
@@ -69,10 +73,14 @@ public class DashboardService {
     }
 
     private BigDecimal getChiffreAffairesDepuis(LocalDateTime depuis) {
-        // CA basé sur les commandes REGLEE (factures non systématiquement créées)
-        BigDecimal ca = commandeRepository.sumTotalByStatutAndDateCommandeAfter(
-            CommandeStatut.REGLEE, depuis
-        );
-        return ca != null ? ca : BigDecimal.ZERO;
+        try {
+            BigDecimal ca = commandeRepository.sumTotalByStatutAndDateCommandeAfter(
+                CommandeStatut.REGLEE, depuis
+            );
+            return ca != null ? ca : BigDecimal.ZERO;
+        } catch (Exception e) {
+            log.warn("Erreur lors du calcul du chiffre d affaires depuis {}: {}", depuis, e.getMessage());
+            return BigDecimal.ZERO;
+        }
     }
 }
