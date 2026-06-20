@@ -7,6 +7,7 @@ import { catchError, from, switchMap, throwError } from 'rxjs';
 const FALLBACK_MESSAGES: Record<string, string> = {
   'ERRORS.NETWORK': 'Erreur réseau — vérifiez votre connexion.',
   'ERRORS.UNAUTHORIZED': 'Accès refusé.',
+  'ERRORS.FORBIDDEN': 'Accès interdit.',
   'ERRORS.NOT_FOUND': 'Ressource introuvable.',
   'ERRORS.SERVER': 'Erreur serveur inattendue.',
 };
@@ -48,7 +49,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 
 function getErrorKey(status: number): string {
   if (status === 0)   return 'ERRORS.NETWORK';
-  if (status === 403) return 'ERRORS.UNAUTHORIZED';
+  if (status === 403) return 'ERRORS.FORBIDDEN';
   if (status === 404) return 'ERRORS.NOT_FOUND';
   return 'ERRORS.SERVER';
 }
