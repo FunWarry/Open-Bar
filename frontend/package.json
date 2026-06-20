@@ -23,7 +23,9 @@
     "@ngneat/transloco": "^6.0.4",
     "@ngrx/effects": "^19.1.0",
     "@ngrx/store": "^19.1.0",
+    "@ngrx/store-devtools": "^21.1.1",
     "@stomp/rx-stomp": "^2.4.0",
+    "@stomp/stompjs": "^7.3.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.15.0"

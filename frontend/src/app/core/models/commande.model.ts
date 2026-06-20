@@ -13,6 +13,7 @@ export interface CommandeItem {
   varianteId?: number;
   varianteNom?: string;
   quantite: number;
+  /** Mappé depuis BigDecimal Java — affichage uniquement, pas de calcul JS direct */
   prixUnitaire: number;
   notes?: string;
 }
@@ -26,6 +27,7 @@ export interface Commande {
   items: CommandeItem[];
   statut: CommandeStatut;
   notes?: string;
+  /** Mappé depuis BigDecimal Java — affichage uniquement, pas de calcul JS direct */
   total: number;
   pourboire?: number;
   dateCommande: string;

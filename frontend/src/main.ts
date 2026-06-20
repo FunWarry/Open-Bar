@@ -1,11 +1,11 @@
 import {bootstrapApplication} from '@angular/platform-browser';
 import {provideAnimations} from '@angular/platform-browser/animations';
 import {provideHttpClient, withFetch, withInterceptors} from '@angular/common/http';
-import {provideStore} from '@ngrx/store';
-import {EffectsModule} from '@ngrx/effects';
+import {provideStore, provideState} from '@ngrx/store';
+import {provideEffects} from '@ngrx/effects';
+import {provideStoreDevtools} from '@ngrx/store-devtools';
 import {provideRouter} from '@angular/router';
-import {AuthService} from './app/core/services/auth.service';
-import {importProvidersFrom, isDevMode} from '@angular/core';
+import {isDevMode} from '@angular/core';
 import {provideTransloco} from '@ngneat/transloco';
 
 import {AppComponent} from './app/app.component';
@@ -20,16 +20,17 @@ bootstrapApplication(AppComponent, {
     provideAnimations(),
     provideHttpClient(withFetch(), withInterceptors([authInterceptor])),
     provideStore({auth: authReducer}),
-    // provideEffects([AuthEffects]),
-    importProvidersFrom(EffectsModule.forRoot([AuthEffects])), // a dellet quand NgRx seras en V19.2.0
+    provideEffects([AuthEffects]),
+    ...(isDevMode() ? [provideStoreDevtools({ maxAge: 25, logOnly: false })] : []),
     provideRouter(routes),
-    AuthService,
     provideTransloco({
       config: {
         availableLangs: ['fr', 'en'],
         defaultLang: 'fr',
         reRenderOnLangChange: true,
         prodMode: !isDevMode(),
+        missingHandler: { logMissingKey: isDevMode() },
+        fallbackLang: 'fr',
       },
       loader: TranslocoHttpLoader,
     }),
