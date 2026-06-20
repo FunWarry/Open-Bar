@@ -1,14 +1,19 @@
 package com.bar.gestioncocktail.service;
 
+import com.bar.gestioncocktail.dto.StockAlerteEvent;
 import com.bar.gestioncocktail.model.Commande;
 import com.bar.gestioncocktail.model.CommandeItem;
 import com.bar.gestioncocktail.model.CommandeStatut;
+import com.bar.gestioncocktail.model.CocktailIngredient;
+import com.bar.gestioncocktail.model.Ingredient;
 import com.bar.gestioncocktail.model.TableEntity;
 import com.bar.gestioncocktail.model.User;
 import com.bar.gestioncocktail.repository.CommandeRepository;
 import com.bar.gestioncocktail.repository.CommandeItemRepository;
+import com.bar.gestioncocktail.repository.IngredientRepository;
 import com.bar.gestioncocktail.repository.TableRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,12 +28,21 @@ public class CommandeService {
     private final CommandeRepository commandeRepository;
     private final CommandeItemRepository commandeItemRepository;
     private final TableRepository tableRepository;
+    private final IngredientRepository ingredientRepository;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @Autowired
-    public CommandeService(CommandeRepository commandeRepository, CommandeItemRepository commandeItemRepository, TableRepository tableRepository) {
+    public CommandeService(
+            CommandeRepository commandeRepository,
+            CommandeItemRepository commandeItemRepository,
+            TableRepository tableRepository,
+            IngredientRepository ingredientRepository,
+            SimpMessagingTemplate messagingTemplate) {
         this.commandeRepository = commandeRepository;
         this.commandeItemRepository = commandeItemRepository;
         this.tableRepository = tableRepository;
+        this.ingredientRepository = ingredientRepository;
+        this.messagingTemplate = messagingTemplate;
     }
 
     public List<Commande> getAllCommandes() {
@@ -94,12 +108,11 @@ public class CommandeService {
 
         item.setCommande(commande);
         commandeItemRepository.save(item);
-        
-        // Mise à jour du total de la commande
+
         BigDecimal total = commande.getItems().stream()
             .map(commandeItem -> commandeItem.getPrixUnitaire().multiply(new BigDecimal(commandeItem.getQuantite())))
             .reduce(BigDecimal.ZERO, BigDecimal::add);
-        
+
         commande.setTotal(total);
         commande.setDateModification(LocalDateTime.now());
 
@@ -122,12 +135,17 @@ public class CommandeService {
         Commande commande = commandeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Commande non trouvée avec l'id: " + id));
 
+        CommandeStatut ancienStatut = commande.getStatut();
         commande.setStatut(nouveauStatut);
         commande.setUpdatedAt(LocalDateTime.now());
-        
+
         switch (nouveauStatut) {
             case EN_PREPARATION:
-                commande.setDatePreparation(LocalDateTime.now());
+                // Idempotence : ne déstocke qu'une seule fois même en cas de retry
+                if (ancienStatut != CommandeStatut.EN_PREPARATION) {
+                    commande.setDatePreparation(LocalDateTime.now());
+                    destockerIngredients(commande);
+                }
                 break;
             case PRET:
                 commande.setDateLivraison(LocalDateTime.now());
@@ -135,8 +153,10 @@ public class CommandeService {
             case REGLEE:
                 commande.setDateReglement(LocalDateTime.now());
                 break;
+            default:
+                break;
         }
-        
+
         return commandeRepository.save(commande);
     }
 
@@ -150,4 +170,34 @@ public class CommandeService {
         item.setPrioritaire(prioritaire);
         commandeItemRepository.save(item);
     }
-} 
+
+    // Appelé uniquement lors du premier passage EN_PREPARATION (consommation physique réelle).
+    // Ne bloque pas la préparation si stock insuffisant — publie une alerte WebSocket à la place.
+    private void destockerIngredients(Commande commande) {
+        for (CommandeItem item : commande.getItems()) {
+            for (CocktailIngredient ci : item.getCocktail().getIngredients()) {
+                Ingredient ingredient = ci.getIngredient();
+
+                BigDecimal quantiteConsommee = ci.getQuantite()
+                    .multiply(BigDecimal.valueOf(item.getQuantite()));
+                BigDecimal nouveauStock = ingredient.getQuantiteStock().subtract(quantiteConsommee);
+
+                ingredient.setQuantiteStock(nouveauStock);
+                ingredient.setUpdatedAt(LocalDateTime.now());
+                ingredientRepository.save(ingredient);
+
+                if (nouveauStock.compareTo(ingredient.getSeuilAlerte()) <= 0) {
+                    messagingTemplate.convertAndSend("/topic/stock/alerte",
+                        new StockAlerteEvent(
+                            ingredient.getId(),
+                            ingredient.getNom(),
+                            ingredient.getUniteMesure(),
+                            nouveauStock,
+                            ingredient.getSeuilAlerte(),
+                            nouveauStock.compareTo(BigDecimal.ZERO) < 0
+                        ));
+                }
+            }
+        }
+    }
+}
