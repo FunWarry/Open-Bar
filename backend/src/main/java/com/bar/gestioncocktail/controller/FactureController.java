@@ -25,6 +25,13 @@ public class FactureController {
         this.factureService = factureService;
     }
 
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
+    public ResponseEntity<List<FactureResponseDTO>> getAllFactures() {
+        return ResponseEntity.ok(factureService.getAllFactures().stream()
+            .map(FactureResponseDTO::from).toList());
+    }
+
     @PostMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
     public ResponseEntity<FactureResponseDTO> createFacture(@Valid @RequestBody Facture facture) {
