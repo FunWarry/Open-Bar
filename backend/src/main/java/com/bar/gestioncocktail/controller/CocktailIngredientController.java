@@ -7,6 +7,7 @@ import com.bar.gestioncocktail.model.Ingredient;
 import com.bar.gestioncocktail.service.CocktailIngredientService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -23,18 +24,21 @@ public class CocktailIngredientController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN') or hasRole('BARMAN')")
     public ResponseEntity<CocktailIngredientResponseDTO> createCocktailIngredient(@RequestBody CocktailIngredient cocktailIngredient) {
         return ResponseEntity.ok(CocktailIngredientResponseDTO.from(
             cocktailIngredientService.createCocktailIngredient(cocktailIngredient)));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('BARMAN')")
     public ResponseEntity<Void> deleteCocktailIngredient(@PathVariable Long id) {
         cocktailIngredientService.deleteCocktailIngredient(id);
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/cocktail/{cocktailId}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<CocktailIngredientResponseDTO>> getIngredientsByCocktail(@PathVariable Long cocktailId) {
         Cocktail cocktail = new Cocktail();
         cocktail.setId(cocktailId);
@@ -43,6 +47,7 @@ public class CocktailIngredientController {
     }
 
     @GetMapping("/ingredient/{ingredientId}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<CocktailIngredientResponseDTO>> getCocktailsByIngredient(@PathVariable Long ingredientId) {
         Ingredient ingredient = new Ingredient();
         ingredient.setId(ingredientId);
@@ -51,6 +56,7 @@ public class CocktailIngredientController {
     }
 
     @PutMapping("/{id}/quantite")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('BARMAN')")
     public ResponseEntity<CocktailIngredientResponseDTO> updateQuantite(@PathVariable Long id, @RequestParam BigDecimal quantite) {
         return cocktailIngredientService.getCocktailIngredientById(id)
             .map(cocktailIngredient -> {
@@ -61,6 +67,7 @@ public class CocktailIngredientController {
     }
 
     @DeleteMapping("/cocktail/{cocktailId}/ingredient/{ingredientId}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('BARMAN')")
     public ResponseEntity<Void> deleteCocktailIngredient(
         @PathVariable Long cocktailId,
         @PathVariable Long ingredientId) {
