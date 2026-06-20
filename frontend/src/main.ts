@@ -6,7 +6,7 @@ import {provideEffects} from '@ngrx/effects';
 import {provideStoreDevtools} from '@ngrx/store-devtools';
 import {provideRouter} from '@angular/router';
 import {isDevMode} from '@angular/core';
-import {provideTransloco} from '@ngneat/transloco';
+import {provideTransloco} from '@jsverse/transloco';
 
 import {AppComponent} from './app/app.component';
 import {routes} from './app/app.routes';
