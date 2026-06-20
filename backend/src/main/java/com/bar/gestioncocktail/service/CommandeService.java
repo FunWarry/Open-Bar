@@ -149,7 +149,7 @@ public class CommandeService {
                     destockerIngredients(commande);
                 }
                 break;
-            case PRET:
+            case LIVREE:
                 commande.setDateLivraison(LocalDateTime.now());
                 break;
             case REGLEE:

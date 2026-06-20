@@ -13,10 +13,8 @@ spring:
         format_sql: true
   security:
     jwt:
-      secret: "QW1wQ2h1bG9rZV9zZWNyZXQtbG9uZ19iYXNlNjRfZm9yX0pXVC1wcm9kdWN0aW9uLXNwcmluZy1ib290Ig=="
+      secret: "${JWT_SECRET}"
       expiration: 86400000 # 24 heures
-  main:
-    allow-circular-references: true
 
 server:
   port: 8080
