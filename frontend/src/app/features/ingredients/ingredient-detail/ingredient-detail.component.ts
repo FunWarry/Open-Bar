@@ -3,24 +3,29 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {Store} from '@ngrx/store';
 import {Observable} from 'rxjs';
 import {selectIsAdmin} from '../../../core/store/auth.selectors';
-import {MatCardModule} from '@angular/material/card';
-import {MatCardHeader, MatCardTitle, MatCardContent} from '@angular/material/card';
-import {MatIconModule} from '@angular/material/icon';
-import {MatButtonModule} from '@angular/material/button';
-import {MatChipsModule} from '@angular/material/chips';
+import {
+  IonCard, IonCardHeader, IonCardTitle, IonCardContent,
+  IonList, IonItem, IonLabel, IonBadge, IonButton, IonButtons, IonIcon
+} from '@ionic/angular/standalone';
+import {addIcons} from 'ionicons';
+import {arrowBack, create, eye} from 'ionicons/icons';
+import {NgIf, NgFor, AsyncPipe, DatePipe} from '@angular/common';
 
 @Component({
   selector: 'app-ingredient-detail',
   templateUrl: './ingredient-detail.component.html',
   styleUrls: ['./ingredient-detail.component.css'],
   standalone: true,
-  imports: [MatCardModule, MatCardHeader, MatCardTitle, MatCardContent, MatIconModule, MatButtonModule, MatChipsModule]
+  imports: [
+    IonCard, IonCardHeader, IonCardTitle, IonCardContent,
+    IonList, IonItem, IonLabel, IonBadge, IonButton, IonButtons, IonIcon,
+    NgIf, NgFor, AsyncPipe, DatePipe
+  ]
 })
 export class IngredientDetailComponent implements OnInit {
   ingredient: any; // TODO: Remplacer par le type Ingredient
   isAdmin$: Observable<boolean>;
-  cocktailsDataSource: any[] = []; // TODO: Remplacer par le type Cocktail[]
-  displayedColumns: string[] = ['name', 'category', 'quantity', 'actions'];
+  cocktailsDataSource: any[] = [];
 
   constructor(
     private store: Store,
@@ -28,20 +33,21 @@ export class IngredientDetailComponent implements OnInit {
     private route: ActivatedRoute
   ) {
     this.isAdmin$ = this.store.select(selectIsAdmin);
+    addIcons({arrowBack, create, eye});
   }
 
   ngOnInit(): void {
-    const ingredientId = this.route.snapshot.params['id'];
     // TODO: Charger les données de l'ingrédient depuis le store
   }
 
   getStockColor(stock: number): string {
-    if (stock <= 0) {
-      return 'warn';
-    } else if (stock < 10) {
-      return 'accent';
-    }
-    return 'primary';
+    if (stock <= 0) return 'danger';
+    if (stock < 10) return 'warning';
+    return 'success';
+  }
+
+  trackById(index: number, item: any): any {
+    return item.id ?? index;
   }
 
   onBack(): void {

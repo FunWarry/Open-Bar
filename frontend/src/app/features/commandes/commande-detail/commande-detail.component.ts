@@ -1,20 +1,25 @@
 import {Component, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
-import {MatSnackBar} from '@angular/material/snack-bar';
-import {MatCardModule} from '@angular/material/card';
-import {MatCardHeader, MatCardTitle, MatCardContent} from '@angular/material/card';
-import {MatIconModule} from '@angular/material/icon';
-import {MatButtonModule} from '@angular/material/button';
-import {MatSnackBarModule} from '@angular/material/snack-bar';
-import { CurrencyPipe, NgIf } from '@angular/common';
-import {MatChip, MatChipsModule} from '@angular/material/chips';
-import { MatTableModule } from '@angular/material/table';
+import {ToastController} from '@ionic/angular/standalone';
+import {
+  IonCard, IonCardHeader, IonCardTitle, IonCardContent,
+  IonList, IonItem, IonLabel, IonBadge, IonButton, IonButtons, IonIcon
+} from '@ionic/angular/standalone';
+import {addIcons} from 'ionicons';
+import {arrowBack, create, trash} from 'ionicons/icons';
+import {CurrencyPipe, NgIf, NgFor} from '@angular/common';
+
 @Component({
-    selector: 'app-commande-detail',
-    templateUrl: './commande-detail.component.html',
-    styleUrls: ['./commande-detail.component.scss'],
-    standalone: true,
-    imports: [MatCardModule, MatCardHeader, MatCardTitle, MatCardContent, MatIconModule, MatButtonModule, MatSnackBarModule, NgIf, MatChip, MatChipsModule, CurrencyPipe, MatTableModule]
+  selector: 'app-commande-detail',
+  templateUrl: './commande-detail.component.html',
+  styleUrls: ['./commande-detail.component.scss'],
+  standalone: true,
+  imports: [
+    IonCard, IonCardHeader, IonCardTitle, IonCardContent,
+    IonList, IonItem, IonLabel, IonBadge, IonButton, IonButtons, IonIcon,
+    CurrencyPipe, NgIf, NgFor
+  ],
+  providers: [ToastController]
 })
 export class CommandeDetailComponent implements OnInit {
   commandeId: number;
@@ -23,9 +28,10 @@ export class CommandeDetailComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     public router: Router,
-    private snackBar: MatSnackBar
+    private toastCtrl: ToastController
   ) {
     this.commandeId = +this.route.snapshot.paramMap.get('id')!;
+    addIcons({arrowBack, create, trash});
   }
 
   ngOnInit(): void {
@@ -34,16 +40,12 @@ export class CommandeDetailComponent implements OnInit {
 
   getStatusColor(status: string): string {
     switch (status) {
-      case 'EN_ATTENTE':
-        return 'warn';
-      case 'EN_PREPARATION':
-        return 'accent';
-      case 'PRETE':
-        return 'primary';
-      case 'SERVIE':
-        return 'primary';
-      default:
-        return 'primary';
+      case 'EN_ATTENTE': return 'warning';
+      case 'EN_PREPARATION': return 'tertiary';
+      case 'PRETE': return 'success';
+      case 'SERVIE': return 'medium';
+      case 'ANNULEE': return 'danger';
+      default: return 'primary';
     }
   }
 
@@ -51,11 +53,14 @@ export class CommandeDetailComponent implements OnInit {
     this.router.navigate(['/commandes', this.commandeId, 'edit']);
   }
 
-  onDelete(): void {
+  async onDelete(): Promise<void> {
     // TODO: Implémenter la logique de suppression
-    this.snackBar.open('Commande supprimée avec succès', 'Fermer', {
-      duration: 3000
+    const toast = await this.toastCtrl.create({
+      message: 'Commande supprimée avec succès',
+      duration: 3000,
+      color: 'success'
     });
+    await toast.present();
     this.router.navigate(['/commandes']);
   }
 }

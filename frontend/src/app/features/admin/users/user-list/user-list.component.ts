@@ -1,113 +1,94 @@
-import {Component, OnInit, ViewChild} from '@angular/core';
-import {MatPaginator} from '@angular/material/paginator';
-import {MatSort} from '@angular/material/sort';
-import {MatTableDataSource} from '@angular/material/table';
-import {MatDialog} from '@angular/material/dialog';
+import {Component, OnInit} from '@angular/core';
 import {Store} from '@ngrx/store';
 import {Observable} from 'rxjs';
 import {User} from '../../../../core/models/user.model';
+import {ModalController} from '@ionic/angular/standalone';
 import {UserDialogComponent} from '../user-dialog/user-dialog.component';
 import {DeleteUserDialogComponent} from '../delete-user-dialog/delete-user-dialog.component';
-import {MatCardModule} from '@angular/material/card';
-import {MatPaginatorModule} from '@angular/material/paginator';
-import {MatTableModule} from '@angular/material/table';
-import {MatSortModule} from '@angular/material/sort';
-import {MatIconModule} from '@angular/material/icon';
-import {MatButtonModule} from '@angular/material/button';
-import {MatChipsModule} from '@angular/material/chips';
-import { DatePipe } from '@angular/common';
+import {
+  IonCard, IonCardHeader, IonCardTitle, IonCardContent,
+  IonList, IonItem, IonLabel, IonBadge, IonIcon, IonButton, IonButtons
+} from '@ionic/angular/standalone';
+import {addIcons} from 'ionicons';
+import {personAdd, create, trash} from 'ionicons/icons';
+import {NgFor, AsyncPipe, DatePipe} from '@angular/common';
+
 @Component({
   selector: 'app-user-list',
-  templateUrl: `./user-list.component.html`,
-  styleUrl: `./user-list.component.css`,
+  templateUrl: './user-list.component.html',
+  styleUrl: './user-list.component.css',
   standalone: true,
   imports: [
-    MatCardModule,
-    MatPaginatorModule,
-    MatTableModule,
-    MatSortModule,
-    MatIconModule,
-    MatButtonModule,
-    MatChipsModule,
-    DatePipe
-  ]
+    IonCard, IonCardHeader, IonCardTitle, IonCardContent,
+    IonList, IonItem, IonLabel, IonBadge, IonIcon, IonButton, IonButtons,
+    NgFor, AsyncPipe, DatePipe
+  ],
+  providers: [ModalController]
 })
 export class UserListComponent implements OnInit {
-  displayedColumns: string[] = ['username', 'email', 'roles', 'createdAt', 'actions'];
-  dataSource: MatTableDataSource<User>;
+  users: User[] = [];
   users$: Observable<User[]>;
-
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
-  @ViewChild(MatSort) sort!: MatSort;
 
   constructor(
     private store: Store,
-    private dialog: MatDialog
+    private modalCtrl: ModalController
   ) {
-    this.dataSource = new MatTableDataSource();
     // TODO: Remplacer par le sélecteur des utilisateurs
     this.users$ = this.store.select(state => []);
+    addIcons({personAdd, create, trash});
   }
 
   ngOnInit(): void {
     this.users$.subscribe(users => {
-      this.dataSource.data = users;
+      this.users = users;
     });
   }
 
-  ngAfterViewInit() {
-    this.dataSource.paginator = this.paginator;
-    this.dataSource.sort = this.sort;
+  trackById(index: number, user: User): any {
+    return user.id ?? index;
   }
 
-  applyFilter(event: Event) {
-    const filterValue = (event.target as HTMLInputElement).value;
-    this.dataSource.filter = filterValue.trim().toLowerCase();
+  getRoleColor(role: string): string {
+    return role === 'ADMIN' ? 'tertiary' : 'primary';
+  }
 
-    if (this.dataSource.paginator) {
-      this.dataSource.paginator.firstPage();
+  async openCreateDialog(): Promise<void> {
+    const modal = await this.modalCtrl.create({
+      component: UserDialogComponent,
+      componentProps: {data: null}
+    });
+    await modal.present();
+    const {data} = await modal.onWillDismiss();
+    if (data) {
+      // TODO: Dispatch l'action de création d'utilisateur
+      console.log('Création utilisateur:', data);
     }
   }
 
-  openCreateDialog(): void {
-    const dialogRef = this.dialog.open(UserDialogComponent, {
-      width: '600px',
-      data: null
+  async openEditDialog(user: User): Promise<void> {
+    const modal = await this.modalCtrl.create({
+      component: UserDialogComponent,
+      componentProps: {data: user}
     });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        // TODO: Dispatch l'action de création d'utilisateur
-        console.log('Création utilisateur:', result);
-      }
-    });
+    await modal.present();
+    const {data} = await modal.onWillDismiss();
+    if (data) {
+      // TODO: Dispatch l'action de modification d'utilisateur
+      console.log('Modification utilisateur:', data);
+    }
   }
 
-  openEditDialog(user: User): void {
-    const dialogRef = this.dialog.open(UserDialogComponent, {
-      width: '600px',
-      data: user
+  async openDeleteDialog(user: User): Promise<void> {
+    const modal = await this.modalCtrl.create({
+      component: DeleteUserDialogComponent,
+      componentProps: {data: user},
+      cssClass: 'delete-modal'
     });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        // TODO: Dispatch l'action de modification d'utilisateur
-        console.log('Modification utilisateur:', result);
-      }
-    });
-  }
-
-  openDeleteDialog(user: User): void {
-    const dialogRef = this.dialog.open(DeleteUserDialogComponent, {
-      width: '400px',
-      data: user
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        // TODO: Dispatch l'action de suppression d'utilisateur
-        console.log('Suppression utilisateur:', user.id);
-      }
-    });
+    await modal.present();
+    const {data} = await modal.onWillDismiss();
+    if (data) {
+      // TODO: Dispatch l'action de suppression d'utilisateur
+      console.log('Suppression utilisateur:', user.id);
+    }
   }
 }

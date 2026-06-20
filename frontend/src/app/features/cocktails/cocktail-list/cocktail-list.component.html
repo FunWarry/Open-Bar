@@ -1,46 +1,40 @@
 <div class="cocktail-list-container">
-  <mat-card>
-    <mat-card-header>
-      <mat-card-title>Liste des Cocktails</mat-card-title>
-      <button *ngIf="isAdmin$ | async" mat-raised-button color="primary" (click)="onAdd()">
-        <mat-icon>add</mat-icon>
-        Nouveau Cocktail
-      </button>
-    </mat-card-header>
-    <mat-card-content>
-      <table mat-table [dataSource]="dataSource" matSort>
-        <ng-container matColumnDef="name">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Nom</th>
-          <td mat-cell *matCellDef="let cocktail">{{ cocktail.name }}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="category">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Catégorie</th>
-          <td mat-cell *matCellDef="let cocktail">{{ cocktail.category }}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="price">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Prix</th>
-          <td mat-cell *matCellDef="let cocktail">{{ cocktail.price | currency:'EUR' }}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="actions">
-          <th mat-header-cell *matHeaderCellDef>Actions</th>
-          <td mat-cell *matCellDef="let cocktail">
-            <button mat-icon-button color="primary" (click)="onEdit(cocktail)">
-              <mat-icon>edit</mat-icon>
-            </button>
-            <button mat-icon-button color="warn" (click)="onDelete(cocktail)">
-              <mat-icon>delete</mat-icon>
-            </button>
-          </td>
-        </ng-container>
-
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-      </table>
-
-      <mat-paginator [pageSizeOptions]="[5, 10, 25, 100]" aria-label="Select page of cocktails"></mat-paginator>
-    </mat-card-content>
-  </mat-card>
+  <ion-card>
+    <ion-card-header>
+      <div class="card-header-row">
+        <ion-card-title>Liste des Cocktails</ion-card-title>
+        <ion-button *ngIf="isAdmin$ | async" color="primary" (click)="onAdd()">
+          <ion-icon slot="start" name="add"></ion-icon>
+          Nouveau Cocktail
+        </ion-button>
+      </div>
+    </ion-card-header>
+    <ion-card-content>
+      <div class="list-header">
+        <span>Nom</span>
+        <span>Catégorie</span>
+        <span>Prix</span>
+        <span>Actions</span>
+      </div>
+      <ion-list>
+        <ion-item *ngFor="let cocktail of items; trackBy: trackById">
+          <ion-label>
+            <h3>{{ cocktail.name }}</h3>
+            <p>{{ cocktail.category }}</p>
+          </ion-label>
+          <ion-badge slot="end" color="primary">
+            {{ cocktail.price | currency:'EUR' }}
+          </ion-badge>
+          <ion-buttons slot="end">
+            <ion-button fill="clear" color="tertiary" (click)="onEdit(cocktail)">
+              <ion-icon slot="icon-only" name="create"></ion-icon>
+            </ion-button>
+            <ion-button fill="clear" color="danger" (click)="onDelete(cocktail)">
+              <ion-icon slot="icon-only" name="trash"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-item>
+      </ion-list>
+    </ion-card-content>
+  </ion-card>
 </div>
