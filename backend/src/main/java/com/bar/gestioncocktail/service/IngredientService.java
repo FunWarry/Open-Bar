@@ -15,10 +15,12 @@ import java.util.Optional;
 @Transactional
 public class IngredientService {
     private final IngredientRepository ingredientRepository;
+    private final NotificationService notificationService;
 
     @Autowired
-    public IngredientService(IngredientRepository ingredientRepository) {
+    public IngredientService(IngredientRepository ingredientRepository, NotificationService notificationService) {
         this.ingredientRepository = ingredientRepository;
+        this.notificationService = notificationService;
     }
 
     public Ingredient createIngredient(Ingredient ingredient) {
@@ -60,6 +62,9 @@ public class IngredientService {
         ingredient.setQuantiteStock(quantite);
         ingredient.setUpdatedAt(LocalDateTime.now());
         ingredientRepository.save(ingredient);
+        if (ingredient.getSeuilAlerte() != null && quantite.compareTo(ingredient.getSeuilAlerte()) <= 0) {
+            notificationService.notifierStockFaible(ingredient.getId(), ingredient.getNom(), quantite.doubleValue());
+        }
     }
 
     public void definirSeuilAlerte(Ingredient ingredient, BigDecimal seuil) {
