@@ -1,6 +1,6 @@
 package com.bar.gestioncocktail.repository;
 
-import com.bar.gestioncocktail.dto.DashboardStatsDTO;
+import com.bar.gestioncocktail.dto.TopCocktailDTO;
 import com.bar.gestioncocktail.model.Commande;
 import com.bar.gestioncocktail.model.CommandeStatut;
 import com.bar.gestioncocktail.model.TableEntity;
@@ -29,9 +29,9 @@ public interface CommandeRepository extends JpaRepository<Commande, Long> {
     @Query("SELECT COALESCE(SUM(c.total), 0) FROM Commande c WHERE c.statut = :statut AND c.dateCommande >= :depuis")
     BigDecimal sumTotalByStatutAndDateCommandeAfter(@Param("statut") CommandeStatut statut, @Param("depuis") LocalDateTime depuis);
 
-    @Query("SELECT new com.bar.gestioncocktail.dto.DashboardStatsDTO$TopCocktailDTO(ci.cocktail.id, ci.cocktail.nom, COUNT(ci)) " +
+    @Query("SELECT new com.bar.gestioncocktail.dto.TopCocktailDTO(ci.cocktail.id, ci.cocktail.nom, COUNT(ci)) " +
            "FROM CommandeItem ci " +
            "GROUP BY ci.cocktail.id, ci.cocktail.nom " +
            "ORDER BY COUNT(ci) DESC")
-    List<DashboardStatsDTO.TopCocktailDTO> findTopCocktails(Pageable pageable);
+    List<TopCocktailDTO> findTopCocktails(Pageable pageable);
 }
