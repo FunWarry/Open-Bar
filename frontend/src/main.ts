@@ -5,13 +5,15 @@ import {provideStore} from '@ngrx/store';
 import {EffectsModule} from '@ngrx/effects';
 import {provideRouter} from '@angular/router';
 import {AuthService} from './app/core/services/auth.service';
-import {importProvidersFrom} from '@angular/core';
+import {importProvidersFrom, isDevMode} from '@angular/core';
+import {provideTransloco} from '@ngneat/transloco';
 
 import {AppComponent} from './app/app.component';
 import {routes} from './app/app.routes';
 import {authReducer} from './app/core/store/auth.reducer';
 import {AuthEffects} from './app/core/store/auth.effects';
 import {authInterceptor} from './app/core/interceptors/auth.interceptor';
+import {TranslocoHttpLoader} from './app/core/transloco-loader';
 
 bootstrapApplication(AppComponent, {
   providers: [
@@ -21,6 +23,15 @@ bootstrapApplication(AppComponent, {
     // provideEffects([AuthEffects]),
     importProvidersFrom(EffectsModule.forRoot([AuthEffects])), // a dellet quand NgRx seras en V19.2.0
     provideRouter(routes),
-    AuthService
+    AuthService,
+    provideTransloco({
+      config: {
+        availableLangs: ['fr', 'en'],
+        defaultLang: 'fr',
+        reRenderOnLangChange: true,
+        prodMode: !isDevMode(),
+      },
+      loader: TranslocoHttpLoader,
+    }),
   ]
 }).catch(err => console.error(err));
