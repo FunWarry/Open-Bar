@@ -18,9 +18,9 @@ public record CommandeItemResponseDTO(
     public static CommandeItemResponseDTO from(CommandeItem item) {
         return new CommandeItemResponseDTO(
             item.getId(),
-            item.getCommande().getId(),
-            item.getCocktail().getId(),
-            item.getCocktail().getNom(),
+            item.getCommande() != null ? item.getCommande().getId() : null,
+            item.getCocktail() != null ? item.getCocktail().getId() : null,
+            item.getCocktail() != null ? item.getCocktail().getNom() : null,
             item.getVariante() != null ? item.getVariante().getId() : null,
             item.getVariante() != null ? item.getVariante().getNom() : null,
             item.getQuantite(),
