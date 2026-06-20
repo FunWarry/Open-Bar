@@ -2,8 +2,9 @@ package com.bar.gestioncocktail.model;
 
 public enum UserRole {
     ADMIN,
+    MANAGER,
     SERVEUR,
-    BARMEN;
+    BARMAN;
 
     public String getName() {
         return name();

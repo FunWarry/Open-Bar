@@ -29,6 +29,8 @@ CREATE TABLE user_roles (
     roles VARCHAR(20) NOT NULL,
     PRIMARY KEY (user_id, roles)
 );
+-- Valeurs autorisées pour 'roles' : ADMIN, MANAGER, SERVEUR, BARMAN
+-- Migration existant : UPDATE user_roles SET roles = 'BARMAN' WHERE roles = 'BARMEN';
 
 CREATE TABLE cocktails (
     id BIGSERIAL PRIMARY KEY,
