@@ -3,13 +3,25 @@ import { RxStomp, RxStompState } from '@stomp/rx-stomp';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { IMessage } from '@stomp/stompjs';
+import { Store } from '@ngrx/store';
 import { environment } from '../../../environments/environment';
 import { AuthService } from './auth.service';
+import { selectIsAuthenticated } from '../store/auth.selectors';
 
 @Injectable({ providedIn: 'root' })
 export class WebSocketService {
   private authService = inject(AuthService);
+  private store = inject(Store);
   private rxStomp = new RxStomp();
+
+  constructor() {
+    // Déconnecter le WebSocket automatiquement au logout
+    this.store.select(selectIsAuthenticated).subscribe(isAuth => {
+      if (!isAuth && this.rxStomp.active) {
+        this.rxStomp.deactivate();
+      }
+    });
+  }
 
   connect(): void {
     if (this.rxStomp.active) return;
