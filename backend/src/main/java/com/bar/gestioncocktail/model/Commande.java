@@ -1,6 +1,8 @@
 package com.bar.gestioncocktail.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -15,17 +17,21 @@ public class Commande {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotNull(message = "La table est obligatoire")
     @ManyToOne
     @JoinColumn(name = "table_id", nullable = false)
     private TableEntity table;
 
+    @NotNull(message = "Le serveur est obligatoire")
     @ManyToOne
     @JoinColumn(name = "serveur_id", nullable = false)
     private User serveur;
 
+    @Valid
     @OneToMany(mappedBy = "commande", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CommandeItem> items = new ArrayList<>();
 
+    @NotNull(message = "Le statut est obligatoire")
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private CommandeStatut statut;
