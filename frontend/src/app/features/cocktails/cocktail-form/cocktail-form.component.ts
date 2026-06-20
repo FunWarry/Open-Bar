@@ -1,22 +1,16 @@
 import {Component, OnInit} from '@angular/core';
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {ActivatedRoute, Router} from '@angular/router';
-import {MatSnackBar} from '@angular/material/snack-bar';
-import {MatCardModule} from '@angular/material/card';
-import {MatCardHeader, MatCardTitle, MatCardContent} from '@angular/material/card';
-import {MatFormFieldModule} from '@angular/material/form-field';
-import {MatInputModule} from '@angular/material/input';
-import {MatButtonModule} from '@angular/material/button';
-import {MatError} from '@angular/material/form-field';
-import { NgIf } from '@angular/common';
-import { MatOptionModule } from '@angular/material/core';
-import { MatSelectModule } from '@angular/material/select';
+import {ToastController} from '@ionic/angular/standalone';
+import {IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonLabel, IonInput, IonButton, IonNote, IonSelect, IonSelectOption} from '@ionic/angular/standalone';
+import {NgIf} from '@angular/common';
+
 @Component({
     selector: 'app-cocktail-form',
     templateUrl: './cocktail-form.component.html',
     styleUrls: ['./cocktail-form.component.scss'],
     standalone: true,
-    imports: [MatCardModule, MatCardHeader, MatCardTitle, MatCardContent, MatFormFieldModule, MatInputModule, MatButtonModule, MatError, ReactiveFormsModule, NgIf, MatOptionModule, MatSelectModule]
+    imports: [IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonLabel, IonInput, IonButton, IonNote, IonSelect, IonSelectOption, ReactiveFormsModule, NgIf]
 })
 export class CocktailFormComponent implements OnInit {
   cocktailForm: FormGroup;
@@ -27,7 +21,7 @@ export class CocktailFormComponent implements OnInit {
     private fb: FormBuilder,
     private route: ActivatedRoute,
     public router: Router,
-    private snackBar: MatSnackBar
+    private toastCtrl: ToastController
   ) {
     this.cocktailForm = this.fb.group({
       name: ['', Validators.required],
@@ -46,12 +40,15 @@ export class CocktailFormComponent implements OnInit {
     }
   }
 
+  private async showToast(message: string, color = 'success'): Promise<void> {
+    const toast = await this.toastCtrl.create({ message, duration: 3000, color });
+    await toast.present();
+  }
+
   onSubmit(): void {
     if (this.cocktailForm.valid) {
       // TODO: Implémenter la logique de sauvegarde
-      this.snackBar.open('Cocktail sauvegardé avec succès', 'Fermer', {
-        duration: 3000
-      });
+      this.showToast('Cocktail sauvegardé avec succès');
       this.router.navigate(['/cocktails']);
     }
   }
