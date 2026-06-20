@@ -16,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -182,12 +183,29 @@ class CommandeServiceTest {
 
     @Test
     void changerStatut_enPreparation_idempotent_neSetsDatePreparationDeuxFois() {
+        // La commande a déjà une datePreparation (premier passage déjà effectué)
         commande.setStatut(CommandeStatut.EN_PREPARATION);
+        commande.setDatePreparation(LocalDateTime.now().minusMinutes(5));
+        LocalDateTime dateInitiale = commande.getDatePreparation();
         when(commandeRepository.findById(1L)).thenReturn(Optional.of(commande));
 
         Commande result = commandeService.changerStatut(1L, CommandeStatut.EN_PREPARATION);
 
-        // datePreparation ne doit pas être écrasée (elle était déjà set lors du premier passage)
-        assertThat(result.getDatePreparation()).isNull(); // null car on n'a pas re-setté
+        // datePreparation ne doit pas être écrasée — elle est préservée telle quelle
+        assertThat(result.getDatePreparation()).isEqualTo(dateInitiale);
+    }
+
+    @Test
+    void destockage_seuilAlerteNull_nePasNPE() {
+        // Un ingrédient sans seuil d'alerte configuré ne doit pas lever de NPE
+        ingredient.setSeuilAlerte(null);
+        when(commandeRepository.findById(1L)).thenReturn(Optional.of(commande));
+
+        // Act + Assert : aucune exception ne doit être levée
+        org.junit.jupiter.api.Assertions.assertDoesNotThrow(
+            () -> commandeService.changerStatut(1L, CommandeStatut.EN_PREPARATION)
+        );
+        // Aucune alerte WebSocket ne doit être publiée (seuil absent)
+        verify(messagingTemplate, never()).convertAndSend(anyString(), any(StockAlerteEvent.class));
     }
 }
