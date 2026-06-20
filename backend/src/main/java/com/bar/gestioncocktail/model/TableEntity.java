@@ -1,6 +1,8 @@
 package com.bar.gestioncocktail.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import java.time.LocalDateTime;
 
@@ -12,12 +14,17 @@ public class TableEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotNull(message = "Le numéro de table est obligatoire")
+    @Min(value = 1, message = "Le numéro de table doit être supérieur ou égal à 1")
     @Column(nullable = false)
     private Integer numero;
 
+    @NotNull(message = "La capacité est obligatoire")
+    @Min(value = 1, message = "La capacité doit être d'au moins 1 personne")
     @Column(nullable = false)
     private Integer capacite;
 
+    @NotNull(message = "La zone est obligatoire")
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private TableZone zone;

@@ -8,7 +8,6 @@ import com.bar.gestioncocktail.model.TableEntity;
 import com.bar.gestioncocktail.model.User;
 import com.bar.gestioncocktail.service.CommandeService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -22,32 +21,31 @@ import java.util.List;
 public class CommandeController {
     private final CommandeService commandeService;
 
-    @Autowired
     public CommandeController(CommandeService commandeService) {
         this.commandeService = commandeService;
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('SERVEUR') or hasRole('ADMIN')")
     public ResponseEntity<CommandeResponseDTO> createCommande(@Valid @RequestBody Commande commande) {
         return ResponseEntity.ok(CommandeResponseDTO.from(commandeService.createCommande(commande)));
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('SERVEUR') or hasRole('ADMIN')")
     public ResponseEntity<CommandeResponseDTO> updateCommande(@PathVariable Long id, @Valid @RequestBody Commande commandeDetails) {
-        try {
-            return ResponseEntity.ok(CommandeResponseDTO.from(commandeService.updateCommande(id, commandeDetails)));
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+        return ResponseEntity.ok(CommandeResponseDTO.from(commandeService.updateCommande(id, commandeDetails)));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteCommande(@PathVariable Long id) {
         commandeService.deleteCommande(id);
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<CommandeResponseDTO> getCommandeById(@PathVariable Long id) {
         return commandeService.getCommandeById(id)
             .map(CommandeResponseDTO::from)
@@ -56,6 +54,7 @@ public class CommandeController {
     }
 
     @GetMapping("/table/{tableId}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<CommandeResponseDTO>> getCommandesByTable(@PathVariable Long tableId) {
         TableEntity table = new TableEntity();
         table.setId(tableId);
@@ -64,6 +63,7 @@ public class CommandeController {
     }
 
     @GetMapping("/serveur/{serveurId}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<CommandeResponseDTO>> getCommandesByServeur(@PathVariable Long serveurId) {
         User serveur = new User();
         serveur.setId(serveurId);
@@ -72,12 +72,14 @@ public class CommandeController {
     }
 
     @GetMapping("/statut/{statut}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<CommandeResponseDTO>> getCommandesByStatut(@PathVariable CommandeStatut statut) {
         return ResponseEntity.ok(commandeService.getCommandesByStatut(statut).stream()
             .map(CommandeResponseDTO::from).toList());
     }
 
     @GetMapping("/table/{tableId}/statut/{statut}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<CommandeResponseDTO>> getCommandesByTableAndStatut(
         @PathVariable Long tableId,
         @PathVariable CommandeStatut statut) {
@@ -88,6 +90,7 @@ public class CommandeController {
     }
 
     @GetMapping("/date")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<CommandeResponseDTO>> getCommandesByDate(
         @RequestParam LocalDateTime debut,
         @RequestParam LocalDateTime fin) {
@@ -96,34 +99,25 @@ public class CommandeController {
     }
 
     @PostMapping("/{id}/items")
+    @PreAuthorize("hasRole('SERVEUR') or hasRole('ADMIN')")
     public ResponseEntity<CommandeResponseDTO> ajouterItem(@PathVariable Long id, @Valid @RequestBody CommandeItem item) {
-        try {
-            return ResponseEntity.ok(CommandeResponseDTO.from(commandeService.ajouterItem(id, item)));
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().build();
-        }
+        return ResponseEntity.ok(CommandeResponseDTO.from(commandeService.ajouterItem(id, item)));
     }
 
     @DeleteMapping("/{id}/items/{itemId}")
+    @PreAuthorize("hasRole('SERVEUR') or hasRole('ADMIN')")
     public ResponseEntity<CommandeResponseDTO> retirerItem(@PathVariable Long id, @PathVariable Long itemId) {
-        try {
-            return ResponseEntity.ok(CommandeResponseDTO.from(commandeService.retirerItem(id, itemId)));
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().build();
-        }
+        return ResponseEntity.ok(CommandeResponseDTO.from(commandeService.retirerItem(id, itemId)));
     }
 
     @PutMapping("/{id}/statut")
+    @PreAuthorize("hasRole('BARMAN') or hasRole('SERVEUR')")
     public ResponseEntity<CommandeResponseDTO> changerStatut(@PathVariable Long id, @RequestBody CommandeStatut nouveauStatut) {
-        try {
-            return ResponseEntity.ok(CommandeResponseDTO.from(commandeService.changerStatut(id, nouveauStatut)));
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().build();
-        }
+        return ResponseEntity.ok(CommandeResponseDTO.from(commandeService.changerStatut(id, nouveauStatut)));
     }
 
     @PutMapping("/{id}/annuler")
-    @PreAuthorize("hasRole('SERVEUR')")
+    @PreAuthorize("hasRole('SERVEUR') or hasRole('MANAGER')")
     public ResponseEntity<CommandeResponseDTO> annulerCommande(@PathVariable Long id) {
         return commandeService.getCommandeById(id)
             .map(commande -> {
@@ -134,7 +128,7 @@ public class CommandeController {
     }
 
     @PutMapping("/items/{itemId}/priorite")
-    @PreAuthorize("hasRole('SERVEUR') or hasRole('BARMEN')")
+    @PreAuthorize("hasRole('SERVEUR') or hasRole('BARMAN')")
     public ResponseEntity<Void> definirPriorite(@PathVariable Long itemId, @RequestParam boolean prioritaire) {
         CommandeItem item = new CommandeItem();
         item.setId(itemId);
