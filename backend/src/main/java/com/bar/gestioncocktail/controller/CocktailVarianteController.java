@@ -1,5 +1,6 @@
 package com.bar.gestioncocktail.controller;
 
+import com.bar.gestioncocktail.dto.CocktailVarianteResponseDTO;
 import com.bar.gestioncocktail.model.Cocktail;
 import com.bar.gestioncocktail.model.CocktailVariante;
 import com.bar.gestioncocktail.service.CocktailVarianteService;
@@ -23,15 +24,17 @@ public class CocktailVarianteController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('BARMAN')")
-    public ResponseEntity<CocktailVariante> createCocktailVariante(@RequestBody CocktailVariante variante) {
-        return ResponseEntity.ok(cocktailVarianteService.createCocktailVariante(variante));
+    public ResponseEntity<CocktailVarianteResponseDTO> createCocktailVariante(@RequestBody CocktailVariante variante) {
+        return ResponseEntity.ok(CocktailVarianteResponseDTO.from(
+            cocktailVarianteService.createCocktailVariante(variante)));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('BARMAN')")
-    public ResponseEntity<CocktailVariante> updateCocktailVariante(@PathVariable Long id, @RequestBody CocktailVariante variante) {
+    public ResponseEntity<CocktailVarianteResponseDTO> updateCocktailVariante(@PathVariable Long id, @RequestBody CocktailVariante variante) {
         variante.setId(id);
-        return ResponseEntity.ok(cocktailVarianteService.updateCocktailVariante(variante));
+        return ResponseEntity.ok(CocktailVarianteResponseDTO.from(
+            cocktailVarianteService.updateCocktailVariante(variante)));
     }
 
     @DeleteMapping("/{id}")
@@ -43,53 +46,57 @@ public class CocktailVarianteController {
 
     @GetMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<CocktailVariante> getCocktailVarianteById(@PathVariable Long id) {
+    public ResponseEntity<CocktailVarianteResponseDTO> getCocktailVarianteById(@PathVariable Long id) {
         return cocktailVarianteService.getCocktailVarianteById(id)
+            .map(CocktailVarianteResponseDTO::from)
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/cocktail/{cocktailId}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<List<CocktailVariante>> getVariantesByCocktail(@PathVariable Long cocktailId) {
+    public ResponseEntity<List<CocktailVarianteResponseDTO>> getVariantesByCocktail(@PathVariable Long cocktailId) {
         Cocktail cocktail = new Cocktail();
         cocktail.setId(cocktailId);
-        return ResponseEntity.ok(cocktailVarianteService.getVariantesByCocktail(cocktail));
+        return ResponseEntity.ok(cocktailVarianteService.getVariantesByCocktail(cocktail).stream()
+            .map(CocktailVarianteResponseDTO::from).toList());
     }
 
     @GetMapping("/cocktail/{cocktailId}/disponibles")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<List<CocktailVariante>> getVariantesDisponiblesByCocktail(@PathVariable Long cocktailId) {
+    public ResponseEntity<List<CocktailVarianteResponseDTO>> getVariantesDisponiblesByCocktail(@PathVariable Long cocktailId) {
         Cocktail cocktail = new Cocktail();
         cocktail.setId(cocktailId);
-        return ResponseEntity.ok(cocktailVarianteService.getVariantesDisponiblesByCocktail(cocktail));
+        return ResponseEntity.ok(cocktailVarianteService.getVariantesDisponiblesByCocktail(cocktail).stream()
+            .map(CocktailVarianteResponseDTO::from).toList());
     }
 
     @GetMapping("/search")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<List<CocktailVariante>> searchVariantes(@RequestParam String nom) {
-        return ResponseEntity.ok(cocktailVarianteService.searchVariantes(nom));
+    public ResponseEntity<List<CocktailVarianteResponseDTO>> searchVariantes(@RequestParam String nom) {
+        return ResponseEntity.ok(cocktailVarianteService.searchVariantes(nom).stream()
+            .map(CocktailVarianteResponseDTO::from).toList());
     }
 
     @PutMapping("/{id}/disponibilite")
     @PreAuthorize("hasRole('ADMIN') or hasRole('BARMAN') or hasRole('MANAGER')")
-    public ResponseEntity<CocktailVariante> toggleDisponibilite(@PathVariable Long id) {
+    public ResponseEntity<CocktailVarianteResponseDTO> toggleDisponibilite(@PathVariable Long id) {
         return cocktailVarianteService.getCocktailVarianteById(id)
             .map(variante -> {
                 cocktailVarianteService.toggleDisponibilite(variante);
-                return ResponseEntity.ok(variante);
+                return ResponseEntity.ok(CocktailVarianteResponseDTO.from(variante));
             })
             .orElse(ResponseEntity.notFound().build());
     }
 
     @PutMapping("/{id}/prix-supplement")
     @PreAuthorize("hasRole('ADMIN') or hasRole('BARMAN')")
-    public ResponseEntity<CocktailVariante> updatePrixSupplement(@PathVariable Long id, @RequestParam BigDecimal prixSupplement) {
+    public ResponseEntity<CocktailVarianteResponseDTO> updatePrixSupplement(@PathVariable Long id, @RequestParam BigDecimal prixSupplement) {
         return cocktailVarianteService.getCocktailVarianteById(id)
             .map(variante -> {
                 cocktailVarianteService.updatePrixSupplement(variante, prixSupplement);
-                return ResponseEntity.ok(variante);
+                return ResponseEntity.ok(CocktailVarianteResponseDTO.from(variante));
             })
             .orElse(ResponseEntity.notFound().build());
     }
-} 
+}

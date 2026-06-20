@@ -1,5 +1,6 @@
 package com.bar.gestioncocktail.controller;
 
+import com.bar.gestioncocktail.dto.UserResponseDTO;
 import com.bar.gestioncocktail.model.User;
 import com.bar.gestioncocktail.model.UserRole;
 import com.bar.gestioncocktail.service.UserService;
@@ -22,15 +23,15 @@ public class UserController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<User> createUser(@RequestBody User user) {
-        return ResponseEntity.ok(userService.createUser(user));
+    public ResponseEntity<UserResponseDTO> createUser(@RequestBody User user) {
+        return ResponseEntity.ok(UserResponseDTO.from(userService.createUser(user)));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User user) {
+    public ResponseEntity<UserResponseDTO> updateUser(@PathVariable Long id, @RequestBody User user) {
         user.setId(id);
-        return ResponseEntity.ok(userService.updateUser(user));
+        return ResponseEntity.ok(UserResponseDTO.from(userService.updateUser(user)));
     }
 
     @DeleteMapping("/{id}")
@@ -42,24 +43,27 @@ public class UserController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
-    public ResponseEntity<User> getUserById(@PathVariable Long id) {
+    public ResponseEntity<UserResponseDTO> getUserById(@PathVariable Long id) {
         return userService.getUserById(id)
+            .map(UserResponseDTO::from)
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/username/{username}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<User> getUserByUsername(@PathVariable String username) {
+    public ResponseEntity<UserResponseDTO> getUserByUsername(@PathVariable String username) {
         return userService.getUserByUsername(username)
+            .map(UserResponseDTO::from)
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/role/{role}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<User>> getUsersByRole(@PathVariable UserRole role) {
-        return ResponseEntity.ok(userService.getUsersByRole(role));
+    public ResponseEntity<List<UserResponseDTO>> getUsersByRole(@PathVariable UserRole role) {
+        return ResponseEntity.ok(userService.getUsersByRole(role).stream()
+            .map(UserResponseDTO::from).toList());
     }
 
     @GetMapping("/check-username/{username}")
@@ -78,4 +82,4 @@ public class UserController {
         userService.getUserById(id).ifPresent(user -> userService.changePassword(user, newPassword));
         return ResponseEntity.ok().build();
     }
-} 
+}
