@@ -7,6 +7,7 @@ import com.bar.gestioncocktail.service.FactureService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -24,11 +25,13 @@ public class FactureController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
     public ResponseEntity<Facture> createFacture(@Valid @RequestBody Facture facture) {
         return ResponseEntity.ok(factureService.createFacture(facture));
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
     public ResponseEntity<Facture> updateFacture(@PathVariable Long id, @Valid @RequestBody Facture factureDetails) {
         try {
             Facture updatedFacture = factureService.updateFacture(id, factureDetails);
@@ -39,12 +42,14 @@ public class FactureController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteFacture(@PathVariable Long id) {
         factureService.deleteFacture(id);
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
     public ResponseEntity<Facture> getFactureById(@PathVariable Long id) {
         return factureService.getFactureById(id)
             .map(ResponseEntity::ok)
@@ -52,6 +57,7 @@ public class FactureController {
     }
 
     @GetMapping("/table/{tableId}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
     public ResponseEntity<List<Facture>> getFacturesByTable(@PathVariable Long tableId) {
         TableEntity table = new TableEntity();
         table.setId(tableId);
@@ -59,6 +65,7 @@ public class FactureController {
     }
 
     @GetMapping("/date")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
     public ResponseEntity<List<Facture>> getFacturesByDate(
         @RequestParam LocalDateTime debut,
         @RequestParam LocalDateTime fin) {
@@ -66,6 +73,7 @@ public class FactureController {
     }
 
     @PostMapping("/{id}/items")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
     public ResponseEntity<Facture> ajouterItem(@PathVariable Long id, @Valid @RequestBody FactureItem item) {
         try {
             Facture facture = factureService.ajouterItem(id, item);
@@ -76,6 +84,7 @@ public class FactureController {
     }
 
     @DeleteMapping("/{id}/items/{itemId}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
     public ResponseEntity<Facture> retirerItem(@PathVariable Long id, @PathVariable Long itemId) {
         try {
             Facture facture = factureService.retirerItem(id, itemId);
@@ -86,6 +95,7 @@ public class FactureController {
     }
 
     @PostMapping("/{id}/regler")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
     public ResponseEntity<Facture> reglerFacture(@PathVariable Long id, @RequestParam String modePaiement) {
         try {
             Facture facture = factureService.reglerFacture(id, modePaiement);

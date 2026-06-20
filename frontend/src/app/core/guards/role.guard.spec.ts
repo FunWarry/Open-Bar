@@ -59,6 +59,7 @@ describe('RoleGuard', () => {
     store.overrideSelector(selectCurrentUser, null);
     guard.canActivate(makeRoute(['MANAGER'])).subscribe(result => {
       expect(result).toBeFalse();
+      expect(routerSpy.navigate).toHaveBeenCalledWith(['/']);
       done();
     });
   });

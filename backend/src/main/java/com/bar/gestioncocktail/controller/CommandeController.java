@@ -27,6 +27,7 @@ public class CommandeController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('SERVEUR') or hasRole('ADMIN')")
     public ResponseEntity<Commande> createCommande(@Valid @RequestBody Commande commande) {
         return ResponseEntity.ok(commandeService.createCommande(commande));
     }
@@ -42,12 +43,14 @@ public class CommandeController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteCommande(@PathVariable Long id) {
         commandeService.deleteCommande(id);
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Commande> getCommandeById(@PathVariable Long id) {
         return commandeService.getCommandeById(id)
             .map(ResponseEntity::ok)
@@ -55,6 +58,7 @@ public class CommandeController {
     }
 
     @GetMapping("/table/{tableId}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<Commande>> getCommandesByTable(@PathVariable Long tableId) {
         TableEntity table = new TableEntity();
         table.setId(tableId);
@@ -62,6 +66,7 @@ public class CommandeController {
     }
 
     @GetMapping("/serveur/{serveurId}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<Commande>> getCommandesByServeur(@PathVariable Long serveurId) {
         User serveur = new User();
         serveur.setId(serveurId);
@@ -69,11 +74,13 @@ public class CommandeController {
     }
 
     @GetMapping("/statut/{statut}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<Commande>> getCommandesByStatut(@PathVariable CommandeStatut statut) {
         return ResponseEntity.ok(commandeService.getCommandesByStatut(statut));
     }
 
     @GetMapping("/table/{tableId}/statut/{statut}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<Commande>> getCommandesByTableAndStatut(
         @PathVariable Long tableId,
         @PathVariable CommandeStatut statut) {
@@ -83,6 +90,7 @@ public class CommandeController {
     }
 
     @GetMapping("/date")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<Commande>> getCommandesByDate(
         @RequestParam LocalDateTime debut,
         @RequestParam LocalDateTime fin) {
