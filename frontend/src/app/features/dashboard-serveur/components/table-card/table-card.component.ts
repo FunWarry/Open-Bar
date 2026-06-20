@@ -1,9 +1,10 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { TableView } from '../../models/table-view.model';
 import {
   IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-  IonBadge, IonButton, IonIcon
+  IonButton, IonIcon
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { peopleOutline, restaurantOutline, checkmarkOutline, timeOutline } from 'ionicons/icons';
@@ -14,13 +15,13 @@ import { peopleOutline, restaurantOutline, checkmarkOutline, timeOutline } from 
   imports: [
     CommonModule, RouterModule,
     IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-    IonBadge, IonButton, IonIcon
+    IonButton, IonIcon
   ],
   templateUrl: './table-card.component.html',
   styleUrls: ['./table-card.component.scss'],
 })
 export class TableCardComponent {
-  @Input() table: any;
+  @Input() table!: TableView;
   @Output() liberer = new EventEmitter<number>();
 
   constructor() {

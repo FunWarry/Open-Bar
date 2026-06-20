@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { finalize, takeUntil } from 'rxjs/operators';
 import {
   IonContent, IonHeader, IonToolbar, IonTitle,
   IonRefresher, IonRefresherContent,
@@ -10,7 +10,9 @@ import {
   ToastController
 } from '@ionic/angular/standalone';
 import { TableCardComponent } from './components/table-card/table-card.component';
+import { NotificationService } from '../../core/services/notification.service';
 import { DashboardServeurService } from './services/dashboard-serveur.service';
+import { TableView } from './models/table-view.model';
 
 @Component({
   selector: 'app-dashboard-serveur',
@@ -27,8 +29,8 @@ import { DashboardServeurService } from './services/dashboard-serveur.service';
   styleUrls: ['./dashboard-serveur.component.scss'],
 })
 export class DashboardServeurComponent implements OnInit, OnDestroy {
-  tables: any[] = [];
-  filteredTables: any[] = [];
+  tables: TableView[] = [];
+  filteredTables: TableView[] = [];
   selectedFilter = 'toutes';
   isLoading = false;
 
@@ -37,10 +39,20 @@ export class DashboardServeurComponent implements OnInit, OnDestroy {
   constructor(
     private service: DashboardServeurService,
     private toastCtrl: ToastController,
+    private notificationService: NotificationService,
   ) {}
 
   ngOnInit() {
     this.chargerTables();
+
+    // Rechargement automatique des tables à chaque event WS table ou commande
+    this.notificationService.onNotification()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(notif => {
+        if (notif.type === 'table' || notif.type === 'commande') {
+          this.chargerTables();
+        }
+      });
   }
 
   ngOnDestroy() {
@@ -48,18 +60,22 @@ export class DashboardServeurComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  chargerTables() {
+  chargerTables(refreshEvent?: any) {
     this.isLoading = true;
     this.service.getAllTables()
-      .pipe(takeUntil(this.destroy$))
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => {
+          this.isLoading = false;
+          if (refreshEvent) refreshEvent.target.complete();
+        }),
+      )
       .subscribe({
         next: tables => {
           this.tables = tables;
           this.filtrer();
-          this.isLoading = false;
         },
         error: async () => {
-          this.isLoading = false;
           const toast = await this.toastCtrl.create({
             message: 'Erreur lors du chargement des tables',
             duration: 3000,
@@ -121,8 +137,7 @@ export class DashboardServeurComponent implements OnInit, OnDestroy {
   }
 
   onRefresh(event: any) {
-    this.chargerTables();
-    setTimeout(() => event.target.complete(), 500);
+    this.chargerTables(event);
   }
 
   trackById(_: number, item: any): number {
