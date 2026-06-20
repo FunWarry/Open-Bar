@@ -110,6 +110,7 @@ public class CommandeController {
     }
 
     @PutMapping("/{id}/statut")
+    @PreAuthorize("hasRole('BARMAN') or hasRole('SERVEUR')")
     public ResponseEntity<Commande> changerStatut(@PathVariable Long id, @RequestBody CommandeStatut nouveauStatut) {
         try {
             Commande commande = commandeService.changerStatut(id, nouveauStatut);
@@ -120,7 +121,7 @@ public class CommandeController {
     }
 
     @PutMapping("/{id}/annuler")
-    @PreAuthorize("hasRole('SERVEUR')")
+    @PreAuthorize("hasRole('SERVEUR') or hasRole('MANAGER')")
     public ResponseEntity<Commande> annulerCommande(@PathVariable Long id) {
         return commandeService.getCommandeById(id)
             .map(commande -> {
@@ -131,7 +132,7 @@ public class CommandeController {
     }
 
     @PutMapping("/items/{itemId}/priorite")
-    @PreAuthorize("hasRole('SERVEUR') or hasRole('BARMEN')")
+    @PreAuthorize("hasRole('SERVEUR') or hasRole('BARMAN')")
     public ResponseEntity<Void> definirPriorite(@PathVariable Long itemId, @RequestParam boolean prioritaire) {
         CommandeItem item = new CommandeItem();
         item.setId(itemId);

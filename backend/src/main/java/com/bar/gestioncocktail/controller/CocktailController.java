@@ -24,13 +24,13 @@ public class CocktailController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN') or hasRole('BARMEN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('BARMAN')")
     public ResponseEntity<Cocktail> createCocktail(@Valid @RequestBody Cocktail cocktail) {
         return ResponseEntity.ok(cocktailService.createCocktail(cocktail));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('BARMEN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('BARMAN')")
     public ResponseEntity<Cocktail> updateCocktail(@PathVariable Long id, @Valid @RequestBody Cocktail cocktail) {
         cocktail.setId(id);
         return ResponseEntity.ok(cocktailService.updateCocktail(cocktail));
@@ -76,7 +76,7 @@ public class CocktailController {
     }
 
     @PutMapping("/{id}/disponibilite")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('BARMEN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('BARMAN') or hasRole('MANAGER')")
     public ResponseEntity<Cocktail> toggleDisponibilite(@PathVariable Long id) {
         return cocktailService.getCocktailById(id)
             .map(cocktail -> {
@@ -87,7 +87,7 @@ public class CocktailController {
     }
 
     @PutMapping("/{id}/saisonnalite")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('BARMEN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('BARMAN')")
     public ResponseEntity<Cocktail> definirSaisonnalite(
         @PathVariable Long id,
         @RequestParam LocalDateTime dateDebut,
