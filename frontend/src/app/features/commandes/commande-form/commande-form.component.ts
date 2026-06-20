@@ -1,23 +1,17 @@
 import {Component, OnInit} from '@angular/core';
 import {FormBuilder, FormGroup, Validators} from '@angular/forms';
 import {ActivatedRoute, Router} from '@angular/router';
-import {MatSnackBar} from '@angular/material/snack-bar';
-import {MatCardModule} from '@angular/material/card';
-import {MatCardHeader, MatCardTitle, MatCardContent} from '@angular/material/card';
-import {MatFormFieldModule} from '@angular/material/form-field';
-import {MatInputModule} from '@angular/material/input';
-import {MatButtonModule} from '@angular/material/button';
-import {MatError} from '@angular/material/form-field';
-import { ReactiveFormsModule } from '@angular/forms';
-import { NgIf } from '@angular/common';
-import { MatSelectModule } from '@angular/material/select';
-import { MatOptionModule } from '@angular/material/core';
+import {ToastController} from '@ionic/angular/standalone';
+import {IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonLabel, IonInput, IonButton, IonNote, IonSelect, IonSelectOption} from '@ionic/angular/standalone';
+import {ReactiveFormsModule} from '@angular/forms';
+import {NgIf} from '@angular/common';
+
 @Component({
     selector: 'app-commande-form',
     templateUrl: './commande-form.component.html',
     styleUrls: ['./commande-form.component.scss'],
     standalone: true,
-    imports: [MatCardModule, MatCardHeader, MatCardTitle, MatCardContent, MatFormFieldModule, MatInputModule, MatButtonModule, MatError, ReactiveFormsModule, NgIf, MatSelectModule, MatOptionModule]
+    imports: [IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonLabel, IonInput, IonButton, IonNote, IonSelect, IonSelectOption, ReactiveFormsModule, NgIf]
 })
 export class CommandeFormComponent implements OnInit {
   commandeForm: FormGroup;
@@ -28,7 +22,7 @@ export class CommandeFormComponent implements OnInit {
     private fb: FormBuilder,
     private route: ActivatedRoute,
     public router: Router,
-    private snackBar: MatSnackBar
+    private toastCtrl: ToastController
   ) {
     this.commandeForm = this.fb.group({
       tableId: ['', Validators.required],
@@ -46,12 +40,15 @@ export class CommandeFormComponent implements OnInit {
     }
   }
 
+  private async showToast(message: string, color = 'success'): Promise<void> {
+    const toast = await this.toastCtrl.create({ message, duration: 3000, color });
+    await toast.present();
+  }
+
   onSubmit(): void {
     if (this.commandeForm.valid) {
       // TODO: Implémenter la logique de sauvegarde
-      this.snackBar.open('Commande sauvegardée avec succès', 'Fermer', {
-        duration: 3000
-      });
+      this.showToast('Commande sauvegardée avec succès');
       this.router.navigate(['/commandes']);
     }
   }

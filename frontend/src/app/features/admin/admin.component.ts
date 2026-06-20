@@ -3,11 +3,8 @@ import {Store} from '@ngrx/store';
 import {Observable} from 'rxjs';
 import {selectCurrentUser} from '../../core/store/auth.selectors';
 import {User} from '../../core/models/user.model';
-import {MatCardModule} from '@angular/material/card';
-import {MatCardHeader, MatCardTitle, MatCardContent} from '@angular/material/card';
-import {MatIconModule} from '@angular/material/icon';
-import {MatButtonModule} from '@angular/material/button';
-import { AsyncPipe } from '@angular/common';
+import {IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent, IonIcon, IonButton} from '@ionic/angular/standalone';
+import {AsyncPipe} from '@angular/common';
 import {NavigationService} from "../../core/services/navigation.service";
 
 @Component({
@@ -15,7 +12,7 @@ import {NavigationService} from "../../core/services/navigation.service";
   templateUrl: './admin.component.html',
   styleUrls: ['./admin.component.css'],
   standalone: true,
-  imports: [MatCardModule, MatCardHeader, MatCardTitle, MatCardContent, MatIconModule, MatButtonModule, AsyncPipe]
+  imports: [IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent, IonIcon, IonButton, AsyncPipe]
 })
 export class AdminComponent implements OnInit {
   currentUser$: Observable<User | null>;

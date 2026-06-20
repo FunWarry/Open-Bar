@@ -1,21 +1,17 @@
 import {Component, OnInit} from '@angular/core';
-import {FormBuilder, FormGroup, Validators} from '@angular/forms';
+import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {ActivatedRoute, Router} from '@angular/router';
 import {Store} from '@ngrx/store';
-import {MatSnackBar} from '@angular/material/snack-bar';
-import {MatCardModule} from '@angular/material/card';
-import {MatCardHeader, MatCardTitle, MatCardContent} from '@angular/material/card';
-import {MatFormFieldModule} from '@angular/material/form-field';
-import {MatInputModule} from '@angular/material/input';
-import {MatButtonModule} from '@angular/material/button';
-import {MatError} from '@angular/material/form-field';
+import {ToastController} from '@ionic/angular/standalone';
+import {IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonLabel, IonInput, IonButton, IonNote} from '@ionic/angular/standalone';
+import {NgIf} from '@angular/common';
 
 @Component({
   selector: 'app-ingredient-form',
   templateUrl: './ingredient-form.component.html',
   styleUrls: ['./ingredient-form.component.css'],
   standalone: true,
-  imports: [MatCardModule, MatCardHeader, MatCardTitle, MatCardContent, MatFormFieldModule, MatInputModule, MatButtonModule, MatError]
+  imports: [IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonLabel, IonInput, IonButton, IonNote, ReactiveFormsModule, NgIf]
 })
 export class IngredientFormComponent implements OnInit {
   ingredientForm: FormGroup;
@@ -27,7 +23,7 @@ export class IngredientFormComponent implements OnInit {
     private store: Store,
     private router: Router,
     private route: ActivatedRoute,
-    private snackBar: MatSnackBar
+    private toastCtrl: ToastController
   ) {
     this.ingredientForm = this.fb.group({
       name: ['', [Validators.required]],
@@ -43,6 +39,11 @@ export class IngredientFormComponent implements OnInit {
       this.isEditMode = true;
       // TODO: Charger les données de l'ingrédient depuis le store
     }
+  }
+
+  private async showToast(message: string, color = 'success'): Promise<void> {
+    const toast = await this.toastCtrl.create({ message, duration: 3000, color });
+    await toast.present();
   }
 
   onSubmit(): void {

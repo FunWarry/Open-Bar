@@ -1,31 +1,34 @@
 <div class="login-container">
-  <mat-card>
-    <mat-card-header>
-      <mat-card-title>Connexion</mat-card-title>
-    </mat-card-header>
-    <mat-card-content>
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Connexion</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Username</mat-label>
-          <input matInput formControlName="username" type="text" required autocomplete="username">
-          <mat-error *ngIf="loginForm.get('username')?.hasError('required')">
-            Le nom d'utilisateur est requis
-          </mat-error>
-        </mat-form-field>
+        <ion-item>
+          <ion-label position="floating">Nom d'utilisateur</ion-label>
+          <ion-input formControlName="username" type="text" required autocomplete="username"></ion-input>
+        </ion-item>
+        <ion-note color="danger" *ngIf="loginForm.get('username')?.touched && loginForm.get('username')?.hasError('required')">
+          Le nom d'utilisateur est requis
+        </ion-note>
 
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Mot de passe</mat-label>
-          <input matInput formControlName="password" type="password" required autocomplete="current-password">
-          <mat-error *ngIf="loginForm.get('password')?.hasError('required')">
-            Le mot de passe est requis
-          </mat-error>
-        </mat-form-field>
+        <ion-item>
+          <ion-label position="floating">Mot de passe</ion-label>
+          <ion-input formControlName="password" type="password" required autocomplete="current-password"></ion-input>
+        </ion-item>
+        <ion-note color="danger" *ngIf="loginForm.get('password')?.touched && loginForm.get('password')?.hasError('required')">
+          Le mot de passe est requis
+        </ion-note>
 
-        <button mat-raised-button color="primary" type="submit" [disabled]="loginForm.invalid">
+        <ion-note color="danger" *ngIf="errorMessage">
+          {{ errorMessage }}
+        </ion-note>
+
+        <ion-button expand="block" type="submit" [disabled]="loginForm.invalid" class="ion-margin-top">
           Se connecter
-        </button>
+        </ion-button>
       </form>
-    </mat-card-content>
-  </mat-card>
+    </ion-card-content>
+  </ion-card>
 </div>
-
