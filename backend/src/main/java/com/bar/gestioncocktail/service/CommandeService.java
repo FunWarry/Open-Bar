@@ -129,7 +129,7 @@ public class CommandeService {
             case EN_PREPARATION:
                 commande.setDatePreparation(LocalDateTime.now());
                 break;
-            case PRET:
+            case LIVREE:
                 commande.setDateLivraison(LocalDateTime.now());
                 break;
             case REGLEE:

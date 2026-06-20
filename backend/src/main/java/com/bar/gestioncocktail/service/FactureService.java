@@ -10,7 +10,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
@@ -45,6 +47,9 @@ public class FactureService {
     @Transactional
     public Facture createFacture(Facture facture) {
         facture.setDateFacture(LocalDateTime.now());
+        String mois = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMM"));
+        long sequence = factureRepository.count() + 1;
+        facture.setNumero(String.format("FAC-%s-%04d", mois, sequence));
         return factureRepository.save(facture);
     }
 
