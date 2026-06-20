@@ -3,11 +3,12 @@ import {Store} from '@ngrx/store';
 import {Observable} from 'rxjs';
 import {selectCurrentUser, selectIsAdmin, selectIsAuthenticated} from '../../store/auth.selectors';
 import {NavigationService} from '../../services/navigation.service';
-import {MatToolbarModule} from '@angular/material/toolbar';
-import {MatIconModule} from '@angular/material/icon';
-import {MatButtonModule} from '@angular/material/button';
-import {MatMenuModule} from '@angular/material/menu';
-import {MatListModule} from '@angular/material/list';
+import {
+  IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
+  IonPopover, IonList, IonItem, IonLabel
+} from '@ionic/angular/standalone';
+import {addIcons} from 'ionicons';
+import {home, settings, personCircle, person, logOut, chevronDown} from 'ionicons/icons';
 import {AsyncPipe, NgIf} from '@angular/common';
 import * as AuthActions from '../../store/auth.actions';
 
@@ -16,12 +17,14 @@ import * as AuthActions from '../../store/auth.actions';
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.css'],
   standalone: true,
-  imports: [MatToolbarModule, MatIconModule, MatButtonModule, MatMenuModule, MatListModule, NgIf, AsyncPipe]
+  imports: [IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, IonPopover, IonList, IonItem, IonLabel, NgIf, AsyncPipe]
 })
 export class NavbarComponent implements OnInit {
   isAuthenticated$: Observable<boolean>;
   isAdmin$: Observable<boolean>;
   currentUser$: Observable<any>;
+
+  isUserMenuOpen = false;
 
   constructor(
     private store: Store,
@@ -30,6 +33,7 @@ export class NavbarComponent implements OnInit {
     this.isAuthenticated$ = this.store.select(selectIsAuthenticated);
     this.isAdmin$ = this.store.select(selectIsAdmin);
     this.currentUser$ = this.store.select(selectCurrentUser);
+    addIcons({home, settings, personCircle, person, logOut, chevronDown});
   }
 
   ngOnInit(): void {

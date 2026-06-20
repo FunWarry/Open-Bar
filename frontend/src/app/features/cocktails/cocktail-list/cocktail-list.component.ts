@@ -1,45 +1,41 @@
-import {Component, OnInit, ViewChild} from '@angular/core';
-import {MatPaginator} from '@angular/material/paginator';
-import {MatSort} from '@angular/material/sort';
-import {MatTableDataSource} from '@angular/material/table';
+import {Component, OnInit} from '@angular/core';
 import {Store} from '@ngrx/store';
 import {Observable} from 'rxjs';
 import {selectIsAdmin} from '../../../core/store/auth.selectors';
-import {MatCardModule} from '@angular/material/card';
-import {MatCardHeader, MatCardTitle, MatCardContent} from '@angular/material/card';
-import {MatPaginatorModule} from '@angular/material/paginator';
-import {MatTableModule} from '@angular/material/table';
-import {MatSortModule} from '@angular/material/sort';
-import {MatIconModule} from '@angular/material/icon';
-import {MatButtonModule} from '@angular/material/button';
-import { CurrencyPipe } from '@angular/common';
+import {
+  IonCard, IonCardHeader, IonCardTitle, IonCardContent,
+  IonList, IonItem, IonLabel, IonBadge, IonIcon, IonButton, IonButtons
+} from '@ionic/angular/standalone';
+import {addIcons} from 'ionicons';
+import {add, create, trash, chevronForward} from 'ionicons/icons';
+import {NgIf, NgFor, AsyncPipe, CurrencyPipe} from '@angular/common';
+
 @Component({
-    selector: 'app-cocktail-list',
-    templateUrl : './cocktail-list.component.html',
-    styleUrls: ['./cocktail-list.component.css'],
-    standalone: true,
-    imports: [MatCardModule, MatCardHeader, MatCardTitle, MatCardContent, MatPaginatorModule, MatTableModule, MatSortModule, MatIconModule, MatButtonModule, CurrencyPipe]
+  selector: 'app-cocktail-list',
+  templateUrl: './cocktail-list.component.html',
+  styleUrls: ['./cocktail-list.component.css'],
+  standalone: true,
+  imports: [
+    IonCard, IonCardHeader, IonCardTitle, IonCardContent,
+    IonList, IonItem, IonLabel, IonBadge, IonIcon, IonButton, IonButtons,
+    NgIf, NgFor, AsyncPipe, CurrencyPipe
+  ]
 })
 export class CocktailListComponent implements OnInit {
-  displayedColumns: string[] = ['name', 'category', 'price', 'actions'];
-  dataSource: MatTableDataSource<any>;
+  items: any[] = [];
   isAdmin$: Observable<boolean>;
 
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
-  @ViewChild(MatSort) sort!: MatSort;
-
   constructor(private store: Store) {
-    this.dataSource = new MatTableDataSource();
     this.isAdmin$ = this.store.select(selectIsAdmin);
+    addIcons({add, create, trash, chevronForward});
   }
 
   ngOnInit(): void {
     // TODO: Charger les cocktails depuis le store
   }
 
-  ngAfterViewInit() {
-    this.dataSource.paginator = this.paginator;
-    this.dataSource.sort = this.sort;
+  trackById(index: number, item: any): any {
+    return item.id ?? index;
   }
 
   onAdd(): void {
