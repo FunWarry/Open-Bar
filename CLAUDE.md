@@ -28,7 +28,7 @@ Le frontend migre vers **Ionic + Angular + Capacitor** — Angular Material n'es
 | UI mobile            | Ionic 8+                      |
 | Build natif          | Capacitor 6+ (iOS + Android)  |
 | Canvas plan de salle | Konva.js                      |
-| i18n                 | ngx-translate ou Angular i18n |
+| i18n                 | Transloco (`@ngneat/transloco`) |
 
 ## Lancer le projet
 
@@ -130,7 +130,55 @@ Service frontend : `websocket.service.ts`
 - Lazy loading sur toutes les routes (`loadComponent`)
 - State management NgRx uniquement pour l'auth (le reste en services directs)
 - ~~Angular Material~~ → **Ionic** pour tous les composants UI (migration actée)
-- i18n à intégrer dès le début
+- i18n **obligatoire dès le début** — voir section dédiée ci-dessous
+
+## Internationalisation (i18n)
+
+### Exigence
+L'application est **multilingue**. Ajouter une langue = ajouter un fichier JSON de traduction. Aucune modification de code requise.
+
+### Solution retenue : Transloco (`@ngneat/transloco`)
+
+Choix retenu plutôt que ngx-translate pour :
+- Lazy loading natif des traductions par feature (pas de bundle monolithique)
+- Support de l'architecture feature-based d'OpenBar
+- Meilleur support TypeScript et Angular 19+
+- Fichiers de langue scopés par feature + fichiers globaux
+
+### Structure des fichiers de traduction
+
+```
+frontend/src/assets/i18n/
+├── fr.json          # Français (langue par défaut)
+├── en.json          # Anglais
+└── <code>.json      # Toute autre langue — suffit pour l'activer
+```
+
+Fichiers scopés par feature (chargés à la demande) :
+```
+frontend/src/assets/i18n/
+├── fr/
+│   ├── commandes.json
+│   ├── cocktails.json
+│   └── tables.json
+└── en/
+    ├── commandes.json
+    ├── cocktails.json
+    └── tables.json
+```
+
+### Conventions
+- Toutes les chaînes visibles dans les templates utilisent le pipe `{{ 'CLE' | transloco }}` ou la directive `transloco="CLE"`
+- Les clés sont en `SCREAMING_SNAKE_CASE` : `COMMANDE.STATUT.EN_ATTENTE`
+- Langue par défaut : **français (`fr`)**
+- Langues supportées à terme : français, anglais (extensible)
+- Jamais de texte hardcodé en français dans les templates
+
+### Ajouter une nouvelle langue
+1. Créer `frontend/src/assets/i18n/<code>.json` (ex : `es.json` pour l'espagnol)
+2. Créer `frontend/src/assets/i18n/<code>/` avec les fichiers scopés si besoin
+3. Ajouter `<code>` à `availableLangs` dans `transloco.config.ts`
+4. C'est tout — l'application détecte et propose la nouvelle langue automatiquement
 
 ## Points d'attention / dette technique
 
