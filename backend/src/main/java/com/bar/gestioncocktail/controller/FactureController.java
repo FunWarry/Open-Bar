@@ -1,5 +1,6 @@
 package com.bar.gestioncocktail.controller;
 
+import com.bar.gestioncocktail.dto.FactureResponseDTO;
 import com.bar.gestioncocktail.model.Facture;
 import com.bar.gestioncocktail.model.FactureItem;
 import com.bar.gestioncocktail.model.TableEntity;
@@ -7,6 +8,7 @@ import com.bar.gestioncocktail.service.FactureService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -24,74 +26,66 @@ public class FactureController {
     }
 
     @PostMapping
-    public ResponseEntity<Facture> createFacture(@Valid @RequestBody Facture facture) {
-        return ResponseEntity.ok(factureService.createFacture(facture));
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
+    public ResponseEntity<FactureResponseDTO> createFacture(@Valid @RequestBody Facture facture) {
+        return ResponseEntity.ok(FactureResponseDTO.from(factureService.createFacture(facture)));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Facture> updateFacture(@PathVariable Long id, @Valid @RequestBody Facture factureDetails) {
-        try {
-            Facture updatedFacture = factureService.updateFacture(id, factureDetails);
-            return ResponseEntity.ok(updatedFacture);
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
+    public ResponseEntity<FactureResponseDTO> updateFacture(@PathVariable Long id, @Valid @RequestBody Facture factureDetails) {
+        return ResponseEntity.ok(FactureResponseDTO.from(factureService.updateFacture(id, factureDetails)));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteFacture(@PathVariable Long id) {
         factureService.deleteFacture(id);
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Facture> getFactureById(@PathVariable Long id) {
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
+    public ResponseEntity<FactureResponseDTO> getFactureById(@PathVariable Long id) {
         return factureService.getFactureById(id)
+            .map(FactureResponseDTO::from)
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/table/{tableId}")
-    public ResponseEntity<List<Facture>> getFacturesByTable(@PathVariable Long tableId) {
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
+    public ResponseEntity<List<FactureResponseDTO>> getFacturesByTable(@PathVariable Long tableId) {
         TableEntity table = new TableEntity();
         table.setId(tableId);
-        return ResponseEntity.ok(factureService.getFacturesByTable(table));
+        return ResponseEntity.ok(factureService.getFacturesByTable(table).stream()
+            .map(FactureResponseDTO::from).toList());
     }
 
     @GetMapping("/date")
-    public ResponseEntity<List<Facture>> getFacturesByDate(
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
+    public ResponseEntity<List<FactureResponseDTO>> getFacturesByDate(
         @RequestParam LocalDateTime debut,
         @RequestParam LocalDateTime fin) {
-        return ResponseEntity.ok(factureService.getFacturesByDate(debut, fin));
+        return ResponseEntity.ok(factureService.getFacturesByDate(debut, fin).stream()
+            .map(FactureResponseDTO::from).toList());
     }
 
     @PostMapping("/{id}/items")
-    public ResponseEntity<Facture> ajouterItem(@PathVariable Long id, @Valid @RequestBody FactureItem item) {
-        try {
-            Facture facture = factureService.ajouterItem(id, item);
-            return ResponseEntity.ok(facture);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().build();
-        }
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
+    public ResponseEntity<FactureResponseDTO> ajouterItem(@PathVariable Long id, @Valid @RequestBody FactureItem item) {
+        return ResponseEntity.ok(FactureResponseDTO.from(factureService.ajouterItem(id, item)));
     }
 
     @DeleteMapping("/{id}/items/{itemId}")
-    public ResponseEntity<Facture> retirerItem(@PathVariable Long id, @PathVariable Long itemId) {
-        try {
-            Facture facture = factureService.retirerItem(id, itemId);
-            return ResponseEntity.ok(facture);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().build();
-        }
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
+    public ResponseEntity<FactureResponseDTO> retirerItem(@PathVariable Long id, @PathVariable Long itemId) {
+        return ResponseEntity.ok(FactureResponseDTO.from(factureService.retirerItem(id, itemId)));
     }
 
     @PostMapping("/{id}/regler")
-    public ResponseEntity<Facture> reglerFacture(@PathVariable Long id, @RequestParam String modePaiement) {
-        try {
-            Facture facture = factureService.reglerFacture(id, modePaiement);
-            return ResponseEntity.ok(facture);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().build();
-        }
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
+    public ResponseEntity<FactureResponseDTO> reglerFacture(@PathVariable Long id, @RequestParam String modePaiement) {
+        return ResponseEntity.ok(FactureResponseDTO.from(factureService.reglerFacture(id, modePaiement)));
     }
-} 
+}

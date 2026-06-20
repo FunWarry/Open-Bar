@@ -1,11 +1,13 @@
 package com.bar.gestioncocktail.controller;
 
+import com.bar.gestioncocktail.dto.CocktailIngredientResponseDTO;
 import com.bar.gestioncocktail.model.Cocktail;
 import com.bar.gestioncocktail.model.CocktailIngredient;
 import com.bar.gestioncocktail.model.Ingredient;
 import com.bar.gestioncocktail.service.CocktailIngredientService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -22,41 +24,50 @@ public class CocktailIngredientController {
     }
 
     @PostMapping
-    public ResponseEntity<CocktailIngredient> createCocktailIngredient(@RequestBody CocktailIngredient cocktailIngredient) {
-        return ResponseEntity.ok(cocktailIngredientService.createCocktailIngredient(cocktailIngredient));
+    @PreAuthorize("hasRole('ADMIN') or hasRole('BARMAN')")
+    public ResponseEntity<CocktailIngredientResponseDTO> createCocktailIngredient(@RequestBody CocktailIngredient cocktailIngredient) {
+        return ResponseEntity.ok(CocktailIngredientResponseDTO.from(
+            cocktailIngredientService.createCocktailIngredient(cocktailIngredient)));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('BARMAN')")
     public ResponseEntity<Void> deleteCocktailIngredient(@PathVariable Long id) {
         cocktailIngredientService.deleteCocktailIngredient(id);
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/cocktail/{cocktailId}")
-    public ResponseEntity<List<CocktailIngredient>> getIngredientsByCocktail(@PathVariable Long cocktailId) {
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<CocktailIngredientResponseDTO>> getIngredientsByCocktail(@PathVariable Long cocktailId) {
         Cocktail cocktail = new Cocktail();
         cocktail.setId(cocktailId);
-        return ResponseEntity.ok(cocktailIngredientService.getIngredientsByCocktail(cocktail));
+        return ResponseEntity.ok(cocktailIngredientService.getIngredientsByCocktail(cocktail).stream()
+            .map(CocktailIngredientResponseDTO::from).toList());
     }
 
     @GetMapping("/ingredient/{ingredientId}")
-    public ResponseEntity<List<CocktailIngredient>> getCocktailsByIngredient(@PathVariable Long ingredientId) {
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<CocktailIngredientResponseDTO>> getCocktailsByIngredient(@PathVariable Long ingredientId) {
         Ingredient ingredient = new Ingredient();
         ingredient.setId(ingredientId);
-        return ResponseEntity.ok(cocktailIngredientService.getCocktailsByIngredient(ingredient));
+        return ResponseEntity.ok(cocktailIngredientService.getCocktailsByIngredient(ingredient).stream()
+            .map(CocktailIngredientResponseDTO::from).toList());
     }
 
     @PutMapping("/{id}/quantite")
-    public ResponseEntity<CocktailIngredient> updateQuantite(@PathVariable Long id, @RequestParam BigDecimal quantite) {
+    @PreAuthorize("hasRole('ADMIN') or hasRole('BARMAN')")
+    public ResponseEntity<CocktailIngredientResponseDTO> updateQuantite(@PathVariable Long id, @RequestParam BigDecimal quantite) {
         return cocktailIngredientService.getCocktailIngredientById(id)
             .map(cocktailIngredient -> {
                 cocktailIngredientService.updateQuantite(cocktailIngredient, quantite);
-                return ResponseEntity.ok(cocktailIngredient);
+                return ResponseEntity.ok(CocktailIngredientResponseDTO.from(cocktailIngredient));
             })
             .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/cocktail/{cocktailId}/ingredient/{ingredientId}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('BARMAN')")
     public ResponseEntity<Void> deleteCocktailIngredient(
         @PathVariable Long cocktailId,
         @PathVariable Long ingredientId) {
@@ -67,4 +78,4 @@ public class CocktailIngredientController {
         cocktailIngredientService.deleteCocktailIngredient(cocktail, ingredient);
         return ResponseEntity.ok().build();
     }
-} 
+}

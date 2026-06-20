@@ -1,6 +1,10 @@
 package com.bar.gestioncocktail.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -14,15 +18,21 @@ public class Cocktail {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank(message = "Le nom du cocktail est obligatoire")
+    @Size(max = 255, message = "Le nom ne peut pas dépasser 255 caractères")
     @Column(nullable = false)
     private String nom;
 
+    @Size(max = 1000, message = "La description ne peut pas dépasser 1000 caractères")
     @Column(length = 1000)
     private String description;
 
+    @NotNull(message = "Le prix est obligatoire")
+    @DecimalMin(value = "0.0", inclusive = false, message = "Le prix doit être supérieur à 0")
     @Column(nullable = false)
     private BigDecimal prix;
 
+    @NotNull(message = "La catégorie est obligatoire")
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private CocktailCategorie categorie;
@@ -32,10 +42,10 @@ public class Cocktail {
     private LocalDateTime dateDebutSaison;
     private LocalDateTime dateFinSaison;
 
-    @OneToMany(mappedBy = "cocktail", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "cocktail", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<CocktailIngredient> ingredients;
 
-    @OneToMany(mappedBy = "cocktail", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "cocktail", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<CocktailVariante> variantes;
 
     private String instructions;

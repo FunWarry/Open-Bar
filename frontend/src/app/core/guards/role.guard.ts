@@ -1,8 +1,8 @@
 import {Injectable} from '@angular/core';
-import {CanActivate, Router} from '@angular/router';
+import {ActivatedRouteSnapshot, CanActivate, Router} from '@angular/router';
 import {Store} from '@ngrx/store';
-import {map, Observable, take} from 'rxjs';
-import {selectIsAdmin} from '../store/auth.selectors';
+import {map, Observable, of, take} from 'rxjs';
+import {selectCurrentUser} from '../store/auth.selectors';
 
 @Injectable({
   providedIn: 'root'
@@ -14,16 +14,22 @@ export class RoleGuard implements CanActivate {
   ) {
   }
 
-  canActivate(): Observable<boolean> {
-    return this.store.select(selectIsAdmin).pipe(
+  canActivate(route: ActivatedRouteSnapshot): Observable<boolean> {
+    const allowedRoles: string[] = route.data?.['roles'] ?? [];
+    if (!allowedRoles.length) {
+      console.error('RoleGuard: data.roles manquant sur la route', route.url.toString());
+      this.router.navigate(['/']);
+      return of(false);
+    }
+    return this.store.select(selectCurrentUser).pipe(
       take(1),
-      map(isAdmin => {
-        if (isAdmin) {
+      map(user => {
+        const hasRole = allowedRoles.some(role => user?.roles?.includes(role));
+        if (hasRole) {
           return true;
-        } else {
-          this.router.navigate(['/']);
-          return false;
         }
+        this.router.navigate(['/']);
+        return false;
       })
     );
   }

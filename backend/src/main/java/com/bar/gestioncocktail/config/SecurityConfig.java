@@ -2,10 +2,13 @@ package com.bar.gestioncocktail.config;
 
 import com.bar.gestioncocktail.security.JwtAuthenticationFilter;
 import com.bar.gestioncocktail.security.JwtAuthorizationFilter;
+import com.bar.gestioncocktail.service.UserService;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -19,6 +22,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.io.IOException;
 import java.util.List;
 
 @Configuration
@@ -51,7 +55,12 @@ public class SecurityConfig {
                 .requestMatchers("/api/users/check-email/**").permitAll()
                 .anyRequest().authenticated()
             )
-            // Ajout des filtres après la configuration des règles d'autorisation
+            .exceptionHandling(ex -> ex
+                .accessDeniedHandler((request, response, e) ->
+                    writeError(response, HttpServletResponse.SC_FORBIDDEN, "Forbidden", "Accès refusé"))
+                .authenticationEntryPoint((request, response, e) ->
+                    writeError(response, HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized", "Non authentifié"))
+            )
             .addFilterBefore(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class)
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
             .build();
@@ -60,6 +69,15 @@ public class SecurityConfig {
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
+    }
+
+    private void writeError(HttpServletResponse response, int status, String error, String message) throws IOException {
+        response.setStatus(status);
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write(
+            "{\"status\":" + status + ",\"error\":\"" + error + "\",\"message\":\"" + message + "\"}"
+        );
     }
 
     @Bean
