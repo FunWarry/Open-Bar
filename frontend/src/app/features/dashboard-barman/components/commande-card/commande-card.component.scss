@@ -1,0 +1,196 @@
+// Couleurs du design system Figma (dark theme)
+// --background/surface-1: #1a1a2e
+// --background/surface-2: #21263f
+// --background/surface-3: #2a3050
+// --text/primary: #eceefb  --text/muted: #7e87a8
+// --primary: #6c7fe8  --primary-strong: #5a68d6
+// --status/waiting: #f4a52a  --inprogress: #2ba8e8  --ready: #2fbf6b
+// --semantic/danger: #e5604f  --border/medium: #2e3450
+
+.commande-card {
+  display: flex;
+  background: #1a1a2e;
+  border-radius: 10px;
+  overflow: hidden;
+  margin: 6px 0;
+
+  &.prioritaire {
+    box-shadow: 0 0 0 1px rgba(255, 215, 0, 0.4);
+  }
+}
+
+.lisere {
+  width: 4px;
+  border-radius: 999px;
+  flex-shrink: 0;
+  align-self: stretch;
+}
+
+.card-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 6px;
+  min-width: 0;
+}
+
+/* En-tête */
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding-bottom: 4px;
+  overflow: hidden;
+}
+
+.card-header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.table-name {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 11px;
+  color: #eceefb;
+  white-space: nowrap;
+}
+
+.order-id {
+  font-size: 10px;
+  color: #7e87a8;
+  white-space: nowrap;
+}
+
+.card-timer {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  color: #7e87a8;
+
+  ion-icon {
+    font-size: 11px;
+  }
+}
+
+/* Badge statut */
+.statut-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
+
+  .badge-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  &.badge--pending {
+    background: rgba(244, 165, 42, 0.15);
+    color: #f4a52a;
+    .badge-dot { background: #f4a52a; }
+  }
+
+  &.badge--inprogress {
+    background: rgba(43, 168, 232, 0.15);
+    color: #2ba8e8;
+    .badge-dot { background: #2ba8e8; }
+  }
+
+  &.badge--ready {
+    background: rgba(47, 191, 107, 0.15);
+    color: #2fbf6b;
+    .badge-dot { background: #2fbf6b; }
+  }
+
+  &.badge--priority {
+    background: rgba(255, 215, 0, 0.15);
+    color: #ffd700;
+    .badge-dot { background: #ffd700; }
+  }
+}
+
+/* Séparateur */
+.divider {
+  background: #2a3050;
+  height: 1px;
+  width: 100%;
+}
+
+/* Items */
+.items-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.item-row {
+  display: flex;
+  gap: 6px;
+  padding: 1px 0;
+  font-size: 12px;
+  color: #eceefb;
+  align-items: baseline;
+}
+
+.qty {
+  font-weight: 700;
+  color: #6c7fe8;
+  flex-shrink: 0;
+}
+
+.cocktail-nom {
+  flex: 1;
+}
+
+.item-note {
+  color: #7e87a8;
+  font-style: italic;
+  font-size: 11px;
+}
+
+.commande-notes {
+  font-size: 11px;
+  font-style: italic;
+  color: #7e87a8;
+  margin: 0;
+}
+
+/* Boutons d'action */
+.card-actions {
+  margin-top: 2px;
+
+  .btn-start {
+    --background: #5a68d6;
+    --background-activated: #4a58c6;
+    --color: #eceefb;
+    --border-radius: 10px;
+    font-weight: 600;
+    font-size: 14px;
+  }
+
+  .btn-ready {
+    --background: #21263f;
+    --background-activated: #2e3450;
+    --color: #eceefb;
+    --border-color: #2e3450;
+    --border-width: 1px;
+    --border-style: solid;
+    --border-radius: 10px;
+    font-weight: 600;
+    font-size: 14px;
+  }
+}

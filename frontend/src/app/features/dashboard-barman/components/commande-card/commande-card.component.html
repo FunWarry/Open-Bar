@@ -1,0 +1,56 @@
+<div class="commande-card" [class.prioritaire]="commande.prioritaire">
+  <!-- Liseré de statut (barre verticale colorée) -->
+  <div class="lisere" [style.background-color]="lisereColor"></div>
+
+  <div class="card-content">
+    <!-- En-tête : table + badge statut -->
+    <div class="card-header">
+      <div class="card-header-text">
+        <span class="table-name">Table {{ commande.tableNom }}</span>
+        <span class="order-id">#{{ commande.id }}</span>
+        <span class="card-timer">
+          <ion-icon name="time-outline"></ion-icon>
+          {{ tempsEcoule }}
+        </span>
+      </div>
+      <span class="statut-badge" [ngClass]="statutBadgeClass">
+        <span class="badge-dot"></span>
+        {{ statutLabel }}
+      </span>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Liste des items -->
+    <ul class="items-list">
+      <li *ngFor="let item of commande.items" class="item-row">
+        <span class="qty">{{ item.quantite }}×</span>
+        <span class="cocktail-nom">{{ item.cocktailNom }}</span>
+        <span *ngIf="item.notes" class="item-note">— {{ item.notes }}</span>
+      </li>
+    </ul>
+
+    <p *ngIf="commande.notes" class="commande-notes">📝 {{ commande.notes }}</p>
+
+    <!-- Actions -->
+    <div class="card-actions">
+      <ion-button
+        *ngIf="commande.statut === 'EN_ATTENTE'"
+        class="btn-start"
+        expand="block"
+        (click)="onPrendreEnCharge()">
+        <ion-icon slot="start" name="arrow-forward-circle-outline"></ion-icon>
+        Start
+      </ion-button>
+
+      <ion-button
+        *ngIf="commande.statut === 'EN_PREPARATION'"
+        class="btn-ready"
+        expand="block"
+        (click)="onMarquerPret()">
+        <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
+        Mark ready
+      </ion-button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,101 @@
+<ion-header>
+  <ion-toolbar class="barman-toolbar">
+    <ion-title>
+      <span class="toolbar-title">🍹 OpenBar</span>
+      <span class="toolbar-role">BARTENDER</span>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="barman-content">
+  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Alertes de stock -->
+  <div class="stock-alerts" *ngIf="stockAlertes.length > 0">
+    <div
+      *ngFor="let alerte of stockAlertes; let i = index"
+      class="stock-alert-banner"
+      [ngClass]="alerte.niveau === 'critical' ? 'alert--critical' : 'alert--warning'">
+      <span class="alert-message">{{ alerte.message }}</span>
+      <button class="alert-dismiss" (click)="dismissAlerte(i)" aria-label="Fermer">×</button>
+    </div>
+  </div>
+
+  <!-- Kanban -->
+  <ion-grid class="kanban-grid">
+    <ion-row class="kanban-row">
+
+      <!-- Colonne EN_ATTENTE -->
+      <ion-col size="12" size-md="4" class="kanban-col-wrapper">
+        <div class="kanban-col">
+          <div class="kanban-header kanban-header--pending">
+            <div class="header-status">
+              <span class="status-dot dot--pending"></span>
+              <span class="header-label">Pending</span>
+            </div>
+            <span class="header-count count--pending">{{ commandesEnAttente.length }}</span>
+          </div>
+
+          <app-commande-card
+            *ngFor="let cmd of commandesEnAttente; trackBy: trackById"
+            [commande]="cmd"
+            (changerStatut)="onChangerStatut($event)">
+          </app-commande-card>
+
+          <p *ngIf="commandesEnAttente.length === 0" class="empty-col">
+            Aucune commande en attente
+          </p>
+        </div>
+      </ion-col>
+
+      <!-- Colonne EN_PREPARATION -->
+      <ion-col size="12" size-md="4" class="kanban-col-wrapper">
+        <div class="kanban-col">
+          <div class="kanban-header kanban-header--inprogress">
+            <div class="header-status">
+              <span class="status-dot dot--inprogress"></span>
+              <span class="header-label">In Progress</span>
+            </div>
+            <span class="header-count count--inprogress">{{ commandesEnPreparation.length }}</span>
+          </div>
+
+          <app-commande-card
+            *ngFor="let cmd of commandesEnPreparation; trackBy: trackById"
+            [commande]="cmd"
+            (changerStatut)="onChangerStatut($event)">
+          </app-commande-card>
+
+          <p *ngIf="commandesEnPreparation.length === 0" class="empty-col">
+            Aucune commande en préparation
+          </p>
+        </div>
+      </ion-col>
+
+      <!-- Colonne PRET -->
+      <ion-col size="12" size-md="4" class="kanban-col-wrapper">
+        <div class="kanban-col">
+          <div class="kanban-header kanban-header--ready">
+            <div class="header-status">
+              <span class="status-dot dot--ready"></span>
+              <span class="header-label">Ready to Serve</span>
+            </div>
+            <span class="header-count count--ready">{{ commandesPret.length }}</span>
+          </div>
+
+          <app-commande-card
+            *ngFor="let cmd of commandesPret; trackBy: trackById"
+            [commande]="cmd"
+            (changerStatut)="onChangerStatut($event)">
+          </app-commande-card>
+
+          <p *ngIf="commandesPret.length === 0" class="empty-col">
+            Aucune commande prête
+          </p>
+        </div>
+      </ion-col>
+
+    </ion-row>
+  </ion-grid>
+</ion-content>
