@@ -1,10 +1,12 @@
 package com.bar.gestioncocktail.controller;
 
+import com.bar.gestioncocktail.dto.TableResponseDTO;
 import com.bar.gestioncocktail.model.TableEntity;
 import com.bar.gestioncocktail.model.TableZone;
 import com.bar.gestioncocktail.service.TableService;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -13,74 +15,73 @@ import java.util.List;
 @RequestMapping("/api/tables")
 public class TableController {
 
-    @Autowired
-    private TableService tableService;
+    private final TableService tableService;
+
+    public TableController(TableService tableService) {
+        this.tableService = tableService;
+    }
 
     @GetMapping
-    public List<TableEntity> getAllTables() {
-        return tableService.getAllTables();
+    @PreAuthorize("isAuthenticated()")
+    public List<TableResponseDTO> getAllTables() {
+        return tableService.getAllTables().stream().map(TableResponseDTO::from).toList();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<TableEntity> getTableById(@PathVariable Long id) {
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<TableResponseDTO> getTableById(@PathVariable Long id) {
         return tableService.getTableById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+            .map(TableResponseDTO::from)
+            .map(ResponseEntity::ok)
+            .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/zone/{zone}")
-    public List<TableEntity> getTablesByZone(@PathVariable TableZone zone) {
-        return tableService.getTablesByZone(zone);
+    @PreAuthorize("isAuthenticated()")
+    public List<TableResponseDTO> getTablesByZone(@PathVariable TableZone zone) {
+        return tableService.getTablesByZone(zone).stream().map(TableResponseDTO::from).toList();
     }
 
     @GetMapping("/occupee/{occupee}")
-    public List<TableEntity> getTablesByOccupee(@PathVariable boolean occupee) {
-        return tableService.getTablesByOccupee(occupee);
+    @PreAuthorize("isAuthenticated()")
+    public List<TableResponseDTO> getTablesByOccupee(@PathVariable boolean occupee) {
+        return tableService.getTablesByOccupee(occupee).stream().map(TableResponseDTO::from).toList();
     }
 
     @GetMapping("/serveur/{serveurId}")
-    public List<TableEntity> getTablesByServeurId(@PathVariable Long serveurId) {
-        return tableService.getTablesByServeurId(serveurId);
+    @PreAuthorize("isAuthenticated()")
+    public List<TableResponseDTO> getTablesByServeurId(@PathVariable Long serveurId) {
+        return tableService.getTablesByServeurId(serveurId).stream().map(TableResponseDTO::from).toList();
     }
 
     @PostMapping
-    public TableEntity createTable(@RequestBody TableEntity table) {
-        return tableService.createTable(table);
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
+    public TableResponseDTO createTable(@Valid @RequestBody TableEntity table) {
+        return TableResponseDTO.from(tableService.createTable(table));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<TableEntity> updateTable(@PathVariable Long id, @RequestBody TableEntity tableDetails) {
-        try {
-            TableEntity updatedTable = tableService.updateTable(id, tableDetails);
-            return ResponseEntity.ok(updatedTable);
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
+    public ResponseEntity<TableResponseDTO> updateTable(@PathVariable Long id, @Valid @RequestBody TableEntity tableDetails) {
+        return ResponseEntity.ok(TableResponseDTO.from(tableService.updateTable(id, tableDetails)));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
     public ResponseEntity<Void> deleteTable(@PathVariable Long id) {
         tableService.deleteTable(id);
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/{id}/occuper")
-    public ResponseEntity<TableEntity> occuperTable(@PathVariable Long id, @RequestParam Long serveurId) {
-        try {
-            TableEntity table = tableService.occuperTable(id, serveurId);
-            return ResponseEntity.ok(table);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().build();
-        }
+    @PreAuthorize("hasRole('SERVEUR') or hasRole('ADMIN') or hasRole('MANAGER')")
+    public ResponseEntity<TableResponseDTO> occuperTable(@PathVariable Long id, @RequestParam Long serveurId) {
+        return ResponseEntity.ok(TableResponseDTO.from(tableService.occuperTable(id, serveurId)));
     }
 
     @PostMapping("/{id}/liberer")
-    public ResponseEntity<TableEntity> libererTable(@PathVariable Long id) {
-        try {
-            TableEntity table = tableService.libererTable(id);
-            return ResponseEntity.ok(table);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().build();
-        }
+    @PreAuthorize("hasRole('SERVEUR') or hasRole('ADMIN') or hasRole('MANAGER')")
+    public ResponseEntity<TableResponseDTO> libererTable(@PathVariable Long id) {
+        return ResponseEntity.ok(TableResponseDTO.from(tableService.libererTable(id)));
     }
-} 
+}
