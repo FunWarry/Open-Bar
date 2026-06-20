@@ -1,12 +1,12 @@
 import {bootstrapApplication} from '@angular/platform-browser';
 import {provideAnimations} from '@angular/platform-browser/animations';
 import {provideHttpClient, withFetch, withInterceptors} from '@angular/common/http';
-import {provideStore, provideState} from '@ngrx/store';
+import {provideStore} from '@ngrx/store';
 import {provideEffects} from '@ngrx/effects';
 import {provideStoreDevtools} from '@ngrx/store-devtools';
 import {provideRouter} from '@angular/router';
 import {isDevMode} from '@angular/core';
-import {provideTransloco} from '@ngneat/transloco';
+import {provideTransloco} from '@jsverse/transloco';
 
 import {AppComponent} from './app/app.component';
 import {routes} from './app/app.routes';
