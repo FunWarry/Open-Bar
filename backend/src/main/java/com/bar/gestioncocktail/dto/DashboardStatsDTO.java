@@ -1,4 +1,4 @@
-package com.bar.gestioncocktail.dto;
+﻿package com.bar.gestioncocktail.dto;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -15,10 +15,4 @@ public record DashboardStatsDTO(
     long tablesTotales,
     List<TopCocktailDTO> topCocktails,
     long stockIngredientsCritiques
-) {
-    public record TopCocktailDTO(
-        Long cocktailId,
-        String nom,
-        long nombreCommandes
-    ) {}
-}
+) {}
