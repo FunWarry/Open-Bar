@@ -5,6 +5,7 @@ import com.bar.gestioncocktail.model.UserRole;
 import com.bar.gestioncocktail.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,23 +21,27 @@ public class UserController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<User> createUser(@RequestBody User user) {
         return ResponseEntity.ok(userService.createUser(user));
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User user) {
         user.setId(id);
         return ResponseEntity.ok(userService.updateUser(user));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
     public ResponseEntity<User> getUserById(@PathVariable Long id) {
         return userService.getUserById(id)
             .map(ResponseEntity::ok)
@@ -44,6 +49,7 @@ public class UserController {
     }
 
     @GetMapping("/username/{username}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<User> getUserByUsername(@PathVariable String username) {
         return userService.getUserByUsername(username)
             .map(ResponseEntity::ok)
@@ -51,6 +57,7 @@ public class UserController {
     }
 
     @GetMapping("/role/{role}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<User>> getUsersByRole(@PathVariable UserRole role) {
         return ResponseEntity.ok(userService.getUsersByRole(role));
     }
@@ -66,6 +73,7 @@ public class UserController {
     }
 
     @PutMapping("/{id}/password")
+    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
     public ResponseEntity<Void> changePassword(@PathVariable Long id, @RequestBody String newPassword) {
         userService.getUserById(id).ifPresent(user -> userService.changePassword(user, newPassword));
         return ResponseEntity.ok().build();

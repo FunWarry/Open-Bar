@@ -35,6 +35,10 @@ describe('auth selectors', () => {
     it('returns false when no user', () => {
       expect(selectIsAdmin(stateWith([], null))).toBeFalse();
     });
+
+    it('returns false for user with empty roles', () => {
+      expect(selectIsAdmin(stateWith([]))).toBeFalse();
+    });
   });
 
   describe('selectIsManager', () => {
@@ -49,6 +53,10 @@ describe('auth selectors', () => {
     it('returns false when no user', () => {
       expect(selectIsManager(stateWith([], null))).toBeFalse();
     });
+
+    it('returns false for user with empty roles', () => {
+      expect(selectIsManager(stateWith([]))).toBeFalse();
+    });
   });
 
   describe('selectIsBarman', () => {
@@ -62,6 +70,10 @@ describe('auth selectors', () => {
 
     it('returns false when no user', () => {
       expect(selectIsBarman(stateWith([], null))).toBeFalse();
+    });
+
+    it('returns false for user with empty roles', () => {
+      expect(selectIsBarman(stateWith([]))).toBeFalse();
     });
   });
 });
