@@ -1,5 +1,6 @@
 package com.bar.gestioncocktail.controller;
 
+import com.bar.gestioncocktail.dto.CocktailIngredientResponseDTO;
 import com.bar.gestioncocktail.model.Cocktail;
 import com.bar.gestioncocktail.model.CocktailIngredient;
 import com.bar.gestioncocktail.model.Ingredient;
@@ -24,8 +25,9 @@ public class CocktailIngredientController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('BARMAN')")
-    public ResponseEntity<CocktailIngredient> createCocktailIngredient(@RequestBody CocktailIngredient cocktailIngredient) {
-        return ResponseEntity.ok(cocktailIngredientService.createCocktailIngredient(cocktailIngredient));
+    public ResponseEntity<CocktailIngredientResponseDTO> createCocktailIngredient(@RequestBody CocktailIngredient cocktailIngredient) {
+        return ResponseEntity.ok(CocktailIngredientResponseDTO.from(
+            cocktailIngredientService.createCocktailIngredient(cocktailIngredient)));
     }
 
     @DeleteMapping("/{id}")
@@ -37,27 +39,29 @@ public class CocktailIngredientController {
 
     @GetMapping("/cocktail/{cocktailId}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<List<CocktailIngredient>> getIngredientsByCocktail(@PathVariable Long cocktailId) {
+    public ResponseEntity<List<CocktailIngredientResponseDTO>> getIngredientsByCocktail(@PathVariable Long cocktailId) {
         Cocktail cocktail = new Cocktail();
         cocktail.setId(cocktailId);
-        return ResponseEntity.ok(cocktailIngredientService.getIngredientsByCocktail(cocktail));
+        return ResponseEntity.ok(cocktailIngredientService.getIngredientsByCocktail(cocktail).stream()
+            .map(CocktailIngredientResponseDTO::from).toList());
     }
 
     @GetMapping("/ingredient/{ingredientId}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<List<CocktailIngredient>> getCocktailsByIngredient(@PathVariable Long ingredientId) {
+    public ResponseEntity<List<CocktailIngredientResponseDTO>> getCocktailsByIngredient(@PathVariable Long ingredientId) {
         Ingredient ingredient = new Ingredient();
         ingredient.setId(ingredientId);
-        return ResponseEntity.ok(cocktailIngredientService.getCocktailsByIngredient(ingredient));
+        return ResponseEntity.ok(cocktailIngredientService.getCocktailsByIngredient(ingredient).stream()
+            .map(CocktailIngredientResponseDTO::from).toList());
     }
 
     @PutMapping("/{id}/quantite")
     @PreAuthorize("hasRole('ADMIN') or hasRole('BARMAN')")
-    public ResponseEntity<CocktailIngredient> updateQuantite(@PathVariable Long id, @RequestParam BigDecimal quantite) {
+    public ResponseEntity<CocktailIngredientResponseDTO> updateQuantite(@PathVariable Long id, @RequestParam BigDecimal quantite) {
         return cocktailIngredientService.getCocktailIngredientById(id)
             .map(cocktailIngredient -> {
                 cocktailIngredientService.updateQuantite(cocktailIngredient, quantite);
-                return ResponseEntity.ok(cocktailIngredient);
+                return ResponseEntity.ok(CocktailIngredientResponseDTO.from(cocktailIngredient));
             })
             .orElse(ResponseEntity.notFound().build());
     }
@@ -74,4 +78,4 @@ public class CocktailIngredientController {
         cocktailIngredientService.deleteCocktailIngredient(cocktail, ingredient);
         return ResponseEntity.ok().build();
     }
-} 
+}
