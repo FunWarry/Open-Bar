@@ -31,7 +31,7 @@ import {NgFor, NgIf} from '@angular/common';
 })
 export class RegisterComponent implements OnInit {
   registerForm: FormGroup;
-  roles = ['ADMIN', 'SERVEUR', 'BARMEN'];
+  roles = ['ADMIN', 'MANAGER', 'SERVEUR', 'BARMAN'];
 
   constructor(
     private fb: FormBuilder,

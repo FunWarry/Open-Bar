@@ -1,6 +1,9 @@
 package com.bar.gestioncocktail.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import java.math.BigDecimal;
 
@@ -16,6 +19,7 @@ public class CommandeItem {
     @JoinColumn(name = "commande_id", nullable = false)
     private Commande commande;
 
+    @NotNull(message = "Le cocktail est obligatoire")
     @ManyToOne
     @JoinColumn(name = "cocktail_id", nullable = false)
     private Cocktail cocktail;
@@ -24,9 +28,12 @@ public class CommandeItem {
     @JoinColumn(name = "variante_id")
     private CocktailVariante variante;
 
+    @Min(value = 1, message = "La quantité doit être d'au moins 1")
     @Column(nullable = false)
     private int quantite;
 
+    @NotNull(message = "Le prix unitaire est obligatoire")
+    @DecimalMin(value = "0.0", inclusive = false, message = "Le prix unitaire doit être supérieur à 0")
     @Column(nullable = false)
     private BigDecimal prixUnitaire;
 

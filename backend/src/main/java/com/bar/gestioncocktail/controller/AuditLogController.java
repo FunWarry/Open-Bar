@@ -1,6 +1,6 @@
 package com.bar.gestioncocktail.controller;
 
-import com.bar.gestioncocktail.model.AuditLog;
+import com.bar.gestioncocktail.dto.AuditLogResponseDTO;
 import com.bar.gestioncocktail.model.User;
 import com.bar.gestioncocktail.service.AuditLogService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,54 +22,55 @@ public class AuditLogController {
         this.auditLogService = auditLogService;
     }
 
-    @PostMapping
-    public ResponseEntity<AuditLog> createAuditLog(@RequestBody AuditLog auditLog) {
-        return ResponseEntity.ok(auditLogService.createAuditLog(auditLog));
-    }
-
     @GetMapping("/user/{userId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<AuditLog>> getAuditLogsByUser(@PathVariable Long userId) {
+    public ResponseEntity<List<AuditLogResponseDTO>> getAuditLogsByUser(@PathVariable Long userId) {
         User user = new User();
         user.setId(userId);
-        return ResponseEntity.ok(auditLogService.getAuditLogsByUser(user));
+        return ResponseEntity.ok(auditLogService.getAuditLogsByUser(user).stream()
+            .map(AuditLogResponseDTO::from).toList());
     }
 
     @GetMapping("/action/{action}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<AuditLog>> getAuditLogsByAction(@PathVariable String action) {
-        return ResponseEntity.ok(auditLogService.getAuditLogsByAction(action));
+    public ResponseEntity<List<AuditLogResponseDTO>> getAuditLogsByAction(@PathVariable String action) {
+        return ResponseEntity.ok(auditLogService.getAuditLogsByAction(action).stream()
+            .map(AuditLogResponseDTO::from).toList());
     }
 
     @GetMapping("/entity-type/{entityType}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<AuditLog>> getAuditLogsByEntityType(@PathVariable String entityType) {
-        return ResponseEntity.ok(auditLogService.getAuditLogsByEntityType(entityType));
+    public ResponseEntity<List<AuditLogResponseDTO>> getAuditLogsByEntityType(@PathVariable String entityType) {
+        return ResponseEntity.ok(auditLogService.getAuditLogsByEntityType(entityType).stream()
+            .map(AuditLogResponseDTO::from).toList());
     }
 
     @GetMapping("/entity-id/{entityId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<AuditLog>> getAuditLogsByEntityId(@PathVariable Long entityId) {
-        return ResponseEntity.ok(auditLogService.getAuditLogsByEntityId(entityId));
+    public ResponseEntity<List<AuditLogResponseDTO>> getAuditLogsByEntityId(@PathVariable Long entityId) {
+        return ResponseEntity.ok(auditLogService.getAuditLogsByEntityId(entityId).stream()
+            .map(AuditLogResponseDTO::from).toList());
     }
 
     @GetMapping("/date")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<AuditLog>> getAuditLogsByDate(
+    public ResponseEntity<List<AuditLogResponseDTO>> getAuditLogsByDate(
         @RequestParam LocalDateTime debut,
         @RequestParam LocalDateTime fin) {
-        return ResponseEntity.ok(auditLogService.getAuditLogsByDate(debut, fin));
+        return ResponseEntity.ok(auditLogService.getAuditLogsByDate(debut, fin).stream()
+            .map(AuditLogResponseDTO::from).toList());
     }
 
     @GetMapping("/user/{userId}/date")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<AuditLog>> getAuditLogsByUserAndDate(
+    public ResponseEntity<List<AuditLogResponseDTO>> getAuditLogsByUserAndDate(
         @PathVariable Long userId,
         @RequestParam LocalDateTime debut,
         @RequestParam LocalDateTime fin) {
         User user = new User();
         user.setId(userId);
-        return ResponseEntity.ok(auditLogService.getAuditLogsByUserAndDate(user, debut, fin));
+        return ResponseEntity.ok(auditLogService.getAuditLogsByUserAndDate(user, debut, fin).stream()
+            .map(AuditLogResponseDTO::from).toList());
     }
 
     @PostMapping("/log")
@@ -85,4 +86,4 @@ public class AuditLogController {
         auditLogService.logAction(user, action, entityType, entityId, details, ipAddress);
         return ResponseEntity.ok().build();
     }
-} 
+}
