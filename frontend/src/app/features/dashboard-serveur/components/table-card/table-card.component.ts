@@ -4,11 +4,10 @@ import { RouterModule } from '@angular/router';
 import { TableView } from '../../models/table-view.model';
 import {
   IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-  IonButton, IonIcon
+  IonBadge, IonButton, IonIcon
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { peopleOutline, restaurantOutline, checkmarkOutline, timeOutline } from 'ionicons/icons';
-import { TableView } from '../../models/table-view.model';
 
 @Component({
   selector: 'app-table-card',
@@ -16,7 +15,7 @@ import { TableView } from '../../models/table-view.model';
   imports: [
     CommonModule, RouterModule,
     IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-    IonButton, IonIcon
+    IonBadge, IonButton, IonIcon
   ],
   templateUrl: './table-card.component.html',
   styleUrls: ['./table-card.component.scss'],
