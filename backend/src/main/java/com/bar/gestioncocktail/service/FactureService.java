@@ -5,12 +5,15 @@ import com.bar.gestioncocktail.model.FactureItem;
 import com.bar.gestioncocktail.model.TableEntity;
 import com.bar.gestioncocktail.repository.FactureRepository;
 import com.bar.gestioncocktail.repository.FactureItemRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,6 +22,9 @@ import java.util.Optional;
 public class FactureService {
     private final FactureRepository factureRepository;
     private final FactureItemRepository factureItemRepository;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Autowired
     public FactureService(FactureRepository factureRepository, FactureItemRepository factureItemRepository) {
@@ -45,6 +51,9 @@ public class FactureService {
     @Transactional
     public Facture createFacture(Facture facture) {
         facture.setDateFacture(LocalDateTime.now());
+        long sequence = ((Number) entityManager.createNativeQuery("SELECT NEXTVAL('facture_seq')").getSingleResult()).longValue();
+        String mois = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMM"));
+        facture.setNumero(String.format("FAC-%s-%04d", mois, sequence));
         return factureRepository.save(facture);
     }
 

@@ -138,6 +138,8 @@ CREATE TABLE facture_items (
     updated_at TIMESTAMP NOT NULL
 );
 
+CREATE SEQUENCE IF NOT EXISTS facture_seq START 1;
+
 CREATE TABLE audit_logs (
     id BIGSERIAL PRIMARY KEY,
     user_id BIGINT REFERENCES users(id),
