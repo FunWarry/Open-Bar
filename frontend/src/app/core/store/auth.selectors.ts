@@ -28,7 +28,12 @@ export const selectIsAdmin = createSelector(
   (user) => user?.roles?.includes('ADMIN') ?? false
 );
 
-export const selectIsBarmen = createSelector(
+export const selectIsManager = createSelector(
   selectCurrentUser,
-  (user) => user?.roles?.includes('BARMEN') ?? false
+  (user) => user?.roles?.includes('MANAGER') ?? false
+);
+
+export const selectIsBarman = createSelector(
+  selectCurrentUser,
+  (user) => user?.roles?.includes('BARMAN') ?? false
 );
