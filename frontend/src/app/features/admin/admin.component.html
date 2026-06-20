@@ -1,106 +1,105 @@
 <div class="admin-container">
-  <mat-card class="dashboard-card">
-    <mat-card-header>
-      <mat-card-title>Tableau de bord administrateur</mat-card-title>
-      <mat-card-subtitle>
+  <ion-card class="dashboard-card">
+    <ion-card-header>
+      <ion-card-title>Tableau de bord administrateur</ion-card-title>
+      <ion-card-subtitle>
         Bienvenue, {{ (currentUser$ | async)?.username }}
-      </mat-card-subtitle>
-    </mat-card-header>
-    <mat-card-content>
+      </ion-card-subtitle>
+    </ion-card-header>
+    <ion-card-content>
       <div class="dashboard-grid">
-        <mat-card class="stat-card">
-          <mat-card-header>
-            <mat-icon mat-card-avatar>people</mat-icon>
-            <mat-card-title>Utilisateurs</mat-card-title>
-          </mat-card-header>
-          <mat-card-content>
+        <ion-card class="stat-card">
+          <ion-card-header>
+            <ion-icon name="people-outline"></ion-icon>
+            <ion-card-title>Utilisateurs</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
             <div class="stat-value">0</div>
             <div class="stat-label">Utilisateurs actifs</div>
-          </mat-card-content>
-          <mat-card-actions>
-            <button mat-button color="primary">
-              <mat-icon>list</mat-icon>
+          </ion-card-content>
+          <div class="ion-padding-horizontal ion-padding-bottom">
+            <ion-button fill="clear" color="primary">
+              <ion-icon name="list-outline" slot="start"></ion-icon>
               Voir la liste
-            </button>
-          </mat-card-actions>
-        </mat-card>
+            </ion-button>
+          </div>
+        </ion-card>
 
-        <mat-card class="stat-card">
-          <mat-card-header>
-            <mat-icon mat-card-avatar>local_bar</mat-icon>
-            <mat-card-title>Cocktails</mat-card-title>
-          </mat-card-header>
-          <mat-card-content>
+        <ion-card class="stat-card">
+          <ion-card-header>
+            <ion-icon name="wine-outline"></ion-icon>
+            <ion-card-title>Cocktails</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
             <div class="stat-value">0</div>
             <div class="stat-label">Cocktails enregistrés</div>
-          </mat-card-content>
-          <mat-card-actions>
-            <button mat-button color="primary">
-              <mat-icon>list</mat-icon>
+          </ion-card-content>
+          <div class="ion-padding-horizontal ion-padding-bottom">
+            <ion-button fill="clear" color="primary">
+              <ion-icon name="list-outline" slot="start"></ion-icon>
               Voir la liste
-            </button>
-          </mat-card-actions>
-        </mat-card>
+            </ion-button>
+          </div>
+        </ion-card>
 
-        <mat-card class="stat-card">
-          <mat-card-header>
-            <mat-icon mat-card-avatar>inventory_2</mat-icon>
-            <mat-card-title>Ingrédients</mat-card-title>
-          </mat-card-header>
-          <mat-card-content>
+        <ion-card class="stat-card">
+          <ion-card-header>
+            <ion-icon name="flask-outline"></ion-icon>
+            <ion-card-title>Ingrédients</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
             <div class="stat-value">0</div>
             <div class="stat-label">Ingrédients disponibles</div>
-          </mat-card-content>
-          <mat-card-actions>
-            <button mat-button color="primary">
-              <mat-icon>list</mat-icon>
+          </ion-card-content>
+          <div class="ion-padding-horizontal ion-padding-bottom">
+            <ion-button fill="clear" color="primary">
+              <ion-icon name="list-outline" slot="start"></ion-icon>
               Voir la liste
-            </button>
-          </mat-card-actions>
-        </mat-card>
+            </ion-button>
+          </div>
+        </ion-card>
 
-        <mat-card class="stat-card">
-          <mat-card-header>
-            <mat-icon mat-card-avatar>event</mat-icon>
-            <mat-card-title>Événements</mat-card-title>
-          </mat-card-header>
-          <mat-card-content>
+        <ion-card class="stat-card">
+          <ion-card-header>
+            <ion-icon name="calendar-outline"></ion-icon>
+            <ion-card-title>Événements</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
             <div class="stat-value">0</div>
             <div class="stat-label">Événements planifiés</div>
-          </mat-card-content>
-          <mat-card-actions>
-            <button mat-button color="primary">
-              <mat-icon>list</mat-icon>
+          </ion-card-content>
+          <div class="ion-padding-horizontal ion-padding-bottom">
+            <ion-button fill="clear" color="primary">
+              <ion-icon name="list-outline" slot="start"></ion-icon>
               Voir la liste
-            </button>
-          </mat-card-actions>
-        </mat-card>
+            </ion-button>
+          </div>
+        </ion-card>
       </div>
-    </mat-card-content>
-  </mat-card>
+    </ion-card-content>
+  </ion-card>
 
   <div class="admin-actions">
-    <mat-card>
-      <mat-card-header>
-        <mat-card-title>Actions rapides</mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Actions rapides</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
         <div class="action-buttons">
-          <button mat-button (click)="navigationService.navigateToRegister()">
-            <mat-icon>person_add</mat-icon>
+          <ion-button fill="clear" (click)="navigationService.navigateToRegister()">
+            <ion-icon name="person-add-outline" slot="start"></ion-icon>
             Créer un utilisateur
-          </button>
-          <button mat-raised-button color="accent">
-            <mat-icon>add_circle</mat-icon>
+          </ion-button>
+          <ion-button color="secondary">
+            <ion-icon name="add-circle-outline" slot="start"></ion-icon>
             Ajouter un cocktail
-          </button>
-          <button mat-raised-button color="warn">
-            <mat-icon>warning</mat-icon>
+          </ion-button>
+          <ion-button color="danger">
+            <ion-icon name="warning-outline" slot="start"></ion-icon>
             Gérer les rapports
-          </button>
+          </ion-button>
         </div>
-      </mat-card-content>
-    </mat-card>
+      </ion-card-content>
+    </ion-card>
   </div>
 </div>
-

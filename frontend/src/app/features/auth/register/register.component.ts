@@ -2,11 +2,7 @@ import {Component, OnInit} from '@angular/core';
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {Store} from '@ngrx/store';
 import * as AuthActions from '../../../core/store/auth.actions';
-import {MatCardContent, MatCardHeader, MatCardModule, MatCardTitle} from '@angular/material/card';
-import {MatError, MatFormFieldModule} from '@angular/material/form-field';
-import {MatInputModule} from '@angular/material/input';
-import {MatButtonModule} from '@angular/material/button';
-import {MatSelectModule} from '@angular/material/select';
+import {IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonLabel, IonInput, IonButton, IonNote, IonSelect, IonSelectOption} from '@ionic/angular/standalone';
 import {NgFor, NgIf} from '@angular/common';
 
 @Component({
@@ -15,15 +11,17 @@ import {NgFor, NgIf} from '@angular/common';
   styleUrls: ['./register.component.css'],
   standalone: true,
   imports: [
-    MatCardModule,
-    MatCardHeader,
-    MatCardTitle,
-    MatCardContent,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatError,
-    MatSelectModule,
+    IonCard,
+    IonCardHeader,
+    IonCardTitle,
+    IonCardContent,
+    IonItem,
+    IonLabel,
+    IonInput,
+    IonButton,
+    IonNote,
+    IonSelect,
+    IonSelectOption,
     ReactiveFormsModule,
     NgIf,
     NgFor

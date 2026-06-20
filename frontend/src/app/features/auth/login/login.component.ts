@@ -1,25 +1,19 @@
 import {Component, OnInit, OnDestroy} from '@angular/core';
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {Router} from '@angular/router';
-import {MatCardModule} from '@angular/material/card';
-import {MatCardHeader, MatCardTitle, MatCardContent} from '@angular/material/card';
-import {MatFormFieldModule} from '@angular/material/form-field';
-import {MatInputModule} from '@angular/material/input';
-import {MatButtonModule} from '@angular/material/button';
-import {MatError} from '@angular/material/form-field';
+import {IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonLabel, IonInput, IonButton, IonNote} from '@ionic/angular/standalone';
 import {NgIf} from '@angular/common';
 import {Store} from '@ngrx/store';
 import {login} from "../../../core/store/auth.actions";
 import {selectAuthError, selectIsAuthenticated} from '../../../core/store/auth.selectors';
 import {filter, take, Subscription} from 'rxjs';
 
-// login.component.ts - Version simplifiée
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css'],
   standalone: true,
-  imports: [MatCardModule, MatCardHeader, MatCardTitle, MatCardContent, MatFormFieldModule, MatInputModule, MatButtonModule, MatError, NgIf, ReactiveFormsModule]
+  imports: [IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonLabel, IonInput, IonButton, IonNote, NgIf, ReactiveFormsModule]
 })
 export class LoginComponent implements OnInit, OnDestroy {
   loginForm: FormGroup;
