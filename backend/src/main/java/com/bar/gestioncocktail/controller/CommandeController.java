@@ -1,5 +1,6 @@
 package com.bar.gestioncocktail.controller;
 
+import com.bar.gestioncocktail.dto.CommandeResponseDTO;
 import com.bar.gestioncocktail.model.Commande;
 import com.bar.gestioncocktail.model.CommandeItem;
 import com.bar.gestioncocktail.model.CommandeStatut;
@@ -7,7 +8,6 @@ import com.bar.gestioncocktail.model.TableEntity;
 import com.bar.gestioncocktail.model.User;
 import com.bar.gestioncocktail.service.CommandeService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -21,121 +21,118 @@ import java.util.List;
 public class CommandeController {
     private final CommandeService commandeService;
 
-    @Autowired
     public CommandeController(CommandeService commandeService) {
         this.commandeService = commandeService;
     }
 
     @PostMapping
-    public ResponseEntity<Commande> createCommande(@Valid @RequestBody Commande commande) {
-        return ResponseEntity.ok(commandeService.createCommande(commande));
+    @PreAuthorize("hasRole('SERVEUR') or hasRole('ADMIN')")
+    public ResponseEntity<CommandeResponseDTO> createCommande(@Valid @RequestBody Commande commande) {
+        return ResponseEntity.ok(CommandeResponseDTO.from(commandeService.createCommande(commande)));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Commande> updateCommande(@PathVariable Long id, @Valid @RequestBody Commande commandeDetails) {
-        try {
-            Commande updatedCommande = commandeService.updateCommande(id, commandeDetails);
-            return ResponseEntity.ok(updatedCommande);
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+    @PreAuthorize("hasRole('SERVEUR') or hasRole('ADMIN')")
+    public ResponseEntity<CommandeResponseDTO> updateCommande(@PathVariable Long id, @Valid @RequestBody Commande commandeDetails) {
+        return ResponseEntity.ok(CommandeResponseDTO.from(commandeService.updateCommande(id, commandeDetails)));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteCommande(@PathVariable Long id) {
         commandeService.deleteCommande(id);
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Commande> getCommandeById(@PathVariable Long id) {
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<CommandeResponseDTO> getCommandeById(@PathVariable Long id) {
         return commandeService.getCommandeById(id)
+            .map(CommandeResponseDTO::from)
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/table/{tableId}")
-    public ResponseEntity<List<Commande>> getCommandesByTable(@PathVariable Long tableId) {
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<CommandeResponseDTO>> getCommandesByTable(@PathVariable Long tableId) {
         TableEntity table = new TableEntity();
         table.setId(tableId);
-        return ResponseEntity.ok(commandeService.getCommandesByTable(table));
+        return ResponseEntity.ok(commandeService.getCommandesByTable(table).stream()
+            .map(CommandeResponseDTO::from).toList());
     }
 
     @GetMapping("/serveur/{serveurId}")
-    public ResponseEntity<List<Commande>> getCommandesByServeur(@PathVariable Long serveurId) {
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<CommandeResponseDTO>> getCommandesByServeur(@PathVariable Long serveurId) {
         User serveur = new User();
         serveur.setId(serveurId);
-        return ResponseEntity.ok(commandeService.getCommandesByServeur(serveur));
+        return ResponseEntity.ok(commandeService.getCommandesByServeur(serveur).stream()
+            .map(CommandeResponseDTO::from).toList());
     }
 
     @GetMapping("/statut/{statut}")
-    public ResponseEntity<List<Commande>> getCommandesByStatut(@PathVariable CommandeStatut statut) {
-        return ResponseEntity.ok(commandeService.getCommandesByStatut(statut));
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<CommandeResponseDTO>> getCommandesByStatut(@PathVariable CommandeStatut statut) {
+        return ResponseEntity.ok(commandeService.getCommandesByStatut(statut).stream()
+            .map(CommandeResponseDTO::from).toList());
     }
 
     @GetMapping("/table/{tableId}/statut/{statut}")
-    public ResponseEntity<List<Commande>> getCommandesByTableAndStatut(
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<CommandeResponseDTO>> getCommandesByTableAndStatut(
         @PathVariable Long tableId,
         @PathVariable CommandeStatut statut) {
         TableEntity table = new TableEntity();
         table.setId(tableId);
-        return ResponseEntity.ok(commandeService.getCommandesByTableAndStatut(table, statut));
+        return ResponseEntity.ok(commandeService.getCommandesByTableAndStatut(table, statut).stream()
+            .map(CommandeResponseDTO::from).toList());
     }
 
     @GetMapping("/date")
-    public ResponseEntity<List<Commande>> getCommandesByDate(
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<CommandeResponseDTO>> getCommandesByDate(
         @RequestParam LocalDateTime debut,
         @RequestParam LocalDateTime fin) {
-        return ResponseEntity.ok(commandeService.getCommandesByDate(debut, fin));
+        return ResponseEntity.ok(commandeService.getCommandesByDate(debut, fin).stream()
+            .map(CommandeResponseDTO::from).toList());
     }
 
     @PostMapping("/{id}/items")
-    public ResponseEntity<Commande> ajouterItem(@PathVariable Long id, @Valid @RequestBody CommandeItem item) {
-        try {
-            Commande commande = commandeService.ajouterItem(id, item);
-            return ResponseEntity.ok(commande);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().build();
-        }
+    @PreAuthorize("hasRole('SERVEUR') or hasRole('ADMIN')")
+    public ResponseEntity<CommandeResponseDTO> ajouterItem(@PathVariable Long id, @Valid @RequestBody CommandeItem item) {
+        return ResponseEntity.ok(CommandeResponseDTO.from(commandeService.ajouterItem(id, item)));
     }
 
     @DeleteMapping("/{id}/items/{itemId}")
-    public ResponseEntity<Commande> retirerItem(@PathVariable Long id, @PathVariable Long itemId) {
-        try {
-            Commande commande = commandeService.retirerItem(id, itemId);
-            return ResponseEntity.ok(commande);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().build();
-        }
+    @PreAuthorize("hasRole('SERVEUR') or hasRole('ADMIN')")
+    public ResponseEntity<CommandeResponseDTO> retirerItem(@PathVariable Long id, @PathVariable Long itemId) {
+        return ResponseEntity.ok(CommandeResponseDTO.from(commandeService.retirerItem(id, itemId)));
     }
 
     @PutMapping("/{id}/statut")
-    public ResponseEntity<Commande> changerStatut(@PathVariable Long id, @RequestBody CommandeStatut nouveauStatut) {
-        try {
-            Commande commande = commandeService.changerStatut(id, nouveauStatut);
-            return ResponseEntity.ok(commande);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().build();
-        }
+    @PreAuthorize("hasRole('BARMAN') or hasRole('SERVEUR')")
+    public ResponseEntity<CommandeResponseDTO> changerStatut(@PathVariable Long id, @RequestBody CommandeStatut nouveauStatut) {
+        return ResponseEntity.ok(CommandeResponseDTO.from(commandeService.changerStatut(id, nouveauStatut)));
     }
 
     @PutMapping("/{id}/annuler")
-    @PreAuthorize("hasRole('SERVEUR')")
-    public ResponseEntity<Commande> annulerCommande(@PathVariable Long id) {
+    @PreAuthorize("hasRole('SERVEUR') or hasRole('MANAGER')")
+    public ResponseEntity<CommandeResponseDTO> annulerCommande(@PathVariable Long id) {
         return commandeService.getCommandeById(id)
             .map(commande -> {
                 commandeService.annulerCommande(commande);
-                return ResponseEntity.ok(commande);
+                return ResponseEntity.ok(CommandeResponseDTO.from(commande));
             })
             .orElse(ResponseEntity.notFound().build());
     }
 
     @PutMapping("/items/{itemId}/priorite")
-    @PreAuthorize("hasRole('SERVEUR') or hasRole('BARMEN')")
+    @PreAuthorize("hasRole('SERVEUR') or hasRole('BARMAN')")
     public ResponseEntity<Void> definirPriorite(@PathVariable Long itemId, @RequestParam boolean prioritaire) {
         CommandeItem item = new CommandeItem();
         item.setId(itemId);
         commandeService.definirPriorite(item, prioritaire);
         return ResponseEntity.ok().build();
     }
-} 
+}

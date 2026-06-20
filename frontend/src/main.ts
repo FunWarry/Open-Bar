@@ -13,12 +13,13 @@ import {routes} from './app/app.routes';
 import {authReducer} from './app/core/store/auth.reducer';
 import {AuthEffects} from './app/core/store/auth.effects';
 import {authInterceptor} from './app/core/interceptors/auth.interceptor';
+import {errorInterceptor} from './app/core/interceptors/error.interceptor';
 import {TranslocoHttpLoader} from './app/core/transloco-loader';
 
 bootstrapApplication(AppComponent, {
   providers: [
     provideAnimations(),
-    provideHttpClient(withFetch(), withInterceptors([authInterceptor])),
+    provideHttpClient(withFetch(), withInterceptors([authInterceptor, errorInterceptor])),
     provideStore({auth: authReducer}),
     provideEffects([AuthEffects]),
     ...(isDevMode() ? [provideStoreDevtools({ maxAge: 25, logOnly: false })] : []),
