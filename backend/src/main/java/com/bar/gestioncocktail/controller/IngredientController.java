@@ -25,13 +25,13 @@ public class IngredientController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN') or hasRole('BARMEN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('BARMAN')")
     public ResponseEntity<IngredientResponseDTO> createIngredient(@Valid @RequestBody Ingredient ingredient) {
         return ResponseEntity.ok(IngredientResponseDTO.from(ingredientService.createIngredient(ingredient)));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('BARMEN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('BARMAN')")
     public ResponseEntity<IngredientResponseDTO> updateIngredient(@PathVariable Long id, @Valid @RequestBody Ingredient ingredient) {
         ingredient.setId(id);
         return ResponseEntity.ok(IngredientResponseDTO.from(ingredientService.updateIngredient(ingredient)));
@@ -77,7 +77,7 @@ public class IngredientController {
     }
 
     @PutMapping("/{id}/stock")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('BARMEN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('BARMAN')")
     public ResponseEntity<IngredientResponseDTO> updateStock(@PathVariable Long id, @RequestParam BigDecimal quantite) {
         return ingredientService.getIngredientById(id)
             .map(ingredient -> {
@@ -88,7 +88,7 @@ public class IngredientController {
     }
 
     @PutMapping("/{id}/seuil-alerte")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('BARMEN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('BARMAN')")
     public ResponseEntity<IngredientResponseDTO> definirSeuilAlerte(@PathVariable Long id, @RequestParam BigDecimal seuil) {
         return ingredientService.getIngredientById(id)
             .map(ingredient -> {
