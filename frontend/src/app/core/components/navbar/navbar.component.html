@@ -1,41 +1,51 @@
-<mat-toolbar color="primary">
-  <span class="logo" (click)="navigationService.navigateToHome()">Gestion Cocktail</span>
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title (click)="navigationService.navigateToHome()" style="cursor:pointer">
+      OpenBar
+    </ion-title>
 
-  <span class="spacer"></span>
+    <ion-buttons slot="end">
+      <ng-container *ngIf="isAuthenticated$ | async">
+        <ion-button (click)="navigationService.navigateToHome()">
+          <ion-icon slot="start" name="home"></ion-icon>
+          Accueil
+        </ion-button>
 
-  <ng-container *ngIf="isAuthenticated$ | async">
-    <button mat-button (click)="navigationService.navigateToHome()">
-      <mat-icon>home</mat-icon>
-      Accueil
-    </button>
+        <ng-container *ngIf="isAdmin$ | async">
+          <ion-button (click)="navigationService.navigateToAdmin()">
+            <ion-icon slot="start" name="settings"></ion-icon>
+            Administration
+          </ion-button>
+        </ng-container>
 
-    <ng-container *ngIf="isAdmin$ | async">
-      <button mat-button (click)="navigationService.navigateToAdmin()">
-        <mat-icon>admin_panel_settings</mat-icon>
-        Administration
-      </button>
-    </ng-container>
+        <ion-button id="user-menu-trigger">
+          <ion-icon slot="start" name="person-circle"></ion-icon>
+          {{ (currentUser$ | async)?.username }}
+          <ion-icon slot="end" name="chevron-down"></ion-icon>
+        </ion-button>
 
-    <button mat-button [matMenuTriggerFor]="userMenu">
-      <mat-icon>account_circle</mat-icon>
-      {{ (currentUser$ | async)?.username }}
-    </button>
-    <mat-menu #userMenu="matMenu">
-      <button mat-menu-item (click)="navigationService.navigateToUserProfile()">
-        <mat-icon>person</mat-icon>
-        <span>Mon profil</span>
-      </button>
-      <button mat-menu-item (click)="onLogout()">
-        <mat-icon>exit_to_app</mat-icon>
-        <span>Déconnexion</span>
-      </button>
-    </mat-menu>
-  </ng-container>
+        <ion-popover trigger="user-menu-trigger" triggerAction="click" [dismissOnSelect]="true">
+          <ng-template>
+            <ion-list lines="none">
+              <ion-item button (click)="navigationService.navigateToUserProfile()">
+                <ion-icon slot="start" name="person"></ion-icon>
+                <ion-label>Mon profil</ion-label>
+              </ion-item>
+              <ion-item button (click)="onLogout()">
+                <ion-icon slot="start" name="log-out"></ion-icon>
+                <ion-label>Déconnexion</ion-label>
+              </ion-item>
+            </ion-list>
+          </ng-template>
+        </ion-popover>
+      </ng-container>
 
-  <ng-container *ngIf="!(isAuthenticated$ | async)">
-    <button mat-button (click)="navigationService.navigateToLogin()">
-      <mat-icon>account_circle</mat-icon>
-      Connexion
-    </button>
-  </ng-container>
-</mat-toolbar>
+      <ng-container *ngIf="!(isAuthenticated$ | async)">
+        <ion-button (click)="navigationService.navigateToLogin()">
+          <ion-icon slot="start" name="person-circle"></ion-icon>
+          Connexion
+        </ion-button>
+      </ng-container>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>

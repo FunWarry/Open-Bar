@@ -1,55 +1,47 @@
-import {Component, OnInit, ViewChild} from '@angular/core';
-import {MatPaginator} from '@angular/material/paginator';
-import {MatSort} from '@angular/material/sort';
-import {MatTableDataSource} from '@angular/material/table';
+import {Component, OnInit} from '@angular/core';
 import {Store} from '@ngrx/store';
 import {Observable} from 'rxjs';
 import {selectIsAdmin} from '../../../core/store/auth.selectors';
-import {MatCardModule} from '@angular/material/card';
-import {MatCardHeader, MatCardTitle, MatCardContent} from '@angular/material/card';
-import {MatPaginatorModule} from '@angular/material/paginator';
-import {MatTableModule} from '@angular/material/table';
-import {MatSortModule} from '@angular/material/sort';
-import {MatIconModule} from '@angular/material/icon';
-import {MatButtonModule} from '@angular/material/button';
-import { MatChipsModule } from '@angular/material/chips';
+import {
+  IonCard, IonCardHeader, IonCardTitle, IonCardContent,
+  IonList, IonItem, IonLabel, IonBadge, IonIcon, IonButton, IonButtons
+} from '@ionic/angular/standalone';
+import {addIcons} from 'ionicons';
+import {add, eye, create, trash, chevronForward} from 'ionicons/icons';
+import {NgIf, NgFor, AsyncPipe} from '@angular/common';
 
 @Component({
   selector: 'app-ingredient-list',
   templateUrl: './ingredient-list.component.html',
   styleUrls: ['./ingredient-list.component.css'],
   standalone: true,
-  imports: [MatCardModule, MatCardHeader, MatCardTitle, MatCardContent, MatPaginatorModule, MatTableModule, MatSortModule, MatIconModule, MatButtonModule, MatChipsModule]
+  imports: [
+    IonCard, IonCardHeader, IonCardTitle, IonCardContent,
+    IonList, IonItem, IonLabel, IonBadge, IonIcon, IonButton, IonButtons,
+    NgIf, NgFor, AsyncPipe
+  ]
 })
 export class IngredientListComponent implements OnInit {
-  displayedColumns: string[] = ['name', 'category', 'stock', 'actions'];
-  dataSource: MatTableDataSource<any>;
+  items: any[] = [];
   isAdmin$: Observable<boolean>;
 
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
-  @ViewChild(MatSort) sort!: MatSort;
-
   constructor(private store: Store) {
-    this.dataSource = new MatTableDataSource();
     this.isAdmin$ = this.store.select(selectIsAdmin);
+    addIcons({add, eye, create, trash, chevronForward});
   }
 
   ngOnInit(): void {
     // TODO: Charger les ingrédients depuis le store
   }
 
-  ngAfterViewInit() {
-    this.dataSource.paginator = this.paginator;
-    this.dataSource.sort = this.sort;
+  getStockColor(stock: number): string {
+    if (stock <= 0) return 'danger';
+    if (stock < 10) return 'warning';
+    return 'success';
   }
 
-  getStockColor(stock: number): string {
-    if (stock <= 0) {
-      return 'warn';
-    } else if (stock < 10) {
-      return 'accent';
-    }
-    return 'primary';
+  trackById(index: number, item: any): any {
+    return item.id ?? index;
   }
 
   onAdd(): void {

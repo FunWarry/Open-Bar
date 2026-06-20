@@ -1,49 +1,59 @@
-<mat-card>
-  <mat-card-header>
-    <mat-card-title>Détails de la Commande #{{ commandeId }}</mat-card-title>
-  </mat-card-header>
-  <mat-card-content>
-    <div *ngIf="commande">
-      <div class="detail-row">
-        <span class="label">Table:</span>
-        <span>{{ commande.tableId }}</span>
-      </div>
-      <div class="detail-row">
-        <span class="label">Statut:</span>
-        <mat-chip [color]="getStatusColor(commande.status)" selected>
-          {{ commande.status }}
-        </mat-chip>
-      </div>
-      <div class="detail-row">
-        <span class="label">Total:</span>
-        <span>{{ commande.total | currency:'EUR' }}</span>
-      </div>
-
-      <h3>Items de la commande</h3>
-      <table [dataSource]="commande.items" class="full-width" mat-table>
-        <ng-container matColumnDef="name">
-          <th *matHeaderCellDef mat-header-cell>Nom</th>
-          <td *matCellDef="let item" mat-cell>{{ item.name }}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="quantity">
-          <th *matHeaderCellDef mat-header-cell>Quantité</th>
-          <td *matCellDef="let item" mat-cell>{{ item.quantity }}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="price">
-          <th *matHeaderCellDef mat-header-cell>Prix</th>
-          <td *matCellDef="let item" mat-cell>{{ item.price | currency:'EUR' }}</td>
-        </ng-container>
-
-        <tr *matHeaderRowDef="['name', 'quantity', 'price']" mat-header-row></tr>
-        <tr *matRowDef="let row; columns: ['name', 'quantity', 'price'];" mat-row></tr>
-      </table>
+<ion-card>
+  <ion-card-header>
+    <div class="card-header-row">
+      <ion-card-title>Détails de la Commande #{{ commandeId }}</ion-card-title>
+      <ion-buttons>
+        <ion-button fill="clear" (click)="router.navigate(['/commandes'])">
+          <ion-icon slot="start" name="arrow-back"></ion-icon>
+          Retour
+        </ion-button>
+        <ion-button fill="outline" color="primary" (click)="onEdit()">
+          <ion-icon slot="start" name="create"></ion-icon>
+          Modifier
+        </ion-button>
+        <ion-button fill="outline" color="danger" (click)="onDelete()">
+          <ion-icon slot="start" name="trash"></ion-icon>
+          Supprimer
+        </ion-button>
+      </ion-buttons>
     </div>
-  </mat-card-content>
-  <mat-card-actions>
-    <button (click)="router.navigate(['/commandes'])" mat-button>Retour</button>
-    <button (click)="onEdit()" color="primary" mat-raised-button>Modifier</button>
-    <button (click)="onDelete()" color="warn" mat-raised-button>Supprimer</button>
-  </mat-card-actions>
-</mat-card>
+  </ion-card-header>
+  <ion-card-content>
+    <ng-container *ngIf="commande">
+      <ion-list lines="full">
+        <ion-item>
+          <ion-label>
+            <span class="detail-label">Table</span>
+            <span class="detail-value">{{ commande.tableId }}</span>
+          </ion-label>
+        </ion-item>
+        <ion-item>
+          <ion-label>
+            <span class="detail-label">Statut</span>
+          </ion-label>
+          <ion-badge slot="end" [color]="getStatusColor(commande.status)">
+            {{ commande.status }}
+          </ion-badge>
+        </ion-item>
+        <ion-item>
+          <ion-label>
+            <span class="detail-label">Total</span>
+            <span class="detail-value">{{ commande.total | currency:'EUR' }}</span>
+          </ion-label>
+        </ion-item>
+      </ion-list>
+
+      <h3 class="section-title">Items de la commande</h3>
+      <div class="list-header">
+        <span>Nom</span><span>Quantité</span><span>Prix</span>
+      </div>
+      <ion-list>
+        <ion-item *ngFor="let item of commande.items">
+          <ion-label>{{ item.name }}</ion-label>
+          <ion-label slot="end">{{ item.quantity }}</ion-label>
+          <ion-label slot="end">{{ item.price | currency:'EUR' }}</ion-label>
+        </ion-item>
+      </ion-list>
+    </ng-container>
+  </ion-card-content>
+</ion-card>

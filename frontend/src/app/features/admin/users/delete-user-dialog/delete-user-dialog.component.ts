@@ -1,28 +1,36 @@
-import {Component, Inject} from '@angular/core';
-import {MAT_DIALOG_DATA, MatDialogModule, MatDialogRef} from '@angular/material/dialog';
+import {Component, Input} from '@angular/core';
 import {User} from '../../../../core/models/user.model';
-import {MatButtonModule} from '@angular/material/button';
-import {MatIconModule} from '@angular/material/icon';
+import {ModalController} from '@ionic/angular/standalone';
+import {
+  IonHeader, IonToolbar, IonTitle, IonButtons, IonButton,
+  IonContent, IonIcon
+} from '@ionic/angular/standalone';
+import {addIcons} from 'ionicons';
+import {trash} from 'ionicons/icons';
 
 @Component({
   selector: 'app-delete-user-dialog',
   templateUrl: './delete-user-dialog.component.html',
   styleUrls: ['./delete-user-dialog.component.css'],
   standalone: true,
-  imports: [MatDialogModule, MatButtonModule, MatIconModule]
+  imports: [
+    IonHeader, IonToolbar, IonTitle, IonButtons, IonButton,
+    IonContent, IonIcon
+  ],
+  providers: [ModalController]
 })
 export class DeleteUserDialogComponent {
-  constructor(
-    public dialogRef: MatDialogRef<DeleteUserDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: User
-  ) {
+  @Input() data!: User;
+
+  constructor(private modalCtrl: ModalController) {
+    addIcons({trash});
   }
 
   onConfirm(): void {
-    this.dialogRef.close(true);
+    this.modalCtrl.dismiss(true);
   }
 
   onCancel(): void {
-    this.dialogRef.close(false);
+    this.modalCtrl.dismiss(false);
   }
 }
