@@ -19,7 +19,7 @@ public class Facture {
     @JoinColumn(name = "table_id", nullable = false)
     private TableEntity table;
 
-    @OneToMany(mappedBy = "facture", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "facture", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<FactureItem> items = new ArrayList<>();
 
     @Column(nullable = false)

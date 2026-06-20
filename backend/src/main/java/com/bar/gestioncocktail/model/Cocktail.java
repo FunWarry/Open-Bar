@@ -32,10 +32,10 @@ public class Cocktail {
     private LocalDateTime dateDebutSaison;
     private LocalDateTime dateFinSaison;
 
-    @OneToMany(mappedBy = "cocktail", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "cocktail", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<CocktailIngredient> ingredients;
 
-    @OneToMany(mappedBy = "cocktail", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "cocktail", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<CocktailVariante> variantes;
 
     private String instructions;
