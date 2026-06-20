@@ -82,16 +82,17 @@ users ──< audit_logs
 
 ## Rôles utilisateurs
 
-`UserRole` enum actuel : **ADMIN**, **SERVEUR**, **BARMEN** — ⚠️ `BARMEN` est une typo, et `MANAGER` est à ajouter.
+`UserRole` enum : **ADMIN**, **MANAGER**, **SERVEUR**, **BARMAN**
 
-| Rôle | Nature | À ajouter ? |
-|------|--------|------------|
-| `ADMIN` | Maintenance technique uniquement — pas un rôle métier bar | Non |
-| `MANAGER` | Rôle métier principal (supervision, plan de salle, stats) | **Oui — à créer** |
-| `SERVEUR` | Prise de commande, suivi tables | Non |
-| `BARMEN` | Préparation commandes, stocks, cocktails | Non (typo à corriger) |
+| Rôle | Nature | Permissions clés |
+|------|--------|-----------------|
+| `ADMIN` | Maintenance technique uniquement — pas un rôle métier bar | CRUD users, tout |
+| `MANAGER` | Supervision bar (rôle métier principal) | Lire commandes/tables/factures, annuler commandes, toggler disponibilité cocktails |
+| `SERVEUR` | Prise de commande, suivi tables | Créer/annuler commandes, définir priorité items |
+| `BARMAN` | Préparation commandes, stocks, cocktails | Changer statut commandes, CRUD cocktails/ingrédients/stocks |
 
-Accès frontend : guards `AuthGuard`, `RoleGuard`, `AdminGuard`
+Guards : `AuthGuard` (toute route authentifiée), `RoleGuard` (paramétrable via `route.data.roles`), `AdminGuard` (ADMIN uniquement).
+NgRx selectors : `selectIsAdmin`, `selectIsManager`, `selectIsBarman`.
 
 ## Cycle de vie d'une commande
 
@@ -122,43 +123,55 @@ Service frontend : `websocket.service.ts`
 - `@Data` Lombok sur toutes les entités
 - `@PrePersist` / `@PreUpdate` pour les timestamps `createdAt` / `updatedAt`
 - `@Transactional` sur toutes les méthodes write du service
-- Exceptions : `RuntimeException` avec message explicite (à migrer vers exceptions custom)
-- Pas de DTO de sortie actuellement — les entités sont renvoyées directement (à améliorer)
+- DTOs de sortie : Java records avec `static XxxDTO from(Entity e)` — jamais d'entité JPA en réponse directe
+- Exceptions métier : `GlobalExceptionHandler` gère `ResourceNotFoundException` (404), `BusinessException` (400), validation (400)
+- `@PreAuthorize("hasRole('...')")` sur chaque endpoint — pas de route non protégée sauf `/api/auth/**`
 
 ### Frontend (Angular + Ionic — migration en cours)
 - Architecture feature-based : `features/`, `core/`
 - Lazy loading sur toutes les routes (`loadComponent`)
 - State management NgRx uniquement pour l'auth (le reste en services directs)
 - ~~Angular Material~~ → **Ionic** pour tous les composants UI (migration actée)
-- i18n à intégrer dès le début
+- i18n : Transloco (décision actée)
+- Error interceptor : `errorInterceptor` (`core/interceptors/`) — gère les erreurs HTTP globalement avec toast Ionic
+
+### Tests — règle absolue
+- **Chaque feature branch inclut ses tests dans le même PR** — on ne merge pas sans tests
+- Backend : JUnit 5 + Mockito dans `src/test/java/.../service/` — un test par méthode métier, cas limites obligatoires
+- Frontend : Karma + Jasmine — `*.spec.ts` à côté du fichier testé, couvre sélecteurs NgRx, guards, services HTTP
 
 ## Points d'attention / dette technique
 
 1. **Secret JWT hardcodé** dans `application.yml` → à externaliser en variable d'environnement
 2. **`allow-circular-references: true`** dans Spring → smell de design circulaire à corriger
 3. **Bug dateLivraison** : set sur `PRET` au lieu de `LIVREE` dans `CommandeService.changerStatut()`
-4. **Pas de tests** backend (ni unitaires, ni intégration) — priorité à adresser
-5. **Pas de DTOs de sortie** — les entités JPA sont sérialisées directement (risque de boucles JSON et de fuite de données)
-6. **Rôles** : l'enum `UserRole` a `BARMEN` (faute de frappe — devrait être `BARMAN` ou `BARTENDER`)
+4. **Tests insuffisants** — priorité ticket #47, règle : toute nouvelle feature = tests dans le même PR
+5. ~~Pas de DTOs de sortie~~ — **résolu PR #83** : Java records avec `from(entity)` sur tous les controllers
+6. ~~Typo `BARMEN`~~ — **résolu PR #85** : enum renommé `BARMAN`, migration SQL documentée dans `schema.sql`
 
 ## Features implémentées vs. manquantes
 
-| Feature | Backend | Frontend |
-|---------|---------|----------|
-| Auth JWT | ✅ | ✅ |
-| Gestion users (admin) | ✅ | ✅ |
-| Cocktails CRUD | ✅ | ✅ |
-| Ingrédients CRUD | ✅ | ✅ |
-| Tables | ✅ | ✅ |
-| Commandes | ✅ | ✅ |
-| Notifications WS | ✅ | ⚠️ partiel |
-| Factures | ✅ | ❌ |
-| Dashboard / stats | ❌ | ❌ |
-| Déstockage auto à la commande | ❌ | — |
-| Plan de salle interactif | ❌ | ❌ |
-| Saisonnalité cocktails | ⚠️ modèle ok | ❌ |
-| Division d'addition | ❌ | ❌ |
-| Export factures (PDF) | ❌ | ❌ |
+| Feature | Backend | Frontend | Tests |
+|---------|---------|----------|-------|
+| Auth JWT | ✅ | ✅ | ⚠️ |
+| Gestion users (admin) | ✅ | ✅ | ⚠️ |
+| Rôles ADMIN/MANAGER/SERVEUR/BARMAN | ✅ | ✅ | ✅ |
+| DTOs de sortie (tous controllers) | ✅ | — | ⚠️ |
+| GlobalExceptionHandler | ✅ | — | ⚠️ |
+| Error interceptor frontend | — | ✅ | ⚠️ |
+| Cocktails CRUD | ✅ | ⚠️ squelette | ❌ |
+| Ingrédients CRUD | ✅ | ⚠️ squelette | ❌ |
+| Tables | ✅ | ⚠️ squelette | ❌ |
+| Commandes | ✅ | ⚠️ squelette | ❌ |
+| Déstockage auto (EN_PREPARATION) | ✅ | — | ✅ |
+| Alertes stock WebSocket | ✅ | ❌ | ✅ |
+| Notifications WS | ✅ | ❌ | — |
+| Factures | ✅ | ❌ | ❌ |
+| Dashboard / stats | ❌ | ❌ | — |
+| Plan de salle interactif (Konva.js) | ❌ | ❌ | — |
+| Saisonnalité cocktails | ⚠️ modèle ok | ❌ | — |
+| Division d'addition | ❌ | ❌ | — |
+| Export factures (PDF) | ❌ | ❌ | — |
 
 ## Ajouter une nouvelle feature (checklist)
 
@@ -167,15 +180,18 @@ Service frontend : `websocket.service.ts`
 2. Ligne dans `schema.sql`
 3. Repository dans `repository/` (extends `JpaRepository<Entity, Long>`)
 4. Service dans `service/` avec `@Transactional` sur les writes
-5. Controller dans `controller/` avec les bonnes annotations `@RolesAllowed` ou vérification via `SecurityConfig`
-6. Ajouter l'audit dans `AuditLogService` si nécessaire
+5. Controller dans `controller/` avec `@PreAuthorize` sur chaque endpoint
+6. DTO de sortie (Java record avec `from(entity)`) dans `dto/`
+7. Ajouter l'audit dans `AuditLogService` si nécessaire
+8. **Tests unitaires** dans `src/test/java/.../service/` (JUnit 5 + Mockito)
 
 ### Frontend
 1. Modèle TypeScript dans le dossier feature ou `core/models/`
 2. Service HTTP dans le dossier feature
 3. Composants (list / form / detail) sous `features/<nom>/`
-4. Route lazy-loadée dans `app.routes.ts`
+4. Route lazy-loadée dans `app.routes.ts` avec `data: { roles: [...] }` si `RoleGuard`
 5. Lien dans la navbar si pertinent
+6. **Tests** `.spec.ts` pour les sélecteurs, guards et services concernés
 
 <!-- rtk-instructions v2 -->
 # RTK (Rust Token Killer) - Token-Optimized Commands
