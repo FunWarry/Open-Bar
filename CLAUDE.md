@@ -28,7 +28,7 @@ Le frontend migre vers **Ionic + Angular + Capacitor** — Angular Material n'es
 | UI mobile            | Ionic 8+                      |
 | Build natif          | Capacitor 6+ (iOS + Android)  |
 | Canvas plan de salle | Konva.js                      |
-| i18n                 | Transloco (`@ngneat/transloco`) |
+| i18n                 | Transloco (`@jsverse/transloco`) |
 
 ## Lancer le projet
 
@@ -137,7 +137,7 @@ Service frontend : `websocket.service.ts`
 ### Exigence
 L'application est **multilingue**. Ajouter une langue = ajouter un fichier JSON de traduction. Aucune modification de code requise.
 
-### Solution retenue : Transloco (`@ngneat/transloco`)
+### Solution retenue : Transloco (`@jsverse/transloco`)
 
 Choix retenu plutôt que ngx-translate pour :
 - Lazy loading natif des traductions par feature (pas de bundle monolithique)
@@ -174,11 +174,21 @@ frontend/src/assets/i18n/
 - Langues supportées à terme : français, anglais (extensible)
 - Jamais de texte hardcodé en français dans les templates
 
+### Usage dans les composants standalone
+
+Pour les fichiers scopés par feature (ex : `fr/commandes.json`), déclarer le scope dans le composant :
+
+```typescript
+@Component({
+  providers: [provideTranslocoScope('commandes')]
+})
+```
+
 ### Ajouter une nouvelle langue
 1. Créer `frontend/src/assets/i18n/<code>.json` (ex : `es.json` pour l'espagnol)
 2. Créer `frontend/src/assets/i18n/<code>/` avec les fichiers scopés si besoin
-3. Ajouter `<code>` à `availableLangs` dans `transloco.config.ts`
-4. C'est tout — l'application détecte et propose la nouvelle langue automatiquement
+3. Ajouter `<code>` à `availableLangs` dans `provideTransloco()` dans `main.ts`
+4. C'est tout — la langue est disponible une fois les assets copiés et le sélecteur UI implémenté.
 
 ## Points d'attention / dette technique
 
