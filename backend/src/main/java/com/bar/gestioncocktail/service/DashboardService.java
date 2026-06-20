@@ -1,4 +1,4 @@
-package com.bar.gestioncocktail.service;
+﻿package com.bar.gestioncocktail.service;
 
 import com.bar.gestioncocktail.dto.DashboardStatsDTO;
 import com.bar.gestioncocktail.dto.TopCocktailDTO;
@@ -79,7 +79,7 @@ public class DashboardService {
             );
             return ca != null ? ca : BigDecimal.ZERO;
         } catch (Exception e) {
-            log.warn("Erreur lors du calcul du chiffre d'affaires depuis {}: {}", depuis, e.getMessage());
+            log.warn("Erreur lors du calcul du chiffre d affaires depuis {}: {}", depuis, e.getMessage());
             return BigDecimal.ZERO;
         }
     }
