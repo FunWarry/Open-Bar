@@ -2,6 +2,7 @@ package com.bar.gestioncocktail.controller;
 
 import com.bar.gestioncocktail.dto.LoginRequest;
 import com.bar.gestioncocktail.dto.LoginResponse;
+import com.bar.gestioncocktail.dto.UserResponseDTO;
 import com.bar.gestioncocktail.model.User;
 import com.bar.gestioncocktail.model.UserRole;
 import com.bar.gestioncocktail.security.JwtTokenProvider;
@@ -64,14 +65,14 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<User> register(@Valid @RequestBody User user) {
+    public ResponseEntity<UserResponseDTO> register(@Valid @RequestBody User user) {
         if (userService.existsByUsername(user.getUsername())) {
             return ResponseEntity.badRequest().build();
         }
         if (userService.existsByEmail(user.getEmail())) {
             return ResponseEntity.badRequest().build();
         }
-        return ResponseEntity.ok(userService.createUser(user));
+        return ResponseEntity.ok(UserResponseDTO.from(userService.createUser(user)));
     }
 
     @PostMapping("/logout")

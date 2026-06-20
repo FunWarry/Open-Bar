@@ -26,9 +26,10 @@ CREATE TABLE users (
 
 CREATE TABLE user_roles (
     user_id BIGINT REFERENCES users(id),
-    roles VARCHAR(20) NOT NULL,
+    roles VARCHAR(20) NOT NULL CHECK (roles IN ('ADMIN', 'MANAGER', 'SERVEUR', 'BARMAN')),
     PRIMARY KEY (user_id, roles)
 );
+-- Migration existant : UPDATE user_roles SET roles = 'BARMAN' WHERE roles = 'BARMEN';
 
 CREATE TABLE cocktails (
     id BIGSERIAL PRIMARY KEY,
