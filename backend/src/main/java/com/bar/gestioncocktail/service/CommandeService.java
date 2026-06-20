@@ -19,7 +19,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -141,8 +143,8 @@ public class CommandeService {
 
         switch (nouveauStatut) {
             case EN_PREPARATION:
-                // Idempotence : ne déstocke qu'une seule fois même en cas de retry
-                if (ancienStatut != CommandeStatut.EN_PREPARATION) {
+                // Idempotence : ne déstocke qu'une seule fois, même en cas de retry ou de réactivation depuis ANNULEE
+                if (commande.getDatePreparation() == null) {
                     commande.setDatePreparation(LocalDateTime.now());
                     destockerIngredients(commande);
                 }
@@ -173,30 +175,37 @@ public class CommandeService {
 
     // Appelé uniquement lors du premier passage EN_PREPARATION (consommation physique réelle).
     // Ne bloque pas la préparation si stock insuffisant — publie une alerte WebSocket à la place.
+    // Les quantités sont agrégées par ingrédient avant sauvegarde pour éviter les doubles déstockages
+    // quand un même ingrédient apparaît dans plusieurs cocktails de la même commande.
     private void destockerIngredients(Commande commande) {
+        Map<Long, BigDecimal> quantitesParIngredient = new HashMap<>();
+        Map<Long, Ingredient> ingredientsMap = new HashMap<>();
+
         for (CommandeItem item : commande.getItems()) {
             for (CocktailIngredient ci : item.getCocktail().getIngredients()) {
                 Ingredient ingredient = ci.getIngredient();
+                BigDecimal qte = ci.getQuantite().multiply(BigDecimal.valueOf(item.getQuantite()));
+                quantitesParIngredient.merge(ingredient.getId(), qte, BigDecimal::add);
+                ingredientsMap.put(ingredient.getId(), ingredient);
+            }
+        }
 
-                BigDecimal quantiteConsommee = ci.getQuantite()
-                    .multiply(BigDecimal.valueOf(item.getQuantite()));
-                BigDecimal nouveauStock = ingredient.getQuantiteStock().subtract(quantiteConsommee);
-
-                ingredient.setQuantiteStock(nouveauStock);
-                ingredient.setUpdatedAt(LocalDateTime.now());
-                ingredientRepository.save(ingredient);
-
-                if (nouveauStock.compareTo(ingredient.getSeuilAlerte()) <= 0) {
-                    messagingTemplate.convertAndSend("/topic/stock/alerte",
-                        new StockAlerteEvent(
-                            ingredient.getId(),
-                            ingredient.getNom(),
-                            ingredient.getUniteMesure(),
-                            nouveauStock,
-                            ingredient.getSeuilAlerte(),
-                            nouveauStock.compareTo(BigDecimal.ZERO) < 0
-                        ));
-                }
+        for (Map.Entry<Long, BigDecimal> entry : quantitesParIngredient.entrySet()) {
+            Ingredient ingredient = ingredientsMap.get(entry.getKey());
+            BigDecimal nouveauStock = ingredient.getQuantiteStock().subtract(entry.getValue());
+            ingredient.setQuantiteStock(nouveauStock);
+            ingredient.setUpdatedAt(LocalDateTime.now());
+            ingredientRepository.save(ingredient);
+            if (ingredient.getSeuilAlerte() != null && nouveauStock.compareTo(ingredient.getSeuilAlerte()) <= 0) {
+                messagingTemplate.convertAndSend("/topic/stock/alerte",
+                    new StockAlerteEvent(
+                        ingredient.getId(),
+                        ingredient.getNom(),
+                        ingredient.getUniteMesure(),
+                        nouveauStock,
+                        ingredient.getSeuilAlerte(),
+                        nouveauStock.compareTo(BigDecimal.ZERO) < 0
+                    ));
             }
         }
     }
