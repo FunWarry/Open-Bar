@@ -23,7 +23,7 @@ public class Commande {
     @JoinColumn(name = "serveur_id", nullable = false)
     private User serveur;
 
-    @OneToMany(mappedBy = "commande", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "commande", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<CommandeItem> items = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)

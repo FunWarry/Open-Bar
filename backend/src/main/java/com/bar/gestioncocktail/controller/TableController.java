@@ -1,5 +1,6 @@
 package com.bar.gestioncocktail.controller;
 
+import com.bar.gestioncocktail.dto.TableResponseDTO;
 import com.bar.gestioncocktail.model.TableEntity;
 import com.bar.gestioncocktail.model.TableZone;
 import com.bar.gestioncocktail.service.TableService;
@@ -17,42 +18,42 @@ public class TableController {
     private TableService tableService;
 
     @GetMapping
-    public List<TableEntity> getAllTables() {
-        return tableService.getAllTables();
+    public List<TableResponseDTO> getAllTables() {
+        return tableService.getAllTables().stream().map(TableResponseDTO::from).toList();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<TableEntity> getTableById(@PathVariable Long id) {
+    public ResponseEntity<TableResponseDTO> getTableById(@PathVariable Long id) {
         return tableService.getTableById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+            .map(TableResponseDTO::from)
+            .map(ResponseEntity::ok)
+            .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/zone/{zone}")
-    public List<TableEntity> getTablesByZone(@PathVariable TableZone zone) {
-        return tableService.getTablesByZone(zone);
+    public List<TableResponseDTO> getTablesByZone(@PathVariable TableZone zone) {
+        return tableService.getTablesByZone(zone).stream().map(TableResponseDTO::from).toList();
     }
 
     @GetMapping("/occupee/{occupee}")
-    public List<TableEntity> getTablesByOccupee(@PathVariable boolean occupee) {
-        return tableService.getTablesByOccupee(occupee);
+    public List<TableResponseDTO> getTablesByOccupee(@PathVariable boolean occupee) {
+        return tableService.getTablesByOccupee(occupee).stream().map(TableResponseDTO::from).toList();
     }
 
     @GetMapping("/serveur/{serveurId}")
-    public List<TableEntity> getTablesByServeurId(@PathVariable Long serveurId) {
-        return tableService.getTablesByServeurId(serveurId);
+    public List<TableResponseDTO> getTablesByServeurId(@PathVariable Long serveurId) {
+        return tableService.getTablesByServeurId(serveurId).stream().map(TableResponseDTO::from).toList();
     }
 
     @PostMapping
-    public TableEntity createTable(@RequestBody TableEntity table) {
-        return tableService.createTable(table);
+    public TableResponseDTO createTable(@RequestBody TableEntity table) {
+        return TableResponseDTO.from(tableService.createTable(table));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<TableEntity> updateTable(@PathVariable Long id, @RequestBody TableEntity tableDetails) {
+    public ResponseEntity<TableResponseDTO> updateTable(@PathVariable Long id, @RequestBody TableEntity tableDetails) {
         try {
-            TableEntity updatedTable = tableService.updateTable(id, tableDetails);
-            return ResponseEntity.ok(updatedTable);
+            return ResponseEntity.ok(TableResponseDTO.from(tableService.updateTable(id, tableDetails)));
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
@@ -65,22 +66,20 @@ public class TableController {
     }
 
     @PostMapping("/{id}/occuper")
-    public ResponseEntity<TableEntity> occuperTable(@PathVariable Long id, @RequestParam Long serveurId) {
+    public ResponseEntity<TableResponseDTO> occuperTable(@PathVariable Long id, @RequestParam Long serveurId) {
         try {
-            TableEntity table = tableService.occuperTable(id, serveurId);
-            return ResponseEntity.ok(table);
+            return ResponseEntity.ok(TableResponseDTO.from(tableService.occuperTable(id, serveurId)));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();
         }
     }
 
     @PostMapping("/{id}/liberer")
-    public ResponseEntity<TableEntity> libererTable(@PathVariable Long id) {
+    public ResponseEntity<TableResponseDTO> libererTable(@PathVariable Long id) {
         try {
-            TableEntity table = tableService.libererTable(id);
-            return ResponseEntity.ok(table);
+            return ResponseEntity.ok(TableResponseDTO.from(tableService.libererTable(id)));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();
         }
     }
-} 
+}
