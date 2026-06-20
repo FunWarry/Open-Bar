@@ -33,12 +33,8 @@ public class CommandeController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Commande> updateCommande(@PathVariable Long id, @Valid @RequestBody Commande commandeDetails) {
-        try {
-            Commande updatedCommande = commandeService.updateCommande(id, commandeDetails);
-            return ResponseEntity.ok(updatedCommande);
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+        Commande updatedCommande = commandeService.updateCommande(id, commandeDetails);
+        return ResponseEntity.ok(updatedCommande);
     }
 
     @DeleteMapping("/{id}")
@@ -91,32 +87,20 @@ public class CommandeController {
 
     @PostMapping("/{id}/items")
     public ResponseEntity<Commande> ajouterItem(@PathVariable Long id, @Valid @RequestBody CommandeItem item) {
-        try {
-            Commande commande = commandeService.ajouterItem(id, item);
-            return ResponseEntity.ok(commande);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().build();
-        }
+        Commande commande = commandeService.ajouterItem(id, item);
+        return ResponseEntity.ok(commande);
     }
 
     @DeleteMapping("/{id}/items/{itemId}")
     public ResponseEntity<Commande> retirerItem(@PathVariable Long id, @PathVariable Long itemId) {
-        try {
-            Commande commande = commandeService.retirerItem(id, itemId);
-            return ResponseEntity.ok(commande);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().build();
-        }
+        Commande commande = commandeService.retirerItem(id, itemId);
+        return ResponseEntity.ok(commande);
     }
 
     @PutMapping("/{id}/statut")
     public ResponseEntity<Commande> changerStatut(@PathVariable Long id, @RequestBody CommandeStatut nouveauStatut) {
-        try {
-            Commande commande = commandeService.changerStatut(id, nouveauStatut);
-            return ResponseEntity.ok(commande);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().build();
-        }
+        Commande commande = commandeService.changerStatut(id, nouveauStatut);
+        return ResponseEntity.ok(commande);
     }
 
     @PutMapping("/{id}/annuler")
