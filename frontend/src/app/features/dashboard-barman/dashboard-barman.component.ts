@@ -9,6 +9,8 @@ import {
   ToastController
 } from '@ionic/angular/standalone';
 import { CommandeCardComponent } from './components/commande-card/commande-card.component';
+import { StockAlertBannerComponent } from '../../core/components/stock-alert-banner/stock-alert-banner.component';
+import { NotificationService } from '../../core/services/notification.service';
 import { DashboardBarmanService } from './services/dashboard-barman.service';
 import { CommandeView } from './models/commande-view.model';
 
@@ -20,7 +22,8 @@ import { CommandeView } from './models/commande-view.model';
     IonContent, IonHeader, IonToolbar, IonTitle,
     IonRefresher, IonRefresherContent,
     IonGrid, IonRow, IonCol,
-    CommandeCardComponent
+    CommandeCardComponent,
+    StockAlertBannerComponent,
   ],
   templateUrl: './dashboard-barman.component.html',
   styleUrls: ['./dashboard-barman.component.scss'],
@@ -30,17 +33,25 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
   commandesEnPreparation: CommandeView[] = [];
   commandesPret: CommandeView[] = [];
 
-  stockAlertes: Array<{ message: string; niveau: 'warning' | 'critical' }> = [];
-
   private destroy$ = new Subject<void>();
 
   constructor(
     private dashboardService: DashboardBarmanService,
     private toastCtrl: ToastController,
+    private notificationService: NotificationService,
   ) {}
 
   ngOnInit() {
     this.chargerCommandes();
+
+    // Rechargement automatique du kanban à chaque nouvelle commande WS
+    this.notificationService.onNotification()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(notif => {
+        if (notif.type === 'commande' || notif.type === 'statut') {
+          this.chargerCommandes();
+        }
+      });
   }
 
   ngOnDestroy() {
@@ -100,10 +111,6 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
   onRefresh(event: any) {
     this.chargerCommandes();
     setTimeout(() => event.target.complete(), 500);
-  }
-
-  dismissAlerte(index: number) {
-    this.stockAlertes.splice(index, 1);
   }
 
   trackById(_: number, cmd: CommandeView): number {

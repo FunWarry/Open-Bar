@@ -11,4 +11,6 @@ public interface TableRepository extends JpaRepository<TableEntity, Long> {
     List<TableEntity> findByZone(TableZone zone);
     List<TableEntity> findByOccupee(boolean occupee);
     List<TableEntity> findByServeurId(Long serveurId);
+
+    long countByOccupeeTrue();
 } 
