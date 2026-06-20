@@ -101,8 +101,6 @@ class CocktailServiceTest {
 
     @Test
     void deleteCocktail_existant_supprime() {
-        doNothing().when(cocktailRepository).deleteById(1L);
-
         cocktailService.deleteCocktail(1L);
 
         verify(cocktailRepository, times(1)).deleteById(1L);

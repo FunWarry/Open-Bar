@@ -23,6 +23,9 @@ class IngredientServiceTest {
     @Mock
     IngredientRepository ingredientRepository;
 
+    @Mock
+    NotificationService notificationService;
+
     @InjectMocks
     IngredientService ingredientService;
 
