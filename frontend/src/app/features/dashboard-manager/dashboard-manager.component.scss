@@ -1,0 +1,103 @@
+// Dashboard Manager — tokens Figma
+// surface-1: #1a1a2e  |  surface-2: #21263f
+// primary: #6c7fe8    |  border-medium: #2e3450
+// text-primary: #eceefb  |  text-muted: #7e87a8
+
+.stats-grid {
+  padding: 8px;
+}
+
+// Sections cards
+.section-card {
+  --background: var(--background-surface-2, #21263f);
+  margin: 8px;
+  border-radius: 12px;
+
+  ion-card-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary, #eceefb);
+  }
+}
+
+// TopCocktailRow — Figma 265:160
+// rang | nom | barre de progression (--primary) | compteur
+.top-cocktail-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border-medium, #2e3450);
+
+  &:last-child { border-bottom: none; }
+}
+
+.rank {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-muted, #7e87a8);
+  width: 16px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.cocktail-nom {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary, #eceefb);
+  flex-shrink: 0;
+  min-width: 64px;
+}
+
+.progress-bar-track {
+  flex: 1;
+  background: var(--background-bg-1, #15151f);
+  border-radius: 6px;
+  height: 10px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: var(--primary, #6c7fe8);
+  border-radius: 6px;
+  transition: width 0.4s ease;
+}
+
+.vendus {
+  font-size: 12px;
+  color: var(--text-muted, #7e87a8);
+  flex-shrink: 0;
+}
+
+// Statuts commandes
+.statut-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border-medium, #2e3450);
+
+  &:last-child { border-bottom: none; }
+}
+
+.statut-label {
+  font-size: 14px;
+  color: var(--text-primary, #eceefb);
+}
+
+.total-row {
+  margin-top: 4px;
+  .statut-label { font-weight: 600; }
+}
+
+// États vides
+.loading-state,
+.error-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 48px 24px;
+  font-size: 14px;
+  color: var(--text-muted, #7e87a8);
+}

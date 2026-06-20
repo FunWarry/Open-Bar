@@ -1,0 +1,9 @@
+<ion-card class="stat-card">
+  <ion-card-content>
+    <p class="stat-value" [class]="'stat-value--' + color">{{ value }}</p>
+    <p class="stat-label">{{ label }}</p>
+    <div class="stat-trend" [class]="'stat-trend--' + trend">
+      <span>{{ trendSymbol }}</span>
+    </div>
+  </ion-card-content>
+</ion-card>
