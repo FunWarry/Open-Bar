@@ -8,6 +8,7 @@ import {
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { peopleOutline, restaurantOutline, checkmarkOutline, timeOutline } from 'ionicons/icons';
+import { TableView } from '../../models/table-view.model';
 
 @Component({
   selector: 'app-table-card',
@@ -45,7 +46,7 @@ export class TableCardComponent {
   /** Nombre de commandes actives en cours de préparation */
   get commandesEnCours(): number {
     return (this.table?.commandesActives ?? [])
-      .filter((c: any) => c.statut === 'EN_PREPARATION').length;
+      .filter(c => c.statut === 'EN_PREPARATION').length;
   }
 
   /** Nombre total de commandes actives */
