@@ -1,0 +1,10 @@
+<div class="alerts-container" *ngIf="stockAlerts.length > 0">
+  <div
+    *ngFor="let alert of stockAlerts"
+    class="stock-alert-banner"
+    [class.alert--critical]="isCritical(alert)"
+    [class.alert--warning]="!isCritical(alert)">
+    <span class="alert-message">{{ alert.message }}</span>
+    <button class="alert-dismiss" (click)="dismissAlert(alert.id)" aria-label="Fermer">×</button>
+  </div>
+</div>

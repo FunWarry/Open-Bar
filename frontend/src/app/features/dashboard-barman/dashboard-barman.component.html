@@ -12,16 +12,8 @@
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
-  <!-- Alertes de stock -->
-  <div class="stock-alerts" *ngIf="stockAlertes.length > 0">
-    <div
-      *ngFor="let alerte of stockAlertes; let i = index"
-      class="stock-alert-banner"
-      [ngClass]="alerte.niveau === 'critical' ? 'alert--critical' : 'alert--warning'">
-      <span class="alert-message">{{ alerte.message }}</span>
-      <button class="alert-dismiss" (click)="dismissAlerte(i)" aria-label="Fermer">×</button>
-    </div>
-  </div>
+  <!-- Alertes de stock temps réel (NotificationService + WS /topic/stock/alerte) -->
+  <app-stock-alert-banner></app-stock-alert-banner>
 
   <!-- Kanban -->
   <ion-grid class="kanban-grid">
