@@ -111,6 +111,18 @@ export const routes: Routes = [
     data: { roles: ['MANAGER', 'ADMIN'] }
   },
   {
+    path: 'factures',
+    loadComponent: () => import('./features/factures/facture-list/facture-list.component').then(m => m.FactureListComponent),
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['MANAGER', 'ADMIN', 'SERVEUR'] }
+  },
+  {
+    path: 'factures/:id',
+    loadComponent: () => import('./features/factures/facture-detail/facture-detail.component').then(m => m.FactureDetailComponent),
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['MANAGER', 'ADMIN', 'SERVEUR'] }
+  },
+  {
     path: '**',
     loadComponent: () => import('./features/error-404/error-404.component').then(m => m.Error404Component),
   }

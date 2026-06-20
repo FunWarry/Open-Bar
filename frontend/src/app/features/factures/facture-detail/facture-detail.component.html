@@ -1,0 +1,67 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/factures"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Facture {{ facture?.numero }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div *ngIf="!facture" class="ion-padding ion-text-center">
+    <p>Chargement...</p>
+  </div>
+
+  <ng-container *ngIf="facture">
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>{{ facture.numero }}</ion-card-title>
+        <ion-badge [color]="statutColor(facture.reglee)">
+          {{ statutLabel(facture.reglee) }}
+        </ion-badge>
+      </ion-card-header>
+      <ion-card-content>
+        <p><strong>Table :</strong> {{ facture.tableNumero }}</p>
+        <p><strong>Date :</strong> {{ facture.dateFacture | date:'dd/MM/yyyy HH:mm' }}</p>
+        <p *ngIf="facture.modePaiement"><strong>Mode de paiement :</strong> {{ facture.modePaiement }}</p>
+        <p *ngIf="facture.dateReglement"><strong>Réglée le :</strong> {{ facture.dateReglement | date:'dd/MM/yyyy HH:mm' }}</p>
+        <p *ngIf="facture.notes"><strong>Notes :</strong> {{ facture.notes }}</p>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Articles</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-list lines="full">
+          <ion-item *ngFor="let item of facture.items; trackBy: trackById">
+            <ion-label>
+              <h3>{{ item.description }}</h3>
+              <p>{{ item.quantite }} × {{ item.prixUnitaire | currency:'EUR':'symbol':'1.2-2':'fr' }}</p>
+              <p *ngIf="item.notes" class="notes">{{ item.notes }}</p>
+            </ion-label>
+            <ion-label slot="end" class="item-total">
+              {{ item.total | currency:'EUR':'symbol':'1.2-2':'fr' }}
+            </ion-label>
+          </ion-item>
+        </ion-list>
+
+        <div class="totaux">
+          <div class="total-row">
+            <span>Sous-total</span>
+            <span>{{ facture.total | currency:'EUR':'symbol':'1.2-2':'fr' }}</span>
+          </div>
+          <div class="total-row" *ngIf="facture.pourboire">
+            <span>Pourboire</span>
+            <span>{{ facture.pourboire | currency:'EUR':'symbol':'1.2-2':'fr' }}</span>
+          </div>
+          <div class="total-row total-ttc">
+            <strong>Total TTC</strong>
+            <strong>{{ montantAffiche | currency:'EUR':'symbol':'1.2-2':'fr' }}</strong>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  </ng-container>
+</ion-content>
