@@ -31,10 +31,10 @@ public record CommandeResponseDTO(
             : Collections.emptyList();
         return new CommandeResponseDTO(
             c.getId(),
-            c.getTable().getId(),
-            c.getTable().getNumero(),
-            c.getServeur().getId(),
-            c.getServeur().getUsername(),
+            c.getTable() != null ? c.getTable().getId() : null,
+            c.getTable() != null ? c.getTable().getNumero() : null,
+            c.getServeur() != null ? c.getServeur().getId() : null,
+            c.getServeur() != null ? c.getServeur().getUsername() : null,
             items,
             c.getStatut(),
             c.getNotes(),

@@ -29,8 +29,8 @@ public record FactureResponseDTO(
             : Collections.emptyList();
         return new FactureResponseDTO(
             f.getId(),
-            f.getTable().getId(),
-            f.getTable().getNumero(),
+            f.getTable() != null ? f.getTable().getId() : null,
+            f.getTable() != null ? f.getTable().getNumero() : null,
             f.getNumero(),
             f.getTotal(),
             f.getPourboire(),

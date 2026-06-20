@@ -88,7 +88,9 @@ public class CocktailController {
         return cocktailService.getCocktailById(id)
             .map(cocktail -> {
                 cocktailService.toggleDisponibilite(cocktail);
-                return ResponseEntity.ok(CocktailResponseDTO.from(cocktail));
+                return cocktailService.getCocktailById(id)
+                    .map(updated -> ResponseEntity.ok(CocktailResponseDTO.from(updated)))
+                    .orElseGet(() -> ResponseEntity.notFound().build());
             })
             .orElse(ResponseEntity.notFound().build());
     }
@@ -102,7 +104,9 @@ public class CocktailController {
         return cocktailService.getCocktailById(id)
             .map(cocktail -> {
                 cocktailService.definirSaisonnalite(cocktail, dateDebut, dateFin);
-                return ResponseEntity.ok(CocktailResponseDTO.from(cocktail));
+                return cocktailService.getCocktailById(id)
+                    .map(updated -> ResponseEntity.ok(CocktailResponseDTO.from(updated)))
+                    .orElseGet(() -> ResponseEntity.notFound().build());
             })
             .orElse(ResponseEntity.notFound().build());
     }
