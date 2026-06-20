@@ -99,6 +99,12 @@ export const routes: Routes = [
     data: { roles: ['BARMAN'] }
   },
   {
+    path: 'serveur',
+    loadComponent: () => import('./features/dashboard-serveur/dashboard-serveur.component').then(m => m.DashboardServeurComponent),
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['SERVEUR'] }
+  },
+  {
     path: '**',
     loadComponent: () => import('./features/error-404/error-404.component').then(m => m.Error404Component),
   }
