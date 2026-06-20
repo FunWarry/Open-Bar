@@ -96,7 +96,7 @@ export const routes: Routes = [
     path: 'barman',
     loadComponent: () => import('./features/dashboard-barman/dashboard-barman.component').then(m => m.DashboardBarmanComponent),
     canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['BARMEN'] }
+    data: { roles: ['BARMAN'] }
   },
   {
     path: '**',
