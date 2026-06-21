@@ -8,7 +8,6 @@ import {
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { peopleOutline, restaurantOutline, checkmarkOutline, timeOutline } from 'ionicons/icons';
-import { TableView } from '../../models/table-view.model';
 
 @Component({
   selector: 'app-table-card',
