@@ -85,12 +85,12 @@ class CommandeServiceTest {
 
     @Test
     void changerStatut_pret_setsDateLivraison() {
-        commande.setStatut(CommandeStatut.EN_PREPARATION);
+        commande.setStatut(CommandeStatut.PRET);
         when(commandeRepository.findById(1L)).thenReturn(Optional.of(commande));
 
-        Commande result = commandeService.changerStatut(1L, CommandeStatut.PRET);
+        Commande result = commandeService.changerStatut(1L, CommandeStatut.LIVREE);
 
-        assertThat(result.getStatut()).isEqualTo(CommandeStatut.PRET);
+        assertThat(result.getStatut()).isEqualTo(CommandeStatut.LIVREE);
         assertThat(result.getDateLivraison()).isNotNull();
     }
 
@@ -170,8 +170,9 @@ class CommandeServiceTest {
 
     @Test
     void changerStatut_enPreparation_idempotent_neDestockePasDeuxFois() {
-        // Simule un appel double (retry réseau) — la commande est déjà EN_PREPARATION
+        // Simule un appel double (retry réseau) — la commande est déjà EN_PREPARATION avec datePreparation déjà set
         commande.setStatut(CommandeStatut.EN_PREPARATION);
+        commande.setDatePreparation(LocalDateTime.now().minusMinutes(1));
         when(commandeRepository.findById(1L)).thenReturn(Optional.of(commande));
 
         commandeService.changerStatut(1L, CommandeStatut.EN_PREPARATION);

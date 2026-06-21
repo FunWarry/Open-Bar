@@ -6,7 +6,6 @@ import com.bar.gestioncocktail.model.TableEntity;
 import com.bar.gestioncocktail.repository.FactureRepository;
 import com.bar.gestioncocktail.repository.FactureItemRepository;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,14 +21,13 @@ import java.util.Optional;
 public class FactureService {
     private final FactureRepository factureRepository;
     private final FactureItemRepository factureItemRepository;
-
-    @PersistenceContext
-    private EntityManager entityManager;
+    private final EntityManager entityManager;
 
     @Autowired
-    public FactureService(FactureRepository factureRepository, FactureItemRepository factureItemRepository) {
+    public FactureService(FactureRepository factureRepository, FactureItemRepository factureItemRepository, EntityManager entityManager) {
         this.factureRepository = factureRepository;
         this.factureItemRepository = factureItemRepository;
+        this.entityManager = entityManager;
     }
 
     public List<Facture> getAllFactures() {
