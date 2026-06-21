@@ -4,6 +4,8 @@ import {Observable} from 'rxjs';
 import {selectCurrentUser} from '../../core/store/auth.selectors';
 import {IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent, IonIcon} from '@ionic/angular/standalone';
 import {NgIf, AsyncPipe} from '@angular/common';
+import {addIcons} from 'ionicons';
+import {wineOutline, listOutline, restaurantOutline, calendarOutline} from 'ionicons/icons';
 
 @Component({
   selector: 'app-home',
@@ -17,6 +19,7 @@ export class HomeComponent implements OnInit {
 
   constructor(private store: Store) {
     this.currentUser$ = this.store.select(selectCurrentUser);
+    addIcons({ wineOutline, listOutline, restaurantOutline, calendarOutline });
   }
 
   ngOnInit(): void {
