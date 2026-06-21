@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/api/factures")
@@ -105,7 +106,7 @@ public class FactureController {
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
     public ResponseEntity<byte[]> downloadFacturePdf(@PathVariable Long id) {
         Facture facture = factureService.getFactureById(id)
-            .orElseThrow(() -> new RuntimeException("Facture non trouvée: " + id));
+            .orElseThrow(() -> new NoSuchElementException("Facture non trouvée: " + id));
         byte[] pdf = pdfService.generateFacturePdf(facture);
         return ResponseEntity.ok()
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_PDF_VALUE)

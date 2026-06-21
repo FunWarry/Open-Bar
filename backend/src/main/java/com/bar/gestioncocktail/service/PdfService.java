@@ -26,7 +26,8 @@ public class PdfService {
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             Document doc = new Document(PageSize.A4, 40, 40, 60, 40);
             try {
-            PdfWriter.getInstance(doc, out);
+            PdfWriter writer = PdfWriter.getInstance(doc, out);
+            writer.setPdfVersion(PdfWriter.PDF_VERSION_1_7);
             doc.open();
 
             Font titleFont  = new Font(Font.HELVETICA, 20, Font.BOLD,   PRIMARY);
