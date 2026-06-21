@@ -19,11 +19,14 @@
       <ion-list>
         <ion-item *ngFor="let cocktail of items; trackBy: trackById">
           <ion-label>
-            <h3>{{ cocktail.name }}</h3>
-            <p>{{ cocktail.category }}</p>
+            <h3>{{ cocktail.nom }}</h3>
+            <p>{{ cocktail.categorie }}</p>
           </ion-label>
+          <ion-badge slot="end" color="warning" *ngIf="isHorsSaison(cocktail)">
+            Hors saison
+          </ion-badge>
           <ion-badge slot="end" color="primary">
-            {{ cocktail.price | currency:'EUR' }}
+            {{ cocktail.prix | currency:'EUR' }}
           </ion-badge>
           <ion-buttons slot="end">
             <ion-button fill="clear" color="tertiary" (click)="onEdit(cocktail)">

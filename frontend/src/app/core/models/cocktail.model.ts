@@ -35,6 +35,12 @@ type CocktailBase = {
   prix: number;
   categorie: CocktailCategorie;
   disponible: boolean;
+  /** Mois de début de saison (1-12), null = toute l'année */
+  moisDebut?: number | null;
+  /** Mois de fin de saison (1-12), null = toute l'année */
+  moisFin?: number | null;
+  /** Calculé côté backend : le cocktail est-il disponible ce mois-ci ? */
+  disponibleAujourdhui?: boolean;
   ingredients: CocktailIngredientItem[];
   variantes: CocktailVariante[];
   instructions?: string;
