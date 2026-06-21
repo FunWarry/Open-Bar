@@ -10,9 +10,10 @@ import {
   IonList, IonItem, IonLabel, IonBadge, IonButton, IonIcon
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { peopleOutline } from 'ionicons/icons';
+import { downloadOutline, peopleOutline } from 'ionicons/icons';
 import { FactureService } from '../services/facture.service';
 import { Facture, FactureItem } from '../models/facture.model';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-facture-detail',
@@ -35,7 +36,7 @@ export class FactureDetailComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private factureService: FactureService
   ) {
-    addIcons({ peopleOutline });
+    addIcons({ downloadOutline, peopleOutline });
   }
 
   ngOnInit() {
@@ -64,5 +65,11 @@ export class FactureDetailComponent implements OnInit, OnDestroy {
 
   trackById(_: number, item: FactureItem) {
     return item.id;
+  }
+
+  telechargerPdf() {
+    if (this.facture) {
+      window.open(`${environment.apiUrl}/factures/${this.facture.id}/pdf`, '_blank');
+    }
   }
 }

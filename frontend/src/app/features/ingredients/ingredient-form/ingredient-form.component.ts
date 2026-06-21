@@ -3,7 +3,7 @@ import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/
 import {ActivatedRoute, Router} from '@angular/router';
 import {Store} from '@ngrx/store';
 import {ToastController} from '@ionic/angular/standalone';
-import {IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonLabel, IonInput, IonButton, IonNote} from '@ionic/angular/standalone';
+import {IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonLabel, IonInput, IonButton, IonNote, IonSelect, IonSelectOption} from '@ionic/angular/standalone';
 import {NgIf} from '@angular/common';
 
 @Component({
@@ -11,7 +11,7 @@ import {NgIf} from '@angular/common';
   templateUrl: './ingredient-form.component.html',
   styleUrls: ['./ingredient-form.component.css'],
   standalone: true,
-  imports: [IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonLabel, IonInput, IonButton, IonNote, ReactiveFormsModule, NgIf]
+  imports: [IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonLabel, IonInput, IonButton, IonNote, IonSelect, IonSelectOption, ReactiveFormsModule, NgIf]
 })
 export class IngredientFormComponent implements OnInit {
   ingredientForm: FormGroup;
