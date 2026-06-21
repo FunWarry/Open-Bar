@@ -75,4 +75,14 @@ public class CocktailService {
         cocktail.setUpdatedAt(LocalDateTime.now());
         cocktailRepository.save(cocktail);
     }
+
+    @Transactional
+    public Cocktail updateSaisonnalite(Long id, Integer moisDebut, Integer moisFin) {
+        Cocktail cocktail = cocktailRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Cocktail non trouvé: " + id));
+        cocktail.setMoisDebut(moisDebut);
+        cocktail.setMoisFin(moisFin);
+        cocktail.setSaisonnier(moisDebut != null && moisFin != null);
+        return cocktailRepository.save(cocktail);
+    }
 } 

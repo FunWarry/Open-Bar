@@ -5,46 +5,63 @@
   <ion-card-content>
     <form (ngSubmit)="onSubmit()" [formGroup]="cocktailForm">
       <ion-item>
-        <ion-label position="stacked">Nom</ion-label>
-        <ion-input formControlName="name" required></ion-input>
+        <ion-label position="stacked">Nom *</ion-label>
+        <ion-input formControlName="name" placeholder="Nom du cocktail"></ion-input>
+        <ion-note slot="error" *ngIf="cocktailForm.get('name')?.touched && cocktailForm.get('name')?.hasError('required')">
+          Le nom est requis
+        </ion-note>
       </ion-item>
-      <ion-note color="danger" *ngIf="cocktailForm.get('name')?.hasError('required') && cocktailForm.get('name')?.touched">
-        Le nom est requis
-      </ion-note>
 
       <ion-item>
-        <ion-label position="stacked">Description</ion-label>
-        <ion-input formControlName="description" required></ion-input>
+        <ion-label position="stacked">Description *</ion-label>
+        <ion-input formControlName="description" placeholder="Description"></ion-input>
+        <ion-note slot="error" *ngIf="cocktailForm.get('description')?.touched && cocktailForm.get('description')?.hasError('required')">
+          La description est requise
+        </ion-note>
       </ion-item>
-      <ion-note color="danger" *ngIf="cocktailForm.get('description')?.hasError('required') && cocktailForm.get('description')?.touched">
-        La description est requise
-      </ion-note>
 
       <ion-item>
-        <ion-label position="stacked">Prix</ion-label>
-        <ion-input formControlName="price" required type="number"></ion-input>
+        <ion-label position="stacked">Prix (€) *</ion-label>
+        <ion-input formControlName="price" type="number" placeholder="0.00"></ion-input>
+        <ion-note slot="error" *ngIf="cocktailForm.get('price')?.touched && cocktailForm.get('price')?.hasError('required')">
+          Le prix est requis
+        </ion-note>
+        <ion-note slot="error" *ngIf="cocktailForm.get('price')?.touched && cocktailForm.get('price')?.hasError('min')">
+          Le prix doit être positif
+        </ion-note>
       </ion-item>
-      <ion-note color="danger" *ngIf="cocktailForm.get('price')?.hasError('required') && cocktailForm.get('price')?.touched">
-        Le prix est requis
-      </ion-note>
-      <ion-note color="danger" *ngIf="cocktailForm.get('price')?.hasError('min') && cocktailForm.get('price')?.touched">
-        Le prix doit être positif
-      </ion-note>
 
       <ion-item>
-        <ion-label position="stacked">Catégorie</ion-label>
-        <ion-select formControlName="category" required>
-          <ion-select-option value="cocktail">Cocktail</ion-select-option>
-          <ion-select-option value="mocktail">Mocktail</ion-select-option>
-          <ion-select-option value="shot">Shot</ion-select-option>
+        <ion-label position="stacked">Catégorie *</ion-label>
+        <ion-select formControlName="category" placeholder="Sélectionner">
+          <ion-select-option value="ALCOOLISE">Alcoolisé</ion-select-option>
+          <ion-select-option value="SANS_ALCOOL">Sans alcool</ion-select-option>
+          <ion-select-option value="SHOT">Shot</ion-select-option>
+          <ion-select-option value="APERITIF">Apéritif</ion-select-option>
+          <ion-select-option value="DIGESTIF">Digestif</ion-select-option>
+          <ion-select-option value="SPECIAL">Spécial</ion-select-option>
         </ion-select>
+        <ion-note slot="error" *ngIf="cocktailForm.get('category')?.touched && cocktailForm.get('category')?.hasError('required')">
+          La catégorie est requise
+        </ion-note>
       </ion-item>
-      <ion-note color="danger" *ngIf="cocktailForm.get('category')?.hasError('required') && cocktailForm.get('category')?.touched">
-        La catégorie est requise
-      </ion-note>
+
+      <!-- Section saisonnalité — visible uniquement en mode édition -->
+      @if (isEditMode && cocktailData) {
+        <div class="section-saisonnalite">
+          <ion-item lines="none" class="section-header">
+            <ion-icon name="calendar-outline" slot="start"></ion-icon>
+            <ion-label><strong>Saisonnalité</strong></ion-label>
+          </ion-item>
+          <app-cocktail-saisonnalite
+            [cocktail]="cocktailData"
+            (updated)="onSaisonnaliteUpdated($event)">
+          </app-cocktail-saisonnalite>
+        </div>
+      }
 
       <div class="button-row">
-        <ion-button fill="clear" type="button" (click)="router.navigate(['/cocktails'])" (keydown.enter)="router.navigate(['/cocktails'])">Annuler</ion-button>
+        <ion-button fill="outline" (click)="router.navigate(['/cocktails'])" (keydown.enter)="router.navigate(['/cocktails'])" type="button">Annuler</ion-button>
         <ion-button [disabled]="!cocktailForm.valid" color="primary" type="submit">
           {{ isEditMode ? 'Modifier' : 'Créer' }}
         </ion-button>

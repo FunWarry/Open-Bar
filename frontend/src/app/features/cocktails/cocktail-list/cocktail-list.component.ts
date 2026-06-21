@@ -7,8 +7,9 @@ import {
   IonList, IonItem, IonLabel, IonBadge, IonIcon, IonButton, IonButtons
 } from '@ionic/angular/standalone';
 import {addIcons} from 'ionicons';
-import {add, create, trash, chevronForward} from 'ionicons/icons';
+import {add, create, trash, chevronForward, leafOutline} from 'ionicons/icons';
 import {NgIf, NgFor, AsyncPipe, CurrencyPipe} from '@angular/common';
+import {Cocktail} from '../../../core/models/cocktail.model';
 
 @Component({
   selector: 'app-cocktail-list',
@@ -27,7 +28,12 @@ export class CocktailListComponent implements OnInit {
 
   constructor(private store: Store) {
     this.isAdmin$ = this.store.select(selectIsAdmin);
-    addIcons({add, create, trash, chevronForward});
+    addIcons({add, create, trash, chevronForward, leafOutline});
+  }
+
+  /** Retourne true si le cocktail a une saisonnalité définie et n'est pas disponible ce mois-ci */
+  isHorsSaison(cocktail: Cocktail): boolean {
+    return !!(cocktail.moisDebut && cocktail.moisFin && cocktail.disponibleAujourdhui === false);
   }
 
   ngOnInit(): void {

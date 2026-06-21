@@ -1,6 +1,7 @@
 package com.bar.gestioncocktail.controller;
 
 import com.bar.gestioncocktail.dto.CocktailResponseDTO;
+import com.bar.gestioncocktail.dto.SaisonnaliteRequest;
 import com.bar.gestioncocktail.model.Cocktail;
 import com.bar.gestioncocktail.model.CocktailCategorie;
 import com.bar.gestioncocktail.service.CocktailService;
@@ -109,5 +110,14 @@ public class CocktailController {
                     .orElseGet(() -> ResponseEntity.notFound().build());
             })
             .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PatchMapping("/{id}/saisonnalite")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('BARMAN')")
+    public ResponseEntity<CocktailResponseDTO> updateSaisonnalite(
+        @PathVariable Long id,
+        @RequestBody SaisonnaliteRequest request) {
+        return ResponseEntity.ok(CocktailResponseDTO.from(
+            cocktailService.updateSaisonnalite(id, request.moisDebut(), request.moisFin())));
     }
 }

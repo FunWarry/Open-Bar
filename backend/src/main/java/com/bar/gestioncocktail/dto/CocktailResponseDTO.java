@@ -17,6 +17,9 @@ public record CocktailResponseDTO(
     boolean saisonnier,
     LocalDateTime dateDebutSaison,
     LocalDateTime dateFinSaison,
+    Integer moisDebut,
+    Integer moisFin,
+    boolean disponibleAujourdhui,
     String instructions,
     String imageUrl,
     List<CocktailIngredientResponseDTO> ingredients,
@@ -34,6 +37,7 @@ public record CocktailResponseDTO(
         return new CocktailResponseDTO(
             c.getId(), c.getNom(), c.getDescription(), c.getPrix(), c.getCategorie(),
             c.isDisponible(), c.isSaisonnier(), c.getDateDebutSaison(), c.getDateFinSaison(),
+            c.getMoisDebut(), c.getMoisFin(), c.isDisponibleAujourdhui(),
             c.getInstructions(), c.getImageUrl(), ings, vars, c.getCreatedAt(), c.getUpdatedAt()
         );
     }

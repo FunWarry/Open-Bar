@@ -42,6 +42,21 @@ public class Cocktail {
     private LocalDateTime dateDebutSaison;
     private LocalDateTime dateFinSaison;
 
+    // Saisonnalité par mois (1-12), null = toute l'année
+    private Integer moisDebut;
+    private Integer moisFin;
+
+    @Transient
+    public boolean isDisponibleAujourdhui() {
+        if (moisDebut == null || moisFin == null) return true;
+        int moisActuel = java.time.LocalDate.now().getMonthValue();
+        if (moisDebut <= moisFin) {
+            return moisActuel >= moisDebut && moisActuel <= moisFin;
+        }
+        // Chevauchement d'année (ex: Oct → Fév)
+        return moisActuel >= moisDebut || moisActuel <= moisFin;
+    }
+
     @OneToMany(mappedBy = "cocktail", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<CocktailIngredient> ingredients;
 

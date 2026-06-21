@@ -40,4 +40,8 @@ export class CocktailService {
   getDisponibles(): Observable<Cocktail[]> {
     return this.http.get<Cocktail[]>(`${this.api}/disponibles`);
   }
+
+  updateSaisonnalite(id: number, moisDebut: number | null, moisFin: number | null): Observable<Cocktail> {
+    return this.http.patch<Cocktail>(`${this.api}/${id}/saisonnalite`, { moisDebut, moisFin });
+  }
 }
