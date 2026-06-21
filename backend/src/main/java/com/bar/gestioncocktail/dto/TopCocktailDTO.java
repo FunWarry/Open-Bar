@@ -1,4 +1,4 @@
-﻿package com.bar.gestioncocktail.dto;
+package com.bar.gestioncocktail.dto;
 
 public record TopCocktailDTO(
     Long cocktailId,
