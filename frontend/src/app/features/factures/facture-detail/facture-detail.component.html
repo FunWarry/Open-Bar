@@ -63,5 +63,14 @@
         </div>
       </ion-card-content>
     </ion-card>
+  <ion-button
+    *ngIf="facture && facture.items && facture.items.length > 0"
+    [routerLink]="['/factures', facture.id, 'split']"
+    fill="outline"
+    expand="block"
+    class="split-btn">
+    <ion-icon slot="start" name="people-outline"></ion-icon>
+    Diviser l'addition
+  </ion-button>
   </ng-container>
 </ion-content>

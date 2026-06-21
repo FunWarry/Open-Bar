@@ -117,6 +117,12 @@ export const routes: Routes = [
     data: { roles: ['MANAGER', 'ADMIN', 'SERVEUR'] }
   },
   {
+    path: 'factures/:id/split',
+    loadComponent: () => import('./features/factures/facture-split/facture-split.component').then(m => m.FactureSplitComponent),
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['MANAGER', 'ADMIN', 'SERVEUR'] }
+  },
+  {
     path: 'factures/:id',
     loadComponent: () => import('./features/factures/facture-detail/facture-detail.component').then(m => m.FactureDetailComponent),
     canActivate: [AuthGuard, RoleGuard],
