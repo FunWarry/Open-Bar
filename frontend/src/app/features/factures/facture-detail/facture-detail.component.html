@@ -64,7 +64,7 @@
       </ion-card-content>
     </ion-card>
     <div class="ion-padding-horizontal ion-padding-bottom">
-      <ion-button (click)="telechargerPdf()" fill="outline" expand="block">
+      <ion-button (click)="telechargerPdf()" (keydown.enter)="telechargerPdf()" fill="outline" expand="block">
         <ion-icon slot="start" name="download-outline"></ion-icon>
         Télécharger PDF
       </ion-button>
