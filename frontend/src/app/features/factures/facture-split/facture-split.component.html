@@ -1,0 +1,73 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button [defaultHref]="'/factures/' + factureId"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Division d'addition</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <!-- Sélection du mode -->
+  <ion-segment [(ngModel)]="mode" (ionChange)="onModeChange()">
+    <ion-segment-button value="egal">
+      <ion-icon name="people-outline"></ion-icon>
+      <ion-label>Part égale</ion-label>
+    </ion-segment-button>
+    <ion-segment-button value="selection" disabled>
+      <ion-icon name="list-outline"></ion-icon>
+      <ion-label>Par article</ion-label>
+    </ion-segment-button>
+  </ion-segment>
+
+  <!-- Mode: part égale -->
+  <ng-container *ngIf="mode === 'egal'">
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Nombre de convives</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <div class="convives-selector">
+          <ion-button fill="clear" (click)="ajusterConvives(-1)" [disabled]="nombreConvives <= 2">
+            <ion-icon name="remove-outline"></ion-icon>
+          </ion-button>
+          <span class="nombre">{{ nombreConvives }}</span>
+          <ion-button fill="clear" (click)="ajusterConvives(1)" [disabled]="nombreConvives >= 20">
+            <ion-icon name="add-outline"></ion-icon>
+          </ion-button>
+        </div>
+
+        <p class="hint">Divise le total de la facture en {{ nombreConvives }} parts égales.</p>
+
+        <ion-button expand="block" (click)="calculerSplitEgal()" [disabled]="loading">
+          <ion-spinner *ngIf="loading" name="crescent" slot="start"></ion-spinner>
+          <ion-icon *ngIf="!loading" name="calculator-outline" slot="start"></ion-icon>
+          Calculer
+        </ion-button>
+
+        <p *ngIf="errorMessage" class="error-message">{{ errorMessage }}</p>
+      </ion-card-content>
+    </ion-card>
+  </ng-container>
+
+  <!-- Résultats -->
+  <div class="results" *ngIf="results.length > 0">
+    <h2 class="results-title">Résultat de la division</h2>
+    <ion-list>
+      <ion-item *ngFor="let part of results; let i = index" lines="full">
+        <ion-label>
+          <h3>{{ part.nomConvive }}</h3>
+          <p *ngIf="part.items.length > 0">{{ part.items.length }} article(s)</p>
+        </ion-label>
+        <ion-badge slot="end" color="primary" class="montant-badge">
+          {{ part.sousTotal | currency:'EUR':'symbol':'1.2-2':'fr' }}
+        </ion-badge>
+      </ion-item>
+    </ion-list>
+    <div class="total-check ion-padding-top">
+      <ion-note>Total réparti : {{ totalSplit | currency:'EUR':'symbol':'1.2-2':'fr' }}</ion-note>
+    </div>
+  </div>
+
+</ion-content>
