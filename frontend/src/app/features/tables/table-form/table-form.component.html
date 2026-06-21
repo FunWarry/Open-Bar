@@ -1,48 +1,48 @@
 <div class="table-form-container">
-  <mat-card>
-    <mat-card-header>
-      <mat-card-title>{{ isEditMode ? 'Modifier la Table' : 'Nouvelle Table' }}</mat-card-title>
-    </mat-card-header>
-    <mat-card-content>
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>{{ isEditMode ? 'Modifier la Table' : 'Nouvelle Table' }}</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
       <form [formGroup]="tableForm" (ngSubmit)="onSubmit()">
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Numéro de Table</mat-label>
-          <input matInput formControlName="number" type="number" required>
-          <mat-error *ngIf="tableForm.get('number')?.hasError('required')">
-            Le numéro de table est requis
-          </mat-error>
-        </mat-form-field>
+        <ion-item>
+          <ion-label position="stacked">Numéro de Table</ion-label>
+          <ion-input formControlName="number" type="number" required></ion-input>
+        </ion-item>
+        <ion-note color="danger" *ngIf="tableForm.get('number')?.hasError('required') && tableForm.get('number')?.touched">
+          Le numéro de table est requis
+        </ion-note>
 
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Zone</mat-label>
-          <mat-select formControlName="zone" required>
-            <mat-option value="TERRASSE">Terrasse</mat-option>
-            <mat-option value="SALLE">Salle</mat-option>
-            <mat-option value="BAR">Bar</mat-option>
-          </mat-select>
-          <mat-error *ngIf="tableForm.get('zone')?.hasError('required')">
-            La zone est requise
-          </mat-error>
-        </mat-form-field>
+        <ion-item>
+          <ion-label position="stacked">Zone</ion-label>
+          <ion-select formControlName="zone" required>
+            <ion-select-option value="TERRASSE">Terrasse</ion-select-option>
+            <ion-select-option value="SALLE">Salle</ion-select-option>
+            <ion-select-option value="BAR">Bar</ion-select-option>
+          </ion-select>
+        </ion-item>
+        <ion-note color="danger" *ngIf="tableForm.get('zone')?.hasError('required') && tableForm.get('zone')?.touched">
+          La zone est requise
+        </ion-note>
 
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Capacité</mat-label>
-          <input matInput formControlName="capacity" type="number" required>
-          <mat-error *ngIf="tableForm.get('capacity')?.hasError('required')">
-            La capacité est requise
-          </mat-error>
-          <mat-error *ngIf="tableForm.get('capacity')?.hasError('min')">
-            La capacité doit être d'au moins 1 personne
-          </mat-error>
-        </mat-form-field>
+        <ion-item>
+          <ion-label position="stacked">Capacité</ion-label>
+          <ion-input formControlName="capacity" type="number" required></ion-input>
+        </ion-item>
+        <ion-note color="danger" *ngIf="tableForm.get('capacity')?.hasError('required') && tableForm.get('capacity')?.touched">
+          La capacité est requise
+        </ion-note>
+        <ion-note color="danger" *ngIf="tableForm.get('capacity')?.hasError('min') && tableForm.get('capacity')?.touched">
+          La capacité doit être d'au moins 1 personne
+        </ion-note>
 
         <div class="form-actions">
-          <button mat-button type="button" (click)="onCancel()">Annuler</button>
-          <button mat-raised-button color="primary" type="submit" [disabled]="tableForm.invalid">
+          <ion-button fill="clear" type="button" (click)="onCancel()">Annuler</ion-button>
+          <ion-button color="primary" type="submit" [disabled]="tableForm.invalid">
             {{ isEditMode ? 'Modifier' : 'Créer' }}
-          </button>
+          </ion-button>
         </div>
       </form>
-    </mat-card-content>
-  </mat-card>
+    </ion-card-content>
+  </ion-card>
 </div>
