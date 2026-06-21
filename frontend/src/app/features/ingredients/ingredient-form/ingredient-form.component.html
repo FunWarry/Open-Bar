@@ -1,64 +1,64 @@
 <div class="ingredient-form-container">
-  <mat-card>
-    <mat-card-header>
-      <mat-card-title>{{ isEditMode ? 'Modifier l\'Ingrédient' : 'Nouvel Ingrédient' }}</mat-card-title>
-    </mat-card-header>
-    <mat-card-content>
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>{{ isEditMode ? 'Modifier l\'Ingrédient' : 'Nouvel Ingrédient' }}</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
       <form [formGroup]="ingredientForm" (ngSubmit)="onSubmit()">
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Nom</mat-label>
-          <input matInput formControlName="name" required>
-          <mat-error *ngIf="ingredientForm.get('name')?.hasError('required')">
-            Le nom est requis
-          </mat-error>
-        </mat-form-field>
+        <ion-item>
+          <ion-label position="stacked">Nom</ion-label>
+          <ion-input formControlName="name" required></ion-input>
+        </ion-item>
+        <ion-note color="danger" *ngIf="ingredientForm.get('name')?.hasError('required') && ingredientForm.get('name')?.touched">
+          Le nom est requis
+        </ion-note>
 
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Catégorie</mat-label>
-          <mat-select formControlName="category" required>
-            <mat-option value="ALCOOL">Alcool</mat-option>
-            <mat-option value="SODA">Soda</mat-option>
-            <mat-option value="JUS">Jus</mat-option>
-            <mat-option value="FRUIT">Fruit</mat-option>
-            <mat-option value="AUTRE">Autre</mat-option>
-          </mat-select>
-          <mat-error *ngIf="ingredientForm.get('category')?.hasError('required')">
-            La catégorie est requise
-          </mat-error>
-        </mat-form-field>
+        <ion-item>
+          <ion-label position="stacked">Catégorie</ion-label>
+          <ion-select formControlName="category" required>
+            <ion-select-option value="ALCOOL">Alcool</ion-select-option>
+            <ion-select-option value="SODA">Soda</ion-select-option>
+            <ion-select-option value="JUS">Jus</ion-select-option>
+            <ion-select-option value="FRUIT">Fruit</ion-select-option>
+            <ion-select-option value="AUTRE">Autre</ion-select-option>
+          </ion-select>
+        </ion-item>
+        <ion-note color="danger" *ngIf="ingredientForm.get('category')?.hasError('required') && ingredientForm.get('category')?.touched">
+          La catégorie est requise
+        </ion-note>
 
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Stock</mat-label>
-          <input matInput formControlName="stock" type="number" required>
-          <mat-error *ngIf="ingredientForm.get('stock')?.hasError('required')">
-            Le stock est requis
-          </mat-error>
-          <mat-error *ngIf="ingredientForm.get('stock')?.hasError('min')">
-            Le stock ne peut pas être négatif
-          </mat-error>
-        </mat-form-field>
+        <ion-item>
+          <ion-label position="stacked">Stock</ion-label>
+          <ion-input formControlName="stock" type="number" required></ion-input>
+        </ion-item>
+        <ion-note color="danger" *ngIf="ingredientForm.get('stock')?.hasError('required') && ingredientForm.get('stock')?.touched">
+          Le stock est requis
+        </ion-note>
+        <ion-note color="danger" *ngIf="ingredientForm.get('stock')?.hasError('min') && ingredientForm.get('stock')?.touched">
+          Le stock ne peut pas être négatif
+        </ion-note>
 
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Unité</mat-label>
-          <mat-select formControlName="unit" required>
-            <mat-option value="CL">Centilitres (cl)</mat-option>
-            <mat-option value="ML">Millilitres (ml)</mat-option>
-            <mat-option value="G">Grammes (g)</mat-option>
-            <mat-option value="KG">Kilogrammes (kg)</mat-option>
-            <mat-option value="UNITE">Unité</mat-option>
-          </mat-select>
-          <mat-error *ngIf="ingredientForm.get('unit')?.hasError('required')">
-            L'unité est requise
-          </mat-error>
-        </mat-form-field>
+        <ion-item>
+          <ion-label position="stacked">Unité</ion-label>
+          <ion-select formControlName="unit" required>
+            <ion-select-option value="CL">Centilitres (cl)</ion-select-option>
+            <ion-select-option value="ML">Millilitres (ml)</ion-select-option>
+            <ion-select-option value="G">Grammes (g)</ion-select-option>
+            <ion-select-option value="KG">Kilogrammes (kg)</ion-select-option>
+            <ion-select-option value="UNITE">Unité</ion-select-option>
+          </ion-select>
+        </ion-item>
+        <ion-note color="danger" *ngIf="ingredientForm.get('unit')?.hasError('required') && ingredientForm.get('unit')?.touched">
+          L'unité est requise
+        </ion-note>
 
         <div class="form-actions">
-          <button mat-button type="button" (click)="onCancel()">Annuler</button>
-          <button mat-raised-button color="primary" type="submit" [disabled]="ingredientForm.invalid">
+          <ion-button fill="clear" type="button" (click)="onCancel()" (keydown.enter)="onCancel()">Annuler</ion-button>
+          <ion-button color="primary" type="submit" [disabled]="ingredientForm.invalid">
             {{ isEditMode ? 'Modifier' : 'Créer' }}
-          </button>
+          </ion-button>
         </div>
       </form>
-    </mat-card-content>
-  </mat-card>
+    </ion-card-content>
+  </ion-card>
 </div>

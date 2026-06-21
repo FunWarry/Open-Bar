@@ -1,54 +1,54 @@
-<mat-card>
-  <mat-card-header>
-    <mat-card-title>{{ isEditMode ? 'Modifier le Cocktail' : 'Nouveau Cocktail' }}</mat-card-title>
-  </mat-card-header>
-  <mat-card-content>
+<ion-card>
+  <ion-card-header>
+    <ion-card-title>{{ isEditMode ? 'Modifier le Cocktail' : 'Nouveau Cocktail' }}</ion-card-title>
+  </ion-card-header>
+  <ion-card-content>
     <form (ngSubmit)="onSubmit()" [formGroup]="cocktailForm">
-      <mat-form-field appearance="fill" class="full-width">
-        <mat-label>Nom</mat-label>
-        <input formControlName="name" matInput required>
-        <mat-error *ngIf="cocktailForm.get('name')?.hasError('required')">
-          Le nom est requis
-        </mat-error>
-      </mat-form-field>
+      <ion-item>
+        <ion-label position="stacked">Nom</ion-label>
+        <ion-input formControlName="name" required></ion-input>
+      </ion-item>
+      <ion-note color="danger" *ngIf="cocktailForm.get('name')?.hasError('required') && cocktailForm.get('name')?.touched">
+        Le nom est requis
+      </ion-note>
 
-      <mat-form-field appearance="fill" class="full-width">
-        <mat-label>Description</mat-label>
-        <textarea formControlName="description" matInput required></textarea>
-        <mat-error *ngIf="cocktailForm.get('description')?.hasError('required')">
-          La description est requise
-        </mat-error>
-      </mat-form-field>
+      <ion-item>
+        <ion-label position="stacked">Description</ion-label>
+        <ion-input formControlName="description" required></ion-input>
+      </ion-item>
+      <ion-note color="danger" *ngIf="cocktailForm.get('description')?.hasError('required') && cocktailForm.get('description')?.touched">
+        La description est requise
+      </ion-note>
 
-      <mat-form-field appearance="fill" class="full-width">
-        <mat-label>Prix</mat-label>
-        <input formControlName="price" matInput required type="number">
-        <mat-error *ngIf="cocktailForm.get('price')?.hasError('required')">
-          Le prix est requis
-        </mat-error>
-        <mat-error *ngIf="cocktailForm.get('price')?.hasError('min')">
-          Le prix doit être positif
-        </mat-error>
-      </mat-form-field>
+      <ion-item>
+        <ion-label position="stacked">Prix</ion-label>
+        <ion-input formControlName="price" required type="number"></ion-input>
+      </ion-item>
+      <ion-note color="danger" *ngIf="cocktailForm.get('price')?.hasError('required') && cocktailForm.get('price')?.touched">
+        Le prix est requis
+      </ion-note>
+      <ion-note color="danger" *ngIf="cocktailForm.get('price')?.hasError('min') && cocktailForm.get('price')?.touched">
+        Le prix doit être positif
+      </ion-note>
 
-      <mat-form-field appearance="fill" class="full-width">
-        <mat-label>Catégorie</mat-label>
-        <mat-select formControlName="category" required>
-          <mat-option value="cocktail">Cocktail</mat-option>
-          <mat-option value="mocktail">Mocktail</mat-option>
-          <mat-option value="shot">Shot</mat-option>
-        </mat-select>
-        <mat-error *ngIf="cocktailForm.get('category')?.hasError('required')">
-          La catégorie est requise
-        </mat-error>
-      </mat-form-field>
+      <ion-item>
+        <ion-label position="stacked">Catégorie</ion-label>
+        <ion-select formControlName="category" required>
+          <ion-select-option value="cocktail">Cocktail</ion-select-option>
+          <ion-select-option value="mocktail">Mocktail</ion-select-option>
+          <ion-select-option value="shot">Shot</ion-select-option>
+        </ion-select>
+      </ion-item>
+      <ion-note color="danger" *ngIf="cocktailForm.get('category')?.hasError('required') && cocktailForm.get('category')?.touched">
+        La catégorie est requise
+      </ion-note>
 
       <div class="button-row">
-        <button (click)="router.navigate(['/cocktails'])" mat-button type="button">Annuler</button>
-        <button [disabled]="!cocktailForm.valid" color="primary" mat-raised-button type="submit">
+        <ion-button fill="clear" type="button" (click)="router.navigate(['/cocktails'])" (keydown.enter)="router.navigate(['/cocktails'])">Annuler</ion-button>
+        <ion-button [disabled]="!cocktailForm.valid" color="primary" type="submit">
           {{ isEditMode ? 'Modifier' : 'Créer' }}
-        </button>
+        </ion-button>
       </div>
     </form>
-  </mat-card-content>
-</mat-card>
+  </ion-card-content>
+</ion-card>
