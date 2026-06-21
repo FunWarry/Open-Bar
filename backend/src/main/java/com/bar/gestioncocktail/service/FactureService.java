@@ -1,5 +1,8 @@
 package com.bar.gestioncocktail.service;
 
+import com.bar.gestioncocktail.dto.SplitAdditionRequest;
+import com.bar.gestioncocktail.dto.SplitEgalRequest;
+import com.bar.gestioncocktail.dto.SplitResultDTO;
 import com.bar.gestioncocktail.model.Facture;
 import com.bar.gestioncocktail.model.FactureItem;
 import com.bar.gestioncocktail.model.TableEntity;
@@ -11,10 +14,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -131,5 +138,79 @@ public class FactureService {
         facture.setTotalTTC(facture.getTotal().add(pourboire));
         facture.setUpdatedAt(LocalDateTime.now());
         factureRepository.save(facture);
+    }
+
+    /**
+     * Split égal : divise le total TTC (ou total si pas de pourboire) en N parts égales.
+     * Ne crée pas de sous-factures — retourne uniquement le calcul.
+     */
+    public List<SplitResultDTO> splitEgal(Long factureId, int nombreConvives) {
+        if (nombreConvives < 2 || nombreConvives > 20) {
+            throw new IllegalArgumentException("Le nombre de convives doit être compris entre 2 et 20");
+        }
+        Facture facture = factureRepository.findById(factureId)
+                .orElseThrow(() -> new RuntimeException("Facture non trouvée: " + factureId));
+
+        BigDecimal base = facture.getTotalTTC() != null ? facture.getTotalTTC()
+                : (facture.getTotal() != null ? facture.getTotal() : BigDecimal.ZERO);
+        BigDecimal partParPersonne = base.divide(BigDecimal.valueOf(nombreConvives), 2, RoundingMode.HALF_UP);
+
+        List<SplitResultDTO> result = new ArrayList<>();
+        for (int i = 1; i <= nombreConvives; i++) {
+            result.add(new SplitResultDTO(
+                    factureId,
+                    "Convive " + i,
+                    List.of(),
+                    partParPersonne,
+                    partParPersonne
+            ));
+        }
+        return result;
+    }
+
+    /**
+     * Split par sélection d'articles : chaque convive indique les itemIds qu'il prend en charge.
+     * Vérifie que chaque itemId appartient bien à la facture.
+     */
+    public List<SplitResultDTO> splitParSelection(Long factureId, SplitAdditionRequest request) {
+        Facture facture = factureRepository.findById(factureId)
+                .orElseThrow(() -> new RuntimeException("Facture non trouvée: " + factureId));
+
+        // Index des items de la facture par id pour lookup O(1)
+        java.util.Map<Long, FactureItem> itemsIndex = facture.getItems().stream()
+                .collect(Collectors.toMap(FactureItem::getId, item -> item));
+
+        List<SplitResultDTO> result = new ArrayList<>();
+
+        for (com.bar.gestioncocktail.dto.SplitPartRequest part : request.parts()) {
+            List<SplitResultDTO.SplitItemDTO> splitItems = new ArrayList<>();
+            BigDecimal sousTotal = BigDecimal.ZERO;
+
+            for (Long itemId : part.itemIds()) {
+                FactureItem item = itemsIndex.get(itemId);
+                if (item == null) {
+                    throw new IllegalArgumentException(
+                            "L'item " + itemId + " n'appartient pas à la facture " + factureId);
+                }
+                splitItems.add(new SplitResultDTO.SplitItemDTO(
+                        item.getId(),
+                        item.getDescription(),
+                        item.getQuantite(),
+                        item.getPrixUnitaire(),
+                        item.getTotal()
+                ));
+                sousTotal = sousTotal.add(item.getTotal());
+            }
+
+            result.add(new SplitResultDTO(
+                    factureId,
+                    part.nomConvive(),
+                    splitItems,
+                    sousTotal,
+                    sousTotal
+            ));
+        }
+
+        return result;
     }
 } 

@@ -1,17 +1,16 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil, switchMap } from 'rxjs/operators';
 import {
   IonContent, IonHeader, IonToolbar, IonTitle,
   IonBackButton, IonButtons,
   IonCard, IonCardContent, IonCardHeader, IonCardTitle,
-  IonList, IonItem, IonLabel, IonBadge,
-  IonButton, IonIcon
+  IonList, IonItem, IonLabel, IonBadge, IonButton, IonIcon
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { downloadOutline } from 'ionicons/icons';
+import { downloadOutline, peopleOutline } from 'ionicons/icons';
 import { FactureService } from '../services/facture.service';
 import { Facture, FactureItem } from '../models/facture.model';
 import { environment } from '../../../../environments/environment';
@@ -20,12 +19,11 @@ import { environment } from '../../../../environments/environment';
   selector: 'app-facture-detail',
   standalone: true,
   imports: [
-    CommonModule,
+    CommonModule, RouterLink,
     IonContent, IonHeader, IonToolbar, IonTitle,
     IonBackButton, IonButtons,
     IonCard, IonCardContent, IonCardHeader, IonCardTitle,
-    IonList, IonItem, IonLabel, IonBadge,
-    IonButton, IonIcon
+    IonList, IonItem, IonLabel, IonBadge, IonButton, IonIcon
   ],
   templateUrl: './facture-detail.component.html',
   styleUrls: ['./facture-detail.component.scss'],
@@ -38,7 +36,7 @@ export class FactureDetailComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private factureService: FactureService
   ) {
-    addIcons({ downloadOutline });
+    addIcons({ downloadOutline, peopleOutline });
   }
 
   ngOnInit() {
