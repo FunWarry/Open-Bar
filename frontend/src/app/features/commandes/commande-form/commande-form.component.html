@@ -35,7 +35,7 @@
       </ion-note>
 
       <div class="button-row">
-        <ion-button fill="clear" type="button" (click)="router.navigate(['/commandes'])">Annuler</ion-button>
+        <ion-button fill="clear" type="button" (click)="router.navigate(['/commandes'])" (keydown.enter)="router.navigate(['/commandes'])">Annuler</ion-button>
         <ion-button [disabled]="!commandeForm.valid" color="primary" type="submit">
           {{ isEditMode ? 'Modifier' : 'Créer' }}
         </ion-button>

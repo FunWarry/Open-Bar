@@ -29,18 +29,18 @@
       </ion-card-header>
       <ion-card-content>
         <div class="convives-selector">
-          <ion-button fill="clear" (click)="ajusterConvives(-1)" [disabled]="nombreConvives <= 2">
+          <ion-button fill="clear" (click)="ajusterConvives(-1)" (keydown.enter)="ajusterConvives(-1)" [disabled]="nombreConvives <= 2">
             <ion-icon name="remove-outline"></ion-icon>
           </ion-button>
           <span class="nombre">{{ nombreConvives }}</span>
-          <ion-button fill="clear" (click)="ajusterConvives(1)" [disabled]="nombreConvives >= 20">
+          <ion-button fill="clear" (click)="ajusterConvives(1)" (keydown.enter)="ajusterConvives(1)" [disabled]="nombreConvives >= 20">
             <ion-icon name="add-outline"></ion-icon>
           </ion-button>
         </div>
 
         <p class="hint">Divise le total de la facture en {{ nombreConvives }} parts égales.</p>
 
-        <ion-button expand="block" (click)="calculerSplitEgal()" [disabled]="loading">
+        <ion-button expand="block" (click)="calculerSplitEgal()" (keydown.enter)="calculerSplitEgal()" [disabled]="loading">
           <ion-spinner *ngIf="loading" name="crescent" slot="start"></ion-spinner>
           <ion-icon *ngIf="!loading" name="calculator-outline" slot="start"></ion-icon>
           Calculer
