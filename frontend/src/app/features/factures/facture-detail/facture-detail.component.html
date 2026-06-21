@@ -68,6 +68,15 @@
         <ion-icon slot="start" name="download-outline"></ion-icon>
         Télécharger PDF
       </ion-button>
+      <ion-button
+        *ngIf="facture && facture.items && facture.items.length > 0"
+        [routerLink]="['/factures', facture.id, 'split']"
+        fill="outline"
+        expand="block"
+        class="split-btn ion-margin-top">
+        <ion-icon slot="start" name="people-outline"></ion-icon>
+        Diviser l'addition
+      </ion-button>
     </div>
   </ng-container>
 </ion-content>
