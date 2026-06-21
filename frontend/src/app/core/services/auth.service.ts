@@ -10,6 +10,7 @@ import {tap} from "rxjs/operators";
 })
 export class AuthService {
   private readonly TOKEN_KEY = 'auth_token';
+  private readonly REFRESH_TOKEN_KEY = 'refresh_token';
   private readonly USER_KEY = 'auth_user';
   private readonly API_URL = `${environment.apiUrl}/auth`;
   private inProgress = false;
@@ -51,6 +52,7 @@ export class AuthService {
 
     // Nettoyer le localStorage immédiatement
     localStorage.removeItem(this.TOKEN_KEY);
+    localStorage.removeItem(this.REFRESH_TOKEN_KEY);
     localStorage.removeItem(this.USER_KEY);
 
     // Nettoyer le session storage
@@ -66,6 +68,15 @@ export class AuthService {
     return this.inProgress ? null : localStorage.getItem(this.TOKEN_KEY);
   }
 
+  getRefreshToken(): string | null {
+    return localStorage.getItem(this.REFRESH_TOKEN_KEY);
+  }
+
+  storeTokens(accessToken: string, refreshToken: string): void {
+    localStorage.setItem(this.TOKEN_KEY, accessToken);
+    localStorage.setItem(this.REFRESH_TOKEN_KEY, refreshToken);
+  }
+
   getStoredUser() {
     if (this.inProgress) return null;
 
@@ -75,6 +86,9 @@ export class AuthService {
 
   private saveUserData(response: AuthResponse): void {
     localStorage.setItem(this.TOKEN_KEY, response.token);
+    if (response.refreshToken) {
+      localStorage.setItem(this.REFRESH_TOKEN_KEY, response.refreshToken);
+    }
     localStorage.setItem(this.USER_KEY, JSON.stringify({
       id: response.id,
       email: response.email,
