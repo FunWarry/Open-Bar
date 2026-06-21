@@ -1,5 +1,7 @@
 package com.bar.gestioncocktail.controller;
 
+import com.bar.gestioncocktail.dto.PlanSalleDTO;
+import com.bar.gestioncocktail.dto.TablePositionDTO;
 import com.bar.gestioncocktail.dto.TableResponseDTO;
 import com.bar.gestioncocktail.model.TableEntity;
 import com.bar.gestioncocktail.model.TableZone;
@@ -83,5 +85,31 @@ public class TableController {
     @PreAuthorize("hasRole('SERVEUR') or hasRole('ADMIN') or hasRole('MANAGER')")
     public ResponseEntity<TableResponseDTO> libererTable(@PathVariable Long id) {
         return ResponseEntity.ok(TableResponseDTO.from(tableService.libererTable(id)));
+    }
+
+    @GetMapping("/plan")
+    @PreAuthorize("isAuthenticated()")
+    public List<PlanSalleDTO> getPlanSalle() {
+        return tableService.getAllTablesAvecPositions()
+            .stream().map(PlanSalleDTO::from).toList();
+    }
+
+    @PutMapping("/{id}/position")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
+    public ResponseEntity<TableResponseDTO> updatePosition(
+        @PathVariable Long id,
+        @RequestParam Double x,
+        @RequestParam Double y,
+        @RequestParam(required = false) Double rotation,
+        @RequestParam(required = false) String forme) {
+        return ResponseEntity.ok(TableResponseDTO.from(
+            tableService.updatePosition(id, x, y, rotation, forme)));
+    }
+
+    @PutMapping("/plan/positions")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
+    public ResponseEntity<Void> updatePositionsBatch(@RequestBody List<TablePositionDTO> positions) {
+        tableService.updatePositionsBatch(positions);
+        return ResponseEntity.ok().build();
     }
 }

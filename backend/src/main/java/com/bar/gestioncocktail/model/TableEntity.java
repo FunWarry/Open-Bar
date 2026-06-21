@@ -47,6 +47,19 @@ public class TableEntity {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    // Position sur le plan de salle
+    @Column(name = "plan_x")
+    private Double planX;
+
+    @Column(name = "plan_y")
+    private Double planY;
+
+    @Column(name = "plan_rotation", columnDefinition = "DOUBLE PRECISION DEFAULT 0")
+    private Double planRotation = 0.0;
+
+    @Column(name = "plan_forme", length = 20)
+    private String planForme = "CARRE"; // CARRE ou ROND
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
@@ -121,4 +134,44 @@ public class TableEntity {
     public void setDateLiberation(LocalDateTime dateLiberation) {
         this.dateLiberation = dateLiberation;
     }
-} 
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public Double getPlanX() {
+        return planX;
+    }
+
+    public void setPlanX(Double planX) {
+        this.planX = planX;
+    }
+
+    public Double getPlanY() {
+        return planY;
+    }
+
+    public void setPlanY(Double planY) {
+        this.planY = planY;
+    }
+
+    public Double getPlanRotation() {
+        return planRotation;
+    }
+
+    public void setPlanRotation(Double planRotation) {
+        this.planRotation = planRotation;
+    }
+
+    public String getPlanForme() {
+        return planForme;
+    }
+
+    public void setPlanForme(String planForme) {
+        this.planForme = planForme;
+    }
+}
