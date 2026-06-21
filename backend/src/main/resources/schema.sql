@@ -149,4 +149,10 @@ CREATE TABLE audit_logs (
     details TEXT,
     ip_address VARCHAR(50),
     timestamp TIMESTAMP NOT NULL
-); 
+);
+
+-- Plan de salle : colonnes de position
+ALTER TABLE tables ADD COLUMN IF NOT EXISTS plan_x DOUBLE PRECISION;
+ALTER TABLE tables ADD COLUMN IF NOT EXISTS plan_y DOUBLE PRECISION;
+ALTER TABLE tables ADD COLUMN IF NOT EXISTS plan_rotation DOUBLE PRECISION DEFAULT 0;
+ALTER TABLE tables ADD COLUMN IF NOT EXISTS plan_forme VARCHAR(20) DEFAULT 'CARRE';

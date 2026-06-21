@@ -1,5 +1,6 @@
 package com.bar.gestioncocktail.service;
 
+import com.bar.gestioncocktail.dto.TablePositionDTO;
 import com.bar.gestioncocktail.model.TableEntity;
 import com.bar.gestioncocktail.model.TableZone;
 import com.bar.gestioncocktail.repository.TableRepository;
@@ -94,4 +95,35 @@ public class TableService {
 
         return tableRepository.save(table);
     }
-} 
+
+    @Transactional(readOnly = true)
+    public List<TableEntity> getAllTablesAvecPositions() {
+        return tableRepository.findAll();
+    }
+
+    @Transactional
+    public TableEntity updatePosition(Long id, Double x, Double y, Double rotation, String forme) {
+        TableEntity table = tableRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Table non trouvée: " + id));
+        table.setPlanX(x);
+        table.setPlanY(y);
+        table.setPlanRotation(rotation != null ? rotation : 0.0);
+        if (forme != null && (forme.equals("CARRE") || forme.equals("ROND"))) {
+            table.setPlanForme(forme);
+        }
+        return tableRepository.save(table);
+    }
+
+    @Transactional
+    public void updatePositionsBatch(List<TablePositionDTO> positions) {
+        for (TablePositionDTO dto : positions) {
+            tableRepository.findById(dto.id()).ifPresent(table -> {
+                table.setPlanX(dto.planX());
+                table.setPlanY(dto.planY());
+                table.setPlanRotation(dto.planRotation() != null ? dto.planRotation() : 0.0);
+                if (dto.planForme() != null) table.setPlanForme(dto.planForme());
+                tableRepository.save(table);
+            });
+        }
+    }
+}
