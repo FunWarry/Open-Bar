@@ -5,8 +5,11 @@ import com.bar.gestioncocktail.model.Facture;
 import com.bar.gestioncocktail.model.FactureItem;
 import com.bar.gestioncocktail.model.TableEntity;
 import com.bar.gestioncocktail.service.FactureService;
+import com.bar.gestioncocktail.service.PdfService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -19,10 +22,12 @@ import java.util.List;
 @CrossOrigin(origins = "*")
 public class FactureController {
     private final FactureService factureService;
+    private final PdfService pdfService;
 
     @Autowired
-    public FactureController(FactureService factureService) {
+    public FactureController(FactureService factureService, PdfService pdfService) {
         this.factureService = factureService;
+        this.pdfService = pdfService;
     }
 
     @GetMapping
@@ -94,5 +99,17 @@ public class FactureController {
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
     public ResponseEntity<FactureResponseDTO> reglerFacture(@PathVariable Long id, @RequestParam String modePaiement) {
         return ResponseEntity.ok(FactureResponseDTO.from(factureService.reglerFacture(id, modePaiement)));
+    }
+
+    @GetMapping("/{id}/pdf")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
+    public ResponseEntity<byte[]> downloadFacturePdf(@PathVariable Long id) {
+        Facture facture = factureService.getFactureById(id)
+            .orElseThrow(() -> new RuntimeException("Facture non trouvée: " + id));
+        byte[] pdf = pdfService.generateFacturePdf(facture);
+        return ResponseEntity.ok()
+            .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_PDF_VALUE)
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"facture-" + id + ".pdf\"")
+            .body(pdf);
     }
 }
