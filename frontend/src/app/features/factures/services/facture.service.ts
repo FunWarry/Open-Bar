@@ -4,6 +4,27 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { Facture } from '../models/facture.model';
 
+export interface SplitItemDTO {
+  itemId: number;
+  description: string;
+  quantite: number;
+  prixUnitaire: number;
+  total: number;
+}
+
+export interface SplitResultDTO {
+  factureId: number;
+  nomConvive: string;
+  items: SplitItemDTO[];
+  sousTotal: number;
+  totalAvecPourboire: number;
+}
+
+export interface SplitPartRequest {
+  nomConvive: string;
+  itemIds: number[];
+}
+
 @Injectable({ providedIn: 'root' })
 export class FactureService {
   private readonly apiUrl = `${environment.apiUrl}/factures`;
@@ -31,5 +52,13 @@ export class FactureService {
     return this.http.post<Facture>(`${this.apiUrl}/${id}/regler`, null, {
       params: new HttpParams().set('modePaiement', modePaiement)
     });
+  }
+
+  splitEgal(id: number, nombreConvives: number): Observable<SplitResultDTO[]> {
+    return this.http.post<SplitResultDTO[]>(`${this.apiUrl}/${id}/split/egal`, { nombreConvives });
+  }
+
+  splitParSelection(id: number, parts: SplitPartRequest[]): Observable<SplitResultDTO[]> {
+    return this.http.post<SplitResultDTO[]>(`${this.apiUrl}/${id}/split/selection`, { parts });
   }
 }
