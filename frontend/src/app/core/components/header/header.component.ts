@@ -10,7 +10,7 @@ import {
 } from '@ionic/angular/standalone';
 import {addIcons} from 'ionicons';
 import {
-  menu, localBar, receipt, tableRestaurant, nutrition, shieldCheckmark,
+  menu, beerOutline, receipt, restaurant, nutrition, shieldCheckmark,
   logOut, chevronDown, person
 } from 'ionicons/icons';
 import {RouterLink, RouterLinkActive} from '@angular/router';
@@ -35,7 +35,7 @@ export class HeaderComponent implements OnInit {
     private store: Store
   ) {
     this.currentUser$ = this.store.select(selectCurrentUser);
-    addIcons({menu, localBar, receipt, tableRestaurant, nutrition, shieldCheckmark, logOut, chevronDown, person});
+    addIcons({menu, beerOutline, receipt, restaurant, nutrition, shieldCheckmark, logOut, chevronDown, person});
   }
 
   ngOnInit(): void {
