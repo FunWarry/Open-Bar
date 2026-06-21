@@ -1,4 +1,4 @@
-﻿package com.bar.gestioncocktail.service;
+package com.bar.gestioncocktail.service;
 
 import com.bar.gestioncocktail.dto.DashboardStatsDTO;
 import com.bar.gestioncocktail.dto.TopCocktailDTO;

@@ -7,8 +7,10 @@ import com.bar.gestioncocktail.model.Facture;
 import com.bar.gestioncocktail.model.FactureItem;
 import org.springframework.stereotype.Service;
 
+import com.lowagie.text.DocumentException;
 import java.awt.Color;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 
 @Service
@@ -23,6 +25,7 @@ public class PdfService {
     public byte[] generateFacturePdf(Facture facture) {
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             Document doc = new Document(PageSize.A4, 40, 40, 60, 40);
+            try {
             PdfWriter.getInstance(doc, out);
             doc.open();
 
@@ -118,11 +121,13 @@ public class PdfService {
             footer.setAlignment(Element.ALIGN_CENTER);
             doc.add(footer);
 
-            doc.close();
+            } finally {
+                doc.close();
+            }
             return out.toByteArray();
 
-        } catch (Exception e) {
-            throw new RuntimeException("Erreur génération PDF facture " + facture.getId(), e);
+        } catch (DocumentException | IOException e) {
+            throw new IllegalStateException("Erreur génération PDF facture " + facture.getId(), e);
         }
     }
 
