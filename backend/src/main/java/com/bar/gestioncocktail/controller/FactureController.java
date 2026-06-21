@@ -1,6 +1,9 @@
 package com.bar.gestioncocktail.controller;
 
 import com.bar.gestioncocktail.dto.FactureResponseDTO;
+import com.bar.gestioncocktail.dto.SplitAdditionRequest;
+import com.bar.gestioncocktail.dto.SplitEgalRequest;
+import com.bar.gestioncocktail.dto.SplitResultDTO;
 import com.bar.gestioncocktail.model.Facture;
 import com.bar.gestioncocktail.model.FactureItem;
 import com.bar.gestioncocktail.model.TableEntity;
@@ -94,5 +97,21 @@ public class FactureController {
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
     public ResponseEntity<FactureResponseDTO> reglerFacture(@PathVariable Long id, @RequestParam String modePaiement) {
         return ResponseEntity.ok(FactureResponseDTO.from(factureService.reglerFacture(id, modePaiement)));
+    }
+
+    @PostMapping("/{id}/split/egal")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
+    public ResponseEntity<List<SplitResultDTO>> splitEgal(
+            @PathVariable Long id,
+            @RequestBody SplitEgalRequest request) {
+        return ResponseEntity.ok(factureService.splitEgal(id, request.nombreConvives()));
+    }
+
+    @PostMapping("/{id}/split/selection")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
+    public ResponseEntity<List<SplitResultDTO>> splitParSelection(
+            @PathVariable Long id,
+            @RequestBody SplitAdditionRequest request) {
+        return ResponseEntity.ok(factureService.splitParSelection(id, request));
     }
 }
