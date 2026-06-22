@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { Subject, timer } from 'rxjs';
+import { switchMap, takeUntil } from 'rxjs/operators';
 import {
   IonContent, IonHeader, IonToolbar, IonTitle,
   IonRefresher, IonRefresherContent,
@@ -35,8 +35,18 @@ export class DashboardManagerComponent implements OnInit, OnDestroy {
 
   constructor(private dashboardService: DashboardManagerService) {}
 
+  static readonly REFRESH_INTERVAL_MS = 30_000;
+
   ngOnInit() {
     this.chargerStats();
+    // Polling automatique toutes les 30s
+    timer(DashboardManagerComponent.REFRESH_INTERVAL_MS, DashboardManagerComponent.REFRESH_INTERVAL_MS).pipe(
+      switchMap(() => this.dashboardService.getStats()),
+      takeUntil(this.destroy$),
+    ).subscribe({
+      next: stats => { this.stats = stats; },
+      error: () => {},
+    });
   }
 
   ngOnDestroy() {
