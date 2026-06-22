@@ -60,7 +60,7 @@ class NotificationServiceTest {
 
         notificationService.notifierNouvelleCommande(commande);
 
-        verify(messagingTemplate).convertAndSend(anyString(), payloadCaptor.capture());
+        verify(messagingTemplate).convertAndSend(anyString(), (Object) payloadCaptor.capture());
         assertThat(payloadCaptor.getValue()).isSameAs(commande);
     }
 
@@ -115,7 +115,7 @@ class NotificationServiceTest {
 
         notificationService.notifierOccupationTable(table);
 
-        verify(messagingTemplate).convertAndSend(anyString(), payloadCaptor.capture());
+        verify(messagingTemplate).convertAndSend(anyString(), (Object) payloadCaptor.capture());
         assertThat(payloadCaptor.getValue()).isSameAs(table);
     }
 
@@ -143,7 +143,7 @@ class NotificationServiceTest {
     void notifierStockFaible_envoyeSurTopicStockAlerte() {
         notificationService.notifierStockFaible(1L, "Rhum", 5.0);
 
-        verify(messagingTemplate).convertAndSend(eq("/topic/stock/alerte"), any());
+        verify(messagingTemplate).convertAndSend(eq("/topic/stock/alerte"), any(Object.class));
     }
 
     @Test
@@ -152,7 +152,7 @@ class NotificationServiceTest {
 
         notificationService.notifierStockFaible(2L, "Citron", 3.5);
 
-        verify(messagingTemplate).convertAndSend(anyString(), payloadCaptor.capture());
+        verify(messagingTemplate).convertAndSend(anyString(), (Object) payloadCaptor.capture());
         Object payload = payloadCaptor.getValue();
         assertThat(payload).isNotNull();
         // Vérifie les données via la réflexion (classe interne privée StockAlerteNotification)
@@ -177,7 +177,7 @@ class NotificationServiceTest {
     void notifierStockFaible_stockAZero_envoyeToutDeMeme() {
         notificationService.notifierStockFaible(3L, "Sucre", 0.0);
 
-        verify(messagingTemplate).convertAndSend(eq("/topic/stock/alerte"), any());
+        verify(messagingTemplate).convertAndSend(eq("/topic/stock/alerte"), any(Object.class));
     }
 
     @Test
@@ -185,7 +185,7 @@ class NotificationServiceTest {
         // Le service ne filtre pas les valeurs négatives — il délègue à RabbitMQ/STOMP
         notificationService.notifierStockFaible(4L, "Glace", -2.0);
 
-        verify(messagingTemplate).convertAndSend(eq("/topic/stock/alerte"), any());
+        verify(messagingTemplate).convertAndSend(eq("/topic/stock/alerte"), any(Object.class));
     }
 
     // ─── isolation : aucun appel parasite ────────────────────────────────────

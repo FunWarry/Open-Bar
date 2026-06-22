@@ -51,7 +51,7 @@ class AuditLogServiceTest {
 
     @Test
     void createAuditLog_nominal_setsTimestampAndSaves() {
-        given(auditLogRepository.save(any(AuditLog.class))).thenAnswer(inv -> inv.getArgument(0));
+        given(auditLogRepository.save(any(AuditLog.class))).willAnswer(inv -> inv.getArgument(0));
 
         AuditLog result = auditLogService.createAuditLog(auditLog);
 
@@ -61,7 +61,7 @@ class AuditLogServiceTest {
 
     @Test
     void createAuditLog_nominal_retourneEntiteSauvegardee() {
-        given(auditLogRepository.save(any(AuditLog.class))).thenReturn(auditLog);
+        given(auditLogRepository.save(any(AuditLog.class))).willReturn(auditLog);
 
         AuditLog result = auditLogService.createAuditLog(auditLog);
 
@@ -74,7 +74,7 @@ class AuditLogServiceTest {
 
     @Test
     void logAction_nominal_persisteAuditLogAvecTousLesChamps() {
-        given(auditLogRepository.save(any(AuditLog.class))).thenAnswer(inv -> inv.getArgument(0));
+        given(auditLogRepository.save(any(AuditLog.class))).willAnswer(inv -> inv.getArgument(0));
 
         auditLogService.logAction(user, "DELETE", "Ingredient", 7L, "Rhum supprimé", "192.168.1.1");
 
@@ -92,7 +92,7 @@ class AuditLogServiceTest {
     @Test
     void logAction_nominal_setsTimestampAvantSauvegarde() {
         LocalDateTime avant = LocalDateTime.now().minusSeconds(1);
-        given(auditLogRepository.save(any(AuditLog.class))).thenAnswer(inv -> inv.getArgument(0));
+        given(auditLogRepository.save(any(AuditLog.class))).willAnswer(inv -> inv.getArgument(0));
 
         auditLogService.logAction(user, "UPDATE", "Table", 3L, null, null);
 
@@ -103,7 +103,7 @@ class AuditLogServiceTest {
 
     @Test
     void logAction_detailsNull_neLevePasException() {
-        given(auditLogRepository.save(any(AuditLog.class))).thenAnswer(inv -> inv.getArgument(0));
+        given(auditLogRepository.save(any(AuditLog.class))).willAnswer(inv -> inv.getArgument(0));
 
         // details et ipAddress peuvent être null — doit fonctionner sans NPE
         org.junit.jupiter.api.Assertions.assertDoesNotThrow(
