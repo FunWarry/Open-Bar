@@ -154,6 +154,21 @@ describe('DashboardManagerComponent', () => {
     expect(component.trackByCocktailId(0, cocktail)).toBe(7);
   });
 
+  it('polling automatique — recharge les stats toutes les 30s', fakeAsync(() => {
+    // Appel initial déjà fait dans beforeEach (detectChanges → ngOnInit → chargerStats)
+    expect(dashboardServiceSpy.getStats).toHaveBeenCalledTimes(1);
+
+    tick(DashboardManagerComponent.REFRESH_INTERVAL_MS);
+    expect(dashboardServiceSpy.getStats).toHaveBeenCalledTimes(2);
+
+    tick(DashboardManagerComponent.REFRESH_INTERVAL_MS);
+    expect(dashboardServiceSpy.getStats).toHaveBeenCalledTimes(3);
+
+    component.ngOnDestroy(); // annule le timer
+    tick(DashboardManagerComponent.REFRESH_INTERVAL_MS);
+    expect(dashboardServiceSpy.getStats).toHaveBeenCalledTimes(3); // plus d'appels après destroy
+  }));
+
   it('ngOnDestroy() complète le subject destroy$ sans erreur', () => {
     expect(() => component.ngOnDestroy()).not.toThrow();
   });
