@@ -69,27 +69,29 @@ EN_ATTENTE → EN_PREPARATION → PRET → LIVREE → REGLEE
 
 ## État d'implémentation
 
-> Légende : ✅ complet · 🔄 squelette / en cours · ❌ manquant
+> Légende : ✅ complet · 🔄 squelette / en cours · ❌ manquant · — non applicable
 
-| Feature | Backend | Frontend |
-|---------|---------|----------|
-| Auth JWT | ✅ | ✅ |
-| Routing + guards + lazy loading | ✅ | ✅ |
-| Gestion utilisateurs (admin) | ✅ | ✅ |
-| Cocktails CRUD | ✅ | 🔄 squelette |
-| Ingrédients CRUD | ✅ | 🔄 squelette |
-| Tables | ✅ | 🔄 squelette |
-| Commandes (kanban barman) | ✅ | 🔄 squelette |
-| Plan de salle (manager) | ✅ | 🔄 squelette |
-| Services HTTP (cocktails/commandes/tables…) | ✅ | ❌ |
-| WebSocketService | ✅ | ❌ vide |
-| Notifications temps réel | ✅ | ❌ |
-| Vue Serveur | ✅ | ❌ |
-| Factures | ✅ | ❌ |
-| Déstockage automatique | ❌ | — |
-| Plan de salle interactif (Konva.js) | ❌ | ❌ |
-| Dashboard / statistiques | ❌ | ❌ |
-| QR code commande client | ❌ | ❌ |
+| Feature | Backend | Frontend | Tests |
+|---------|---------|----------|-------|
+| Auth JWT + Refresh token | ✅ | ✅ | ✅ |
+| Routing + guards + lazy loading | ✅ | ✅ | ✅ |
+| Gestion utilisateurs (admin) | ✅ | ✅ | ✅ |
+| Cocktails CRUD | ✅ | 🔄 squelette | ✅ |
+| Saisonnalité cocktails | ✅ | ✅ | ✅ |
+| Ingrédients CRUD | ✅ | 🔄 squelette | ✅ |
+| Tables | ✅ | 🔄 squelette | ✅ |
+| Commandes (kanban barman) | ✅ | 🔄 squelette | ✅ |
+| Déstockage automatique | ✅ | — | ✅ |
+| Plan de salle (manager) | ✅ | 🔄 squelette | ✅ |
+| Factures (liste + détail + split) | ✅ | 🔄 squelette | ✅ |
+| Export PDF factures | ✅ | ✅ bouton | ✅ |
+| Division d'addition (split) | ✅ | ❌ | ✅ |
+| Dashboard / statistiques | ✅ | ❌ | ✅ |
+| WebSocketService | ✅ | ❌ vide | ✅ |
+| Notifications temps réel | ✅ | ❌ | ✅ |
+| Vue Serveur | ✅ | ❌ | ❌ |
+| Plan de salle interactif (Konva.js) | ❌ | ❌ | — |
+| QR code commande client | ❌ | ❌ | — |
 
 ---
 
