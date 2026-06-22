@@ -1,5 +1,5 @@
-import {selectIsAdmin, selectIsAuthenticated, selectIsBarman, selectIsManager} from './auth.selectors';
-import {AuthState} from './auth.reducer';
+import {selectIsAdmin, selectIsAuthenticated, selectIsBarman, selectIsManager} from '../../../app/core/store/auth.selectors';
+import {AuthState} from '../../../app/core/store/auth.reducer';
 
 function stateWith(roles: string[], token: string | null = 'tok'): { auth: AuthState } {
   return {

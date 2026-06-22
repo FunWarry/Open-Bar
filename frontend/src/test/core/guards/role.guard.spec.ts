@@ -2,8 +2,8 @@ import {TestBed} from '@angular/core/testing';
 import {Router} from '@angular/router';
 import {provideMockStore, MockStore} from '@ngrx/store/testing';
 import {ActivatedRouteSnapshot} from '@angular/router';
-import {RoleGuard} from './role.guard';
-import {selectCurrentUser} from '../store/auth.selectors';
+import {RoleGuard} from '../../../app/core/guards/role.guard';
+import {selectCurrentUser} from '../../../app/core/store/auth.selectors';
 
 function makeRoute(roles?: string[]): ActivatedRouteSnapshot {
   return {data: roles ? {roles} : {}, url: []} as unknown as ActivatedRouteSnapshot;
@@ -59,7 +59,7 @@ describe('RoleGuard', () => {
     store.overrideSelector(selectCurrentUser, null);
     guard.canActivate(makeRoute(['MANAGER'])).subscribe(result => {
       expect(result).toBeFalse();
-      expect(routerSpy.navigate).toHaveBeenCalledWith(['/']);
+      expect(router.navigate).toHaveBeenCalledWith(['/']);
       done();
     });
   });
