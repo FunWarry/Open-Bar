@@ -183,7 +183,31 @@ describe('WebSocketService', () => {
     connectionStateSubject.next(RxStompState.CLOSED);
   });
 
-  // ─── déconnexion automatique au logout ──────────────────────────────────────
+  // ─── connexion / déconnexion automatique selon auth state ───────────────────
+
+  it('se connecte automatiquement quand isAuthenticated passe à true et que rxStomp est inactif', () => {
+    (mockRxStomp as any).active = false;
+    mockRxStomp.configure.calls.reset();
+    mockRxStomp.activate.calls.reset();
+
+    store.overrideSelector(selectIsAuthenticated, true);
+    store.refreshState();
+
+    expect(mockRxStomp.configure).toHaveBeenCalled();
+    expect(mockRxStomp.activate).toHaveBeenCalled();
+  });
+
+  it('ne se connecte pas si rxStomp est déjà actif quand isAuthenticated est true', () => {
+    (mockRxStomp as any).active = true;
+    mockRxStomp.configure.calls.reset();
+    mockRxStomp.activate.calls.reset();
+
+    store.overrideSelector(selectIsAuthenticated, true);
+    store.refreshState();
+
+    expect(mockRxStomp.configure).not.toHaveBeenCalled();
+    expect(mockRxStomp.activate).not.toHaveBeenCalled();
+  });
 
   it('se déconnecte automatiquement quand isAuthenticated passe à false et que rxStomp est actif', () => {
     // At this point rxStomp was already replaced by the spy.
