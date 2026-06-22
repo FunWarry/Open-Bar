@@ -47,7 +47,7 @@ class CocktailVarianteServiceTest {
         variante.setInstructions("Remplacer l'alcool par du sirop");
 
         given(cocktailVarianteRepository.save(any(CocktailVariante.class)))
-                .thenAnswer(inv -> inv.getArgument(0));
+                .willAnswer(inv -> inv.getArgument(0));
     }
 
     // ─── createCocktailVariante ────────────────────────────────────────────────
