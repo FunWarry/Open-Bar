@@ -7,4 +7,5 @@ export interface AuthResponse {
   createdAt: string | Date;
   updatedAt: string | Date;
   token: string;
+  refreshToken: string;
 }

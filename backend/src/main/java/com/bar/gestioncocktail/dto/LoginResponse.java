@@ -10,6 +10,7 @@ import java.util.List;
 @AllArgsConstructor
 public class LoginResponse {
     private String token;
+    private String refreshToken;
     private String username;
     private List<String> roles;
     private String email;

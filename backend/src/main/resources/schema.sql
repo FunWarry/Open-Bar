@@ -1,4 +1,5 @@
 -- Suppression des tables existantes
+DROP TABLE IF EXISTS refresh_tokens CASCADE;
 DROP TABLE IF EXISTS user_roles CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 DROP TABLE IF EXISTS cocktail_ingredients CASCADE;
@@ -149,6 +150,13 @@ CREATE TABLE audit_logs (
     details TEXT,
     ip_address VARCHAR(50),
     timestamp TIMESTAMP NOT NULL
+);
+
+CREATE TABLE refresh_tokens (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    token VARCHAR(512) NOT NULL UNIQUE,
+    expiry_date TIMESTAMP NOT NULL
 );
 
 -- Plan de salle : colonnes de position
