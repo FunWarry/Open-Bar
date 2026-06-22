@@ -15,9 +15,11 @@ export class WebSocketService {
   private rxStomp = new RxStomp();
 
   constructor() {
-    // Déconnecter le WebSocket automatiquement au logout
+    // Connecter / déconnecter automatiquement selon l'état d'auth
     this.store.select(selectIsAuthenticated).subscribe(isAuth => {
-      if (!isAuth && this.rxStomp.active) {
+      if (isAuth && !this.rxStomp.active) {
+        this.connect();
+      } else if (!isAuth && this.rxStomp.active) {
         this.rxStomp.deactivate();
       }
     });
