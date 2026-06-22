@@ -12,11 +12,11 @@ Application de gestion de bar en temps réel : prise de commandes (serveurs), pr
 | Runtime    | Java                         | 22          |
 | BDD        | PostgreSQL                   | —           |
 | ORM        | JPA / Hibernate              | via Spring  |
-| Sécurité   | Spring Security + JWT custom | JJWT 0.11.5 |
+| Sécurité   | Spring Security + JWT custom | JJWT 0.12.6 |
 | Temps réel | WebSocket STOMP              | via Spring  |
-| Frontend   | Angular                      | 19          |
-| UI         | Ionic                        | 8+          |
-| State      | NgRx (store + effects)       | 19          |
+| Frontend   | Angular                      | 20          |
+| UI         | Ionic                        | 8.8.11      |
+| State      | NgRx (store + effects)       | 20          |
 | HTTP       | RxJS / HttpClient            | 7.8         |
 
 ### Stack cible (décision actée)
@@ -214,7 +214,7 @@ L'application est **multilingue**. Ajouter une langue = ajouter un fichier JSON 
 Choix retenu plutôt que ngx-translate pour :
 - Lazy loading natif des traductions par feature (pas de bundle monolithique)
 - Support de l'architecture feature-based d'OpenBar
-- Meilleur support TypeScript et Angular 19+
+- Meilleur support TypeScript et Angular 20+
 - Fichiers de langue scopés par feature + fichiers globaux
 
 ### Structure des fichiers de traduction
@@ -272,10 +272,13 @@ Pour les fichiers scopés par feature (ex : `fr/commandes.json`), déclarer le s
 6. ~~Typo `BARMEN`~~ — **résolu PR #85** : enum renommé `BARMAN`, migration SQL documentée dans `schema.sql`
 7. ~~Refresh token absent~~ — **résolu PR #100** : rotation + interceptor HTTP frontend
 8. **Exceptions génériques** (`RuntimeException`) dans les services → `NoSuchElementException` / exceptions métier (partiellement corrigé PR #100)
+9. ~~JJWT 0.11.5 obsolète~~ — **résolu** : migré vers 0.12.6 (API `parser()`, `parseSignedClaims()`, `SecretKey`)
+10. ~~Angular 19 CVEs XSS/XSRF~~ — **résolu** : migré Angular 20 + NgRx 20 + Ionic 8.8.11
+11. **13 CVEs restantes (devDeps)** : dans les outils de build (esbuild, babel, vite) — corrigibles via Angular 22
 
 ## Features implémentées vs. manquantes
 
-> Dernière mise à jour : 22 juin 2026 — PRs #100 (refresh token), #101 (PDF), #102 (saisonnalité), #103 (tests)
+> Dernière mise à jour : 22 juin 2026 — PRs #100 (refresh token), #101 (PDF), #102 (saisonnalité), #103 (tests) + mise à jour stack (Angular 20, NgRx 20, JJWT 0.12.6)
 
 | Feature | Backend | Frontend | Tests |
 |---------|---------|----------|-------|

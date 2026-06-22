@@ -48,18 +48,18 @@ Application web multi-rôles avec WebSocket pour la communication temps réel en
 | Backend | Spring Boot | 3.3.3 | Runtime Java 22 |
 | Base de données | PostgreSQL | — | Via Docker Compose |
 | ORM | JPA / Hibernate | via Spring | Lombok `@Data` sur entités |
-| Sécurité | Spring Security + JWT | JJWT 0.11.5 | Filter custom |
+| Sécurité | Spring Security + JWT | JJWT 0.12.6 | Filter custom |
 | Temps réel | WebSocket STOMP | via Spring | 4 topics actifs |
-| Frontend | Angular | 19 | Standalone components |
-| UI | Angular Material | 19 | ⚠️ À migrer (voir stack cible) |
-| State management | NgRx | 19 | Auth uniquement |
+| Frontend | Angular | 20 | Standalone components |
+| UI | Ionic | 8.8.11 | Migration Angular Material → Ionic actée |
+| State management | NgRx | 20 | Auth uniquement |
 | HTTP | RxJS / HttpClient | 7.8 | — |
 
 #### Stack cible (migration décidée)
 
 | Couche | Technologie | Version | Raison |
 |--------|-------------|---------|--------|
-| Frontend | Angular | 19 | Inchangé |
+| Frontend | Angular | 20 | Migré (correction CVEs XSS/XSRF) |
 | UI mobile | **Ionic** | 8+ | Mobile/tablet-first, composants natifs |
 | Build natif | **Capacitor** | 6+ | iOS + Android depuis le même codebase |
 | Canvas plan de salle | **Konva.js** | — | Canvas 2D libre, drag & drop, rotation |
