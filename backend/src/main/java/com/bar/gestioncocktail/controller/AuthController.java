@@ -21,6 +21,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -55,7 +57,7 @@ public class AuthController {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String accessToken = jwtTokenProvider.generateToken(authentication);
         User user = userService.getUserByUsername(loginRequest.getUsername())
-                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+                .orElseThrow(() -> new NoSuchElementException("Utilisateur non trouvé"));
         List<String> userRoles = user.getRoles()
                 .stream()
                 .map(UserRole::getName)
@@ -75,18 +77,19 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<?> refreshToken(@RequestBody RefreshTokenRequest request) {
-        return refreshTokenService.findByToken(request.refreshToken())
-            .map(token -> {
-                if (refreshTokenService.isExpired(token)) {
-                    refreshTokenService.deleteByUser(token.getUser());
-                    return ResponseEntity.status(401).body("Refresh token expiré");
-                }
-                String newAccessToken = jwtTokenProvider.generateToken(token.getUser().getUsername());
-                RefreshToken newRefresh = refreshTokenService.createRefreshToken(token.getUser());
-                return ResponseEntity.ok(new TokenRefreshResponse(newAccessToken, newRefresh.getToken()));
-            })
-            .orElse(ResponseEntity.status(401).body("Refresh token invalide"));
+    public ResponseEntity<TokenRefreshResponse> refreshToken(@RequestBody RefreshTokenRequest request) {
+        Optional<RefreshToken> optToken = refreshTokenService.findByToken(request.refreshToken());
+        if (optToken.isEmpty()) {
+            return ResponseEntity.status(401).build();
+        }
+        RefreshToken token = optToken.get();
+        if (refreshTokenService.isExpired(token)) {
+            refreshTokenService.deleteByUser(token.getUser());
+            return ResponseEntity.status(401).build();
+        }
+        String newAccessToken = jwtTokenProvider.generateToken(token.getUser().getUsername());
+        RefreshToken newRefresh = refreshTokenService.createRefreshToken(token.getUser());
+        return ResponseEntity.ok(new TokenRefreshResponse(newAccessToken, newRefresh.getToken()));
     }
 
     @PostMapping("/logout")
