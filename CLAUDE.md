@@ -138,7 +138,83 @@ Service frontend : `websocket.service.ts`
 ### Tests — règle absolue
 - **Chaque feature branch inclut ses tests dans le même PR** — on ne merge pas sans tests
 - Backend : JUnit 5 + Mockito dans `src/test/java/.../service/` — un test par méthode métier, cas limites obligatoires
-- Frontend : Karma + Jasmine — `*.spec.ts` à côté du fichier testé, couvre sélecteurs NgRx, guards, services HTTP
+- Frontend : Karma + Jasmine dans **`src/test/`** (structure miroir de `src/app/`, comme Maven — pas de co-localisation Angular)
+
+#### Structure tests frontend (décision actée)
+
+```
+frontend/src/test/                     ← tous les *.spec.ts ici
+├── app.component.spec.ts
+├── core/
+│   ├── guards/                        # auth.guard, role.guard, admin.guard
+│   ├── interceptors/                  # auth.interceptor, error.interceptor
+│   ├── services/                      # cocktail, commande, ingredient, table, websocket…
+│   └── store/                         # auth.effects, auth.reducer, auth.selectors
+└── features/
+    ├── auth/                          # login, register
+    ├── cocktails/                     # cocktail-list, cocktail-form
+    ├── commandes/                     # commande-list, commande-form, commande-detail
+    ├── dashboard-barman/              # dashboard + commande-card
+    ├── dashboard-manager/             # dashboard + stat-card
+    ├── dashboard-serveur/             # dashboard + table-card
+    ├── factures/                      # facture-list, facture-detail, facture-split + services/
+    ├── ingredients/                   # ingredient-list, ingredient-form, ingredient-detail
+    └── tables/                        # table-list, table-form, table-detail
+```
+
+`frontend/tsconfig.spec.json` doit inclure `"src/test/**/*.spec.ts"` (pas `src/**/*.spec.ts`).
+
+#### Patron backend (existant à reproduire)
+
+```java
+@ExtendWith(MockitoExtension.class)
+class XxxServiceTest {
+    @Mock XxxRepository xxxRepository;
+    @InjectMocks XxxService xxxService;
+
+    @Test void methode_cas_comportementAttendu() {
+        given(xxxRepository.findAll()).willReturn(List.of(...));
+        assertThat(xxxService.getAll()).hasSize(1);
+    }
+}
+```
+
+#### Patron frontend (existant à reproduire)
+
+```typescript
+describe('XxxService', () => {
+  let service: XxxService;
+  let http: HttpTestingController;
+  beforeEach(() => TestBed.configureTestingModule({
+    imports: [HttpClientTestingModule],
+    providers: [XxxService]
+  }));
+  it('getAll() appelle GET /api/xxx', () => { ... });
+});
+```
+
+#### Travail en attente — ticket #47 : couverture complète
+
+Générer une suite de tests de non-régression couvrant **tous** les services, guards, interceptors, store et composants.
+Branch à créer : `test/couverture-complete`
+
+**Backend — tests manquants** (`backend/src/test/java/.../service/`) :
+- `DashboardServiceTest` — toutes les méthodes stats
+- `AuditLogServiceTest` — log(), getAll(), getByUser()
+- `PdfServiceTest` — generateFacturePdf() retourne byte[] non vide
+- `NotificationServiceTest` — vérifie topics STOMP envoyés
+- `CocktailIngredientServiceTest` + `CocktailVarianteServiceTest` — CRUD
+- `FactureServiceTest` — ajouter splitEgal() et splitParSelection()
+
+**Frontend — services** (`frontend/src/test/core/services/`) :
+`auth.service`, `commande.service`, `ingredient.service`, `table.service`, `websocket.service`, `notification.service`, `navigation.service`
+(`frontend/src/test/features/`) : `factures/services/facture.service`, `dashboard-barman/services/`, `dashboard-manager/services/`, `dashboard-serveur/services/`
+
+**Frontend — store** : `auth.effects`, `auth.reducer` (selectors déjà testés)
+
+**Frontend — guards + interceptors** : `auth.guard`, `admin.guard`, `auth.interceptor`, `error.interceptor`
+
+**Frontend — composants** : login, register, cocktail-list/form, commande-list/form/detail, facture-list/detail/split, ingredient-list/form/detail, table-list/form/detail, admin + user-list/dialogs, dashboards (barman/manager/serveur + leurs sous-composants), core (header, navbar, footer, loading-spinner, stock-alert-banner), home, profile
 
 ## Internationalisation (i18n)
 
