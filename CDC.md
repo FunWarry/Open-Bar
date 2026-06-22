@@ -187,43 +187,44 @@ Service frontend : `websocket.service.ts` — ⚠️ abonnements partiellement i
 
 | Feature | Backend | Frontend | Tests | Design Figma | Priorité |
 |---------|---------|----------|-------|--------------|----------|
-| Auth JWT | ✅ | ✅ | ⚠️ | ✅ | — |
-| Gestion users (admin) | ✅ | ✅ | ⚠️ | ✅ | — |
+| Auth JWT | ✅ | ✅ | ✅ | ✅ | — |
+| Refresh token JWT (rotation) | ✅ | ✅ | ✅ | — | — |
+| Gestion users (admin) | ✅ | ✅ | ✅ | ✅ | — |
 | Rôle MANAGER + BARMAN (ex-BARMEN) | ✅ | ✅ | ✅ | — | — |
-| DTOs de sortie backend | ✅ | — | ⚠️ | — | — |
-| GlobalExceptionHandler + error interceptor | ✅ | ✅ | ⚠️ | — | — |
-| **Cocktails CRUD (liste barman)** | ✅ | ⚠️ squelette | ❌ | ✅ designé | — |
-| **Cocktail — détail / fiche recette** | ✅ | ⚠️ squelette | ❌ | ✅ designé | — |
-| **Cocktail — création / édition** | ✅ | ⚠️ squelette | ❌ | ✅ designé | — |
-| Ingrédients CRUD | ✅ | ⚠️ squelette | ❌ | ✅ | — |
-| Tables | ✅ | ⚠️ squelette | ❌ | ✅ | — |
-| Commandes (kanban barman) | ✅ | ⚠️ squelette | ❌ | ✅ | — |
+| DTOs de sortie backend | ✅ | — | ✅ | — | — |
+| GlobalExceptionHandler + error interceptor | ✅ | ✅ | ✅ | — | — |
+| **Cocktails CRUD (liste barman)** | ✅ | ⚠️ squelette | ✅ | ✅ designé | — |
+| **Cocktail — détail / fiche recette** | ✅ | ⚠️ squelette | ✅ | ✅ designé | — |
+| **Cocktail — création / édition** | ✅ | ⚠️ squelette | ✅ | ✅ designé | — |
+| **Saisonnalité cocktails** | ✅ | ✅ | ✅ | ❌ | — |
+| Ingrédients CRUD | ✅ | ⚠️ squelette | ✅ | ✅ | — |
+| Tables | ✅ | ⚠️ squelette | ✅ | ✅ | — |
+| Commandes (kanban barman) | ✅ | ⚠️ squelette | ✅ | ✅ | — |
 | Déstockage auto à la commande | ✅ | — | ✅ | — | — |
-| **Stock — vue rapide (shift)** | ✅ | ⚠️ squelette | ❌ | ✅ | — |
-| **Stock — vue globale (gestion complète)** | ✅ | ⚠️ squelette | ❌ | ✅ designé | 🟡 Moyenne |
-| Plan de salle (manager) | ✅ | ⚠️ squelette | ❌ | ✅ | — |
+| **Stock — vue rapide (shift)** | ✅ | ⚠️ squelette | ✅ | ✅ | — |
+| **Stock — vue globale (gestion complète)** | ✅ | ⚠️ squelette | ✅ | ✅ designé | 🟡 Moyenne |
+| Plan de salle (manager) | ✅ | ⚠️ squelette | ✅ | ✅ | — |
 | **Vue Serveur — Plan de salle (lecture)** | ✅ | ❌ | ❌ | ✅ designé | 🔴 Haute |
 | **Vue Serveur — Détail table + side panel** | ✅ | ❌ | ❌ | ✅ designé | 🔴 Haute |
 | **Vue Serveur — Nouvelle commande** | ✅ | ❌ | ❌ | ✅ designé | 🔴 Haute |
 | **Vue Serveur — Suivi commandes (kanban)** | ✅ | ❌ | ❌ | ✅ designé | 🟡 Moyenne |
-| **Login** | ✅ | ✅ | ⚠️ | ✅ designé | — |
-| **Register / Create user** | ✅ | ⚠️ squelette | ❌ | ✅ designé | — |
-| **Profile / Mon compte** | ✅ | ⚠️ squelette | ❌ | ✅ designé | — |
-| **404 / Error page** | — | ✅ | ⚠️ | ✅ designé | — |
+| **Login** | ✅ | ✅ | ✅ | ✅ designé | — |
+| **Register / Create user** | ✅ | ⚠️ squelette | ✅ | ✅ designé | — |
+| **Profile / Mon compte** | ✅ | ⚠️ squelette | ✅ | ✅ designé | — |
+| **404 / Error page** | — | ✅ | ✅ | ✅ designé | — |
 | **Loading / Splash screen** | — | — | — | ✅ designé | — |
-| Services HTTP frontend | ✅ | ❌ | — | — | 🔴 Haute |
-| WebSocketService | ✅ | ❌ vide | — | — | 🔴 Haute |
-| Notifications temps réel | ✅ | ❌ | — | ✅ | 🔴 Haute |
-| Factures (frontend) | ✅ | ❌ | ❌ | ⚠️ partiel | 🔴 Haute |
-| Dashboard / statistiques | ❌ | ❌ | — | ❌ | 🟡 Moyenne |
+| WebSocketService | ✅ | ❌ vide | ✅ | — | 🔴 Haute |
+| Notifications temps réel | ✅ | ❌ | ✅ | ✅ | 🔴 Haute |
+| Factures (liste + détail) | ✅ | ⚠️ squelette | ✅ | ⚠️ partiel | 🔴 Haute |
+| **Export PDF factures** | ✅ | ✅ bouton | ✅ | ❌ | — |
+| **Division d'addition (split)** | ✅ | ❌ UI | ✅ | ❌ | 🟡 Moyenne |
+| **Dashboard / statistiques** | ✅ | ❌ | ✅ | ❌ | 🟡 Moyenne |
 | Plan de salle interactif | ❌ | ❌ | — | ⚠️ esquissé | 🟡 Moyenne |
 | QR code commande client | ❌ | ❌ | — | ✅ designé | 🟡 Moyenne |
 | Fusion de tables | ❌ | ❌ | — | ✅ designé | 🟡 Moyenne |
-| Division d'addition | ❌ | ❌ | — | ❌ | 🟢 Basse |
-| Export PDF factures | ❌ | ❌ | — | ❌ | 🟢 Basse |
-| Saisonnalité cocktails | ⚠️ modèle OK | ❌ | — | ❌ | 🟢 Basse |
 
-> Légende tests : ✅ tests écrits et passants · ⚠️ tests partiels (à compléter) · ❌ aucun test · — non applicable
+> Légende tests : ✅ tests écrits et passants · ⚠️ tests partiels · ❌ aucun test · — non applicable
+> Dernière mise à jour : 22 juin 2026 (PR #100–#103)
 
 ---
 
@@ -438,48 +439,51 @@ try {
 | 1 | Secret JWT hardcodé | `application.yml` | Sécurité critique | 🔴 Ouvert |
 | 2 | `allow-circular-references: true` | `application.yml` | Smell design circulaire | 🟡 Ouvert |
 | 3 | Bug `dateLivraison` set sur `PRET` | `CommandeService.changerStatut()` | Données incorrectes | 🟡 Ouvert |
-| 4 | Tests backend insuffisants | Services, Controllers | Régressions silencieuses | 🟡 En cours (#47) |
+| 4 | Couverture de tests insuffisante | Front + back | Régressions silencieuses | ✅ Résolu (PR #103) |
 | 5 | Pas de DTOs de sortie | Tous les controllers | Fuite données + boucles JSON | ✅ Résolu (PR #83) |
 | 6 | Typo `BARMEN` → `BARMAN` | Enum `UserRole` + controllers | Confusion codebase | ✅ Résolu (PR #85) |
-| 7 | Exceptions génériques (`RuntimeException`) | Services | Messages d'erreur peu utiles | 🟢 Ouvert |
+| 7 | Exceptions génériques (`RuntimeException`) | Services | Messages d'erreur peu utiles | 🟡 Partiellement résolu (AuthController PR #100) |
 | 8 | Double filtre JWT (auth + authz) | `SecurityConfig` | 2× `loadUserByUsername` par requête | 🟡 Ouvert |
+| 9 | Refresh token absent | Backend + Frontend | Sessions non révocables | ✅ Résolu (PR #100) |
+| 10 | Tests front co-localisés (Angular défaut) | `src/app/**/*.spec.ts` | Structure incompatible Maven-like | ✅ Résolu (PR #103) |
 
 ---
 
 ## 9. Roadmap
 
-### Phase 1 — Stabilisation (court terme)
+### Phase 1 — Stabilisation ✅ Terminée
 
-- [ ] Corriger le bug `dateLivraison` dans `CommandeService` (set sur PRET → doit être LIVREE)
-- [ ] Externaliser le secret JWT en variable d'environnement
-- [x] ~~Écrire les premiers tests backend~~ — en cours (#47), tests CommandeService + sélecteurs NgRx écrits
-- [x] ~~Introduire des DTOs de sortie pour les controllers principaux~~ — fait (PR #83)
-- [ ] Compléter les abonnements WebSocket côté frontend (`websocket.service.ts`)
-
-### Phase 2 — Migration stack + features prioritaires
-
-- [ ] **Migration Angular Material → Ionic** — remplacer les composants UI par des équivalents Ionic (#16)
-- [ ] **Intégration Capacitor** — configuration iOS + Android
+- [x] ~~Écrire les tests backend et frontend~~ — fait (PR #103) : 53 specs Angular + 12 tests Java
+- [x] ~~Introduire des DTOs de sortie~~ — fait (PR #83)
+- [x] ~~Refresh token JWT (sécurité sessions)~~ — fait (PR #100)
+- [x] ~~Déstockage automatique~~ — fait (PR #84)
 - [x] ~~Ajout du rôle MANAGER~~ — fait (PR #85)
-- [ ] **Facturation frontend** — l'API backend est prête, il manque l'UI Ionic
-- [x] ~~Déstockage automatique~~ — fait (PR #84), avec garde idempotence + alerte WebSocket
-- [ ] **Dashboard manager** — stats temps réel (commandes/heure, revenus, stock critique)
-- [ ] **Vue Serveur Figma + Ionic** — plan de salle serveur, prise de commande
-- [ ] **i18n** — mise en place du système de traduction Angular (Transloco décidé)
+- [ ] **Corriger le bug `dateLivraison`** — set sur PRET → doit être LIVREE (`CommandeService.changerStatut()`)
+- [ ] **Externaliser le secret JWT** — `application.yml` → variable d'environnement
+
+### Phase 2 — Features prioritaires (en cours)
+
+- [x] ~~Export PDF factures~~ — fait (PR #101) : `PdfService` + endpoint + bouton frontend
+- [x] ~~Saisonnalité cocktails~~ — fait (PR #102) : UI Ionic + backend
+- [ ] **Compléter WebSocketService frontend** — abonnements STOMP manquants
+- [ ] **Vue Serveur Ionic** — plan de salle (lecture), prise de commande, suivi kanban (designé en Figma)
+- [ ] **Dashboard frontend** — backend `DashboardService` prêt, UI manquante
+- [ ] **Division d'addition — UI frontend** — backend `splitEgal()` + `splitParSelection()` prêts (#46)
+- [ ] **Migration Angular Material → Ionic** — quelques composants résiduels à migrer
 
 ### Phase 3 — Features avancées
 
 - [ ] Plan de salle interactif avec **Konva.js** — canvas libre, drag & drop, rotation, zones polygones
-- [ ] QR code client — `TableSession` + interface non authentifiée (déjà designé en Figma)
+- [ ] QR code client — `TableSession` + interface non authentifiée (designé en Figma)
 - [ ] Fusion de tables — modèle de données + API + UI Manager
-- [ ] Division d'addition — UI + logique de répartition
-- [ ] Export PDF factures — génération backend (iText ou JasperReports)
+- [ ] **i18n** — Transloco décidé, à câbler (fichiers `fr.json` / `en.json`)
+- [ ] **Intégration Capacitor** — configuration iOS + Android
 
 ### Phase 4 — Personnalisation
 
-- [ ] Saisonnalité cocktails — le modèle backend existe, connecter l'UI
+- [x] ~~Saisonnalité cocktails~~ — fait (PR #102)
 - [ ] Alertes stock configurables — seuils par ingrédient
-- [ ] Historique / audit complet — `AuditLogService` déjà en place
+- [ ] Historique / audit complet — `AuditLogService` déjà en place + tests écrits
 
 ---
 
@@ -655,23 +659,24 @@ Après une authentification réussie, l'utilisateur est redirigé directement ve
 
 ## 13. Prochaine session — priorités
 
-### Backend
+> Mis à jour le 22 juin 2026 après PRs #100–#103.
 
-- 🐛 Corriger `dateLivraison` dans `CommandeService` (set sur `PRET` → doit être `LIVREE`)
-- 🔐 Externaliser secret JWT (`application.yml` → variable d'environnement)
-- 🧪 Tests unitaires `CommandeService` (cycle de vie commande)
-- 📦 Déstockage auto : hook dans `changerStatut()` sur `EN_PREPARATION`
+### Priorité haute
 
-### Frontend
+1. 🔌 **WebSocketService frontend** — implémenter les abonnements STOMP (`/topic/commandes`, `/topic/tables`, `/topic/stock/alerte`) dans `websocket.service.ts`
+2. 📊 **Dashboard frontend** — composants `StatCard`, graphiques, connexion à `GET /api/dashboard/stats` (backend prêt)
+3. 🗂 **Vue Serveur Angular/Ionic** — 4 écrans designés en Figma, backend prêt, à implémenter
 
-- Compléter abonnements WebSocket (`websocket.service.ts`)
-- Créer module Facturation (API backend prête, UI manquante)
-- Implémenter Vue Serveur Angular/Ionic depuis le design Figma
+### Priorité moyenne
+
+4. 💳 **Division d'addition — UI** — backend `splitEgal()` + `splitParSelection()` prêts (#46), ajouter les composants Ionic
+5. 🔐 Externaliser secret JWT (`application.yml` → variable d'environnement)
+6. 🐛 Corriger bug `dateLivraison` (set sur `PRET` → doit être `LIVREE`) dans `CommandeService`
 
 ### Figma
 
-- Dashboard Manager (from scratch)
-- Peaufiner les vues Serveur si retours utilisateur
+- Dashboard Manager — aucun écran designé, à créer from scratch (StatCards, charts temps réel)
+- Division d'addition — flow UX à designer (#66)
 
 ### Rappels plugin Figma
 

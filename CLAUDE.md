@@ -138,7 +138,8 @@ Service frontend : `websocket.service.ts`
 ### Tests — règle absolue
 - **Chaque feature branch inclut ses tests dans le même PR** — on ne merge pas sans tests
 - Backend : JUnit 5 + Mockito dans `src/test/java/.../service/` — un test par méthode métier, cas limites obligatoires
-- Frontend : Karma + Jasmine dans **`src/test/`** (structure miroir de `src/app/`, comme Maven — pas de co-localisation Angular)
+- Frontend : Karma + Jasmine dans **`src/test/`** (structure miroir de `src/app/`, comme Maven — **pas** de co-localisation Angular)
+- `tsconfig.spec.json` : `"src/test/**/*.spec.ts"` — ✅ configuré (PR #103)
 
 #### Structure tests frontend (décision actée)
 
@@ -193,28 +194,15 @@ describe('XxxService', () => {
 });
 ```
 
-#### Travail en attente — ticket #47 : couverture complète
+#### Couverture de tests — ✅ ticket #47 résolu (PR #103)
 
-Générer une suite de tests de non-régression couvrant **tous** les services, guards, interceptors, store et composants.
-Branch à créer : `test/couverture-complete`
+Suite de tests de non-régression complète dans `frontend/src/test/` et `backend/src/test/`.
 
-**Backend — tests manquants** (`backend/src/test/java/.../service/`) :
-- `DashboardServiceTest` — toutes les méthodes stats
-- `AuditLogServiceTest` — log(), getAll(), getByUser()
-- `PdfServiceTest` — generateFacturePdf() retourne byte[] non vide
-- `NotificationServiceTest` — vérifie topics STOMP envoyés
-- `CocktailIngredientServiceTest` + `CocktailVarianteServiceTest` — CRUD
-- `FactureServiceTest` — ajouter splitEgal() et splitParSelection()
+**Résumé** : 53 specs Angular + 12 tests Java — CI vert.
 
-**Frontend — services** (`frontend/src/test/core/services/`) :
-`auth.service`, `commande.service`, `ingredient.service`, `table.service`, `websocket.service`, `notification.service`, `navigation.service`
-(`frontend/src/test/features/`) : `factures/services/facture.service`, `dashboard-barman/services/`, `dashboard-manager/services/`, `dashboard-serveur/services/`
+**Structure frontend** : `src/test/` (structure miroir de `src/app/`, comme Maven). `tsconfig.spec.json` pointe sur `src/test/**/*.spec.ts`.
 
-**Frontend — store** : `auth.effects`, `auth.reducer` (selectors déjà testés)
-
-**Frontend — guards + interceptors** : `auth.guard`, `admin.guard`, `auth.interceptor`, `error.interceptor`
-
-**Frontend — composants** : login, register, cocktail-list/form, commande-list/form/detail, facture-list/detail/split, ingredient-list/form/detail, table-list/form/detail, admin + user-list/dialogs, dashboards (barman/manager/serveur + leurs sous-composants), core (header, navbar, footer, loading-spinner, stock-alert-banner), home, profile
+**Tests existants** : tous les services, guards, interceptors, store, composants core et features.
 
 ## Internationalisation (i18n)
 
@@ -279,33 +267,39 @@ Pour les fichiers scopés par feature (ex : `fr/commandes.json`), déclarer le s
 1. **Secret JWT hardcodé** dans `application.yml` → à externaliser en variable d'environnement
 2. **`allow-circular-references: true`** dans Spring → smell de design circulaire à corriger
 3. **Bug dateLivraison** : set sur `PRET` au lieu de `LIVREE` dans `CommandeService.changerStatut()`
-4. **Tests insuffisants** — priorité ticket #47, règle : toute nouvelle feature = tests dans le même PR
+4. ~~Tests insuffisants~~ — **résolu PR #103** : 53 specs Angular dans `src/test/` + 12 tests Java
 5. ~~Pas de DTOs de sortie~~ — **résolu PR #83** : Java records avec `from(entity)` sur tous les controllers
 6. ~~Typo `BARMEN`~~ — **résolu PR #85** : enum renommé `BARMAN`, migration SQL documentée dans `schema.sql`
+7. ~~Refresh token absent~~ — **résolu PR #100** : rotation + interceptor HTTP frontend
+8. **Exceptions génériques** (`RuntimeException`) dans les services → `NoSuchElementException` / exceptions métier (partiellement corrigé PR #100)
 
 ## Features implémentées vs. manquantes
 
+> Dernière mise à jour : 22 juin 2026 — PRs #100 (refresh token), #101 (PDF), #102 (saisonnalité), #103 (tests)
+
 | Feature | Backend | Frontend | Tests |
 |---------|---------|----------|-------|
-| Auth JWT | ✅ | ✅ | ⚠️ |
-| Gestion users (admin) | ✅ | ✅ | ⚠️ |
+| Auth JWT | ✅ | ✅ | ✅ |
+| Refresh token JWT | ✅ | ✅ | ✅ |
+| Gestion users (admin) | ✅ | ✅ | ✅ |
 | Rôles ADMIN/MANAGER/SERVEUR/BARMAN | ✅ | ✅ | ✅ |
-| DTOs de sortie (tous controllers) | ✅ | — | ⚠️ |
-| GlobalExceptionHandler | ✅ | — | ⚠️ |
-| Error interceptor frontend | — | ✅ | ⚠️ |
-| Cocktails CRUD | ✅ | ⚠️ squelette | ❌ |
-| Ingrédients CRUD | ✅ | ⚠️ squelette | ❌ |
-| Tables | ✅ | ⚠️ squelette | ❌ |
-| Commandes | ✅ | ⚠️ squelette | ❌ |
+| DTOs de sortie (tous controllers) | ✅ | — | ✅ |
+| GlobalExceptionHandler | ✅ | — | ✅ |
+| Error interceptor frontend | — | ✅ | ✅ |
+| Cocktails CRUD | ✅ | ⚠️ squelette | ✅ |
+| Saisonnalité cocktails | ✅ | ✅ | ✅ |
+| Ingrédients CRUD | ✅ | ⚠️ squelette | ✅ |
+| Tables | ✅ | ⚠️ squelette | ✅ |
+| Commandes | ✅ | ⚠️ squelette | ✅ |
 | Déstockage auto (EN_PREPARATION) | ✅ | — | ✅ |
 | Alertes stock WebSocket | ✅ | ❌ | ✅ |
-| Notifications WS | ✅ | ❌ | — |
-| Factures | ✅ | ❌ | ❌ |
-| Dashboard / stats | ❌ | ❌ | — |
+| Notifications WS | ✅ | ❌ | ✅ |
+| Factures (liste + détail) | ✅ | ⚠️ squelette | ✅ |
+| Export factures (PDF) | ✅ | ✅ bouton | ✅ |
+| Division d'addition (splitEgal/splitParSelection) | ✅ | ❌ UI | ✅ |
+| Dashboard / stats | ✅ | ❌ | ✅ |
 | Plan de salle interactif (Konva.js) | ❌ | ❌ | — |
-| Saisonnalité cocktails | ⚠️ modèle ok | ❌ | — |
-| Division d'addition | ❌ | ❌ | — |
-| Export factures (PDF) | ❌ | ❌ | — |
+| Vue Serveur complète | ✅ API | ❌ | ❌ |
 
 ## Ajouter une nouvelle feature (checklist)
 
