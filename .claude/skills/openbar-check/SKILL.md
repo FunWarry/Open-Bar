@@ -201,17 +201,17 @@ Après avoir exécuté toutes les vérifications, produire un tableau récapitul
 | RTK                    | ✅     | rtk X.Y.Z                         |
 | MCP GitHub             | ✅     | Connecté en tant que FunWarry      |
 | gh CLI + scope project | ✅     | Authenticated, read:project OK     |
-| Project Board          | ✅     | 75 items dans le board             |
+| Project Board          | ✅     | 80+ items dans le board            |
 | MCP Figma              | ✅     | Connecté, fichier OpenBar accessible|
 | Java                   | ✅     | Java 22.x                         |
-| Maven                  | ✅     | Maven 3.x.x                       |
-| Docker                 | ✅     | Docker 24.x                       |
+| Maven                  | ✅     | Maven 3.9.x                       |
+| Docker                 | ✅     | Docker 24.x+                      |
 | PostgreSQL (Docker)    | ✅     | Conteneur actif                    |
-| Node.js                | ✅     | v20.x                             |
-| npm                    | ✅     | 10.x                              |
-| Angular CLI            | ✅     | 19.x                              |
+| Node.js                | ✅     | v24.x (LTS actuel)                |
+| npm                    | ✅     | 11.x                              |
+| Angular CLI            | ✅     | 20.x                              |
 | node_modules frontend  | ✅     | Installés                         |
-| Ionic CLI              | ✅     | 7.x                               |
+| Ionic CLI              | ✅     | 5.x                               |
 | Git remote             | ✅     | FunWarry/Open-Bar                  |
 | Skill openbar-dev      | ✅     | Présent                           |
 | Backend (API)          | ⚠️     | Non lancé (optionnel)             |

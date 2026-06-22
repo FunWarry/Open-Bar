@@ -16,17 +16,17 @@ Communication temps réel entre tous les acteurs via WebSocket STOMP — du tick
 | Backend | Spring Boot | 3.3.3 |
 | Runtime | Java | 22 |
 | Base de données | PostgreSQL | — |
-| Sécurité | Spring Security + JWT | JJWT 0.11.5 |
+| Sécurité | Spring Security + JWT | JJWT 0.12.6 |
 | Temps réel | WebSocket STOMP | via Spring |
-| Frontend | Angular | 19 |
-| UI | Ionic | 8+ |
-| State | NgRx | 19 |
+| Frontend | Angular | 20 |
+| UI | Ionic | 8.8.11 |
+| State | NgRx | 20 |
 
 ---
 
 ## Lancer le projet
 
-**Prérequis** : Java 22, Maven, Node.js 20+, Docker
+**Prérequis** : Java 22, Maven, Node.js 22+, Docker
 
 ```bash
 # 1. Base de données
