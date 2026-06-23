@@ -278,7 +278,7 @@ Pour les fichiers scopés par feature (ex : `fr/commandes.json`), déclarer le s
 
 ## Features implémentées vs. manquantes
 
-> Dernière mise à jour : 23 juin 2026 — #106 (Vue Serveur complète), #105 (Dashboard Manager polling)
+> Dernière mise à jour : 23 juin 2026 — #111–#115 (CRUDs), #117 (notifications), #106 (Vue Serveur)
 
 | Feature | Backend | Frontend | Tests |
 |---------|---------|----------|-------|
@@ -289,17 +289,17 @@ Pour les fichiers scopés par feature (ex : `fr/commandes.json`), déclarer le s
 | DTOs de sortie (tous controllers) | ✅ | — | ✅ |
 | GlobalExceptionHandler | ✅ | — | ✅ |
 | Error interceptor frontend | — | ✅ | ✅ |
-| Cocktails CRUD | ✅ | ⚠️ squelette | ✅ |
+| Cocktails CRUD | ✅ | ✅ | ✅ |
 | Saisonnalité cocktails | ✅ | ✅ | ✅ |
-| Ingrédients CRUD | ✅ | ⚠️ squelette | ✅ |
-| Tables | ✅ | ⚠️ squelette | ✅ |
-| Commandes | ✅ | ⚠️ squelette | ✅ |
+| Ingrédients CRUD | ✅ | ✅ | ✅ |
+| Tables | ✅ | ✅ | ✅ |
+| Commandes | ✅ | ✅ | ✅ |
 | Déstockage auto (EN_PREPARATION) | ✅ | — | ✅ |
-| Alertes stock WebSocket | ✅ | ⚠️ banner existe, non branché | ✅ |
-| Notifications WS | ✅ | ⚠️ toasts OK, panneau historique ❌ | ✅ |
-| Factures (liste + détail) | ✅ | ⚠️ squelette | ✅ |
-| Export factures (PDF) | ✅ | ✅ bouton | ✅ |
-| Division d'addition (splitEgal/splitParSelection) | ✅ | ⚠️ mode par article partiel, égal ❌ | ✅ |
+| Alertes stock WebSocket | ✅ | ✅ | ✅ |
+| Notifications WS (toasts + panneau navbar) | ✅ | ✅ | ✅ |
+| Factures (liste + détail + règlement) | ✅ | ✅ | ✅ |
+| Export factures (PDF) | ✅ | ✅ | ✅ |
+| Division d'addition (splitEgal/splitParSelection) | ✅ | ✅ | ✅ |
 | Dashboard Manager / stats | ✅ | ✅ polling 30s | ✅ |
 | Dashboard Barman | ✅ | ✅ kanban temps réel | ✅ |
 | Vue Serveur (plan de salle + commandes) | ✅ | ✅ modal + nouvelle commande + kanban | ✅ |

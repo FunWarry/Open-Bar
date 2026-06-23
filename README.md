@@ -69,27 +69,29 @@ EN_ATTENTE → EN_PREPARATION → PRET → LIVREE → REGLEE
 
 ## État d'implémentation
 
-> Légende : ✅ complet · 🔄 squelette / en cours · ❌ manquant · — non applicable
+> Dernière mise à jour : 23 juin 2026 — #111–#117 (CRUDs + notifications + Vue Serveur)
+> Légende : ✅ complet · 🔄 en cours · ❌ manquant · — non applicable
 
 | Feature | Backend | Frontend | Tests |
 |---------|---------|----------|-------|
 | Auth JWT + Refresh token | ✅ | ✅ | ✅ |
 | Routing + guards + lazy loading | ✅ | ✅ | ✅ |
 | Gestion utilisateurs (admin) | ✅ | ✅ | ✅ |
-| Cocktails CRUD | ✅ | 🔄 squelette | ✅ |
+| Cocktails CRUD | ✅ | ✅ | ✅ |
 | Saisonnalité cocktails | ✅ | ✅ | ✅ |
-| Ingrédients CRUD | ✅ | 🔄 squelette | ✅ |
-| Tables | ✅ | 🔄 squelette | ✅ |
-| Commandes (kanban barman) | ✅ | 🔄 squelette | ✅ |
+| Ingrédients CRUD | ✅ | ✅ | ✅ |
+| Tables CRUD | ✅ | ✅ | ✅ |
+| Commandes (liste + détail + kanban barman) | ✅ | ✅ | ✅ |
 | Déstockage automatique | ✅ | — | ✅ |
-| Plan de salle (manager) | ✅ | 🔄 squelette | ✅ |
-| Factures (liste + détail + split) | ✅ | 🔄 squelette | ✅ |
-| Export PDF factures | ✅ | ✅ bouton | ✅ |
-| Division d'addition (split) | ✅ | ❌ | ✅ |
-| Dashboard / statistiques | ✅ | ❌ | ✅ |
-| WebSocketService | ✅ | ❌ vide | ✅ |
-| Notifications temps réel | ✅ | ❌ | ✅ |
-| Vue Serveur | ✅ | ❌ | ❌ |
+| Factures (liste + détail + split + règlement) | ✅ | ✅ | ✅ |
+| Export PDF factures | ✅ | ✅ | ✅ |
+| Division d'addition (split égal + par article) | ✅ | ✅ | ✅ |
+| Dashboard Manager / statistiques | ✅ | ✅ | ✅ |
+| Dashboard Barman (kanban temps réel) | ✅ | ✅ | ✅ |
+| Vue Serveur (plan de salle + commandes) | ✅ | ✅ | ✅ |
+| WebSocket STOMP (toutes vues) | ✅ | ✅ | ✅ |
+| Alertes stock (bannière barman) | ✅ | ✅ | ✅ |
+| Notifications temps réel (panneau navbar) | ✅ | ✅ | ✅ |
 | Plan de salle interactif (Konva.js) | ❌ | ❌ | — |
 | QR code commande client | ❌ | ❌ | — |
 
@@ -99,7 +101,7 @@ EN_ATTENTE → EN_PREPARATION → PRET → LIVREE → REGLEE
 
 - **[CDC.md](CDC.md)** — cahier des charges complet (stack, modèle de données, design system, roadmap)
 - **[docs/](docs)** — rapports de sessions et analyses
-- **[Kanban GitHub](https://github.com/users/FunWarry/projects/3/views/1)** — 75 issues (54 dev + 21 design)
+- **[Kanban GitHub](https://github.com/users/FunWarry/projects/3/views/1)** — 87 issues (65 dev + 22 design)
 - **[Design System Figma](https://www.figma.com/design/XSVwFk64kgtqgUN9n5qoMw)** — 6 pages, 60+ composants
 
 ---

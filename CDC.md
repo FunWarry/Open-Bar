@@ -177,7 +177,7 @@ EN_ATTENTE → EN_PREPARATION → PRET → LIVREE → REGLEE
 | `/topic/tables` | Occupation / libération table | Serveur, Manager |
 | `/topic/stock/alerte` | Stock faible détecté | Barman, Manager |
 
-Service frontend : `websocket.service.ts` — ⚠️ abonnements partiellement implémentés.
+Service frontend : `websocket.service.ts` — ✅ pleinement implémenté (RxStomp, reconnexion automatique, JWT header). `NotificationService` abonné aux 4 topics, toasts + panneau historique dans la navbar.
 
 ---
 
@@ -193,38 +193,37 @@ Service frontend : `websocket.service.ts` — ⚠️ abonnements partiellement i
 | Rôle MANAGER + BARMAN (ex-BARMEN) | ✅ | ✅ | ✅ | — | — |
 | DTOs de sortie backend | ✅ | — | ✅ | — | — |
 | GlobalExceptionHandler + error interceptor | ✅ | ✅ | ✅ | — | — |
-| **Cocktails CRUD (liste barman)** | ✅ | ⚠️ squelette | ✅ | ✅ designé | — |
-| **Cocktail — détail / fiche recette** | ✅ | ⚠️ squelette | ✅ | ✅ designé | — |
-| **Cocktail — création / édition** | ✅ | ⚠️ squelette | ✅ | ✅ designé | — |
+| **Cocktails CRUD (liste + formulaire)** | ✅ | ✅ | ✅ | ✅ designé | — |
 | **Saisonnalité cocktails** | ✅ | ✅ | ✅ | ❌ | — |
-| Ingrédients CRUD | ✅ | ⚠️ squelette | ✅ | ✅ | — |
-| Tables | ✅ | ⚠️ squelette | ✅ | ✅ | — |
-| Commandes (kanban barman) | ✅ | ⚠️ squelette | ✅ | ✅ | — |
+| **Ingrédients CRUD** | ✅ | ✅ | ✅ | ✅ | — |
+| **Tables CRUD** | ✅ | ✅ | ✅ | ✅ | — |
+| **Commandes (liste + détail + kanban barman)** | ✅ | ✅ | ✅ | ✅ | — |
 | Déstockage auto à la commande | ✅ | — | ✅ | — | — |
 | **Stock — vue rapide (shift)** | ✅ | ⚠️ squelette | ✅ | ✅ | — |
 | **Stock — vue globale (gestion complète)** | ✅ | ⚠️ squelette | ✅ | ✅ designé | 🟡 Moyenne |
 | Plan de salle (manager) | ✅ | ⚠️ squelette | ✅ | ✅ | — |
-| **Vue Serveur — Plan de salle (lecture)** | ✅ | ❌ | ❌ | ✅ designé | 🔴 Haute |
-| **Vue Serveur — Détail table + side panel** | ✅ | ❌ | ❌ | ✅ designé | 🔴 Haute |
-| **Vue Serveur — Nouvelle commande** | ✅ | ❌ | ❌ | ✅ designé | 🔴 Haute |
-| **Vue Serveur — Suivi commandes (kanban)** | ✅ | ❌ | ❌ | ✅ designé | 🟡 Moyenne |
+| **Vue Serveur — Plan de salle (lecture)** | ✅ | ✅ | ✅ | ✅ designé | — |
+| **Vue Serveur — Détail table + side panel** | ✅ | ✅ | ✅ | ✅ designé | — |
+| **Vue Serveur — Nouvelle commande** | ✅ | ✅ | ✅ | ✅ designé | — |
+| **Vue Serveur — Suivi commandes (kanban)** | ✅ | ✅ | ✅ | ✅ designé | — |
 | **Login** | ✅ | ✅ | ✅ | ✅ designé | — |
 | **Register / Create user** | ✅ | ⚠️ squelette | ✅ | ✅ designé | — |
 | **Profile / Mon compte** | ✅ | ⚠️ squelette | ✅ | ✅ designé | — |
 | **404 / Error page** | — | ✅ | ✅ | ✅ designé | — |
 | **Loading / Splash screen** | — | — | — | ✅ designé | — |
-| WebSocketService | ✅ | ❌ vide | ✅ | — | 🔴 Haute |
-| Notifications temps réel | ✅ | ❌ | ✅ | ✅ | 🔴 Haute |
-| Factures (liste + détail) | ✅ | ⚠️ squelette | ✅ | ⚠️ partiel | 🔴 Haute |
-| **Export PDF factures** | ✅ | ✅ bouton | ✅ | ❌ | — |
-| **Division d'addition (split)** | ✅ | ❌ UI | ✅ | ❌ | 🟡 Moyenne |
-| **Dashboard / statistiques** | ✅ | ❌ | ✅ | ❌ | 🟡 Moyenne |
-| Plan de salle interactif | ❌ | ❌ | — | ⚠️ esquissé | 🟡 Moyenne |
+| WebSocketService | ✅ | ✅ | ✅ | — | — |
+| **Notifications temps réel (toasts + panneau)** | ✅ | ✅ | ✅ | ✅ | — |
+| **Alertes stock (bannière barman)** | ✅ | ✅ | ✅ | ✅ | — |
+| **Factures (liste + détail + règlement)** | ✅ | ✅ | ✅ | ⚠️ partiel | — |
+| **Export PDF factures** | ✅ | ✅ | ✅ | ❌ | — |
+| **Division d'addition (split égal + par article)** | ✅ | ✅ | ✅ | ❌ | — |
+| **Dashboard Manager / statistiques** | ✅ | ✅ | ✅ | ❌ | — |
+| Plan de salle interactif (Konva.js) | ❌ | ❌ | — | ⚠️ esquissé | 🟡 Moyenne |
 | QR code commande client | ❌ | ❌ | — | ✅ designé | 🟡 Moyenne |
 | Fusion de tables | ❌ | ❌ | — | ✅ designé | 🟡 Moyenne |
 
 > Légende tests : ✅ tests écrits et passants · ⚠️ tests partiels · ❌ aucun test · — non applicable
-> Dernière mise à jour : 22 juin 2026 (PR #100–#103)
+> Dernière mise à jour : 23 juin 2026 (PRs #106, #111–#117)
 
 ---
 
@@ -461,15 +460,21 @@ try {
 - [ ] **Corriger le bug `dateLivraison`** — set sur PRET → doit être LIVREE (`CommandeService.changerStatut()`)
 - [ ] **Externaliser le secret JWT** — `application.yml` → variable d'environnement
 
-### Phase 2 — Features prioritaires (en cours)
+### Phase 2 — Features prioritaires ✅ Terminée
 
-- [x] ~~Export PDF factures~~ — fait (PR #101) : `PdfService` + endpoint + bouton frontend
-- [x] ~~Saisonnalité cocktails~~ — fait (PR #102) : UI Ionic + backend
-- [ ] **Compléter WebSocketService frontend** — abonnements STOMP manquants
-- [ ] **Vue Serveur Ionic** — plan de salle (lecture), prise de commande, suivi kanban (designé en Figma)
-- [ ] **Dashboard frontend** — backend `DashboardService` prêt, UI manquante
-- [ ] **Division d'addition — UI frontend** — backend `splitEgal()` + `splitParSelection()` prêts (#46)
-- [ ] **Migration Angular Material → Ionic** — quelques composants résiduels à migrer
+- [x] ~~Export PDF factures~~ — fait (PR #101)
+- [x] ~~Saisonnalité cocktails~~ — fait (PR #102)
+- [x] ~~Compléter WebSocketService frontend~~ — fait (PR #104) : RxStomp, reconnexion JWT
+- [x] ~~Vue Serveur Ionic~~ — fait (PR #106) : plan de salle, modal détail, nouvelle commande, kanban
+- [x] ~~Dashboard Manager frontend~~ — fait (PR #105) : stats temps réel, polling 30s
+- [x] ~~Division d'addition — UI frontend~~ — fait (#118 / PR #46) : split égal + par article
+- [x] ~~Cocktails CRUD frontend~~ — fait (#111) : liste, formulaire, toggle disponibilité
+- [x] ~~Ingrédients CRUD frontend~~ — fait (#112) : liste, formulaire, détail, alerte stock
+- [x] ~~Tables CRUD frontend~~ — fait (#113) : liste, formulaire, détail + commandes actives
+- [x] ~~Commandes frontend~~ — fait (#114) : liste filtrée, détail, annulation
+- [x] ~~Factures frontend~~ — fait (#115) : liste, détail, règlement, split
+- [x] ~~Notifications temps réel~~ — fait (#117) : panneau historique navbar, badge non-lues
+- [x] ~~Migration Angular Material → Ionic~~ — fait (PR #103)
 
 ### Phase 3 — Features avancées
 
