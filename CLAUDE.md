@@ -278,7 +278,7 @@ Pour les fichiers scopés par feature (ex : `fr/commandes.json`), déclarer le s
 
 ## Features implémentées vs. manquantes
 
-> Dernière mise à jour : 22 juin 2026 — PRs #100 (refresh token), #101 (PDF), #102 (saisonnalité), #103 (tests) + mise à jour stack (Angular 20, NgRx 20, JJWT 0.12.6)
+> Dernière mise à jour : 23 juin 2026 — #106 (Vue Serveur complète), #105 (Dashboard Manager polling)
 
 | Feature | Backend | Frontend | Tests |
 |---------|---------|----------|-------|
@@ -295,14 +295,16 @@ Pour les fichiers scopés par feature (ex : `fr/commandes.json`), déclarer le s
 | Tables | ✅ | ⚠️ squelette | ✅ |
 | Commandes | ✅ | ⚠️ squelette | ✅ |
 | Déstockage auto (EN_PREPARATION) | ✅ | — | ✅ |
-| Alertes stock WebSocket | ✅ | ❌ | ✅ |
-| Notifications WS | ✅ | ❌ | ✅ |
+| Alertes stock WebSocket | ✅ | ⚠️ banner existe, non branché | ✅ |
+| Notifications WS | ✅ | ⚠️ toasts OK, panneau historique ❌ | ✅ |
 | Factures (liste + détail) | ✅ | ⚠️ squelette | ✅ |
 | Export factures (PDF) | ✅ | ✅ bouton | ✅ |
-| Division d'addition (splitEgal/splitParSelection) | ✅ | ❌ UI | ✅ |
-| Dashboard / stats | ✅ | ❌ | ✅ |
+| Division d'addition (splitEgal/splitParSelection) | ✅ | ⚠️ mode par article partiel, égal ❌ | ✅ |
+| Dashboard Manager / stats | ✅ | ✅ polling 30s | ✅ |
+| Dashboard Barman | ✅ | ✅ kanban temps réel | ✅ |
+| Vue Serveur (plan de salle + commandes) | ✅ | ✅ modal + nouvelle commande + kanban | ✅ |
 | Plan de salle interactif (Konva.js) | ❌ | ❌ | — |
-| Vue Serveur complète | ✅ API | ❌ | ❌ |
+| Vue Client QR Code | ❌ | ❌ | — |
 
 ## Ajouter une nouvelle feature (checklist)
 
