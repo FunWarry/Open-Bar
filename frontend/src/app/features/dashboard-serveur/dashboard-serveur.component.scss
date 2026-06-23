@@ -1,0 +1,110 @@
+// Design tokens Figma — OpenBar Dark
+// surface-1: #1a1a2e | surface-2: #21263f | bg-0: #0f0f1a
+// primary: #6c7fe8 | serveur: #34c77b
+// text/primary: #eceefb | text/muted: #7e87a8
+// Free: #27ae60 | Occupied: #e67e22 | InProgress: #3498db
+
+.serveur-toolbar {
+  --background: #21263f;
+  --color: #eceefb;
+}
+
+.toolbar-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #eceefb;
+  font-family: 'Inter', sans-serif;
+  margin-right: 8px;
+}
+
+// Badge rôle Figma — Waiter = #34c77b
+.toolbar-role {
+  font-size: 10px;
+  font-weight: 600;
+  color: #34c77b;
+  letter-spacing: 0.66px;
+  text-transform: uppercase;
+  border: 1px solid rgba(52, 199, 123, 0.5);
+  background: rgba(52, 199, 123, 0.15);
+  padding: 2px 6px;
+  border-radius: 6px;
+  vertical-align: middle;
+}
+
+.serveur-content {
+  --background: #0f0f1a;
+}
+
+// Légende statuts (composant LegendItem Figma 126:141)
+.legend-bar {
+  display: flex;
+  gap: 16px;
+  padding: 10px 16px 4px;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+
+  &.dot-free       { background: #27ae60; }
+  &.dot-occupied   { background: #e67e22; }
+  &.dot-inprogress { background: #3498db; }
+}
+
+.legend-label {
+  font-size: 11px;
+  color: #7e87a8;
+  font-family: 'Inter', sans-serif;
+}
+
+// Segment filtres (CategoryTab Figma 128:84)
+.filter-segment {
+  padding: 8px 12px;
+  --background: #21263f;
+  border-radius: 10px;
+  margin: 0 8px;
+
+  ion-segment-button {
+    --color: #7e87a8;
+    --color-checked: #eceefb;
+    --background-checked: #6c7fe8;
+    --indicator-color: transparent;
+    --border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    min-height: 32px;
+  }
+}
+
+// Grille tables
+.tables-grid {
+  padding: 8px;
+}
+
+// État vide
+.empty-state {
+  text-align: center;
+  padding: 48px 16px;
+
+  .empty-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+  }
+
+  .empty-text {
+    color: #7e87a8;
+    font-style: italic;
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+  }
+}

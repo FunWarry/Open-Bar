@@ -1,0 +1,213 @@
+import { TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { RouterTestingModule } from '@angular/router/testing';
+import { IonicModule, ToastController } from '@ionic/angular';
+import { of, Subject, throwError } from 'rxjs';
+import { DashboardBarmanComponent } from '../../../app/features/dashboard-barman/dashboard-barman.component';
+import { DashboardBarmanService } from '../../../app/features/dashboard-barman/services/dashboard-barman.service';
+import { NotificationService, AppNotification } from '../../../app/core/services/notification.service';
+import { CommandeView } from '../../../app/features/dashboard-barman/models/commande-view.model';
+
+describe('DashboardBarmanComponent', () => {
+  let component: DashboardBarmanComponent;
+  let dashboardServiceSpy: jasmine.SpyObj<DashboardBarmanService>;
+  let notificationServiceSpy: jasmine.SpyObj<NotificationService>;
+  let toastCtrlSpy: jasmine.SpyObj<ToastController>;
+  let notification$: Subject<AppNotification>;
+
+  const mockCommandes: CommandeView[] = [
+    {
+      id: 1,
+      tableNom: 'Table 1',
+      serveurNom: 'Alice',
+      statut: 'EN_ATTENTE',
+      items: [{ id: 10, cocktailNom: 'Mojito', quantite: 2, prioritaire: false }],
+      dateCommande: new Date(),
+      prioritaire: false,
+    },
+  ];
+
+  const mockToast = { present: jasmine.createSpy('present') };
+
+  beforeEach(async () => {
+    notification$ = new Subject<AppNotification>();
+
+    dashboardServiceSpy = jasmine.createSpyObj('DashboardBarmanService', [
+      'getCommandesEnAttente',
+      'getCommandesEnPreparation',
+      'getCommandesPret',
+      'changerStatut',
+    ]);
+    dashboardServiceSpy.getCommandesEnAttente.and.returnValue(of(mockCommandes));
+    dashboardServiceSpy.getCommandesEnPreparation.and.returnValue(of([]));
+    dashboardServiceSpy.getCommandesPret.and.returnValue(of([]));
+    dashboardServiceSpy.changerStatut.and.returnValue(of({}));
+
+    notificationServiceSpy = jasmine.createSpyObj('NotificationService', ['onNotification']);
+    notificationServiceSpy.onNotification.and.returnValue(notification$.asObservable());
+
+    toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
+    toastCtrlSpy.create.and.returnValue(Promise.resolve(mockToast as any));
+
+    await TestBed.configureTestingModule({
+      imports: [
+        DashboardBarmanComponent,
+        IonicModule.forRoot(),
+        RouterTestingModule,
+      ],
+      providers: [
+        { provide: DashboardBarmanService, useValue: dashboardServiceSpy },
+        { provide: NotificationService, useValue: notificationServiceSpy },
+        { provide: ToastController, useValue: toastCtrlSpy },
+      ],
+    }).compileComponents();
+
+    const fixture = TestBed.createComponent(DashboardBarmanComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    component.ngOnDestroy();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+
+  it('chargerCommandes() peuple les trois colonnes du kanban', fakeAsync(() => {
+    dashboardServiceSpy.getCommandesEnAttente.and.returnValue(of(mockCommandes));
+    dashboardServiceSpy.getCommandesEnPreparation.and.returnValue(of([{ ...mockCommandes[0], id: 2, statut: 'EN_PREPARATION' as const }]));
+    dashboardServiceSpy.getCommandesPret.and.returnValue(of([{ ...mockCommandes[0], id: 3, statut: 'PRET' as const }]));
+
+    component.chargerCommandes();
+    tick();
+
+    expect(component.commandesEnAttente.length).toBe(1);
+    expect(component.commandesEnPreparation.length).toBe(1);
+    expect(component.commandesPret.length).toBe(1);
+  }));
+
+  it('chargerCommandes() appelle les trois endpoints du service', fakeAsync(() => {
+    component.chargerCommandes();
+    tick();
+
+    expect(dashboardServiceSpy.getCommandesEnAttente).toHaveBeenCalled();
+    expect(dashboardServiceSpy.getCommandesEnPreparation).toHaveBeenCalled();
+    expect(dashboardServiceSpy.getCommandesPret).toHaveBeenCalled();
+  }));
+
+  it('chargerCommandes() affiche un toast danger en cas d\'erreur', fakeAsync(async () => {
+    dashboardServiceSpy.getCommandesEnAttente.and.returnValue(throwError(() => new Error('Network error')));
+
+    component.chargerCommandes();
+    tick();
+    await Promise.resolve(); // flush async toast creation
+
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
+  }));
+
+  it('onChangerStatut() appelle changerStatut() et recharge les commandes', fakeAsync(async () => {
+    const callCountBefore = dashboardServiceSpy.getCommandesEnAttente.calls.count();
+
+    component.onChangerStatut({ id: 1, statut: 'EN_PREPARATION' });
+    tick();
+    await Promise.resolve();
+
+    expect(dashboardServiceSpy.changerStatut).toHaveBeenCalledWith(1, 'EN_PREPARATION');
+    expect(dashboardServiceSpy.getCommandesEnAttente.calls.count()).toBeGreaterThan(callCountBefore);
+  }));
+
+  it('onChangerStatut() affiche un toast success après changement réussi', fakeAsync(async () => {
+    dashboardServiceSpy.changerStatut.and.returnValue(of({}));
+
+    component.onChangerStatut({ id: 1, statut: 'PRET' });
+    tick();
+    await Promise.resolve();
+
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'success' }));
+  }));
+
+  it('onChangerStatut() affiche un toast danger en cas d\'erreur', fakeAsync(async () => {
+    dashboardServiceSpy.changerStatut.and.returnValue(throwError(() => new Error('API error')));
+
+    component.onChangerStatut({ id: 1, statut: 'PRET' });
+    tick();
+    await Promise.resolve();
+
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
+  }));
+
+  it('onRefresh() appelle chargerCommandes() et complete l\'event après 500ms', fakeAsync(() => {
+    const completeSpy = jasmine.createSpy('complete');
+    const mockEvent = { target: { complete: completeSpy } };
+
+    component.onRefresh(mockEvent);
+    tick(500);
+
+    expect(completeSpy).toHaveBeenCalled();
+    expect(dashboardServiceSpy.getCommandesEnAttente).toHaveBeenCalled();
+  }));
+
+  it('recharge les commandes sur notification WS de type "commande"', fakeAsync(() => {
+    const callCountBefore = dashboardServiceSpy.getCommandesEnAttente.calls.count();
+
+    notification$.next({
+      id: 'commande-1',
+      type: 'commande',
+      message: 'Nouvelle commande',
+      severity: 'primary',
+      timestamp: new Date(),
+      lue: false,
+    });
+    tick();
+
+    expect(dashboardServiceSpy.getCommandesEnAttente.calls.count()).toBeGreaterThan(callCountBefore);
+  }));
+
+  it('recharge les commandes sur notification WS de type "statut"', fakeAsync(() => {
+    const callCountBefore = dashboardServiceSpy.getCommandesEnAttente.calls.count();
+
+    notification$.next({
+      id: 'statut-1',
+      type: 'statut',
+      message: 'Statut mis à jour',
+      severity: 'success',
+      timestamp: new Date(),
+      lue: false,
+    });
+    tick();
+
+    expect(dashboardServiceSpy.getCommandesEnAttente.calls.count()).toBeGreaterThan(callCountBefore);
+  }));
+
+  it('ne recharge pas les commandes sur notification de type "stock"', fakeAsync(() => {
+    const callCountBefore = dashboardServiceSpy.getCommandesEnAttente.calls.count();
+
+    notification$.next({
+      id: 'stock-1',
+      type: 'stock',
+      message: 'Stock faible',
+      severity: 'warning',
+      timestamp: new Date(),
+      lue: false,
+    });
+    tick();
+
+    expect(dashboardServiceSpy.getCommandesEnAttente.calls.count()).toBe(callCountBefore);
+  }));
+
+  it('trackById() retourne l\'id de la commande', () => {
+    const cmd = mockCommandes[0];
+    expect(component.trackById(0, cmd)).toBe(cmd.id);
+  });
+
+  it('ngOnDestroy() complète le subject destroy$', () => {
+    spyOn(component['destroy$'], 'next').and.callThrough();
+    spyOn(component['destroy$'], 'complete').and.callThrough();
+
+    component.ngOnDestroy();
+
+    expect(component['destroy$'].next).toHaveBeenCalled();
+    expect(component['destroy$'].complete).toHaveBeenCalled();
+  });
+});

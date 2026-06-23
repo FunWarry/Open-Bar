@@ -1,0 +1,45 @@
+<ion-card>
+  <ion-card-header>
+    <ion-card-title>{{ isEditMode ? 'Modifier la Commande' : 'Nouvelle Commande' }}</ion-card-title>
+  </ion-card-header>
+  <ion-card-content>
+    <form (ngSubmit)="onSubmit()" [formGroup]="commandeForm">
+      <ion-item>
+        <ion-label position="stacked">Table</ion-label>
+        <ion-select formControlName="tableId" required>
+          <!-- TODO: Ajouter les options de table dynamiquement -->
+          <ion-select-option value="1">Table 1</ion-select-option>
+          <ion-select-option value="2">Table 2</ion-select-option>
+          <ion-select-option value="3">Table 3</ion-select-option>
+        </ion-select>
+      </ion-item>
+      <ion-note color="danger" *ngIf="commandeForm.get('tableId')?.hasError('required') && commandeForm.get('tableId')?.touched">
+        La table est requise
+      </ion-note>
+
+      <div formArrayName="items">
+        <!-- TODO: Ajouter la gestion des items de la commande -->
+      </div>
+
+      <ion-item>
+        <ion-label position="stacked">Statut</ion-label>
+        <ion-select formControlName="status" required>
+          <ion-select-option value="EN_ATTENTE">En attente</ion-select-option>
+          <ion-select-option value="EN_PREPARATION">En préparation</ion-select-option>
+          <ion-select-option value="PRETE">Prête</ion-select-option>
+          <ion-select-option value="SERVIE">Servie</ion-select-option>
+        </ion-select>
+      </ion-item>
+      <ion-note color="danger" *ngIf="commandeForm.get('status')?.hasError('required') && commandeForm.get('status')?.touched">
+        Le statut est requis
+      </ion-note>
+
+      <div class="button-row">
+        <ion-button fill="clear" type="button" (click)="router.navigate(['/commandes'])" (keydown.enter)="router.navigate(['/commandes'])">Annuler</ion-button>
+        <ion-button [disabled]="!commandeForm.valid" color="primary" type="submit">
+          {{ isEditMode ? 'Modifier' : 'Créer' }}
+        </ion-button>
+      </div>
+    </form>
+  </ion-card-content>
+</ion-card>

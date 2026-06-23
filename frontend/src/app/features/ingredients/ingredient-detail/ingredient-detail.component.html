@@ -1,0 +1,52 @@
+<div class="ingredient-detail-container">
+  <div *ngIf="isLoading" style="text-align:center;padding:32px">
+    <ion-spinner name="crescent"></ion-spinner>
+  </div>
+
+  <ion-card *ngIf="!isLoading && ingredient">
+    <ion-card-header>
+      <div class="card-header-row">
+        <ion-card-title>{{ ingredient.nom }}</ion-card-title>
+        <ion-buttons>
+          <ion-button fill="clear" (click)="onBack()">
+            <ion-icon slot="start" name="arrow-back"></ion-icon>
+            Retour
+          </ion-button>
+          <ion-button *ngIf="isAdmin$ | async" fill="outline" color="tertiary" (click)="onEdit()">
+            <ion-icon slot="start" name="create"></ion-icon>
+            Modifier
+          </ion-button>
+        </ion-buttons>
+      </div>
+    </ion-card-header>
+
+    <ion-card-content>
+      <ion-badge color="danger" *ngIf="isEnAlerte()">⚠ Stock en alerte</ion-badge>
+
+      <ion-list lines="full">
+        <ion-item>
+          <ion-label>Stock actuel</ion-label>
+          <ion-badge slot="end" [color]="getStockColor(ingredient.quantiteStock)">
+            {{ ingredient.quantiteStock }} {{ ingredient.uniteMesure }}
+          </ion-badge>
+        </ion-item>
+        <ion-item>
+          <ion-label>Seuil d'alerte</ion-label>
+          <ion-label slot="end">{{ ingredient.seuilAlerte }} {{ ingredient.uniteMesure }}</ion-label>
+        </ion-item>
+        <ion-item *ngIf="ingredient.fournisseur">
+          <ion-label>Fournisseur</ion-label>
+          <ion-label slot="end">{{ ingredient.fournisseur }}</ion-label>
+        </ion-item>
+        <ion-item *ngIf="ingredient.datePeremption">
+          <ion-label>Date de péremption</ion-label>
+          <ion-label slot="end">{{ ingredient.datePeremption | date:'dd/MM/yyyy' }}</ion-label>
+        </ion-item>
+        <ion-item>
+          <ion-label>Dernière mise à jour</ion-label>
+          <ion-label slot="end">{{ ingredient.updatedAt | date:'dd/MM/yyyy HH:mm' }}</ion-label>
+        </ion-item>
+      </ion-list>
+    </ion-card-content>
+  </ion-card>
+</div>

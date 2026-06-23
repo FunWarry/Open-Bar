@@ -1,0 +1,15 @@
+<ion-header>
+  <ion-toolbar color="danger">
+    <ion-title>Erreur</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="onClose()">Fermer</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <p>{{ data?.message }}</p>
+  <div class="form-actions ion-padding-top">
+    <ion-button expand="block" (click)="onClose()">Fermer</ion-button>
+  </div>
+</ion-content>

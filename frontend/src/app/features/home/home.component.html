@@ -1,0 +1,58 @@
+<div class="home-container">
+  <ion-card class="welcome-card">
+    <ion-card-header>
+      <ion-card-title>Bienvenue sur Gestion Cocktail</ion-card-title>
+      <ion-card-subtitle *ngIf="currentUser$ | async as user">
+        Connecté en tant que {{ user.username }}
+      </ion-card-subtitle>
+    </ion-card-header>
+    <ion-card-content>
+      <p>
+        Cette application vous permet de gérer vos cocktails, ingrédients et recettes.
+        Commencez par explorer les différentes fonctionnalités disponibles.
+      </p>
+    </ion-card-content>
+  </ion-card>
+
+  <div class="features-grid">
+    <ion-card class="feature-card">
+      <ion-card-header>
+        <ion-icon name="wine-outline"></ion-icon>
+        <ion-card-title>Cocktails</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <p>Gérez votre collection de cocktails et leurs recettes.</p>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card class="feature-card">
+      <ion-card-header>
+        <ion-icon name="list-outline"></ion-icon>
+        <ion-card-title>Ingrédients</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <p>Suivez vos stocks d'ingrédients et leurs quantités.</p>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card class="feature-card">
+      <ion-card-header>
+        <ion-icon name="restaurant-outline"></ion-icon>
+        <ion-card-title>Recettes</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <p>Créez et partagez vos recettes de cocktails.</p>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card class="feature-card">
+      <ion-card-header>
+        <ion-icon name="calendar-outline"></ion-icon>
+        <ion-card-title>Événements</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <p>Planifiez vos événements et gérez les cocktails servis.</p>
+      </ion-card-content>
+    </ion-card>
+  </div>
+</div>

@@ -1,0 +1,51 @@
+<ion-card class="table-card" [ngClass]="statutClass">
+  <ion-card-header>
+    <div class="table-header">
+      <ion-card-title class="table-name">{{ table.nom }}</ion-card-title>
+      <span class="statut-badge" [ngClass]="'badge-' + statutClass">{{ statutLabel }}</span>
+    </div>
+    <div class="table-meta">
+      <span class="meta-item">
+        <ion-icon name="people-outline"></ion-icon>
+        {{ table.capacite }} pers.
+      </span>
+      <span class="meta-zone">{{ table.zone }}</span>
+    </div>
+  </ion-card-header>
+
+  <ion-card-content>
+    <div *ngIf="table.serveurNom" class="serveur-info">
+      <ion-icon name="restaurant-outline"></ion-icon>
+      {{ table.serveurNom }}
+    </div>
+
+    <div *ngIf="totalCommandes > 0" class="commandes-summary">
+      <ion-icon name="time-outline"></ion-icon>
+      {{ totalCommandes }} commande{{ totalCommandes > 1 ? 's' : '' }} active{{ totalCommandes > 1 ? 's' : '' }}
+      <span *ngIf="commandesEnCours > 0" class="en-cours-badge">
+        {{ commandesEnCours }} en prépa.
+      </span>
+    </div>
+
+    <div class="card-actions">
+      <ion-button
+        (click)="selectionner.emit(table)"
+        expand="block"
+        fill="outline"
+        size="small"
+        class="btn-voir">
+        Voir commandes
+      </ion-button>
+      <ion-button
+        *ngIf="table.occupee"
+        (click)="liberer.emit(table.id)"
+        expand="block"
+        fill="outline"
+        size="small"
+        color="danger"
+        class="btn-liberer">
+        Libérer
+      </ion-button>
+    </div>
+  </ion-card-content>
+</ion-card>

@@ -1,0 +1,36 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>
+      <ion-icon name="receipt-outline"></ion-icon> Factures
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <ion-list *ngIf="factures.length > 0">
+    <ion-item
+      *ngFor="let facture of factures; trackBy: trackById"
+      [routerLink]="['/factures', facture.id]"
+      button
+      detail="false">
+      <ion-label>
+        <h3>{{ facture.numero }}</h3>
+        <p>Table {{ facture.tableNumero }} — {{ facture.dateFacture | date:'dd/MM/yyyy HH:mm' }}</p>
+        <p>{{ (facture.totalTTC ?? facture.total) | currency:'EUR':'symbol':'1.2-2':'fr' }}</p>
+      </ion-label>
+      <ion-badge slot="end" [color]="statutColor(facture.reglee)">
+        {{ statutLabel(facture.reglee) }}
+      </ion-badge>
+      <ion-icon slot="end" name="chevron-forward-outline" color="medium"></ion-icon>
+    </ion-item>
+  </ion-list>
+
+  <div *ngIf="factures.length === 0 && !loading" class="empty-state">
+    <ion-icon name="receipt-outline" size="large"></ion-icon>
+    <p>Aucune facture</p>
+  </div>
+</ion-content>

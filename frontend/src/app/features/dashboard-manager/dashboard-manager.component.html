@@ -1,0 +1,108 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Dashboard Manager</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<!-- État chargé -->
+<ion-content *ngIf="stats && !loading">
+  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- KPIs — grille 2×2 -->
+  <ion-grid class="stats-grid">
+    <ion-row>
+      <ion-col size="6">
+        <app-stat-card
+          label="Tables occupées"
+          [value]="stats.tablesOccupees + '/' + stats.tablesTotales"
+          color="warning"
+          trend="neutral">
+        </app-stat-card>
+      </ion-col>
+      <ion-col size="6">
+        <app-stat-card
+          label="CA du jour"
+          [value]="formatCurrency(stats.chiffreAffairesJour)"
+          color="success"
+          trend="up">
+        </app-stat-card>
+      </ion-col>
+      <ion-col size="6">
+        <app-stat-card
+          label="Commandes actives"
+          [value]="stats.commandesEnAttente + stats.commandesEnPreparation + stats.commandesPret"
+          color="primary"
+          trend="neutral">
+        </app-stat-card>
+      </ion-col>
+      <ion-col size="6">
+        <app-stat-card
+          label="Stock critique"
+          [value]="stats.stockIngredientsCritiques"
+          color="danger"
+          trend="down">
+        </app-stat-card>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+  <!-- Top cocktails avec barre de progression — Figma 265:160 -->
+  <ion-card class="section-card" *ngIf="stats.topCocktails && stats.topCocktails.length > 0">
+    <ion-card-header>
+      <ion-card-title>Top Cocktails</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <div
+        class="top-cocktail-row"
+        *ngFor="let cocktail of stats.topCocktails; let i = index; trackBy: trackByCocktailId">
+        <span class="rank">{{ getRankLabel(i) }}</span>
+        <span class="cocktail-nom">{{ cocktail.nom }}</span>
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill" [style.width.%]="getBarWidth(cocktail)"></div>
+        </div>
+        <span class="vendus">{{ cocktail.nombreCommandes }} vendus</span>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Répartition commandes par statut -->
+  <ion-card class="section-card">
+    <ion-card-header>
+      <ion-card-title>Commandes du jour</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <div class="statut-row">
+        <span class="statut-label">En attente</span>
+        <ion-badge color="warning">{{ stats.commandesEnAttente }}</ion-badge>
+      </div>
+      <div class="statut-row">
+        <span class="statut-label">En préparation</span>
+        <ion-badge color="primary">{{ stats.commandesEnPreparation }}</ion-badge>
+      </div>
+      <div class="statut-row">
+        <span class="statut-label">Prêtes</span>
+        <ion-badge color="success">{{ stats.commandesPret }}</ion-badge>
+      </div>
+      <div class="statut-row">
+        <span class="statut-label">Livrées</span>
+        <ion-badge color="medium">{{ stats.commandesLivrees }}</ion-badge>
+      </div>
+      <div class="statut-row total-row">
+        <span class="statut-label">Total journée</span>
+        <ion-badge color="dark">{{ stats.commandesTotales }}</ion-badge>
+      </div>
+    </ion-card-content>
+  </ion-card>
+</ion-content>
+
+<!-- État chargement -->
+<ion-content *ngIf="loading">
+  <div class="loading-state">Chargement des statistiques...</div>
+</ion-content>
+
+<!-- État erreur -->
+<ion-content *ngIf="!stats && !loading">
+  <div class="error-state">Impossible de charger les statistiques.</div>
+</ion-content>

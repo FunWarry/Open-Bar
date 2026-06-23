@@ -1,0 +1,59 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title (click)="navigationService.navigateToHome()" style="cursor:pointer">
+      OpenBar
+    </ion-title>
+
+    <ion-buttons slot="end">
+      <ng-container *ngIf="isAuthenticated$ | async">
+        <!-- Bouton cloche notifications -->
+        <ion-button (click)="ouvrirNotifications($event)" style="position:relative">
+          <ion-icon slot="icon-only" name="notifications-outline"></ion-icon>
+          <ion-badge *ngIf="nonLues > 0" color="danger" style="position:absolute;top:4px;right:4px;font-size:9px;padding:2px 4px">
+            {{ nonLues > 9 ? '9+' : nonLues }}
+          </ion-badge>
+        </ion-button>
+
+        <ion-button (click)="navigationService.navigateToHome()">
+          <ion-icon slot="start" name="home"></ion-icon>
+          Accueil
+        </ion-button>
+
+        <ng-container *ngIf="isAdmin$ | async">
+          <ion-button (click)="navigationService.navigateToAdmin()">
+            <ion-icon slot="start" name="settings"></ion-icon>
+            Administration
+          </ion-button>
+        </ng-container>
+
+        <ion-button id="user-menu-trigger">
+          <ion-icon slot="start" name="person-circle"></ion-icon>
+          {{ (currentUser$ | async)?.username }}
+          <ion-icon slot="end" name="chevron-down"></ion-icon>
+        </ion-button>
+
+        <ion-popover trigger="user-menu-trigger" triggerAction="click" [dismissOnSelect]="true">
+          <ng-template>
+            <ion-list lines="none">
+              <ion-item button (click)="navigationService.navigateToUserProfile()">
+                <ion-icon slot="start" name="person"></ion-icon>
+                <ion-label>Mon profil</ion-label>
+              </ion-item>
+              <ion-item button (click)="onLogout()">
+                <ion-icon slot="start" name="log-out"></ion-icon>
+                <ion-label>Déconnexion</ion-label>
+              </ion-item>
+            </ion-list>
+          </ng-template>
+        </ion-popover>
+      </ng-container>
+
+      <ng-container *ngIf="!(isAuthenticated$ | async)">
+        <ion-button (click)="navigationService.navigateToLogin()">
+          <ion-icon slot="start" name="person-circle"></ion-icon>
+          Connexion
+        </ion-button>
+      </ng-container>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>

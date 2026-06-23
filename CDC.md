@@ -17,7 +17,7 @@
 9. [Roadmap](#9-roadmap)
 10. [Conventions de code](#10-conventions-de-code)
 11. [Décisions actées](#11-décisions-actées)
-12. [Prochaine session](#12-prochaine-session)
+12. [Prochaine session](#13-prochaine-session--priorités)
 
 ---
 
@@ -48,18 +48,18 @@ Application web multi-rôles avec WebSocket pour la communication temps réel en
 | Backend | Spring Boot | 3.3.3 | Runtime Java 22 |
 | Base de données | PostgreSQL | — | Via Docker Compose |
 | ORM | JPA / Hibernate | via Spring | Lombok `@Data` sur entités |
-| Sécurité | Spring Security + JWT | JJWT 0.11.5 | Filter custom |
+| Sécurité | Spring Security + JWT | JJWT 0.12.6 | Filter custom |
 | Temps réel | WebSocket STOMP | via Spring | 4 topics actifs |
-| Frontend | Angular | 19 | Standalone components |
-| UI | Angular Material | 19 | ⚠️ À migrer (voir stack cible) |
-| State management | NgRx | 19 | Auth uniquement |
+| Frontend | Angular | 20 | Standalone components |
+| UI | Ionic | 8.8.11 | Migration Angular Material → Ionic actée |
+| State management | NgRx | 20 | Auth uniquement |
 | HTTP | RxJS / HttpClient | 7.8 | — |
 
 #### Stack cible (migration décidée)
 
 | Couche | Technologie | Version | Raison |
 |--------|-------------|---------|--------|
-| Frontend | Angular | 19 | Inchangé |
+| Frontend | Angular | 20 | Migré (correction CVEs XSS/XSRF) |
 | UI mobile | **Ionic** | 8+ | Mobile/tablet-first, composants natifs |
 | Build natif | **Capacitor** | 6+ | iOS + Android depuis le même codebase |
 | Canvas plan de salle | **Konva.js** | — | Canvas 2D libre, drag & drop, rotation |
@@ -110,21 +110,23 @@ cd frontend && npm install && ng serve   # → http://localhost:4200
 
 ## 3. Rôles utilisateurs
 
-L'enum `UserRole` définit 3 rôles dans le code actuel. ⚠️ `BARMEN` est une typo — devrait être `BARMAN`. Le rôle `MANAGER` est à ajouter (absent du code, présent dans le Figma).
+L'enum `UserRole` définit 4 rôles : `ADMIN`, `MANAGER`, `SERVEUR`, `BARMAN`.
 
 | Rôle | Nature | Accès | Interface | Couleur |
 |------|--------|-------|-----------|---------|
 | `ADMIN` | Maintenance technique | Tout — gestion users, config système | Interface admin — **pas un rôle métier** | Partagé Manager |
-| `MANAGER` | Rôle métier principal | Supervision complète du bar | Plan de salle (config + supervision), stats, facturation | `#f39c12` |
-| `SERVEUR` | Rôle métier | Tables, commandes (création/suivi) | Plan de salle (lecture), prise de commande | `#2ecc71` |
-| `BARMEN` | Rôle métier | Commandes (préparation), stocks, cocktails | Kanban, stocks, catalogue cocktails | `#4fc3f7` |
+| `MANAGER` | Rôle métier principal | Supervision complète du bar, annulation commandes, toggle disponibilité cocktails | Plan de salle (config + supervision), stats, facturation | `#f39c12` |
+| `SERVEUR` | Rôle métier | Tables, commandes (création/suivi/annulation) | Plan de salle (lecture), prise de commande | `#2ecc71` |
+| `BARMAN` | Rôle métier | Commandes (changement statut), stocks, cocktails (CRUD), ingrédients | Kanban, stocks, catalogue cocktails | `#4fc3f7` |
 
 > **Décisions actées sur les rôles :**
 > - `ADMIN` = accès de maintenance technique uniquement, pas un rôle opérationnel bar
-> - `MANAGER` est le vrai responsable métier du bar au quotidien — rôle à ajouter au backend
-> - `BARMEN` peut masquer un cocktail si rupture d'ingrédient (accès gestion cocktails)
+> - `MANAGER` supervise le bar : peut annuler une commande en urgence et toggler la disponibilité d'un cocktail
+> - `BARMAN` change le statut des commandes (EN_PREPARATION → PRET) et gère les stocks
 
-Guards Angular : `AuthGuard`, `RoleGuard`, `AdminGuard`.
+Guards Angular : `AuthGuard` (toute route authentifiée), `RoleGuard` (paramétrable via `data.roles`), `AdminGuard` (ADMIN uniquement).
+
+NgRx selectors : `selectIsAdmin`, `selectIsManager`, `selectIsBarman`, `selectIsAuthenticated`, `selectCurrentUser`.
 
 ---
 
@@ -181,39 +183,48 @@ Service frontend : `websocket.service.ts` — ⚠️ abonnements partiellement i
 
 ## 6. Fonctionnalités
 
-| Feature | Backend | Frontend | Design Figma | Priorité |
-|---------|---------|----------|--------------|----------|
-| Auth JWT | ✅ | ✅ | ✅ | — |
-| Gestion users (admin) | ✅ | ✅ | ✅ | — |
-| **Cocktails CRUD (liste barman)** | ✅ | ✅ | ✅ designé | — |
-| **Cocktail — détail / fiche recette** | ✅ | ✅ | ✅ designé | — |
-| **Cocktail — création / édition** | ✅ | ✅ | ✅ designé | — |
-| Ingrédients CRUD | ✅ | ✅ | ✅ | — |
-| **Ingrédients — gestion détaillée** | ✅ | ✅ | ✅ designé | — |
-| Tables | ✅ | ✅ | ✅ | — |
-| Commandes (kanban barman) | ✅ | ✅ | ✅ | — |
-| **Stock — vue rapide (shift)** | ✅ | ✅ | ✅ | — |
-| **Stock — vue globale (gestion complète)** | ✅ | ⚠️ partiel | ✅ designé | 🟡 Moyenne |
-| Plan de salle (manager) | ✅ | ✅ | ✅ | — |
-| **Vue Serveur — Plan de salle (lecture)** | ✅ | ❌ | ✅ designé | 🔴 Haute |
-| **Vue Serveur — Détail table + side panel** | ✅ | ❌ | ✅ designé | 🔴 Haute |
-| **Vue Serveur — Nouvelle commande** | ✅ | ⚠️ partiel | ✅ designé | 🔴 Haute |
-| **Vue Serveur — Suivi commandes (kanban)** | ✅ | ❌ | ✅ designé | 🟡 Moyenne |
-| **Login** | ✅ | ✅ | ✅ designé | — |
-| **Register / Create user** | ✅ | ✅ | ✅ designé | — |
-| **Profile / Mon compte** | ✅ | ✅ | ✅ designé | — |
-| **404 / Error page** | — | ✅ | ✅ designé | — |
-| **Loading / Splash screen** | — | — | ✅ designé | — |
-| Notifications WebSocket | ✅ | ⚠️ partiel | ✅ | 🔴 Haute |
-| Factures (frontend) | ✅ | ❌ | ⚠️ partiel | 🔴 Haute |
-| Déstockage auto à la commande | ❌ | — | — | 🔴 Haute |
-| Dashboard / statistiques | ❌ | ❌ | ❌ | 🟡 Moyenne |
-| Plan de salle interactif | ❌ | ❌ | ⚠️ esquissé | 🟡 Moyenne |
-| QR code commande client | ❌ | ❌ | ✅ designé | 🟡 Moyenne |
-| Fusion de tables | ❌ | ❌ | ✅ designé | 🟡 Moyenne |
-| Division d'addition | ❌ | ❌ | ❌ | 🟢 Basse |
-| Export PDF factures | ❌ | ❌ | ❌ | 🟢 Basse |
-| Saisonnalité cocktails | ⚠️ modèle OK | ❌ | ❌ | 🟢 Basse |
+> Légende frontend : ✅ complet et connecté à l'API · ⚠️ squelette (composant existe, pas de service HTTP) · ❌ inexistant
+
+| Feature | Backend | Frontend | Tests | Design Figma | Priorité |
+|---------|---------|----------|-------|--------------|----------|
+| Auth JWT | ✅ | ✅ | ✅ | ✅ | — |
+| Refresh token JWT (rotation) | ✅ | ✅ | ✅ | — | — |
+| Gestion users (admin) | ✅ | ✅ | ✅ | ✅ | — |
+| Rôle MANAGER + BARMAN (ex-BARMEN) | ✅ | ✅ | ✅ | — | — |
+| DTOs de sortie backend | ✅ | — | ✅ | — | — |
+| GlobalExceptionHandler + error interceptor | ✅ | ✅ | ✅ | — | — |
+| **Cocktails CRUD (liste barman)** | ✅ | ⚠️ squelette | ✅ | ✅ designé | — |
+| **Cocktail — détail / fiche recette** | ✅ | ⚠️ squelette | ✅ | ✅ designé | — |
+| **Cocktail — création / édition** | ✅ | ⚠️ squelette | ✅ | ✅ designé | — |
+| **Saisonnalité cocktails** | ✅ | ✅ | ✅ | ❌ | — |
+| Ingrédients CRUD | ✅ | ⚠️ squelette | ✅ | ✅ | — |
+| Tables | ✅ | ⚠️ squelette | ✅ | ✅ | — |
+| Commandes (kanban barman) | ✅ | ⚠️ squelette | ✅ | ✅ | — |
+| Déstockage auto à la commande | ✅ | — | ✅ | — | — |
+| **Stock — vue rapide (shift)** | ✅ | ⚠️ squelette | ✅ | ✅ | — |
+| **Stock — vue globale (gestion complète)** | ✅ | ⚠️ squelette | ✅ | ✅ designé | 🟡 Moyenne |
+| Plan de salle (manager) | ✅ | ⚠️ squelette | ✅ | ✅ | — |
+| **Vue Serveur — Plan de salle (lecture)** | ✅ | ❌ | ❌ | ✅ designé | 🔴 Haute |
+| **Vue Serveur — Détail table + side panel** | ✅ | ❌ | ❌ | ✅ designé | 🔴 Haute |
+| **Vue Serveur — Nouvelle commande** | ✅ | ❌ | ❌ | ✅ designé | 🔴 Haute |
+| **Vue Serveur — Suivi commandes (kanban)** | ✅ | ❌ | ❌ | ✅ designé | 🟡 Moyenne |
+| **Login** | ✅ | ✅ | ✅ | ✅ designé | — |
+| **Register / Create user** | ✅ | ⚠️ squelette | ✅ | ✅ designé | — |
+| **Profile / Mon compte** | ✅ | ⚠️ squelette | ✅ | ✅ designé | — |
+| **404 / Error page** | — | ✅ | ✅ | ✅ designé | — |
+| **Loading / Splash screen** | — | — | — | ✅ designé | — |
+| WebSocketService | ✅ | ❌ vide | ✅ | — | 🔴 Haute |
+| Notifications temps réel | ✅ | ❌ | ✅ | ✅ | 🔴 Haute |
+| Factures (liste + détail) | ✅ | ⚠️ squelette | ✅ | ⚠️ partiel | 🔴 Haute |
+| **Export PDF factures** | ✅ | ✅ bouton | ✅ | ❌ | — |
+| **Division d'addition (split)** | ✅ | ❌ UI | ✅ | ❌ | 🟡 Moyenne |
+| **Dashboard / statistiques** | ✅ | ❌ | ✅ | ❌ | 🟡 Moyenne |
+| Plan de salle interactif | ❌ | ❌ | — | ⚠️ esquissé | 🟡 Moyenne |
+| QR code commande client | ❌ | ❌ | — | ✅ designé | 🟡 Moyenne |
+| Fusion de tables | ❌ | ❌ | — | ✅ designé | 🟡 Moyenne |
+
+> Légende tests : ✅ tests écrits et passants · ⚠️ tests partiels · ❌ aucun test · — non applicable
+> Dernière mise à jour : 22 juin 2026 (PR #100–#103)
 
 ---
 
@@ -423,52 +434,56 @@ try {
 
 ## 8. Dette technique
 
-| # | Problème | Localisation | Risque | Priorité |
-|---|----------|-------------|--------|----------|
-| 1 | Secret JWT hardcodé | `application.yml` | Sécurité critique | 🔴 Haute |
-| 2 | `allow-circular-references: true` | `application.yml` | Smell design circulaire | 🟡 Moyenne |
-| 3 | Bug `dateLivraison` set sur `PRET` | `CommandeService.changerStatut()` | Données incorrectes | 🟡 Moyenne |
-| 4 | Aucun test backend | Tout le backend | Régressions silencieuses | 🔴 Haute |
-| 5 | Pas de DTOs de sortie | Tous les controllers | Fuite données + boucles JSON | 🟡 Moyenne |
-| 6 | Typo `BARMEN` → `BARMAN` | Enum `UserRole` | Confusion codebase | 🟢 Basse |
-| 7 | Exceptions génériques (`RuntimeException`) | Services | Messages d'erreur peu utiles | 🟢 Basse |
+| # | Problème | Localisation | Risque | Statut |
+|---|----------|-------------|--------|--------|
+| 1 | Secret JWT hardcodé | `application.yml` | Sécurité critique | 🔴 Ouvert |
+| 2 | `allow-circular-references: true` | `application.yml` | Smell design circulaire | 🟡 Ouvert |
+| 3 | Bug `dateLivraison` set sur `PRET` | `CommandeService.changerStatut()` | Données incorrectes | 🟡 Ouvert |
+| 4 | Couverture de tests insuffisante | Front + back | Régressions silencieuses | ✅ Résolu (PR #103) |
+| 5 | Pas de DTOs de sortie | Tous les controllers | Fuite données + boucles JSON | ✅ Résolu (PR #83) |
+| 6 | Typo `BARMEN` → `BARMAN` | Enum `UserRole` + controllers | Confusion codebase | ✅ Résolu (PR #85) |
+| 7 | Exceptions génériques (`RuntimeException`) | Services | Messages d'erreur peu utiles | 🟡 Partiellement résolu (AuthController PR #100) |
+| 8 | Double filtre JWT (auth + authz) | `SecurityConfig` | 2× `loadUserByUsername` par requête | 🟡 Ouvert |
+| 9 | Refresh token absent | Backend + Frontend | Sessions non révocables | ✅ Résolu (PR #100) |
+| 10 | Tests front co-localisés (Angular défaut) | `src/app/**/*.spec.ts` | Structure incompatible Maven-like | ✅ Résolu (PR #103) |
 
 ---
 
 ## 9. Roadmap
 
-### Phase 1 — Stabilisation (court terme)
+### Phase 1 — Stabilisation ✅ Terminée
 
-- [ ] Corriger le bug `dateLivraison` dans `CommandeService`
-- [ ] Externaliser le secret JWT en variable d'environnement
-- [ ] Écrire les premiers tests backend (unitaires services + intégration commandes)
-- [ ] Introduire des DTOs de sortie pour les controllers principaux
-- [ ] Compléter les abonnements WebSocket côté frontend (`websocket.service.ts`)
+- [x] ~~Écrire les tests backend et frontend~~ — fait (PR #103) : 53 specs Angular + 12 tests Java
+- [x] ~~Introduire des DTOs de sortie~~ — fait (PR #83)
+- [x] ~~Refresh token JWT (sécurité sessions)~~ — fait (PR #100)
+- [x] ~~Déstockage automatique~~ — fait (PR #84)
+- [x] ~~Ajout du rôle MANAGER~~ — fait (PR #85)
+- [ ] **Corriger le bug `dateLivraison`** — set sur PRET → doit être LIVREE (`CommandeService.changerStatut()`)
+- [ ] **Externaliser le secret JWT** — `application.yml` → variable d'environnement
 
-### Phase 2 — Migration stack + features prioritaires
+### Phase 2 — Features prioritaires (en cours)
 
-- [ ] **Migration Angular Material → Ionic** — remplacer les composants UI par des équivalents Ionic
-- [ ] **Intégration Capacitor** — configuration iOS + Android
-- [ ] **Ajout du rôle MANAGER** — backend (enum, SecurityConfig, guards) + frontend
-- [ ] **Facturation frontend** — l'API backend est prête, il manque l'UI Ionic
-- [ ] **Déstockage automatique** — hook dans `changerStatut()` sur `EN_PREPARATION`
-- [ ] **Dashboard manager** — stats temps réel (commandes/heure, revenus, stock critique)
-- [ ] **Vue Serveur Figma + Ionic** — plan de salle serveur, prise de commande
-- [ ] **i18n** — mise en place du système de traduction Angular
+- [x] ~~Export PDF factures~~ — fait (PR #101) : `PdfService` + endpoint + bouton frontend
+- [x] ~~Saisonnalité cocktails~~ — fait (PR #102) : UI Ionic + backend
+- [ ] **Compléter WebSocketService frontend** — abonnements STOMP manquants
+- [ ] **Vue Serveur Ionic** — plan de salle (lecture), prise de commande, suivi kanban (designé en Figma)
+- [ ] **Dashboard frontend** — backend `DashboardService` prêt, UI manquante
+- [ ] **Division d'addition — UI frontend** — backend `splitEgal()` + `splitParSelection()` prêts (#46)
+- [ ] **Migration Angular Material → Ionic** — quelques composants résiduels à migrer
 
 ### Phase 3 — Features avancées
 
 - [ ] Plan de salle interactif avec **Konva.js** — canvas libre, drag & drop, rotation, zones polygones
-- [ ] QR code client — `TableSession` + interface non authentifiée (déjà designé en Figma)
+- [ ] QR code client — `TableSession` + interface non authentifiée (designé en Figma)
 - [ ] Fusion de tables — modèle de données + API + UI Manager
-- [ ] Division d'addition — UI + logique de répartition
-- [ ] Export PDF factures — génération backend (iText ou JasperReports)
+- [ ] **i18n** — Transloco décidé, à câbler (fichiers `fr.json` / `en.json`)
+- [ ] **Intégration Capacitor** — configuration iOS + Android
 
 ### Phase 4 — Personnalisation
 
-- [ ] Saisonnalité cocktails — le modèle backend existe, connecter l'UI
+- [x] ~~Saisonnalité cocktails~~ — fait (PR #102)
 - [ ] Alertes stock configurables — seuils par ingrédient
-- [ ] Historique / audit complet — `AuditLogService` déjà en place
+- [ ] Historique / audit complet — `AuditLogService` déjà en place + tests écrits
 
 ---
 
@@ -491,6 +506,13 @@ try {
 - Services directs (pas NgRx) pour le reste de l'état
 - i18n activé dès le départ (Angular i18n ou ngx-translate)
 
+### Tests — règle absolue
+
+**Chaque feature branch inclut ses tests dans le même PR.** On ne merge pas sans tests.
+
+- Backend : JUnit 5 + Mockito (`src/test/java/...`). Au minimum : un test par méthode de service avec logique métier. Les cas limites (idempotence, stock négatif, transitions invalides) sont obligatoires.
+- Frontend : Karma + Jasmine (`*.spec.ts` à côté du fichier testé). Au minimum : sélecteurs NgRx, guards, et services HTTP (avec `HttpClientTestingModule`).
+
 ### Checklist ajout d'une feature
 
 **Backend**
@@ -499,8 +521,9 @@ try {
 2. Ligne dans `schema.sql`
 3. Repository dans `repository/` (extends `JpaRepository<Entity, Long>`)
 4. Service dans `service/` avec `@Transactional` sur les writes
-5. Controller dans `controller/` avec `@RolesAllowed`
+5. Controller dans `controller/` avec `@PreAuthorize`
 6. `AuditLogService` si pertinent
+7. **Tests unitaires** dans `src/test/java/.../service/` (JUnit 5 + Mockito)
 
 **Frontend**
 
@@ -509,6 +532,7 @@ try {
 3. Composants (list / form / detail) sous `features/<nom>/`
 4. Route lazy-loadée dans `app.routes.ts`
 5. Lien dans la navbar si pertinent
+6. **Tests** `.spec.ts` pour les sélecteurs, guards et services concernés
 
 **Design Figma**
 
@@ -635,23 +659,24 @@ Après une authentification réussie, l'utilisateur est redirigé directement ve
 
 ## 13. Prochaine session — priorités
 
-### Backend
+> Mis à jour le 22 juin 2026 après PRs #100–#103.
 
-- 🐛 Corriger `dateLivraison` dans `CommandeService` (set sur `PRET` → doit être `LIVREE`)
-- 🔐 Externaliser secret JWT (`application.yml` → variable d'environnement)
-- 🧪 Tests unitaires `CommandeService` (cycle de vie commande)
-- 📦 Déstockage auto : hook dans `changerStatut()` sur `EN_PREPARATION`
+### Priorité haute
 
-### Frontend
+1. 🔌 **WebSocketService frontend** — implémenter les abonnements STOMP (`/topic/commandes`, `/topic/tables`, `/topic/stock/alerte`) dans `websocket.service.ts`
+2. 📊 **Dashboard frontend** — composants `StatCard`, graphiques, connexion à `GET /api/dashboard/stats` (backend prêt)
+3. 🗂 **Vue Serveur Angular/Ionic** — 4 écrans designés en Figma, backend prêt, à implémenter
 
-- Compléter abonnements WebSocket (`websocket.service.ts`)
-- Créer module Facturation (API backend prête, UI manquante)
-- Implémenter Vue Serveur Angular/Ionic depuis le design Figma
+### Priorité moyenne
+
+4. 💳 **Division d'addition — UI** — backend `splitEgal()` + `splitParSelection()` prêts (#46), ajouter les composants Ionic
+5. 🔐 Externaliser secret JWT (`application.yml` → variable d'environnement)
+6. 🐛 Corriger bug `dateLivraison` (set sur `PRET` → doit être `LIVREE`) dans `CommandeService`
 
 ### Figma
 
-- Dashboard Manager (from scratch)
-- Peaufiner les vues Serveur si retours utilisateur
+- Dashboard Manager — aucun écran designé, à créer from scratch (StatCards, charts temps réel)
+- Division d'addition — flow UX à designer (#66)
 
 ### Rappels plugin Figma
 

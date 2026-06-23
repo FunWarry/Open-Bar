@@ -12,11 +12,11 @@ Application de gestion de bar en temps réel : prise de commandes (serveurs), pr
 | Runtime    | Java                         | 22          |
 | BDD        | PostgreSQL                   | —           |
 | ORM        | JPA / Hibernate              | via Spring  |
-| Sécurité   | Spring Security + JWT custom | JJWT 0.11.5 |
+| Sécurité   | Spring Security + JWT custom | JJWT 0.12.6 |
 | Temps réel | WebSocket STOMP              | via Spring  |
-| Frontend   | Angular                      | 19          |
-| UI         | Ionic                        | 8+          |
-| State      | NgRx (store + effects)       | 19          |
+| Frontend   | Angular                      | 20          |
+| UI         | Ionic                        | 8.8.11      |
+| State      | NgRx (store + effects)       | 20          |
 | HTTP       | RxJS / HttpClient            | 7.8         |
 
 ### Stack cible (décision actée)
@@ -28,7 +28,7 @@ Le frontend migre vers **Ionic + Angular + Capacitor** — Angular Material n'es
 | UI mobile            | Ionic 8+                      |
 | Build natif          | Capacitor 6+ (iOS + Android)  |
 | Canvas plan de salle | Konva.js                      |
-| i18n                 | ngx-translate ou Angular i18n |
+| i18n                 | Transloco (`@jsverse/transloco`) |
 
 ## Lancer le projet
 
@@ -82,16 +82,17 @@ users ──< audit_logs
 
 ## Rôles utilisateurs
 
-`UserRole` enum actuel : **ADMIN**, **SERVEUR**, **BARMEN** — ⚠️ `BARMEN` est une typo, et `MANAGER` est à ajouter.
+`UserRole` enum : **ADMIN**, **MANAGER**, **SERVEUR**, **BARMAN**
 
-| Rôle | Nature | À ajouter ? |
-|------|--------|------------|
-| `ADMIN` | Maintenance technique uniquement — pas un rôle métier bar | Non |
-| `MANAGER` | Rôle métier principal (supervision, plan de salle, stats) | **Oui — à créer** |
-| `SERVEUR` | Prise de commande, suivi tables | Non |
-| `BARMEN` | Préparation commandes, stocks, cocktails | Non (typo à corriger) |
+| Rôle | Nature | Permissions clés |
+|------|--------|-----------------|
+| `ADMIN` | Maintenance technique uniquement — pas un rôle métier bar | CRUD users, tout |
+| `MANAGER` | Supervision bar (rôle métier principal) | Lire commandes/tables/factures, annuler commandes, toggler disponibilité cocktails |
+| `SERVEUR` | Prise de commande, suivi tables | Créer/annuler commandes, définir priorité items |
+| `BARMAN` | Préparation commandes, stocks, cocktails | Changer statut commandes, CRUD cocktails/ingrédients/stocks |
 
-Accès frontend : guards `AuthGuard`, `RoleGuard`, `AdminGuard`
+Guards : `AuthGuard` (toute route authentifiée), `RoleGuard` (paramétrable via `route.data.roles`), `AdminGuard` (ADMIN uniquement).
+NgRx selectors : `selectIsAdmin`, `selectIsManager`, `selectIsBarman`.
 
 ## Cycle de vie d'une commande
 
@@ -122,43 +123,188 @@ Service frontend : `websocket.service.ts`
 - `@Data` Lombok sur toutes les entités
 - `@PrePersist` / `@PreUpdate` pour les timestamps `createdAt` / `updatedAt`
 - `@Transactional` sur toutes les méthodes write du service
-- Exceptions : `RuntimeException` avec message explicite (à migrer vers exceptions custom)
-- Pas de DTO de sortie actuellement — les entités sont renvoyées directement (à améliorer)
+- DTOs de sortie : Java records avec `static XxxDTO from(Entity e)` — jamais d'entité JPA en réponse directe
+- Exceptions métier : `GlobalExceptionHandler` gère `ResourceNotFoundException` (404), `BusinessException` (400), validation (400)
+- `@PreAuthorize("hasRole('...')")` sur chaque endpoint — pas de route non protégée sauf `/api/auth/**`
 
 ### Frontend (Angular + Ionic — migration en cours)
 - Architecture feature-based : `features/`, `core/`
 - Lazy loading sur toutes les routes (`loadComponent`)
 - State management NgRx uniquement pour l'auth (le reste en services directs)
 - ~~Angular Material~~ → **Ionic** pour tous les composants UI (migration actée)
-- i18n à intégrer dès le début
+- i18n : Transloco (`@jsverse/transloco`) — voir section dédiée ci-dessous
+- Error interceptor : `errorInterceptor` (`core/interceptors/`) — gère les erreurs HTTP globalement avec toast Ionic
+
+### Tests — règle absolue
+- **Chaque feature branch inclut ses tests dans le même PR** — on ne merge pas sans tests
+- Backend : JUnit 5 + Mockito dans `src/test/java/.../service/` — un test par méthode métier, cas limites obligatoires
+- Frontend : Karma + Jasmine dans **`src/test/`** (structure miroir de `src/app/`, comme Maven — **pas** de co-localisation Angular)
+- `tsconfig.spec.json` : `"src/test/**/*.spec.ts"` — ✅ configuré (PR #103)
+
+#### Structure tests frontend (décision actée)
+
+```
+frontend/src/test/                     ← tous les *.spec.ts ici
+├── app.component.spec.ts
+├── core/
+│   ├── guards/                        # auth.guard, role.guard, admin.guard
+│   ├── interceptors/                  # auth.interceptor, error.interceptor
+│   ├── services/                      # cocktail, commande, ingredient, table, websocket…
+│   └── store/                         # auth.effects, auth.reducer, auth.selectors
+└── features/
+    ├── auth/                          # login, register
+    ├── cocktails/                     # cocktail-list, cocktail-form
+    ├── commandes/                     # commande-list, commande-form, commande-detail
+    ├── dashboard-barman/              # dashboard + commande-card
+    ├── dashboard-manager/             # dashboard + stat-card
+    ├── dashboard-serveur/             # dashboard + table-card
+    ├── factures/                      # facture-list, facture-detail, facture-split + services/
+    ├── ingredients/                   # ingredient-list, ingredient-form, ingredient-detail
+    └── tables/                        # table-list, table-form, table-detail
+```
+
+`frontend/tsconfig.spec.json` doit inclure `"src/test/**/*.spec.ts"` (pas `src/**/*.spec.ts`).
+
+#### Patron backend (existant à reproduire)
+
+```java
+@ExtendWith(MockitoExtension.class)
+class XxxServiceTest {
+    @Mock XxxRepository xxxRepository;
+    @InjectMocks XxxService xxxService;
+
+    @Test void methode_cas_comportementAttendu() {
+        given(xxxRepository.findAll()).willReturn(List.of(...));
+        assertThat(xxxService.getAll()).hasSize(1);
+    }
+}
+```
+
+#### Patron frontend (existant à reproduire)
+
+```typescript
+describe('XxxService', () => {
+  let service: XxxService;
+  let http: HttpTestingController;
+  beforeEach(() => TestBed.configureTestingModule({
+    imports: [HttpClientTestingModule],
+    providers: [XxxService]
+  }));
+  it('getAll() appelle GET /api/xxx', () => { ... });
+});
+```
+
+#### Couverture de tests — ✅ ticket #47 résolu (PR #103)
+
+Suite de tests de non-régression complète dans `frontend/src/test/` et `backend/src/test/`.
+
+**Résumé** : 53 specs Angular + 12 tests Java — CI vert.
+
+**Structure frontend** : `src/test/` (structure miroir de `src/app/`, comme Maven). `tsconfig.spec.json` pointe sur `src/test/**/*.spec.ts`.
+
+**Tests existants** : tous les services, guards, interceptors, store, composants core et features.
+
+## Internationalisation (i18n)
+
+### Exigence
+L'application est **multilingue**. Ajouter une langue = ajouter un fichier JSON de traduction. Aucune modification de code requise.
+
+### Solution retenue : Transloco (`@jsverse/transloco`)
+
+Choix retenu plutôt que ngx-translate pour :
+- Lazy loading natif des traductions par feature (pas de bundle monolithique)
+- Support de l'architecture feature-based d'OpenBar
+- Meilleur support TypeScript et Angular 20+
+- Fichiers de langue scopés par feature + fichiers globaux
+
+### Structure des fichiers de traduction
+
+```
+frontend/src/assets/i18n/
+├── fr.json          # Français (langue par défaut)
+├── en.json          # Anglais
+└── <code>.json      # Toute autre langue — suffit pour l'activer
+```
+
+Fichiers scopés par feature (chargés à la demande) :
+```
+frontend/src/assets/i18n/
+├── fr/
+│   ├── commandes.json
+│   ├── cocktails.json
+│   └── tables.json
+└── en/
+    ├── commandes.json
+    ├── cocktails.json
+    └── tables.json
+```
+
+### Conventions
+- Toutes les chaînes visibles dans les templates utilisent le pipe `{{ 'CLE' | transloco }}` ou la directive `transloco="CLE"`
+- Les clés sont en `SCREAMING_SNAKE_CASE` : `COMMANDE.STATUT.EN_ATTENTE`
+- Langue par défaut : **français (`fr`)**
+- Langues supportées à terme : français, anglais (extensible)
+- Jamais de texte hardcodé en français dans les templates
+
+### Usage dans les composants standalone
+
+Pour les fichiers scopés par feature (ex : `fr/commandes.json`), déclarer le scope dans le composant :
+
+```typescript
+@Component({
+  providers: [provideTranslocoScope('commandes')]
+})
+```
+
+### Ajouter une nouvelle langue
+1. Créer `frontend/src/assets/i18n/<code>.json` (ex : `es.json` pour l'espagnol)
+2. Créer `frontend/src/assets/i18n/<code>/` avec les fichiers scopés si besoin
+3. Ajouter `<code>` à `availableLangs` dans `provideTransloco()` dans `main.ts`
+4. C'est tout — la langue est disponible une fois les assets copiés et le sélecteur UI implémenté.
 
 ## Points d'attention / dette technique
 
 1. **Secret JWT hardcodé** dans `application.yml` → à externaliser en variable d'environnement
 2. **`allow-circular-references: true`** dans Spring → smell de design circulaire à corriger
 3. **Bug dateLivraison** : set sur `PRET` au lieu de `LIVREE` dans `CommandeService.changerStatut()`
-4. **Pas de tests** backend (ni unitaires, ni intégration) — priorité à adresser
-5. **Pas de DTOs de sortie** — les entités JPA sont sérialisées directement (risque de boucles JSON et de fuite de données)
-6. **Rôles** : l'enum `UserRole` a `BARMEN` (faute de frappe — devrait être `BARMAN` ou `BARTENDER`)
+4. ~~Tests insuffisants~~ — **résolu PR #103** : 53 specs Angular dans `src/test/` + 12 tests Java
+5. ~~Pas de DTOs de sortie~~ — **résolu PR #83** : Java records avec `from(entity)` sur tous les controllers
+6. ~~Typo `BARMEN`~~ — **résolu PR #85** : enum renommé `BARMAN`, migration SQL documentée dans `schema.sql`
+7. ~~Refresh token absent~~ — **résolu PR #100** : rotation + interceptor HTTP frontend
+8. **Exceptions génériques** (`RuntimeException`) dans les services → `NoSuchElementException` / exceptions métier (partiellement corrigé PR #100)
+9. ~~JJWT 0.11.5 obsolète~~ — **résolu** : migré vers 0.12.6 (API `parser()`, `parseSignedClaims()`, `SecretKey`)
+10. ~~Angular 19 CVEs XSS/XSRF~~ — **résolu** : migré Angular 20 + NgRx 20 + Ionic 8.8.11
+11. **13 CVEs restantes (devDeps)** : dans les outils de build (esbuild, babel, vite) — corrigibles via Angular 22
 
 ## Features implémentées vs. manquantes
 
-| Feature | Backend | Frontend |
-|---------|---------|----------|
-| Auth JWT | ✅ | ✅ |
-| Gestion users (admin) | ✅ | ✅ |
-| Cocktails CRUD | ✅ | ✅ |
-| Ingrédients CRUD | ✅ | ✅ |
-| Tables | ✅ | ✅ |
-| Commandes | ✅ | ✅ |
-| Notifications WS | ✅ | ⚠️ partiel |
-| Factures | ✅ | ❌ |
-| Dashboard / stats | ❌ | ❌ |
-| Déstockage auto à la commande | ❌ | — |
-| Plan de salle interactif | ❌ | ❌ |
-| Saisonnalité cocktails | ⚠️ modèle ok | ❌ |
-| Division d'addition | ❌ | ❌ |
-| Export factures (PDF) | ❌ | ❌ |
+> Dernière mise à jour : 23 juin 2026 — #106 (Vue Serveur complète), #105 (Dashboard Manager polling)
+
+| Feature | Backend | Frontend | Tests |
+|---------|---------|----------|-------|
+| Auth JWT | ✅ | ✅ | ✅ |
+| Refresh token JWT | ✅ | ✅ | ✅ |
+| Gestion users (admin) | ✅ | ✅ | ✅ |
+| Rôles ADMIN/MANAGER/SERVEUR/BARMAN | ✅ | ✅ | ✅ |
+| DTOs de sortie (tous controllers) | ✅ | — | ✅ |
+| GlobalExceptionHandler | ✅ | — | ✅ |
+| Error interceptor frontend | — | ✅ | ✅ |
+| Cocktails CRUD | ✅ | ⚠️ squelette | ✅ |
+| Saisonnalité cocktails | ✅ | ✅ | ✅ |
+| Ingrédients CRUD | ✅ | ⚠️ squelette | ✅ |
+| Tables | ✅ | ⚠️ squelette | ✅ |
+| Commandes | ✅ | ⚠️ squelette | ✅ |
+| Déstockage auto (EN_PREPARATION) | ✅ | — | ✅ |
+| Alertes stock WebSocket | ✅ | ⚠️ banner existe, non branché | ✅ |
+| Notifications WS | ✅ | ⚠️ toasts OK, panneau historique ❌ | ✅ |
+| Factures (liste + détail) | ✅ | ⚠️ squelette | ✅ |
+| Export factures (PDF) | ✅ | ✅ bouton | ✅ |
+| Division d'addition (splitEgal/splitParSelection) | ✅ | ⚠️ mode par article partiel, égal ❌ | ✅ |
+| Dashboard Manager / stats | ✅ | ✅ polling 30s | ✅ |
+| Dashboard Barman | ✅ | ✅ kanban temps réel | ✅ |
+| Vue Serveur (plan de salle + commandes) | ✅ | ✅ modal + nouvelle commande + kanban | ✅ |
+| Plan de salle interactif (Konva.js) | ❌ | ❌ | — |
+| Vue Client QR Code | ❌ | ❌ | — |
 
 ## Ajouter une nouvelle feature (checklist)
 
@@ -167,15 +313,18 @@ Service frontend : `websocket.service.ts`
 2. Ligne dans `schema.sql`
 3. Repository dans `repository/` (extends `JpaRepository<Entity, Long>`)
 4. Service dans `service/` avec `@Transactional` sur les writes
-5. Controller dans `controller/` avec les bonnes annotations `@RolesAllowed` ou vérification via `SecurityConfig`
-6. Ajouter l'audit dans `AuditLogService` si nécessaire
+5. Controller dans `controller/` avec `@PreAuthorize` sur chaque endpoint
+6. DTO de sortie (Java record avec `from(entity)`) dans `dto/`
+7. Ajouter l'audit dans `AuditLogService` si nécessaire
+8. **Tests unitaires** dans `src/test/java/.../service/` (JUnit 5 + Mockito)
 
 ### Frontend
 1. Modèle TypeScript dans le dossier feature ou `core/models/`
 2. Service HTTP dans le dossier feature
 3. Composants (list / form / detail) sous `features/<nom>/`
-4. Route lazy-loadée dans `app.routes.ts`
+4. Route lazy-loadée dans `app.routes.ts` avec `data: { roles: [...] }` si `RoleGuard`
 5. Lien dans la navbar si pertinent
+6. **Tests** `.spec.ts` pour les sélecteurs, guards et services concernés
 
 <!-- rtk-instructions v2 -->
 # RTK (Rust Token Killer) - Token-Optimized Commands

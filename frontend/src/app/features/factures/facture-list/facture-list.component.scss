@@ -1,0 +1,43 @@
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 16px;
+  color: var(--text-muted, #7e87a8);
+
+  ion-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+    opacity: 0.5;
+  }
+
+  p {
+    margin: 0;
+    font-size: 1rem;
+  }
+}
+
+ion-list {
+  background: transparent;
+  padding: 8px;
+}
+
+ion-item {
+  --background: var(--background-surface-2, #21263f);
+  margin-bottom: 4px;
+  border-radius: 8px;
+
+  h3 {
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
+
+  p {
+    font-size: 0.85rem;
+  }
+}
+
+ion-badge {
+  margin-right: 8px;
+}

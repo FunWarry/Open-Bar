@@ -1,0 +1,23 @@
+/* Design System OpenBar — Figma XSVwFk64kgtqgUN9n5qoMw */
+:root {
+  --background-surface-1: #0d1021;
+  --background-surface-2: #21263f;
+  --background-surface-3: #2a3050;
+  --primary-strong: #5a68d6;
+  --primary: #6c7fe8;
+  --semantic-danger: #e5604f;
+  --semantic-warning: #f59e0b;
+  --semantic-success: #10b981;
+  --text-primary: #eceefb;
+  --text-muted: #7e87a8;
+  --border-medium: #2e3450;
+  --border-selected: #7c3aed;
+}
+
+.ios body,
+.md body {
+  --ion-background-color: var(--background-surface-1);
+  --ion-color-primary: var(--primary);
+  --ion-color-danger: var(--semantic-danger);
+  --ion-text-color: var(--text-primary);
+}

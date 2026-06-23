@@ -1,0 +1,34 @@
+<div class="login-container">
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Connexion</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+        <ion-item>
+          <ion-label position="floating">Nom d'utilisateur</ion-label>
+          <ion-input formControlName="username" type="text" required autocomplete="username"></ion-input>
+        </ion-item>
+        <ion-note color="danger" *ngIf="loginForm.get('username')?.touched && loginForm.get('username')?.hasError('required')">
+          Le nom d'utilisateur est requis
+        </ion-note>
+
+        <ion-item>
+          <ion-label position="floating">Mot de passe</ion-label>
+          <ion-input formControlName="password" type="password" required autocomplete="current-password"></ion-input>
+        </ion-item>
+        <ion-note color="danger" *ngIf="loginForm.get('password')?.touched && loginForm.get('password')?.hasError('required')">
+          Le mot de passe est requis
+        </ion-note>
+
+        <ion-note color="danger" *ngIf="errorMessage">
+          {{ errorMessage }}
+        </ion-note>
+
+        <ion-button expand="block" type="submit" [disabled]="loginForm.invalid" class="ion-margin-top">
+          Se connecter
+        </ion-button>
+      </form>
+    </ion-card-content>
+  </ion-card>
+</div>

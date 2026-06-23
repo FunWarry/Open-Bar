@@ -1,0 +1,169 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button [defaultHref]="'/factures/' + factureId"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Division d'addition</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <!-- Sélection du mode -->
+  <ion-segment [(ngModel)]="mode" (ionChange)="onModeChange()">
+    <ion-segment-button value="egal">
+      <ion-icon name="people-outline"></ion-icon>
+      <ion-label>Part égale</ion-label>
+    </ion-segment-button>
+    <ion-segment-button value="selection">
+      <ion-icon name="list-outline"></ion-icon>
+      <ion-label>Par article</ion-label>
+    </ion-segment-button>
+  </ion-segment>
+
+  <!-- ── Mode: part égale ─────────────────────────────────────────────────── -->
+  <ng-container *ngIf="mode === 'egal'">
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Nombre de convives</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <div class="convives-selector">
+          <ion-button fill="clear" (click)="ajusterConvives(-1)" (keydown.enter)="ajusterConvives(-1)" [disabled]="nombreConvives <= 2">
+            <ion-icon name="remove-outline"></ion-icon>
+          </ion-button>
+          <span class="nombre">{{ nombreConvives }}</span>
+          <ion-button fill="clear" (click)="ajusterConvives(1)" (keydown.enter)="ajusterConvives(1)" [disabled]="nombreConvives >= 20">
+            <ion-icon name="add-outline"></ion-icon>
+          </ion-button>
+        </div>
+
+        <p class="hint">Divise le total de la facture en {{ nombreConvives }} parts égales.</p>
+
+        <ion-button expand="block" (click)="calculerSplitEgal()" (keydown.enter)="calculerSplitEgal()" [disabled]="loading">
+          <ion-spinner *ngIf="loading" name="crescent" slot="start"></ion-spinner>
+          <ion-icon *ngIf="!loading" name="calculator-outline" slot="start"></ion-icon>
+          Calculer
+        </ion-button>
+
+        <p *ngIf="errorMessage" class="error-message">{{ errorMessage }}</p>
+      </ion-card-content>
+    </ion-card>
+  </ng-container>
+
+  <!-- ── Mode: par article ────────────────────────────────────────────────── -->
+  <ng-container *ngIf="mode === 'selection'">
+
+    <!-- Gestion des convives -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Convives</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <div class="convive-row" *ngFor="let c of convives; let i = index">
+          <ion-input
+            [(ngModel)]="convives[i].nom"
+            [placeholder]="'Convive ' + (i + 1)"
+            fill="outline"
+            class="convive-input">
+          </ion-input>
+          <ion-button fill="clear" color="danger"
+            *ngIf="convives.length > 2"
+            (click)="removeConvive(i)"
+            (keydown.enter)="removeConvive(i)"
+            aria-label="Supprimer ce convive">
+            <ion-icon name="close-outline"></ion-icon>
+          </ion-button>
+        </div>
+
+        <ion-button fill="clear" expand="block" (click)="addConvive()" (keydown.enter)="addConvive()" [disabled]="convives.length >= 20">
+          <ion-icon name="add-outline" slot="start"></ion-icon>
+          Ajouter un convive
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Répartition des articles -->
+    <ion-card *ngIf="facture; else loadingArticles">
+      <ion-card-header>
+        <ion-card-title>Répartition des articles</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <p class="hint">Attribuez chaque article à un convive.</p>
+
+        <ion-list>
+          <ion-item *ngFor="let item of facture.items" lines="full">
+            <ion-label>
+              <h3>{{ item.description }}</h3>
+              <p>{{ item.quantite }}× {{ item.prixUnitaire | currency:'EUR':'symbol':'1.2-2':'fr' }}
+                = {{ item.total | currency:'EUR':'symbol':'1.2-2':'fr' }}</p>
+            </ion-label>
+            <ion-select
+              slot="end"
+              [(ngModel)]="itemAssignments[item.id]"
+              placeholder="—"
+              interface="popover"
+              aria-label="Attribuer à">
+              <ion-select-option
+                *ngFor="let c of convives; let i = index"
+                [value]="i">
+                {{ conviveNom(i) }}
+              </ion-select-option>
+            </ion-select>
+          </ion-item>
+        </ion-list>
+
+        <p class="hint warn" *ngIf="!tousItemsAssignes && facture.items.length > 0">
+          Tous les articles doivent être attribués.
+        </p>
+
+        <ion-button
+          expand="block"
+          (click)="calculerSplitSelection()"
+          (keydown.enter)="calculerSplitSelection()"
+          [disabled]="loading || !tousItemsAssignes"
+          class="ion-margin-top">
+          <ion-spinner *ngIf="loading" name="crescent" slot="start"></ion-spinner>
+          <ion-icon *ngIf="!loading" name="calculator-outline" slot="start"></ion-icon>
+          Calculer la répartition
+        </ion-button>
+
+        <p *ngIf="errorMessage" class="error-message">{{ errorMessage }}</p>
+      </ion-card-content>
+    </ion-card>
+
+    <ng-template #loadingArticles>
+      <div class="loading-state ion-text-center ion-padding" *ngIf="!errorMessage">
+        <ion-spinner name="crescent"></ion-spinner>
+        <p>Chargement des articles...</p>
+      </div>
+      <p *ngIf="errorMessage" class="error-message ion-padding">{{ errorMessage }}</p>
+    </ng-template>
+
+  </ng-container>
+
+  <!-- ── Résultats (communs aux deux modes) ────────────────────────────────── -->
+  <div class="results" *ngIf="results.length > 0">
+    <h2 class="results-title">Résultat de la division</h2>
+    <ion-list>
+      <ion-item *ngFor="let part of results" lines="full">
+        <ion-label>
+          <h3>{{ part.nomConvive }}</h3>
+          <p *ngIf="part.items.length > 0">{{ part.items.length }} article(s)</p>
+          <p *ngIf="part.items.length > 0" class="items-detail">
+            <span *ngFor="let it of part.items; let last = last">
+              {{ it.description }}{{ !last ? ', ' : '' }}
+            </span>
+          </p>
+        </ion-label>
+        <ion-badge slot="end" color="primary" class="montant-badge">
+          {{ part.sousTotal | currency:'EUR':'symbol':'1.2-2':'fr' }}
+        </ion-badge>
+      </ion-item>
+    </ion-list>
+    <div class="total-check ion-padding-top">
+      <ion-note>Total réparti : {{ totalSplit | currency:'EUR':'symbol':'1.2-2':'fr' }}</ion-note>
+    </div>
+  </div>
+
+</ion-content>
