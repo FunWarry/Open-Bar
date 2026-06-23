@@ -2,6 +2,8 @@
 
 Génère du code pour le projet OpenBar en respectant les conventions existantes et l'état actuel de l'implémentation.
 
+> **Pipeline de travail** : ce skill fournit les conventions de code. Pour le workflow complet (branche → PR → auto-critique → merge), utiliser le skill `openbar-ticket`.
+
 ## Quand utiliser ce skill
 
 - "Ajoute une feature X au projet"
