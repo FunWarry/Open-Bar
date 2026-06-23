@@ -1,135 +1,113 @@
-import { TestBed } from '@angular/core/testing';
+import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { ActivatedRoute, Router } from '@angular/router';
-import { provideMockStore, MockStore } from '@ngrx/store/testing';
+import { Store } from '@ngrx/store';
+import { IonicModule, ToastController } from '@ionic/angular';
+import { of, throwError } from 'rxjs';
 import { TableDetailComponent } from '../../../app/features/tables/table-detail/table-detail.component';
-import { selectIsAdmin } from '../../../app/core/store/auth.selectors';
+import { TableService } from '../../../app/core/services/table.service';
+import { CommandeService } from '../../../app/core/services/commande.service';
+import { TableBar } from '../../../app/core/models/table.model';
+import { Commande } from '../../../app/core/models/commande.model';
+
+const mockTable: TableBar = { id: 5, numero: 5, capacite: 4, zone: 'TERRASSE', occupee: true, createdAt: '', updatedAt: '' };
+const mockCommande: Commande = { id: 1, tableId: 5, tableNumero: 5, serveurId: 1, serveurUsername: 'alice', items: [], statut: 'EN_ATTENTE', total: 10, dateCommande: '', createdAt: '', updatedAt: '' };
 
 describe('TableDetailComponent', () => {
   let component: TableDetailComponent;
+  let tableServiceSpy: jasmine.SpyObj<TableService>;
+  let commandeServiceSpy: jasmine.SpyObj<CommandeService>;
+  let toastCtrlSpy: jasmine.SpyObj<ToastController>;
+  let storeSpy: jasmine.SpyObj<Store>;
   let router: Router;
-  let store: MockStore;
 
-  const initialState = { auth: { user: null, isAdmin: false } };
+  const mockToast = { present: jasmine.createSpy('present') };
 
   beforeEach(async () => {
+    tableServiceSpy = jasmine.createSpyObj('TableService', ['getById']);
+    tableServiceSpy.getById.and.returnValue(of(mockTable));
+
+    commandeServiceSpy = jasmine.createSpyObj('CommandeService', ['getByTable']);
+    commandeServiceSpy.getByTable.and.returnValue(of([mockCommande]));
+
+    toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
+    toastCtrlSpy.create.and.returnValue(Promise.resolve(mockToast as any));
+
+    storeSpy = jasmine.createSpyObj('Store', ['select', 'dispatch']);
+    storeSpy.select.and.returnValue(of(false));
+
     await TestBed.configureTestingModule({
-      imports: [
-        TableDetailComponent,
-        RouterTestingModule
-      ],
+      imports: [TableDetailComponent, IonicModule.forRoot(), RouterTestingModule],
       providers: [
-        provideMockStore({
-          initialState,
-          selectors: [{ selector: selectIsAdmin, value: false }]
-        }),
-        {
-          provide: ActivatedRoute,
-          useValue: { snapshot: { paramMap: { get: () => '1' } } }
-        }
-      ]
+        { provide: Store, useValue: storeSpy },
+        { provide: TableService, useValue: tableServiceSpy },
+        { provide: CommandeService, useValue: commandeServiceSpy },
+        { provide: ToastController, useValue: toastCtrlSpy },
+        { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => '5' } } } },
+      ],
     }).compileComponents();
 
-    store = TestBed.inject(MockStore);
     router = TestBed.inject(Router);
-
     const fixture = TestBed.createComponent(TableDetailComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
 
-  afterEach(() => {
-    store.resetSelectors();
+  afterEach(() => component.ngOnDestroy());
+
+  it('should create', () => expect(component).toBeTruthy());
+
+  it('ngOnInit() charge la table et les commandes', fakeAsync(() => {
+    component.ngOnInit(); tick();
+    expect(component.table).toEqual(mockTable);
+    expect(component.commandes.length).toBe(1);
+  }));
+
+  it('ngOnInit() exclut les commandes REGLEE et ANNULEE', fakeAsync(() => {
+    commandeServiceSpy.getByTable.and.returnValue(of([
+      { ...mockCommande, statut: 'EN_ATTENTE' },
+      { ...mockCommande, id: 2, statut: 'REGLEE' },
+      { ...mockCommande, id: 3, statut: 'ANNULEE' },
+    ] as Commande[]));
+    component.ngOnInit(); tick();
+    expect(component.commandes.length).toBe(1);
+  }));
+
+  it('ngOnInit() navigue vers /tables en cas d\'erreur', fakeAsync(async () => {
+    tableServiceSpy.getById.and.returnValue(throwError(() => new Error('err')));
+    spyOn(router, 'navigate');
+    component.ngOnInit(); tick();
+    await Promise.resolve();
+    expect(router.navigate).toHaveBeenCalledWith(['/tables']);
+  }));
+
+  it('getStatutColor() mappe les statuts correctement', () => {
+    expect(component.getStatutColor('EN_ATTENTE')).toBe('warning');
+    expect(component.getStatutColor('PRET')).toBe('success');
+    expect(component.getStatutColor('ANNULEE')).toBe('danger');
+    expect(component.getStatutColor('INCONNU')).toBe('primary');
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
+  it('onBack() navigue vers /tables', () => {
+    spyOn(router, 'navigate');
+    component.onBack();
+    expect(router.navigate).toHaveBeenCalledWith(['/tables']);
   });
 
-  describe('isAdmin$', () => {
-    it('should emit false when user is not admin', (done) => {
-      component.isAdmin$.subscribe(isAdmin => {
-        expect(isAdmin).toBeFalse();
-        done();
-      });
-    });
+  it('onEdit() navigue vers /tables/:id/edit', fakeAsync(() => {
+    component.ngOnInit(); tick();
+    spyOn(router, 'navigate');
+    component.onEdit();
+    expect(router.navigate).toHaveBeenCalledWith(['/tables', 5, 'edit']);
+  }));
 
-    it('should emit true when user is admin', (done) => {
-      store.overrideSelector(selectIsAdmin, true);
-      store.refreshState();
-
-      component.isAdmin$.subscribe(isAdmin => {
-        expect(isAdmin).toBeTrue();
-        done();
-      });
-    });
+  it('onViewCommande() navigue vers /commandes/:id', () => {
+    spyOn(router, 'navigate');
+    component.onViewCommande(mockCommande);
+    expect(router.navigate).toHaveBeenCalledWith(['/commandes', 1]);
   });
 
-  describe('getStatusColor()', () => {
-    it('should return "warning" for EN_ATTENTE', () => {
-      expect(component.getStatusColor('EN_ATTENTE')).toBe('warning');
-    });
-
-    it('should return "tertiary" for EN_PREPARATION', () => {
-      expect(component.getStatusColor('EN_PREPARATION')).toBe('tertiary');
-    });
-
-    it('should return "success" for PRETE', () => {
-      expect(component.getStatusColor('PRETE')).toBe('success');
-    });
-
-    it('should return "medium" for SERVIE', () => {
-      expect(component.getStatusColor('SERVIE')).toBe('medium');
-    });
-
-    it('should return "primary" for unknown status', () => {
-      expect(component.getStatusColor('INCONNU')).toBe('primary');
-    });
-  });
-
-  describe('onBack()', () => {
-    it('should navigate to /tables', () => {
-      const navigateSpy = spyOn(router, 'navigate');
-      component.onBack();
-      expect(navigateSpy).toHaveBeenCalledWith(['/tables']);
-    });
-  });
-
-  describe('onEdit()', () => {
-    it('should navigate to /tables/:id/edit when table is set', () => {
-      const navigateSpy = spyOn(router, 'navigate');
-      component.table = { id: 5 };
-      component.onEdit();
-      expect(navigateSpy).toHaveBeenCalledWith(['/tables', 5, 'edit']);
-    });
-  });
-
-  describe('onViewCommande()', () => {
-    it('should navigate to /commandes/:id when table has a currentCommande', () => {
-      const navigateSpy = spyOn(router, 'navigate');
-      component.table = { id: 5, currentCommande: { id: 99 } };
-      component.onViewCommande();
-      expect(navigateSpy).toHaveBeenCalledWith(['/commandes', 99]);
-    });
-
-    it('should not navigate when table has no currentCommande', () => {
-      const navigateSpy = spyOn(router, 'navigate');
-      component.table = { id: 5, currentCommande: null };
-      component.onViewCommande();
-      expect(navigateSpy).not.toHaveBeenCalled();
-    });
-
-    it('should not navigate when table is undefined', () => {
-      const navigateSpy = spyOn(router, 'navigate');
-      component.table = undefined;
-      component.onViewCommande();
-      expect(navigateSpy).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('commandesDataSource', () => {
-    it('should be initialized as an empty array', () => {
-      expect(component.commandesDataSource).toEqual([]);
-    });
+  it('isAdmin$ émet false par défaut', (done) => {
+    component.isAdmin$.subscribe(v => { expect(v).toBe(false); done(); });
   });
 });

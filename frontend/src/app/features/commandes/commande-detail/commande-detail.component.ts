@@ -1,13 +1,17 @@
-import {Component, OnInit} from '@angular/core';
-import {ActivatedRoute, Router} from '@angular/router';
-import {ToastController} from '@ionic/angular/standalone';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Subject } from 'rxjs';
+import { takeUntil, finalize } from 'rxjs/operators';
+import { ToastController } from '@ionic/angular/standalone';
 import {
   IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-  IonList, IonItem, IonLabel, IonBadge, IonButton, IonButtons, IonIcon
+  IonList, IonItem, IonLabel, IonBadge, IonButton, IonButtons, IonIcon, IonSpinner,
 } from '@ionic/angular/standalone';
-import {addIcons} from 'ionicons';
-import {arrowBack, create, trash} from 'ionicons/icons';
-import {CurrencyPipe, NgIf, NgFor} from '@angular/common';
+import { addIcons } from 'ionicons';
+import { arrowBack, banOutline } from 'ionicons/icons';
+import { CurrencyPipe, NgIf, NgFor, DatePipe } from '@angular/common';
+import { CommandeService } from '../../../core/services/commande.service';
+import { Commande } from '../../../core/models/commande.model';
 
 @Component({
   selector: 'app-commande-detail',
@@ -16,51 +20,74 @@ import {CurrencyPipe, NgIf, NgFor} from '@angular/common';
   standalone: true,
   imports: [
     IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-    IonList, IonItem, IonLabel, IonBadge, IonButton, IonButtons, IonIcon,
-    CurrencyPipe, NgIf, NgFor
+    IonList, IonItem, IonLabel, IonBadge, IonButton, IonButtons, IonIcon, IonSpinner,
+    CurrencyPipe, NgIf, NgFor, DatePipe,
   ],
-  providers: [ToastController]
 })
-export class CommandeDetailComponent implements OnInit {
-  commandeId: number;
-  commande: any; // TODO: Remplacer par le type approprié
+export class CommandeDetailComponent implements OnInit, OnDestroy {
+  commande: Commande | null = null;
+  isLoading = false;
+
+  private commandeId: number;
+  private destroy$ = new Subject<void>();
 
   constructor(
     private route: ActivatedRoute,
     public router: Router,
-    private toastCtrl: ToastController
+    private commandeService: CommandeService,
+    private toastCtrl: ToastController,
   ) {
     this.commandeId = +this.route.snapshot.paramMap.get('id')!;
-    addIcons({arrowBack, create, trash});
+    addIcons({ arrowBack, banOutline });
   }
 
   ngOnInit(): void {
-    // TODO: Charger les détails de la commande
+    this.isLoading = true;
+    this.commandeService.getById(this.commandeId)
+      .pipe(takeUntil(this.destroy$), finalize(() => (this.isLoading = false)))
+      .subscribe({
+        next: commande => (this.commande = commande),
+        error: async () => {
+          const toast = await this.toastCtrl.create({ message: 'Commande introuvable', duration: 3000, color: 'danger' });
+          toast.present();
+          this.router.navigate(['/commandes']);
+        },
+      });
   }
 
-  getStatusColor(status: string): string {
-    switch (status) {
-      case 'EN_ATTENTE': return 'warning';
-      case 'EN_PREPARATION': return 'tertiary';
-      case 'PRETE': return 'success';
-      case 'SERVIE': return 'medium';
-      case 'ANNULEE': return 'danger';
-      default: return 'primary';
-    }
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
-  onEdit(): void {
-    this.router.navigate(['/commandes', this.commandeId, 'edit']);
+  getStatutColor(statut: string): string {
+    const map: Record<string, string> = {
+      EN_ATTENTE: 'warning', EN_PREPARATION: 'tertiary',
+      PRET: 'success', LIVREE: 'medium', REGLEE: 'dark', ANNULEE: 'danger',
+    };
+    return map[statut] ?? 'primary';
   }
 
-  async onDelete(): Promise<void> {
-    // TODO: Implémenter la logique de suppression
-    const toast = await this.toastCtrl.create({
-      message: 'Commande supprimée avec succès',
-      duration: 3000,
-      color: 'success'
-    });
-    await toast.present();
-    this.router.navigate(['/commandes']);
+  peutAnnuler(): boolean {
+    return !!this.commande && !['LIVREE', 'REGLEE', 'ANNULEE'].includes(this.commande.statut);
   }
+
+  onAnnuler(): void {
+    if (!this.commande) return;
+    this.commandeService.annuler(this.commande.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: async updated => {
+          this.commande = updated;
+          const toast = await this.toastCtrl.create({ message: 'Commande annulée', duration: 2000, color: 'medium' });
+          toast.present();
+        },
+        error: async () => {
+          const toast = await this.toastCtrl.create({ message: 'Impossible d\'annuler', duration: 3000, color: 'danger' });
+          toast.present();
+        },
+      });
+  }
+
+  onBack(): void { this.router.navigate(['/commandes']); }
 }

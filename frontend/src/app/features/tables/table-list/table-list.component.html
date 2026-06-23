@@ -1,8 +1,12 @@
+<ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+  <ion-refresher-content></ion-refresher-content>
+</ion-refresher>
+
 <div class="table-list-container">
   <ion-card>
     <ion-card-header>
       <div class="card-header-row">
-        <ion-card-title>Tables</ion-card-title>
+        <ion-card-title>Tables ({{ tables.length }})</ion-card-title>
         <ion-button *ngIf="isAdmin$ | async" color="primary" (click)="onAdd()">
           <ion-icon slot="start" name="add"></ion-icon>
           Nouvelle Table
@@ -10,23 +14,27 @@
       </div>
     </ion-card-header>
     <ion-card-content>
-      <ion-grid>
+      <div *ngIf="isLoading" style="text-align:center;padding:24px">
+        <ion-spinner name="crescent"></ion-spinner>
+      </div>
+
+      <ion-grid *ngIf="!isLoading">
         <ion-row>
           <ion-col size="12" size-sm="6" size-md="4" size-lg="3"
-                   *ngFor="let table of tables">
-            <ion-card [class.occupied]="table.occupied">
+                   *ngFor="let table of tables; trackBy: trackById">
+            <ion-card [class.occupied]="table.occupee">
               <ion-card-header>
-                <ion-card-title>Table {{ table.number }}</ion-card-title>
+                <ion-card-title>Table {{ table.numero }}</ion-card-title>
                 <ion-card-subtitle>{{ table.zone }}</ion-card-subtitle>
               </ion-card-header>
               <ion-card-content>
                 <p>
                   <ion-icon name="people"></ion-icon>
-                  Capacité : {{ table.capacity }} personnes
+                  Capacité : {{ table.capacite }} personnes
                 </p>
-                <ion-badge [color]="table.occupied ? 'danger' : 'success'">
-                  <ion-icon [name]="table.occupied ? 'close-circle' : 'checkmark-circle'"></ion-icon>
-                  {{ table.occupied ? 'Occupée' : 'Libre' }}
+                <ion-badge [color]="table.occupee ? 'danger' : 'success'">
+                  <ion-icon [name]="table.occupee ? 'close-circle' : 'checkmark-circle'"></ion-icon>
+                  {{ table.occupee ? 'Occupée' : 'Libre' }}
                 </ion-badge>
               </ion-card-content>
               <ion-buttons class="card-actions">
@@ -43,6 +51,10 @@
           </ion-col>
         </ion-row>
       </ion-grid>
+
+      <div *ngIf="!isLoading && tables.length === 0" style="text-align:center;padding:24px;color:var(--ion-color-medium)">
+        Aucune table
+      </div>
     </ion-card-content>
   </ion-card>
 </div>

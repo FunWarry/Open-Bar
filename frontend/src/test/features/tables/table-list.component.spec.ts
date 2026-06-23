@@ -1,94 +1,95 @@
-import { TestBed } from '@angular/core/testing';
+import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { ComponentFixture } from '@angular/core/testing';
-import { IonicModule } from '@ionic/angular';
+import { RouterTestingModule } from '@angular/router/testing';
+import { Router } from '@angular/router';
+import { IonicModule, ToastController } from '@ionic/angular';
 import { Store } from '@ngrx/store';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { TableListComponent } from '../../../app/features/tables/table-list/table-list.component';
+import { TableService } from '../../../app/core/services/table.service';
+import { TableBar } from '../../../app/core/models/table.model';
+
+const mockTables: TableBar[] = [
+  { id: 1, numero: 1, capacite: 4, zone: 'TERRASSE', occupee: false, createdAt: '', updatedAt: '' },
+  { id: 2, numero: 2, capacite: 2, zone: 'INTERIEUR', occupee: true,  createdAt: '', updatedAt: '' },
+];
 
 describe('TableListComponent', () => {
   let component: TableListComponent;
   let fixture: ComponentFixture<TableListComponent>;
+  let serviceSpy: jasmine.SpyObj<TableService>;
+  let toastCtrlSpy: jasmine.SpyObj<ToastController>;
   let storeSpy: jasmine.SpyObj<Store>;
+  let router: Router;
+
+  const mockToast = { present: jasmine.createSpy('present') };
 
   beforeEach(async () => {
+    serviceSpy = jasmine.createSpyObj('TableService', ['getAll']);
+    serviceSpy.getAll.and.returnValue(of(mockTables));
+
+    toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
+    toastCtrlSpy.create.and.returnValue(Promise.resolve(mockToast as any));
+
     storeSpy = jasmine.createSpyObj('Store', ['select', 'dispatch']);
     storeSpy.select.and.returnValue(of(false));
 
     await TestBed.configureTestingModule({
-      imports: [
-        TableListComponent,
-        IonicModule.forRoot()
-      ],
+      imports: [TableListComponent, IonicModule.forRoot(), RouterTestingModule],
       providers: [
-        { provide: Store, useValue: storeSpy }
-      ]
+        { provide: Store, useValue: storeSpy },
+        { provide: TableService, useValue: serviceSpy },
+        { provide: ToastController, useValue: toastCtrlSpy },
+      ],
     }).compileComponents();
 
+    router = TestBed.inject(Router);
     fixture = TestBed.createComponent(TableListComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
+  afterEach(() => component.ngOnDestroy());
+
+  it('should create', () => expect(component).toBeTruthy());
+
+  it('charger() peuple tables depuis le service', fakeAsync(() => {
+    component.charger();
+    tick();
+    expect(component.tables.length).toBe(2);
+  }));
+
+  it('charger() affiche un toast danger en cas d\'erreur', fakeAsync(async () => {
+    serviceSpy.getAll.and.returnValue(throwError(() => new Error('err')));
+    component.charger();
+    tick();
+    await Promise.resolve();
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
+  }));
+
+  it('onAdd() navigue vers /tables/new', () => {
+    spyOn(router, 'navigate');
+    component.onAdd();
+    expect(router.navigate).toHaveBeenCalledWith(['/tables/new']);
   });
 
-  it('should initialize with an empty tables array', () => {
-    expect(component.tables).toEqual([]);
+  it('onView() navigue vers /tables/:id', () => {
+    spyOn(router, 'navigate');
+    component.onView(mockTables[0]);
+    expect(router.navigate).toHaveBeenCalledWith(['/tables', 1]);
   });
 
-  it('isAdmin$ should be populated from the store', (done) => {
-    storeSpy.select.and.returnValue(of(true));
-
-    fixture = TestBed.createComponent(TableListComponent);
-    component = fixture.componentInstance;
-
-    component.isAdmin$.subscribe(isAdmin => {
-      expect(isAdmin).toBe(true);
-      done();
-    });
+  it('onEdit() navigue vers /tables/:id/edit', () => {
+    spyOn(router, 'navigate');
+    component.onEdit(mockTables[0]);
+    expect(router.navigate).toHaveBeenCalledWith(['/tables', 1, 'edit']);
   });
 
-  it('isAdmin$ should emit false when store returns false', (done) => {
-    storeSpy.select.and.returnValue(of(false));
-
-    fixture = TestBed.createComponent(TableListComponent);
-    component = fixture.componentInstance;
-
-    component.isAdmin$.subscribe(isAdmin => {
-      expect(isAdmin).toBe(false);
-      done();
-    });
+  it('isAdmin$ émet false par défaut', (done) => {
+    component.isAdmin$.subscribe(v => { expect(v).toBe(false); done(); });
   });
 
-  describe('ngOnInit()', () => {
-    it('should not throw on init', () => {
-      expect(() => component.ngOnInit()).not.toThrow();
-    });
-
-    it('tables should remain empty after ngOnInit (load not yet implemented)', () => {
-      component.ngOnInit();
-      expect(component.tables).toEqual([]);
-    });
-  });
-
-  describe('onAdd()', () => {
-    it('should execute without error (stub method)', () => {
-      expect(() => component.onAdd()).not.toThrow();
-    });
-  });
-
-  describe('onView()', () => {
-    it('should execute without error when called with a table object', () => {
-      const mockTable = { id: 1, numero: 5, statut: 'LIBRE' };
-      expect(() => component.onView(mockTable)).not.toThrow();
-    });
-  });
-
-  describe('onEdit()', () => {
-    it('should execute without error when called with a table object', () => {
-      const mockTable = { id: 2, numero: 3, statut: 'OCCUPEE' };
-      expect(() => component.onEdit(mockTable)).not.toThrow();
-    });
+  it('trackById retourne l\'id de la table', () => {
+    expect(component.trackById(0, mockTables[0])).toBe(1);
   });
 });
