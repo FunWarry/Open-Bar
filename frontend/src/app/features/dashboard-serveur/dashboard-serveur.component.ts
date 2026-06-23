@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { finalize, takeUntil } from 'rxjs/operators';
 import {
@@ -7,9 +8,13 @@ import {
   IonRefresher, IonRefresherContent,
   IonGrid, IonRow, IonCol,
   IonSegment, IonSegmentButton, IonLabel,
-  ToastController
+  IonButtons, IonButton, IonIcon,
+  ToastController, ModalController,
 } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { listOutline } from 'ionicons/icons';
 import { TableCardComponent } from './components/table-card/table-card.component';
+import { TableDetailModalComponent } from './components/table-detail-modal/table-detail-modal.component';
 import { NotificationService } from '../../core/services/notification.service';
 import { DashboardServeurService } from './services/dashboard-serveur.service';
 import { TableView } from './models/table-view.model';
@@ -23,7 +28,8 @@ import { TableView } from './models/table-view.model';
     IonRefresher, IonRefresherContent,
     IonGrid, IonRow, IonCol,
     IonSegment, IonSegmentButton, IonLabel,
-    TableCardComponent
+    IonButtons, IonButton, IonIcon,
+    TableCardComponent,
   ],
   templateUrl: './dashboard-serveur.component.html',
   styleUrls: ['./dashboard-serveur.component.scss'],
@@ -39,8 +45,12 @@ export class DashboardServeurComponent implements OnInit, OnDestroy {
   constructor(
     private service: DashboardServeurService,
     private toastCtrl: ToastController,
+    private modalCtrl: ModalController,
+    private router: Router,
     private notificationService: NotificationService,
-  ) {}
+  ) {
+    addIcons({ listOutline });
+  }
 
   ngOnInit() {
     this.chargerTables();
@@ -110,6 +120,24 @@ export class DashboardServeurComponent implements OnInit, OnDestroy {
   onSegmentChange(event: any) {
     this.selectedFilter = event.detail.value;
     this.filtrer();
+  }
+
+  async onSelectionner(table: TableView) {
+    const modal = await this.modalCtrl.create({
+      component: TableDetailModalComponent,
+      componentProps: { table },
+      breakpoints: [0, 0.5, 0.9],
+      initialBreakpoint: 0.9,
+    });
+    await modal.present();
+    const { data } = await modal.onWillDismiss();
+    if (data?.action === 'liberer') {
+      this.onLiberer(data.tableId);
+    }
+  }
+
+  naviguerKanban() {
+    this.router.navigate(['/serveur/suivi-commandes']);
   }
 
   async onLiberer(tableId: number) {

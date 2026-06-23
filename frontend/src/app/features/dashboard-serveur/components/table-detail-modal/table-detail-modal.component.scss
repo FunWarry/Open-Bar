@@ -1,0 +1,111 @@
+.modal-toolbar {
+  --background: #21263f;
+  --color: #eceefb;
+}
+
+.zone-badge {
+  font-size: 10px;
+  font-weight: 600;
+  color: #6c7fe8;
+  border: 1px solid rgba(108, 127, 232, 0.5);
+  background: rgba(108, 127, 232, 0.12);
+  padding: 2px 6px;
+  border-radius: 6px;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+.modal-content {
+  --background: #0f0f1a;
+}
+
+.table-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px 4px;
+  flex-wrap: wrap;
+
+  .capacite, .serveur-nom {
+    font-size: 13px;
+    color: #7e87a8;
+  }
+}
+
+.section-title {
+  padding: 12px 16px 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #7e87a8;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.loading-state, .empty-commandes {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 16px;
+  color: #7e87a8;
+  font-size: 14px;
+  gap: 8px;
+
+  ion-icon { font-size: 32px; }
+}
+
+.commandes-list {
+  --background: transparent;
+}
+
+.commande-item {
+  --background: #21263f;
+  --border-radius: 10px;
+  margin: 4px 8px;
+  --border-color: transparent;
+
+  .commande-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+
+  .commande-id {
+    font-weight: 700;
+    color: #eceefb;
+    font-size: 13px;
+  }
+
+  .commande-items {
+    display: block;
+    font-size: 12px;
+    color: #7e87a8;
+    margin-bottom: 4px;
+  }
+
+  .item-line {
+    font-size: 12px;
+    color: #b0b8d0;
+    padding: 1px 0;
+  }
+}
+
+.modal-footer {
+  padding: 12px 16px;
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+  background: #21263f;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  .btn-nouvelle {
+    --background: #6c7fe8;
+    --color: #fff;
+    font-weight: 600;
+  }
+
+  .btn-liberer {
+    --color: #e74c3c;
+    --border-color: #e74c3c;
+  }
+}

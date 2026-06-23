@@ -1,0 +1,113 @@
+.filter-toolbar {
+  --background: #21263f;
+  padding: 0 8px 8px;
+
+  .table-select {
+    --background: #1a1a2e;
+    --color: #eceefb;
+    --placeholder-color: #7e87a8;
+    border-radius: 8px;
+    padding: 4px 8px;
+    font-size: 13px;
+    width: 100%;
+  }
+}
+
+.loading-state {
+  display: flex;
+  justify-content: center;
+  padding: 48px 16px;
+}
+
+.kanban-board {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  overflow-x: auto;
+  min-height: calc(100vh - 120px);
+
+  .kanban-col {
+    min-width: 240px;
+    flex: 1;
+
+    .col-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      padding: 0 2px;
+
+      .col-title {
+        font-size: 13px;
+        font-weight: 700;
+        color: #eceefb;
+      }
+    }
+
+    .col-empty {
+      text-align: center;
+      padding: 24px 8px;
+      color: #7e87a8;
+      font-size: 12px;
+      font-style: italic;
+      background: rgba(33, 38, 63, 0.5);
+      border-radius: 10px;
+    }
+  }
+}
+
+.commande-card {
+  --background: #21263f;
+  margin: 0 0 10px;
+  border-radius: 12px;
+
+  &.card-en_attente   { border-left: 3px solid #f39c12; }
+  &.card-en_preparation { border-left: 3px solid #6c7fe8; }
+  &.card-pret         { border-left: 3px solid #27ae60; }
+  &.card-livree       { border-left: 3px solid #5d6d8a; opacity: 0.75; }
+
+  .card-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2px;
+  }
+
+  .cmd-id {
+    font-size: 14px;
+    font-weight: 700;
+    color: #eceefb;
+  }
+
+  .cmd-table {
+    font-size: 11px;
+    color: #7e87a8;
+  }
+
+  .cmd-meta {
+    font-size: 11px;
+    color: #7e87a8;
+  }
+
+  .items-list {
+    margin: 6px 0;
+    .item-line {
+      font-size: 12px;
+      color: #b0b8d0;
+      padding: 2px 0;
+    }
+  }
+
+  .card-total {
+    font-size: 14px;
+    font-weight: 700;
+    color: #34c77b;
+    margin: 6px 0 8px;
+  }
+
+  .card-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+}

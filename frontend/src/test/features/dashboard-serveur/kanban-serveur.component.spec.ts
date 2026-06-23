@@ -1,0 +1,179 @@
+import { TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { ComponentFixture } from '@angular/core/testing';
+import { RouterTestingModule } from '@angular/router/testing';
+import { IonicModule, ToastController } from '@ionic/angular';
+import { of, Subject, throwError } from 'rxjs';
+import { KanbanServeurComponent } from '../../../app/features/dashboard-serveur/kanban-serveur/kanban-serveur.component';
+import { DashboardServeurService } from '../../../app/features/dashboard-serveur/services/dashboard-serveur.service';
+import { NotificationService, AppNotification } from '../../../app/core/services/notification.service';
+import { Commande } from '../../../app/core/models/commande.model';
+import { TableView } from '../../../app/features/dashboard-serveur/models/table-view.model';
+
+const cmd = (id: number, statut: Commande['statut'], tableId: number): Commande => ({
+  id, tableId, tableNumero: tableId, serveurId: 1, serveurUsername: 'alice',
+  items: [], statut, total: 10,
+  dateCommande: '2026-06-23T10:00:00', createdAt: '', updatedAt: '',
+});
+
+const mockTables: TableView[] = [
+  { id: 1, nom: 'Table 1', zone: 'TERRASSE', capacite: 4, occupee: true, commandesActives: [] },
+  { id: 2, nom: 'Table 2', zone: 'INTERIEUR', capacite: 2, occupee: false, commandesActives: [] },
+];
+
+describe('KanbanServeurComponent', () => {
+  let component: KanbanServeurComponent;
+  let fixture: ComponentFixture<KanbanServeurComponent>;
+  let serviceSpy: jasmine.SpyObj<DashboardServeurService>;
+  let notificationSpy: jasmine.SpyObj<NotificationService>;
+  let toastCtrlSpy: jasmine.SpyObj<ToastController>;
+  let notification$: Subject<AppNotification>;
+
+  const mockToast = { present: jasmine.createSpy('present') };
+
+  beforeEach(async () => {
+    notification$ = new Subject<AppNotification>();
+
+    serviceSpy = jasmine.createSpyObj('DashboardServeurService', [
+      'getCommandesParStatut', 'getAllTables',
+      'changerStatutCommande', 'annulerCommande',
+    ]);
+    serviceSpy.getCommandesParStatut.and.callFake((statut: string) => {
+      if (statut === 'EN_ATTENTE')    return of([cmd(1, 'EN_ATTENTE', 1)]);
+      if (statut === 'EN_PREPARATION') return of([cmd(2, 'EN_PREPARATION', 1)]);
+      if (statut === 'PRET')          return of([cmd(3, 'PRET', 2)]);
+      if (statut === 'LIVREE')        return of([]);
+      return of([]);
+    });
+    serviceSpy.getAllTables.and.returnValue(of(mockTables));
+    serviceSpy.changerStatutCommande.and.returnValue(of(cmd(3, 'LIVREE', 2) as any));
+    serviceSpy.annulerCommande.and.returnValue(of(cmd(1, 'ANNULEE', 1) as any));
+
+    notificationSpy = jasmine.createSpyObj('NotificationService', ['onNotification']);
+    notificationSpy.onNotification.and.returnValue(notification$.asObservable());
+
+    toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
+    toastCtrlSpy.create.and.returnValue(Promise.resolve(mockToast as any));
+
+    await TestBed.configureTestingModule({
+      imports: [KanbanServeurComponent, IonicModule.forRoot(), RouterTestingModule],
+      providers: [
+        { provide: DashboardServeurService, useValue: serviceSpy },
+        { provide: NotificationService, useValue: notificationSpy },
+        { provide: ToastController, useValue: toastCtrlSpy },
+      ],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(KanbanServeurComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  afterEach(() => component.ngOnDestroy());
+
+  it('should create', () => expect(component).toBeTruthy());
+
+  it('charger() peuple les 4 colonnes du kanban', fakeAsync(() => {
+    component.charger();
+    tick();
+    const enAttente = component.colonnes.find(c => c.statut === 'EN_ATTENTE')!;
+    const pret = component.colonnes.find(c => c.statut === 'PRET')!;
+    const livree = component.colonnes.find(c => c.statut === 'LIVREE')!;
+    expect(enAttente.commandes.length).toBe(1);
+    expect(pret.commandes.length).toBe(1);
+    expect(livree.commandes.length).toBe(0);
+  }));
+
+  it('charger() appelle getCommandesParStatut pour les 4 statuts', fakeAsync(() => {
+    component.charger();
+    tick();
+    expect(serviceSpy.getCommandesParStatut).toHaveBeenCalledWith('EN_ATTENTE');
+    expect(serviceSpy.getCommandesParStatut).toHaveBeenCalledWith('EN_PREPARATION');
+    expect(serviceSpy.getCommandesParStatut).toHaveBeenCalledWith('PRET');
+    expect(serviceSpy.getCommandesParStatut).toHaveBeenCalledWith('LIVREE');
+  }));
+
+  it('charger() affiche un toast danger en cas d\'erreur', fakeAsync(async () => {
+    serviceSpy.getCommandesParStatut.and.returnValue(throwError(() => new Error('err')));
+    component.charger();
+    tick();
+    await Promise.resolve();
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
+  }));
+
+  // --- filtre ---
+
+  it('onFiltreChange() filtre les commandes par tableId', fakeAsync(() => {
+    component.charger();
+    tick();
+    component.onFiltreChange(2);
+    const enAttente = component.colonnes.find(c => c.statut === 'EN_ATTENTE')!;
+    expect(enAttente.commandes.length).toBe(0); // cmd(1) est sur table 1
+    const pret = component.colonnes.find(c => c.statut === 'PRET')!;
+    expect(pret.commandes.length).toBe(1); // cmd(3) est sur table 2
+  }));
+
+  it('onFiltreChange(null) affiche toutes les commandes', fakeAsync(() => {
+    component.charger();
+    tick();
+    component.onFiltreChange(2);
+    component.onFiltreChange(null);
+    const enAttente = component.colonnes.find(c => c.statut === 'EN_ATTENTE')!;
+    expect(enAttente.commandes.length).toBe(1);
+  }));
+
+  // --- marquerLivree ---
+
+  it('marquerLivree() appelle changerStatutCommande avec LIVREE et recharge', fakeAsync(async () => {
+    component.marquerLivree(3);
+    tick();
+    await Promise.resolve();
+    expect(serviceSpy.changerStatutCommande).toHaveBeenCalledWith(3, 'LIVREE');
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'success' }));
+  }));
+
+  it('marquerLivree() affiche un toast danger en cas d\'erreur', fakeAsync(async () => {
+    serviceSpy.changerStatutCommande.and.returnValue(throwError(() => new Error('err')));
+    component.marquerLivree(3);
+    tick();
+    await Promise.resolve();
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
+  }));
+
+  // --- annuler ---
+
+  it('annuler() appelle annulerCommande et recharge', fakeAsync(async () => {
+    component.annuler(1);
+    tick();
+    await Promise.resolve();
+    expect(serviceSpy.annulerCommande).toHaveBeenCalledWith(1);
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'medium' }));
+  }));
+
+  it('annuler() affiche un toast danger en cas d\'erreur', fakeAsync(async () => {
+    serviceSpy.annulerCommande.and.returnValue(throwError(() => new Error('err')));
+    component.annuler(1);
+    tick();
+    await Promise.resolve();
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
+  }));
+
+  // --- WS ---
+
+  it('recharge les commandes sur notification "commande"', fakeAsync(() => {
+    const before = serviceSpy.getCommandesParStatut.calls.count();
+    notification$.next({ id: 'c-1', type: 'commande', message: '', severity: 'primary', timestamp: new Date(), lue: false });
+    tick();
+    expect(serviceSpy.getCommandesParStatut.calls.count()).toBeGreaterThan(before);
+  }));
+
+  it('ne recharge pas sur notification "stock"', fakeAsync(() => {
+    const before = serviceSpy.getCommandesParStatut.calls.count();
+    notification$.next({ id: 's-1', type: 'stock', message: '', severity: 'warning', timestamp: new Date(), lue: false });
+    tick();
+    expect(serviceSpy.getCommandesParStatut.calls.count()).toBe(before);
+  }));
+
+  it('trackById retourne l\'id de la commande', () => {
+    expect(component.trackById(0, cmd(7, 'PRET', 1))).toBe(7);
+  });
+});

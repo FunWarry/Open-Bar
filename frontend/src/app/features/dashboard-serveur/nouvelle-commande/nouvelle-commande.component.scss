@@ -1,0 +1,146 @@
+.table-label {
+  font-size: 11px;
+  color: #34c77b;
+  font-weight: 600;
+  margin-left: 8px;
+}
+
+.cart-badge {
+  margin-right: 8px;
+  font-weight: 700;
+}
+
+.loading-state {
+  display: flex;
+  justify-content: center;
+  padding: 48px 16px;
+}
+
+.section-title {
+  padding: 12px 16px 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #7e87a8;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.cocktails-grid {
+  padding: 4px 8px;
+}
+
+.cocktail-card {
+  --background: #21263f;
+  --border-radius: 12px;
+  margin: 0;
+  cursor: pointer;
+  transition: transform 0.1s;
+
+  &:active { transform: scale(0.97); }
+
+  &.in-cart {
+    --background: #1c2a45;
+    outline: 2px solid #6c7fe8;
+    outline-offset: -2px;
+  }
+
+  .cocktail-nom {
+    font-size: 13px;
+    font-weight: 700;
+    color: #eceefb;
+    margin-bottom: 4px;
+    line-height: 1.3;
+  }
+
+  .cocktail-prix {
+    font-size: 15px;
+    font-weight: 800;
+    color: #34c77b;
+    margin-bottom: 6px;
+  }
+
+  .categorie-chip {
+    --background: transparent;
+    --color: #7e87a8;
+    --border-color: #7e87a8;
+    font-size: 10px;
+    height: 20px;
+    margin: 0;
+  }
+
+  .qty-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 8px;
+    gap: 4px;
+
+    .qty-value {
+      font-size: 16px;
+      font-weight: 700;
+      color: #6c7fe8;
+      min-width: 24px;
+      text-align: center;
+    }
+  }
+}
+
+.panier-section {
+  margin-top: 8px;
+  padding-bottom: 16px;
+}
+
+.panier-list {
+  margin: 0 12px;
+  background: #21263f;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.panier-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(126, 135, 168, 0.15);
+
+  .panier-nom {
+    flex: 1;
+    font-size: 13px;
+    color: #eceefb;
+  }
+
+  .panier-prix {
+    font-size: 13px;
+    font-weight: 600;
+    color: #34c77b;
+    margin-right: 4px;
+  }
+}
+
+.panier-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #eceefb;
+
+  .total-amount {
+    color: #34c77b;
+    font-size: 18px;
+  }
+}
+
+.footer-toolbar {
+  --background: #21263f;
+  padding: 8px;
+
+  .btn-valider {
+    --background: #34c77b;
+    --color: #fff;
+    --border-radius: 12px;
+    font-weight: 700;
+    font-size: 15px;
+  }
+}
