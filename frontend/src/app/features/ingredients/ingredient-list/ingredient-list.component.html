@@ -1,41 +1,47 @@
+<ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+  <ion-refresher-content></ion-refresher-content>
+</ion-refresher>
+
 <div class="ingredient-list-container">
   <ion-card>
     <ion-card-header>
       <div class="card-header-row">
-        <ion-card-title>Liste des Ingrédients</ion-card-title>
+        <ion-card-title>Ingrédients ({{ ingredients.length }})</ion-card-title>
         <ion-button *ngIf="isAdmin$ | async" color="primary" (click)="onAdd()">
           <ion-icon slot="start" name="add"></ion-icon>
-          Nouvel Ingrédient
+          Nouveau
         </ion-button>
       </div>
     </ion-card-header>
     <ion-card-content>
-      <div class="list-header">
-        <span>Nom</span>
-        <span>Catégorie</span>
-        <span>Stock</span>
-        <span>Actions</span>
+      <div *ngIf="isLoading" style="text-align:center;padding:24px">
+        <ion-spinner name="crescent"></ion-spinner>
       </div>
-      <ion-list>
-        <ion-item *ngFor="let ingredient of items; trackBy: trackById">
+
+      <ion-list *ngIf="!isLoading">
+        <ion-item *ngFor="let ingredient of ingredients; trackBy: trackById">
           <ion-label>
-            <h3>{{ ingredient.name }}</h3>
+            <h3>{{ ingredient.nom }}</h3>
+            <p>{{ ingredient.uniteMesure }}</p>
           </ion-label>
-          <ion-label slot="end" class="col-category">{{ ingredient.category }}</ion-label>
-          <ion-badge slot="end" [color]="getStockColor(ingredient.stock)">
-            {{ ingredient.stock }} {{ ingredient.unit }}
+          <ion-badge slot="end" color="danger" *ngIf="isEnAlerte(ingredient)">Alerte stock</ion-badge>
+          <ion-badge slot="end" [color]="getStockColor(ingredient.quantiteStock)">
+            {{ ingredient.quantiteStock }} {{ ingredient.uniteMesure }}
           </ion-badge>
           <ion-buttons slot="end">
             <ion-button fill="clear" color="primary" (click)="onView(ingredient)">
               <ion-icon slot="icon-only" name="eye"></ion-icon>
             </ion-button>
-            <ion-button fill="clear" color="tertiary" (click)="onEdit(ingredient)">
+            <ion-button *ngIf="isAdmin$ | async" fill="clear" color="tertiary" (click)="onEdit(ingredient)">
               <ion-icon slot="icon-only" name="create"></ion-icon>
             </ion-button>
-            <ion-button fill="clear" color="danger" (click)="onDelete(ingredient)">
+            <ion-button *ngIf="isAdmin$ | async" fill="clear" color="danger" (click)="onDelete(ingredient)">
               <ion-icon slot="icon-only" name="trash"></ion-icon>
             </ion-button>
           </ion-buttons>
+        </ion-item>
+        <ion-item *ngIf="ingredients.length === 0">
+          <ion-label color="medium">Aucun ingrédient</ion-label>
         </ion-item>
       </ion-list>
     </ion-card-content>

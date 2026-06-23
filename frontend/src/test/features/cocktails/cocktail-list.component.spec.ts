@@ -1,149 +1,155 @@
-import { TestBed } from '@angular/core/testing';
+import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { ComponentFixture } from '@angular/core/testing';
-import { IonicModule } from '@ionic/angular';
+import { RouterTestingModule } from '@angular/router/testing';
+import { Router } from '@angular/router';
+import { IonicModule, ToastController } from '@ionic/angular';
 import { Store } from '@ngrx/store';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { CocktailListComponent } from '../../../app/features/cocktails/cocktail-list/cocktail-list.component';
+import { CocktailService } from '../../../app/core/services/cocktail.service';
 import { Cocktail } from '../../../app/core/models/cocktail.model';
 
-const mockCocktail: Cocktail = {
-  id: 1,
-  nom: 'Mojito',
-  prix: 8.5,
-  categorie: 'ALCOOLISE',
-  disponible: true,
-  saisonnier: false,
-  ingredients: [],
-  variantes: [],
-  createdAt: '2024-01-01T00:00:00Z',
-  updatedAt: '2024-01-01T00:00:00Z'
-};
+const makeC = (id: number, nom: string, disponible = true): Cocktail => ({
+  id, nom, prix: 8, categorie: 'ALCOOLISE', disponible,
+  saisonnier: false, ingredients: [], variantes: [], createdAt: '', updatedAt: '',
+});
 
-const mockCocktailSaisonnier: Cocktail = {
-  id: 2,
-  nom: 'Sangria',
-  prix: 7.0,
-  categorie: 'ALCOOLISE',
-  disponible: true,
-  saisonnier: true,
-  dateDebutSaison: '2024-06-01',
-  dateFinSaison: '2024-08-31',
-  moisDebut: 6,
-  moisFin: 8,
-  disponibleAujourdhui: false,
-  ingredients: [],
-  variantes: [],
-  createdAt: '2024-01-01T00:00:00Z',
-  updatedAt: '2024-01-01T00:00:00Z'
+const mockCocktails: Cocktail[] = [
+  makeC(1, 'Mojito', true),
+  makeC(2, 'Martini', false),
+];
+
+const mockSaisonnier: Cocktail = {
+  id: 3, nom: 'Sangria', prix: 7, categorie: 'ALCOOLISE', disponible: true,
+  saisonnier: true, dateDebutSaison: '2024-06-01', dateFinSaison: '2024-08-31',
+  moisDebut: 6, moisFin: 8, disponibleAujourdhui: false,
+  ingredients: [], variantes: [], createdAt: '', updatedAt: '',
 };
 
 describe('CocktailListComponent', () => {
   let component: CocktailListComponent;
   let fixture: ComponentFixture<CocktailListComponent>;
+  let serviceSpy: jasmine.SpyObj<CocktailService>;
+  let toastCtrlSpy: jasmine.SpyObj<ToastController>;
   let storeSpy: jasmine.SpyObj<Store>;
+  let router: Router;
+
+  const mockToast = { present: jasmine.createSpy('present') };
 
   beforeEach(async () => {
+    serviceSpy = jasmine.createSpyObj('CocktailService', ['getAll', 'toggleDisponibilite', 'delete']);
+    serviceSpy.getAll.and.returnValue(of(mockCocktails));
+    serviceSpy.toggleDisponibilite.and.returnValue(of({ ...mockCocktails[0], disponible: false } as any));
+    serviceSpy.delete.and.returnValue(of(undefined as any));
+
+    toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
+    toastCtrlSpy.create.and.returnValue(Promise.resolve(mockToast as any));
+
     storeSpy = jasmine.createSpyObj('Store', ['select', 'dispatch']);
     storeSpy.select.and.returnValue(of(false));
 
     await TestBed.configureTestingModule({
-      imports: [
-        CocktailListComponent,
-        IonicModule.forRoot()
-      ],
+      imports: [CocktailListComponent, IonicModule.forRoot(), RouterTestingModule],
       providers: [
-        { provide: Store, useValue: storeSpy }
-      ]
+        { provide: Store, useValue: storeSpy },
+        { provide: CocktailService, useValue: serviceSpy },
+        { provide: ToastController, useValue: toastCtrlSpy },
+      ],
     }).compileComponents();
 
+    router = TestBed.inject(Router);
     fixture = TestBed.createComponent(CocktailListComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
+  afterEach(() => component.ngOnDestroy());
+
+  it('should create', () => expect(component).toBeTruthy());
+
+  // --- charger() ---
+
+  it('charger() peuple cocktails et filteredCocktails', fakeAsync(() => {
+    component.charger();
+    tick();
+    expect(component.cocktails.length).toBe(2);
+    expect(component.filteredCocktails.length).toBe(2);
+  }));
+
+  it('charger() affiche un toast danger en cas d\'erreur', fakeAsync(async () => {
+    serviceSpy.getAll.and.returnValue(throwError(() => new Error('err')));
+    component.charger();
+    tick();
+    await Promise.resolve();
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
+  }));
+
+  // --- filtres ---
+
+  it('onFiltreChange("disponibles") ne garde que les cocktails disponibles', fakeAsync(() => {
+    component.charger(); tick();
+    component.onFiltreChange({ detail: { value: 'disponibles' } });
+    expect(component.filteredCocktails.every(c => c.disponible)).toBeTrue();
+  }));
+
+  it('onFiltreChange("indisponibles") ne garde que les cocktails indisponibles', fakeAsync(() => {
+    component.charger(); tick();
+    component.onFiltreChange({ detail: { value: 'indisponibles' } });
+    expect(component.filteredCocktails.every(c => !c.disponible)).toBeTrue();
+  }));
+
+  it('onFiltreChange("tous") garde tous les cocktails', fakeAsync(() => {
+    component.charger(); tick();
+    component.onFiltreChange({ detail: { value: 'indisponibles' } });
+    component.onFiltreChange({ detail: { value: 'tous' } });
+    expect(component.filteredCocktails.length).toBe(2);
+  }));
+
+  // --- toggle disponibilité ---
+
+  it('onToggleDisponibilite() appelle le service et met à jour la liste', fakeAsync(() => {
+    component.charger(); tick();
+    component.onToggleDisponibilite(mockCocktails[0]);
+    tick();
+    expect(serviceSpy.toggleDisponibilite).toHaveBeenCalledWith(1);
+  }));
+
+  // --- delete ---
+
+  it('onDelete() retire le cocktail de la liste', fakeAsync(() => {
+    component.charger(); tick();
+    component.onDelete(mockCocktails[0]);
+    tick();
+    expect(component.cocktails.find(c => c.id === 1)).toBeUndefined();
+  }));
+
+  // --- navigation ---
+
+  it('onAdd() navigue vers /cocktails/new', () => {
+    spyOn(router, 'navigate');
+    component.onAdd();
+    expect(router.navigate).toHaveBeenCalledWith(['/cocktails/new']);
   });
 
-  it('should initialize with empty items list', () => {
-    expect(component.items).toEqual([]);
+  it('onEdit() navigue vers /cocktails/:id/edit', () => {
+    spyOn(router, 'navigate');
+    component.onEdit(mockCocktails[0]);
+    expect(router.navigate).toHaveBeenCalledWith(['/cocktails', 1, 'edit']);
   });
 
-  it('isAdmin$ should be populated from the store', (done) => {
-    storeSpy.select.and.returnValue(of(true));
+  // --- isHorsSaison ---
 
-    fixture = TestBed.createComponent(CocktailListComponent);
-    component = fixture.componentInstance;
-
-    component.isAdmin$.subscribe(isAdmin => {
-      expect(isAdmin).toBe(true);
-      done();
-    });
+  it('isHorsSaison() retourne true pour un cocktail hors saison', () => {
+    expect(component.isHorsSaison(mockSaisonnier)).toBeTrue();
   });
 
-  describe('isHorsSaison()', () => {
-    it('should return false when cocktail has no moisDebut', () => {
-      const cocktail = { ...mockCocktail, moisDebut: undefined, moisFin: 8, disponibleAujourdhui: false };
-      expect(component.isHorsSaison(cocktail as Cocktail)).toBe(false);
-    });
-
-    it('should return false when cocktail has no moisFin', () => {
-      const cocktail = { ...mockCocktail, moisDebut: 6, moisFin: undefined, disponibleAujourdhui: false };
-      expect(component.isHorsSaison(cocktail as Cocktail)).toBe(false);
-    });
-
-    it('should return false when disponibleAujourdhui is true', () => {
-      const cocktail = { ...mockCocktailSaisonnier, disponibleAujourdhui: true };
-      expect(component.isHorsSaison(cocktail as Cocktail)).toBe(false);
-    });
-
-    it('should return true when moisDebut and moisFin are set and disponibleAujourdhui is false', () => {
-      expect(component.isHorsSaison(mockCocktailSaisonnier)).toBe(true);
-    });
-
-    it('should return false when cocktail has no saisonnalite constraints', () => {
-      expect(component.isHorsSaison(mockCocktail)).toBe(false);
-    });
+  it('isHorsSaison() retourne false pour un cocktail non saisonnier', () => {
+    expect(component.isHorsSaison(mockCocktails[0])).toBeFalse();
   });
 
-  describe('trackById()', () => {
-    it('should return item.id when id is defined', () => {
-      const item = { id: 42, nom: 'Test' };
-      expect(component.trackById(0, item)).toBe(42);
-    });
+  // --- trackById ---
 
-    it('should return index when item has no id', () => {
-      const item = { nom: 'No ID' };
-      expect(component.trackById(3, item)).toBe(3);
-    });
-  });
-
-  describe('onAdd()', () => {
-    it('should execute without error (stub method)', () => {
-      expect(() => component.onAdd()).not.toThrow();
-    });
-  });
-
-  describe('onEdit()', () => {
-    it('should execute without error (stub method)', () => {
-      expect(() => component.onEdit(mockCocktail)).not.toThrow();
-    });
-  });
-
-  describe('onDelete()', () => {
-    it('should execute without error (stub method)', () => {
-      expect(() => component.onDelete(mockCocktail)).not.toThrow();
-    });
-  });
-
-  describe('ngOnInit()', () => {
-    it('should not throw on init', () => {
-      expect(() => component.ngOnInit()).not.toThrow();
-    });
-
-    it('items should remain empty after ngOnInit (load not yet implemented)', () => {
-      component.ngOnInit();
-      expect(component.items).toEqual([]);
-    });
+  it('trackById retourne l\'id du cocktail', () => {
+    expect(component.trackById(0, mockCocktails[0])).toBe(1);
   });
 });

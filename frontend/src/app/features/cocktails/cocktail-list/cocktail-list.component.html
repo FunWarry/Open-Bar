@@ -1,41 +1,54 @@
+<ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+  <ion-refresher-content></ion-refresher-content>
+</ion-refresher>
+
 <div class="cocktail-list-container">
   <ion-card>
     <ion-card-header>
       <div class="card-header-row">
-        <ion-card-title>Liste des Cocktails</ion-card-title>
+        <ion-card-title>Cocktails ({{ cocktails.length }})</ion-card-title>
         <ion-button *ngIf="isAdmin$ | async" color="primary" (click)="onAdd()">
           <ion-icon slot="start" name="add"></ion-icon>
-          Nouveau Cocktail
+          Nouveau
         </ion-button>
       </div>
     </ion-card-header>
     <ion-card-content>
-      <div class="list-header">
-        <span>Nom</span>
-        <span>Catégorie</span>
-        <span>Prix</span>
-        <span>Actions</span>
+      <ion-segment [value]="filtre" (ionChange)="onFiltreChange($event)">
+        <ion-segment-button value="tous"><ion-label>Tous</ion-label></ion-segment-button>
+        <ion-segment-button value="disponibles"><ion-label>Disponibles</ion-label></ion-segment-button>
+        <ion-segment-button value="indisponibles"><ion-label>Indisponibles</ion-label></ion-segment-button>
+      </ion-segment>
+
+      <div *ngIf="isLoading" style="text-align:center;padding:24px">
+        <ion-spinner name="crescent"></ion-spinner>
       </div>
-      <ion-list>
-        <ion-item *ngFor="let cocktail of items; trackBy: trackById">
+
+      <ion-list *ngIf="!isLoading">
+        <ion-item *ngFor="let cocktail of filteredCocktails; trackBy: trackById">
           <ion-label>
             <h3>{{ cocktail.nom }}</h3>
             <p>{{ cocktail.categorie }}</p>
           </ion-label>
-          <ion-badge slot="end" color="warning" *ngIf="isHorsSaison(cocktail)">
-            Hors saison
+          <ion-badge slot="end" color="warning" *ngIf="isHorsSaison(cocktail)">Hors saison</ion-badge>
+          <ion-badge slot="end" [color]="cocktail.disponible ? 'success' : 'medium'">
+            {{ cocktail.disponible ? 'Dispo' : 'Indispo' }}
           </ion-badge>
-          <ion-badge slot="end" color="primary">
-            {{ cocktail.prix | currency:'EUR' }}
-          </ion-badge>
+          <ion-badge slot="end" color="primary">{{ cocktail.prix | currency:'EUR' }}</ion-badge>
           <ion-buttons slot="end">
-            <ion-button fill="clear" color="tertiary" (click)="onEdit(cocktail)">
+            <ion-button fill="clear" color="warning" (click)="onToggleDisponibilite(cocktail)">
+              <ion-icon slot="icon-only" name="toggle-outline"></ion-icon>
+            </ion-button>
+            <ion-button *ngIf="isAdmin$ | async" fill="clear" color="tertiary" (click)="onEdit(cocktail)">
               <ion-icon slot="icon-only" name="create"></ion-icon>
             </ion-button>
-            <ion-button fill="clear" color="danger" (click)="onDelete(cocktail)">
+            <ion-button *ngIf="isAdmin$ | async" fill="clear" color="danger" (click)="onDelete(cocktail)">
               <ion-icon slot="icon-only" name="trash"></ion-icon>
             </ion-button>
           </ion-buttons>
+        </ion-item>
+        <ion-item *ngIf="filteredCocktails.length === 0">
+          <ion-label color="medium">Aucun cocktail</ion-label>
         </ion-item>
       </ion-list>
     </ion-card-content>
