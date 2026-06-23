@@ -8,8 +8,8 @@ import { FactureService } from '../../../app/features/factures/services/facture.
 import { Facture } from '../../../app/features/factures/models/facture.model';
 
 const mockFactures: Facture[] = [
-  { id: 1, montantTotal: 25.5, reglee: false, commande: null as any, createdAt: '2026-01-01T10:00:00' } as Facture,
-  { id: 2, montantTotal: 40.0, reglee: true,  commande: null as any, createdAt: '2026-01-02T10:00:00' } as Facture,
+  { id: 1, tableId: 1, tableNumero: 1, numero: 'F-001', total: 25.5, items: [], reglee: false, dateFacture: '2026-01-01T10:00:00', createdAt: '2026-01-01T10:00:00', updatedAt: '2026-01-01T10:00:00' },
+  { id: 2, tableId: 2, tableNumero: 2, numero: 'F-002', total: 40.0, items: [], reglee: true,  dateFacture: '2026-01-02T10:00:00', createdAt: '2026-01-02T10:00:00', updatedAt: '2026-01-02T10:00:00' },
 ];
 
 describe('FactureListComponent', () => {
