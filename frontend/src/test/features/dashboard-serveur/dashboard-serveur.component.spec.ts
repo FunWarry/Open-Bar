@@ -1,13 +1,15 @@
 import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { ComponentFixture } from '@angular/core/testing';
 import { CommonModule } from '@angular/common';
+import { RouterTestingModule } from '@angular/router/testing';
 import { of, Subject, throwError } from 'rxjs';
 import {
   IonContent, IonHeader, IonToolbar, IonTitle,
   IonRefresher, IonRefresherContent,
   IonGrid, IonRow, IonCol,
   IonSegment, IonSegmentButton, IonLabel,
-  ToastController
+  IonButtons, IonButton, IonIcon,
+  ToastController, ModalController,
 } from '@ionic/angular/standalone';
 import { DashboardServeurComponent } from '../../../app/features/dashboard-serveur/dashboard-serveur.component';
 import { DashboardServeurService } from '../../../app/features/dashboard-serveur/services/dashboard-serveur.service';
@@ -21,6 +23,7 @@ describe('DashboardServeurComponent', () => {
   let dashboardServiceSpy: jasmine.SpyObj<DashboardServeurService>;
   let notificationServiceSpy: jasmine.SpyObj<NotificationService>;
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
+  let modalCtrlSpy: jasmine.SpyObj<ModalController>;
   let notification$: Subject<AppNotification>;
 
   const mockTables: TableView[] = [
@@ -36,10 +39,10 @@ describe('DashboardServeurComponent', () => {
 
     dashboardServiceSpy = jasmine.createSpyObj('DashboardServeurService', [
       'getAllTables',
-      'libererTable'
+      'libererTable',
     ]);
     dashboardServiceSpy.getAllTables.and.returnValue(of(mockTables));
-    dashboardServiceSpy.libererTable.and.returnValue(of({}));
+    dashboardServiceSpy.libererTable.and.returnValue(of({} as any));
 
     notificationServiceSpy = jasmine.createSpyObj('NotificationService', ['onNotification']);
     notificationServiceSpy.onNotification.and.returnValue(notification$.asObservable());
@@ -47,21 +50,28 @@ describe('DashboardServeurComponent', () => {
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
     toastCtrlSpy.create.and.returnValue(Promise.resolve(mockToast as any));
 
+    const mockModal = { present: jasmine.createSpy('present'), onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({ data: null })) };
+    modalCtrlSpy = jasmine.createSpyObj('ModalController', ['create']);
+    modalCtrlSpy.create.and.returnValue(Promise.resolve(mockModal as any));
+
     await TestBed.configureTestingModule({
       imports: [
         DashboardServeurComponent,
         CommonModule,
+        RouterTestingModule,
         IonContent, IonHeader, IonToolbar, IonTitle,
         IonRefresher, IonRefresherContent,
         IonGrid, IonRow, IonCol,
         IonSegment, IonSegmentButton, IonLabel,
-        TableCardComponent
+        IonButtons, IonButton, IonIcon,
+        TableCardComponent,
       ],
       providers: [
         { provide: DashboardServeurService, useValue: dashboardServiceSpy },
         { provide: NotificationService, useValue: notificationServiceSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
-      ]
+        { provide: ModalController, useValue: modalCtrlSpy },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(DashboardServeurComponent);
@@ -221,6 +231,14 @@ describe('DashboardServeurComponent', () => {
     const item = { id: 42, nom: 'Test' };
     expect(component.trackById(0, item)).toBe(42);
   });
+
+  // --- onSelectionner ---
+
+  it('onSelectionner() ouvre un modal ModalController', fakeAsync(async () => {
+    const table = mockTables[0];
+    await component.onSelectionner(table);
+    expect(modalCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ componentProps: { table } }));
+  }));
 
   // --- onRefresh ---
 

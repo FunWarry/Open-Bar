@@ -4,6 +4,11 @@
       <span class="toolbar-title">Tables</span>
       <span class="toolbar-role">WAITER</span>
     </ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="naviguerKanban()" title="Suivi commandes">
+        <ion-icon name="list-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
@@ -55,7 +60,8 @@
         *ngFor="let table of filteredTables; trackBy: trackById">
         <app-table-card
           [table]="table"
-          (liberer)="onLiberer($event)">
+          (liberer)="onLiberer($event)"
+          (selectionner)="onSelectionner($event)">
         </app-table-card>
       </ion-col>
     </ion-row>

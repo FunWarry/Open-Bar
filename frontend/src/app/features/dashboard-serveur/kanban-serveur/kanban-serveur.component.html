@@ -1,0 +1,89 @@
+<ion-header>
+  <ion-toolbar class="serveur-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/serveur"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Suivi commandes</ion-title>
+  </ion-toolbar>
+
+  <!-- Filtre par table -->
+  <ion-toolbar class="filter-toolbar">
+    <ion-select
+      class="table-select"
+      placeholder="Toutes les tables"
+      [value]="filtreTableId"
+      (ionChange)="onFiltreChange($event.detail.value)"
+      interface="popover">
+      <ion-select-option [value]="null">Toutes les tables</ion-select-option>
+      <ion-select-option *ngFor="let t of tables" [value]="t.id">{{ t.nom }}</ion-select-option>
+    </ion-select>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="serveur-content">
+  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div *ngIf="isLoading" class="loading-state">
+    <ion-spinner name="crescent" color="primary"></ion-spinner>
+  </div>
+
+  <div *ngIf="!isLoading" class="kanban-board">
+    <div *ngFor="let col of colonnes" class="kanban-col">
+      <div class="col-header">
+        <ion-badge [color]="col.color">{{ col.commandes.length }}</ion-badge>
+        <span class="col-title">{{ col.label }}</span>
+      </div>
+
+      <div *ngIf="col.commandes.length === 0" class="col-empty">
+        Aucune commande
+      </div>
+
+      <ion-card
+        *ngFor="let cmd of col.commandes; trackBy: trackById"
+        class="commande-card"
+        [class]="'card-' + col.statut.toLowerCase()">
+        <ion-card-header>
+          <div class="card-header-row">
+            <ion-card-title class="cmd-id">#{{ cmd.id }}</ion-card-title>
+            <span class="cmd-table">{{ cmd.tableNumero !== undefined ? 'Table ' + cmd.tableNumero : '' }}</span>
+          </div>
+          <div class="cmd-meta">{{ cmd.serveurUsername }} · {{ cmd.dateCommande | date:'HH:mm' }}</div>
+        </ion-card-header>
+
+        <ion-card-content>
+          <div class="items-list">
+            <div *ngFor="let item of cmd.items" class="item-line">
+              {{ item.quantite }}× {{ item.cocktailNom }}
+            </div>
+          </div>
+          <div class="card-total">{{ cmd.total | currency:'EUR':'symbol':'1.2-2':'fr' }}</div>
+
+          <div class="card-actions">
+            <ion-button
+              *ngIf="col.statut === 'PRET'"
+              fill="solid"
+              color="success"
+              size="small"
+              expand="block"
+              (click)="marquerLivree(cmd.id)">
+              <ion-icon name="checkmark-outline" slot="start"></ion-icon>
+              Livrer
+            </ion-button>
+            <ion-button
+              *ngIf="col.statut !== 'LIVREE'"
+              fill="outline"
+              color="danger"
+              size="small"
+              expand="block"
+              (click)="annuler(cmd.id)">
+              <ion-icon name="ban-outline" slot="start"></ion-icon>
+              Annuler
+            </ion-button>
+          </div>
+        </ion-card-content>
+      </ion-card>
+    </div>
+  </div>
+</ion-content>

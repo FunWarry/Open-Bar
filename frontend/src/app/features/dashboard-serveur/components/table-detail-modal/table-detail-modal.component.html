@@ -1,0 +1,77 @@
+<ion-header>
+  <ion-toolbar class="modal-toolbar">
+    <ion-title>
+      {{ table?.nom }}
+      <span class="zone-badge">{{ table?.zone }}</span>
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="fermer()" fill="clear">
+        <ion-icon name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="modal-content">
+  <div class="table-meta">
+    <ion-chip [color]="table?.occupee ? 'warning' : 'success'" outline>
+      {{ table?.occupee ? 'Occupée' : 'Libre' }}
+    </ion-chip>
+    <span class="capacite">{{ table?.capacite }} personnes</span>
+    <span *ngIf="table?.serveurNom" class="serveur-nom">Serveur : {{ table?.serveurNom }}</span>
+  </div>
+
+  <div class="section-title">Commandes actives</div>
+
+  <div *ngIf="isLoading" class="loading-state">
+    <ion-spinner name="crescent" color="primary"></ion-spinner>
+  </div>
+
+  <div *ngIf="!isLoading && commandes.length === 0" class="empty-commandes">
+    <ion-icon name="time-outline"></ion-icon>
+    <p>Aucune commande active</p>
+  </div>
+
+  <ion-list *ngIf="!isLoading && commandes.length > 0" class="commandes-list">
+    <ion-item *ngFor="let cmd of commandes" class="commande-item">
+      <ion-label>
+        <div class="commande-header">
+          <span class="commande-id">#{{ cmd.id }}</span>
+          <ion-badge [color]="statutColor(cmd.statut)">{{ statutLabel(cmd.statut) }}</ion-badge>
+        </div>
+        <ion-note class="commande-items">
+          {{ cmd.items.length }} article{{ cmd.items.length > 1 ? 's' : '' }} — {{ cmd.total | currency:'EUR':'symbol':'1.2-2':'fr' }}
+        </ion-note>
+        <div *ngFor="let item of cmd.items" class="item-line">
+          {{ item.quantite }}× {{ item.cocktailNom }}
+          <span *ngIf="item.varianteNom"> ({{ item.varianteNom }})</span>
+        </div>
+      </ion-label>
+      <ion-button
+        *ngIf="peutAnnuler(cmd.statut)"
+        slot="end"
+        fill="clear"
+        color="danger"
+        size="small"
+        (click)="annuler(cmd.id)">
+        <ion-icon name="ban-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-item>
+  </ion-list>
+</ion-content>
+
+<div class="modal-footer">
+  <ion-button expand="block" color="primary" (click)="nouvelleCommande()" class="btn-nouvelle">
+    <ion-icon name="add-circle-outline" slot="start"></ion-icon>
+    Nouvelle commande
+  </ion-button>
+  <ion-button
+    *ngIf="table?.occupee"
+    expand="block"
+    fill="outline"
+    color="danger"
+    (click)="liberer()"
+    class="btn-liberer">
+    Libérer la table
+  </ion-button>
+</div>

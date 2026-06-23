@@ -23,6 +23,7 @@ import { peopleOutline, restaurantOutline, checkmarkOutline, timeOutline } from 
 export class TableCardComponent {
   @Input() table!: TableView;
   @Output() liberer = new EventEmitter<number>();
+  @Output() selectionner = new EventEmitter<TableView>();
 
   constructor() {
     addIcons({ peopleOutline, restaurantOutline, checkmarkOutline, timeOutline });

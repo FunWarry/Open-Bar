@@ -29,7 +29,7 @@
 
     <div class="card-actions">
       <ion-button
-        [routerLink]="['/tables', table.id]"
+        (click)="selectionner.emit(table)"
         expand="block"
         fill="outline"
         size="small"

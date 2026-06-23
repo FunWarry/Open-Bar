@@ -105,6 +105,18 @@ export const routes: Routes = [
     data: { roles: ['SERVEUR'] }
   },
   {
+    path: 'serveur/nouvelle-commande/:tableId',
+    loadComponent: () => import('./features/dashboard-serveur/nouvelle-commande/nouvelle-commande.component').then(m => m.NouvelleCommandeComponent),
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['SERVEUR'] }
+  },
+  {
+    path: 'serveur/suivi-commandes',
+    loadComponent: () => import('./features/dashboard-serveur/kanban-serveur/kanban-serveur.component').then(m => m.KanbanServeurComponent),
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['SERVEUR'] }
+  },
+  {
     path: 'manager',
     loadComponent: () => import('./features/dashboard-manager/dashboard-manager.component').then(m => m.DashboardManagerComponent),
     canActivate: [AuthGuard, RoleGuard],

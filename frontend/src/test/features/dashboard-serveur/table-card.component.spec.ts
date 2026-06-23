@@ -135,6 +135,15 @@ describe('TableCardComponent', () => {
     expect(emittedId).toBe(tableOccupee.id);
   });
 
+  // --- @Output selectionner ---
+
+  it('selectionner émet l\'objet TableView quand appelé', () => {
+    let emitted: TableView | undefined;
+    component.selectionner.subscribe((t: TableView) => (emitted = t));
+    component.selectionner.emit(tableOccupee);
+    expect(emitted).toEqual(tableOccupee);
+  });
+
   // --- cas limites ---
 
   it('statutLabel gère une table avec commandesActives undefined-like (null guard)', () => {
