@@ -80,10 +80,18 @@ export class CocktailFormComponent implements OnInit {
   }
 
   onSubmit(): void {
-    if (this.cocktailForm.valid) {
-      // TODO: Implémenter la logique de sauvegarde complète
-      this.showToast('Cocktail sauvegardé avec succès');
-      this.router.navigate(['/cocktails']);
-    }
+    if (this.cocktailForm.invalid) return;
+    const { name, description, price, category } = this.cocktailForm.value;
+    const payload = { nom: name, description, prix: price, categorie: category };
+    const obs$ = this.isEditMode
+      ? this.cocktailService.update(this.cocktailId!, payload)
+      : this.cocktailService.create(payload);
+    obs$.subscribe({
+      next: () => {
+        this.showToast(this.isEditMode ? 'Cocktail modifié' : 'Cocktail créé');
+        this.router.navigate(['/cocktails']);
+      },
+      error: () => this.showToast('Erreur lors de la sauvegarde', 'danger'),
+    });
   }
 }

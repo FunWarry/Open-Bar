@@ -1,8 +1,12 @@
 <div class="ingredient-detail-container">
-  <ion-card>
+  <div *ngIf="isLoading" style="text-align:center;padding:32px">
+    <ion-spinner name="crescent"></ion-spinner>
+  </div>
+
+  <ion-card *ngIf="!isLoading && ingredient">
     <ion-card-header>
       <div class="card-header-row">
-        <ion-card-title>{{ ingredient?.name }}</ion-card-title>
+        <ion-card-title>{{ ingredient.nom }}</ion-card-title>
         <ion-buttons>
           <ion-button fill="clear" (click)="onBack()">
             <ion-icon slot="start" name="arrow-back"></ion-icon>
@@ -15,49 +19,34 @@
         </ion-buttons>
       </div>
     </ion-card-header>
-    <ion-card-content>
-      <div class="detail-section">
-        <h3>Informations</h3>
-        <ion-list lines="full">
-          <ion-item>
-            <ion-label>
-              <span class="detail-label">Catégorie</span>
-              <span class="detail-value">{{ ingredient?.category }}</span>
-            </ion-label>
-          </ion-item>
-          <ion-item>
-            <ion-label>Stock</ion-label>
-            <ion-badge slot="end" [color]="getStockColor(ingredient?.stock)">
-              {{ ingredient?.stock }} {{ ingredient?.unit }}
-            </ion-badge>
-          </ion-item>
-          <ion-item>
-            <ion-label>
-              <span class="detail-label">Dernière mise à jour</span>
-              <span class="detail-value">{{ ingredient?.updatedAt | date:'medium' }}</span>
-            </ion-label>
-          </ion-item>
-        </ion-list>
-      </div>
 
-      <div class="detail-section">
-        <h3>Cocktails utilisant cet ingrédient</h3>
-        <div class="list-header">
-          <span>Nom</span><span>Catégorie</span><span>Quantité</span><span>Actions</span>
-        </div>
-        <ion-list>
-          <ion-item *ngFor="let cocktail of cocktailsDataSource; trackBy: trackById">
-            <ion-label>
-              <h3>{{ cocktail.name }}</h3>
-              <p>{{ cocktail.category }}</p>
-            </ion-label>
-            <ion-label slot="end">{{ cocktail.quantity }} {{ ingredient?.unit }}</ion-label>
-            <ion-button slot="end" fill="clear" color="primary" (click)="onViewCocktail(cocktail)">
-              <ion-icon slot="icon-only" name="eye"></ion-icon>
-            </ion-button>
-          </ion-item>
-        </ion-list>
-      </div>
+    <ion-card-content>
+      <ion-badge color="danger" *ngIf="isEnAlerte()">⚠ Stock en alerte</ion-badge>
+
+      <ion-list lines="full">
+        <ion-item>
+          <ion-label>Stock actuel</ion-label>
+          <ion-badge slot="end" [color]="getStockColor(ingredient.quantiteStock)">
+            {{ ingredient.quantiteStock }} {{ ingredient.uniteMesure }}
+          </ion-badge>
+        </ion-item>
+        <ion-item>
+          <ion-label>Seuil d'alerte</ion-label>
+          <ion-label slot="end">{{ ingredient.seuilAlerte }} {{ ingredient.uniteMesure }}</ion-label>
+        </ion-item>
+        <ion-item *ngIf="ingredient.fournisseur">
+          <ion-label>Fournisseur</ion-label>
+          <ion-label slot="end">{{ ingredient.fournisseur }}</ion-label>
+        </ion-item>
+        <ion-item *ngIf="ingredient.datePeremption">
+          <ion-label>Date de péremption</ion-label>
+          <ion-label slot="end">{{ ingredient.datePeremption | date:'dd/MM/yyyy' }}</ion-label>
+        </ion-item>
+        <ion-item>
+          <ion-label>Dernière mise à jour</ion-label>
+          <ion-label slot="end">{{ ingredient.updatedAt | date:'dd/MM/yyyy HH:mm' }}</ion-label>
+        </ion-item>
+      </ion-list>
     </ion-card-content>
   </ion-card>
 </div>

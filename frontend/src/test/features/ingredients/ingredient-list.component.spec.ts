@@ -1,145 +1,126 @@
-import { TestBed } from '@angular/core/testing';
+import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { ComponentFixture } from '@angular/core/testing';
-import { IonicModule } from '@ionic/angular';
-import { provideMockStore, MockStore } from '@ngrx/store/testing';
-import { By } from '@angular/platform-browser';
+import { RouterTestingModule } from '@angular/router/testing';
+import { Router } from '@angular/router';
+import { IonicModule, ToastController } from '@ionic/angular';
+import { Store } from '@ngrx/store';
+import { of, throwError } from 'rxjs';
 import { IngredientListComponent } from '../../../app/features/ingredients/ingredient-list/ingredient-list.component';
-import { selectIsAdmin } from '../../../app/core/store/auth.selectors';
+import { IngredientService } from '../../../app/core/services/ingredient.service';
+import { Ingredient } from '../../../app/core/models/ingredient.model';
+
+const makeI = (id: number, nom: string, stock = 20, seuil = 5): Ingredient => ({
+  id, nom, uniteMesure: 'cl', quantiteStock: stock, seuilAlerte: seuil,
+  createdAt: '', updatedAt: '',
+});
+
+const mockIngredients: Ingredient[] = [
+  makeI(1, 'Rhum', 20, 5),
+  makeI(2, 'Citron', 3, 5),
+];
 
 describe('IngredientListComponent', () => {
   let component: IngredientListComponent;
   let fixture: ComponentFixture<IngredientListComponent>;
-  let store: MockStore;
+  let serviceSpy: jasmine.SpyObj<IngredientService>;
+  let toastCtrlSpy: jasmine.SpyObj<ToastController>;
+  let storeSpy: jasmine.SpyObj<Store>;
+  let router: Router;
 
-  const initialState = {
-    auth: {
-      user: null,
-      token: null,
-      loading: false,
-      error: null
-    }
-  };
+  const mockToast = { present: jasmine.createSpy('present') };
 
   beforeEach(async () => {
+    serviceSpy = jasmine.createSpyObj('IngredientService', ['getAll', 'delete']);
+    serviceSpy.getAll.and.returnValue(of(mockIngredients));
+    serviceSpy.delete.and.returnValue(of(undefined as any));
+
+    toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
+    toastCtrlSpy.create.and.returnValue(Promise.resolve(mockToast as any));
+
+    storeSpy = jasmine.createSpyObj('Store', ['select', 'dispatch']);
+    storeSpy.select.and.returnValue(of(false));
+
     await TestBed.configureTestingModule({
-      imports: [
-        IngredientListComponent,
-        IonicModule.forRoot()
-      ],
+      imports: [IngredientListComponent, IonicModule.forRoot(), RouterTestingModule],
       providers: [
-        provideMockStore({ initialState })
-      ]
+        { provide: Store, useValue: storeSpy },
+        { provide: IngredientService, useValue: serviceSpy },
+        { provide: ToastController, useValue: toastCtrlSpy },
+      ],
     }).compileComponents();
 
-    store = TestBed.inject(MockStore);
-    store.overrideSelector(selectIsAdmin, false);
-
+    router = TestBed.inject(Router);
     fixture = TestBed.createComponent(IngredientListComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
 
-  afterEach(() => {
-    store.resetSelectors();
+  afterEach(() => component.ngOnDestroy());
+
+  it('should create', () => expect(component).toBeTruthy());
+
+  it('charger() peuple ingredients depuis le service', fakeAsync(() => {
+    component.charger();
+    tick();
+    expect(component.ingredients.length).toBe(2);
+  }));
+
+  it('charger() affiche un toast danger en cas d\'erreur', fakeAsync(async () => {
+    serviceSpy.getAll.and.returnValue(throwError(() => new Error('err')));
+    component.charger();
+    tick();
+    await Promise.resolve();
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
+  }));
+
+  it('onDelete() retire l\'ingrédient de la liste', fakeAsync(() => {
+    component.charger(); tick();
+    component.onDelete(mockIngredients[0]);
+    tick();
+    expect(component.ingredients.find(i => i.id === 1)).toBeUndefined();
+  }));
+
+  it('isEnAlerte() retourne true si stock <= seuilAlerte', () => {
+    component.ingredients = [makeI(1, 'Citron', 3, 5)];
+    expect(component.isEnAlerte(component.ingredients[0])).toBeTrue();
   });
 
-  it('devrait créer le composant', () => {
-    expect(component).toBeTruthy();
+  it('isEnAlerte() retourne false si stock > seuilAlerte', () => {
+    component.ingredients = [makeI(1, 'Rhum', 20, 5)];
+    expect(component.isEnAlerte(component.ingredients[0])).toBeFalse();
   });
 
-  it('devrait initialiser items avec un tableau vide', () => {
-    expect(component.items).toEqual([]);
+  it('getStockColor() retourne "danger" pour stock <= 0', () => {
+    expect(component.getStockColor(0)).toBe('danger');
   });
 
-  it('isAdmin$ devrait émettre false par défaut', (done) => {
-    component.isAdmin$.subscribe(isAdmin => {
-      expect(isAdmin).toBeFalse();
-      done();
-    });
+  it('getStockColor() retourne "warning" pour stock < 10', () => {
+    expect(component.getStockColor(5)).toBe('warning');
   });
 
-  it('isAdmin$ devrait émettre true quand le store renvoie true', (done) => {
-    store.overrideSelector(selectIsAdmin, true);
-    store.refreshState();
-
-    const fixture2 = TestBed.createComponent(IngredientListComponent);
-    const component2 = fixture2.componentInstance;
-
-    component2.isAdmin$.subscribe(isAdmin => {
-      expect(isAdmin).toBeTrue();
-      done();
-    });
+  it('getStockColor() retourne "success" pour stock >= 10', () => {
+    expect(component.getStockColor(10)).toBe('success');
   });
 
-  describe('getStockColor()', () => {
-    it('devrait retourner "danger" pour un stock de 0', () => {
-      expect(component.getStockColor(0)).toBe('danger');
-    });
-
-    it('devrait retourner "danger" pour un stock négatif', () => {
-      expect(component.getStockColor(-5)).toBe('danger');
-    });
-
-    it('devrait retourner "warning" pour un stock inférieur à 10', () => {
-      expect(component.getStockColor(5)).toBe('warning');
-    });
-
-    it('devrait retourner "warning" pour un stock de 1', () => {
-      expect(component.getStockColor(1)).toBe('warning');
-    });
-
-    it('devrait retourner "success" pour un stock de 10', () => {
-      expect(component.getStockColor(10)).toBe('success');
-    });
-
-    it('devrait retourner "success" pour un stock abondant', () => {
-      expect(component.getStockColor(100)).toBe('success');
-    });
+  it('onAdd() navigue vers /ingredients/new', () => {
+    spyOn(router, 'navigate');
+    component.onAdd();
+    expect(router.navigate).toHaveBeenCalledWith(['/ingredients/new']);
   });
 
-  describe('trackById()', () => {
-    it('devrait retourner item.id si présent', () => {
-      const item = { id: 42, nom: 'Sucre' };
-      expect(component.trackById(0, item)).toBe(42);
-    });
-
-    it('devrait retourner l\'index si item.id est absent', () => {
-      const item = { nom: 'Sucre' };
-      expect(component.trackById(3, item)).toBe(3);
-    });
-
-    it('devrait retourner l\'index si item.id est null', () => {
-      const item = { id: null, nom: 'Citron' };
-      expect(component.trackById(2, item)).toBe(2);
-    });
+  it('onView() navigue vers /ingredients/:id', () => {
+    spyOn(router, 'navigate');
+    component.onView(mockIngredients[0]);
+    expect(router.navigate).toHaveBeenCalledWith(['/ingredients', 1]);
   });
 
-  describe('méthodes d\'action (stubs)', () => {
-    it('onAdd() ne devrait pas lever d\'exception', () => {
-      expect(() => component.onAdd()).not.toThrow();
-    });
-
-    it('onView() ne devrait pas lever d\'exception', () => {
-      const ingredient = { id: 1, nom: 'Menthe' };
-      expect(() => component.onView(ingredient)).not.toThrow();
-    });
-
-    it('onEdit() ne devrait pas lever d\'exception', () => {
-      const ingredient = { id: 1, nom: 'Citron' };
-      expect(() => component.onEdit(ingredient)).not.toThrow();
-    });
-
-    it('onDelete() ne devrait pas lever d\'exception', () => {
-      const ingredient = { id: 1, nom: 'Glace' };
-      expect(() => component.onDelete(ingredient)).not.toThrow();
-    });
+  it('onEdit() navigue vers /ingredients/:id/edit', () => {
+    spyOn(router, 'navigate');
+    component.onEdit(mockIngredients[0]);
+    expect(router.navigate).toHaveBeenCalledWith(['/ingredients', 1, 'edit']);
   });
 
-  describe('ngOnInit()', () => {
-    it('ne devrait pas modifier items (chargement non implémenté)', () => {
-      component.items = [];
-      component.ngOnInit();
-      expect(component.items).toEqual([]);
-    });
+  it('trackById retourne l\'id de l\'ingrédient', () => {
+    expect(component.trackById(0, mockIngredients[0])).toBe(1);
   });
 });
