@@ -1,41 +1,42 @@
+<ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+  <ion-refresher-content></ion-refresher-content>
+</ion-refresher>
+
 <div class="commande-list-container">
   <ion-card>
     <ion-card-header>
-      <div class="card-header-row">
-        <ion-card-title>Liste des Commandes</ion-card-title>
-        <ion-button color="primary" (click)="onAdd()">
-          <ion-icon slot="start" name="add"></ion-icon>
-          Nouvelle Commande
-        </ion-button>
-      </div>
+      <ion-card-title>Commandes ({{ commandes.length }})</ion-card-title>
     </ion-card-header>
     <ion-card-content>
-      <div class="list-header">
-        <span>Table</span>
-        <span>Statut</span>
-        <span>Total</span>
-        <span>Actions</span>
+      <ion-segment [value]="filtre" (ionChange)="onFiltreChange($event)" scrollable>
+        <ion-segment-button *ngFor="let s of statuts" [value]="s.value">
+          <ion-label>{{ s.label }}</ion-label>
+        </ion-segment-button>
+      </ion-segment>
+
+      <div *ngIf="isLoading" style="text-align:center;padding:24px">
+        <ion-spinner name="crescent"></ion-spinner>
       </div>
-      <ion-list>
-        <ion-item *ngFor="let commande of items; trackBy: trackById">
+
+      <ion-list *ngIf="!isLoading">
+        <ion-item *ngFor="let commande of filteredCommandes; trackBy: trackById">
           <ion-label>
-            <h3>Table {{ commande.table }}</h3>
+            <h3>Table {{ commande.tableNumero }}</h3>
+            <p>{{ commande.serveurUsername }} · {{ commande.dateCommande | date:'dd/MM HH:mm' }}</p>
           </ion-label>
-          <ion-badge slot="end" [color]="getStatusColor(commande.status)">
-            {{ commande.status }}
-          </ion-badge>
-          <ion-label slot="end" class="col-total">{{ commande.total | currency:'EUR' }}</ion-label>
+          <ion-badge slot="end" [color]="getStatutColor(commande.statut)">{{ commande.statut }}</ion-badge>
+          <ion-label slot="end">{{ commande.total | currency:'EUR' }}</ion-label>
           <ion-buttons slot="end">
             <ion-button fill="clear" color="primary" (click)="onView(commande)">
               <ion-icon slot="icon-only" name="eye"></ion-icon>
             </ion-button>
-            <ion-button fill="clear" color="tertiary" (click)="onEdit(commande)">
-              <ion-icon slot="icon-only" name="create"></ion-icon>
-            </ion-button>
-            <ion-button fill="clear" color="danger" (click)="onDelete(commande)">
-              <ion-icon slot="icon-only" name="trash"></ion-icon>
+            <ion-button fill="clear" color="danger" *ngIf="peutAnnuler(commande.statut)" (click)="onAnnuler(commande)">
+              <ion-icon slot="icon-only" name="ban-outline"></ion-icon>
             </ion-button>
           </ion-buttons>
+        </ion-item>
+        <ion-item *ngIf="filteredCommandes.length === 0">
+          <ion-label color="medium">Aucune commande</ion-label>
         </ion-item>
       </ion-list>
     </ion-card-content>
