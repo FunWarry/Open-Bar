@@ -1,15 +1,19 @@
-import {Component, OnInit} from '@angular/core';
-import {Store} from '@ngrx/store';
-import {Observable} from 'rxjs';
-import {selectCurrentUser, selectIsAdmin, selectIsAuthenticated} from '../../store/auth.selectors';
-import {NavigationService} from '../../services/navigation.service';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Store } from '@ngrx/store';
+import { Observable, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import { selectCurrentUser, selectIsAdmin, selectIsAuthenticated } from '../../store/auth.selectors';
+import { NavigationService } from '../../services/navigation.service';
+import { NotificationService } from '../../services/notification.service';
+import { NotificationPanelComponent } from '../notification-panel/notification-panel.component';
 import {
   IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
-  IonPopover, IonList, IonItem, IonLabel
+  IonPopover, IonList, IonItem, IonLabel, IonBadge,
+  PopoverController,
 } from '@ionic/angular/standalone';
-import {addIcons} from 'ionicons';
-import {home, settings, personCircle, person, logOut, chevronDown} from 'ionicons/icons';
-import {AsyncPipe, NgIf} from '@angular/common';
+import { addIcons } from 'ionicons';
+import { home, settings, personCircle, person, logOut, chevronDown, notificationsOutline } from 'ionicons/icons';
+import { AsyncPipe, NgIf } from '@angular/common';
 import * as AuthActions from '../../store/auth.actions';
 
 @Component({
@@ -17,30 +21,58 @@ import * as AuthActions from '../../store/auth.actions';
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.css'],
   standalone: true,
-  imports: [IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, IonPopover, IonList, IonItem, IonLabel, NgIf, AsyncPipe]
+  imports: [
+    IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
+    IonPopover, IonList, IonItem, IonLabel, IonBadge,
+    NgIf, AsyncPipe,
+  ],
 })
-export class NavbarComponent implements OnInit {
+export class NavbarComponent implements OnInit, OnDestroy {
   isAuthenticated$: Observable<boolean>;
   isAdmin$: Observable<boolean>;
   currentUser$: Observable<any>;
+  nonLues = 0;
 
-  isUserMenuOpen = false;
+  private destroy$ = new Subject<void>();
 
   constructor(
     private store: Store,
-    public navigationService: NavigationService
+    public navigationService: NavigationService,
+    private notifService: NotificationService,
+    private popoverCtrl: PopoverController,
   ) {
     this.isAuthenticated$ = this.store.select(selectIsAuthenticated);
     this.isAdmin$ = this.store.select(selectIsAdmin);
     this.currentUser$ = this.store.select(selectCurrentUser);
-    addIcons({home, settings, personCircle, person, logOut, chevronDown});
+    addIcons({ home, settings, personCircle, person, logOut, chevronDown, notificationsOutline });
   }
 
   ngOnInit(): void {
+    this.notifService.onNotification()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.nonLues = this.notifService.getNonLues();
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  async ouvrirNotifications(event: Event) {
+    const popover = await this.popoverCtrl.create({
+      component: NotificationPanelComponent,
+      event,
+      translucent: true,
+      size: 'auto',
+    });
+    await popover.present();
+    await popover.onDidDismiss();
+    this.nonLues = this.notifService.getNonLues();
   }
 
   onLogout(): void {
-    console.log('NavbarComponent onLogout');
     this.store.dispatch(AuthActions.logout());
   }
 }

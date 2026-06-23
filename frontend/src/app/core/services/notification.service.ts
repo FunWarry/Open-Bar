@@ -147,6 +147,10 @@ export class NotificationService implements OnDestroy {
     if (notif) notif.lue = true;
   }
 
+  marquerToutLu(): void {
+    this.notificationHistory.forEach(n => (n.lue = true));
+  }
+
   getNonLues(): number {
     return this.notificationHistory.filter(n => !n.lue).length;
   }

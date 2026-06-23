@@ -6,6 +6,14 @@
 
     <ion-buttons slot="end">
       <ng-container *ngIf="isAuthenticated$ | async">
+        <!-- Bouton cloche notifications -->
+        <ion-button (click)="ouvrirNotifications($event)" style="position:relative">
+          <ion-icon slot="icon-only" name="notifications-outline"></ion-icon>
+          <ion-badge *ngIf="nonLues > 0" color="danger" style="position:absolute;top:4px;right:4px;font-size:9px;padding:2px 4px">
+            {{ nonLues > 9 ? '9+' : nonLues }}
+          </ion-badge>
+        </ion-button>
+
         <ion-button (click)="navigationService.navigateToHome()">
           <ion-icon slot="start" name="home"></ion-icon>
           Accueil

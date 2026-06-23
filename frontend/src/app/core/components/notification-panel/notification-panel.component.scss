@@ -1,0 +1,38 @@
+ion-header ion-toolbar {
+  --background: #21263f;
+  --color: #eceefb;
+}
+
+ion-content {
+  --background: #0f0f1a;
+  width: 320px;
+  max-height: 480px;
+}
+
+.empty-notifs {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 16px;
+  color: #7e87a8;
+  font-size: 14px;
+  gap: 8px;
+
+  ion-icon { font-size: 36px; }
+}
+
+ion-item {
+  --background: #1a1a2e;
+  --border-color: rgba(126, 135, 168, 0.15);
+
+  &.lue {
+    opacity: 0.65;
+  }
+
+  .notif-message {
+    font-size: 13px;
+    color: #eceefb;
+    white-space: normal;
+    line-height: 1.4;
+  }
+}

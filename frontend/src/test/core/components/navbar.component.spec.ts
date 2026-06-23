@@ -9,7 +9,9 @@ import {
 } from '../../../app/core/store/auth.selectors';
 import * as AuthActions from '../../../app/core/store/auth.actions';
 import { NavigationService } from '../../../app/core/services/navigation.service';
-import { IonicModule } from '@ionic/angular';
+import { NotificationService } from '../../../app/core/services/notification.service';
+import { IonicModule, PopoverController } from '@ionic/angular';
+import { of } from 'rxjs';
 
 describe('NavbarComponent', () => {
   let component: NavbarComponent;
@@ -37,12 +39,20 @@ describe('NavbarComponent', () => {
       'navigateToUserProfile'
     ]);
 
+    const mockNotifService = jasmine.createSpyObj('NotificationService', ['onNotification', 'getNonLues', 'getHistory', 'marquerLue', 'marquerToutLu']);
+    mockNotifService.onNotification.and.returnValue(of());
+    mockNotifService.getNonLues.and.returnValue(0);
+
+    const mockPopoverCtrl = jasmine.createSpyObj('PopoverController', ['create']);
+
     await TestBed.configureTestingModule({
       imports: [NavbarComponent, IonicModule.forRoot()],
       providers: [
         provideMockStore({ initialState }),
-        { provide: NavigationService, useValue: mockNavigationService }
-      ]
+        { provide: NavigationService, useValue: mockNavigationService },
+        { provide: NotificationService, useValue: mockNotifService },
+        { provide: PopoverController, useValue: mockPopoverCtrl },
+      ],
     }).compileComponents();
 
     store = TestBed.inject(MockStore);
@@ -125,8 +135,8 @@ describe('NavbarComponent', () => {
     });
   });
 
-  it('isUserMenuOpen est false par défaut', () => {
-    expect(component.isUserMenuOpen).toBeFalse();
+  it('nonLues est 0 par défaut', () => {
+    expect(component.nonLues).toBe(0);
   });
 
   it('onLogout() dispatche l\'action AuthActions.logout', () => {
