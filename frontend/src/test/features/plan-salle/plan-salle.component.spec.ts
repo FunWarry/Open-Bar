@@ -3,7 +3,7 @@ import { ComponentFixture } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { IonicModule, ModalController, ToastController } from '@ionic/angular';
 import { Store } from '@ngrx/store';
-import { of, Subject, throwError } from 'rxjs';
+import { EMPTY, of, Subject, throwError } from 'rxjs';
 import { NgZone, ChangeDetectorRef } from '@angular/core';
 import { PlanSalleComponent } from '../../../app/features/plan-salle/plan-salle.component';
 import { PlanSalleService } from '../../../app/features/plan-salle/services/plan-salle.service';
@@ -49,8 +49,9 @@ describe('PlanSalleComponent', () => {
     planSalleServiceSpy.getPositions.and.returnValue(of(mockPositions));
     planSalleServiceSpy.sauvegarderPositions.and.returnValue(of(mockPositions));
 
-    notifSpy = jasmine.createSpyObj('NotificationService', ['onNotification']);
+    notifSpy = jasmine.createSpyObj('NotificationService', ['onNotification', 'onStockAlert']);
     notifSpy.onNotification.and.returnValue(notif$.asObservable());
+    notifSpy.onStockAlert.and.returnValue(EMPTY);
 
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
     toastCtrlSpy.create.and.returnValue(Promise.resolve(mockToast as any));
