@@ -1,28 +1,25 @@
 # Skill : openbar-ticket
 
-Pipeline complet de traitement d'un ticket GitHub : branche dédiée → implémentation → PR → auto-critique → corrections → merge dans `dev`.
+Pipeline complet de traitement d'un ticket GitHub : branche dédiée → implémentation → tests → build → PR → auto-critique → CI vert → merge → clôture.
 
 ## Quand utiliser ce skill
 
-**Toujours** — pour chaque ticket à implémenter, sans exception. Ce skill remplace la façon de travailler directement sur `dev`. Il est invoqué automatiquement au début de chaque ticket et définit la procédure complète à suivre.
+**Toujours** — pour chaque ticket à implémenter, sans exception. Ce skill remplace la façon de travailler directement sur `dev`.
 
 ---
 
-## Pipeline — 7 étapes obligatoires
+## Pipeline — 9 étapes obligatoires
 
 ### Étape 1 — Lire le ticket et se synchroniser
 
 ```bash
-# Lire les détails du ticket
 gh issue view <NUMERO> --repo FunWarry/Open-Bar
-
-# Se placer sur dev à jour
-rtk git checkout dev
-rtk git pull origin dev
+rtk git checkout dev && rtk git pull origin dev
 ```
 
-- Identifier le **type** du ticket : `feat` · `fix` · `docs` · `chore` · `refactor`
-- Identifier une **description courte** (2-4 mots, kebab-case, sans accent) pour nommer la branche
+- Identifier le **type** : `feat` · `fix` · `docs` · `chore` · `refactor`
+- Identifier une **description courte** (2-4 mots, kebab-case, sans accent)
+- Évaluer la **complexité** pour calibrer l'effort de review (voir étape 6)
 - Passer le ticket en **"In progress"** sur le board :
 
 ```bash
@@ -40,48 +37,111 @@ rtk gh api graphql -f query='mutation {
 
 ### Étape 2 — Créer la branche dédiée
 
-**Convention de nommage :** `<type>/#<numero>-<description-courte>`
-
-Exemples :
-```
-feat/#119-plan-de-salle-konva
-fix/#121-exceptions-metier
-docs/#122-mise-a-jour-claude-md
-chore/#109-maj-dependances
-```
+**Convention :** `<type>/#<numero>-<description-courte>`
 
 ```bash
 rtk git checkout -b feat/#<numero>-<description>
 ```
 
-> Un ticket = une branche. Ne jamais implémenter plusieurs tickets non liés sur la même branche.
+> Un ticket = une branche. Ne jamais mélanger plusieurs tickets non liés.
 
 ---
 
 ### Étape 3 — Implémenter
 
-Suivre les conventions de `openbar-dev` (voir `SKILL.md`).
+Suivre les conventions de `openbar-dev`.
 
-**Commits :** atomiques, en conventional commits référençant le ticket :
+**Commits atomiques en conventional commits :**
 
 ```bash
 rtk git add <fichiers-concernés>
-rtk git commit -m "feat(#X): description courte de ce qui est fait"
+rtk git commit -m "feat(#X): description courte"
 ```
 
-- Un commit par unité logique (pas de mega-commits fourre-tout)
-- Les tests sont inclus dans la même branche, dans le même commit ou un commit séparé
+- Un commit par unité logique
+- Pas de mega-commits fourre-tout
 
 ---
 
-### Étape 4 — Push + création PR vers `dev`
+### Étape 4 — Écrire les tests
+
+**Règle absolue : les tests font partie du même ticket, pas d'un ticket séparé.**
+
+#### Frontend (Angular — `src/test/`)
+
+Structure miroir de `src/app/` :
+```
+src/test/features/<nom>/<composant>.spec.ts
+src/test/features/<nom>/services/<service>.spec.ts
+```
+
+Couvrir pour chaque composant/service :
+- ✅ Cas nominal (appel HTTP, rendu, interaction utilisateur)
+- ✅ Cas d'erreur (HTTP 4xx/5xx, champ null, état vide)
+- ✅ Cas limites (liste vide, valeur zéro, permissions insuffisantes)
+
+Vérifier que les tests passent :
+```bash
+cd frontend && rtk npx ng test --watch=false --browsers=ChromeHeadless 2>&1 | tail -20
+```
+
+#### Backend (Java — `src/test/java/`)
+
+Un test par méthode métier dans `XxxServiceTest` :
+```java
+@Test void methode_cas_comportementAttendu() { ... }
+```
+
+Vérifier :
+```bash
+cd backend && rtk mvn test -q 2>&1 | tail -20
+```
+
+**Commit des tests :**
+```bash
+rtk git add src/test/...
+rtk git commit -m "test(#X): tests <NomComposant> et <NomService>"
+```
+
+---
+
+### Étape 5 — Vérification build locale avant push
+
+**Frontend — build complet (détecte les erreurs de template Angular) :**
+```bash
+cd frontend && rtk tsc --noEmit 2>&1 | grep -v "node_modules" | head -20
+```
+
+Si des erreurs apparaissent dans les fichiers modifiés → les corriger avant de continuer.
+
+> `tsc --noEmit` suffit pour les erreurs TypeScript et de template. `ng build` complet n'est pas requis localement si le tsc est propre.
+
+**Backend :**
+```bash
+cd backend && rtk mvn compile -q 2>&1 | tail -10
+```
+
+---
+
+### Étape 6 — Push + création PR vers `dev`
 
 ```bash
 rtk git push origin <branche>
 ```
 
-Créer la PR avec `gh` :
+Passer le ticket en **"In review"** sur le board :
+```bash
+rtk gh api graphql -f query='mutation {
+  updateProjectV2ItemFieldValue(input: {
+    projectId: "PVT_kwHOBOlRss4Bac05"
+    itemId: "<ITEM_ID>"
+    fieldId: "PVTSSF_lAHOBOlRss4Bac05zhVUX3s"
+    value: { singleSelectOptionId: "df73e18b" }
+  }) { projectV2Item { id } }
+}'
+```
 
+Créer la PR :
 ```bash
 gh pr create \
   --base dev \
@@ -95,9 +155,12 @@ gh pr create \
 ## Lien ticket
 Closes #<NUMERO>
 
-## Plan de test
-- [ ] <test manuel 1>
-- [ ] <test manuel 2>
+## Tests
+- <ce qui est testé>
+
+## Plan de test manuel
+- [ ] <scenario 1>
+- [ ] <scenario 2>
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 EOF
@@ -106,68 +169,99 @@ EOF
 
 ---
 
-### Étape 5 — Auto-critique
+### Étape 7 — Auto-critique
 
-Invoquer le skill `/code-review` sur le diff de la PR :
+**Calibrer l'effort selon la complexité du ticket :**
+
+| Type de ticket | Effort |
+|----------------|--------|
+| Fix simple, chore, docs | `--effort low` |
+| Feature CRUD standard, refactor | `--effort medium` |
+| Feature complexe (WebSocket, canvas, auth, state) | `--effort high` |
 
 ```
-/code-review --effort medium
+/code-review --effort <low|medium|high>
 ```
 
-**Analyser les findings :**
-- ✅ **Bug réel** (logique incorrecte, null safety, race condition, sécurité) → corriger
-- ✅ **Nommage trompeur** ou **incohérence avec les conventions du projet** → corriger
-- ⏭ **Style subjectif** sans impact → ignorer
-- ⏭ **Refactoring hors scope** du ticket → créer un ticket séparé si pertinent
+**Trier les findings :**
+- ✅ Bug réel (null safety, race condition, logique incorrecte, sécurité) → corriger
+- ✅ Nommage trompeur ou incohérence avec les conventions → corriger
+- ⏭ Style subjectif sans impact → ignorer
+- ⏭ Refactoring hors scope → créer un ticket séparé
 
-**Questions à se poser systématiquement :**
-1. Le code compile sans erreur TypeScript ? (`rtk tsc --noEmit | grep <feature>`)
-2. Les tests couvrent les cas nominaux ET les cas d'erreur ?
-3. Les champs utilisés dans le template HTML correspondent au modèle TypeScript ?
-4. Le service est-il bien injecté (pas de `any[]` non typé) ?
-5. Les nouvelles méthodes respectent les conventions backend (injection constructeur, `@Transactional`) ?
+**Questions systématiques :**
+1. Zéro erreur TypeScript sur les fichiers modifiés ?
+2. Tests : cas nominal + cas d'erreur + cas limites couverts ?
+3. Templates HTML cohérents avec les modèles TypeScript ?
+4. Aucun `any` non justifié ?
+5. Conventions backend respectées (`@Transactional`, injection constructeur, DTO) ?
 
 ---
 
-### Étape 6 — Corrections et mise à jour de la PR
+### Étape 8 — Corrections, re-run tests, vérification CI
 
-Pour chaque issue trouvée lors de l'auto-critique :
-
+Pour chaque issue trouvée :
 ```bash
-# Corriger le fichier
 rtk git add <fichier>
-rtk git commit -m "fix(#X): <description de la correction>"
+rtk git commit -m "fix(#X): <correction>"
 rtk git push origin <branche>
 ```
 
-La PR se met à jour automatiquement.
+**Attendre que le CI ET SonarCloud soient verts avant de merger :**
+```bash
+rtk gh pr checks <NUM> --repo FunWarry/Open-Bar --watch
+```
+
+Vérifier les deux checks obligatoires :
+- ✅ `Frontend (Node 20 + Angular)` — build + tests Angular
+- ✅ `SonarCloud Code Analysis` — qualité de code, couverture, sécurité
+
+**Si SonarCloud échoue :**
+- **Quality Gate** (bloquant) : aller sur https://sonarcloud.io/project/overview?id=FunWarry_Open-Bar et lire les issues signalées
+- Problèmes courants : code dupliqué, branches non couvertes par les tests, `any` TypeScript, méthodes trop longues
+- Corriger, committer, re-push → SonarCloud re-analyse automatiquement
+
+Si le CI/SonarCloud échoue sur des erreurs introduites par ce ticket → corriger et re-push.
+Si le CI/SonarCloud échoue sur des erreurs pré-existantes non liées → documenter et continuer.
 
 Répéter l'auto-critique si les corrections sont significatives.
 
 ---
 
-### Étape 7 — Merge et clôture
+### Étape 9 — Merge, clôture et nettoyage
 
-Merger la PR dans `dev` :
-
+**Merger la PR dans `dev` — merge commit (pas squash) :**
 ```bash
-# Via MCP GitHub (préféré)
 mcp__plugin_github_github__merge_pull_request(
   pullNumber=<NUM>,
-  merge_method="squash",  # pour un seul commit propre dans dev
-  commit_title="feat(#X): <titre du ticket>"
+  merge_method="merge",
+  commit_title="Merge feat/#X: <titre du ticket> → dev"
 )
 ```
 
-Ou via CLI :
+> ⚠️ Toujours `merge_method="merge"`, jamais `"squash"`. Le squash écrase la topologie de branche et rend l'historique illisible (commits directs sur dev sans trace des PRs et branches).
+
+**Revenir sur dev, supprimer les branches locale ET distante :**
 ```bash
-gh pr merge <NUM> --repo FunWarry/Open-Bar --squash --delete-branch
+rtk git checkout dev && rtk git pull origin dev
+rtk git branch -D <branche>
+# La branche distante doit être supprimée — vérifier avec git branch -r
+rtk git push origin --delete <branche>
+rtk git fetch --prune
 ```
 
-**Clôturer le ticket :**
+**Mettre à jour le tableau des features dans `CLAUDE.md` :**
+
+Localiser la ligne du ticket dans le tableau "Features implémentées vs. manquantes" de `CLAUDE.md` et mettre à jour les colonnes Backend / Frontend / Tests avec ✅. Si la feature n'est pas dans le tableau, l'ajouter.
 
 ```bash
-# Passer en "Done" sur le board
+rtk git add CLAUDE.md
+rtk git commit -m "docs: mise à jour features — #<NUMERO> implémenté"
+rtk git push origin dev
+```
+
+**Clôturer le ticket sur le board (Done) :**
+```bash
 rtk gh api graphql -f query='mutation {
   updateProjectV2ItemFieldValue(input: {
     projectId: "PVT_kwHOBOlRss4Bac05"
@@ -177,7 +271,6 @@ rtk gh api graphql -f query='mutation {
   }) { projectV2Item { id } }
 }'
 
-# Fermer l'issue GitHub
 gh issue close <NUMERO> --repo FunWarry/Open-Bar
 ```
 
@@ -201,13 +294,18 @@ gh issue close <NUMERO> --repo FunWarry/Open-Bar
 
 ## Checklist avant de merger
 
-- [ ] Zéro erreur TypeScript dans les fichiers modifiés (`rtk tsc --noEmit`)
-- [ ] Tests écrits pour les nouvelles méthodes (cas nominal + cas d'erreur)
-- [ ] Aucun `any` non justifié dans les composants touchés
+- [ ] Zéro erreur TypeScript (`rtk tsc --noEmit | grep -v node_modules`)
+- [ ] Tests écrits : cas nominal + cas d'erreur + cas limites
+- [ ] Tests passent (`ng test --watch=false` ou `mvn test`)
+- [ ] CI vert sur la PR (`gh pr checks --watch`) — build Angular + tests
+- [ ] SonarCloud vert — Quality Gate passé, pas de nouvelles issues bloquantes
+- [ ] Aucun `any` non justifié
 - [ ] Templates HTML cohérents avec les modèles TypeScript
-- [ ] Commit message en conventional commits avec référence au ticket
-- [ ] PR description complète (résumé, lien ticket, plan de test)
-- [ ] Board GitHub mis à jour (In progress → Done)
+- [ ] Conventional commits avec référence ticket
+- [ ] PR description complète (résumé, tests, plan de test manuel)
+- [ ] Board : In progress → In review → Done
+- [ ] Branche locale supprimée après merge
+- [ ] `CLAUDE.md` mis à jour (tableau features)
 
 ---
 
@@ -215,19 +313,16 @@ gh issue close <NUMERO> --repo FunWarry/Open-Bar
 
 ### Plusieurs petits tickets liés
 
-Si 2-3 tickets sont fortement couplés (ex : #111 Cocktails + #112 Ingrédients — même pattern CRUD), ils peuvent partager une branche et une PR :
-
+Si 2-3 tickets sont fortement couplés, ils peuvent partager une branche et une PR :
 ```
 feat/#111-#112-crud-cocktails-ingredients
 ```
+Mentionner `Closes #111` et `Closes #112` dans la PR.
 
-Mentionner `Closes #111` **et** `Closes #112` dans le corps de la PR.
+### Ticket bloqué (dépendance manquante)
 
-### Ticket bloqué (dépendance Java manquante)
-
-Si le ticket nécessite Java/Docker non disponibles dans la session :
 1. Documenter le blocage en commentaire sur l'issue
-2. Passer le ticket en "Backlog" (pas "In progress")
+2. Passer en "Backlog"
 3. Passer au ticket suivant
 
 ### PR avec conflits
@@ -240,3 +335,21 @@ rtk git add .
 rtk git commit -m "chore: résolution conflits merge dev"
 rtk git push origin <branche>
 ```
+
+### SonarCloud Quality Gate échoue
+
+Issues SonarCloud les plus fréquentes sur ce projet :
+- **Couverture insuffisante** : ajouter des tests pour les branches non couvertes
+- **Code dupliqué** : extraire dans un service ou une méthode partagée
+- **`any` TypeScript** : typer explicitement
+- **Méthode trop complexe** (cognitive complexity) : découper en méthodes privées
+- **`console.log` oubliés** : supprimer avant merge
+
+Pour voir les détails : `rtk gh pr checks <NUM> --repo FunWarry/Open-Bar` → suivre le lien SonarCloud.
+
+### CI échoue sur erreurs pré-existantes
+
+Si les erreurs CI ne sont pas introduites par ce ticket (vérifiable avec `git diff dev...HEAD`) :
+1. Ouvrir un ticket `fix` séparé pour les corriger
+2. Documenter dans la PR que le CI était déjà rouge avant ce ticket
+3. Merger quand même si les erreurs sont confirmées pré-existantes
