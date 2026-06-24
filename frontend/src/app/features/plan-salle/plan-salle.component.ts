@@ -118,6 +118,7 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
+    this.charger$.complete();
     this.stage?.destroy();
   }
 
@@ -249,14 +250,14 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
     this.planSalleService.sauvegarderPositions(positions)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: async () => {
+        next: () => {
           this.hasUnsavedChanges = false;
-          const toast = await this.toastCtrl.create({ message: 'Plan sauvegardé', duration: 2000, color: 'success' });
-          toast.present();
+          this.toastCtrl.create({ message: 'Plan sauvegardé', duration: 2000, color: 'success' })
+            .then(t => t.present());
         },
-        error: async () => {
-          const toast = await this.toastCtrl.create({ message: 'Erreur lors de la sauvegarde', duration: 3000, color: 'danger' });
-          toast.present();
+        error: () => {
+          this.toastCtrl.create({ message: 'Erreur lors de la sauvegarde', duration: 3000, color: 'danger' })
+            .then(t => t.present());
         },
       });
   }
