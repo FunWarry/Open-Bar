@@ -5,10 +5,11 @@
       <ion-badge *ngIf="hasUnsavedChanges" color="warning" class="unsaved-badge">Non sauvegardé</ion-badge>
     </ion-title>
     <ion-buttons slot="end">
-      <ion-button fill="clear" (click)="charger()" title="Actualiser">
+      <ion-button fill="clear" (click)="charger()" aria-label="Actualiser">
         <ion-icon name="refresh-outline" slot="icon-only"></ion-icon>
       </ion-button>
-      <ion-button *ngIf="isAdmin" fill="clear" (click)="toggleEditMode()" [color]="isEditMode ? 'warning' : 'medium'">
+      <ion-button *ngIf="isAdmin" fill="clear" (click)="toggleEditMode()" [color]="isEditMode ? 'warning' : 'medium'"
+        [attr.aria-label]="isEditMode ? 'Quitter le mode édition' : 'Activer le mode édition'">
         <ion-icon [name]="isEditMode ? 'close-outline' : 'pencil-outline'" slot="icon-only"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -21,7 +22,7 @@
     <div class="legend-item"><span class="dot dot-libre"></span><span>Libre</span></div>
     <div class="legend-item"><span class="dot dot-occupee"></span><span>Occupée</span></div>
     <div class="legend-item" *ngIf="isEditMode">
-      <ion-badge color="warning" class="edit-badge">Mode édition — drag & drop actif</ion-badge>
+      <ion-badge color="warning" class="edit-badge">Mode édition — drag &amp; drop actif</ion-badge>
     </div>
   </div>
 
@@ -33,7 +34,7 @@
 
   <!-- FAB sauvegarde (mode édition admin) -->
   <ion-fab *ngIf="isAdmin && isEditMode && hasUnsavedChanges" vertical="bottom" horizontal="end" slot="fixed">
-    <ion-fab-button color="success" (click)="sauvegarder()">
+    <ion-fab-button color="success" (click)="sauvegarder()" aria-label="Sauvegarder le plan">
       <ion-icon name="save-outline"></ion-icon>
     </ion-fab-button>
   </ion-fab>
