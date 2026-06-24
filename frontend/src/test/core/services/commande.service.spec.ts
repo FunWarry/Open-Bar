@@ -4,7 +4,6 @@ import { CommandeService } from '../../../app/core/services/commande.service';
 import {
   AjouterItemRequest,
   Commande,
-  CommandeStatut,
   CreateCommandeRequest,
 } from '../../../app/core/models/commande.model';
 import { environment } from '../../../environments/environment';
@@ -16,7 +15,7 @@ describe('CommandeService', () => {
 
   const mockCommande: Commande = {
     id: 1,
-    statut: CommandeStatut.EN_ATTENTE,
+    statut: 'EN_ATTENTE',
   } as Commande;
 
   beforeEach(() => {
@@ -77,19 +76,19 @@ describe('CommandeService', () => {
   // --- getByStatut ---
 
   it('getByStatut() appelle GET /api/commandes/statut/:statut', () => {
-    service.getByStatut(CommandeStatut.EN_ATTENTE).subscribe((result) => {
+    service.getByStatut('EN_ATTENTE').subscribe((result) => {
       expect(result).toEqual([mockCommande]);
     });
-    const req = httpMock.expectOne(`${baseUrl}/statut/${CommandeStatut.EN_ATTENTE}`);
+    const req = httpMock.expectOne(`${baseUrl}/statut/EN_ATTENTE`);
     expect(req.request.method).toBe('GET');
     req.flush([mockCommande]);
   });
 
   it('getByStatut() retourne un tableau vide si aucune commande avec ce statut', () => {
-    service.getByStatut(CommandeStatut.LIVREE).subscribe((result) => {
+    service.getByStatut('LIVREE').subscribe((result) => {
       expect(result).toEqual([]);
     });
-    const req = httpMock.expectOne(`${baseUrl}/statut/${CommandeStatut.LIVREE}`);
+    const req = httpMock.expectOne(`${baseUrl}/statut/LIVREE`);
     req.flush([]);
   });
 
@@ -173,18 +172,18 @@ describe('CommandeService', () => {
   // --- changerStatut ---
 
   it('changerStatut() appelle PATCH /api/commandes/:id/statut avec le statut', () => {
-    service.changerStatut(1, CommandeStatut.EN_PREPARATION).subscribe((result) => {
+    service.changerStatut(1, 'EN_PREPARATION').subscribe((result) => {
       expect(result).toEqual(mockCommande);
     });
     const req = httpMock.expectOne(`${baseUrl}/1/statut`);
     expect(req.request.method).toBe('PATCH');
-    expect(req.request.body).toEqual({ statut: CommandeStatut.EN_PREPARATION });
+    expect(req.request.body).toEqual({ statut: 'EN_PREPARATION' });
     req.flush(mockCommande);
   });
 
   it('changerStatut() propage une erreur 400 si transition de statut invalide', () => {
     let errorOccurred = false;
-    service.changerStatut(1, CommandeStatut.EN_ATTENTE).subscribe({
+    service.changerStatut(1, 'EN_ATTENTE').subscribe({
       next: () => fail('devrait échouer'),
       error: (err) => {
         errorOccurred = true;

@@ -5,7 +5,7 @@ function stateWith(roles: string[], token: string | null = 'tok'): { auth: AuthS
   return {
     auth: {
       token,
-      loading: false,
+      isAuthenticated: !!token,
       error: null,
       user: token ? {id: 1, email: 'test@bar.com', username: 'test', roles, enabled: true, createdAt: '', updatedAt: ''} : null,
     }

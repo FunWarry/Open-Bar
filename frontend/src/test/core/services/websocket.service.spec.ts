@@ -11,7 +11,8 @@ describe('WebSocketService', () => {
   let service: WebSocketService;
   let store: MockStore;
   let mockAuthService: jasmine.SpyObj<AuthService>;
-  let mockRxStomp: jasmine.SpyObj<RxStomp>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let mockRxStomp: any;
   let connectionStateSubject: BehaviorSubject<RxStompState>;
   let isAuthSubject: BehaviorSubject<boolean>;
 
@@ -21,7 +22,7 @@ describe('WebSocketService', () => {
 
     mockAuthService = jasmine.createSpyObj<AuthService>('AuthService', ['getToken']);
 
-    mockRxStomp = jasmine.createSpyObj<RxStomp>(
+    mockRxStomp = jasmine.createSpyObj(
       'RxStomp',
       ['configure', 'activate', 'deactivate', 'watch'],
       {

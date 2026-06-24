@@ -144,7 +144,7 @@ describe('AuthEffects', () => {
       actions$ = of(AuthActions.logout());
 
       effects.logout$.subscribe(() => {
-        expect(authServiceSpy.logout).toHaveBeenCalledOnce();
+        expect(authServiceSpy.logout).toHaveBeenCalledTimes(1);
         done();
       });
     });
@@ -157,7 +157,7 @@ describe('AuthEffects', () => {
         expect(navigationServiceSpy.navigateToLogin).not.toHaveBeenCalled();
 
         jasmine.clock().tick(300);
-        expect(navigationServiceSpy.navigateToLogin).toHaveBeenCalledOnce();
+        expect(navigationServiceSpy.navigateToLogin).toHaveBeenCalledTimes(1);
 
         jasmine.clock().uninstall();
         done();
