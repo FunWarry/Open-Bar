@@ -1,7 +1,7 @@
 import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { IonicModule, ToastController } from '@ionic/angular';
-import { of, Subject, throwError } from 'rxjs';
+import { EMPTY, of, Subject, throwError } from 'rxjs';
 import { DashboardBarmanComponent } from '../../../app/features/dashboard-barman/dashboard-barman.component';
 import { DashboardBarmanService } from '../../../app/features/dashboard-barman/services/dashboard-barman.service';
 import { NotificationService, AppNotification } from '../../../app/core/services/notification.service';
@@ -42,8 +42,9 @@ describe('DashboardBarmanComponent', () => {
     dashboardServiceSpy.getCommandesPret.and.returnValue(of([]));
     dashboardServiceSpy.changerStatut.and.returnValue(of({}));
 
-    notificationServiceSpy = jasmine.createSpyObj('NotificationService', ['onNotification']);
+    notificationServiceSpy = jasmine.createSpyObj('NotificationService', ['onNotification', 'onStockAlert']);
     notificationServiceSpy.onNotification.and.returnValue(notification$.asObservable());
+    notificationServiceSpy.onStockAlert.and.returnValue(EMPTY);
 
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
     toastCtrlSpy.create.and.returnValue(Promise.resolve(mockToast as any));

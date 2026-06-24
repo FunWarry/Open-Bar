@@ -2,7 +2,7 @@ import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { ComponentFixture } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { IonicModule, ToastController } from '@ionic/angular';
-import { of, Subject, throwError } from 'rxjs';
+import { EMPTY, of, Subject, throwError } from 'rxjs';
 import { KanbanServeurComponent } from '../../../app/features/dashboard-serveur/kanban-serveur/kanban-serveur.component';
 import { DashboardServeurService } from '../../../app/features/dashboard-serveur/services/dashboard-serveur.service';
 import { NotificationService, AppNotification } from '../../../app/core/services/notification.service';
@@ -48,8 +48,9 @@ describe('KanbanServeurComponent', () => {
     serviceSpy.changerStatutCommande.and.returnValue(of(cmd(3, 'LIVREE', 2) as any));
     serviceSpy.annulerCommande.and.returnValue(of(cmd(1, 'ANNULEE', 1) as any));
 
-    notificationSpy = jasmine.createSpyObj('NotificationService', ['onNotification']);
+    notificationSpy = jasmine.createSpyObj('NotificationService', ['onNotification', 'onStockAlert']);
     notificationSpy.onNotification.and.returnValue(notification$.asObservable());
+    notificationSpy.onStockAlert.and.returnValue(EMPTY);
 
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
     toastCtrlSpy.create.and.returnValue(Promise.resolve(mockToast as any));
