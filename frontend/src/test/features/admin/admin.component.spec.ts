@@ -16,7 +16,10 @@ describe('AdminComponent', () => {
     id: 1,
     username: 'admin',
     email: 'admin@bar.com',
-    roles: ['ADMIN']
+    roles: ['ADMIN'],
+    enabled: true,
+    createdAt: new Date('2026-01-01'),
+    updatedAt: new Date('2026-01-01')
   };
 
   beforeEach(async () => {
@@ -58,11 +61,11 @@ describe('AdminComponent', () => {
   });
 
   it('should select currentUser from store via selectCurrentUser selector', () => {
-    expect(storeSpy.select).toHaveBeenCalledWith(selectCurrentUser);
+    expect(storeSpy.select as any).toHaveBeenCalledWith(selectCurrentUser);
   });
 
   it('navigationService should be accessible as a protected property', () => {
-    expect(component.navigationService).toBe(navigationServiceSpy);
+    expect((component as any).navigationService).toBe(navigationServiceSpy);
   });
 
   it('currentUser$ should emit null when no user is logged in', async () => {

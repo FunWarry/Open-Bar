@@ -17,7 +17,10 @@ describe('ProfileComponent', () => {
     id: 1,
     username: 'testuser',
     email: 'test@example.com',
-    roles: ['SERVEUR']
+    roles: ['SERVEUR'],
+    enabled: true,
+    createdAt: new Date('2026-01-01'),
+    updatedAt: new Date('2026-01-01')
   };
 
   beforeEach(async () => {
