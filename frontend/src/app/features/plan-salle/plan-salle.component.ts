@@ -3,8 +3,8 @@ import {
   ElementRef, ViewChild, NgZone, ChangeDetectorRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Subject, forkJoin } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { Subject, forkJoin, EMPTY } from 'rxjs';
+import { takeUntil, switchMap, catchError } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
 import Konva from 'konva';
 import {
@@ -56,6 +56,7 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
   private positions = new Map<number, TablePosition>();
   private tableShapes = new Map<number, Konva.Group>();
   private destroy$ = new Subject<void>();
+  private charger$  = new Subject<void>();
 
   constructor(
     private tableService: TableService,
@@ -84,6 +85,33 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngAfterViewInit() {
     this.ngZone.runOutsideAngular(() => this.initKonva());
+
+    this.charger$
+      .pipe(
+        switchMap(() => forkJoin({
+          tables:    this.tableService.getAll(),
+          positions: this.planSalleService.getPositions(),
+        }).pipe(
+          catchError(() => {
+            this.isLoading = false;
+            this.cdr.detectChanges();
+            this.toastCtrl.create({ message: 'Erreur lors du chargement du plan', duration: 3000, color: 'danger' })
+              .then(t => t.present());
+            return EMPTY;
+          }),
+        )),
+        takeUntil(this.destroy$),
+      )
+      .subscribe(({ tables, positions }) => {
+        this.tables = tables;
+        this.positions.clear();
+        positions.forEach(p => this.positions.set(p.tableId, p));
+        this.hasUnsavedChanges = false;
+        this.isLoading = false;
+        this.cdr.detectChanges();
+        this.ngZone.runOutsideAngular(() => this.dessinerTables());
+      });
+
     this.charger();
   }
 
@@ -181,30 +209,10 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
   // ─── Données ───────────────────────────────────────────────────────────────
 
   charger() {
+    if (this.isEditMode && this.hasUnsavedChanges) return;
     this.isLoading = true;
     this.cdr.detectChanges();
-
-    forkJoin({
-      tables:    this.tableService.getAll(),
-      positions: this.planSalleService.getPositions(),
-    })
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: ({ tables, positions }) => {
-          this.tables = tables;
-          this.positions.clear();
-          positions.forEach(p => this.positions.set(p.tableId, p));
-          this.isLoading = false;
-          this.cdr.detectChanges();
-          this.ngZone.runOutsideAngular(() => this.dessinerTables());
-        },
-        error: async () => {
-          this.isLoading = false;
-          this.cdr.detectChanges();
-          const toast = await this.toastCtrl.create({ message: 'Erreur lors du chargement du plan', duration: 3000, color: 'danger' });
-          toast.present();
-        },
-      });
+    this.charger$.next();
   }
 
   // ─── Actions ───────────────────────────────────────────────────────────────

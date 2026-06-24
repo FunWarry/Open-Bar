@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, tap } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
 import { TablePosition } from '../models/table-position.model';
 
@@ -24,10 +24,10 @@ export class PlanSalleService {
     );
   }
 
-  /** Sauvegarde les positions (backend + localStorage en parallèle). */
+  /** Sauvegarde les positions — localStorage mis à jour uniquement après succès du PUT. */
   sauvegarderPositions(positions: TablePosition[]): Observable<TablePosition[]> {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
     return this.http.put<TablePosition[]>(this.api, positions).pipe(
+      tap(() => localStorage.setItem(STORAGE_KEY, JSON.stringify(positions))),
       catchError(() => of(positions)),
     );
   }
