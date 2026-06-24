@@ -62,6 +62,10 @@ jobs:
         working-directory: frontend
         run: npm ci
 
+      - name: Run tests with coverage
+        working-directory: frontend
+        run: npx ng test --watch=false --browsers=ChromeHeadless --code-coverage
+
       - name: Build production
         working-directory: frontend
         run: npx ng build --configuration production
