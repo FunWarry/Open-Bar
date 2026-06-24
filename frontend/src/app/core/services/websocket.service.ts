@@ -1,4 +1,4 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, InjectionToken } from '@angular/core';
 import { RxStomp, RxStompState } from '@stomp/rx-stomp';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -8,11 +8,17 @@ import { environment } from '../../../environments/environment';
 import { AuthService } from './auth.service';
 import { selectIsAuthenticated } from '../store/auth.selectors';
 
+/** Token permettant de remplacer RxStomp dans les tests */
+export const RX_STOMP = new InjectionToken<RxStomp>('RxStomp', {
+  providedIn: 'root',
+  factory: () => new RxStomp(),
+});
+
 @Injectable({ providedIn: 'root' })
 export class WebSocketService {
   private authService = inject(AuthService);
   private store = inject(Store);
-  private rxStomp = new RxStomp();
+  private rxStomp = inject(RX_STOMP);
 
   constructor() {
     // Connecter / déconnecter automatiquement selon l'état d'auth

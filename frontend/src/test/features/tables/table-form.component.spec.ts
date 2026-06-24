@@ -2,22 +2,26 @@ import { TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
-import { Store } from '@ngrx/store';
 import { ToastController } from '@ionic/angular/standalone';
+import { of } from 'rxjs';
 import { TableFormComponent } from '../../../app/features/tables/table-form/table-form.component';
+import { TableService } from '../../../app/core/services/table.service';
 
 describe('TableFormComponent', () => {
   let component: TableFormComponent;
   let routerSpy: jasmine.SpyObj<Router>;
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
-  let storeSpy: jasmine.SpyObj<Store>;
+  let tableServiceSpy: jasmine.SpyObj<TableService>;
 
   const mockToast = { present: jasmine.createSpy('present').and.returnValue(Promise.resolve()) };
 
   beforeEach(async () => {
     routerSpy = jasmine.createSpyObj('Router', ['navigate']);
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
-    storeSpy = jasmine.createSpyObj('Store', ['dispatch', 'select']);
+    tableServiceSpy = jasmine.createSpyObj('TableService', ['getById', 'create', 'update']);
+    tableServiceSpy.create.and.returnValue(of({} as any));
+    tableServiceSpy.update.and.returnValue(of({} as any));
+    tableServiceSpy.getById.and.returnValue(of({ id: 5, numero: 5, zone: 'INTERIEUR' as const, capacite: 4, occupee: false, createdAt: '', updatedAt: '' }));
 
     toastCtrlSpy.create.and.returnValue(Promise.resolve(mockToast as any));
 
@@ -29,7 +33,7 @@ describe('TableFormComponent', () => {
       ],
       providers: [
         { provide: Router, useValue: routerSpy },
-        { provide: Store, useValue: storeSpy },
+        { provide: TableService, useValue: tableServiceSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
         {
           provide: ActivatedRoute,
@@ -47,25 +51,25 @@ describe('TableFormComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('initialise le formulaire avec les champs number, zone et capacity', () => {
-    expect(component.tableForm.contains('number')).toBeTrue();
+  it('initialise le formulaire avec les champs numero, zone et capacite', () => {
+    expect(component.tableForm.contains('numero')).toBeTrue();
     expect(component.tableForm.contains('zone')).toBeTrue();
-    expect(component.tableForm.contains('capacity')).toBeTrue();
+    expect(component.tableForm.contains('capacite')).toBeTrue();
   });
 
   it('le formulaire est invalide quand les champs sont vides', () => {
-    component.tableForm.setValue({ number: '', zone: '', capacity: '' });
+    component.tableForm.setValue({ numero: '', zone: '', capacite: '' });
     expect(component.tableForm.valid).toBeFalse();
   });
 
   it('le formulaire est valide quand tous les champs sont remplis correctement', () => {
-    component.tableForm.setValue({ number: '12', zone: 'Terrasse', capacity: '4' });
+    component.tableForm.setValue({ numero: 12, zone: 'Terrasse', capacite: 4 });
     expect(component.tableForm.valid).toBeTrue();
   });
 
-  it('capacity invalide si valeur inférieure à 1', () => {
-    component.tableForm.get('capacity')?.setValue('0');
-    expect(component.tableForm.get('capacity')?.valid).toBeFalse();
+  it('capacite invalide si valeur inférieure à 1', () => {
+    component.tableForm.get('capacite')?.setValue(0);
+    expect(component.tableForm.get('capacite')?.valid).toBeFalse();
   });
 
   it('isEditMode est false par défaut (pas de paramètre id)', () => {
@@ -83,7 +87,7 @@ describe('TableFormComponent', () => {
       ],
       providers: [
         { provide: Router, useValue: routerSpy },
-        { provide: Store, useValue: storeSpy },
+        { provide: TableService, useValue: tableServiceSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
         {
           provide: ActivatedRoute,
@@ -101,14 +105,16 @@ describe('TableFormComponent', () => {
   });
 
   it('onSubmit() ne déclenche rien si le formulaire est invalide', () => {
-    component.tableForm.setValue({ number: '', zone: '', capacity: '' });
+    component.tableForm.setValue({ numero: '', zone: '', capacite: '' });
     component.onSubmit();
-    expect(storeSpy.dispatch).not.toHaveBeenCalled();
+    expect(tableServiceSpy.create).not.toHaveBeenCalled();
   });
 
-  it('onSubmit() avec formulaire valide ne lève pas d\'erreur', () => {
-    component.tableForm.setValue({ number: '3', zone: 'Bar', capacity: '2' });
-    expect(() => component.onSubmit()).not.toThrow();
+  it('onSubmit() avec formulaire valide appelle tableService.create()', async () => {
+    component.tableForm.setValue({ numero: 3, zone: 'Bar', capacite: 2 });
+    component.onSubmit();
+    await Promise.resolve();
+    expect(tableServiceSpy.create).toHaveBeenCalled();
   });
 
   it('onCancel() navigue vers /tables', () => {

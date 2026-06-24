@@ -114,14 +114,14 @@ describe('AuthService', () => {
     localStorage.setItem('auth_token', 'token');
     // Simuler inProgress via un login en cours
     service.login('user', 'pass').subscribe();
-    httpMock.expectOne(`${baseUrl}/login`); // garder en attente
+    const pendingReq = httpMock.expectOne(`${baseUrl}/login`); // garder en attente
 
     // Le token doit rester (logout ignoré)
     service.logout();
     expect(localStorage.getItem('auth_token')).toBe('token');
 
-    // Nettoyer — flusher le login
-    httpMock.expectOne(`${baseUrl}/login`).flush(mockAuthResponse);
+    // Nettoyer — flusher le login en réutilisant la requête déjà récupérée
+    pendingReq.flush(mockAuthResponse);
     tick(1000);
   }));
 
