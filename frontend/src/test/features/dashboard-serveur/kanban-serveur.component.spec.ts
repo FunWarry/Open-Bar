@@ -1,7 +1,8 @@
-import { TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { TestBed, fakeAsync, tick, flushMicrotasks } from '@angular/core/testing';
 import { ComponentFixture } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
-import { IonicModule, ToastController } from '@ionic/angular';
+import { IonicModule } from '@ionic/angular';
+import { ToastController } from '@ionic/angular/standalone';
 import { EMPTY, of, Subject, throwError } from 'rxjs';
 import { KanbanServeurComponent } from '../../../app/features/dashboard-serveur/kanban-serveur/kanban-serveur.component';
 import { DashboardServeurService } from '../../../app/features/dashboard-serveur/services/dashboard-serveur.service';
@@ -93,11 +94,11 @@ describe('KanbanServeurComponent', () => {
     expect(serviceSpy.getCommandesParStatut).toHaveBeenCalledWith('LIVREE');
   }));
 
-  it('charger() affiche un toast danger en cas d\'erreur', fakeAsync(async () => {
+  it('charger() affiche un toast danger en cas d\'erreur', fakeAsync(() => {
     serviceSpy.getCommandesParStatut.and.returnValue(throwError(() => new Error('err')));
     component.charger();
     tick();
-    await Promise.resolve();
+    flushMicrotasks();
     expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
   }));
 
@@ -124,37 +125,37 @@ describe('KanbanServeurComponent', () => {
 
   // --- marquerLivree ---
 
-  it('marquerLivree() appelle changerStatutCommande avec LIVREE et recharge', fakeAsync(async () => {
+  it('marquerLivree() appelle changerStatutCommande avec LIVREE et recharge', fakeAsync(() => {
     component.marquerLivree(3);
     tick();
-    await Promise.resolve();
+    flushMicrotasks();
     expect(serviceSpy.changerStatutCommande).toHaveBeenCalledWith(3, 'LIVREE');
     expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'success' }));
   }));
 
-  it('marquerLivree() affiche un toast danger en cas d\'erreur', fakeAsync(async () => {
+  it('marquerLivree() affiche un toast danger en cas d\'erreur', fakeAsync(() => {
     serviceSpy.changerStatutCommande.and.returnValue(throwError(() => new Error('err')));
     component.marquerLivree(3);
     tick();
-    await Promise.resolve();
+    flushMicrotasks();
     expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
   }));
 
   // --- annuler ---
 
-  it('annuler() appelle annulerCommande et recharge', fakeAsync(async () => {
+  it('annuler() appelle annulerCommande et recharge', fakeAsync(() => {
     component.annuler(1);
     tick();
-    await Promise.resolve();
+    flushMicrotasks();
     expect(serviceSpy.annulerCommande).toHaveBeenCalledWith(1);
     expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'medium' }));
   }));
 
-  it('annuler() affiche un toast danger en cas d\'erreur', fakeAsync(async () => {
+  it('annuler() affiche un toast danger en cas d\'erreur', fakeAsync(() => {
     serviceSpy.annulerCommande.and.returnValue(throwError(() => new Error('err')));
     component.annuler(1);
     tick();
-    await Promise.resolve();
+    flushMicrotasks();
     expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
   }));
 

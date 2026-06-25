@@ -63,7 +63,7 @@ describe('AuthService', () => {
   it('login() retourne une erreur si une opération est déjà en cours', () => {
     // Déclencher un premier login (en cours)
     service.login('testuser', 'password123').subscribe();
-    httpMock.expectOne(`${baseUrl}/login`); // premier appel en attente
+    const req = httpMock.expectOne(`${baseUrl}/login`); // premier appel en attente
 
     // Deuxième tentative pendant que le premier est en cours
     let errorMessage: string | undefined;
@@ -73,7 +73,7 @@ describe('AuthService', () => {
 
     expect(errorMessage).toBe('Une opération est déjà en cours');
     // Flusher le premier pour que afterEach verify() ne se plaigne pas
-    httpMock.expectOne(`${baseUrl}/login`).flush(mockAuthResponse);
+    req.flush(mockAuthResponse);
   });
 
   it('login() remet inProgress à false en cas d\'erreur HTTP', () => {

@@ -1,8 +1,9 @@
-import { TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { TestBed, fakeAsync, tick, flushMicrotasks } from '@angular/core/testing';
 import { ComponentFixture } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { Router } from '@angular/router';
-import { IonicModule, ToastController } from '@ionic/angular';
+import { IonicModule } from '@ionic/angular';
+import { ToastController } from '@ionic/angular/standalone';
 import { Store } from '@ngrx/store';
 import { of, throwError } from 'rxjs';
 import { CommandeListComponent } from '../../../app/features/commandes/commande-list/commande-list.component';
@@ -67,10 +68,10 @@ describe('CommandeListComponent', () => {
     expect(component.filteredCommandes.length).toBe(4);
   }));
 
-  it('charger() affiche un toast danger en cas d\'erreur', fakeAsync(async () => {
+  it('charger() affiche un toast danger en cas d\'erreur', fakeAsync(() => {
     serviceSpy.getAll.and.returnValue(throwError(() => new Error('err')));
     component.charger(); tick();
-    await Promise.resolve();
+    flushMicrotasks();
     expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
   }));
 
@@ -112,10 +113,10 @@ describe('CommandeListComponent', () => {
     expect(router.navigate).toHaveBeenCalledWith(['/commandes', 1]);
   });
 
-  it('onAnnuler() appelle CommandeService.annuler et recharge', fakeAsync(async () => {
+  it('onAnnuler() appelle CommandeService.annuler et recharge', fakeAsync(() => {
     component.onAnnuler(mockCommandes[0]);
     tick();
-    await Promise.resolve();
+    flushMicrotasks();
     expect(serviceSpy.annuler).toHaveBeenCalledWith(1);
     expect(serviceSpy.getAll).toHaveBeenCalledTimes(2);
   }));

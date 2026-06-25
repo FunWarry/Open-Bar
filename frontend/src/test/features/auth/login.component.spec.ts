@@ -7,6 +7,7 @@ import { Store } from '@ngrx/store';
 import { of, BehaviorSubject } from 'rxjs';
 import { LoginComponent } from '../../../app/features/auth/login/login.component';
 import { login } from '../../../app/core/store/auth.actions';
+import { selectAuthError, selectIsAuthenticated } from '../../../app/core/store/auth.selectors';
 
 describe('LoginComponent', () => {
   let component: LoginComponent;
@@ -22,12 +23,7 @@ describe('LoginComponent', () => {
 
     mockStore = jasmine.createSpyObj('Store', ['dispatch', 'select']);
     mockStore.select.and.callFake((selector: unknown) => {
-      // Distinguish selectors by reference — fallback to isAuthenticated
-      const selectorFn = selector as any;
-      const name = selectorFn?.projector?.name ?? selectorFn?.name ?? '';
-      if (name.toLowerCase().includes('error') || String(selectorFn).includes('authError')) {
-        return authErrorSubject.asObservable();
-      }
+      if (selector === selectAuthError) return authErrorSubject.asObservable();
       return isAuthenticatedSubject.asObservable();
     });
 
@@ -122,11 +118,7 @@ describe('LoginComponent', () => {
   it('onSubmit affiche un message d\'erreur quand le store remonte une erreur', fakeAsync(() => {
     // Simuler un retour d'erreur depuis le store pour selectAuthError
     mockStore.select.and.callFake((selector: unknown) => {
-      const selectorFn = selector as any;
-      const name = selectorFn?.projector?.name ?? selectorFn?.name ?? '';
-      if (name.toLowerCase().includes('error') || String(selectorFn).includes('authError')) {
-        return of('Unauthorized');
-      }
+      if (selector === selectAuthError) return of('Unauthorized');
       return of(false);
     });
 
@@ -141,11 +133,7 @@ describe('LoginComponent', () => {
 
   it('onSubmit redirige vers /app-home quand l\'authentification réussit', fakeAsync(() => {
     mockStore.select.and.callFake((selector: unknown) => {
-      const selectorFn = selector as any;
-      const name = selectorFn?.projector?.name ?? selectorFn?.name ?? '';
-      if (name.toLowerCase().includes('error') || String(selectorFn).includes('authError')) {
-        return of(null);
-      }
+      if (selector === selectAuthError) return of(null);
       return of(true);
     });
 

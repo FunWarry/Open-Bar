@@ -1,6 +1,7 @@
-import { TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { TestBed, fakeAsync, tick, flushMicrotasks } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
-import { IonicModule, ToastController } from '@ionic/angular';
+import { IonicModule } from '@ionic/angular';
+import { ToastController } from '@ionic/angular/standalone';
 import { EMPTY, of, Subject, throwError } from 'rxjs';
 import { DashboardBarmanComponent } from '../../../app/features/dashboard-barman/dashboard-barman.component';
 import { DashboardBarmanService } from '../../../app/features/dashboard-barman/services/dashboard-barman.service';
@@ -97,43 +98,43 @@ describe('DashboardBarmanComponent', () => {
     expect(dashboardServiceSpy.getCommandesPret).toHaveBeenCalled();
   }));
 
-  it('chargerCommandes() affiche un toast danger en cas d\'erreur', fakeAsync(async () => {
+  it('chargerCommandes() affiche un toast danger en cas d\'erreur', fakeAsync(() => {
     dashboardServiceSpy.getCommandesEnAttente.and.returnValue(throwError(() => new Error('Network error')));
 
     component.chargerCommandes();
     tick();
-    await Promise.resolve(); // flush async toast creation
+    flushMicrotasks();
 
     expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
   }));
 
-  it('onChangerStatut() appelle changerStatut() et recharge les commandes', fakeAsync(async () => {
+  it('onChangerStatut() appelle changerStatut() et recharge les commandes', fakeAsync(() => {
     const callCountBefore = dashboardServiceSpy.getCommandesEnAttente.calls.count();
 
     component.onChangerStatut({ id: 1, statut: 'EN_PREPARATION' });
     tick();
-    await Promise.resolve();
+    flushMicrotasks();
 
     expect(dashboardServiceSpy.changerStatut).toHaveBeenCalledWith(1, 'EN_PREPARATION');
     expect(dashboardServiceSpy.getCommandesEnAttente.calls.count()).toBeGreaterThan(callCountBefore);
   }));
 
-  it('onChangerStatut() affiche un toast success après changement réussi', fakeAsync(async () => {
+  it('onChangerStatut() affiche un toast success après changement réussi', fakeAsync(() => {
     dashboardServiceSpy.changerStatut.and.returnValue(of({}));
 
     component.onChangerStatut({ id: 1, statut: 'PRET' });
     tick();
-    await Promise.resolve();
+    flushMicrotasks();
 
     expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'success' }));
   }));
 
-  it('onChangerStatut() affiche un toast danger en cas d\'erreur', fakeAsync(async () => {
+  it('onChangerStatut() affiche un toast danger en cas d\'erreur', fakeAsync(() => {
     dashboardServiceSpy.changerStatut.and.returnValue(throwError(() => new Error('API error')));
 
     component.onChangerStatut({ id: 1, statut: 'PRET' });
     tick();
-    await Promise.resolve();
+    flushMicrotasks();
 
     expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
   }));

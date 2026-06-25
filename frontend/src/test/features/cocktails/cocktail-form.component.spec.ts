@@ -38,6 +38,8 @@ describe('CocktailFormComponent', () => {
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
     toastCtrlSpy.create.and.returnValue(Promise.resolve(toastMock as any));
 
+    cocktailServiceSpy.create.and.returnValue(of(mockCocktail as any));
+    cocktailServiceSpy.update.and.returnValue(of(mockCocktail as any));
     if (routeId) {
       cocktailServiceSpy.getById.and.returnValue(of(mockCocktail));
     }
@@ -113,7 +115,7 @@ describe('CocktailFormComponent', () => {
       component.onSubmit();
       await Promise.resolve();
       expect(toastCtrlSpy.create).toHaveBeenCalledWith(
-        jasmine.objectContaining({ message: 'Cocktail sauvegardé avec succès', color: 'success' })
+        jasmine.objectContaining({ message: 'Cocktail créé', color: 'success' })
       );
       expect(routerSpy.navigate).toHaveBeenCalledWith(['/cocktails']);
     });

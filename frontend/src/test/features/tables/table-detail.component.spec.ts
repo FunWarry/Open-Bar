@@ -1,8 +1,9 @@
-import { TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { TestBed, fakeAsync, tick, flushMicrotasks } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { IonicModule, ToastController } from '@ionic/angular';
+import { IonicModule } from '@ionic/angular';
+import { ToastController } from '@ionic/angular/standalone';
 import { of, throwError } from 'rxjs';
 import { TableDetailComponent } from '../../../app/features/tables/table-detail/table-detail.component';
 import { TableService } from '../../../app/core/services/table.service';
@@ -73,11 +74,11 @@ describe('TableDetailComponent', () => {
     expect(component.commandes.length).toBe(1);
   }));
 
-  it('ngOnInit() navigue vers /tables en cas d\'erreur', fakeAsync(async () => {
+  it('ngOnInit() navigue vers /tables en cas d\'erreur', fakeAsync(() => {
     tableServiceSpy.getById.and.returnValue(throwError(() => new Error('err')));
     spyOn(router, 'navigate');
     component.ngOnInit(); tick();
-    await Promise.resolve();
+    flushMicrotasks();
     expect(router.navigate).toHaveBeenCalledWith(['/tables']);
   }));
 

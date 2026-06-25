@@ -1,7 +1,8 @@
 import { TestBed, fakeAsync, tick, flushMicrotasks } from '@angular/core/testing';
 import { ComponentFixture } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
-import { IonicModule, ModalController, ToastController } from '@ionic/angular';
+import { IonicModule } from '@ionic/angular';
+import { ModalController, ToastController } from '@ionic/angular/standalone';
 import { Store } from '@ngrx/store';
 import { EMPTY, of, Subject, throwError } from 'rxjs';
 import { NgZone, ChangeDetectorRef } from '@angular/core';

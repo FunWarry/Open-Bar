@@ -17,7 +17,6 @@ import {trash} from 'ionicons/icons';
     IonHeader, IonToolbar, IonTitle, IonButtons, IonButton,
     IonContent, IonIcon
   ],
-  providers: [ModalController]
 })
 export class DeleteUserDialogComponent {
   @Input() data!: User;

@@ -1,8 +1,9 @@
-import { TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { TestBed, fakeAsync, tick, flushMicrotasks } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { IonicModule, ToastController } from '@ionic/angular';
+import { IonicModule } from '@ionic/angular';
+import { ToastController } from '@ionic/angular/standalone';
 import { of, throwError } from 'rxjs';
 import { IngredientDetailComponent } from '../../../app/features/ingredients/ingredient-detail/ingredient-detail.component';
 import { IngredientService } from '../../../app/core/services/ingredient.service';
@@ -60,11 +61,11 @@ describe('IngredientDetailComponent', () => {
     expect(component.ingredient).toEqual(mockIngredient);
   }));
 
-  it('ngOnInit() affiche un toast danger en cas d\'erreur', fakeAsync(async () => {
+  it('ngOnInit() affiche un toast danger en cas d\'erreur', fakeAsync(() => {
     serviceSpy.getById.and.returnValue(throwError(() => new Error('err')));
     component.ngOnInit();
     tick();
-    await Promise.resolve();
+    flushMicrotasks();
     expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
   }));
 

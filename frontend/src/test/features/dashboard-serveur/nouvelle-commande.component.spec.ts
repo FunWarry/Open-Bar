@@ -1,8 +1,10 @@
-import { TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { TestBed, fakeAsync, tick, flushMicrotasks } from '@angular/core/testing';
 import { ComponentFixture } from '@angular/core/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
-import { IonicModule, ToastController } from '@ionic/angular';
+import { IonicModule } from '@ionic/angular';
+import { ToastController } from '@ionic/angular/standalone';
+import { EMPTY } from 'rxjs';
 import { of, throwError } from 'rxjs';
 import { NouvelleCommandeComponent } from '../../../app/features/dashboard-serveur/nouvelle-commande/nouvelle-commande.component';
 import { DashboardServeurService } from '../../../app/features/dashboard-serveur/services/dashboard-serveur.service';
@@ -62,6 +64,7 @@ describe('NouvelleCommandeComponent', () => {
     toastCtrlSpy.create.and.returnValue(Promise.resolve(mockToast as any));
 
     routerSpy = jasmine.createSpyObj('Router', ['navigate']);
+    (routerSpy as any).events = EMPTY;
 
     await TestBed.configureTestingModule({
       imports: [
@@ -96,11 +99,11 @@ describe('NouvelleCommandeComponent', () => {
     expect(component.cocktails.length).toBe(2);
   }));
 
-  it('charger() affiche un toast danger en cas d\'erreur', fakeAsync(async () => {
+  it('charger() affiche un toast danger en cas d\'erreur', fakeAsync(() => {
     serviceSpy.getTableById.and.returnValue(throwError(() => new Error('err')));
     component.charger();
     tick();
-    await Promise.resolve();
+    flushMicrotasks();
     expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
   }));
 
@@ -170,38 +173,38 @@ describe('NouvelleCommandeComponent', () => {
     expect(serviceSpy.createCommande).not.toHaveBeenCalled();
   });
 
-  it('valider() crée la commande et ajoute les items', fakeAsync(async () => {
+  it('valider() crée la commande et ajoute les items', fakeAsync(() => {
     component.ajouter(mockCocktails[0]);
     component.ajouter(mockCocktails[1]);
     component.valider();
     tick();
-    await Promise.resolve();
+    flushMicrotasks();
     expect(serviceSpy.createCommande).toHaveBeenCalledWith({ tableId: 5 });
     expect(serviceSpy.ajouterItem).toHaveBeenCalledTimes(2);
   }));
 
-  it('valider() navigue vers /serveur après succès', fakeAsync(async () => {
+  it('valider() navigue vers /serveur après succès', fakeAsync(() => {
     component.ajouter(mockCocktails[0]);
     component.valider();
     tick();
-    await Promise.resolve();
+    flushMicrotasks();
     expect(routerSpy.navigate).toHaveBeenCalledWith(['/serveur']);
   }));
 
-  it('valider() affiche un toast success après création', fakeAsync(async () => {
+  it('valider() affiche un toast success après création', fakeAsync(() => {
     component.ajouter(mockCocktails[0]);
     component.valider();
     tick();
-    await Promise.resolve();
+    flushMicrotasks();
     expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'success' }));
   }));
 
-  it('valider() affiche un toast danger si createCommande échoue', fakeAsync(async () => {
+  it('valider() affiche un toast danger si createCommande échoue', fakeAsync(() => {
     serviceSpy.createCommande.and.returnValue(throwError(() => new Error('API error')));
     component.ajouter(mockCocktails[0]);
     component.valider();
     tick();
-    await Promise.resolve();
+    flushMicrotasks();
     expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
   }));
 
