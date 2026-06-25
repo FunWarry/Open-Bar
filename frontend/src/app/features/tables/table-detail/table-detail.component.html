@@ -50,7 +50,8 @@
             *ngFor="let commande of commandes; trackBy: trackById"
             button
             [attr.aria-label]="'Voir la commande #' + commande.id"
-            (click)="onViewCommande(commande)">
+            (click)="onViewCommande(commande)"
+            (keyup.enter)="onViewCommande(commande)">
             <ion-label>
               <h3>#{{ commande.id }}</h3>
               <p>{{ commande.dateCommande | date:'short' }}</p>
