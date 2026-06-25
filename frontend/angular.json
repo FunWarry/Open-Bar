@@ -84,8 +84,7 @@
             "styles": [
               "src/styles.css"
             ],
-            "scripts": [],
-            "coverageReporters": ["lcovonly", "text-summary"]
+            "scripts": []
           }
         }
       }
