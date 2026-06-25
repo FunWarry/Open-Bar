@@ -53,20 +53,20 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private stage!: Konva.Stage;
   private layer!: Konva.Layer;
-  private positions = new Map<number, TablePosition>();
-  private tableShapes = new Map<number, Konva.Group>();
-  private destroy$ = new Subject<void>();
-  private charger$  = new Subject<void>();
+  private readonly positions = new Map<number, TablePosition>();
+  private readonly tableShapes = new Map<number, Konva.Group>();
+  private readonly destroy$ = new Subject<void>();
+  private readonly charger$  = new Subject<void>();
 
   constructor(
-    private tableService: TableService,
-    private planSalleService: PlanSalleService,
-    private notifService: NotificationService,
-    private store: Store,
-    private ngZone: NgZone,
-    private cdr: ChangeDetectorRef,
-    private toastCtrl: ToastController,
-    private modalCtrl: ModalController,
+    private readonly tableService: TableService,
+    private readonly planSalleService: PlanSalleService,
+    private readonly notifService: NotificationService,
+    private readonly store: Store,
+    private readonly ngZone: NgZone,
+    private readonly cdr: ChangeDetectorRef,
+    private readonly toastCtrl: ToastController,
+    private readonly modalCtrl: ModalController,
   ) {
     addIcons({ pencilOutline, saveOutline, closeOutline, refreshOutline });
   }

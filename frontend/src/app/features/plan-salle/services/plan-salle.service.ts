@@ -11,7 +11,7 @@ const STORAGE_KEY = 'openbar_table_positions';
 export class PlanSalleService {
   private readonly api = `${environment.apiUrl}/tables/positions`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private readonly http: HttpClient) {}
 
   /** Charge les positions depuis le backend.
    *  Fallback localStorage si l'endpoint n'existe pas encore (HTTP 404/0). */

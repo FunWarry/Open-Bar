@@ -16,9 +16,9 @@ export const RX_STOMP = new InjectionToken<RxStomp>('RxStomp', {
 
 @Injectable({ providedIn: 'root' })
 export class WebSocketService {
-  private authService = inject(AuthService);
-  private store = inject(Store);
-  private rxStomp = inject(RX_STOMP);
+  private readonly authService = inject(AuthService);
+  private readonly store = inject(Store);
+  private readonly rxStomp = inject(RX_STOMP);
 
   constructor() {
     // Connecter / déconnecter automatiquement selon l'état d'auth
