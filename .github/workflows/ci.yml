@@ -8,7 +8,10 @@ on:
 
 # Annule les runs précédents sur la même branche/PR pour économiser les minutes CI
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  # Pour les PRs, utiliser le nom de branche source (head_ref) pour que les runs successifs
+  # sur la même branche s'annulent correctement. Pour les pushs directs sur dev/master,
+  # utiliser la ref classique.
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
   cancel-in-progress: true
 
 # Permissions minimales au niveau workflow (principe du moindre privilège)
@@ -95,7 +98,7 @@ jobs:
 
       - name: TypeScript type check
         working-directory: frontend
-        run: npx tsc --noEmit
+        run: npx tsc --noEmit --project tsconfig.app.json
 
       - name: Security audit (critical only)
         working-directory: frontend
