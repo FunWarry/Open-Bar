@@ -10,7 +10,8 @@ import {
 import * as AuthActions from '../../../app/core/store/auth.actions';
 import { NavigationService } from '../../../app/core/services/navigation.service';
 import { NotificationService } from '../../../app/core/services/notification.service';
-import { IonicModule, PopoverController } from '@ionic/angular';
+import { IonicModule } from '@ionic/angular';
+import { PopoverController } from '@ionic/angular/standalone';
 import { EMPTY, of } from 'rxjs';
 
 describe('NavbarComponent', () => {

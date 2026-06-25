@@ -60,7 +60,7 @@ export class DashboardManagerComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: stats => { this.stats = stats; this.loading = false; },
-        error: () => { this.loading = false; },
+        error: () => { this.loading = false; this.stats = null; },
       });
   }
 

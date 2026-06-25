@@ -1,7 +1,7 @@
 import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { ComponentFixture } from '@angular/core/testing';
 import { CommonModule } from '@angular/common';
-import { of, throwError } from 'rxjs';
+import { of, throwError, Subject } from 'rxjs';
 import { IonicModule } from '@ionic/angular';
 import { DashboardManagerComponent } from '../../../app/features/dashboard-manager/dashboard-manager.component';
 import { DashboardManagerService } from '../../../app/features/dashboard-manager/services/dashboard-manager.service';
@@ -155,7 +155,12 @@ describe('DashboardManagerComponent', () => {
   });
 
   it('polling automatique — recharge les stats toutes les 30s', fakeAsync(() => {
-    // Appel initial déjà fait dans beforeEach (detectChanges → ngOnInit → chargerStats)
+    // Le timer de beforeEach est hors zone fakeAsync — on crée un nouveau composant dans cette zone
+    component.ngOnDestroy();
+    (component as any).destroy$ = new Subject<void>();
+    dashboardServiceSpy.getStats.calls.reset();
+
+    component.ngOnInit();
     expect(dashboardServiceSpy.getStats).toHaveBeenCalledTimes(1);
 
     tick(DashboardManagerComponent.REFRESH_INTERVAL_MS);
@@ -164,9 +169,9 @@ describe('DashboardManagerComponent', () => {
     tick(DashboardManagerComponent.REFRESH_INTERVAL_MS);
     expect(dashboardServiceSpy.getStats).toHaveBeenCalledTimes(3);
 
-    component.ngOnDestroy(); // annule le timer
+    component.ngOnDestroy();
     tick(DashboardManagerComponent.REFRESH_INTERVAL_MS);
-    expect(dashboardServiceSpy.getStats).toHaveBeenCalledTimes(3); // plus d'appels après destroy
+    expect(dashboardServiceSpy.getStats).toHaveBeenCalledTimes(3);
   }));
 
   it('ngOnDestroy() complète le subject destroy$ sans erreur', () => {

@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { provideMockStore, MockStore } from '@ngrx/store/testing';
 import { RxStomp, RxStompState } from '@stomp/rx-stomp';
-import { Subject, BehaviorSubject } from 'rxjs';
+import { Subject, BehaviorSubject, take } from 'rxjs';
 
 import { WebSocketService, RX_STOMP } from '../../../app/core/services/websocket.service';
 import { AuthService } from '../../../app/core/services/auth.service';
@@ -23,11 +23,9 @@ describe('WebSocketService', () => {
     mockRxStomp = jasmine.createSpyObj(
       'RxStomp',
       ['configure', 'activate', 'deactivate', 'watch'],
-      {
-        connectionState$: connectionStateSubject.asObservable(),
-        active: false,
-      }
+      { connectionState$: connectionStateSubject.asObservable() }
     );
+    mockRxStomp.active = false;
 
     TestBed.configureTestingModule({
       providers: [
@@ -173,20 +171,21 @@ describe('WebSocketService', () => {
   it('connected$ émet false quand l\'état STOMP n\'est pas OPEN', (done) => {
     (mockRxStomp as any).connectionState$ = connectionStateSubject.asObservable();
 
-    service.connected$.subscribe(val => {
-      if (val === false) {
-        expect(val).toBeFalse();
-        done();
-      }
+    service.connected$.pipe(take(1)).subscribe(val => {
+      expect(val).toBeFalse();
+      done();
     });
-
-    connectionStateSubject.next(RxStompState.CLOSED);
   });
 
   // ─── connexion / déconnexion automatique selon auth state ───────────────────
 
   it('se connecte automatiquement quand isAuthenticated passe à true et que rxStomp est inactif', () => {
     (mockRxStomp as any).active = false;
+
+    // Force une transition false → true pour déclencher l'abonnement (distinctUntilChanged)
+    store.overrideSelector(selectIsAuthenticated, false);
+    store.refreshState();
+
     mockRxStomp.configure.calls.reset();
     mockRxStomp.activate.calls.reset();
 

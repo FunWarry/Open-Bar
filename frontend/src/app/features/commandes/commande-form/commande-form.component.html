@@ -17,23 +17,6 @@
         La table est requise
       </ion-note>
 
-      <div formArrayName="items">
-        <!-- TODO: Ajouter la gestion des items de la commande -->
-      </div>
-
-      <ion-item>
-        <ion-label position="stacked">Statut</ion-label>
-        <ion-select formControlName="status" required>
-          <ion-select-option value="EN_ATTENTE">En attente</ion-select-option>
-          <ion-select-option value="EN_PREPARATION">En préparation</ion-select-option>
-          <ion-select-option value="PRETE">Prête</ion-select-option>
-          <ion-select-option value="SERVIE">Servie</ion-select-option>
-        </ion-select>
-      </ion-item>
-      <ion-note color="danger" *ngIf="commandeForm.get('status')?.hasError('required') && commandeForm.get('status')?.touched">
-        Le statut est requis
-      </ion-note>
-
       <div class="button-row">
         <ion-button fill="clear" type="button" (click)="router.navigate(['/commandes'])" (keydown.enter)="router.navigate(['/commandes'])">Annuler</ion-button>
         <ion-button [disabled]="!commandeForm.valid" color="primary" type="submit">
