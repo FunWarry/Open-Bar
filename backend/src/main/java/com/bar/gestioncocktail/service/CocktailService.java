@@ -1,5 +1,6 @@
 package com.bar.gestioncocktail.service;
 
+import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.model.Cocktail;
 import com.bar.gestioncocktail.model.CocktailCategorie;
 import com.bar.gestioncocktail.repository.CocktailRepository;
@@ -79,7 +80,7 @@ public class CocktailService {
     @Transactional
     public Cocktail updateSaisonnalite(Long id, Integer moisDebut, Integer moisFin) {
         Cocktail cocktail = cocktailRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Cocktail non trouvé: " + id));
+            .orElseThrow(() -> new ResourceNotFoundException("Cocktail non trouvé: " + id));
         cocktail.setMoisDebut(moisDebut);
         cocktail.setMoisFin(moisFin);
         cocktail.setSaisonnier(moisDebut != null && moisFin != null);
