@@ -117,6 +117,12 @@ export const routes: Routes = [
     data: { roles: ['SERVEUR'] }
   },
   {
+    path: 'plan-salle',
+    loadComponent: () => import('./features/plan-salle/plan-salle.component').then(m => m.PlanSalleComponent),
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['MANAGER', 'ADMIN'] }
+  },
+  {
     path: 'manager',
     loadComponent: () => import('./features/dashboard-manager/dashboard-manager.component').then(m => m.DashboardManagerComponent),
     canActivate: [AuthGuard, RoleGuard],

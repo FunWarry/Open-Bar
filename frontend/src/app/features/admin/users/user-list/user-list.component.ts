@@ -23,7 +23,6 @@ import {NgFor, AsyncPipe, DatePipe} from '@angular/common';
     IonList, IonItem, IonLabel, IonBadge, IonIcon, IonButton, IonButtons,
     NgFor, AsyncPipe, DatePipe
   ],
-  providers: [ModalController]
 })
 export class UserListComponent implements OnInit {
   users: User[] = [];

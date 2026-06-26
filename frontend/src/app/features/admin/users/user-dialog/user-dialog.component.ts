@@ -18,7 +18,6 @@ import {NgIf} from '@angular/common';
     IonContent, IonItem, IonLabel, IonInput, IonSelect, IonSelectOption, IonNote,
     ReactiveFormsModule, NgIf
   ],
-  providers: [ModalController]
 })
 export class UserDialogComponent implements OnInit {
   @Input() data: User | null = null;

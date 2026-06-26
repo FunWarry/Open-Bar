@@ -7,9 +7,9 @@
       <form [formGroup]="tableForm" (ngSubmit)="onSubmit()">
         <ion-item>
           <ion-label position="stacked">Numéro de Table</ion-label>
-          <ion-input formControlName="number" type="number" required></ion-input>
+          <ion-input formControlName="numero" type="number" required></ion-input>
         </ion-item>
-        <ion-note color="danger" *ngIf="tableForm.get('number')?.hasError('required') && tableForm.get('number')?.touched">
+        <ion-note color="danger" *ngIf="tableForm.get('numero')?.hasError('required') && tableForm.get('numero')?.touched">
           Le numéro de table est requis
         </ion-note>
 
@@ -27,12 +27,12 @@
 
         <ion-item>
           <ion-label position="stacked">Capacité</ion-label>
-          <ion-input formControlName="capacity" type="number" required></ion-input>
+          <ion-input formControlName="capacite" type="number" required></ion-input>
         </ion-item>
-        <ion-note color="danger" *ngIf="tableForm.get('capacity')?.hasError('required') && tableForm.get('capacity')?.touched">
+        <ion-note color="danger" *ngIf="tableForm.get('capacite')?.hasError('required') && tableForm.get('capacite')?.touched">
           La capacité est requise
         </ion-note>
-        <ion-note color="danger" *ngIf="tableForm.get('capacity')?.hasError('min') && tableForm.get('capacity')?.touched">
+        <ion-note color="danger" *ngIf="tableForm.get('capacite')?.hasError('min') && tableForm.get('capacite')?.touched">
           La capacité doit être d'au moins 1 personne
         </ion-note>
 

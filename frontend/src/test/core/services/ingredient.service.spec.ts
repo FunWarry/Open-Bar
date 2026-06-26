@@ -28,8 +28,8 @@ describe('IngredientService', () => {
 
   it('getAll() retourne la liste des ingrédients', () => {
     const mockIngredients = [
-      { id: 1, nom: 'Rhum', quantiteStock: 10, seuilAlerte: 2 },
-      { id: 2, nom: 'Citron', quantiteStock: 5, seuilAlerte: 1 }
+      { id: 1, nom: 'Rhum', uniteMesure: 'cl', quantiteStock: 10, seuilAlerte: 2, createdAt: '', updatedAt: '' },
+      { id: 2, nom: 'Citron', uniteMesure: 'pièce', quantiteStock: 5, seuilAlerte: 1, createdAt: '', updatedAt: '' }
     ];
     service.getAll().subscribe(result => {
       expect(result).toEqual(mockIngredients);
@@ -47,7 +47,7 @@ describe('IngredientService', () => {
   });
 
   it('getById() retourne un ingrédient par son id', () => {
-    const mockIngredient = { id: 42, nom: 'Menthe', quantiteStock: 3, seuilAlerte: 1 };
+    const mockIngredient = { id: 42, nom: 'Menthe', uniteMesure: 'g', quantiteStock: 3, seuilAlerte: 1, createdAt: '', updatedAt: '' };
     service.getById(42).subscribe(result => {
       expect(result).toEqual(mockIngredient);
     });
@@ -75,12 +75,12 @@ describe('IngredientService', () => {
     const req = httpMock.expectOne(baseUrl);
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual(payload);
-    req.flush({ id: 10, ...payload });
+    req.flush({ id: 10, ...payload, uniteMesure: 'g', createdAt: '', updatedAt: '' });
   });
 
   it('create() retourne l\'ingrédient créé', () => {
     const payload = { nom: 'Sucre', quantiteStock: 20 };
-    const mockResponse = { id: 10, nom: 'Sucre', quantiteStock: 20, seuilAlerte: 0 };
+    const mockResponse = { id: 10, nom: 'Sucre', uniteMesure: 'g', quantiteStock: 20, seuilAlerte: 0, createdAt: '', updatedAt: '' };
     service.create(payload).subscribe(result => {
       expect(result).toEqual(mockResponse);
     });
@@ -108,12 +108,12 @@ describe('IngredientService', () => {
     const req = httpMock.expectOne(`${baseUrl}/3`);
     expect(req.request.method).toBe('PUT');
     expect(req.request.body).toEqual(payload);
-    req.flush({ id: 3, ...payload });
+    req.flush({ id: 3, ...payload, uniteMesure: 'g', seuilAlerte: 0, createdAt: '', updatedAt: '' });
   });
 
   it('update() retourne l\'ingrédient mis à jour', () => {
     const payload = { nom: 'Menthe fraîche' };
-    const mockResponse = { id: 3, nom: 'Menthe fraîche', quantiteStock: 8, seuilAlerte: 2 };
+    const mockResponse = { id: 3, nom: 'Menthe fraîche', uniteMesure: 'g', quantiteStock: 8, seuilAlerte: 2, createdAt: '', updatedAt: '' };
     service.update(3, payload).subscribe(result => {
       expect(result).toEqual(mockResponse);
     });
@@ -151,7 +151,7 @@ describe('IngredientService', () => {
   });
 
   it('updateStock() retourne l\'ingrédient avec le stock mis à jour', () => {
-    const mockResponse = { id: 5, nom: 'Rhum', quantiteStock: 15, seuilAlerte: 3 };
+    const mockResponse = { id: 5, nom: 'Rhum', uniteMesure: 'cl', quantiteStock: 15, seuilAlerte: 3, createdAt: '', updatedAt: '' };
     service.updateStock(5, 15).subscribe(result => {
       expect(result).toEqual(mockResponse);
     });
@@ -168,7 +168,7 @@ describe('IngredientService', () => {
   });
 
   it('setSeuilAlerte() retourne l\'ingrédient avec le nouveau seuil', () => {
-    const mockResponse = { id: 7, nom: 'Citron', quantiteStock: 4, seuilAlerte: 3 };
+    const mockResponse = { id: 7, nom: 'Citron', uniteMesure: 'pièce', quantiteStock: 4, seuilAlerte: 3, createdAt: '', updatedAt: '' };
     service.setSeuilAlerte(7, 3).subscribe(result => {
       expect(result).toEqual(mockResponse);
     });
@@ -184,7 +184,7 @@ describe('IngredientService', () => {
   });
 
   it('search() retourne la liste filtrée des ingrédients', () => {
-    const mockResults = [{ id: 1, nom: 'Rhum blanc', quantiteStock: 10, seuilAlerte: 2 }];
+    const mockResults = [{ id: 1, nom: 'Rhum blanc', uniteMesure: 'cl', quantiteStock: 10, seuilAlerte: 2, createdAt: '', updatedAt: '' }];
     service.search('Rhum').subscribe(result => {
       expect(result).toEqual(mockResults);
       expect(result.length).toBe(1);
@@ -210,8 +210,8 @@ describe('IngredientService', () => {
 
   it('getEnAlerte() retourne les ingrédients sous le seuil d\'alerte', () => {
     const mockAlerte = [
-      { id: 2, nom: 'Citron', quantiteStock: 1, seuilAlerte: 3 },
-      { id: 4, nom: 'Glace', quantiteStock: 0, seuilAlerte: 5 }
+      { id: 2, nom: 'Citron', uniteMesure: 'pièce', quantiteStock: 1, seuilAlerte: 3, createdAt: '', updatedAt: '' },
+      { id: 4, nom: 'Glace', uniteMesure: 'kg', quantiteStock: 0, seuilAlerte: 5, createdAt: '', updatedAt: '' }
     ];
     service.getEnAlerte().subscribe(result => {
       expect(result).toEqual(mockAlerte);

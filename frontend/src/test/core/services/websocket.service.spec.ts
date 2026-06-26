@@ -1,9 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 import { provideMockStore, MockStore } from '@ngrx/store/testing';
 import { RxStomp, RxStompState } from '@stomp/rx-stomp';
-import { Subject, BehaviorSubject } from 'rxjs';
+import { Subject, BehaviorSubject, take } from 'rxjs';
 
-import { WebSocketService } from '../../../app/core/services/websocket.service';
+import { WebSocketService, RX_STOMP } from '../../../app/core/services/websocket.service';
 import { AuthService } from '../../../app/core/services/auth.service';
 import { selectIsAuthenticated } from '../../../app/core/store/auth.selectors';
 
@@ -11,29 +11,27 @@ describe('WebSocketService', () => {
   let service: WebSocketService;
   let store: MockStore;
   let mockAuthService: jasmine.SpyObj<AuthService>;
-  let mockRxStomp: jasmine.SpyObj<RxStomp>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let mockRxStomp: any;
   let connectionStateSubject: BehaviorSubject<RxStompState>;
-  let isAuthSubject: BehaviorSubject<boolean>;
 
   beforeEach(() => {
     connectionStateSubject = new BehaviorSubject<RxStompState>(RxStompState.CLOSED);
-    isAuthSubject = new BehaviorSubject<boolean>(true);
 
     mockAuthService = jasmine.createSpyObj<AuthService>('AuthService', ['getToken']);
 
-    mockRxStomp = jasmine.createSpyObj<RxStomp>(
+    mockRxStomp = jasmine.createSpyObj(
       'RxStomp',
       ['configure', 'activate', 'deactivate', 'watch'],
-      {
-        connectionState$: connectionStateSubject.asObservable(),
-        active: false,
-      }
+      { connectionState$: connectionStateSubject.asObservable() }
     );
+    mockRxStomp.active = false;
 
     TestBed.configureTestingModule({
       providers: [
         WebSocketService,
         { provide: AuthService, useValue: mockAuthService },
+        { provide: RX_STOMP, useValue: mockRxStomp },
         provideMockStore({
           selectors: [
             { selector: selectIsAuthenticated, value: true },
@@ -42,12 +40,8 @@ describe('WebSocketService', () => {
       ],
     });
 
-    // Override the RxStomp instance created inside the service constructor
     store = TestBed.inject(MockStore);
     service = TestBed.inject(WebSocketService);
-
-    // Replace the private rxStomp instance with the spy
-    (service as any).rxStomp = mockRxStomp;
   });
 
   afterEach(() => {
@@ -58,6 +52,8 @@ describe('WebSocketService', () => {
 
   it('connect() configure et active rxStomp quand non actif', () => {
     (mockRxStomp as any).active = false;
+    mockRxStomp.configure.calls.reset();
+    mockRxStomp.activate.calls.reset();
 
     service.connect();
 
@@ -73,6 +69,8 @@ describe('WebSocketService', () => {
 
   it('connect() ne fait rien si rxStomp est déjà actif', () => {
     (mockRxStomp as any).active = true;
+    mockRxStomp.configure.calls.reset();
+    mockRxStomp.activate.calls.reset();
 
     service.connect();
 
@@ -123,8 +121,8 @@ describe('WebSocketService', () => {
   // ─── disconnect() ───────────────────────────────────────────────────────────
 
   it('disconnect() appelle rxStomp.deactivate()', () => {
+    mockRxStomp.deactivate.calls.reset();
     service.disconnect();
-
     expect(mockRxStomp.deactivate).toHaveBeenCalledTimes(1);
   });
 
@@ -157,36 +155,37 @@ describe('WebSocketService', () => {
   // ─── connected$ ─────────────────────────────────────────────────────────────
 
   it('connected$ émet true quand l\'état STOMP est OPEN', (done) => {
-    connectionStateSubject.next(RxStompState.OPEN);
-
-    // Re-get the getter after swapping rxStomp
-    // connected$ is derived from connectionState$ — we need to provide it on the spy
+    // connected$ is derived from connectionState$ — make sure the mock uses it
     (mockRxStomp as any).connectionState$ = connectionStateSubject.asObservable();
 
     service.connected$.subscribe(val => {
-      expect(val).toBeTrue();
-      done();
+      if (val === true) {
+        expect(val).toBeTrue();
+        done();
+      }
     });
 
-    // connectionState$ drives the getter; emit OPEN after subscription
     connectionStateSubject.next(RxStompState.OPEN);
   });
 
   it('connected$ émet false quand l\'état STOMP n\'est pas OPEN', (done) => {
     (mockRxStomp as any).connectionState$ = connectionStateSubject.asObservable();
 
-    service.connected$.subscribe(val => {
+    service.connected$.pipe(take(1)).subscribe(val => {
       expect(val).toBeFalse();
       done();
     });
-
-    connectionStateSubject.next(RxStompState.CLOSED);
   });
 
   // ─── connexion / déconnexion automatique selon auth state ───────────────────
 
   it('se connecte automatiquement quand isAuthenticated passe à true et que rxStomp est inactif', () => {
     (mockRxStomp as any).active = false;
+
+    // Force une transition false → true pour déclencher l'abonnement (distinctUntilChanged)
+    store.overrideSelector(selectIsAuthenticated, false);
+    store.refreshState();
+
     mockRxStomp.configure.calls.reset();
     mockRxStomp.activate.calls.reset();
 
@@ -210,16 +209,12 @@ describe('WebSocketService', () => {
   });
 
   it('se déconnecte automatiquement quand isAuthenticated passe à false et que rxStomp est actif', () => {
-    // At this point rxStomp was already replaced by the spy.
-    // We need to re-run the store subscription logic with our spy in place.
-    // Simulate active connection then logout.
     (mockRxStomp as any).active = true;
+    mockRxStomp.deactivate.calls.reset();
 
     store.overrideSelector(selectIsAuthenticated, false);
     store.refreshState();
 
-    // The constructor subscription fired once with value=true (initial).
-    // After refreshState it fires with false + active=true → deactivate expected.
     expect(mockRxStomp.deactivate).toHaveBeenCalled();
   });
 

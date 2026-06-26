@@ -13,7 +13,7 @@ const makeCommande = (overrides: Partial<CommandeView> = {}): CommandeView => ({
   serveurNom: 'Alice',
   statut: 'EN_ATTENTE',
   prioritaire: false,
-  dateCommande: new Date().toISOString(),
+  dateCommande: new Date(),
   items: [],
   ...overrides
 });
@@ -49,14 +49,14 @@ describe('CommandeCardComponent', () => {
   // --- tempsEcoule ---
 
   it('tempsEcoule affiche les minutes pour une commande récente', () => {
-    const now = new Date(Date.now() - 5 * 60000).toISOString(); // 5 min ago
+    const now = new Date(Date.now() - 5 * 60000); // 5 min ago
     component.commande = makeCommande({ dateCommande: now });
     (component as any).updateTimer();
     expect(component.tempsEcoule).toBe('5 min');
   });
 
   it('tempsEcoule affiche le format hhmm pour une commande de plus d\'une heure', () => {
-    const now = new Date(Date.now() - 90 * 60000).toISOString(); // 90 min ago
+    const now = new Date(Date.now() - 90 * 60000); // 90 min ago
     component.commande = makeCommande({ dateCommande: now });
     (component as any).updateTimer();
     expect(component.tempsEcoule).toBe('1h30');
@@ -93,7 +93,7 @@ describe('CommandeCardComponent', () => {
   });
 
   it('lisereColor retourne gris par defaut pour un statut inconnu', () => {
-    component.commande = makeCommande({ statut: 'LIVREE' });
+    component.commande = makeCommande({ statut: 'LIVREE' as any });
     expect(component.lisereColor).toBe('#7e87a8');
   });
 
@@ -120,7 +120,7 @@ describe('CommandeCardComponent', () => {
   });
 
   it('statutLabel retourne le statut brut pour un statut inconnu', () => {
-    component.commande = makeCommande({ statut: 'LIVREE' });
+    component.commande = makeCommande({ statut: 'LIVREE' as any });
     expect(component.statutLabel).toBe('LIVREE');
   });
 
@@ -171,7 +171,7 @@ describe('CommandeCardComponent', () => {
   // --- timer interval (fakeAsync) ---
 
   it('le timer se met a jour toutes les 30 secondes', fakeAsync(() => {
-    const pastDate = new Date(Date.now() - 2 * 60000).toISOString(); // 2 min ago
+    const pastDate = new Date(Date.now() - 2 * 60000); // 2 min ago
     component.commande = makeCommande({ dateCommande: pastDate });
     component.ngOnInit();
     tick(30000);

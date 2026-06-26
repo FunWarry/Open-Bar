@@ -5,6 +5,7 @@ import { ToastController } from '@ionic/angular/standalone';
 import {
   IonCard, IonCardHeader, IonCardTitle, IonCardContent,
   IonItem, IonLabel, IonInput, IonButton, IonNote,
+  IonSelect, IonSelectOption,
 } from '@ionic/angular/standalone';
 import { NgIf } from '@angular/common';
 import { CommandeService } from '../../../core/services/commande.service';
@@ -17,6 +18,7 @@ import { CommandeService } from '../../../core/services/commande.service';
   imports: [
     IonCard, IonCardHeader, IonCardTitle, IonCardContent,
     IonItem, IonLabel, IonInput, IonButton, IonNote,
+    IonSelect, IonSelectOption,
     ReactiveFormsModule, NgIf,
   ],
 })

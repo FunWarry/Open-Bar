@@ -10,8 +10,9 @@ import {
 import * as AuthActions from '../../../app/core/store/auth.actions';
 import { NavigationService } from '../../../app/core/services/navigation.service';
 import { NotificationService } from '../../../app/core/services/notification.service';
-import { IonicModule, PopoverController } from '@ionic/angular';
-import { of } from 'rxjs';
+import { IonicModule } from '@ionic/angular';
+import { PopoverController } from '@ionic/angular/standalone';
+import { EMPTY, of } from 'rxjs';
 
 describe('NavbarComponent', () => {
   let component: NavbarComponent;
@@ -39,8 +40,9 @@ describe('NavbarComponent', () => {
       'navigateToUserProfile'
     ]);
 
-    const mockNotifService = jasmine.createSpyObj('NotificationService', ['onNotification', 'getNonLues', 'getHistory', 'marquerLue', 'marquerToutLu']);
+    const mockNotifService = jasmine.createSpyObj('NotificationService', ['onNotification', 'onStockAlert', 'getNonLues', 'getHistory', 'marquerLue', 'marquerToutLu']);
     mockNotifService.onNotification.and.returnValue(of());
+    mockNotifService.onStockAlert.and.returnValue(EMPTY);
     mockNotifService.getNonLues.and.returnValue(0);
 
     const mockPopoverCtrl = jasmine.createSpyObj('PopoverController', ['create']);

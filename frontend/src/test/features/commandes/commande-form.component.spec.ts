@@ -3,12 +3,15 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { ToastController } from '@ionic/angular/standalone';
+import { of, throwError } from 'rxjs';
 import { CommandeFormComponent } from '../../../app/features/commandes/commande-form/commande-form.component';
+import { CommandeService } from '../../../app/core/services/commande.service';
 
 describe('CommandeFormComponent', () => {
   let component: CommandeFormComponent;
   let routerSpy: jasmine.SpyObj<Router>;
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
+  let commandeServiceSpy: jasmine.SpyObj<CommandeService>;
 
   const toastMock = { present: jasmine.createSpy('present').and.returnValue(Promise.resolve()) };
 
@@ -16,6 +19,8 @@ describe('CommandeFormComponent', () => {
     routerSpy = jasmine.createSpyObj('Router', ['navigate']);
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
     toastCtrlSpy.create.and.returnValue(Promise.resolve(toastMock as any));
+    commandeServiceSpy = jasmine.createSpyObj('CommandeService', ['create', 'update', 'getById']);
+    commandeServiceSpy.create.and.returnValue(of({} as any));
 
     await TestBed.configureTestingModule({
       imports: [
@@ -26,6 +31,7 @@ describe('CommandeFormComponent', () => {
       providers: [
         { provide: Router, useValue: routerSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
+        { provide: CommandeService, useValue: commandeServiceSpy },
         {
           provide: ActivatedRoute,
           useValue: { snapshot: { paramMap: { get: () => null } } }
@@ -45,7 +51,6 @@ describe('CommandeFormComponent', () => {
   it('devrait initialiser le formulaire avec les valeurs par défaut', () => {
     expect(component.commandeForm).toBeDefined();
     expect(component.commandeForm.get('tableId')?.value).toBe('');
-    expect(component.commandeForm.get('status')?.value).toBe('EN_ATTENTE');
     expect(component.isEditMode).toBeFalse();
     expect(component.commandeId).toBeNull();
   });
@@ -64,6 +69,7 @@ describe('CommandeFormComponent', () => {
       providers: [
         { provide: Router, useValue: routerSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
+        { provide: CommandeService, useValue: commandeServiceSpy },
         { provide: ActivatedRoute, useValue: routeWithId }
       ]
     }).compileComponents();
@@ -84,7 +90,6 @@ describe('CommandeFormComponent', () => {
 
   it('onSubmit() navigue vers /commandes si le formulaire est valide', async () => {
     component.commandeForm.get('tableId')?.setValue(1);
-    component.commandeForm.get('status')?.setValue('EN_ATTENTE');
     component.onSubmit();
     // Attendre la résolution de la promesse du toast
     await Promise.resolve();
@@ -93,7 +98,6 @@ describe('CommandeFormComponent', () => {
 
   it('onSubmit() affiche un toast de succès si le formulaire est valide', async () => {
     component.commandeForm.get('tableId')?.setValue(2);
-    component.commandeForm.get('status')?.setValue('EN_ATTENTE');
     component.onSubmit();
     await Promise.resolve();
     expect(toastCtrlSpy.create).toHaveBeenCalledWith(
@@ -104,13 +108,6 @@ describe('CommandeFormComponent', () => {
   it('le champ tableId doit être requis', () => {
     const ctrl = component.commandeForm.get('tableId');
     ctrl?.setValue('');
-    expect(ctrl?.valid).toBeFalse();
-    expect(ctrl?.errors?.['required']).toBeTrue();
-  });
-
-  it('le champ status doit être requis', () => {
-    const ctrl = component.commandeForm.get('status');
-    ctrl?.setValue(null);
     expect(ctrl?.valid).toBeFalse();
     expect(ctrl?.errors?.['required']).toBeTrue();
   });

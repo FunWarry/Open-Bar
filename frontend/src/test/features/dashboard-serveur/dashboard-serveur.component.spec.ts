@@ -2,7 +2,7 @@ import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { ComponentFixture } from '@angular/core/testing';
 import { CommonModule } from '@angular/common';
 import { RouterTestingModule } from '@angular/router/testing';
-import { of, Subject, throwError } from 'rxjs';
+import { EMPTY, of, Subject, throwError } from 'rxjs';
 import {
   IonContent, IonHeader, IonToolbar, IonTitle,
   IonRefresher, IonRefresherContent,
@@ -44,8 +44,9 @@ describe('DashboardServeurComponent', () => {
     dashboardServiceSpy.getAllTables.and.returnValue(of(mockTables));
     dashboardServiceSpy.libererTable.and.returnValue(of({} as any));
 
-    notificationServiceSpy = jasmine.createSpyObj('NotificationService', ['onNotification']);
+    notificationServiceSpy = jasmine.createSpyObj('NotificationService', ['onNotification', 'onStockAlert']);
     notificationServiceSpy.onNotification.and.returnValue(notification$.asObservable());
+    notificationServiceSpy.onStockAlert.and.returnValue(EMPTY);
 
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
     toastCtrlSpy.create.and.returnValue(Promise.resolve(mockToast as any));

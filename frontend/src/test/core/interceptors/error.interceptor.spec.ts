@@ -36,7 +36,7 @@ describe('errorInterceptor', () => {
     toastSpy.present.and.returnValue(Promise.resolve());
 
     // Par défaut : transloco renvoie la clé (pas de traduction trouvée → fallback)
-    translocoSpy.translate.and.callFake((key: string) => key);
+    translocoSpy.translate.and.callFake((key: any) => key as any);
 
     TestBed.configureTestingModule({
       providers: [
@@ -189,7 +189,7 @@ describe('errorInterceptor', () => {
   // -----------------------------------------------------------------------
 
   it('utilise la traduction Transloco si elle diffère de la clé', (done) => {
-    translocoSpy.translate.and.callFake((key: string) =>
+    translocoSpy.translate.and.callFake((key: any) =>
       key === 'ERRORS.NOT_FOUND' ? 'Ressource non trouvée' : key
     );
 
@@ -212,7 +212,7 @@ describe('errorInterceptor', () => {
 
   it('utilise le message de fallback quand Transloco renvoie la clé telle quelle', (done) => {
     // translate() retourne la clé → on attend le fallback hardcodé
-    translocoSpy.translate.and.callFake((key: string) => key);
+    translocoSpy.translate.and.callFake((key: any) => key as any);
 
     http.get('/api/forbidden').subscribe({
       error: () => {

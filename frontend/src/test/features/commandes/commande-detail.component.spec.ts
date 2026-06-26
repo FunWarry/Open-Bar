@@ -1,7 +1,8 @@
-import { TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { TestBed, fakeAsync, tick, flushMicrotasks } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { ActivatedRoute, Router } from '@angular/router';
-import { IonicModule, ToastController } from '@ionic/angular';
+import { IonicModule } from '@ionic/angular';
+import { ToastController } from '@ionic/angular/standalone';
 import { of, throwError } from 'rxjs';
 import { CommandeDetailComponent } from '../../../app/features/commandes/commande-detail/commande-detail.component';
 import { CommandeService } from '../../../app/core/services/commande.service';
@@ -56,10 +57,10 @@ describe('CommandeDetailComponent', () => {
     expect(component.commande).toEqual(mockCommande);
   }));
 
-  it('ngOnInit() navigue vers /commandes si getById échoue', fakeAsync(async () => {
+  it('ngOnInit() navigue vers /commandes si getById échoue', fakeAsync(() => {
     serviceSpy.getById.and.returnValue(throwError(() => new Error('err')));
     component.ngOnInit(); tick();
-    await Promise.resolve();
+    flushMicrotasks();
     expect(routerSpy.navigate).toHaveBeenCalledWith(['/commandes']);
   }));
 
@@ -85,11 +86,11 @@ describe('CommandeDetailComponent', () => {
     expect(component.peutAnnuler()).toBeFalse();
   });
 
-  it('onAnnuler() appelle annuler() et met à jour la commande', fakeAsync(async () => {
+  it('onAnnuler() appelle annuler() et met à jour la commande', fakeAsync(() => {
     component.ngOnInit(); tick();
     component.onAnnuler();
     tick();
-    await Promise.resolve();
+    flushMicrotasks();
     expect(serviceSpy.annuler).toHaveBeenCalledWith(42);
     expect(component.commande?.statut).toBe('ANNULEE');
   }));
