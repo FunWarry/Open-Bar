@@ -1,6 +1,7 @@
 package com.bar.gestioncocktail.service;
 
 import com.bar.gestioncocktail.dto.StockAlerteEvent;
+import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.model.*;
 import com.bar.gestioncocktail.repository.CommandeItemRepository;
 import com.bar.gestioncocktail.repository.CommandeRepository;
@@ -110,7 +111,7 @@ class CommandeServiceTest {
         when(commandeRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> commandeService.changerStatut(99L, CommandeStatut.EN_PREPARATION))
-                .isInstanceOf(RuntimeException.class)
+                .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("99");
     }
 
