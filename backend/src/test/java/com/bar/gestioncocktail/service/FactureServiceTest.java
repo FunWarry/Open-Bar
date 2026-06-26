@@ -1,5 +1,6 @@
 package com.bar.gestioncocktail.service;
 
+import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.dto.SplitAdditionRequest;
 import com.bar.gestioncocktail.dto.SplitPartRequest;
 import com.bar.gestioncocktail.dto.SplitResultDTO;
@@ -206,11 +207,11 @@ class FactureServiceTest {
     }
 
     @Test
-    void splitEgal_factureInexistante_throwsRuntimeException() {
+    void splitEgal_factureInexistante_throwsResourceNotFoundException() {
         given(factureRepository.findById(99L)).willReturn(Optional.empty());
 
         assertThatThrownBy(() -> factureService.splitEgal(99L, 2))
-                .isInstanceOf(RuntimeException.class)
+                .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("99");
     }
 
@@ -282,7 +283,7 @@ class FactureServiceTest {
     }
 
     @Test
-    void splitParSelection_factureInexistante_throwsRuntimeException() {
+    void splitParSelection_factureInexistante_throwsResourceNotFoundException() {
         given(factureRepository.findById(77L)).willReturn(Optional.empty());
 
         SplitAdditionRequest request = new SplitAdditionRequest(List.of(
@@ -290,7 +291,7 @@ class FactureServiceTest {
         ));
 
         assertThatThrownBy(() -> factureService.splitParSelection(77L, request))
-                .isInstanceOf(RuntimeException.class)
+                .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("77");
     }
 
