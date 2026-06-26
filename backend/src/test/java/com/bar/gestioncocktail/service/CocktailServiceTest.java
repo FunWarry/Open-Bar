@@ -1,5 +1,6 @@
 package com.bar.gestioncocktail.service;
 
+import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.model.Cocktail;
 import com.bar.gestioncocktail.model.CocktailCategorie;
 import com.bar.gestioncocktail.repository.CocktailRepository;
@@ -86,16 +87,11 @@ class CocktailServiceTest {
     }
 
     @Test
-    void updateCocktail_inexistant_throwException() {
-        Cocktail inexistant = new Cocktail();
-        inexistant.setId(99L);
-        inexistant.setNom("Fantome");
+    void updateSaisonnalite_cocktailInexistant_throwsResourceNotFoundException() {
+        when(cocktailRepository.findById(99L)).thenReturn(Optional.empty());
 
-        when(cocktailRepository.save(any(Cocktail.class)))
-                .thenThrow(new RuntimeException("Cocktail non trouvé avec l'id: 99"));
-
-        assertThatThrownBy(() -> cocktailService.updateCocktail(inexistant))
-                .isInstanceOf(RuntimeException.class)
+        assertThatThrownBy(() -> cocktailService.updateSaisonnalite(99L, 6, 8))
+                .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("99");
     }
 

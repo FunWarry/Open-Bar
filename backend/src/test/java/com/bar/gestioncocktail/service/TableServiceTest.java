@@ -1,5 +1,6 @@
 package com.bar.gestioncocktail.service;
 
+import com.bar.gestioncocktail.exception.BusinessException;
 import com.bar.gestioncocktail.model.TableEntity;
 import com.bar.gestioncocktail.model.TableZone;
 import com.bar.gestioncocktail.repository.TableRepository;
@@ -86,7 +87,7 @@ class TableServiceTest {
         when(tableRepository.findById(1L)).thenReturn(Optional.of(table));
 
         assertThatThrownBy(() -> tableService.occuperTable(1L, 42L))
-                .isInstanceOf(RuntimeException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("déjà occupée");
     }
 
