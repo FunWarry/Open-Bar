@@ -9,6 +9,7 @@ import com.bar.gestioncocktail.model.RefreshToken;
 import com.bar.gestioncocktail.model.User;
 import com.bar.gestioncocktail.model.UserRole;
 import com.bar.gestioncocktail.security.JwtTokenProvider;
+import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.service.RefreshTokenService;
 import com.bar.gestioncocktail.service.UserService;
 import jakarta.validation.Valid;
@@ -21,7 +22,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @RestController
@@ -57,7 +57,7 @@ public class AuthController {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String accessToken = jwtTokenProvider.generateToken(authentication);
         User user = userService.getUserByUsername(loginRequest.getUsername())
-                .orElseThrow(() -> new NoSuchElementException("Utilisateur non trouvé"));
+                .orElseThrow(() -> new ResourceNotFoundException("Utilisateur non trouvé"));
         List<String> userRoles = user.getRoles()
                 .stream()
                 .map(UserRole::getName)

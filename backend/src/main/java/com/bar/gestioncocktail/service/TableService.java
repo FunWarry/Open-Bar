@@ -1,6 +1,8 @@
 package com.bar.gestioncocktail.service;
 
 import com.bar.gestioncocktail.dto.TablePositionDTO;
+import com.bar.gestioncocktail.exception.BusinessException;
+import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.model.TableEntity;
 import com.bar.gestioncocktail.model.TableZone;
 import com.bar.gestioncocktail.repository.TableRepository;
@@ -46,7 +48,7 @@ public class TableService {
     @Transactional
     public TableEntity updateTable(Long id, TableEntity tableDetails) {
         TableEntity table = tableRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Table non trouvée avec l'id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Table non trouvée avec l'id: " + id));
 
         table.setNumero(tableDetails.getNumero());
         table.setCapacite(tableDetails.getCapacite());
@@ -67,10 +69,10 @@ public class TableService {
     @Transactional
     public TableEntity occuperTable(Long id, Long serveurId) {
         TableEntity table = tableRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Table non trouvée avec l'id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Table non trouvée avec l'id: " + id));
 
         if (table.isOccupee()) {
-            throw new RuntimeException("La table est déjà occupée");
+            throw new BusinessException("La table est déjà occupée");
         }
 
         table.setOccupee(true);
@@ -83,10 +85,10 @@ public class TableService {
     @Transactional
     public TableEntity libererTable(Long id) {
         TableEntity table = tableRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Table non trouvée avec l'id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Table non trouvée avec l'id: " + id));
 
         if (!table.isOccupee()) {
-            throw new RuntimeException("La table n'est pas occupée");
+            throw new BusinessException("La table n'est pas occupée");
         }
 
         table.setOccupee(false);
@@ -104,7 +106,7 @@ public class TableService {
     @Transactional
     public TableEntity updatePosition(Long id, Double x, Double y, Double rotation, String forme) {
         TableEntity table = tableRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Table non trouvée: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Table non trouvée: " + id));
         table.setPlanX(x);
         table.setPlanY(y);
         table.setPlanRotation(rotation != null ? rotation : 0.0);
