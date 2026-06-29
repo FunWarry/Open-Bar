@@ -19,16 +19,41 @@ Application de gestion de bar en temps réel : prise de commandes (serveurs), pr
 | State      | NgRx (store + effects)       | 20          |
 | HTTP       | RxJS / HttpClient            | 7.8         |
 
-### Stack cible (décision actée)
+### Stack cible (décisions actées)
 
-Le frontend migre vers **Ionic + Angular + Capacitor** — Angular Material n'est pas adapté pour le mobile/tablet-first requis par une application de bar. La migration remplace les composants Angular Material par des composants Ionic.
+**Décision UI :** Angular Material abandonné → composants Ionic (mobile/tablet-first).
+**Décision déploiement :** Capacitor abandonné → PWA hébergée sur le réseau local du bar.
 
-| Couche               | Techno cible                  |
-|----------------------|-------------------------------|
-| UI mobile            | Ionic 8+                      |
-| Build natif          | Capacitor 6+ (iOS + Android)  |
-| Canvas plan de salle | Konva.js                      |
-| i18n                 | Transloco (`@jsverse/transloco`) |
+#### Pourquoi PWA locale plutôt que Capacitor natif
+
+L'app tourne sur le **réseau WiFi du bar** (serveur local — Raspberry Pi 5 ou mini-PC). La coupure internet n'a donc aucun impact. Pour les micro-coupures WiFi, un Service Worker Angular PWA cache l'app shell et rejoue les requêtes en attente. Aucun App Store requis — les tablettes/téléphones ajoutent l'icône via "Ajouter à l'écran d'accueil".
+
+#### Architecture déploiement cible
+
+```
+[Tablette serveur] ──┐
+[Tablette barman]  ──┤── WiFi bar ──── [Mini-PC / Raspberry Pi 5]
+[PC manager]       ──┘                  ├── Spring Boot :8080
+                                         ├── PostgreSQL :5432
+                                         └── Nginx → Angular PWA :80
+```
+
+| Couche               | Techno cible                          |
+|----------------------|---------------------------------------|
+| UI composants        | Ionic 8+ (ou Tailwind CSS si redesign)|
+| Offline/résilience   | Angular PWA (`@angular/service-worker`)|
+| Build natif          | ~~Capacitor~~ — **abandonné**         |
+| Canvas plan de salle | Konva.js                              |
+| i18n                 | Transloco (`@jsverse/transloco`)      |
+| Déploiement prod     | Nginx sur mini-PC local (réseau bar)  |
+
+#### Service Worker — stratégies de cache
+
+- **App shell** (JS/CSS/HTML) : cache-first → l'UI s'affiche même sans réseau
+- **Requêtes API GET** : network-first avec fallback cache
+- **Requêtes API POST/PUT** (commandes, statuts) : queue offline → rejoué à la reconnexion
+
+`ng add @angular/pwa` génère le squelette ; affiner `ngsw-config.json` pour les routes API.
 
 ## Lancer le projet
 

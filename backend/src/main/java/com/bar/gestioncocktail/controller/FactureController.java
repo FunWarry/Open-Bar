@@ -7,6 +7,7 @@ import com.bar.gestioncocktail.dto.SplitResultDTO;
 import com.bar.gestioncocktail.model.Facture;
 import com.bar.gestioncocktail.model.FactureItem;
 import com.bar.gestioncocktail.model.TableEntity;
+import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.service.FactureService;
 import com.bar.gestioncocktail.service.PdfService;
 import jakarta.validation.Valid;
@@ -19,7 +20,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/api/factures")
@@ -109,7 +109,7 @@ public class FactureController {
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
     public ResponseEntity<byte[]> downloadFacturePdf(@PathVariable Long id) {
         Facture facture = factureService.getFactureById(id)
-            .orElseThrow(() -> new NoSuchElementException("Facture non trouvée: " + id));
+            .orElseThrow(() -> new ResourceNotFoundException("Facture non trouvée: " + id));
         byte[] pdf = pdfService.generateFacturePdf(facture);
         return ResponseEntity.ok()
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_PDF_VALUE)

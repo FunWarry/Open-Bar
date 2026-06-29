@@ -1,5 +1,6 @@
 package com.bar.gestioncocktail.service;
 
+import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.dto.SplitAdditionRequest;
 import com.bar.gestioncocktail.dto.SplitEgalRequest;
 import com.bar.gestioncocktail.dto.SplitResultDTO;
@@ -65,7 +66,7 @@ public class FactureService {
     @Transactional
     public Facture updateFacture(Long id, Facture factureDetails) {
         Facture facture = factureRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Facture non trouvée avec l'id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Facture non trouvée avec l'id: " + id));
 
         facture.setTable(factureDetails.getTable());
         facture.setItems(factureDetails.getItems());
@@ -84,7 +85,7 @@ public class FactureService {
     @Transactional
     public Facture ajouterItem(Long factureId, FactureItem item) {
         Facture facture = factureRepository.findById(factureId)
-                .orElseThrow(() -> new RuntimeException("Facture non trouvée avec l'id: " + factureId));
+                .orElseThrow(() -> new ResourceNotFoundException("Facture non trouvée avec l'id: " + factureId));
 
         facture.getItems().add(item);
         facture.setTotal(facture.getTotal().add(item.getPrixUnitaire().multiply(new BigDecimal(item.getQuantite()))));
@@ -95,7 +96,7 @@ public class FactureService {
     @Transactional
     public Facture retirerItem(Long factureId, Long itemId) {
         Facture facture = factureRepository.findById(factureId)
-                .orElseThrow(() -> new RuntimeException("Facture non trouvée avec l'id: " + factureId));
+                .orElseThrow(() -> new ResourceNotFoundException("Facture non trouvée avec l'id: " + factureId));
 
         facture.getItems().removeIf(item -> item.getId().equals(itemId));
         facture.setTotal(facture.getItems().stream()
@@ -108,7 +109,7 @@ public class FactureService {
     @Transactional
     public Facture reglerFacture(Long id, String modePaiement) {
         Facture facture = factureRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Facture non trouvée avec l'id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Facture non trouvée avec l'id: " + id));
 
         facture.setReglee(true);
         facture.setModePaiement(modePaiement);
@@ -149,7 +150,7 @@ public class FactureService {
             throw new IllegalArgumentException("Le nombre de convives doit être compris entre 2 et 20");
         }
         Facture facture = factureRepository.findById(factureId)
-                .orElseThrow(() -> new RuntimeException("Facture non trouvée: " + factureId));
+                .orElseThrow(() -> new ResourceNotFoundException("Facture non trouvée: " + factureId));
 
         BigDecimal base = facture.getTotalTTC() != null ? facture.getTotalTTC()
                 : (facture.getTotal() != null ? facture.getTotal() : BigDecimal.ZERO);
@@ -174,7 +175,7 @@ public class FactureService {
      */
     public List<SplitResultDTO> splitParSelection(Long factureId, SplitAdditionRequest request) {
         Facture facture = factureRepository.findById(factureId)
-                .orElseThrow(() -> new RuntimeException("Facture non trouvée: " + factureId));
+                .orElseThrow(() -> new ResourceNotFoundException("Facture non trouvée: " + factureId));
 
         // Index des items de la facture par id pour lookup O(1)
         java.util.Map<Long, FactureItem> itemsIndex = facture.getItems().stream()
