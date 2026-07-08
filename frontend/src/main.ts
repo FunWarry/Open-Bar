@@ -7,6 +7,7 @@ import {provideStoreDevtools} from '@ngrx/store-devtools';
 import {provideRouter} from '@angular/router';
 import {isDevMode} from '@angular/core';
 import {provideTransloco} from '@jsverse/transloco';
+import {provideIonicAngular} from '@ionic/angular/standalone';
 
 import {AppComponent} from './app/app.component';
 import {routes} from './app/app.routes';
@@ -19,6 +20,7 @@ import {TranslocoHttpLoader} from './app/core/transloco-loader';
 bootstrapApplication(AppComponent, {
   providers: [
     provideAnimations(),
+    provideIonicAngular(),
     provideHttpClient(withFetch(), withInterceptors([authInterceptor, errorInterceptor])),
     provideStore({auth: authReducer}),
     provideEffects([AuthEffects]),
