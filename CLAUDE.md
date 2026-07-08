@@ -74,6 +74,13 @@ Les distributions récentes (Fedora 44+...) ne proposent plus JDK 22 via leur ge
 sdk env install   # installe et active automatiquement le JDK listé dans .sdkmanrc
 ```
 
+⚠️ **Variable d'environnement `JWT_SECRET` requise** (≥ 32 caractères / 256 bits) — `application.yml` référence `${JWT_SECRET}` sans valeur par défaut. Sans elle, le backend refuse de démarrer avec un message d'erreur explicite (`JwtProperties.validate()`), plutôt que l'ancienne `WeakKeyException` cryptique de JJWT.
+
+```bash
+# backend/.env.example montre le format attendu — générer sa propre valeur, jamais un secret fixe
+export JWT_SECRET=$(openssl rand -base64 32)
+```
+
 ```bash
 cd backend
 mvn spring-boot:run
@@ -299,7 +306,7 @@ Pour les fichiers scopés par feature (ex : `fr/commandes.json`), déclarer le s
 
 ## Points d'attention / dette technique
 
-1. **Secret JWT hardcodé** dans `application.yml` → à externaliser en variable d'environnement
+1. ~~Secret JWT hardcodé~~ — **résolu PR #149** : `JWT_SECRET` externalisé en variable d'environnement, documenté (`CLAUDE.md` + `backend/.env.example`), validation fail-fast au démarrage si absent/trop faible (`JwtProperties.validate()`)
 2. **`allow-circular-references: true`** dans Spring → smell de design circulaire à corriger
 3. **Bug dateLivraison** : set sur `PRET` au lieu de `LIVREE` dans `CommandeService.changerStatut()`
 4. ~~Tests insuffisants~~ — **résolu PR #103** : 53 specs Angular dans `src/test/` + 12 tests Java
