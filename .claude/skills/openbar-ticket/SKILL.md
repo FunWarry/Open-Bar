@@ -233,7 +233,7 @@ Répéter l'auto-critique si les corrections sont significatives.
 **Ne jamais merger sans avoir vérifié les commentaires du reviewer automatique `copilot-pull-request-reviewer`.**
 
 ```bash
-gh api repos/FunWarry/Open-Bar/pulls/<NUM>/comments --jq '.[] | {path: .path, line: .line, body: .body}'
+gh api --paginate repos/FunWarry/Open-Bar/pulls/<NUM>/comments --jq '.[] | {path: .path, line: .line, body: .body}'
 ```
 
 Pour **chaque** suggestion :
