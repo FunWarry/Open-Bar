@@ -300,6 +300,7 @@ Pour les fichiers scopés par feature (ex : `fr/commandes.json`), déclarer le s
 9. ~~JJWT 0.11.5 obsolète~~ — **résolu** : migré vers 0.12.6 (API `parser()`, `parseSignedClaims()`, `SecretKey`)
 10. ~~Angular 19 CVEs XSS/XSRF~~ — **résolu** : migré Angular 20 + NgRx 20 + Ionic 8.8.11
 11. **13 CVEs restantes (devDeps)** : dans les outils de build (esbuild, babel, vite) — corrigibles via Angular 22
+12. ~~Rapport LCOV frontend jamais généré, SonarCloud en échec systématique~~ — **résolu PR #145** : `angular.json` référence désormais `karmaConfig`, `frontend/karma.conf.js` reconstruit de façon autonome (frameworks, plugins, browsers, `coverageReporter` avec `lcovonly`)
 
 ## Features implémentées vs. manquantes
 
