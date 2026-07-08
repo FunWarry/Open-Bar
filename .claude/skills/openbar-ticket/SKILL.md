@@ -1,6 +1,6 @@
 # Skill : openbar-ticket
 
-Pipeline complet de traitement d'un ticket GitHub : branche dédiée → implémentation → tests → build → PR → auto-critique → CI vert → merge → clôture.
+Pipeline complet de traitement d'un ticket GitHub : branche dédiée → implémentation → tests → build → PR → auto-critique → CI vert → review Copilot → merge → clôture.
 
 ## Quand utiliser ce skill
 
@@ -8,7 +8,7 @@ Pipeline complet de traitement d'un ticket GitHub : branche dédiée → implém
 
 ---
 
-## Pipeline — 9 étapes obligatoires
+## Pipeline — 10 étapes obligatoires
 
 ### Étape 1 — Lire le ticket et se synchroniser
 
@@ -228,7 +228,26 @@ Répéter l'auto-critique si les corrections sont significatives.
 
 ---
 
-### Étape 9 — Merge, clôture et nettoyage
+### Étape 9 — Traiter les suggestions Copilot avant de merger
+
+**Ne jamais merger sans avoir vérifié les commentaires du reviewer automatique `copilot-pull-request-reviewer`.**
+
+```bash
+gh api repos/FunWarry/Open-Bar/pulls/<NUM>/comments --jq '.[] | {path: .path, line: .line, body: .body}'
+```
+
+Pour **chaque** suggestion :
+1. **La challenger** — est-elle réellement fondée (bug, incohérence, risque) ou juste du style/bruit ?
+2. Si fondée → l'appliquer, ajouter/adapter un test si c'est un bug de logique, committer, re-push
+3. Si non fondée → l'ignorer, sans commentaire nécessaire sur la PR (pas la peine de justifier chaque rejet)
+
+Une suggestion Copilot peut pointer un vrai bug indépendant du sujet du ticket (ex : une contrainte de validation mesurée dans la mauvaise unité, une config qui ne fait pas ce qu'elle prétend faire) — les traiter avec le même sérieux qu'un finding de `/code-review`.
+
+Si des corrections sont appliquées, **revérifier le CI** (étape 8) avant de passer à l'étape 10.
+
+---
+
+### Étape 10 — Merge, clôture et nettoyage
 
 **Merger la PR dans `dev` — merge commit (pas squash) :**
 ```bash
@@ -299,6 +318,7 @@ gh issue close <NUMERO> --repo FunWarry/Open-Bar
 - [ ] Tests passent (`ng test --watch=false` ou `mvn test`)
 - [ ] CI vert sur la PR (`gh pr checks --watch`) — build Angular + tests
 - [ ] SonarCloud vert — Quality Gate passé, pas de nouvelles issues bloquantes
+- [ ] Suggestions Copilot (`copilot-pull-request-reviewer`) challengées une à une, fondées appliquées
 - [ ] Aucun `any` non justifié
 - [ ] Templates HTML cohérents avec les modèles TypeScript
 - [ ] Conventional commits avec référence ticket
