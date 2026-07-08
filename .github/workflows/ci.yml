@@ -123,6 +123,11 @@ jobs:
   sonar:
     name: SonarCloud Analysis
     needs: [backend, frontend]
+    # SonarCloud (plan gratuit) n'autorise l'analyse "push" complète que sur la branche
+    # principale (master) — les branches courtes comme `dev` ne sont analysées que via
+    # les PR. Lancer ce job sur un push direct vers dev échoue systématiquement avec
+    # "Not authorized or project not found" (cf. #140/#147).
+    if: ${{ github.event_name == 'pull_request' || github.ref == 'refs/heads/master' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
