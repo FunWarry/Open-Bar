@@ -77,7 +77,7 @@ sdk env install   # installe et active automatiquement le JDK listé dans .sdkma
 ⚠️ **Variable d'environnement `JWT_SECRET` requise** (≥ 32 caractères / 256 bits) — `application.yml` référence `${JWT_SECRET}` sans valeur par défaut. Sans elle, le backend refuse de démarrer avec un message d'erreur explicite (`JwtProperties.validate()`), plutôt que l'ancienne `WeakKeyException` cryptique de JJWT.
 
 ```bash
-# Valeur de dev prête à l'emploi dans backend/.env.example — ne jamais utiliser en prod
+# backend/.env.example montre le format attendu — générer sa propre valeur, jamais un secret fixe
 export JWT_SECRET=$(openssl rand -base64 32)
 ```
 

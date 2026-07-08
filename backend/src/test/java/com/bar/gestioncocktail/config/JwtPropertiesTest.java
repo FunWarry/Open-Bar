@@ -59,6 +59,17 @@ class JwtPropertiesTest {
     }
 
     @Test
+    void validate_secretNonAsciiAvecMoinsDe32CaracteresMaisAssezDOctets_neLevePasException() {
+        // "é" = 2 octets en UTF-8 : 20 caractères = 40 octets (≥ 32), doit être accepté
+        // même si le nombre de caractères est inférieur au seuil.
+        JwtProperties properties = new JwtProperties();
+        properties.setSecret("é".repeat(20));
+
+        assertThat(properties.getSecret()).hasSize(20);
+        assertThatCode(properties::validate).doesNotThrowAnyException();
+    }
+
+    @Test
     void toString_neContientPasLeSecretEnClair() {
         JwtProperties properties = new JwtProperties();
         properties.setSecret("secret-tres-confidentiel-32-caracteres");

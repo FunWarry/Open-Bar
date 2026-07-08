@@ -5,12 +5,17 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import java.nio.charset.StandardCharsets;
+
 @Getter
 @Setter
 @ConfigurationProperties(prefix = "spring.security.jwt")
 public class JwtProperties {
 
-    private static final int MIN_SECRET_LENGTH = 32; // 256 bits minimum requis par HMAC-SHA
+    // 256 bits minimum requis par HMAC-SHA, mesurés en octets — c'est bien le nombre
+    // d'octets de secret.getBytes() (utilisé par Keys.hmacShaKeyFor) qui compte pour
+    // JJWT, pas le nombre de caractères (qui diverge pour un secret non-ASCII).
+    private static final int MIN_SECRET_BYTES = 32;
 
     private String secret;
     private long expiration;
@@ -22,12 +27,13 @@ public class JwtProperties {
                     "La variable d'environnement JWT_SECRET n'est pas définie. "
                             + "Définissez-la avant de lancer le backend, par exemple : "
                             + "export JWT_SECRET=$(openssl rand -base64 32) "
-                            + "— voir backend/.env.example pour une valeur de dev prête à l'emploi.");
+                            + "— voir backend/.env.example pour un exemple de format (à remplacer par une valeur générée).");
         }
-        if (secret.length() < MIN_SECRET_LENGTH) {
+        int secretBytes = secret.getBytes(StandardCharsets.UTF_8).length;
+        if (secretBytes < MIN_SECRET_BYTES) {
             throw new IllegalStateException(
-                    "JWT_SECRET fait " + secret.length() + " caractères, il en faut au moins "
-                            + MIN_SECRET_LENGTH + " (256 bits) pour un HMAC-SHA sécurisé. "
+                    "JWT_SECRET fait " + secretBytes + " octets, il en faut au moins "
+                            + MIN_SECRET_BYTES + " (256 bits) pour un HMAC-SHA sécurisé. "
                             + "Générez-en un nouveau, par exemple : export JWT_SECRET=$(openssl rand -base64 32)");
         }
     }
