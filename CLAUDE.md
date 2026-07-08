@@ -64,6 +64,16 @@ cd backend/src/main/resources && docker compose up -d
 ```
 
 ### Backend
+
+⚠️ **Version Java exacte requise : JDK 22** (pas "22+"). Lombok `1.18.34` (épinglé dans `backend/pom.xml`) ne supporte pas les internes du compilateur des JDK plus récents (24, 25...) — avec un JDK trop récent, les annotations `@Data` ne génèrent silencieusement **aucun** getter/setter, ce qui provoque une cascade d'erreurs `cannot find symbol getXxx()/setXxx()` à la compilation (cf. [#141](https://github.com/FunWarry/Open-Bar/issues/141)).
+
+Les distributions récentes (Fedora 44+...) ne proposent plus JDK 22 via leur gestionnaire de paquets système. Utiliser un gestionnaire de version Java :
+
+```bash
+# via SDKMAN (https://sdkman.io/) — un .sdkmanrc est fourni à la racine du repo
+sdk env install   # installe et active automatiquement le JDK listé dans .sdkmanrc
+```
+
 ```bash
 cd backend
 mvn spring-boot:run
