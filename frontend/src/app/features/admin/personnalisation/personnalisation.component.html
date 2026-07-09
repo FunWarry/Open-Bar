@@ -1,0 +1,60 @@
+<ion-card class="personnalisation-card">
+  <ion-card-header>
+    <ion-card-title>Personnalisation</ion-card-title>
+  </ion-card-header>
+  <ion-card-content>
+    <form [formGroup]="settingsForm" (ngSubmit)="onSubmit()" *ngIf="!loading">
+      <h3>Couleurs de la charte</h3>
+
+      <ion-item>
+        <ion-label position="stacked">Couleur primaire</ion-label>
+        <ion-input type="color" formControlName="primaryColor"></ion-input>
+        <ion-note slot="error" *ngIf="settingsForm.get('primaryColor')?.invalid && settingsForm.get('primaryColor')?.touched">
+          Code hexadécimal requis (#RRGGBB)
+        </ion-note>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="stacked">Couleur primaire (accentuée)</ion-label>
+        <ion-input type="color" formControlName="primaryColorStrong"></ion-input>
+        <ion-note slot="error" *ngIf="settingsForm.get('primaryColorStrong')?.invalid && settingsForm.get('primaryColorStrong')?.touched">
+          Code hexadécimal requis (#RRGGBB)
+        </ion-note>
+      </ion-item>
+
+      <h3>Identité de l'établissement</h3>
+
+      <ion-item>
+        <ion-label position="stacked">Nom de l'établissement</ion-label>
+        <ion-input formControlName="establishmentName" maxlength="100"></ion-input>
+        <ion-note slot="error" *ngIf="settingsForm.get('establishmentName')?.invalid && settingsForm.get('establishmentName')?.touched">
+          Nom requis (100 caractères max)
+        </ion-note>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="stacked">URL du logo</ion-label>
+        <ion-input formControlName="logoUrl" placeholder="https://..." type="url"></ion-input>
+        <ion-note slot="error" *ngIf="settingsForm.get('logoUrl')?.invalid && settingsForm.get('logoUrl')?.touched">
+          Doit être une URL http(s) valide
+        </ion-note>
+      </ion-item>
+
+      <h3>Thème par défaut</h3>
+
+      <ion-item>
+        <ion-label position="stacked">Thème</ion-label>
+        <ion-select formControlName="defaultTheme" interface="popover">
+          <ion-select-option value="DARK">Sombre</ion-select-option>
+          <ion-select-option value="LIGHT" disabled="true">Clair (bientôt disponible)</ion-select-option>
+        </ion-select>
+        <ion-note>Le thème clair n'est pas encore disponible — conception en cours.</ion-note>
+      </ion-item>
+
+      <div class="form-actions">
+        <ion-button type="submit" [disabled]="settingsForm.invalid">Enregistrer</ion-button>
+        <ion-button fill="clear" type="button" (click)="onCancel()" (keyup.enter)="onCancel()">Annuler</ion-button>
+      </div>
+    </form>
+  </ion-card-content>
+</ion-card>

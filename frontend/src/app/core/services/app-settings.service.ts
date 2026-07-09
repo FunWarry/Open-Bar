@@ -1,0 +1,36 @@
+import { inject, Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, tap } from 'rxjs';
+import { environment } from '../../../environments/environment';
+import { AppSettings, AppSettingsUpdateRequest } from '../models/app-settings.model';
+
+@Injectable({ providedIn: 'root' })
+export class AppSettingsService {
+  private readonly api = `${environment.apiUrl}/settings`;
+  private http = inject(HttpClient);
+
+  getSettings(): Observable<AppSettings> {
+    return this.http.get<AppSettings>(this.api).pipe(tap(settings => this.applyTokens(settings)));
+  }
+
+  updateSettings(request: AppSettingsUpdateRequest): Observable<AppSettings> {
+    return this.http.put<AppSettings>(this.api, request).pipe(tap(settings => this.applyTokens(settings)));
+  }
+
+  /** Injecte les couleurs personnalisées comme custom properties CSS, en surcouche des tokens par défaut. */
+  applyTokens(settings: Pick<AppSettings, 'primaryColor' | 'primaryColorStrong'>): void {
+    const root = document.documentElement;
+    root.style.setProperty('--primary', settings.primaryColor);
+    root.style.setProperty('--primary-strong', settings.primaryColorStrong);
+    // --ion-color-primary-rgb alimente les effets Ionic (ripple, focus, disabled) qui
+    // utilisent rgba(var(--ion-color-primary-rgb), alpha) — doit rester synchronisé avec --primary.
+    root.style.setProperty('--ion-color-primary-rgb', this.hexToRgb(settings.primaryColor));
+  }
+
+  private hexToRgb(hex: string): string {
+    const match = /^#([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})$/.exec(hex);
+    if (!match) return '108, 127, 232'; // fallback = couleur primaire par défaut du design system
+    const [r, g, b] = match.slice(1).map(channel => parseInt(channel, 16));
+    return `${r}, ${g}, ${b}`;
+  }
+}

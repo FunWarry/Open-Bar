@@ -93,6 +93,12 @@ export const routes: Routes = [
     data: {roles: ['ADMIN']}
   },
   {
+    path: 'admin/personnalisation',
+    loadComponent: () => import('./features/admin/personnalisation/personnalisation.component').then(m => m.PersonnalisationComponent),
+    canActivate: [AuthGuard, RoleGuard],
+    data: {roles: ['ADMIN']}
+  },
+  {
     path: 'barman',
     loadComponent: () => import('./features/dashboard-barman/dashboard-barman.component').then(m => m.DashboardBarmanComponent),
     canActivate: [AuthGuard, RoleGuard],

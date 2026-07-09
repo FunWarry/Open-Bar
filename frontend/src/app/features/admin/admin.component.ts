@@ -1,6 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {Store} from '@ngrx/store';
 import {Observable} from 'rxjs';
+import {RouterLink} from '@angular/router';
 import {selectCurrentUser} from '../../core/store/auth.selectors';
 import {User} from '../../core/models/user.model';
 import {IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent, IonIcon, IonButton} from '@ionic/angular/standalone';
@@ -12,7 +13,7 @@ import {NavigationService} from "../../core/services/navigation.service";
   templateUrl: './admin.component.html',
   styleUrls: ['./admin.component.css'],
   standalone: true,
-  imports: [IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent, IonIcon, IonButton, AsyncPipe]
+  imports: [IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent, IonIcon, IonButton, AsyncPipe, RouterLink]
 })
 export class AdminComponent implements OnInit {
   currentUser$: Observable<User | null>;

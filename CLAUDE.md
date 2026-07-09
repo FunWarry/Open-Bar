@@ -167,7 +167,7 @@ Service frontend : `websocket.service.ts`
 - `@Transactional` sur toutes les méthodes write du service
 - DTOs de sortie : Java records avec `static XxxDTO from(Entity e)` — jamais d'entité JPA en réponse directe
 - Exceptions métier : `GlobalExceptionHandler` gère `ResourceNotFoundException` (404), `BusinessException` (400), validation (400)
-- `@PreAuthorize("hasRole('...')")` sur chaque endpoint — pas de route non protégée sauf `/api/auth/**`
+- `@PreAuthorize("hasRole('...')")` sur chaque endpoint en écriture — routes non protégées limitées aux cas où l'info doit être lisible avant authentification (`/api/auth/**`, vérification username/email à l'inscription, `GET /api/settings` pour la personnalisation visible dès le login) ; toute route de ce type doit rester en lecture seule (GET) et ne jamais exposer de donnée sensible
 
 ### Frontend (Angular + Ionic — migration en cours)
 - Architecture feature-based : `features/`, `core/`

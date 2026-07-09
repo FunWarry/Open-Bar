@@ -168,3 +168,18 @@ ALTER TABLE tables ADD COLUMN IF NOT EXISTS plan_forme VARCHAR(20) DEFAULT 'CARR
 -- Saisonnalité par mois (1-12), null = toute l'année
 ALTER TABLE cocktails ADD COLUMN IF NOT EXISTS mois_debut INTEGER;
 ALTER TABLE cocktails ADD COLUMN IF NOT EXISTS mois_fin INTEGER;
+
+-- Personnalisation admin (#153) : table singleton, une seule ligne (id=1)
+CREATE TABLE IF NOT EXISTS app_settings (
+    id BIGINT PRIMARY KEY,
+    primary_color VARCHAR(7) NOT NULL DEFAULT '#6c7fe8',
+    primary_color_strong VARCHAR(7) NOT NULL DEFAULT '#5a68d6',
+    logo_url VARCHAR(2048),
+    establishment_name VARCHAR(100) NOT NULL DEFAULT 'OpenBar',
+    default_theme VARCHAR(20) NOT NULL DEFAULT 'DARK',
+    updated_at TIMESTAMP
+);
+
+-- Garantit que la ligne singleton existe dès le déploiement, pour éviter toute
+-- course entre requêtes GET /api/settings concurrentes au premier démarrage.
+INSERT INTO app_settings (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
