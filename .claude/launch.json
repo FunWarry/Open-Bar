@@ -1,0 +1,23 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "backend",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": [
+        "-c",
+        "docker compose -f backend/src/main/resources/docker-compose.yml up -d && cd backend && JAVA_HOME=$HOME/.local/jdk/jdk-22.0.2+9 JWT_SECRET=$(openssl rand -base64 32) mvn spring-boot:run"
+      ],
+      "port": 8080
+    },
+    {
+      "name": "frontend",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": [
+        "-c",
+        "cd frontend && npx ng serve --host 0.0.0.0"
+      ],
+      "port": 4200
+    }
+  ]
+}
