@@ -179,3 +179,7 @@ CREATE TABLE IF NOT EXISTS app_settings (
     default_theme VARCHAR(20) NOT NULL DEFAULT 'DARK',
     updated_at TIMESTAMP
 );
+
+-- Garantit que la ligne singleton existe dès le déploiement, pour éviter toute
+-- course entre requêtes GET /api/settings concurrentes au premier démarrage.
+INSERT INTO app_settings (id) VALUES (1) ON CONFLICT (id) DO NOTHING;

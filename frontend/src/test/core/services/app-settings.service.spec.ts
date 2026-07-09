@@ -28,6 +28,7 @@ describe('AppSettingsService', () => {
     httpMock = TestBed.inject(HttpTestingController);
     document.documentElement.style.removeProperty('--primary');
     document.documentElement.style.removeProperty('--primary-strong');
+    document.documentElement.style.removeProperty('--ion-color-primary-rgb');
   });
 
   afterEach(() => httpMock.verify());
@@ -48,6 +49,16 @@ describe('AppSettingsService', () => {
 
     expect(document.documentElement.style.getPropertyValue('--primary')).toBe('#6c7fe8');
     expect(document.documentElement.style.getPropertyValue('--primary-strong')).toBe('#5a68d6');
+  });
+
+  it('applyTokens() calcule --ion-color-primary-rgb depuis primaryColor pour rester cohérent avec les effets Ionic', () => {
+    service.applyTokens({ primaryColor: '#ff0000', primaryColorStrong: '#cc0000' });
+    expect(document.documentElement.style.getPropertyValue('--ion-color-primary-rgb')).toBe('255, 0, 0');
+  });
+
+  it('applyTokens() retombe sur le RGB par défaut si primaryColor n\'est pas un hex valide', () => {
+    service.applyTokens({ primaryColor: 'pas-un-hex', primaryColorStrong: '#cc0000' });
+    expect(document.documentElement.style.getPropertyValue('--ion-color-primary-rgb')).toBe('108, 127, 232');
   });
 
   it('updateSettings() appelle PUT /api/settings avec le payload', () => {

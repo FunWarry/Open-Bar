@@ -8,6 +8,7 @@ import {
   IonItem, IonLabel, IonInput, IonButton, IonNote, IonSelect, IonSelectOption,
 } from '@ionic/angular/standalone';
 import { AppSettingsService } from '../../../core/services/app-settings.service';
+import { AppSettings } from '../../../core/models/app-settings.model';
 
 const HEX_COLOR_PATTERN = /^#[0-9A-Fa-f]{6}$/;
 const URL_PATTERN = /^https?:\/\/.+/;
@@ -26,6 +27,7 @@ const URL_PATTERN = /^https?:\/\/.+/;
 export class PersonnalisationComponent implements OnInit {
   settingsForm: FormGroup;
   loading = true;
+  private loadedColors: Pick<AppSettings, 'primaryColor' | 'primaryColorStrong'> | null = null;
 
   constructor(
     private fb: FormBuilder,
@@ -45,6 +47,7 @@ export class PersonnalisationComponent implements OnInit {
   ngOnInit(): void {
     this.appSettingsService.getSettings().subscribe({
       next: settings => {
+        this.loadedColors = { primaryColor: settings.primaryColor, primaryColorStrong: settings.primaryColorStrong };
         this.settingsForm.patchValue({
           primaryColor: settings.primaryColor,
           primaryColorStrong: settings.primaryColorStrong,
@@ -61,16 +64,14 @@ export class PersonnalisationComponent implements OnInit {
       },
     });
 
-    // Aperçu live des couleurs avant sauvegarde (cf. spec CDC #153)
-    ['primaryColor', 'primaryColorStrong'].forEach(field => {
-      this.settingsForm.get(field)?.valueChanges.subscribe(value => {
-        if (HEX_COLOR_PATTERN.test(value)) {
-          document.documentElement.style.setProperty(
-            field === 'primaryColor' ? '--primary' : '--primary-strong',
-            value,
-          );
-        }
-      });
+    // Aperçu live des couleurs avant sauvegarde (cf. spec CDC #153) — délègue à
+    // AppSettingsService.applyTokens() pour ne pas dupliquer la logique de mapping token → CSS.
+    this.settingsForm.valueChanges.subscribe(() => {
+      const primaryColor = this.settingsForm.get('primaryColor')?.value;
+      const primaryColorStrong = this.settingsForm.get('primaryColorStrong')?.value;
+      if (HEX_COLOR_PATTERN.test(primaryColor) && HEX_COLOR_PATTERN.test(primaryColorStrong)) {
+        this.appSettingsService.applyTokens({ primaryColor, primaryColorStrong });
+      }
     });
   }
 
@@ -90,5 +91,10 @@ export class PersonnalisationComponent implements OnInit {
     });
   }
 
-  onCancel(): void { this.router.navigate(['/admin']); }
+  onCancel(): void {
+    if (this.loadedColors) {
+      this.appSettingsService.applyTokens(this.loadedColors);
+    }
+    this.router.navigate(['/admin']);
+  }
 }

@@ -53,7 +53,7 @@
 
       <div class="form-actions">
         <ion-button type="submit" [disabled]="settingsForm.invalid">Enregistrer</ion-button>
-        <ion-button fill="clear" type="button" (click)="onCancel()">Annuler</ion-button>
+        <ion-button fill="clear" type="button" (click)="onCancel()" (keyup.enter)="onCancel()">Annuler</ion-button>
       </div>
     </form>
   </ion-card-content>

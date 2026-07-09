@@ -2,7 +2,6 @@ package com.bar.gestioncocktail.controller;
 
 import com.bar.gestioncocktail.dto.AppSettingsResponseDTO;
 import com.bar.gestioncocktail.dto.AppSettingsUpdateRequest;
-import com.bar.gestioncocktail.model.AppSettings;
 import com.bar.gestioncocktail.service.AppSettingsService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,12 +38,6 @@ public class AppSettingsController {
     @PutMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<AppSettingsResponseDTO> updateSettings(@Valid @RequestBody AppSettingsUpdateRequest request) {
-        AppSettings toUpdate = new AppSettings();
-        toUpdate.setPrimaryColor(request.primaryColor());
-        toUpdate.setPrimaryColorStrong(request.primaryColorStrong());
-        toUpdate.setLogoUrl(request.logoUrl());
-        toUpdate.setEstablishmentName(request.establishmentName());
-        toUpdate.setDefaultTheme(request.defaultTheme());
-        return ResponseEntity.ok(AppSettingsResponseDTO.from(appSettingsService.updateSettings(toUpdate)));
+        return ResponseEntity.ok(AppSettingsResponseDTO.from(appSettingsService.updateSettings(request)));
     }
 }

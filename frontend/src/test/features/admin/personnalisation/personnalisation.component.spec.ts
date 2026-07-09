@@ -28,7 +28,7 @@ describe('PersonnalisationComponent', () => {
   function createComponent(getSettingsResult$ = of(mockSettings)): void {
     routerSpy = jasmine.createSpyObj('Router', ['navigate']);
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
-    appSettingsServiceSpy = jasmine.createSpyObj('AppSettingsService', ['getSettings', 'updateSettings']);
+    appSettingsServiceSpy = jasmine.createSpyObj('AppSettingsService', ['getSettings', 'updateSettings', 'applyTokens']);
     appSettingsServiceSpy.getSettings.and.returnValue(getSettingsResult$);
     appSettingsServiceSpy.updateSettings.and.returnValue(of(mockSettings));
 
@@ -119,5 +119,32 @@ describe('PersonnalisationComponent', () => {
     createComponent();
     component.onCancel();
     expect(routerSpy.navigate).toHaveBeenCalledWith(['/admin']);
+  });
+
+  it('onCancel() restaure les couleurs chargées avant de naviguer, pour annuler l\'aperçu live', () => {
+    createComponent();
+    appSettingsServiceSpy.applyTokens.calls.reset();
+    component.onCancel();
+    expect(appSettingsServiceSpy.applyTokens).toHaveBeenCalledWith({
+      primaryColor: '#6c7fe8',
+      primaryColorStrong: '#5a68d6',
+    });
+  });
+
+  it('modifier la couleur primaire déclenche un aperçu live via applyTokens()', () => {
+    createComponent();
+    appSettingsServiceSpy.applyTokens.calls.reset();
+    component.settingsForm.get('primaryColor')?.setValue('#ff0000');
+    expect(appSettingsServiceSpy.applyTokens).toHaveBeenCalledWith({
+      primaryColor: '#ff0000',
+      primaryColorStrong: '#5a68d6',
+    });
+  });
+
+  it('un aperçu live n\'est pas déclenché si la couleur en cours de saisie n\'est pas un hex valide', () => {
+    createComponent();
+    appSettingsServiceSpy.applyTokens.calls.reset();
+    component.settingsForm.get('primaryColor')?.setValue('rouge');
+    expect(appSettingsServiceSpy.applyTokens).not.toHaveBeenCalled();
   });
 });
