@@ -530,7 +530,7 @@ try {
 
 **Fonctionnalités** :
 1. **Couleurs de la charte** — édition des tokens `Primary` et `Primary Strong` (color picker), avec aperçu live appliqué aux composants `ActionButton`/`NavBar` avant sauvegarde. Les tokens de statut (commande/stock/table) restent fixes — non personnalisables, car porteurs de sens fonctionnel (ex: rouge = urgence) qu'il ne faut pas laisser un admin casser par erreur.
-2. **Logo et nom d'établissement** — upload d'image (PNG/JPG/SVG, taille max à définir en implémentation, ex. 2 Mo), affiché dans la navbar et l'écran de login ; champ texte libre pour le nom affiché (remplace "OpenBar" dans l'UI).
+2. **Logo et nom d'établissement** — **v1 : URL d'image** (champ texte validé comme URL http(s), pas d'upload de fichier — évite d'ouvrir une surface d'attaque supplémentaire côté backend pour une v1 ; l'upload de fichier avec stockage/validation de type MIME pourra être une évolution ultérieure si le besoin se confirme), affiché dans la navbar et l'écran de login ; champ texte libre pour le nom affiché (remplace "OpenBar" dans l'UI).
 3. **Thème par défaut** — choix Clair/Sombre appliqué à la première connexion d'un utilisateur (préférence individuelle non écrasée si l'utilisateur a déjà fait un choix local). **Limite connue** : le thème Clair n'est pas encore designé dans Figma (placeholder noir, cf. #154) — l'option reste visible dans l'UI mais désactivée/grisée avec message explicatif tant que #154 n'est pas résolu.
 
 **Persistance** : entité singleton `AppSettings` (une seule ligne en base, id fixe) — `primaryColor`, `primaryColorStrong`, `logoUrl`, `establishmentName`, `defaultTheme`. Table créée via `schema.sql`, valeurs par défaut = tokens Figma actuels.
