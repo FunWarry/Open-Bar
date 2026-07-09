@@ -25,6 +25,7 @@
               "src/assets"
             ],
             "styles": [
+              "src/theme/variables.css",
               "src/styles.css"
             ],
             "scripts": []
@@ -83,6 +84,7 @@
               "src/assets"
             ],
             "styles": [
+              "src/theme/variables.css",
               "src/styles.css"
             ],
             "scripts": []

@@ -142,6 +142,7 @@ tables ──< factures ──< facture_items
 tables ──< table_sessions              ← QR code client (token temporaire par scan)
 zones ──< tables                       ← Zones du plan de salle (polygones libres JSON)
 users ──< audit_logs
+app_settings                           ← Singleton — personnalisation admin (#153), pas de relation
 ```
 
 > **Plan de salle** : les zones sont des polygones libres (coordonnées JSON), pas des rectangles. Les tables ont des formes rondes ou carrées, librement repositionnables et redimensionnables via Konva.js.
@@ -221,6 +222,8 @@ Service frontend : `websocket.service.ts` — ✅ pleinement implémenté (RxSto
 | Plan de salle interactif (Konva.js) | ❌ | ❌ | — | ⚠️ esquissé | 🟡 Moyenne |
 | QR code commande client | ❌ | ❌ | — | ✅ designé | 🟡 Moyenne |
 | Fusion de tables | ❌ | ❌ | — | ✅ designé | 🟡 Moyenne |
+| **Design system — tokens (couleurs/espacement/rayons)** | — | ⚠️ fichier orphelin non chargé (#152) | ❌ | ✅ | 🔴 Haute |
+| **Personnalisation admin (branding)** | ❌ | ❌ | — | ❌ (nouvelle feature, pas dans Figma) | 🔴 Haute |
 
 > Légende tests : ✅ tests écrits et passants · ⚠️ tests partiels · ❌ aucun test · — non applicable
 > Dernière mise à jour : 23 juin 2026 (PRs #106, #111–#117)
@@ -229,38 +232,66 @@ Service frontend : `websocket.service.ts` — ✅ pleinement implémenté (RxSto
 
 ## 7. Design System Figma
 
-**Fichier** : `XSVwFk64kgtqgUN9n5qoMw` — **6 pages, 60+ composants** (état juin 2026).
+**Fichier** : `XSVwFk64kgtqgUN9n5qoMw` — **8 pages** (vérifié directement via l'API Figma le 9 juillet 2026 — le décompte "6 pages" était obsolète, 2 pages ajoutées depuis : Facturation, Dev Handoff).
 
 **Pages :**
 | Page | ID | Contenu |
 |------|----|---------|
 | 🎨 Design System | `0:1` | Tous les composants DS |
-| 🍹 Vue Barman | `57:2` | 8 vues (y=210) |
-| 🗺 Vue Manager | `57:3` | 7 vues (y=1100) |
-| 👋 Vue Serveur | `57:4` | 4 vues + 2 variantes (y=210) |
-| 📱 Vue Client QR | `57:5` | 2 vues mobile |
-| Vue Système Commun | `522:3214` | 6 vues communes (Login, Register…) |
+| 🍹 Vue Barman | `57:2` | 8 vues |
+| 🗺 Vue Manager | `57:3` | 7 vues |
+| 👋 Vue Serveur | `57:4` | 4 vues + 2 variantes |
+| Vue système commun | `522:3214` | 6 vues communes (Login, Register…) |
+| 💰 Facturation | `626:987` | Non auditée — à couvrir dans un ticket dédié avant implémentation |
+| 📱 Vue Client QR Code | `636:987` | ID mis à jour (était `57:5`, obsolète) |
+| 📋 Dev Handoff | `638:987` | Non auditée |
 
 > **Principe** : composants en cascade, comme Angular/React. Chaque composant parent n'utilise que des instances de composants enfants — jamais de primitives brutes (rectangles, ellipses, textes).
 
 ### 7.1 Tokens couleur
 
-| Token | Valeur | Usage |
-|-------|--------|-------|
-| `BG` | `#0f0f1a` | Fond global |
-| `Surface` | `#1a1a2e` | Cards, panels |
-| `Surface2` | `#262640` | Éléments surélevés |
-| `Surface3` | `#323250` | Bordures, dividers |
-| `TextPrimary` | `#e8e8f0` | Texte principal |
-| `TextMuted` | `#666680` | Texte secondaire |
-| `Accent` | `#7c3aed` | Violet — actions primaires, actif |
-| `Barman` | `#4fc3f7` | Couleur rôle Barman |
-| `Manager` | `#f39c12` | Couleur rôle Manager |
-| `Serveur` | `#2ecc71` | Couleur rôle Serveur |
-| `En attente` | `#f59e0b` | Statut commande |
-| `En préparation` | `#0ea5e9` | Statut commande |
-| `Prêtes` | `#22c55e` | Statut commande |
-| `Servies` | `#4d5a80` | Statut commande |
+> Extrait le 9 juillet 2026 directement depuis les Variables Figma (`figma.variables.getLocalVariableCollectionsAsync()`) — remplace le tableau précédent, devenu inexact (valeurs hex divergentes, noms de tokens différents). Source de vérité : voir #152.
+
+**Collection `Thème`** (modes Dark/Light — **Light est un placeholder non designé**, cf. #154) :
+
+| Token | Dark | Usage |
+|-------|------|-------|
+| `Background/bg-0` | `#0f0f1a` | Fond global |
+| `Background/bg-1` | `#151521` | Fond secondaire |
+| `Background/surface-1` | `#1a1a2e` | Cards, panels |
+| `Background/surface-2` | `#21263f` | Éléments surélevés |
+| `Background/surface-3` | `#2a3050` | Bordures, dividers |
+| `Primary` | `#6c7fe8` | Actions primaires |
+| `Primary Strong` | `#5a68d6` | Primary hover/actif |
+| `Primary Press` | `#4d5ac4` | Primary pressed |
+| `Primary Light` | `#aab4f3` | Primary atténué |
+| `Text/Primary` | `#eceefb` | Texte principal |
+| `Text/Secondary` | `#a4add0` | Texte secondaire |
+| `Text/Muted` | `#7e87a8` | Texte tertiaire |
+| `Border/Medium` | `#2e3450` | Bordures standard |
+| `Border/Strong` | `#232142` | Bordures marquées |
+| `Border/Light` | `#3a4682` | Bordures discrètes |
+| `Border/Selected` | `#7c3aed` | État sélectionné |
+
+**Collection `Rôles`** (couleur d'accent par rôle utilisateur) :
+
+| Rôle | Couleur |
+|------|---------|
+| `Admin` | `#9b8af2` |
+| `Manager` | `#f0a33b` |
+| `Serveur` | `#34c77b` |
+| `Barman` | `#4fc3f7` |
+
+**Collection `OpenBar DS`** (statuts, stock, types — extrait complet dans le code source des tokens implémentés, cf. #152) :
+
+| Groupe | Tokens |
+|--------|--------|
+| Statut commande | `Status/Waiting` `#f4a52a`, `InProgress` `#2ba8e8`, `Ready` `#2fbf6b`, `Served` `#6e7aa8`, `Canceled` `#e5604f`, `Prioritary` `#ffd700` |
+| Statut table | `Table/Free`, `Occupied`, `Reserved`, `InProgress`, `AwaitingPayment` |
+| Niveau stock | `Stock/Normal` `#2fbf6b`, `Low` `#f4a52a`, `Critical` `#e5604f` |
+| Sémantique | `Semantic/Success`, `Warning`, `Danger`, `Info` |
+
+**Collections `Space`** (4/8/12/16/20/24/32/40px) et **`Radius`** (SM 6px → PILL 999px).
 
 ### 7.2 Inventaire des composants
 
@@ -489,6 +520,24 @@ try {
 - [x] ~~Saisonnalité cocktails~~ — fait (PR #102)
 - [ ] Alertes stock configurables — seuils par ingrédient
 - [ ] Historique / audit complet — `AuditLogService` déjà en place + tests écrits
+- [ ] **Personnalisation admin (branding)** — voir spec détaillée ci-dessous (#153)
+
+#### Spec — Personnalisation admin (branding)
+
+**Objectif** : permettre à un compte `ADMIN` de personnaliser l'identité visuelle de l'application sans intervention technique (utile en cas de déploiement multi-établissement ou de changement de charte).
+
+**Accès** : route `/admin/personnalisation`, protégée par `AdminGuard` + `@PreAuthorize("hasRole('ADMIN')")` côté backend. Lien dédié dans la navbar admin.
+
+**Fonctionnalités** :
+1. **Couleurs de la charte** — édition des tokens `Primary` et `Primary Strong` (color picker), avec aperçu live appliqué aux composants `ActionButton`/`NavBar` avant sauvegarde. Les tokens de statut (commande/stock/table) restent fixes — non personnalisables, car porteurs de sens fonctionnel (ex: rouge = urgence) qu'il ne faut pas laisser un admin casser par erreur.
+2. **Logo et nom d'établissement** — upload d'image (PNG/JPG/SVG, taille max à définir en implémentation, ex. 2 Mo), affiché dans la navbar et l'écran de login ; champ texte libre pour le nom affiché (remplace "OpenBar" dans l'UI).
+3. **Thème par défaut** — choix Clair/Sombre appliqué à la première connexion d'un utilisateur (préférence individuelle non écrasée si l'utilisateur a déjà fait un choix local). **Limite connue** : le thème Clair n'est pas encore designé dans Figma (placeholder noir, cf. #154) — l'option reste visible dans l'UI mais désactivée/grisée avec message explicatif tant que #154 n'est pas résolu.
+
+**Persistance** : entité singleton `AppSettings` (une seule ligne en base, id fixe) — `primaryColor`, `primaryColorStrong`, `logoUrl`, `establishmentName`, `defaultTheme`. Table créée via `schema.sql`, valeurs par défaut = tokens Figma actuels.
+
+**Application dynamique** : au chargement de l'app, un `AppSettingsService` frontend récupère les réglages via `GET /api/settings` (public, pas d'auth requise — nécessaire dès l'écran de login) et injecte les couleurs comme CSS custom properties sur `:root`, en surcouche des tokens par défaut du design system.
+
+**Hors scope explicite** : personnalisation par rôle (les couleurs Admin/Manager/Serveur/Barman restent fixes), thèmes multiples sauvegardés/historique de versions, personnalisation par établissement dans une architecture multi-tenant (l'app reste mono-instance, cf. décision actée §11).
 
 ---
 
