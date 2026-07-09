@@ -1,23 +1,130 @@
-/* Design System OpenBar — Figma XSVwFk64kgtqgUN9n5qoMw */
+/* Design System OpenBar — Figma XSVwFk64kgtqgUN9n5qoMw (node-id=0:1)
+ * Source de vérité : Variables Figma (collections Thème, Rôles, OpenBar DS, Space, Radius).
+ * Le mode Light de la collection "Thème" est un placeholder non designé côté Figma
+ * (toutes les valeurs y sont #000000) — voir ticket #154. Seul le mode Dark est implémenté.
+ */
 :root {
-  --background-surface-1: #0d1021;
+  /* Thème — Background */
+  --background-bg-0: #0f0f1a;
+  --background-bg-1: #15151f;
+  --background-surface-1: #1a1a2e;
   --background-surface-2: #21263f;
   --background-surface-3: #2a3050;
-  --primary-strong: #5a68d6;
+
+  /* Thème — Primary */
   --primary: #6c7fe8;
-  --semantic-danger: #e5604f;
-  --semantic-warning: #f59e0b;
-  --semantic-success: #10b981;
+  --primary-strong: #5a68d6;
+  --primary-press: #4d5ac4;
+  --primary-light: #aab4f3;
+
+  /* Thème — Text */
   --text-primary: #eceefb;
+  --text-secondary: #a4add0;
   --text-muted: #7e87a8;
+
+  /* Thème — Border */
   --border-medium: #2e3450;
+  --border-strong: #232142;
+  --border-light: #3a4682;
   --border-selected: #7c3aed;
+
+  /* Rôles — couleur d'accent par rôle utilisateur */
+  --role-admin: #9b8af2;
+  --role-manager: #f0a33b;
+  --role-serveur: #34c77b;
+  --role-barman: #4fc3f7;
+  --role-admin-15: #9b8af226;
+  --role-manager-15: #f0a33b26;
+  --role-serveur-15: #34c77b26;
+  --role-barman-15: #4fc3f726;
+
+  /* OpenBar DS — Statut commande */
+  --status-waiting: #f4a52a;
+  --status-inprogress: #2ba8e8;
+  --status-ready: #2fbf6b;
+  --status-served: #6e7aa8;
+  --status-canceled: #e5604f;
+  --status-prioritary: #ffd700;
+  --status-waiting-15: #f4a52a26;
+  --status-inprogress-15: #2ba8e826;
+  --status-ready-15: #2fbf6b26;
+  --status-served-15: #6e7aa826;
+  --status-canceled-15: #e5604f26;
+  --status-prioritary-15: #ffd70026;
+
+  /* OpenBar DS — Statut table */
+  --table-free: #26ae60;
+  --table-occupied: #e67e22;
+  --table-reserved: #00ffff;
+  --table-inprogress: #3498db;
+  --table-awaiting-payment: #9b59b4;
+
+  /* OpenBar DS — Niveau stock */
+  --stock-normal: #2fbf6b;
+  --stock-low: #f4a52a;
+  --stock-critical: #e5604f;
+  --stock-normal-15: #2fbf6b26;
+  --stock-low-15: #f4a52a26;
+  --stock-critical-15: #e5604f26;
+
+  /* OpenBar DS — Sémantique */
+  --semantic-success: #2fbf6b;
+  --semantic-warning: #f4a52a;
+  --semantic-danger: #e5604f;
+  --semantic-info: #2ba8e8;
+
+  /* OpenBar DS — Types boissons/plats */
+  --types-snacks: #0051ff;
+  --types-food: #b300ff;
+  --types-alcoholic: #00ff90;
+  --types-nonalcoholic: #00aaff;
+  --types-shot: #d9ff00;
+  --types-cocktail: #ff8800;
+  --types-mocktail: #ff0000;
+  --types-beer: #ffd900;
+
+  /* OpenBar DS — Saisonnalité */
+  --season-inseason: #2eac48;
+  --season-offseason: #ff9500;
+  --season-soon: #00bbff;
+
+  /* Space */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 32px;
+  --space-8: 40px;
+
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-pill: 999px;
 }
 
+/* Mapping vers les variables Ionic — appliqué en dark uniquement pour l'instant (cf. #154) */
 .ios body,
 .md body {
-  --ion-background-color: var(--background-surface-1);
-  --ion-color-primary: var(--primary);
-  --ion-color-danger: var(--semantic-danger);
+  --ion-background-color: var(--background-bg-0);
   --ion-text-color: var(--text-primary);
+
+  --ion-color-primary: var(--primary);
+  --ion-color-primary-rgb: 108, 127, 232;
+  --ion-color-primary-contrast: var(--text-primary);
+  --ion-color-primary-contrast-rgb: 236, 238, 251;
+  --ion-color-primary-shade: var(--primary-strong);
+  --ion-color-primary-tint: var(--primary-light);
+
+  --ion-color-danger: var(--semantic-danger);
+  --ion-color-success: var(--semantic-success);
+  --ion-color-warning: var(--semantic-warning);
+  --ion-color-info: var(--semantic-info);
+
+  --ion-item-background: var(--background-surface-1);
+  --ion-toolbar-background: var(--background-surface-1);
+  --ion-border-color: var(--border-medium);
 }
