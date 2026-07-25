@@ -2,7 +2,7 @@ import { Component, Input } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { IonBadge } from '@ionic/angular/standalone';
 
-export type CommandeStatus = 'EN_ATTENTE' | 'EN_PREPARATION' | 'PRET' | 'LIVREE' | 'REGLEE' | 'ANNULEE' | 'PENDING' | 'IN_PROGRESS' | 'READY' | 'SERVED' | 'CANCELLED';
+export type CommandeStatus = 'EN_ATTENTE' | 'EN_PREPARATION' | 'PRET' | 'LIVREE' | 'REGLEE' | 'ANNULEE' | 'PENDING' | 'IN_PROGRESS' | 'READY' | 'SERVED' | 'CANCELLED' | 'PRIORITAIRE';
 
 @Component({
   selector: 'app-status-badge',
@@ -13,8 +13,12 @@ export type CommandeStatus = 'EN_ATTENTE' | 'EN_PREPARATION' | 'PRET' | 'LIVREE'
 })
 export class StatusBadgeComponent {
   @Input() status: CommandeStatus = 'EN_ATTENTE';
+  @Input() prioritary?: boolean = false;
 
   get badgeColor(): string {
+    if (this.prioritary || this.status === 'PRIORITAIRE') {
+      return 'tertiary';
+    }
     switch (this.status) {
       case 'EN_ATTENTE':
       case 'PENDING':
@@ -38,6 +42,9 @@ export class StatusBadgeComponent {
   }
 
   get label(): string {
+    if (this.prioritary || this.status === 'PRIORITAIRE') {
+      return '⚡ Prioritaire';
+    }
     switch (this.status) {
       case 'EN_ATTENTE':
       case 'PENDING':
@@ -61,3 +68,4 @@ export class StatusBadgeComponent {
     }
   }
 }
+

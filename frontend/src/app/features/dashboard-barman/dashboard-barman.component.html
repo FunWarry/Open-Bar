@@ -2,7 +2,7 @@
   <ion-toolbar class="barman-toolbar">
     <ion-title>
       <span class="toolbar-title">🍹 OpenBar</span>
-      <span class="toolbar-role">BARTENDER</span>
+      <app-role-badge role="BARMAN"></app-role-badge>
     </ion-title>
   </ion-toolbar>
 </ion-header>
@@ -36,9 +36,11 @@
             (changerStatut)="onChangerStatut($event)">
           </app-commande-card>
 
-          <p *ngIf="commandesEnAttente.length === 0" class="empty-col">
-            Aucune commande en attente
-          </p>
+          <app-empty-state
+            *ngIf="commandesEnAttente.length === 0"
+            title="Aucune commande en attente"
+            icon="time-outline">
+          </app-empty-state>
         </div>
       </ion-col>
 
@@ -59,9 +61,11 @@
             (changerStatut)="onChangerStatut($event)">
           </app-commande-card>
 
-          <p *ngIf="commandesEnPreparation.length === 0" class="empty-col">
-            Aucune commande en préparation
-          </p>
+          <app-empty-state
+            *ngIf="commandesEnPreparation.length === 0"
+            title="Aucune commande en préparation"
+            icon="wine-outline">
+          </app-empty-state>
         </div>
       </ion-col>
 
@@ -82,12 +86,15 @@
             (changerStatut)="onChangerStatut($event)">
           </app-commande-card>
 
-          <p *ngIf="commandesPret.length === 0" class="empty-col">
-            Aucune commande prête
-          </p>
+          <app-empty-state
+            *ngIf="commandesPret.length === 0"
+            title="Aucune commande prête"
+            icon="checkmark-done-outline">
+          </app-empty-state>
         </div>
       </ion-col>
 
     </ion-row>
   </ion-grid>
 </ion-content>
+
