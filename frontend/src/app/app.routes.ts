@@ -1,12 +1,18 @@
 import {Routes} from '@angular/router';
 import {AuthGuard} from './core/guards/auth.guard';
 import {RoleGuard} from './core/guards/role.guard';
+import {SetupGuard} from './core/guards/setup.guard';
 
 export const routes: Routes = [
   {
     path: '',
     redirectTo: 'auth/login',
     pathMatch: 'full'
+  },
+  {
+    path: 'setup',
+    loadComponent: () => import('./features/setup/setup.component').then(m => m.SetupComponent),
+    canActivate: [SetupGuard]
   },
   {
     path: 'app-home',

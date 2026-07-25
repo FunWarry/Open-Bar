@@ -1,0 +1,70 @@
+<div class="setup-container">
+  <ion-card class="setup-card">
+    <ion-card-header>
+      <ion-card-title>Bienvenue dans OpenBar !</ion-card-title>
+      <ion-card-subtitle>Configuration initiale — Création du premier compte Administrateur</ion-card-subtitle>
+    </ion-card-header>
+    <ion-card-content>
+      <form [formGroup]="setupForm" (ngSubmit)="onSubmit()">
+        <ion-item>
+          <ion-label position="floating">Nom d'utilisateur</ion-label>
+          <ion-input formControlName="username" type="text" required autocomplete="username"></ion-input>
+        </ion-item>
+        <ion-note color="danger" *ngIf="setupForm.get('username')?.touched && setupForm.get('username')?.hasError('required')">
+          Le nom d'utilisateur est requis
+        </ion-note>
+        <ion-note color="danger" *ngIf="setupForm.get('username')?.touched && setupForm.get('username')?.hasError('minlength')">
+          Le nom d'utilisateur doit faire au moins 3 caractères
+        </ion-note>
+
+        <ion-item>
+          <ion-label position="floating">Adresse Email</ion-label>
+          <ion-input formControlName="email" type="email" required autocomplete="email"></ion-input>
+        </ion-item>
+        <ion-note color="danger" *ngIf="setupForm.get('email')?.touched && setupForm.get('email')?.hasError('required')">
+          L'adresse email est requise
+        </ion-note>
+        <ion-note color="danger" *ngIf="setupForm.get('email')?.touched && setupForm.get('email')?.hasError('email')">
+          Veuillez saisir une adresse email valide
+        </ion-note>
+
+        <ion-item>
+          <ion-label position="floating">Nom</ion-label>
+          <ion-input formControlName="nom" type="text" autocomplete="family-name"></ion-input>
+        </ion-item>
+
+        <ion-item>
+          <ion-label position="floating">Prénom</ion-label>
+          <ion-input formControlName="prenom" type="text" autocomplete="given-name"></ion-input>
+        </ion-item>
+
+        <ion-item>
+          <ion-label position="floating">Mot de passe</ion-label>
+          <ion-input formControlName="password" type="password" required autocomplete="new-password"></ion-input>
+        </ion-item>
+        <ion-note color="danger" *ngIf="setupForm.get('password')?.touched && setupForm.get('password')?.hasError('required')">
+          Le mot de passe est requis
+        </ion-note>
+        <ion-note color="danger" *ngIf="setupForm.get('password')?.touched && setupForm.get('password')?.hasError('minlength')">
+          Le mot de passe doit faire au moins 6 caractères
+        </ion-note>
+
+        <ion-item>
+          <ion-label position="floating">Confirmer le mot de passe</ion-label>
+          <ion-input formControlName="confirmPassword" type="password" required autocomplete="new-password"></ion-input>
+        </ion-item>
+        <ion-note color="danger" *ngIf="setupForm.touched && setupForm.hasError('passwordMismatch')">
+          Les mots de passe ne correspondent pas
+        </ion-note>
+
+        <ion-note color="danger" *ngIf="errorMessage">
+          {{ errorMessage }}
+        </ion-note>
+
+        <ion-button expand="block" type="submit" [disabled]="setupForm.invalid || loading" class="ion-margin-top">
+          Créer le compte administrateur
+        </ion-button>
+      </form>
+    </ion-card-content>
+  </ion-card>
+</div>

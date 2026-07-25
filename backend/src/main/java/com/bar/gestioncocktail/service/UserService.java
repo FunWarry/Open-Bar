@@ -85,17 +85,4 @@ public class UserService implements UserDetailsService {
         userRepository.save(user);
     }
     
-    public void createAdminUser() {
-        if (!userRepository.existsByUsername("admin")) {
-            User admin = new User();
-            admin.setUsername("admin");
-            admin.setPassword(passwordEncoder.encode("admin"));
-            admin.setEmail("admin@cocktail.com");
-            admin.setRoles(Set.of(UserRole.ADMIN));
-            admin.setCreatedAt(LocalDateTime.now());
-            admin.setUpdatedAt(LocalDateTime.now());
-            userRepository.save(admin);
-        }
-    }
-    
-} 
+}

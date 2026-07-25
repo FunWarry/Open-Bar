@@ -8,11 +8,13 @@ import { of, BehaviorSubject } from 'rxjs';
 import { LoginComponent } from '../../../app/features/auth/login/login.component';
 import { login } from '../../../app/core/store/auth.actions';
 import { selectAuthError, selectIsAuthenticated } from '../../../app/core/store/auth.selectors';
+import { SetupService } from '../../../app/core/services/setup.service';
 
 describe('LoginComponent', () => {
   let component: LoginComponent;
   let mockStore: jasmine.SpyObj<Store>;
   let mockRouter: jasmine.SpyObj<Router>;
+  let mockSetupService: jasmine.SpyObj<SetupService>;
 
   let isAuthenticatedSubject: BehaviorSubject<boolean>;
   let authErrorSubject: BehaviorSubject<string | null>;
@@ -29,6 +31,9 @@ describe('LoginComponent', () => {
 
     mockRouter = jasmine.createSpyObj('Router', ['navigate']);
 
+    mockSetupService = jasmine.createSpyObj('SetupService', ['getStatus']);
+    mockSetupService.getStatus.and.returnValue(of({ initialized: true, userCount: 1 }));
+
     await TestBed.configureTestingModule({
       imports: [
         LoginComponent,
@@ -39,6 +44,7 @@ describe('LoginComponent', () => {
       providers: [
         { provide: Store, useValue: mockStore },
         { provide: Router, useValue: mockRouter },
+        { provide: SetupService, useValue: mockSetupService },
       ],
     }).compileComponents();
 

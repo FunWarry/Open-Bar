@@ -55,8 +55,6 @@ public class DockerDbInitializer {
                 waitForDb();
                 logger.info("Base de données disponible. Exécution du script schema.sql...");
                 runSchemaSql();
-                logger.info("Création de l'utilisateur administrateur...");
-                createAdminUser();
             } else {
                 logger.info("La base de données existe déjà et est accessible.");
             }
@@ -301,14 +299,5 @@ private boolean isDatabaseCreated() {
         }
     }
 
-    private void createAdminUser() {
-        try {
-            userService.createAdminUser();
-            logger.info("Utilisateur administrateur créé avec succès.");
-        } catch (Exception e) {
-            logger.severe("Erreur lors de la création de l'utilisateur administrateur: " + e.getMessage());
-            e.printStackTrace();
-            throw new RuntimeException("Erreur lors de la création de l'utilisateur administrateur", e);
-        }
-    }
+
 }
