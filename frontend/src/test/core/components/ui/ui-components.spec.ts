@@ -157,8 +157,13 @@ describe('Shared UI Components (Figma Design System)', () => {
       component.status = 'ANNULEE';
       expect(component.badgeColor).toBe('danger');
       expect(component.label).toBe('Annulée');
+
+      component.prioritary = true;
+      expect(component.badgeColor).toBe('tertiary');
+      expect(component.label).toBe('⚡ Prioritaire');
     });
   });
+
 
   describe('StockSeverityBadgeComponent', () => {
     let component: StockSeverityBadgeComponent;

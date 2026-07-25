@@ -13,10 +13,7 @@
           {{ tempsEcoule }}
         </span>
       </div>
-      <span class="statut-badge" [ngClass]="statutBadgeClass">
-        <span class="badge-dot"></span>
-        {{ statutLabel }}
-      </span>
+      <app-status-badge [status]="commande.statut" [prioritary]="commande.prioritaire"></app-status-badge>
     </div>
 
     <div class="divider"></div>
@@ -34,23 +31,24 @@
 
     <!-- Actions -->
     <div class="card-actions">
-      <ion-button
+      <app-action-button
         *ngIf="commande.statut === 'EN_ATTENTE'"
-        class="btn-start"
+        variant="primary"
+        icon="arrow-forward-circle-outline"
         expand="block"
-        (click)="onPrendreEnCharge()">
-        <ion-icon slot="start" name="arrow-forward-circle-outline"></ion-icon>
-        Start
-      </ion-button>
+        (btnClick)="onPrendreEnCharge()">
+        Démarrer
+      </app-action-button>
 
-      <ion-button
+      <app-action-button
         *ngIf="commande.statut === 'EN_PREPARATION'"
-        class="btn-ready"
+        variant="secondary"
+        icon="checkmark-circle-outline"
         expand="block"
-        (click)="onMarquerPret()">
-        <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
-        Mark ready
-      </ion-button>
+        (btnClick)="onMarquerPret()">
+        Marquer prêt
+      </app-action-button>
     </div>
   </div>
 </div>
+

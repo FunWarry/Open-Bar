@@ -14,6 +14,9 @@ import { NotificationService } from '../../core/services/notification.service';
 import { DashboardBarmanService } from './services/dashboard-barman.service';
 import { CommandeView } from './models/commande-view.model';
 
+import { RoleBadgeComponent } from '../../core/components/ui/role-badge/role-badge.component';
+import { EmptyStateComponent } from '../../core/components/ui/empty-state/empty-state.component';
+
 @Component({
   selector: 'app-dashboard-barman',
   standalone: true,
@@ -24,6 +27,8 @@ import { CommandeView } from './models/commande-view.model';
     IonGrid, IonRow, IonCol,
     CommandeCardComponent,
     StockAlertBannerComponent,
+    RoleBadgeComponent,
+    EmptyStateComponent,
   ],
   templateUrl: './dashboard-barman.component.html',
   styleUrls: ['./dashboard-barman.component.scss'],

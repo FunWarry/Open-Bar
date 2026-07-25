@@ -11,13 +11,18 @@ import {
 import { CommandeView } from '../../models/commande-view.model';
 import { interval, Subscription } from 'rxjs';
 
+import { StatusBadgeComponent } from '../../../../core/components/ui/status-badge/status-badge.component';
+import { ActionButtonComponent } from '../../../../core/components/ui/action-button/action-button.component';
+
 @Component({
   selector: 'app-commande-card',
   standalone: true,
   imports: [
     CommonModule,
     IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-    IonBadge, IonButton, IonIcon, IonChip, IonLabel
+    IonBadge, IonButton, IonIcon, IonChip, IonLabel,
+    StatusBadgeComponent,
+    ActionButtonComponent,
   ],
   templateUrl: './commande-card.component.html',
   styleUrls: ['./commande-card.component.scss'],
