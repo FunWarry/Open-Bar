@@ -26,6 +26,24 @@ describe('Shared UI Components (Figma Design System)', () => {
     it('devrait se créer avec les valeurs par défaut', () => {
       expect(component).toBeTruthy();
       expect(component.variant).toBe('primary');
+      expect(component.colorAttr).toBe('primary');
+      expect(component.fillAttr).toBe('solid');
+    });
+
+    it('calcule correctement colorAttr et fillAttr pour chaque variante', () => {
+      component.variant = 'danger';
+      expect(component.colorAttr).toBe('danger');
+      expect(component.fillAttr).toBe('solid');
+
+      component.variant = 'ghost';
+      expect(component.colorAttr).toBeUndefined();
+      expect(component.fillAttr).toBe('clear');
+
+      component.variant = 'secondary';
+      expect(component.fillAttr).toBe('outline');
+
+      component.variant = 'edit';
+      expect(component.fillAttr).toBe('outline');
     });
 
     it('émet un événement btnClick au clic quand non-désactivé', () => {
@@ -39,6 +57,72 @@ describe('Shared UI Components (Figma Design System)', () => {
       component.disabled = true;
       component.onClick(new MouseEvent('click'));
       expect(component.btnClick.emit).not.toHaveBeenCalled();
+
+      component.disabled = false;
+      component.loading = true;
+      component.onClick(new MouseEvent('click'));
+      expect(component.btnClick.emit).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('InputFieldComponent', () => {
+    let component: InputFieldComponent;
+    let fixture: ComponentFixture<InputFieldComponent>;
+
+    beforeEach(async () => {
+      await TestBed.configureTestingModule({ imports: [InputFieldComponent] }).compileComponents();
+      fixture = TestBed.createComponent(InputFieldComponent);
+      component = fixture.componentInstance;
+      fixture.detectChanges();
+    });
+
+    it('implémente correctement ControlValueAccessor', () => {
+      component.writeValue('Test Input');
+      expect(component.value).toBe('Test Input');
+
+      const fn = jasmine.createSpy('onChange');
+      component.registerOnChange(fn);
+
+      component.onInput({ target: { value: 'New Val' } } as any);
+      expect(component.value).toBe('New Val');
+      expect(fn).toHaveBeenCalledWith('New Val');
+
+      const touchFn = jasmine.createSpy('onTouched');
+      component.registerOnTouched(touchFn);
+      component.onBlur();
+      expect(touchFn).toHaveBeenCalled();
+
+      component.setDisabledState(true);
+      expect(component.disabled).toBeTrue();
+    });
+  });
+
+  describe('PasswordInputComponent', () => {
+    let component: PasswordInputComponent;
+    let fixture: ComponentFixture<PasswordInputComponent>;
+
+    beforeEach(async () => {
+      await TestBed.configureTestingModule({ imports: [PasswordInputComponent] }).compileComponents();
+      fixture = TestBed.createComponent(PasswordInputComponent);
+      component = fixture.componentInstance;
+      fixture.detectChanges();
+    });
+
+    it('bascule l\'affichage du mot de passe avec toggleVisibility', () => {
+      expect(component.showPassword).toBeFalse();
+      component.toggleVisibility();
+      expect(component.showPassword).toBeTrue();
+      component.toggleVisibility();
+      expect(component.showPassword).toBeFalse();
+    });
+
+    it('gère les saisies et les événements ControlValueAccessor', () => {
+      const fn = jasmine.createSpy('onChange');
+      component.registerOnChange(fn);
+
+      component.onInput({ target: { value: 'Secret123' } } as any);
+      expect(component.value).toBe('Secret123');
+      expect(fn).toHaveBeenCalledWith('Secret123');
     });
   });
 
@@ -54,6 +138,10 @@ describe('Shared UI Components (Figma Design System)', () => {
     });
 
     it('mappe correctement la couleur et le libellé selon le statut', () => {
+      component.status = 'EN_ATTENTE';
+      expect(component.badgeColor).toBe('warning');
+      expect(component.label).toBe('En attente');
+
       component.status = 'EN_PREPARATION';
       expect(component.badgeColor).toBe('primary');
       expect(component.label).toBe('En préparation');
@@ -61,6 +149,10 @@ describe('Shared UI Components (Figma Design System)', () => {
       component.status = 'PRET';
       expect(component.badgeColor).toBe('secondary');
       expect(component.label).toBe('Prêt');
+
+      component.status = 'LIVREE';
+      expect(component.badgeColor).toBe('success');
+      expect(component.label).toBe('Livrée');
 
       component.status = 'ANNULEE';
       expect(component.badgeColor).toBe('danger');
@@ -87,6 +179,10 @@ describe('Shared UI Components (Figma Design System)', () => {
       component.severity = 'FAIBLE';
       expect(component.badgeColor).toBe('warning');
       expect(component.label).toBe('Stock Faible');
+
+      component.severity = 'NORMAL';
+      expect(component.badgeColor).toBe('success');
+      expect(component.label).toBe('Stock Normal');
     });
   });
 
@@ -105,10 +201,22 @@ describe('Shared UI Components (Figma Design System)', () => {
       component.role = 'ADMIN';
       expect(component.badgeColor).toBe('danger');
       expect(component.icon).toBe('shield-checkmark');
+      expect(component.label).toBe('Admin');
+
+      component.role = 'MANAGER';
+      expect(component.badgeColor).toBe('warning');
+      expect(component.icon).toBe('briefcase');
+      expect(component.label).toBe('Manager');
 
       component.role = 'BARMAN';
       expect(component.badgeColor).toBe('tertiary');
       expect(component.icon).toBe('wine');
+      expect(component.label).toBe('Barman');
+
+      component.role = 'SERVEUR';
+      expect(component.badgeColor).toBe('primary');
+      expect(component.icon).toBe('restaurant');
+      expect(component.label).toBe('Serveur');
     });
   });
 
@@ -123,12 +231,21 @@ describe('Shared UI Components (Figma Design System)', () => {
       fixture.detectChanges();
     });
 
-    it('génère les initiales à partir du nom d\'utilisateur', () => {
+    it('génère les initiales et l\'icône de rôle', () => {
       component.name = 'Jean Dupont';
       expect(component.initials).toBe('JD');
 
       component.name = 'SingleName';
       expect(component.initials).toBe('SI');
+
+      component.name = undefined;
+      expect(component.initials).toBe('?');
+
+      component.role = 'BARMAN';
+      expect(component.roleIcon).toBe('wine');
+
+      component.role = undefined;
+      expect(component.roleIcon).toBe('person');
     });
   });
 
@@ -155,11 +272,16 @@ describe('Shared UI Components (Figma Design System)', () => {
       expect(component.valueChange.emit).toHaveBeenCalledWith(2);
     });
 
-    it('ne décrémente pas sous la valeur min', () => {
+    it('respecte les bornes min et max', () => {
       component.value = 1;
       component.min = 1;
       component.decrement();
       expect(component.value).toBe(1);
+
+      component.value = 99;
+      component.max = 99;
+      component.increment();
+      expect(component.value).toBe(99);
     });
   });
 
@@ -174,12 +296,16 @@ describe('Shared UI Components (Figma Design System)', () => {
       fixture.detectChanges();
     });
 
-    it('bascule l\'état actif au clic', () => {
+    it('bascule l\'état actif au clic si non désactivé', () => {
       spyOn(component.chipClick, 'emit');
       expect(component.active).toBeFalse();
       component.onClick();
       expect(component.active).toBeTrue();
       expect(component.chipClick.emit).toHaveBeenCalledWith(true);
+
+      component.disabled = true;
+      component.onClick();
+      expect(component.active).toBeTrue();
     });
   });
 

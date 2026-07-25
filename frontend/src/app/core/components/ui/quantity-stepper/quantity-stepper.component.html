@@ -4,6 +4,8 @@
     size="small"
     [disabled]="disabled || value <= min"
     (click)="decrement()"
+    (keyup.enter)="decrement()"
+    (keyup.space)="decrement()"
     class="stepper-btn">
     <ion-icon name="remove" slot="icon-only"></ion-icon>
   </ion-button>
@@ -13,6 +15,8 @@
     size="small"
     [disabled]="disabled || value >= max"
     (click)="increment()"
+    (keyup.enter)="increment()"
+    (keyup.space)="increment()"
     class="stepper-btn">
     <ion-icon name="add" slot="icon-only"></ion-icon>
   </ion-button>

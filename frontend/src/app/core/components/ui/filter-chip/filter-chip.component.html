@@ -3,7 +3,9 @@
   [outline]="!active"
   [disabled]="disabled"
   class="filter-chip"
-  (click)="onClick()">
+  (click)="onClick()"
+  (keyup.enter)="onClick()"
+  (keyup.space)="onClick()">
   <ion-icon *ngIf="icon" [name]="icon"></ion-icon>
   <ion-label>{{ label }}</ion-label>
 </ion-chip>

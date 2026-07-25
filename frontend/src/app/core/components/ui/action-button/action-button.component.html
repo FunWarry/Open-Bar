@@ -6,7 +6,9 @@
   [type]="type"
   [expand]="expand"
   [ngClass]="['btn-' + variant, 'btn-' + size]"
-  (click)="onClick($event)">
+  (click)="onClick($event)"
+  (keyup.enter)="onClick($event)"
+  (keyup.space)="onClick($event)">
   <ion-spinner *ngIf="loading" name="crescent" slot="start"></ion-spinner>
   <ion-icon *ngIf="icon && !loading" [name]="icon" [slot]="iconSlot === 'icon-only' ? 'icon-only' : iconSlot"></ion-icon>
   <ng-content *ngIf="iconSlot !== 'icon-only'"></ng-content>
