@@ -7,14 +7,20 @@ import {Store} from '@ngrx/store';
 import {login} from "../../../core/store/auth.actions";
 import {selectAuthError, selectIsAuthenticated} from '../../../core/store/auth.selectors';
 import {filter, take, Subscription} from 'rxjs';
-import {SetupService} from '../../../core/services/setup.service';
+import { SetupService } from '../../../core/services/setup.service';
+import { InputFieldComponent } from '../../../core/components/ui/input-field/input-field.component';
+import { PasswordInputComponent } from '../../../core/components/ui/password-input/password-input.component';
+import { ActionButtonComponent } from '../../../core/components/ui/action-button/action-button.component';
 
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css'],
   standalone: true,
-  imports: [IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonLabel, IonInput, IonButton, IonNote, NgIf, ReactiveFormsModule]
+  imports: [
+    IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonLabel, IonInput, IonButton, IonNote, NgIf, ReactiveFormsModule,
+    InputFieldComponent, PasswordInputComponent, ActionButtonComponent
+  ]
 })
 export class LoginComponent implements OnInit, OnDestroy {
   loginForm: FormGroup;

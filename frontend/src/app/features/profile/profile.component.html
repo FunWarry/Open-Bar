@@ -1,49 +1,63 @@
 <div class="profile-container">
-  <ion-card>
-    <ion-card-header>
+  <ion-card class="profile-card">
+    <ion-card-header class="profile-header">
+      <div class="avatar-wrapper">
+        <app-user-avatar
+          [name]="(currentUser$ | async)?.username"
+          [role]="$any((currentUser$ | async)?.roles?.[0])"
+          size="large">
+        </app-user-avatar>
+      </div>
       <ion-card-title>Mon Profil</ion-card-title>
     </ion-card-header>
+
     <ion-card-content>
       <form [formGroup]="profileForm" (ngSubmit)="onSubmit()">
-        <ion-item>
-          <ion-label position="floating">Nom d'utilisateur</ion-label>
-          <ion-input formControlName="username" required autocomplete="username"></ion-input>
-          <ion-note slot="error" *ngIf="profileForm.get('username')?.hasError('required') && profileForm.get('username')?.touched">
-            Le nom d'utilisateur est requis
-          </ion-note>
-        </ion-item>
+        <app-input-field
+          formControlName="username"
+          label="Nom d'utilisateur"
+          placeholder="Identifiant"
+          icon="person-outline"
+          [required]="true"
+          autocomplete="username"
+          [errorMessage]="profileForm.get('username')?.touched && profileForm.get('username')?.hasError('required') ? 'Le nom d\'utilisateur est requis' : undefined">
+        </app-input-field>
 
-        <ion-item>
-          <ion-label position="floating">Email</ion-label>
-          <ion-input formControlName="email" type="email" required autocomplete="email"></ion-input>
-          <ion-note slot="error" *ngIf="profileForm.get('email')?.hasError('required') && profileForm.get('email')?.touched">
-            L'email est requis
-          </ion-note>
-          <ion-note slot="error" *ngIf="profileForm.get('email')?.hasError('email') && profileForm.get('email')?.touched">
-            Format d'email invalide
-          </ion-note>
-        </ion-item>
+        <app-input-field
+          formControlName="email"
+          label="Email"
+          type="email"
+          placeholder="Adresse email"
+          icon="mail-outline"
+          [required]="true"
+          autocomplete="email"
+          [errorMessage]="profileForm.get('email')?.touched && profileForm.get('email')?.hasError('required') ? 'L\'email est requis' : (profileForm.get('email')?.touched && profileForm.get('email')?.hasError('email') ? 'Format d\'email invalide' : undefined)">
+        </app-input-field>
 
-        <ion-item>
-          <ion-label position="floating">Nouveau mot de passe</ion-label>
-          <ion-input formControlName="newPassword" type="password" autocomplete="new-password"></ion-input>
-          <ion-note slot="error" *ngIf="profileForm.get('newPassword')?.hasError('minlength') && profileForm.get('newPassword')?.touched">
-            Le mot de passe doit contenir au moins 6 caractères
-          </ion-note>
-        </ion-item>
+        <app-password-input
+          formControlName="newPassword"
+          label="Nouveau mot de passe"
+          placeholder="Laissez vide pour ne pas modifier"
+          autocomplete="new-password"
+          [errorMessage]="profileForm.get('newPassword')?.touched && profileForm.get('newPassword')?.hasError('minlength') ? 'Le mot de passe doit contenir au moins 6 caractères' : undefined">
+        </app-password-input>
 
-        <ion-item>
-          <ion-label position="floating">Confirmer le mot de passe</ion-label>
-          <ion-input formControlName="confirmPassword" type="password" autocomplete="new-password"></ion-input>
-          <ion-note slot="error" *ngIf="profileForm.hasError('passwordMismatch') && profileForm.get('confirmPassword')?.touched">
-            Les mots de passe ne correspondent pas
-          </ion-note>
-        </ion-item>
+        <app-password-input
+          formControlName="confirmPassword"
+          label="Confirmer le mot de passe"
+          placeholder="Confirmez le nouveau mot de passe"
+          autocomplete="new-password"
+          [errorMessage]="profileForm.get('confirmPassword')?.touched && profileForm.hasError('passwordMismatch') ? 'Les mots de passe ne correspondent pas' : undefined">
+        </app-password-input>
 
         <div class="form-actions">
-          <ion-button expand="block" color="primary" type="submit" [disabled]="profileForm.invalid">
+          <app-action-button
+            type="submit"
+            variant="primary"
+            expand="block"
+            [disabled]="profileForm.invalid">
             Enregistrer les modifications
-          </ion-button>
+          </app-action-button>
         </div>
       </form>
     </ion-card-content>
@@ -57,9 +71,10 @@
       <div class="info-item">
         <span class="label">Rôles :</span>
         <span class="value roles-list">
-          <ion-badge *ngFor="let role of (currentUser$ | async)?.roles" color="primary">
-            {{ role }}
-          </ion-badge>
+          <app-role-badge
+            *ngFor="let role of (currentUser$ | async)?.roles"
+            [role]="$any(role)">
+          </app-role-badge>
         </span>
       </div>
       <div class="info-item">
@@ -73,3 +88,4 @@
     </ion-card-content>
   </ion-card>
 </div>
+
