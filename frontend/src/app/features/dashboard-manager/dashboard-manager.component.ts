@@ -9,7 +9,9 @@ import {
   IonCard, IonCardContent, IonCardHeader, IonCardTitle,
   IonBadge,
 } from '@ionic/angular/standalone';
-import { StatCardComponent } from './components/stat-card/stat-card.component';
+import { StatCardComponent } from '../../core/components/ui/stat-card/stat-card.component';
+import { RoleBadgeComponent } from '../../core/components/ui/role-badge/role-badge.component';
+import { EmptyStateComponent } from '../../core/components/ui/empty-state/empty-state.component';
 import { DashboardManagerService } from './services/dashboard-manager.service';
 import { DashboardStats, TopCocktail } from './models/dashboard-stats.model';
 
@@ -24,6 +26,8 @@ import { DashboardStats, TopCocktail } from './models/dashboard-stats.model';
     IonCard, IonCardContent, IonCardHeader, IonCardTitle,
     IonBadge,
     StatCardComponent,
+    RoleBadgeComponent,
+    EmptyStateComponent,
   ],
   templateUrl: './dashboard-manager.component.html',
   styleUrls: ['./dashboard-manager.component.scss'],

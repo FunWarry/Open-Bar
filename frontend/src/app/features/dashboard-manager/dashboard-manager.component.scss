@@ -3,6 +3,18 @@
 // primary: #6c7fe8    |  border-medium: #2e3450
 // text-primary: #eceefb  |  text-muted: #7e87a8
 
+.manager-toolbar {
+  --background: var(--background-surface-1, #1a1a2e);
+  --border-color: var(--border-medium, #2e3450);
+
+  .toolbar-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary, #eceefb);
+    margin-right: 12px;
+  }
+}
+
 .stats-grid {
   padding: 8px;
 }
