@@ -6,6 +6,7 @@ import com.bar.gestioncocktail.dto.UserResponseDTO;
 import com.bar.gestioncocktail.service.SetupService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/setup")
+@CrossOrigin(origins = "*")
 public class SetupController {
 
     private final SetupService setupService;
