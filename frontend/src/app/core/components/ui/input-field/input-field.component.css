@@ -1,0 +1,16 @@
+:host {
+  display: block;
+  margin-bottom: 0.75rem;
+}
+
+.input-field-item {
+  --background: var(--ion-item-background, #1e1e1e);
+  --border-radius: 8px;
+}
+
+.field-note {
+  display: block;
+  margin-top: 4px;
+  padding-left: 16px;
+  font-size: 0.75rem;
+}

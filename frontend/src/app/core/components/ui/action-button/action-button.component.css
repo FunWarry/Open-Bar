@@ -1,0 +1,13 @@
+:host {
+  display: inline-block;
+}
+
+ion-button.btn-mark {
+  --background: var(--color-gold, #f5a623);
+  --color: #ffffff;
+}
+
+ion-button.btn-edit {
+  --color: var(--primary, #6c7fe8);
+  --border-color: var(--primary, #6c7fe8);
+}

@@ -1,0 +1,20 @@
+<ion-item class="input-field-item">
+  <ion-icon *ngIf="icon" [name]="icon" slot="start"></ion-icon>
+  <ion-label *ngIf="label" position="floating">{{ label }}</ion-label>
+  <ion-input
+    [type]="type"
+    [value]="value"
+    [placeholder]="placeholder"
+    [disabled]="disabled"
+    [required]="required"
+    [autocomplete]="autocomplete"
+    (ionInput)="onInput($event)"
+    (ionBlur)="onBlur()">
+  </ion-input>
+</ion-item>
+<ion-note color="danger" *ngIf="errorMessage" class="field-note">
+  {{ errorMessage }}
+</ion-note>
+<ion-note color="medium" *ngIf="helperText && !errorMessage" class="field-note">
+  {{ helperText }}
+</ion-note>

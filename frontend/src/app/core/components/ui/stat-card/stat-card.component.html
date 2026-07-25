@@ -1,0 +1,13 @@
+<ion-card class="stat-card">
+  <ion-card-content>
+    <div class="stat-header">
+      <span class="stat-title">{{ title }}</span>
+      <ion-icon *ngIf="icon" [name]="icon" class="stat-icon"></ion-icon>
+    </div>
+    <div class="stat-value">{{ value }}</div>
+    <div *ngIf="trend" class="stat-trend" [ngClass]="'trend-' + trendDirection">
+      <ion-icon [name]="trendDirection === 'up' ? 'trending-up' : (trendDirection === 'down' ? 'trending-down' : 'remove')"></ion-icon>
+      <span>{{ trend }}</span>
+    </div>
+  </ion-card-content>
+</ion-card>

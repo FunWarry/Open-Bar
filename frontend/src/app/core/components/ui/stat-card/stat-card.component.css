@@ -1,0 +1,50 @@
+.stat-card {
+  margin: 0;
+  border-radius: 12px;
+  background: var(--ion-card-background, #1e1e1e);
+}
+
+.stat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.stat-title {
+  font-size: 0.85rem;
+  color: var(--ion-color-medium, #a0a0a0);
+  font-weight: 500;
+}
+
+.stat-icon {
+  font-size: 1.25rem;
+  color: var(--primary, #6c7fe8);
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--ion-text-color, #ffffff);
+  margin-bottom: 4px;
+}
+
+.stat-trend {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.trend-up {
+  color: var(--ion-color-success, #2dd36f);
+}
+
+.trend-down {
+  color: var(--ion-color-danger, #eb445a);
+}
+
+.trend-neutral {
+  color: var(--ion-color-medium, #92949c);
+}
