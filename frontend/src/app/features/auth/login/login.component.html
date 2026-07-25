@@ -5,29 +5,36 @@
     </ion-card-header>
     <ion-card-content>
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-        <ion-item>
-          <ion-label position="floating">Nom d'utilisateur</ion-label>
-          <ion-input formControlName="username" type="text" required autocomplete="username"></ion-input>
-        </ion-item>
-        <ion-note color="danger" *ngIf="loginForm.get('username')?.touched && loginForm.get('username')?.hasError('required')">
-          Le nom d'utilisateur est requis
-        </ion-note>
+        <app-input-field
+          formControlName="username"
+          label="Nom d'utilisateur"
+          placeholder="Entrez votre identifiant"
+          icon="person-outline"
+          [required]="true"
+          autocomplete="username"
+          [errorMessage]="loginForm.get('username')?.touched && loginForm.get('username')?.hasError('required') ? 'Le nom d\'utilisateur est requis' : undefined">
+        </app-input-field>
 
-        <ion-item>
-          <ion-label position="floating">Mot de passe</ion-label>
-          <ion-input formControlName="password" type="password" required autocomplete="current-password"></ion-input>
-        </ion-item>
-        <ion-note color="danger" *ngIf="loginForm.get('password')?.touched && loginForm.get('password')?.hasError('required')">
-          Le mot de passe est requis
-        </ion-note>
+        <app-password-input
+          formControlName="password"
+          label="Mot de passe"
+          placeholder="Entrez votre mot de passe"
+          [required]="true"
+          autocomplete="current-password"
+          [errorMessage]="loginForm.get('password')?.touched && loginForm.get('password')?.hasError('required') ? 'Le mot de passe est requis' : undefined">
+        </app-password-input>
 
         <ion-note color="danger" *ngIf="errorMessage">
           {{ errorMessage }}
         </ion-note>
 
-        <ion-button expand="block" type="submit" [disabled]="loginForm.invalid" class="ion-margin-top">
+        <app-action-button
+          type="submit"
+          variant="primary"
+          expand="block"
+          [disabled]="loginForm.invalid">
           Se connecter
-        </ion-button>
+        </app-action-button>
       </form>
     </ion-card-content>
   </ion-card>

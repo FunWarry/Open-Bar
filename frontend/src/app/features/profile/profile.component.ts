@@ -10,6 +10,12 @@ import {
 } from '@ionic/angular/standalone';
 import {NgIf, NgFor, AsyncPipe, DatePipe} from '@angular/common';
 
+import { UserAvatarComponent } from '../../core/components/ui/user-avatar/user-avatar.component';
+import { InputFieldComponent } from '../../core/components/ui/input-field/input-field.component';
+import { PasswordInputComponent } from '../../core/components/ui/password-input/password-input.component';
+import { ActionButtonComponent } from '../../core/components/ui/action-button/action-button.component';
+import { RoleBadgeComponent } from '../../core/components/ui/role-badge/role-badge.component';
+
 @Component({
   selector: 'app-profile',
   templateUrl: './profile.component.html',
@@ -18,7 +24,8 @@ import {NgIf, NgFor, AsyncPipe, DatePipe} from '@angular/common';
   imports: [
     IonCard, IonCardHeader, IonCardTitle, IonCardContent,
     IonItem, IonLabel, IonInput, IonButton, IonBadge, IonText, IonNote,
-    NgIf, NgFor, AsyncPipe, DatePipe, ReactiveFormsModule
+    NgIf, NgFor, AsyncPipe, DatePipe, ReactiveFormsModule,
+    UserAvatarComponent, InputFieldComponent, PasswordInputComponent, ActionButtonComponent, RoleBadgeComponent
   ]
 })
 export class ProfileComponent implements OnInit {

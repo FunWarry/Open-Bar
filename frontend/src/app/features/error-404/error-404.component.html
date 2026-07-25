@@ -1,12 +1,13 @@
-<h1>Error 404</h1>
+<div class="error-404-container">
+  <app-empty-state
+    title="Page non trouvée (404)"
+    description="Désolé, la page que vous recherchez n'existe pas ou a été déplacée."
+    icon="help-outline">
+    <app-action-button
+      variant="primary"
+      routerLink="/app-home">
+      Retourner à l'accueil
+    </app-action-button>
+  </app-empty-state>
+</div>
 
-<p>Page not found.</p>
-<p>Sorry, the page you are looking for does not exist.</p>
-<p>It might have been removed, had its name changed, or is temporarily unavailable.</p>
-<p>Please try the following:</p>
-<ul>
-  <li>Check the URL for typos.</li>
-  <li>Return to the <a href="/">home page</a>.</li>
-  <li>Contact support if you believe this is an error.</li>
-</ul>
-<p>Thank you for your understanding.</p>
