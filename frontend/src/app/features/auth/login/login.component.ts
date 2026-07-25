@@ -1,4 +1,4 @@
-import {Component, OnInit, OnDestroy} from '@angular/core';
+import {Component, OnInit, OnDestroy, inject} from '@angular/core';
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {Router} from '@angular/router';
 import {IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonLabel, IonInput, IonButton, IonNote} from '@ionic/angular/standalone';
@@ -7,6 +7,7 @@ import {Store} from '@ngrx/store';
 import {login} from "../../../core/store/auth.actions";
 import {selectAuthError, selectIsAuthenticated} from '../../../core/store/auth.selectors';
 import {filter, take, Subscription} from 'rxjs';
+import {SetupService} from '../../../core/services/setup.service';
 
 @Component({
   selector: 'app-login',
@@ -19,6 +20,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   loginForm: FormGroup;
   errorMessage: string | null = null;
   private subscriptions: Subscription[] = [];
+  private setupService = inject(SetupService);
 
   constructor(
     private fb: FormBuilder,
@@ -32,6 +34,16 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    const setupSub = this.setupService.getStatus().subscribe({
+      next: (status) => {
+        if (!status.initialized) {
+          this.router.navigate(['/setup']);
+        }
+      },
+      error: () => {}
+    });
+    this.subscriptions.push(setupSub);
+
     // Vérifier si l'utilisateur est déjà authentifié et rediriger si nécessaire
     const authSub = this.store.select(selectIsAuthenticated)
       .pipe(
