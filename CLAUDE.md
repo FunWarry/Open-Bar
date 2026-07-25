@@ -321,12 +321,13 @@ Pour les fichiers scopés par feature (ex : `fr/commandes.json`), déclarer le s
 
 ## Features implémentées vs. manquantes
 
-> Dernière mise à jour : 25 juillet 2026 — #163 (Configuration initiale admin), #153 (Personnalisation admin)
+> Dernière mise à jour : 25 juillet 2026 — #155 (Composants UI Figma), #163 (Configuration initiale admin)
 
 | Feature | Backend | Frontend | Tests |
 |---------|---------|----------|-------|
 | Auth JWT | ✅ | ✅ | ✅ |
 | Configuration initiale (/setup admin) | ✅ | ✅ | ✅ |
+| Bibliothèque composants UI Figma | — | ✅ | ✅ |
 | Refresh token JWT | ✅ | ✅ | ✅ |
 | Gestion users (admin) | ✅ | ✅ | ✅ |
 | Rôles ADMIN/MANAGER/SERVEUR/BARMAN | ✅ | ✅ | ✅ |
