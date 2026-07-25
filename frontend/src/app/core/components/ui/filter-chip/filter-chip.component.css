@@ -1,0 +1,10 @@
+:host {
+  display: inline-block;
+}
+
+.filter-chip {
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.85rem;
+  transition: all 0.2s ease-in-out;
+}

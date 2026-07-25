@@ -1,0 +1,9 @@
+<ion-chip
+  [color]="active ? 'primary' : 'medium'"
+  [outline]="!active"
+  [disabled]="disabled"
+  class="filter-chip"
+  (click)="onClick()">
+  <ion-icon *ngIf="icon" [name]="icon"></ion-icon>
+  <ion-label>{{ label }}</ion-label>
+</ion-chip>

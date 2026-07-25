@@ -1,0 +1,9 @@
+<ion-avatar [class]="'avatar-' + size">
+  <img *ngIf="avatarUrl" [src]="avatarUrl" [alt]="name || 'User Avatar'" />
+  <div *ngIf="!avatarUrl" class="avatar-fallback">
+    <span>{{ initials }}</span>
+  </div>
+  <div *ngIf="role" class="avatar-role-badge">
+    <ion-icon [name]="roleIcon"></ion-icon>
+  </div>
+</ion-avatar>

@@ -1,0 +1,47 @@
+:host {
+  display: inline-block;
+}
+
+ion-avatar {
+  position: relative;
+}
+
+ion-avatar.avatar-small {
+  width: 32px;
+  height: 32px;
+}
+
+ion-avatar.avatar-medium {
+  width: 44px;
+  height: 44px;
+}
+
+ion-avatar.avatar-large {
+  width: 64px;
+  height: 64px;
+}
+
+.avatar-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--primary, #6c7fe8);
+  color: #ffffff;
+  font-weight: 700;
+  border-radius: 50%;
+}
+
+.avatar-role-badge {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background: var(--ion-background-color, #1e1e1e);
+  border-radius: 50%;
+  padding: 2px;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
