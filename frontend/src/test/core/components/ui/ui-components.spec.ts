@@ -331,4 +331,42 @@ describe('Shared UI Components (Figma Design System)', () => {
       expect(component.actionClick.emit).toHaveBeenCalled();
     });
   });
+
+  describe('StatCardComponent', () => {
+    let component: StatCardComponent;
+    let fixture: ComponentFixture<StatCardComponent>;
+
+    beforeEach(async () => {
+      await TestBed.configureTestingModule({ imports: [StatCardComponent] }).compileComponents();
+      fixture = TestBed.createComponent(StatCardComponent);
+      component = fixture.componentInstance;
+      fixture.detectChanges();
+    });
+
+    it('devrait se créer et calculer displayTitle correctement', () => {
+      expect(component).toBeTruthy();
+      expect(component.displayTitle).toBe('');
+
+      component.label = 'Label Test';
+      expect(component.displayTitle).toBe('Label Test');
+
+      component.title = 'Title Test';
+      expect(component.displayTitle).toBe('Title Test');
+    });
+
+    it('accepte les entrées value, icon, trend, trendDirection, color', () => {
+      component.value = 100;
+      component.icon = 'cash-outline';
+      component.trend = '+12%';
+      component.trendDirection = 'up';
+      component.color = 'success';
+
+      expect(component.value).toBe(100);
+      expect(component.icon).toBe('cash-outline');
+      expect(component.trend).toBe('+12%');
+      expect(component.trendDirection).toBe('up');
+      expect(component.color).toBe('success');
+    });
+  });
 });
+

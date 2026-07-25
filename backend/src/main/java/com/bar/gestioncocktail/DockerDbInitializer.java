@@ -61,9 +61,9 @@ public class DockerDbInitializer {
 
             logger.info("Initialisation terminée avec succès.");
         } catch (Exception e) {
-            logger.severe("Erreur lors de l'initialisation Docker/DB: " + e.getMessage());
-            e.printStackTrace();
-            throw new RuntimeException("Erreur initialisation Docker/DB", e);
+            // Non-fatal: log warning but do not prevent application startup.
+            // JPA/Hikari will handle DB connectivity on first request.
+            logger.warning("Avertissement lors de l'initialisation Docker/DB (non bloquant): " + e.getMessage());
         }
     }
 
@@ -208,7 +208,8 @@ private boolean isDatabaseExists() {
             }
             
             // Vérifier si on peut se connecter à la base de données et si elle a une structure
-            try (Connection conn = DriverManager.getConnection(dbUrl, dbUser, dbPass)) {
+            // On utilise le DataSource Hikari injecté (déjà configuré et fonctionnel)
+            try (Connection conn = dataSource.getConnection()) {
                 logger.info("Connexion à la base de données réussie.");
                 
                 // Vérifier si la structure existe (vérifier l'existence d'une table importante)
@@ -238,7 +239,8 @@ private boolean isDatabaseExists() {
 }
 
 private boolean isDatabaseCreated() {
-    try (Connection conn = DriverManager.getConnection(dbUrl, dbUser, dbPass)) {
+    // Utilise le DataSource Hikari injecté pour éviter les problèmes d'auth SCRAM-SHA-256
+    try (Connection conn = dataSource.getConnection()) {
         logger.info("Connexion à la base de données réussie.");
         return true;
     } catch (SQLException e) {
@@ -248,10 +250,23 @@ private boolean isDatabaseCreated() {
 }
 
     private void startDockerCompose() throws IOException, InterruptedException {
-        File projectRoot = new File("backend/src/main/resources/docker-compose.yml").getAbsoluteFile().getParentFile();
+        // The working directory when running from Maven is the backend/ folder,
+        // so docker-compose.yml is at src/main/resources/docker-compose.yml
+        File dockerComposeFile = new File("src/main/resources/docker-compose.yml").getAbsoluteFile();
+        File projectRoot = dockerComposeFile.getParentFile();
         logger.info("Démarrage de docker-compose dans le répertoire: " + projectRoot.getAbsolutePath());
 
-        Process process = new ProcessBuilder("docker-compose", "up", "-d")
+        // Try docker compose v2 first, fall back to docker-compose v1
+        String[] command;
+        try {
+            Process check = new ProcessBuilder("docker", "compose", "version").start();
+            check.waitFor();
+            command = new String[]{"docker", "compose", "-f", dockerComposeFile.getAbsolutePath(), "up", "-d"};
+        } catch (Exception e) {
+            command = new String[]{"docker-compose", "-f", dockerComposeFile.getAbsolutePath(), "up", "-d"};
+        }
+
+        Process process = new ProcessBuilder(command)
                 .directory(projectRoot)
                 .redirectErrorStream(true)
                 .start();
