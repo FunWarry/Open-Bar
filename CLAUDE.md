@@ -321,13 +321,14 @@ Pour les fichiers scopés par feature (ex : `fr/commandes.json`), déclarer le s
 
 ## Features implémentées vs. manquantes
 
-> Dernière mise à jour : 25 juillet 2026 — #155 (Composants UI Figma), #163 (Configuration initiale admin)
+> Dernière mise à jour : 25 juillet 2026 — #155 (Composants UI Figma), #159 (Écrans Figma communs), #163 (Configuration initiale admin)
 
 | Feature | Backend | Frontend | Tests |
 |---------|---------|----------|-------|
 | Auth JWT | ✅ | ✅ | ✅ |
 | Configuration initiale (/setup admin) | ✅ | ✅ | ✅ |
 | Bibliothèque composants UI Figma | — | ✅ | ✅ |
+| Écrans Figma communs (Login, Register, Profile, 404, Loading) | — | ✅ | ✅ |
 | Refresh token JWT | ✅ | ✅ | ✅ |
 | Gestion users (admin) | ✅ | ✅ | ✅ |
 | Rôles ADMIN/MANAGER/SERVEUR/BARMAN | ✅ | ✅ | ✅ |
@@ -350,6 +351,7 @@ Pour les fichiers scopés par feature (ex : `fr/commandes.json`), déclarer le s
 | Vue Serveur (plan de salle + commandes) | ✅ | ✅ modal + nouvelle commande + kanban | ✅ |
 | Plan de salle interactif (Konva.js) | ❌ | ❌ | — |
 | Vue Client QR Code | ❌ | ❌ | — |
+
 
 ## Ajouter une nouvelle feature (checklist)
 
