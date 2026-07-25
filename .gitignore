@@ -4,9 +4,12 @@
 /dist
 /tmp
 /out-tsc
+out-tsc/
+/frontend/out-tsc/
 /bazel-out
 /target
 backend/target
+
 
 # Node
 /node_modules
