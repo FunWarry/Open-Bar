@@ -321,11 +321,12 @@ Pour les fichiers scopés par feature (ex : `fr/commandes.json`), déclarer le s
 
 ## Features implémentées vs. manquantes
 
-> Dernière mise à jour : 23 juin 2026 — #111–#115 (CRUDs), #117 (notifications), #106 (Vue Serveur)
+> Dernière mise à jour : 25 juillet 2026 — #163 (Configuration initiale admin), #153 (Personnalisation admin)
 
 | Feature | Backend | Frontend | Tests |
 |---------|---------|----------|-------|
 | Auth JWT | ✅ | ✅ | ✅ |
+| Configuration initiale (/setup admin) | ✅ | ✅ | ✅ |
 | Refresh token JWT | ✅ | ✅ | ✅ |
 | Gestion users (admin) | ✅ | ✅ | ✅ |
 | Rôles ADMIN/MANAGER/SERVEUR/BARMAN | ✅ | ✅ | ✅ |
