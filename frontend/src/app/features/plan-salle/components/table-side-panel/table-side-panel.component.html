@@ -1,0 +1,45 @@
+<div class="side-panel" [class.open]="isOpen" *ngIf="table">
+  <div class="side-panel__header">
+    <div class="title-group">
+      <h3>Table {{ table.numero }}</h3>
+      <ion-badge [color]="table.occupee ? 'warning' : 'success'">
+        {{ table.occupee ? 'Occupée' : 'Libre' }}
+      </ion-badge>
+    </div>
+    <ion-button fill="clear" (click)="onClose()">
+      <ion-icon name="close-outline"></ion-icon>
+    </ion-button>
+  </div>
+
+  <div class="side-panel__content">
+    <!-- Infos Générales -->
+    <div class="info-section">
+      <h4>DÉTAILS</h4>
+      <div class="field-row">
+        <label>Zone :</label>
+        <input type="text" [(ngModel)]="table.zone" class="dark-input" />
+      </div>
+      <div class="field-row">
+        <label>Capacité :</label>
+        <input type="number" [(ngModel)]="table.capacite" class="dark-input" min="1" />
+      </div>
+      <div class="field-row">
+        <label>Statut :</label>
+        <span>{{ table.occupee ? 'Occupée' : 'Disponible' }}</span>
+      </div>
+    </div>
+
+    <!-- Actions rapides -->
+    <div class="actions-section">
+      <h4>ACTIONS MANAGER</h4>
+      <div class="buttons-grid">
+        <app-action-button variant="secondary" icon="git-merge-outline" (btnClick)="onStartFusion()">
+          Fusionner
+        </app-action-button>
+        <app-action-button variant="primary" icon="save-outline" (btnClick)="onSave()">
+          Enregistrer
+        </app-action-button>
+      </div>
+    </div>
+  </div>
+</div>

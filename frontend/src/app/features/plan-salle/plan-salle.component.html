@@ -38,4 +38,13 @@
       <ion-icon name="save-outline"></ion-icon>
     </ion-fab-button>
   </ion-fab>
+
+  <!-- Side Panel Détail / Édition Table (Figma TableEditionSidePanel) -->
+  <app-table-side-panel
+    [table]="selectedTable"
+    [isOpen]="isSidePanelOpen"
+    (closePanel)="closeSidePanel()"
+    (saveTable)="onSaveTable($event)"
+    (startFusion)="onStartFusion($event)">
+  </app-table-side-panel>
 </ion-content>
