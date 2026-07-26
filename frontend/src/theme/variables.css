@@ -106,7 +106,35 @@
   --radius-pill: 999px;
 }
 
-/* Mapping vers les variables Ionic — appliqué en dark uniquement pour l'instant (cf. #154) */
+/* Thème Clair (.light-theme) — conçu pour conformité WCAG AA (ticket #154) */
+body.light-theme,
+.light-theme {
+  /* Thème — Background */
+  --background-bg-0: #f8fafc;
+  --background-bg-1: #f1f5f9;
+  --background-surface-1: #ffffff;
+  --background-surface-2: #f8fafc;
+  --background-surface-3: #e2e8f0;
+
+  /* Thème — Primary */
+  --primary: #4f46e5;
+  --primary-strong: #4338ca;
+  --primary-press: #3730a3;
+  --primary-light: #e0e7ff;
+
+  /* Thème — Text */
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+
+  /* Thème — Border */
+  --border-medium: #e2e8f0;
+  --border-strong: #cbd5e1;
+  --border-light: #f1f5f9;
+  --border-selected: #6366f1;
+}
+
+/* Mapping vers les variables Ionic — Dark (défaut) */
 .ios body,
 .md body {
   --ion-background-color: var(--background-bg-0);
@@ -128,3 +156,22 @@
   --ion-toolbar-background: var(--background-surface-1);
   --ion-border-color: var(--border-medium);
 }
+
+/* Mapping vers les variables Ionic — Light Mode */
+.ios body.light-theme,
+.md body.light-theme {
+  --ion-background-color: #f8fafc;
+  --ion-text-color: #0f172a;
+
+  --ion-color-primary: #4f46e5;
+  --ion-color-primary-rgb: 79, 70, 229;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #4338ca;
+  --ion-color-primary-tint: #e0e7ff;
+
+  --ion-item-background: #ffffff;
+  --ion-toolbar-background: #ffffff;
+  --ion-border-color: #e2e8f0;
+}
+
