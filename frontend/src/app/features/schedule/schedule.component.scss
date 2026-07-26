@@ -1,0 +1,209 @@
+// Schedule — Figma Vue 7 EDT Planning
+// Shift colors: Manager=#f5a623 (orange), Waiter=#4cd964 (green), Bartender=#5ac8fa (blue), DayOff=transparent
+
+.schedule-toolbar {
+  --background: var(--background-surface-1, #1a1a2e);
+  --border-color: var(--border-medium, #2e3450);
+  .toolbar-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary, #eceefb);
+  }
+}
+
+.schedule-content {
+  --background: var(--background-surface-1, #1a1a2e);
+}
+
+.schedule-container {
+  padding: 16px;
+}
+
+.schedule-top {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.week-label {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary, #eceefb);
+  flex: 1;
+}
+
+.nav-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+// Grid
+.schedule-grid {
+  border: 1px solid var(--border-medium, #2e3450);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.grid-header {
+  display: grid;
+  grid-template-columns: 150px repeat(7, 1fr);
+  background: var(--background-surface-2, #21263f);
+
+  &__employee {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: var(--text-muted, #7e87a8);
+    padding: 10px 12px;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+  }
+
+  &__day {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary, #eceefb);
+    padding: 10px 8px;
+    text-align: center;
+    border-left: 1px solid var(--border-medium, #2e3450);
+
+    &.today {
+      background: rgba(245, 166, 35, 0.15);
+      border: 2px solid #f5a623;
+      color: #f5a623;
+    }
+  }
+}
+
+.grid-row {
+  display: grid;
+  grid-template-columns: 150px repeat(7, 1fr);
+  border-top: 1px solid var(--border-medium, #2e3450);
+
+  &__employee {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--background-surface-2, #21263f);
+  }
+
+  &__cell {
+    padding: 6px 4px;
+    border-left: 1px solid var(--border-medium, #2e3450);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 52px;
+    transition: opacity 0.2s ease;
+
+    &.today-col {
+      border-left: 2px solid rgba(245, 166, 35, 0.3);
+      border-right: 2px solid rgba(245, 166, 35, 0.3);
+    }
+  }
+}
+
+.emp-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.emp-role {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted, #7e87a8);
+}
+
+.emp-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary, #eceefb);
+}
+
+// Shift color classes
+.shift--manager {
+  background: rgba(245, 166, 35, 0.85);
+  border-radius: 4px;
+  margin: 4px;
+}
+
+.shift--waiter {
+  background: rgba(76, 217, 100, 0.85);
+  border-radius: 4px;
+  margin: 4px;
+}
+
+.shift--bartender {
+  background: rgba(90, 200, 250, 0.85);
+  border-radius: 4px;
+  margin: 4px;
+}
+
+.shift--dayoff {
+  background: var(--background-surface-1, #1a1a2e);
+}
+
+.shift--empty {
+  background: transparent;
+}
+
+.shift-time {
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.7);
+  text-align: center;
+  line-height: 1.2;
+}
+
+// Bottom
+.schedule-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.legend {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted, #7e87a8);
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.dot--manager { background: #f5a623; }
+.dot--waiter { background: #4cd964; }
+.dot--bartender { background: #5ac8fa; }
+.dot--dayoff { background: var(--text-muted, #7e87a8); opacity: 0.3; }
+
+.summary {
+  font-size: 12px;
+  color: var(--text-muted, #7e87a8);
+}
+
+.loading-state {
+  display: flex;
+  justify-content: center;
+  padding: 48px;
+  font-size: 14px;
+  color: var(--text-muted, #7e87a8);
+}

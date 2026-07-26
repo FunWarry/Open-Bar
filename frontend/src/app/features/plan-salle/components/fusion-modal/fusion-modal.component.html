@@ -1,0 +1,43 @@
+<ion-header>
+  <ion-toolbar class="fusion-toolbar">
+    <ion-title>🔀 Confirmer la Fusion</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cancel()">
+        <ion-icon name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="fusion-content">
+  <div class="fusion-body">
+    <p class="fusion-text">
+      Voulez-vous vraiment fusionner la <strong>Table {{ sourceTable?.numero }}</strong> avec la <strong>Table {{ targetTable?.numero }}</strong> ?
+    </p>
+
+    <div class="fusion-details" *ngIf="sourceTable && targetTable">
+      <div class="table-box">
+        <span class="box-title">Source</span>
+        <span class="table-num">T{{ sourceTable.numero }}</span>
+        <span class="table-cap">{{ sourceTable.capacite }} places</span>
+      </div>
+
+      <ion-icon name="git-merge-outline" class="merge-icon"></ion-icon>
+
+      <div class="table-box">
+        <span class="box-title">Cible</span>
+        <span class="table-num">T{{ targetTable.numero }}</span>
+        <span class="table-cap">{{ targetTable.capacite }} places</span>
+      </div>
+    </div>
+
+    <p class="fusion-note">
+      Une commande commune sera créée et les deux tables seront regroupées en une seule table de {{ (sourceTable?.capacite || 0) + (targetTable?.capacite || 0) }} places.
+    </p>
+
+    <div class="modal-actions">
+      <app-action-button variant="secondary" (btnClick)="cancel()">Annuler</app-action-button>
+      <app-action-button variant="primary" icon="git-merge-outline" (btnClick)="confirm()">Fusionner</app-action-button>
+    </div>
+  </div>
+</ion-content>

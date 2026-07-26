@@ -12,8 +12,10 @@ import {
 import { StatCardComponent } from '../../core/components/ui/stat-card/stat-card.component';
 import { RoleBadgeComponent } from '../../core/components/ui/role-badge/role-badge.component';
 import { EmptyStateComponent } from '../../core/components/ui/empty-state/empty-state.component';
+import { KanbanBoardComponent } from './components/kanban-board/kanban-board.component';
 import { DashboardManagerService } from './services/dashboard-manager.service';
 import { DashboardStats, TopCocktail } from './models/dashboard-stats.model';
+import { OngoingOrder } from './models/ongoing-order.model';
 
 @Component({
   selector: 'app-dashboard-manager',
@@ -28,12 +30,14 @@ import { DashboardStats, TopCocktail } from './models/dashboard-stats.model';
     StatCardComponent,
     RoleBadgeComponent,
     EmptyStateComponent,
+    KanbanBoardComponent,
   ],
   templateUrl: './dashboard-manager.component.html',
   styleUrls: ['./dashboard-manager.component.scss'],
 })
 export class DashboardManagerComponent implements OnInit, OnDestroy {
   stats: DashboardStats | null = null;
+  ongoingOrders: OngoingOrder[] = [];
   loading = true;
   private readonly destroy$ = new Subject<void>();
 
@@ -43,12 +47,21 @@ export class DashboardManagerComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.chargerStats();
+    this.chargerOrders();
     // Polling automatique toutes les 30s
     timer(DashboardManagerComponent.REFRESH_INTERVAL_MS, DashboardManagerComponent.REFRESH_INTERVAL_MS).pipe(
       switchMap(() => this.dashboardService.getStats()),
       takeUntil(this.destroy$),
     ).subscribe({
       next: stats => { this.stats = stats; },
+      error: () => {},
+    });
+    // Polling orders toutes les 30s
+    timer(DashboardManagerComponent.REFRESH_INTERVAL_MS, DashboardManagerComponent.REFRESH_INTERVAL_MS).pipe(
+      switchMap(() => this.dashboardService.getOngoingOrders()),
+      takeUntil(this.destroy$),
+    ).subscribe({
+      next: orders => { this.ongoingOrders = orders; },
       error: () => {},
     });
   }
@@ -63,8 +76,17 @@ export class DashboardManagerComponent implements OnInit, OnDestroy {
     this.dashboardService.getStats()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: stats => { this.stats = stats; this.loading = false; },
-        error: () => { this.loading = false; this.stats = null; },
+         next: stats => { this.stats = stats; this.loading = false; },
+         error: () => { this.loading = false; this.stats = null; this.ongoingOrders = []; },
+      });
+  }
+
+  chargerOrders() {
+    this.dashboardService.getOngoingOrders()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: orders => this.ongoingOrders = orders,
+        error: () => this.ongoingOrders = [],
       });
   }
 

@@ -75,32 +75,13 @@
     </ion-card-content>
   </ion-card>
 
-  <!-- Répartition commandes par statut -->
+  <!-- Ongoing Orders — Kanban Figma 495:3673 -->
   <ion-card class="section-card">
     <ion-card-header>
-      <ion-card-title>📦 Répartition des Commandes</ion-card-title>
+      <ion-card-title>📋 Ongoing Orders</ion-card-title>
     </ion-card-header>
     <ion-card-content>
-      <div class="statut-row">
-        <span class="statut-label">En attente</span>
-        <ion-badge color="warning">{{ stats.commandesEnAttente }}</ion-badge>
-      </div>
-      <div class="statut-row">
-        <span class="statut-label">En préparation</span>
-        <ion-badge color="primary">{{ stats.commandesEnPreparation }}</ion-badge>
-      </div>
-      <div class="statut-row">
-        <span class="statut-label">Prêtes</span>
-        <ion-badge color="secondary">{{ stats.commandesPret }}</ion-badge>
-      </div>
-      <div class="statut-row">
-        <span class="statut-label">Livrées</span>
-        <ion-badge color="success">{{ stats.commandesLivrees }}</ion-badge>
-      </div>
-      <div class="statut-row total-row">
-        <span class="statut-label">Total journée</span>
-        <ion-badge color="dark">{{ stats.commandesTotales }}</ion-badge>
-      </div>
+      <app-kanban-board [orders]="ongoingOrders"></app-kanban-board>
     </ion-card-content>
   </ion-card>
 </ion-content>

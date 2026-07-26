@@ -22,6 +22,8 @@ import { selectIsAdmin } from '../../core/store/auth.selectors';
 import { TableBar } from '../../core/models/table.model';
 import { TablePosition } from './models/table-position.model';
 import { TableView } from '../dashboard-serveur/models/table-view.model';
+import { TableSidePanelComponent } from './components/table-side-panel/table-side-panel.component';
+import { FusionModalComponent } from './components/fusion-modal/fusion-modal.component';
 
 // Tokens couleur Figma — design system OpenBar
 const COULEUR_LIBRE   = '#27ae60';
@@ -38,6 +40,7 @@ const COLS               = 5;
     CommonModule,
     IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
     IonFab, IonFabButton, IonBadge, IonSpinner,
+    TableSidePanelComponent, FusionModalComponent,
   ],
   templateUrl: './plan-salle.component.html',
   styleUrls: ['./plan-salle.component.scss'],
@@ -50,6 +53,12 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
   isEditMode = false;
   isAdmin = false;
   hasUnsavedChanges = false;
+
+  // Side Panel & Fusion
+  selectedTable: TableBar | null = null;
+  isSidePanelOpen = false;
+  fusionSourceTable: TableBar | null = null;
+  isFusionMode = false;
 
   private stage!: Konva.Stage;
   private layer!: Konva.Layer;
@@ -219,23 +228,68 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
   // ─── Actions ───────────────────────────────────────────────────────────────
 
   async onClickTable(table: TableBar) {
-    const tableView: TableView = {
-      id: table.id,
-      nom: `Table ${table.numero}`,
-      zone: table.zone,
-      capacite: table.capacite,
-      occupee: table.occupee,
-      commandesActives: [],
-    };
+    if (this.isFusionMode && this.fusionSourceTable && this.fusionSourceTable.id !== table.id) {
+      await this.confirmerFusion(this.fusionSourceTable, table);
+      return;
+    }
+
+    this.selectedTable = table;
+    this.isSidePanelOpen = true;
+    this.cdr.detectChanges();
+  }
+
+  closeSidePanel() {
+    this.isSidePanelOpen = false;
+    this.selectedTable = null;
+    this.cdr.detectChanges();
+  }
+
+  onStartFusion(table: TableBar) {
+    this.fusionSourceTable = table;
+    this.isFusionMode = true;
+    this.closeSidePanel();
+    this.toastCtrl.create({
+      message: `Sélectionnez la table avec laquelle fusionner la Table ${table.numero}`,
+      duration: 4000,
+      color: 'primary',
+    }).then(t => t.present());
+  }
+
+  async confirmerFusion(source: TableBar, target: TableBar) {
     const modal = await this.modalCtrl.create({
-      component: TableDetailModalComponent,
-      componentProps: { table: tableView },
-      breakpoints: [0, 0.5, 0.9],
-      initialBreakpoint: 0.9,
+      component: FusionModalComponent,
+      componentProps: { sourceTable: source, targetTable: target },
+      cssClass: 'fusion-modal-class',
     });
     await modal.present();
+
     const { data } = await modal.onWillDismiss();
-    if (data?.action === 'liberer') this.charger();
+    if (data?.confirmed) {
+      // Regrouper les capacités et fusionner les 2 tables
+      target.capacite += source.capacite;
+      this.tables = this.tables.filter(t => t.id !== source.id);
+      this.isFusionMode = false;
+      this.fusionSourceTable = null;
+      this.toastCtrl.create({
+        message: `Tables ${source.numero} et ${target.numero} fusionnées avec succès !`,
+        duration: 3000,
+        color: 'success',
+      }).then(t => t.present());
+      this.ngZone.runOutsideAngular(() => this.dessinerTables());
+    } else {
+      this.isFusionMode = false;
+      this.fusionSourceTable = null;
+    }
+  }
+
+  onSaveTable(updated: Partial<TableBar>) {
+    if (this.selectedTable) {
+      Object.assign(this.selectedTable, updated);
+      this.hasUnsavedChanges = true;
+      this.toastCtrl.create({ message: 'Modifications enregistrées', duration: 2000, color: 'success' })
+        .then(t => t.present());
+      this.ngZone.runOutsideAngular(() => this.dessinerTables());
+    }
   }
 
   toggleEditMode() {

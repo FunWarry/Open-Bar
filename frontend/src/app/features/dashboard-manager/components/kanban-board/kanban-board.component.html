@@ -1,0 +1,18 @@
+<div class="kanban">
+  <div class="kanban__column" *ngFor="let col of columns; trackBy: trackByStatut">
+    <div class="kanban__header">
+      <span class="kanban__dot" [style.background]="'var(--ion-color-' + col.color + ')'"></span>
+      <span class="kanban__label">{{ col.label }}</span>
+      <ion-badge [color]="col.color" class="kanban__count">{{ col.orders.length }}</ion-badge>
+    </div>
+    <div class="kanban__cards">
+      <app-mini-commande-card
+        *ngFor="let order of col.orders; trackBy: trackByOrderId"
+        [order]="order">
+      </app-mini-commande-card>
+      <div class="kanban__empty" *ngIf="col.orders.length === 0">
+        Aucune commande
+      </div>
+    </div>
+  </div>
+</div>

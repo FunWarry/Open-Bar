@@ -31,8 +31,9 @@ describe('DashboardManagerComponent', () => {
   let dashboardServiceSpy: jasmine.SpyObj<DashboardManagerService>;
 
   beforeEach(async () => {
-    dashboardServiceSpy = jasmine.createSpyObj<DashboardManagerService>('DashboardManagerService', ['getStats']);
+    dashboardServiceSpy = jasmine.createSpyObj<DashboardManagerService>('DashboardManagerService', ['getStats', 'getOngoingOrders']);
     dashboardServiceSpy.getStats.and.returnValue(of(mockStats));
+    dashboardServiceSpy.getOngoingOrders.and.returnValue(of([]));
 
     await TestBed.configureTestingModule({
       imports: [DashboardManagerComponent, CommonModule, IonicModule.forRoot()],
