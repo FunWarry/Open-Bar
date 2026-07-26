@@ -88,7 +88,7 @@ class TableServiceTest {
 
         assertThatThrownBy(() -> tableService.occuperTable(1L, 42L))
                 .isInstanceOf(BusinessException.class)
-                .hasMessageContaining("déjà occupée");
+                .hasMessageContaining("already occupied");
     }
 
     @Test
