@@ -141,6 +141,18 @@ export const routes: Routes = [
     data: { roles: ['MANAGER', 'ADMIN'] }
   },
   {
+    path: 'manager/employees',
+    loadComponent: () => import('./features/employees/employees.component').then(m => m.EmployeesComponent),
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['MANAGER', 'ADMIN'] }
+  },
+  {
+    path: 'manager/schedule',
+    loadComponent: () => import('./features/schedule/schedule.component').then(m => m.ScheduleComponent),
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['MANAGER', 'ADMIN'] }
+  },
+  {
     path: 'factures',
     loadComponent: () => import('./features/factures/facture-list/facture-list.component').then(m => m.FactureListComponent),
     canActivate: [AuthGuard, RoleGuard],

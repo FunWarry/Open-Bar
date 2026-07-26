@@ -1,0 +1,69 @@
+<ion-header>
+  <ion-toolbar class="schedule-toolbar">
+    <ion-title>
+      <span class="toolbar-title">📅 EDT Planning</span>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="schedule-content">
+  <div class="schedule-container" *ngIf="schedule && !loading">
+
+    <!-- Top bar: week label + buttons -->
+    <div class="schedule-top">
+      <span class="week-label">{{ weekLabel }}</span>
+      <app-action-button variant="primary" icon="checkmark-circle-outline">✓ Publish</app-action-button>
+      <div class="nav-buttons">
+        <app-action-button variant="secondary" (btnClick)="prevWeek()">← Préc.</app-action-button>
+        <app-action-button variant="secondary" (btnClick)="nextWeek()">Suiv. →</app-action-button>
+      </div>
+    </div>
+
+    <!-- Grid -->
+    <div class="schedule-grid">
+      <!-- Header row -->
+      <div class="grid-header">
+        <span class="grid-header__employee">EMPLOYÉ</span>
+        <span
+          class="grid-header__day"
+          *ngFor="let h of getDayHeaders(); let i = index; trackBy: trackByDay"
+          [class.today]="isToday(i)">
+          {{ h.day }} {{ h.date }}
+        </span>
+      </div>
+
+      <!-- Employee rows -->
+      <div class="grid-row" *ngFor="let emp of schedule.employees; trackBy: trackByEmployee">
+        <div class="grid-row__employee">
+          <app-user-avatar [name]="emp.name" [role]="emp.role" size="small"></app-user-avatar>
+          <div class="emp-info">
+            <span class="emp-role">{{ emp.role | titlecase }}</span>
+            <span class="emp-name">{{ emp.name }}</span>
+          </div>
+        </div>
+        <div
+          class="grid-row__cell"
+          *ngFor="let shift of emp.shifts; let i = index"
+          [class]="getShiftColorClass(shift)"
+          [class.today-col]="isToday(i)">
+          <span class="shift-time" *ngIf="shift.startTime">{{ shift.startTime }} - {{ shift.endTime }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Legend + summary -->
+    <div class="schedule-bottom">
+      <div class="legend">
+        <span class="legend-item"><span class="legend-dot dot--manager"></span> Manager</span>
+        <span class="legend-item"><span class="legend-dot dot--waiter"></span> Waiter</span>
+        <span class="legend-item"><span class="legend-dot dot--bartender"></span> Bartender</span>
+        <span class="legend-item"><span class="legend-dot dot--dayoff"></span> Day Off</span>
+      </div>
+      <span class="summary">
+        Total semaine : {{ schedule.totalHours }}h · {{ schedule.totalEmployees }} employés · {{ schedule.activeEmployees }} actifs
+      </span>
+    </div>
+  </div>
+
+  <div class="loading-state" *ngIf="loading">Chargement du planning...</div>
+</ion-content>

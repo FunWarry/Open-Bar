@@ -1,0 +1,38 @@
+// MiniCommandeCard — Figma design token
+.mini-card {
+  --background: var(--background-surface-2, #21263f);
+  margin: 0 0 8px;
+  border-radius: 8px;
+  border: 1px solid var(--border-medium, #2e3450);
+  cursor: pointer;
+  transition: border-color 0.2s ease, transform 0.15s ease;
+
+  &:hover {
+    border-color: var(--primary, #6c7fe8);
+    transform: translateY(-1px);
+  }
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px 12px;
+  }
+
+  &__id {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary, #eceefb);
+  }
+
+  &__table {
+    font-size: 12px;
+    color: var(--text-muted, #7e87a8);
+  }
+
+  &__time {
+    font-size: 11px;
+    color: var(--text-muted, #7e87a8);
+    opacity: 0.7;
+  }
+}
