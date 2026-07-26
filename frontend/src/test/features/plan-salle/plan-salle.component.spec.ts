@@ -98,7 +98,7 @@ describe('PlanSalleComponent', () => {
   it('charger() peuple tables et positions', fakeAsync(() => {
     component.charger();
     tick();
-    expect(component.tables.length).toBe(2);
+    expect(component.tables.length).toEqual(2);
   }));
 
   it('charger() affiche un toast danger en cas d\'erreur', fakeAsync(() => {
@@ -197,7 +197,7 @@ describe('PlanSalleComponent', () => {
     tick();
     flushMicrotasks();
 
-    expect(component.tables.length).toBe(1);
+    expect(component.tables.length).toEqual(1);
     expect(component.tables[0].capacite).toBe(6); // 4 + 2
     expect(component.isFusionMode).toBeFalse();
     expect(component.fusionSourceTable).toBeNull();
