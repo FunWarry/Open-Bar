@@ -40,7 +40,7 @@ const COLS               = 5;
     CommonModule,
     IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
     IonFab, IonFabButton, IonBadge, IonSpinner,
-    TableSidePanelComponent, FusionModalComponent,
+    TableSidePanelComponent,
   ],
   templateUrl: './plan-salle.component.html',
   styleUrls: ['./plan-salle.component.scss'],
