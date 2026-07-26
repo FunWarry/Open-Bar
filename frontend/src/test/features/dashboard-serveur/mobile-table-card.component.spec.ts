@@ -1,19 +1,16 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MobileTableCardComponent } from '../../../app/features/dashboard-serveur/components/mobile-table-card/mobile-table-card.component';
-import { IonicModule } from '@ionic/angular';
-import { TableBar } from '../../../app/core/models/table.model';
+import { TableView } from '../../../app/features/dashboard-serveur/models/table-view.model';
+import { provideIonicAngular } from '@ionic/angular/standalone';
 
-const mockTable: TableBar = {
+const mockTable: TableView = {
   id: 5,
-  numero: 5,
+  nom: 'Table 5',
   capacite: 4,
   zone: 'TERRASSE',
   occupee: true,
-  createdAt: '',
-  updatedAt: '',
+  commandesActives: [],
 };
-
-import { provideIonicAngular } from '@ionic/angular/standalone';
 
 describe('MobileTableCardComponent', () => {
   let component: MobileTableCardComponent;

@@ -1,7 +1,7 @@
 import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
-import { TableBar } from '../../../../core/models/table.model';
+import { TableView } from '../../models/table-view.model';
 import { StatusBadgeComponent } from '../../../../core/components/ui/status-badge/status-badge.component';
 import { ActionButtonComponent } from '../../../../core/components/ui/action-button/action-button.component';
 
@@ -17,12 +17,12 @@ import { restaurantOutline, peopleOutline, locationOutline, timeOutline, addCirc
   styleUrls: ['./mobile-table-card.component.scss'],
 })
 export class MobileTableCardComponent {
-  @Input({ required: true }) table!: TableBar;
+  @Input({ required: true }) table!: TableView;
   @Input() pendingOrdersCount = 0;
   @Input() activeTotal = 0;
 
-  @Output() select = new EventEmitter<TableBar>();
-  @Output() newOrder = new EventEmitter<TableBar>();
+  @Output() select = new EventEmitter<TableView>();
+  @Output() newOrder = new EventEmitter<TableView>();
 
   constructor() {
     addIcons({ restaurantOutline, peopleOutline, locationOutline, timeOutline, addCircleOutline });

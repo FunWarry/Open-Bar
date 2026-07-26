@@ -18,7 +18,7 @@
       interface="popover"
       (ionChange)="onTableChanged($event)">
       <ion-select-option *ngFor="let t of tables" [value]="t.id">
-        Table n°{{ t.numero }} ({{ t.zone }})
+        {{ t.nom || 'Table #' + t.id }} ({{ t.zone }})
       </ion-select-option>
     </ion-select>
   </div>

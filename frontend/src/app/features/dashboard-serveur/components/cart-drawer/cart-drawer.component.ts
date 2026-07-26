@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { CartModel, CartItemModel } from '../../models/cart.model';
-import { TableBar } from '../../../../core/models/table.model';
+import { TableView } from '../../models/table-view.model';
 import { QuantityStepperComponent } from '../../../../core/components/ui/quantity-stepper/quantity-stepper.component';
 import { ActionButtonComponent } from '../../../../core/components/ui/action-button/action-button.component';
 import { EmptyStateComponent } from '../../../../core/components/ui/empty-state/empty-state.component';
@@ -28,7 +28,7 @@ import { cartOutline, basketOutline, paperPlaneOutline } from 'ionicons/icons';
 })
 export class CartDrawerComponent {
   @Input() cart: CartModel = { tableId: null, items: [] };
-  @Input() tables: TableBar[] = [];
+  @Input() tables: TableView[] = [];
   @Input() isSubmitting = false;
 
   @Output() quantityChange = new EventEmitter<{ item: CartItemModel; newQty: number }>();
