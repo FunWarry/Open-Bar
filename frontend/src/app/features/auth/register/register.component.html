@@ -1,14 +1,21 @@
 <div class="register-container">
-  <ion-card>
-    <ion-card-header>
-      <ion-card-title>Créer un utilisateur</ion-card-title>
-    </ion-card-header>
-    <ion-card-content>
-      <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
+
+  <div class="register-card">
+    <div class="register-header">
+      <h1 class="register-title">Créer un compte</h1>
+      <p class="register-subtitle">Accès administrateur requis pour ajouter des utilisateurs</p>
+    </div>
+
+    <div class="divider"></div>
+
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="register-form">
+      <div class="name-row">
         <app-input-field
           formControlName="nom"
           label="Nom"
-          placeholder="Entrez votre nom"
+          placeholder="Nom"
           icon="person-outline"
           [required]="true"
           [errorMessage]="registerForm.get('nom')?.touched && registerForm.get('nom')?.hasError('required') ? 'Le nom est requis' : undefined">
@@ -17,63 +24,64 @@
         <app-input-field
           formControlName="prenom"
           label="Prénom"
-          placeholder="Entrez votre prénom"
+          placeholder="Prénom"
           icon="person-outline"
           [required]="true"
           [errorMessage]="registerForm.get('prenom')?.touched && registerForm.get('prenom')?.hasError('required') ? 'Le prénom est requis' : undefined">
         </app-input-field>
+      </div>
 
-        <app-input-field
-          formControlName="email"
-          label="Email"
-          type="email"
-          placeholder="Entrez votre email"
-          icon="mail-outline"
-          [required]="true"
-          autocomplete="email"
-          [errorMessage]="registerForm.get('email')?.touched && registerForm.get('email')?.hasError('required') ? 'L\'email est requis' : (registerForm.get('email')?.touched && registerForm.get('email')?.hasError('email') ? 'Format d\'email invalide' : undefined)">
-        </app-input-field>
+      <app-input-field
+        formControlName="email"
+        label="Email"
+        type="email"
+        placeholder="exemple@openbar.local"
+        icon="mail-outline"
+        [required]="true"
+        autocomplete="email"
+        [errorMessage]="registerForm.get('email')?.touched && registerForm.get('email')?.hasError('required') ? 'L\'email est requis' : (registerForm.get('email')?.touched && registerForm.get('email')?.hasError('email') ? 'Format d\'email invalide' : undefined)">
+      </app-input-field>
 
-        <app-input-field
-          formControlName="username"
-          label="Nom d'utilisateur"
-          placeholder="Entrez votre identifiant"
-          icon="at-outline"
-          [required]="true"
-          autocomplete="username"
-          [errorMessage]="registerForm.get('username')?.touched && registerForm.get('username')?.hasError('required') ? 'Le nom d\'utilisateur est requis' : undefined">
-        </app-input-field>
+      <app-input-field
+        formControlName="username"
+        label="Nom d'utilisateur"
+        placeholder="Identifiant de connexion"
+        icon="at-outline"
+        [required]="true"
+        autocomplete="username"
+        [errorMessage]="registerForm.get('username')?.touched && registerForm.get('username')?.hasError('required') ? 'Le nom d\'utilisateur est requis' : undefined">
+      </app-input-field>
 
-        <app-password-input
-          formControlName="password"
-          label="Mot de passe"
-          placeholder="Au moins 6 caractères"
-          [required]="true"
-          autocomplete="new-password"
-          [errorMessage]="registerForm.get('password')?.touched && registerForm.get('password')?.hasError('required') ? 'Le mot de passe est requis' : (registerForm.get('password')?.touched && registerForm.get('password')?.hasError('minlength') ? 'Le mot de passe doit contenir au moins 6 caractères' : undefined)">
-        </app-password-input>
+      <app-password-input
+        formControlName="password"
+        label="Mot de passe"
+        placeholder="Au moins 6 caractères"
+        [required]="true"
+        autocomplete="new-password"
+        [errorMessage]="registerForm.get('password')?.touched && registerForm.get('password')?.hasError('required') ? 'Le mot de passe est requis' : (registerForm.get('password')?.touched && registerForm.get('password')?.hasError('minlength') ? 'Le mot de passe doit contenir au moins 6 caractères' : undefined)">
+      </app-password-input>
 
-        <ion-item class="role-select-item">
-          <ion-label position="floating">Rôle</ion-label>
-          <ion-select formControlName="role" required>
+      <div class="field">
+        <label>Rôle</label>
+        <ion-item class="role-select-item" lines="none">
+          <ion-select formControlName="role" required interface="popover" placeholder="Sélectionnez un rôle">
             <ion-select-option *ngFor="let role of roles" [value]="role">
               {{ role }}
             </ion-select-option>
           </ion-select>
         </ion-item>
-        <ion-note color="danger" *ngIf="registerForm.get('role')?.touched && registerForm.get('role')?.hasError('required')">
+        <div class="field-error" *ngIf="registerForm.get('role')?.touched && registerForm.get('role')?.hasError('required')">
           Le rôle est requis
-        </ion-note>
+        </div>
+      </div>
 
-        <app-action-button
-          type="submit"
-          variant="primary"
-          expand="block"
-          [disabled]="registerForm.invalid">
-          Créer l'utilisateur
-        </app-action-button>
-      </form>
-    </ion-card-content>
-  </ion-card>
+      <app-action-button
+        type="submit"
+        variant="primary"
+        expand="block"
+        [disabled]="registerForm.invalid">
+        Créer l'utilisateur
+      </app-action-button>
+    </form>
+  </div>
 </div>
-

@@ -1,41 +1,48 @@
 <div class="login-container">
-  <ion-card>
-    <ion-card-header>
-      <ion-card-title>Connexion</ion-card-title>
-    </ion-card-header>
-    <ion-card-content>
-      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-        <app-input-field
-          formControlName="username"
-          label="Nom d'utilisateur"
-          placeholder="Entrez votre identifiant"
-          icon="person-outline"
-          [required]="true"
-          autocomplete="username"
-          [errorMessage]="loginForm.get('username')?.touched && loginForm.get('username')?.hasError('required') ? 'Le nom d\'utilisateur est requis' : undefined">
-        </app-input-field>
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
 
-        <app-password-input
-          formControlName="password"
-          label="Mot de passe"
-          placeholder="Entrez votre mot de passe"
-          [required]="true"
-          autocomplete="current-password"
-          [errorMessage]="loginForm.get('password')?.touched && loginForm.get('password')?.hasError('required') ? 'Le mot de passe est requis' : undefined">
-        </app-password-input>
+  <div class="login-card">
+    <h1 class="login-title">OpenBar</h1>
+    <p class="login-subtitle">Connexion à votre espace bar</p>
 
-        <ion-note color="danger" *ngIf="errorMessage">
-          {{ errorMessage }}
-        </ion-note>
+    <div class="divider"></div>
 
-        <app-action-button
-          type="submit"
-          variant="primary"
-          expand="block"
-          [disabled]="loginForm.invalid">
-          Se connecter
-        </app-action-button>
-      </form>
-    </ion-card-content>
-  </ion-card>
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+      <app-input-field
+        formControlName="username"
+        label="Email"
+        placeholder="admin@openbar.com"
+        icon="mail-outline"
+        [required]="true"
+        autocomplete="username"
+        [errorMessage]="loginForm.get('username')?.touched && loginForm.get('username')?.hasError('required') ? 'Nom d\'utilisateur requis' : undefined">
+      </app-input-field>
+
+      <app-password-input
+        formControlName="password"
+        label="Mot de passe"
+        placeholder="••••••••"
+        [required]="true"
+        autocomplete="current-password"
+        [errorMessage]="loginForm.get('password')?.touched && loginForm.get('password')?.hasError('required') ? 'Mot de passe requis' : undefined">
+      </app-password-input>
+
+      <div class="error-toast" *ngIf="errorMessage">
+        <div class="toast-accent"></div>
+        <div class="toast-content">
+          <span class="toast-icon">✕</span>
+          <span class="toast-message">{{ errorMessage }}</span>
+        </div>
+      </div>
+
+      <app-action-button
+        type="submit"
+        variant="primary"
+        expand="block"
+        [disabled]="loginForm.invalid">
+        Se connecter
+      </app-action-button>
+    </form>
+  </div>
 </div>

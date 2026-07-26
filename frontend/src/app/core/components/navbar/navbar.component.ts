@@ -1,7 +1,8 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, Optional } from '@angular/core';
+import { Router, NavigationEnd } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { Observable, Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { Observable, Subject, combineLatest, of } from 'rxjs';
+import { takeUntil, filter, map, startWith } from 'rxjs/operators';
 import { selectCurrentUser, selectIsAdmin, selectIsAuthenticated } from '../../store/auth.selectors';
 import { NavigationService } from '../../services/navigation.service';
 import { NotificationService } from '../../services/notification.service';
@@ -31,16 +32,36 @@ export class NavbarComponent implements OnInit, OnDestroy {
   isAuthenticated$: Observable<boolean>;
   isAdmin$: Observable<boolean>;
   currentUser$: Observable<any>;
+  shouldShowNavbar$: Observable<boolean>;
   nonLues = 0;
 
   private readonly destroy$ = new Subject<void>();
 
-  constructor(private readonly store: Store,public readonly navigationService: NavigationService,private readonly notifService: NotificationService,private readonly popoverCtrl: PopoverController,
+  constructor(
+    private readonly store: Store,
+    public readonly navigationService: NavigationService,
+    private readonly notifService: NotificationService,
+    private readonly popoverCtrl: PopoverController,
+    @Optional() private readonly router?: Router,
   ) {
     this.isAuthenticated$ = this.store.select(selectIsAuthenticated);
     this.isAdmin$ = this.store.select(selectIsAdmin);
     this.currentUser$ = this.store.select(selectCurrentUser);
     addIcons({ home, settings, personCircle, person, logOut, chevronDown, notificationsOutline });
+
+    const initialUrl = (this.router && this.router.url && this.router.url.length > 0) ? this.router.url : '/';
+    const currentUrl$ = this.router ? this.router.events.pipe(
+      filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+      map(event => event.urlAfterRedirects || event.url),
+      startWith(initialUrl)
+    ) : of('/');
+
+    this.shouldShowNavbar$ = combineLatest([this.isAuthenticated$, currentUrl$]).pipe(
+      map(([auth, url]) => {
+        const isAuthOrSetupRoute = url.includes('/auth/') || url.includes('/setup');
+        return Boolean(auth) && !isAuthOrSetupRoute;
+      })
+    );
   }
 
   ngOnInit(): void {

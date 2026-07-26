@@ -1,5 +1,5 @@
 .admin-container {
-  padding: 20px;
+  padding: var(--space-5, 20px);
   max-width: 1200px;
   margin: 0 auto;
 }
@@ -7,8 +7,8 @@
 .dashboard-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
-  margin-top: 20px;
+  gap: var(--space-5, 20px);
+  margin-top: var(--space-5, 20px);
 }
 
 .stat-card {
@@ -17,34 +17,27 @@
 
 .stat-value {
   font-size: 2.5rem;
-  font-weight: 500;
-  color: #3f51b5;
-  margin: 16px 0;
+  font-weight: 700;
+  color: var(--role-admin, #9b8af2);
+  margin: var(--space-4, 16px) 0;
 }
 
 .stat-label {
-  color: rgba(0, 0, 0, 0.54);
+  color: var(--text-secondary, #a4add0);
   font-size: 0.875rem;
 }
 
 .admin-actions {
-  margin-top: 20px;
+  margin-top: var(--space-5, 20px);
 }
 
 .action-buttons {
   display: flex;
-  gap: 16px;
+  gap: var(--space-4, 16px);
   flex-wrap: wrap;
 }
 
 .action-buttons button {
   flex: 1;
   min-width: 200px;
-}
-
-mat-icon[mat-card-avatar] {
-  font-size: 40px;
-  width: 40px;
-  height: 40px;
-  line-height: 40px;
 }

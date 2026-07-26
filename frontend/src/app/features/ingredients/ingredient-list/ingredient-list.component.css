@@ -1,23 +1,16 @@
 .ingredient-list-container {
-  padding: 20px;
+  padding: var(--space-5, 20px);
 }
 
-mat-card {
-  margin-bottom: 20px;
+ion-card {
+  margin-bottom: var(--space-5, 20px);
+  background: var(--background-surface-1, #1a1a2e);
+  border: 1px solid var(--border-medium, #2e3450);
 }
 
-mat-card-header {
+ion-card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
-}
-
-table {
-  width: 100%;
-}
-
-.mat-column-actions {
-  width: 120px;
-  text-align: center;
+  margin-bottom: var(--space-4, 16px);
 }

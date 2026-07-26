@@ -1,20 +1,25 @@
-<ion-item class="input-field-item">
-  <ion-icon *ngIf="icon" [name]="icon" slot="start"></ion-icon>
-  <ion-label *ngIf="label" position="floating">{{ label }}</ion-label>
-  <ion-input
-    [type]="type"
-    [value]="value"
-    [placeholder]="placeholder"
-    [disabled]="disabled"
-    [required]="required"
-    [autocomplete]="autocomplete"
-    (ionInput)="onInput($event)"
-    (ionBlur)="onBlur()">
-  </ion-input>
-</ion-item>
-<ion-note color="danger" *ngIf="errorMessage" class="field-note">
-  {{ errorMessage }}
-</ion-note>
-<ion-note color="medium" *ngIf="helperText && !errorMessage" class="field-note">
-  {{ helperText }}
-</ion-note>
+<div class="field-container">
+  <label *ngIf="label" class="field-label">
+    {{ label }} <span *ngIf="required" class="required-star">*</span>
+  </label>
+  <div class="input-wrapper" [class.has-error]="errorMessage" [class.is-disabled]="disabled">
+    <ion-icon *ngIf="icon" [name]="icon" class="field-icon"></ion-icon>
+    <input
+      [type]="type"
+      [value]="value"
+      [placeholder]="placeholder"
+      [disabled]="disabled"
+      [required]="required"
+      [autocomplete]="autocomplete"
+      (input)="onInput($event)"
+      (blur)="onBlur()"
+      class="native-input"
+    />
+  </div>
+  <div *ngIf="errorMessage" class="field-error">
+    ⚠ {{ errorMessage }}
+  </div>
+  <div *ngIf="helperText && !errorMessage" class="field-helper">
+    {{ helperText }}
+  </div>
+</div>
