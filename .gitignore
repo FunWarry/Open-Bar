@@ -53,3 +53,4 @@ Thumbs.db
 /frontend/dist/
 frontend/coverage
 .env
+/.sonarlint/
