@@ -1,3 +1,4 @@
+import { Component } from '@angular/core';
 import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { AppComponent } from '../app/app.component';
@@ -9,7 +10,10 @@ import { AppSettingsService } from '../app/core/services/app-settings.service';
 import { PopoverController } from '@ionic/angular/standalone';
 import { EMPTY, of, throwError } from 'rxjs';
 import { selectIsAuthenticated } from '../app/core/store/auth.selectors';
-import { Router, NavigationEnd } from '@angular/router';
+import { Router } from '@angular/router';
+
+@Component({ standalone: true, template: '' })
+class DummyComponent {}
 
 describe('AppComponent', () => {
   const initialState = { auth: { token: 'valid-jwt', user: { username: 'admin' }, error: null } };
@@ -49,9 +53,10 @@ describe('AppComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         AppComponent,
+        DummyComponent,
         RouterTestingModule.withRoutes([
-          { path: 'auth/login', component: AppComponent },
-          { path: 'app-home', component: AppComponent }
+          { path: 'auth/login', component: DummyComponent },
+          { path: 'app-home', component: DummyComponent }
         ])
       ],
       providers: [
@@ -98,11 +103,11 @@ describe('AppComponent', () => {
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;
 
-    router.navigate(['/app-home']);
-    tick();
-
     let showNav = false;
     app.showNavbar$.subscribe(val => showNav = val);
+
+    router.navigate(['/app-home']);
+    tick();
 
     expect(showNav).toBeTrue();
   }));
@@ -111,11 +116,11 @@ describe('AppComponent', () => {
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;
 
-    router.navigate(['/auth/login']);
-    tick();
-
     let showNav = true;
     app.showNavbar$.subscribe(val => showNav = val);
+
+    router.navigate(['/auth/login']);
+    tick();
 
     expect(showNav).toBeFalse();
   }));
