@@ -6,7 +6,6 @@ import { finalize, takeUntil } from 'rxjs/operators';
 import {
   IonContent, IonHeader, IonToolbar, IonTitle,
   IonRefresher, IonRefresherContent,
-  IonGrid, IonRow, IonCol,
   IonSegment, IonSegmentButton, IonLabel,
   IonButtons, IonButton, IonIcon,
   ToastController, ModalController,
@@ -33,7 +32,6 @@ import { FilterChipComponent } from '../../core/components/ui/filter-chip/filter
     CommonModule,
     IonContent, IonHeader, IonToolbar, IonTitle,
     IonRefresher, IonRefresherContent,
-    IonGrid, IonRow, IonCol,
     IonSegment, IonSegmentButton, IonLabel,
     IonButtons, IonButton, IonIcon,
     TableCardComponent,
@@ -143,8 +141,8 @@ export class DashboardServeurComponent implements OnInit, OnDestroy {
     return this.tables.filter(t => !t.occupee).length;
   }
 
-  onSegmentChange(event: any) {
-    this.selectedFilter = event.detail.value;
+  onSegmentChange(event: { detail?: { value?: any } }) {
+    this.selectedFilter = String(event.detail?.value || 'toutes');
     this.filtrer();
   }
 
@@ -267,11 +265,11 @@ export class DashboardServeurComponent implements OnInit, OnDestroy {
     this.cart = { tableId: null, items: [] };
   }
 
-  onRefresh(event: any) {
+  onRefresh(event: { target?: { complete: () => void } }) {
     this.chargerTables(event);
   }
 
-  trackById(_: number, item: any): number {
+  trackById(_: number, item: { id: number }): number {
     return item.id;
   }
 }

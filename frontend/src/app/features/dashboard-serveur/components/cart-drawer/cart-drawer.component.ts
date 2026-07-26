@@ -49,7 +49,7 @@ export class CartDrawerComponent {
     }
   }
 
-  onTableChanged(event: any) {
+  onTableChanged(event: { detail?: { value?: string | number } }) {
     const val = Number(event.detail?.value);
     if (val) {
       this.tableSelect.emit(val);
