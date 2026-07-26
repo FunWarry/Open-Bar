@@ -1,18 +1,19 @@
 .footer {
-  background-color: #f5f5f5;
-  padding: 1rem;
+  background-color: var(--background-surface-1, #1a1a2e);
+  border-top: 1px solid var(--border-medium, #2e3450);
+  padding: var(--space-4, 16px);
   text-align: center;
   font-size: 0.875rem;
-  color: #666;
+  color: var(--text-secondary, #a4add0);
 }
 
 .footer-content {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 1rem;
+  gap: var(--space-4, 16px);
 }
 
 .version {
-  color: #999;
+  color: var(--text-muted, #7e87a8);
 }

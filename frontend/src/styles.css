@@ -1,1 +1,80 @@
-/* You can add global styles to this file, and also import other style files */
+/* Ionic Core CSS */
+@import "@ionic/angular/css/core.css";
+
+/* Basic CSS for apps built with Ionic */
+@import "@ionic/angular/css/normalize.css";
+@import "@ionic/angular/css/structure.css";
+@import "@ionic/angular/css/typography.css";
+@import "@ionic/angular/css/display.css";
+
+/* Optional CSS utils */
+@import "@ionic/angular/css/padding.css";
+@import "@ionic/angular/css/float-elements.css";
+@import "@ionic/angular/css/text-alignment.css";
+@import "@ionic/angular/css/text-transformation.css";
+@import "@ionic/angular/css/flex-utils.css";
+
+/* Design System OpenBar CSS Variables */
+@import "./theme/variables.css";
+
+/* Base resets & Dark Theme defaults */
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  background-color: var(--background-bg-0, #0f0f1a);
+  color: var(--text-primary, #eceefb);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  overflow-x: hidden;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Default Ionic component styling overrides to match OpenBar DS */
+ion-app {
+  background-color: var(--background-bg-0, #0f0f1a);
+  color: var(--text-primary, #eceefb);
+}
+
+ion-content {
+  --background: var(--background-bg-0, #0f0f1a);
+  --color: var(--text-primary, #eceefb);
+}
+
+ion-header, ion-toolbar {
+  --background: var(--background-surface-1, #1a1a2e);
+  --color: var(--text-primary, #eceefb);
+  --border-color: var(--border-medium, #2e3450);
+}
+
+ion-card {
+  --background: var(--background-surface-1, #1a1a2e);
+  --color: var(--text-primary, #eceefb);
+  border: 1px solid var(--border-medium, #2e3450);
+  border-radius: var(--radius-lg, 14px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+ion-item {
+  --background: var(--background-surface-1, #1a1a2e);
+  --color: var(--text-primary, #eceefb);
+  --border-color: var(--border-medium, #2e3450);
+}
+
+ion-list {
+  background: var(--background-surface-1, #1a1a2e);
+  color: var(--text-primary, #eceefb);
+}
+
+ion-button {
+  --border-radius: var(--radius-md, 10px);
+}
