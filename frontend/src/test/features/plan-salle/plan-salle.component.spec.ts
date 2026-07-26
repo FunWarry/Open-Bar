@@ -35,13 +35,15 @@ describe('PlanSalleComponent', () => {
   let notif$: Subject<AppNotification>;
 
   const mockToast = { present: jasmine.createSpy('present') };
+  let mockModalDismissData: any = { data: null };
   const mockModal = {
     present:       jasmine.createSpy('present').and.returnValue(Promise.resolve()),
-    onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({ data: null })),
+    onWillDismiss: jasmine.createSpy('onWillDismiss').and.callFake(() => Promise.resolve(mockModalDismissData)),
   };
 
   beforeEach(async () => {
     notif$ = new Subject<AppNotification>();
+    mockModalDismissData = { data: null };
 
     tableServiceSpy = jasmine.createSpyObj('TableService', ['getAll']);
     tableServiceSpy.getAll.and.returnValue(of(mockTables));
@@ -96,7 +98,7 @@ describe('PlanSalleComponent', () => {
   it('charger() peuple tables et positions', fakeAsync(() => {
     component.charger();
     tick();
-    expect(component.tables.length).toBe(2);
+    expect(component.tables.length).toEqual(2);
   }));
 
   it('charger() affiche un toast danger en cas d\'erreur', fakeAsync(() => {
@@ -149,12 +151,89 @@ describe('PlanSalleComponent', () => {
     expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
   }));
 
-  // --- onClickTable ---
+  // --- onClickTable & side panel ---
 
   it('onClickTable() ouvre le side panel pour la table sélectionnée', async () => {
     await component.onClickTable(mockTables[0]);
     expect(component.selectedTable).toEqual(mockTables[0]);
     expect(component.isSidePanelOpen).toBeTrue();
+  });
+
+  it('closeSidePanel() ferme le panneau latéral et réinitialise la table sélectionnée', () => {
+    component.selectedTable = mockTables[0];
+    component.isSidePanelOpen = true;
+    component.closeSidePanel();
+    expect(component.isSidePanelOpen).toBeFalse();
+    expect(component.selectedTable).toBeNull();
+  });
+
+  // --- Fusion de tables ---
+
+  it('onStartFusion() active le mode fusion et affiche un toast', fakeAsync(() => {
+    component.onStartFusion(mockTables[0]);
+    tick();
+    expect(component.isFusionMode).toBeTrue();
+    expect(component.fusionSourceTable).toEqual(mockTables[0]);
+    expect(component.isSidePanelOpen).toBeFalse();
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'primary' }));
+  }));
+
+  it('onClickTable() en mode fusion déclenche la confirmation de fusion', async () => {
+    component.isFusionMode = true;
+    component.fusionSourceTable = mockTables[0];
+    spyOn(component, 'confirmerFusion').and.returnValue(Promise.resolve());
+
+    await component.onClickTable(mockTables[1]);
+    expect(component.confirmerFusion).toHaveBeenCalledWith(mockTables[0], mockTables[1]);
+  });
+
+  it('confirmerFusion() fusionne les deux tables si confirmé', fakeAsync(() => {
+    mockModalDismissData = { data: { confirmed: true } };
+    component.tables = [...mockTables];
+    component.isFusionMode = true;
+    component.fusionSourceTable = mockTables[0];
+
+    component.confirmerFusion(mockTables[0], mockTables[1]);
+    tick();
+    flushMicrotasks();
+
+    expect(component.tables.length).toEqual(1);
+    expect(component.tables[0].capacite).toBe(6); // 4 + 2
+    expect(component.isFusionMode).toBeFalse();
+    expect(component.fusionSourceTable).toBeNull();
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'success' }));
+  }));
+
+  it('confirmerFusion() annule la fusion si non confirmé', fakeAsync(() => {
+    mockModalDismissData = { data: { confirmed: false } };
+    component.isFusionMode = true;
+    component.fusionSourceTable = mockTables[0];
+
+    component.confirmerFusion(mockTables[0], mockTables[1]);
+    tick();
+    flushMicrotasks();
+
+    expect(component.isFusionMode).toBeFalse();
+    expect(component.fusionSourceTable).toBeNull();
+  }));
+
+  // --- onSaveTable ---
+
+  it('onSaveTable() met à jour la table sélectionnée et marque les changements', fakeAsync(() => {
+    component.selectedTable = { ...mockTables[0] };
+    component.onSaveTable({ capacite: 8, zone: 'TERRASSE' });
+    tick();
+    expect(component.selectedTable.capacite).toBe(8);
+    expect(component.selectedTable.zone).toBe('TERRASSE');
+    expect(component.hasUnsavedChanges).toBeTrue();
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'success' }));
+  }));
+
+  it('onSaveTable() ne fait rien si selectedTable est null', () => {
+    component.selectedTable = null;
+    component.hasUnsavedChanges = false;
+    component.onSaveTable({ capacite: 8 });
+    expect(component.hasUnsavedChanges).toBeFalse();
   });
 
   // --- toggleForme ---

@@ -161,7 +161,7 @@ jobs:
           path: frontend/coverage/gestion-cocktail-frontend
 
       - name: Compile backend for SonarCloud (sans tests)
-        run: mvn -f backend/pom.xml compile -q --no-transfer-progress
+        run: mvn -f backend/pom.xml test-compile -q --no-transfer-progress
 
       - name: SonarCloud Scan
         if: ${{ env.SONAR_TOKEN != '' }}

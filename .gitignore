@@ -51,4 +51,5 @@ Thumbs.db
 /frontend/node_modules
 /frontend/.angular/
 /frontend/dist/
+/frontend/coverage/
 .env

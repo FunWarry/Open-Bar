@@ -17,11 +17,9 @@ import { pencilOutline, saveOutline, closeOutline, refreshOutline } from 'ionico
 import { TableService } from '../../core/services/table.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { PlanSalleService } from './services/plan-salle.service';
-import { TableDetailModalComponent } from '../dashboard-serveur/components/table-detail-modal/table-detail-modal.component';
 import { selectIsAdmin } from '../../core/store/auth.selectors';
 import { TableBar } from '../../core/models/table.model';
 import { TablePosition } from './models/table-position.model';
-import { TableView } from '../dashboard-serveur/models/table-view.model';
 import { TableSidePanelComponent } from './components/table-side-panel/table-side-panel.component';
 import { FusionModalComponent } from './components/fusion-modal/fusion-modal.component';
 
@@ -40,7 +38,7 @@ const COLS               = 5;
     CommonModule,
     IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
     IonFab, IonFabButton, IonBadge, IonSpinner,
-    TableSidePanelComponent, FusionModalComponent,
+    TableSidePanelComponent,
   ],
   templateUrl: './plan-salle.component.html',
   styleUrls: ['./plan-salle.component.scss'],
