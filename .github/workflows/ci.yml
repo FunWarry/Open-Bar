@@ -160,8 +160,8 @@ jobs:
           name: lcov-coverage
           path: frontend/coverage/gestion-cocktail-frontend
 
-      - name: Compile backend for SonarCloud (sans tests)
-        run: mvn -f backend/pom.xml test-compile -q --no-transfer-progress
+      - name: Compile backend and copy dependencies for SonarCloud
+        run: mvn -f backend/pom.xml test-compile dependency:copy-dependencies -DincludeScope=test -DoutputDirectory=target/dependency -q --no-transfer-progress
 
       - name: SonarCloud Scan
         if: ${{ env.SONAR_TOKEN != '' }}
