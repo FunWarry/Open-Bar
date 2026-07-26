@@ -36,7 +36,15 @@ describe('AppComponent', () => {
     const mockPopoverCtrl = jasmine.createSpyObj('PopoverController', ['create']);
 
     mockAppSettingsService = jasmine.createSpyObj('AppSettingsService', ['getSettings']);
-    mockAppSettingsService.getSettings.and.returnValue(of({ theme: 'dark' }));
+    mockAppSettingsService.getSettings.and.returnValue(of({
+      id: 1,
+      establishmentName: 'OpenBar',
+      primaryColor: '#6c7fe8',
+      primaryColorStrong: '#5a68d6',
+      logoUrl: null,
+      defaultTheme: 'DARK',
+      updatedAt: null
+    }));
 
     await TestBed.configureTestingModule({
       imports: [AppComponent, RouterTestingModule],
