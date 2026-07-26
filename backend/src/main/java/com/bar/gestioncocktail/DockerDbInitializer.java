@@ -23,6 +23,8 @@ public class DockerDbInitializer {
     private static final Logger logger = Logger.getLogger(DockerDbInitializer.class.getName());
     private static final String DOCKER_CMD = "docker";
     private static final String CONTAINER_NAME = "gestion_cocktail_db";
+    private static final String FORMAT_OPTION = "--format";
+    private static final String START_CMD = "start";
 
     @Value("${spring.datasource.url}")
     private String dbUrl;
@@ -64,7 +66,7 @@ public class DockerDbInitializer {
             Thread.currentThread().interrupt();
             logger.log(Level.WARNING, "Init interrompu: {0}", e.getMessage());
         } catch (Exception e) {
-            logger.log(Level.WARNING, "Avertissement lors de l'initialisation Docker/DB (non bloquant): {0}", e.getMessage());
+            logger.log(Level.WARNING, "Avertissement lors de l''initialisation Docker/DB (non bloquant): {0}", e.getMessage());
         }
     }
 
@@ -90,13 +92,13 @@ public class DockerDbInitializer {
         Process process = null;
         if (os.contains("win")) {
             logger.info("Démarrage de Docker Desktop pour Windows...");
-            process = new ProcessBuilder("cmd", "/c", "start", "\"\"", "\"C:\\Program Files\\Docker\\Docker\\Docker Desktop.exe\"").start();
+            process = new ProcessBuilder("cmd", "/c", START_CMD, "\"\"", "\"C:\\Program Files\\Docker\\Docker\\Docker Desktop.exe\"").start();
         } else if (os.contains("mac")) {
             logger.info("Démarrage de Docker pour macOS...");
             process = new ProcessBuilder("open", "-a", "Docker").start();
         } else {
             logger.info("Démarrage du service Docker pour Linux...");
-            process = new ProcessBuilder("sudo", "systemctl", "start", "docker").start();
+            process = new ProcessBuilder("sudo", "systemctl", START_CMD, DOCKER_CMD).start();
         }
 
         if (process != null) {
@@ -128,7 +130,7 @@ public class DockerDbInitializer {
 
     private boolean isDockerEngineRunning() {
         try {
-            Process process = new ProcessBuilder(DOCKER_CMD, "info", "--format", "{{.ServerVersion}}").start();
+            Process process = new ProcessBuilder(DOCKER_CMD, "info", FORMAT_OPTION, "{{.ServerVersion}}").start();
 
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
                 String version = reader.readLine();
@@ -151,7 +153,7 @@ public class DockerDbInitializer {
 
     private boolean isDatabaseExists() {
         try {
-            Process process = new ProcessBuilder(DOCKER_CMD, "ps", "-a", "--filter", "name=" + CONTAINER_NAME, "--format", "{{.Names}}")
+            Process process = new ProcessBuilder(DOCKER_CMD, "ps", "-a", "--filter", "name=" + CONTAINER_NAME, FORMAT_OPTION, "{{.Names}}")
                     .redirectErrorStream(true)
                     .start();
 
@@ -184,7 +186,7 @@ public class DockerDbInitializer {
     }
 
     private void ensureContainerRunning() throws IOException, InterruptedException {
-        Process statusProcess = new ProcessBuilder(DOCKER_CMD, "inspect", "--format", "{{.State.Running}}", CONTAINER_NAME)
+        Process statusProcess = new ProcessBuilder(DOCKER_CMD, "inspect", FORMAT_OPTION, "{{.State.Running}}", CONTAINER_NAME)
                 .redirectErrorStream(true)
                 .start();
 
@@ -196,7 +198,7 @@ public class DockerDbInitializer {
 
         if (!"true".equalsIgnoreCase(status)) {
             logger.log(Level.INFO, "Le conteneur {0} n''est pas en cours d''exécution. Démarrage...", CONTAINER_NAME);
-            Process startProcess = new ProcessBuilder(DOCKER_CMD, "start", CONTAINER_NAME)
+            Process startProcess = new ProcessBuilder(DOCKER_CMD, START_CMD, CONTAINER_NAME)
                     .redirectErrorStream(true)
                     .start();
             startProcess.waitFor();
@@ -235,6 +237,9 @@ public class DockerDbInitializer {
             Process check = new ProcessBuilder(DOCKER_CMD, "compose", "version").start();
             check.waitFor();
             command = new String[]{DOCKER_CMD, "compose", "-f", dockerComposeFile.getAbsolutePath(), "up", "-d"};
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            command = new String[]{"docker-compose", "-f", dockerComposeFile.getAbsolutePath(), "up", "-d"};
         } catch (Exception e) {
             command = new String[]{"docker-compose", "-f", dockerComposeFile.getAbsolutePath(), "up", "-d"};
         }
