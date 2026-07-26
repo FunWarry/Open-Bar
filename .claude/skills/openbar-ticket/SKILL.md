@@ -1,3 +1,14 @@
+---
+name: openbar-ticket
+description: |
+  Pipeline complet de traitement d'un ticket GitHub OpenBar : branche dédiée -> implémentation -> tests -> build -> PR -> auto-critique -> CI vert -> review Copilot -> merge -> clôture.
+
+  Quand utiliser ce skill:
+  - Traiter / implémenter un ticket GitHub sur OpenBar
+  - "Traite le ticket #X"
+  - "Implémente l'issue #X"
+---
+
 # Skill : openbar-ticket
 
 Pipeline complet de traitement d'un ticket GitHub : branche dédiée → implémentation → tests → build → PR → auto-critique → CI vert → review Copilot → merge → clôture.
@@ -105,21 +116,31 @@ rtk git commit -m "test(#X): tests <NomComposant> et <NomService>"
 
 ---
 
-### Étape 5 — Vérification build locale avant push
+### Étape 5 — Validation complète en LOCAL avant push (OBLIGATOIRE)
 
-**Frontend — build complet (détecte les erreurs de template Angular) :**
+**Ne jamais pousser vers GitHub sans avoir exécuté et validé TOUS les tests et builds en local.** Cela évite les allers-retours inutiles et gagne du temps sur les runners CI.
+
+1. **Frontend — Vérification TypeScript & Templates :**
 ```bash
-cd frontend && rtk tsc --noEmit 2>&1 | grep -v "node_modules" | head -20
+cd frontend && npx tsc --noEmit 2>&1 | grep -v "node_modules" | head -20
 ```
 
-Si des erreurs apparaissent dans les fichiers modifiés → les corriger avant de continuer.
-
-> `tsc --noEmit` suffit pour les erreurs TypeScript et de template. `ng build` complet n'est pas requis localement si le tsc est propre.
-
-**Backend :**
+2. **Frontend — Exécution des tests Karma unitaires en local :**
 ```bash
-cd backend && rtk mvn compile -q 2>&1 | tail -10
+cd frontend && npx ng test --watch=false --browsers=ChromeHeadless
 ```
+> S'assurer que `ng test` passe à 100% sans erreur de type ou de chemin.
+
+3. **Backend — Build, dépendances et tests Maven en local :**
+```bash
+cd backend && mvn test-compile dependency:copy-dependencies -DincludeScope=test -DoutputDirectory=target/dependency -q
+```
+
+4. **Scan Sonar & Qualité en LOCAL (OBLIGATOIRE avant tout push/commit) :**
+```powershell
+.\scripts\sonar-scan.ps1
+```
+> Si Sonar local signale un échec de Quality Gate ou un Code Smell, le corriger **immédiatement** avant d'effectuer tout commit ou push.
 
 ---
 
