@@ -61,8 +61,4 @@ describe('HomeComponent', () => {
     component.navigateTo('/serveur');
     expect(router.navigate).toHaveBeenCalledWith(['/serveur']);
   });
-
-  it('ngOnInit() ne devrait pas lever d\'erreur', () => {
-    expect(() => component.ngOnInit()).not.toThrow();
-  });
 });

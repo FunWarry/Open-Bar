@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs';
 import { selectCurrentUser, selectIsAdmin, selectIsBarman, selectIsManager, selectIsServeur } from '../../core/store/auth.selectors';
@@ -14,7 +14,7 @@ import { RoleBadgeComponent } from '../../core/components/ui/role-badge/role-bad
   standalone: true,
   imports: [NgIf, NgFor, AsyncPipe, RouterLink, ActionButtonComponent, RoleBadgeComponent]
 })
-export class HomeComponent implements OnInit {
+export class HomeComponent {
   currentUser$: Observable<any>;
   isAdmin$: Observable<boolean>;
   isManager$: Observable<boolean>;
@@ -31,8 +31,6 @@ export class HomeComponent implements OnInit {
     this.isBarman$ = this.store.select(selectIsBarman);
     this.isServeur$ = this.store.select(selectIsServeur);
   }
-
-  ngOnInit(): void {}
 
   navigateTo(path: string): void {
     this.router.navigate([path]);
