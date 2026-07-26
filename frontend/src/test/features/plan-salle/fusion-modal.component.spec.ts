@@ -1,8 +1,8 @@
-import { TestBed } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
 import { CommonModule } from '@angular/common';
 import { ModalController } from '@ionic/angular/standalone';
-import { FusionModalComponent } from '../../../../app/features/plan-salle/components/fusion-modal/fusion-modal.component';
-import { TableBar } from '../../../../app/core/models/table.model';
+import { FusionModalComponent } from '../../../app/features/plan-salle/components/fusion-modal/fusion-modal.component';
+import { TableBar } from '../../../app/core/models/table.model';
 
 describe('FusionModalComponent', () => {
   let component: FusionModalComponent;
