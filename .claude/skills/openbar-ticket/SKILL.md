@@ -207,14 +207,21 @@ rtk git commit -m "fix(#X): <correction>"
 rtk git push origin <branche>
 ```
 
-**Attendre que le CI ET SonarCloud soient verts avant de merger :**
+**Attendre que TOUS LES CHECKS CI (y compris SonarCloud) soient 100% VERTS (`pass`) avant de merger :**
 ```bash
 rtk gh pr checks <NUM> --repo FunWarry/Open-Bar --watch
 ```
 
-Vérifier les deux checks obligatoires :
+**RÈGLE ABSOLUE ET STRICTE DE NON-MERGE AVANT ATTENTE DE SONARCLOUD :**
+Ne JAMAIS exécuter `gh pr merge` ou soumettre une PR si :
+1. Un seul check affiche `pending` ou `in_progress`.
+2. SonarCloud Analysis n'est pas explicitement à **`pass`** (`QUALITY GATE STATUS: PASSED`).
+3. Si SonarCloud est en `pending`, l'agent DOIT continuer d'attendre (`schedule` / `gh pr checks`) jusqu'à l'obtention du statut final `pass`.
+
+Vérifier les trois checks obligatoires :
 - ✅ `Frontend (Node 20 + Angular)` — build + tests Angular
-- ✅ `SonarCloud Code Analysis` — qualité de code, couverture, sécurité
+- ✅ `Backend (Java 22 + Maven)` — build + tests Spring Boot
+- ✅ `SonarCloud Analysis` — Quality Gate passé (PASSED)
 
 **Si SonarCloud échoue :**
 - **Quality Gate** (bloquant) : aller sur https://sonarcloud.io/project/overview?id=FunWarry_Open-Bar et lire les issues signalées
