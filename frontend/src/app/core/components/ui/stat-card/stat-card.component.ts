@@ -12,9 +12,16 @@ export type TrendDirection = 'up' | 'down' | 'neutral';
   styleUrls: ['./stat-card.component.css']
 })
 export class StatCardComponent {
-  @Input() title!: string;
+  @Input() title?: string;
+  @Input() label?: string;
   @Input() value!: string | number;
   @Input() icon?: string;
   @Input() trend?: string;
   @Input() trendDirection: TrendDirection = 'neutral';
+  @Input() color?: string;
+
+  get displayTitle(): string {
+    return this.title || this.label || '';
+  }
 }
+

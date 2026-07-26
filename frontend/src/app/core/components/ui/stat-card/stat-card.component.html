@@ -1,7 +1,7 @@
-<ion-card class="stat-card">
+<ion-card class="stat-card" [ngClass]="color ? 'color-' + color : ''">
   <ion-card-content>
     <div class="stat-header">
-      <span class="stat-title">{{ title }}</span>
+      <span class="stat-title">{{ displayTitle }}</span>
       <ion-icon *ngIf="icon" [name]="icon" class="stat-icon"></ion-icon>
     </div>
     <div class="stat-value">{{ value }}</div>
