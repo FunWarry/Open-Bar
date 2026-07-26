@@ -21,6 +21,12 @@
     "NOTES": "Notes",
     "REFRESH": "Refresh"
   },
+  "THEME": {
+    "LIGHT": "Light Mode",
+    "DARK": "Dark Mode",
+    "SYSTEM": "System Theme",
+    "TOGGLE": "Toggle Theme"
+  },
   "NAV": {
     "HOME": "Home",
     "COCKTAILS": "Cocktails",
@@ -28,30 +34,33 @@
     "TABLES": "Tables",
     "INGREDIENTS": "Ingredients",
     "FACTURES": "Invoices",
-    "ADMIN": "Admin",
+    "ADMIN": "Administration",
     "PROFILE": "Profile",
     "LOGOUT": "Logout",
-    "DASHBOARD": "Dashboard"
+    "DASHBOARD": "Dashboard",
+    "PLAN_SALLE": "Floor Plan",
+    "SERVEUR": "Order Taking",
+    "BARMAN": "Bar Counter"
   },
   "AUTH": {
-    "LOGIN_TITLE": "Sign In",
+    "LOGIN_TITLE": "Login",
     "USERNAME": "Username",
     "PASSWORD": "Password",
-    "LOGIN_BTN": "Sign In",
-    "LOGOUT_BTN": "Sign Out",
-    "REGISTER_TITLE": "Create Account",
-    "EMAIL": "Email address",
-    "CONFIRM_PASSWORD": "Confirm password",
-    "REGISTER_BTN": "Create account",
+    "LOGIN_BTN": "Log in",
+    "LOGOUT_BTN": "Log out",
+    "REGISTER_TITLE": "Create an Account",
+    "EMAIL": "Email Address",
+    "CONFIRM_PASSWORD": "Confirm Password",
+    "REGISTER_BTN": "Register",
     "ALREADY_ACCOUNT": "Already have an account?",
     "NO_ACCOUNT": "Don't have an account yet?",
     "LOGIN_ERROR": "Invalid credentials",
-    "SESSION_EXPIRED": "Session expired, please sign in again"
+    "SESSION_EXPIRED": "Session expired, please log in again"
   },
   "COCKTAILS": {
     "TITLE": "Cocktails",
-    "ADD": "New cocktail",
-    "EDIT": "Edit cocktail",
+    "ADD": "New Cocktail",
+    "EDIT": "Edit Cocktail",
     "DELETE_CONFIRM": "Delete this cocktail?",
     "NAME": "Name",
     "DESCRIPTION": "Description",
@@ -62,7 +71,7 @@
     "SEASONAL": "Seasonal",
     "INGREDIENTS": "Ingredients",
     "VARIANTS": "Variants",
-    "INSTRUCTIONS": "Preparation instructions",
+    "INSTRUCTIONS": "Preparation Instructions",
     "CATEGORIES": {
       "ALCOOLISE": "Alcoholic",
       "SANS_ALCOOL": "Non-alcoholic",
@@ -74,22 +83,22 @@
   },
   "INGREDIENTS": {
     "TITLE": "Ingredients",
-    "ADD": "New ingredient",
-    "EDIT": "Edit ingredient",
+    "ADD": "New Ingredient",
+    "EDIT": "Edit Ingredient",
     "DELETE_CONFIRM": "Delete this ingredient?",
     "NAME": "Name",
-    "UNIT": "Unit of measure",
+    "UNIT": "Unit of Measurement",
     "STOCK": "Stock",
-    "THRESHOLD": "Alert threshold",
+    "THRESHOLD": "Alert Threshold",
     "SUPPLIER": "Supplier",
-    "EXPIRY": "Expiry date",
-    "LOW_STOCK": "Low stock",
-    "UPDATE_STOCK": "Update stock"
+    "EXPIRY": "Expiration Date",
+    "LOW_STOCK": "Low Stock",
+    "UPDATE_STOCK": "Update Stock"
   },
   "TABLES": {
     "TITLE": "Tables",
-    "ADD": "New table",
-    "EDIT": "Edit table",
+    "ADD": "New Table",
+    "EDIT": "Edit Table",
     "DELETE_CONFIRM": "Delete this table?",
     "NUMBER": "Number",
     "CAPACITY": "Capacity",
@@ -98,68 +107,85 @@
     "FREE": "Free",
     "OCCUPY": "Occupy",
     "RELEASE": "Release",
+    "MERGE": "Merge Tables",
     "ZONES": {
       "TERASSE": "Terrace",
-      "INTERIEUR": "Interior",
-      "ETAGE": "Upstairs"
+      "INTERIEUR": "Indoor",
+      "ETAGE": "Floor"
     }
   },
   "COMMANDES": {
     "TITLE": "Orders",
-    "NEW": "New order",
-    "ADD_ITEM": "Add item",
+    "NEW": "New Order",
+    "ADD_ITEM": "Add Item",
     "DELETE_CONFIRM": "Cancel this order?",
     "TABLE": "Table",
     "SERVER": "Server",
     "ITEMS": "Items",
     "QUANTITY": "Quantity",
-    "UNIT_PRICE": "Unit price",
+    "UNIT_PRICE": "Unit Price",
     "SUBTOTAL": "Subtotal",
-    "CANCEL": "Cancel order",
+    "CANCEL": "Cancel Order",
     "STATUTS": {
       "EN_ATTENTE": "Pending",
-      "EN_PREPARATION": "In progress",
+      "EN_PREPARATION": "In Preparation",
       "PRET": "Ready",
       "LIVREE": "Delivered",
       "REGLEE": "Settled",
       "ANNULEE": "Cancelled"
     },
-    "CHANGE_STATUS": "Change status",
+    "CHANGE_STATUS": "Change Status",
     "PRIORITY": "Priority"
   },
   "FACTURES": {
     "TITLE": "Invoices",
-    "NEW": "New invoice",
+    "NEW": "New Invoice",
     "NUMBER": "Number",
-    "DATE": "Invoice date",
+    "DATE": "Billing Date",
     "SETTLE": "Settle",
-    "PAYMENT_METHOD": "Payment method",
+    "PAYMENT_METHOD": "Payment Method",
     "TIP": "Tip",
-    "TOTAL_TTC": "Total incl. tax",
+    "TOTAL_TTC": "Total (incl. Tax)",
     "SETTLED": "Settled",
     "PENDING": "Pending",
     "PAYMENT_METHODS": {
       "ESPECES": "Cash",
-      "CARTE": "Card",
-      "CHEQUE": "Cheque"
+      "CARTE": "Credit Card",
+      "CHEQUE": "Check"
+    }
+  },
+  "SERVEUR": {
+    "TITLE": "Server Area",
+    "PRODUCTS": "Products",
+    "CART": "Current Order",
+    "SEND_PREPARATION": "Send to Kitchen/Bar",
+    "SELECT_TABLE": "Select a Table",
+    "CLEAR": "Clear Cart",
+    "CATEGORIES": {
+      "ALL": "All",
+      "COCKTAIL": "Cocktails",
+      "BEER": "Beers",
+      "SOFT": "Soft Drinks",
+      "SNACK": "Snacks",
+      "SHOT": "Shots"
     }
   },
   "DASHBOARD": {
-    "SERVEUR_TITLE": "Server Dashboard",
-    "BARMAN_TITLE": "Barman Dashboard",
+    "SERVEUR_TITLE": "Server Area",
+    "BARMAN_TITLE": "Bar Area",
     "MANAGER_TITLE": "Manager Dashboard",
-    "PENDING_ORDERS": "Pending orders",
-    "IN_PROGRESS": "In progress",
+    "PENDING_ORDERS": "Pending Orders",
+    "IN_PROGRESS": "In Preparation",
     "READY": "Ready",
-    "FREE_TABLES": "Free tables",
-    "OCCUPIED_TABLES": "Occupied tables",
-    "LOW_STOCK_ALERT": "Low stock alert"
+    "FREE_TABLES": "Free Tables",
+    "OCCUPIED_TABLES": "Occupied Tables",
+    "LOW_STOCK_ALERT": "Low Stock Alert"
   },
   "ERRORS": {
     "NETWORK": "Network error, please try again",
     "UNAUTHORIZED": "Unauthorized access",
     "NOT_FOUND": "Resource not found",
     "SERVER": "Server error",
-    "FORM_INVALID": "Please fix the form errors"
+    "FORM_INVALID": "Please correct the errors in the form"
   }
 }

@@ -21,6 +21,12 @@
     "NOTES": "Notes",
     "REFRESH": "Rafraîchir"
   },
+  "THEME": {
+    "LIGHT": "Mode clair",
+    "DARK": "Mode sombre",
+    "SYSTEM": "Thème système",
+    "TOGGLE": "Changer le thème"
+  },
   "NAV": {
     "HOME": "Accueil",
     "COCKTAILS": "Cocktails",
@@ -31,7 +37,10 @@
     "ADMIN": "Administration",
     "PROFILE": "Profil",
     "LOGOUT": "Déconnexion",
-    "DASHBOARD": "Tableau de bord"
+    "DASHBOARD": "Tableau de bord",
+    "PLAN_SALLE": "Plan de salle",
+    "SERVEUR": "Prise de commande",
+    "BARMAN": "Comptoir bar"
   },
   "AUTH": {
     "LOGIN_TITLE": "Connexion",
@@ -98,6 +107,7 @@
     "FREE": "Libre",
     "OCCUPY": "Occuper",
     "RELEASE": "Libérer",
+    "MERGE": "Fusionner les tables",
     "ZONES": {
       "TERASSE": "Terrasse",
       "INTERIEUR": "Intérieur",
@@ -142,6 +152,22 @@
       "ESPECES": "Espèces",
       "CARTE": "Carte bancaire",
       "CHEQUE": "Chèque"
+    }
+  },
+  "SERVEUR": {
+    "TITLE": "Espace Serveur",
+    "PRODUCTS": "Produits",
+    "CART": "Commande en cours",
+    "SEND_PREPARATION": "Envoyer en préparation",
+    "SELECT_TABLE": "Sélectionner une table",
+    "CLEAR": "Vider le panier",
+    "CATEGORIES": {
+      "ALL": "Tous",
+      "COCKTAIL": "Cocktails",
+      "BEER": "Bières",
+      "SOFT": "Softs",
+      "SNACK": "Snacks",
+      "SHOT": "Shots"
     }
   },
   "DASHBOARD": {

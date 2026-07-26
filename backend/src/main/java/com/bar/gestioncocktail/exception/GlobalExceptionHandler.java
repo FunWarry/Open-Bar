@@ -40,13 +40,13 @@ public class GlobalExceptionHandler {
         Map<String, String> fieldErrors = ex.getBindingResult().getFieldErrors().stream()
                 .collect(Collectors.toMap(
                         FieldError::getField,
-                        fe -> fe.getDefaultMessage() != null ? fe.getDefaultMessage() : "Valeur invalide",
+                        fe -> fe.getDefaultMessage() != null ? fe.getDefaultMessage() : "Invalid value",
                         (existing, replacement) -> existing
                 ));
         ErrorResponse body = ErrorResponse.builder(
                 HttpStatus.BAD_REQUEST.value(),
                 "Validation Failed",
-                "Un ou plusieurs champs sont invalides"
+                "One or more fields are invalid"
         ).fieldErrors(fieldErrors).build();
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
@@ -57,7 +57,7 @@ public class GlobalExceptionHandler {
         ErrorResponse body = ErrorResponse.builder(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 "Internal Server Error",
-                "Une erreur inattendue est survenue"
+                "An unexpected error occurred"
         ).build();
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
     }
