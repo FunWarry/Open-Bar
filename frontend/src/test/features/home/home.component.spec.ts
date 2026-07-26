@@ -10,11 +10,10 @@ describe('HomeComponent', () => {
   let component: HomeComponent;
   let fixture: ComponentFixture<HomeComponent>;
   let storeSpy: jasmine.SpyObj<Store>;
-  let routerSpy: jasmine.SpyObj<Router>;
+  let router: Router;
 
   beforeEach(async () => {
     storeSpy = jasmine.createSpyObj('Store', ['select', 'dispatch']);
-    routerSpy = jasmine.createSpyObj('Router', ['navigate']);
 
     storeSpy.select.and.callFake((selector: any) => {
       if (selector === selectCurrentUser) return of({ username: 'testuser', roles: ['SERVEUR'] });
@@ -28,10 +27,12 @@ describe('HomeComponent', () => {
     await TestBed.configureTestingModule({
       imports: [HomeComponent, RouterTestingModule],
       providers: [
-        { provide: Store, useValue: storeSpy },
-        { provide: Router, useValue: routerSpy }
+        { provide: Store, useValue: storeSpy }
       ]
     }).compileComponents();
+
+    router = TestBed.inject(Router);
+    spyOn(router, 'navigate');
 
     fixture = TestBed.createComponent(HomeComponent);
     component = fixture.componentInstance;
@@ -58,7 +59,7 @@ describe('HomeComponent', () => {
 
   it('navigateTo() devrait appeler router.navigate avec le bon chemin', () => {
     component.navigateTo('/serveur');
-    expect(routerSpy.navigate).toHaveBeenCalledWith(['/serveur']);
+    expect(router.navigate).toHaveBeenCalledWith(['/serveur']);
   });
 
   it('ngOnInit() ne devrait pas lever d\'erreur', () => {
