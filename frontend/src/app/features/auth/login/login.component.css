@@ -22,8 +22,8 @@
 .glow-1 {
   top: -100px;
   left: -100px;
-  width: 500px;
-  height: 500px;
+  width: 600px;
+  height: 600px;
   background: var(--primary, #6c7fe8);
 }
 
@@ -40,35 +40,34 @@
   z-index: 1;
   width: 100%;
   max-width: 440px;
-  background-color: var(--surface-1, #1a1a2e);
+  background-color: var(--bg-0, #0f0f1a);
   border: 1px solid var(--border-default, #2e3450);
-  border-radius: var(--radius-xl, 20px);
-  padding: var(--space-7, 32px);
+  border-radius: 16px;
+  padding: 40px;
   box-shadow: var(--elev-3, 0 12px 32px rgba(0, 0, 0, 0.55));
   display: flex;
   flex-direction: column;
-  gap: var(--space-5, 20px);
-}
-
-.login-header {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2, 8px);
+  gap: 20px;
+  box-sizing: border-box;
 }
 
 .login-title {
   font-family: var(--font, 'Inter', sans-serif);
-  font-size: var(--fs-display, 32px);
+  font-size: 32px;
   font-weight: 700;
-  color: var(--text-primary, #eceefb);
+  color: var(--primary-strong, #5a68d6);
   margin: 0;
+  text-align: center;
   letter-spacing: -0.02em;
 }
 
 .login-subtitle {
-  font-size: var(--fs-body, 14px);
+  font-family: var(--font, 'Inter', sans-serif);
+  font-size: 14px;
+  font-weight: 400;
   color: var(--text-secondary, #a4add0);
   margin: 0;
+  text-align: center;
 }
 
 .divider {
@@ -80,15 +79,43 @@
 .login-form {
   display: flex;
   flex-direction: column;
-  gap: var(--space-5, 20px);
+  gap: 20px;
 }
 
-.error-banner {
-  background-color: rgba(229, 96, 79, 0.15);
-  border: 1px solid var(--semantic-danger, #e5604f);
-  color: var(--semantic-danger, #e5604f);
-  padding: var(--space-3, 12px) var(--space-4, 16px);
-  border-radius: var(--radius-md, 10px);
-  font-size: var(--fs-sm, 13px);
-  font-weight: 500;
+.error-toast {
+  display: flex;
+  height: 56px;
+  align-items: center;
+  background-color: var(--bg-0, #0f0f1a);
+  border: 1px solid var(--st-annulee, #e5604f);
+  border-radius: 10px;
+  overflow: hidden;
+  width: 100%;
+}
+
+.toast-accent {
+  width: 4px;
+  height: 100%;
+  background-color: var(--st-annulee, #e5604f);
+  flex-shrink: 0;
+}
+
+.toast-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+  flex: 1;
+}
+
+.toast-icon {
+  color: var(--st-annulee, #e5604f);
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.toast-message {
+  font-family: var(--font, 'Inter', sans-serif);
+  font-size: 13px;
+  color: var(--text-primary, #eceefb);
 }

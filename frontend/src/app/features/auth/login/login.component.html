@@ -3,35 +3,37 @@
   <div class="ambient-glow glow-2"></div>
 
   <div class="login-card">
-    <div class="login-header">
-      <h1 class="login-title">OpenBar</h1>
-      <p class="login-subtitle">Connexion à votre espace bar</p>
-    </div>
+    <h1 class="login-title">OpenBar</h1>
+    <p class="login-subtitle">Connexion à votre espace bar</p>
 
     <div class="divider"></div>
 
     <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
       <app-input-field
         formControlName="username"
-        label="Nom d'utilisateur"
-        placeholder="Entrez votre identifiant"
-        icon="person-outline"
+        label="Email"
+        placeholder="admin@openbar.com"
+        icon="mail-outline"
         [required]="true"
         autocomplete="username"
-        [errorMessage]="loginForm.get('username')?.touched && loginForm.get('username')?.hasError('required') ? 'Le nom d\'utilisateur est requis' : undefined">
+        [errorMessage]="loginForm.get('username')?.touched && loginForm.get('username')?.hasError('required') ? 'Nom d\'utilisateur requis' : undefined">
       </app-input-field>
 
       <app-password-input
         formControlName="password"
         label="Mot de passe"
-        placeholder="Entrez votre mot de passe"
+        placeholder="••••••••"
         [required]="true"
         autocomplete="current-password"
-        [errorMessage]="loginForm.get('password')?.touched && loginForm.get('password')?.hasError('required') ? 'Le mot de passe est requis' : undefined">
+        [errorMessage]="loginForm.get('password')?.touched && loginForm.get('password')?.hasError('required') ? 'Mot de passe requis' : undefined">
       </app-password-input>
 
-      <div class="error-banner" *ngIf="errorMessage">
-        {{ errorMessage }}
+      <div class="error-toast" *ngIf="errorMessage">
+        <div class="toast-accent"></div>
+        <div class="toast-content">
+          <span class="toast-icon">✕</span>
+          <span class="toast-message">{{ errorMessage }}</span>
+        </div>
       </div>
 
       <app-action-button
