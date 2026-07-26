@@ -6,7 +6,9 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "test:ci": "ng test --watch=false --browsers=ChromeHeadless --code-coverage",
+    "sonar": "npm run test:ci && npx sonar-scanner -Dsonar.qualitygate.wait=true"
   },
   "private": true,
   "dependencies": {
@@ -43,6 +45,7 @@
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
     "karma-junit-reporter": "^2.0.1",
+    "sonar-scanner": "^3.1.0",
     "typescript": "~5.9.3"
   }
 }

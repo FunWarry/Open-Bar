@@ -7,7 +7,7 @@ echo "   OpenBar — Sonar Scan Local Validation  "
 echo "=========================================="
 
 echo -e "\n[1/3] Backend — Préparation des binaries et dépendances..."
-(cd backend && mvn test-compile dependency:copy-dependencies -DincludeScope=test -DoutputDirectory=target/dependency -q)
+(cd backend && mvn test-compile -q)
 
 echo -e "\n[2/3] Frontend — Génération du rapport LCOV (Karma)..."
 (cd frontend && npx ng test --watch=false --browsers=ChromeHeadless --code-coverage)
