@@ -1,80 +1,111 @@
-<ion-header>
-  <ion-toolbar class="serveur-toolbar">
-    <ion-title>
-      <span class="toolbar-title">Tables</span>
-      <span class="toolbar-role">WAITER</span>
-    </ion-title>
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title>Espace Serveur — OpenBar</ion-title>
     <ion-buttons slot="end">
-      <ion-button fill="clear" (click)="naviguerKanban()" title="Suivi commandes">
-        <ion-icon name="list-outline" slot="icon-only"></ion-icon>
+      <ion-button (click)="naviguerKanban()" title="Vue Kanban Suivi">
+        <ion-icon slot="icon-only" name="list-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="serveur-content">
+<ion-content class="ion-padding dashboard-serveur-content">
   <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
-  <!-- Légende statuts (LegendItem Figma 126:141) -->
-  <div class="legend-bar">
-    <div class="legend-item">
-      <span class="legend-dot dot-free"></span>
-      <span class="legend-label">Libre ({{ countLibres }})</span>
+  <!-- ONGLET 1 : MES TABLES SERVEUR -->
+  <ng-container *ngIf="activeTab === 'tables'">
+    <div class="segment-container">
+      <ion-segment [value]="selectedFilter" (ionChange)="onSegmentChange($event)">
+        <ion-segment-button value="toutes">
+          <ion-label>Toutes ({{ tables.length }})</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="occupees">
+          <ion-label>Occupées ({{ countOccupees }})</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="libres">
+          <ion-label>Libres ({{ countLibres }})</ion-label>
+        </ion-segment-button>
+      </ion-segment>
     </div>
-    <div class="legend-item">
-      <span class="legend-dot dot-occupied"></span>
-      <span class="legend-label">Occupée ({{ countOccupees }})</span>
+
+    <div class="mobile-tables-grid">
+      <app-mobile-table-card
+        *ngFor="let table of filteredTables; trackBy: trackById"
+        [table]="table"
+        (select)="onSelectionner($event)"
+        (newOrder)="onNewOrderForTable($event)">
+      </app-mobile-table-card>
     </div>
-    <div class="legend-item">
-      <span class="legend-dot dot-inprogress"></span>
-      <span class="legend-label">En cours</span>
+  </ng-container>
+
+  <!-- ONGLET 2 : PRISE DE COMMANDE RAPIDE & MENU PRODUITS -->
+  <ng-container *ngIf="activeTab === 'commande'">
+    <div class="order-taking-layout">
+      <!-- Zone Produits & Filtres (Gauche) -->
+      <div class="products-section">
+        <div class="categories-bar">
+          <app-filter-chip
+            label="Tous"
+            [active]="selectedCategory === 'ALL'"
+            (click)="onCategorySelect('ALL')">
+          </app-filter-chip>
+          <app-filter-chip
+            label="Cocktails"
+            [active]="selectedCategory === 'COCKTAIL'"
+            (click)="onCategorySelect('COCKTAIL')">
+          </app-filter-chip>
+          <app-filter-chip
+            label="Bières"
+            [active]="selectedCategory === 'BEER'"
+            (click)="onCategorySelect('BEER')">
+          </app-filter-chip>
+          <app-filter-chip
+            label="Softs"
+            [active]="selectedCategory === 'SOFT'"
+            (click)="onCategorySelect('SOFT')">
+          </app-filter-chip>
+          <app-filter-chip
+            label="Snacks"
+            [active]="selectedCategory === 'SNACK'"
+            (click)="onCategorySelect('SNACK')">
+          </app-filter-chip>
+          <app-filter-chip
+            label="Shots"
+            [active]="selectedCategory === 'SHOT'"
+            (click)="onCategorySelect('SHOT')">
+          </app-filter-chip>
+        </div>
+
+        <div class="products-grid">
+          <app-product-card
+            *ngFor="let p of filteredProducts; trackBy: trackById"
+            [product]="p"
+            (add)="onAddToCart($event)">
+          </app-product-card>
+        </div>
+      </div>
+
+      <!-- Zone Tiroir Panier (Droite) -->
+      <div class="cart-section">
+        <app-cart-drawer
+          [cart]="cart"
+          [tables]="tables"
+          (quantityChange)="onCartQuantityChanged($event)"
+          (removeItem)="onCartItemRemoved($event)"
+          (tableSelect)="onTableSelectForOrder($event)"
+          (submitOrder)="onSubmitCart()"
+          (clearCart)="onClearCart()">
+        </app-cart-drawer>
+      </div>
     </div>
-  </div>
-
-  <!-- Filtres segment (CategoryTab Figma 128:84) -->
-  <ion-segment
-    [value]="selectedFilter"
-    (ionChange)="onSegmentChange($event)"
-    class="filter-segment">
-    <ion-segment-button value="toutes">
-      <ion-label>Toutes ({{ tables.length }})</ion-label>
-    </ion-segment-button>
-    <ion-segment-button value="occupees">
-      <ion-label>Occupées ({{ countOccupees }})</ion-label>
-    </ion-segment-button>
-    <ion-segment-button value="libres">
-      <ion-label>Libres ({{ countLibres }})</ion-label>
-    </ion-segment-button>
-  </ion-segment>
-
-  <!-- Grille de tables responsive -->
-  <ion-grid class="tables-grid">
-    <ion-row>
-      <ion-col
-        size="12"
-        size-sm="6"
-        size-md="4"
-        size-lg="3"
-        *ngFor="let table of filteredTables; trackBy: trackById">
-        <app-table-card
-          [table]="table"
-          (liberer)="onLiberer($event)"
-          (selectionner)="onSelectionner($event)">
-        </app-table-card>
-      </ion-col>
-    </ion-row>
-  </ion-grid>
-
-  <!-- État vide -->
-  <div *ngIf="!isLoading && filteredTables.length === 0" class="empty-state">
-    <p class="empty-icon">🪑</p>
-    <p class="empty-text">
-      Aucune table
-      <ng-container *ngIf="selectedFilter !== 'toutes'">
-        {{ selectedFilter === 'occupees' ? 'occupée' : 'libre' }}
-      </ng-container>
-    </p>
-  </div>
+  </ng-container>
 </ion-content>
+
+<!-- BOTTOM NAVIGATION MOBILE / TABLETTE -->
+<app-bottom-navigation
+  [activeTab]="activeTab"
+  [cartBadgeCount]="cartTotalCount"
+  (tabSelect)="onTabSelected($event)">
+</app-bottom-navigation>

@@ -1,0 +1,27 @@
+<div class="product-card" [style.--category-accent]="CategoryColor">
+  <div class="product-header">
+    <div class="product-icon-wrap">
+      <ion-icon [name]="CategoryIcon"></ion-icon>
+    </div>
+    <app-stock-severity-badge
+      *ngIf="product.stockStatus"
+      [severity]="product.stockStatus">
+    </app-stock-severity-badge>
+  </div>
+
+  <div class="product-body">
+    <h4 class="product-title">{{ product.nom }}</h4>
+    <p class="product-description" *ngIf="product.description">{{ product.description }}</p>
+    <div class="product-price">{{ product.prix | number:'1.2-2' }} €</div>
+  </div>
+
+  <div class="product-footer">
+    <app-action-button
+      variant="primary"
+      size="small"
+      iconLeft="add-outline"
+      (click)="onAdd()">
+      Ajouter
+    </app-action-button>
+  </div>
+</div>

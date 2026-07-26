@@ -1,0 +1,41 @@
+<div class="mobile-table-card" (click)="select.emit(table)">
+  <div class="card-header">
+    <div class="table-badge">
+      <ion-icon name="restaurant-outline"></ion-icon>
+      {{ table.nom || 'Table #' + table.id }}
+    </div>
+    <app-status-badge
+      [customLabel]="StatusLabel"
+      [customColor]="StatusColor">
+    </app-status-badge>
+  </div>
+
+  <div class="card-body">
+    <div class="info-item">
+      <ion-icon name="people-outline"></ion-icon>
+      <span>{{ table.capacite }} couverts</span>
+    </div>
+    <div class="info-item">
+      <ion-icon name="location-outline"></ion-icon>
+      <span>{{ table.zone }}</span>
+    </div>
+    <div class="info-item" *ngIf="pendingOrdersCount > 0">
+      <ion-icon name="time-outline"></ion-icon>
+      <span>{{ pendingOrdersCount }} commande(s)</span>
+    </div>
+  </div>
+
+  <div class="card-footer">
+    <div class="total-wrap" *ngIf="activeTotal > 0">
+      <span class="label">Total en cours</span>
+      <span class="amount">{{ activeTotal | number:'1.2-2' }} €</span>
+    </div>
+    <app-action-button
+      variant="secondary"
+      size="small"
+      iconLeft="add-circle-outline"
+      (click)="$event.stopPropagation(); newOrder.emit(table)">
+      Commander
+    </app-action-button>
+  </div>
+</div>

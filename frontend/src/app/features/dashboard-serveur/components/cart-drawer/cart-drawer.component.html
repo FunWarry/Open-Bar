@@ -1,0 +1,69 @@
+<div class="cart-drawer-container">
+  <div class="cart-header">
+    <h3>
+      <ion-icon name="cart-outline"></ion-icon>
+      Commande en cours
+    </h3>
+    <button class="clear-btn" *ngIf="cart.items.length > 0" (click)="clearCart.emit()">
+      Vider
+    </button>
+  </div>
+
+  <!-- Table Selector -->
+  <div class="table-selector-wrap">
+    <label>Table assignée :</label>
+    <ion-select
+      [value]="cart.tableId"
+      placeholder="Sélectionner une table"
+      interface="popover"
+      (ionChange)="onTableChanged($event)">
+      <ion-select-option *ngFor="let t of tables" [value]="t.id">
+        {{ t.nom || 'Table #' + t.id }} ({{ t.zone }})
+      </ion-select-option>
+    </ion-select>
+  </div>
+
+  <!-- Cart Items List -->
+  <div class="cart-body">
+    <app-empty-state
+      *ngIf="cart.items.length === 0"
+      icon="basket-outline"
+      title="Panier vide"
+      description="Ajoutez des boissons ou snacks depuis le menu ci-contre.">
+    </app-empty-state>
+
+    <div class="cart-item-row" *ngFor="let item of cart.items">
+      <div class="item-info">
+        <span class="item-name">{{ item.nom }}</span>
+        <span class="item-unit-price">{{ item.prix | number:'1.2-2' }} € / u</span>
+      </div>
+
+      <div class="item-controls">
+        <app-quantity-stepper
+          [value]="item.quantite"
+          [min]="0"
+          [max]="99"
+          (valueChange)="onQuantityChanged(item, $event)">
+        </app-quantity-stepper>
+        <span class="item-total">{{ (item.prix * item.quantite) | number:'1.2-2' }} €</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cart Footer -->
+  <div class="cart-footer" *ngIf="cart.items.length > 0">
+    <div class="cart-total-row">
+      <span>Total TTC</span>
+      <span class="total-amount">{{ totalTTC | number:'1.2-2' }} €</span>
+    </div>
+
+    <app-action-button
+      variant="primary"
+      size="medium"
+      iconLeft="paper-plane-outline"
+      [disabled]="!cart.tableId || isSubmitting"
+      (click)="onSubmit()">
+      Envoyer en préparation
+    </app-action-button>
+  </div>
+</div>

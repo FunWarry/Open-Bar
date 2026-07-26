@@ -14,8 +14,11 @@ export type CommandeStatus = 'EN_ATTENTE' | 'EN_PREPARATION' | 'PRET' | 'LIVREE'
 export class StatusBadgeComponent {
   @Input() status: CommandeStatus = 'EN_ATTENTE';
   @Input() prioritary?: boolean = false;
+  @Input() customLabel?: string;
+  @Input() customColor?: string;
 
   get badgeColor(): string {
+    if (this.customColor) return '';
     if (this.prioritary || this.status === 'PRIORITAIRE') {
       return 'tertiary';
     }
@@ -42,6 +45,7 @@ export class StatusBadgeComponent {
   }
 
   get label(): string {
+    if (this.customLabel) return this.customLabel;
     if (this.prioritary || this.status === 'PRIORITAIRE') {
       return '⚡ Prioritaire';
     }
