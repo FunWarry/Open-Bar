@@ -35,9 +35,9 @@ import { DashboardStats, TopCocktail } from './models/dashboard-stats.model';
 export class DashboardManagerComponent implements OnInit, OnDestroy {
   stats: DashboardStats | null = null;
   loading = true;
-  private destroy$ = new Subject<void>();
+  private readonly destroy$ = new Subject<void>();
 
-  constructor(private dashboardService: DashboardManagerService) {}
+  constructor(private readonly dashboardService: DashboardManagerService) {}
 
   static readonly REFRESH_INTERVAL_MS = 30_000;
 
