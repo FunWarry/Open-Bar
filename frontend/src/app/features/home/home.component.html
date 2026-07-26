@@ -1,58 +1,90 @@
 <div class="home-container">
-  <ion-card class="welcome-card">
-    <ion-card-header>
-      <ion-card-title>Bienvenue sur Gestion Cocktail</ion-card-title>
-      <ion-card-subtitle *ngIf="currentUser$ | async as user">
-        Connecté en tant que {{ user.username }}
-      </ion-card-subtitle>
-    </ion-card-header>
-    <ion-card-content>
-      <p>
-        Cette application vous permet de gérer vos cocktails, ingrédients et recettes.
-        Commencez par explorer les différentes fonctionnalités disponibles.
-      </p>
-    </ion-card-content>
-  </ion-card>
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
 
-  <div class="features-grid">
-    <ion-card class="feature-card">
-      <ion-card-header>
-        <ion-icon name="wine-outline"></ion-icon>
-        <ion-card-title>Cocktails</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <p>Gérez votre collection de cocktails et leurs recettes.</p>
-      </ion-card-content>
-    </ion-card>
+  <div class="welcome-header" *ngIf="currentUser$ | async as user">
+    <div class="user-info">
+      <h1 class="welcome-title">Bienvenue, {{ user.username }}</h1>
+      <p class="welcome-subtitle">Sélectionnez votre espace de travail métier</p>
+    </div>
+    <div class="roles-badges">
+      <app-role-badge *ngFor="let role of user.roles" [role]="role"></app-role-badge>
+    </div>
+  </div>
 
-    <ion-card class="feature-card">
-      <ion-card-header>
-        <ion-icon name="list-outline"></ion-icon>
-        <ion-card-title>Ingrédients</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <p>Suivez vos stocks d'ingrédients et leurs quantités.</p>
-      </ion-card-content>
-    </ion-card>
+  <div class="navigation-grid">
+    <!-- Vue Barman -->
+    <div class="nav-card barman-card" *ngIf="(isBarman$ | async) || (isAdmin$ | async)">
+      <div class="card-badge" data-role="barman">BARMAN</div>
+      <div class="card-icon">🍹</div>
+      <h2 class="card-title">Espace Barman</h2>
+      <p class="card-desc">Kanban de préparation des commandes en temps réel et gestion du bar.</p>
+      <app-action-button variant="primary" (btnClick)="navigateTo('/barman')">
+        Accéder au Bar
+      </app-action-button>
+    </div>
 
-    <ion-card class="feature-card">
-      <ion-card-header>
-        <ion-icon name="restaurant-outline"></ion-icon>
-        <ion-card-title>Recettes</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <p>Créez et partagez vos recettes de cocktails.</p>
-      </ion-card-content>
-    </ion-card>
+    <!-- Vue Serveur -->
+    <div class="nav-card serveur-card" *ngIf="(isServeur$ | async) || (isAdmin$ | async)">
+      <div class="card-badge" data-role="serveur">SERVEUR</div>
+      <div class="card-icon">👋</div>
+      <h2 class="card-title">Espace Serveur</h2>
+      <p class="card-desc">Prise de commande mobile, suivi des tables et service clients.</p>
+      <app-action-button variant="primary" (btnClick)="navigateTo('/serveur')">
+        Accéder au Service
+      </app-action-button>
+    </div>
 
-    <ion-card class="feature-card">
-      <ion-card-header>
-        <ion-icon name="calendar-outline"></ion-icon>
-        <ion-card-title>Événements</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <p>Planifiez vos événements et gérez les cocktails servis.</p>
-      </ion-card-content>
-    </ion-card>
+    <!-- Vue Manager -->
+    <div class="nav-card manager-card" *ngIf="(isManager$ | async) || (isAdmin$ | async)">
+      <div class="card-badge" data-role="manager">MANAGER</div>
+      <div class="card-icon">🗺️</div>
+      <h2 class="card-title">Espace Manager</h2>
+      <p class="card-desc">Supervision globale, plan de salle interactif et rapports d'activité.</p>
+      <div class="card-actions">
+        <app-action-button variant="primary" (btnClick)="navigateTo('/manager')">
+          Dashboard Manager
+        </app-action-button>
+        <app-action-button variant="secondary" (btnClick)="navigateTo('/plan-salle')">
+          Plan de salle
+        </app-action-button>
+      </div>
+    </div>
+
+    <!-- Administration -->
+    <div class="nav-card admin-card" *ngIf="isAdmin$ | async">
+      <div class="card-badge" data-role="admin">ADMIN</div>
+      <div class="card-icon">⚙️</div>
+      <h2 class="card-title">Administration</h2>
+      <p class="card-desc">Gestion des utilisateurs, permissions et personnalisation graphique du bar.</p>
+      <div class="card-actions">
+        <app-action-button variant="primary" (btnClick)="navigateTo('/admin')">
+          Administration
+        </app-action-button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section Accès rapide commun -->
+  <div class="quick-access-section">
+    <h3 class="section-title">Aperçu rapide & Catalogues</h3>
+    <div class="quick-links">
+      <a routerLink="/cocktails" class="quick-link-btn">
+        <span class="icon">🍸</span>
+        <span>Catalogue Cocktails</span>
+      </a>
+      <a routerLink="/tables" class="quick-link-btn">
+        <span class="icon">🪑</span>
+        <span>Liste des Tables</span>
+      </a>
+      <a routerLink="/commandes" class="quick-link-btn">
+        <span class="icon">📋</span>
+        <span>Historique Commandes</span>
+      </a>
+      <a routerLink="/factures" class="quick-link-btn">
+        <span class="icon">💰</span>
+        <span>Factures</span>
+      </a>
+    </div>
   </div>
 </div>

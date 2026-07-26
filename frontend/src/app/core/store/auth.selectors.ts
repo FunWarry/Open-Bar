@@ -37,3 +37,8 @@ export const selectIsBarman = createSelector(
   selectCurrentUser,
   (user) => user?.roles?.includes('BARMAN') ?? false
 );
+
+export const selectIsServeur = createSelector(
+  selectCurrentUser,
+  (user) => user?.roles?.includes('SERVEUR') ?? false
+);
