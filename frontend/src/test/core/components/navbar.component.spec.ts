@@ -169,7 +169,7 @@ describe('NavbarComponent', () => {
   });
 
   it('shouldShowNavbar$ émet true si l\'utilisateur est authentifié sur une page hors auth/setup', (done) => {
-    mockSelectIsAuthenticated.setResult(true);
+    store.overrideSelector(selectIsAuthenticated, true);
     store.refreshState();
 
     component.shouldShowNavbar$.subscribe(show => {
