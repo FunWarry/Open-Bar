@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { NavbarComponent } from './core/components/navbar/navbar.component';
 import { AppSettingsService } from './core/services/app-settings.service';
-import { filter, map, combineLatest, Observable } from 'rxjs';
+import { filter, map, combineLatest, startWith, Observable } from 'rxjs';
 import { Store } from '@ngrx/store';
 import { selectIsAuthenticated } from './core/store/auth.selectors';
 import { AsyncPipe, NgIf } from '@angular/common';
@@ -23,12 +23,16 @@ export class AppComponent implements OnInit {
     private readonly store: Store
   ) {
     const isAuth$ = this.store.select(selectIsAuthenticated);
+    const initialUrl = this.router.url || '';
+    const isInitialAuthRoute = initialUrl.includes('/login') || initialUrl.includes('/register') || initialUrl.includes('/setup') || initialUrl.includes('/qr-client');
+
     const isAuthRoute$ = this.router.events.pipe(
       filter((event): event is NavigationEnd => event instanceof NavigationEnd),
       map(event => {
         const url = event.urlAfterRedirects || event.url;
         return url.includes('/login') || url.includes('/register') || url.includes('/setup') || url.includes('/qr-client');
-      })
+      }),
+      startWith(isInitialAuthRoute)
     );
 
     this.showNavbar$ = combineLatest([isAuth$, isAuthRoute$]).pipe(

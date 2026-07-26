@@ -47,7 +47,13 @@ describe('AppComponent', () => {
     }));
 
     await TestBed.configureTestingModule({
-      imports: [AppComponent, RouterTestingModule],
+      imports: [
+        AppComponent,
+        RouterTestingModule.withRoutes([
+          { path: 'auth/login', component: AppComponent },
+          { path: 'app-home', component: AppComponent }
+        ])
+      ],
       providers: [
         provideMockStore({
           initialState,
