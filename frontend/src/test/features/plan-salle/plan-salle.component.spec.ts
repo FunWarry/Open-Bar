@@ -151,11 +151,10 @@ describe('PlanSalleComponent', () => {
 
   // --- onClickTable ---
 
-  it('onClickTable() ouvre un modal ModalController', async () => {
+  it('onClickTable() ouvre le side panel pour la table sélectionnée', async () => {
     await component.onClickTable(mockTables[0]);
-    expect(modalCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({
-      componentProps: jasmine.objectContaining({ table: jasmine.objectContaining({ id: 1 }) }),
-    }));
+    expect(component.selectedTable).toEqual(mockTables[0]);
+    expect(component.isSidePanelOpen).toBeTrue();
   });
 
   // --- toggleForme ---
