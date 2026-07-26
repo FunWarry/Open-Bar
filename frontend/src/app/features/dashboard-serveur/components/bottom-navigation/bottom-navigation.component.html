@@ -1,0 +1,31 @@
+<nav class="bottom-nav">
+  <button
+    class="nav-tab"
+    [class.active]="activeTab === 'tables'"
+    (click)="onSelect('tables')">
+    <ion-icon name="restaurant-outline"></ion-icon>
+    <span>Tables</span>
+  </button>
+
+  <button
+    class="nav-tab"
+    [class.active]="activeTab === 'commande'"
+    (click)="onSelect('commande')">
+    <div class="icon-wrap">
+      <ion-icon name="cart-outline"></ion-icon>
+      <span class="badge" *ngIf="cartBadgeCount > 0">{{ cartBadgeCount }}</span>
+    </div>
+    <span>Commande</span>
+  </button>
+
+  <button
+    class="nav-tab"
+    [class.active]="activeTab === 'suivi'"
+    (click)="onSelect('suivi')">
+    <div class="icon-wrap">
+      <ion-icon name="list-outline"></ion-icon>
+      <span class="badge warning" *ngIf="pendingOrdersCount > 0">{{ pendingOrdersCount }}</span>
+    </div>
+    <span>Suivi</span>
+  </button>
+</nav>

@@ -17,6 +17,8 @@ import { NotificationService, AppNotification } from '../../../app/core/services
 import { TableCardComponent } from '../../../app/features/dashboard-serveur/components/table-card/table-card.component';
 import { TableView } from '../../../app/features/dashboard-serveur/models/table-view.model';
 
+import { provideIonicAngular } from '@ionic/angular/standalone';
+
 describe('DashboardServeurComponent', () => {
   let component: DashboardServeurComponent;
   let fixture: ComponentFixture<DashboardServeurComponent>;
@@ -68,6 +70,7 @@ describe('DashboardServeurComponent', () => {
         TableCardComponent,
       ],
       providers: [
+        provideIonicAngular(),
         { provide: DashboardServeurService, useValue: dashboardServiceSpy },
         { provide: NotificationService, useValue: notificationServiceSpy },
         { provide: ToastController, useValue: toastCtrlSpy },

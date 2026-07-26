@@ -19,6 +19,13 @@ import { NotificationService } from '../../core/services/notification.service';
 import { DashboardServeurService } from './services/dashboard-serveur.service';
 import { TableView } from './models/table-view.model';
 
+import { MobileTableCardComponent } from './components/mobile-table-card/mobile-table-card.component';
+import { BottomNavigationComponent, ServeurTab } from './components/bottom-navigation/bottom-navigation.component';
+import { ProductCardComponent, ProductItem } from './components/product-card/product-card.component';
+import { CartDrawerComponent } from './components/cart-drawer/cart-drawer.component';
+import { CartModel, CartItemModel } from './models/cart.model';
+import { FilterChipComponent } from '../../core/components/ui/filter-chip/filter-chip.component';
+
 @Component({
   selector: 'app-dashboard-serveur',
   standalone: true,
@@ -30,6 +37,11 @@ import { TableView } from './models/table-view.model';
     IonSegment, IonSegmentButton, IonLabel,
     IonButtons, IonButton, IonIcon,
     TableCardComponent,
+    MobileTableCardComponent,
+    BottomNavigationComponent,
+    ProductCardComponent,
+    CartDrawerComponent,
+    FilterChipComponent,
   ],
   templateUrl: './dashboard-serveur.component.html',
   styleUrls: ['./dashboard-serveur.component.scss'],
@@ -39,6 +51,20 @@ export class DashboardServeurComponent implements OnInit, OnDestroy {
   filteredTables: TableView[] = [];
   selectedFilter = 'toutes';
   isLoading = false;
+
+  activeTab: ServeurTab = 'tables';
+  selectedCategory = 'ALL';
+
+  cart: CartModel = { tableId: null, items: [] };
+
+  products: ProductItem[] = [
+    { id: 1, nom: 'Mojito Traditional', prix: 8.5, categorie: 'COCKTAIL', stock: 15, stockStatus: 'NORMAL', description: 'Rhum blanc, menthe fraîche, citron vert' },
+    { id: 2, nom: 'Pinte Blonde Pression', prix: 6.0, categorie: 'BEER', stock: 40, stockStatus: 'NORMAL', description: 'Blonde artisanale 5%' },
+    { id: 3, nom: 'Cocktail Signature OpenBar', prix: 10.0, categorie: 'COCKTAIL', stock: 5, stockStatus: 'FAIBLE', description: 'Gin infuse, tonic premium' },
+    { id: 4, nom: 'Limonade Maison', prix: 4.5, categorie: 'SOFT', stock: 25, stockStatus: 'NORMAL', description: 'Citron pressé & sirop d\'agave' },
+    { id: 5, nom: 'Planche de Nachos & Guacamole', prix: 9.0, categorie: 'SNACK', stock: 8, stockStatus: 'NORMAL', description: 'Cheddar fondu et sauces maison' },
+    { id: 6, nom: 'Shot Tequila Special', prix: 4.0, categorie: 'SHOT', stock: 3, stockStatus: 'CRITIQUE', description: 'Tequila reposado' },
+  ];
 
   private destroy$ = new Subject<void>();
 
@@ -162,6 +188,83 @@ export class DashboardServeurComponent implements OnInit, OnDestroy {
           toast.present();
         },
       });
+  }
+
+  get filteredProducts(): ProductItem[] {
+    if (this.selectedCategory === 'ALL') return this.products;
+    return this.products.filter(p => p.categorie === this.selectedCategory);
+  }
+
+  get cartTotalCount(): number {
+    return this.cart.items.reduce((sum, item) => sum + item.quantite, 0);
+  }
+
+  onTabSelected(tab: ServeurTab) {
+    this.activeTab = tab;
+    if (tab === 'suivi') {
+      this.naviguerKanban();
+    }
+  }
+
+  onCategorySelect(cat: string) {
+    this.selectedCategory = cat;
+  }
+
+  onAddToCart(product: ProductItem) {
+    const existing = this.cart.items.find(i => i.boissonId === product.id);
+    if (existing) {
+      existing.quantite++;
+    } else {
+      this.cart.items.push({
+        boissonId: product.id,
+        nom: product.nom,
+        prix: product.prix,
+        quantite: 1,
+        typeBoisson: product.categorie,
+      });
+    }
+    this.cart = { ...this.cart };
+  }
+
+  onCartQuantityChanged(event: { item: CartItemModel; newQty: number }) {
+    event.item.quantite = event.newQty;
+    this.cart = { ...this.cart };
+  }
+
+  onCartItemRemoved(item: CartItemModel) {
+    this.cart.items = this.cart.items.filter(i => i.boissonId !== item.boissonId);
+    this.cart = { ...this.cart };
+  }
+
+  onTableSelectForOrder(tableId: number) {
+    this.cart.tableId = tableId;
+    const found = this.tables.find(t => t.id === tableId);
+    if (found) {
+      this.cart.tableNumero = found.id;
+    }
+    this.cart = { ...this.cart };
+  }
+
+  onNewOrderForTable(table: TableView) {
+    this.onTableSelectForOrder(table.id);
+    this.activeTab = 'commande';
+  }
+
+  async onSubmitCart() {
+    if (!this.cart.tableId || this.cart.items.length === 0) return;
+
+    const toast = await this.toastCtrl.create({
+      message: `Commande envoyée pour la Table #${this.cart.tableId}`,
+      duration: 2500,
+      color: 'success',
+    });
+    await toast.present();
+
+    this.cart = { tableId: null, items: [] };
+  }
+
+  onClearCart() {
+    this.cart = { tableId: null, items: [] };
   }
 
   onRefresh(event: any) {
