@@ -1,25 +1,25 @@
-.logo {
-  cursor: pointer;
-  font-size: 1.5rem;
-  font-weight: 500;
+ion-toolbar {
+  --background: var(--surface-1, #1a1a2e);
+  --color: var(--text-primary, #eceefb);
+  --border-color: var(--border-default, #2e3450);
+  border-bottom: 1px solid var(--border-default, #2e3450);
+  padding: 0 var(--space-2, 8px);
 }
 
-.spacer {
-  flex: 1 1 auto;
+ion-title {
+  font-family: var(--font, 'Inter', sans-serif);
+  font-weight: 700;
+  font-size: var(--fs-h2, 20px);
+  color: var(--primary-light, #aab4f3);
+  letter-spacing: -0.01em;
 }
 
-mat-toolbar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 1000;
+ion-button {
+  --color: var(--text-secondary, #a4add0);
+  font-weight: 600;
+  font-family: var(--font, 'Inter', sans-serif);
 }
 
-button {
-  margin: 0 8px;
-}
-
-mat-icon {
-  margin-right: 4px;
+ion-button:hover {
+  --color: var(--text-primary, #eceefb);
 }
