@@ -49,11 +49,7 @@ export class AuthEffects {
     )
   );
 
-  constructor(
-    private actions$: Actions,
-    private authService: AuthService,
-    private navigationService: NavigationService
-  ) {
+  constructor(private readonly actions$: Actions,private readonly authService: AuthService,private readonly navigationService: NavigationService) {
   }
 }
 

@@ -73,8 +73,8 @@ describe('CocktailListComponent', () => {
   it('charger() peuple cocktails et filteredCocktails', fakeAsync(() => {
     component.charger();
     tick();
-    expect(component.cocktails.length).toBe(2);
-    expect(component.filteredCocktails.length).toBe(2);
+    expect(component.cocktails.length).toEqual(2);
+    expect(component.filteredCocktails.length).toEqual(2);
   }));
 
   it('charger() affiche un toast danger en cas d\'erreur', fakeAsync(() => {
@@ -103,7 +103,7 @@ describe('CocktailListComponent', () => {
     component.charger(); tick();
     component.onFiltreChange({ detail: { value: 'indisponibles' } });
     component.onFiltreChange({ detail: { value: 'tous' } });
-    expect(component.filteredCocktails.length).toBe(2);
+    expect(component.filteredCocktails.length).toEqual(2);
   }));
 
   // --- toggle disponibilité ---

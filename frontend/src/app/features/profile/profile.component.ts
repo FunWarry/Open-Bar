@@ -32,10 +32,7 @@ export class ProfileComponent implements OnInit {
   profileForm: FormGroup;
   currentUser$: Observable<User | null>;
 
-  constructor(
-    private fb: FormBuilder,
-    private store: Store
-  ) {
+  constructor(private readonly fb: FormBuilder,private readonly store: Store) {
     this.currentUser$ = this.store.select(selectCurrentUser);
     this.profileForm = this.fb.group({
       username: ['', Validators.required],

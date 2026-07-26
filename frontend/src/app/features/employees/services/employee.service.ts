@@ -8,7 +8,7 @@ import { Employee } from '../models/employee.model';
 export class EmployeeService {
   private readonly apiUrl = `${environment.apiUrl}/users`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private readonly http: HttpClient) {}
 
   getAll(): Observable<Employee[]> {
     // Use existing /api/users endpoint, map UserResponseDTO to Employee

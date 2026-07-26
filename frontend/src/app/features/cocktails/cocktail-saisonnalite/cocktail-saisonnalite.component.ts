@@ -146,7 +146,7 @@ export class CocktailSaisonnaliteComponent implements OnInit {
   saving = false;
   moisCourant = new Date().getMonth() + 1;
 
-  constructor(private cocktailService: CocktailService) {
+  constructor(private readonly cocktailService: CocktailService) {
     addIcons({ calendarOutline, checkmarkCircleOutline, closeCircleOutline });
   }
 

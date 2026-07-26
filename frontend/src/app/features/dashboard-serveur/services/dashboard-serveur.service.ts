@@ -12,7 +12,7 @@ export class DashboardServeurService {
   private readonly tablesUrl = `${environment.apiUrl}/tables`;
   private readonly commandesUrl = `${environment.apiUrl}/commandes`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private readonly http: HttpClient) {}
 
   getAllTables(): Observable<TableView[]> {
     return this.http.get<TableBar[]>(this.tablesUrl).pipe(

@@ -1,12 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { ToastController } from '@ionic/angular/standalone';
+import { ToastController, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonLabel, IonInput, IonButton, IonNote, IonSelect, IonSelectOption } from '@ionic/angular/standalone';
 import { NgIf } from '@angular/common';
-import {
-  IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-  IonItem, IonLabel, IonInput, IonButton, IonNote, IonSelect, IonSelectOption,
-} from '@ionic/angular/standalone';
+
 import { AppSettingsService } from '../../../core/services/app-settings.service';
 import { AppSettings } from '../../../core/models/app-settings.model';
 
@@ -29,11 +26,7 @@ export class PersonnalisationComponent implements OnInit {
   loading = true;
   private loadedColors: Pick<AppSettings, 'primaryColor' | 'primaryColorStrong'> | null = null;
 
-  constructor(
-    private fb: FormBuilder,
-    private router: Router,
-    private toastCtrl: ToastController,
-    private appSettingsService: AppSettingsService,
+  constructor(private readonly fb: FormBuilder,private readonly router: Router,private readonly toastCtrl: ToastController,private readonly appSettingsService: AppSettingsService,
   ) {
     this.settingsForm = this.fb.group({
       primaryColor: ['#6c7fe8', [Validators.required, Validators.pattern(HEX_COLOR_PATTERN)]],

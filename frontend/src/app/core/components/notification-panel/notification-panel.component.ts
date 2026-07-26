@@ -24,11 +24,9 @@ import { NotificationService, AppNotification } from '../../services/notificatio
 })
 export class NotificationPanelComponent implements OnInit, OnDestroy {
   notifications: AppNotification[] = [];
-  private destroy$ = new Subject<void>();
+  private readonly destroy$ = new Subject<void>();
 
-  constructor(
-    private notifService: NotificationService,
-    private popoverCtrl: PopoverController,
+  constructor(private readonly notifService: NotificationService,private readonly popoverCtrl: PopoverController,
   ) {
     addIcons({ checkmarkDoneOutline, notificationsOffOutline });
   }

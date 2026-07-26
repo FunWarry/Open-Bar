@@ -61,7 +61,7 @@ describe('TableDetailComponent', () => {
   it('ngOnInit() charge la table et les commandes', fakeAsync(() => {
     component.ngOnInit(); tick();
     expect(component.table).toEqual(mockTable);
-    expect(component.commandes.length).toBe(1);
+    expect(component.commandes.length).toEqual(1);
   }));
 
   it('ngOnInit() exclut les commandes REGLEE et ANNULEE', fakeAsync(() => {
@@ -71,7 +71,7 @@ describe('TableDetailComponent', () => {
       { ...mockCommande, id: 3, statut: 'ANNULEE' },
     ] as Commande[]));
     component.ngOnInit(); tick();
-    expect(component.commandes.length).toBe(1);
+    expect(component.commandes.length).toEqual(1);
   }));
 
   it('ngOnInit() navigue vers /tables en cas d\'erreur', fakeAsync(() => {

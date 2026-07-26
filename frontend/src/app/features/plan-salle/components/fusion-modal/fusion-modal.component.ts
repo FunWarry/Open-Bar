@@ -21,7 +21,7 @@ export class FusionModalComponent {
   @Input() sourceTable!: TableBar;
   @Input() targetTable!: TableBar;
 
-  constructor(private modalCtrl: ModalController) {
+  constructor(private readonly modalCtrl: ModalController) {
     addIcons({ gitMergeOutline, closeOutline });
   }
 

@@ -64,14 +64,9 @@ export class DashboardServeurComponent implements OnInit, OnDestroy {
     { id: 6, nom: 'Shot Tequila Special', prix: 4.0, categorie: 'SHOT', stock: 3, stockStatus: 'CRITIQUE', description: 'Tequila reposado' },
   ];
 
-  private destroy$ = new Subject<void>();
+  private readonly destroy$ = new Subject<void>();
 
-  constructor(
-    private service: DashboardServeurService,
-    private toastCtrl: ToastController,
-    private modalCtrl: ModalController,
-    private router: Router,
-    private notificationService: NotificationService,
+  constructor(private readonly service: DashboardServeurService,private readonly toastCtrl: ToastController,private readonly modalCtrl: ModalController,private readonly router: Router,private readonly notificationService: NotificationService,
   ) {
     addIcons({ listOutline });
   }

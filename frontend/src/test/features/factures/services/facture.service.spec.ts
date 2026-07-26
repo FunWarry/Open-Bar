@@ -117,7 +117,7 @@ describe('FactureService', () => {
       { nomConvive: 'Bob', itemIds: [3] }
     ];
     service.splitParSelection(1, parts).subscribe(results => {
-      expect(results.length).toBe(1);
+      expect(results.length).toEqual(1);
     });
     const req = httpMock.expectOne(`${baseUrl}/1/split/selection`);
     expect(req.request.method).toBe('POST');

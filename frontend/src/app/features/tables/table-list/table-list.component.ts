@@ -32,13 +32,9 @@ export class TableListComponent implements OnInit, OnDestroy {
   isLoading = false;
   isAdmin$: Observable<boolean>;
 
-  private destroy$ = new Subject<void>();
+  private readonly destroy$ = new Subject<void>();
 
-  constructor(
-    private store: Store,
-    private router: Router,
-    private tableService: TableService,
-    private toastCtrl: ToastController,
+  constructor(private readonly store: Store,private readonly router: Router,private readonly tableService: TableService,private readonly toastCtrl: ToastController,
   ) {
     this.isAdmin$ = this.store.select(selectIsAdmin);
     addIcons({ add, eye, create, people, checkmarkCircle, closeCircle });

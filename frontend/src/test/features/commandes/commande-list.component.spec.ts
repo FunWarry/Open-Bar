@@ -64,8 +64,8 @@ describe('CommandeListComponent', () => {
 
   it('charger() peuple commandes et filteredCommandes', fakeAsync(() => {
     component.charger(); tick();
-    expect(component.commandes.length).toBe(4);
-    expect(component.filteredCommandes.length).toBe(4);
+    expect(component.commandes.length).toEqual(4);
+    expect(component.filteredCommandes.length).toEqual(4);
   }));
 
   it('charger() affiche un toast danger en cas d\'erreur', fakeAsync(() => {
@@ -79,14 +79,14 @@ describe('CommandeListComponent', () => {
     component.charger(); tick();
     component.onFiltreChange({ detail: { value: 'EN_ATTENTE' } });
     expect(component.filteredCommandes.every(c => c.statut === 'EN_ATTENTE')).toBeTrue();
-    expect(component.filteredCommandes.length).toBe(1);
+    expect(component.filteredCommandes.length).toEqual(1);
   }));
 
   it('onFiltreChange("TOUTES") retourne toutes les commandes', fakeAsync(() => {
     component.charger(); tick();
     component.onFiltreChange({ detail: { value: 'EN_ATTENTE' } });
     component.onFiltreChange({ detail: { value: 'TOUTES' } });
-    expect(component.filteredCommandes.length).toBe(4);
+    expect(component.filteredCommandes.length).toEqual(4);
   }));
 
   it('peutAnnuler() retourne false pour LIVREE/REGLEE/ANNULEE', () => {

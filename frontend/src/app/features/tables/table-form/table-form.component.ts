@@ -1,11 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ToastController } from '@ionic/angular/standalone';
-import {
-  IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-  IonItem, IonLabel, IonInput, IonButton, IonNote, IonSelect, IonSelectOption,
-} from '@ionic/angular/standalone';
+import { ToastController, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonLabel, IonInput, IonButton, IonNote, IonSelect, IonSelectOption } from '@ionic/angular/standalone';
+
 import { NgIf } from '@angular/common';
 import { TableService } from '../../../core/services/table.service';
 
@@ -25,12 +22,7 @@ export class TableFormComponent implements OnInit {
   isEditMode = false;
   tableId: number | null = null;
 
-  constructor(
-    private fb: FormBuilder,
-    private router: Router,
-    private route: ActivatedRoute,
-    private toastCtrl: ToastController,
-    private tableService: TableService,
+  constructor(private readonly fb: FormBuilder,private readonly router: Router,private readonly route: ActivatedRoute,private readonly toastCtrl: ToastController,private readonly tableService: TableService,
   ) {
     this.tableForm = this.fb.group({
       numero:   ['', [Validators.required, Validators.min(1)]],

@@ -210,7 +210,7 @@ describe('CocktailSaisonnaliteComponent', () => {
   // ── listeMois ────────────────────────────────────────────────────────────────
 
   it('listeMois contient bien les 12 mois', () => {
-    expect(component.listeMois.length).toBe(12);
+    expect(component.listeMois.length).toEqual(12);
     expect(component.listeMois[0].value).toBe(1);
     expect(component.listeMois[11].value).toBe(12);
   });

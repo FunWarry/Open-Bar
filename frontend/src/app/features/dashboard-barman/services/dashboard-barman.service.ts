@@ -8,7 +8,7 @@ export class DashboardBarmanService {
   // environment.apiUrl vaut déjà 'http://localhost:8080/api'
   private readonly apiUrl = `${environment.apiUrl}/commandes`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private readonly http: HttpClient) {}
 
   getCommandesEnAttente(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/statut/EN_ATTENTE`);

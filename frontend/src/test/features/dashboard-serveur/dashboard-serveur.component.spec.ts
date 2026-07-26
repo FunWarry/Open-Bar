@@ -89,7 +89,7 @@ describe('DashboardServeurComponent', () => {
 
   it('ngOnInit() charge les tables au démarrage', () => {
     expect(dashboardServiceSpy.getAllTables).toHaveBeenCalled();
-    expect(component.tables.length).toBe(3);
+    expect(component.tables.length).toEqual(3);
   });
 
   it('ngOnInit() souscrit aux notifications WS', () => {
@@ -101,21 +101,21 @@ describe('DashboardServeurComponent', () => {
   it('filtrer() avec "toutes" retourne toutes les tables', () => {
     component.selectedFilter = 'toutes';
     component.filtrer();
-    expect(component.filteredTables.length).toBe(3);
+    expect(component.filteredTables.length).toEqual(3);
   });
 
   it('filtrer() avec "occupees" ne retourne que les tables occupées', () => {
     component.selectedFilter = 'occupees';
     component.filtrer();
     expect(component.filteredTables.every(t => t.occupee)).toBeTrue();
-    expect(component.filteredTables.length).toBe(2);
+    expect(component.filteredTables.length).toEqual(2);
   });
 
   it('filtrer() avec "libres" ne retourne que les tables libres', () => {
     component.selectedFilter = 'libres';
     component.filtrer();
     expect(component.filteredTables.every(t => !t.occupee)).toBeTrue();
-    expect(component.filteredTables.length).toBe(1);
+    expect(component.filteredTables.length).toEqual(1);
   });
 
   // --- countOccupees / countLibres ---
@@ -134,7 +134,7 @@ describe('DashboardServeurComponent', () => {
     const event = { detail: { value: 'occupees' } };
     component.onSegmentChange(event);
     expect(component.selectedFilter).toBe('occupees');
-    expect(component.filteredTables.length).toBe(2);
+    expect(component.filteredTables.length).toEqual(2);
   });
 
   // --- chargerTables() ---

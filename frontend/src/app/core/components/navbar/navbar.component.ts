@@ -33,13 +33,9 @@ export class NavbarComponent implements OnInit, OnDestroy {
   currentUser$: Observable<any>;
   nonLues = 0;
 
-  private destroy$ = new Subject<void>();
+  private readonly destroy$ = new Subject<void>();
 
-  constructor(
-    private store: Store,
-    public navigationService: NavigationService,
-    private notifService: NotificationService,
-    private popoverCtrl: PopoverController,
+  constructor(private readonly store: Store,public readonly navigationService: NavigationService,private readonly notifService: NotificationService,private readonly popoverCtrl: PopoverController,
   ) {
     this.isAuthenticated$ = this.store.select(selectIsAuthenticated);
     this.isAdmin$ = this.store.select(selectIsAdmin);

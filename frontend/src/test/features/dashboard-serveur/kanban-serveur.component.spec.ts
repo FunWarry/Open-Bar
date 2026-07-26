@@ -80,9 +80,9 @@ describe('KanbanServeurComponent', () => {
     const enAttente = component.colonnes.find(c => c.statut === 'EN_ATTENTE')!;
     const pret = component.colonnes.find(c => c.statut === 'PRET')!;
     const livree = component.colonnes.find(c => c.statut === 'LIVREE')!;
-    expect(enAttente.commandes.length).toBe(1);
-    expect(pret.commandes.length).toBe(1);
-    expect(livree.commandes.length).toBe(0);
+    expect(enAttente.commandes.length).toEqual(1);
+    expect(pret.commandes.length).toEqual(1);
+    expect(livree.commandes.length).toEqual(0);
   }));
 
   it('charger() appelle getCommandesParStatut pour les 4 statuts', fakeAsync(() => {
@@ -109,9 +109,9 @@ describe('KanbanServeurComponent', () => {
     tick();
     component.onFiltreChange(2);
     const enAttente = component.colonnes.find(c => c.statut === 'EN_ATTENTE')!;
-    expect(enAttente.commandes.length).toBe(0); // cmd(1) est sur table 1
+    expect(enAttente.commandes.length).toEqual(0); // cmd(1) est sur table 1
     const pret = component.colonnes.find(c => c.statut === 'PRET')!;
-    expect(pret.commandes.length).toBe(1); // cmd(3) est sur table 2
+    expect(pret.commandes.length).toEqual(1); // cmd(3) est sur table 2
   }));
 
   it('onFiltreChange(null) affiche toutes les commandes', fakeAsync(() => {
@@ -120,7 +120,7 @@ describe('KanbanServeurComponent', () => {
     component.onFiltreChange(2);
     component.onFiltreChange(null);
     const enAttente = component.colonnes.find(c => c.statut === 'EN_ATTENTE')!;
-    expect(enAttente.commandes.length).toBe(1);
+    expect(enAttente.commandes.length).toEqual(1);
   }));
 
   // --- marquerLivree ---

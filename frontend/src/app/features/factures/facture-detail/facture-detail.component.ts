@@ -3,18 +3,12 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil, switchMap } from 'rxjs/operators';
-import {
-  IonContent, IonHeader, IonToolbar, IonTitle,
-  IonBackButton, IonButtons,
-  IonCard, IonCardContent, IonCardHeader, IonCardTitle,
-  IonList, IonItem, IonLabel, IonBadge, IonButton, IonIcon
-} from '@ionic/angular/standalone';
+import { IonContent, IonHeader, IonToolbar, IonTitle, IonBackButton, IonButtons, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonList, IonItem, IonLabel, IonBadge, IonButton, IonIcon, ToastController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { downloadOutline, peopleOutline, checkmarkCircleOutline } from 'ionicons/icons';
 import { FactureService } from '../services/facture.service';
 import { Facture, FactureItem } from '../models/facture.model';
 import { environment } from '../../../../environments/environment';
-import { ToastController } from '@ionic/angular/standalone';
 
 @Component({
   selector: 'app-facture-detail',
@@ -31,12 +25,9 @@ import { ToastController } from '@ionic/angular/standalone';
 })
 export class FactureDetailComponent implements OnInit, OnDestroy {
   facture: Facture | null = null;
-  private destroy$ = new Subject<void>();
+  private readonly destroy$ = new Subject<void>();
 
-  constructor(
-    private route: ActivatedRoute,
-    private factureService: FactureService,
-    private toastCtrl: ToastController,
+  constructor(private readonly route: ActivatedRoute,private readonly factureService: FactureService,private readonly toastCtrl: ToastController,
   ) {
     addIcons({ downloadOutline, peopleOutline, checkmarkCircleOutline });
   }

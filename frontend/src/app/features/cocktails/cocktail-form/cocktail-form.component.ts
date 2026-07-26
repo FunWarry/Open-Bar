@@ -1,12 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ToastController } from '@ionic/angular/standalone';
-import {
-  IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-  IonItem, IonLabel, IonInput, IonButton, IonNote,
-  IonSelect, IonSelectOption, IonIcon
-} from '@ionic/angular/standalone';
+import { ToastController, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonLabel, IonInput, IonButton, IonNote, IonSelect, IonSelectOption, IonIcon } from '@ionic/angular/standalone';
+
 import { NgIf } from '@angular/common';
 import { addIcons } from 'ionicons';
 import { calendarOutline } from 'ionicons/icons';
@@ -34,13 +30,7 @@ export class CocktailFormComponent implements OnInit {
   /** Données complètes du cocktail (nécessaires pour CocktailSaisonnaliteComponent) */
   cocktailData: Cocktail | null = null;
 
-  constructor(
-    private fb: FormBuilder,
-    private route: ActivatedRoute,
-    public router: Router,
-    private toastCtrl: ToastController,
-    private cocktailService: CocktailService
-  ) {
+  constructor(private readonly fb: FormBuilder,private readonly route: ActivatedRoute,public readonly router: Router,private readonly toastCtrl: ToastController,private readonly cocktailService: CocktailService) {
     this.cocktailForm = this.fb.group({
       name: ['', Validators.required],
       description: ['', Validators.required],

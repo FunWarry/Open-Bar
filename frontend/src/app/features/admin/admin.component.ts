@@ -18,9 +18,7 @@ import {NavigationService} from "../../core/services/navigation.service";
 export class AdminComponent implements OnInit {
   currentUser$: Observable<User | null>;
 
-  constructor(private store: Store
-  , protected navigationService: NavigationService
-  ) {
+  constructor(private readonly store: Store,protected readonly navigationService: NavigationService) {
     this.currentUser$ = this.store.select(selectCurrentUser);
     this.navigationService = navigationService;
   }

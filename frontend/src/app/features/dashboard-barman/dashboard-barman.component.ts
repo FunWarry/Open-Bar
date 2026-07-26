@@ -38,12 +38,9 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
   commandesEnPreparation: CommandeView[] = [];
   commandesPret: CommandeView[] = [];
 
-  private destroy$ = new Subject<void>();
+  private readonly destroy$ = new Subject<void>();
 
-  constructor(
-    private dashboardService: DashboardBarmanService,
-    private toastCtrl: ToastController,
-    private notificationService: NotificationService,
+  constructor(private readonly dashboardService: DashboardBarmanService,private readonly toastCtrl: ToastController,private readonly notificationService: NotificationService,
   ) {}
 
   ngOnInit() {

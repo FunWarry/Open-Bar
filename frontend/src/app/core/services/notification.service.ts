@@ -18,12 +18,10 @@ export interface AppNotification {
 export class NotificationService implements OnDestroy {
   private notifications$ = new Subject<AppNotification>();
   private stockAlerts$ = new Subject<AppNotification>();
-  private destroy$ = new Subject<void>();
+  private readonly destroy$ = new Subject<void>();
   private notificationHistory: AppNotification[] = [];
 
-  constructor(
-    private ws: WebSocketService,
-    private toastCtrl: ToastController,
+  constructor(private readonly ws: WebSocketService,private readonly toastCtrl: ToastController,
   ) {
     this.initSubscriptions();
   }

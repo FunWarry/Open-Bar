@@ -34,11 +34,7 @@ export class TableDetailModalComponent implements OnInit {
   commandes: Commande[] = [];
   isLoading = false;
 
-  constructor(
-    private modalCtrl: ModalController,
-    private router: Router,
-    private service: DashboardServeurService,
-    private toastCtrl: ToastController,
+  constructor(private readonly modalCtrl: ModalController,private readonly router: Router,private readonly service: DashboardServeurService,private readonly toastCtrl: ToastController,
   ) {
     addIcons({ closeOutline, addCircleOutline, banOutline, timeOutline, checkmarkCircleOutline });
   }

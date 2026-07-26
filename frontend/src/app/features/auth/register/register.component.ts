@@ -38,10 +38,7 @@ export class RegisterComponent implements OnInit {
   registerForm: FormGroup;
   roles = ['ADMIN', 'MANAGER', 'SERVEUR', 'BARMAN'];
 
-  constructor(
-    private fb: FormBuilder,
-    private store: Store
-  ) {
+  constructor(private readonly fb: FormBuilder,private readonly store: Store) {
     this.registerForm = this.fb.group({
       nom: ['', Validators.required],
       prenom: ['', Validators.required],

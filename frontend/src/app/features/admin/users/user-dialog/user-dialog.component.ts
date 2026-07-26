@@ -1,11 +1,8 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {User} from '../../../../core/models/user.model';
-import {ModalController} from '@ionic/angular/standalone';
-import {
-  IonHeader, IonToolbar, IonTitle, IonButtons, IonButton,
-  IonContent, IonItem, IonLabel, IonInput, IonSelect, IonSelectOption, IonNote
-} from '@ionic/angular/standalone';
+import { ModalController, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonContent, IonItem, IonLabel, IonInput, IonSelect, IonSelectOption, IonNote } from '@ionic/angular/standalone';
+
 import {NgIf} from '@angular/common';
 
 @Component({
@@ -24,10 +21,7 @@ export class UserDialogComponent implements OnInit {
 
   userForm: FormGroup;
 
-  constructor(
-    private fb: FormBuilder,
-    private modalCtrl: ModalController
-  ) {
+  constructor(private readonly fb: FormBuilder,private readonly modalCtrl: ModalController) {
     this.userForm = this.fb.group({
       username: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],

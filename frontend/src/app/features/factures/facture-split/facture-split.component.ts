@@ -47,9 +47,7 @@ export class FactureSplitComponent implements OnInit {
   loading = false;
   errorMessage: string | null = null;
 
-  constructor(
-    private route: ActivatedRoute,
-    private factureService: FactureService,
+  constructor(private readonly route: ActivatedRoute,private readonly factureService: FactureService,
   ) {
     addIcons({ peopleOutline, listOutline, calculatorOutline, removeOutline, addOutline, closeOutline });
   }

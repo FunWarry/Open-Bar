@@ -46,13 +46,9 @@ export class CommandeListComponent implements OnInit, OnDestroy {
     { value: 'ANNULEE',        label: 'Annulée' },
   ];
 
-  private destroy$ = new Subject<void>();
+  private readonly destroy$ = new Subject<void>();
 
-  constructor(
-    private store: Store,
-    private router: Router,
-    private commandeService: CommandeService,
-    private toastCtrl: ToastController,
+  constructor(private readonly store: Store,private readonly router: Router,private readonly commandeService: CommandeService,private readonly toastCtrl: ToastController,
   ) {
     this.isAdmin$ = this.store.select(selectIsAdmin);
     addIcons({ eye, banOutline });

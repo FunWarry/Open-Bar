@@ -40,12 +40,7 @@ export class SetupComponent implements OnInit {
   errorMessage: string | null = null;
   loading = false;
 
-  constructor(
-    private fb: FormBuilder,
-    private setupService: SetupService,
-    private router: Router,
-    private toastCtrl: ToastController
-  ) {
+  constructor(private readonly fb: FormBuilder,private readonly setupService: SetupService,private readonly router: Router,private readonly toastCtrl: ToastController) {
     this.setupForm = this.fb.group({
       username: ['', [Validators.required, Validators.minLength(3)]],
       email: ['', [Validators.required, Validators.email]],

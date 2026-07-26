@@ -15,9 +15,7 @@ export class AuthService {
   private readonly API_URL = `${environment.apiUrl}/auth`;
   private inProgress = false;
 
-  constructor(
-    private http: HttpClient
-  ) {
+  constructor(private readonly http: HttpClient) {
   }
 
   login(username: string, password: string): Observable<AuthResponse> {

@@ -30,9 +30,9 @@ import { Facture } from '../models/facture.model';
 export class FactureListComponent implements OnInit, OnDestroy {
   factures: Facture[] = [];
   loading = false;
-  private destroy$ = new Subject<void>();
+  private readonly destroy$ = new Subject<void>();
 
-  constructor(private factureService: FactureService) {
+  constructor(private readonly factureService: FactureService) {
     addIcons({ receiptOutline, chevronForwardOutline });
   }
 

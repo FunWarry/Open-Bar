@@ -51,12 +51,9 @@ export class KanbanServeurComponent implements OnInit, OnDestroy {
   isLoading = false;
 
   private allCommandes: Map<CommandeStatut, Commande[]> = new Map();
-  private destroy$ = new Subject<void>();
+  private readonly destroy$ = new Subject<void>();
 
-  constructor(
-    private service: DashboardServeurService,
-    private toastCtrl: ToastController,
-    private notificationService: NotificationService,
+  constructor(private readonly service: DashboardServeurService,private readonly toastCtrl: ToastController,private readonly notificationService: NotificationService,
   ) {
     addIcons({ checkmarkOutline, banOutline, refreshOutline });
   }

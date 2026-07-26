@@ -1,10 +1,7 @@
 import {Component, Input} from '@angular/core';
 import {User} from '../../../../core/models/user.model';
-import {ModalController} from '@ionic/angular/standalone';
-import {
-  IonHeader, IonToolbar, IonTitle, IonButtons, IonButton,
-  IonContent, IonIcon
-} from '@ionic/angular/standalone';
+import { ModalController, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonContent, IonIcon } from '@ionic/angular/standalone';
+
 import {addIcons} from 'ionicons';
 import {trash} from 'ionicons/icons';
 
@@ -21,7 +18,7 @@ import {trash} from 'ionicons/icons';
 export class DeleteUserDialogComponent {
   @Input() data!: User;
 
-  constructor(private modalCtrl: ModalController) {
+  constructor(private readonly modalCtrl: ModalController) {
     addIcons({trash});
   }
 

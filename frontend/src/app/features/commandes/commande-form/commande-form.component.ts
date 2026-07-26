@@ -1,12 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ToastController } from '@ionic/angular/standalone';
-import {
-  IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-  IonItem, IonLabel, IonInput, IonButton, IonNote,
-  IonSelect, IonSelectOption,
-} from '@ionic/angular/standalone';
+import { ToastController, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonLabel, IonInput, IonButton, IonNote, IonSelect, IonSelectOption } from '@ionic/angular/standalone';
+
 import { NgIf } from '@angular/common';
 import { CommandeService } from '../../../core/services/commande.service';
 
@@ -27,12 +23,7 @@ export class CommandeFormComponent implements OnInit {
   isEditMode = false;
   commandeId: number | null = null;
 
-  constructor(
-    private fb: FormBuilder,
-    private route: ActivatedRoute,
-    public router: Router,
-    private toastCtrl: ToastController,
-    private commandeService: CommandeService,
+  constructor(private readonly fb: FormBuilder,private readonly route: ActivatedRoute,public readonly router: Router,private readonly toastCtrl: ToastController,private readonly commandeService: CommandeService,
   ) {
     this.commandeForm = this.fb.group({
       tableId: ['', [Validators.required, Validators.min(1)]],

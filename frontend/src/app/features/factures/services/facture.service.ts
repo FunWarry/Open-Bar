@@ -29,7 +29,7 @@ export interface SplitPartRequest {
 export class FactureService {
   private readonly apiUrl = `${environment.apiUrl}/factures`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private readonly http: HttpClient) {}
 
   getAllFactures(): Observable<Facture[]> {
     return this.http.get<Facture[]>(this.apiUrl);

@@ -2,13 +2,10 @@ import {Component, OnInit} from '@angular/core';
 import {Store} from '@ngrx/store';
 import {Observable} from 'rxjs';
 import {User} from '../../../../core/models/user.model';
-import {ModalController} from '@ionic/angular/standalone';
+import { ModalController, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonList, IonItem, IonLabel, IonBadge, IonIcon, IonButton, IonButtons } from '@ionic/angular/standalone';
 import {UserDialogComponent} from '../user-dialog/user-dialog.component';
 import {DeleteUserDialogComponent} from '../delete-user-dialog/delete-user-dialog.component';
-import {
-  IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-  IonList, IonItem, IonLabel, IonBadge, IonIcon, IonButton, IonButtons
-} from '@ionic/angular/standalone';
+
 import {addIcons} from 'ionicons';
 import {personAdd, create, trash} from 'ionicons/icons';
 import {NgFor, AsyncPipe, DatePipe} from '@angular/common';
@@ -28,10 +25,7 @@ export class UserListComponent implements OnInit {
   users: User[] = [];
   users$: Observable<User[]>;
 
-  constructor(
-    private store: Store,
-    private modalCtrl: ModalController
-  ) {
+  constructor(private readonly store: Store,private readonly modalCtrl: ModalController) {
     // TODO: Remplacer par le sélecteur des utilisateurs
     this.users$ = this.store.select(state => []);
     addIcons({personAdd, create, trash});

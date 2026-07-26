@@ -12,9 +12,7 @@ import {filter} from "rxjs";
   standalone: true
 })
 export class AppComponent implements OnInit {
-  constructor(
-    private router: Router,
-    private appSettingsService: AppSettingsService,
+  constructor(private readonly router: Router,private readonly appSettingsService: AppSettingsService,
   ) {
   }
 

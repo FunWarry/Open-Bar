@@ -17,7 +17,7 @@ import {wineOutline, listOutline, restaurantOutline, calendarOutline} from 'ioni
 export class HomeComponent implements OnInit {
   currentUser$: Observable<any>;
 
-  constructor(private store: Store) {
+  constructor(private readonly store: Store) {
     this.currentUser$ = this.store.select(selectCurrentUser);
     addIcons({ wineOutline, listOutline, restaurantOutline, calendarOutline });
   }

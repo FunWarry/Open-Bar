@@ -9,10 +9,7 @@ import {selectIsAuthenticated} from '../store/auth.selectors';
   providedIn: 'root'
 })
 export class AuthGuard implements CanActivate {
-  constructor(
-    private store: Store,
-    private router: Router
-  ) {
+  constructor(private readonly store: Store,private readonly router: Router) {
   }
 
   canActivate(): Observable<boolean | UrlTree> {

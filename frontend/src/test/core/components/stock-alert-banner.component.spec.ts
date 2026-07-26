@@ -59,7 +59,7 @@ describe('StockAlertBannerComponent', () => {
     stockAlerts$.next(alert1);
     stockAlerts$.next(alert2);
 
-    expect(component.stockAlerts.length).toBe(2);
+    expect(component.stockAlerts.length).toEqual(2);
     // unshift : la plus récente est en index 0
     expect(component.stockAlerts[0].id).toBe('stock-2');
     expect(component.stockAlerts[1].id).toBe('stock-1');
@@ -70,11 +70,11 @@ describe('StockAlertBannerComponent', () => {
     const alert2 = makeAlert({ id: 'stock-2' });
     stockAlerts$.next(alert1);
     stockAlerts$.next(alert2);
-    expect(component.stockAlerts.length).toBe(2);
+    expect(component.stockAlerts.length).toEqual(2);
 
     component.dismissAlert('stock-1');
 
-    expect(component.stockAlerts.length).toBe(1);
+    expect(component.stockAlerts.length).toEqual(1);
     expect(component.stockAlerts.find(a => a.id === 'stock-1')).toBeUndefined();
     expect(notificationServiceSpy.marquerLue).toHaveBeenCalledWith('stock-1');
   });
@@ -85,7 +85,7 @@ describe('StockAlertBannerComponent', () => {
 
     component.dismissAlert('unknown-id');
 
-    expect(component.stockAlerts.length).toBe(1);
+    expect(component.stockAlerts.length).toEqual(1);
     expect(notificationServiceSpy.marquerLue).toHaveBeenCalledWith('unknown-id');
   });
 
@@ -107,13 +107,13 @@ describe('StockAlertBannerComponent', () => {
   it('ngOnDestroy_completeLaSubscription_plusDAlerteRecue', () => {
     const alert = makeAlert({ id: 'stock-before' });
     stockAlerts$.next(alert);
-    expect(component.stockAlerts.length).toBe(1);
+    expect(component.stockAlerts.length).toEqual(1);
 
     component.ngOnDestroy();
 
     stockAlerts$.next(makeAlert({ id: 'stock-after' }));
     // après destroy la subscription est complétée — aucun nouvel élément
-    expect(component.stockAlerts.length).toBe(1);
+    expect(component.stockAlerts.length).toEqual(1);
     expect(component.stockAlerts[0].id).toBe('stock-before');
   });
 });

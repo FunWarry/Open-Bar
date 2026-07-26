@@ -51,14 +51,9 @@ export class NouvelleCommandeComponent implements OnInit, OnDestroy {
   isSubmitting = false;
 
   private tableId!: number;
-  private destroy$ = new Subject<void>();
+  private readonly destroy$ = new Subject<void>();
 
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private service: DashboardServeurService,
-    private cocktailService: CocktailService,
-    private toastCtrl: ToastController,
+  constructor(private readonly route: ActivatedRoute,private readonly router: Router,private readonly service: DashboardServeurService,private readonly cocktailService: CocktailService,private readonly toastCtrl: ToastController,
   ) {
     addIcons({ addOutline, removeOutline, trashOutline, checkmarkOutline, arrowBackOutline });
   }

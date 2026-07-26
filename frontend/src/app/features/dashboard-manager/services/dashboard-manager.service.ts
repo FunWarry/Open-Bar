@@ -10,7 +10,7 @@ export class DashboardManagerService {
   private readonly apiUrl = `${environment.apiUrl}/dashboard`;
   private readonly commandesUrl = `${environment.apiUrl}/commandes`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private readonly http: HttpClient) {}
 
   getStats(): Observable<DashboardStats> {
     return this.http.get<DashboardStats>(`${this.apiUrl}/stats`);

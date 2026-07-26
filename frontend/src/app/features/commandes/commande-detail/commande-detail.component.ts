@@ -2,11 +2,8 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
-import { ToastController } from '@ionic/angular/standalone';
-import {
-  IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-  IonList, IonItem, IonLabel, IonBadge, IonButton, IonButtons, IonIcon, IonSpinner,
-} from '@ionic/angular/standalone';
+import { ToastController, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonList, IonItem, IonLabel, IonBadge, IonButton, IonButtons, IonIcon, IonSpinner } from '@ionic/angular/standalone';
+
 import { addIcons } from 'ionicons';
 import { arrowBack, banOutline } from 'ionicons/icons';
 import { CurrencyPipe, NgIf, NgFor, DatePipe } from '@angular/common';
@@ -29,13 +26,9 @@ export class CommandeDetailComponent implements OnInit, OnDestroy {
   isLoading = false;
 
   private commandeId: number;
-  private destroy$ = new Subject<void>();
+  private readonly destroy$ = new Subject<void>();
 
-  constructor(
-    private route: ActivatedRoute,
-    public router: Router,
-    private commandeService: CommandeService,
-    private toastCtrl: ToastController,
+  constructor(private readonly route: ActivatedRoute,public readonly router: Router,private readonly commandeService: CommandeService,private readonly toastCtrl: ToastController,
   ) {
     this.commandeId = +this.route.snapshot.paramMap.get('id')!;
     addIcons({ arrowBack, banOutline });

@@ -96,7 +96,7 @@ describe('NouvelleCommandeComponent', () => {
     component.charger();
     tick();
     expect(component.table).toEqual(mockTable);
-    expect(component.cocktails.length).toBe(2);
+    expect(component.cocktails.length).toEqual(2);
   }));
 
   it('charger() affiche un toast danger en cas d\'erreur', fakeAsync(() => {
@@ -111,14 +111,14 @@ describe('NouvelleCommandeComponent', () => {
 
   it('ajouter() ajoute un item au panier', () => {
     component.ajouter(mockCocktails[0]);
-    expect(component.cart.length).toBe(1);
+    expect(component.cart.length).toEqual(1);
     expect(component.cart[0].quantite).toBe(1);
   });
 
   it('ajouter() incrémente la quantité si le cocktail est déjà dans le panier', () => {
     component.ajouter(mockCocktails[0]);
     component.ajouter(mockCocktails[0]);
-    expect(component.cart.length).toBe(1);
+    expect(component.cart.length).toEqual(1);
     expect(component.cart[0].quantite).toBe(2);
   });
 
@@ -132,14 +132,14 @@ describe('NouvelleCommandeComponent', () => {
   it('retirer() supprime l\'item du panier quand quantité tombe à 0', () => {
     component.ajouter(mockCocktails[0]);
     component.retirer(mockCocktails[0].id);
-    expect(component.cart.length).toBe(0);
+    expect(component.cart.length).toEqual(0);
   });
 
   it('supprimer() retire l\'item du panier', () => {
     component.ajouter(mockCocktails[0]);
     component.ajouter(mockCocktails[1]);
     component.supprimer(mockCocktails[0].id);
-    expect(component.cart.length).toBe(1);
+    expect(component.cart.length).toEqual(1);
     expect(component.cart[0].cocktailId).toBe(2);
   });
 

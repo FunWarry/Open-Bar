@@ -23,7 +23,7 @@ describe('KanbanBoardComponent', () => {
   });
 
   it('should have 4 columns by default', () => {
-    expect(component.columns.length).toBe(4);
+    expect(component.columns.length).toEqual(4);
   });
 
   it('should distribute orders to correct columns', () => {
@@ -37,10 +37,10 @@ describe('KanbanBoardComponent', () => {
     component.orders = orders;
 
     const columns = component.columns;
-    expect(columns[0].orders.length).toBe(2); // EN_ATTENTE
-    expect(columns[1].orders.length).toBe(1); // EN_PREPARATION
-    expect(columns[2].orders.length).toBe(1); // PRET
-    expect(columns[3].orders.length).toBe(1); // LIVREE
+    expect(columns[0].orders.length).toEqual(2); // EN_ATTENTE
+    expect(columns[1].orders.length).toEqual(1); // EN_PREPARATION
+    expect(columns[2].orders.length).toEqual(1); // PRET
+    expect(columns[3].orders.length).toEqual(1); // LIVREE
   });
 
   it('should have correct column labels', () => {

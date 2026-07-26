@@ -32,7 +32,7 @@ export class EmployeesComponent implements OnInit, OnDestroy {
   readonly pageSize = 10;
   private readonly destroy$ = new Subject<void>();
 
-  constructor(private employeeService: EmployeeService) {
+  constructor(private readonly employeeService: EmployeeService) {
     addIcons({ createOutline, addCircleOutline });
   }
 

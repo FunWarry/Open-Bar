@@ -34,15 +34,9 @@ export class TableDetailComponent implements OnInit, OnDestroy {
   isLoading = false;
   isAdmin$: Observable<boolean>;
 
-  private destroy$ = new Subject<void>();
+  private readonly destroy$ = new Subject<void>();
 
-  constructor(
-    private store: Store,
-    private router: Router,
-    private route: ActivatedRoute,
-    private tableService: TableService,
-    private commandeService: CommandeService,
-    private toastCtrl: ToastController,
+  constructor(private readonly store: Store,private readonly router: Router,private readonly route: ActivatedRoute,private readonly tableService: TableService,private readonly commandeService: CommandeService,private readonly toastCtrl: ToastController,
   ) {
     this.isAdmin$ = this.store.select(selectIsAdmin);
     addIcons({ arrowBack, create, eye });

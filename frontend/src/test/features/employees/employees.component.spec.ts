@@ -40,11 +40,11 @@ describe('EmployeesComponent', () => {
 
     // Page 1 should show first 10
     component.currentPage = 1;
-    expect(component.paginatedEmployees.length).toBe(10);
+    expect(component.paginatedEmployees.length).toEqual(10);
 
     // Page 2 should show remaining 5
     component.currentPage = 2;
-    expect(component.paginatedEmployees.length).toBe(5);
+    expect(component.paginatedEmployees.length).toEqual(5);
   });
 
   it('should calculate total pages', () => {

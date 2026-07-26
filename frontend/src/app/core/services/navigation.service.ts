@@ -8,10 +8,7 @@ import {selectIsAdmin, selectIsAuthenticated} from '../store/auth.selectors';
   providedIn: 'root'
 })
 export class NavigationService {
-  constructor(
-    private router: Router,
-    private store: Store
-  ) {
+  constructor(private readonly router: Router,private readonly store: Store) {
   }
 
   navigateToHome(): void {

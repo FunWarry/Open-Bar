@@ -28,7 +28,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
   loading = true;
   private readonly destroy$ = new Subject<void>();
 
-  constructor(private scheduleService: ScheduleService) {
+  constructor(private readonly scheduleService: ScheduleService) {
     addIcons({ chevronBackOutline, chevronForwardOutline, checkmarkCircleOutline });
     this.currentWeekStart = this.scheduleService.getMonday(new Date());
   }

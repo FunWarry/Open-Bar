@@ -31,9 +31,7 @@ import * as AuthActions from '../../store/auth.actions';
 export class HeaderComponent implements OnInit {
   currentUser$: Observable<User | null>;
 
-  constructor(
-    private store: Store
-  ) {
+  constructor(private readonly store: Store) {
     this.currentUser$ = this.store.select(selectCurrentUser);
     addIcons({menu, beerOutline, receipt, restaurant, nutrition, shieldCheckmark, logOut, chevronDown, person});
   }
