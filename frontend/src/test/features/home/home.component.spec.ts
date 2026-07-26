@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { HomeComponent } from '../../../app/features/home/home.component';
 import { Store } from '@ngrx/store';
+import { RouterTestingModule } from '@angular/router/testing';
 import { of } from 'rxjs';
 
 describe('HomeComponent', () => {
@@ -12,7 +13,7 @@ describe('HomeComponent', () => {
     storeSpy.select.and.returnValue(of(null));
 
     await TestBed.configureTestingModule({
-      imports: [HomeComponent],
+      imports: [HomeComponent, RouterTestingModule],
       providers: [
         { provide: Store, useValue: storeSpy }
       ]
@@ -28,7 +29,7 @@ describe('HomeComponent', () => {
   });
 
   it('currentUser$ devrait être un Observable issu du store', (done) => {
-    const mockUser = { id: 1, username: 'barman1', role: 'BARMAN' };
+    const mockUser = { id: 1, username: 'barman1', roles: ['BARMAN'] };
     storeSpy.select.and.returnValue(of(mockUser));
 
     const fixture = TestBed.createComponent(HomeComponent);
