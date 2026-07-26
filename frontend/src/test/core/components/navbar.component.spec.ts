@@ -1,4 +1,5 @@
 import { TestBed, ComponentFixture } from '@angular/core/testing';
+import { RouterTestingModule } from '@angular/router/testing';
 import { NavbarComponent } from '../../../app/core/components/navbar/navbar.component';
 import { provideMockStore, MockStore } from '@ngrx/store/testing';
 import { MemoizedSelector } from '@ngrx/store';
@@ -48,7 +49,7 @@ describe('NavbarComponent', () => {
     const mockPopoverCtrl = jasmine.createSpyObj('PopoverController', ['create']);
 
     await TestBed.configureTestingModule({
-      imports: [NavbarComponent, IonicModule.forRoot()],
+      imports: [NavbarComponent, IonicModule.forRoot(), RouterTestingModule],
       providers: [
         provideMockStore({ initialState }),
         { provide: NavigationService, useValue: mockNavigationService },
@@ -155,5 +156,25 @@ describe('NavbarComponent', () => {
     component.onLogout();
 
     expect(dispatchSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('shouldShowNavbar$ émet false si l\'utilisateur n\'est pas authentifié', (done) => {
+    mockSelectIsAuthenticated.setResult(false);
+    store.refreshState();
+
+    component.shouldShowNavbar$.subscribe(show => {
+      expect(show).toBeFalse();
+      done();
+    });
+  });
+
+  it('shouldShowNavbar$ émet true si l\'utilisateur est authentifié sur une page hors auth/setup', (done) => {
+    mockSelectIsAuthenticated.setResult(true);
+    store.refreshState();
+
+    component.shouldShowNavbar$.subscribe(show => {
+      expect(show).toBeTrue();
+      done();
+    });
   });
 });
