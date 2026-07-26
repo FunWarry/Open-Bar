@@ -27,7 +27,7 @@ describe('TableSidePanelComponent', () => {
   });
 
   it('should emit startFusion event with table', () => {
-    const mockTable: TableBar = { id: 1, numero: 5, capacite: 4, occupee: false, zone: 'Bar' };
+    const mockTable: TableBar = { id: 1, numero: 5, capacite: 4, occupee: false, zone: 'INTERIEUR', createdAt: '', updatedAt: '' };
     component.table = mockTable;
     spyOn(component.startFusion, 'emit');
 
@@ -36,7 +36,7 @@ describe('TableSidePanelComponent', () => {
   });
 
   it('should emit saveTable event with table', () => {
-    const mockTable: TableBar = { id: 2, numero: 8, capacite: 2, occupee: true, zone: 'Terrasse' };
+    const mockTable: TableBar = { id: 2, numero: 8, capacite: 2, occupee: true, zone: 'TERRASSE', createdAt: '', updatedAt: '' };
     component.table = mockTable;
     spyOn(component.saveTable, 'emit');
 

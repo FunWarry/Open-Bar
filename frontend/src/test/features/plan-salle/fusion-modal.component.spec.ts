@@ -18,8 +18,8 @@ describe('FusionModalComponent', () => {
 
     const fixture = TestBed.createComponent(FusionModalComponent);
     component = fixture.componentInstance;
-    component.sourceTable = { id: 1, numero: 2, capacite: 2, occupee: true };
-    component.targetTable = { id: 2, numero: 3, capacite: 4, occupee: true };
+    component.sourceTable = { id: 1, numero: 2, capacite: 2, occupee: true, zone: 'INTERIEUR', createdAt: '', updatedAt: '' };
+    component.targetTable = { id: 2, numero: 3, capacite: 4, occupee: true, zone: 'INTERIEUR', createdAt: '', updatedAt: '' };
   });
 
   it('should create', () => {
