@@ -259,14 +259,11 @@ Choix retenu plutôt que ngx-translate pour :
 - Meilleur support TypeScript et Angular 20+
 - Fichiers de langue scopés par feature + fichiers globaux
 
-### Structure des fichiers de traduction
+### Structure des fichiers de traduction — ✅ ticket #168 résolu (PR #173)
 
-```
-frontend/src/assets/i18n/
-├── fr.json          # Français (langue par défaut)
-├── en.json          # Anglais
-└── <code>.json      # Toute autre langue — suffit pour l'activer
-```
+- **Codebase backend & frontend** : 100% en anglais (commentaires, logs, exceptions métier `GlobalExceptionHandler` / `TableService`).
+- **Service d'i18n** : `LanguageService` dans `core/services/language.service.ts` pour la bascule réactive (`fr` / `en`) et la persistance dans `localStorage`.
+- **Fichiers de langue** : `src/assets/i18n/fr.json` et `src/assets/i18n/en.json` couvrant l'ensemble de l'UI.
 
 Fichiers scopés par feature (chargés à la demande) :
 ```
