@@ -106,13 +106,13 @@ public class FactureService {
         Facture facture = factureRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Facture non trouvée avec l'id: " + id));
 
-        facture.setStatut("PAYEE");
+        facture.setReglee(true);
         facture.setModePaiement(modePaiement);
-        facture.setDatePaiement(LocalDateTime.now());
+        facture.setDateReglement(LocalDateTime.now());
 
         if (facture.getTable() != null) {
             TableEntity table = facture.getTable();
-            table.setStatut("LIBRE");
+            table.setOccupee(false);
             entityManager.merge(table);
         }
 

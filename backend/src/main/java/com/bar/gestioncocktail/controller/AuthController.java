@@ -7,7 +7,6 @@ import com.bar.gestioncocktail.dto.TokenRefreshResponse;
 import com.bar.gestioncocktail.dto.UserResponseDTO;
 import com.bar.gestioncocktail.model.RefreshToken;
 import com.bar.gestioncocktail.model.User;
-import com.bar.gestioncocktail.model.UserRole;
 import com.bar.gestioncocktail.security.JwtTokenProvider;
 import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.service.RefreshTokenService;
