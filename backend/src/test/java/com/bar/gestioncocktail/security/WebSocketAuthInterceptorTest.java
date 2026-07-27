@@ -19,7 +19,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -84,7 +83,8 @@ class WebSocketAuthInterceptorTest {
 
         when(jwtTokenProvider.validateToken("validToken")).thenReturn(true);
         when(jwtTokenProvider.getUsernameFromJWT("validToken")).thenReturn("unknown");
-        when(userDetailsService.loadUserByUsername("unknown")).thenThrow(new UsernameNotFoundException("User not found"));
+        when(userDetailsService.loadUserByUsername("unknown"))
+                .thenThrow(new UsernameNotFoundException("User not found"));
 
         assertThrows(MessageDeliveryException.class, () -> interceptor.preSend(message, messageChannel));
     }
