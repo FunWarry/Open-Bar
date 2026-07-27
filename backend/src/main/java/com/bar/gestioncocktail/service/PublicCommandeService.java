@@ -58,65 +58,79 @@ public class PublicCommandeService {
         BigDecimal total = BigDecimal.ZERO;
 
         for (PublicCommandeItemRequestDTO itemDto : dto.getItems()) {
-            Cocktail cocktail = cocktailRepository.findById(itemDto.getCocktailId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Cocktail non trouvé avec l'id: " + itemDto.getCocktailId()));
-
-            CocktailVariante variante = null;
-            if (itemDto.getVarianteId() != null) {
-                variante = varianteRepository.findById(itemDto.getVarianteId())
-                        .orElseThrow(() -> new ResourceNotFoundException("Variante non trouvée avec l'id: " + itemDto.getVarianteId()));
-            }
-
-            BigDecimal prixUnitaire = cocktail.getPrix();
-            if (variante != null && variante.getPrixSupplement() != null) {
-                prixUnitaire = prixUnitaire.add(variante.getPrixSupplement());
-            }
-
-            // Vérification simple du stock si disponible
-            if (cocktail.getIngredients() != null) {
-                for (CocktailIngredient ci : cocktail.getIngredients()) {
-                    Ingredient ing = ci.getIngredient();
-                    if (ing != null && ing.getQuantiteStock() != null) {
-                        BigDecimal besoin = ci.getQuantite().multiply(BigDecimal.valueOf(itemDto.getQuantite()));
-                        if (ing.getQuantiteStock().compareTo(besoin) < 0) {
-                            throw new StockInsuffisantException("Stock insuffisant pour l'ingrédient: " + ing.getNom());
-                        }
-                    }
-                }
-            }
-
-            CommandeItem item = new CommandeItem();
-            item.setCommande(commande);
-            item.setCocktail(cocktail);
-            item.setVariante(variante);
-            item.setQuantite(itemDto.getQuantite());
-            item.setPrixUnitaire(prixUnitaire);
-            item.setNotes(itemDto.getNotes());
-
+            CommandeItem item = construireCommandeItem(itemDto, commande);
             items.add(item);
-            total = total.add(prixUnitaire.multiply(BigDecimal.valueOf(itemDto.getQuantite())));
+            BigDecimal sousTotal = item.getPrixUnitaire().multiply(BigDecimal.valueOf(item.getQuantite()));
+            total = total.add(sousTotal);
         }
 
         commande.setItems(items);
         commande.setTotal(total);
 
         Commande savedCommande = commandeRepository.save(commande);
-
-        // Mettre la table en occupée si libre
-        if (!table.isOccupee()) {
-            table.setOccupee(true);
-            table.setDateOccupation(LocalDateTime.now());
-            tableRepository.save(table);
-        }
-
-        // Broadcaster les notifications STOMP
-        messagingTemplate.convertAndSend("/topic/barman/commandes", CommandeResponseDTO.from(savedCommande));
-        messagingTemplate.convertAndSend("/topic/commandes/" + savedCommande.getTrackingToken(), PublicCommandeResponseDTO.from(savedCommande, 10));
+        occuperTableSiLibre(table);
+        notifierNouvelleCommande(savedCommande);
 
         long pendingCount = commandeRepository.countByStatut(CommandeStatut.EN_ATTENTE);
         int tempsEstime = (int) (5 + (pendingCount * 3));
 
         return PublicCommandeResponseDTO.from(savedCommande, tempsEstime);
+    }
+
+    private CommandeItem construireCommandeItem(PublicCommandeItemRequestDTO itemDto, Commande commande) {
+        Cocktail cocktail = cocktailRepository.findById(itemDto.getCocktailId())
+                .orElseThrow(() -> new ResourceNotFoundException("Cocktail non trouvé avec l'id: " + itemDto.getCocktailId()));
+
+        CocktailVariante variante = null;
+        if (itemDto.getVarianteId() != null) {
+            variante = varianteRepository.findById(itemDto.getVarianteId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Variante non trouvée avec l'id: " + itemDto.getVarianteId()));
+        }
+
+        BigDecimal prixUnitaire = cocktail.getPrix();
+        if (variante != null && variante.getPrixSupplement() != null) {
+            prixUnitaire = prixUnitaire.add(variante.getPrixSupplement());
+        }
+
+        verifierDisponibiliteIngredients(cocktail, itemDto.getQuantite());
+
+        CommandeItem item = new CommandeItem();
+        item.setCommande(commande);
+        item.setCocktail(cocktail);
+        item.setVariante(variante);
+        item.setQuantite(itemDto.getQuantite());
+        item.setPrixUnitaire(prixUnitaire);
+        item.setNotes(itemDto.getNotes());
+        return item;
+    }
+
+    private void verifierDisponibiliteIngredients(Cocktail cocktail, int quantite) {
+        if (cocktail.getIngredients() == null) {
+            return;
+        }
+
+        for (CocktailIngredient ci : cocktail.getIngredients()) {
+            Ingredient ing = ci.getIngredient();
+            if (ing != null && ing.getQuantiteStock() != null) {
+                BigDecimal besoin = ci.getQuantite().multiply(BigDecimal.valueOf(quantite));
+                if (ing.getQuantiteStock().compareTo(besoin) < 0) {
+                    throw new StockInsuffisantException("Stock insuffisant pour l'ingrédient: " + ing.getNom());
+                }
+            }
+        }
+    }
+
+    private void occuperTableSiLibre(TableEntity table) {
+        if (!table.isOccupee()) {
+            table.setOccupee(true);
+            table.setDateOccupation(LocalDateTime.now());
+            tableRepository.save(table);
+        }
+    }
+
+    private void notifierNouvelleCommande(Commande commande) {
+        messagingTemplate.convertAndSend("/topic/barman/commandes", CommandeResponseDTO.from(commande));
+        messagingTemplate.convertAndSend("/topic/commandes/" + commande.getTrackingToken(), PublicCommandeResponseDTO.from(commande, 10));
     }
 
     @Transactional(readOnly = true)
