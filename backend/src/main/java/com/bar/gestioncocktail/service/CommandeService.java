@@ -12,7 +12,6 @@ import com.bar.gestioncocktail.model.User;
 import com.bar.gestioncocktail.repository.CommandeRepository;
 import com.bar.gestioncocktail.repository.CommandeItemRepository;
 import com.bar.gestioncocktail.repository.IngredientRepository;
-import com.bar.gestioncocktail.repository.TableRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
