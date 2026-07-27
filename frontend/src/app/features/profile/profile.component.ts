@@ -5,10 +5,9 @@ import {Observable} from 'rxjs';
 import {selectCurrentUser} from '../../core/store/auth.selectors';
 import {User} from '../../core/models/user.model';
 import {
-  IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-  IonItem, IonLabel, IonInput, IonButton, IonBadge, IonText, IonNote
+  IonCard, IonCardHeader, IonCardTitle, IonCardContent
 } from '@ionic/angular/standalone';
-import {NgIf, NgFor, AsyncPipe, DatePipe} from '@angular/common';
+import {NgFor, AsyncPipe, DatePipe} from '@angular/common';
 
 import { UserAvatarComponent } from '../../core/components/ui/user-avatar/user-avatar.component';
 import { InputFieldComponent } from '../../core/components/ui/input-field/input-field.component';
@@ -23,8 +22,7 @@ import { RoleBadgeComponent } from '../../core/components/ui/role-badge/role-bad
   standalone: true,
   imports: [
     IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-    IonItem, IonLabel, IonInput, IonButton, IonBadge, IonText, IonNote,
-    NgIf, NgFor, AsyncPipe, DatePipe, ReactiveFormsModule,
+    NgFor, AsyncPipe, DatePipe, ReactiveFormsModule,
     UserAvatarComponent, InputFieldComponent, PasswordInputComponent, ActionButtonComponent, RoleBadgeComponent
   ]
 })

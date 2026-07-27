@@ -1,5 +1,6 @@
 package com.bar.gestioncocktail.security;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
@@ -13,8 +14,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
-import org.springframework.lang.NonNull;
-
 @Component
 public class WebSocketAuthInterceptor implements ChannelInterceptor {
 
@@ -27,7 +26,8 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
     }
 
     @Override
-    public Message<?> preSend(@NonNull Message<?> message, @NonNull MessageChannel channel) {
+    @Nullable
+    public Message<?> preSend(Message<?> message, MessageChannel channel) {
         StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
         if (accessor != null && StompCommand.CONNECT.equals(accessor.getCommand())) {
             String authorization = accessor.getFirstNativeHeader("Authorization");
@@ -44,8 +44,8 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
                 UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
                     userDetails, null, userDetails.getAuthorities());
                 accessor.setUser(auth);
-            } catch (UsernameNotFoundException e) {
-                throw new MessageDeliveryException(message, "User not found: " + username);
+            } catch (UsernameNotFoundException _) {
+                throw new MessageDeliveryException(message, "Invalid credentials.");
             }
         }
         return message;

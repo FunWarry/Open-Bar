@@ -90,7 +90,7 @@ public class DockerDbInitializer {
         String os = System.getProperty("os.name").toLowerCase();
         logger.log(Level.INFO, "Système d''exploitation détecté: {0}", os);
 
-        Process process = null;
+        Process process;
         if (os.contains("win")) {
             logger.info("Démarrage de Docker Desktop pour Windows...");
             process = new ProcessBuilder("cmd", "/c", START_CMD, "\"\"", "\"C:\\Program Files\\Docker\\Docker\\Docker Desktop.exe\"").start();
@@ -102,10 +102,8 @@ public class DockerDbInitializer {
             process = new ProcessBuilder("sudo", "systemctl", START_CMD, DOCKER_CMD).start();
         }
 
-        if (process != null) {
-            int exitCode = process.waitFor();
-            logger.log(Level.INFO, "Démarrage de Docker terminé avec le code: {0}", exitCode);
-        }
+        int exitCode = process.waitFor();
+        logger.log(Level.INFO, "Démarrage de Docker terminé avec le code: {0}", exitCode);
 
         logger.info("Attente du démarrage complet de Docker...");
         waitForDockerEngine();
@@ -143,7 +141,7 @@ public class DockerDbInitializer {
                 }
             }
             return false;
-        } catch (InterruptedException e) {
+        } catch (InterruptedException _) {
             Thread.currentThread().interrupt();
             return false;
         } catch (Exception e) {
@@ -224,7 +222,7 @@ public class DockerDbInitializer {
     private boolean isDatabaseCreated() {
         try (Connection conn = dataSource.getConnection()) {
             return conn != null;
-        } catch (SQLException e) {
+        } catch (SQLException _) {
             return false;
         }
     }
@@ -238,10 +236,10 @@ public class DockerDbInitializer {
             Process check = new ProcessBuilder(DOCKER_CMD, "compose", "version").start();
             check.waitFor();
             command = new String[]{DOCKER_CMD, "compose", "-f", dockerComposeFile.getAbsolutePath(), "up", "-d"};
-        } catch (InterruptedException e) {
+        } catch (InterruptedException _) {
             Thread.currentThread().interrupt();
             command = new String[]{"docker-compose", "-f", dockerComposeFile.getAbsolutePath(), "up", "-d"};
-        } catch (Exception e) {
+        } catch (Exception _) {
             command = new String[]{"docker-compose", "-f", dockerComposeFile.getAbsolutePath(), "up", "-d"};
         }
 

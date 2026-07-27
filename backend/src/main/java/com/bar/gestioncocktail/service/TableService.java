@@ -6,19 +6,24 @@ import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.model.TableEntity;
 import com.bar.gestioncocktail.model.TableZone;
 import com.bar.gestioncocktail.repository.TableRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class TableService {
 
-    @Autowired
-    private TableRepository tableRepository;
+    private static final String TABLE_NOT_FOUND_MSG = "Table not found with id: ";
+
+    private final TableRepository tableRepository;
+
+    public TableService(TableRepository tableRepository) {
+        this.tableRepository = tableRepository;
+    }
 
     public List<TableEntity> getAllTables() {
         return tableRepository.findAll();
@@ -48,7 +53,7 @@ public class TableService {
     @Transactional
     public TableEntity updateTable(Long id, TableEntity tableDetails) {
         TableEntity table = tableRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Table not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(TABLE_NOT_FOUND_MSG + id));
 
         table.setNumero(tableDetails.getNumero());
         table.setCapacite(tableDetails.getCapacite());
@@ -69,7 +74,7 @@ public class TableService {
     @Transactional
     public TableEntity occuperTable(Long id, Long serveurId) {
         TableEntity table = tableRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Table not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(TABLE_NOT_FOUND_MSG + id));
 
         if (table.isOccupee()) {
             throw new BusinessException("Table is already occupied");
@@ -77,7 +82,7 @@ public class TableService {
 
         table.setOccupee(true);
         table.setServeurId(serveurId);
-        table.setDateOccupation(LocalDateTime.now());
+        table.setDateOccupation(LocalDateTime.now(ZoneId.systemDefault()));
 
         return tableRepository.save(table);
     }
@@ -85,7 +90,7 @@ public class TableService {
     @Transactional
     public TableEntity libererTable(Long id) {
         TableEntity table = tableRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Table not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(TABLE_NOT_FOUND_MSG + id));
 
         if (!table.isOccupee()) {
             throw new BusinessException("Table is not occupied");
@@ -93,7 +98,7 @@ public class TableService {
 
         table.setOccupee(false);
         table.setServeurId(null);
-        table.setDateLiberation(LocalDateTime.now());
+        table.setDateLiberation(LocalDateTime.now(ZoneId.systemDefault()));
 
         return tableRepository.save(table);
     }
@@ -106,7 +111,7 @@ public class TableService {
     @Transactional
     public TableEntity updatePosition(Long id, Double x, Double y, Double rotation, String forme) {
         TableEntity table = tableRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Table not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(TABLE_NOT_FOUND_MSG + id));
         table.setPlanX(x);
         table.setPlanY(y);
         table.setPlanRotation(rotation != null ? rotation : 0.0);

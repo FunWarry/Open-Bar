@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   IonContent, IonHeader, IonToolbar, IonTitle,
-  IonGrid, IonRow, IonCol, IonBadge, IonButton, IonIcon,
+  IonButton, IonIcon,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { createOutline, addCircleOutline } from 'ionicons/icons';
@@ -19,7 +19,7 @@ import { Employee } from './models/employee.model';
   imports: [
     CommonModule,
     IonContent, IonHeader, IonToolbar, IonTitle,
-    IonGrid, IonRow, IonCol, IonBadge, IonButton, IonIcon,
+    IonButton, IonIcon,
     UserAvatarComponent, RoleBadgeComponent, ActionButtonComponent,
   ],
   templateUrl: './employees.component.html',

@@ -41,6 +41,7 @@ public class SecurityConfig {
     }
 
     @Bean
+    @SuppressWarnings("java:S5804")
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -57,9 +58,9 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
             )
             .exceptionHandling(ex -> ex
-                .accessDeniedHandler((request, response, e) ->
+                .accessDeniedHandler((request, response, _) ->
                     writeError(response, HttpServletResponse.SC_FORBIDDEN, "Forbidden", "Accès refusé"))
-                .authenticationEntryPoint((request, response, e) ->
+                .authenticationEntryPoint((request, response, _) ->
                     writeError(response, HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized", "Non authentifié"))
             )
             .addFilterBefore(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class)

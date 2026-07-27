@@ -50,9 +50,9 @@ class AppSettingsControllerTest {
         ResponseEntity<AppSettingsResponseDTO> response = appSettingsController.getSettings();
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().primaryColor()).isEqualTo("#6c7fe8");
-        assertThat(response.getBody().establishmentName()).isEqualTo("OpenBar");
+        AppSettingsResponseDTO body = java.util.Objects.requireNonNull(response.getBody());
+        assertThat(body.primaryColor()).isEqualTo("#6c7fe8");
+        assertThat(body.establishmentName()).isEqualTo("OpenBar");
     }
 
     @Test
@@ -73,8 +73,8 @@ class AppSettingsControllerTest {
 
         verify(appSettingsService).updateSettings(request);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().primaryColor()).isEqualTo("#ff0000");
-        assertThat(response.getBody().establishmentName()).isEqualTo("Le Bar Test");
+        AppSettingsResponseDTO updatedBody = java.util.Objects.requireNonNull(response.getBody());
+        assertThat(updatedBody.primaryColor()).isEqualTo("#ff0000");
+        assertThat(updatedBody.establishmentName()).isEqualTo("Le Bar Test");
     }
 }

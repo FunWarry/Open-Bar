@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,8 +28,13 @@ public class JwtTokenProvider {
     }
 
     public String generateToken(Authentication authentication) {
-        User user = (User) authentication.getPrincipal();
-        return generateToken(user.getUsername());
+        if (authentication != null && authentication.getPrincipal() instanceof UserDetails userDetails) {
+            return generateToken(userDetails.getUsername());
+        }
+        if (authentication != null && authentication.getName() != null) {
+            return generateToken(authentication.getName());
+        }
+        throw new IllegalArgumentException("Authentication principal cannot be null");
     }
 
     public String generateToken(String username) {

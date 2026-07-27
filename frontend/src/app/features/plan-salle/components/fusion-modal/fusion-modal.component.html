@@ -12,7 +12,7 @@
 <ion-content class="fusion-content">
   <div class="fusion-body">
     <p class="fusion-text">
-      Voulez-vous vraiment fusionner la <strong>Table {{ sourceTable?.numero }}</strong> avec la <strong>Table {{ targetTable?.numero }}</strong> ?
+      Voulez-vous vraiment fusionner la <strong>Table {{ sourceTable.numero }}</strong> avec la <strong>Table {{ targetTable.numero }}</strong> ?
     </p>
 
     <div class="fusion-details" *ngIf="sourceTable && targetTable">
@@ -32,7 +32,7 @@
     </div>
 
     <p class="fusion-note">
-      Une commande commune sera créée et les deux tables seront regroupées en une seule table de {{ (sourceTable?.capacite || 0) + (targetTable?.capacite || 0) }} places.
+      Une commande commune sera créée et les deux tables seront regroupées en une seule table de {{ (sourceTable.capacite || 0) + (targetTable.capacite || 0) }} places.
     </p>
 
     <div class="modal-actions">

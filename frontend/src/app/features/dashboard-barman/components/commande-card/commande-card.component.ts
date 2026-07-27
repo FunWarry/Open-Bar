@@ -1,9 +1,6 @@
 import { Component, Input, Output, EventEmitter, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {
-  IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-  IonBadge, IonButton, IonIcon, IonChip, IonLabel
-} from '@ionic/angular/standalone';
+import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
   timeOutline, checkmarkCircleOutline, arrowForwardCircleOutline, flashOutline
@@ -19,8 +16,7 @@ import { ActionButtonComponent } from '../../../../core/components/ui/action-but
   standalone: true,
   imports: [
     CommonModule,
-    IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-    IonBadge, IonButton, IonIcon, IonChip, IonLabel,
+    IonIcon,
     StatusBadgeComponent,
     ActionButtonComponent,
   ],

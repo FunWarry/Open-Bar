@@ -5,7 +5,6 @@ import { IonButton, IonIcon, IonBadge } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { closeOutline, saveOutline, gitMergeOutline, trashOutline } from 'ionicons/icons';
 import { TableBar } from '../../../../core/models/table.model';
-import { RoleBadgeComponent } from '../../../../core/components/ui/role-badge/role-badge.component';
 import { ActionButtonComponent } from '../../../../core/components/ui/action-button/action-button.component';
 
 @Component({
@@ -14,7 +13,7 @@ import { ActionButtonComponent } from '../../../../core/components/ui/action-but
   imports: [
     CommonModule, FormsModule,
     IonButton, IonIcon, IonBadge,
-    RoleBadgeComponent, ActionButtonComponent,
+    ActionButtonComponent,
   ],
   templateUrl: './table-side-panel.component.html',
   styleUrls: ['./table-side-panel.component.scss'],

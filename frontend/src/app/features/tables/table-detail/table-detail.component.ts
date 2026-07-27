@@ -24,7 +24,7 @@ import { Commande } from '../../../core/models/commande.model';
   standalone: true,
   imports: [
     IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-    IonList, IonItem, IonLabel, IonBadge, IonButton, IonButtons, IonIcon, IonSpinner,
+    IonList, IonItem, IonLabel, IonBadge, IonButton, IonButtons, IonIcon,
     NgIf, NgFor, AsyncPipe, DatePipe, CurrencyPipe,
   ],
 })
