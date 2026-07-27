@@ -1,5 +1,5 @@
-/* Google Font Inter */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+/* Google Fonts: Inter & Outfit */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap');
 
 /* Ionic Core & Utility Styles */
 @import '@ionic/angular/css/core.css';
@@ -91,6 +91,7 @@
   --ring-focus: 0 0 0 3px #6c7fe859;
 
   --font: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Outfit", "Inter", system-ui, sans-serif;
   --fs-display: 32px; --lh-display: 1.1; --fw-display: 700;
   --fs-h1: 24px; --lh-h1: 1.2; --fw-h1: 700;
   --fs-h2: 20px; --lh-h2: 1.25; --fw-h2: 600;
@@ -269,4 +270,32 @@ ion-button {
 .card {
   background: var(--surface-1); border: 1px solid var(--border-default);
   border-radius: var(--radius-lg); box-shadow: var(--elev-1);
+}
+
+/* Glassmorphism & Elevation Utilities (Figma Design System 0:1) */
+.glass-card {
+  background: rgba(26, 26, 46, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--elev-2);
+}
+
+.glass-modal {
+  background: rgba(21, 21, 31, 0.85);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--elev-3);
+}
+
+.elev-hover {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.elev-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--elev-3);
 }
