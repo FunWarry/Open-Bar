@@ -53,6 +53,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/**", "/api/test/health", "/api/setup/**").permitAll()
                 .requestMatchers("/api/users/check-username/**").permitAll()
                 .requestMatchers("/api/users/check-email/**").permitAll()
+                .requestMatchers("/ws/**", "/api/ws/**").permitAll()
                 // Réglages de personnalisation lisibles avant authentification (écran de login)
                 .requestMatchers(HttpMethod.GET, "/api/settings").permitAll()
                 .anyRequest().authenticated()
