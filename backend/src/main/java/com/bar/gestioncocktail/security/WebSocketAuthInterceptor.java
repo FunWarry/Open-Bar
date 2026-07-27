@@ -13,6 +13,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
+import org.springframework.lang.NonNull;
+
 @Component
 public class WebSocketAuthInterceptor implements ChannelInterceptor {
 
@@ -25,7 +27,7 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
     }
 
     @Override
-    public Message<?> preSend(Message<?> message, MessageChannel channel) {
+    public Message<?> preSend(@NonNull Message<?> message, @NonNull MessageChannel channel) {
         StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
         if (accessor != null && StompCommand.CONNECT.equals(accessor.getCommand())) {
             String authorization = accessor.getFirstNativeHeader("Authorization");
