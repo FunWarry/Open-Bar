@@ -30,7 +30,6 @@ import java.util.Optional;
 public class CommandeService {
     private final CommandeRepository commandeRepository;
     private final CommandeItemRepository commandeItemRepository;
-    private final TableRepository tableRepository;
     private final IngredientRepository ingredientRepository;
     private final SimpMessagingTemplate messagingTemplate;
 
@@ -38,12 +37,10 @@ public class CommandeService {
     public CommandeService(
             CommandeRepository commandeRepository,
             CommandeItemRepository commandeItemRepository,
-            TableRepository tableRepository,
             IngredientRepository ingredientRepository,
             SimpMessagingTemplate messagingTemplate) {
         this.commandeRepository = commandeRepository;
         this.commandeItemRepository = commandeItemRepository;
-        this.tableRepository = tableRepository;
         this.ingredientRepository = ingredientRepository;
         this.messagingTemplate = messagingTemplate;
     }
@@ -138,7 +135,6 @@ public class CommandeService {
         Commande commande = commandeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Commande non trouvée avec l'id: " + id));
 
-        CommandeStatut ancienStatut = commande.getStatut();
         commande.setStatut(nouveauStatut);
         commande.setUpdatedAt(LocalDateTime.now());
 

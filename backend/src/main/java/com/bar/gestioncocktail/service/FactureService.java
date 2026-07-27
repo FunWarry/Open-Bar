@@ -2,13 +2,11 @@ package com.bar.gestioncocktail.service;
 
 import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.dto.SplitAdditionRequest;
-import com.bar.gestioncocktail.dto.SplitEgalRequest;
 import com.bar.gestioncocktail.dto.SplitResultDTO;
 import com.bar.gestioncocktail.model.Facture;
 import com.bar.gestioncocktail.model.FactureItem;
 import com.bar.gestioncocktail.model.TableEntity;
 import com.bar.gestioncocktail.repository.FactureRepository;
-import com.bar.gestioncocktail.repository.FactureItemRepository;
 import jakarta.persistence.EntityManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,20 +19,17 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
 @Transactional
 public class FactureService {
     private final FactureRepository factureRepository;
-    private final FactureItemRepository factureItemRepository;
     private final EntityManager entityManager;
 
     @Autowired
-    public FactureService(FactureRepository factureRepository, FactureItemRepository factureItemRepository, EntityManager entityManager) {
+    public FactureService(FactureRepository factureRepository, EntityManager entityManager) {
         this.factureRepository = factureRepository;
-        this.factureItemRepository = factureItemRepository;
         this.entityManager = entityManager;
     }
 

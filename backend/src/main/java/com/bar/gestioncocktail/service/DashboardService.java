@@ -25,18 +25,15 @@ public class DashboardService {
     private static final int TOP_COCKTAILS_LIMIT = 5;
 
     private final CommandeRepository commandeRepository;
-    private final FactureRepository factureRepository;
     private final TableRepository tableRepository;
     private final IngredientRepository ingredientRepository;
 
     public DashboardService(
         CommandeRepository commandeRepository,
-        FactureRepository factureRepository,
         TableRepository tableRepository,
         IngredientRepository ingredientRepository
     ) {
         this.commandeRepository = commandeRepository;
-        this.factureRepository = factureRepository;
         this.tableRepository = tableRepository;
         this.ingredientRepository = ingredientRepository;
     }
