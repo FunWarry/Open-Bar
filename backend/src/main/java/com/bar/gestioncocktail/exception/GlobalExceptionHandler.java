@@ -39,7 +39,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleValidationErrors(MethodArgumentNotValidException ex) {
         Map<String, String> fieldErrors = ex.getBindingResult().getFieldErrors().stream()
                 .collect(Collectors.toMap(
-                        FieldError::getField,
+                        fe -> fe.getField(),
                         fe -> fe.getDefaultMessage() != null ? fe.getDefaultMessage() : "Invalid value",
                         (existing, replacement) -> existing
                 ));

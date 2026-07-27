@@ -39,6 +39,7 @@ public class NotificationService {
         );
     }
 
+    @SuppressWarnings("unused")
     private static class CommandeStatutNotification {
         private final Long commandeId;
         private final CommandeStatut ancienStatut;
@@ -63,6 +64,7 @@ public class NotificationService {
         }
     }
 
+    @SuppressWarnings("unused")
     private static class StockAlerteNotification {
         private final Long ingredientId;
         private final String nomIngredient;
@@ -86,4 +88,5 @@ public class NotificationService {
             return quantiteRestante;
         }
     }
-} 
+}
+ 

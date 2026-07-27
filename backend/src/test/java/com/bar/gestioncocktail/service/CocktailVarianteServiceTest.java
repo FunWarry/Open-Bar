@@ -166,7 +166,7 @@ class CocktailVarianteServiceTest {
         List<CocktailVariante> result = cocktailVarianteService.getVariantesByCocktail(cocktail);
 
         assertThat(result).hasSize(2);
-        assertThat(result).extracting(CocktailVariante::getNom)
+        assertThat(result).extracting(v -> v.getNom())
                 .containsExactlyInAnyOrder("Sans alcool", "Double dose");
     }
 

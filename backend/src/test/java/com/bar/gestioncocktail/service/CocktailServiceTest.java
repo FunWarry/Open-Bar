@@ -127,6 +127,6 @@ class CocktailServiceTest {
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getNom()).isEqualTo("Mojito");
-        assertThat(result).allMatch(Cocktail::isDisponible);
+        assertThat(result).allMatch(c -> Boolean.TRUE.equals(c.isDisponible()));
     }
 }

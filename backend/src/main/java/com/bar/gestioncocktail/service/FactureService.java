@@ -96,7 +96,7 @@ public class FactureService {
         facture.getItems().removeIf(item -> item.getId().equals(itemId));
         facture.setTotal(facture.getItems().stream()
                 .map(item -> item.getPrixUnitaire().multiply(new BigDecimal(item.getQuantite())))
-                .reduce(BigDecimal.ZERO, BigDecimal::add));
+                .reduce(BigDecimal.ZERO, (a, b) -> a.add(b)));
 
         return factureRepository.save(facture);
     }
@@ -106,9 +106,15 @@ public class FactureService {
         Facture facture = factureRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Facture non trouvée avec l'id: " + id));
 
-        facture.setReglee(true);
+        facture.setStatut("PAYEE");
         facture.setModePaiement(modePaiement);
-        facture.setDateReglement(LocalDateTime.now());
+        facture.setDatePaiement(LocalDateTime.now());
+
+        if (facture.getTable() != null) {
+            TableEntity table = facture.getTable();
+            table.setStatut("LIBRE");
+            entityManager.merge(table);
+        }
 
         return factureRepository.save(facture);
     }
@@ -174,7 +180,7 @@ public class FactureService {
 
         // Index des items de la facture par id pour lookup O(1)
         java.util.Map<Long, FactureItem> itemsIndex = facture.getItems().stream()
-                .collect(Collectors.toMap(FactureItem::getId, item -> item));
+                .collect(Collectors.toMap(item -> item.getId(), item -> item));
 
         List<SplitResultDTO> result = new ArrayList<>();
 

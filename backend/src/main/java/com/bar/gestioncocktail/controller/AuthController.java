@@ -60,7 +60,7 @@ public class AuthController {
                 .orElseThrow(() -> new ResourceNotFoundException("Utilisateur non trouvé"));
         List<String> userRoles = user.getRoles()
                 .stream()
-                .map(UserRole::getName)
+                .map(role -> role.getName())
                 .toList();
 
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
