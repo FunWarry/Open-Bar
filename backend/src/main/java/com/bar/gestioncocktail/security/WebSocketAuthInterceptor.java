@@ -29,7 +29,10 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
     @Nullable
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
         StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
-        if (accessor != null && StompCommand.CONNECT.equals(accessor.getCommand())) {
+        if (accessor == null) {
+            accessor = StompHeaderAccessor.wrap(message);
+        }
+        if (StompCommand.CONNECT.equals(accessor.getCommand())) {
             String authorization = accessor.getFirstNativeHeader("Authorization");
             if (authorization == null || !authorization.startsWith("Bearer ")) {
                 throw new MessageDeliveryException(message, "Missing Authorization header");
