@@ -54,5 +54,5 @@ Thumbs.db
 frontend/coverage
 .env
 /.sonarlint/
-/.vscode/
+.vscode/
 /qodana.sarif.json
