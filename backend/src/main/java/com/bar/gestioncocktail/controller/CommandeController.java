@@ -1,5 +1,7 @@
 package com.bar.gestioncocktail.controller;
 
+import com.bar.gestioncocktail.dto.CommandeItemRequestDTO;
+import com.bar.gestioncocktail.dto.CommandeRequestDTO;
 import com.bar.gestioncocktail.dto.CommandeResponseDTO;
 import com.bar.gestioncocktail.model.Commande;
 import com.bar.gestioncocktail.model.CommandeItem;
@@ -41,17 +43,17 @@ public class CommandeController {
     }
 
     /**
-     * Crée une nouvelle commande dans le système.
+     * Creates a new order in the system.
      *
-     * @param commande Entité commande à créer
-     * @return DTO de la commande créée
+     * @param request Order data to create
+     * @return DTO of the created order
      */
     @PostMapping
     @PreAuthorize("hasRole('SERVEUR') or hasRole('ADMIN')")
-    @Operation(summary = "Créer une commande (SERVEUR/ADMIN)", description = "Passe une nouvelle commande pour une table.")
-    @ApiResponse(responseCode = "200", description = "Commande créée avec succès")
-    public ResponseEntity<CommandeResponseDTO> createCommande(@Valid @RequestBody Commande commande) {
-        return ResponseEntity.ok(CommandeResponseDTO.from(commandeService.createCommande(commande)));
+    @Operation(summary = "Create an order (SERVEUR/ADMIN)", description = "Places a new order for a table.")
+    @ApiResponse(responseCode = "200", description = "Order created successfully")
+    public ResponseEntity<CommandeResponseDTO> createCommande(@Valid @RequestBody CommandeRequestDTO request) {
+        return ResponseEntity.ok(CommandeResponseDTO.from(commandeService.createCommande(request.toEntity())));
     }
 
     /**
@@ -200,12 +202,12 @@ public class CommandeController {
      */
     @PostMapping("/{id}/items")
     @PreAuthorize("hasRole('SERVEUR') or hasRole('ADMIN')")
-    @Operation(summary = "Ajouter un article à une commande (SERVEUR/ADMIN)")
-    @ApiResponse(responseCode = "200", description = "Article ajouté")
+    @Operation(summary = "Add an item to an order (SERVEUR/ADMIN)")
+    @ApiResponse(responseCode = "200", description = "Item added")
     public ResponseEntity<CommandeResponseDTO> ajouterItem(
-        @Parameter(description = "ID de la commande") @PathVariable Long id,
-        @Valid @RequestBody CommandeItem item) {
-        return ResponseEntity.ok(CommandeResponseDTO.from(commandeService.ajouterItem(id, item)));
+        @Parameter(description = "Order ID") @PathVariable Long id,
+        @Valid @RequestBody CommandeItemRequestDTO request) {
+        return ResponseEntity.ok(CommandeResponseDTO.from(commandeService.ajouterItem(id, request.toEntity())));
     }
 
     /**

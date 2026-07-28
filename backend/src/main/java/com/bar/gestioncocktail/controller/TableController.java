@@ -2,6 +2,7 @@ package com.bar.gestioncocktail.controller;
 
 import com.bar.gestioncocktail.dto.PlanSalleDTO;
 import com.bar.gestioncocktail.dto.TablePositionDTO;
+import com.bar.gestioncocktail.dto.TableRequestDTO;
 import com.bar.gestioncocktail.dto.TableResponseDTO;
 import com.bar.gestioncocktail.model.TableEntity;
 import com.bar.gestioncocktail.model.TableZone;
@@ -111,34 +112,34 @@ public class TableController {
     }
 
     /**
-     * Crée une nouvelle table.
+     * Creates a new table.
      *
-     * @param table L'entité table à ajouter
-     * @return DTO de la table créée
+     * @param request Table data to create
+     * @return DTO of the created table
      */
     @PostMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
-    @Operation(summary = "Créer une nouvelle table (MANAGER/ADMIN)")
-    @ApiResponse(responseCode = "200", description = "Table créée")
-    public TableResponseDTO createTable(@Valid @RequestBody TableEntity table) {
-        return TableResponseDTO.from(tableService.createTable(table));
+    @Operation(summary = "Create a new table (MANAGER/ADMIN)")
+    @ApiResponse(responseCode = "200", description = "Table created")
+    public TableResponseDTO createTable(@Valid @RequestBody TableRequestDTO request) {
+        return TableResponseDTO.from(tableService.createTable(request.toEntity()));
     }
 
     /**
-     * Met à jour une table existante.
+     * Updates an existing table.
      *
-     * @param id Identifiant de la table
-     * @param tableDetails Nouvelles données
-     * @return DTO de la table mise à jour
+     * @param id            Identifier of the table
+     * @param request Updated table data
+     * @return DTO of the updated table
      */
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
-    @Operation(summary = "Mettre à jour une table (MANAGER/ADMIN)")
-    @ApiResponse(responseCode = "200", description = "Table mise à jour")
+    @Operation(summary = "Update a table (MANAGER/ADMIN)")
+    @ApiResponse(responseCode = "200", description = "Table updated")
     public ResponseEntity<TableResponseDTO> updateTable(
-        @Parameter(description = "ID de la table") @PathVariable Long id,
-        @Valid @RequestBody TableEntity tableDetails) {
-        return ResponseEntity.ok(TableResponseDTO.from(tableService.updateTable(id, tableDetails)));
+        @Parameter(description = "Table ID") @PathVariable Long id,
+        @Valid @RequestBody TableRequestDTO request) {
+        return ResponseEntity.ok(TableResponseDTO.from(tableService.updateTable(id, request.toEntity())));
     }
 
     /**

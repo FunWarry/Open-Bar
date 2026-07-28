@@ -1,5 +1,6 @@
 package com.bar.gestioncocktail.controller;
 
+import com.bar.gestioncocktail.dto.CocktailRequestDTO;
 import com.bar.gestioncocktail.dto.CocktailResponseDTO;
 import com.bar.gestioncocktail.dto.SaisonnaliteRequest;
 import com.bar.gestioncocktail.model.Cocktail;
@@ -41,35 +42,36 @@ public class CocktailController {
     }
 
     /**
-     * Crée un nouveau cocktail dans le système.
+     * Creates a new cocktail in the system.
      *
-     * @param cocktail Entité cocktail à créer
-     * @return DTO du cocktail créé
+     * @param request Cocktail data to create
+     * @return DTO of the created cocktail
      */
     @PostMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('BARMAN')")
-    @Operation(summary = "Créer un cocktail (BARMAN/ADMIN)", description = "Ajoute un nouveau cocktail à la carte.")
-    @ApiResponse(responseCode = "200", description = "Cocktail créé avec succès")
-    @ApiResponse(responseCode = "403", description = "Accès refusé")
-    public ResponseEntity<CocktailResponseDTO> createCocktail(@Valid @RequestBody Cocktail cocktail) {
-        return ResponseEntity.ok(CocktailResponseDTO.from(cocktailService.createCocktail(cocktail)));
+    @Operation(summary = "Create a cocktail (BARMAN/ADMIN)", description = "Adds a new cocktail to the menu.")
+    @ApiResponse(responseCode = "200", description = "Cocktail created successfully")
+    @ApiResponse(responseCode = "403", description = "Access denied")
+    public ResponseEntity<CocktailResponseDTO> createCocktail(@Valid @RequestBody CocktailRequestDTO request) {
+        return ResponseEntity.ok(CocktailResponseDTO.from(cocktailService.createCocktail(request.toEntity())));
     }
 
     /**
-     * Met à jour les informations d'un cocktail existant.
+     * Updates an existing cocktail.
      *
-     * @param id Identifiant du cocktail à modifier
-     * @param cocktail Nouvelles données du cocktail
-     * @return DTO du cocktail mis à jour
+     * @param id      Identifier of the cocktail to update
+     * @param request Updated cocktail data
+     * @return DTO of the updated cocktail
      */
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('BARMAN')")
-    @Operation(summary = "Mettre à jour un cocktail (BARMAN/ADMIN)")
-    @ApiResponse(responseCode = "200", description = "Cocktail mis à jour")
-    @ApiResponse(responseCode = "404", description = "Cocktail non trouvé")
+    @Operation(summary = "Update a cocktail (BARMAN/ADMIN)")
+    @ApiResponse(responseCode = "200", description = "Cocktail updated")
+    @ApiResponse(responseCode = "404", description = "Cocktail not found")
     public ResponseEntity<CocktailResponseDTO> updateCocktail(
-        @Parameter(description = "ID du cocktail") @PathVariable Long id,
-        @Valid @RequestBody Cocktail cocktail) {
+        @Parameter(description = "Cocktail ID") @PathVariable Long id,
+        @Valid @RequestBody CocktailRequestDTO request) {
+        Cocktail cocktail = request.toEntity();
         cocktail.setId(id);
         return ResponseEntity.ok(CocktailResponseDTO.from(cocktailService.updateCocktail(cocktail)));
     }

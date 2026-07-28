@@ -1,5 +1,6 @@
 package com.bar.gestioncocktail.controller;
 
+import com.bar.gestioncocktail.dto.IngredientRequestDTO;
 import com.bar.gestioncocktail.dto.IngredientResponseDTO;
 import com.bar.gestioncocktail.model.Ingredient;
 import com.bar.gestioncocktail.service.IngredientService;
@@ -36,33 +37,34 @@ public class IngredientController {
     }
 
     /**
-     * Crée un nouvel ingrédient.
+     * Creates a new ingredient.
      *
-     * @param ingredient L'entité à créer
-     * @return DTO de l'ingrédient créé
+     * @param request The ingredient data to create
+     * @return DTO of the created ingredient
      */
     @PostMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('BARMAN')")
-    @Operation(summary = "Créer un nouvel ingrédient (BARMAN/ADMIN)")
-    @ApiResponse(responseCode = "200", description = "Ingrédient créé")
-    public ResponseEntity<IngredientResponseDTO> createIngredient(@Valid @RequestBody Ingredient ingredient) {
-        return ResponseEntity.ok(IngredientResponseDTO.from(ingredientService.createIngredient(ingredient)));
+    @Operation(summary = "Create a new ingredient (BARMAN/ADMIN)")
+    @ApiResponse(responseCode = "200", description = "Ingredient created")
+    public ResponseEntity<IngredientResponseDTO> createIngredient(@Valid @RequestBody IngredientRequestDTO request) {
+        return ResponseEntity.ok(IngredientResponseDTO.from(ingredientService.createIngredient(request.toEntity())));
     }
 
     /**
-     * Met à jour les informations d'un ingrédient.
+     * Updates an ingredient's information.
      *
-     * @param id Identifiant de l'ingrédient
-     * @param ingredient Données mises à jour
-     * @return DTO de l'ingrédient mis à jour
+     * @param id      Identifier of the ingredient
+     * @param request Updated ingredient data
+     * @return DTO of the updated ingredient
      */
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('BARMAN')")
-    @Operation(summary = "Mettre à jour un ingrédient (BARMAN/ADMIN)")
-    @ApiResponse(responseCode = "200", description = "Ingrédient mis à jour")
+    @Operation(summary = "Update an ingredient (BARMAN/ADMIN)")
+    @ApiResponse(responseCode = "200", description = "Ingredient updated")
     public ResponseEntity<IngredientResponseDTO> updateIngredient(
-        @Parameter(description = "ID de l'ingrédient") @PathVariable Long id,
-        @Valid @RequestBody Ingredient ingredient) {
+        @Parameter(description = "Ingredient ID") @PathVariable Long id,
+        @Valid @RequestBody IngredientRequestDTO request) {
+        Ingredient ingredient = request.toEntity();
         ingredient.setId(id);
         return ResponseEntity.ok(IngredientResponseDTO.from(ingredientService.updateIngredient(ingredient)));
     }

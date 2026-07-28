@@ -4,6 +4,7 @@ import com.bar.gestioncocktail.dto.LoginRequest;
 import com.bar.gestioncocktail.dto.LoginResponse;
 import com.bar.gestioncocktail.dto.RefreshTokenRequest;
 import com.bar.gestioncocktail.dto.TokenRefreshResponse;
+import com.bar.gestioncocktail.dto.UserRequestDTO;
 import com.bar.gestioncocktail.dto.UserResponseDTO;
 import com.bar.gestioncocktail.model.RefreshToken;
 import com.bar.gestioncocktail.model.User;
@@ -145,22 +146,22 @@ public class AuthController {
     }
 
     /**
-     * Enregistre un nouvel utilisateur dans le système.
+     * Registers a new user in the system.
      *
-     * @param user L'entité utilisateur à créer
-     * @return L'utilisateur créé sous forme de DTO
+     * @param request The user data to create
+     * @return The created user as a DTO
      */
     @PostMapping("/register")
-    @Operation(summary = "Inscrire un nouvel utilisateur", description = "Crée un nouveau compte utilisateur dans le système.")
-    @ApiResponse(responseCode = "200", description = "Inscription réussie")
-    @ApiResponse(responseCode = "400", description = "Nom d'utilisateur ou email déjà existant")
-    public ResponseEntity<UserResponseDTO> register(@Valid @RequestBody User user) {
-        if (userService.existsByUsername(user.getUsername())) {
+    @Operation(summary = "Register a new user", description = "Creates a new user account in the system.")
+    @ApiResponse(responseCode = "200", description = "Registration successful")
+    @ApiResponse(responseCode = "400", description = "Username or email already exists")
+    public ResponseEntity<UserResponseDTO> register(@Valid @RequestBody UserRequestDTO request) {
+        if (userService.existsByUsername(request.username())) {
             return ResponseEntity.badRequest().build();
         }
-        if (userService.existsByEmail(user.getEmail())) {
+        if (userService.existsByEmail(request.email())) {
             return ResponseEntity.badRequest().build();
         }
-        return ResponseEntity.ok(UserResponseDTO.from(userService.createUser(user)));
+        return ResponseEntity.ok(UserResponseDTO.from(userService.createUser(request.toEntity())));
     }
 }

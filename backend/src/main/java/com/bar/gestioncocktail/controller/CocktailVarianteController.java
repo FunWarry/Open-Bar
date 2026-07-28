@@ -1,5 +1,6 @@
 package com.bar.gestioncocktail.controller;
 
+import com.bar.gestioncocktail.dto.CocktailVarianteRequestDTO;
 import com.bar.gestioncocktail.dto.CocktailVarianteResponseDTO;
 import com.bar.gestioncocktail.model.Cocktail;
 import com.bar.gestioncocktail.model.CocktailVariante;
@@ -36,34 +37,35 @@ public class CocktailVarianteController {
     }
 
     /**
-     * Crée une nouvelle variante pour un cocktail.
+     * Creates a new variant for a cocktail.
      *
-     * @param variante La variante à créer
-     * @return DTO de la variante créée
+     * @param request The variant data to create
+     * @return DTO of the created variant
      */
     @PostMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('BARMAN')")
-    @Operation(summary = "Créer une variante de cocktail (BARMAN/ADMIN)")
-    @ApiResponse(responseCode = "200", description = "Variante créée")
-    public ResponseEntity<CocktailVarianteResponseDTO> createCocktailVariante(@RequestBody CocktailVariante variante) {
+    @Operation(summary = "Create a cocktail variant (BARMAN/ADMIN)")
+    @ApiResponse(responseCode = "200", description = "Variant created")
+    public ResponseEntity<CocktailVarianteResponseDTO> createCocktailVariante(@RequestBody CocktailVarianteRequestDTO request) {
         return ResponseEntity.ok(CocktailVarianteResponseDTO.from(
-            cocktailVarianteService.createCocktailVariante(variante)));
+            cocktailVarianteService.createCocktailVariante(request.toEntity())));
     }
 
     /**
-     * Met à jour une variante existante.
+     * Updates an existing cocktail variant.
      *
-     * @param id Identifiant de la variante
-     * @param variante Nouvelles données de la variante
-     * @return DTO de la variante mise à jour
+     * @param id      Identifier of the variant
+     * @param request Updated variant data
+     * @return DTO of the updated variant
      */
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('BARMAN')")
-    @Operation(summary = "Mettre à jour une variante (BARMAN/ADMIN)")
-    @ApiResponse(responseCode = "200", description = "Variante mise à jour")
+    @Operation(summary = "Update a variant (BARMAN/ADMIN)")
+    @ApiResponse(responseCode = "200", description = "Variant updated")
     public ResponseEntity<CocktailVarianteResponseDTO> updateCocktailVariante(
-        @Parameter(description = "ID de la variante") @PathVariable Long id,
-        @RequestBody CocktailVariante variante) {
+        @Parameter(description = "Variant ID") @PathVariable Long id,
+        @RequestBody CocktailVarianteRequestDTO request) {
+        CocktailVariante variante = request.toEntity();
         variante.setId(id);
         return ResponseEntity.ok(CocktailVarianteResponseDTO.from(
             cocktailVarianteService.updateCocktailVariante(variante)));

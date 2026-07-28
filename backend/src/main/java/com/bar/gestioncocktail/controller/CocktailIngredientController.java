@@ -1,5 +1,6 @@
 package com.bar.gestioncocktail.controller;
 
+import com.bar.gestioncocktail.dto.CocktailIngredientRequestDTO;
 import com.bar.gestioncocktail.dto.CocktailIngredientResponseDTO;
 import com.bar.gestioncocktail.model.Cocktail;
 import com.bar.gestioncocktail.model.CocktailIngredient;
@@ -37,18 +38,18 @@ public class CocktailIngredientController {
     }
 
     /**
-     * Associe un nouvel ingrédient à un cocktail avec sa quantité requise.
+     * Associates a new ingredient with a cocktail at the required quantity.
      *
-     * @param cocktailIngredient L'association cocktail-ingrédient à créer
-     * @return DTO de la liaison créée
+     * @param request The cocktail-ingredient association to create
+     * @return DTO of the created link
      */
     @PostMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('BARMAN')")
-    @Operation(summary = "Ajouter un ingrédient à une recette (BARMAN/ADMIN)")
-    @ApiResponse(responseCode = "200", description = "Liaison créée")
-    public ResponseEntity<CocktailIngredientResponseDTO> createCocktailIngredient(@RequestBody CocktailIngredient cocktailIngredient) {
+    @Operation(summary = "Add an ingredient to a recipe (BARMAN/ADMIN)")
+    @ApiResponse(responseCode = "200", description = "Link created")
+    public ResponseEntity<CocktailIngredientResponseDTO> createCocktailIngredient(@RequestBody CocktailIngredientRequestDTO request) {
         return ResponseEntity.ok(CocktailIngredientResponseDTO.from(
-            cocktailIngredientService.createCocktailIngredient(cocktailIngredient)));
+            cocktailIngredientService.createCocktailIngredient(request.toEntity())));
     }
 
     /**
