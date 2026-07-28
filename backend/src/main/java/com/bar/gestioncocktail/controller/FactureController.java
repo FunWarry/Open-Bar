@@ -1,5 +1,7 @@
 package com.bar.gestioncocktail.controller;
 
+import com.bar.gestioncocktail.dto.FactureItemRequestDTO;
+import com.bar.gestioncocktail.dto.FactureRequestDTO;
 import com.bar.gestioncocktail.dto.FactureResponseDTO;
 import com.bar.gestioncocktail.dto.MergeFacturesRequestDTO;
 import com.bar.gestioncocktail.dto.SplitAdditionRequest;
@@ -72,15 +74,15 @@ public class FactureController {
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
     @Operation(summary = "Créer une facture (SERVEUR/MANAGER/ADMIN)")
     @ApiResponse(responseCode = "200", description = "Facture créée avec succès")
-    public ResponseEntity<FactureResponseDTO> createFacture(@Valid @RequestBody Facture facture) {
-        return ResponseEntity.ok(FactureResponseDTO.from(factureService.createFacture(facture)));
+    public ResponseEntity<FactureResponseDTO> createFacture(@Valid @RequestBody FactureRequestDTO request) {
+        return ResponseEntity.ok(FactureResponseDTO.from(factureService.createFacture(request.toEntity())));
     }
 
     /**
      * Met à jour une facture existante.
      *
      * @param id Identifiant de la facture
-     * @param factureDetails Données modifiées
+     * @param request Données modifiées
      * @return DTO mis à jour
      */
     @PutMapping("/{id}")
@@ -89,8 +91,8 @@ public class FactureController {
     @ApiResponse(responseCode = "200", description = "Facture mise à jour")
     public ResponseEntity<FactureResponseDTO> updateFacture(
         @Parameter(description = "ID de la facture") @PathVariable Long id,
-        @Valid @RequestBody Facture factureDetails) {
-        return ResponseEntity.ok(FactureResponseDTO.from(factureService.updateFacture(id, factureDetails)));
+        @Valid @RequestBody FactureRequestDTO request) {
+        return ResponseEntity.ok(FactureResponseDTO.from(factureService.updateFacture(id, request.toEntity())));
     }
 
     /**
@@ -165,7 +167,7 @@ public class FactureController {
      * Ajoute une ligne d'article à une facture.
      *
      * @param id Identifiant de la facture
-     * @param item Ligne d'article
+     * @param request Ligne d'article
      * @return Facture mise à jour
      */
     @PostMapping("/{id}/items")
@@ -174,8 +176,8 @@ public class FactureController {
     @ApiResponse(responseCode = "200", description = "Ligne ajoutée")
     public ResponseEntity<FactureResponseDTO> ajouterItem(
         @Parameter(description = "ID de la facture") @PathVariable Long id,
-        @Valid @RequestBody FactureItem item) {
-        return ResponseEntity.ok(FactureResponseDTO.from(factureService.ajouterItem(id, item)));
+        @Valid @RequestBody FactureItemRequestDTO request) {
+        return ResponseEntity.ok(FactureResponseDTO.from(factureService.ajouterItem(id, request.toEntity())));
     }
 
     /**

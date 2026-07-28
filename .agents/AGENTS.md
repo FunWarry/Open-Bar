@@ -39,6 +39,7 @@ Deployed as a PWA on a local WiFi network (Raspberry Pi 5 / mini-PC). No interne
 ### Documentation & Code Quality
 1. **Documentation is MANDATORY for all new or modified code** (JavaDoc on backend, TSDoc on frontend, OpenAPI annotations on controllers).
 2. **ALL code documentation (JavaDoc, TSDoc, OpenAPI descriptions) MUST BE WRITTEN IN ENGLISH**.
+3. **NEVER use `@SuppressWarnings` annotations to bypass quality/security issues** — always refactor and resolve underlying code issues directly.
 
 ### Backend
 1. **Never `@Autowired` on a field** — always constructor injection
