@@ -21,10 +21,12 @@ public class Commande {
     @JoinColumn(name = "table_id", nullable = false)
     private TableEntity table;
 
-    @NotNull(message = "Le serveur est obligatoire")
     @ManyToOne
-    @JoinColumn(name = "serveur_id", nullable = false)
+    @JoinColumn(name = "serveur_id", nullable = true)
     private User serveur;
+
+    @Column(name = "tracking_token", unique = true)
+    private String trackingToken;
 
     @OneToMany(mappedBy = "commande", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<CommandeItem> items = new ArrayList<>();

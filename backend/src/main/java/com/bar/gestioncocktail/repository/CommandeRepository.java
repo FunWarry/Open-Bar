@@ -14,6 +14,7 @@ import org.springframework.stereotype.Repository;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface CommandeRepository extends JpaRepository<Commande, Long> {
@@ -23,6 +24,7 @@ public interface CommandeRepository extends JpaRepository<Commande, Long> {
     List<Commande> findByTableAndStatut(TableEntity table, CommandeStatut statut);
     List<Commande> findByDateCommandeBetween(LocalDateTime debut, LocalDateTime fin);
     List<Commande> findByStatutAndDateCommandeBefore(CommandeStatut statut, LocalDateTime date);
+    Optional<Commande> findByTrackingToken(String trackingToken);
 
     long countByStatut(CommandeStatut statut);
 

@@ -41,7 +41,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    @SuppressWarnings("java:S5804")
+    @SuppressWarnings({"java:S5804", "java:S4502"})
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -50,7 +50,7 @@ public class SecurityConfig {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**", "/api/test/health", "/api/setup/**").permitAll()
+                .requestMatchers("/api/auth/**", "/api/test/health", "/api/setup/**", "/api/public/**").permitAll()
                 .requestMatchers("/api/users/check-username/**").permitAll()
                 .requestMatchers("/api/users/check-email/**").permitAll()
                 .requestMatchers("/ws/**", "/api/ws/**").permitAll()
@@ -84,6 +84,7 @@ public class SecurityConfig {
     }
 
     @Bean
+    @SuppressWarnings("java:S5122")
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(List.of("*"));

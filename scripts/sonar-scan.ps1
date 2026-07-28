@@ -6,7 +6,9 @@ Write-Host "   OpenBar - Sonar Scan Local Validation  " -ForegroundColor Cyan
 Write-Host "==========================================" -ForegroundColor Cyan
 
 # 1. Backend — Compilation et copie des dépendances
+Push-Location "$PSScriptRoot/../backend"
 mvn test-compile -q
+Pop-Location
 
 # 2. Frontend — Génération du rapport LCOV
 Write-Host "`n[2/3] Frontend - Generation du rapport LCOV (Karma)..." -ForegroundColor Yellow
