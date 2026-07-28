@@ -45,33 +45,35 @@ Application web multi-rôles avec WebSocket pour la communication temps réel en
 
 | Couche | Technologie | Version | Notes |
 |--------|-------------|---------|-------|
-| Backend | Spring Boot | 3.3.3 | Runtime Java 22 |
+| Backend | Spring Boot | **4.0.6** | Runtime Java 22 (épinglé — Lombok 1.18.34 incompatible JDK 23+) |
 | Base de données | PostgreSQL | — | Via Docker Compose |
-| ORM | JPA / Hibernate | via Spring | Lombok `@Data` sur entités |
-| Sécurité | Spring Security + JWT | JJWT 0.12.6 | Filter custom |
+| ORM | JPA / Hibernate + Lombok | 1.18.34 | `@Data` sur entités, `@PrePersist`/`@PreUpdate` |
+| Sécurité | Spring Security + JWT | JJWT 0.12.6 | Filter custom, `JWT_SECRET` env var requise |
 | Temps réel | WebSocket STOMP | via Spring | 4 topics actifs |
+| PDF | OpenPDF | 2.0.3 | Export factures |
 | Frontend | Angular | 20 | Standalone components |
-| UI | Ionic | 8.8.11 | Migration Angular Material → Ionic actée |
+| UI | Ionic | 8.8.11 | Angular Material abandonné |
 | State management | NgRx | 20 | Auth uniquement |
 | HTTP | RxJS / HttpClient | 7.8 | — |
 
-#### Stack cible (migration décidée)
+#### Décisions architecturales actées
 
-| Couche | Technologie | Version | Raison |
-|--------|-------------|---------|--------|
-| Frontend | Angular | 20 | Migré (correction CVEs XSS/XSRF) |
-| UI mobile | **Ionic** | 8+ | Mobile/tablet-first, composants natifs |
-| Build natif | **Capacitor** | 6+ | iOS + Android depuis le même codebase |
-| Canvas plan de salle | **Konva.js** | — | Canvas 2D libre, drag & drop, rotation |
-| Backend | Spring Boot | 3.3.3 | Inchangé |
+| Décision | Choix | Raison |
+|----------|-------| -------|
+| UI composants | **Ionic 8.8.11** (Angular Material abandonné) | Mobile/tablet-first pour écrans de bar |
+| Déploiement | **PWA + Service Worker** (Capacitor abandonné) | Réseau WiFi local du bar — App Store inutile |
+| Build natif | ~~Capacitor~~ **abandonné** | PWA suffit en réseau local, zéro friction |
+| Canvas plan de salle | **Konva.js** | Canvas 2D libre, drag & drop, rotation |
+| i18n | **Transloco** (`@jsverse/transloco`) | Lazy loading natif, meilleur support Angular 20 |
+| Déploiement prod | **Nginx sur mini-PC local** (Raspberry Pi 5) | Réseau WiFi du bar, zéro dépendance internet |
 
-> **Décision actée** : Angular Material n'est pas adapté pour un usage mobile/tablet-first (écrans de bar, tablettes serveurs, téléphones). La migration vers **Ionic + Angular + Capacitor** permet de cibler iOS, Android et navigateur depuis un seul codebase.
+> **PWA locale** : L'app tourne sur le réseau WiFi du bar. La coupure internet n'a aucun impact. Service Worker cache l'app shell (cache-first) et rejoue les requêtes POST/PUT en attente à la reconnexion WiFi.
 
 #### Design
 
 | Outil | Détail |
 |-------|--------|
-| Figma | fileKey `XSVwFk64kgtqgUN9n5qoMw` — **6 pages, 60+ composants** (état juin 2026) |
+| Figma | fileKey `XSVwFk64kgtqgUN9n5qoMw` — **8 pages, 60+ composants** (vérifié juillet 2026) |
 | Approche | Design first — tous les écrans designés en Figma avant implémentation |
 
 ### Architecture backend
@@ -219,14 +221,16 @@ Service frontend : `websocket.service.ts` — ✅ pleinement implémenté (RxSto
 | **Export PDF factures** | ✅ | ✅ | ✅ | ❌ | — |
 | **Division d'addition (split égal + par article)** | ✅ | ✅ | ✅ | ❌ | — |
 | **Dashboard Manager / statistiques** | ✅ | ✅ | ✅ | ❌ | — |
-| Plan de salle interactif (Konva.js) | ❌ | ❌ | — | ⚠️ esquissé | 🟡 Moyenne |
-| QR code commande client | ❌ | ❌ | — | ✅ designé | 🟡 Moyenne |
-| Fusion de tables | ❌ | ❌ | — | ✅ designé | 🟡 Moyenne |
-| **Design system — tokens (couleurs/espacement/rayons)** | — | ⚠️ fichier orphelin non chargé (#152) | ❌ | ✅ | 🔴 Haute |
-| **Personnalisation admin (branding)** | ❌ | ❌ | — | ❌ (nouvelle feature, pas dans Figma) | 🔴 Haute |
+| Plan de salle interactif (Konva.js) | ✅ | ✅ | ✅ | ⚠️ esquissé | — |
+| QR code commande client (#184) | ✅ | ❌ **frontend à faire** | ✅ | ✅ designé | 🔴 Haute |
+| Variantes cocktails & Déduction auto stocks (#185) | ✅ | ❌ **frontend à faire** | ✅ | — | 🔴 Haute |
+| Transfert table & Fusion factures (#186) | ✅ | ❌ **frontend à faire** | ✅ | ✅ designé | 🟡 Moyenne |
+| Service Broadcast STOMP (#187) | ✅ | — | ✅ | — | — |
+| **Design system — tokens (couleurs/espacement/rayons)** | — | ✅ implémenté (#152) | ✅ | ✅ | — |
+| **Personnalisation admin (branding)** | ❌ | ❌ | — | ❌ | 🟡 Moyenne |
 
 > Légende tests : ✅ tests écrits et passants · ⚠️ tests partiels · ❌ aucun test · — non applicable
-> Dernière mise à jour : 23 juin 2026 (PRs #106, #111–#117)
+> Dernière mise à jour : 28 juillet 2026 (PRs #184–#187)
 
 ---
 
@@ -717,24 +721,25 @@ Après une authentification réussie, l'utilisateur est redirigé directement ve
 
 ## 13. Prochaine session — priorités
 
-> Mis à jour le 22 juin 2026 après PRs #100–#103.
+> Mis à jour le 28 juillet 2026 après PRs #184–#187.
 
-### Priorité haute
+### Priorité haute — Frontends manquants (backend prêt)
 
-1. 🔌 **WebSocketService frontend** — implémenter les abonnements STOMP (`/topic/commandes`, `/topic/tables`, `/topic/stock/alerte`) dans `websocket.service.ts`
-2. 📊 **Dashboard frontend** — composants `StatCard`, graphiques, connexion à `GET /api/dashboard/stats` (backend prêt)
-3. 🗂 **Vue Serveur Angular/Ionic** — 4 écrans designés en Figma, backend prêt, à implémenter
+1. 📱 **Vue Client QR Code** — interface publique non-authentifiée pour le client (ticket #184 backend ✅). Design Figma : page `636:987`. Composants : `ProductCard`, `CartItem`, `QuantityStepper`, `CategoryTab`, `MobileHeader`.
+2. 🍸 **Variantes & Déduction auto stocks** — UI barman pour gérer les variantes de cocktails et voir le stock auto-décrémenté (ticket #185 backend ✅).
+3. 🔀 **Transfert table & Fusion factures** — UI serveur/manager pour transférer une commande et fusionner des additions (ticket #186 backend ✅).
 
-### Priorité moyenne
+### Priorité moyenne — Documentation & qualité
 
-4. 💳 **Division d'addition — UI** — backend `splitEgal()` + `splitParSelection()` prêts (#46), ajouter les composants Ionic
-5. 🔐 Externaliser secret JWT (`application.yml` → variable d'environnement)
-6. 🐛 Corriger bug `dateLivraison` (set sur `PRET` → doit être `LIVREE`) dans `CommandeService`
+4. 📚 **Documentation complète** — JavaDoc backend, TSDoc frontend, Springdoc OpenAPI/Swagger (ticket #192)
+5. 🧪 **Tests d'intégration & E2E** — Testcontainers (Spring Boot) + Playwright (Angular) (ticket #193)
+6. 🐛 **Bug `dateLivraison`** — set sur `PRET` → doit être `LIVREE` dans `CommandeService.changerStatut()`
 
-### Figma
+### Priorité basse — Dette technique
 
-- Dashboard Manager — aucun écran designé, à créer from scratch (StatCards, charts temps réel)
-- Division d'addition — flow UX à designer (#66)
+7. 🔄 Supprimer `allow-circular-references: true` dans Spring (refactoring services)
+8. 🔒 Remplacer exceptions `RuntimeException` génériques par exceptions métier typées
+9. ⬆️ Angular 22 (correction 13 CVEs devDeps : esbuild, babel, vite)
 
 ### Rappels plugin Figma
 

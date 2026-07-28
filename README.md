@@ -13,20 +13,21 @@ Communication temps réel entre tous les acteurs via WebSocket STOMP — du tick
 
 | Couche | Technologie | Version |
 |--------|-------------|---------|
-| Backend | Spring Boot | 3.3.3 |
-| Runtime | Java | 22 |
+| Backend | Spring Boot | **4.0.6** |
+| Runtime | Java | 22 (⚠️ épinglé — JDK 23+ incompatible Lombok) |
 | Base de données | PostgreSQL | — |
 | Sécurité | Spring Security + JWT | JJWT 0.12.6 |
 | Temps réel | WebSocket STOMP | via Spring |
+| PDF | OpenPDF | 2.0.3 |
 | Frontend | Angular | 20 |
 | UI | Ionic | 8.8.11 |
-| State | NgRx | 20 |
+| State | NgRx | 20 (auth uniquement) |
 
 ---
 
 ## Lancer le projet
 
-**Prérequis** : Java 22, Maven, Node.js 22+, Docker
+**Prérequis** : Java 22 (exactement), Maven, Node.js 22+, Docker, `JWT_SECRET` env var (≥ 32 chars)
 
 ```bash
 # 1. Base de données
@@ -34,8 +35,10 @@ cd backend/src/main/resources
 docker compose up -d
 
 # 2. Backend  →  http://localhost:8080
+export JWT_SECRET=$(openssl rand -base64 32)  # ou définir dans backend/.env
 cd backend
 mvn spring-boot:run
+# Swagger UI : http://localhost:8080/swagger-ui.html  (ticket #192)
 
 # 3. Frontend  →  http://localhost:4200
 cd frontend
@@ -69,40 +72,41 @@ EN_ATTENTE → EN_PREPARATION → PRET → LIVREE → REGLEE
 
 ## État d'implémentation
 
-> Dernière mise à jour : 23 juin 2026 — #111–#117 (CRUDs + notifications + Vue Serveur)
-> Légende : ✅ complet · 🔄 en cours · ❌ manquant · — non applicable
+> Dernière mise à jour : 28 juillet 2026 — PRs #184–#187 (QR Code, Variantes, Transfert table, Broadcast STOMP)
+> Légende : ✅ complet · ❌ manquant · — non applicable
 
 | Feature | Backend | Frontend | Tests |
 |---------|---------|----------|-------|
 | Auth JWT + Refresh token | ✅ | ✅ | ✅ |
 | Routing + guards + lazy loading | ✅ | ✅ | ✅ |
 | Gestion utilisateurs (admin) | ✅ | ✅ | ✅ |
-| Cocktails CRUD | ✅ | ✅ | ✅ |
-| Saisonnalité cocktails | ✅ | ✅ | ✅ |
+| Cocktails CRUD + saisonnalité | ✅ | ✅ | ✅ |
+| Variantes cocktails & Déduction auto stocks | ✅ | ❌ | ✅ |
 | Ingrédients CRUD | ✅ | ✅ | ✅ |
 | Tables CRUD | ✅ | ✅ | ✅ |
 | Commandes (liste + détail + kanban barman) | ✅ | ✅ | ✅ |
-| Déstockage automatique | ✅ | — | ✅ |
+| Passage commande publique QR Code | ✅ | ❌ | ✅ |
 | Factures (liste + détail + split + règlement) | ✅ | ✅ | ✅ |
+| Fusion d'additions | ✅ | ❌ | ✅ |
 | Export PDF factures | ✅ | ✅ | ✅ |
 | Division d'addition (split égal + par article) | ✅ | ✅ | ✅ |
 | Dashboard Manager / statistiques | ✅ | ✅ | ✅ |
 | Dashboard Barman (kanban temps réel) | ✅ | ✅ | ✅ |
 | Vue Serveur (plan de salle + commandes) | ✅ | ✅ | ✅ |
-| WebSocket STOMP (toutes vues) | ✅ | ✅ | ✅ |
+| Plan de salle interactif (Konva.js) | ✅ | ✅ | ✅ |
+| WebSocket STOMP + Notifications | ✅ | ✅ | ✅ |
 | Alertes stock (bannière barman) | ✅ | ✅ | ✅ |
-| Notifications temps réel (panneau navbar) | ✅ | ✅ | ✅ |
-| Plan de salle interactif (Konva.js) | ❌ | ❌ | — |
-| QR code commande client | ❌ | ❌ | — |
+| Vue Client QR Code (interface publique) | ✅ | ❌ **priorité** | ✅ |
 
 ---
 
 ## Documentation
 
 - **[CDC.md](CDC.md)** — cahier des charges complet (stack, modèle de données, design system, roadmap)
+- **[CLAUDE.md](CLAUDE.md)** — contexte agent IA : conventions, features, workflow dev
 - **[docs/](docs)** — rapports de sessions et analyses
-- **[Kanban GitHub](https://github.com/users/FunWarry/projects/3/views/1)** — 87 issues (65 dev + 22 design)
-- **[Design System Figma](https://www.figma.com/design/XSVwFk64kgtqgUN9n5qoMw)** — 6 pages, 60+ composants
+- **[Kanban GitHub](https://github.com/users/FunWarry/projects/3/views/1)** — issues actives
+- **[Design System Figma](https://www.figma.com/design/XSVwFk64kgtqgUN9n5qoMw)** — 8 pages, 60+ composants
 
 ---
 

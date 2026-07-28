@@ -8,12 +8,13 @@ Application de gestion de bar en temps réel : prise de commandes (serveurs), pr
 
 | Couche     | Techno                       | Version     |
 |------------|------------------------------|-------------|
-| Backend    | Spring Boot                  | 3.3.3       |
-| Runtime    | Java                         | 22          |
+| Backend    | Spring Boot                  | **4.0.6**   |
+| Runtime    | Java                         | 22 (épinglé — Lombok incompatible JDK 23+) |
 | BDD        | PostgreSQL                   | —           |
-| ORM        | JPA / Hibernate              | via Spring  |
+| ORM        | JPA / Hibernate + Lombok     | 1.18.34     |
 | Sécurité   | Spring Security + JWT custom | JJWT 0.12.6 |
 | Temps réel | WebSocket STOMP              | via Spring  |
+| PDF        | OpenPDF                      | 2.0.3       |
 | Frontend   | Angular                      | 20          |
 | UI         | Ionic                        | 8.8.11      |
 | State      | NgRx (store + effects)       | 20          |
