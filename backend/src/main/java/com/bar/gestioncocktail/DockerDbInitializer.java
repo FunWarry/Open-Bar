@@ -18,7 +18,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 @Component
-@SuppressWarnings("java:S4036") // Dev utility: commands (docker, cmd, sudo) are intentionally resolved via PATH
 public class DockerDbInitializer {
 
     private static final Logger logger = Logger.getLogger(DockerDbInitializer.class.getName());
