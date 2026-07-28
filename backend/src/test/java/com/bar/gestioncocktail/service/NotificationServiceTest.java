@@ -204,4 +204,30 @@ class NotificationServiceTest {
 
         then(messagingTemplate).should(times(1)).convertAndSend(anyString(), any(Object.class));
     }
+
+    // ─── Nouveaux endpoints broadcast STOMP #187 ──────────────────────────────
+
+    @Test
+    void notifierBarmanCommandes_envoyeSurTopicBarman() {
+        notificationService.notifierBarmanCommandes("payload-barman");
+        verify(messagingTemplate).convertAndSend("/topic/barman/commandes", "payload-barman");
+    }
+
+    @Test
+    void notifierTrackingClient_envoyeSurTopicClientSpecifique() {
+        notificationService.notifierTrackingClient("TOKEN-XYZ", "payload-client");
+        verify(messagingTemplate).convertAndSend("/topic/commandes/TOKEN-XYZ", "payload-client");
+    }
+
+    @Test
+    void notifierChangementTable_envoyeSurTopicTables() {
+        notificationService.notifierChangementTable(table);
+        verify(messagingTemplate).convertAndSend("/topic/tables", table);
+    }
+
+    @Test
+    void notifierAlerteStockEvent_envoyeSurTopicStockAlerte() {
+        notificationService.notifierAlerteStockEvent("payload-stock");
+        verify(messagingTemplate).convertAndSend("/topic/stock/alerte", "payload-stock");
+    }
 }

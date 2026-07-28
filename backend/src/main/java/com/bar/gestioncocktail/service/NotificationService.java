@@ -39,6 +39,22 @@ public class NotificationService {
         );
     }
 
+    public void notifierBarmanCommandes(Object payload) {
+        messagingTemplate.convertAndSend("/topic/barman/commandes", payload);
+    }
+
+    public void notifierTrackingClient(String trackingToken, Object payload) {
+        messagingTemplate.convertAndSend("/topic/commandes/" + trackingToken, payload);
+    }
+
+    public void notifierChangementTable(TableEntity table) {
+        messagingTemplate.convertAndSend("/topic/tables", table);
+    }
+
+    public void notifierAlerteStockEvent(Object payload) {
+        messagingTemplate.convertAndSend("/topic/stock/alerte", payload);
+    }
+
     @SuppressWarnings("unused")
     private static class CommandeStatutNotification {
         private final Long commandeId;
