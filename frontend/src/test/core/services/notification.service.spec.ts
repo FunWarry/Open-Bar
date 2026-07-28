@@ -77,7 +77,7 @@ describe('NotificationService', () => {
     wsStub.emit('/topic/commandes', { tableNom: 'A1' });
     tick();
 
-    expect(received.length).toEqual(1);
+    expect(received).toHaveSize(1);
     expect(received[0].type).toBe('commande');
     expect(received[0].message).toContain('A1');
     expect(received[0].severity).toBe('primary');
@@ -91,7 +91,7 @@ describe('NotificationService', () => {
     wsStub.emit('/topic/commandes/statut', { id: 7, statut: 'EN_PREPARATION' });
     tick();
 
-    expect(received.length).toEqual(1);
+    expect(received).toHaveSize(1);
     expect(received[0].type).toBe('statut');
     expect(received[0].message).toContain('7');
     expect(received[0].message).toContain('EN_PREPARATION');
@@ -105,7 +105,7 @@ describe('NotificationService', () => {
     wsStub.emit('/topic/tables', { nom: 'B2', occupee: true });
     tick();
 
-    expect(received.length).toEqual(1);
+    expect(received).toHaveSize(1);
     expect(received[0].type).toBe('table');
     expect(received[0].message).toContain('B2');
     expect(received[0].message).toContain('Occupée');
@@ -133,7 +133,7 @@ describe('NotificationService', () => {
     wsStub.emit('/topic/stock/alerte', { nom: 'Rhum', quantiteActuelle: 2 });
     tick();
 
-    expect(alerts.length).toEqual(1);
+    expect(alerts).toHaveSize(1);
     expect(alerts[0].type).toBe('stock');
     expect(alerts[0].severity).toBe('warning');
     expect(alerts[0].message).toContain('Rhum');
@@ -161,7 +161,7 @@ describe('NotificationService', () => {
     tick();
 
     const history = service.getHistory();
-    expect(history.length).toEqual(2);
+    expect(history).toHaveSize(2);
   }));
 
   it('getHistory() retourne une copie indépendante (immutabilité)', fakeAsync(() => {
@@ -171,7 +171,7 @@ describe('NotificationService', () => {
     const h1 = service.getHistory();
     h1.push({ id: 'fake', type: 'commande', message: 'fake', severity: 'primary', timestamp: new Date(), lue: false });
 
-    expect(service.getHistory().length).toBe(1);
+    expect(service.getHistory()).toHaveSize(1);
   }));
 
   // -------------------------------------------------------------------------
@@ -235,7 +235,7 @@ describe('NotificationService', () => {
       tick();
     }).not.toThrow();
 
-    expect(service.getHistory().length).toBe(0);
+    expect(service.getHistory()).toHaveSize(0);
   }));
 
   it('ignore les messages malformés sur /topic/stock/alerte sans lancer d\'erreur', fakeAsync(() => {
@@ -258,7 +258,7 @@ describe('NotificationService', () => {
     wsStub.emit('/topic/commandes', { tableNom: 'T99' });
     tick();
 
-    expect(received.length).toEqual(0);
+    expect(received).toHaveSize(0);
   }));
 
   // -------------------------------------------------------------------------

@@ -8,8 +8,8 @@ export type SupportedLanguage = 'fr' | 'en';
   providedIn: 'root',
 })
 export class LanguageService {
-  private translocoService = inject(TranslocoService);
-  private currentLangSubject = new BehaviorSubject<SupportedLanguage>('fr');
+  private readonly translocoService = inject(TranslocoService);
+  private readonly currentLangSubject = new BehaviorSubject<SupportedLanguage>('fr');
   public currentLang$: Observable<SupportedLanguage> = this.currentLangSubject.asObservable();
 
   constructor() {

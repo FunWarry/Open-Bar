@@ -33,7 +33,7 @@ describe('IngredientService', () => {
     ];
     service.getAll().subscribe(result => {
       expect(result).toEqual(mockIngredients);
-      expect(result.length).toEqual(2);
+      expect(result).toHaveSize(2);
     });
     const req = httpMock.expectOne(baseUrl);
     req.flush(mockIngredients);
@@ -187,7 +187,7 @@ describe('IngredientService', () => {
     const mockResults = [{ id: 1, nom: 'Rhum blanc', uniteMesure: 'cl', quantiteStock: 10, seuilAlerte: 2, createdAt: '', updatedAt: '' }];
     service.search('Rhum').subscribe(result => {
       expect(result).toEqual(mockResults);
-      expect(result.length).toEqual(1);
+      expect(result).toHaveSize(1);
     });
     const req = httpMock.expectOne(r => r.url === `${baseUrl}/search` && r.params.get('nom') === 'Rhum');
     req.flush(mockResults);
@@ -215,7 +215,7 @@ describe('IngredientService', () => {
     ];
     service.getEnAlerte().subscribe(result => {
       expect(result).toEqual(mockAlerte);
-      expect(result.length).toEqual(2);
+      expect(result).toHaveSize(2);
     });
     const req = httpMock.expectOne(`${baseUrl}/alerte`);
     req.flush(mockAlerte);

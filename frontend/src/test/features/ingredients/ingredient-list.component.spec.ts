@@ -63,7 +63,7 @@ describe('IngredientListComponent', () => {
   it('charger() peuple ingredients depuis le service', fakeAsync(() => {
     component.charger();
     tick();
-    expect(component.ingredients.length).toEqual(2);
+    expect(component.ingredients).toHaveSize(2);
   }));
 
   it('charger() affiche un toast danger en cas d\'erreur', fakeAsync(() => {

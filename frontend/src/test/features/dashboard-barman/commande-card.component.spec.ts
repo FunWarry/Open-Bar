@@ -153,7 +153,7 @@ describe('CommandeCardComponent', () => {
     component.changerStatut.subscribe((val) => emitted.push(val));
     component.commande = makeCommande({ id: 42 });
     component.onPrendreEnCharge();
-    expect(emitted.length).toEqual(1);
+    expect(emitted).toHaveSize(1);
     expect(emitted[0]).toEqual({ id: 42, statut: 'EN_PREPARATION' });
   });
 
@@ -164,7 +164,7 @@ describe('CommandeCardComponent', () => {
     component.changerStatut.subscribe((val) => emitted.push(val));
     component.commande = makeCommande({ id: 7 });
     component.onMarquerPret();
-    expect(emitted.length).toEqual(1);
+    expect(emitted).toHaveSize(1);
     expect(emitted[0]).toEqual({ id: 7, statut: 'PRET' });
   });
 

@@ -63,7 +63,7 @@ describe('FactureSplitComponent', () => {
     expect(component.results).toEqual([]);
     expect(component.loading).toBeFalse();
     expect(component.errorMessage).toBeNull();
-    expect(component.convives.length).toEqual(2);
+    expect(component.convives).toHaveSize(2);
   });
 
   // ── onModeChange ─────────────────────────────────────────────────────────────
@@ -147,14 +147,14 @@ describe('FactureSplitComponent', () => {
   describe('addConvive()', () => {
     it('should add a new empty convive', () => {
       component.addConvive();
-      expect(component.convives.length).toEqual(3);
+      expect(component.convives).toHaveSize(3);
       expect(component.convives[2].nom).toBe('');
     });
 
     it('should not add more than 20 convives', () => {
       component.convives = Array.from({ length: 20 }, () => ({ nom: '' }));
       component.addConvive();
-      expect(component.convives.length).toEqual(20);
+      expect(component.convives).toHaveSize(20);
     });
   });
 
@@ -162,7 +162,7 @@ describe('FactureSplitComponent', () => {
     it('should remove convive at given index', () => {
       component.convives = [{ nom: 'Alice' }, { nom: 'Bob' }, { nom: 'Charlie' }];
       component.removeConvive(1);
-      expect(component.convives.length).toEqual(2);
+      expect(component.convives).toHaveSize(2);
       expect(component.convives[1].nom).toBe('Charlie');
     });
 

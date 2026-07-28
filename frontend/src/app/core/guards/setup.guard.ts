@@ -6,8 +6,8 @@ import { SetupService } from '../services/setup.service';
 
 @Injectable({ providedIn: 'root' })
 export class SetupGuard implements CanActivate {
-  private setupService = inject(SetupService);
-  private router = inject(Router);
+  private readonly setupService = inject(SetupService);
+  private readonly router = inject(Router);
 
   canActivate(): Observable<boolean | UrlTree> {
     return this.setupService.getStatus().pipe(

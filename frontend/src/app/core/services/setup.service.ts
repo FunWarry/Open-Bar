@@ -28,7 +28,7 @@ export interface UserResponse {
 @Injectable({ providedIn: 'root' })
 export class SetupService {
   private readonly api = `${environment.apiUrl}/setup`;
-  private http = inject(HttpClient);
+  private readonly http = inject(HttpClient);
 
   getStatus(): Observable<SetupStatus> {
     return this.http.get<SetupStatus>(`${this.api}/status`);

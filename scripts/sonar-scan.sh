@@ -10,9 +10,9 @@ echo -e "\n[1/3] Backend — Préparation des binaries et dépendances..."
 (cd backend && mvn test-compile -q)
 
 echo -e "\n[2/3] Frontend — Génération du rapport LCOV (Karma)..."
-(cd frontend && npx ng test --watch=false --browsers=ChromeHeadless --code-coverage)
+(cd frontend && npx ng test --watch=false --browsers=ChromeHeadless --code-coverage --ignore-scripts)
 
 echo -e "\n[3/3] Exécution de SonarScanner Local..."
-npx -y sonar-scanner "-Dsonar.qualitygate.wait=true"
+npx -y sonar-scanner "-Dsonar.qualitygate.wait=true" --ignore-scripts
 
 echo -e "\n✅ Sonar Scan Local PASSED !"

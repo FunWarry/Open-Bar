@@ -49,7 +49,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.currentUser$ = this.store.select(selectCurrentUser);
     addIcons({ home, settings, personCircle, person, logOut, chevronDown, notificationsOutline });
 
-    const initialUrl = (this.router && this.router.url && this.router.url.length > 0) ? this.router.url : '/';
+    const initialUrl = (this.router?.url && this.router.url.length > 0) ? this.router.url : '/';
     const currentUrl$ = this.router ? this.router.events.pipe(
       filter((event): event is NavigationEnd => event instanceof NavigationEnd),
       map(event => event.urlAfterRedirects || event.url),

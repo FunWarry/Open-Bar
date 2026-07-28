@@ -15,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -37,7 +36,7 @@ public class UserService implements UserDetailsService {
                 user.getPassword(),
                 user.getRoles().stream()
                     .map(role -> new SimpleGrantedAuthority("ROLE_" + role.name()))
-                    .collect(Collectors.toList())
+                    .toList()
             ))
             .orElseThrow(() -> new UsernameNotFoundException("Utilisateur non trouvé: " + username));
     }

@@ -53,7 +53,7 @@ export class ThemeService {
     } else if (theme === 'dark') {
       body.classList.add('dark-theme');
     } else if (theme === 'system') {
-      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches;
       body.classList.add(prefersDark ? 'dark-theme' : 'light-theme');
     }
   }

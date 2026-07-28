@@ -7,7 +7,7 @@ import { Facture, ReglementRequest } from '../models/facture.model';
 @Injectable({ providedIn: 'root' })
 export class FactureService {
   private readonly api = `${environment.apiUrl}/factures`;
-  private http = inject(HttpClient);
+  private readonly http = inject(HttpClient);
 
   getAll(): Observable<Facture[]> {
     return this.http.get<Facture[]>(this.api);

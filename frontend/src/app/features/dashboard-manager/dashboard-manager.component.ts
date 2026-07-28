@@ -26,7 +26,6 @@ import { OngoingOrder } from './models/ongoing-order.model';
     IonRefresher, IonRefresherContent,
     IonGrid, IonRow, IonCol,
     IonCard, IonCardContent, IonCardHeader, IonCardTitle,
-    IonBadge,
     StatCardComponent,
     RoleBadgeComponent,
     EmptyStateComponent,
@@ -109,7 +108,7 @@ export class DashboardManagerComponent implements OnInit, OnDestroy {
 
   /** Largeur de barre en % par rapport au max (cocktail[0]) */
   getBarWidth(cocktail: TopCocktail): number {
-    if (!this.stats || !this.stats.topCocktails.length) return 0;
+    if (!this.stats?.topCocktails.length) return 0;
     const max = this.stats.topCocktails[0].nombreCommandes;
     if (max === 0) return 0;
     return Math.round((cocktail.nombreCommandes / max) * 100);

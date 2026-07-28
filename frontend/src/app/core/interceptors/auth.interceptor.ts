@@ -1,4 +1,4 @@
-import { HttpErrorResponse, HttpHandlerFn, HttpInterceptorFn, HttpRequest } from '@angular/common/http';
+import { HttpErrorResponse, HttpHandlerFn, HttpInterceptorFn, HttpRequest, HttpClient} from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { selectAuthToken } from '../store/auth.selectors';
@@ -6,7 +6,6 @@ import { BehaviorSubject, from, Observable, throwError } from 'rxjs';
 import { catchError, filter, switchMap, take } from 'rxjs/operators';
 import { logout } from '../store/auth.actions';
 import { AuthService } from '../services/auth.service';
-import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 
 // État partagé entre les requêtes concurrentes lors du rafraîchissement de jeton

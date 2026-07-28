@@ -12,7 +12,7 @@ import {
 @Injectable({ providedIn: 'root' })
 export class CommandeService {
   private readonly api = `${environment.apiUrl}/commandes`;
-  private http = inject(HttpClient);
+  private readonly http = inject(HttpClient);
 
   getAll(): Observable<Commande[]> {
     return this.http.get<Commande[]>(this.api);

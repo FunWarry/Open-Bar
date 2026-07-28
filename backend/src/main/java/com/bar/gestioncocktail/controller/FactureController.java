@@ -8,7 +8,6 @@ import com.bar.gestioncocktail.dto.SplitAdditionRequest;
 import com.bar.gestioncocktail.dto.SplitEgalRequest;
 import com.bar.gestioncocktail.dto.SplitResultDTO;
 import com.bar.gestioncocktail.model.Facture;
-import com.bar.gestioncocktail.model.FactureItem;
 import com.bar.gestioncocktail.model.TableEntity;
 import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.service.FactureService;
@@ -67,7 +66,7 @@ public class FactureController {
     /**
      * Création d'une nouvelle facture.
      *
-     * @param facture Données de la facture à créer
+     * @param request Données de la facture à créer
      * @return DTO de la facture créée
      */
     @PostMapping

@@ -33,7 +33,7 @@ interface Colonne {
     IonContent, IonRefresher, IonRefresherContent,
     IonSelect, IonSelectOption,
     IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-    IonButton, IonIcon, IonBadge, IonChip, IonSpinner,
+    IonButton, IonIcon, IonBadge, IonSpinner,
   ],
   templateUrl: './kanban-serveur.component.html',
   styleUrls: ['./kanban-serveur.component.scss'],
@@ -50,7 +50,7 @@ export class KanbanServeurComponent implements OnInit, OnDestroy {
   filtreTableId: number | null = null;
   isLoading = false;
 
-  private allCommandes: Map<CommandeStatut, Commande[]> = new Map();
+  private readonly allCommandes: Map<CommandeStatut, Commande[]> = new Map();
   private readonly destroy$ = new Subject<void>();
 
   constructor(private readonly service: DashboardServeurService,private readonly toastCtrl: ToastController,private readonly notificationService: NotificationService,

@@ -7,7 +7,7 @@ import { TableBar } from '../models/table.model';
 @Injectable({ providedIn: 'root' })
 export class TableService {
   private readonly api = `${environment.apiUrl}/tables`;
-  private http = inject(HttpClient);
+  private readonly http = inject(HttpClient);
 
   getAll(): Observable<TableBar[]> {
     return this.http.get<TableBar[]>(this.api);

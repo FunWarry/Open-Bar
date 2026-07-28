@@ -113,7 +113,7 @@ public class CommandeService {
         BigDecimal total = commande.getItems().stream()
                 .map(commandeItem -> commandeItem.getPrixUnitaire()
                         .multiply(new BigDecimal(commandeItem.getQuantite())))
-                .reduce(BigDecimal.ZERO, (a, b) -> a.add(b));
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         commande.setTotal(total);
         commande.setDateModification(LocalDateTime.now());

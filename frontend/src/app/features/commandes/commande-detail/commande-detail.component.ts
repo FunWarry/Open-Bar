@@ -18,14 +18,14 @@ import { Commande } from '../../../core/models/commande.model';
   imports: [
     IonCard, IonCardHeader, IonCardTitle, IonCardContent,
     IonList, IonItem, IonLabel, IonBadge, IonButton, IonButtons, IonIcon, IonSpinner,
-    CurrencyPipe, NgIf, NgFor, DatePipe,
+    CurrencyPipe, NgIf, NgFor,
   ],
 })
 export class CommandeDetailComponent implements OnInit, OnDestroy {
   commande: Commande | null = null;
   isLoading = false;
 
-  private commandeId: number;
+  private readonly commandeId: number;
   private readonly destroy$ = new Subject<void>();
 
   constructor(private readonly route: ActivatedRoute,public readonly router: Router,private readonly commandeService: CommandeService,private readonly toastCtrl: ToastController,

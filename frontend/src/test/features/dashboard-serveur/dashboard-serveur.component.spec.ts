@@ -89,7 +89,7 @@ describe('DashboardServeurComponent', () => {
 
   it('ngOnInit() charge les tables au démarrage', () => {
     expect(dashboardServiceSpy.getAllTables).toHaveBeenCalled();
-    expect(component.tables.length).toEqual(3);
+    expect(component.tables).toHaveSize(3);
   });
 
   it('ngOnInit() souscrit aux notifications WS', () => {
@@ -101,7 +101,7 @@ describe('DashboardServeurComponent', () => {
   it('filtrer() avec "toutes" retourne toutes les tables', () => {
     component.selectedFilter = 'toutes';
     component.filtrer();
-    expect(component.filteredTables.length).toEqual(3);
+    expect(component.filteredTables).toHaveSize(3);
   });
 
   it('filtrer() avec "occupees" ne retourne que les tables occupées', () => {

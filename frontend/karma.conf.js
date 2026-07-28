@@ -1,7 +1,7 @@
 // Karma configuration file — reconstruit de façon autonome car angular.json référence
 // désormais `karmaConfig`, ce qui désactive l'injection automatique du builder Angular
 // (frameworks, plugins, browsers). Voir https://karma-runner.github.io/6.4/config/configuration-file.html
-module.exports = function (config) {
+module.exports = function karma (config) {
   config.set({
     basePath: '',
     frameworks: ['jasmine', '@angular-devkit/build-angular'],
@@ -19,7 +19,7 @@ module.exports = function (config) {
       suppressAll: true,
     },
     coverageReporter: {
-      dir: require('path').join(__dirname, './coverage/gestion-cocktail-frontend'),
+      dir: require('node:path').join(__dirname, './coverage/gestion-cocktail-frontend'),
       subdir: '.',
       reporters: [{ type: 'html' }, { type: 'text-summary' }, { type: 'lcovonly' }],
     },

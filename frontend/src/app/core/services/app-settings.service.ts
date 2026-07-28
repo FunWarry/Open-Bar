@@ -7,7 +7,7 @@ import { AppSettings, AppSettingsUpdateRequest } from '../models/app-settings.mo
 @Injectable({ providedIn: 'root' })
 export class AppSettingsService {
   private readonly api = `${environment.apiUrl}/settings`;
-  private http = inject(HttpClient);
+  private readonly http = inject(HttpClient);
 
   getSettings(): Observable<AppSettings> {
     return this.http.get<AppSettings>(this.api).pipe(tap(settings => this.applyTokens(settings)));
@@ -30,7 +30,7 @@ export class AppSettingsService {
   private hexToRgb(hex: string): string {
     const match = /^#([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})$/.exec(hex);
     if (!match) return '108, 127, 232'; // fallback = couleur primaire par défaut du design system
-    const [r, g, b] = match.slice(1).map(channel => parseInt(channel, 16));
+    const [r, g, b] = match.slice(1).map(channel => Number.parseInt(channel, 16));
     return `${r}, ${g}, ${b}`;
   }
 }
