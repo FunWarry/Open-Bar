@@ -41,36 +41,44 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .csrf(csrf -> csrf.disable())
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/api-docs/**")
-                        .permitAll()
-                        .requestMatchers("/api/auth/**", "/api/test/health", "/api/setup/**", "/api/public/**")
-                        .permitAll()
-                        .requestMatchers("/api/users/check-username/**").permitAll()
-                        .requestMatchers("/api/users/check-email/**").permitAll()
-                        .requestMatchers("/ws/**", "/api/ws/**").permitAll()
-                        // Réglages de personnalisation lisibles avant authentification (écran de login)
-                        .requestMatchers(HttpMethod.GET, "/api/settings").permitAll()
-                        .anyRequest().authenticated())
-                .exceptionHandling(ex -> ex
-                        .accessDeniedHandler((request, response, _) -> writeError(response,
-                                HttpServletResponse.SC_FORBIDDEN, "Forbidden", "Accès refusé"))
-                        .authenticationEntryPoint((request, response, _) -> writeError(response,
-                                HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized", "Non authentifié")))
-                .addFilterBefore(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .build();
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) {
+        try {
+            return http
+                    .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                    .csrf(csrf -> csrf.ignoringRequestMatchers("/**"))
+                    .sessionManagement(session -> session
+                            .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                    .authorizeHttpRequests(auth -> auth
+                            .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/api-docs/**")
+                            .permitAll()
+                            .requestMatchers("/api/auth/**", "/api/test/health", "/api/setup/**", "/api/public/**")
+                            .permitAll()
+                            .requestMatchers("/api/users/check-username/**").permitAll()
+                            .requestMatchers("/api/users/check-email/**").permitAll()
+                            .requestMatchers("/ws/**", "/api/ws/**").permitAll()
+                            // Réglages de personnalisation lisibles avant authentification (écran de login)
+                            .requestMatchers(HttpMethod.GET, "/api/settings").permitAll()
+                            .anyRequest().authenticated())
+                    .exceptionHandling(ex -> ex
+                            .accessDeniedHandler((request, response, _) -> writeError(response,
+                                    HttpServletResponse.SC_FORBIDDEN, "Forbidden", "Accès refusé"))
+                            .authenticationEntryPoint((request, response, _) -> writeError(response,
+                                    HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized", "Non authentifié")))
+                    .addFilterBefore(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class)
+                    .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                    .build();
+        } catch (Exception e) {
+            throw new IllegalStateException("Error building SecurityFilterChain", e);
+        }
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
-        return config.getAuthenticationManager();
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) {
+        try {
+            return config.getAuthenticationManager();
+        } catch (Exception e) {
+            throw new IllegalStateException("Error retrieving AuthenticationManager", e);
+        }
     }
 
     private void writeError(HttpServletResponse response, int status, String error, String message) throws IOException {
