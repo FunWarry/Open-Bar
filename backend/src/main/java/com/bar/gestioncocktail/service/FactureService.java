@@ -120,7 +120,7 @@ public class FactureService {
         if (facture.getTable() != null) {
             TableEntity table = facture.getTable();
             table.setOccupee(false);
-            entityManager.merge(table);
+            tableRepository.save(table);
         }
 
         return factureRepository.save(facture);
