@@ -210,4 +210,36 @@ class CommandeServiceTest {
         // Aucune alerte WebSocket ne doit être publiée (seuil absent)
         verify(messagingTemplate, never()).convertAndSend(anyString(), any(StockAlerteEvent.class));
     }
+
+    // ─── ré-incrémentation stock annulation & variantes ───────────────────────
+
+    @Test
+    void annulerCommande_apresPreparation_reincrementeStockIngredients() {
+        commande.setStatut(CommandeStatut.EN_PREPARATION);
+        commande.setDatePreparation(LocalDateTime.now());
+
+        commandeService.annulerCommande(commande);
+
+        assertThat(commande.getStatut()).isEqualTo(CommandeStatut.ANNULEE);
+        ArgumentCaptor<Ingredient> captor = ArgumentCaptor.forClass(Ingredient.class);
+        verify(ingredientRepository).save(captor.capture());
+        // Stock initial (100) + (4 cl * 2 qte) = 108
+        assertThat(captor.getValue().getQuantiteStock()).isEqualByComparingTo(new BigDecimal("108.00"));
+    }
+
+    @Test
+    void destockerIngredients_avecVarianteMultiplicateur_destockeEnFonctionDuMultiplicateur() {
+        CocktailVariante variante = new CocktailVariante();
+        variante.setMultiplicateurIngredient(new BigDecimal("1.5")); // Format XL 1.5x
+        item.setVariante(variante);
+
+        when(commandeRepository.findById(1L)).thenReturn(Optional.of(commande));
+
+        commandeService.changerStatut(1L, CommandeStatut.EN_PREPARATION);
+
+        // 4 cl * 2 qte * 1.5 mult = 12 cl consommés -> 100 - 12 = 88
+        ArgumentCaptor<Ingredient> captor = ArgumentCaptor.forClass(Ingredient.class);
+        verify(ingredientRepository).save(captor.capture());
+        assertThat(captor.getValue().getQuantiteStock()).isEqualByComparingTo(new BigDecimal("88.00"));
+    }
 }

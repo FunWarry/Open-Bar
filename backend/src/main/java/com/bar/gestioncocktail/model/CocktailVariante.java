@@ -24,6 +24,10 @@ public class CocktailVariante {
     private String description;
 
     private BigDecimal prixSupplement;
+    
+    @Column(name = "multiplicateur_ingredient")
+    private BigDecimal multiplicateurIngredient = BigDecimal.ONE;
+
     private boolean disponible = true;
     private String instructions;
     private LocalDateTime createdAt;

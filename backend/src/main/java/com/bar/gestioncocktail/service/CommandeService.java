@@ -27,6 +27,8 @@ import java.util.Optional;
 @Service
 @Transactional
 public class CommandeService {
+    private static final String COMMANDE_NOT_FOUND = "Commande non trouvée avec l'id: ";
+
     private final CommandeRepository commandeRepository;
     private final CommandeItemRepository commandeItemRepository;
     private final IngredientRepository ingredientRepository;
@@ -84,7 +86,7 @@ public class CommandeService {
     @Transactional
     public Commande updateCommande(Long id, Commande commandeDetails) {
         Commande commande = commandeRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Commande non trouvée avec l'id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(COMMANDE_NOT_FOUND + id));
 
         commande.setTable(commandeDetails.getTable());
         commande.setItems(commandeDetails.getItems());
@@ -103,7 +105,7 @@ public class CommandeService {
     @Transactional
     public Commande ajouterItem(Long commandeId, CommandeItem item) {
         Commande commande = commandeRepository.findById(commandeId)
-                .orElseThrow(() -> new ResourceNotFoundException("Commande non trouvée avec l'id: " + commandeId));
+                .orElseThrow(() -> new ResourceNotFoundException(COMMANDE_NOT_FOUND + commandeId));
 
         item.setCommande(commande);
         commandeItemRepository.save(item);
@@ -121,7 +123,7 @@ public class CommandeService {
     @Transactional
     public Commande retirerItem(Long commandeId, Long itemId) {
         Commande commande = commandeRepository.findById(commandeId)
-                .orElseThrow(() -> new ResourceNotFoundException("Commande non trouvée avec l'id: " + commandeId));
+                .orElseThrow(() -> new ResourceNotFoundException(COMMANDE_NOT_FOUND + commandeId));
 
         commande.getItems().removeIf(item -> item.getId().equals(itemId));
         commande.setDateModification(LocalDateTime.now());
@@ -132,7 +134,7 @@ public class CommandeService {
     @Transactional
     public Commande changerStatut(Long id, CommandeStatut nouveauStatut) {
         Commande commande = commandeRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Commande non trouvée avec l'id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(COMMANDE_NOT_FOUND + id));
 
         commande.setStatut(nouveauStatut);
         commande.setUpdatedAt(LocalDateTime.now());
@@ -158,7 +160,11 @@ public class CommandeService {
         return commandeRepository.save(commande);
     }
 
+    @Transactional
     public void annulerCommande(Commande commande) {
+        if (commande.getStatut() != CommandeStatut.ANNULEE && commande.getDatePreparation() != null) {
+            reincrementerStockIngredients(commande);
+        }
         commande.setStatut(CommandeStatut.ANNULEE);
         commande.setUpdatedAt(LocalDateTime.now());
         commandeRepository.save(commande);
@@ -169,22 +175,9 @@ public class CommandeService {
         commandeItemRepository.save(item);
     }
 
-    // Appelé uniquement lors du premier passage EN_PREPARATION (consommation physique réelle).
-    // Ne bloque pas la préparation si stock insuffisant — publie une alerte WebSocket à la place.
-    // Les quantités sont agrégées par ingrédient avant sauvegarde pour éviter les doubles déstockages
-    // quand un même ingrédient apparaît dans plusieurs cocktails de la même commande.
     private void destockerIngredients(Commande commande) {
-        Map<Long, BigDecimal> quantitesParIngredient = new HashMap<>();
-        Map<Long, Ingredient> ingredientsMap = new HashMap<>();
-
-        for (CommandeItem item : commande.getItems()) {
-            for (CocktailIngredient ci : item.getCocktail().getIngredients()) {
-                Ingredient ingredient = ci.getIngredient();
-                BigDecimal qte = ci.getQuantite().multiply(BigDecimal.valueOf(item.getQuantite()));
-                quantitesParIngredient.merge(ingredient.getId(), qte, (a, b) -> a.add(b));
-                ingredientsMap.put(ingredient.getId(), ingredient);
-            }
-        }
+        Map<Long, BigDecimal> quantitesParIngredient = calculerQuantitesIngredients(commande);
+        Map<Long, Ingredient> ingredientsMap = mepIngredients(commande);
 
         for (Map.Entry<Long, BigDecimal> entry : quantitesParIngredient.entrySet()) {
             Ingredient ingredient = ingredientsMap.get(entry.getKey());
@@ -204,5 +197,54 @@ public class CommandeService {
                     ));
             }
         }
+    }
+
+    private void reincrementerStockIngredients(Commande commande) {
+        Map<Long, BigDecimal> quantitesParIngredient = calculerQuantitesIngredients(commande);
+        Map<Long, Ingredient> ingredientsMap = mepIngredients(commande);
+
+        for (Map.Entry<Long, BigDecimal> entry : quantitesParIngredient.entrySet()) {
+            Ingredient ingredient = ingredientsMap.get(entry.getKey());
+            BigDecimal nouveauStock = ingredient.getQuantiteStock().add(entry.getValue());
+            ingredient.setQuantiteStock(nouveauStock);
+            ingredient.setUpdatedAt(LocalDateTime.now());
+            ingredientRepository.save(ingredient);
+        }
+    }
+
+    private Map<Long, BigDecimal> calculerQuantitesIngredients(Commande commande) {
+        Map<Long, BigDecimal> quantites = new HashMap<>();
+        for (CommandeItem item : commande.getItems()) {
+            if (item.getCocktail() != null && item.getCocktail().getIngredients() != null) {
+                BigDecimal mult = (item.getVariante() != null && item.getVariante().getMultiplicateurIngredient() != null)
+                        ? item.getVariante().getMultiplicateurIngredient()
+                        : BigDecimal.ONE;
+
+                for (CocktailIngredient ci : item.getCocktail().getIngredients()) {
+                    Ingredient ingredient = ci.getIngredient();
+                    if (ingredient != null) {
+                        BigDecimal qte = ci.getQuantite()
+                                .multiply(BigDecimal.valueOf(item.getQuantite()))
+                                .multiply(mult);
+                        quantites.merge(ingredient.getId(), qte, BigDecimal::add);
+                    }
+                }
+            }
+        }
+        return quantites;
+    }
+
+    private Map<Long, Ingredient> mepIngredients(Commande commande) {
+        Map<Long, Ingredient> map = new HashMap<>();
+        for (CommandeItem item : commande.getItems()) {
+            if (item.getCocktail() != null && item.getCocktail().getIngredients() != null) {
+                for (CocktailIngredient ci : item.getCocktail().getIngredients()) {
+                    if (ci.getIngredient() != null) {
+                        map.put(ci.getIngredient().getId(), ci.getIngredient());
+                    }
+                }
+            }
+        }
+        return map;
     }
 }
