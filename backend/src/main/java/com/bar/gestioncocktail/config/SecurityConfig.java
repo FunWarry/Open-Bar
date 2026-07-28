@@ -34,40 +34,38 @@ public class SecurityConfig {
 
     @Autowired
     public SecurityConfig(
-        JwtAuthenticationFilter jwtAuthenticationFilter,
-        JwtAuthorizationFilter jwtAuthorizationFilter) {
+            JwtAuthenticationFilter jwtAuthenticationFilter,
+            JwtAuthorizationFilter jwtAuthorizationFilter) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.jwtAuthorizationFilter = jwtAuthorizationFilter;
     }
 
     @Bean
-    @SuppressWarnings("java:S4502")
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .csrf(csrf -> csrf.disable())
-            .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/api-docs/**").permitAll()
-                .requestMatchers("/api/auth/**", "/api/test/health", "/api/setup/**", "/api/public/**").permitAll()
-                .requestMatchers("/api/users/check-username/**").permitAll()
-                .requestMatchers("/api/users/check-email/**").permitAll()
-                .requestMatchers("/ws/**", "/api/ws/**").permitAll()
-                // Réglages de personnalisation lisibles avant authentification (écran de login)
-                .requestMatchers(HttpMethod.GET, "/api/settings").permitAll()
-                .anyRequest().authenticated()
-            )
-            .exceptionHandling(ex -> ex
-                .accessDeniedHandler((request, response, _) ->
-                    writeError(response, HttpServletResponse.SC_FORBIDDEN, "Forbidden", "Accès refusé"))
-                .authenticationEntryPoint((request, response, _) ->
-                    writeError(response, HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized", "Non authentifié"))
-            )
-            .addFilterBefore(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class)
-            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-            .build();
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/api-docs/**")
+                        .permitAll()
+                        .requestMatchers("/api/auth/**", "/api/test/health", "/api/setup/**", "/api/public/**")
+                        .permitAll()
+                        .requestMatchers("/api/users/check-username/**").permitAll()
+                        .requestMatchers("/api/users/check-email/**").permitAll()
+                        .requestMatchers("/ws/**", "/api/ws/**").permitAll()
+                        // Réglages de personnalisation lisibles avant authentification (écran de login)
+                        .requestMatchers(HttpMethod.GET, "/api/settings").permitAll()
+                        .anyRequest().authenticated())
+                .exceptionHandling(ex -> ex
+                        .accessDeniedHandler((request, response, _) -> writeError(response,
+                                HttpServletResponse.SC_FORBIDDEN, "Forbidden", "Accès refusé"))
+                        .authenticationEntryPoint((request, response, _) -> writeError(response,
+                                HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized", "Non authentifié")))
+                .addFilterBefore(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .build();
     }
 
     @Bean
@@ -80,8 +78,7 @@ public class SecurityConfig {
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
         response.getWriter().write(
-            "{\"status\":" + status + ",\"error\":\"" + error + "\",\"message\":\"" + message + "\"}"
-        );
+                "{\"status\":" + status + ",\"error\":\"" + error + "\",\"message\":\"" + message + "\"}");
     }
 
     @Bean

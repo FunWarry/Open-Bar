@@ -111,8 +111,9 @@ public class CommandeService {
         commandeItemRepository.save(item);
 
         BigDecimal total = commande.getItems().stream()
-            .map(commandeItem -> commandeItem.getPrixUnitaire().multiply(new BigDecimal(commandeItem.getQuantite())))
-            .reduce(BigDecimal.ZERO, (a, b) -> a.add(b));
+                .map(commandeItem -> commandeItem.getPrixUnitaire()
+                        .multiply(new BigDecimal(commandeItem.getQuantite())))
+                .reduce(BigDecimal.ZERO, (a, b) -> a.add(b));
 
         commande.setTotal(total);
         commande.setDateModification(LocalDateTime.now());
@@ -141,7 +142,8 @@ public class CommandeService {
 
         switch (nouveauStatut) {
             case EN_PREPARATION:
-                // Idempotence : ne déstocke qu'une seule fois, même en cas de retry ou de réactivation depuis ANNULEE
+                // Idempotence : ne déstocke qu'une seule fois, même en cas de retry ou de
+                // réactivation depuis ANNULEE
                 if (commande.getDatePreparation() == null) {
                     commande.setDatePreparation(LocalDateTime.now());
                     destockerIngredients(commande);
@@ -187,14 +189,13 @@ public class CommandeService {
             ingredientRepository.save(ingredient);
             if (ingredient.getSeuilAlerte() != null && nouveauStock.compareTo(ingredient.getSeuilAlerte()) <= 0) {
                 messagingTemplate.convertAndSend("/topic/stock/alerte",
-                    new StockAlerteEvent(
-                        ingredient.getId(),
-                        ingredient.getNom(),
-                        ingredient.getUniteMesure(),
-                        nouveauStock,
-                        ingredient.getSeuilAlerte(),
-                        nouveauStock.compareTo(BigDecimal.ZERO) < 0
-                    ));
+                        new StockAlerteEvent(
+                                ingredient.getId(),
+                                ingredient.getNom(),
+                                ingredient.getUniteMesure(),
+                                nouveauStock,
+                                ingredient.getSeuilAlerte(),
+                                nouveauStock.compareTo(BigDecimal.ZERO) < 0));
             }
         }
     }
@@ -216,9 +217,10 @@ public class CommandeService {
         Map<Long, BigDecimal> quantites = new HashMap<>();
         for (CommandeItem item : commande.getItems()) {
             if (item.getCocktail() != null && item.getCocktail().getIngredients() != null) {
-                BigDecimal mult = (item.getVariante() != null && item.getVariante().getMultiplicateurIngredient() != null)
-                        ? item.getVariante().getMultiplicateurIngredient()
-                        : BigDecimal.ONE;
+                BigDecimal mult = (item.getVariante() != null
+                        && item.getVariante().getMultiplicateurIngredient() != null)
+                                ? item.getVariante().getMultiplicateurIngredient()
+                                : BigDecimal.ONE;
 
                 for (CocktailIngredient ci : item.getCocktail().getIngredients()) {
                     Ingredient ingredient = ci.getIngredient();

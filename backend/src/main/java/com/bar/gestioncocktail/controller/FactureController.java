@@ -31,7 +31,6 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api/factures")
-@SuppressWarnings({"java:S4684", "java:S5122"})
 @Tag(name = "Factures", description = "Gestion des factures, règlements, division d'addition (split), fusion et génération de tickets PDF")
 public class FactureController {
     private final FactureService factureService;

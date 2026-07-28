@@ -23,7 +23,6 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api/tables")
-@SuppressWarnings("java:S4684")
 @Tag(name = "Tables & Plan de salle", description = "Gestion des tables, occupation, disposition 2D (Konva.js) et transfert d'addition")
 public class TableController {
 
