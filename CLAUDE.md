@@ -318,7 +318,7 @@ Pour les fichiers scopés par feature (ex : `fr/commandes.json`), déclarer le s
 
 ## Features implémentées vs. manquantes
 
-> Dernière mise à jour : 25 juillet 2026 — #155 (Composants UI Figma), #156 (Écrans Figma Vue Barman), #159 (Écrans Figma communs), #163 (Configuration initiale admin)
+> Dernière mise à jour : 28 juillet 2026 — #184 (Passage commande publique QR), #185 (Variantes & Déduction auto stock), #186 (Transfert table & Fusion factures), #187 (Service Broadcast STOMP)
 
 | Feature | Backend | Frontend | Tests |
 |---------|---------|----------|-------|
@@ -335,20 +335,25 @@ Pour les fichiers scopés par feature (ex : `fr/commandes.json`), déclarer le s
 | Error interceptor frontend | — | ✅ | ✅ |
 | Cocktails CRUD | ✅ | ✅ | ✅ |
 | Saisonnalité cocktails | ✅ | ✅ | ✅ |
+| Variantes, Ingrédients & Déduction auto des stocks (#185) | ✅ | — | ✅ |
 | Ingrédients CRUD | ✅ | ✅ | ✅ |
 | Tables | ✅ | ✅ | ✅ |
+| Transfert de commande entre tables (#186) | ✅ | — | ✅ |
 | Commandes | ✅ | ✅ | ✅ |
-| Déstockage auto (EN_PREPARATION) | ✅ | — | ✅ |
+| Passage commande publique QR Code (#184) | ✅ | — | ✅ |
+| Déstockage auto (EN_PREPARATION & Variantes) | ✅ | — | ✅ |
 | Alertes stock WebSocket | ✅ | ✅ | ✅ |
 | Notifications WS (toasts + panneau navbar) | ✅ | ✅ | ✅ |
+| Service de Broadcast STOMP & Diffusion Temps Réel (#187) | ✅ | — | ✅ |
 | Factures (liste + détail + règlement) | ✅ | ✅ | ✅ |
+| Fusion d'additions (#186) | ✅ | — | ✅ |
 | Export factures (PDF) | ✅ | ✅ | ✅ |
 | Division d'addition (splitEgal/splitParSelection) | ✅ | ✅ | ✅ |
 | Dashboard Manager / stats | ✅ | ✅ polling 30s | ✅ |
 | Dashboard Barman | ✅ | ✅ kanban temps réel | ✅ |
 | Vue Serveur (plan de salle + commandes) | ✅ | ✅ modal + nouvelle commande + kanban | ✅ |
 | Plan de salle interactif (Konva.js) | ✅ | ✅ | ✅ |
-| Vue Client QR Code (Passage commande publique + suivi STOMP) | ✅ | ❌ | ✅ |
+| Vue Client QR Code (Passage commande publique + suivi STOMP) | ✅ (#184/#187) | ❌ | ✅ |
 
 
 
