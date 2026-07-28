@@ -4,8 +4,11 @@ Application de gestion de bar en temps réel : prise de commandes (serveurs), pr
 
 Communication temps réel entre tous les acteurs via WebSocket STOMP — du ticket de commande à la facture.
 
+[![CI](https://github.com/FunWarry/Open-Bar/actions/workflows/ci.yml/badge.svg)](https://github.com/FunWarry/Open-Bar/actions/workflows/ci.yml)
+[![SonarCloud Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=FunWarry_Open-Bar&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=FunWarry_Open-Bar)
 [![Kanban](https://img.shields.io/badge/GitHub-Kanban-blue)](https://github.com/users/FunWarry/projects/3/views/1)
 [![Figma](https://img.shields.io/badge/Figma-Design%20System-purple)](https://www.figma.com/design/XSVwFk64kgtqgUN9n5qoMw)
+[![Swagger UI](https://img.shields.io/badge/OpenAPI-Swagger--UI-green)](http://localhost:8080/swagger-ui.html)
 
 ---
 
@@ -15,6 +18,7 @@ Communication temps réel entre tous les acteurs via WebSocket STOMP — du tick
 |--------|-------------|---------|
 | Backend | Spring Boot | **4.0.6** |
 | Runtime | Java | 22 (⚠️ épinglé — JDK 23+ incompatible Lombok) |
+| Documentation API | Springdoc OpenAPI | 2.8.9 |
 | Base de données | PostgreSQL | — |
 | Sécurité | Spring Security + JWT | JJWT 0.12.6 |
 | Temps réel | WebSocket STOMP | via Spring |
@@ -38,13 +42,29 @@ docker compose up -d
 export JWT_SECRET=$(openssl rand -base64 32)  # ou définir dans backend/.env
 cd backend
 mvn spring-boot:run
-# Swagger UI : http://localhost:8080/swagger-ui.html  (ticket #192)
+# Swagger UI interactive : http://localhost:8080/swagger-ui.html
 
 # 3. Frontend  →  http://localhost:4200
 cd frontend
 npm install
 ng serve
 ```
+
+---
+
+## Documentation du code & API
+
+Toute modification du codebase doit respecter les règles de documentation suivantes :
+
+- **Documentation API REST (OpenAPI / Swagger UI)** :
+  - Accessible localement sur [`http://localhost:8080/swagger-ui.html`](http://localhost:8080/swagger-ui.html)
+  - Tout nouveau controller REST doit porter l'annotation `@Tag` et ses méthodes documentées avec `@Operation` et `@ApiResponse`.
+- **JavaDoc (Backend Spring Boot)** :
+  - **Obligatoire** sur tous les services métier (`com.bar.gestioncocktail.service.*`), DTOs (`record`), exceptions et classes de configuration.
+- **TSDoc (Frontend Angular 20)** :
+  - **Obligatoire** sur tous les services Angular (`core/services/*`), les guards, interceptors et le store NgRx auth (`actions`, `reducers`, `selectors`, `effects`).
+- **Knowledge Base IA & Projet** :
+  - Le répertoire `.agents/knowledge/` contient la documentation synchronisée de l'architecture, du modèle de données et des conventions.
 
 ---
 
@@ -72,7 +92,7 @@ EN_ATTENTE → EN_PREPARATION → PRET → LIVREE → REGLEE
 
 ## État d'implémentation
 
-> Dernière mise à jour : 28 juillet 2026 — PRs #184–#187 (QR Code, Variantes, Transfert table, Broadcast STOMP)
+> Dernière mise à jour : 28 juillet 2026 — PRs #184–#187 + #192 (Documentation complète JavaDoc, TSDoc, Swagger)
 > Légende : ✅ complet · ❌ manquant · — non applicable
 
 | Feature | Backend | Frontend | Tests |
@@ -96,15 +116,17 @@ EN_ATTENTE → EN_PREPARATION → PRET → LIVREE → REGLEE
 | Plan de salle interactif (Konva.js) | ✅ | ✅ | ✅ |
 | WebSocket STOMP + Notifications | ✅ | ✅ | ✅ |
 | Alertes stock (bannière barman) | ✅ | ✅ | ✅ |
+| Documentation OpenAPI / Swagger UI | ✅ | — | ✅ |
+| JavaDoc & TSDoc | ✅ | ✅ | ✅ |
 | Vue Client QR Code (interface publique) | ✅ | ❌ **priorité** | ✅ |
 
 ---
 
-## Documentation
+## Documentation projet
 
+- **[Swagger UI API REST](http://localhost:8080/swagger-ui.html)** — Interface interactive OpenAPI
 - **[CDC.md](CDC.md)** — cahier des charges complet (stack, modèle de données, design system, roadmap)
 - **[CLAUDE.md](CLAUDE.md)** — contexte agent IA : conventions, features, workflow dev
-- **[docs/](docs)** — rapports de sessions et analyses
 - **[Kanban GitHub](https://github.com/users/FunWarry/projects/3/views/1)** — issues actives
 - **[Design System Figma](https://www.figma.com/design/XSVwFk64kgtqgUN9n5qoMw)** — 8 pages, 60+ composants
 
@@ -113,3 +135,4 @@ EN_ATTENTE → EN_PREPARATION → PRET → LIVREE → REGLEE
 ## Contribuer
 
 Toute contribution doit être liée à une issue GitHub — voir le [kanban](https://github.com/users/FunWarry/projects/3/views/1).
+Chaque contribution de code doit s'accompagner de sa documentation JavaDoc / TSDoc.

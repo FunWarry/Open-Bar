@@ -10,6 +10,7 @@ Application de gestion de bar en temps réel : prise de commandes (serveurs), pr
 |------------|------------------------------|-------------|
 | Backend    | Spring Boot                  | **4.0.6**   |
 | Runtime    | Java                         | 22 (épinglé — Lombok incompatible JDK 23+) |
+| Doc API    | Springdoc OpenAPI (Swagger UI) | 2.8.9       |
 | BDD        | PostgreSQL                   | —           |
 | ORM        | JPA / Hibernate + Lombok     | 1.18.34     |
 | Sécurité   | Spring Security + JWT custom | JJWT 0.12.6 |

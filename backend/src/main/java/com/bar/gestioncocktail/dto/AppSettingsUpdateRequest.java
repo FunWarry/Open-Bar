@@ -1,11 +1,22 @@
 package com.bar.gestioncocktail.dto;
 
 import com.bar.gestioncocktail.model.DefaultTheme;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
+/**
+ * DTO de requête pour la mise à jour des paramètres de l'établissement.
+ *
+ * @param primaryColor Couleur primaire (#RRGGBB)
+ * @param primaryColorStrong Couleur primaire accentuée (#RRGGBB)
+ * @param logoUrl URL du logo d'établissement
+ * @param establishmentName Nom commercial de l'établissement
+ * @param defaultTheme Thème par défaut appliqué à l'interface
+ */
+@Schema(description = "Requête de mise à jour de la configuration de l'établissement")
 public record AppSettingsUpdateRequest(
     @NotBlank(message = "La couleur primaire est obligatoire")
     @Pattern(regexp = "^#[0-9A-Fa-f]{6}$", message = "La couleur primaire doit être un code hexadécimal (#RRGGBB)")

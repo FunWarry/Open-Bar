@@ -46,6 +46,7 @@ Application web multi-rôles avec WebSocket pour la communication temps réel en
 | Couche | Technologie | Version | Notes |
 |--------|-------------|---------|-------|
 | Backend | Spring Boot | **4.0.6** | Runtime Java 22 (épinglé — Lombok 1.18.34 incompatible JDK 23+) |
+| Documentation API | Springdoc OpenAPI | 2.8.9 | Swagger UI sur `/swagger-ui.html` |
 | Base de données | PostgreSQL | — | Via Docker Compose |
 | ORM | JPA / Hibernate + Lombok | 1.18.34 | `@Data` sur entités, `@PrePersist`/`@PreUpdate` |
 | Sécurité | Spring Security + JWT | JJWT 0.12.6 | Filter custom, `JWT_SECRET` env var requise |
@@ -64,6 +65,8 @@ Application web multi-rôles avec WebSocket pour la communication temps réel en
 | Déploiement | **PWA + Service Worker** (Capacitor abandonné) | Réseau WiFi local du bar — App Store inutile |
 | Build natif | ~~Capacitor~~ **abandonné** | PWA suffit en réseau local, zéro friction |
 | Canvas plan de salle | **Konva.js** | Canvas 2D libre, drag & drop, rotation |
+| Documentation API | **Springdoc OpenAPI 2.8.9** | Swagger UI interactif sur `/swagger-ui.html` pour synchronisation Front/Back |
+| Documentation Code | **JavaDoc + TSDoc** | JavaDoc obligatoire sur services/DTOs/controllers backend, TSDoc sur services/guards/interceptors/NgRx frontend |
 | i18n | **Transloco** (`@jsverse/transloco`) | Lazy loading natif, meilleur support Angular 20 |
 | Déploiement prod | **Nginx sur mini-PC local** (Raspberry Pi 5) | Réseau WiFi du bar, zéro dépendance internet |
 
@@ -226,11 +229,12 @@ Service frontend : `websocket.service.ts` — ✅ pleinement implémenté (RxSto
 | Variantes cocktails & Déduction auto stocks (#185) | ✅ | ❌ **frontend à faire** | ✅ | — | 🔴 Haute |
 | Transfert table & Fusion factures (#186) | ✅ | ❌ **frontend à faire** | ✅ | ✅ designé | 🟡 Moyenne |
 | Service Broadcast STOMP (#187) | ✅ | — | ✅ | — | — |
+| Documentation OpenAPI / JavaDoc / TSDoc (#192) | ✅ | ✅ | ✅ | — | — |
 | **Design system — tokens (couleurs/espacement/rayons)** | — | ✅ implémenté (#152) | ✅ | ✅ | — |
 | **Personnalisation admin (branding)** | ❌ | ❌ | — | ❌ | 🟡 Moyenne |
 
 > Légende tests : ✅ tests écrits et passants · ⚠️ tests partiels · ❌ aucun test · — non applicable
-> Dernière mise à jour : 28 juillet 2026 (PRs #184–#187)
+> Dernière mise à jour : 28 juillet 2026 (PRs #184–#187, #192)
 
 ---
 

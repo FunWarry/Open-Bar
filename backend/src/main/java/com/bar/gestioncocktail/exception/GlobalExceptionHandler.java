@@ -9,11 +9,21 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * Gestionnaire global des exceptions pour l'API REST OpenBar (ControllerAdvice).
+ * Intercepte les exceptions métier, de validation Bean et d'infrastructure pour retourner un format {@link ErrorResponse} unifié.
+ */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+    /**
+     * Gère les exceptions de ressource introuvable (HTTP 404).
+     *
+     * @param ex Exception interceptee
+     * @return Reponse HTTP 404
+     */
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleResourceNotFound(ResourceNotFoundException ex) {
         ErrorResponse body = ErrorResponse.builder(
@@ -24,6 +34,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
     }
 
+    /**
+     * Gère les exceptions de règles métier (HTTP 400).
+     *
+     * @param ex Exception métier interceptee
+     * @return Reponse HTTP 400
+     */
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ErrorResponse> handleBusinessException(BusinessException ex) {
         ErrorResponse body = ErrorResponse.builder(
@@ -34,6 +50,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
 
+    /**
+     * Gère les erreurs de validation Bean (HTTP 400 avec détails des champs).
+     *
+     * @param ex Exception de validation
+     * @return Reponse HTTP 400 avec carte des erreurs par champ
+     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationErrors(MethodArgumentNotValidException ex) {
         Map<String, String> fieldErrors = ex.getBindingResult().getFieldErrors().stream()
@@ -50,6 +72,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
 
+    /**
+     * Gère les exceptions non rattrapées (HTTP 500).
+     *
+     * @param ex Exception générique
+     * @return Reponse HTTP 500
+     */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
         log.error("Unhandled exception", ex);

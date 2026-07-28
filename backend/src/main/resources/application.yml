@@ -24,3 +24,12 @@ logging:
     org.springframework.security: DEBUG
     com.bar.gestioncocktail: DEBUG
     org.hibernate.SQL: off
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+

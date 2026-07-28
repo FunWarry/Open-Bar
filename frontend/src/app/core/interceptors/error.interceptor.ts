@@ -14,6 +14,16 @@ const FALLBACK_MESSAGES: Record<string, string> = {
 
 const DEV = isDevMode();
 
+/**
+ * Intercepteur HTTP fonctionnel de gestion globale des erreurs.
+ * <p>
+ * Intercepte les erreurs HTTP (4xx/5xx/0) et affiche automatiquement un Toast Ionic d'erreur à l'utilisateur
+ * avec traduction i18n via Transloco.
+ *
+ * @param req La requête HTTP à intercepter
+ * @param next Le handler de la chaîne d'interception
+ * @returns Observable propageant l'erreur après affichage du Toast
+ */
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const toastCtrl = inject(ToastController);
   const transloco = inject(TranslocoService);
@@ -47,6 +57,12 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   );
 };
 
+/**
+ * Mappe le code de statut HTTP vers la clé de traduction Transloco correspondante.
+ *
+ * @param status Code de statut HTTP (0, 403, 404, 500, etc.)
+ * @returns La clé i18n correspondante
+ */
 function getErrorKey(status: number): string {
   if (status === 0)   return 'ERRORS.NETWORK';
   if (status === 403) return 'ERRORS.FORBIDDEN';
