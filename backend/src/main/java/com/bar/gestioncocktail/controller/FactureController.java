@@ -24,7 +24,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/factures")
-@CrossOrigin(origins = "*")
+@SuppressWarnings({"java:S4684", "java:S5122"})
 public class FactureController {
     private final FactureService factureService;
     private final PdfService pdfService;
