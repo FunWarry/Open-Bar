@@ -15,9 +15,19 @@ description: |
 
 Génère du code pour le projet OpenBar en respectant les conventions existantes.
 
+## Règle Absolue : Documentation Code Obligatoire & En Anglais 🇬🇧
+
+- **Documentation OBLIGATOIRE sur TOUT code créé ou modifié**
+- **TOUTE la documentation (JavaDoc, TSDoc, Swagger/OpenAPI) DOIT ÊTRE RÉDIGÉE EXCLUSIVEMENT EN ANGLAIS**.
+- **INTERDICTION d'utiliser `@SuppressWarnings`** : toujours corriger les vrais problèmes sous-jacents (DTOs, types, configuration).
+- Backend : JavaDoc sur chaque service, controller, DTO (record), security, exception + annotations OpenAPI (`@Tag`, `@Operation`, `@ApiResponse`).
+- Frontend : TSDoc sur chaque service Angular, guard, interceptor et store NgRx.
+
+---
+
 ## Stack réelle (ne pas se fier aux anciens fichiers)
 
-- **Backend** : Spring Boot **4.0.6** + Java **22** (épinglé) + JJWT **0.12.6**
+- **Backend** : Spring Boot **4.0.6** + Java **22** (épinglé) + JJWT **0.12.6** + Springdoc OpenAPI **2.8.9**
 - **Frontend** : Angular **20** + Ionic **8.8.11** + NgRx **20** (auth uniquement)
 - **Tests backend** : JUnit 5 + Mockito dans `src/test/java/`
 - **Tests frontend** : Karma + Jasmine dans `frontend/src/test/` (miroir de `src/app/`)

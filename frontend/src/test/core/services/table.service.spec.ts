@@ -56,7 +56,7 @@ describe('TableService', () => {
     service.getAll().subscribe(tables => (result = tables));
     const req = httpMock.expectOne(baseUrl);
     req.flush([mockTable, mockTableOccupee]);
-    expect(result.length).toEqual(2);
+    expect(result).toHaveSize(2);
     expect(result[0].numero).toBe(1);
   });
 

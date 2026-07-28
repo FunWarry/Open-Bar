@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component} from '@angular/core';
 import {Store} from '@ngrx/store';
 import {Observable} from 'rxjs';
 import {User} from '../../models/user.model';
@@ -28,7 +28,7 @@ import * as AuthActions from '../../store/auth.actions';
     IonPopover, RouterLink, RouterLinkActive, AsyncPipe, NgIf
   ]
 })
-export class HeaderComponent implements OnInit {
+export class HeaderComponent {
   currentUser$: Observable<User | null>;
 
   constructor(private readonly store: Store) {
@@ -36,8 +36,6 @@ export class HeaderComponent implements OnInit {
     addIcons({menu, beerOutline, receipt, restaurant, nutrition, shieldCheckmark, logOut, chevronDown, person});
   }
 
-  ngOnInit(): void {
-  }
 
   onLogout(): void {
     this.store.dispatch(AuthActions.logout());

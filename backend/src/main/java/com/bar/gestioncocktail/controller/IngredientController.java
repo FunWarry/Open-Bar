@@ -1,8 +1,13 @@
 package com.bar.gestioncocktail.controller;
 
+import com.bar.gestioncocktail.dto.IngredientRequestDTO;
 import com.bar.gestioncocktail.dto.IngredientResponseDTO;
 import com.bar.gestioncocktail.model.Ingredient;
 import com.bar.gestioncocktail.service.IngredientService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -12,72 +17,159 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 import java.util.List;
 
+/**
+ * Controller REST gérant le stock des ingrédients.
+ */
 @RestController
 @RequestMapping("/api/ingredients")
-@CrossOrigin(origins = "*")
+@Tag(name = "Ingrédients", description = "Gestion du stock d'ingrédients, seuils d'alerte et inventaire")
 public class IngredientController {
     private final IngredientService ingredientService;
 
+    /**
+     * Constructeur avec injection du service d'ingrédients.
+     *
+     * @param ingredientService Le service gérant la logique des ingrédients
+     */
     @Autowired
     public IngredientController(IngredientService ingredientService) {
         this.ingredientService = ingredientService;
     }
 
+    /**
+     * Creates a new ingredient.
+     *
+     * @param request The ingredient data to create
+     * @return DTO of the created ingredient
+     */
     @PostMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('BARMAN')")
-    public ResponseEntity<IngredientResponseDTO> createIngredient(@Valid @RequestBody Ingredient ingredient) {
-        return ResponseEntity.ok(IngredientResponseDTO.from(ingredientService.createIngredient(ingredient)));
+    @Operation(summary = "Create a new ingredient (BARMAN/ADMIN)")
+    @ApiResponse(responseCode = "200", description = "Ingredient created")
+    public ResponseEntity<IngredientResponseDTO> createIngredient(@Valid @RequestBody IngredientRequestDTO request) {
+        return ResponseEntity.ok(IngredientResponseDTO.from(ingredientService.createIngredient(request.toEntity())));
     }
 
+    /**
+     * Updates an ingredient's information.
+     *
+     * @param id      Identifier of the ingredient
+     * @param request Updated ingredient data
+     * @return DTO of the updated ingredient
+     */
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('BARMAN')")
-    public ResponseEntity<IngredientResponseDTO> updateIngredient(@PathVariable Long id, @Valid @RequestBody Ingredient ingredient) {
+    @Operation(summary = "Update an ingredient (BARMAN/ADMIN)")
+    @ApiResponse(responseCode = "200", description = "Ingredient updated")
+    public ResponseEntity<IngredientResponseDTO> updateIngredient(
+        @Parameter(description = "Ingredient ID") @PathVariable Long id,
+        @Valid @RequestBody IngredientRequestDTO request) {
+        Ingredient ingredient = request.toEntity();
         ingredient.setId(id);
         return ResponseEntity.ok(IngredientResponseDTO.from(ingredientService.updateIngredient(ingredient)));
     }
 
+    /**
+     * Supprime un ingrédient du système.
+     *
+     * @param id Identifiant de l'ingrédient
+     * @return Statut 200 OK
+     */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> deleteIngredient(@PathVariable Long id) {
+    @Operation(summary = "Supprimer un ingrédient (ADMIN)")
+    @ApiResponse(responseCode = "200", description = "Ingrédient supprimé")
+    public ResponseEntity<Void> deleteIngredient(@Parameter(description = "ID de l'ingrédient") @PathVariable Long id) {
         ingredientService.deleteIngredient(id);
         return ResponseEntity.ok().build();
     }
 
+    /**
+     * Obtenir un ingrédient par son identifiant.
+     *
+     * @param id Identifiant
+     * @return DTO de l'ingrédient
+     */
     @GetMapping("/{id}")
-    public ResponseEntity<IngredientResponseDTO> getIngredientById(@PathVariable Long id) {
+    @Operation(summary = "Obtenir un ingrédient par son ID")
+    @ApiResponse(responseCode = "200", description = "Ingrédient trouvé")
+    @ApiResponse(responseCode = "404", description = "Ingrédient introuvable")
+    public ResponseEntity<IngredientResponseDTO> getIngredientById(@Parameter(description = "ID de l'ingrédient") @PathVariable Long id) {
         return ingredientService.getIngredientById(id)
             .map(IngredientResponseDTO::from)
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
     }
 
+    /**
+     * Obtenir la liste des ingrédients dont le niveau de stock est sous le seuil d'alerte.
+     *
+     * @return Liste des ingrédients en alerte stock
+     */
     @GetMapping("/seuil-alerte")
+    @Operation(summary = "Lister les ingrédients sous le seuil d'alerte stock")
+    @ApiResponse(responseCode = "200", description = "Liste des ingrédients en alerte")
     public ResponseEntity<List<IngredientResponseDTO>> getIngredientsBySeuilAlerte() {
         return ResponseEntity.ok(ingredientService.getIngredientsBySeuilAlerte().stream()
             .map(IngredientResponseDTO::from).toList());
     }
 
+    /**
+     * Rechercher des ingrédients par nom.
+     *
+     * @param nom Mot-clé
+     * @return Ingrédients correspondants
+     */
     @GetMapping("/search")
+    @Operation(summary = "Rechercher des ingrédients par nom")
+    @ApiResponse(responseCode = "200", description = "Résultats de recherche")
     public ResponseEntity<List<IngredientResponseDTO>> searchIngredients(@RequestParam String nom) {
         return ResponseEntity.ok(ingredientService.searchIngredients(nom).stream()
             .map(IngredientResponseDTO::from).toList());
     }
 
+    /**
+     * Filtrer les ingrédients par nom de fournisseur.
+     *
+     * @param fournisseur Nom du fournisseur
+     * @return Liste d'ingrédients
+     */
     @GetMapping("/fournisseur/{fournisseur}")
+    @Operation(summary = "Lister les ingrédients par fournisseur")
+    @ApiResponse(responseCode = "200", description = "Liste récupérée")
     public ResponseEntity<List<IngredientResponseDTO>> getIngredientsByFournisseur(@PathVariable String fournisseur) {
         return ResponseEntity.ok(ingredientService.getIngredientsByFournisseur(fournisseur).stream()
             .map(IngredientResponseDTO::from).toList());
     }
 
+    /**
+     * Filtrer les ingrédients par unité de mesure (ex: ml, cl, g, unité).
+     *
+     * @param uniteMesure Nom de l'unité
+     * @return Liste d'ingrédients
+     */
     @GetMapping("/unite-mesure/{uniteMesure}")
+    @Operation(summary = "Lister les ingrédients par unité de mesure")
+    @ApiResponse(responseCode = "200", description = "Liste récupérée")
     public ResponseEntity<List<IngredientResponseDTO>> getIngredientsByUniteMesure(@PathVariable String uniteMesure) {
         return ResponseEntity.ok(ingredientService.getIngredientsByUniteMesure(uniteMesure).stream()
             .map(IngredientResponseDTO::from).toList());
     }
 
+    /**
+     * Met à jour la quantité en stock d'un ingrédient.
+     *
+     * @param id Identifiant de l'ingrédient
+     * @param quantite Nouvelle valeur du stock
+     * @return Ingrédient mis à jour
+     */
     @PutMapping("/{id}/stock")
     @PreAuthorize("hasRole('ADMIN') or hasRole('BARMAN')")
-    public ResponseEntity<IngredientResponseDTO> updateStock(@PathVariable Long id, @RequestParam BigDecimal quantite) {
+    @Operation(summary = "Mettre à jour la quantité en stock (BARMAN/ADMIN)")
+    @ApiResponse(responseCode = "200", description = "Stock mis à jour")
+    public ResponseEntity<IngredientResponseDTO> updateStock(
+        @PathVariable Long id,
+        @RequestParam BigDecimal quantite) {
         return ingredientService.getIngredientById(id)
             .map(ingredient -> {
                 ingredientService.updateStock(ingredient, quantite);
@@ -86,9 +178,20 @@ public class IngredientController {
             .orElse(ResponseEntity.notFound().build());
     }
 
+    /**
+     * Définit le seuil d'alerte de stock d'un ingrédient.
+     *
+     * @param id Identifiant de l'ingrédient
+     * @param seuil Nouvelle valeur du seuil d'alerte
+     * @return Ingrédient mis à jour
+     */
     @PutMapping("/{id}/seuil-alerte")
     @PreAuthorize("hasRole('ADMIN') or hasRole('BARMAN')")
-    public ResponseEntity<IngredientResponseDTO> definirSeuilAlerte(@PathVariable Long id, @RequestParam BigDecimal seuil) {
+    @Operation(summary = "Définir le seuil d'alerte de stock (BARMAN/ADMIN)")
+    @ApiResponse(responseCode = "200", description = "Seuil d'alerte mis à jour")
+    public ResponseEntity<IngredientResponseDTO> definirSeuilAlerte(
+        @PathVariable Long id,
+        @RequestParam BigDecimal seuil) {
         return ingredientService.getIngredientById(id)
             .map(ingredient -> {
                 ingredientService.definirSeuilAlerte(ingredient, seuil);

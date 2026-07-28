@@ -5,6 +5,9 @@ import {environment} from '../../../environments/environment';
 import {AuthResponse} from '../models/auth-response.model';
 import {tap} from "rxjs/operators";
 
+/**
+ * Service Angular d'authentification HTTP et de gestion des jetons dans le LocalStorage.
+ */
 @Injectable({
   providedIn: 'root'
 })
@@ -15,21 +18,31 @@ export class AuthService {
   private readonly API_URL = `${environment.apiUrl}/auth`;
   private inProgress = false;
 
+  /**
+   * Constructeur avec injection du client HTTP.
+   *
+   * @param http Client HttpClient d'Angular
+   */
   constructor(private readonly http: HttpClient) {
   }
 
+  /**
+   * Authentifie un utilisateur via l'API REST backend.
+   *
+   * @param username Nom d'utilisateur
+   * @param password Mot de passe
+   * @returns Un {@link Observable} émettant la réponse d'authentification {@link AuthResponse}
+   */
   login(username: string, password: string): Observable<AuthResponse> {
     if (this.inProgress) {
       return throwError(() => new Error('Une opération est déjà en cours'));
     }
 
-    console.log('Appel login() service');
     this.inProgress = true;
 
     return this.http.post<AuthResponse>(`${this.API_URL}/login`, {username, password}).pipe(
       tap({
         next: (response) => {
-          // Stocker les données en local
           this.saveUserData(response);
           this.inProgress = false;
         },
@@ -40,41 +53,61 @@ export class AuthService {
     );
   }
 
+  /**
+   * Déconnecte l'utilisateur en purgeant les jetons et le profil utilisateur du LocalStorage et de la session.
+   */
   logout(): void {
     if (this.inProgress) {
-      console.log('Opération déjà en cours');
       return;
     }
 
     this.inProgress = true;
 
-    // Nettoyer le localStorage immédiatement
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.REFRESH_TOKEN_KEY);
     localStorage.removeItem(this.USER_KEY);
 
-    // Nettoyer le session storage
     sessionStorage.removeItem('store_hydrated');
 
-    // Attendre avant de terminer le processus
     setTimeout(() => {
       this.inProgress = false;
     }, 1000);
   }
 
+  /**
+   * Récupère l'access token JWT stocké dans le LocalStorage.
+   *
+   * @returns Le token sous forme de chaîne de caractères ou {@code null} s'il est absent
+   */
   getToken(): string | null {
     return this.inProgress ? null : localStorage.getItem(this.TOKEN_KEY);
   }
 
+  /**
+   * Récupère le refresh token stocké dans le LocalStorage.
+   *
+   * @returns Le refresh token ou {@code null}
+   */
   getRefreshToken(): string | null {
     return localStorage.getItem(this.REFRESH_TOKEN_KEY);
   }
 
+  /**
+   * Enregistre l'access token et le refresh token dans le LocalStorage.
+   *
+   * @param accessToken Nouveau jeton d'accès JWT
+   * @param refreshToken Nouveau jeton de rafraîchissement
+   */
   storeTokens(accessToken: string, refreshToken: string): void {
     localStorage.setItem(this.TOKEN_KEY, accessToken);
     localStorage.setItem(this.REFRESH_TOKEN_KEY, refreshToken);
   }
 
+  /**
+   * Récupère les données de l'utilisateur actuellement stocké en local.
+   *
+   * @returns L'objet utilisateur désérialisé ou {@code null}
+   */
   getStoredUser() {
     if (this.inProgress) return null;
 
@@ -82,6 +115,11 @@ export class AuthService {
     return user ? JSON.parse(user) : null;
   }
 
+  /**
+   * Sauvegarde les jetons et les informations utilisateur dans le stockage local.
+   *
+   * @param response Réponse d'authentification reçue du serveur
+   */
   private saveUserData(response: AuthResponse): void {
     localStorage.setItem(this.TOKEN_KEY, response.token);
     if (response.refreshToken) {

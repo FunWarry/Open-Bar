@@ -57,7 +57,7 @@ describe('TableListComponent', () => {
   it('charger() peuple tables depuis le service', fakeAsync(() => {
     component.charger();
     tick();
-    expect(component.tables.length).toEqual(2);
+    expect(component.tables).toHaveSize(2);
   }));
 
   it('charger() affiche un toast danger en cas d\'erreur', fakeAsync(() => {

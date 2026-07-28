@@ -1,9 +1,13 @@
-import { TestBed } from '@angular/core/testing';
-import { CommonModule } from '@angular/common';
-import { IonBadge } from '@ionic/angular/standalone';
-import { KanbanBoardComponent } from '../../../app/features/dashboard-manager/components/kanban-board/kanban-board.component';
-import { MiniCommandeCardComponent } from '../../../app/features/dashboard-manager/components/mini-commande-card/mini-commande-card.component';
-import { OngoingOrder } from '../../../app/features/dashboard-manager/models/ongoing-order.model';
+import {TestBed} from '@angular/core/testing';
+import {CommonModule} from '@angular/common';
+import {IonBadge} from '@ionic/angular/standalone';
+import {
+  KanbanBoardComponent
+} from '../../../app/features/dashboard-manager/components/kanban-board/kanban-board.component';
+import {
+  MiniCommandeCardComponent
+} from '../../../app/features/dashboard-manager/components/mini-commande-card/mini-commande-card.component';
+import {OngoingOrder} from '../../../app/features/dashboard-manager/models/ongoing-order.model';
 
 describe('KanbanBoardComponent', () => {
   let component: KanbanBoardComponent;
@@ -23,24 +27,23 @@ describe('KanbanBoardComponent', () => {
   });
 
   it('should have 4 columns by default', () => {
-    expect(component.columns.length).toEqual(4);
+    expect(component.columns).toHaveSize(4);
   });
 
   it('should distribute orders to correct columns', () => {
-    const orders: OngoingOrder[] = [
-      { id: 1, tableNumero: 5, statut: 'EN_ATTENTE', dateCommande: '2026-07-26T10:00:00' },
-      { id: 2, tableNumero: 3, statut: 'EN_PREPARATION', dateCommande: '2026-07-26T10:05:00' },
-      { id: 3, tableNumero: 7, statut: 'PRET', dateCommande: '2026-07-26T10:10:00' },
-      { id: 4, tableNumero: 1, statut: 'LIVREE', dateCommande: '2026-07-26T10:15:00' },
-      { id: 5, tableNumero: 2, statut: 'EN_ATTENTE', dateCommande: '2026-07-26T10:20:00' },
+    component.orders = [
+      {id: 1, tableNumero: 5, statut: 'EN_ATTENTE', dateCommande: '2026-07-26T10:00:00'},
+      {id: 2, tableNumero: 3, statut: 'EN_PREPARATION', dateCommande: '2026-07-26T10:05:00'},
+      {id: 3, tableNumero: 7, statut: 'PRET', dateCommande: '2026-07-26T10:10:00'},
+      {id: 4, tableNumero: 1, statut: 'LIVREE', dateCommande: '2026-07-26T10:15:00'},
+      {id: 5, tableNumero: 2, statut: 'EN_ATTENTE', dateCommande: '2026-07-26T10:20:00'},
     ];
-    component.orders = orders;
 
     const columns = component.columns;
-    expect(columns[0].orders.length).toEqual(2); // EN_ATTENTE
-    expect(columns[1].orders.length).toEqual(1); // EN_PREPARATION
-    expect(columns[2].orders.length).toEqual(1); // PRET
-    expect(columns[3].orders.length).toEqual(1); // LIVREE
+    expect(columns[0].orders).toHaveSize(2); // EN_ATTENTE
+    expect(columns[1].orders).toHaveSize(1); // EN_PREPARATION
+    expect(columns[2].orders).toHaveSize(1); // PRET
+    expect(columns[3].orders).toHaveSize(1); // LIVREE
   });
 
   it('should have correct column labels', () => {

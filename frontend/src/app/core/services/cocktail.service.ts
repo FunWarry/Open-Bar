@@ -7,7 +7,7 @@ import { Cocktail } from '../models/cocktail.model';
 @Injectable({ providedIn: 'root' })
 export class CocktailService {
   private readonly api = `${environment.apiUrl}/cocktails`;
-  private http = inject(HttpClient);
+  private readonly http = inject(HttpClient);
 
   getAll(): Observable<Cocktail[]> {
     return this.http.get<Cocktail[]>(this.api);

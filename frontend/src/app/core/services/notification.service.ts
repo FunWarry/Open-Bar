@@ -16,10 +16,10 @@ export interface AppNotification {
 
 @Injectable({ providedIn: 'root' })
 export class NotificationService implements OnDestroy {
-  private notifications$ = new Subject<AppNotification>();
-  private stockAlerts$ = new Subject<AppNotification>();
+  private readonly notifications$ = new Subject<AppNotification>();
+  private readonly stockAlerts$ = new Subject<AppNotification>();
   private readonly destroy$ = new Subject<void>();
-  private notificationHistory: AppNotification[] = [];
+  private readonly notificationHistory: AppNotification[] = [];
 
   constructor(private readonly ws: WebSocketService,private readonly toastCtrl: ToastController,
   ) {

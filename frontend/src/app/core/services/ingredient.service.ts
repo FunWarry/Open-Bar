@@ -7,7 +7,7 @@ import { Ingredient } from '../models/ingredient.model';
 @Injectable({ providedIn: 'root' })
 export class IngredientService {
   private readonly api = `${environment.apiUrl}/ingredients`;
-  private http = inject(HttpClient);
+  private readonly http = inject(HttpClient);
 
   getAll(): Observable<Ingredient[]> {
     return this.http.get<Ingredient[]>(this.api);

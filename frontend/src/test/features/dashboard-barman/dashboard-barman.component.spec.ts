@@ -84,9 +84,9 @@ describe('DashboardBarmanComponent', () => {
     component.chargerCommandes();
     tick();
 
-    expect(component.commandesEnAttente.length).toEqual(1);
-    expect(component.commandesEnPreparation.length).toEqual(1);
-    expect(component.commandesPret.length).toEqual(1);
+    expect(component.commandesEnAttente).toHaveSize(1);
+    expect(component.commandesEnPreparation).toHaveSize(1);
+    expect(component.commandesPret).toHaveSize(1);
   }));
 
   it('chargerCommandes() appelle les trois endpoints du service', fakeAsync(() => {

@@ -62,6 +62,11 @@ rtk git checkout -b feat/#<numero>-<description>
 
 Suivre les conventions de `openbar-dev`.
 
+**Règle de documentation :**
+- **Documentation code OBLIGATOIRE** sur chaque composant/service/DTO/controller/guard/interceptor/store créé ou modifié.
+- **TOUTE la documentation (JavaDoc, TSDoc, annotations OpenAPI) DOIT ÊTRE RÉDIGÉE EN ANGLAIS**.
+- **INTERDICTION d'utiliser `@SuppressWarnings`** : résoudre directement les problèmes de code.
+
 **Commits atomiques en conventional commits :**
 
 ```bash

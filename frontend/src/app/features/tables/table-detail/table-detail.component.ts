@@ -6,8 +6,7 @@ import { takeUntil, finalize } from 'rxjs/operators';
 import { selectIsAdmin } from '../../../core/store/auth.selectors';
 import {
   IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-  IonList, IonItem, IonLabel, IonBadge, IonButton, IonButtons, IonIcon, IonSpinner,
-  ToastController,
+  IonList, IonItem, IonLabel, IonBadge, IonButton, IonButtons, IonIcon, ToastController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { arrowBack, create, eye } from 'ionicons/icons';

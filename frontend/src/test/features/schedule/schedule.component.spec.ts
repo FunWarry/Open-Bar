@@ -27,7 +27,7 @@ describe('ScheduleComponent', () => {
   });
 
   it('getDayHeaders should return 7 days', () => {
-    expect(component.getDayHeaders().length).toBe(7);
+    expect(component.getDayHeaders()).toHaveSize(7);
   });
 
   it('getDayHeaders should start with Mon', () => {
