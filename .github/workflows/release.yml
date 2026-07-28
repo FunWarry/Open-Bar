@@ -1,0 +1,133 @@
+name: Release — Versioning Automatique
+
+on:
+  push:
+    branches:
+      - master   # Release stable (ex: v1.2.0)
+      - dev      # Pré-release (ex: v1.2.0-beta.5)
+
+# Annule les runs précédents sur la même branche
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write   # Requis pour créer des tags et des releases GitHub
+
+jobs:
+  release:
+    name: Bump version & Create Release
+    runs-on: ubuntu-latest
+    # Ne tourne que si le dernier commit n est PAS un commit de version
+    if: ${{ !startsWith(github.event.head_commit.message, 'chore: bump version') }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute next version (conventional commits)
+        id: version
+        run: |
+          LAST_TAG=$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | head -n1)
+          LAST_TAG=${LAST_TAG:-v0.0.0}
+          echo "last_tag=$LAST_TAG" >> $GITHUB_OUTPUT
+
+          IFS='.' read -r MAJOR MINOR PATCH <<< "${LAST_TAG#v}"
+          MAJOR=${MAJOR:-0}; MINOR=${MINOR:-0}; PATCH=${PATCH:-0}
+
+          COMMITS=$(git log "${LAST_TAG}..HEAD" --pretty=format:"%s" 2>/dev/null || git log --pretty=format:"%s")
+
+          BUMP="patch"
+          if echo "$COMMITS" | grep -qiE "(BREAKING CHANGE|^[^:]+!:)"; then
+            BUMP="major"
+          elif echo "$COMMITS" | grep -qiE "^feat(\([^)]+\))?:"; then
+            BUMP="minor"
+          fi
+
+          if [ "$BUMP" = "major" ]; then
+            NEW_VERSION="$((MAJOR + 1)).0.0"
+          elif [ "$BUMP" = "minor" ]; then
+            NEW_VERSION="${MAJOR}.$((MINOR + 1)).0"
+          else
+            NEW_VERSION="${MAJOR}.${MINOR}.$((PATCH + 1))"
+          fi
+
+          if [ "${{ github.ref_name }}" = "dev" ]; then
+            PRE_COUNT=$(git tag --list "v${NEW_VERSION}-beta.*" | wc -l)
+            NEW_TAG="v${NEW_VERSION}-beta.$((PRE_COUNT + 1))"
+            IS_PRERELEASE="true"
+          else
+            NEW_TAG="v${NEW_VERSION}"
+            IS_PRERELEASE="false"
+          fi
+
+          echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "is_prerelease=$IS_PRERELEASE" >> $GITHUB_OUTPUT
+          echo "bump=$BUMP" >> $GITHUB_OUTPUT
+          echo "Bump: $BUMP | Last: $LAST_TAG -> Next: $NEW_TAG"
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          LAST_TAG="${{ steps.version.outputs.last_tag }}"
+
+          COMMITS=$(git log "${LAST_TAG}..HEAD" --pretty=format:"- %s ([%h](https://github.com/${{ github.repository }}/commit/%H))" 2>/dev/null || git log --pretty=format:"- %s ([%h](https://github.com/${{ github.repository }}/commit/%H))")
+
+          BREAKING=$(echo "$COMMITS" | grep -iE "(BREAKING CHANGE|!:)" || true)
+          FEATURES=$(echo "$COMMITS" | grep -iE "^- feat" || true)
+          FIXES=$(echo "$COMMITS" | grep -iE "^- fix" || true)
+          DOCS=$(echo "$COMMITS" | grep -iE "^- docs" || true)
+          CHORES=$(echo "$COMMITS" | grep -iE "^- (chore|refactor|test|perf|build|ci)" || true)
+
+          {
+            echo 'notes<<EOF'
+            [ -n "$BREAKING" ] && echo -e "## Breaking Changes\n${BREAKING}\n"
+            [ -n "$FEATURES" ] && echo -e "## Nouvelles fonctionnalites\n${FEATURES}\n"
+            [ -n "$FIXES" ]    && echo -e "## Corrections\n${FIXES}\n"
+            [ -n "$DOCS" ]     && echo -e "## Documentation\n${DOCS}\n"
+            [ -n "$CHORES" ]   && echo -e "## Maintenance\n${CHORES}\n"
+            echo 'EOF'
+          } >> $GITHUB_OUTPUT
+
+      - name: Create Git tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "${{ steps.version.outputs.new_tag }}" \
+            -m "Release ${{ steps.version.outputs.new_tag }}"
+          git push origin "${{ steps.version.outputs.new_tag }}"
+
+      - name: Update pom.xml version (stable only)
+        if: ${{ steps.version.outputs.is_prerelease == 'false' }}
+        run: |
+          VERSION="${{ steps.version.outputs.new_version }}"
+          sed -i "s|<version>[0-9]*\.[0-9]*\.[0-9]*-SNAPSHOT</version>|<version>${VERSION}</version>|" backend/pom.xml
+          if ! git diff --quiet backend/pom.xml; then
+            git add backend/pom.xml
+            git commit -m "chore: bump version to ${VERSION}"
+            git push origin ${{ github.ref_name }}
+          fi
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.new_tag }}
+          name: "${{ steps.version.outputs.new_tag }}"
+          body: |
+            ## OpenBar ${{ steps.version.outputs.new_tag }}
+
+            > **Branche** : `${{ github.ref_name }}` | **Bump** : `${{ steps.version.outputs.bump }}`
+
+            ${{ steps.changelog.outputs.notes }}
+
+            ---
+            *Release generee automatiquement depuis les [conventional commits](https://www.conventionalcommits.org/).*
+          prerelease: ${{ steps.version.outputs.is_prerelease == 'true' }}
+          make_latest: ${{ steps.version.outputs.is_prerelease == 'false' }}
+          generate_release_notes: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
