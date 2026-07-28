@@ -36,21 +36,28 @@ Deployed as a PWA on a local WiFi network (Raspberry Pi 5 / mini-PC). No interne
 
 ## Absolute Rules
 
+### Documentation & Code Quality
+1. **Documentation is MANDATORY for all new or modified code** (JavaDoc on backend, TSDoc on frontend, OpenAPI annotations on controllers).
+2. **ALL code documentation (JavaDoc, TSDoc, OpenAPI descriptions) MUST BE WRITTEN IN ENGLISH**.
+
 ### Backend
 1. **Never `@Autowired` on a field** — always constructor injection
 2. **Never return JPA entities** from controllers — always a DTO (`Java record` with `static from(Entity e)`)
 3. **`@Transactional`** on all write service methods
 4. **`@PreAuthorize`** on every write endpoint
 5. **`ResourceNotFoundException`** (→ 404) for missing resources; `BusinessException` (→ 400) for business violations
-6. New tables → `backend/src/main/resources/schema.sql`
+6. **JavaDoc MANDATORY (in English)** for all services, DTOs, controllers, security, and exception classes
+7. **OpenAPI annotations MANDATORY (in English)** on all REST controllers (`@Tag`, `@Operation`, `@ApiResponse`)
+8. New tables → `backend/src/main/resources/schema.sql`
 
 ### Frontend
 1. **Ionic components only** — `IonButton`, `IonCard`, `IonList`, etc. Never Angular Material
 2. **Standalone components** (`standalone: true`) — no NgModule
 3. **Lazy loading** on ALL routes (`loadComponent`)
 4. **Transloco mandatory** on all user-visible text — `{{ 'KEY' | transloco }}`
-5. **`data-testid`** on all interactive elements (required for E2E tests)
-6. Tests go in `frontend/src/test/` (mirror of `src/app/`) — never co-located
+5. **TSDoc MANDATORY (in English)** on all Angular services (`core/services/` + feature services), guards, interceptors, and NgRx store
+6. **`data-testid`** on all interactive elements (required for E2E tests)
+7. Tests go in `frontend/src/test/` (mirror of `src/app/`) — never co-located
 
 ### Git / Workflow
 1. Every task must be linked to a GitHub issue — see [Kanban](https://github.com/users/FunWarry/projects/3/views/1)

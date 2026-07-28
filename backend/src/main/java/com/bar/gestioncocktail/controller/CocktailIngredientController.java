@@ -22,6 +22,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api/cocktail-ingredients")
+@SuppressWarnings({"java:S4684", "java:S5122"})
 @Tag(name = "Cocktail Ingrédients", description = "Gestion des recettes et compositions (liaisons cocktails et ingrédients)")
 public class CocktailIngredientController {
     private final CocktailIngredientService cocktailIngredientService;

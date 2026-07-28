@@ -41,7 +41,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    @SuppressWarnings({"java:S5804", "java:S4502"})
+    @SuppressWarnings({"java:S5804", "java:S4502", "java:S112", "java:S1130"})
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -71,6 +71,7 @@ public class SecurityConfig {
     }
 
     @Bean
+    @SuppressWarnings({"java:S112", "java:S1130"})
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }

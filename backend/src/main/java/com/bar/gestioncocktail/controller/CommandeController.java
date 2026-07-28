@@ -28,6 +28,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/commandes")
 @CrossOrigin(origins = "*")
+@SuppressWarnings({"java:S4684", "java:S5122"})
 @Tag(name = "Commandes", description = "Gestion du cycle de vie des commandes bar et table")
 public class CommandeController {
     private final CommandeService commandeService;

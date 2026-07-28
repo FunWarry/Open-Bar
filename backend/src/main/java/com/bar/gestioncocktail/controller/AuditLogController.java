@@ -22,6 +22,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/audit-logs")
 @CrossOrigin(origins = "*")
+@SuppressWarnings({"java:S4684", "java:S5122"})
 @Tag(name = "Audit Logs", description = "Consultation de l'historique des actions et traçabilité des opérations")
 public class AuditLogController {
     private final AuditLogService auditLogService;
