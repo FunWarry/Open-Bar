@@ -68,20 +68,34 @@
     margin: 0;
   }
 
-  .qty-controls {
+  .variantes-badge {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    margin-top: 6px;
+    font-size: 10px;
+    font-weight: 600;
+    color: #6c7fe8;
+
+    .variantes-icon {
+      font-size: 11px;
+    }
+  }
+
+  .qty-indicator {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: #6c7fe8;
+    color: #fff;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-top: 8px;
-    gap: 4px;
-
-    .qty-value {
-      font-size: 16px;
-      font-weight: 700;
-      color: #6c7fe8;
-      min-width: 24px;
-      text-align: center;
-    }
+    font-size: 11px;
+    font-weight: 700;
   }
 }
 
@@ -100,13 +114,50 @@
 .panier-item {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   padding: 10px 12px;
   border-bottom: 1px solid rgba(126, 135, 168, 0.15);
 
-  .panier-nom {
+  .panier-info {
     flex: 1;
+    min-width: 0;
+    margin-right: 8px;
+  }
+
+  .panier-nom {
+    display: block;
     font-size: 13px;
+    font-weight: 600;
     color: #eceefb;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .panier-variante {
+    display: block;
+    font-size: 11px;
+    color: #6c7fe8;
+    font-weight: 500;
+    margin-top: 2px;
+  }
+
+  .panier-notes {
+    display: block;
+    font-size: 11px;
+    color: #7e87a8;
+    font-style: italic;
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .panier-actions {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex-shrink: 0;
   }
 
   .panier-prix {
@@ -114,6 +165,14 @@
     font-weight: 600;
     color: #34c77b;
     margin-right: 4px;
+  }
+
+  .qty-value {
+    font-size: 14px;
+    font-weight: 700;
+    color: #6c7fe8;
+    min-width: 20px;
+    text-align: center;
   }
 }
 

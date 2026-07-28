@@ -1,0 +1,83 @@
+<ion-header>
+  <ion-toolbar class="modal-toolbar">
+    <ion-title class="modal-title">{{ cocktail.nom }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button
+        fill="clear"
+        (click)="annuler()"
+        data-testid="btn-annuler-modal"
+        [attr.aria-label]="'COMMON.CLOSE' | transloco">
+        <ion-icon name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="modal-content">
+  <!-- Variant selection -->
+  <div class="section-label">{{ 'SERVEUR.SELECT_VARIANTE' | transloco }}</div>
+
+  <ion-radio-group [(ngModel)]="selectedVarianteId" data-testid="variante-radio-group">
+    <!-- Classic (no variant) -->
+    <ion-item class="variante-item" lines="none" data-testid="variante-item-classique">
+      <ion-radio slot="start" [value]="null" data-testid="radio-classique"></ion-radio>
+      <ion-label>
+        <div class="variante-nom">{{ 'SERVEUR.NO_VARIANTE' | transloco }}</div>
+        <div class="variante-prix">{{ cocktail.prix | currency:'EUR':'symbol':'1.2-2':'fr' }}</div>
+      </ion-label>
+    </ion-item>
+
+    <!-- Available variants -->
+    <ion-item
+      *ngFor="let variante of variantesDisponibles"
+      class="variante-item"
+      lines="none"
+      [attr.data-testid]="'variante-item-' + variante.id">
+      <ion-radio slot="start" [value]="variante.id" [attr.data-testid]="'radio-variante-' + variante.id"></ion-radio>
+      <ion-label>
+        <div class="variante-nom">{{ variante.nom }}</div>
+        <div class="variante-description" *ngIf="variante.description">{{ variante.description }}</div>
+        <div class="variante-prix">
+          {{ (cocktail.prix + variante.prixSupplement) | currency:'EUR':'symbol':'1.2-2':'fr' }}
+          <span class="supplement" *ngIf="variante.prixSupplement !== 0">
+            ({{ variante.prixSupplement > 0 ? '+' : '' }}{{ variante.prixSupplement | currency:'EUR':'symbol':'1.2-2':'fr' }})
+          </span>
+        </div>
+      </ion-label>
+    </ion-item>
+  </ion-radio-group>
+
+  <!-- Barman notes -->
+  <div class="section-label notes-label">{{ 'SERVEUR.NOTES_BARMAN' | transloco }}</div>
+  <div class="notes-wrapper">
+    <ion-textarea
+      [(ngModel)]="notes"
+      [placeholder]="'SERVEUR.NOTES_PLACEHOLDER' | transloco"
+      rows="3"
+      class="notes-textarea"
+      data-testid="textarea-notes">
+    </ion-textarea>
+  </div>
+
+  <!-- Effective price summary -->
+  <div class="prix-effectif-row">
+    <span class="prix-label">{{ 'COMMON.TOTAL' | transloco }}</span>
+    <span class="prix-valeur" data-testid="prix-effectif">
+      {{ prixEffectif | currency:'EUR':'symbol':'1.2-2':'fr' }}
+      <span class="supplement-label" *ngIf="supplementLabel">{{ supplementLabel }}</span>
+    </span>
+  </div>
+</ion-content>
+
+<ion-footer>
+  <ion-toolbar class="modal-footer-toolbar">
+    <ion-button
+      expand="block"
+      class="btn-ajouter"
+      (click)="confirmer()"
+      data-testid="btn-confirmer-modal">
+      <ion-icon name="add-circle-outline" slot="start"></ion-icon>
+      {{ 'SERVEUR.ADD_TO_CART' | transloco }}
+    </ion-button>
+  </ion-toolbar>
+</ion-footer>
