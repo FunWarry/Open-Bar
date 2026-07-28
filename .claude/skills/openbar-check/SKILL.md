@@ -1,15 +1,26 @@
+---
+name: openbar-check
+description: |
+  Vérifie que tout l'environnement est correctement installé et fonctionnel pour travailler sur le projet OpenBar.
+
+  Quand utiliser ce skill:
+  - Début de session de travail sur OpenBar
+  - Après une réinstallation ou changement d'environnement
+  - Quand un outil semble ne pas fonctionner
+  - "Vérifie que tout est installé"
+  - "Check l'environnement"
+  - "Est-ce que les plugins sont bien configurés ?"
+---
+
 # Skill : openbar-check
 
-Vérifie que tout l'environnement est correctement installé et fonctionnel pour travailler sur le projet OpenBar avec Claude Code.
+Vérifie que tout l'environnement est correctement installé et fonctionnel pour travailler sur le projet OpenBar avec Antigravity.
 
 ## Quand utiliser ce skill
 
 - Début de session de travail sur OpenBar
 - Après une réinstallation ou changement d'environnement
-- Quand un outil semble ne pas fonctionner
-- "Vérifie que tout est installé"
-- "Check l'environnement"
-- "Est-ce que les plugins sont bien configurés ?"
+- "Vérifie que tout est installé" / "Check l'environnement"
 
 ---
 
@@ -21,202 +32,192 @@ Exécuter **chaque vérification dans l'ordre**, afficher le résultat ✅/❌/�
 
 ### 1. RTK (Rust Token Killer)
 
-```bash
+```powershell
 rtk --version
 ```
 
 - ✅ Affiche `rtk X.Y.Z`
-- ❌ "command not found" → installer RTK ou vérifier le PATH
-- ⚠️ Si `rtk gain` échoue, vérifier collision avec `reachingforthejack/rtk`
+- ❌ "command not found" → voir openbar-install
+
+Vérifier que c'est le bon RTK (pas `reachingforthejack/rtk`) :
+```powershell
+rtk gain 2>&1 | Select-Object -First 2
+```
+- ✅ Affiche stats ou "No tracking data" → bon RTK
+- ❌ "unexpected argument 'gain'" → mauvais RTK installé
 
 ---
 
 ### 2. Plugin MCP GitHub
 
-Appeler l'outil `mcp__plugin_github_github__get_me` (sans paramètres).
+Appeler le tool MCP `get_me` (sans paramètres).
 
-- ✅ Retourne `login: "FunWarry"` avec les infos du compte
-- ❌ Erreur → le plugin MCP GitHub n'est pas chargé ou pas authentifié
+- ✅ Retourne `login: "FunWarry"` → MCP GitHub opérationnel
+- ❌ Erreur → MCP GitHub non configuré, voir openbar-install
 
-Puis vérifier l'authentification `gh` CLI :
-
-```bash
+Vérifier le scope `read:project` (nécessaire pour le board Kanban) :
+```powershell
 gh auth status
 ```
-
-- ✅ `Logged in to github.com as FunWarry`
-- ❌ "not logged in" → lancer `! gh auth login` ou `! gh auth refresh --scopes "read:project"`
-- Vérifier que le scope `read:project` est bien présent (nécessaire pour le Kanban)
+- ✅ `Logged in to github.com as FunWarry` avec `read:project`
+- ❌ Scope absent → `gh auth refresh --scopes "read:project"`
 
 Tester l'accès au Project Board :
-
-```bash
-rtk gh api graphql -f query='{ user(login: "FunWarry") { projectV2(number: 3) { title items { totalCount } } } }'
+```powershell
+gh api graphql -f query='{ user(login: "FunWarry") { projectV2(number: 3) { title items { totalCount } } } }'
 ```
-
-- ✅ Retourne `title` et `totalCount` du board
-- ❌ `INSUFFICIENT_SCOPES` → `! gh auth refresh --scopes "read:project"`
-- ❌ Autre erreur → vérifier l'authentification
+- ✅ Retourne `title` et `totalCount`
+- ❌ `INSUFFICIENT_SCOPES` → `gh auth refresh --scopes "read:project"`
 
 ---
 
 ### 3. Plugin MCP Figma
 
-Appeler l'outil `mcp__plugin_figma_figma__whoami` (sans paramètres).
+Appeler le tool MCP `get_metadata` avec `fileKey: "XSVwFk64kgtqgUN9n5qoMw"`.
 
-- ✅ Retourne les infos du compte Figma connecté
-- ❌ Erreur ou non disponible → le plugin MCP Figma n'est pas chargé
-
-Puis tester l'accès au fichier OpenBar :
-
-Appeler `mcp__plugin_figma_figma__get_metadata` avec `fileKey: "XSVwFk64kgtqgUN9n5qoMw"`.
-
-- ✅ Retourne les métadonnées du fichier Figma OpenBar
-- ❌ "Not found" ou "Forbidden" → vérifier les permissions Figma ou le token
+- ✅ Retourne les métadonnées du fichier Figma OpenBar → MCP Figma opérationnel
+- ❌ Erreur → MCP Figma non configuré ou token invalide
 
 ---
 
-### 4. Java et Maven (Backend)
+### 4. Java 22 et Maven (Backend)
 
-```bash
-java --version && mvn --version
+```powershell
+java --version; mvn --version
 ```
 
-- ✅ Java 22+ et Maven 3.x
-- ❌ "command not found" → installer Java 22 (temurin/openJDK) et Maven 3.x
-- ⚠️ Java < 22 → Spring Boot 3.3.3 peut ne pas fonctionner correctement
+- ✅ Java **22** et Maven 3.x
+- ❌ Java absent → installer via SDKMAN : `sdk env install` (un `.sdkmanrc` est fourni)
+- ⚠️ Java ≠ 22 (23, 24...) → **CRITIQUE** : Lombok 1.18.34 ne supporte pas JDK 23+, les `@Data` ne génèrent aucun getter/setter → cascade d'erreurs `cannot find symbol getXxx()`
+- Utiliser SDKMAN pour épingler exactement Java 22 : `sdk use java 22.x.x-tem`
 
 ---
 
-### 5. Docker (Base de données)
+### 5. Docker + PostgreSQL (Base de données)
 
-```bash
-docker --version && docker compose version
+```powershell
+docker --version; docker compose version
 ```
 
 - ✅ Docker 24+ et Docker Compose v2
-- ❌ "command not found" → installer Docker Desktop
+- ❌ Absent → installer Docker Desktop
 
 Vérifier que le conteneur PostgreSQL est actif :
-
-```bash
+```powershell
 docker ps --filter name=postgres
 ```
-
-- ✅ Conteneur listé avec statut `Up`
-- ⚠️ Conteneur arrêté → `cd backend/src/main/resources && docker compose up -d`
-- ❌ Aucun conteneur → lancer `docker compose up -d` depuis `backend/src/main/resources/`
-
----
-
-### 6. Node.js et npm (Frontend)
-
-```bash
-node --version && npm --version
-```
-
-- ✅ Node 18+ et npm 9+
-- ❌ "command not found" → installer Node.js LTS via nvm ou nodejs.org
+- ✅ Conteneur `Up`
+- ⚠️ Arrêté → `cd backend/src/main/resources; docker compose up -d`
+- ❌ Absent → `cd backend/src/main/resources; docker compose up -d`
 
 ---
 
-### 7. Angular CLI
+### 6. Node.js 22+ et npm
 
-```bash
-npx ng version 2>/dev/null | head -5
+```powershell
+node --version; npm --version
 ```
 
-- ✅ Angular CLI 19+
-- ⚠️ Version < 19 → `npm install -g @angular/cli@latest`
+- ✅ Node 22+ et npm 10+
+- ❌ Absent → installer Node.js LTS via `winget install OpenJS.NodeJS.LTS`
+
+---
+
+### 7. Angular CLI 20+
+
+```powershell
+npx ng version 2>$null | Select-Object -First 5
+```
+
+- ✅ Angular CLI **20+**
+- ⚠️ Version < 20 → `npm install -g @angular/cli@latest`
 - ❌ Non installé → `npm install -g @angular/cli`
 
 ---
 
 ### 8. Dépendances frontend installées
 
-```bash
-ls frontend/node_modules/.package-lock.json 2>/dev/null && echo "OK" || echo "MISSING"
+```powershell
+Test-Path "frontend/node_modules/.package-lock.json"
 ```
 
-- ✅ "OK" → node_modules présent
-- ❌ "MISSING" → `cd frontend && npm install`
+- ✅ `True` → node_modules présents
+- ❌ `False` → `cd frontend; npm install`
 
 ---
 
 ### 9. Ionic CLI
 
-```bash
-npx ionic --version 2>/dev/null || echo "NOT FOUND"
+```powershell
+npx ionic --version 2>$null
 ```
 
 - ✅ Ionic CLI 7+
-- ⚠️ Non installé globalement → OK si présent dans `node_modules` du projet frontend
+- ⚠️ Non installé globalement → OK si présent dans `node_modules` du frontend
 
 ---
 
-### 10. Accès Git et remote
+### 10. Git remote
 
-```bash
-rtk git remote -v
+```powershell
+git remote -v
 ```
 
 - ✅ Affiche `origin https://github.com/FunWarry/Open-Bar.git`
-- ❌ Pas de remote → `git remote add origin https://github.com/FunWarry/Open-Bar.git`
+- ❌ Absent → `git remote add origin https://github.com/FunWarry/Open-Bar.git`
 
 ---
 
-### 11. Skill openbar-dev disponible
+### 11. Knowledge Items OpenBar (Antigravity)
 
-Vérifier que le fichier skill existe :
-
-```bash
-ls .claude/skills/openbar-dev/SKILL.md && echo "OK"
+Vérifier que les KIs sont présents :
+```powershell
+Get-ChildItem "C:\Users\mathe\.gemini\antigravity-ide\knowledge" -Directory | Select-Object Name
 ```
 
-- ✅ "OK"
-- ❌ Fichier absent → le skill n'a pas été créé correctement
+- ✅ Présence de `openbar-project`, `openbar-features`, `openbar-conventions`, `openbar-figma`
+- ❌ Absents → les KIs ont été supprimés, signaler à l'utilisateur pour les recréer
 
 ---
 
 ### 12. Backend accessible (optionnel — si déjà lancé)
 
-```bash
-curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/test/health
+```powershell
+try { (Invoke-WebRequest "http://localhost:8080/api/test/health" -UseBasicParsing).StatusCode } catch { "non lancé" }
 ```
 
 - ✅ `200` → API backend opérationnelle
-- `000` ou autre → backend non lancé (normal si pas encore démarré)
+- `non lancé` → normal si pas encore démarré
 
 ---
 
 ## Rapport de synthèse attendu
 
-Après avoir exécuté toutes les vérifications, produire un tableau récapitulatif :
-
 ```
-## Rapport environnement OpenBar
+## Rapport environnement OpenBar — [DATE]
 
-| Outil / Plugin         | Statut | Version / Note                     |
-|------------------------|--------|------------------------------------|
-| RTK                    | ✅     | rtk X.Y.Z                         |
-| MCP GitHub             | ✅     | Connecté en tant que FunWarry      |
-| gh CLI + scope project | ✅     | Authenticated, read:project OK     |
-| Project Board          | ✅     | 80+ items dans le board            |
-| MCP Figma              | ✅     | Connecté, fichier OpenBar accessible|
-| Java                   | ✅     | Java 22.x                         |
-| Maven                  | ✅     | Maven 3.9.x                       |
-| Docker                 | ✅     | Docker 24.x+                      |
-| PostgreSQL (Docker)    | ✅     | Conteneur actif                    |
-| Node.js                | ✅     | v24.x (LTS actuel)                |
-| npm                    | ✅     | 11.x                              |
-| Angular CLI            | ✅     | 20.x                              |
-| node_modules frontend  | ✅     | Installés                         |
-| Ionic CLI              | ✅     | 5.x                               |
-| Git remote             | ✅     | FunWarry/Open-Bar                  |
-| Skill openbar-dev      | ✅     | Présent                           |
-| Backend (API)          | ⚠️     | Non lancé (optionnel)             |
+| Outil / Plugin         | Statut | Version / Note                      |
+|------------------------|--------|-------------------------------------|
+| RTK                    | ✅     | rtk X.Y.Z (rtk-ai/rtk)             |
+| MCP GitHub             | ✅     | Connecté en tant que FunWarry       |
+| gh CLI + read:project  | ✅     | Authenticated, scope OK             |
+| Project Board          | ✅     | N items dans le board               |
+| MCP Figma              | ✅     | Fichier OpenBar accessible          |
+| Java                   | ✅     | Java 22.x (épinglé)                |
+| Maven                  | ✅     | Maven 3.9.x                        |
+| Docker                 | ✅     | Docker 24.x+                       |
+| PostgreSQL (Docker)    | ✅     | Conteneur actif                     |
+| Node.js                | ✅     | v22.x (LTS)                        |
+| npm                    | ✅     | 10.x                               |
+| Angular CLI            | ✅     | 20.x                               |
+| node_modules frontend  | ✅     | Installés                          |
+| Ionic CLI              | ✅     | 7.x+                               |
+| Git remote             | ✅     | FunWarry/Open-Bar                   |
+| KIs OpenBar            | ✅     | 4 KIs présents                     |
+| Backend (API)          | ⚠️     | Non lancé (optionnel)              |
 
-Environnement : ✅ PRÊT — X/17 checks OK
+Environnement : ✅ PRÊT — 16/17 checks OK
 ```
 
-Si un élément est ❌, fournir la commande exacte pour corriger le problème.
+Si un élément est ❌, fournir la commande exacte pour corriger.
+Si plusieurs ❌ → recommander `/openbar-install`.

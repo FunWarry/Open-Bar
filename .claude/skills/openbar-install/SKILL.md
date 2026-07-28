@@ -1,55 +1,55 @@
+---
+name: openbar-install
+description: |
+  Installe et initialise tout l'environnement nécessaire au projet OpenBar. Résout automatiquement les problèmes d'environnement.
+
+  Quand utiliser ce skill:
+  - "Installe l'environnement"
+  - "Setup le projet"
+  - "Initialise tout"
+  - "Prépare l'environnement OpenBar"
+  - "Répare l'environnement"
+  - Après un openbar-check qui retourne des erreurs
+---
+
 # Skill : openbar-install
 
-Installe et initialise tout l'environnement nécessaire au projet OpenBar. Résout automatiquement tous les points ❌ détectés par `/openbar-check`.
+Installe et initialise tout l'environnement nécessaire au projet OpenBar.
+Résout automatiquement tous les points ❌ détectés par `/openbar-check`.
 
 ## Quand utiliser ce skill
 
-- "Installe l'environnement"
-- "Setup le projet"
-- "Initialise tout"
-- "Prépare l'environnement OpenBar"
-- "Répare l'environnement"
+- "Installe l'environnement" / "Setup le projet" / "Répare l'environnement"
 - Après un `/openbar-check` qui retourne des ❌
 
 ---
 
 ## Instructions — Procédure d'installation complète
 
-**Première chose à faire** : détecter l'OS.
+**OS cible : Windows (PowerShell)**. Ce projet est développé sur Windows.
 
-```bash
-uname -s 2>/dev/null || echo "Windows"
-```
-
-- `Linux` → utiliser `apt` / `curl`
-- `Darwin` → utiliser `brew`
-- `Windows` (ou commande absente) → utiliser `winget` + PowerShell
-
-Chaque étape est **idempotente** : vérifier d'abord si l'outil est présent avant d'installer.
+Chaque étape est **idempotente** : vérifier si l'outil est présent avant d'installer.
 
 ---
 
 ### ÉTAPE 1 — RTK (Rust Token Killer)
 
-⚠️ **Attention** : il existe deux outils nommés `rtk` sur crates.io — le bon est `rtk-ai/rtk` (Rust Token Killer), pas `reachingforthejack/rtk` (Rust Type Kit). Ne jamais utiliser `cargo install rtk` seul.
+⚠️ **Attention** : il existe deux outils nommés `rtk` sur crates.io — le bon est `rtk-ai/rtk`, pas `reachingforthejack/rtk`.
 
 **Vérifier que le bon RTK est installé :**
-```bash
-rtk gain 2>&1 | head -2
+```powershell
+rtk gain 2>&1 | Select-Object -First 2
 ```
 
-- ✅ Affiche `No tracking data yet` ou des statistiques → bon RTK installé
-- ❌ `unexpected argument 'gain'` → mauvais RTK installé, désinstaller d'abord :
-  ```bash
-  cargo uninstall rtk 2>/dev/null || true
+- ✅ Affiche stats ou "No tracking data" → bon RTK installé
+- ❌ "unexpected argument 'gain'" → mauvais RTK, désinstaller d'abord :
+  ```powershell
+  cargo uninstall rtk
   ```
-- ❌ `command not found` → pas encore installé
+- ❌ "command not found" → pas encore installé
 
-**Installer le bon RTK selon l'OS :**
-
-**Windows (PowerShell) — binaire précompilé, pas de Rust requis :**
+**Installer RTK (Windows — binaire précompilé, pas de Rust requis) :**
 ```powershell
-# Récupérer la dernière version
 $release = Invoke-RestMethod "https://api.github.com/repos/rtk-ai/rtk/releases/latest"
 $asset = $release.assets | Where-Object { $_.name -like "*x86_64-pc-windows*" } | Select-Object -First 1
 $dest = "$env:USERPROFILE\.local\bin"
@@ -61,148 +61,86 @@ Remove-Item "$env:TEMP\rtk.zip", "$env:TEMP\rtk-extract" -Recurse -Force
 Write-Output "RTK installé dans $dest"
 ```
 
-Vérifier que `$env:USERPROFILE\.local\bin` est dans le PATH (il doit l'être, c'est le répertoire `.local\bin` standard) :
+Vérifier le PATH (ajouter si nécessaire) :
 ```powershell
 $env:PATH = [System.Environment]::GetEnvironmentVariable("PATH","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("PATH","User")
 rtk --version
 ```
 
-**macOS :**
-```bash
-brew install rtk-ai/tap/rtk 2>/dev/null || cargo install --git https://github.com/rtk-ai/rtk
-```
-
-**Linux :**
-```bash
-# Installer Rust si absent
-command -v cargo >/dev/null 2>&1 || (curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && source "$HOME/.cargo/env")
-cargo install --git https://github.com/rtk-ai/rtk
-```
-
-**Après installation — initialiser les hooks Claude Code :**
-```bash
+**Initialiser RTK :**
+```powershell
 rtk init
 ```
 
 ---
 
-### ÉTAPE 2 — gh CLI
+### ÉTAPE 2 — gh CLI + authentification
 
 **Vérifier :**
-```bash
-gh --version 2>&1 | head -1
+```powershell
+gh --version 2>&1 | Select-Object -First 1
 ```
 
 - ✅ Présent → aller à la vérification d'auth
-- ❌ Absent → installer selon l'OS :
-
-**macOS :**
-```bash
-brew install gh
-```
-
-**Linux (Debian/Ubuntu) :**
-```bash
-type -p curl >/dev/null || (sudo apt update && sudo apt install curl -y)
-curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-sudo apt update && sudo apt install gh -y
-```
-
-**Windows (PowerShell) :**
+- ❌ Absent :
 ```powershell
 winget install --id GitHub.cli --silent --accept-package-agreements --accept-source-agreements
 $env:PATH = [System.Environment]::GetEnvironmentVariable("PATH","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("PATH","User")
 ```
 
 **Vérifier l'authentification :**
-```bash
+```powershell
 gh auth status 2>&1
 ```
 
-- ✅ `Logged in to github.com as FunWarry` avec scope `read:project` → OK
-- ✅ Connecté mais scope absent → `gh auth refresh --scopes "read:project"`
-- ❌ Non authentifié → **action manuelle requise** (voir section en bas)
+- ✅ `Logged in to github.com as FunWarry` avec `read:project` → OK
+- ⚠️ Connecté mais scope `read:project` absent :
+  ```powershell
+  gh auth refresh --scopes "read:project"
+  ```
+- ❌ Non authentifié → **action manuelle requise** :
+  ```powershell
+  gh auth login
+  gh auth refresh --scopes "read:project"
+  ```
 
 ---
 
-### ÉTAPE 3 — MCP GitHub
+### ÉTAPE 3 — Java 22 (SDKMAN recommandé)
 
-Le MCP GitHub se configure dans `claude_desktop_config.json` (pas via une UI). Les outils apparaissent comme `mcp__github__*`.
+⚠️ **Version exacte requise : Java 22**. Lombok 1.18.34 ne supporte pas les internes du compilateur JDK 23+.
 
-**Vérifier si déjà configuré :**
-
-Sur Windows :
+**Vérifier :**
 ```powershell
-$cfg = Get-Content "$env:APPDATA\Claude\claude_desktop_config.json" | ConvertFrom-Json
-$cfg.mcpServers.github
+java --version 2>&1 | Select-Object -First 1
 ```
 
-Sur macOS/Linux :
+Si Java 22 absent ou mauvaise version :
+
+**Option A — SDKMAN (recommandé, un `.sdkmanrc` est fourni à la racine) :**
 ```bash
-cat ~/Library/Application\ Support/Claude/claude_desktop_config.json | python3 -m json.tool | grep -A5 '"github"'
+# Depuis Git Bash ou WSL
+sdk env install   # installe et active automatiquement Java 22
 ```
 
-- ✅ Affiche l'URL `api.githubcopilot.com/mcp` → déjà configuré
-- ❌ Absent → configurer :
-
-**Récupérer le token gh :**
-```bash
-gh auth token
+**Option B — Temurin 22 via winget :**
+```powershell
+winget install --id EclipseAdoptium.Temurin.22.JDK --silent --accept-package-agreements --accept-source-agreements
+$env:PATH = [System.Environment]::GetEnvironmentVariable("PATH","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("PATH","User")
+java --version
 ```
-
-**Ajouter le serveur MCP dans `claude_desktop_config.json` :**
-
-Lire le fichier actuel, ajouter la clé `mcpServers` (ou la compléter si elle existe déjà) :
-
-```json
-{
-  "mcpServers": {
-    "github": {
-      "type": "http",
-      "url": "https://api.githubcopilot.com/mcp",
-      "headers": {
-        "Authorization": "Bearer <token_de_gh_auth_token>"
-      }
-    }
-  }
-}
-```
-
-Chemin du fichier :
-- Windows : `%APPDATA%\Claude\claude_desktop_config.json`
-- macOS : `~/Library/Application Support/Claude/claude_desktop_config.json`
-- Linux : `~/.config/Claude/claude_desktop_config.json`
-
-**Mettre à jour les permissions dans `.claude/settings.local.json` :**
-
-S'assurer que les permissions utilisent le nom `github` (pas `plugin_github_github`) :
-```json
-"mcp__github__get_me",
-"mcp__github__search_repositories",
-"mcp__github__list_issues",
-"mcp__github__search_issues"
-```
-
-**⚠️ Redémarrer Claude Code** après modification du fichier de config pour que le serveur MCP soit chargé.
 
 ---
 
 ### ÉTAPE 4 — Maven
 
 **Vérifier :**
-```bash
-mvn --version 2>&1 | head -1
+```powershell
+mvn --version 2>&1 | Select-Object -First 1
 ```
 
 - ✅ Maven 3.x → passer
-- ❌ Absent → installer :
-
-**macOS :** `brew install maven`
-
-**Linux :** `sudo apt update && sudo apt install maven -y`
-
-**Windows :**
+- ❌ Absent :
 ```powershell
 winget install --id Apache.Maven --silent --accept-package-agreements --accept-source-agreements
 $env:PATH = [System.Environment]::GetEnvironmentVariable("PATH","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("PATH","User")
@@ -210,73 +148,94 @@ $env:PATH = [System.Environment]::GetEnvironmentVariable("PATH","Machine") + ";"
 
 ---
 
-### ÉTAPE 5 — Node.js + npm
+### ÉTAPE 5 — Docker Desktop + PostgreSQL
+
+**Vérifier Docker :**
+```powershell
+docker --version 2>&1; docker compose version 2>&1
+```
+
+- ✅ Docker 24+ et Docker Compose v2 → vérifier PostgreSQL
+- ❌ Absent → installer Docker Desktop depuis https://www.docker.com/products/docker-desktop/
+  (winget : `winget install Docker.DockerDesktop`)
+
+**Démarrer Docker Desktop** (si pas déjà démarré) puis :
+```powershell
+cd backend/src/main/resources; docker compose up -d; cd ../../../..
+```
+
+**Vérifier PostgreSQL :**
+```powershell
+docker ps --filter name=postgres
+```
+- ✅ Conteneur `Up` → OK
+- ❌ Absent → `docker compose up -d` depuis `backend/src/main/resources/`
+
+---
+
+### ÉTAPE 6 — Node.js 22+ et npm
 
 **Vérifier :**
-```bash
-node --version 2>&1 && npm --version 2>&1
+```powershell
+node --version 2>&1; npm --version 2>&1
 ```
 
-- ✅ Node 18+ et npm 9+ → passer
-- ❌ Absent → installer :
-
-**macOS :** `brew install node@20`
-
-**Linux :**
-```bash
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-sudo apt install nodejs -y
-```
-
-**Windows :**
+- ✅ Node 22+ et npm 10+ → passer
+- ❌ Absent :
 ```powershell
 winget install --id OpenJS.NodeJS.LTS --silent --accept-package-agreements --accept-source-agreements
 $env:PATH = [System.Environment]::GetEnvironmentVariable("PATH","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("PATH","User")
 ```
 
+⚠️ Sur Windows, le PATH mis à jour par `winget` n'est visible que dans un **nouveau** terminal.
+
 ---
 
-### ÉTAPE 6 — Angular CLI + Ionic CLI
+### ÉTAPE 7 — Angular CLI 20+
 
 **Vérifier :**
-```bash
-npx ng version 2>/dev/null | head -3
-npx ionic --version 2>/dev/null || echo "NOT FOUND"
+```powershell
+npx ng version 2>$null | Select-Object -First 5
 ```
 
-- ✅ Angular CLI 19+ et Ionic CLI 7+ → passer
-- ❌ Absent :
-
-```bash
-npm install -g @angular/cli @ionic/cli
+- ✅ Angular CLI 20+ → passer
+- ❌ Absent ou version < 20 :
+```powershell
+npm install -g @angular/cli@latest
 ```
-
-Sur Linux avec erreur de permissions : `sudo npm install -g @angular/cli @ionic/cli`
 
 ---
 
-### ÉTAPE 7 — Dépendances frontend (node_modules)
+### ÉTAPE 8 — Dépendances frontend (node_modules)
 
 **Vérifier :**
-```bash
-test -f frontend/node_modules/.package-lock.json && echo "OK" || echo "MISSING"
+```powershell
+Test-Path "frontend/node_modules/.package-lock.json"
 ```
 
-- ✅ `OK` → passer
-- ❌ `MISSING` :
-
-```bash
-cd frontend && npm install && cd ..
+- ✅ `True` → OK
+- ❌ `False` :
+```powershell
+cd frontend; npm install; cd ..
 ```
 
 ---
 
-### ÉTAPE 8 — Vérification MCP Figma
+### ÉTAPE 9 — Vérification JWT_SECRET
 
-Appeler `mcp__2d4adff4-71e4-47fa-b0a3-642a8b4b53f7__whoami` (sans paramètres).
+Le backend nécessite une variable d'environnement `JWT_SECRET` (≥ 32 caractères).
 
-- ✅ Retourne les infos de Mathéo → OK
-- ❌ Erreur → plugin Figma non chargé, vérifier les settings Claude Code
+**Vérifier qu'un fichier `.env` existe dans le backend :**
+```powershell
+Test-Path "backend/.env"
+```
+
+- ✅ `True` → vérifier que `JWT_SECRET` y est défini
+- ❌ `False` → créer depuis le template :
+```powershell
+Copy-Item "backend/.env.example" "backend/.env"
+Write-Output "JWT_SECRET=$(openssl rand -base64 32)" | Out-File "backend/.env" -Encoding utf8
+```
 
 ---
 
@@ -285,39 +244,35 @@ Appeler `mcp__2d4adff4-71e4-47fa-b0a3-642a8b4b53f7__whoami` (sans paramètres).
 ```
 ## Résultat installation OpenBar
 
-| Étape                  | Statut | Note                                  |
-|------------------------|--------|---------------------------------------|
-| RTK                    | ✅     | rtk X.Y.Z (rtk-ai/rtk)               |
-| gh CLI                 | ✅     | gh X.Y.Z                             |
-| gh auth + read:project | ✅/⚠️  | Authentifié / Action manuelle requise |
-| MCP GitHub             | ✅/⚠️  | Configuré / Redémarrage requis        |
-| Maven                  | ✅     | Apache Maven 3.x.x                   |
-| Node.js + npm          | ✅     | v20.x / 10.x                         |
-| Angular CLI            | ✅     | 19.x                                 |
-| Ionic CLI              | ✅     | 7.x                                  |
-| node_modules frontend  | ✅     | Installés                            |
-| MCP Figma              | ✅     | Connecté (Mathéo)                    |
+| Étape                   | Statut | Note                                   |
+|-------------------------|--------|----------------------------------------|
+| RTK                     | ✅     | rtk X.Y.Z (rtk-ai/rtk)                |
+| gh CLI                  | ✅     | gh X.Y.Z                              |
+| gh auth + read:project  | ✅/⚠️  | Authentifié / Action manuelle requise  |
+| Java 22                 | ✅     | Temurin 22.x.x                        |
+| Maven                   | ✅     | Apache Maven 3.x.x                    |
+| Docker + PostgreSQL     | ✅     | Docker 24.x, conteneur actif           |
+| Node.js + npm           | ✅     | v22.x / 10.x                          |
+| Angular CLI             | ✅     | 20.x                                  |
+| node_modules frontend   | ✅     | Installés                             |
+| JWT_SECRET              | ✅     | backend/.env configuré                |
 ```
 
 ---
 
 ## Actions manuelles (non automatisables)
 
-### 1. Authentifier gh CLI (si non connecté)
-```bash
+### 1. Authentifier gh CLI
+```powershell
 gh auth login
 gh auth refresh --scopes "read:project"
 ```
 
-### 2. Redémarrer Claude Code après config MCP
-Toute modification de `claude_desktop_config.json` nécessite un redémarrage complet de Claude Code pour être prise en compte.
+### 2. Ouvrir un nouveau terminal après winget
+Toute modification de PATH par `winget` n'est visible que dans un nouveau terminal PowerShell.
 
-### 3. Démarrer Docker Desktop (Windows / macOS)
-Lancer depuis le menu Démarrer (Windows) ou Applications (macOS), attendre l'icône verte, puis :
-```bash
-docker compose -f backend/src/main/resources/docker-compose.yml up -d
-```
-Sur Linux : `sudo systemctl start docker`
+### 3. Démarrer Docker Desktop
+Docker Desktop doit être lancé (icône verte dans la barre des tâches) avant `docker compose up`.
 
-### 4. Nouveau terminal après installation (Windows)
-Sur Windows, les PATH mis à jour par `winget` ne sont visibles que dans un **nouveau** terminal. Ouvrir une nouvelle fenêtre PowerShell après installation de Node.js ou Maven.
+### 4. MCP GitHub — si non configuré
+Récupérer le token `gh auth token` et l'ajouter dans la config Antigravity MCP.
