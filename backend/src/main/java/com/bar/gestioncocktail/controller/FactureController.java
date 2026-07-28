@@ -28,7 +28,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * Controller REST pour la gestion de la facturation, des règlements, de la division d'addition et de l'export PDF.
+ * Controller REST pour la gestion de la facturation, des règlements, de la
+ * division d'addition et de l'export PDF.
  */
 @RestController
 @RequestMapping("/api/factures")
@@ -41,7 +42,7 @@ public class FactureController {
      * Constructeur avec injection des services de facturation et de génération PDF.
      *
      * @param factureService Service gérant les factures
-     * @param pdfService Service d'export PDF
+     * @param pdfService     Service d'export PDF
      */
     @Autowired
     public FactureController(FactureService factureService, PdfService pdfService) {
@@ -60,13 +61,13 @@ public class FactureController {
     @ApiResponse(responseCode = "200", description = "Factures récupérées")
     public ResponseEntity<List<FactureResponseDTO>> getAllFactures() {
         return ResponseEntity.ok(factureService.getAllFactures().stream()
-            .map(FactureResponseDTO::from).toList());
+                .map(FactureResponseDTO::from).toList());
     }
 
     /**
      * Création d'une nouvelle facture.
      *
-     * @param request Données de la facture à créer
+     * @param facture Données de la facture à créer
      * @return DTO de la facture créée
      */
     @PostMapping
@@ -80,7 +81,7 @@ public class FactureController {
     /**
      * Met à jour une facture existante.
      *
-     * @param id Identifiant de la facture
+     * @param id      Identifiant de la facture
      * @param request Données modifiées
      * @return DTO mis à jour
      */
@@ -89,8 +90,8 @@ public class FactureController {
     @Operation(summary = "Mettre à jour une facture (MANAGER/ADMIN)")
     @ApiResponse(responseCode = "200", description = "Facture mise à jour")
     public ResponseEntity<FactureResponseDTO> updateFacture(
-        @Parameter(description = "ID de la facture") @PathVariable Long id,
-        @Valid @RequestBody FactureRequestDTO request) {
+            @Parameter(description = "ID de la facture") @PathVariable Long id,
+            @Valid @RequestBody FactureRequestDTO request) {
         return ResponseEntity.ok(FactureResponseDTO.from(factureService.updateFacture(id, request.toEntity())));
     }
 
@@ -120,11 +121,12 @@ public class FactureController {
     @Operation(summary = "Obtenir une facture par son ID")
     @ApiResponse(responseCode = "200", description = "Facture trouvée")
     @ApiResponse(responseCode = "404", description = "Facture non trouvée")
-    public ResponseEntity<FactureResponseDTO> getFactureById(@Parameter(description = "ID de la facture") @PathVariable Long id) {
+    public ResponseEntity<FactureResponseDTO> getFactureById(
+            @Parameter(description = "ID de la facture") @PathVariable Long id) {
         return factureService.getFactureById(id)
-            .map(FactureResponseDTO::from)
-            .map(ResponseEntity::ok)
-            .orElse(ResponseEntity.notFound().build());
+                .map(FactureResponseDTO::from)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     /**
@@ -137,18 +139,19 @@ public class FactureController {
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
     @Operation(summary = "Lister les factures d'une table")
     @ApiResponse(responseCode = "200", description = "Factures de la table récupérées")
-    public ResponseEntity<List<FactureResponseDTO>> getFacturesByTable(@Parameter(description = "ID de la table") @PathVariable Long tableId) {
+    public ResponseEntity<List<FactureResponseDTO>> getFacturesByTable(
+            @Parameter(description = "ID de la table") @PathVariable Long tableId) {
         TableEntity table = new TableEntity();
         table.setId(tableId);
         return ResponseEntity.ok(factureService.getFacturesByTable(table).stream()
-            .map(FactureResponseDTO::from).toList());
+                .map(FactureResponseDTO::from).toList());
     }
 
     /**
      * Filtre les factures sur une plage de dates.
      *
      * @param debut Date et heure de début
-     * @param fin Date et heure de fin
+     * @param fin   Date et heure de fin
      * @return Liste des factures correspondantes
      */
     @GetMapping("/date")
@@ -156,16 +159,16 @@ public class FactureController {
     @Operation(summary = "Lister les factures par plage de dates")
     @ApiResponse(responseCode = "200", description = "Factures récupérées")
     public ResponseEntity<List<FactureResponseDTO>> getFacturesByDate(
-        @RequestParam LocalDateTime debut,
-        @RequestParam LocalDateTime fin) {
+            @RequestParam LocalDateTime debut,
+            @RequestParam LocalDateTime fin) {
         return ResponseEntity.ok(factureService.getFacturesByDate(debut, fin).stream()
-            .map(FactureResponseDTO::from).toList());
+                .map(FactureResponseDTO::from).toList());
     }
 
     /**
      * Ajoute une ligne d'article à une facture.
      *
-     * @param id Identifiant de la facture
+     * @param id      Identifiant de la facture
      * @param request Ligne d'article
      * @return Facture mise à jour
      */
@@ -174,15 +177,15 @@ public class FactureController {
     @Operation(summary = "Ajouter une ligne à une facture")
     @ApiResponse(responseCode = "200", description = "Ligne ajoutée")
     public ResponseEntity<FactureResponseDTO> ajouterItem(
-        @Parameter(description = "ID de la facture") @PathVariable Long id,
-        @Valid @RequestBody FactureItemRequestDTO request) {
+            @Parameter(description = "ID de la facture") @PathVariable Long id,
+            @Valid @RequestBody FactureItemRequestDTO request) {
         return ResponseEntity.ok(FactureResponseDTO.from(factureService.ajouterItem(id, request.toEntity())));
     }
 
     /**
      * Retire une ligne d'article d'une facture.
      *
-     * @param id Identifiant de la facture
+     * @param id     Identifiant de la facture
      * @param itemId Identifiant de la ligne d'article
      * @return Facture mise à jour
      */
@@ -191,15 +194,15 @@ public class FactureController {
     @Operation(summary = "Retirer une ligne d'une facture")
     @ApiResponse(responseCode = "200", description = "Ligne retirée")
     public ResponseEntity<FactureResponseDTO> retirerItem(
-        @Parameter(description = "ID de la facture") @PathVariable Long id,
-        @Parameter(description = "ID du facture item") @PathVariable Long itemId) {
+            @Parameter(description = "ID de la facture") @PathVariable Long id,
+            @Parameter(description = "ID du facture item") @PathVariable Long itemId) {
         return ResponseEntity.ok(FactureResponseDTO.from(factureService.retirerItem(id, itemId)));
     }
 
     /**
      * Valide le règlement d'une facture avec enregistrement du mode de paiement.
      *
-     * @param id Identifiant de la facture
+     * @param id           Identifiant de la facture
      * @param modePaiement Mode de paiement (ex: CARTE, ESPECES, TICKETS_RESTO)
      * @return Facture réglée
      */
@@ -208,8 +211,8 @@ public class FactureController {
     @Operation(summary = "Enregistrer le règlement d'une facture", description = "Marque la facture comme réglée et libère la table associée si pertinent.")
     @ApiResponse(responseCode = "200", description = "Règlement effectué")
     public ResponseEntity<FactureResponseDTO> reglerFacture(
-        @Parameter(description = "ID de la facture") @PathVariable Long id,
-        @Parameter(description = "Mode de paiement (CARTE, ESPECES, etc.)") @RequestParam String modePaiement) {
+            @Parameter(description = "ID de la facture") @PathVariable Long id,
+            @Parameter(description = "Mode de paiement (CARTE, ESPECES, etc.)") @RequestParam String modePaiement) {
         return ResponseEntity.ok(FactureResponseDTO.from(factureService.reglerFacture(id, modePaiement)));
     }
 
@@ -224,20 +227,21 @@ public class FactureController {
     @Operation(summary = "Télécharger la facture au format PDF", description = "Génère un document PDF aux normes légales (TVA, SIRET, numérotation).")
     @ApiResponse(responseCode = "200", description = "PDF généré")
     @ApiResponse(responseCode = "404", description = "Facture introuvable")
-    public ResponseEntity<byte[]> downloadFacturePdf(@Parameter(description = "ID de la facture") @PathVariable Long id) {
+    public ResponseEntity<byte[]> downloadFacturePdf(
+            @Parameter(description = "ID de la facture") @PathVariable Long id) {
         Facture facture = factureService.getFactureById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Facture non trouvée: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Facture non trouvée: " + id));
         byte[] pdf = pdfService.generateFacturePdf(facture);
         return ResponseEntity.ok()
-            .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_PDF_VALUE)
-            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"facture-" + id + ".pdf\"")
-            .body(pdf);
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_PDF_VALUE)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"facture-" + id + ".pdf\"")
+                .body(pdf);
     }
 
     /**
      * Divise une facture à parts égales entre N convives.
      *
-     * @param id Identifiant de la facture
+     * @param id      Identifiant de la facture
      * @param request DTO indiquant le nombre de convives
      * @return Résultats du calcul de répartition
      */
@@ -254,7 +258,7 @@ public class FactureController {
     /**
      * Divise une facture par sélection d'articles choisis par chaque convive.
      *
-     * @param id Identifiant de la facture
+     * @param id      Identifiant de la facture
      * @param request DTO décrivant la répartition des articles par convive
      * @return Résultats détaillés de la répartition
      */

@@ -3,7 +3,6 @@ package com.bar.gestioncocktail.controller;
 import com.bar.gestioncocktail.dto.CocktailIngredientRequestDTO;
 import com.bar.gestioncocktail.dto.CocktailIngredientResponseDTO;
 import com.bar.gestioncocktail.model.Cocktail;
-import com.bar.gestioncocktail.model.CocktailIngredient;
 import com.bar.gestioncocktail.model.Ingredient;
 import com.bar.gestioncocktail.service.CocktailIngredientService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -19,7 +18,8 @@ import java.math.BigDecimal;
 import java.util.List;
 
 /**
- * Controller REST pour la gestion de la composition des cocktails (liaison cocktail ↔ ingrédient et proportions).
+ * Controller REST pour la gestion de la composition des cocktails (liaison
+ * cocktail ↔ ingrédient et proportions).
  */
 @RestController
 @RequestMapping("/api/cocktail-ingredients")
@@ -30,7 +30,8 @@ public class CocktailIngredientController {
     /**
      * Constructeur avec injection du service de recette cocktail-ingrédient.
      *
-     * @param cocktailIngredientService Service gérant les liaisons entre cocktails et ingrédients
+     * @param cocktailIngredientService Service gérant les liaisons entre cocktails
+     *                                  et ingrédients
      */
     @Autowired
     public CocktailIngredientController(CocktailIngredientService cocktailIngredientService) {
@@ -47,9 +48,10 @@ public class CocktailIngredientController {
     @PreAuthorize("hasRole('ADMIN') or hasRole('BARMAN')")
     @Operation(summary = "Add an ingredient to a recipe (BARMAN/ADMIN)")
     @ApiResponse(responseCode = "200", description = "Link created")
-    public ResponseEntity<CocktailIngredientResponseDTO> createCocktailIngredient(@RequestBody CocktailIngredientRequestDTO request) {
+    public ResponseEntity<CocktailIngredientResponseDTO> createCocktailIngredient(
+            @RequestBody CocktailIngredientRequestDTO request) {
         return ResponseEntity.ok(CocktailIngredientResponseDTO.from(
-            cocktailIngredientService.createCocktailIngredient(request.toEntity())));
+                cocktailIngredientService.createCocktailIngredient(request.toEntity())));
     }
 
     /**
@@ -62,7 +64,8 @@ public class CocktailIngredientController {
     @PreAuthorize("hasRole('ADMIN') or hasRole('BARMAN')")
     @Operation(summary = "Supprimer un ingrédient d'une recette par ID (BARMAN/ADMIN)")
     @ApiResponse(responseCode = "200", description = "Liaison supprimée")
-    public ResponseEntity<Void> deleteCocktailIngredient(@Parameter(description = "ID de la liaison") @PathVariable Long id) {
+    public ResponseEntity<Void> deleteCocktailIngredient(
+            @Parameter(description = "ID de la liaison") @PathVariable Long id) {
         cocktailIngredientService.deleteCocktailIngredient(id);
         return ResponseEntity.ok().build();
     }
@@ -78,11 +81,11 @@ public class CocktailIngredientController {
     @Operation(summary = "Obtenir les ingrédients d'un cocktail")
     @ApiResponse(responseCode = "200", description = "Ingrédients de la recette récupérés")
     public ResponseEntity<List<CocktailIngredientResponseDTO>> getIngredientsByCocktail(
-        @Parameter(description = "ID du cocktail") @PathVariable Long cocktailId) {
+            @Parameter(description = "ID du cocktail") @PathVariable Long cocktailId) {
         Cocktail cocktail = new Cocktail();
         cocktail.setId(cocktailId);
         return ResponseEntity.ok(cocktailIngredientService.getIngredientsByCocktail(cocktail).stream()
-            .map(CocktailIngredientResponseDTO::from).toList());
+                .map(CocktailIngredientResponseDTO::from).toList());
     }
 
     /**
@@ -96,17 +99,17 @@ public class CocktailIngredientController {
     @Operation(summary = "Obtenir les cocktails utilisant un ingrédient")
     @ApiResponse(responseCode = "200", description = "Cocktails associés récupérés")
     public ResponseEntity<List<CocktailIngredientResponseDTO>> getCocktailsByIngredient(
-        @Parameter(description = "ID de l'ingrédient") @PathVariable Long ingredientId) {
+            @Parameter(description = "ID de l'ingrédient") @PathVariable Long ingredientId) {
         Ingredient ingredient = new Ingredient();
         ingredient.setId(ingredientId);
         return ResponseEntity.ok(cocktailIngredientService.getCocktailsByIngredient(ingredient).stream()
-            .map(CocktailIngredientResponseDTO::from).toList());
+                .map(CocktailIngredientResponseDTO::from).toList());
     }
 
     /**
      * Met à jour la dose/quantité d'un ingrédient dans un cocktail.
      *
-     * @param id Identifiant de la liaison
+     * @param id       Identifiant de la liaison
      * @param quantite Nouvelle quantité
      * @return DTO de la liaison mise à jour
      */
@@ -116,20 +119,21 @@ public class CocktailIngredientController {
     @ApiResponse(responseCode = "200", description = "Quantité mise à jour")
     @ApiResponse(responseCode = "404", description = "Liaison non trouvée")
     public ResponseEntity<CocktailIngredientResponseDTO> updateQuantite(
-        @Parameter(description = "ID de la liaison") @PathVariable Long id,
-        @Parameter(description = "Nouvelle dose") @RequestParam BigDecimal quantite) {
+            @Parameter(description = "ID de la liaison") @PathVariable Long id,
+            @Parameter(description = "Nouvelle dose") @RequestParam BigDecimal quantite) {
         return cocktailIngredientService.getCocktailIngredientById(id)
-            .map(cocktailIngredient -> {
-                cocktailIngredientService.updateQuantite(cocktailIngredient, quantite);
-                return ResponseEntity.ok(CocktailIngredientResponseDTO.from(cocktailIngredient));
-            })
-            .orElse(ResponseEntity.notFound().build());
+                .map(cocktailIngredient -> {
+                    cocktailIngredientService.updateQuantite(cocktailIngredient, quantite);
+                    return ResponseEntity.ok(CocktailIngredientResponseDTO.from(cocktailIngredient));
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 
     /**
-     * Supprime le lien entre un cocktail et un ingrédient désignés par leurs IDs respectifs.
+     * Supprime le lien entre un cocktail et un ingrédient désignés par leurs IDs
+     * respectifs.
      *
-     * @param cocktailId Identifiant du cocktail
+     * @param cocktailId   Identifiant du cocktail
      * @param ingredientId Identifiant de l'ingrédient
      * @return Statut 200 OK
      */
@@ -138,8 +142,8 @@ public class CocktailIngredientController {
     @Operation(summary = "Supprimer un ingrédient d'une recette par IDs (BARMAN/ADMIN)")
     @ApiResponse(responseCode = "200", description = "Liaison supprimée")
     public ResponseEntity<Void> deleteCocktailIngredient(
-        @Parameter(description = "ID du cocktail") @PathVariable Long cocktailId,
-        @Parameter(description = "ID de l'ingrédient") @PathVariable Long ingredientId) {
+            @Parameter(description = "ID du cocktail") @PathVariable Long cocktailId,
+            @Parameter(description = "ID de l'ingrédient") @PathVariable Long ingredientId) {
         Cocktail cocktail = new Cocktail();
         cocktail.setId(cocktailId);
         Ingredient ingredient = new Ingredient();

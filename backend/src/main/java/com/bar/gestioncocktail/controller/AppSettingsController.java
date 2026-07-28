@@ -10,7 +10,6 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -18,9 +17,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Controller REST pour la gestion des paramètres globaux de l'application (personnalisation, branding, etc.).
+ * Controller REST pour la gestion des paramètres globaux de l'application
+ * (personnalisation, branding, etc.).
  * <p>
- * L'endpoint {@code GET} est public afin de permettre la lecture des paramètres dès l'écran de connexion.
+ * L'endpoint {@code GET} est public afin de permettre la lecture des paramètres
+ * dès l'écran de connexion.
  * L'endpoint {@code PUT} est réservé aux administrateurs.
  */
 @RestController
