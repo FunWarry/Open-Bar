@@ -1,5 +1,9 @@
 {
     "java.compile.nullAnalysis.mode": "automatic",
     "java.configuration.updateBuildConfiguration": "interactive",
-    "maven.view": "flat"
+    "maven.view": "flat",
+    "sonarlint.connectedMode.project": {
+        "connectionId": "funwarry",
+        "projectKey": "FunWarry_Open-Bar"
+    }
 }

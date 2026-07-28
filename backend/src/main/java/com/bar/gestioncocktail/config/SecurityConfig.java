@@ -17,6 +17,8 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -45,7 +47,10 @@ public class SecurityConfig {
         try {
             return http
                     .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                    .csrf(csrf -> csrf.ignoringRequestMatchers("/**"))
+                    .csrf(csrf -> csrf
+                            .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                            .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
+                            .ignoringRequestMatchers("/api/**", "/ws/**", "/swagger-ui/**", "/v3/api-docs/**"))
                     .sessionManagement(session -> session
                             .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     .authorizeHttpRequests(auth -> auth
