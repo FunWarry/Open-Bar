@@ -4,7 +4,6 @@ import com.bar.gestioncocktail.dto.PlanSalleDTO;
 import com.bar.gestioncocktail.dto.TablePositionDTO;
 import com.bar.gestioncocktail.dto.TableRequestDTO;
 import com.bar.gestioncocktail.dto.TableResponseDTO;
-import com.bar.gestioncocktail.model.TableEntity;
 import com.bar.gestioncocktail.model.TableZone;
 import com.bar.gestioncocktail.service.TableService;
 import io.swagger.v3.oas.annotations.Operation;

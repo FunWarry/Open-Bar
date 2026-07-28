@@ -113,7 +113,7 @@ public class CommandeService {
         BigDecimal total = commande.getItems().stream()
                 .map(commandeItem -> commandeItem.getPrixUnitaire()
                         .multiply(new BigDecimal(commandeItem.getQuantite())))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                .reduce(BigDecimal.ZERO, (a, b) -> a.add(b));
 
         commande.setTotal(total);
         commande.setDateModification(LocalDateTime.now());
@@ -228,7 +228,7 @@ public class CommandeService {
                         BigDecimal qte = ci.getQuantite()
                                 .multiply(BigDecimal.valueOf(item.getQuantite()))
                                 .multiply(mult);
-                        quantites.merge(ingredient.getId(), qte, BigDecimal::add);
+                        quantites.merge(ingredient.getId(), qte, (a, b) -> a.add(b));
                     }
                 }
             }

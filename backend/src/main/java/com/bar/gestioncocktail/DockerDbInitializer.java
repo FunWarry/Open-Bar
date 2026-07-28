@@ -44,19 +44,17 @@ public class DockerDbInitializer {
             logger.info("Initialisation Docker et base de données...");
 
             if (!isDockerRunning()) {
-                logger.info("Docker n'est pas en cours d'exécution. Démarrage...");
+                logger.info("Docker n'est pas en cours d'exécution. Tentative de démarrage...");
                 startDocker();
             } else {
-                logger.info("Docker est déjà en cours d'exécution.");
+                logger.info("Le service Docker est en cours d'exécution.");
             }
 
             if (!isDatabaseExists()) {
-                logger.info("La base de données n'existe pas ou n'est pas accessible. Démarrage des conteneurs...");
+                logger.info("La base de données n'existe pas. Création via Docker...");
                 startDockerCompose();
-                logger.info("Attente de la disponibilité de la base de données...");
-                waitForDb();
-                logger.info("Base de données disponible. Exécution du script schema.sql...");
-                runSchemaSql();
+                waitForDatabaseReady();
+                executeSchemaSql();
             } else {
                 logger.info("La base de données existe déjà et est accessible.");
             }
@@ -70,9 +68,20 @@ public class DockerDbInitializer {
         }
     }
 
+    private Process executeProcess(File workingDir, boolean redirectError, String... command) throws IOException {
+        ProcessBuilder pb = new ProcessBuilder(command);
+        if (workingDir != null) {
+            pb.directory(workingDir);
+        }
+        if (redirectError) {
+            pb.redirectErrorStream(true);
+        }
+        return pb.start();
+    }
+
     private boolean isDockerRunning() {
         try {
-            Process process = new ProcessBuilder(DOCKER_CMD, "info").start();
+            Process process = executeProcess(null, false, DOCKER_CMD, "info");
             int exitCode = process.waitFor();
             return exitCode == 0;
         } catch (InterruptedException e) {
@@ -92,13 +101,13 @@ public class DockerDbInitializer {
         Process process;
         if (os.contains("win")) {
             logger.info("Démarrage de Docker Desktop pour Windows...");
-            process = new ProcessBuilder("cmd", "/c", START_CMD, "\"\"", "\"C:\\Program Files\\Docker\\Docker\\Docker Desktop.exe\"").start();
+            process = executeProcess(null, false, "cmd", "/c", START_CMD, "\"\"", "\"C:\\Program Files\\Docker\\Docker\\Docker Desktop.exe\"");
         } else if (os.contains("mac")) {
             logger.info("Démarrage de Docker pour macOS...");
-            process = new ProcessBuilder("open", "-a", "Docker").start();
+            process = executeProcess(null, false, "open", "-a", "Docker");
         } else {
             logger.info("Démarrage du service Docker pour Linux...");
-            process = new ProcessBuilder("sudo", "systemctl", START_CMD, DOCKER_CMD).start();
+            process = executeProcess(null, false, "sudo", "systemctl", START_CMD, DOCKER_CMD);
         }
 
         int exitCode = process.waitFor();
@@ -128,7 +137,7 @@ public class DockerDbInitializer {
 
     private boolean isDockerEngineRunning() {
         try {
-            Process process = new ProcessBuilder(DOCKER_CMD, "info", FORMAT_OPTION, "{{.ServerVersion}}").start();
+            Process process = executeProcess(null, false, DOCKER_CMD, "info", FORMAT_OPTION, "{{.ServerVersion}}");
 
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
                 String version = reader.readLine();
@@ -151,9 +160,7 @@ public class DockerDbInitializer {
 
     private boolean isDatabaseExists() {
         try {
-            Process process = new ProcessBuilder(DOCKER_CMD, "ps", "-a", "--filter", "name=" + CONTAINER_NAME, FORMAT_OPTION, "{{.Names}}")
-                    .redirectErrorStream(true)
-                    .start();
+            Process process = executeProcess(null, true, DOCKER_CMD, "ps", "-a", "--filter", "name=" + CONTAINER_NAME, FORMAT_OPTION, "{{.Names}}");
 
             String containerOutput;
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
@@ -184,9 +191,7 @@ public class DockerDbInitializer {
     }
 
     private void ensureContainerRunning() throws IOException, InterruptedException {
-        Process statusProcess = new ProcessBuilder(DOCKER_CMD, "inspect", FORMAT_OPTION, "{{.State.Running}}", CONTAINER_NAME)
-                .redirectErrorStream(true)
-                .start();
+        Process statusProcess = executeProcess(null, true, DOCKER_CMD, "inspect", FORMAT_OPTION, "{{.State.Running}}", CONTAINER_NAME);
 
         String status;
         try (BufferedReader statusReader = new BufferedReader(new InputStreamReader(statusProcess.getInputStream()))) {
@@ -196,9 +201,7 @@ public class DockerDbInitializer {
 
         if (!"true".equalsIgnoreCase(status)) {
             logger.log(Level.INFO, "Le conteneur {0} n''est pas en cours d''exécution. Démarrage...", CONTAINER_NAME);
-            Process startProcess = new ProcessBuilder(DOCKER_CMD, START_CMD, CONTAINER_NAME)
-                    .redirectErrorStream(true)
-                    .start();
+            Process startProcess = executeProcess(null, true, DOCKER_CMD, START_CMD, CONTAINER_NAME);
             startProcess.waitFor();
             Thread.sleep(5000);
         }
@@ -232,7 +235,7 @@ public class DockerDbInitializer {
 
         String[] command;
         try {
-            Process check = new ProcessBuilder(DOCKER_CMD, "compose", "version").start();
+            Process check = executeProcess(null, false, DOCKER_CMD, "compose", "version");
             check.waitFor();
             command = new String[]{DOCKER_CMD, "compose", "-f", dockerComposeFile.getAbsolutePath(), "up", "-d"};
         } catch (InterruptedException _) {
@@ -242,10 +245,7 @@ public class DockerDbInitializer {
             command = new String[]{"docker-compose", "-f", dockerComposeFile.getAbsolutePath(), "up", "-d"};
         }
 
-        Process process = new ProcessBuilder(command)
-                .directory(projectRoot)
-                .redirectErrorStream(true)
-                .start();
+        Process process = executeProcess(projectRoot, true, command);
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
             String line;
@@ -260,28 +260,31 @@ public class DockerDbInitializer {
         }
     }
 
-    private void waitForDb() throws InterruptedException {
-        int retries = 30;
-        int delay = 5000;
+    private void waitForDatabaseReady() throws InterruptedException {
+        logger.info("Attente du démarrage de la base de données...");
+        int maxRetries = 30;
+        int retryDelay = 2000;
+        int retries = 0;
 
-        while (retries-- > 0) {
+        while (retries < maxRetries) {
             if (isDatabaseCreated()) {
-                logger.info("Connexion à la base de données réussie après des tentatives.");
+                logger.log(Level.INFO, "Base de données prête après {0} tentatives", retries);
                 return;
             }
-            Thread.sleep(delay);
+            retries++;
+            logger.log(Level.INFO, "Attente de la base de données... Tentative {0}/{1}", new Object[]{retries, maxRetries});
+            Thread.sleep(retryDelay);
         }
-        throw new IllegalStateException("La base de données n'est pas disponible après plusieurs tentatives.");
+
+        throw new IllegalStateException("La base de données n'a pas démarré après la durée maximale.");
     }
 
-    private void runSchemaSql() {
+    private void executeSchemaSql() throws Exception {
+        logger.info("Exécution du script schema.sql...");
         try (Connection conn = dataSource.getConnection()) {
-            logger.info("Exécution du script schema.sql...");
-            ScriptUtils.executeSqlScript(conn, new ClassPathResource("schema.sql"));
+            ClassPathResource resource = new ClassPathResource("schema.sql");
+            ScriptUtils.executeSqlScript(conn, resource);
             logger.info("Script schema.sql exécuté avec succès.");
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "Erreur lors de l''exécution du script schema.sql: {0}", e.getMessage());
-            throw new IllegalStateException("Erreur lors de l'exécution du script schema.sql", e);
         }
     }
 }
