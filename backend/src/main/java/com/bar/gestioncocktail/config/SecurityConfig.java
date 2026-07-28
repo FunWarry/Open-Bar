@@ -48,9 +48,8 @@ public class SecurityConfig {
             return http
                     .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                     .csrf(csrf -> csrf
-                            .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                            .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
-                            .ignoringRequestMatchers("/api/**", "/ws/**", "/swagger-ui/**", "/v3/api-docs/**"))
+                            .csrfTokenRepository(new CookieCsrfTokenRepository())
+                            .ignoringRequestMatchers("/api/auth/**", "/api/public/**"))
                     .sessionManagement(session -> session
                             .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     .authorizeHttpRequests(auth -> auth
