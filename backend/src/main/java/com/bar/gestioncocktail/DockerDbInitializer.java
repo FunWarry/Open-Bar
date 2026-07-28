@@ -279,7 +279,7 @@ public class DockerDbInitializer {
         throw new IllegalStateException("La base de données n'a pas démarré après la durée maximale.");
     }
 
-    private void executeSchemaSql() throws Exception {
+    private void executeSchemaSql() throws SQLException {
         logger.info("Exécution du script schema.sql...");
         try (Connection conn = dataSource.getConnection()) {
             ClassPathResource resource = new ClassPathResource("schema.sql");
