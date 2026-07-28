@@ -14,6 +14,9 @@ module.exports = function karma (config) {
     ],
     client: {
       clearContext: false, // laisse le rapport Jasmine visible dans le navigateur
+      jasmine: {
+        random: false,
+      },
     },
     jasmineHtmlReporter: {
       suppressAll: true,
