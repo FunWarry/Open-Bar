@@ -15,6 +15,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/tables")
+@SuppressWarnings("java:S4684")
 public class TableController {
 
     private final TableService tableService;
