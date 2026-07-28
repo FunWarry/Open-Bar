@@ -34,8 +34,6 @@ import java.util.Optional;
  */
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "*")
-@SuppressWarnings({"java:S4684", "java:S5122"})
 @Tag(name = "Authentification", description = "Endpoints de connexion, rafraîchissement de token JWT et déconnexion")
 public class AuthController {
     private final AuthenticationManager authenticationManager;

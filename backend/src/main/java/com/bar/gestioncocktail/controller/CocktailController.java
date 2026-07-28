@@ -26,8 +26,6 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api/cocktails")
-@CrossOrigin(origins = "*")
-@SuppressWarnings({"java:S4684", "java:S5122"})
 @Tag(name = "Cocktails", description = "Gestion du catalogue de cocktails, prix, disponibilité et saisonnalité")
 public class CocktailController {
     private final CocktailService cocktailService;

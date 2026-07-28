@@ -20,7 +20,6 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api/users")
-@SuppressWarnings({"java:S4684", "java:S5122"})
 @Tag(name = "Utilisateurs", description = "Administration des comptes utilisateurs, attribution des rôles et réinitialisation de mot de passe")
 public class UserController {
     private final UserService userService;

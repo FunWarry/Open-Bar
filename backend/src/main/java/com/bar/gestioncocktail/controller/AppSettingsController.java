@@ -25,8 +25,6 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/api/settings")
-@CrossOrigin(origins = "*")
-@SuppressWarnings({"java:S4684", "java:S5122"})
 @Tag(name = "Settings", description = "Paramètres de personnalisation globale de l'établissement")
 public class AppSettingsController {
 

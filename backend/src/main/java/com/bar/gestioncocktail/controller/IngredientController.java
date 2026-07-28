@@ -21,8 +21,6 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api/ingredients")
-@CrossOrigin(origins = "*")
-@SuppressWarnings({"java:S4684", "java:S5122"})
 @Tag(name = "Ingrédients", description = "Gestion du stock d'ingrédients, seuils d'alerte et inventaire")
 public class IngredientController {
     private final IngredientService ingredientService;
