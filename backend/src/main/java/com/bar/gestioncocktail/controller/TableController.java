@@ -112,4 +112,10 @@ public class TableController {
         tableService.updatePositionsBatch(positions);
         return ResponseEntity.ok().build();
     }
+
+    @PostMapping("/{sourceId}/transfer/{targetId}")
+    @PreAuthorize("hasRole('SERVEUR') or hasRole('ADMIN') or hasRole('MANAGER')")
+    public ResponseEntity<TableResponseDTO> transfererCommandes(@PathVariable Long sourceId, @PathVariable Long targetId) {
+        return ResponseEntity.ok(TableResponseDTO.from(tableService.transfererCommandes(sourceId, targetId)));
+    }
 }

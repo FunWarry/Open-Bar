@@ -1,13 +1,16 @@
 package com.bar.gestioncocktail.service;
 
 import com.bar.gestioncocktail.exception.ResourceNotFoundException;
+import com.bar.gestioncocktail.dto.MergeFacturesRequestDTO;
 import com.bar.gestioncocktail.dto.SplitAdditionRequest;
 import com.bar.gestioncocktail.dto.SplitPartRequest;
 import com.bar.gestioncocktail.dto.SplitResultDTO;
 import com.bar.gestioncocktail.model.Facture;
 import com.bar.gestioncocktail.model.FactureItem;
+import com.bar.gestioncocktail.model.TableEntity;
 import com.bar.gestioncocktail.repository.FactureItemRepository;
 import com.bar.gestioncocktail.repository.FactureRepository;
+import com.bar.gestioncocktail.repository.TableRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,8 +31,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -39,10 +44,16 @@ class FactureServiceTest {
     FactureRepository factureRepository;
 
     @Mock
+    TableRepository tableRepository;
+
+    @Mock
     FactureItemRepository factureItemRepository;
 
     @Mock
     EntityManager entityManager;
+
+    @Mock
+    AuditLogService auditLogService;
 
     @InjectMocks
     FactureService factureService;
@@ -319,5 +330,50 @@ class FactureServiceTest {
         List<SplitResultDTO> result = factureService.splitParSelection(10L, request);
 
         assertThat(result).isEmpty();
+    }
+
+    // ─── fusionnerFactures ───────────────────────────────────────────────────
+
+    @Test
+    void fusionnerFactures_combineItemsEtGenereNouvelleFacture() {
+        TableEntity table = new TableEntity();
+        table.setId(1L);
+
+        Facture f1 = new Facture();
+        f1.setId(1L);
+        f1.setNumero("FAC-1");
+        f1.setTable(table);
+        FactureItem fi1 = new FactureItem();
+        fi1.setQuantite(2);
+        fi1.setPrixUnitaire(new BigDecimal("10.00"));
+        fi1.setTotal(new BigDecimal("20.00"));
+        f1.setItems(List.of(fi1));
+
+        Facture f2 = new Facture();
+        f2.setId(2L);
+        f2.setNumero("FAC-2");
+        f2.setTable(table);
+        FactureItem fi2 = new FactureItem();
+        fi2.setQuantite(1);
+        fi2.setPrixUnitaire(new BigDecimal("15.00"));
+        fi2.setTotal(new BigDecimal("15.00"));
+        f2.setItems(List.of(fi2));
+
+        Query mockQuery = mock(Query.class);
+        when(entityManager.createNativeQuery(anyString())).thenReturn(mockQuery);
+        when(mockQuery.getSingleResult()).thenReturn(100L);
+
+        when(factureRepository.findAllById(List.of(1L, 2L))).thenReturn(List.of(f1, f2));
+        when(factureRepository.save(any(Facture.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        MergeFacturesRequestDTO request = new MergeFacturesRequestDTO(List.of(1L, 2L), 1L);
+
+        Facture merged = factureService.fusionnerFactures(request);
+
+        assertThat(merged.getTotal()).isEqualByComparingTo(new BigDecimal("35.00"));
+        assertThat(merged.getItems()).hasSize(2);
+        assertThat(f1.isReglee()).isTrue();
+        assertThat(f2.isReglee()).isTrue();
+        verify(auditLogService).logAction(eq(null), eq("FUSION_FACTURES"), eq("Facture"), any(), anyString(), eq(null));
     }
 }
