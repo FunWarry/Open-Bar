@@ -27,6 +27,8 @@ import java.util.Optional;
 @Service
 @Transactional
 public class CommandeService {
+    private static final String COMMANDE_NOT_FOUND = "Commande non trouvée avec l'id: ";
+
     private final CommandeRepository commandeRepository;
     private final CommandeItemRepository commandeItemRepository;
     private final IngredientRepository ingredientRepository;
@@ -84,7 +86,7 @@ public class CommandeService {
     @Transactional
     public Commande updateCommande(Long id, Commande commandeDetails) {
         Commande commande = commandeRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Commande non trouvée avec l'id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(COMMANDE_NOT_FOUND + id));
 
         commande.setTable(commandeDetails.getTable());
         commande.setItems(commandeDetails.getItems());
@@ -103,7 +105,7 @@ public class CommandeService {
     @Transactional
     public Commande ajouterItem(Long commandeId, CommandeItem item) {
         Commande commande = commandeRepository.findById(commandeId)
-                .orElseThrow(() -> new ResourceNotFoundException("Commande non trouvée avec l'id: " + commandeId));
+                .orElseThrow(() -> new ResourceNotFoundException(COMMANDE_NOT_FOUND + commandeId));
 
         item.setCommande(commande);
         commandeItemRepository.save(item);
@@ -121,7 +123,7 @@ public class CommandeService {
     @Transactional
     public Commande retirerItem(Long commandeId, Long itemId) {
         Commande commande = commandeRepository.findById(commandeId)
-                .orElseThrow(() -> new ResourceNotFoundException("Commande non trouvée avec l'id: " + commandeId));
+                .orElseThrow(() -> new ResourceNotFoundException(COMMANDE_NOT_FOUND + commandeId));
 
         commande.getItems().removeIf(item -> item.getId().equals(itemId));
         commande.setDateModification(LocalDateTime.now());
@@ -132,7 +134,7 @@ public class CommandeService {
     @Transactional
     public Commande changerStatut(Long id, CommandeStatut nouveauStatut) {
         Commande commande = commandeRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Commande non trouvée avec l'id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(COMMANDE_NOT_FOUND + id));
 
         commande.setStatut(nouveauStatut);
         commande.setUpdatedAt(LocalDateTime.now());
