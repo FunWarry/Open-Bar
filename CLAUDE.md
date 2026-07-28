@@ -348,7 +348,7 @@ Pour les fichiers scopés par feature (ex : `fr/commandes.json`), déclarer le s
 | Dashboard Barman | ✅ | ✅ kanban temps réel | ✅ |
 | Vue Serveur (plan de salle + commandes) | ✅ | ✅ modal + nouvelle commande + kanban | ✅ |
 | Plan de salle interactif (Konva.js) | ✅ | ✅ | ✅ |
-| Vue Client QR Code | ❌ | ❌ | — |
+| Vue Client QR Code (Passage commande publique + suivi STOMP) | ✅ | ❌ | ✅ |
 
 
 
