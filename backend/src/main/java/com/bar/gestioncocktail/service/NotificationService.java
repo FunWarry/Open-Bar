@@ -65,7 +65,51 @@ public class NotificationService {
         messagingTemplate.convertAndSend(TOPIC_STOCK_ALERTE, payload);
     }
 
-    public record CommandeStatutNotification(Long commandeId, CommandeStatut ancienStatut, CommandeStatut nouveauStatut) {}
+    public static class CommandeStatutNotification {
+        private final Long commandeId;
+        private final CommandeStatut ancienStatut;
+        private final CommandeStatut nouveauStatut;
 
-    public record StockAlerteNotification(Long ingredientId, String nomIngredient, double quantiteRestante) {}
+        public CommandeStatutNotification(Long commandeId, CommandeStatut ancienStatut, CommandeStatut nouveauStatut) {
+            this.commandeId = commandeId;
+            this.ancienStatut = ancienStatut;
+            this.nouveauStatut = nouveauStatut;
+        }
+
+        public Long getCommandeId() {
+            return commandeId;
+        }
+
+        public CommandeStatut getAncienStatut() {
+            return ancienStatut;
+        }
+
+        public CommandeStatut getNouveauStatut() {
+            return nouveauStatut;
+        }
+    }
+
+    public static class StockAlerteNotification {
+        private final Long ingredientId;
+        private final String nomIngredient;
+        private final double quantiteRestante;
+
+        public StockAlerteNotification(Long ingredientId, String nomIngredient, double quantiteRestante) {
+            this.ingredientId = ingredientId;
+            this.nomIngredient = nomIngredient;
+            this.quantiteRestante = quantiteRestante;
+        }
+
+        public Long getIngredientId() {
+            return ingredientId;
+        }
+
+        public String getNomIngredient() {
+            return nomIngredient;
+        }
+
+        public double getQuantiteRestante() {
+            return quantiteRestante;
+        }
+    }
 }
