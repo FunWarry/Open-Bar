@@ -15,6 +15,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/tables")
+@SuppressWarnings("java:S4684")
 public class TableController {
 
     private final TableService tableService;
@@ -111,5 +112,11 @@ public class TableController {
     public ResponseEntity<Void> updatePositionsBatch(@RequestBody List<TablePositionDTO> positions) {
         tableService.updatePositionsBatch(positions);
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{sourceId}/transfer/{targetId}")
+    @PreAuthorize("hasRole('SERVEUR') or hasRole('ADMIN') or hasRole('MANAGER')")
+    public ResponseEntity<TableResponseDTO> transfererCommandes(@PathVariable Long sourceId, @PathVariable Long targetId) {
+        return ResponseEntity.ok(TableResponseDTO.from(tableService.transfererCommandes(sourceId, targetId)));
     }
 }

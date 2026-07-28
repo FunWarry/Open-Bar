@@ -1,5 +1,7 @@
 package com.bar.gestioncocktail.service;
 
+import com.bar.gestioncocktail.dto.MergeFacturesRequestDTO;
+import com.bar.gestioncocktail.exception.BusinessException;
 import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.dto.SplitAdditionRequest;
 import com.bar.gestioncocktail.dto.SplitResultDTO;
@@ -7,6 +9,7 @@ import com.bar.gestioncocktail.model.Facture;
 import com.bar.gestioncocktail.model.FactureItem;
 import com.bar.gestioncocktail.model.TableEntity;
 import com.bar.gestioncocktail.repository.FactureRepository;
+import com.bar.gestioncocktail.repository.TableRepository;
 import jakarta.persistence.EntityManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,12 +28,16 @@ import java.util.stream.Collectors;
 @Transactional
 public class FactureService {
     private final FactureRepository factureRepository;
+    private final TableRepository tableRepository;
     private final EntityManager entityManager;
+    private final AuditLogService auditLogService;
 
     @Autowired
-    public FactureService(FactureRepository factureRepository, EntityManager entityManager) {
+    public FactureService(FactureRepository factureRepository, TableRepository tableRepository, EntityManager entityManager, AuditLogService auditLogService) {
         this.factureRepository = factureRepository;
+        this.tableRepository = tableRepository;
         this.entityManager = entityManager;
+        this.auditLogService = auditLogService;
     }
 
     public List<Facture> getAllFactures() {
@@ -113,7 +120,7 @@ public class FactureService {
         if (facture.getTable() != null) {
             TableEntity table = facture.getTable();
             table.setOccupee(false);
-            entityManager.merge(table);
+            tableRepository.save(table);
         }
 
         return factureRepository.save(facture);
@@ -214,5 +221,69 @@ public class FactureService {
         }
 
         return result;
+    }
+
+    @Transactional
+    public Facture fusionnerFactures(MergeFacturesRequestDTO request) {
+        List<Facture> factures = factureRepository.findAllById(request.factureIds());
+        if (factures.size() < 2) {
+            throw new BusinessException("Au moins 2 factures valides sont requises pour la fusion.");
+        }
+
+        for (Facture f : factures) {
+            if (f.isReglee()) {
+                throw new BusinessException("La facture " + f.getNumero() + " est déjà réglée et ne peut pas être fusionnée.");
+            }
+        }
+
+        TableEntity tableCible = request.targetTableId() != null
+                ? tableRepository.findById(request.targetTableId()).orElse(factures.get(0).getTable())
+                : factures.get(0).getTable();
+
+        Facture merged = new Facture();
+        merged.setTable(tableCible);
+        long sequence = ((Number) entityManager.createNativeQuery("SELECT NEXTVAL('facture_seq')").getSingleResult()).longValue();
+        String mois = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMM"));
+        merged.setNumero(String.format("FAC-MERGE-%s-%04d", mois, sequence));
+        merged.setDateFacture(LocalDateTime.now());
+        merged.setReglee(false);
+
+        BigDecimal total = BigDecimal.ZERO;
+        List<FactureItem> newItems = new ArrayList<>();
+
+        for (Facture f : factures) {
+            if (f.getItems() != null) {
+                for (FactureItem item : f.getItems()) {
+                    FactureItem newItem = new FactureItem();
+                    newItem.setFacture(merged);
+                    newItem.setCommandeItem(item.getCommandeItem());
+                    newItem.setQuantite(item.getQuantite());
+                    newItem.setPrixUnitaire(item.getPrixUnitaire());
+                    newItem.setTotal(item.getTotal());
+                    newItem.setDescription(item.getDescription());
+                    newItems.add(newItem);
+                    if (item.getTotal() != null) {
+                        total = total.add(item.getTotal());
+                    } else if (item.getPrixUnitaire() != null) {
+                        total = total.add(item.getPrixUnitaire().multiply(BigDecimal.valueOf(item.getQuantite())));
+                    }
+                }
+            }
+            f.setReglee(true);
+            f.setModePaiement("FUSIONNE");
+            f.setNotes("Fusionnée dans la facture " + merged.getNumero());
+            factureRepository.save(f);
+        }
+
+        merged.setItems(newItems);
+        merged.setTotal(total);
+        merged.setTotalTTC(total);
+
+        Facture saved = factureRepository.save(merged);
+
+        auditLogService.logAction(null, "FUSION_FACTURES", "Facture", saved.getId(),
+                "Fusion de " + factures.size() + " factures en " + saved.getNumero(), null);
+
+        return saved;
     }
 } 

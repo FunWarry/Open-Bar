@@ -6,6 +6,10 @@ import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.model.TableEntity;
 import com.bar.gestioncocktail.model.TableZone;
 import com.bar.gestioncocktail.repository.TableRepository;
+import com.bar.gestioncocktail.model.Commande;
+import com.bar.gestioncocktail.model.CommandeStatut;
+import com.bar.gestioncocktail.repository.CommandeRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,9 +24,14 @@ public class TableService {
     private static final String TABLE_NOT_FOUND_MSG = "Table not found with id: ";
 
     private final TableRepository tableRepository;
+    private final CommandeRepository commandeRepository;
+    private final AuditLogService auditLogService;
 
-    public TableService(TableRepository tableRepository) {
+    @Autowired
+    public TableService(TableRepository tableRepository, CommandeRepository commandeRepository, AuditLogService auditLogService) {
         this.tableRepository = tableRepository;
+        this.commandeRepository = commandeRepository;
+        this.auditLogService = auditLogService;
     }
 
     public List<TableEntity> getAllTables() {
@@ -132,5 +141,49 @@ public class TableService {
                 tableRepository.save(table);
             });
         }
+    }
+
+    @Transactional
+    public TableEntity transfererCommandes(Long sourceId, Long targetId) {
+        TableEntity source = tableRepository.findById(sourceId)
+                .orElseThrow(() -> new ResourceNotFoundException(TABLE_NOT_FOUND_MSG + sourceId));
+        TableEntity target = tableRepository.findById(targetId)
+                .orElseThrow(() -> new ResourceNotFoundException(TABLE_NOT_FOUND_MSG + targetId));
+
+        List<Commande> commandesSource = commandeRepository.findByTable(source);
+        List<Commande> commandesActives = commandesSource.stream()
+                .filter(c -> c.getStatut() != CommandeStatut.REGLEE && c.getStatut() != CommandeStatut.ANNULEE)
+                .toList();
+
+        if (commandesActives.isEmpty()) {
+            throw new BusinessException("Aucune commande active à transférer sur la table " + source.getNumero());
+        }
+
+        for (Commande c : commandesActives) {
+            c.setTable(target);
+            c.setUpdatedAt(LocalDateTime.now());
+            commandeRepository.save(c);
+        }
+
+        target.setOccupee(true);
+        if (target.getDateOccupation() == null) {
+            target.setDateOccupation(LocalDateTime.now(ZoneId.systemDefault()));
+        }
+        tableRepository.save(target);
+
+        boolean sourceEncoreActive = commandeRepository.findByTable(source).stream()
+                .anyMatch(c -> c.getStatut() != CommandeStatut.REGLEE && c.getStatut() != CommandeStatut.ANNULEE);
+
+        if (!sourceEncoreActive) {
+            source.setOccupee(false);
+            source.setServeurId(null);
+            source.setDateLiberation(LocalDateTime.now(ZoneId.systemDefault()));
+            tableRepository.save(source);
+        }
+
+        auditLogService.logAction(null, "TRANSFERT_TABLE", "TableEntity", sourceId,
+                "Transfert des commandes de la table " + source.getNumero() + " vers la table " + target.getNumero(), null);
+
+        return target;
     }
 }

@@ -3,6 +3,9 @@ package com.bar.gestioncocktail.service;
 import com.bar.gestioncocktail.exception.BusinessException;
 import com.bar.gestioncocktail.model.TableEntity;
 import com.bar.gestioncocktail.model.TableZone;
+import com.bar.gestioncocktail.model.Commande;
+import com.bar.gestioncocktail.model.CommandeStatut;
+import com.bar.gestioncocktail.repository.CommandeRepository;
 import com.bar.gestioncocktail.repository.TableRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,6 +27,10 @@ class TableServiceTest {
 
     @Mock
     TableRepository tableRepository;
+    @Mock
+    CommandeRepository commandeRepository;
+    @Mock
+    AuditLogService auditLogService;
 
     @InjectMocks
     TableService tableService;
@@ -103,5 +110,36 @@ class TableServiceTest {
         assertThat(result.isOccupee()).isFalse();
         assertThat(result.getServeurId()).isNull();
         assertThat(result.getDateLiberation()).isNotNull();
+    }
+
+    @Test
+    void transfererCommandes_deplaceCommandesEtMetAJourStatutTables() {
+        TableEntity source = new TableEntity();
+        source.setId(1L);
+        source.setNumero(1);
+        source.setOccupee(true);
+
+        TableEntity target = new TableEntity();
+        target.setId(2L);
+        target.setNumero(2);
+        target.setOccupee(false);
+
+        Commande commandeActive = new Commande();
+        commandeActive.setId(10L);
+        commandeActive.setTable(source);
+        commandeActive.setStatut(CommandeStatut.EN_PREPARATION);
+
+        when(tableRepository.findById(1L)).thenReturn(Optional.of(source));
+        when(tableRepository.findById(2L)).thenReturn(Optional.of(target));
+        when(commandeRepository.findByTable(source)).thenReturn(List.of(commandeActive)).thenReturn(List.of());
+        when(tableRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        TableEntity res = tableService.transfererCommandes(1L, 2L);
+
+        assertThat(res.isOccupee()).isTrue();
+        assertThat(source.isOccupee()).isFalse();
+        verify(commandeRepository).save(commandeActive);
+        assertThat(commandeActive.getTable()).isEqualTo(target);
+        verify(auditLogService).logAction(eq(null), eq("TRANSFERT_TABLE"), eq("TableEntity"), eq(1L), anyString(), eq(null));
     }
 }

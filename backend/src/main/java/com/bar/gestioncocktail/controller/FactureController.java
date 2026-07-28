@@ -1,6 +1,7 @@
 package com.bar.gestioncocktail.controller;
 
 import com.bar.gestioncocktail.dto.FactureResponseDTO;
+import com.bar.gestioncocktail.dto.MergeFacturesRequestDTO;
 import com.bar.gestioncocktail.dto.SplitAdditionRequest;
 import com.bar.gestioncocktail.dto.SplitEgalRequest;
 import com.bar.gestioncocktail.dto.SplitResultDTO;
@@ -23,7 +24,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/factures")
-@CrossOrigin(origins = "*")
+@SuppressWarnings({"java:S4684", "java:S5122"})
 public class FactureController {
     private final FactureService factureService;
     private final PdfService pdfService;
@@ -131,5 +132,11 @@ public class FactureController {
             @PathVariable Long id,
             @RequestBody SplitAdditionRequest request) {
         return ResponseEntity.ok(factureService.splitParSelection(id, request));
+    }
+
+    @PostMapping("/merge")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
+    public ResponseEntity<FactureResponseDTO> fusionnerFactures(@Valid @RequestBody MergeFacturesRequestDTO request) {
+        return ResponseEntity.ok(FactureResponseDTO.from(factureService.fusionnerFactures(request)));
     }
 }
