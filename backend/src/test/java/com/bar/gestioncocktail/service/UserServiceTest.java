@@ -4,11 +4,14 @@ import com.bar.gestioncocktail.model.User;
 import com.bar.gestioncocktail.model.UserRole;
 import com.bar.gestioncocktail.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
@@ -16,8 +19,11 @@ import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
@@ -88,5 +94,68 @@ class UserServiceTest {
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getUsername()).isEqualTo("marc.barman");
         assertThat(result.get(0).getRoles()).contains(UserRole.BARMAN);
+    }
+
+    @Test
+    @DisplayName("loadUserByUsername - returns UserDetails when user exists")
+    void loadUserByUsername_success() {
+        when(userRepository.findByUsername("jean.dupont")).thenReturn(Optional.of(user));
+
+        UserDetails userDetails = userService.loadUserByUsername("jean.dupont");
+
+        assertThat(userDetails.getUsername()).isEqualTo("jean.dupont");
+        assertThat(userDetails.getAuthorities()).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("loadUserByUsername - throws UsernameNotFoundException when missing")
+    void loadUserByUsername_notFound() {
+        when(userRepository.findByUsername("unknown")).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> userService.loadUserByUsername("unknown"))
+                .isInstanceOf(UsernameNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("updateUser - updates timestamp and saves user")
+    void updateUser_success() {
+        when(userRepository.save(user)).thenReturn(user);
+
+        User updated = userService.updateUser(user);
+
+        assertThat(updated).isNotNull();
+        verify(userRepository).save(user);
+    }
+
+    @Test
+    @DisplayName("deleteUser - deletes user by id")
+    void deleteUser_success() {
+        userService.deleteUser(1L);
+        verify(userRepository).deleteById(1L);
+    }
+
+    @Test
+    @DisplayName("existsByUsername - returns boolean result")
+    void existsByUsername_returnsBoolean() {
+        when(userRepository.existsByUsername("jean.dupont")).thenReturn(true);
+        assertThat(userService.existsByUsername("jean.dupont")).isTrue();
+    }
+
+    @Test
+    @DisplayName("existsByEmail - returns boolean result")
+    void existsByEmail_returnsBoolean() {
+        when(userRepository.existsByEmail("jean.dupont@bar.com")).thenReturn(true);
+        assertThat(userService.existsByEmail("jean.dupont@bar.com")).isTrue();
+    }
+
+    @Test
+    @DisplayName("changePassword - encodes new password and saves user")
+    void changePassword_success() {
+        when(passwordEncoder.encode("newpass")).thenReturn("$2a$newhashed");
+
+        userService.changePassword(user, "newpass");
+
+        assertThat(user.getPassword()).isEqualTo("$2a$newhashed");
+        verify(userRepository).save(user);
     }
 }
