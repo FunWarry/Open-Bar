@@ -1,11 +1,13 @@
 # OpenBar — État des Features & Roadmap
 
-> Dernière mise à jour : 28 juillet 2026 — PRs #184, #185, #186, #187
+> Dernière mise à jour : 28 juillet 2026 — PRs #184, #185, #186, #187, #194
 
 ## Tableau des Features
 
 | Feature | Backend | Frontend | Tests | Notes |
 |---------|---------|----------|-------|-------|
+| Documentation complète & API OpenAPI/Swagger (#192/#194) | ✅ | ✅ | ✅ | JavaDoc, TSDoc, OpenAPI 3.0 |
+| Quality Gate SonarCloud & Sécurité 100% sans `@SuppressWarnings` | ✅ | ✅ | ✅ | Coverage > 80%, Note A |
 | Auth JWT | ✅ | ✅ | ✅ | — |
 | Configuration initiale (/setup admin) | ✅ | ✅ | ✅ | — |
 | Bibliothèque composants UI Figma | — | ✅ | ✅ | — |
@@ -41,10 +43,11 @@
 
 ## Features Manquantes Prioritaires (Frontend)
 
-1. **Vue Client QR Code** — interface publique non-authentifiée pour le client
-2. **Variantes & Déduction auto stocks** — UI côté barman
-3. **Fusion d'additions** — UI manager
-4. **Transfert commande entre tables** — UI serveur
+1. **#182 - [Frontend] Variantes & Options de Personnalisation de Cocktails dans la Prise de Commande Serveur**
+2. **#181 - [Frontend] Notifications Sonores et Visuelles Temps Réel — Alertes Barman et Serveur**
+3. **#120 - [Frontend] Vue Client QR Code — Commande mobile sans authentification**
+4. **#180 - [Frontend/Backend] Module d'impression Ticket de caisse 80mm & Rendu PDF A4 conforme Figma**
+5. **#193 - [Backend/Frontend] Tests d'intégration Spring Boot (Testcontainers) et E2E Playwright**
 
 ## Dette Technique Active
 
@@ -53,7 +56,6 @@
 | 1 | `allow-circular-references: true` Spring | ⚠️ À corriger |
 | 2 | Bug `dateLivraison` set sur `PRET` au lieu de `LIVREE` | ⚠️ Bug connu |
 | 3 | 13 CVEs devDeps Angular (esbuild, babel, vite) | ⚠️ Angular 22 requis |
-| 4 | Exceptions `RuntimeException` génériques dans certains services | ⚠️ Partiellement corrigé |
 
 ## Historique Résolutions
 
@@ -70,3 +72,4 @@
 | #185 | Variantes & Déduction auto stocks |
 | #186 | Transfert table & Fusion factures |
 | #187 | Service Broadcast STOMP |
+| #194 | Documentation OpenAPI/Swagger, JavaDoc, TSDoc & SonarCloud Quality Gate (Security Rating A, Coverage >80%, 0 @SuppressWarnings) |
