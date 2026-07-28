@@ -1,5 +1,6 @@
 package com.bar.gestioncocktail.controller;
 
+import com.bar.gestioncocktail.dto.UserRequestDTO;
 import com.bar.gestioncocktail.dto.UserResponseDTO;
 import com.bar.gestioncocktail.model.User;
 import com.bar.gestioncocktail.model.UserRole;
@@ -35,34 +36,35 @@ public class UserController {
     }
 
     /**
-     * Crée un compte utilisateur.
+     * Creates a new user account.
      *
-     * @param user Données de l'utilisateur à créer
-     * @return DTO de l'utilisateur créé
+     * @param request Data for the user to create
+     * @return DTO of the created user
      */
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Créer un utilisateur (ADMIN)")
-    @ApiResponse(responseCode = "200", description = "Utilisateur créé")
-    @ApiResponse(responseCode = "403", description = "Accès réservé aux administrateurs")
-    public ResponseEntity<UserResponseDTO> createUser(@RequestBody User user) {
-        return ResponseEntity.ok(UserResponseDTO.from(userService.createUser(user)));
+    @Operation(summary = "Create a user (ADMIN)")
+    @ApiResponse(responseCode = "200", description = "User created")
+    @ApiResponse(responseCode = "403", description = "Access restricted to administrators")
+    public ResponseEntity<UserResponseDTO> createUser(@RequestBody UserRequestDTO request) {
+        return ResponseEntity.ok(UserResponseDTO.from(userService.createUser(request.toEntity())));
     }
 
     /**
-     * Met à jour les informations d'un utilisateur.
+     * Updates an existing user account.
      *
-     * @param id Identifiant de l'utilisateur
-     * @param user Données modifiées
-     * @return DTO mis à jour
+     * @param id Identifier of the user
+     * @param request Updated user data
+     * @return Updated DTO
      */
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Mettre à jour un utilisateur (ADMIN)")
-    @ApiResponse(responseCode = "200", description = "Utilisateur mis à jour")
+    @Operation(summary = "Update a user (ADMIN)")
+    @ApiResponse(responseCode = "200", description = "User updated")
     public ResponseEntity<UserResponseDTO> updateUser(
-        @Parameter(description = "ID de l'utilisateur") @PathVariable Long id,
-        @RequestBody User user) {
+        @Parameter(description = "User ID") @PathVariable Long id,
+        @RequestBody UserRequestDTO request) {
+        User user = request.toEntity();
         user.setId(id);
         return ResponseEntity.ok(UserResponseDTO.from(userService.updateUser(user)));
     }
