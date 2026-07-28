@@ -1,0 +1,21 @@
+# OpenBar — Cursor Rules
+
+Read `.agents/AGENTS.md` and `.agents/knowledge/` for full project context before generating code.
+
+## Quick Reference
+
+**Stack**: Spring Boot 4.0.6 · Java 22 (pinned) · Angular 20 · Ionic 8.8.11 · NgRx 20 (auth only)
+
+**Critical rules**:
+- Backend: constructor injection only, Java record DTOs, `@Transactional` on writes, `@PreAuthorize` on write endpoints
+- Frontend: Ionic components only (Angular Material ABANDONED), standalone components, lazy loading, Transloco for all text
+- Tests: `frontend/src/test/` (mirror structure), `data-testid` on all interactive elements
+- Java: JDK 22 exactly — Lombok 1.18.34 breaks silently on JDK 23+
+
+## Knowledge Base
+
+See `.agents/knowledge/` for:
+- `architecture.md` — full stack, data model, WebSocket topics, known bugs
+- `features-state.md` — what is implemented vs missing
+- `conventions.md` — code patterns, naming, workflow
+- `figma-design-system.md` — Figma component IDs and color tokens
