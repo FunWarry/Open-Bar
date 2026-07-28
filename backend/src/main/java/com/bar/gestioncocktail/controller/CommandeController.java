@@ -57,20 +57,20 @@ public class CommandeController {
     }
 
     /**
-     * Met à jour les détails d'une commande existante.
+     * Updates an existing order.
      *
-     * @param id Identifiant de la commande
-     * @param commandeDetails Nouvelles données
-     * @return DTO de la commande mise à jour
+     * @param id      Identifier of the order
+     * @param request Updated order data
+     * @return DTO of the updated order
      */
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('SERVEUR') or hasRole('ADMIN')")
-    @Operation(summary = "Mettre à jour une commande (SERVEUR/ADMIN)")
-    @ApiResponse(responseCode = "200", description = "Commande mise à jour")
+    @Operation(summary = "Update an order (SERVEUR/ADMIN)")
+    @ApiResponse(responseCode = "200", description = "Order updated")
     public ResponseEntity<CommandeResponseDTO> updateCommande(
-        @Parameter(description = "ID de la commande") @PathVariable Long id,
-        @Valid @RequestBody Commande commandeDetails) {
-        return ResponseEntity.ok(CommandeResponseDTO.from(commandeService.updateCommande(id, commandeDetails)));
+        @Parameter(description = "Order ID") @PathVariable Long id,
+        @Valid @RequestBody CommandeRequestDTO request) {
+        return ResponseEntity.ok(CommandeResponseDTO.from(commandeService.updateCommande(id, request.toEntity())));
     }
 
     /**
