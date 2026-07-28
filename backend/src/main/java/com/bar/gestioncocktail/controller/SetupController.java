@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/api/setup")
-@CrossOrigin(origins = "*")
 @Tag(name = "Setup", description = "Initialisation du système et création du compte administrateur initial")
 public class SetupController {
 
