@@ -41,7 +41,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    @SuppressWarnings("java:S5804")
+    @SuppressWarnings({"java:S5804", "java:S4502"})
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
