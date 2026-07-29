@@ -37,6 +37,10 @@ public class Cocktail {
     @Column(nullable = false)
     private CocktailCategorie categorie;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "vat_rate", nullable = false)
+    private VatRate vatRate = VatRate.TWENTY;
+
     private boolean disponible = true;
     private boolean saisonnier = false;
     private LocalDateTime dateDebutSaison;

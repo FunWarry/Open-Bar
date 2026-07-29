@@ -185,3 +185,53 @@ CREATE TABLE IF NOT EXISTS app_settings (
 -- Garantit que la ligne singleton existe dès le déploiement, pour éviter toute
 -- course entre requêtes GET /api/settings concurrentes au premier démarrage.
 INSERT INTO app_settings (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
+
+-- Legal establishment configuration (#129)
+CREATE TABLE IF NOT EXISTS establishment_config (
+    id BIGINT PRIMARY KEY,
+    legal_name VARCHAR(255) NOT NULL DEFAULT 'OpenBar SARL',
+    legal_form VARCHAR(50) DEFAULT 'SARL',
+    siret VARCHAR(14) DEFAULT '12345678900010',
+    rcs_city VARCHAR(100) DEFAULT 'Paris',
+    rcs_number VARCHAR(50) DEFAULT 'B 123 456 789',
+    tva_number VARCHAR(20) DEFAULT 'FR12123456789',
+    code_ape VARCHAR(10) DEFAULT '5630Z',
+    capital_social DECIMAL(12,2) DEFAULT 10000.00,
+    address VARCHAR(500) DEFAULT '12 Rue du Bar, 75001 Paris',
+    phone VARCHAR(50) DEFAULT '+33123456789',
+    email VARCHAR(100) DEFAULT 'contact@openbar.local',
+    payment_terms VARCHAR(255) DEFAULT 'Paiement immédiat à réception',
+    discount_policy VARCHAR(255) DEFAULT 'Aucun escompte pour paiement anticipé',
+    late_payment_rate DECIMAL(5,4) DEFAULT 0.1200,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+INSERT INTO establishment_config (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
+
+-- TVA multi-taux sur cocktails (#130)
+ALTER TABLE cocktails ADD COLUMN IF NOT EXISTS vat_rate VARCHAR(20) DEFAULT 'TWENTY';
+
+-- Immutabilité, intégrité & archivage des factures (#131, #132)
+ALTER TABLE factures ADD COLUMN IF NOT EXISTS total_ht DECIMAL(10,2) DEFAULT 0;
+ALTER TABLE factures ADD COLUMN IF NOT EXISTS total_vat DECIMAL(10,2) DEFAULT 0;
+ALTER TABLE factures ADD COLUMN IF NOT EXISTS is_finalized BOOLEAN DEFAULT false;
+ALTER TABLE factures ADD COLUMN IF NOT EXISTS finalized_at TIMESTAMP;
+ALTER TABLE factures ADD COLUMN IF NOT EXISTS retention_until TIMESTAMP;
+ALTER TABLE factures ADD COLUMN IF NOT EXISTS archived_pdf_path VARCHAR(500);
+ALTER TABLE factures ADD COLUMN IF NOT EXISTS pdf_hash VARCHAR(64);
+
+ALTER TABLE facture_items ADD COLUMN IF NOT EXISTS vat_rate VARCHAR(20) DEFAULT 'TWENTY';
+ALTER TABLE facture_items ADD COLUMN IF NOT EXISTS price_ht DECIMAL(10,2);
+ALTER TABLE facture_items ADD COLUMN IF NOT EXISTS vat_amount DECIMAL(10,2);
+
+-- Table des avoirs de crédit (#131)
+CREATE TABLE IF NOT EXISTS avoirs_credit (
+    id BIGSERIAL PRIMARY KEY,
+    numero VARCHAR(50) UNIQUE NOT NULL,
+    facture_id BIGINT REFERENCES factures(id),
+    total_ht DECIMAL(10,2) NOT NULL,
+    total_vat DECIMAL(10,2) NOT NULL,
+    total_ttc DECIMAL(10,2) NOT NULL,
+    motif_annulation TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);

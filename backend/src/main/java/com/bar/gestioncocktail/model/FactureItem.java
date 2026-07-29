@@ -32,5 +32,15 @@ public class FactureItem {
     @Column(nullable = false)
     private BigDecimal total;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "vat_rate")
+    private VatRate vatRate = VatRate.TWENTY;
+
+    @Column(name = "price_ht")
+    private BigDecimal priceHT;
+
+    @Column(name = "vat_amount")
+    private BigDecimal vatAmount;
+
     private String notes;
 } 

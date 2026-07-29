@@ -24,6 +24,18 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.bar.gestioncocktail.model.AvoirCredit;
+import com.bar.gestioncocktail.model.VatRate;
+import com.bar.gestioncocktail.dto.VatSummaryDTO;
+import com.bar.gestioncocktail.dto.VatMonthlySummaryDTO;
+import com.bar.gestioncocktail.repository.AvoirCreditRepository;
+
+import java.security.MessageDigest;
+import java.time.Year;
+import java.time.ZoneId;
+import java.util.HashMap;
+import java.util.Map;
+
 @Service
 @Transactional
 public class FactureService {
@@ -31,13 +43,15 @@ public class FactureService {
     private final TableRepository tableRepository;
     private final EntityManager entityManager;
     private final AuditLogService auditLogService;
+    private final AvoirCreditRepository avoirCreditRepository;
 
     @Autowired
-    public FactureService(FactureRepository factureRepository, TableRepository tableRepository, EntityManager entityManager, AuditLogService auditLogService) {
+    public FactureService(FactureRepository factureRepository, TableRepository tableRepository, EntityManager entityManager, AuditLogService auditLogService, AvoirCreditRepository avoirCreditRepository) {
         this.factureRepository = factureRepository;
         this.tableRepository = tableRepository;
         this.entityManager = entityManager;
         this.auditLogService = auditLogService;
+        this.avoirCreditRepository = avoirCreditRepository;
     }
 
     public List<Facture> getAllFactures() {
@@ -58,10 +72,45 @@ public class FactureService {
 
     @Transactional
     public Facture createFacture(Facture facture) {
-        facture.setDateFacture(LocalDateTime.now());
-        long sequence = ((Number) entityManager.createNativeQuery("SELECT NEXTVAL('facture_seq')").getSingleResult()).longValue();
-        String mois = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMM"));
-        facture.setNumero(String.format("FAC-%s-%04d", mois, sequence));
+        facture.setDateFacture(LocalDateTime.now(ZoneId.systemDefault()));
+        int currentYear = Year.now().getValue();
+        
+        // Sequentially format FAC-YYYY-NNNNN
+        long countThisYear = factureRepository.count() + 1;
+        facture.setNumero(String.format("FAC-%d-%05d", currentYear, countThisYear));
+
+        // Calculate HT, VAT, and TTC for each item
+        BigDecimal totalHT = BigDecimal.ZERO;
+        BigDecimal totalVAT = BigDecimal.ZERO;
+        BigDecimal totalTTC = BigDecimal.ZERO;
+
+        if (facture.getItems() != null) {
+            for (FactureItem item : facture.getItems()) {
+                if (item.getVatRate() == null) {
+                    item.setVatRate(VatRate.TWENTY);
+                }
+                BigDecimal qty = BigDecimal.valueOf(item.getQuantite());
+                BigDecimal lineTTC = item.getPrixUnitaire().multiply(qty);
+                item.setTotal(lineTTC);
+
+                BigDecimal rate = item.getVatRate().getRate();
+                BigDecimal lineHT = lineTTC.divide(BigDecimal.ONE.add(rate), 2, RoundingMode.HALF_UP);
+                BigDecimal lineVAT = lineTTC.subtract(lineHT);
+
+                item.setPriceHT(lineHT);
+                item.setVatAmount(lineVAT);
+
+                totalHT = totalHT.add(lineHT);
+                totalVAT = totalVAT.add(lineVAT);
+                totalTTC = totalTTC.add(lineTTC);
+            }
+        }
+
+        facture.setTotalHT(totalHT);
+        facture.setTotalVAT(totalVAT);
+        facture.setTotal(totalTTC);
+        facture.setTotalTTC(totalTTC);
+
         return factureRepository.save(facture);
     }
 
@@ -285,5 +334,215 @@ public class FactureService {
                 "Fusion de " + factures.size() + " factures en " + saved.getNumero(), null);
 
         return saved;
+    }
+
+    /**
+     * Finalizes an invoice, computing SHA-256 PDF hash, setting retention for 10 years and blocking further modifications.
+     */
+    @Transactional
+    public Facture finalizeFacture(Long id, byte[] pdfBytes) {
+        Facture facture = factureRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Facture non trouvée: " + id));
+
+        if (facture.isFinalized()) {
+            throw new BusinessException("La facture " + facture.getNumero() + " est déjà finalisée et immuable.");
+        }
+
+        LocalDateTime now = LocalDateTime.now(ZoneId.systemDefault());
+        facture.setFinalized(true);
+        facture.setFinalizedAt(now);
+        facture.setRetentionUntil(now.plusYears(10));
+
+        if (pdfBytes != null && pdfBytes.length > 0) {
+            String hash = computeSHA256(pdfBytes);
+            facture.setPdfHash(hash);
+            facture.setArchivedPdfPath("/archives/factures/" + now.getYear() + "/" + String.format("%02d", now.getMonthValue()) + "/" + facture.getNumero() + ".pdf");
+        }
+
+        return factureRepository.save(facture);
+    }
+
+    /**
+     * Cancels an invoice by creating an official legal credit note (avoir).
+     */
+    @Transactional
+    public AvoirCredit annulerFactureWithAvoir(Long factureId, String motif) {
+        Facture facture = factureRepository.findById(factureId)
+                .orElseThrow(() -> new ResourceNotFoundException("Facture non trouvée: " + factureId));
+
+        int currentYear = Year.now().getValue();
+        long countAvoirs = avoirCreditRepository.count() + 1;
+        String numeroAvoir = String.format("AV-%d-%05d", currentYear, countAvoirs);
+
+        AvoirCredit avoir = new AvoirCredit();
+        avoir.setNumero(numeroAvoir);
+        avoir.setFacture(facture);
+        avoir.setTotalHT(facture.getTotalHT() != null ? facture.getTotalHT() : BigDecimal.ZERO);
+        avoir.setTotalVAT(facture.getTotalVAT() != null ? facture.getTotalVAT() : BigDecimal.ZERO);
+        avoir.setTotalTTC(facture.getTotalTTC() != null ? facture.getTotalTTC() : facture.getTotal());
+        avoir.setMotif(motif != null ? motif : "Annulation de la facture " + facture.getNumero());
+
+        AvoirCredit savedAvoir = avoirCreditRepository.save(avoir);
+
+        facture.setNotes("Annulée par l'avoir " + numeroAvoir + (motif != null ? " (" + motif + ")" : ""));
+        factureRepository.save(facture);
+
+        auditLogService.logAction(null, "CREATION_AVOIR", "AvoirCredit", savedAvoir.getId(),
+                "Avoir " + numeroAvoir + " créé pour la facture " + facture.getNumero(), null);
+
+        return savedAvoir;
+    }
+
+    /**
+     * Verifies the integrity of a stored archived PDF invoice against its stored SHA-256 hash.
+     */
+    public Map<String, Object> verifyIntegrity(Long factureId, byte[] currentPdfBytes) {
+        Facture facture = factureRepository.findById(factureId)
+                .orElseThrow(() -> new ResourceNotFoundException("Facture non trouvée: " + factureId));
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("invoiceId", factureId);
+        result.put("invoiceNumber", facture.getNumero());
+        result.put("isFinalized", facture.isFinalized());
+        result.put("storedHash", facture.getPdfHash());
+
+        if (facture.getPdfHash() == null || currentPdfBytes == null) {
+            result.put("valid", false);
+            result.put("reason", "Aucun hash ou document PDF disponible pour vérification");
+            return result;
+        }
+
+        String computedHash = computeSHA256(currentPdfBytes);
+        result.put("computedHash", computedHash);
+        boolean isValid = facture.getPdfHash().equalsIgnoreCase(computedHash);
+        result.put("valid", isValid);
+
+        return result;
+    }
+
+    /**
+     * Generates UTF-8 BOM CSV data for accounting exports.
+     */
+    public String exportCSV(LocalDateTime dateFrom, LocalDateTime dateTo) {
+        List<Facture> list = (dateFrom != null && dateTo != null)
+                ? factureRepository.findByDateFactureBetween(dateFrom, dateTo)
+                : factureRepository.findAll();
+
+        StringBuilder sb = new StringBuilder();
+        // Add UTF-8 BOM
+        sb.append('\uFEFF');
+        sb.append("N° Facture;Date;Table;Total HT;TVA 20%;TVA 10%;TVA 5.5%;Total TVA;Total TTC;Mode Paiement;Statut\n");
+
+        for (Facture f : list) {
+            BigDecimal vat20 = BigDecimal.ZERO;
+            BigDecimal vat10 = BigDecimal.ZERO;
+            BigDecimal vat55 = BigDecimal.ZERO;
+
+            if (f.getItems() != null) {
+                for (FactureItem item : f.getItems()) {
+                    if (item.getVatRate() != null && item.getVatAmount() != null) {
+                        switch (item.getVatRate()) {
+                            case TWENTY -> vat20 = vat20.add(item.getVatAmount());
+                            case TEN -> vat10 = vat10.add(item.getVatAmount());
+                            case FIVE_FIVE -> vat55 = vat55.add(item.getVatAmount());
+                        }
+                    }
+                }
+            }
+
+            String dateStr = f.getDateFacture() != null ? f.getDateFacture().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) : "";
+            String tableNum = f.getTable() != null ? String.valueOf(f.getTable().getNumero()) : "N/A";
+            String statut = f.isReglee() ? "REGLEE" : "EN_ATTENTE";
+
+            sb.append(String.format("%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s\n",
+                    f.getNumero(),
+                    dateStr,
+                    tableNum,
+                    f.getTotalHT() != null ? f.getTotalHT().toString() : "0.00",
+                    vat20.toString(),
+                    vat10.toString(),
+                    vat55.toString(),
+                    f.getTotalVAT() != null ? f.getTotalVAT().toString() : "0.00",
+                    f.getTotalTTC() != null ? f.getTotalTTC().toString() : f.getTotal().toString(),
+                    f.getModePaiement() != null ? f.getModePaiement() : "",
+                    statut
+            ));
+        }
+
+        return sb.toString();
+    }
+
+    /**
+     * Generates a monthly VAT summary for French CA3 tax declarations.
+     */
+    public VatMonthlySummaryDTO getVatMonthlySummary(String monthStr) {
+        // monthStr format: YYYY-MM
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        LocalDateTime start = LocalDateTime.parse(monthStr + "-01 00:00:00", formatter);
+        LocalDateTime end = start.plusMonths(1).minusSeconds(1);
+
+        List<Facture> factures = factureRepository.findByDateFactureBetween(start, end);
+
+        BigDecimal grandTotalHT = BigDecimal.ZERO;
+        BigDecimal grandTotalVAT = BigDecimal.ZERO;
+        BigDecimal grandTotalTTC = BigDecimal.ZERO;
+
+        Map<VatRate, BigDecimal> baseHTMap = new HashMap<>();
+        Map<VatRate, BigDecimal> vatAmountMap = new HashMap<>();
+        Map<VatRate, BigDecimal> totalTTCMap = new HashMap<>();
+
+        for (VatRate rate : VatRate.values()) {
+            baseHTMap.put(rate, BigDecimal.ZERO);
+            vatAmountMap.put(rate, BigDecimal.ZERO);
+            totalTTCMap.put(rate, BigDecimal.ZERO);
+        }
+
+        for (Facture f : factures) {
+            if (f.getItems() != null) {
+                for (FactureItem item : f.getItems()) {
+                    VatRate r = item.getVatRate() != null ? item.getVatRate() : VatRate.TWENTY;
+                    BigDecimal itemHT = item.getPriceHT() != null ? item.getPriceHT() : BigDecimal.ZERO;
+                    BigDecimal itemVat = item.getVatAmount() != null ? item.getVatAmount() : BigDecimal.ZERO;
+                    BigDecimal itemTTC = item.getTotal() != null ? item.getTotal() : BigDecimal.ZERO;
+
+                    baseHTMap.put(r, baseHTMap.get(r).add(itemHT));
+                    vatAmountMap.put(r, vatAmountMap.get(r).add(itemVat));
+                    totalTTCMap.put(r, totalTTCMap.get(r).add(itemTTC));
+
+                    grandTotalHT = grandTotalHT.add(itemHT);
+                    grandTotalVAT = grandTotalVAT.add(itemVat);
+                    grandTotalTTC = grandTotalTTC.add(itemTTC);
+                }
+            }
+        }
+
+        Map<String, VatSummaryDTO> summaryMap = new HashMap<>();
+        for (VatRate rate : VatRate.values()) {
+            summaryMap.put(rate.name(), new VatSummaryDTO(
+                    rate,
+                    rate.getLabel(),
+                    baseHTMap.get(rate),
+                    vatAmountMap.get(rate),
+                    totalTTCMap.get(rate)
+            ));
+        }
+
+        return new VatMonthlySummaryDTO(monthStr, grandTotalHT, summaryMap, grandTotalVAT, grandTotalTTC);
+    }
+
+    private static String computeSHA256(byte[] data) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(data);
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : hash) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) hexString.append('0');
+                hexString.append(hex);
+            }
+            return hexString.toString();
+        } catch (Exception e) {
+            throw new RuntimeException("Erreur de calcul du hash SHA-256", e);
+        }
     }
 } 

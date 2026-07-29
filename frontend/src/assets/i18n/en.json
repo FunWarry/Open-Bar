@@ -44,6 +44,24 @@
     "SOUND_ENABLE": "Enable sound",
     "SOUND_DISABLE": "Disable sound"
   },
+  "ETABLISSEMENT": {
+    "TITLE": "Legal Establishment Settings",
+    "LEGAL_NAME": "Legal Name",
+    "LEGAL_FORM": "Legal Form",
+    "SIRET": "SIRET Number",
+    "SIRET_INVALID": "SIRET must consist of 14 digits and pass Luhn checksum",
+    "RCS_CITY": "RCS City",
+    "TVA_NUMBER": "EU VAT Number",
+    "TVA_INVALID": "Invalid FR VAT format (e.g. FR12123456789)",
+    "CODE_APE": "APE / NAF Code",
+    "CAPITAL": "Share Capital",
+    "ADDRESS": "Headquarters Address",
+    "PHONE": "Phone",
+    "PAYMENT_TERMS": "Payment Terms",
+    "DISCOUNT_POLICY": "Discount Policy",
+    "LATE_RATE": "Late Payment Penalty Rate",
+    "PREVIEW_TITLE": "Receipt Live Preview"
+  },
   "AUTH": {
     "LOGIN_TITLE": "Login",
     "USERNAME": "Username",

@@ -1,0 +1,144 @@
+<div class="etablissement-container">
+  <ion-grid>
+    <ion-row>
+      <ion-col size="12" sizeMd="7">
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>
+              <ion-icon name="business" slot="start"></ion-icon>
+              {{ 'ETABLISSEMENT.TITLE' | transloco }}
+            </ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            @if (isLoading) {
+              <div style="text-align:center;padding:24px">
+                <ion-spinner name="crescent"></ion-spinner>
+              </div>
+            } @else {
+              <form [formGroup]="configForm" (ngSubmit)="onSave()" data-testid="etablissement-form">
+                <ion-list>
+                  <ion-item>
+                    <ion-label position="stacked">{{ 'ETABLISSEMENT.LEGAL_NAME' | transloco }} *</ion-label>
+                    <ion-input formControlName="legalName" placeholder="OPEN BAR SARL" data-testid="legal-name-input"></ion-input>
+                  </ion-item>
+
+                  <ion-item>
+                    <ion-label position="stacked">{{ 'ETABLISSEMENT.LEGAL_FORM' | transloco }}</ion-label>
+                    <ion-input formControlName="legalForm" placeholder="SARL" data-testid="legal-form-input"></ion-input>
+                  </ion-item>
+
+                  <ion-item>
+                    <ion-label position="stacked">{{ 'ETABLISSEMENT.SIRET' | transloco }} * (14 chiffres)</ion-label>
+                    <ion-input formControlName="siret" placeholder="12345678900010" data-testid="siret-input"></ion-input>
+                  </ion-item>
+                  @if (configForm.get('siret')?.touched && configForm.get('siret')?.invalid) {
+                    <div style="color:var(--ion-color-danger,#eb445a);font-size:12px;padding:4px 16px">
+                      {{ 'ETABLISSEMENT.SIRET_INVALID' | transloco }}
+                    </div>
+                  }
+
+                  <ion-item>
+                    <ion-label position="stacked">{{ 'ETABLISSEMENT.TVA_NUMBER' | transloco }} * (FRxx...)</ion-label>
+                    <ion-input formControlName="tvaNumber" placeholder="FR12123456789" data-testid="tva-input"></ion-input>
+                  </ion-item>
+                  @if (configForm.get('tvaNumber')?.touched && configForm.get('tvaNumber')?.invalid) {
+                    <div style="color:var(--ion-color-danger,#eb445a);font-size:12px;padding:4px 16px">
+                      {{ 'ETABLISSEMENT.TVA_INVALID' | transloco }}
+                    </div>
+                  }
+
+                  <ion-item>
+                    <ion-label position="stacked">{{ 'ETABLISSEMENT.RCS_CITY' | transloco }} & N°</ion-label>
+                    <ion-input formControlName="rcsCity" placeholder="Paris" data-testid="rcs-city-input"></ion-input>
+                    <ion-input formControlName="rcsNumber" placeholder="B 123 456 789" data-testid="rcs-num-input"></ion-input>
+                  </ion-item>
+
+                  <ion-item>
+                    <ion-label position="stacked">{{ 'ETABLISSEMENT.CODE_APE' | transloco }}</ion-label>
+                    <ion-input formControlName="codeApe" placeholder="5630Z" data-testid="ape-input"></ion-input>
+                  </ion-item>
+
+                  <ion-item>
+                    <ion-label position="stacked">{{ 'ETABLISSEMENT.CAPITAL' | transloco }} (€)</ion-label>
+                    <ion-input type="number" formControlName="capitalSocial" data-testid="capital-input"></ion-input>
+                  </ion-item>
+
+                  <ion-item>
+                    <ion-label position="stacked">{{ 'ETABLISSEMENT.ADDRESS' | transloco }} *</ion-label>
+                    <ion-input formControlName="address" placeholder="12 Rue du Bar, 75001 Paris" data-testid="address-input"></ion-input>
+                  </ion-item>
+
+                  <ion-item>
+                    <ion-label position="stacked">{{ 'ETABLISSEMENT.PHONE' | transloco }} & Email</ion-label>
+                    <ion-input formControlName="phone" placeholder="+33123456789" data-testid="phone-input"></ion-input>
+                    <ion-input formControlName="email" placeholder="contact@openbar.local" data-testid="email-input"></ion-input>
+                  </ion-item>
+
+                  <ion-item>
+                    <ion-label position="stacked">{{ 'ETABLISSEMENT.PAYMENT_TERMS' | transloco }}</ion-label>
+                    <ion-input formControlName="paymentTerms" data-testid="terms-input"></ion-input>
+                  </ion-item>
+
+                  <ion-item>
+                    <ion-label position="stacked">{{ 'ETABLISSEMENT.DISCOUNT_POLICY' | transloco }}</ion-label>
+                    <ion-input formControlName="discountPolicy" data-testid="discount-input"></ion-input>
+                  </ion-item>
+
+                  <ion-item>
+                    <ion-label position="stacked">{{ 'ETABLISSEMENT.LATE_RATE' | transloco }} (ex: 0.12 = 12%)</ion-label>
+                    <ion-input type="number" step="0.01" formControlName="latePaymentRate" data-testid="late-rate-input"></ion-input>
+                  </ion-item>
+                </ion-list>
+
+                <div style="margin-top:16px">
+                  <ion-button type="submit" [disabled]="isSaving || configForm.invalid" color="primary" data-testid="save-etablissement-btn">
+                    @if (isSaving) {
+                      <ion-spinner name="crescent" slot="start"></ion-spinner>
+                    } @else {
+                      <ion-icon name="save" slot="start"></ion-icon>
+                    }
+                    {{ 'COMMON.SAVE' | transloco }}
+                  </ion-button>
+                </div>
+              </form>
+            }
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+
+      <!-- Real-time receipt preview -->
+      <ion-col size="12" sizeMd="5">
+        <ion-card class="preview-card">
+          <ion-card-header>
+            <ion-card-title>
+              <ion-icon name="document-text" slot="start"></ion-icon>
+              {{ 'ETABLISSEMENT.PREVIEW_TITLE' | transloco }}
+            </ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="receipt-preview" data-testid="receipt-preview-box">
+              <div class="header-bold">{{ configForm.get('legalName')?.value || 'OPEN BAR SARL' }} {{ configForm.get('legalForm')?.value }}</div>
+              <div>Capital : {{ configForm.get('capitalSocial')?.value | currency:'EUR':'symbol':'1.2-2' }}</div>
+              <div>{{ configForm.get('address')?.value || '12 Rue du Bar, 75001 Paris' }}</div>
+              <div>Tél : {{ configForm.get('phone')?.value || '+33123456789' }}</div>
+              <div>SIRET : {{ configForm.get('siret')?.value || '12345678900010' }}</div>
+              <div>TVA : {{ configForm.get('tvaNumber')?.value || 'FR12123456789' }}</div>
+              <div>RCS {{ configForm.get('rcsCity')?.value }} {{ configForm.get('rcsNumber')?.value }} — APE : {{ configForm.get('codeApe')?.value }}</div>
+              <hr />
+              <div class="header-bold">TICKET DE CAISSE DE DÉMONSTRATION</div>
+              <div>1x Mojito (TVA 20%) — 9,50 €</div>
+              <div>1x Planche Tapas (TVA 10%) — 14,00 €</div>
+              <hr />
+              <div>Total HT : 20,08 €</div>
+              <div>TVA (10%) : 1,27 € | TVA (20%) : 1,58 €</div>
+              <div class="header-bold">TOTAL TTC : 23,50 €</div>
+              <hr />
+              <div style="font-size:10px">{{ configForm.get('paymentTerms')?.value }}</div>
+              <div style="font-size:10px">{{ configForm.get('discountPolicy')?.value }}</div>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+</div>
