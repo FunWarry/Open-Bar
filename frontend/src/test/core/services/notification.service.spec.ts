@@ -42,20 +42,25 @@ const toastCreateSpy = jasmine.createSpy('create').and.returnValue(
 // Suite
 // ---------------------------------------------------------------------------
 
+import { SoundService } from '../../../app/core/services/sound.service';
+
 describe('NotificationService', () => {
   let service: NotificationService;
   let wsStub: WebSocketServiceStub;
+  let soundSpy: jasmine.SpyObj<SoundService>;
 
   beforeEach(() => {
     wsStub = new WebSocketServiceStub();
     toastCreateSpy.calls.reset();
     toastPresentSpy.calls.reset();
+    soundSpy = jasmine.createSpyObj<SoundService>('SoundService', ['playNewOrderSound', 'playOrderReadySound']);
 
     TestBed.configureTestingModule({
       providers: [
         NotificationService,
         { provide: WebSocketService, useValue: wsStub },
         { provide: ToastController, useValue: { create: toastCreateSpy } },
+        { provide: SoundService, useValue: soundSpy },
       ],
     });
 
@@ -82,6 +87,14 @@ describe('NotificationService', () => {
     expect(received[0].message).toContain('A1');
     expect(received[0].severity).toBe('primary');
     expect(received[0].lue).toBeFalse();
+    expect(soundSpy.playNewOrderSound).toHaveBeenCalled();
+  }));
+
+  it('onNotification() déclenche playOrderReadySound quand statut est PRET', fakeAsync(() => {
+    wsStub.emit('/topic/commandes/statut', { id: 8, statut: 'PRET' });
+    tick();
+
+    expect(soundSpy.playOrderReadySound).toHaveBeenCalled();
   }));
 
   it('onNotification() émet une notification quand /topic/commandes/statut reçoit un message', fakeAsync(() => {
