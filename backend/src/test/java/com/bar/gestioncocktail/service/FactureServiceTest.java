@@ -92,12 +92,12 @@ class FactureServiceTest {
         // Arrange
         when(factureRepository.save(any(Facture.class))).thenAnswer(i -> i.getArgument(0));
 
-        Facture facture = new Facture();
-        facture.setTotal(BigDecimal.TEN);
-        facture.setTotalTTC(BigDecimal.TEN);
+        Facture newFacture = new Facture();
+        newFacture.setTotal(BigDecimal.TEN);
+        newFacture.setTotalTTC(BigDecimal.TEN);
 
         // Act
-        Facture result = factureService.createFacture(facture);
+        Facture result = factureService.createFacture(newFacture);
 
         // Assert
         assertThat(result.getNumero()).isNotNull();
@@ -111,12 +111,12 @@ class FactureServiceTest {
         when(factureRepository.count()).thenReturn(41L);
         when(factureRepository.save(any(Facture.class))).thenAnswer(i -> i.getArgument(0));
 
-        Facture facture = new Facture();
-        facture.setTotal(BigDecimal.TEN);
-        facture.setTotalTTC(BigDecimal.TEN);
+        Facture newFacture = new Facture();
+        newFacture.setTotal(BigDecimal.TEN);
+        newFacture.setTotalTTC(BigDecimal.TEN);
 
         // Act
-        Facture result = factureService.createFacture(facture);
+        Facture result = factureService.createFacture(newFacture);
 
         // Assert
         int year = LocalDateTime.now().getYear();
@@ -128,12 +128,12 @@ class FactureServiceTest {
         // Arrange
         when(factureRepository.save(any(Facture.class))).thenAnswer(i -> i.getArgument(0));
 
-        Facture facture = new Facture();
-        facture.setTotal(BigDecimal.TEN);
-        facture.setTotalTTC(BigDecimal.TEN);
+        Facture newFacture = new Facture();
+        newFacture.setTotal(BigDecimal.TEN);
+        newFacture.setTotalTTC(BigDecimal.TEN);
 
         // Act
-        Facture result = factureService.createFacture(facture);
+        Facture result = factureService.createFacture(newFacture);
 
         // Assert
         assertThat(result.getDateFacture()).isNotNull();
