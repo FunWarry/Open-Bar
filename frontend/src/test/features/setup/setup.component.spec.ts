@@ -6,6 +6,8 @@ import { of, throwError } from 'rxjs';
 import { SetupComponent } from '../../../app/features/setup/setup.component';
 import { SetupService } from '../../../app/core/services/setup.service';
 
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
+
 describe('SetupComponent', () => {
   let component: SetupComponent;
   let fixture: ComponentFixture<SetupComponent>;
@@ -24,7 +26,7 @@ describe('SetupComponent', () => {
     setupServiceSpy.getStatus.and.returnValue(of({ initialized: false, userCount: 0 }));
 
     await TestBed.configureTestingModule({
-      imports: [SetupComponent, ReactiveFormsModule],
+      imports: [SetupComponent, ReactiveFormsModule, getTranslocoTestingModule()],
       providers: [
         { provide: SetupService, useValue: setupServiceSpy },
         { provide: Router, useValue: routerSpy },

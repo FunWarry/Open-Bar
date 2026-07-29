@@ -4,7 +4,7 @@
 
   <div class="register-card">
     <div class="register-header">
-      <h1 class="register-title">Créer un compte</h1>
+      <h1 class="register-title">{{ 'AUTH.REGISTER_TITLE' | transloco }}</h1>
       <p class="register-subtitle">Accès administrateur requis pour ajouter des utilisateurs</p>
     </div>
 
@@ -14,51 +14,51 @@
       <div class="name-row">
         <app-input-field
           formControlName="nom"
-          label="Nom"
+          [label]="'SETUP.LASTNAME' | transloco"
           placeholder="Nom"
           icon="person-outline"
           [required]="true"
-          [errorMessage]="registerForm.get('nom')?.touched && registerForm.get('nom')?.hasError('required') ? 'Le nom est requis' : undefined">
+          [errorMessage]="registerForm.get('nom')?.touched && registerForm.get('nom')?.hasError('required') ? ('ERRORS.FORM_INVALID' | transloco) : undefined">
         </app-input-field>
 
         <app-input-field
           formControlName="prenom"
-          label="Prénom"
+          [label]="'SETUP.FIRSTNAME' | transloco"
           placeholder="Prénom"
           icon="person-outline"
           [required]="true"
-          [errorMessage]="registerForm.get('prenom')?.touched && registerForm.get('prenom')?.hasError('required') ? 'Le prénom est requis' : undefined">
+          [errorMessage]="registerForm.get('prenom')?.touched && registerForm.get('prenom')?.hasError('required') ? ('ERRORS.FORM_INVALID' | transloco) : undefined">
         </app-input-field>
       </div>
 
       <app-input-field
         formControlName="email"
-        label="Email"
+        [label]="'AUTH.EMAIL' | transloco"
         type="email"
         placeholder="exemple@openbar.local"
         icon="mail-outline"
         [required]="true"
         autocomplete="email"
-        [errorMessage]="registerForm.get('email')?.touched && registerForm.get('email')?.hasError('required') ? 'L\'email est requis' : (registerForm.get('email')?.touched && registerForm.get('email')?.hasError('email') ? 'Format d\'email invalide' : undefined)">
+        [errorMessage]="registerForm.get('email')?.touched && registerForm.get('email')?.hasError('required') ? ('AUTH.REQUIRED_USER' | transloco) : (registerForm.get('email')?.touched && registerForm.get('email')?.hasError('email') ? ('ERRORS.FORM_INVALID' | transloco) : undefined)">
       </app-input-field>
 
       <app-input-field
         formControlName="username"
-        label="Nom d'utilisateur"
+        [label]="'AUTH.USERNAME' | transloco"
         placeholder="Identifiant de connexion"
         icon="at-outline"
         [required]="true"
         autocomplete="username"
-        [errorMessage]="registerForm.get('username')?.touched && registerForm.get('username')?.hasError('required') ? 'Le nom d\'utilisateur est requis' : undefined">
+        [errorMessage]="registerForm.get('username')?.touched && registerForm.get('username')?.hasError('required') ? ('AUTH.REQUIRED_USER' | transloco) : undefined">
       </app-input-field>
 
       <app-password-input
         formControlName="password"
-        label="Mot de passe"
+        [label]="'AUTH.PASSWORD' | transloco"
         placeholder="Au moins 6 caractères"
         [required]="true"
         autocomplete="new-password"
-        [errorMessage]="registerForm.get('password')?.touched && registerForm.get('password')?.hasError('required') ? 'Le mot de passe est requis' : (registerForm.get('password')?.touched && registerForm.get('password')?.hasError('minlength') ? 'Le mot de passe doit contenir au moins 6 caractères' : undefined)">
+        [errorMessage]="registerForm.get('password')?.touched && registerForm.get('password')?.hasError('required') ? ('AUTH.REQUIRED_PASS' | transloco) : (registerForm.get('password')?.touched && registerForm.get('password')?.hasError('minlength') ? ('ERRORS.FORM_INVALID' | transloco) : undefined)">
       </app-password-input>
 
       <div class="field">
@@ -82,9 +82,10 @@
       <app-action-button
         type="submit"
         variant="primary"
+        size="large"
         expand="block"
         [disabled]="registerForm.invalid">
-        Créer l'utilisateur
+        {{ 'AUTH.REGISTER_BTN' | transloco }}
       </app-action-button>
     </form>
   </div>

@@ -8,46 +8,64 @@
           size="large">
         </app-user-avatar>
       </div>
-      <ion-card-title>Mon Profil</ion-card-title>
+      <ion-card-title>{{ 'PROFILE.TITLE' | transloco }}</ion-card-title>
     </ion-card-header>
 
     <ion-card-content>
       <form [formGroup]="profileForm" (ngSubmit)="onSubmit()">
         <app-input-field
           formControlName="username"
-          label="Nom d'utilisateur"
+          [label]="'AUTH.USERNAME' | transloco"
           placeholder="Identifiant"
           icon="person-outline"
           [required]="true"
           autocomplete="username"
-          [errorMessage]="profileForm.get('username')?.touched && profileForm.get('username')?.hasError('required') ? 'Le nom d\'utilisateur est requis' : undefined">
+          [errorMessage]="
+            profileForm.get('username')?.touched && profileForm.get('username')?.hasError('required')
+              ? ('AUTH.REQUIRED_USER' | transloco)
+              : undefined
+          ">
         </app-input-field>
 
         <app-input-field
           formControlName="email"
-          label="Email"
+          [label]="'AUTH.EMAIL' | transloco"
           type="email"
           placeholder="Adresse email"
           icon="mail-outline"
           [required]="true"
           autocomplete="email"
-          [errorMessage]="profileForm.get('email')?.touched && profileForm.get('email')?.hasError('required') ? 'L\'email est requis' : (profileForm.get('email')?.touched && profileForm.get('email')?.hasError('email') ? 'Format d\'email invalide' : undefined)">
+          [errorMessage]="
+            profileForm.get('email')?.touched && profileForm.get('email')?.hasError('required')
+              ? ('AUTH.REQUIRED_USER' | transloco)
+              : profileForm.get('email')?.touched && profileForm.get('email')?.hasError('email')
+              ? ('ERRORS.FORM_INVALID' | transloco)
+              : undefined
+          ">
         </app-input-field>
 
         <app-password-input
           formControlName="newPassword"
-          label="Nouveau mot de passe"
+          [label]="'PROFILE.NEW_PASSWORD' | transloco"
           placeholder="Laissez vide pour ne pas modifier"
           autocomplete="new-password"
-          [errorMessage]="profileForm.get('newPassword')?.touched && profileForm.get('newPassword')?.hasError('minlength') ? 'Le mot de passe doit contenir au moins 6 caractères' : undefined">
+          [errorMessage]="
+            profileForm.get('newPassword')?.touched && profileForm.get('newPassword')?.hasError('minlength')
+              ? ('ERRORS.FORM_INVALID' | transloco)
+              : undefined
+          ">
         </app-password-input>
 
         <app-password-input
           formControlName="confirmPassword"
-          label="Confirmer le mot de passe"
+          [label]="'AUTH.CONFIRM_PASSWORD' | transloco"
           placeholder="Confirmez le nouveau mot de passe"
           autocomplete="new-password"
-          [errorMessage]="profileForm.get('confirmPassword')?.touched && profileForm.hasError('passwordMismatch') ? 'Les mots de passe ne correspondent pas' : undefined">
+          [errorMessage]="
+            profileForm.get('confirmPassword')?.touched && profileForm.hasError('passwordMismatch')
+              ? ('ERRORS.FORM_INVALID' | transloco)
+              : undefined
+          ">
         </app-password-input>
 
         <div class="form-actions">
@@ -56,7 +74,7 @@
             variant="primary"
             expand="block"
             [disabled]="profileForm.invalid">
-            Enregistrer les modifications
+            {{ 'PROFILE.SAVE_BTN' | transloco }}
           </app-action-button>
         </div>
       </form>
@@ -65,27 +83,25 @@
 
   <ion-card class="info-card">
     <ion-card-header>
-      <ion-card-title>Informations du compte</ion-card-title>
+      <ion-card-title>{{ 'PROFILE.INFO_TITLE' | transloco }}</ion-card-title>
     </ion-card-header>
     <ion-card-content>
       <div class="info-item">
-        <span class="label">Rôles :</span>
+        <span class="label">{{ 'PROFILE.ROLES' | transloco }}</span>
         <span class="value roles-list">
-          <app-role-badge
-            *ngFor="let role of (currentUser$ | async)?.roles"
-            [role]="$any(role)">
-          </app-role-badge>
+          @for (role of (currentUser$ | async)?.roles; track role) {
+            <app-role-badge [role]="$any(role)"></app-role-badge>
+          }
         </span>
       </div>
       <div class="info-item">
-        <span class="label">Compte créé le :</span>
+        <span class="label">{{ 'PROFILE.CREATED_AT' | transloco }}</span>
         <span class="value">{{ (currentUser$ | async)?.createdAt | date:'dd/MM/yyyy' }}</span>
       </div>
       <div class="info-item">
-        <span class="label">Dernière modification :</span>
+        <span class="label">{{ 'PROFILE.UPDATED_AT' | transloco }}</span>
         <span class="value">{{ (currentUser$ | async)?.updatedAt | date:'dd/MM/yyyy' }}</span>
       </div>
     </ion-card-content>
   </ion-card>
 </div>
-

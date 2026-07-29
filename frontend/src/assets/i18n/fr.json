@@ -63,19 +63,32 @@
     "PREVIEW_TITLE": "Aperçu du ticket de caisse"
   },
   "AUTH": {
-    "LOGIN_TITLE": "Connexion",
-    "USERNAME": "Nom d'utilisateur",
+    "LOGIN_TITLE": "Connexion à votre espace bar",
+    "USERNAME": "Adresse email",
     "PASSWORD": "Mot de passe",
     "LOGIN_BTN": "Se connecter",
     "LOGOUT_BTN": "Se déconnecter",
+    "REQUIRED_USER": "Adresse email requise",
+    "REQUIRED_PASS": "Mot de passe requis",
+    "INVALID_CREDENTIALS": "Nom d'utilisateur ou mot de passe incorrect.",
     "REGISTER_TITLE": "Créer un compte",
     "EMAIL": "Adresse e-mail",
     "CONFIRM_PASSWORD": "Confirmer le mot de passe",
     "REGISTER_BTN": "Créer le compte",
     "ALREADY_ACCOUNT": "Déjà un compte ?",
     "NO_ACCOUNT": "Pas encore de compte ?",
+    "LOGIN_LINK": "Se connecter",
     "LOGIN_ERROR": "Identifiants incorrects",
     "SESSION_EXPIRED": "Session expirée, veuillez vous reconnecter"
+  },
+  "PROFILE": {
+    "TITLE": "Mon Profil",
+    "INFO_TITLE": "Informations du compte",
+    "ROLES": "Rôles :",
+    "CREATED_AT": "Compte créé le :",
+    "UPDATED_AT": "Dernière modification :",
+    "NEW_PASSWORD": "Nouveau mot de passe",
+    "SAVE_BTN": "Enregistrer les modifications"
   },
   "COCKTAILS": {
     "TITLE": "Cocktails",
@@ -218,7 +231,10 @@
     "READY": "Prêtes",
     "FREE_TABLES": "Tables libres",
     "OCCUPIED_TABLES": "Tables occupées",
-    "LOW_STOCK_ALERT": "Alerte stock faible"
+    "LOW_STOCK_ALERT": "Alerte stock faible",
+    "NO_PENDING": "Aucune commande en attente",
+    "NO_IN_PROGRESS": "Aucune commande en préparation",
+    "NO_READY": "Aucune commande prête"
   },
   "ERRORS": {
     "NETWORK": "Erreur réseau, veuillez réessayer",
@@ -226,5 +242,23 @@
     "NOT_FOUND": "Ressource introuvable",
     "SERVER": "Erreur serveur",
     "FORM_INVALID": "Veuillez corriger les erreurs du formulaire"
+  },
+  "ERROR_404": {
+    "CODE": "404",
+    "TITLE": "Page introuvable",
+    "DESCRIPTION": "La page que vous recherchez n'existe pas ou a été déplacée.",
+    "BACK_HOME": "Retourner à l'accueil"
+  },
+  "SETUP": {
+    "TITLE": "Bienvenue dans OpenBar !",
+    "SUBTITLE": "Configuration initiale — Création du premier compte Administrateur",
+    "USERNAME": "Nom d'utilisateur",
+    "EMAIL": "Adresse email",
+    "LASTNAME": "Nom",
+    "FIRSTNAME": "Prénom",
+    "PASSWORD": "Mot de passe",
+    "CONFIRM_PASSWORD": "Confirmer le mot de passe",
+    "SUBMIT": "Créer le compte administrateur",
+    "SUCCESS": "Compte administrateur créé avec succès ! Connectez-vous maintenant."
   }
 }

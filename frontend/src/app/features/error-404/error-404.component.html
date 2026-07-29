@@ -1,13 +1,19 @@
 <div class="error-404-container">
-  <app-empty-state
-    title="Page non trouvée (404)"
-    description="Désolé, la page que vous recherchez n'existe pas ou a été déplacée."
-    icon="help-outline">
-    <app-action-button
-      variant="primary"
-      routerLink="/app-home">
-      Retourner à l'accueil
-    </app-action-button>
-  </app-empty-state>
-</div>
+  <div class="ellipse-bg-primary"></div>
+  <div class="ellipse-bg-tertiary"></div>
 
+  <div class="error-404-card">
+    <h1 class="hero-code">{{ 'ERROR_404.CODE' | transloco }}</h1>
+    <h2 class="error-title">{{ 'ERROR_404.TITLE' | transloco }}</h2>
+    <p class="error-description">{{ 'ERROR_404.DESCRIPTION' | transloco }}</p>
+
+    <div class="actions-row">
+      <app-action-button
+        variant="primary"
+        size="large"
+        routerLink="/app-home">
+        {{ 'ERROR_404.BACK_HOME' | transloco }}
+      </app-action-button>
+    </div>
+  </div>
+</div>

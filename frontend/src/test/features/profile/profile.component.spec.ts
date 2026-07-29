@@ -8,6 +8,7 @@ import {
   IonItem, IonLabel, IonInput, IonButton, IonBadge, IonText, IonNote
 } from '@ionic/angular/standalone';
 import { NgIf, NgFor, AsyncPipe, DatePipe } from '@angular/common';
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
 
 describe('ProfileComponent', () => {
   let component: ProfileComponent;
@@ -31,6 +32,7 @@ describe('ProfileComponent', () => {
       imports: [
         ProfileComponent,
         ReactiveFormsModule,
+        getTranslocoTestingModule(),
         IonCard, IonCardHeader, IonCardTitle, IonCardContent,
         IonItem, IonLabel, IonInput, IonButton, IonBadge, IonText, IonNote,
         NgIf, NgFor, AsyncPipe, DatePipe
@@ -121,6 +123,7 @@ describe('ProfileComponent', () => {
       imports: [
         ProfileComponent,
         ReactiveFormsModule,
+        getTranslocoTestingModule(),
         IonCard, IonCardHeader, IonCardTitle, IonCardContent,
         IonItem, IonLabel, IonInput, IonButton, IonBadge, IonText, IonNote,
         NgIf, NgFor, AsyncPipe, DatePipe

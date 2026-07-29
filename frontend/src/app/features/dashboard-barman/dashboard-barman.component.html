@@ -12,10 +12,8 @@
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
-  <!-- Alertes de stock temps réel (NotificationService + WS /topic/stock/alerte) -->
   <app-stock-alert-banner></app-stock-alert-banner>
 
-  <!-- Kanban -->
   <ion-grid class="kanban-grid">
     <ion-row class="kanban-row">
 
@@ -25,23 +23,25 @@
           <div class="kanban-header kanban-header--pending" [class.urgent-pending]="hasUrgentOrders">
             <div class="header-status">
               <span class="status-dot dot--pending"></span>
-              <span class="header-label">Pending</span>
-              <span *ngIf="hasUrgentOrders" class="urgent-badge" data-testid="urgent-orders-badge">⚠ &gt; {{ tempsAlerteCommandeMinutes }} min</span>
+              <span class="header-label">{{ 'DASHBOARD.PENDING_ORDERS' | transloco }}</span>
+              @if (hasUrgentOrders) {
+                <span class="urgent-badge" data-testid="urgent-orders-badge">⚠ &gt; {{ tempsAlerteCommandeMinutes }} min</span>
+              }
             </div>
             <span class="header-count count--pending" [class.count--urgent]="hasUrgentOrders" data-testid="pending-count">{{ commandesEnAttente.length }}</span>
           </div>
 
-          <app-commande-card
-            *ngFor="let cmd of commandesEnAttente; trackBy: trackById"
-            [commande]="cmd"
-            (changerStatut)="onChangerStatut($event)">
-          </app-commande-card>
-
-          <app-empty-state
-            *ngIf="commandesEnAttente.length === 0"
-            title="Aucune commande en attente"
-            icon="time-outline">
-          </app-empty-state>
+          @for (cmd of commandesEnAttente; track cmd.id) {
+            <app-commande-card
+              [commande]="cmd"
+              (changerStatut)="onChangerStatut($event)">
+            </app-commande-card>
+          } @empty {
+            <app-empty-state
+              [title]="'DASHBOARD.NO_PENDING' | transloco"
+              icon="time-outline">
+            </app-empty-state>
+          }
         </div>
       </ion-col>
 
@@ -51,22 +51,22 @@
           <div class="kanban-header kanban-header--inprogress">
             <div class="header-status">
               <span class="status-dot dot--inprogress"></span>
-              <span class="header-label">In Progress</span>
+              <span class="header-label">{{ 'DASHBOARD.IN_PROGRESS' | transloco }}</span>
             </div>
             <span class="header-count count--inprogress">{{ commandesEnPreparation.length }}</span>
           </div>
 
-          <app-commande-card
-            *ngFor="let cmd of commandesEnPreparation; trackBy: trackById"
-            [commande]="cmd"
-            (changerStatut)="onChangerStatut($event)">
-          </app-commande-card>
-
-          <app-empty-state
-            *ngIf="commandesEnPreparation.length === 0"
-            title="Aucune commande en préparation"
-            icon="wine-outline">
-          </app-empty-state>
+          @for (cmd of commandesEnPreparation; track cmd.id) {
+            <app-commande-card
+              [commande]="cmd"
+              (changerStatut)="onChangerStatut($event)">
+            </app-commande-card>
+          } @empty {
+            <app-empty-state
+              [title]="'DASHBOARD.NO_IN_PROGRESS' | transloco"
+              icon="wine-outline">
+            </app-empty-state>
+          }
         </div>
       </ion-col>
 
@@ -76,26 +76,25 @@
           <div class="kanban-header kanban-header--ready">
             <div class="header-status">
               <span class="status-dot dot--ready"></span>
-              <span class="header-label">Ready to Serve</span>
+              <span class="header-label">{{ 'DASHBOARD.READY' | transloco }}</span>
             </div>
             <span class="header-count count--ready">{{ commandesPret.length }}</span>
           </div>
 
-          <app-commande-card
-            *ngFor="let cmd of commandesPret; trackBy: trackById"
-            [commande]="cmd"
-            (changerStatut)="onChangerStatut($event)">
-          </app-commande-card>
-
-          <app-empty-state
-            *ngIf="commandesPret.length === 0"
-            title="Aucune commande prête"
-            icon="checkmark-done-outline">
-          </app-empty-state>
+          @for (cmd of commandesPret; track cmd.id) {
+            <app-commande-card
+              [commande]="cmd"
+              (changerStatut)="onChangerStatut($event)">
+            </app-commande-card>
+          } @empty {
+            <app-empty-state
+              [title]="'DASHBOARD.NO_READY' | transloco"
+              icon="checkmark-done-outline">
+            </app-empty-state>
+          }
         </div>
       </ion-col>
 
     </ion-row>
   </ion-grid>
 </ion-content>
-

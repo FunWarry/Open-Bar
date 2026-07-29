@@ -1,9 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router } from '@angular/router';
-import { NgIf } from '@angular/common';
-import { IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent, IonItem, IonLabel, IonInput, IonButton, IonNote, ToastController } from '@ionic/angular/standalone';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
+import { ToastController } from '@ionic/angular/standalone';
 import { SetupService } from '../../core/services/setup.service';
+import { InputFieldComponent } from '../../core/components/ui/input-field/input-field.component';
+import { ActionButtonComponent } from '../../core/components/ui/action-button/action-button.component';
 
 function passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
   const password = control.get('password');
@@ -15,24 +17,20 @@ function passwordMatchValidator(control: AbstractControl): ValidationErrors | nu
   return null;
 }
 
+/**
+ * Setup Component for initial workspace configuration and creation of the first Admin account.
+ * Fully aligned with Figma Vue système commun Onboarding design.
+ */
 @Component({
   selector: 'app-setup',
   templateUrl: './setup.component.html',
   styleUrls: ['./setup.component.css'],
   standalone: true,
   imports: [
-    IonCard,
-    IonCardHeader,
-    IonCardTitle,
-    IonCardSubtitle,
-    IonCardContent,
-    IonItem,
-    IonLabel,
-    IonInput,
-    IonButton,
-    IonNote,
-    NgIf,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    TranslocoModule,
+    InputFieldComponent,
+    ActionButtonComponent
   ]
 })
 export class SetupComponent implements OnInit {
@@ -40,7 +38,13 @@ export class SetupComponent implements OnInit {
   errorMessage: string | null = null;
   loading = false;
 
-  constructor(private readonly fb: FormBuilder,private readonly setupService: SetupService,private readonly router: Router,private readonly toastCtrl: ToastController) {
+  constructor(
+    private readonly fb: FormBuilder,
+    private readonly setupService: SetupService,
+    private readonly router: Router,
+    private readonly toastCtrl: ToastController,
+    private readonly translocoService: TranslocoService
+  ) {
     this.setupForm = this.fb.group({
       username: ['', [Validators.required, Validators.minLength(3)]],
       email: ['', [Validators.required, Validators.email]],
@@ -58,9 +62,7 @@ export class SetupComponent implements OnInit {
           this.router.navigate(['/auth/login']);
         }
       },
-      error: () => {
-        // Ignorer
-      }
+      error: () => {}
     });
   }
 
@@ -77,8 +79,9 @@ export class SetupComponent implements OnInit {
     this.setupService.createAdmin({ username, email, nom, prenom, password }).subscribe({
       next: async () => {
         this.loading = false;
+        const msg = this.translocoService.translate('SETUP.SUCCESS');
         const toast = await this.toastCtrl.create({
-          message: 'Compte administrateur créé avec succès ! Connectez-vous maintenant.',
+          message: msg,
           duration: 4000,
           color: 'success'
         });
@@ -87,7 +90,7 @@ export class SetupComponent implements OnInit {
       },
       error: (err) => {
         this.loading = false;
-        this.errorMessage = err?.error?.message || 'Erreur lors de la création du compte administrateur.';
+        this.errorMessage = err?.error?.message || this.translocoService.translate('COMMON.ERROR');
       }
     });
   }
