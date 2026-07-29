@@ -66,13 +66,13 @@ public class Facture {
 
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-        dateFacture = LocalDateTime.now();
+        createdAt = LocalDateTime.now(java.time.ZoneId.systemDefault());
+        updatedAt = LocalDateTime.now(java.time.ZoneId.systemDefault());
+        dateFacture = LocalDateTime.now(java.time.ZoneId.systemDefault());
     }
 
     @PreUpdate
     protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now(java.time.ZoneId.systemDefault());
     }
 } 

@@ -53,7 +53,7 @@ public class Cocktail {
     @Transient
     public boolean isDisponibleAujourdhui() {
         if (moisDebut == null || moisFin == null) return true;
-        int moisActuel = java.time.LocalDate.now().getMonthValue();
+        int moisActuel = java.time.LocalDate.now(java.time.ZoneId.systemDefault()).getMonthValue();
         if (moisDebut <= moisFin) {
             return moisActuel >= moisDebut && moisActuel <= moisFin;
         }
@@ -74,12 +74,12 @@ public class Cocktail {
 
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
+        createdAt = LocalDateTime.now(java.time.ZoneId.systemDefault());
+        updatedAt = LocalDateTime.now(java.time.ZoneId.systemDefault());
     }
 
     @PreUpdate
     protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now(java.time.ZoneId.systemDefault());
     }
 } 

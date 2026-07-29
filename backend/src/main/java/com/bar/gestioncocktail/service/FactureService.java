@@ -33,6 +33,7 @@ import com.bar.gestioncocktail.repository.AvoirCreditRepository;
 import java.security.MessageDigest;
 import java.time.Year;
 import java.time.ZoneId;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -292,9 +293,9 @@ public class FactureService {
         Facture merged = new Facture();
         merged.setTable(tableCible);
         long sequence = ((Number) entityManager.createNativeQuery("SELECT NEXTVAL('facture_seq')").getSingleResult()).longValue();
-        String mois = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMM"));
+        String mois = LocalDateTime.now(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("yyyyMM"));
         merged.setNumero(String.format("FAC-MERGE-%s-%04d", mois, sequence));
-        merged.setDateFacture(LocalDateTime.now());
+        merged.setDateFacture(LocalDateTime.now(ZoneId.systemDefault()));
         merged.setReglee(false);
 
         BigDecimal total = BigDecimal.ZERO;
@@ -487,9 +488,9 @@ public class FactureService {
         BigDecimal grandTotalVAT = BigDecimal.ZERO;
         BigDecimal grandTotalTTC = BigDecimal.ZERO;
 
-        Map<VatRate, BigDecimal> baseHTMap = new HashMap<>();
-        Map<VatRate, BigDecimal> vatAmountMap = new HashMap<>();
-        Map<VatRate, BigDecimal> totalTTCMap = new HashMap<>();
+        Map<VatRate, BigDecimal> baseHTMap = new EnumMap<>(VatRate.class);
+        Map<VatRate, BigDecimal> vatAmountMap = new EnumMap<>(VatRate.class);
+        Map<VatRate, BigDecimal> totalTTCMap = new EnumMap<>(VatRate.class);
 
         for (VatRate rate : VatRate.values()) {
             baseHTMap.put(rate, BigDecimal.ZERO);
