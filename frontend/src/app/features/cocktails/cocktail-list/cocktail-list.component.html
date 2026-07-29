@@ -8,7 +8,7 @@
       <div class="card-header-row">
         <ion-card-title>Cocktails ({{ cocktails.length }})</ion-card-title>
         @if (isAdmin$ | async) {
-          <ion-button color="primary" (click)="onAdd()">
+          <ion-button color="primary" (click)="onAdd()" (keydown.enter)="onAdd()">
             <ion-icon slot="start" name="add"></ion-icon>
             Nouveau
           </ion-button>
@@ -42,14 +42,14 @@
               </ion-badge>
               <ion-badge slot="end" color="primary">{{ cocktail.prix | currency:'EUR' }}</ion-badge>
               <ion-buttons slot="end">
-                <ion-button fill="clear" color="warning" (click)="onToggleDisponibilite(cocktail)">
+                <ion-button fill="clear" color="warning" (click)="onToggleDisponibilite(cocktail)" (keydown.enter)="onToggleDisponibilite(cocktail)">
                   <ion-icon slot="icon-only" name="toggle-outline"></ion-icon>
                 </ion-button>
                 @if (isAdmin$ | async) {
-                  <ion-button fill="clear" color="tertiary" (click)="onEdit(cocktail)">
+                  <ion-button fill="clear" color="tertiary" (click)="onEdit(cocktail)" (keydown.enter)="onEdit(cocktail)">
                     <ion-icon slot="icon-only" name="create"></ion-icon>
                   </ion-button>
-                  <ion-button fill="clear" color="danger" (click)="onDelete(cocktail)">
+                  <ion-button fill="clear" color="danger" (click)="onDelete(cocktail)" (keydown.enter)="onDelete(cocktail)">
                     <ion-icon slot="icon-only" name="trash"></ion-icon>
                   </ion-button>
                 }

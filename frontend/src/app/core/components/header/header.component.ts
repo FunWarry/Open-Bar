@@ -14,7 +14,7 @@ import {
   logOut, chevronDown, person
 } from 'ionicons/icons';
 import {RouterLink, RouterLinkActive} from '@angular/router';
-import {AsyncPipe, NgIf} from '@angular/common';
+import {AsyncPipe} from '@angular/common';
 import * as AuthActions from '../../store/auth.actions';
 
 @Component({

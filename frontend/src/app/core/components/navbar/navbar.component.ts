@@ -15,7 +15,7 @@ import {
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { home, settings, personCircle, person, logOut, chevronDown, notificationsOutline, volumeHighOutline, volumeMuteOutline } from 'ionicons/icons';
-import { AsyncPipe, NgIf } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import * as AuthActions from '../../store/auth.actions';
 
 @Component({
