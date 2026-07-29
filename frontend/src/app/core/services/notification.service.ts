@@ -3,6 +3,7 @@ import { Subject, Observable } from 'rxjs';
 import { ToastController } from '@ionic/angular/standalone';
 import { takeUntil } from 'rxjs/operators';
 import { WebSocketService } from './websocket.service';
+import { SoundService } from './sound.service';
 
 export interface AppNotification {
   id: string;
@@ -21,7 +22,10 @@ export class NotificationService implements OnDestroy {
   private readonly destroy$ = new Subject<void>();
   private readonly notificationHistory: AppNotification[] = [];
 
-  constructor(private readonly ws: WebSocketService,private readonly toastCtrl: ToastController,
+  constructor(
+    private readonly ws: WebSocketService,
+    private readonly toastCtrl: ToastController,
+    private readonly soundService: SoundService
   ) {
     this.initSubscriptions();
   }
@@ -115,6 +119,12 @@ export class NotificationService implements OnDestroy {
     this.notificationHistory.unshift(notif);
     this.notifications$.next(notif);
     this.showToast(notif.message, notif.severity);
+
+    if (notif.type === 'commande') {
+      this.soundService.playNewOrderSound();
+    } else if (notif.type === 'statut' && (notif.data?.statut === 'PRET' || notif.data?.statut === 'PRETE')) {
+      this.soundService.playOrderReadySound();
+    }
   }
 
   private async showToast(message: string, color: string): Promise<void> {
