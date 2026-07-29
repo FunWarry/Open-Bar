@@ -5,14 +5,29 @@ ion-card {
 }
 
 ion-card-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
+  .header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    gap: 12px;
+  }
 
   ion-card-title {
     font-size: 1.1rem;
     font-weight: 700;
+  }
+}
+
+.legal-info-box {
+  background: rgba(255, 255, 255, 0.05);
+  border-left: 3px solid var(--ion-color-primary, #6c7fe8);
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+
+  p {
+    margin: 2px 0;
   }
 }
 
@@ -56,3 +71,13 @@ ion-item {
     margin-top: 4px;
   }
 }
+
+@media print {
+  ion-header,
+  ion-segment,
+  .action-buttons,
+  .no-print {
+    display: none !important;
+  }
+}
+
