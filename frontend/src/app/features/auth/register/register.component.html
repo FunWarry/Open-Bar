@@ -62,9 +62,9 @@
       </app-password-input>
 
       <div class="field">
-        <label>Rôle</label>
+        <label for="role-select">Rôle</label>
         <ion-item class="role-select-item" lines="none">
-          <ion-select formControlName="role" required interface="popover" placeholder="Sélectionnez un rôle">
+          <ion-select id="role-select" formControlName="role" required interface="popover" placeholder="Sélectionnez un rôle">
             @for (role of roles; track role) {
               <ion-select-option [value]="role">
                 {{ role }}

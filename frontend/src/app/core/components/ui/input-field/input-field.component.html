@@ -1,10 +1,15 @@
 <div class="field-container">
-  <label *ngIf="label" class="field-label">
-    {{ label }} <span *ngIf="required" class="required-star">*</span>
-  </label>
+  @if (label) {
+    <label [for]="inputId" class="field-label">
+      {{ label }} @if (required) { <span class="required-star">*</span> }
+    </label>
+  }
   <div class="input-wrapper" [class.has-error]="errorMessage" [class.is-disabled]="disabled">
-    <ion-icon *ngIf="icon" [name]="icon" class="field-icon"></ion-icon>
+    @if (icon) {
+      <ion-icon [name]="icon" class="field-icon"></ion-icon>
+    }
     <input
+      [id]="inputId"
       [type]="type"
       [value]="value"
       [placeholder]="placeholder"
@@ -16,10 +21,14 @@
       class="native-input"
     />
   </div>
-  <div *ngIf="errorMessage" class="field-error">
-    ⚠ {{ errorMessage }}
-  </div>
-  <div *ngIf="helperText && !errorMessage" class="field-helper">
-    {{ helperText }}
-  </div>
+  @if (errorMessage) {
+    <div class="field-error">
+      ⚠ {{ errorMessage }}
+    </div>
+  }
+  @if (helperText && !errorMessage) {
+    <div class="field-helper">
+      {{ helperText }}
+    </div>
+  }
 </div>

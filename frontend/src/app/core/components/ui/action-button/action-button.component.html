@@ -4,7 +4,11 @@
   [class.btn-block]="expand === 'block' || expand === 'full'"
   [ngClass]="['btn', 'btn--' + variant, size === 'small' ? 'btn-sm' : '']"
   (click)="onClick($event)">
-  <ion-spinner *ngIf="loading" name="crescent" class="btn-spinner"></ion-spinner>
-  <ion-icon *ngIf="icon && !loading" [name]="icon" class="btn-icon"></ion-icon>
+  @if (loading) {
+    <ion-spinner name="crescent" class="btn-spinner"></ion-spinner>
+  }
+  @if (icon && !loading) {
+    <ion-icon [name]="icon" class="btn-icon"></ion-icon>
+  }
   <ng-content></ng-content>
 </button>
