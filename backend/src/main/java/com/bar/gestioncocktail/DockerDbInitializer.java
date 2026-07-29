@@ -230,7 +230,13 @@ public class DockerDbInitializer {
     }
 
     private void startDockerCompose() throws IOException, InterruptedException {
-        File dockerComposeFile = new File("src/main/resources/docker-compose.yml").getAbsoluteFile();
+        ClassPathResource composeResource = new ClassPathResource("docker-compose.yml");
+        File dockerComposeFile;
+        try {
+            dockerComposeFile = composeResource.getFile().getAbsoluteFile();
+        } catch (IOException e) {
+            throw new IOException("docker-compose.yml introuvable dans le classpath. Vérifiez que le fichier est dans src/main/resources/", e);
+        }
         File projectRoot = dockerComposeFile.getParentFile();
 
         String[] command;

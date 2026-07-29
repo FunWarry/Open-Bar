@@ -14,7 +14,7 @@ import {
   logOut, chevronDown, person
 } from 'ionicons/icons';
 import {RouterLink, RouterLinkActive} from '@angular/router';
-import {AsyncPipe, NgIf} from '@angular/common';
+import {AsyncPipe} from '@angular/common';
 import * as AuthActions from '../../store/auth.actions';
 
 @Component({
@@ -25,7 +25,7 @@ import * as AuthActions from '../../store/auth.actions';
   imports: [
     IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
     IonMenu, IonMenuButton, IonContent, IonList, IonItem, IonLabel,
-    IonPopover, RouterLink, RouterLinkActive, AsyncPipe, NgIf
+    IonPopover, RouterLink, RouterLinkActive, AsyncPipe
   ]
 })
 export class HeaderComponent {

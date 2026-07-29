@@ -12,7 +12,7 @@ import {
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { add, create, trash, leafOutline, toggleOutline } from 'ionicons/icons';
-import { NgIf, NgFor, AsyncPipe, CurrencyPipe } from '@angular/common';
+import { AsyncPipe, CurrencyPipe } from '@angular/common';
 import { CocktailService } from '../../../core/services/cocktail.service';
 import { Cocktail } from '../../../core/models/cocktail.model';
 
@@ -26,7 +26,7 @@ import { Cocktail } from '../../../core/models/cocktail.model';
     IonList, IonItem, IonLabel, IonBadge, IonIcon, IonButton, IonButtons,
     IonRefresher, IonRefresherContent, IonSegment, IonSegmentButton,
     IonSpinner,
-    NgIf, NgFor, AsyncPipe, CurrencyPipe,
+    AsyncPipe, CurrencyPipe,
   ],
 })
 export class CocktailListComponent implements OnInit, OnDestroy {

@@ -248,9 +248,20 @@ describe('Shared UI Components (Figma Design System)', () => {
 
       component.role = 'BARMAN';
       expect(component.roleIcon).toBe('wine');
+      expect(component.roleColor).toBe('var(--role-barman)');
+
+      component.role = 'ADMIN';
+      expect(component.roleColor).toBe('var(--role-admin)');
+
+      component.role = 'MANAGER';
+      expect(component.roleColor).toBe('var(--role-manager)');
+
+      component.role = 'SERVEUR';
+      expect(component.roleColor).toBe('var(--role-serveur)');
 
       component.role = undefined;
       expect(component.roleIcon).toBe('person');
+      expect(component.roleColor).toBe('var(--primary)');
     });
   });
 
