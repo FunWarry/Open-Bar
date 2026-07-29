@@ -25,7 +25,7 @@ import * as AuthActions from '../../store/auth.actions';
   imports: [
     IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
     IonMenu, IonMenuButton, IonContent, IonList, IonItem, IonLabel,
-    IonPopover, RouterLink, RouterLinkActive, AsyncPipe, NgIf
+    IonPopover, RouterLink, RouterLinkActive, AsyncPipe
   ]
 })
 export class HeaderComponent {

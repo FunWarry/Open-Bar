@@ -18,7 +18,7 @@
         <ion-icon slot="start" name="table-restaurant"></ion-icon>
         <ion-label>Tables</ion-label>
       </ion-item>
-      <ng-container *ngIf="(currentUser$ | async)?.roles?.includes('ADMIN')">
+      @if ((currentUser$ | async)?.roles?.includes('ADMIN')) {
         <ion-item button routerLink="/ingredients" routerLinkActive="active-item" detail="false">
           <ion-icon slot="start" name="nutrition"></ion-icon>
           <ion-label>Ingrédients</ion-label>
@@ -27,7 +27,7 @@
           <ion-icon slot="start" name="shield-checkmark"></ion-icon>
           <ion-label>Administration</ion-label>
         </ion-item>
-      </ng-container>
+      }
     </ion-list>
   </ion-content>
 </ion-menu>
@@ -39,7 +39,7 @@
     </ion-buttons>
     <ion-title>OpenBar</ion-title>
     <ion-buttons slot="end">
-      <ng-container *ngIf="currentUser$ | async as user">
+      @if (currentUser$ | async; as user) {
         <ion-button id="header-user-trigger">
           {{ user.username }}
           <ion-icon slot="end" name="chevron-down"></ion-icon>
@@ -54,7 +54,8 @@
             </ion-list>
           </ng-template>
         </ion-popover>
-      </ng-container>
+      }
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
+

@@ -26,7 +26,7 @@ import { Cocktail } from '../../../core/models/cocktail.model';
     IonList, IonItem, IonLabel, IonBadge, IonIcon, IonButton, IonButtons,
     IonRefresher, IonRefresherContent, IonSegment, IonSegmentButton,
     IonSpinner,
-    NgIf, NgFor, AsyncPipe, CurrencyPipe,
+    AsyncPipe, CurrencyPipe,
   ],
 })
 export class CocktailListComponent implements OnInit, OnDestroy {

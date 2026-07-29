@@ -191,6 +191,10 @@ ion-button {
 .btn:focus-visible { outline: none; box-shadow: var(--ring-focus); }
 .btn:active { transform: translateY(1px); }
 .btn-sm { min-height: 36px; padding: 0 var(--space-3); font-size: var(--fs-sm); }
+.btn-lg { min-height: 52px; padding: 0 var(--space-6); font-size: var(--fs-h3); }
+.btn-icon-only { padding: 0 var(--space-3); width: var(--tap-min); }
+.btn-sm.btn-icon-only { width: 36px; padding: 0; }
+.btn-lg.btn-icon-only { width: 52px; padding: 0; }
 
 .btn--primary { background: var(--primary-strong); color: var(--text-on-accent); }
 .btn--primary:hover { background: var(--primary); }
@@ -204,6 +208,13 @@ ion-button {
 
 .btn--danger { background: color-mix(in srgb, var(--danger) 16%, transparent); color: var(--danger); border-color: color-mix(in srgb, var(--danger) 45%, transparent); }
 .btn--danger:hover { background: color-mix(in srgb, var(--danger) 26%, transparent); }
+
+.btn--edit { background: color-mix(in srgb, var(--role-manager) 16%, transparent); color: var(--role-manager); border-color: color-mix(in srgb, var(--role-manager) 45%, transparent); }
+.btn--edit:hover { background: color-mix(in srgb, var(--role-manager) 26%, transparent); }
+
+.btn--mark { background: var(--success); color: var(--text-on-accent); }
+.btn--mark:hover { filter: brightness(1.1); }
+
 
 .btn:disabled, .btn[aria-disabled="true"] { opacity: .4; cursor: not-allowed; pointer-events: none; }
 

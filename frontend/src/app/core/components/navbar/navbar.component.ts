@@ -26,7 +26,7 @@ import * as AuthActions from '../../store/auth.actions';
   imports: [
     IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
     IonPopover, IonList, IonItem, IonLabel, IonBadge,
-    NgIf, AsyncPipe,
+    AsyncPipe,
   ],
 })
 export class NavbarComponent implements OnInit, OnDestroy {
