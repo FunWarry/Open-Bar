@@ -4,6 +4,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ToastController, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonLabel, IonButton, IonNote, IonSelect, IonSelectOption } from '@ionic/angular/standalone';
 
 import { CommandeService } from '../../../core/services/commande.service';
+import { TableService } from '../../../core/services/table.service';
+import { TableBar } from '../../../core/models/table.model';
 
 @Component({
   selector: 'app-commande-form',
@@ -21,8 +23,15 @@ export class CommandeFormComponent implements OnInit {
   commandeForm: FormGroup;
   isEditMode = false;
   commandeId: number | null = null;
+  tables: TableBar[] = [];
 
-  constructor(private readonly fb: FormBuilder,private readonly route: ActivatedRoute,public readonly router: Router,private readonly toastCtrl: ToastController,private readonly commandeService: CommandeService,
+  constructor(
+    private readonly fb: FormBuilder,
+    private readonly route: ActivatedRoute,
+    public readonly router: Router,
+    private readonly toastCtrl: ToastController,
+    private readonly commandeService: CommandeService,
+    private readonly tableService: TableService
   ) {
     this.commandeForm = this.fb.group({
       tableId: ['', [Validators.required, Validators.min(1)]],
@@ -36,6 +45,10 @@ export class CommandeFormComponent implements OnInit {
       this.isEditMode = true;
       this.commandeId = +id;
     }
+    this.tableService.getAll().subscribe({
+      next: (data) => (this.tables = data),
+      error: () => (this.tables = [])
+    });
   }
 
   onSubmit(): void {

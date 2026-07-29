@@ -6,11 +6,10 @@
     <form (ngSubmit)="onSubmit()" [formGroup]="commandeForm">
       <ion-item>
         <ion-label position="stacked">Table</ion-label>
-        <ion-select formControlName="tableId" required>
-          <!-- TODO: Ajouter les options de table dynamiquement -->
-          <ion-select-option value="1">Table 1</ion-select-option>
-          <ion-select-option value="2">Table 2</ion-select-option>
-          <ion-select-option value="3">Table 3</ion-select-option>
+        <ion-select formControlName="tableId" required aria-label="Table">
+          @for (t of tables; track t.id) {
+            <ion-select-option [value]="t.id">Table #{{ t.numero }} ({{ t.zone }})</ion-select-option>
+          }
         </ion-select>
       </ion-item>
       @if (commandeForm.get('tableId')?.hasError('required') && commandeForm.get('tableId')?.touched) {

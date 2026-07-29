@@ -3,15 +3,17 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { ToastController } from '@ionic/angular/standalone';
-import { of, throwError } from 'rxjs';
+import { of } from 'rxjs';
 import { CommandeFormComponent } from '../../../app/features/commandes/commande-form/commande-form.component';
 import { CommandeService } from '../../../app/core/services/commande.service';
+import { TableService } from '../../../app/core/services/table.service';
 
 describe('CommandeFormComponent', () => {
   let component: CommandeFormComponent;
   let routerSpy: jasmine.SpyObj<Router>;
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
   let commandeServiceSpy: jasmine.SpyObj<CommandeService>;
+  let tableServiceSpy: jasmine.SpyObj<TableService>;
 
   const toastMock = { present: jasmine.createSpy('present').and.returnValue(Promise.resolve()) };
 
@@ -21,6 +23,8 @@ describe('CommandeFormComponent', () => {
     toastCtrlSpy.create.and.returnValue(Promise.resolve(toastMock as any));
     commandeServiceSpy = jasmine.createSpyObj('CommandeService', ['create', 'update', 'getById']);
     commandeServiceSpy.create.and.returnValue(of({} as any));
+    tableServiceSpy = jasmine.createSpyObj('TableService', ['getAll']);
+    tableServiceSpy.getAll.and.returnValue(of([]));
 
     await TestBed.configureTestingModule({
       imports: [
@@ -32,6 +36,7 @@ describe('CommandeFormComponent', () => {
         { provide: Router, useValue: routerSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
         { provide: CommandeService, useValue: commandeServiceSpy },
+        { provide: TableService, useValue: tableServiceSpy },
         {
           provide: ActivatedRoute,
           useValue: { snapshot: { paramMap: { get: () => null } } }
@@ -70,6 +75,7 @@ describe('CommandeFormComponent', () => {
         { provide: Router, useValue: routerSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
         { provide: CommandeService, useValue: commandeServiceSpy },
+        { provide: TableService, useValue: tableServiceSpy },
         { provide: ActivatedRoute, useValue: routeWithId }
       ]
     }).compileComponents();

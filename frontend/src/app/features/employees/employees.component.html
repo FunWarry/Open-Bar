@@ -61,9 +61,9 @@
     <div class="table-bottom">
       <span class="employee-count">{{ employees.length }} employes</span>
       <div class="pagination">
-        <span class="page-btn" (click)="prevPage()" (keyup.enter)="prevPage()" tabindex="0" [class.disabled]="currentPage === 1">← Préc.</span>
+        <button type="button" class="page-btn" (click)="prevPage()" (keyup.enter)="prevPage()" [disabled]="currentPage === 1" [class.disabled]="currentPage === 1">← Préc.</button>
         <span class="page-current">{{ currentPage }}</span>
-        <span class="page-btn" (click)="nextPage()" (keyup.enter)="nextPage()" tabindex="0" [class.disabled]="currentPage === totalPages">Suiv. →</span>
+        <button type="button" class="page-btn" (click)="nextPage()" (keyup.enter)="nextPage()" [disabled]="currentPage === totalPages" [class.disabled]="currentPage === totalPages">Suiv. →</button>
       </div>
     </div>
   </div>
