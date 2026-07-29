@@ -63,6 +63,13 @@ export class FactureDetailComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  onViewChange(event: CustomEvent): void {
+    const val = event.detail.value;
+    if (val === 'invoice' || val === 'ticket') {
+      this.activeView = val;
+    }
+  }
+
   get montantAffiche(): number {
     return this.facture?.totalTTC ?? this.facture?.total ?? 0;
   }

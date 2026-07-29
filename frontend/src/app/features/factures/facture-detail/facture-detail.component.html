@@ -15,7 +15,7 @@
   <ng-container *ngIf="facture">
     <!-- Format Switcher Segment -->
     <div class="ion-padding-bottom no-print">
-      <ion-segment [value]="activeView" (ionChange)="activeView = $event.detail.value">
+      <ion-segment [value]="activeView" (ionChange)="onViewChange($event)">
         <ion-segment-button value="invoice" data-testid="segment-view-invoice">
           <ion-icon name="document-text-outline"></ion-icon>
           <ion-label>{{ 'FACTURES.VIEW_A4' | transloco }}</ion-label>

@@ -14,18 +14,18 @@
 
   <div class="thermal-receipt" data-testid="thermal-receipt">
     <!-- Legal Establishment Header -->
-    <div class="receipt-header">
-      <h2 class="establishment-name">{{ establishmentConfig?.legalName || 'OpenBar' }}</h2>
-      <p class="legal-form" *ngIf="establishmentConfig?.legalForm">
-        {{ establishmentConfig?.legalForm }}
-        <span *ngIf="establishmentConfig?.capitalSocial">
-          - Cap. {{ establishmentConfig?.capitalSocial | currency:'EUR':'symbol':'1.0-0':'fr' }}
+    <div class="receipt-header" *ngIf="establishmentConfig as cfg">
+      <h2 class="establishment-name">{{ cfg.legalName || 'OpenBar' }}</h2>
+      <p class="legal-form" *ngIf="cfg.legalForm">
+        {{ cfg.legalForm }}
+        <span *ngIf="cfg.capitalSocial">
+          - Cap. {{ cfg.capitalSocial | currency:'EUR':'symbol':'1.0-0':'fr' }}
         </span>
       </p>
-      <p class="legal-address" *ngIf="establishmentConfig?.address">{{ establishmentConfig?.address }}</p>
-      <p class="legal-contact" *ngIf="establishmentConfig?.phone">Tél: {{ establishmentConfig?.phone }}</p>
-      <p class="legal-siret" *ngIf="establishmentConfig?.siret">SIRET: {{ establishmentConfig?.siret }}</p>
-      <p class="legal-tva" *ngIf="establishmentConfig?.tvaNumber">N° TVA: {{ establishmentConfig?.tvaNumber }}</p>
+      <p class="legal-address" *ngIf="cfg.address">{{ cfg.address }}</p>
+      <p class="legal-contact" *ngIf="cfg.phone">Tél: {{ cfg.phone }}</p>
+      <p class="legal-siret" *ngIf="cfg.siret">SIRET: {{ cfg.siret }}</p>
+      <p class="legal-tva" *ngIf="cfg.tvaNumber">N° TVA: {{ cfg.tvaNumber }}</p>
     </div>
 
     <div class="receipt-divider">--------------------------------</div>
