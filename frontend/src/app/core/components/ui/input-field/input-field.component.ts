@@ -23,7 +23,13 @@ export class InputFieldComponent extends BaseControlValueAccessor {
   private static nextId = 0;
 
   /** Unique ID linking the label to its input for accessibility. */
-  readonly inputId = `app-input-field-${++InputFieldComponent.nextId}`;
+  readonly inputId: string;
+
+  constructor() {
+    super();
+    InputFieldComponent.nextId += 1;
+    this.inputId = `app-input-field-${InputFieldComponent.nextId}`;
+  }
   @Input() label?: string;
   @Input() placeholder = '';
   @Input() type = 'text';
