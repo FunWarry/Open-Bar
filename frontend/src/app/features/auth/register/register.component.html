@@ -65,14 +65,18 @@
         <label>Rôle</label>
         <ion-item class="role-select-item" lines="none">
           <ion-select formControlName="role" required interface="popover" placeholder="Sélectionnez un rôle">
-            <ion-select-option *ngFor="let role of roles" [value]="role">
-              {{ role }}
-            </ion-select-option>
+            @for (role of roles; track role) {
+              <ion-select-option [value]="role">
+                {{ role }}
+              </ion-select-option>
+            }
           </ion-select>
         </ion-item>
-        <div class="field-error" *ngIf="registerForm.get('role')?.touched && registerForm.get('role')?.hasError('required')">
-          Le rôle est requis
-        </div>
+        @if (registerForm.get('role')?.touched && registerForm.get('role')?.hasError('required')) {
+          <div class="field-error">
+            Le rôle est requis
+          </div>
+        }
       </div>
 
       <app-action-button
