@@ -3,7 +3,7 @@
     <ion-card-header>
       <div class="card-header-row">
         <ion-card-title>Gestion des utilisateurs</ion-card-title>
-        <ion-button color="primary" (click)="openCreateDialog()">
+        <ion-button color="primary" (click)="openCreateDialog()" (keydown.enter)="openCreateDialog()" data-testid="btn-create-user">
           <ion-icon slot="start" name="person-add"></ion-icon>
           Nouvel utilisateur
         </ion-button>
@@ -17,26 +17,30 @@
         <span>Actions</span>
       </div>
       <ion-list>
-        <ion-item *ngFor="let user of users; trackBy: trackById">
-          <ion-label>
-            <h3>{{ user.username }}</h3>
-            <p>{{ user.email }}</p>
-          </ion-label>
-          <div slot="end" class="roles-badges">
-            <ion-badge *ngFor="let role of user.roles" [color]="getRoleColor(role)">
-              {{ role }}
-            </ion-badge>
-          </div>
-          <ion-label slot="end" class="col-date">{{ user.createdAt | date:'dd/MM/yyyy' }}</ion-label>
-          <ion-buttons slot="end">
-            <ion-button fill="clear" color="tertiary" (click)="openEditDialog(user)">
-              <ion-icon slot="icon-only" name="create"></ion-icon>
-            </ion-button>
-            <ion-button fill="clear" color="danger" (click)="openDeleteDialog(user)">
-              <ion-icon slot="icon-only" name="trash"></ion-icon>
-            </ion-button>
-          </ion-buttons>
-        </ion-item>
+        @for (user of users; track user.id) {
+          <ion-item>
+            <ion-label>
+              <h3>{{ user.username }}</h3>
+              <p>{{ user.email }}</p>
+            </ion-label>
+            <div slot="end" class="roles-badges">
+              @for (role of user.roles; track role) {
+                <ion-badge [color]="getRoleColor(role)">
+                  {{ role }}
+                </ion-badge>
+              }
+            </div>
+            <ion-label slot="end" class="col-date">{{ user.createdAt | date:'dd/MM/yyyy' }}</ion-label>
+            <ion-buttons slot="end">
+              <ion-button fill="clear" color="tertiary" (click)="openEditDialog(user)" (keydown.enter)="openEditDialog(user)" data-testid="btn-edit-user">
+                <ion-icon slot="icon-only" name="create"></ion-icon>
+              </ion-button>
+              <ion-button fill="clear" color="danger" (click)="openDeleteDialog(user)" (keydown.enter)="openDeleteDialog(user)" data-testid="btn-delete-user">
+                <ion-icon slot="icon-only" name="trash"></ion-icon>
+              </ion-button>
+            </ion-buttons>
+          </ion-item>
+        }
       </ion-list>
     </ion-card-content>
   </ion-card>

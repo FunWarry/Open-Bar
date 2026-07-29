@@ -1,9 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ToastController, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonLabel, IonInput, IonButton, IonNote, IonSelect, IonSelectOption } from '@ionic/angular/standalone';
+import { ToastController, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonLabel, IonButton, IonNote, IonSelect, IonSelectOption } from '@ionic/angular/standalone';
 
-import { NgIf } from '@angular/common';
 import { CommandeService } from '../../../core/services/commande.service';
 
 @Component({
@@ -13,9 +12,9 @@ import { CommandeService } from '../../../core/services/commande.service';
   standalone: true,
   imports: [
     IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-    IonItem, IonLabel, IonInput, IonButton, IonNote,
+    IonItem, IonLabel, IonButton, IonNote,
     IonSelect, IonSelectOption,
-    ReactiveFormsModule, NgIf,
+    ReactiveFormsModule,
   ],
 })
 export class CommandeFormComponent implements OnInit {

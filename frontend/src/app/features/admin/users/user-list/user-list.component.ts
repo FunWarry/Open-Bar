@@ -8,7 +8,7 @@ import {DeleteUserDialogComponent} from '../delete-user-dialog/delete-user-dialo
 
 import {addIcons} from 'ionicons';
 import {personAdd, create, trash} from 'ionicons/icons';
-import {NgFor, AsyncPipe, DatePipe} from '@angular/common';
+import {DatePipe} from '@angular/common';
 
 @Component({
   selector: 'app-user-list',
@@ -18,7 +18,7 @@ import {NgFor, AsyncPipe, DatePipe} from '@angular/common';
   imports: [
     IonCard, IonCardHeader, IonCardTitle, IonCardContent,
     IonList, IonItem, IonLabel, IonBadge, IonIcon, IonButton, IonButtons,
-    NgFor, AsyncPipe, DatePipe
+    DatePipe
   ],
 })
 export class UserListComponent implements OnInit {

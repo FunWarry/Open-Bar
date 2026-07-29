@@ -2,25 +2,25 @@
   <ion-toolbar>
     <ion-title>Confirmer la suppression</ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="onCancel()">Annuler</ion-button>
+      <ion-button (click)="onCancel()" (keydown.enter)="onCancel()" data-testid="btn-cancel-delete">Annuler</ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="ion-padding">
   <p>
-    Êtes-vous sûr de vouloir supprimer l'utilisateur <strong>{{ data?.username }}</strong> ?
+    Êtes-vous sûr de vouloir supprimer l'utilisateur <strong>{{ data.username }}</strong> ?
   </p>
   <p class="warning">
     Cette action est irréversible et supprimera définitivement toutes les données associées à cet utilisateur.
   </p>
 
   <div class="form-actions ion-padding-top">
-    <ion-button expand="block" color="danger" (click)="onConfirm()">
+    <ion-button expand="block" color="danger" (click)="onConfirm()" (keydown.enter)="onConfirm()" data-testid="btn-confirm-delete">
       <ion-icon slot="start" name="trash"></ion-icon>
       Supprimer
     </ion-button>
-    <ion-button expand="block" fill="outline" (click)="onCancel()">
+    <ion-button expand="block" fill="outline" (click)="onCancel()" (keydown.enter)="onCancel()" data-testid="btn-cancel-delete-2">
       Annuler
     </ion-button>
   </div>

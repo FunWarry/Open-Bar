@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
   IonItem, IonLabel, IonSelect, IonSelectOption,
-  IonButton, IonIcon, IonNote, IonChip, IonToggle, IonText
+  IonButton, IonIcon, IonNote, IonChip, IonToggle
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { calendarOutline, checkmarkCircleOutline, closeCircleOutline } from 'ionicons/icons';
@@ -25,7 +25,7 @@ const MOIS = [
   imports: [
     CommonModule, FormsModule,
     IonItem, IonLabel, IonSelect, IonSelectOption,
-    IonButton, IonIcon, IonNote, IonChip, IonToggle, IonText
+    IonButton, IonIcon, IonNote, IonChip, IonToggle
   ],
   template: `
     <div class="saisonnalite-container">

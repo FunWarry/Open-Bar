@@ -1,13 +1,13 @@
 import { Component, Input, forwardRef } from '@angular/core';
 import { NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
 import { NgIf } from '@angular/common';
-import { IonItem, IonLabel, IonInput, IonNote, IonIcon } from '@ionic/angular/standalone';
+import { IonIcon } from '@ionic/angular/standalone';
 import { BaseControlValueAccessor } from '../base-control-value-accessor';
 
 @Component({
   selector: 'app-input-field',
   standalone: true,
-  imports: [IonItem, IonLabel, IonInput, IonNote, IonIcon, NgIf, ReactiveFormsModule],
+  imports: [IonIcon, NgIf, ReactiveFormsModule],
   templateUrl: './input-field.component.html',
   styleUrls: ['./input-field.component.css'],
   providers: [

@@ -12,7 +12,6 @@ import {
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { listOutline } from 'ionicons/icons';
-import { TableCardComponent } from './components/table-card/table-card.component';
 import { TableDetailModalComponent } from './components/table-detail-modal/table-detail-modal.component';
 import { NotificationService } from '../../core/services/notification.service';
 import { DashboardServeurService } from './services/dashboard-serveur.service';
@@ -34,7 +33,6 @@ import { FilterChipComponent } from '../../core/components/ui/filter-chip/filter
     IonRefresher, IonRefresherContent,
     IonSegment, IonSegmentButton, IonLabel,
     IonButtons, IonButton, IonIcon,
-    TableCardComponent,
     MobileTableCardComponent,
     BottomNavigationComponent,
     ProductCardComponent,

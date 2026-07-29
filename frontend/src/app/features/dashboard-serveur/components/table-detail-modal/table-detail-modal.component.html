@@ -1,11 +1,11 @@
 <ion-header>
   <ion-toolbar class="modal-toolbar">
     <ion-title>
-      {{ table?.nom }}
-      <span class="zone-badge">{{ table?.zone }}</span>
+      {{ table.nom }}
+      <span class="zone-badge">{{ table.zone }}</span>
     </ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="fermer()" fill="clear">
+      <ion-button (click)="fermer()" (keydown.enter)="fermer()" fill="clear" data-testid="btn-close-modal">
         <ion-icon name="close-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -14,11 +14,11 @@
 
 <ion-content class="modal-content">
   <div class="table-meta">
-    <ion-chip [color]="table?.occupee ? 'warning' : 'success'" outline>
-      {{ table?.occupee ? 'Occupée' : 'Libre' }}
+    <ion-chip [color]="table.occupee ? 'warning' : 'success'" outline>
+      {{ table.occupee ? 'Occupée' : 'Libre' }}
     </ion-chip>
-    <span class="capacite">{{ table?.capacite }} personnes</span>
-    <span *ngIf="table?.serveurNom" class="serveur-nom">Serveur : {{ table?.serveurNom }}</span>
+    <span class="capacite">{{ table.capacite }} personnes</span>
+    <span *ngIf="table.serveurNom" class="serveur-nom">Serveur : {{ table.serveurNom }}</span>
   </div>
 
   <div class="section-title">Commandes actives</div>
@@ -53,7 +53,9 @@
         fill="clear"
         color="danger"
         size="small"
-        (click)="annuler(cmd.id)">
+        (click)="annuler(cmd.id)"
+        (keydown.enter)="annuler(cmd.id)"
+        data-testid="btn-annuler-modal">
         <ion-icon name="ban-outline" slot="icon-only"></ion-icon>
       </ion-button>
     </ion-item>
@@ -61,17 +63,20 @@
 </ion-content>
 
 <div class="modal-footer">
-  <ion-button expand="block" color="primary" (click)="nouvelleCommande()" class="btn-nouvelle">
+  <ion-button expand="block" color="primary" (click)="nouvelleCommande()" (keydown.enter)="nouvelleCommande()" class="btn-nouvelle" data-testid="btn-nouvelle-commande">
     <ion-icon name="add-circle-outline" slot="start"></ion-icon>
     Nouvelle commande
   </ion-button>
   <ion-button
-    *ngIf="table?.occupee"
+    *ngIf="table.occupee"
     expand="block"
     fill="outline"
     color="danger"
     (click)="liberer()"
-    class="btn-liberer">
+    (keydown.enter)="liberer()"
+    class="btn-liberer"
+    data-testid="btn-liberer-table">
     Libérer la table
   </ion-button>
 </div>
+

@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { NgIf, NgClass } from '@angular/common';
-import { IonButton, IonIcon, IonSpinner } from '@ionic/angular/standalone';
+import { IonIcon, IonSpinner } from '@ionic/angular/standalone';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'edit' | 'mark';
 export type ButtonSize = 'small' | 'medium' | 'large';
@@ -8,7 +8,7 @@ export type ButtonSize = 'small' | 'medium' | 'large';
 @Component({
   selector: 'app-action-button',
   standalone: true,
-  imports: [IonButton, IonIcon, IonSpinner, NgIf, NgClass],
+  imports: [IonIcon, IonSpinner, NgIf, NgClass],
   templateUrl: './action-button.component.html',
   styleUrls: ['./action-button.component.css']
 })

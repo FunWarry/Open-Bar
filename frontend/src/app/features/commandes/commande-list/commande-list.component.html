@@ -9,36 +9,48 @@
     </ion-card-header>
     <ion-card-content>
       <ion-segment [value]="filtre" (ionChange)="onFiltreChange($event)" scrollable>
-        <ion-segment-button *ngFor="let s of statuts" [value]="s.value">
-          <ion-label>{{ s.label }}</ion-label>
-        </ion-segment-button>
+        @for (s of statuts; track s.value) {
+          <ion-segment-button [value]="s.value">
+            <ion-label>{{ s.label }}</ion-label>
+          </ion-segment-button>
+        }
       </ion-segment>
 
-      <div *ngIf="isLoading" style="text-align:center;padding:24px">
-        <ion-spinner name="crescent"></ion-spinner>
-      </div>
+      @if (isLoading) {
+        <div style="text-align:center;padding:24px">
+          <ion-spinner name="crescent"></ion-spinner>
+        </div>
+      }
 
-      <ion-list *ngIf="!isLoading">
-        <ion-item *ngFor="let commande of filteredCommandes; trackBy: trackById">
-          <ion-label>
-            <h3>Table {{ commande.tableNumero }}</h3>
-            <p>{{ commande.serveurUsername }} · {{ commande.dateCommande | date:'dd/MM HH:mm' }}</p>
-          </ion-label>
-          <ion-badge slot="end" [color]="getStatutColor(commande.statut)">{{ commande.statut }}</ion-badge>
-          <ion-label slot="end">{{ commande.total | currency:'EUR' }}</ion-label>
-          <ion-buttons slot="end">
-            <ion-button fill="clear" color="primary" (click)="onView(commande)">
-              <ion-icon slot="icon-only" name="eye"></ion-icon>
-            </ion-button>
-            <ion-button fill="clear" color="danger" *ngIf="peutAnnuler(commande.statut)" (click)="onAnnuler(commande)">
-              <ion-icon slot="icon-only" name="ban-outline"></ion-icon>
-            </ion-button>
-          </ion-buttons>
-        </ion-item>
-        <ion-item *ngIf="filteredCommandes.length === 0">
-          <ion-label color="medium">Aucune commande</ion-label>
-        </ion-item>
-      </ion-list>
+      @if (!isLoading) {
+        <ion-list>
+          @for (commande of filteredCommandes; track commande.id) {
+            <ion-item>
+              <ion-label>
+                <h3>Table {{ commande.tableNumero }}</h3>
+                <p>{{ commande.serveurUsername }} · {{ commande.dateCommande | date:'dd/MM HH:mm' }}</p>
+              </ion-label>
+              <ion-badge slot="end" [color]="getStatutColor(commande.statut)">{{ commande.statut }}</ion-badge>
+              <ion-label slot="end">{{ commande.total | currency:'EUR' }}</ion-label>
+              <ion-buttons slot="end">
+                <ion-button fill="clear" color="primary" (click)="onView(commande)" (keydown.enter)="onView(commande)" data-testid="btn-view-commande">
+                  <ion-icon slot="icon-only" name="eye"></ion-icon>
+                </ion-button>
+                @if (peutAnnuler(commande.statut)) {
+                  <ion-button fill="clear" color="danger" (click)="onAnnuler(commande)" (keydown.enter)="onAnnuler(commande)" data-testid="btn-annuler-commande">
+                    <ion-icon slot="icon-only" name="ban-outline"></ion-icon>
+                  </ion-button>
+                }
+              </ion-buttons>
+            </ion-item>
+          }
+          @if (filteredCommandes.length === 0) {
+            <ion-item>
+              <ion-label color="medium">Aucune commande</ion-label>
+            </ion-item>
+          }
+        </ion-list>
+      }
     </ion-card-content>
   </ion-card>
 </div>

@@ -12,7 +12,7 @@ import {
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { eye, banOutline } from 'ionicons/icons';
-import { NgIf, NgFor, AsyncPipe, CurrencyPipe, DatePipe } from '@angular/common';
+import { CurrencyPipe, DatePipe } from '@angular/common';
 import { CommandeService } from '../../../core/services/commande.service';
 import { Commande, CommandeStatut } from '../../../core/models/commande.model';
 
@@ -26,7 +26,7 @@ import { Commande, CommandeStatut } from '../../../core/models/commande.model';
     IonList, IonItem, IonLabel, IonBadge, IonIcon, IonButton, IonButtons,
     IonRefresher, IonRefresherContent, IonSegment, IonSegmentButton,
     IonSpinner,
-    NgIf, NgFor, AsyncPipe, CurrencyPipe, DatePipe,
+    CurrencyPipe, DatePipe,
   ],
 })
 export class CommandeListComponent implements OnInit, OnDestroy {

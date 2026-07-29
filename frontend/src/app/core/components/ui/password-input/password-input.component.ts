@@ -1,13 +1,12 @@
 import { Component, Input, forwardRef } from '@angular/core';
 import { NG_VALUE_ACCESSOR } from '@angular/forms';
-import { NgIf } from '@angular/common';
-import { IonItem, IonLabel, IonInput, IonNote, IonIcon, IonButton } from '@ionic/angular/standalone';
+import { IonIcon } from '@ionic/angular/standalone';
 import { BaseControlValueAccessor } from '../base-control-value-accessor';
 
 @Component({
   selector: 'app-password-input',
   standalone: true,
-  imports: [IonItem, IonLabel, IonInput, IonNote, IonIcon, IonButton, NgIf],
+  imports: [IonIcon],
   templateUrl: './password-input.component.html',
   styleUrls: ['./password-input.component.css'],
   providers: [

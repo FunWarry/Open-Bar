@@ -1,5 +1,4 @@
 import { Component, Input } from '@angular/core';
-import { NgClass } from '@angular/common';
 import { IonBadge } from '@ionic/angular/standalone';
 
 export type CommandeStatus = 'EN_ATTENTE' | 'EN_PREPARATION' | 'PRET' | 'LIVREE' | 'REGLEE' | 'ANNULEE' | 'PENDING' | 'IN_PROGRESS' | 'READY' | 'SERVED' | 'CANCELLED' | 'PRIORITAIRE';
@@ -7,7 +6,7 @@ export type CommandeStatus = 'EN_ATTENTE' | 'EN_PREPARATION' | 'PRET' | 'LIVREE'
 @Component({
   selector: 'app-status-badge',
   standalone: true,
-  imports: [IonBadge, NgClass],
+  imports: [IonBadge],
   templateUrl: './status-badge.component.html',
   styleUrls: ['./status-badge.component.css']
 })
