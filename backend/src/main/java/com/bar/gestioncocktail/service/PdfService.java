@@ -44,13 +44,16 @@ public class PdfService {
      * @return PDF content as byte array
      */
     public byte[] generateFacturePdf(Facture facture) {
-        EstablishmentConfig config = (establishmentConfigService != null)
-            ? establishmentConfigService.getConfig()
-            : new EstablishmentConfig();
+        EstablishmentConfig config = null;
+        if (establishmentConfigService != null) {
+            config = establishmentConfigService.getConfig();
+        }
+        if (config == null) {
+            config = new EstablishmentConfig();
+        }
 
-        try (ByteArrayOutputStream out = new ByteArrayOutputStream();
-             Document doc = new Document(PageSize.A4, 36, 36, 40, 40)) {
-
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            Document doc = new Document(PageSize.A4, 36, 36, 40, 40);
             PdfWriter writer = PdfWriter.getInstance(doc, out);
             writer.setPdfVersion(PdfWriter.PDF_VERSION_1_7);
             doc.open();
@@ -76,6 +79,7 @@ public class PdfService {
 
             addLegalFooterSection(doc, config, mutedFont);
 
+            doc.close();
             return out.toByteArray();
 
         } catch (DocumentException | IOException e) {
