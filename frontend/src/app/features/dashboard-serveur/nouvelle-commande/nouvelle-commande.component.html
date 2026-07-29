@@ -32,6 +32,7 @@
             class="cocktail-card"
             [class.in-cart]="quantiteDans(cocktail.id) > 0"
             (click)="ouvrirModal(cocktail)"
+            (keyup.enter)="ouvrirModal(cocktail)"
             [attr.data-testid]="'cocktail-card-' + cocktail.id">
             <ion-card-content>
               <div class="cocktail-nom">{{ cocktail.nom }}</div>
@@ -69,14 +70,14 @@
           </div>
           <div class="panier-actions">
             <span class="panier-prix">{{ item.prixUnitaire * item.quantite | currency:'EUR':'symbol':'1.2-2':'fr' }}</span>
-            <ion-button fill="clear" size="small" (click)="retirer(item.cartItemKey)" [attr.data-testid]="'btn-retirer-' + item.cartItemKey">
+            <ion-button fill="clear" size="small" (click)="retirer(item.cartItemKey)" (keyup.enter)="retirer(item.cartItemKey)" [attr.data-testid]="'btn-retirer-' + item.cartItemKey">
               <ion-icon name="remove-outline"></ion-icon>
             </ion-button>
             <span class="qty-value">{{ item.quantite }}</span>
-            <ion-button fill="clear" size="small" (click)="incrementer(item.cartItemKey)" [attr.data-testid]="'btn-ajouter-' + item.cartItemKey">
+            <ion-button fill="clear" size="small" (click)="incrementer(item.cartItemKey)" (keyup.enter)="incrementer(item.cartItemKey)" [attr.data-testid]="'btn-ajouter-' + item.cartItemKey">
               <ion-icon name="add-outline"></ion-icon>
             </ion-button>
-            <ion-button fill="clear" color="danger" size="small" (click)="supprimer(item.cartItemKey)" [attr.data-testid]="'btn-supprimer-' + item.cartItemKey">
+            <ion-button fill="clear" color="danger" size="small" (click)="supprimer(item.cartItemKey)" (keyup.enter)="supprimer(item.cartItemKey)" [attr.data-testid]="'btn-supprimer-' + item.cartItemKey">
               <ion-icon name="trash-outline"></ion-icon>
             </ion-button>
           </div>
@@ -97,6 +98,7 @@
       class="btn-valider"
       [disabled]="isSubmitting"
       (click)="valider()"
+      (keyup.enter)="valider()"
       data-testid="btn-valider">
       <ion-icon name="checkmark-outline" slot="start" *ngIf="!isSubmitting"></ion-icon>
       <ion-spinner *ngIf="isSubmitting" name="crescent" slot="start"></ion-spinner>

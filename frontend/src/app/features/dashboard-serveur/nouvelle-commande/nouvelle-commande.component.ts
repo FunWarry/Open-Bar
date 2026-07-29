@@ -63,7 +63,7 @@ export interface CartItem {
     TranslocoModule,
     IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
     IonContent, IonGrid, IonRow, IonCol,
-    IonCard, IonCardHeader, IonCardTitle, IonCardContent,
+    IonCard, IonCardContent,
     IonButton, IonIcon, IonBadge, IonChip, IonSpinner,
     IonFooter, IonFooterToolbar,
   ],

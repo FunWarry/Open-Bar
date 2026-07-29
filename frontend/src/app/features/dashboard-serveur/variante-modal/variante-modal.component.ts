@@ -3,8 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
   IonHeader, IonToolbar, IonTitle, IonButtons, IonButton,
-  IonContent, IonList, IonItem, IonLabel, IonRadioGroup,
-  IonRadio, IonTextarea, IonFooter, IonIcon, IonNote,
+  IonContent, IonItem, IonLabel, IonRadioGroup,
+  IonRadio, IonTextarea, IonFooter, IonIcon,
   ModalController,
 } from '@ionic/angular/standalone';
 import { TranslocoModule } from '@jsverse/transloco';
@@ -38,8 +38,8 @@ export interface VarianteSelectionResult {
     CommonModule,
     FormsModule,
     IonHeader, IonToolbar, IonTitle, IonButtons, IonButton,
-    IonContent, IonList, IonItem, IonLabel, IonRadioGroup,
-    IonRadio, IonTextarea, IonFooter, IonIcon, IonNote,
+    IonContent, IonItem, IonLabel, IonRadioGroup,
+    IonRadio, IonTextarea, IonFooter, IonIcon,
     TranslocoModule,
   ],
   templateUrl: './variante-modal.component.html',

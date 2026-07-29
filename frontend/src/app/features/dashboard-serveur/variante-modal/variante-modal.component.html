@@ -5,6 +5,7 @@
       <ion-button
         fill="clear"
         (click)="annuler()"
+        (keyup.enter)="annuler()"
         data-testid="btn-annuler-modal"
         [attr.aria-label]="'COMMON.CLOSE' | transloco">
         <ion-icon name="close-outline"></ion-icon>
@@ -75,6 +76,7 @@
       expand="block"
       class="btn-ajouter"
       (click)="confirmer()"
+      (keyup.enter)="confirmer()"
       data-testid="btn-confirmer-modal">
       <ion-icon name="add-circle-outline" slot="start"></ion-icon>
       {{ 'SERVEUR.ADD_TO_CART' | transloco }}
