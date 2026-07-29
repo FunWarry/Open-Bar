@@ -1,6 +1,6 @@
 # OpenBar — État des Features & Roadmap
 
-> Dernière mise à jour : 29 juillet 2026 — PR #199 (Ticket de caisse 80mm & Facture PDF A4 #180)
+> Dernière mise à jour : 29 juillet 2026 — PR #201 (Refactor UI complet Figma #200)
 
 ## Tableau des Features
 
@@ -66,6 +66,7 @@
 
 | PR / Issue | Description |
 |------------|-------------|
+| #201 (#200) | Refactor UI complet Figma : tokens CSS (variables.css / styles.css), ActionButton (variantes edit/mark), UserAvatar (role color), Navbar/Header/CocktailList migration @if/@for et a11y keyboard listeners |
 | #199 (#180) | Impression Ticket de caisse 80mm & Rendu PDF A4 : TicketReceiptComponent thermique avec `@media print`, en-tête légal (SIRET, RCS, N° TVA, capital), ventilation TVA multi-taux et mentions légales de paiement |
 | #198 (#129-#134) | Facturation Légale NF525 / CGI Art. 289 : Données établissement (SIRET/TVA/RCS), TVA multi-taux (20%/10%/5.5%), numérotation séquentielle, avoirs, archivage 10 ans SHA-256, export CSV & déclaration mensuelle CA3 + composant Admin Établissement |
 | #197 | Configuration des Seuils d'Alerte Temporels des Commandes & Stock Ingrédients (Manager & Barman) |
