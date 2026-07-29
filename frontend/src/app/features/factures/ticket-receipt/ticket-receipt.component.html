@@ -1,0 +1,108 @@
+<div class="ticket-wrapper">
+  <div class="no-print ion-text-center ion-margin-bottom">
+    <ion-button
+      data-testid="print-ticket-btn"
+      color="primary"
+      fill="solid"
+      (click)="imprimerTicket()"
+      (keydown.enter)="imprimerTicket()"
+    >
+      <ion-icon slot="start" name="print-outline"></ion-icon>
+      {{ 'FACTURES.PRINT_TICKET_80MM' | transloco }}
+    </ion-button>
+  </div>
+
+  <div class="thermal-receipt" data-testid="thermal-receipt">
+    <!-- Legal Establishment Header -->
+    <div class="receipt-header" *ngIf="establishmentConfig as cfg">
+      <h2 class="establishment-name">{{ cfg.legalName || 'OpenBar' }}</h2>
+      <p class="legal-form" *ngIf="cfg.legalForm">
+        {{ cfg.legalForm }}
+        <span *ngIf="cfg.capitalSocial">
+          - Cap. {{ cfg.capitalSocial | currency:'EUR':'symbol':'1.0-0':'fr' }}
+        </span>
+      </p>
+      <p class="legal-address" *ngIf="cfg.address">{{ cfg.address }}</p>
+      <p class="legal-contact" *ngIf="cfg.phone">Tél: {{ cfg.phone }}</p>
+      <p class="legal-siret" *ngIf="cfg.siret">SIRET: {{ cfg.siret }}</p>
+      <p class="legal-tva" *ngIf="cfg.tvaNumber">N° TVA: {{ cfg.tvaNumber }}</p>
+    </div>
+
+    <div class="receipt-divider">--------------------------------</div>
+
+    <!-- Ticket Metadata -->
+    <div class="receipt-meta">
+      <div class="meta-row">
+        <span>{{ 'FACTURES.TICKET_NUM' | transloco }}:</span>
+        <strong>{{ facture.numero }}</strong>
+      </div>
+      <div class="meta-row">
+        <span>{{ 'COMMON.DATE' | transloco }}:</span>
+        <span>{{ facture.dateFacture | date:'dd/MM/yyyy HH:mm' }}</span>
+      </div>
+      <div class="meta-row" *ngIf="facture.tableNumero">
+        <span>{{ 'COMMANDES.TABLE' | transloco }}:</span>
+        <strong>N° {{ facture.tableNumero }}</strong>
+      </div>
+      <div class="meta-row" *ngIf="facture.modePaiement">
+        <span>{{ 'FACTURES.PAYMENT_METHOD' | transloco }}:</span>
+        <span>{{ facture.modePaiement }}</span>
+      </div>
+    </div>
+
+    <div class="receipt-divider">--------------------------------</div>
+
+    <!-- Consumption Items Table -->
+    <div class="receipt-items">
+      <div class="items-header">
+        <span class="col-desc">{{ 'COMMANDES.ITEMS' | transloco }}</span>
+        <span class="col-qty">{{ 'COMMANDES.QUANTITY' | transloco }}</span>
+        <span class="col-total">{{ 'COMMON.TOTAL' | transloco }}</span>
+      </div>
+
+      <div class="item-row" *ngFor="let item of facture.items; trackBy: trackById">
+        <div class="item-main">
+          <span class="col-desc">{{ item.description }}</span>
+          <span class="col-qty">{{ item.quantite }}x</span>
+          <span class="col-total">{{ item.total | currency:'EUR':'symbol':'1.2-2':'fr' }}</span>
+        </div>
+        <div class="item-detail" *ngIf="item.quantite > 1 || item.vatRate">
+          <small>{{ item.quantite }} × {{ item.prixUnitaire | currency:'EUR':'symbol':'1.2-2':'fr' }} (TVA {{ item.vatRate || '20%' }})</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="receipt-divider">--------------------------------</div>
+
+    <!-- Totals & VAT Breakdown -->
+    <div class="receipt-totals">
+      <div class="total-row">
+        <span>{{ 'FACTURES.TOTAL_HT' | transloco }}:</span>
+        <span>{{ totalHT | currency:'EUR':'symbol':'1.2-2':'fr' }}</span>
+      </div>
+      <div class="total-row">
+        <span>{{ 'FACTURES.TOTAL_VAT' | transloco }}:</span>
+        <span>{{ totalVAT | currency:'EUR':'symbol':'1.2-2':'fr' }}</span>
+      </div>
+      <div class="total-row" *ngIf="facture.pourboire">
+        <span>{{ 'FACTURES.TIP' | transloco }}:</span>
+        <span>{{ facture.pourboire | currency:'EUR':'symbol':'1.2-2':'fr' }}</span>
+      </div>
+      <div class="total-row grand-total">
+        <strong>{{ 'FACTURES.TOTAL_TTC' | transloco }}:</strong>
+        <strong>{{ totalTTC | currency:'EUR':'symbol':'1.2-2':'fr' }}</strong>
+      </div>
+    </div>
+
+    <div class="receipt-divider">--------------------------------</div>
+
+    <!-- Status & Legal Footer -->
+    <div class="receipt-footer">
+      <p class="payment-status" [class.settled]="facture.reglee">
+        *** {{ (facture.reglee ? 'FACTURES.SETTLED' : 'FACTURES.PENDING') | transloco | uppercase }} ***
+      </p>
+      <p class="thank-you">{{ 'FACTURES.THANK_YOU' | transloco }}</p>
+      <p class="software-info">OpenBar PWA — Soft Cash 80mm</p>
+    </div>
+  </div>
+</div>

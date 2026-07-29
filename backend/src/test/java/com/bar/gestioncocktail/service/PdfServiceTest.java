@@ -1,5 +1,6 @@
 package com.bar.gestioncocktail.service;
 
+import com.bar.gestioncocktail.model.EstablishmentConfig;
 import com.bar.gestioncocktail.model.Facture;
 import com.bar.gestioncocktail.model.FactureItem;
 import com.bar.gestioncocktail.model.TableEntity;
@@ -7,6 +8,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
@@ -15,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.lenient;
 
 /**
  * Tests unitaires pour PdfService.
@@ -26,14 +29,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(MockitoExtension.class)
 class PdfServiceTest {
 
+    @Mock
+    private EstablishmentConfigService establishmentConfigService;
+
     @InjectMocks
-    PdfService pdfService;
+    private PdfService pdfService;
 
     private Facture factureComplete;
     private TableEntity table;
 
     @BeforeEach
     void setUp() {
+        EstablishmentConfig config = new EstablishmentConfig();
+        config.setLegalName("OpenBar SARL");
+        config.setSiret("12345678900010");
+        lenient().when(establishmentConfigService.getConfig()).thenReturn(config);
+
         table = new TableEntity();
         table.setId(1L);
         table.setNumero(5);

@@ -11,17 +11,23 @@ public record FactureItemResponseDTO(
     int quantite,
     BigDecimal prixUnitaire,
     BigDecimal total,
+    String vatRate,
+    BigDecimal priceHT,
+    BigDecimal vatAmount,
     String notes
 ) {
     public static FactureItemResponseDTO from(FactureItem fi) {
         return new FactureItemResponseDTO(
             fi.getId(),
-            fi.getFacture().getId(),
-            fi.getCommandeItem().getId(),
+            fi.getFacture() != null ? fi.getFacture().getId() : null,
+            fi.getCommandeItem() != null ? fi.getCommandeItem().getId() : null,
             fi.getDescription(),
             fi.getQuantite(),
             fi.getPrixUnitaire(),
             fi.getTotal(),
+            fi.getVatRate() != null ? fi.getVatRate().getLabel() : "20%",
+            fi.getPriceHT(),
+            fi.getVatAmount(),
             fi.getNotes()
         );
     }

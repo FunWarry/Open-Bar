@@ -6,6 +6,9 @@ export interface FactureItem {
   quantite: number;
   prixUnitaire: number;
   total: number;
+  vatRate?: string;
+  priceHT?: number;
+  vatAmount?: number;
   notes?: string;
 }
 
@@ -15,6 +18,8 @@ export interface Facture {
   tableNumero: number;
   numero: string;
   total: number;
+  totalHT?: number;
+  totalVAT?: number;
   pourboire?: number;
   totalTTC?: number;
   dateFacture: string;

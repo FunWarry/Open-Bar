@@ -7,6 +7,8 @@ import { IonicModule } from '@ionic/angular';
 import { FactureDetailComponent } from '../../../app/features/factures/facture-detail/facture-detail.component';
 import { FactureService } from '../../../app/features/factures/services/facture.service';
 import { Facture } from '../../../app/features/factures/models/facture.model';
+import { EtablissementService } from '../../../app/core/services/etablissement.service';
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
 
 const mockFacture: Facture = {
   id: 1,
@@ -35,16 +37,25 @@ const mockFacture: Facture = {
 describe('FactureDetailComponent', () => {
   let component: FactureDetailComponent;
   let factureServiceSpy: jasmine.SpyObj<FactureService>;
+  let etablissementServiceSpy: jasmine.SpyObj<EtablissementService>;
 
   beforeEach(async () => {
     factureServiceSpy = jasmine.createSpyObj('FactureService', ['getFactureById']);
     factureServiceSpy.getFactureById.and.returnValue(of(mockFacture));
 
+    etablissementServiceSpy = jasmine.createSpyObj('EtablissementService', ['getConfig']);
+    etablissementServiceSpy.getConfig.and.returnValue(of({
+      legalName: 'OpenBar SARL', legalForm: 'SARL', siret: '12345678900010', rcsCity: 'Paris', rcsNumber: 'B 123 456 789',
+      tvaNumber: 'FR12123456789', codeApe: '5630Z', capitalSocial: 10000, address: '12 Rue du Bar', phone: '+33123456789',
+      email: 'contact@openbar.local', paymentTerms: 'Paiement immédiat', discountPolicy: 'Aucun escompte', latePaymentRate: 0.12
+    }));
+
     await TestBed.configureTestingModule({
       imports: [
         FactureDetailComponent,
         IonicModule.forRoot(),
-        RouterTestingModule
+        RouterTestingModule,
+        getTranslocoTestingModule()
       ],
       providers: [
         {
@@ -53,7 +64,8 @@ describe('FactureDetailComponent', () => {
             paramMap: of(convertToParamMap({ id: '1' }))
           }
         },
-        { provide: FactureService, useValue: factureServiceSpy }
+        { provide: FactureService, useValue: factureServiceSpy },
+        { provide: EtablissementService, useValue: etablissementServiceSpy }
       ]
     }).compileComponents();
 
@@ -140,7 +152,8 @@ describe('FactureDetailComponent', () => {
       imports: [
         FactureDetailComponent,
         IonicModule.forRoot(),
-        RouterTestingModule
+        RouterTestingModule,
+        getTranslocoTestingModule()
       ],
       providers: [
         {
@@ -149,7 +162,8 @@ describe('FactureDetailComponent', () => {
             paramMap: of(convertToParamMap({ id: '999' }))
           }
         },
-        { provide: FactureService, useValue: factureServiceSpy }
+        { provide: FactureService, useValue: factureServiceSpy },
+        { provide: EtablissementService, useValue: etablissementServiceSpy }
       ]
     }).compileComponents();
 

@@ -1,0 +1,167 @@
+.ticket-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.thermal-receipt {
+  width: 80mm;
+  max-width: 100%;
+  background: #ffffff;
+  color: #111111;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 12px;
+  line-height: 1.3;
+  padding: 12px 10px;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  margin: 0 auto;
+}
+
+.receipt-header {
+  text-align: center;
+
+  .establishment-name {
+    margin: 0 0 4px 0;
+    font-size: 16px;
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+
+  p {
+    margin: 2px 0;
+    font-size: 11px;
+  }
+}
+
+.receipt-divider {
+  text-align: center;
+  letter-spacing: 1px;
+  font-weight: bold;
+  margin: 6px 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.receipt-meta {
+  .meta-row {
+    display: flex;
+    justify-content: space-between;
+    margin: 3px 0;
+  }
+}
+
+.receipt-items {
+  .items-header {
+    display: flex;
+    justify-content: space-between;
+    font-weight: bold;
+    border-bottom: 1px dashed #666;
+    padding-bottom: 4px;
+    margin-bottom: 4px;
+  }
+
+  .item-row {
+    margin: 4px 0;
+
+    .item-main {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .item-detail {
+      font-size: 10px;
+      color: #555;
+      padding-left: 8px;
+    }
+  }
+
+  .col-desc {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding-right: 4px;
+  }
+
+  .col-qty {
+    width: 32px;
+    text-align: right;
+    margin-right: 8px;
+  }
+
+  .col-total {
+    width: 70px;
+    text-align: right;
+  }
+}
+
+.receipt-totals {
+  .total-row {
+    display: flex;
+    justify-content: space-between;
+    margin: 3px 0;
+  }
+
+  .grand-total {
+    font-size: 14px;
+    font-weight: bold;
+    border-top: 1px solid #111;
+    border-bottom: 1px solid #111;
+    padding: 4px 0;
+    margin-top: 6px;
+  }
+}
+
+.receipt-footer {
+  text-align: center;
+  margin-top: 8px;
+
+  .payment-status {
+    font-weight: bold;
+    margin: 4px 0;
+    color: #d97706;
+
+    &.settled {
+      color: #059669;
+    }
+  }
+
+  .thank-you {
+    font-style: italic;
+    margin: 4px 0;
+  }
+
+  .software-info {
+    font-size: 10px;
+    color: #666;
+    margin-top: 6px;
+  }
+}
+
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+
+  .thermal-receipt,
+  .thermal-receipt * {
+    visibility: visible !important;
+  }
+
+  .thermal-receipt {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 80mm !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+}
