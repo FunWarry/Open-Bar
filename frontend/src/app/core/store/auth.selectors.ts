@@ -51,3 +51,9 @@ export const selectIsServeur = createSelector(
   selectCurrentUser,
   (user) => user?.roles?.includes('SERVEUR') ?? false
 );
+
+/** Selecteur indiquant si l'utilisateur peut gérer les ingrédients et seuils d'alerte (ADMIN, MANAGER ou BARMAN). */
+export const selectCanEditIngredient = createSelector(
+  selectCurrentUser,
+  (user) => user?.roles?.some(r => r === 'ADMIN' || r === 'MANAGER' || r === 'BARMAN') ?? false
+);

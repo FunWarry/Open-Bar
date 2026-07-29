@@ -60,10 +60,10 @@ public class AppSettingsController {
      * @return Les paramètres mis à jour
      */
     @PutMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Mettre à jour les paramètres (ADMIN)", description = "Permet d'adapter le nom de l'établissement, l'adresse, le SIRET et les taux de TVA.")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
+    @Operation(summary = "Mettre à jour les paramètres (ADMIN/MANAGER)", description = "Permet d'adapter le nom de l'établissement, les seuils d'alerte et la charte.")
     @ApiResponse(responseCode = "200", description = "Paramètres mis à jour")
-    @ApiResponse(responseCode = "403", description = "Accès refusé - Rôle ADMIN requis")
+    @ApiResponse(responseCode = "403", description = "Accès refusé - Rôle ADMIN ou MANAGER requis")
     public ResponseEntity<AppSettingsResponseDTO> updateSettings(@Valid @RequestBody AppSettingsUpdateRequest request) {
         return ResponseEntity.ok(AppSettingsResponseDTO.from(appSettingsService.updateSettings(request)));
     }

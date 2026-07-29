@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Observable, Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
-import { selectIsAdmin } from '../../../core/store/auth.selectors';
+import { selectIsAdmin, selectCanEditIngredient } from '../../../core/store/auth.selectors';
 import {
   IonCard, IonCardHeader, IonCardTitle, IonCardContent,
   IonList, IonItem, IonLabel, IonBadge, IonIcon, IonButton, IonButtons,
@@ -31,12 +31,14 @@ export class IngredientListComponent implements OnInit, OnDestroy {
   ingredients: Ingredient[] = [];
   isLoading = false;
   isAdmin$: Observable<boolean>;
+  canEdit$: Observable<boolean>;
 
   private readonly destroy$ = new Subject<void>();
 
   constructor(private readonly store: Store,private readonly router: Router,private readonly ingredientService: IngredientService,private readonly toastCtrl: ToastController,
   ) {
     this.isAdmin$ = this.store.select(selectIsAdmin);
+    this.canEdit$ = this.store.select(selectCanEditIngredient);
     addIcons({ add, eye, create, trash });
   }
 

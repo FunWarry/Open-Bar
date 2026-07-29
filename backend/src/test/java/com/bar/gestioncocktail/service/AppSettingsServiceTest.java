@@ -83,7 +83,7 @@ class AppSettingsServiceTest {
         when(appSettingsRepository.save(any(AppSettings.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         AppSettingsUpdateRequest request = new AppSettingsUpdateRequest(
-            "#ff0000", "#cc0000", "https://example.com/logo.png", "Le Bar Test", DefaultTheme.DARK
+            "#ff0000", "#cc0000", "https://example.com/logo.png", "Le Bar Test", DefaultTheme.DARK, 5, 10
         );
 
         AppSettings result = appSettingsService.updateSettings(request);
@@ -97,6 +97,23 @@ class AppSettingsServiceTest {
         assertThat(result.getLogoUrl()).isEqualTo("https://example.com/logo.png");
         assertThat(result.getEstablishmentName()).isEqualTo("Le Bar Test");
         assertThat(result.getDefaultTheme()).isEqualTo(DefaultTheme.DARK);
+        assertThat(result.getTempsAlerteCommandeMinutes()).isEqualTo(5);
+        assertThat(result.getTempsAlerteCritiqueCommandeMinutes()).isEqualTo(10);
+    }
+
+    @Test
+    void updateSettings_metAJourLesTempsAlerteCommande() {
+        when(appSettingsRepository.findById(AppSettings.SINGLETON_ID)).thenReturn(Optional.of(existing));
+        when(appSettingsRepository.save(any(AppSettings.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        AppSettingsUpdateRequest request = new AppSettingsUpdateRequest(
+            "#6c7fe8", "#5a68d6", null, "OpenBar", DefaultTheme.DARK, 7, 15
+        );
+
+        AppSettings result = appSettingsService.updateSettings(request);
+
+        assertThat(result.getTempsAlerteCommandeMinutes()).isEqualTo(7);
+        assertThat(result.getTempsAlerteCritiqueCommandeMinutes()).isEqualTo(15);
     }
 
     @Test
@@ -105,7 +122,7 @@ class AppSettingsServiceTest {
         when(appSettingsRepository.save(any(AppSettings.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         AppSettingsUpdateRequest request = new AppSettingsUpdateRequest(
-            "#6c7fe8", "#5a68d6", null, "OpenBar", DefaultTheme.DARK
+            "#6c7fe8", "#5a68d6", null, "OpenBar", DefaultTheme.DARK, 5, 10
         );
 
         AppSettings result = appSettingsService.updateSettings(request);
@@ -116,7 +133,7 @@ class AppSettingsServiceTest {
     @Test
     void updateSettings_themeLight_estRejeteCarNonDesigneEncoreEnFigma() {
         AppSettingsUpdateRequest request = new AppSettingsUpdateRequest(
-            "#6c7fe8", "#5a68d6", null, "OpenBar", DefaultTheme.LIGHT
+            "#6c7fe8", "#5a68d6", null, "OpenBar", DefaultTheme.LIGHT, 5, 10
         );
 
         assertThatThrownBy(() -> appSettingsService.updateSettings(request))

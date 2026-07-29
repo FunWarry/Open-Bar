@@ -43,8 +43,8 @@ public class IngredientController {
      * @return DTO of the created ingredient
      */
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN') or hasRole('BARMAN')")
-    @Operation(summary = "Create a new ingredient (BARMAN/ADMIN)")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('BARMAN')")
+    @Operation(summary = "Create a new ingredient (MANAGER/BARMAN/ADMIN)")
     @ApiResponse(responseCode = "200", description = "Ingredient created")
     public ResponseEntity<IngredientResponseDTO> createIngredient(@Valid @RequestBody IngredientRequestDTO request) {
         return ResponseEntity.ok(IngredientResponseDTO.from(ingredientService.createIngredient(request.toEntity())));
@@ -58,8 +58,8 @@ public class IngredientController {
      * @return DTO of the updated ingredient
      */
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('BARMAN')")
-    @Operation(summary = "Update an ingredient (BARMAN/ADMIN)")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('BARMAN')")
+    @Operation(summary = "Update an ingredient (MANAGER/BARMAN/ADMIN)")
     @ApiResponse(responseCode = "200", description = "Ingredient updated")
     public ResponseEntity<IngredientResponseDTO> updateIngredient(
         @Parameter(description = "Ingredient ID") @PathVariable Long id,
@@ -164,8 +164,8 @@ public class IngredientController {
      * @return Ingrédient mis à jour
      */
     @PutMapping("/{id}/stock")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('BARMAN')")
-    @Operation(summary = "Mettre à jour la quantité en stock (BARMAN/ADMIN)")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('BARMAN')")
+    @Operation(summary = "Mettre à jour la quantité en stock (MANAGER/BARMAN/ADMIN)")
     @ApiResponse(responseCode = "200", description = "Stock mis à jour")
     public ResponseEntity<IngredientResponseDTO> updateStock(
         @PathVariable Long id,
@@ -186,8 +186,8 @@ public class IngredientController {
      * @return Ingrédient mis à jour
      */
     @PutMapping("/{id}/seuil-alerte")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('BARMAN')")
-    @Operation(summary = "Définir le seuil d'alerte de stock (BARMAN/ADMIN)")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('BARMAN')")
+    @Operation(summary = "Définir le seuil d'alerte de stock (MANAGER/BARMAN/ADMIN)")
     @ApiResponse(responseCode = "200", description = "Seuil d'alerte mis à jour")
     public ResponseEntity<IngredientResponseDTO> definirSeuilAlerte(
         @PathVariable Long id,

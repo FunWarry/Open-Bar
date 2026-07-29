@@ -7,6 +7,8 @@ export interface AppSettings {
   logoUrl: string | null;
   establishmentName: string;
   defaultTheme: DefaultTheme;
+  tempsAlerteCommandeMinutes?: number;
+  tempsAlerteCritiqueCommandeMinutes?: number;
   updatedAt: string | null;
 }
 

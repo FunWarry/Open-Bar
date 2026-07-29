@@ -26,7 +26,7 @@
             <div class="header-status">
               <span class="status-dot dot--pending"></span>
               <span class="header-label">Pending</span>
-              <span *ngIf="hasUrgentOrders" class="urgent-badge" data-testid="urgent-orders-badge">⚠ &gt; 5 min</span>
+              <span *ngIf="hasUrgentOrders" class="urgent-badge" data-testid="urgent-orders-badge">⚠ &gt; {{ tempsAlerteCommandeMinutes }} min</span>
             </div>
             <span class="header-count count--pending" [class.count--urgent]="hasUrgentOrders" data-testid="pending-count">{{ commandesEnAttente.length }}</span>
           </div>

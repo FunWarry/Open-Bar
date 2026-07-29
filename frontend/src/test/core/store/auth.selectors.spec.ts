@@ -1,4 +1,4 @@
-import {selectIsAdmin, selectIsAuthenticated, selectIsBarman, selectIsManager, selectIsServeur} from '../../../app/core/store/auth.selectors';
+import {selectIsAdmin, selectIsAuthenticated, selectIsBarman, selectIsManager, selectIsServeur, selectCanEditIngredient} from '../../../app/core/store/auth.selectors';
 import {AuthState} from '../../../app/core/store/auth.reducer';
 
 function stateWith(roles: string[], token: string | null = 'tok'): { auth: AuthState } {
@@ -92,6 +92,28 @@ describe('auth selectors', () => {
 
     it('returns false for user with empty roles', () => {
       expect(selectIsServeur(stateWith([]))).toBeFalse();
+    });
+  });
+
+  describe('selectCanEditIngredient', () => {
+    it('returns true for ADMIN role', () => {
+      expect(selectCanEditIngredient(stateWith(['ADMIN']))).toBeTrue();
+    });
+
+    it('returns true for MANAGER role', () => {
+      expect(selectCanEditIngredient(stateWith(['MANAGER']))).toBeTrue();
+    });
+
+    it('returns true for BARMAN role', () => {
+      expect(selectCanEditIngredient(stateWith(['BARMAN']))).toBeTrue();
+    });
+
+    it('returns false for SERVEUR role', () => {
+      expect(selectCanEditIngredient(stateWith(['SERVEUR']))).toBeFalse();
+    });
+
+    it('returns false when no user', () => {
+      expect(selectCanEditIngredient(stateWith([], null))).toBeFalse();
     });
   });
 });

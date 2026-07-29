@@ -51,6 +51,18 @@ public class AppSettings {
     @Column(nullable = false)
     private DefaultTheme defaultTheme = DefaultTheme.DARK;
 
+    @jakarta.validation.constraints.NotNull(message = "Le temps d'alerte des commandes est obligatoire")
+    @jakarta.validation.constraints.Min(value = 1, message = "Le temps d'alerte doit être d'au moins 1 minute")
+    @jakarta.validation.constraints.Max(value = 120, message = "Le temps d'alerte ne peut pas dépasser 120 minutes")
+    @Column(nullable = false)
+    private Integer tempsAlerteCommandeMinutes = 5;
+
+    @jakarta.validation.constraints.NotNull(message = "Le temps d'alerte critique des commandes est obligatoire")
+    @jakarta.validation.constraints.Min(value = 1, message = "Le temps d'alerte critique doit être d'au moins 1 minute")
+    @jakarta.validation.constraints.Max(value = 120, message = "Le temps d'alerte critique ne peut pas dépasser 120 minutes")
+    @Column(nullable = false)
+    private Integer tempsAlerteCritiqueCommandeMinutes = 10;
+
     private LocalDateTime updatedAt;
 
     @PrePersist

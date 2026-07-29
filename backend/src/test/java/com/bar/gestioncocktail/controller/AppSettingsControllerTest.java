@@ -58,7 +58,7 @@ class AppSettingsControllerTest {
     @Test
     void updateSettings_delegueAuServiceAvecLaRequeteEtRetourneLeDTOMisAJour() {
         AppSettingsUpdateRequest request = new AppSettingsUpdateRequest(
-            "#ff0000", "#cc0000", "https://example.com/new-logo.png", "Le Bar Test", DefaultTheme.DARK
+            "#ff0000", "#cc0000", "https://example.com/new-logo.png", "Le Bar Test", DefaultTheme.DARK, 5, 10
         );
         AppSettings updated = new AppSettings();
         updated.setId(AppSettings.SINGLETON_ID);
@@ -73,6 +73,9 @@ class AppSettingsControllerTest {
 
         verify(appSettingsService).updateSettings(request);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        AppSettingsResponseDTO body = java.util.Objects.requireNonNull(response.getBody());
+        assertThat(body.tempsAlerteCommandeMinutes()).isEqualTo(5);
+        assertThat(body.tempsAlerteCritiqueCommandeMinutes()).isEqualTo(10);
         AppSettingsResponseDTO updatedBody = java.util.Objects.requireNonNull(response.getBody());
         assertThat(updatedBody.primaryColor()).isEqualTo("#ff0000");
         assertThat(updatedBody.establishmentName()).isEqualTo("Le Bar Test");

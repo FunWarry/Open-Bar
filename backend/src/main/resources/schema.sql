@@ -177,6 +177,8 @@ CREATE TABLE IF NOT EXISTS app_settings (
     logo_url VARCHAR(2048),
     establishment_name VARCHAR(100) NOT NULL DEFAULT 'OpenBar',
     default_theme VARCHAR(20) NOT NULL DEFAULT 'DARK',
+    temps_alerte_commande_minutes INTEGER NOT NULL DEFAULT 5,
+    temps_alerte_critique_commande_minutes INTEGER NOT NULL DEFAULT 10,
     updated_at TIMESTAMP
 );
 

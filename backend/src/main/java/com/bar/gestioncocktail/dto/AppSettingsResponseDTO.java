@@ -25,6 +25,8 @@ public record AppSettingsResponseDTO(
     String logoUrl,
     String establishmentName,
     DefaultTheme defaultTheme,
+    Integer tempsAlerteCommandeMinutes,
+    Integer tempsAlerteCritiqueCommandeMinutes,
     LocalDateTime updatedAt
 ) {
     /**
@@ -37,6 +39,7 @@ public record AppSettingsResponseDTO(
         return new AppSettingsResponseDTO(
             s.getId(), s.getPrimaryColor(), s.getPrimaryColorStrong(),
             s.getLogoUrl(), s.getEstablishmentName(), s.getDefaultTheme(),
+            s.getTempsAlerteCommandeMinutes(), s.getTempsAlerteCritiqueCommandeMinutes(),
             s.getUpdatedAt()
         );
     }
