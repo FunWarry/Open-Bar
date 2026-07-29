@@ -320,7 +320,7 @@ Pour les fichiers scopés par feature (ex : `fr/commandes.json`), déclarer le s
 
 ## Features implémentées vs. manquantes
 
-> Dernière mise à jour : 28 juillet 2026 — #184 (Passage commande publique QR), #185 (Variantes & Déduction auto stock), #186 (Transfert table & Fusion factures), #187 (Service Broadcast STOMP)
+> Dernière mise à jour : 29 juillet 2026 — #180 (Impression Ticket 80mm & Facture PDF A4), #184 (Passage commande publique QR), #185 (Variantes & Déduction auto stock), #186 (Transfert table & Fusion factures), #187 (Service Broadcast STOMP)
 
 | Feature | Backend | Frontend | Tests |
 |---------|---------|----------|-------|
@@ -347,6 +347,7 @@ Pour les fichiers scopés par feature (ex : `fr/commandes.json`), déclarer le s
 | Alertes stock WebSocket | ✅ | ✅ | ✅ |
 | Notifications WS (toasts + panneau navbar) | ✅ | ✅ | ✅ |
 | Service de Broadcast STOMP & Diffusion Temps Réel (#187) | ✅ | — | ✅ |
+| Impression Ticket de Caisse 80mm & Facture PDF A4 (#180) | ✅ | ✅ | ✅ |
 | Factures (liste + détail + règlement) | ✅ | ✅ | ✅ |
 | Fusion d'additions (#186) | ✅ | — | ✅ |
 | Export factures (PDF) | ✅ | ✅ | ✅ |
