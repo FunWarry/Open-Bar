@@ -1,25 +1,25 @@
-name: Release — Versioning Automatique
+name: Release ï¿½ Versioning Automatique
 
 on:
   push:
     branches:
       - master   # Release stable (ex: v1.2.0)
-      - dev      # Pré-release (ex: v1.2.0-beta.5)
+      - dev      # Prï¿½-release (ex: v1.2.0-beta.5)
 
-# Annule les runs précédents sur la même branche
+# Annule les runs prï¿½cï¿½dents sur la mï¿½me branche
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
-  contents: write   # Requis pour créer des tags et des releases GitHub
+  contents: write   # Requis pour crï¿½er des tags et des releases GitHub
 
 jobs:
   release:
     name: Bump version & Create Release
     runs-on: ubuntu-latest
     # Ne tourne que si le dernier commit n est PAS un commit de version
-    if: ${{ !startsWith(github.event.head_commit.message, 'chore: bump version') }}
+    if: "!startsWith(github.event.head_commit.message, 'chore: bump version')"
 
     steps:
       - name: Checkout
@@ -102,7 +102,7 @@ jobs:
           git push origin "${{ steps.version.outputs.new_tag }}"
 
       - name: Update pom.xml version (stable only)
-        if: ${{ steps.version.outputs.is_prerelease == 'false' }}
+        if: steps.version.outputs.is_prerelease == 'false'
         run: |
           VERSION="${{ steps.version.outputs.new_version }}"
           sed -i "s|<version>[0-9]*\.[0-9]*\.[0-9]*-SNAPSHOT</version>|<version>${VERSION}</version>|" backend/pom.xml
