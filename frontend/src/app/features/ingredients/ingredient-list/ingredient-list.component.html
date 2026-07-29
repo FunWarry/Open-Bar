@@ -7,7 +7,7 @@
     <ion-card-header>
       <div class="card-header-row">
         <ion-card-title>Ingrédients ({{ ingredients.length }})</ion-card-title>
-        <ion-button *ngIf="isAdmin$ | async" color="primary" (click)="onAdd()">
+        <ion-button *ngIf="canEdit$ | async" color="primary" (click)="onAdd()" (keyup.enter)="onAdd()">
           <ion-icon slot="start" name="add"></ion-icon>
           Nouveau
         </ion-button>
@@ -22,20 +22,20 @@
         <ion-item *ngFor="let ingredient of ingredients; trackBy: trackById">
           <ion-label>
             <h3>{{ ingredient.nom }}</h3>
-            <p>{{ ingredient.uniteMesure }}</p>
+            <p>{{ ingredient.uniteMesure }} — <span style="font-size:11px;color:#7e87a8">Seuil alerte : {{ ingredient.seuilAlerte }} {{ ingredient.uniteMesure }}</span></p>
           </ion-label>
           <ion-badge slot="end" color="danger" *ngIf="isEnAlerte(ingredient)">Alerte stock</ion-badge>
           <ion-badge slot="end" [color]="getStockColor(ingredient.quantiteStock)">
             {{ ingredient.quantiteStock }} {{ ingredient.uniteMesure }}
           </ion-badge>
           <ion-buttons slot="end">
-            <ion-button fill="clear" color="primary" (click)="onView(ingredient)">
+            <ion-button fill="clear" color="primary" (click)="onView(ingredient)" (keyup.enter)="onView(ingredient)">
               <ion-icon slot="icon-only" name="eye"></ion-icon>
             </ion-button>
-            <ion-button *ngIf="isAdmin$ | async" fill="clear" color="tertiary" (click)="onEdit(ingredient)">
+            <ion-button *ngIf="canEdit$ | async" fill="clear" color="tertiary" (click)="onEdit(ingredient)" (keyup.enter)="onEdit(ingredient)">
               <ion-icon slot="icon-only" name="create"></ion-icon>
             </ion-button>
-            <ion-button *ngIf="isAdmin$ | async" fill="clear" color="danger" (click)="onDelete(ingredient)">
+            <ion-button *ngIf="isAdmin$ | async" fill="clear" color="danger" (click)="onDelete(ingredient)" (keyup.enter)="onDelete(ingredient)">
               <ion-icon slot="icon-only" name="trash"></ion-icon>
             </ion-button>
           </ion-buttons>

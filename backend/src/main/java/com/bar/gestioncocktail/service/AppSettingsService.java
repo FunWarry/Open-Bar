@@ -58,6 +58,12 @@ public class AppSettingsService {
         current.setLogoUrl(request.logoUrl());
         current.setEstablishmentName(request.establishmentName());
         current.setDefaultTheme(request.defaultTheme());
+        if (request.tempsAlerteCommandeMinutes() != null) {
+            current.setTempsAlerteCommandeMinutes(request.tempsAlerteCommandeMinutes());
+        }
+        if (request.tempsAlerteCritiqueCommandeMinutes() != null) {
+            current.setTempsAlerteCritiqueCommandeMinutes(request.tempsAlerteCritiqueCommandeMinutes());
+        }
         return appSettingsRepository.save(current);
     }
 

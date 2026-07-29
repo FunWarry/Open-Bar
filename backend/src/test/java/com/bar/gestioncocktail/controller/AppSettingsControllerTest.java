@@ -58,7 +58,7 @@ class AppSettingsControllerTest {
     @Test
     void updateSettings_delegueAuServiceAvecLaRequeteEtRetourneLeDTOMisAJour() {
         AppSettingsUpdateRequest request = new AppSettingsUpdateRequest(
-            "#ff0000", "#cc0000", "https://example.com/new-logo.png", "Le Bar Test", DefaultTheme.DARK
+            "#ff0000", "#cc0000", "https://example.com/new-logo.png", "Le Bar Test", DefaultTheme.DARK, 5, 10
         );
         AppSettings updated = new AppSettings();
         updated.setId(AppSettings.SINGLETON_ID);

@@ -35,6 +35,14 @@ public record AppSettingsUpdateRequest(
     String establishmentName,
 
     @NotNull(message = "Le thème par défaut est obligatoire")
-    DefaultTheme defaultTheme
+    DefaultTheme defaultTheme,
+
+    @jakarta.validation.constraints.Min(value = 1, message = "Le temps d'alerte doit être d'au moins 1 minute")
+    @jakarta.validation.constraints.Max(value = 120, message = "Le temps d'alerte ne peut pas dépasser 120 minutes")
+    Integer tempsAlerteCommandeMinutes,
+
+    @jakarta.validation.constraints.Min(value = 1, message = "Le temps d'alerte critique doit être d'au moins 1 minute")
+    @jakarta.validation.constraints.Max(value = 120, message = "Le temps d'alerte critique ne peut pas dépasser 120 minutes")
+    Integer tempsAlerteCritiqueCommandeMinutes
 ) {
 }

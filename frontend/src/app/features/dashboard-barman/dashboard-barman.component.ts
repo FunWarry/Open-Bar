@@ -17,6 +17,8 @@ import { CommandeView } from './models/commande-view.model';
 import { RoleBadgeComponent } from '../../core/components/ui/role-badge/role-badge.component';
 import { EmptyStateComponent } from '../../core/components/ui/empty-state/empty-state.component';
 
+import { AppSettingsService } from '../../core/services/app-settings.service';
+
 @Component({
   selector: 'app-dashboard-barman',
   standalone: true,
@@ -37,16 +39,17 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
   commandesEnAttente: CommandeView[] = [];
   commandesEnPreparation: CommandeView[] = [];
   commandesPret: CommandeView[] = [];
+  tempsAlerteCommandeMinutes = 5;
 
   private readonly destroy$ = new Subject<void>();
 
   get hasUrgentOrders(): boolean {
     const now = Date.now();
-    const fiveMinutesMs = 5 * 60 * 1000;
+    const alertThresholdMs = (this.tempsAlerteCommandeMinutes || 5) * 60 * 1000;
     return this.commandesEnAttente.some(cmd => {
       if (!cmd.dateCommande) return false;
       const created = new Date(cmd.dateCommande).getTime();
-      return (now - created) > fiveMinutesMs;
+      return (now - created) > alertThresholdMs;
     });
   }
 
@@ -54,9 +57,21 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
     private readonly dashboardService: DashboardBarmanService,
     private readonly toastCtrl: ToastController,
     private readonly notificationService: NotificationService,
+    private readonly settingsService: AppSettingsService,
   ) {}
 
   ngOnInit() {
+    this.settingsService.getSettings()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: settings => {
+          if (settings.tempsAlerteCommandeMinutes) {
+            this.tempsAlerteCommandeMinutes = settings.tempsAlerteCommandeMinutes;
+          }
+        },
+        error: () => { /* fallback = 5 minutes */ }
+      });
+
     this.chargerCommandes();
 
     // Rechargement automatique du kanban à chaque nouvelle commande WS

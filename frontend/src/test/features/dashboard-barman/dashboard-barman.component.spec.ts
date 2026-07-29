@@ -8,11 +8,14 @@ import { DashboardBarmanService } from '../../../app/features/dashboard-barman/s
 import { NotificationService, AppNotification } from '../../../app/core/services/notification.service';
 import { CommandeView } from '../../../app/features/dashboard-barman/models/commande-view.model';
 
+import { AppSettingsService } from '../../../app/core/services/app-settings.service';
+
 describe('DashboardBarmanComponent', () => {
   let component: DashboardBarmanComponent;
   let dashboardServiceSpy: jasmine.SpyObj<DashboardBarmanService>;
   let notificationServiceSpy: jasmine.SpyObj<NotificationService>;
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
+  let settingsServiceSpy: jasmine.SpyObj<AppSettingsService>;
   let notification$: Subject<AppNotification>;
 
   const mockCommandes: CommandeView[] = [
@@ -47,6 +50,19 @@ describe('DashboardBarmanComponent', () => {
     notificationServiceSpy.onNotification.and.returnValue(notification$.asObservable());
     notificationServiceSpy.onStockAlert.and.returnValue(EMPTY);
 
+    settingsServiceSpy = jasmine.createSpyObj('AppSettingsService', ['getSettings']);
+    settingsServiceSpy.getSettings.and.returnValue(of({
+      id: 1,
+      primaryColor: '#6c7fe8',
+      primaryColorStrong: '#5a68d6',
+      logoUrl: null,
+      establishmentName: 'OpenBar',
+      defaultTheme: 'DARK',
+      tempsAlerteCommandeMinutes: 5,
+      tempsAlerteCritiqueCommandeMinutes: 10,
+      updatedAt: null,
+    }));
+
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
     toastCtrlSpy.create.and.returnValue(Promise.resolve(mockToast as any));
 
@@ -60,6 +76,7 @@ describe('DashboardBarmanComponent', () => {
         { provide: DashboardBarmanService, useValue: dashboardServiceSpy },
         { provide: NotificationService, useValue: notificationServiceSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
+        { provide: AppSettingsService, useValue: settingsServiceSpy },
       ],
     }).compileComponents();
 
