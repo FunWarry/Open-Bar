@@ -8,8 +8,7 @@
     size === 'small' ? 'btn-sm' : size === 'large' ? 'btn-lg' : '',
     iconSlot === 'icon-only' ? 'btn-icon-only' : ''
   ]"
-  (click)="onClick($event)"
-  (keydown.enter)="onClick($event)">
+  (click)="onClick($event)">
   @if (loading) {
     <ion-spinner name="crescent" class="btn-spinner"></ion-spinner>
   }
