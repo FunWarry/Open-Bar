@@ -255,7 +255,7 @@ public class PdfService {
         vatTable.setWidthPercentage(100);
         try {
             vatTable.setWidths(new float[]{1.2f, 1.5f, 1.5f, 1.5f});
-        } catch (DocumentException e) {
+        } catch (DocumentException _) {
             // Unreachable for valid widths
         }
 
