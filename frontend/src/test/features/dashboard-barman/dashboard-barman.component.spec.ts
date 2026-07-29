@@ -203,6 +203,21 @@ describe('DashboardBarmanComponent', () => {
     expect(component.trackById(0, cmd)).toBe(cmd.id);
   });
 
+  it('hasUrgentOrders retourne true si une commande en attente a plus de 5 minutes', () => {
+    const oldDate = new Date(Date.now() - 6 * 60 * 1000);
+    component.commandesEnAttente = [
+      { ...mockCommandes[0], dateCommande: oldDate }
+    ];
+    expect(component.hasUrgentOrders).toBeTrue();
+  });
+
+  it('hasUrgentOrders retourne false si toutes les commandes ont moins de 5 minutes', () => {
+    component.commandesEnAttente = [
+      { ...mockCommandes[0], dateCommande: new Date() }
+    ];
+    expect(component.hasUrgentOrders).toBeFalse();
+  });
+
   it('ngOnDestroy() complète le subject destroy$', () => {
     spyOn(component['destroy$'], 'next').and.callThrough();
     spyOn(component['destroy$'], 'complete').and.callThrough();

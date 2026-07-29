@@ -168,6 +168,12 @@ describe('NavbarComponent', () => {
     });
   });
 
+  it('toggleSound() appelle soundService.toggleSound()', () => {
+    spyOn(component.soundService, 'toggleSound');
+    component.toggleSound();
+    expect(component.soundService.toggleSound).toHaveBeenCalled();
+  });
+
   it('shouldShowNavbar$ émet true si l\'utilisateur est authentifié sur une page hors auth/setup', (done) => {
     store.overrideSelector(selectIsAuthenticated, true);
     store.refreshState();
