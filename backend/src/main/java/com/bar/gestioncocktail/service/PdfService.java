@@ -76,7 +76,6 @@ public class PdfService {
 
             addLegalFooterSection(doc, config, mutedFont);
 
-            doc.close();
             return out.toByteArray();
 
         } catch (DocumentException | IOException e) {
@@ -90,72 +89,79 @@ public class PdfService {
         headerTable.setWidthPercentage(100);
         headerTable.setWidths(new float[]{1.2f, 1f});
 
-        PdfPCell etabCell = new PdfPCell();
-        etabCell.setBorder(Rectangle.NO_BORDER);
-        etabCell.addElement(new Paragraph(config.getLegalName(), new Font(Font.HELVETICA, 14, Font.BOLD, PRIMARY)));
-        
+        headerTable.addCell(buildEstablishmentCell(config, normalFont, mutedFont));
+        headerTable.addCell(buildMetadataCell(facture, titleFont, normalFont));
+
+        doc.add(headerTable);
+        doc.add(Chunk.NEWLINE);
+    }
+
+    private PdfPCell buildEstablishmentCell(EstablishmentConfig config, Font normalFont, Font mutedFont) {
+        PdfPCell cell = new PdfPCell();
+        cell.setBorder(Rectangle.NO_BORDER);
+        cell.addElement(new Paragraph(config.getLegalName(), new Font(Font.HELVETICA, 14, Font.BOLD, PRIMARY)));
+
         String legalFormText = config.getLegalForm() != null ? config.getLegalForm() : "";
         if (config.getCapitalSocial() != null) {
             legalFormText += " au capital de " + config.getCapitalSocial() + " €";
         }
         if (!legalFormText.isBlank()) {
-            etabCell.addElement(new Paragraph(legalFormText, mutedFont));
+            cell.addElement(new Paragraph(legalFormText, mutedFont));
         }
 
         if (config.getAddress() != null) {
-            etabCell.addElement(new Paragraph(config.getAddress(), normalFont));
+            cell.addElement(new Paragraph(config.getAddress(), normalFont));
         }
 
         String phoneStr = config.getPhone() != null ? config.getPhone() : "-";
         String emailStr = config.getEmail() != null ? config.getEmail() : "-";
-        etabCell.addElement(new Paragraph("Tél : " + phoneStr + " | " + emailStr, mutedFont));
+        cell.addElement(new Paragraph("Tél : " + phoneStr + " | " + emailStr, mutedFont));
 
         String siretStr = config.getSiret() != null ? config.getSiret() : "-";
         String rcsCityStr = config.getRcsCity() != null ? config.getRcsCity() : "";
         String rcsNumStr = config.getRcsNumber() != null ? config.getRcsNumber() : "";
-        etabCell.addElement(new Paragraph("SIRET : " + siretStr + " | RCS : " + rcsCityStr + " " + rcsNumStr, mutedFont));
+        cell.addElement(new Paragraph("SIRET : " + siretStr + " | RCS : " + rcsCityStr + " " + rcsNumStr, mutedFont));
 
         String tvaStr = config.getTvaNumber() != null ? config.getTvaNumber() : "-";
         String apeStr = config.getCodeApe() != null ? config.getCodeApe() : "-";
-        etabCell.addElement(new Paragraph("N° TVA Intracommunautaire : " + tvaStr + " | APE : " + apeStr, mutedFont));
-        headerTable.addCell(etabCell);
+        cell.addElement(new Paragraph("N° TVA Intracommunautaire : " + tvaStr + " | APE : " + apeStr, mutedFont));
+        return cell;
+    }
 
-        PdfPCell metaCell = new PdfPCell();
-        metaCell.setBorder(Rectangle.NO_BORDER);
+    private PdfPCell buildMetadataCell(Facture facture, Font titleFont, Font normalFont) {
+        PdfPCell cell = new PdfPCell();
+        cell.setBorder(Rectangle.NO_BORDER);
         Paragraph pTitle = new Paragraph("FACTURE", titleFont);
         pTitle.setAlignment(Element.ALIGN_RIGHT);
-        metaCell.addElement(pTitle);
+        cell.addElement(pTitle);
 
         String numStr = facture.getNumero() != null ? facture.getNumero() : "-";
         Paragraph pNum = new Paragraph("N° " + numStr, new Font(Font.HELVETICA, 12, Font.BOLD, DARK_TEXT));
         pNum.setAlignment(Element.ALIGN_RIGHT);
-        metaCell.addElement(pNum);
+        cell.addElement(pNum);
 
         if (facture.getDateFacture() != null) {
             Paragraph pDate = new Paragraph("Date : " + facture.getDateFacture().format(DATE_FMT), normalFont);
             pDate.setAlignment(Element.ALIGN_RIGHT);
-            metaCell.addElement(pDate);
+            cell.addElement(pDate);
         }
         if (facture.getTable() != null) {
             Paragraph pTable = new Paragraph("Table : " + facture.getTable().getNumero(), normalFont);
             pTable.setAlignment(Element.ALIGN_RIGHT);
-            metaCell.addElement(pTable);
+            cell.addElement(pTable);
         }
         if (facture.getModePaiement() != null) {
             Paragraph pPaiement = new Paragraph("Mode de paiement : " + facture.getModePaiement(), normalFont);
             pPaiement.setAlignment(Element.ALIGN_RIGHT);
-            metaCell.addElement(pPaiement);
+            cell.addElement(pPaiement);
         }
 
         String statutText = facture.isReglee() ? "RÉGLÉE" : "EN ATTENTE DE RÈGLEMENT";
         Color statutColor = facture.isReglee() ? new Color(16, 185, 129) : new Color(245, 158, 11);
         Paragraph pStatut = new Paragraph(statutText, new Font(Font.HELVETICA, 9, Font.BOLD, statutColor));
         pStatut.setAlignment(Element.ALIGN_RIGHT);
-        metaCell.addElement(pStatut);
-
-        headerTable.addCell(metaCell);
-        doc.add(headerTable);
-        doc.add(Chunk.NEWLINE);
+        cell.addElement(pStatut);
+        return cell;
     }
 
     private void addItemsTableSection(Document doc, Facture facture, Font headerFont, Font normalFont,
@@ -176,44 +182,53 @@ public class PdfService {
 
         if (facture.getItems() != null) {
             for (FactureItem item : facture.getItems()) {
-                VatRate vatRate = item.getVatRate() != null ? item.getVatRate() : VatRate.TWENTY;
-                
-                double totalItemTTC = 0;
-                if (item.getTotal() != null) {
-                    totalItemTTC = item.getTotal().doubleValue();
-                } else if (item.getPrixUnitaire() != null) {
-                    totalItemTTC = item.getPrixUnitaire().doubleValue() * item.getQuantite();
-                }
-
-                BigDecimal bdTotalTTC = BigDecimal.valueOf(totalItemTTC).setScale(2, RoundingMode.HALF_UP);
-                BigDecimal bdPriceHT = (item.getPriceHT() != null)
-                    ? item.getPriceHT()
-                    : bdTotalTTC.divide(BigDecimal.ONE.add(vatRate.getRate()), 2, RoundingMode.HALF_UP);
-                BigDecimal bdVatAmount = (item.getVatAmount() != null)
-                    ? item.getVatAmount()
-                    : bdTotalTTC.subtract(bdPriceHT);
-                
-                int qty = Math.max(1, item.getQuantite());
-                BigDecimal bdPuHT = bdPriceHT.divide(BigDecimal.valueOf(qty), 2, RoundingMode.HALF_UP);
-
-                vatBreakdown.computeIfAbsent(vatRate, k -> new BigDecimal[]{BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO});
-                BigDecimal[] acc = vatBreakdown.get(vatRate);
-                acc[0] = acc[0].add(bdPriceHT);
-                acc[1] = acc[1].add(bdVatAmount);
-                acc[2] = acc[2].add(bdTotalTTC);
-
-                String desc = item.getDescription() != null ? item.getDescription() : "";
-                addCell(table, desc, normalFont, Element.ALIGN_LEFT);
-                addCell(table, String.valueOf(item.getQuantite()), normalFont, Element.ALIGN_RIGHT);
-                addCell(table, formatPrix(bdPuHT.doubleValue()), normalFont, Element.ALIGN_RIGHT);
-                addCell(table, vatRate.getLabel(), normalFont, Element.ALIGN_RIGHT);
-                addCell(table, formatPrix(bdPriceHT.doubleValue()), normalFont, Element.ALIGN_RIGHT);
-                addCell(table, formatPrix(bdTotalTTC.doubleValue()), normalFont, Element.ALIGN_RIGHT);
+                addItemRow(table, item, normalFont, vatBreakdown);
             }
         }
 
         doc.add(table);
         doc.add(Chunk.NEWLINE);
+    }
+
+    private void addItemRow(PdfPTable table, FactureItem item, Font normalFont, Map<VatRate, BigDecimal[]> vatBreakdown) {
+        VatRate vatRate = item.getVatRate() != null ? item.getVatRate() : VatRate.TWENTY;
+
+        double totalItemTTC = getItemTotalTTC(item);
+
+        BigDecimal bdTotalTTC = BigDecimal.valueOf(totalItemTTC).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal bdPriceHT = (item.getPriceHT() != null)
+            ? item.getPriceHT()
+            : bdTotalTTC.divide(BigDecimal.ONE.add(vatRate.getRate()), 2, RoundingMode.HALF_UP);
+        BigDecimal bdVatAmount = (item.getVatAmount() != null)
+            ? item.getVatAmount()
+            : bdTotalTTC.subtract(bdPriceHT);
+
+        int qty = Math.max(1, item.getQuantite());
+        BigDecimal bdPuHT = bdPriceHT.divide(BigDecimal.valueOf(qty), 2, RoundingMode.HALF_UP);
+
+        vatBreakdown.computeIfAbsent(vatRate, k -> new BigDecimal[]{BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO});
+        BigDecimal[] acc = vatBreakdown.get(vatRate);
+        acc[0] = acc[0].add(bdPriceHT);
+        acc[1] = acc[1].add(bdVatAmount);
+        acc[2] = acc[2].add(bdTotalTTC);
+
+        String desc = item.getDescription() != null ? item.getDescription() : "";
+        addCell(table, desc, normalFont, Element.ALIGN_LEFT);
+        addCell(table, String.valueOf(item.getQuantite()), normalFont, Element.ALIGN_RIGHT);
+        addCell(table, formatPrix(bdPuHT.doubleValue()), normalFont, Element.ALIGN_RIGHT);
+        addCell(table, vatRate.getLabel(), normalFont, Element.ALIGN_RIGHT);
+        addCell(table, formatPrix(bdPriceHT.doubleValue()), normalFont, Element.ALIGN_RIGHT);
+        addCell(table, formatPrix(bdTotalTTC.doubleValue()), normalFont, Element.ALIGN_RIGHT);
+    }
+
+    private double getItemTotalTTC(FactureItem item) {
+        if (item.getTotal() != null) {
+            return item.getTotal().doubleValue();
+        }
+        if (item.getPrixUnitaire() != null) {
+            return item.getPrixUnitaire().doubleValue() * item.getQuantite();
+        }
+        return 0.0;
     }
 
     private void addTotalsAndVatSection(Document doc, Facture facture, Map<VatRate, BigDecimal[]> vatBreakdown,
@@ -222,15 +237,27 @@ public class PdfService {
         totalsTable.setWidthPercentage(100);
         totalsTable.setWidths(new float[]{1.5f, 1f});
 
+        totalsTable.addCell(buildVatBreakdownCell(vatBreakdown, mutedFont));
+        totalsTable.addCell(buildSummaryCell(facture, vatBreakdown, boldFont, totalFont, mutedFont));
+
+        doc.add(totalsTable);
+        doc.add(Chunk.NEWLINE);
+    }
+
+    private PdfPCell buildVatBreakdownCell(Map<VatRate, BigDecimal[]> vatBreakdown, Font mutedFont) {
         PdfPCell vatCell = new PdfPCell();
         vatCell.setBorder(Rectangle.NO_BORDER);
-        
+
         Paragraph vatTitle = new Paragraph("VENTILATION TVA", new Font(Font.HELVETICA, 9, Font.BOLD, PRIMARY));
         vatCell.addElement(vatTitle);
 
         PdfPTable vatTable = new PdfPTable(4);
         vatTable.setWidthPercentage(100);
-        vatTable.setWidths(new float[]{1.2f, 1.5f, 1.5f, 1.5f});
+        try {
+            vatTable.setWidths(new float[]{1.2f, 1.5f, 1.5f, 1.5f});
+        } catch (DocumentException e) {
+            // Unreachable for valid widths
+        }
 
         for (String h : new String[]{"Taux", "Base HT", "TVA", "Total TTC"}) {
             PdfPCell c = new PdfPCell(new Phrase(h, new Font(Font.HELVETICA, 8, Font.BOLD, TEXT)));
@@ -246,18 +273,15 @@ public class PdfService {
             addCell(vatTable, formatPrix(entry.getValue()[2].doubleValue()), mutedFont, Element.ALIGN_RIGHT);
         }
         vatCell.addElement(vatTable);
-        totalsTable.addCell(vatCell);
+        return vatCell;
+    }
 
+    private PdfPCell buildSummaryCell(Facture facture, Map<VatRate, BigDecimal[]> vatBreakdown,
+                                     Font boldFont, Font totalFont, Font mutedFont) {
         PdfPCell summaryCell = new PdfPCell();
         summaryCell.setBorder(Rectangle.NO_BORDER);
 
-        double totalTTCVal = 0;
-        if (facture.getTotalTTC() != null) {
-            totalTTCVal = facture.getTotalTTC().doubleValue();
-        } else if (facture.getTotal() != null) {
-            totalTTCVal = facture.getTotal().doubleValue();
-        }
-
+        double totalTTCVal = getFactureTotalTTC(facture);
         double totalHTVal = (facture.getTotalHT() != null)
             ? facture.getTotalHT().doubleValue()
             : vatBreakdown.values().stream().mapToDouble(a -> a[0].doubleValue()).sum();
@@ -283,10 +307,17 @@ public class PdfService {
         Paragraph pTotalTTC = new Paragraph("TOTAL TTC : " + formatPrix(totalTTCVal), totalFont);
         pTotalTTC.setAlignment(Element.ALIGN_RIGHT);
         summaryCell.addElement(pTotalTTC);
+        return summaryCell;
+    }
 
-        totalsTable.addCell(summaryCell);
-        doc.add(totalsTable);
-        doc.add(Chunk.NEWLINE);
+    private double getFactureTotalTTC(Facture facture) {
+        if (facture.getTotalTTC() != null) {
+            return facture.getTotalTTC().doubleValue();
+        }
+        if (facture.getTotal() != null) {
+            return facture.getTotal().doubleValue();
+        }
+        return 0.0;
     }
 
     private void addLegalFooterSection(Document doc, EstablishmentConfig config, Font mutedFont) throws DocumentException {
