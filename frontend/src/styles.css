@@ -310,3 +310,23 @@ ion-button {
   transform: translateY(-2px);
   box-shadow: var(--elev-3);
 }
+
+.ellipse-bg-primary {
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  top: -100px;
+  left: -100px;
+  background: radial-gradient(circle, rgba(155, 138, 242, 0.15) 0%, rgba(0, 0, 0, 0) 70%);
+  pointer-events: none;
+}
+
+.ellipse-bg-tertiary {
+  position: absolute;
+  width: 400px;
+  height: 400px;
+  bottom: -100px;
+  right: -100px;
+  background: radial-gradient(circle, rgba(240, 163, 59, 0.12) 0%, rgba(0, 0, 0, 0) 70%);
+  pointer-events: none;
+}
