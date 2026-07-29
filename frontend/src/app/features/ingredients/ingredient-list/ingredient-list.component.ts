@@ -11,7 +11,8 @@ import {
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { add, eye, create, trash } from 'ionicons/icons';
-import { NgIf, NgFor, AsyncPipe } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
+import { TranslocoModule } from '@jsverse/transloco';
 import { IngredientService } from '../../../core/services/ingredient.service';
 import { Ingredient } from '../../../core/models/ingredient.model';
 
@@ -24,7 +25,7 @@ import { Ingredient } from '../../../core/models/ingredient.model';
     IonCard, IonCardHeader, IonCardTitle, IonCardContent,
     IonList, IonItem, IonLabel, IonBadge, IonIcon, IonButton, IonButtons,
     IonRefresher, IonRefresherContent, IonSpinner,
-    NgIf, NgFor, AsyncPipe,
+    AsyncPipe, TranslocoModule,
   ],
 })
 export class IngredientListComponent implements OnInit, OnDestroy {

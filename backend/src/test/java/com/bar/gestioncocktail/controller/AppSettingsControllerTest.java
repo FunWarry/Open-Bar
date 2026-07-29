@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDateTime;
+import java.time.Month;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
@@ -40,7 +41,7 @@ class AppSettingsControllerTest {
         settings.setLogoUrl("https://example.com/logo.png");
         settings.setEstablishmentName("OpenBar");
         settings.setDefaultTheme(DefaultTheme.DARK);
-        settings.setUpdatedAt(LocalDateTime.of(2026, 7, 9, 10, 0));
+        settings.setUpdatedAt(LocalDateTime.of(2026, Month.JULY, 9, 10, 0));
     }
 
     @Test

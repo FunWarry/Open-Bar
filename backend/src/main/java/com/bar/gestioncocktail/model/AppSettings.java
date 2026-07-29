@@ -14,6 +14,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 /**
  * Singleton — une seule ligne (id=1), pas d'architecture multi-tenant (cf. CDC §11).
@@ -63,11 +64,12 @@ public class AppSettings {
     @Column(nullable = false)
     private Integer tempsAlerteCritiqueCommandeMinutes = 10;
 
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
     @PrePersist
     @PreUpdate
     protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now(ZoneId.systemDefault());
     }
 }

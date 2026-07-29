@@ -95,7 +95,10 @@
     "SUPPLIER": "Supplier",
     "EXPIRY": "Expiration Date",
     "LOW_STOCK": "Low Stock",
-    "UPDATE_STOCK": "Update Stock"
+    "UPDATE_STOCK": "Update Stock",
+    "SEUIL_ALERTE": "Alert threshold",
+    "ALERTE_STOCK": "Stock alert",
+    "EMPTY": "No ingredients"
   },
   "TABLES": {
     "TITLE": "Tables",

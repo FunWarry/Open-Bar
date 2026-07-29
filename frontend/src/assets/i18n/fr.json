@@ -95,7 +95,10 @@
     "SUPPLIER": "Fournisseur",
     "EXPIRY": "Date de péremption",
     "LOW_STOCK": "Stock faible",
-    "UPDATE_STOCK": "Mettre à jour le stock"
+    "UPDATE_STOCK": "Mettre à jour le stock",
+    "SEUIL_ALERTE": "Seuil alerte",
+    "ALERTE_STOCK": "Alerte stock",
+    "EMPTY": "Aucun ingrédient"
   },
   "TABLES": {
     "TITLE": "Tables",

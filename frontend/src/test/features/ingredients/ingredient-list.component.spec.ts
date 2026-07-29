@@ -9,6 +9,7 @@ import { of, throwError } from 'rxjs';
 import { IngredientListComponent } from '../../../app/features/ingredients/ingredient-list/ingredient-list.component';
 import { IngredientService } from '../../../app/core/services/ingredient.service';
 import { Ingredient } from '../../../app/core/models/ingredient.model';
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
 
 const makeI = (id: number, nom: string, stock = 20, seuil = 5): Ingredient => ({
   id, nom, uniteMesure: 'cl', quantiteStock: stock, seuilAlerte: seuil,
@@ -42,7 +43,7 @@ describe('IngredientListComponent', () => {
     storeSpy.select.and.returnValue(of(false));
 
     await TestBed.configureTestingModule({
-      imports: [IngredientListComponent, IonicModule.forRoot(), RouterTestingModule],
+      imports: [IngredientListComponent, IonicModule.forRoot(), RouterTestingModule, getTranslocoTestingModule()],
       providers: [
         { provide: Store, useValue: storeSpy },
         { provide: IngredientService, useValue: serviceSpy },
