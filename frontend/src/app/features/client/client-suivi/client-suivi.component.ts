@@ -21,7 +21,6 @@ import { ActionButtonComponent } from '../../../core/components/ui/action-button
   imports: [
     RouterLink,
     CurrencyPipe,
-    DatePipe,
     TranslocoModule,
     ActionButtonComponent
   ]
@@ -76,7 +75,7 @@ export class ClientSuiviComponent implements OnInit, OnDestroy {
         next: (message) => {
           try {
             const updated: Commande = JSON.parse(message.body);
-            if (updated && updated.id === id) {
+            if (updated?.id === id) {
               this.commande = updated;
             }
           } catch {
