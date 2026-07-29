@@ -1,7 +1,7 @@
 <ion-header>
   <ion-toolbar>
     <ion-title>Notifications</ion-title>
-    <ion-button slot="end" fill="clear" size="small" (click)="marquerToutLu()">
+    <ion-button slot="end" fill="clear" size="small" (click)="marquerToutLu()" (keyup.enter)="marquerToutLu()">
       <ion-icon name="checkmark-done-outline" slot="start"></ion-icon>
       Tout lu
     </ion-button>
@@ -19,6 +19,7 @@
       *ngFor="let n of notifications"
       [class.lue]="n.lue"
       (click)="marquerLue(n.id)"
+      (keyup.enter)="marquerLue(n.id)"
       button
       detail="false">
       <ion-badge slot="start" [color]="typeCouleur(n.type)">{{ n.type }}</ion-badge>

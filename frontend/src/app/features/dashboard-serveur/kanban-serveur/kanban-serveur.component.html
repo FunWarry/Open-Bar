@@ -67,7 +67,8 @@
               color="success"
               size="small"
               expand="block"
-              (click)="marquerLivree(cmd.id)">
+              (click)="marquerLivree(cmd.id)"
+              (keyup.enter)="marquerLivree(cmd.id)">
               <ion-icon name="checkmark-outline" slot="start"></ion-icon>
               Livrer
             </ion-button>
@@ -77,7 +78,8 @@
               color="danger"
               size="small"
               expand="block"
-              (click)="annuler(cmd.id)">
+              (click)="annuler(cmd.id)"
+              (keyup.enter)="annuler(cmd.id)">
               <ion-icon name="ban-outline" slot="start"></ion-icon>
               Annuler
             </ion-button>

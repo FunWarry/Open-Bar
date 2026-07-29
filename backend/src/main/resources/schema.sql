@@ -203,10 +203,12 @@ CREATE TABLE IF NOT EXISTS establishment_config (
     payment_terms VARCHAR(255) DEFAULT 'Paiement immédiat à réception',
     discount_policy VARCHAR(255) DEFAULT 'Aucun escompte pour paiement anticipé',
     late_payment_rate DECIMAL(5,4) DEFAULT 0.1200,
+    time_zone VARCHAR(50) DEFAULT 'SYSTEM',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 INSERT INTO establishment_config (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
+ALTER TABLE establishment_config ADD COLUMN IF NOT EXISTS time_zone VARCHAR(50) DEFAULT 'SYSTEM';
 
 -- TVA multi-taux sur cocktails (#130)
 ALTER TABLE cocktails ADD COLUMN IF NOT EXISTS vat_rate VARCHAR(20) DEFAULT 'TWENTY';

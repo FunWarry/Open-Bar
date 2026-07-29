@@ -14,6 +14,7 @@ export interface EstablishmentConfig {
   paymentTerms: string;
   discountPolicy: string;
   latePaymentRate: number;
+  timeZone?: string;
   createdAt?: string;
   updatedAt?: string;
 }

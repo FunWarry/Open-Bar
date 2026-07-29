@@ -35,9 +35,11 @@ describe('EtablissementComponent', () => {
   const mockToast = { present: jasmine.createSpy('present') };
 
   beforeEach(async () => {
-    etablissementServiceSpy = jasmine.createSpyObj('EtablissementService', ['getConfig', 'updateConfig']);
+    etablissementServiceSpy = jasmine.createSpyObj('EtablissementService', ['getConfig', 'updateConfig', 'getTimeZones']);
     etablissementServiceSpy.getConfig.and.returnValue(of(mockConfig));
     etablissementServiceSpy.updateConfig.and.returnValue(of(mockConfig));
+    etablissementServiceSpy.getTimeZones.and.returnValue(of(['SYSTEM', 'Europe/Paris']));
+
 
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
     toastCtrlSpy.create.and.returnValue(Promise.resolve(mockToast as any));

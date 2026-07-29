@@ -2,7 +2,7 @@
   <ion-toolbar>
     <ion-title>{{ data ? 'Modifier l\'utilisateur' : 'Nouvel utilisateur' }}</ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="onCancel()">Annuler</ion-button>
+      <ion-button (click)="onCancel()" (keyup.enter)="onCancel()">Annuler</ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>

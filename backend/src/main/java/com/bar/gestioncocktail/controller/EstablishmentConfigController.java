@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 /**
  * Controller for managing legal establishment configuration parameters.
  */
@@ -24,9 +26,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class EstablishmentConfigController {
 
     private final EstablishmentConfigService establishmentConfigService;
+    private final com.bar.gestioncocktail.service.TimeService timeService;
 
-    public EstablishmentConfigController(EstablishmentConfigService establishmentConfigService) {
+    public EstablishmentConfigController(EstablishmentConfigService establishmentConfigService, com.bar.gestioncocktail.service.TimeService timeService) {
         this.establishmentConfigService = establishmentConfigService;
+        this.timeService = timeService;
     }
 
     @Operation(summary = "Get legal establishment configuration", description = "Retrieves current legal parameters of the establishment.")
@@ -35,6 +39,14 @@ public class EstablishmentConfigController {
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<EstablishmentConfigDTO> getConfig() {
         return ResponseEntity.ok(establishmentConfigService.getConfigDTO());
+    }
+
+    @Operation(summary = "Get available time zones", description = "Retrieves the list of supported time zone choices for the establishment.")
+    @ApiResponse(responseCode = "200", description = "Time zones list retrieved successfully")
+    @GetMapping("/timezones")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    public ResponseEntity<List<String>> getTimeZones() {
+        return ResponseEntity.ok(timeService.getAvailableTimeZones());
     }
 
     @Operation(summary = "Update legal establishment configuration", description = "Updates legal settings (SIRET, TVA, RCS, address) for invoices and receipts.")
@@ -46,3 +58,4 @@ public class EstablishmentConfigController {
         return ResponseEntity.ok(establishmentConfigService.updateConfig(request));
     }
 }
+

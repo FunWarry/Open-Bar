@@ -97,6 +97,7 @@
         <ion-button
           *ngIf="!facture.reglee"
           (click)="reglerFacture()"
+          (keyup.enter)="reglerFacture()"
           (keydown.enter)="reglerFacture()"
           color="success"
           expand="block"

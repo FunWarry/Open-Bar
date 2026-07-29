@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -26,21 +25,25 @@ public class DashboardService {
     private final CommandeRepository commandeRepository;
     private final TableRepository tableRepository;
     private final IngredientRepository ingredientRepository;
+    private final TimeService timeService;
 
     public DashboardService(
         CommandeRepository commandeRepository,
         TableRepository tableRepository,
-        IngredientRepository ingredientRepository
+        IngredientRepository ingredientRepository,
+        TimeService timeService
     ) {
         this.commandeRepository = commandeRepository;
         this.tableRepository = tableRepository;
         this.ingredientRepository = ingredientRepository;
+        this.timeService = timeService;
     }
 
     @Transactional(readOnly = true)
     public DashboardStatsDTO getStats() {
-        LocalDateTime debutJour = LocalDate.now().atStartOfDay();
-        LocalDateTime debutMois = LocalDate.now().withDayOfMonth(1).atStartOfDay();
+        LocalDateTime debutJour = timeService.today().atStartOfDay();
+        LocalDateTime debutMois = timeService.today().withDayOfMonth(1).atStartOfDay();
+
 
         long enAttente = commandeRepository.countByStatut(CommandeStatut.EN_ATTENTE);
         long enPreparation = commandeRepository.countByStatut(CommandeStatut.EN_PREPARATION);

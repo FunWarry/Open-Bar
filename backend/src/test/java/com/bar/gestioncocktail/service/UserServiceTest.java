@@ -25,6 +25,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import org.mockito.Spy;
+
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
 
@@ -34,8 +36,12 @@ class UserServiceTest {
     @Mock
     PasswordEncoder passwordEncoder;
 
+    @Spy
+    TimeService timeService = new TimeService(null);
+
     @InjectMocks
     UserService userService;
+
 
     private User user;
 

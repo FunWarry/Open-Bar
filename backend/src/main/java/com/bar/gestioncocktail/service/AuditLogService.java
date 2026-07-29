@@ -3,7 +3,6 @@ package com.bar.gestioncocktail.service;
 import com.bar.gestioncocktail.model.AuditLog;
 import com.bar.gestioncocktail.model.User;
 import com.bar.gestioncocktail.repository.AuditLogRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,15 +16,17 @@ import java.util.List;
 @Transactional
 public class AuditLogService {
     private final AuditLogRepository auditLogRepository;
+    private final TimeService timeService;
 
     /**
-     * Constructeur avec injection du repository d'audit.
+     * Constructeur avec injection du repository d'audit et du timeService.
      *
      * @param auditLogRepository Repository JPA des entrées d'audit
+     * @param timeService Service de gestion du temps
      */
-    @Autowired
-    public AuditLogService(AuditLogRepository auditLogRepository) {
+    public AuditLogService(AuditLogRepository auditLogRepository, TimeService timeService) {
         this.auditLogRepository = auditLogRepository;
+        this.timeService = timeService;
     }
 
     /**
@@ -35,9 +36,10 @@ public class AuditLogService {
      * @return L'entrée d'audit enregistrée
      */
     public AuditLog createAuditLog(AuditLog auditLog) {
-        auditLog.setTimestamp(LocalDateTime.now());
+        auditLog.setTimestamp(timeService.now());
         return auditLogRepository.save(auditLog);
     }
+
 
     /**
      * Recherche les logs d'audit générés par un utilisateur donné.
@@ -120,7 +122,7 @@ public class AuditLogService {
         auditLog.setEntityId(entityId);
         auditLog.setDetails(details);
         auditLog.setIpAddress(ipAddress);
-        auditLog.setTimestamp(LocalDateTime.now());
+        auditLog.setTimestamp(timeService.now());
         auditLogRepository.save(auditLog);
     }
 }

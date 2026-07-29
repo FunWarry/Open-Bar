@@ -2,7 +2,7 @@
   <ion-toolbar class="fusion-toolbar">
     <ion-title>🔀 Confirmer la Fusion</ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="cancel()">
+      <ion-button (click)="cancel()" (keyup.enter)="cancel()">
         <ion-icon name="close-outline"></ion-icon>
       </ion-button>
     </ion-buttons>

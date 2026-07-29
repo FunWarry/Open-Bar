@@ -6,7 +6,6 @@ import com.bar.gestioncocktail.repository.RefreshTokenRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -17,9 +16,11 @@ public class RefreshTokenService {
     private long refreshExpirationMs;
 
     private final RefreshTokenRepository refreshTokenRepository;
+    private final TimeService timeService;
 
-    public RefreshTokenService(RefreshTokenRepository refreshTokenRepository) {
+    public RefreshTokenService(RefreshTokenRepository refreshTokenRepository, TimeService timeService) {
         this.refreshTokenRepository = refreshTokenRepository;
+        this.timeService = timeService;
     }
 
     @Transactional
@@ -28,7 +29,7 @@ public class RefreshTokenService {
         RefreshToken token = new RefreshToken();
         token.setUser(user);
         token.setToken(UUID.randomUUID().toString());
-        token.setExpiryDate(Instant.now().plusMillis(refreshExpirationMs));
+        token.setExpiryDate(timeService.nowInstant().plusMillis(refreshExpirationMs));
         return refreshTokenRepository.save(token);
     }
 
@@ -37,8 +38,9 @@ public class RefreshTokenService {
     }
 
     public boolean isExpired(RefreshToken token) {
-        return token.getExpiryDate().isBefore(Instant.now());
+        return token.getExpiryDate().isBefore(timeService.nowInstant());
     }
+
 
     @Transactional
     public void deleteByUser(User user) {

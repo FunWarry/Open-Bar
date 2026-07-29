@@ -4,7 +4,6 @@ import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.model.Cocktail;
 import com.bar.gestioncocktail.model.CocktailCategorie;
 import com.bar.gestioncocktail.repository.CocktailRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,15 +18,17 @@ import java.util.Optional;
 @Transactional
 public class CocktailService {
     private final CocktailRepository cocktailRepository;
+    private final TimeService timeService;
 
     /**
-     * Constructeur avec injection du repository cocktail.
+     * Constructeur avec injection du repository cocktail et du service temps.
      *
      * @param cocktailRepository Repository JPA des cocktails
+     * @param timeService Service de gestion du temps
      */
-    @Autowired
-    public CocktailService(CocktailRepository cocktailRepository) {
+    public CocktailService(CocktailRepository cocktailRepository, TimeService timeService) {
         this.cocktailRepository = cocktailRepository;
+        this.timeService = timeService;
     }
 
     /**
@@ -37,8 +38,8 @@ public class CocktailService {
      * @return Le cocktail créé
      */
     public Cocktail createCocktail(Cocktail cocktail) {
-        cocktail.setCreatedAt(LocalDateTime.now());
-        cocktail.setUpdatedAt(LocalDateTime.now());
+        cocktail.setCreatedAt(timeService.now());
+        cocktail.setUpdatedAt(timeService.now());
         return cocktailRepository.save(cocktail);
     }
 
@@ -49,9 +50,10 @@ public class CocktailService {
      * @return Le cocktail sauvegardé
      */
     public Cocktail updateCocktail(Cocktail cocktail) {
-        cocktail.setUpdatedAt(LocalDateTime.now());
+        cocktail.setUpdatedAt(timeService.now());
         return cocktailRepository.save(cocktail);
     }
+
 
     /**
      * Supprime un cocktail par son identifiant.
@@ -106,7 +108,7 @@ public class CocktailService {
      * @return Liste des cocktails de saison actuels
      */
     public List<Cocktail> getCocktailsSaisonniersActuels() {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = timeService.now();
         return cocktailRepository.findBySaisonnierAndDateDebutSaisonBeforeAndDateFinSaisonAfter(
             true, now, now);
     }
@@ -128,7 +130,7 @@ public class CocktailService {
      */
     public void toggleDisponibilite(Cocktail cocktail) {
         cocktail.setDisponible(!cocktail.isDisponible());
-        cocktail.setUpdatedAt(LocalDateTime.now());
+        cocktail.setUpdatedAt(timeService.now());
         cocktailRepository.save(cocktail);
     }
 
@@ -143,7 +145,7 @@ public class CocktailService {
         cocktail.setSaisonnier(true);
         cocktail.setDateDebutSaison(dateDebut);
         cocktail.setDateFinSaison(dateFin);
-        cocktail.setUpdatedAt(LocalDateTime.now());
+        cocktail.setUpdatedAt(timeService.now());
         cocktailRepository.save(cocktail);
     }
 

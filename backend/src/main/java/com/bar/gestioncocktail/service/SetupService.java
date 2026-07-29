@@ -11,7 +11,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.Set;
 
 @Service
@@ -20,11 +19,14 @@ public class SetupService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final TimeService timeService;
 
-    public SetupService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public SetupService(UserRepository userRepository, PasswordEncoder passwordEncoder, TimeService timeService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.timeService = timeService;
     }
+
 
     @Transactional(readOnly = true)
     public SetupStatusDTO getSetupStatus() {
@@ -53,8 +55,8 @@ public class SetupService {
         admin.setNom(request.nom() != null ? request.nom() : "Admin");
         admin.setPrenom(request.prenom() != null ? request.prenom() : "Initial");
         admin.setRoles(Set.of(UserRole.ADMIN));
-        admin.setCreatedAt(LocalDateTime.now());
-        admin.setUpdatedAt(LocalDateTime.now());
+        admin.setCreatedAt(timeService.now());
+        admin.setUpdatedAt(timeService.now());
 
         User savedAdmin = userRepository.save(admin);
         return UserResponseDTO.from(savedAdmin);

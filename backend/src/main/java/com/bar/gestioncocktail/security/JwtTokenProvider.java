@@ -3,7 +3,6 @@ package com.bar.gestioncocktail.security;
 import com.bar.gestioncocktail.config.JwtProperties;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -12,7 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.crypto.SecretKey;
-import java.util.Date;
+import java.time.Instant;
 
 /**
  * Composant de gestion des jetons JWT (JSON Web Tokens).
@@ -31,7 +30,6 @@ public class JwtTokenProvider {
      *
      * @param jwtProperties Propriétés de configuration {@link JwtProperties}
      */
-    @Autowired
     public JwtTokenProvider(JwtProperties jwtProperties) {
         this.key = Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes());
         this.jwtExpiration = jwtProperties.getExpiration();
@@ -60,13 +58,13 @@ public class JwtTokenProvider {
      * @return Le token JWT compacté
      */
     public String generateToken(String username) {
-        Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + jwtExpiration);
+        Instant now = Instant.now();
+        Instant expiryDate = now.plusMillis(jwtExpiration);
 
         return Jwts.builder()
                 .subject(username)
-                .issuedAt(now)
-                .expiration(expiryDate)
+                .issuedAt(java.util.Date.from(now))
+                .expiration(java.util.Date.from(expiryDate))
                 .signWith(key)
                 .compact();
     }

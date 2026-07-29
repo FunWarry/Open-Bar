@@ -11,7 +11,6 @@ import com.bar.gestioncocktail.model.TableEntity;
 import com.bar.gestioncocktail.repository.FactureRepository;
 import com.bar.gestioncocktail.repository.TableRepository;
 import jakarta.persistence.EntityManager;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,7 +30,6 @@ import com.bar.gestioncocktail.repository.AvoirCreditRepository;
 
 import java.security.MessageDigest;
 import java.time.Year;
-import java.time.ZoneId;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
@@ -47,15 +45,17 @@ public class FactureService {
     private final EntityManager entityManager;
     private final AuditLogService auditLogService;
     private final AvoirCreditRepository avoirCreditRepository;
+    private final TimeService timeService;
 
-    @Autowired
     public FactureService(FactureRepository factureRepository, TableRepository tableRepository,
-            EntityManager entityManager, AuditLogService auditLogService, AvoirCreditRepository avoirCreditRepository) {
+            EntityManager entityManager, AuditLogService auditLogService, AvoirCreditRepository avoirCreditRepository,
+            TimeService timeService) {
         this.factureRepository = factureRepository;
         this.tableRepository = tableRepository;
         this.entityManager = entityManager;
         this.auditLogService = auditLogService;
         this.avoirCreditRepository = avoirCreditRepository;
+        this.timeService = timeService;
     }
 
     public List<Facture> getAllFactures() {
@@ -76,8 +76,8 @@ public class FactureService {
 
     @Transactional
     public Facture createFacture(Facture facture) {
-        facture.setDateFacture(LocalDateTime.now(ZoneId.systemDefault()));
-        int currentYear = Year.now(ZoneId.systemDefault()).getValue();
+        facture.setDateFacture(LocalDateTime.now(timeService.getZoneId()));
+        int currentYear = Year.now(timeService.getZoneId()).getValue();
 
         // Sequentially format FAC-YYYY-NNNNN
         long countThisYear = factureRepository.count() + 1;
@@ -174,7 +174,7 @@ public class FactureService {
 
         facture.setReglee(true);
         facture.setModePaiement(modePaiement);
-        facture.setDateReglement(LocalDateTime.now(ZoneId.systemDefault()));
+        facture.setDateReglement(LocalDateTime.now(timeService.getZoneId()));
 
         if (facture.getTable() != null) {
             TableEntity table = facture.getTable();
@@ -204,7 +204,7 @@ public class FactureService {
     public void ajouterPourboire(Facture facture, BigDecimal pourboire) {
         facture.setPourboire(pourboire);
         facture.setTotalTTC(facture.getTotal().add(pourboire));
-        facture.setUpdatedAt(LocalDateTime.now(ZoneId.systemDefault()));
+        facture.setUpdatedAt(LocalDateTime.now(timeService.getZoneId()));
         factureRepository.save(facture);
     }
 
@@ -300,9 +300,9 @@ public class FactureService {
         merged.setTable(tableCible);
         long sequence = ((Number) entityManager.createNativeQuery("SELECT NEXTVAL('facture_seq')").getSingleResult())
                 .longValue();
-        String mois = LocalDateTime.now(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("yyyyMM"));
+        String mois = LocalDateTime.now(timeService.getZoneId()).format(DateTimeFormatter.ofPattern("yyyyMM"));
         merged.setNumero(String.format("FAC-MERGE-%s-%04d", mois, sequence));
-        merged.setDateFacture(LocalDateTime.now(ZoneId.systemDefault()));
+        merged.setDateFacture(LocalDateTime.now(timeService.getZoneId()));
         merged.setReglee(false);
 
         BigDecimal total = BigDecimal.ZERO;
@@ -389,7 +389,7 @@ public class FactureService {
             throw new BusinessException("La facture " + facture.getNumero() + " est déjà finalisée et immuable.");
         }
 
-        LocalDateTime now = LocalDateTime.now(ZoneId.systemDefault());
+        LocalDateTime now = LocalDateTime.now(timeService.getZoneId());
         facture.setFinalized(true);
         facture.setFinalizedAt(now);
         facture.setRetentionUntil(now.plusYears(10));
@@ -412,7 +412,7 @@ public class FactureService {
         Facture facture = factureRepository.findById(factureId)
                 .orElseThrow(() -> new ResourceNotFoundException(NOT_FOUND_PREFIX + factureId));
 
-        int currentYear = Year.now(ZoneId.systemDefault()).getValue();
+        int currentYear = Year.now(timeService.getZoneId()).getValue();
         long countAvoirs = avoirCreditRepository.count() + 1;
         String numeroAvoir = String.format("AV-%d-%05d", currentYear, countAvoirs);
 

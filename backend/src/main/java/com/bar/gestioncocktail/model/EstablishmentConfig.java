@@ -37,7 +37,7 @@ public class EstablishmentConfig {
     @Column(name = "legal_form")
     private String legalForm = "SARL";
 
-    @Pattern(regexp = "^[0-9]{14}$", message = "SIRET must consist of exactly 14 digits")
+    @Pattern(regexp = "^\\d{14}$", message = "SIRET must consist of exactly 14 digits")
     @Column(name = "siret", length = 14)
     private String siret = "12345678900010";
 
@@ -49,11 +49,11 @@ public class EstablishmentConfig {
     @Column(name = "rcs_number")
     private String rcsNumber = "B 123 456 789";
 
-    @Pattern(regexp = "^FR[0-9A-Z]{2}[0-9]{9}$", message = "Invalid French TVA number format (FRxx123456789)")
+    @Pattern(regexp = "^FR[0-9A-Z]{2}\\d{9}$", message = "Invalid French TVA number format (FRxx123456789)")
     @Column(name = "tva_number", length = 20)
     private String tvaNumber = "FR12123456789";
 
-    @Pattern(regexp = "^[0-9]{4}[A-Z]$", message = "Invalid APE code format (e.g. 5630Z)")
+    @Pattern(regexp = "^\\d{4}[A-Z]$", message = "Invalid APE code format (e.g. 5630Z)")
     @Column(name = "code_ape", length = 10)
     private String codeApe = "5630Z";
 
@@ -82,6 +82,10 @@ public class EstablishmentConfig {
 
     @Column(name = "late_payment_rate", precision = 5, scale = 4)
     private BigDecimal latePaymentRate = new BigDecimal("0.1200");
+
+    @Size(max = 50, message = "Time zone cannot exceed 50 characters")
+    @Column(name = "time_zone", length = 50)
+    private String timeZone = "SYSTEM";
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

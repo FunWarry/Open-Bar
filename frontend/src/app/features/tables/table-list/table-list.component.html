@@ -7,7 +7,7 @@
     <ion-card-header>
       <div class="card-header-row">
         <ion-card-title>Tables ({{ tables.length }})</ion-card-title>
-        <ion-button *ngIf="isAdmin$ | async" color="primary" (click)="onAdd()">
+        <ion-button *ngIf="isAdmin$ | async" color="primary" (click)="onAdd()" (keyup.enter)="onAdd()">
           <ion-icon slot="start" name="add"></ion-icon>
           Nouvelle Table
         </ion-button>
@@ -38,11 +38,11 @@
                 </ion-badge>
               </ion-card-content>
               <ion-buttons class="card-actions">
-                <ion-button fill="clear" color="primary" (click)="onView(table)">
+                <ion-button fill="clear" color="primary" (click)="onView(table)" (keyup.enter)="onView(table)">
                   <ion-icon slot="start" name="eye"></ion-icon>
                   Détails
                 </ion-button>
-                <ion-button *ngIf="isAdmin$ | async" fill="clear" color="tertiary" (click)="onEdit(table)">
+                <ion-button *ngIf="isAdmin$ | async" fill="clear" color="tertiary" (click)="onEdit(table)" (keyup.enter)="onEdit(table)">
                   <ion-icon slot="start" name="create"></ion-icon>
                   Modifier
                 </ion-button>

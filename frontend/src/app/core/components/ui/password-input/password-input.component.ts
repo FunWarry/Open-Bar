@@ -24,6 +24,7 @@ export class PasswordInputComponent extends BaseControlValueAccessor {
   @Input() helperText?: string;
   @Input() required = false;
   @Input() autocomplete = 'current-password';
+  @Input() inputId = 'password-input-field';
 
   showPassword = false;
 

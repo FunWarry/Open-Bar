@@ -20,14 +20,20 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import org.mockito.Spy;
+
 @ExtendWith(MockitoExtension.class)
 class CocktailServiceTest {
 
     @Mock
     CocktailRepository cocktailRepository;
 
+    @Spy
+    TimeService timeService = new TimeService(null);
+
     @InjectMocks
     CocktailService cocktailService;
+
 
     private Cocktail cocktail;
 

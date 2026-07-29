@@ -88,7 +88,19 @@
                     <ion-label position="stacked">{{ 'ETABLISSEMENT.LATE_RATE' | transloco }} (ex: 0.12 = 12%)</ion-label>
                     <ion-input type="number" step="0.01" formControlName="latePaymentRate" data-testid="late-rate-input"></ion-input>
                   </ion-item>
+
+                  <ion-item>
+                    <ion-label position="stacked">{{ 'ETABLISSEMENT.TIMEZONE' | transloco }}</ion-label>
+                    <ion-select formControlName="timeZone" interface="popover" data-testid="timezone-select">
+                      @for (tz of timeZones; track tz) {
+                        <ion-select-option [value]="tz">
+                          {{ tz === 'SYSTEM' ? ('ETABLISSEMENT.TIMEZONE_SYSTEM' | transloco) : tz }}
+                        </ion-select-option>
+                      }
+                    </ion-select>
+                  </ion-item>
                 </ion-list>
+
 
                 <div style="margin-top:16px">
                   <ion-button type="submit" [disabled]="isSaving || configForm.invalid" color="primary" data-testid="save-etablissement-btn">

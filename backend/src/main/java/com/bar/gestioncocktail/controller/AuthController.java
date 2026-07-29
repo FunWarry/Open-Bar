@@ -8,6 +8,7 @@ import com.bar.gestioncocktail.dto.UserRequestDTO;
 import com.bar.gestioncocktail.dto.UserResponseDTO;
 import com.bar.gestioncocktail.model.RefreshToken;
 import com.bar.gestioncocktail.model.User;
+import com.bar.gestioncocktail.model.UserRole;
 import com.bar.gestioncocktail.security.JwtTokenProvider;
 import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.service.RefreshTokenService;
@@ -84,10 +85,14 @@ public class AuthController {
         String accessToken = jwtTokenProvider.generateToken(authentication);
         User user = userService.getUserByUsername(loginRequest.getUsername())
                 .orElseThrow(() -> new ResourceNotFoundException("Utilisateur non trouvé"));
-        List<String> userRoles = user.getRoles()
-                .stream()
-                .map(role -> role.getName())
-                .toList();
+        List<String> userRoles = new java.util.ArrayList<>();
+        if (user.getRoles() != null) {
+            for (UserRole role : user.getRoles()) {
+                if (role != null && role.getName() != null) {
+                    userRoles.add(role.getName());
+                }
+            }
+        }
 
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
 

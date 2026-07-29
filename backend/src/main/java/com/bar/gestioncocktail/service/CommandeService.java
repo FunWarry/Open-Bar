@@ -12,7 +12,6 @@ import com.bar.gestioncocktail.model.User;
 import com.bar.gestioncocktail.repository.CommandeRepository;
 import com.bar.gestioncocktail.repository.CommandeItemRepository;
 import com.bar.gestioncocktail.repository.IngredientRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,17 +32,19 @@ public class CommandeService {
     private final CommandeItemRepository commandeItemRepository;
     private final IngredientRepository ingredientRepository;
     private final SimpMessagingTemplate messagingTemplate;
+    private final TimeService timeService;
 
-    @Autowired
     public CommandeService(
             CommandeRepository commandeRepository,
             CommandeItemRepository commandeItemRepository,
             IngredientRepository ingredientRepository,
-            SimpMessagingTemplate messagingTemplate) {
+            SimpMessagingTemplate messagingTemplate,
+            TimeService timeService) {
         this.commandeRepository = commandeRepository;
         this.commandeItemRepository = commandeItemRepository;
         this.ingredientRepository = ingredientRepository;
         this.messagingTemplate = messagingTemplate;
+        this.timeService = timeService;
     }
 
     public List<Commande> getAllCommandes() {
@@ -76,9 +77,9 @@ public class CommandeService {
 
     @Transactional
     public Commande createCommande(Commande commande) {
-        commande.setCreatedAt(LocalDateTime.now());
-        commande.setUpdatedAt(LocalDateTime.now());
-        commande.setDateCommande(LocalDateTime.now());
+        commande.setCreatedAt(timeService.now());
+        commande.setUpdatedAt(timeService.now());
+        commande.setDateCommande(timeService.now());
         commande.setStatut(CommandeStatut.EN_ATTENTE);
         return commandeRepository.save(commande);
     }
@@ -92,7 +93,7 @@ public class CommandeService {
         commande.setItems(commandeDetails.getItems());
         commande.setStatut(commandeDetails.getStatut());
         commande.setNotes(commandeDetails.getNotes());
-        commande.setUpdatedAt(LocalDateTime.now());
+        commande.setUpdatedAt(timeService.now());
 
         return commandeRepository.save(commande);
     }
@@ -110,13 +111,20 @@ public class CommandeService {
         item.setCommande(commande);
         commandeItemRepository.save(item);
 
-        BigDecimal total = commande.getItems().stream()
-                .map(commandeItem -> commandeItem.getPrixUnitaire()
-                        .multiply(new BigDecimal(commandeItem.getQuantite())))
-                .reduce(BigDecimal.ZERO, (a, b) -> a.add(b));
+        BigDecimal total = BigDecimal.ZERO;
+        if (commande.getItems() != null) {
+            for (CommandeItem commandeItem : commande.getItems()) {
+                if (commandeItem.getPrixUnitaire() != null) {
+                    BigDecimal itemTotal = commandeItem.getPrixUnitaire()
+                            .multiply(BigDecimal.valueOf(commandeItem.getQuantite()));
+                    total = total.add(itemTotal);
+                }
+            }
+        }
+
 
         commande.setTotal(total);
-        commande.setDateModification(LocalDateTime.now());
+        commande.setDateModification(timeService.now());
 
         return commandeRepository.save(commande);
     }
@@ -127,7 +135,7 @@ public class CommandeService {
                 .orElseThrow(() -> new ResourceNotFoundException(COMMANDE_NOT_FOUND + commandeId));
 
         commande.getItems().removeIf(item -> item.getId().equals(itemId));
-        commande.setDateModification(LocalDateTime.now());
+        commande.setDateModification(timeService.now());
 
         return commandeRepository.save(commande);
     }
@@ -138,22 +146,22 @@ public class CommandeService {
                 .orElseThrow(() -> new ResourceNotFoundException(COMMANDE_NOT_FOUND + id));
 
         commande.setStatut(nouveauStatut);
-        commande.setUpdatedAt(LocalDateTime.now());
+        commande.setUpdatedAt(timeService.now());
 
         switch (nouveauStatut) {
             case EN_PREPARATION:
                 // Idempotence : ne déstocke qu'une seule fois, même en cas de retry ou de
                 // réactivation depuis ANNULEE
                 if (commande.getDatePreparation() == null) {
-                    commande.setDatePreparation(LocalDateTime.now());
+                    commande.setDatePreparation(timeService.now());
                     destockerIngredients(commande);
                 }
                 break;
             case LIVREE:
-                commande.setDateLivraison(LocalDateTime.now());
+                commande.setDateLivraison(timeService.now());
                 break;
             case REGLEE:
-                commande.setDateReglement(LocalDateTime.now());
+                commande.setDateReglement(timeService.now());
                 break;
             default:
                 break;
@@ -168,7 +176,7 @@ public class CommandeService {
             reincrementerStockIngredients(commande);
         }
         commande.setStatut(CommandeStatut.ANNULEE);
-        commande.setUpdatedAt(LocalDateTime.now());
+        commande.setUpdatedAt(timeService.now());
         commandeRepository.save(commande);
     }
 
@@ -185,7 +193,7 @@ public class CommandeService {
             Ingredient ingredient = ingredientsMap.get(entry.getKey());
             BigDecimal nouveauStock = ingredient.getQuantiteStock().subtract(entry.getValue());
             ingredient.setQuantiteStock(nouveauStock);
-            ingredient.setUpdatedAt(LocalDateTime.now());
+            ingredient.setUpdatedAt(timeService.now());
             ingredientRepository.save(ingredient);
             if (ingredient.getSeuilAlerte() != null && nouveauStock.compareTo(ingredient.getSeuilAlerte()) <= 0) {
                 messagingTemplate.convertAndSend("/topic/stock/alerte",
@@ -208,33 +216,46 @@ public class CommandeService {
             Ingredient ingredient = ingredientsMap.get(entry.getKey());
             BigDecimal nouveauStock = ingredient.getQuantiteStock().add(entry.getValue());
             ingredient.setQuantiteStock(nouveauStock);
-            ingredient.setUpdatedAt(LocalDateTime.now());
+            ingredient.setUpdatedAt(timeService.now());
             ingredientRepository.save(ingredient);
         }
     }
 
     private Map<Long, BigDecimal> calculerQuantitesIngredients(Commande commande) {
         Map<Long, BigDecimal> quantites = new HashMap<>();
+        if (commande.getItems() == null) {
+            return quantites;
+        }
         for (CommandeItem item : commande.getItems()) {
-            if (item.getCocktail() != null && item.getCocktail().getIngredients() != null) {
-                BigDecimal mult = (item.getVariante() != null
-                        && item.getVariante().getMultiplicateurIngredient() != null)
-                                ? item.getVariante().getMultiplicateurIngredient()
-                                : BigDecimal.ONE;
-
-                for (CocktailIngredient ci : item.getCocktail().getIngredients()) {
-                    Ingredient ingredient = ci.getIngredient();
-                    if (ingredient != null) {
-                        BigDecimal qte = ci.getQuantite()
-                                .multiply(BigDecimal.valueOf(item.getQuantite()))
-                                .multiply(mult);
-                        quantites.merge(ingredient.getId(), qte, (a, b) -> a.add(b));
-                    }
-                }
-            }
+            traiterQuantitesItem(quantites, item);
         }
         return quantites;
     }
+
+    private void traiterQuantitesItem(Map<Long, BigDecimal> quantites, CommandeItem item) {
+        if (item.getCocktail() == null || item.getCocktail().getIngredients() == null) {
+            return;
+        }
+        BigDecimal mult = (item.getVariante() != null && item.getVariante().getMultiplicateurIngredient() != null)
+                ? item.getVariante().getMultiplicateurIngredient()
+                : BigDecimal.ONE;
+
+        for (CocktailIngredient ci : item.getCocktail().getIngredients()) {
+            traiterQuantiteIngredient(quantites, item, ci, mult);
+        }
+    }
+
+    private void traiterQuantiteIngredient(Map<Long, BigDecimal> quantites, CommandeItem item, CocktailIngredient ci, BigDecimal mult) {
+        Ingredient ingredient = ci.getIngredient();
+        if (ingredient != null && ingredient.getId() != null && ci.getQuantite() != null) {
+            BigDecimal qte = ci.getQuantite()
+                    .multiply(BigDecimal.valueOf(item.getQuantite()))
+                    .multiply(mult);
+            BigDecimal existent = quantites.get(ingredient.getId());
+            quantites.put(ingredient.getId(), existent != null ? existent.add(qte) : qte);
+        }
+    }
+
 
     private Map<Long, Ingredient> mepIngredients(Commande commande) {
         Map<Long, Ingredient> map = new HashMap<>();

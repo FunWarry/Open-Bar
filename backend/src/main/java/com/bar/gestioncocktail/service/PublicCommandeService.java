@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -28,6 +27,7 @@ public class PublicCommandeService {
     private final CocktailRepository cocktailRepository;
     private final CocktailVarianteRepository varianteRepository;
     private final SimpMessagingTemplate messagingTemplate;
+    private final TimeService timeService;
 
     @Autowired
     public PublicCommandeService(
@@ -35,12 +35,14 @@ public class PublicCommandeService {
             TableRepository tableRepository,
             CocktailRepository cocktailRepository,
             CocktailVarianteRepository varianteRepository,
-            SimpMessagingTemplate messagingTemplate) {
+            SimpMessagingTemplate messagingTemplate,
+            TimeService timeService) {
         this.commandeRepository = commandeRepository;
         this.tableRepository = tableRepository;
         this.cocktailRepository = cocktailRepository;
         this.varianteRepository = varianteRepository;
         this.messagingTemplate = messagingTemplate;
+        this.timeService = timeService;
     }
 
     public PublicCommandeResponseDTO creerCommandePublique(PublicCommandeRequestDTO dto) {
@@ -51,7 +53,7 @@ public class PublicCommandeService {
         commande.setTable(table);
         commande.setNotes(dto.getNotes());
         commande.setStatut(CommandeStatut.EN_ATTENTE);
-        commande.setDateCommande(LocalDateTime.now());
+        commande.setDateCommande(timeService.now());
         commande.setTrackingToken(UUID.randomUUID().toString());
 
         List<CommandeItem> items = new ArrayList<>();
@@ -123,7 +125,7 @@ public class PublicCommandeService {
     private void occuperTableSiLibre(TableEntity table) {
         if (!table.isOccupee()) {
             table.setOccupee(true);
-            table.setDateOccupation(LocalDateTime.now());
+            table.setDateOccupation(timeService.now());
             tableRepository.save(table);
         }
     }

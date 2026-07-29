@@ -60,7 +60,10 @@
     "PAYMENT_TERMS": "Payment Terms",
     "DISCOUNT_POLICY": "Discount Policy",
     "LATE_RATE": "Late Payment Penalty Rate",
+    "TIMEZONE": "Establishment Time Zone",
+    "TIMEZONE_SYSTEM": "System Default Time Zone",
     "PREVIEW_TITLE": "Receipt Live Preview"
+
   },
   "AUTH": {
     "LOGIN_TITLE": "Sign in to your workspace",

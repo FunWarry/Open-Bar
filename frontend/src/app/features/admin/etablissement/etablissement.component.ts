@@ -6,11 +6,11 @@ import { CurrencyPipe } from '@angular/common';
 import { TranslocoModule } from '@jsverse/transloco';
 import {
   IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-  IonList, IonItem, IonLabel, IonInput, IonButton, IonIcon,
+  IonList, IonItem, IonLabel, IonInput, IonSelect, IonSelectOption, IonButton, IonIcon,
   IonSpinner, IonGrid, IonRow, IonCol, ToastController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { save, business, documentText, checkmarkCircle } from 'ionicons/icons';
+import { save, business, documentText, checkmarkCircle, time } from 'ionicons/icons';
 import { EtablissementService } from '../../../core/services/etablissement.service';
 import { EstablishmentConfig } from '../../../core/models/establishment-config.model';
 
@@ -47,7 +47,7 @@ export function siretLuhnValidator(control: AbstractControl): ValidationErrors |
     CurrencyPipe,
     TranslocoModule,
     IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-    IonList, IonItem, IonLabel, IonInput, IonButton, IonIcon,
+    IonList, IonItem, IonLabel, IonInput, IonSelect, IonSelectOption, IonButton, IonIcon,
     IonSpinner, IonGrid, IonRow, IonCol,
   ],
 })
@@ -60,13 +60,15 @@ export class EtablissementComponent implements OnInit, OnDestroy {
   configForm!: FormGroup;
   isLoading = false;
   isSaving = false;
+  timeZones: string[] = ['SYSTEM', 'Europe/Paris', 'Europe/London', 'Europe/Berlin', 'America/New_York', 'UTC'];
 
   constructor() {
-    addIcons({ save, business, documentText, checkmarkCircle });
+    addIcons({ save, business, documentText, checkmarkCircle, time });
   }
 
   ngOnInit(): void {
     this.initForm();
+    this.loadTimeZones();
     this.loadConfig();
   }
 
@@ -91,8 +93,25 @@ export class EtablissementComponent implements OnInit, OnDestroy {
       paymentTerms: ['Paiement immédiat à réception', [Validators.maxLength(255)]],
       discountPolicy: ['Aucun escompte pour paiement anticipé', [Validators.maxLength(255)]],
       latePaymentRate: [0.12, [Validators.min(0), Validators.max(1)]],
+      timeZone: ['SYSTEM', [Validators.maxLength(50)]],
     });
   }
+
+  loadTimeZones(): void {
+    this.etablissementService.getTimeZones()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (zones) => {
+          if (zones && zones.length > 0) {
+            this.timeZones = zones;
+          }
+        },
+        error: () => {
+          // Keep default fallback timezones
+        },
+      });
+  }
+
 
   loadConfig(): void {
     this.isLoading = true;

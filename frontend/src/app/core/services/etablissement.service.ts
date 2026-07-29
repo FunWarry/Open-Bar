@@ -26,4 +26,12 @@ export class EtablissementService {
   updateConfig(config: Partial<EstablishmentConfig>): Observable<EstablishmentConfig> {
     return this.http.put<EstablishmentConfig>(this.apiUrl, config);
   }
+
+  /**
+   * Retrieves available time zones list.
+   */
+  getTimeZones(): Observable<string[]> {
+    return this.http.get<string[]>(`${this.apiUrl}/timezones`);
+  }
 }
+

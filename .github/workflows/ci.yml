@@ -83,10 +83,10 @@ jobs:
       checks: write        # requis par mikepenz/action-junit-report
 
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@v4
 
       - name: Set up Node.js 22
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: 'npm'
@@ -94,11 +94,11 @@ jobs:
 
       - name: Install dependencies
         working-directory: frontend
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: TypeScript type check
         working-directory: frontend
-        run: npx tsc --noEmit --project tsconfig.app.json
+        run: npx --no-install tsc --noEmit --project tsconfig.app.json
 
       - name: Security audit (critical only)
         working-directory: frontend
@@ -106,7 +106,7 @@ jobs:
 
       - name: Run tests with coverage
         working-directory: frontend
-        run: npx ng test --watch=false --browsers=ChromeHeadless --code-coverage
+        run: npm run test:ci
 
       - name: Upload LCOV coverage report
         uses: actions/upload-artifact@v4
@@ -118,7 +118,7 @@ jobs:
 
       - name: Build production
         working-directory: frontend
-        run: npx ng build --configuration production
+        run: npm run build -- --configuration production
 
   sonar:
     name: SonarCloud Analysis
@@ -137,24 +137,29 @@ jobs:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # requis par SonarCloud pour l'historique git (blame, nouveaux commits)
+          fetch-depth: 0  # Shallow clones cause SonarCloud issues
 
-      - name: Set up Java 22
-        uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
+      - name: Set up JDK 22
+        uses: actions/setup-java@v4
         with:
           java-version: '22'
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Download JaCoCo coverage report
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Download JaCoCo report
         uses: actions/download-artifact@v4
         with:
           name: jacoco-coverage
           path: backend/target/site/jacoco
 
-      - name: Download LCOV coverage report
+      - name: Download LCOV report
         uses: actions/download-artifact@v4
         with:
           name: lcov-coverage

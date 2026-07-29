@@ -17,6 +17,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import org.mockito.Spy;
+
 @ExtendWith(MockitoExtension.class)
 class IngredientServiceTest {
 
@@ -26,8 +28,12 @@ class IngredientServiceTest {
     @Mock
     NotificationService notificationService;
 
+    @Spy
+    TimeService timeService = new TimeService(null);
+
     @InjectMocks
     IngredientService ingredientService;
+
 
     private Ingredient ingredient;
 

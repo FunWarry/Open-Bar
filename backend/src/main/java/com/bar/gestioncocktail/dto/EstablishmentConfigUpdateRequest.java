@@ -49,6 +49,9 @@ public record EstablishmentConfigUpdateRequest(
     @Size(max = 255, message = "Discount policy cannot exceed 255 characters")
     String discountPolicy,
 
-    BigDecimal latePaymentRate
+    BigDecimal latePaymentRate,
+
+    @Size(max = 50, message = "Time zone cannot exceed 50 characters")
+    String timeZone
 ) {
 }

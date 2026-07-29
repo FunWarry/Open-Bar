@@ -1,4 +1,4 @@
-<div class="mobile-table-card" (click)="select.emit(table)">
+<div class="mobile-table-card" (click)="select.emit(table)" (keyup.enter)="select.emit(table)" (keydown.enter)="select.emit(table)">
   <div class="card-header">
     <div class="table-badge">
       <ion-icon name="restaurant-outline"></ion-icon>
@@ -34,7 +34,8 @@
       variant="secondary"
       size="small"
       iconLeft="add-circle-outline"
-      (click)="$event.stopPropagation(); newOrder.emit(table)">
+      (click)="$event.stopPropagation(); newOrder.emit(table)"
+      (keyup.enter)="$event.stopPropagation(); newOrder.emit(table)">
       Commander
     </app-action-button>
   </div>

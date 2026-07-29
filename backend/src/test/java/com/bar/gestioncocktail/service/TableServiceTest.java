@@ -22,6 +22,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import org.mockito.Spy;
+
 @ExtendWith(MockitoExtension.class)
 class TableServiceTest {
 
@@ -31,9 +33,12 @@ class TableServiceTest {
     CommandeRepository commandeRepository;
     @Mock
     AuditLogService auditLogService;
+    @Spy
+    TimeService timeService = new TimeService(null);
 
     @InjectMocks
     TableService tableService;
+
 
     private TableEntity table;
 

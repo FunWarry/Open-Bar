@@ -22,6 +22,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
+import org.mockito.Spy;
+
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class CocktailVarianteServiceTest {
@@ -29,8 +31,12 @@ class CocktailVarianteServiceTest {
     @Mock
     CocktailVarianteRepository cocktailVarianteRepository;
 
+    @Spy
+    TimeService timeService = new TimeService(null);
+
     @InjectMocks
     CocktailVarianteService cocktailVarianteService;
+
 
     private Cocktail cocktail;
     private CocktailVariante variante;

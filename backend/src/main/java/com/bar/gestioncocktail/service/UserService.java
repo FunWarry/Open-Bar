@@ -3,7 +3,6 @@ package com.bar.gestioncocktail.service;
 import com.bar.gestioncocktail.model.User;
 import com.bar.gestioncocktail.model.UserRole;
 import com.bar.gestioncocktail.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -12,7 +11,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,11 +19,12 @@ import java.util.Optional;
 public class UserService implements UserDetailsService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final TimeService timeService;
 
-    @Autowired
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, TimeService timeService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.timeService = timeService;
     }
 
     @Override
@@ -43,13 +42,13 @@ public class UserService implements UserDetailsService {
 
     public User createUser(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setCreatedAt(LocalDateTime.now());
-        user.setUpdatedAt(LocalDateTime.now());
+        user.setCreatedAt(timeService.now());
+        user.setUpdatedAt(timeService.now());
         return userRepository.save(user);
     }
 
     public User updateUser(User user) {
-        user.setUpdatedAt(LocalDateTime.now());
+        user.setUpdatedAt(timeService.now());
         return userRepository.save(user);
     }
 
@@ -79,8 +78,9 @@ public class UserService implements UserDetailsService {
 
     public void changePassword(User user, String newPassword) {
         user.setPassword(passwordEncoder.encode(newPassword));
-        user.setUpdatedAt(LocalDateTime.now());
+        user.setUpdatedAt(timeService.now());
         userRepository.save(user);
     }
+
     
 }

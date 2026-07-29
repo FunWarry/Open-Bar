@@ -2,7 +2,7 @@
   <ion-toolbar>
     <ion-title>Espace Serveur — OpenBar</ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="naviguerKanban()" title="Vue Kanban Suivi">
+      <ion-button (click)="naviguerKanban()" (keyup.enter)="naviguerKanban()" title="Vue Kanban Suivi">
         <ion-icon slot="icon-only" name="list-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -49,32 +49,38 @@
           <app-filter-chip
             label="Tous"
             [active]="selectedCategory === 'ALL'"
-            (click)="onCategorySelect('ALL')">
+            (click)="onCategorySelect('ALL')"
+            (keyup.enter)="onCategorySelect('ALL')">
           </app-filter-chip>
           <app-filter-chip
             label="Cocktails"
             [active]="selectedCategory === 'COCKTAIL'"
-            (click)="onCategorySelect('COCKTAIL')">
+            (click)="onCategorySelect('COCKTAIL')"
+            (keyup.enter)="onCategorySelect('COCKTAIL')">
           </app-filter-chip>
           <app-filter-chip
             label="Bières"
             [active]="selectedCategory === 'BEER'"
-            (click)="onCategorySelect('BEER')">
+            (click)="onCategorySelect('BEER')"
+            (keyup.enter)="onCategorySelect('BEER')">
           </app-filter-chip>
           <app-filter-chip
             label="Softs"
             [active]="selectedCategory === 'SOFT'"
-            (click)="onCategorySelect('SOFT')">
+            (click)="onCategorySelect('SOFT')"
+            (keyup.enter)="onCategorySelect('SOFT')">
           </app-filter-chip>
           <app-filter-chip
             label="Snacks"
             [active]="selectedCategory === 'SNACK'"
-            (click)="onCategorySelect('SNACK')">
+            (click)="onCategorySelect('SNACK')"
+            (keyup.enter)="onCategorySelect('SNACK')">
           </app-filter-chip>
           <app-filter-chip
             label="Shots"
             [active]="selectedCategory === 'SHOT'"
-            (click)="onCategorySelect('SHOT')">
+            (click)="onCategorySelect('SHOT')"
+            (keyup.enter)="onCategorySelect('SHOT')">
           </app-filter-chip>
         </div>
 

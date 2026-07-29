@@ -3,6 +3,7 @@ package com.bar.gestioncocktail.controller;
 import com.bar.gestioncocktail.dto.EstablishmentConfigDTO;
 import com.bar.gestioncocktail.dto.EstablishmentConfigUpdateRequest;
 import com.bar.gestioncocktail.service.EstablishmentConfigService;
+import com.bar.gestioncocktail.service.TimeService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,6 +27,9 @@ class EstablishmentConfigControllerTest {
     @Mock
     private EstablishmentConfigService service;
 
+    @Mock
+    private TimeService timeService;
+
     @InjectMocks
     private EstablishmentConfigController controller;
 
@@ -37,7 +41,7 @@ class EstablishmentConfigControllerTest {
             1L, "OpenBar SARL", "SARL", "73282932000074", "Paris", "B 123",
             "FR12732829320", "5630Z", new BigDecimal("10000"), "Adresse",
             "0102030405", "email@bar.fr", "Immédiat", "Aucun", new BigDecimal("0.12"),
-            LocalDateTime.now(), LocalDateTime.now()
+            "SYSTEM", LocalDateTime.now(), LocalDateTime.now()
         );
     }
 
@@ -59,7 +63,8 @@ class EstablishmentConfigControllerTest {
         EstablishmentConfigUpdateRequest request = new EstablishmentConfigUpdateRequest(
             "OpenBar SARL", "SARL", "73282932000074", "Paris", "B 123",
             "FR12732829320", "5630Z", new BigDecimal("10000"), "Adresse",
-            "0102030405", "email@bar.fr", "Immédiat", "Aucun", new BigDecimal("0.12")
+            "0102030405", "email@bar.fr", "Immédiat", "Aucun", new BigDecimal("0.12"),
+            "SYSTEM"
         );
 
         ResponseEntity<EstablishmentConfigDTO> response = controller.updateConfig(request);
@@ -69,3 +74,4 @@ class EstablishmentConfigControllerTest {
         verify(service).updateConfig(any());
     }
 }
+

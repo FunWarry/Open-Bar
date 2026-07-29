@@ -6,7 +6,7 @@
         {{ table.occupee ? 'Occupée' : 'Libre' }}
       </ion-badge>
     </div>
-    <ion-button fill="clear" (click)="onClose()">
+    <ion-button fill="clear" (click)="onClose()" (keyup.enter)="onClose()">
       <ion-icon name="close-outline"></ion-icon>
     </ion-button>
   </div>
@@ -16,15 +16,15 @@
     <div class="info-section">
       <h4>DÉTAILS</h4>
       <div class="field-row">
-        <label>Zone :</label>
-        <input type="text" [(ngModel)]="table.zone" class="dark-input" />
+        <label for="panel-zone-input">Zone :</label>
+        <input id="panel-zone-input" type="text" [(ngModel)]="table.zone" class="dark-input" />
       </div>
       <div class="field-row">
-        <label>Capacité :</label>
-        <input type="number" [(ngModel)]="table.capacite" class="dark-input" min="1" />
+        <label for="panel-capacite-input">Capacité :</label>
+        <input id="panel-capacite-input" type="number" [(ngModel)]="table.capacite" class="dark-input" min="1" />
       </div>
       <div class="field-row">
-        <label>Statut :</label>
+        <span class="field-label">Statut :</span>
         <span>{{ table.occupee ? 'Occupée' : 'Disponible' }}</span>
       </div>
     </div>

@@ -24,6 +24,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import org.mockito.Spy;
+
 @ExtendWith(MockitoExtension.class)
 class PublicCommandeServiceTest {
 
@@ -42,8 +44,12 @@ class PublicCommandeServiceTest {
     @Mock
     private SimpMessagingTemplate messagingTemplate;
 
+    @Spy
+    private TimeService timeService = new TimeService(null);
+
     @InjectMocks
     private PublicCommandeService publicCommandeService;
+
 
     private TableEntity table;
     private Cocktail cocktail;

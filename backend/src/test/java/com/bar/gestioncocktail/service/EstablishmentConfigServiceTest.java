@@ -60,7 +60,8 @@ class EstablishmentConfigServiceTest {
             "Nouveau Nom SARL", "SAS", "73282932000074", "Paris", "B 123",
             "FR12732829320", "5630Z", new BigDecimal("15000"),
             "10 rue Test", "0102030405", "email@test.fr",
-            "Immédiat", "Pas d escompte", new BigDecimal("0.12")
+            "Immédiat", "Pas d escompte", new BigDecimal("0.12"),
+            "Europe/Paris"
         );
 
         EstablishmentConfigDTO dto = service.updateConfig(request);
@@ -68,6 +69,7 @@ class EstablishmentConfigServiceTest {
         assertThat(dto).isNotNull();
         assertThat(dto.legalName()).isEqualTo("Nouveau Nom SARL");
         assertThat(dto.legalForm()).isEqualTo("SAS");
+        assertThat(dto.timeZone()).isEqualTo("Europe/Paris");
         verify(repository).save(any(EstablishmentConfig.class));
     }
 
@@ -77,7 +79,8 @@ class EstablishmentConfigServiceTest {
         EstablishmentConfigUpdateRequest request = new EstablishmentConfigUpdateRequest(
             "Nom", "SARL", "12345678900000", "Paris", "B 123",
             "FR12732829320", "5630Z", new BigDecimal("10000"),
-            "Adresse", "01", "a@b.fr", "Terms", "Policy", new BigDecimal("0.1")
+            "Adresse", "01", "a@b.fr", "Terms", "Policy", new BigDecimal("0.1"),
+            "SYSTEM"
         );
 
         assertThatThrownBy(() -> service.updateConfig(request))
@@ -85,3 +88,4 @@ class EstablishmentConfigServiceTest {
             .hasMessageContaining("numéro SIRET spécifié est invalide");
     }
 }
+

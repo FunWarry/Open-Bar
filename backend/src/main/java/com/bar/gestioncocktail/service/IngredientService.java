@@ -2,12 +2,10 @@ package com.bar.gestioncocktail.service;
 
 import com.bar.gestioncocktail.model.Ingredient;
 import com.bar.gestioncocktail.repository.IngredientRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,21 +14,22 @@ import java.util.Optional;
 public class IngredientService {
     private final IngredientRepository ingredientRepository;
     private final NotificationService notificationService;
+    private final TimeService timeService;
 
-    @Autowired
-    public IngredientService(IngredientRepository ingredientRepository, NotificationService notificationService) {
+    public IngredientService(IngredientRepository ingredientRepository, NotificationService notificationService, TimeService timeService) {
         this.ingredientRepository = ingredientRepository;
         this.notificationService = notificationService;
+        this.timeService = timeService;
     }
 
     public Ingredient createIngredient(Ingredient ingredient) {
-        ingredient.setCreatedAt(LocalDateTime.now());
-        ingredient.setUpdatedAt(LocalDateTime.now());
+        ingredient.setCreatedAt(timeService.now());
+        ingredient.setUpdatedAt(timeService.now());
         return ingredientRepository.save(ingredient);
     }
 
     public Ingredient updateIngredient(Ingredient ingredient) {
-        ingredient.setUpdatedAt(LocalDateTime.now());
+        ingredient.setUpdatedAt(timeService.now());
         return ingredientRepository.save(ingredient);
     }
 
@@ -60,7 +59,7 @@ public class IngredientService {
 
     public void updateStock(Ingredient ingredient, BigDecimal quantite) {
         ingredient.setQuantiteStock(quantite);
-        ingredient.setUpdatedAt(LocalDateTime.now());
+        ingredient.setUpdatedAt(timeService.now());
         ingredientRepository.save(ingredient);
         if (ingredient.getSeuilAlerte() != null && quantite.compareTo(ingredient.getSeuilAlerte()) <= 0) {
             notificationService.notifierStockFaible(ingredient.getId(), ingredient.getNom(), quantite.doubleValue());
@@ -69,7 +68,8 @@ public class IngredientService {
 
     public void definirSeuilAlerte(Ingredient ingredient, BigDecimal seuil) {
         ingredient.setSeuilAlerte(seuil);
-        ingredient.setUpdatedAt(LocalDateTime.now());
+        ingredient.setUpdatedAt(timeService.now());
         ingredientRepository.save(ingredient);
     }
-} 
+}
+ 

@@ -20,14 +20,20 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
+import org.mockito.Spy;
+
 @ExtendWith(MockitoExtension.class)
 class AuditLogServiceTest {
 
     @Mock
     AuditLogRepository auditLogRepository;
 
+    @Spy
+    TimeService timeService = new TimeService(null);
+
     @InjectMocks
     AuditLogService auditLogService;
+
 
     private User user;
     private AuditLog auditLog;

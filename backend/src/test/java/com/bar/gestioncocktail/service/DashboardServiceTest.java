@@ -23,6 +23,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 
+import org.mockito.Spy;
+
 @ExtendWith(MockitoExtension.class)
 class DashboardServiceTest {
 
@@ -30,8 +32,10 @@ class DashboardServiceTest {
     @Mock FactureRepository factureRepository;
     @Mock TableRepository tableRepository;
     @Mock IngredientRepository ingredientRepository;
+    @Spy TimeService timeService = new TimeService(null);
 
     @InjectMocks DashboardService dashboardService;
+
 
     @BeforeEach
     void setUp() {

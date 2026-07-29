@@ -28,6 +28,10 @@ public class EstablishmentConfigService {
      */
     @Transactional(readOnly = true)
     public EstablishmentConfig getConfig() {
+        return getConfigInternal();
+    }
+
+    private EstablishmentConfig getConfigInternal() {
         return establishmentConfigRepository.findById(EstablishmentConfig.SINGLETON_ID)
             .orElseGet(() -> {
                 EstablishmentConfig config = new EstablishmentConfig();
@@ -43,7 +47,7 @@ public class EstablishmentConfigService {
      */
     @Transactional(readOnly = true)
     public EstablishmentConfigDTO getConfigDTO() {
-        return EstablishmentConfigDTO.from(getConfig());
+        return EstablishmentConfigDTO.from(getConfigInternal());
     }
 
     /**
@@ -54,13 +58,18 @@ public class EstablishmentConfigService {
      */
     @Transactional
     public EstablishmentConfigDTO updateConfig(EstablishmentConfigUpdateRequest request) {
-        if (request.siret() != null && !request.siret().isBlank()) {
-            if (!SiretLuhnValidator.isValidSiret(request.siret())) {
-                throw new BusinessException("Le numéro SIRET spécifié est invalide (échec du contrôle de Luhn)");
-            }
+        if (request.siret() != null && !request.siret().isBlank() && !SiretLuhnValidator.isValidSiret(request.siret())) {
+            throw new BusinessException("Le numéro SIRET spécifié est invalide (échec du contrôle de Luhn)");
         }
 
-        EstablishmentConfig config = getConfig();
+        EstablishmentConfig config = getConfigInternal();
+        applyUpdates(config, request);
+
+        EstablishmentConfig saved = establishmentConfigRepository.save(config);
+        return EstablishmentConfigDTO.from(saved);
+    }
+
+    private void applyUpdates(EstablishmentConfig config, EstablishmentConfigUpdateRequest request) {
         if (request.legalName() != null) config.setLegalName(request.legalName());
         if (request.legalForm() != null) config.setLegalForm(request.legalForm());
         if (request.siret() != null) config.setSiret(request.siret());
@@ -74,9 +83,20 @@ public class EstablishmentConfigService {
         if (request.email() != null) config.setEmail(request.email());
         if (request.paymentTerms() != null) config.setPaymentTerms(request.paymentTerms());
         if (request.discountPolicy() != null) config.setDiscountPolicy(request.discountPolicy());
-        if (request.latePaymentRate() != null) config.setLatePaymentRate(request.latePaymentRate());
+        applyTimeZoneUpdate(config, request.timeZone());
+    }
 
-        EstablishmentConfig saved = establishmentConfigRepository.save(config);
-        return EstablishmentConfigDTO.from(saved);
+    private void applyTimeZoneUpdate(EstablishmentConfig config, String timeZone) {
+        if (timeZone == null) return;
+        String tz = timeZone.trim();
+        if (!tz.equalsIgnoreCase("SYSTEM") && !tz.isBlank()) {
+            try {
+                java.time.ZoneId.of(tz);
+            } catch (Exception _) {
+                throw new BusinessException("Le fuseau horaire spécifié est invalide : " + tz);
+            }
+        }
+        config.setTimeZone(tz.isBlank() ? "SYSTEM" : tz);
     }
 }
+

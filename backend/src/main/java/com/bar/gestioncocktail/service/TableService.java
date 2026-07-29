@@ -9,12 +9,10 @@ import com.bar.gestioncocktail.repository.TableRepository;
 import com.bar.gestioncocktail.model.Commande;
 import com.bar.gestioncocktail.model.CommandeStatut;
 import com.bar.gestioncocktail.repository.CommandeRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,12 +24,13 @@ public class TableService {
     private final TableRepository tableRepository;
     private final CommandeRepository commandeRepository;
     private final AuditLogService auditLogService;
+    private final TimeService timeService;
 
-    @Autowired
-    public TableService(TableRepository tableRepository, CommandeRepository commandeRepository, AuditLogService auditLogService) {
+    public TableService(TableRepository tableRepository, CommandeRepository commandeRepository, AuditLogService auditLogService, TimeService timeService) {
         this.tableRepository = tableRepository;
         this.commandeRepository = commandeRepository;
         this.auditLogService = auditLogService;
+        this.timeService = timeService;
     }
 
     public List<TableEntity> getAllTables() {
@@ -91,7 +90,7 @@ public class TableService {
 
         table.setOccupee(true);
         table.setServeurId(serveurId);
-        table.setDateOccupation(LocalDateTime.now(ZoneId.systemDefault()));
+        table.setDateOccupation(LocalDateTime.now(timeService.getZoneId()));
 
         return tableRepository.save(table);
     }
@@ -107,7 +106,7 @@ public class TableService {
 
         table.setOccupee(false);
         table.setServeurId(null);
-        table.setDateLiberation(LocalDateTime.now(ZoneId.systemDefault()));
+        table.setDateLiberation(LocalDateTime.now(timeService.getZoneId()));
 
         return tableRepository.save(table);
     }
@@ -161,13 +160,13 @@ public class TableService {
 
         for (Commande c : commandesActives) {
             c.setTable(target);
-            c.setUpdatedAt(LocalDateTime.now());
+            c.setUpdatedAt(timeService.now());
             commandeRepository.save(c);
         }
 
         target.setOccupee(true);
         if (target.getDateOccupation() == null) {
-            target.setDateOccupation(LocalDateTime.now(ZoneId.systemDefault()));
+            target.setDateOccupation(LocalDateTime.now(timeService.getZoneId()));
         }
         tableRepository.save(target);
 
@@ -177,7 +176,7 @@ public class TableService {
         if (!sourceEncoreActive) {
             source.setOccupee(false);
             source.setServeurId(null);
-            source.setDateLiberation(LocalDateTime.now(ZoneId.systemDefault()));
+            source.setDateLiberation(LocalDateTime.now(timeService.getZoneId()));
             tableRepository.save(source);
         }
 

@@ -33,6 +33,7 @@
     <div class="card-actions">
       <ion-button
         (click)="selectionner.emit(table)"
+        (keyup.enter)="selectionner.emit(table)"
         expand="block"
         fill="outline"
         size="small"
@@ -42,6 +43,7 @@
       <ion-button
         *ngIf="table.occupee"
         (click)="liberer.emit(table.id)"
+        (keyup.enter)="liberer.emit(table.id)"
         expand="block"
         fill="outline"
         size="small"

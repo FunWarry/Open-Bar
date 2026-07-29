@@ -8,11 +8,11 @@
       <div class="card-header-row">
         <ion-card-title>{{ ingredient.nom }}</ion-card-title>
         <ion-buttons>
-          <ion-button fill="clear" (click)="onBack()">
+          <ion-button fill="clear" (click)="onBack()" (keyup.enter)="onBack()">
             <ion-icon slot="start" name="arrow-back"></ion-icon>
             Retour
           </ion-button>
-          <ion-button *ngIf="isAdmin$ | async" fill="outline" color="tertiary" (click)="onEdit()">
+          <ion-button *ngIf="isAdmin$ | async" fill="outline" color="tertiary" (click)="onEdit()" (keyup.enter)="onEdit()">
             <ion-icon slot="start" name="create"></ion-icon>
             Modifier
           </ion-button>

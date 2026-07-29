@@ -4,15 +4,17 @@
       <ion-icon name="cart-outline"></ion-icon>
       Commande en cours
     </h3>
-    <button class="clear-btn" *ngIf="cart.items.length > 0" (click)="clearCart.emit()">
+    <button class="clear-btn" *ngIf="cart.items.length > 0" (click)="clearCart.emit()" (keyup.enter)="clearCart.emit()">
       Vider
     </button>
   </div>
 
   <!-- Table Selector -->
   <div class="table-selector-wrap">
-    <label>Table assignée :</label>
+    <label for="table-select-cart">Table assignée :</label>
     <ion-select
+      id="table-select-cart"
+      aria-label="Table assignée"
       [value]="cart.tableId"
       placeholder="Sélectionner une table"
       interface="popover"
@@ -62,7 +64,8 @@
       size="medium"
       iconLeft="paper-plane-outline"
       [disabled]="!cart.tableId || isSubmitting"
-      (click)="onSubmit()">
+      (click)="onSubmit()"
+      (keyup.enter)="onSubmit()">
       Envoyer en préparation
     </app-action-button>
   </div>

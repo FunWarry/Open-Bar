@@ -26,6 +26,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import org.mockito.Spy;
+
 @ExtendWith(MockitoExtension.class)
 class CommandeServiceTest {
 
@@ -34,8 +36,10 @@ class CommandeServiceTest {
     @Mock TableRepository tableRepository;
     @Mock IngredientRepository ingredientRepository;
     @Mock SimpMessagingTemplate messagingTemplate;
+    @Spy TimeService timeService = new TimeService(null);
 
     @InjectMocks CommandeService commandeService;
+
 
     private Ingredient ingredient;
     private CocktailIngredient cocktailIngredient;

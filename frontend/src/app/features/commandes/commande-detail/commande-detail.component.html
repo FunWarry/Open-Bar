@@ -3,11 +3,11 @@
     <div class="card-header-row">
       <ion-card-title>Détails de la Commande #{{ commande?.id }}</ion-card-title>
       <ion-buttons>
-        <ion-button fill="clear" (click)="router.navigate(['/commandes'])">
+        <ion-button fill="clear" (click)="router.navigate(['/commandes'])" (keyup.enter)="router.navigate(['/commandes'])">
           <ion-icon slot="start" name="arrow-back"></ion-icon>
           Retour
         </ion-button>
-        <ion-button fill="outline" color="danger" (click)="onAnnuler()" *ngIf="peutAnnuler()">
+        <ion-button fill="outline" color="danger" (click)="onAnnuler()" (keyup.enter)="onAnnuler()" *ngIf="peutAnnuler()">
           <ion-icon slot="start" name="ban-outline"></ion-icon>
           Annuler
         </ion-button>

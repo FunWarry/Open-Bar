@@ -26,8 +26,7 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
     }
 
     @Override
-    @Nullable
-    public Message<?> preSend(Message<?> message, MessageChannel channel) {
+    public @Nullable Message<?> preSend(Message<?> message, MessageChannel channel) {
         StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
         if (accessor == null) {
             accessor = StompHeaderAccessor.wrap(message);

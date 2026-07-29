@@ -23,6 +23,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import org.mockito.Spy;
+
 @ExtendWith(MockitoExtension.class)
 class SetupServiceTest {
 
@@ -32,8 +34,12 @@ class SetupServiceTest {
     @Mock
     private PasswordEncoder passwordEncoder;
 
+    @Spy
+    private TimeService timeService = new TimeService(null);
+
     @InjectMocks
     private SetupService setupService;
+
 
     private CreateAdminRequestDTO validRequest;
 

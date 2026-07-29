@@ -60,7 +60,10 @@
     "PAYMENT_TERMS": "Conditions de règlement",
     "DISCOUNT_POLICY": "Politique d'escompte",
     "LATE_RATE": "Taux pénalités de retard",
+    "TIMEZONE": "Fuseau horaire de l'établissement",
+    "TIMEZONE_SYSTEM": "Heure du système (par défaut)",
     "PREVIEW_TITLE": "Aperçu du ticket de caisse"
+
   },
   "AUTH": {
     "LOGIN_TITLE": "Connexion à votre espace bar",

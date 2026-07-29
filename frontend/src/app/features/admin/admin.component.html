@@ -86,7 +86,7 @@
       </ion-card-header>
       <ion-card-content>
         <div class="action-buttons">
-          <ion-button fill="clear" (click)="navigationService.navigateToRegister()">
+          <ion-button fill="clear" (click)="navigationService.navigateToRegister()" (keyup.enter)="navigationService.navigateToRegister()">
             <ion-icon name="person-add-outline" slot="start"></ion-icon>
             Créer un utilisateur
           </ion-button>
