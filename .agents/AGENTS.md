@@ -96,6 +96,7 @@ Skills in `.agents/skills/` define reusable workflows for this project:
 | `openbar-install` | "setup project" / after ❌ in check | Install/repair the full dev environment |
 | `openbar-dev` | "add feature X" / "generate component" | Generate code following OpenBar conventions |
 | `openbar-ticket` | "implement issue #N" / "treat ticket #N" | Full ticket pipeline (branch → impl → tests → PR → merge) |
+| `openbar-post-merge` | "post-merge" / "after merge PR #X" | Post-merge cleanup, issue/board closure & KI sync |
 | `openbar-ki-update` | "update KIs" / after PR merged | Sync knowledge base with project state |
 
 ---
