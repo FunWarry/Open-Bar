@@ -40,7 +40,20 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
 
   private readonly destroy$ = new Subject<void>();
 
-  constructor(private readonly dashboardService: DashboardBarmanService,private readonly toastCtrl: ToastController,private readonly notificationService: NotificationService,
+  get hasUrgentOrders(): boolean {
+    const now = Date.now();
+    const fiveMinutesMs = 5 * 60 * 1000;
+    return this.commandesEnAttente.some(cmd => {
+      if (!cmd.dateCommande) return false;
+      const created = new Date(cmd.dateCommande).getTime();
+      return (now - created) > fiveMinutesMs;
+    });
+  }
+
+  constructor(
+    private readonly dashboardService: DashboardBarmanService,
+    private readonly toastCtrl: ToastController,
+    private readonly notificationService: NotificationService,
   ) {}
 
   ngOnInit() {

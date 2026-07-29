@@ -40,7 +40,9 @@
     "DASHBOARD": "Dashboard",
     "PLAN_SALLE": "Floor Plan",
     "SERVEUR": "Order Taking",
-    "BARMAN": "Bar Counter"
+    "BARMAN": "Bar Counter",
+    "SOUND_ENABLE": "Enable sound",
+    "SOUND_DISABLE": "Disable sound"
   },
   "AUTH": {
     "LOGIN_TITLE": "Login",

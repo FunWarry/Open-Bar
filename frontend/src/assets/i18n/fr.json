@@ -40,7 +40,9 @@
     "DASHBOARD": "Tableau de bord",
     "PLAN_SALLE": "Plan de salle",
     "SERVEUR": "Prise de commande",
-    "BARMAN": "Comptoir bar"
+    "BARMAN": "Comptoir bar",
+    "SOUND_ENABLE": "Activer le son",
+    "SOUND_DISABLE": "Désactiver le son"
   },
   "AUTH": {
     "LOGIN_TITLE": "Connexion",

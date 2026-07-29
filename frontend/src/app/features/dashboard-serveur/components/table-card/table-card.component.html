@@ -25,6 +25,9 @@
       <span *ngIf="commandesEnCours > 0" class="en-cours-badge">
         {{ commandesEnCours }} en prépa.
       </span>
+      <span *ngIf="hasCommandePrete" class="ready-badge-pulse" data-testid="table-ready-badge">
+        🍹 {{ commandesPretes }} prête{{ commandesPretes > 1 ? 's' : '' }} !
+      </span>
     </div>
 
     <div class="card-actions">
