@@ -47,6 +47,7 @@ public class SecurityConfig {
             return http
                     .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                     .csrf(csrf -> csrf
+                            .ignoringRequestMatchers("/api/auth/**", "/api/setup/**", "/api/public/**")
                             .csrfTokenRepository(new CookieCsrfTokenRepository()))
                     .sessionManagement(session -> session
                             .sessionCreationPolicy(SessionCreationPolicy.STATELESS))

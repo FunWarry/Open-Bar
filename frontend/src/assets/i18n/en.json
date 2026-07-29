@@ -241,6 +241,7 @@
   "ERRORS": {
     "NETWORK": "Network error, please try again",
     "UNAUTHORIZED": "Unauthorized access",
+    "FORBIDDEN": "Access forbidden",
     "NOT_FOUND": "Resource not found",
     "SERVER": "Server error",
     "FORM_INVALID": "Please correct the errors in the form"

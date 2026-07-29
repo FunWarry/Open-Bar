@@ -242,6 +242,7 @@
   "ERRORS": {
     "NETWORK": "Erreur réseau, veuillez réessayer",
     "UNAUTHORIZED": "Accès non autorisé",
+    "FORBIDDEN": "Accès interdit",
     "NOT_FOUND": "Ressource introuvable",
     "SERVER": "Erreur serveur",
     "FORM_INVALID": "Veuillez corriger les erreurs du formulaire"
