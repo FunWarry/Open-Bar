@@ -1,6 +1,6 @@
 # OpenBar — État des Features & Roadmap
 
-> Dernière mise à jour : 29 juillet 2026 — PRs #184, #185, #186, #187, #194, #195, #196, #197
+> Dernière mise à jour : 29 juillet 2026 — PR #198 (Facturation Légale NF525 / CGI Art. 289)
 
 ## Tableau des Features
 
@@ -8,6 +8,11 @@
 |---------|---------|----------|-------|-------|
 | Documentation complète & API OpenAPI/Swagger (#192/#194) | ✅ | ✅ | ✅ | JavaDoc, TSDoc, OpenAPI 3.0 |
 | Quality Gate SonarCloud & Sécurité 100% sans `@SuppressWarnings` | ✅ | ✅ | ✅ | Coverage > 80%, Note A |
+| Données légales établissement SIRET/TVA/RCS (#129/#134) | ✅ | ✅ | ✅ | Validation Luhn SIRET, format TVA FR, Formulaire Admin + Live preview ticket |
+| Calcul TVA multi-taux (20%, 10%, 5.5%) (#130) | ✅ | ✅ | ✅ | Calcul HT/TVA/TTC par article, récapitulatif CA3 |
+| Numérotation séquentielle factures (FAC-YYYY-NNNNN) (#131) | ✅ | ✅ | ✅ | Conformité CGI art. 289, émission Avoirs (AV-YYYY-NNNNN) |
+| Archivage légal 10 ans & Intégrité SHA-256 (#132) | ✅ | ✅ | ✅ | Factures immuables finalisées + verification hash SHA256 PDF |
+| Export comptable CSV & Déclaration TVA mensuelle (#133) | ✅ | ✅ | ✅ | Export UTF-8 BOM Excel, récapitulatif mensuel TVA |
 | Auth JWT | ✅ | ✅ | ✅ | — |
 | Configuration initiale (/setup admin) | ✅ | ✅ | ✅ | — |
 | Bibliothèque composants UI Figma | — | ✅ | ✅ | — |
@@ -61,6 +66,7 @@
 
 | PR / Issue | Description |
 |------------|-------------|
+| #198 (#129-#134) | Facturation Légale NF525 / CGI Art. 289 : Données établissement (SIRET/TVA/RCS), TVA multi-taux (20%/10%/5.5%), numérotation séquentielle, avoirs, archivage 10 ans SHA-256, export CSV & déclaration mensuelle CA3 + composant Admin Établissement |
 | #197 | Configuration des Seuils d'Alerte Temporels des Commandes & Stock Ingrédients (Manager & Barman) |
 | Fix IDE | Nettoyage des avertissements linter IDE (AppSettings @Column/ZoneId, ingredient-list Transloco & @if/@for control flow) |
 | #196 (#181) | Notifications Sonores et Visuelles Temps Réel — Alertes Barman et Serveur |
