@@ -48,6 +48,7 @@
 | Vue Serveur (plan de salle + variantes modal #182) | ✅ | ✅ | ✅ | — |
 | Plan de salle interactif (Konva.js) | ✅ | ✅ | ✅ | — |
 | Vue Client QR Code (passage commande + suivi STOMP) | ✅ | ✅ | ✅ | Vue Client mobile complète (`/client/commande`, `/client/suivi/:id`) |
+| Fuseau horaire paramétrable (Etablissement / TimeService) | ✅ | ✅ | ✅ | TimeZone configurable par l'admin + fallback Système |
 
 ## Features Manquantes Prioritaires (Frontend)
 
