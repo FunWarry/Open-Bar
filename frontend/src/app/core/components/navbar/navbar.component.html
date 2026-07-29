@@ -6,7 +6,7 @@
 
     <ion-buttons slot="end">
       <!-- Bouton toggle son notifications -->
-      <ion-button (click)="toggleSound()" data-testid="navbar-sound-toggle" [title]="soundService.isSoundEnabled() ? 'Désactiver le son' : 'Activer le son'">
+      <ion-button (click)="toggleSound()" (keydown.enter)="toggleSound()" data-testid="navbar-sound-toggle" [title]="soundService.isSoundEnabled() ? 'Désactiver le son' : 'Activer le son'">
         <ion-icon slot="icon-only" [name]="soundService.isSoundEnabled() ? 'volume-high-outline' : 'volume-mute-outline'"></ion-icon>
       </ion-button>
 
