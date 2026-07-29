@@ -22,7 +22,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -91,58 +90,50 @@ class FactureServiceTest {
     @Test
     void createFacture_genereNumeroFormate() {
         // Arrange
-        Query mockQuery = mock(Query.class);
-        when(entityManager.createNativeQuery(anyString())).thenReturn(mockQuery);
-        when(mockQuery.getSingleResult()).thenReturn(1L);
         when(factureRepository.save(any(Facture.class))).thenAnswer(i -> i.getArgument(0));
 
-        Facture facture = new Facture();
-        facture.setTotal(BigDecimal.TEN);
-        facture.setTotalTTC(BigDecimal.TEN);
+        Facture newFacture = new Facture();
+        newFacture.setTotal(BigDecimal.TEN);
+        newFacture.setTotalTTC(BigDecimal.TEN);
 
         // Act
-        Facture result = factureService.createFacture(facture);
+        Facture result = factureService.createFacture(newFacture);
 
         // Assert
         assertThat(result.getNumero()).isNotNull();
-        String moisAttendu = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMM"));
-        assertThat(result.getNumero()).isEqualTo("FAC-" + moisAttendu + "-0001");
+        int year = LocalDateTime.now().getYear();
+        assertThat(result.getNumero()).isEqualTo("FAC-" + year + "-00001");
     }
 
     @Test
     void createFacture_numeroIncrementeAvecSequence() {
         // Arrange
-        Query mockQuery = mock(Query.class);
-        when(entityManager.createNativeQuery(anyString())).thenReturn(mockQuery);
-        when(mockQuery.getSingleResult()).thenReturn(42L);
+        when(factureRepository.count()).thenReturn(41L);
         when(factureRepository.save(any(Facture.class))).thenAnswer(i -> i.getArgument(0));
 
-        Facture facture = new Facture();
-        facture.setTotal(BigDecimal.TEN);
-        facture.setTotalTTC(BigDecimal.TEN);
+        Facture newFacture = new Facture();
+        newFacture.setTotal(BigDecimal.TEN);
+        newFacture.setTotalTTC(BigDecimal.TEN);
 
         // Act
-        Facture result = factureService.createFacture(facture);
+        Facture result = factureService.createFacture(newFacture);
 
         // Assert
-        String moisAttendu = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMM"));
-        assertThat(result.getNumero()).isEqualTo("FAC-" + moisAttendu + "-0042");
+        int year = LocalDateTime.now().getYear();
+        assertThat(result.getNumero()).isEqualTo("FAC-" + year + "-00042");
     }
 
     @Test
     void createFacture_setDateFacture() {
         // Arrange
-        Query mockQuery = mock(Query.class);
-        when(entityManager.createNativeQuery(anyString())).thenReturn(mockQuery);
-        when(mockQuery.getSingleResult()).thenReturn(1L);
         when(factureRepository.save(any(Facture.class))).thenAnswer(i -> i.getArgument(0));
 
-        Facture facture = new Facture();
-        facture.setTotal(BigDecimal.TEN);
-        facture.setTotalTTC(BigDecimal.TEN);
+        Facture newFacture = new Facture();
+        newFacture.setTotal(BigDecimal.TEN);
+        newFacture.setTotalTTC(BigDecimal.TEN);
 
         // Act
-        Facture result = factureService.createFacture(facture);
+        Facture result = factureService.createFacture(newFacture);
 
         // Assert
         assertThat(result.getDateFacture()).isNotNull();

@@ -17,4 +17,5 @@ public interface FactureRepository extends JpaRepository<Facture, Long> {
     List<Facture> findByTableAndReglee(TableEntity table, boolean reglee);
     List<Facture> findByDateFactureBetween(LocalDateTime debut, LocalDateTime fin);
     List<Facture> findByTableAndDateFactureBetween(TableEntity table, LocalDateTime debut, LocalDateTime fin);
+    java.util.Optional<Facture> findByNumero(String numero);
 } 

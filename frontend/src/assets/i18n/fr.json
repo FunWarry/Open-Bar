@@ -44,6 +44,24 @@
     "SOUND_ENABLE": "Activer le son",
     "SOUND_DISABLE": "Désactiver le son"
   },
+  "ETABLISSEMENT": {
+    "TITLE": "Paramètres légaux de l'établissement",
+    "LEGAL_NAME": "Raison sociale",
+    "LEGAL_FORM": "Forme juridique",
+    "SIRET": "Numéro SIRET",
+    "SIRET_INVALID": "Le SIRET doit comporter 14 chiffres et satisfaire l'algorithme de Luhn",
+    "RCS_CITY": "Ville RCS",
+    "TVA_NUMBER": "N° de TVA Intracommunautaire",
+    "TVA_INVALID": "Format de TVA FR invalide (ex: FR12123456789)",
+    "CODE_APE": "Code APE / NAF",
+    "CAPITAL": "Capital social",
+    "ADDRESS": "Adresse du siège social",
+    "PHONE": "Téléphone",
+    "PAYMENT_TERMS": "Conditions de règlement",
+    "DISCOUNT_POLICY": "Politique d'escompte",
+    "LATE_RATE": "Taux pénalités de retard",
+    "PREVIEW_TITLE": "Aperçu du ticket de caisse"
+  },
   "AUTH": {
     "LOGIN_TITLE": "Connexion",
     "USERNAME": "Nom d'utilisateur",

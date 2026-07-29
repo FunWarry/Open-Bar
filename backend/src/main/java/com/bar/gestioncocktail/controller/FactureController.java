@@ -285,4 +285,49 @@ public class FactureController {
     public ResponseEntity<FactureResponseDTO> fusionnerFactures(@Valid @RequestBody MergeFacturesRequestDTO request) {
         return ResponseEntity.ok(FactureResponseDTO.from(factureService.fusionnerFactures(request)));
     }
+
+    @GetMapping(value = "/export/csv", produces = "text/csv;charset=UTF-8")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @Operation(summary = "Export CSV des factures (Comptabilité)", description = "Génère un fichier CSV UTF-8 BOM compatible Excel pour la comptabilité.")
+    @ApiResponse(responseCode = "200", description = "Fichier CSV généré")
+    public ResponseEntity<String> exportCSV(
+            @RequestParam(required = false) String dateFrom,
+            @RequestParam(required = false) String dateTo) {
+        LocalDateTime from = dateFrom != null ? LocalDateTime.parse(dateFrom + "T00:00:00") : null;
+        LocalDateTime to = dateTo != null ? LocalDateTime.parse(dateTo + "T23:59:59") : null;
+        String csvContent = factureService.exportCSV(from, to);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"export_factures.csv\"")
+                .body(csvContent);
+    }
+
+    @GetMapping("/vat-summary")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @Operation(summary = "Récapitulatif mensuel de TVA (Déclaration CA3)", description = "Calcule le récapitulatif multi-taux de TVA pour un mois donné (ex: 2026-06).")
+    @ApiResponse(responseCode = "200", description = "Récapitulatif de TVA généré")
+    public ResponseEntity<com.bar.gestioncocktail.dto.VatMonthlySummaryDTO> getVatSummary(@RequestParam String month) {
+        return ResponseEntity.ok(factureService.getVatMonthlySummary(month));
+    }
+
+    @PostMapping("/{id}/avoir")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @Operation(summary = "Créer un avoir d'annulation (Credit Note)", description = "Émet un avoir légal pour annuler une facture finalisée.")
+    @ApiResponse(responseCode = "200", description = "Avoir créé")
+    public ResponseEntity<com.bar.gestioncocktail.model.AvoirCredit> createAvoir(
+            @PathVariable Long id,
+            @RequestParam(required = false) String motif) {
+        return ResponseEntity.ok(factureService.annulerFactureWithAvoir(id, motif));
+    }
+
+    @GetMapping("/{id}/verify-integrity")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Vérifier l'intégrité légale du PDF", description = "Vérifie le hash SHA-256 du PDF archivé par rapport au hash enregistré.")
+    @ApiResponse(responseCode = "200", description = "Résultat de vérification d'intégrité")
+    public ResponseEntity<java.util.Map<String, Object>> verifyIntegrity(@PathVariable Long id) {
+        Facture facture = factureService.getFactureById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Facture non trouvée: " + id));
+        byte[] pdfBytes = pdfService.generateFacturePdf(facture);
+        return ResponseEntity.ok(factureService.verifyIntegrity(id, pdfBytes));
+    }
 }

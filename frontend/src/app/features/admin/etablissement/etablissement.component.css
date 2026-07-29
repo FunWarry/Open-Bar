@@ -1,0 +1,33 @@
+.etablissement-container {
+  padding: 16px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.preview-card {
+  border-left: 4px solid var(--ion-color-tertiary, #7044ff);
+}
+
+.receipt-preview {
+  background: #1e2235;
+  color: #e2e8f0;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 11px;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px dashed #475569;
+  line-height: 1.5;
+}
+
+.receipt-preview .header-bold {
+  font-weight: bold;
+  font-size: 13px;
+  color: #38bdf8;
+  margin-bottom: 4px;
+}
+
+.receipt-preview hr {
+  border: 0;
+  border-top: 1px dashed #64748b;
+  margin: 8px 0;
+}

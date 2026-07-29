@@ -28,6 +28,12 @@ public class Facture {
     @Column(nullable = false)
     private BigDecimal total = BigDecimal.ZERO;
 
+    @Column(name = "total_ht")
+    private BigDecimal totalHT = BigDecimal.ZERO;
+
+    @Column(name = "total_vat")
+    private BigDecimal totalVAT = BigDecimal.ZERO;
+
     private BigDecimal pourboire;
     private BigDecimal totalTTC;
     @Column(name = "date_facture")
@@ -36,6 +42,22 @@ public class Facture {
     private LocalDateTime dateReglement;
     @Column(nullable = false)
     private boolean reglee = false;
+
+    @Column(name = "is_finalized", nullable = false)
+    private boolean isFinalized = false;
+
+    @Column(name = "finalized_at")
+    private LocalDateTime finalizedAt;
+
+    @Column(name = "retention_until")
+    private LocalDateTime retentionUntil;
+
+    @Column(name = "archived_pdf_path")
+    private String archivedPdfPath;
+
+    @Column(name = "pdf_hash", length = 64)
+    private String pdfHash;
+
     @Column(name = "mode_paiement")
     private String modePaiement;
     private String notes;
@@ -44,13 +66,13 @@ public class Facture {
 
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-        dateFacture = LocalDateTime.now();
+        createdAt = LocalDateTime.now(java.time.ZoneId.systemDefault());
+        updatedAt = LocalDateTime.now(java.time.ZoneId.systemDefault());
+        dateFacture = LocalDateTime.now(java.time.ZoneId.systemDefault());
     }
 
     @PreUpdate
     protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now(java.time.ZoneId.systemDefault());
     }
 } 

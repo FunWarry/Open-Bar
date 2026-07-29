@@ -171,6 +171,12 @@ export const routes: Routes = [
     data: { roles: ['MANAGER', 'ADMIN', 'SERVEUR'] }
   },
   {
+    path: 'admin/etablissement',
+    loadComponent: () => import('./features/admin/etablissement/etablissement.component').then(m => m.EtablissementComponent),
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['ADMIN'] }
+  },
+  {
     path: '**',
     loadComponent: () => import('./features/error-404/error-404.component').then(m => m.Error404Component),
   }
