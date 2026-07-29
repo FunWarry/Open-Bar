@@ -62,6 +62,7 @@
 | PR / Issue | Description |
 |------------|-------------|
 | #197 | Configuration des Seuils d'Alerte Temporels des Commandes & Stock Ingrédients (Manager & Barman) |
+| Fix IDE | Nettoyage des avertissements linter IDE (AppSettings @Column/ZoneId, ingredient-list Transloco & @if/@for control flow) |
 | #196 (#181) | Notifications Sonores et Visuelles Temps Réel — Alertes Barman et Serveur |
 | #195 (#182) | Variantes & Options de Personnalisation de Cocktails dans la Prise de Commande Serveur |
 | #83 | DTOs de sortie Java records |
