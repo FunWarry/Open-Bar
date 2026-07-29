@@ -1,6 +1,6 @@
 # OpenBar — État des Features & Roadmap
 
-> Dernière mise à jour : 28 juillet 2026 — PRs #184, #185, #186, #187, #194
+> Dernière mise à jour : 29 juillet 2026 — PRs #184, #185, #186, #187, #194, #195
 
 ## Tableau des Features
 
@@ -21,7 +21,7 @@
 | Error interceptor frontend | — | ✅ | ✅ | — |
 | Cocktails CRUD | ✅ | ✅ | ✅ | — |
 | Saisonnalité cocktails | ✅ | ✅ | ✅ | — |
-| Variantes & Déduction auto stocks (#185) | ✅ | ❌ | ✅ | Frontend manquant |
+| Variantes & Déduction auto stocks (#185/#182) | ✅ | ✅ | ✅ | Modal sélection & personnalisation |
 | Ingrédients CRUD | ✅ | ✅ | ✅ | — |
 | Tables CRUD | ✅ | ✅ | ✅ | — |
 | Transfert commande entre tables (#186) | ✅ | ❌ | ✅ | Frontend manquant |
@@ -37,17 +37,16 @@
 | Division d'addition (split égal/par sélection) | ✅ | ✅ | ✅ | — |
 | Dashboard Manager / stats | ✅ | ✅ polling 30s | ✅ | — |
 | Dashboard Barman | ✅ | ✅ kanban temps réel | ✅ | — |
-| Vue Serveur (plan de salle + commandes) | ✅ | ✅ | ✅ | — |
+| Vue Serveur (plan de salle + variantes modal #182) | ✅ | ✅ | ✅ | — |
 | Plan de salle interactif (Konva.js) | ✅ | ✅ | ✅ | — |
 | Vue Client QR Code (passage commande + suivi STOMP) | ✅ | ❌ | ✅ | **Frontend à implémenter** |
 
 ## Features Manquantes Prioritaires (Frontend)
 
-1. **#182 - [Frontend] Variantes & Options de Personnalisation de Cocktails dans la Prise de Commande Serveur**
-2. **#181 - [Frontend] Notifications Sonores et Visuelles Temps Réel — Alertes Barman et Serveur**
-3. **#120 - [Frontend] Vue Client QR Code — Commande mobile sans authentification**
-4. **#180 - [Frontend/Backend] Module d'impression Ticket de caisse 80mm & Rendu PDF A4 conforme Figma**
-5. **#193 - [Backend/Frontend] Tests d'intégration Spring Boot (Testcontainers) et E2E Playwright**
+1. **#181 - [Frontend] Notifications Sonores et Visuelles Temps Réel — Alertes Barman et Serveur**
+2. **#120 - [Frontend] Vue Client QR Code — Commande mobile sans authentification**
+3. **#180 - [Frontend/Backend] Module d'impression Ticket de caisse 80mm & Rendu PDF A4 conforme Figma**
+4. **#193 - [Backend/Frontend] Tests d'intégration Spring Boot (Testcontainers) et E2E Playwright**
 
 ## Dette Technique Active
 
@@ -59,8 +58,9 @@
 
 ## Historique Résolutions
 
-| PR | Feature résolue |
-|----|----------------|
+| PR / Issue | Description |
+|------------|-------------|
+| #195 (#182) | Variantes & Options de Personnalisation de Cocktails dans la Prise de Commande Serveur |
 | #83 | DTOs de sortie Java records |
 | #85 | Typo BARMEN → BARMAN |
 | #100 | Refresh token + rotation |
