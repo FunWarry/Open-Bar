@@ -1,6 +1,6 @@
 # OpenBar — État des Features & Roadmap
 
-> Dernière mise à jour : 29 juillet 2026 — PRs #184, #185, #186, #187, #194, #195
+> Dernière mise à jour : 29 juillet 2026 — PRs #184, #185, #186, #187, #194, #195, #196
 
 ## Tableau des Features
 
@@ -31,6 +31,7 @@
 | Alertes stock WebSocket | ✅ | ✅ | ✅ | — |
 | Notifications WS (toasts + panneau navbar) | ✅ | ✅ | ✅ | — |
 | Service Broadcast STOMP (#187) | ✅ | — | ✅ | — |
+| Notifications Sonores & Visuelles (#181) | ✅ | ✅ | ✅ | Synthétiseur Web Audio API & Badges |
 | Factures (liste + détail + règlement) | ✅ | ✅ | ✅ | — |
 | Fusion d'additions (#186) | ✅ | ❌ | ✅ | Frontend manquant |
 | Export factures (PDF) | ✅ | ✅ | ✅ | OpenPDF |
@@ -43,10 +44,9 @@
 
 ## Features Manquantes Prioritaires (Frontend)
 
-1. **#181 - [Frontend] Notifications Sonores et Visuelles Temps Réel — Alertes Barman et Serveur**
-2. **#120 - [Frontend] Vue Client QR Code — Commande mobile sans authentification**
-3. **#180 - [Frontend/Backend] Module d'impression Ticket de caisse 80mm & Rendu PDF A4 conforme Figma**
-4. **#193 - [Backend/Frontend] Tests d'intégration Spring Boot (Testcontainers) et E2E Playwright**
+1. **#120 - [Frontend] Vue Client QR Code — Commande mobile sans authentification**
+2. **#180 - [Frontend/Backend] Module d'impression Ticket de caisse 80mm & Rendu PDF A4 conforme Figma**
+3. **#193 - [Backend/Frontend] Tests d'intégration Spring Boot (Testcontainers) et E2E Playwright**
 
 ## Dette Technique Active
 
@@ -60,6 +60,7 @@
 
 | PR / Issue | Description |
 |------------|-------------|
+| #196 (#181) | Notifications Sonores et Visuelles Temps Réel — Alertes Barman et Serveur |
 | #195 (#182) | Variantes & Options de Personnalisation de Cocktails dans la Prise de Commande Serveur |
 | #83 | DTOs de sortie Java records |
 | #85 | Typo BARMEN → BARMAN |
