@@ -177,6 +177,14 @@ export const routes: Routes = [
     data: { roles: ['ADMIN'] }
   },
   {
+    path: 'client/commande',
+    loadComponent: () => import('./features/client/client-commande/client-commande.component').then(m => m.ClientCommandeComponent)
+  },
+  {
+    path: 'client/suivi/:id',
+    loadComponent: () => import('./features/client/client-suivi/client-suivi.component').then(m => m.ClientSuiviComponent)
+  },
+  {
     path: '**',
     loadComponent: () => import('./features/error-404/error-404.component').then(m => m.Error404Component),
   }

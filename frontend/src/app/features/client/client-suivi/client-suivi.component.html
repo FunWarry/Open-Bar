@@ -1,0 +1,97 @@
+<div class="suivi-container">
+  <div class="ellipse-bg-primary"></div>
+  <div class="ellipse-bg-tertiary"></div>
+
+  @if (isLoading) {
+    <div class="loading-card">
+      <span class="spinner-icon">🍹</span>
+      <p>Chargement du suivi de commande...</p>
+    </div>
+  } @else if (commande) {
+    <div class="suivi-card">
+      <div class="suivi-header">
+        <h1 class="order-id">Commande #{{ commande.id }}</h1>
+        <span class="table-badge">Table {{ commande.tableNumero }}</span>
+      </div>
+
+      <div class="hero-status">
+        <div class="status-icon-wrapper">
+          @if (statusStep === 1) {
+            <span class="status-emoji">⏳</span>
+          } @else if (statusStep === 2) {
+            <span class="status-emoji">🍹</span>
+          } @else {
+            <span class="status-emoji">✅</span>
+          }
+        </div>
+        <h2 class="status-title">{{ statusLabel }}</h2>
+        <p class="status-subtitle">
+          @if (statusStep === 1) {
+            Votre commande a bien été reçue et attend d'être prise en charge.
+          } @else if (statusStep === 2) {
+            Votre boisson est actuellement en cours de préparation par le barman.
+          } @else {
+            Votre commande est prête ! Le serveur arrive à votre table.
+          }
+        </p>
+      </div>
+
+      <!-- Stepper de progression -->
+      <div class="stepper">
+        <div class="step-item" [class.active]="statusStep >= 1" [class.completed]="statusStep > 1">
+          <div class="step-circle">1</div>
+          <span class="step-text">Reçue</span>
+        </div>
+        <div class="step-line" [class.active]="statusStep >= 2"></div>
+        <div class="step-item" [class.active]="statusStep >= 2" [class.completed]="statusStep > 2">
+          <div class="step-circle">2</div>
+          <span class="step-text">En préparation</span>
+        </div>
+        <div class="step-line" [class.active]="statusStep >= 3"></div>
+        <div class="step-item" [class.active]="statusStep >= 3" [class.completed]="statusStep === 3">
+          <div class="step-circle">3</div>
+          <span class="step-text">Prête</span>
+        </div>
+      </div>
+
+      <!-- Détail des articles -->
+      <div class="order-items-box">
+        <h3 class="box-title">Détails de la commande</h3>
+        <div class="items-list">
+          @for (item of commande.items; track item.id) {
+            <div class="item-row">
+              <span class="item-qty">x{{ item.quantite }}</span>
+              <span class="item-name">{{ item.cocktailNom }}</span>
+              <span class="item-price">{{ (item.prixUnitaire * item.quantite) | currency:'EUR' }}</span>
+            </div>
+          }
+        </div>
+        <div class="total-row">
+          <span>Total TTC</span>
+          <span class="total-price">{{ commande.prixTotal | currency:'EUR' }}</span>
+        </div>
+      </div>
+
+      <div class="actions-row">
+        <app-action-button
+          variant="secondary"
+          size="medium"
+          expand="block"
+          [routerLink]="['/client/commande']"
+          [queryParams]="{ table: commande.tableNumero }">
+          + Passer une nouvelle commande
+        </app-action-button>
+      </div>
+    </div>
+  } @else {
+    <div class="suivi-card">
+      <h2 class="card-title">Commande introuvable</h2>
+      <p class="card-subtitle">Aucune commande ne correspond à cet identifiant.</p>
+      <app-action-button
+        variant="primary"
+        routerLink="/client/commande">
+        Passer une commande
+      </app-action-button>
+    </div>
+  }
+</div>

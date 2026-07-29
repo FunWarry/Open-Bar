@@ -1,6 +1,6 @@
 # OpenBar — État des Features & Roadmap
 
-> Dernière mise à jour : 29 juillet 2026 — PR #201 (Refactor UI complet Figma #200)
+> Dernière mise à jour : 29 juillet 2026 — PR #202 / Ticket #200 (Refactor UI complet Figma & Vue Client QR Code)
 
 ## Tableau des Features
 
@@ -32,7 +32,7 @@
 | Tables CRUD | ✅ | ✅ | ✅ | — |
 | Transfert commande entre tables (#186) | ✅ | ❌ | ✅ | Frontend manquant |
 | Commandes | ✅ | ✅ | ✅ | — |
-| Passage commande publique QR (#184) | ✅ | ❌ | ✅ | Vue Client frontend manquante |
+| Passage commande publique QR (#184) | ✅ | ✅ | ✅ | — |
 | Déstockage auto (EN_PREPARATION & Variantes) | ✅ | — | ✅ | — |
 | Alertes stock WebSocket | ✅ | ✅ | ✅ | — |
 | Notifications WS (toasts + panneau navbar) | ✅ | ✅ | ✅ | — |
@@ -47,7 +47,7 @@
 | Dashboard Barman | ✅ | ✅ kanban temps réel | ✅ | — |
 | Vue Serveur (plan de salle + variantes modal #182) | ✅ | ✅ | ✅ | — |
 | Plan de salle interactif (Konva.js) | ✅ | ✅ | ✅ | — |
-| Vue Client QR Code (passage commande + suivi STOMP) | ✅ | ❌ | ✅ | **Frontend à implémenter** |
+| Vue Client QR Code (passage commande + suivi STOMP) | ✅ | ✅ | ✅ | Vue Client mobile complète (`/client/commande`, `/client/suivi/:id`) |
 
 ## Features Manquantes Prioritaires (Frontend)
 
@@ -66,6 +66,7 @@
 
 | PR / Issue | Description |
 |------------|-------------|
+| #202 (#200) | Refactoring UI complet selon Figma : Setup, Auth, Profile, Error 404, Dashboard Barman et Vue Client QR Code (passage commande public + suivi STOMP temps réel) |
 | #201 (#200) | Refactor UI complet Figma : tokens CSS (variables.css / styles.css), ActionButton (variantes edit/mark), UserAvatar (role color), Navbar/Header/CocktailList migration @if/@for et a11y keyboard listeners |
 | #199 (#180) | Impression Ticket de caisse 80mm & Rendu PDF A4 : TicketReceiptComponent thermique avec `@media print`, en-tête légal (SIRET, RCS, N° TVA, capital), ventilation TVA multi-taux et mentions légales de paiement |
 | #198 (#129-#134) | Facturation Légale NF525 / CGI Art. 289 : Données établissement (SIRET/TVA/RCS), TVA multi-taux (20%/10%/5.5%), numérotation séquentielle, avoirs, archivage 10 ans SHA-256, export CSV & déclaration mensuelle CA3 + composant Admin Établissement |

@@ -1,0 +1,156 @@
+<div class="client-container">
+  <div class="ellipse-bg-primary"></div>
+  <div class="ellipse-bg-tertiary"></div>
+
+  <!-- Étape 1 : Choix de la table -->
+  @if (step === 'table') {
+    <div class="step-card">
+      <div class="card-header-section">
+        <span class="brand-emoji">📱</span>
+        <h1 class="card-title">OpenBar</h1>
+        <p class="card-subtitle">Commandez directement depuis votre table</p>
+      </div>
+
+      <form [formGroup]="tableForm" (ngSubmit)="onSelectTable()" class="table-form">
+        <app-input-field
+          formControlName="tableNumber"
+          type="number"
+          label="Numéro de votre table"
+          placeholder="Ex: 4"
+          icon="restaurant-outline"
+          [required]="true">
+        </app-input-field>
+
+        <app-action-button
+          type="submit"
+          variant="primary"
+          size="large"
+          expand="block"
+          [disabled]="tableForm.invalid">
+          Accéder au Menu →
+        </app-action-button>
+      </form>
+    </div>
+  }
+
+  <!-- Étape 2 : Menu & Sélection de cocktails -->
+  @if (step === 'menu') {
+    <div class="menu-view">
+      <header class="menu-header">
+        <div class="header-info">
+          <h1 class="menu-title">Menu — Table {{ tableNumero }}</h1>
+          <p class="menu-subtitle">Sélectionnez vos consommations</p>
+        </div>
+      </header>
+
+      <div class="filter-chips">
+        <button
+          class="chip-btn"
+          [class.active]="selectedCategory === 'TOUS'"
+          (click)="filterCategory('TOUS')">
+          Tous
+        </button>
+        <button
+          class="chip-btn"
+          [class.active]="selectedCategory === 'ALCOOLISE'"
+          (click)="filterCategory('ALCOOLISE')">
+          Alcoolisés
+        </button>
+        <button
+          class="chip-btn"
+          [class.active]="selectedCategory === 'SANS_ALCOOL'"
+          (click)="filterCategory('SANS_ALCOOL')">
+          Sans Alcool
+        </button>
+      </div>
+
+      @if (isLoading) {
+        <div class="loading-box">
+          <span class="spinner-icon">🍹</span>
+          <p>Chargement des cocktails...</p>
+        </div>
+      } @else {
+        <div class="cocktails-grid">
+          @for (cocktail of filteredCocktails; track cocktail.id) {
+            <div class="product-card">
+              <div class="product-info">
+                <h3 class="product-title">{{ cocktail.nom }}</h3>
+                <p class="product-desc">{{ cocktail.description || cocktail.categorie }}</p>
+                <span class="product-price">{{ cocktail.prix | currency:'EUR' }}</span>
+              </div>
+              <div class="quantity-controls">
+                @if (getItemQuantity(cocktail.id) > 0) {
+                  <button class="qty-btn" (click)="removeFromCart(cocktail.id)">-</button>
+                  <span class="qty-count">{{ getItemQuantity(cocktail.id) }}</span>
+                }
+                <button class="qty-btn add-btn" (click)="addToCart(cocktail)">+</button>
+              </div>
+            </div>
+          } @empty {
+            <div class="empty-box">
+              <p>Aucun cocktail disponible dans cette catégorie.</p>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Barre flottante Panier -->
+      @if (totalItemsCount > 0) {
+        <div class="floating-cart-bar">
+          <div class="cart-summary">
+            <span class="cart-icon">🛒</span>
+            <span class="cart-count">{{ totalItemsCount }} article(s)</span>
+          </div>
+          <div class="cart-action">
+            <span class="cart-total">{{ totalPrice | currency:'EUR' }}</span>
+            <button class="recap-btn" (click)="goToRecap()">Voir le récap →</button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Étape 3 : Récapitulatif -->
+  @if (step === 'recap') {
+    <div class="step-card recap-card">
+      <div class="recap-header">
+        <button class="back-btn" (click)="backToMenu()">← Retour menu</button>
+        <h1 class="card-title">Récapitulatif — Table {{ tableNumero }}</h1>
+      </div>
+
+      <div class="cart-items-list">
+        @for (item of cartItemsList; track item.cocktail.id) {
+          <div class="recap-item">
+            <div class="item-details">
+              <span class="item-name">{{ item.cocktail.nom }}</span>
+              <span class="item-unit-price">{{ item.cocktail.prix | currency:'EUR' }}</span>
+            </div>
+            <div class="quantity-controls">
+              <button class="qty-btn" (click)="removeFromCart(item.cocktail.id)">-</button>
+              <span class="qty-count">{{ item.quantite }}</span>
+              <button class="qty-btn add-btn" (click)="addToCart(item.cocktail)">+</button>
+            </div>
+            <span class="item-total-price">{{ (item.cocktail.prix * item.quantite) | currency:'EUR' }}</span>
+          </div>
+        }
+      </div>
+
+      <div class="recap-summary-row">
+        <span class="summary-label">Total à payer</span>
+        <span class="summary-price">{{ totalPrice | currency:'EUR' }}</span>
+      </div>
+
+      <div class="actions-row">
+        <app-action-button
+          variant="primary"
+          size="large"
+          expand="block"
+          [disabled]="isSubmitting"
+          [loading]="isSubmitting"
+          (click)="submitOrder()">
+          Envoyer la commande au bar
+        </app-action-button>
+      </div>
+    </div>
+  }
+</div>
