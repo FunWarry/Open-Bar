@@ -6,6 +6,8 @@ import { filter, map, combineLatest, startWith, Observable } from 'rxjs';
 import { Store } from '@ngrx/store';
 import { selectIsAuthenticated } from './core/store/auth.selectors';
 import { AsyncPipe, NgIf } from '@angular/common';
+import { addIcons } from 'ionicons';
+import * as allIcons from 'ionicons/icons';
 
 @Component({
   selector: 'app-root',
@@ -22,6 +24,7 @@ export class AppComponent implements OnInit {
     private readonly appSettingsService: AppSettingsService,
     private readonly store: Store
   ) {
+    addIcons(allIcons);
     const isAuth$ = this.store.select(selectIsAuthenticated);
     const initialUrl = this.router.url || '';
     const isInitialAuthRoute = initialUrl.includes('/login') || initialUrl.includes('/register') || initialUrl.includes('/setup') || initialUrl.includes('/qr-client');
