@@ -10,22 +10,6 @@ import java.util.List;
 
 /**
  * DTO de réponse représentant une facture émise.
- *
- * @param id Identifiant de la facture
- * @param tableId Identifiant de la table
- * @param tableNumero Numéro de la table
- * @param numero Numéro légal séquentiel de la facture
- * @param total Total HT
- * @param pourboire Pourboire
- * @param totalTTC Total TTC final
- * @param dateFacture Date d'émission
- * @param dateReglement Date de règlement
- * @param reglee Indique si la facture est acquittée
- * @param modePaiement Mode de paiement (CARTE, ESPECES, etc.)
- * @param notes Remarques
- * @param items Liste des lignes d'articles facturés
- * @param createdAt Date de création
- * @param updatedAt Date de modification
  */
 @Schema(description = "Représentation DTO d'une facture")
 public record FactureResponseDTO(
@@ -34,6 +18,8 @@ public record FactureResponseDTO(
     Integer tableNumero,
     String numero,
     BigDecimal total,
+    BigDecimal totalHT,
+    BigDecimal totalVAT,
     BigDecimal pourboire,
     BigDecimal totalTTC,
     LocalDateTime dateFacture,
@@ -61,6 +47,8 @@ public record FactureResponseDTO(
             f.getTable() != null ? f.getTable().getNumero() : null,
             f.getNumero(),
             f.getTotal(),
+            f.getTotalHT(),
+            f.getTotalVAT(),
             f.getPourboire(),
             f.getTotalTTC(),
             f.getDateFacture(),
