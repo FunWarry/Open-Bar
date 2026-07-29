@@ -56,9 +56,10 @@ Deployed as a PWA on a local WiFi network (Raspberry Pi 5 / mini-PC). No interne
 2. **Standalone components** (`standalone: true`) — no NgModule
 3. **Lazy loading** on ALL routes (`loadComponent`)
 4. **Transloco mandatory** on all user-visible text — `{{ 'KEY' | transloco }}`
-5. **TSDoc MANDATORY (in English)** on all Angular services (`core/services/` + feature services), guards, interceptors, and NgRx store
-6. **`data-testid`** on all interactive elements (required for E2E tests)
-7. Tests go in `frontend/src/test/` (mirror of `src/app/`) — never co-located
+5. **i18n MANDATORY for every frontend change** — any text addition or modification MUST update **both** `fr.json` AND `en.json` in the **same commit** as the component. A missing key in `en.json` is treated as a regression.
+6. **TSDoc MANDATORY (in English)** on all Angular services (`core/services/` + feature services), guards, interceptors, and NgRx store
+7. **`data-testid`** on all interactive elements (required for E2E tests)
+8. Tests go in `frontend/src/test/` (mirror of `src/app/`) — never co-located
 
 ### Git / Workflow
 1. Every task must be linked to a GitHub issue — see [Kanban](https://github.com/users/FunWarry/projects/3/views/1)
@@ -66,6 +67,7 @@ Deployed as a PWA on a local WiFi network (Raspberry Pi 5 / mini-PC). No interne
 3. Conventional commits: `feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `ci:`
 4. CI must be green + SonarCloud PASSED before merging
 5. Use `merge commit` (never squash) so the release workflow counts commits correctly
+6. **KI update MANDATORY after every merged PR** — run `openbar-ki-update` skill to sync `features-state.md` (and `architecture.md` if needed) with the real project state. Stale KIs cause regressions in future sessions.
 
 ---
 

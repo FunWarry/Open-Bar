@@ -243,6 +243,7 @@ export class MonEntiteListComponent implements OnInit {
 - ❌ Jamais Angular Material — uniquement composants Ionic
 - ❌ Jamais `NgModule` — uniquement standalone components
 - ❌ Jamais de texte hardcodé FR dans les templates — `{{ 'CLE' | transloco }}`
+- ❌ **Jamais de modification frontend sans mettre à jour `fr.json` ET `en.json`** — toujours les deux en même commit
 - ✅ Signals (`signal()`) pour l'état local des composants
 - ✅ NgRx uniquement pour l'auth — tout le reste en services directs
 - ✅ `data-testid` sur tous les éléments interactifs clés
@@ -258,13 +259,32 @@ export class MonEntiteListComponent implements OnInit {
 }
 ```
 
-### Traductions à créer
+### Traductions — Règle absolue 🌍
+
+**Toute modification frontend qui ajoute ou change du texte visible DOIT mettre à jour les deux fichiers :**
+
 ```
 frontend/src/assets/i18n/
-├── fr.json      ← ajouter les clés globales
-├── en.json      ← idem en anglais
-├── fr/mon-entite.json   ← clés scopées feature
-└── en/mon-entite.json
+├── fr.json      ← clés en français (langue de référence)
+└── en.json      ← même clés en anglais (traduction obligatoire)
+```
+
+> ⚠️ **Jamais `fr.json` sans `en.json`** — une clé manquante en anglais est considérée comme une régression.
+> Les deux fichiers doivent être mis à jour dans le **même commit** que le composant qui les utilise.
+
+Exemple de structure de clé à ajouter dans les deux fichiers :
+```json
+// fr.json
+"MA_FEATURE": {
+  "TITRE": "Mon titre",
+  "ACTION": "Valider"
+}
+
+// en.json
+"MA_FEATURE": {
+  "TITRE": "My title",
+  "ACTION": "Confirm"
+}
 ```
 
 ---
@@ -356,7 +376,8 @@ Localisation : `frontend/src/test/features/mon-entite/services/mon-entite.servic
 - [ ] Composant Angular standalone (Ionic uniquement)
 - [ ] Service Angular avec `HttpClient`
 - [ ] Route lazy-loadée dans `app.routes.ts`
-- [ ] Clés Transloco ajoutées (`fr.json` + `en.json`)
+- [ ] **`fr.json` mis à jour** — aucun texte visible hardcodé
+- [ ] **`en.json` mis à jour** — même clés qu'en français, dans le même commit ✅
 - [ ] `data-testid` sur les éléments interactifs
 - [ ] Tests backend : cas nominal + cas erreur + cas limites
 - [ ] Tests frontend : même couverture
