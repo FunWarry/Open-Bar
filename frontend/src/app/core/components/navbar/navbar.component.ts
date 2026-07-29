@@ -7,13 +7,14 @@ import { selectCurrentUser, selectIsAdmin, selectIsAuthenticated } from '../../s
 import { NavigationService } from '../../services/navigation.service';
 import { NotificationService } from '../../services/notification.service';
 import { NotificationPanelComponent } from '../notification-panel/notification-panel.component';
+import { SoundService } from '../../services/sound.service';
 import {
   IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
   IonPopover, IonList, IonItem, IonLabel, IonBadge,
   PopoverController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { home, settings, personCircle, person, logOut, chevronDown, notificationsOutline } from 'ionicons/icons';
+import { home, settings, personCircle, person, logOut, chevronDown, notificationsOutline, volumeHighOutline, volumeMuteOutline } from 'ionicons/icons';
 import { AsyncPipe, NgIf } from '@angular/common';
 import * as AuthActions from '../../store/auth.actions';
 
@@ -41,13 +42,14 @@ export class NavbarComponent implements OnInit, OnDestroy {
     private readonly store: Store,
     public readonly navigationService: NavigationService,
     private readonly notifService: NotificationService,
+    public readonly soundService: SoundService,
     private readonly popoverCtrl: PopoverController,
     @Optional() private readonly router?: Router,
   ) {
     this.isAuthenticated$ = this.store.select(selectIsAuthenticated);
     this.isAdmin$ = this.store.select(selectIsAdmin);
     this.currentUser$ = this.store.select(selectCurrentUser);
-    addIcons({ home, settings, personCircle, person, logOut, chevronDown, notificationsOutline });
+    addIcons({ home, settings, personCircle, person, logOut, chevronDown, notificationsOutline, volumeHighOutline, volumeMuteOutline });
 
     const initialUrl = (this.router?.url && this.router.url.length > 0) ? this.router.url : '/';
     const currentUrl$ = this.router ? this.router.events.pipe(
@@ -87,6 +89,10 @@ export class NavbarComponent implements OnInit, OnDestroy {
     await popover.present();
     await popover.onDidDismiss();
     this.nonLues = this.notifService.getNonLues();
+  }
+
+  toggleSound(): void {
+    this.soundService.toggleSound();
   }
 
   onLogout(): void {

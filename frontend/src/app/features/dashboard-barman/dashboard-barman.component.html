@@ -22,12 +22,13 @@
       <!-- Colonne EN_ATTENTE -->
       <ion-col size="12" size-md="4" class="kanban-col-wrapper">
         <div class="kanban-col">
-          <div class="kanban-header kanban-header--pending">
+          <div class="kanban-header kanban-header--pending" [class.urgent-pending]="hasUrgentOrders">
             <div class="header-status">
               <span class="status-dot dot--pending"></span>
               <span class="header-label">Pending</span>
+              <span *ngIf="hasUrgentOrders" class="urgent-badge" data-testid="urgent-orders-badge">⚠ &gt; 5 min</span>
             </div>
-            <span class="header-count count--pending">{{ commandesEnAttente.length }}</span>
+            <span class="header-count count--pending" [class.count--urgent]="hasUrgentOrders" data-testid="pending-count">{{ commandesEnAttente.length }}</span>
           </div>
 
           <app-commande-card

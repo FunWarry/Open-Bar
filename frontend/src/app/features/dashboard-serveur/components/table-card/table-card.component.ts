@@ -49,6 +49,17 @@ export class TableCardComponent {
       .filter(c => c.statut === 'EN_PREPARATION').length;
   }
 
+  /** Nombre de commandes prêtes à servir */
+  get commandesPretes(): number {
+    return (this.table?.commandesActives ?? [])
+      .filter(c => c.statut === 'PRET' || c.statut === 'PRETE').length;
+  }
+
+  /** Indique si la table a au moins une commande prête */
+  get hasCommandePrete(): boolean {
+    return this.commandesPretes > 0;
+  }
+
   /** Nombre total de commandes actives */
   get totalCommandes(): number {
     return (this.table?.commandesActives ?? []).length;
