@@ -5,7 +5,7 @@ import { AppSettingsService } from './core/services/app-settings.service';
 import { filter, map, combineLatest, startWith, Observable } from 'rxjs';
 import { Store } from '@ngrx/store';
 import { selectIsAuthenticated } from './core/store/auth.selectors';
-import { AsyncPipe, NgIf } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import { addIcons } from 'ionicons';
 import * as allIcons from 'ionicons/icons';
 
@@ -13,7 +13,7 @@ import * as allIcons from 'ionicons/icons';
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
-  imports: [RouterOutlet, NavbarComponent, NgIf, AsyncPipe],
+  imports: [RouterOutlet, NavbarComponent, AsyncPipe],
   standalone: true
 })
 export class AppComponent implements OnInit {
