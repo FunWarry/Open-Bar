@@ -1,6 +1,6 @@
 # OpenBar — État des Features & Roadmap
 
-> Dernière mise à jour : 29 juillet 2026 — PR #198 (Facturation Légale NF525 / CGI Art. 289)
+> Dernière mise à jour : 29 juillet 2026 — PR #199 (Ticket de caisse 80mm & Facture PDF A4 #180)
 
 ## Tableau des Features
 
@@ -13,6 +13,7 @@
 | Numérotation séquentielle factures (FAC-YYYY-NNNNN) (#131) | ✅ | ✅ | ✅ | Conformité CGI art. 289, émission Avoirs (AV-YYYY-NNNNN) |
 | Archivage légal 10 ans & Intégrité SHA-256 (#132) | ✅ | ✅ | ✅ | Factures immuables finalisées + verification hash SHA256 PDF |
 | Export comptable CSV & Déclaration TVA mensuelle (#133) | ✅ | ✅ | ✅ | Export UTF-8 BOM Excel, récapitulatif mensuel TVA |
+| Impression Ticket 80mm & Facture PDF A4 (#180) | ✅ | ✅ | ✅ | Ticket thermique 80mm, en-tête légal, ventilation TVA, mentions de paiement |
 | Auth JWT | ✅ | ✅ | ✅ | — |
 | Configuration initiale (/setup admin) | ✅ | ✅ | ✅ | — |
 | Bibliothèque composants UI Figma | — | ✅ | ✅ | — |
@@ -40,7 +41,7 @@
 | Configuration Seuils Alertes Commandes & Stock (#197) | ✅ | ✅ | ✅ | Réglages Manager et Barman |
 | Factures (liste + détail + règlement) | ✅ | ✅ | ✅ | — |
 | Fusion d'additions (#186) | ✅ | ❌ | ✅ | Frontend manquant |
-| Export factures (PDF) | ✅ | ✅ | ✅ | OpenPDF |
+| Export factures (PDF) | ✅ | ✅ | ✅ | OpenPDF A4 conforme mentions légales |
 | Division d'addition (split égal/par sélection) | ✅ | ✅ | ✅ | — |
 | Dashboard Manager / stats | ✅ | ✅ polling 30s | ✅ | — |
 | Dashboard Barman | ✅ | ✅ kanban temps réel | ✅ | — |
@@ -51,8 +52,7 @@
 ## Features Manquantes Prioritaires (Frontend)
 
 1. **#120 - [Frontend] Vue Client QR Code — Commande mobile sans authentification**
-2. **#180 - [Frontend/Backend] Module d'impression Ticket de caisse 80mm & Rendu PDF A4 conforme Figma**
-3. **#193 - [Backend/Frontend] Tests d'intégration Spring Boot (Testcontainers) et E2E Playwright**
+2. **#193 - [Backend/Frontend] Tests d'intégration Spring Boot (Testcontainers) et E2E Playwright**
 
 ## Dette Technique Active
 
@@ -66,6 +66,7 @@
 
 | PR / Issue | Description |
 |------------|-------------|
+| #199 (#180) | Impression Ticket de caisse 80mm & Rendu PDF A4 : TicketReceiptComponent thermique avec `@media print`, en-tête légal (SIRET, RCS, N° TVA, capital), ventilation TVA multi-taux et mentions légales de paiement |
 | #198 (#129-#134) | Facturation Légale NF525 / CGI Art. 289 : Données établissement (SIRET/TVA/RCS), TVA multi-taux (20%/10%/5.5%), numérotation séquentielle, avoirs, archivage 10 ans SHA-256, export CSV & déclaration mensuelle CA3 + composant Admin Établissement |
 | #197 | Configuration des Seuils d'Alerte Temporels des Commandes & Stock Ingrédients (Manager & Barman) |
 | Fix IDE | Nettoyage des avertissements linter IDE (AppSettings @Column/ZoneId, ingredient-list Transloco & @if/@for control flow) |
