@@ -147,7 +147,8 @@
           expand="block"
           [disabled]="isSubmitting"
           [loading]="isSubmitting"
-          (click)="submitOrder()">
+          (click)="submitOrder()"
+          (keydown.enter)="submitOrder()">
           Envoyer la commande au bar
         </app-action-button>
       </div>
