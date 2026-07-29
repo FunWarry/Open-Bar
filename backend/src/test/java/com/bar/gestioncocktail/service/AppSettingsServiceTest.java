@@ -97,6 +97,23 @@ class AppSettingsServiceTest {
         assertThat(result.getLogoUrl()).isEqualTo("https://example.com/logo.png");
         assertThat(result.getEstablishmentName()).isEqualTo("Le Bar Test");
         assertThat(result.getDefaultTheme()).isEqualTo(DefaultTheme.DARK);
+        assertThat(result.getTempsAlerteCommandeMinutes()).isEqualTo(5);
+        assertThat(result.getTempsAlerteCritiqueCommandeMinutes()).isEqualTo(10);
+    }
+
+    @Test
+    void updateSettings_metAJourLesTempsAlerteCommande() {
+        when(appSettingsRepository.findById(AppSettings.SINGLETON_ID)).thenReturn(Optional.of(existing));
+        when(appSettingsRepository.save(any(AppSettings.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        AppSettingsUpdateRequest request = new AppSettingsUpdateRequest(
+            "#6c7fe8", "#5a68d6", null, "OpenBar", DefaultTheme.DARK, 7, 15
+        );
+
+        AppSettings result = appSettingsService.updateSettings(request);
+
+        assertThat(result.getTempsAlerteCommandeMinutes()).isEqualTo(7);
+        assertThat(result.getTempsAlerteCritiqueCommandeMinutes()).isEqualTo(15);
     }
 
     @Test
