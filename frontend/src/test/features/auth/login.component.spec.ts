@@ -10,6 +10,8 @@ import { login } from '../../../app/core/store/auth.actions';
 import { selectAuthError, selectIsAuthenticated } from '../../../app/core/store/auth.selectors';
 import { SetupService } from '../../../app/core/services/setup.service';
 
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
+
 describe('LoginComponent', () => {
   let component: LoginComponent;
   let mockStore: jasmine.SpyObj<Store>;
@@ -40,6 +42,7 @@ describe('LoginComponent', () => {
         IonicModule.forRoot(),
         RouterTestingModule,
         ReactiveFormsModule,
+        getTranslocoTestingModule(),
       ],
       providers: [
         { provide: Store, useValue: mockStore },

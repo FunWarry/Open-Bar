@@ -18,6 +18,8 @@ import {
 } from '@ionic/angular/standalone';
 import { NgFor, NgIf } from '@angular/common';
 
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
+
 describe('RegisterComponent', () => {
   let component: RegisterComponent;
   let fixture: ComponentFixture<RegisterComponent>;
@@ -30,6 +32,7 @@ describe('RegisterComponent', () => {
       imports: [
         RegisterComponent,
         ReactiveFormsModule,
+        getTranslocoTestingModule(),
         NgIf,
         NgFor,
         IonCard,

@@ -63,19 +63,31 @@
     "PREVIEW_TITLE": "Receipt Live Preview"
   },
   "AUTH": {
-    "LOGIN_TITLE": "Login",
-    "USERNAME": "Username",
+    "LOGIN_TITLE": "Sign in to your workspace",
+    "USERNAME": "Email Address",
     "PASSWORD": "Password",
-    "LOGIN_BTN": "Log in",
-    "LOGOUT_BTN": "Log out",
-    "REGISTER_TITLE": "Create an Account",
+    "LOGIN_BTN": "Sign In",
+    "LOGOUT_BTN": "Sign Out",
+    "REQUIRED_USER": "Email address is required",
+    "REQUIRED_PASS": "Password is required",
+    "INVALID_CREDENTIALS": "Invalid username or password.",
+    "REGISTER_TITLE": "Create Account",
     "EMAIL": "Email Address",
     "CONFIRM_PASSWORD": "Confirm Password",
-    "REGISTER_BTN": "Register",
+    "REGISTER_BTN": "Create Account",
     "ALREADY_ACCOUNT": "Already have an account?",
-    "NO_ACCOUNT": "Don't have an account yet?",
+    "LOGIN_LINK": "Sign In",
     "LOGIN_ERROR": "Invalid credentials",
-    "SESSION_EXPIRED": "Session expired, please log in again"
+    "SESSION_EXPIRED": "Session expired, please sign in again"
+  },
+  "PROFILE": {
+    "TITLE": "My Profile",
+    "INFO_TITLE": "Account Details",
+    "ROLES": "Roles:",
+    "CREATED_AT": "Account created on:",
+    "UPDATED_AT": "Last updated:",
+    "NEW_PASSWORD": "New Password",
+    "SAVE_BTN": "Save Changes"
   },
   "COCKTAILS": {
     "TITLE": "Cocktails",
@@ -218,7 +230,10 @@
     "READY": "Ready",
     "FREE_TABLES": "Free Tables",
     "OCCUPIED_TABLES": "Occupied Tables",
-    "LOW_STOCK_ALERT": "Low Stock Alert"
+    "LOW_STOCK_ALERT": "Low stock alert",
+    "NO_PENDING": "No pending orders",
+    "NO_IN_PROGRESS": "No orders in preparation",
+    "NO_READY": "No ready orders"
   },
   "ERRORS": {
     "NETWORK": "Network error, please try again",
@@ -226,5 +241,23 @@
     "NOT_FOUND": "Resource not found",
     "SERVER": "Server error",
     "FORM_INVALID": "Please correct the errors in the form"
+  },
+  "ERROR_404": {
+    "CODE": "404",
+    "TITLE": "Page Not Found",
+    "DESCRIPTION": "The page you're looking for doesn't exist or has been moved.",
+    "BACK_HOME": "Back to Workspace"
+  },
+  "SETUP": {
+    "TITLE": "Welcome to OpenBar!",
+    "SUBTITLE": "Initial Setup — Creation of the First Administrator Account",
+    "USERNAME": "Username",
+    "EMAIL": "Email Address",
+    "LASTNAME": "Last Name",
+    "FIRSTNAME": "First Name",
+    "PASSWORD": "Password",
+    "CONFIRM_PASSWORD": "Confirm Password",
+    "SUBMIT": "Create Administrator Account",
+    "SUCCESS": "Administrator account created successfully! Please sign in."
   }
 }

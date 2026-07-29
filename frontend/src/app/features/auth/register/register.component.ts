@@ -1,13 +1,18 @@
-import {Component} from '@angular/core';
-import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
-import {Store} from '@ngrx/store';
+import { Component } from '@angular/core';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Store } from '@ngrx/store';
+import { TranslocoModule } from '@jsverse/transloco';
 import * as AuthActions from '../../../core/store/auth.actions';
-import {IonItem, IonSelect, IonSelectOption} from '@ionic/angular/standalone';
+import { IonItem, IonSelect, IonSelectOption } from '@ionic/angular/standalone';
 
 import { InputFieldComponent } from '../../../core/components/ui/input-field/input-field.component';
 import { PasswordInputComponent } from '../../../core/components/ui/password-input/password-input.component';
 import { ActionButtonComponent } from '../../../core/components/ui/action-button/action-button.component';
 
+/**
+ * Register Component allowing Admin users to create new accounts for personnel.
+ * Conforms to Figma Vue système commun Register specs (`538:936`).
+ */
 @Component({
   selector: 'app-register',
   templateUrl: './register.component.html',
@@ -18,6 +23,7 @@ import { ActionButtonComponent } from '../../../core/components/ui/action-button
     IonSelect,
     IonSelectOption,
     ReactiveFormsModule,
+    TranslocoModule,
     InputFieldComponent,
     PasswordInputComponent,
     ActionButtonComponent
@@ -27,7 +33,7 @@ export class RegisterComponent {
   registerForm: FormGroup;
   roles = ['ADMIN', 'MANAGER', 'SERVEUR', 'BARMAN'];
 
-  constructor(private readonly fb: FormBuilder,private readonly store: Store) {
+  constructor(private readonly fb: FormBuilder, private readonly store: Store) {
     this.registerForm = this.fb.group({
       nom: ['', Validators.required],
       prenom: ['', Validators.required],
@@ -40,7 +46,7 @@ export class RegisterComponent {
 
   onSubmit(): void {
     if (this.registerForm.valid) {
-      this.store.dispatch(AuthActions.register({userData: this.registerForm.value}));
+      this.store.dispatch(AuthActions.register({ userData: this.registerForm.value }));
     }
   }
 }

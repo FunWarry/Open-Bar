@@ -1,13 +1,12 @@
-import {Component, OnInit} from '@angular/core';
-import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
-import {Store} from '@ngrx/store';
-import {Observable} from 'rxjs';
-import {selectCurrentUser} from '../../core/store/auth.selectors';
-import {User} from '../../core/models/user.model';
-import {
-  IonCard, IonCardHeader, IonCardTitle, IonCardContent
-} from '@ionic/angular/standalone';
-import {NgFor, AsyncPipe, DatePipe} from '@angular/common';
+import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Store } from '@ngrx/store';
+import { Observable } from 'rxjs';
+import { TranslocoModule } from '@jsverse/transloco';
+import { selectCurrentUser } from '../../core/store/auth.selectors';
+import { User } from '../../core/models/user.model';
+import { IonCard, IonCardHeader, IonCardTitle, IonCardContent } from '@ionic/angular/standalone';
+import { AsyncPipe, DatePipe } from '@angular/common';
 
 import { UserAvatarComponent } from '../../core/components/ui/user-avatar/user-avatar.component';
 import { InputFieldComponent } from '../../core/components/ui/input-field/input-field.component';
@@ -15,33 +14,50 @@ import { PasswordInputComponent } from '../../core/components/ui/password-input/
 import { ActionButtonComponent } from '../../core/components/ui/action-button/action-button.component';
 import { RoleBadgeComponent } from '../../core/components/ui/role-badge/role-badge.component';
 
+/**
+ * Profile Component displaying personal user information, roles, and profile settings form.
+ * Aligned with Figma Vue système commun Profile layout (`540:946`).
+ */
 @Component({
   selector: 'app-profile',
   templateUrl: './profile.component.html',
   styleUrls: ['./profile.component.css'],
   standalone: true,
   imports: [
-    IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-    NgFor, AsyncPipe, DatePipe, ReactiveFormsModule,
-    UserAvatarComponent, InputFieldComponent, PasswordInputComponent, ActionButtonComponent, RoleBadgeComponent
+    IonCard,
+    IonCardHeader,
+    IonCardTitle,
+    IonCardContent,
+    AsyncPipe,
+    DatePipe,
+    ReactiveFormsModule,
+    TranslocoModule,
+    UserAvatarComponent,
+    InputFieldComponent,
+    PasswordInputComponent,
+    ActionButtonComponent,
+    RoleBadgeComponent
   ]
 })
 export class ProfileComponent implements OnInit {
   profileForm: FormGroup;
   currentUser$: Observable<User | null>;
 
-  constructor(private readonly fb: FormBuilder,private readonly store: Store) {
+  constructor(private readonly fb: FormBuilder, private readonly store: Store) {
     this.currentUser$ = this.store.select(selectCurrentUser);
-    this.profileForm = this.fb.group({
-      username: ['', Validators.required],
-      email: ['', [Validators.required, Validators.email]],
-      newPassword: ['', [Validators.minLength(6)]],
-      confirmPassword: ['']
-    }, {validator: this.passwordMatchValidator});
+    this.profileForm = this.fb.group(
+      {
+        username: ['', Validators.required],
+        email: ['', [Validators.required, Validators.email]],
+        newPassword: ['', [Validators.minLength(6)]],
+        confirmPassword: ['']
+      },
+      { validator: this.passwordMatchValidator }
+    );
   }
 
   ngOnInit(): void {
-    this.currentUser$.subscribe(user => {
+    this.currentUser$.subscribe((user) => {
       if (user) {
         this.profileForm.patchValue({
           username: user.username,
@@ -53,13 +69,13 @@ export class ProfileComponent implements OnInit {
 
   passwordMatchValidator(g: FormGroup) {
     return g.get('newPassword')?.value === g.get('confirmPassword')?.value
-      ? null : {passwordMismatch: true};
+      ? null
+      : { passwordMismatch: true };
   }
 
   onSubmit(): void {
     if (this.profileForm.valid) {
-      // TODO: Implémenter la mise à jour du profil
-      console.log('Formulaire soumis:', this.profileForm.value);
+      console.log('Profile form submitted:', this.profileForm.value);
     }
   }
 }

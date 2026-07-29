@@ -10,6 +10,8 @@ import { CommandeView } from '../../../app/features/dashboard-barman/models/comm
 
 import { AppSettingsService } from '../../../app/core/services/app-settings.service';
 
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
+
 describe('DashboardBarmanComponent', () => {
   let component: DashboardBarmanComponent;
   let dashboardServiceSpy: jasmine.SpyObj<DashboardBarmanService>;
@@ -71,6 +73,7 @@ describe('DashboardBarmanComponent', () => {
         DashboardBarmanComponent,
         IonicModule.forRoot(),
         RouterTestingModule,
+        getTranslocoTestingModule(),
       ],
       providers: [
         { provide: DashboardBarmanService, useValue: dashboardServiceSpy },

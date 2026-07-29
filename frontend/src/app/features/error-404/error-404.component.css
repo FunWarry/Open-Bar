@@ -1,7 +1,73 @@
 .error-404-container {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6, 24px);
+  background-color: var(--bg-0, #0c0d12);
+  overflow: hidden;
+}
+
+.ellipse-bg-primary {
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  top: -150px;
+  left: -150px;
+  background: radial-gradient(circle, rgba(155, 138, 242, 0.15) 0%, rgba(0, 0, 0, 0) 70%);
+  pointer-events: none;
+}
+
+.ellipse-bg-tertiary {
+  position: absolute;
+  width: 450px;
+  height: 450px;
+  bottom: -150px;
+  right: -150px;
+  background: radial-gradient(circle, rgba(240, 163, 59, 0.12) 0%, rgba(0, 0, 0, 0) 70%);
+  pointer-events: none;
+}
+
+.error-404-card {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 520px;
+  text-align: center;
+  background: var(--bg-surface-1, rgba(21, 23, 34, 0.85));
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+  border-radius: var(--radius-xl, 16px);
+  padding: var(--space-10, 48px) var(--space-8, 32px);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+}
+
+.hero-code {
+  font-size: 96px;
+  font-weight: 800;
+  line-height: 1;
+  margin: 0 0 var(--space-4, 16px) 0;
+  background: linear-gradient(135deg, var(--primary, #9b8af2) 0%, var(--tertiary, #f0a33b) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.error-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-primary, #f5f5f7);
+  margin: 0 0 var(--space-3, 12px) 0;
+}
+
+.error-description {
+  font-size: 15px;
+  color: var(--text-secondary, #9aa0a6);
+  margin: 0 0 var(--space-6, 24px) 0;
+}
+
+.actions-row {
   display: flex;
   justify-content: center;
-  align-items: center;
-  min-height: 70vh;
-  padding: var(--spacing-l, 24px);
 }

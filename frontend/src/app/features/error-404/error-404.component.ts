@@ -1,16 +1,17 @@
 import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { EmptyStateComponent } from '../../core/components/ui/empty-state/empty-state.component';
+import { TranslocoModule } from '@jsverse/transloco';
 import { ActionButtonComponent } from '../../core/components/ui/action-button/action-button.component';
 
+/**
+ * 404 Error Component displayed when navigating to non-existing routes.
+ * Aligned with Figma Vue système commun 404 specs (`540:1040`).
+ */
 @Component({
   selector: 'app-error-404',
   standalone: true,
-  imports: [RouterLink, EmptyStateComponent, ActionButtonComponent],
+  imports: [RouterLink, TranslocoModule, ActionButtonComponent],
   templateUrl: './error-404.component.html',
   styleUrl: './error-404.component.css'
 })
-export class Error404Component {
-
-}
-
+export class Error404Component {}
