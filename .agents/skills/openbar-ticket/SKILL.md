@@ -326,6 +326,16 @@ rtk gh api graphql -f query='mutation {
 gh issue close <NUMERO> --repo FunWarry/Open-Bar
 ```
 
+**Mettre à jour les Knowledge Items (KIs) — OBLIGATOIRE après chaque merge :**
+
+Déclencher le skill `openbar-ki-update` pour synchroniser les KIs avec l'état réel du projet :
+- Mettre à jour `features-state.md` (tableau features Backend ✅ / Frontend ✅ / Tests ✅)
+- Mettre à jour `architecture.md` si nouvelle entité, nouveau topic WS, ou bug corrigé
+- Mettre à jour `conventions.md` si nouveau pattern de code établi
+- Committer les KIs sur `dev` si ce sont des fichiers du workspace (`.agents/knowledge/`)
+
+> ⚠️ Les KIs sont la mémoire inter-sessions d'Antigravity — un KI obsolète entraîne des régressions à la session suivante.
+
 ---
 
 ## IDs de référence rapide (board)
@@ -359,6 +369,8 @@ gh issue close <NUMERO> --repo FunWarry/Open-Bar
 - [ ] Board : In progress → In review → Done
 - [ ] Branche locale supprimée après merge
 - [ ] `CLAUDE.md` mis à jour (tableau features)
+- [ ] **KIs mis à jour** (`openbar-ki-update`) — features-state.md, architecture.md si nécessaire
+- [ ] **`fr.json` + `en.json` mis à jour** si le ticket touché le frontend (même commit que le composant)
 
 ---
 

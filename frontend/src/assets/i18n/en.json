@@ -161,6 +161,12 @@
     "SEND_PREPARATION": "Send to Kitchen/Bar",
     "SELECT_TABLE": "Select a Table",
     "CLEAR": "Clear Cart",
+    "SELECT_VARIANTE": "Choose a variant",
+    "NO_VARIANTE": "Classic version",
+    "VARIANTE_DISPO": "variant(s) available",
+    "NOTES_BARMAN": "Barman notes",
+    "NOTES_PLACEHOLDER": "E.g. no mint, strawberry allergy...",
+    "ADD_TO_CART": "Add to cart",
     "CATEGORIES": {
       "ALL": "All",
       "COCKTAIL": "Cocktails",

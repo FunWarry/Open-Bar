@@ -1,0 +1,128 @@
+.modal-toolbar {
+  --background: #1a1f35;
+  --color: #eceefb;
+}
+
+.modal-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #eceefb;
+}
+
+.modal-content {
+  --background: #151929;
+}
+
+.section-label {
+  padding: 16px 16px 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #7e87a8;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.notes-label {
+  margin-top: 8px;
+}
+
+.variante-item {
+  --background: #21263f;
+  --border-radius: 10px;
+  --padding-start: 12px;
+  --inner-padding-end: 12px;
+  margin: 4px 12px;
+  border-radius: 10px;
+
+  ion-radio {
+    --color: #7e87a8;
+    --color-checked: #6c7fe8;
+    margin-right: 12px;
+  }
+
+  .variante-nom {
+    font-size: 14px;
+    font-weight: 600;
+    color: #eceefb;
+  }
+
+  .variante-description {
+    font-size: 12px;
+    color: #7e87a8;
+    margin-top: 2px;
+  }
+
+  .variante-prix {
+    font-size: 13px;
+    font-weight: 700;
+    color: #34c77b;
+    margin-top: 4px;
+
+    .supplement {
+      font-size: 11px;
+      font-weight: 500;
+      color: #7e87a8;
+      margin-left: 4px;
+    }
+  }
+}
+
+.notes-wrapper {
+  margin: 4px 12px;
+
+  .notes-textarea {
+    --background: #21263f;
+    --color: #eceefb;
+    --placeholder-color: #5a617a;
+    --border-radius: 10px;
+    --padding-start: 12px;
+    --padding-top: 10px;
+    --padding-bottom: 10px;
+    font-size: 13px;
+    border-radius: 10px;
+  }
+}
+
+.prix-effectif-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 16px 12px 8px;
+  padding: 12px 16px;
+  background: #21263f;
+  border-radius: 10px;
+
+  .prix-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #7e87a8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .prix-valeur {
+    font-size: 20px;
+    font-weight: 800;
+    color: #34c77b;
+
+    .supplement-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: #7e87a8;
+      margin-left: 6px;
+    }
+  }
+}
+
+.modal-footer-toolbar {
+  --background: #1a1f35;
+  padding: 8px;
+
+  .btn-ajouter {
+    --background: #6c7fe8;
+    --color: #fff;
+    --border-radius: 12px;
+    font-weight: 700;
+    font-size: 15px;
+  }
+}
