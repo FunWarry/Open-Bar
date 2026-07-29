@@ -1,6 +1,6 @@
 # OpenBar — État des Features & Roadmap
 
-> Dernière mise à jour : 29 juillet 2026 — PRs #184, #185, #186, #187, #194, #195, #196
+> Dernière mise à jour : 29 juillet 2026 — PRs #184, #185, #186, #187, #194, #195, #196, #197
 
 ## Tableau des Features
 
@@ -32,6 +32,7 @@
 | Notifications WS (toasts + panneau navbar) | ✅ | ✅ | ✅ | — |
 | Service Broadcast STOMP (#187) | ✅ | — | ✅ | — |
 | Notifications Sonores & Visuelles (#181) | ✅ | ✅ | ✅ | Synthétiseur Web Audio API & Badges |
+| Configuration Seuils Alertes Commandes & Stock (#197) | ✅ | ✅ | ✅ | Réglages Manager et Barman |
 | Factures (liste + détail + règlement) | ✅ | ✅ | ✅ | — |
 | Fusion d'additions (#186) | ✅ | ❌ | ✅ | Frontend manquant |
 | Export factures (PDF) | ✅ | ✅ | ✅ | OpenPDF |
@@ -60,6 +61,7 @@
 
 | PR / Issue | Description |
 |------------|-------------|
+| #197 | Configuration des Seuils d'Alerte Temporels des Commandes & Stock Ingrédients (Manager & Barman) |
 | #196 (#181) | Notifications Sonores et Visuelles Temps Réel — Alertes Barman et Serveur |
 | #195 (#182) | Variantes & Options de Personnalisation de Cocktails dans la Prise de Commande Serveur |
 | #83 | DTOs de sortie Java records |
