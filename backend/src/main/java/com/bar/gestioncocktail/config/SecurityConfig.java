@@ -3,7 +3,6 @@ package com.bar.gestioncocktail.config;
 import com.bar.gestioncocktail.security.JwtAuthenticationFilter;
 import com.bar.gestioncocktail.security.JwtAuthorizationFilter;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -33,7 +32,6 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final JwtAuthorizationFilter jwtAuthorizationFilter;
 
-    @Autowired
     public SecurityConfig(
             JwtAuthenticationFilter jwtAuthenticationFilter,
             JwtAuthorizationFilter jwtAuthorizationFilter) {
@@ -47,7 +45,7 @@ public class SecurityConfig {
             return http
                     .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                     .csrf(csrf -> csrf
-                            .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
+                            .csrfTokenRepository(new CookieCsrfTokenRepository()))
                     .sessionManagement(session -> session
                             .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     .authorizeHttpRequests(auth -> auth
