@@ -57,6 +57,7 @@
         "COMMANDES": "Commandes",
         "TABLES": "Tables",
         "FACTURES": "Factures",
+        "INGREDIENTS": "Ingrédients",
         "PROFILE": "Mon profil",
         "AUDIT_LOGS": "Journal d'audit",
         "UNKNOWN": "OpenBar"
@@ -234,6 +235,25 @@
       "CARTE": "Carte bancaire",
       "CHEQUE": "Chèque"
     }
+  },
+  "INGREDIENTS": {
+    "TITLE": "Gestion des Ingrédients",
+    "NEW_TITLE": "Nouvel Ingrédient",
+    "EDIT_TITLE": "Modifier l'Ingrédient",
+    "NAME": "Nom",
+    "NAME_REQUIRED": "Le nom est requis",
+    "UNIT": "Unité de mesure",
+    "UNIT_REQUIRED": "L'unité est requise",
+    "STOCK_QTY": "Quantité en stock",
+    "STOCK_MIN_ERROR": "La quantité ne peut pas être négative",
+    "SEUIL_ALERTE": "Seuil d'alerte",
+    "SEUIL_MIN_ERROR": "Le seuil ne peut pas être négatif",
+    "ALERTE_STOCK": "Stock Faible",
+    "EMPTY": "Aucun ingrédient enregistré",
+    "CREATED_SUCCESS": "Ingrédient créé avec succès",
+    "UPDATED_SUCCESS": "Ingrédient modifié avec succès",
+    "DELETE_SUCCESS": "Ingrédient supprimé",
+    "DELETE_ERROR": "Impossible de supprimer cet ingrédient"
   },
   "SERVEUR": {
     "TITLE": "Espace Serveur",

@@ -34,6 +34,7 @@ const ROUTE_TITLE_MAP: Record<string, string> = {
   '/plan-salle': 'NAV.TOPBAR.PAGE_TITLES.PLAN_SALLE',
   '/manager': 'NAV.TOPBAR.PAGE_TITLES.MANAGER',
   '/cocktails': 'NAV.TOPBAR.PAGE_TITLES.COCKTAILS',
+  '/ingredients': 'NAV.TOPBAR.PAGE_TITLES.INGREDIENTS',
   '/commandes': 'NAV.TOPBAR.PAGE_TITLES.COMMANDES',
   '/tables': 'NAV.TOPBAR.PAGE_TITLES.TABLES',
   '/factures': 'NAV.TOPBAR.PAGE_TITLES.FACTURES',

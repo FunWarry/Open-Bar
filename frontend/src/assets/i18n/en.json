@@ -56,7 +56,8 @@
         "COCKTAILS": "Cocktails",
         "COMMANDES": "Orders",
         "TABLES": "Tables",
-        "FACTURES": "Invoices",
+        "FACTURES": "Bills",
+        "INGREDIENTS": "Ingredients",
         "PROFILE": "My Profile",
         "AUDIT_LOGS": "Audit Logs",
         "UNKNOWN": "OpenBar"
@@ -233,6 +234,25 @@
       "CARTE": "Credit Card",
       "CHEQUE": "Check"
     }
+  },
+  "INGREDIENTS": {
+    "TITLE": "Ingredients Management",
+    "NEW_TITLE": "New Ingredient",
+    "EDIT_TITLE": "Edit Ingredient",
+    "NAME": "Name",
+    "NAME_REQUIRED": "Name is required",
+    "UNIT": "Unit of measure",
+    "UNIT_REQUIRED": "Unit is required",
+    "STOCK_QTY": "Stock Quantity",
+    "STOCK_MIN_ERROR": "Quantity cannot be negative",
+    "SEUIL_ALERTE": "Alert Threshold",
+    "SEUIL_MIN_ERROR": "Threshold cannot be negative",
+    "ALERTE_STOCK": "Low Stock",
+    "EMPTY": "No ingredients found",
+    "CREATED_SUCCESS": "Ingredient created successfully",
+    "UPDATED_SUCCESS": "Ingredient updated successfully",
+    "DELETE_SUCCESS": "Ingredient deleted",
+    "DELETE_ERROR": "Unable to delete this ingredient"
   },
   "SERVEUR": {
     "TITLE": "Server Area",
