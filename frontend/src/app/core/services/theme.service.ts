@@ -273,11 +273,13 @@ export class ThemeService {
 
     if (isEffectiveDark) {
       rootStyle.setProperty('--bg-0', colors.bgDark);
+      rootStyle.setProperty('--bg-1', this.adjustBrightness(colors.bgDark, +4));
       rootStyle.setProperty('--surface-1', colors.surfaceDark);
       rootStyle.setProperty('--surface-2', this.adjustBrightness(colors.surfaceDark, +6));
       rootStyle.setProperty('--surface-3', this.adjustBrightness(colors.surfaceDark, +12));
     } else {
       rootStyle.setProperty('--bg-0', colors.bgLight);
+      rootStyle.setProperty('--bg-1', this.adjustBrightness(colors.bgLight, -3));
       rootStyle.setProperty('--surface-1', colors.surfaceLight);
       rootStyle.setProperty('--surface-2', this.adjustBrightness(colors.bgLight, -5));
       rootStyle.setProperty('--surface-3', this.adjustBrightness(colors.bgLight, -10));

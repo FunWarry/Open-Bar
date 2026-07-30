@@ -10,7 +10,7 @@
   min-width: 220px;
   height: 100%;
   background-color: var(--bg-1, #151521);
-  border-right: 1px solid var(--border-medium, #2e3450);
+  border-right: 1px solid var(--border-subtle, #23233a);
   display: flex;
   flex-direction: column;
   transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
@@ -31,7 +31,7 @@
   align-items: center;
   justify-content: flex-end;
   padding: 0 12px;
-  border-bottom: 1px solid var(--border-medium, #2e3450);
+  border-bottom: 1px solid var(--border-subtle, #23233a);
 }
 
 .sidebar.collapsed .sidebar-header {
@@ -160,7 +160,7 @@
 .sidebar-footer {
   height: 60px;
   padding: 0 12px;
-  border-top: 1px solid var(--border-medium, #2e3450);
+  border-top: 1px solid var(--border-subtle, #23233a);
   background-color: var(--surface-1, #1a1a2e);
   display: flex;
   align-items: center;
