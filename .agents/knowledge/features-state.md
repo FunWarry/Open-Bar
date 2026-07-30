@@ -30,7 +30,7 @@
 | Variantes & Déduction auto stocks (#185/#182) | ✅ | ✅ | ✅ | Modal sélection & personnalisation |
 | Ingrédients CRUD | ✅ | ✅ | ✅ | — |
 | Tables CRUD | ✅ | ✅ | ✅ | — |
-| Transfert commande entre tables (#186/#205) | ✅ | ❌ | ✅ | Ticket #205 créé (Frontend à raccorder) |
+| Transfert commande entre tables (#186/#205) | ✅ | ✅ | ✅ | Bouton & TransfertModalComponent raccordés (#205/#207) |
 | Commandes | ✅ | ✅ | ✅ | — |
 | Passage commande publique QR (#184) | ✅ | ✅ | ✅ | — |
 | Déstockage auto (EN_PREPARATION & Variantes) | ✅ | — | ✅ | — |
@@ -53,8 +53,7 @@
 
 ## Features Manquantes Prioritaires (Frontend)
 
-1. **#205 - [Frontend] Modal et Bouton de Transfert de Commande entre Tables**
-2. **#206 - [Frontend] Écran d'Historique et Journal d'Audit Système dans l'Espace Admin**
+1. **#206 - [Frontend] Écran d'Historique et Journal d'Audit Système dans l'Espace Admin**
 
 ## Dette Technique Active
 
