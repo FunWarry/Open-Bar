@@ -9,25 +9,25 @@
 }
 
 .receipt-preview {
-  background: #1e2235;
-  color: #e2e8f0;
+  background: var(--surface-2);
+  color: var(--text-secondary);
   font-family: 'Courier New', Courier, monospace;
   font-size: 11px;
   padding: 16px;
   border-radius: 8px;
-  border: 1px dashed #475569;
+  border: 1px dashed var(--border-strong);
   line-height: 1.5;
 }
 
 .receipt-preview .header-bold {
   font-weight: bold;
   font-size: 13px;
-  color: #38bdf8;
+  color: var(--info);
   margin-bottom: 4px;
 }
 
 .receipt-preview hr {
   border: 0;
-  border-top: 1px dashed #64748b;
+  border-top: 1px dashed var(--border-strong);
   margin: 8px 0;
 }

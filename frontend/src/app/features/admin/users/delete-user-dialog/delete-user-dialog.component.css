@@ -3,7 +3,7 @@ mat-dialog-content {
 }
 
 .warning {
-  color: #f44336;
+  color: var(--danger);
   font-size: 0.9em;
   margin-top: 16px;
 }
