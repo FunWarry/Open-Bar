@@ -41,7 +41,7 @@ class SecurityConfigTest {
 
     @Test
     @DisplayName("authenticationManager - should delegate to AuthenticationConfiguration")
-    void authenticationManager_delegatesToConfig() throws Exception {
+    void authenticationManager_delegatesToConfig() {
         SecurityConfig config = new SecurityConfig(jwtAuthFilter, jwtAuthorFilter);
 
         when(authConfig.getAuthenticationManager()).thenReturn(authManager);

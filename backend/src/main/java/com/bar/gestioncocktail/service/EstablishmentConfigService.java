@@ -7,6 +7,7 @@ import com.bar.gestioncocktail.model.EstablishmentConfig;
 import com.bar.gestioncocktail.repository.EstablishmentConfigRepository;
 import com.bar.gestioncocktail.util.SiretLuhnValidator;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -23,10 +24,11 @@ public class EstablishmentConfigService {
 
     /**
      * Retrieves existing configuration entity or creates standard singleton instance if not found.
+     * Uses REQUIRES_NEW propagation so potential query errors do not abort outer caller transactions.
      *
      * @return current {@link EstablishmentConfig}
      */
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)
     public EstablishmentConfig getConfig() {
         return getConfigInternal();
     }

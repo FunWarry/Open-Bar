@@ -18,6 +18,7 @@ import java.util.List;
 public class TimeService {
 
     private final EstablishmentConfigService establishmentConfigService;
+    private volatile ZoneId cachedZoneId;
 
     /**
      * Constructor for {@link TimeService}.
@@ -29,26 +30,39 @@ public class TimeService {
     }
 
     /**
+     * Clears the cached timezone forcing re-resolution on next access.
+     */
+    public void clearCache() {
+        this.cachedZoneId = null;
+    }
+
+    /**
      * Resolves the configured {@link ZoneId}.
      * Falls back to {@link ZoneId#systemDefault()} if set to "SYSTEM", blank, or invalid.
      *
      * @return active {@link ZoneId}
      */
     public ZoneId getZoneId() {
+        if (cachedZoneId != null) {
+            return cachedZoneId;
+        }
+
         if (establishmentConfigService != null) {
             try {
                 EstablishmentConfig config = establishmentConfigService.getConfig();
                 if (config != null && config.getTimeZone() != null) {
                     String tz = config.getTimeZone().trim();
                     if (!tz.isBlank() && !"SYSTEM".equalsIgnoreCase(tz)) {
-                        return ZoneId.of(tz);
+                        cachedZoneId = ZoneId.of(tz);
+                        return cachedZoneId;
                     }
                 }
             } catch (Exception _) {
                 // Fallback gracefully to system default zone if config lookup fails
             }
         }
-        return ZoneId.systemDefault();
+        cachedZoneId = ZoneId.systemDefault();
+        return cachedZoneId;
     }
 
 

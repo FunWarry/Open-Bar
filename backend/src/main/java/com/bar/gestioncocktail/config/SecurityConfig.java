@@ -16,7 +16,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -45,7 +45,14 @@ public class SecurityConfig {
             return http
                     .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                     .csrf(csrf -> csrf
-                            .csrfTokenRepository(new CookieCsrfTokenRepository()))
+                            .csrfTokenRepository(new PassthroughCsrfTokenRepository())
+                            .csrfTokenRequestHandler((request, response, deferredCsrfToken) -> {
+                                CsrfToken token = deferredCsrfToken.get();
+                                if (token != null) {
+                                    request.setAttribute(CsrfToken.class.getName(), token);
+                                    request.setAttribute("_csrf", token);
+                                }
+                            }))
                     .sessionManagement(session -> session
                             .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     .authorizeHttpRequests(auth -> auth
@@ -64,8 +71,8 @@ public class SecurityConfig {
                                     HttpServletResponse.SC_FORBIDDEN, "Forbidden", "Accès refusé"))
                             .authenticationEntryPoint((request, response, _) -> writeError(response,
                                     HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized", "Non authentifié")))
-                    .addFilterBefore(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class)
                     .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                    .addFilterBefore(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class)
                     .build();
         } catch (Exception e) {
             throw new IllegalStateException("Error building SecurityFilterChain", e);
@@ -96,8 +103,7 @@ public class SecurityConfig {
                 "http://localhost:[*]",
                 "http://127.0.0.1:[*]",
                 "http://192.168.[*]",
-                "http://10.[*]"
-        ));
+                "http://10.[*]"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
