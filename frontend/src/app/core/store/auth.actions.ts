@@ -58,5 +58,5 @@ export const logoutFailure = createAction(
 /** Action NgRx de réhydratation du store d'authentification depuis le LocalStorage au démarrage. */
 export const initAuthFromStorage = createAction(
   '[Auth] Init Auth From Storage',
-  props<{ token: string }>()
+  props<{ token: string; user?: User | null }>()
 );
