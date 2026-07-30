@@ -6,7 +6,7 @@ import { MemoizedSelector } from '@ngrx/store';
 import {
   selectIsAuthenticated,
   selectIsAdmin,
-  selectCurrentUser
+  selectCurrentUser,
 } from '../../../app/core/store/auth.selectors';
 import * as AuthActions from '../../../app/core/store/auth.actions';
 import { NavigationService } from '../../../app/core/services/navigation.service';
@@ -14,6 +14,10 @@ import { NotificationService } from '../../../app/core/services/notification.ser
 import { IonicModule } from '@ionic/angular';
 import { PopoverController } from '@ionic/angular/standalone';
 import { EMPTY, of } from 'rxjs';
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
+import { TranslocoService } from '@jsverse/transloco';
+import { SoundService } from '../../../app/core/services/sound.service';
+import { User } from '../../../app/core/models/user.model';
 
 describe('NavbarComponent', () => {
   let component: NavbarComponent;
@@ -26,11 +30,17 @@ describe('NavbarComponent', () => {
   let mockSelectCurrentUser: MemoizedSelector<any, any>;
 
   const initialState = {
-    auth: {
-      token: null,
-      user: null,
-      error: null
-    }
+    auth: { token: null, user: null, error: null },
+  };
+
+  const mockAdminUser: User = {
+    id: 1,
+    username: 'admin',
+    email: 'admin@bar.com',
+    roles: ['ADMIN'],
+    enabled: true,
+    createdAt: new Date('2026-01-01'),
+    updatedAt: new Date('2026-01-01'),
   };
 
   beforeEach(async () => {
@@ -38,22 +48,33 @@ describe('NavbarComponent', () => {
       'navigateToHome',
       'navigateToLogin',
       'navigateToAdmin',
-      'navigateToUserProfile'
+      'navigateToUserProfile',
     ]);
 
-    const mockNotifService = jasmine.createSpyObj('NotificationService', ['onNotification', 'onStockAlert', 'getNonLues', 'getHistory', 'marquerLue', 'marquerToutLu']);
+    const mockNotifService = jasmine.createSpyObj('NotificationService', [
+      'onNotification', 'onStockAlert', 'getNonLues', 'getHistory', 'marquerLue', 'marquerToutLu',
+    ]);
     mockNotifService.onNotification.and.returnValue(of());
     mockNotifService.onStockAlert.and.returnValue(EMPTY);
     mockNotifService.getNonLues.and.returnValue(0);
 
+    const mockSoundService = jasmine.createSpyObj('SoundService', ['toggleSound', 'isSoundEnabled']);
+    mockSoundService.isSoundEnabled.and.returnValue(true);
+
     const mockPopoverCtrl = jasmine.createSpyObj('PopoverController', ['create']);
 
     await TestBed.configureTestingModule({
-      imports: [NavbarComponent, IonicModule.forRoot(), RouterTestingModule],
+      imports: [
+        NavbarComponent,
+        IonicModule.forRoot(),
+        RouterTestingModule,
+        getTranslocoTestingModule(),
+      ],
       providers: [
         provideMockStore({ initialState }),
         { provide: NavigationService, useValue: mockNavigationService },
         { provide: NotificationService, useValue: mockNotifService },
+        { provide: SoundService, useValue: mockSoundService },
         { provide: PopoverController, useValue: mockPopoverCtrl },
       ],
     }).compileComponents();
@@ -73,31 +94,11 @@ describe('NavbarComponent', () => {
     store.resetSelectors();
   });
 
-  it('devrait créer le composant', () => {
+  it('should create the component', () => {
     expect(component).toBeTruthy();
   });
 
-  it('isAuthenticated$ émet false quand le store retourne non authentifié', (done) => {
-    mockSelectIsAuthenticated.setResult(false);
-    store.refreshState();
-
-    component.isAuthenticated$.subscribe(val => {
-      expect(val).toBeFalse();
-      done();
-    });
-  });
-
-  it('isAuthenticated$ émet true quand un token est présent dans le store', (done) => {
-    mockSelectIsAuthenticated.setResult(true);
-    store.refreshState();
-
-    component.isAuthenticated$.subscribe(val => {
-      expect(val).toBeTrue();
-      done();
-    });
-  });
-
-  it('isAdmin$ émet false pour un utilisateur non admin', (done) => {
+  it('isAdmin$ should emit false when store returns non-admin', (done) => {
     mockSelectIsAdmin.setResult(false);
     store.refreshState();
 
@@ -107,7 +108,7 @@ describe('NavbarComponent', () => {
     });
   });
 
-  it('isAdmin$ émet true pour un utilisateur avec rôle ADMIN', (done) => {
+  it('isAdmin$ should emit true for user with ADMIN role', (done) => {
     mockSelectIsAdmin.setResult(true);
     store.refreshState();
 
@@ -117,7 +118,7 @@ describe('NavbarComponent', () => {
     });
   });
 
-  it('currentUser$ émet null quand aucun utilisateur dans le store', (done) => {
+  it('currentUser$ should emit null when no user is in the store', (done) => {
     mockSelectCurrentUser.setResult(null);
     store.refreshState();
 
@@ -127,38 +128,33 @@ describe('NavbarComponent', () => {
     });
   });
 
-  it('currentUser$ émet les données utilisateur quand connecté', (done) => {
-    const user = { id: 1, email: 'test@bar.com', roles: ['SERVEUR'] };
-    mockSelectCurrentUser.setResult(user);
+  it('currentUser$ should emit user data when logged in', (done) => {
+    mockSelectCurrentUser.setResult(mockAdminUser);
     store.refreshState();
 
     component.currentUser$.subscribe(val => {
-      expect(val).toEqual(user);
+      expect(val).toEqual(mockAdminUser);
       done();
     });
   });
 
-  it('nonLues est 0 par défaut', () => {
+  it('nonLues should default to 0', () => {
     expect(component.nonLues).toBe(0);
   });
 
-  it('onLogout() dispatche l\'action AuthActions.logout', () => {
+  it('onLogout() should dispatch AuthActions.logout', () => {
     const dispatchSpy = spyOn(store, 'dispatch');
-
     component.onLogout();
-
     expect(dispatchSpy).toHaveBeenCalledWith(AuthActions.logout());
   });
 
-  it('onLogout() dispatche exactement une action', () => {
+  it('onLogout() should dispatch exactly one action', () => {
     const dispatchSpy = spyOn(store, 'dispatch');
-
     component.onLogout();
-
     expect(dispatchSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('shouldShowNavbar$ émet false si l\'utilisateur n\'est pas authentifié', (done) => {
+  it('shouldShowNavbar$ should emit false when user is not authenticated', (done) => {
     mockSelectIsAuthenticated.setResult(false);
     store.refreshState();
 
@@ -168,19 +164,93 @@ describe('NavbarComponent', () => {
     });
   });
 
-  it('toggleSound() appelle soundService.toggleSound()', () => {
-    spyOn(component.soundService, 'toggleSound');
-    component.toggleSound();
-    expect(component.soundService.toggleSound).toHaveBeenCalled();
-  });
-
-  it('shouldShowNavbar$ émet true si l\'utilisateur est authentifié sur une page hors auth/setup', (done) => {
+  it('shouldShowNavbar$ should emit true when authenticated on a non-auth route', (done) => {
     store.overrideSelector(selectIsAuthenticated, true);
     store.refreshState();
 
     component.shouldShowNavbar$.subscribe(show => {
       expect(show).toBeTrue();
       done();
+    });
+  });
+
+  it('toggleSound() should call soundService.toggleSound()', () => {
+    component.toggleSound();
+    expect(component.soundService.toggleSound).toHaveBeenCalled();
+  });
+
+  // --- New tests for #208 features ---
+
+  describe('getPrimaryRole()', () => {
+    it('should return ADMIN when user has ADMIN role', () => {
+      expect(component.getPrimaryRole(mockAdminUser)).toBe('ADMIN');
+    });
+
+    it('should return MANAGER when user has MANAGER role', () => {
+      const user: User = { ...mockAdminUser, roles: ['MANAGER'] };
+      expect(component.getPrimaryRole(user)).toBe('MANAGER');
+    });
+
+    it('should return BARMAN when user has BARMAN role', () => {
+      const user: User = { ...mockAdminUser, roles: ['BARMAN'] };
+      expect(component.getPrimaryRole(user)).toBe('BARMAN');
+    });
+
+    it('should return SERVEUR when user has SERVEUR role', () => {
+      const user: User = { ...mockAdminUser, roles: ['SERVEUR'] };
+      expect(component.getPrimaryRole(user)).toBe('SERVEUR');
+    });
+
+    it('should prefer ADMIN over other roles when user has multiple roles', () => {
+      const user: User = { ...mockAdminUser, roles: ['SERVEUR', 'ADMIN'] };
+      expect(component.getPrimaryRole(user)).toBe('ADMIN');
+    });
+
+    it('should return empty string when user is null', () => {
+      expect(component.getPrimaryRole(null)).toBe('');
+    });
+
+    it('should return empty string when user has no roles', () => {
+      const user: User = { ...mockAdminUser, roles: [] };
+      expect(component.getPrimaryRole(user)).toBe('');
+    });
+  });
+
+  describe('getRoleBadgeColor()', () => {
+    it('should return the Figma purple color for ADMIN role', () => {
+      expect(component.getRoleBadgeColor('ADMIN')).toBe('#9b8af2');
+    });
+
+    it('should return the Figma orange color for MANAGER role', () => {
+      expect(component.getRoleBadgeColor('MANAGER')).toBe('#f0a33b');
+    });
+
+    it('should return the Figma green color for SERVEUR role', () => {
+      expect(component.getRoleBadgeColor('SERVEUR')).toBe('#34c77b');
+    });
+
+    it('should return the Figma cyan color for BARMAN role', () => {
+      expect(component.getRoleBadgeColor('BARMAN')).toBe('#4fc3f7');
+    });
+
+    it('should return the default text color for an unknown role', () => {
+      expect(component.getRoleBadgeColor('UNKNOWN')).toBe('#eceefb');
+    });
+  });
+
+  describe('localTime signal', () => {
+    it('should contain a formatted time string in HH:mm format', () => {
+      const time = component.localTime();
+      expect(time).toMatch(/^\d{1,2}:\d{2}$/);
+    });
+  });
+
+  describe('pageTitle$', () => {
+    it('should emit a translated title string for an authenticated route', (done) => {
+      component.pageTitle$.subscribe(title => {
+        expect(typeof title).toBe('string');
+        done();
+      });
     });
   });
 });

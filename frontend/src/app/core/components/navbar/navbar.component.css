@@ -1,19 +1,44 @@
+/* === TopBar / Navbar — OpenBar Design System === */
+
 ion-toolbar {
   --background: var(--surface-1, #1a1a2e);
   --color: var(--text-primary, #eceefb);
-  --border-color: var(--border-default, #2e3450);
-  border-bottom: 1px solid var(--border-default, #2e3450);
+  --border-color: var(--border-medium, #2e3450);
+  border-bottom: 1px solid var(--border-medium, #2e3450);
   padding: 0 var(--space-2, 8px);
+  display: flex;
+  align-items: center;
 }
 
-ion-title {
+/* Logo / app name — clickable */
+.topbar-logo {
   font-family: var(--font, 'Inter', sans-serif);
   font-weight: 700;
-  font-size: var(--fs-h2, 20px);
+  font-size: 18px;
   color: var(--primary-light, #aab4f3);
   letter-spacing: -0.01em;
+  cursor: pointer;
+  flex-shrink: 0;
+  min-width: fit-content;
 }
 
+/* Dynamic page title — center */
+.topbar-page-title {
+  flex: 1;
+  text-align: center;
+  font-family: var(--font, 'Inter', sans-serif);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-secondary, #a4add0);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 8px;
+  pointer-events: none;
+}
+
+/* End-slot buttons */
 ion-button {
   --color: var(--text-secondary, #a4add0);
   font-weight: 600;
@@ -22,4 +47,53 @@ ion-button {
 
 ion-button:hover {
   --color: var(--text-primary, #eceefb);
+}
+
+/* Local time display */
+.topbar-time {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted, #7e87a8);
+  font-family: var(--font, 'Inter', sans-serif);
+  padding: 0 8px;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.time-icon {
+  font-size: 14px;
+  color: var(--text-muted, #7e87a8);
+}
+
+/* Notification badge */
+.notif-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  font-size: 9px;
+  padding: 2px 4px;
+  min-width: 16px;
+}
+
+/* Role badge chip shown next to the username */
+.role-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--font, 'Inter', sans-serif);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #0f0f1a;
+  background-color: var(--primary, #6c7fe8);
+  border-radius: 999px;
+  padding: 2px 8px;
+  margin-right: 6px;
+  white-space: nowrap;
+  line-height: 1.4;
+  vertical-align: middle;
 }

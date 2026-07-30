@@ -116,6 +116,7 @@ describe('AuditLogsComponent', () => {
 
     expect(component.loading()).toBeFalse();
     expect(component.errorMessage()).toBe('ERRORS.NETWORK');
+    auditLogServiceSpy.getAuditLogs.and.returnValue(of(mockLogs));
   });
 
   it('should complete refresh event when handleRefresh is triggered', () => {

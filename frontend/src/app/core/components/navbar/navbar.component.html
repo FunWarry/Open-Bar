@@ -1,60 +1,106 @@
 @if (shouldShowNavbar$ | async) {
   <ion-header>
-    <ion-toolbar color="primary">
-      <ion-title (click)="navigationService.navigateToHome()" (keyup.enter)="navigationService.navigateToHome()" style="cursor:pointer">
+    <ion-toolbar>
+      <!-- App logo / home link -->
+      <ion-title
+        (click)="navigationService.navigateToHome()"
+        (keyup.enter)="navigationService.navigateToHome()"
+        class="topbar-logo"
+        data-testid="topbar-logo">
         OpenBar
       </ion-title>
 
+      <!-- Dynamic page title (center) -->
+      <div class="topbar-page-title" data-testid="topbar-page-title">
+        {{ pageTitle$ | async }}
+      </div>
+
       <ion-buttons slot="end">
-        <!-- Bouton toggle son notifications -->
-        <ion-button (click)="toggleSound()" (keydown.enter)="toggleSound()" data-testid="navbar-sound-toggle" [title]="soundService.isSoundEnabled() ? 'Désactiver le son' : 'Activer le son'">
-          <ion-icon slot="icon-only" [name]="soundService.isSoundEnabled() ? 'volume-high-outline' : 'volume-mute-outline'"></ion-icon>
+
+        <!-- Local establishment time -->
+        <div class="topbar-time" data-testid="topbar-local-time">
+          <ion-icon name="time-outline" class="time-icon"></ion-icon>
+          {{ localTime() }}
+        </div>
+
+        <!-- Sound toggle button -->
+        <ion-button
+          (click)="toggleSound()"
+          (keydown.enter)="toggleSound()"
+          data-testid="topbar-sound-toggle"
+          [title]="soundService.isSoundEnabled() ? ('NAV.SOUND_DISABLE' | transloco) : ('NAV.SOUND_ENABLE' | transloco)">
+          <ion-icon slot="icon-only"
+            [name]="soundService.isSoundEnabled() ? 'volume-high-outline' : 'volume-mute-outline'">
+          </ion-icon>
         </ion-button>
 
-        <!-- Bouton cloche notifications -->
-        <ion-button (click)="ouvrirNotifications($event)" (keyup.enter)="ouvrirNotifications($event)" style="position:relative">
+        <!-- Notification bell -->
+        <ion-button
+          (click)="ouvrirNotifications($event)"
+          (keyup.enter)="ouvrirNotifications($event)"
+          style="position:relative"
+          data-testid="topbar-notifications-btn">
           <ion-icon slot="icon-only" name="notifications-outline"></ion-icon>
           @if (nonLues > 0) {
-            <ion-badge color="danger" style="position:absolute;top:4px;right:4px;font-size:9px;padding:2px 4px">
+            <ion-badge
+              color="danger"
+              class="notif-badge"
+              data-testid="topbar-notif-badge">
               {{ nonLues > 9 ? '9+' : nonLues }}
             </ion-badge>
           }
         </ion-button>
 
-        <ion-button (click)="navigationService.navigateToHome()" (keyup.enter)="navigationService.navigateToHome()">
-          <ion-icon slot="start" name="home"></ion-icon>
-          Accueil
-        </ion-button>
-
-        @if (isAdmin$ | async) {
-          <ion-button (click)="navigationService.navigateToAdmin()" (keyup.enter)="navigationService.navigateToAdmin()">
-            <ion-icon slot="start" name="settings"></ion-icon>
-            Administration
+        <!-- User menu -->
+        @if (currentUser$ | async; as user) {
+          <ion-button id="topbar-user-trigger" data-testid="topbar-user-btn">
+            <!-- Role badge chip -->
+            <span
+              class="role-badge"
+              [style.background-color]="getRoleBadgeColor(getPrimaryRole(user))"
+              data-testid="topbar-role-badge">
+              {{ 'NAV.TOPBAR.ROLE_LABELS.' + getPrimaryRole(user) | transloco }}
+            </span>
+            <ion-icon slot="start" name="person-circle"></ion-icon>
+            {{ user.username }}
+            <ion-icon slot="end" name="chevron-down"></ion-icon>
           </ion-button>
+
+          <ion-popover trigger="topbar-user-trigger" triggerAction="click" [dismissOnSelect]="true">
+            <ng-template>
+              <ion-list lines="none">
+                <ion-item
+                  button
+                  (click)="navigationService.navigateToUserProfile()"
+                  (keyup.enter)="navigationService.navigateToUserProfile()"
+                  data-testid="topbar-profile-link">
+                  <ion-icon slot="start" name="person"></ion-icon>
+                  <ion-label>{{ 'NAV.PROFILE' | transloco }}</ion-label>
+                </ion-item>
+                @if (isAdmin$ | async) {
+                  <ion-item
+                    button
+                    (click)="navigationService.navigateToAdmin()"
+                    (keyup.enter)="navigationService.navigateToAdmin()"
+                    data-testid="topbar-admin-link">
+                    <ion-icon slot="start" name="settings"></ion-icon>
+                    <ion-label>{{ 'NAV.ADMIN' | transloco }}</ion-label>
+                  </ion-item>
+                }
+                <ion-item
+                  button
+                  (click)="onLogout()"
+                  (keyup.enter)="onLogout()"
+                  data-testid="topbar-logout-btn">
+                  <ion-icon slot="start" name="log-out"></ion-icon>
+                  <ion-label>{{ 'NAV.LOGOUT' | transloco }}</ion-label>
+                </ion-item>
+              </ion-list>
+            </ng-template>
+          </ion-popover>
         }
 
-        <ion-button id="user-menu-trigger">
-          <ion-icon slot="start" name="person-circle"></ion-icon>
-          {{ (currentUser$ | async)?.username }}
-          <ion-icon slot="end" name="chevron-down"></ion-icon>
-        </ion-button>
-
-        <ion-popover trigger="user-menu-trigger" triggerAction="click" [dismissOnSelect]="true">
-          <ng-template>
-            <ion-list lines="none">
-              <ion-item button (click)="navigationService.navigateToUserProfile()" (keyup.enter)="navigationService.navigateToUserProfile()">
-                <ion-icon slot="start" name="person"></ion-icon>
-                <ion-label>Mon profil</ion-label>
-              </ion-item>
-              <ion-item button (click)="onLogout()" (keyup.enter)="onLogout()">
-                <ion-icon slot="start" name="log-out"></ion-icon>
-                <ion-label>Déconnexion</ion-label>
-              </ion-item>
-            </ion-list>
-          </ng-template>
-        </ion-popover>
       </ion-buttons>
     </ion-toolbar>
   </ion-header>
 }
-
