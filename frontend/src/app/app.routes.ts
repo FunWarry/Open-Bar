@@ -29,6 +29,31 @@ export const routes: Routes = [
     canActivate: [AuthGuard, RoleGuard],
     data: {roles: ['ADMIN']}
   },
+  // Ingredients management — accessible to ADMIN, MANAGER, BARMAN
+  {
+    path: 'ingredients',
+    loadComponent: () => import('./features/ingredients/ingredient-list/ingredient-list.component').then(m => m.IngredientListComponent),
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['ADMIN', 'MANAGER', 'BARMAN'] }
+  },
+  {
+    path: 'ingredients/new',
+    loadComponent: () => import('./features/ingredients/ingredient-form/ingredient-form.component').then(m => m.IngredientFormComponent),
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['ADMIN', 'MANAGER', 'BARMAN'] }
+  },
+  {
+    path: 'ingredients/:id',
+    loadComponent: () => import('./features/ingredients/ingredient-detail/ingredient-detail.component').then(m => m.IngredientDetailComponent),
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['ADMIN', 'MANAGER', 'BARMAN'] }
+  },
+  {
+    path: 'ingredients/:id/edit',
+    loadComponent: () => import('./features/ingredients/ingredient-form/ingredient-form.component').then(m => m.IngredientFormComponent),
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['ADMIN', 'MANAGER', 'BARMAN'] }
+  },
   {
     path: 'cocktails',
     loadComponent: () => import('./features/cocktails/cocktail-list/cocktail-list.component').then(m => m.CocktailListComponent),
