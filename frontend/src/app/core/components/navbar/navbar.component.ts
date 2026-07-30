@@ -7,7 +7,6 @@ import { TranslocoService, TranslocoPipe } from '@jsverse/transloco';
 import { selectCurrentUser, selectIsAdmin, selectIsAuthenticated } from '../../store/auth.selectors';
 import { NavigationService } from '../../services/navigation.service';
 import { NotificationService } from '../../services/notification.service';
-import { NotificationPanelComponent } from '../notification-panel/notification-panel.component';
 import { SoundService } from '../../services/sound.service';
 import {
   IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,

@@ -52,7 +52,7 @@ describe('NavbarComponent', () => {
     ]);
 
     const mockNotifService = jasmine.createSpyObj('NotificationService', [
-      'onNotification', 'onStockAlert', 'getNonLues', 'getHistory', 'marquerLue', 'marquerToutLu',
+      'onNotification', 'onStockAlert', 'getNonLues', 'getHistory', 'marquerLue', 'marquerToutLu', 'toggleNotifPanel', 'closeNotifPanel',
     ]);
     mockNotifService.onNotification.and.returnValue(of());
     mockNotifService.onStockAlert.and.returnValue(EMPTY);
@@ -256,18 +256,14 @@ describe('NavbarComponent', () => {
   });
 
   describe('side notification panel toggle', () => {
-    it('toggleNotifPanel() should toggle isNotifPanelOpen state', () => {
-      expect(component.isNotifPanelOpen).toBeFalse();
+    it('toggleNotifPanel() should delegate call to notifService.toggleNotifPanel()', () => {
       component.toggleNotifPanel();
-      expect(component.isNotifPanelOpen).toBeTrue();
-      component.toggleNotifPanel();
-      expect(component.isNotifPanelOpen).toBeFalse();
+      expect(component['notifService'].toggleNotifPanel).toHaveBeenCalled();
     });
 
-    it('closeNotifPanel() should set isNotifPanelOpen to false', () => {
-      component.isNotifPanelOpen = true;
+    it('closeNotifPanel() should delegate call to notifService.closeNotifPanel()', () => {
       component.closeNotifPanel();
-      expect(component.isNotifPanelOpen).toBeFalse();
+      expect(component['notifService'].closeNotifPanel).toHaveBeenCalled();
     });
   });
 });
