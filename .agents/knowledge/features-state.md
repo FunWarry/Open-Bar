@@ -30,7 +30,7 @@
 | Variantes & Déduction auto stocks (#185/#182) | ✅ | ✅ | ✅ | Modal sélection & personnalisation |
 | Ingrédients CRUD | ✅ | ✅ | ✅ | — |
 | Tables CRUD | ✅ | ✅ | ✅ | — |
-| Transfert commande entre tables (#186) | ✅ | ❌ | ✅ | Frontend manquant |
+| Transfert commande entre tables (#186/#205) | ✅ | ❌ | ✅ | Ticket #205 créé (Frontend à raccorder) |
 | Commandes | ✅ | ✅ | ✅ | — |
 | Passage commande publique QR (#184) | ✅ | ✅ | ✅ | — |
 | Déstockage auto (EN_PREPARATION & Variantes) | ✅ | — | ✅ | — |
@@ -40,7 +40,7 @@
 | Notifications Sonores & Visuelles (#181) | ✅ | ✅ | ✅ | Synthétiseur Web Audio API & Badges |
 | Configuration Seuils Alertes Commandes & Stock (#197) | ✅ | ✅ | ✅ | Réglages Manager et Barman |
 | Factures (liste + détail + règlement) | ✅ | ✅ | ✅ | — |
-| Fusion d'additions (#186) | ✅ | ❌ | ✅ | Frontend manquant |
+| Fusion d'additions (#186) | ✅ | ✅ | ✅ | FusionModalComponent dans plan-salle |
 | Export factures (PDF) | ✅ | ✅ | ✅ | OpenPDF A4 conforme mentions légales |
 | Division d'addition (split égal/par sélection) | ✅ | ✅ | ✅ | — |
 | Dashboard Manager / stats | ✅ | ✅ polling 30s | ✅ | — |
@@ -49,10 +49,12 @@
 | Plan de salle interactif (Konva.js) | ✅ | ✅ | ✅ | — |
 | Vue Client QR Code (passage commande + suivi STOMP) | ✅ | ✅ | ✅ | Vue Client mobile complète (`/client/commande`, `/client/suivi/:id`) |
 | Fuseau horaire paramétrable (Etablissement / TimeService) | ✅ | ✅ | ✅ | TimeZone configurable par l'admin + fallback Système |
+| Journal d'audit système (/api/audit-logs) (#206) | ✅ | ❌ | ✅ | Ticket #206 créé (Frontend à raccorder) |
 
 ## Features Manquantes Prioritaires (Frontend)
 
-1. **#193 - [Backend/Frontend] Tests d'intégration Spring Boot (Testcontainers) et E2E Playwright**
+1. **#205 - [Frontend] Modal et Bouton de Transfert de Commande entre Tables**
+2. **#206 - [Frontend] Écran d'Historique et Journal d'Audit Système dans l'Espace Admin**
 
 ## Dette Technique Active
 
