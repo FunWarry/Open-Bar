@@ -5,17 +5,14 @@
   (keyup.enter)="toggle()"
   (keyup.space)="toggle()"
   tabindex="0"
-  role="checkbox"
-  [attr.aria-checked]="checked"
-  [attr.aria-disabled]="disabled"
   [attr.data-testid]="testId">
   <input
     type="checkbox"
+    [id]="inputId"
     class="sr-only-checkbox"
     [checked]="checked"
     [disabled]="disabled"
-    tabindex="-1"
-    aria-hidden="true" />
+    tabindex="-1" />
   <div class="checkbox-box" [class.checked]="checked">
     @if (checked) {
       <svg class="checkmark" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -24,6 +21,6 @@
     }
   </div>
   @if (label) {
-    <span class="checkbox-label">{{ label }}</span>
+    <label [for]="inputId" class="checkbox-label">{{ label }}</label>
   }
 </div>

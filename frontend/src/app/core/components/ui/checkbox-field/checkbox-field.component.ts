@@ -22,6 +22,14 @@ import { CommonModule } from '@angular/common';
   ],
 })
 export class CheckboxFieldComponent implements ControlValueAccessor {
+  private static nextId = 0;
+  readonly inputId: string;
+
+  constructor() {
+    CheckboxFieldComponent.nextId += 1;
+    this.inputId = `app-checkbox-${CheckboxFieldComponent.nextId}`;
+  }
+
   /** Text label displayed alongside the checkbox. */
   @Input() label?: string;
 
