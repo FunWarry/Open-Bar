@@ -66,6 +66,13 @@
         "SERVEUR": "Server",
         "BARMAN": "Barman"
       }
+    },
+    "SIDEBAR": {
+      "EXPAND": "Expand menu",
+      "COLLAPSE": "Collapse menu",
+      "NAVIGATION": "Navigation",
+      "MANAGEMENT": "Management & Admin",
+      "USER_PROFILE": "User profile"
     }
   },
   "ETABLISSEMENT": {
