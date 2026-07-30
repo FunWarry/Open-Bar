@@ -141,3 +141,19 @@ ion-popover ion-item ion-icon {
 ion-popover ion-item:hover ion-icon {
   color: var(--primary, #6c7fe8);
 }
+
+/* Non-modal sliding side notification drawer */
+.notif-drawer-wrapper {
+  position: fixed;
+  top: 52px;
+  right: 0;
+  bottom: 0;
+  z-index: 999;
+  transform: translateX(100%);
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: auto;
+}
+
+.notif-drawer-wrapper.open {
+  transform: translateX(0);
+}

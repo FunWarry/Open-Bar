@@ -1,34 +1,41 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, Input, Output, EventEmitter, Optional } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import {
-  IonList, IonItem, IonLabel, IonBadge, IonButton, IonIcon,
-  IonHeader, IonToolbar, IonTitle, IonContent, IonNote,
-  PopoverController,
+  IonButton, IonIcon, PopoverController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { checkmarkDoneOutline, notificationsOffOutline } from 'ionicons/icons';
+import { checkmarkDoneOutline, notificationsOffOutline, notificationsOutline, closeOutline } from 'ionicons/icons';
 import { NotificationService, AppNotification } from '../../services/notification.service';
+import { TranslocoPipe } from '@jsverse/transloco';
 
+/**
+ * Side drawer panel component for displaying notifications dynamically.
+ * Styled with OpenBar Design System CSS variables to support theme switching.
+ */
 @Component({
   selector: 'app-notification-panel',
   standalone: true,
   imports: [
     CommonModule,
-    IonList, IonItem, IonLabel, IonBadge, IonButton, IonIcon,
-    IonHeader, IonToolbar, IonTitle, IonContent, IonNote,
+    IonButton, IonIcon, TranslocoPipe,
   ],
   templateUrl: './notification-panel.component.html',
   styleUrls: ['./notification-panel.component.scss'],
 })
 export class NotificationPanelComponent implements OnInit, OnDestroy {
+  @Input() isOpen = false;
+  @Output() closePanel = new EventEmitter<void>();
+
   notifications: AppNotification[] = [];
   private readonly destroy$ = new Subject<void>();
 
-  constructor(private readonly notifService: NotificationService,private readonly popoverCtrl: PopoverController,
+  constructor(
+    private readonly notifService: NotificationService,
+    @Optional() private readonly popoverCtrl?: PopoverController,
   ) {
-    addIcons({ checkmarkDoneOutline, notificationsOffOutline });
+    addIcons({ checkmarkDoneOutline, notificationsOffOutline, notificationsOutline, closeOutline });
   }
 
   ngOnInit() {
@@ -56,7 +63,10 @@ export class NotificationPanelComponent implements OnInit, OnDestroy {
   }
 
   fermer() {
-    this.popoverCtrl.dismiss();
+    this.closePanel.emit();
+    if (this.popoverCtrl) {
+      this.popoverCtrl.dismiss().catch(() => {/* fallback when not in popover */});
+    }
   }
 
   typeCouleur(type: string): string {

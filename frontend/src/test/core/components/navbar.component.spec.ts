@@ -254,4 +254,20 @@ describe('NavbarComponent', () => {
       });
     });
   });
+
+  describe('side notification panel toggle', () => {
+    it('toggleNotifPanel() should toggle isNotifPanelOpen state', () => {
+      expect(component.isNotifPanelOpen).toBeFalse();
+      component.toggleNotifPanel();
+      expect(component.isNotifPanelOpen).toBeTrue();
+      component.toggleNotifPanel();
+      expect(component.isNotifPanelOpen).toBeFalse();
+    });
+
+    it('closeNotifPanel() should set isNotifPanelOpen to false', () => {
+      component.isNotifPanelOpen = true;
+      component.closeNotifPanel();
+      expect(component.isNotifPanelOpen).toBeFalse();
+    });
+  });
 });

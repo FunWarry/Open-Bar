@@ -1,33 +1,52 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-title>Notifications</ion-title>
-    <ion-button slot="end" fill="clear" size="small" (click)="marquerToutLu()" (keyup.enter)="marquerToutLu()">
-      <ion-icon name="checkmark-done-outline" slot="start"></ion-icon>
-      Tout lu
-    </ion-button>
-  </ion-toolbar>
-</ion-header>
-
-<ion-content>
-  <div *ngIf="notifications.length === 0" class="empty-notifs">
-    <ion-icon name="notifications-off-outline"></ion-icon>
-    <p>Aucune notification</p>
+<div class="notification-panel-container" data-testid="notification-panel-container">
+  <div class="panel-header">
+    <div class="panel-title">
+      <ion-icon name="notifications-outline" class="title-icon"></ion-icon>
+      <h3>Notifications</h3>
+    </div>
+    <div class="header-actions">
+      <ion-button fill="clear" size="small" (click)="marquerToutLu()" (keyup.enter)="marquerToutLu()" class="action-btn" data-testid="notif-mark-all-read">
+        <ion-icon name="checkmark-done-outline" slot="start"></ion-icon>
+        Tout lu
+      </ion-button>
+      <ion-button fill="clear" size="small" (click)="fermer()" (keyup.enter)="fermer()" class="close-btn" data-testid="notif-close-btn">
+        <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </div>
   </div>
 
-  <ion-list *ngIf="notifications.length > 0">
-    <ion-item
-      *ngFor="let n of notifications"
-      [class.lue]="n.lue"
-      (click)="marquerLue(n.id)"
-      (keyup.enter)="marquerLue(n.id)"
-      button
-      detail="false">
-      <ion-badge slot="start" [color]="typeCouleur(n.type)">{{ n.type }}</ion-badge>
-      <ion-label>
-        <p class="notif-message">{{ n.message }}</p>
-        <ion-note>{{ n.timestamp | date:'HH:mm dd/MM' }}</ion-note>
-      </ion-label>
-      <ion-badge slot="end" color="danger" *ngIf="!n.lue">•</ion-badge>
-    </ion-item>
-  </ion-list>
-</ion-content>
+  <div class="panel-body">
+    @if (notifications.length === 0) {
+      <div class="empty-notifs" data-testid="empty-notifs">
+        <ion-icon name="notifications-off-outline"></ion-icon>
+        <p>Aucune notification</p>
+      </div>
+    } @else {
+      <div class="notif-list" data-testid="notif-list">
+        @for (n of notifications; track n.id) {
+          <div
+            class="notif-item"
+            [class.lue]="n.lue"
+            (click)="marquerLue(n.id)"
+            (keyup.enter)="marquerLue(n.id)"
+            tabindex="0"
+            role="button"
+            data-testid="notif-item">
+            <div class="notif-badge-wrapper">
+              <span class="notif-type-badge" [attr.data-type]="n.type">
+                {{ n.type }}
+              </span>
+            </div>
+            <div class="notif-content">
+              <p class="notif-message">{{ n.message }}</p>
+              <span class="notif-time">{{ n.timestamp | date:'HH:mm dd/MM' }}</span>
+            </div>
+            @if (!n.lue) {
+              <span class="unread-dot" data-testid="unread-dot"></span>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>

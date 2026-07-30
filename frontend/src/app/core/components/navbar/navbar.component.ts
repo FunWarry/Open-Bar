@@ -69,7 +69,7 @@ const ROLE_COLORS: Record<string, string> = {
   imports: [
     IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
     IonPopover, IonList, IonItem, IonLabel, IonBadge,
-    AsyncPipe, TranslocoPipe,
+    AsyncPipe, TranslocoPipe, NotificationPanelComponent,
   ],
 })
 export class NavbarComponent implements OnInit, OnDestroy {
@@ -88,6 +88,9 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   /** Number of unread notifications for the badge. */
   nonLues = 0;
+
+  /** Whether the non-modal side drawer notification panel is open. */
+  isNotifPanelOpen = false;
 
   /** Local time string formatted as HH:mm, updated every minute. */
   readonly localTime = signal<string>(this.formatTime(new Date()));
@@ -177,20 +180,15 @@ export class NavbarComponent implements OnInit, OnDestroy {
     return ROLE_COLORS[role] ?? '#eceefb';
   }
 
-  /**
-   * Opens the notifications panel popover anchored to the given trigger event.
-   *
-   * @param event - The DOM event used to position the popover.
-   */
-  async ouvrirNotifications(event: Event): Promise<void> {
-    const popover = await this.popoverCtrl.create({
-      component: NotificationPanelComponent,
-      event,
-      translucent: true,
-      size: 'auto',
-    });
-    await popover.present();
-    await popover.onDidDismiss();
+  /** Toggles the non-modal side drawer notification panel. */
+  toggleNotifPanel(): void {
+    this.isNotifPanelOpen = !this.isNotifPanelOpen;
+    this.nonLues = this.notifService.getNonLues();
+  }
+
+  /** Closes the non-modal side drawer notification panel. */
+  closeNotifPanel(): void {
+    this.isNotifPanelOpen = false;
     this.nonLues = this.notifService.getNonLues();
   }
 

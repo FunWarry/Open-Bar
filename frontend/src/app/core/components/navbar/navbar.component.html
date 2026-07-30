@@ -36,8 +36,8 @@
 
         <!-- Notification bell -->
         <ion-button
-          (click)="ouvrirNotifications($event)"
-          (keyup.enter)="ouvrirNotifications($event)"
+          (click)="toggleNotifPanel()"
+          (keyup.enter)="toggleNotifPanel()"
           style="position:relative"
           data-testid="topbar-notifications-btn">
           <ion-icon slot="icon-only" name="notifications-outline"></ion-icon>
@@ -103,4 +103,12 @@
       </ion-buttons>
     </ion-toolbar>
   </ion-header>
+
+  <!-- Non-modal sliding side notification drawer panel -->
+  <div class="notif-drawer-wrapper" [class.open]="isNotifPanelOpen" data-testid="side-notif-drawer">
+    <app-notification-panel
+      [isOpen]="isNotifPanelOpen"
+      (closePanel)="closeNotifPanel()">
+    </app-notification-panel>
+  </div>
 }
