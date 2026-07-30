@@ -2,6 +2,8 @@
   class="checkbox-container"
   [class.disabled]="disabled"
   (click)="toggle()"
+  (keydown.enter)="toggle()"
+  (keydown.space)="toggle()"
   [attr.data-testid]="testId">
   <input
     type="checkbox"
