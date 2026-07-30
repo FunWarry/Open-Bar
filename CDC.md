@@ -725,24 +725,24 @@ Après une authentification réussie, l'utilisateur est redirigé directement ve
 
 ## 13. Prochaine session — priorités
 
-> Mis à jour le 28 juillet 2026 après PRs #184–#187.
+> Mis à jour le 30 juillet 2026 après résolution CSRF SPA / 403 Forbidden, PR #204 (CRUD Users Admin), PR #207 (Transfert de Commande) & Création des tickets Figma #208–#211.
 
-### Priorité haute — Frontends manquants (backend prêt)
+### Features du backlog en cours / à venir (Backend ✅ / Frontend à raccorder)
 
-1. 📱 **Vue Client QR Code** — interface publique non-authentifiée pour le client (ticket #184 backend ✅). Design Figma : page `636:987`. Composants : `ProductCard`, `CartItem`, `QuantityStepper`, `CategoryTab`, `MobileHeader`.
-2. 🍸 **Variantes & Déduction auto stocks** — UI barman pour gérer les variantes de cocktails et voir le stock auto-décrémenté (ticket #185 backend ✅).
-3. 🔀 **Transfert table & Fusion factures** — UI serveur/manager pour transférer une commande et fusionner des additions (ticket #186 backend ✅).
+1. 📜 **#206 — Journal d'Audit Système Admin** — Interface frontend d'historique des logs système (`/api/audit-logs`) pour la traçabilité des actions d'administration.
 
-### Priorité moyenne — Documentation & qualité
+### Priorité Haute UI & Layout — Conformité Charte Figma (Tickets #208–#211)
 
-4. 📚 **Documentation complète** — JavaDoc backend, TSDoc frontend, Springdoc OpenAPI/Swagger (ticket #192)
-5. 🧪 **Tests d'intégration & E2E** — Testcontainers (Spring Boot) + Playwright (Angular) (ticket #193)
-6. 🐛 **Bug `dateLivraison`** — set sur `PRET` → doit être `LIVREE` dans `CommandeService.changerStatut()`
+2. 🔝 **#208 — Global TopBar Figma** — En-tête globale (titre de page, notifications WebSocket STOMP, profil connecté, badge de rôle `120:23` et heure locale).
+3. 📐 **#209 — Global NavBar / Sidebar Figma (62:59)** — Barre de navigation latérale repliable (64-220px) adaptative selon le rôle (ADMIN, MANAGER, SERVEUR, BARMAN).
+4. 🎨 **#210 — Refacto Design System & Composants Atomiques (0:1)** — Variables/Tokens CSS et composants atomiques (`StatusBadge`, `RoleBadge`, `ActionButton`, `FilterChip`, `Toast`, `InputField`, `Toggle`, `CheckBox`).
+5. 🖼️ **#211 — Alignement Écrans Composites & Vues Figma** — Harmonisation des vues Barman (`57:2`), Manager (`57:3`), Serveur (`57:4`), Factures (`626:987`) et Vue Client (`636:987`).
 
-### Priorité basse — Dette technique
+### Qualité & Dette Technique
 
-7. 🔄 Supprimer `allow-circular-references: true` dans Spring (refactoring services)
-8. 🔒 Remplacer exceptions `RuntimeException` génériques par exceptions métier typées
+6. 🧪 **Tests d'intégration & E2E** — Testcontainers (Spring Boot) + Playwright (Angular) (ticket #193)
+7. 🐛 **Bug `dateLivraison`** — set sur `PRET` → doit être `LIVREE` dans `CommandeService.changerStatut()`
+8. 🔄 Supprimer `allow-circular-references: true` dans Spring (refactoring services)
 9. ⬆️ Angular 22 (correction 13 CVEs devDeps : esbuild, babel, vite)
 
 ### Rappels plugin Figma

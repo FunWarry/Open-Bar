@@ -320,7 +320,7 @@ Pour les fichiers scopés par feature (ex : `fr/commandes.json`), déclarer le s
 
 ## Features implémentées vs. manquantes
 
-> Dernière mise à jour : 29 juillet 2026 — #180 (Impression Ticket 80mm & Facture PDF A4), #184 (Passage commande publique QR), #185 (Variantes & Déduction auto stock), #186 (Transfert table & Fusion factures), #187 (Service Broadcast STOMP)
+> Dernière mise à jour : 30 juillet 2026 — CSRF SPA / 403 Forbidden, #203/#204 (CRUD Utilisateurs Admin), #205/#207 (Transfert de Commande), #206 (Audit Logs), #208–#211 (UI Layout Figma)
 
 | Feature | Backend | Frontend | Tests |
 |---------|---------|----------|-------|
@@ -330,33 +330,36 @@ Pour les fichiers scopés par feature (ex : `fr/commandes.json`), déclarer le s
 | Écrans Figma communs (Login, Register, Profile, 404, Loading) | — | ✅ | ✅ |
 | Écrans Figma Vue Barman (kanban, badges status/role, action buttons) | — | ✅ | ✅ |
 | Refresh token JWT | ✅ | ✅ | ✅ |
-| Gestion users (admin) | ✅ | ✅ | ✅ |
+| Gestion users (admin) (#203/#204) | ✅ | ✅ | ✅ |
 | Rôles ADMIN/MANAGER/SERVEUR/BARMAN | ✅ | ✅ | ✅ |
 | DTOs de sortie (tous controllers) | ✅ | — | ✅ |
 | GlobalExceptionHandler | ✅ | — | ✅ |
 | Error interceptor frontend | — | ✅ | ✅ |
 | Cocktails CRUD | ✅ | ✅ | ✅ |
 | Saisonnalité cocktails | ✅ | ✅ | ✅ |
-| Variantes, Ingrédients & Déduction auto des stocks (#185) | ✅ | — | ✅ |
+| Variantes, Ingrédients & Déduction auto des stocks (#185/#182) | ✅ | ✅ | ✅ |
 | Ingrédients CRUD | ✅ | ✅ | ✅ |
-| Tables | ✅ | ✅ | ✅ |
-| Transfert de commande entre tables (#186) | ✅ | — | ✅ |
+| Tables CRUD | ✅ | ✅ | ✅ |
+| Transfert de commande entre tables (#205/#207) | ✅ | ✅ | ✅ |
 | Commandes | ✅ | ✅ | ✅ |
-| Passage commande publique QR Code (#184) | ✅ | — | ✅ |
+| Passage commande publique QR Code (#184) | ✅ | ✅ | ✅ |
 | Déstockage auto (EN_PREPARATION & Variantes) | ✅ | — | ✅ |
 | Alertes stock WebSocket | ✅ | ✅ | ✅ |
 | Notifications WS (toasts + panneau navbar) | ✅ | ✅ | ✅ |
 | Service de Broadcast STOMP & Diffusion Temps Réel (#187) | ✅ | — | ✅ |
 | Impression Ticket de Caisse 80mm & Facture PDF A4 (#180) | ✅ | ✅ | ✅ |
 | Factures (liste + détail + règlement) | ✅ | ✅ | ✅ |
-| Fusion d'additions (#186) | ✅ | — | ✅ |
+| Conformité Légale & Facturation (SIRET/TVA/RCS/SHA-256) (#129–#134) | ✅ | ✅ | ✅ |
+| Fusion d'additions (#186) | ✅ | ✅ | ✅ |
 | Export factures (PDF) | ✅ | ✅ | ✅ |
 | Division d'addition (splitEgal/splitParSelection) | ✅ | ✅ | ✅ |
 | Dashboard Manager / stats | ✅ | ✅ polling 30s | ✅ |
 | Dashboard Barman | ✅ | ✅ kanban temps réel | ✅ |
-| Vue Serveur (plan de salle + commandes) | ✅ | ✅ modal + nouvelle commande + kanban | ✅ |
+| Vue Serveur (plan de salle + variantes modal #182) | ✅ | ✅ modal + nouvelle commande + kanban | ✅ |
 | Plan de salle interactif (Konva.js) | ✅ | ✅ | ✅ |
-| Vue Client QR Code (Passage commande publique + suivi STOMP) | ✅ (#184/#187) | ❌ | ✅ |
+| Vue Client QR Code (Passage commande publique + suivi STOMP) (#184) | ✅ | ✅ | ✅ |
+| Journal d'audit système (/api/audit-logs) (#206) | ✅ | ❌ | ✅ |
+| TopBar / NavBar & Refacto UI Figma Layout (#208–#211) | — | 🔄 | — |
 
 
 

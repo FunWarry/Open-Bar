@@ -92,8 +92,8 @@ EN_ATTENTE → EN_PREPARATION → PRET → LIVREE → REGLEE
 
 ## État d'implémentation
 
-> Dernière mise à jour : 28 juillet 2026 — PRs #184–#187 + #192 (Documentation complète JavaDoc, TSDoc, Swagger)
-> Légende : ✅ complet · ❌ manquant · — non applicable
+> Dernière mise à jour : 30 juillet 2026 — Resolution CSRF SPA / 403 Forbidden, Support Audit Logs (#206), Transfert de Commande (#205/#207) & CRUD Utilisateurs Admin (#203/#204)
+> Légende : ✅ complet · 🔄 en cours · ❌ manquant · — non applicable
 
 | Feature | Backend | Frontend | Tests |
 |---------|---------|----------|-------|
@@ -101,14 +101,17 @@ EN_ATTENTE → EN_PREPARATION → PRET → LIVREE → REGLEE
 | Routing + guards + lazy loading | ✅ | ✅ | ✅ |
 | Gestion utilisateurs (admin) | ✅ | ✅ | ✅ |
 | Cocktails CRUD + saisonnalité | ✅ | ✅ | ✅ |
-| Variantes cocktails & Déduction auto stocks | ✅ | ❌ | ✅ |
+| Variantes cocktails & Déduction auto stocks | ✅ | ✅ | ✅ |
 | Ingrédients CRUD | ✅ | ✅ | ✅ |
 | Tables CRUD | ✅ | ✅ | ✅ |
 | Commandes (liste + détail + kanban barman) | ✅ | ✅ | ✅ |
-| Passage commande publique QR Code | ✅ | ❌ | ✅ |
+| Transfert commande entre tables (#205/#207) | ✅ | ✅ | ✅ |
+| Passage commande publique QR Code (#184) | ✅ | ✅ | ✅ |
+| Vue Client QR Code (passage + suivi STOMP) | ✅ | ✅ | ✅ |
 | Factures (liste + détail + split + règlement) | ✅ | ✅ | ✅ |
-| Fusion d'additions | ✅ | ❌ | ✅ |
-| Export PDF factures | ✅ | ✅ | ✅ |
+| Conformité Légale & Facturation (SIRET/TVA/RCS/SHA-256) | ✅ | ✅ | ✅ |
+| Fusion d'additions | ✅ | ✅ | ✅ |
+| Export PDF factures (OpenPDF A4) | ✅ | ✅ | ✅ |
 | Division d'addition (split égal + par article) | ✅ | ✅ | ✅ |
 | Dashboard Manager / statistiques | ✅ | ✅ | ✅ |
 | Dashboard Barman (kanban temps réel) | ✅ | ✅ | ✅ |
@@ -116,9 +119,11 @@ EN_ATTENTE → EN_PREPARATION → PRET → LIVREE → REGLEE
 | Plan de salle interactif (Konva.js) | ✅ | ✅ | ✅ |
 | WebSocket STOMP + Notifications | ✅ | ✅ | ✅ |
 | Alertes stock (bannière barman) | ✅ | ✅ | ✅ |
+| Fuseau horaire paramétrable (TimeService) | ✅ | ✅ | ✅ |
+| Journal d'audit système (/api/audit-logs) (#206) | ✅ | ❌ | ✅ |
+| Layout Global TopBar / NavBar Figma (#208–#211) | — | 🔄 | — |
 | Documentation OpenAPI / Swagger UI | ✅ | — | ✅ |
 | JavaDoc & TSDoc | ✅ | ✅ | ✅ |
-| Vue Client QR Code (interface publique) | ✅ | ❌ **priorité** | ✅ |
 
 ---
 
