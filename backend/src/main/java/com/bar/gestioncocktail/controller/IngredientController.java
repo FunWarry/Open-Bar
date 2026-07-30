@@ -51,6 +51,20 @@ public class IngredientController {
     }
 
     /**
+     * Retrieves all ingredients in the inventory.
+     *
+     * @return List of all ingredient DTOs
+     */
+    @GetMapping
+    @Operation(summary = "Get all ingredients")
+    @ApiResponse(responseCode = "200", description = "List of ingredients retrieved")
+    public ResponseEntity<List<IngredientResponseDTO>> getAllIngredients() {
+        return ResponseEntity.ok(ingredientService.getAllIngredients().stream()
+            .map(IngredientResponseDTO::from)
+            .toList());
+    }
+
+    /**
      * Updates an ingredient's information.
      *
      * @param id      Identifier of the ingredient

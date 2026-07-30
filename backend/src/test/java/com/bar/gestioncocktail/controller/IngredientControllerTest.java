@@ -42,6 +42,18 @@ class IngredientControllerTest {
     }
 
     @Test
+    @DisplayName("getAllIngredients - calls service and returns list of DTOs")
+    void getAllIngredients_success() {
+        when(ingredientService.getAllIngredients()).thenReturn(java.util.List.of(ingredient));
+
+        ResponseEntity<java.util.List<IngredientResponseDTO>> response = ingredientController.getAllIngredients();
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getBody()).hasSize(1);
+        assertThat(response.getBody().get(0).nom()).isEqualTo("Rhum");
+    }
+
+    @Test
     @DisplayName("createIngredient - calls service and returns DTO")
     void createIngredient_success() {
         IngredientRequestDTO request = new IngredientRequestDTO("Rhum", "cl", new BigDecimal("500.00"), new BigDecimal("50.00"), null, null, null, null, null);
