@@ -10,38 +10,48 @@
       </div>
     </ion-card-header>
     <ion-card-content>
-      <div class="list-header">
-        <span>Utilisateur</span>
-        <span>Rôles</span>
-        <span>Créé le</span>
-        <span>Actions</span>
-      </div>
-      <ion-list>
-        @for (user of users; track user.id) {
-          <ion-item>
-            <ion-label>
-              <h3>{{ user.username }}</h3>
-              <p>{{ user.email }}</p>
-            </ion-label>
-            <div slot="end" class="roles-badges">
-              @for (role of user.roles; track role) {
-                <ion-badge [color]="getRoleColor(role)">
-                  {{ role }}
-                </ion-badge>
-              }
+      @if (loading) {
+        <div class="loading-spinner-container">
+          <ion-spinner name="crescent" color="primary"></ion-spinner>
+        </div>
+      } @else {
+        <div class="list-header">
+          <span>Utilisateur</span>
+          <span>Rôles</span>
+          <span>Créé le</span>
+          <span>Actions</span>
+        </div>
+        <ion-list>
+          @for (user of users; track trackById($index, user)) {
+            <ion-item data-testid="user-item">
+              <ion-label>
+                <h3>{{ user.username }}</h3>
+                <p>{{ user.email }}</p>
+              </ion-label>
+              <div slot="end" class="roles-badges">
+                @for (role of user.roles; track role) {
+                  <ion-badge [color]="getRoleColor(role)">
+                    {{ role }}
+                  </ion-badge>
+                }
+              </div>
+              <ion-label slot="end" class="col-date">{{ user.createdAt | date:'dd/MM/yyyy' }}</ion-label>
+              <ion-buttons slot="end">
+                <ion-button fill="clear" color="tertiary" (click)="openEditDialog(user)" (keydown.enter)="openEditDialog(user)" data-testid="btn-edit-user">
+                  <ion-icon slot="icon-only" name="create"></ion-icon>
+                </ion-button>
+                <ion-button fill="clear" color="danger" (click)="openDeleteDialog(user)" (keydown.enter)="openDeleteDialog(user)" data-testid="btn-delete-user">
+                  <ion-icon slot="icon-only" name="trash"></ion-icon>
+                </ion-button>
+              </ion-buttons>
+            </ion-item>
+          } @empty {
+            <div class="empty-users-message">
+              <p>Aucun utilisateur trouvé.</p>
             </div>
-            <ion-label slot="end" class="col-date">{{ user.createdAt | date:'dd/MM/yyyy' }}</ion-label>
-            <ion-buttons slot="end">
-              <ion-button fill="clear" color="tertiary" (click)="openEditDialog(user)" (keydown.enter)="openEditDialog(user)" data-testid="btn-edit-user">
-                <ion-icon slot="icon-only" name="create"></ion-icon>
-              </ion-button>
-              <ion-button fill="clear" color="danger" (click)="openDeleteDialog(user)" (keydown.enter)="openDeleteDialog(user)" data-testid="btn-delete-user">
-                <ion-icon slot="icon-only" name="trash"></ion-icon>
-              </ion-button>
-            </ion-buttons>
-          </ion-item>
-        }
-      </ion-list>
+          }
+        </ion-list>
+      }
     </ion-card-content>
   </ion-card>
 </div>
