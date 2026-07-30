@@ -30,9 +30,22 @@ public class AuditLogController {
      *
      * @param auditLogService Service gérant la persistance des logs d'audit
      */
-    @Autowired
     public AuditLogController(AuditLogService auditLogService) {
         this.auditLogService = auditLogService;
+    }
+
+    /**
+     * Retrieves all system audit logs.
+     *
+     * @return List of all audit logs ordered by timestamp descending
+     */
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Get all system audit logs (ADMIN)", description = "Retrieves complete audit logs history ordered by timestamp descending.")
+    @ApiResponse(responseCode = "200", description = "Audit logs retrieved successfully")
+    public ResponseEntity<List<AuditLogResponseDTO>> getAllAuditLogs() {
+        return ResponseEntity.ok(auditLogService.getAllAuditLogs().stream()
+            .map(AuditLogResponseDTO::from).toList());
     }
 
     /**
@@ -153,6 +166,7 @@ public class AuditLogController {
      * @return Statut 200 OK
      */
     @PostMapping("/log")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Enregistrer une action d'audit", description = "Permet de Consigner une action explicite dans les journaux d'audit.")
     @ApiResponse(responseCode = "200", description = "Log consigné")
     public ResponseEntity<Void> logAction(

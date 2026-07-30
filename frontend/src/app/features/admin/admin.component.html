@@ -94,6 +94,10 @@
             <ion-icon name="color-palette-outline" slot="start"></ion-icon>
             Personnalisation
           </ion-button>
+          <ion-button fill="clear" routerLink="/admin/audit-logs" data-testid="nav-audit-logs">
+            <ion-icon name="shield-checkmark-outline" slot="start"></ion-icon>
+            {{ 'NAV.AUDIT_LOGS' | transloco }}
+          </ion-button>
           <ion-button color="secondary">
             <ion-icon name="add-circle-outline" slot="start"></ion-icon>
             Ajouter un cocktail

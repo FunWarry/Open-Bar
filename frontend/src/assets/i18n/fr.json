@@ -42,7 +42,8 @@
     "SERVEUR": "Prise de commande",
     "BARMAN": "Comptoir bar",
     "SOUND_ENABLE": "Activer le son",
-    "SOUND_DISABLE": "Désactiver le son"
+    "SOUND_DISABLE": "Désactiver le son",
+    "AUDIT_LOGS": "Journal d'audit"
   },
   "ETABLISSEMENT": {
     "TITLE": "Paramètres légaux de l'établissement",
@@ -264,5 +265,19 @@
     "CONFIRM_PASSWORD": "Confirmer le mot de passe",
     "SUBMIT": "Créer le compte administrateur",
     "SUCCESS": "Compte administrateur créé avec succès ! Connectez-vous maintenant."
+  },
+  "AUDIT_LOGS": {
+    "TITLE": "Journal d'audit système",
+    "SUBTITLE": "Traçabilité & Historique",
+    "DESCRIPTION": "Consultez l'historique complet des opérations, actions d'administration et événements système.",
+    "TOTAL": "Total des logs",
+    "FILTERED": "Logs filtrés",
+    "SEARCH_PLACEHOLDER": "Rechercher par action, entité, utilisateur ou détail...",
+    "FILTER_ACTION": "Filtrer par action",
+    "FILTER_ENTITY": "Filtrer par entité",
+    "ALL_ACTIONS": "Toutes les actions",
+    "ALL_ENTITIES": "Toutes les entités",
+    "NO_LOGS_FOUND": "Aucun log trouvé",
+    "TRY_CHANGING_FILTERS": "Essayez de modifier vos critères de recherche ou de filtre."
   }
 }

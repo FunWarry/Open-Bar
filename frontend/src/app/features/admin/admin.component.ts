@@ -8,12 +8,14 @@ import {IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent, I
 import {AsyncPipe} from '@angular/common';
 import {NavigationService} from "../../core/services/navigation.service";
 
+import {TranslocoPipe} from '@jsverse/transloco';
+
 @Component({
   selector: 'app-admin',
   templateUrl: './admin.component.html',
   styleUrls: ['./admin.component.css'],
   standalone: true,
-  imports: [IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent, IonIcon, IonButton, AsyncPipe, RouterLink]
+  imports: [IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent, IonIcon, IonButton, AsyncPipe, RouterLink, TranslocoPipe]
 })
 export class AdminComponent implements OnInit {
   currentUser$: Observable<User | null>;
