@@ -5,9 +5,7 @@ import { Observable, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { AsyncPipe } from '@angular/common';
-import {
-  IonIcon, IonButton, IonBadge, IonList, IonItem, IonLabel
-} from '@ionic/angular/standalone';
+import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
   homeOutline, restaurantOutline, gridOutline, beerOutline,
@@ -78,7 +76,7 @@ const ROLE_COLORS: Record<string, string> = {
   styleUrls: ['./sidebar.component.css'],
   standalone: true,
   imports: [
-    IonIcon, IonButton, IonBadge, IonList, IonItem, IonLabel,
+    IonIcon,
     RouterLink, RouterLinkActive, AsyncPipe, TranslocoPipe,
   ],
 })
