@@ -2,9 +2,6 @@
   class="checkbox-container"
   [class.disabled]="disabled"
   (click)="toggle()"
-  (keyup.enter)="toggle()"
-  (keyup.space)="toggle()"
-  tabindex="0"
   [attr.data-testid]="testId">
   <input
     type="checkbox"
@@ -12,7 +9,7 @@
     class="sr-only-checkbox"
     [checked]="checked"
     [disabled]="disabled"
-    tabindex="-1" />
+    (change)="toggle()" />
   <div class="checkbox-box" [class.checked]="checked">
     @if (checked) {
       <svg class="checkmark" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">

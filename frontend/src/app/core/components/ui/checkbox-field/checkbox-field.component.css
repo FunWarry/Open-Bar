@@ -30,7 +30,8 @@
   cursor: not-allowed;
 }
 
-.checkbox-container:focus-visible .checkbox-box {
+.checkbox-container:focus-within .checkbox-box,
+.sr-only-checkbox:focus-visible + .checkbox-box {
   box-shadow: 0 0 0 3px rgba(108, 127, 232, 0.35);
 }
 
