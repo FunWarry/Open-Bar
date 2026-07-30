@@ -1,9 +1,9 @@
-import { Component, OnInit, OnDestroy, Optional, signal, computed } from '@angular/core';
+import { Component, OnInit, OnDestroy, Optional, signal } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Observable, Subject, combineLatest, of, interval } from 'rxjs';
 import { takeUntil, filter, map, startWith, distinctUntilChanged } from 'rxjs/operators';
-import { TranslocoService } from '@jsverse/transloco';
+import { TranslocoService, TranslocoPipe } from '@jsverse/transloco';
 import { selectCurrentUser, selectIsAdmin, selectIsAuthenticated } from '../../store/auth.selectors';
 import { NavigationService } from '../../services/navigation.service';
 import { NotificationService } from '../../services/notification.service';
@@ -11,7 +11,7 @@ import { NotificationPanelComponent } from '../notification-panel/notification-p
 import { SoundService } from '../../services/sound.service';
 import {
   IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
-  IonPopover, IonList, IonItem, IonLabel, IonBadge, IonChip,
+  IonPopover, IonList, IonItem, IonLabel, IonBadge,
   PopoverController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -20,7 +20,6 @@ import {
   notificationsOutline, volumeHighOutline, volumeMuteOutline, timeOutline
 } from 'ionicons/icons';
 import { AsyncPipe } from '@angular/common';
-import { TranslocoPipe } from '@jsverse/transloco';
 import * as AuthActions from '../../store/auth.actions';
 import { User } from '../../models/user.model';
 
@@ -69,7 +68,7 @@ const ROLE_COLORS: Record<string, string> = {
   standalone: true,
   imports: [
     IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
-    IonPopover, IonList, IonItem, IonLabel, IonBadge, IonChip,
+    IonPopover, IonList, IonItem, IonLabel, IonBadge,
     AsyncPipe, TranslocoPipe,
   ],
 })
@@ -113,7 +112,6 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.currentUser$ = this.store.select(selectCurrentUser);
 
     const initialUrl = (this.router?.url && this.router.url.length > 0) ? this.router.url : '/';
-    const isInitialAuthRoute = this.isAuthRoute(initialUrl);
 
     const currentUrl$ = this.router ? this.router.events.pipe(
       filter((event): event is NavigationEnd => event instanceof NavigationEnd),
