@@ -1,6 +1,15 @@
 @if (showNavbar$ | async) {
-  <app-navbar></app-navbar>
+  <div class="app-layout">
+    <app-navbar></app-navbar>
+    <div class="app-body">
+      <app-sidebar></app-sidebar>
+      <main class="main-content" id="main-content">
+        <router-outlet></router-outlet>
+      </main>
+    </div>
+  </div>
+} @else {
+  <div class="auth-content">
+    <router-outlet id="main-content"></router-outlet>
+  </div>
 }
-<div class="content">
-  <router-outlet id="main-content"></router-outlet>
-</div>

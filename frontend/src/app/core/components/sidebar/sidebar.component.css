@@ -1,0 +1,242 @@
+/* === Sidebar Component — Figma NavBar (ID 62:59) & NavItem (ID 120:16) === */
+
+:host {
+  display: block;
+  height: 100%;
+}
+
+.sidebar {
+  width: 220px;
+  min-width: 220px;
+  height: 100%;
+  background-color: var(--bg-1, #151521);
+  border-right: 1px solid var(--border-medium, #2e3450);
+  display: flex;
+  flex-direction: column;
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+  overflow: hidden;
+}
+
+/* Collapsed state (64px) */
+.sidebar.collapsed {
+  width: 64px;
+  min-width: 64px;
+}
+
+/* Header section with toggle button */
+.sidebar-header {
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--border-medium, #2e3450);
+}
+
+.sidebar.collapsed .sidebar-header {
+  justify-content: center;
+  padding: 0;
+}
+
+.collapse-toggle-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary, #a4add0);
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.collapse-toggle-btn:hover {
+  background-color: var(--surface-2, #21263f);
+  color: var(--text-primary, #eceefb);
+}
+
+.toggle-icon {
+  font-size: 18px;
+}
+
+/* Navigation List */
+.sidebar-nav {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 12px 8px;
+
+  /* Subtle scrollbar styling */
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-medium, #2e3450) transparent;
+}
+
+.nav-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+
+.section-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted, #7e87a8);
+  padding: 8px 12px 4px 12px;
+}
+
+.section-divider {
+  height: 1px;
+  background-color: var(--border-medium, #2e3450);
+  margin: 8px 4px;
+}
+
+/* NavItem (Figma ID 120:16) */
+.nav-item {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 8px;
+  color: var(--text-secondary, #a4add0);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: var(--font, 'Inter', sans-serif);
+  transition: background-color 0.15s ease, color 0.15s ease;
+  position: relative;
+  white-space: nowrap;
+}
+
+.sidebar.collapsed .nav-item {
+  justify-content: center;
+  padding: 0;
+}
+
+.nav-item:hover {
+  background-color: var(--surface-1, #1a1a2e);
+  color: var(--text-primary, #eceefb);
+}
+
+/* Active NavItem state */
+.nav-item.active {
+  background-color: rgba(108, 127, 232, 0.15);
+  color: var(--primary, #6c7fe8);
+  font-weight: 600;
+}
+
+.nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 6px;
+  bottom: 6px;
+  width: 3px;
+  background-color: var(--primary, #6c7fe8);
+  border-radius: 0 4px 4px 0;
+}
+
+.nav-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.sidebar.collapsed .nav-icon {
+  font-size: 22px;
+}
+
+.nav-label {
+  margin-left: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Footer Section with User Avatar (Figma ID 120:8) */
+.sidebar-footer {
+  height: 60px;
+  padding: 0 12px;
+  border-top: 1px solid var(--border-medium, #2e3450);
+  background-color: var(--surface-1, #1a1a2e);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sidebar.collapsed .sidebar-footer {
+  padding: 0;
+  justify-content: center;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  overflow: hidden;
+}
+
+/* Avatar circle (Figma ID 120:8) */
+.user-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f0f1a;
+  flex-shrink: 0;
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.username {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary, #eceefb);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.role-name {
+  font-size: 11px;
+  color: var(--text-muted, #7e87a8);
+}
+
+.logout-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted, #7e87a8);
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  flex-shrink: 0;
+}
+
+.sidebar.collapsed .logout-btn {
+  display: none;
+}
+
+.logout-btn:hover {
+  background-color: rgba(229, 96, 79, 0.15);
+  color: var(--danger, #e5604f);
+}
+
+.logout-icon {
+  font-size: 18px;
+}

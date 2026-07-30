@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { NavbarComponent } from './core/components/navbar/navbar.component';
+import { SidebarComponent } from './core/components/sidebar/sidebar.component';
 import { AppSettingsService } from './core/services/app-settings.service';
 import { filter, map, combineLatest, startWith, Observable } from 'rxjs';
 import { Store } from '@ngrx/store';
@@ -13,7 +14,7 @@ import * as allIcons from 'ionicons/icons';
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
-  imports: [RouterOutlet, NavbarComponent, AsyncPipe],
+  imports: [RouterOutlet, NavbarComponent, SidebarComponent, AsyncPipe],
   standalone: true
 })
 export class AppComponent implements OnInit {
