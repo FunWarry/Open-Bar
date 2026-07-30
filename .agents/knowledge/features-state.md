@@ -20,7 +20,7 @@
 | Écrans communs (Login, Register, Profile, 404, Loading) | — | ✅ | ✅ | — |
 | Écrans Vue Barman (kanban, badges, action buttons) | — | ✅ | ✅ | — |
 | Refresh token JWT | ✅ | ✅ | ✅ | Rotation + interceptor |
-| Gestion users (admin) | ✅ | ✅ | ✅ | — |
+| Gestion users (admin) | ✅ | ✅ | ✅ | Service UserService REST + UserListComponent CRUD complet (#204/#203) |
 | Rôles ADMIN/MANAGER/SERVEUR/BARMAN | ✅ | ✅ | ✅ | — |
 | DTOs de sortie (tous controllers) | ✅ | — | ✅ | Java records `from(entity)` |
 | GlobalExceptionHandler | ✅ | — | ✅ | — |
@@ -66,6 +66,7 @@
 
 | PR / Issue | Description |
 |------------|-------------|
+| #204 (#203) | Service UserService & Raccordement CRUD Utilisateurs Admin : Service REST `/api/users`, UserListComponent (liste, création, modification, suppression), spinners, toasts i18n, attributs data-testid et tests unitaires Jasmine/Karma (858/858 OK) |
 | #203 | Resolution 403 / CSRF SPA Angular & Sonar Security Compliance : PassthroughCsrfTokenRepository pour API REST JWT stateless (0 avertissement Sonar java:S4502 / java:S3330), enregistrement global Ionicons, SVG favicon et i18n ERRORS.FORBIDDEN |
 | #202 (#120/#200) | Vue Client QR Code (#120) & Refactoring UI complet Figma (#200) : Setup, Auth, Profile, Error 404, Dashboard Barman et Vue Client QR Code (passage commande public + suivi STOMP temps réel) |
 | #201 (#200) | Refactor UI complet Figma : tokens CSS (variables.css / styles.css), ActionButton (variantes edit/mark), UserAvatar (role color), Navbar/Header/CocktailList migration @if/@for et a11y keyboard listeners |
