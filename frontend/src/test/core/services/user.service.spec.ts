@@ -49,7 +49,7 @@ describe('UserService', () => {
 
   it('getUsers() should fetch users array via GET', () => {
     service.getUsers().subscribe((users) => {
-      expect(users.length).toBe(2);
+      expect(users).toHaveSize(2);
       expect(users).toEqual(mockUsers);
     });
 
