@@ -44,6 +44,7 @@
     "SOUND_ENABLE": "Enable sound",
     "SOUND_DISABLE": "Disable sound",
     "AUDIT_LOGS": "Audit Logs",
+    "USERS": "Users",
     "TOPBAR": {
       "PAGE_TITLES": {
         "HOME": "Home",
