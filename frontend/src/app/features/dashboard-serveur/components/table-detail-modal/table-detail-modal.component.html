@@ -47,17 +47,27 @@
           <span *ngIf="item.varianteNom"> ({{ item.varianteNom }})</span>
         </div>
       </ion-label>
-      <ion-button
-        *ngIf="peutAnnuler(cmd.statut)"
-        slot="end"
-        fill="clear"
-        color="danger"
-        size="small"
-        (click)="annuler(cmd.id)"
-        (keydown.enter)="annuler(cmd.id)"
-        data-testid="btn-annuler-modal">
-        <ion-icon name="ban-outline" slot="icon-only"></ion-icon>
-      </ion-button>
+      <div slot="end" class="item-actions-row">
+        <ion-button
+          fill="clear"
+          color="tertiary"
+          size="small"
+          (click)="transferer(cmd.id)"
+          (keydown.enter)="transferer(cmd.id)"
+          data-testid="btn-transferer-modal">
+          <ion-icon name="swap-horizontal-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+        <ion-button
+          *ngIf="peutAnnuler(cmd.statut)"
+          fill="clear"
+          color="danger"
+          size="small"
+          (click)="annuler(cmd.id)"
+          (keydown.enter)="annuler(cmd.id)"
+          data-testid="btn-annuler-modal">
+          <ion-icon name="ban-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+      </div>
     </ion-item>
   </ion-list>
 </ion-content>

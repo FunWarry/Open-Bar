@@ -7,6 +7,9 @@ import { TableBar } from '../../../core/models/table.model';
 import { Commande, CommandeStatut, CreateCommandeRequest, AjouterItemRequest } from '../../../core/models/commande.model';
 import { TableView } from '../models/table-view.model';
 
+/**
+ * Feature service for the Waiter dashboard managing tables, orders, and transfers.
+ */
 @Injectable({ providedIn: 'root' })
 export class DashboardServeurService {
   private readonly tablesUrl = `${environment.apiUrl}/tables`;
@@ -62,6 +65,17 @@ export class DashboardServeurService {
 
   changerStatutCommande(commandeId: number, statut: CommandeStatut): Observable<Commande> {
     return this.http.patch<Commande>(`${this.commandesUrl}/${commandeId}/statut`, { statut });
+  }
+
+  /**
+   * Transfers an order to a new target table.
+   *
+   * @param commandeId Unique identifier of the order to transfer.
+   * @param targetTableId Identifier of the target table.
+   * @returns Observable emitting the updated {@link Commande}.
+   */
+  transfererCommande(commandeId: number, targetTableId: number): Observable<Commande> {
+    return this.http.put<Commande>(`${this.commandesUrl}/${commandeId}/table/${targetTableId}`, {});
   }
 
   private toTableView(t: TableBar): TableView {

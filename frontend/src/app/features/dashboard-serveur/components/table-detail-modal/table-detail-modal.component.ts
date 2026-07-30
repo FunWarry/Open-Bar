@@ -11,12 +11,16 @@ import {
 import { addIcons } from 'ionicons';
 import {
   closeOutline, addCircleOutline, banOutline,
-  timeOutline, checkmarkCircleOutline,
+  timeOutline, checkmarkCircleOutline, swapHorizontalOutline,
 } from 'ionicons/icons';
 import { TableView } from '../../models/table-view.model';
 import { Commande } from '../../../../core/models/commande.model';
 import { DashboardServeurService } from '../../services/dashboard-serveur.service';
+import { TransfertModalComponent } from '../transfert-modal/transfert-modal.component';
 
+/**
+ * Modal displaying active orders for a specific table with actions for new orders, cancellation, and table transfer.
+ */
 @Component({
   selector: 'app-table-detail-modal',
   standalone: true,
@@ -34,16 +38,20 @@ export class TableDetailModalComponent implements OnInit {
   commandes: Commande[] = [];
   isLoading = false;
 
-  constructor(private readonly modalCtrl: ModalController,private readonly router: Router,private readonly service: DashboardServeurService,private readonly toastCtrl: ToastController,
+  constructor(
+    private readonly modalCtrl: ModalController,
+    private readonly router: Router,
+    private readonly service: DashboardServeurService,
+    private readonly toastCtrl: ToastController,
   ) {
-    addIcons({ closeOutline, addCircleOutline, banOutline, timeOutline, checkmarkCircleOutline });
+    addIcons({ closeOutline, addCircleOutline, banOutline, timeOutline, checkmarkCircleOutline, swapHorizontalOutline });
   }
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.chargerCommandes();
   }
 
-  chargerCommandes() {
+  chargerCommandes(): void {
     this.isLoading = true;
     this.service.getCommandesByTable(this.table.id)
       .pipe(finalize(() => (this.isLoading = false)))
@@ -64,7 +72,47 @@ export class TableDetailModalComponent implements OnInit {
       });
   }
 
-  async annuler(commandeId: number) {
+  /**
+   * Opens the transfer modal to move a specific order to another table.
+   *
+   * @param commandeId Unique identifier of the order to transfer.
+   */
+  async transferer(commandeId: number): Promise<void> {
+    const modal = await this.modalCtrl.create({
+      component: TransfertModalComponent,
+      componentProps: {
+        currentTableId: this.table.id,
+        commandeId,
+      },
+    });
+    await modal.present();
+    const { data } = await modal.onWillDismiss();
+
+    if (data?.targetTableId) {
+      this.service.transfererCommande(commandeId, data.targetTableId).subscribe({
+        next: async () => {
+          const targetNum = data.targetTableNumero ? `Table ${data.targetTableNumero}` : 'la nouvelle table';
+          const toast = await this.toastCtrl.create({
+            message: `Commande #${commandeId} transférée vers ${targetNum} avec succès !`,
+            duration: 3000,
+            color: 'success',
+          });
+          await toast.present();
+          this.chargerCommandes();
+        },
+        error: async () => {
+          const toast = await this.toastCtrl.create({
+            message: 'Erreur lors du transfert de la commande',
+            duration: 3000,
+            color: 'danger',
+          });
+          await toast.present();
+        },
+      });
+    }
+  }
+
+  async annuler(commandeId: number): Promise<void> {
     this.service.annulerCommande(commandeId).subscribe({
       next: () => this.chargerCommandes(),
       error: async () => {
@@ -78,16 +126,16 @@ export class TableDetailModalComponent implements OnInit {
     });
   }
 
-  nouvelleCommande() {
+  nouvelleCommande(): void {
     this.modalCtrl.dismiss();
     this.router.navigate(['/serveur/nouvelle-commande', this.table.id]);
   }
 
-  liberer() {
+  liberer(): void {
     this.modalCtrl.dismiss({ action: 'liberer', tableId: this.table.id });
   }
 
-  fermer() {
+  fermer(): void {
     this.modalCtrl.dismiss();
   }
 

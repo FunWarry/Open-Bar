@@ -12,6 +12,7 @@ import com.bar.gestioncocktail.model.User;
 import com.bar.gestioncocktail.repository.CommandeRepository;
 import com.bar.gestioncocktail.repository.CommandeItemRepository;
 import com.bar.gestioncocktail.repository.IngredientRepository;
+import com.bar.gestioncocktail.repository.TableRepository;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +24,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * Business service managing order placement, items, status transitions, stock deduction, and table transfer.
+ */
 @Service
 @Transactional
 public class CommandeService {
@@ -31,6 +35,7 @@ public class CommandeService {
     private final CommandeRepository commandeRepository;
     private final CommandeItemRepository commandeItemRepository;
     private final IngredientRepository ingredientRepository;
+    private final TableRepository tableRepository;
     private final SimpMessagingTemplate messagingTemplate;
     private final TimeService timeService;
 
@@ -38,11 +43,13 @@ public class CommandeService {
             CommandeRepository commandeRepository,
             CommandeItemRepository commandeItemRepository,
             IngredientRepository ingredientRepository,
+            TableRepository tableRepository,
             SimpMessagingTemplate messagingTemplate,
             TimeService timeService) {
         this.commandeRepository = commandeRepository;
         this.commandeItemRepository = commandeItemRepository;
         this.ingredientRepository = ingredientRepository;
+        this.tableRepository = tableRepository;
         this.messagingTemplate = messagingTemplate;
         this.timeService = timeService;
     }
@@ -269,5 +276,28 @@ public class CommandeService {
             }
         }
         return map;
+    }
+
+    /**
+     * Transfers an existing order to a new target table.
+     *
+     * @param id Identifier of the order to transfer
+     * @param newTableId Identifier of the target table
+     * @return Updated order entity
+     */
+    @Transactional
+    public Commande transfererCommande(Long id, Long newTableId) {
+        Commande commande = commandeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(COMMANDE_NOT_FOUND + id));
+        TableEntity targetTable = tableRepository.findById(newTableId)
+                .orElseThrow(() -> new ResourceNotFoundException("Table non trouvée avec l'id: " + newTableId));
+
+        commande.setTable(targetTable);
+        commande.setUpdatedAt(timeService.now());
+        Commande saved = commandeRepository.save(commande);
+
+        messagingTemplate.convertAndSend("/topic/commandes", saved);
+        messagingTemplate.convertAndSend("/topic/commandes/statut", saved);
+        return saved;
     }
 }

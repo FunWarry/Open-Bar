@@ -1,0 +1,44 @@
+<ion-header>
+  <ion-toolbar class="modal-toolbar">
+    <ion-title>
+      Transférer la Commande #{{ commandeId }}
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="fermer()" (keydown.enter)="fermer()" fill="clear" data-testid="btn-close-transfert-modal">
+        <ion-icon name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="modal-content">
+  <p class="subtitle">Sélectionnez la table de destination pour la commande #{{ commandeId }} :</p>
+
+  @if (isLoading) {
+    <div class="loading-state">
+      <ion-spinner name="crescent" color="primary"></ion-spinner>
+    </div>
+  } @else {
+    <ion-list class="tables-list">
+      @for (t of tables; track t.id) {
+        <ion-item button (click)="selectionnerTable(t)" (keydown.enter)="selectionnerTable(t)" class="table-select-item" data-testid="select-target-table">
+          <ion-icon name="grid-outline" slot="start" color="primary"></ion-icon>
+          <ion-label>
+            <h3>Table {{ t.numero }}</h3>
+            <p>Zone: {{ t.zone }} — Capacite: {{ t.capacite }} pers.</p>
+          </ion-label>
+          <div slot="end">
+            <ion-badge [color]="t.occupee ? 'warning' : 'success'">
+              {{ t.occupee ? 'Occupée' : 'Libre' }}
+            </ion-badge>
+          </div>
+          <ion-icon name="swap-horizontal-outline" slot="end" color="tertiary"></ion-icon>
+        </ion-item>
+      } @empty {
+        <div class="empty-state">
+          <p>Aucune autre table disponible.</p>
+        </div>
+      }
+    </ion-list>
+  }
+</ion-content>
