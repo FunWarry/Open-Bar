@@ -112,7 +112,7 @@
 .mode-btn.active {
   background-color: var(--primary-tint, rgba(108, 127, 232, 0.2));
   border-color: var(--primary, #6c7fe8);
-  color: var(--primary-light, #aab4f3);
+  color: var(--primary, #6c7fe8);
 }
 
 .presets-grid {
@@ -159,7 +159,8 @@
 .gen-info h4 {
   margin: 0;
   font-size: 14px;
-  color: var(--primary-light, #aab4f3);
+  font-weight: 700;
+  color: var(--primary, #6c7fe8);
 }
 
 .gen-info p {
@@ -268,7 +269,7 @@
   padding: 2px 8px;
   border-radius: 999px;
   background-color: var(--primary-tint, rgba(108, 127, 232, 0.2));
-  color: var(--primary-light, #aab4f3);
+  color: var(--primary, #6c7fe8);
 }
 
 .preview-section {

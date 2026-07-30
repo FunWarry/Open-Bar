@@ -203,7 +203,7 @@ ion-button {
 .btn--secondary { background: var(--surface-2); color: var(--text-primary); border-color: var(--border-default); }
 .btn--secondary:hover { background: var(--surface-3); border-color: var(--border-strong); }
 
-.btn--ghost { background: transparent; color: var(--primary-light); border-color: var(--primary-border); }
+.btn--ghost { background: transparent; color: var(--primary); border-color: var(--primary-border); }
 .btn--ghost:hover { background: var(--primary-tint-weak); }
 
 .btn--danger { background: color-mix(in srgb, var(--danger) 16%, transparent); color: var(--danger); border-color: color-mix(in srgb, var(--danger) 45%, transparent); }
@@ -229,7 +229,7 @@ ion-button {
 .badge[data-status="prete"]   { color: var(--st-prete);   background: color-mix(in srgb, var(--st-prete) 15%, transparent); }
 .badge[data-status="servie"]  { color: var(--st-servie);  background: color-mix(in srgb, var(--st-servie) 18%, transparent); }
 .badge[data-status="annulee"] { color: var(--st-annulee); background: color-mix(in srgb, var(--st-annulee) 15%, transparent); }
-.badge[data-status="prio"]    { color: var(--primary-light); background: var(--primary-tint); }
+.badge[data-status="prio"]    { color: var(--primary); background: var(--primary-tint); }
 
 .role-chip {
   display: inline-flex; align-items: center; gap: var(--space-2);
@@ -252,7 +252,7 @@ ion-button {
 .filter-chip .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-muted); }
 .filter-chip:hover { border-color: var(--border-strong); color: var(--text-primary); }
 .filter-chip[aria-pressed="true"] {
-  background: var(--primary-tint); border-color: var(--primary-border); color: var(--primary-light);
+  background: var(--primary-tint); border-color: var(--primary-border); color: var(--primary);
 }
 
 .avatar {
