@@ -309,5 +309,24 @@
     "ALL_ENTITIES": "All entities",
     "NO_LOGS_FOUND": "No audit logs found",
     "TRY_CHANGING_FILTERS": "Try adjusting your search query or filter settings."
+  },
+  "THEME_CUSTOMIZER": {
+    "TITLE": "Color Customization Studio",
+    "SUBTITLE": "Brand Customization & Palette Generator",
+    "DESCRIPTION": "Adjust core application colors and automatically generate harmonious palettes.",
+    "PRESETS": "Theme Presets",
+    "PRIMARY_ACCENT": "Primary Accent Color",
+    "BACKGROUND_DARK": "Background (Dark Mode)",
+    "SURFACE_DARK": "Surface / Cards (Dark Mode)",
+    "BACKGROUND_LIGHT": "Background (Light Mode)",
+    "SURFACE_LIGHT": "Surface / Cards (Light Mode)",
+    "ROLE_ADMIN": "Admin Role",
+    "ROLE_MANAGER": "Manager Role",
+    "ROLE_SERVEUR": "Serveur Role",
+    "ROLE_BARMAN": "Barman Role",
+    "AUTO_GENERATE": "Auto-Generate Palette (HSL)",
+    "RESET_DEFAULT": "Reset to Figma Defaults",
+    "SAVE": "Apply Palette",
+    "LIVE_PREVIEW": "Live Interactive Preview"
   }
 }

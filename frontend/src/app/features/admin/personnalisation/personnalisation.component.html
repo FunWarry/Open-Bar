@@ -1,60 +1,240 @@
-<ion-card class="personnalisation-card">
-  <ion-card-header>
-    <ion-card-title>Personnalisation</ion-card-title>
-  </ion-card-header>
-  <ion-card-content>
-    <form [formGroup]="settingsForm" (ngSubmit)="onSubmit()" *ngIf="!loading">
-      <h3>Couleurs de la charte</h3>
+<div class="customizer-container" data-testid="theme-customizer-studio">
+  <div class="ellipse-bg-primary"></div>
+  <div class="ellipse-bg-tertiary"></div>
 
-      <ion-item>
-        <ion-label position="stacked">Couleur primaire</ion-label>
-        <ion-input type="color" formControlName="primaryColor"></ion-input>
-        <ion-note slot="error" *ngIf="settingsForm.get('primaryColor')?.invalid && settingsForm.get('primaryColor')?.touched">
-          Code hexadécimal requis (#RRGGBB)
-        </ion-note>
-      </ion-item>
-
-      <ion-item>
-        <ion-label position="stacked">Couleur primaire (accentuée)</ion-label>
-        <ion-input type="color" formControlName="primaryColorStrong"></ion-input>
-        <ion-note slot="error" *ngIf="settingsForm.get('primaryColorStrong')?.invalid && settingsForm.get('primaryColorStrong')?.touched">
-          Code hexadécimal requis (#RRGGBB)
-        </ion-note>
-      </ion-item>
-
-      <h3>Identité de l'établissement</h3>
-
-      <ion-item>
-        <ion-label position="stacked">Nom de l'établissement</ion-label>
-        <ion-input formControlName="establishmentName" maxlength="100"></ion-input>
-        <ion-note slot="error" *ngIf="settingsForm.get('establishmentName')?.invalid && settingsForm.get('establishmentName')?.touched">
-          Nom requis (100 caractères max)
-        </ion-note>
-      </ion-item>
-
-      <ion-item>
-        <ion-label position="stacked">URL du logo</ion-label>
-        <ion-input formControlName="logoUrl" placeholder="https://..." type="url"></ion-input>
-        <ion-note slot="error" *ngIf="settingsForm.get('logoUrl')?.invalid && settingsForm.get('logoUrl')?.touched">
-          Doit être une URL http(s) valide
-        </ion-note>
-      </ion-item>
-
-      <h3>Thème par défaut</h3>
-
-      <ion-item>
-        <ion-label position="stacked">Thème</ion-label>
-        <ion-select formControlName="defaultTheme" interface="popover">
-          <ion-select-option value="DARK">Sombre</ion-select-option>
-          <ion-select-option value="LIGHT" disabled="true">Clair (bientôt disponible)</ion-select-option>
-        </ion-select>
-        <ion-note>Le thème clair n'est pas encore disponible — conception en cours.</ion-note>
-      </ion-item>
-
-      <div class="form-actions">
-        <ion-button type="submit" [disabled]="settingsForm.invalid">Enregistrer</ion-button>
-        <ion-button fill="clear" type="button" (click)="onCancel()" (keyup.enter)="onCancel()">Annuler</ion-button>
+  <!-- En-tête -->
+  <header class="customizer-header">
+    <div class="header-title-box">
+      <div class="header-icon-badge">
+        <ion-icon name="color-palette-outline"></ion-icon>
       </div>
-    </form>
-  </ion-card-content>
-</ion-card>
+      <div>
+        <h1 class="page-title">{{ 'THEME_CUSTOMIZER.TITLE' | transloco }}</h1>
+        <p class="page-subtitle">{{ 'THEME_CUSTOMIZER.SUBTITLE' | transloco }}</p>
+      </div>
+    </div>
+  </header>
+
+  <div class="customizer-grid">
+    <!-- Colonne Gauche : Formulaire & Controls -->
+    <div class="controls-panel">
+      <!-- Mode de Thème (Dark / Light / System) -->
+      <section class="panel-section">
+        <h3 class="section-title">Mode d'affichage</h3>
+        <div class="mode-selector">
+          <button
+            type="button"
+            class="mode-btn"
+            [class.active]="activeTheme === 'dark'"
+            (click)="onSetThemeMode('dark')"
+            data-testid="theme-mode-dark">
+            <ion-icon name="moon-outline"></ion-icon>
+            Sombre
+          </button>
+          <button
+            type="button"
+            class="mode-btn"
+            [class.active]="activeTheme === 'light'"
+            (click)="onSetThemeMode('light')"
+            data-testid="theme-mode-light">
+            <ion-icon name="sunny-outline"></ion-icon>
+            Clair
+          </button>
+          <button
+            type="button"
+            class="mode-btn"
+            [class.active]="activeTheme === 'system'"
+            (click)="onSetThemeMode('system')"
+            data-testid="theme-mode-system">
+            <ion-icon name="desktop-outline"></ion-icon>
+            Système
+          </button>
+        </div>
+      </section>
+
+      <!-- Presets de thèmes -->
+      <section class="panel-section">
+        <h3 class="section-title">{{ 'THEME_CUSTOMIZER.PRESETS' | transloco }}</h3>
+        <div class="presets-grid">
+          @for (preset of presets; track preset.key) {
+            <button
+              type="button"
+              class="preset-chip"
+              (click)="onApplyPreset(preset.key)"
+              [attr.data-testid]="'preset-' + preset.key">
+              <span class="preset-dot" [style.background-color]="preset.colors.primary"></span>
+              <span class="preset-name">{{ preset.name }}</span>
+            </button>
+          }
+        </div>
+      </section>
+
+      <!-- Auto Generator Action -->
+      <section class="panel-section">
+        <div class="auto-gen-box">
+          <div class="gen-info">
+            <h4>Générateur Automatique HSL</h4>
+            <p>Calcul automatique de toutes les nuances et couleurs de rôles depuis votre couleur primaire.</p>
+          </div>
+          <app-action-button
+            variant="secondary"
+            icon="sparkles-outline"
+            (btnClick)="onAutoGeneratePalette()"
+            testId="btn-auto-generate">
+            {{ 'THEME_CUSTOMIZER.AUTO_GENERATE' | transloco }}
+          </app-action-button>
+        </div>
+      </section>
+
+      <!-- Formulaire de sélecteurs de couleurs -->
+      <form [formGroup]="colorForm" (ngSubmit)="onSubmit()" class="color-form">
+        <!-- Section Couleur Primaire -->
+        <h3 class="section-title">{{ 'THEME_CUSTOMIZER.PRIMARY_ACCENT' | transloco }}</h3>
+        <div class="color-picker-row">
+          <label for="input-primary" class="color-label">Primaire d'accentuation</label>
+          <div class="color-input-wrapper">
+            <input type="color" id="input-primary" formControlName="primary" class="color-picker-input" data-testid="picker-primary" />
+            <input type="text" formControlName="primary" class="hex-text-input" />
+          </div>
+        </div>
+
+        <!-- Section Backgrounds Dark & Light -->
+        <h3 class="section-title">Arrière-plans et Surfaces (Dark & Light)</h3>
+        <div class="color-pickers-grid">
+          <div class="color-picker-item">
+            <label for="input-bgDark" class="color-label">{{ 'THEME_CUSTOMIZER.BACKGROUND_DARK' | transloco }}</label>
+            <div class="color-input-wrapper">
+              <input type="color" id="input-bgDark" formControlName="bgDark" class="color-picker-input" data-testid="picker-bgDark" />
+              <input type="text" formControlName="bgDark" class="hex-text-input" />
+            </div>
+          </div>
+
+          <div class="color-picker-item">
+            <label for="input-surfaceDark" class="color-label">{{ 'THEME_CUSTOMIZER.SURFACE_DARK' | transloco }}</label>
+            <div class="color-input-wrapper">
+              <input type="color" id="input-surfaceDark" formControlName="surfaceDark" class="color-picker-input" data-testid="picker-surfaceDark" />
+              <input type="text" formControlName="surfaceDark" class="hex-text-input" />
+            </div>
+          </div>
+
+          <div class="color-picker-item">
+            <label for="input-bgLight" class="color-label">{{ 'THEME_CUSTOMIZER.BACKGROUND_LIGHT' | transloco }}</label>
+            <div class="color-input-wrapper">
+              <input type="color" id="input-bgLight" formControlName="bgLight" class="color-picker-input" data-testid="picker-bgLight" />
+              <input type="text" formControlName="bgLight" class="hex-text-input" />
+            </div>
+          </div>
+
+          <div class="color-picker-item">
+            <label for="input-surfaceLight" class="color-label">{{ 'THEME_CUSTOMIZER.SURFACE_LIGHT' | transloco }}</label>
+            <div class="color-input-wrapper">
+              <input type="color" id="input-surfaceLight" formControlName="surfaceLight" class="color-picker-input" data-testid="picker-surfaceLight" />
+              <input type="text" formControlName="surfaceLight" class="hex-text-input" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Section Couleurs des Rôles -->
+        <h3 class="section-title">Couleurs des Rôles Utilisateurs</h3>
+        <div class="color-pickers-grid">
+          <div class="color-picker-item">
+            <label for="input-roleAdmin" class="color-label">{{ 'THEME_CUSTOMIZER.ROLE_ADMIN' | transloco }}</label>
+            <div class="color-input-wrapper">
+              <input type="color" id="input-roleAdmin" formControlName="roleAdmin" class="color-picker-input" data-testid="picker-roleAdmin" />
+              <input type="text" formControlName="roleAdmin" class="hex-text-input" />
+            </div>
+          </div>
+
+          <div class="color-picker-item">
+            <label for="input-roleManager" class="color-label">{{ 'THEME_CUSTOMIZER.ROLE_MANAGER' | transloco }}</label>
+            <div class="color-input-wrapper">
+              <input type="color" id="input-roleManager" formControlName="roleManager" class="color-picker-input" data-testid="picker-roleManager" />
+              <input type="text" formControlName="roleManager" class="hex-text-input" />
+            </div>
+          </div>
+
+          <div class="color-picker-item">
+            <label for="input-roleServeur" class="color-label">{{ 'THEME_CUSTOMIZER.ROLE_SERVEUR' | transloco }}</label>
+            <div class="color-input-wrapper">
+              <input type="color" id="input-roleServeur" formControlName="roleServeur" class="color-picker-input" data-testid="picker-roleServeur" />
+              <input type="text" formControlName="roleServeur" class="hex-text-input" />
+            </div>
+          </div>
+
+          <div class="color-picker-item">
+            <label for="input-roleBarman" class="color-label">{{ 'THEME_CUSTOMIZER.ROLE_BARMAN' | transloco }}</label>
+            <div class="color-input-wrapper">
+              <input type="color" id="input-roleBarman" formControlName="roleBarman" class="color-picker-input" data-testid="picker-roleBarman" />
+              <input type="text" formControlName="roleBarman" class="hex-text-input" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Boutons d'action -->
+        <div class="form-actions-bar">
+          <app-action-button
+            type="button"
+            variant="ghost"
+            icon="refresh-outline"
+            (btnClick)="onResetToDefault()"
+            testId="btn-reset-default">
+            {{ 'THEME_CUSTOMIZER.RESET_DEFAULT' | transloco }}
+          </app-action-button>
+
+          <app-action-button
+            type="submit"
+            variant="primary"
+            icon="save-outline"
+            [disabled]="colorForm.invalid"
+            testId="btn-save-palette">
+            {{ 'THEME_CUSTOMIZER.SAVE' | transloco }}
+          </app-action-button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Colonne Droite : Preview Interactif en Direct -->
+    <div class="preview-panel">
+      <div class="preview-card" data-testid="live-preview-card">
+        <div class="preview-card-header">
+          <h3 class="preview-title">{{ 'THEME_CUSTOMIZER.LIVE_PREVIEW' | transloco }}</h3>
+          <span class="live-badge">Rendu Réel</span>
+        </div>
+
+        <div class="preview-section">
+          <h4>Badges de Rôles</h4>
+          <div class="roles-preview-row">
+            <app-role-badge role="ADMIN"></app-role-badge>
+            <app-role-badge role="MANAGER"></app-role-badge>
+            <app-role-badge role="SERVEUR"></app-role-badge>
+            <app-role-badge role="BARMAN"></app-role-badge>
+          </div>
+        </div>
+
+        <div class="preview-section">
+          <h4>Boutons d'Action & Variantes</h4>
+          <div class="buttons-preview-row">
+            <app-action-button variant="primary">Bouton Principal</app-action-button>
+            <app-action-button variant="secondary">Secondaire</app-action-button>
+            <app-action-button variant="ghost">Fantôme</app-action-button>
+          </div>
+        </div>
+
+        <div class="preview-section">
+          <h4>Badges de Statuts de Commandes</h4>
+          <div class="status-preview-row">
+            <app-status-badge status="EN_ATTENTE"></app-status-badge>
+            <app-status-badge status="EN_PREPARATION"></app-status-badge>
+            <app-status-badge status="PRET"></app-status-badge>
+          </div>
+        </div>
+
+        <div class="preview-sample-box">
+          <div class="sample-title">Aperçu Carte Produit</div>
+          <div class="sample-desc">Cocktail Mojito — 10.50 €</div>
+          <div class="sample-bar"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

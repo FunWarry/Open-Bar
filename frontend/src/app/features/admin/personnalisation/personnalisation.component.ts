@@ -1,93 +1,157 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
-import { ToastController, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonLabel, IonInput, IonButton, IonNote, IonSelect, IonSelectOption } from '@ionic/angular/standalone';
-import { NgIf } from '@angular/common';
+import { CommonModule } from '@angular/common';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
+import { ToastController } from '@ionic/angular/standalone';
+import { IonIcon } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import {
+  colorPaletteOutline,
+  sparklesOutline,
+  refreshOutline,
+  saveOutline,
+  moonOutline,
+  sunnyOutline,
+  desktopOutline
+} from 'ionicons/icons';
 
-import { AppSettingsService } from '../../../core/services/app-settings.service';
-import { AppSettings } from '../../../core/models/app-settings.model';
+import { ThemeService, CustomThemeColors, THEME_PRESETS, AppTheme } from '../../../core/services/theme.service';
+import { ActionButtonComponent } from '../../../core/components/ui/action-button/action-button.component';
+import { RoleBadgeComponent } from '../../../core/components/ui/role-badge/role-badge.component';
+import { StatusBadgeComponent } from '../../../core/components/ui/status-badge/status-badge.component';
 
 const HEX_COLOR_PATTERN = /^#[0-9A-Fa-f]{6}$/;
-const URL_PATTERN = /^https?:\/\/.+/;
 
+/**
+ * Admin Theme Customizer Studio allowing interactive real-time editing of app colors,
+ * automatic HSL color palette generation, theme presets, and dual dark/light mode customization.
+ */
 @Component({
   selector: 'app-personnalisation',
   templateUrl: './personnalisation.component.html',
   styleUrls: ['./personnalisation.component.css'],
   standalone: true,
   imports: [
-    IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-    IonItem, IonLabel, IonInput, IonButton, IonNote, IonSelect, IonSelectOption,
-    ReactiveFormsModule, NgIf,
-  ],
+    CommonModule,
+    ReactiveFormsModule,
+    TranslocoModule,
+    IonIcon,
+    ActionButtonComponent,
+    RoleBadgeComponent,
+    StatusBadgeComponent
+  ]
 })
-export class PersonnalisationComponent implements OnInit {
-  settingsForm: FormGroup;
-  loading = true;
-  private loadedColors: Pick<AppSettings, 'primaryColor' | 'primaryColorStrong'> | null = null;
+export class PersonnalisationComponent implements OnInit, OnDestroy {
+  private readonly fb = inject(FormBuilder);
+  private readonly themeService = inject(ThemeService);
+  private readonly toastCtrl = inject(ToastController);
+  private readonly translocoService = inject(TranslocoService);
+  private readonly destroy$ = new Subject<void>();
 
-  constructor(private readonly fb: FormBuilder,private readonly router: Router,private readonly toastCtrl: ToastController,private readonly appSettingsService: AppSettingsService,
-  ) {
-    this.settingsForm = this.fb.group({
-      primaryColor: ['#6c7fe8', [Validators.required, Validators.pattern(HEX_COLOR_PATTERN)]],
-      primaryColorStrong: ['#5a68d6', [Validators.required, Validators.pattern(HEX_COLOR_PATTERN)]],
-      logoUrl: ['', [Validators.pattern(URL_PATTERN)]],
-      establishmentName: ['OpenBar', [Validators.required, Validators.maxLength(100)]],
-      defaultTheme: ['DARK', [Validators.required]],
+  colorForm!: FormGroup;
+  activeTheme: AppTheme = 'dark';
+  presets = Object.entries(THEME_PRESETS).map(([key, val]) => ({ key, name: val.name, colors: val.colors }));
+
+  constructor() {
+    addIcons({
+      colorPaletteOutline,
+      sparklesOutline,
+      refreshOutline,
+      saveOutline,
+      moonOutline,
+      sunnyOutline,
+      desktopOutline
     });
   }
 
   ngOnInit(): void {
-    this.appSettingsService.getSettings().subscribe({
-      next: settings => {
-        this.loadedColors = { primaryColor: settings.primaryColor, primaryColorStrong: settings.primaryColorStrong };
-        this.settingsForm.patchValue({
-          primaryColor: settings.primaryColor,
-          primaryColorStrong: settings.primaryColorStrong,
-          logoUrl: settings.logoUrl ?? '',
-          establishmentName: settings.establishmentName,
-          defaultTheme: settings.defaultTheme,
-        });
-        this.loading = false;
-      },
-      error: async () => {
-        this.loading = false;
-        const toast = await this.toastCtrl.create({ message: 'Erreur lors du chargement des réglages', duration: 3000, color: 'danger' });
-        toast.present();
-      },
+    this.activeTheme = this.themeService.currentTheme;
+    const currentColors = this.themeService.currentCustomColors;
+
+    this.colorForm = this.fb.group({
+      primary: [currentColors.primary, [Validators.required, Validators.pattern(HEX_COLOR_PATTERN)]],
+      bgDark: [currentColors.bgDark, [Validators.required, Validators.pattern(HEX_COLOR_PATTERN)]],
+      surfaceDark: [currentColors.surfaceDark, [Validators.required, Validators.pattern(HEX_COLOR_PATTERN)]],
+      bgLight: [currentColors.bgLight, [Validators.required, Validators.pattern(HEX_COLOR_PATTERN)]],
+      surfaceLight: [currentColors.surfaceLight, [Validators.required, Validators.pattern(HEX_COLOR_PATTERN)]],
+      roleAdmin: [currentColors.roleAdmin, [Validators.required, Validators.pattern(HEX_COLOR_PATTERN)]],
+      roleManager: [currentColors.roleManager, [Validators.required, Validators.pattern(HEX_COLOR_PATTERN)]],
+      roleServeur: [currentColors.roleServeur, [Validators.required, Validators.pattern(HEX_COLOR_PATTERN)]],
+      roleBarman: [currentColors.roleBarman, [Validators.required, Validators.pattern(HEX_COLOR_PATTERN)]],
     });
 
-    // Aperçu live des couleurs avant sauvegarde (cf. spec CDC #153) — délègue à
-    // AppSettingsService.applyTokens() pour ne pas dupliquer la logique de mapping token → CSS.
-    this.settingsForm.valueChanges.subscribe(() => {
-      const primaryColor = this.settingsForm.get('primaryColor')?.value;
-      const primaryColorStrong = this.settingsForm.get('primaryColorStrong')?.value;
-      if (HEX_COLOR_PATTERN.test(primaryColor) && HEX_COLOR_PATTERN.test(primaryColorStrong)) {
-        this.appSettingsService.applyTokens({ primaryColor, primaryColorStrong });
-      }
-    });
+    // Real-time live preview update as admin changes color pickers
+    this.colorForm.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(values => {
+        if (this.colorForm.valid) {
+          this.themeService.setCustomColors(values as CustomThemeColors);
+        }
+      });
   }
 
-  onSubmit(): void {
-    if (this.settingsForm.invalid) return;
-    const value = this.settingsForm.value;
-    const payload = { ...value, logoUrl: value.logoUrl?.trim() ? value.logoUrl.trim() : null };
-    this.appSettingsService.updateSettings(payload).subscribe({
-      next: async () => {
-        const toast = await this.toastCtrl.create({ message: 'Personnalisation enregistrée', duration: 3000, color: 'success' });
-        toast.present();
-      },
-      error: async () => {
-        const toast = await this.toastCtrl.create({ message: 'Erreur lors de la sauvegarde', duration: 3000, color: 'danger' });
-        toast.present();
-      },
-    });
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
-  onCancel(): void {
-    if (this.loadedColors) {
-      this.appSettingsService.applyTokens(this.loadedColors);
+  /**
+   * Switches theme mode (Dark, Light, System).
+   */
+  onSetThemeMode(mode: AppTheme): void {
+    this.activeTheme = mode;
+    this.themeService.setTheme(mode);
+  }
+
+  /**
+   * Applies a preset color palette.
+   */
+  onApplyPreset(key: string): void {
+    const preset = THEME_PRESETS[key];
+    if (preset) {
+      this.colorForm.patchValue(preset.colors);
+      this.themeService.applyPreset(key);
     }
-    this.router.navigate(['/admin']);
+  }
+
+  /**
+   * Automatically generates a full harmonious color palette from current Primary color.
+   */
+  onAutoGeneratePalette(): void {
+    const currentPrimary = this.colorForm.get('primary')?.value || '#6C7FE8';
+    if (HEX_COLOR_PATTERN.test(currentPrimary)) {
+      const generated = this.themeService.generatePaletteFromPrimary(currentPrimary);
+      this.colorForm.patchValue(generated);
+      this.themeService.setCustomColors(generated);
+
+      this.presentToast('Palette générée automatiquement avec succès !', 'success');
+    }
+  }
+
+  /**
+   * Resets colors to default Figma design system values.
+   */
+  onResetToDefault(): void {
+    this.themeService.resetToDefaultColors();
+    const defaults = this.themeService.currentCustomColors;
+    this.colorForm.patchValue(defaults);
+    this.presentToast('Couleurs réinitialisées aux valeurs Figma par défaut.', 'info');
+  }
+
+  /**
+   * Saves and persists current customized palette.
+   */
+  async onSubmit(): Promise<void> {
+    if (this.colorForm.invalid) return;
+    const values = this.colorForm.value as CustomThemeColors;
+    this.themeService.setCustomColors(values);
+    await this.presentToast('Palette de couleurs enregistrée !', 'success');
+  }
+
+  private async presentToast(message: string, color: 'success' | 'danger' | 'info'): Promise<void> {
+    const toast = await this.toastCtrl.create({ message, duration: 2500, color });
+    await toast.present();
   }
 }
