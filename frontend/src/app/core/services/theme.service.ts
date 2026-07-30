@@ -250,7 +250,6 @@ export class ThemeService {
       isEffectiveDark = false;
     } else if (theme === 'dark') {
       body.classList.add('dark-theme');
-      isEffectiveDark = true;
     } else if (theme === 'system') {
       const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? true;
       body.classList.add(prefersDark ? 'dark-theme' : 'light-theme');

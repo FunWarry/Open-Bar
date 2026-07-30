@@ -4,8 +4,7 @@ import { CommonModule } from '@angular/common';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
-import { ToastController } from '@ionic/angular/standalone';
-import { IonIcon } from '@ionic/angular/standalone';
+import { ToastController, IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
   colorPaletteOutline,

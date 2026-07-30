@@ -94,7 +94,7 @@
           <label for="input-primary" class="color-label">Primaire d'accentuation</label>
           <div class="color-input-wrapper">
             <input type="color" id="input-primary" formControlName="primary" class="color-picker-input" data-testid="picker-primary" />
-            <input type="text" formControlName="primary" class="hex-text-input" />
+            <input type="text" id="text-primary" aria-label="Code hexadécimal primaire" formControlName="primary" class="hex-text-input" />
           </div>
         </div>
 
@@ -105,7 +105,7 @@
             <label for="input-bgDark" class="color-label">{{ 'THEME_CUSTOMIZER.BACKGROUND_DARK' | transloco }}</label>
             <div class="color-input-wrapper">
               <input type="color" id="input-bgDark" formControlName="bgDark" class="color-picker-input" data-testid="picker-bgDark" />
-              <input type="text" formControlName="bgDark" class="hex-text-input" />
+              <input type="text" id="text-bgDark" aria-label="Code hexadécimal arrière-plan sombre" formControlName="bgDark" class="hex-text-input" />
             </div>
           </div>
 
@@ -113,7 +113,7 @@
             <label for="input-surfaceDark" class="color-label">{{ 'THEME_CUSTOMIZER.SURFACE_DARK' | transloco }}</label>
             <div class="color-input-wrapper">
               <input type="color" id="input-surfaceDark" formControlName="surfaceDark" class="color-picker-input" data-testid="picker-surfaceDark" />
-              <input type="text" formControlName="surfaceDark" class="hex-text-input" />
+              <input type="text" id="text-surfaceDark" aria-label="Code hexadécimal surface sombre" formControlName="surfaceDark" class="hex-text-input" />
             </div>
           </div>
 
@@ -121,7 +121,7 @@
             <label for="input-bgLight" class="color-label">{{ 'THEME_CUSTOMIZER.BACKGROUND_LIGHT' | transloco }}</label>
             <div class="color-input-wrapper">
               <input type="color" id="input-bgLight" formControlName="bgLight" class="color-picker-input" data-testid="picker-bgLight" />
-              <input type="text" formControlName="bgLight" class="hex-text-input" />
+              <input type="text" id="text-bgLight" aria-label="Code hexadécimal arrière-plan clair" formControlName="bgLight" class="hex-text-input" />
             </div>
           </div>
 
@@ -129,7 +129,7 @@
             <label for="input-surfaceLight" class="color-label">{{ 'THEME_CUSTOMIZER.SURFACE_LIGHT' | transloco }}</label>
             <div class="color-input-wrapper">
               <input type="color" id="input-surfaceLight" formControlName="surfaceLight" class="color-picker-input" data-testid="picker-surfaceLight" />
-              <input type="text" formControlName="surfaceLight" class="hex-text-input" />
+              <input type="text" id="text-surfaceLight" aria-label="Code hexadécimal surface claire" formControlName="surfaceLight" class="hex-text-input" />
             </div>
           </div>
         </div>
@@ -141,7 +141,7 @@
             <label for="input-roleAdmin" class="color-label">{{ 'THEME_CUSTOMIZER.ROLE_ADMIN' | transloco }}</label>
             <div class="color-input-wrapper">
               <input type="color" id="input-roleAdmin" formControlName="roleAdmin" class="color-picker-input" data-testid="picker-roleAdmin" />
-              <input type="text" formControlName="roleAdmin" class="hex-text-input" />
+              <input type="text" id="text-roleAdmin" aria-label="Code hexadécimal rôle admin" formControlName="roleAdmin" class="hex-text-input" />
             </div>
           </div>
 
@@ -149,7 +149,7 @@
             <label for="input-roleManager" class="color-label">{{ 'THEME_CUSTOMIZER.ROLE_MANAGER' | transloco }}</label>
             <div class="color-input-wrapper">
               <input type="color" id="input-roleManager" formControlName="roleManager" class="color-picker-input" data-testid="picker-roleManager" />
-              <input type="text" formControlName="roleManager" class="hex-text-input" />
+              <input type="text" id="text-roleManager" aria-label="Code hexadécimal rôle manager" formControlName="roleManager" class="hex-text-input" />
             </div>
           </div>
 
@@ -157,7 +157,7 @@
             <label for="input-roleServeur" class="color-label">{{ 'THEME_CUSTOMIZER.ROLE_SERVEUR' | transloco }}</label>
             <div class="color-input-wrapper">
               <input type="color" id="input-roleServeur" formControlName="roleServeur" class="color-picker-input" data-testid="picker-roleServeur" />
-              <input type="text" formControlName="roleServeur" class="hex-text-input" />
+              <input type="text" id="text-roleServeur" aria-label="Code hexadécimal rôle serveur" formControlName="roleServeur" class="hex-text-input" />
             </div>
           </div>
 
@@ -165,7 +165,7 @@
             <label for="input-roleBarman" class="color-label">{{ 'THEME_CUSTOMIZER.ROLE_BARMAN' | transloco }}</label>
             <div class="color-input-wrapper">
               <input type="color" id="input-roleBarman" formControlName="roleBarman" class="color-picker-input" data-testid="picker-roleBarman" />
-              <input type="text" formControlName="roleBarman" class="hex-text-input" />
+              <input type="text" id="text-roleBarman" aria-label="Code hexadécimal rôle barman" formControlName="roleBarman" class="hex-text-input" />
             </div>
           </div>
         </div>
@@ -204,10 +204,10 @@
         <div class="preview-section">
           <h4>Badges de Rôles</h4>
           <div class="roles-preview-row">
-            <app-role-badge role="ADMIN"></app-role-badge>
-            <app-role-badge role="MANAGER"></app-role-badge>
-            <app-role-badge role="SERVEUR"></app-role-badge>
-            <app-role-badge role="BARMAN"></app-role-badge>
+            <app-role-badge [role]="'ADMIN'"></app-role-badge>
+            <app-role-badge [role]="'MANAGER'"></app-role-badge>
+            <app-role-badge [role]="'SERVEUR'"></app-role-badge>
+            <app-role-badge [role]="'BARMAN'"></app-role-badge>
           </div>
         </div>
 

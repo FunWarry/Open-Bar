@@ -19,9 +19,9 @@ export function hexToHsl(hex: string): HSLColor {
   if (c.length === 3) {
     c = c.split('').map(x => x + x).join('');
   }
-  const r = parseInt(c.substring(0, 2), 16) / 255;
-  const g = parseInt(c.substring(2, 4), 16) / 255;
-  const b = parseInt(c.substring(4, 6), 16) / 255;
+  const r = Number.parseInt(c.substring(0, 2), 16) / 255;
+  const g = Number.parseInt(c.substring(2, 4), 16) / 255;
+  const b = Number.parseInt(c.substring(4, 6), 16) / 255;
 
   const max = Math.max(r, g, b);
   const min = Math.min(r, g, b);
@@ -70,17 +70,17 @@ export function hslToHex(h: number, s: number, l: number): string {
   let b = 0;
 
   if (normH >= 0 && normH < 60) {
-    r = c; g = x; b = 0;
+    r = c; g = x;
   } else if (normH >= 60 && normH < 120) {
-    r = x; g = c; b = 0;
+    r = x; g = c;
   } else if (normH >= 120 && normH < 180) {
-    r = 0; g = c; b = x;
+    g = c; b = x;
   } else if (normH >= 180 && normH < 240) {
-    r = 0; g = x; b = c;
+    g = x; b = c;
   } else if (normH >= 240 && normH < 300) {
-    r = x; g = 0; b = c;
+    r = x; b = c;
   } else if (normH >= 300 && normH < 360) {
-    r = c; g = 0; b = x;
+    r = c; b = x;
   }
 
   const toHex = (n: number) => {
