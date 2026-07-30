@@ -310,5 +310,24 @@
     "ALL_ENTITIES": "Toutes les entités",
     "NO_LOGS_FOUND": "Aucun log trouvé",
     "TRY_CHANGING_FILTERS": "Essayez de modifier vos critères de recherche ou de filtre."
+  },
+  "THEME_CUSTOMIZER": {
+    "TITLE": "Studio de Personnalisation des Couleurs",
+    "SUBTITLE": "Personnalisation Charte & Générateur de Palettes",
+    "DESCRIPTION": "Ajustez les couleurs principales de l'application et générez automatiquement des palettes harmonieuses.",
+    "PRESETS": "Préréglages de thèmes",
+    "PRIMARY_ACCENT": "Couleur primaire d'accent",
+    "BACKGROUND_DARK": "Arrière-plan (Mode Sombre)",
+    "SURFACE_DARK": "Surface / Cartes (Mode Sombre)",
+    "BACKGROUND_LIGHT": "Arrière-plan (Mode Clair)",
+    "SURFACE_LIGHT": "Surface / Cartes (Mode Clair)",
+    "ROLE_ADMIN": "Rôle Admin",
+    "ROLE_MANAGER": "Rôle Manager",
+    "ROLE_SERVEUR": "Rôle Serveur",
+    "ROLE_BARMAN": "Rôle Barman",
+    "AUTO_GENERATE": "Générer la palette automatiquement (HSL)",
+    "RESET_DEFAULT": "Réinitialiser aux couleurs Figma",
+    "SAVE": "Appliquer la palette",
+    "LIVE_PREVIEW": "Aperçu interactif en direct"
   }
 }
