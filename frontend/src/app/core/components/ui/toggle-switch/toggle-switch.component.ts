@@ -1,11 +1,12 @@
 import { Component, Input, Output, EventEmitter, forwardRef } from '@angular/core';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { NG_VALUE_ACCESSOR } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { BaseControlValueAccessor } from '../base-control-value-accessor';
 
 /**
  * Atomic Toggle Switch component conforming to Figma Design System Toggle (ID 534:910).
  *
- * Implements ControlValueAccessor for seamless integration with Angular Reactive & Template-driven forms.
+ * Extends BaseControlValueAccessor for seamless integration with Angular Reactive & Template-driven forms.
  */
 @Component({
   selector: 'app-toggle-switch',
@@ -21,15 +22,12 @@ import { CommonModule } from '@angular/common';
     },
   ],
 })
-export class ToggleSwitchComponent implements ControlValueAccessor {
+export class ToggleSwitchComponent extends BaseControlValueAccessor<boolean> {
   /** Optional text label displayed next to the toggle switch. */
   @Input() label?: string;
 
-  /** Whether the switch is currently checked (On). */
-  @Input() checked = false;
-
-  /** Whether the control is disabled. */
-  @Input() disabled = false;
+  /** Initial value / checked state. */
+  @Input() override value = false;
 
   /** Custom data-testid attribute for End-to-End testing. */
   @Input() testId = 'toggle-switch';
@@ -37,8 +35,12 @@ export class ToggleSwitchComponent implements ControlValueAccessor {
   /** Event emitted when the checked state changes manually. */
   @Output() checkedChange = new EventEmitter<boolean>();
 
-  private onChange: (value: boolean) => void = () => {};
-  private onTouched: () => void = () => {};
+  get checked(): boolean {
+    return Boolean(this.value);
+  }
+  set checked(val: boolean) {
+    this.value = val;
+  }
 
   /** Toggles the checked state when clicked or triggered via keyboard. */
   toggle(): void {
@@ -47,23 +49,5 @@ export class ToggleSwitchComponent implements ControlValueAccessor {
     this.onChange(this.checked);
     this.onTouched();
     this.checkedChange.emit(this.checked);
-  }
-
-  // --- ControlValueAccessor Implementation ---
-
-  writeValue(value: boolean): void {
-    this.checked = Boolean(value);
-  }
-
-  registerOnChange(fn: (value: boolean) => void): void {
-    this.onChange = fn;
-  }
-
-  registerOnTouched(fn: () => void): void {
-    this.onTouched = fn;
-  }
-
-  setDisabledState(isDisabled: boolean): void {
-    this.disabled = isDisabled;
   }
 }

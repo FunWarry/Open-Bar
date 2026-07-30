@@ -1,11 +1,12 @@
 import { Component, Input, Output, EventEmitter, forwardRef } from '@angular/core';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { NG_VALUE_ACCESSOR } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { BaseControlValueAccessor } from '../base-control-value-accessor';
 
 /**
  * Atomic Checkbox control component conforming to Figma Design System CheckBox (ID 426:2058).
  *
- * Implements ControlValueAccessor for integration with Angular forms.
+ * Extends BaseControlValueAccessor for integration with Angular forms.
  */
 @Component({
   selector: 'app-checkbox-field',
@@ -21,11 +22,12 @@ import { CommonModule } from '@angular/common';
     },
   ],
 })
-export class CheckboxFieldComponent implements ControlValueAccessor {
+export class CheckboxFieldComponent extends BaseControlValueAccessor<boolean> {
   private static nextId = 0;
   readonly inputId: string;
 
   constructor() {
+    super();
     CheckboxFieldComponent.nextId += 1;
     this.inputId = `app-checkbox-${CheckboxFieldComponent.nextId}`;
   }
@@ -33,11 +35,8 @@ export class CheckboxFieldComponent implements ControlValueAccessor {
   /** Text label displayed alongside the checkbox. */
   @Input() label?: string;
 
-  /** Whether the checkbox is currently checked. */
-  @Input() checked = false;
-
-  /** Whether the control is disabled. */
-  @Input() disabled = false;
+  /** Initial value / checked state. */
+  @Input() override value = false;
 
   /** Custom data-testid attribute for End-to-End testing. */
   @Input() testId = 'checkbox-field';
@@ -45,8 +44,12 @@ export class CheckboxFieldComponent implements ControlValueAccessor {
   /** Event emitted when checked state changes manually. */
   @Output() checkedChange = new EventEmitter<boolean>();
 
-  private onChange: (value: boolean) => void = () => {};
-  private onTouched: () => void = () => {};
+  get checked(): boolean {
+    return Boolean(this.value);
+  }
+  set checked(val: boolean) {
+    this.value = val;
+  }
 
   /** Toggles the checked state when triggered. */
   toggle(): void {
@@ -55,23 +58,5 @@ export class CheckboxFieldComponent implements ControlValueAccessor {
     this.onChange(this.checked);
     this.onTouched();
     this.checkedChange.emit(this.checked);
-  }
-
-  // --- ControlValueAccessor Implementation ---
-
-  writeValue(value: boolean): void {
-    this.checked = Boolean(value);
-  }
-
-  registerOnChange(fn: (value: boolean) => void): void {
-    this.onChange = fn;
-  }
-
-  registerOnTouched(fn: () => void): void {
-    this.onTouched = fn;
-  }
-
-  setDisabledState(isDisabled: boolean): void {
-    this.disabled = isDisabled;
   }
 }

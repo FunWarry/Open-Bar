@@ -394,7 +394,7 @@ describe('Shared UI Components (Figma Design System)', () => {
       fixture.detectChanges();
     });
 
-    it('should create and handle value toggle', () => {
+    it('devrait basculer la valeur du interrupteur et respecter l\'état désactivé', () => {
       expect(component).toBeTruthy();
       expect(component.checked).toBeFalse();
 
@@ -403,18 +403,18 @@ describe('Shared UI Components (Figma Design System)', () => {
 
       component.disabled = true;
       component.toggle();
-      expect(component.checked).toBeTrue(); // unchanged when disabled
+      expect(component.checked).toBeTrue();
     });
 
-    it('should implement ControlValueAccessor correctly', () => {
+    it('devrait propager les changements au ControlValueAccessor de l\'interrupteur', () => {
       component.writeValue(true);
       expect(component.checked).toBeTrue();
 
-      const fn = jasmine.createSpy('onChange');
-      component.registerOnChange(fn);
+      const toggleSpy = jasmine.createSpy('onToggleChange');
+      component.registerOnChange(toggleSpy);
 
       component.toggle();
-      expect(fn).toHaveBeenCalledWith(false);
+      expect(toggleSpy).toHaveBeenCalledWith(false);
     });
   });
 
@@ -429,27 +429,28 @@ describe('Shared UI Components (Figma Design System)', () => {
       fixture.detectChanges();
     });
 
-    it('should create and toggle checkbox state', () => {
+    it('devrait basculer la coche de la case et générer un inputId unique', () => {
       expect(component).toBeTruthy();
+      expect(component.inputId).toContain('app-checkbox-');
       expect(component.checked).toBeFalse();
 
       component.toggle();
       expect(component.checked).toBeTrue();
 
-      component.disabled = true;
+      component.setDisabledState(true);
       component.toggle();
       expect(component.checked).toBeTrue();
     });
 
-    it('should implement ControlValueAccessor correctly', () => {
-      component.writeValue(true);
-      expect(component.checked).toBeTrue();
+    it('devrait lier correctement la valeur booléenne avec ReactiveForms', () => {
+      component.writeValue(false);
+      expect(component.checked).toBeFalse();
 
-      const fn = jasmine.createSpy('onChange');
-      component.registerOnChange(fn);
+      const checkboxSpy = jasmine.createSpy('onCheckboxChange');
+      component.registerOnChange(checkboxSpy);
 
       component.toggle();
-      expect(fn).toHaveBeenCalledWith(false);
+      expect(checkboxSpy).toHaveBeenCalledWith(true);
     });
   });
 
@@ -464,7 +465,7 @@ describe('Shared UI Components (Figma Design System)', () => {
       fixture.detectChanges();
     });
 
-    it('should create and assign severity icon', () => {
+    it('devrait attribuer l\'icône Ionic correspondant aux 4 niveaux de sévérité', () => {
       expect(component).toBeTruthy();
       component.severity = 'success';
       expect(component.severityIcon).toBe('checkmark-circle-outline');
@@ -479,7 +480,7 @@ describe('Shared UI Components (Figma Design System)', () => {
       expect(component.severityIcon).toBe('information-circle-outline');
     });
 
-    it('should emit dismissed event when onClose() is called', () => {
+    it('devrait émettre un événement dismissed lors du clic sur le bouton de fermeture', () => {
       spyOn(component.dismissed, 'emit');
       component.onClose();
       expect(component.dismissed.emit).toHaveBeenCalled();
