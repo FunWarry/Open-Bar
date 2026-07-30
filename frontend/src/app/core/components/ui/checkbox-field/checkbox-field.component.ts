@@ -1,12 +1,12 @@
-import { Component, Input, Output, EventEmitter, forwardRef } from '@angular/core';
+import { Component, Input, forwardRef } from '@angular/core';
 import { NG_VALUE_ACCESSOR } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { BaseControlValueAccessor } from '../base-control-value-accessor';
+import { BaseToggleControl } from '../base-control-value-accessor';
 
 /**
  * Atomic Checkbox control component conforming to Figma Design System CheckBox (ID 426:2058).
  *
- * Extends BaseControlValueAccessor for integration with Angular forms.
+ * Extends BaseToggleControl for integration with Angular forms.
  */
 @Component({
   selector: 'app-checkbox-field',
@@ -22,7 +22,7 @@ import { BaseControlValueAccessor } from '../base-control-value-accessor';
     },
   ],
 })
-export class CheckboxFieldComponent extends BaseControlValueAccessor<boolean> {
+export class CheckboxFieldComponent extends BaseToggleControl {
   private static nextId = 0;
   readonly inputId: string;
 
@@ -32,31 +32,6 @@ export class CheckboxFieldComponent extends BaseControlValueAccessor<boolean> {
     this.inputId = `app-checkbox-${CheckboxFieldComponent.nextId}`;
   }
 
-  /** Text label displayed alongside the checkbox. */
-  @Input() label?: string;
-
-  /** Initial value / checked state. */
-  @Input() override value = false;
-
   /** Custom data-testid attribute for End-to-End testing. */
   @Input() testId = 'checkbox-field';
-
-  /** Event emitted when checked state changes manually. */
-  @Output() checkedChange = new EventEmitter<boolean>();
-
-  get checked(): boolean {
-    return Boolean(this.value);
-  }
-  set checked(val: boolean) {
-    this.value = val;
-  }
-
-  /** Toggles the checked state when triggered. */
-  toggle(): void {
-    if (this.disabled) return;
-    this.checked = !this.checked;
-    this.onChange(this.checked);
-    this.onTouched();
-    this.checkedChange.emit(this.checked);
-  }
 }
