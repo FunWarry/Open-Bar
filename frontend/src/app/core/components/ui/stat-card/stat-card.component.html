@@ -1,13 +1,17 @@
-<ion-card class="stat-card" [ngClass]="color ? 'color-' + color : ''">
+<ion-card class="stat-card" [ngClass]="color ? 'color-' + color : ''" [attr.data-testid]="testId">
   <ion-card-content>
     <div class="stat-header">
       <span class="stat-title">{{ displayTitle }}</span>
-      <ion-icon *ngIf="icon" [name]="icon" class="stat-icon"></ion-icon>
+      @if (icon) {
+        <ion-icon [name]="icon" class="stat-icon"></ion-icon>
+      }
     </div>
     <div class="stat-value">{{ value }}</div>
-    <div *ngIf="trend" class="stat-trend" [ngClass]="'trend-' + trendDirection">
-      <ion-icon [name]="trendDirection === 'up' ? 'trending-up' : (trendDirection === 'down' ? 'trending-down' : 'remove')"></ion-icon>
-      <span>{{ trend }}</span>
-    </div>
+    @if (trend) {
+      <div class="stat-trend" [ngClass]="'trend-' + trendDirection">
+        <ion-icon [name]="trendDirection === 'up' ? 'trending-up' : (trendDirection === 'down' ? 'trending-down' : 'remove')"></ion-icon>
+        <span>{{ trend }}</span>
+      </div>
+    }
   </ion-card-content>
 </ion-card>

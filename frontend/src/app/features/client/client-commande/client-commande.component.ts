@@ -11,6 +11,8 @@ import { CommandeService } from '../../../core/services/commande.service';
 import { Cocktail } from '../../../core/models/cocktail.model';
 import { InputFieldComponent } from '../../../core/components/ui/input-field/input-field.component';
 import { ActionButtonComponent } from '../../../core/components/ui/action-button/action-button.component';
+import { FilterChipComponent } from '../../../core/components/ui/filter-chip/filter-chip.component';
+import { ProductCardComponent } from '../../../core/components/ui/product-card/product-card.component';
 
 export interface CartItem {
   cocktail: Cocktail;
@@ -32,7 +34,9 @@ export interface CartItem {
     CurrencyPipe,
     TranslocoModule,
     InputFieldComponent,
-    ActionButtonComponent
+    ActionButtonComponent,
+    FilterChipComponent,
+    ProductCardComponent
   ]
 })
 export class ClientCommandeComponent implements OnInit, OnDestroy {

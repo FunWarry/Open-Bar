@@ -13,6 +13,7 @@ import { FilterChipComponent } from '../../../../app/core/components/ui/filter-c
 import { ToggleSwitchComponent } from '../../../../app/core/components/ui/toggle-switch/toggle-switch.component';
 import { CheckboxFieldComponent } from '../../../../app/core/components/ui/checkbox-field/checkbox-field.component';
 import { ToastComponent } from '../../../../app/core/components/ui/toast/toast.component';
+import { ProductCardComponent } from '../../../../app/core/components/ui/product-card/product-card.component';
 
 describe('Shared UI Components (Figma Design System)', () => {
   describe('ActionButtonComponent', () => {
@@ -484,6 +485,34 @@ describe('Shared UI Components (Figma Design System)', () => {
       spyOn(component.dismissed, 'emit');
       component.onClose();
       expect(component.dismissed.emit).toHaveBeenCalled();
+    });
+  });
+
+  describe('ProductCardComponent (Figma ID 129:95)', () => {
+    let component: ProductCardComponent;
+    let fixture: ComponentFixture<ProductCardComponent>;
+
+    beforeEach(async () => {
+      await TestBed.configureTestingModule({ imports: [ProductCardComponent] }).compileComponents();
+      fixture = TestBed.createComponent(ProductCardComponent);
+      component = fixture.componentInstance;
+      component.title = 'Mojito';
+      component.price = 10.5;
+      fixture.detectChanges();
+    });
+
+    it('devrait se créer et émettre des événements addClick et removeClick', () => {
+      expect(component).toBeTruthy();
+      expect(component.title).toBe('Mojito');
+      expect(component.price).toBe(10.5);
+
+      spyOn(component.addClick, 'emit');
+      component.onAdd();
+      expect(component.addClick.emit).toHaveBeenCalled();
+
+      spyOn(component.removeClick, 'emit');
+      component.onRemove();
+      expect(component.removeClick.emit).toHaveBeenCalled();
     });
   });
 });

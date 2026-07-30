@@ -44,24 +44,24 @@
       </header>
 
       <div class="filter-chips">
-        <button
-          class="chip-btn"
-          [class.active]="selectedCategory === 'TOUS'"
-          (click)="filterCategory('TOUS')">
-          Tous
-        </button>
-        <button
-          class="chip-btn"
-          [class.active]="selectedCategory === 'ALCOOLISE'"
-          (click)="filterCategory('ALCOOLISE')">
-          Alcoolisés
-        </button>
-        <button
-          class="chip-btn"
-          [class.active]="selectedCategory === 'SANS_ALCOOL'"
-          (click)="filterCategory('SANS_ALCOOL')">
-          Sans Alcool
-        </button>
+        <app-filter-chip
+          label="Tous"
+          [active]="selectedCategory === 'TOUS'"
+          (chipClick)="filterCategory('TOUS')"
+          testId="filter-tous">
+        </app-filter-chip>
+        <app-filter-chip
+          label="Alcoolisés"
+          [active]="selectedCategory === 'ALCOOLISE'"
+          (chipClick)="filterCategory('ALCOOLISE')"
+          testId="filter-alcoolise">
+        </app-filter-chip>
+        <app-filter-chip
+          label="Sans Alcool"
+          [active]="selectedCategory === 'SANS_ALCOOL'"
+          (chipClick)="filterCategory('SANS_ALCOOL')"
+          testId="filter-sans-alcool">
+        </app-filter-chip>
       </div>
 
       @if (isLoading) {
@@ -72,20 +72,16 @@
       } @else {
         <div class="cocktails-grid">
           @for (cocktail of filteredCocktails; track cocktail.id) {
-            <div class="product-card">
-              <div class="product-info">
-                <h3 class="product-title">{{ cocktail.nom }}</h3>
-                <p class="product-desc">{{ cocktail.description || cocktail.categorie }}</p>
-                <span class="product-price">{{ cocktail.prix | currency:'EUR' }}</span>
-              </div>
-              <div class="quantity-controls">
-                @if (getItemQuantity(cocktail.id) > 0) {
-                  <button class="qty-btn" (click)="removeFromCart(cocktail.id)">-</button>
-                  <span class="qty-count">{{ getItemQuantity(cocktail.id) }}</span>
-                }
-                <button class="qty-btn add-btn" (click)="addToCart(cocktail)">+</button>
-              </div>
-            </div>
+            <app-product-card
+              [title]="cocktail.nom"
+              [description]="cocktail.description || cocktail.categorie"
+              [price]="cocktail.prix"
+              [category]="cocktail.categorie"
+              [quantity]="getItemQuantity(cocktail.id)"
+              (addClick)="addToCart(cocktail)"
+              (removeClick)="removeFromCart(cocktail.id)"
+              [testId]="'product-card-' + cocktail.id">
+            </app-product-card>
           } @empty {
             <div class="empty-box">
               <p>Aucun cocktail disponible dans cette catégorie.</p>
