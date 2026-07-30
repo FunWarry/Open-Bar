@@ -245,10 +245,11 @@ describe('NavbarComponent', () => {
     });
   });
 
-  describe('pageTitle$', () => {
-    it('should emit a translated title string for an authenticated route', (done) => {
-      component.pageTitle$.subscribe(title => {
-        expect(typeof title).toBe('string');
+  describe('pageTitleKey$', () => {
+    it('should emit a translation key string for an authenticated route', (done) => {
+      component.pageTitleKey$.subscribe(key => {
+        expect(typeof key).toBe('string');
+        expect(key).toContain('NAV.TOPBAR.PAGE_TITLES');
         done();
       });
     });

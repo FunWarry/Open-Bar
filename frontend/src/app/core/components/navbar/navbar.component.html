@@ -12,7 +12,7 @@
 
       <!-- Dynamic page title (center) -->
       <div class="topbar-page-title" data-testid="topbar-page-title">
-        {{ pageTitle$ | async }}
+        {{ (pageTitleKey$ | async)! | transloco }}
       </div>
 
       <ion-buttons slot="end">

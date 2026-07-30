@@ -83,8 +83,8 @@ export class NavbarComponent implements OnInit, OnDestroy {
   /** The currently authenticated user (null when unauthenticated). */
   readonly currentUser$: Observable<User | null>;
 
-  /** Translated page title derived from the active route. */
-  readonly pageTitle$: Observable<string>;
+  /** Transloco translation key for the page title derived from active route. */
+  readonly pageTitleKey$: Observable<string>;
 
   /** Number of unread notifications for the badge. */
   nonLues = 0;
@@ -128,10 +128,9 @@ export class NavbarComponent implements OnInit, OnDestroy {
       map(([isAuth, isAuthRoute]) => Boolean(isAuth) && !isAuthRoute),
     );
 
-    this.pageTitle$ = currentUrl$.pipe(
+    this.pageTitleKey$ = currentUrl$.pipe(
       map(url => this.resolveTitleKey(url)),
       distinctUntilChanged(),
-      map(key => this.transloco.translate(key)),
     );
   }
 
