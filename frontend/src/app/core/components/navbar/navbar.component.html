@@ -103,12 +103,4 @@
       </ion-buttons>
     </ion-toolbar>
   </ion-header>
-
-  <!-- Non-modal sliding side notification drawer panel -->
-  <div class="notif-drawer-wrapper" [class.open]="isNotifPanelOpen" data-testid="side-notif-drawer">
-    <app-notification-panel
-      [isOpen]="isNotifPanelOpen"
-      (closePanel)="closeNotifPanel()">
-    </app-notification-panel>
-  </div>
 }

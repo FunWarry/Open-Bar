@@ -1,4 +1,4 @@
-import { Injectable, OnDestroy } from '@angular/core';
+import { Injectable, OnDestroy, signal } from '@angular/core';
 import { Subject, Observable } from 'rxjs';
 import { ToastController } from '@ionic/angular/standalone';
 import { takeUntil } from 'rxjs/operators';
@@ -17,6 +17,7 @@ export interface AppNotification {
 
 @Injectable({ providedIn: 'root' })
 export class NotificationService implements OnDestroy {
+  readonly isNotifPanelOpen = signal<boolean>(false);
   private readonly notifications$ = new Subject<AppNotification>();
   private readonly stockAlerts$ = new Subject<AppNotification>();
   private readonly destroy$ = new Subject<void>();
@@ -28,6 +29,18 @@ export class NotificationService implements OnDestroy {
     private readonly soundService: SoundService
   ) {
     this.initSubscriptions();
+  }
+
+  toggleNotifPanel(): void {
+    this.isNotifPanelOpen.update(v => !v);
+  }
+
+  closeNotifPanel(): void {
+    this.isNotifPanelOpen.set(false);
+  }
+
+  openNotifPanel(): void {
+    this.isNotifPanelOpen.set(true);
   }
 
   private initSubscriptions(): void {

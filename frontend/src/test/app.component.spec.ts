@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { AppComponent } from '../app/app.component';
@@ -31,11 +31,12 @@ describe('AppComponent', () => {
     mockWebSocketService.watch.and.returnValue(EMPTY);
 
     const mockNotificationService = jasmine.createSpyObj('NotificationService', [
-      'onNotification', 'onStockAlert', 'getNonLues', 'getHistory', 'marquerLue', 'marquerToutLu',
+      'onNotification', 'onStockAlert', 'getNonLues', 'getHistory', 'marquerLue', 'marquerToutLu', 'toggleNotifPanel', 'closeNotifPanel',
     ]);
     mockNotificationService.onNotification.and.returnValue(EMPTY);
     mockNotificationService.onStockAlert.and.returnValue(EMPTY);
     mockNotificationService.getNonLues.and.returnValue(0);
+    mockNotificationService.isNotifPanelOpen = signal(false);
 
     const mockPopoverCtrl = jasmine.createSpyObj('PopoverController', ['create']);
 

@@ -2,7 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { NavbarComponent } from './core/components/navbar/navbar.component';
 import { SidebarComponent } from './core/components/sidebar/sidebar.component';
+import { NotificationPanelComponent } from './core/components/notification-panel/notification-panel.component';
 import { AppSettingsService } from './core/services/app-settings.service';
+import { NotificationService } from './core/services/notification.service';
 import { filter, map, combineLatest, startWith, Observable } from 'rxjs';
 import { Store } from '@ngrx/store';
 import { selectIsAuthenticated } from './core/store/auth.selectors';
@@ -14,7 +16,7 @@ import * as allIcons from 'ionicons/icons';
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
-  imports: [RouterOutlet, NavbarComponent, SidebarComponent, AsyncPipe],
+  imports: [RouterOutlet, NavbarComponent, SidebarComponent, NotificationPanelComponent, AsyncPipe],
   standalone: true
 })
 export class AppComponent implements OnInit {
@@ -23,6 +25,7 @@ export class AppComponent implements OnInit {
   constructor(
     private readonly router: Router,
     private readonly appSettingsService: AppSettingsService,
+    public readonly notifService: NotificationService,
     private readonly store: Store
   ) {
     addIcons(allIcons);

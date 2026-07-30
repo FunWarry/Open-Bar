@@ -182,14 +182,12 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   /** Toggles the non-modal side drawer notification panel. */
   toggleNotifPanel(): void {
-    this.isNotifPanelOpen = !this.isNotifPanelOpen;
-    this.nonLues = this.notifService.getNonLues();
+    this.notifService.toggleNotifPanel();
   }
 
   /** Closes the non-modal side drawer notification panel. */
   closeNotifPanel(): void {
-    this.isNotifPanelOpen = false;
-    this.nonLues = this.notifService.getNonLues();
+    this.notifService.closeNotifPanel();
   }
 
   /** Toggles the notification sound on/off. */
