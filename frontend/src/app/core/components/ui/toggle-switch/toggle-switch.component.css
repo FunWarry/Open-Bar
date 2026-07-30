@@ -1,0 +1,61 @@
+/* Toggle Switch — Figma ID 534:910 */
+
+:host {
+  display: inline-block;
+}
+
+.toggle-container {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+  outline: none;
+}
+
+.toggle-container.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.toggle-container:focus-visible .toggle-track {
+  box-shadow: 0 0 0 3px rgba(108, 127, 232, 0.35);
+}
+
+.toggle-track {
+  width: 44px;
+  height: 24px;
+  border-radius: 999px;
+  background-color: var(--surface-2, #21263f);
+  border: 1px solid var(--border-medium, #2e3450);
+  position: relative;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.toggle-track.checked {
+  background-color: var(--primary, #6c7fe8);
+  border-color: var(--primary-strong, #5a68d6);
+}
+
+.toggle-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.toggle-thumb.checked {
+  transform: translateX(20px);
+}
+
+.toggle-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary, #eceefb);
+  font-family: var(--font, 'Inter', sans-serif);
+}

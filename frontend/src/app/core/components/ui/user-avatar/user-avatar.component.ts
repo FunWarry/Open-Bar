@@ -1,8 +1,12 @@
 import { Component, Input } from '@angular/core';
-
 import { IonAvatar, IonIcon } from '@ionic/angular/standalone';
 import { UserRoleType } from '../role-badge/role-badge.component';
 
+/**
+ * User Avatar component conforming to Figma Design System Avatar (ID 120:8).
+ *
+ * Displays an image avatar or a colored initial circle matching the user's role.
+ */
 @Component({
   selector: 'app-user-avatar',
   standalone: true,
@@ -11,11 +15,22 @@ import { UserRoleType } from '../role-badge/role-badge.component';
   styleUrls: ['./user-avatar.component.css']
 })
 export class UserAvatarComponent {
+  /** User's full name or username. */
   @Input() name?: string;
+
+  /** Optional direct URL for an image avatar. */
   @Input() avatarUrl?: string;
+
+  /** User's role determining the fallback circle background color. */
   @Input() role?: UserRoleType;
+
+  /** Size variant ('small' = 32px, 'medium' = 44px, 'large' = 64px). */
   @Input() size: 'small' | 'medium' | 'large' = 'medium';
 
+  /** Custom data-testid attribute for testing. */
+  @Input() testId = 'user-avatar';
+
+  /** Generates 1-2 uppercase initials from the user's name. */
   get initials(): string {
     if (!this.name) return '?';
     const parts = this.name.trim().split(' ');
@@ -25,6 +40,7 @@ export class UserAvatarComponent {
     return parts[0].slice(0, 2).toUpperCase();
   }
 
+  /** Gets the role-specific CSS color token for fallback background. */
   get roleColor(): string {
     if (!this.role) return 'var(--primary)';
     const r = this.role.toLowerCase();
@@ -34,6 +50,7 @@ export class UserAvatarComponent {
     return 'var(--role-serveur)';
   }
 
+  /** Gets the corresponding role icon identifier. */
   get roleIcon(): string {
     if (!this.role) return 'person';
     const r = this.role.toUpperCase();
@@ -43,4 +60,3 @@ export class UserAvatarComponent {
     return 'restaurant';
   }
 }
-

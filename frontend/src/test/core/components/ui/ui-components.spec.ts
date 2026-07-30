@@ -10,6 +10,9 @@ import { StatCardComponent } from '../../../../app/core/components/ui/stat-card/
 import { EmptyStateComponent } from '../../../../app/core/components/ui/empty-state/empty-state.component';
 import { QuantityStepperComponent } from '../../../../app/core/components/ui/quantity-stepper/quantity-stepper.component';
 import { FilterChipComponent } from '../../../../app/core/components/ui/filter-chip/filter-chip.component';
+import { ToggleSwitchComponent } from '../../../../app/core/components/ui/toggle-switch/toggle-switch.component';
+import { CheckboxFieldComponent } from '../../../../app/core/components/ui/checkbox-field/checkbox-field.component';
+import { ToastComponent } from '../../../../app/core/components/ui/toast/toast.component';
 
 describe('Shared UI Components (Figma Design System)', () => {
   describe('ActionButtonComponent', () => {
@@ -379,5 +382,110 @@ describe('Shared UI Components (Figma Design System)', () => {
       expect(component.color).toBe('success');
     });
   });
+
+  describe('ToggleSwitchComponent (Figma ID 534:910)', () => {
+    let component: ToggleSwitchComponent;
+    let fixture: ComponentFixture<ToggleSwitchComponent>;
+
+    beforeEach(async () => {
+      await TestBed.configureTestingModule({ imports: [ToggleSwitchComponent] }).compileComponents();
+      fixture = TestBed.createComponent(ToggleSwitchComponent);
+      component = fixture.componentInstance;
+      fixture.detectChanges();
+    });
+
+    it('devrait basculer la valeur du interrupteur et respecter l\'état désactivé', () => {
+      expect(component).toBeTruthy();
+      expect(component.checked).toBeFalse();
+
+      component.toggle();
+      expect(component.checked).toBeTrue();
+
+      component.disabled = true;
+      component.toggle();
+      expect(component.checked).toBeTrue();
+    });
+
+    it('devrait propager les changements au ControlValueAccessor de l\'interrupteur', () => {
+      component.writeValue(true);
+      expect(component.checked).toBeTrue();
+
+      const toggleSpy = jasmine.createSpy('onToggleChange');
+      component.registerOnChange(toggleSpy);
+
+      component.toggle();
+      expect(toggleSpy).toHaveBeenCalledWith(false);
+    });
+  });
+
+  describe('CheckboxFieldComponent (Figma ID 426:2058)', () => {
+    let component: CheckboxFieldComponent;
+    let fixture: ComponentFixture<CheckboxFieldComponent>;
+
+    beforeEach(async () => {
+      await TestBed.configureTestingModule({ imports: [CheckboxFieldComponent] }).compileComponents();
+      fixture = TestBed.createComponent(CheckboxFieldComponent);
+      component = fixture.componentInstance;
+      fixture.detectChanges();
+    });
+
+    it('devrait basculer la coche de la case et générer un inputId unique', () => {
+      expect(component).toBeTruthy();
+      expect(component.inputId).toContain('app-checkbox-');
+      expect(component.checked).toBeFalse();
+
+      component.toggle();
+      expect(component.checked).toBeTrue();
+
+      component.setDisabledState(true);
+      component.toggle();
+      expect(component.checked).toBeTrue();
+    });
+
+    it('devrait lier correctement la valeur booléenne avec ReactiveForms', () => {
+      component.writeValue(false);
+      expect(component.checked).toBeFalse();
+
+      const checkboxSpy = jasmine.createSpy('onCheckboxChange');
+      component.registerOnChange(checkboxSpy);
+
+      component.toggle();
+      expect(checkboxSpy).toHaveBeenCalledWith(true);
+    });
+  });
+
+  describe('ToastComponent (Figma ID 536:928)', () => {
+    let component: ToastComponent;
+    let fixture: ComponentFixture<ToastComponent>;
+
+    beforeEach(async () => {
+      await TestBed.configureTestingModule({ imports: [ToastComponent] }).compileComponents();
+      fixture = TestBed.createComponent(ToastComponent);
+      component = fixture.componentInstance;
+      fixture.detectChanges();
+    });
+
+    it('devrait attribuer l\'icône Ionic correspondant aux 4 niveaux de sévérité', () => {
+      expect(component).toBeTruthy();
+      component.severity = 'success';
+      expect(component.severityIcon).toBe('checkmark-circle-outline');
+
+      component.severity = 'danger';
+      expect(component.severityIcon).toBe('alert-circle-outline');
+
+      component.severity = 'warning';
+      expect(component.severityIcon).toBe('warning-outline');
+
+      component.severity = 'info';
+      expect(component.severityIcon).toBe('information-circle-outline');
+    });
+
+    it('devrait émettre un événement dismissed lors du clic sur le bouton de fermeture', () => {
+      spyOn(component.dismissed, 'emit');
+      component.onClose();
+      expect(component.dismissed.emit).toHaveBeenCalled();
+    });
+  });
 });
+
 
