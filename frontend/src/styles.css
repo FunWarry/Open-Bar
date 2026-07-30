@@ -163,6 +163,19 @@ ion-list {
   color: var(--text-primary);
 }
 
+ion-popover {
+  --background: var(--surface-1);
+  --color: var(--text-primary);
+}
+
+ion-popover::part(content) {
+  background: var(--surface-1);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  box-shadow: var(--elev-2);
+}
+
 ion-button {
   --border-radius: var(--radius-md);
 }

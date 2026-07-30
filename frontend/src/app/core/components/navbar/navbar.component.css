@@ -104,3 +104,40 @@ ion-button:hover {
   line-height: 1.4;
   vertical-align: middle;
 }
+
+/* User popover dropdown menu styling */
+ion-popover {
+  --background: var(--surface-1, #1a1a2e);
+  --color: var(--text-primary, #eceefb);
+  --border-color: var(--border-subtle, #23233a);
+}
+
+ion-popover ion-list {
+  background: var(--surface-1, #1a1a2e);
+  color: var(--text-primary, #eceefb);
+  padding: 4px;
+}
+
+ion-popover ion-item {
+  --background: var(--surface-1, #1a1a2e);
+  --color: var(--text-primary, #eceefb);
+  --background-hover: var(--surface-2, #21263f);
+  --border-color: transparent;
+  --border-radius: var(--radius-md, 8px);
+  --padding-start: 12px;
+  --padding-end: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  margin: 2px 0;
+}
+
+ion-popover ion-item ion-icon {
+  color: var(--text-secondary, #a4add0);
+  margin-right: 8px;
+  font-size: 18px;
+}
+
+ion-popover ion-item:hover ion-icon {
+  color: var(--primary, #6c7fe8);
+}
