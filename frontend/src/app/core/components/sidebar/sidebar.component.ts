@@ -2,7 +2,6 @@ import { Component, signal, OnDestroy } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Observable, Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { AsyncPipe } from '@angular/common';
 import { IonIcon } from '@ionic/angular/standalone';
