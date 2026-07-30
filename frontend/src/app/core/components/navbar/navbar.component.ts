@@ -69,7 +69,7 @@ const ROLE_COLORS: Record<string, string> = {
   imports: [
     IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
     IonPopover, IonList, IonItem, IonLabel, IonBadge,
-    AsyncPipe, TranslocoPipe, NotificationPanelComponent,
+    AsyncPipe, TranslocoPipe,
   ],
 })
 export class NavbarComponent implements OnInit, OnDestroy {

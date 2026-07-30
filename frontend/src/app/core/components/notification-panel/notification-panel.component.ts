@@ -8,7 +8,6 @@ import {
 import { addIcons } from 'ionicons';
 import { checkmarkDoneOutline, notificationsOffOutline, notificationsOutline, closeOutline } from 'ionicons/icons';
 import { NotificationService, AppNotification } from '../../services/notification.service';
-import { TranslocoPipe } from '@jsverse/transloco';
 
 /**
  * Side drawer panel component for displaying notifications dynamically.
@@ -19,7 +18,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
   standalone: true,
   imports: [
     CommonModule,
-    IonButton, IonIcon, TranslocoPipe,
+    IonButton, IonIcon,
   ],
   templateUrl: './notification-panel.component.html',
   styleUrls: ['./notification-panel.component.scss'],
@@ -55,6 +54,7 @@ export class NotificationPanelComponent implements OnInit, OnDestroy {
   marquerToutLu() {
     this.notifService.marquerToutLu();
     this.notifications = this.notifService.getHistory();
+    this.fermer();
   }
 
   marquerLue(id: string) {

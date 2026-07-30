@@ -69,18 +69,24 @@ export function hslToHex(h: number, s: number, l: number): string {
   let g = 0;
   let b = 0;
 
-  if (normH >= 0 && normH < 60) {
-    r = c; g = x;
-  } else if (normH >= 60 && normH < 120) {
-    r = x; g = c;
-  } else if (normH >= 120 && normH < 180) {
-    g = c; b = x;
-  } else if (normH >= 180 && normH < 240) {
-    g = x; b = c;
-  } else if (normH >= 240 && normH < 300) {
-    r = x; b = c;
-  } else if (normH >= 300 && normH < 360) {
-    r = c; b = x;
+  if (normH < 60) {
+    r = c;
+    g = x;
+  } else if (normH < 120) {
+    r = x;
+    g = c;
+  } else if (normH < 180) {
+    g = c;
+    b = x;
+  } else if (normH < 240) {
+    g = x;
+    b = c;
+  } else if (normH < 300) {
+    r = x;
+    b = c;
+  } else {
+    r = c;
+    b = x;
   }
 
   const toHex = (n: number) => {
