@@ -9,6 +9,9 @@ import {
   CreateCommandeRequest,
 } from '../models/commande.model';
 
+/**
+ * Core service managing order lifecycle and HTTP REST API interactions.
+ */
 @Injectable({ providedIn: 'root' })
 export class CommandeService {
   private readonly api = `${environment.apiUrl}/commandes`;
@@ -52,5 +55,16 @@ export class CommandeService {
 
   setPriorite(commandeId: number, priorite: boolean): Observable<Commande> {
     return this.http.patch<Commande>(`${this.api}/${commandeId}/priorite`, { priorite });
+  }
+
+  /**
+   * Transfers an order to a new target table.
+   *
+   * @param commandeId Unique identifier of the order to transfer.
+   * @param newTableId Target table ID.
+   * @returns Observable emitting the updated {@link Commande}.
+   */
+  transfererTable(commandeId: number, newTableId: number): Observable<Commande> {
+    return this.http.put<Commande>(`${this.api}/${commandeId}/table/${newTableId}`, {});
   }
 }

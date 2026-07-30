@@ -282,4 +282,21 @@ public class CommandeController {
         commandeService.definirPriorite(item, prioritaire);
         return ResponseEntity.ok().build();
     }
+
+    /**
+     * Transfer an order to a new table (SERVEUR/ADMIN).
+     *
+     * @param id Order ID
+     * @param newTableId New target table ID
+     * @return DTO of the updated order
+     */
+    @PutMapping("/{id}/table/{newTableId}")
+    @PreAuthorize("hasRole('SERVEUR') or hasRole('ADMIN')")
+    @Operation(summary = "Transfer an order to a new table (SERVEUR/ADMIN)")
+    @ApiResponse(responseCode = "200", description = "Order transferred to new table")
+    public ResponseEntity<CommandeResponseDTO> transfererCommande(
+        @Parameter(description = "Order ID") @PathVariable Long id,
+        @Parameter(description = "New Table ID") @PathVariable Long newTableId) {
+        return ResponseEntity.ok(CommandeResponseDTO.from(commandeService.transfererCommande(id, newTableId)));
+    }
 }

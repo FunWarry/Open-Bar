@@ -33,8 +33,8 @@ class CommandeServiceTest {
 
     @Mock CommandeRepository commandeRepository;
     @Mock CommandeItemRepository commandeItemRepository;
-    @Mock TableRepository tableRepository;
     @Mock IngredientRepository ingredientRepository;
+    @Mock TableRepository tableRepository;
     @Mock SimpMessagingTemplate messagingTemplate;
     @Spy TimeService timeService = new TimeService(null);
 
@@ -245,5 +245,31 @@ class CommandeServiceTest {
         ArgumentCaptor<Ingredient> captor = ArgumentCaptor.forClass(Ingredient.class);
         verify(ingredientRepository).save(captor.capture());
         assertThat(captor.getValue().getQuantiteStock()).isEqualByComparingTo(new BigDecimal("88.00"));
+    }
+
+    @Test
+    void transfererCommande_nominal_modifieTableEtBroadcastEvent() {
+        TableEntity targetTable = new TableEntity();
+        targetTable.setId(2L);
+        targetTable.setNumero(5);
+
+        when(commandeRepository.findById(1L)).thenReturn(Optional.of(commande));
+        when(tableRepository.findById(2L)).thenReturn(Optional.of(targetTable));
+        when(commandeRepository.save(any(Commande.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Commande result = commandeService.transfererCommande(1L, 2L);
+
+        assertThat(result.getTable().getId()).isEqualTo(2L);
+        verify(messagingTemplate, times(2)).convertAndSend(anyString(), any(Commande.class));
+    }
+
+    @Test
+    void transfererCommande_tableNonTrouvee_lanceException() {
+        when(commandeRepository.findById(1L)).thenReturn(Optional.of(commande));
+        when(tableRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> commandeService.transfererCommande(1L, 99L))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Table non trouvée avec l'id: 99");
     }
 }
