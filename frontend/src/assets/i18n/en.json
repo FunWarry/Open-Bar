@@ -43,7 +43,30 @@
     "BARMAN": "Bar Counter",
     "SOUND_ENABLE": "Enable sound",
     "SOUND_DISABLE": "Disable sound",
-    "AUDIT_LOGS": "Audit Logs"
+    "AUDIT_LOGS": "Audit Logs",
+    "TOPBAR": {
+      "PAGE_TITLES": {
+        "HOME": "Home",
+        "ADMIN": "Administration",
+        "BARMAN": "Bar Counter",
+        "SERVEUR": "Order Taking",
+        "MANAGER": "Dashboard",
+        "PLAN_SALLE": "Floor Plan",
+        "COCKTAILS": "Cocktails",
+        "COMMANDES": "Orders",
+        "TABLES": "Tables",
+        "FACTURES": "Invoices",
+        "PROFILE": "My Profile",
+        "AUDIT_LOGS": "Audit Logs",
+        "UNKNOWN": "OpenBar"
+      },
+      "ROLE_LABELS": {
+        "ADMIN": "Admin",
+        "MANAGER": "Manager",
+        "SERVEUR": "Server",
+        "BARMAN": "Barman"
+      }
+    }
   },
   "ETABLISSEMENT": {
     "TITLE": "Legal Establishment Settings",

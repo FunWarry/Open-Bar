@@ -43,7 +43,30 @@
     "BARMAN": "Comptoir bar",
     "SOUND_ENABLE": "Activer le son",
     "SOUND_DISABLE": "Désactiver le son",
-    "AUDIT_LOGS": "Journal d'audit"
+    "AUDIT_LOGS": "Journal d'audit",
+    "TOPBAR": {
+      "PAGE_TITLES": {
+        "HOME": "Accueil",
+        "ADMIN": "Administration",
+        "BARMAN": "Comptoir bar",
+        "SERVEUR": "Prise de commande",
+        "MANAGER": "Tableau de bord",
+        "PLAN_SALLE": "Plan de salle",
+        "COCKTAILS": "Cocktails",
+        "COMMANDES": "Commandes",
+        "TABLES": "Tables",
+        "FACTURES": "Factures",
+        "PROFILE": "Mon profil",
+        "AUDIT_LOGS": "Journal d'audit",
+        "UNKNOWN": "OpenBar"
+      },
+      "ROLE_LABELS": {
+        "ADMIN": "Admin",
+        "MANAGER": "Manager",
+        "SERVEUR": "Serveur",
+        "BARMAN": "Barman"
+      }
+    }
   },
   "ETABLISSEMENT": {
     "TITLE": "Paramètres légaux de l'établissement",

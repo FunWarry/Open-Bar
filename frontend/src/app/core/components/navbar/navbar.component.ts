@@ -1,8 +1,9 @@
-import { Component, OnInit, OnDestroy, Optional } from '@angular/core';
+import { Component, OnInit, OnDestroy, Optional, signal, computed } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { Observable, Subject, combineLatest, of } from 'rxjs';
-import { takeUntil, filter, map, startWith } from 'rxjs/operators';
+import { Observable, Subject, combineLatest, of, interval } from 'rxjs';
+import { takeUntil, filter, map, startWith, distinctUntilChanged } from 'rxjs/operators';
+import { TranslocoService } from '@jsverse/transloco';
 import { selectCurrentUser, selectIsAdmin, selectIsAuthenticated } from '../../store/auth.selectors';
 import { NavigationService } from '../../services/navigation.service';
 import { NotificationService } from '../../services/notification.service';
@@ -10,14 +11,57 @@ import { NotificationPanelComponent } from '../notification-panel/notification-p
 import { SoundService } from '../../services/sound.service';
 import {
   IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
-  IonPopover, IonList, IonItem, IonLabel, IonBadge,
+  IonPopover, IonList, IonItem, IonLabel, IonBadge, IonChip,
   PopoverController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { home, settings, personCircle, person, logOut, chevronDown, notificationsOutline, volumeHighOutline, volumeMuteOutline } from 'ionicons/icons';
+import {
+  home, settings, personCircle, person, logOut, chevronDown,
+  notificationsOutline, volumeHighOutline, volumeMuteOutline, timeOutline
+} from 'ionicons/icons';
 import { AsyncPipe } from '@angular/common';
+import { TranslocoPipe } from '@jsverse/transloco';
 import * as AuthActions from '../../store/auth.actions';
+import { User } from '../../models/user.model';
 
+/** Map from URL prefix to translation key for page titles. */
+const ROUTE_TITLE_MAP: Record<string, string> = {
+  '/admin/audit-logs': 'NAV.TOPBAR.PAGE_TITLES.AUDIT_LOGS',
+  '/admin/users': 'NAV.TOPBAR.PAGE_TITLES.ADMIN',
+  '/admin/personnalisation': 'NAV.TOPBAR.PAGE_TITLES.ADMIN',
+  '/admin/etablissement': 'NAV.TOPBAR.PAGE_TITLES.ADMIN',
+  '/admin': 'NAV.TOPBAR.PAGE_TITLES.ADMIN',
+  '/barman': 'NAV.TOPBAR.PAGE_TITLES.BARMAN',
+  '/serveur': 'NAV.TOPBAR.PAGE_TITLES.SERVEUR',
+  '/plan-salle': 'NAV.TOPBAR.PAGE_TITLES.PLAN_SALLE',
+  '/manager': 'NAV.TOPBAR.PAGE_TITLES.MANAGER',
+  '/cocktails': 'NAV.TOPBAR.PAGE_TITLES.COCKTAILS',
+  '/commandes': 'NAV.TOPBAR.PAGE_TITLES.COMMANDES',
+  '/tables': 'NAV.TOPBAR.PAGE_TITLES.TABLES',
+  '/factures': 'NAV.TOPBAR.PAGE_TITLES.FACTURES',
+  '/profile': 'NAV.TOPBAR.PAGE_TITLES.PROFILE',
+  '/app-home': 'NAV.TOPBAR.PAGE_TITLES.HOME',
+};
+
+/** Figma role colors from the Design System `Rôles` collection. */
+const ROLE_COLORS: Record<string, string> = {
+  ADMIN: '#9b8af2',
+  MANAGER: '#f0a33b',
+  SERVEUR: '#34c77b',
+  BARMAN: '#4fc3f7',
+};
+
+/**
+ * Global TopBar component displayed on all authenticated routes.
+ *
+ * Features:
+ * - Dynamic page title derived from the current route
+ * - Role badge chip showing the active user role with Figma color coding
+ * - Establishment local time updated every minute
+ * - Notification bell with unread count badge
+ * - Sound toggle for audio notifications
+ * - User popover menu with profile and logout
+ */
 @Component({
   selector: 'app-navbar',
   templateUrl: './navbar.component.html',
@@ -25,16 +69,29 @@ import * as AuthActions from '../../store/auth.actions';
   standalone: true,
   imports: [
     IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
-    IonPopover, IonList, IonItem, IonLabel, IonBadge,
-    AsyncPipe,
+    IonPopover, IonList, IonItem, IonLabel, IonBadge, IonChip,
+    AsyncPipe, TranslocoPipe,
   ],
 })
 export class NavbarComponent implements OnInit, OnDestroy {
-  isAuthenticated$: Observable<boolean>;
-  isAdmin$: Observable<boolean>;
-  currentUser$: Observable<any>;
-  shouldShowNavbar$: Observable<boolean>;
+
+  /** Whether the navbar should be displayed (authenticated and not on an auth/setup route). */
+  readonly shouldShowNavbar$: Observable<boolean>;
+
+  /** Whether the current user has the ADMIN role. */
+  readonly isAdmin$: Observable<boolean>;
+
+  /** The currently authenticated user (null when unauthenticated). */
+  readonly currentUser$: Observable<User | null>;
+
+  /** Translated page title derived from the active route. */
+  readonly pageTitle$: Observable<string>;
+
+  /** Number of unread notifications for the badge. */
   nonLues = 0;
+
+  /** Local time string formatted as HH:mm, updated every minute. */
+  readonly localTime = signal<string>(this.formatTime(new Date()));
 
   private readonly destroy$ = new Subject<void>();
 
@@ -44,25 +101,39 @@ export class NavbarComponent implements OnInit, OnDestroy {
     private readonly notifService: NotificationService,
     public readonly soundService: SoundService,
     private readonly popoverCtrl: PopoverController,
+    private readonly transloco: TranslocoService,
     @Optional() private readonly router?: Router,
   ) {
-    this.isAuthenticated$ = this.store.select(selectIsAuthenticated);
+    addIcons({
+      home, settings, personCircle, person, logOut, chevronDown,
+      notificationsOutline, volumeHighOutline, volumeMuteOutline, timeOutline,
+    });
+
     this.isAdmin$ = this.store.select(selectIsAdmin);
     this.currentUser$ = this.store.select(selectCurrentUser);
-    addIcons({ home, settings, personCircle, person, logOut, chevronDown, notificationsOutline, volumeHighOutline, volumeMuteOutline });
 
     const initialUrl = (this.router?.url && this.router.url.length > 0) ? this.router.url : '/';
+    const isInitialAuthRoute = this.isAuthRoute(initialUrl);
+
     const currentUrl$ = this.router ? this.router.events.pipe(
       filter((event): event is NavigationEnd => event instanceof NavigationEnd),
       map(event => event.urlAfterRedirects || event.url),
-      startWith(initialUrl)
+      startWith(initialUrl),
     ) : of('/');
 
-    this.shouldShowNavbar$ = combineLatest([this.isAuthenticated$, currentUrl$]).pipe(
-      map(([auth, url]) => {
-        const isAuthOrSetupRoute = url.includes('/auth/') || url.includes('/setup');
-        return Boolean(auth) && !isAuthOrSetupRoute;
-      })
+    const isAuth$ = this.store.select(selectIsAuthenticated);
+    const isAuthRoute$ = currentUrl$.pipe(
+      map(url => this.isAuthRoute(url)),
+    );
+
+    this.shouldShowNavbar$ = combineLatest([isAuth$, isAuthRoute$]).pipe(
+      map(([isAuth, isAuthRoute]) => Boolean(isAuth) && !isAuthRoute),
+    );
+
+    this.pageTitle$ = currentUrl$.pipe(
+      map(url => this.resolveTitleKey(url)),
+      distinctUntilChanged(),
+      map(key => this.transloco.translate(key)),
     );
   }
 
@@ -72,6 +143,13 @@ export class NavbarComponent implements OnInit, OnDestroy {
       .subscribe(() => {
         this.nonLues = this.notifService.getNonLues();
       });
+
+    // Update local time every minute.
+    interval(60_000)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.localTime.set(this.formatTime(new Date()));
+      });
   }
 
   ngOnDestroy(): void {
@@ -79,7 +157,35 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  async ouvrirNotifications(event: Event) {
+  /**
+   * Returns the primary role for the given user.
+   * Applies the role precedence: ADMIN > MANAGER > BARMAN > SERVEUR.
+   *
+   * @param user - The authenticated user.
+   * @returns The primary role string, or an empty string when no user is provided.
+   */
+  getPrimaryRole(user: User | null): string {
+    if (!user?.roles?.length) return '';
+    const precedence = ['ADMIN', 'MANAGER', 'BARMAN', 'SERVEUR'];
+    return precedence.find(r => user.roles.includes(r)) ?? user.roles[0];
+  }
+
+  /**
+   * Returns the Figma Design System hex color for the given role.
+   *
+   * @param role - The role string (e.g. 'ADMIN', 'BARMAN').
+   * @returns The hex color string, defaulting to the primary text color.
+   */
+  getRoleBadgeColor(role: string): string {
+    return ROLE_COLORS[role] ?? '#eceefb';
+  }
+
+  /**
+   * Opens the notifications panel popover anchored to the given trigger event.
+   *
+   * @param event - The DOM event used to position the popover.
+   */
+  async ouvrirNotifications(event: Event): Promise<void> {
     const popover = await this.popoverCtrl.create({
       component: NotificationPanelComponent,
       event,
@@ -91,11 +197,47 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.nonLues = this.notifService.getNonLues();
   }
 
+  /** Toggles the notification sound on/off. */
   toggleSound(): void {
     this.soundService.toggleSound();
   }
 
+  /** Dispatches the logout action to the NgRx store. */
   onLogout(): void {
     this.store.dispatch(AuthActions.logout());
+  }
+
+  /**
+   * Determines whether the given URL corresponds to an authentication or
+   * setup route where the TopBar should be hidden.
+   *
+   * @param url - The URL to check.
+   * @returns True if the URL is an auth/setup/client route, false otherwise.
+   */
+  private isAuthRoute(url: string): boolean {
+    return url.includes('/auth/') || url.includes('/setup') || url.includes('/client/');
+  }
+
+  /**
+   * Resolves the i18n translation key for the page title from the given URL.
+   * Matches the longest prefix first to handle nested routes correctly.
+   *
+   * @param url - The full URL path.
+   * @returns The Transloco key for the page title.
+   */
+  private resolveTitleKey(url: string): string {
+    const sortedKeys = Object.keys(ROUTE_TITLE_MAP).sort((a, b) => b.length - a.length);
+    const match = sortedKeys.find(prefix => url.startsWith(prefix));
+    return match ? ROUTE_TITLE_MAP[match] : 'NAV.TOPBAR.PAGE_TITLES.UNKNOWN';
+  }
+
+  /**
+   * Formats a Date object as a locale time string (HH:mm).
+   *
+   * @param date - The date to format.
+   * @returns A formatted time string such as "14:35".
+   */
+  private formatTime(date: Date): string {
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   }
 }
