@@ -358,7 +358,7 @@ Pour les fichiers scopés par feature (ex : `fr/commandes.json`), déclarer le s
 | Vue Serveur (plan de salle + variantes modal #182) | ✅ | ✅ modal + nouvelle commande + kanban | ✅ |
 | Plan de salle interactif (Konva.js) | ✅ | ✅ | ✅ |
 | Vue Client QR Code (Passage commande publique + suivi STOMP) (#184) | ✅ | ✅ | ✅ |
-| Journal d'audit système (/api/audit-logs) (#206) | ✅ | ❌ | ✅ |
+| Journal d'audit système (/api/audit-logs) (#206) | ✅ | ✅ AuditLogsComponent (filtres, badges, pull-to-refresh, i18n) | ✅ |
 | TopBar / NavBar & Refacto UI Figma Layout (#208–#211) | — | 🔄 | — |
 
 
