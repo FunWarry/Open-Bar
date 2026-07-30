@@ -50,10 +50,18 @@
 | Vue Client QR Code (passage commande + suivi STOMP) | ✅ | ✅ | ✅ | Vue Client mobile complète (`/client/commande`, `/client/suivi/:id`) |
 | Fuseau horaire paramétrable (Etablissement / TimeService) | ✅ | ✅ | ✅ | TimeZone configurable par l'admin + fallback Système |
 | Journal d'audit système (/api/audit-logs) (#206) | ✅ | ❌ | ✅ | Ticket #206 créé (Frontend à raccorder) |
+| TopBar globale conforme Figma (#208) | — | 🔄 | — | Ticket #208 créé |
+| NavBar / Sidebar 64-220px globale Figma (#209) | — | 🔄 | — | Ticket #209 créé |
+| Refacto Design System & Composants Atomiques Figma (#210) | — | 🔄 | — | Ticket #210 créé |
+| Harmonisation Vues Applicatives Figma (#211) | — | 🔄 | — | Ticket #211 créé |
 
-## Features Manquantes Prioritaires (Frontend)
+## Features Manquantes Prioritaires (Frontend & UI Figma)
 
 1. **#206 - [Frontend] Écran d'Historique et Journal d'Audit Système dans l'Espace Admin**
+2. **#208 - [Frontend] Intégration Global Layout — TopBar Conforme Figma sur toutes les Pages**
+3. **#209 - [Frontend] Intégration Global Layout — NavBar et Sidebar Conforme Figma (62:59) sur toutes les Pages**
+4. **#210 - [Frontend] Refactorisation Design System UI — Tokens Couleurs et Composants Atomiques Figma (0:1)**
+5. **#211 - [Frontend] Alignement Interface Figma — Vues Applicatives et Composants Composites (57:2, 57:3, 57:4, 626:987, 636:987)**
 
 ## Dette Technique Active
 
