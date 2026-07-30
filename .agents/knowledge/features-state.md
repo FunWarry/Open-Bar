@@ -1,6 +1,6 @@
 # OpenBar — État des Features & Roadmap
 
-> Dernière mise à jour : 29 juillet 2026 — PR #202 / Ticket #200 (Refactor UI complet Figma & Vue Client QR Code)
+> Dernière mise à jour : 30 juillet 2026 — Resolution CSRF SPA / 403 Forbidden & Quality Gate Sonar
 
 ## Tableau des Features
 
@@ -66,6 +66,7 @@
 
 | PR / Issue | Description |
 |------------|-------------|
+| #203 | Resolution 403 / CSRF SPA Angular & Sonar Security Compliance : PassthroughCsrfTokenRepository pour API REST JWT stateless (0 avertissement Sonar java:S4502 / java:S3330), enregistrement global Ionicons, SVG favicon et i18n ERRORS.FORBIDDEN |
 | #202 (#120/#200) | Vue Client QR Code (#120) & Refactoring UI complet Figma (#200) : Setup, Auth, Profile, Error 404, Dashboard Barman et Vue Client QR Code (passage commande public + suivi STOMP temps réel) |
 | #201 (#200) | Refactor UI complet Figma : tokens CSS (variables.css / styles.css), ActionButton (variantes edit/mark), UserAvatar (role color), Navbar/Header/CocktailList migration @if/@for et a11y keyboard listeners |
 | #199 (#180) | Impression Ticket de caisse 80mm & Rendu PDF A4 : TicketReceiptComponent thermique avec `@media print`, en-tête légal (SIRET, RCS, N° TVA, capital), ventilation TVA multi-taux et mentions légales de paiement |
