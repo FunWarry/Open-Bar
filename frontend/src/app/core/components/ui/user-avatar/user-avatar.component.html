@@ -1,4 +1,4 @@
-<ion-avatar [class]="'avatar-' + size">
+<ion-avatar [class]="'avatar-' + size" [attr.data-testid]="testId">
   @if (avatarUrl) {
     <img [src]="avatarUrl" [alt]="name || 'User Avatar'" />
   } @else {

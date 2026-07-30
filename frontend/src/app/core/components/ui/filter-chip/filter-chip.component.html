@@ -3,6 +3,7 @@
   [outline]="!active"
   [disabled]="disabled"
   class="filter-chip"
+  [attr.data-testid]="testId"
   (click)="onClick()"
   (keyup.enter)="onClick()"
   (keyup.space)="onClick()">

@@ -10,6 +10,9 @@ import { StatCardComponent } from '../../../../app/core/components/ui/stat-card/
 import { EmptyStateComponent } from '../../../../app/core/components/ui/empty-state/empty-state.component';
 import { QuantityStepperComponent } from '../../../../app/core/components/ui/quantity-stepper/quantity-stepper.component';
 import { FilterChipComponent } from '../../../../app/core/components/ui/filter-chip/filter-chip.component';
+import { ToggleSwitchComponent } from '../../../../app/core/components/ui/toggle-switch/toggle-switch.component';
+import { CheckboxFieldComponent } from '../../../../app/core/components/ui/checkbox-field/checkbox-field.component';
+import { ToastComponent } from '../../../../app/core/components/ui/toast/toast.component';
 
 describe('Shared UI Components (Figma Design System)', () => {
   describe('ActionButtonComponent', () => {
@@ -379,5 +382,109 @@ describe('Shared UI Components (Figma Design System)', () => {
       expect(component.color).toBe('success');
     });
   });
+
+  describe('ToggleSwitchComponent (Figma ID 534:910)', () => {
+    let component: ToggleSwitchComponent;
+    let fixture: ComponentFixture<ToggleSwitchComponent>;
+
+    beforeEach(async () => {
+      await TestBed.configureTestingModule({ imports: [ToggleSwitchComponent] }).compileComponents();
+      fixture = TestBed.createComponent(ToggleSwitchComponent);
+      component = fixture.componentInstance;
+      fixture.detectChanges();
+    });
+
+    it('should create and handle value toggle', () => {
+      expect(component).toBeTruthy();
+      expect(component.checked).toBeFalse();
+
+      component.toggle();
+      expect(component.checked).toBeTrue();
+
+      component.disabled = true;
+      component.toggle();
+      expect(component.checked).toBeTrue(); // unchanged when disabled
+    });
+
+    it('should implement ControlValueAccessor correctly', () => {
+      component.writeValue(true);
+      expect(component.checked).toBeTrue();
+
+      const fn = jasmine.createSpy('onChange');
+      component.registerOnChange(fn);
+
+      component.toggle();
+      expect(fn).toHaveBeenCalledWith(false);
+    });
+  });
+
+  describe('CheckboxFieldComponent (Figma ID 426:2058)', () => {
+    let component: CheckboxFieldComponent;
+    let fixture: ComponentFixture<CheckboxFieldComponent>;
+
+    beforeEach(async () => {
+      await TestBed.configureTestingModule({ imports: [CheckboxFieldComponent] }).compileComponents();
+      fixture = TestBed.createComponent(CheckboxFieldComponent);
+      component = fixture.componentInstance;
+      fixture.detectChanges();
+    });
+
+    it('should create and toggle checkbox state', () => {
+      expect(component).toBeTruthy();
+      expect(component.checked).toBeFalse();
+
+      component.toggle();
+      expect(component.checked).toBeTrue();
+
+      component.disabled = true;
+      component.toggle();
+      expect(component.checked).toBeTrue();
+    });
+
+    it('should implement ControlValueAccessor correctly', () => {
+      component.writeValue(true);
+      expect(component.checked).toBeTrue();
+
+      const fn = jasmine.createSpy('onChange');
+      component.registerOnChange(fn);
+
+      component.toggle();
+      expect(fn).toHaveBeenCalledWith(false);
+    });
+  });
+
+  describe('ToastComponent (Figma ID 536:928)', () => {
+    let component: ToastComponent;
+    let fixture: ComponentFixture<ToastComponent>;
+
+    beforeEach(async () => {
+      await TestBed.configureTestingModule({ imports: [ToastComponent] }).compileComponents();
+      fixture = TestBed.createComponent(ToastComponent);
+      component = fixture.componentInstance;
+      fixture.detectChanges();
+    });
+
+    it('should create and assign severity icon', () => {
+      expect(component).toBeTruthy();
+      component.severity = 'success';
+      expect(component.severityIcon).toBe('checkmark-circle-outline');
+
+      component.severity = 'danger';
+      expect(component.severityIcon).toBe('alert-circle-outline');
+
+      component.severity = 'warning';
+      expect(component.severityIcon).toBe('warning-outline');
+
+      component.severity = 'info';
+      expect(component.severityIcon).toBe('information-circle-outline');
+    });
+
+    it('should emit dismissed event when onClose() is called', () => {
+      spyOn(component.dismissed, 'emit');
+      component.onClose();
+      expect(component.dismissed.emit).toHaveBeenCalled();
+    });
+  });
 });
+
 

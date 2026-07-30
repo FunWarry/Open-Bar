@@ -1,0 +1,21 @@
+<div
+  class="toast-banner"
+  [class]="'severity-' + severity"
+  role="alert"
+  [attr.data-testid]="testId">
+  <div class="toast-content">
+    <ion-icon [name]="severityIcon" class="toast-icon"></ion-icon>
+    <span class="toast-message">{{ message }}</span>
+  </div>
+  @if (dismissible) {
+    <button
+      type="button"
+      class="toast-close-btn"
+      (click)="onClose()"
+      (keyup.enter)="onClose()"
+      aria-label="Dismiss notification"
+      data-testid="toast-close-btn">
+      <ion-icon name="close-outline"></ion-icon>
+    </button>
+  }
+</div>

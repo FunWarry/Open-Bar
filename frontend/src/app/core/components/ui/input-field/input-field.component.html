@@ -16,6 +16,7 @@
       [disabled]="disabled"
       [required]="required"
       [autocomplete]="autocomplete"
+      [attr.data-testid]="testId"
       (input)="onInput($event)"
       (blur)="onBlur()"
       class="native-input"

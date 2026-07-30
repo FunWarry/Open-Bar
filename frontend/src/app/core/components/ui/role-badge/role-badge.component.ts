@@ -4,6 +4,11 @@ import { IonBadge, IonIcon } from '@ionic/angular/standalone';
 
 export type UserRoleType = 'ADMIN' | 'MANAGER' | 'SERVEUR' | 'BARMAN' | 'WAITER';
 
+/**
+ * Role Badge component conforming to Figma Design System RoleBadge (ID 120:23).
+ *
+ * Displays a role chip with icon and role-specific color coding.
+ */
 @Component({
   selector: 'app-role-badge',
   standalone: true,
@@ -12,15 +17,21 @@ export type UserRoleType = 'ADMIN' | 'MANAGER' | 'SERVEUR' | 'BARMAN' | 'WAITER'
   styleUrls: ['./role-badge.component.css']
 })
 export class RoleBadgeComponent {
+  /** Assigned role. */
   @Input() role: UserRoleType = 'SERVEUR';
+
+  /** Whether the badge is rendered in compact / folded mode (icon only). */
   @Input() folded = false;
+
+  /** Custom data-testid attribute for End-to-End testing. */
+  @Input() testId = 'role-badge';
 
   get badgeColor(): string {
     const r = this.role.toUpperCase();
     if (r === 'ADMIN') return 'danger';
     if (r === 'MANAGER') return 'warning';
     if (r === 'BARMAN') return 'tertiary';
-    return 'primary'; // SERVEUR / WAITER
+    return 'primary';
   }
 
   get icon(): string {
@@ -28,7 +39,7 @@ export class RoleBadgeComponent {
     if (r === 'ADMIN') return 'shield-checkmark';
     if (r === 'MANAGER') return 'briefcase';
     if (r === 'BARMAN') return 'wine';
-    return 'restaurant'; // SERVEUR / WAITER
+    return 'restaurant';
   }
 
   get label(): string {

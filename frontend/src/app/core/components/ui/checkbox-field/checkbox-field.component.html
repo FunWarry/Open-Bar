@@ -1,0 +1,22 @@
+<div
+  class="checkbox-container"
+  [class.disabled]="disabled"
+  (click)="toggle()"
+  (keyup.enter)="toggle()"
+  (keyup.space)="toggle()"
+  tabindex="0"
+  role="checkbox"
+  [attr.aria-checked]="checked"
+  [attr.aria-disabled]="disabled"
+  [attr.data-testid]="testId">
+  <div class="checkbox-box" [class.checked]="checked">
+    @if (checked) {
+      <svg class="checkmark" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M3.5 8L6.5 11L12.5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    }
+  </div>
+  @if (label) {
+    <span class="checkbox-label">{{ label }}</span>
+  }
+</div>
