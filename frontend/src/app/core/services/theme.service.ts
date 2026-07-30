@@ -261,7 +261,10 @@ export class ThemeService {
 
     rootStyle.setProperty('--primary', colors.primary);
     rootStyle.setProperty('--primary-strong', this.adjustBrightness(colors.primary, -15));
-    rootStyle.setProperty('--primary-light', this.adjustBrightness(colors.primary, +20));
+    rootStyle.setProperty('--primary-light', isEffectiveDark
+      ? this.adjustBrightness(colors.primary, +20)
+      : this.adjustBrightness(colors.primary, -20)
+    );
     rootStyle.setProperty('--primary-tint', colors.primary + '33');
     rootStyle.setProperty('--primary-tint-weak', colors.primary + '1f');
     rootStyle.setProperty('--primary-border', colors.primary + '73');
