@@ -91,6 +91,34 @@ describe('UserListComponent', () => {
     expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'success' }));
   }));
 
+  it('openCreateDialog() affiche un toast d\'erreur lors de l\'échec', fakeAsync(() => {
+    const newUser = { username: 'charlie', email: 'charlie@bar.fr', roles: ['BARMAN'] };
+    const modalMock = {
+      present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+      onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({ data: newUser }))
+    };
+    modalCtrlSpy.create.and.returnValue(Promise.resolve(modalMock as any));
+    userServiceSpy.createUser.and.returnValue(throwError(() => ({ error: { message: 'Nom d\'utilisateur existant' } })));
+
+    component.openCreateDialog();
+    tick();
+
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ message: 'Nom d\'utilisateur existant', color: 'danger' }));
+  }));
+
+  it('openCreateDialog() ne fait rien si le modal est annulé', fakeAsync(() => {
+    const modalMock = {
+      present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+      onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({ data: null }))
+    };
+    modalCtrlSpy.create.and.returnValue(Promise.resolve(modalMock as any));
+
+    component.openCreateDialog();
+    tick();
+
+    expect(userServiceSpy.createUser).not.toHaveBeenCalled();
+  }));
+
   it('openEditDialog() modifie l\'utilisateur lors de la validation du modal', fakeAsync(() => {
     const updatedUser = { username: 'alice_updated', email: 'alice@bar.fr', roles: ['ADMIN'] };
     const modalMock = {
@@ -107,6 +135,34 @@ describe('UserListComponent', () => {
     expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'success' }));
   }));
 
+  it('openEditDialog() affiche un toast d\'erreur lors de l\'échec', fakeAsync(() => {
+    const updatedUser = { username: 'alice_updated', email: 'alice@bar.fr', roles: ['ADMIN'] };
+    const modalMock = {
+      present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+      onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({ data: updatedUser }))
+    };
+    modalCtrlSpy.create.and.returnValue(Promise.resolve(modalMock as any));
+    userServiceSpy.updateUser.and.returnValue(throwError(() => new Error('Erreur modification')));
+
+    component.openEditDialog(mockUsers[0]);
+    tick();
+
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
+  }));
+
+  it('openEditDialog() ne fait rien si le modal est annulé', fakeAsync(() => {
+    const modalMock = {
+      present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+      onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({ data: null }))
+    };
+    modalCtrlSpy.create.and.returnValue(Promise.resolve(modalMock as any));
+
+    component.openEditDialog(mockUsers[0]);
+    tick();
+
+    expect(userServiceSpy.updateUser).not.toHaveBeenCalled();
+  }));
+
   it('openDeleteDialog() supprime l\'utilisateur lors de la confirmation', fakeAsync(() => {
     const modalMock = {
       present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
@@ -120,5 +176,32 @@ describe('UserListComponent', () => {
 
     expect(userServiceSpy.deleteUser).toHaveBeenCalledWith(2);
     expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'success' }));
+  }));
+
+  it('openDeleteDialog() affiche un toast d\'erreur lors de l\'échec', fakeAsync(() => {
+    const modalMock = {
+      present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+      onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({ data: true }))
+    };
+    modalCtrlSpy.create.and.returnValue(Promise.resolve(modalMock as any));
+    userServiceSpy.deleteUser.and.returnValue(throwError(() => new Error('Erreur suppression')));
+
+    component.openDeleteDialog(mockUsers[1]);
+    tick();
+
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
+  }));
+
+  it('openDeleteDialog() ne fait rien si le modal est annulé', fakeAsync(() => {
+    const modalMock = {
+      present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+      onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({ data: false }))
+    };
+    modalCtrlSpy.create.and.returnValue(Promise.resolve(modalMock as any));
+
+    component.openDeleteDialog(mockUsers[1]);
+    tick();
+
+    expect(userServiceSpy.deleteUser).not.toHaveBeenCalled();
   }));
 });
