@@ -358,10 +358,12 @@ Pour les fichiers scopés par feature (ex : `fr/commandes.json`), déclarer le s
 | Vue Serveur (plan de salle + variantes modal #182) | ✅ | ✅ modal + nouvelle commande + kanban | ✅ |
 | Plan de salle interactif (Konva.js) | ✅ | ✅ | ✅ |
 | Vue Client QR Code (Passage commande publique + suivi STOMP) (#184) | ✅ | ✅ | ✅ |
-| Journal d'audit système (/api/audit-logs) (#206) | ✅ | ✅ AuditLogsComponent (filtres, badges, pull-to-refresh, i18n) | ✅ |
-| TopBar globale conforme Figma (#208) | — | ✅ NavbarComponent (titre dynamique, badge rôle, heure locale, i18n) | ✅ |
-| Sidebar / NavBar repliable 64-220px Figma (#209) | — | ✅ SidebarComponent (NavItem 120:16, Avatar 120:8, role filtering, i18n) | ✅ |
-| Refacto Design System & Harmonisation UI Figma (#210–#211) | — | 🔄 | — |
+| Fuseau horaire paramétrable (Etablissement / TimeService) | ✅ | ✅ | ✅ |
+| Journal d'audit système (/api/audit-logs) (#206) | ✅ | ✅ | ✅ |
+| Layout Global — TopBar globale conforme Figma (#208) | — | ✅ | ✅ |
+| Layout Global — NavBar / Sidebar 64-220px repliable Figma (#209) | — | ✅ | ✅ |
+| Refactorisation Design System UI — Tokens Couleurs & Composants Atomiques Figma 0:1 (#210) | — | ✅ | ✅ |
+| Harmonisation Vues Applicatives Figma (#211) | — | 🔄 | — |
 
 
 
