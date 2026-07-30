@@ -238,6 +238,8 @@ export class NavbarComponent implements OnInit, OnDestroy {
    * @returns A formatted time string such as "14:35".
    */
   private formatTime(date: Date): string {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${hours}:${minutes}`;
   }
 }
