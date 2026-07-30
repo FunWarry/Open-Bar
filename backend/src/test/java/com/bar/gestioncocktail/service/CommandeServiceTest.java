@@ -38,7 +38,7 @@ class CommandeServiceTest {
     @Mock SimpMessagingTemplate messagingTemplate;
     @Spy TimeService timeService = new TimeService(null);
 
-    CommandeService commandeService;
+    @InjectMocks CommandeService commandeService;
 
 
     private Ingredient ingredient;
@@ -48,15 +48,6 @@ class CommandeServiceTest {
 
     @BeforeEach
     void setUp() {
-        commandeService = new CommandeService(
-                commandeRepository,
-                commandeItemRepository,
-                ingredientRepository,
-                tableRepository,
-                messagingTemplate,
-                timeService
-        );
-
         ingredient = new Ingredient();
         ingredient.setId(1L);
         ingredient.setNom("Rhum");
