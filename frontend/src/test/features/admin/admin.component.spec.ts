@@ -96,8 +96,4 @@ describe('AdminComponent', () => {
       expect(user).toBeNull();
     });
   });
-
-  it('ngOnInit should not throw', () => {
-    expect(() => component.ngOnInit()).not.toThrow();
-  });
 });

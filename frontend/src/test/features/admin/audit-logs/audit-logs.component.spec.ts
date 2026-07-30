@@ -70,30 +70,30 @@ describe('AuditLogsComponent', () => {
   it('should create the component and load logs on init', () => {
     expect(component).toBeTruthy();
     expect(auditLogServiceSpy.getAuditLogs).toHaveBeenCalled();
-    expect(component.logs().length).toBe(3);
+    expect(component.logs()).toHaveSize(3);
     expect(component.loading()).toBeFalse();
     expect(component.errorMessage()).toBeNull();
   });
 
   it('should filter logs by action', () => {
     component.selectedAction.set('CREATE');
-    expect(component.filteredLogs().length).toBe(1);
+    expect(component.filteredLogs()).toHaveSize(1);
     expect(component.filteredLogs()[0].action).toBe('CREATE');
   });
 
   it('should filter logs by entity type', () => {
     component.selectedEntityType.set('Table');
-    expect(component.filteredLogs().length).toBe(1);
+    expect(component.filteredLogs()).toHaveSize(1);
     expect(component.filteredLogs()[0].entityType).toBe('Table');
   });
 
   it('should filter logs by search query matching details or user', () => {
     component.searchQuery.set('Mojito');
-    expect(component.filteredLogs().length).toBe(1);
+    expect(component.filteredLogs()).toHaveSize(1);
     expect(component.filteredLogs()[0].userUsername).toBe('admin_user');
 
     component.searchQuery.set('john');
-    expect(component.filteredLogs().length).toBe(1);
+    expect(component.filteredLogs()).toHaveSize(1);
     expect(component.filteredLogs()[0].userUsername).toBe('serveur_john');
   });
 
@@ -107,7 +107,7 @@ describe('AuditLogsComponent', () => {
     expect(component.searchQuery()).toBe('');
     expect(component.selectedAction()).toBe('ALL');
     expect(component.selectedEntityType()).toBe('ALL');
-    expect(component.filteredLogs().length).toBe(3);
+    expect(component.filteredLogs()).toHaveSize(3);
   });
 
   it('should handle service error gracefully', () => {

@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component} from '@angular/core';
 import {Store} from '@ngrx/store';
 import {Observable} from 'rxjs';
 import {RouterLink} from '@angular/router';
@@ -17,14 +17,10 @@ import {TranslocoPipe} from '@jsverse/transloco';
   standalone: true,
   imports: [IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent, IonIcon, IonButton, AsyncPipe, RouterLink, TranslocoPipe]
 })
-export class AdminComponent implements OnInit {
+export class AdminComponent {
   currentUser$: Observable<User | null>;
 
-  constructor(private readonly store: Store,protected readonly navigationService: NavigationService) {
+  constructor(private readonly store: Store, protected readonly navigationService: NavigationService) {
     this.currentUser$ = this.store.select(selectCurrentUser);
-    this.navigationService = navigationService;
-  }
-
-  ngOnInit(): void {
   }
 }

@@ -121,6 +121,6 @@
   font-size: 0.9rem;
   margin: 4px 0 0 0;
   color: var(--ion-color-dark-shade, #1e2023);
-  word-break: break-word;
+  overflow-wrap: break-word;
   white-space: pre-wrap;
 }
