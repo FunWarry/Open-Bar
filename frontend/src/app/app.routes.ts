@@ -105,6 +105,12 @@ export const routes: Routes = [
     data: {roles: ['ADMIN']}
   },
   {
+    path: 'admin/audit-logs',
+    loadComponent: () => import('./features/admin/audit-logs/audit-logs.component').then(m => m.AuditLogsComponent),
+    canActivate: [AuthGuard, RoleGuard],
+    data: {roles: ['ADMIN']}
+  },
+  {
     path: 'barman',
     loadComponent: () => import('./features/dashboard-barman/dashboard-barman.component').then(m => m.DashboardBarmanComponent),
     canActivate: [AuthGuard, RoleGuard],

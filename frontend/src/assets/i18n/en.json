@@ -42,7 +42,8 @@
     "SERVEUR": "Order Taking",
     "BARMAN": "Bar Counter",
     "SOUND_ENABLE": "Enable sound",
-    "SOUND_DISABLE": "Disable sound"
+    "SOUND_DISABLE": "Disable sound",
+    "AUDIT_LOGS": "Audit Logs"
   },
   "ETABLISSEMENT": {
     "TITLE": "Legal Establishment Settings",
@@ -263,5 +264,19 @@
     "CONFIRM_PASSWORD": "Confirm Password",
     "SUBMIT": "Create Administrator Account",
     "SUCCESS": "Administrator account created successfully! Please sign in."
+  },
+  "AUDIT_LOGS": {
+    "TITLE": "System Audit Logs",
+    "SUBTITLE": "Traceability & History",
+    "DESCRIPTION": "Consult the complete log history of administrative operations, user actions, and system events.",
+    "TOTAL": "Total logs",
+    "FILTERED": "Filtered logs",
+    "SEARCH_PLACEHOLDER": "Search by action, entity, user, or details...",
+    "FILTER_ACTION": "Filter by action",
+    "FILTER_ENTITY": "Filter by entity",
+    "ALL_ACTIONS": "All actions",
+    "ALL_ENTITIES": "All entities",
+    "NO_LOGS_FOUND": "No audit logs found",
+    "TRY_CHANGING_FILTERS": "Try adjusting your search query or filter settings."
   }
 }

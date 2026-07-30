@@ -249,4 +249,16 @@ class AuditLogServiceTest {
 
         assertThat(result).isEmpty();
     }
+
+    // ─── getAllAuditLogs ──────────────────────────────────────────────────────
+
+    @Test
+    void getAllAuditLogs_nominal_returnsSortedLogs() {
+        given(auditLogRepository.findAllByOrderByTimestampDesc()).willReturn(List.of(auditLog));
+
+        List<AuditLog> result = auditLogService.getAllAuditLogs();
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0)).isEqualTo(auditLog);
+    }
 }

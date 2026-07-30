@@ -42,6 +42,15 @@ public class AuditLogService {
 
 
     /**
+     * Retrieves all audit logs ordered by timestamp descending.
+     *
+     * @return List of all audit logs
+     */
+    public List<AuditLog> getAllAuditLogs() {
+        return auditLogRepository.findAllByOrderByTimestampDesc();
+    }
+
+    /**
      * Recherche les logs d'audit générés par un utilisateur donné.
      *
      * @param user L'utilisateur cible

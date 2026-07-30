@@ -1,0 +1,126 @@
+.audit-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 8px 0;
+}
+
+.overview-card,
+.filters-card,
+.logs-card {
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  margin-bottom: 16px;
+}
+
+.header-title-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.title-icon {
+  font-size: 32px;
+  color: var(--ion-color-primary, #3880ff);
+}
+
+.subtitle-text {
+  margin: 4px 0 0 0;
+  font-size: 0.9rem;
+  color: var(--ion-color-medium, #92949c);
+}
+
+.stats-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.filter-item {
+  --background: transparent;
+  --padding-start: 0;
+  --inner-padding-end: 0;
+}
+
+.spinner-container,
+.error-container,
+.empty-container {
+  margin: 40px auto;
+}
+
+.error-icon,
+.empty-icon {
+  font-size: 48px;
+  margin-bottom: 8px;
+}
+
+.logs-list {
+  padding: 0;
+}
+
+.log-item {
+  --padding-start: 16px;
+  --inner-padding-end: 16px;
+  --min-height: 72px;
+  border-bottom: 1px solid var(--ion-color-light-shade, #f4f5f8);
+}
+
+.log-icon {
+  font-size: 24px;
+  color: var(--ion-color-medium);
+  margin-top: 12px;
+  align-self: flex-start;
+}
+
+.log-label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 12px 0;
+}
+
+.log-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  color: var(--ion-color-medium);
+}
+
+.log-user {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+  color: var(--ion-color-dark, #222428);
+}
+
+.log-middle-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.action-badge {
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.entity-info {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: var(--ion-color-medium-dark, #666);
+}
+
+.log-details {
+  font-size: 0.9rem;
+  margin: 4px 0 0 0;
+  color: var(--ion-color-dark-shade, #1e2023);
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+}

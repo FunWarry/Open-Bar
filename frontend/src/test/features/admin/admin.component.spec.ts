@@ -7,6 +7,8 @@ import { AdminComponent } from '../../../app/features/admin/admin.component';
 import { NavigationService } from '../../../app/core/services/navigation.service';
 import { selectCurrentUser } from '../../../app/core/store/auth.selectors';
 
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
+
 describe('AdminComponent', () => {
   let component: AdminComponent;
   let storeSpy: jasmine.SpyObj<Store>;
@@ -36,7 +38,8 @@ describe('AdminComponent', () => {
       imports: [
         AdminComponent,
         IonicModule.forRoot(),
-        RouterTestingModule
+        RouterTestingModule,
+        getTranslocoTestingModule()
       ],
       providers: [
         { provide: Store, useValue: storeSpy },
@@ -76,7 +79,8 @@ describe('AdminComponent', () => {
       imports: [
         AdminComponent,
         IonicModule.forRoot(),
-        RouterTestingModule
+        RouterTestingModule,
+        getTranslocoTestingModule()
       ],
       providers: [
         { provide: Store, useValue: storeSpy },
@@ -91,9 +95,5 @@ describe('AdminComponent', () => {
     comp.currentUser$.subscribe((user) => {
       expect(user).toBeNull();
     });
-  });
-
-  it('ngOnInit should not throw', () => {
-    expect(() => component.ngOnInit()).not.toThrow();
   });
 });

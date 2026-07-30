@@ -1,0 +1,176 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/admin" data-testid="audit-back-btn"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ 'AUDIT_LOGS.TITLE' | transloco }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="loadLogs()" (keydown.enter)="loadLogs()" data-testid="audit-refresh-btn">
+        <ion-icon name="refresh-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="audit-container">
+    <!-- Header / Stats Overview Card -->
+    <ion-card class="overview-card">
+      <ion-card-header>
+        <div class="header-title-container">
+          <ion-icon name="shield-checkmark-outline" class="title-icon"></ion-icon>
+          <div>
+            <ion-card-title>{{ 'AUDIT_LOGS.SUBTITLE' | transloco }}</ion-card-title>
+            <p class="subtitle-text">{{ 'AUDIT_LOGS.DESCRIPTION' | transloco }}</p>
+          </div>
+        </div>
+      </ion-card-header>
+      <ion-card-content>
+        <div class="stats-row">
+          <ion-chip color="primary">
+            <ion-icon name="clipboard-outline"></ion-icon>
+            <ion-label>{{ 'AUDIT_LOGS.TOTAL' | transloco }}: {{ logs().length }}</ion-label>
+          </ion-chip>
+          <ion-chip color="tertiary" *ngIf="filteredLogs().length !== logs().length">
+            <ion-icon name="filter-outline"></ion-icon>
+            <ion-label>{{ 'AUDIT_LOGS.FILTERED' | transloco }}: {{ filteredLogs().length }}</ion-label>
+          </ion-chip>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Filters Card -->
+    <ion-card class="filters-card">
+      <ion-card-content>
+        <ion-grid>
+          <ion-row>
+            <!-- Search Bar -->
+            <ion-col size="12" size-md="4">
+              <ion-searchbar
+                [ngModel]="searchQuery()"
+                (ngModelChange)="searchQuery.set($event)"
+                [placeholder]="'AUDIT_LOGS.SEARCH_PLACEHOLDER' | transloco"
+                data-testid="audit-search-input"
+                animated="true"
+                clearIcon="close-circle">
+              </ion-searchbar>
+            </ion-col>
+
+            <!-- Action Filter Select -->
+            <ion-col size="12" size-sm="6" size-md="3">
+              <ion-item class="filter-item" lines="none">
+                <ion-label position="stacked">{{ 'AUDIT_LOGS.FILTER_ACTION' | transloco }}</ion-label>
+                <ion-select
+                  [ngModel]="selectedAction()"
+                  (ngModelChange)="selectedAction.set($event)"
+                  interface="popover"
+                  data-testid="audit-action-select">
+                  <ion-select-option *ngFor="let act of actionOptions" [value]="act">
+                    {{ act === 'ALL' ? ('AUDIT_LOGS.ALL_ACTIONS' | transloco) : act }}
+                  </ion-select-option>
+                </ion-select>
+              </ion-item>
+            </ion-col>
+
+            <!-- Entity Type Filter Select -->
+            <ion-col size="12" size-sm="6" size-md="3">
+              <ion-item class="filter-item" lines="none">
+                <ion-label position="stacked">{{ 'AUDIT_LOGS.FILTER_ENTITY' | transloco }}</ion-label>
+                <ion-select
+                  [ngModel]="selectedEntityType()"
+                  (ngModelChange)="selectedEntityType.set($event)"
+                  interface="popover"
+                  data-testid="audit-entity-select">
+                  <ion-select-option *ngFor="let ent of entityTypeOptions" [value]="ent">
+                    {{ ent === 'ALL' ? ('AUDIT_LOGS.ALL_ENTITIES' | transloco) : ent }}
+                  </ion-select-option>
+                </ion-select>
+              </ion-item>
+            </ion-col>
+
+            <!-- Reset Filters Button -->
+            <ion-col size="12" size-md="2" class="ion-align-self-end">
+              <ion-button
+                fill="outline"
+                expand="block"
+                (click)="resetFilters()"
+                (keydown.enter)="resetFilters()"
+                data-testid="audit-reset-filters-btn">
+                <ion-icon name="refresh-outline" slot="start"></ion-icon>
+                {{ 'COMMON.CANCEL' | transloco }}
+              </ion-button>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Loading Spinner -->
+    <div *ngIf="loading()" class="spinner-container ion-text-center ion-padding" data-testid="audit-loading-spinner">
+      <ion-spinner name="crescent" color="primary"></ion-spinner>
+      <p>{{ 'COMMON.LOADING' | transloco }}</p>
+    </div>
+
+    <!-- Error View -->
+    <div *ngIf="!loading() && errorMessage()" class="error-container ion-text-center ion-padding" data-testid="audit-error-message">
+      <ion-icon name="alert-circle-outline" color="danger" class="error-icon"></ion-icon>
+      <p>{{ errorMessage()! | transloco }}</p>
+      <ion-button fill="clear" color="primary" (click)="loadLogs()" (keydown.enter)="loadLogs()">
+        {{ 'COMMON.REFRESH' | transloco }}
+      </ion-button>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!loading() && !errorMessage() && filteredLogs().length === 0" class="empty-container ion-text-center ion-padding" data-testid="audit-empty-state">
+      <ion-icon name="clipboard-outline" color="medium" class="empty-icon"></ion-icon>
+      <h3>{{ 'AUDIT_LOGS.NO_LOGS_FOUND' | transloco }}</h3>
+      <p>{{ 'AUDIT_LOGS.TRY_CHANGING_FILTERS' | transloco }}</p>
+    </div>
+
+    <!-- Audit Logs List Card -->
+    <ion-card *ngIf="!loading() && !errorMessage() && filteredLogs().length > 0" class="logs-card">
+      <div class="logs-list">
+        <ion-item *ngFor="let log of filteredLogs()" class="log-item" data-testid="audit-log-item">
+          <ion-icon
+            name="time-outline"
+            slot="start"
+            class="log-icon">
+          </ion-icon>
+
+          <ion-label class="log-label">
+            <div class="log-top-row">
+              <span class="log-user">
+                <ion-icon name="person-outline"></ion-icon>
+                {{ log.userUsername }}
+              </span>
+
+              <span class="log-date">
+                {{ log.timestamp | date:'dd/MM/yyyy HH:mm:ss' }}
+              </span>
+            </div>
+
+            <div class="log-middle-row">
+              <ion-badge [color]="getActionBadgeColor(log.action)" class="action-badge">
+                {{ log.action }}
+              </ion-badge>
+
+              <span class="entity-info" *ngIf="log.entityType">
+                <ion-icon name="cube-outline"></ion-icon>
+                {{ log.entityType }}
+                <strong *ngIf="log.entityId !== null">#{{ log.entityId }}</strong>
+              </span>
+            </div>
+
+            <p class="log-details" *ngIf="log.details">
+              {{ log.details }}
+            </p>
+          </ion-label>
+        </ion-item>
+      </div>
+    </ion-card>
+  </div>
+</ion-content>
