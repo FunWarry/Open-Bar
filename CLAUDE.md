@@ -360,7 +360,8 @@ Pour les fichiers scopés par feature (ex : `fr/commandes.json`), déclarer le s
 | Vue Client QR Code (Passage commande publique + suivi STOMP) (#184) | ✅ | ✅ | ✅ |
 | Journal d'audit système (/api/audit-logs) (#206) | ✅ | ✅ AuditLogsComponent (filtres, badges, pull-to-refresh, i18n) | ✅ |
 | TopBar globale conforme Figma (#208) | — | ✅ NavbarComponent (titre dynamique, badge rôle, heure locale, i18n) | ✅ |
-| NavBar / Sidebar & Refacto UI Figma Layout (#209–#211) | — | 🔄 | — |
+| Sidebar / NavBar repliable 64-220px Figma (#209) | — | ✅ SidebarComponent (NavItem 120:16, Avatar 120:8, role filtering, i18n) | ✅ |
+| Refacto Design System & Harmonisation UI Figma (#210–#211) | — | 🔄 | — |
 
 
 
