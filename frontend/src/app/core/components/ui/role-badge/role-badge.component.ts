@@ -1,5 +1,4 @@
 import { Component, Input } from '@angular/core';
-import { NgIf } from '@angular/common';
 import { IonBadge, IonIcon } from '@ionic/angular/standalone';
 
 export type UserRoleType = 'ADMIN' | 'MANAGER' | 'SERVEUR' | 'BARMAN' | 'WAITER';
@@ -12,7 +11,7 @@ export type UserRoleType = 'ADMIN' | 'MANAGER' | 'SERVEUR' | 'BARMAN' | 'WAITER'
 @Component({
   selector: 'app-role-badge',
   standalone: true,
-  imports: [IonBadge, IonIcon, NgIf],
+  imports: [IonBadge, IonIcon],
   templateUrl: './role-badge.component.html',
   styleUrls: ['./role-badge.component.css']
 })

@@ -1,5 +1,4 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { NgIf } from '@angular/common';
 import { IonChip, IonIcon, IonLabel } from '@ionic/angular/standalone';
 
 /**
@@ -10,7 +9,7 @@ import { IonChip, IonIcon, IonLabel } from '@ionic/angular/standalone';
 @Component({
   selector: 'app-filter-chip',
   standalone: true,
-  imports: [IonChip, IonIcon, IonLabel, NgIf],
+  imports: [IonChip, IonIcon, IonLabel],
   templateUrl: './filter-chip.component.html',
   styleUrls: ['./filter-chip.component.css']
 })

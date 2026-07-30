@@ -9,6 +9,13 @@
   [attr.aria-checked]="checked"
   [attr.aria-disabled]="disabled"
   [attr.data-testid]="testId">
+  <input
+    type="checkbox"
+    class="sr-only-checkbox"
+    [checked]="checked"
+    [disabled]="disabled"
+    tabindex="-1"
+    aria-hidden="true" />
   <div class="checkbox-box" [class.checked]="checked">
     @if (checked) {
       <svg class="checkmark" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
