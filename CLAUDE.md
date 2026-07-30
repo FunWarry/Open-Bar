@@ -359,7 +359,8 @@ Pour les fichiers scopés par feature (ex : `fr/commandes.json`), déclarer le s
 | Plan de salle interactif (Konva.js) | ✅ | ✅ | ✅ |
 | Vue Client QR Code (Passage commande publique + suivi STOMP) (#184) | ✅ | ✅ | ✅ |
 | Journal d'audit système (/api/audit-logs) (#206) | ✅ | ✅ AuditLogsComponent (filtres, badges, pull-to-refresh, i18n) | ✅ |
-| TopBar / NavBar & Refacto UI Figma Layout (#208–#211) | — | 🔄 | — |
+| TopBar globale conforme Figma (#208) | — | ✅ NavbarComponent (titre dynamique, badge rôle, heure locale, i18n) | ✅ |
+| NavBar / Sidebar & Refacto UI Figma Layout (#209–#211) | — | 🔄 | — |
 
 
 
