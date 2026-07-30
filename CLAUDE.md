@@ -363,7 +363,7 @@ Pour les fichiers scopés par feature (ex : `fr/commandes.json`), déclarer le s
 | Layout Global — TopBar globale conforme Figma (#208) | — | ✅ | ✅ |
 | Layout Global — NavBar / Sidebar 64-220px repliable Figma (#209) | — | ✅ | ✅ |
 | Refactorisation Design System UI — Tokens Couleurs & Composants Atomiques Figma 0:1 (#210) | — | ✅ | ✅ |
-| Harmonisation Vues Applicatives Figma (#211) | — | 🔄 | — |
+| Harmonisation Vues Applicatives Figma (#211) | — | ✅ | ✅ |
 
 
 
