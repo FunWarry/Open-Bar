@@ -141,7 +141,9 @@ CREATE TABLE factures (
     total_ttc DECIMAL(10,2) NOT NULL,
     reglee BOOLEAN DEFAULT false,
     mode_paiement VARCHAR(50),
-    date_emission TIMESTAMP NOT NULL,
+    notes TEXT,
+    date_facture TIMESTAMP,
+    date_emission TIMESTAMP,
     date_reglement TIMESTAMP,
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP NOT NULL
@@ -243,6 +245,8 @@ ALTER TABLE factures ADD COLUMN IF NOT EXISTS finalized_at TIMESTAMP;
 ALTER TABLE factures ADD COLUMN IF NOT EXISTS retention_until TIMESTAMP;
 ALTER TABLE factures ADD COLUMN IF NOT EXISTS archived_pdf_path VARCHAR(500);
 ALTER TABLE factures ADD COLUMN IF NOT EXISTS pdf_hash VARCHAR(64);
+ALTER TABLE factures ADD COLUMN IF NOT EXISTS date_facture TIMESTAMP;
+ALTER TABLE factures ADD COLUMN IF NOT EXISTS notes TEXT;
 
 ALTER TABLE facture_items ADD COLUMN IF NOT EXISTS vat_rate VARCHAR(20) DEFAULT 'TWENTY';
 ALTER TABLE facture_items ADD COLUMN IF NOT EXISTS price_ht DECIMAL(10,2);
