@@ -5,7 +5,7 @@ import { Observable, Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
 import { selectIsAdmin, selectCanEditIngredient } from '../../../core/store/auth.selectors';
 import {
-  IonCard, IonCardHeader, IonCardTitle, IonCardContent,
+  IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardContent,
   IonList, IonItem, IonLabel, IonBadge, IonIcon, IonButton, IonButtons,
   IonRefresher, IonRefresherContent, IonSpinner, ToastController,
 } from '@ionic/angular/standalone';
@@ -22,7 +22,7 @@ import { Ingredient } from '../../../core/models/ingredient.model';
   styleUrls: ['./ingredient-list.component.css'],
   standalone: true,
   imports: [
-    IonCard, IonCardHeader, IonCardTitle, IonCardContent,
+    IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardContent,
     IonList, IonItem, IonLabel, IonBadge, IonIcon, IonButton, IonButtons,
     IonRefresher, IonRefresherContent, IonSpinner,
     AsyncPipe, TranslocoModule,
