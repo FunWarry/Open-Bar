@@ -100,12 +100,16 @@ CREATE TABLE commandes (
     id BIGSERIAL PRIMARY KEY,
     table_id BIGINT REFERENCES tables(id),
     serveur_id BIGINT REFERENCES users(id),
+    tracking_token VARCHAR(255) UNIQUE,
     statut VARCHAR(20) NOT NULL,
-    total DECIMAL(10,2) NOT NULL,
+    notes TEXT,
+    total DECIMAL(10,2) NOT NULL DEFAULT 0,
+    pourboire DECIMAL(10,2),
     date_commande TIMESTAMP NOT NULL,
     date_preparation TIMESTAMP,
     date_livraison TIMESTAMP,
     date_reglement TIMESTAMP,
+    date_modification TIMESTAMP,
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP NOT NULL
 );
@@ -269,3 +273,9 @@ CREATE TABLE IF NOT EXISTS avoirs_credit (
     motif_annulation TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Colonnes complémentaires commandes (#219)
+ALTER TABLE commandes ADD COLUMN IF NOT EXISTS tracking_token VARCHAR(255);
+ALTER TABLE commandes ADD COLUMN IF NOT EXISTS notes TEXT;
+ALTER TABLE commandes ADD COLUMN IF NOT EXISTS pourboire DECIMAL(10,2);
+ALTER TABLE commandes ADD COLUMN IF NOT EXISTS date_modification TIMESTAMP;
