@@ -1,59 +1,86 @@
-<ion-content class="ion-padding">
-  <div class="ingredient-form-container">
-    <ion-card>
-      <ion-card-header>
-        <ion-card-title>{{ (isEditMode ? 'INGREDIENTS.EDIT_TITLE' : 'INGREDIENTS.NEW_TITLE') | transloco }}</ion-card-title>
-      </ion-card-header>
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="onCancel()" (keydown.enter)="onCancel()" data-testid="ingredient-back-btn">
+        <ion-icon slot="icon-only" name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>{{ (isEditMode ? 'INGREDIENTS.EDIT_TITLE' : 'INGREDIENTS.NEW_TITLE') | transloco }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="onCancel()" (keydown.enter)="onCancel()" data-testid="ingredient-close-btn">
+        <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="modal-content-container">
+  <div class="ingredient-form-wrapper">
+    <ion-card class="form-card">
       <ion-card-content>
-        <form [formGroup]="ingredientForm" (ngSubmit)="onSubmit()" data-testid="ingredient-form">
+        <form [formGroup]="ingredientForm" (ngSubmit)="onSubmit()" data-testid="ingredient-form" class="ingredient-form">
 
-          <ion-item>
-            <ion-label position="stacked">{{ 'INGREDIENTS.NAME' | transloco }} *</ion-label>
-            <ion-input formControlName="nom" placeholder="ex: Citron" data-testid="ingredient-name-input"></ion-input>
-          </ion-item>
-          <ion-note color="danger" *ngIf="ingredientForm.get('nom')?.hasError('required') && ingredientForm.get('nom')?.touched">
-            {{ 'INGREDIENTS.NAME_REQUIRED' | transloco }}
-          </ion-note>
+          <app-input-field
+            formControlName="nom"
+            [label]="('INGREDIENTS.NAME' | transloco) + ' *'"
+            placeholder="ex: Citron"
+            icon="cube-outline"
+            [required]="true"
+            [errorMessage]="ingredientForm.get('nom')?.hasError('required') && ingredientForm.get('nom')?.touched ? ('INGREDIENTS.NAME_REQUIRED' | transloco) : ''"
+            testId="ingredient-name-input">
+          </app-input-field>
 
-          <ion-item>
-            <ion-label position="stacked">{{ 'INGREDIENTS.UNIT' | transloco }} *</ion-label>
-            <ion-select formControlName="uniteMesure" placeholder="Sélectionner" data-testid="ingredient-unit-select">
-              <ion-select-option value="cl">Centilitres (cl)</ion-select-option>
-              <ion-select-option value="ml">Millilitres (ml)</ion-select-option>
-              <ion-select-option value="g">Grammes (g)</ion-select-option>
-              <ion-select-option value="kg">Kilogrammes (kg)</ion-select-option>
-              <ion-select-option value="pièce">Pièce</ion-select-option>
-              <ion-select-option value="L">Litre (L)</ion-select-option>
-            </ion-select>
-          </ion-item>
-          <ion-note color="danger" *ngIf="ingredientForm.get('uniteMesure')?.hasError('required') && ingredientForm.get('uniteMesure')?.touched">
-            {{ 'INGREDIENTS.UNIT_REQUIRED' | transloco }}
-          </ion-note>
+          <div class="select-field-group">
+            <label class="field-label" id="unit-select-label">{{ 'INGREDIENTS.UNIT' | transloco }} <span class="required-star">*</span></label>
+            <div class="select-input-wrapper">
+              <ion-icon name="scale-outline" class="select-icon"></ion-icon>
+              <ion-select
+                formControlName="uniteMesure"
+                placeholder="Sélectionner une unité"
+                aria-labelledby="unit-select-label"
+                data-testid="ingredient-unit-select">
+                @for (unit of unitOptions; track unit.value) {
+                  <ion-select-option [value]="unit.value">{{ unit.label }}</ion-select-option>
+                }
+              </ion-select>
+            </div>
+            @if (ingredientForm.get('uniteMesure')?.hasError('required') && ingredientForm.get('uniteMesure')?.touched) {
+              <p class="error-hint">{{ 'INGREDIENTS.UNIT_REQUIRED' | transloco }}</p>
+            }
+          </div>
 
-          <ion-item>
-            <ion-label position="stacked">{{ 'INGREDIENTS.STOCK_QTY' | transloco }} *</ion-label>
-            <ion-input formControlName="quantiteStock" type="number" placeholder="0" data-testid="ingredient-stock-input"></ion-input>
-          </ion-item>
-          <ion-note color="danger" *ngIf="ingredientForm.get('quantiteStock')?.hasError('min') && ingredientForm.get('quantiteStock')?.touched">
-            {{ 'INGREDIENTS.STOCK_MIN_ERROR' | transloco }}
-          </ion-note>
+          <app-input-field
+            formControlName="quantiteStock"
+            type="number"
+            [label]="('INGREDIENTS.STOCK_QTY' | transloco) + ' *'"
+            placeholder="0"
+            icon="layers-outline"
+            [required]="true"
+            [errorMessage]="ingredientForm.get('quantiteStock')?.hasError('min') && ingredientForm.get('quantiteStock')?.touched ? ('INGREDIENTS.STOCK_MIN_ERROR' | transloco) : ''"
+            testId="ingredient-stock-input">
+          </app-input-field>
 
-          <ion-item>
-            <ion-label position="stacked">{{ 'INGREDIENTS.SEUIL_ALERTE' | transloco }} *</ion-label>
-            <ion-input formControlName="seuilAlerte" type="number" placeholder="5" data-testid="ingredient-threshold-input"></ion-input>
-          </ion-item>
-          <ion-note color="danger" *ngIf="ingredientForm.get('seuilAlerte')?.hasError('min') && ingredientForm.get('seuilAlerte')?.touched">
-            {{ 'INGREDIENTS.SEUIL_MIN_ERROR' | transloco }}
-          </ion-note>
+          <app-input-field
+            formControlName="seuilAlerte"
+            type="number"
+            [label]="('INGREDIENTS.SEUIL_ALERTE' | transloco) + ' *'"
+            placeholder="5"
+            icon="warning-outline"
+            [required]="true"
+            [errorMessage]="ingredientForm.get('seuilAlerte')?.hasError('min') && ingredientForm.get('seuilAlerte')?.touched ? ('INGREDIENTS.SEUIL_MIN_ERROR' | transloco) : ''"
+            testId="ingredient-threshold-input">
+          </app-input-field>
 
           <div class="form-actions">
-            <ion-button fill="clear" type="button" (click)="onCancel()" (keyup.enter)="onCancel()" data-testid="ingredient-cancel-btn">
+            <ion-button fill="outline" color="medium" type="button" (click)="onCancel()" (keydown.enter)="onCancel()" data-testid="ingredient-cancel-btn">
               {{ 'COMMON.CANCEL' | transloco }}
             </ion-button>
             <ion-button color="primary" type="submit" [disabled]="ingredientForm.invalid" data-testid="ingredient-submit-btn">
+              <ion-icon slot="start" name="checkmark-circle"></ion-icon>
               {{ (isEditMode ? 'COMMON.EDIT' : 'COMMON.ADD') | transloco }}
             </ion-button>
           </div>
+
         </form>
       </ion-card-content>
     </ion-card>

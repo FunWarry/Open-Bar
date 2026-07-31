@@ -1,17 +1,108 @@
-.ingredient-form-container {
+:host {
+  --background: var(--surface-1, #1e2238);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+ion-toolbar {
+  --background: var(--surface-1, #1e2238);
+  --color: var(--text-primary, #ffffff);
+  --border-color: var(--border-medium, rgba(255, 255, 255, 0.1));
+  padding: 8px 16px;
+}
+
+ion-title {
+  font-size: var(--fs-lg, 18px);
+  font-weight: 700;
+  color: var(--text-primary, #ffffff);
+}
+
+.modal-content-container {
+  --background: var(--surface-1, #1e2238);
+  --color: var(--text-primary, #ffffff);
+}
+
+.ingredient-form-wrapper {
   padding: 20px;
   max-width: 600px;
   margin: 0 auto;
 }
 
-.full-width {
+.form-card {
+  --background: var(--surface-1, #1e2238);
+  background: var(--surface-1, #1e2238);
+  border: 1px solid var(--border-medium, rgba(255, 255, 255, 0.12));
+  border-radius: var(--radius-lg, 12px);
+  box-shadow: var(--elev-2, 0 4px 12px rgba(0,0,0,0.45));
+}
+
+.ingredient-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.select-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field-label {
+  font-size: var(--fs-sm, 14px);
+  font-weight: 600;
+  color: var(--text-secondary, #a0aec0);
+}
+
+.required-star {
+  color: var(--danger, #e5604f);
+}
+
+.select-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 12px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--border-medium, rgba(255, 255, 255, 0.15));
+  background: var(--surface-2, #252a45);
+  transition: border-color 0.2s ease-in-out;
+}
+
+.select-input-wrapper:focus-within {
+  border-color: var(--primary, #6c7fe8);
+}
+
+.select-icon {
+  font-size: 18px;
+  color: var(--text-secondary, #a0aec0);
+}
+
+ion-select {
+  --padding-start: 0;
+  --placeholder-color: var(--text-muted, #7e87a8);
+  --placeholder-opacity: 1;
   width: 100%;
-  margin-bottom: 16px;
+  color: var(--text-primary, #ffffff);
+}
+
+.error-hint {
+  font-size: var(--fs-xs, 12px);
+  color: var(--danger, #e5604f);
+  margin: 2px 0 0 0;
 }
 
 .form-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 16px;
-  margin-top: 16px;
+  gap: 12px;
+  margin-top: 12px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-medium, rgba(255, 255, 255, 0.1));
+}
+
+.form-actions ion-button {
+  --border-radius: var(--radius-md, 8px);
+  font-weight: 600;
 }
