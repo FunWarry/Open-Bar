@@ -55,8 +55,8 @@
       testId="input-confirm-password">
     </app-input-field>
 
-    <div class="roles-field-group" role="group" aria-labelledby="roles-group-label">
-      <span id="roles-group-label" class="field-label">Rôles attribués <span class="required-star">*</span></span>
+    <fieldset class="roles-field-group">
+      <legend class="field-label">Rôles attribués <span class="required-star">*</span></legend>
       <div class="roles-chips-grid">
         @for (roleObj of availableRoles; track roleObj.value) {
           <button
@@ -73,7 +73,7 @@
       @if (userForm.get('roles')?.touched && userForm.get('roles')?.hasError('required')) {
         <p class="error-hint">Au moins un rôle doit être sélectionné</p>
       }
-    </div>
+    </fieldset>
 
     <div class="modal-actions-row">
       <ion-button fill="outline" color="medium" (click)="onCancel()" (keydown.enter)="onCancel()" data-testid="btn-cancel-user">

@@ -33,12 +33,17 @@ ion-title {
   flex-direction: column;
   gap: 8px;
   margin-top: 4px;
+  border: none;
+  padding: 0;
+  margin: 0;
 }
 
 .field-label {
   font-size: var(--fs-sm, 14px);
   font-weight: 600;
   color: var(--text-secondary, #a0aec0);
+  padding: 0;
+  margin-bottom: 8px;
 }
 
 .required-star {
