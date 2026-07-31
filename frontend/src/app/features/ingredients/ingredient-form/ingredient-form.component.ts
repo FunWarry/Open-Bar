@@ -10,8 +10,6 @@ import {
   IonButtons,
   IonButton,
   IonIcon,
-  IonCard,
-  IonCardContent,
   IonSelect,
   IonSelectOption
 } from '@ionic/angular/standalone';
@@ -46,8 +44,6 @@ import { InputFieldComponent } from '../../../core/components/ui/input-field/inp
     IonButtons,
     IonButton,
     IonIcon,
-    IonCard,
-    IonCardContent,
     IonSelect,
     IonSelectOption,
     InputFieldComponent,
