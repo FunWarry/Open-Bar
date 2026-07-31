@@ -65,34 +65,20 @@ export function hslToHex(h: number, s: number, l: number): string {
   const x = c * (1 - Math.abs(((normH / 60) % 2) - 1));
   const m = normL - c / 2;
 
-  let r: number;
-  let g: number;
-  let b: number;
+  let [r, g, b] = [0, 0, 0];
 
   if (normH < 60) {
-    r = c;
-    g = x;
-    b = 0;
+    [r, g, b] = [c, x, 0];
   } else if (normH < 120) {
-    r = x;
-    g = c;
-    b = 0;
+    [r, g, b] = [x, c, 0];
   } else if (normH < 180) {
-    r = 0;
-    g = c;
-    b = x;
+    [r, g, b] = [0, c, x];
   } else if (normH < 240) {
-    r = 0;
-    g = x;
-    b = c;
+    [r, g, b] = [0, x, c];
   } else if (normH < 300) {
-    r = x;
-    g = 0;
-    b = c;
+    [r, g, b] = [x, 0, c];
   } else {
-    r = c;
-    g = 0;
-    b = x;
+    [r, g, b] = [c, 0, x];
   }
 
   const toHex = (n: number) => {

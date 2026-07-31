@@ -32,10 +32,9 @@ ion-title {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin-top: 4px;
   border: none;
   padding: 0;
-  margin: 0;
+  margin: 4px 0 0 0;
 }
 
 .field-label {
