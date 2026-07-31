@@ -8,6 +8,8 @@ import { of } from 'rxjs';
 import { IngredientFormComponent } from '../../../app/features/ingredients/ingredient-form/ingredient-form.component';
 import { IngredientService } from '../../../app/core/services/ingredient.service';
 
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
+
 describe('IngredientFormComponent', () => {
   let component: IngredientFormComponent;
   let routerSpy: jasmine.SpyObj<Router>;
@@ -44,6 +46,7 @@ describe('IngredientFormComponent', () => {
         IngredientFormComponent,
         ReactiveFormsModule,
         RouterTestingModule,
+        getTranslocoTestingModule(),
         IonicModule.forRoot()
       ],
       providers: [

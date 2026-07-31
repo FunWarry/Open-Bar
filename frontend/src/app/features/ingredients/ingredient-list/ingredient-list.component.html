@@ -1,4 +1,4 @@
-<ion-content>
+<ion-content class="ion-padding">
   <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
@@ -27,7 +27,7 @@
               <ion-item>
                 <ion-label>
                   <h3>{{ ingredient.nom }}</h3>
-                  <p>{{ ingredient.uniteMesure }} — <span style="font-size:11px;color:#7e87a8">{{ 'INGREDIENTS.SEUIL_ALERTE' | transloco }} : {{ ingredient.seuilAlerte }} {{ ingredient.uniteMesure }}</span></p>
+                  <p>{{ ingredient.uniteMesure }} — <span style="font-size:11px;color:var(--text-muted, #7e87a8)">{{ 'INGREDIENTS.SEUIL_ALERTE' | transloco }} : {{ ingredient.seuilAlerte }} {{ ingredient.uniteMesure }}</span></p>
                 </ion-label>
                 @if (isEnAlerte(ingredient)) {
                   <ion-badge slot="end" color="danger">{{ 'INGREDIENTS.ALERTE_STOCK' | transloco }}</ion-badge>

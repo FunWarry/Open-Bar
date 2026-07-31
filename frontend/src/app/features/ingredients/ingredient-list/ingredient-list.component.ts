@@ -12,10 +12,14 @@ import {
 import { addIcons } from 'ionicons';
 import { add, eye, create, trash } from 'ionicons/icons';
 import { AsyncPipe } from '@angular/common';
-import { TranslocoModule } from '@jsverse/transloco';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { IngredientService } from '../../../core/services/ingredient.service';
 import { Ingredient } from '../../../core/models/ingredient.model';
 
+/**
+ * List component displaying all inventory ingredients in OpenBar.
+ * Features pull-to-refresh, low-stock severity badges, role-based action buttons, and deletion.
+ */
 @Component({
   selector: 'app-ingredient-list',
   templateUrl: './ingredient-list.component.html',
@@ -36,14 +40,21 @@ export class IngredientListComponent implements OnInit, OnDestroy {
 
   private readonly destroy$ = new Subject<void>();
 
-  constructor(private readonly store: Store,private readonly router: Router,private readonly ingredientService: IngredientService,private readonly toastCtrl: ToastController,
+  constructor(
+    private readonly store: Store,
+    private readonly router: Router,
+    private readonly ingredientService: IngredientService,
+    private readonly toastCtrl: ToastController,
+    private readonly transloco: TranslocoService,
   ) {
     this.isAdmin$ = this.store.select(selectIsAdmin);
     this.canEdit$ = this.store.select(selectCanEditIngredient);
     addIcons({ add, eye, create, trash });
   }
 
-  ngOnInit(): void { this.charger(); }
+  ngOnInit(): void {
+    this.charger();
+  }
 
   ngOnDestroy(): void {
     this.destroy$.next();
@@ -63,7 +74,11 @@ export class IngredientListComponent implements OnInit, OnDestroy {
       .subscribe({
         next: ingredients => (this.ingredients = ingredients),
         error: async () => {
-          const toast = await this.toastCtrl.create({ message: 'Erreur lors du chargement', duration: 3000, color: 'danger' });
+          const toast = await this.toastCtrl.create({
+            message: this.transloco.translate('COMMON.ERROR'),
+            duration: 3000,
+            color: 'danger',
+          });
           toast.present();
         },
       });
@@ -83,17 +98,43 @@ export class IngredientListComponent implements OnInit, OnDestroy {
     this.ingredientService.delete(ingredient.id)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: () => (this.ingredients = this.ingredients.filter(i => i.id !== ingredient.id)),
+        next: async () => {
+          this.ingredients = this.ingredients.filter(i => i.id !== ingredient.id);
+          const toast = await this.toastCtrl.create({
+            message: this.transloco.translate('INGREDIENTS.DELETE_SUCCESS'),
+            duration: 3000,
+            color: 'success',
+          });
+          toast.present();
+        },
         error: async () => {
-          const toast = await this.toastCtrl.create({ message: 'Impossible de supprimer', duration: 3000, color: 'danger' });
+          const toast = await this.toastCtrl.create({
+            message: this.transloco.translate('INGREDIENTS.DELETE_ERROR'),
+            duration: 3000,
+            color: 'danger',
+          });
           toast.present();
         },
       });
   }
 
-  onAdd(): void  { this.router.navigate(['/ingredients/new']); }
-  onView(i: Ingredient): void { this.router.navigate(['/ingredients', i.id]); }
-  onEdit(i: Ingredient): void { this.router.navigate(['/ingredients', i.id, 'edit']); }
-  onRefresh(event: any): void { this.charger(event); }
-  trackById(_: number, item: Ingredient): number { return item.id; }
+  onAdd(): void {
+    this.router.navigate(['/ingredients/new']);
+  }
+
+  onView(i: Ingredient): void {
+    this.router.navigate(['/ingredients', i.id]);
+  }
+
+  onEdit(i: Ingredient): void {
+    this.router.navigate(['/ingredients', i.id, 'edit']);
+  }
+
+  onRefresh(event: any): void {
+    this.charger(event);
+  }
+
+  trackById(_: number, item: Ingredient): number {
+    return item.id;
+  }
 }
