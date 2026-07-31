@@ -61,30 +61,13 @@ export function hslToHex(h: number, s: number, l: number): string {
   const normS = Math.max(0, Math.min(100, s)) / 100;
   const normL = Math.max(0, Math.min(100, l)) / 100;
 
-  const c = (1 - Math.abs(2 * normL - 1)) * normS;
-  const x = c * (1 - Math.abs(((normH / 60) % 2) - 1));
-  const m = normL - c / 2;
-
-  let [r, g, b] = [0, 0, 0];
-
-  if (normH < 60) {
-    [r, g, b] = [c, x, 0];
-  } else if (normH < 120) {
-    [r, g, b] = [x, c, 0];
-  } else if (normH < 180) {
-    [r, g, b] = [0, c, x];
-  } else if (normH < 240) {
-    [r, g, b] = [0, x, c];
-  } else if (normH < 300) {
-    [r, g, b] = [x, 0, c];
-  } else {
-    [r, g, b] = [c, 0, x];
-  }
-
-  const toHex = (n: number) => {
-    const hexVal = Math.round((n + m) * 255).toString(16);
+  const a = normS * Math.min(normL, 1 - normL);
+  const f = (n: number) => {
+    const k = (n + normH / 30) % 12;
+    const color = normL - a * Math.max(-1, Math.min(k - 3, 9 - k, 1));
+    const hexVal = Math.round(color * 255).toString(16);
     return hexVal.length === 1 ? '0' + hexVal : hexVal;
   };
 
-  return `#${toHex(r)}${toHex(g)}${toHex(b)}`.toUpperCase();
+  return `#${f(0)}${f(8)}${f(4)}`.toUpperCase();
 }
