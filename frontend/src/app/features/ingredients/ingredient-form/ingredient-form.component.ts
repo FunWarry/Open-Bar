@@ -11,8 +11,6 @@ import {
   IonButton,
   IonIcon,
   IonCard,
-  IonCardHeader,
-  IonCardTitle,
   IonCardContent,
   IonSelect,
   IonSelectOption
@@ -49,8 +47,6 @@ import { InputFieldComponent } from '../../../core/components/ui/input-field/inp
     IonButton,
     IonIcon,
     IonCard,
-    IonCardHeader,
-    IonCardTitle,
     IonCardContent,
     IonSelect,
     IonSelectOption,
