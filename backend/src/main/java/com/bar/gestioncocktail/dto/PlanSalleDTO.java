@@ -20,7 +20,7 @@ public record PlanSalleDTO(
             t.getPlanForme() != null ? t.getPlanForme() : "CARRE",
             t.getNumero() != null ? t.getNumero().toString() : null,
             t.getCapacite(),
-            t.getZone() != null ? t.getZone().name() : null,
+            t.getZone(),
             t.isOccupee()
         );
     }

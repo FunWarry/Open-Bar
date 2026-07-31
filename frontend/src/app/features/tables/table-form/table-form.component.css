@@ -49,7 +49,7 @@ ion-title {
 .suggestions-label {
   font-size: var(--fs-xs, 12px);
   font-weight: 600;
-  color: var(--text-muted, #7e87a8);
+  color: var(--text-secondary, #a0aec0);
 }
 
 .zone-chips {
@@ -60,8 +60,8 @@ ion-title {
 
 .zone-chip {
   background: var(--surface-2, #252a45);
-  color: var(--text-secondary, #a0aec0);
-  border: 1px solid var(--border-medium, rgba(255, 255, 255, 0.12));
+  color: var(--text-primary, #ffffff);
+  border: 1px solid var(--border-medium, rgba(255, 255, 255, 0.2));
   border-radius: var(--radius-full, 9999px);
   padding: 6px 14px;
   font-size: var(--fs-xs, 12px);
@@ -72,14 +72,15 @@ ion-title {
 
 .zone-chip:hover {
   border-color: var(--primary, #6c7fe8);
-  color: var(--text-primary, #ffffff);
+  background: var(--surface-3, #2e3450);
+  color: #ffffff;
 }
 
 .zone-chip.active {
   background: var(--primary, #6c7fe8);
   color: #ffffff;
   border-color: var(--primary, #6c7fe8);
-  box-shadow: 0 2px 8px rgba(108, 127, 232, 0.3);
+  box-shadow: 0 2px 8px rgba(108, 127, 232, 0.4);
 }
 
 .form-actions {

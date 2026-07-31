@@ -1,5 +1,3 @@
-export type TableZone = string;
-
 export interface TableBar {
   id: number;
   numero: number;
