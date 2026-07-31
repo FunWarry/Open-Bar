@@ -42,6 +42,21 @@ public class CommandeController {
     }
 
     /**
+     * Retrieves the complete list of all orders.
+     *
+     * @return List of all order DTOs
+     */
+    @GetMapping
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "List all orders", description = "Retrieves all orders in the system.")
+    @ApiResponse(responseCode = "200", description = "List of orders retrieved")
+    public ResponseEntity<List<CommandeResponseDTO>> getAllCommandes() {
+        return ResponseEntity.ok(commandeService.getAllCommandes().stream()
+            .map(CommandeResponseDTO::from)
+            .toList());
+    }
+
+    /**
      * Creates a new order in the system.
      *
      * @param request Order data to create

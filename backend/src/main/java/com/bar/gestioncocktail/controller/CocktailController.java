@@ -11,7 +11,6 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -32,13 +31,26 @@ public class CocktailController {
     private final CocktailService cocktailService;
 
     /**
-     * Constructeur avec injection du service cocktail.
+     * Constructs the controller with the cocktail service dependency.
      *
-     * @param cocktailService Le service gérant la logique métier des cocktails
+     * @param cocktailService service managing cocktail business logic
      */
-    @Autowired
     public CocktailController(CocktailService cocktailService) {
         this.cocktailService = cocktailService;
+    }
+
+    /**
+     * Retrieves all cocktails in the menu.
+     *
+     * @return List of all cocktail DTOs
+     */
+    @GetMapping
+    @Operation(summary = "Get all cocktails", description = "Retrieves the complete list of cocktails.")
+    @ApiResponse(responseCode = "200", description = "Cocktail list retrieved")
+    public ResponseEntity<List<CocktailResponseDTO>> getAllCocktails() {
+        return ResponseEntity.ok(cocktailService.getAllCocktails().stream()
+            .map(CocktailResponseDTO::from)
+            .toList());
     }
 
     /**

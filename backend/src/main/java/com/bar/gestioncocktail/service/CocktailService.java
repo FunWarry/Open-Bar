@@ -32,6 +32,16 @@ public class CocktailService {
     }
 
     /**
+     * Retrieves all cocktails from the menu.
+     *
+     * @return List of all cocktails
+     */
+    @Transactional(readOnly = true)
+    public List<Cocktail> getAllCocktails() {
+        return cocktailRepository.findAll();
+    }
+
+    /**
      * Crée et sauvegarde un nouveau cocktail.
      *
      * @param cocktail Le cocktail à créer
