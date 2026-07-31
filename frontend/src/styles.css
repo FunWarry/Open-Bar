@@ -364,7 +364,7 @@ ion-modal {
   --background: var(--surface-1, #1e2238);
   --box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
   --max-height: 85vh;
-  --height: auto;
+  --height: min(620px, 85vh);
   --width: 520px;
 }
 
