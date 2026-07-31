@@ -51,15 +51,6 @@ public class IngredientService {
         return ingredientRepository.findById(id);
     }
 
-    /**
-     * Retrieves all ingredients in the inventory system.
-     *
-     * @return List of all ingredients
-     */
-    @Transactional(readOnly = true)
-    public List<Ingredient> getAllIngredients() {
-        return ingredientRepository.findAll();
-    }
 
     public List<Ingredient> getIngredientsBySeuilAlerte() {
         return ingredientRepository.findByQuantiteStockLessThanEqual(BigDecimal.ZERO);
