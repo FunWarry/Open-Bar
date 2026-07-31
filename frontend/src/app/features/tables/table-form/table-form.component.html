@@ -1,48 +1,75 @@
-<div class="table-form-container">
-  <ion-card>
-    <ion-card-header>
-      <ion-card-title>{{ isEditMode ? 'Modifier la Table' : 'Nouvelle Table' }}</ion-card-title>
-    </ion-card-header>
-    <ion-card-content>
-      <form [formGroup]="tableForm" (ngSubmit)="onSubmit()">
-        <ion-item>
-          <ion-label position="stacked">Numéro de Table</ion-label>
-          <ion-input formControlName="numero" type="number" required></ion-input>
-        </ion-item>
-        <ion-note color="danger" *ngIf="tableForm.get('numero')?.hasError('required') && tableForm.get('numero')?.touched">
-          Le numéro de table est requis
-        </ion-note>
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="onCancel()" (keydown.enter)="onCancel()" data-testid="table-back-btn">
+        <ion-icon slot="icon-only" name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>{{ isEditMode ? 'Modifier la Table' : 'Nouvelle Table' }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="onCancel()" (keydown.enter)="onCancel()" data-testid="table-close-btn">
+        <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
 
-        <ion-item>
-          <ion-label position="stacked">Zone</ion-label>
-          <ion-select formControlName="zone" required>
-            <ion-select-option value="TERRASSE">Terrasse</ion-select-option>
-            <ion-select-option value="SALLE">Salle</ion-select-option>
-            <ion-select-option value="BAR">Bar</ion-select-option>
-          </ion-select>
-        </ion-item>
-        <ion-note color="danger" *ngIf="tableForm.get('zone')?.hasError('required') && tableForm.get('zone')?.touched">
-          La zone est requise
-        </ion-note>
+<ion-content class="modal-content-container">
+  <form [formGroup]="tableForm" (ngSubmit)="onSubmit()" data-testid="table-form" class="table-form">
 
-        <ion-item>
-          <ion-label position="stacked">Capacité</ion-label>
-          <ion-input formControlName="capacite" type="number" required></ion-input>
-        </ion-item>
-        <ion-note color="danger" *ngIf="tableForm.get('capacite')?.hasError('required') && tableForm.get('capacite')?.touched">
-          La capacité est requise
-        </ion-note>
-        <ion-note color="danger" *ngIf="tableForm.get('capacite')?.hasError('min') && tableForm.get('capacite')?.touched">
-          La capacité doit être d'au moins 1 personne
-        </ion-note>
+    <app-input-field
+      formControlName="numero"
+      type="number"
+      label="Numéro de Table"
+      placeholder="ex: 12"
+      icon="grid-outline"
+      [required]="true"
+      [errorMessage]="tableForm.get('numero')?.hasError('required') && tableForm.get('numero')?.touched ? 'Le numéro de table est requis' : ''"
+      testId="table-number-input">
+    </app-input-field>
 
-        <div class="form-actions">
-          <ion-button fill="clear" type="button" (click)="onCancel()" (keydown.enter)="onCancel()">Annuler</ion-button>
-          <ion-button color="primary" type="submit" [disabled]="tableForm.invalid">
-            {{ isEditMode ? 'Modifier' : 'Créer' }}
-          </ion-button>
-        </div>
-      </form>
-    </ion-card-content>
-  </ion-card>
-</div>
+    <div class="select-field-group">
+      <span class="field-label" id="zone-select-label">Zone <span class="required-star">*</span></span>
+      <div class="select-input-wrapper">
+        <ion-icon name="location-outline" class="select-icon"></ion-icon>
+        <ion-select
+          formControlName="zone"
+          placeholder="Sélectionner une zone"
+          cancelText="Annuler"
+          okText="Valider"
+          [interfaceOptions]="{ header: 'Zone' }"
+          aria-labelledby="zone-select-label"
+          data-testid="table-zone-select">
+          <ion-select-option value="TERRASSE">Terrasse</ion-select-option>
+          <ion-select-option value="SALLE">Salle</ion-select-option>
+          <ion-select-option value="BAR">Bar</ion-select-option>
+        </ion-select>
+      </div>
+      @if (tableForm.get('zone')?.hasError('required') && tableForm.get('zone')?.touched) {
+        <p class="error-hint">La zone est requise</p>
+      }
+    </div>
+
+    <app-input-field
+      formControlName="capacite"
+      type="number"
+      label="Capacité"
+      placeholder="ex: 4"
+      icon="people-outline"
+      [required]="true"
+      [errorMessage]="tableForm.get('capacite')?.hasError('required') && tableForm.get('capacite')?.touched ? 'La capacité est requise' : (tableForm.get('capacite')?.hasError('min') && tableForm.get('capacite')?.touched ? 'La capacité doit être d\'au moins 1 personne' : '')"
+      testId="table-capacity-input">
+    </app-input-field>
+
+    <div class="form-actions">
+      <ion-button fill="outline" color="medium" type="button" (click)="onCancel()" (keydown.enter)="onCancel()" data-testid="table-cancel-btn">
+        Annuler
+      </ion-button>
+      <ion-button color="primary" type="submit" [disabled]="tableForm.invalid" data-testid="table-submit-btn">
+        <ion-icon slot="start" name="checkmark-circle"></ion-icon>
+        {{ isEditMode ? 'Modifier' : 'Créer' }}
+      </ion-button>
+    </div>
+
+  </form>
+</ion-content>
