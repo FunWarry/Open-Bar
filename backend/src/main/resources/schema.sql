@@ -92,6 +92,12 @@ CREATE TABLE tables (
     capacite INTEGER NOT NULL,
     occupee BOOLEAN DEFAULT false,
     serveur_id BIGINT REFERENCES users(id),
+    date_occupation TIMESTAMP,
+    date_liberation TIMESTAMP,
+    plan_x DOUBLE PRECISION,
+    plan_y DOUBLE PRECISION,
+    plan_rotation DOUBLE PRECISION DEFAULT 0,
+    plan_forme VARCHAR(20) DEFAULT 'CARRE',
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP NOT NULL
 );
@@ -279,3 +285,11 @@ ALTER TABLE commandes ADD COLUMN IF NOT EXISTS tracking_token VARCHAR(255);
 ALTER TABLE commandes ADD COLUMN IF NOT EXISTS notes TEXT;
 ALTER TABLE commandes ADD COLUMN IF NOT EXISTS pourboire DECIMAL(10,2);
 ALTER TABLE commandes ADD COLUMN IF NOT EXISTS date_modification TIMESTAMP;
+
+-- Colonnes plan de salle & occupation tables (#219)
+ALTER TABLE tables ADD COLUMN IF NOT EXISTS date_occupation TIMESTAMP;
+ALTER TABLE tables ADD COLUMN IF NOT EXISTS date_liberation TIMESTAMP;
+ALTER TABLE tables ADD COLUMN IF NOT EXISTS plan_x DOUBLE PRECISION;
+ALTER TABLE tables ADD COLUMN IF NOT EXISTS plan_y DOUBLE PRECISION;
+ALTER TABLE tables ADD COLUMN IF NOT EXISTS plan_rotation DOUBLE PRECISION DEFAULT 0;
+ALTER TABLE tables ADD COLUMN IF NOT EXISTS plan_forme VARCHAR(20) DEFAULT 'CARRE';
