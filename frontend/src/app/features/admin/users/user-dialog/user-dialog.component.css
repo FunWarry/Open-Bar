@@ -1,15 +1,108 @@
-.form-row {
+:host {
+  --background: var(--surface-1, #1e2238);
+  display: block;
+}
+
+ion-toolbar {
+  --background: var(--surface-1, #1e2238);
+  --color: var(--text-primary, #ffffff);
+  --border-color: var(--border-medium, rgba(255, 255, 255, 0.1));
+  padding: 8px 16px;
+}
+
+ion-title {
+  font-size: var(--fs-lg, 18px);
+  font-weight: 700;
+  color: var(--text-primary, #ffffff);
+}
+
+.modal-content-container {
+  --background: var(--surface-1, #1e2238);
+  --color: var(--text-primary, #ffffff);
+}
+
+.user-dialog-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px 24px;
+}
+
+.roles-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.field-label {
+  font-size: var(--fs-sm, 14px);
+  font-weight: 600;
+  color: var(--text-secondary, #a0aec0);
+}
+
+.required-star {
+  color: var(--danger, #e5604f);
+}
+
+.roles-chips-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20px;
-  margin-bottom: 20px;
+  gap: 10px;
 }
 
-.full-width {
-  width: 100%;
+.role-chip-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--border-medium, rgba(255, 255, 255, 0.15));
+  background: var(--surface-2, #252a45);
+  color: var(--text-secondary, #a0aec0);
+  font-size: var(--fs-sm, 14px);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
 }
 
-mat-form-field {
-  width: 100%;
+.role-chip-btn ion-icon {
+  font-size: 18px;
+}
+
+.role-chip-btn:hover {
+  border-color: var(--primary, #6c7fe8);
+  color: var(--text-primary, #ffffff);
+}
+
+.role-chip-btn.selected {
+  border-color: var(--primary, #6c7fe8);
+  background: rgba(108, 127, 232, 0.15);
+  color: var(--text-primary, #ffffff);
+  font-weight: 600;
+}
+
+.role-chip-btn.selected ion-icon {
+  color: var(--primary, #6c7fe8);
+}
+
+.error-hint {
+  font-size: var(--fs-xs, 12px);
+  color: var(--danger, #e5604f);
+  margin: 2px 0 0 0;
+}
+
+.modal-actions-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 12px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-medium, rgba(255, 255, 255, 0.1));
+}
+
+.modal-actions-row ion-button {
+  --border-radius: var(--radius-md, 8px);
+  font-weight: 600;
 }
 

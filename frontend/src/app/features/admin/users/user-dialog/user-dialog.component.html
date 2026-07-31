@@ -1,63 +1,89 @@
-<ion-header>
+<ion-header class="ion-no-border">
   <ion-toolbar>
     <ion-title>{{ data ? 'Modifier l\'utilisateur' : 'Nouvel utilisateur' }}</ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="onCancel()" (keyup.enter)="onCancel()">Annuler</ion-button>
+      <ion-button (click)="onCancel()" (keydown.enter)="onCancel()" data-testid="btn-close-dialog">
+        <ion-icon slot="icon-only" name="close"></ion-icon>
+      </ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
-  <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
-    <ion-item>
-      <ion-label position="floating">Nom d'utilisateur</ion-label>
-      <ion-input formControlName="username" required></ion-input>
-      <ion-note slot="error" *ngIf="userForm.get('username')?.hasError('required') && userForm.get('username')?.touched">
-        Le nom d'utilisateur est requis
-      </ion-note>
-    </ion-item>
+<ion-content class="modal-content-container">
+  <form [formGroup]="userForm" (ngSubmit)="onSubmit()" class="user-dialog-form">
+    
+    <app-input-field
+      formControlName="username"
+      label="Nom d'utilisateur"
+      placeholder="ex: jdoe"
+      icon="person-outline"
+      [required]="true"
+      [errorMessage]="userForm.get('username')?.hasError('required') && userForm.get('username')?.touched ? 'Le nom d\'utilisateur est requis' : ''"
+      testId="input-username">
+    </app-input-field>
 
-    <ion-item>
-      <ion-label position="floating">Email</ion-label>
-      <ion-input formControlName="email" type="email" required></ion-input>
-      <ion-note slot="error" *ngIf="userForm.get('email')?.hasError('required') && userForm.get('email')?.touched">
-        L'email est requis
-      </ion-note>
-      <ion-note slot="error" *ngIf="userForm.get('email')?.hasError('email') && userForm.get('email')?.touched">
-        Format d'email invalide
-      </ion-note>
-    </ion-item>
+    <app-input-field
+      formControlName="email"
+      type="email"
+      label="Email"
+      placeholder="ex: john.doe@openbar.local"
+      icon="mail-outline"
+      [required]="true"
+      [errorMessage]="userForm.get('email')?.hasError('required') && userForm.get('email')?.touched ? 'L\'email est requis' : (userForm.get('email')?.hasError('email') && userForm.get('email')?.touched ? 'Format d\'email invalide' : '')"
+      testId="input-email">
+    </app-input-field>
 
-    <ion-item>
-      <ion-label position="floating">Mot de passe</ion-label>
-      <ion-input formControlName="password" type="password" [required]="!data"></ion-input>
-      <ion-note slot="error" *ngIf="userForm.get('password')?.hasError('minlength') && userForm.get('password')?.touched">
-        Le mot de passe doit contenir au moins 6 caractères
-      </ion-note>
-    </ion-item>
+    <app-input-field
+      formControlName="password"
+      type="password"
+      [label]="data ? 'Nouveau mot de passe (optionnel)' : 'Mot de passe'"
+      placeholder="••••••••"
+      icon="lock-closed-outline"
+      [required]="!data"
+      [errorMessage]="userForm.get('password')?.hasError('minlength') && userForm.get('password')?.touched ? 'Minimum 6 caractères' : ''"
+      testId="input-password">
+    </app-input-field>
 
-    <ion-item>
-      <ion-label position="floating">Confirmer le mot de passe</ion-label>
-      <ion-input formControlName="confirmPassword" type="password" [required]="!data"></ion-input>
-      <ion-note slot="error" *ngIf="userForm.hasError('passwordMismatch') && userForm.get('confirmPassword')?.touched">
-        Les mots de passe ne correspondent pas
-      </ion-note>
-    </ion-item>
+    <app-input-field
+      formControlName="confirmPassword"
+      type="password"
+      label="Confirmer le mot de passe"
+      placeholder="••••••••"
+      icon="shield-checkmark-outline"
+      [required]="!data"
+      [errorMessage]="userForm.hasError('passwordMismatch') && userForm.get('confirmPassword')?.touched ? 'Les mots de passe ne correspondent pas' : ''"
+      testId="input-confirm-password">
+    </app-input-field>
 
-    <ion-item>
-      <ion-label>Rôles</ion-label>
-      <ion-select formControlName="roles" [multiple]="true" placeholder="Sélectionner des rôles">
-        <ion-select-option value="USER">Utilisateur</ion-select-option>
-        <ion-select-option value="ADMIN">Administrateur</ion-select-option>
-        <ion-select-option value="SERVEUR">Serveur</ion-select-option>
-        <ion-select-option value="BARMEN">Barman</ion-select-option>
-      </ion-select>
-    </ion-item>
+    <div class="roles-field-group">
+      <label class="field-label">Rôles attribués <span class="required-star">*</span></label>
+      <div class="roles-chips-grid">
+        @for (roleObj of availableRoles; track roleObj.value) {
+          <button
+            type="button"
+            class="role-chip-btn"
+            [class.selected]="isRoleSelected(roleObj.value)"
+            (click)="toggleRole(roleObj.value)"
+            [attr.data-testid]="'role-chip-' + roleObj.value">
+            <ion-icon [name]="isRoleSelected(roleObj.value) ? 'checkbox' : 'square-outline'"></ion-icon>
+            <span>{{ roleObj.label }}</span>
+          </button>
+        }
+      </div>
+      @if (userForm.get('roles')?.touched && userForm.get('roles')?.hasError('required')) {
+        <p class="error-hint">Au moins un rôle doit être sélectionné</p>
+      }
+    </div>
 
-    <div class="form-actions ion-padding-top">
-      <ion-button expand="block" color="primary" type="submit" [disabled]="userForm.invalid">
-        {{ data ? 'Modifier' : 'Créer' }}
+    <div class="modal-actions-row">
+      <ion-button fill="outline" color="medium" (click)="onCancel()" (keydown.enter)="onCancel()" data-testid="btn-cancel-user">
+        Annuler
+      </ion-button>
+      <ion-button color="primary" type="submit" [disabled]="userForm.invalid" data-testid="btn-submit-user">
+        <ion-icon slot="start" [name]="data ? 'checkmark-circle' : 'person-add'"></ion-icon>
+        {{ data ? 'Modifier' : 'Créer l\'utilisateur' }}
       </ion-button>
     </div>
+
   </form>
 </ion-content>
