@@ -125,12 +125,16 @@ class UserServiceTest {
     @Test
     @DisplayName("updateUser - updates timestamp and saves user")
     void updateUser_success() {
-        when(userRepository.save(user)).thenReturn(user);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.save(any(User.class))).thenReturn(user);
 
-        User updated = userService.updateUser(user);
+        User updateData = new User();
+        updateData.setNom("UpdatedName");
+
+        User updated = userService.updateUser(1L, updateData);
 
         assertThat(updated).isNotNull();
-        verify(userRepository).save(user);
+        verify(userRepository).save(any(User.class));
     }
 
     @Test

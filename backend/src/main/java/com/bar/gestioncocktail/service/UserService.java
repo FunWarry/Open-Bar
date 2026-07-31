@@ -1,5 +1,6 @@
 package com.bar.gestioncocktail.service;
 
+import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.model.User;
 import com.bar.gestioncocktail.model.UserRole;
 import com.bar.gestioncocktail.repository.UserRepository;
@@ -47,9 +48,30 @@ public class UserService implements UserDetailsService {
         return userRepository.save(user);
     }
 
-    public User updateUser(User user) {
-        user.setUpdatedAt(timeService.now());
-        return userRepository.save(user);
+    public User updateUser(Long id, User updatedData) {
+        User existing = userRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Utilisateur non trouvé avec l'ID: " + id));
+
+        if (updatedData.getUsername() != null && !updatedData.getUsername().isBlank()) {
+            existing.setUsername(updatedData.getUsername());
+        }
+        if (updatedData.getEmail() != null && !updatedData.getEmail().isBlank()) {
+            existing.setEmail(updatedData.getEmail());
+        }
+        if (updatedData.getNom() != null) {
+            existing.setNom(updatedData.getNom());
+        }
+        if (updatedData.getPrenom() != null) {
+            existing.setPrenom(updatedData.getPrenom());
+        }
+        if (updatedData.getRoles() != null && !updatedData.getRoles().isEmpty()) {
+            existing.setRoles(updatedData.getRoles());
+        }
+        if (updatedData.getPassword() != null && !updatedData.getPassword().isBlank()) {
+            existing.setPassword(passwordEncoder.encode(updatedData.getPassword()));
+        }
+        existing.setUpdatedAt(timeService.now());
+        return userRepository.save(existing);
     }
 
     public void deleteUser(Long id) {

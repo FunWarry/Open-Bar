@@ -77,9 +77,7 @@ public class UserController {
     public ResponseEntity<UserResponseDTO> updateUser(
         @Parameter(description = "User ID") @PathVariable Long id,
         @RequestBody UserRequestDTO request) {
-        User user = request.toEntity();
-        user.setId(id);
-        return ResponseEntity.ok(UserResponseDTO.from(userService.updateUser(user)));
+        return ResponseEntity.ok(UserResponseDTO.from(userService.updateUser(id, request.toEntity())));
     }
 
     /**

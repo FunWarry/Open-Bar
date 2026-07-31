@@ -19,6 +19,7 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -26,10 +27,10 @@ import static org.mockito.Mockito.when;
 class UserControllerTest {
 
     @Mock
-    UserService userService;
+    private UserService userService;
 
     @InjectMocks
-    UserController userController;
+    private UserController userController;
 
     private User user;
 
@@ -40,7 +41,7 @@ class UserControllerTest {
         user.setUsername("testuser");
         user.setEmail("test@example.com");
         user.setPassword("secret");
-        user.setRoles(Set.of(UserRole.SERVEUR));
+        user.setRoles(Set.of(UserRole.ADMIN));
     }
 
     @Test
