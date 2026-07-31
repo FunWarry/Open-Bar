@@ -5,7 +5,7 @@ import { Observable, Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
 import { selectIsAdmin } from '../../../core/store/auth.selectors';
 import {
-  IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent,
+  IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent,
   IonGrid, IonRow, IonCol, IonBadge, IonIcon, IonButton, IonButtons,
   IonRefresher, IonRefresherContent, IonSpinner, ToastController,
 } from '@ionic/angular/standalone';
@@ -21,7 +21,7 @@ import { TableBar } from '../../../core/models/table.model';
   styleUrls: ['./table-list.component.css'],
   standalone: true,
   imports: [
-    IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent,
+    IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent,
     IonGrid, IonRow, IonCol, IonBadge, IonIcon, IonButton, IonButtons,
     IonRefresher, IonRefresherContent, IonSpinner,
     NgIf, NgFor, AsyncPipe,

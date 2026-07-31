@@ -9,6 +9,8 @@ import { IngredientDetailComponent } from '../../../app/features/ingredients/ing
 import { IngredientService } from '../../../app/core/services/ingredient.service';
 import { Ingredient } from '../../../app/core/models/ingredient.model';
 
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
+
 const mockIngredient: Ingredient = {
   id: 1, nom: 'Rhum', uniteMesure: 'cl', quantiteStock: 20, seuilAlerte: 5,
   createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-06-01T10:00:00Z',
@@ -36,7 +38,7 @@ describe('IngredientDetailComponent', () => {
     routerSpy = jasmine.createSpyObj('Router', ['navigate']);
 
     await TestBed.configureTestingModule({
-      imports: [IngredientDetailComponent, IonicModule.forRoot(), RouterTestingModule],
+      imports: [IngredientDetailComponent, IonicModule.forRoot(), RouterTestingModule, getTranslocoTestingModule()],
       providers: [
         { provide: Store, useValue: storeSpy },
         { provide: Router, useValue: routerSpy },

@@ -22,6 +22,16 @@ public class IngredientService {
         this.timeService = timeService;
     }
 
+    /**
+     * Retrieves all ingredients ordered by name.
+     *
+     * @return list of all ingredients
+     */
+    @Transactional(readOnly = true)
+    public List<Ingredient> getAllIngredients() {
+        return ingredientRepository.findAll();
+    }
+
     public Ingredient createIngredient(Ingredient ingredient) {
         ingredient.setCreatedAt(timeService.now());
         ingredient.setUpdatedAt(timeService.now());
@@ -40,6 +50,7 @@ public class IngredientService {
     public Optional<Ingredient> getIngredientById(Long id) {
         return ingredientRepository.findById(id);
     }
+
 
     public List<Ingredient> getIngredientsBySeuilAlerte() {
         return ingredientRepository.findByQuantiteStockLessThanEqual(BigDecimal.ZERO);

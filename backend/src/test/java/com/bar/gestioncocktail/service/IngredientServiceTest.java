@@ -58,6 +58,16 @@ class IngredientServiceTest {
     }
 
     @Test
+    void getAllIngredients_retourneListe() {
+        when(ingredientRepository.findAll()).thenReturn(List.of(ingredient));
+
+        List<Ingredient> result = ingredientService.getAllIngredients();
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getNom()).isEqualTo("Rhum");
+    }
+
+    @Test
     void createIngredient_sauvegarde() {
         Ingredient nouveau = new Ingredient();
         nouveau.setNom("Citron vert");

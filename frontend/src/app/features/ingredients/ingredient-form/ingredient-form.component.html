@@ -1,57 +1,61 @@
-<div class="ingredient-form-container">
-  <ion-card>
-    <ion-card-header>
-      <ion-card-title>{{ isEditMode ? 'Modifier l\'Ingrédient' : 'Nouvel Ingrédient' }}</ion-card-title>
-    </ion-card-header>
-    <ion-card-content>
-      <form [formGroup]="ingredientForm" (ngSubmit)="onSubmit()">
+<ion-content class="ion-padding">
+  <div class="ingredient-form-container">
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>{{ (isEditMode ? 'INGREDIENTS.EDIT_TITLE' : 'INGREDIENTS.NEW_TITLE') | transloco }}</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <form [formGroup]="ingredientForm" (ngSubmit)="onSubmit()" data-testid="ingredient-form">
 
-        <ion-item>
-          <ion-label position="stacked">Nom *</ion-label>
-          <ion-input formControlName="nom" placeholder="ex: Citron"></ion-input>
-        </ion-item>
-        <ion-note color="danger" *ngIf="ingredientForm.get('nom')?.hasError('required') && ingredientForm.get('nom')?.touched">
-          Le nom est requis
-        </ion-note>
+          <ion-item>
+            <ion-label position="stacked">{{ 'INGREDIENTS.NAME' | transloco }} *</ion-label>
+            <ion-input formControlName="nom" placeholder="ex: Citron" data-testid="ingredient-name-input"></ion-input>
+          </ion-item>
+          <ion-note color="danger" *ngIf="ingredientForm.get('nom')?.hasError('required') && ingredientForm.get('nom')?.touched">
+            {{ 'INGREDIENTS.NAME_REQUIRED' | transloco }}
+          </ion-note>
 
-        <ion-item>
-          <ion-label position="stacked">Unité de mesure *</ion-label>
-          <ion-select formControlName="uniteMesure" placeholder="Sélectionner">
-            <ion-select-option value="cl">Centilitres (cl)</ion-select-option>
-            <ion-select-option value="ml">Millilitres (ml)</ion-select-option>
-            <ion-select-option value="g">Grammes (g)</ion-select-option>
-            <ion-select-option value="kg">Kilogrammes (kg)</ion-select-option>
-            <ion-select-option value="pièce">Pièce</ion-select-option>
-            <ion-select-option value="L">Litre (L)</ion-select-option>
-          </ion-select>
-        </ion-item>
-        <ion-note color="danger" *ngIf="ingredientForm.get('uniteMesure')?.hasError('required') && ingredientForm.get('uniteMesure')?.touched">
-          L'unité est requise
-        </ion-note>
+          <ion-item>
+            <ion-label position="stacked">{{ 'INGREDIENTS.UNIT' | transloco }} *</ion-label>
+            <ion-select formControlName="uniteMesure" placeholder="Sélectionner" data-testid="ingredient-unit-select">
+              <ion-select-option value="cl">Centilitres (cl)</ion-select-option>
+              <ion-select-option value="ml">Millilitres (ml)</ion-select-option>
+              <ion-select-option value="g">Grammes (g)</ion-select-option>
+              <ion-select-option value="kg">Kilogrammes (kg)</ion-select-option>
+              <ion-select-option value="pièce">Pièce</ion-select-option>
+              <ion-select-option value="L">Litre (L)</ion-select-option>
+            </ion-select>
+          </ion-item>
+          <ion-note color="danger" *ngIf="ingredientForm.get('uniteMesure')?.hasError('required') && ingredientForm.get('uniteMesure')?.touched">
+            {{ 'INGREDIENTS.UNIT_REQUIRED' | transloco }}
+          </ion-note>
 
-        <ion-item>
-          <ion-label position="stacked">Quantité en stock *</ion-label>
-          <ion-input formControlName="quantiteStock" type="number" placeholder="0"></ion-input>
-        </ion-item>
-        <ion-note color="danger" *ngIf="ingredientForm.get('quantiteStock')?.hasError('min') && ingredientForm.get('quantiteStock')?.touched">
-          La quantité ne peut pas être négative
-        </ion-note>
+          <ion-item>
+            <ion-label position="stacked">{{ 'INGREDIENTS.STOCK_QTY' | transloco }} *</ion-label>
+            <ion-input formControlName="quantiteStock" type="number" placeholder="0" data-testid="ingredient-stock-input"></ion-input>
+          </ion-item>
+          <ion-note color="danger" *ngIf="ingredientForm.get('quantiteStock')?.hasError('min') && ingredientForm.get('quantiteStock')?.touched">
+            {{ 'INGREDIENTS.STOCK_MIN_ERROR' | transloco }}
+          </ion-note>
 
-        <ion-item>
-          <ion-label position="stacked">Seuil d'alerte *</ion-label>
-          <ion-input formControlName="seuilAlerte" type="number" placeholder="5"></ion-input>
-        </ion-item>
-        <ion-note color="danger" *ngIf="ingredientForm.get('seuilAlerte')?.hasError('min') && ingredientForm.get('seuilAlerte')?.touched">
-          Le seuil ne peut pas être négatif
-        </ion-note>
+          <ion-item>
+            <ion-label position="stacked">{{ 'INGREDIENTS.SEUIL_ALERTE' | transloco }} *</ion-label>
+            <ion-input formControlName="seuilAlerte" type="number" placeholder="5" data-testid="ingredient-threshold-input"></ion-input>
+          </ion-item>
+          <ion-note color="danger" *ngIf="ingredientForm.get('seuilAlerte')?.hasError('min') && ingredientForm.get('seuilAlerte')?.touched">
+            {{ 'INGREDIENTS.SEUIL_MIN_ERROR' | transloco }}
+          </ion-note>
 
-        <div class="form-actions">
-          <ion-button fill="clear" type="button" (click)="onCancel()" (keyup.enter)="onCancel()">Annuler</ion-button>
-          <ion-button color="primary" type="submit" [disabled]="ingredientForm.invalid">
-            {{ isEditMode ? 'Modifier' : 'Créer' }}
-          </ion-button>
-        </div>
-      </form>
-    </ion-card-content>
-  </ion-card>
-</div>
+          <div class="form-actions">
+            <ion-button fill="clear" type="button" (click)="onCancel()" (keyup.enter)="onCancel()" data-testid="ingredient-cancel-btn">
+              {{ 'COMMON.CANCEL' | transloco }}
+            </ion-button>
+            <ion-button color="primary" type="submit" [disabled]="ingredientForm.invalid" data-testid="ingredient-submit-btn">
+              {{ (isEditMode ? 'COMMON.EDIT' : 'COMMON.ADD') | transloco }}
+            </ion-button>
+          </div>
+        </form>
+      </ion-card-content>
+    </ion-card>
+  </div>
+</ion-content>

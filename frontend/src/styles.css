@@ -152,6 +152,16 @@ ion-card {
   box-shadow: var(--elev-1);
 }
 
+ion-card-title {
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-weight: 600;
+}
+
+ion-card-subtitle {
+  color: var(--text-secondary);
+}
+
 ion-item {
   --background: var(--surface-1);
   --color: var(--text-primary);

@@ -26,8 +26,8 @@
 }
 
 .label {
-  color: rgba(0, 0, 0, 0.6);
-  font-size: 14px;
+  color: var(--text-secondary);
+  font-size: var(--fs-sm);
 }
 
 .value {

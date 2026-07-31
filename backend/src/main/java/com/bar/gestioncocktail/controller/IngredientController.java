@@ -9,7 +9,6 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -27,13 +26,28 @@ public class IngredientController {
     private final IngredientService ingredientService;
 
     /**
-     * Constructeur avec injection du service d'ingrédients.
+     * Constructs the controller with the ingredient service dependency.
      *
-     * @param ingredientService Le service gérant la logique des ingrédients
+     * @param ingredientService service managing ingredient business logic
      */
-    @Autowired
     public IngredientController(IngredientService ingredientService) {
         this.ingredientService = ingredientService;
+    }
+
+    /**
+     * Retrieves the complete list of all ingredients.
+     *
+     * @return list of all ingredient DTOs
+     */
+    @GetMapping
+    @Operation(summary = "List all ingredients (ADMIN/MANAGER/BARMAN)")
+    @ApiResponse(responseCode = "200", description = "Ingredient list retrieved")
+    public ResponseEntity<List<IngredientResponseDTO>> getAllIngredients() {
+        return ResponseEntity.ok(
+            ingredientService.getAllIngredients().stream()
+                .map(IngredientResponseDTO::from)
+                .toList()
+        );
     }
 
     /**
@@ -49,6 +63,7 @@ public class IngredientController {
     public ResponseEntity<IngredientResponseDTO> createIngredient(@Valid @RequestBody IngredientRequestDTO request) {
         return ResponseEntity.ok(IngredientResponseDTO.from(ingredientService.createIngredient(request.toEntity())));
     }
+
 
     /**
      * Updates an ingredient's information.
