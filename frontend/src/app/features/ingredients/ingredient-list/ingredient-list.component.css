@@ -4,7 +4,8 @@
 
 ion-card {
   margin-bottom: var(--space-5, 20px);
-  background: var(--background-surface-1, #1a1a2e);
+  --background: var(--surface-1);
+  background: var(--surface-1);
   border: 1px solid var(--border-medium, #2e3450);
 }
 

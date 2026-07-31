@@ -1,6 +1,6 @@
 # OpenBar — État des Features & Roadmap
 
-> Dernière mise à jour : 30 juillet 2026 — Resolution CSRF SPA / 403 Forbidden & Quality Gate Sonar
+> Dernière mise à jour : 31 juillet 2026 — PR #219 : Routage & Intégration Gestion Ingrédients (/ingredients) + Correction ion-refresher & Thèmes Lists
 
 ## Tableau des Features
 
@@ -28,7 +28,7 @@
 | Cocktails CRUD | ✅ | ✅ | ✅ | — |
 | Saisonnalité cocktails | ✅ | ✅ | ✅ | — |
 | Variantes & Déduction auto stocks (#185/#182) | ✅ | ✅ | ✅ | Modal sélection & personnalisation |
-| Ingrédients CRUD | ✅ | ✅ | ✅ | — |
+| Ingrédients CRUD & Routage (/ingredients) (#219) | ✅ | ✅ | ✅ | Endpoint `GET /api/ingredients`, routes `/ingredients` (+ new/detail/edit), guards & tests (923/923 PASS) |
 | Tables CRUD | ✅ | ✅ | ✅ | — |
 | Transfert commande entre tables (#186/#205) | ✅ | ✅ | ✅ | Bouton & TransfertModalComponent raccordés (#205/#207) |
 | Commandes | ✅ | ✅ | ✅ | — |
@@ -49,19 +49,15 @@
 | Plan de salle interactif (Konva.js) | ✅ | ✅ | ✅ | — |
 | Vue Client QR Code (passage commande + suivi STOMP) | ✅ | ✅ | ✅ | Vue Client mobile complète (`/client/commande`, `/client/suivi/:id`) |
 | Fuseau horaire paramétrable (Etablissement / TimeService) | ✅ | ✅ | ✅ | TimeZone configurable par l'admin + fallback Système |
-| Journal d'audit système (/api/audit-logs) (#206) | ✅ | ❌ | ✅ | Ticket #206 créé (Frontend à raccorder) |
-| TopBar globale conforme Figma (#208) | — | 🔄 | — | Ticket #208 créé |
-| NavBar / Sidebar 64-220px globale Figma (#209) | — | 🔄 | — | Ticket #209 créé |
-| Refacto Design System & Composants Atomiques Figma (#210) | — | 🔄 | — | Ticket #210 créé |
-| Harmonisation Vues Applicatives Figma (#211) | — | 🔄 | — | Ticket #211 créé |
+| Journal d'audit système (/api/audit-logs) (#206) | ✅ | ✅ | ✅ | Component & Service Admin |
+| TopBar globale conforme Figma (#208) | — | ✅ | ✅ | NavbarComponent |
+| NavBar / Sidebar 64-220px globale Figma (#209) | — | ✅ | ✅ | SidebarComponent |
+| Refacto Design System & Composants Atomiques Figma (#210) | — | ✅ | ✅ | Atoms UI Figma |
+| Harmonisation Vues Applicatives Figma (#211) | — | ✅ | ✅ | ProductCard, StatCard, etc. |
 
 ## Features Manquantes Prioritaires (Frontend & UI Figma)
 
-1. **#206 - [Frontend] Écran d'Historique et Journal d'Audit Système dans l'Espace Admin**
-2. **#208 - [Frontend] Intégration Global Layout — TopBar Conforme Figma sur toutes les Pages**
-3. **#209 - [Frontend] Intégration Global Layout — NavBar et Sidebar Conforme Figma (62:59) sur toutes les Pages**
-4. **#210 - [Frontend] Refactorisation Design System UI — Tokens Couleurs et Composants Atomiques Figma (0:1)**
-5. **#211 - [Frontend] Alignement Interface Figma — Vues Applicatives et Composants Composites (57:2, 57:3, 57:4, 626:987, 636:987)**
+*Toutes les vues applicatives, composants atomiques et le routage des ingrédients sont 100% implémentés et validés.*
 
 ## Dette Technique Active
 
@@ -75,6 +71,7 @@
 
 | PR / Issue | Description |
 |------------|-------------|
+| #219 | Routage et intégration de la gestion des ingrédients (`/ingredients`, `/ingredients/new`, `/ingredients/:id`, `/ingredients/:id/edit`) avec `AuthGuard` et `RoleGuard(['ADMIN', 'MANAGER', 'BARMAN'])`. Endpoint `GET /api/ingredients` backend + `getAllIngredients()` service. Correction du warning `<ion-refresher> must be used inside ion-content` sur toutes les vues listes (`ingredient-list`, `cocktail-list`, `commande-list`, `table-list`). |
 | #204 (#203) | Service UserService & Raccordement CRUD Utilisateurs Admin : Service REST `/api/users`, UserListComponent (liste, création, modification, suppression), spinners, toasts i18n, attributs data-testid et tests unitaires Jasmine/Karma (858/858 OK) |
 | #203 | Resolution 403 / CSRF SPA Angular & Sonar Security Compliance : PassthroughCsrfTokenRepository pour API REST JWT stateless (0 avertissement Sonar java:S4502 / java:S3330), enregistrement global Ionicons, SVG favicon et i18n ERRORS.FORBIDDEN |
 | #202 (#120/#200) | Vue Client QR Code (#120) & Refactoring UI complet Figma (#200) : Setup, Auth, Profile, Error 404, Dashboard Barman et Vue Client QR Code (passage commande public + suivi STOMP temps réel) |

@@ -5,11 +5,17 @@
  */
 :root {
   /* Thème — Background */
-  --background-bg-0: #0f0f1a;
-  --background-bg-1: #15151f;
-  --background-surface-1: #1a1a2e;
-  --background-surface-2: #21263f;
-  --background-surface-3: #2a3050;
+  --bg-0: #0f0f1a;
+  --bg-1: #15151f;
+  --surface-1: #1a1a2e;
+  --surface-2: #21263f;
+  --surface-3: #2a3050;
+
+  --background-bg-0: var(--bg-0);
+  --background-bg-1: var(--bg-1);
+  --background-surface-1: var(--surface-1);
+  --background-surface-2: var(--surface-2);
+  --background-surface-3: var(--surface-3);
 
   /* Thème — Primary */
   --primary: #6c7fe8;

@@ -136,18 +136,20 @@ ion-app {
 ion-content {
   --background: var(--bg-0);
   --color: var(--text-primary);
+  background-color: var(--bg-0);
 }
 
 ion-header, ion-toolbar {
   --background: var(--surface-1);
   --color: var(--text-primary);
-  --border-color: var(--border-default);
+  --border-color: var(--border-medium, #2e3450);
 }
 
 ion-card {
   --background: var(--surface-1);
+  background: var(--surface-1);
   --color: var(--text-primary);
-  border: 1px solid var(--border-default);
+  border: 1px solid var(--border-medium, #2e3450);
   border-radius: var(--radius-lg);
   box-shadow: var(--elev-1);
 }
@@ -164,11 +166,13 @@ ion-card-subtitle {
 
 ion-item {
   --background: var(--surface-1);
+  background: var(--surface-1);
   --color: var(--text-primary);
-  --border-color: var(--border-default);
+  --border-color: var(--border-medium, #2e3450);
 }
 
 ion-list {
+  --background: var(--surface-1);
   background: var(--surface-1);
   color: var(--text-primary);
 }
