@@ -388,12 +388,25 @@ ion-popover::part(content) {
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6) !important;
 }
 
-.alert-head,
-.alert-title,
-.alert-sub-title,
-.alert-lines,
-.alert-button-group {
-  border-color: var(--border-medium, #2e3450) !important;
+.alert-head {
+  border-bottom: 1px solid var(--border-medium, #2e3450) !important;
+  padding: 16px 20px 12px 20px !important;
+}
+
+.alert-title {
+  color: var(--text-primary, #eceefb) !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+}
+
+.alert-sub-title {
+  color: var(--text-secondary, #a0aec0) !important;
+}
+
+.alert-radio-group,
+.alert-checkbox-group {
+  border-top: 1px solid var(--border-medium, #2e3450) !important;
+  border-bottom: 1px solid var(--border-medium, #2e3450) !important;
 }
 
 .alert-radio-label,
@@ -408,6 +421,11 @@ ion-popover ion-label {
   font-weight: 400 !important;
 }
 
+.alert-button-group {
+  border-top: 1px solid var(--border-medium, #2e3450) !important;
+  padding: 8px 16px !important;
+}
+
 .alert-button,
 .alert-button-inner,
 .alert-button .button-inner {
@@ -415,10 +433,6 @@ ion-popover ion-label {
   color: var(--primary, #6c7fe8) !important;
   font-weight: 500 !important;
   font-size: 14px !important;
-}
-
-.alert-button-group {
-  padding: 8px 16px !important;
 }
 
 .alert-radio-icon {

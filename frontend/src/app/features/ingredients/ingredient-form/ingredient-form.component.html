@@ -36,6 +36,7 @@
           placeholder="Sélectionner une unité"
           cancelText="Annuler"
           okText="Valider"
+          [interfaceOptions]="{ header: ('INGREDIENTS.UNIT' | transloco) }"
           aria-labelledby="unit-select-label"
           data-testid="ingredient-unit-select">
           @for (unit of unitOptions; track unit.value) {
