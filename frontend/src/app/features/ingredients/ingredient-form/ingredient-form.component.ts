@@ -27,7 +27,6 @@ import {
   closeOutline,
   arrowBackOutline
 } from 'ionicons/icons';
-import { NgIf, NgForOf } from '@angular/common';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { IngredientService } from '../../../core/services/ingredient.service';
 import { InputFieldComponent } from '../../../core/components/ui/input-field/input-field.component';
@@ -57,8 +56,6 @@ import { InputFieldComponent } from '../../../core/components/ui/input-field/inp
     IonSelectOption,
     InputFieldComponent,
     ReactiveFormsModule,
-    NgIf,
-    NgForOf,
     TranslocoModule
   ]
 })
