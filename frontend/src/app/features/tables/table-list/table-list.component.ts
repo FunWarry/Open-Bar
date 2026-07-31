@@ -7,13 +7,14 @@ import { selectIsAdmin } from '../../../core/store/auth.selectors';
 import {
   IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent,
   IonGrid, IonRow, IonCol, IonBadge, IonIcon, IonButton, IonButtons,
-  IonRefresher, IonRefresherContent, IonSpinner, ToastController,
+  IonRefresher, IonRefresherContent, IonSpinner, ToastController, ModalController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { add, eye, create, people, checkmarkCircle, closeCircle } from 'ionicons/icons';
+import { add, eye, create, people, checkmarkCircle, closeCircle, layersOutline } from 'ionicons/icons';
 import { AsyncPipe } from '@angular/common';
 import { TableService } from '../../../core/services/table.service';
 import { TableBar } from '../../../core/models/table.model';
+import { ZoneManagerComponent } from '../zone-manager/zone-manager.component';
 
 @Component({
   selector: 'app-table-list',
@@ -34,10 +35,15 @@ export class TableListComponent implements OnInit, OnDestroy {
 
   private readonly destroy$ = new Subject<void>();
 
-  constructor(private readonly store: Store,private readonly router: Router,private readonly tableService: TableService,private readonly toastCtrl: ToastController,
+  constructor(
+    private readonly store: Store,
+    private readonly router: Router,
+    private readonly tableService: TableService,
+    private readonly toastCtrl: ToastController,
+    private readonly modalCtrl: ModalController
   ) {
     this.isAdmin$ = this.store.select(selectIsAdmin);
-    addIcons({ add, eye, create, people, checkmarkCircle, closeCircle });
+    addIcons({ add, eye, create, people, checkmarkCircle, closeCircle, layersOutline });
   }
 
   ngOnInit(): void { this.charger(); }
@@ -64,6 +70,16 @@ export class TableListComponent implements OnInit, OnDestroy {
           toast.present();
         },
       });
+  }
+
+  async onManageZones(): Promise<void> {
+    const modal = await this.modalCtrl.create({
+      component: ZoneManagerComponent,
+      cssClass: 'modal-standard'
+    });
+    await modal.present();
+    await modal.onDidDismiss();
+    this.charger();
   }
 
   onAdd(): void { this.router.navigate(['/tables/new']); }

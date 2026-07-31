@@ -1,68 +1,69 @@
-<div class="table-detail-container">
-  <ion-card>
-    <ion-card-header>
-      <div class="card-header-row">
-        <ion-card-title>Table {{ table?.numero }}</ion-card-title>
-        <ion-buttons>
-          <ion-button fill="clear" (click)="onBack()" (keyup.enter)="onBack()">
-            <ion-icon slot="start" name="arrow-back"></ion-icon>
-            Retour
-          </ion-button>
-          <ion-button *ngIf="isAdmin$ | async" fill="outline" color="tertiary" (click)="onEdit()" (keyup.enter)="onEdit()">
-            <ion-icon slot="start" name="create"></ion-icon>
-            Modifier
-          </ion-button>
-        </ion-buttons>
-      </div>
-    </ion-card-header>
-    <ion-card-content>
-      <div class="detail-section">
-        <h3>Informations</h3>
-        <ion-list lines="full">
-          <ion-item>
-            <ion-label>
-              <span class="detail-label">Zone</span>
-              <span class="detail-value">{{ table?.zone }}</span>
-            </ion-label>
-          </ion-item>
-          <ion-item>
-            <ion-label>
-              <span class="detail-label">Capacité</span>
-              <span class="detail-value">{{ table?.capacite }} personnes</span>
-            </ion-label>
-          </ion-item>
-          <ion-item>
-            <ion-label>Statut</ion-label>
-            <ion-badge slot="end" [color]="table?.occupee ? 'danger' : 'success'">
-              {{ table?.occupee ? 'Occupée' : 'Libre' }}
-            </ion-badge>
-          </ion-item>
-        </ion-list>
-      </div>
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="onBack()" (keyup.enter)="onBack()" data-testid="table-detail-back-btn">
+        <ion-icon slot="start" name="arrow-back"></ion-icon>
+        Retour
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Table {{ table?.numero }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button *ngIf="isAdmin$ | async" fill="solid" color="primary" (click)="onEdit()" (keyup.enter)="onEdit()" data-testid="table-detail-edit-btn">
+        <ion-icon slot="start" name="create"></ion-icon>
+        Modifier
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
 
-      <div class="detail-section">
-        <h3>Historique des commandes</h3>
-        <div class="list-header">
-          <span>Numéro</span><span>Date</span><span>Total</span><span>Statut</span>
+<ion-content class="modal-content-container">
+  <div class="table-detail-content">
+
+    <div class="detail-section">
+      <h3 class="section-title">Informations</h3>
+      <div class="info-card">
+        <div class="info-row">
+          <span class="detail-label">Zone</span>
+          <span class="detail-value zone-badge">{{ table?.zone || 'Non définie' }}</span>
         </div>
-        <ion-list>
-          <ion-item
-            *ngFor="let commande of commandes; trackBy: trackById"
-            button
-            [attr.aria-label]="'Voir la commande #' + commande.id"
-            (click)="onViewCommande(commande)"
-            (keyup.enter)="onViewCommande(commande)">
-            <ion-label>
-              <h3>#{{ commande.id }}</h3>
-              <p>{{ commande.dateCommande | date:'short' }}</p>
-            </ion-label>
-            <ion-label slot="end">{{ commande.total | currency:'EUR' }}</ion-label>
-            <ion-badge slot="end" [color]="getStatutColor(commande.statut)">
-              {{ commande.statut }}
-            </ion-badge>
-          </ion-item>
-        </ion-list>
+        <div class="info-row">
+          <span class="detail-label">Capacité</span>
+          <span class="detail-value">{{ table?.capacite }} personnes</span>
+        </div>
+        <div class="info-row">
+          <span class="detail-label">Statut</span>
+          <ion-badge [color]="table?.occupee ? 'danger' : 'success'">
+            {{ table?.occupee ? 'Occupée' : 'Libre' }}
+          </ion-badge>
+        </div>
       </div>
-    </ion-card-content>
-  </ion-card>
-</div>
+    </div>
+
+    <div class="detail-section">
+      <h3 class="section-title">Historique des commandes</h3>
+      @if (commandes && commandes.length > 0) {
+        <div class="history-table">
+          <div class="list-header-row">
+            <span>Commande</span>
+            <span>Date</span>
+            <span>Total</span>
+            <span>Statut</span>
+          </div>
+          @for (commande of commandes; track commande.id) {
+            <div class="history-item-row" (click)="onViewCommande(commande)" (keyup.enter)="onViewCommande(commande)">
+              <span class="cmd-num">#{{ commande.id }}</span>
+              <span class="cmd-date">{{ commande.dateCommande | date:'dd/MM HH:mm' }}</span>
+              <span class="cmd-total">{{ commande.total | currency:'EUR' }}</span>
+              <ion-badge [color]="getStatutColor(commande.statut)">
+                {{ commande.statut }}
+              </ion-badge>
+            </div>
+          }
+        </div>
+      } @else {
+        <p class="empty-text">Aucune commande enregistrée sur cette table.</p>
+      }
+    </div>
+
+  </div>
+</ion-content>

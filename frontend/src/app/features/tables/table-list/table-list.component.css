@@ -16,6 +16,19 @@ ion-card-header {
   margin-bottom: var(--space-4, 16px);
 }
 
+.card-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.header-buttons {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
 .table-card {
   width: 100%;
   height: 100%;

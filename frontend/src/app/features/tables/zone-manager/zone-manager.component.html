@@ -1,0 +1,98 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="onClose()" (keydown.enter)="onClose()" data-testid="zone-close-btn">
+        <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Gestion des Zones & Étages</ion-title>
+    <ion-buttons slot="end">
+      <ion-button color="primary" fill="solid" (click)="toggleAddForm()" data-testid="zone-add-btn">
+        <ion-icon slot="start" [name]="showAddForm ? 'close' : 'add'"></ion-icon>
+        {{ showAddForm ? 'Fermer' : 'Nouvelle Zone' }}
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="modal-content-container">
+  <div class="zone-manager-container">
+
+    @if (showAddForm || editingZoneId !== null) {
+      <div class="zone-form-card">
+        <h4 class="form-title">{{ editingZoneId !== null ? 'Modifier la Zone' : 'Ajouter une Zone' }}</h4>
+        <form [formGroup]="zoneForm" (ngSubmit)="onSave()" class="zone-form">
+          <app-input-field
+            formControlName="nom"
+            label="Nom de la Zone"
+            placeholder="ex: Terrasse Principale, Salle VIP..."
+            icon="location-outline"
+            [required]="true"
+            testId="zone-nom-input">
+          </app-input-field>
+
+          <div class="select-field-group">
+            <span class="field-label">Catégorie / Étage <span class="required-star">*</span></span>
+            <div class="select-input-wrapper">
+              <ion-icon name="layers-outline" class="select-icon"></ion-icon>
+              <ion-select
+                formControlName="etage"
+                placeholder="Choisir un étage"
+                cancelText="Annuler"
+                okText="Valider"
+                [interfaceOptions]="{ header: 'Étage / Niveau' }"
+                data-testid="zone-etage-select">
+                @for (etage of etagesList; track etage.value) {
+                  <ion-select-option [value]="etage.value">{{ etage.label }}</ion-select-option>
+                }
+              </ion-select>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <ion-button fill="outline" color="medium" type="button" (click)="resetForm()">
+              Annuler
+            </ion-button>
+            <ion-button color="primary" type="submit" [disabled]="zoneForm.invalid" data-testid="zone-submit-btn">
+              <ion-icon slot="start" name="checkmark-circle"></ion-icon>
+              {{ editingZoneId !== null ? 'Enregistrer' : 'Créer' }}
+            </ion-button>
+          </div>
+        </form>
+      </div>
+    }
+
+    <div class="zone-list-section">
+      @if (isLoading) {
+        <div class="loading-spinner">
+          <ion-spinner name="crescent"></ion-spinner>
+        </div>
+      } @else if (zones.length === 0) {
+        <div class="empty-state">
+          <ion-icon name="layers-outline" class="empty-icon"></ion-icon>
+          <p>Aucune zone configurée. Cliquez sur <strong>Nouvelle Zone</strong> pour commencer.</p>
+        </div>
+      } @else {
+        <div class="zone-items-list">
+          @for (zone of zones; track zone.id) {
+            <div class="zone-item-card">
+              <div class="zone-info">
+                <span class="zone-name">{{ zone.nom }}</span>
+                <span class="etage-badge">{{ getEtageLabel(zone.etage) }}</span>
+              </div>
+              <div class="zone-actions">
+                <ion-button fill="clear" color="primary" (click)="onEdit(zone)" data-testid="btn-edit-zone">
+                  <ion-icon slot="icon-only" name="create-outline"></ion-icon>
+                </ion-button>
+                <ion-button fill="clear" color="danger" (click)="onDelete(zone)" data-testid="btn-delete-zone">
+                  <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+                </ion-button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+  </div>
+</ion-content>

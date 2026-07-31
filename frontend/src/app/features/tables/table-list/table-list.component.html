@@ -9,10 +9,16 @@
         <div class="card-header-row">
           <ion-card-title>Tables ({{ tables.length }})</ion-card-title>
           @if (isAdmin$ | async) {
-            <ion-button color="primary" (click)="onAdd()" (keyup.enter)="onAdd()">
-              <ion-icon slot="start" name="add"></ion-icon>
-              Nouvelle Table
-            </ion-button>
+            <div class="header-buttons">
+              <ion-button fill="outline" color="primary" (click)="onManageZones()" (keyup.enter)="onManageZones()" data-testid="table-manage-zones-btn">
+                <ion-icon slot="start" name="layers-outline"></ion-icon>
+                Gérer les Zones
+              </ion-button>
+              <ion-button color="primary" (click)="onAdd()" (keyup.enter)="onAdd()" data-testid="table-add-btn">
+                <ion-icon slot="start" name="add"></ion-icon>
+                Nouvelle Table
+              </ion-button>
+            </div>
           }
         </div>
       </ion-card-header>

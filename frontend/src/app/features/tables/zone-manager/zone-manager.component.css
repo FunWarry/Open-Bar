@@ -1,0 +1,170 @@
+:host {
+  --background: var(--surface-1, #1e2238);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+ion-toolbar {
+  --background: var(--surface-1, #1e2238);
+  --color: var(--text-primary, #ffffff);
+  --border-color: var(--border-medium, rgba(255, 255, 255, 0.1));
+  padding: 8px 16px;
+  flex-shrink: 0;
+}
+
+ion-title {
+  font-size: var(--fs-lg, 18px);
+  font-weight: 700;
+  color: var(--text-primary, #ffffff);
+}
+
+.modal-content-container {
+  --background: var(--surface-1, #1e2238);
+  --color: var(--text-primary, #ffffff);
+  flex: 1;
+}
+
+.zone-manager-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px 24px;
+}
+
+.zone-form-card {
+  background: var(--surface-2, #252a45);
+  border: 1px solid var(--border-medium, rgba(255, 255, 255, 0.15));
+  border-radius: var(--radius-lg, 12px);
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.form-title {
+  font-size: var(--fs-md, 15px);
+  font-weight: 700;
+  color: var(--text-primary, #ffffff);
+  margin: 0;
+}
+
+.zone-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.select-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field-label {
+  font-size: var(--fs-sm, 14px);
+  font-weight: 600;
+  color: var(--text-secondary, #a0aec0);
+}
+
+.required-star {
+  color: var(--danger, #e5604f);
+}
+
+.select-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 12px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--border-medium, rgba(255, 255, 255, 0.15));
+  background: var(--surface-1, #1e2238);
+}
+
+.select-icon {
+  font-size: 18px;
+  color: var(--text-secondary, #a0aec0);
+}
+
+ion-select {
+  --padding-start: 0;
+  width: 100%;
+  color: var(--text-primary, #ffffff);
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.zone-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.zone-item-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--surface-2, #252a45);
+  border: 1px solid var(--border-medium, rgba(255, 255, 255, 0.1));
+  border-radius: var(--radius-md, 10px);
+  padding: 12px 16px;
+  transition: border-color 0.2s ease-in-out;
+}
+
+.zone-item-card:hover {
+  border-color: var(--primary, #6c7fe8);
+}
+
+.zone-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.zone-name {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text-primary, #ffffff);
+}
+
+.etage-badge {
+  background: rgba(108, 127, 232, 0.15);
+  color: var(--primary, #6c7fe8);
+  border: 1px solid rgba(108, 127, 232, 0.3);
+  padding: 3px 10px;
+  border-radius: var(--radius-full, 9999px);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.zone-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  color: var(--text-secondary, #a0aec0);
+  text-align: center;
+  gap: 12px;
+}
+
+.empty-icon {
+  font-size: 40px;
+  color: var(--text-muted, #7e87a8);
+}
+
+.loading-spinner {
+  text-align: center;
+  padding: 32px;
+}

@@ -102,6 +102,14 @@ CREATE TABLE tables (
     updated_at TIMESTAMP NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS zones (
+    id BIGSERIAL PRIMARY KEY,
+    nom VARCHAR(50) NOT NULL UNIQUE,
+    etage VARCHAR(50) DEFAULT 'RDC',
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP NOT NULL
+);
+
 CREATE TABLE commandes (
     id BIGSERIAL PRIMARY KEY,
     table_id BIGINT REFERENCES tables(id),
