@@ -9,11 +9,9 @@ import {
   IonCardContent,
   IonList,
   IonItem,
-  IonLabel,
   IonBadge,
   IonIcon,
   IonButton,
-  IonButtons,
   IonSpinner
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -38,11 +36,9 @@ import { DeleteUserDialogComponent } from '../delete-user-dialog/delete-user-dia
     IonCardContent,
     IonList,
     IonItem,
-    IonLabel,
     IonBadge,
     IonIcon,
     IonButton,
-    IonButtons,
     IonSpinner,
     DatePipe
   ]
