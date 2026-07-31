@@ -446,3 +446,42 @@ ion-popover ion-label {
 [aria-checked="true"] .alert-radio-icon {
   border-color: var(--primary, #6c7fe8) !important;
 }
+
+/* Ionic Segment & Segment Button Global Styling (Figma Dark System) */
+ion-segment {
+  --background: transparent;
+  background: transparent;
+  border-bottom: 1px solid var(--border-medium, #2e3450);
+}
+
+ion-segment-button {
+  --background: transparent;
+  --background-checked: transparent;
+  --color: var(--text-secondary, #a0aec0) !important;
+  --color-checked: var(--primary, #6c7fe8) !important;
+  --color-hover: var(--text-primary, #ffffff);
+  --color-focused: var(--primary, #6c7fe8);
+  --indicator-color: var(--primary, #6c7fe8) !important;
+  --indicator-height: 2px;
+  --padding-top: 10px;
+  --padding-bottom: 10px;
+  --padding-start: 12px;
+  --padding-end: 12px;
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  opacity: 1 !important;
+}
+
+ion-segment-button ion-label {
+  color: var(--text-secondary, #a0aec0) !important;
+  font-weight: 600 !important;
+  transition: color 0.2s ease-in-out;
+}
+
+ion-segment-button.segment-button-checked ion-label,
+ion-segment-button[aria-selected="true"] ion-label {
+  color: var(--primary, #6c7fe8) !important;
+  font-weight: 700 !important;
+}
