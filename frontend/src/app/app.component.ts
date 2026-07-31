@@ -5,6 +5,7 @@ import { SidebarComponent } from './core/components/sidebar/sidebar.component';
 import { NotificationPanelComponent } from './core/components/notification-panel/notification-panel.component';
 import { AppSettingsService } from './core/services/app-settings.service';
 import { NotificationService } from './core/services/notification.service';
+import { ThemeService } from './core/services/theme.service';
 import { filter, map, combineLatest, startWith, Observable } from 'rxjs';
 import { Store } from '@ngrx/store';
 import { selectIsAuthenticated } from './core/store/auth.selectors';
@@ -26,7 +27,8 @@ export class AppComponent implements OnInit {
     private readonly router: Router,
     private readonly appSettingsService: AppSettingsService,
     public readonly notifService: NotificationService,
-    private readonly store: Store
+    private readonly store: Store,
+    private readonly themeService: ThemeService
   ) {
     addIcons(allIcons);
     const isAuth$ = this.store.select(selectIsAuthenticated);
