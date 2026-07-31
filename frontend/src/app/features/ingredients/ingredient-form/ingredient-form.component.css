@@ -3,6 +3,7 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+  overflow: hidden;
 }
 
 ion-toolbar {
@@ -10,6 +11,7 @@ ion-toolbar {
   --color: var(--text-primary, #ffffff);
   --border-color: var(--border-medium, rgba(255, 255, 255, 0.1));
   padding: 8px 16px;
+  flex-shrink: 0;
 }
 
 ion-title {
@@ -21,26 +23,14 @@ ion-title {
 .modal-content-container {
   --background: var(--surface-1, #1e2238);
   --color: var(--text-primary, #ffffff);
-}
-
-.ingredient-form-wrapper {
-  padding: 20px;
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-.form-card {
-  --background: var(--surface-1, #1e2238);
-  background: var(--surface-1, #1e2238);
-  border: 1px solid var(--border-medium, rgba(255, 255, 255, 0.12));
-  border-radius: var(--radius-lg, 12px);
-  box-shadow: var(--elev-2, 0 4px 12px rgba(0,0,0,0.45));
+  flex: 1;
 }
 
 .ingredient-form {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  padding: 20px 24px;
 }
 
 .select-field-group {
