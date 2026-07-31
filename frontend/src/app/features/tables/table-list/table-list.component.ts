@@ -11,7 +11,7 @@ import {
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { add, eye, create, people, checkmarkCircle, closeCircle } from 'ionicons/icons';
-import { NgIf, NgFor, AsyncPipe } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import { TableService } from '../../../core/services/table.service';
 import { TableBar } from '../../../core/models/table.model';
 
@@ -24,7 +24,7 @@ import { TableBar } from '../../../core/models/table.model';
     IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent,
     IonGrid, IonRow, IonCol, IonBadge, IonIcon, IonButton, IonButtons,
     IonRefresher, IonRefresherContent, IonSpinner,
-    NgIf, NgFor, AsyncPipe,
+    AsyncPipe,
   ],
 })
 export class TableListComponent implements OnInit, OnDestroy {
