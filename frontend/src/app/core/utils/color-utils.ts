@@ -15,32 +15,32 @@ export interface HSLColor {
  * Converts a hex color string (3 or 6 hex digits, with or without leading #) to HSL object.
  */
 export function hexToHsl(hex: string): HSLColor {
-  let c = hex.replace(/^#/, '');
-  if (c.length === 3) {
-    c = c.split('').map(x => x + x).join('');
+  let cleanHex = hex.replace(/^#/, '');
+  if (cleanHex.length === 3) {
+    cleanHex = cleanHex.split('').map(char => char + char).join('');
   }
-  const r = Number.parseInt(c.substring(0, 2), 16) / 255;
-  const g = Number.parseInt(c.substring(2, 4), 16) / 255;
-  const b = Number.parseInt(c.substring(4, 6), 16) / 255;
+  const rVal = Number.parseInt(cleanHex.substring(0, 2), 16) / 255;
+  const gVal = Number.parseInt(cleanHex.substring(2, 4), 16) / 255;
+  const bVal = Number.parseInt(cleanHex.substring(4, 6), 16) / 255;
 
-  const max = Math.max(r, g, b);
-  const min = Math.min(r, g, b);
+  const maxVal = Math.max(rVal, gVal, bVal);
+  const minVal = Math.min(rVal, gVal, bVal);
   let h = 0;
   let s = 0;
-  const l = (max + min) / 2;
+  const l = (maxVal + minVal) / 2;
 
-  if (max !== min) {
-    const d = max - min;
-    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-    switch (max) {
-      case r:
-        h = (g - b) / d + (g < b ? 6 : 0);
+  if (maxVal !== minVal) {
+    const delta = maxVal - minVal;
+    s = l > 0.5 ? delta / (2 - maxVal - minVal) : delta / (maxVal + minVal);
+    switch (maxVal) {
+      case rVal:
+        h = (gVal - bVal) / delta + (gVal < bVal ? 6 : 0);
         break;
-      case g:
-        h = (b - r) / d + 2;
+      case gVal:
+        h = (bVal - rVal) / delta + 2;
         break;
-      case b:
-        h = (r - g) / d + 4;
+      case bVal:
+        h = (rVal - gVal) / delta + 4;
         break;
     }
     h /= 6;
@@ -62,12 +62,12 @@ export function hslToHex(h: number, s: number, l: number): string {
   const normL = Math.max(0, Math.min(100, l)) / 100;
 
   const a = normS * Math.min(normL, 1 - normL);
-  const f = (n: number) => {
+  const calcHex = (n: number) => {
     const k = (n + normH / 30) % 12;
     const color = normL - a * Math.max(-1, Math.min(k - 3, 9 - k, 1));
     const hexVal = Math.round(color * 255).toString(16);
     return hexVal.length === 1 ? '0' + hexVal : hexVal;
   };
 
-  return `#${f(0)}${f(8)}${f(4)}`.toUpperCase();
+  return `#${calcHex(0)}${calcHex(8)}${calcHex(4)}`.toUpperCase();
 }
