@@ -383,7 +383,7 @@ ion-popover::part(content) {
   --background: var(--surface-1, #1e2238) !important;
   background: var(--surface-1, #1e2238) !important;
   color: var(--text-primary, #eceefb) !important;
-  border: 1px solid var(--border-medium, rgba(255, 255, 255, 0.15)) !important;
+  border: 1px solid var(--border-medium, #2e3450) !important;
   border-radius: var(--radius-lg, 12px) !important;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6) !important;
 }
@@ -391,6 +391,11 @@ ion-popover::part(content) {
 .alert-head,
 .alert-title,
 .alert-sub-title,
+.alert-lines,
+.alert-button-group {
+  border-color: var(--border-medium, #2e3450) !important;
+}
+
 .alert-radio-label,
 .popover-viewport,
 ion-select-popover ion-item,
@@ -400,6 +405,7 @@ ion-popover ion-label {
   --background: transparent !important;
   --color: var(--text-primary, #eceefb) !important;
   color: var(--text-primary, #eceefb) !important;
+  font-weight: 400 !important;
 }
 
 .alert-button,
@@ -407,9 +413,8 @@ ion-popover ion-label {
 .alert-button .button-inner {
   --color: var(--primary, #6c7fe8) !important;
   color: var(--primary, #6c7fe8) !important;
-  font-weight: 700 !important;
+  font-weight: 500 !important;
   font-size: 14px !important;
-  letter-spacing: 0.5px !important;
 }
 
 .alert-button-group {
