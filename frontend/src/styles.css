@@ -375,3 +375,35 @@ ion-modal::part(content) {
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
   background: var(--surface-1, #1e2238);
 }
+
+/* Ionic Alert & Popover Dark Theme Overrides (Figma Design System) */
+.alert-wrapper,
+.popover-content,
+ion-popover::part(content) {
+  --background: var(--surface-1, #1e2238) !important;
+  background: var(--surface-1, #1e2238) !important;
+  color: var(--text-primary, #eceefb) !important;
+  border: 1px solid var(--border-medium, rgba(255, 255, 255, 0.15)) !important;
+  border-radius: var(--radius-lg, 12px) !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6) !important;
+}
+
+.alert-head,
+.alert-title,
+.alert-sub-title,
+.alert-radio-label,
+.popover-viewport,
+ion-select-popover ion-item,
+ion-select-popover ion-label,
+ion-popover ion-item,
+ion-popover ion-label {
+  --background: transparent !important;
+  --color: var(--text-primary, #eceefb) !important;
+  color: var(--text-primary, #eceefb) !important;
+}
+
+.alert-button,
+.alert-button-inner {
+  color: var(--primary, #6c7fe8) !important;
+  font-weight: 600 !important;
+}

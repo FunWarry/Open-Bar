@@ -34,6 +34,9 @@
         <ion-select
           formControlName="uniteMesure"
           placeholder="Sélectionner une unité"
+          interface="popover"
+          cancelText="Annuler"
+          okText="Valider"
           aria-labelledby="unit-select-label"
           data-testid="ingredient-unit-select">
           @for (unit of unitOptions; track unit.value) {
