@@ -35,6 +35,7 @@ public class Facture {
     private BigDecimal totalVAT = BigDecimal.ZERO;
 
     private BigDecimal pourboire;
+    @Column(name = "total_ttc")
     private BigDecimal totalTTC;
     @Column(name = "date_facture")
     private LocalDateTime dateFacture;
