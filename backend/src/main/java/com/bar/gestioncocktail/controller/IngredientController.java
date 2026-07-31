@@ -79,9 +79,7 @@ public class IngredientController {
     public ResponseEntity<IngredientResponseDTO> updateIngredient(
         @Parameter(description = "Ingredient ID") @PathVariable Long id,
         @Valid @RequestBody IngredientRequestDTO request) {
-        Ingredient ingredient = request.toEntity();
-        ingredient.setId(id);
-        return ResponseEntity.ok(IngredientResponseDTO.from(ingredientService.updateIngredient(ingredient)));
+        return ResponseEntity.ok(IngredientResponseDTO.from(ingredientService.updateIngredient(id, request.toEntity())));
     }
 
     /**

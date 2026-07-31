@@ -84,6 +84,23 @@ class IngredientServiceTest {
     }
 
     @Test
+    void updateIngredient_success() {
+        when(ingredientRepository.findById(1L)).thenReturn(Optional.of(ingredient));
+        when(ingredientRepository.save(any(Ingredient.class))).thenReturn(ingredient);
+
+        Ingredient updateData = new Ingredient();
+        updateData.setNom("Rhum Vieux");
+        updateData.setUniteMesure("cl");
+        updateData.setQuantiteStock(new BigDecimal("200.00"));
+        updateData.setSeuilAlerte(new BigDecimal("40.00"));
+
+        Ingredient result = ingredientService.updateIngredient(1L, updateData);
+
+        assertThat(result.getNom()).isEqualTo("Rhum Vieux");
+        verify(ingredientRepository).save(any(Ingredient.class));
+    }
+
+    @Test
     void updateStock_incrementeStock() {
         BigDecimal nouvelleQuantite = new BigDecimal("150.00");
         when(ingredientRepository.save(any(Ingredient.class))).thenReturn(ingredient);

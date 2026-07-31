@@ -1,5 +1,6 @@
 package com.bar.gestioncocktail.service;
 
+import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.model.Ingredient;
 import com.bar.gestioncocktail.repository.IngredientRepository;
 import org.springframework.stereotype.Service;
@@ -38,9 +39,20 @@ public class IngredientService {
         return ingredientRepository.save(ingredient);
     }
 
-    public Ingredient updateIngredient(Ingredient ingredient) {
-        ingredient.setUpdatedAt(timeService.now());
-        return ingredientRepository.save(ingredient);
+    public Ingredient updateIngredient(Long id, Ingredient updatedData) {
+        Ingredient existing = ingredientRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Ingrédient non trouvé avec l'ID: " + id));
+        existing.setNom(updatedData.getNom());
+        existing.setUniteMesure(updatedData.getUniteMesure());
+        existing.setQuantiteStock(updatedData.getQuantiteStock());
+        existing.setSeuilAlerte(updatedData.getSeuilAlerte());
+        existing.setNumeroLot(updatedData.getNumeroLot());
+        existing.setDatePeremption(updatedData.getDatePeremption());
+        existing.setPrixUnitaire(updatedData.getPrixUnitaire());
+        existing.setFournisseur(updatedData.getFournisseur());
+        existing.setNotes(updatedData.getNotes());
+        existing.setUpdatedAt(timeService.now());
+        return ingredientRepository.save(existing);
     }
 
     public void deleteIngredient(Long id) {

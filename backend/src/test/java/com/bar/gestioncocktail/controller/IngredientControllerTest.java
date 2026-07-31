@@ -17,6 +17,7 @@ import java.math.BigDecimal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -24,10 +25,10 @@ import static org.mockito.Mockito.when;
 class IngredientControllerTest {
 
     @Mock
-    IngredientService ingredientService;
+    private IngredientService ingredientService;
 
     @InjectMocks
-    IngredientController ingredientController;
+    private IngredientController ingredientController;
 
     private Ingredient ingredient;
 
