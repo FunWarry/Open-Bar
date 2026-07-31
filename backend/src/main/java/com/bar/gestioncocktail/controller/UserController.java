@@ -2,7 +2,6 @@ package com.bar.gestioncocktail.controller;
 
 import com.bar.gestioncocktail.dto.UserRequestDTO;
 import com.bar.gestioncocktail.dto.UserResponseDTO;
-import com.bar.gestioncocktail.model.User;
 import com.bar.gestioncocktail.model.UserRole;
 import com.bar.gestioncocktail.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;

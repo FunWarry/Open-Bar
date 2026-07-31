@@ -73,7 +73,7 @@ class UserControllerTest {
     @DisplayName("updateUser - sets ID and updates user")
     void updateUser_success() {
         UserRequestDTO request = new UserRequestDTO("testuser", "secret", "test@example.com", "Doe", "John", Set.of(UserRole.SERVEUR));
-        when(userService.updateUser(any(User.class))).thenReturn(user);
+        when(userService.updateUser(eq(1L), any(User.class))).thenReturn(user);
 
         ResponseEntity<UserResponseDTO> response = userController.updateUser(1L, request);
 
