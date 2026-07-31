@@ -71,7 +71,7 @@ class IngredientControllerTest {
     @DisplayName("updateIngredient - updates ingredient and returns DTO")
     void updateIngredient_success() {
         IngredientRequestDTO request = new IngredientRequestDTO("Rhum", "cl", new BigDecimal("500.00"), new BigDecimal("50.00"), null, null, null, null, null);
-        when(ingredientService.updateIngredient(any(Ingredient.class))).thenReturn(ingredient);
+        when(ingredientService.updateIngredient(eq(1L), any(Ingredient.class))).thenReturn(ingredient);
 
         ResponseEntity<IngredientResponseDTO> response = ingredientController.updateIngredient(1L, request);
 

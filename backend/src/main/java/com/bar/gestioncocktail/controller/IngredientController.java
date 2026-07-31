@@ -2,7 +2,6 @@ package com.bar.gestioncocktail.controller;
 
 import com.bar.gestioncocktail.dto.IngredientRequestDTO;
 import com.bar.gestioncocktail.dto.IngredientResponseDTO;
-import com.bar.gestioncocktail.model.Ingredient;
 import com.bar.gestioncocktail.service.IngredientService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
