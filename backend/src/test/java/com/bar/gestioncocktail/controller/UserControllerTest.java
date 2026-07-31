@@ -57,6 +57,18 @@ class UserControllerTest {
     }
 
     @Test
+    @DisplayName("getAllUsers - retrieves list of all users")
+    void getAllUsers_success() {
+        when(userService.getAllUsers()).thenReturn(java.util.List.of(user));
+
+        ResponseEntity<java.util.List<UserResponseDTO>> response = userController.getAllUsers();
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getBody()).hasSize(1);
+        assertThat(response.getBody().get(0).username()).isEqualTo("testuser");
+    }
+
+    @Test
     @DisplayName("updateUser - sets ID and updates user")
     void updateUser_success() {
         UserRequestDTO request = new UserRequestDTO("testuser", "secret", "test@example.com", "Doe", "John", Set.of(UserRole.SERVEUR));

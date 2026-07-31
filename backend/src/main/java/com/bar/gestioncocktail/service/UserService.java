@@ -82,5 +82,13 @@ public class UserService implements UserDetailsService {
         userRepository.save(user);
     }
 
-    
+    /**
+     * Retrieves all user accounts.
+     *
+     * @return List of all users
+     */
+    @Transactional(readOnly = true)
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
 }

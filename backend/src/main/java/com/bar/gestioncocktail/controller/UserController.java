@@ -9,7 +9,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -26,13 +25,27 @@ public class UserController {
     private final UserService userService;
 
     /**
-     * Constructeur avec injection du service utilisateur.
+     * Constructs the controller with the user service dependency.
      *
-     * @param userService Service de gestion des comptes
+     * @param userService Service for user account management
      */
-    @Autowired
     public UserController(UserService userService) {
         this.userService = userService;
+    }
+
+    /**
+     * Retrieves all user accounts.
+     *
+     * @return List of all user DTOs
+     */
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Get all users (ADMIN)", description = "Retrieves all registered user accounts.")
+    @ApiResponse(responseCode = "200", description = "List of users retrieved")
+    public ResponseEntity<List<UserResponseDTO>> getAllUsers() {
+        return ResponseEntity.ok(userService.getAllUsers().stream()
+            .map(UserResponseDTO::from)
+            .toList());
     }
 
     /**
