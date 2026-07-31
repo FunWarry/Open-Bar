@@ -41,10 +41,15 @@ CREATE TABLE cocktails (
     description TEXT,
     prix DECIMAL(10,2) NOT NULL,
     categorie VARCHAR(50) NOT NULL,
+    vat_rate VARCHAR(20) DEFAULT 'TWENTY',
     disponible BOOLEAN DEFAULT true,
     saisonnier BOOLEAN DEFAULT false,
     date_debut_saison TIMESTAMP,
     date_fin_saison TIMESTAMP,
+    mois_debut INT,
+    mois_fin INT,
+    instructions TEXT,
+    image_url VARCHAR(500),
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP NOT NULL
 );
@@ -213,8 +218,12 @@ CREATE TABLE IF NOT EXISTS establishment_config (
 INSERT INTO establishment_config (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
 ALTER TABLE establishment_config ADD COLUMN IF NOT EXISTS time_zone VARCHAR(50) DEFAULT 'SYSTEM';
 
--- TVA multi-taux sur cocktails (#130)
+-- TVA multi-taux et saisonnalité sur cocktails (#130)
 ALTER TABLE cocktails ADD COLUMN IF NOT EXISTS vat_rate VARCHAR(20) DEFAULT 'TWENTY';
+ALTER TABLE cocktails ADD COLUMN IF NOT EXISTS mois_debut INT;
+ALTER TABLE cocktails ADD COLUMN IF NOT EXISTS mois_fin INT;
+ALTER TABLE cocktails ADD COLUMN IF NOT EXISTS instructions TEXT;
+ALTER TABLE cocktails ADD COLUMN IF NOT EXISTS image_url VARCHAR(500);
 
 -- Immutabilité, intégrité & archivage des factures (#131, #132)
 ALTER TABLE factures ADD COLUMN IF NOT EXISTS total_ht DECIMAL(10,2) DEFAULT 0;
