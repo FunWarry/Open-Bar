@@ -66,6 +66,18 @@ class CocktailControllerTest {
     }
 
     @Test
+    @DisplayName("getAllCocktails - retrieves list of all cocktails")
+    void getAllCocktails_success() {
+        when(cocktailService.getAllCocktails()).thenReturn(java.util.List.of(cocktail));
+
+        ResponseEntity<java.util.List<CocktailResponseDTO>> response = cocktailController.getAllCocktails();
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getBody()).hasSize(1);
+        assertThat(response.getBody().get(0).nom()).isEqualTo("Mojito");
+    }
+
+    @Test
     @DisplayName("deleteCocktail - deletes cocktail by id")
     void deleteCocktail_success() {
         ResponseEntity<Void> response = cocktailController.deleteCocktail(1L);

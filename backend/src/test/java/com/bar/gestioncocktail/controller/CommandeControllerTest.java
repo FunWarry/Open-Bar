@@ -72,6 +72,17 @@ class CommandeControllerTest {
     }
 
     @Test
+    @DisplayName("getAllCommandes - retrieves list of all orders")
+    void getAllCommandes_success() {
+        when(commandeService.getAllCommandes()).thenReturn(java.util.List.of(commande));
+
+        ResponseEntity<java.util.List<CommandeResponseDTO>> response = commandeController.getAllCommandes();
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getBody()).hasSize(1);
+    }
+
+    @Test
     @DisplayName("ajouterItem - adds item to order and returns DTO")
     void ajouterItem_success() {
         CommandeItemRequestDTO request = new CommandeItemRequestDTO(1L, null, 2, new BigDecimal("8.50"), null, false);
