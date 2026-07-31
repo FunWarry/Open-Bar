@@ -9,9 +9,7 @@ import {
   IonTitle,
   IonButtons,
   IonButton,
-  IonIcon,
-  IonSelect,
-  IonSelectOption
+  IonIcon
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -27,7 +25,7 @@ import { InputFieldComponent } from '../../../core/components/ui/input-field/inp
 
 /**
  * Form component for creating or editing a TableBar entity in OpenBar.
- * Conforms to Figma Design System with InputFieldComponent.
+ * Supports custom dynamic Zone management for Managers and Admins.
  */
 @Component({
   selector: 'app-table-form',
@@ -42,8 +40,6 @@ import { InputFieldComponent } from '../../../core/components/ui/input-field/inp
     IonButtons,
     IonButton,
     IonIcon,
-    IonSelect,
-    IonSelectOption,
     InputFieldComponent,
     ReactiveFormsModule
   ]
@@ -52,6 +48,7 @@ export class TableFormComponent implements OnInit {
   tableForm: FormGroup;
   isEditMode = false;
   tableId: number | null = null;
+  existingZones: string[] = ['Terrasse', 'Salle', 'Bar', 'Étage', 'VIP'];
 
   constructor(
     private readonly fb: FormBuilder,
@@ -77,6 +74,7 @@ export class TableFormComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.loadZones();
     const id = this.route.snapshot.params['id'];
     if (id) {
       this.isEditMode = true;
@@ -98,6 +96,23 @@ export class TableFormComponent implements OnInit {
         }
       });
     }
+  }
+
+  loadZones(): void {
+    this.tableService.getZones().subscribe({
+      next: (zones) => {
+        if (zones && zones.length > 0) {
+          const combined = new Set([...this.existingZones, ...zones]);
+          this.existingZones = Array.from(combined);
+        }
+      },
+      error: () => {}
+    });
+  }
+
+  selectZone(z: string): void {
+    this.tableForm.patchValue({ zone: z });
+    this.tableForm.get('zone')?.markAsTouched();
   }
 
   onSubmit(): void {

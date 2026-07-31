@@ -7,7 +7,6 @@ import com.bar.gestioncocktail.model.CommandeStatut;
 import com.bar.gestioncocktail.model.Facture;
 import com.bar.gestioncocktail.model.Ingredient;
 import com.bar.gestioncocktail.model.TableEntity;
-import com.bar.gestioncocktail.model.TableZone;
 import com.bar.gestioncocktail.model.User;
 import com.bar.gestioncocktail.model.UserRole;
 import org.junit.jupiter.api.DisplayName;
@@ -87,7 +86,7 @@ class EntityToDtoMappersTest {
         table.setId(3L);
         table.setNumero(15);
         table.setCapacite(4);
-        table.setZone(TableZone.TERASSE);
+        table.setZone("TERASSE");
         table.setOccupee(true);
 
         TableResponseDTO dto = TableResponseDTO.from(table);

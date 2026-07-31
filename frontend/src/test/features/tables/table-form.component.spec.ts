@@ -18,10 +18,11 @@ describe('TableFormComponent', () => {
   beforeEach(async () => {
     routerSpy = jasmine.createSpyObj('Router', ['navigate']);
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
-    tableServiceSpy = jasmine.createSpyObj('TableService', ['getById', 'create', 'update']);
+    tableServiceSpy = jasmine.createSpyObj('TableService', ['getById', 'create', 'update', 'getZones']);
     tableServiceSpy.create.and.returnValue(of({} as any));
     tableServiceSpy.update.and.returnValue(of({} as any));
-    tableServiceSpy.getById.and.returnValue(of({ id: 5, numero: 5, zone: 'INTERIEUR' as const, capacite: 4, occupee: false, createdAt: '', updatedAt: '' }));
+    tableServiceSpy.getZones.and.returnValue(of(['Terrasse', 'Salle', 'Bar']));
+    tableServiceSpy.getById.and.returnValue(of({ id: 5, numero: 5, zone: 'INTERIEUR', capacite: 4, occupee: false, createdAt: '', updatedAt: '' }));
 
     toastCtrlSpy.create.and.returnValue(Promise.resolve(mockToast as any));
 

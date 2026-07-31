@@ -44,4 +44,8 @@ export class TableService {
   getOccupees(): Observable<TableBar[]> {
     return this.http.get<TableBar[]>(`${this.api}/occupees`);
   }
+
+  getZones(): Observable<string[]> {
+    return this.http.get<string[]>(`${this.api}/zones`);
+  }
 }

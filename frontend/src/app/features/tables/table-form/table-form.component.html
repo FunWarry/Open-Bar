@@ -28,26 +28,31 @@
       testId="table-number-input">
     </app-input-field>
 
-    <div class="select-field-group">
-      <span class="field-label" id="zone-select-label">Zone <span class="required-star">*</span></span>
-      <div class="select-input-wrapper">
-        <ion-icon name="location-outline" class="select-icon"></ion-icon>
-        <ion-select
-          formControlName="zone"
-          placeholder="Sélectionner une zone"
-          cancelText="Annuler"
-          okText="Valider"
-          [interfaceOptions]="{ header: 'Zone' }"
-          aria-labelledby="zone-select-label"
-          data-testid="table-zone-select">
-          <ion-select-option value="TERRASSE">Terrasse</ion-select-option>
-          <ion-select-option value="SALLE">Salle</ion-select-option>
-          <ion-select-option value="BAR">Bar</ion-select-option>
-        </ion-select>
+    <div class="zone-field-container">
+      <app-input-field
+        formControlName="zone"
+        label="Zone"
+        placeholder="ex: Terrasse, Salle, Bar, Mezzanine..."
+        icon="location-outline"
+        [required]="true"
+        [errorMessage]="tableForm.get('zone')?.hasError('required') && tableForm.get('zone')?.touched ? 'La zone est requise' : ''"
+        testId="table-zone-input">
+      </app-input-field>
+
+      <div class="zone-suggestions">
+        <span class="suggestions-label">Zones fréquentes :</span>
+        <div class="zone-chips">
+          @for (z of existingZones; track z) {
+            <button
+              type="button"
+              class="zone-chip"
+              [class.active]="tableForm.get('zone')?.value === z"
+              (click)="selectZone(z)">
+              {{ z }}
+            </button>
+          }
+        </div>
       </div>
-      @if (tableForm.get('zone')?.hasError('required') && tableForm.get('zone')?.touched) {
-        <p class="error-hint">La zone est requise</p>
-      }
     </div>
 
     <app-input-field

@@ -79,7 +79,7 @@ class ResponseDTOTest {
         table.setId(4L);
         table.setNumero(5);
         table.setCapacite(4);
-        table.setZone(TableZone.TERASSE);
+        table.setZone("TERASSE");
         table.setOccupee(false);
 
         TableResponseDTO dto = TableResponseDTO.from(table);

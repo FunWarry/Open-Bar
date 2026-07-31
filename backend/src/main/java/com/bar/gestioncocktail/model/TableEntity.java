@@ -24,10 +24,10 @@ public class TableEntity {
     @Column(nullable = false)
     private Integer capacite;
 
-    @NotNull(message = "La zone est obligatoire")
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private TableZone zone;
+    @jakarta.validation.constraints.NotBlank(message = "La zone est obligatoire")
+    @jakarta.validation.constraints.Size(max = 50, message = "La zone ne peut pas dépasser 50 caractères")
+    @Column(nullable = false, length = 50)
+    private String zone;
 
     @Column(nullable = false)
     private boolean occupee = false;
@@ -95,11 +95,11 @@ public class TableEntity {
         this.capacite = capacite;
     }
 
-    public TableZone getZone() {
+    public String getZone() {
         return zone;
     }
 
-    public void setZone(TableZone zone) {
+    public void setZone(String zone) {
         this.zone = zone;
     }
 

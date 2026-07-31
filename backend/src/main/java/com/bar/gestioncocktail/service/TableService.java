@@ -4,7 +4,6 @@ import com.bar.gestioncocktail.dto.TablePositionDTO;
 import com.bar.gestioncocktail.exception.BusinessException;
 import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.model.TableEntity;
-import com.bar.gestioncocktail.model.TableZone;
 import com.bar.gestioncocktail.repository.TableRepository;
 import com.bar.gestioncocktail.model.Commande;
 import com.bar.gestioncocktail.model.CommandeStatut;
@@ -41,8 +40,12 @@ public class TableService {
         return tableRepository.findById(id);
     }
 
-    public List<TableEntity> getTablesByZone(TableZone zone) {
+    public List<TableEntity> getTablesByZone(String zone) {
         return tableRepository.findByZone(zone);
+    }
+
+    public List<String> getAllZones() {
+        return tableRepository.findDistinctZones();
     }
 
     public List<TableEntity> getTablesByOccupee(boolean occupee) {

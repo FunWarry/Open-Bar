@@ -1,14 +1,13 @@
 package com.bar.gestioncocktail.dto;
 
 import com.bar.gestioncocktail.model.TableEntity;
-import com.bar.gestioncocktail.model.TableZone;
 import java.time.LocalDateTime;
 
 public record TableResponseDTO(
     Long id,
     Integer numero,
     Integer capacite,
-    TableZone zone,
+    String zone,
     boolean occupee,
     Long serveurId,
     LocalDateTime dateOccupation,

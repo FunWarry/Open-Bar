@@ -3,7 +3,6 @@ package com.bar.gestioncocktail.service;
 import com.bar.gestioncocktail.model.Commande;
 import com.bar.gestioncocktail.model.CommandeStatut;
 import com.bar.gestioncocktail.model.TableEntity;
-import com.bar.gestioncocktail.model.TableZone;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,7 +41,7 @@ class NotificationServiceTest {
         table.setId(1L);
         table.setNumero(3);
         table.setCapacite(4);
-        table.setZone(TableZone.INTERIEUR);
+        table.setZone("INTERIEUR");
     }
 
     // ─── notifierNouvelleCommande ─────────────────────────────────────────────

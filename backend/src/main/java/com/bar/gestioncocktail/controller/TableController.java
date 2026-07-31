@@ -4,7 +4,6 @@ import com.bar.gestioncocktail.dto.PlanSalleDTO;
 import com.bar.gestioncocktail.dto.TablePositionDTO;
 import com.bar.gestioncocktail.dto.TableRequestDTO;
 import com.bar.gestioncocktail.dto.TableResponseDTO;
-import com.bar.gestioncocktail.model.TableZone;
 import com.bar.gestioncocktail.service.TableService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -74,11 +73,19 @@ public class TableController {
      * @param zone La zone ciblée
      * @return Liste des tables de la zone
      */
+    @GetMapping("/zones")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Lister toutes les zones configurées dans le bar")
+    @ApiResponse(responseCode = "200", description = "Liste des noms de zones")
+    public List<String> getAllZones() {
+        return tableService.getAllZones();
+    }
+
     @GetMapping("/zone/{zone}")
     @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "Lister les tables par zone (INTERIEUR, TERRASSE, ETAGE)")
+    @Operation(summary = "Lister les tables par zone")
     @ApiResponse(responseCode = "200", description = "Tables récupérées")
-    public List<TableResponseDTO> getTablesByZone(@Parameter(description = "Zone géographique") @PathVariable TableZone zone) {
+    public List<TableResponseDTO> getTablesByZone(@Parameter(description = "Zone géographique") @PathVariable String zone) {
         return tableService.getTablesByZone(zone).stream().map(TableResponseDTO::from).toList();
     }
 

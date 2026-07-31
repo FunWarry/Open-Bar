@@ -2,7 +2,6 @@ package com.bar.gestioncocktail.service;
 
 import com.bar.gestioncocktail.exception.BusinessException;
 import com.bar.gestioncocktail.model.TableEntity;
-import com.bar.gestioncocktail.model.TableZone;
 import com.bar.gestioncocktail.model.Commande;
 import com.bar.gestioncocktail.model.CommandeStatut;
 import com.bar.gestioncocktail.repository.CommandeRepository;
@@ -48,7 +47,7 @@ class TableServiceTest {
         table.setId(1L);
         table.setNumero(5);
         table.setCapacite(4);
-        table.setZone(TableZone.INTERIEUR);
+        table.setZone("INTERIEUR");
         table.setOccupee(false);
     }
 
@@ -71,7 +70,7 @@ class TableServiceTest {
         TableEntity nouvelle = new TableEntity();
         nouvelle.setNumero(10);
         nouvelle.setCapacite(6);
-        nouvelle.setZone(TableZone.TERASSE);
+        nouvelle.setZone("TERASSE");
 
         when(tableRepository.save(any(TableEntity.class))).thenReturn(nouvelle);
 

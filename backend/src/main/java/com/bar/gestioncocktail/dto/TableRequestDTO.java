@@ -1,7 +1,6 @@
 package com.bar.gestioncocktail.dto;
 
 import com.bar.gestioncocktail.model.TableEntity;
-import com.bar.gestioncocktail.model.TableZone;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
@@ -25,8 +24,9 @@ public record TableRequestDTO(
     @Min(value = 1, message = "La capacité doit être d'au moins 1 personne")
     Integer capacite,
 
-    @NotNull(message = "La zone est obligatoire")
-    TableZone zone,
+    @jakarta.validation.constraints.NotBlank(message = "La zone est obligatoire")
+    @jakarta.validation.constraints.Size(max = 50, message = "La zone ne peut pas dépasser 50 caractères")
+    String zone,
 
     Double planX,
     Double planY,
