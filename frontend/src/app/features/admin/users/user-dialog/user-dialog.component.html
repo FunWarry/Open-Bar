@@ -55,8 +55,8 @@
       testId="input-confirm-password">
     </app-input-field>
 
-    <div class="roles-field-group">
-      <label class="field-label">Rôles attribués <span class="required-star">*</span></label>
+    <div class="roles-field-group" role="group" aria-labelledby="roles-group-label">
+      <span id="roles-group-label" class="field-label">Rôles attribués <span class="required-star">*</span></span>
       <div class="roles-chips-grid">
         @for (roleObj of availableRoles; track roleObj.value) {
           <button

@@ -24,7 +24,6 @@ import {
   personAdd
 } from 'ionicons/icons';
 import { InputFieldComponent } from '../../../../core/components/ui/input-field/input-field.component';
-import { NgIf, NgForOf } from '@angular/common';
 
 @Component({
   selector: 'app-user-dialog',
@@ -40,9 +39,7 @@ import { NgIf, NgForOf } from '@angular/common';
     IonContent,
     IonIcon,
     InputFieldComponent,
-    ReactiveFormsModule,
-    NgIf,
-    NgForOf
+    ReactiveFormsModule
   ]
 })
 export class UserDialogComponent implements OnInit {
@@ -81,7 +78,7 @@ export class UserDialogComponent implements OnInit {
         confirmPassword: [''],
         roles: [[], [Validators.required, Validators.minLength(1)]]
       },
-      { validator: this.passwordMatchValidator }
+      { validators: [this.passwordMatchValidator] }
     );
   }
 
