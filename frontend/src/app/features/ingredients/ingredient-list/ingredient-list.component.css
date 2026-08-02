@@ -1,17 +1,204 @@
-.ingredient-list-container {
-  padding: var(--space-5, 20px);
+.stock-container {
+  padding: 12px;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
-ion-card {
-  margin-bottom: var(--space-5, 20px);
-  --background: var(--surface-1);
-  background: var(--surface-1);
+.stock-header-card {
+  --background: var(--surface-1, #1e2438);
+  background: var(--surface-1, #1e2438);
   border: 1px solid var(--border-medium, #2e3450);
+  border-radius: 12px;
+  margin-bottom: 16px;
 }
 
-ion-card-header {
+.header-main-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--space-4, 16px);
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.title-with-badge {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.live-stream-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 20px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.pulse-icon {
+  font-size: 1rem;
+  animation: pulse-glow 1.5s infinite alternate;
+}
+
+@keyframes pulse-glow {
+  0% { opacity: 0.4; }
+  100% { opacity: 1; }
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.view-mode-segment {
+  --background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  width: auto;
+}
+
+.filter-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 0;
+}
+
+.stock-searchbar {
+  --background: var(--surface-2, #262d45);
+  --color: #ffffff;
+  --placeholder-color: #8f9bba;
+  --icon-color: #8f9bba;
+  --border-radius: 8px;
+  padding: 0;
+}
+
+.category-segment {
+  --background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+}
+
+.stock-grid {
+  padding: 0;
+}
+
+.stock-card {
+  --background: var(--surface-1, #1e2438);
+  background: var(--surface-1, #1e2438);
+  border: 1px solid var(--border-medium, #2e3450);
+  border-radius: 12px;
+  margin: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.stock-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-primary, #6366f1);
+}
+
+.stock-card.in-alert {
+  border-color: rgba(239, 68, 68, 0.5);
+  background: linear-gradient(180deg, rgba(239, 68, 68, 0.05) 0%, var(--surface-1, #1e2438) 100%);
+}
+
+.card-header-compact {
+  padding: 12px 16px 8px 16px;
+}
+
+.card-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.ingredient-name {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.gauge-section {
+  margin: 12px 0;
+}
+
+.gauge-labels {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+  font-size: 0.825rem;
+}
+
+.stock-qty-text {
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.threshold-text {
+  color: var(--text-muted, #8f9bba);
+}
+
+.stock-progress-bar {
+  height: 8px;
+  border-radius: 4px;
+}
+
+.quick-adjust-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  padding: 4px 8px;
+  margin-top: 12px;
+}
+
+.quick-adjust-label {
+  font-size: 0.75rem;
+  color: var(--text-muted, #8f9bba);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.card-footer-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  margin-top: 12px;
+  padding-top: 4px;
+}
+
+.stock-list-card {
+  --background: var(--surface-1, #1e2438);
+  background: var(--surface-1, #1e2438);
+  border: 1px solid var(--border-medium, #2e3450);
+  border-radius: 12px;
+}
+
+.stock-list-item {
+  --background: transparent;
+  --border-color: rgba(255, 255, 255, 0.05);
+}
+
+.list-quick-adjust {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0 8px;
+}
+
+.loading-container, .empty-stock-message {
+  text-align: center;
+  padding: 40px;
 }
