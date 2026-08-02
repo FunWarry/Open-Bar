@@ -91,7 +91,8 @@ tables ──< commandes ──< commande_items ──< cocktails
 cocktails ──< cocktail_ingredients ──< ingredients
 tables ──< factures ──< facture_items
 tables ──< table_sessions              ← QR code client (token temporaire)
-zones ──< tables                       ← Polygones libres JSON plan de salle
+etages                                 ← Niveaux du bar (RDC, ETAGE_1…) — seed @PostConstruct
+zones ──< tables                       ← Polygones libres JSON plan de salle (étage FK via code)
 users ──< audit_logs
 app_settings                           ← Singleton personnalisation admin
 ```

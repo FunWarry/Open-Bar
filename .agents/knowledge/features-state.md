@@ -1,6 +1,6 @@
 # OpenBar — État des Features & Roadmap
 
-> Dernière mise à jour : 31 juillet 2026 — PR #219 : Routage & Intégration Gestion Ingrédients (/ingredients) + Correction ion-refresher & Thèmes Lists
+> Dernière mise à jour : 2 août 2026 — PR #223 : Gestion directe des étages (création, édition, suppression) dans ZoneManagerComponent
 
 ## Tableau des Features
 
@@ -50,6 +50,7 @@
 | Vue Client QR Code (passage commande + suivi STOMP) | ✅ | ✅ | ✅ | Vue Client mobile complète (`/client/commande`, `/client/suivi/:id`) |
 | Fuseau horaire paramétrable (Etablissement / TimeService) | ✅ | ✅ | ✅ | TimeZone configurable par l'admin + fallback Système |
 | Journal d'audit système (/api/audit-logs) (#206) | ✅ | ✅ | ✅ | Component & Service Admin |
+| Gestion directe des Étages (#222/#223) | ✅ | ✅ | ✅ | EtageEntity, EtageController, EtageService, EtageRepository, EtageRequestDTO/ResponseDTO, etage.service.ts, ZoneManagerComponent onglet Étages (CRUD) |
 | TopBar globale conforme Figma (#208) | — | ✅ | ✅ | NavbarComponent |
 | NavBar / Sidebar 64-220px globale Figma (#209) | — | ✅ | ✅ | SidebarComponent |
 | Refacto Design System & Composants Atomiques Figma (#210) | — | ✅ | ✅ | Atoms UI Figma |
@@ -71,6 +72,7 @@
 
 | PR / Issue | Description |
 |------------|-------------|
+| #223 (#222) | Gestion directe des Étages : nouveau modèle `EtageEntity` (table `etages`), `EtageController` CRUD REST (`GET/POST/PUT /api/etages`, `DELETE /api/etages/{id}`), `EtageService` avec seed `@PostConstruct` (5 étages par défaut), validation code unique, cascade code vers zones associées. Frontend : `etage.service.ts`, onglet Étages dans `ZoneManagerComponent` (création/édition/suppression), i18n fr/en. Tests : `EtageServiceTest` (12 cas), `EtageControllerTest` (5 cas), `etage.service.spec.ts`, `zone-manager.component.spec.ts` (16 cas). SonarCloud couverture > 80%. |
 | #219 | Routage et intégration de la gestion des ingrédients (`/ingredients`, `/ingredients/new`, `/ingredients/:id`, `/ingredients/:id/edit`) avec `AuthGuard` et `RoleGuard(['ADMIN', 'MANAGER', 'BARMAN'])`. Endpoint `GET /api/ingredients` backend + `getAllIngredients()` service. Correction du warning `<ion-refresher> must be used inside ion-content` sur toutes les vues listes (`ingredient-list`, `cocktail-list`, `commande-list`, `table-list`). |
 | #204 (#203) | Service UserService & Raccordement CRUD Utilisateurs Admin : Service REST `/api/users`, UserListComponent (liste, création, modification, suppression), spinners, toasts i18n, attributs data-testid et tests unitaires Jasmine/Karma (858/858 OK) |
 | #203 | Resolution 403 / CSRF SPA Angular & Sonar Security Compliance : PassthroughCsrfTokenRepository pour API REST JWT stateless (0 avertissement Sonar java:S4502 / java:S3330), enregistrement global Ionicons, SVG favicon et i18n ERRORS.FORBIDDEN |
