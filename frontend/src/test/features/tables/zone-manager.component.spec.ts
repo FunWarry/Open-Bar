@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ModalController, ToastController } from '@ionic/angular/standalone';
 import { IonicModule } from '@ionic/angular';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { ZoneManagerComponent } from '../../../app/features/tables/zone-manager/zone-manager.component';
 import { ZoneService, ZoneBar } from '../../../app/core/services/zone.service';
 import { EtageService, EtageBar } from '../../../app/core/services/etage.service';
@@ -88,6 +88,17 @@ describe('ZoneManagerComponent', () => {
     expect(zoneServiceSpy.create).toHaveBeenCalledWith({ nom: 'Salle Intérieure', etage: 'RDC' });
   });
 
+  it('should open and edit existing zone', () => {
+    component.onEdit(mockZones[0]);
+    expect(component.editingZoneId).toBe(1);
+    expect(component.zoneForm.value.nom).toBe('Terrasse Principale');
+
+    component.zoneForm.setValue({ nom: 'Terrasse Modifiée', etage: 'TERRASSE' });
+    component.onSave();
+
+    expect(zoneServiceSpy.update).toHaveBeenCalledWith(1, { nom: 'Terrasse Modifiée', etage: 'TERRASSE' });
+  });
+
   it('should open and save new etage', () => {
     component.toggleAddEtageForm();
     expect(component.showAddEtageForm).toBeTrue();
@@ -96,6 +107,33 @@ describe('ZoneManagerComponent', () => {
     component.onSaveEtage();
 
     expect(etageServiceSpy.create).toHaveBeenCalledWith({ nom: 'Rooftop', code: 'ROOFTOP', ordre: 3 });
+  });
+
+  it('should open and edit existing etage', () => {
+    component.onEditEtage(mockEtages[0]);
+    expect(component.editingEtageId).toBe(1);
+    expect(component.etageForm.value.code).toBe('RDC');
+
+    component.etageForm.setValue({ nom: 'Rez-de-chaussée Modifié', code: 'RDC', ordre: 1 });
+    component.onSaveEtage();
+
+    expect(etageServiceSpy.update).toHaveBeenCalledWith(1, { nom: 'Rez-de-chaussée Modifié', code: 'RDC', ordre: 1 });
+  });
+
+  it('should handle error when saving zone fails', () => {
+    zoneServiceSpy.create.and.returnValue(throwError(() => new Error('Creation failed')));
+    component.toggleAddForm();
+    component.zoneForm.setValue({ nom: 'Fail Zone', etage: 'RDC' });
+    component.onSave();
+
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
+  });
+
+  it('should handle error when deleting etage fails', () => {
+    etageServiceSpy.delete.and.returnValue(throwError(() => new Error('Delete failed')));
+    component.onDeleteEtage(mockEtages[0]);
+
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
   });
 
   it('should delete a zone', () => {
