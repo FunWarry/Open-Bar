@@ -3,7 +3,7 @@ import { ComponentFixture } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { Router } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
-import { ToastController } from '@ionic/angular/standalone';
+import { ToastController, ModalController } from '@ionic/angular/standalone';
 import { Store } from '@ngrx/store';
 import { of, throwError } from 'rxjs';
 import { TableListComponent } from '../../../app/features/tables/table-list/table-list.component';
@@ -20,6 +20,7 @@ describe('TableListComponent', () => {
   let fixture: ComponentFixture<TableListComponent>;
   let serviceSpy: jasmine.SpyObj<TableService>;
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
+  let modalCtrlSpy: jasmine.SpyObj<ModalController>;
   let storeSpy: jasmine.SpyObj<Store>;
   let router: Router;
 
@@ -32,6 +33,8 @@ describe('TableListComponent', () => {
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
     toastCtrlSpy.create.and.returnValue(Promise.resolve(mockToast as any));
 
+    modalCtrlSpy = jasmine.createSpyObj('ModalController', ['create', 'dismiss']);
+
     storeSpy = jasmine.createSpyObj('Store', ['select', 'dispatch']);
     storeSpy.select.and.returnValue(of(false));
 
@@ -41,6 +44,7 @@ describe('TableListComponent', () => {
         { provide: Store, useValue: storeSpy },
         { provide: TableService, useValue: serviceSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
+        { provide: ModalController, useValue: modalCtrlSpy },
       ],
     }).compileComponents();
 
