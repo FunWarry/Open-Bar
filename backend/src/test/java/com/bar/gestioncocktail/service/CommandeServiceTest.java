@@ -89,7 +89,7 @@ class CommandeServiceTest {
     }
 
     @Test
-    void changerStatut_pret_setsDateLivraison() {
+    void changerStatut_livree_setsDateLivraison() {
         commande.setStatut(CommandeStatut.PRET);
         when(commandeRepository.findById(1L)).thenReturn(Optional.of(commande));
 

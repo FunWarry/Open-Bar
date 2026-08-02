@@ -215,7 +215,7 @@ public class FactureService {
      */
     public List<SplitResultDTO> splitEgal(Long factureId, int nombreConvives) {
         if (nombreConvives < 2 || nombreConvives > 20) {
-            throw new IllegalArgumentException("Le nombre de convives doit être compris entre 2 et 20");
+            throw new BusinessException("Le nombre de convives doit être compris entre 2 et 20");
         }
         Facture facture = factureRepository.findById(factureId)
                 .orElseThrow(() -> new ResourceNotFoundException(NOT_FOUND_PREFIX + factureId));
@@ -264,7 +264,7 @@ public class FactureService {
             for (Long itemId : part.itemIds()) {
                 FactureItem item = itemsIndex.get(itemId);
                 if (item == null) {
-                    throw new IllegalArgumentException(
+                    throw new BusinessException(
                             "L'item " + itemId + " n'appartient pas à la facture " + factureId);
                 }
                 splitItems.add(new SplitResultDTO.SplitItemDTO(
@@ -631,7 +631,7 @@ public class FactureService {
             }
             return hexString.toString();
         } catch (Exception e) {
-            throw new RuntimeException("Erreur de calcul du hash SHA-256", e);
+            throw new IllegalStateException("Erreur de calcul du hash SHA-256", e);
         }
     }
 }

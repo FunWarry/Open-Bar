@@ -1,6 +1,7 @@
 package com.bar.gestioncocktail.service;
 
 import com.bar.gestioncocktail.exception.ResourceNotFoundException;
+import com.bar.gestioncocktail.exception.BusinessException;
 import com.bar.gestioncocktail.dto.MergeFacturesRequestDTO;
 import com.bar.gestioncocktail.dto.SplitAdditionRequest;
 import com.bar.gestioncocktail.dto.SplitPartRequest;
@@ -201,16 +202,16 @@ class FactureServiceTest {
     }
 
     @Test
-    void splitEgal_unConvive_throwsIllegalArgument() {
+    void splitEgal_unConvive_throwsBusinessException() {
         assertThatThrownBy(() -> factureService.splitEgal(10L, 1))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("convives");
     }
 
     @Test
-    void splitEgal_vingtEtUnConvives_throwsIllegalArgument() {
+    void splitEgal_vingtEtUnConvives_throwsBusinessException() {
         assertThatThrownBy(() -> factureService.splitEgal(10L, 21))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("convives");
     }
 
@@ -277,7 +278,7 @@ class FactureServiceTest {
     }
 
     @Test
-    void splitParSelection_itemIdInconnu_throwsIllegalArgument() {
+    void splitParSelection_itemIdInconnu_throwsBusinessException() {
         given(factureRepository.findById(10L)).willReturn(Optional.of(facture));
 
         SplitAdditionRequest request = new SplitAdditionRequest(List.of(
@@ -285,7 +286,7 @@ class FactureServiceTest {
         ));
 
         assertThatThrownBy(() -> factureService.splitParSelection(10L, request))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("999")
                 .hasMessageContaining("10");
     }

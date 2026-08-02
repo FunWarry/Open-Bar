@@ -48,7 +48,7 @@ public class JwtTokenProvider {
         if (authentication != null && authentication.getName() != null) {
             return generateToken(authentication.getName());
         }
-        throw new IllegalArgumentException("Authentication principal cannot be null");
+        throw new IllegalStateException("Authentication principal cannot be null");
     }
 
     /**

@@ -75,9 +75,9 @@
 - **Ticket #L** : `feat: Vue Serveur Mobile — Bottom Navigation & MobileTableCard [SERVEUR]` (Figma 632:2240)
 
 ### 🟢 Priorité BASSE
-- **Ticket #M** : `fix: Bug dateLivraison set sur PRET au lieu de LIVREE [BACKEND]`
-- **Ticket #N** : `refactor: Supprimer allow-circular-references [BACKEND]`
-- **Ticket #O** : `fix: Exceptions génériques RuntimeException → exceptions métier [BACKEND]`
+- **Ticket #M** : `fix: Bug dateLivraison set sur PRET au lieu de LIVREE [BACKEND]` — ✅ Résolu
+- **Ticket #N** : `refactor: Supprimer allow-circular-references [BACKEND]` — ✅ Résolu
+- **Ticket #O** : `fix: Exceptions génériques RuntimeException → exceptions métier [BACKEND]` — ✅ Résolu
 - **Ticket #P** : `feat: Facturation — Format ticket 58mm [FACTURATION]` (Figma 640:1220)
 - **Ticket #Q** : `fix: Barman — Panel Stock — Alignement Figma complet [BARMAN]` (Figma 488:3340)
 - **Ticket #R** : `fix: Profil — Données formulaire non pré-remplies depuis le store NgRx [AUTH]`
@@ -86,14 +86,16 @@
 
 | # | Description | Statut |
 |---|-------------|--------|
-| 1 | `allow-circular-references: true` Spring | ⚠️ À corriger |
-| 2 | Bug `dateLivraison` set sur `PRET` au lieu de `LIVREE` | ⚠️ Bug connu |
-| 3 | 13 CVEs devDeps Angular (esbuild, babel, vite) | ⚠️ Angular 22 requis |
+| 1 | `allow-circular-references: true` Spring | ✅ Résolu (Audit configuration saine) |
+| 2 | Bug `dateLivraison` set sur `PRET` au lieu de `LIVREE` | ✅ Résolu (Vérification & tests unifiés) |
+| 3 | Exceptions génériques RuntimeException → BusinessException | ✅ Résolu (FactureService, PdfService, JwtTokenProvider) |
+| 4 | 13 CVEs devDeps Angular (esbuild, babel, vite) | ⚠️ Angular 22 requis |
 
 ## Historique Résolutions
 
 | PR / Issue | Description |
 |------------|-------------|
+| Refacto Tech | Résolution intégrale de la dette technique backend : Ticket #M (nommage & tests dateLivraison sur LIVREE), Ticket #N (audit circular references Spring saine), Ticket #O (refactoring des exceptions génériques vers BusinessException 400 dans FactureService, PdfService, JwtTokenProvider). |
 | #224 | Alignement Figma TableListComponent & TableFormComponent : Sélecteur dynamique de zones branché sur `ZoneService`, i18n FR/EN complet (`ZONE_REQUIRED`, `SELECT_ZONE`, etc.), cartes de tables restylisées Dark Theme (wrapper-card, table-card), boutons d'action avec data-testid (`table-view-btn`, `table-edit-btn`). Audit complet des 8 pages Figma et établissement de la feuille de route des 18 tickets restants. |
 | #223 (#222) | Gestion directe des Étages : nouveau modèle `EtageEntity` (table `etages`), `EtageController` CRUD REST (`GET/POST/PUT /api/etages`, `DELETE /api/etages/{id}`), `EtageService` avec seed `@PostConstruct` (5 étages par défaut), validation code unique, cascade code vers zones associées. Frontend : `etage.service.ts`, onglet Étages dans `ZoneManagerComponent` (création/édition/suppression), i18n fr/en. Tests : `EtageServiceTest` (12 cas), `EtageControllerTest` (5 cas), `etage.service.spec.ts`, `zone-manager.component.spec.ts` (16 cas). SonarCloud couverture > 80%. |
 | #219 | Routage et intégration de la gestion des ingrédients (`/ingredients`, `/ingredients/new`, `/ingredients/:id`, `/ingredients/:id/edit`) avec `AuthGuard` et `RoleGuard(['ADMIN', 'MANAGER', 'BARMAN'])`. Endpoint `GET /api/ingredients` backend + `getAllIngredients()` service. Correction du warning `<ion-refresher> must be used inside ion-content` sur toutes les vues listes (`ingredient-list`, `cocktail-list`, `commande-list`, `table-list`). |

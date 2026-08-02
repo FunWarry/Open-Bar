@@ -53,7 +53,7 @@ class JwtTokenProviderTest {
 
     @Test
     void testGenerateTokenNullAuthenticationThrowsException() {
-        assertThrows(IllegalArgumentException.class, () -> jwtTokenProvider.generateToken((Authentication) null));
+        assertThrows(IllegalStateException.class, () -> jwtTokenProvider.generateToken((Authentication) null));
     }
 
     @Test
