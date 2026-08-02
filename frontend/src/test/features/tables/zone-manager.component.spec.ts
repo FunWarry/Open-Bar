@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ModalController, ToastController } from '@ionic/angular/standalone';
 import { IonicModule } from '@ionic/angular';
-import { of, throwError } from 'rxjs';
+import { of } from 'rxjs';
 import { ZoneManagerComponent } from '../../../app/features/tables/zone-manager/zone-manager.component';
 import { ZoneService, ZoneBar } from '../../../app/core/services/zone.service';
 import { EtageService, EtageBar } from '../../../app/core/services/etage.service';
@@ -63,8 +63,8 @@ describe('ZoneManagerComponent', () => {
     expect(component).toBeTruthy();
     expect(zoneServiceSpy.getAll).toHaveBeenCalled();
     expect(etageServiceSpy.getAll).toHaveBeenCalled();
-    expect(component.zones.length).toBe(1);
-    expect(component.etages.length).toBe(2);
+    expect(component.zones).toHaveSize(1);
+    expect(component.etages).toHaveSize(2);
   });
 
   it('should format etage label correctly', () => {

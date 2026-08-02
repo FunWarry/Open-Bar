@@ -1,5 +1,6 @@
 package com.bar.gestioncocktail.dto;
 
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
@@ -19,5 +20,6 @@ public record EtageRequestDTO(
     @Size(max = 100, message = "Le nom ne peut pas dépasser 100 caractères")
     String nom,
 
+    @Min(value = 0, message = "L'ordre d'affichage doit être supérieur ou égal à 0")
     Integer ordre
 ) {}

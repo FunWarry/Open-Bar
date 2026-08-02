@@ -32,7 +32,7 @@ import {
 import { ZoneBar, ZoneService } from '../../../core/services/zone.service';
 import { EtageBar, EtageService } from '../../../core/services/etage.service';
 import { InputFieldComponent } from '../../../core/components/ui/input-field/input-field.component';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { forkJoin } from 'rxjs';
 
 /**
@@ -82,6 +82,7 @@ export class ZoneManagerComponent implements OnInit {
     private readonly toastCtrl: ToastController,
     private readonly zoneService: ZoneService,
     private readonly etageService: EtageService,
+    private readonly translocoService: TranslocoService,
     private readonly fb: FormBuilder
   ) {
     addIcons({
@@ -126,7 +127,7 @@ export class ZoneManagerComponent implements OnInit {
       error: async () => {
         this.isLoading = false;
         const toast = await this.toastCtrl.create({
-          message: 'Erreur lors du chargement des données',
+          message: this.translocoService.translate('COMMON.ERROR'),
           duration: 3000,
           color: 'danger'
         });
@@ -180,8 +181,9 @@ export class ZoneManagerComponent implements OnInit {
 
     obs$.subscribe({
       next: async () => {
+        const key = this.editingZoneId !== null ? 'ZONE_MANAGER.ZONE_SAVED' : 'ZONE_MANAGER.ZONE_CREATED';
         const toast = await this.toastCtrl.create({
-          message: this.editingZoneId !== null ? 'Zone enregistrée' : 'Zone créée',
+          message: this.translocoService.translate(key),
           duration: 3000,
           color: 'success'
         });
@@ -190,7 +192,7 @@ export class ZoneManagerComponent implements OnInit {
         this.loadData();
       },
       error: async (err) => {
-        const msg = err.error?.message || 'Erreur lors de la sauvegarde de la zone';
+        const msg = err.error?.message || this.translocoService.translate('COMMON.ERROR');
         const toast = await this.toastCtrl.create({
           message: msg,
           duration: 3000,
@@ -206,7 +208,7 @@ export class ZoneManagerComponent implements OnInit {
     this.zoneService.delete(zone.id).subscribe({
       next: async () => {
         const toast = await this.toastCtrl.create({
-          message: 'Zone supprimée',
+          message: this.translocoService.translate('ZONE_MANAGER.ZONE_DELETED'),
           duration: 3000,
           color: 'success'
         });
@@ -215,7 +217,7 @@ export class ZoneManagerComponent implements OnInit {
       },
       error: async () => {
         const toast = await this.toastCtrl.create({
-          message: 'Erreur lors de la suppression de la zone',
+          message: this.translocoService.translate('COMMON.ERROR'),
           duration: 3000,
           color: 'danger'
         });
@@ -259,8 +261,9 @@ export class ZoneManagerComponent implements OnInit {
 
     obs$.subscribe({
       next: async () => {
+        const key = this.editingEtageId !== null ? 'ZONE_MANAGER.ETAGE_SAVED' : 'ZONE_MANAGER.ETAGE_CREATED';
         const toast = await this.toastCtrl.create({
-          message: this.editingEtageId !== null ? 'Étage enregistré' : 'Étage créé',
+          message: this.translocoService.translate(key),
           duration: 3000,
           color: 'success'
         });
@@ -269,7 +272,7 @@ export class ZoneManagerComponent implements OnInit {
         this.loadData();
       },
       error: async (err) => {
-        const msg = err.error?.message || 'Erreur lors de la sauvegarde de l\'étage';
+        const msg = err.error?.message || this.translocoService.translate('COMMON.ERROR');
         const toast = await this.toastCtrl.create({
           message: msg,
           duration: 3000,
@@ -285,7 +288,7 @@ export class ZoneManagerComponent implements OnInit {
     this.etageService.delete(etage.id).subscribe({
       next: async () => {
         const toast = await this.toastCtrl.create({
-          message: 'Étage supprimé',
+          message: this.translocoService.translate('ZONE_MANAGER.ETAGE_DELETED'),
           duration: 3000,
           color: 'success'
         });
@@ -293,7 +296,7 @@ export class ZoneManagerComponent implements OnInit {
         this.loadData();
       },
       error: async (err) => {
-        const msg = err.error?.message || 'Erreur lors de la suppression de l\'étage';
+        const msg = err.error?.message || this.translocoService.translate('COMMON.ERROR');
         const toast = await this.toastCtrl.create({
           message: msg,
           duration: 3000,

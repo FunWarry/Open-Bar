@@ -14,7 +14,7 @@ import java.util.Optional;
 public interface EtageRepository extends JpaRepository<EtageEntity, Long> {
 
     /**
-     * Finds an floor entity by its unique code.
+     * Finds a floor entity by its unique code.
      *
      * @param code the floor code
      * @return an optional containing the floor entity if found

@@ -34,13 +34,23 @@ describe('EtageService', () => {
 
   it('should fetch all floors', () => {
     service.getAll().subscribe((etages) => {
-      expect(etages.length).toBe(1);
+      expect(etages).toHaveSize(1);
       expect(etages[0].code).toBe('RDC');
     });
 
     const req = httpMock.expectOne(baseUrl);
     expect(req.request.method).toBe('GET');
     req.flush([mockEtage]);
+  });
+
+  it('should fetch floor by id', () => {
+    service.getById(1).subscribe((etage) => {
+      expect(etage.id).toBe(1);
+    });
+
+    const req = httpMock.expectOne(`${baseUrl}/1`);
+    expect(req.request.method).toBe('GET');
+    req.flush(mockEtage);
   });
 
   it('should create a new floor', () => {
@@ -54,6 +64,19 @@ describe('EtageService', () => {
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual(payload);
     req.flush({ id: 2, ...payload });
+  });
+
+  it('should update a floor', () => {
+    const payload: Partial<EtageBar> = { nom: 'Rez-de-chaussée Modifié' };
+
+    service.update(1, payload).subscribe((etage) => {
+      expect(etage.nom).toBe('Rez-de-chaussée Modifié');
+    });
+
+    const req = httpMock.expectOne(`${baseUrl}/1`);
+    expect(req.request.method).toBe('PUT');
+    expect(req.request.body).toEqual(payload);
+    req.flush({ ...mockEtage, nom: 'Rez-de-chaussée Modifié' });
   });
 
   it('should delete a floor', () => {

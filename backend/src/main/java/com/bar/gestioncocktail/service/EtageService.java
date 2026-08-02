@@ -5,6 +5,7 @@ import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.model.EtageEntity;
 import com.bar.gestioncocktail.repository.EtageRepository;
 import com.bar.gestioncocktail.repository.ZoneRepository;
+import com.bar.gestioncocktail.model.ZoneEntity;
 import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -88,12 +89,13 @@ public class EtageService {
      */
     @Transactional
     public EtageEntity createEtage(String code, String nom, Integer ordre) {
-        if (etageRepository.existsByCode(code)) {
-            throw new BusinessException("Un étage avec le code '" + code + "' existe déjà.");
+        String normalizedCode = code.trim().toUpperCase();
+        if (etageRepository.existsByCode(normalizedCode)) {
+            throw new BusinessException("Un étage avec le code '" + normalizedCode + "' existe déjà.");
         }
 
         EtageEntity etage = new EtageEntity();
-        etage.setCode(code.trim().toUpperCase());
+        etage.setCode(normalizedCode);
         etage.setNom(nom.trim());
         etage.setOrdre(ordre != null ? ordre : 0);
         return etageRepository.save(etage);
@@ -114,9 +116,18 @@ public class EtageService {
     public EtageEntity updateEtage(Long id, String code, String nom, Integer ordre) {
         EtageEntity existing = getEtageById(id);
 
+        String oldCode = existing.getCode();
         String newCode = code.trim().toUpperCase();
-        if (!existing.getCode().equalsIgnoreCase(newCode) && etageRepository.existsByCode(newCode)) {
-            throw new BusinessException("Un étage avec le code '" + newCode + "' existe déjà.");
+
+        if (!oldCode.equalsIgnoreCase(newCode)) {
+            if (etageRepository.existsByCode(newCode)) {
+                throw new BusinessException("Un étage avec le code '" + newCode + "' existe déjà.");
+            }
+            List<ZoneEntity> associatedZones = zoneRepository.findByEtage(oldCode);
+            for (ZoneEntity zone : associatedZones) {
+                zone.setEtage(newCode);
+                zoneRepository.save(zone);
+            }
         }
 
         existing.setCode(newCode);
