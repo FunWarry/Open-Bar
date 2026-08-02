@@ -341,5 +341,40 @@
     "RESET_DEFAULT": "Réinitialiser aux couleurs Figma",
     "SAVE": "Appliquer la palette",
     "LIVE_PREVIEW": "Aperçu interactif en direct"
+  },
+  "ZONE_MANAGER": {
+    "TITLE": "Gestion des Zones & Étages",
+    "TABS": {
+      "ZONES": "Zones",
+      "ETAGES": "Étages"
+    },
+    "NEW_ZONE": "Nouvelle Zone",
+    "ADD_ZONE": "Ajouter une Zone",
+    "EDIT_ZONE": "Modifier la Zone",
+    "ZONE_NAME": "Nom de la Zone",
+    "ZONE_NAME_PLACEHOLDER": "ex: Terrasse Principale, Salle VIP...",
+    "CATEGORY_ETAGE": "Catégorie / Étage",
+    "CHOOSE_ETAGE": "Choisir un étage",
+    "NO_ZONES": "Aucune zone configurée. Cliquez sur Nouvelle Zone pour commencer.",
+    "NEW_ETAGE": "Nouvel Étage",
+    "ADD_ETAGE": "Ajouter un Étage",
+    "EDIT_ETAGE": "Modifier l'Étage",
+    "ETAGE_NAME": "Nom de l'Étage",
+    "ETAGE_NAME_PLACEHOLDER": "ex: Mezzanine, Rooftop...",
+    "ETAGE_CODE": "Code unique",
+    "ETAGE_CODE_PLACEHOLDER": "ex: ROOFTOP, MEZZANINE",
+    "ETAGE_ORDER": "Ordre d'affichage",
+    "NO_ETAGES": "Aucun étage configuré. Cliquez sur Nouvel Étage pour commencer.",
+    "CANCEL": "Annuler",
+    "VALIDATE": "Valider",
+    "CREATE": "Créer",
+    "SAVE": "Enregistrer",
+    "CLOSE": "Fermer",
+    "ZONE_SAVED": "Zone enregistrée",
+    "ZONE_CREATED": "Zone créée",
+    "ZONE_DELETED": "Zone supprimée",
+    "ETAGE_SAVED": "Étage enregistré",
+    "ETAGE_CREATED": "Étage créé",
+    "ETAGE_DELETED": "Étage supprimé"
   }
 }

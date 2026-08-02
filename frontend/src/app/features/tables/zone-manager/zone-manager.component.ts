@@ -12,7 +12,10 @@ import {
   IonIcon,
   IonSelect,
   IonSelectOption,
-  IonSpinner
+  IonSpinner,
+  IonSegment,
+  IonSegmentButton,
+  IonLabel
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -23,10 +26,14 @@ import {
   trashOutline,
   checkmarkCircle,
   locationOutline,
-  layersOutline
+  layersOutline,
+  businessOutline
 } from 'ionicons/icons';
 import { ZoneBar, ZoneService } from '../../../core/services/zone.service';
+import { EtageBar, EtageService } from '../../../core/services/etage.service';
 import { InputFieldComponent } from '../../../core/components/ui/input-field/input-field.component';
+import { TranslocoPipe } from '@jsverse/transloco';
+import { forkJoin } from 'rxjs';
 
 /**
  * Modal component for managing Zones and categorizing them by Floor level in OpenBar.
@@ -47,29 +54,34 @@ import { InputFieldComponent } from '../../../core/components/ui/input-field/inp
     IonSelect,
     IonSelectOption,
     IonSpinner,
+    IonSegment,
+    IonSegmentButton,
+    IonLabel,
     InputFieldComponent,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    TranslocoPipe
   ]
 })
 export class ZoneManagerComponent implements OnInit {
+  activeTab: 'zones' | 'etages' = 'zones';
+
   zones: ZoneBar[] = [];
+  etages: EtageBar[] = [];
   isLoading = false;
+
   showAddForm = false;
   editingZoneId: number | null = null;
   zoneForm: FormGroup;
 
-  readonly etagesList = [
-    { value: 'RDC', label: 'Rez-de-chaussée (RDC)' },
-    { value: 'ETAGE_1', label: '1er Étage' },
-    { value: 'ETAGE_2', label: '2ème Étage' },
-    { value: 'TERRASSE', label: 'Terrasse / Extérieur' },
-    { value: 'SOUS_SOL', label: 'Sous-sol / Cave' }
-  ];
+  showAddEtageForm = false;
+  editingEtageId: number | null = null;
+  etageForm: FormGroup;
 
   constructor(
     private readonly modalCtrl: ModalController,
     private readonly toastCtrl: ToastController,
     private readonly zoneService: ZoneService,
+    private readonly etageService: EtageService,
     private readonly fb: FormBuilder
   ) {
     addIcons({
@@ -80,30 +92,41 @@ export class ZoneManagerComponent implements OnInit {
       trashOutline,
       checkmarkCircle,
       locationOutline,
-      layersOutline
+      layersOutline,
+      businessOutline
     });
 
     this.zoneForm = this.fb.group({
       nom: ['', [Validators.required, Validators.maxLength(50)]],
       etage: ['RDC', [Validators.required]]
     });
+
+    this.etageForm = this.fb.group({
+      nom: ['', [Validators.required, Validators.maxLength(100)]],
+      code: ['', [Validators.required, Validators.maxLength(50)]],
+      ordre: [0, [Validators.required, Validators.min(0)]]
+    });
   }
 
   ngOnInit(): void {
-    this.loadZones();
+    this.loadData();
   }
 
-  loadZones(): void {
+  loadData(): void {
     this.isLoading = true;
-    this.zoneService.getAll().subscribe({
+    forkJoin({
+      zones: this.zoneService.getAll(),
+      etages: this.etageService.getAll()
+    }).subscribe({
       next: (res) => {
-        this.zones = res;
+        this.zones = res.zones;
+        this.etages = res.etages;
         this.isLoading = false;
       },
       error: async () => {
         this.isLoading = false;
         const toast = await this.toastCtrl.create({
-          message: 'Erreur lors du chargement des zones',
+          message: 'Erreur lors du chargement des données',
           duration: 3000,
           color: 'danger'
         });
@@ -113,14 +136,21 @@ export class ZoneManagerComponent implements OnInit {
   }
 
   getEtageLabel(code: string): string {
-    const found = this.etagesList.find((e) => e.value === code);
-    return found ? found.label : code;
+    const found = this.etages.find((e) => e.code === code);
+    return found ? found.nom : code;
   }
+
+  onTabChange(event: CustomEvent): void {
+    this.activeTab = event.detail.value as 'zones' | 'etages';
+  }
+
+  // --- Zone CRUD methods ---
 
   toggleAddForm(): void {
     this.showAddForm = !this.showAddForm;
     this.editingZoneId = null;
-    this.zoneForm.reset({ etage: 'RDC' });
+    const defaultEtage = this.etages.length > 0 ? this.etages[0].code : 'RDC';
+    this.zoneForm.reset({ etage: defaultEtage });
   }
 
   onEdit(zone: ZoneBar): void {
@@ -128,14 +158,15 @@ export class ZoneManagerComponent implements OnInit {
     this.showAddForm = false;
     this.zoneForm.patchValue({
       nom: zone.nom,
-      etage: zone.etage || 'RDC'
+      etage: zone.etage || (this.etages.length > 0 ? this.etages[0].code : 'RDC')
     });
   }
 
   resetForm(): void {
     this.showAddForm = false;
     this.editingZoneId = null;
-    this.zoneForm.reset({ etage: 'RDC' });
+    const defaultEtage = this.etages.length > 0 ? this.etages[0].code : 'RDC';
+    this.zoneForm.reset({ etage: defaultEtage });
   }
 
   onSave(): void {
@@ -156,10 +187,10 @@ export class ZoneManagerComponent implements OnInit {
         });
         toast.present();
         this.resetForm();
-        this.loadZones();
+        this.loadData();
       },
       error: async (err) => {
-        const msg = err.error?.message || 'Erreur lors de la sauvegarde';
+        const msg = err.error?.message || 'Erreur lors de la sauvegarde de la zone';
         const toast = await this.toastCtrl.create({
           message: msg,
           duration: 3000,
@@ -180,11 +211,91 @@ export class ZoneManagerComponent implements OnInit {
           color: 'success'
         });
         toast.present();
-        this.loadZones();
+        this.loadData();
       },
       error: async () => {
         const toast = await this.toastCtrl.create({
-          message: 'Erreur lors de la suppression',
+          message: 'Erreur lors de la suppression de la zone',
+          duration: 3000,
+          color: 'danger'
+        });
+        toast.present();
+      }
+    });
+  }
+
+  // --- Etage CRUD methods ---
+
+  toggleAddEtageForm(): void {
+    this.showAddEtageForm = !this.showAddEtageForm;
+    this.editingEtageId = null;
+    this.etageForm.reset({ ordre: (this.etages.length + 1) });
+  }
+
+  onEditEtage(etage: EtageBar): void {
+    this.editingEtageId = etage.id ?? null;
+    this.showAddEtageForm = false;
+    this.etageForm.patchValue({
+      nom: etage.nom,
+      code: etage.code,
+      ordre: etage.ordre ?? 0
+    });
+  }
+
+  resetEtageForm(): void {
+    this.showAddEtageForm = false;
+    this.editingEtageId = null;
+    this.etageForm.reset({ ordre: 0 });
+  }
+
+  onSaveEtage(): void {
+    if (this.etageForm.invalid) return;
+    const payload = this.etageForm.value;
+
+    const obs$ =
+      this.editingEtageId !== null
+        ? this.etageService.update(this.editingEtageId, payload)
+        : this.etageService.create(payload);
+
+    obs$.subscribe({
+      next: async () => {
+        const toast = await this.toastCtrl.create({
+          message: this.editingEtageId !== null ? 'Étage enregistré' : 'Étage créé',
+          duration: 3000,
+          color: 'success'
+        });
+        toast.present();
+        this.resetEtageForm();
+        this.loadData();
+      },
+      error: async (err) => {
+        const msg = err.error?.message || 'Erreur lors de la sauvegarde de l\'étage';
+        const toast = await this.toastCtrl.create({
+          message: msg,
+          duration: 3000,
+          color: 'danger'
+        });
+        toast.present();
+      }
+    });
+  }
+
+  onDeleteEtage(etage: EtageBar): void {
+    if (!etage.id) return;
+    this.etageService.delete(etage.id).subscribe({
+      next: async () => {
+        const toast = await this.toastCtrl.create({
+          message: 'Étage supprimé',
+          duration: 3000,
+          color: 'success'
+        });
+        toast.present();
+        this.loadData();
+      },
+      error: async (err) => {
+        const msg = err.error?.message || 'Erreur lors de la suppression de l\'étage';
+        const toast = await this.toastCtrl.create({
+          message: msg,
           duration: 3000,
           color: 'danger'
         });
