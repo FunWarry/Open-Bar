@@ -59,28 +59,28 @@
 ## Roadmap des Tickets Restants (Audit Figma 8 pages)
 
 ### 🔴 Priorité HAUTE
-- **Ticket #A** : `feat: Vue Client — Écran Scanner QR Code [CLIENT]` (Figma 636:988)
-- **Ticket #B** : `feat: Barman — Vue Globale Stock [BARMAN, MANAGER]` (Figma 488:3566)
-- **Ticket #C** : `feat: Facturation — Vue Récap Journée [MANAGER]` (Figma 628:1096)
-- **Ticket #D** : `feat: Facturation — Vue Règlement Individuel Post-Split [MANAGER, SERVEUR]` (Figma 630:1264)
-- **Ticket #E** : `feat: Écran Onboarding — Flow 1ère connexion par rôle [TOUS]` (Figma 633:1100–1173)
-- **Ticket #F** : `feat: Composant EmptyState réutilisable [DS]` (Figma 540:1056)
+- **Issue #225** (Ticket #A) : `feat: Vue Client — Écran Scanner QR Code [CLIENT]` (Figma 636:988)
+- **Issue #226** (Ticket #B) : `feat: Barman — Vue Globale Stock [BARMAN, MANAGER]` (Figma 488:3566)
+- **Issue #227** (Ticket #C) : `feat: Facturation — Vue Récap Journée [MANAGER]` (Figma 628:1096)
+- **Issue #228** (Ticket #D) : `feat: Facturation — Vue Règlement Individuel Post-Split [MANAGER, SERVEUR]` (Figma 630:1264)
+- **Issue #229** (Ticket #E) : `feat: Écran Onboarding — Flow 1ère connexion par rôle [TOUS]` (Figma 633:1100–1173)
+- **Issue #230** (Ticket #F) : `feat: Composant EmptyState réutilisable [DS]` (Figma 540:1056)
 
 ### 🟡 Priorité MOYENNE
-- **Ticket #G** : `feat: Vue Barman — Ingrédients en mode Grille de Cartes [BARMAN]` (Figma 488:3524)
-- **Ticket #H** : `feat: Manager — Gestion Employés — Pagination et champs Shifts [MANAGER]` (Figma 492:1514)
-- **Ticket #I** : `feat: Manager — EDT Planning hebdomadaire complet [MANAGER]` (Figma 492:1556)
-- **Ticket #J** : `feat: Profil — Section Préférences et toggle notifications [TOUS]` (Figma 540:946)
-- **Ticket #K** : `feat: Facturation — Modal Règlement — Champ Pourboire [MANAGER, SERVEUR]` (Figma 628:1068)
-- **Ticket #L** : `feat: Vue Serveur Mobile — Bottom Navigation & MobileTableCard [SERVEUR]` (Figma 632:2240)
+- **Issue #231** (Ticket #G) : `feat: Vue Barman — Ingrédients en mode Grille de Cartes [BARMAN]` (Figma 488:3524)
+- **Issue #232** (Ticket #H) : `feat: Manager — Gestion Employés — Pagination et champs Shifts [MANAGER]` (Figma 492:1514)
+- **Issue #233** (Ticket #I) : `feat: Manager — EDT Planning hebdomadaire complet [MANAGER]` (Figma 492:1556)
+- **Issue #234** (Ticket #J) : `feat: Profil — Section Préférences et toggle notifications [TOUS]` (Figma 540:946)
+- **Issue #235** (Ticket #K) : `feat: Facturation — Modal Règlement — Champ Pourboire [MANAGER, SERVEUR]` (Figma 628:1068)
+- **Issue #236** (Ticket #L) : `feat: Vue Serveur Mobile — Bottom Navigation & MobileTableCard [SERVEUR]` (Figma 632:2240)
 
 ### 🟢 Priorité BASSE
-- **Ticket #M** : `fix: Bug dateLivraison set sur PRET au lieu de LIVREE [BACKEND]` — ✅ Résolu
-- **Ticket #N** : `refactor: Supprimer allow-circular-references [BACKEND]` — ✅ Résolu
-- **Ticket #O** : `fix: Exceptions génériques RuntimeException → exceptions métier [BACKEND]` — ✅ Résolu
-- **Ticket #P** : `feat: Facturation — Format ticket 58mm [FACTURATION]` (Figma 640:1220)
-- **Ticket #Q** : `fix: Barman — Panel Stock — Alignement Figma complet [BARMAN]` (Figma 488:3340)
-- **Ticket #R** : `fix: Profil — Données formulaire non pré-remplies depuis le store NgRx [AUTH]`
+- **Ticket #M** : `fix: Bug dateLivraison set sur PRET au lieu de LIVREE [BACKEND]` — ✅ Résolu (#224)
+- **Ticket #N** : `refactor: Supprimer allow-circular-references [BACKEND]` — ✅ Résolu (#224)
+- **Ticket #O** : `fix: Exceptions génériques RuntimeException → exceptions métier [BACKEND]` — ✅ Résolu (#224)
+- **Issue #237** (Ticket #P) : `feat: Facturation — Format ticket 58mm [FACTURATION]` (Figma 640:1220)
+- **Issue #238** (Ticket #Q) : `fix: Barman — Panel Stock — Alignement Figma complet [BARMAN]` (Figma 488:3340)
+- **Issue #239** (Ticket #R) : `fix: Profil — Données formulaire non pré-remplies depuis le store NgRx [AUTH]`
 
 ## Dette Technique Active
 
