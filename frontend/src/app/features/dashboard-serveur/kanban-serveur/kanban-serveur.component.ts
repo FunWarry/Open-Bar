@@ -7,7 +7,7 @@ import {
   IonContent, IonRefresher, IonRefresherContent,
   IonSelect, IonSelectOption,
   IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-  IonButton, IonIcon, IonBadge, IonChip, IonSpinner,
+  IonButton, IonIcon, IonBadge, IonSpinner,
   ToastController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';

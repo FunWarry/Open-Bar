@@ -6,8 +6,7 @@ import {
   IonContent, IonHeader, IonToolbar, IonTitle,
   IonRefresher, IonRefresherContent,
   IonGrid, IonRow, IonCol,
-  IonCard, IonCardContent, IonCardHeader, IonCardTitle,
-  IonBadge,
+  IonCard, IonCardContent, IonCardHeader, IonCardTitle
 } from '@ionic/angular/standalone';
 import { StatCardComponent } from '../../core/components/ui/stat-card/stat-card.component';
 import { RoleBadgeComponent } from '../../core/components/ui/role-badge/role-badge.component';
@@ -104,7 +103,9 @@ export class DashboardManagerComponent implements OnInit, OnDestroy {
   }
 
   getRankLabel(index: number): string {
-    return index === 0 ? '1' : index === 1 ? '2' : '3';
+    if (index === 0) return '1';
+    if (index === 1) return '2';
+    return '3';
   }
 
   /** Largeur de barre en % par rapport au max (cocktail[0]) */
