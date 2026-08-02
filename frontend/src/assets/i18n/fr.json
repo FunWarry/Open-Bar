@@ -380,5 +380,24 @@
     "ETAGE_SAVED": "Étage enregistré",
     "ETAGE_CREATED": "Étage créé",
     "ETAGE_DELETED": "Étage supprimé"
+  },
+  "STOCK": {
+    "GLOBAL_TITLE": "Vue Globale des Stocks",
+    "SEARCH_PLACEHOLDER": "Rechercher un ingrédient...",
+    "ALL": "Tous",
+    "SPIRITS": "Alcools",
+    "SOFTS": "Softs",
+    "SYRUPS": "Sirops",
+    "FRUITS": "Fruits",
+    "OTHER": "Autres",
+    "OUT_OF_STOCK": "Rupture de Stock",
+    "NORMAL_STOCK": "Stock Normal",
+    "LOW_STOCK": "Stock Faible",
+    "VIEW_MODE_LIST": "Liste",
+    "VIEW_MODE_GRID": "Grille",
+    "ADJUST": "Ajuster",
+    "ADJUST_SUCCESS": "Stock de {name} mis à jour : {qty} {unit}",
+    "ADJUST_ERROR": "Erreur lors de la mise à jour du stock",
+    "LIVE_UPDATE": "Flux WebSocket Actif"
   }
 }
