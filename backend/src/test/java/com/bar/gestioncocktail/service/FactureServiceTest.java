@@ -374,4 +374,40 @@ class FactureServiceTest {
         assertThat(f2.isReglee()).isTrue();
         verify(auditLogService).logAction(eq(null), eq("FUSION_FACTURES"), eq("Facture"), any(), anyString(), eq(null));
     }
+
+    @Test
+    void getDailyRecap_calculeCorrectementStatsJournee() {
+        java.time.LocalDate today = java.time.LocalDate.now();
+        TableEntity t1 = new TableEntity();
+        t1.setCapacite(2);
+        TableEntity t2 = new TableEntity();
+        t2.setCapacite(1);
+
+        Facture f1 = new Facture();
+        f1.setId(101L);
+        f1.setTable(t1);
+        f1.setTotalTTC(new BigDecimal("50.00"));
+        f1.setTotalHT(new BigDecimal("41.67"));
+        f1.setTotalVAT(new BigDecimal("8.33"));
+        f1.setModePaiement("CARTE");
+
+        Facture f2 = new Facture();
+        f2.setId(102L);
+        f2.setTable(t2);
+        f2.setTotalTTC(new BigDecimal("30.00"));
+        f2.setTotalHT(new BigDecimal("25.00"));
+        f2.setTotalVAT(new BigDecimal("5.00"));
+        f2.setModePaiement("ESPECES");
+
+        when(factureRepository.findByDateFactureBetween(any(), any())).thenReturn(List.of(f1, f2));
+
+        com.bar.gestioncocktail.dto.DailyRecapDTO recap = factureService.getDailyRecap(today);
+
+        assertThat(recap.date()).isEqualTo(today);
+        assertThat(recap.totalCaTtc()).isEqualByComparingTo(new BigDecimal("80.00"));
+        assertThat(recap.nombreFacturesReglees()).isEqualTo(2);
+        assertThat(recap.panierMoyen()).isEqualByComparingTo(new BigDecimal("40.00"));
+        assertThat(recap.nombreClients()).isEqualTo(3);
+        assertThat(recap.ventilationModePaiement()).hasSize(2);
+    }
 }

@@ -355,4 +355,103 @@ public class PdfService {
     private String formatPrix(double prix) {
         return String.format(Locale.FRANCE, "%.2f €", prix);
     }
+
+    /**
+     * Generates a legal Z-Report A4 PDF closing report for the given daily summary.
+     *
+     * @param recap Daily summary DTO
+     * @return PDF byte array
+     */
+    public byte[] generateDailyRecapPdf(com.bar.gestioncocktail.dto.DailyRecapDTO recap) {
+        EstablishmentConfig config = (establishmentConfigService != null)
+            ? establishmentConfigService.getConfig()
+            : new EstablishmentConfig();
+        if (config == null) config = new EstablishmentConfig();
+
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            Document doc = new Document(PageSize.A4, 36, 36, 40, 40);
+            PdfWriter writer = PdfWriter.getInstance(doc, out);
+            writer.setPdfVersion(PdfWriter.PDF_VERSION_1_7);
+            doc.open();
+
+            Font titleFont  = new Font(Font.HELVETICA, 18, Font.BOLD, PRIMARY);
+            Font headerFont = new Font(Font.HELVETICA, 10, Font.BOLD, TEXT);
+            Font normalFont = new Font(Font.HELVETICA, 9, Font.NORMAL, DARK_TEXT);
+            Font boldFont   = new Font(Font.HELVETICA, 9, Font.BOLD, DARK_TEXT);
+            Font mutedFont  = new Font(Font.HELVETICA, 8, Font.NORMAL, MUTED);
+            Font kpiFont    = new Font(Font.HELVETICA, 11, Font.BOLD, PRIMARY);
+
+            String formattedDate = recap.date().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+            Paragraph title = new Paragraph("RÉCAPITULATIF DE CAISSE DU " + formattedDate, titleFont);
+            title.setAlignment(Element.ALIGN_CENTER);
+            doc.add(title);
+            doc.add(new Paragraph("Établissement : " + config.getLegalName() + " — SIRET : " + config.getSiret(), mutedFont));
+            doc.add(Chunk.NEWLINE);
+
+            PdfPTable kpiTable = new PdfPTable(4);
+            kpiTable.setWidthPercentage(100);
+            addCell(kpiTable, "CA Total TTC\n" + formatPrix(recap.totalCaTtc().doubleValue()), kpiFont, Element.ALIGN_CENTER);
+            addCell(kpiTable, "CA Total HT\n" + formatPrix(recap.totalCaHt().doubleValue()), kpiFont, Element.ALIGN_CENTER);
+            addCell(kpiTable, "Factures Réglées\n" + recap.nombreFacturesReglees(), kpiFont, Element.ALIGN_CENTER);
+            addCell(kpiTable, "Panier Moyen\n" + formatPrix(recap.panierMoyen().doubleValue()), kpiFont, Element.ALIGN_CENTER);
+            doc.add(kpiTable);
+            doc.add(Chunk.NEWLINE);
+
+            doc.add(new Paragraph("VENTILATION PAR MODE DE RÈGLEMENT", boldFont));
+            PdfPTable pmTable = new PdfPTable(3);
+            pmTable.setWidthPercentage(100);
+            try {
+                pmTable.setWidths(new float[]{2f, 1f, 1.5f});
+            } catch (DocumentException _) {
+                // Ignore
+            }
+            for (String h : new String[]{"Mode de Règlement", "Nombre", "Total TTC"}) {
+                PdfPCell c = new PdfPCell(new Phrase(h, headerFont));
+                c.setBackgroundColor(SURFACE);
+                c.setPadding(4);
+                pmTable.addCell(c);
+            }
+            if (recap.ventilationModePaiement() != null) {
+                for (com.bar.gestioncocktail.dto.PaymentModeSummaryDTO pm : recap.ventilationModePaiement()) {
+                    addCell(pmTable, pm.modePaiement(), normalFont, Element.ALIGN_LEFT);
+                    addCell(pmTable, String.valueOf(pm.count()), normalFont, Element.ALIGN_CENTER);
+                    addCell(pmTable, formatPrix(pm.totalTtc().doubleValue()), boldFont, Element.ALIGN_RIGHT);
+                }
+            }
+            doc.add(pmTable);
+            doc.add(Chunk.NEWLINE);
+
+            doc.add(new Paragraph("VENTILATION DE LA TVA", boldFont));
+            PdfPTable vatTable = new PdfPTable(4);
+            vatTable.setWidthPercentage(100);
+            try {
+                vatTable.setWidths(new float[]{1.2f, 1.5f, 1.5f, 1.5f});
+            } catch (DocumentException _) {
+                // Ignore
+            }
+            for (String h : new String[]{"Taux TVA", "Base HT", "Montant TVA", "Total TTC"}) {
+                PdfPCell c = new PdfPCell(new Phrase(h, headerFont));
+                c.setBackgroundColor(SURFACE);
+                c.setPadding(4);
+                vatTable.addCell(c);
+            }
+            if (recap.ventilationTva() != null) {
+                for (com.bar.gestioncocktail.dto.VatSummaryDTO vat : recap.ventilationTva()) {
+                    addCell(vatTable, vat.tauxLabel(), normalFont, Element.ALIGN_LEFT);
+                    addCell(vatTable, formatPrix(vat.baseHt().doubleValue()), normalFont, Element.ALIGN_RIGHT);
+                    addCell(vatTable, formatPrix(vat.montantTva().doubleValue()), normalFont, Element.ALIGN_RIGHT);
+                    addCell(vatTable, formatPrix(vat.totalTtc().doubleValue()), boldFont, Element.ALIGN_RIGHT);
+                }
+            }
+            doc.add(vatTable);
+            doc.add(Chunk.NEWLINE);
+
+            addLegalFooterSection(doc, config, mutedFont);
+
+            doc.close();
+            return out.toByteArray();
+        } catch (DocumentException | IOException e) {
+            throw new IllegalStateException("Erreur génération PDF récap journalier du " + recap.date(), e);
+        }
+    }
 }

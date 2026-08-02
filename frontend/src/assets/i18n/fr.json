@@ -399,5 +399,32 @@
     "ADJUST_SUCCESS": "Stock de {name} mis à jour : {qty} {unit}",
     "ADJUST_ERROR": "Erreur lors de la mise à jour du stock",
     "LIVE_UPDATE": "Flux WebSocket Actif"
+  },
+  "RECAP": {
+    "TITLE": "Récapitulatif de Caisse",
+    "SUBTITLE": "Clôture de journée et synthèse des encaissements (Z-Report)",
+    "EXPORT_PDF": "Exporter Z-Report PDF",
+    "TOTAL_CA_TTC": "Chiffre d'Affaires TTC",
+    "TOTAL_TVA": "TVA Globale Collectée",
+    "PANIER_MOYEN": "Panier Moyen",
+    "TOTAL_CLIENTS": "Clients / Couverts",
+    "HT": "HT",
+    "NET_HT": "Total HT",
+    "FACTURES_SETTLED": "factures réglées",
+    "GUESTS_SERVED": "couverts servis aujourd'hui",
+    "PAYMENT_MODES_TITLE": "Ventilation par Mode de Règlement",
+    "VAT_BREAKDOWN_TITLE": "Ventilation de la TVA (Déclaration CA3)",
+    "MODE": "Mode de Règlement",
+    "COUNT": "Règlements",
+    "TOTAL_TTC": "Total TTC",
+    "SHARE": "Part (%)",
+    "VAT_RATE": "Taux TVA",
+    "BASE_HT": "Base HT",
+    "VAT_AMOUNT": "Montant TVA",
+    "NO_PAYMENTS": "Aucun règlement enregistré pour cette date",
+    "NO_DATA": "Aucune donnée de TVA disponible",
+    "ERROR_FETCH": "Erreur lors du chargement du récapitulatif",
+    "EXPORT_SUCCESS": "Fichier PDF téléchargé avec succès",
+    "EXPORT_ERROR": "Erreur lors de la génération du PDF"
   }
 }

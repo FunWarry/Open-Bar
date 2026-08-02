@@ -1,8 +1,9 @@
 import { inject, Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Facture, ReglementRequest } from '../models/facture.model';
+import { DailyRecap } from '../models/daily-recap.model';
 
 @Injectable({ providedIn: 'root' })
 export class FactureService {
@@ -39,5 +40,31 @@ export class FactureService {
 
   ajouterPourboire(factureId: number, pourboire: number): Observable<Facture> {
     return this.http.patch<Facture>(`${this.api}/${factureId}/pourboire`, { pourboire });
+  }
+
+  /**
+   * Fetches the daily closing financial summary report (Z-Report) for a specific date.
+   *
+   * @param date Optional ISO date string (YYYY-MM-DD)
+   */
+  getDailyRecap(date?: string): Observable<DailyRecap> {
+    let params = new HttpParams();
+    if (date) {
+      params = params.set('date', date);
+    }
+    return this.http.get<DailyRecap>(`${this.api}/daily-recap`, { params });
+  }
+
+  /**
+   * Downloads the daily closing financial summary report PDF.
+   *
+   * @param date Optional ISO date string (YYYY-MM-DD)
+   */
+  downloadDailyRecapPdf(date?: string): Observable<Blob> {
+    let params = new HttpParams();
+    if (date) {
+      params = params.set('date', date);
+    }
+    return this.http.get(`${this.api}/daily-recap/pdf`, { params, responseType: 'blob' });
   }
 }
