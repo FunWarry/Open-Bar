@@ -112,4 +112,9 @@ class EtageControllerTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
         verify(etageService).deleteEtage(1L);
     }
+
+    @Test
+    void etageResponseDTO_fromNull_shouldReturnNull() {
+        assertThat(EtageResponseDTO.from(null)).isNull();
+    }
 }
