@@ -6,6 +6,7 @@ import { IonicModule } from '@ionic/angular';
 import { ToastController, ModalController } from '@ionic/angular/standalone';
 import { Store } from '@ngrx/store';
 import { of, throwError } from 'rxjs';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { TableListComponent } from '../../../app/features/tables/table-list/table-list.component';
 import { TableService } from '../../../app/core/services/table.service';
 import { TableBar } from '../../../app/core/models/table.model';
@@ -39,7 +40,7 @@ describe('TableListComponent', () => {
     storeSpy.select.and.returnValue(of(false));
 
     await TestBed.configureTestingModule({
-      imports: [TableListComponent, IonicModule.forRoot(), RouterTestingModule],
+      imports: [TableListComponent, IonicModule.forRoot(), RouterTestingModule, HttpClientTestingModule],
       providers: [
         { provide: Store, useValue: storeSpy },
         { provide: TableService, useValue: serviceSpy },

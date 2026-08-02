@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { ToastController } from '@ionic/angular/standalone';
 import { of } from 'rxjs';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { TableFormComponent } from '../../../app/features/tables/table-form/table-form.component';
 import { TableService } from '../../../app/core/services/table.service';
 import { ZoneService } from '../../../app/core/services/zone.service';
@@ -38,7 +39,8 @@ describe('TableFormComponent', () => {
       imports: [
         TableFormComponent,
         ReactiveFormsModule,
-        RouterTestingModule
+        RouterTestingModule,
+        HttpClientTestingModule
       ],
       providers: [
         { provide: Router, useValue: routerSpy },
@@ -93,7 +95,8 @@ describe('TableFormComponent', () => {
       imports: [
         TableFormComponent,
         ReactiveFormsModule,
-        RouterTestingModule
+        RouterTestingModule,
+        HttpClientTestingModule
       ],
       providers: [
         { provide: Router, useValue: routerSpy },
