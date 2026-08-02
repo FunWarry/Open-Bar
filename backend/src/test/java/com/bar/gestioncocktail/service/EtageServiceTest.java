@@ -3,6 +3,7 @@ package com.bar.gestioncocktail.service;
 import com.bar.gestioncocktail.exception.BusinessException;
 import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.model.EtageEntity;
+import com.bar.gestioncocktail.model.ZoneEntity;
 import com.bar.gestioncocktail.repository.EtageRepository;
 import com.bar.gestioncocktail.repository.ZoneRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -142,13 +143,19 @@ class EtageServiceTest {
     @Test
     @DisplayName("updateEtage should cascade code updates to associated zones")
     void updateEtage_codeChange_cascadesToZones() {
+        ZoneEntity zone = new ZoneEntity();
+        zone.setEtage("RDC");
+
         when(etageRepository.findById(1L)).thenReturn(Optional.of(sampleEtage));
         when(etageRepository.existsByCode("MAIN_FLOOR")).thenReturn(false);
+        when(zoneRepository.findByEtage("RDC")).thenReturn(List.of(zone));
         when(etageRepository.save(any(EtageEntity.class))).thenAnswer(i -> i.getArgument(0));
+        when(zoneRepository.save(any(ZoneEntity.class))).thenAnswer(i -> i.getArgument(0));
 
         etageService.updateEtage(1L, "MAIN_FLOOR", "Main Floor", 1);
 
         verify(zoneRepository).findByEtage("RDC");
+        verify(zoneRepository).save(zone);
     }
 
     @Test
@@ -160,6 +167,35 @@ class EtageServiceTest {
         assertThatThrownBy(() -> etageService.updateEtage(1L, "EXISTING", "New Name", 1))
                 .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("existe déjà");
+    }
+
+    @Test
+    @DisplayName("updateEtage should not update ordre when null")
+    void updateEtage_nullOrdre_keepsExistingOrdre() {
+        when(etageRepository.findById(1L)).thenReturn(Optional.of(sampleEtage));
+        when(etageRepository.save(any(EtageEntity.class))).thenAnswer(i -> i.getArgument(0));
+
+        EtageEntity updated = etageService.updateEtage(1L, "RDC", "Rez-de-chaussée Modifié", null);
+
+        assertThat(updated.getOrdre()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("updateEtage should throw ResourceNotFoundException when id not found")
+    void updateEtage_notFound_throwsException() {
+        when(etageRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> etageService.updateEtage(99L, "RDC", "Test", 1))
+                .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("deleteEtage should throw ResourceNotFoundException when id not found")
+    void deleteEtage_notFound_throwsException() {
+        when(etageRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> etageService.deleteEtage(99L))
+                .isInstanceOf(ResourceNotFoundException.class);
     }
 
     @Test

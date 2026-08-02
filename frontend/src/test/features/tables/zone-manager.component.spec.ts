@@ -146,6 +146,39 @@ describe('ZoneManagerComponent', () => {
     expect(etageServiceSpy.delete).toHaveBeenCalledWith(1);
   });
 
+
+  it('should handle error when loading data fails', async () => {
+    etageServiceSpy.getAll.and.returnValue(throwError(() => new Error('Load failed')));
+    zoneServiceSpy.getAll.and.returnValue(throwError(() => new Error('Load failed')));
+
+    component.loadData();
+    await fixture.whenStable();
+
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
+    expect(component.isLoading).toBeFalse();
+  });
+
+  it('should not delete zone if id is undefined', () => {
+    const zoneWithoutId: ZoneBar = { nom: 'Sans ID', etage: 'RDC' };
+    component.onDelete(zoneWithoutId);
+    expect(zoneServiceSpy.delete).not.toHaveBeenCalled();
+  });
+
+  it('should not delete etage if id is undefined', () => {
+    const etageWithoutId: EtageBar = { code: 'SANS', nom: 'Sans ID', ordre: 99 };
+    component.onDeleteEtage(etageWithoutId);
+    expect(etageServiceSpy.delete).not.toHaveBeenCalled();
+  });
+
+  it('should handle error when saving etage fails', () => {
+    etageServiceSpy.create.and.returnValue(throwError(() => ({ error: { message: 'Conflict' } })));
+    component.toggleAddEtageForm();
+    component.etageForm.setValue({ nom: 'Fail Etage', code: 'FAIL', ordre: 5 });
+    component.onSaveEtage();
+
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
+  });
+
   it('should dismiss modal on close', () => {
     component.onClose();
     expect(modalCtrlSpy.dismiss).toHaveBeenCalled();
