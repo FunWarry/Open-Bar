@@ -122,10 +122,11 @@ export class IngredientListComponent implements OnInit, OnDestroy {
    * Returns filtered list of ingredients based on search query and selected category filter.
    */
   get filteredIngredients(): Ingredient[] {
+    const query = this.searchQuery.toLowerCase();
     return this.ingredients.filter(item => {
-      const matchesSearch = !this.searchQuery ||
-        item.nom.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-        Boolean(item.fournisseur?.toLowerCase().includes(this.searchQuery.toLowerCase()));
+      const matchesSearch = !query ||
+        item.nom.toLowerCase().includes(query) ||
+        (item.fournisseur?.toLowerCase()?.includes(query) ?? false);
 
       const category = this.getIngredientCategory(item.nom);
       const matchesCategory = this.selectedCategory === 'ALL' || category === this.selectedCategory;
