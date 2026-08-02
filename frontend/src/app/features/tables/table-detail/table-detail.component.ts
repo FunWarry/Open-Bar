@@ -5,6 +5,7 @@ import { Observable, Subject, forkJoin } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
 import { selectIsAdmin } from '../../../core/store/auth.selectors';
 import {
+  IonHeader, IonToolbar, IonTitle, IonContent,
   IonCard, IonCardHeader, IonCardTitle, IonCardContent,
   IonList, IonItem, IonLabel, IonBadge, IonButton, IonButtons, IonIcon, ToastController,
 } from '@ionic/angular/standalone';
@@ -22,6 +23,7 @@ import { Commande } from '../../../core/models/commande.model';
   styleUrls: ['./table-detail.component.css'],
   standalone: true,
   imports: [
+    IonHeader, IonToolbar, IonTitle, IonContent,
     IonCard, IonCardHeader, IonCardTitle, IonCardContent,
     IonList, IonItem, IonLabel, IonBadge, IonButton, IonButtons, IonIcon,
     NgIf, NgFor, AsyncPipe, DatePipe, CurrencyPipe,
