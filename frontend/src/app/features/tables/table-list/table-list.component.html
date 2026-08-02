@@ -4,7 +4,7 @@
   </ion-refresher>
 
   <div class="table-list-container">
-    <ion-card>
+    <ion-card class="wrapper-card">
       <ion-card-header>
         <div class="card-header-row">
           <ion-card-title>Tables ({{ tables.length }})</ion-card-title>
@@ -22,6 +22,7 @@
           }
         </div>
       </ion-card-header>
+
       <ion-card-content>
         @if (isLoading) {
           <div style="text-align:center;padding:24px">
@@ -32,33 +33,35 @@
             <ion-row>
               @for (table of tables; track table.id) {
                 <ion-col size="12" size-sm="6" size-md="4" size-lg="3">
-                  <ion-card [class.occupied]="table.occupee">
+                  <ion-card class="table-card" [class.occupied]="table.occupee">
                     <ion-card-header>
                       <ion-card-title>Table {{ table.numero }}</ion-card-title>
                       <ion-card-subtitle>{{ table.zone }}</ion-card-subtitle>
                     </ion-card-header>
+
                     <ion-card-content>
-                      <p>
+                      <div class="capacity-row">
                         <ion-icon name="people"></ion-icon>
-                        Capacité : {{ table.capacite }} personnes
-                      </p>
+                        <span>Capacité : {{ table.capacite }} personnes</span>
+                      </div>
                       <ion-badge [color]="table.occupee ? 'danger' : 'success'">
                         <ion-icon [name]="table.occupee ? 'close-circle' : 'checkmark-circle'"></ion-icon>
                         {{ table.occupee ? 'Occupée' : 'Libre' }}
                       </ion-badge>
                     </ion-card-content>
-                    <ion-buttons class="card-actions">
-                      <ion-button fill="clear" color="primary" (click)="onView(table)" (keyup.enter)="onView(table)">
+
+                    <div class="card-actions">
+                      <ion-button fill="clear" color="primary" (click)="onView(table)" (keyup.enter)="onView(table)" data-testid="table-view-btn">
                         <ion-icon slot="start" name="eye"></ion-icon>
                         Détails
                       </ion-button>
                       @if (isAdmin$ | async) {
-                        <ion-button fill="clear" color="tertiary" (click)="onEdit(table)" (keyup.enter)="onEdit(table)">
+                        <ion-button fill="clear" color="tertiary" (click)="onEdit(table)" (keyup.enter)="onEdit(table)" data-testid="table-edit-btn">
                           <ion-icon slot="start" name="create"></ion-icon>
                           Modifier
                         </ion-button>
                       }
-                    </ion-buttons>
+                    </div>
                   </ion-card>
                 </ion-col>
               }
@@ -75,5 +78,3 @@
     </ion-card>
   </div>
 </ion-content>
-
-

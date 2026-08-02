@@ -33,54 +33,68 @@ ion-title {
   padding: 20px 24px;
 }
 
-.zone-field-container {
+.zone-select-label {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.zone-suggestions {
-  display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: 6px;
-  margin-top: 2px;
+  font-size: var(--fs-sm, 13px);
+  font-weight: 600;
+  color: var(--text-secondary, #a0aec0);
+  margin-bottom: 4px;
 }
 
-.suggestions-label {
-  font-size: var(--fs-xs, 12px);
-  font-weight: 600;
+.zone-select-label ion-icon {
+  font-size: 16px;
+}
+
+.required-star {
+  color: var(--ion-color-danger, #eb445a);
+  margin-left: 2px;
+}
+
+.zone-select {
+  width: 100%;
+  --background: var(--surface-2, #252a45);
+  --color: var(--text-primary, #ffffff);
+  --placeholder-color: var(--text-secondary, #a0aec0);
+  --padding-start: 14px;
+  --padding-end: 14px;
+  --padding-top: 14px;
+  --padding-bottom: 14px;
+  border: 1px solid var(--border-medium, rgba(255, 255, 255, 0.2));
+  border-radius: var(--radius-md, 10px);
+  font-size: var(--fs-sm, 14px);
+  transition: border-color 0.2s ease;
+}
+
+.zone-select:focus-within,
+.zone-select.ion-focused {
+  border-color: var(--primary, #6c7fe8);
+  box-shadow: 0 0 0 2px rgba(108, 127, 232, 0.2);
+}
+
+.zone-select.invalid {
+  border-color: var(--ion-color-danger, #eb445a);
+}
+
+.zone-loading,
+.zone-empty {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px;
+  background: var(--surface-2, #252a45);
+  border: 1px solid var(--border-medium, rgba(255, 255, 255, 0.1));
+  border-radius: var(--radius-md, 10px);
+  font-size: var(--fs-sm, 13px);
   color: var(--text-secondary, #a0aec0);
 }
 
-.zone-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.zone-chip {
-  background: var(--surface-2, #252a45);
-  color: var(--text-primary, #ffffff);
-  border: 1px solid var(--border-medium, rgba(255, 255, 255, 0.2));
-  border-radius: var(--radius-full, 9999px);
-  padding: 6px 14px;
+.zone-error {
+  margin: 4px 0 0;
   font-size: var(--fs-xs, 12px);
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease-in-out;
-}
-
-.zone-chip:hover {
-  border-color: var(--primary, #6c7fe8);
-  background: var(--surface-3, #2e3450);
-  color: #ffffff;
-}
-
-.zone-chip.active {
-  background: var(--primary, #6c7fe8);
-  color: #ffffff;
-  border-color: var(--primary, #6c7fe8);
-  box-shadow: 0 2px 8px rgba(108, 127, 232, 0.4);
+  color: var(--ion-color-danger, #eb445a);
+  font-weight: 500;
 }
 
 .form-actions {

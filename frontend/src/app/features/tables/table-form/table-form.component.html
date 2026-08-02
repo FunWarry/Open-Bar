@@ -5,7 +5,7 @@
         <ion-icon slot="icon-only" name="arrow-back-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
-    <ion-title>{{ isEditMode ? 'Modifier la Table' : 'Nouvelle Table' }}</ion-title>
+    <ion-title>{{ (isEditMode ? 'TABLES.EDIT' : 'TABLES.ADD') | transloco }}</ion-title>
     <ion-buttons slot="end">
       <ion-button (click)="onCancel()" (keydown.enter)="onCancel()" data-testid="table-close-btn">
         <ion-icon slot="icon-only" name="close-outline"></ion-icon>
@@ -29,30 +29,37 @@
     </app-input-field>
 
     <div class="zone-field-container">
-      <app-input-field
-        formControlName="zone"
-        label="Zone"
-        placeholder="ex: Terrasse, Salle, Bar, Mezzanine..."
-        icon="location-outline"
-        [required]="true"
-        [errorMessage]="tableForm.get('zone')?.hasError('required') && tableForm.get('zone')?.touched ? 'La zone est requise' : ''"
-        testId="table-zone-input">
-      </app-input-field>
-
-      <div class="zone-suggestions">
-        <span class="suggestions-label">Zones fréquentes :</span>
-        <div class="zone-chips">
-          @for (z of existingZones; track z) {
-            <button
-              type="button"
-              class="zone-chip"
-              [class.active]="tableForm.get('zone')?.value === z"
-              (click)="selectZone(z)">
-              {{ z }}
-            </button>
-          }
-        </div>
+      <div class="zone-select-label">
+        <ion-icon name="location-outline"></ion-icon>
+        <span>{{ 'TABLES.ZONE' | transloco }} <span class="required-star">*</span></span>
       </div>
+
+      @if (zonesLoading) {
+        <div class="zone-loading" data-testid="zone-loading">
+          <ion-spinner name="crescent" color="primary"></ion-spinner>
+          <span>{{ 'TABLES.LOADING_ZONES' | transloco }}</span>
+        </div>
+      } @else if (zones.length === 0) {
+        <div class="zone-empty" data-testid="zone-empty">
+          <ion-icon name="warning-outline" color="warning"></ion-icon>
+          <span>{{ 'TABLES.NO_ZONES_CONFIGURED' | transloco }}</span>
+        </div>
+      } @else {
+        <ion-select
+          formControlName="zone"
+          interface="popover"
+          [placeholder]="'TABLES.SELECT_ZONE' | transloco"
+          data-testid="table-zone-select"
+          class="zone-select"
+          [class.invalid]="tableForm.get('zone')?.invalid && tableForm.get('zone')?.touched">
+          @for (zone of zones; track zone.id) {
+            <ion-select-option [value]="zone.nom">{{ zone.nom }}</ion-select-option>
+          }
+        </ion-select>
+        @if (tableForm.get('zone')?.hasError('required') && tableForm.get('zone')?.touched) {
+          <p class="zone-error" data-testid="zone-error">{{ 'TABLES.ZONE_REQUIRED' | transloco }}</p>
+        }
+      }
     </div>
 
     <app-input-field
@@ -68,11 +75,11 @@
 
     <div class="form-actions">
       <ion-button fill="outline" color="medium" type="button" (click)="onCancel()" (keydown.enter)="onCancel()" data-testid="table-cancel-btn">
-        Annuler
+        {{ 'COMMON.CANCEL' | transloco }}
       </ion-button>
       <ion-button color="primary" type="submit" [disabled]="tableForm.invalid" data-testid="table-submit-btn">
         <ion-icon slot="start" name="checkmark-circle"></ion-icon>
-        {{ isEditMode ? 'Modifier' : 'Créer' }}
+        {{ (isEditMode ? 'COMMON.SAVE' : 'ZONE_MANAGER.CREATE') | transloco }}
       </ion-button>
     </div>
 

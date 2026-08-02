@@ -1,6 +1,6 @@
 # OpenBar — État des Features & Roadmap
 
-> Dernière mise à jour : 2 août 2026 — PR #223 : Gestion directe des étages (création, édition, suppression) dans ZoneManagerComponent
+> Dernière mise à jour : 2 août 2026 — PR #224 : Alignement Figma TableListComponent & TableFormComponent + Audit complet 8 pages Figma (Roadmap 18 tickets)
 
 ## Tableau des Features
 
@@ -28,8 +28,8 @@
 | Cocktails CRUD | ✅ | ✅ | ✅ | — |
 | Saisonnalité cocktails | ✅ | ✅ | ✅ | — |
 | Variantes & Déduction auto stocks (#185/#182) | ✅ | ✅ | ✅ | Modal sélection & personnalisation |
-| Ingrédients CRUD & Routage (/ingredients) (#219) | ✅ | ✅ | ✅ | Endpoint `GET /api/ingredients`, routes `/ingredients` (+ new/detail/edit), guards & tests (923/923 PASS) |
-| Tables CRUD | ✅ | ✅ | ✅ | — |
+| Ingrédients CRUD & Routage (/ingredients) (#219) | ✅ | ✅ | ✅ | Endpoint `GET /api/ingredients`, routes `/ingredients` (+ new/detail/edit), guards & tests |
+| Tables CRUD & Alignement Figma | ✅ | ✅ | ✅ | `TableListComponent` et `TableFormComponent` alignés Figma, chargement dynamique des zones via `ZoneService`, i18n FR/EN |
 | Transfert commande entre tables (#186/#205) | ✅ | ✅ | ✅ | Bouton & TransfertModalComponent raccordés (#205/#207) |
 | Commandes | ✅ | ✅ | ✅ | — |
 | Passage commande publique QR (#184) | ✅ | ✅ | ✅ | — |
@@ -50,15 +50,37 @@
 | Vue Client QR Code (passage commande + suivi STOMP) | ✅ | ✅ | ✅ | Vue Client mobile complète (`/client/commande`, `/client/suivi/:id`) |
 | Fuseau horaire paramétrable (Etablissement / TimeService) | ✅ | ✅ | ✅ | TimeZone configurable par l'admin + fallback Système |
 | Journal d'audit système (/api/audit-logs) (#206) | ✅ | ✅ | ✅ | Component & Service Admin |
-| Gestion directe des Étages (#222/#223) | ✅ | ✅ | ✅ | EtageEntity, EtageController, EtageService, EtageRepository, EtageRequestDTO/ResponseDTO, etage.service.ts, ZoneManagerComponent onglet Étages (CRUD) |
+| Gestion directe des Étages (#222/#223) | ✅ | ✅ | ✅ | EtageEntity, EtageController, EtageService, ZoneManagerComponent onglet Étages |
 | TopBar globale conforme Figma (#208) | — | ✅ | ✅ | NavbarComponent |
 | NavBar / Sidebar 64-220px globale Figma (#209) | — | ✅ | ✅ | SidebarComponent |
 | Refacto Design System & Composants Atomiques Figma (#210) | — | ✅ | ✅ | Atoms UI Figma |
 | Harmonisation Vues Applicatives Figma (#211) | — | ✅ | ✅ | ProductCard, StatCard, etc. |
 
-## Features Manquantes Prioritaires (Frontend & UI Figma)
+## Roadmap des Tickets Restants (Audit Figma 8 pages)
 
-*Toutes les vues applicatives, composants atomiques et le routage des ingrédients sont 100% implémentés et validés.*
+### 🔴 Priorité HAUTE
+- **Ticket #A** : `feat: Vue Client — Écran Scanner QR Code [CLIENT]` (Figma 636:988)
+- **Ticket #B** : `feat: Barman — Vue Globale Stock [BARMAN, MANAGER]` (Figma 488:3566)
+- **Ticket #C** : `feat: Facturation — Vue Récap Journée [MANAGER]` (Figma 628:1096)
+- **Ticket #D** : `feat: Facturation — Vue Règlement Individuel Post-Split [MANAGER, SERVEUR]` (Figma 630:1264)
+- **Ticket #E** : `feat: Écran Onboarding — Flow 1ère connexion par rôle [TOUS]` (Figma 633:1100–1173)
+- **Ticket #F** : `feat: Composant EmptyState réutilisable [DS]` (Figma 540:1056)
+
+### 🟡 Priorité MOYENNE
+- **Ticket #G** : `feat: Vue Barman — Ingrédients en mode Grille de Cartes [BARMAN]` (Figma 488:3524)
+- **Ticket #H** : `feat: Manager — Gestion Employés — Pagination et champs Shifts [MANAGER]` (Figma 492:1514)
+- **Ticket #I** : `feat: Manager — EDT Planning hebdomadaire complet [MANAGER]` (Figma 492:1556)
+- **Ticket #J** : `feat: Profil — Section Préférences et toggle notifications [TOUS]` (Figma 540:946)
+- **Ticket #K** : `feat: Facturation — Modal Règlement — Champ Pourboire [MANAGER, SERVEUR]` (Figma 628:1068)
+- **Ticket #L** : `feat: Vue Serveur Mobile — Bottom Navigation & MobileTableCard [SERVEUR]` (Figma 632:2240)
+
+### 🟢 Priorité BASSE
+- **Ticket #M** : `fix: Bug dateLivraison set sur PRET au lieu de LIVREE [BACKEND]`
+- **Ticket #N** : `refactor: Supprimer allow-circular-references [BACKEND]`
+- **Ticket #O** : `fix: Exceptions génériques RuntimeException → exceptions métier [BACKEND]`
+- **Ticket #P** : `feat: Facturation — Format ticket 58mm [FACTURATION]` (Figma 640:1220)
+- **Ticket #Q** : `fix: Barman — Panel Stock — Alignement Figma complet [BARMAN]` (Figma 488:3340)
+- **Ticket #R** : `fix: Profil — Données formulaire non pré-remplies depuis le store NgRx [AUTH]`
 
 ## Dette Technique Active
 
@@ -72,6 +94,7 @@
 
 | PR / Issue | Description |
 |------------|-------------|
+| #224 | Alignement Figma TableListComponent & TableFormComponent : Sélecteur dynamique de zones branché sur `ZoneService`, i18n FR/EN complet (`ZONE_REQUIRED`, `SELECT_ZONE`, etc.), cartes de tables restylisées Dark Theme (wrapper-card, table-card), boutons d'action avec data-testid (`table-view-btn`, `table-edit-btn`). Audit complet des 8 pages Figma et établissement de la feuille de route des 18 tickets restants. |
 | #223 (#222) | Gestion directe des Étages : nouveau modèle `EtageEntity` (table `etages`), `EtageController` CRUD REST (`GET/POST/PUT /api/etages`, `DELETE /api/etages/{id}`), `EtageService` avec seed `@PostConstruct` (5 étages par défaut), validation code unique, cascade code vers zones associées. Frontend : `etage.service.ts`, onglet Étages dans `ZoneManagerComponent` (création/édition/suppression), i18n fr/en. Tests : `EtageServiceTest` (12 cas), `EtageControllerTest` (5 cas), `etage.service.spec.ts`, `zone-manager.component.spec.ts` (16 cas). SonarCloud couverture > 80%. |
 | #219 | Routage et intégration de la gestion des ingrédients (`/ingredients`, `/ingredients/new`, `/ingredients/:id`, `/ingredients/:id/edit`) avec `AuthGuard` et `RoleGuard(['ADMIN', 'MANAGER', 'BARMAN'])`. Endpoint `GET /api/ingredients` backend + `getAllIngredients()` service. Correction du warning `<ion-refresher> must be used inside ion-content` sur toutes les vues listes (`ingredient-list`, `cocktail-list`, `commande-list`, `table-list`). |
 | #204 (#203) | Service UserService & Raccordement CRUD Utilisateurs Admin : Service REST `/api/users`, UserListComponent (liste, création, modification, suppression), spinners, toasts i18n, attributs data-testid et tests unitaires Jasmine/Karma (858/858 OK) |

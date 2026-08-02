@@ -9,7 +9,10 @@ import {
   IonTitle,
   IonButtons,
   IonButton,
-  IonIcon
+  IonIcon,
+  IonSelect,
+  IonSelectOption,
+  IonSpinner
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -18,14 +21,21 @@ import {
   peopleOutline,
   checkmarkCircle,
   closeOutline,
-  arrowBackOutline
+  arrowBackOutline,
+  warningOutline
 } from 'ionicons/icons';
+import { TranslocoModule } from '@jsverse/transloco';
 import { TableService } from '../../../core/services/table.service';
+import { ZoneService, ZoneBar } from '../../../core/services/zone.service';
 import { InputFieldComponent } from '../../../core/components/ui/input-field/input-field.component';
 
 /**
  * Form component for creating or editing a TableBar entity in OpenBar.
- * Supports custom dynamic Zone management for Managers and Admins.
+ *
+ * The Zone field is populated dynamically by fetching all configured zones
+ * from the API via {@link ZoneService}, replacing the previous hardcoded
+ * chip list. A loading spinner is shown while zones are being fetched and
+ * an informational message is displayed when no zones are configured yet.
  */
 @Component({
   selector: 'app-table-form',
@@ -40,22 +50,37 @@ import { InputFieldComponent } from '../../../core/components/ui/input-field/inp
     IonButtons,
     IonButton,
     IonIcon,
+    IonSelect,
+    IonSelectOption,
+    IonSpinner,
     InputFieldComponent,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    TranslocoModule
   ]
 })
 export class TableFormComponent implements OnInit {
+  /** Reactive form group for the table creation / edit form. */
   tableForm: FormGroup;
+
+  /** Whether the form is in edit mode (true) or create mode (false). */
   isEditMode = false;
+
+  /** The ID of the table being edited, or null in create mode. */
   tableId: number | null = null;
-  existingZones: string[] = ['Terrasse', 'Salle', 'Bar', 'Étage', 'VIP'];
+
+  /** List of zones fetched from the API. */
+  zones: ZoneBar[] = [];
+
+  /** True while zones are being loaded from the server. */
+  zonesLoading = true;
 
   constructor(
     private readonly fb: FormBuilder,
     private readonly router: Router,
     private readonly route: ActivatedRoute,
     private readonly toastCtrl: ToastController,
-    private readonly tableService: TableService
+    private readonly tableService: TableService,
+    private readonly zoneService: ZoneService
   ) {
     addIcons({
       gridOutline,
@@ -63,7 +88,8 @@ export class TableFormComponent implements OnInit {
       peopleOutline,
       checkmarkCircle,
       closeOutline,
-      arrowBackOutline
+      arrowBackOutline,
+      warningOutline
     });
 
     this.tableForm = this.fb.group({
@@ -73,6 +99,7 @@ export class TableFormComponent implements OnInit {
     });
   }
 
+  /** Loads zones from the API and pre-fills the form in edit mode. */
   ngOnInit(): void {
     this.loadZones();
     const id = this.route.snapshot.params['id'];
@@ -98,23 +125,25 @@ export class TableFormComponent implements OnInit {
     }
   }
 
+  /**
+   * Fetches all configured zones from the API and populates the zone dropdown.
+   * Resets {@link zonesLoading} once the request completes (success or error).
+   */
   loadZones(): void {
-    this.tableService.getZones().subscribe({
+    this.zonesLoading = true;
+    this.zoneService.getAll().subscribe({
       next: (zones) => {
-        if (zones && zones.length > 0) {
-          const combined = new Set([...this.existingZones, ...zones]);
-          this.existingZones = Array.from(combined);
-        }
+        this.zones = zones;
+        this.zonesLoading = false;
       },
-      error: () => {}
+      error: () => {
+        this.zones = [];
+        this.zonesLoading = false;
+      }
     });
   }
 
-  selectZone(z: string): void {
-    this.tableForm.patchValue({ zone: z });
-    this.tableForm.get('zone')?.markAsTouched();
-  }
-
+  /** Submits the form: calls create or update depending on the mode. */
   onSubmit(): void {
     if (this.tableForm.invalid) return;
     const payload = this.tableForm.value;
@@ -142,7 +171,9 @@ export class TableFormComponent implements OnInit {
     });
   }
 
+  /** Navigates back to the tables list without saving. */
   onCancel(): void {
     this.router.navigate(['/tables']);
   }
 }
+
