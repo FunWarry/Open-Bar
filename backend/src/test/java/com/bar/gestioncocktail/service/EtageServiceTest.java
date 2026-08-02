@@ -55,6 +55,16 @@ class EtageServiceTest {
     }
 
     @Test
+    @DisplayName("initDefaultEtages should do nothing if count > 0")
+    void initDefaultEtages_whenNotEmpty_shouldNotSeed() {
+        when(etageRepository.count()).thenReturn(5L);
+
+        etageService.initDefaultEtages();
+
+        verify(etageRepository, never()).save(any(EtageEntity.class));
+    }
+
+    @Test
     @DisplayName("getAllEtages should return list ordered by position")
     void getAllEtages_shouldReturnList() {
         when(etageRepository.findAllByOrderByOrdreAsc()).thenReturn(List.of(sampleEtage));
@@ -75,6 +85,17 @@ class EtageServiceTest {
 
         assertThat(created.getCode()).isEqualTo("VIP");
         assertThat(created.getNom()).isEqualTo("Espace VIP");
+    }
+
+    @Test
+    @DisplayName("createEtage with null ordre should default to 0")
+    void createEtage_nullOrdre_defaultsToZero() {
+        when(etageRepository.existsByCode("VIP")).thenReturn(false);
+        when(etageRepository.save(any(EtageEntity.class))).thenAnswer(i -> i.getArgument(0));
+
+        EtageEntity created = etageService.createEtage("VIP", "Espace VIP", null);
+
+        assertThat(created.getOrdre()).isZero();
     }
 
     @Test
@@ -116,6 +137,29 @@ class EtageServiceTest {
 
         assertThat(updated.getNom()).isEqualTo("Rez-de-chaussée Modifié");
         assertThat(updated.getOrdre()).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("updateEtage should cascade code updates to associated zones")
+    void updateEtage_codeChange_cascadesToZones() {
+        when(etageRepository.findById(1L)).thenReturn(Optional.of(sampleEtage));
+        when(etageRepository.existsByCode("MAIN_FLOOR")).thenReturn(false);
+        when(etageRepository.save(any(EtageEntity.class))).thenAnswer(i -> i.getArgument(0));
+
+        etageService.updateEtage(1L, "MAIN_FLOOR", "Main Floor", 1);
+
+        verify(zoneRepository).findByEtage("RDC");
+    }
+
+    @Test
+    @DisplayName("updateEtage should throw exception when new code collides")
+    void updateEtage_duplicateCode_throwsException() {
+        when(etageRepository.findById(1L)).thenReturn(Optional.of(sampleEtage));
+        when(etageRepository.existsByCode("EXISTING")).thenReturn(true);
+
+        assertThatThrownBy(() -> etageService.updateEtage(1L, "EXISTING", "New Name", 1))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("existe déjà");
     }
 
     @Test
