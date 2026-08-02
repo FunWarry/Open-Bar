@@ -7,6 +7,7 @@ import com.bar.gestioncocktail.model.EstablishmentConfig;
 import com.bar.gestioncocktail.model.Facture;
 import com.bar.gestioncocktail.model.FactureItem;
 import com.bar.gestioncocktail.model.VatRate;
+import com.bar.gestioncocktail.exception.BusinessException;
 import org.springframework.stereotype.Service;
 
 import com.lowagie.text.DocumentException;
@@ -83,7 +84,7 @@ public class PdfService {
             return out.toByteArray();
 
         } catch (DocumentException | IOException e) {
-            throw new IllegalStateException("Erreur génération PDF facture " + facture.getId(), e);
+            throw new BusinessException("Erreur génération PDF facture " + facture.getId() + " : " + e.getMessage());
         }
     }
 

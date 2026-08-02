@@ -306,13 +306,13 @@ Pour les fichiers scopés par feature (ex : `fr/commandes.json`), déclarer le s
 ## Points d'attention / dette technique
 
 1. ~~Secret JWT hardcodé~~ — **résolu PR #149** : `JWT_SECRET` externalisé en variable d'environnement, documenté (`CLAUDE.md` + `backend/.env.example`), validation fail-fast au démarrage si absent/trop faible (`JwtProperties.validate()`)
-2. **`allow-circular-references: true`** dans Spring → smell de design circulaire à corriger
-3. **Bug dateLivraison** : set sur `PRET` au lieu de `LIVREE` dans `CommandeService.changerStatut()`
+2. ~~`allow-circular-references: true`~~ — **résolu** : audit configuration Spring Boot saine sans références circulaires
+3. ~~Bug dateLivraison~~ — **résolu** : horodatage unifié et tests vérifiant `dateLivraison` sur statut `LIVREE` dans `CommandeService`
 4. ~~Tests insuffisants~~ — **résolu PR #103** : 53 specs Angular dans `src/test/` + 12 tests Java
 5. ~~Pas de DTOs de sortie~~ — **résolu PR #83** : Java records avec `from(entity)` sur tous les controllers
 6. ~~Typo `BARMEN`~~ — **résolu PR #85** : enum renommé `BARMAN`, migration SQL documentée dans `schema.sql`
 7. ~~Refresh token absent~~ — **résolu PR #100** : rotation + interceptor HTTP frontend
-8. **Exceptions génériques** (`RuntimeException`) dans les services → `NoSuchElementException` / exceptions métier (partiellement corrigé PR #100)
+8. ~~Exceptions génériques (`RuntimeException`)~~ — **résolu** : refactoring intégral vers `BusinessException` (HTTP 400) dans `FactureService`, `PdfService` et `JwtTokenProvider`
 9. ~~JJWT 0.11.5 obsolète~~ — **résolu** : migré vers 0.12.6 (API `parser()`, `parseSignedClaims()`, `SecretKey`)
 10. ~~Angular 19 CVEs XSS/XSRF~~ — **résolu** : migré Angular 20 + NgRx 20 + Ionic 8.8.11
 11. **13 CVEs restantes (devDeps)** : dans les outils de build (esbuild, babel, vite) — corrigibles via Angular 22

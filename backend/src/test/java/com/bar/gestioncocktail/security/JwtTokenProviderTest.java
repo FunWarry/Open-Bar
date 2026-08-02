@@ -1,6 +1,7 @@
 package com.bar.gestioncocktail.security;
 
 import com.bar.gestioncocktail.config.JwtProperties;
+import com.bar.gestioncocktail.exception.BusinessException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -53,7 +54,7 @@ class JwtTokenProviderTest {
 
     @Test
     void testGenerateTokenNullAuthenticationThrowsException() {
-        assertThrows(IllegalArgumentException.class, () -> jwtTokenProvider.generateToken((Authentication) null));
+        assertThrows(BusinessException.class, () -> jwtTokenProvider.generateToken((Authentication) null));
     }
 
     @Test
