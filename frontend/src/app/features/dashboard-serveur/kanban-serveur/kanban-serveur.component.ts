@@ -13,6 +13,7 @@ import {
 import { addIcons } from 'ionicons';
 import { checkmarkOutline, banOutline, refreshOutline } from 'ionicons/icons';
 import { DashboardServeurService } from '../services/dashboard-serveur.service';
+import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
 import { NotificationService } from '../../../core/services/notification.service';
 import { Commande, CommandeStatut } from '../../../core/models/commande.model';
 import { TableView } from '../models/table-view.model';
@@ -88,7 +89,7 @@ export class KanbanServeurComponent implements OnInit, OnDestroy {
         takeUntil(this.destroy$),
         finalize(() => {
           this.isLoading = false;
-          if (refreshEvent) refreshEvent.target.complete();
+          if (refreshEvent) safeCompleteRefresher(refreshEvent);
         }),
       )
       .subscribe({

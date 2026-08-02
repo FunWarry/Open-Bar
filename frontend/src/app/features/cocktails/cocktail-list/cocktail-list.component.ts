@@ -15,6 +15,7 @@ import { add, create, trash, leafOutline, toggleOutline } from 'ionicons/icons';
 import { AsyncPipe, CurrencyPipe } from '@angular/common';
 import { CocktailService } from '../../../core/services/cocktail.service';
 import { Cocktail } from '../../../core/models/cocktail.model';
+import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
 
 @Component({
   selector: 'app-cocktail-list',
@@ -60,7 +61,7 @@ export class CocktailListComponent implements OnInit, OnDestroy {
         takeUntil(this.destroy$),
         finalize(() => {
           this.isLoading = false;
-          if (refreshEvent) refreshEvent.target.complete();
+          if (refreshEvent) safeCompleteRefresher(refreshEvent);
         }),
       )
       .subscribe({

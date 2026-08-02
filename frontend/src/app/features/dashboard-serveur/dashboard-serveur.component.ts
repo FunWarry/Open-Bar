@@ -15,6 +15,7 @@ import { listOutline } from 'ionicons/icons';
 import { TableDetailModalComponent } from './components/table-detail-modal/table-detail-modal.component';
 import { NotificationService } from '../../core/services/notification.service';
 import { DashboardServeurService } from './services/dashboard-serveur.service';
+import { safeCompleteRefresher } from '../../core/utils/refresher-utils';
 import { TableView } from './models/table-view.model';
 
 import { MobileTableCardComponent } from './components/mobile-table-card/mobile-table-card.component';
@@ -94,7 +95,7 @@ export class DashboardServeurComponent implements OnInit, OnDestroy {
         takeUntil(this.destroy$),
         finalize(() => {
           this.isLoading = false;
-          if (refreshEvent) refreshEvent.target.complete();
+          if (refreshEvent) safeCompleteRefresher(refreshEvent);
         }),
       )
       .subscribe({

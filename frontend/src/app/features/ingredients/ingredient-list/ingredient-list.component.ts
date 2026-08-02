@@ -15,6 +15,7 @@ import { AsyncPipe } from '@angular/common';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { IngredientService } from '../../../core/services/ingredient.service';
 import { Ingredient } from '../../../core/models/ingredient.model';
+import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
 
 /**
  * List component displaying all inventory ingredients in OpenBar.
@@ -68,7 +69,7 @@ export class IngredientListComponent implements OnInit, OnDestroy {
         takeUntil(this.destroy$),
         finalize(() => {
           this.isLoading = false;
-          if (refreshEvent) refreshEvent.target.complete();
+          if (refreshEvent) safeCompleteRefresher(refreshEvent);
         }),
       )
       .subscribe({

@@ -16,6 +16,7 @@ import { KanbanBoardComponent } from './components/kanban-board/kanban-board.com
 import { DashboardManagerService } from './services/dashboard-manager.service';
 import { DashboardStats, TopCocktail } from './models/dashboard-stats.model';
 import { OngoingOrder } from './models/ongoing-order.model';
+import { safeCompleteRefresher } from '../../core/utils/refresher-utils';
 
 @Component({
   selector: 'app-dashboard-manager',
@@ -93,8 +94,8 @@ export class DashboardManagerComponent implements OnInit, OnDestroy {
     this.dashboardService.getStats()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: stats => { this.stats = stats; event.target.complete(); },
-        error: () => event.target.complete(),
+        next: stats => { this.stats = stats; safeCompleteRefresher(event); },
+        error: () => safeCompleteRefresher(event),
       });
   }
 

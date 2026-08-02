@@ -19,6 +19,7 @@ import { CommandeCardComponent } from './components/commande-card/commande-card.
 import { StockAlertBannerComponent } from '../../core/components/stock-alert-banner/stock-alert-banner.component';
 import { NotificationService } from '../../core/services/notification.service';
 import { DashboardBarmanService } from './services/dashboard-barman.service';
+import { safeCompleteRefresher } from '../../core/utils/refresher-utils';
 import { CommandeView } from './models/commande-view.model';
 
 import { RoleBadgeComponent } from '../../core/components/ui/role-badge/role-badge.component';
@@ -158,7 +159,7 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
 
   onRefresh(event: any) {
     this.chargerCommandes();
-    setTimeout(() => event.target.complete(), 500);
+    setTimeout(() => safeCompleteRefresher(event), 500);
   }
 
   trackById(_: number, cmd: CommandeView): number {

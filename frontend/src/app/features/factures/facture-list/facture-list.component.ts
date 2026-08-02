@@ -13,6 +13,7 @@ import { addIcons } from 'ionicons';
 import { receiptOutline, chevronForwardOutline } from 'ionicons/icons';
 import { FactureService } from '../services/facture.service';
 import { Facture } from '../models/facture.model';
+import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
 
 @Component({
   selector: 'app-facture-list',
@@ -56,12 +57,11 @@ export class FactureListComponent implements OnInit, OnDestroy {
   }
 
   onRefresh(event: CustomEvent) {
-    const target = event.target as HTMLIonRefresherElement;
     this.factureService.getAllFactures()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: f => { this.factures = f; target.complete(); },
-        error: () => target.complete()
+        next: f => { this.factures = f; safeCompleteRefresher(event); },
+        error: () => safeCompleteRefresher(event)
       });
   }
 

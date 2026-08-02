@@ -48,6 +48,7 @@ import {
 
 import { AuditLogService } from '../../../core/services/audit-log.service';
 import { AuditLog } from '../../../core/models/audit-log.model';
+import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
 
 /**
  * Component for consulting and filtering system audit logs in the Admin area.
@@ -196,11 +197,11 @@ export class AuditLogsComponent implements OnInit {
     this.auditLogService.getAuditLogs().subscribe({
       next: (data) => {
         this.logs.set(data || []);
-        event.target.complete();
+        safeCompleteRefresher(event);
       },
       error: (err) => {
         console.error('Error refreshing audit logs:', err);
-        event.target.complete();
+        safeCompleteRefresher(event);
       }
     });
   }

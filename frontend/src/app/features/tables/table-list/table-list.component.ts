@@ -15,6 +15,7 @@ import { AsyncPipe } from '@angular/common';
 import { TableService } from '../../../core/services/table.service';
 import { TableBar } from '../../../core/models/table.model';
 import { ZoneManagerComponent } from '../zone-manager/zone-manager.component';
+import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
 
 @Component({
   selector: 'app-table-list',
@@ -60,7 +61,7 @@ export class TableListComponent implements OnInit, OnDestroy {
         takeUntil(this.destroy$),
         finalize(() => {
           this.isLoading = false;
-          if (refreshEvent) refreshEvent.target.complete();
+          if (refreshEvent) safeCompleteRefresher(refreshEvent);
         }),
       )
       .subscribe({

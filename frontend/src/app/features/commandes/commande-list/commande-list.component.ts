@@ -15,6 +15,7 @@ import { eye, banOutline } from 'ionicons/icons';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { CommandeService } from '../../../core/services/commande.service';
 import { Commande, CommandeStatut } from '../../../core/models/commande.model';
+import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
 
 @Component({
   selector: 'app-commande-list',
@@ -68,7 +69,7 @@ export class CommandeListComponent implements OnInit, OnDestroy {
         takeUntil(this.destroy$),
         finalize(() => {
           this.isLoading = false;
-          if (refreshEvent) refreshEvent.target.complete();
+          if (refreshEvent) safeCompleteRefresher(refreshEvent);
         }),
       )
       .subscribe({
