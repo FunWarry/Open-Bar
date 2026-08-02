@@ -10,7 +10,7 @@ import {
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { arrowBack, create, eye } from 'ionicons/icons';
-import { NgIf, AsyncPipe, DatePipe, CurrencyPipe } from '@angular/common';
+import { AsyncPipe, DatePipe, CurrencyPipe } from '@angular/common';
 import { TableService } from '../../../core/services/table.service';
 import { CommandeService } from '../../../core/services/commande.service';
 import { TableBar } from '../../../core/models/table.model';
@@ -24,7 +24,7 @@ import { Commande } from '../../../core/models/commande.model';
   imports: [
     IonHeader, IonToolbar, IonTitle, IonContent,
     IonBadge, IonButton, IonButtons, IonIcon,
-    NgIf, AsyncPipe, DatePipe, CurrencyPipe,
+    AsyncPipe, DatePipe, CurrencyPipe,
   ],
 })
 export class TableDetailComponent implements OnInit, OnDestroy {
