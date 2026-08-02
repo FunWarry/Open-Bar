@@ -174,14 +174,14 @@ ion-segment {
 }
 
 .code-badge {
-  background: rgba(16, 185, 129, 0.15);
-  color: #10b981;
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
   border-color: rgba(16, 185, 129, 0.3);
 }
 
 .ordre-badge {
-  background: rgba(245, 158, 11, 0.15);
-  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
   border: 1px solid rgba(245, 158, 11, 0.3);
   padding: 3px 8px;
   border-radius: var(--radius-full, 9999px);
