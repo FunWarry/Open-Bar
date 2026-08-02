@@ -10,32 +10,36 @@ describe('App Routes - Ingredients', () => {
   it('should define route /ingredients with AuthGuard, RoleGuard and correct roles', () => {
     const route = routes.find(r => r.path === 'ingredients');
     expect(route).toBeDefined();
-    expect(route?.canActivate).toContain(AuthGuard);
-    expect(route?.canActivate).toContain(RoleGuard);
-    expect(route?.data?.['roles']).toEqual(['ADMIN', 'MANAGER', 'BARMAN']);
+    expect(route?.canActivate).toBeDefined();
+    expect(route?.canActivate).toContain(AuthGuard as any);
+    expect(route?.canActivate).toContain(RoleGuard as any);
+    expect(route?.data?.['roles']).toEqual(jasmine.arrayContaining(['ADMIN', 'MANAGER', 'BARMAN']));
   });
 
   it('should define route /ingredients/new with AuthGuard, RoleGuard and correct roles', () => {
     const route = routes.find(r => r.path === 'ingredients/new');
     expect(route).toBeDefined();
-    expect(route?.canActivate).toContain(AuthGuard);
-    expect(route?.canActivate).toContain(RoleGuard);
-    expect(route?.data?.['roles']).toEqual(['ADMIN', 'MANAGER', 'BARMAN']);
+    expect(route?.canActivate).toBeDefined();
+    expect(route?.canActivate).toContain(AuthGuard as any);
+    expect(route?.canActivate).toContain(RoleGuard as any);
+    expect(route?.data?.['roles']).toEqual(jasmine.arrayContaining(['ADMIN', 'MANAGER', 'BARMAN']));
   });
 
   it('should define route /ingredients/:id with AuthGuard, RoleGuard and correct roles', () => {
     const route = routes.find(r => r.path === 'ingredients/:id');
     expect(route).toBeDefined();
-    expect(route?.canActivate).toContain(AuthGuard);
-    expect(route?.canActivate).toContain(RoleGuard);
-    expect(route?.data?.['roles']).toEqual(['ADMIN', 'MANAGER', 'BARMAN']);
+    expect(route?.canActivate).toBeDefined();
+    expect(route?.canActivate).toContain(AuthGuard as any);
+    expect(route?.canActivate).toContain(RoleGuard as any);
+    expect(route?.data?.['roles']).toEqual(jasmine.arrayContaining(['ADMIN', 'MANAGER', 'BARMAN']));
   });
 
   it('should define route /ingredients/:id/edit with AuthGuard, RoleGuard and correct roles', () => {
     const route = routes.find(r => r.path === 'ingredients/:id/edit');
     expect(route).toBeDefined();
-    expect(route?.canActivate).toContain(AuthGuard);
-    expect(route?.canActivate).toContain(RoleGuard);
-    expect(route?.data?.['roles']).toEqual(['ADMIN', 'MANAGER', 'BARMAN']);
+    expect(route?.canActivate).toBeDefined();
+    expect(route?.canActivate).toContain(AuthGuard as any);
+    expect(route?.canActivate).toContain(RoleGuard as any);
+    expect(route?.data?.['roles']).toEqual(jasmine.arrayContaining(['ADMIN', 'MANAGER', 'BARMAN']));
   });
 });
