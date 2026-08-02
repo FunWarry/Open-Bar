@@ -1,17 +1,16 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { Observable, Subject, forkJoin } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
 import { selectIsAdmin } from '../../../core/store/auth.selectors';
 import {
   IonHeader, IonToolbar, IonTitle, IonContent,
-  IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-  IonList, IonItem, IonLabel, IonBadge, IonButton, IonButtons, IonIcon, ToastController,
+  IonBadge, IonButton, IonButtons, IonIcon, ToastController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { arrowBack, create, eye } from 'ionicons/icons';
-import { NgIf, NgFor, AsyncPipe, DatePipe, CurrencyPipe } from '@angular/common';
+import { NgIf, AsyncPipe, DatePipe, CurrencyPipe } from '@angular/common';
 import { TableService } from '../../../core/services/table.service';
 import { CommandeService } from '../../../core/services/commande.service';
 import { TableBar } from '../../../core/models/table.model';
@@ -24,9 +23,8 @@ import { Commande } from '../../../core/models/commande.model';
   standalone: true,
   imports: [
     IonHeader, IonToolbar, IonTitle, IonContent,
-    IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-    IonList, IonItem, IonLabel, IonBadge, IonButton, IonButtons, IonIcon,
-    NgIf, NgFor, AsyncPipe, DatePipe, CurrencyPipe,
+    IonBadge, IonButton, IonButtons, IonIcon,
+    NgIf, AsyncPipe, DatePipe, CurrencyPipe,
   ],
 })
 export class TableDetailComponent implements OnInit, OnDestroy {
