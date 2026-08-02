@@ -119,6 +119,7 @@
                           size="small"
                           color="danger"
                           (click)="adjustStock(ingredient, -1)"
+                          (keyup.enter)="adjustStock(ingredient, -1)"
                           [disabled]="ingredient.quantiteStock <= 0"
                           data-testid="stock-adjust-minus-btn">
                           <ion-icon name="remove-circle" slot="icon-only"></ion-icon>
@@ -129,6 +130,7 @@
                           size="small"
                           color="success"
                           (click)="adjustStock(ingredient, 1)"
+                          (keyup.enter)="adjustStock(ingredient, 1)"
                           data-testid="stock-adjust-plus-btn">
                           <ion-icon name="add-circle" slot="icon-only"></ion-icon>
                         </ion-button>
@@ -137,6 +139,7 @@
                           size="small"
                           color="tertiary"
                           (click)="adjustStock(ingredient, 10)"
+                          (keyup.enter)="adjustStock(ingredient, 10)"
                           data-testid="stock-adjust-plus10-btn">
                           +10
                         </ion-button>
@@ -145,16 +148,16 @@
 
                     <!-- Footer Action Buttons -->
                     <div class="card-footer-actions">
-                      <ion-button fill="clear" color="primary" size="small" (click)="onView(ingredient)" data-testid="ingredient-view-btn">
+                      <ion-button fill="clear" color="primary" size="small" (click)="onView(ingredient)" (keyup.enter)="onView(ingredient)" data-testid="ingredient-view-btn">
                         <ion-icon slot="icon-only" name="eye"></ion-icon>
                       </ion-button>
                       @if (canEdit$ | async) {
-                        <ion-button fill="clear" color="tertiary" size="small" (click)="onEdit(ingredient)" data-testid="ingredient-edit-btn">
+                        <ion-button fill="clear" color="tertiary" size="small" (click)="onEdit(ingredient)" (keyup.enter)="onEdit(ingredient)" data-testid="ingredient-edit-btn">
                           <ion-icon slot="icon-only" name="create"></ion-icon>
                         </ion-button>
                       }
                       @if (isAdmin$ | async) {
-                        <ion-button fill="clear" color="danger" size="small" (click)="onDelete(ingredient)" data-testid="ingredient-delete-btn">
+                        <ion-button fill="clear" color="danger" size="small" (click)="onDelete(ingredient)" (keyup.enter)="onDelete(ingredient)" data-testid="ingredient-delete-btn">
                           <ion-icon slot="icon-only" name="trash"></ion-icon>
                         </ion-button>
                       }
@@ -194,26 +197,26 @@
 
                   @if (canEdit$ | async) {
                     <div slot="end" class="list-quick-adjust">
-                      <ion-button fill="clear" size="small" color="danger" (click)="adjustStock(ingredient, -1)" [disabled]="ingredient.quantiteStock <= 0">
+                      <ion-button fill="clear" size="small" color="danger" (click)="adjustStock(ingredient, -1)" (keyup.enter)="adjustStock(ingredient, -1)" [disabled]="ingredient.quantiteStock <= 0">
                         <ion-icon name="remove-circle" slot="icon-only"></ion-icon>
                       </ion-button>
-                      <ion-button fill="clear" size="small" color="success" (click)="adjustStock(ingredient, 1)">
+                      <ion-button fill="clear" size="small" color="success" (click)="adjustStock(ingredient, 1)" (keyup.enter)="adjustStock(ingredient, 1)">
                         <ion-icon name="add-circle" slot="icon-only"></ion-icon>
                       </ion-button>
                     </div>
                   }
 
                   <ion-buttons slot="end">
-                    <ion-button fill="clear" color="primary" (click)="onView(ingredient)" data-testid="ingredient-view-btn">
+                    <ion-button fill="clear" color="primary" (click)="onView(ingredient)" (keyup.enter)="onView(ingredient)" data-testid="ingredient-view-btn">
                       <ion-icon slot="icon-only" name="eye"></ion-icon>
                     </ion-button>
                     @if (canEdit$ | async) {
-                      <ion-button fill="clear" color="tertiary" (click)="onEdit(ingredient)" data-testid="ingredient-edit-btn">
+                      <ion-button fill="clear" color="tertiary" (click)="onEdit(ingredient)" (keyup.enter)="onEdit(ingredient)" data-testid="ingredient-edit-btn">
                         <ion-icon slot="icon-only" name="create"></ion-icon>
                       </ion-button>
                     }
                     @if (isAdmin$ | async) {
-                      <ion-button fill="clear" color="danger" (click)="onDelete(ingredient)" data-testid="ingredient-delete-btn">
+                      <ion-button fill="clear" color="danger" (click)="onDelete(ingredient)" (keyup.enter)="onDelete(ingredient)" data-testid="ingredient-delete-btn">
                         <ion-icon slot="icon-only" name="trash"></ion-icon>
                       </ion-button>
                     }

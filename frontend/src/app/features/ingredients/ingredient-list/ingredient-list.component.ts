@@ -9,7 +9,7 @@ import {
   IonList, IonItem, IonLabel, IonBadge, IonIcon, IonButton, IonButtons,
   IonRefresher, IonRefresherContent, IonSpinner, IonSearchbar,
   IonSegment, IonSegmentButton, IonGrid, IonRow, IonCol, IonProgressBar,
-  IonHeader, IonToolbar, IonTitle, ToastController,
+  ToastController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -40,7 +40,6 @@ import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
     IonList, IonItem, IonLabel, IonBadge, IonIcon, IonButton, IonButtons,
     IonRefresher, IonRefresherContent, IonSpinner, IonSearchbar,
     IonSegment, IonSegmentButton, IonGrid, IonRow, IonCol, IonProgressBar,
-    IonHeader, IonToolbar, IonTitle,
   ],
 })
 export class IngredientListComponent implements OnInit, OnDestroy {
@@ -126,7 +125,7 @@ export class IngredientListComponent implements OnInit, OnDestroy {
     return this.ingredients.filter(item => {
       const matchesSearch = !this.searchQuery ||
         item.nom.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-        (item.fournisseur && item.fournisseur.toLowerCase().includes(this.searchQuery.toLowerCase()));
+        Boolean(item.fournisseur?.toLowerCase().includes(this.searchQuery.toLowerCase()));
 
       const category = this.getIngredientCategory(item.nom);
       const matchesCategory = this.selectedCategory === 'ALL' || category === this.selectedCategory;
