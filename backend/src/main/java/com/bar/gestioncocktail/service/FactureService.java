@@ -631,7 +631,7 @@ public class FactureService {
             }
             return hexString.toString();
         } catch (Exception e) {
-            throw new BusinessException("Erreur de calcul du hash SHA-256 : " + e.getMessage());
+            throw new IllegalStateException("Erreur de calcul du hash SHA-256", e);
         }
     }
 }

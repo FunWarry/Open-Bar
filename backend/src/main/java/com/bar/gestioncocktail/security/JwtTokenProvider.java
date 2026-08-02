@@ -1,7 +1,6 @@
 package com.bar.gestioncocktail.security;
 
 import com.bar.gestioncocktail.config.JwtProperties;
-import com.bar.gestioncocktail.exception.BusinessException;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.security.core.Authentication;
@@ -49,7 +48,7 @@ public class JwtTokenProvider {
         if (authentication != null && authentication.getName() != null) {
             return generateToken(authentication.getName());
         }
-        throw new BusinessException("Authentication principal cannot be null");
+        throw new IllegalStateException("Authentication principal cannot be null");
     }
 
     /**
