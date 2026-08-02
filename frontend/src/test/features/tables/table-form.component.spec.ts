@@ -6,12 +6,14 @@ import { ToastController } from '@ionic/angular/standalone';
 import { of } from 'rxjs';
 import { TableFormComponent } from '../../../app/features/tables/table-form/table-form.component';
 import { TableService } from '../../../app/core/services/table.service';
+import { ZoneService } from '../../../app/core/services/zone.service';
 
 describe('TableFormComponent', () => {
   let component: TableFormComponent;
   let routerSpy: jasmine.SpyObj<Router>;
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
   let tableServiceSpy: jasmine.SpyObj<TableService>;
+  let zoneServiceSpy: jasmine.SpyObj<ZoneService>;
 
   const mockToast = { present: jasmine.createSpy('present').and.returnValue(Promise.resolve()) };
 
@@ -19,10 +21,16 @@ describe('TableFormComponent', () => {
     routerSpy = jasmine.createSpyObj('Router', ['navigate']);
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
     tableServiceSpy = jasmine.createSpyObj('TableService', ['getById', 'create', 'update', 'getZones']);
+    zoneServiceSpy = jasmine.createSpyObj('ZoneService', ['getAll']);
+
     tableServiceSpy.create.and.returnValue(of({} as any));
     tableServiceSpy.update.and.returnValue(of({} as any));
     tableServiceSpy.getZones.and.returnValue(of(['Terrasse', 'Salle', 'Bar']));
     tableServiceSpy.getById.and.returnValue(of({ id: 5, numero: 5, zone: 'INTERIEUR', capacite: 4, occupee: false, createdAt: '', updatedAt: '' }));
+
+    zoneServiceSpy.getAll.and.returnValue(of([
+      { id: 1, nom: 'Terrasse', code: 'TERRASSE', etageCode: 'RDC' }
+    ] as any));
 
     toastCtrlSpy.create.and.returnValue(Promise.resolve(mockToast as any));
 
@@ -35,6 +43,7 @@ describe('TableFormComponent', () => {
       providers: [
         { provide: Router, useValue: routerSpy },
         { provide: TableService, useValue: tableServiceSpy },
+        { provide: ZoneService, useValue: zoneServiceSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
         {
           provide: ActivatedRoute,
@@ -89,6 +98,7 @@ describe('TableFormComponent', () => {
       providers: [
         { provide: Router, useValue: routerSpy },
         { provide: TableService, useValue: tableServiceSpy },
+        { provide: ZoneService, useValue: zoneServiceSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
         {
           provide: ActivatedRoute,

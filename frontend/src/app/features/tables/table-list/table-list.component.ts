@@ -6,7 +6,7 @@ import { takeUntil, finalize } from 'rxjs/operators';
 import { selectIsAdmin } from '../../../core/store/auth.selectors';
 import {
   IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent,
-  IonGrid, IonRow, IonCol, IonBadge, IonIcon, IonButton, IonButtons,
+  IonGrid, IonRow, IonCol, IonBadge, IonIcon, IonButton,
   IonRefresher, IonRefresherContent, IonSpinner, ToastController, ModalController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -24,7 +24,7 @@ import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
   standalone: true,
   imports: [
     IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent,
-    IonGrid, IonRow, IonCol, IonBadge, IonIcon, IonButton, IonButtons,
+    IonGrid, IonRow, IonCol, IonBadge, IonIcon, IonButton,
     IonRefresher, IonRefresherContent, IonSpinner,
     AsyncPipe,
   ],
