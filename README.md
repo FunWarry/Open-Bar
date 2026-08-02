@@ -92,7 +92,7 @@ EN_ATTENTE → EN_PREPARATION → PRET → LIVREE → REGLEE
 
 ## État d'implémentation
 
-> Dernière mise à jour : 30 juillet 2026 — Resolution CSRF SPA / 403 Forbidden, Support Audit Logs (#206), Transfert de Commande (#205/#207) & CRUD Utilisateurs Admin (#203/#204)
+> Dernière mise à jour : 2 août 2026 — PR #224 : Alignement Figma Tables UI & Audit complet 8 pages Figma (Roadmap 18 tickets)
 > Légende : ✅ complet · 🔄 en cours · ❌ manquant · — non applicable
 
 | Feature | Backend | Frontend | Tests |
@@ -102,8 +102,8 @@ EN_ATTENTE → EN_PREPARATION → PRET → LIVREE → REGLEE
 | Gestion utilisateurs (admin) | ✅ | ✅ | ✅ |
 | Cocktails CRUD + saisonnalité | ✅ | ✅ | ✅ |
 | Variantes cocktails & Déduction auto stocks | ✅ | ✅ | ✅ |
-| Ingrédients CRUD | ✅ | ✅ | ✅ |
-| Tables CRUD | ✅ | ✅ | ✅ |
+| Ingrédients CRUD & Routage (/ingredients) | ✅ | ✅ | ✅ |
+| Tables CRUD & Alignement Figma (#224) | ✅ | ✅ | ✅ |
 | Commandes (liste + détail + kanban barman) | ✅ | ✅ | ✅ |
 | Transfert commande entre tables (#205/#207) | ✅ | ✅ | ✅ |
 | Passage commande publique QR Code (#184) | ✅ | ✅ | ✅ |
@@ -116,14 +116,21 @@ EN_ATTENTE → EN_PREPARATION → PRET → LIVREE → REGLEE
 | Dashboard Manager / statistiques | ✅ | ✅ | ✅ |
 | Dashboard Barman (kanban temps réel) | ✅ | ✅ | ✅ |
 | Vue Serveur (plan de salle + commandes) | ✅ | ✅ | ✅ |
-| Plan de salle interactif (Konva.js) | ✅ | ✅ | ✅ |
+| Plan de salle interactif & Gestion des Étages (#223) | ✅ | ✅ | ✅ |
 | WebSocket STOMP + Notifications | ✅ | ✅ | ✅ |
 | Alertes stock (bannière barman) | ✅ | ✅ | ✅ |
 | Fuseau horaire paramétrable (TimeService) | ✅ | ✅ | ✅ |
-| Journal d'audit système (/api/audit-logs) (#206) | ✅ | ❌ | ✅ |
-| Layout Global TopBar / NavBar Figma (#208–#211) | — | 🔄 | — |
+| Journal d'audit système (/api/audit-logs) (#206) | ✅ | ✅ | ✅ |
+| Layout Global TopBar / NavBar Figma (#208–#211) | — | ✅ | ✅ |
+| Personnalisation Thème & Palettes HSL (#217) | — | ✅ | ✅ |
 | Documentation OpenAPI / Swagger UI | ✅ | — | ✅ |
 | JavaDoc & TSDoc | ✅ | ✅ | ✅ |
+
+### 🎯 Roadmap des Tickets Restants (Audit Figma 8 pages)
+
+- 🔴 **Haute Priorité** : Scanner QR Client (#A), Vue Globale Stock Barman (#B), Récap Journée Facturation (#C), Règlement Individuel Post-Split (#D), Onboarding flow 1ère connexion (#E), Composant EmptyState réutilisable (#F)
+- 🟡 **Moyenne Priorité** : Vue Grille Ingrédients (#G), Pagination/Shifts Employés (#H), EDT Planning Backend (#I), Profil Préférences toggle son (#J), Champ pourboire règlement (#K), Mobile Bottom Nav Serveur (#L)
+- 🟢 **Basse Priorité** : Fix dateLivraison (#M), Refactor circular refs (#N), Exceptions métier (#O), Ticket 58mm (#P), Panel stock alignement (#Q), Formulaire profil pré-rempli NgRx (#R)
 
 ---
 

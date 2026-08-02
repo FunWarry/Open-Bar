@@ -320,7 +320,7 @@ Pour les fichiers scopés par feature (ex : `fr/commandes.json`), déclarer le s
 
 ## Features implémentées vs. manquantes
 
-> Dernière mise à jour : 30 juillet 2026 — CSRF SPA / 403 Forbidden, #203/#204 (CRUD Utilisateurs Admin), #205/#207 (Transfert de Commande), #206 (Audit Logs), #208–#211 (UI Layout Figma)
+> Dernière mise à jour : 2 août 2026 — PR #224 (Alignement Tables UI + Audit Figma 18 tickets)
 
 | Feature | Backend | Frontend | Tests |
 |---------|---------|----------|-------|
@@ -338,8 +338,8 @@ Pour les fichiers scopés par feature (ex : `fr/commandes.json`), déclarer le s
 | Cocktails CRUD | ✅ | ✅ | ✅ |
 | Saisonnalité cocktails | ✅ | ✅ | ✅ |
 | Variantes, Ingrédients & Déduction auto des stocks (#185/#182) | ✅ | ✅ | ✅ |
-| Ingrédients CRUD | ✅ | ✅ | ✅ |
-| Tables CRUD | ✅ | ✅ | ✅ |
+| Ingrédients CRUD & Routage (/ingredients) (#219) | ✅ | ✅ | ✅ |
+| Tables CRUD & Alignement Figma (#224) | ✅ | ✅ | ✅ |
 | Transfert de commande entre tables (#205/#207) | ✅ | ✅ | ✅ |
 | Commandes | ✅ | ✅ | ✅ |
 | Passage commande publique QR Code (#184) | ✅ | ✅ | ✅ |
@@ -356,7 +356,7 @@ Pour les fichiers scopés par feature (ex : `fr/commandes.json`), déclarer le s
 | Dashboard Manager / stats | ✅ | ✅ polling 30s | ✅ |
 | Dashboard Barman | ✅ | ✅ kanban temps réel | ✅ |
 | Vue Serveur (plan de salle + variantes modal #182) | ✅ | ✅ modal + nouvelle commande + kanban | ✅ |
-| Plan de salle interactif (Konva.js) | ✅ | ✅ | ✅ |
+| Plan de salle interactif & Direct Étages (#222/#223) | ✅ | ✅ | ✅ |
 | Vue Client QR Code (Passage commande publique + suivi STOMP) (#184) | ✅ | ✅ | ✅ |
 | Fuseau horaire paramétrable (Etablissement / TimeService) | ✅ | ✅ | ✅ |
 | Journal d'audit système (/api/audit-logs) (#206) | ✅ | ✅ | ✅ |
@@ -364,7 +364,7 @@ Pour les fichiers scopés par feature (ex : `fr/commandes.json`), déclarer le s
 | Layout Global — NavBar / Sidebar 64-220px repliable Figma (#209) | — | ✅ | ✅ |
 | Refactorisation Design System UI — Tokens Couleurs & Composants Atomiques Figma 0:1 (#210) | — | ✅ | ✅ |
 | Harmonisation Vues Applicatives Figma (#211) | — | ✅ | ✅ |
-| Personnalisation Interactive Thème & Générateur Palettes (#217) | — | ✅ | ✅ |
+| Personnalisation Interactive Thème & Palettes HSL (#217) | — | ✅ | ✅ |
 
 
 

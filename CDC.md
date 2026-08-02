@@ -725,25 +725,33 @@ Après une authentification réussie, l'utilisateur est redirigé directement ve
 
 ## 13. Prochaine session — priorités
 
-> Mis à jour le 30 juillet 2026 après résolution CSRF SPA / 403 Forbidden, PR #204 (CRUD Users Admin), PR #207 (Transfert de Commande) & Création des tickets Figma #208–#211.
+> Mis à jour le 2 août 2026 après l'audit complet des 8 pages Figma (`XSVwFk64kgtqgUN9n5qoMw`) & PR #224.
 
-### Features du backlog en cours / à venir (Backend ✅ / Frontend à raccorder)
+### Roadmap des Tickets Restants (Audit Figma)
 
-1. 📜 **#206 — Journal d'Audit Système Admin** — Interface frontend d'historique des logs système (`/api/audit-logs`) pour la traçabilité des actions d'administration.
+#### 🔴 Priorité Haute
+1. 📱 **Ticket #A — Vue Client Scanner QR Code** (`📱 Vue Client QR Code` — `636:988`) — Écran de scan de QR code caméra / saisie manuelle numéro de table avant accès au menu.
+2. 📦 **Ticket #B — Barman Vue Globale Stock** (`🍹 Vue Barman` — `488:3566`) — Vue dédiée au stock consolidé par catégorie (Alcools / Fruits & Légumes / Sirops), actions rapides & métriques.
+3. 💰 **Ticket #C — Facturation Vue Récap Journée** (`💰 Facturation` — `628:1096`) — Dashboard journalier du chiffre d'affaires avec répartition CB / Espèces / Ticket Resto.
+4. 💳 **Ticket #D — Facturation Règlement Individuel Post-Split** (`💰 Facturation` — `630:1264`) — Écran d’encaisser individuellement chaque convive post-division par article.
+5. 👋 **Ticket #E — Écran Onboarding 1ère connexion** (`🖥 Vue système commun` — `633:1100–1173`) — Flow 4 slides au premier login (Bienvenue → Choix du rôle → Tour fonctionnel → Prêt).
+6. 🧩 **Ticket #F — Composant EmptyState réutilisable** (`🖥 Vue système commun` — `540:1056`) — Composant atomique transversal pour les listes vides.
 
-### Priorité Haute UI & Layout — Conformité Charte Figma (Tickets #208–#211)
+#### 🟡 Priorité Moyenne
+7. 🍹 **Ticket #G — Vue Barman Ingrédients en Grille de Cartes** (`488:3524`) — Toggle liste / grille de cartes `IngredientCard`.
+8. 👥 **Ticket #H — Manager Gestion Employés Pagination & Shifts** (`492:1514`) — Pagination et colonnes d'heures hebdo.
+9. 📅 **Ticket #I — Manager EDT Planning Hebdomadaire Backend** (`492:1556`) — Modèle, API REST et grille 7j × N employés.
+10. 🔔 **Ticket #J — Profil Section Préférences et Toggle Son** (`540:946`) — Activation/désactivation des notifs sonores.
+11. 💵 **Ticket #K — Modal Règlement Champ Pourboire** (`628:1068`) — Champ optionnel pourboire dans le modal de règlement.
+12. 📱 **Ticket #L — Vue Serveur Mobile Bottom Navigation** (`632:2240`) — `BottomNavigation` et `MobileTableCard` pour smartphones.
 
-2. 🔝 **#208 — Global TopBar Figma** — En-tête globale (titre de page, notifications WebSocket STOMP, profil connecté, badge de rôle `120:23` et heure locale).
-3. 📐 **#209 — Global NavBar / Sidebar Figma (62:59)** — Barre de navigation latérale repliable (64-220px) adaptative selon le rôle (ADMIN, MANAGER, SERVEUR, BARMAN).
-4. 🎨 **#210 — Refacto Design System & Composants Atomiques (0:1)** — Variables/Tokens CSS et composants atomiques (`StatusBadge`, `RoleBadge`, `ActionButton`, `FilterChip`, `Toast`, `InputField`, `Toggle`, `CheckBox`).
-5. 🖼️ **#211 — Alignement Écrans Composites & Vues Figma** — Harmonisation des vues Barman (`57:2`), Manager (`57:3`), Serveur (`57:4`), Factures (`626:987`) et Vue Client (`636:987`).
-
-### Qualité & Dette Technique
-
-6. 🧪 **Tests d'intégration & E2E** — Testcontainers (Spring Boot) + Playwright (Angular) (ticket #193)
-7. 🐛 **Bug `dateLivraison`** — set sur `PRET` → doit être `LIVREE` dans `CommandeService.changerStatut()`
-8. 🔄 Supprimer `allow-circular-references: true` dans Spring (refactoring services)
-9. ⬆️ Angular 22 (correction 13 CVEs devDeps : esbuild, babel, vite)
+#### 🟢 Priorité Basse / Dette technique
+13. 🐛 **Ticket #M — Bug dateLivraison** — set sur `PRET` → doit être `LIVREE` dans `CommandeService.changerStatut()`.
+14. 🔄 **Ticket #N — Supprimer `allow-circular-references: true`** — Refactorisation des services Spring Boot.
+15. ⚠️ **Ticket #O — Exceptions métier** — Remplacer `RuntimeException` par `ResourceNotFoundException` / `BusinessException`.
+16. 🧾 **Ticket #P — Format ticket thermique 58mm** — Adaptation OpenPDF / thermal.
+17. 📦 **Ticket #Q — Barman Panel Stock Alignement** — Alignement exact du layout split 50/50.
+18. 👤 **Ticket #R — Profil Formulaire Pré-rempli NgRx** — Synchronisation fine avec `selectCurrentUser`.
 
 ### Rappels plugin Figma
 
