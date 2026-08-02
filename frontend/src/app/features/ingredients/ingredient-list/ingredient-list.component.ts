@@ -203,9 +203,7 @@ export class IngredientListComponent implements OnInit, OnDestroy {
    */
   adjustStock(ingredient: Ingredient, delta: number): void {
     const newQty = Math.max(0, (ingredient.quantiteStock || 0) + delta);
-    const updated = { ...ingredient, quantiteStock: newQty };
-
-    this.ingredientService.update(ingredient.id, updated)
+    this.ingredientService.updateStock(ingredient.id, newQty)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: async () => {

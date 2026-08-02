@@ -37,9 +37,10 @@ describe('IngredientListComponent', () => {
 
   beforeEach(async () => {
     wsSubject = new Subject<any>();
-    serviceSpy = jasmine.createSpyObj('IngredientService', ['getAll', 'update', 'delete']);
+    serviceSpy = jasmine.createSpyObj('IngredientService', ['getAll', 'update', 'updateStock', 'delete']);
     serviceSpy.getAll.and.returnValue(of(mockIngredients));
     serviceSpy.update.and.returnValue(of(mockIngredients[0]));
+    serviceSpy.updateStock.and.returnValue(of(mockIngredients[0]));
     serviceSpy.delete.and.returnValue(of(undefined as any));
 
     wsSpy = jasmine.createSpyObj('WebSocketService', ['watch']);
@@ -117,7 +118,7 @@ describe('IngredientListComponent', () => {
     component.adjustStock(component.ingredients[0], 5);
     tick();
     flushMicrotasks();
-    expect(serviceSpy.update).toHaveBeenCalledWith(1, jasmine.objectContaining({ quantiteStock: 25 }));
+    expect(serviceSpy.updateStock).toHaveBeenCalledWith(1, 25);
     expect(component.ingredients[0].quantiteStock).toBe(25);
   }));
 
@@ -126,7 +127,7 @@ describe('IngredientListComponent', () => {
     component.adjustStock(component.ingredients[0], -5);
     tick();
     flushMicrotasks();
-    expect(serviceSpy.update).toHaveBeenCalledWith(1, jasmine.objectContaining({ quantiteStock: 0 }));
+    expect(serviceSpy.updateStock).toHaveBeenCalledWith(1, 0);
   }));
 
   it('onDelete() retire l\'ingrédient de la liste', fakeAsync(() => {

@@ -381,7 +381,7 @@
     "ETAGE_DELETED": "Floor deleted"
   },
   "STOCK": {
-    "GLOBAL_TITLE": "Global Barman Stock View",
+    "GLOBAL_TITLE": "Global Stock View",
     "SEARCH_PLACEHOLDER": "Search ingredient...",
     "ALL": "All",
     "SPIRITS": "Spirits",
@@ -390,10 +390,11 @@
     "FRUITS": "Fruits",
     "OTHER": "Other",
     "OUT_OF_STOCK": "Out of Stock",
-    "NORMAL_STOCK": "Stock Normal",
+    "NORMAL_STOCK": "Normal Stock",
     "LOW_STOCK": "Low Stock",
     "VIEW_MODE_LIST": "List",
     "VIEW_MODE_GRID": "Grid",
+    "ADJUST": "Adjust",
     "ADJUST_SUCCESS": "Stock of {name} updated: {qty} {unit}",
     "ADJUST_ERROR": "Error updating stock",
     "LIVE_UPDATE": "Live WebSocket Stream Active"
