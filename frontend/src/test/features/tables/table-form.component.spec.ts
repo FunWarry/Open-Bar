@@ -5,6 +5,7 @@ import { RouterTestingModule } from '@angular/router/testing';
 import { ToastController } from '@ionic/angular/standalone';
 import { of } from 'rxjs';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { TableFormComponent } from '../../../app/features/tables/table-form/table-form.component';
 import { TableService } from '../../../app/core/services/table.service';
 import { ZoneService } from '../../../app/core/services/zone.service';
@@ -40,7 +41,8 @@ describe('TableFormComponent', () => {
         TableFormComponent,
         ReactiveFormsModule,
         RouterTestingModule,
-        HttpClientTestingModule
+        HttpClientTestingModule,
+        getTranslocoTestingModule()
       ],
       providers: [
         { provide: Router, useValue: routerSpy },
@@ -96,7 +98,8 @@ describe('TableFormComponent', () => {
         TableFormComponent,
         ReactiveFormsModule,
         RouterTestingModule,
-        HttpClientTestingModule
+        HttpClientTestingModule,
+        getTranslocoTestingModule()
       ],
       providers: [
         { provide: Router, useValue: routerSpy },
