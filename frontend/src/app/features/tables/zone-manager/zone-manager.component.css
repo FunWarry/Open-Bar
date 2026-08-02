@@ -174,14 +174,18 @@ ion-segment {
 }
 
 .code-badge {
-  background: rgba(16, 185, 129, 0.2);
-  color: #34d399;
-  border-color: rgba(16, 185, 129, 0.3);
+  background: rgba(16, 185, 129, 0.15);
+  color: #6ee7b7;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  padding: 3px 8px;
+  border-radius: var(--radius-full, 9999px);
+  font-size: 11px;
+  font-weight: 700;
 }
 
 .ordre-badge {
-  background: rgba(245, 158, 11, 0.2);
-  color: #fbbf24;
+  background: rgba(245, 158, 11, 0.15);
+  color: #fcd34d;
   border: 1px solid rgba(245, 158, 11, 0.3);
   padding: 3px 8px;
   border-radius: var(--radius-full, 9999px);

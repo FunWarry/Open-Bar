@@ -1,19 +1,19 @@
 <ion-header class="ion-no-border">
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-button (click)="onClose()" (keydown.enter)="onClose()" data-testid="zone-close-btn">
+      <ion-button (click)="onClose()" (onKeyUp)="onClose()" (keydown.enter)="onClose()" data-testid="zone-close-btn">
         <ion-icon slot="icon-only" name="close-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
     <ion-title>{{ 'ZONE_MANAGER.TITLE' | transloco }}</ion-title>
     <ion-buttons slot="end">
       @if (activeTab === 'zones') {
-        <ion-button color="primary" fill="solid" (click)="toggleAddForm()" data-testid="zone-add-btn">
+        <ion-button color="primary" fill="solid" (click)="toggleAddForm()" (onKeyUp)="toggleAddForm()" (keydown.enter)="toggleAddForm()" data-testid="zone-add-btn">
           <ion-icon slot="start" [name]="showAddForm ? 'close' : 'add'"></ion-icon>
           {{ showAddForm ? ('ZONE_MANAGER.CLOSE' | transloco) : ('ZONE_MANAGER.NEW_ZONE' | transloco) }}
         </ion-button>
       } @else {
-        <ion-button color="primary" fill="solid" (click)="toggleAddEtageForm()" data-testid="etage-add-btn">
+        <ion-button color="primary" fill="solid" (click)="toggleAddEtageForm()" (onKeyUp)="toggleAddEtageForm()" (keydown.enter)="toggleAddEtageForm()" data-testid="etage-add-btn">
           <ion-icon slot="start" [name]="showAddEtageForm ? 'close' : 'add'"></ion-icon>
           {{ showAddEtageForm ? ('ZONE_MANAGER.CLOSE' | transloco) : ('ZONE_MANAGER.NEW_ETAGE' | transloco) }}
         </ion-button>
@@ -71,7 +71,7 @@
             </div>
 
             <div class="form-actions">
-              <ion-button fill="outline" color="medium" type="button" (click)="resetForm()">
+              <ion-button fill="outline" color="medium" type="button" (click)="resetForm()" (onKeyUp)="resetForm()" (keydown.enter)="resetForm()">
                 {{ 'ZONE_MANAGER.CANCEL' | transloco }}
               </ion-button>
               <ion-button color="primary" type="submit" [disabled]="zoneForm.invalid" data-testid="zone-submit-btn">
@@ -102,10 +102,10 @@
                   <span class="etage-badge">{{ getEtageLabel(zone.etage) }}</span>
                 </div>
                 <div class="zone-actions">
-                  <ion-button fill="clear" color="primary" (click)="onEdit(zone)" data-testid="btn-edit-zone">
+                  <ion-button fill="clear" color="primary" (click)="onEdit(zone)" (onKeyUp)="onEdit(zone)" (keydown.enter)="onEdit(zone)" data-testid="btn-edit-zone">
                     <ion-icon slot="icon-only" name="create-outline"></ion-icon>
                   </ion-button>
-                  <ion-button fill="clear" color="danger" (click)="onDelete(zone)" data-testid="btn-delete-zone">
+                  <ion-button fill="clear" color="danger" (click)="onDelete(zone)" (onKeyUp)="onDelete(zone)" (keydown.enter)="onDelete(zone)" data-testid="btn-delete-zone">
                     <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
                   </ion-button>
                 </div>
@@ -149,7 +149,7 @@
             </app-input-field>
 
             <div class="form-actions">
-              <ion-button fill="outline" color="medium" type="button" (click)="resetEtageForm()">
+              <ion-button fill="outline" color="medium" type="button" (click)="resetEtageForm()" (onKeyUp)="resetEtageForm()" (keydown.enter)="resetEtageForm()">
                 {{ 'ZONE_MANAGER.CANCEL' | transloco }}
               </ion-button>
               <ion-button color="primary" type="submit" [disabled]="etageForm.invalid" data-testid="etage-submit-btn">
@@ -181,10 +181,10 @@
                   <span class="ordre-badge">#{{ etage.ordre }}</span>
                 </div>
                 <div class="zone-actions">
-                  <ion-button fill="clear" color="primary" (click)="onEditEtage(etage)" data-testid="btn-edit-etage">
+                  <ion-button fill="clear" color="primary" (click)="onEditEtage(etage)" (onKeyUp)="onEditEtage(etage)" (keydown.enter)="onEditEtage(etage)" data-testid="btn-edit-etage">
                     <ion-icon slot="icon-only" name="create-outline"></ion-icon>
                   </ion-button>
-                  <ion-button fill="clear" color="danger" (click)="onDeleteEtage(etage)" data-testid="btn-delete-etage">
+                  <ion-button fill="clear" color="danger" (click)="onDeleteEtage(etage)" (onKeyUp)="onDeleteEtage(etage)" (keydown.enter)="onDeleteEtage(etage)" data-testid="btn-delete-etage">
                     <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
                   </ion-button>
                 </div>

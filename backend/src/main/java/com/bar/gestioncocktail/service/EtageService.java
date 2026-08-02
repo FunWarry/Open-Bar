@@ -13,10 +13,13 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 /**
- * Service managing floor (étages) categorization and CRUD operations for OpenBar.
+ * Service managing floor (étages) categorization and CRUD operations for
+ * OpenBar.
  */
 @Service
 public class EtageService {
+
+    private static final String ERROR_ETAGE_NOT_FOUND = "Étage non trouvé avec l'id : ";
 
     private final EtageRepository etageRepository;
     private final ZoneRepository zoneRepository;
@@ -25,7 +28,7 @@ public class EtageService {
      * Constructor injection for repositories.
      *
      * @param etageRepository repository for floor entities
-     * @param zoneRepository repository for zone entities
+     * @param zoneRepository  repository for zone entities
      */
     public EtageService(EtageRepository etageRepository, ZoneRepository zoneRepository) {
         this.etageRepository = etageRepository;
@@ -75,14 +78,14 @@ public class EtageService {
     @Transactional(readOnly = true)
     public EtageEntity getEtageById(Long id) {
         return etageRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Étage non trouvé avec l'id : " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(ERROR_ETAGE_NOT_FOUND + id));
     }
 
     /**
      * Creates a new floor entity.
      *
-     * @param code floor code identifier
-     * @param nom floor label
+     * @param code  floor code identifier
+     * @param nom   floor label
      * @param ordre display order
      * @return saved floor entity
      * @throws BusinessException if code already exists
@@ -104,17 +107,18 @@ public class EtageService {
     /**
      * Updates an existing floor entity.
      *
-     * @param id the floor ID
-     * @param code new floor code identifier
-     * @param nom new floor label
+     * @param id    the floor ID
+     * @param code  new floor code identifier
+     * @param nom   new floor label
      * @param ordre new display order
      * @return updated floor entity
      * @throws ResourceNotFoundException if floor ID is not found
-     * @throws BusinessException if new code collides with another floor
+     * @throws BusinessException         if new code collides with another floor
      */
     @Transactional
     public EtageEntity updateEtage(Long id, String code, String nom, Integer ordre) {
-        EtageEntity existing = getEtageById(id);
+        EtageEntity existing = etageRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(ERROR_ETAGE_NOT_FOUND + id));
 
         String oldCode = existing.getCode();
         String newCode = code.trim().toUpperCase();
@@ -144,16 +148,20 @@ public class EtageService {
      *
      * @param id the floor ID
      * @throws ResourceNotFoundException if floor ID is not found
-     * @throws BusinessException if one or more zones are using this floor code
+     * @throws BusinessException         if one or more zones are using this floor
+     *                                   code
      */
     @Transactional
     public void deleteEtage(Long id) {
-        EtageEntity etage = getEtageById(id);
+        EtageEntity etage = etageRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(ERROR_ETAGE_NOT_FOUND + id));
 
         if (zoneRepository.existsByEtage(etage.getCode())) {
-            throw new BusinessException("Impossible de supprimer cet étage car une ou plusieurs zones y sont associées.");
+            throw new BusinessException(
+                    "Impossible de supprimer cet étage car une ou plusieurs zones y sont associées.");
         }
 
         etageRepository.delete(etage);
     }
+
 }
