@@ -88,6 +88,37 @@ class EtageServiceTest {
     }
 
     @Test
+    @DisplayName("getEtageById should return etage when exists")
+    void getEtageById_success() {
+        when(etageRepository.findById(1L)).thenReturn(Optional.of(sampleEtage));
+
+        EtageEntity result = etageService.getEtageById(1L);
+
+        assertThat(result.getId()).isEqualTo(1L);
+    }
+
+    @Test
+    @DisplayName("getEtageById should throw ResourceNotFoundException when not found")
+    void getEtageById_notFound_throwsException() {
+        when(etageRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> etageService.getEtageById(99L))
+                .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("updateEtage should update fields successfully")
+    void updateEtage_success() {
+        when(etageRepository.findById(1L)).thenReturn(Optional.of(sampleEtage));
+        when(etageRepository.save(any(EtageEntity.class))).thenAnswer(i -> i.getArgument(0));
+
+        EtageEntity updated = etageService.updateEtage(1L, "RDC", "Rez-de-chaussée Modifié", 2);
+
+        assertThat(updated.getNom()).isEqualTo("Rez-de-chaussée Modifié");
+        assertThat(updated.getOrdre()).isEqualTo(2);
+    }
+
+    @Test
     @DisplayName("deleteEtage should throw BusinessException if floor is assigned to zones")
     void deleteEtage_assignedToZones_throwsException() {
         when(etageRepository.findById(1L)).thenReturn(Optional.of(sampleEtage));
