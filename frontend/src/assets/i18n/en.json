@@ -340,5 +340,40 @@
     "RESET_DEFAULT": "Reset to Figma Defaults",
     "SAVE": "Apply Palette",
     "LIVE_PREVIEW": "Live Interactive Preview"
+  },
+  "ZONE_MANAGER": {
+    "TITLE": "Manage Zones & Floors",
+    "TABS": {
+      "ZONES": "Zones",
+      "ETAGES": "Floors"
+    },
+    "NEW_ZONE": "New Zone",
+    "ADD_ZONE": "Add Zone",
+    "EDIT_ZONE": "Edit Zone",
+    "ZONE_NAME": "Zone Name",
+    "ZONE_NAME_PLACEHOLDER": "e.g. Main Terrace, VIP Room...",
+    "CATEGORY_ETAGE": "Category / Floor",
+    "CHOOSE_ETAGE": "Choose a floor",
+    "NO_ZONES": "No zones configured. Click New Zone to get started.",
+    "NEW_ETAGE": "New Floor",
+    "ADD_ETAGE": "Add Floor",
+    "EDIT_ETAGE": "Edit Floor",
+    "ETAGE_NAME": "Floor Name",
+    "ETAGE_NAME_PLACEHOLDER": "e.g. Mezzanine, Rooftop...",
+    "ETAGE_CODE": "Unique code",
+    "ETAGE_CODE_PLACEHOLDER": "e.g. ROOFTOP, MEZZANINE",
+    "ETAGE_ORDER": "Display order",
+    "NO_ETAGES": "No floors configured. Click New Floor to get started.",
+    "CANCEL": "Cancel",
+    "VALIDATE": "Validate",
+    "CREATE": "Create",
+    "SAVE": "Save",
+    "CLOSE": "Close",
+    "ZONE_SAVED": "Zone saved",
+    "ZONE_CREATED": "Zone created",
+    "ZONE_DELETED": "Zone deleted",
+    "ETAGE_SAVED": "Floor saved",
+    "ETAGE_CREATED": "Floor created",
+    "ETAGE_DELETED": "Floor deleted"
   }
 }

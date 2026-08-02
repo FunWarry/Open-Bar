@@ -164,6 +164,35 @@ ion-select {
   color: var(--text-muted, #7e87a8);
 }
 
+.segment-toolbar {
+  padding: 0 16px 8px 16px;
+  background: var(--surface-1, #1e2238);
+}
+
+ion-segment {
+  --background: var(--surface-2, #252a45);
+}
+
+.code-badge {
+  background: #047857;
+  color: #ffffff;
+  border: 1px solid #059669;
+  padding: 3px 8px;
+  border-radius: var(--radius-full, 9999px);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.ordre-badge {
+  background: #b45309;
+  color: #ffffff;
+  border: 1px solid #d97706;
+  padding: 3px 8px;
+  border-radius: var(--radius-full, 9999px);
+  font-size: 11px;
+  font-weight: 700;
+}
+
 .loading-spinner {
   text-align: center;
   padding: 32px;
