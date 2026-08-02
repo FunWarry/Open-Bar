@@ -365,6 +365,7 @@ Pour les fichiers scopés par feature (ex : `fr/commandes.json`), déclarer le s
 | Refactorisation Design System UI — Tokens Couleurs & Composants Atomiques Figma 0:1 (#210) | — | ✅ | ✅ |
 | Harmonisation Vues Applicatives Figma (#211) | — | ✅ | ✅ |
 | Personnalisation Interactive Thème & Palettes HSL (#217) | — | ✅ | ✅ |
+| Vue Globale Stock Barman & Manager (#226) | ✅ | ✅ | ✅ |
 
 
 
