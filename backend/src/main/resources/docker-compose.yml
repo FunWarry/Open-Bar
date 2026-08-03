@@ -12,8 +12,8 @@ services:
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./init-dbs.sql:/docker-entrypoint-initdb.d/init-dbs.sql
     restart: unless-stopped
 
-
 volumes:
-  postgres_data: 
+  postgres_data:
