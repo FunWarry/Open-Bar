@@ -1,0 +1,12 @@
+# Profile PROD — Base de données production (Strictement Vierge, zéro jeu de test)
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:postgres}:${DB_PORT:5432}/${DB_NAME:openbar}
+    username: ${DB_USER:openbar}
+    password: ${POSTGRES_PASSWORD}
+
+logging:
+  level:
+    org.springframework.security: WARN
+    com.bar.gestioncocktail: INFO
+    org.hibernate.SQL: off

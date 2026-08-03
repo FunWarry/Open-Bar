@@ -1,8 +1,6 @@
 spring:
-  datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/${DB_NAME:gestion_cocktail}
-    username: ${DB_USER:postgres}
-    password: ${POSTGRES_PASSWORD:postgres}
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
   jpa:
     hibernate:
       ddl-auto: none
@@ -13,17 +11,11 @@ spring:
         format_sql: true
   security:
     jwt:
-      secret: "${JWT_SECRET}"
-      expiration: 86400000 # 24 heures
+      secret: "${JWT_SECRET:vtf_openbar_default_secret_key_minimum_32_chars_long}"
+      expiration: 86400000 # 24h
 
 server:
   port: 8080
-
-logging:
-  level:
-    org.springframework.security: DEBUG
-    com.bar.gestioncocktail: DEBUG
-    org.hibernate.SQL: off
 
 springdoc:
   api-docs:
@@ -32,4 +24,3 @@ springdoc:
     path: /swagger-ui.html
     tags-sorter: alpha
     operations-sorter: alpha
-

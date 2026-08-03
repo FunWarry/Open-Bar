@@ -1,0 +1,12 @@
+# Profile TEST — Base de données de test (Seeding automatique des 99 cocktails VTF)
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/${DB_NAME:gestion_cocktail_test}
+    username: ${DB_USER:postgres}
+    password: ${POSTGRES_PASSWORD:postgres}
+
+logging:
+  level:
+    org.springframework.security: INFO
+    com.bar.gestioncocktail: INFO
+    org.hibernate.SQL: off
