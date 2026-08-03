@@ -270,19 +270,6 @@ ALTER TABLE facture_items ADD COLUMN IF NOT EXISTS price_ht DECIMAL(10,2);
 ALTER TABLE facture_items ADD COLUMN IF NOT EXISTS vat_amount DECIMAL(10,2);
 
 -- Gestion des stocks ingrédients (#206) : colonnes manquantes
--- Rename quantite -> quantite_stock (idempotent via DO block)
-DO $$
-BEGIN
-    IF EXISTS (
-        SELECT 1 FROM information_schema.columns
-        WHERE table_name = 'ingredients' AND column_name = 'quantite'
-    ) AND NOT EXISTS (
-        SELECT 1 FROM information_schema.columns
-        WHERE table_name = 'ingredients' AND column_name = 'quantite_stock'
-    ) THEN
-        ALTER TABLE ingredients RENAME COLUMN quantite TO quantite_stock;
-    END IF;
-END $$;
 ALTER TABLE ingredients ADD COLUMN IF NOT EXISTS quantite_stock DECIMAL(10,2) NOT NULL DEFAULT 0;
 ALTER TABLE ingredients ADD COLUMN IF NOT EXISTS numero_lot VARCHAR(100);
 ALTER TABLE ingredients ADD COLUMN IF NOT EXISTS date_peremption TIMESTAMP;
