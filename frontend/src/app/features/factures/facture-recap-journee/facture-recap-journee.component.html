@@ -20,7 +20,9 @@
             <!-- Date Picker -->
             <div class="date-picker-box">
               <ion-icon name="calendar-outline"></ion-icon>
+              <label for="recap-date-input" class="sr-only">Date du récapitulatif</label>
               <input
+                id="recap-date-input"
                 type="date"
                 [value]="selectedDate"
                 (change)="onDateChange($event)"

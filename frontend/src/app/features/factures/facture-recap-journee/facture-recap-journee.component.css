@@ -117,10 +117,10 @@
   font-size: 1.25rem;
 }
 
-.ca-icon { background: rgba(16, 185, 129, 0.15); color: #34d399; }
-.vat-icon { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
-.avg-icon { background: rgba(99, 102, 241, 0.15); color: #818cf8; }
-.guests-icon { background: rgba(236, 72, 153, 0.15); color: #f472b6; }
+.ca-icon { background: #047857; color: #ffffff; }
+.vat-icon { background: #b45309; color: #ffffff; }
+.avg-icon { background: #4338ca; color: #ffffff; }
+.guests-icon { background: #be185d; color: #ffffff; }
 
 .kpi-value {
   margin: 0 0 8px 0;

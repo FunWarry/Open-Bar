@@ -1,12 +1,12 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { CommonModule, AsyncPipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
 import {
   IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardContent,
   IonGrid, IonRow, IonCol, IonBadge, IonIcon, IonButton, IonSpinner,
-  IonItem, IonLabel, IonRefresher, IonRefresherContent, ToastController
+  IonRefresher, IonRefresherContent, ToastController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -29,10 +29,10 @@ import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
   styleUrls: ['./facture-recap-journee.component.css'],
   standalone: true,
   imports: [
-    CommonModule, FormsModule, AsyncPipe, TranslocoModule,
+    CommonModule, FormsModule, TranslocoModule,
     IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardContent,
     IonGrid, IonRow, IonCol, IonBadge, IonIcon, IonButton, IonSpinner,
-    IonItem, IonLabel, IonRefresher, IonRefresherContent,
+    IonRefresher, IonRefresherContent,
   ],
 })
 export class FactureRecapJourneeComponent implements OnInit, OnDestroy {
@@ -160,7 +160,7 @@ export class FactureRecapJourneeComponent implements OnInit, OnDestroy {
    * Calculates payment mode percentage relative to total revenue.
    */
   getPaymentModePercentage(pm: PaymentModeSummary): number {
-    if (!this.recap || !this.recap.totalCaTtc || this.recap.totalCaTtc <= 0) return 0;
+    if (!this.recap?.totalCaTtc || this.recap.totalCaTtc <= 0) return 0;
     return Math.round((pm.totalTtc / this.recap.totalCaTtc) * 100);
   }
 }

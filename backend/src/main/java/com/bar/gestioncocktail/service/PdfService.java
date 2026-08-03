@@ -30,6 +30,7 @@ public class PdfService {
     private static final Color TEXT    = new Color(236, 238, 251);  // #eceefb
     private static final Color MUTED   = new Color(126, 135, 168); // #7e87a8
     private static final Color DARK_TEXT = new Color(30, 30, 45);
+    private static final String TOTAL_TTC_HEADER = "Total TTC";
 
     private final EstablishmentConfigService establishmentConfigService;
 
@@ -174,7 +175,7 @@ public class PdfService {
         table.setWidthPercentage(100);
         table.setWidths(new float[]{3.5f, 1f, 1.5f, 1.2f, 1.5f, 1.8f});
 
-        for (String header : new String[]{"Article", "Qté", "P.U. HT", "Taux TVA", "Total HT", "Total TTC"}) {
+        for (String header : new String[]{"Article", "Qté", "P.U. HT", "Taux TVA", "Total HT", TOTAL_TTC_HEADER}) {
             PdfPCell cell = new PdfPCell(new Phrase(header, headerFont));
             cell.setBackgroundColor(SURFACE);
             cell.setPadding(6);
@@ -263,7 +264,7 @@ public class PdfService {
             // Unreachable for valid widths
         }
 
-        for (String h : new String[]{"Taux", "Base HT", "TVA", "Total TTC"}) {
+        for (String h : new String[]{"Taux", "Base HT", "TVA", TOTAL_TTC_HEADER}) {
             PdfPCell c = new PdfPCell(new Phrase(h, new Font(Font.HELVETICA, 8, Font.BOLD, TEXT)));
             c.setBackgroundColor(SURFACE);
             c.setPadding(4);
@@ -400,12 +401,8 @@ public class PdfService {
             doc.add(new Paragraph("VENTILATION PAR MODE DE RÈGLEMENT", boldFont));
             PdfPTable pmTable = new PdfPTable(3);
             pmTable.setWidthPercentage(100);
-            try {
-                pmTable.setWidths(new float[]{2f, 1f, 1.5f});
-            } catch (DocumentException _) {
-                // Ignore
-            }
-            for (String h : new String[]{"Mode de Règlement", "Nombre", "Total TTC"}) {
+            applyTableWidths(pmTable, new float[]{2f, 1f, 1.5f});
+            for (String h : new String[]{"Mode de Règlement", "Nombre", TOTAL_TTC_HEADER}) {
                 PdfPCell c = new PdfPCell(new Phrase(h, headerFont));
                 c.setBackgroundColor(SURFACE);
                 c.setPadding(4);
@@ -424,12 +421,8 @@ public class PdfService {
             doc.add(new Paragraph("VENTILATION DE LA TVA", boldFont));
             PdfPTable vatTable = new PdfPTable(4);
             vatTable.setWidthPercentage(100);
-            try {
-                vatTable.setWidths(new float[]{1.2f, 1.5f, 1.5f, 1.5f});
-            } catch (DocumentException _) {
-                // Ignore
-            }
-            for (String h : new String[]{"Taux TVA", "Base HT", "Montant TVA", "Total TTC"}) {
+            applyTableWidths(vatTable, new float[]{1.2f, 1.5f, 1.5f, 1.5f});
+            for (String h : new String[]{"Taux TVA", "Base HT", "Montant TVA", TOTAL_TTC_HEADER}) {
                 PdfPCell c = new PdfPCell(new Phrase(h, headerFont));
                 c.setBackgroundColor(SURFACE);
                 c.setPadding(4);
@@ -452,6 +445,14 @@ public class PdfService {
             return out.toByteArray();
         } catch (DocumentException | IOException e) {
             throw new IllegalStateException("Erreur génération PDF récap journalier du " + recap.date(), e);
+        }
+    }
+
+    private void applyTableWidths(PdfPTable table, float[] widths) {
+        try {
+            table.setWidths(widths);
+        } catch (DocumentException _) {
+            // Ignore
         }
     }
 }

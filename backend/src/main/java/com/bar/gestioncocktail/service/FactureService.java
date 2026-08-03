@@ -661,14 +661,10 @@ public class FactureService {
         Map<VatRate, BigDecimal> vatAmountMap = new EnumMap<>(VatRate.class);
         Map<VatRate, BigDecimal> totalTTCMap = new EnumMap<>(VatRate.class);
 
-        for (VatRate rate : VatRate.values()) {
-            baseHTMap.put(rate, BigDecimal.ZERO);
-            vatAmountMap.put(rate, BigDecimal.ZERO);
-            totalTTCMap.put(rate, BigDecimal.ZERO);
-        }
+        initVatMaps(baseHTMap, vatAmountMap, totalTTCMap);
 
         for (Facture f : facturesDuJour) {
-            BigDecimal ttc = f.getTotalTTC() != null ? f.getTotalTTC() : (f.getTotal() != null ? f.getTotal() : BigDecimal.ZERO);
+            BigDecimal ttc = resolveFactureTTC(f);
             BigDecimal ht = f.getTotalHT() != null ? f.getTotalHT() : BigDecimal.ZERO;
             BigDecimal tva = f.getTotalVAT() != null ? f.getTotalVAT() : BigDecimal.ZERO;
 
@@ -694,24 +690,8 @@ public class FactureService {
             ? totalCaTtc.divide(BigDecimal.valueOf(countReglees), 2, RoundingMode.HALF_UP)
             : BigDecimal.ZERO;
 
-        List<com.bar.gestioncocktail.dto.PaymentModeSummaryDTO> modeSummaries = new ArrayList<>();
-        for (Map.Entry<String, BigDecimal> entry : modeTotals.entrySet()) {
-            modeSummaries.add(new com.bar.gestioncocktail.dto.PaymentModeSummaryDTO(
-                entry.getKey(),
-                modeCounts.get(entry.getKey()),
-                entry.getValue()
-            ));
-        }
-
-        List<VatSummaryDTO> vatSummaries = new ArrayList<>();
-        for (VatRate rate : VatRate.values()) {
-            vatSummaries.add(new VatSummaryDTO(
-                rate.getLabel(),
-                baseHTMap.get(rate),
-                vatAmountMap.get(rate),
-                totalTTCMap.get(rate)
-            ));
-        }
+        List<com.bar.gestioncocktail.dto.PaymentModeSummaryDTO> modeSummaries = buildPaymentModeSummaries(modeTotals, modeCounts);
+        List<VatSummaryDTO> vatSummaries = buildVatSummaries(baseHTMap, vatAmountMap, totalTTCMap);
 
         return new com.bar.gestioncocktail.dto.DailyRecapDTO(
             date,
@@ -724,5 +704,50 @@ public class FactureService {
             modeSummaries,
             vatSummaries
         );
+    }
+
+    private void initVatMaps(Map<VatRate, BigDecimal> baseHTMap,
+                             Map<VatRate, BigDecimal> vatAmountMap,
+                             Map<VatRate, BigDecimal> totalTTCMap) {
+        for (VatRate rate : VatRate.values()) {
+            baseHTMap.put(rate, BigDecimal.ZERO);
+            vatAmountMap.put(rate, BigDecimal.ZERO);
+            totalTTCMap.put(rate, BigDecimal.ZERO);
+        }
+    }
+
+    private List<com.bar.gestioncocktail.dto.PaymentModeSummaryDTO> buildPaymentModeSummaries(
+            Map<String, BigDecimal> modeTotals, Map<String, Long> modeCounts) {
+        List<com.bar.gestioncocktail.dto.PaymentModeSummaryDTO> list = new ArrayList<>();
+        for (Map.Entry<String, BigDecimal> entry : modeTotals.entrySet()) {
+            list.add(new com.bar.gestioncocktail.dto.PaymentModeSummaryDTO(
+                entry.getKey(),
+                modeCounts.get(entry.getKey()),
+                entry.getValue()
+            ));
+        }
+        return list;
+    }
+
+    private List<VatSummaryDTO> buildVatSummaries(Map<VatRate, BigDecimal> baseHTMap,
+                                                  Map<VatRate, BigDecimal> vatAmountMap,
+                                                  Map<VatRate, BigDecimal> totalTTCMap) {
+        List<VatSummaryDTO> list = new ArrayList<>();
+        for (VatRate rate : VatRate.values()) {
+            list.add(new VatSummaryDTO(
+                rate.getLabel(),
+                baseHTMap.get(rate),
+                vatAmountMap.get(rate),
+                totalTTCMap.get(rate)
+            ));
+        }
+        return list;
+    }
+
+    private BigDecimal resolveFactureTTC(Facture f) {
+        if (f.getTotalTTC() != null) {
+            return f.getTotalTTC();
+        }
+        return f.getTotal() != null ? f.getTotal() : BigDecimal.ZERO;
     }
 }
