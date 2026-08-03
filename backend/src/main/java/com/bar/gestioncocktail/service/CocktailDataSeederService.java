@@ -143,7 +143,7 @@ public class CocktailDataSeederService {
 
             if (node.has(KEY_MEDIA) && node.get(KEY_MEDIA).has("photo_url")) {
                 String photoUrl = node.get(KEY_MEDIA).get("photo_url").asText();
-                if (photoUrl != null && photoUrl.startsWith("http")) {
+                if (photoUrl != null && !photoUrl.isBlank()) {
                     cocktail.setImageUrl(photoUrl);
                 }
             }
