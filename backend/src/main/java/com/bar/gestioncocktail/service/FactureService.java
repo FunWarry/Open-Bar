@@ -646,7 +646,7 @@ public class FactureService {
         LocalDateTime startOfDay = date.atStartOfDay();
         LocalDateTime endOfDay = date.atTime(23, 59, 59);
 
-        List<Facture> facturesDuJour = factureRepository.findByDateFactureBetween(startOfDay, endOfDay);
+        List<Facture> facturesDuJour = findSettledFacturesForDate(startOfDay, endOfDay);
 
         BigDecimal totalCaTtc = BigDecimal.ZERO;
         BigDecimal totalCaHt = BigDecimal.ZERO;
@@ -749,5 +749,16 @@ public class FactureService {
             return f.getTotalTTC();
         }
         return f.getTotal() != null ? f.getTotal() : BigDecimal.ZERO;
+    }
+
+    private List<Facture> findSettledFacturesForDate(LocalDateTime startOfDay, LocalDateTime endOfDay) {
+        List<Facture> factures = factureRepository.findByDateReglementBetween(startOfDay, endOfDay);
+        if (factures != null && !factures.isEmpty()) {
+            return factures;
+        }
+        return factureRepository.findByDateFactureBetween(startOfDay, endOfDay)
+                .stream()
+                .filter(f -> f != null && f.isReglee())
+                .toList();
     }
 }

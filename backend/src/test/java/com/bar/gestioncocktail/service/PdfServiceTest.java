@@ -84,8 +84,7 @@ class PdfServiceTest {
     void generateFacturePdf_factureComplete_retourneByteArrayNonVide() {
         byte[] pdf = pdfService.generateFacturePdf(factureComplete);
 
-        assertThat(pdf).isNotNull();
-        assertThat(pdf.length).isGreaterThan(0);
+        assertThat(pdf).isNotNull().hasSizeGreaterThan(0);
     }
 
     @Test
@@ -102,7 +101,7 @@ class PdfServiceTest {
         // Un PDF contenant du texte et un tableau doit dépasser 1 Ko
         byte[] pdf = pdfService.generateFacturePdf(factureComplete);
 
-        assertThat(pdf.length).isGreaterThan(1_000);
+        assertThat(pdf).hasSizeGreaterThan(1_000);
     }
 
     // ─── champs optionnels null ────────────────────────────────────────────────
@@ -373,7 +372,27 @@ class PdfServiceTest {
 
         byte[] pdf = pdfService.generateFacturePdf(factureMulti);
 
-        assertThat(pdf).isNotEmpty();
-        assertThat(pdf.length).isGreaterThan(1_000);
+        assertThat(pdf).hasSizeGreaterThan(1_000);
+    }
+
+    @Test
+    void generateDailyRecapPdf_retournePdfValide() {
+        com.bar.gestioncocktail.dto.DailyRecapDTO recap = new com.bar.gestioncocktail.dto.DailyRecapDTO(
+            java.time.LocalDate.now(),
+            new BigDecimal("100.00"),
+            new BigDecimal("83.33"),
+            new BigDecimal("16.67"),
+            4,
+            new BigDecimal("25.00"),
+            8,
+            List.of(new com.bar.gestioncocktail.dto.PaymentModeSummaryDTO("CARTE", 3L, new BigDecimal("75.00"))),
+            List.of(new com.bar.gestioncocktail.dto.VatSummaryDTO("20.0%", new BigDecimal("83.33"), new BigDecimal("16.67"), new BigDecimal("100.00")))
+        );
+
+        byte[] pdf = pdfService.generateDailyRecapPdf(recap);
+
+        assertThat(pdf).isNotNull().isNotEmpty();
+        String header = new String(pdf, 0, Math.min(5, pdf.length));
+        assertThat(header).startsWith("%PDF");
     }
 }

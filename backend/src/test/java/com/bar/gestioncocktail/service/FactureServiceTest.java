@@ -390,6 +390,7 @@ class FactureServiceTest {
         f1.setTotalHT(new BigDecimal("41.67"));
         f1.setTotalVAT(new BigDecimal("8.33"));
         f1.setModePaiement("CARTE");
+        f1.setReglee(true);
 
         Facture f2 = new Facture();
         f2.setId(102L);
@@ -398,8 +399,9 @@ class FactureServiceTest {
         f2.setTotalHT(new BigDecimal("25.00"));
         f2.setTotalVAT(new BigDecimal("5.00"));
         f2.setModePaiement("ESPECES");
+        f2.setReglee(true);
 
-        when(factureRepository.findByDateFactureBetween(any(), any())).thenReturn(List.of(f1, f2));
+        when(factureRepository.findByDateReglementBetween(any(), any())).thenReturn(List.of(f1, f2));
 
         com.bar.gestioncocktail.dto.DailyRecapDTO recap = factureService.getDailyRecap(today);
 

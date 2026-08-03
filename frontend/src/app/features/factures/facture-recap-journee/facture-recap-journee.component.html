@@ -31,12 +31,12 @@
             </div>
 
             <!-- Refresh Button -->
-            <ion-button fill="outline" color="light" (click)="charger()" (keyup.enter)="charger()" data-testid="recap-refresh-btn">
+            <ion-button fill="outline" color="light" (click)="charger()" (keydown.enter)="charger()" data-testid="recap-refresh-btn">
               <ion-icon name="refresh-outline" slot="icon-only"></ion-icon>
             </ion-button>
 
             <!-- Export PDF Button -->
-            <ion-button color="success" (click)="exportPdf()" (keyup.enter)="exportPdf()" [disabled]="isExporting || !recap" data-testid="print-recap-btn">
+            <ion-button color="success" (click)="exportPdf()" (keydown.enter)="exportPdf()" [disabled]="isExporting || !recap" data-testid="print-recap-btn">
               <ion-icon name="download-outline" slot="start"></ion-icon>
               {{ 'RECAP.EXPORT_PDF' | transloco }}
             </ion-button>
