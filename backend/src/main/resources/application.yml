@@ -11,7 +11,7 @@ spring:
         format_sql: true
   security:
     jwt:
-      secret: "${JWT_SECRET:vtf_openbar_default_secret_key_minimum_32_chars_long}"
+      secret: "${JWT_SECRET:test_openbar_default_secret_key_minimum_32_chars_long}"
       expiration: 86400000 # 24h
 
 server:

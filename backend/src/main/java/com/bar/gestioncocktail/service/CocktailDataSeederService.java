@@ -24,15 +24,17 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Service responsible for automatically seeding the database with the VTF Summer 2023 cocktail dataset
- * ONLY in the test environment if the database contains no cocktails on application startup.
+ * Service responsible for automatically seeding the database with the cocktail
+ * dataset
+ * ONLY in the test environment if the database contains no cocktails on
+ * application startup.
  */
 @Service
 @Profile("test")
 public class CocktailDataSeederService {
 
     private static final Logger log = LoggerFactory.getLogger(CocktailDataSeederService.class);
-    private static final String DATASET_PATH = "data/cocktails_vtf_ete_2023_complet_ultra_detaille.json";
+    private static final String DATASET_PATH = "data/cocktails_list.json";
 
     private static final String KEY_ECONOMIE = "economie";
     private static final String KEY_MEDIA = "media";
@@ -40,11 +42,10 @@ public class CocktailDataSeederService {
     private static final String KEY_SPECIFICATION = "specification";
 
     private static final Set<String> ALCOHOL_KEYWORDS = Set.of(
-        "rhum", "vodka", "gin", "tequila", "whisky", "whiskey", "calvados", "cognac", "armagnac",
-        "liqueur", "cointreau", "triple sec", "martini", "campari", "aperol", "bière", "vin",
-        "prosecco", "champagne", "kahlua", "baileys", "get", "manzana", "pastis", "ricard",
-        "angostura", "bourbon", "absinthe", "amaretto", "malibu", "chartreuse", "suze"
-    );
+            "rhum", "vodka", "gin", "tequila", "whisky", "whiskey", "calvados", "cognac", "armagnac",
+            "liqueur", "cointreau", "triple sec", "martini", "campari", "aperol", "bière", "vin",
+            "prosecco", "champagne", "kahlua", "baileys", "get", "manzana", "pastis", "ricard",
+            "angostura", "bourbon", "absinthe", "amaretto", "malibu", "chartreuse", "suze");
 
     private final CocktailRepository cocktailRepository;
     private final IngredientRepository ingredientRepository;
@@ -59,12 +60,13 @@ public class CocktailDataSeederService {
         this.ingredientRepository = ingredientRepository;
         this.cocktailIngredientRepository = cocktailIngredientRepository;
         this.objectMapper = JsonMapper.builder()
-            .enable(JsonReadFeature.ALLOW_NON_NUMERIC_NUMBERS)
-            .build();
+                .enable(JsonReadFeature.ALLOW_NON_NUMERIC_NUMBERS)
+                .build();
     }
 
     /**
-     * Executes automatic dataset seeding if no cocktails are present in the repository.
+     * Executes automatic dataset seeding if no cocktails are present in the
+     * repository.
      */
     @PostConstruct
     @Transactional
@@ -94,7 +96,7 @@ public class CocktailDataSeederService {
                     importedCount++;
                 }
             }
-            log.info("Successfully seeded database with {} cocktails from VTF test dataset.", importedCount);
+            log.info("Successfully seeded database with {} cocktails from test dataset.", importedCount);
         } catch (Exception e) {
             log.error("Failed to seed cocktail test dataset", e);
         }
@@ -113,11 +115,13 @@ public class CocktailDataSeederService {
         ClassLoader contextCL = Thread.currentThread().getContextClassLoader();
         if (contextCL != null) {
             InputStream is = contextCL.getResourceAsStream(DATASET_PATH);
-            if (is != null) return is;
+            if (is != null)
+                return is;
         }
 
         InputStream is = CocktailDataSeederService.class.getClassLoader().getResourceAsStream(DATASET_PATH);
-        if (is != null) return is;
+        if (is != null)
+            return is;
 
         return CocktailDataSeederService.class.getResourceAsStream("/" + DATASET_PATH);
     }
@@ -213,15 +217,15 @@ public class CocktailDataSeederService {
 
     private Ingredient findOrCreateIngredient(String ingNom, String unite, double costRaw) {
         return ingredientRepository.findByNomIgnoreCase(ingNom)
-            .orElseGet(() -> {
-                Ingredient newIng = new Ingredient();
-                newIng.setNom(ingNom);
-                newIng.setUniteMesure(unite.isEmpty() || unite.equalsIgnoreCase("nan") ? "cl" : unite);
-                newIng.setQuantiteStock(BigDecimal.valueOf(100.0));
-                newIng.setSeuilAlerte(BigDecimal.valueOf(10.0));
-                newIng.setPrixUnitaire(BigDecimal.valueOf(costRaw).setScale(4, RoundingMode.HALF_UP));
-                return ingredientRepository.save(newIng);
-            });
+                .orElseGet(() -> {
+                    Ingredient newIng = new Ingredient();
+                    newIng.setNom(ingNom);
+                    newIng.setUniteMesure(unite.isEmpty() || unite.equalsIgnoreCase("nan") ? "cl" : unite);
+                    newIng.setQuantiteStock(BigDecimal.valueOf(100.0));
+                    newIng.setSeuilAlerte(BigDecimal.valueOf(10.0));
+                    newIng.setPrixUnitaire(BigDecimal.valueOf(costRaw).setScale(4, RoundingMode.HALF_UP));
+                    return ingredientRepository.save(newIng);
+                });
     }
 
     private String buildDescription(JsonNode node) {
@@ -232,11 +236,13 @@ public class CocktailDataSeederService {
                 sb.append("Verre : ").append(mat.get("verre").asText());
             }
             if (mat.has("ustensiles")) {
-                if (!sb.isEmpty()) sb.append(" | ");
+                if (!sb.isEmpty())
+                    sb.append(" | ");
                 sb.append("Matériel : ").append(mat.get("ustensiles").asText());
             }
             if (mat.has(KEY_SPECIFICATION) && !mat.get(KEY_SPECIFICATION).asText().equalsIgnoreCase("Rien")) {
-                if (!sb.isEmpty()) sb.append(" | ");
+                if (!sb.isEmpty())
+                    sb.append(" | ");
                 sb.append("Note : ").append(mat.get(KEY_SPECIFICATION).asText());
             }
         }
