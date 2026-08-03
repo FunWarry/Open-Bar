@@ -12,6 +12,7 @@ import java.util.List;
 public interface IngredientRepository extends JpaRepository<Ingredient, Long> {
     List<Ingredient> findByQuantiteStockLessThanEqual(BigDecimal seuilAlerte);
     List<Ingredient> findByNomContainingIgnoreCase(String nom);
+    java.util.Optional<Ingredient> findByNomIgnoreCase(String nom);
     List<Ingredient> findByFournisseur(String fournisseur);
     List<Ingredient> findByUniteMesure(String uniteMesure);
 

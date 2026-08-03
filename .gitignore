@@ -56,3 +56,4 @@ frontend/coverage
 /.sonarlint/
 .vscode/
 /qodana.sarif.json
+/cocktails_vtf_ete_2023_complet_ultra_detaille.json
