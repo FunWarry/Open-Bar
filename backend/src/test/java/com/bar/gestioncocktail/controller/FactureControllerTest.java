@@ -57,4 +57,53 @@ class FactureControllerTest {
         assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         verify(factureService).fusionnerFactures(request);
     }
+
+    @Test
+    void getDailyRecap_retourneRecapDTO() {
+        java.time.LocalDate today = java.time.LocalDate.now();
+        com.bar.gestioncocktail.dto.DailyRecapDTO recap = new com.bar.gestioncocktail.dto.DailyRecapDTO(
+            today,
+            new BigDecimal("100.00"),
+            new BigDecimal("83.33"),
+            new BigDecimal("16.67"),
+            2,
+            new BigDecimal("50.00"),
+            4,
+            List.of(),
+            List.of()
+        );
+        when(factureService.getDailyRecap(today)).thenReturn(recap);
+
+        ResponseEntity<com.bar.gestioncocktail.dto.DailyRecapDTO> response = factureController.getDailyRecap(today);
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getBody()).isEqualTo(recap);
+        verify(factureService).getDailyRecap(today);
+    }
+
+    @Test
+    void downloadDailyRecapPdf_retourneOctetsPdf() {
+        java.time.LocalDate today = java.time.LocalDate.now();
+        com.bar.gestioncocktail.dto.DailyRecapDTO recap = new com.bar.gestioncocktail.dto.DailyRecapDTO(
+            today,
+            new BigDecimal("100.00"),
+            new BigDecimal("83.33"),
+            new BigDecimal("16.67"),
+            2,
+            new BigDecimal("50.00"),
+            4,
+            List.of(),
+            List.of()
+        );
+        byte[] expectedPdf = new byte[]{1, 2, 3};
+        when(factureService.getDailyRecap(today)).thenReturn(recap);
+        when(pdfService.generateDailyRecapPdf(recap)).thenReturn(expectedPdf);
+
+        ResponseEntity<byte[]> response = factureController.downloadDailyRecapPdf(today);
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getBody()).isEqualTo(expectedPdf);
+        verify(factureService).getDailyRecap(today);
+        verify(pdfService).generateDailyRecapPdf(recap);
+    }
 }
