@@ -398,5 +398,32 @@
     "ADJUST_SUCCESS": "Stock of {name} updated: {qty} {unit}",
     "ADJUST_ERROR": "Error updating stock",
     "LIVE_UPDATE": "Live WebSocket Stream Active"
+  },
+  "RECAP": {
+    "TITLE": "Daily Closing Sales Summary",
+    "SUBTITLE": "Daily closing and revenue settlement summary (Z-Report)",
+    "EXPORT_PDF": "Export Z-Report PDF",
+    "TOTAL_CA_TTC": "Total Revenue (TTC)",
+    "TOTAL_TVA": "Total VAT Collected",
+    "PANIER_MOYEN": "Average Ticket",
+    "TOTAL_CLIENTS": "Guests / Customers",
+    "HT": "Net HT",
+    "NET_HT": "Net Total HT",
+    "FACTURES_SETTLED": "settled invoices",
+    "GUESTS_SERVED": "guests served today",
+    "PAYMENT_MODES_TITLE": "Payment Method Breakdown",
+    "VAT_BREAKDOWN_TITLE": "VAT Tax Breakdown (CA3 Declaration)",
+    "MODE": "Payment Mode",
+    "COUNT": "Count",
+    "TOTAL_TTC": "Total TTC",
+    "SHARE": "Share (%)",
+    "VAT_RATE": "VAT Rate",
+    "BASE_HT": "Taxable Base HT",
+    "VAT_AMOUNT": "VAT Tax Amount",
+    "NO_PAYMENTS": "No payments recorded for this date",
+    "NO_DATA": "No VAT data available",
+    "ERROR_FETCH": "Error loading daily summary",
+    "EXPORT_SUCCESS": "PDF file downloaded successfully",
+    "EXPORT_ERROR": "Error generating PDF"
   }
 }

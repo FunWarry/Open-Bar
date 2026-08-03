@@ -634,4 +634,131 @@ public class FactureService {
             throw new IllegalStateException("Erreur de calcul du hash SHA-256", e);
         }
     }
+
+    /**
+     * Calculates the financial daily closing summary report (Z-Report) for a given date.
+     *
+     * @param targetDate The target date to summarize (defaults to today if null)
+     * @return DailyRecapDTO containing KPIs, payment method breakdown, and VAT breakdown
+     */
+    public com.bar.gestioncocktail.dto.DailyRecapDTO getDailyRecap(java.time.LocalDate targetDate) {
+        java.time.LocalDate date = targetDate != null ? targetDate : java.time.LocalDate.now(timeService.getZoneId());
+        LocalDateTime startOfDay = date.atStartOfDay();
+        LocalDateTime endOfDay = date.atTime(23, 59, 59);
+
+        List<Facture> facturesDuJour = findSettledFacturesForDate(startOfDay, endOfDay);
+
+        BigDecimal totalCaTtc = BigDecimal.ZERO;
+        BigDecimal totalCaHt = BigDecimal.ZERO;
+        BigDecimal totalTva = BigDecimal.ZERO;
+        int countReglees = 0;
+        int totalClients = 0;
+
+        Map<String, BigDecimal> modeTotals = new HashMap<>();
+        Map<String, Long> modeCounts = new HashMap<>();
+
+        Map<VatRate, BigDecimal> baseHTMap = new EnumMap<>(VatRate.class);
+        Map<VatRate, BigDecimal> vatAmountMap = new EnumMap<>(VatRate.class);
+        Map<VatRate, BigDecimal> totalTTCMap = new EnumMap<>(VatRate.class);
+
+        initVatMaps(baseHTMap, vatAmountMap, totalTTCMap);
+
+        for (Facture f : facturesDuJour) {
+            BigDecimal ttc = resolveFactureTTC(f);
+            BigDecimal ht = f.getTotalHT() != null ? f.getTotalHT() : BigDecimal.ZERO;
+            BigDecimal tva = f.getTotalVAT() != null ? f.getTotalVAT() : BigDecimal.ZERO;
+
+            totalCaTtc = totalCaTtc.add(ttc);
+            totalCaHt = totalCaHt.add(ht);
+            totalTva = totalTva.add(tva);
+            countReglees++;
+
+            if (f.getTable() != null && f.getTable().getCapacite() != null) {
+                totalClients += f.getTable().getCapacite();
+            }
+
+            String mode = (f.getModePaiement() != null && !f.getModePaiement().isBlank()) ? f.getModePaiement() : "AUTRE";
+            modeTotals.put(mode, modeTotals.getOrDefault(mode, BigDecimal.ZERO).add(ttc));
+            modeCounts.put(mode, modeCounts.getOrDefault(mode, 0L) + 1);
+
+            if (f.getItems() != null) {
+                processFactureItemsForVat(f.getItems(), baseHTMap, vatAmountMap, totalTTCMap);
+            }
+        }
+
+        BigDecimal panierMoyen = countReglees > 0
+            ? totalCaTtc.divide(BigDecimal.valueOf(countReglees), 2, RoundingMode.HALF_UP)
+            : BigDecimal.ZERO;
+
+        List<com.bar.gestioncocktail.dto.PaymentModeSummaryDTO> modeSummaries = buildPaymentModeSummaries(modeTotals, modeCounts);
+        List<VatSummaryDTO> vatSummaries = buildVatSummaries(baseHTMap, vatAmountMap, totalTTCMap);
+
+        return new com.bar.gestioncocktail.dto.DailyRecapDTO(
+            date,
+            totalCaTtc,
+            totalCaHt,
+            totalTva,
+            countReglees,
+            panierMoyen,
+            totalClients,
+            modeSummaries,
+            vatSummaries
+        );
+    }
+
+    private void initVatMaps(Map<VatRate, BigDecimal> baseHTMap,
+                             Map<VatRate, BigDecimal> vatAmountMap,
+                             Map<VatRate, BigDecimal> totalTTCMap) {
+        for (VatRate rate : VatRate.values()) {
+            baseHTMap.put(rate, BigDecimal.ZERO);
+            vatAmountMap.put(rate, BigDecimal.ZERO);
+            totalTTCMap.put(rate, BigDecimal.ZERO);
+        }
+    }
+
+    private List<com.bar.gestioncocktail.dto.PaymentModeSummaryDTO> buildPaymentModeSummaries(
+            Map<String, BigDecimal> modeTotals, Map<String, Long> modeCounts) {
+        List<com.bar.gestioncocktail.dto.PaymentModeSummaryDTO> list = new ArrayList<>();
+        for (Map.Entry<String, BigDecimal> entry : modeTotals.entrySet()) {
+            list.add(new com.bar.gestioncocktail.dto.PaymentModeSummaryDTO(
+                entry.getKey(),
+                modeCounts.get(entry.getKey()),
+                entry.getValue()
+            ));
+        }
+        return list;
+    }
+
+    private List<VatSummaryDTO> buildVatSummaries(Map<VatRate, BigDecimal> baseHTMap,
+                                                  Map<VatRate, BigDecimal> vatAmountMap,
+                                                  Map<VatRate, BigDecimal> totalTTCMap) {
+        List<VatSummaryDTO> list = new ArrayList<>();
+        for (VatRate rate : VatRate.values()) {
+            list.add(new VatSummaryDTO(
+                rate.getLabel(),
+                baseHTMap.get(rate),
+                vatAmountMap.get(rate),
+                totalTTCMap.get(rate)
+            ));
+        }
+        return list;
+    }
+
+    private BigDecimal resolveFactureTTC(Facture f) {
+        if (f.getTotalTTC() != null) {
+            return f.getTotalTTC();
+        }
+        return f.getTotal() != null ? f.getTotal() : BigDecimal.ZERO;
+    }
+
+    private List<Facture> findSettledFacturesForDate(LocalDateTime startOfDay, LocalDateTime endOfDay) {
+        List<Facture> factures = factureRepository.findByDateReglementBetween(startOfDay, endOfDay);
+        if (factures != null && !factures.isEmpty()) {
+            return factures;
+        }
+        return factureRepository.findByDateFactureBetween(startOfDay, endOfDay)
+                .stream()
+                .filter(f -> f != null && f.isReglee())
+                .toList();
+    }
 }

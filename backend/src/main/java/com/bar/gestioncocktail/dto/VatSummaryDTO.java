@@ -4,12 +4,22 @@ import com.bar.gestioncocktail.model.VatRate;
 import java.math.BigDecimal;
 
 /**
- * Summary DTO grouping base HT, VAT amount, and total TTC for a specific VAT rate.
+ * Data Transfer Object summarizing tax breakdown per VAT rate for closing and monthly reports.
+ *
+ * @param rate       Optional VatRate enum
+ * @param tauxLabel  Label of the VAT rate (e.g., "5.5%", "10.0%", "20.0%")
+ * @param baseHt     Taxable base amount excluding VAT
+ * @param montantTva Calculated VAT tax amount
+ * @param totalTtc   Total amount including VAT
  */
 public record VatSummaryDTO(
-    VatRate vatRate,
-    String rateLabel,
-    BigDecimal baseHT,
-    BigDecimal vatAmount,
-    BigDecimal totalTTC
-) {}
+    VatRate rate,
+    String tauxLabel,
+    BigDecimal baseHt,
+    BigDecimal montantTva,
+    BigDecimal totalTtc
+) {
+    public VatSummaryDTO(String tauxLabel, BigDecimal baseHt, BigDecimal montantTva, BigDecimal totalTtc) {
+        this(null, tauxLabel, baseHt, montantTva, totalTtc);
+    }
+}

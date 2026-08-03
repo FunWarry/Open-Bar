@@ -191,6 +191,12 @@ export const routes: Routes = [
     data: { roles: ['MANAGER', 'ADMIN', 'SERVEUR'] }
   },
   {
+    path: 'factures/recap',
+    loadComponent: () => import('./features/factures/facture-recap-journee/facture-recap-journee.component').then(m => m.FactureRecapJourneeComponent),
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['MANAGER', 'ADMIN'] }
+  },
+  {
     path: 'factures/:id/split',
     loadComponent: () => import('./features/factures/facture-split/facture-split.component').then(m => m.FactureSplitComponent),
     canActivate: [AuthGuard, RoleGuard],

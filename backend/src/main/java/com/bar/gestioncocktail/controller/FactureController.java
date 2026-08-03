@@ -330,4 +330,28 @@ public class FactureController {
         byte[] pdfBytes = pdfService.generateFacturePdf(facture);
         return ResponseEntity.ok(factureService.verifyIntegrity(id, pdfBytes));
     }
+
+    @GetMapping("/daily-recap")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @Operation(summary = "Récapitulatif financier de clôture de journée (Z-Report)", description = "Calcule le récapitulatif du chiffre d'affaires, panier moyen, modes de règlement et ventilation TVA pour une date donnée.")
+    @ApiResponse(responseCode = "200", description = "Récapitulatif journalier généré")
+    public ResponseEntity<com.bar.gestioncocktail.dto.DailyRecapDTO> getDailyRecap(
+            @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate date) {
+        return ResponseEntity.ok(factureService.getDailyRecap(date));
+    }
+
+    @GetMapping("/daily-recap/pdf")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @Operation(summary = "Télécharger le récapitulatif de caisse journalier en PDF", description = "Génère un document PDF A4 aux normes comptables de clôture de caisse.")
+    @ApiResponse(responseCode = "200", description = "PDF récapitulatif généré")
+    public ResponseEntity<byte[]> downloadDailyRecapPdf(
+            @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate date) {
+        com.bar.gestioncocktail.dto.DailyRecapDTO recap = factureService.getDailyRecap(date);
+        byte[] pdf = pdfService.generateDailyRecapPdf(recap);
+        String fileName = "recap-caisse-" + recap.date() + ".pdf";
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_PDF_VALUE)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
+                .body(pdf);
+    }
 }
