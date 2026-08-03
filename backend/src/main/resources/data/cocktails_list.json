@@ -9,7 +9,8 @@
       "materiel": {
         "ustensiles": "Shaker",
         "verre": "Tasse",
-        "specification": "Shaker puis Vapeur"
+        "specification": "Shaker puis Vapeur",
+        "image_verre": "/assets/images/verres/tasse_cuivre.png"
       },
       "economie": {
         "cout_total_eur": 1.04143,
@@ -122,7 +123,8 @@
       "materiel": {
         "ustensiles": "Shaker + Glaçon",
         "verre": "Martini",
-        "specification": "Rien"
+        "specification": "Rien",
+        "image_verre": "/assets/images/verres/verre_martini.png"
       },
       "economie": {
         "cout_total_eur": 0.465714,
@@ -221,7 +223,8 @@
       "materiel": {
         "ustensiles": "Au verre",
         "verre": "Tumbler",
-        "specification": "3 Glaçon"
+        "specification": "3 Glaçon",
+        "image_verre": "/assets/images/verres/verre_tumbler.png"
       },
       "economie": {
         "cout_total_eur": 0.0,
@@ -327,7 +330,8 @@
       "materiel": {
         "ustensiles": "Shaker",
         "verre": "Tumbler",
-        "specification": "Rien"
+        "specification": "Rien",
+        "image_verre": "/assets/images/verres/verre_tumbler.png"
       },
       "economie": {
         "cout_total_eur": 0.645714,
@@ -448,7 +452,8 @@
       "materiel": {
         "ustensiles": "Au verre",
         "verre": "Ballon",
-        "specification": "Rien"
+        "specification": "Rien",
+        "image_verre": "/assets/images/verres/verre_ballon.png"
       },
       "economie": {
         "cout_total_eur": 0.0,
@@ -533,7 +538,8 @@
       "materiel": {
         "ustensiles": "Shaker + Glaçon",
         "verre": "Old Fashioned",
-        "specification": "Rien"
+        "specification": "Rien",
+        "image_verre": "/assets/images/verres/verre_old_fashioned.png"
       },
       "economie": {
         "cout_total_eur": 3.2,
@@ -632,7 +638,8 @@
       "materiel": {
         "ustensiles": "Shaker + Glaçon",
         "verre": "Martini",
-        "specification": "Rien"
+        "specification": "Rien",
+        "image_verre": "/assets/images/verres/verre_martini.png"
       },
       "economie": {
         "cout_total_eur": 0.631429,
@@ -746,7 +753,8 @@
       "materiel": {
         "ustensiles": "Shaker + Glaçon",
         "verre": "Tulipe",
-        "specification": "philtré X2"
+        "specification": "philtré X2",
+        "image_verre": "/assets/images/verres/verre_tumbler.png"
       },
       "economie": {
         "cout_total_eur": 2.58571,
@@ -867,7 +875,8 @@
       "materiel": {
         "ustensiles": "Au verre",
         "verre": "Old Fashioned",
-        "specification": "6 Glaçon"
+        "specification": "6 Glaçon",
+        "image_verre": "/assets/images/verres/verre_old_fashioned.png"
       },
       "economie": {
         "cout_total_eur": 1.80429,
@@ -943,7 +952,8 @@
       "materiel": {
         "ustensiles": "Au verre",
         "verre": "Tumbler",
-        "specification": "Rien"
+        "specification": "Rien",
+        "image_verre": "/assets/images/verres/verre_tumbler.png"
       },
       "economie": {
         "cout_total_eur": 4.14286,
@@ -1085,7 +1095,8 @@
       "materiel": {
         "ustensiles": "Shaker + Glaçon",
         "verre": "Martini",
-        "specification": "Rien"
+        "specification": "Rien",
+        "image_verre": "/assets/images/verres/verre_martini.png"
       },
       "economie": {
         "cout_total_eur": 1.80429,
@@ -1184,7 +1195,8 @@
       "materiel": {
         "ustensiles": "Au verre",
         "verre": "Ballon",
-        "specification": "Givré"
+        "specification": "Givré",
+        "image_verre": "/assets/images/verres/verre_ballon.png"
       },
       "economie": {
         "cout_total_eur": 0.857143,
@@ -1274,7 +1286,8 @@
       "materiel": {
         "ustensiles": "Au verre",
         "verre": "Tumbler",
-        "specification": "Rien"
+        "specification": "Rien",
+        "image_verre": "/assets/images/verres/verre_tumbler.png"
       },
       "economie": {
         "cout_total_eur": 1386.06,
@@ -1356,7 +1369,8 @@
       "materiel": {
         "ustensiles": "Shaker",
         "verre": "Martini",
-        "specification": "Rien"
+        "specification": "Rien",
+        "image_verre": "/assets/images/verres/verre_martini.png"
       },
       "economie": {
         "cout_total_eur": 2.15,
@@ -1462,7 +1476,8 @@
       "materiel": {
         "ustensiles": "Shaker",
         "verre": "Tumbler",
-        "specification": "Rien"
+        "specification": "Rien",
+        "image_verre": "/assets/images/verres/verre_tumbler.png"
       },
       "economie": {
         "cout_total_eur": 1.55,
@@ -1568,7 +1583,8 @@
       "materiel": {
         "ustensiles": "Au verre",
         "verre": "Old Fashioned",
-        "specification": "Pillé + glace pillé"
+        "specification": "Pillé + glace pillé",
+        "image_verre": "/assets/images/verres/verre_old_fashioned.png"
       },
       "economie": {
         "cout_total_eur": 1.52286,
@@ -1653,7 +1669,8 @@
       "materiel": {
         "ustensiles": "Au verre",
         "verre": "Tasse",
-        "specification": "Rien"
+        "specification": "Rien",
+        "image_verre": "/assets/images/verres/tasse_cuivre.png"
       },
       "economie": {
         "cout_total_eur": 0.571429,
@@ -1735,7 +1752,8 @@
       "materiel": {
         "ustensiles": "Shaker + Glaçon",
         "verre": "Martini",
-        "specification": "Rien"
+        "specification": "Rien",
+        "image_verre": "/assets/images/verres/verre_martini.png"
       },
       "economie": {
         "cout_total_eur": 0.15,
@@ -1834,7 +1852,8 @@
       "materiel": {
         "ustensiles": "Shaker + Glaçon",
         "verre": "Saour",
-        "specification": "philtré X2"
+        "specification": "philtré X2",
+        "image_verre": "/assets/images/verres/verre_tumbler.png"
       },
       "economie": {
         "cout_total_eur": 0.811429,
@@ -1955,7 +1974,8 @@
       "materiel": {
         "ustensiles": "Shaker + Glaçon",
         "verre": "Martini",
-        "specification": "philtré X1"
+        "specification": "philtré X1",
+        "image_verre": "/assets/images/verres/verre_martini.png"
       },
       "economie": {
         "cout_total_eur": 0.585714,
@@ -2076,7 +2096,8 @@
       "materiel": {
         "ustensiles": "Shaker + Glaçon",
         "verre": "Martini",
-        "specification": "Rien"
+        "specification": "Rien",
+        "image_verre": "/assets/images/verres/verre_martini.png"
       },
       "economie": {
         "cout_total_eur": 2.85714,
@@ -2175,7 +2196,8 @@
       "materiel": {
         "ustensiles": "Shaker + Glaçon",
         "verre": "Margarita",
-        "specification": "philtré X1 + givré"
+        "specification": "philtré X1 + givré",
+        "image_verre": "/assets/images/verres/verre_margarita.png"
       },
       "economie": {
         "cout_total_eur": 0.3,
@@ -2283,7 +2305,8 @@
       "materiel": {
         "ustensiles": "Au verre",
         "verre": "Champagne",
-        "specification": "Rien"
+        "specification": "Rien",
+        "image_verre": "/assets/images/verres/verre_flute.png"
       },
       "economie": {
         "cout_total_eur": 1.20286,
@@ -2366,7 +2389,8 @@
       "materiel": {
         "ustensiles": "Au verre",
         "verre": "Tumbler",
-        "specification": "Rien"
+        "specification": "Rien",
+        "image_verre": "/assets/images/verres/verre_tumbler.png"
       },
       "economie": {
         "cout_total_eur": 1.60857,
@@ -2478,7 +2502,8 @@
       "materiel": {
         "ustensiles": "Shaker",
         "verre": "Martini",
-        "specification": "Shaker puis Vapeur"
+        "specification": "Shaker puis Vapeur",
+        "image_verre": "/assets/images/verres/verre_martini.png"
       },
       "economie": {
         "cout_total_eur": 1.72286,
@@ -2576,7 +2601,8 @@
       "materiel": {
         "ustensiles": "Blender",
         "verre": "Saour",
-        "specification": "Glace pillé"
+        "specification": "Glace pillé",
+        "image_verre": "/assets/images/verres/verre_tumbler.png"
       },
       "economie": {
         "cout_total_eur": 26460.1,
@@ -2741,7 +2767,8 @@
       "materiel": {
         "ustensiles": "Au verre",
         "verre": "Tumbler",
-        "specification": "Rien"
+        "specification": "Rien",
+        "image_verre": "/assets/images/verres/verre_tumbler.png"
       },
       "economie": {
         "cout_total_eur": 2.40571,
@@ -2839,7 +2866,8 @@
       "materiel": {
         "ustensiles": "Au verre",
         "verre": "Old Fashioned",
-        "specification": "Rien"
+        "specification": "Rien",
+        "image_verre": "/assets/images/verres/verre_old_fashioned.png"
       },
       "economie": {
         "cout_total_eur": 1.71429,
@@ -2906,7 +2934,8 @@
       "materiel": {
         "ustensiles": "Au verre",
         "verre": "Old Fashioned",
-        "specification": "Rien"
+        "specification": "Rien",
+        "image_verre": "/assets/images/verres/verre_old_fashioned.png"
       },
       "economie": {
         "cout_total_eur": 0.691429,
@@ -2973,7 +3002,8 @@
       "materiel": {
         "ustensiles": "Au verre",
         "verre": "Old Fashioned",
-        "specification": "Rien"
+        "specification": "Rien",
+        "image_verre": "/assets/images/verres/verre_old_fashioned.png"
       },
       "economie": {
         "cout_total_eur": 2.31429,
@@ -3055,7 +3085,8 @@
       "materiel": {
         "ustensiles": "Shaker + Glaçon",
         "verre": "Tumbler",
-        "specification": "pas de glacon dans le finale"
+        "specification": "pas de glacon dans le finale",
+        "image_verre": "/assets/images/verres/verre_tumbler.png"
       },
       "economie": {
         "cout_total_eur": 3.66857,
@@ -3191,7 +3222,8 @@
       "materiel": {
         "ustensiles": "Shaker",
         "verre": "Tasse",
-        "specification": "Chauffer a la buse + eau bouillante"
+        "specification": "Chauffer a la buse + eau bouillante",
+        "image_verre": "/assets/images/verres/tasse_cuivre.png"
       },
       "economie": {
         "cout_total_eur": 1.57143,
@@ -3312,7 +3344,8 @@
       "materiel": {
         "ustensiles": "Au verre",
         "verre": "Bouteille",
-        "specification": "Rien"
+        "specification": "Rien",
+        "image_verre": "/assets/images/verres/verre_tumbler.png"
       },
       "economie": {
         "cout_total_eur": 13214.0,
@@ -3393,7 +3426,8 @@
       "materiel": {
         "ustensiles": "Shaker",
         "verre": "Vin",
-        "specification": "Shaker puis Vapeur"
+        "specification": "Shaker puis Vapeur",
+        "image_verre": "/assets/images/verres/verre_ballon.png"
       },
       "economie": {
         "cout_total_eur": 0.871429,
@@ -3491,7 +3525,8 @@
       "materiel": {
         "ustensiles": "Shaker",
         "verre": "Martini",
-        "specification": "pas de glacon dans le finale"
+        "specification": "pas de glacon dans le finale",
+        "image_verre": "/assets/images/verres/verre_martini.png"
       },
       "economie": {
         "cout_total_eur": 2.57714,
@@ -3619,7 +3654,8 @@
       "materiel": {
         "ustensiles": "Au verre",
         "verre": "Tasse",
-        "specification": "Rien"
+        "specification": "Rien",
+        "image_verre": "/assets/images/verres/tasse_cuivre.png"
       },
       "economie": {
         "cout_total_eur": 0.24,
@@ -3716,7 +3752,8 @@
       "materiel": {
         "ustensiles": "Shaker + Blender",
         "verre": "Tasse",
-        "specification": "blanchir jaune + sucre ___ chauffer lait ___ shaker whisky + lait + jaune + cannelle"
+        "specification": "blanchir jaune + sucre ___ chauffer lait ___ shaker whisky + lait + jaune + cannelle",
+        "image_verre": "/assets/images/verres/tasse_cuivre.png"
       },
       "economie": {
         "cout_total_eur": 3.31714,
@@ -3838,7 +3875,8 @@
       "materiel": {
         "ustensiles": "Shaker",
         "verre": "Tumbler",
-        "specification": "Rien"
+        "specification": "Rien",
+        "image_verre": "/assets/images/verres/verre_tumbler.png"
       },
       "economie": {
         "cout_total_eur": 0.947143,
@@ -3989,7 +4027,8 @@
       "materiel": {
         "ustensiles": "Shaker",
         "verre": "Margarita",
-        "specification": "Déco sel citron vert sur le bord du vers"
+        "specification": "Déco sel citron vert sur le bord du vers",
+        "image_verre": "/assets/images/verres/verre_margarita.png"
       },
       "economie": {
         "cout_total_eur": 0.3,
@@ -4082,7 +4121,8 @@
       "materiel": {
         "ustensiles": "Blender",
         "verre": "Mojito",
-        "specification": "Pillé + glace pillé + (classic, fraise, basilic, myrtille, maracuja)"
+        "specification": "Pillé + glace pillé + (classic, fraise, basilic, myrtille, maracuja)",
+        "image_verre": "/assets/images/verres/verre_tumbler.png"
       },
       "economie": {
         "cout_total_eur": 3.06714,
@@ -4235,7 +4275,8 @@
       "materiel": {
         "ustensiles": "Au verre",
         "verre": "Martini",
-        "specification": "Givré"
+        "specification": "Givré",
+        "image_verre": "/assets/images/verres/verre_martini.png"
       },
       "economie": {
         "cout_total_eur": 9230.91,
@@ -4331,7 +4372,8 @@
       "materiel": {
         "ustensiles": "Au verre",
         "verre": "Flute",
-        "specification": "Rien"
+        "specification": "Rien",
+        "image_verre": "/assets/images/verres/verre_flute.png"
       },
       "economie": {
         "cout_total_eur": 0.21,
@@ -4414,7 +4456,8 @@
       "materiel": {
         "ustensiles": "Shaker",
         "verre": "Jus",
-        "specification": "Chaud"
+        "specification": "Chaud",
+        "image_verre": "/assets/images/verres/verre_tumbler.png"
       },
       "economie": {
         "cout_total_eur": 2.09,
@@ -4535,7 +4578,8 @@
       "materiel": {
         "ustensiles": "Au verre",
         "verre": "Vin",
-        "specification": "Rien"
+        "specification": "Rien",
+        "image_verre": "/assets/images/verres/verre_ballon.png"
       },
       "economie": {
         "cout_total_eur": 1.28571,
@@ -4632,7 +4676,8 @@
       "materiel": {
         "ustensiles": "Au verre",
         "verre": "Métale",
-        "specification": "Rien"
+        "specification": "Rien",
+        "image_verre": "/assets/images/verres/tasse_cuivre.png"
       },
       "economie": {
         "cout_total_eur": 2.52571,
@@ -4775,7 +4820,8 @@
       "materiel": {
         "ustensiles": "Shaker + Glaçon",
         "verre": "Mojito",
-        "specification": "Rien"
+        "specification": "Rien",
+        "image_verre": "/assets/images/verres/verre_tumbler.png"
       },
       "economie": {
         "cout_total_eur": 2.75429,
@@ -4919,7 +4965,8 @@
       "materiel": {
         "ustensiles": "Au verre",
         "verre": "Old Fashioned",
-        "specification": "Rien"
+        "specification": "Rien",
+        "image_verre": "/assets/images/verres/verre_old_fashioned.png"
       },
       "economie": {
         "cout_total_eur": 2.74571,
@@ -5031,7 +5078,8 @@
       "materiel": {
         "ustensiles": "Shaker",
         "verre": "Saour",
-        "specification": "philtré X1"
+        "specification": "philtré X1",
+        "image_verre": "/assets/images/verres/verre_tumbler.png"
       },
       "economie": {
         "cout_total_eur": 0.06,
@@ -5129,7 +5177,8 @@
       "materiel": {
         "ustensiles": "Au verre",
         "verre": "Tumbler",
-        "specification": "Rien"
+        "specification": "Rien",
+        "image_verre": "/assets/images/verres/verre_tumbler.png"
       },
       "economie": {
         "cout_total_eur": 0.0,
@@ -5211,7 +5260,8 @@
       "materiel": {
         "ustensiles": "Au verre",
         "verre": "Old Fashioned",
-        "specification": "Piller le sucre avec l'Angostura"
+        "specification": "Piller le sucre avec l'Angostura",
+        "image_verre": "/assets/images/verres/verre_old_fashioned.png"
       },
       "economie": {
         "cout_total_eur": 2.42857,
@@ -5324,7 +5374,8 @@
       "materiel": {
         "ustensiles": "Shaker + Glaçon",
         "verre": "Martini",
-        "specification": "philtré X1"
+        "specification": "philtré X1",
+        "image_verre": "/assets/images/verres/verre_martini.png"
       },
       "economie": {
         "cout_total_eur": 0.18,
@@ -5460,7 +5511,8 @@
       "materiel": {
         "ustensiles": "Shaker + Glaçon",
         "verre": "Martini",
-        "specification": "Rien"
+        "specification": "Rien",
+        "image_verre": "/assets/images/verres/verre_martini.png"
       },
       "economie": {
         "cout_total_eur": 0.635714,
@@ -5604,7 +5656,8 @@
       "materiel": {
         "ustensiles": "Au verre",
         "verre": "Tumbler",
-        "specification": "2 Glaçon"
+        "specification": "2 Glaçon",
+        "image_verre": "/assets/images/verres/verre_tumbler.png"
       },
       "economie": {
         "cout_total_eur": 0.601429,
@@ -5710,7 +5763,8 @@
       "materiel": {
         "ustensiles": "Shaker + Glaçon",
         "verre": "Tumbler",
-        "specification": "Rien"
+        "specification": "Rien",
+        "image_verre": "/assets/images/verres/verre_tumbler.png"
       },
       "economie": {
         "cout_total_eur": 3.04571,
@@ -5824,7 +5878,8 @@
       "materiel": {
         "ustensiles": "Shaker",
         "verre": "Martini",
-        "specification": "Rien"
+        "specification": "Rien",
+        "image_verre": "/assets/images/verres/verre_martini.png"
       },
       "economie": {
         "cout_total_eur": 2.57143,
@@ -5945,7 +6000,8 @@
       "materiel": {
         "ustensiles": "Shaker",
         "verre": "Martini",
-        "specification": "philtré X1"
+        "specification": "philtré X1",
+        "image_verre": "/assets/images/verres/verre_martini.png"
       },
       "economie": {
         "cout_total_eur": 1.20286,
@@ -6058,7 +6114,8 @@
       "materiel": {
         "ustensiles": "Shaker + Glaçon",
         "verre": "Martini",
-        "specification": "Rien"
+        "specification": "Rien",
+        "image_verre": "/assets/images/verres/verre_martini.png"
       },
       "economie": {
         "cout_total_eur": 1.77429,
@@ -6157,7 +6214,8 @@
       "materiel": {
         "ustensiles": "Shaker",
         "verre": "Old Fashioned",
-        "specification": "Rien"
+        "specification": "Rien",
+        "image_verre": "/assets/images/verres/verre_old_fashioned.png"
       },
       "economie": {
         "cout_total_eur": 2.66143,
@@ -6278,7 +6336,8 @@
       "materiel": {
         "ustensiles": "Shaker + Glaçon",
         "verre": "Tulipe",
-        "specification": "Rien"
+        "specification": "Rien",
+        "image_verre": "/assets/images/verres/verre_tumbler.png"
       },
       "economie": {
         "cout_total_eur": 0.661429,
@@ -6424,7 +6483,8 @@
       "materiel": {
         "ustensiles": "Au verre",
         "verre": "Tumbler",
-        "specification": "3 Glaçon"
+        "specification": "3 Glaçon",
+        "image_verre": "/assets/images/verres/verre_tumbler.png"
       },
       "economie": {
         "cout_total_eur": 1.77429,
@@ -6515,7 +6575,8 @@
       "materiel": {
         "ustensiles": "Au verre",
         "verre": "Tulipe",
-        "specification": "3 Glaçon"
+        "specification": "3 Glaçon",
+        "image_verre": "/assets/images/verres/verre_tumbler.png"
       },
       "economie": {
         "cout_total_eur": 0.6,
@@ -6606,7 +6667,8 @@
       "materiel": {
         "ustensiles": "Au verre",
         "verre": "Old Fashioned",
-        "specification": "Pillé"
+        "specification": "Pillé",
+        "image_verre": "/assets/images/verres/verre_old_fashioned.png"
       },
       "economie": {
         "cout_total_eur": 2.91714,
@@ -6689,7 +6751,8 @@
       "materiel": {
         "ustensiles": "Shaker",
         "verre": "Tulipe",
-        "specification": "Rien"
+        "specification": "Rien",
+        "image_verre": "/assets/images/verres/verre_tumbler.png"
       },
       "economie": {
         "cout_total_eur": 0.721429,
@@ -6795,7 +6858,8 @@
       "materiel": {
         "ustensiles": "Au verre",
         "verre": "Old Fashioned",
-        "specification": "Rien"
+        "specification": "Rien",
+        "image_verre": "/assets/images/verres/verre_old_fashioned.png"
       },
       "economie": {
         "cout_total_eur": 31641.8,
@@ -6907,7 +6971,8 @@
       "materiel": {
         "ustensiles": "Shaker + Glaçon",
         "verre": "Martini",
-        "specification": "pas de glacon dans le finale"
+        "specification": "pas de glacon dans le finale",
+        "image_verre": "/assets/images/verres/verre_martini.png"
       },
       "economie": {
         "cout_total_eur": 0.12,
@@ -7013,7 +7078,8 @@
       "materiel": {
         "ustensiles": "Shaker + Glaçon",
         "verre": "Old Fashioned",
-        "specification": "Rien"
+        "specification": "Rien",
+        "image_verre": "/assets/images/verres/verre_old_fashioned.png"
       },
       "economie": {
         "cout_total_eur": 3.94857,
@@ -7142,7 +7208,8 @@
       "materiel": {
         "ustensiles": "Shaker + Glaçon",
         "verre": "Old Fashioned",
-        "specification": "Rien"
+        "specification": "Rien",
+        "image_verre": "/assets/images/verres/verre_old_fashioned.png"
       },
       "economie": {
         "cout_total_eur": 1.38286,
@@ -7226,7 +7293,8 @@
       "materiel": {
         "ustensiles": "Shaker + Glaçon",
         "verre": "Tumbler",
-        "specification": "Rien"
+        "specification": "Rien",
+        "image_verre": "/assets/images/verres/verre_tumbler.png"
       },
       "economie": {
         "cout_total_eur": 1.36714,
@@ -7355,7 +7423,8 @@
       "materiel": {
         "ustensiles": "Shaker",
         "verre": "Martini",
-        "specification": "Rien"
+        "specification": "Rien",
+        "image_verre": "/assets/images/verres/verre_martini.png"
       },
       "economie": {
         "cout_total_eur": 1.12714,
@@ -7446,7 +7515,8 @@
       "materiel": {
         "ustensiles": "Blender",
         "verre": "Champagne",
-        "specification": "philtré X2"
+        "specification": "philtré X2",
+        "image_verre": "/assets/images/verres/verre_flute.png"
       },
       "economie": {
         "cout_total_eur": 0.931429,
@@ -7573,7 +7643,8 @@
       "materiel": {
         "ustensiles": "Blender",
         "verre": "Mojito",
-        "specification": "Pillé + glace pillé + (classic, fraise, basilic, myrtille, maracuja)"
+        "specification": "Pillé + glace pillé + (classic, fraise, basilic, myrtille, maracuja)",
+        "image_verre": "/assets/images/verres/verre_tumbler.png"
       },
       "economie": {
         "cout_total_eur": 1.35286,
@@ -7726,7 +7797,8 @@
       "materiel": {
         "ustensiles": "Shaker + Glaçon",
         "verre": "Tumbler",
-        "specification": "pas de glacon dans le finale"
+        "specification": "pas de glacon dans le finale",
+        "image_verre": "/assets/images/verres/verre_tumbler.png"
       },
       "economie": {
         "cout_total_eur": 4.63143,
@@ -7847,7 +7919,8 @@
       "materiel": {
         "ustensiles": "Blender",
         "verre": "Saour",
-        "specification": "Glace pillé"
+        "specification": "Glace pillé",
+        "image_verre": "/assets/images/verres/verre_tumbler.png"
       },
       "economie": {
         "cout_total_eur": 26460.1,
@@ -8012,7 +8085,8 @@
       "materiel": {
         "ustensiles": "Blender",
         "verre": "Ballon",
-        "specification": "Rien"
+        "specification": "Rien",
+        "image_verre": "/assets/images/verres/verre_ballon.png"
       },
       "economie": {
         "cout_total_eur": 11.4286,
@@ -8102,7 +8176,8 @@
       "materiel": {
         "ustensiles": "Shaker + Glaçon",
         "verre": "Saour",
-        "specification": "pas de glacon dans le finale"
+        "specification": "pas de glacon dans le finale",
+        "image_verre": "/assets/images/verres/verre_tumbler.png"
       },
       "economie": {
         "cout_total_eur": 0.0,
@@ -8223,7 +8298,8 @@
       "materiel": {
         "ustensiles": "Shaker + Glaçon",
         "verre": "Martini",
-        "specification": "philtré X1"
+        "specification": "philtré X1",
+        "image_verre": "/assets/images/verres/verre_martini.png"
       },
       "economie": {
         "cout_total_eur": 1.15714,
@@ -8359,7 +8435,8 @@
       "materiel": {
         "ustensiles": "Au verre",
         "verre": "Tiki",
-        "specification": "au shaker tous les alcool et citron + dans le vers -> glaçon, 2cl grenadine + orange one top --> ajouter lalcool"
+        "specification": "au shaker tous les alcool et citron + dans le vers -> glaçon, 2cl grenadine + orange one top --> ajouter lalcool",
+        "image_verre": "/assets/images/verres/verre_tiki.png"
       },
       "economie": {
         "cout_total_eur": 1.00714,
@@ -8517,7 +8594,8 @@
       "materiel": {
         "ustensiles": "Au verre",
         "verre": "Old Fashioned",
-        "specification": "1 Glaçon"
+        "specification": "1 Glaçon",
+        "image_verre": "/assets/images/verres/verre_old_fashioned.png"
       },
       "economie": {
         "cout_total_eur": 3.25714,
@@ -8623,7 +8701,8 @@
       "materiel": {
         "ustensiles": "Au verre",
         "verre": "Mojito",
-        "specification": "3 Glaçon"
+        "specification": "3 Glaçon",
+        "image_verre": "/assets/images/verres/verre_tumbler.png"
       },
       "economie": {
         "cout_total_eur": 2766.58,
@@ -8744,7 +8823,8 @@
       "materiel": {
         "ustensiles": null,
         "verre": null,
-        "specification": null
+        "specification": null,
+        "image_verre": "/assets/images/verres/verre_tumbler.png"
       },
       "economie": {
         "cout_total_eur": 1.0,
@@ -8777,7 +8857,8 @@
       "materiel": {
         "ustensiles": null,
         "verre": null,
-        "specification": null
+        "specification": null,
+        "image_verre": "/assets/images/verres/verre_tumbler.png"
       },
       "economie": {
         "cout_total_eur": 1.0,
@@ -8810,7 +8891,8 @@
       "materiel": {
         "ustensiles": null,
         "verre": null,
-        "specification": null
+        "specification": null,
+        "image_verre": "/assets/images/verres/verre_tumbler.png"
       },
       "economie": {
         "cout_total_eur": 1.0,
@@ -8843,7 +8925,8 @@
       "materiel": {
         "ustensiles": null,
         "verre": null,
-        "specification": null
+        "specification": null,
+        "image_verre": "/assets/images/verres/verre_tumbler.png"
       },
       "economie": {
         "cout_total_eur": 1.0,
@@ -8876,7 +8959,8 @@
       "materiel": {
         "ustensiles": null,
         "verre": null,
-        "specification": null
+        "specification": null,
+        "image_verre": "/assets/images/verres/verre_tumbler.png"
       },
       "economie": {
         "cout_total_eur": 1.0,
@@ -8909,7 +8993,8 @@
       "materiel": {
         "ustensiles": null,
         "verre": null,
-        "specification": null
+        "specification": null,
+        "image_verre": "/assets/images/verres/verre_tumbler.png"
       },
       "economie": {
         "cout_total_eur": 1.0,
@@ -8942,7 +9027,8 @@
       "materiel": {
         "ustensiles": null,
         "verre": null,
-        "specification": null
+        "specification": null,
+        "image_verre": "/assets/images/verres/verre_tumbler.png"
       },
       "economie": {
         "cout_total_eur": 1.0,
@@ -8975,7 +9061,8 @@
       "materiel": {
         "ustensiles": null,
         "verre": null,
-        "specification": null
+        "specification": null,
+        "image_verre": "/assets/images/verres/verre_tumbler.png"
       },
       "economie": {
         "cout_total_eur": 1.0,
@@ -9008,7 +9095,8 @@
       "materiel": {
         "ustensiles": null,
         "verre": null,
-        "specification": null
+        "specification": null,
+        "image_verre": "/assets/images/verres/verre_tumbler.png"
       },
       "economie": {
         "cout_total_eur": 1.0,
@@ -9041,7 +9129,8 @@
       "materiel": {
         "ustensiles": null,
         "verre": null,
-        "specification": null
+        "specification": null,
+        "image_verre": "/assets/images/verres/verre_tumbler.png"
       },
       "economie": {
         "cout_total_eur": 1.0,
@@ -9074,7 +9163,8 @@
       "materiel": {
         "ustensiles": null,
         "verre": null,
-        "specification": null
+        "specification": null,
+        "image_verre": "/assets/images/verres/verre_tumbler.png"
       },
       "economie": {
         "cout_total_eur": 1.0,
@@ -9107,7 +9197,8 @@
       "materiel": {
         "ustensiles": null,
         "verre": null,
-        "specification": null
+        "specification": null,
+        "image_verre": "/assets/images/verres/verre_tumbler.png"
       },
       "economie": {
         "cout_total_eur": 1.0,
@@ -9140,7 +9231,8 @@
       "materiel": {
         "ustensiles": null,
         "verre": null,
-        "specification": null
+        "specification": null,
+        "image_verre": "/assets/images/verres/verre_tumbler.png"
       },
       "economie": {
         "cout_total_eur": 1.0,
@@ -9173,7 +9265,8 @@
       "materiel": {
         "ustensiles": null,
         "verre": null,
-        "specification": null
+        "specification": null,
+        "image_verre": "/assets/images/verres/verre_tumbler.png"
       },
       "economie": {
         "cout_total_eur": 1.0,
@@ -9206,7 +9299,8 @@
       "materiel": {
         "ustensiles": null,
         "verre": null,
-        "specification": null
+        "specification": null,
+        "image_verre": "/assets/images/verres/verre_tumbler.png"
       },
       "economie": {
         "cout_total_eur": 1.0,
@@ -9239,7 +9333,8 @@
       "materiel": {
         "ustensiles": null,
         "verre": null,
-        "specification": null
+        "specification": null,
+        "image_verre": "/assets/images/verres/verre_tumbler.png"
       },
       "economie": {
         "cout_total_eur": 1.0,
@@ -9272,7 +9367,8 @@
       "materiel": {
         "ustensiles": null,
         "verre": null,
-        "specification": null
+        "specification": null,
+        "image_verre": "/assets/images/verres/verre_tumbler.png"
       },
       "economie": {
         "cout_total_eur": 1.0,
@@ -9305,7 +9401,8 @@
       "materiel": {
         "ustensiles": null,
         "verre": null,
-        "specification": null
+        "specification": null,
+        "image_verre": "/assets/images/verres/verre_tumbler.png"
       },
       "economie": {
         "cout_total_eur": 1.0,
@@ -9338,7 +9435,8 @@
       "materiel": {
         "ustensiles": null,
         "verre": null,
-        "specification": null
+        "specification": null,
+        "image_verre": "/assets/images/verres/verre_tumbler.png"
       },
       "economie": {
         "cout_total_eur": 1.0,
@@ -9371,7 +9469,8 @@
       "materiel": {
         "ustensiles": null,
         "verre": null,
-        "specification": null
+        "specification": null,
+        "image_verre": "/assets/images/verres/verre_tumbler.png"
       },
       "economie": {
         "cout_total_eur": 1.0,
