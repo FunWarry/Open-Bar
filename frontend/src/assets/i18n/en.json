@@ -139,7 +139,11 @@
     "SEASONAL": "Seasonal",
     "INGREDIENTS": "Ingredients",
     "VARIANTS": "Variants",
-    "INSTRUCTIONS": "Preparation Instructions",
+    "INSTRUCTIONS": "Preparation instructions",
+    "CHANGE_PHOTO": "Change photo",
+    "TAKE_PHOTO": "Take a photo",
+    "PHOTO_UPDATED_SUCCESS": "Cocktail photo updated successfully",
+    "PHOTO_UPLOAD_ERROR": "Failed to upload photo",
     "CATEGORIES": {
       "ALCOOLISE": "Alcoholic",
       "SANS_ALCOOL": "Non-alcoholic",

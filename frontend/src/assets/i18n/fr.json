@@ -141,6 +141,10 @@
     "INGREDIENTS": "Ingrédients",
     "VARIANTS": "Variantes",
     "INSTRUCTIONS": "Instructions de préparation",
+    "CHANGE_PHOTO": "Changer la photo",
+    "TAKE_PHOTO": "Prendre une photo",
+    "PHOTO_UPDATED_SUCCESS": "Photo du cocktail mise à jour avec succès",
+    "PHOTO_UPLOAD_ERROR": "Erreur lors du téléversement de la photo",
     "CATEGORIES": {
       "ALCOOLISE": "Alcoolisé",
       "SANS_ALCOOL": "Sans alcool",

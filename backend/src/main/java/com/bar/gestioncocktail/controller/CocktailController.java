@@ -11,9 +11,11 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -254,5 +256,25 @@ public class CocktailController {
         @RequestBody SaisonnaliteRequest request) {
         return ResponseEntity.ok(CocktailResponseDTO.from(
             cocktailService.updateSaisonnalite(id, request.moisDebut(), request.moisFin())));
+    }
+
+    /**
+     * Uploads a custom photo for a cocktail (BARMAN, MANAGER, or ADMIN).
+     *
+     * @param id   Identifier of the target cocktail
+     * @param file Multipart photo file
+     * @return Updated cocktail DTO with new photo URL
+     */
+    @PostMapping(value = "/{id}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('ADMIN') or hasRole('BARMAN') or hasRole('MANAGER')")
+    @Operation(summary = "Upload custom cocktail photo (BARMAN/MANAGER/ADMIN)", description = "Stores uploaded photo and updates cocktail photoUrl.")
+    @ApiResponse(responseCode = "200", description = "Photo uploaded and cocktail updated")
+    @ApiResponse(responseCode = "400", description = "Invalid file or format")
+    @ApiResponse(responseCode = "404", description = "Cocktail not found")
+    public ResponseEntity<CocktailResponseDTO> uploadCocktailPhoto(
+        @Parameter(description = "Cocktail ID") @PathVariable Long id,
+        @RequestParam("file") MultipartFile file) {
+        Cocktail updated = cocktailService.updateCocktailImage(id, file);
+        return ResponseEntity.ok(CocktailResponseDTO.from(updated));
     }
 }

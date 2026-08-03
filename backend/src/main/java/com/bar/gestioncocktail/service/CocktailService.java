@@ -7,6 +7,8 @@ import com.bar.gestioncocktail.repository.CocktailRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.web.multipart.MultipartFile;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -19,16 +21,19 @@ import java.util.Optional;
 public class CocktailService {
     private final CocktailRepository cocktailRepository;
     private final TimeService timeService;
+    private final FileUploadService fileUploadService;
 
     /**
-     * Constructeur avec injection du repository cocktail et du service temps.
+     * Constructeur avec injection des dépendances.
      *
      * @param cocktailRepository Repository JPA des cocktails
      * @param timeService Service de gestion du temps
+     * @param fileUploadService Service de gestion des fichiers téléversés
      */
-    public CocktailService(CocktailRepository cocktailRepository, TimeService timeService) {
+    public CocktailService(CocktailRepository cocktailRepository, TimeService timeService, FileUploadService fileUploadService) {
         this.cocktailRepository = cocktailRepository;
         this.timeService = timeService;
+        this.fileUploadService = fileUploadService;
     }
 
     /**
@@ -174,6 +179,24 @@ public class CocktailService {
         cocktail.setMoisDebut(moisDebut);
         cocktail.setMoisFin(moisFin);
         cocktail.setSaisonnier(moisDebut != null && moisFin != null);
+        return cocktailRepository.save(cocktail);
+    }
+
+    /**
+     * Stores a new photo for a cocktail and updates its photoUrl attribute.
+     *
+     * @param id   Identifier of the target cocktail
+     * @param file Multipart image file uploaded by user
+     * @return Updated cocktail entity
+     */
+    @Transactional
+    public Cocktail updateCocktailImage(Long id, MultipartFile file) {
+        Cocktail cocktail = cocktailRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Cocktail non trouvé: " + id));
+
+        String photoUrl = fileUploadService.storeCocktailPhoto(id, file);
+        cocktail.setImageUrl(photoUrl);
+        cocktail.setUpdatedAt(timeService.now());
         return cocktailRepository.save(cocktail);
     }
 }

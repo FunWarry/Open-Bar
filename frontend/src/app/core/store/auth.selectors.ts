@@ -57,3 +57,9 @@ export const selectCanEditIngredient = createSelector(
   selectCurrentUser,
   (user) => user?.roles?.some(r => r === 'ADMIN' || r === 'MANAGER' || r === 'BARMAN') ?? false
 );
+
+/** Selecteur indiquant si l'utilisateur peut modifier les photos de cocktails (ADMIN, MANAGER ou BARMAN). */
+export const selectCanUploadPhoto = createSelector(
+  selectCurrentUser,
+  (user) => user?.roles?.some(r => r === 'ADMIN' || r === 'MANAGER' || r === 'BARMAN') ?? false
+);

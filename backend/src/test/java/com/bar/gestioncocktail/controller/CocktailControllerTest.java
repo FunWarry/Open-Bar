@@ -85,4 +85,18 @@ class CocktailControllerTest {
         assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         verify(cocktailService).deleteCocktail(1L);
     }
+
+    @Test
+    @DisplayName("uploadCocktailPhoto - uploads custom photo and returns DTO")
+    void uploadCocktailPhoto_success() {
+        org.springframework.mock.web.MockMultipartFile file = new org.springframework.mock.web.MockMultipartFile("file", "photo.jpg", "image/jpeg", "content".getBytes());
+        cocktail.setImageUrl("/uploads/cocktails/cocktail_1_xyz.jpg");
+        when(cocktailService.updateCocktailImage(1L, file)).thenReturn(cocktail);
+
+        ResponseEntity<CocktailResponseDTO> response = cocktailController.uploadCocktailPhoto(1L, file);
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().imageUrl()).isEqualTo("/uploads/cocktails/cocktail_1_xyz.jpg");
+    }
 }

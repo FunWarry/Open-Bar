@@ -38,10 +38,11 @@ describe('CocktailListComponent', () => {
   const mockToast = { present: jasmine.createSpy('present') };
 
   beforeEach(async () => {
-    serviceSpy = jasmine.createSpyObj('CocktailService', ['getAll', 'toggleDisponibilite', 'delete']);
+    serviceSpy = jasmine.createSpyObj('CocktailService', ['getAll', 'toggleDisponibilite', 'delete', 'uploadImage']);
     serviceSpy.getAll.and.returnValue(of(mockCocktails));
     serviceSpy.toggleDisponibilite.and.returnValue(of({ ...mockCocktails[0], disponible: false } as any));
     serviceSpy.delete.and.returnValue(of(undefined as any));
+    serviceSpy.uploadImage.and.returnValue(of({ ...mockCocktails[0], imageUrl: '/uploads/cocktails/photo.jpg' } as any));
 
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
     toastCtrlSpy.create.and.returnValue(Promise.resolve(mockToast as any));
@@ -147,6 +148,20 @@ describe('CocktailListComponent', () => {
   it('isHorsSaison() retourne false pour un cocktail non saisonnier', () => {
     expect(component.isHorsSaison(mockCocktails[0])).toBeFalse();
   });
+
+  // --- upload photo ---
+
+  it('onUploadPhoto() appelle uploadImage et met à jour le cocktail', fakeAsync(() => {
+    component.charger(); tick();
+    const file = new File(['fake'], 'photo.jpg', { type: 'image/jpeg' });
+    const event = { target: { files: [file] } } as any;
+
+    component.onUploadPhoto(event, 1);
+    tick();
+
+    expect(serviceSpy.uploadImage).toHaveBeenCalledWith(1, file);
+    expect(component.cocktails[0].imageUrl).toBe('/uploads/cocktails/photo.jpg');
+  }));
 
   // --- trackById ---
 

@@ -44,4 +44,10 @@ export class CocktailService {
   updateSaisonnalite(id: number, moisDebut: number | null, moisFin: number | null): Observable<Cocktail> {
     return this.http.patch<Cocktail>(`${this.api}/${id}/saisonnalite`, { moisDebut, moisFin });
   }
+
+  uploadImage(id: number, file: File): Observable<Cocktail> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<Cocktail>(`${this.api}/${id}/image`, formData);
+  }
 }

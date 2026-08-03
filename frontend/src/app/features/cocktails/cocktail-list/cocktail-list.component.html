@@ -30,7 +30,10 @@
         } @else {
           <ion-list>
             @for (cocktail of filteredCocktails; track cocktail.id) {
-              <ion-item>
+              <ion-item [attr.data-testid]="'cocktail-item-' + cocktail.id">
+                <ion-thumbnail slot="start">
+                  <img [src]="cocktail.imageUrl || 'assets/images/verres/verre_tumbler.png'" [alt]="cocktail.nom" />
+                </ion-thumbnail>
                 <ion-label>
                   <h3>{{ cocktail.nom }}</h3>
                   <p>{{ cocktail.categorie }}</p>
@@ -43,14 +46,20 @@
                 </ion-badge>
                 <ion-badge slot="end" color="primary">{{ cocktail.prix | currency:'EUR' }}</ion-badge>
                 <ion-buttons slot="end">
-                  <ion-button fill="clear" color="warning" (click)="onToggleDisponibilite(cocktail)" (keydown.enter)="onToggleDisponibilite(cocktail)">
+                  @if (canUploadPhoto$ | async) {
+                    <input type="file" #photoInput [id]="'photo-input-' + cocktail.id" aria-label="Téléverser photo cocktail" accept="image/*" capture="environment" style="display:none" (change)="onUploadPhoto($event, cocktail.id)">
+                    <ion-button fill="clear" color="secondary" [attr.data-testid]="'upload-photo-btn-' + cocktail.id" (click)="triggerFileInput(photoInput)" (keydown.enter)="triggerFileInput(photoInput)">
+                      <ion-icon slot="icon-only" name="camera-outline"></ion-icon>
+                    </ion-button>
+                  }
+                  <ion-button fill="clear" color="warning" [attr.data-testid]="'toggle-dispo-btn-' + cocktail.id" (click)="onToggleDisponibilite(cocktail)" (keydown.enter)="onToggleDisponibilite(cocktail)">
                     <ion-icon slot="icon-only" name="toggle-outline"></ion-icon>
                   </ion-button>
                   @if (isAdmin$ | async) {
-                    <ion-button fill="clear" color="tertiary" (click)="onEdit(cocktail)" (keydown.enter)="onEdit(cocktail)">
+                    <ion-button fill="clear" color="tertiary" [attr.data-testid]="'edit-cocktail-btn-' + cocktail.id" (click)="onEdit(cocktail)" (keydown.enter)="onEdit(cocktail)">
                       <ion-icon slot="icon-only" name="create"></ion-icon>
                     </ion-button>
-                    <ion-button fill="clear" color="danger" (click)="onDelete(cocktail)" (keydown.enter)="onDelete(cocktail)">
+                    <ion-button fill="clear" color="danger" [attr.data-testid]="'delete-cocktail-btn-' + cocktail.id" (click)="onDelete(cocktail)" (keydown.enter)="onDelete(cocktail)">
                       <ion-icon slot="icon-only" name="trash"></ion-icon>
                     </ion-button>
                   }

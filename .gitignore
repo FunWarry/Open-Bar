@@ -56,3 +56,5 @@ frontend/coverage
 /.sonarlint/
 .vscode/
 /qodana.sarif.json
+/uploads/
+/backend/uploads/

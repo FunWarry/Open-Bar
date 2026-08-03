@@ -15,6 +15,8 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.mock.web.MockMultipartFile;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -30,6 +32,9 @@ class CocktailServiceTest {
 
     @Spy
     TimeService timeService = new TimeService(null);
+
+    @Mock
+    FileUploadService fileUploadService;
 
     @InjectMocks
     CocktailService cocktailService;
@@ -134,5 +139,19 @@ class CocktailServiceTest {
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getNom()).isEqualTo("Mojito");
         assertThat(result).allMatch(c -> Boolean.TRUE.equals(c.isDisponible()));
+    }
+
+    @Test
+    void updateCocktailImage_sauvegardePhotoEtMetAJourCocktail() {
+        MockMultipartFile file = new MockMultipartFile("file", "mojito.jpg", "image/jpeg", "bytes".getBytes());
+        when(cocktailRepository.findById(1L)).thenReturn(Optional.of(cocktail));
+        when(fileUploadService.storeCocktailPhoto(1L, file)).thenReturn("/uploads/cocktails/cocktail_1_abc.jpg");
+        when(cocktailRepository.save(any(Cocktail.class))).thenAnswer(i -> i.getArgument(0));
+
+        Cocktail updated = cocktailService.updateCocktailImage(1L, file);
+
+        assertThat(updated.getImageUrl()).isEqualTo("/uploads/cocktails/cocktail_1_abc.jpg");
+        verify(fileUploadService, times(1)).storeCocktailPhoto(1L, file);
+        verify(cocktailRepository, times(1)).save(cocktail);
     }
 }
