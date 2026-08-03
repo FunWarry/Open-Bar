@@ -76,6 +76,9 @@
             },
             "development": {
               "buildTarget": "gestion-cocktail-frontend:build:development"
+            },
+            "staging": {
+              "buildTarget": "gestion-cocktail-frontend:build:staging"
             }
           },
           "defaultConfiguration": "development"
