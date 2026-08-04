@@ -412,4 +412,17 @@ class FactureServiceTest {
         assertThat(recap.nombreClients()).isEqualTo(3);
         assertThat(recap.ventilationModePaiement()).hasSize(2);
     }
+
+    @Test
+    void reglerFacture_avecPourboire_metAJourTotalEtMarqueReglee() {
+        when(factureRepository.findById(10L)).thenReturn(Optional.of(facture));
+        when(factureRepository.save(any(Facture.class))).thenAnswer(i -> i.getArgument(0));
+
+        Facture result = factureService.reglerFacture(10L, "CARTE", new BigDecimal("5.00"));
+
+        assertThat(result.isReglee()).isTrue();
+        assertThat(result.getModePaiement()).isEqualTo("CARTE");
+        assertThat(result.getPourboire()).isEqualByComparingTo(new BigDecimal("5.00"));
+        assertThat(result.getTotalTTC()).isEqualByComparingTo(new BigDecimal("30.00"));
+    }
 }

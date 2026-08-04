@@ -169,8 +169,23 @@ public class FactureService {
 
     @Transactional
     public Facture reglerFacture(Long id, String modePaiement) {
+        return executeReglerFacture(id, modePaiement, null);
+    }
+
+    @Transactional
+    public Facture reglerFacture(Long id, String modePaiement, BigDecimal pourboire) {
+        return executeReglerFacture(id, modePaiement, pourboire);
+    }
+
+    private Facture executeReglerFacture(Long id, String modePaiement, BigDecimal pourboire) {
         Facture facture = factureRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(NOT_FOUND_ID_PREFIX + id));
+
+        if (pourboire != null && pourboire.compareTo(BigDecimal.ZERO) > 0) {
+            facture.setPourboire(pourboire);
+            BigDecimal currentTotal = facture.getTotal() != null ? facture.getTotal() : BigDecimal.ZERO;
+            facture.setTotalTTC(currentTotal.add(pourboire));
+        }
 
         facture.setReglee(true);
         facture.setModePaiement(modePaiement);

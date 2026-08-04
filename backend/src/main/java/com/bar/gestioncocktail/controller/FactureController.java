@@ -24,6 +24,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -212,8 +213,9 @@ public class FactureController {
     @ApiResponse(responseCode = "200", description = "Règlement effectué")
     public ResponseEntity<FactureResponseDTO> reglerFacture(
             @Parameter(description = "ID de la facture") @PathVariable Long id,
-            @Parameter(description = "Mode de paiement (CARTE, ESPECES, etc.)") @RequestParam String modePaiement) {
-        return ResponseEntity.ok(FactureResponseDTO.from(factureService.reglerFacture(id, modePaiement)));
+            @Parameter(description = "Mode de paiement (CARTE, ESPECES, etc.)") @RequestParam String modePaiement,
+            @Parameter(description = "Pourboire éventuel") @RequestParam(required = false) BigDecimal pourboire) {
+        return ResponseEntity.ok(FactureResponseDTO.from(factureService.reglerFacture(id, modePaiement, pourboire)));
     }
 
     /**
