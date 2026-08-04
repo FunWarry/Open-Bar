@@ -89,4 +89,42 @@ describe('ReglementModalComponent', () => {
       monnaieARendre: undefined
     });
   });
+
+  it('validerReglement() with ESPECES mode includes montantRecu and monnaieARendre', () => {
+    component.modePaiement = 'ESPECES';
+    component.setTipMode('none');
+    component.montantRecu = 60.00;
+    component.validerReglement();
+
+    expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith({
+      modePaiement: 'ESPECES',
+      pourboire: 0,
+      totalTotal: 50.00,
+      montantRecu: 60.00,
+      monnaieARendre: 10.00
+    });
+  });
+
+  it('resets totalInitial to 0 if negative on init', () => {
+    const fixture2 = TestBed.createComponent(ReglementModalComponent);
+    const comp2 = fixture2.componentInstance;
+    comp2.totalInitial = -10;
+    comp2.ngOnInit();
+    expect(comp2.totalInitial).toBe(0);
+  });
+
+  it('handles negative or null custom pourboire as 0', () => {
+    component.setTipMode('custom');
+    component.customPourboire = -5;
+    expect(component.pourboire).toBe(0);
+  });
+
+  it('returns true for isMontantRecuSuffisant when mode is not ESPECES or montantRecu is null', () => {
+    component.modePaiement = 'CARTE';
+    expect(component.isMontantRecuSuffisant).toBeTrue();
+
+    component.modePaiement = 'ESPECES';
+    component.montantRecu = null;
+    expect(component.isMontantRecuSuffisant).toBeTrue();
+  });
 });
