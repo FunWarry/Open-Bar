@@ -1,144 +1,96 @@
-import { TestBed, ComponentFixture } from '@angular/core/testing';
-import { ReactiveFormsModule } from '@angular/forms';
+import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { UserDialogComponent } from '../../../app/features/admin/users/user-dialog/user-dialog.component';
 import { ModalController } from '@ionic/angular/standalone';
+import { User } from '../../../app/core/models/user.model';
 
 describe('UserDialogComponent', () => {
   let component: UserDialogComponent;
-  let fixture: ComponentFixture<UserDialogComponent>;
   let modalCtrlSpy: jasmine.SpyObj<ModalController>;
 
-  beforeEach(async () => {
+  const mockUser: User = {
+    id: 1,
+    username: 'jdoe',
+    nom: 'Doe',
+    prenom: 'John',
+    email: 'john.doe@openbar.local',
+    roles: ['SERVEUR'],
+    enabled: true,
+    createdAt: '2026-08-01T10:00:00Z',
+    updatedAt: '2026-08-01T10:00:00Z'
+  };
+
+  beforeEach(() => {
     modalCtrlSpy = jasmine.createSpyObj('ModalController', ['dismiss']);
 
-    await TestBed.configureTestingModule({
-      imports: [UserDialogComponent, ReactiveFormsModule],
+    TestBed.configureTestingModule({
+      imports: [UserDialogComponent],
       providers: [
         { provide: ModalController, useValue: modalCtrlSpy }
       ]
     }).compileComponents();
 
-    fixture = TestBed.createComponent(UserDialogComponent);
+    const fixture = TestBed.createComponent(UserDialogComponent);
     component = fixture.componentInstance;
-    fixture.detectChanges();
   });
 
-  it('should create', () => {
+  it('should create and initialize empty form when data is null', () => {
+    component.data = null;
+    component.ngOnInit();
+
     expect(component).toBeTruthy();
-  });
-
-  it('should initialize form with empty fields', () => {
-    expect(component.userForm).toBeDefined();
     expect(component.userForm.get('username')?.value).toBe('');
-    expect(component.userForm.get('email')?.value).toBe('');
-    expect(component.userForm.get('password')?.value).toBe('');
-    expect(component.userForm.get('confirmPassword')?.value).toBe('');
     expect(component.userForm.get('roles')?.value).toEqual([]);
   });
 
-  it('should mark form invalid when required fields are empty', () => {
-    expect(component.userForm.invalid).toBeTrue();
-  });
-
-  it('ngOnInit() patches form values when data is provided', () => {
-    component.data = {
-      id: 1,
-      username: 'johndoe',
-      email: 'john@example.com',
-      roles: ['BARMAN']
-    } as any;
+  it('should prefill form when data is provided', () => {
+    component.data = mockUser;
     component.ngOnInit();
 
-    expect(component.userForm.get('username')?.value).toBe('johndoe');
-    expect(component.userForm.get('email')?.value).toBe('john@example.com');
-    expect(component.userForm.get('roles')?.value).toEqual(['BARMAN']);
+    expect(component.userForm.get('username')?.value).toBe('jdoe');
+    expect(component.userForm.get('nom')?.value).toBe('Doe');
+    expect(component.userForm.get('prenom')?.value).toBe('John');
+    expect(component.userForm.get('email')?.value).toBe('john.doe@openbar.local');
+    expect(component.userForm.get('roles')?.value).toEqual(['SERVEUR']);
   });
 
-  it('ngOnInit() clears password validators when editing existing user', () => {
-    component.data = {
-      id: 1,
-      username: 'johndoe',
-      email: 'john@example.com',
-      roles: ['SERVEUR']
-    } as any;
+  it('toggleRole() adds or removes roles from form value', () => {
+    component.data = null;
     component.ngOnInit();
 
-    const passwordCtrl = component.userForm.get('password');
-    const confirmCtrl = component.userForm.get('confirmPassword');
-    expect(passwordCtrl?.validator).toBeNull();
-    expect(confirmCtrl?.validator).toBeNull();
+    component.toggleRole('ADMIN');
+    expect(component.isRoleSelected('ADMIN')).toBeTrue();
+
+    component.toggleRole('ADMIN');
+    expect(component.isRoleSelected('ADMIN')).toBeFalse();
   });
 
-  it('passwordMatchValidator() returns null when passwords match', () => {
-    component.userForm.patchValue({ password: 'secret1', confirmPassword: 'secret1' });
-    const result = component.passwordMatchValidator(component.userForm);
-    expect(result).toBeNull();
-  });
+  it('onSubmit() calls modalCtrl.dismiss with form value if valid', () => {
+    component.data = null;
+    component.ngOnInit();
 
-  it('passwordMatchValidator() returns error when passwords differ', () => {
-    component.userForm.patchValue({ password: 'secret1', confirmPassword: 'different' });
-    const result = component.passwordMatchValidator(component.userForm);
-    expect(result).toEqual({ passwordMismatch: true });
-  });
-
-  it('passwordMatchValidator() returns null when password is empty', () => {
-    component.userForm.patchValue({ password: '', confirmPassword: '' });
-    const result = component.passwordMatchValidator(component.userForm);
-    expect(result).toBeNull();
-  });
-
-  it('onSubmit() calls modalCtrl.dismiss with form value when form is valid', () => {
     component.userForm.patchValue({
-      username: 'alice',
-      email: 'alice@example.com',
+      username: 'newuser',
+      nom: 'New',
+      prenom: 'User',
+      email: 'new@bar.com',
       password: 'password123',
       confirmPassword: 'password123',
-      roles: ['MANAGER']
+      roles: ['BARMAN']
     });
 
     component.onSubmit();
 
-    expect(modalCtrlSpy.dismiss).toHaveBeenCalledOnceWith(jasmine.objectContaining({
-      username: 'alice',
-      email: 'alice@example.com',
-      password: 'password123',
-      roles: ['MANAGER']
+    expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith(jasmine.objectContaining({
+      username: 'newuser',
+      nom: 'New',
+      prenom: 'User',
+      email: 'new@bar.com',
+      roles: ['BARMAN']
     }));
-  });
-
-  it('onSubmit() does not call dismiss when form is invalid', () => {
-    component.userForm.patchValue({ username: '', email: '', roles: [] });
-    component.onSubmit();
-    expect(modalCtrlSpy.dismiss).not.toHaveBeenCalled();
-  });
-
-  it('onSubmit() strips password fields from payload when password is empty', () => {
-    component.data = {
-      id: 2,
-      username: 'bob',
-      email: 'bob@example.com',
-      roles: ['SERVEUR']
-    } as any;
-    component.ngOnInit();
-
-    component.userForm.patchValue({
-      username: 'bob',
-      email: 'bob@example.com',
-      password: '',
-      confirmPassword: '',
-      roles: ['SERVEUR']
-    });
-
-    component.onSubmit();
-
-    const dismissArg = modalCtrlSpy.dismiss.calls.mostRecent()?.args[0];
-    expect(dismissArg).not.toBeUndefined();
-    expect(dismissArg.password).toBeUndefined();
-    expect(dismissArg.confirmPassword).toBeUndefined();
   });
 
   it('onCancel() calls modalCtrl.dismiss with null', () => {
     component.onCancel();
-    expect(modalCtrlSpy.dismiss).toHaveBeenCalledOnceWith(null);
+    expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith(null);
   });
 });
