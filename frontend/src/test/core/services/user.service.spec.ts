@@ -107,4 +107,46 @@ describe('UserService', () => {
     expect(req.request.method).toBe('DELETE');
     req.flush(null);
   });
+
+  it('getUsersPaged() should send GET with page, size, search and role params', () => {
+    const mockPage = {
+      content: [mockUsers[0]],
+      pageNumber: 0,
+      pageSize: 10,
+      totalElements: 1,
+      totalPages: 1,
+      isFirst: true,
+      isLast: true
+    };
+
+    service.getUsersPaged(0, 10, 'admin', 'ADMIN').subscribe((page) => {
+      expect(page.content).toHaveSize(1);
+      expect(page.totalElements).toBe(1);
+    });
+
+    const req = httpMock.expectOne(`${environment.apiUrl}/users/paged?page=0&size=10&search=admin&role=ADMIN`);
+    expect(req.request.method).toBe('GET');
+    req.flush(mockPage);
+  });
+
+  it('getUsersPaged() should omit empty search and role params', () => {
+    const mockPage = {
+      content: mockUsers,
+      pageNumber: 0,
+      pageSize: 10,
+      totalElements: 2,
+      totalPages: 1,
+      isFirst: true,
+      isLast: true
+    };
+
+    service.getUsersPaged(0, 10, '', '').subscribe((page) => {
+      expect(page.content).toHaveSize(2);
+    });
+
+    // Service omits empty search/role — only page and size are sent
+    const req = httpMock.expectOne(`${environment.apiUrl}/users/paged?page=0&size=10`);
+    expect(req.request.method).toBe('GET');
+    req.flush(mockPage);
+  });
 });
