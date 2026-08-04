@@ -1,61 +1,110 @@
-<div class="user-list-container">
-  <ion-card>
-    <ion-card-header>
-      <div class="card-header-row">
-        <ion-card-title>Gestion des utilisateurs</ion-card-title>
-        <ion-button color="primary" (click)="openCreateDialog()" (keydown.enter)="openCreateDialog()" data-testid="btn-create-user">
-          <ion-icon slot="start" name="person-add"></ion-icon>
-          Nouvel utilisateur
+<div class="user-list-container ion-padding">
+  <ion-card class="user-card">
+    <ion-card-header class="card-header">
+      <div class="header-main">
+        <ion-card-title>Gestion des Utilisateurs & Employés</ion-card-title>
+        <ion-button color="primary" (click)="openCreateDialog()" (keydown.enter)="openCreateDialog()" data-testid="create-user-btn">
+          <ion-icon name="person-add" slot="start"></ion-icon>
+          Nouvel employé
         </ion-button>
       </div>
+
+      <!-- Filtres et Recherche -->
+      <div class="filter-toolbar ion-margin-top">
+        <div class="search-box">
+          <ion-input
+            [(ngModel)]="searchQuery"
+            (ionInput)="onSearchChange()"
+            placeholder="Rechercher par nom, email ou username..."
+            fill="outline"
+            class="search-input"
+            data-testid="user-search-input">
+            <ion-icon name="search-outline" slot="start"></ion-icon>
+          </ion-input>
+        </div>
+
+        <div class="role-filter">
+          <ion-select
+            [(ngModel)]="selectedRole"
+            (ionChange)="onRoleChange()"
+            interface="popover"
+            fill="outline"
+            aria-label="Filtrer par rôle"
+            data-testid="user-role-select">
+            <ion-select-option *ngFor="let r of availableRoles" [value]="r.value">
+              {{ r.label }}
+            </ion-select-option>
+          </ion-select>
+        </div>
+      </div>
     </ion-card-header>
+
     <ion-card-content>
-      @if (loading) {
-        <div class="loading-spinner-container">
-          <ion-spinner name="crescent" color="primary"></ion-spinner>
+      <div *ngIf="loading" class="spinner-container ion-text-center ion-padding">
+        <ion-spinner name="crescent"></ion-spinner>
+      </div>
+
+      <ng-container *ngIf="!loading">
+        <div *ngIf="users.length === 0" class="empty-state ion-text-center ion-padding" data-testid="empty-users-state">
+          <p>Aucun utilisateur trouvé.</p>
         </div>
-      } @else {
-        <div class="list-header">
-          <span class="col-user">Utilisateur</span>
-          <span class="col-roles">Rôles</span>
-          <span class="col-date">Créé le</span>
-          <span class="col-actions">Actions</span>
-        </div>
-        <ion-list>
-          @for (user of users; track trackById($index, user)) {
-            <ion-item data-testid="user-item">
-              <div class="user-row">
-                <div class="col-user">
-                  <h3>{{ user.username }}</h3>
-                  <p>{{ user.email }}</p>
-                </div>
-                <div class="col-roles">
-                  @for (role of user.roles; track role) {
-                    <ion-badge [color]="getRoleColor(role)">
-                      {{ role }}
-                    </ion-badge>
-                  }
-                </div>
-                <div class="col-date">
-                  {{ user.createdAt | date:'dd/MM/yyyy' }}
-                </div>
-                <div class="col-actions">
-                  <ion-button fill="clear" color="tertiary" (click)="openEditDialog(user)" (keydown.enter)="openEditDialog(user)" data-testid="btn-edit-user">
-                    <ion-icon slot="icon-only" name="create"></ion-icon>
-                  </ion-button>
-                  <ion-button fill="clear" color="danger" (click)="openDeleteDialog(user)" (keydown.enter)="openDeleteDialog(user)" data-testid="btn-delete-user">
-                    <ion-icon slot="icon-only" name="trash"></ion-icon>
-                  </ion-button>
+
+        <ion-list *ngIf="users.length > 0" data-testid="user-list">
+          <ion-item *ngFor="let user of users; trackBy: trackById" lines="full" [attr.data-testid]="'user-item-' + user.id">
+            <div class="user-row">
+              <div class="user-info">
+                <h3 class="user-username">
+                  {{ user.username }}
+                  <span *ngIf="user.prenom || user.nom" class="user-fullname">({{ user.prenom }} {{ user.nom }})</span>
+                </h3>
+                <p class="user-email">{{ user.email }}</p>
+                <div class="roles-container">
+                  <ion-badge *ngFor="let role of user.roles" [color]="getRoleColor(role)" class="role-badge">
+                    {{ role }}
+                  </ion-badge>
                 </div>
               </div>
-            </ion-item>
-          } @empty {
-            <div class="empty-users-message">
-              <p>Aucun utilisateur trouvé.</p>
+
+              <div class="action-buttons">
+                <ion-button fill="clear" color="primary" (click)="openEditDialog(user)" (keydown.enter)="openEditDialog(user)" [attr.data-testid]="'edit-user-btn-' + user.id">
+                  <ion-icon name="create" slot="icon-only"></ion-icon>
+                </ion-button>
+                <ion-button fill="clear" color="danger" (click)="openDeleteDialog(user)" (keydown.enter)="openDeleteDialog(user)" [attr.data-testid]="'delete-user-btn-' + user.id">
+                  <ion-icon name="trash" slot="icon-only"></ion-icon>
+                </ion-button>
+              </div>
             </div>
-          }
+          </ion-item>
         </ion-list>
-      }
+
+        <!-- Pagination Controls Footer -->
+        <div class="pagination-footer ion-margin-top" *ngIf="totalElements > 0">
+          <div class="pagination-info">
+            <span>Affichage page {{ currentPage + 1 }} sur {{ totalPages }} ({{ totalElements }} au total)</span>
+          </div>
+
+          <div class="pagination-controls">
+            <div class="page-size-selector">
+              <label for="page-size-select">Afficher par :</label>
+              <select id="page-size-select" [ngModel]="pageSize" (ngModelChange)="changePageSize($event)" data-testid="page-size-select">
+                <option *ngFor="let size of pageSizeOptions" [value]="size">{{ size }}</option>
+              </select>
+            </div>
+
+            <div class="page-nav-buttons">
+              <ion-button fill="outline" size="small" (click)="prevPage()" (keydown.enter)="prevPage()" [disabled]="isFirst" data-testid="prev-page-btn">
+                <ion-icon name="chevron-back-outline"></ion-icon>
+                Précédent
+              </ion-button>
+
+              <ion-button fill="outline" size="small" (click)="nextPage()" (keydown.enter)="nextPage()" [disabled]="isLast" data-testid="next-page-btn">
+                Suivant
+                <ion-icon name="chevron-forward-outline"></ion-icon>
+              </ion-button>
+            </div>
+          </div>
+        </div>
+      </ng-container>
     </ion-card-content>
   </ion-card>
 </div>

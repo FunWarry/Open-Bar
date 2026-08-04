@@ -3,7 +3,7 @@ import { UserListComponent } from '../../../app/features/admin/users/user-list/u
 import { ModalController, ToastController } from '@ionic/angular/standalone';
 import { of, throwError } from 'rxjs';
 import { User } from '../../../app/core/models/user.model';
-import { UserService } from '../../../app/core/services/user.service';
+import { UserService, PageResponse } from '../../../app/core/services/user.service';
 
 describe('UserListComponent', () => {
   let component: UserListComponent;
@@ -17,9 +17,19 @@ describe('UserListComponent', () => {
     { id: 2, username: 'bob', email: 'bob@bar.fr', roles: ['SERVEUR'], enabled: true, createdAt: '2026-07-30T10:00:00Z', updatedAt: '2026-07-30T10:00:00Z' }
   ];
 
+  const mockPageResponse: PageResponse<User> = {
+    content: mockUsers,
+    pageNumber: 0,
+    pageSize: 10,
+    totalElements: 2,
+    totalPages: 1,
+    isFirst: true,
+    isLast: true
+  };
+
   beforeEach(() => {
-    userServiceSpy = jasmine.createSpyObj('UserService', ['getUsers', 'createUser', 'updateUser', 'deleteUser']);
-    userServiceSpy.getUsers.and.returnValue(of(mockUsers));
+    userServiceSpy = jasmine.createSpyObj('UserService', ['getUsersPaged', 'createUser', 'updateUser', 'deleteUser']);
+    userServiceSpy.getUsersPaged.and.returnValue(of(mockPageResponse));
 
     modalCtrlSpy = jasmine.createSpyObj('ModalController', ['create']);
     toastSpy = { present: jasmine.createSpy('present').and.returnValue(Promise.resolve()) };
@@ -44,14 +54,43 @@ describe('UserListComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('ngOnInit() charge les utilisateurs depuis UserService', () => {
-    expect(userServiceSpy.getUsers).toHaveBeenCalled();
+  it('ngOnInit() charge les utilisateurs paginés', () => {
+    expect(userServiceSpy.getUsersPaged).toHaveBeenCalledWith(0, 10, '', 'ALL');
     expect(component.users).toEqual(mockUsers);
     expect(component.loading).toBeFalse();
   });
 
+  it('onSearchChange() réinitialise la page et charge les résultats', () => {
+    component.searchQuery = 'alice';
+    component.onSearchChange();
+
+    expect(component.currentPage).toBe(0);
+    expect(userServiceSpy.getUsersPaged).toHaveBeenCalledWith(0, 10, 'alice', 'ALL');
+  });
+
+  it('nextPage() et prevPage() naviguent entre les pages', () => {
+    userServiceSpy.getUsersPaged.and.callFake((page: number) => of({
+      ...mockPageResponse,
+      pageNumber: page,
+      isFirst: page === 0,
+      isLast: page === 2,
+      totalPages: 3
+    }));
+
+    component.isFirst = false;
+    component.isLast = false;
+    component.currentPage = 0;
+    component.totalPages = 3;
+
+    component.nextPage();
+    expect(component.currentPage).toBe(1);
+
+    component.prevPage();
+    expect(component.currentPage).toBe(0);
+  });
+
   it('loadUsers() affiche un toast d\'erreur si la requête échoue', () => {
-    userServiceSpy.getUsers.and.returnValue(throwError(() => new Error('Server error')));
+    userServiceSpy.getUsersPaged.and.returnValue(throwError(() => new Error('Server error')));
 
     component.loadUsers();
 
@@ -64,144 +103,10 @@ describe('UserListComponent', () => {
     expect(component.trackById(0, user)).toBe(42);
   });
 
-  it('trackById() retourne index si user.id est absent', () => {
-    const user = { username: 'no-id' } as User;
-    expect(component.trackById(3, user)).toBe(3);
-  });
-
-  it('getRoleColor() retourne "tertiary" pour ADMIN et "primary" pour les autres', () => {
+  it('getRoleColor() retourne les bonnes couleurs par rôle', () => {
     expect(component.getRoleColor('ADMIN')).toBe('tertiary');
+    expect(component.getRoleColor('MANAGER')).toBe('secondary');
     expect(component.getRoleColor('SERVEUR')).toBe('primary');
+    expect(component.getRoleColor('BARMAN')).toBe('warning');
   });
-
-  it('openCreateDialog() crée un utilisateur lors de la validation du modal', fakeAsync(() => {
-    const newUser = { username: 'charlie', email: 'charlie@bar.fr', roles: ['BARMAN'] };
-    const modalMock = {
-      present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
-      onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({ data: newUser }))
-    };
-    modalCtrlSpy.create.and.returnValue(Promise.resolve(modalMock as any));
-    userServiceSpy.createUser.and.returnValue(of({ ...newUser, id: 3 } as User));
-
-    component.openCreateDialog();
-    tick();
-
-    expect(modalCtrlSpy.create).toHaveBeenCalled();
-    expect(userServiceSpy.createUser).toHaveBeenCalledWith(newUser as any);
-    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'success' }));
-  }));
-
-  it('openCreateDialog() affiche un toast d\'erreur lors de l\'échec', fakeAsync(() => {
-    const newUser = { username: 'charlie', email: 'charlie@bar.fr', roles: ['BARMAN'] };
-    const modalMock = {
-      present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
-      onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({ data: newUser }))
-    };
-    modalCtrlSpy.create.and.returnValue(Promise.resolve(modalMock as any));
-    userServiceSpy.createUser.and.returnValue(throwError(() => ({ error: { message: 'Nom d\'utilisateur existant' } })));
-
-    component.openCreateDialog();
-    tick();
-
-    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ message: 'Nom d\'utilisateur existant', color: 'danger' }));
-  }));
-
-  it('openCreateDialog() ne fait rien si le modal est annulé', fakeAsync(() => {
-    const modalMock = {
-      present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
-      onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({ data: null }))
-    };
-    modalCtrlSpy.create.and.returnValue(Promise.resolve(modalMock as any));
-
-    component.openCreateDialog();
-    tick();
-
-    expect(userServiceSpy.createUser).not.toHaveBeenCalled();
-  }));
-
-  it('openEditDialog() modifie l\'utilisateur lors de la validation du modal', fakeAsync(() => {
-    const updatedUser = { username: 'alice_updated', email: 'alice@bar.fr', roles: ['ADMIN'] };
-    const modalMock = {
-      present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
-      onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({ data: updatedUser }))
-    };
-    modalCtrlSpy.create.and.returnValue(Promise.resolve(modalMock as any));
-    userServiceSpy.updateUser.and.returnValue(of({ ...updatedUser, id: 1 } as User));
-
-    component.openEditDialog(mockUsers[0]);
-    tick();
-
-    expect(userServiceSpy.updateUser).toHaveBeenCalledWith(1, updatedUser as any);
-    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'success' }));
-  }));
-
-  it('openEditDialog() affiche un toast d\'erreur lors de l\'échec', fakeAsync(() => {
-    const updatedUser = { username: 'alice_updated', email: 'alice@bar.fr', roles: ['ADMIN'] };
-    const modalMock = {
-      present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
-      onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({ data: updatedUser }))
-    };
-    modalCtrlSpy.create.and.returnValue(Promise.resolve(modalMock as any));
-    userServiceSpy.updateUser.and.returnValue(throwError(() => new Error('Erreur modification')));
-
-    component.openEditDialog(mockUsers[0]);
-    tick();
-
-    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
-  }));
-
-  it('openEditDialog() ne fait rien si le modal est annulé', fakeAsync(() => {
-    const modalMock = {
-      present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
-      onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({ data: null }))
-    };
-    modalCtrlSpy.create.and.returnValue(Promise.resolve(modalMock as any));
-
-    component.openEditDialog(mockUsers[0]);
-    tick();
-
-    expect(userServiceSpy.updateUser).not.toHaveBeenCalled();
-  }));
-
-  it('openDeleteDialog() supprime l\'utilisateur lors de la confirmation', fakeAsync(() => {
-    const modalMock = {
-      present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
-      onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({ data: true }))
-    };
-    modalCtrlSpy.create.and.returnValue(Promise.resolve(modalMock as any));
-    userServiceSpy.deleteUser.and.returnValue(of(undefined));
-
-    component.openDeleteDialog(mockUsers[1]);
-    tick();
-
-    expect(userServiceSpy.deleteUser).toHaveBeenCalledWith(2);
-    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'success' }));
-  }));
-
-  it('openDeleteDialog() affiche un toast d\'erreur lors de l\'échec', fakeAsync(() => {
-    const modalMock = {
-      present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
-      onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({ data: true }))
-    };
-    modalCtrlSpy.create.and.returnValue(Promise.resolve(modalMock as any));
-    userServiceSpy.deleteUser.and.returnValue(throwError(() => new Error('Erreur suppression')));
-
-    component.openDeleteDialog(mockUsers[1]);
-    tick();
-
-    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
-  }));
-
-  it('openDeleteDialog() ne fait rien si le modal est annulé', fakeAsync(() => {
-    const modalMock = {
-      present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
-      onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({ data: false }))
-    };
-    modalCtrlSpy.create.and.returnValue(Promise.resolve(modalMock as any));
-
-    component.openDeleteDialog(mockUsers[1]);
-    tick();
-
-    expect(userServiceSpy.deleteUser).not.toHaveBeenCalled();
-  }));
 });

@@ -110,4 +110,18 @@ class UserControllerTest {
 
         assertThat(response.getStatusCode().value()).isEqualTo(404);
     }
+
+    @Test
+    @DisplayName("getUsersPaged - returns paginated DTO")
+    void getUsersPaged_success() {
+        com.bar.gestioncocktail.dto.PageResponseDTO<UserResponseDTO> pageDto =
+            com.bar.gestioncocktail.dto.PageResponseDTO.of(java.util.List.of(UserResponseDTO.from(user)), 0, 10, 1);
+        when(userService.getUsersPaged(0, 10, "test", "ADMIN")).thenReturn(pageDto);
+
+        ResponseEntity<com.bar.gestioncocktail.dto.PageResponseDTO<UserResponseDTO>> response =
+            userController.getUsersPaged(0, 10, "test", "ADMIN");
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getBody().totalElements()).isEqualTo(1);
+    }
 }

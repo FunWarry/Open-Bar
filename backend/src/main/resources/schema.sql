@@ -282,3 +282,18 @@ ALTER TABLE commande_items ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP
 ALTER TABLE commande_items ALTER COLUMN updated_at SET DEFAULT CURRENT_TIMESTAMP;
 ALTER TABLE facture_items ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP;
 ALTER TABLE facture_items ALTER COLUMN updated_at SET DEFAULT CURRENT_TIMESTAMP;
+
+-- Table des créneaux de travail (Shifts employés) (#232/#233)
+CREATE TABLE IF NOT EXISTS employee_shifts (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT REFERENCES users(id) ON DELETE CASCADE,
+    date_shift DATE NOT NULL,
+    type_shift VARCHAR(20) NOT NULL,
+    type_poste VARCHAR(20) NOT NULL,
+    heure_debut VARCHAR(10) NOT NULL,
+    heure_fin VARCHAR(10) NOT NULL,
+    heures_effectuees DECIMAL(5,2) DEFAULT 0,
+    notes TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
