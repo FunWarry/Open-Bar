@@ -162,6 +162,19 @@
       "APERITIF": "Apéritif",
       "DIGESTIF": "Digestif",
       "SPECIAL": "Spécial"
+    },
+    "ALLERGENS": {
+      "TITLE": "Filtrer par allergène",
+      "EXCLUDE_LABEL": "Exclure :",
+      "CLEAR_ALL": "Effacer les filtres",
+      "LAIT": "Lait / Lactose",
+      "GLUTEN": "Gluten",
+      "OEUF": "Œufs",
+      "FRUITS_A_COQUE": "Fruits à coque",
+      "ARACHIDE": "Arachides",
+      "SULFITES": "Sulfites",
+      "SOJA": "Soja",
+      "SANS_PREFIX": "Sans"
     }
   },
   "INGREDIENTS": {

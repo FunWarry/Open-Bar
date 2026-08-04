@@ -12,7 +12,11 @@ import {
   IonGrid, IonRow, IonCol
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { add, create, trash, leafOutline, toggleOutline, gridOutline, listOutline, search, imageOutline, image } from 'ionicons/icons';
+import {
+  add, create, trash, leafOutline, toggleOutline, gridOutline, listOutline,
+  search, imageOutline, image, wineOutline, nutritionOutline, eggOutline,
+  funnelOutline, closeCircleOutline, alertCircleOutline
+} from 'ionicons/icons';
 import { AsyncPipe, CurrencyPipe, CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
@@ -21,9 +25,19 @@ import { Cocktail } from '../../../core/models/cocktail.model';
 import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
 
 /**
+ * Interface representing an allergen option for filtering.
+ */
+export interface AllergenOption {
+  key: string;
+  labelKey: string;
+  icon: string;
+  keywords: string[];
+}
+
+/**
  * Global Cocktails Management component in OpenBar (Figma styled).
  * Features card grid with picture toggle, category pill badges, ingredient subtitles,
- * search query filters, status filtering (Available/Unavailable), and CRUD actions.
+ * search query filters, allergen exclusion filtering, status filtering (Available/Unavailable), and CRUD actions.
  */
 @Component({
   selector: 'app-cocktail-list',
@@ -44,9 +58,20 @@ export class CocktailListComponent implements OnInit, OnDestroy {
   cocktails: Cocktail[] = [];
   filtre: 'tous' | 'disponibles' | 'indisponibles' = 'tous';
   selectedCategory = 'ALL';
+  selectedAllergens: string[] = [];
   searchQuery = '';
   viewMode: 'grid' | 'list' = 'grid';
   showPictures = localStorage.getItem('openbar_show_pictures') !== 'false';
+
+  readonly availableAllergens: AllergenOption[] = [
+    { key: 'LAIT', labelKey: 'COCKTAILS.ALLERGENS.LAIT', icon: 'nutrition-outline', keywords: ['lait', 'creme', 'crème', 'cream', 'beurre', 'lactose', 'baileys', 'yaourt', 'fromage'] },
+    { key: 'GLUTEN', labelKey: 'COCKTAILS.ALLERGENS.GLUTEN', icon: 'leaf-outline', keywords: ['biere', 'bière', 'beer', 'whisky', 'whiskey', 'orge', 'seigle', 'ble', 'blé', 'gluten'] },
+    { key: 'OEUF', labelKey: 'COCKTAILS.ALLERGENS.OEUF', icon: 'egg-outline', keywords: ['oeuf', 'œuf', 'egg', 'albumine'] },
+    { key: 'FRUITS_A_COQUE', labelKey: 'COCKTAILS.ALLERGENS.FRUITS_A_COQUE', icon: 'nutrition-outline', keywords: ['amande', 'almond', 'amaretto', 'noisette', 'hazelnut', 'noix', 'walnut', 'pistache', 'pistachio', 'cashew', 'anacarde'] },
+    { key: 'ARACHIDE', labelKey: 'COCKTAILS.ALLERGENS.ARACHIDE', icon: 'nutrition-outline', keywords: ['arachide', 'peanut', 'cacahuete', 'cacahuète'] },
+    { key: 'SULFITES', labelKey: 'COCKTAILS.ALLERGENS.SULFITES', icon: 'wine-outline', keywords: ['vin', 'wine', 'champagne', 'prosecco', 'vermouth', 'sulfite', 'sulfites', 'cidre', 'cider', 'aperol', 'campari'] },
+    { key: 'SOJA', labelKey: 'COCKTAILS.ALLERGENS.SOJA', icon: 'leaf-outline', keywords: ['soja', 'soy', 'tofu'] },
+  ];
 
   isLoading = false;
   isAdmin$: Observable<boolean>;
@@ -61,7 +86,11 @@ export class CocktailListComponent implements OnInit, OnDestroy {
     private readonly transloco: TranslocoService,
   ) {
     this.isAdmin$ = this.store.select(selectIsAdmin);
-    addIcons({ add, create, trash, leafOutline, toggleOutline, gridOutline, listOutline, search, imageOutline, image });
+    addIcons({
+      add, create, trash, leafOutline, toggleOutline, gridOutline, listOutline,
+      search, imageOutline, image, wineOutline, nutritionOutline, eggOutline,
+      funnelOutline, closeCircleOutline, alertCircleOutline
+    });
   }
 
   ngOnInit(): void {
@@ -119,7 +148,46 @@ export class CocktailListComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Returns filtered cocktails array based on search query, category, and availability status filters.
+   * Detects list of allergen keys present in a cocktail based on ingredient names, description, and instructions.
+   * @param cocktail Target cocktail model
+   * @returns List of matching allergen keys
+   */
+  getCocktailAllergens(cocktail: Cocktail): string[] {
+    if (!cocktail) return [];
+    const textToSearch = [
+      cocktail.nom,
+      cocktail.description || '',
+      cocktail.instructions || '',
+      ...(cocktail.ingredients ? cocktail.ingredients.map(i => i.ingredientNom) : [])
+    ].join(' ').toLowerCase();
+
+    return this.availableAllergens
+      .filter(allergen => allergen.keywords.some(kw => textToSearch.includes(kw)))
+      .map(allergen => allergen.key);
+  }
+
+  /**
+   * Toggles allergen exclusion filter state.
+   * @param allergenKey Allergen key to toggle
+   */
+  toggleAllergenFilter(allergenKey: string): void {
+    const idx = this.selectedAllergens.indexOf(allergenKey);
+    if (idx >= 0) {
+      this.selectedAllergens.splice(idx, 1);
+    } else {
+      this.selectedAllergens.push(allergenKey);
+    }
+  }
+
+  /**
+   * Clears all active allergen exclusion filters.
+   */
+  clearAllergenFilters(): void {
+    this.selectedAllergens = [];
+  }
+
+  /**
+   * Returns filtered cocktails array based on search query, category, allergen exclusion, and availability status filters.
    */
   get filteredCocktails(): Cocktail[] {
     const query = this.searchQuery.toLowerCase().trim();
@@ -134,7 +202,13 @@ export class CocktailListComponent implements OnInit, OnDestroy {
       if (this.filtre === 'disponibles') matchesStatus = c.disponible;
       else if (this.filtre === 'indisponibles') matchesStatus = !c.disponible;
 
-      return matchesSearch && matchesCategory && matchesStatus;
+      let matchesAllergens = true;
+      if (this.selectedAllergens.length > 0) {
+        const cocktailAllergens = this.getCocktailAllergens(c);
+        matchesAllergens = !this.selectedAllergens.some(a => cocktailAllergens.includes(a));
+      }
+
+      return matchesSearch && matchesCategory && matchesStatus && matchesAllergens;
     });
   }
 

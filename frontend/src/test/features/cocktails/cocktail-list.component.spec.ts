@@ -124,6 +124,53 @@ describe('CocktailListComponent', () => {
     expect(component.filteredCocktails).toHaveSize(1);
   }));
 
+  // --- Allergens ---
+
+  it('getCocktailAllergens() détecte correctement les allergènes présents', () => {
+    const cocktailLait: Cocktail = {
+      ...mockCocktails[0],
+      ingredients: [
+        { id: 1, ingredientId: 10, ingredientNom: 'Rhum', quantite: 5, uniteMesure: 'cl' },
+        { id: 2, ingredientId: 12, ingredientNom: 'Crème fraîche', quantite: 3, uniteMesure: 'cl' },
+      ],
+    };
+    const allergens = component.getCocktailAllergens(cocktailLait);
+    expect(allergens).toContain('LAIT');
+  });
+
+  it('toggleAllergenFilter() ajoute et retire un allergène des filtres exclus', () => {
+    expect(component.selectedAllergens).toHaveSize(0);
+    component.toggleAllergenFilter('LAIT');
+    expect(component.selectedAllergens).toContain('LAIT');
+
+    component.toggleAllergenFilter('LAIT');
+    expect(component.selectedAllergens).not.toContain('LAIT');
+  });
+
+  it('clearAllergenFilters() réinitialise les filtres d\'allergènes', () => {
+    component.selectedAllergens = ['LAIT', 'GLUTEN'];
+    component.clearAllergenFilters();
+    expect(component.selectedAllergens).toHaveSize(0);
+  });
+
+  it('filteredCocktails exclut les cocktails contenant un allergène sélectionné', fakeAsync(() => {
+    const cocktailLait: Cocktail = {
+      ...makeC(10, 'Pina Colada'),
+      ingredients: [
+        { id: 1, ingredientId: 10, ingredientNom: 'Rhum', quantite: 5, uniteMesure: 'cl' },
+        { id: 2, ingredientId: 12, ingredientNom: 'Lait de coco', quantite: 5, uniteMesure: 'cl' },
+      ],
+    };
+    const cocktailNormal: Cocktail = makeC(11, 'Mojito Simple');
+
+    component.cocktails = [cocktailLait, cocktailNormal];
+    expect(component.filteredCocktails).toHaveSize(2);
+
+    component.toggleAllergenFilter('LAIT');
+    expect(component.filteredCocktails).toHaveSize(1);
+    expect(component.filteredCocktails[0].nom).toBe('Mojito Simple');
+  }));
+
   // --- getIngredientsText ---
 
   it('getIngredientsText() retourne les ingrédients séparés par des puces', () => {

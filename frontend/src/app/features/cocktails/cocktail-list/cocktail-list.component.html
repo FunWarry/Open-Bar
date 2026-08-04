@@ -119,6 +119,34 @@
             {{ 'COCKTAILS.CATEGORIES.SPECIAL' | transloco }}
           </button>
         </div>
+
+        <!-- Allergen Filter Pills Row -->
+        <div class="allergen-pills-row" data-testid="allergen-filter-section">
+          <span class="allergen-filter-label">
+            <ion-icon name="funnel-outline"></ion-icon>
+            {{ 'COCKTAILS.ALLERGENS.EXCLUDE_LABEL' | transloco }}
+          </span>
+          @for (allergen of availableAllergens; track allergen.key) {
+            <button
+              class="figma-allergen-pill"
+              [class.excluded]="selectedAllergens.includes(allergen.key)"
+              (click)="toggleAllergenFilter(allergen.key)"
+              [attr.data-testid]="'allergen-filter-' + allergen.key.toLowerCase()">
+              <ion-icon [name]="allergen.icon"></ion-icon>
+              {{ 'COCKTAILS.ALLERGENS.SANS_PREFIX' | transloco }} {{ allergen.labelKey | transloco }}
+              <span class="allergen-close-icon" *ngIf="selectedAllergens.includes(allergen.key)">✕</span>
+            </button>
+          }
+          @if (selectedAllergens.length > 0) {
+            <button
+              class="figma-clear-allergens-btn"
+              (click)="clearAllergenFilters()"
+              data-testid="clear-allergen-filters-btn">
+              <ion-icon name="close-circle-outline"></ion-icon>
+              {{ 'COCKTAILS.ALLERGENS.CLEAR_ALL' | transloco }}
+            </button>
+          }
+        </div>
       </ion-card-content>
     </ion-card>
 
@@ -167,6 +195,15 @@
                     <div class="figma-card-main-info">
                       <h3 class="figma-cocktail-name">{{ cocktail.nom }}</h3>
                       <p class="figma-ingredients-sub">{{ getIngredientsText(cocktail) }}</p>
+                      @if (getCocktailAllergens(cocktail).length > 0) {
+                        <div class="card-allergens-row" [attr.data-testid]="'cocktail-allergens-' + cocktail.id">
+                          @for (allergenKey of getCocktailAllergens(cocktail); track allergenKey) {
+                            <span class="figma-allergen-badge">
+                              ⚠️ {{ ('COCKTAILS.ALLERGENS.' + allergenKey) | transloco }}
+                            </span>
+                          }
+                        </div>
+                      }
                     </div>
 
                     <div class="figma-card-bottom-row">
@@ -208,6 +245,15 @@
                   <ion-label>
                     <h3>{{ cocktail.nom }}</h3>
                     <p><strong>{{ ('COCKTAILS.CATEGORIES.' + cocktail.categorie) | transloco }}</strong> — {{ getIngredientsText(cocktail) }}</p>
+                    @if (getCocktailAllergens(cocktail).length > 0) {
+                      <p class="list-allergens-text">
+                        <small class="allergen-warning-text">⚠️ <strong>Allergènes :</strong>
+                          @for (allergenKey of getCocktailAllergens(cocktail); track allergenKey; let last = $last) {
+                            {{ ('COCKTAILS.ALLERGENS.' + allergenKey) | transloco }}{{ last ? '' : ', ' }}
+                          }
+                        </small>
+                      </p>
+                    }
                   </ion-label>
                   @if (isHorsSaison(cocktail)) {
                     <ion-badge slot="end" color="warning">Hors saison</ion-badge>
