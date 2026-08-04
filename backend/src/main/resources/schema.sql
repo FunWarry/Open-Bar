@@ -230,13 +230,6 @@ CREATE TABLE IF NOT EXISTS establishment_config (
 INSERT INTO establishment_config (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
 ALTER TABLE establishment_config ADD COLUMN IF NOT EXISTS time_zone VARCHAR(50) DEFAULT 'SYSTEM';
 
--- TVA multi-taux et saisonnalité sur cocktails (#130)
-ALTER TABLE cocktails ADD COLUMN IF NOT EXISTS vat_rate VARCHAR(20) DEFAULT 'TWENTY';
-ALTER TABLE cocktails ADD COLUMN IF NOT EXISTS mois_debut INT;
-ALTER TABLE cocktails ADD COLUMN IF NOT EXISTS mois_fin INT;
-ALTER TABLE cocktails ADD COLUMN IF NOT EXISTS instructions TEXT;
-ALTER TABLE cocktails ADD COLUMN IF NOT EXISTS image_url VARCHAR(500);
-
 -- Immutabilité, intégrité & archivage des factures (#131, #132)
 ALTER TABLE factures ADD COLUMN IF NOT EXISTS total_ht DECIMAL(10,2) DEFAULT 0;
 ALTER TABLE factures ADD COLUMN IF NOT EXISTS total_vat DECIMAL(10,2) DEFAULT 0;
@@ -278,17 +271,9 @@ ALTER TABLE commandes ADD COLUMN IF NOT EXISTS notes TEXT;
 ALTER TABLE commandes ADD COLUMN IF NOT EXISTS pourboire DECIMAL(10,2);
 ALTER TABLE commandes ADD COLUMN IF NOT EXISTS date_modification TIMESTAMP;
 
--- Colonnes plan de salle & occupation tables (#219)
+-- Colonnes occupation tables (#219)
 ALTER TABLE tables ADD COLUMN IF NOT EXISTS date_occupation TIMESTAMP;
 ALTER TABLE tables ADD COLUMN IF NOT EXISTS date_liberation TIMESTAMP;
-ALTER TABLE tables ADD COLUMN IF NOT EXISTS plan_x DOUBLE PRECISION;
-ALTER TABLE tables ADD COLUMN IF NOT EXISTS plan_y DOUBLE PRECISION;
-ALTER TABLE tables ADD COLUMN IF NOT EXISTS plan_rotation DOUBLE PRECISION DEFAULT 0;
-ALTER TABLE tables ADD COLUMN IF NOT EXISTS plan_forme VARCHAR(20) DEFAULT 'CARRE';
-
--- Colonnes cocktails instructions & image_url
-ALTER TABLE cocktails ADD COLUMN IF NOT EXISTS instructions TEXT;
-ALTER TABLE cocktails ADD COLUMN IF NOT EXISTS image_url VARCHAR(500);
 
 -- Colonnes horodatage par défaut
 ALTER TABLE cocktail_ingredients ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP;
