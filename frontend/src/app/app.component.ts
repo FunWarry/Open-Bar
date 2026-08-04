@@ -5,11 +5,14 @@ import { SidebarComponent } from './core/components/sidebar/sidebar.component';
 import { NotificationPanelComponent } from './core/components/notification-panel/notification-panel.component';
 import { AppSettingsService } from './core/services/app-settings.service';
 import { NotificationService } from './core/services/notification.service';
+import { LanguageService } from './core/services/language.service';
 import { ThemeService } from './core/services/theme.service';
 import { filter, map, combineLatest, startWith, Observable } from 'rxjs';
 import { Store } from '@ngrx/store';
 import { selectIsAuthenticated } from './core/store/auth.selectors';
-import { AsyncPipe } from '@angular/common';
+import { AsyncPipe, UpperCasePipe } from '@angular/common';
+import { TranslocoModule } from '@jsverse/transloco';
+import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import * as allIcons from 'ionicons/icons';
 
@@ -17,7 +20,10 @@ import * as allIcons from 'ionicons/icons';
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
-  imports: [RouterOutlet, NavbarComponent, SidebarComponent, NotificationPanelComponent, AsyncPipe],
+  imports: [
+    RouterOutlet, NavbarComponent, SidebarComponent, NotificationPanelComponent,
+    AsyncPipe, UpperCasePipe, TranslocoModule, IonIcon
+  ],
   standalone: true
 })
 export class AppComponent implements OnInit {
@@ -27,6 +33,7 @@ export class AppComponent implements OnInit {
     private readonly router: Router,
     private readonly appSettingsService: AppSettingsService,
     public readonly notifService: NotificationService,
+    public readonly languageService: LanguageService,
     private readonly store: Store,
     private readonly themeService: ThemeService
   ) {

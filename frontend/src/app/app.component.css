@@ -42,4 +42,44 @@
   min-height: 100vh;
   background-color: var(--bg-0, #0f0f1a);
   color: var(--text-primary, #eceefb);
+  position: relative;
 }
+
+/* Floating language toggle button for unauthenticated views & client views */
+.global-unauth-lang-btn {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 9999;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface-2, rgba(30, 36, 56, 0.85));
+  color: var(--text-primary, #eceefb);
+  border: 1px solid var(--border-medium, rgba(255, 255, 255, 0.15));
+  backdrop-filter: blur(12px);
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+
+  ion-icon {
+    font-size: 1.1rem;
+    color: var(--primary, #6366f1);
+  }
+
+  &:hover {
+    background: var(--primary, #4f46e5);
+    color: #ffffff;
+    border-color: var(--primary, #4f46e5);
+    box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+
+    ion-icon {
+      color: #ffffff;
+    }
+  }
+}
+

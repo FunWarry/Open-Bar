@@ -8,6 +8,7 @@ import { selectCurrentUser, selectIsAdmin, selectIsAuthenticated } from '../../s
 import { NavigationService } from '../../services/navigation.service';
 import { NotificationService } from '../../services/notification.service';
 import { SoundService } from '../../services/sound.service';
+import { LanguageService } from '../../services/language.service';
 import {
   IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
   IonPopover, IonList, IonItem, IonLabel, IonBadge,
@@ -16,9 +17,9 @@ import {
 import { addIcons } from 'ionicons';
 import {
   home, settings, personCircle, person, logOut, chevronDown,
-  notificationsOutline, volumeHighOutline, volumeMuteOutline, timeOutline
+  notificationsOutline, volumeHighOutline, volumeMuteOutline, timeOutline, globeOutline
 } from 'ionicons/icons';
-import { AsyncPipe } from '@angular/common';
+import { AsyncPipe, UpperCasePipe } from '@angular/common';
 import * as AuthActions from '../../store/auth.actions';
 import { User } from '../../models/user.model';
 
@@ -69,7 +70,7 @@ const ROLE_COLORS: Record<string, string> = {
   imports: [
     IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
     IonPopover, IonList, IonItem, IonLabel, IonBadge,
-    AsyncPipe, TranslocoPipe,
+    AsyncPipe, UpperCasePipe, TranslocoPipe,
   ],
 })
 export class NavbarComponent implements OnInit, OnDestroy {
@@ -102,13 +103,14 @@ export class NavbarComponent implements OnInit, OnDestroy {
     public readonly navigationService: NavigationService,
     private readonly notifService: NotificationService,
     public readonly soundService: SoundService,
+    public readonly languageService: LanguageService,
     private readonly popoverCtrl: PopoverController,
     private readonly transloco: TranslocoService,
     @Optional() private readonly router?: Router,
   ) {
     addIcons({
       home, settings, personCircle, person, logOut, chevronDown,
-      notificationsOutline, volumeHighOutline, volumeMuteOutline, timeOutline,
+      notificationsOutline, volumeHighOutline, volumeMuteOutline, timeOutline, globeOutline,
     });
 
     this.isAdmin$ = this.store.select(selectIsAdmin);
