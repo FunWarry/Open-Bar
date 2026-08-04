@@ -422,7 +422,7 @@
     "VIEW_MODE_LIST": "List",
     "VIEW_MODE_GRID": "Grid",
     "ADJUST": "Adjust",
-    "ADJUST_SUCCESS": "Stock of {name} updated: {qty} {unit}",
+    "ADJUST_SUCCESS": "Stock of {{name}} updated: {{qty}} {{unit}}",
     "ADJUST_ERROR": "Error updating stock",
     "LIVE_UPDATE": "Live WebSocket Stream Active"
   },
