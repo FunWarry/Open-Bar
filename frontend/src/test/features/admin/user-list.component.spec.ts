@@ -108,5 +108,43 @@ describe('UserListComponent', () => {
     expect(component.getRoleColor('MANAGER')).toBe('secondary');
     expect(component.getRoleColor('SERVEUR')).toBe('primary');
     expect(component.getRoleColor('BARMAN')).toBe('warning');
+    expect(component.getRoleColor('UNKNOWN')).toBe('medium');
+  });
+
+  it('onRoleChange() réinitialise la page et charge les résultats', () => {
+    component.selectedRole = 'BARMAN';
+    component.onRoleChange();
+
+    expect(component.currentPage).toBe(0);
+    expect(userServiceSpy.getUsersPaged).toHaveBeenCalledWith(0, 10, '', 'BARMAN');
+  });
+
+  it('changePageSize() met à jour la taille et recharge', () => {
+    userServiceSpy.getUsersPaged.and.returnValue(of({
+      ...mockPageResponse,
+      pageSize: 20
+    }));
+
+    component.changePageSize(20);
+
+    expect(component.pageSize).toBe(20);
+    expect(component.currentPage).toBe(0);
+    expect(userServiceSpy.getUsersPaged).toHaveBeenCalledWith(0, 20, '', 'ALL');
+  });
+
+  it('nextPage() ne fait rien si isLast = true', () => {
+    component.isLast = true;
+    component.currentPage = 2;
+    component.nextPage();
+
+    expect(component.currentPage).toBe(2);
+  });
+
+  it('prevPage() ne fait rien si isFirst = true', () => {
+    component.isFirst = true;
+    component.currentPage = 0;
+    component.prevPage();
+
+    expect(component.currentPage).toBe(0);
   });
 });
