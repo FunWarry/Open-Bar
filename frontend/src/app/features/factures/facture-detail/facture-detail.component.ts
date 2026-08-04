@@ -6,7 +6,7 @@ import { takeUntil, switchMap } from 'rxjs/operators';
 import {
   IonContent, IonHeader, IonToolbar, IonTitle, IonBackButton, IonButtons,
   IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonList, IonItem,
-  IonLabel, IonBadge, IonButton, IonIcon, ToastController, IonSegment, IonSegmentButton
+  IonLabel, IonBadge, IonButton, IonIcon, ToastController, IonSegment, IonSegmentButton, ModalController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { downloadOutline, peopleOutline, checkmarkCircleOutline, printOutline, documentTextOutline } from 'ionicons/icons';
@@ -14,6 +14,7 @@ import { TranslocoModule } from '@jsverse/transloco';
 import { FactureService } from '../services/facture.service';
 import { Facture, FactureItem } from '../models/facture.model';
 import { TicketReceiptComponent } from '../ticket-receipt/ticket-receipt.component';
+import { ReglementModalComponent, ReglementModalResult } from '../reglement-modal/reglement-modal.component';
 import { EstablishmentConfig } from '../../../core/models/establishment-config.model';
 import { EtablissementService } from '../../../core/services/etablissement.service';
 import { environment } from '../../../../environments/environment';
@@ -41,6 +42,7 @@ export class FactureDetailComponent implements OnInit, OnDestroy {
   private readonly factureService = inject(FactureService);
   private readonly etablissementService = inject(EtablissementService);
   private readonly toastCtrl = inject(ToastController);
+  private readonly modalCtrl = inject(ModalController);
   private readonly destroy$ = new Subject<void>();
 
   constructor() {
@@ -100,14 +102,27 @@ export class FactureDetailComponent implements OnInit, OnDestroy {
     }
   }
 
-  reglerFacture() {
+  async reglerFacture() {
     if (!this.facture || this.facture.reglee) return;
-    this.factureService.reglerFacture(this.facture.id, 'ESPECES')
+
+    const modal = await this.modalCtrl.create({
+      component: ReglementModalComponent,
+      componentProps: {
+        totalInitial: this.montantAffiche
+      }
+    });
+
+    await modal.present();
+    const { data } = await modal.onWillDismiss<ReglementModalResult>();
+
+    if (!data) return;
+
+    this.factureService.reglerFacture(this.facture.id, data.modePaiement, data.pourboire)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: async f => {
           this.facture = f;
-          const toast = await this.toastCtrl.create({ message: 'Facture marquée comme réglée', duration: 2000, color: 'success' });
+          const toast = await this.toastCtrl.create({ message: 'Facture marquée comme réglée avec succès', duration: 2000, color: 'success' });
           toast.present();
         },
         error: async () => {

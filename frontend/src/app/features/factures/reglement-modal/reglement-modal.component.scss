@@ -1,0 +1,76 @@
+.total-card {
+  background: var(--surface-1, #1e1e24);
+  border-radius: 12px;
+  border: 1px solid var(--ion-color-step-150, #2c2c34);
+
+  .total-label {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--ion-color-step-600, #999);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .total-amount {
+    margin: 4px 0 8px;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary, #3880ff);
+  }
+
+  .tip-badge-row {
+    margin-bottom: 8px;
+  }
+
+  .grand-total-row {
+    font-size: 1.1rem;
+    color: var(--ion-color-step-800, #ccc);
+
+    .grand-total {
+      font-size: 1.3rem;
+      color: var(--ion-color-success, #2dd36f);
+    }
+  }
+}
+
+.flex-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.05rem;
+}
+
+.tip-buttons-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+
+  ion-button {
+    font-size: 0.85rem;
+    --border-radius: 8px;
+  }
+}
+
+.change-display {
+  font-size: 1.1rem;
+  background: var(--ion-color-step-100, #18181c);
+  border-radius: 8px;
+  border: 1px solid var(--ion-color-step-200, #2a2a30);
+
+  .change-amount {
+    font-size: 1.4rem;
+    color: var(--ion-color-medium, #92949c);
+
+    &.success {
+      color: var(--ion-color-success, #2dd36f);
+    }
+  }
+}
+
+.modal-actions {
+  ion-button {
+    --border-radius: 10px;
+    font-weight: 600;
+    height: 48px;
+  }
+}

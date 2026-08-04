@@ -4,6 +4,8 @@ import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { IonicModule } from '@ionic/angular';
 
+import { ModalController } from '@ionic/angular/standalone';
+
 import { FactureDetailComponent } from '../../../app/features/factures/facture-detail/facture-detail.component';
 import { FactureService } from '../../../app/features/factures/services/facture.service';
 import { Facture } from '../../../app/features/factures/models/facture.model';
@@ -40,8 +42,9 @@ describe('FactureDetailComponent', () => {
   let etablissementServiceSpy: jasmine.SpyObj<EtablissementService>;
 
   beforeEach(async () => {
-    factureServiceSpy = jasmine.createSpyObj('FactureService', ['getFactureById']);
+    factureServiceSpy = jasmine.createSpyObj('FactureService', ['getFactureById', 'reglerFacture']);
     factureServiceSpy.getFactureById.and.returnValue(of(mockFacture));
+    factureServiceSpy.reglerFacture.and.returnValue(of({ ...mockFacture, reglee: true }));
 
     etablissementServiceSpy = jasmine.createSpyObj('EtablissementService', ['getConfig']);
     etablissementServiceSpy.getConfig.and.returnValue(of({
@@ -65,7 +68,11 @@ describe('FactureDetailComponent', () => {
           }
         },
         { provide: FactureService, useValue: factureServiceSpy },
-        { provide: EtablissementService, useValue: etablissementServiceSpy }
+        { provide: EtablissementService, useValue: etablissementServiceSpy },
+        {
+          provide: ModalController,
+          useValue: jasmine.createSpyObj('ModalController', ['create'])
+        }
       ]
     }).compileComponents();
 
@@ -163,7 +170,11 @@ describe('FactureDetailComponent', () => {
           }
         },
         { provide: FactureService, useValue: factureServiceSpy },
-        { provide: EtablissementService, useValue: etablissementServiceSpy }
+        { provide: EtablissementService, useValue: etablissementServiceSpy },
+        {
+          provide: ModalController,
+          useValue: jasmine.createSpyObj('ModalController', ['create'])
+        }
       ]
     }).compileComponents();
 

@@ -48,10 +48,12 @@ export class FactureService {
     return this.http.get<Facture[]>(`${this.apiUrl}/date`, { params });
   }
 
-  reglerFacture(id: number, modePaiement: string): Observable<Facture> {
-    return this.http.post<Facture>(`${this.apiUrl}/${id}/regler`, null, {
-      params: new HttpParams().set('modePaiement', modePaiement)
-    });
+  reglerFacture(id: number, modePaiement: string, pourboire?: number): Observable<Facture> {
+    let params = new HttpParams().set('modePaiement', modePaiement);
+    if (pourboire !== undefined && pourboire > 0) {
+      params = params.set('pourboire', pourboire.toString());
+    }
+    return this.http.post<Facture>(`${this.apiUrl}/${id}/regler`, null, { params });
   }
 
   splitEgal(id: number, nombreConvives: number): Observable<SplitResultDTO[]> {

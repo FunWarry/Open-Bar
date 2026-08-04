@@ -106,4 +106,14 @@ class FactureControllerTest {
         verify(factureService).getDailyRecap(today);
         verify(pdfService).generateDailyRecapPdf(recap);
     }
+
+    @Test
+    void reglerFacture_avecPourboire_appelleService() {
+        when(factureService.reglerFacture(10L, "ESPECES", new BigDecimal("3.50"))).thenReturn(facture);
+
+        ResponseEntity<?> response = factureController.reglerFacture(10L, "ESPECES", new BigDecimal("3.50"));
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        verify(factureService).reglerFacture(10L, "ESPECES", new BigDecimal("3.50"));
+    }
 }
