@@ -12,6 +12,8 @@ import { EMPTY, of, throwError } from 'rxjs';
 import { selectIsAuthenticated } from '../app/core/store/auth.selectors';
 import { Router } from '@angular/router';
 
+import { getTranslocoTestingModule } from './transloco-testing.module';
+
 @Component({ standalone: true, template: '' })
 class DummyComponent {}
 
@@ -55,6 +57,7 @@ describe('AppComponent', () => {
       imports: [
         AppComponent,
         DummyComponent,
+        getTranslocoTestingModule(),
         RouterTestingModule.withRoutes([
           { path: 'auth/login', component: DummyComponent },
           { path: 'app-home', component: DummyComponent }

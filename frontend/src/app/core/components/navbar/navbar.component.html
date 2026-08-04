@@ -23,6 +23,16 @@
           {{ localTime() }}
         </div>
 
+        <!-- Language toggle button -->
+        <ion-button
+          (click)="languageService.toggleLanguage()"
+          (keydown.enter)="languageService.toggleLanguage()"
+          data-testid="topbar-language-toggle"
+          [title]="'THEME.TOGGLE' | transloco">
+          <ion-icon slot="start" name="globe-outline"></ion-icon>
+          {{ (languageService.currentLang$ | async) | uppercase }}
+        </ion-button>
+
         <!-- Sound toggle button -->
         <ion-button
           (click)="toggleSound()"

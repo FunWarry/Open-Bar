@@ -13,6 +13,15 @@
   </div>
 } @else {
   <div class="auth-content">
+    <button
+      class="global-unauth-lang-btn"
+      (click)="languageService.toggleLanguage()"
+      (keydown.enter)="languageService.toggleLanguage()"
+      data-testid="unauth-language-toggle"
+      [title]="'THEME.TOGGLE' | transloco">
+      <ion-icon name="globe-outline"></ion-icon>
+      <span class="lang-text">{{ (languageService.currentLang$ | async) | uppercase }}</span>
+    </button>
     <router-outlet id="main-content"></router-outlet>
   </div>
 }
