@@ -12,8 +12,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import com.bar.gestioncocktail.exception.BusinessException;
+
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Controller REST gérant le stock des ingrédients.
@@ -172,19 +175,32 @@ public class IngredientController {
      * Met à jour la quantité en stock d'un ingrédient.
      *
      * @param id Identifiant de l'ingrédient
-     * @param quantite Nouvelle valeur du stock
+     * @param quantite Nouvelle valeur du stock via paramètre d'URL
+     * @param body Corps de requête JSON éventuel
      * @return Ingrédient mis à jour
      */
-    @PutMapping("/{id}/stock")
+    @RequestMapping(value = "/{id}/stock", method = {RequestMethod.PUT, RequestMethod.PATCH})
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('BARMAN')")
     @Operation(summary = "Mettre à jour la quantité en stock (MANAGER/BARMAN/ADMIN)")
     @ApiResponse(responseCode = "200", description = "Stock mis à jour")
     public ResponseEntity<IngredientResponseDTO> updateStock(
         @PathVariable Long id,
-        @RequestParam BigDecimal quantite) {
+        @RequestParam(required = false) BigDecimal quantite,
+        @RequestBody(required = false) Map<String, Object> body) {
+        BigDecimal qty = quantite;
+        if (qty == null && body != null && body.containsKey("quantite")) {
+            Object val = body.get("quantite");
+            if (val != null) {
+                qty = new BigDecimal(val.toString());
+            }
+        }
+        if (qty == null) {
+            throw new BusinessException("La quantité est obligatoire.");
+        }
+        final BigDecimal finalQty = qty;
         return ingredientService.getIngredientById(id)
             .map(ingredient -> {
-                ingredientService.updateStock(ingredient, quantite);
+                ingredientService.updateStock(ingredient, finalQty);
                 return ResponseEntity.ok(IngredientResponseDTO.from(ingredient));
             })
             .orElse(ResponseEntity.notFound().build());
@@ -194,19 +210,32 @@ public class IngredientController {
      * Définit le seuil d'alerte de stock d'un ingrédient.
      *
      * @param id Identifiant de l'ingrédient
-     * @param seuil Nouvelle valeur du seuil d'alerte
+     * @param seuil Nouvelle valeur du seuil d'alerte via paramètre d'URL
+     * @param body Corps de requête JSON éventuel
      * @return Ingrédient mis à jour
      */
-    @PutMapping("/{id}/seuil-alerte")
+    @RequestMapping(value = "/{id}/seuil-alerte", method = {RequestMethod.PUT, RequestMethod.PATCH})
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('BARMAN')")
     @Operation(summary = "Définir le seuil d'alerte de stock (MANAGER/BARMAN/ADMIN)")
     @ApiResponse(responseCode = "200", description = "Seuil d'alerte mis à jour")
     public ResponseEntity<IngredientResponseDTO> definirSeuilAlerte(
         @PathVariable Long id,
-        @RequestParam BigDecimal seuil) {
+        @RequestParam(required = false) BigDecimal seuil,
+        @RequestBody(required = false) Map<String, Object> body) {
+        BigDecimal s = seuil;
+        if (s == null && body != null && body.containsKey("seuil")) {
+            Object val = body.get("seuil");
+            if (val != null) {
+                s = new BigDecimal(val.toString());
+            }
+        }
+        if (s == null) {
+            throw new BusinessException("Le seuil est obligatoire.");
+        }
+        final BigDecimal finalSeuil = s;
         return ingredientService.getIngredientById(id)
             .map(ingredient -> {
-                ingredientService.definirSeuilAlerte(ingredient, seuil);
+                ingredientService.definirSeuilAlerte(ingredient, finalSeuil);
                 return ResponseEntity.ok(IngredientResponseDTO.from(ingredient));
             })
             .orElse(ResponseEntity.notFound().build());
