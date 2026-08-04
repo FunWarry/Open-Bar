@@ -161,6 +161,19 @@
       "APERITIF": "Aperitif",
       "DIGESTIF": "Digestif",
       "SPECIAL": "Special"
+    },
+    "ALLERGENS": {
+      "TITLE": "Filter by allergen",
+      "EXCLUDE_LABEL": "Exclude:",
+      "CLEAR_ALL": "Clear filters",
+      "LAIT": "Milk / Dairy",
+      "GLUTEN": "Gluten",
+      "OEUF": "Eggs",
+      "FRUITS_A_COQUE": "Nuts",
+      "ARACHIDE": "Peanuts",
+      "SULFITES": "Sulfites",
+      "SOJA": "Soy",
+      "SANS_PREFIX": "Free from"
     }
   },
   "INGREDIENTS": {
