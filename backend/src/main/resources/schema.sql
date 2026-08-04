@@ -1,23 +1,5 @@
--- Suppression des tables existantes
-DROP TABLE IF EXISTS refresh_tokens CASCADE;
-DROP TABLE IF EXISTS user_roles CASCADE;
-DROP TABLE IF EXISTS users CASCADE;
-DROP TABLE IF EXISTS cocktail_ingredients CASCADE;
-DROP TABLE IF EXISTS cocktail_variantes CASCADE;
-DROP TABLE IF EXISTS cocktails CASCADE;
-DROP TABLE IF EXISTS ingredients CASCADE;
-DROP TABLE IF EXISTS commande_items CASCADE;
-DROP TABLE IF EXISTS commandes CASCADE;
-DROP TABLE IF EXISTS facture_items CASCADE;
-DROP TABLE IF EXISTS factures CASCADE;
-DROP TABLE IF EXISTS tables CASCADE;
-DROP TABLE IF EXISTS audit_logs CASCADE;
-DROP TABLE IF EXISTS app_settings CASCADE;
-DROP TABLE IF EXISTS establishment_config CASCADE;
-DROP TABLE IF EXISTS avoirs_credit CASCADE;
-
 -- Création des tables
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     id BIGSERIAL PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
@@ -28,14 +10,14 @@ CREATE TABLE users (
     updated_at TIMESTAMP NOT NULL
 );
 
-CREATE TABLE user_roles (
+CREATE TABLE IF NOT EXISTS user_roles (
     user_id BIGINT REFERENCES users(id),
     roles VARCHAR(20) NOT NULL CHECK (roles IN ('ADMIN', 'MANAGER', 'SERVEUR', 'BARMAN')),
     PRIMARY KEY (user_id, roles)
 );
 -- Migration existant : UPDATE user_roles SET roles = 'BARMAN' WHERE roles = 'BARMEN';
 
-CREATE TABLE cocktails (
+CREATE TABLE IF NOT EXISTS cocktails (
     id BIGSERIAL PRIMARY KEY,
     nom VARCHAR(100) NOT NULL,
     description TEXT,
@@ -54,7 +36,7 @@ CREATE TABLE cocktails (
     updated_at TIMESTAMP NOT NULL
 );
 
-CREATE TABLE ingredients (
+CREATE TABLE IF NOT EXISTS ingredients (
     id BIGSERIAL PRIMARY KEY,
     nom VARCHAR(100) NOT NULL,
     quantite DECIMAL(10,2) DEFAULT 0,
@@ -65,7 +47,7 @@ CREATE TABLE ingredients (
     updated_at TIMESTAMP NOT NULL
 );
 
-CREATE TABLE cocktail_ingredients (
+CREATE TABLE IF NOT EXISTS cocktail_ingredients (
     id BIGSERIAL PRIMARY KEY,
     cocktail_id BIGINT REFERENCES cocktails(id),
     ingredient_id BIGINT REFERENCES ingredients(id),
@@ -75,7 +57,7 @@ CREATE TABLE cocktail_ingredients (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE cocktail_variantes (
+CREATE TABLE IF NOT EXISTS cocktail_variantes (
     id BIGSERIAL PRIMARY KEY,
     cocktail_id BIGINT REFERENCES cocktails(id),
     nom VARCHAR(100) NOT NULL,
@@ -86,7 +68,7 @@ CREATE TABLE cocktail_variantes (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE tables (
+CREATE TABLE IF NOT EXISTS tables (
     id BIGSERIAL PRIMARY KEY,
     numero INTEGER NOT NULL,
     zone VARCHAR(50) NOT NULL,
@@ -120,7 +102,7 @@ CREATE TABLE IF NOT EXISTS zones (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE commandes (
+CREATE TABLE IF NOT EXISTS commandes (
     id BIGSERIAL PRIMARY KEY,
     table_id BIGINT REFERENCES tables(id),
     serveur_id BIGINT REFERENCES users(id),
@@ -138,7 +120,7 @@ CREATE TABLE commandes (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE commande_items (
+CREATE TABLE IF NOT EXISTS commande_items (
     id BIGSERIAL PRIMARY KEY,
     commande_id BIGINT REFERENCES commandes(id),
     cocktail_id BIGINT REFERENCES cocktails(id),
@@ -150,7 +132,7 @@ CREATE TABLE commande_items (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE factures (
+CREATE TABLE IF NOT EXISTS factures (
     id BIGSERIAL PRIMARY KEY,
     table_id BIGINT REFERENCES tables(id),
     numero VARCHAR(50) UNIQUE NOT NULL,
@@ -167,7 +149,7 @@ CREATE TABLE factures (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE facture_items (
+CREATE TABLE IF NOT EXISTS facture_items (
     id BIGSERIAL PRIMARY KEY,
     facture_id BIGINT REFERENCES factures(id),
     description VARCHAR(255) NOT NULL,
@@ -179,7 +161,7 @@ CREATE TABLE facture_items (
 
 CREATE SEQUENCE IF NOT EXISTS facture_seq START 1;
 
-CREATE TABLE audit_logs (
+CREATE TABLE IF NOT EXISTS audit_logs (
     id BIGSERIAL PRIMARY KEY,
     user_id BIGINT REFERENCES users(id),
     action VARCHAR(100) NOT NULL,
@@ -190,7 +172,7 @@ CREATE TABLE audit_logs (
     timestamp TIMESTAMP NOT NULL
 );
 
-CREATE TABLE refresh_tokens (
+CREATE TABLE IF NOT EXISTS refresh_tokens (
     id BIGSERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     token VARCHAR(512) NOT NULL UNIQUE,
