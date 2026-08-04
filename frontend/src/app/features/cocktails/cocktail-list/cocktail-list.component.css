@@ -12,25 +12,26 @@
   margin-bottom: 16px;
 }
 
-.header-main-row {
+.header-main-row,
+.title-with-count,
+.header-actions,
+.category-pills-row,
+.badges-group,
+.figma-card-top-row,
+.figma-card-bottom-row,
+.bottom-actions {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+}
+
+.header-main-row {
+  justify-content: space-between;
   flex-wrap: wrap;
   gap: 12px;
 }
 
-.title-with-count {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
+.title-with-count { gap: 12px; }
+.header-actions { gap: 16px; }
 
 .pictures-toggle-pill {
   height: 38px;
@@ -40,9 +41,7 @@
   align-items: center;
   gap: 8px;
 
-  ion-icon {
-    font-size: 1.15rem;
-  }
+  ion-icon { font-size: 1.15rem; }
 }
 
 .view-mode-segment {
@@ -55,7 +54,6 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding-top: 0;
 }
 
 .cocktail-searchbar {
@@ -64,20 +62,14 @@
   --placeholder-color: var(--text-muted, #8f9bba);
   --icon-color: var(--text-muted, #8f9bba);
   --border-radius: 8px;
-  padding: 0;
 }
 
-/* Category Filter Pills (Figma & Custom Theme Adapted) */
 .category-pills-row {
-  display: flex;
-  align-items: center;
   gap: 8px;
   overflow-x: auto;
   padding-bottom: 4px;
 
-  &::-webkit-scrollbar {
-    height: 4px;
-  }
+  &::-webkit-scrollbar { height: 4px; }
 }
 
 .figma-filter-pill {
@@ -93,7 +85,6 @@
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
-  transition: all 0.2s ease;
 
   &:hover {
     background: var(--surface-3, rgba(255, 255, 255, 0.1));
@@ -101,9 +92,9 @@
   }
 
   &.active {
-    background: var(--primary, var(--color-primary, #4f46e5));
+    background: var(--primary, #4f46e5);
     color: #ffffff;
-    border-color: var(--primary, var(--color-primary, #4f46e5));
+    border-color: var(--primary, #4f46e5);
     box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
   }
 }
@@ -116,10 +107,7 @@
   flex-shrink: 0;
 }
 
-/* Figma Card Grid Styles (Theme Adaptive) */
-.cocktail-grid {
-  padding: 0;
-}
+.cocktail-grid { padding: 0; }
 
 .figma-cocktail-card {
   background: var(--surface-1, #141727);
@@ -137,9 +125,7 @@
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
   }
 
-  &.no-picture {
-    min-height: 140px;
-  }
+  &.no-picture { min-height: 140px; }
 }
 
 .figma-card-image-area {
@@ -165,31 +151,20 @@
   gap: 10px;
 }
 
-.figma-card-top-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.badges-group {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-}
+.figma-card-top-row { justify-content: space-between; }
+.badges-group { gap: 6px; flex-wrap: wrap; }
 
 .figma-category-pill {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   background: var(--surface-2, rgba(255, 255, 255, 0.08));
-  color: var(--text-color, var(--ion-text-color, #ffffff));
+  color: var(--text-color, #ffffff);
   padding: 4px 10px;
   border-radius: 16px;
   font-size: 0.775rem;
   font-weight: 600;
   border: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .figma-alert-pill {
@@ -223,23 +198,20 @@
   justify-content: center;
   cursor: pointer;
   font-size: 1rem;
-  transition: all 0.2s ease;
 
   &:hover {
-    background: var(--primary, var(--color-primary, #4f46e5));
+    background: var(--primary, #4f46e5);
     color: #ffffff;
-    border-color: var(--primary, var(--color-primary, #4f46e5));
+    border-color: var(--primary, #4f46e5);
   }
 }
 
-.figma-card-main-info {
-  flex: 1;
-}
+.figma-card-main-info { flex: 1; }
 
 .figma-cocktail-name {
   font-size: 1.15rem;
   font-weight: 700;
-  color: var(--text-color, var(--ion-text-color, #ffffff));
+  color: var(--text-color, #ffffff);
   margin: 4px 0 2px 0;
 }
 
@@ -256,27 +228,20 @@
 }
 
 .figma-card-bottom-row {
-  display: flex;
   justify-content: space-between;
-  align-items: center;
   border-top: 1px solid var(--border-medium, rgba(255, 255, 255, 0.06));
   padding-top: 8px;
   margin-top: 4px;
 }
 
-.bottom-actions {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
+.bottom-actions { gap: 4px; }
 
 .figma-cocktail-price {
   font-size: 1.3rem;
   font-weight: 800;
-  color: var(--text-color, var(--ion-text-color, #ffffff));
+  color: var(--text-color, #ffffff);
 }
 
-/* Mode Liste */
 .cocktail-list-card {
   --background: var(--surface-1, #1e2438);
   background: var(--surface-1, #1e2438);

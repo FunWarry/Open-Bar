@@ -8,17 +8,24 @@ import { Store } from '@ngrx/store';
 import { of, throwError } from 'rxjs';
 import { CocktailListComponent } from '../../../app/features/cocktails/cocktail-list/cocktail-list.component';
 import { CocktailService } from '../../../app/core/services/cocktail.service';
-import { Cocktail } from '../../../app/core/models/cocktail.model';
+import { Cocktail, CocktailCategorie } from '../../../app/core/models/cocktail.model';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 
-const makeC = (id: number, nom: string, disponible = true): Cocktail => ({
-  id, nom, prix: 8, categorie: 'ALCOOLISE', disponible,
-  saisonnier: false, ingredients: [], variantes: [], createdAt: '', updatedAt: '',
+const makeC = (id: number, nom: string, disponible = true, categorie: CocktailCategorie = 'ALCOOLISE'): Cocktail => ({
+  id, nom, prix: 8, categorie, disponible,
+  description: 'Cocktail test',
+  saisonnier: false,
+  ingredients: [
+    { id: 1, ingredientId: 10, ingredientNom: 'Rhum', quantite: 5, uniteMesure: 'cl' },
+    { id: 2, ingredientId: 11, ingredientNom: 'Menthe', quantite: 3, uniteMesure: 'feuilles' }
+  ],
+  variantes: [],
+  createdAt: '', updatedAt: '',
 });
 
 const mockCocktails: Cocktail[] = [
-  makeC(1, 'Mojito', true),
-  makeC(2, 'Martini', false),
+  makeC(1, 'Mojito', true, 'ALCOOLISE'),
+  makeC(2, 'Virgin Mojito', false, 'SANS_ALCOOL'),
 ];
 
 const mockSaisonnier: Cocktail = {
@@ -107,6 +114,48 @@ describe('CocktailListComponent', () => {
     expect(component.filteredCocktails).toHaveSize(2);
   }));
 
+  it('filtre par catégorie et recherche textuelle', fakeAsync(() => {
+    component.charger(); tick();
+    component.selectedCategory = 'SANS_ALCOOL';
+    expect(component.filteredCocktails).toHaveSize(1);
+    expect(component.filteredCocktails[0].nom).toBe('Virgin Mojito');
+
+    component.searchQuery = 'virgin';
+    expect(component.filteredCocktails).toHaveSize(1);
+  }));
+
+  // --- getIngredientsText ---
+
+  it('getIngredientsText() retourne les ingrédients séparés par des puces', () => {
+    const text = component.getIngredientsText(mockCocktails[0]);
+    expect(text).toBe('Rhum · Menthe');
+  });
+
+  it('getIngredientsText() retourne la description si pas d\'ingrédients', () => {
+    const noIng: Cocktail = { ...mockCocktails[0], ingredients: [], description: 'Test desc' };
+    expect(component.getIngredientsText(noIng)).toBe('Test desc');
+  });
+
+  // --- Category pill styling ---
+
+  it('getCategoryDotColor() retourne la couleur appropriée selon la catégorie', () => {
+    expect(component.getCategoryDotColor('ALCOOLISE')).toBe('#10b981');
+    expect(component.getCategoryDotColor('SANS_ALCOOL')).toBe('#06b6d4');
+    expect(component.getCategoryDotColor('SHOT')).toBe('#84cc16');
+    expect(component.getCategoryDotColor('APERITIF')).toBe('#f97316');
+    expect(component.getCategoryDotColor('DIGESTIF')).toBe('#ef4444');
+    expect(component.getCategoryDotColor('SPECIAL')).toBe('#eab308');
+    expect(component.getCategoryDotColor('AUTRE')).toBe('#6366f1');
+  });
+
+  it('getCategoryPillStyle() génère les styles actifs et inactifs', () => {
+    const activeStyle = component.getCategoryPillStyle('ALCOOLISE', true);
+    expect(activeStyle['background-color']).toBe('#10b981');
+
+    const inactiveStyle = component.getCategoryPillStyle('ALCOOLISE', false);
+    expect(inactiveStyle['color']).toBe('#ffffff');
+  });
+
   // --- toggle disponibilité ---
 
   it('onToggleDisponibilite() appelle le service et met à jour la liste', fakeAsync(() => {
@@ -116,16 +165,34 @@ describe('CocktailListComponent', () => {
     expect(serviceSpy.toggleDisponibilite).toHaveBeenCalledWith(1);
   }));
 
+  it('onToggleDisponibilite() affiche un toast danger en cas d\'erreur', fakeAsync(() => {
+    serviceSpy.toggleDisponibilite.and.returnValue(throwError(() => new Error('err')));
+    component.onToggleDisponibilite(mockCocktails[0]);
+    tick();
+    flushMicrotasks();
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
+  }));
+
   // --- delete ---
 
-  it('onDelete() retire le cocktail de la liste', fakeAsync(() => {
+  it('onDelete() retire le cocktail de la liste et affiche un toast de succès', fakeAsync(() => {
     component.charger(); tick();
     component.onDelete(mockCocktails[0]);
     tick();
+    flushMicrotasks();
     expect(component.cocktails.find(c => c.id === 1)).toBeUndefined();
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'success' }));
   }));
 
-  // --- navigation ---
+  it('onDelete() affiche un toast danger en cas d\'erreur', fakeAsync(() => {
+    serviceSpy.delete.and.returnValue(throwError(() => new Error('err')));
+    component.onDelete(mockCocktails[0]);
+    tick();
+    flushMicrotasks();
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
+  }));
+
+  // --- navigation & refresh ---
 
   it('onAdd() navigue vers /cocktails/new', () => {
     spyOn(router, 'navigate');
@@ -137,6 +204,16 @@ describe('CocktailListComponent', () => {
     spyOn(router, 'navigate');
     component.onEdit(mockCocktails[0]);
     expect(router.navigate).toHaveBeenCalledWith(['/cocktails', 1, 'edit']);
+  });
+
+  it('onRefresh() recharge les cocktails avec l\'événement refresher', () => {
+    const event = { target: { complete: jasmine.createSpy('complete') } };
+    component.onRefresh(event);
+    expect(serviceSpy.getAll).toHaveBeenCalled();
+  });
+
+  it('trackById() retourne l\'id du cocktail', () => {
+    expect(component.trackById(0, mockCocktails[0])).toBe(1);
   });
 
   // --- isHorsSaison ---

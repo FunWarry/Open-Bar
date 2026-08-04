@@ -82,6 +82,21 @@ export class CocktailListComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Displays toast notification.
+   * @param messageKey Translation key or plain text
+   * @param color Toast color theme
+   * @param duration Toast duration in ms
+   */
+  private async showToast(messageKey: string, color: 'success' | 'danger' = 'success', duration = 3000): Promise<void> {
+    const toast = await this.toastCtrl.create({
+      message: this.transloco.translate(messageKey),
+      duration,
+      color
+    });
+    await toast.present();
+  }
+
+  /**
    * Fetches all cocktails from backend API.
    * @param refreshEvent Optional IonRefresher event for pull-to-refresh
    */
@@ -99,14 +114,7 @@ export class CocktailListComponent implements OnInit, OnDestroy {
         next: cocktails => {
           this.cocktails = cocktails;
         },
-        error: async () => {
-          const toast = await this.toastCtrl.create({
-            message: this.transloco.translate('COMMON.ERROR'),
-            duration: 3000,
-            color: 'danger'
-          });
-          toast.present();
-        },
+        error: () => this.showToast('COMMON.ERROR', 'danger'),
       });
   }
 
@@ -166,7 +174,7 @@ export class CocktailListComponent implements OnInit, OnDestroy {
    * @param category Category name
    * @param isActive Active state flag
    */
-  getCategoryPillStyle(category: string, isActive: boolean = false): Record<string, string> {
+  getCategoryPillStyle(category: string, isActive = false): Record<string, string> {
     const color = this.getCategoryDotColor(category);
     if (isActive) {
       return {
@@ -191,14 +199,7 @@ export class CocktailListComponent implements OnInit, OnDestroy {
           const idx = this.cocktails.findIndex(c => c.id === updated.id);
           if (idx !== -1) this.cocktails[idx] = updated;
         },
-        error: async () => {
-          const toast = await this.toastCtrl.create({
-            message: this.transloco.translate('COMMON.ERROR'),
-            duration: 3000,
-            color: 'danger'
-          });
-          toast.present();
-        },
+        error: () => this.showToast('COMMON.ERROR', 'danger'),
       });
   }
 
@@ -208,21 +209,9 @@ export class CocktailListComponent implements OnInit, OnDestroy {
       .subscribe({
         next: async () => {
           this.cocktails = this.cocktails.filter(c => c.id !== cocktail.id);
-          const toast = await this.toastCtrl.create({
-            message: this.transloco.translate('COMMON.SUCCESS'),
-            duration: 2000,
-            color: 'success'
-          });
-          toast.present();
+          await this.showToast('COMMON.SUCCESS', 'success', 2000);
         },
-        error: async () => {
-          const toast = await this.toastCtrl.create({
-            message: this.transloco.translate('COMMON.ERROR'),
-            duration: 3000,
-            color: 'danger'
-          });
-          toast.present();
-        },
+        error: () => this.showToast('COMMON.ERROR', 'danger'),
       });
   }
 
