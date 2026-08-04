@@ -1,6 +1,6 @@
 # OpenBar — État des Features & Roadmap
 
-> Dernière mise à jour : 2 août 2026 — PR #224 : Alignement Figma TableListComponent & TableFormComponent + Audit complet 8 pages Figma (Roadmap 18 tickets)
+> Dernière mise à jour : 4 août 2026 — PR #244 : Filtrage des cocktails par allergène avec détection automatique et badges (#243)
 
 ## Tableau des Features
 
@@ -28,6 +28,7 @@
 | Cocktails CRUD | ✅ | ✅ | ✅ | — |
 | Saisonnalité cocktails | ✅ | ✅ | ✅ | — |
 | Variantes & Déduction auto stocks (#185/#182) | ✅ | ✅ | ✅ | Modal sélection & personnalisation |
+| Filtrage cocktails par allergène (#243) | — | ✅ | ✅ | Détection auto d'allergènes, filtres par exclusion et badges visuels |
 | Ingrédients CRUD & Routage (/ingredients) (#219) | ✅ | ✅ | ✅ | Endpoint `GET /api/ingredients`, routes `/ingredients` (+ new/detail/edit), guards & tests |
 | Tables CRUD & Alignement Figma | ✅ | ✅ | ✅ | `TableListComponent` et `TableFormComponent` alignés Figma, chargement dynamique des zones via `ZoneService`, i18n FR/EN |
 | Transfert commande entre tables (#186/#205) | ✅ | ✅ | ✅ | Bouton & TransfertModalComponent raccordés (#205/#207) |
@@ -96,6 +97,7 @@
 
 | PR / Issue | Description |
 |------------|-------------|
+| #244 (#243) | Filtrage des Cocktails par Allergène : Détection automatique des allergènes (Lait/Lactose, Gluten, Œufs, Fruits à coque, Arachides, Sulfites, Soja) sur les cocktails à partir des ingrédients, descriptions et instructions. Barre de filtres par exclusion interactive (chips/pills "Sans Lait", "Sans Gluten"...), bouton de réinitialisation rapide, et badges visuels d'avertissement ⚠️ sur les cartes (mode grille) et la vue liste. Support i18n FR/EN complet (`COCKTAILS.ALLERGENS.*`) et couverture de tests unitaires Jasmine/Karma (976/976 OK). |
 | Refacto Tech | Résolution intégrale de la dette technique backend : Ticket #M (nommage & tests dateLivraison sur LIVREE), Ticket #N (audit circular references Spring saine), Ticket #O (refactoring des exceptions génériques vers BusinessException 400 dans FactureService, PdfService, JwtTokenProvider). |
 | #242 | Vue Grille Cocktails Figma & Auto-création BDD Multi-Environnements : Intégration de la vue grille cocktails Figma avec cartes responsives, badges de statut, types de verres avec icônes 3D (`verre_martini`, `verre_old_fashioned`, `verre_tumbler`, etc.), et bouton de téléversement/prise de photo directe depuis l'appareil du barman/manager (`POST /api/cocktails/{id}/image`). Configuration multi-environnement PostgreSQL (dev, test, prod) avec auto-création dynamique de la BDD cible (`DatabaseAutoCreationConfig.java`) et initialiseur DDL sans crash. Traductions FR/EN et couverture de tests unitaires 100% verts (963 specs Angular + 358 tests Java OK). |
 | #227 | Facturation — Vue Récap Journée [MANAGER] (Figma 628:1096) : Endpoint backend `GET /api/factures/daily-recap` (CA TTC, CA HT, TVA globale, panier moyen, nombre factures réglées, total clients) + `GET /api/factures/daily-recap/pdf` (génération PDF Z-Report A4 légal). Frontend Ionic 8 `/factures/recap` avec sélecteur de date, cartes KPIs réactives, tableaux de ventilation par mode de règlement et par taux de TVA (5.5%, 10%, 20%), export PDF en 1 clic. Tests unitaires Java JUnit 5 & Angular Karma (963/963 OK). |
