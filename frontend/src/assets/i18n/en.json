@@ -123,7 +123,9 @@
     "CREATED_AT": "Account created on:",
     "UPDATED_AT": "Last updated:",
     "NEW_PASSWORD": "New Password",
-    "SAVE_BTN": "Save Changes"
+    "SAVE_BTN": "Save Changes",
+    "SAVE_SUCCESS": "Profile updated successfully",
+    "SAVE_ERROR": "Error updating profile"
   },
   "COCKTAILS": {
     "TITLE": "Cocktails",

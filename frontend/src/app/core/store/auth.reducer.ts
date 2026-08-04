@@ -81,5 +81,9 @@ export const authReducer = createReducer(
     user: user !== undefined ? user : state.user,
     isAuthenticated: !!token,
     error: null
+  })),
+  on(AuthActions.setCurrentUser, (state, {user}) => ({
+    ...state,
+    user
   }))
 );

@@ -124,7 +124,9 @@
     "CREATED_AT": "Compte créé le :",
     "UPDATED_AT": "Dernière modification :",
     "NEW_PASSWORD": "Nouveau mot de passe",
-    "SAVE_BTN": "Enregistrer les modifications"
+    "SAVE_BTN": "Enregistrer les modifications",
+    "SAVE_SUCCESS": "Profil mis à jour avec succès",
+    "SAVE_ERROR": "Erreur lors de la mise à jour du profil"
   },
   "COCKTAILS": {
     "TITLE": "Cocktails",
