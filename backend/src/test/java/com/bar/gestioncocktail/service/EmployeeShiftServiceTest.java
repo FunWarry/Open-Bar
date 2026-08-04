@@ -181,6 +181,45 @@ class EmployeeShiftServiceTest {
     }
 
     @Test
+    void updateShift_WithAllNullFields_DoesNotChangeExistingValues() {
+        // Covers all false-branches on the null-checks (lines 118-124)
+        EmployeeShiftRequestDTO request = new EmployeeShiftRequestDTO(
+            null, null, null, null, null, null, null, null
+        );
+
+        when(shiftRepository.findById(10L)).thenReturn(Optional.of(sampleShift));
+        when(shiftRepository.save(any(EmployeeShift.class))).thenAnswer(i -> i.getArgument(0));
+
+        EmployeeShift updated = shiftService.updateShift(10L, request);
+
+        // Values should remain unchanged
+        assertThat(updated.getDateShift()).isEqualTo(LocalDate.of(2026, 8, 10));
+        assertThat(updated.getTypeShift()).isEqualTo(TypeShift.MATIN);
+        assertThat(updated.getTypePoste()).isEqualTo(TypePoste.SERVEUR);
+        assertThat(updated.getHeureDebut()).isEqualTo("08:00");
+        assertThat(updated.getHeureFin()).isEqualTo("16:00");
+        assertThat(updated.getNotes()).isEqualTo("Service du matin");
+    }
+
+    @Test
+    void updateShift_WithSameUserId_DoesNotRefetchUser() {
+        // userId == shift.user.id → branch false on userId change check
+        EmployeeShiftRequestDTO request = new EmployeeShiftRequestDTO(
+            1L, LocalDate.of(2026, 8, 12), TypeShift.COUPURE, TypePoste.CAISSE,
+            "12:00", "20:00", new BigDecimal("8.0"), "Coupure"
+        );
+
+        when(shiftRepository.findById(10L)).thenReturn(Optional.of(sampleShift));
+        when(shiftRepository.save(any(EmployeeShift.class))).thenAnswer(i -> i.getArgument(0));
+
+        EmployeeShift updated = shiftService.updateShift(10L, request);
+
+        // userRepository should NOT be called since userId is the same
+        verify(userRepository, never()).findById(1L);
+        assertThat(updated.getTypeShift()).isEqualTo(TypeShift.COUPURE);
+    }
+
+    @Test
     void deleteShift_Success() {
         when(shiftRepository.findById(10L)).thenReturn(Optional.of(sampleShift));
 
