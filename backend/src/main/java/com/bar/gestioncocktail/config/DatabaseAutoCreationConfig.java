@@ -17,6 +17,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -356,6 +357,13 @@ public class DatabaseAutoCreationConfig {
         }
     }
 
+    private static final Set<String> ALLOWED_DB_NAMES = Set.of(
+            "gestion_cocktail",
+            "gestion_cocktail_dev",
+            "gestion_cocktail_test",
+            "openbar"
+    );
+
     /**
      * Creates a new PostgreSQL database with the specified validated name.
      *
@@ -364,12 +372,23 @@ public class DatabaseAutoCreationConfig {
      * @throws SQLException if database creation DDL fails
      */
     private static void createDatabase(Connection conn, String dbName) throws SQLException {
-        if (!DB_NAME_PATTERN.matcher(dbName).matches()) {
-            throw new IllegalArgumentException("Invalid database name: " + dbName);
+        String safeName = null;
+        for (String allowed : ALLOWED_DB_NAMES) {
+            if (allowed.equalsIgnoreCase(dbName)) {
+                safeName = allowed;
+                break;
+            }
         }
-        String sql = "CREATE DATABASE \"" + dbName + "\"";
+        if (safeName == null) {
+            throw new IllegalArgumentException("Unauthorized database name: " + dbName);
+        }
         try (Statement stmt = conn.createStatement()) {
-            stmt.executeUpdate(sql);
+            switch (safeName) {
+                case "gestion_cocktail_dev" -> stmt.executeUpdate("CREATE DATABASE gestion_cocktail_dev");
+                case "gestion_cocktail_test" -> stmt.executeUpdate("CREATE DATABASE gestion_cocktail_test");
+                case "openbar" -> stmt.executeUpdate("CREATE DATABASE openbar");
+                default -> stmt.executeUpdate("CREATE DATABASE gestion_cocktail");
+            }
         }
     }
 }
