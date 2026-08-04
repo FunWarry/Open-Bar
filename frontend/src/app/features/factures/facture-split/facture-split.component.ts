@@ -6,7 +6,7 @@ import {
   IonContent, IonHeader, IonToolbar, IonTitle, IonBackButton, IonButtons,
   IonCard, IonCardHeader, IonCardTitle, IonCardContent,
   IonItem, IonLabel, IonButton, IonIcon,
-  IonSegment, IonSegmentButton, IonList, IonBadge, IonNote,
+  IonSegment, IonSegmentButton, IonList, IonBadge,
   IonSpinner, IonInput, IonSelect, IonSelectOption, IonProgressBar, ModalController, ToastController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -42,7 +42,7 @@ export interface PartSettlementState {
     IonContent, IonHeader, IonToolbar, IonTitle, IonBackButton, IonButtons,
     IonCard, IonCardHeader, IonCardTitle, IonCardContent,
     IonItem, IonLabel, IonButton, IonIcon,
-    IonSegment, IonSegmentButton, IonList, IonBadge, IonNote,
+    IonSegment, IonSegmentButton, IonList, IonBadge,
     IonSpinner, IonInput, IonSelect, IonSelectOption, IonProgressBar
   ],
   templateUrl: './facture-split.component.html',
