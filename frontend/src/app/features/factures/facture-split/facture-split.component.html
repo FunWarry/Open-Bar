@@ -3,19 +3,19 @@
     <ion-buttons slot="start">
       <ion-back-button [defaultHref]="'/factures/' + factureId"></ion-back-button>
     </ion-buttons>
-    <ion-title>Division d'addition</ion-title>
+    <ion-title>Division & Règlement d'addition</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="ion-padding">
 
   <!-- Sélection du mode -->
-  <ion-segment [(ngModel)]="mode" (ionChange)="onModeChange()">
-    <ion-segment-button value="egal">
+  <ion-segment [(ngModel)]="mode" (ionChange)="onModeChange()" data-testid="split-mode-segment">
+    <ion-segment-button value="egal" data-testid="split-mode-egal">
       <ion-icon name="people-outline"></ion-icon>
       <ion-label>Part égale</ion-label>
     </ion-segment-button>
-    <ion-segment-button value="selection">
+    <ion-segment-button value="selection" data-testid="split-mode-selection">
       <ion-icon name="list-outline"></ion-icon>
       <ion-label>Par article</ion-label>
     </ion-segment-button>
@@ -29,24 +29,24 @@
       </ion-card-header>
       <ion-card-content>
         <div class="convives-selector">
-          <ion-button fill="clear" (click)="ajusterConvives(-1)" (keydown.enter)="ajusterConvives(-1)" [disabled]="nombreConvives <= 2">
+          <ion-button fill="clear" (click)="ajusterConvives(-1)" (keydown.enter)="ajusterConvives(-1)" [disabled]="nombreConvives <= 2" data-testid="convives-minus-btn">
             <ion-icon name="remove-outline"></ion-icon>
           </ion-button>
-          <span class="nombre">{{ nombreConvives }}</span>
-          <ion-button fill="clear" (click)="ajusterConvives(1)" (keydown.enter)="ajusterConvives(1)" [disabled]="nombreConvives >= 20">
+          <span class="nombre" data-testid="convives-count">{{ nombreConvives }}</span>
+          <ion-button fill="clear" (click)="ajusterConvives(1)" (keydown.enter)="ajusterConvives(1)" [disabled]="nombreConvives >= 20" data-testid="convives-plus-btn">
             <ion-icon name="add-outline"></ion-icon>
           </ion-button>
         </div>
 
         <p class="hint">Divise le total de la facture en {{ nombreConvives }} parts égales.</p>
 
-        <ion-button expand="block" (click)="calculerSplitEgal()" (keydown.enter)="calculerSplitEgal()" [disabled]="loading">
+        <ion-button expand="block" (click)="calculerSplitEgal()" (keydown.enter)="calculerSplitEgal()" [disabled]="loading" data-testid="calculate-split-btn">
           <ion-spinner *ngIf="loading" name="crescent" slot="start"></ion-spinner>
           <ion-icon *ngIf="!loading" name="calculator-outline" slot="start"></ion-icon>
-          Calculer
+          Calculer les parts
         </ion-button>
 
-        <p *ngIf="errorMessage" class="error-message">{{ errorMessage }}</p>
+        <p *ngIf="errorMessage" class="error-message" data-testid="split-error-msg">{{ errorMessage }}</p>
       </ion-card-content>
     </ion-card>
   </ng-container>
@@ -65,18 +65,20 @@
             [(ngModel)]="convives[i].nom"
             [placeholder]="'Convive ' + (i + 1)"
             fill="outline"
-            class="convive-input">
+            class="convive-input"
+            [attr.data-testid]="'convive-input-' + i">
           </ion-input>
           <ion-button fill="clear" color="danger"
             *ngIf="convives.length > 2"
             (click)="removeConvive(i)"
             (keydown.enter)="removeConvive(i)"
-            aria-label="Supprimer ce convive">
+            aria-label="Supprimer ce convive"
+            [attr.data-testid]="'remove-convive-btn-' + i">
             <ion-icon name="close-outline"></ion-icon>
           </ion-button>
         </div>
 
-        <ion-button fill="clear" expand="block" (click)="addConvive()" (keydown.enter)="addConvive()" [disabled]="convives.length >= 20">
+        <ion-button fill="clear" expand="block" (click)="addConvive()" (keydown.enter)="addConvive()" [disabled]="convives.length >= 20" data-testid="add-convive-btn">
           <ion-icon name="add-outline" slot="start"></ion-icon>
           Ajouter un convive
         </ion-button>
@@ -103,7 +105,8 @@
               [(ngModel)]="itemAssignments[item.id]"
               placeholder="—"
               interface="popover"
-              aria-label="Attribuer à">
+              aria-label="Attribuer à"
+              [attr.data-testid]="'assign-item-select-' + item.id">
               <ion-select-option
                 *ngFor="let c of convives; let i = index"
                 [value]="i">
@@ -122,7 +125,8 @@
           (click)="calculerSplitSelection()"
           (keydown.enter)="calculerSplitSelection()"
           [disabled]="loading || !tousItemsAssignes"
-          class="ion-margin-top">
+          class="ion-margin-top"
+          data-testid="calculate-split-selection-btn">
           <ion-spinner *ngIf="loading" name="crescent" slot="start"></ion-spinner>
           <ion-icon *ngIf="!loading" name="calculator-outline" slot="start"></ion-icon>
           Calculer la répartition
@@ -142,28 +146,85 @@
 
   </ng-container>
 
-  <!-- ── Résultats (communs aux deux modes) ────────────────────────────────── -->
-  <div class="results" *ngIf="results.length > 0">
-    <h2 class="results-title">Résultat de la division</h2>
+  <!-- ── Suivi du solde & Vue Règlement Individuel Post-Split ────────────────── -->
+  <div class="results" *ngIf="results.length > 0" data-testid="split-results-container">
+    
+    <!-- Balance Progress Card -->
+    <ion-card class="balance-card ion-margin-bottom">
+      <ion-card-header>
+        <ion-card-title>Suivi du règlement des parts</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <div class="balance-metrics">
+          <div class="metric">
+            <span class="label">Montant addition :</span>
+            <span class="value" data-testid="balance-total">{{ montantTotalAddition | currency:'EUR':'symbol':'1.2-2':'fr' }}</span>
+          </div>
+          <div class="metric">
+            <span class="label">Montant encaissé :</span>
+            <span class="value success" data-testid="balance-paid">{{ montantRegle | currency:'EUR':'symbol':'1.2-2':'fr' }}</span>
+          </div>
+          <div class="metric">
+            <span class="label">Solde restant dû :</span>
+            <strong class="value warning" data-testid="balance-remaining">{{ soldeRestant | currency:'EUR':'symbol':'1.2-2':'fr' }}</strong>
+          </div>
+        </div>
+
+        <div class="progress-wrapper ion-margin-top">
+          <ion-progress-bar [value]="ratioRegle" color="success" data-testid="balance-progress-bar"></ion-progress-bar>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Individual Guest Settlements List -->
+    <h2 class="results-title">Règlement par convive</h2>
     <ion-list>
-      <ion-item *ngFor="let part of results" lines="full">
+      <ion-item *ngFor="let part of results; let i = index" lines="full" [attr.data-testid]="'split-guest-item-' + i">
         <ion-label>
-          <h3>{{ part.nomConvive }}</h3>
+          <h3>
+            {{ part.nomConvive }}
+            <ion-badge color="success" *ngIf="partStates[i]?.reglee" class="ion-margin-start" data-testid="guest-settled-badge">
+              <ion-icon name="checkmark-circle-outline"></ion-icon> RÉGLÉ
+            </ion-badge>
+            <ion-badge color="warning" *ngIf="!partStates[i]?.reglee" class="ion-margin-start" data-testid="guest-pending-badge">
+              EN ATTENTE
+            </ion-badge>
+          </h3>
           <p *ngIf="part.items.length > 0">{{ part.items.length }} article(s)</p>
-          <p *ngIf="part.items.length > 0" class="items-detail">
-            <span *ngFor="let it of part.items; let last = last">
-              {{ it.description }}{{ !last ? ', ' : '' }}
-            </span>
+          <p *ngIf="partStates[i]?.reglee" class="settlement-info">
+            Mode: {{ partStates[i]?.modePaiement }}
+            <span *ngIf="partStates[i]?.pourboire"> (Pourboire: {{ partStates[i]?.pourboire | currency:'EUR':'symbol':'1.2-2':'fr' }})</span>
           </p>
         </ion-label>
-        <ion-badge slot="end" color="primary" class="montant-badge">
-          {{ part.sousTotal | currency:'EUR':'symbol':'1.2-2':'fr' }}
-        </ion-badge>
+
+        <div slot="end" class="guest-action-group">
+          <span class="part-amount" data-testid="guest-part-amount">
+            {{ part.sousTotal | currency:'EUR':'symbol':'1.2-2':'fr' }}
+          </span>
+
+          <ion-button
+            *ngIf="!partStates[i]?.reglee"
+            size="small"
+            color="primary"
+            (click)="reglerPart(i, part)"
+            (keydown.enter)="reglerPart(i, part)"
+            [attr.data-testid]="'pay-guest-btn-' + i">
+            Régler cette part
+          </ion-button>
+        </div>
       </ion-item>
     </ion-list>
-    <div class="total-check ion-padding-top">
-      <ion-note>Total réparti : {{ totalSplit | currency:'EUR':'symbol':'1.2-2':'fr' }}</ion-note>
-    </div>
+
+    <!-- Global Completion Banner -->
+    <ion-card color="success" *ngIf="toutesPartsReglees" class="ion-margin-top ion-text-center" data-testid="split-all-settled-banner">
+      <ion-card-content>
+        <h2><ion-icon name="checkmark-circle-outline"></ion-icon> Addition intégralement réglée !</h2>
+        <p>Toutes les parts individuelles ont été encaissées. La facture est clôturée.</p>
+        <ion-button fill="outline" color="light" [routerLink]="'/factures/' + factureId" class="ion-margin-top">
+          Retour au détail de la facture
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
   </div>
 
 </ion-content>
