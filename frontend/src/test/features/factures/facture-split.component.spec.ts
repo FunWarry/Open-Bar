@@ -3,6 +3,7 @@ import { ComponentFixture } from '@angular/core/testing';
 import { ActivatedRoute } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { IonicModule } from '@ionic/angular';
+import { ModalController, ToastController } from '@ionic/angular/standalone';
 import { of, throwError } from 'rxjs';
 import { FactureSplitComponent } from '../../../app/features/factures/facture-split/facture-split.component';
 import { FactureService, SplitResultDTO } from '../../../app/features/factures/services/facture.service';
@@ -28,13 +29,25 @@ describe('FactureSplitComponent', () => {
   let fixture: ComponentFixture<FactureSplitComponent>;
   let factureServiceSpy: jasmine.SpyObj<FactureService>;
 
+  let modalCtrlSpy: jasmine.SpyObj<ModalController>;
+  let toastCtrlSpy: jasmine.SpyObj<ToastController>;
+  let toastSpy: jasmine.SpyObj<HTMLIonToastElement>;
+
   beforeEach(async () => {
     factureServiceSpy = jasmine.createSpyObj<FactureService>('FactureService', [
-      'splitEgal', 'splitParSelection', 'getFactureById',
+      'splitEgal', 'splitParSelection', 'getFactureById', 'reglerFacture'
     ]);
     factureServiceSpy.splitEgal.and.returnValue(of(mockSplitResults));
     factureServiceSpy.splitParSelection.and.returnValue(of(mockSplitResults));
     factureServiceSpy.getFactureById.and.returnValue(of(mockFacture));
+    factureServiceSpy.reglerFacture.and.returnValue(of(mockFacture));
+
+    toastSpy = jasmine.createSpyObj('HTMLIonToastElement', ['present']);
+    toastSpy.present.and.returnValue(Promise.resolve());
+    toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
+    toastCtrlSpy.create.and.returnValue(Promise.resolve(toastSpy));
+
+    modalCtrlSpy = jasmine.createSpyObj('ModalController', ['create']);
 
     await TestBed.configureTestingModule({
       imports: [FactureSplitComponent, IonicModule.forRoot(), RouterTestingModule],
@@ -44,6 +57,8 @@ describe('FactureSplitComponent', () => {
           useValue: { snapshot: { paramMap: { get: (_: string) => '42' } } },
         },
         { provide: FactureService, useValue: factureServiceSpy },
+        { provide: ModalController, useValue: modalCtrlSpy },
+        { provide: ToastController, useValue: toastCtrlSpy },
       ],
     }).compileComponents();
 
@@ -88,7 +103,7 @@ describe('FactureSplitComponent', () => {
       component.facture = mockFacture;
       component.mode = 'selection';
       component.onModeChange();
-      expect(factureServiceSpy.getFactureById).not.toHaveBeenCalled();
+      expect(factureServiceSpy.getFactureById).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -268,6 +283,58 @@ describe('FactureSplitComponent', () => {
     it('should sum all sousTotal values', () => {
       component.results = mockSplitResults;
       expect(component.totalSplit).toBe(21);
+    });
+  });
+
+  // ── Post-Split Settlement ───────────────────────────────────────────────────
+
+  describe('reglerPart() and balance getters', () => {
+    beforeEach(() => {
+      component.results = mockSplitResults;
+      component.facture = mockFacture;
+    });
+
+    it('calculates balance metrics correctly when no parts are paid', () => {
+      expect(component.montantTotalAddition).toBe(21);
+      expect(component.montantRegle).toBe(0);
+      expect(component.soldeRestant).toBe(21);
+      expect(component.ratioRegle).toBe(0);
+      expect(component.toutesPartsReglees).toBeFalse();
+    });
+
+    it('reglerPart() updates partStates and balance metrics when paid', async () => {
+      const modalSpy = jasmine.createSpyObj('HTMLIonModalElement', ['present', 'onWillDismiss']);
+      modalSpy.present.and.returnValue(Promise.resolve());
+      modalSpy.onWillDismiss.and.returnValue(Promise.resolve({
+        data: { modePaiement: 'CARTE', pourboire: 1.0, totalTotal: 11.5 }
+      }));
+      modalCtrlSpy.create.and.returnValue(Promise.resolve(modalSpy));
+
+      await component.reglerPart(0, mockSplitResults[0]);
+
+      expect(modalCtrlSpy.create).toHaveBeenCalled();
+      expect(component.partStates[0].reglee).toBeTrue();
+      expect(component.partStates[0].modePaiement).toBe('CARTE');
+      expect(component.montantRegle).toBe(10.5);
+      expect(component.soldeRestant).toBe(10.5);
+    });
+
+    it('finalizes main invoice automatically when all parts are paid', async () => {
+      const modalSpy = jasmine.createSpyObj('HTMLIonModalElement', ['present', 'onWillDismiss']);
+      modalSpy.present.and.returnValue(Promise.resolve());
+      modalSpy.onWillDismiss.and.returnValue(Promise.resolve({
+        data: { modePaiement: 'ESPECES', pourboire: 0, totalTotal: 10.5 }
+      }));
+      modalCtrlSpy.create.and.returnValue(Promise.resolve(modalSpy));
+
+      // Pay part 0
+      await component.reglerPart(0, mockSplitResults[0]);
+      expect(factureServiceSpy.reglerFacture).not.toHaveBeenCalled();
+
+      // Pay part 1 (last part)
+      await component.reglerPart(1, mockSplitResults[1]);
+      expect(component.toutesPartsReglees).toBeTrue();
+      expect(factureServiceSpy.reglerFacture).toHaveBeenCalledWith(42, 'MIXTE_SPLIT', 0);
     });
   });
 });

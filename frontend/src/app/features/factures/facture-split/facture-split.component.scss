@@ -25,20 +25,63 @@ ion-segment {
   margin-bottom: 16px;
 }
 
-.montant-badge {
-  font-size: 1rem;
-  padding: 8px 12px;
+.balance-card {
+  background: var(--surface-1, #1e1e24);
+  border: 1px solid var(--ion-color-step-150, #2c2c34);
+  border-radius: 12px;
+
+  .balance-metrics {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    .metric {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.95rem;
+
+      .label {
+        color: var(--ion-color-medium, #92949c);
+      }
+
+      .value {
+        font-weight: 600;
+
+        &.success {
+          color: var(--ion-color-success, #2dd36f);
+        }
+
+        &.warning {
+          color: var(--ion-color-warning, #ffc409);
+        }
+      }
+    }
+  }
+}
+
+.guest-action-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+
+  .part-amount {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--primary, #3880ff);
+  }
+}
+
+.settlement-info {
+  font-size: 0.8rem;
+  color: var(--ion-color-medium, #92949c);
 }
 
 .results-title {
   font-size: 1.1rem;
   font-weight: 600;
   margin: 16px 0 8px;
-}
-
-.total-check {
-  text-align: right;
-  font-size: 0.9rem;
 }
 
 .error-message {
