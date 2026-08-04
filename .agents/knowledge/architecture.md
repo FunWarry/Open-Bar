@@ -37,7 +37,7 @@ Pattern strict **Controller → Service → Repository** — aucun saut de couch
 
 ```
 src/main/java/com/bar/gestioncocktail/
-├── config/     # SecurityConfig, WebSocketConfig, JwtProperties
+├── config/     # SecurityConfig, WebSocketConfig, JwtProperties, DatabaseAutoCreationConfig (auto-création BDD PostgreSQL multi-env)
 ├── controller/ # REST endpoints (@PreAuthorize obligatoire sur writes)
 ├── service/    # Logique métier (@Transactional sur writes)
 ├── repository/ # Spring Data JPA (extends JpaRepository<Entity, Long>)
