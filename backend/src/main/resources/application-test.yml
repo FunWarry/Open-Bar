@@ -1,7 +1,7 @@
 # Profile TEST — Base de données de test (Seeding automatique des 99 cocktails)
 spring:
   datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/${DB_NAME:gestion_cocktail_test}
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/${DB_NAME:gestion_cocktail_test}?sslmode=disable
     username: ${DB_USER:postgres}
     password: ${POSTGRES_PASSWORD:postgres}
 

@@ -57,7 +57,7 @@ CREATE TABLE cocktails (
 CREATE TABLE ingredients (
     id BIGSERIAL PRIMARY KEY,
     nom VARCHAR(100) NOT NULL,
-    quantite DECIMAL(10,2) NOT NULL,
+    quantite DECIMAL(10,2) DEFAULT 0,
     unite_mesure VARCHAR(20) NOT NULL,
     seuil_alerte DECIMAL(10,2),
     fournisseur VARCHAR(100),
@@ -70,8 +70,9 @@ CREATE TABLE cocktail_ingredients (
     cocktail_id BIGINT REFERENCES cocktails(id),
     ingredient_id BIGINT REFERENCES ingredients(id),
     quantite DECIMAL(10,2) NOT NULL,
-    created_at TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP NOT NULL
+    notes TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE cocktail_variantes (
@@ -81,8 +82,8 @@ CREATE TABLE cocktail_variantes (
     description TEXT,
     prix_supplement DECIMAL(10,2) DEFAULT 0,
     disponible BOOLEAN DEFAULT true,
-    created_at TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP NOT NULL
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE tables (
@@ -98,8 +99,8 @@ CREATE TABLE tables (
     plan_y DOUBLE PRECISION,
     plan_rotation DOUBLE PRECISION DEFAULT 0,
     plan_forme VARCHAR(20) DEFAULT 'CARRE',
-    created_at TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP NOT NULL
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS etages (
@@ -107,16 +108,16 @@ CREATE TABLE IF NOT EXISTS etages (
     code VARCHAR(50) NOT NULL UNIQUE,
     nom VARCHAR(100) NOT NULL,
     ordre INT DEFAULT 0,
-    created_at TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP NOT NULL
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS zones (
     id BIGSERIAL PRIMARY KEY,
     nom VARCHAR(50) NOT NULL UNIQUE,
     etage VARCHAR(50) DEFAULT 'RDC',
-    created_at TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP NOT NULL
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE commandes (
@@ -133,8 +134,8 @@ CREATE TABLE commandes (
     date_livraison TIMESTAMP,
     date_reglement TIMESTAMP,
     date_modification TIMESTAMP,
-    created_at TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP NOT NULL
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE commande_items (
@@ -145,8 +146,8 @@ CREATE TABLE commande_items (
     quantite INTEGER NOT NULL,
     prix_unitaire DECIMAL(10,2) NOT NULL,
     prioritaire BOOLEAN DEFAULT false,
-    created_at TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP NOT NULL
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE factures (
@@ -162,8 +163,8 @@ CREATE TABLE factures (
     date_facture TIMESTAMP,
     date_emission TIMESTAMP,
     date_reglement TIMESTAMP,
-    created_at TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP NOT NULL
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE facture_items (
@@ -172,8 +173,8 @@ CREATE TABLE facture_items (
     description VARCHAR(255) NOT NULL,
     quantite INTEGER NOT NULL,
     prix_unitaire DECIMAL(10,2) NOT NULL,
-    created_at TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP NOT NULL
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE SEQUENCE IF NOT EXISTS facture_seq START 1;
@@ -270,6 +271,7 @@ ALTER TABLE facture_items ADD COLUMN IF NOT EXISTS price_ht DECIMAL(10,2);
 ALTER TABLE facture_items ADD COLUMN IF NOT EXISTS vat_amount DECIMAL(10,2);
 
 -- Gestion des stocks ingrédients (#206) : colonnes manquantes
+ALTER TABLE ingredients ALTER COLUMN quantite DROP NOT NULL;
 ALTER TABLE ingredients ADD COLUMN IF NOT EXISTS quantite_stock DECIMAL(10,2) NOT NULL DEFAULT 0;
 ALTER TABLE ingredients ADD COLUMN IF NOT EXISTS numero_lot VARCHAR(100);
 ALTER TABLE ingredients ADD COLUMN IF NOT EXISTS date_peremption TIMESTAMP;
@@ -305,3 +307,11 @@ ALTER TABLE tables ADD COLUMN IF NOT EXISTS plan_forme VARCHAR(20) DEFAULT 'CARR
 -- Colonnes cocktails instructions & image_url
 ALTER TABLE cocktails ADD COLUMN IF NOT EXISTS instructions TEXT;
 ALTER TABLE cocktails ADD COLUMN IF NOT EXISTS image_url VARCHAR(500);
+
+-- Colonnes horodatage par défaut
+ALTER TABLE cocktail_ingredients ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE cocktail_ingredients ALTER COLUMN updated_at SET DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE commande_items ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE commande_items ALTER COLUMN updated_at SET DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE facture_items ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE facture_items ALTER COLUMN updated_at SET DEFAULT CURRENT_TIMESTAMP;

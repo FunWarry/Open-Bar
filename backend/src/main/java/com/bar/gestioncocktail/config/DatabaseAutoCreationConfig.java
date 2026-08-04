@@ -21,8 +21,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Configuration class that automatically ensures the PostgreSQL container is running
- * and the target environment database exists before Spring Boot initializes the DataSource.
+ * Configuration class that automatically ensures the PostgreSQL container is
+ * running
+ * and the target environment database exists before Spring Boot initializes the
+ * DataSource.
  */
 @Configuration(proxyBeanMethods = false)
 public class DatabaseAutoCreationConfig {
@@ -37,8 +39,10 @@ public class DatabaseAutoCreationConfig {
     }
 
     /**
-     * Creates a BeanFactoryPostProcessor that inspects the datasource URL, starts the PostgreSQL container
-     * if stopped, waits for port readiness, and creates the target database if missing.
+     * Creates a BeanFactoryPostProcessor that inspects the datasource URL, starts
+     * the PostgreSQL container
+     * if stopped, waits for port readiness, and creates the target database if
+     * missing.
      *
      * @param env Spring Environment instance containing configuration properties
      * @return BeanFactoryPostProcessor executing early database readiness check
@@ -86,13 +90,15 @@ public class DatabaseAutoCreationConfig {
      * @param host Host name or IP
      * @param port Port number
      */
-    private record HostPort(String host, int port) {}
+    private record HostPort(String host, int port) {
+    }
 
     /**
      * Parses host and port from a PostgreSQL JDBC connection URL.
      *
      * @param url JDBC URL
-     * @return HostPort containing parsed host and port (defaulting to localhost:5432)
+     * @return HostPort containing parsed host and port (defaulting to
+     *         localhost:5432)
      */
     private static HostPort parseHostPort(String url) {
         Matcher matcher = HOST_PORT_PATTERN.matcher(url);
@@ -106,7 +112,8 @@ public class DatabaseAutoCreationConfig {
     }
 
     /**
-     * Checks if PostgreSQL port is open, and if not, attempts to start the Docker container / compose.
+     * Checks if PostgreSQL port is open, and if not, attempts to start the Docker
+     * container / compose.
      *
      * @param host Host to test
      * @param port Port to test
@@ -116,7 +123,8 @@ public class DatabaseAutoCreationConfig {
             return;
         }
 
-        log.info("PostgreSQL port {}:{} is not reachable. Attempting automatic Docker container startup...", host, port);
+        log.info("PostgreSQL port {}:{} is not reachable. Attempting automatic Docker container startup...", host,
+                port);
 
         if (!tryDockerStartContainer()) {
             tryDockerComposeUp();
@@ -124,10 +132,11 @@ public class DatabaseAutoCreationConfig {
     }
 
     /**
-     * Tests if a socket connection can be established to a host and port within timeout.
+     * Tests if a socket connection can be established to a host and port within
+     * timeout.
      *
-     * @param host Target host
-     * @param port Target port
+     * @param host      Target host
+     * @param port      Target port
      * @param timeoutMs Timeout in milliseconds
      * @return true if port is reachable, false otherwise
      */
@@ -135,7 +144,7 @@ public class DatabaseAutoCreationConfig {
         try (Socket socket = new Socket()) {
             socket.connect(new InetSocketAddress(host, port), timeoutMs);
             return true;
-        } catch (Exception ignored) {
+        } catch (Exception _) {
             return false;
         }
     }
@@ -200,7 +209,8 @@ public class DatabaseAutoCreationConfig {
         try {
             File composeFile = findDockerComposeFile();
             if (composeFile != null && composeFile.exists()) {
-                ProcessBuilder pb = new ProcessBuilder(getDockerExecutable(), "compose", "-f", composeFile.getAbsolutePath(), "up", "-d");
+                ProcessBuilder pb = new ProcessBuilder(getDockerExecutable(), "compose", "-f",
+                        composeFile.getAbsolutePath(), "up", "-d");
                 pb.redirectErrorStream(true);
                 Process process = pb.start();
                 process.waitFor();
@@ -234,27 +244,29 @@ public class DatabaseAutoCreationConfig {
     }
 
     /**
-     * Waits for PostgreSQL service to be ready to accept JDBC connections by polling connection attempts.
+     * Waits for PostgreSQL service to be ready to accept JDBC connections by
+     * polling connection attempts.
      *
      * @param postgresUrl Maintenance JDBC URL
-     * @param username Datasource username
-     * @param password Datasource password
-     * @param maxRetries Maximum number of attempts
-     * @param delayMs Delay between attempts in milliseconds
+     * @param username    Datasource username
+     * @param password    Datasource password
+     * @param maxRetries  Maximum number of attempts
+     * @param delayMs     Delay between attempts in milliseconds
      */
-    private static void waitForPostgresReady(String postgresUrl, String username, String password, int maxRetries, int delayMs) {
+    private static void waitForPostgresReady(String postgresUrl, String username, String password, int maxRetries,
+            int delayMs) {
         for (int i = 0; i < maxRetries; i++) {
             try (Connection conn = obtainMaintenanceConnection(postgresUrl, username, password)) {
                 if (conn != null && !conn.isClosed()) {
                     log.info("PostgreSQL service at '{}' is ready to accept connections.", postgresUrl);
                     return;
                 }
-            } catch (Exception ignored) {
+            } catch (Exception _) {
                 // Ignore transient connection errors during PostgreSQL container startup
             }
             try {
                 Thread.sleep(delayMs);
-            } catch (InterruptedException e) {
+            } catch (InterruptedException _) {
                 Thread.currentThread().interrupt();
                 return;
             }
@@ -274,17 +286,19 @@ public class DatabaseAutoCreationConfig {
             return Optional.empty();
         }
         int paramQuestion = url.indexOf('?', lastSlash);
-        String dbName = paramQuestion != -1 ? url.substring(lastSlash + 1, paramQuestion) : url.substring(lastSlash + 1);
+        String dbName = paramQuestion != -1 ? url.substring(lastSlash + 1, paramQuestion)
+                : url.substring(lastSlash + 1);
         return dbName.isBlank() ? Optional.empty() : Optional.of(dbName);
     }
 
     /**
-     * Ensures that the requested database exists on the PostgreSQL server, creating it if missing.
+     * Ensures that the requested database exists on the PostgreSQL server, creating
+     * it if missing.
      *
      * @param postgresUrl JDBC URL for the PostgreSQL maintenance database
-     * @param dbName Target database name to check/create
-     * @param username Datasource username
-     * @param password Datasource password
+     * @param dbName      Target database name to check/create
+     * @param username    Datasource username
+     * @param password    Datasource password
      */
     private static void ensureDatabaseExists(String postgresUrl, String dbName, String username, String password) {
         try (Connection conn = obtainMaintenanceConnection(postgresUrl, username, password)) {
@@ -302,8 +316,8 @@ public class DatabaseAutoCreationConfig {
      * Attempts to open a JDBC Connection to the PostgreSQL maintenance database.
      *
      * @param postgresUrl Maintenance JDBC URL
-     * @param username Primary configured username
-     * @param password Configured password
+     * @param username    Primary configured username
+     * @param password    Configured password
      * @return Opened Connection, or null if connection failed
      */
     private static Connection obtainMaintenanceConnection(String postgresUrl, String username, String password) {
@@ -313,8 +327,9 @@ public class DatabaseAutoCreationConfig {
             if (!DEFAULT_POSTGRES.equalsIgnoreCase(username)) {
                 try {
                     return DriverManager.getConnection(postgresUrl, DEFAULT_POSTGRES, password);
-                } catch (SQLException ignored) {
-                    log.warn("Could not connect to PostgreSQL maintenance database using secondary fallback: {}", e.getMessage());
+                } catch (SQLException _) {
+                    log.warn("Could not connect to PostgreSQL maintenance database using secondary fallback: {}",
+                            e.getMessage());
                 }
             } else {
                 log.warn("Could not connect to PostgreSQL maintenance database: {}", e.getMessage());
@@ -324,9 +339,10 @@ public class DatabaseAutoCreationConfig {
     }
 
     /**
-     * Checks if a database with the specified name exists in PostgreSQL system catalog.
+     * Checks if a database with the specified name exists in PostgreSQL system
+     * catalog.
      *
-     * @param conn Open maintenance connection
+     * @param conn   Open maintenance connection
      * @param dbName Name of database to query
      * @return true if database exists, false otherwise
      * @throws SQLException if query execution fails
@@ -343,7 +359,7 @@ public class DatabaseAutoCreationConfig {
     /**
      * Creates a new PostgreSQL database with the specified validated name.
      *
-     * @param conn Open maintenance connection
+     * @param conn   Open maintenance connection
      * @param dbName Validated database name
      * @throws SQLException if database creation DDL fails
      */

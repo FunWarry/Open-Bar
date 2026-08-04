@@ -5,8 +5,10 @@ spring:
     init:
       mode: always
   jpa:
+    defer-datasource-initialization: false
+    open-in-view: false
     hibernate:
-      ddl-auto: none
+      ddl-auto: update
     show-sql: off
     properties:
       hibernate:

@@ -1,7 +1,7 @@
 # Profile DEV — Base de données développement (Vierge de données de test)
 spring:
   datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/${DB_NAME:gestion_cocktail_dev}
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/${DB_NAME:gestion_cocktail_dev}?sslmode=disable
     username: ${DB_USER:postgres}
     password: ${POSTGRES_PASSWORD:postgres}
 
