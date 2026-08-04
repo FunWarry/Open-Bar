@@ -9,6 +9,7 @@ import { of, throwError } from 'rxjs';
 import { CocktailListComponent } from '../../../app/features/cocktails/cocktail-list/cocktail-list.component';
 import { CocktailService } from '../../../app/core/services/cocktail.service';
 import { Cocktail } from '../../../app/core/models/cocktail.model';
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
 
 const makeC = (id: number, nom: string, disponible = true): Cocktail => ({
   id, nom, prix: 8, categorie: 'ALCOOLISE', disponible,
@@ -38,11 +39,10 @@ describe('CocktailListComponent', () => {
   const mockToast = { present: jasmine.createSpy('present') };
 
   beforeEach(async () => {
-    serviceSpy = jasmine.createSpyObj('CocktailService', ['getAll', 'toggleDisponibilite', 'delete', 'uploadImage']);
+    serviceSpy = jasmine.createSpyObj('CocktailService', ['getAll', 'toggleDisponibilite', 'delete']);
     serviceSpy.getAll.and.returnValue(of(mockCocktails));
     serviceSpy.toggleDisponibilite.and.returnValue(of({ ...mockCocktails[0], disponible: false } as any));
     serviceSpy.delete.and.returnValue(of(undefined as any));
-    serviceSpy.uploadImage.and.returnValue(of({ ...mockCocktails[0], imageUrl: '/uploads/cocktails/photo.jpg' } as any));
 
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
     toastCtrlSpy.create.and.returnValue(Promise.resolve(mockToast as any));
@@ -51,7 +51,7 @@ describe('CocktailListComponent', () => {
     storeSpy.select.and.returnValue(of(false));
 
     await TestBed.configureTestingModule({
-      imports: [CocktailListComponent, IonicModule.forRoot(), RouterTestingModule],
+      imports: [CocktailListComponent, IonicModule.forRoot(), RouterTestingModule, getTranslocoTestingModule()],
       providers: [
         { provide: Store, useValue: storeSpy },
         { provide: CocktailService, useValue: serviceSpy },
@@ -88,22 +88,22 @@ describe('CocktailListComponent', () => {
 
   // --- filtres ---
 
-  it('onFiltreChange("disponibles") ne garde que les cocktails disponibles', fakeAsync(() => {
+  it('filtre "disponibles" ne garde que les cocktails disponibles', fakeAsync(() => {
     component.charger(); tick();
-    component.onFiltreChange({ detail: { value: 'disponibles' } });
+    component.filtre = 'disponibles';
     expect(component.filteredCocktails.every(c => c.disponible)).toBeTrue();
   }));
 
-  it('onFiltreChange("indisponibles") ne garde que les cocktails indisponibles', fakeAsync(() => {
+  it('filtre "indisponibles" ne garde que les cocktails indisponibles', fakeAsync(() => {
     component.charger(); tick();
-    component.onFiltreChange({ detail: { value: 'indisponibles' } });
+    component.filtre = 'indisponibles';
     expect(component.filteredCocktails.every(c => !c.disponible)).toBeTrue();
   }));
 
-  it('onFiltreChange("tous") garde tous les cocktails', fakeAsync(() => {
+  it('filtre "tous" garde tous les cocktails', fakeAsync(() => {
     component.charger(); tick();
-    component.onFiltreChange({ detail: { value: 'indisponibles' } });
-    component.onFiltreChange({ detail: { value: 'tous' } });
+    component.filtre = 'indisponibles';
+    component.filtre = 'tous';
     expect(component.filteredCocktails).toHaveSize(2);
   }));
 
@@ -149,23 +149,12 @@ describe('CocktailListComponent', () => {
     expect(component.isHorsSaison(mockCocktails[0])).toBeFalse();
   });
 
-  // --- upload photo ---
+  // --- toggle pictures ---
 
-  it('onUploadPhoto() appelle uploadImage et met à jour le cocktail', fakeAsync(() => {
-    component.charger(); tick();
-    const file = new File(['fake'], 'photo.jpg', { type: 'image/jpeg' });
-    const event = { target: { files: [file] } } as any;
-
-    component.onUploadPhoto(event, 1);
-    tick();
-
-    expect(serviceSpy.uploadImage).toHaveBeenCalledWith(1, file);
-    expect(component.cocktails[0].imageUrl).toBe('/uploads/cocktails/photo.jpg');
-  }));
-
-  // --- trackById ---
-
-  it('trackById retourne l\'id du cocktail', () => {
-    expect(component.trackById(0, mockCocktails[0])).toBe(1);
+  it('togglePictures() inverse showPictures et sauvegarde la préférence', () => {
+    const initial = component.showPictures;
+    component.togglePictures();
+    expect(component.showPictures).toBe(!initial);
+    expect(localStorage.getItem('openbar_show_pictures')).toBe(String(!initial));
   });
 });

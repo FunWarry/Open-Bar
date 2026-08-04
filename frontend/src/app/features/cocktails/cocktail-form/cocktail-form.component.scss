@@ -1,21 +1,46 @@
-.full-width {
-  width: 100%;
-  margin-bottom: 1rem;
+ion-card {
+  max-width: 800px;
+  margin: 2rem auto;
+  --background: var(--surface-1, #1e2438);
+  background: var(--surface-1, #1e2438);
+  border: 1px solid var(--border-medium, #2e3450);
+  border-radius: 12px;
+}
+
+.photo-upload-section {
+  margin-bottom: 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px dashed var(--border-medium, #2e3450);
+  border-radius: 8px;
+  padding: 8px;
+}
+
+.photo-item {
+  --background: transparent;
+}
+
+.photo-preview-thumbnail {
+  --size: 64px;
+  --border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border-medium, #2e3450);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
 }
 
 .button-row {
   display: flex;
   justify-content: flex-end;
   gap: 1rem;
-  margin-top: 1rem;
+  margin-top: 1.5rem;
 }
 
-mat-card {
-  max-width: 800px;
-  margin: 2rem auto;
-  padding: 1rem;
+.section-saisonnalite {
+  margin-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding-top: 1rem;
 }
-
-mat-card-content {
-  padding: 1rem 0;
-} 

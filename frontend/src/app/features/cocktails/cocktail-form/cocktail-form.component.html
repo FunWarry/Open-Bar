@@ -1,49 +1,86 @@
 <ion-card>
   <ion-card-header>
-    <ion-card-title>{{ isEditMode ? 'Modifier le Cocktail' : 'Nouveau Cocktail' }}</ion-card-title>
+    <ion-card-title>{{ (isEditMode ? 'COCKTAILS.EDIT' : 'COCKTAILS.ADD') | transloco }}</ion-card-title>
   </ion-card-header>
   <ion-card-content>
     <form (ngSubmit)="onSubmit()" [formGroup]="cocktailForm">
+      <!-- Section Photo / Preview -->
+      <div class="photo-upload-section">
+        <ion-item lines="none" class="photo-item">
+          <ion-thumbnail slot="start" class="photo-preview-thumbnail">
+            <img [src]="imagePreview || 'assets/images/verres/verre_tumbler.png'" alt="Aperçu cocktail" />
+          </ion-thumbnail>
+          <ion-label>
+            <h3>{{ 'COCKTAILS.PHOTO' | transloco }}</h3>
+            <p>{{ 'COCKTAILS.PHOTO_HINT' | transloco }}</p>
+          </ion-label>
+          <input
+            type="file"
+            #fileInput
+            id="cocktail-form-photo-input"
+            aria-label="Sélectionner une photo de cocktail"
+            accept="image/*"
+            capture="environment"
+            style="display:none"
+            (change)="onFileSelected($event)">
+          <ion-button
+            fill="outline"
+            color="secondary"
+            slot="end"
+            data-testid="cocktail-form-photo-btn"
+            (click)="triggerFileInput(fileInput)"
+            (keydown.enter)="triggerFileInput(fileInput)">
+            <ion-icon name="camera-outline" slot="start"></ion-icon>
+            {{ (imagePreview ? 'COCKTAILS.CHANGE_PHOTO' : 'COCKTAILS.SELECT_PHOTO') | transloco }}
+          </ion-button>
+        </ion-item>
+      </div>
+
       <ion-item>
-        <ion-label position="stacked">Nom *</ion-label>
-        <ion-input formControlName="name" placeholder="Nom du cocktail"></ion-input>
-        <ion-note slot="error" *ngIf="cocktailForm.get('name')?.touched && cocktailForm.get('name')?.hasError('required')">
-          Le nom est requis
-        </ion-note>
+        <ion-label position="stacked">{{ 'COCKTAILS.NAME' | transloco }} *</ion-label>
+        <ion-input formControlName="name" [placeholder]="'COCKTAILS.NAME' | transloco" data-testid="cocktail-form-name-input"></ion-input>
+        @if (cocktailForm.get('name')?.touched && cocktailForm.get('name')?.hasError('required')) {
+          <ion-note slot="error">
+            {{ 'COMMON.ERROR' | transloco }}
+          </ion-note>
+        }
       </ion-item>
 
       <ion-item>
-        <ion-label position="stacked">Description *</ion-label>
-        <ion-input formControlName="description" placeholder="Description"></ion-input>
-        <ion-note slot="error" *ngIf="cocktailForm.get('description')?.touched && cocktailForm.get('description')?.hasError('required')">
-          La description est requise
-        </ion-note>
+        <ion-label position="stacked">{{ 'COCKTAILS.DESCRIPTION' | transloco }} *</ion-label>
+        <ion-input formControlName="description" [placeholder]="'COCKTAILS.DESCRIPTION' | transloco" data-testid="cocktail-form-description-input"></ion-input>
+        @if (cocktailForm.get('description')?.touched && cocktailForm.get('description')?.hasError('required')) {
+          <ion-note slot="error">
+            {{ 'COMMON.ERROR' | transloco }}
+          </ion-note>
+        }
       </ion-item>
 
       <ion-item>
-        <ion-label position="stacked">Prix (€) *</ion-label>
-        <ion-input formControlName="price" type="number" placeholder="0.00"></ion-input>
-        <ion-note slot="error" *ngIf="cocktailForm.get('price')?.touched && cocktailForm.get('price')?.hasError('required')">
-          Le prix est requis
-        </ion-note>
-        <ion-note slot="error" *ngIf="cocktailForm.get('price')?.touched && cocktailForm.get('price')?.hasError('min')">
-          Le prix doit être positif
-        </ion-note>
+        <ion-label position="stacked">{{ 'COCKTAILS.PRICE' | transloco }} (€) *</ion-label>
+        <ion-input formControlName="price" type="number" placeholder="0.00" data-testid="cocktail-form-price-input"></ion-input>
+        @if (cocktailForm.get('price')?.touched && cocktailForm.get('price')?.hasError('required')) {
+          <ion-note slot="error">
+            {{ 'COMMON.ERROR' | transloco }}
+          </ion-note>
+        }
       </ion-item>
 
       <ion-item>
-        <ion-label position="stacked">Catégorie *</ion-label>
-        <ion-select formControlName="category" placeholder="Sélectionner">
-          <ion-select-option value="ALCOOLISE">Alcoolisé</ion-select-option>
-          <ion-select-option value="SANS_ALCOOL">Sans alcool</ion-select-option>
-          <ion-select-option value="SHOT">Shot</ion-select-option>
-          <ion-select-option value="APERITIF">Apéritif</ion-select-option>
-          <ion-select-option value="DIGESTIF">Digestif</ion-select-option>
-          <ion-select-option value="SPECIAL">Spécial</ion-select-option>
+        <ion-label position="stacked">{{ 'COCKTAILS.CATEGORY' | transloco }} *</ion-label>
+        <ion-select formControlName="category" [placeholder]="'COMMON.SELECT' | transloco" data-testid="cocktail-form-category-select">
+          <ion-select-option value="ALCOOLISE">{{ 'COCKTAILS.CATEGORIES.ALCOOLISE' | transloco }}</ion-select-option>
+          <ion-select-option value="SANS_ALCOOL">{{ 'COCKTAILS.CATEGORIES.SANS_ALCOOL' | transloco }}</ion-select-option>
+          <ion-select-option value="SHOT">{{ 'COCKTAILS.CATEGORIES.SHOT' | transloco }}</ion-select-option>
+          <ion-select-option value="APERITIF">{{ 'COCKTAILS.CATEGORIES.APERITIF' | transloco }}</ion-select-option>
+          <ion-select-option value="DIGESTIF">{{ 'COCKTAILS.CATEGORIES.DIGESTIF' | transloco }}</ion-select-option>
+          <ion-select-option value="SPECIAL">{{ 'COCKTAILS.CATEGORIES.SPECIAL' | transloco }}</ion-select-option>
         </ion-select>
-        <ion-note slot="error" *ngIf="cocktailForm.get('category')?.touched && cocktailForm.get('category')?.hasError('required')">
-          La catégorie est requise
-        </ion-note>
+        @if (cocktailForm.get('category')?.touched && cocktailForm.get('category')?.hasError('required')) {
+          <ion-note slot="error">
+            {{ 'COMMON.ERROR' | transloco }}
+          </ion-note>
+        }
       </ion-item>
 
       <!-- Section saisonnalité — visible uniquement en mode édition -->
@@ -51,7 +88,7 @@
         <div class="section-saisonnalite">
           <ion-item lines="none" class="section-header">
             <ion-icon name="calendar-outline" slot="start"></ion-icon>
-            <ion-label><strong>Saisonnalité</strong></ion-label>
+            <ion-label><strong>{{ 'COCKTAILS.SEASONAL' | transloco }}</strong></ion-label>
           </ion-item>
           <app-cocktail-saisonnalite
             [cocktail]="cocktailData"
@@ -61,9 +98,11 @@
       }
 
       <div class="button-row">
-        <ion-button fill="outline" (click)="router.navigate(['/cocktails'])" (keydown.enter)="router.navigate(['/cocktails'])" type="button">Annuler</ion-button>
-        <ion-button [disabled]="!cocktailForm.valid" color="primary" type="submit">
-          {{ isEditMode ? 'Modifier' : 'Créer' }}
+        <ion-button fill="outline" (click)="router.navigate(['/cocktails'])" (keydown.enter)="router.navigate(['/cocktails'])" type="button" data-testid="cocktail-form-cancel-btn">
+          {{ 'COMMON.CANCEL' | transloco }}
+        </ion-button>
+        <ion-button [disabled]="!cocktailForm.valid" color="primary" type="submit" data-testid="cocktail-form-submit-btn">
+          {{ (isEditMode ? 'COMMON.SAVE' : 'COMMON.ADD') | transloco }}
         </ion-button>
       </div>
     </form>

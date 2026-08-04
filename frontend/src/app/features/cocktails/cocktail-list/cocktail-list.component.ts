@@ -3,52 +3,77 @@ import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Observable, Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
-import { selectIsAdmin, selectCanUploadPhoto } from '../../../core/store/auth.selectors';
+import { selectIsAdmin } from '../../../core/store/auth.selectors';
 import {
   IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardContent,
   IonList, IonItem, IonLabel, IonBadge, IonIcon, IonButton, IonButtons,
   IonRefresher, IonRefresherContent, IonSegment, IonSegmentButton,
-  IonSpinner, ToastController, IonThumbnail,
+  IonSpinner, ToastController, IonThumbnail, IonSearchbar,
+  IonGrid, IonRow, IonCol
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { add, create, trash, leafOutline, toggleOutline, cameraOutline } from 'ionicons/icons';
-import { AsyncPipe, CurrencyPipe } from '@angular/common';
+import { add, create, trash, leafOutline, toggleOutline, gridOutline, listOutline, search, imageOutline, image } from 'ionicons/icons';
+import { AsyncPipe, CurrencyPipe, CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { CocktailService } from '../../../core/services/cocktail.service';
 import { Cocktail } from '../../../core/models/cocktail.model';
 import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
 
+/**
+ * Global Cocktails Management component in OpenBar (Figma styled).
+ * Features card grid with picture toggle, category pill badges, ingredient subtitles,
+ * search query filters, status filtering (Available/Unavailable), and CRUD actions.
+ */
 @Component({
   selector: 'app-cocktail-list',
   templateUrl: './cocktail-list.component.html',
   styleUrls: ['./cocktail-list.component.css'],
   standalone: true,
   imports: [
+    CommonModule, FormsModule, AsyncPipe, CurrencyPipe, TranslocoModule,
     IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardContent,
     IonList, IonItem, IonLabel, IonBadge, IonIcon, IonButton, IonButtons,
     IonRefresher, IonRefresherContent, IonSegment, IonSegmentButton,
-    IonSpinner, IonThumbnail,
-    AsyncPipe, CurrencyPipe,
+    IonSpinner, IonThumbnail, IonSearchbar, IonGrid, IonRow, IonCol,
   ],
 })
 export class CocktailListComponent implements OnInit, OnDestroy {
+  private readonly PICTURES_CACHE_KEY = 'openbar_show_pictures';
+
   cocktails: Cocktail[] = [];
-  filteredCocktails: Cocktail[] = [];
   filtre: 'tous' | 'disponibles' | 'indisponibles' = 'tous';
+  selectedCategory = 'ALL';
+  searchQuery = '';
+  viewMode: 'grid' | 'list' = 'grid';
+  showPictures = localStorage.getItem('openbar_show_pictures') !== 'false';
+
   isLoading = false;
   isAdmin$: Observable<boolean>;
-  canUploadPhoto$: Observable<boolean>;
 
   private readonly destroy$ = new Subject<void>();
 
-  constructor(private readonly store: Store,private readonly router: Router,private readonly cocktailService: CocktailService,private readonly toastCtrl: ToastController,
+  constructor(
+    private readonly store: Store,
+    private readonly router: Router,
+    private readonly cocktailService: CocktailService,
+    private readonly toastCtrl: ToastController,
+    private readonly transloco: TranslocoService,
   ) {
     this.isAdmin$ = this.store.select(selectIsAdmin);
-    this.canUploadPhoto$ = this.store.select(selectCanUploadPhoto);
-    addIcons({ add, create, trash, leafOutline, toggleOutline, cameraOutline });
+    addIcons({ add, create, trash, leafOutline, toggleOutline, gridOutline, listOutline, search, imageOutline, image });
   }
 
   ngOnInit(): void {
     this.charger();
+  }
+
+  /**
+   * Toggles picture display and saves preference to localStorage.
+   */
+  togglePictures(): void {
+    this.showPictures = !this.showPictures;
+    localStorage.setItem(this.PICTURES_CACHE_KEY, String(this.showPictures));
   }
 
   ngOnDestroy(): void {
@@ -56,6 +81,10 @@ export class CocktailListComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  /**
+   * Fetches all cocktails from backend API.
+   * @param refreshEvent Optional IonRefresher event for pull-to-refresh
+   */
   charger(refreshEvent?: any): void {
     this.isLoading = true;
     this.cocktailService.getAll()
@@ -69,30 +98,89 @@ export class CocktailListComponent implements OnInit, OnDestroy {
       .subscribe({
         next: cocktails => {
           this.cocktails = cocktails;
-          this.appliquerFiltre();
         },
         error: async () => {
-          const toast = await this.toastCtrl.create({ message: 'Erreur lors du chargement des cocktails', duration: 3000, color: 'danger' });
+          const toast = await this.toastCtrl.create({
+            message: this.transloco.translate('COMMON.ERROR'),
+            duration: 3000,
+            color: 'danger'
+          });
           toast.present();
         },
       });
   }
 
-  onFiltreChange(event: any): void {
-    this.filtre = event.detail.value;
-    this.appliquerFiltre();
-  }
+  /**
+   * Returns filtered cocktails array based on search query, category, and availability status filters.
+   */
+  get filteredCocktails(): Cocktail[] {
+    const query = this.searchQuery.toLowerCase().trim();
+    return this.cocktails.filter(c => {
+      const matchesSearch = !query ||
+        c.nom.toLowerCase().includes(query) ||
+        (c.description?.toLowerCase()?.includes(query) ?? false);
 
-  private appliquerFiltre(): void {
-    switch (this.filtre) {
-      case 'disponibles':   this.filteredCocktails = this.cocktails.filter(c => c.disponible); break;
-      case 'indisponibles': this.filteredCocktails = this.cocktails.filter(c => !c.disponible); break;
-      default:              this.filteredCocktails = [...this.cocktails];
-    }
+      const matchesCategory = this.selectedCategory === 'ALL' || c.categorie === this.selectedCategory;
+
+      let matchesStatus = true;
+      if (this.filtre === 'disponibles') matchesStatus = c.disponible;
+      else if (this.filtre === 'indisponibles') matchesStatus = !c.disponible;
+
+      return matchesSearch && matchesCategory && matchesStatus;
+    });
   }
 
   isHorsSaison(cocktail: Cocktail): boolean {
     return !!(cocktail.moisDebut && cocktail.moisFin && cocktail.disponibleAujourdhui === false);
+  }
+
+  /**
+   * Formats ingredients list as a dot-separated string for card subtitle (Figma design).
+   * @param cocktail Target cocktail model
+   */
+  getIngredientsText(cocktail: Cocktail): string {
+    if (cocktail.ingredients && cocktail.ingredients.length > 0) {
+      return cocktail.ingredients.map(i => i.ingredientNom).join(' · ');
+    }
+    return cocktail.description || '';
+  }
+
+  /**
+   * Resolves category badge dot indicator color for Figma-style pill badges.
+   * @param category Category name
+   */
+  getCategoryDotColor(category: string): string {
+    switch (category) {
+      case 'ALCOOLISE': return '#10b981'; // Green
+      case 'SANS_ALCOOL': return '#06b6d4'; // Cyan
+      case 'SHOT': return '#84cc16'; // Lime
+      case 'APERITIF': return '#f97316'; // Orange
+      case 'DIGESTIF': return '#ef4444'; // Red
+      case 'SPECIAL': return '#eab308'; // Yellow
+      default: return '#6366f1'; // Indigo
+    }
+  }
+
+  /**
+   * Resolves dynamic background, border, and text styles with transparency levels for category badges (Figma specs).
+   * @param category Category name
+   * @param isActive Active state flag
+   */
+  getCategoryPillStyle(category: string, isActive: boolean = false): Record<string, string> {
+    const color = this.getCategoryDotColor(category);
+    if (isActive) {
+      return {
+        'background-color': color,
+        'border-color': color,
+        'color': '#ffffff',
+        'box-shadow': `0 4px 14px ${color}66`
+      };
+    }
+    return {
+      'background-color': `${color}26`,
+      'border-color': `${color}70`,
+      'color': '#ffffff'
+    };
   }
 
   onToggleDisponibilite(cocktail: Cocktail): void {
@@ -102,10 +190,13 @@ export class CocktailListComponent implements OnInit, OnDestroy {
         next: updated => {
           const idx = this.cocktails.findIndex(c => c.id === updated.id);
           if (idx !== -1) this.cocktails[idx] = updated;
-          this.appliquerFiltre();
         },
         error: async () => {
-          const toast = await this.toastCtrl.create({ message: 'Impossible de changer la disponibilité', duration: 3000, color: 'danger' });
+          const toast = await this.toastCtrl.create({
+            message: this.transloco.translate('COMMON.ERROR'),
+            duration: 3000,
+            color: 'danger'
+          });
           toast.present();
         },
       });
@@ -115,41 +206,24 @@ export class CocktailListComponent implements OnInit, OnDestroy {
     this.cocktailService.delete(cocktail.id)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: () => {
+        next: async () => {
           this.cocktails = this.cocktails.filter(c => c.id !== cocktail.id);
-          this.appliquerFiltre();
+          const toast = await this.toastCtrl.create({
+            message: this.transloco.translate('COMMON.SUCCESS'),
+            duration: 2000,
+            color: 'success'
+          });
+          toast.present();
         },
         error: async () => {
-          const toast = await this.toastCtrl.create({ message: 'Impossible de supprimer le cocktail', duration: 3000, color: 'danger' });
+          const toast = await this.toastCtrl.create({
+            message: this.transloco.translate('COMMON.ERROR'),
+            duration: 3000,
+            color: 'danger'
+          });
           toast.present();
         },
       });
-  }
-
-  onUploadPhoto(event: Event, cocktailId: number): void {
-    const input = event.target as HTMLInputElement;
-    if (!input.files || input.files.length === 0) return;
-    const file = input.files[0];
-    this.cocktailService.uploadImage(cocktailId, file)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: updated => {
-          const idx = this.cocktails.findIndex(c => c.id === updated.id);
-          if (idx !== -1) this.cocktails[idx] = updated;
-          this.appliquerFiltre();
-          this.showToast('Photo du cocktail mise à jour avec succès', 'success');
-        },
-        error: () => this.showToast('Erreur lors du téléversement de la photo', 'danger')
-      });
-  }
-
-  triggerFileInput(fileInput: HTMLInputElement): void {
-    fileInput.click();
-  }
-
-  private async showToast(message: string, color: string): Promise<void> {
-    const toast = await this.toastCtrl.create({ message, duration: 3000, color });
-    toast.present();
   }
 
   onAdd(): void { this.router.navigate(['/cocktails/new']); }

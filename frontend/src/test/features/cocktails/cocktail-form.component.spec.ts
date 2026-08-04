@@ -6,6 +6,7 @@ import { of, throwError } from 'rxjs';
 import { CocktailFormComponent } from '../../../app/features/cocktails/cocktail-form/cocktail-form.component';
 import { CocktailService } from '../../../app/core/services/cocktail.service';
 import { Cocktail } from '../../../app/core/models/cocktail.model';
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
 
 const mockCocktail: Cocktail = {
   id: 42,
@@ -32,7 +33,7 @@ describe('CocktailFormComponent', () => {
   const buildModule = async (routeId: string | null = null) => {
     cocktailServiceSpy = jasmine.createSpyObj('CocktailService', [
       'getAll', 'getById', 'create', 'update', 'delete',
-      'toggleDisponibilite', 'search', 'getDisponibles', 'updateSaisonnalite'
+      'toggleDisponibilite', 'search', 'getDisponibles', 'updateSaisonnalite', 'uploadImage'
     ]);
     routerSpy = jasmine.createSpyObj('Router', ['navigate']);
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
@@ -40,6 +41,7 @@ describe('CocktailFormComponent', () => {
 
     cocktailServiceSpy.create.and.returnValue(of(mockCocktail as any));
     cocktailServiceSpy.update.and.returnValue(of(mockCocktail as any));
+    cocktailServiceSpy.uploadImage.and.returnValue(of(mockCocktail as any));
     if (routeId) {
       cocktailServiceSpy.getById.and.returnValue(of(mockCocktail));
     }
@@ -47,7 +49,8 @@ describe('CocktailFormComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         CocktailFormComponent,
-        RouterTestingModule
+        RouterTestingModule,
+        getTranslocoTestingModule()
       ],
       providers: [
         {
@@ -115,7 +118,7 @@ describe('CocktailFormComponent', () => {
       component.onSubmit();
       await Promise.resolve();
       expect(toastCtrlSpy.create).toHaveBeenCalledWith(
-        jasmine.objectContaining({ message: 'Cocktail créé', color: 'success' })
+        jasmine.objectContaining({ message: 'Opération réussie', color: 'success' })
       );
       expect(routerSpy.navigate).toHaveBeenCalledWith(['/cocktails']);
     });
@@ -168,7 +171,7 @@ describe('CocktailFormComponent', () => {
       await Promise.resolve();
       expect(component.cocktailData).toEqual(updated);
       expect(toastCtrlSpy.create).toHaveBeenCalledWith(
-        jasmine.objectContaining({ message: 'Saisonnalité mise à jour' })
+        jasmine.objectContaining({ message: 'Opération réussie' })
       );
     });
   });
@@ -204,7 +207,7 @@ describe('CocktailFormComponent', () => {
       toastCtrlSpy.create.and.returnValue(Promise.resolve(toastMock as any));
 
       await TestBed.configureTestingModule({
-        imports: [CocktailFormComponent, RouterTestingModule],
+        imports: [CocktailFormComponent, RouterTestingModule, getTranslocoTestingModule()],
         providers: [
           {
             provide: ActivatedRoute,
