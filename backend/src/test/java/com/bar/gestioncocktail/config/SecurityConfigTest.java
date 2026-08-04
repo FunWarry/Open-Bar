@@ -30,13 +30,17 @@ class SecurityConfigTest {
     AuthenticationManager authManager;
 
     @Test
-    @DisplayName("corsConfigurationSource - should build non-null CORS configuration source")
+    @DisplayName("corsConfigurationSource - should build non-null CORS configuration source with PATCH allowed")
     void corsConfigurationSource_returnsValidSource() {
         SecurityConfig config = new SecurityConfig(jwtAuthFilter, jwtAuthorFilter);
 
         CorsConfigurationSource source = config.corsConfigurationSource();
 
         assertThat(source).isNotNull();
+        org.springframework.web.cors.CorsConfiguration corsConfig = ((org.springframework.web.cors.UrlBasedCorsConfigurationSource) source)
+                .getCorsConfigurations().get("/**");
+        assertThat(corsConfig).isNotNull();
+        assertThat(corsConfig.getAllowedMethods()).contains("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS");
     }
 
     @Test
