@@ -3,8 +3,8 @@
     <ion-card-header class="profile-header">
       <div class="avatar-wrapper">
         <app-user-avatar
-          [name]="(currentUser$ | async)?.username"
-          [role]="$any((currentUser$ | async)?.roles?.[0])"
+          [name]="currentUser?.username"
+          [role]="$any(currentUser?.roles?.[0])"
           size="large">
         </app-user-avatar>
       </div>
@@ -12,7 +12,7 @@
     </ion-card-header>
 
     <ion-card-content>
-      <form [formGroup]="profileForm" (ngSubmit)="onSubmit()">
+      <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" data-testid="profile-form">
         <app-input-field
           formControlName="username"
           [label]="'AUTH.USERNAME' | transloco"
@@ -20,6 +20,7 @@
           icon="person-outline"
           [required]="true"
           autocomplete="username"
+          data-testid="profile-username-input"
           [errorMessage]="
             profileForm.get('username')?.touched && profileForm.get('username')?.hasError('required')
               ? ('AUTH.REQUIRED_USER' | transloco)
@@ -35,6 +36,7 @@
           icon="mail-outline"
           [required]="true"
           autocomplete="email"
+          data-testid="profile-email-input"
           [errorMessage]="
             profileForm.get('email')?.touched && profileForm.get('email')?.hasError('required')
               ? ('AUTH.REQUIRED_USER' | transloco)
@@ -49,6 +51,7 @@
           [label]="'PROFILE.NEW_PASSWORD' | transloco"
           placeholder="Laissez vide pour ne pas modifier"
           autocomplete="new-password"
+          data-testid="profile-new-password-input"
           [errorMessage]="
             profileForm.get('newPassword')?.touched && profileForm.get('newPassword')?.hasError('minlength')
               ? ('ERRORS.FORM_INVALID' | transloco)
@@ -61,6 +64,7 @@
           [label]="'AUTH.CONFIRM_PASSWORD' | transloco"
           placeholder="Confirmez le nouveau mot de passe"
           autocomplete="new-password"
+          data-testid="profile-confirm-password-input"
           [errorMessage]="
             profileForm.get('confirmPassword')?.touched && profileForm.hasError('passwordMismatch')
               ? ('ERRORS.FORM_INVALID' | transloco)
@@ -73,7 +77,8 @@
             type="submit"
             variant="primary"
             expand="block"
-            [disabled]="profileForm.invalid">
+            [disabled]="profileForm.invalid || isSaving"
+            data-testid="profile-save-btn">
             {{ 'PROFILE.SAVE_BTN' | transloco }}
           </app-action-button>
         </div>
@@ -89,18 +94,18 @@
       <div class="info-item">
         <span class="label">{{ 'PROFILE.ROLES' | transloco }}</span>
         <span class="value roles-list">
-          @for (role of (currentUser$ | async)?.roles; track role) {
+          @for (role of currentUser?.roles; track role) {
             <app-role-badge [role]="$any(role)"></app-role-badge>
           }
         </span>
       </div>
       <div class="info-item">
         <span class="label">{{ 'PROFILE.CREATED_AT' | transloco }}</span>
-        <span class="value">{{ (currentUser$ | async)?.createdAt | date:'dd/MM/yyyy' }}</span>
+        <span class="value">{{ currentUser?.createdAt | date:'dd/MM/yyyy' }}</span>
       </div>
       <div class="info-item">
         <span class="label">{{ 'PROFILE.UPDATED_AT' | transloco }}</span>
-        <span class="value">{{ (currentUser$ | async)?.updatedAt | date:'dd/MM/yyyy' }}</span>
+        <span class="value">{{ currentUser?.updatedAt | date:'dd/MM/yyyy' }}</span>
       </div>
     </ion-card-content>
   </ion-card>
