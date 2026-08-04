@@ -1,6 +1,6 @@
 # OpenBar — État des Features & Roadmap
 
-> Dernière mise à jour : 4 août 2026 — PR #246 : Bouton de traduction global sur toutes les vues de l'application (connecté et non connecté) (#245)
+> Dernière mise à jour : 4 août 2026 — PR #248 : Préservation de la base de données au redémarrage et élimination des redirections /setup (#247)
 
 ## Tableau des Features
 
@@ -97,6 +97,7 @@
 
 | PR / Issue | Description |
 |------------|-------------|
+| #248 (#247) | Conservation de la BDD au redémarrage & élimination de la redirection /setup : Suppression de la clause destructive `DROP TABLE IF EXISTS ... CASCADE` dans `schema.sql` et passage à `CREATE TABLE IF NOT EXISTS`. Les comptes utilisateurs, identifiants Admin et données de l'application sont désormais conservés intacts après chaque redémarrage du backend. Tests Java Spring Boot (358/358 OK). |
 | #246 (#245) | Bouton de Traduction Global (Connecté & Non Connecté) : Intégration du bouton de bascule de langue (FR/EN) avec icône globe dans la TopBar (`NavbarComponent`) pour les utilisateurs connectés, et bouton flottant fixe sur toutes les vues non connectées (`/login`, `/register`, `/setup`, `/client/*`). Bascule instantanée du langage Transloco et sauvegarde `localStorage`. Tests unitaires Angular Karma (976/976 OK). |
 | #244 (#243) | Filtrage des Cocktails par Allergène : Détection automatique des allergènes (Lait/Lactose, Gluten, Œufs, Fruits à coque, Arachides, Sulfites, Soja) sur les cocktails à partir des ingrédients, descriptions et instructions. Barre de filtres par exclusion interactive (chips/pills "Sans Lait", "Sans Gluten"...), bouton de réinitialisation rapide, et badges visuels d'avertissement ⚠️ sur les cartes (mode grille) et la vue liste. Support i18n FR/EN complet (`COCKTAILS.ALLERGENS.*`) et couverture de tests unitaires Jasmine/Karma (976/976 OK). |
 | Refacto Tech | Résolution intégrale de la dette technique backend : Ticket #M (nommage & tests dateLivraison sur LIVREE), Ticket #N (audit circular references Spring saine), Ticket #O (refactoring des exceptions génériques vers BusinessException 400 dans FactureService, PdfService, JwtTokenProvider). |
