@@ -15,7 +15,12 @@ import org.springframework.http.ResponseEntity;
 
 import java.math.BigDecimal;
 
+import com.bar.gestioncocktail.exception.BusinessException;
+import java.util.Map;
+import java.util.Optional;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -85,5 +90,85 @@ class IngredientControllerTest {
 
         assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         verify(ingredientService).deleteIngredient(1L);
+    }
+
+    @Test
+    @DisplayName("updateStock - with query param updates stock")
+    void updateStock_withRequestParam_success() {
+        when(ingredientService.getIngredientById(1L)).thenReturn(Optional.of(ingredient));
+
+        ResponseEntity<IngredientResponseDTO> response = ingredientController.updateStock(1L, new BigDecimal("600.00"), null);
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        verify(ingredientService).updateStock(ingredient, new BigDecimal("600.00"));
+    }
+
+    @Test
+    @DisplayName("updateStock - with JSON body updates stock")
+    void updateStock_withRequestBody_success() {
+        when(ingredientService.getIngredientById(1L)).thenReturn(Optional.of(ingredient));
+
+        ResponseEntity<IngredientResponseDTO> response = ingredientController.updateStock(1L, null, Map.of("quantite", 600));
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        verify(ingredientService).updateStock(ingredient, new BigDecimal("600"));
+    }
+
+    @Test
+    @DisplayName("updateStock - missing quantity throws BusinessException")
+    void updateStock_missingQuantity_throwsException() {
+        assertThatThrownBy(() -> ingredientController.updateStock(1L, null, null))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("La quantité est obligatoire");
+    }
+
+    @Test
+    @DisplayName("updateStock - ingredient not found returns 404")
+    void updateStock_notFound_returns404() {
+        when(ingredientService.getIngredientById(99L)).thenReturn(Optional.empty());
+
+        ResponseEntity<IngredientResponseDTO> response = ingredientController.updateStock(99L, new BigDecimal("10"), null);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(404);
+    }
+
+    @Test
+    @DisplayName("definirSeuilAlerte - with query param updates threshold")
+    void definirSeuilAlerte_withRequestParam_success() {
+        when(ingredientService.getIngredientById(1L)).thenReturn(Optional.of(ingredient));
+
+        ResponseEntity<IngredientResponseDTO> response = ingredientController.definirSeuilAlerte(1L, new BigDecimal("20.00"), null);
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        verify(ingredientService).definirSeuilAlerte(ingredient, new BigDecimal("20.00"));
+    }
+
+    @Test
+    @DisplayName("definirSeuilAlerte - with JSON body updates threshold")
+    void definirSeuilAlerte_withRequestBody_success() {
+        when(ingredientService.getIngredientById(1L)).thenReturn(Optional.of(ingredient));
+
+        ResponseEntity<IngredientResponseDTO> response = ingredientController.definirSeuilAlerte(1L, null, Map.of("seuil", 20));
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        verify(ingredientService).definirSeuilAlerte(ingredient, new BigDecimal("20"));
+    }
+
+    @Test
+    @DisplayName("definirSeuilAlerte - missing threshold throws BusinessException")
+    void definirSeuilAlerte_missingSeuil_throwsException() {
+        assertThatThrownBy(() -> ingredientController.definirSeuilAlerte(1L, null, null))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("Le seuil est obligatoire");
+    }
+
+    @Test
+    @DisplayName("definirSeuilAlerte - ingredient not found returns 404")
+    void definirSeuilAlerte_notFound_returns404() {
+        when(ingredientService.getIngredientById(99L)).thenReturn(Optional.empty());
+
+        ResponseEntity<IngredientResponseDTO> response = ingredientController.definirSeuilAlerte(99L, new BigDecimal("10"), null);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(404);
     }
 }
