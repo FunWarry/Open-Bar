@@ -38,6 +38,7 @@ class EmployeeShiftServiceTest {
     private EmployeeShiftService shiftService;
 
     private User sampleUser;
+    private User newUser;
     private EmployeeShift sampleShift;
 
     @BeforeEach
@@ -45,6 +46,10 @@ class EmployeeShiftServiceTest {
         sampleUser = new User();
         sampleUser.setId(1L);
         sampleUser.setUsername("serveur1");
+
+        newUser = new User();
+        newUser.setId(2L);
+        newUser.setUsername("barman1");
 
         sampleShift = new EmployeeShift();
         sampleShift.setId(10L);
@@ -55,6 +60,7 @@ class EmployeeShiftServiceTest {
         sampleShift.setHeureDebut("08:00");
         sampleShift.setHeureFin("16:00");
         sampleShift.setHeuresEffectuees(new BigDecimal("8.0"));
+        sampleShift.setNotes("Service du matin");
     }
 
     @Test
@@ -68,6 +74,16 @@ class EmployeeShiftServiceTest {
     }
 
     @Test
+    void getShiftsByUserId_ShouldReturnUserShifts() {
+        when(shiftRepository.findByUserId(1L)).thenReturn(List.of(sampleShift));
+
+        List<EmployeeShift> result = shiftService.getShiftsByUserId(1L);
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getUser().getId()).isEqualTo(1L);
+    }
+
+    @Test
     void getShiftsForWeek_ShouldReturnFilteredShifts() {
         LocalDate start = LocalDate.of(2026, 8, 10);
         LocalDate end = LocalDate.of(2026, 8, 16);
@@ -76,6 +92,23 @@ class EmployeeShiftServiceTest {
         List<EmployeeShift> result = shiftService.getShiftsForWeek(start, end);
 
         assertThat(result).hasSize(1);
+    }
+
+    @Test
+    void getShiftById_Success() {
+        when(shiftRepository.findById(10L)).thenReturn(Optional.of(sampleShift));
+
+        EmployeeShift result = shiftService.getShiftById(10L);
+
+        assertThat(result.getId()).isEqualTo(10L);
+    }
+
+    @Test
+    void getShiftById_NotFound_ThrowsException() {
+        when(shiftRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> shiftService.getShiftById(99L))
+            .isInstanceOf(ResourceNotFoundException.class);
     }
 
     @Test
@@ -109,6 +142,41 @@ class EmployeeShiftServiceTest {
         when(userRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> shiftService.createShift(request))
+            .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    void updateShift_Success_AllFields() {
+        EmployeeShiftRequestDTO request = new EmployeeShiftRequestDTO(
+            2L, LocalDate.of(2026, 8, 11), TypeShift.SOIR, TypePoste.BARMAN,
+            "18:00", "02:00", new BigDecimal("8.0"), "Soirée spéciale"
+        );
+
+        when(shiftRepository.findById(10L)).thenReturn(Optional.of(sampleShift));
+        when(userRepository.findById(2L)).thenReturn(Optional.of(newUser));
+        when(shiftRepository.save(any(EmployeeShift.class))).thenAnswer(i -> i.getArgument(0));
+
+        EmployeeShift updated = shiftService.updateShift(10L, request);
+
+        assertThat(updated.getUser().getId()).isEqualTo(2L);
+        assertThat(updated.getDateShift()).isEqualTo(LocalDate.of(2026, 8, 11));
+        assertThat(updated.getTypeShift()).isEqualTo(TypeShift.SOIR);
+        assertThat(updated.getTypePoste()).isEqualTo(TypePoste.BARMAN);
+        assertThat(updated.getHeureDebut()).isEqualTo("18:00");
+        assertThat(updated.getHeureFin()).isEqualTo("02:00");
+        assertThat(updated.getNotes()).isEqualTo("Soirée spéciale");
+    }
+
+    @Test
+    void updateShift_UserNotFound_ThrowsException() {
+        EmployeeShiftRequestDTO request = new EmployeeShiftRequestDTO(
+            99L, null, null, null, null, null, null, null
+        );
+
+        when(shiftRepository.findById(10L)).thenReturn(Optional.of(sampleShift));
+        when(userRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> shiftService.updateShift(10L, request))
             .isInstanceOf(ResourceNotFoundException.class);
     }
 

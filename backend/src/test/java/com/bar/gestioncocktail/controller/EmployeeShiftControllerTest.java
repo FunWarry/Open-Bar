@@ -21,6 +21,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -40,6 +41,8 @@ class EmployeeShiftControllerTest {
         User user = new User();
         user.setId(1L);
         user.setUsername("manager1");
+        user.setNom("Dupont");
+        user.setPrenom("Jean");
 
         sampleShift = new EmployeeShift();
         sampleShift.setId(1L);
@@ -76,6 +79,16 @@ class EmployeeShiftControllerTest {
     }
 
     @Test
+    void getShiftsByUserId_ShouldReturnUserShifts() {
+        when(shiftService.getShiftsByUserId(1L)).thenReturn(List.of(sampleShift));
+
+        ResponseEntity<List<EmployeeShiftResponseDTO>> response = shiftController.getShiftsByUserId(1L);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getBody().get(0).userId()).isEqualTo(1L);
+    }
+
+    @Test
     void createShift_ShouldReturnDto() {
         EmployeeShiftRequestDTO request = new EmployeeShiftRequestDTO(
             1L, LocalDate.of(2026, 8, 10), TypeShift.MATIN, TypePoste.MANAGER,
@@ -89,5 +102,28 @@ class EmployeeShiftControllerTest {
         assertThat(response.getStatusCode().value()).isEqualTo(200);
         assertThat(response.getBody().id()).isEqualTo(1L);
         verify(shiftService).createShift(request);
+    }
+
+    @Test
+    void updateShift_ShouldReturnUpdatedDto() {
+        EmployeeShiftRequestDTO request = new EmployeeShiftRequestDTO(
+            1L, LocalDate.of(2026, 8, 10), TypeShift.SOIR, TypePoste.MANAGER,
+            "17:00", "01:00", new BigDecimal("8.0"), "Modifié"
+        );
+
+        when(shiftService.updateShift(eq(1L), any(EmployeeShiftRequestDTO.class))).thenReturn(sampleShift);
+
+        ResponseEntity<EmployeeShiftResponseDTO> response = shiftController.updateShift(1L, request);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        verify(shiftService).updateShift(1L, request);
+    }
+
+    @Test
+    void deleteShift_ShouldReturnOk() {
+        ResponseEntity<Void> response = shiftController.deleteShift(1L);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        verify(shiftService).deleteShift(1L);
     }
 }
