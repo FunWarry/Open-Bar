@@ -73,6 +73,8 @@ export class UserDialogComponent implements OnInit {
     this.userForm = this.fb.group(
       {
         username: ['', Validators.required],
+        nom: [''],
+        prenom: [''],
         email: ['', [Validators.required, Validators.email]],
         password: ['', [Validators.minLength(6)]],
         confirmPassword: [''],
@@ -86,6 +88,8 @@ export class UserDialogComponent implements OnInit {
     if (this.data) {
       this.userForm.patchValue({
         username: this.data.username,
+        nom: this.data.nom || '',
+        prenom: this.data.prenom || '',
         email: this.data.email,
         roles: this.data.roles || []
       });

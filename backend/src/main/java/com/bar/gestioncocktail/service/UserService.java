@@ -113,4 +113,37 @@ public class UserService implements UserDetailsService {
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
+
+    @Transactional(readOnly = true)
+    public com.bar.gestioncocktail.dto.PageResponseDTO<com.bar.gestioncocktail.dto.UserResponseDTO> getUsersPaged(int page, int size, String search, String roleStr) {
+        List<User> allUsers = userRepository.findAll();
+
+        if (roleStr != null && !roleStr.isBlank() && !"ALL".equalsIgnoreCase(roleStr)) {
+            try {
+                UserRole role = UserRole.valueOf(roleStr.toUpperCase());
+                allUsers = allUsers.stream().filter(u -> u.getRoles().contains(role)).toList();
+            } catch (IllegalArgumentException _) {
+                // Invalid role value parameter passed, ignore filtering
+            }
+        }
+
+        if (search != null && !search.isBlank()) {
+            String query = search.toLowerCase().trim();
+            allUsers = allUsers.stream().filter(u ->
+                (u.getUsername() != null && u.getUsername().toLowerCase().contains(query)) ||
+                (u.getEmail() != null && u.getEmail().toLowerCase().contains(query)) ||
+                (u.getNom() != null && u.getNom().toLowerCase().contains(query)) ||
+                (u.getPrenom() != null && u.getPrenom().toLowerCase().contains(query))
+            ).toList();
+        }
+
+        int totalElements = allUsers.size();
+        int fromIndex = Math.min(page * size, totalElements);
+        int toIndex = Math.min(fromIndex + size, totalElements);
+        List<com.bar.gestioncocktail.dto.UserResponseDTO> pagedList = allUsers.subList(fromIndex, toIndex).stream()
+            .map(com.bar.gestioncocktail.dto.UserResponseDTO::from)
+            .toList();
+
+        return com.bar.gestioncocktail.dto.PageResponseDTO.of(pagedList, page, size, totalElements);
+    }
 }

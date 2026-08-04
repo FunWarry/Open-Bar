@@ -38,13 +38,34 @@ public class UserController {
      * @return List of all user DTOs
      */
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Get all users (ADMIN)", description = "Retrieves all registered user accounts.")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
+    @Operation(summary = "Get all users (ADMIN, MANAGER)", description = "Retrieves all registered user accounts.")
     @ApiResponse(responseCode = "200", description = "List of users retrieved")
     public ResponseEntity<List<UserResponseDTO>> getAllUsers() {
         return ResponseEntity.ok(userService.getAllUsers().stream()
             .map(UserResponseDTO::from)
             .toList());
+    }
+
+    /**
+     * Retrieves paginated user accounts with optional search and role filtering.
+     *
+     * @param page Page index (default 0)
+     * @param size Page size (default 10)
+     * @param search Search keyword for username, email, nom, prenom
+     * @param role Filter by user role (ADMIN, MANAGER, SERVEUR, BARMAN)
+     * @return Paginated user response DTO
+     */
+    @GetMapping("/paged")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
+    @Operation(summary = "Get paginated users (ADMIN, MANAGER)", description = "Retrieves paginated users with optional search and role filtering.")
+    @ApiResponse(responseCode = "200", description = "Paginated users retrieved")
+    public ResponseEntity<com.bar.gestioncocktail.dto.PageResponseDTO<UserResponseDTO>> getUsersPaged(
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size,
+        @RequestParam(required = false) String search,
+        @RequestParam(required = false) String role) {
+        return ResponseEntity.ok(userService.getUsersPaged(page, size, search, role));
     }
 
     /**

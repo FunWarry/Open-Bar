@@ -168,4 +168,24 @@ class UserServiceTest {
         assertThat(user.getPassword()).isEqualTo("$2a$newhashed");
         verify(userRepository).save(user);
     }
+
+    @Test
+    @DisplayName("getUsersPaged - filters by search query and role correctly")
+    void getUsersPaged_filtersCorrectly() {
+        User adminUser = new User();
+        adminUser.setId(2L);
+        adminUser.setUsername("admin.boss");
+        adminUser.setEmail("admin@bar.com");
+        adminUser.setNom("Boss");
+        adminUser.setPrenom("Chief");
+        adminUser.setRoles(Set.of(UserRole.ADMIN));
+
+        when(userRepository.findAll()).thenReturn(List.of(user, adminUser));
+
+        com.bar.gestioncocktail.dto.PageResponseDTO<com.bar.gestioncocktail.dto.UserResponseDTO> result =
+            userService.getUsersPaged(0, 10, "chief", "ADMIN");
+
+        assertThat(result.totalElements()).isEqualTo(1);
+        assertThat(result.content().get(0).username()).isEqualTo("admin.boss");
+    }
 }
