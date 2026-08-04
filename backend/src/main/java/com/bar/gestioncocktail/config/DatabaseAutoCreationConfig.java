@@ -77,7 +77,7 @@ public class DatabaseAutoCreationConfig {
                 int lastSlash = url.lastIndexOf('/');
                 String postgresUrl = url.substring(0, lastSlash + 1) + DEFAULT_POSTGRES;
 
-                waitForPostgresReady(postgresUrl, username, password, 20, 1000);
+                waitForPostgresReady(postgresUrl, username, password, 3, 200);
                 ensureDatabaseExists(postgresUrl, dbName, username, password);
             } catch (Exception e) {
                 log.warn("Database auto-creation check skipped or failed (non-blocking): {}", e.getMessage());
