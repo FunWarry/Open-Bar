@@ -1,6 +1,6 @@
 # OpenBar — État des Features & Roadmap
 
-> Dernière mise à jour : 6 août 2026 — PR #259 : Facturation — Format ticket 58mm (#237)
+> Dernière mise à jour : 6 août 2026 — PR #261 : Refactorisation & Modernisation de la page Factures (#260)
 
 ## Tableau des Features
 
@@ -45,7 +45,7 @@
 | Service Broadcast STOMP (#187) | ✅ | — | ✅ | — |
 | Notifications Sonores & Visuelles (#181) | ✅ | ✅ | ✅ | Synthétiseur Web Audio API & Badges |
 | Configuration Seuils Alertes Commandes & Stock (#197) | ✅ | ✅ | ✅ | Réglages Manager et Barman |
-| Factures (liste + détail + règlement) | ✅ | ✅ | ✅ | — |
+| Refactorisation Modernisée Page Factures (#260) | ✅ | ✅ | ✅ | Cartes KPI (CA, total, taux règlement, Z-Report CTA), recherche dynamique & segment filtres statut |
 | Facturation Vue Récap Journée & Z-Report (#227) | ✅ | ✅ | ✅ | Endpoint daily-recap, ventilation TVA/règlements et export PDF A4 |
 | Facturation Vue Règlement Post-Split (#228) | ✅ | ✅ | ✅ | Flow de paiement individuel séparé convives après division |
 | Facturation Champ Pourboire (#235) | ✅ | ✅ | ✅ | Modal règlement avec saisie et comptabilisation du pourboire |
