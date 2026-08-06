@@ -1,6 +1,6 @@
 # OpenBar — État des Features & Roadmap
 
-> Dernière mise à jour : 6 août 2026 — PR #257 : Flow Onboarding par Rôle (Audit et resynchronisation intégrale avec GitHub)
+> Dernière mise à jour : 6 août 2026 — PR #258 : Vue Serveur Mobile — Bottom Navigation & MobileTableCard (#236)
 
 ## Tableau des Features
 
@@ -53,9 +53,10 @@
 | Division d'addition (split égal/par sélection) | ✅ | ✅ | ✅ | — |
 | Dashboard Manager / stats | ✅ | ✅ polling 30s | ✅ | — |
 | Manager Shifts Employés & Pagination (#232) | ✅ | ✅ | ✅ | Gestion des horaires/shifts du personnel et pagination |
-| Manager EDT Planning Hebdomadaire (#233) | ✅ | ✅ | ✅ | Planning emploi du temps interactif par employé |
+| Manager Planning Hebdomadaire (#233) | ✅ | ✅ | ✅ | Planning emploi du temps interactif par employé |
 | Dashboard Barman | ✅ | ✅ kanban temps réel | ✅ | — |
 | Vue Serveur (plan de salle + variantes modal #182) | ✅ | ✅ | ✅ | — |
+| Vue Serveur Mobile Bottom Navigation & MobileTableCard (#236) | — | ✅ | ✅ | Navigation basse mobile Ionic (< 768px), cartes compactes MobileTableCard & chronomètre d'attente |
 | Plan de salle interactif (Konva.js) | ✅ | ✅ | ✅ | — |
 | Vue Client QR Code (passage commande + suivi STOMP) | ✅ | ✅ | ✅ | Vue Client mobile complète (`/client/commande`, `/client/suivi/:id`) |
 | Écran Onboarding Flow par Rôle (Figma 633:1100–1173) (#229) | — | ✅ | ✅ | Tutoriel interactif guidé 5 rôles + relance Profil & i18n |
@@ -87,7 +88,7 @@
 - ~~**Issue #233** (Ticket #I) : `feat: Manager — EDT Planning hebdomadaire complet [MANAGER]` (Figma 492:1556)~~ ✅ (Mergé PR #254)
 - ~~**Issue #234** (Ticket #J) : `feat: Profil — Section Préférences et toggle notifications [TOUS]` (Figma 540:946)~~ ✅ (Mergé PR #255)
 - ~~**Issue #235** (Ticket #K) : `feat: Facturation — Modal Règlement — Champ Pourboire [MANAGER, SERVEUR]` (Figma 628:1068)~~ ✅ (Mergé PR #249)
-- **Issue #236** (Ticket #L) : `feat: Vue Serveur Mobile — Bottom Navigation & MobileTableCard [SERVEUR]` (Figma 632:2240)
+- ~~**Issue #236** (Ticket #L) : `feat: Vue Serveur Mobile — Bottom Navigation & MobileTableCard [SERVEUR]` (Figma 632:2240)~~ ✅ (Mergé PR #258)
 
 ### 🟢 Priorité BASSE
 - ~~**Ticket #M** : `fix: Bug dateLivraison set sur PRET au lieu de LIVREE [BACKEND]` — ✅ Résolu (#224)
@@ -111,6 +112,7 @@
 
 | PR / Issue | Description |
 |------------|-------------|
+| #258 (#236) | Vue Serveur Mobile — Bottom Navigation & MobileTableCard (Figma 632:2240) : Composant Ionic 8 standalone `BottomNavigationComponent` pour les terminaux mobiles (< 768px) avec icônes de navigation, badges de panier/suivi et i18n FR/EN. Composant `MobileTableCardComponent` avec badging de statut, capacité, zone, montant total et chronomètre d'attente coloré selon les exigences WCAG AAA. Support i18n Transloco (`SERVEUR_MOBILE.*`) et attributs `data-testid`. Coordonnées de tests Karma/Jasmine 100% verts (1042/1042 OK). |
 | #257 (#229) | Écran Onboarding — Flow 1ère connexion par rôle (Figma 633:1100–1173) : Composant Ionic 8 standalone `OnboardingComponent` (`/onboarding`) affichant des cartes tutoriel guidées adaptées au rôle de l'utilisateur (ADMIN, MANAGER, SERVEUR, BARMAN, CLIENT). Service `OnboardingService` avec persistance de l'état de complétion dans `localStorage`. Bouton de relance du tutoriel depuis la page Profil (`/profile`). Internationalisation FR/EN (`ONBOARDING.*`). Tests unitaires Karma/Jasmine 100% verts (1038/1038 OK). |
 | #256 (#225) | Vue Client — Écran Scanner QR Code (Figma 636:988) : Viseur caméra en direct avec animation laser et overlay de cadrage, détection automatique via l'API native `BarcodeDetector` (formats `qr_code`) et redirection automatique vers `/client/commande?table={numero}`. Saisie manuelle du numéro de table en fallback, boutons de simulation de scan, et i18n FR/EN complet (`CLIENT_QR.*`). Coverage de tests unitaires Jasmine/Karma 100% verts (1017/1017 OK). |
 | #255 (#234) | Profil — Section Préférences et toggle notifications (Figma 540:946) : Modèle et service `PreferencesService` pour la sauvegarde `localStorage` des réglages utilisateur (notifications sonores/visuelles), sélecteur de langue Transloco FR/EN réactif, et bouton de relance de l'Onboarding. Tests Karma 100% verts. |

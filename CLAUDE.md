@@ -366,6 +366,7 @@ Pour les fichiers scopés par feature (ex : `fr/commandes.json`), déclarer le s
 | Manager — Planning Hebdomadaire Complexe (#233) | ✅ | ✅ | ✅ |
 | Dashboard Barman | ✅ | ✅ kanban temps réel | ✅ |
 | Vue Serveur (plan de salle + variantes modal #182) | ✅ | ✅ modal + nouvelle commande + kanban | ✅ |
+| Vue Serveur Mobile — Bottom Navigation & MobileTableCard (#236) | — | ✅ | ✅ |
 | Plan de salle interactif & Direct Étages (#222/#223) | ✅ | ✅ | ✅ |
 | Vue Client QR Code (Passage commande publique + suivi STOMP) (#184) | ✅ | ✅ | ✅ |
 | Écran Onboarding — Flow 1ère connexion par rôle (#229) | — | ✅ | ✅ |

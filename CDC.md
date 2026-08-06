@@ -753,7 +753,7 @@ Après une authentification réussie, l'utilisateur est redirigé directement ve
 9. ~~📅 **Ticket #I — Manager EDT Planning Hebdomadaire** (Issue #233)~~ ✅ (Mergé PR #254)
 10. ~~🔔 **Ticket #J — Profil Section Préférences et Toggle Son** (Issue #234)~~ ✅ (Mergé PR #255)
 11. ~~💵 **Ticket #K — Modal Règlement Champ Pourboire** (Issue #235)~~ ✅ (Mergé PR #249)
-12. 📱 **Ticket #L — Vue Serveur Mobile Bottom Navigation & MobileTableCard** (`632:2240`) (Issue #236) [OPEN]
+12. ~~📱 **Ticket #L — Vue Serveur Mobile Bottom Navigation & MobileTableCard** (Issue #236)~~ ✅ (Mergé PR #258)
 
 #### 🟢 Priorité Basse / Dette technique
 13. ~~🐛 **Ticket #M — Bug dateLivraison**~~ ✅ (Résolu #224)

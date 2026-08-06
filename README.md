@@ -125,6 +125,7 @@ EN_ATTENTE → EN_PREPARATION → PRET → LIVREE → REGLEE
 | Manager Planning Hebdomadaire Complexe (#233) | ✅ | ✅ | ✅ |
 | Dashboard Barman (kanban temps réel) | ✅ | ✅ | ✅ |
 | Vue Serveur (plan de salle + commandes) | ✅ | ✅ | ✅ |
+| Vue Serveur Mobile (Bottom Navigation & MobileTableCard) (#236) | — | ✅ | ✅ |
 | Plan de salle interactif & Gestion des Étages (#223) | ✅ | ✅ | ✅ |
 | Écran Onboarding Flow par Rôle (#229) | — | ✅ | ✅ |
 | Composant EmptyState Réutilisable (#230) | — | ✅ | ✅ |
@@ -142,7 +143,7 @@ EN_ATTENTE → EN_PREPARATION → PRET → LIVREE → REGLEE
 ### 🎯 Roadmap des Tickets Restants (Audit Figma 8 pages)
 
 - 🔴 **Haute Priorité** : ~~Scanner QR Client (#225)~~ ✅, ~~Vue Globale Stock Barman (#226)~~ ✅, ~~Récap Journée Facturation (#227)~~ ✅, ~~Règlement Individuel Post-Split (#228)~~ ✅, ~~Onboarding flow 1ère connexion (#229)~~ ✅, ~~Composant EmptyState réutilisable (#230)~~ ✅
-- 🟡 **Moyenne Priorité** : ~~Vue Grille Ingrédients (#231)~~ ✅, ~~Pagination/Shifts Employés (#232)~~ ✅, ~~EDT Planning Backend (#233)~~ ✅, ~~Profil Préférences toggle son (#234)~~ ✅, ~~Champ pourboire règlement (#235)~~ ✅, **Mobile Bottom Nav Serveur (#236)** [OPEN]
+- 🟡 **Moyenne Priorité** : ~~Vue Grille Ingrédients (#231)~~ ✅, ~~Pagination/Shifts Employés (#232)~~ ✅, ~~EDT Planning Backend (#233)~~ ✅, ~~Profil Préférences toggle son (#234)~~ ✅, ~~Champ pourboire règlement (#235)~~ ✅, ~~Mobile Bottom Nav Serveur (#236)~~ ✅
 - 🟢 **Basse Priorité / Technique** : ~~Fix dateLivraison (#224)~~ ✅, ~~Refactor circular refs (#224)~~ ✅, ~~Exceptions métier (#224)~~ ✅, **Ticket 58mm (#237)** [OPEN], ~~Panel stock alignement (#248)~~ ✅, ~~Formulaire profil pré-rempli NgRx (#247)~~ ✅, **Tests E2E & Intégration (#193)** [OPEN]
 
 ---
