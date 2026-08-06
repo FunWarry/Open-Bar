@@ -61,7 +61,7 @@
 ## Roadmap des Tickets Restants (Audit Figma 8 pages)
 
 ### 🔴 Priorité HAUTE
-- **Issue #225** (Ticket #A) : `feat: Vue Client — Écran Scanner QR Code [CLIENT]` (Figma 636:988)
+- ~~**Issue #225** (Ticket #A) : `feat: Vue Client — Écran Scanner QR Code [CLIENT]` (Figma 636:988)~~ ✅ (Mergé PR #256)
 - ~~**Issue #226** (Ticket #B) : `feat: Barman — Vue Globale Stock [BARMAN, MANAGER]` (Figma 488:3566)~~ ✅ (Mergé PR #240)
 - **Issue #227** (Ticket #C) : `feat: Facturation — Vue Récap Journée [MANAGER]` (Figma 628:1096)
 - **Issue #228** (Ticket #D) : `feat: Facturation — Vue Règlement Individuel Post-Split [MANAGER, SERVEUR]` (Figma 630:1264)
@@ -97,6 +97,7 @@
 
 | PR / Issue | Description |
 |------------|-------------|
+| #256 (#225) | Vue Client — Écran Scanner QR Code (Figma 636:988) : Viseur caméra en direct avec animation laser et overlay de cadrage, détection automatique via l'API native `BarcodeDetector` (formats `qr_code`) et redirection automatique vers `/client/commande?table={numero}`. Saisie manuelle du numéro de table en fallback, boutons de simulation de scan, et i18n FR/EN complet (`CLIENT_QR.*`). Coverage de tests unitaires Jasmine/Karma 100% verts (1017/1017 OK). |
 | #248 (#247) | Conservation de la BDD au redémarrage & élimination de la redirection /setup : Suppression de la clause destructive `DROP TABLE IF EXISTS ... CASCADE` dans `schema.sql` et passage à `CREATE TABLE IF NOT EXISTS`. Les comptes utilisateurs, identifiants Admin et données de l'application sont désormais conservés intacts après chaque redémarrage du backend. Tests Java Spring Boot (358/358 OK). |
 | #246 (#245) | Bouton de Traduction Global (Connecté & Non Connecté) : Intégration du bouton de bascule de langue (FR/EN) avec icône globe dans la TopBar (`NavbarComponent`) pour les utilisateurs connectés, et bouton flottant fixe sur toutes les vues non connectées (`/login`, `/register`, `/setup`, `/client/*`). Bascule instantanée du langage Transloco et sauvegarde `localStorage`. Tests unitaires Angular Karma (976/976 OK). |
 | #244 (#243) | Filtrage des Cocktails par Allergène : Détection automatique des allergènes (Lait/Lactose, Gluten, Œufs, Fruits à coque, Arachides, Sulfites, Soja) sur les cocktails à partir des ingrédients, descriptions et instructions. Barre de filtres par exclusion interactive (chips/pills "Sans Lait", "Sans Gluten"...), bouton de réinitialisation rapide, et badges visuels d'avertissement ⚠️ sur les cartes (mode grille) et la vue liste. Support i18n FR/EN complet (`COCKTAILS.ALLERGENS.*`) et couverture de tests unitaires Jasmine/Karma (976/976 OK). |
