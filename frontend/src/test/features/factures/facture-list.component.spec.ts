@@ -82,16 +82,16 @@ describe('FactureListComponent', () => {
 
   it('filters invoices by search term and status filter', () => {
     component.searchTerm = 'FAC-001';
-    expect(component.filteredFactures.length).toBe(1);
+    expect(component.filteredFactures).toEqual([mockFactures[0]]);
     expect(component.filteredFactures[0].numero).toBe('FAC-001');
 
     component.searchTerm = '';
     component.setFilter('SETTLED');
-    expect(component.filteredFactures.length).toBe(1);
+    expect(component.filteredFactures).toEqual([mockFactures[1]]);
     expect(component.filteredFactures[0].reglee).toBeTrue();
 
     component.setFilter('PENDING');
-    expect(component.filteredFactures.length).toBe(1);
+    expect(component.filteredFactures).toEqual([mockFactures[0]]);
     expect(component.filteredFactures[0].reglee).toBeFalse();
   });
 
