@@ -2,7 +2,7 @@
   padding: 28px;
   max-width: 1320px;
   margin: 0 auto;
-  color: var(--text-primary, #ffffff);
+  color: var(--text-primary, #eceefb);
   display: flex;
   flex-direction: column;
   gap: 28px;
@@ -10,8 +10,8 @@
 
 /* Hero Header */
 .admin-hero {
-  background: #191929;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--surface-1, #1a1a2e);
+  border: 1px solid var(--border-medium, #2e3450);
   border-radius: 18px;
   padding: 28px 32px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
@@ -27,7 +27,7 @@
   right: -50px;
   width: 250px;
   height: 250px;
-  background: radial-gradient(circle, rgba(155, 138, 242, 0.18) 0%, rgba(0,0,0,0) 70%);
+  background: radial-gradient(circle, var(--primary-tint, rgba(108, 127, 232, 0.18)) 0%, rgba(0,0,0,0) 70%);
   pointer-events: none;
 }
 
@@ -36,12 +36,12 @@
   align-items: center;
   gap: 8px;
   padding: 6px 14px;
-  background: #2a264a;
-  border: 1px solid #5b4db8;
+  background: var(--role-admin-15, rgba(155, 138, 242, 0.15));
+  border: 1px solid var(--role-admin, #9b8af2);
   border-radius: 20px;
   font-size: 0.75rem;
   font-weight: 700;
-  color: #ddd6fe;
+  color: var(--role-admin, #9b8af2);
   letter-spacing: 1px;
   margin-bottom: 12px;
 }
@@ -50,8 +50,8 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #a78bfa;
-  box-shadow: 0 0 8px #a78bfa;
+  background: var(--role-admin, #9b8af2);
+  box-shadow: 0 0 8px var(--role-admin, #9b8af2);
 }
 
 .hero-title {
@@ -59,7 +59,7 @@
   font-weight: 800;
   margin: 0 0 8px 0;
   letter-spacing: -0.5px;
-  background: linear-gradient(90deg, #ffffff 0%, #d8d3f7 100%);
+  background: linear-gradient(90deg, var(--text-primary, #eceefb) 0%, var(--primary-light, #aab4f3) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -67,13 +67,13 @@
 
 .hero-subtitle {
   font-size: 0.95rem;
-  color: #e2e8f0;
+  color: var(--text-secondary, #a4add0);
   margin: 0;
   line-height: 1.5;
 }
 
 .user-highlight {
-  color: #c4b5fd;
+  color: var(--role-admin, #9b8af2);
 }
 
 /* KPI Cards Grid */
@@ -84,8 +84,8 @@
 }
 
 .kpi-card {
-  background: #1f1f33;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--surface-1, #1a1a2e);
+  border: 1px solid var(--border-medium, #2e3450);
   border-radius: 16px;
   padding: 22px;
   display: flex;
@@ -99,8 +99,8 @@
 
 .kpi-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 30px rgba(155, 138, 242, 0.2);
-  border-color: rgba(155, 138, 242, 0.35);
+  box-shadow: 0 12px 30px var(--primary-tint, rgba(108, 127, 232, 0.25));
+  border-color: var(--primary, #6c7fe8);
 }
 
 .kpi-icon-wrapper {
@@ -114,27 +114,27 @@
 }
 
 .users-card .kpi-icon-wrapper {
-  background: #2e2854;
-  color: #ddd6fe;
-  border: 1px solid #5b4db8;
+  background: var(--role-admin-15, rgba(155, 138, 242, 0.15));
+  color: var(--role-admin, #9b8af2);
+  border: 1px solid var(--role-admin, #9b8af2);
 }
 
 .cocktails-card .kpi-icon-wrapper {
-  background: #3b280c;
-  color: #fde047;
-  border: 1px solid #92400e;
+  background: var(--role-manager-15, rgba(240, 163, 59, 0.15));
+  color: var(--role-manager, #f0a33b);
+  border: 1px solid var(--role-manager, #f0a33b);
 }
 
 .ingredients-card .kpi-icon-wrapper {
-  background: #0d382b;
-  color: #6ee7b7;
-  border: 1px solid #065f46;
+  background: var(--role-serveur-15, rgba(52, 199, 123, 0.15));
+  color: var(--role-serveur, #34c77b);
+  border: 1px solid var(--role-serveur, #34c77b);
 }
 
 .etab-card .kpi-icon-wrapper {
-  background: #11284d;
-  color: #93c5fd;
-  border: 1px solid #1e40af;
+  background: var(--role-barman-15, rgba(79, 195, 247, 0.15));
+  color: var(--role-barman, #4fc3f7);
+  border: 1px solid var(--role-barman, #4fc3f7);
 }
 
 .kpi-body {
@@ -146,14 +146,14 @@
 .kpi-number {
   font-size: 2.2rem;
   font-weight: 800;
-  color: #ffffff;
+  color: var(--text-primary, #eceefb);
   line-height: 1;
 }
 
 .kpi-text-value {
   font-size: 1.15rem;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--text-primary, #eceefb);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -162,12 +162,12 @@
 .kpi-title {
   font-size: 0.95rem;
   font-weight: 700;
-  color: #f8fafc;
+  color: var(--text-primary, #eceefb);
 }
 
 .kpi-desc {
   font-size: 0.8rem;
-  color: #cbd5e1;
+  color: var(--text-secondary, #a4add0);
 }
 
 .kpi-action-btn {
@@ -175,20 +175,20 @@
   align-items: center;
   justify-content: space-between;
   padding: 10px 14px;
-  background: #28283f;
-  border: 1px solid #475569;
+  background: var(--surface-2, #21263f);
+  border: 1px solid var(--border-medium, #2e3450);
   border-radius: 10px;
   font-size: 0.85rem;
   font-weight: 600;
-  color: #ffffff;
+  color: var(--text-primary, #eceefb);
   text-decoration: none;
   transition: all 0.2s ease;
 }
 
 .kpi-action-btn:hover {
-  background: #3b3564;
-  border-color: #7c3aed;
-  color: #ffffff;
+  background: var(--surface-3, #2a3050);
+  border-color: var(--primary, #6c7fe8);
+  color: var(--primary-light, #aab4f3);
 }
 
 .kpi-action-btn .arrow {
@@ -207,8 +207,8 @@
 }
 
 .hub-category-card {
-  background: #1e1e30;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--surface-1, #1a1a2e);
+  border: 1px solid var(--border-medium, #2e3450);
   border-radius: 18px;
   padding: 24px;
   display: flex;
@@ -235,21 +235,21 @@
   flex-shrink: 0;
 }
 
-.team-badge { background: #2e2854; border: 1px solid #5b4db8; }
-.settings-badge { background: #11284d; border: 1px solid #1e40af; }
-.catalog-badge { background: #3b280c; border: 1px solid #92400e; }
-.billing-badge { background: #451212; border: 1px solid #991b1b; }
+.team-badge { background: var(--role-admin-15, rgba(155, 138, 242, 0.15)); border: 1px solid var(--role-admin, #9b8af2); }
+.settings-badge { background: var(--role-barman-15, rgba(79, 195, 247, 0.15)); border: 1px solid var(--role-barman, #4fc3f7); }
+.catalog-badge { background: var(--role-manager-15, rgba(240, 163, 59, 0.15)); border: 1px solid var(--role-manager, #f0a33b); }
+.billing-badge { background: var(--status-canceled-15, rgba(229, 96, 79, 0.15)); border: 1px solid var(--status-canceled, #e5604f); }
 
 .cat-title {
   font-size: 1.1rem;
   font-weight: 700;
   margin: 0;
-  color: #ffffff;
+  color: var(--text-primary, #eceefb);
 }
 
 .cat-desc {
   font-size: 0.8rem;
-  color: #cbd5e1;
+  color: var(--text-secondary, #a4add0);
   margin: 2px 0 0 0;
 }
 
@@ -282,51 +282,51 @@
 }
 
 .primary-hub-btn {
-  background: #6d28d9;
+  background: var(--primary, #6c7fe8);
   color: #ffffff;
-  box-shadow: 0 4px 14px rgba(109, 40, 217, 0.4);
+  box-shadow: 0 4px 14px var(--primary-tint, rgba(108, 127, 232, 0.35));
 }
 
 .primary-hub-btn:hover {
-  background: #5b21b6;
-  box-shadow: 0 6px 20px rgba(109, 40, 217, 0.6);
+  background: var(--primary-strong, #5a68d6);
+  box-shadow: 0 6px 20px var(--primary-tint, rgba(108, 127, 232, 0.5));
   transform: translateY(-2px);
 }
 
 .accent-hub-btn {
-  background: #047857;
+  background: var(--role-serveur, #34c77b);
   color: #ffffff;
-  box-shadow: 0 4px 14px rgba(4, 120, 87, 0.4);
+  box-shadow: 0 4px 14px var(--role-serveur-15, rgba(52, 199, 123, 0.35));
 }
 
 .accent-hub-btn:hover {
-  background: #065f46;
-  box-shadow: 0 6px 20px rgba(4, 120, 87, 0.6);
+  background: #28a763;
+  box-shadow: 0 6px 20px var(--role-serveur-15, rgba(52, 199, 123, 0.5));
   transform: translateY(-2px);
 }
 
 .warning-hub-btn {
-  background: #b45309;
+  background: var(--role-manager, #f0a33b);
   color: #ffffff;
-  box-shadow: 0 4px 14px rgba(180, 83, 9, 0.4);
+  box-shadow: 0 4px 14px var(--role-manager-15, rgba(240, 163, 59, 0.35));
 }
 
 .warning-hub-btn:hover {
-  background: #92400e;
-  box-shadow: 0 6px 20px rgba(180, 83, 9, 0.6);
+  background: #d88f28;
+  box-shadow: 0 6px 20px var(--role-manager-15, rgba(240, 163, 59, 0.5));
   transform: translateY(-2px);
 }
 
 .outline-hub-btn {
-  background: #252538;
-  border: 1px solid #475569;
-  color: #ffffff;
+  background: var(--surface-2, #21263f);
+  border: 1px solid var(--border-medium, #2e3450);
+  color: var(--text-primary, #eceefb);
 }
 
 .outline-hub-btn:hover {
-  background: #32324b;
-  border-color: #7c3aed;
-  color: #ffffff;
+  background: var(--surface-3, #2a3050);
+  border-color: var(--primary, #6c7fe8);
+  color: var(--text-primary, #eceefb);
   transform: translateY(-2px);
 }
 
