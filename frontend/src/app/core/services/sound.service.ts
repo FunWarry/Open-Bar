@@ -74,9 +74,7 @@ export class SoundService {
       const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       if (!AudioContextClass) return;
 
-      if (!this.audioCtx) {
-        this.audioCtx = new AudioContextClass();
-      }
+      this.audioCtx ??= new AudioContextClass();
 
       if (this.audioCtx.state === 'suspended') {
         void this.audioCtx.resume();
