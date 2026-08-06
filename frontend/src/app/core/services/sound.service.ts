@@ -1,22 +1,18 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
+import { PreferencesService } from './preferences.service';
 
 /**
  * Service managing Web Audio API sound synthesis and user audio preference persistence.
  * <p>
- * Generates real-time sound cues for new orders and order ready alerts without requiring external media assets.
+ * Generates real-time sound cues for new orders and order ready alerts without requiring
+ * external media assets. Sound enabled/disabled state is delegated to
+ * {@link PreferencesService} for centralised persistence.
  */
 @Injectable({ providedIn: 'root' })
 export class SoundService {
-  private readonly storageKey = 'openbar_sound_enabled';
-  private soundEnabled = true;
-  private audioCtx: AudioContext | null = null;
 
-  constructor() {
-    const stored = localStorage.getItem(this.storageKey);
-    if (stored !== null) {
-      this.soundEnabled = stored === 'true';
-    }
-  }
+  private readonly prefs = inject(PreferencesService);
+  private audioCtx: AudioContext | null = null;
 
   /**
    * Checks if sound notifications are enabled.
@@ -24,17 +20,16 @@ export class SoundService {
    * @returns True if sound alerts are active, false otherwise.
    */
   isSoundEnabled(): boolean {
-    return this.soundEnabled;
+    return this.prefs.soundEnabled();
   }
 
   /**
-   * Updates sound notification preference and persists to localStorage.
+   * Updates sound notification preference via {@link PreferencesService}.
    *
    * @param enabled Whether sound should be enabled or disabled.
    */
   setSoundEnabled(enabled: boolean): void {
-    this.soundEnabled = enabled;
-    localStorage.setItem(this.storageKey, String(enabled));
+    this.prefs.setSoundEnabled(enabled);
   }
 
   /**
@@ -43,15 +38,16 @@ export class SoundService {
    * @returns The updated sound enabled state.
    */
   toggleSound(): boolean {
-    this.setSoundEnabled(!this.soundEnabled);
-    return this.soundEnabled;
+    const next = !this.prefs.soundEnabled();
+    this.prefs.setSoundEnabled(next);
+    return next;
   }
 
   /**
    * Plays a synthesized chime for new incoming orders (Barman alert).
    */
   playNewOrderSound(): void {
-    if (!this.soundEnabled) return;
+    if (!this.prefs.soundEnabled()) return;
     this.playBeepSequence([
       { frequency: 587.33, duration: 0.15, delay: 0 },   // D5 note
       { frequency: 880.0, duration: 0.25, delay: 0.15 },  // A5 note
@@ -62,7 +58,7 @@ export class SoundService {
    * Plays a synthesized chime for orders marked ready (Server alert).
    */
   playOrderReadySound(): void {
-    if (!this.soundEnabled) return;
+    if (!this.prefs.soundEnabled()) return;
     this.playBeepSequence([
       { frequency: 523.25, duration: 0.12, delay: 0 },   // C5 note
       { frequency: 659.25, duration: 0.12, delay: 0.12 }, // E5 note

@@ -3,26 +3,36 @@ import { AbstractControl, AbstractControlOptions, FormBuilder, FormGroup, Reacti
 import { Store } from '@ngrx/store';
 import { Subject, takeUntil } from 'rxjs';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
-import { IonCard, IonCardHeader, IonCardTitle, IonCardContent, ToastController } from '@ionic/angular/standalone';
+import { IonCard, IonCardHeader, IonCardTitle, IonCardContent, ToastController, IonSelect, IonSelectOption } from '@ionic/angular/standalone';
 import { DatePipe } from '@angular/common';
 import { selectCurrentUser } from '../../core/store/auth.selectors';
 import { setCurrentUser } from '../../core/store/auth.actions';
 import { User } from '../../core/models/user.model';
 import { UserService } from '../../core/services/user.service';
+import { SoundService } from '../../core/services/sound.service';
+import { LanguageService, SupportedLanguage } from '../../core/services/language.service';
+import { PreferencesService } from '../../core/services/preferences.service';
 
 import { UserAvatarComponent } from '../../core/components/ui/user-avatar/user-avatar.component';
 import { InputFieldComponent } from '../../core/components/ui/input-field/input-field.component';
 import { PasswordInputComponent } from '../../core/components/ui/password-input/password-input.component';
 import { ActionButtonComponent } from '../../core/components/ui/action-button/action-button.component';
 import { RoleBadgeComponent } from '../../core/components/ui/role-badge/role-badge.component';
+import { ToggleSwitchComponent } from '../../core/components/ui/toggle-switch/toggle-switch.component';
 
 /**
- * Profile Component displaying personal user information, roles, and profile settings form.
- * Aligned with Figma Vue système commun Profile layout (`540:946`).
+ * Profile Component displaying personal user information, roles, profile settings form,
+ * and user preferences (sound/visual notifications, language).
  *
- * The form fields (username, email) are reactively pre-filled from the NgRx Auth store
+ * <p>Aligned with Figma Vue système commun Profile layout ({@code 540:946}),
+ * including the PREFERENCES section with toggles and language selector.</p>
+ *
+ * <p>The form fields (username, email) are reactively pre-filled from the NgRx Auth store
  * via {@link selectCurrentUser}. On submit, the changes are persisted through
- * {@link UserService#updateUser} and the store is updated accordingly.
+ * {@link UserService#updateUser} and the store is updated accordingly.</p>
+ *
+ * <p>Preferences (sound, visual notifications, language) are persisted via
+ * {@link PreferencesService} and {@link LanguageService} using {@code localStorage}.</p>
  */
 @Component({
   selector: 'app-profile',
@@ -34,6 +44,8 @@ import { RoleBadgeComponent } from '../../core/components/ui/role-badge/role-bad
     IonCardHeader,
     IonCardTitle,
     IonCardContent,
+    IonSelect,
+    IonSelectOption,
     DatePipe,
     ReactiveFormsModule,
     TranslocoModule,
@@ -41,7 +53,8 @@ import { RoleBadgeComponent } from '../../core/components/ui/role-badge/role-bad
     InputFieldComponent,
     PasswordInputComponent,
     ActionButtonComponent,
-    RoleBadgeComponent
+    RoleBadgeComponent,
+    ToggleSwitchComponent,
   ]
 })
 export class ProfileComponent implements OnInit, OnDestroy {
@@ -57,12 +70,24 @@ export class ProfileComponent implements OnInit, OnDestroy {
   /** Whether a save operation is currently in progress. */
   isSaving = false;
 
+  /** Whether sound notifications are currently enabled. Bound to the toggle switch. */
+  soundEnabled = false;
+
+  /** Whether visual (toast) notifications are currently enabled. Bound to the toggle switch. */
+  visualNotifEnabled = false;
+
+  /** Currently selected language ('fr' | 'en'). */
+  selectedLanguage: SupportedLanguage = 'fr';
+
   constructor(
     private readonly fb: FormBuilder,
     private readonly store: Store,
     private readonly userService: UserService,
     private readonly toastCtrl: ToastController,
-    private readonly transloco: TranslocoService
+    private readonly transloco: TranslocoService,
+    private readonly soundService: SoundService,
+    private readonly languageService: LanguageService,
+    private readonly preferences: PreferencesService
   ) {
     const groupOptions: AbstractControlOptions = { validators: [this.passwordMatchValidator] };
     this.profileForm = this.fb.group(
@@ -77,8 +102,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Initialises the component by subscribing to the NgRx Auth store
-   * to reactively pre-fill the profile form whenever the current user changes.
+   * Initialises the component by subscribing to the NgRx Auth store to pre-fill
+   * the profile form, and reads the current preference values from services.
    */
   ngOnInit(): void {
     this.store.select(selectCurrentUser)
@@ -92,6 +117,11 @@ export class ProfileComponent implements OnInit, OnDestroy {
           });
         }
       });
+
+    // Initialise preference toggles from PreferencesService signals
+    this.soundEnabled = this.preferences.soundEnabled();
+    this.visualNotifEnabled = this.preferences.visualNotifEnabled();
+    this.selectedLanguage = this.languageService.currentLanguage;
   }
 
   /**
@@ -163,5 +193,38 @@ export class ProfileComponent implements OnInit, OnDestroy {
           await toast.present();
         }
       });
+  }
+
+  /**
+   * Handles changes to the sound notification toggle.
+   * Persists the new state via {@link SoundService}.
+   *
+   * @param enabled The new sound enabled state.
+   */
+  onSoundToggle(enabled: boolean): void {
+    this.soundEnabled = enabled;
+    this.soundService.setSoundEnabled(enabled);
+  }
+
+  /**
+   * Handles changes to the visual notification toggle.
+   * Persists the new state via {@link PreferencesService}.
+   *
+   * @param enabled The new visual notification enabled state.
+   */
+  onVisualNotifToggle(enabled: boolean): void {
+    this.visualNotifEnabled = enabled;
+    this.preferences.setVisualNotifEnabled(enabled);
+  }
+
+  /**
+   * Handles language selection changes.
+   * Applies the selected language via {@link LanguageService}.
+   *
+   * @param lang The selected language code ('fr' or 'en').
+   */
+  onLanguageChange(lang: SupportedLanguage): void {
+    this.selectedLanguage = lang;
+    this.languageService.setLanguage(lang);
   }
 }
