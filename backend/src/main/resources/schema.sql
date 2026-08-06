@@ -224,11 +224,13 @@ CREATE TABLE IF NOT EXISTS establishment_config (
     discount_policy VARCHAR(255) DEFAULT 'Aucun escompte pour paiement anticipé',
     late_payment_rate DECIMAL(5,4) DEFAULT 0.1200,
     time_zone VARCHAR(50) DEFAULT 'SYSTEM',
+    ticket_format VARCHAR(10) DEFAULT '80mm',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 INSERT INTO establishment_config (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
 ALTER TABLE establishment_config ADD COLUMN IF NOT EXISTS time_zone VARCHAR(50) DEFAULT 'SYSTEM';
+ALTER TABLE establishment_config ADD COLUMN IF NOT EXISTS ticket_format VARCHAR(10) DEFAULT '80mm';
 
 -- Immutabilité, intégrité & archivage des factures (#131, #132)
 ALTER TABLE factures ADD COLUMN IF NOT EXISTS total_ht DECIMAL(10,2) DEFAULT 0;

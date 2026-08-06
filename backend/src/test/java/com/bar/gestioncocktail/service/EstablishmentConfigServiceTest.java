@@ -61,7 +61,7 @@ class EstablishmentConfigServiceTest {
             "FR12732829320", "5630Z", new BigDecimal("15000"),
             "10 rue Test", "0102030405", "email@test.fr",
             "Immédiat", "Pas d escompte", new BigDecimal("0.12"),
-            "Europe/Paris"
+            "Europe/Paris", "58mm"
         );
 
         EstablishmentConfigDTO dto = service.updateConfig(request);
@@ -70,6 +70,7 @@ class EstablishmentConfigServiceTest {
         assertThat(dto.legalName()).isEqualTo("Nouveau Nom SARL");
         assertThat(dto.legalForm()).isEqualTo("SAS");
         assertThat(dto.timeZone()).isEqualTo("Europe/Paris");
+        assertThat(dto.ticketFormat()).isEqualTo("58mm");
         verify(repository).save(any(EstablishmentConfig.class));
     }
 
@@ -80,7 +81,7 @@ class EstablishmentConfigServiceTest {
             "Nom", "SARL", "12345678900000", "Paris", "B 123",
             "FR12732829320", "5630Z", new BigDecimal("10000"),
             "Adresse", "01", "a@b.fr", "Terms", "Policy", new BigDecimal("0.1"),
-            "SYSTEM"
+            "SYSTEM", "80mm"
         );
 
         assertThatThrownBy(() -> service.updateConfig(request))

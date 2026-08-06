@@ -15,6 +15,7 @@ export interface EstablishmentConfig {
   discountPolicy: string;
   latePaymentRate: number;
   timeZone?: string;
+  ticketFormat?: '80mm' | '58mm';
   createdAt?: string;
   updatedAt?: string;
 }

@@ -99,6 +99,14 @@
                       }
                     </ion-select>
                   </ion-item>
+
+                  <ion-item>
+                    <ion-label position="stacked">{{ 'FACTURES.TICKET_FORMAT' | transloco }}</ion-label>
+                    <ion-select formControlName="ticketFormat" interface="popover" data-testid="ticket-format-select">
+                      <ion-select-option value="80mm">{{ 'FACTURES.FORMAT_80MM' | transloco }}</ion-select-option>
+                      <ion-select-option value="58mm">{{ 'FACTURES.FORMAT_58MM' | transloco }}</ion-select-option>
+                    </ion-select>
+                  </ion-item>
                 </ion-list>
 
 

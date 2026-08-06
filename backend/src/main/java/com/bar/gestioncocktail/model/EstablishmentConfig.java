@@ -87,6 +87,11 @@ public class EstablishmentConfig {
     @Column(name = "time_zone", length = 50)
     private String timeZone = "SYSTEM";
 
+    @Size(max = 10, message = "Ticket format cannot exceed 10 characters")
+    @Pattern(regexp = "^(80mm|58mm)$", message = "Ticket format must be either 80mm or 58mm")
+    @Column(name = "ticket_format", length = 10)
+    private String ticketFormat = "80mm";
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

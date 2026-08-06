@@ -41,7 +41,7 @@ class EstablishmentConfigControllerTest {
             1L, "OpenBar SARL", "SARL", "73282932000074", "Paris", "B 123",
             "FR12732829320", "5630Z", new BigDecimal("10000"), "Adresse",
             "0102030405", "email@bar.fr", "Immédiat", "Aucun", new BigDecimal("0.12"),
-            "SYSTEM", LocalDateTime.now(), LocalDateTime.now()
+            "SYSTEM", "80mm", LocalDateTime.now(), LocalDateTime.now()
         );
     }
 
@@ -64,7 +64,7 @@ class EstablishmentConfigControllerTest {
             "OpenBar SARL", "SARL", "73282932000074", "Paris", "B 123",
             "FR12732829320", "5630Z", new BigDecimal("10000"), "Adresse",
             "0102030405", "email@bar.fr", "Immédiat", "Aucun", new BigDecimal("0.12"),
-            "SYSTEM"
+            "SYSTEM", "80mm"
         );
 
         ResponseEntity<EstablishmentConfigDTO> response = controller.updateConfig(request);

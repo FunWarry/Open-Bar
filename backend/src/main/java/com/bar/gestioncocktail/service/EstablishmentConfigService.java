@@ -86,6 +86,9 @@ public class EstablishmentConfigService {
         if (request.paymentTerms() != null) config.setPaymentTerms(request.paymentTerms());
         if (request.discountPolicy() != null) config.setDiscountPolicy(request.discountPolicy());
         applyTimeZoneUpdate(config, request.timeZone());
+        if (request.ticketFormat() != null && (request.ticketFormat().equalsIgnoreCase("80mm") || request.ticketFormat().equalsIgnoreCase("58mm"))) {
+            config.setTicketFormat(request.ticketFormat().toLowerCase());
+        }
     }
 
     private void applyTimeZoneUpdate(EstablishmentConfig config, String timeZone) {

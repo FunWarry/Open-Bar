@@ -94,6 +94,7 @@ export class EtablissementComponent implements OnInit, OnDestroy {
       discountPolicy: ['Aucun escompte pour paiement anticipé', [Validators.maxLength(255)]],
       latePaymentRate: [0.12, [Validators.min(0), Validators.max(1)]],
       timeZone: ['SYSTEM', [Validators.maxLength(50)]],
+      ticketFormat: ['80mm', [Validators.pattern(/^(80mm|58mm)$/)]],
     });
   }
 
