@@ -1,36 +1,157 @@
-<ion-header>
-  <ion-toolbar color="primary">
-    <ion-title>
-      <ion-icon name="receipt-outline"></ion-icon> Factures
-    </ion-title>
-  </ion-toolbar>
-</ion-header>
+<ion-content class="factures-content">
+  <div class="factures-page" *transloco="let t">
+    <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+      <ion-refresher-content></ion-refresher-content>
+    </ion-refresher>
 
-<ion-content>
-  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
-    <ion-refresher-content></ion-refresher-content>
-  </ion-refresher>
+    <!-- Hero Header -->
+    <header class="factures-hero">
+      <div class="hero-content">
+        <div class="hero-badge">
+          <ion-icon name="receipt-outline"></ion-icon>
+          <span>FACTURATION</span>
+        </div>
+        <h1 class="hero-title">{{ t('FACTURES.TITLE') }}</h1>
+        <p class="hero-subtitle">{{ t('FACTURES.SUBTITLE') }}</p>
+      </div>
+    </header>
 
-  <ion-list *ngIf="factures.length > 0">
-    <ion-item
-      *ngFor="let facture of factures; trackBy: trackById"
-      [routerLink]="['/factures', facture.id]"
-      button
-      detail="false">
-      <ion-label>
-        <h3>{{ facture.numero }}</h3>
-        <p>Table {{ facture.tableNumero }} — {{ facture.dateFacture | date:'dd/MM/yyyy HH:mm' }}</p>
-        <p>{{ (facture.totalTTC ?? facture.total) | currency:'EUR':'symbol':'1.2-2':'fr' }}</p>
-      </ion-label>
-      <ion-badge slot="end" [color]="statutColor(facture.reglee)">
-        {{ statutLabel(facture.reglee) }}
-      </ion-badge>
-      <ion-icon slot="end" name="chevron-forward-outline" color="medium"></ion-icon>
-    </ion-item>
-  </ion-list>
+    <!-- KPI Summary Cards -->
+    <section class="kpi-grid">
+      <div class="kpi-card ca-card" data-testid="kpi-total-ca">
+        <div class="kpi-icon-wrapper">
+          <ion-icon name="cash-outline"></ion-icon>
+        </div>
+        <div class="kpi-body">
+          <span class="kpi-number">{{ totalCA | currency:'EUR':'symbol':'1.2-2' }}</span>
+          <span class="kpi-title">{{ t('FACTURES.STATS.TOTAL_CA') }}</span>
+        </div>
+      </div>
 
-  <div *ngIf="factures.length === 0 && !loading" class="empty-state">
-    <ion-icon name="receipt-outline" size="large"></ion-icon>
-    <p>Aucune facture</p>
+      <div class="kpi-card count-card" data-testid="kpi-factures-count">
+        <div class="kpi-icon-wrapper">
+          <ion-icon name="document-text-outline"></ion-icon>
+        </div>
+        <div class="kpi-body">
+          <span class="kpi-number">{{ factures.length }}</span>
+          <span class="kpi-title">{{ t('FACTURES.STATS.TOTAL_COUNT') }}</span>
+        </div>
+      </div>
+
+      <div class="kpi-card rate-card" data-testid="kpi-settled-rate">
+        <div class="kpi-icon-wrapper">
+          <ion-icon name="analytics-outline"></ion-icon>
+        </div>
+        <div class="kpi-body">
+          <span class="kpi-number">{{ settledRate }}%</span>
+          <span class="kpi-title">{{ t('FACTURES.STATS.SETTLED_RATE') }}</span>
+        </div>
+      </div>
+
+      <div class="kpi-card action-card" data-testid="kpi-zreport-btn">
+        <a routerLink="/factures/recap" class="zreport-link">
+          <div class="zreport-content">
+            <ion-icon name="analytics-outline"></ion-icon>
+            <span>{{ t('FACTURES.STATS.RECAP_BTN') }}</span>
+          </div>
+          <span class="arrow">→</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- Search & Filter Controls Bar -->
+    <section class="filter-bar-card">
+      <div class="search-box">
+        <ion-searchbar
+          [(ngModel)]="searchTerm"
+          placeholder="{{ t('FACTURES.SEARCH_PLACEHOLDER') }}"
+          animated="true"
+          showClearButton="always"
+          data-testid="factures-searchbar">
+        </ion-searchbar>
+      </div>
+
+      <div class="segment-box">
+        <ion-segment [value]="activeFilter" (ionChange)="setFilter($any($event.detail.value))" data-testid="factures-filter-segment">
+          <ion-segment-button value="ALL" data-testid="filter-all">
+            <span>{{ t('FACTURES.FILTERS.ALL') }}</span>
+          </ion-segment-button>
+          <ion-segment-button value="SETTLED" data-testid="filter-settled">
+            <span>{{ t('FACTURES.FILTERS.SETTLED') }}</span>
+          </ion-segment-button>
+          <ion-segment-button value="PENDING" data-testid="filter-pending">
+            <span>{{ t('FACTURES.FILTERS.PENDING') }}</span>
+          </ion-segment-button>
+        </ion-segment>
+      </div>
+    </section>
+
+    <!-- Invoices Grid / List -->
+    @if (loading) {
+      <div class="loading-state">
+        <ion-spinner name="crescent"></ion-spinner>
+      </div>
+    } @else if (filteredFactures.length > 0) {
+      <section class="invoices-grid">
+        @for (facture of filteredFactures; track trackById($index, facture)) {
+          <ion-card class="invoice-card" [routerLink]="['/factures', facture.id]" data-testid="invoice-card-item">
+            <div class="card-top">
+              <div class="invoice-num-box">
+                <span class="num-label">{{ facture.numero }}</span>
+                <span class="table-badge">Table N°{{ facture.tableNumero }}</span>
+              </div>
+              <ion-badge [color]="statutColor(facture.reglee)" class="status-badge">
+                @if (facture.reglee) {
+                  <ion-icon name="checkmark-circle-outline"></ion-icon>
+                  <span>{{ t('FACTURES.SETTLED') }}</span>
+                } @else {
+                  <ion-icon name="time-outline"></ion-icon>
+                  <span>{{ t('FACTURES.PENDING') }}</span>
+                }
+              </ion-badge>
+            </div>
+
+            <div class="card-middle">
+              <div class="amount-box">
+                <span class="amount-val">{{ (facture.totalTTC ?? facture.total) | currency:'EUR':'symbol':'1.2-2' }}</span>
+              </div>
+              <div class="meta-row">
+                <span class="meta-item">
+                  <ion-icon name="calendar-outline"></ion-icon>
+                  {{ facture.dateFacture | date:'dd/MM/yyyy HH:mm' }}
+                </span>
+                @if (facture.serveurNom) {
+                  <span class="meta-item">
+                    <ion-icon name="person-outline"></ion-icon>
+                    {{ facture.serveurNom }}
+                  </span>
+                }
+              </div>
+            </div>
+
+            <div class="card-bottom">
+              <span class="detail-link">
+                <span>Consulter</span>
+                <ion-icon name="chevron-forward-outline"></ion-icon>
+              </span>
+            </div>
+          </ion-card>
+        }
+      </section>
+    } @else {
+      <div class="empty-card" data-testid="factures-empty-box">
+        <div class="empty-icon-wrapper">
+          <ion-icon name="receipt-outline"></ion-icon>
+        </div>
+        <h3 class="empty-title">{{ t('FACTURES.NO_FACTURES') }}</h3>
+        <p class="empty-desc">{{ t('FACTURES.NO_FACTURES_DESC') }}</p>
+        @if (searchTerm || activeFilter !== 'ALL') {
+          <ion-button fill="outline" size="small" (click)="resetFilters()" (keyup.enter)="resetFilters()" data-testid="reset-filters-btn">
+            <ion-icon name="refresh-outline" slot="start"></ion-icon>
+            {{ t('FACTURES.RESET_FILTERS') }}
+          </ion-button>
+        }
+      </div>
+    }
   </div>
 </ion-content>

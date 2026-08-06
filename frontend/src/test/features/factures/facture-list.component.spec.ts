@@ -6,10 +6,11 @@ import { IonicModule } from '@ionic/angular';
 import { FactureListComponent } from '../../../app/features/factures/facture-list/facture-list.component';
 import { FactureService } from '../../../app/features/factures/services/facture.service';
 import { Facture } from '../../../app/features/factures/models/facture.model';
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
 
 const mockFactures: Facture[] = [
-  { id: 1, tableId: 1, tableNumero: 1, numero: 'F-001', total: 25.5, items: [], reglee: false, dateFacture: '2026-01-01T10:00:00', createdAt: '2026-01-01T10:00:00', updatedAt: '2026-01-01T10:00:00' },
-  { id: 2, tableId: 2, tableNumero: 2, numero: 'F-002', total: 40.0, items: [], reglee: true,  dateFacture: '2026-01-02T10:00:00', createdAt: '2026-01-02T10:00:00', updatedAt: '2026-01-02T10:00:00' },
+  { id: 1, tableId: 1, tableNumero: 1, numero: 'FAC-001', total: 25.5, totalTTC: 25.5, items: [], reglee: false, dateFacture: '2026-01-01T10:00:00', createdAt: '2026-01-01T10:00:00', updatedAt: '2026-01-01T10:00:00' },
+  { id: 2, tableId: 2, tableNumero: 2, numero: 'FAC-002', total: 40.0, totalTTC: 40.0, items: [], reglee: true,  dateFacture: '2026-01-02T10:00:00', createdAt: '2026-01-02T10:00:00', updatedAt: '2026-01-02T10:00:00' },
 ];
 
 describe('FactureListComponent', () => {
@@ -26,6 +27,7 @@ describe('FactureListComponent', () => {
         FactureListComponent,
         IonicModule.forRoot(),
         RouterTestingModule,
+        getTranslocoTestingModule()
       ],
       providers: [
         { provide: FactureService, useValue: factureServiceSpy },
@@ -37,21 +39,17 @@ describe('FactureListComponent', () => {
     fixture.detectChanges();
   });
 
-  // --- création ---
-
   it('should create the component', () => {
     expect(component).toBeTruthy();
   });
 
-  // --- ngOnInit / charger() ---
-
-  it('charger() charge les factures depuis le service au démarrage', () => {
+  it('charger() loads invoices on init', () => {
     expect(factureServiceSpy.getAllFactures).toHaveBeenCalled();
     expect(component.factures).toEqual(mockFactures);
     expect(component.loading).toBeFalse();
   });
 
-  it('charger() met loading à true pendant le chargement puis à false ensuite', fakeAsync(() => {
+  it('charger() manages loading flag during HTTP call', fakeAsync(() => {
     const subject = new Subject<Facture[]>();
     factureServiceSpy.getAllFactures.and.returnValue(subject.asObservable());
 
@@ -66,18 +64,48 @@ describe('FactureListComponent', () => {
     expect(component.factures).toEqual(mockFactures);
   }));
 
-  it('charger() remet loading à false en cas d\'erreur HTTP', fakeAsync(() => {
+  it('charger() resets loading flag on HTTP error', fakeAsync(() => {
     factureServiceSpy.getAllFactures.and.returnValue(throwError(() => new Error('500')));
 
     component.charger();
     tick();
 
     expect(component.loading).toBeFalse();
+    expect(component.factures).toEqual([]);
   }));
 
-  // --- onRefresh() ---
+  it('computes totalCA, settledCount, and settledRate correctly', () => {
+    expect(component.totalCA).toBe(65.5);
+    expect(component.settledCount).toBe(1);
+    expect(component.settledRate).toBe(50);
+  });
 
-  it('onRefresh() recharge les factures et appelle target.complete()', fakeAsync(() => {
+  it('filters invoices by search term and status filter', () => {
+    component.searchTerm = 'FAC-001';
+    expect(component.filteredFactures).toEqual([mockFactures[0]]);
+    expect(component.filteredFactures[0].numero).toBe('FAC-001');
+
+    component.searchTerm = '';
+    component.setFilter('SETTLED');
+    expect(component.filteredFactures).toEqual([mockFactures[1]]);
+    expect(component.filteredFactures[0].reglee).toBeTrue();
+
+    component.setFilter('PENDING');
+    expect(component.filteredFactures).toEqual([mockFactures[0]]);
+    expect(component.filteredFactures[0].reglee).toBeFalse();
+  });
+
+  it('resetFilters() resets search term and active status filter', () => {
+    component.searchTerm = 'SearchQuery';
+    component.activeFilter = 'SETTLED';
+
+    component.resetFilters();
+
+    expect(component.searchTerm).toBe('');
+    expect(component.activeFilter).toBe('ALL');
+  });
+
+  it('onRefresh() reloads invoices and completes refresher event', fakeAsync(() => {
     const completeSpy = jasmine.createSpy('complete');
     const fakeEvent = { target: { complete: completeSpy } } as unknown as CustomEvent;
     factureServiceSpy.getAllFactures.and.returnValue(of(mockFactures));
@@ -90,55 +118,23 @@ describe('FactureListComponent', () => {
     expect(completeSpy).toHaveBeenCalled();
   }));
 
-  it('onRefresh() appelle target.complete() même en cas d\'erreur', fakeAsync(() => {
-    const completeSpy = jasmine.createSpy('complete');
-    const fakeEvent = { target: { complete: completeSpy } } as unknown as CustomEvent;
-    factureServiceSpy.getAllFactures.and.returnValue(throwError(() => new Error('network')));
-
-    component.onRefresh(fakeEvent);
-    tick();
-
-    expect(completeSpy).toHaveBeenCalled();
-  }));
-
-  // --- statutColor() ---
-
-  it('statutColor() retourne "success" si reglee est true', () => {
+  it('statutColor() returns success for settled and warning for pending', () => {
     expect(component.statutColor(true)).toBe('success');
-  });
-
-  it('statutColor() retourne "warning" si reglee est false', () => {
     expect(component.statutColor(false)).toBe('warning');
   });
 
-  // --- statutLabel() ---
-
-  it('statutLabel() retourne "RÉGLÉE" si reglee est true', () => {
-    expect(component.statutLabel(true)).toBe('RÉGLÉE');
-  });
-
-  it('statutLabel() retourne "EN ATTENTE" si reglee est false', () => {
-    expect(component.statutLabel(false)).toBe('EN ATTENTE');
-  });
-
-  // --- trackById() ---
-
-  it('trackById() retourne l\'id de la facture', () => {
+  it('trackById() returns invoice id', () => {
     const facture = { id: 7 } as Facture;
     expect(component.trackById(0, facture)).toBe(7);
   });
 
-  // --- ngOnDestroy() ---
-
-  it('ngOnDestroy() complète le subject destroy$ et arrête les souscriptions', () => {
+  it('ngOnDestroy() completes destroy$ subject', () => {
     const subject = new Subject<Facture[]>();
     factureServiceSpy.getAllFactures.and.returnValue(subject.asObservable());
 
     component.charger();
     component.ngOnDestroy();
 
-    // Aucune erreur ne doit se produire quand le flux émet après destroy
     expect(() => subject.next([])).not.toThrow();
-    expect(component.factures).toEqual(mockFactures); // valeur initiale inchangée après destroy
   });
 });

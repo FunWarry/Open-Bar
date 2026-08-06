@@ -329,8 +329,25 @@
     "PRIORITY": "Priority"
   },
   "FACTURES": {
-    "TITLE": "Invoice",
     "NEW": "New Invoice",
+    "TITLE": "Invoices History",
+    "SUBTITLE": "Settlement supervision, accounting document search and inspection",
+    "STATS": {
+      "TOTAL_CA": "Total Revenue",
+      "TOTAL_COUNT": "Invoices Issued",
+      "SETTLED_RATE": "Settlement Rate",
+      "RECAP_BTN": "Z-Report / Daily Settlement"
+    },
+    "SEARCH_PLACEHOLDER": "Search by invoice number, table, or server...",
+    "FILTERS": {
+      "ALL": "All",
+      "SETTLED": "Settled",
+      "PENDING": "Pending"
+    },
+    "TABLE_LABEL": "Table {{num}}",
+    "NO_FACTURES": "No invoices found",
+    "NO_FACTURES_DESC": "No invoices match your search criteria or no orders have been settled yet.",
+    "RESET_FILTERS": "Reset filters",
     "NUMBER": "Number",
     "DATE": "Billing Date",
     "SETTLE": "Settle Invoice",

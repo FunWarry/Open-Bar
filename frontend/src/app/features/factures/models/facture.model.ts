@@ -27,6 +27,7 @@ export interface Facture {
   reglee: boolean;
   modePaiement?: string;
   notes?: string;
+  serveurNom?: string;
   items: FactureItem[];
   createdAt: string;
   updatedAt: string;
