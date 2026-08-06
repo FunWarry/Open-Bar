@@ -58,8 +58,7 @@ public class SampleDataSeederService {
             FactureRepository factureRepository,
             EmployeeShiftRepository employeeShiftRepository,
             PasswordEncoder passwordEncoder,
-            TimeService timeService,
-            ObjectMapper objectMapper) {
+            TimeService timeService) {
         this.userRepository = userRepository;
         this.tableRepository = tableRepository;
         this.zoneRepository = zoneRepository;
@@ -69,7 +68,7 @@ public class SampleDataSeederService {
         this.employeeShiftRepository = employeeShiftRepository;
         this.passwordEncoder = passwordEncoder;
         this.timeService = timeService;
-        this.objectMapper = objectMapper;
+        this.objectMapper = new ObjectMapper();
     }
 
     @PostConstruct
