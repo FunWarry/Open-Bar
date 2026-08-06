@@ -3,7 +3,7 @@
     {
       "username": "admin",
       "email": "admin@openbar.fr",
-      "password": "admin123",
+      "authSecret": "admin123",
       "nom": "Dupont",
       "prenom": "Alexandre",
       "roles": ["ADMIN", "MANAGER"]
@@ -11,7 +11,7 @@
     {
       "username": "manager",
       "email": "manager@openbar.fr",
-      "password": "manager123",
+      "authSecret": "manager123",
       "nom": "Martin",
       "prenom": "Sophie",
       "roles": ["MANAGER"]
@@ -19,7 +19,7 @@
     {
       "username": "serveur1",
       "email": "lucas@openbar.fr",
-      "password": "serveur123",
+      "authSecret": "serveur123",
       "nom": "Bernard",
       "prenom": "Lucas",
       "roles": ["SERVEUR"]
@@ -27,7 +27,7 @@
     {
       "username": "serveur2",
       "email": "camille@openbar.fr",
-      "password": "serveur123",
+      "authSecret": "serveur123",
       "nom": "Dubois",
       "prenom": "Camille",
       "roles": ["SERVEUR"]
@@ -35,7 +35,7 @@
     {
       "username": "barman1",
       "email": "antoine@openbar.fr",
-      "password": "barman123",
+      "authSecret": "barman123",
       "nom": "Moreau",
       "prenom": "Antoine",
       "roles": ["BARMAN"]
@@ -43,7 +43,7 @@
     {
       "username": "barman2",
       "email": "emma@openbar.fr",
-      "password": "barman123",
+      "authSecret": "barman123",
       "nom": "Laurent",
       "prenom": "Emma",
       "roles": ["BARMAN"]

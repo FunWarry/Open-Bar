@@ -142,7 +142,7 @@ public class SampleDataSeederService {
         for (JsonNode uNode : usersNode) {
             String username = uNode.get("username").asText();
             String email = uNode.get("email").asText();
-            String password = uNode.get("password").asText();
+            String password = extractPasswordFromJson(uNode);
             String nom = uNode.get("nom").asText();
             String prenom = uNode.get("prenom").asText();
 
@@ -169,6 +169,19 @@ public class SampleDataSeederService {
             usersMap.put(username, user);
         }
         return usersMap;
+    }
+
+    private String extractPasswordFromJson(JsonNode uNode) {
+        if (uNode.has("authSecret")) {
+            return uNode.get("authSecret").asText();
+        }
+        if (uNode.has("rawPassword")) {
+            return uNode.get("rawPassword").asText();
+        }
+        if (uNode.has("password")) {
+            return uNode.get("password").asText();
+        }
+        return "default123";
     }
 
     private void seedZonesFromJson(JsonNode zonesNode) {
