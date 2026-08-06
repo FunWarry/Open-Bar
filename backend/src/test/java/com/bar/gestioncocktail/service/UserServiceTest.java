@@ -1,5 +1,7 @@
 package com.bar.gestioncocktail.service;
 
+import com.bar.gestioncocktail.dto.PageResponseDTO;
+import com.bar.gestioncocktail.dto.UserResponseDTO;
 import com.bar.gestioncocktail.model.User;
 import com.bar.gestioncocktail.model.UserRole;
 import com.bar.gestioncocktail.repository.UserRepository;
@@ -182,7 +184,7 @@ class UserServiceTest {
 
         when(userRepository.findAll()).thenReturn(List.of(user, adminUser));
 
-        com.bar.gestioncocktail.dto.PageResponseDTO<com.bar.gestioncocktail.dto.UserResponseDTO> result =
+        PageResponseDTO<UserResponseDTO> result =
             userService.getUsersPaged(0, 10, "chief", "ADMIN");
 
         assertThat(result.totalElements()).isEqualTo(1);

@@ -199,7 +199,7 @@
                         <div class="card-allergens-row" [attr.data-testid]="'cocktail-allergens-' + cocktail.id">
                           @for (allergenKey of getCocktailAllergens(cocktail); track allergenKey) {
                             <span class="figma-allergen-badge">
-                              ⚠️ {{ ('COCKTAILS.ALLERGENS.' + allergenKey) | transloco }}
+                              <span class="allergen-icon">⚠️</span>{{ ('COCKTAILS.ALLERGENS.' + allergenKey) | transloco }}
                             </span>
                           }
                         </div>

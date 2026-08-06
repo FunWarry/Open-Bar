@@ -1,5 +1,7 @@
 package com.bar.gestioncocktail.service;
 
+import com.bar.gestioncocktail.dto.PageResponseDTO;
+import com.bar.gestioncocktail.dto.UserResponseDTO;
 import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.model.User;
 import com.bar.gestioncocktail.model.UserRole;
@@ -114,8 +116,17 @@ public class UserService implements UserDetailsService {
         return userRepository.findAll();
     }
 
+    /**
+     * Returns a paginated list of users filtered by optional search query and role.
+     *
+     * @param page     Zero-based page index
+     * @param size     Number of items per page
+     * @param search   Optional search string matched against username, email, nom, prenom
+     * @param roleStr  Optional role filter (e.g. "ADMIN", "SERVEUR"). Use "ALL" or blank to disable.
+     * @return Paginated response containing {@link UserResponseDTO} items
+     */
     @Transactional(readOnly = true)
-    public com.bar.gestioncocktail.dto.PageResponseDTO<com.bar.gestioncocktail.dto.UserResponseDTO> getUsersPaged(int page, int size, String search, String roleStr) {
+    public PageResponseDTO<UserResponseDTO> getUsersPaged(int page, int size, String search, String roleStr) {
         List<User> allUsers = userRepository.findAll();
 
         if (roleStr != null && !roleStr.isBlank() && !"ALL".equalsIgnoreCase(roleStr)) {
@@ -140,10 +151,10 @@ public class UserService implements UserDetailsService {
         int totalElements = allUsers.size();
         int fromIndex = Math.min(page * size, totalElements);
         int toIndex = Math.min(fromIndex + size, totalElements);
-        List<com.bar.gestioncocktail.dto.UserResponseDTO> pagedList = allUsers.subList(fromIndex, toIndex).stream()
-            .map(com.bar.gestioncocktail.dto.UserResponseDTO::from)
+        List<UserResponseDTO> pagedList = allUsers.subList(fromIndex, toIndex).stream()
+            .map(UserResponseDTO::from)
             .toList();
 
-        return com.bar.gestioncocktail.dto.PageResponseDTO.of(pagedList, page, size, totalElements);
+        return PageResponseDTO.of(pagedList, page, size, totalElements);
     }
 }
