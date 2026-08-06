@@ -2,6 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { EstablishmentConfig } from '../models/establishment-config.model';
+import { environment } from '../../../environments/environment';
 
 /**
  * Service for legal establishment settings management.
@@ -11,7 +12,7 @@ import { EstablishmentConfig } from '../models/establishment-config.model';
 })
 export class EtablissementService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = '/api/admin/establishment';
+  private readonly apiUrl = `${environment.apiUrl}/admin/establishment`;
 
   /**
    * Retrieves legal establishment parameters.
@@ -34,4 +35,3 @@ export class EtablissementService {
     return this.http.get<string[]>(`${this.apiUrl}/timezones`);
   }
 }
-

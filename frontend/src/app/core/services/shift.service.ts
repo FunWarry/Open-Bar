@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { EmployeeShift, EmployeeShiftRequest } from '../models/shift.model';
+import { environment } from '../../../environments/environment';
 
 /**
  * Service handling HTTP requests for employee work shifts and weekly schedules.
@@ -11,7 +12,7 @@ import { EmployeeShift, EmployeeShiftRequest } from '../models/shift.model';
 })
 export class ShiftService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = '/api/shifts';
+  private readonly apiUrl = `${environment.apiUrl}/employee-shifts`;
 
   /**
    * Retrieves all registered employee shifts.
@@ -33,7 +34,7 @@ export class ShiftService {
     const params = new HttpParams()
       .set('debut', debut)
       .set('fin', fin);
-    return this.http.get<EmployeeShift[]>(`${this.apiUrl}/week`, { params });
+    return this.http.get<EmployeeShift[]>(`${this.apiUrl}/weekly`, { params });
   }
 
   /**
@@ -43,7 +44,7 @@ export class ShiftService {
    * @returns Observable array of EmployeeShift objects for the user
    */
   getShiftsByUserId(userId: number): Observable<EmployeeShift[]> {
-    return this.http.get<EmployeeShift[]>(`${this.apiUrl}/user/${userId}`);
+    return this.http.get<EmployeeShift[]>(`${this.apiUrl}/employee/${userId}`);
   }
 
   /**
