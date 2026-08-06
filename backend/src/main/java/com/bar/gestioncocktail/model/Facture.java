@@ -69,7 +69,9 @@ public class Facture {
     protected void onCreate() {
         createdAt = LocalDateTime.now(java.time.ZoneId.systemDefault());
         updatedAt = LocalDateTime.now(java.time.ZoneId.systemDefault());
-        dateFacture = LocalDateTime.now(java.time.ZoneId.systemDefault());
+        if (dateFacture == null) {
+            dateFacture = LocalDateTime.now(java.time.ZoneId.systemDefault());
+        }
     }
 
     @PreUpdate

@@ -53,7 +53,9 @@ public class Commande {
     protected void onCreate() {
         createdAt = LocalDateTime.now(java.time.ZoneId.systemDefault());
         updatedAt = LocalDateTime.now(java.time.ZoneId.systemDefault());
-        dateCommande = LocalDateTime.now(java.time.ZoneId.systemDefault());
+        if (dateCommande == null) {
+            dateCommande = LocalDateTime.now(java.time.ZoneId.systemDefault());
+        }
     }
 
     @PreUpdate

@@ -8,6 +8,7 @@ import java.util.List;
 
 @Repository
 public interface TableRepository extends JpaRepository<TableEntity, Long> {
+    java.util.Optional<TableEntity> findByNumero(Integer numero);
     List<TableEntity> findByZone(String zone);
     List<TableEntity> findByOccupee(boolean occupee);
     List<TableEntity> findByServeurId(Long serveurId);

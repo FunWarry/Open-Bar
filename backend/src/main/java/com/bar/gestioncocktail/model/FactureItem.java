@@ -18,7 +18,7 @@ public class FactureItem {
     private Facture facture;
 
     @ManyToOne
-    @JoinColumn(name = "commande_item_id", nullable = false)
+    @JoinColumn(name = "commande_item_id", nullable = true)
     private CommandeItem commandeItem;
 
     @Column(nullable = false)

@@ -30,7 +30,7 @@ import java.util.Set;
  * application startup.
  */
 @Service
-@Profile("test")
+@Profile({"dev", "test"})
 public class CocktailDataSeederService {
 
     private static final Logger log = LoggerFactory.getLogger(CocktailDataSeederService.class);
