@@ -1,4 +1,9 @@
-<div class="mobile-table-card" (click)="select.emit(table)" (keyup.enter)="select.emit(table)" (keydown.enter)="select.emit(table)">
+<div
+  class="mobile-table-card"
+  [attr.data-testid]="'mobile-table-card-' + table.id"
+  (click)="tableSelect.emit(table)"
+  (keyup.enter)="tableSelect.emit(table)"
+  (keydown.enter)="tableSelect.emit(table)">
   <div class="card-header">
     <div class="table-badge">
       <ion-icon name="restaurant-outline"></ion-icon>
@@ -13,7 +18,7 @@
   <div class="card-body">
     <div class="info-item">
       <ion-icon name="people-outline"></ion-icon>
-      <span>{{ table.capacite }} couverts</span>
+      <span>{{ table.capacite }} {{ 'SERVEUR_MOBILE.CARD.COVER' | transloco }}</span>
     </div>
     <div class="info-item">
       <ion-icon name="location-outline"></ion-icon>
@@ -21,22 +26,31 @@
     </div>
     <div class="info-item" *ngIf="pendingOrdersCount > 0">
       <ion-icon name="time-outline"></ion-icon>
-      <span>{{ pendingOrdersCount }} commande(s)</span>
+      <span>{{ pendingOrdersCount }} {{ 'SERVEUR_MOBILE.CARD.COMMANDES_COUNT' | transloco }}</span>
+    </div>
+    <div
+      class="info-item wait-timer"
+      [class]="WaitTimeClass"
+      *ngIf="waitTimeMinutes > 0"
+      [attr.data-testid]="'mobile-table-wait-time-' + table.id">
+      <ion-icon name="time-outline"></ion-icon>
+      <span>{{ 'SERVEUR_MOBILE.CARD.WAIT_TIME' | transloco: { min: waitTimeMinutes } }}</span>
     </div>
   </div>
 
   <div class="card-footer">
     <div class="total-wrap" *ngIf="activeTotal > 0">
-      <span class="label">Total en cours</span>
+      <span class="label">{{ 'SERVEUR_MOBILE.CARD.TOTAL' | transloco }}</span>
       <span class="amount">{{ activeTotal | number:'1.2-2' }} €</span>
     </div>
     <app-action-button
       variant="secondary"
       size="small"
       iconLeft="add-circle-outline"
+      [attr.data-testid]="'mobile-table-order-btn-' + table.id"
       (click)="$event.stopPropagation(); newOrder.emit(table)"
       (keyup.enter)="$event.stopPropagation(); newOrder.emit(table)">
-      Commander
+      {{ 'SERVEUR_MOBILE.CARD.ORDER_CTA' | transloco }}
     </app-action-button>
   </div>
 </div>
