@@ -11,8 +11,9 @@ import { PreferencesService } from './preferences.service';
 @Injectable({ providedIn: 'root' })
 export class SoundService {
 
-  private readonly prefs = inject(PreferencesService);
   private audioCtx: AudioContext | null = null;
+
+  constructor(private readonly prefs: PreferencesService) {}
 
   /**
    * Checks if sound notifications are enabled.
