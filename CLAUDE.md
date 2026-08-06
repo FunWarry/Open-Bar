@@ -320,7 +320,7 @@ Pour les fichiers scopés par feature (ex : `fr/commandes.json`), déclarer le s
 
 ## Features implémentées vs. manquantes
 
-> Dernière mise à jour : 2 août 2026 — PR #224 (Alignement Tables UI + Audit Figma 18 tickets)
+> Dernière mise à jour : 6 août 2026 — PR #257 (Resynchronisation complète avec le projet GitHub)
 
 | Feature | Backend | Frontend | Tests |
 |---------|---------|----------|-------|
@@ -338,26 +338,42 @@ Pour les fichiers scopés par feature (ex : `fr/commandes.json`), déclarer le s
 | Cocktails CRUD | ✅ | ✅ | ✅ |
 | Saisonnalité cocktails | ✅ | ✅ | ✅ |
 | Variantes, Ingrédients & Déduction auto des stocks (#185/#182) | ✅ | ✅ | ✅ |
+| Vue Grille Cocktails & Verres 3D (#242) | ✅ | ✅ | ✅ |
+| Filtrage Cocktails par Allergène (#243) | — | ✅ | ✅ |
 | Ingrédients CRUD & Routage (/ingredients) (#219) | ✅ | ✅ | ✅ |
+| Vue Barman Ingrédients Mode Grille (#231) | — | ✅ | ✅ |
+| Barman Stock Panel Alignement Figma (#238) | — | ✅ | ✅ |
 | Tables CRUD & Alignement Figma (#224) | ✅ | ✅ | ✅ |
 | Transfert de commande entre tables (#205/#207) | ✅ | ✅ | ✅ |
 | Commandes | ✅ | ✅ | ✅ |
 | Passage commande publique QR Code (#184) | ✅ | ✅ | ✅ |
+| Scanner QR Code Client (Figma 636:988) (#225) | — | ✅ | ✅ |
 | Déstockage auto (EN_PREPARATION & Variantes) | ✅ | — | ✅ |
 | Alertes stock WebSocket | ✅ | ✅ | ✅ |
 | Notifications WS (toasts + panneau navbar) | ✅ | ✅ | ✅ |
 | Service de Broadcast STOMP & Diffusion Temps Réel (#187) | ✅ | — | ✅ |
 | Impression Ticket de Caisse 80mm & Facture PDF A4 (#180) | ✅ | ✅ | ✅ |
 | Factures (liste + détail + règlement) | ✅ | ✅ | ✅ |
+| Facturation — Vue Récap Journée & Z-Report PDF (#227) | ✅ | ✅ | ✅ |
+| Facturation — Vue Règlement Post-Split (#228) | ✅ | ✅ | ✅ |
+| Facturation — Champ Pourboire (#235) | ✅ | ✅ | ✅ |
 | Conformité Légale & Facturation (SIRET/TVA/RCS/SHA-256) (#129–#134) | ✅ | ✅ | ✅ |
 | Fusion d'additions (#186) | ✅ | ✅ | ✅ |
 | Export factures (PDF) | ✅ | ✅ | ✅ |
 | Division d'addition (splitEgal/splitParSelection) | ✅ | ✅ | ✅ |
 | Dashboard Manager / stats | ✅ | ✅ polling 30s | ✅ |
+| Manager — Shifts Employés & Pagination (#232) | ✅ | ✅ | ✅ |
+| Manager — Planning Hebdomadaire Complexe (#233) | ✅ | ✅ | ✅ |
 | Dashboard Barman | ✅ | ✅ kanban temps réel | ✅ |
 | Vue Serveur (plan de salle + variantes modal #182) | ✅ | ✅ modal + nouvelle commande + kanban | ✅ |
 | Plan de salle interactif & Direct Étages (#222/#223) | ✅ | ✅ | ✅ |
 | Vue Client QR Code (Passage commande publique + suivi STOMP) (#184) | ✅ | ✅ | ✅ |
+| Écran Onboarding — Flow 1ère connexion par rôle (#229) | — | ✅ | ✅ |
+| Composant EmptyState Réutilisable (#230) | — | ✅ | ✅ |
+| Profil — Section Préférences & Notifications (#234) | — | ✅ | ✅ |
+| Profil — NgRx Form Pre-fill Fix (#239) | — | ✅ | ✅ |
+| Bouton de Traduction Global FR/EN (#245) | — | ✅ | ✅ |
+| Conservation BDD au redémarrage & anti-redirection /setup (#247) | ✅ | ✅ | ✅ |
 | Fuseau horaire paramétrable (Etablissement / TimeService) | ✅ | ✅ | ✅ |
 | Journal d'audit système (/api/audit-logs) (#206) | ✅ | ✅ | ✅ |
 | Layout Global — TopBar globale conforme Figma (#208) | — | ✅ | ✅ |
@@ -366,7 +382,6 @@ Pour les fichiers scopés par feature (ex : `fr/commandes.json`), déclarer le s
 | Harmonisation Vues Applicatives Figma (#211) | — | ✅ | ✅ |
 | Personnalisation Interactive Thème & Palettes HSL (#217) | — | ✅ | ✅ |
 | Vue Globale Stock Barman & Manager (#226) | ✅ | ✅ | ✅ |
-| Écran Onboarding — Flow 1ère connexion par rôle (#229) | — | ✅ | ✅ |
 
 
 
