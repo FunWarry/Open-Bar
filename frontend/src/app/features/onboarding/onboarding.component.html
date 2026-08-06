@@ -1,0 +1,87 @@
+<ion-content class="onboarding-page-content" data-testid="onboarding-page-container">
+  <div class="ellipse-bg-primary"></div>
+  <div class="ellipse-bg-tertiary"></div>
+
+  <div class="onboarding-wrapper">
+    <!-- Top Action Bar with Role Badge & Skip Button -->
+    <div class="onboarding-topbar">
+      <div class="role-pill">
+        <app-role-badge [role]="$any(userRole())" data-testid="onboarding-role-badge"></app-role-badge>
+      </div>
+
+      <button
+        type="button"
+        class="btn-skip-ghost"
+        (click)="skip()"
+        data-testid="btn-onboarding-skip">
+        {{ 'ONBOARDING.SKIP' | transloco }} ➔
+      </button>
+    </div>
+
+    <!-- Main Tutorial Step Card (Figma 633:1100–1173) -->
+    @if (currentStep) {
+      <ion-card class="onboarding-card" data-testid="onboarding-step-card">
+        <ion-card-content class="card-content-inner">
+          <div class="illustration-circle">
+            <span class="emoji-icon">{{ currentStep.illustrationEmoji }}</span>
+          </div>
+
+          <h1 class="step-title" data-testid="onboarding-step-title">
+            {{ currentStep.titleKey | transloco }}
+          </h1>
+
+          <p class="step-desc" data-testid="onboarding-step-desc">
+            {{ currentStep.descriptionKey | transloco }}
+          </p>
+
+          <!-- Feature Highlights Checklist -->
+          <div class="highlights-container">
+            @for (featKey of currentStep.featureHighlightsKeys; track featKey) {
+              <div class="highlight-item">
+                <span class="check-icon">✓</span>
+                <span class="highlight-text">{{ featKey | transloco }}</span>
+              </div>
+            }
+          </div>
+        </ion-card-content>
+      </ion-card>
+    }
+
+    <!-- Pagination Dots & Navigation Buttons -->
+    <div class="onboarding-bottom-row">
+      <div class="pagination-dots" data-testid="onboarding-pagination-dots">
+        @for (step of steps(); track step.id; let i = $index) {
+          <button
+            type="button"
+            class="dot"
+            [class.active]="i === currentIndex()"
+            (click)="goToStep(i)"
+            [attr.aria-label]="'Step ' + (i + 1)">
+          </button>
+        }
+      </div>
+
+      <div class="action-buttons-group">
+        @if (currentIndex() > 0) {
+          <app-action-button
+            variant="ghost"
+            size="medium"
+            (click)="previous()"
+            (keyup.enter)="previous()"
+            data-testid="btn-onboarding-prev">
+            ← {{ 'COMMON.BACK' | transloco }}
+          </app-action-button>
+        }
+
+        <app-action-button
+          variant="primary"
+          size="medium"
+          (click)="next()"
+          (keyup.enter)="next()"
+          data-testid="btn-onboarding-next">
+          {{ isLastStep ? ('ONBOARDING.FINISH' | transloco) : ('ONBOARDING.NEXT' | transloco) + ' →' }}
+        </app-action-button>
+      </div>
+    </div>
+  </div>
+</ion-content>

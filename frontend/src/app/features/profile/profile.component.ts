@@ -1,4 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { AbstractControl, AbstractControlOptions, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { Subject, takeUntil } from 'rxjs';
@@ -87,7 +88,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
     private readonly transloco: TranslocoService,
     private readonly soundService: SoundService,
     private readonly languageService: LanguageService,
-    private readonly preferences: PreferencesService
+    private readonly preferences: PreferencesService,
+    private readonly router: Router
   ) {
     const groupOptions: AbstractControlOptions = { validators: [this.passwordMatchValidator] };
     this.profileForm = this.fb.group(
@@ -226,5 +228,12 @@ export class ProfileComponent implements OnInit, OnDestroy {
   onLanguageChange(lang: SupportedLanguage): void {
     this.selectedLanguage = lang;
     this.languageService.setLanguage(lang);
+  }
+
+  /**
+   * Navigates to the interactive Onboarding tutorial screen.
+   */
+  onRestartOnboarding(): void {
+    void this.router.navigate(['/onboarding']);
   }
 }
