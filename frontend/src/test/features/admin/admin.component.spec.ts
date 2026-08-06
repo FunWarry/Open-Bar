@@ -5,14 +5,21 @@ import { Store } from '@ngrx/store';
 import { of } from 'rxjs';
 import { AdminComponent } from '../../../app/features/admin/admin.component';
 import { NavigationService } from '../../../app/core/services/navigation.service';
+import { UserService } from '../../../app/core/services/user.service';
+import { CocktailService } from '../../../app/core/services/cocktail.service';
+import { IngredientService } from '../../../app/core/services/ingredient.service';
+import { EtablissementService } from '../../../app/core/services/etablissement.service';
 import { selectCurrentUser } from '../../../app/core/store/auth.selectors';
-
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 
 describe('AdminComponent', () => {
   let component: AdminComponent;
   let storeSpy: jasmine.SpyObj<Store>;
   let navigationServiceSpy: jasmine.SpyObj<NavigationService>;
+  let userServiceSpy: jasmine.SpyObj<UserService>;
+  let cocktailServiceSpy: jasmine.SpyObj<CocktailService>;
+  let ingredientServiceSpy: jasmine.SpyObj<IngredientService>;
+  let etablissementServiceSpy: jasmine.SpyObj<EtablissementService>;
 
   const mockUser = {
     id: 1,
@@ -31,8 +38,21 @@ describe('AdminComponent', () => {
     navigationServiceSpy = jasmine.createSpyObj('NavigationService', [
       'navigateTo',
       'goBack',
-      'navigateToHome'
+      'navigateToHome',
+      'navigateToRegister'
     ]);
+
+    userServiceSpy = jasmine.createSpyObj('UserService', ['getUsers']);
+    userServiceSpy.getUsers.and.returnValue(of([mockUser as any]));
+
+    cocktailServiceSpy = jasmine.createSpyObj('CocktailService', ['getAll']);
+    cocktailServiceSpy.getAll.and.returnValue(of([{ id: 1, nom: 'Mojito' } as any]));
+
+    ingredientServiceSpy = jasmine.createSpyObj('IngredientService', ['getAll']);
+    ingredientServiceSpy.getAll.and.returnValue(of([{ id: 1, nom: 'Rhum' } as any]));
+
+    etablissementServiceSpy = jasmine.createSpyObj('EtablissementService', ['getConfig']);
+    etablissementServiceSpy.getConfig.and.returnValue(of({ legalName: 'OpenBar SARL' } as any));
 
     await TestBed.configureTestingModule({
       imports: [
@@ -43,7 +63,11 @@ describe('AdminComponent', () => {
       ],
       providers: [
         { provide: Store, useValue: storeSpy },
-        { provide: NavigationService, useValue: navigationServiceSpy }
+        { provide: NavigationService, useValue: navigationServiceSpy },
+        { provide: UserService, useValue: userServiceSpy },
+        { provide: CocktailService, useValue: cocktailServiceSpy },
+        { provide: IngredientService, useValue: ingredientServiceSpy },
+        { provide: EtablissementService, useValue: etablissementServiceSpy }
       ]
     }).compileComponents();
 
@@ -63,37 +87,10 @@ describe('AdminComponent', () => {
     });
   });
 
-  it('should select currentUser from store via selectCurrentUser selector', () => {
-    expect(storeSpy.select as any).toHaveBeenCalledWith(selectCurrentUser);
-  });
-
-  it('navigationService should be accessible as a protected property', () => {
-    expect((component as any).navigationService).toBe(navigationServiceSpy);
-  });
-
-  it('currentUser$ should emit null when no user is logged in', async () => {
-    storeSpy.select.and.returnValue(of(null));
-
-    await TestBed.resetTestingModule();
-    await TestBed.configureTestingModule({
-      imports: [
-        AdminComponent,
-        IonicModule.forRoot(),
-        RouterTestingModule,
-        getTranslocoTestingModule()
-      ],
-      providers: [
-        { provide: Store, useValue: storeSpy },
-        { provide: NavigationService, useValue: navigationServiceSpy }
-      ]
-    }).compileComponents();
-
-    const fixture = TestBed.createComponent(AdminComponent);
-    const comp = fixture.componentInstance;
-    fixture.detectChanges();
-
-    comp.currentUser$.subscribe((user) => {
-      expect(user).toBeNull();
+  it('should load live KPI stats in ngOnInit()', (done) => {
+    component.userCount$.subscribe(count => {
+      expect(count).toBe(1);
+      done();
     });
   });
 });

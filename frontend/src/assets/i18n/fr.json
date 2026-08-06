@@ -555,5 +555,45 @@
       "STATUS_FREE": "Libre",
       "STATUS_OCCUPIED": "Occupée"
     }
+  },
+  "ADMIN_DASHBOARD": {
+    "TITLE": "Tableau de bord administrateur",
+    "SUBTITLE": "Supervision globale, gestion de l'équipe et paramètres système",
+    "WELCOME": "Bienvenue",
+    "STATS": {
+      "USERS": "Utilisateurs",
+      "USERS_DESC": "Comptes enregistrés",
+      "COCKTAILS": "Cocktails",
+      "COCKTAILS_DESC": "Cocktails au catalogue",
+      "INGREDIENTS": "Ingrédients",
+      "INGREDIENTS_DESC": "Stocks d'ingrédients",
+      "ESTABLISHMENT": "Établissement",
+      "ESTABLISHMENT_DESC": "Mentions légales & TVA",
+      "VIEW_LIST": "Voir les utilisateurs",
+      "VIEW_CATALOG": "Voir la carte",
+      "VIEW_STOCKS": "Voir les stocks",
+      "VIEW_SETTINGS": "Paramètres légaux"
+    },
+    "SECTIONS": {
+      "TEAM": "Gestion de l'Équipe",
+      "TEAM_DESC": "Création de comptes, rôles et autorisations du personnel",
+      "SETTINGS": "Paramètres & Sécurité",
+      "SETTINGS_DESC": "Informations légales, personnalisation visuelle et audit",
+      "CATALOG": "Carte & Stocks",
+      "CATALOG_DESC": "Gestion des boissons, recettes et approvisionnements",
+      "BILLING": "Facturation & Rapports",
+      "BILLING_DESC": "Clôture de caisse, export Z-Report et historique"
+    },
+    "ACTIONS": {
+      "CREATE_USER": "Créer un Utilisateur",
+      "USERS_LIST": "Liste du Personnel",
+      "LEGAL_CONFIG": "Configuration Établissement (SIRET / TVA / Ticket 58mm)",
+      "THEME_STUDIO": "Personnalisation & Thèmes",
+      "AUDIT_LOGS": "Journal d'Audit Système",
+      "ADD_COCKTAIL": "Ajouter un Cocktail",
+      "ADD_INGREDIENT": "Nouveau Stock Ingrédient",
+      "DAILY_RECAP": "Récapitulatif Journée & Z-Report",
+      "INVOICES_LIST": "Historique des Factures"
+    }
   }
 }

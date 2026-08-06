@@ -1,113 +1,180 @@
-<div class="admin-container">
-  <ion-card class="dashboard-card">
-    <ion-card-header>
-      <ion-card-title>Tableau de bord administrateur</ion-card-title>
-      <ion-card-subtitle>
-        Bienvenue, {{ (currentUser$ | async)?.username }}
-      </ion-card-subtitle>
-    </ion-card-header>
-    <ion-card-content>
-      <div class="dashboard-grid">
-        <ion-card class="stat-card">
-          <ion-card-header>
-            <ion-icon name="people-outline"></ion-icon>
-            <ion-card-title>Utilisateurs</ion-card-title>
-          </ion-card-header>
-          <ion-card-content>
-            <div class="stat-value">0</div>
-            <div class="stat-label">Utilisateurs actifs</div>
-          </ion-card-content>
-          <div class="ion-padding-horizontal ion-padding-bottom">
-            <ion-button fill="clear" color="primary">
-              <ion-icon name="list-outline" slot="start"></ion-icon>
-              Voir la liste
-            </ion-button>
-          </div>
-        </ion-card>
-
-        <ion-card class="stat-card">
-          <ion-card-header>
-            <ion-icon name="wine-outline"></ion-icon>
-            <ion-card-title>Cocktails</ion-card-title>
-          </ion-card-header>
-          <ion-card-content>
-            <div class="stat-value">0</div>
-            <div class="stat-label">Cocktails enregistrés</div>
-          </ion-card-content>
-          <div class="ion-padding-horizontal ion-padding-bottom">
-            <ion-button fill="clear" color="primary">
-              <ion-icon name="list-outline" slot="start"></ion-icon>
-              Voir la liste
-            </ion-button>
-          </div>
-        </ion-card>
-
-        <ion-card class="stat-card">
-          <ion-card-header>
-            <ion-icon name="flask-outline"></ion-icon>
-            <ion-card-title>Ingrédients</ion-card-title>
-          </ion-card-header>
-          <ion-card-content>
-            <div class="stat-value">0</div>
-            <div class="stat-label">Ingrédients disponibles</div>
-          </ion-card-content>
-          <div class="ion-padding-horizontal ion-padding-bottom">
-            <ion-button fill="clear" color="primary">
-              <ion-icon name="list-outline" slot="start"></ion-icon>
-              Voir la liste
-            </ion-button>
-          </div>
-        </ion-card>
-
-        <ion-card class="stat-card">
-          <ion-card-header>
-            <ion-icon name="calendar-outline"></ion-icon>
-            <ion-card-title>Événements</ion-card-title>
-          </ion-card-header>
-          <ion-card-content>
-            <div class="stat-value">0</div>
-            <div class="stat-label">Événements planifiés</div>
-          </ion-card-content>
-          <div class="ion-padding-horizontal ion-padding-bottom">
-            <ion-button fill="clear" color="primary">
-              <ion-icon name="list-outline" slot="start"></ion-icon>
-              Voir la liste
-            </ion-button>
-          </div>
-        </ion-card>
+<div class="admin-page" *transloco="let t">
+  <!-- Hero Header -->
+  <header class="admin-hero">
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span class="pulse-dot"></span>
+        <span>ADMINISTRATION</span>
       </div>
-    </ion-card-content>
-  </ion-card>
+      <h1 class="hero-title">{{ t('ADMIN_DASHBOARD.TITLE') }}</h1>
+      <p class="hero-subtitle">
+        {{ t('ADMIN_DASHBOARD.WELCOME') }}, <strong class="user-highlight">{{ (currentUser$ | async)?.username }}</strong> — {{ t('ADMIN_DASHBOARD.SUBTITLE') }}
+      </p>
+    </div>
+  </header>
 
-  <div class="admin-actions">
-    <ion-card>
-      <ion-card-header>
-        <ion-card-title>Actions rapides</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <div class="action-buttons">
-          <ion-button fill="clear" (click)="navigationService.navigateToRegister()" (keyup.enter)="navigationService.navigateToRegister()">
-            <ion-icon name="person-add-outline" slot="start"></ion-icon>
-            Créer un utilisateur
-          </ion-button>
-          <ion-button fill="clear" routerLink="/admin/personnalisation">
-            <ion-icon name="color-palette-outline" slot="start"></ion-icon>
-            Personnalisation
-          </ion-button>
-          <ion-button fill="clear" routerLink="/admin/audit-logs" data-testid="nav-audit-logs">
-            <ion-icon name="shield-checkmark-outline" slot="start"></ion-icon>
-            {{ 'NAV.AUDIT_LOGS' | transloco }}
-          </ion-button>
-          <ion-button color="secondary">
-            <ion-icon name="add-circle-outline" slot="start"></ion-icon>
-            Ajouter un cocktail
-          </ion-button>
-          <ion-button color="danger">
-            <ion-icon name="warning-outline" slot="start"></ion-icon>
-            Gérer les rapports
-          </ion-button>
+  <!-- Live KPI Stat Cards -->
+  <section class="kpi-grid">
+    <div class="kpi-card users-card" data-testid="kpi-users">
+      <div class="kpi-icon-wrapper">
+        <i class="ki-icon">👥</i>
+      </div>
+      <div class="kpi-body">
+        <span class="kpi-number">{{ userCount$ | async }}</span>
+        <span class="kpi-title">{{ t('ADMIN_DASHBOARD.STATS.USERS') }}</span>
+        <span class="kpi-desc">{{ t('ADMIN_DASHBOARD.STATS.USERS_DESC') }}</span>
+      </div>
+      <a routerLink="/admin/users" class="kpi-action-btn" data-testid="kpi-users-action">
+        <span>{{ t('ADMIN_DASHBOARD.STATS.VIEW_LIST') }}</span>
+        <span class="arrow">→</span>
+      </a>
+    </div>
+
+    <div class="kpi-card cocktails-card" data-testid="kpi-cocktails">
+      <div class="kpi-icon-wrapper">
+        <i class="ki-icon">🍸</i>
+      </div>
+      <div class="kpi-body">
+        <span class="kpi-number">{{ cocktailCount$ | async }}</span>
+        <span class="kpi-title">{{ t('ADMIN_DASHBOARD.STATS.COCKTAILS') }}</span>
+        <span class="kpi-desc">{{ t('ADMIN_DASHBOARD.STATS.COCKTAILS_DESC') }}</span>
+      </div>
+      <a routerLink="/cocktails" class="kpi-action-btn" data-testid="kpi-cocktails-action">
+        <span>{{ t('ADMIN_DASHBOARD.STATS.VIEW_CATALOG') }}</span>
+        <span class="arrow">→</span>
+      </a>
+    </div>
+
+    <div class="kpi-card ingredients-card" data-testid="kpi-ingredients">
+      <div class="kpi-icon-wrapper">
+        <i class="ki-icon">🧪</i>
+      </div>
+      <div class="kpi-body">
+        <span class="kpi-number">{{ ingredientCount$ | async }}</span>
+        <span class="kpi-title">{{ t('ADMIN_DASHBOARD.STATS.INGREDIENTS') }}</span>
+        <span class="kpi-desc">{{ t('ADMIN_DASHBOARD.STATS.INGREDIENTS_DESC') }}</span>
+      </div>
+      <a routerLink="/ingredients" class="kpi-action-btn" data-testid="kpi-ingredients-action">
+        <span>{{ t('ADMIN_DASHBOARD.STATS.VIEW_STOCKS') }}</span>
+        <span class="arrow">→</span>
+      </a>
+    </div>
+
+    <div class="kpi-card etab-card" data-testid="kpi-establishment">
+      <div class="kpi-icon-wrapper">
+        <i class="ki-icon">🏬</i>
+      </div>
+      <div class="kpi-body">
+        <span class="kpi-text-value">{{ etablissementName$ | async }}</span>
+        <span class="kpi-title">{{ t('ADMIN_DASHBOARD.STATS.ESTABLISHMENT') }}</span>
+        <span class="kpi-desc">{{ t('ADMIN_DASHBOARD.STATS.ESTABLISHMENT_DESC') }}</span>
+      </div>
+      <a routerLink="/admin/etablissement" class="kpi-action-btn" data-testid="kpi-etab-action">
+        <span>{{ t('ADMIN_DASHBOARD.STATS.VIEW_SETTINGS') }}</span>
+        <span class="arrow">→</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- Categorized Action Hub -->
+  <section class="actions-hub">
+    <!-- Section 1: Team & Users -->
+    <div class="hub-category-card">
+      <div class="category-header">
+        <div class="cat-badge team-badge">👥</div>
+        <div>
+          <h2 class="cat-title">{{ t('ADMIN_DASHBOARD.SECTIONS.TEAM') }}</h2>
+          <p class="cat-desc">{{ t('ADMIN_DASHBOARD.SECTIONS.TEAM_DESC') }}</p>
         </div>
-      </ion-card-content>
-    </ion-card>
-  </div>
+      </div>
+      <div class="category-actions">
+        <button
+          type="button"
+          class="hub-btn primary-hub-btn"
+          (click)="navigationService.navigateToRegister()"
+          (keyup.enter)="navigationService.navigateToRegister()"
+          data-testid="admin-action-create-user"
+        >
+          <span class="btn-icon">👤+</span>
+          <span>{{ t('ADMIN_DASHBOARD.ACTIONS.CREATE_USER') }}</span>
+        </button>
+
+        <a routerLink="/admin/users" class="hub-btn outline-hub-btn" data-testid="admin-action-users-list">
+          <span class="btn-icon">📋</span>
+          <span>{{ t('ADMIN_DASHBOARD.ACTIONS.USERS_LIST') }}</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Section 2: Settings & Security -->
+    <div class="hub-category-card">
+      <div class="category-header">
+        <div class="cat-badge settings-badge">⚙️</div>
+        <div>
+          <h2 class="cat-title">{{ t('ADMIN_DASHBOARD.SECTIONS.SETTINGS') }}</h2>
+          <p class="cat-desc">{{ t('ADMIN_DASHBOARD.SECTIONS.SETTINGS_DESC') }}</p>
+        </div>
+      </div>
+      <div class="category-actions">
+        <a routerLink="/admin/etablissement" class="hub-btn outline-hub-btn" data-testid="admin-action-legal-config">
+          <span class="btn-icon">🏛️</span>
+          <span>{{ t('ADMIN_DASHBOARD.ACTIONS.LEGAL_CONFIG') }}</span>
+        </a>
+
+        <a routerLink="/admin/personnalisation" class="hub-btn outline-hub-btn" data-testid="admin-action-theme-studio">
+          <span class="btn-icon">🎨</span>
+          <span>{{ t('ADMIN_DASHBOARD.ACTIONS.THEME_STUDIO') }}</span>
+        </a>
+
+        <a routerLink="/admin/audit-logs" class="hub-btn outline-hub-btn" data-testid="nav-audit-logs">
+          <span class="btn-icon">🛡️</span>
+          <span>{{ t('ADMIN_DASHBOARD.ACTIONS.AUDIT_LOGS') }}</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Section 3: Catalog & Supplies -->
+    <div class="hub-category-card">
+      <div class="category-header">
+        <div class="cat-badge catalog-badge">🍹</div>
+        <div>
+          <h2 class="cat-title">{{ t('ADMIN_DASHBOARD.SECTIONS.CATALOG') }}</h2>
+          <p class="cat-desc">{{ t('ADMIN_DASHBOARD.SECTIONS.CATALOG_DESC') }}</p>
+        </div>
+      </div>
+      <div class="category-actions">
+        <a routerLink="/cocktails/new" class="hub-btn accent-hub-btn" data-testid="admin-action-add-cocktail">
+          <span class="btn-icon">➕</span>
+          <span>{{ t('ADMIN_DASHBOARD.ACTIONS.ADD_COCKTAIL') }}</span>
+        </a>
+
+        <a routerLink="/ingredients/new" class="hub-btn outline-hub-btn" data-testid="admin-action-add-ingredient">
+          <span class="btn-icon">📦</span>
+          <span>{{ t('ADMIN_DASHBOARD.ACTIONS.ADD_INGREDIENT') }}</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Section 4: Billing & Reports -->
+    <div class="hub-category-card">
+      <div class="category-header">
+        <div class="cat-badge billing-badge">🧾</div>
+        <div>
+          <h2 class="cat-title">{{ t('ADMIN_DASHBOARD.SECTIONS.BILLING') }}</h2>
+          <p class="cat-desc">{{ t('ADMIN_DASHBOARD.SECTIONS.BILLING_DESC') }}</p>
+        </div>
+      </div>
+      <div class="category-actions">
+        <a routerLink="/factures/recap" class="hub-btn warning-hub-btn" data-testid="admin-action-daily-recap">
+          <span class="btn-icon">📊</span>
+          <span>{{ t('ADMIN_DASHBOARD.ACTIONS.DAILY_RECAP') }}</span>
+        </a>
+
+        <a routerLink="/factures" class="hub-btn outline-hub-btn" data-testid="admin-action-invoices-list">
+          <span class="btn-icon">📜</span>
+          <span>{{ t('ADMIN_DASHBOARD.ACTIONS.INVOICES_LIST') }}</span>
+        </a>
+      </div>
+    </div>
+  </section>
 </div>

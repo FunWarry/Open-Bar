@@ -555,5 +555,45 @@
       "STATUS_FREE": "Free",
       "STATUS_OCCUPIED": "Occupied"
     }
+  },
+  "ADMIN_DASHBOARD": {
+    "TITLE": "Administrator Dashboard",
+    "SUBTITLE": "Global supervision, team management, and system settings",
+    "WELCOME": "Welcome",
+    "STATS": {
+      "USERS": "Users",
+      "USERS_DESC": "Registered accounts",
+      "COCKTAILS": "Cocktails",
+      "COCKTAILS_DESC": "Catalog drinks",
+      "INGREDIENTS": "Ingredients",
+      "INGREDIENTS_DESC": "Ingredient inventory",
+      "ESTABLISHMENT": "Establishment",
+      "ESTABLISHMENT_DESC": "Legal details & VAT",
+      "VIEW_LIST": "View users",
+      "VIEW_CATALOG": "View menu",
+      "VIEW_STOCKS": "View inventory",
+      "VIEW_SETTINGS": "Legal settings"
+    },
+    "SECTIONS": {
+      "TEAM": "Team Management",
+      "TEAM_DESC": "Account creation, roles, and staff permissions",
+      "SETTINGS": "Settings & Security",
+      "SETTINGS_DESC": "Legal info, theme customization, and audit logging",
+      "CATALOG": "Menu & Inventory",
+      "CATALOG_DESC": "Drinks management, recipes, and supplies",
+      "BILLING": "Billing & Reports",
+      "BILLING_DESC": "Daily closing, Z-Report export, and invoice history"
+    },
+    "ACTIONS": {
+      "CREATE_USER": "Create User",
+      "USERS_LIST": "Staff List",
+      "LEGAL_CONFIG": "Establishment Details (SIRET / VAT / 58mm Ticket)",
+      "THEME_STUDIO": "Theme & Color Customization",
+      "AUDIT_LOGS": "System Audit Log",
+      "ADD_COCKTAIL": "Add New Cocktail",
+      "ADD_INGREDIENT": "New Ingredient Stock",
+      "DAILY_RECAP": "Daily Settlement & Z-Report",
+      "INVOICES_LIST": "Invoices History"
+    }
   }
 }
