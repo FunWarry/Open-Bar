@@ -21,14 +21,28 @@ describe('OnboardingService', () => {
     expect(service).toBeTruthy();
   });
 
+  it('isCompleted should return false when userKey is empty or null', () => {
+    expect(service.isCompleted('')).toBeFalse();
+  });
+
   it('isCompleted should return false initially', () => {
     expect(service.isCompleted('user_123')).toBeFalse();
+  });
+
+  it('markAsCompleted should handle empty userKey gracefully', () => {
+    service.markAsCompleted('');
+    expect(service.isCompletedSignal()).toBeFalse();
   });
 
   it('markAsCompleted should persist completion in localStorage', () => {
     service.markAsCompleted('user_123');
     expect(service.isCompleted('user_123')).toBeTrue();
     expect(localStorage.getItem('openbar_onboarding_completed_user_123')).toBe('true');
+  });
+
+  it('resetOnboarding should handle empty userKey gracefully', () => {
+    service.resetOnboarding('');
+    expect(service.isCompletedSignal()).toBeFalse();
   });
 
   it('resetOnboarding should clear completion state in localStorage', () => {
@@ -65,9 +79,13 @@ describe('OnboardingService', () => {
     expect(steps[1].roleTarget).toBe('BARMAN');
   });
 
-  it('getStepsForRole should return CLIENT fallback tutorial steps', () => {
-    const steps = service.getStepsForRole('CLIENT');
-    expect(steps.length).toBeGreaterThanOrEqual(2);
-    expect(steps[1].roleTarget).toBe('CLIENT');
+  it('getStepsForRole should return CLIENT fallback tutorial steps for CLIENT or unknown roles', () => {
+    const clientSteps = service.getStepsForRole('CLIENT');
+    expect(clientSteps.length).toBeGreaterThanOrEqual(2);
+    expect(clientSteps[1].roleTarget).toBe('CLIENT');
+
+    const unknownSteps = service.getStepsForRole('UNKNOWN');
+    expect(unknownSteps.length).toBeGreaterThanOrEqual(2);
+    expect(unknownSteps[1].roleTarget).toBe('CLIENT');
   });
 });

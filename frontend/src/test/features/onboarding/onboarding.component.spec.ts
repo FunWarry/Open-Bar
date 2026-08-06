@@ -21,7 +21,6 @@ describe('OnboardingComponent', () => {
     id: 42,
     username: 'manager_john',
     email: 'john@openbar.local',
-    role: 'MANAGER',
     roles: ['MANAGER'],
     createdAt: '2026-01-01',
     updatedAt: '2026-01-01'
@@ -61,6 +60,8 @@ describe('OnboardingComponent', () => {
     expect(component.userRole()).toBe('MANAGER');
     expect(component.steps().length).toBeGreaterThanOrEqual(3);
     expect(component.currentIndex()).toBe(0);
+    expect(component.currentStep).toBeDefined();
+    expect(component.isLastStep).toBeFalse();
   });
 
   it('next() should advance step index until last step then call finish', () => {
@@ -72,6 +73,7 @@ describe('OnboardingComponent', () => {
 
     component.next();
     expect(component.currentIndex()).toBe(2);
+    expect(component.isLastStep).toBeTrue();
 
     // Final step advance triggers finish
     component.next();
@@ -94,7 +96,10 @@ describe('OnboardingComponent', () => {
     component.goToStep(1);
     expect(component.currentIndex()).toBe(1);
 
-    component.goToStep(99); // Invalid
+    component.goToStep(-1); // Invalid negative index
+    expect(component.currentIndex()).toBe(1);
+
+    component.goToStep(99); // Invalid out of bound index
     expect(component.currentIndex()).toBe(1);
   });
 
@@ -114,6 +119,18 @@ describe('OnboardingComponent', () => {
     expect(router.navigate).toHaveBeenCalledWith(['/manager']);
   });
 
+  it('finish() should fallback to userRole string when currentUser has no id', () => {
+    component.currentUser = null;
+    component.userRole.set('SERVEUR');
+    spyOn(onboardingService, 'markAsCompleted');
+    spyOn(router, 'navigate');
+
+    component.finish();
+
+    expect(onboardingService.markAsCompleted).toHaveBeenCalledWith('SERVEUR');
+    expect(router.navigate).toHaveBeenCalledWith(['/serveur']);
+  });
+
   it('getDestinationRoute should return proper route for all roles', () => {
     component.userRole.set('ADMIN');
     expect(component.getDestinationRoute()).toBe('/admin');
@@ -128,6 +145,9 @@ describe('OnboardingComponent', () => {
     expect(component.getDestinationRoute()).toBe('/barman');
 
     component.userRole.set('CLIENT');
+    expect(component.getDestinationRoute()).toBe('/client/commande');
+
+    component.userRole.set('UNKNOWN_ROLE');
     expect(component.getDestinationRoute()).toBe('/client/commande');
   });
 });
