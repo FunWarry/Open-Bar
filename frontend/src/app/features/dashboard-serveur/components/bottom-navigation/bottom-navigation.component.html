@@ -2,30 +2,33 @@
   <button
     class="nav-tab"
     [class.active]="activeTab === 'tables'"
+    [attr.data-testid]="'bottom-nav-tab-tables'"
     (click)="onSelect('tables')">
     <ion-icon name="restaurant-outline"></ion-icon>
-    <span>Tables</span>
+    <span>{{ 'SERVEUR_MOBILE.NAV.TABLES' | transloco }}</span>
   </button>
 
   <button
     class="nav-tab"
     [class.active]="activeTab === 'commande'"
+    [attr.data-testid]="'bottom-nav-tab-commande'"
     (click)="onSelect('commande')">
     <div class="icon-wrap">
       <ion-icon name="cart-outline"></ion-icon>
-      <span class="badge" *ngIf="cartBadgeCount > 0">{{ cartBadgeCount }}</span>
+      <span class="badge" *ngIf="cartBadgeCount > 0" [attr.data-testid]="'cart-badge-count'">{{ cartBadgeCount }}</span>
     </div>
-    <span>Commande</span>
+    <span>{{ 'SERVEUR_MOBILE.NAV.COMMANDE' | transloco }}</span>
   </button>
 
   <button
     class="nav-tab"
     [class.active]="activeTab === 'suivi'"
+    [attr.data-testid]="'bottom-nav-tab-suivi'"
     (click)="onSelect('suivi')">
     <div class="icon-wrap">
       <ion-icon name="list-outline"></ion-icon>
-      <span class="badge warning" *ngIf="pendingOrdersCount > 0">{{ pendingOrdersCount }}</span>
+      <span class="badge warning" *ngIf="pendingOrdersCount > 0" [attr.data-testid]="'pending-badge-count'">{{ pendingOrdersCount }}</span>
     </div>
-    <span>Suivi</span>
+    <span>{{ 'SERVEUR_MOBILE.NAV.SUIVI' | transloco }}</span>
   </button>
 </nav>

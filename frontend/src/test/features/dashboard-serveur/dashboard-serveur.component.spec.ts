@@ -18,6 +18,7 @@ import { TableCardComponent } from '../../../app/features/dashboard-serveur/comp
 import { TableView } from '../../../app/features/dashboard-serveur/models/table-view.model';
 
 import { provideIonicAngular } from '@ionic/angular/standalone';
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
 
 describe('DashboardServeurComponent', () => {
   let component: DashboardServeurComponent;
@@ -68,6 +69,7 @@ describe('DashboardServeurComponent', () => {
         IonSegment, IonSegmentButton, IonLabel,
         IonButtons, IonButton, IonIcon,
         TableCardComponent,
+        getTranslocoTestingModule(),
       ],
       providers: [
         provideIonicAngular(),
@@ -108,14 +110,14 @@ describe('DashboardServeurComponent', () => {
     component.selectedFilter = 'occupees';
     component.filtrer();
     expect(component.filteredTables.every(t => t.occupee)).toBeTrue();
-    expect(component.filteredTables.length).toEqual(2);
+    expect(component.filteredTables).toHaveSize(2);
   });
 
   it('filtrer() avec "libres" ne retourne que les tables libres', () => {
     component.selectedFilter = 'libres';
     component.filtrer();
     expect(component.filteredTables.every(t => !t.occupee)).toBeTrue();
-    expect(component.filteredTables.length).toEqual(1);
+    expect(component.filteredTables).toHaveSize(1);
   });
 
   // --- countOccupees / countLibres ---
@@ -128,13 +130,21 @@ describe('DashboardServeurComponent', () => {
     expect(component.countLibres).toBe(1);
   });
 
+  it('getWaitTimeMinutes() retourne 0 pour une table libre et > 0 pour une table occupée', () => {
+    const libre = mockTables[1];
+    const occupee = mockTables[0];
+
+    expect(component.getWaitTimeMinutes(libre)).toBe(0);
+    expect(component.getWaitTimeMinutes(occupee)).toBeGreaterThan(0);
+  });
+
   // --- onSegmentChange() ---
 
   it('onSegmentChange() met à jour le filtre et relance filtrer()', () => {
     const event = { detail: { value: 'occupees' } };
     component.onSegmentChange(event);
     expect(component.selectedFilter).toBe('occupees');
-    expect(component.filteredTables.length).toEqual(2);
+    expect(component.filteredTables).toHaveSize(2);
   });
 
   // --- chargerTables() ---

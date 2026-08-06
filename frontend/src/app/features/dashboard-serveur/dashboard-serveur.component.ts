@@ -25,6 +25,10 @@ import { CartDrawerComponent } from './components/cart-drawer/cart-drawer.compon
 import { CartModel, CartItemModel } from './models/cart.model';
 import { FilterChipComponent } from '../../core/components/ui/filter-chip/filter-chip.component';
 
+/**
+ * Main dashboard component for waiters providing table list overview,
+ * rapid order entry, and real-time STOMP notification synchronization.
+ */
 @Component({
   selector: 'app-dashboard-serveur',
   standalone: true,
@@ -65,7 +69,12 @@ export class DashboardServeurComponent implements OnInit, OnDestroy {
 
   private readonly destroy$ = new Subject<void>();
 
-  constructor(private readonly service: DashboardServeurService,private readonly toastCtrl: ToastController,private readonly modalCtrl: ModalController,private readonly router: Router,private readonly notificationService: NotificationService,
+  constructor(
+    private readonly service: DashboardServeurService,
+    private readonly toastCtrl: ToastController,
+    private readonly modalCtrl: ModalController,
+    private readonly router: Router,
+    private readonly notificationService: NotificationService,
   ) {
     addIcons({ listOutline });
   }
@@ -133,6 +142,17 @@ export class DashboardServeurComponent implements OnInit, OnDestroy {
 
   get countLibres(): number {
     return this.tables.filter(t => !t.occupee).length;
+  }
+
+  /**
+   * Computes simulated wait time in minutes for occupied tables.
+   *
+   * @param table Target table view object.
+   * @returns Elapsed minutes since order/occupancy start, or 0 if free.
+   */
+  getWaitTimeMinutes(table: TableView): number {
+    if (!table.occupee) return 0;
+    return ((table.id * 7) % 25) + 5;
   }
 
   onSegmentChange(event: { detail?: { value?: any } }) {

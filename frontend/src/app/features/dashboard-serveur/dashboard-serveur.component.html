@@ -34,7 +34,8 @@
       <app-mobile-table-card
         *ngFor="let table of filteredTables; trackBy: trackById"
         [table]="table"
-        (select)="onSelectionner($event)"
+        [waitTimeMinutes]="getWaitTimeMinutes(table)"
+        (tableSelect)="onSelectionner($event)"
         (newOrder)="onNewOrderForTable($event)">
       </app-mobile-table-card>
     </div>

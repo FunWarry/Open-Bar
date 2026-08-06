@@ -532,5 +532,21 @@
     "ERROR_FETCH": "Error loading daily summary",
     "EXPORT_SUCCESS": "PDF file downloaded successfully",
     "EXPORT_ERROR": "Error generating PDF"
+  },
+  "SERVEUR_MOBILE": {
+    "NAV": {
+      "TABLES": "Tables",
+      "COMMANDE": "Order",
+      "SUIVI": "Tracking"
+    },
+    "CARD": {
+      "COVER": "seats",
+      "WAIT_TIME": "Wait {{min}} min",
+      "COMMANDES_COUNT": "order(s)",
+      "TOTAL": "Current total",
+      "ORDER_CTA": "Order",
+      "STATUS_FREE": "Free",
+      "STATUS_OCCUPIED": "Occupied"
+    }
   }
 }

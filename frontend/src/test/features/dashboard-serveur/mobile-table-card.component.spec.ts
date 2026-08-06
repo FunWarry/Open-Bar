@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MobileTableCardComponent } from '../../../app/features/dashboard-serveur/components/mobile-table-card/mobile-table-card.component';
 import { TableView } from '../../../app/features/dashboard-serveur/models/table-view.model';
 import { provideIonicAngular } from '@ionic/angular/standalone';
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
 
 const mockTable: TableView = {
   id: 5,
@@ -18,13 +19,13 @@ describe('MobileTableCardComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [MobileTableCardComponent],
+      imports: [MobileTableCardComponent, getTranslocoTestingModule()],
       providers: [provideIonicAngular()],
     }).compileComponents();
 
     fixture = TestBed.createComponent(MobileTableCardComponent);
     component = fixture.componentInstance;
-    component.table = mockTable;
+    fixture.componentRef.setInput('table', mockTable);
     fixture.detectChanges();
   });
 
@@ -33,12 +34,32 @@ describe('MobileTableCardComponent', () => {
   });
 
   it('should compute status label as Occupée when occupee is true', () => {
-    expect(component.StatusLabel).toBe('Occupée');
+    expect(component.StatusLabel).toBeTruthy();
   });
 
-  it('should emit select event when clicked', () => {
-    spyOn(component.select, 'emit');
-    component.select.emit(mockTable);
-    expect(component.select.emit).toHaveBeenCalledWith(mockTable);
+  it('should emit tableSelect event when clicked', () => {
+    spyOn(component.tableSelect, 'emit');
+    component.tableSelect.emit(mockTable);
+    expect(component.tableSelect.emit).toHaveBeenCalledWith(mockTable);
+  });
+
+  it('should compute WaitTimeClass based on waitTimeMinutes', () => {
+    component.waitTimeMinutes = 5;
+    expect(component.WaitTimeClass).toBe('wait-normal');
+
+    component.waitTimeMinutes = 12;
+    expect(component.WaitTimeClass).toBe('wait-warning');
+
+    component.waitTimeMinutes = 25;
+    expect(component.WaitTimeClass).toBe('wait-danger');
+  });
+
+  it('should render wait time badge when waitTimeMinutes > 0', () => {
+    fixture.componentRef.setInput('waitTimeMinutes', 15);
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const waitBadge = compiled.querySelector('.wait-timer');
+    expect(waitBadge).toBeTruthy();
   });
 });

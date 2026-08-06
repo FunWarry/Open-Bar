@@ -534,5 +534,21 @@
     "ERROR_FETCH": "Erreur lors du chargement du récapitulatif",
     "EXPORT_SUCCESS": "Fichier PDF téléchargé avec succès",
     "EXPORT_ERROR": "Erreur lors de la génération du PDF"
+  },
+  "SERVEUR_MOBILE": {
+    "NAV": {
+      "TABLES": "Tables",
+      "COMMANDE": "Commande",
+      "SUIVI": "Suivi"
+    },
+    "CARD": {
+      "COVER": "couverts",
+      "WAIT_TIME": "Attente {{min}} min",
+      "COMMANDES_COUNT": "commande(s)",
+      "TOTAL": "Total en cours",
+      "ORDER_CTA": "Commander",
+      "STATUS_FREE": "Libre",
+      "STATUS_OCCUPIED": "Occupée"
+    }
   }
 }
