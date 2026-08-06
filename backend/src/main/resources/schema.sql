@@ -204,7 +204,9 @@ CREATE TABLE IF NOT EXISTS app_settings (
 
 -- Garantit que la ligne singleton existe dès le déploiement, pour éviter toute
 -- course entre requêtes GET /api/settings concurrentes au premier démarrage.
-INSERT INTO app_settings (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
+INSERT INTO app_settings (id, primary_color, primary_color_strong, establishment_name, default_theme, temps_alerte_commande_minutes, temps_alerte_critique_commande_minutes)
+VALUES (1, '#6c7fe8', '#5a68d6', 'OpenBar', 'DARK', 5, 10)
+ON CONFLICT (id) DO NOTHING;
 
 -- Legal establishment configuration (#129)
 CREATE TABLE IF NOT EXISTS establishment_config (

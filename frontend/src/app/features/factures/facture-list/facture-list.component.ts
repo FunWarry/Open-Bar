@@ -6,7 +6,7 @@ import { Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
 import { TranslocoModule } from '@jsverse/transloco';
 import {
-  IonCard, IonSearchbar, IonSegment, IonSegmentButton, IonBadge, IonButton,
+  IonContent, IonCard, IonSearchbar, IonSegment, IonSegmentButton, IonBadge, IonButton,
   IonRefresher, IonRefresherContent, IonIcon, IonSpinner
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -32,7 +32,7 @@ export type FactureFilterStatus = 'ALL' | 'SETTLED' | 'PENDING';
   imports: [
     CommonModule, RouterLink, FormsModule, CurrencyPipe, DatePipe,
     TranslocoModule,
-    IonCard, IonSearchbar, IonSegment, IonSegmentButton, IonBadge, IonButton,
+    IonContent, IonCard, IonSearchbar, IonSegment, IonSegmentButton, IonBadge, IonButton,
     IonRefresher, IonRefresherContent, IonIcon, IonSpinner
   ],
   templateUrl: './facture-list.component.html',
