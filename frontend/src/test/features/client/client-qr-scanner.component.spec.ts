@@ -59,6 +59,20 @@ describe('ClientQrScannerComponent', () => {
 
   // --- Camera & MediaDevices Error Handling ---
 
+  it('startCamera should handle camera stream successfully and start barcode detection', async () => {
+    const mockTrack = { stop: jasmine.createSpy('stop') };
+    const mockStream = { getTracks: () => [mockTrack] } as any;
+    spyOn(navigator.mediaDevices, 'getUserMedia').and.resolveTo(mockStream);
+
+    const mockVideoEl = { srcObject: null, play: jasmine.createSpy('play').and.resolveTo() };
+    component.videoElement = { nativeElement: mockVideoEl as any };
+
+    await component.startCamera();
+
+    expect(component.isCameraActive()).toBeTrue();
+    expect(mockVideoEl.play).toHaveBeenCalled();
+  });
+
   it('startCamera should handle camera permission denied error', async () => {
     const err = new Error('Permission denied');
     err.name = 'NotAllowedError';
@@ -90,6 +104,25 @@ describe('ClientQrScannerComponent', () => {
     expect((component as any).mediaStream).toBeNull();
     expect(component.isCameraActive()).toBeFalse();
   });
+
+  // --- BarcodeDetector Mock Tests ---
+
+  it('startBarcodeDetection should detect QR code and call handleScannedCode when supported', fakeAsync(() => {
+    spyOn(component, 'handleScannedCode');
+    component.isCameraActive.set(true);
+    component.videoElement = { nativeElement: {} as any };
+
+    const mockDetect = jasmine.createSpy('detect').and.resolveTo([{ rawValue: 'https://openbar.local/client/commande?table=8' }]);
+    (window as any).BarcodeDetector = function () {
+      return { detect: mockDetect };
+    };
+
+    (component as any).startBarcodeDetection();
+    tick(600);
+
+    expect(mockDetect).toHaveBeenCalled();
+    expect(component.handleScannedCode).toHaveBeenCalledWith('https://openbar.local/client/commande?table=8');
+  }));
 
   // --- Table Number Parsing ---
 
