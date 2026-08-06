@@ -366,6 +366,7 @@ Pour les fichiers scopés par feature (ex : `fr/commandes.json`), déclarer le s
 | Harmonisation Vues Applicatives Figma (#211) | — | ✅ | ✅ |
 | Personnalisation Interactive Thème & Palettes HSL (#217) | — | ✅ | ✅ |
 | Vue Globale Stock Barman & Manager (#226) | ✅ | ✅ | ✅ |
+| Écran Onboarding — Flow 1ère connexion par rôle (#229) | — | ✅ | ✅ |
 
 
 
