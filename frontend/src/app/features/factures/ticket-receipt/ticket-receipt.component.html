@@ -1,18 +1,35 @@
 <div class="ticket-wrapper">
-  <div class="no-print ion-text-center ion-margin-bottom">
+  <div class="no-print format-toolbar ion-text-center ion-margin-bottom">
+    <div class="format-selector ion-margin-bottom">
+      <ion-segment [value]="selectedFormat" (ionChange)="setFormat($any($event.detail.value))">
+        <ion-segment-button value="80mm" data-testid="format-80mm-btn">
+          <ion-label>80mm</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="58mm" data-testid="format-58mm-btn">
+          <ion-label>58mm</ion-label>
+        </ion-segment-button>
+      </ion-segment>
+    </div>
+
     <ion-button
       data-testid="print-ticket-btn"
       color="primary"
       fill="solid"
       (click)="imprimerTicket()"
+      (keyup.enter)="imprimerTicket()"
       (keydown.enter)="imprimerTicket()"
     >
       <ion-icon slot="start" name="print-outline"></ion-icon>
-      {{ 'FACTURES.PRINT_TICKET_80MM' | transloco }}
+      {{ 'FACTURES.PRINT_TICKET' | transloco }} ({{ selectedFormat }})
     </ion-button>
   </div>
 
-  <div class="thermal-receipt" data-testid="thermal-receipt">
+  <div
+    class="thermal-receipt"
+    [class.format-58mm]="selectedFormat === '58mm'"
+    [class.format-80mm]="selectedFormat === '80mm'"
+    data-testid="thermal-receipt"
+  >
     <!-- Legal Establishment Header -->
     <div class="receipt-header" *ngIf="establishmentConfig as cfg">
       <h2 class="establishment-name">{{ cfg.legalName || 'OpenBar' }}</h2>
@@ -28,7 +45,7 @@
       <p class="legal-tva" *ngIf="cfg.tvaNumber">N° TVA: {{ cfg.tvaNumber }}</p>
     </div>
 
-    <div class="receipt-divider">--------------------------------</div>
+    <div class="receipt-divider">{{ dividerString }}</div>
 
     <!-- Ticket Metadata -->
     <div class="receipt-meta">
@@ -50,7 +67,7 @@
       </div>
     </div>
 
-    <div class="receipt-divider">--------------------------------</div>
+    <div class="receipt-divider">{{ dividerString }}</div>
 
     <!-- Consumption Items Table -->
     <div class="receipt-items">
@@ -72,7 +89,7 @@
       </div>
     </div>
 
-    <div class="receipt-divider">--------------------------------</div>
+    <div class="receipt-divider">{{ dividerString }}</div>
 
     <!-- Totals & VAT Breakdown -->
     <div class="receipt-totals">
@@ -94,7 +111,7 @@
       </div>
     </div>
 
-    <div class="receipt-divider">--------------------------------</div>
+    <div class="receipt-divider">{{ dividerString }}</div>
 
     <!-- Status & Legal Footer -->
     <div class="receipt-footer">
@@ -102,7 +119,7 @@
         *** {{ (facture.reglee ? 'FACTURES.SETTLED' : 'FACTURES.PENDING') | transloco | uppercase }} ***
       </p>
       <p class="thank-you">{{ 'FACTURES.THANK_YOU' | transloco }}</p>
-      <p class="software-info">OpenBar PWA — Soft Cash 80mm</p>
+      <p class="software-info">OpenBar PWA — Thermal {{ selectedFormat }}</p>
     </div>
   </div>
 </div>

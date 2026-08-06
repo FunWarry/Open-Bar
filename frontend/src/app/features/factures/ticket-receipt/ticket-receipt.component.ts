@@ -1,6 +1,6 @@
 import { Component, Input, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonButton, IonIcon } from '@ionic/angular/standalone';
+import { IonButton, IonIcon, IonSegment, IonSegmentButton, IonLabel } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { printOutline } from 'ionicons/icons';
 import { TranslocoModule } from '@jsverse/transloco';
@@ -9,18 +9,21 @@ import { EstablishmentConfig } from '../../../core/models/establishment-config.m
 import { EtablissementService } from '../../../core/services/etablissement.service';
 
 /**
- * Thermal receipt component formatted for 80mm thermal printers and web preview.
+ * Thermal receipt component formatted for 80mm and 58mm thermal printers and web preview.
  */
 @Component({
   selector: 'app-ticket-receipt',
   standalone: true,
-  imports: [CommonModule, IonButton, IonIcon, TranslocoModule],
+  imports: [CommonModule, IonButton, IonIcon, IonSegment, IonSegmentButton, IonLabel, TranslocoModule],
   templateUrl: './ticket-receipt.component.html',
   styleUrls: ['./ticket-receipt.component.scss'],
 })
 export class TicketReceiptComponent implements OnInit {
   @Input() facture!: Facture;
   @Input() establishmentConfig?: EstablishmentConfig;
+  @Input() ticketFormat?: '80mm' | '58mm';
+
+  selectedFormat: '80mm' | '58mm' = '80mm';
 
   private readonly etablissementService = inject(EtablissementService);
 
@@ -29,9 +32,17 @@ export class TicketReceiptComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    if (this.ticketFormat) {
+      this.selectedFormat = this.ticketFormat;
+    }
     if (!this.establishmentConfig) {
       this.etablissementService.getConfig().subscribe({
-        next: (config) => (this.establishmentConfig = config),
+        next: (config) => {
+          this.establishmentConfig = config;
+          if (!this.ticketFormat && config?.ticketFormat) {
+            this.selectedFormat = config.ticketFormat;
+          }
+        },
         error: () => {
           // Fallback default config if service fails
           this.establishmentConfig = {
@@ -49,10 +60,23 @@ export class TicketReceiptComponent implements OnInit {
             paymentTerms: 'Paiement immédiat à réception',
             discountPolicy: 'Aucun escompte pour paiement anticipé',
             latePaymentRate: 0.12,
+            ticketFormat: '80mm',
           };
         },
       });
+    } else if (!this.ticketFormat && this.establishmentConfig.ticketFormat) {
+      this.selectedFormat = this.establishmentConfig.ticketFormat;
     }
+  }
+
+  setFormat(format: '80mm' | '58mm'): void {
+    this.selectedFormat = format;
+  }
+
+  get dividerString(): string {
+    return this.selectedFormat === '58mm'
+      ? '-----------------------'
+      : '--------------------------------';
   }
 
   get totalTTC(): number {

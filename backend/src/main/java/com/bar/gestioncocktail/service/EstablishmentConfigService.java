@@ -72,6 +72,13 @@ public class EstablishmentConfigService {
     }
 
     private void applyUpdates(EstablishmentConfig config, EstablishmentConfigUpdateRequest request) {
+        applyLegalInfoUpdates(config, request);
+        applyContactAndPolicyUpdates(config, request);
+        applyTimeZoneUpdate(config, request.timeZone());
+        applyTicketFormatUpdate(config, request.ticketFormat());
+    }
+
+    private void applyLegalInfoUpdates(EstablishmentConfig config, EstablishmentConfigUpdateRequest request) {
         if (request.legalName() != null) config.setLegalName(request.legalName());
         if (request.legalForm() != null) config.setLegalForm(request.legalForm());
         if (request.siret() != null) config.setSiret(request.siret());
@@ -80,12 +87,23 @@ public class EstablishmentConfigService {
         if (request.tvaNumber() != null) config.setTvaNumber(request.tvaNumber());
         if (request.codeApe() != null) config.setCodeApe(request.codeApe());
         if (request.capitalSocial() != null) config.setCapitalSocial(request.capitalSocial());
+    }
+
+    private void applyContactAndPolicyUpdates(EstablishmentConfig config, EstablishmentConfigUpdateRequest request) {
         if (request.address() != null) config.setAddress(request.address());
         if (request.phone() != null) config.setPhone(request.phone());
         if (request.email() != null) config.setEmail(request.email());
         if (request.paymentTerms() != null) config.setPaymentTerms(request.paymentTerms());
         if (request.discountPolicy() != null) config.setDiscountPolicy(request.discountPolicy());
-        applyTimeZoneUpdate(config, request.timeZone());
+        if (request.latePaymentRate() != null) config.setLatePaymentRate(request.latePaymentRate());
+    }
+
+    private void applyTicketFormatUpdate(EstablishmentConfig config, String ticketFormat) {
+        if (ticketFormat == null) return;
+        String fmt = ticketFormat.trim().toLowerCase();
+        if ("80mm".equals(fmt) || "58mm".equals(fmt)) {
+            config.setTicketFormat(fmt);
+        }
     }
 
     private void applyTimeZoneUpdate(EstablishmentConfig config, String timeZone) {
@@ -101,4 +119,3 @@ public class EstablishmentConfigService {
         config.setTimeZone(tz.isBlank() ? "SYSTEM" : tz);
     }
 }
-

@@ -52,6 +52,9 @@ public record EstablishmentConfigUpdateRequest(
     BigDecimal latePaymentRate,
 
     @Size(max = 50, message = "Time zone cannot exceed 50 characters")
-    String timeZone
+    String timeZone,
+
+    @Pattern(regexp = "^(80mm|58mm)$", message = "Ticket format must be either 80mm or 58mm")
+    String ticketFormat
 ) {
 }

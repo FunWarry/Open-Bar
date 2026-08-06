@@ -51,7 +51,8 @@ const mockConfig: EstablishmentConfig = {
   email: 'contact@openbar.local',
   paymentTerms: 'Paiement immédiat',
   discountPolicy: 'Aucun escompte',
-  latePaymentRate: 0.12
+  latePaymentRate: 0.12,
+  ticketFormat: '58mm'
 };
 
 describe('TicketReceiptComponent', () => {
@@ -83,9 +84,26 @@ describe('TicketReceiptComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('ngOnInit() fetches establishment config if not provided as input', () => {
+  it('ngOnInit() fetches establishment config if not provided as input and applies ticketFormat', () => {
     expect(etablissementServiceSpy.getConfig).toHaveBeenCalled();
     expect(component.establishmentConfig).toEqual(mockConfig);
+    expect(component.selectedFormat).toBe('58mm');
+  });
+
+  it('uses ticketFormat Input directly if specified', () => {
+    component.ticketFormat = '58mm';
+    component.ngOnInit();
+    expect(component.selectedFormat).toBe('58mm');
+  });
+
+  it('setFormat() switches between 80mm and 58mm formats', () => {
+    component.setFormat('80mm');
+    expect(component.selectedFormat).toBe('80mm');
+    expect(component.dividerString).toBe('--------------------------------');
+
+    component.setFormat('58mm');
+    expect(component.selectedFormat).toBe('58mm');
+    expect(component.dividerString).toBe('-----------------------');
   });
 
   it('totalTTC returns totalTTC from facture', () => {

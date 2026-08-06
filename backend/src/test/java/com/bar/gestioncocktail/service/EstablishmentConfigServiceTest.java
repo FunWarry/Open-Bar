@@ -61,7 +61,7 @@ class EstablishmentConfigServiceTest {
             "FR12732829320", "5630Z", new BigDecimal("15000"),
             "10 rue Test", "0102030405", "email@test.fr",
             "Immédiat", "Pas d escompte", new BigDecimal("0.12"),
-            "Europe/Paris"
+            "Europe/Paris", "58mm"
         );
 
         EstablishmentConfigDTO dto = service.updateConfig(request);
@@ -70,7 +70,27 @@ class EstablishmentConfigServiceTest {
         assertThat(dto.legalName()).isEqualTo("Nouveau Nom SARL");
         assertThat(dto.legalForm()).isEqualTo("SAS");
         assertThat(dto.timeZone()).isEqualTo("Europe/Paris");
+        assertThat(dto.ticketFormat()).isEqualTo("58mm");
         verify(repository).save(any(EstablishmentConfig.class));
+    }
+
+    @Test
+    void updateConfig_avecTicketFormatValide80mm_metAJourFormat() {
+        when(repository.findById(1L)).thenReturn(Optional.of(config));
+        when(repository.save(any(EstablishmentConfig.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        EstablishmentConfigUpdateRequest request = new EstablishmentConfigUpdateRequest(
+            "OpenBar SARL", "SARL", "73282932000074", "Paris", "B 123",
+            "FR12732829320", "5630Z", new BigDecimal("10000"),
+            "12 Rue du Bar", "+33123456789", "contact@openbar.local",
+            "Paiement immédiat", "Aucun", new BigDecimal("0.12"),
+            "SYSTEM", "80mm"
+        );
+
+        EstablishmentConfigDTO dto = service.updateConfig(request);
+
+        assertThat(dto).isNotNull();
+        assertThat(dto.ticketFormat()).isEqualTo("80mm");
     }
 
     @Test
@@ -80,7 +100,7 @@ class EstablishmentConfigServiceTest {
             "Nom", "SARL", "12345678900000", "Paris", "B 123",
             "FR12732829320", "5630Z", new BigDecimal("10000"),
             "Adresse", "01", "a@b.fr", "Terms", "Policy", new BigDecimal("0.1"),
-            "SYSTEM"
+            "SYSTEM", "80mm"
         );
 
         assertThatThrownBy(() -> service.updateConfig(request))
@@ -88,4 +108,3 @@ class EstablishmentConfigServiceTest {
             .hasMessageContaining("numéro SIRET spécifié est invalide");
     }
 }
-
