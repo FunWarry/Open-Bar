@@ -65,7 +65,7 @@
 - ~~**Issue #226** (Ticket #B) : `feat: Barman — Vue Globale Stock [BARMAN, MANAGER]` (Figma 488:3566)~~ ✅ (Mergé PR #240)
 - **Issue #227** (Ticket #C) : `feat: Facturation — Vue Récap Journée [MANAGER]` (Figma 628:1096)
 - **Issue #228** (Ticket #D) : `feat: Facturation — Vue Règlement Individuel Post-Split [MANAGER, SERVEUR]` (Figma 630:1264)
-- **Issue #229** (Ticket #E) : `feat: Écran Onboarding — Flow 1ère connexion par rôle [TOUS]` (Figma 633:1100–1173)
+- ~~**Issue #229** (Ticket #E) : `feat: Écran Onboarding — Flow 1ère connexion par rôle [TOUS]` (Figma 633:1100–1173)~~ ✅ (Mergé PR #257)
 - **Issue #230** (Ticket #F) : `feat: Composant EmptyState réutilisable [DS]` (Figma 540:1056)
 
 ### 🟡 Priorité MOYENNE
@@ -97,6 +97,7 @@
 
 | PR / Issue | Description |
 |------------|-------------|
+| #257 (#229) | Écran Onboarding — Flow 1ère connexion par rôle (Figma 633:1100–1173) : Composant Ionic 8 standalone `OnboardingComponent` (`/onboarding`) affichant des cartes tutoriel guidées adaptées au rôle de l'utilisateur (ADMIN, MANAGER, SERVEUR, BARMAN, CLIENT). Service `OnboardingService` avec persistance de l'état de complétion dans `localStorage`. Bouton de relance du tutoriel depuis la page Profil (`/profile`). Internationalisation FR/EN (`ONBOARDING.*`). Tests unitaires Karma/Jasmine 100% verts (1038/1038 OK). |
 | #256 (#225) | Vue Client — Écran Scanner QR Code (Figma 636:988) : Viseur caméra en direct avec animation laser et overlay de cadrage, détection automatique via l'API native `BarcodeDetector` (formats `qr_code`) et redirection automatique vers `/client/commande?table={numero}`. Saisie manuelle du numéro de table en fallback, boutons de simulation de scan, et i18n FR/EN complet (`CLIENT_QR.*`). Coverage de tests unitaires Jasmine/Karma 100% verts (1017/1017 OK). |
 | #248 (#247) | Conservation de la BDD au redémarrage & élimination de la redirection /setup : Suppression de la clause destructive `DROP TABLE IF EXISTS ... CASCADE` dans `schema.sql` et passage à `CREATE TABLE IF NOT EXISTS`. Les comptes utilisateurs, identifiants Admin et données de l'application sont désormais conservés intacts après chaque redémarrage du backend. Tests Java Spring Boot (358/358 OK). |
 | #246 (#245) | Bouton de Traduction Global (Connecté & Non Connecté) : Intégration du bouton de bascule de langue (FR/EN) avec icône globe dans la TopBar (`NavbarComponent`) pour les utilisateurs connectés, et bouton flottant fixe sur toutes les vues non connectées (`/login`, `/register`, `/setup`, `/client/*`). Bascule instantanée du langage Transloco et sauvegarde `localStorage`. Tests unitaires Angular Karma (976/976 OK). |
