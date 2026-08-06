@@ -155,6 +155,22 @@
           <ion-select-option value="en">🇬🇧 English</ion-select-option>
         </ion-select>
       </div>
+
+      <!-- Onboarding tutorial restart row -->
+      <div class="pref-row pref-row--onboarding" data-testid="pref-row-onboarding">
+        <div class="pref-info">
+          <span class="pref-label">{{ 'PROFILE.PREF_ONBOARDING_LABEL' | transloco }}</span>
+          <span class="pref-description">{{ 'PROFILE.PREF_ONBOARDING_DESC' | transloco }}</span>
+        </div>
+        <app-action-button
+          variant="secondary"
+          size="small"
+          (click)="onRestartOnboarding()"
+          (keyup.enter)="onRestartOnboarding()"
+          data-testid="btn-restart-onboarding">
+          🚀 {{ 'PROFILE.RESTART_ONBOARDING_BTN' | transloco }}
+        </app-action-button>
+      </div>
     </ion-card-content>
   </ion-card>
 
