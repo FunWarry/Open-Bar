@@ -248,6 +248,8 @@ ALTER TABLE factures ADD COLUMN IF NOT EXISTS notes TEXT;
 ALTER TABLE facture_items ADD COLUMN IF NOT EXISTS vat_rate VARCHAR(20) DEFAULT 'TWENTY';
 ALTER TABLE facture_items ADD COLUMN IF NOT EXISTS price_ht DECIMAL(10,2);
 ALTER TABLE facture_items ADD COLUMN IF NOT EXISTS vat_amount DECIMAL(10,2);
+ALTER TABLE facture_items ADD COLUMN IF NOT EXISTS commande_item_id BIGINT REFERENCES commande_items(id);
+ALTER TABLE facture_items ALTER COLUMN commande_item_id DROP NOT NULL;
 
 -- Gestion des stocks ingrédients (#206) : colonnes manquantes
 ALTER TABLE ingredients ALTER COLUMN quantite DROP NOT NULL;
