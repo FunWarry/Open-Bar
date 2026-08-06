@@ -57,6 +57,40 @@ describe('ClientQrScannerComponent', () => {
     expect(component.mode()).toBe('scan');
   });
 
+  // --- Camera & MediaDevices Error Handling ---
+
+  it('startCamera should handle camera permission denied error', async () => {
+    const err = new Error('Permission denied');
+    err.name = 'NotAllowedError';
+
+    spyOn(navigator.mediaDevices, 'getUserMedia').and.rejectWith(err);
+    await component.startCamera();
+
+    expect(component.isCameraActive()).toBeFalse();
+    expect(component.cameraError()).toBe('CLIENT_QR.ERR_PERMISSION_DENIED');
+  });
+
+  it('startCamera should handle generic camera error', async () => {
+    spyOn(navigator.mediaDevices, 'getUserMedia').and.rejectWith(new Error('Unknown error'));
+    await component.startCamera();
+
+    expect(component.isCameraActive()).toBeFalse();
+    expect(component.cameraError()).toBe('CLIENT_QR.ERR_CAMERA_UNAVAILABLE');
+  });
+
+  it('stopCamera should stop tracks and reset states', () => {
+    const mockTrack = { stop: jasmine.createSpy('stop') };
+    const mockStream = { getTracks: () => [mockTrack] } as any;
+    (component as any).mediaStream = mockStream;
+    (component as any).scanIntervalId = 1234;
+
+    component.stopCamera();
+
+    expect(mockTrack.stop).toHaveBeenCalled();
+    expect((component as any).mediaStream).toBeNull();
+    expect(component.isCameraActive()).toBeFalse();
+  });
+
   // --- Table Number Parsing ---
 
   it('extractTableNumber should extract table number from valid URL parameter', () => {

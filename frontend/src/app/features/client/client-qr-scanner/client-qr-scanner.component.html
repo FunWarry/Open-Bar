@@ -58,6 +58,7 @@
               variant="ghost"
               size="small"
               (click)="startCamera()"
+              (keyup.enter)="startCamera()"
               data-testid="btn-retry-camera">
               {{ 'COMMON.REFRESH' | transloco }}
             </app-action-button>

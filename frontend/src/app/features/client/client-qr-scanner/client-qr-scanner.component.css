@@ -95,9 +95,9 @@
 }
 
 .tab-btn.active {
-  background: var(--primary, #6c7fe8);
+  background: var(--primary, #4338ca);
   color: #ffffff;
-  box-shadow: 0 2px 8px rgba(108, 127, 232, 0.35);
+  box-shadow: 0 2px 8px rgba(67, 56, 202, 0.4);
 }
 
 /* ─── Camera Viewfinder Section — Figma 636:995 ─── */
@@ -263,7 +263,7 @@
 }
 
 .sim-btn:hover {
-  background: var(--primary, #6c7fe8);
+  background: var(--primary, #4338ca);
   color: #ffffff;
 }
 
