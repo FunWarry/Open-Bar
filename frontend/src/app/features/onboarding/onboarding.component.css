@@ -45,19 +45,19 @@
 }
 
 .btn-skip-ghost {
-  background: transparent;
-  border: none;
-  color: var(--text-muted, #94a3b8);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #f8fafc;
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  padding: 6px 12px;
+  padding: 6px 14px;
   border-radius: 8px;
   transition: all 0.2s ease;
 
   &:hover {
     color: #ffffff;
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.16);
   }
 }
 
@@ -133,8 +133,8 @@
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background: rgba(16, 185, 129, 0.2);
-  color: #10b981;
+  background: #047857;
+  color: #ffffff;
   font-size: 0.85rem;
   font-weight: 800;
   display: flex;
