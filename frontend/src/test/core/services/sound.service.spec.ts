@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { SoundService } from '../../../app/core/services/sound.service';
+import { PreferencesService } from '../../../app/core/services/preferences.service';
 
 describe('SoundService', () => {
   let service: SoundService;
@@ -22,7 +23,8 @@ describe('SoundService', () => {
 
   it('should restore soundEnabled preference from localStorage if set to false', () => {
     localStorage.setItem('openbar_sound_enabled', 'false');
-    const customService = new SoundService();
+    const prefs = new PreferencesService();
+    const customService = new SoundService(prefs);
     expect(customService.isSoundEnabled()).toBeFalse();
   });
 

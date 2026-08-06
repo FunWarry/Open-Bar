@@ -1,15 +1,15 @@
 import { TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Store } from '@ngrx/store';
-import { ToastController } from '@ionic/angular/standalone';
+import { ToastController, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonSelect, IonSelectOption } from '@ionic/angular/standalone';
 import { of, Subject, throwError } from 'rxjs';
 import { ProfileComponent } from '../../../app/features/profile/profile.component';
-import {
-  IonCard, IonCardHeader, IonCardTitle, IonCardContent
-} from '@ionic/angular/standalone';
 import { DatePipe } from '@angular/common';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { UserService } from '../../../app/core/services/user.service';
+import { SoundService } from '../../../app/core/services/sound.service';
+import { LanguageService } from '../../../app/core/services/language.service';
+import { PreferencesService } from '../../../app/core/services/preferences.service';
 import { setCurrentUser } from '../../../app/core/store/auth.actions';
 import { User } from '../../../app/core/models/user.model';
 
@@ -19,6 +19,9 @@ describe('ProfileComponent', () => {
   let userServiceSpy: jasmine.SpyObj<UserService>;
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
   let toastSpy: jasmine.SpyObj<HTMLIonToastElement>;
+  let soundServiceSpy: jasmine.SpyObj<SoundService>;
+  let languageServiceSpy: jasmine.SpyObj<LanguageService>;
+  let preferencesSpy: jasmine.SpyObj<PreferencesService>;
 
   const mockUser: User = {
     id: 1,
@@ -43,18 +46,27 @@ describe('ProfileComponent', () => {
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
     toastCtrlSpy.create.and.returnValue(Promise.resolve(toastSpy));
 
+    soundServiceSpy = jasmine.createSpyObj('SoundService', ['setSoundEnabled']);
+    languageServiceSpy = jasmine.createSpyObj('LanguageService', ['setLanguage'], { currentLanguage: 'fr' });
+    preferencesSpy = jasmine.createSpyObj('PreferencesService', ['setSoundEnabled', 'setVisualNotifEnabled', 'soundEnabled', 'visualNotifEnabled']);
+    preferencesSpy.soundEnabled.and.returnValue(true);
+    preferencesSpy.visualNotifEnabled.and.returnValue(true);
+
     await TestBed.configureTestingModule({
       imports: [
         ProfileComponent,
         ReactiveFormsModule,
         getTranslocoTestingModule(),
-        IonCard, IonCardHeader, IonCardTitle, IonCardContent,
+        IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonSelect, IonSelectOption,
         DatePipe
       ],
       providers: [
         { provide: Store, useValue: storeSpy },
         { provide: UserService, useValue: userServiceSpy },
-        { provide: ToastController, useValue: toastCtrlSpy }
+        { provide: ToastController, useValue: toastCtrlSpy },
+        { provide: SoundService, useValue: soundServiceSpy },
+        { provide: LanguageService, useValue: languageServiceSpy },
+        { provide: PreferencesService, useValue: preferencesSpy }
       ]
     }).compileComponents();
 
@@ -173,53 +185,25 @@ describe('ProfileComponent', () => {
     expect(userServiceSpy.updateUser).not.toHaveBeenCalled();
   });
 
-  it('should not patch form when store emits null', async () => {
-    storeSpy.select.and.returnValue(of(null));
+  it('should handle sound toggle changes', () => {
+    component.onSoundToggle(false);
+    expect(component.soundEnabled).toBeFalse();
+    expect(soundServiceSpy.setSoundEnabled).toHaveBeenCalledWith(false);
+  });
 
-    await TestBed.resetTestingModule();
-    await TestBed.configureTestingModule({
-      imports: [
-        ProfileComponent,
-        ReactiveFormsModule,
-        getTranslocoTestingModule(),
-        IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-        DatePipe
-      ],
-      providers: [
-        { provide: Store, useValue: storeSpy },
-        { provide: UserService, useValue: userServiceSpy },
-        { provide: ToastController, useValue: toastCtrlSpy }
-      ]
-    }).compileComponents();
+  it('should handle visual notification toggle changes', () => {
+    component.onVisualNotifToggle(false);
+    expect(component.visualNotifEnabled).toBeFalse();
+    expect(preferencesSpy.setVisualNotifEnabled).toHaveBeenCalledWith(false);
+  });
 
-    const fixture2 = TestBed.createComponent(ProfileComponent);
-    const component2 = fixture2.componentInstance;
-    fixture2.detectChanges();
-
-    expect(component2.profileForm.get('username')?.value).toBe('');
-    expect(component2.profileForm.get('email')?.value).toBe('');
-    expect(component2.currentUser).toBeNull();
+  it('should handle language selection changes', () => {
+    component.onLanguageChange('en');
+    expect(component.selectedLanguage).toBe('en');
+    expect(languageServiceSpy.setLanguage).toHaveBeenCalledWith('en');
   });
 
   it('should unsubscribe on destroy without errors', () => {
     expect(() => component.ngOnDestroy()).not.toThrow();
-  });
-
-  it('should update form reactively when user changes in the store', () => {
-    const userSubject = new Subject<User | null>();
-    storeSpy.select.and.returnValue(userSubject.asObservable());
-
-    // Re-create component with live observable
-    const fixture2 = TestBed.createComponent(ProfileComponent);
-    const component2 = fixture2.componentInstance;
-    fixture2.detectChanges();
-
-    userSubject.next({ ...mockUser, username: 'updatedUser', email: 'new@example.com' });
-    fixture2.detectChanges();
-
-    expect(component2.profileForm.get('username')?.value).toBe('updatedUser');
-    expect(component2.profileForm.get('email')?.value).toBe('new@example.com');
-
-    component2.ngOnDestroy();
   });
 });

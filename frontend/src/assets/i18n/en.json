@@ -125,7 +125,18 @@
     "NEW_PASSWORD": "New Password",
     "SAVE_BTN": "Save Changes",
     "SAVE_SUCCESS": "Profile updated successfully",
-    "SAVE_ERROR": "Error updating profile"
+    "SAVE_ERROR": "Error updating profile",
+    "PREFERENCES_TITLE": "Preferences",
+    "SECTION_PERSONAL": "Personal Information",
+    "SECTION_SECURITY": "Security",
+    "SECTION_NOTIFICATIONS": "Notifications",
+    "SECTION_LANGUAGE": "Language",
+    "PREF_SOUND_LABEL": "Sound alerts",
+    "PREF_SOUND_DESC": "Play a sound for new orders and status changes",
+    "PREF_VISUAL_LABEL": "Visual notifications",
+    "PREF_VISUAL_DESC": "Show toast notifications for real-time events (orders, stock...)",
+    "PREF_LANGUAGE_LABEL": "Interface language",
+    "PREF_LANGUAGE_DESC": "Choose the display language of the application"
   },
   "COCKTAILS": {
     "TITLE": "Cocktails",

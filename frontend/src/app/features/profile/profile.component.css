@@ -1,39 +1,147 @@
+/* Profile page — Figma 540:946 */
+
 .profile-container {
   padding: var(--space-5, 20px);
   max-width: 800px;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5, 20px);
 }
 
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+/* ─── Profile & preferences cards ─── */
+.profile-card,
+.preferences-card,
+.info-card {
+  background: var(--surface-1, #1a1a2e);
+  border: 1px solid var(--border-medium, #2e3450);
+  border-radius: 12px;
+  margin: 0;
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
   gap: var(--space-4, 16px);
+  padding-bottom: var(--space-3, 12px);
+}
+
+.avatar-wrapper {
+  flex-shrink: 0;
+}
+
+/* ─── Section separators — Figma PREFERENCES heading style ─── */
+.section-separator {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   margin-bottom: var(--space-4, 16px);
 }
 
+.section-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary, #a4add0);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  font-family: var(--font, 'Inter', sans-serif);
+}
+
+.separator-line {
+  flex: 1;
+  height: 1px;
+  background: var(--bg-0, #0f0f1a);
+}
+
+/* ─── Form layout ─── */
 .form-actions {
   display: flex;
   justify-content: flex-end;
   margin-top: var(--space-4, 16px);
 }
 
-.info-card {
-  margin-top: var(--space-5, 20px);
+/* ─── Preference rows — Figma 540:1025 ─── */
+.pref-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4, 16px);
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border-medium, #2e3450);
 }
 
+.pref-row:last-of-type {
+  border-bottom: none;
+}
+
+.pref-row--lang {
+  align-items: center;
+}
+
+.pref-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.pref-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary, #eceefb);
+  font-family: var(--font, 'Inter', sans-serif);
+}
+
+.pref-description {
+  font-size: 12px;
+  color: var(--text-secondary, #a4add0);
+  font-family: var(--font, 'Inter', sans-serif);
+}
+
+/* ─── Language select ─── */
+.lang-select {
+  --background: var(--bg-0, #0f0f1a);
+  --color: var(--text-primary, #eceefb);
+  --border-color: var(--border-medium, #2e3450);
+  --padding-start: 12px;
+  --padding-end: 12px;
+  --padding-top: 8px;
+  --padding-bottom: 8px;
+  border: 1px solid var(--border-medium, #2e3450);
+  border-radius: 8px;
+  min-width: 140px;
+  background: var(--bg-0, #0f0f1a);
+  font-size: 14px;
+  font-family: var(--font, 'Inter', sans-serif);
+}
+
+/* ─── Account info card ─── */
 .info-item {
   display: flex;
   margin-bottom: var(--space-3, 12px);
   align-items: center;
+  gap: var(--space-3, 12px);
 }
 
 .label {
   font-weight: 500;
-  width: 200px;
+  min-width: 180px;
   color: var(--text-secondary, #a4add0);
+  font-size: 13px;
+  font-family: var(--font, 'Inter', sans-serif);
 }
 
 .value {
   flex: 1;
   color: var(--text-primary, #eceefb);
+  font-size: 13px;
+  font-family: var(--font, 'Inter', sans-serif);
+}
+
+.roles-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2, 8px);
 }

@@ -1,9 +1,10 @@
-import { Injectable, OnDestroy, signal } from '@angular/core';
+import { inject, Injectable, OnDestroy, signal } from '@angular/core';
 import { Subject, Observable } from 'rxjs';
 import { ToastController } from '@ionic/angular/standalone';
 import { takeUntil } from 'rxjs/operators';
 import { WebSocketService } from './websocket.service';
 import { SoundService } from './sound.service';
+import { PreferencesService } from './preferences.service';
 
 export interface AppNotification {
   id: string;
@@ -22,6 +23,8 @@ export class NotificationService implements OnDestroy {
   private readonly stockAlerts$ = new Subject<AppNotification>();
   private readonly destroy$ = new Subject<void>();
   private readonly notificationHistory: AppNotification[] = [];
+
+  private readonly prefs = inject(PreferencesService);
 
   constructor(
     private readonly ws: WebSocketService,
@@ -141,6 +144,7 @@ export class NotificationService implements OnDestroy {
   }
 
   private async showToast(message: string, color: string): Promise<void> {
+    if (!this.prefs.visualNotifEnabled()) return;
     const toast = await this.toastCtrl.create({
       message,
       duration: 4000,

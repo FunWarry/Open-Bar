@@ -126,7 +126,18 @@
     "NEW_PASSWORD": "Nouveau mot de passe",
     "SAVE_BTN": "Enregistrer les modifications",
     "SAVE_SUCCESS": "Profil mis à jour avec succès",
-    "SAVE_ERROR": "Erreur lors de la mise à jour du profil"
+    "SAVE_ERROR": "Erreur lors de la mise à jour du profil",
+    "PREFERENCES_TITLE": "Préférences",
+    "SECTION_PERSONAL": "Informations personnelles",
+    "SECTION_SECURITY": "Sécurité",
+    "SECTION_NOTIFICATIONS": "Notifications",
+    "SECTION_LANGUAGE": "Langue",
+    "PREF_SOUND_LABEL": "Alertes sonores",
+    "PREF_SOUND_DESC": "Jouer un son lors des nouvelles commandes et changements de statut",
+    "PREF_VISUAL_LABEL": "Notifications visuelles",
+    "PREF_VISUAL_DESC": "Afficher des toasts pour les événements temps réel (commandes, stock...)",
+    "PREF_LANGUAGE_LABEL": "Langue de l'interface",
+    "PREF_LANGUAGE_DESC": "Choisir la langue d'affichage de l'application"
   },
   "COCKTAILS": {
     "TITLE": "Cocktails",

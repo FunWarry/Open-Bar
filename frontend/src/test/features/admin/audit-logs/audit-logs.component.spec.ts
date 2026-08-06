@@ -111,6 +111,7 @@ describe('AuditLogsComponent', () => {
   });
 
   it('should handle service error gracefully', () => {
+    spyOn(console, 'error');
     auditLogServiceSpy.getAuditLogs.and.returnValue(throwError(() => new Error('API Error')));
     component.loadLogs();
 
