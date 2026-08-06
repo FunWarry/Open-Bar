@@ -21,7 +21,7 @@
 
 // Sections cards
 .section-card {
-  --background: var(--background-surface-2, #21263f);
+  --background: var(--ion-card-background, var(--background-surface-2, #21263f));
   margin: 8px;
   border-radius: 12px;
 

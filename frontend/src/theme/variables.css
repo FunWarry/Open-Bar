@@ -160,6 +160,7 @@ body.light-theme,
 
   --ion-item-background: var(--background-surface-1);
   --ion-toolbar-background: var(--background-surface-1);
+  --ion-card-background: var(--background-surface-2);
   --ion-border-color: var(--border-medium);
 }
 
@@ -178,6 +179,7 @@ body.light-theme,
 
   --ion-item-background: #ffffff;
   --ion-toolbar-background: #ffffff;
+  --ion-card-background: #f8fafc;
   --ion-border-color: #e2e8f0;
 }
 

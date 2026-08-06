@@ -2,7 +2,7 @@
 // Fond: --background/surface-2 (#21263f), valeur 32px bold, libellé 11px uppercase
 
 .stat-card {
-  --background: var(--background-surface-2, #21263f);
+  --background: var(--ion-card-background, var(--background-surface-2, #21263f));
   border-radius: 10px;
   margin: 0;
 
