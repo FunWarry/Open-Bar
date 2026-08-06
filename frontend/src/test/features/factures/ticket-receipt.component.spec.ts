@@ -90,6 +90,12 @@ describe('TicketReceiptComponent', () => {
     expect(component.selectedFormat).toBe('58mm');
   });
 
+  it('uses ticketFormat Input directly if specified', () => {
+    component.ticketFormat = '58mm';
+    component.ngOnInit();
+    expect(component.selectedFormat).toBe('58mm');
+  });
+
   it('setFormat() switches between 80mm and 58mm formats', () => {
     component.setFormat('80mm');
     expect(component.selectedFormat).toBe('80mm');

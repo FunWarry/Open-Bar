@@ -75,6 +75,25 @@ class EstablishmentConfigServiceTest {
     }
 
     @Test
+    void updateConfig_avecTicketFormatValide80mm_metAJourFormat() {
+        when(repository.findById(1L)).thenReturn(Optional.of(config));
+        when(repository.save(any(EstablishmentConfig.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        EstablishmentConfigUpdateRequest request = new EstablishmentConfigUpdateRequest(
+            "OpenBar SARL", "SARL", "73282932000074", "Paris", "B 123",
+            "FR12732829320", "5630Z", new BigDecimal("10000"),
+            "12 Rue du Bar", "+33123456789", "contact@openbar.local",
+            "Paiement immédiat", "Aucun", new BigDecimal("0.12"),
+            "SYSTEM", "80mm"
+        );
+
+        EstablishmentConfigDTO dto = service.updateConfig(request);
+
+        assertThat(dto).isNotNull();
+        assertThat(dto.ticketFormat()).isEqualTo("80mm");
+    }
+
+    @Test
     void updateConfig_avecSiretInvalide_leveBusinessException() {
         // Invalid Luhn SIRET
         EstablishmentConfigUpdateRequest request = new EstablishmentConfigUpdateRequest(
@@ -89,4 +108,3 @@ class EstablishmentConfigServiceTest {
             .hasMessageContaining("numéro SIRET spécifié est invalide");
     }
 }
-

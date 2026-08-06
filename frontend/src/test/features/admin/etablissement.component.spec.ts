@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { IonicModule } from '@ionic/angular';
 import { ToastController } from '@ionic/angular/standalone';
-import { of, throwError } from 'rxjs';
+import { of } from 'rxjs';
 import { EtablissementComponent, siretLuhnValidator } from '../../../app/features/admin/etablissement/etablissement.component';
 import { EtablissementService } from '../../../app/core/services/etablissement.service';
 import { EstablishmentConfig } from '../../../app/core/models/establishment-config.model';
@@ -30,6 +30,7 @@ describe('EtablissementComponent', () => {
     paymentTerms: 'Paiement immédiat',
     discountPolicy: 'Aucun',
     latePaymentRate: 0.12,
+    ticketFormat: '58mm',
   };
 
   const mockToast = { present: jasmine.createSpy('present') };
@@ -39,7 +40,6 @@ describe('EtablissementComponent', () => {
     etablissementServiceSpy.getConfig.and.returnValue(of(mockConfig));
     etablissementServiceSpy.updateConfig.and.returnValue(of(mockConfig));
     etablissementServiceSpy.getTimeZones.and.returnValue(of(['SYSTEM', 'Europe/Paris']));
-
 
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
     toastCtrlSpy.create.and.returnValue(Promise.resolve(mockToast as any));
@@ -61,6 +61,7 @@ describe('EtablissementComponent', () => {
     expect(component).toBeTruthy();
     expect(etablissementServiceSpy.getConfig).toHaveBeenCalled();
     expect(component.configForm.get('legalName')?.value).toBe('OpenBar SARL');
+    expect(component.configForm.get('ticketFormat')?.value).toBe('58mm');
   });
 
   it('siretLuhnValidator devrait valider un SIRET correct et rejeter un SIRET erroné', () => {
@@ -80,11 +81,14 @@ describe('EtablissementComponent', () => {
       siret: '73282932000074',
       tvaNumber: 'FR12732829320',
       address: '12 Rue du Bar',
+      ticketFormat: '58mm',
     });
 
     component.onSave();
 
-    expect(etablissementServiceSpy.updateConfig).toHaveBeenCalled();
+    expect(etablissementServiceSpy.updateConfig).toHaveBeenCalledWith(jasmine.objectContaining({
+      ticketFormat: '58mm'
+    }));
   });
 
   it('onSave() ne devrait pas soumettre si le formulaire est invalide', () => {
