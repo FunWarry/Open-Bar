@@ -17,6 +17,7 @@ import java.io.InputStream;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 
 /**
@@ -25,11 +26,17 @@ import java.util.*;
  * from the JSON dataset file 'data/demo_dataset.json' on application startup in 'dev' and 'test' profiles.
  */
 @Service
+@Transactional
 @Profile({"dev", "test"})
 public class SampleDataSeederService {
 
     private static final Logger log = LoggerFactory.getLogger(SampleDataSeederService.class);
     private static final String DATASET_PATH = "data/demo_dataset.json";
+    private static final String KEY_ROLES = "roles";
+    private static final String KEY_SERVEUR_USERNAME = "serveurUsername";
+    private static final String KEY_NOTES = "notes";
+    private static final String KEY_ITEMS = "items";
+    private static final String KEY_QUANTITE = "quantite";
 
     private final UserRepository userRepository;
     private final TableRepository tableRepository;
@@ -66,7 +73,6 @@ public class SampleDataSeederService {
     }
 
     @PostConstruct
-    @Transactional
     public void seedDemoDataIfEmpty() {
         if (commandeRepository.count() > 0) {
             log.info("Database already contains orders, skipping demo dataset seeding.");
@@ -78,7 +84,6 @@ public class SampleDataSeederService {
         log.info("Demo dataset seeding successfully finished.");
     }
 
-    @Transactional
     public void seedAllDemoData() {
         InputStream is = loadResourceStream();
         if (is == null) {
@@ -142,8 +147,8 @@ public class SampleDataSeederService {
             String prenom = uNode.get("prenom").asText();
 
             Set<UserRole> roles = new HashSet<>();
-            if (uNode.has("roles") && uNode.get("roles").isArray()) {
-                for (JsonNode rNode : uNode.get("roles")) {
+            if (uNode.has(KEY_ROLES) && uNode.get(KEY_ROLES).isArray()) {
+                for (JsonNode rNode : uNode.get(KEY_ROLES)) {
                     roles.add(UserRole.valueOf(rNode.asText()));
                 }
             }
@@ -173,7 +178,7 @@ public class SampleDataSeederService {
             String nom = zNode.get("nom").asText();
             String etage = zNode.get("etage").asText();
 
-            zoneRepository.findByNom(nom).orElseGet(() -> {
+            ZoneEntity zone = zoneRepository.findByNom(nom).orElseGet(() -> {
                 ZoneEntity z = new ZoneEntity();
                 z.setNom(nom);
                 z.setEtage(etage);
@@ -181,6 +186,7 @@ public class SampleDataSeederService {
                 z.setUpdatedAt(timeService.now());
                 return zoneRepository.save(z);
             });
+            log.trace("Zone seeded: {}", zone.getNom());
         }
     }
 
@@ -193,7 +199,7 @@ public class SampleDataSeederService {
             String zone = tNode.get("zone").asText();
             int capacite = tNode.get("capacite").asInt();
             boolean occupee = tNode.get("occupee").asBoolean();
-            String serveurUsername = tNode.hasNonNull("serveurUsername") ? tNode.get("serveurUsername").asText() : null;
+            String serveurUsername = tNode.hasNonNull(KEY_SERVEUR_USERNAME) ? tNode.get(KEY_SERVEUR_USERNAME).asText() : null;
             Double planX = tNode.get("planX").asDouble();
             Double planY = tNode.get("planY").asDouble();
             String planForme = tNode.get("planForme").asText();
@@ -228,7 +234,7 @@ public class SampleDataSeederService {
 
     private void seedShiftsFromJson(JsonNode shiftsNode, Map<String, User> usersMap) {
         if (shiftsNode == null || !shiftsNode.isArray()) return;
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(ZoneId.systemDefault());
 
         for (JsonNode sNode : shiftsNode) {
             String username = sNode.get("username").asText();
@@ -260,129 +266,145 @@ public class SampleDataSeederService {
 
     private void seedOrdersFromJson(JsonNode ordersNode, Map<String, User> usersMap, Map<Integer, TableEntity> tablesMap, List<Cocktail> cocktails) {
         if (ordersNode == null || !ordersNode.isArray()) return;
-        LocalDateTime now = timeService.now();
-
         for (JsonNode oNode : ordersNode) {
-            int tableNumero = oNode.get("tableNumero").asInt();
-            String serveurUsername = oNode.get("serveurUsername").asText();
-            CommandeStatut statut = CommandeStatut.valueOf(oNode.get("statut").asText());
-            int minutesAgo = oNode.get("minutesAgo").asInt();
-            String notes = oNode.hasNonNull("notes") ? oNode.get("notes").asText() : null;
+            createSingleOrderFromJson(oNode, usersMap, tablesMap, cocktails);
+        }
+    }
 
-            TableEntity table = tablesMap.get(tableNumero);
-            User serveur = usersMap.get(serveurUsername);
-            LocalDateTime orderTime = now.minusMinutes(minutesAgo);
+    private void createSingleOrderFromJson(JsonNode oNode, Map<String, User> usersMap, Map<Integer, TableEntity> tablesMap, List<Cocktail> cocktails) {
+        int tableNumero = oNode.get("tableNumero").asInt();
+        String serveurUsername = oNode.get(KEY_SERVEUR_USERNAME).asText();
+        CommandeStatut statut = CommandeStatut.valueOf(oNode.get("statut").asText());
+        int minutesAgo = oNode.get("minutesAgo").asInt();
+        String notes = oNode.hasNonNull(KEY_NOTES) ? oNode.get(KEY_NOTES).asText() : null;
 
-            List<Cocktail> orderCocktails = new ArrayList<>();
-            if (oNode.has("items") && oNode.get("items").isArray()) {
-                for (JsonNode itemNode : oNode.get("items")) {
-                    String cocktailName = itemNode.get("cocktailName").asText();
-                    int quantite = itemNode.has("quantite") ? itemNode.get("quantite").asInt() : 1;
-                    Cocktail c = findCocktailByName(cocktails, cocktailName);
-                    for (int i = 0; i < quantite; i++) {
-                        orderCocktails.add(c);
-                    }
+        TableEntity table = tablesMap.get(tableNumero);
+        User serveur = usersMap.get(serveurUsername);
+        LocalDateTime orderTime = timeService.now().minusMinutes(minutesAgo);
+
+        List<Cocktail> orderCocktails = parseCocktailsFromItems(oNode.get(KEY_ITEMS), cocktails);
+
+        Commande cmd = new Commande();
+        cmd.setTable(table);
+        cmd.setServeur(serveur);
+        cmd.setStatut(statut);
+        cmd.setDateCommande(orderTime);
+        cmd.setTrackingToken("TRK-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
+        cmd.setNotes(notes);
+
+        BigDecimal total = BigDecimal.ZERO;
+        List<CommandeItem> items = new ArrayList<>();
+
+        for (Cocktail c : orderCocktails) {
+            CommandeItem item = new CommandeItem();
+            item.setCommande(cmd);
+            item.setCocktail(c);
+            item.setQuantite(1);
+            item.setPrixUnitaire(c.getPrix() != null ? c.getPrix() : new BigDecimal("9.50"));
+            items.add(item);
+            total = total.add(item.getPrixUnitaire());
+        }
+
+        cmd.setItems(items);
+        cmd.setTotal(total);
+
+        updateOrderTimestampsByStatus(cmd, statut, orderTime);
+        commandeRepository.save(cmd);
+    }
+
+    private List<Cocktail> parseCocktailsFromItems(JsonNode itemsNode, List<Cocktail> cocktails) {
+        List<Cocktail> orderCocktails = new ArrayList<>();
+        if (itemsNode != null && itemsNode.isArray()) {
+            for (JsonNode itemNode : itemsNode) {
+                String cocktailName = itemNode.get("cocktailName").asText();
+                int quantite = itemNode.has(KEY_QUANTITE) ? itemNode.get(KEY_QUANTITE).asInt() : 1;
+                Cocktail c = findCocktailByName(cocktails, cocktailName);
+                for (int i = 0; i < quantite; i++) {
+                    orderCocktails.add(c);
                 }
             }
+        }
+        return orderCocktails;
+    }
 
-            Commande cmd = new Commande();
-            cmd.setTable(table);
-            cmd.setServeur(serveur);
-            cmd.setStatut(statut);
-            cmd.setDateCommande(orderTime);
-            cmd.setTrackingToken("TRK-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
-            cmd.setNotes(notes);
-
-            BigDecimal total = BigDecimal.ZERO;
-            List<CommandeItem> items = new ArrayList<>();
-
-            for (Cocktail c : orderCocktails) {
-                CommandeItem item = new CommandeItem();
-                item.setCommande(cmd);
-                item.setCocktail(c);
-                item.setQuantite(1);
-                item.setPrixUnitaire(c.getPrix() != null ? c.getPrix() : new BigDecimal("9.50"));
-                items.add(item);
-                total = total.add(item.getPrixUnitaire());
-            }
-
-            cmd.setItems(items);
-            cmd.setTotal(total);
-
-            if (statut == CommandeStatut.EN_PREPARATION) {
-                cmd.setDatePreparation(orderTime.plusMinutes(2));
-            } else if (statut == CommandeStatut.PRET) {
-                cmd.setDatePreparation(orderTime.plusMinutes(2));
-                cmd.setDateLivraison(orderTime.plusMinutes(5));
-            } else if (statut == CommandeStatut.REGLEE) {
-                cmd.setDateReglement(orderTime.plusMinutes(35));
-            }
-
-            commandeRepository.save(cmd);
+    private void updateOrderTimestampsByStatus(Commande cmd, CommandeStatut statut, LocalDateTime orderTime) {
+        if (statut == CommandeStatut.EN_PREPARATION) {
+            cmd.setDatePreparation(orderTime.plusMinutes(2));
+        } else if (statut == CommandeStatut.PRET) {
+            cmd.setDatePreparation(orderTime.plusMinutes(2));
+            cmd.setDateLivraison(orderTime.plusMinutes(5));
+        } else if (statut == CommandeStatut.REGLEE) {
+            cmd.setDateReglement(orderTime.plusMinutes(35));
         }
     }
 
     private void seedInvoicesFromJson(JsonNode invoicesNode, Map<Integer, TableEntity> tablesMap) {
         if (invoicesNode == null || !invoicesNode.isArray()) return;
-        LocalDateTime now = timeService.now();
-
         for (JsonNode invNode : invoicesNode) {
-            String numero = invNode.get("numero").asText();
-            int tableNumero = invNode.get("tableNumero").asInt();
-            boolean reglee = invNode.get("reglee").asBoolean();
-            String modePaiement = invNode.hasNonNull("modePaiement") ? invNode.get("modePaiement").asText() : null;
-            BigDecimal pourboire = invNode.has("pourboire") ? new BigDecimal(invNode.get("pourboire").asText()) : BigDecimal.ZERO;
-            int minutesAgo = invNode.get("minutesAgo").asInt();
-            String notes = invNode.hasNonNull("notes") ? invNode.get("notes").asText() : null;
-
-            TableEntity table = tablesMap.get(tableNumero);
-            LocalDateTime invoiceTime = now.minusMinutes(minutesAgo);
-
-            BigDecimal total = BigDecimal.ZERO;
-            List<FactureItem> items = new ArrayList<>();
-
-            Facture f = new Facture();
-            f.setTable(table);
-            f.setNumero(numero);
-            f.setReglee(reglee);
-            f.setModePaiement(modePaiement);
-            f.setPourboire(pourboire);
-            f.setDateFacture(invoiceTime);
-            f.setNotes(notes);
-
-            if (reglee) {
-                f.setDateReglement(invoiceTime.plusMinutes(35));
-                f.setFinalized(true);
-                f.setFinalizedAt(invoiceTime.plusMinutes(35));
-            }
-
-            if (invNode.has("items") && invNode.get("items").isArray()) {
-                for (JsonNode itemNode : invNode.get("items")) {
-                    String description = itemNode.get("description").asText();
-                    int quantite = itemNode.get("quantite").asInt();
-                    BigDecimal prixUnitaire = new BigDecimal(itemNode.get("prixUnitaire").asText());
-                    BigDecimal itemTotal = prixUnitaire.multiply(BigDecimal.valueOf(quantite));
-
-                    FactureItem fi = new FactureItem();
-                    fi.setFacture(f);
-                    fi.setDescription(description);
-                    fi.setQuantite(quantite);
-                    fi.setPrixUnitaire(prixUnitaire);
-                    fi.setTotal(itemTotal);
-                    items.add(fi);
-
-                    total = total.add(itemTotal);
-                }
-            }
-
-            f.setItems(items);
-            f.setTotal(total);
-            f.setTotalHT(total.multiply(new BigDecimal("0.8333")));
-            f.setTotalVAT(total.multiply(new BigDecimal("0.1667")));
-            f.setTotalTTC(total);
-
-            factureRepository.save(f);
+            createSingleInvoiceFromJson(invNode, tablesMap);
         }
+    }
+
+    private void createSingleInvoiceFromJson(JsonNode invNode, Map<Integer, TableEntity> tablesMap) {
+        String numero = invNode.get("numero").asText();
+        int tableNumero = invNode.get("tableNumero").asInt();
+        boolean reglee = invNode.get("reglee").asBoolean();
+        String modePaiement = invNode.hasNonNull("modePaiement") ? invNode.get("modePaiement").asText() : null;
+        BigDecimal pourboire = invNode.has("pourboire") ? new BigDecimal(invNode.get("pourboire").asText()) : BigDecimal.ZERO;
+        int minutesAgo = invNode.get("minutesAgo").asInt();
+        String notes = invNode.hasNonNull(KEY_NOTES) ? invNode.get(KEY_NOTES).asText() : null;
+
+        TableEntity table = tablesMap.get(tableNumero);
+        LocalDateTime invoiceTime = timeService.now().minusMinutes(minutesAgo);
+
+        Facture f = new Facture();
+        f.setTable(table);
+        f.setNumero(numero);
+        f.setReglee(reglee);
+        f.setModePaiement(modePaiement);
+        f.setPourboire(pourboire);
+        f.setDateFacture(invoiceTime);
+        f.setNotes(notes);
+
+        if (reglee) {
+            f.setDateReglement(invoiceTime.plusMinutes(35));
+            f.setFinalized(true);
+            f.setFinalizedAt(invoiceTime.plusMinutes(35));
+        }
+
+        BigDecimal total = parseInvoiceItems(f, invNode.get(KEY_ITEMS));
+        f.setTotal(total);
+        f.setTotalHT(total.multiply(new BigDecimal("0.8333")));
+        f.setTotalVAT(total.multiply(new BigDecimal("0.1667")));
+        f.setTotalTTC(total);
+
+        factureRepository.save(f);
+    }
+
+    private BigDecimal parseInvoiceItems(Facture f, JsonNode itemsNode) {
+        BigDecimal total = BigDecimal.ZERO;
+        List<FactureItem> items = new ArrayList<>();
+
+        if (itemsNode != null && itemsNode.isArray()) {
+            for (JsonNode itemNode : itemsNode) {
+                String description = itemNode.get("description").asText();
+                int quantite = itemNode.get(KEY_QUANTITE).asInt();
+                BigDecimal prixUnitaire = new BigDecimal(itemNode.get("prixUnitaire").asText());
+                BigDecimal itemTotal = prixUnitaire.multiply(BigDecimal.valueOf(quantite));
+
+                FactureItem fi = new FactureItem();
+                fi.setFacture(f);
+                fi.setDescription(description);
+                fi.setQuantite(quantite);
+                fi.setPrixUnitaire(prixUnitaire);
+                fi.setTotal(itemTotal);
+                items.add(fi);
+
+                total = total.add(itemTotal);
+            }
+        }
+        f.setItems(items);
+        return total;
     }
 
     private Cocktail findCocktailByName(List<Cocktail> cocktails, String name) {
