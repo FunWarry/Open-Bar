@@ -2,14 +2,18 @@ package com.bar.gestioncocktail.service;
 
 import com.bar.gestioncocktail.model.*;
 import com.bar.gestioncocktail.repository.*;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -18,13 +22,14 @@ import java.util.*;
 /**
  * Service responsible for automatically seeding a rich, complete demonstration dataset
  * (Users, Zones, Tables, Shifts, Active Orders, Overdue Orders, Paid & Pending Invoices)
- * on application startup in 'dev' and 'test' profiles.
+ * from the JSON dataset file 'data/demo_dataset.json' on application startup in 'dev' and 'test' profiles.
  */
 @Service
 @Profile({"dev", "test"})
 public class SampleDataSeederService {
 
     private static final Logger log = LoggerFactory.getLogger(SampleDataSeederService.class);
+    private static final String DATASET_PATH = "data/demo_dataset.json";
 
     private final UserRepository userRepository;
     private final TableRepository tableRepository;
@@ -35,6 +40,7 @@ public class SampleDataSeederService {
     private final EmployeeShiftRepository employeeShiftRepository;
     private final PasswordEncoder passwordEncoder;
     private final TimeService timeService;
+    private final ObjectMapper objectMapper;
 
     public SampleDataSeederService(
             UserRepository userRepository,
@@ -45,7 +51,8 @@ public class SampleDataSeederService {
             FactureRepository factureRepository,
             EmployeeShiftRepository employeeShiftRepository,
             PasswordEncoder passwordEncoder,
-            TimeService timeService) {
+            TimeService timeService,
+            ObjectMapper objectMapper) {
         this.userRepository = userRepository;
         this.tableRepository = tableRepository;
         this.zoneRepository = zoneRepository;
@@ -55,6 +62,7 @@ public class SampleDataSeederService {
         this.employeeShiftRepository = employeeShiftRepository;
         this.passwordEncoder = passwordEncoder;
         this.timeService = timeService;
+        this.objectMapper = objectMapper;
     }
 
     @PostConstruct
@@ -65,191 +73,316 @@ public class SampleDataSeederService {
             return;
         }
 
-        log.info("Starting complete demo dataset seeding for OpenBar...");
+        log.info("Starting complete demo dataset seeding from JSON asset '{}'...", DATASET_PATH);
         seedAllDemoData();
         log.info("Demo dataset seeding successfully finished.");
     }
 
     @Transactional
     public void seedAllDemoData() {
-        Map<String, User> users = seedUsers();
-        Map<Integer, TableEntity> tables = seedZonesAndTables(users);
-        seedEmployeeShifts(users);
-
-        List<Cocktail> cocktails = cocktailRepository.findAll();
-        if (cocktails.isEmpty()) {
-            log.warn("No cocktails found during demo seeding. Create cocktails first.");
+        InputStream is = loadResourceStream();
+        if (is == null) {
+            log.warn("Demo dataset JSON file '{}' not found in classpath.", DATASET_PATH);
             return;
         }
 
-        seedOrdersAndInvoices(users, tables, cocktails);
+        try (InputStream stream = is) {
+            JsonNode root = objectMapper.readTree(stream);
+
+            Map<String, User> usersMap = seedUsersFromJson(root.get("users"));
+            seedZonesFromJson(root.get("zones"));
+            Map<Integer, TableEntity> tablesMap = seedTablesFromJson(root.get("tables"), usersMap);
+            seedShiftsFromJson(root.get("shifts"), usersMap);
+
+            List<Cocktail> cocktails = cocktailRepository.findAll();
+            if (cocktails.isEmpty()) {
+                log.warn("No cocktails found during demo seeding. Create cocktails first.");
+                return;
+            }
+
+            seedOrdersFromJson(root.get("orders"), usersMap, tablesMap, cocktails);
+            seedInvoicesFromJson(root.get("invoices"), tablesMap);
+
+        } catch (Exception e) {
+            log.error("Failed to seed demo dataset from JSON file '{}'", DATASET_PATH, e);
+        }
     }
 
-    private Map<String, User> seedUsers() {
-        Map<String, User> users = new HashMap<>();
-
-        User admin = findOrCreateUser("admin", "admin@openbar.fr", "admin123", "Dupont", "Alexandre", Set.of(UserRole.ADMIN, UserRole.MANAGER));
-        User manager = findOrCreateUser("manager", "manager@openbar.fr", "manager123", "Martin", "Sophie", Set.of(UserRole.MANAGER));
-        User serveur1 = findOrCreateUser("serveur1", "lucas@openbar.fr", "serveur123", "Bernard", "Lucas", Set.of(UserRole.SERVEUR));
-        User serveur2 = findOrCreateUser("serveur2", "camille@openbar.fr", "serveur123", "Dubois", "Camille", Set.of(UserRole.SERVEUR));
-        User barman1 = findOrCreateUser("barman1", "antoine@openbar.fr", "barman123", "Moreau", "Antoine", Set.of(UserRole.BARMAN));
-        User barman2 = findOrCreateUser("barman2", "emma@openbar.fr", "barman123", "Laurent", "Emma", Set.of(UserRole.BARMAN));
-
-        users.put("admin", admin);
-        users.put("manager", manager);
-        users.put("serveur1", serveur1);
-        users.put("serveur2", serveur2);
-        users.put("barman1", barman1);
-        users.put("barman2", barman2);
-
-        return users;
-    }
-
-    private User findOrCreateUser(String username, String email, String password, String nom, String prenom, Set<UserRole> roles) {
-        return userRepository.findByUsername(username).orElseGet(() -> {
-            User user = new User();
-            user.setUsername(username);
-            user.setEmail(email);
-            user.setPassword(passwordEncoder.encode(password));
-            user.setNom(nom);
-            user.setPrenom(prenom);
-            user.setRoles(roles);
-            user.setCreatedAt(timeService.now());
-            user.setUpdatedAt(timeService.now());
-            return userRepository.save(user);
-        });
-    }
-
-    private Map<Integer, TableEntity> seedZonesAndTables(Map<String, User> users) {
-        findOrCreateZone("Salle Principale", "RDC");
-        findOrCreateZone("Terrasse", "RDC");
-        findOrCreateZone("Mezzanine", "1er Étage");
-
-        Map<Integer, TableEntity> tables = new HashMap<>();
-
-        // Salle Principale
-        tables.put(1, createOrUpdateTable(1, "Salle Principale", 2, false, null, 100.0, 100.0, "CARRE"));
-        tables.put(2, createOrUpdateTable(2, "Salle Principale", 4, true, users.get("serveur1"), 250.0, 100.0, "CARRE"));
-        tables.put(3, createOrUpdateTable(3, "Salle Principale", 4, true, users.get("serveur2"), 400.0, 100.0, "RONDE"));
-        tables.put(4, createOrUpdateTable(4, "Salle Principale", 6, true, users.get("serveur1"), 550.0, 100.0, "RECTANGLE"));
-        tables.put(5, createOrUpdateTable(5, "Salle Principale", 2, false, null, 100.0, 250.0, "CARRE"));
-        tables.put(6, createOrUpdateTable(6, "Salle Principale", 8, true, users.get("serveur1"), 300.0, 250.0, "RECTANGLE"));
-
-        // Terrasse
-        tables.put(10, createOrUpdateTable(10, "Terrasse", 4, true, users.get("serveur2"), 100.0, 400.0, "RONDE"));
-        tables.put(11, createOrUpdateTable(11, "Terrasse", 2, false, null, 250.0, 400.0, "CARRE"));
-        tables.put(12, createOrUpdateTable(12, "Terrasse", 4, true, users.get("serveur2"), 400.0, 400.0, "RONDE"));
-        tables.put(13, createOrUpdateTable(13, "Terrasse", 6, false, null, 550.0, 400.0, "RECTANGLE"));
-
-        // Mezzanine
-        tables.put(20, createOrUpdateTable(20, "Mezzanine", 4, true, users.get("serveur1"), 100.0, 550.0, "CARRE"));
-        tables.put(21, createOrUpdateTable(21, "Mezzanine", 2, false, null, 250.0, 550.0, "CARRE"));
-        tables.put(22, createOrUpdateTable(22, "Mezzanine", 6, false, null, 400.0, 550.0, "RECTANGLE"));
-
-        return tables;
-    }
-
-    private ZoneEntity findOrCreateZone(String nom, String etage) {
-        return zoneRepository.findByNom(nom).orElseGet(() -> {
-            ZoneEntity z = new ZoneEntity();
-            z.setNom(nom);
-            z.setEtage(etage);
-            z.setCreatedAt(timeService.now());
-            z.setUpdatedAt(timeService.now());
-            return zoneRepository.save(z);
-        });
-    }
-
-    private TableEntity createOrUpdateTable(int numero, String zone, int capacite, boolean occupee, User serveur, Double x, Double y, String forme) {
-        TableEntity t = tableRepository.findByNumero(numero).orElseGet(() -> {
-            TableEntity table = new TableEntity();
-            table.setNumero(numero);
-            return table;
-        });
-
-        t.setZone(zone);
-        t.setCapacite(capacite);
-        t.setOccupee(occupee);
-        t.setServeurId(serveur != null ? serveur.getId() : null);
-        t.setPlanX(x);
-        t.setPlanY(y);
-        t.setPlanForme(forme);
-
-        if (occupee) {
-            t.setDateOccupation(timeService.now().minusMinutes(25));
-        } else {
-            t.setDateOccupation(null);
-            t.setDateLiberation(timeService.now().minusMinutes(45));
+    private InputStream loadResourceStream() {
+        try {
+            ClassPathResource resource = new ClassPathResource(DATASET_PATH);
+            if (resource.exists()) {
+                return resource.getInputStream();
+            }
+        } catch (Exception e) {
+            log.debug("ClassPathResource failed, trying Thread context classloader", e);
         }
 
-        return tableRepository.save(t);
+        ClassLoader contextCL = Thread.currentThread().getContextClassLoader();
+        if (contextCL != null) {
+            InputStream is = contextCL.getResourceAsStream(DATASET_PATH);
+            if (is != null) return is;
+        }
+
+        InputStream is = SampleDataSeederService.class.getClassLoader().getResourceAsStream(DATASET_PATH);
+        if (is != null) return is;
+
+        return SampleDataSeederService.class.getResourceAsStream("/" + DATASET_PATH);
     }
 
-    private void seedEmployeeShifts(Map<String, User> users) {
+    private Map<String, User> seedUsersFromJson(JsonNode usersNode) {
+        Map<String, User> usersMap = new HashMap<>();
+        if (usersNode == null || !usersNode.isArray()) return usersMap;
+
+        for (JsonNode uNode : usersNode) {
+            String username = uNode.get("username").asText();
+            String email = uNode.get("email").asText();
+            String password = uNode.get("password").asText();
+            String nom = uNode.get("nom").asText();
+            String prenom = uNode.get("prenom").asText();
+
+            Set<UserRole> roles = new HashSet<>();
+            if (uNode.has("roles") && uNode.get("roles").isArray()) {
+                for (JsonNode rNode : uNode.get("roles")) {
+                    roles.add(UserRole.valueOf(rNode.asText()));
+                }
+            }
+
+            User user = userRepository.findByUsername(username).orElseGet(() -> {
+                User u = new User();
+                u.setUsername(username);
+                u.setEmail(email);
+                u.setPassword(passwordEncoder.encode(password));
+                u.setNom(nom);
+                u.setPrenom(prenom);
+                u.setRoles(roles);
+                u.setCreatedAt(timeService.now());
+                u.setUpdatedAt(timeService.now());
+                return userRepository.save(u);
+            });
+
+            usersMap.put(username, user);
+        }
+        return usersMap;
+    }
+
+    private void seedZonesFromJson(JsonNode zonesNode) {
+        if (zonesNode == null || !zonesNode.isArray()) return;
+
+        for (JsonNode zNode : zonesNode) {
+            String nom = zNode.get("nom").asText();
+            String etage = zNode.get("etage").asText();
+
+            zoneRepository.findByNom(nom).orElseGet(() -> {
+                ZoneEntity z = new ZoneEntity();
+                z.setNom(nom);
+                z.setEtage(etage);
+                z.setCreatedAt(timeService.now());
+                z.setUpdatedAt(timeService.now());
+                return zoneRepository.save(z);
+            });
+        }
+    }
+
+    private Map<Integer, TableEntity> seedTablesFromJson(JsonNode tablesNode, Map<String, User> usersMap) {
+        Map<Integer, TableEntity> tablesMap = new HashMap<>();
+        if (tablesNode == null || !tablesNode.isArray()) return tablesMap;
+
+        for (JsonNode tNode : tablesNode) {
+            int numero = tNode.get("numero").asInt();
+            String zone = tNode.get("zone").asText();
+            int capacite = tNode.get("capacite").asInt();
+            boolean occupee = tNode.get("occupee").asBoolean();
+            String serveurUsername = tNode.hasNonNull("serveurUsername") ? tNode.get("serveurUsername").asText() : null;
+            Double planX = tNode.get("planX").asDouble();
+            Double planY = tNode.get("planY").asDouble();
+            String planForme = tNode.get("planForme").asText();
+
+            User serveur = serveurUsername != null ? usersMap.get(serveurUsername) : null;
+
+            TableEntity t = tableRepository.findByNumero(numero).orElseGet(() -> {
+                TableEntity table = new TableEntity();
+                table.setNumero(numero);
+                return table;
+            });
+
+            t.setZone(zone);
+            t.setCapacite(capacite);
+            t.setOccupee(occupee);
+            t.setServeurId(serveur != null ? serveur.getId() : null);
+            t.setPlanX(planX);
+            t.setPlanY(planY);
+            t.setPlanForme(planForme);
+
+            if (occupee) {
+                t.setDateOccupation(timeService.now().minusMinutes(25));
+            } else {
+                t.setDateOccupation(null);
+                t.setDateLiberation(timeService.now().minusMinutes(45));
+            }
+
+            tablesMap.put(numero, tableRepository.save(t));
+        }
+        return tablesMap;
+    }
+
+    private void seedShiftsFromJson(JsonNode shiftsNode, Map<String, User> usersMap) {
+        if (shiftsNode == null || !shiftsNode.isArray()) return;
         LocalDate today = LocalDate.now();
 
-        createShiftIfMissing(users.get("serveur1"), today, TypeShift.MATIN, TypePoste.SERVEUR, "10:00", "18:00");
-        createShiftIfMissing(users.get("serveur2"), today, TypeShift.SOIR, TypePoste.SERVEUR, "17:00", "01:00");
-        createShiftIfMissing(users.get("barman1"), today, TypeShift.SOIR, TypePoste.BARMAN, "16:00", "02:00");
-        createShiftIfMissing(users.get("barman2"), today, TypeShift.MATIN, TypePoste.BARMAN, "11:00", "17:00");
-    }
+        for (JsonNode sNode : shiftsNode) {
+            String username = sNode.get("username").asText();
+            User user = usersMap.get(username);
+            if (user == null) continue;
 
-    private void createShiftIfMissing(User user, LocalDate date, TypeShift shiftType, TypePoste poste, String debut, String fin) {
-        if (user == null) return;
-        boolean exists = employeeShiftRepository.findByUserId(user.getId()).stream()
-                .anyMatch(s -> s.getDateShift().equals(date) && s.getTypeShift() == shiftType);
+            TypeShift shiftType = TypeShift.valueOf(sNode.get("shiftType").asText());
+            TypePoste poste = TypePoste.valueOf(sNode.get("poste").asText());
+            String heureDebut = sNode.get("heureDebut").asText();
+            String heureFin = sNode.get("heureFin").asText();
 
-        if (!exists) {
-            EmployeeShift shift = new EmployeeShift();
-            shift.setUser(user);
-            shift.setDateShift(date);
-            shift.setTypeShift(shiftType);
-            shift.setTypePoste(poste);
-            shift.setHeureDebut(debut);
-            shift.setHeureFin(fin);
-            shift.setHeuresEffectuees(new BigDecimal("8.00"));
-            shift.setNotes("Créneau planning auto-généré");
-            employeeShiftRepository.save(shift);
+            boolean exists = employeeShiftRepository.findByUserId(user.getId()).stream()
+                    .anyMatch(s -> s.getDateShift().equals(today) && s.getTypeShift() == shiftType);
+
+            if (!exists) {
+                EmployeeShift shift = new EmployeeShift();
+                shift.setUser(user);
+                shift.setDateShift(today);
+                shift.setTypeShift(shiftType);
+                shift.setTypePoste(poste);
+                shift.setHeureDebut(heureDebut);
+                shift.setHeureFin(heureFin);
+                shift.setHeuresEffectuees(new BigDecimal("8.00"));
+                shift.setNotes("Créneau JSON auto-généré");
+                employeeShiftRepository.save(shift);
+            }
         }
     }
 
-    private void seedOrdersAndInvoices(Map<String, User> users, Map<Integer, TableEntity> tables, List<Cocktail> cocktails) {
+    private void seedOrdersFromJson(JsonNode ordersNode, Map<String, User> usersMap, Map<Integer, TableEntity> tablesMap, List<Cocktail> cocktails) {
+        if (ordersNode == null || !ordersNode.isArray()) return;
         LocalDateTime now = timeService.now();
 
-        Cocktail mojito = findCocktailByName(cocktails, "Mojito");
-        Cocktail spritz = findCocktailByName(cocktails, "Aperol Spritz");
-        Cocktail pinaColada = findCocktailByName(cocktails, "Piña Colada");
-        Cocktail margarita = findCocktailByName(cocktails, "Margarita");
-        Cocktail negroni = findCocktailByName(cocktails, "Negroni");
-        Cocktail ginTonic = findCocktailByName(cocktails, "Gin Tonic");
-        Cocktail caipirinha = findCocktailByName(cocktails, "Caïpirinha");
-        Cocktail espressoMartini = findCocktailByName(cocktails, "Espresso Martini");
+        for (JsonNode oNode : ordersNode) {
+            int tableNumero = oNode.get("tableNumero").asInt();
+            String serveurUsername = oNode.get("serveurUsername").asText();
+            CommandeStatut statut = CommandeStatut.valueOf(oNode.get("statut").asText());
+            int minutesAgo = oNode.get("minutesAgo").asInt();
+            String notes = oNode.hasNonNull("notes") ? oNode.get("notes").asText() : null;
 
-        // 1. Paid & Completed Historic Orders + Invoices
-        createCompletedOrderAndInvoice(tables.get(1), users.get("serveur1"), List.of(mojito, pinaColada), now.minusHours(2), "FAC-2026-00001", "CARTE_BANCAIRE", BigDecimal.ZERO);
-        createCompletedOrderAndInvoice(tables.get(5), users.get("serveur2"), List.of(spritz, espressoMartini, spritz), now.minusHours(3), "FAC-2026-00002", "ESPECES", new BigDecimal("3.00"));
-        createCompletedOrderAndInvoice(tables.get(11), users.get("serveur1"), List.of(margarita, mojito), now.minusHours(4), "FAC-2026-00003", "CARTE_BANCAIRE", BigDecimal.ZERO);
-        createCompletedOrderAndInvoice(tables.get(21), users.get("serveur2"), List.of(caipirinha, caipirinha, negroni), now.minusHours(5), "FAC-2026-00004", "CONTREMARQUE", BigDecimal.ZERO);
-        createCompletedOrderAndInvoice(tables.get(13), users.get("serveur1"), List.of(ginTonic, negroni, mojito), now.minusHours(6), "FAC-2026-00005", "CARTE_BANCAIRE", new BigDecimal("2.50"));
+            TableEntity table = tablesMap.get(tableNumero);
+            User serveur = usersMap.get(serveurUsername);
+            LocalDateTime orderTime = now.minusMinutes(minutesAgo);
 
-        // 2. Active Orders in EN_PREPARATION
-        createOrder(tables.get(2), users.get("serveur1"), CommandeStatut.EN_PREPARATION, List.of(mojito, mojito, negroni), now.minusMinutes(4), "Sans glaçons sur 1 Mojito");
-        createOrder(tables.get(10), users.get("serveur2"), CommandeStatut.EN_PREPARATION, List.of(margarita, spritz, ginTonic), now.minusMinutes(2), null);
+            List<Cocktail> orderCocktails = new ArrayList<>();
+            if (oNode.has("items") && oNode.get("items").isArray()) {
+                for (JsonNode itemNode : oNode.get("items")) {
+                    String cocktailName = itemNode.get("cocktailName").asText();
+                    int quantite = itemNode.has("quantite") ? itemNode.get("quantite").asInt() : 1;
+                    Cocktail c = findCocktailByName(cocktails, cocktailName);
+                    for (int i = 0; i < quantite; i++) {
+                        orderCocktails.add(c);
+                    }
+                }
+            }
 
-        // 3. Active Order PRET (Ready to serve)
-        createOrder(tables.get(4), users.get("serveur1"), CommandeStatut.PRET, List.of(espressoMartini, pinaColada, mojito), now.minusMinutes(7), "Servir vite");
+            Commande cmd = new Commande();
+            cmd.setTable(table);
+            cmd.setServeur(serveur);
+            cmd.setStatut(statut);
+            cmd.setDateCommande(orderTime);
+            cmd.setTrackingToken("TRK-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
+            cmd.setNotes(notes);
 
-        // 4. Active Order EN_ATTENTE (Recent, 1 min ago)
-        createOrder(tables.get(3), users.get("serveur2"), CommandeStatut.EN_ATTENTE, List.of(spritz, spritz), now.minusMinutes(1), null);
+            BigDecimal total = BigDecimal.ZERO;
+            List<CommandeItem> items = new ArrayList<>();
 
-        // 5. OVERDUE ORDERS (EN_RETARD: >5m WARN and >10m DANGER/CRITICAL thresholds)
-        createOrder(tables.get(6), users.get("serveur1"), CommandeStatut.EN_ATTENTE, List.of(mojito, mojito, mojito, pinaColada, margarita), now.minusMinutes(18), "[ALERTE RETARD 18M] Table VIP 6");
-        createOrder(tables.get(12), users.get("serveur2"), CommandeStatut.EN_ATTENTE, List.of(negroni, espressoMartini, caipirinha, caipirinha), now.minusMinutes(28), "[ALERTE CRITIQUE RETARD 28M] Terrasse Table 12");
+            for (Cocktail c : orderCocktails) {
+                CommandeItem item = new CommandeItem();
+                item.setCommande(cmd);
+                item.setCocktail(c);
+                item.setQuantite(1);
+                item.setPrixUnitaire(c.getPrix() != null ? c.getPrix() : new BigDecimal("9.50"));
+                items.add(item);
+                total = total.add(item.getPrixUnitaire());
+            }
 
-        // 6. Pending Invoices (Unsettled / En Attente)
-        createPendingInvoice(tables.get(2), List.of(mojito, mojito, negroni), now.minusMinutes(10), "FAC-2026-00006");
-        createPendingInvoice(tables.get(4), List.of(espressoMartini, pinaColada, mojito), now.minusMinutes(15), "FAC-2026-00007");
-        createPendingInvoice(tables.get(10), List.of(margarita, spritz, ginTonic), now.minusMinutes(20), "FAC-2026-00008");
+            cmd.setItems(items);
+            cmd.setTotal(total);
+
+            if (statut == CommandeStatut.EN_PREPARATION) {
+                cmd.setDatePreparation(orderTime.plusMinutes(2));
+            } else if (statut == CommandeStatut.PRET) {
+                cmd.setDatePreparation(orderTime.plusMinutes(2));
+                cmd.setDateLivraison(orderTime.plusMinutes(5));
+            } else if (statut == CommandeStatut.REGLEE) {
+                cmd.setDateReglement(orderTime.plusMinutes(35));
+            }
+
+            commandeRepository.save(cmd);
+        }
+    }
+
+    private void seedInvoicesFromJson(JsonNode invoicesNode, Map<Integer, TableEntity> tablesMap) {
+        if (invoicesNode == null || !invoicesNode.isArray()) return;
+        LocalDateTime now = timeService.now();
+
+        for (JsonNode invNode : invoicesNode) {
+            String numero = invNode.get("numero").asText();
+            int tableNumero = invNode.get("tableNumero").asInt();
+            boolean reglee = invNode.get("reglee").asBoolean();
+            String modePaiement = invNode.hasNonNull("modePaiement") ? invNode.get("modePaiement").asText() : null;
+            BigDecimal pourboire = invNode.has("pourboire") ? new BigDecimal(invNode.get("pourboire").asText()) : BigDecimal.ZERO;
+            int minutesAgo = invNode.get("minutesAgo").asInt();
+            String notes = invNode.hasNonNull("notes") ? invNode.get("notes").asText() : null;
+
+            TableEntity table = tablesMap.get(tableNumero);
+            LocalDateTime invoiceTime = now.minusMinutes(minutesAgo);
+
+            BigDecimal total = BigDecimal.ZERO;
+            List<FactureItem> items = new ArrayList<>();
+
+            Facture f = new Facture();
+            f.setTable(table);
+            f.setNumero(numero);
+            f.setReglee(reglee);
+            f.setModePaiement(modePaiement);
+            f.setPourboire(pourboire);
+            f.setDateFacture(invoiceTime);
+            f.setNotes(notes);
+
+            if (reglee) {
+                f.setDateReglement(invoiceTime.plusMinutes(35));
+                f.setFinalized(true);
+                f.setFinalizedAt(invoiceTime.plusMinutes(35));
+            }
+
+            if (invNode.has("items") && invNode.get("items").isArray()) {
+                for (JsonNode itemNode : invNode.get("items")) {
+                    String description = itemNode.get("description").asText();
+                    int quantite = itemNode.get("quantite").asInt();
+                    BigDecimal prixUnitaire = new BigDecimal(itemNode.get("prixUnitaire").asText());
+                    BigDecimal itemTotal = prixUnitaire.multiply(BigDecimal.valueOf(quantite));
+
+                    FactureItem fi = new FactureItem();
+                    fi.setFacture(f);
+                    fi.setDescription(description);
+                    fi.setQuantite(quantite);
+                    fi.setPrixUnitaire(prixUnitaire);
+                    fi.setTotal(itemTotal);
+                    items.add(fi);
+
+                    total = total.add(itemTotal);
+                }
+            }
+
+            f.setItems(items);
+            f.setTotal(total);
+            f.setTotalHT(total.multiply(new BigDecimal("0.8333")));
+            f.setTotalVAT(total.multiply(new BigDecimal("0.1667")));
+            f.setTotalTTC(total);
+
+            factureRepository.save(f);
+        }
     }
 
     private Cocktail findCocktailByName(List<Cocktail> cocktails, String name) {
@@ -257,108 +390,5 @@ public class SampleDataSeederService {
                 .filter(c -> c.getNom().equalsIgnoreCase(name))
                 .findFirst()
                 .orElse(cocktails.get(0));
-    }
-
-    private Commande createOrder(TableEntity table, User serveur, CommandeStatut statut, List<Cocktail> cocktailList, LocalDateTime orderTime, String notes) {
-        Commande cmd = new Commande();
-        cmd.setTable(table);
-        cmd.setServeur(serveur);
-        cmd.setStatut(statut);
-        cmd.setDateCommande(orderTime);
-        cmd.setTrackingToken("TRK-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
-        cmd.setNotes(notes);
-
-        BigDecimal total = BigDecimal.ZERO;
-        List<CommandeItem> items = new ArrayList<>();
-
-        for (Cocktail c : cocktailList) {
-            CommandeItem item = new CommandeItem();
-            item.setCommande(cmd);
-            item.setCocktail(c);
-            item.setQuantite(1);
-            item.setPrixUnitaire(c.getPrix() != null ? c.getPrix() : new BigDecimal("9.50"));
-            items.add(item);
-            total = total.add(item.getPrixUnitaire());
-        }
-
-        cmd.setItems(items);
-        cmd.setTotal(total);
-
-        if (statut == CommandeStatut.EN_PREPARATION) {
-            cmd.setDatePreparation(orderTime.plusMinutes(2));
-        } else if (statut == CommandeStatut.PRET) {
-            cmd.setDatePreparation(orderTime.plusMinutes(2));
-            cmd.setDateLivraison(orderTime.plusMinutes(5));
-        }
-
-        return commandeRepository.save(cmd);
-    }
-
-    private void createCompletedOrderAndInvoice(TableEntity table, User serveur, List<Cocktail> cocktailList, LocalDateTime orderTime, String invoiceNum, String paymentMode, BigDecimal pourboire) {
-        Commande cmd = createOrder(table, serveur, CommandeStatut.REGLEE, cocktailList, orderTime, "Commande réglée");
-        cmd.setDateReglement(orderTime.plusMinutes(35));
-        commandeRepository.save(cmd);
-
-        Facture f = new Facture();
-        f.setTable(table);
-        f.setNumero(invoiceNum);
-        f.setTotal(cmd.getTotal());
-        f.setTotalHT(cmd.getTotal().multiply(new BigDecimal("0.8333")));
-        f.setTotalVAT(cmd.getTotal().multiply(new BigDecimal("0.1667")));
-        f.setTotalTTC(cmd.getTotal());
-        f.setPourboire(pourboire);
-        f.setReglee(true);
-        f.setModePaiement(paymentMode);
-        f.setDateFacture(orderTime);
-        f.setDateReglement(orderTime.plusMinutes(35));
-        f.setFinalized(true);
-        f.setFinalizedAt(orderTime.plusMinutes(35));
-        f.setNotes("Facture acquittée " + paymentMode);
-
-        List<FactureItem> items = new ArrayList<>();
-        for (CommandeItem ci : cmd.getItems()) {
-            FactureItem fi = new FactureItem();
-            fi.setFacture(f);
-            fi.setCommandeItem(ci);
-            fi.setDescription(ci.getCocktail().getNom());
-            fi.setQuantite(ci.getQuantite());
-            fi.setPrixUnitaire(ci.getPrixUnitaire());
-            fi.setTotal(ci.getPrixUnitaire().multiply(BigDecimal.valueOf(ci.getQuantite())));
-            items.add(fi);
-        }
-
-        f.setItems(items);
-        factureRepository.save(f);
-    }
-
-    private void createPendingInvoice(TableEntity table, List<Cocktail> cocktailList, LocalDateTime invoiceTime, String invoiceNum) {
-        BigDecimal total = BigDecimal.ZERO;
-        List<FactureItem> items = new ArrayList<>();
-
-        Facture f = new Facture();
-        f.setTable(table);
-        f.setNumero(invoiceNum);
-        f.setReglee(false);
-        f.setDateFacture(invoiceTime);
-        f.setNotes("En attente de règlement par la table N°" + table.getNumero());
-
-        for (Cocktail c : cocktailList) {
-            BigDecimal price = c.getPrix() != null ? c.getPrix() : new BigDecimal("9.50");
-            FactureItem fi = new FactureItem();
-            fi.setFacture(f);
-            fi.setDescription(c.getNom());
-            fi.setQuantite(1);
-            fi.setPrixUnitaire(price);
-            fi.setTotal(price);
-            items.add(fi);
-            total = total.add(price);
-        }
-
-        f.setItems(items);
-        f.setTotal(total);
-        f.setTotalHT(total.multiply(new BigDecimal("0.8333")));
-        f.setTotalVAT(total.multiply(new BigDecimal("0.1667")));
-        f.setTotalTTC(total);
-        factureRepository.save(f);
     }
 }

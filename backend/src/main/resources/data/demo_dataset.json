@@ -1,0 +1,314 @@
+{
+  "users": [
+    {
+      "username": "admin",
+      "email": "admin@openbar.fr",
+      "password": "admin123",
+      "nom": "Dupont",
+      "prenom": "Alexandre",
+      "roles": ["ADMIN", "MANAGER"]
+    },
+    {
+      "username": "manager",
+      "email": "manager@openbar.fr",
+      "password": "manager123",
+      "nom": "Martin",
+      "prenom": "Sophie",
+      "roles": ["MANAGER"]
+    },
+    {
+      "username": "serveur1",
+      "email": "lucas@openbar.fr",
+      "password": "serveur123",
+      "nom": "Bernard",
+      "prenom": "Lucas",
+      "roles": ["SERVEUR"]
+    },
+    {
+      "username": "serveur2",
+      "email": "camille@openbar.fr",
+      "password": "serveur123",
+      "nom": "Dubois",
+      "prenom": "Camille",
+      "roles": ["SERVEUR"]
+    },
+    {
+      "username": "barman1",
+      "email": "antoine@openbar.fr",
+      "password": "barman123",
+      "nom": "Moreau",
+      "prenom": "Antoine",
+      "roles": ["BARMAN"]
+    },
+    {
+      "username": "barman2",
+      "email": "emma@openbar.fr",
+      "password": "barman123",
+      "nom": "Laurent",
+      "prenom": "Emma",
+      "roles": ["BARMAN"]
+    }
+  ],
+  "zones": [
+    { "nom": "Salle Principale", "etage": "RDC" },
+    { "nom": "Terrasse", "etage": "RDC" },
+    { "nom": "Mezzanine", "etage": "1er Étage" }
+  ],
+  "tables": [
+    { "numero": 1, "zone": "Salle Principale", "capacite": 2, "occupee": false, "serveurUsername": null, "planX": 100.0, "planY": 100.0, "planForme": "CARRE" },
+    { "numero": 2, "zone": "Salle Principale", "capacite": 4, "occupee": true, "serveurUsername": "serveur1", "planX": 250.0, "planY": 100.0, "planForme": "CARRE" },
+    { "numero": 3, "zone": "Salle Principale", "capacite": 4, "occupee": true, "serveurUsername": "serveur2", "planX": 400.0, "planY": 100.0, "planForme": "RONDE" },
+    { "numero": 4, "zone": "Salle Principale", "capacite": 6, "occupee": true, "serveurUsername": "serveur1", "planX": 550.0, "planY": 100.0, "planForme": "RECTANGLE" },
+    { "numero": 5, "zone": "Salle Principale", "capacite": 2, "occupee": false, "serveurUsername": null, "planX": 100.0, "planY": 250.0, "planForme": "CARRE" },
+    { "numero": 6, "zone": "Salle Principale", "capacite": 8, "occupee": true, "serveurUsername": "serveur1", "planX": 300.0, "planY": 250.0, "planForme": "RECTANGLE" },
+    { "numero": 10, "zone": "Terrasse", "capacite": 4, "occupee": true, "serveurUsername": "serveur2", "planX": 100.0, "planY": 400.0, "planForme": "RONDE" },
+    { "numero": 11, "zone": "Terrasse", "capacite": 2, "occupee": false, "serveurUsername": null, "planX": 250.0, "planY": 400.0, "planForme": "CARRE" },
+    { "numero": 12, "zone": "Terrasse", "capacite": 4, "occupee": true, "serveurUsername": "serveur2", "planX": 400.0, "planY": 400.0, "planForme": "RONDE" },
+    { "numero": 13, "zone": "Terrasse", "capacite": 6, "occupee": false, "serveurUsername": null, "planX": 550.0, "planY": 400.0, "planForme": "RECTANGLE" },
+    { "numero": 20, "zone": "Mezzanine", "capacite": 4, "occupee": true, "serveurUsername": "serveur1", "planX": 100.0, "planY": 550.0, "planForme": "CARRE" },
+    { "numero": 21, "zone": "Mezzanine", "capacite": 2, "occupee": false, "serveurUsername": null, "planX": 250.0, "planY": 550.0, "planForme": "CARRE" },
+    { "numero": 22, "zone": "Mezzanine", "capacite": 6, "occupee": false, "serveurUsername": null, "planX": 400.0, "planY": 550.0, "planForme": "RECTANGLE" }
+  ],
+  "shifts": [
+    { "username": "serveur1", "shiftType": "MATIN", "poste": "SERVEUR", "heureDebut": "10:00", "heureFin": "18:00" },
+    { "username": "serveur2", "shiftType": "SOIR", "poste": "SERVEUR", "heureDebut": "17:00", "heureFin": "01:00" },
+    { "username": "barman1", "shiftType": "SOIR", "poste": "BARMAN", "heureDebut": "16:00", "heureFin": "02:00" },
+    { "username": "barman2", "shiftType": "MATIN", "poste": "BARMAN", "heureDebut": "11:00", "heureFin": "17:00" }
+  ],
+  "orders": [
+    {
+      "tableNumero": 1,
+      "serveurUsername": "serveur1",
+      "statut": "REGLEE",
+      "minutesAgo": 120,
+      "notes": "Commande réglée",
+      "items": [
+        { "cocktailName": "Mojito", "quantite": 1 },
+        { "cocktailName": "Piña Colada", "quantite": 1 }
+      ]
+    },
+    {
+      "tableNumero": 5,
+      "serveurUsername": "serveur2",
+      "statut": "REGLEE",
+      "minutesAgo": 180,
+      "notes": "Commande réglée",
+      "items": [
+        { "cocktailName": "Aperol Spritz", "quantite": 2 },
+        { "cocktailName": "Espresso Martini", "quantite": 1 }
+      ]
+    },
+    {
+      "tableNumero": 11,
+      "serveurUsername": "serveur1",
+      "statut": "REGLEE",
+      "minutesAgo": 240,
+      "notes": "Commande réglée",
+      "items": [
+        { "cocktailName": "Margarita", "quantite": 1 },
+        { "cocktailName": "Mojito", "quantite": 1 }
+      ]
+    },
+    {
+      "tableNumero": 21,
+      "serveurUsername": "serveur2",
+      "statut": "REGLEE",
+      "minutesAgo": 300,
+      "notes": "Commande réglée",
+      "items": [
+        { "cocktailName": "Caïpirinha", "quantite": 2 },
+        { "cocktailName": "Negroni", "quantite": 1 }
+      ]
+    },
+    {
+      "tableNumero": 13,
+      "serveurUsername": "serveur1",
+      "statut": "REGLEE",
+      "minutesAgo": 360,
+      "notes": "Commande réglée",
+      "items": [
+        { "cocktailName": "Gin Tonic", "quantite": 1 },
+        { "cocktailName": "Negroni", "quantite": 1 },
+        { "cocktailName": "Mojito", "quantite": 1 }
+      ]
+    },
+    {
+      "tableNumero": 2,
+      "serveurUsername": "serveur1",
+      "statut": "EN_PREPARATION",
+      "minutesAgo": 4,
+      "notes": "Sans glaçons sur 1 Mojito",
+      "items": [
+        { "cocktailName": "Mojito", "quantite": 2 },
+        { "cocktailName": "Negroni", "quantite": 1 }
+      ]
+    },
+    {
+      "tableNumero": 10,
+      "serveurUsername": "serveur2",
+      "statut": "EN_PREPARATION",
+      "minutesAgo": 2,
+      "notes": null,
+      "items": [
+        { "cocktailName": "Margarita", "quantite": 1 },
+        { "cocktailName": "Aperol Spritz", "quantite": 1 },
+        { "cocktailName": "Gin Tonic", "quantite": 1 }
+      ]
+    },
+    {
+      "tableNumero": 4,
+      "serveurUsername": "serveur1",
+      "statut": "PRET",
+      "minutesAgo": 7,
+      "notes": "Servir vite",
+      "items": [
+        { "cocktailName": "Espresso Martini", "quantite": 1 },
+        { "cocktailName": "Piña Colada", "quantite": 1 },
+        { "cocktailName": "Mojito", "quantite": 1 }
+      ]
+    },
+    {
+      "tableNumero": 3,
+      "serveurUsername": "serveur2",
+      "statut": "EN_ATTENTE",
+      "minutesAgo": 1,
+      "notes": null,
+      "items": [
+        { "cocktailName": "Aperol Spritz", "quantite": 2 }
+      ]
+    },
+    {
+      "tableNumero": 6,
+      "serveurUsername": "serveur1",
+      "statut": "EN_ATTENTE",
+      "minutesAgo": 18,
+      "notes": "[ALERTE RETARD 18M] Table VIP 6",
+      "items": [
+        { "cocktailName": "Mojito", "quantite": 3 },
+        { "cocktailName": "Piña Colada", "quantite": 1 },
+        { "cocktailName": "Margarita", "quantite": 1 }
+      ]
+    },
+    {
+      "tableNumero": 12,
+      "serveurUsername": "serveur2",
+      "statut": "EN_ATTENTE",
+      "minutesAgo": 28,
+      "notes": "[ALERTE CRITIQUE RETARD 28M] Terrasse Table 12",
+      "items": [
+        { "cocktailName": "Negroni", "quantite": 1 },
+        { "cocktailName": "Espresso Martini", "quantite": 1 },
+        { "cocktailName": "Caïpirinha", "quantite": 2 }
+      ]
+    }
+  ],
+  "invoices": [
+    {
+      "numero": "FAC-2026-00001",
+      "tableNumero": 1,
+      "reglee": true,
+      "modePaiement": "CARTE_BANCAIRE",
+      "pourboire": 0.0,
+      "minutesAgo": 120,
+      "notes": "Facture acquittée CARTE_BANCAIRE",
+      "items": [
+        { "description": "Mojito", "quantite": 1, "prixUnitaire": 9.50 },
+        { "description": "Piña Colada", "quantite": 1, "prixUnitaire": 10.00 }
+      ]
+    },
+    {
+      "numero": "FAC-2026-00002",
+      "tableNumero": 5,
+      "reglee": true,
+      "modePaiement": "ESPECES",
+      "pourboire": 3.00,
+      "minutesAgo": 180,
+      "notes": "Facture acquittée ESPECES",
+      "items": [
+        { "description": "Aperol Spritz", "quantite": 2, "prixUnitaire": 8.50 },
+        { "description": "Espresso Martini", "quantite": 1, "prixUnitaire": 10.50 }
+      ]
+    },
+    {
+      "numero": "FAC-2026-00003",
+      "tableNumero": 11,
+      "reglee": true,
+      "modePaiement": "CARTE_BANCAIRE",
+      "pourboire": 0.0,
+      "minutesAgo": 240,
+      "notes": "Facture acquittée CARTE_BANCAIRE",
+      "items": [
+        { "description": "Margarita", "quantite": 1, "prixUnitaire": 9.50 },
+        { "description": "Mojito", "quantite": 1, "prixUnitaire": 9.50 }
+      ]
+    },
+    {
+      "numero": "FAC-2026-00004",
+      "tableNumero": 21,
+      "reglee": true,
+      "modePaiement": "CONTREMARQUE",
+      "pourboire": 0.0,
+      "minutesAgo": 300,
+      "notes": "Facture acquittée CONTREMARQUE",
+      "items": [
+        { "description": "Caïpirinha", "quantite": 2, "prixUnitaire": 9.00 },
+        { "description": "Negroni", "quantite": 1, "prixUnitaire": 10.00 }
+      ]
+    },
+    {
+      "numero": "FAC-2026-00005",
+      "tableNumero": 13,
+      "reglee": true,
+      "modePaiement": "CARTE_BANCAIRE",
+      "pourboire": 2.50,
+      "minutesAgo": 360,
+      "notes": "Facture acquittée CARTE_BANCAIRE",
+      "items": [
+        { "description": "Gin Tonic", "quantite": 1, "prixUnitaire": 9.00 },
+        { "description": "Negroni", "quantite": 1, "prixUnitaire": 10.00 },
+        { "description": "Mojito", "quantite": 1, "prixUnitaire": 9.50 }
+      ]
+    },
+    {
+      "numero": "FAC-2026-00006",
+      "tableNumero": 2,
+      "reglee": false,
+      "modePaiement": null,
+      "pourboire": 0.0,
+      "minutesAgo": 10,
+      "notes": "En attente de règlement par la table N°2",
+      "items": [
+        { "description": "Mojito", "quantite": 2, "prixUnitaire": 9.50 },
+        { "description": "Negroni", "quantite": 1, "prixUnitaire": 10.00 }
+      ]
+    },
+    {
+      "numero": "FAC-2026-00007",
+      "tableNumero": 4,
+      "reglee": false,
+      "modePaiement": null,
+      "pourboire": 0.0,
+      "minutesAgo": 15,
+      "notes": "En attente de règlement par la table N°4",
+      "items": [
+        { "description": "Espresso Martini", "quantite": 1, "prixUnitaire": 10.50 },
+        { "description": "Piña Colada", "quantite": 1, "prixUnitaire": 10.00 },
+        { "description": "Mojito", "quantite": 1, "prixUnitaire": 9.50 }
+      ]
+    },
+    {
+      "numero": "FAC-2026-00008",
+      "tableNumero": 10,
+      "reglee": false,
+      "modePaiement": null,
+      "pourboire": 0.0,
+      "minutesAgo": 20,
+      "notes": "En attente de règlement par la table N°10",
+      "items": [
+        { "description": "Margarita", "quantite": 1, "prixUnitaire": 9.50 },
+        { "description": "Aperol Spritz", "quantite": 1, "prixUnitaire": 8.50 },
+        { "description": "Gin Tonic", "quantite": 1, "prixUnitaire": 9.00 }
+      ]
+    }
+  ]
+}
