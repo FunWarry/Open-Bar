@@ -759,7 +759,7 @@ Après une authentification réussie, l'utilisateur est redirigé directement ve
 13. ~~🐛 **Ticket #M — Bug dateLivraison**~~ ✅ (Résolu #224)
 14. ~~🔄 **Ticket #N — Supprimer `allow-circular-references: true`**~~ ✅ (Résolu #224)
 15. ~~⚠️ **Ticket #O — Exceptions métier**~~ ✅ (Résolu #224)
-16. 🧾 **Ticket #P — Format ticket thermique 58mm** (Issue #237) [OPEN]
+16. ~~🖨️ **Ticket #P — Facturation Format ticket 58mm** (Issue #237)~~ ✅ (Mergé PR #259)
 17. ~~📦 **Ticket #Q — Barman Panel Stock Alignement** (Issue #238)~~ ✅ (Mergé PR #248)
 18. ~~👤 **Ticket #R — Profil Formulaire Pré-rempli NgRx** (Issue #239)~~ ✅ (Mergé PR #247)
 19. 🧪 **Issue #193 — Tests d'intégration Spring Boot (Testcontainers) et E2E Playwright** [OPEN]

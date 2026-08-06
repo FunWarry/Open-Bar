@@ -1,6 +1,6 @@
 # OpenBar — État des Features & Roadmap
 
-> Dernière mise à jour : 6 août 2026 — PR #258 : Vue Serveur Mobile — Bottom Navigation & MobileTableCard (#236)
+> Dernière mise à jour : 6 août 2026 — PR #259 : Facturation — Format ticket 58mm (#237)
 
 ## Tableau des Features
 
@@ -9,11 +9,12 @@
 | Documentation complète & API OpenAPI/Swagger (#192/#194) | ✅ | ✅ | ✅ | JavaDoc, TSDoc, OpenAPI 3.0 |
 | Quality Gate SonarCloud & Sécurité 100% sans `@SuppressWarnings` | ✅ | ✅ | ✅ | Coverage > 80%, Note A |
 | Données légales établissement SIRET/TVA/RCS (#129/#134) | ✅ | ✅ | ✅ | Validation Luhn SIRET, format TVA FR, Formulaire Admin + Live preview ticket |
+| Format d'impression ticket 58mm & 80mm (#237) | ✅ | ✅ | ✅ | Sélection du format ticket d'impression (80mm/58mm) en admin + styles CSS compacts & @media print |
 | Calcul TVA multi-taux (20%, 10%, 5.5%) (#130) | ✅ | ✅ | ✅ | Calcul HT/TVA/TTC par article, récapitulatif CA3 |
 | Numérotation séquentielle factures (FAC-YYYY-NNNNN) (#131) | ✅ | ✅ | ✅ | Conformité CGI art. 289, émission Avoirs (AV-YYYY-NNNNN) |
 | Archivage légal 10 ans & Intégrité SHA-256 (#132) | ✅ | ✅ | ✅ | Factures immuables finalisées + verification hash SHA256 PDF |
 | Export comptable CSV & Déclaration TVA mensuelle (#133) | ✅ | ✅ | ✅ | Export UTF-8 BOM Excel, récapitulatif mensuel TVA |
-| Impression Ticket 80mm & Facture PDF A4 (#180) | ✅ | ✅ | ✅ | Ticket thermique 80mm, en-tête légal, ventilation TVA, mentions de paiement |
+| Impression Ticket 80mm / 58mm & Facture PDF A4 (#180/#237) | ✅ | ✅ | ✅ | Ticket thermique 80mm/58mm, en-tête légal, ventilation TVA, mentions de paiement |
 | Auth JWT | ✅ | ✅ | ✅ | — |
 | Configuration initiale (/setup admin) | ✅ | ✅ | ✅ | — |
 | Bibliothèque composants UI Figma | — | ✅ | ✅ | — |
@@ -94,7 +95,7 @@
 - ~~**Ticket #M** : `fix: Bug dateLivraison set sur PRET au lieu de LIVREE [BACKEND]` — ✅ Résolu (#224)
 - ~~**Ticket #N** : `refactor: Supprimer allow-circular-references [BACKEND]` — ✅ Résolu (#224)
 - ~~**Ticket #O** : `fix: Exceptions génériques RuntimeException → exceptions métier [BACKEND]` — ✅ Résolu (#224)
-- **Issue #237** (Ticket #P) : `feat: Facturation — Format ticket 58mm [FACTURATION]` (Figma 640:1220)
+- ~~**Issue #237** (Ticket #P) : `feat: Facturation — Format ticket 58mm [FACTURATION]` (Figma 640:1220)~~ ✅ (Mergé PR #259)
 - ~~**Issue #238** (Ticket #Q) : `fix: Barman — Panel Stock — Alignement Figma complet [BARMAN]` (Figma 488:3340)~~ ✅ (Mergé PR #248)
 - ~~**Issue #239** (Ticket #R) : `fix: Profil — Données formulaire non pré-remplies depuis le store NgRx [AUTH]`~~ ✅ (Mergé PR #247)
 - **Issue #193** : `test: Tests d'intégration Spring Boot (Testcontainers) et E2E Playwright`
@@ -112,6 +113,7 @@
 
 | PR / Issue | Description |
 |------------|-------------|
+| #259 (#237) | Facturation — Format ticket 58mm (Figma 640:1220) : Ajout de la gestion du format d'impression thermique 58mm en complément du 80mm. Champ backend `ticketFormat` dans `EstablishmentConfig`, `schema.sql`, DTOs et services. Formulaire de configuration Admin `EtablissementComponent` avec sélecteur de format. Composant `TicketReceiptComponent` avec sélecteur dynamique (80mm/58mm), mise en page compacte et règles CSS `@media print` adaptées. Clefs i18n Transloco FR/EN. Tests Karma (1044/1044 OK) et backend Spring Boot 100% verts. |
 | #258 (#236) | Vue Serveur Mobile — Bottom Navigation & MobileTableCard (Figma 632:2240) : Composant Ionic 8 standalone `BottomNavigationComponent` pour les terminaux mobiles (< 768px) avec icônes de navigation, badges de panier/suivi et i18n FR/EN. Composant `MobileTableCardComponent` avec badging de statut, capacité, zone, montant total et chronomètre d'attente coloré selon les exigences WCAG AAA. Support i18n Transloco (`SERVEUR_MOBILE.*`) et attributs `data-testid`. Coordonnées de tests Karma/Jasmine 100% verts (1042/1042 OK). |
 | #257 (#229) | Écran Onboarding — Flow 1ère connexion par rôle (Figma 633:1100–1173) : Composant Ionic 8 standalone `OnboardingComponent` (`/onboarding`) affichant des cartes tutoriel guidées adaptées au rôle de l'utilisateur (ADMIN, MANAGER, SERVEUR, BARMAN, CLIENT). Service `OnboardingService` avec persistance de l'état de complétion dans `localStorage`. Bouton de relance du tutoriel depuis la page Profil (`/profile`). Internationalisation FR/EN (`ONBOARDING.*`). Tests unitaires Karma/Jasmine 100% verts (1038/1038 OK). |
 | #256 (#225) | Vue Client — Écran Scanner QR Code (Figma 636:988) : Viseur caméra en direct avec animation laser et overlay de cadrage, détection automatique via l'API native `BarcodeDetector` (formats `qr_code`) et redirection automatique vers `/client/commande?table={numero}`. Saisie manuelle du numéro de table en fallback, boutons de simulation de scan, et i18n FR/EN complet (`CLIENT_QR.*`). Coverage de tests unitaires Jasmine/Karma 100% verts (1017/1017 OK). |

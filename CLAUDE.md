@@ -352,7 +352,8 @@ Pour les fichiers scopés par feature (ex : `fr/commandes.json`), déclarer le s
 | Alertes stock WebSocket | ✅ | ✅ | ✅ |
 | Notifications WS (toasts + panneau navbar) | ✅ | ✅ | ✅ |
 | Service de Broadcast STOMP & Diffusion Temps Réel (#187) | ✅ | — | ✅ |
-| Impression Ticket de Caisse 80mm & Facture PDF A4 (#180) | ✅ | ✅ | ✅ |
+| Impression Ticket 80mm/58mm & Facture PDF A4 (#180/#237) | ✅ | ✅ | ✅ |
+| Facturation — Format ticket 58mm & 80mm (#237) | ✅ | ✅ | ✅ |
 | Factures (liste + détail + règlement) | ✅ | ✅ | ✅ |
 | Facturation — Vue Récap Journée & Z-Report PDF (#227) | ✅ | ✅ | ✅ |
 | Facturation — Vue Règlement Post-Split (#228) | ✅ | ✅ | ✅ |
