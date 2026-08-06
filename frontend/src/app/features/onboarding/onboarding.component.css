@@ -45,9 +45,9 @@
 }
 
 .btn-skip-ghost {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: #f8fafc;
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #ffffff;
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
@@ -57,7 +57,7 @@
 
   &:hover {
     color: #ffffff;
-    background: rgba(255, 255, 255, 0.16);
+    background: #334155;
   }
 }
 
