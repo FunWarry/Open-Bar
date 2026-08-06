@@ -215,6 +215,10 @@ export const routes: Routes = [
     data: { roles: ['ADMIN'] }
   },
   {
+    path: 'client/scanner',
+    loadComponent: () => import('./features/client/client-qr-scanner/client-qr-scanner.component').then(m => m.ClientQrScannerComponent)
+  },
+  {
     path: 'client/commande',
     loadComponent: () => import('./features/client/client-commande/client-commande.component').then(m => m.ClientCommandeComponent)
   },

@@ -138,6 +138,21 @@
     "PREF_LANGUAGE_LABEL": "Interface language",
     "PREF_LANGUAGE_DESC": "Choose the display language of the application"
   },
+  "CLIENT_QR": {
+    "TITLE": "Scan QR Code",
+    "SUBTITLE": "Point your camera at the QR Code on your table",
+    "TAB_SCAN": "Camera Scanner",
+    "TAB_MANUAL": "Manual Entry",
+    "GUIDANCE": "Align the QR Code within the frame to be redirected automatically",
+    "INITIALIZING_CAMERA": "Initializing camera...",
+    "ERR_PERMISSION_DENIED": "Camera access denied. Please grant permission or enter your table number.",
+    "ERR_CAMERA_UNAVAILABLE": "Camera unavailable on this device. Use manual entry below.",
+    "ERR_INVALID_QR": "Invalid QR Code. Please scan an official OpenBar table QR Code.",
+    "TABLE_NUMBER_LABEL": "Your Table Number",
+    "TABLE_NUMBER_PLACEHOLDER": "e.g. 4",
+    "ACCESS_MENU": "View Menu",
+    "SIMULATION_LABEL": "Demo / Test mode without camera:"
+  },
   "COCKTAILS": {
     "TITLE": "Cocktails",
     "ADD": "New Cocktail",

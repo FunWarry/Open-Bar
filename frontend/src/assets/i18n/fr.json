@@ -139,6 +139,21 @@
     "PREF_LANGUAGE_LABEL": "Langue de l'interface",
     "PREF_LANGUAGE_DESC": "Choisir la langue d'affichage de l'application"
   },
+  "CLIENT_QR": {
+    "TITLE": "Scanner le QR Code",
+    "SUBTITLE": "Pointez votre caméra vers le QR Code collé sur votre table",
+    "TAB_SCAN": "Scanner Caméra",
+    "TAB_MANUAL": "Saisie Manuelle",
+    "GUIDANCE": "Alignez le QR Code dans le cadre pour être redirigé automatiquement",
+    "INITIALIZING_CAMERA": "Initialisation de la caméra...",
+    "ERR_PERMISSION_DENIED": "Accès à la caméra refusé. Veuillez autoriser l'accès ou saisir votre numéro de table.",
+    "ERR_CAMERA_UNAVAILABLE": "Caméra indisponible sur cet appareil. Utilisez la saisie manuelle.",
+    "ERR_INVALID_QR": "Code QR invalide. Veuillez scanner le QR Code officiel OpenBar de votre table.",
+    "TABLE_NUMBER_LABEL": "Numéro de votre table",
+    "TABLE_NUMBER_PLACEHOLDER": "Ex: 4",
+    "ACCESS_MENU": "Accéder au Menu",
+    "SIMULATION_LABEL": "Mode Démo / Test sans caméra :"
+  },
   "COCKTAILS": {
     "TITLE": "Cocktails",
     "ADD": "Nouveau cocktail",
