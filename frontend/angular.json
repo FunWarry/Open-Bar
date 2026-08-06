@@ -28,7 +28,11 @@
               "src/theme/variables.css",
               "src/styles.css"
             ],
-            "scripts": []
+            "scripts": [],
+            "allowedCommonJsDependencies": [
+              "@stomp/stompjs",
+              "@stomp/rx-stomp"
+            ]
           },
           "configurations": {
             "production": {
@@ -70,6 +74,9 @@
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "host": "0.0.0.0"
+          },
           "configurations": {
             "production": {
               "buildTarget": "gestion-cocktail-frontend:build:production"
