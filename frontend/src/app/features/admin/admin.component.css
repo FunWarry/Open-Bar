@@ -282,37 +282,41 @@
 }
 
 .primary-hub-btn {
-  background: var(--primary, #6c7fe8);
+  background: #5a68d6;
+  background: var(--primary, #5a68d6);
   color: #ffffff;
   box-shadow: 0 4px 14px var(--primary-tint, rgba(108, 127, 232, 0.35));
 }
 
 .primary-hub-btn:hover {
-  background: var(--primary-strong, #5a68d6);
+  background: #4d5ac4;
+  background: var(--primary-strong, #4d5ac4);
   box-shadow: 0 6px 20px var(--primary-tint, rgba(108, 127, 232, 0.5));
   transform: translateY(-2px);
 }
 
 .accent-hub-btn {
-  background: var(--role-serveur, #34c77b);
+  background: #15803d;
+  background: var(--role-serveur, #15803d);
   color: #ffffff;
   box-shadow: 0 4px 14px var(--role-serveur-15, rgba(52, 199, 123, 0.35));
 }
 
 .accent-hub-btn:hover {
-  background: #28a763;
+  background: #166534;
   box-shadow: 0 6px 20px var(--role-serveur-15, rgba(52, 199, 123, 0.5));
   transform: translateY(-2px);
 }
 
 .warning-hub-btn {
-  background: var(--role-manager, #f0a33b);
+  background: #b45309;
+  background: var(--role-manager, #b45309);
   color: #ffffff;
   box-shadow: 0 4px 14px var(--role-manager-15, rgba(240, 163, 59, 0.35));
 }
 
 .warning-hub-btn:hover {
-  background: #d88f28;
+  background: #78350f;
   box-shadow: 0 6px 20px var(--role-manager-15, rgba(240, 163, 59, 0.5));
   transform: translateY(-2px);
 }
