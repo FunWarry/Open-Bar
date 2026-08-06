@@ -161,7 +161,8 @@
   transition: background 0.25s ease;
 
   &:hover {
-    background: var(--primary, #6c7fe8);
+    background: #5a68d6;
+    background: var(--primary-strong, #5a68d6);
     color: #ffffff;
   }
 }

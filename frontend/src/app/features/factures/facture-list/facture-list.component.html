@@ -145,7 +145,7 @@
       <h3 class="empty-title">{{ t('FACTURES.NO_FACTURES') }}</h3>
       <p class="empty-desc">{{ t('FACTURES.NO_FACTURES_DESC') }}</p>
       @if (searchTerm || activeFilter !== 'ALL') {
-        <ion-button fill="outline" size="small" (click)="resetFilters()" data-testid="reset-filters-btn">
+        <ion-button fill="outline" size="small" (click)="resetFilters()" (keyup.enter)="resetFilters()" data-testid="reset-filters-btn">
           <ion-icon name="refresh-outline" slot="start"></ion-icon>
           {{ t('FACTURES.RESET_FILTERS') }}
         </ion-button>

@@ -6,7 +6,7 @@ import { CurrencyPipe } from '@angular/common';
 import { TranslocoModule } from '@jsverse/transloco';
 import {
   IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-  IonList, IonItem, IonLabel, IonInput, IonSelect, IonSelectOption, IonButton, IonIcon,
+  IonInput, IonSelect, IonSelectOption, IonButton, IonIcon,
   IonSpinner, IonGrid, IonRow, IonCol, ToastController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -47,7 +47,7 @@ export function siretLuhnValidator(control: AbstractControl): ValidationErrors |
     CurrencyPipe,
     TranslocoModule,
     IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-    IonList, IonItem, IonLabel, IonInput, IonSelect, IonSelectOption, IonButton, IonIcon,
+    IonInput, IonSelect, IonSelectOption, IonButton, IonIcon,
     IonSpinner, IonGrid, IonRow, IonCol,
   ],
 })
@@ -112,7 +112,6 @@ export class EtablissementComponent implements OnInit, OnDestroy {
         },
       });
   }
-
 
   loadConfig(): void {
     this.isLoading = true;
