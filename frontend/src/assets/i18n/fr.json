@@ -329,8 +329,25 @@
     "PRIORITY": "Priorité"
   },
   "FACTURES": {
-    "TITLE": "Facture",
     "NEW": "Nouvelle facture",
+    "TITLE": "Historique des Factures",
+    "SUBTITLE": "Supervision des encaissements, recherche et consultation des pièces comptables",
+    "STATS": {
+      "TOTAL_CA": "Chiffre d'Affaires Cumulé",
+      "TOTAL_COUNT": "Factures Émises",
+      "SETTLED_RATE": "Taux de Règlement",
+      "RECAP_BTN": "Z-Report / Clôture Journée"
+    },
+    "SEARCH_PLACEHOLDER": "Rechercher par N° de facture, table ou serveur...",
+    "FILTERS": {
+      "ALL": "Toutes",
+      "SETTLED": "Réglées",
+      "PENDING": "En Attente"
+    },
+    "TABLE_LABEL": "Table {{num}}",
+    "NO_FACTURES": "Aucune facture trouvée",
+    "NO_FACTURES_DESC": "Aucune facture ne correspond à vos critères de recherche ou aucune commande n'a encore été encaissée.",
+    "RESET_FILTERS": "Réinitialiser les filtres",
     "NUMBER": "Numéro",
     "DATE": "Date de facturation",
     "SETTLE": "Régler la facture",
