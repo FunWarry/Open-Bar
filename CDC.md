@@ -205,36 +205,46 @@ Service frontend : `websocket.service.ts` — ✅ pleinement implémenté (RxSto
 | **Tables CRUD** | ✅ | ✅ | ✅ | ✅ | — |
 | **Commandes (liste + détail + kanban barman)** | ✅ | ✅ | ✅ | ✅ | — |
 | Déstockage auto à la commande | ✅ | — | ✅ | — | — |
-| **Stock — vue rapide (shift)** | ✅ | ⚠️ squelette | ✅ | ✅ | — |
-| **Stock — vue globale (gestion complète)** | ✅ | ⚠️ squelette | ✅ | ✅ designé | 🟡 Moyenne |
-| Plan de salle (manager) | ✅ | ⚠️ squelette | ✅ | ✅ | — |
+| **Stock — vue rapide (shift)** | ✅ | ✅ | ✅ | ✅ | — |
+| **Stock — vue globale (gestion complète)** | ✅ | ✅ | ✅ | ✅ designé | — |
+| Plan de salle (manager) | ✅ | ✅ | ✅ | ✅ | — |
 | **Vue Serveur — Plan de salle (lecture)** | ✅ | ✅ | ✅ | ✅ designé | — |
 | **Vue Serveur — Détail table + side panel** | ✅ | ✅ | ✅ | ✅ designé | — |
 | **Vue Serveur — Nouvelle commande** | ✅ | ✅ | ✅ | ✅ designé | — |
 | **Vue Serveur — Suivi commandes (kanban)** | ✅ | ✅ | ✅ | ✅ designé | — |
 | **Login** | ✅ | ✅ | ✅ | ✅ designé | — |
-| **Register / Create user** | ✅ | ⚠️ squelette | ✅ | ✅ designé | — |
-| **Profile / Mon compte** | ✅ | ⚠️ squelette | ✅ | ✅ designé | — |
+| **Register / Create user** | ✅ | ✅ | ✅ | ✅ designé | — |
+| **Profile / Mon compte** | ✅ | ✅ | ✅ | ✅ designé | — |
 | **404 / Error page** | — | ✅ | ✅ | ✅ designé | — |
-| **Loading / Splash screen** | — | — | — | ✅ designé | — |
+| **Loading / Splash screen** | — | ✅ | ✅ | ✅ designé | — |
 | WebSocketService | ✅ | ✅ | ✅ | — | — |
 | **Notifications temps réel (toasts + panneau)** | ✅ | ✅ | ✅ | ✅ | — |
 | **Alertes stock (bannière barman)** | ✅ | ✅ | ✅ | ✅ | — |
-| **Factures (liste + détail + règlement)** | ✅ | ✅ | ✅ | ⚠️ partiel | — |
-| **Export PDF factures** | ✅ | ✅ | ✅ | ❌ | — |
-| **Division d'addition (split égal + par article)** | ✅ | ✅ | ✅ | ❌ | — |
-| **Dashboard Manager / statistiques** | ✅ | ✅ | ✅ | ❌ | — |
-| Plan de salle interactif (Konva.js) | ✅ | ✅ | ✅ | ⚠️ esquissé | — |
-| QR code commande client (#184) | ✅ | ❌ **frontend à faire** | ✅ | ✅ designé | 🔴 Haute |
-| Variantes cocktails & Déduction auto stocks (#185) | ✅ | ❌ **frontend à faire** | ✅ | — | 🔴 Haute |
-| Transfert table & Fusion factures (#186) | ✅ | ❌ **frontend à faire** | ✅ | ✅ designé | 🟡 Moyenne |
+| **Factures (liste + détail + règlement)** | ✅ | ✅ | ✅ | ✅ | — |
+| **Export PDF factures** | ✅ | ✅ | ✅ | ✅ | — |
+| **Division d'addition (split égal + par article)** | ✅ | ✅ | ✅ | ✅ | — |
+| **Dashboard Manager / statistiques** | ✅ | ✅ | ✅ | ✅ | — |
+| Plan de salle interactif (Konva.js) | ✅ | ✅ | ✅ | ✅ | — |
+| QR code commande client (#184/#225) | ✅ | ✅ | ✅ | ✅ designé | — |
+| Scanner QR Code Client (Figma 636:988) (#225) | — | ✅ | ✅ | ✅ designé | — |
+| Facturation Vue Récap Journée (#227) | ✅ | ✅ | ✅ | ✅ designé | — |
+| Facturation Règlement Post-Split (#228) | ✅ | ✅ | ✅ | ✅ designé | — |
+| Écran Onboarding Flow par Rôle (#229) | — | ✅ | ✅ | ✅ designé | — |
+| Composant EmptyState Réutilisable (#230) | — | ✅ | ✅ | ✅ designé | — |
+| Vue Barman Ingrédients Mode Grille (#231) | — | ✅ | ✅ | ✅ designé | — |
+| Manager Shifts Employés & Pagination (#232) | ✅ | ✅ | ✅ | ✅ designé | — |
+| Manager Planning Hebdomadaire (#233) | ✅ | ✅ | ✅ | ✅ designé | — |
+| Profil Section Préférences & Notifications (#234) | — | ✅ | ✅ | ✅ designé | — |
+| Facturation Champ Pourboire (#235) | ✅ | ✅ | ✅ | ✅ designé | — |
+| Variantes cocktails & Déduction auto stocks (#185) | ✅ | ✅ | ✅ | — | — |
+| Transfert table & Fusion factures (#186) | ✅ | ✅ | ✅ | ✅ designé | — |
 | Service Broadcast STOMP (#187) | ✅ | — | ✅ | — | — |
 | Documentation OpenAPI / JavaDoc / TSDoc (#192) | ✅ | ✅ | ✅ | — | — |
 | **Design system — tokens (couleurs/espacement/rayons)** | — | ✅ implémenté (#152) | ✅ | ✅ | — |
-| **Personnalisation admin (branding)** | ❌ | ❌ | — | ❌ | 🟡 Moyenne |
+| **Personnalisation admin (branding)** | ✅ | ✅ | ✅ | ✅ | — |
 
 > Légende tests : ✅ tests écrits et passants · ⚠️ tests partiels · ❌ aucun test · — non applicable
-> Dernière mise à jour : 28 juillet 2026 (PRs #184–#187, #192)
+> Dernière mise à jour : 6 août 2026 (PRs #225–#257)
 
 ---
 
@@ -725,33 +735,34 @@ Après une authentification réussie, l'utilisateur est redirigé directement ve
 
 ## 13. Prochaine session — priorités
 
-> Mis à jour le 2 août 2026 après l'audit complet des 8 pages Figma (`XSVwFk64kgtqgUN9n5qoMw`) & PR #224.
+> Mis à jour le 6 août 2026 — Bilan post-merge PRs #225–#257 & audit du projet GitHub.
 
 ### Roadmap des Tickets Restants (Audit Figma)
 
 #### 🔴 Priorité Haute
-1. 📱 **Ticket #A — Vue Client Scanner QR Code** (`📱 Vue Client QR Code` — `636:988`) — Écran de scan de QR code caméra / saisie manuelle numéro de table avant accès au menu.
-2. 📦 **Ticket #B — Barman Vue Globale Stock** (`🍹 Vue Barman` — `488:3566`) — Vue dédiée au stock consolidé par catégorie (Alcools / Fruits & Légumes / Sirops), actions rapides & métriques.
-3. 💰 **Ticket #C — Facturation Vue Récap Journée** (`💰 Facturation` — `628:1096`) — Dashboard journalier du chiffre d'affaires avec répartition CB / Espèces / Ticket Resto.
-4. 💳 **Ticket #D — Facturation Règlement Individuel Post-Split** (`💰 Facturation` — `630:1264`) — Écran d’encaisser individuellement chaque convive post-division par article.
-5. 👋 **Ticket #E — Écran Onboarding 1ère connexion** (`🖥 Vue système commun` — `633:1100–1173`) — Flow 4 slides au premier login (Bienvenue → Choix du rôle → Tour fonctionnel → Prêt).
-6. 🧩 **Ticket #F — Composant EmptyState réutilisable** (`🖥 Vue système commun` — `540:1056`) — Composant atomique transversal pour les listes vides.
+1. ~~📱 **Ticket #A — Vue Client Scanner QR Code** (Issue #225)~~ ✅ (Mergé PR #256)
+2. ~~📦 **Ticket #B — Barman Vue Globale Stock** (Issue #226)~~ ✅ (Mergé PR #240)
+3. ~~💰 **Ticket #C — Facturation Vue Récap Journée** (Issue #227)~~ ✅ (Mergé PR #241)
+4. ~~💳 **Ticket #D — Facturation Règlement Individuel Post-Split** (Issue #228)~~ ✅ (Mergé PR #250)
+5. ~~👋 **Ticket #E — Écran Onboarding 1ère connexion** (Issue #229)~~ ✅ (Mergé PR #257)
+6. ~~🧩 **Ticket #F — Composant EmptyState réutilisable** (Issue #230)~~ ✅ (Mergé PR #253)
 
 #### 🟡 Priorité Moyenne
-7. 🍹 **Ticket #G — Vue Barman Ingrédients en Grille de Cartes** (`488:3524`) — Toggle liste / grille de cartes `IngredientCard`.
-8. 👥 **Ticket #H — Manager Gestion Employés Pagination & Shifts** (`492:1514`) — Pagination et colonnes d'heures hebdo.
-9. 📅 **Ticket #I — Manager EDT Planning Hebdomadaire Backend** (`492:1556`) — Modèle, API REST et grille 7j × N employés.
-10. 🔔 **Ticket #J — Profil Section Préférences et Toggle Son** (`540:946`) — Activation/désactivation des notifs sonores.
-11. 💵 **Ticket #K — Modal Règlement Champ Pourboire** (`628:1068`) — Champ optionnel pourboire dans le modal de règlement.
-12. 📱 **Ticket #L — Vue Serveur Mobile Bottom Navigation** (`632:2240`) — `BottomNavigation` et `MobileTableCard` pour smartphones.
+7. ~~🍹 **Ticket #G — Vue Barman Ingrédients en Grille de Cartes** (Issue #231)~~ ✅ (Mergé PR #251)
+8. ~~👥 **Ticket #H — Manager Gestion Employés Pagination & Shifts** (Issue #232)~~ ✅ (Mergé PR #252)
+9. ~~📅 **Ticket #I — Manager EDT Planning Hebdomadaire** (Issue #233)~~ ✅ (Mergé PR #254)
+10. ~~🔔 **Ticket #J — Profil Section Préférences et Toggle Son** (Issue #234)~~ ✅ (Mergé PR #255)
+11. ~~💵 **Ticket #K — Modal Règlement Champ Pourboire** (Issue #235)~~ ✅ (Mergé PR #249)
+12. 📱 **Ticket #L — Vue Serveur Mobile Bottom Navigation & MobileTableCard** (`632:2240`) (Issue #236) [OPEN]
 
 #### 🟢 Priorité Basse / Dette technique
-13. 🐛 **Ticket #M — Bug dateLivraison** — set sur `PRET` → doit être `LIVREE` dans `CommandeService.changerStatut()`.
-14. 🔄 **Ticket #N — Supprimer `allow-circular-references: true`** — Refactorisation des services Spring Boot.
-15. ⚠️ **Ticket #O — Exceptions métier** — Remplacer `RuntimeException` par `ResourceNotFoundException` / `BusinessException`.
-16. 🧾 **Ticket #P — Format ticket thermique 58mm** — Adaptation OpenPDF / thermal.
-17. 📦 **Ticket #Q — Barman Panel Stock Alignement** — Alignement exact du layout split 50/50.
-18. 👤 **Ticket #R — Profil Formulaire Pré-rempli NgRx** — Synchronisation fine avec `selectCurrentUser`.
+13. ~~🐛 **Ticket #M — Bug dateLivraison**~~ ✅ (Résolu #224)
+14. ~~🔄 **Ticket #N — Supprimer `allow-circular-references: true`**~~ ✅ (Résolu #224)
+15. ~~⚠️ **Ticket #O — Exceptions métier**~~ ✅ (Résolu #224)
+16. 🧾 **Ticket #P — Format ticket thermique 58mm** (Issue #237) [OPEN]
+17. ~~📦 **Ticket #Q — Barman Panel Stock Alignement** (Issue #238)~~ ✅ (Mergé PR #248)
+18. ~~👤 **Ticket #R — Profil Formulaire Pré-rempli NgRx** (Issue #239)~~ ✅ (Mergé PR #247)
+19. 🧪 **Issue #193 — Tests d'intégration Spring Boot (Testcontainers) et E2E Playwright** [OPEN]
 
 ### Rappels plugin Figma
 

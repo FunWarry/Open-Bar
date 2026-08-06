@@ -92,7 +92,7 @@ EN_ATTENTE → EN_PREPARATION → PRET → LIVREE → REGLEE
 
 ## État d'implémentation
 
-> Dernière mise à jour : 2 août 2026 — PR #224 : Alignement Figma Tables UI & Audit complet 8 pages Figma (Roadmap 18 tickets)
+> Dernière mise à jour : 6 août 2026 — PR #257 : Resynchronisation complète avec le projet GitHub
 > Légende : ✅ complet · 🔄 en cours · ❌ manquant · — non applicable
 
 | Feature | Backend | Frontend | Tests |
@@ -101,24 +101,37 @@ EN_ATTENTE → EN_PREPARATION → PRET → LIVREE → REGLEE
 | Routing + guards + lazy loading | ✅ | ✅ | ✅ |
 | Gestion utilisateurs (admin) | ✅ | ✅ | ✅ |
 | Cocktails CRUD + saisonnalité | ✅ | ✅ | ✅ |
+| Vue Grille Cocktails & Verres 3D (#242) | ✅ | ✅ | ✅ |
+| Filtrage Cocktails par Allergène (#243) | — | ✅ | ✅ |
 | Variantes cocktails & Déduction auto stocks | ✅ | ✅ | ✅ |
 | Ingrédients CRUD & Routage (/ingredients) | ✅ | ✅ | ✅ |
+| Vue Barman Ingrédients Mode Grille (#231) | — | ✅ | ✅ |
 | Tables CRUD & Alignement Figma (#224) | ✅ | ✅ | ✅ |
 | Commandes (liste + détail + kanban barman) | ✅ | ✅ | ✅ |
 | Transfert commande entre tables (#205/#207) | ✅ | ✅ | ✅ |
 | Passage commande publique QR Code (#184) | ✅ | ✅ | ✅ |
 | Vue Client QR Code (passage + suivi STOMP) | ✅ | ✅ | ✅ |
+| Scanner QR Code Client (Figma 636:988) (#225) | — | ✅ | ✅ |
 | Factures (liste + détail + split + règlement) | ✅ | ✅ | ✅ |
+| Facturation Vue Récap Journée & Z-Report PDF (#227) | ✅ | ✅ | ✅ |
+| Facturation Vue Règlement Post-Split (#228) | ✅ | ✅ | ✅ |
+| Facturation Champ Pourboire (#235) | ✅ | ✅ | ✅ |
 | Conformité Légale & Facturation (SIRET/TVA/RCS/SHA-256) | ✅ | ✅ | ✅ |
 | Fusion d'additions | ✅ | ✅ | ✅ |
 | Export PDF factures (OpenPDF A4) | ✅ | ✅ | ✅ |
 | Division d'addition (split égal + par article) | ✅ | ✅ | ✅ |
 | Dashboard Manager / statistiques | ✅ | ✅ | ✅ |
+| Manager Shifts Employés & Pagination (#232) | ✅ | ✅ | ✅ |
+| Manager Planning Hebdomadaire Complexe (#233) | ✅ | ✅ | ✅ |
 | Dashboard Barman (kanban temps réel) | ✅ | ✅ | ✅ |
 | Vue Serveur (plan de salle + commandes) | ✅ | ✅ | ✅ |
 | Plan de salle interactif & Gestion des Étages (#223) | ✅ | ✅ | ✅ |
+| Écran Onboarding Flow par Rôle (#229) | — | ✅ | ✅ |
+| Composant EmptyState Réutilisable (#230) | — | ✅ | ✅ |
+| Profil Section Préférences & Notifications (#234) | — | ✅ | ✅ |
 | WebSocket STOMP + Notifications | ✅ | ✅ | ✅ |
 | Alertes stock (bannière barman) | ✅ | ✅ | ✅ |
+| Vue Globale Stock Barman & Manager (#226) | ✅ | ✅ | ✅ |
 | Fuseau horaire paramétrable (TimeService) | ✅ | ✅ | ✅ |
 | Journal d'audit système (/api/audit-logs) (#206) | ✅ | ✅ | ✅ |
 | Layout Global TopBar / NavBar Figma (#208–#211) | — | ✅ | ✅ |
@@ -128,9 +141,9 @@ EN_ATTENTE → EN_PREPARATION → PRET → LIVREE → REGLEE
 
 ### 🎯 Roadmap des Tickets Restants (Audit Figma 8 pages)
 
-- 🔴 **Haute Priorité** : Scanner QR Client (#A), Vue Globale Stock Barman (#B), Récap Journée Facturation (#C), Règlement Individuel Post-Split (#D), Onboarding flow 1ère connexion (#E), Composant EmptyState réutilisable (#F)
-- 🟡 **Moyenne Priorité** : Vue Grille Ingrédients (#G), Pagination/Shifts Employés (#H), EDT Planning Backend (#I), Profil Préférences toggle son (#J), Champ pourboire règlement (#K), Mobile Bottom Nav Serveur (#L)
-- 🟢 **Basse Priorité** : Fix dateLivraison (#M), Refactor circular refs (#N), Exceptions métier (#O), Ticket 58mm (#P), Panel stock alignement (#Q), Formulaire profil pré-rempli NgRx (#R)
+- 🔴 **Haute Priorité** : ~~Scanner QR Client (#225)~~ ✅, ~~Vue Globale Stock Barman (#226)~~ ✅, ~~Récap Journée Facturation (#227)~~ ✅, ~~Règlement Individuel Post-Split (#228)~~ ✅, ~~Onboarding flow 1ère connexion (#229)~~ ✅, ~~Composant EmptyState réutilisable (#230)~~ ✅
+- 🟡 **Moyenne Priorité** : ~~Vue Grille Ingrédients (#231)~~ ✅, ~~Pagination/Shifts Employés (#232)~~ ✅, ~~EDT Planning Backend (#233)~~ ✅, ~~Profil Préférences toggle son (#234)~~ ✅, ~~Champ pourboire règlement (#235)~~ ✅, **Mobile Bottom Nav Serveur (#236)** [OPEN]
+- 🟢 **Basse Priorité / Technique** : ~~Fix dateLivraison (#224)~~ ✅, ~~Refactor circular refs (#224)~~ ✅, ~~Exceptions métier (#224)~~ ✅, **Ticket 58mm (#237)** [OPEN], ~~Panel stock alignement (#248)~~ ✅, ~~Formulaire profil pré-rempli NgRx (#247)~~ ✅, **Tests E2E & Intégration (#193)** [OPEN]
 
 ---
 
