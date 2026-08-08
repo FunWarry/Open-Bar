@@ -805,17 +805,17 @@ ion-modal.commande-detail-modal-container {
 }
 
 /*
- * Blur the background page content when a modal is open.
- * Ionic sets aria-hidden="true" on background ion-pages when a modal is presented.
- * The backdrop opacity MUST remain low so the blurred content shows through.
+ * Blur the background page when a commande-detail modal is open.
+ * body.modal-open is added/removed programmatically from the modal open/dismiss handlers.
+ * Targeting ion-router-outlet blurs the entire page content uniformly.
  */
-ion-page[aria-hidden="true"] {
-  filter: blur(8px) brightness(0.55);
+body.modal-open ion-router-outlet {
+  filter: blur(6px) brightness(0.6);
   transition: filter 0.3s ease;
   pointer-events: none;
 }
 
-ion-page:not([aria-hidden="true"]) {
+body:not(.modal-open) ion-router-outlet {
   filter: none;
   transition: filter 0.3s ease;
 }

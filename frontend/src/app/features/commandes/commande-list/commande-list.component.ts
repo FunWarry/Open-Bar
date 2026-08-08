@@ -279,7 +279,9 @@ export class CommandeListComponent implements OnInit, OnDestroy {
       cssClass: 'commande-detail-modal-container',
     });
 
+    document.body.classList.add('modal-open');
     modal.onDidDismiss().then(result => {
+      document.body.classList.remove('modal-open');
       if (result.data) {
         this.charger();
       }
