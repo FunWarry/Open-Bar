@@ -343,11 +343,18 @@
     "DELAY_LABEL": "Delay",
     "CHANGE_STATUS": "Change Status",
     "PRIORITY": "Priority",
+    "PRIORITE": "Priority",
     "ACTIONS": {
       "MARK_IN_PROGRESS": "Start Preparation",
+      "MARK_IN_PROGRESS_TOOLTIP": "Start order preparation",
       "MARK_READY": "✓ Mark Ready",
+      "MARK_READY_TOOLTIP": "Mark order as ready to serve",
       "MARK_DELIVERED": "✓ Mark Delivered",
+      "MARK_DELIVERED_TOOLTIP": "Mark order as delivered",
       "CANCEL": "Cancel",
+      "CANCEL_TOOLTIP": "Cancel order",
+      "VIEW": "View",
+      "VIEW_TOOLTIP": "View order details",
       "EDIT": "Edit",
       "VIEW_DETAILS": "Details"
     },

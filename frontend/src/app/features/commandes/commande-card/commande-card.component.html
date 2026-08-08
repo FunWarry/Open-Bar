@@ -44,11 +44,16 @@
   }
 
   <div class="card-items">
-    @for (item of commande.items; track item.id) {
+    @for (item of groupedItems; track item.cocktailId + '_' + (item.varianteId || 0) + '_' + (item.notes || '')) {
       <div class="item-row">
         <span class="qty">× {{ item.quantite }}</span>
-        <span class="item-name">{{ item.cocktailNom }}</span>
-        <span class="item-price">{{ item.prixUnitaire | currency:'EUR' }}</span>
+        <span class="item-name">
+          {{ item.cocktailNom }}
+          @if (item.varianteNom) {
+            <small class="variante-tag">({{ item.varianteNom }})</small>
+          }
+        </span>
+        <span class="item-price">{{ getItemLineTotal(item) | currency:'EUR' }}</span>
       </div>
     }
   </div>
@@ -60,32 +65,77 @@
 
   @if (showActions) {
     <div class="card-actions">
-      <ion-button fill="clear" color="secondary" size="small" (click)="onView()" (keydown.enter)="onView()" data-testid="btn-view">
+      <ion-button
+        fill="clear"
+        color="secondary"
+        size="small"
+        class="action-icon-btn"
+        (click)="onView()"
+        (keydown.enter)="onView()"
+        [attr.title]="'COMMANDES.ACTIONS.VIEW_TOOLTIP' | transloco"
+        data-testid="btn-view"
+      >
         <ion-icon name="eye" slot="icon-only"></ion-icon>
       </ion-button>
 
       @if (peutAnnuler()) {
-        <ion-button fill="clear" color="danger" size="small" (click)="onAnnuler()" (keydown.enter)="onAnnuler()" data-testid="btn-annuler">
+        <ion-button
+          fill="clear"
+          color="danger"
+          size="small"
+          class="action-icon-btn"
+          (click)="onAnnuler()"
+          (keydown.enter)="onAnnuler()"
+          [attr.title]="'COMMANDES.ACTIONS.CANCEL_TOOLTIP' | transloco"
+          data-testid="btn-annuler"
+        >
           <ion-icon name="ban-outline" slot="icon-only"></ion-icon>
         </ion-button>
       }
 
       @if (commande.statut === 'EN_ATTENTE') {
-        <ion-button fill="solid" color="tertiary" size="small" (click)="onUpdateStatus('EN_PREPARATION')" (keydown.enter)="onUpdateStatus('EN_PREPARATION')" data-testid="btn-mark-in-progress">
+        <ion-button
+          fill="solid"
+          color="tertiary"
+          size="small"
+          class="action-text-btn btn-primary-in-progress"
+          (click)="onUpdateStatus('EN_PREPARATION')"
+          (keydown.enter)="onUpdateStatus('EN_PREPARATION')"
+          [attr.title]="'COMMANDES.ACTIONS.MARK_IN_PROGRESS_TOOLTIP' | transloco"
+          data-testid="btn-mark-in-progress"
+        >
           <ion-icon name="play-outline" slot="start"></ion-icon>
           {{ 'COMMANDES.ACTIONS.MARK_IN_PROGRESS' | transloco }}
         </ion-button>
       }
 
       @if (commande.statut === 'EN_PREPARATION') {
-        <ion-button fill="solid" color="success" size="small" (click)="onUpdateStatus('PRET')" (keydown.enter)="onUpdateStatus('PRET')" data-testid="btn-mark-ready">
+        <ion-button
+          fill="solid"
+          color="success"
+          size="small"
+          class="action-text-btn btn-primary-ready"
+          (click)="onUpdateStatus('PRET')"
+          (keydown.enter)="onUpdateStatus('PRET')"
+          [attr.title]="'COMMANDES.ACTIONS.MARK_READY_TOOLTIP' | transloco"
+          data-testid="btn-mark-ready"
+        >
           <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
           {{ 'COMMANDES.ACTIONS.MARK_READY' | transloco }}
         </ion-button>
       }
 
       @if (commande.statut === 'PRET') {
-        <ion-button fill="solid" color="primary" size="small" class="btn-primary-delivered" (click)="onUpdateStatus('LIVREE')" (keydown.enter)="onUpdateStatus('LIVREE')" data-testid="btn-mark-delivered">
+        <ion-button
+          fill="solid"
+          color="primary"
+          size="small"
+          class="action-text-btn btn-primary-delivered"
+          (click)="onUpdateStatus('LIVREE')"
+          (keydown.enter)="onUpdateStatus('LIVREE')"
+          [attr.title]="'COMMANDES.ACTIONS.MARK_DELIVERED_TOOLTIP' | transloco"
+          data-testid="btn-mark-delivered"
+        >
           <ion-icon name="checkmark-done-outline" slot="start"></ion-icon>
           {{ 'COMMANDES.ACTIONS.MARK_DELIVERED' | transloco }}
         </ion-button>
