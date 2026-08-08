@@ -8,7 +8,7 @@ import {
   IonContent, IonCard, IonCardHeader, IonCardContent,
   IonList, IonItem, IonLabel, IonBadge, IonIcon, IonButton, IonButtons,
   IonRefresher, IonRefresherContent, IonSegment, IonSegmentButton,
-  IonSpinner, IonSearchbar, IonToggle, IonChip, ToastController,
+  IonSpinner, IonSearchbar, IonToggle, IonChip, ToastController, ModalController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -23,6 +23,7 @@ import { Commande, CommandeStatut } from '../../../core/models/commande.model';
 import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
 
 import { CommandeCardComponent } from '../commande-card/commande-card.component';
+import { CommandeDetailModalComponent } from '../commande-detail-modal/commande-detail-modal.component';
 
 /**
  * Component responsible for managing and displaying active orders in real time.
@@ -79,7 +80,8 @@ export class CommandeListComponent implements OnInit, OnDestroy {
     private readonly store: Store,
     private readonly router: Router,
     private readonly commandeService: CommandeService,
-    private readonly toastCtrl: ToastController
+    private readonly toastCtrl: ToastController,
+    private readonly modalCtrl: ModalController,
   ) {
     this.isAdmin$ = this.store.select(selectIsAdmin);
     addIcons({
@@ -265,10 +267,24 @@ export class CommandeListComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Navigates to the detailed view of an order.
+   * Opens the detailed modal view of an order.
    */
-  onView(c: Commande): void {
-    this.router.navigate(['/commandes', c.id]);
+  async onView(c: Commande): Promise<void> {
+    const modal = await this.modalCtrl.create({
+      component: CommandeDetailModalComponent,
+      componentProps: {
+        commandeId: c.id,
+        commandeInput: c,
+      },
+    });
+
+    modal.onDidDismiss().then(result => {
+      if (result.data) {
+        this.charger();
+      }
+    });
+
+    await modal.present();
   }
 
   // --- Helpers & Badges ---

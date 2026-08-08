@@ -1,14 +1,14 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, Optional } from '@angular/core';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import {
-  IonIcon, IonButton,
+  IonIcon, IonButton, AlertController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
   eye, banOutline, playOutline, checkmarkCircleOutline,
   checkmarkDoneOutline, timeOutline, alertCircleOutline,
 } from 'ionicons/icons';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { Commande, CommandeStatut } from '../../../core/models/commande.model';
 
 import { groupCommandeItems } from '../../../core/utils/order-item-grouper';
@@ -26,7 +26,7 @@ export interface GroupedCommandeItem {
 
 /**
  * Encapsulates an order card displayed inside Kanban columns or list items.
- * Extracts card rendering logic to avoid HTML template duplication across columns.
+ * Clicking on the card emits a view event to display order details in a modal.
  */
 @Component({
   selector: 'app-commande-card',
@@ -46,7 +46,10 @@ export class CommandeCardComponent {
   @Output() annuler = new EventEmitter<Commande>();
   @Output() view = new EventEmitter<Commande>();
 
-  constructor() {
+  constructor(
+    @Optional() private readonly alertCtrl?: AlertController,
+    @Optional() private readonly translocoService?: TranslocoService,
+  ) {
     addIcons({
       eye, banOutline, playOutline, checkmarkCircleOutline,
       checkmarkDoneOutline, timeOutline, alertCircleOutline,
@@ -95,11 +98,45 @@ export class CommandeCardComponent {
     this.view.emit(this.commande);
   }
 
-  onAnnuler(): void {
-    this.annuler.emit(this.commande);
+  async onAnnuler(event?: Event): Promise<void> {
+    if (event) event.stopPropagation();
+
+    if (!this.alertCtrl || !this.translocoService) {
+      this.annuler.emit(this.commande);
+      return;
+    }
+
+    const title = this.translocoService.translate('COMMANDES.CONFIRM_CANCEL_TITLE');
+    const msg = this.translocoService.translate('COMMANDES.CONFIRM_CANCEL_MSG', {
+      id: this.commande.id,
+      table: this.commande.tableNumero,
+    });
+    const confirmBtnText = this.translocoService.translate('COMMANDES.CONFIRM_CANCEL_OK');
+    const keepBtnText = this.translocoService.translate('COMMANDES.CONFIRM_CANCEL_KEEP');
+
+    const alert = await this.alertCtrl.create({
+      header: title,
+      message: msg,
+      buttons: [
+        {
+          text: keepBtnText,
+          role: 'cancel',
+        },
+        {
+          text: confirmBtnText,
+          role: 'destructive',
+          handler: () => {
+            this.annuler.emit(this.commande);
+          },
+        },
+      ],
+    });
+
+    await alert.present();
   }
 
-  onUpdateStatus(targetStatut: CommandeStatut): void {
+  onUpdateStatus(targetStatut: CommandeStatut, event?: Event): void {
+    if (event) event.stopPropagation();
     this.updateStatus.emit({ commande: this.commande, targetStatut });
   }
 }

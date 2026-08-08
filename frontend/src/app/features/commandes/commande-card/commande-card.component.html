@@ -3,6 +3,10 @@
   [class.priority-card]="isPriority()"
   [class.card-ready-highlight]="commande.statut === 'PRET'"
   [class.card-served-dim]="commande.statut === 'LIVREE' || commande.statut === 'REGLEE'"
+  (click)="onView()"
+  (keydown.enter)="onView()"
+  tabindex="0"
+  [attr.title]="'COMMANDES.ACTIONS.VIEW_TOOLTIP' | transloco"
   data-testid="card-commande"
 >
   <div class="card-top">
@@ -65,27 +69,14 @@
 
   @if (showActions) {
     <div class="card-actions">
-      <ion-button
-        fill="clear"
-        color="secondary"
-        size="small"
-        class="action-icon-btn"
-        (click)="onView()"
-        (keydown.enter)="onView()"
-        [attr.title]="'COMMANDES.ACTIONS.VIEW_TOOLTIP' | transloco"
-        data-testid="btn-view"
-      >
-        <ion-icon name="eye" slot="icon-only"></ion-icon>
-      </ion-button>
-
       @if (peutAnnuler()) {
         <ion-button
           fill="clear"
           color="danger"
           size="small"
           class="action-icon-btn"
-          (click)="onAnnuler()"
-          (keydown.enter)="onAnnuler()"
+          (click)="onAnnuler($event)"
+          (keydown.enter)="onAnnuler($event)"
           [attr.title]="'COMMANDES.ACTIONS.CANCEL_TOOLTIP' | transloco"
           data-testid="btn-annuler"
         >
@@ -99,8 +90,8 @@
           color="tertiary"
           size="small"
           class="action-text-btn btn-primary-in-progress"
-          (click)="onUpdateStatus('EN_PREPARATION')"
-          (keydown.enter)="onUpdateStatus('EN_PREPARATION')"
+          (click)="onUpdateStatus('EN_PREPARATION', $event)"
+          (keydown.enter)="onUpdateStatus('EN_PREPARATION', $event)"
           [attr.title]="'COMMANDES.ACTIONS.MARK_IN_PROGRESS_TOOLTIP' | transloco"
           data-testid="btn-mark-in-progress"
         >
@@ -115,8 +106,8 @@
           color="success"
           size="small"
           class="action-text-btn btn-primary-ready"
-          (click)="onUpdateStatus('PRET')"
-          (keydown.enter)="onUpdateStatus('PRET')"
+          (click)="onUpdateStatus('PRET', $event)"
+          (keydown.enter)="onUpdateStatus('PRET', $event)"
           [attr.title]="'COMMANDES.ACTIONS.MARK_READY_TOOLTIP' | transloco"
           data-testid="btn-mark-ready"
         >
@@ -131,8 +122,8 @@
           color="primary"
           size="small"
           class="action-text-btn btn-primary-delivered"
-          (click)="onUpdateStatus('LIVREE')"
-          (keydown.enter)="onUpdateStatus('LIVREE')"
+          (click)="onUpdateStatus('LIVREE', $event)"
+          (keydown.enter)="onUpdateStatus('LIVREE', $event)"
           [attr.title]="'COMMANDES.ACTIONS.MARK_DELIVERED_TOOLTIP' | transloco"
           data-testid="btn-mark-delivered"
         >

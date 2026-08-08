@@ -1,4 +1,10 @@
-<div class="commande-card" [class.prioritaire]="commande.prioritaire">
+<div
+  class="commande-card"
+  [class.prioritaire]="commande.prioritaire"
+  (click)="openDetails()"
+  (keydown.enter)="openDetails()"
+  tabindex="0"
+>
   <!-- Liseré de statut (barre verticale colorée) -->
   <div class="lisere" [style.background-color]="lisereColor"></div>
 
@@ -30,14 +36,14 @@
     <p *ngIf="commande.notes" class="commande-notes">📝 {{ commande.notes }}</p>
 
     <!-- Actions -->
-    <div class="card-actions">
+    <div class="card-actions" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
       <app-action-button
         *ngIf="commande.statut === 'EN_ATTENTE'"
         variant="primary"
         icon="arrow-forward-circle-outline"
         expand="block"
         title="Démarrer la préparation de la commande"
-        (btnClick)="onPrendreEnCharge()">
+        (btnClick)="onPrendreEnCharge($event)">
         Démarrer
       </app-action-button>
 
@@ -47,10 +53,9 @@
         icon="checkmark-circle-outline"
         expand="block"
         title="Marquer la commande comme prête"
-        (btnClick)="onMarquerPret()">
+        (btnClick)="onMarquerPret($event)">
         Marquer prêt
       </app-action-button>
     </div>
   </div>
 </div>
-

@@ -13,6 +13,12 @@
   border-radius: 10px;
   overflow: hidden;
   margin: 6px 0;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+  }
 
   &.prioritaire {
     box-shadow: 0 0 0 1px rgba(255, 215, 0, 0.4);
@@ -96,27 +102,27 @@
   }
 
   &.badge--pending {
-    background: rgba(244, 165, 42, 0.15);
-    color: #f4a52a;
-    .badge-dot { background: #f4a52a; }
+    background: rgba(244, 165, 42, 0.25);
+    color: #fde047;
+    .badge-dot { background: #fde047; }
   }
 
   &.badge--inprogress {
-    background: rgba(43, 168, 232, 0.15);
-    color: #2ba8e8;
-    .badge-dot { background: #2ba8e8; }
+    background: rgba(43, 168, 232, 0.25);
+    color: #7dd3fc;
+    .badge-dot { background: #7dd3fc; }
   }
 
   &.badge--ready {
-    background: rgba(47, 191, 107, 0.15);
-    color: #2fbf6b;
-    .badge-dot { background: #2fbf6b; }
+    background: rgba(47, 191, 107, 0.25);
+    color: #6ee7b7;
+    .badge-dot { background: #6ee7b7; }
   }
 
   &.badge--priority {
-    background: rgba(255, 215, 0, 0.15);
-    color: #ffd700;
-    .badge-dot { background: #ffd700; }
+    background: rgba(255, 215, 0, 0.25);
+    color: #fde047;
+    .badge-dot { background: #fde047; }
   }
 }
 

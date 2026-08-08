@@ -318,6 +318,10 @@
     "UNIT_PRICE": "Unit Price",
     "SUBTOTAL": "Subtotal",
     "CANCEL": "Cancel Order",
+    "CONFIRM_CANCEL_TITLE": "Confirm Cancellation",
+    "CONFIRM_CANCEL_MSG": "Are you sure you want to cancel order #{{id}} for Table {{table}}?",
+    "CONFIRM_CANCEL_OK": "Yes, cancel order",
+    "CONFIRM_CANCEL_KEEP": "No, keep order",
     "STATUTS": {
       "TOUTES": "All",
       "EN_ATTENTE": "Pending",
