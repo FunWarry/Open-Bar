@@ -19,6 +19,8 @@
 
 .modal-content-body {
   --background: var(--background-bg-0);
+  --overflow: auto;
+  min-height: 0;
 }
 
 .loading-state {

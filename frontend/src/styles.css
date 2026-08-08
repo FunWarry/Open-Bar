@@ -490,7 +490,7 @@ ion-segment-button[aria-selected="true"] ion-label {
 ion-modal.commande-detail-modal-container {
   --width: 850px;
   --max-width: 90vw;
-  --height: 90vh;
+  --height: fit-content;
   --max-height: 90vh;
   --border-radius: 16px;
   --box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
