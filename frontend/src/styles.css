@@ -312,19 +312,19 @@ ion-button {
 
 /* Glassmorphism & Elevation Utilities (Figma Design System 0:1) */
 .glass-card {
-  background: rgba(26, 26, 46, 0.75);
+  background: color-mix(in srgb, var(--background-surface-2) 80%, transparent);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-medium);
   border-radius: var(--radius-lg);
   box-shadow: var(--elev-2);
 }
 
 .glass-modal {
-  background: rgba(21, 21, 31, 0.85);
+  background: color-mix(in srgb, var(--background-surface-1) 88%, transparent);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--border-medium);
   border-radius: var(--radius-xl);
   box-shadow: var(--elev-3);
 }
@@ -361,8 +361,8 @@ ion-button {
 /* Ionic Modal Global Styling & Rounding (Figma Design System) */
 ion-modal {
   --border-radius: var(--radius-lg, 16px);
-  --background: var(--surface-1, #1e2238);
-  --box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+  --background: var(--background-surface-1);
+  --box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
   --max-height: 85vh;
   --height: min(620px, 85vh);
   --width: 520px;
@@ -370,22 +370,22 @@ ion-modal {
 
 ion-modal::part(content) {
   border-radius: var(--radius-lg, 16px);
-  border: 1px solid var(--border-medium, rgba(255, 255, 255, 0.15));
+  border: 1px solid var(--border-medium);
   overflow: hidden;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
-  background: var(--surface-1, #1e2238);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+  background: var(--background-surface-1);
 }
 
-/* Ionic Alert & Popover Dark Theme Overrides (Figma Design System) */
+/* Ionic Alert & Popover Theme Overrides (Figma Design System) */
 .alert-wrapper,
 .popover-content,
 ion-popover::part(content) {
-  --background: var(--surface-1, #1e2238) !important;
-  background: var(--surface-1, #1e2238) !important;
-  color: var(--text-primary, #eceefb) !important;
-  border: 1px solid var(--border-medium, #2e3450) !important;
+  --background: var(--background-surface-1) !important;
+  background: var(--background-surface-1) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-medium) !important;
   border-radius: var(--radius-lg, 12px) !important;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6) !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4) !important;
 }
 
 .alert-head {
@@ -497,9 +497,10 @@ ion-modal.commande-detail-modal-container {
   --backdrop-opacity: 0.7;
 }
 
-ion-modal.commande-detail-modal-container ion-backdrop {
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+ion-modal.commande-detail-modal-container::part(backdrop) {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  background-color: rgba(0, 0, 0, 0.55);
 }
 
 @media (min-width: 1200px) {
