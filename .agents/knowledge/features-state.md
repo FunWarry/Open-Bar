@@ -1,6 +1,6 @@
 # OpenBar — État des Features & Roadmap
 
-> Dernière mise à jour : 8 août 2026 — PR #267 : Uniformisation boutons cartes, tooltips hover, regroupement cocktails xN & layout details commande (#266)
+> Dernière mise à jour : 8 août 2026 — PR #269 : Redesign complet UI/UX de la page détails de commande (#268)
 
 ## Tableau des Features
 
