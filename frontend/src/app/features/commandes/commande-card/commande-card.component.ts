@@ -1,7 +1,7 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import {
-  IonCard, IonIcon, IonButton, IonBadge,
+  IonIcon, IonButton,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -21,7 +21,7 @@ import { Commande, CommandeStatut } from '../../../core/models/commande.model';
   styleUrls: ['./commande-card.component.css'],
   standalone: true,
   imports: [
-    IonCard, IonIcon, IonButton, IonBadge,
+    IonIcon, IonButton,
     CurrencyPipe, DatePipe, TranslocoPipe,
   ],
 })
