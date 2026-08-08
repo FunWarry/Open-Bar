@@ -84,10 +84,10 @@ export class CommandeCardComponent implements OnInit, OnDestroy {
   /** Couleur de la barre liseré selon statut */
   get lisereColor(): string {
     switch (this.commande.statut) {
-      case 'EN_ATTENTE':    return '#f4a52a';
-      case 'EN_PREPARATION': return '#2ba8e8';
-      case 'PRET':          return '#2fbf6b';
-      default:              return '#7e87a8';
+      case 'EN_ATTENTE':    return 'var(--semantic-warning)';
+      case 'EN_PREPARATION': return 'var(--semantic-info)';
+      case 'PRET':          return 'var(--semantic-success)';
+      default:              return 'var(--text-muted)';
     }
   }
 

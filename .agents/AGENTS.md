@@ -60,6 +60,7 @@ Deployed as a PWA on a local WiFi network (Raspberry Pi 5 / mini-PC). No interne
 6. **TSDoc MANDATORY (in English)** on all Angular services (`core/services/` + feature services), guards, interceptors, and NgRx store
 7. **`data-testid`** on all interactive elements (required for E2E tests)
 8. Tests go in `frontend/src/test/` (mirror of `src/app/`) — never co-located
+9. **Adaptive Theme & No Hardcoded Colors** — The application uses an adaptive theme system (Light/Dark). NEVER hardcode hex (`#1a1a2e`), RGB (`rgb(...)`), or named colors in CSS/SCSS or TS templates. Always use CSS variables from `frontend/src/theme/variables.css` (`var(--background-bg-0)`, `var(--background-surface-1)`, `var(--background-surface-2)`, `var(--text-primary)`, `var(--text-secondary)`, `var(--text-muted)`, `var(--border-medium)`, `var(--primary)`, `var(--semantic-success)`, `var(--semantic-danger)`, `var(--semantic-warning)`, `var(--semantic-info)`, etc.).
 
 ### Git / Workflow
 1. Every task must be linked to a GitHub issue — see [Kanban](https://github.com/users/FunWarry/projects/3/views/1)

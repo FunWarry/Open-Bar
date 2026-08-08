@@ -56,6 +56,7 @@ features/<nom>/
 - NgRx **uniquement pour l'auth** — reste en services directs + signals
 - Jamais `any` non justifié — typer explicitement
 - Jamais de texte hardcodé en français dans les templates → `{{ 'CLE' | transloco }}`
+- **Système de Thème Adaptatif & Pas de Couleurs Hardcodées** — L'application gère le basculement dynamique de thème (Light/Dark). Ne JAMAIS hardcoder de couleurs hex (`#1a1a2e`), RGB ou nommées dans les fichiers CSS/SCSS/TS. Toujours utiliser les variables CSS de `frontend/src/theme/variables.css` (`var(--background-bg-0)`, `var(--background-surface-1)`, `var(--background-surface-2)`, `var(--text-primary)`, `var(--text-secondary)`, `var(--text-muted)`, `var(--border-medium)`, `var(--primary)`, `var(--semantic-success)`, `var(--semantic-danger)`, `var(--semantic-warning)`, `var(--semantic-info)`, etc.).
 
 ### i18n (Transloco)
 - Clés en `SCREAMING_SNAKE_CASE` : `COMMANDE.STATUT.EN_ATTENTE`
