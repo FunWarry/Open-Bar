@@ -1,109 +1,162 @@
 <ion-content class="ion-padding page-container">
   <div class="container-wrapper">
-    <ion-card class="detail-card">
-      <ion-card-header>
-        <div class="card-header-row">
-          <ion-card-title>
-            {{ 'COMMANDES.DETAILS.TITLE' | transloco:{ id: commande?.id || '' } }}
-          </ion-card-title>
 
-          <ion-buttons class="header-actions">
-            <ion-button
-              fill="clear"
-              color="secondary"
-              (click)="onBack()"
-              (keydown.enter)="onBack()"
-              [attr.title]="'COMMON.BACK' | transloco"
-            >
-              <ion-icon slot="start" name="arrow-back"></ion-icon>
-              {{ 'COMMON.BACK' | transloco }}
-            </ion-button>
+    <!-- Top Action Navigation Bar -->
+    <div class="detail-nav-bar">
+      <ion-button
+        fill="clear"
+        color="light"
+        class="btn-back"
+        (click)="onBack()"
+        (keydown.enter)="onBack()"
+        [attr.title]="'COMMON.BACK' | transloco"
+        data-testid="btn-back"
+      >
+        <ion-icon slot="start" name="arrow-back"></ion-icon>
+        {{ 'COMMON.BACK' | transloco }}
+      </ion-button>
 
-            @if (peutAnnuler()) {
-              <ion-button
-                fill="outline"
-                color="danger"
-                (click)="onAnnuler()"
-                (keydown.enter)="onAnnuler()"
-                [attr.title]="'COMMANDES.ACTIONS.CANCEL_TOOLTIP' | transloco"
-              >
-                <ion-icon slot="start" name="ban-outline"></ion-icon>
-                {{ 'COMMANDES.ACTIONS.CANCEL' | transloco }}
-              </ion-button>
-            }
-          </ion-buttons>
-        </div>
-      </ion-card-header>
+      @if (peutAnnuler()) {
+        <ion-button
+          fill="solid"
+          color="danger"
+          class="btn-cancel"
+          (click)="onAnnuler()"
+          (keydown.enter)="onAnnuler()"
+          [attr.title]="'COMMANDES.ACTIONS.CANCEL_TOOLTIP' | transloco"
+          data-testid="btn-annuler-detail"
+        >
+          <ion-icon slot="start" name="ban-outline"></ion-icon>
+          {{ 'COMMANDES.ACTIONS.CANCEL' | transloco }}
+        </ion-button>
+      }
+    </div>
 
-      <ion-card-content>
-        @if (isLoading) {
-          <div class="loading-state">
-            <ion-spinner name="crescent" color="primary"></ion-spinner>
-          </div>
-        }
+    <!-- Spinner Loading State -->
+    @if (isLoading) {
+      <div class="loading-state">
+        <ion-spinner name="crescent" color="primary"></ion-spinner>
+      </div>
+    }
 
-        @if (commande) {
-          <!-- INFO SUMMARY GRID -->
-          <div class="info-grid">
-            <div class="info-cell">
-              <span class="detail-label">{{ 'COMMANDES.DETAILS.TABLE' | transloco }}</span>
-              <span class="detail-value text-bold">N° {{ commande.tableNumero }}</span>
-            </div>
-
-            <div class="info-cell">
-              <span class="detail-label">{{ 'COMMANDES.SERVER' | transloco }}</span>
-              <span class="detail-value">
-                <ion-icon name="person-outline"></ion-icon>
-                {{ commande.serveurUsername || '—' }}
-              </span>
-            </div>
-
-            <div class="info-cell">
-              <span class="detail-label">{{ 'COMMANDES.DETAILS.STATUS' | transloco }}</span>
+    @if (commande) {
+      <div class="detail-card">
+        
+        <!-- Header Banner -->
+        <div class="card-header-banner">
+          <div class="header-title-group">
+            <div class="title-with-badge">
+              <h1>{{ 'COMMANDES.DETAILS.TITLE' | transloco:{ id: commande.id } }}</h1>
               <ion-badge [color]="getStatutColor(commande.statut)" class="status-badge">
                 {{ ('COMMANDES.STATUTS.' + commande.statut) | transloco }}
               </ion-badge>
             </div>
+            <p class="header-subtitle">
+              <ion-icon name="time-outline"></ion-icon>
+              {{ commande.dateCommande | date:'dd/MM/yyyy HH:mm' }}
+            </p>
+          </div>
+        </div>
 
-            <div class="info-cell">
-              <span class="detail-label">{{ 'COMMANDES.DETAILS.TOTAL' | transloco }}</span>
-              <span class="detail-value price-total">{{ commande.total | currency:'EUR' }}</span>
+        <!-- Metric Cards Grid -->
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-icon-box icon-table">
+              <ion-icon name="restaurant-outline"></ion-icon>
+            </div>
+            <div class="metric-info">
+              <span class="metric-label">{{ 'COMMANDES.DETAILS.TABLE' | transloco }}</span>
+              <span class="metric-value">Table {{ commande.tableNumero }}</span>
             </div>
           </div>
 
-          @if (commande.notes) {
-            <div class="notes-box">
-              💬 <strong>Notes :</strong> {{ commande.notes }}
+          <div class="metric-card">
+            <div class="metric-icon-box icon-server">
+              <ion-icon name="person-outline"></ion-icon>
             </div>
-          }
-
-          <!-- ITEMS TABLE HEADER & LIST -->
-          <h3 class="section-title">{{ 'COMMANDES.DETAILS.ITEMS_HEADER' | transloco }}</h3>
-
-          <div class="table-container">
-            <div class="items-table-header">
-              <span class="col-name">{{ 'COMMANDES.DETAILS.ITEM_NAME' | transloco }}</span>
-              <span class="col-qty">{{ 'COMMANDES.DETAILS.QUANTITY' | transloco }}</span>
-              <span class="col-price">{{ 'COMMANDES.DETAILS.PRICE' | transloco }}</span>
+            <div class="metric-info">
+              <span class="metric-label">{{ 'COMMANDES.SERVER' | transloco }}</span>
+              <span class="metric-value">{{ commande.serveurUsername || '—' }}</span>
             </div>
+          </div>
 
-            <div class="items-table-body">
-              @for (item of groupedItems; track item.cocktailNom + '_' + (item.varianteId || 0) + '_' + (item.notes || '')) {
-                <div class="items-table-row">
-                  <div class="col-name">
-                    <span class="item-title">{{ item.cocktailNom }}</span>
-                    @if (item.varianteNom) {
-                      <small class="variante-subtitle">({{ item.varianteNom }})</small>
-                    }
-                  </div>
-                  <div class="col-qty">× {{ item.quantite }}</div>
-                  <div class="col-price">{{ getItemLineTotal(item) | currency:'EUR' }}</div>
-                </div>
-              }
+          <div class="metric-card">
+            <div class="metric-icon-box icon-status">
+              <ion-icon name="stats-chart-outline"></ion-icon>
+            </div>
+            <div class="metric-info">
+              <span class="metric-label">{{ 'COMMANDES.DETAILS.STATUS' | transloco }}</span>
+              <span class="metric-value highlight-status">
+                {{ ('COMMANDES.STATUTS.' + commande.statut) | transloco }}
+              </span>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-icon-box icon-total">
+              <ion-icon name="cash-outline"></ion-icon>
+            </div>
+            <div class="metric-info">
+              <span class="metric-label">{{ 'COMMANDES.DETAILS.TOTAL' | transloco }}</span>
+              <span class="metric-value price-green">{{ commande.total | currency:'EUR' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notes Alert Box -->
+        @if (commande.notes) {
+          <div class="notes-banner">
+            <ion-icon name="chatbubble-ellipses-outline" class="notes-icon"></ion-icon>
+            <div class="notes-content">
+              <strong>Notes de la commande :</strong> {{ commande.notes }}
             </div>
           </div>
         }
-      </ion-card-content>
-    </ion-card>
+
+        <!-- Items Table Container -->
+        <div class="items-section">
+          <div class="section-header">
+            <ion-icon name="receipt-outline"></ion-icon>
+            <h2>{{ 'COMMANDES.DETAILS.ITEMS_HEADER' | transloco }}</h2>
+            <span class="item-count-badge">{{ groupedItems.length }}</span>
+          </div>
+
+          <div class="items-table">
+            <div class="table-head">
+              <span class="th-name">{{ 'COMMANDES.DETAILS.ITEM_NAME' | transloco }}</span>
+              <span class="th-qty">{{ 'COMMANDES.DETAILS.QUANTITY' | transloco }}</span>
+              <span class="th-price">{{ 'COMMANDES.DETAILS.PRICE' | transloco }}</span>
+            </div>
+
+            <div class="table-body">
+              @for (item of groupedItems; track item.cocktailNom + '_' + (item.varianteId || 0) + '_' + (item.notes || '')) {
+                <div class="table-row">
+                  <div class="td-name">
+                    <span class="item-title">{{ item.cocktailNom }}</span>
+                    @if (item.varianteNom) {
+                      <span class="variante-subtitle">({{ item.varianteNom }})</span>
+                    }
+                    @if (item.notes) {
+                      <span class="item-line-note">📝 {{ item.notes }}</span>
+                    }
+                  </div>
+                  <div class="td-qty">
+                    <span class="qty-pill">× {{ item.quantite }}</span>
+                  </div>
+                  <div class="td-price">{{ getItemLineTotal(item) | currency:'EUR' }}</div>
+                </div>
+              }
+            </div>
+
+            <!-- Table Footer Total -->
+            <div class="table-footer">
+              <span class="footer-label">{{ 'COMMON.TOTAL' | transloco }}</span>
+              <span class="footer-amount">{{ commande.total | currency:'EUR' }}</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    }
   </div>
 </ion-content>

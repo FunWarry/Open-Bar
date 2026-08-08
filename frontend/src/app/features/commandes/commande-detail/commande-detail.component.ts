@@ -8,13 +8,21 @@ import {
   IonButtons, IonIcon, IonSpinner,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { arrowBack, banOutline, timeOutline, personOutline } from 'ionicons/icons';
-import { CurrencyPipe } from '@angular/common';
+import {
+  arrowBack, banOutline, timeOutline, personOutline,
+  restaurantOutline, statsChartOutline, receiptOutline,
+  cashOutline, checkmarkCircleOutline, chatbubbleEllipsesOutline,
+} from 'ionicons/icons';
+import { CurrencyPipe, DatePipe } from '@angular/common';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { CommandeService } from '../../../core/services/commande.service';
 import { Commande, CommandeItem } from '../../../core/models/commande.model';
 import { groupCommandeItems } from '../../../core/utils/order-item-grouper';
 
+/**
+ * Component handling detailed order view (/commandes/:id).
+ * Provides order summary metrics, item breakdown with grouping, and cancellation actions.
+ */
 @Component({
   selector: 'app-commande-detail',
   templateUrl: './commande-detail.component.html',
@@ -23,7 +31,7 @@ import { groupCommandeItems } from '../../../core/utils/order-item-grouper';
   imports: [
     IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardContent,
     IonBadge, IonButton, IonButtons, IonIcon, IonSpinner,
-    CurrencyPipe, TranslocoPipe,
+    CurrencyPipe, DatePipe, TranslocoPipe,
   ],
 })
 export class CommandeDetailComponent implements OnInit, OnDestroy {
@@ -40,7 +48,11 @@ export class CommandeDetailComponent implements OnInit, OnDestroy {
     private readonly toastCtrl: ToastController,
   ) {
     this.commandeId = +this.route.snapshot.paramMap.get('id')!;
-    addIcons({ arrowBack, banOutline, timeOutline, personOutline });
+    addIcons({
+      arrowBack, banOutline, timeOutline, personOutline,
+      restaurantOutline, statsChartOutline, receiptOutline,
+      cashOutline, checkmarkCircleOutline, chatbubbleEllipsesOutline,
+    });
   }
 
   ngOnInit(): void {
@@ -75,8 +87,12 @@ export class CommandeDetailComponent implements OnInit, OnDestroy {
 
   getStatutColor(statut: string): string {
     const map: Record<string, string> = {
-      EN_ATTENTE: 'warning', EN_PREPARATION: 'tertiary',
-      PRET: 'success', LIVREE: 'medium', REGLEE: 'dark', ANNULEE: 'danger',
+      EN_ATTENTE: 'warning',
+      EN_PREPARATION: 'tertiary',
+      PRET: 'success',
+      LIVREE: 'medium',
+      REGLEE: 'dark',
+      ANNULEE: 'danger',
     };
     return map[statut] ?? 'primary';
   }
@@ -102,5 +118,7 @@ export class CommandeDetailComponent implements OnInit, OnDestroy {
       });
   }
 
-  onBack(): void { this.router.navigate(['/commandes']); }
+  onBack(): void {
+    this.router.navigate(['/commandes']);
+  }
 }
