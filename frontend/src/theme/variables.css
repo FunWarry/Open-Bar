@@ -153,6 +153,14 @@ body.light-theme,
   --ion-color-primary-shade: var(--primary-strong);
   --ion-color-primary-tint: var(--primary-light);
 
+  /* Tertiary = statut EN_PREPARATION (bleu info) */
+  --ion-color-tertiary: var(--semantic-info);
+  --ion-color-tertiary-rgb: 43, 168, 232;
+  --ion-color-tertiary-contrast: #ffffff;
+  --ion-color-tertiary-contrast-rgb: 255, 255, 255;
+  --ion-color-tertiary-shade: #2494cc;
+  --ion-color-tertiary-tint: #40b4e8;
+
   --ion-color-danger: var(--semantic-danger);
   --ion-color-success: var(--semantic-success);
   --ion-color-warning: var(--semantic-warning);
@@ -176,6 +184,14 @@ body.light-theme,
   --ion-color-primary-contrast-rgb: 255, 255, 255;
   --ion-color-primary-shade: #4338ca;
   --ion-color-primary-tint: #e0e7ff;
+
+  /* Tertiary = statut EN_PREPARATION (bleu info) */
+  --ion-color-tertiary: var(--semantic-info);
+  --ion-color-tertiary-rgb: 43, 168, 232;
+  --ion-color-tertiary-contrast: #ffffff;
+  --ion-color-tertiary-contrast-rgb: 255, 255, 255;
+  --ion-color-tertiary-shade: #2494cc;
+  --ion-color-tertiary-tint: #40b4e8;
 
   --ion-item-background: #ffffff;
   --ion-toolbar-background: #ffffff;

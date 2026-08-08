@@ -174,8 +174,8 @@
       @if (commande.statut === 'EN_ATTENTE') {
         <ion-button
           fill="solid"
-          color="tertiary"
-          class="btn-action-next btn-primary-in-progress"
+          color="primary"
+          class="btn-action-next"
           (click)="onUpdateStatus('EN_PREPARATION')"
           (keydown.enter)="onUpdateStatus('EN_PREPARATION')"
           [attr.title]="'COMMANDES.ACTIONS.MARK_IN_PROGRESS_TOOLTIP' | transloco"
@@ -189,8 +189,8 @@
       @if (commande.statut === 'EN_PREPARATION') {
         <ion-button
           fill="solid"
-          color="success"
-          class="btn-action-next btn-primary-ready"
+          color="primary"
+          class="btn-action-next"
           (click)="onUpdateStatus('PRET')"
           (keydown.enter)="onUpdateStatus('PRET')"
           [attr.title]="'COMMANDES.ACTIONS.MARK_READY_TOOLTIP' | transloco"
@@ -205,7 +205,7 @@
         <ion-button
           fill="solid"
           color="primary"
-          class="btn-action-next btn-primary-delivered"
+          class="btn-action-next"
           (click)="onUpdateStatus('LIVREE')"
           (keydown.enter)="onUpdateStatus('LIVREE')"
           [attr.title]="'COMMANDES.ACTIONS.MARK_DELIVERED_TOOLTIP' | transloco"

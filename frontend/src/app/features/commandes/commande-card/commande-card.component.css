@@ -201,6 +201,10 @@
   display: inline-flex;
   align-items: center;
   box-sizing: border-box;
+  --background: var(--primary);
+  --background-hover: var(--primary-strong);
+  --background-activated: var(--primary-press);
+  --color: #ffffff;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
@@ -211,19 +215,4 @@
 .action-text-btn ion-icon {
   font-size: 1.1rem;
   margin-right: 4px;
-}
-
-.btn-primary-in-progress {
-  --background: var(--semantic-info);
-  --background-hover: var(--semantic-info);
-}
-
-.btn-primary-ready {
-  --background: var(--semantic-success);
-  --background-hover: var(--semantic-success);
-}
-
-.btn-primary-delivered {
-  --background: var(--primary);
-  --background-hover: var(--primary-strong);
 }
