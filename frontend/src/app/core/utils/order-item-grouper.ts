@@ -30,16 +30,16 @@ export function groupCommandeItems<T extends GroupableCommandeItem>(items: T[] |
   for (const item of items) {
     const cocktailKey = item.cocktailId
       ? `id:${item.cocktailId}`
-      : `nom:${(item.cocktailNom || '').toString().trim().toLowerCase()}`;
+      : `nom:${(item.cocktailNom ?? '').toString().trim().toLowerCase()}`;
 
     const varianteKey = item.varianteId
       ? `vid:${item.varianteId}`
-      : `vnom:${(item.varianteNom || '').toString().trim().toLowerCase()}`;
+      : `vnom:${(item.varianteNom ?? '').toString().trim().toLowerCase()}`;
 
-    const notesKey = (item.notes || '').toString().trim().toLowerCase();
+    const notesKey = (item.notes ?? '').toString().trim().toLowerCase();
 
     const key = `${cocktailKey}_${varianteKey}_${notesKey}`;
-    const qty = item.quantite != null && item.quantite > 0 ? item.quantite : 1;
+    const qty = (item.quantite && item.quantite > 0) ? item.quantite : 1;
 
     const existing = map.get(key);
     if (existing) {
