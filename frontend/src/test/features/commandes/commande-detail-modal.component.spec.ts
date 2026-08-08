@@ -1,6 +1,6 @@
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { IonicModule } from '@ionic/angular';
-import { ModalController, AlertController } from '@ionic/angular/standalone';
+import { ModalController, AlertController, ToastController } from '@ionic/angular/standalone';
 import { of } from 'rxjs';
 import { CommandeDetailModalComponent } from '../../../app/features/commandes/commande-detail-modal/commande-detail-modal.component';
 import { CommandeService } from '../../../app/core/services/commande.service';
@@ -30,12 +30,17 @@ describe('CommandeDetailModalComponent', () => {
   let commandeServiceSpy: jasmine.SpyObj<CommandeService>;
   let modalCtrlSpy: jasmine.SpyObj<ModalController>;
   let alertCtrlSpy: jasmine.SpyObj<AlertController>;
+  let toastCtrlSpy: jasmine.SpyObj<ToastController>;
   let alertSpy: jasmine.SpyObj<HTMLIonAlertElement>;
+
+  const mockToast = { present: jasmine.createSpy('present') };
 
   beforeEach(async () => {
     commandeServiceSpy = jasmine.createSpyObj('CommandeService', ['getById', 'changerStatut', 'annuler']);
     modalCtrlSpy = jasmine.createSpyObj('ModalController', ['dismiss']);
     alertCtrlSpy = jasmine.createSpyObj('AlertController', ['create']);
+    toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
+    toastCtrlSpy.create.and.returnValue(Promise.resolve(mockToast as any));
 
     alertSpy = jasmine.createSpyObj('HTMLIonAlertElement', ['present']);
     alertCtrlSpy.create.and.returnValue(Promise.resolve(alertSpy));
@@ -54,6 +59,7 @@ describe('CommandeDetailModalComponent', () => {
         { provide: CommandeService, useValue: commandeServiceSpy },
         { provide: ModalController, useValue: modalCtrlSpy },
         { provide: AlertController, useValue: alertCtrlSpy },
+        { provide: ToastController, useValue: toastCtrlSpy },
       ],
     }).compileComponents();
 

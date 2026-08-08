@@ -79,22 +79,22 @@ describe('CommandeCardComponent', () => {
 
   it('lisereColor retourne orange pour EN_ATTENTE', () => {
     component.commande = makeCommande({ statut: 'EN_ATTENTE' });
-    expect(component.lisereColor).toBe('#f4a52a');
+    expect(component.lisereColor).toBe('var(--semantic-warning)');
   });
 
   it('lisereColor retourne bleu pour EN_PREPARATION', () => {
     component.commande = makeCommande({ statut: 'EN_PREPARATION' });
-    expect(component.lisereColor).toBe('#2ba8e8');
+    expect(component.lisereColor).toBe('var(--semantic-info)');
   });
 
   it('lisereColor retourne vert pour PRET', () => {
     component.commande = makeCommande({ statut: 'PRET' });
-    expect(component.lisereColor).toBe('#2fbf6b');
+    expect(component.lisereColor).toBe('var(--semantic-success)');
   });
 
   it('lisereColor retourne gris par defaut pour un statut inconnu', () => {
     component.commande = makeCommande({ statut: 'LIVREE' as any });
-    expect(component.lisereColor).toBe('#7e87a8');
+    expect(component.lisereColor).toBe('var(--text-muted)');
   });
 
   // --- statutLabel ---

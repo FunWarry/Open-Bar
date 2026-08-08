@@ -3,7 +3,7 @@ import { ComponentFixture } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { Router } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
-import { ToastController } from '@ionic/angular/standalone';
+import { ToastController, ModalController } from '@ionic/angular/standalone';
 import { Store } from '@ngrx/store';
 import { of, throwError } from 'rxjs';
 import { CommandeListComponent } from '../../../app/features/commandes/commande-list/commande-list.component';
@@ -40,10 +40,11 @@ describe('CommandeListComponent', () => {
   let fixture: ComponentFixture<CommandeListComponent>;
   let serviceSpy: jasmine.SpyObj<CommandeService>;
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
+  let modalCtrlSpy: jasmine.SpyObj<ModalController>;
   let storeSpy: jasmine.SpyObj<Store>;
-  let router: Router;
 
   const mockToast = { present: jasmine.createSpy('present') };
+  const mockModal = { present: jasmine.createSpy('present'), onDidDismiss: () => Promise.resolve({ data: null }) };
 
   beforeEach(async () => {
     serviceSpy = jasmine.createSpyObj('CommandeService', ['getAll', 'annuler', 'changerStatut']);
@@ -53,6 +54,9 @@ describe('CommandeListComponent', () => {
 
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
     toastCtrlSpy.create.and.returnValue(Promise.resolve(mockToast as any));
+
+    modalCtrlSpy = jasmine.createSpyObj('ModalController', ['create']);
+    modalCtrlSpy.create.and.returnValue(Promise.resolve(mockModal as any));
 
     storeSpy = jasmine.createSpyObj('Store', ['select', 'dispatch']);
     storeSpy.select.and.returnValue(of(false));
@@ -68,10 +72,10 @@ describe('CommandeListComponent', () => {
         { provide: Store, useValue: storeSpy },
         { provide: CommandeService, useValue: serviceSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
+        { provide: ModalController, useValue: modalCtrlSpy },
       ],
     }).compileComponents();
 
-    router = TestBed.inject(Router);
     fixture = TestBed.createComponent(CommandeListComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
@@ -159,9 +163,11 @@ describe('CommandeListComponent', () => {
     expect(component.peutAnnuler('EN_ATTENTE')).toBeTrue();
   });
 
-  it('onView() navigates to /commandes/:id', () => {
-    spyOn(router, 'navigate');
+  it('onView() opens CommandeDetailModalComponent in modal', fakeAsync(() => {
     component.onView(mockCommandes[0]);
-    expect(router.navigate).toHaveBeenCalledWith(['/commandes', 1]);
-  });
+    tick();
+    expect(modalCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({
+      componentProps: { commandeId: 1, commandeInput: mockCommandes[0] },
+    }));
+  }));
 });
