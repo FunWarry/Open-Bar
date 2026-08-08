@@ -1,6 +1,6 @@
 # OpenBar — État des Features & Roadmap
 
-> Dernière mise à jour : 8 août 2026 — PR #263 : Refonte de la vue de suivi des commandes avec Kanban 4 colonnes & Table (#262)
+> Dernière mise à jour : 8 août 2026 — PR #265 : Ajustements suivi commandes & vue détail (i18n priorite, regroupement xN, tooltips, bouttons) (#264)
 
 ## Tableau des Features
 
