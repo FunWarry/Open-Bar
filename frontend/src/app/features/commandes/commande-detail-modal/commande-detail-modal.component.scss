@@ -17,10 +17,12 @@
   color: var(--text-primary);
 }
 
-.modal-content-body {
-  --background: var(--background-bg-0);
-  --overflow: auto;
-  min-height: 0;
+.modal-scroll-body {
+  background: var(--background-bg-0);
+  overflow-y: auto;
+  /* Max height = 90vh minus header (~56px) and footer (~70px) */
+  max-height: calc(90vh - 130px);
+  box-sizing: border-box;
 }
 
 .loading-state {

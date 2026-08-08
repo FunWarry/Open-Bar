@@ -21,7 +21,7 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding modal-content-body">
+<div class="modal-scroll-body ion-padding">
   @if (isLoading) {
     <div class="loading-state">
       <ion-spinner name="crescent" color="primary"></ion-spinner>
@@ -151,7 +151,7 @@
 
     </div>
   }
-</ion-content>
+</div>
 
 @if (commande) {
   <ion-footer class="modal-footer ion-no-border">
