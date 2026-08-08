@@ -793,7 +793,8 @@ ion-modal.commande-detail-modal-container {
   --max-height: 90vh;
   --border-radius: 16px;
   --box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
-  --backdrop-opacity: 0.45;
+  /* Keep backdrop very subtle — the page blur handles the darkening */
+  --backdrop-opacity: 0.15;
 }
 
 @media (min-width: 1200px) {
@@ -805,16 +806,16 @@ ion-modal.commande-detail-modal-container {
 
 /*
  * Blur the background page content when a modal is open.
- * Ionic automatically sets aria-hidden="true" on background ion-pages
- * when a modal is presented — this gives a clean blur + darken effect.
+ * Ionic sets aria-hidden="true" on background ion-pages when a modal is presented.
+ * The backdrop opacity MUST remain low so the blurred content shows through.
  */
 ion-page[aria-hidden="true"] {
-  filter: blur(6px) brightness(0.65);
-  transition: filter 0.25s ease;
+  filter: blur(8px) brightness(0.55);
+  transition: filter 0.3s ease;
   pointer-events: none;
 }
 
 ion-page:not([aria-hidden="true"]) {
   filter: none;
-  transition: filter 0.25s ease;
+  transition: filter 0.3s ease;
 }
