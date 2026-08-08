@@ -1,5 +1,6 @@
-import { TestBed, ComponentFixture } from '@angular/core/testing';
+import { TestBed, ComponentFixture, fakeAsync, tick } from '@angular/core/testing';
 import { IonicModule } from '@ionic/angular';
+import { AlertController } from '@ionic/angular/standalone';
 import { CommandeCardComponent } from '../../../app/features/commandes/commande-card/commande-card.component';
 import { Commande } from '../../../app/core/models/commande.model';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
@@ -58,11 +59,21 @@ describe('CommandeCardComponent', () => {
     expect(component.view.emit).toHaveBeenCalledWith(mockCmd);
   });
 
-  it('onAnnuler() emits annuler event', () => {
+  it('onAnnuler() presents confirmation alert or emits annuler event', fakeAsync(() => {
     spyOn(component.annuler, 'emit');
+    const alertCtrl = TestBed.inject(AlertController);
+    let handlerFn: (() => void) | undefined;
+    spyOn(alertCtrl, 'create').and.callFake((options: any) => {
+      handlerFn = options.buttons.find((b: any) => b.handler)?.handler;
+      return Promise.resolve({ present: () => Promise.resolve() } as any);
+    });
+
     component.onAnnuler();
+    tick();
+    expect(alertCtrl.create).toHaveBeenCalled();
+    if (handlerFn) handlerFn();
     expect(component.annuler.emit).toHaveBeenCalledWith(mockCmd);
-  });
+  }));
 
   it('groupedItems aggregates identical items and sums quantities', () => {
     const multiCmd: Commande = {

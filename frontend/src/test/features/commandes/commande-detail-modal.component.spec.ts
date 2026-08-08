@@ -1,4 +1,4 @@
-import { TestBed, ComponentFixture } from '@angular/core/testing';
+import { TestBed, ComponentFixture, fakeAsync, tick, flushMicrotasks } from '@angular/core/testing';
 import { IonicModule } from '@ionic/angular';
 import { ModalController, AlertController, ToastController } from '@ionic/angular/standalone';
 import { of } from 'rxjs';
@@ -87,15 +87,17 @@ describe('CommandeDetailModalComponent', () => {
     expect(component.peutAnnuler()).toBeTrue();
   });
 
-  it('onUpdateStatus changes status and dismisses modal with statusUpdated role', () => {
+  it('onUpdateStatus changes status and dismisses modal with statusUpdated role', fakeAsync(() => {
     component.onUpdateStatus('EN_PREPARATION');
+    tick();
+    flushMicrotasks();
     expect(commandeServiceSpy.changerStatut).toHaveBeenCalledWith(9, 'EN_PREPARATION');
     expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith({
       role: 'statusUpdated',
       commande: jasmine.objectContaining({ statut: 'EN_PREPARATION' }),
       targetStatut: 'EN_PREPARATION',
     });
-  });
+  }));
 
   it('onAnnuler presents confirmation alert', async () => {
     await component.onAnnuler();
