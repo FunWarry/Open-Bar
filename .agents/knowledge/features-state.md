@@ -1,6 +1,6 @@
 # OpenBar — État des Features & Roadmap
 
-> Dernière mise à jour : 6 août 2026 — PR #261 : Refactorisation & Modernisation de la page Factures (#260)
+> Dernière mise à jour : 8 août 2026 — PR #263 : Refonte de la vue de suivi des commandes avec Kanban 4 colonnes & Table (#262)
 
 ## Tableau des Features
 
@@ -36,7 +36,7 @@
 | Barman Stock Side Panel Alignement Figma (#238) | — | ✅ | ✅ | Ajustement visuel complet du panneau de stock barman |
 | Tables CRUD & Alignement Figma | ✅ | ✅ | ✅ | `TableListComponent` et `TableFormComponent` alignés Figma, chargement dynamique des zones via `ZoneService`, i18n FR/EN |
 | Transfert commande entre tables (#186/#205) | ✅ | ✅ | ✅ | Bouton & TransfertModalComponent raccordés (#205/#207) |
-| Commandes | ✅ | ✅ | ✅ | — |
+| Suivi des Commandes Kanban 4 Colonnes & Table (#262) | ✅ | ✅ | ✅ | Mode Kanban Figma (Pending, In Progress, Ready to Serve, Served), swapper de vue, filtres, cartes avec actions et sous-composant CommandeCardComponent |
 | Passage commande publique QR (#184) | ✅ | ✅ | ✅ | — |
 | Écran Scanner QR Code Client (Figma 636:988) (#225) | — | ✅ | ✅ | Viseur vidéo live native BarcodeDetector, saisie manuelle & redirection commande |
 | Déstockage auto (EN_PREPARATION & Variantes) | ✅ | — | ✅ | — |
@@ -113,6 +113,7 @@
 
 | PR / Issue | Description |
 |------------|-------------|
+| #263 (#262) | Refonte Suivi des Commandes (Figma 'Serveur — Suivi commandes') : Implémentation du mode d'affichage dual Kanban 4 colonnes (En Attente, En Préparation, Prêt à Servir, Livrées/Réglées) et Vue Liste Tableau. Swapper de vue réactif, filtre de recherche multi-critères, toggle d'affichage des livrées, badging de statut et détection automatique des retards/urgences (Priority). Sub-composant atomique `CommandeCardComponent` pour l'élimination des duplications de code template HTML. Synchronisation i18n Transloco 100% FR/EN. Tests Karma 1048/1048 OK. |
 | #259 (#237) | Facturation — Format ticket 58mm (Figma 640:1220) : Ajout de la gestion du format d'impression thermique 58mm en complément du 80mm. Champ backend `ticketFormat` dans `EstablishmentConfig`, `schema.sql`, DTOs et services. Formulaire de configuration Admin `EtablissementComponent` avec sélecteur de format. Composant `TicketReceiptComponent` avec sélecteur dynamique (80mm/58mm), mise en page compacte et règles CSS `@media print` adaptées. Clefs i18n Transloco FR/EN. Tests Karma (1044/1044 OK) et backend Spring Boot 100% verts. |
 | #258 (#236) | Vue Serveur Mobile — Bottom Navigation & MobileTableCard (Figma 632:2240) : Composant Ionic 8 standalone `BottomNavigationComponent` pour les terminaux mobiles (< 768px) avec icônes de navigation, badges de panier/suivi et i18n FR/EN. Composant `MobileTableCardComponent` avec badging de statut, capacité, zone, montant total et chronomètre d'attente coloré selon les exigences WCAG AAA. Support i18n Transloco (`SERVEUR_MOBILE.*`) et attributs `data-testid`. Coordonnées de tests Karma/Jasmine 100% verts (1042/1042 OK). |
 | #257 (#229) | Écran Onboarding — Flow 1ère connexion par rôle (Figma 633:1100–1173) : Composant Ionic 8 standalone `OnboardingComponent` (`/onboarding`) affichant des cartes tutoriel guidées adaptées au rôle de l'utilisateur (ADMIN, MANAGER, SERVEUR, BARMAN, CLIENT). Service `OnboardingService` avec persistance de l'état de complétion dans `localStorage`. Bouton de relance du tutoriel depuis la page Profil (`/profile`). Internationalisation FR/EN (`ONBOARDING.*`). Tests unitaires Karma/Jasmine 100% verts (1038/1038 OK). |
