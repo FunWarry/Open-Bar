@@ -17,6 +17,7 @@ import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
 import { NotificationService } from '../../../core/services/notification.service';
 import { Commande, CommandeStatut } from '../../../core/models/commande.model';
 import { TableView } from '../models/table-view.model';
+import { groupCommandeItems } from '../../../core/utils/order-item-grouper';
 
 interface Colonne {
   statut: CommandeStatut;
@@ -176,4 +177,5 @@ export class KanbanServeurComponent implements OnInit, OnDestroy {
 
   onRefresh(event: any) { this.charger(event); }
   trackById(_: number, cmd: Commande): number { return cmd.id; }
+  groupItems(items: any[]): any[] { return groupCommandeItems(items); }
 }

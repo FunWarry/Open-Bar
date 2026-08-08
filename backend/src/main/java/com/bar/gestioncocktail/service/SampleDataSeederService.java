@@ -302,8 +302,6 @@ public class SampleDataSeederService {
         User serveur = usersMap.get(serveurUsername);
         LocalDateTime orderTime = timeService.now().minusMinutes(minutesAgo);
 
-        List<Cocktail> orderCocktails = parseCocktailsFromItems(oNode.get(KEY_ITEMS), cocktails);
-
         Commande cmd = new Commande();
         cmd.setTable(table);
         cmd.setServeur(serveur);
@@ -315,14 +313,23 @@ public class SampleDataSeederService {
         BigDecimal total = BigDecimal.ZERO;
         List<CommandeItem> items = new ArrayList<>();
 
-        for (Cocktail c : orderCocktails) {
-            CommandeItem item = new CommandeItem();
-            item.setCommande(cmd);
-            item.setCocktail(c);
-            item.setQuantite(1);
-            item.setPrixUnitaire(c.getPrix() != null ? c.getPrix() : new BigDecimal("9.50"));
-            items.add(item);
-            total = total.add(item.getPrixUnitaire());
+        JsonNode itemsNode = oNode.get(KEY_ITEMS);
+        if (itemsNode != null && itemsNode.isArray()) {
+            for (JsonNode itemNode : itemsNode) {
+                String cocktailName = itemNode.get("cocktailName").asText();
+                int quantite = itemNode.has(KEY_QUANTITE) ? itemNode.get(KEY_QUANTITE).asInt() : 1;
+                Cocktail c = findCocktailByName(cocktails, cocktailName);
+                if (c != null) {
+                    CommandeItem item = new CommandeItem();
+                    item.setCommande(cmd);
+                    item.setCocktail(c);
+                    item.setQuantite(quantite);
+                    BigDecimal unitPrice = c.getPrix() != null ? c.getPrix() : new BigDecimal("9.50");
+                    item.setPrixUnitaire(unitPrice);
+                    items.add(item);
+                    total = total.add(unitPrice.multiply(new BigDecimal(quantite)));
+                }
+            }
         }
 
         cmd.setItems(items);
@@ -330,21 +337,6 @@ public class SampleDataSeederService {
 
         updateOrderTimestampsByStatus(cmd, statut, orderTime);
         commandeRepository.save(cmd);
-    }
-
-    private List<Cocktail> parseCocktailsFromItems(JsonNode itemsNode, List<Cocktail> cocktails) {
-        List<Cocktail> orderCocktails = new ArrayList<>();
-        if (itemsNode != null && itemsNode.isArray()) {
-            for (JsonNode itemNode : itemsNode) {
-                String cocktailName = itemNode.get("cocktailName").asText();
-                int quantite = itemNode.has(KEY_QUANTITE) ? itemNode.get(KEY_QUANTITE).asInt() : 1;
-                Cocktail c = findCocktailByName(cocktails, cocktailName);
-                for (int i = 0; i < quantite; i++) {
-                    orderCocktails.add(c);
-                }
-            }
-        }
-        return orderCocktails;
     }
 
     private void updateOrderTimestampsByStatus(Commande cmd, CommandeStatut statut, LocalDateTime orderTime) {

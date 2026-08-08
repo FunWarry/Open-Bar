@@ -13,6 +13,7 @@ import { CurrencyPipe } from '@angular/common';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { CommandeService } from '../../../core/services/commande.service';
 import { Commande, CommandeItem } from '../../../core/models/commande.model';
+import { groupCommandeItems } from '../../../core/utils/order-item-grouper';
 
 @Component({
   selector: 'app-commande-detail',
@@ -65,21 +66,7 @@ export class CommandeDetailComponent implements OnInit, OnDestroy {
    * Groups identical items (same cocktail name, variante, and notes) and sums quantities.
    */
   get groupedItems(): CommandeItem[] {
-    if (!this.commande?.items) return [];
-    const map = new Map<string, CommandeItem>();
-    for (const item of this.commande.items) {
-      const nomKey = (item.cocktailNom || item.cocktailId || '').toString().trim().toLowerCase();
-      const varianteKey = item.varianteNom ? item.varianteNom.trim().toLowerCase() : (item.varianteId || 0);
-      const notesKey = (item.notes || '').trim().toLowerCase();
-      const key = `${nomKey}_${varianteKey}_${notesKey}`;
-      const existing = map.get(key);
-      if (existing) {
-        existing.quantite += (item.quantite || 1);
-      } else {
-        map.set(key, { ...item, quantite: item.quantite || 1 });
-      }
-    }
-    return Array.from(map.values());
+    return groupCommandeItems(this.commande?.items) as CommandeItem[];
   }
 
   getItemLineTotal(item: CommandeItem): number {

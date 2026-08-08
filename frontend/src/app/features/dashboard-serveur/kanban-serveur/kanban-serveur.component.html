@@ -54,7 +54,7 @@
 
         <ion-card-content>
           <div class="items-list">
-            <div *ngFor="let item of cmd.items" class="item-line">
+            <div *ngFor="let item of groupItems(cmd.items)" class="item-line">
               {{ item.quantite }}× {{ item.cocktailNom }}
             </div>
           </div>
@@ -67,6 +67,7 @@
               color="success"
               size="small"
               expand="block"
+              title="Marquer la commande comme livrée"
               (click)="marquerLivree(cmd.id)"
               (keyup.enter)="marquerLivree(cmd.id)">
               <ion-icon name="checkmark-outline" slot="start"></ion-icon>
@@ -78,6 +79,7 @@
               color="danger"
               size="small"
               expand="block"
+              title="Annuler la commande"
               (click)="annuler(cmd.id)"
               (keyup.enter)="annuler(cmd.id)">
               <ion-icon name="ban-outline" slot="start"></ion-icon>
