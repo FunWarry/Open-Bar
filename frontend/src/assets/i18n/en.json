@@ -352,6 +352,7 @@
       "TOTAL": "Total",
       "ITEMS_HEADER": "Order Items",
       "ITEM_NAME": "Name",
+      "UNIT_PRICE": "Unit Price",
       "QUANTITY": "Quantity",
       "PRICE": "Total Price"
     },

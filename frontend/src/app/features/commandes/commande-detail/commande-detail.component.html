@@ -124,6 +124,7 @@
           <div class="items-table">
             <div class="table-head">
               <span class="th-name">{{ 'COMMANDES.DETAILS.ITEM_NAME' | transloco }}</span>
+              <span class="th-unit-price">{{ 'COMMANDES.DETAILS.UNIT_PRICE' | transloco }}</span>
               <span class="th-qty">{{ 'COMMANDES.DETAILS.QUANTITY' | transloco }}</span>
               <span class="th-price">{{ 'COMMANDES.DETAILS.PRICE' | transloco }}</span>
             </div>
@@ -139,6 +140,9 @@
                     @if (item.notes) {
                       <span class="item-line-note">📝 {{ item.notes }}</span>
                     }
+                  </div>
+                  <div class="td-unit-price">
+                    {{ (item.prixUnitaire || 0) | currency:'EUR' }}
                   </div>
                   <div class="td-qty">
                     <span class="qty-pill">× {{ item.quantite }}</span>

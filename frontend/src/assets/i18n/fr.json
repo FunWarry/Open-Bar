@@ -352,6 +352,7 @@
       "TOTAL": "Total",
       "ITEMS_HEADER": "Articles de la commande",
       "ITEM_NAME": "Nom",
+      "UNIT_PRICE": "Prix Unitaire",
       "QUANTITY": "Quantité",
       "PRICE": "Prix Total"
     },
