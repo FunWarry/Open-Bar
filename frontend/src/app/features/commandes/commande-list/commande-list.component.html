@@ -1,59 +1,417 @@
-<ion-content>
+<ion-content class="commandes-page-content">
   <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
-  <div class="commande-list-container">
-    <ion-card>
-      <ion-card-header>
-        <ion-card-title>Commandes ({{ commandes.length }})</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <ion-segment [value]="filtre" (ionChange)="onFiltreChange($event)" scrollable>
-          @for (s of statuts; track s.value) {
-            <ion-segment-button [value]="s.value">
-              <ion-label>{{ s.label }}</ion-label>
-            </ion-segment-button>
-          }
-        </ion-segment>
+  <div class="commandes-wrapper">
 
-        @if (isLoading) {
-          <div style="text-align:center;padding:24px">
-            <ion-spinner name="crescent"></ion-spinner>
+    <!-- Top Control Bar: Title, Search, View Mode Toggle & Show Served Switch -->
+    <div class="control-banner">
+      <div class="banner-header">
+        <div class="title-group">
+          <h1>{{ 'COMMANDES.TITLE' | transloco }}</h1>
+          <p class="subtitle">{{ 'COMMANDES.SUBTITLE' | transloco }}</p>
+        </div>
+        <div class="banner-actions">
+          <div class="view-switch">
+            <button
+              type="button"
+              class="view-btn"
+              [class.active]="viewMode === 'kanban'"
+              (click)="setViewMode('kanban')"
+              data-testid="btn-view-kanban">
+              <ion-icon name="grid-outline"></ion-icon>
+              <span>{{ 'COMMANDES.VIEW_MODE.KANBAN' | transloco }}</span>
+            </button>
+            <button
+              type="button"
+              class="view-btn"
+              [class.active]="viewMode === 'list'"
+              (click)="setViewMode('list')"
+              data-testid="btn-view-list">
+              <ion-icon name="list-outline"></ion-icon>
+              <span>{{ 'COMMANDES.VIEW_MODE.LIST' | transloco }}</span>
+            </button>
           </div>
-        }
 
-        @if (!isLoading) {
-          <ion-list>
-            @for (commande of filteredCommandes; track commande.id) {
-              <ion-item>
-                <ion-label>
-                  <h3>Table {{ commande.tableNumero }}</h3>
-                  <p>{{ commande.serveurUsername }} · {{ commande.dateCommande | date:'dd/MM HH:mm' }}</p>
-                </ion-label>
-                <ion-badge slot="end" [color]="getStatutColor(commande.statut)">{{ commande.statut }}</ion-badge>
-                <ion-label slot="end">{{ commande.total | currency:'EUR' }}</ion-label>
-                <ion-buttons slot="end">
-                  <ion-button fill="clear" color="primary" (click)="onView(commande)" (keydown.enter)="onView(commande)" data-testid="btn-view-commande">
-                    <ion-icon slot="icon-only" name="eye"></ion-icon>
-                  </ion-button>
-                  @if (peutAnnuler(commande.statut)) {
-                    <ion-button fill="clear" color="danger" (click)="onAnnuler(commande)" (keydown.enter)="onAnnuler(commande)" data-testid="btn-annuler-commande">
-                      <ion-icon slot="icon-only" name="ban-outline"></ion-icon>
-                    </ion-button>
+          <ion-button color="primary" routerLink="/commandes/nouvelle" data-testid="btn-new-commande">
+            + {{ 'COMMANDES.NEW' | transloco }}
+          </ion-button>
+        </div>
+      </div>
+
+      <div class="search-filter-row">
+        <ion-searchbar
+          [placeholder]="'COMMANDES.SEARCH_PLACEHOLDER' | transloco"
+          [value]="searchQuery"
+          (ionInput)="onSearchChange($event)"
+          debounce="200"
+          data-testid="input-search-commandes">
+        </ion-searchbar>
+
+        <div class="toggle-served-container">
+          <ion-toggle
+            [checked]="showServed"
+            (ionChange)="onToggleShowServed($event)"
+            data-testid="toggle-show-served">
+          </ion-toggle>
+          <span class="toggle-label">{{ 'COMMANDES.SHOW_SERVED_TOGGLE' | transloco }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Spinner Loading State -->
+    @if (isLoading) {
+      <div class="spinner-container">
+        <ion-spinner name="crescent" color="primary"></ion-spinner>
+      </div>
+    }
+
+    @if (!isLoading) {
+
+      <!-- KANBAN BOARD VIEW -->
+      @if (viewMode === 'kanban') {
+        <div class="kanban-board">
+
+          <!-- COLUMN 1: EN ATTENTE (PENDING) -->
+          <div class="kanban-column column-pending">
+            <div class="column-header">
+              <div class="column-title">
+                <span class="status-dot dot-pending"></span>
+                <h2>{{ 'COMMANDES.COLUMNS.PENDING' | transloco }}</h2>
+              </div>
+              <span class="count-badge badge-pending" data-testid="count-pending">{{ pendingOrders.length }}</span>
+            </div>
+
+            <div class="column-body">
+              @for (c of pendingOrders; track c.id) {
+                <div class="kanban-card" [class.priority-card]="isPriority(c)" data-testid="card-commande">
+                  <div class="card-top">
+                    <div class="table-title">
+                      <h3>Table {{ c.tableNumero }}</h3>
+                      <span class="order-id">#{{ c.id }}</span>
+                    </div>
+                    @if (isPriority(c)) {
+                      <span class="priority-pill">
+                        <ion-icon name="alert-circle-outline"></ion-icon>
+                        {{ 'COMMANDES.PRIORITY' | transloco }}
+                      </span>
+                    } @else {
+                      <span class="status-pill status-pending">{{ 'COMMANDES.STATUTS.EN_ATTENTE' | transloco }}</span>
+                    }
+                  </div>
+
+                  <div class="card-meta">
+                    <span class="time-meta">
+                      <ion-icon name="time-outline"></ion-icon>
+                      {{ c.dateCommande | date:'HH:mm' }} ({{ getDelayMinutes(c.dateCommande) }}m)
+                    </span>
+                    @if (c.serveurUsername) {
+                      <span class="server-meta">👤 {{ c.serveurUsername }}</span>
+                    }
+                  </div>
+
+                  @if (c.notes) {
+                    <div class="card-notes">💬 {{ c.notes }}</div>
                   }
-                </ion-buttons>
-              </ion-item>
-            }
-            @if (filteredCommandes.length === 0) {
-              <ion-item>
-                <ion-label color="medium">Aucune commande</ion-label>
-              </ion-item>
-            }
-          </ion-list>
-        }
-      </ion-card-content>
-    </ion-card>
+
+                  <div class="card-items">
+                    @for (item of c.items; track item.id) {
+                      <div class="item-row">
+                        <span class="qty">× {{ item.quantite }}</span>
+                        <span class="item-name">{{ item.cocktailNom }}</span>
+                        <span class="item-price">{{ item.prixUnitaire | currency:'EUR' }}</span>
+                      </div>
+                    }
+                  </div>
+
+                  <div class="card-total">
+                    <span>Total :</span>
+                    <span class="total-amount">{{ c.total | currency:'EUR' }}</span>
+                  </div>
+
+                  <div class="card-actions">
+                    <ion-button fill="clear" color="secondary" size="small" (click)="onView(c)" data-testid="btn-view">
+                      <ion-icon name="eye" slot="icon-only"></ion-icon>
+                    </ion-button>
+                    @if (peutAnnuler(c.statut)) {
+                      <ion-button fill="clear" color="danger" size="small" (click)="onAnnuler(c)" data-testid="btn-annuler">
+                        <ion-icon name="ban-outline" slot="icon-only"></ion-icon>
+                      </ion-button>
+                    }
+                    <ion-button fill="solid" color="tertiary" size="small" (click)="onUpdateStatus(c, 'EN_PREPARATION')" data-testid="btn-mark-in-progress">
+                      <ion-icon name="play-outline" slot="start"></ion-icon>
+                      {{ 'COMMANDES.ACTIONS.MARK_IN_PROGRESS' | transloco }}
+                    </ion-button>
+                  </div>
+                </div>
+              }
+
+              @if (pendingOrders.length === 0) {
+                <div class="empty-column-msg">{{ 'COMMANDES.MESSAGES.EMPTY_COLUMN' | transloco }}</div>
+              }
+            </div>
+          </div>
+
+          <!-- COLUMN 2: EN PREPARATION (IN PROGRESS) -->
+          <div class="kanban-column column-progress">
+            <div class="column-header">
+              <div class="column-title">
+                <span class="status-dot dot-progress"></span>
+                <h2>{{ 'COMMANDES.COLUMNS.IN_PROGRESS' | transloco }}</h2>
+              </div>
+              <span class="count-badge badge-progress" data-testid="count-progress">{{ inProgressOrders.length }}</span>
+            </div>
+
+            <div class="column-body">
+              @for (c of inProgressOrders; track c.id) {
+                <div class="kanban-card" data-testid="card-commande">
+                  <div class="card-top">
+                    <div class="table-title">
+                      <h3>Table {{ c.tableNumero }}</h3>
+                      <span class="order-id">#{{ c.id }}</span>
+                    </div>
+                    <span class="status-pill status-progress">{{ 'COMMANDES.STATUTS.EN_PREPARATION' | transloco }}</span>
+                  </div>
+
+                  <div class="card-meta">
+                    <span class="time-meta">
+                      <ion-icon name="time-outline"></ion-icon>
+                      {{ c.dateCommande | date:'HH:mm' }} ({{ getDelayMinutes(c.dateCommande) }}m)
+                    </span>
+                    @if (c.serveurUsername) {
+                      <span class="server-meta">👤 {{ c.serveurUsername }}</span>
+                    }
+                  </div>
+
+                  @if (c.notes) {
+                    <div class="card-notes">💬 {{ c.notes }}</div>
+                  }
+
+                  <div class="card-items">
+                    @for (item of c.items; track item.id) {
+                      <div class="item-row">
+                        <span class="qty">× {{ item.quantite }}</span>
+                        <span class="item-name">{{ item.cocktailNom }}</span>
+                        <span class="item-price">{{ item.prixUnitaire | currency:'EUR' }}</span>
+                      </div>
+                    }
+                  </div>
+
+                  <div class="card-total">
+                    <span>Total :</span>
+                    <span class="total-amount">{{ c.total | currency:'EUR' }}</span>
+                  </div>
+
+                  <div class="card-actions">
+                    <ion-button fill="clear" color="secondary" size="small" (click)="onView(c)">
+                      <ion-icon name="eye" slot="icon-only"></ion-icon>
+                    </ion-button>
+                    <ion-button fill="solid" color="success" size="small" (click)="onUpdateStatus(c, 'PRET')" data-testid="btn-mark-ready">
+                      <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+                      {{ 'COMMANDES.ACTIONS.MARK_READY' | transloco }}
+                    </ion-button>
+                  </div>
+                </div>
+              }
+
+              @if (inProgressOrders.length === 0) {
+                <div class="empty-column-msg">{{ 'COMMANDES.MESSAGES.EMPTY_COLUMN' | transloco }}</div>
+              }
+            </div>
+          </div>
+
+          <!-- COLUMN 3: PRET A SERVIR (READY TO SERVE) -->
+          <div class="kanban-column column-ready">
+            <div class="column-header">
+              <div class="column-title">
+                <span class="status-dot dot-ready"></span>
+                <h2>{{ 'COMMANDES.COLUMNS.READY_TO_SERVE' | transloco }}</h2>
+              </div>
+              <span class="count-badge badge-ready" data-testid="count-ready">{{ readyOrders.length }}</span>
+            </div>
+
+            <div class="column-body">
+              @for (c of readyOrders; track c.id) {
+                <div class="kanban-card card-ready-highlight" data-testid="card-commande">
+                  <div class="card-top">
+                    <div class="table-title">
+                      <h3>Table {{ c.tableNumero }}</h3>
+                      <span class="order-id">#{{ c.id }}</span>
+                    </div>
+                    <span class="status-pill status-ready">{{ 'COMMANDES.STATUTS.PRET' | transloco }}</span>
+                  </div>
+
+                  <div class="card-meta">
+                    <span class="time-meta">
+                      <ion-icon name="time-outline"></ion-icon>
+                      {{ c.dateCommande | date:'HH:mm' }} ({{ getDelayMinutes(c.dateCommande) }}m)
+                    </span>
+                    @if (c.serveurUsername) {
+                      <span class="server-meta">👤 {{ c.serveurUsername }}</span>
+                    }
+                  </div>
+
+                  @if (c.notes) {
+                    <div class="card-notes">💬 {{ c.notes }}</div>
+                  }
+
+                  <div class="card-items">
+                    @for (item of c.items; track item.id) {
+                      <div class="item-row">
+                        <span class="qty">× {{ item.quantite }}</span>
+                        <span class="item-name">{{ item.cocktailNom }}</span>
+                        <span class="item-price">{{ item.prixUnitaire | currency:'EUR' }}</span>
+                      </div>
+                    }
+                  </div>
+
+                  <div class="card-total">
+                    <span>Total :</span>
+                    <span class="total-amount">{{ c.total | currency:'EUR' }}</span>
+                  </div>
+
+                  <div class="card-actions">
+                    <ion-button fill="clear" color="secondary" size="small" (click)="onView(c)">
+                      <ion-icon name="eye" slot="icon-only"></ion-icon>
+                    </ion-button>
+                    <ion-button fill="solid" color="primary" size="small" class="btn-primary-delivered" (click)="onUpdateStatus(c, 'LIVREE')" data-testid="btn-mark-delivered">
+                      <ion-icon name="checkmark-done-outline" slot="start"></ion-icon>
+                      {{ 'COMMANDES.ACTIONS.MARK_DELIVERED' | transloco }}
+                    </ion-button>
+                  </div>
+                </div>
+              }
+
+              @if (readyOrders.length === 0) {
+                <div class="empty-column-msg">{{ 'COMMANDES.MESSAGES.EMPTY_COLUMN' | transloco }}</div>
+              }
+            </div>
+          </div>
+
+          <!-- COLUMN 4: LIVREE / REGLEE (SERVED & SETTLED) -->
+          @if (showServed) {
+            <div class="kanban-column column-served">
+              <div class="column-header">
+                <div class="column-title">
+                  <span class="status-dot dot-served"></span>
+                  <h2>{{ 'COMMANDES.COLUMNS.SERVED' | transloco }}</h2>
+                </div>
+                <span class="count-badge badge-served" data-testid="count-served">{{ servedOrders.length }}</span>
+              </div>
+
+              <div class="column-body">
+                @for (c of servedOrders; track c.id) {
+                  <div class="kanban-card card-served-dim" data-testid="card-commande">
+                    <div class="card-top">
+                      <div class="table-title">
+                        <h3>Table {{ c.tableNumero }}</h3>
+                        <span class="order-id">#{{ c.id }}</span>
+                      </div>
+                      <span class="status-pill status-served">{{ c.statut }}</span>
+                    </div>
+
+                    <div class="card-meta">
+                      <span class="time-meta">
+                        <ion-icon name="time-outline"></ion-icon>
+                        {{ c.dateCommande | date:'HH:mm' }}
+                      </span>
+                      @if (c.serveurUsername) {
+                        <span class="server-meta">👤 {{ c.serveurUsername }}</span>
+                      }
+                    </div>
+
+                    <div class="card-items">
+                      @for (item of c.items; track item.id) {
+                        <div class="item-row">
+                          <span class="qty">× {{ item.quantite }}</span>
+                          <span class="item-name">{{ item.cocktailNom }}</span>
+                        </div>
+                      }
+                    </div>
+
+                    <div class="card-total">
+                      <span>Total :</span>
+                      <span class="total-amount">{{ c.total | currency:'EUR' }}</span>
+                    </div>
+
+                    <div class="card-actions">
+                      <ion-button fill="clear" color="medium" size="small" (click)="onView(c)">
+                        <ion-icon name="eye" slot="icon-only"></ion-icon>
+                      </ion-button>
+                    </div>
+                  </div>
+                }
+
+                @if (servedOrders.length === 0) {
+                  <div class="empty-column-msg">{{ 'COMMANDES.MESSAGES.EMPTY_COLUMN' | transloco }}</div>
+                }
+              </div>
+            </div>
+          }
+
+        </div>
+      }
+
+      <!-- TABLE LIST VIEW -->
+      @if (viewMode === 'list') {
+        <ion-card class="list-card">
+          <ion-card-header>
+            <ion-segment [value]="filtre" (ionChange)="onFiltreChange($event)" scrollable>
+              @for (s of statuts; track s.value) {
+                <ion-segment-button [value]="s.value">
+                  <ion-label>{{ s.labelKey | transloco }}</ion-label>
+                </ion-segment-button>
+              }
+            </ion-segment>
+          </ion-card-header>
+
+          <ion-card-content>
+            <ion-list class="table-list">
+              @for (commande of filteredCommandes; track commande.id) {
+                <ion-item class="commande-table-row">
+                  <div class="row-main">
+                    <div class="row-left">
+                      <h3>Table {{ commande.tableNumero }} <span class="badge-token">#{{ commande.id }}</span></h3>
+                      <p>{{ commande.serveurUsername }} · {{ commande.dateCommande | date:'dd/MM HH:mm' }}</p>
+                      @if (commande.items && commande.items.length > 0) {
+                        <div class="item-chips">
+                          @for (i of commande.items; track i.id) {
+                            <ion-chip outline color="tertiary">×{{ i.quantite }} {{ i.cocktailNom }}</ion-chip>
+                          }
+                        </div>
+                      }
+                    </div>
+
+                    <div class="row-right">
+                      <ion-badge [color]="getStatutColor(commande.statut)">{{ commande.statut }}</ion-badge>
+                      <span class="total-price">{{ commande.total | currency:'EUR' }}</span>
+
+                      <ion-buttons>
+                        <ion-button fill="clear" color="primary" (click)="onView(commande)" data-testid="btn-view-commande">
+                          <ion-icon slot="icon-only" name="eye"></ion-icon>
+                        </ion-button>
+                        @if (peutAnnuler(commande.statut)) {
+                          <ion-button fill="clear" color="danger" (click)="onAnnuler(commande)" data-testid="btn-annuler-commande">
+                            <ion-icon slot="icon-only" name="ban-outline"></ion-icon>
+                          </ion-button>
+                        }
+                      </ion-buttons>
+                    </div>
+                  </div>
+                </ion-item>
+              }
+
+              @if (filteredCommandes.length === 0) {
+                <ion-item class="empty-row">
+                  <ion-label color="medium">{{ 'COMMANDES.MESSAGES.EMPTY_LIST' | transloco }}</ion-label>
+                </ion-item>
+              }
+            </ion-list>
+          </ion-card-content>
+        </ion-card>
+      }
+
+    }
   </div>
 </ion-content>
-

@@ -306,7 +306,8 @@
     }
   },
   "COMMANDES": {
-    "TITLE": "Orders",
+    "TITLE": "Order Tracking",
+    "SUBTITLE": "Real-time supervision of preparation and service workflow",
     "NEW": "New Order",
     "ADD_ITEM": "Add Item",
     "DELETE_CONFIRM": "Cancel this order?",
@@ -318,6 +319,7 @@
     "SUBTOTAL": "Subtotal",
     "CANCEL": "Cancel Order",
     "STATUTS": {
+      "TOUTES": "All",
       "EN_ATTENTE": "Pending",
       "EN_PREPARATION": "In Preparation",
       "PRET": "Ready",
@@ -325,8 +327,38 @@
       "REGLEE": "Settled",
       "ANNULEE": "Cancelled"
     },
+    "COLUMNS": {
+      "PENDING": "Pending",
+      "IN_PROGRESS": "In Progress",
+      "READY_TO_SERVE": "Ready to Serve",
+      "SERVED": "Served & Settled"
+    },
+    "VIEW_MODE": {
+      "KANBAN": "Kanban View",
+      "LIST": "Table View"
+    },
+    "SHOW_SERVED_TOGGLE": "Show served/settled orders",
+    "SEARCH_PLACEHOLDER": "Search by table, server, cocktail or ID...",
+    "PRIORITY_LABEL": "Priority",
+    "DELAY_LABEL": "Delay",
     "CHANGE_STATUS": "Change Status",
-    "PRIORITY": "Priority"
+    "PRIORITY": "Priority",
+    "ACTIONS": {
+      "MARK_IN_PROGRESS": "Start Preparation",
+      "MARK_READY": "✓ Mark Ready",
+      "MARK_DELIVERED": "✓ Mark Delivered",
+      "CANCEL": "Cancel",
+      "EDIT": "Edit",
+      "VIEW_DETAILS": "Details"
+    },
+    "MESSAGES": {
+      "STATUS_UPDATED": "Order status updated",
+      "CANCELLED_SUCCESS": "Order cancelled successfully",
+      "CANCELLED_ERROR": "Unable to cancel order",
+      "UPDATE_ERROR": "Error updating order status",
+      "EMPTY_COLUMN": "No orders",
+      "EMPTY_LIST": "No orders found"
+    }
   },
   "FACTURES": {
     "NEW": "New Invoice",
