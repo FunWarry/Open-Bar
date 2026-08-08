@@ -57,6 +57,7 @@ export class CommandeCardComponent implements OnInit, OnDestroy {
       componentProps: {
         commandeId: this.commande.id,
       },
+      cssClass: 'commande-detail-modal-container',
     });
 
     modal.onDidDismiss().then(result => {

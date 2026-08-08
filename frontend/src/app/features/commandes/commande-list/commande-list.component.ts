@@ -276,6 +276,7 @@ export class CommandeListComponent implements OnInit, OnDestroy {
         commandeId: c.id,
         commandeInput: c,
       },
+      cssClass: 'commande-detail-modal-container',
     });
 
     modal.onDidDismiss().then(result => {
