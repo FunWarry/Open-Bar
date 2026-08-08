@@ -1,6 +1,6 @@
 # OpenBar — État des Features & Roadmap
 
-> Dernière mise à jour : 8 août 2026 — PR #265 : Ajustements suivi commandes & vue détail (i18n priorite, regroupement xN, tooltips, bouttons) (#264)
+> Dernière mise à jour : 8 août 2026 — PR #267 : Uniformisation boutons cartes, tooltips hover, regroupement cocktails xN & layout details commande (#266)
 
 ## Tableau des Features
 
