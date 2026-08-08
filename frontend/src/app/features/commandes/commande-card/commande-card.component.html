@@ -1,0 +1,95 @@
+<div
+  class="kanban-card"
+  [class.priority-card]="isPriority()"
+  [class.card-ready-highlight]="commande.statut === 'PRET'"
+  [class.card-served-dim]="commande.statut === 'LIVREE' || commande.statut === 'REGLEE'"
+  data-testid="card-commande"
+>
+  <div class="card-top">
+    <div class="table-title">
+      <h3>Table {{ commande.tableNumero }}</h3>
+      <span class="order-id">#{{ commande.id }}</span>
+    </div>
+
+    @if (isPriority()) {
+      <span class="priority-pill" data-testid="pill-priority">
+        <ion-icon name="alert-circle-outline"></ion-icon>
+        {{ 'COMMANDES.PRIORITE' | transloco }}
+      </span>
+    } @else {
+      <span
+        class="status-pill"
+        [class.status-pending]="commande.statut === 'EN_ATTENTE'"
+        [class.status-progress]="commande.statut === 'EN_PREPARATION'"
+        [class.status-ready]="commande.statut === 'PRET'"
+        [class.status-served]="commande.statut === 'LIVREE' || commande.statut === 'REGLEE'"
+      >
+        {{ getStatutLabelKey() | transloco }}
+      </span>
+    }
+  </div>
+
+  <div class="card-meta">
+    <span class="time-meta">
+      <ion-icon name="time-outline"></ion-icon>
+      {{ commande.dateCommande | date:'HH:mm' }} ({{ getDelayMinutes(commande.dateCommande) }}m)
+    </span>
+    @if (commande.serveurUsername) {
+      <span class="server-meta">👤 {{ commande.serveurUsername }}</span>
+    }
+  </div>
+
+  @if (commande.notes) {
+    <div class="card-notes">💬 {{ commande.notes }}</div>
+  }
+
+  <div class="card-items">
+    @for (item of commande.items; track item.id) {
+      <div class="item-row">
+        <span class="qty">× {{ item.quantite }}</span>
+        <span class="item-name">{{ item.cocktailNom }}</span>
+        <span class="item-price">{{ item.prixUnitaire | currency:'EUR' }}</span>
+      </div>
+    }
+  </div>
+
+  <div class="card-total">
+    <span>Total :</span>
+    <span class="total-amount">{{ commande.total | currency:'EUR' }}</span>
+  </div>
+
+  @if (showActions) {
+    <div class="card-actions">
+      <ion-button fill="clear" color="secondary" size="small" (click)="onView()" (keydown.enter)="onView()" data-testid="btn-view">
+        <ion-icon name="eye" slot="icon-only"></ion-icon>
+      </ion-button>
+
+      @if (peutAnnuler()) {
+        <ion-button fill="clear" color="danger" size="small" (click)="onAnnuler()" (keydown.enter)="onAnnuler()" data-testid="btn-annuler">
+          <ion-icon name="ban-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+      }
+
+      @if (commande.statut === 'EN_ATTENTE') {
+        <ion-button fill="solid" color="tertiary" size="small" (click)="onUpdateStatus('EN_PREPARATION')" (keydown.enter)="onUpdateStatus('EN_PREPARATION')" data-testid="btn-mark-in-progress">
+          <ion-icon name="play-outline" slot="start"></ion-icon>
+          {{ 'COMMANDES.ACTIONS.MARK_IN_PROGRESS' | transloco }}
+        </ion-button>
+      }
+
+      @if (commande.statut === 'EN_PREPARATION') {
+        <ion-button fill="solid" color="success" size="small" (click)="onUpdateStatus('PRET')" (keydown.enter)="onUpdateStatus('PRET')" data-testid="btn-mark-ready">
+          <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+          {{ 'COMMANDES.ACTIONS.MARK_READY' | transloco }}
+        </ion-button>
+      }
+
+      @if (commande.statut === 'PRET') {
+        <ion-button fill="solid" color="primary" size="small" class="btn-primary-delivered" (click)="onUpdateStatus('LIVREE')" (keydown.enter)="onUpdateStatus('LIVREE')" data-testid="btn-mark-delivered">
+          <ion-icon name="checkmark-done-outline" slot="start"></ion-icon>
+          {{ 'COMMANDES.ACTIONS.MARK_DELIVERED' | transloco }}
+        </ion-button>
+      }
+    </div>
+  }
+</div>

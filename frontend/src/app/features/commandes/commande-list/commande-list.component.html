@@ -85,66 +85,12 @@
 
             <div class="column-body">
               @for (c of pendingOrders; track c.id) {
-                <div class="kanban-card" [class.priority-card]="isPriority(c)" data-testid="card-commande">
-                  <div class="card-top">
-                    <div class="table-title">
-                      <h3>Table {{ c.tableNumero }}</h3>
-                      <span class="order-id">#{{ c.id }}</span>
-                    </div>
-                    @if (isPriority(c)) {
-                      <span class="priority-pill">
-                        <ion-icon name="alert-circle-outline"></ion-icon>
-                        {{ 'COMMANDES.PRIORITY' | transloco }}
-                      </span>
-                    } @else {
-                      <span class="status-pill status-pending">{{ 'COMMANDES.STATUTS.EN_ATTENTE' | transloco }}</span>
-                    }
-                  </div>
-
-                  <div class="card-meta">
-                    <span class="time-meta">
-                      <ion-icon name="time-outline"></ion-icon>
-                      {{ c.dateCommande | date:'HH:mm' }} ({{ getDelayMinutes(c.dateCommande) }}m)
-                    </span>
-                    @if (c.serveurUsername) {
-                      <span class="server-meta">👤 {{ c.serveurUsername }}</span>
-                    }
-                  </div>
-
-                  @if (c.notes) {
-                    <div class="card-notes">💬 {{ c.notes }}</div>
-                  }
-
-                  <div class="card-items">
-                    @for (item of c.items; track item.id) {
-                      <div class="item-row">
-                        <span class="qty">× {{ item.quantite }}</span>
-                        <span class="item-name">{{ item.cocktailNom }}</span>
-                        <span class="item-price">{{ item.prixUnitaire | currency:'EUR' }}</span>
-                      </div>
-                    }
-                  </div>
-
-                  <div class="card-total">
-                    <span>Total :</span>
-                    <span class="total-amount">{{ c.total | currency:'EUR' }}</span>
-                  </div>
-
-                  <div class="card-actions">
-                    <ion-button fill="clear" color="secondary" size="small" (click)="onView(c)" (keydown.enter)="onView(c)" data-testid="btn-view">
-                      <ion-icon name="eye" slot="icon-only"></ion-icon>
-                    </ion-button>
-                    @if (peutAnnuler(c.statut)) {
-                      <ion-button fill="clear" color="danger" size="small" (click)="onAnnuler(c)" (keydown.enter)="onAnnuler(c)" data-testid="btn-annuler">
-                        <ion-icon name="ban-outline" slot="icon-only"></ion-icon>
-                      </ion-button>
-                    }
-                    <ion-button fill="solid" color="tertiary" size="small" (click)="onUpdateStatus(c, 'EN_PREPARATION')" (keydown.enter)="onUpdateStatus(c, 'EN_PREPARATION')" data-testid="btn-mark-in-progress">
-                      <ion-icon name="play-outline" slot="start"></ion-icon>
-                      {{ 'COMMANDES.ACTIONS.MARK_IN_PROGRESS' | transloco }}
-                    </ion-button>
-                  </div>
-                </div>
+                <app-commande-card
+                  [commande]="c"
+                  (updateStatus)="onCardStatusUpdate($event)"
+                  (annuler)="onAnnuler($event)"
+                  (view)="onView($event)"
+                ></app-commande-card>
               }
 
               @if (pendingOrders.length === 0) {
@@ -165,54 +111,12 @@
 
             <div class="column-body">
               @for (c of inProgressOrders; track c.id) {
-                <div class="kanban-card" data-testid="card-commande">
-                  <div class="card-top">
-                    <div class="table-title">
-                      <h3>Table {{ c.tableNumero }}</h3>
-                      <span class="order-id">#{{ c.id }}</span>
-                    </div>
-                    <span class="status-pill status-progress">{{ 'COMMANDES.STATUTS.EN_PREPARATION' | transloco }}</span>
-                  </div>
-
-                  <div class="card-meta">
-                    <span class="time-meta">
-                      <ion-icon name="time-outline"></ion-icon>
-                      {{ c.dateCommande | date:'HH:mm' }} ({{ getDelayMinutes(c.dateCommande) }}m)
-                    </span>
-                    @if (c.serveurUsername) {
-                      <span class="server-meta">👤 {{ c.serveurUsername }}</span>
-                    }
-                  </div>
-
-                  @if (c.notes) {
-                    <div class="card-notes">💬 {{ c.notes }}</div>
-                  }
-
-                  <div class="card-items">
-                    @for (item of c.items; track item.id) {
-                      <div class="item-row">
-                        <span class="qty">× {{ item.quantite }}</span>
-                        <span class="item-name">{{ item.cocktailNom }}</span>
-                        <span class="item-price">{{ item.prixUnitaire | currency:'EUR' }}</span>
-                      </div>
-                    }
-                  </div>
-
-                  <div class="card-total">
-                    <span>Total :</span>
-                    <span class="total-amount">{{ c.total | currency:'EUR' }}</span>
-                  </div>
-
-                  <div class="card-actions">
-                    <ion-button fill="clear" color="secondary" size="small" (click)="onView(c)" (keydown.enter)="onView(c)">
-                      <ion-icon name="eye" slot="icon-only"></ion-icon>
-                    </ion-button>
-                    <ion-button fill="solid" color="success" size="small" (click)="onUpdateStatus(c, 'PRET')" (keydown.enter)="onUpdateStatus(c, 'PRET')" data-testid="btn-mark-ready">
-                      <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
-                      {{ 'COMMANDES.ACTIONS.MARK_READY' | transloco }}
-                    </ion-button>
-                  </div>
-                </div>
+                <app-commande-card
+                  [commande]="c"
+                  (updateStatus)="onCardStatusUpdate($event)"
+                  (annuler)="onAnnuler($event)"
+                  (view)="onView($event)"
+                ></app-commande-card>
               }
 
               @if (inProgressOrders.length === 0) {
@@ -233,54 +137,12 @@
 
             <div class="column-body">
               @for (c of readyOrders; track c.id) {
-                <div class="kanban-card card-ready-highlight" data-testid="card-commande">
-                  <div class="card-top">
-                    <div class="table-title">
-                      <h3>Table {{ c.tableNumero }}</h3>
-                      <span class="order-id">#{{ c.id }}</span>
-                    </div>
-                    <span class="status-pill status-ready">{{ 'COMMANDES.STATUTS.PRET' | transloco }}</span>
-                  </div>
-
-                  <div class="card-meta">
-                    <span class="time-meta">
-                      <ion-icon name="time-outline"></ion-icon>
-                      {{ c.dateCommande | date:'HH:mm' }} ({{ getDelayMinutes(c.dateCommande) }}m)
-                    </span>
-                    @if (c.serveurUsername) {
-                      <span class="server-meta">👤 {{ c.serveurUsername }}</span>
-                    }
-                  </div>
-
-                  @if (c.notes) {
-                    <div class="card-notes">💬 {{ c.notes }}</div>
-                  }
-
-                  <div class="card-items">
-                    @for (item of c.items; track item.id) {
-                      <div class="item-row">
-                        <span class="qty">× {{ item.quantite }}</span>
-                        <span class="item-name">{{ item.cocktailNom }}</span>
-                        <span class="item-price">{{ item.prixUnitaire | currency:'EUR' }}</span>
-                      </div>
-                    }
-                  </div>
-
-                  <div class="card-total">
-                    <span>Total :</span>
-                    <span class="total-amount">{{ c.total | currency:'EUR' }}</span>
-                  </div>
-
-                  <div class="card-actions">
-                    <ion-button fill="clear" color="secondary" size="small" (click)="onView(c)" (keydown.enter)="onView(c)">
-                      <ion-icon name="eye" slot="icon-only"></ion-icon>
-                    </ion-button>
-                    <ion-button fill="solid" color="primary" size="small" class="btn-primary-delivered" (click)="onUpdateStatus(c, 'LIVREE')" (keydown.enter)="onUpdateStatus(c, 'LIVREE')" data-testid="btn-mark-delivered">
-                      <ion-icon name="checkmark-done-outline" slot="start"></ion-icon>
-                      {{ 'COMMANDES.ACTIONS.MARK_DELIVERED' | transloco }}
-                    </ion-button>
-                  </div>
-                </div>
+                <app-commande-card
+                  [commande]="c"
+                  (updateStatus)="onCardStatusUpdate($event)"
+                  (annuler)="onAnnuler($event)"
+                  (view)="onView($event)"
+                ></app-commande-card>
               }
 
               @if (readyOrders.length === 0) {
@@ -302,45 +164,13 @@
 
               <div class="column-body">
                 @for (c of servedOrders; track c.id) {
-                  <div class="kanban-card card-served-dim" data-testid="card-commande">
-                    <div class="card-top">
-                      <div class="table-title">
-                        <h3>Table {{ c.tableNumero }}</h3>
-                        <span class="order-id">#{{ c.id }}</span>
-                      </div>
-                      <span class="status-pill status-served">{{ c.statut }}</span>
-                    </div>
-
-                    <div class="card-meta">
-                      <span class="time-meta">
-                        <ion-icon name="time-outline"></ion-icon>
-                        {{ c.dateCommande | date:'HH:mm' }}
-                      </span>
-                      @if (c.serveurUsername) {
-                        <span class="server-meta">👤 {{ c.serveurUsername }}</span>
-                      }
-                    </div>
-
-                    <div class="card-items">
-                      @for (item of c.items; track item.id) {
-                        <div class="item-row">
-                          <span class="qty">× {{ item.quantite }}</span>
-                          <span class="item-name">{{ item.cocktailNom }}</span>
-                        </div>
-                      }
-                    </div>
-
-                    <div class="card-total">
-                      <span>Total :</span>
-                      <span class="total-amount">{{ c.total | currency:'EUR' }}</span>
-                    </div>
-
-                    <div class="card-actions">
-                      <ion-button fill="clear" color="medium" size="small" (click)="onView(c)" (keydown.enter)="onView(c)">
-                        <ion-icon name="eye" slot="icon-only"></ion-icon>
-                      </ion-button>
-                    </div>
-                  </div>
+                  <app-commande-card
+                    [commande]="c"
+                    [showActions]="true"
+                    (updateStatus)="onCardStatusUpdate($event)"
+                    (annuler)="onAnnuler($event)"
+                    (view)="onView($event)"
+                  ></app-commande-card>
                 }
 
                 @if (servedOrders.length === 0) {

@@ -22,6 +22,8 @@ import { CommandeService } from '../../../core/services/commande.service';
 import { Commande, CommandeStatut } from '../../../core/models/commande.model';
 import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
 
+import { CommandeCardComponent } from '../commande-card/commande-card.component';
+
 /**
  * Component responsible for managing and displaying active orders in real time.
  * Provides a dual view layout:
@@ -39,7 +41,7 @@ import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
     IonList, IonItem, IonLabel, IonBadge, IonIcon, IonButton, IonButtons,
     IonRefresher, IonRefresherContent, IonSegment, IonSegmentButton,
     IonSpinner, IonSearchbar, IonToggle, IonChip,
-    CurrencyPipe, DatePipe, TranslocoPipe,
+    CurrencyPipe, DatePipe, TranslocoPipe, CommandeCardComponent,
   ],
 })
 export class CommandeListComponent implements OnInit, OnDestroy {
@@ -231,8 +233,12 @@ export class CommandeListComponent implements OnInit, OnDestroy {
       });
   }
 
+  onCardStatusUpdate(event: { commande: Commande; targetStatut: CommandeStatut }): void {
+    this.onUpdateStatus(event.commande, event.targetStatut);
+  }
+
   /**
-   * Cancels a pending or in-progress order.
+   * Cancels a pending order after server verification.
    */
   onAnnuler(c: Commande): void {
     this.commandeService.annuler(c.id)
