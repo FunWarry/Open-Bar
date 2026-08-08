@@ -3,9 +3,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
 import {
-  ToastController, IonContent, IonCard, IonCardHeader, IonCardTitle,
-  IonCardContent, IonBadge, IonButton,
-  IonButtons, IonIcon, IonSpinner,
+  ToastController, IonContent, IonBadge, IonButton,
+  IonIcon, IonSpinner,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -29,8 +28,7 @@ import { groupCommandeItems } from '../../../core/utils/order-item-grouper';
   styleUrls: ['./commande-detail.component.scss'],
   standalone: true,
   imports: [
-    IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-    IonBadge, IonButton, IonButtons, IonIcon, IonSpinner,
+    IonContent, IonBadge, IonButton, IonIcon, IonSpinner,
     CurrencyPipe, DatePipe, TranslocoPipe,
   ],
 })
