@@ -5,7 +5,8 @@ import { addIcons } from 'ionicons';
 import {
   timeOutline, checkmarkCircleOutline, arrowForwardCircleOutline, flashOutline
 } from 'ionicons/icons';
-import { CommandeView } from '../../models/commande-view.model';
+import { CommandeView, CommandeItemView } from '../../models/commande-view.model';
+import { groupCommandeItems } from '../../../../core/utils/order-item-grouper';
 import { interval, Subscription } from 'rxjs';
 
 import { StatusBadgeComponent } from '../../../../core/components/ui/status-badge/status-badge.component';
@@ -29,6 +30,10 @@ export class CommandeCardComponent implements OnInit, OnDestroy {
 
   tempsEcoule = '0 min';
   private timerSub?: Subscription;
+
+  get groupedItems(): CommandeItemView[] {
+    return groupCommandeItems(this.commande?.items) as CommandeItemView[];
+  }
 
   constructor() {
     addIcons({ timeOutline, checkmarkCircleOutline, arrowForwardCircleOutline, flashOutline });

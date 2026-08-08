@@ -133,6 +133,24 @@ ion-card-title {
   color: #94a3b8;
   text-transform: uppercase;
   letter-spacing: 0.03em;
+
+  .col-name {
+    flex: 2;
+    text-align: left;
+    color: #94a3b8;
+  }
+
+  .col-qty {
+    flex: 1;
+    text-align: center;
+    color: #94a3b8;
+  }
+
+  .col-price {
+    flex: 1;
+    text-align: right;
+    color: #94a3b8;
+  }
 }
 
 .items-table-body {

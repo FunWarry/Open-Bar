@@ -20,7 +20,7 @@
 
     <!-- Liste des items -->
     <ul class="items-list">
-      <li *ngFor="let item of commande.items" class="item-row">
+      <li *ngFor="let item of groupedItems" class="item-row">
         <span class="qty">{{ item.quantite }}×</span>
         <span class="cocktail-nom">{{ item.cocktailNom }}</span>
         <span *ngIf="item.notes" class="item-note">— {{ item.notes }}</span>
@@ -36,6 +36,7 @@
         variant="primary"
         icon="arrow-forward-circle-outline"
         expand="block"
+        title="Démarrer la préparation de la commande"
         (btnClick)="onPrendreEnCharge()">
         Démarrer
       </app-action-button>
@@ -45,6 +46,7 @@
         variant="secondary"
         icon="checkmark-circle-outline"
         expand="block"
+        title="Marquer la commande comme prête"
         (btnClick)="onMarquerPret()">
         Marquer prêt
       </app-action-button>
