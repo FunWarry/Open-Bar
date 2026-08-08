@@ -5,7 +5,7 @@ import { Observable, Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
 import { selectIsAdmin } from '../../../core/store/auth.selectors';
 import {
-  IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardContent,
+  IonContent, IonCard, IonCardHeader, IonCardContent,
   IonList, IonItem, IonLabel, IonBadge, IonIcon, IonButton, IonButtons,
   IonRefresher, IonRefresherContent, IonSegment, IonSegmentButton,
   IonSpinner, IonSearchbar, IonToggle, IonChip, ToastController,
@@ -16,7 +16,7 @@ import {
   timeOutline, alertCircleOutline, playOutline, checkmarkCircleOutline,
   searchOutline, refreshOutline,
 } from 'ionicons/icons';
-import { CurrencyPipe, DatePipe, NgClass } from '@angular/common';
+import { CurrencyPipe, DatePipe } from '@angular/common';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { CommandeService } from '../../../core/services/commande.service';
 import { Commande, CommandeStatut } from '../../../core/models/commande.model';
@@ -35,11 +35,11 @@ import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
   styleUrls: ['./commande-list.component.css'],
   standalone: true,
   imports: [
-    IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardContent,
+    IonContent, IonCard, IonCardHeader, IonCardContent,
     IonList, IonItem, IonLabel, IonBadge, IonIcon, IonButton, IonButtons,
     IonRefresher, IonRefresherContent, IonSegment, IonSegmentButton,
     IonSpinner, IonSearchbar, IonToggle, IonChip,
-    CurrencyPipe, DatePipe, NgClass, TranslocoPipe,
+    CurrencyPipe, DatePipe, TranslocoPipe,
   ],
 })
 export class CommandeListComponent implements OnInit, OnDestroy {
@@ -273,7 +273,7 @@ export class CommandeListComponent implements OnInit, OnDestroy {
   getDelayMinutes(dateCommande: string | Date | undefined): number {
     if (!dateCommande) return 0;
     const start = new Date(dateCommande).getTime();
-    const now = new Date().getTime();
+    const now = Date.now();
     return Math.max(0, Math.floor((now - start) / 60000));
   }
 

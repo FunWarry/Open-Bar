@@ -84,8 +84,8 @@ describe('CommandeListComponent', () => {
   it('charger() populates commandes and filteredCommandes', fakeAsync(() => {
     component.charger();
     tick();
-    expect(component.commandes.length).toBe(6);
-    expect(component.filteredCommandes.length).toBe(6);
+    expect(component.commandes).toHaveSize(6);
+    expect(component.filteredCommandes).toHaveSize(6);
   }));
 
   it('charger() displays a danger toast on HTTP error', fakeAsync(() => {
@@ -107,7 +107,7 @@ describe('CommandeListComponent', () => {
     component.charger();
     tick();
     component.onSearchChange({ detail: { value: 'Table 3' } });
-    expect(component.filteredCommandes.length).toBe(1);
+    expect(component.filteredCommandes).toHaveSize(1);
     expect(component.filteredCommandes[0].tableNumero).toBe(3);
   }));
 
@@ -121,10 +121,10 @@ describe('CommandeListComponent', () => {
   it('Kanban getters segregate orders correctly by status', fakeAsync(() => {
     component.charger();
     tick();
-    expect(component.pendingOrders.length).toBe(1);
-    expect(component.inProgressOrders.length).toBe(1);
-    expect(component.readyOrders.length).toBe(1);
-    expect(component.servedOrders.length).toBe(2);
+    expect(component.pendingOrders).toHaveSize(1);
+    expect(component.inProgressOrders).toHaveSize(1);
+    expect(component.readyOrders).toHaveSize(1);
+    expect(component.servedOrders).toHaveSize(2);
   }));
 
   it('onUpdateStatus() calls service.changerStatut and refreshes list', fakeAsync(() => {

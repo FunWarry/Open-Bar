@@ -131,15 +131,15 @@
                   </div>
 
                   <div class="card-actions">
-                    <ion-button fill="clear" color="secondary" size="small" (click)="onView(c)" data-testid="btn-view">
+                    <ion-button fill="clear" color="secondary" size="small" (click)="onView(c)" (keydown.enter)="onView(c)" data-testid="btn-view">
                       <ion-icon name="eye" slot="icon-only"></ion-icon>
                     </ion-button>
                     @if (peutAnnuler(c.statut)) {
-                      <ion-button fill="clear" color="danger" size="small" (click)="onAnnuler(c)" data-testid="btn-annuler">
+                      <ion-button fill="clear" color="danger" size="small" (click)="onAnnuler(c)" (keydown.enter)="onAnnuler(c)" data-testid="btn-annuler">
                         <ion-icon name="ban-outline" slot="icon-only"></ion-icon>
                       </ion-button>
                     }
-                    <ion-button fill="solid" color="tertiary" size="small" (click)="onUpdateStatus(c, 'EN_PREPARATION')" data-testid="btn-mark-in-progress">
+                    <ion-button fill="solid" color="tertiary" size="small" (click)="onUpdateStatus(c, 'EN_PREPARATION')" (keydown.enter)="onUpdateStatus(c, 'EN_PREPARATION')" data-testid="btn-mark-in-progress">
                       <ion-icon name="play-outline" slot="start"></ion-icon>
                       {{ 'COMMANDES.ACTIONS.MARK_IN_PROGRESS' | transloco }}
                     </ion-button>
@@ -204,10 +204,10 @@
                   </div>
 
                   <div class="card-actions">
-                    <ion-button fill="clear" color="secondary" size="small" (click)="onView(c)">
+                    <ion-button fill="clear" color="secondary" size="small" (click)="onView(c)" (keydown.enter)="onView(c)">
                       <ion-icon name="eye" slot="icon-only"></ion-icon>
                     </ion-button>
-                    <ion-button fill="solid" color="success" size="small" (click)="onUpdateStatus(c, 'PRET')" data-testid="btn-mark-ready">
+                    <ion-button fill="solid" color="success" size="small" (click)="onUpdateStatus(c, 'PRET')" (keydown.enter)="onUpdateStatus(c, 'PRET')" data-testid="btn-mark-ready">
                       <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
                       {{ 'COMMANDES.ACTIONS.MARK_READY' | transloco }}
                     </ion-button>
@@ -272,10 +272,10 @@
                   </div>
 
                   <div class="card-actions">
-                    <ion-button fill="clear" color="secondary" size="small" (click)="onView(c)">
+                    <ion-button fill="clear" color="secondary" size="small" (click)="onView(c)" (keydown.enter)="onView(c)">
                       <ion-icon name="eye" slot="icon-only"></ion-icon>
                     </ion-button>
-                    <ion-button fill="solid" color="primary" size="small" class="btn-primary-delivered" (click)="onUpdateStatus(c, 'LIVREE')" data-testid="btn-mark-delivered">
+                    <ion-button fill="solid" color="primary" size="small" class="btn-primary-delivered" (click)="onUpdateStatus(c, 'LIVREE')" (keydown.enter)="onUpdateStatus(c, 'LIVREE')" data-testid="btn-mark-delivered">
                       <ion-icon name="checkmark-done-outline" slot="start"></ion-icon>
                       {{ 'COMMANDES.ACTIONS.MARK_DELIVERED' | transloco }}
                     </ion-button>
@@ -336,7 +336,7 @@
                     </div>
 
                     <div class="card-actions">
-                      <ion-button fill="clear" color="medium" size="small" (click)="onView(c)">
+                      <ion-button fill="clear" color="medium" size="small" (click)="onView(c)" (keydown.enter)="onView(c)">
                         <ion-icon name="eye" slot="icon-only"></ion-icon>
                       </ion-button>
                     </div>
@@ -388,11 +388,11 @@
                       <span class="total-price">{{ commande.total | currency:'EUR' }}</span>
 
                       <ion-buttons>
-                        <ion-button fill="clear" color="primary" (click)="onView(commande)" data-testid="btn-view-commande">
+                        <ion-button fill="clear" color="primary" (click)="onView(commande)" (keydown.enter)="onView(commande)" data-testid="btn-view-commande">
                           <ion-icon slot="icon-only" name="eye"></ion-icon>
                         </ion-button>
                         @if (peutAnnuler(commande.statut)) {
-                          <ion-button fill="clear" color="danger" (click)="onAnnuler(commande)" data-testid="btn-annuler-commande">
+                          <ion-button fill="clear" color="danger" (click)="onAnnuler(commande)" (keydown.enter)="onAnnuler(commande)" data-testid="btn-annuler-commande">
                             <ion-icon slot="icon-only" name="ban-outline"></ion-icon>
                           </ion-button>
                         }
