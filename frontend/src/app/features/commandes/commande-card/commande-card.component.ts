@@ -11,6 +11,17 @@ import {
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Commande, CommandeStatut } from '../../../core/models/commande.model';
 
+export interface GroupedCommandeItem {
+  id: number;
+  cocktailId: number;
+  cocktailNom: string;
+  varianteId?: number;
+  varianteNom?: string;
+  quantite: number;
+  prixUnitaire: number;
+  notes?: string;
+}
+
 /**
  * Encapsulates an order card displayed inside Kanban columns or list items.
  * Extracts card rendering logic to avoid HTML template duplication across columns.
@@ -38,6 +49,31 @@ export class CommandeCardComponent {
       eye, banOutline, playOutline, checkmarkCircleOutline,
       checkmarkDoneOutline, timeOutline, alertCircleOutline,
     });
+  }
+
+  /**
+   * Groups identical items (same cocktail name, variante, and notes) and sums quantities.
+   */
+  get groupedItems(): GroupedCommandeItem[] {
+    if (!this.commande?.items) return [];
+    const map = new Map<string, GroupedCommandeItem>();
+    for (const item of this.commande.items) {
+      const nomKey = (item.cocktailNom || item.cocktailId || '').toString().trim().toLowerCase();
+      const varianteKey = item.varianteNom ? item.varianteNom.trim().toLowerCase() : (item.varianteId || 0);
+      const notesKey = (item.notes || '').trim().toLowerCase();
+      const key = `${nomKey}_${varianteKey}_${notesKey}`;
+      const existing = map.get(key);
+      if (existing) {
+        existing.quantite += (item.quantite || 1);
+      } else {
+        map.set(key, { ...item, quantite: item.quantite || 1 });
+      }
+    }
+    return Array.from(map.values());
+  }
+
+  getItemLineTotal(item: GroupedCommandeItem): number {
+    return (item.prixUnitaire || 0) * (item.quantite || 1);
   }
 
   getDelayMinutes(dateCommande: string | Date | undefined): number {

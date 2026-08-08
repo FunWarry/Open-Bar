@@ -7,10 +7,14 @@ import { of, throwError } from 'rxjs';
 import { CommandeDetailComponent } from '../../../app/features/commandes/commande-detail/commande-detail.component';
 import { CommandeService } from '../../../app/core/services/commande.service';
 import { Commande } from '../../../app/core/models/commande.model';
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
 
 const mockCommande: Commande = {
   id: 42, tableId: 1, tableNumero: 1, serveurId: 1, serveurUsername: 'alice',
-  items: [{ id: 1, cocktailId: 1, cocktailNom: 'Mojito', quantite: 2, prixUnitaire: 8 }],
+  items: [
+    { id: 1, cocktailId: 1, cocktailNom: 'Mojito', quantite: 1, prixUnitaire: 8 },
+    { id: 2, cocktailId: 1, cocktailNom: 'Mojito', quantite: 1, prixUnitaire: 8 },
+  ],
   statut: 'EN_ATTENTE', total: 16,
   dateCommande: '2024-06-01T10:00:00Z', createdAt: '', updatedAt: '',
 };
@@ -34,7 +38,7 @@ describe('CommandeDetailComponent', () => {
     routerSpy = jasmine.createSpyObj('Router', ['navigate']);
 
     await TestBed.configureTestingModule({
-      imports: [CommandeDetailComponent, IonicModule.forRoot(), RouterTestingModule],
+      imports: [CommandeDetailComponent, IonicModule.forRoot(), RouterTestingModule, getTranslocoTestingModule()],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => '42' } } } },
         { provide: Router, useValue: routerSpy },
@@ -55,6 +59,13 @@ describe('CommandeDetailComponent', () => {
   it('ngOnInit() charge la commande depuis le service', fakeAsync(() => {
     component.ngOnInit(); tick();
     expect(component.commande).toEqual(mockCommande);
+  }));
+
+  it('groupedItems cumule les articles identiques', fakeAsync(() => {
+    component.ngOnInit(); tick();
+    expect(component.groupedItems).toHaveSize(1);
+    expect(component.groupedItems[0].quantite).toBe(2);
+    expect(component.getItemLineTotal(component.groupedItems[0])).toBe(16);
   }));
 
   it('ngOnInit() navigue vers /commandes si getById échoue', fakeAsync(() => {

@@ -64,6 +64,22 @@ describe('CommandeCardComponent', () => {
     expect(component.annuler.emit).toHaveBeenCalledWith(mockCmd);
   });
 
+  it('groupedItems aggregates identical items and sums quantities', () => {
+    const multiCmd: Commande = {
+      ...mockCmd,
+      items: [
+        { id: 1, cocktailId: 1, cocktailNom: 'Mojito', quantite: 1, prixUnitaire: 10.22 },
+        { id: 2, cocktailId: 1, cocktailNom: 'Mojito', quantite: 1, prixUnitaire: 10.22 },
+        { id: 3, cocktailId: 2, cocktailNom: 'Negroni', quantite: 1, prixUnitaire: 9.15 },
+      ],
+    };
+    component.commande = multiCmd;
+    expect(component.groupedItems).toHaveSize(2);
+    expect(component.groupedItems[0].quantite).toBe(2);
+    expect(component.groupedItems[0].cocktailNom).toBe('Mojito');
+    expect(component.getItemLineTotal(component.groupedItems[0])).toBe(20.44);
+  });
+
   it('onUpdateStatus() emits updateStatus event', () => {
     spyOn(component.updateStatus, 'emit');
     component.onUpdateStatus('EN_PREPARATION');

@@ -1,58 +1,109 @@
-<ion-card>
-  <ion-card-header>
-    <div class="card-header-row">
-      <ion-card-title>Détails de la Commande #{{ commande?.id }}</ion-card-title>
-      <ion-buttons>
-        <ion-button fill="clear" (click)="router.navigate(['/commandes'])" (keyup.enter)="router.navigate(['/commandes'])">
-          <ion-icon slot="start" name="arrow-back"></ion-icon>
-          Retour
-        </ion-button>
-        <ion-button fill="outline" color="danger" (click)="onAnnuler()" (keyup.enter)="onAnnuler()" *ngIf="peutAnnuler()">
-          <ion-icon slot="start" name="ban-outline"></ion-icon>
-          Annuler
-        </ion-button>
-      </ion-buttons>
-    </div>
-  </ion-card-header>
-  <ion-card-content>
-    <div *ngIf="isLoading" class="loading-state">
-      <ion-spinner name="crescent" color="primary"></ion-spinner>
-    </div>
-    <ng-container *ngIf="commande">
-      <ion-list lines="full">
-        <ion-item>
-          <ion-label>
-            <span class="detail-label">Table</span>
-            <span class="detail-value">{{ commande.tableNumero }}</span>
-          </ion-label>
-        </ion-item>
-        <ion-item>
-          <ion-label>
-            <span class="detail-label">Statut</span>
-          </ion-label>
-          <ion-badge slot="end" [color]="getStatutColor(commande.statut)">
-            {{ commande.statut }}
-          </ion-badge>
-        </ion-item>
-        <ion-item>
-          <ion-label>
-            <span class="detail-label">Total</span>
-            <span class="detail-value">{{ commande.total | currency:'EUR' }}</span>
-          </ion-label>
-        </ion-item>
-      </ion-list>
+<ion-content class="ion-padding page-container">
+  <div class="container-wrapper">
+    <ion-card class="detail-card">
+      <ion-card-header>
+        <div class="card-header-row">
+          <ion-card-title>
+            {{ 'COMMANDES.DETAILS.TITLE' | transloco:{ id: commande?.id || '' } }}
+          </ion-card-title>
 
-      <h3 class="section-title">Items de la commande</h3>
-      <div class="list-header">
-        <span>Nom</span><span>Quantité</span><span>Prix</span>
-      </div>
-      <ion-list>
-        <ion-item *ngFor="let item of commande.items">
-          <ion-label>{{ item.cocktailNom }}</ion-label>
-          <ion-label slot="end">{{ item.quantite }}</ion-label>
-          <ion-label slot="end">{{ item.prixUnitaire | currency:'EUR' }}</ion-label>
-        </ion-item>
-      </ion-list>
-    </ng-container>
-  </ion-card-content>
-</ion-card>
+          <ion-buttons class="header-actions">
+            <ion-button
+              fill="clear"
+              color="secondary"
+              (click)="onBack()"
+              (keydown.enter)="onBack()"
+              [attr.title]="'COMMON.BACK' | transloco"
+            >
+              <ion-icon slot="start" name="arrow-back"></ion-icon>
+              {{ 'COMMON.BACK' | transloco }}
+            </ion-button>
+
+            @if (peutAnnuler()) {
+              <ion-button
+                fill="outline"
+                color="danger"
+                (click)="onAnnuler()"
+                (keydown.enter)="onAnnuler()"
+                [attr.title]="'COMMANDES.ACTIONS.CANCEL_TOOLTIP' | transloco"
+              >
+                <ion-icon slot="start" name="ban-outline"></ion-icon>
+                {{ 'COMMANDES.ACTIONS.CANCEL' | transloco }}
+              </ion-button>
+            }
+          </ion-buttons>
+        </div>
+      </ion-card-header>
+
+      <ion-card-content>
+        @if (isLoading) {
+          <div class="loading-state">
+            <ion-spinner name="crescent" color="primary"></ion-spinner>
+          </div>
+        }
+
+        @if (commande) {
+          <!-- INFO SUMMARY GRID -->
+          <div class="info-grid">
+            <div class="info-cell">
+              <span class="detail-label">{{ 'COMMANDES.DETAILS.TABLE' | transloco }}</span>
+              <span class="detail-value text-bold">Table {{ commande.tableNumero }}</span>
+            </div>
+
+            <div class="info-cell">
+              <span class="detail-label">{{ 'COMMANDES.SERVER' | transloco }}</span>
+              <span class="detail-value">
+                <ion-icon name="person-outline"></ion-icon>
+                {{ commande.serveurUsername || '—' }}
+              </span>
+            </div>
+
+            <div class="info-cell">
+              <span class="detail-label">{{ 'COMMANDES.DETAILS.STATUS' | transloco }}</span>
+              <ion-badge [color]="getStatutColor(commande.statut)" class="status-badge">
+                {{ ('COMMANDES.STATUTS.' + commande.statut) | transloco }}
+              </ion-badge>
+            </div>
+
+            <div class="info-cell">
+              <span class="detail-label">{{ 'COMMANDES.DETAILS.TOTAL' | transloco }}</span>
+              <span class="detail-value price-total">{{ commande.total | currency:'EUR' }}</span>
+            </div>
+          </div>
+
+          @if (commande.notes) {
+            <div class="notes-box">
+              💬 <strong>Notes :</strong> {{ commande.notes }}
+            </div>
+          }
+
+          <!-- ITEMS TABLE HEADER & LIST -->
+          <h3 class="section-title">{{ 'COMMANDES.DETAILS.ITEMS_HEADER' | transloco }}</h3>
+
+          <div class="table-container">
+            <div class="items-table-header">
+              <span class="col-name">{{ 'COMMANDES.DETAILS.ITEM_NAME' | transloco }}</span>
+              <span class="col-qty">{{ 'COMMANDES.DETAILS.QUANTITY' | transloco }}</span>
+              <span class="col-price">{{ 'COMMANDES.DETAILS.PRICE' | transloco }}</span>
+            </div>
+
+            <div class="items-table-body">
+              @for (item of groupedItems; track item.cocktailNom + '_' + (item.varianteId || 0) + '_' + (item.notes || '')) {
+                <div class="items-table-row">
+                  <div class="col-name">
+                    <span class="item-title">{{ item.cocktailNom }}</span>
+                    @if (item.varianteNom) {
+                      <small class="variante-subtitle">({{ item.varianteNom }})</small>
+                    }
+                  </div>
+                  <div class="col-qty">× {{ item.quantite }}</div>
+                  <div class="col-price">{{ getItemLineTotal(item) | currency:'EUR' }}</div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </ion-card-content>
+    </ion-card>
+  </div>
+</ion-content>

@@ -138,6 +138,12 @@
   color: #d1d9e2;
 }
 
+.variante-tag {
+  font-size: 0.78rem;
+  color: #a4a6b0;
+  margin-left: 4px;
+}
+
 .card-total {
   display: flex;
   justify-content: space-between;
@@ -157,10 +163,44 @@
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+}
+
+.action-icon-btn {
+  --padding-start: 0;
+  --padding-end: 0;
+  --border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  margin: 0;
+}
+
+.action-text-btn {
+  height: 36px;
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  --border-radius: 8px;
+  --padding-start: 12px;
+  --padding-end: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.btn-primary-in-progress {
+  --background: #6366f1;
+  --background-hover: #4f46e5;
+  --box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+}
+
+.btn-primary-ready {
+  --background: #10b981;
+  --background-hover: #059669;
+  --box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
 }
 
 .btn-primary-delivered {
-  --background: #3880ff;
-  --box-shadow: 0 4px 12px rgba(56, 128, 255, 0.4);
+  --background: #3b82f6;
+  --background-hover: #2563eb;
+  --box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
 }
