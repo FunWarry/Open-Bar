@@ -152,7 +152,15 @@ public class SampleDataSeederService {
                 }
             }
 
-            User user = userRepository.findByUsername(username).orElseGet(() -> {
+            User user = userRepository.findByUsername(username).map(existing -> {
+                existing.setPassword(passwordEncoder.encode(password));
+                existing.setEmail(email);
+                existing.setNom(nom);
+                existing.setPrenom(prenom);
+                existing.setRoles(roles);
+                existing.setUpdatedAt(timeService.now());
+                return userRepository.save(existing);
+            }).orElseGet(() -> {
                 User u = new User();
                 u.setUsername(username);
                 u.setEmail(email);
