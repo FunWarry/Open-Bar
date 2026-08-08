@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonIcon } from '@ionic/angular/standalone';
+import { IonIcon, ModalController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
   timeOutline, checkmarkCircleOutline, arrowForwardCircleOutline, flashOutline
@@ -11,6 +11,7 @@ import { interval, Subscription } from 'rxjs';
 
 import { StatusBadgeComponent } from '../../../../core/components/ui/status-badge/status-badge.component';
 import { ActionButtonComponent } from '../../../../core/components/ui/action-button/action-button.component';
+import { CommandeDetailModalComponent } from '../../../commandes/commande-detail-modal/commande-detail-modal.component';
 
 @Component({
   selector: 'app-commande-card',
@@ -35,18 +36,38 @@ export class CommandeCardComponent implements OnInit, OnDestroy {
     return groupCommandeItems(this.commande?.items) as CommandeItemView[];
   }
 
-  constructor() {
+  constructor(private readonly modalCtrl: ModalController) {
     addIcons({ timeOutline, checkmarkCircleOutline, arrowForwardCircleOutline, flashOutline });
   }
 
   ngOnInit() {
     this.updateTimer();
-    // Mise à jour toutes les 30 secondes
     this.timerSub = interval(30000).subscribe(() => this.updateTimer());
   }
 
   ngOnDestroy() {
     this.timerSub?.unsubscribe();
+  }
+
+  async openDetails(): Promise<void> {
+    const modal = await this.modalCtrl.create({
+      component: CommandeDetailModalComponent,
+      componentProps: {
+        commandeId: this.commande.id,
+      },
+    });
+
+    modal.onDidDismiss().then(result => {
+      if (result.data) {
+        if (result.data.role === 'statusUpdated' && result.data.targetStatut) {
+          this.changerStatut.emit({ id: this.commande.id, statut: result.data.targetStatut });
+        } else if (result.data.role === 'cancelled') {
+          this.changerStatut.emit({ id: this.commande.id, statut: 'ANNULEE' });
+        }
+      }
+    });
+
+    await modal.present();
   }
 
   private updateTimer() {
@@ -92,11 +113,13 @@ export class CommandeCardComponent implements OnInit, OnDestroy {
     }
   }
 
-  onPrendreEnCharge() {
+  onPrendreEnCharge(event?: Event) {
+    if (event) event.stopPropagation();
     this.changerStatut.emit({ id: this.commande.id, statut: 'EN_PREPARATION' });
   }
 
-  onMarquerPret() {
+  onMarquerPret(event?: Event) {
+    if (event) event.stopPropagation();
     this.changerStatut.emit({ id: this.commande.id, statut: 'PRET' });
   }
 }
