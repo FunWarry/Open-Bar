@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnDestroy } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, Optional } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonIcon, ModalController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -36,7 +36,7 @@ export class CommandeCardComponent implements OnInit, OnDestroy {
     return groupCommandeItems(this.commande?.items) as CommandeItemView[];
   }
 
-  constructor(private readonly modalCtrl: ModalController) {
+  constructor(@Optional() private readonly modalCtrl?: ModalController) {
     addIcons({ timeOutline, checkmarkCircleOutline, arrowForwardCircleOutline, flashOutline });
   }
 
@@ -50,6 +50,8 @@ export class CommandeCardComponent implements OnInit, OnDestroy {
   }
 
   async openDetails(): Promise<void> {
+    if (!this.modalCtrl) return;
+
     const modal = await this.modalCtrl.create({
       component: CommandeDetailModalComponent,
       componentProps: {
