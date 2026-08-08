@@ -4,7 +4,7 @@ import { takeUntil, finalize } from 'rxjs/operators';
 import {
   ModalController, AlertController, ToastController,
   IonHeader, IonToolbar, IonTitle, IonButtons, IonButton,
-  IonIcon, IonContent, IonBadge, IonSpinner, IonFooter,
+  IonIcon, IonBadge, IonSpinner, IonFooter,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -30,7 +30,7 @@ import { groupCommandeItems } from '../../../core/utils/order-item-grouper';
   standalone: true,
   imports: [
     IonHeader, IonToolbar, IonTitle, IonButtons, IonButton,
-    IonIcon, IonContent, IonBadge, IonSpinner, IonFooter,
+    IonIcon, IonBadge, IonSpinner, IonFooter,
     CurrencyPipe, DatePipe, TranslocoPipe,
   ],
 })
