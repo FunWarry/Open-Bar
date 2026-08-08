@@ -4,12 +4,12 @@ import { Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
 import {
   ToastController, IonContent, IonCard, IonCardHeader, IonCardTitle,
-  IonCardContent, IonList, IonItem, IonLabel, IonBadge, IonButton,
+  IonCardContent, IonBadge, IonButton,
   IonButtons, IonIcon, IonSpinner,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { arrowBack, banOutline, timeOutline, personOutline } from 'ionicons/icons';
-import { CurrencyPipe, NgIf, NgFor, DatePipe } from '@angular/common';
+import { CurrencyPipe } from '@angular/common';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { CommandeService } from '../../../core/services/commande.service';
 import { Commande, CommandeItem } from '../../../core/models/commande.model';
@@ -21,8 +21,8 @@ import { Commande, CommandeItem } from '../../../core/models/commande.model';
   standalone: true,
   imports: [
     IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-    IonList, IonItem, IonLabel, IonBadge, IonButton, IonButtons, IonIcon, IonSpinner,
-    CurrencyPipe, NgIf, NgFor, DatePipe, TranslocoPipe,
+    IonBadge, IonButton, IonButtons, IonIcon, IonSpinner,
+    CurrencyPipe, TranslocoPipe,
   ],
 })
 export class CommandeDetailComponent implements OnInit, OnDestroy {

@@ -19,27 +19,30 @@
               {{ 'COMMON.BACK' | transloco }}
             </ion-button>
 
-            <ion-button
-              fill="outline"
-              color="danger"
-              (click)="onAnnuler()"
-              (keydown.enter)="onAnnuler()"
-              *ngIf="peutAnnuler()"
-              [attr.title]="'COMMANDES.ACTIONS.CANCEL_TOOLTIP' | transloco"
-            >
-              <ion-icon slot="start" name="ban-outline"></ion-icon>
-              {{ 'COMMANDES.ACTIONS.CANCEL' | transloco }}
-            </ion-button>
+            @if (peutAnnuler()) {
+              <ion-button
+                fill="outline"
+                color="danger"
+                (click)="onAnnuler()"
+                (keydown.enter)="onAnnuler()"
+                [attr.title]="'COMMANDES.ACTIONS.CANCEL_TOOLTIP' | transloco"
+              >
+                <ion-icon slot="start" name="ban-outline"></ion-icon>
+                {{ 'COMMANDES.ACTIONS.CANCEL' | transloco }}
+              </ion-button>
+            }
           </ion-buttons>
         </div>
       </ion-card-header>
 
       <ion-card-content>
-        <div *ngIf="isLoading" class="loading-state">
-          <ion-spinner name="crescent" color="primary"></ion-spinner>
-        </div>
+        @if (isLoading) {
+          <div class="loading-state">
+            <ion-spinner name="crescent" color="primary"></ion-spinner>
+          </div>
+        }
 
-        <ng-container *ngIf="commande">
+        @if (commande) {
           <!-- INFO SUMMARY GRID -->
           <div class="info-grid">
             <div class="info-cell">
@@ -68,9 +71,11 @@
             </div>
           </div>
 
-          <div *ngIf="commande.notes" class="notes-box">
-            💬 <strong>Notes :</strong> {{ commande.notes }}
-          </div>
+          @if (commande.notes) {
+            <div class="notes-box">
+              💬 <strong>Notes :</strong> {{ commande.notes }}
+            </div>
+          }
 
           <!-- ITEMS TABLE HEADER & LIST -->
           <h3 class="section-title">{{ 'COMMANDES.DETAILS.ITEMS_HEADER' | transloco }}</h3>
@@ -83,17 +88,21 @@
             </div>
 
             <div class="items-table-body">
-              <div *ngFor="let item of groupedItems" class="items-table-row">
-                <div class="col-name">
-                  <span class="item-title">{{ item.cocktailNom }}</span>
-                  <small *ngIf="item.varianteNom" class="variante-subtitle">({{ item.varianteNom }})</small>
+              @for (item of groupedItems; track item.cocktailNom + '_' + (item.varianteId || 0) + '_' + (item.notes || '')) {
+                <div class="items-table-row">
+                  <div class="col-name">
+                    <span class="item-title">{{ item.cocktailNom }}</span>
+                    @if (item.varianteNom) {
+                      <small class="variante-subtitle">({{ item.varianteNom }})</small>
+                    }
+                  </div>
+                  <div class="col-qty">× {{ item.quantite }}</div>
+                  <div class="col-price">{{ getItemLineTotal(item) | currency:'EUR' }}</div>
                 </div>
-                <div class="col-qty">× {{ item.quantite }}</div>
-                <div class="col-price">{{ getItemLineTotal(item) | currency:'EUR' }}</div>
-              </div>
+              }
             </div>
           </div>
-        </ng-container>
+        }
       </ion-card-content>
     </ion-card>
   </div>
