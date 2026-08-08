@@ -183,10 +183,10 @@ ion-searchbar {
   font-weight: 700;
 }
 
-.badge-pending { background: rgba(255, 196, 9, 0.25); color: #ffe57f; }
-.badge-progress { background: rgba(61, 194, 255, 0.25); color: #7cd9ff; }
-.badge-ready { background: rgba(45, 211, 111, 0.25); color: #57ec93; }
-.badge-served { background: rgba(164, 166, 176, 0.25); color: #f0f2f8; }
+.badge-pending { background: #4a3800; color: #ffeb3b; }
+.badge-progress { background: #003e5c; color: #80d8ff; }
+.badge-ready { background: #0b421e; color: #69f0ae; }
+.badge-served { background: #373a40; color: #ffffff; }
 
 .column-body {
   padding: 14px;
@@ -260,8 +260,8 @@ ion-searchbar {
   display: flex;
   align-items: center;
   gap: 4px;
-  background: rgba(255, 196, 9, 0.3);
-  color: #fff176;
+  background: #594500;
+  color: #ffff8d;
   padding: 3px 8px;
   border-radius: 8px;
   font-size: 0.75rem;
@@ -275,10 +275,10 @@ ion-searchbar {
   border-radius: 8px;
 }
 
-.status-pending { background: rgba(255, 196, 9, 0.25); color: #ffe57f; }
-.status-progress { background: rgba(61, 194, 255, 0.25); color: #7cd9ff; }
-.status-ready { background: rgba(45, 211, 111, 0.25); color: #57ec93; }
-.status-served { background: rgba(164, 166, 176, 0.25); color: #f0f2f8; }
+.status-pending { background: #4a3800; color: #ffeb3b; }
+.status-progress { background: #003e5c; color: #80d8ff; }
+.status-ready { background: #0b421e; color: #69f0ae; }
+.status-served { background: #373a40; color: #ffffff; }
 
 .card-meta {
   display: flex;
