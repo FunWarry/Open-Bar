@@ -52,18 +52,21 @@ export class CommandeCardComponent {
   }
 
   /**
-   * Groups identical items (same cocktail, variante, and notes) and sums quantities.
+   * Groups identical items (same cocktail name, variante, and notes) and sums quantities.
    */
   get groupedItems(): GroupedCommandeItem[] {
     if (!this.commande?.items) return [];
     const map = new Map<string, GroupedCommandeItem>();
     for (const item of this.commande.items) {
-      const key = `${item.cocktailId}_${item.varianteId || 0}_${(item.notes || '').trim()}`;
+      const nomKey = (item.cocktailNom || item.cocktailId || '').toString().trim().toLowerCase();
+      const varianteKey = item.varianteNom ? item.varianteNom.trim().toLowerCase() : (item.varianteId || 0);
+      const notesKey = (item.notes || '').trim().toLowerCase();
+      const key = `${nomKey}_${varianteKey}_${notesKey}`;
       const existing = map.get(key);
       if (existing) {
-        existing.quantite += item.quantite;
+        existing.quantite += (item.quantite || 1);
       } else {
-        map.set(key, { ...item });
+        map.set(key, { ...item, quantite: item.quantite || 1 });
       }
     }
     return Array.from(map.values());

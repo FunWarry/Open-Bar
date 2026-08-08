@@ -2,13 +2,17 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
-import { ToastController, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonList, IonItem, IonLabel, IonBadge, IonButton, IonButtons, IonIcon, IonSpinner } from '@ionic/angular/standalone';
-
+import {
+  ToastController, IonContent, IonCard, IonCardHeader, IonCardTitle,
+  IonCardContent, IonList, IonItem, IonLabel, IonBadge, IonButton,
+  IonButtons, IonIcon, IonSpinner,
+} from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { arrowBack, banOutline } from 'ionicons/icons';
+import { arrowBack, banOutline, timeOutline, personOutline } from 'ionicons/icons';
 import { CurrencyPipe, NgIf, NgFor, DatePipe } from '@angular/common';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { CommandeService } from '../../../core/services/commande.service';
-import { Commande } from '../../../core/models/commande.model';
+import { Commande, CommandeItem } from '../../../core/models/commande.model';
 
 @Component({
   selector: 'app-commande-detail',
@@ -16,9 +20,9 @@ import { Commande } from '../../../core/models/commande.model';
   styleUrls: ['./commande-detail.component.scss'],
   standalone: true,
   imports: [
-    IonCard, IonCardHeader, IonCardTitle, IonCardContent,
+    IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardContent,
     IonList, IonItem, IonLabel, IonBadge, IonButton, IonButtons, IonIcon, IonSpinner,
-    CurrencyPipe, NgIf, NgFor,
+    CurrencyPipe, NgIf, NgFor, DatePipe, TranslocoPipe,
   ],
 })
 export class CommandeDetailComponent implements OnInit, OnDestroy {
@@ -28,10 +32,14 @@ export class CommandeDetailComponent implements OnInit, OnDestroy {
   private readonly commandeId: number;
   private readonly destroy$ = new Subject<void>();
 
-  constructor(private readonly route: ActivatedRoute,public readonly router: Router,private readonly commandeService: CommandeService,private readonly toastCtrl: ToastController,
+  constructor(
+    private readonly route: ActivatedRoute,
+    public readonly router: Router,
+    private readonly commandeService: CommandeService,
+    private readonly toastCtrl: ToastController,
   ) {
     this.commandeId = +this.route.snapshot.paramMap.get('id')!;
-    addIcons({ arrowBack, banOutline });
+    addIcons({ arrowBack, banOutline, timeOutline, personOutline });
   }
 
   ngOnInit(): void {
@@ -51,6 +59,31 @@ export class CommandeDetailComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  /**
+   * Groups identical items (same cocktail name, variante, and notes) and sums quantities.
+   */
+  get groupedItems(): CommandeItem[] {
+    if (!this.commande?.items) return [];
+    const map = new Map<string, CommandeItem>();
+    for (const item of this.commande.items) {
+      const nomKey = (item.cocktailNom || item.cocktailId || '').toString().trim().toLowerCase();
+      const varianteKey = item.varianteNom ? item.varianteNom.trim().toLowerCase() : (item.varianteId || 0);
+      const notesKey = (item.notes || '').trim().toLowerCase();
+      const key = `${nomKey}_${varianteKey}_${notesKey}`;
+      const existing = map.get(key);
+      if (existing) {
+        existing.quantite += (item.quantite || 1);
+      } else {
+        map.set(key, { ...item, quantite: item.quantite || 1 });
+      }
+    }
+    return Array.from(map.values());
+  }
+
+  getItemLineTotal(item: CommandeItem): number {
+    return (item.prixUnitaire || 0) * (item.quantite || 1);
   }
 
   getStatutColor(statut: string): string {
