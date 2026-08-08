@@ -115,29 +115,46 @@
 /* Thème Clair (.light-theme) — conçu pour conformité WCAG AA (ticket #154) */
 body.light-theme,
 .light-theme {
-  /* Thème — Background */
-  --background-bg-0: #f8fafc;
-  --background-bg-1: #f1f5f9;
-  --background-surface-1: #ffffff;
-  --background-surface-2: #f8fafc;
-  --background-surface-3: #e2e8f0;
+  /* Thème — Background (base tokens + aliases) */
+  --bg-0: #f8fafc;
+  --bg-1: #f1f5f9;
+  --surface-1: #ffffff;
+  --surface-2: #f8fafc;
+  --surface-3: #e2e8f0;
+
+  --background-bg-0: var(--bg-0);
+  --background-bg-1: var(--bg-1);
+  --background-surface-1: var(--surface-1);
+  --background-surface-2: var(--surface-2);
+  --background-surface-3: var(--surface-3);
 
   /* Thème — Primary */
   --primary: #4f46e5;
   --primary-strong: #4338ca;
   --primary-press: #3730a3;
-  --primary-light: #e0e7ff;
+  --primary-light: #4f46e5;
+  --primary-border: #6366f1;
+  --primary-tint: #e0e7ff;
+  --primary-tint-weak: rgba(79, 70, 229, 0.08);
 
   /* Thème — Text */
   --text-primary: #0f172a;
   --text-secondary: #475569;
   --text-muted: #64748b;
+  --text-on-accent: #ffffff;
 
   /* Thème — Border */
+  --border-default: #e2e8f0;
+  --border-subtle: #e2e8f0;
   --border-medium: #e2e8f0;
   --border-strong: #cbd5e1;
   --border-light: #f1f5f9;
   --border-selected: #6366f1;
+
+  /* Elevations en mode clair */
+  --elev-1: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --elev-2: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --elev-3: 0 12px 32px rgba(0, 0, 0, 0.12);
 }
 
 /* Mapping vers les variables Ionic — Dark (défaut) */

@@ -9,8 +9,8 @@
   width: 220px;
   min-width: 220px;
   height: 100%;
-  background-color: var(--bg-1, #151521);
-  border-right: 1px solid var(--border-subtle, #23233a);
+  background-color: var(--background-surface-1);
+  border-right: 1px solid var(--border-medium);
   display: flex;
   flex-direction: column;
   transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
@@ -31,7 +31,7 @@
   align-items: center;
   justify-content: flex-end;
   padding: 0 12px;
-  border-bottom: 1px solid var(--border-subtle, #23233a);
+  border-bottom: 1px solid var(--border-medium);
 }
 
 .sidebar.collapsed .sidebar-header {
@@ -42,7 +42,7 @@
 .collapse-toggle-btn {
   background: transparent;
   border: none;
-  color: var(--text-secondary, #a4add0);
+  color: var(--text-secondary);
   width: 36px;
   height: 36px;
   border-radius: 8px;
@@ -54,8 +54,8 @@
 }
 
 .collapse-toggle-btn:hover {
-  background-color: var(--surface-2, #21263f);
-  color: var(--text-primary, #eceefb);
+  background-color: var(--background-surface-2);
+  color: var(--text-primary);
 }
 
 .toggle-icon {
@@ -71,7 +71,7 @@
 
   /* Subtle scrollbar styling */
   scrollbar-width: thin;
-  scrollbar-color: var(--border-medium, #2e3450) transparent;
+  scrollbar-color: var(--border-medium) transparent;
 }
 
 .nav-section {
@@ -86,13 +86,13 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--text-muted, #7e87a8);
+  color: var(--text-muted);
   padding: 8px 12px 4px 12px;
 }
 
 .section-divider {
   height: 1px;
-  background-color: var(--border-medium, #2e3450);
+  background-color: var(--border-medium);
   margin: 8px 4px;
 }
 
@@ -103,7 +103,7 @@
   height: 40px;
   padding: 0 12px;
   border-radius: 8px;
-  color: var(--text-secondary, #a4add0);
+  color: var(--text-secondary);
   text-decoration: none;
   font-size: 14px;
   font-weight: 500;
@@ -119,14 +119,14 @@
 }
 
 .nav-item:hover {
-  background-color: var(--surface-1, #1a1a2e);
-  color: var(--text-primary, #eceefb);
+  background-color: var(--background-surface-2);
+  color: var(--text-primary);
 }
 
 /* Active NavItem state */
 .nav-item.active {
-  background-color: rgba(108, 127, 232, 0.15);
-  color: var(--primary, #6c7fe8);
+  background-color: var(--primary-tint-weak, rgba(108, 127, 232, 0.12));
+  color: var(--primary);
   font-weight: 600;
 }
 
@@ -137,7 +137,7 @@
   top: 6px;
   bottom: 6px;
   width: 3px;
-  background-color: var(--primary, #6c7fe8);
+  background-color: var(--primary);
   border-radius: 0 4px 4px 0;
 }
 
@@ -160,8 +160,8 @@
 .sidebar-footer {
   height: 60px;
   padding: 0 12px;
-  border-top: 1px solid var(--border-subtle, #23233a);
-  background-color: var(--surface-1, #1a1a2e);
+  border-top: 1px solid var(--border-medium);
+  background-color: var(--background-surface-1);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -189,7 +189,7 @@
   justify-content: center;
   font-size: 14px;
   font-weight: 700;
-  color: #0f0f1a;
+  color: var(--text-on-accent, #ffffff);
   flex-shrink: 0;
 }
 
@@ -202,7 +202,7 @@
 .username {
   font-size: 13px;
   font-weight: 600;
-  color: var(--text-primary, #eceefb);
+  color: var(--text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -210,13 +210,13 @@
 
 .role-name {
   font-size: 11px;
-  color: var(--text-muted, #7e87a8);
+  color: var(--text-muted);
 }
 
 .logout-btn {
   background: transparent;
   border: none;
-  color: var(--text-muted, #7e87a8);
+  color: var(--text-muted);
   width: 32px;
   height: 32px;
   border-radius: 6px;
@@ -233,8 +233,8 @@
 }
 
 .logout-btn:hover {
-  background-color: rgba(229, 96, 79, 0.15);
-  color: var(--danger, #e5604f);
+  background-color: color-mix(in srgb, var(--semantic-danger) 15%, transparent);
+  color: var(--semantic-danger);
 }
 
 .logout-icon {
