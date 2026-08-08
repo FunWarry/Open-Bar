@@ -306,7 +306,8 @@
     }
   },
   "COMMANDES": {
-    "TITLE": "Commandes",
+    "TITLE": "Suivi des Commandes",
+    "SUBTITLE": "Supervision en temps réel du flux de préparation et de service",
     "NEW": "Nouvelle commande",
     "ADD_ITEM": "Ajouter un article",
     "DELETE_CONFIRM": "Annuler cette commande ?",
@@ -318,6 +319,7 @@
     "SUBTOTAL": "Sous-total",
     "CANCEL": "Annuler la commande",
     "STATUTS": {
+      "TOUTES": "Toutes",
       "EN_ATTENTE": "En attente",
       "EN_PREPARATION": "En préparation",
       "PRET": "Prêt",
@@ -325,8 +327,38 @@
       "REGLEE": "Réglée",
       "ANNULEE": "Annulée"
     },
+    "COLUMNS": {
+      "PENDING": "En Attente",
+      "IN_PROGRESS": "En Préparation",
+      "READY_TO_SERVE": "Prêt à Servir",
+      "SERVED": "Livrées & Réglées"
+    },
+    "VIEW_MODE": {
+      "KANBAN": "Vue Kanban",
+      "LIST": "Vue Tableau"
+    },
+    "SHOW_SERVED_TOGGLE": "Afficher les commandes livrées/réglées",
+    "SEARCH_PLACEHOLDER": "Rechercher par table, serveur, cocktail ou N°...",
+    "PRIORITY_LABEL": "Priorité",
+    "DELAY_LABEL": "Retard",
     "CHANGE_STATUS": "Changer le statut",
-    "PRIORITY": "Priorité"
+    "PRIORITY": "Priorité",
+    "ACTIONS": {
+      "MARK_IN_PROGRESS": "Démarrer préparation",
+      "MARK_READY": "✓ Marquer prête",
+      "MARK_DELIVERED": "✓ Marquer livrée",
+      "CANCEL": "Annuler",
+      "EDIT": "Modifier",
+      "VIEW_DETAILS": "Détails"
+    },
+    "MESSAGES": {
+      "STATUS_UPDATED": "Statut de la commande mis à jour",
+      "CANCELLED_SUCCESS": "Commande annulée avec succès",
+      "CANCELLED_ERROR": "Impossible d'annuler cette commande",
+      "UPDATE_ERROR": "Erreur lors de la mise à jour du statut",
+      "EMPTY_COLUMN": "Aucune commande",
+      "EMPTY_LIST": "Aucune commande trouvée"
+    }
   },
   "FACTURES": {
     "NEW": "Nouvelle facture",

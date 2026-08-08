@@ -9,17 +9,30 @@ import { of, throwError } from 'rxjs';
 import { CommandeListComponent } from '../../../app/features/commandes/commande-list/commande-list.component';
 import { CommandeService } from '../../../app/core/services/commande.service';
 import { Commande } from '../../../app/core/models/commande.model';
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
 
-const makeCmd = (id: number, statut: Commande['statut']): Commande => ({
-  id, tableId: 1, tableNumero: 1, serveurId: 1, serveurUsername: 'alice',
-  items: [], statut, total: 10, dateCommande: '', createdAt: '', updatedAt: '',
+const makeCmd = (id: number, statut: Commande['statut'], tableNumero = 1, notes = ''): Commande => ({
+  id,
+  tableId: tableNumero,
+  tableNumero,
+  serveurId: 1,
+  serveurUsername: 'alice',
+  items: [{ id: 1, cocktailId: 1, cocktailNom: 'Mojito', quantite: 2, prixUnitaire: 9.5 }],
+  statut,
+  total: 19,
+  dateCommande: new Date(Date.now() - 5 * 60000).toISOString(),
+  notes,
+  createdAt: '',
+  updatedAt: '',
 });
 
 const mockCommandes: Commande[] = [
-  makeCmd(1, 'EN_ATTENTE'),
-  makeCmd(2, 'EN_PREPARATION'),
-  makeCmd(3, 'PRET'),
-  makeCmd(4, 'ANNULEE'),
+  makeCmd(1, 'EN_ATTENTE', 1),
+  makeCmd(2, 'EN_PREPARATION', 2),
+  makeCmd(3, 'PRET', 3),
+  makeCmd(4, 'LIVREE', 4),
+  makeCmd(5, 'REGLEE', 5),
+  makeCmd(6, 'ANNULEE', 6),
 ];
 
 describe('CommandeListComponent', () => {
@@ -33,9 +46,10 @@ describe('CommandeListComponent', () => {
   const mockToast = { present: jasmine.createSpy('present') };
 
   beforeEach(async () => {
-    serviceSpy = jasmine.createSpyObj('CommandeService', ['getAll', 'annuler']);
+    serviceSpy = jasmine.createSpyObj('CommandeService', ['getAll', 'annuler', 'changerStatut']);
     serviceSpy.getAll.and.returnValue(of(mockCommandes));
-    serviceSpy.annuler.and.returnValue(of(makeCmd(1, 'ANNULEE') as any));
+    serviceSpy.annuler.and.returnValue(of(makeCmd(1, 'ANNULEE')));
+    serviceSpy.changerStatut.and.returnValue(of(makeCmd(2, 'PRET')));
 
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
     toastCtrlSpy.create.and.returnValue(Promise.resolve(mockToast as any));
@@ -44,7 +58,12 @@ describe('CommandeListComponent', () => {
     storeSpy.select.and.returnValue(of(false));
 
     await TestBed.configureTestingModule({
-      imports: [CommandeListComponent, IonicModule.forRoot(), RouterTestingModule],
+      imports: [
+        CommandeListComponent,
+        IonicModule.forRoot(),
+        RouterTestingModule,
+        getTranslocoTestingModule(),
+      ],
       providers: [
         { provide: Store, useValue: storeSpy },
         { provide: CommandeService, useValue: serviceSpy },
@@ -62,58 +81,61 @@ describe('CommandeListComponent', () => {
 
   it('should create', () => expect(component).toBeTruthy());
 
-  it('charger() peuple commandes et filteredCommandes', fakeAsync(() => {
-    component.charger(); tick();
-    expect(component.commandes).toHaveSize(4);
-    expect(component.filteredCommandes).toHaveSize(4);
+  it('charger() populates commandes and filteredCommandes', fakeAsync(() => {
+    component.charger();
+    tick();
+    expect(component.commandes).toHaveSize(6);
+    expect(component.filteredCommandes).toHaveSize(6);
   }));
 
-  it('charger() affiche un toast danger en cas d\'erreur', fakeAsync(() => {
-    serviceSpy.getAll.and.returnValue(throwError(() => new Error('err')));
-    component.charger(); tick();
+  it('charger() displays a danger toast on HTTP error', fakeAsync(() => {
+    serviceSpy.getAll.and.returnValue(throwError(() => new Error('Network failure')));
+    component.charger();
+    tick();
     flushMicrotasks();
     expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
   }));
 
-  it('onFiltreChange() filtre par statut', fakeAsync(() => {
-    component.charger(); tick();
-    component.onFiltreChange({ detail: { value: 'EN_ATTENTE' } });
-    expect(component.filteredCommandes.every(c => c.statut === 'EN_ATTENTE')).toBeTrue();
+  it('setViewMode() switches between kanban and list views', () => {
+    component.setViewMode('list');
+    expect(component.viewMode).toBe('list');
+    component.setViewMode('kanban');
+    expect(component.viewMode).toBe('kanban');
+  });
+
+  it('onSearchChange() filters orders by table number or cocktail name', fakeAsync(() => {
+    component.charger();
+    tick();
+    component.onSearchChange({ detail: { value: 'Table 3' } });
     expect(component.filteredCommandes).toHaveSize(1);
+    expect(component.filteredCommandes[0].tableNumero).toBe(3);
   }));
 
-  it('onFiltreChange("TOUTES") retourne toutes les commandes', fakeAsync(() => {
-    component.charger(); tick();
-    component.onFiltreChange({ detail: { value: 'EN_ATTENTE' } });
-    component.onFiltreChange({ detail: { value: 'TOUTES' } });
-    expect(component.filteredCommandes).toHaveSize(4);
+  it('onToggleShowServed() updates showServed flag and reapplies filter', fakeAsync(() => {
+    component.charger();
+    tick();
+    component.onToggleShowServed({ detail: { checked: true } });
+    expect(component.showServed).toBeTrue();
   }));
 
-  it('peutAnnuler() retourne false pour LIVREE/REGLEE/ANNULEE', () => {
-    expect(component.peutAnnuler('LIVREE')).toBeFalse();
-    expect(component.peutAnnuler('REGLEE')).toBeFalse();
-    expect(component.peutAnnuler('ANNULEE')).toBeFalse();
-  });
+  it('Kanban getters segregate orders correctly by status', fakeAsync(() => {
+    component.charger();
+    tick();
+    expect(component.pendingOrders).toHaveSize(1);
+    expect(component.inProgressOrders).toHaveSize(1);
+    expect(component.readyOrders).toHaveSize(1);
+    expect(component.servedOrders).toHaveSize(2);
+  }));
 
-  it('peutAnnuler() retourne true pour EN_ATTENTE et EN_PREPARATION', () => {
-    expect(component.peutAnnuler('EN_ATTENTE')).toBeTrue();
-    expect(component.peutAnnuler('EN_PREPARATION')).toBeTrue();
-  });
+  it('onUpdateStatus() calls service.changerStatut and refreshes list', fakeAsync(() => {
+    component.onUpdateStatus(mockCommandes[1], 'PRET');
+    tick();
+    flushMicrotasks();
+    expect(serviceSpy.changerStatut).toHaveBeenCalledWith(2, 'PRET');
+    expect(serviceSpy.getAll).toHaveBeenCalledTimes(2);
+  }));
 
-  it('getStatutColor() mappe correctement les statuts', () => {
-    expect(component.getStatutColor('EN_ATTENTE')).toBe('warning');
-    expect(component.getStatutColor('PRET')).toBe('success');
-    expect(component.getStatutColor('ANNULEE')).toBe('danger');
-    expect(component.getStatutColor('INCONNU')).toBe('primary');
-  });
-
-  it('onView() navigue vers /commandes/:id', () => {
-    spyOn(router, 'navigate');
-    component.onView(mockCommandes[0]);
-    expect(router.navigate).toHaveBeenCalledWith(['/commandes', 1]);
-  });
-
-  it('onAnnuler() appelle CommandeService.annuler et recharge', fakeAsync(() => {
+  it('onAnnuler() calls service.annuler and refreshes list', fakeAsync(() => {
     component.onAnnuler(mockCommandes[0]);
     tick();
     flushMicrotasks();
@@ -121,7 +143,25 @@ describe('CommandeListComponent', () => {
     expect(serviceSpy.getAll).toHaveBeenCalledTimes(2);
   }));
 
-  it('trackById retourne l\'id de la commande', () => {
-    expect(component.trackById(0, mockCommandes[0])).toBe(1);
+  it('isPriority() correctly identifies priority or overdue orders', () => {
+    const overdueCmd = makeCmd(99, 'EN_ATTENTE', 1);
+    overdueCmd.dateCommande = new Date(Date.now() - 20 * 60000).toISOString();
+    expect(component.isPriority(overdueCmd)).toBeTrue();
+
+    const vipCmd = makeCmd(98, 'EN_ATTENTE', 1, 'Note VIP Priority');
+    expect(component.isPriority(vipCmd)).toBeTrue();
+  });
+
+  it('peutAnnuler() returns false for LIVREE, REGLEE, ANNULEE', () => {
+    expect(component.peutAnnuler('LIVREE')).toBeFalse();
+    expect(component.peutAnnuler('REGLEE')).toBeFalse();
+    expect(component.peutAnnuler('ANNULEE')).toBeFalse();
+    expect(component.peutAnnuler('EN_ATTENTE')).toBeTrue();
+  });
+
+  it('onView() navigates to /commandes/:id', () => {
+    spyOn(router, 'navigate');
+    component.onView(mockCommandes[0]);
+    expect(router.navigate).toHaveBeenCalledWith(['/commandes', 1]);
   });
 });

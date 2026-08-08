@@ -34,6 +34,7 @@ export interface Commande {
   datePreparation?: string;
   dateLivraison?: string;
   dateReglement?: string;
+  trackingToken?: string;
   createdAt: string;
   updatedAt: string;
 }
