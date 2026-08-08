@@ -77,9 +77,10 @@
 }
 
 .view-btn.active {
-  background: var(--ion-color-primary, #3880ff);
+  background: #1d4ed8;
   color: #ffffff;
-  box-shadow: 0 2px 8px rgba(56, 128, 255, 0.35);
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(29, 78, 216, 0.4);
 }
 
 .search-filter-row {
