@@ -137,7 +137,7 @@
   font-size: 1.3rem;
 
   &.icon-table {
-    background: var(--primary-light, rgba(108, 127, 232, 0.15));
+    background: rgba(108, 127, 232, 0.15);
     color: var(--primary);
   }
 
@@ -237,8 +237,8 @@
 }
 
 .item-count-badge {
-  background: var(--primary-light, rgba(108, 127, 232, 0.15));
-  color: var(--primary-strong, var(--primary));
+  background: rgba(108, 127, 232, 0.15);
+  color: var(--primary);
   font-size: 0.8rem;
   font-weight: 700;
   padding: 2px 8px;
@@ -345,8 +345,8 @@
 }
 
 .qty-pill {
-  background: var(--primary-light, rgba(108, 127, 232, 0.15));
-  color: var(--primary-strong, var(--primary));
+  background: rgba(108, 127, 232, 0.15);
+  color: var(--primary);
   font-weight: 700;
   font-size: 0.9rem;
   padding: 3px 10px;

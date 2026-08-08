@@ -9,7 +9,7 @@ import {
 import { addIcons } from 'ionicons';
 import {
   arrowBack, banOutline, timeOutline, personOutline,
-  restaurantOutline, statsChartOutline, receiptOutline,
+  statsChartOutline, receiptOutline, gridOutline,
   cashOutline, checkmarkCircleOutline, chatbubbleEllipsesOutline,
 } from 'ionicons/icons';
 import { CurrencyPipe, DatePipe } from '@angular/common';
@@ -47,9 +47,8 @@ export class CommandeDetailComponent implements OnInit, OnDestroy {
   ) {
     this.commandeId = +this.route.snapshot.paramMap.get('id')!;
     addIcons({
-      arrowBack, banOutline, timeOutline, personOutline,
-      restaurantOutline, statsChartOutline, receiptOutline,
-      cashOutline, checkmarkCircleOutline, chatbubbleEllipsesOutline,
+      arrowBack, banOutline, timeOutline, personOutline, gridOutline,
+      statsChartOutline, receiptOutline, cashOutline, checkmarkCircleOutline, chatbubbleEllipsesOutline,
     });
   }
 
@@ -60,9 +59,13 @@ export class CommandeDetailComponent implements OnInit, OnDestroy {
       .subscribe({
         next: commande => (this.commande = commande),
         error: async () => {
-          const toast = await this.toastCtrl.create({ message: 'Commande introuvable', duration: 3000, color: 'danger' });
+          const toast = await this.toastCtrl.create({
+            message: 'Commande introuvable',
+            duration: 3000,
+            color: 'danger',
+          });
           toast.present();
-          this.router.navigate(['/commandes']);
+          this.onBack();
         },
       });
   }
@@ -106,11 +109,19 @@ export class CommandeDetailComponent implements OnInit, OnDestroy {
       .subscribe({
         next: async updated => {
           this.commande = updated;
-          const toast = await this.toastCtrl.create({ message: 'Commande annulée', duration: 2000, color: 'medium' });
+          const toast = await this.toastCtrl.create({
+            message: 'Commande annulée avec succès',
+            duration: 3000,
+            color: 'warning',
+          });
           toast.present();
         },
         error: async () => {
-          const toast = await this.toastCtrl.create({ message: 'Impossible d\'annuler', duration: 3000, color: 'danger' });
+          const toast = await this.toastCtrl.create({
+            message: 'Impossible d\'annuler cette commande',
+            duration: 3000,
+            color: 'danger',
+          });
           toast.present();
         },
       });

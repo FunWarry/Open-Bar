@@ -10,7 +10,7 @@ import { addIcons } from 'ionicons';
 import {
   closeOutline, banOutline, playOutline, checkmarkCircleOutline,
   checkmarkDoneOutline, timeOutline, personOutline,
-  restaurantOutline, statsChartOutline, receiptOutline,
+  statsChartOutline, receiptOutline, gridOutline,
   cashOutline, chatbubbleEllipsesOutline,
 } from 'ionicons/icons';
 import { CurrencyPipe, DatePipe } from '@angular/common';
@@ -52,9 +52,8 @@ export class CommandeDetailModalComponent implements OnInit, OnDestroy {
   ) {
     addIcons({
       closeOutline, banOutline, playOutline, checkmarkCircleOutline,
-      checkmarkDoneOutline, timeOutline, personOutline,
-      restaurantOutline, statsChartOutline, receiptOutline,
-      cashOutline, chatbubbleEllipsesOutline,
+      checkmarkDoneOutline, timeOutline, personOutline, gridOutline,
+      statsChartOutline, receiptOutline, cashOutline, chatbubbleEllipsesOutline,
     });
   }
 
