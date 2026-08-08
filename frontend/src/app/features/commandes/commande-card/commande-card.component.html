@@ -5,7 +5,6 @@
   [class.card-served-dim]="commande.statut === 'LIVREE' || commande.statut === 'REGLEE'"
   (click)="onView()"
   (keydown.enter)="onView()"
-  tabindex="0"
   [attr.title]="'COMMANDES.ACTIONS.VIEW_TOOLTIP' | transloco"
   data-testid="card-commande"
 >
