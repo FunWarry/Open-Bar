@@ -86,12 +86,12 @@ describe('EmployeeShiftModalComponent', () => {
   });
 
   it('should navigate to previous and next week', () => {
-    const initialMonday = new Date(component.currentWeekStart);
+    const initialMondayTime = component.currentWeekStart.getTime();
     component.prevWeek();
-    expect(component.currentWeekStart.getDate()).toBe(initialMonday.getDate() - 7);
+    expect(component.currentWeekStart.getTime()).toBe(initialMondayTime - 7 * 24 * 60 * 60 * 1000);
 
     component.nextWeek();
-    expect(component.currentWeekStart.getDate()).toBe(initialMonday.getDate());
+    expect(component.currentWeekStart.getTime()).toBe(initialMondayTime);
   });
 
   it('should open new shift form and save created shift', () => {
