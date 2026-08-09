@@ -96,12 +96,12 @@ class EmployeeShiftServiceTest {
 
     @Test
     void getShiftsForWeekOfDate_ShouldCalculateMondayAndSunday() {
-        LocalDate Wednesday = LocalDate.of(2026, 8, 12);
+        LocalDate wednesday = LocalDate.of(2026, 8, 12);
         LocalDate monday = LocalDate.of(2026, 8, 10);
         LocalDate sunday = LocalDate.of(2026, 8, 16);
         when(shiftRepository.findByDateShiftBetween(monday, sunday)).thenReturn(List.of(sampleShift));
 
-        List<EmployeeShift> result = shiftService.getShiftsForWeekOfDate(Wednesday);
+        List<EmployeeShift> result = shiftService.getShiftsForWeekOfDate(wednesday);
 
         assertThat(result).hasSize(1);
         verify(shiftRepository).findByDateShiftBetween(monday, sunday);

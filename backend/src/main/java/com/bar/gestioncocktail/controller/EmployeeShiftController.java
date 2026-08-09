@@ -86,7 +86,7 @@ public class EmployeeShiftController {
                 .toList());
         }
 
-        return ResponseEntity.ok(shiftService.getShiftsForWeekOfDate(date != null ? date : LocalDate.now()).stream()
+        return ResponseEntity.ok(shiftService.getShiftsForWeekOfDate(date != null ? date : LocalDate.now(java.time.ZoneId.systemDefault())).stream()
             .map(EmployeeShiftResponseDTO::from)
             .toList());
     }

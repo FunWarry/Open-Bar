@@ -71,7 +71,7 @@ public class EmployeeShiftService {
      * @return List of shifts for that week
      */
     public List<EmployeeShift> getShiftsForWeekOfDate(LocalDate date) {
-        LocalDate target = date != null ? date : LocalDate.now();
+        LocalDate target = date != null ? date : LocalDate.now(java.time.ZoneId.systemDefault());
         LocalDate monday = target.with(java.time.DayOfWeek.MONDAY);
         LocalDate sunday = target.with(java.time.DayOfWeek.SUNDAY);
         return getShiftsForWeek(monday, sunday);
