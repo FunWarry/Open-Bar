@@ -53,10 +53,11 @@ describe('ShiftService', () => {
       expect(shifts).toEqual([mockShift]);
     });
 
-    const req = httpMock.expectOne(`${environment.apiUrl}/shifts/week?debut=2026-08-10&fin=2026-08-16`);
+    const req = httpMock.expectOne(r => r.url === `${environment.apiUrl}/shifts/week` && r.params.get('debut') === '2026-08-10' && r.params.get('fin') === '2026-08-16');
     expect(req.request.method).toBe('GET');
     req.flush([mockShift]);
   });
+
 
   it('createShift() should POST /api/shifts', () => {
     const requestPayload: EmployeeShiftRequest = {
