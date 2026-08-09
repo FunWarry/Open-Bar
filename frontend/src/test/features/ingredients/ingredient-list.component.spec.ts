@@ -179,7 +179,7 @@ describe('IngredientListComponent', () => {
   it('trie les ingredients selon les options disponibles', () => {
     component.ingredients = [
       makeI(1, 'Vodka', 15, 5),
-      makeI(2, 'Angostura', 2, 5),
+      makeI(2, 'Angostura', 2, 2),
       makeI(3, 'Menthe', 50, 10),
     ];
 
@@ -196,13 +196,13 @@ describe('IngredientListComponent', () => {
     expect(component.filteredIngredients.map(i => i.nom)).toEqual(['Menthe', 'Vodka', 'Angostura']);
 
     component.sortOption = 'STATUS_ALERT';
-    expect(component.filteredIngredients[0].nom).toBe('Angostura'); // en alerte car 2 <= 5
+    expect(component.filteredIngredients[0].nom).toBe('Angostura'); // en alerte car 2 <= 2
 
     component.sortOption = 'THRESHOLD_ASC';
     expect(component.filteredIngredients.map(i => i.nom)).toEqual(['Angostura', 'Vodka', 'Menthe']);
 
     component.sortOption = 'THRESHOLD_DESC';
-    expect(component.filteredIngredients.map(i => i.nom)).toEqual(['Menthe', 'Angostura', 'Vodka']);
+    expect(component.filteredIngredients.map(i => i.nom)).toEqual(['Menthe', 'Vodka', 'Angostura']);
 
     component.sortOption = 'CATEGORY';
     expect(component.filteredIngredients).toHaveSize(3);
