@@ -164,9 +164,17 @@ class NotificationServiceTest {
             nomGetter.setAccessible(true);
             assertThat(nomGetter.invoke(payload)).isEqualTo("Citron");
 
+            var nomAliasGetter = payload.getClass().getDeclaredMethod("getNom");
+            nomAliasGetter.setAccessible(true);
+            assertThat(nomAliasGetter.invoke(payload)).isEqualTo("Citron");
+
             var qteGetter = payload.getClass().getDeclaredMethod("getQuantiteRestante");
             qteGetter.setAccessible(true);
             assertThat((Double) qteGetter.invoke(payload)).isEqualTo(3.5);
+
+            var qteAliasGetter = payload.getClass().getDeclaredMethod("getQuantiteActuelle");
+            qteAliasGetter.setAccessible(true);
+            assertThat((Double) qteAliasGetter.invoke(payload)).isEqualTo(3.5);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

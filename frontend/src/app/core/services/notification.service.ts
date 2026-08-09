@@ -86,22 +86,25 @@ export class NotificationService implements OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(msg => {
         try {
-          const data = JSON.parse(msg.body);
-          const isCritical = data.quantiteActuelle === 0;
+          const data = typeof msg.body === 'string' ? JSON.parse(msg.body) : msg.body;
+          const nom = data.nom || data.nomIngredient || data.ingredientNom || 'Ingrédient';
+          const qty = data.quantiteActuelle ?? data.quantiteRestante ?? data.quantiteStock ?? data.stock ?? 0;
+          const unite = data.uniteMesure || data.unite || '';
+          const isCritical = Number(qty) <= 0;
+          const labelPrefix = isCritical ? 'Stock Épuisé' : 'Stock Faible';
+          const unitStr = unite ? ` ${unite}` : '';
           const notif: AppNotification = {
             id: `stock-${Date.now()}`,
             type: 'stock',
-            message: isCritical
-              ? `⚠ Critical Stock : ${data.nom} (${data.quantiteActuelle} restant)`
-              : `⚠ Low Stock : ${data.nom} (${data.quantiteActuelle} restant)`,
-            severity: 'warning',
+            message: `⚠ ${labelPrefix} : ${nom} (${qty}${unitStr} restant)`,
+            severity: isCritical ? 'danger' : 'warning',
             data,
             timestamp: new Date(),
             lue: false,
           };
           this.notificationHistory.unshift(notif);
           this.stockAlerts$.next(notif);
-          this.showToast(notif.message, 'warning');
+          this.showToast(notif.message, isCritical ? 'danger' : 'warning');
         } catch {
           // message malformé — on ignore
         }
