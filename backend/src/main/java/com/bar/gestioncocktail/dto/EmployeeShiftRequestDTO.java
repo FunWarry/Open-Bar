@@ -29,8 +29,19 @@ public record EmployeeShiftRequestDTO(
     @NotBlank(message = "heureFin is required")
     String heureFin,
 
+    String heurePauseDebut,
+
+    Integer dureePauseMinutes,
+
+    String heureDebutReelle,
+
+    String heureFinReelle,
+
+    BigDecimal heuresSup,
+
+    BigDecimal heuresPrevues,
+
     BigDecimal heuresEffectuees,
 
     String notes
 ) {}
-

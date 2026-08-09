@@ -3,9 +3,10 @@ import { EmployeeShiftModalComponent } from '../../../app/features/employees/emp
 import { ShiftService } from '../../../app/core/services/shift.service';
 import { ModalController, AlertController } from '@ionic/angular/standalone';
 import { TranslocoTestingModule } from '@jsverse/transloco';
+import { provideMockStore } from '@ngrx/store/testing';
 import { of } from 'rxjs';
 import { User } from '../../../app/core/models/user.model';
-import { EmployeeShift } from '../../../app/core/models/shift.model';
+import { EmployeeShift, ShiftPreset } from '../../../app/core/models/shift.model';
 
 describe('EmployeeShiftModalComponent', () => {
   let component: EmployeeShiftModalComponent;
@@ -34,8 +35,19 @@ describe('EmployeeShiftModalComponent', () => {
     typePoste: 'SERVEUR',
     heureDebut: '08:00',
     heureFin: '16:00',
+    heuresPrevues: 7.5,
     heuresEffectuees: 8,
+    heuresSup: 0.5,
     notes: 'Service terrasse'
+  };
+
+  const samplePreset: ShiftPreset = {
+    id: 1,
+    typeShift: 'MATIN',
+    nom: 'Service Matin',
+    heureDebut: '08:00',
+    heureFin: '16:00',
+    dureePauseMinutes: 30
   };
 
   beforeEach(async () => {
@@ -43,12 +55,15 @@ describe('EmployeeShiftModalComponent', () => {
       'getShiftsForWeek',
       'createShift',
       'updateShift',
-      'deleteShift'
+      'deleteShift',
+      'getPresets',
+      'updatePreset'
     ]);
     mockModalCtrl = jasmine.createSpyObj('ModalController', ['dismiss']);
     mockAlertCtrl = jasmine.createSpyObj('AlertController', ['create']);
 
     mockShiftService.getShiftsForWeek.and.returnValue(of([sampleShift]));
+    mockShiftService.getPresets.and.returnValue(of([samplePreset]));
 
     await TestBed.configureTestingModule({
       imports: [
@@ -58,7 +73,19 @@ describe('EmployeeShiftModalComponent', () => {
             fr: {
               SHIFTS: {
                 TITLE: 'Créneaux',
-                NO_SHIFTS: 'Aucun créneau'
+                NO_SHIFTS: 'Aucun créneau',
+                SUMMARY: {
+                  PLANNED: 'Prévu: {{hours}}h',
+                  REAL: 'Réalisé: {{hours}}h',
+                  OVERTIME: 'Heures Sup: {{hours}}h'
+                },
+                PRESETS: {
+                  TITLE: 'Modèles',
+                  MANAGE_BTN: 'Gérer',
+                  CLOSE_BTN: 'Fermer',
+                  SAVE_PRESET: 'Enregistrer',
+                  DEFAULT_NOTICE: 'Notice'
+                }
               }
             }
           },
@@ -66,6 +93,17 @@ describe('EmployeeShiftModalComponent', () => {
         })
       ],
       providers: [
+        provideMockStore({
+          initialState: {
+            auth: {
+              user: {
+                id: 99,
+                username: 'manager',
+                roles: ['MANAGER']
+              }
+            }
+          }
+        }),
         { provide: ShiftService, useValue: mockShiftService },
         { provide: ModalController, useValue: mockModalCtrl },
         { provide: AlertController, useValue: mockAlertCtrl }
@@ -78,11 +116,22 @@ describe('EmployeeShiftModalComponent', () => {
     fixture.detectChanges();
   });
 
-  it('should create modal component and load shifts for employee', () => {
+  it('should create modal component and load shifts and presets', () => {
     expect(component).toBeTruthy();
     expect(mockShiftService.getShiftsForWeek).toHaveBeenCalled();
+    expect(mockShiftService.getPresets).toHaveBeenCalled();
     expect(component.shifts).toHaveSize(1);
     expect(component.totalWeekHours).toBe(8);
+    expect(component.totalPlannedWeekHours).toBe(7.5);
+    expect(component.totalOvertimeWeekHours).toBe(0.5);
+  });
+
+  it('should auto-fill times when selecting a shift type from presets', () => {
+    component.onShiftTypeChange('MATIN');
+    expect(component.formHeureDebut).toBe('08:00');
+    expect(component.formHeureFin).toBe('16:00');
+    expect(component.formDureePauseMinutes).toBe(30);
+    expect(component.formHeuresPrevues).toBe(7.5);
   });
 
   it('should navigate to previous and next week', () => {

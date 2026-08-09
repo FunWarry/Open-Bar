@@ -106,10 +106,38 @@ public class EmployeeShiftService {
         shift.setTypePoste(request.typePoste());
         shift.setHeureDebut(request.heureDebut());
         shift.setHeureFin(request.heureFin());
-        shift.setHeuresEffectuees(request.heuresEffectuees() != null ? request.heuresEffectuees() : BigDecimal.ZERO);
+        shift.setHeurePauseDebut(request.heurePauseDebut());
+        shift.setDureePauseMinutes(request.dureePauseMinutes() != null ? request.dureePauseMinutes() : 30);
+        shift.setHeureDebutReelle(request.heureDebutReelle());
+        shift.setHeureFinReelle(request.heureFinReelle());
+        shift.setHeuresSup(request.heuresSup() != null ? request.heuresSup() : BigDecimal.ZERO);
+        shift.setHeuresPrevues(request.heuresPrevues() != null ? request.heuresPrevues() : calculatePlannedHours(request.heureDebut(), request.heureFin(), request.dureePauseMinutes()));
+        shift.setHeuresEffectuees(request.heuresEffectuees() != null ? request.heuresEffectuees() : shift.getHeuresPrevues());
         shift.setNotes(request.notes());
 
         return shiftRepository.save(shift);
+    }
+
+    /**
+     * Calculates planned work hours based on start time, end time, and break duration.
+     */
+    private BigDecimal calculatePlannedHours(String start, String end, Integer breakMins) {
+        if (start == null || end == null || !start.contains(":") || !end.contains(":")) {
+            return BigDecimal.valueOf(8);
+        }
+        try {
+            String[] s = start.split(":");
+            String[] e = end.split(":");
+            int sMin = Integer.parseInt(s[0]) * 60 + Integer.parseInt(s[1]);
+            int eMin = Integer.parseInt(e[0]) * 60 + Integer.parseInt(e[1]);
+            if (eMin <= sMin) {
+                eMin += 24 * 60; // Shift spanning past midnight
+            }
+            int diff = eMin - sMin - (breakMins != null ? breakMins : 0);
+            return BigDecimal.valueOf(Math.max(0, diff / 60.0)).setScale(2, java.math.RoundingMode.HALF_UP);
+        } catch (Exception _) {
+            return BigDecimal.valueOf(8);
+        }
     }
 
     /**
@@ -129,15 +157,33 @@ public class EmployeeShiftService {
             shift.setUser(user);
         }
 
+        applyScheduleUpdates(shift, request);
+        applyClockingUpdates(shift, request);
+
+        return shiftRepository.save(shift);
+    }
+
+    private void applyScheduleUpdates(EmployeeShift shift, EmployeeShiftRequestDTO request) {
         if (request.dateShift() != null) shift.setDateShift(request.dateShift());
         if (request.typeShift() != null) shift.setTypeShift(request.typeShift());
         if (request.typePoste() != null) shift.setTypePoste(request.typePoste());
         if (request.heureDebut() != null) shift.setHeureDebut(request.heureDebut());
         if (request.heureFin() != null) shift.setHeureFin(request.heureFin());
+        if (request.heurePauseDebut() != null) shift.setHeurePauseDebut(request.heurePauseDebut());
+        if (request.dureePauseMinutes() != null) shift.setDureePauseMinutes(request.dureePauseMinutes());
+        if (request.heuresPrevues() != null) {
+            shift.setHeuresPrevues(request.heuresPrevues());
+        } else if (request.heureDebut() != null || request.heureFin() != null) {
+            shift.setHeuresPrevues(calculatePlannedHours(shift.getHeureDebut(), shift.getHeureFin(), shift.getDureePauseMinutes()));
+        }
+    }
+
+    private void applyClockingUpdates(EmployeeShift shift, EmployeeShiftRequestDTO request) {
+        if (request.heureDebutReelle() != null) shift.setHeureDebutReelle(request.heureDebutReelle());
+        if (request.heureFinReelle() != null) shift.setHeureFinReelle(request.heureFinReelle());
+        if (request.heuresSup() != null) shift.setHeuresSup(request.heuresSup());
         if (request.heuresEffectuees() != null) shift.setHeuresEffectuees(request.heuresEffectuees());
         if (request.notes() != null) shift.setNotes(request.notes());
-
-        return shiftRepository.save(shift);
     }
 
     /**

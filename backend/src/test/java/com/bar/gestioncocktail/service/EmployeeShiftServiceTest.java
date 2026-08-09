@@ -138,7 +138,7 @@ class EmployeeShiftServiceTest {
     void createShift_Success() {
         EmployeeShiftRequestDTO request = new EmployeeShiftRequestDTO(
             1L, LocalDate.of(2026, 8, 10), TypeShift.SOIR, TypePoste.BARMAN,
-            "17:00", "01:00", new BigDecimal("8.0"), "Service bar"
+            "17:00", "01:00", "20:00", 30, "17:05", "01:10", BigDecimal.ZERO, BigDecimal.valueOf(7.5), new BigDecimal("8.0"), "Service bar"
         );
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(sampleUser));
@@ -159,7 +159,7 @@ class EmployeeShiftServiceTest {
     void createShift_UserNotFound_ThrowsException() {
         EmployeeShiftRequestDTO request = new EmployeeShiftRequestDTO(
             99L, LocalDate.of(2026, 8, 10), TypeShift.SOIR, TypePoste.BARMAN,
-            "17:00", "01:00", new BigDecimal("8.0"), null
+            "17:00", "01:00", "20:00", 30, "17:05", "01:10", BigDecimal.valueOf(0.5), BigDecimal.valueOf(7.5), new BigDecimal("8.0"), "Note"
         );
 
         when(userRepository.findById(99L)).thenReturn(Optional.empty());
@@ -172,7 +172,7 @@ class EmployeeShiftServiceTest {
     void updateShift_Success_AllFields() {
         EmployeeShiftRequestDTO request = new EmployeeShiftRequestDTO(
             2L, LocalDate.of(2026, 8, 11), TypeShift.SOIR, TypePoste.BARMAN,
-            "18:00", "02:00", new BigDecimal("8.0"), "Soirée spéciale"
+            "18:00", "02:00", "21:00", 30, "18:00", "02:00", BigDecimal.ZERO, BigDecimal.valueOf(7.5), new BigDecimal("8.0"), "Soirée spéciale"
         );
 
         when(shiftRepository.findById(10L)).thenReturn(Optional.of(sampleShift));
@@ -193,7 +193,7 @@ class EmployeeShiftServiceTest {
     @Test
     void updateShift_UserNotFound_ThrowsException() {
         EmployeeShiftRequestDTO request = new EmployeeShiftRequestDTO(
-            99L, null, null, null, null, null, null, null
+            99L, null, null, null, null, null, null, null, null, null, null, null, null, null
         );
 
         when(shiftRepository.findById(10L)).thenReturn(Optional.of(sampleShift));
@@ -207,7 +207,7 @@ class EmployeeShiftServiceTest {
     void updateShift_WithAllNullFields_DoesNotChangeExistingValues() {
         // Covers all false-branches on the null-checks (lines 118-124)
         EmployeeShiftRequestDTO request = new EmployeeShiftRequestDTO(
-            null, null, null, null, null, null, null, null
+            null, null, null, null, null, null, null, null, null, null, null, null, null, null
         );
 
         when(shiftRepository.findById(10L)).thenReturn(Optional.of(sampleShift));
@@ -229,7 +229,7 @@ class EmployeeShiftServiceTest {
         // userId == shift.user.id → branch false on userId change check
         EmployeeShiftRequestDTO request = new EmployeeShiftRequestDTO(
             1L, LocalDate.of(2026, 8, 12), TypeShift.COUPURE, TypePoste.CAISSE,
-            "12:00", "20:00", new BigDecimal("8.0"), "Coupure"
+            "12:00", "20:00", "15:00", 60, null, null, BigDecimal.ZERO, BigDecimal.valueOf(7.0), new BigDecimal("8.0"), "Coupure"
         );
 
         when(shiftRepository.findById(10L)).thenReturn(Optional.of(sampleShift));

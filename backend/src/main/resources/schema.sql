@@ -303,3 +303,23 @@ CREATE TABLE IF NOT EXISTS employee_shifts (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Colonnes additionnelles pour la gestion avancée des créneaux (#275)
+ALTER TABLE employee_shifts ADD COLUMN IF NOT EXISTS heure_pause_debut VARCHAR(10);
+ALTER TABLE employee_shifts ADD COLUMN IF NOT EXISTS duree_pause_minutes INTEGER DEFAULT 30;
+ALTER TABLE employee_shifts ADD COLUMN IF NOT EXISTS heure_debut_reelle VARCHAR(10);
+ALTER TABLE employee_shifts ADD COLUMN IF NOT EXISTS heure_fin_reelle VARCHAR(10);
+ALTER TABLE employee_shifts ADD COLUMN IF NOT EXISTS heures_sup DECIMAL(5,2) DEFAULT 0;
+ALTER TABLE employee_shifts ADD COLUMN IF NOT EXISTS heures_prevues DECIMAL(5,2) DEFAULT 8.00;
+
+-- Table des modèles de créneaux / presets horraires (#275)
+CREATE TABLE IF NOT EXISTS shift_presets (
+    id BIGSERIAL PRIMARY KEY,
+    type_shift VARCHAR(20) NOT NULL UNIQUE,
+    nom VARCHAR(50) NOT NULL,
+    heure_debut VARCHAR(10) NOT NULL,
+    heure_fin VARCHAR(10) NOT NULL,
+    duree_pause_minutes INTEGER DEFAULT 30,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);

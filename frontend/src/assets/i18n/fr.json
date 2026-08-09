@@ -781,7 +781,26 @@
       "START_TIME": "Heure de début",
       "END_TIME": "Heure de fin",
       "HOURS": "Heures effectuées",
+      "BREAK_START": "Début de pause",
+      "BREAK_DURATION": "Pause (minutes)",
+      "PLANNED_HOURS": "Temps prévu",
+      "REAL_START": "Heure début réelle",
+      "REAL_END": "Heure fin réelle",
+      "OVERTIME": "Heures sup. (h)",
       "NOTES": "Remarques / Notes"
+    },
+    "REAL_TRACKING_TITLE": "Pointage & Horaires Réels",
+    "PRESETS": {
+      "TITLE": "Modèles & Presets d'Horaires",
+      "MANAGE_BTN": "Gérer les modèles",
+      "CLOSE_BTN": "Fermer la gestion",
+      "SAVE_PRESET": "Enregistrer le modèle",
+      "DEFAULT_NOTICE": "Sélectionner un type pré-remplit automatiquement les horaires et la pause ci-dessous (modifiables)."
+    },
+    "SUMMARY": {
+      "PLANNED": "Prévu: {{hours}}h",
+      "REAL": "Réalisé: {{hours}}h",
+      "OVERTIME": "Heures Sup: {{hours}}h"
     },
     "SHIFT_TYPES": {
       "MATIN": "Matin",

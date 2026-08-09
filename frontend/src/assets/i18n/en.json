@@ -781,7 +781,26 @@
       "START_TIME": "Start time",
       "END_TIME": "End time",
       "HOURS": "Hours worked",
+      "BREAK_START": "Break start time",
+      "BREAK_DURATION": "Break (minutes)",
+      "PLANNED_HOURS": "Planned time",
+      "REAL_START": "Actual start time",
+      "REAL_END": "Actual end time",
+      "OVERTIME": "Overtime (h)",
       "NOTES": "Notes / Remarks"
+    },
+    "REAL_TRACKING_TITLE": "Clock-in & Actual Hours",
+    "PRESETS": {
+      "TITLE": "Shift Templates & Presets",
+      "MANAGE_BTN": "Manage templates",
+      "CLOSE_BTN": "Close management",
+      "SAVE_PRESET": "Save template",
+      "DEFAULT_NOTICE": "Selecting a type automatically pre-fills default times and break duration (editable)."
+    },
+    "SUMMARY": {
+      "PLANNED": "Planned: {{hours}}h",
+      "REAL": "Actual: {{hours}}h",
+      "OVERTIME": "Overtime: {{hours}}h"
     },
     "SHIFT_TYPES": {
       "MATIN": "Morning",

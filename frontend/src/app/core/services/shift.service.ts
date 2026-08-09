@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { EmployeeShift, EmployeeShiftRequest } from '../models/shift.model';
+import { EmployeeShift, EmployeeShiftRequest, ShiftPreset, TypeShift } from '../models/shift.model';
 import { environment } from '../../../environments/environment';
 
 /**
@@ -98,5 +98,25 @@ export class ShiftService {
    */
   deleteShift(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+
+  /**
+   * Retrieves all shift presets (modèles de créneaux horraires).
+   *
+   * @returns Observable array of ShiftPreset objects
+   */
+  getPresets(): Observable<ShiftPreset[]> {
+    return this.http.get<ShiftPreset[]>(`${environment.apiUrl}/shift-presets`);
+  }
+
+  /**
+   * Updates a shift preset default configuration.
+   *
+   * @param typeShift Shift type enum
+   * @param preset Preset details
+   * @returns Observable updated ShiftPreset
+   */
+  updatePreset(typeShift: TypeShift, preset: Partial<ShiftPreset>): Observable<ShiftPreset> {
+    return this.http.put<ShiftPreset>(`${environment.apiUrl}/shift-presets/${typeShift}`, preset);
   }
 }
