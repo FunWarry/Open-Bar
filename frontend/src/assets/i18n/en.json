@@ -51,6 +51,8 @@
     "SOUND_DISABLE": "Disable sound",
     "AUDIT_LOGS": "Audit Logs",
     "USERS": "Users",
+    "EMPLOYEES": "Staff & Shifts",
+    "SCHEDULE": "Weekly Schedule",
     "TOPBAR": {
       "PAGE_TITLES": {
         "HOME": "Home",

@@ -51,6 +51,8 @@
     "SOUND_DISABLE": "Désactiver le son",
     "AUDIT_LOGS": "Journal d'audit",
     "USERS": "Utilisateurs",
+    "EMPLOYEES": "Personnel & Shifts",
+    "SCHEDULE": "Planning Semaine",
     "TOPBAR": {
       "PAGE_TITLES": {
         "HOME": "Accueil",
