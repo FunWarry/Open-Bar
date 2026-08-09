@@ -744,5 +744,55 @@
       "DAILY_RECAP": "Daily Settlement & Z-Report",
       "INVOICES_LIST": "Invoices History"
     }
+  },
+  "EMPLOYEES": {
+    "TITLE": "Staff & Schedule Management",
+    "SUBTITLE": "View team members, filter by role, and manage work shifts",
+    "SEARCH_PLACEHOLDER": "Search by first name, last name, or username...",
+    "FILTER_ROLE": "All roles",
+    "TOTAL_EMPLOYEES": "employee(s)",
+    "HOURS_THIS_WEEK": "hrs this week",
+    "SHIFTS_THIS_WEEK": "shift(s)",
+    "MANAGE_SHIFTS": "Manage shifts",
+    "NO_EMPLOYEES": "No employees found",
+    "EMPTY_SUBTEXT": "Try adjusting your search criteria."
+  },
+  "SHIFTS": {
+    "TITLE": "Work Shifts",
+    "WEEK_LABEL": "Week of {{start}} to {{end}}",
+    "PREV_WEEK": "Previous week",
+    "NEXT_WEEK": "Next week",
+    "CURRENT_WEEK": "This week",
+    "ADD_SHIFT": "New shift",
+    "EDIT_SHIFT": "Edit shift",
+    "DELETE_SHIFT": "Delete shift",
+    "CONFIRM_DELETE": "Are you sure you want to delete this work shift?",
+    "NO_SHIFTS": "No shifts scheduled for this week",
+    "TOTAL_HOURS": "Total week hours",
+    "CANCEL_FORM": "Cancel",
+    "SAVE_SHIFT": "Save",
+    "FIELDS": {
+      "DATE": "Shift date",
+      "TYPE_SHIFT": "Shift type",
+      "TYPE_POSTE": "Assigned position",
+      "START_TIME": "Start time",
+      "END_TIME": "End time",
+      "HOURS": "Hours worked",
+      "NOTES": "Notes / Remarks"
+    },
+    "SHIFT_TYPES": {
+      "MATIN": "Morning",
+      "SOIR": "Evening",
+      "COUPURE": "Split",
+      "NUIT": "Night",
+      "CONGE": "Time Off"
+    },
+    "POSTE_TYPES": {
+      "SERVEUR": "Waiter",
+      "BARMAN": "Bartender",
+      "CAISSE": "Cashier",
+      "MANAGER": "Manager"
+    }
   }
 }
+

@@ -1,0 +1,167 @@
+.employees-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.card-header {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.header-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* Filter toolbar */
+.filter-toolbar {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+
+  .search-box {
+    flex: 1;
+    min-width: 260px;
+
+    ion-input {
+      --border-color: var(--border-medium);
+      --border-radius: var(--radius-md, 10px);
+      --background: var(--background-surface-2);
+      --color: var(--text-primary);
+      --placeholder-color: var(--text-muted);
+    }
+  }
+
+  .role-filter {
+    min-width: 180px;
+
+    ion-select {
+      --border-color: var(--border-medium);
+      --border-radius: var(--radius-md, 10px);
+      --background: var(--background-surface-2);
+      --color: var(--text-primary);
+      --padding-start: 12px;
+      --padding-end: 12px;
+      min-height: 42px;
+    }
+  }
+}
+
+.employee-list {
+  --background: transparent;
+  background: transparent;
+}
+
+.employee-item {
+  --padding-start: 0;
+  --inner-padding-end: 0;
+  --background: transparent;
+  --border-color: var(--border-medium);
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &:hover,
+  &:focus {
+    --background: var(--background-surface-2);
+    outline: none;
+  }
+}
+
+.employee-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 18px 8px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.employee-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 200px;
+}
+
+.employee-name {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+.employee-fullname {
+  color: var(--text-secondary);
+  font-weight: 400;
+  font-size: 0.875rem;
+}
+
+.employee-email {
+  color: var(--text-secondary);
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.roles-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.role-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.shift-metrics {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.metric-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+
+  ion-icon {
+    font-size: 1rem;
+    color: var(--primary);
+  }
+
+  strong {
+    color: var(--text-primary);
+  }
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.empty-state {
+  color: var(--text-muted);
+
+  h3 {
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+}

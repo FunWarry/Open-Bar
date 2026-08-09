@@ -1,86 +1,211 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import {
-  IonContent, IonHeader, IonToolbar, IonTitle,
-  IonButton, IonIcon,
+  IonCard,
+  IonCardHeader,
+  IonCardTitle,
+  IonCardSubtitle,
+  IonCardContent,
+  IonInput,
+  IonSelect,
+  IonSelectOption,
+  IonList,
+  IonItem,
+  IonButton,
+  IonIcon,
+  IonBadge,
+  IonSpinner,
+  ModalController
 } from '@ionic/angular/standalone';
-import { addIcons } from 'ionicons';
-import { createOutline, addCircleOutline } from 'ionicons/icons';
-import { Subject, takeUntil } from 'rxjs';
-import { UserAvatarComponent } from '../../core/components/ui/user-avatar/user-avatar.component';
-import { RoleBadgeComponent } from '../../core/components/ui/role-badge/role-badge.component';
-import { ActionButtonComponent } from '../../core/components/ui/action-button/action-button.component';
-import { EmployeeService } from './services/employee.service';
-import { Employee } from './models/employee.model';
+import { TranslocoModule } from '@jsverse/transloco';
+import { User } from '../../core/models/user.model';
+import { EmployeeShift } from '../../core/models/shift.model';
+import { UserService } from '../../core/services/user.service';
+import { ShiftService } from '../../core/services/shift.service';
+import { EmployeeShiftModalComponent } from './employee-shift-modal/employee-shift-modal.component';
 
+interface EmployeeSummary {
+  user: User;
+  shiftsCount: number;
+  totalHours: number;
+}
+
+/**
+ * Component displaying the list of all staff employees with search, role filtering,
+ * weekly shift metrics, and modal shortcut for shift management.
+ */
 @Component({
   selector: 'app-employees',
+  templateUrl: './employees.component.html',
+  styleUrls: ['./employees.component.css'],
   standalone: true,
   imports: [
     CommonModule,
-    IonContent, IonHeader, IonToolbar, IonTitle,
-    IonButton, IonIcon,
-    UserAvatarComponent, RoleBadgeComponent, ActionButtonComponent,
-  ],
-  templateUrl: './employees.component.html',
-  styleUrls: ['./employees.component.scss'],
+    FormsModule,
+    TranslocoModule,
+    IonCard,
+    IonCardHeader,
+    IonCardTitle,
+    IonCardSubtitle,
+    IonCardContent,
+    IonInput,
+    IonSelect,
+    IonSelectOption,
+    IonList,
+    IonItem,
+    IonButton,
+    IonIcon,
+    IonBadge,
+    IonSpinner
+  ]
 })
-export class EmployeesComponent implements OnInit, OnDestroy {
-  employees: Employee[] = [];
+export class EmployeesComponent implements OnInit {
+  private readonly userService = inject(UserService);
+  private readonly shiftService = inject(ShiftService);
+  private readonly modalCtrl = inject(ModalController);
+
   loading = true;
-  currentPage = 1;
-  readonly pageSize = 10;
-  private readonly destroy$ = new Subject<void>();
+  users: User[] = [];
+  employeeSummaries: EmployeeSummary[] = [];
+  filteredSummaries: EmployeeSummary[] = [];
 
-  constructor(private readonly employeeService: EmployeeService) {
-    addIcons({ createOutline, addCircleOutline });
+  searchQuery = '';
+  selectedRole = 'ALL';
+
+  availableRoles = [
+    { label: 'Tous les rôles', value: 'ALL' },
+    { label: 'Manager', value: 'MANAGER' },
+    { label: 'Serveur', value: 'SERVEUR' },
+    { label: 'Barman', value: 'BARMAN' },
+    { label: 'Admin', value: 'ADMIN' }
+  ];
+
+  ngOnInit(): void {
+    this.loadData();
   }
 
-  ngOnInit() {
-    this.loadEmployees();
-  }
-
-  ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
-
-  loadEmployees() {
+  loadData(): void {
     this.loading = true;
-    this.employeeService.getAll()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: employees => { this.employees = employees; this.loading = false; },
-        error: () => { this.loading = false; },
-      });
+
+    // Current week ISO dates (Monday to Sunday)
+    const today = new Date();
+    const monday = this.getMonday(today);
+    const sunday = new Date(monday);
+    sunday.setDate(sunday.getDate() + 6);
+
+    const mondayStr = this.formatDateISO(monday);
+    const sundayStr = this.formatDateISO(sunday);
+
+    this.userService.getUsers().subscribe({
+      next: (users) => {
+        this.users = users;
+        this.shiftService.getShiftsForWeek(mondayStr, sundayStr).subscribe({
+          next: (shifts) => {
+            this.buildSummaries(users, shifts);
+            this.loading = false;
+          },
+          error: () => {
+            this.buildSummaries(users, []);
+            this.loading = false;
+          }
+        });
+      },
+      error: () => {
+        this.loading = false;
+      }
+    });
   }
 
-  get paginatedEmployees(): Employee[] {
-    const start = (this.currentPage - 1) * this.pageSize;
-    return this.employees.slice(start, start + this.pageSize);
+  private buildSummaries(users: User[], shifts: EmployeeShift[]): void {
+    const shiftMap = new Map<number, EmployeeShift[]>();
+    for (const shift of shifts) {
+      if (shift.userId) {
+        const list = shiftMap.get(shift.userId) || [];
+        list.push(shift);
+        shiftMap.set(shift.userId, list);
+      }
+    }
+
+    this.employeeSummaries = users.map((user) => {
+      const userShifts = shiftMap.get(user.id) || [];
+      const totalHours = userShifts.reduce((acc, s) => acc + (s.heuresEffectuees || 0), 0);
+      return {
+        user,
+        shiftsCount: userShifts.length,
+        totalHours
+      };
+    });
+
+    this.applyFilters();
   }
 
-  get totalPages(): number {
-    return Math.max(1, Math.ceil(this.employees.length / this.pageSize));
+  applyFilters(): void {
+    const query = this.searchQuery.toLowerCase().trim();
+
+    this.filteredSummaries = this.employeeSummaries.filter((es) => {
+      const u = es.user;
+      const matchesSearch =
+        !query ||
+        u.username.toLowerCase().includes(query) ||
+        u.email.toLowerCase().includes(query) ||
+        u.nom?.toLowerCase().includes(query) ||
+        u.prenom?.toLowerCase().includes(query);
+
+      const matchesRole =
+        this.selectedRole === 'ALL' ||
+        u.roles?.includes(this.selectedRole as any);
+
+      return Boolean(matchesSearch && matchesRole);
+    });
   }
 
-  prevPage() {
-    if (this.currentPage > 1) this.currentPage--;
+  onSearchChange(): void {
+    this.applyFilters();
   }
 
-  nextPage() {
-    if (this.currentPage < this.totalPages) this.currentPage++;
+  onRoleChange(): void {
+    this.applyFilters();
   }
 
-  getStatusLabel(employee: Employee): string {
-    return employee.isInShift ? 'In shift' : 'Absent';
+  async openEmployeeShiftsModal(employee: User): Promise<void> {
+    const modal = await this.modalCtrl.create({
+      component: EmployeeShiftModalComponent,
+      componentProps: { employee }
+    });
+
+    await modal.present();
+    await modal.onDidDismiss();
+    this.loadData();
   }
 
-  getStatusColor(employee: Employee): string {
-    return employee.isInShift ? 'success' : 'medium';
+  private getMonday(d: Date): Date {
+    const date = new Date(d);
+    const day = date.getDay();
+    const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+    date.setDate(diff);
+    date.setHours(0, 0, 0, 0);
+    return date;
   }
 
-  trackById(_: number, employee: Employee): number {
-    return employee.id;
+  private formatDateISO(d: Date): string {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  getRoleBadgeColor(role: string): string {
+    switch (role) {
+      case 'MANAGER': return 'warning';
+      case 'SERVEUR': return 'success';
+      case 'BARMAN': return 'secondary';
+      case 'ADMIN': return 'tertiary';
+      default: return 'primary';
+    }
+  }
+
+  trackById(_index: number, item: EmployeeSummary): number {
+    return item.user.id;
   }
 }

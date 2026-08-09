@@ -1,0 +1,160 @@
+.week-nav-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md, 10px);
+  margin-bottom: 16px;
+}
+
+.nav-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.week-range-label {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+}
+
+.week-summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.total-hours-badge {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  background: var(--background-surface-1);
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-medium);
+}
+
+.shift-form-card {
+  --background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md, 10px);
+
+  ion-card-title {
+    font-size: 1.05rem;
+    font-weight: 600;
+  }
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+
+  .full-width {
+    grid-column: 1 / -1;
+  }
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+  }
+
+  ion-input,
+  ion-select,
+  ion-textarea {
+    --border-color: var(--border-medium);
+    --background: var(--background-surface-1);
+    --color: var(--text-primary);
+    --placeholder-color: var(--text-muted);
+  }
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.empty-shifts {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.shift-list {
+  --background: transparent;
+  background: transparent;
+}
+
+.shift-item {
+  --background: transparent;
+  --border-color: var(--border-medium);
+}
+
+.shift-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 12px 4px;
+}
+
+.shift-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.shift-header-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.shift-date {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+}
+
+.shift-badge,
+.poste-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.shift-hours-detail {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.shift-notes {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.shift-actions {
+  display: flex;
+  gap: 4px;
+}

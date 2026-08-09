@@ -12,7 +12,7 @@ import { environment } from '../../../environments/environment';
 })
 export class ShiftService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = `${environment.apiUrl}/employee-shifts`;
+  private readonly apiUrl = `${environment.apiUrl}/shifts`;
 
   /**
    * Retrieves all registered employee shifts.
@@ -24,17 +24,39 @@ export class ShiftService {
   }
 
   /**
-   * Retrieves employee shifts within a specific date range.
+   * Retrieves a single shift by ID.
+   *
+   * @param id Shift identifier
+   * @returns Observable EmployeeShift
+   */
+  getShiftById(id: number): Observable<EmployeeShift> {
+    return this.http.get<EmployeeShift>(`${this.apiUrl}/${id}`);
+  }
+
+  /**
+   * Retrieves employee shifts within a specific date range or week.
    *
    * @param debut Start date (YYYY-MM-DD)
    * @param fin End date (YYYY-MM-DD)
    * @returns Observable array of EmployeeShift objects in range
    */
-  getShiftsForWeek(debut: string, fin: string): Observable<EmployeeShift[]> {
-    const params = new HttpParams()
-      .set('debut', debut)
-      .set('fin', fin);
-    return this.http.get<EmployeeShift[]>(`${this.apiUrl}/weekly`, { params });
+  getShiftsForWeek(debut?: string, fin?: string): Observable<EmployeeShift[]> {
+    let params = new HttpParams();
+    if (debut) params = params.set('debut', debut);
+    if (fin) params = params.set('fin', fin);
+    return this.http.get<EmployeeShift[]>(`${this.apiUrl}/week`, { params });
+  }
+
+  /**
+   * Retrieves employee shifts within a custom date range.
+   *
+   * @param from Start date (YYYY-MM-DD)
+   * @param to End date (YYYY-MM-DD)
+   * @returns Observable array of EmployeeShift objects
+   */
+  getShiftsForRange(from: string, to: string): Observable<EmployeeShift[]> {
+    const params = new HttpParams().set('from', from).set('to', to);
+    return this.http.get<EmployeeShift[]>(`${this.apiUrl}/range`, { params });
   }
 
   /**
@@ -44,7 +66,7 @@ export class ShiftService {
    * @returns Observable array of EmployeeShift objects for the user
    */
   getShiftsByUserId(userId: number): Observable<EmployeeShift[]> {
-    return this.http.get<EmployeeShift[]>(`${this.apiUrl}/employee/${userId}`);
+    return this.http.get<EmployeeShift[]>(`${this.apiUrl}/user/${userId}`);
   }
 
   /**

@@ -38,27 +38,27 @@ describe('ShiftService', () => {
     expect(service).toBeTruthy();
   });
 
-  it('getAllShifts() should GET /api/employee-shifts', () => {
+  it('getAllShifts() should GET /api/shifts', () => {
     service.getAllShifts().subscribe(shifts => {
       expect(shifts).toEqual([mockShift]);
     });
 
-    const req = httpMock.expectOne(`${environment.apiUrl}/employee-shifts`);
+    const req = httpMock.expectOne(`${environment.apiUrl}/shifts`);
     expect(req.request.method).toBe('GET');
     req.flush([mockShift]);
   });
 
-  it('getShiftsForWeek() should GET /api/employee-shifts/weekly with query params', () => {
+  it('getShiftsForWeek() should GET /api/shifts/week with query params', () => {
     service.getShiftsForWeek('2026-08-10', '2026-08-16').subscribe(shifts => {
       expect(shifts).toEqual([mockShift]);
     });
 
-    const req = httpMock.expectOne(`${environment.apiUrl}/employee-shifts/weekly?debut=2026-08-10&fin=2026-08-16`);
+    const req = httpMock.expectOne(`${environment.apiUrl}/shifts/week?debut=2026-08-10&fin=2026-08-16`);
     expect(req.request.method).toBe('GET');
     req.flush([mockShift]);
   });
 
-  it('createShift() should POST /api/employee-shifts', () => {
+  it('createShift() should POST /api/shifts', () => {
     const requestPayload: EmployeeShiftRequest = {
       userId: 10,
       dateShift: '2026-08-10',
@@ -72,7 +72,7 @@ describe('ShiftService', () => {
       expect(shift).toEqual(mockShift);
     });
 
-    const req = httpMock.expectOne(`${environment.apiUrl}/employee-shifts`);
+    const req = httpMock.expectOne(`${environment.apiUrl}/shifts`);
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual(requestPayload);
     req.flush(mockShift);

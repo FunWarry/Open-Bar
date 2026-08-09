@@ -744,5 +744,55 @@
       "DAILY_RECAP": "Récapitulatif Journée & Z-Report",
       "INVOICES_LIST": "Historique des Factures"
     }
+  },
+  "EMPLOYEES": {
+    "TITLE": "Gestion du Personnel & Planning",
+    "SUBTITLE": "Consultez l'équipe, filtrez par rôle et gérez les créneaux de travail",
+    "SEARCH_PLACEHOLDER": "Rechercher par nom, prénom ou nom d'utilisateur...",
+    "FILTER_ROLE": "Tous les rôles",
+    "TOTAL_EMPLOYEES": "employé(s)",
+    "HOURS_THIS_WEEK": "h cette semaine",
+    "SHIFTS_THIS_WEEK": "shift(s)",
+    "MANAGE_SHIFTS": "Gérer les créneaux",
+    "NO_EMPLOYEES": "Aucun employé trouvé",
+    "EMPTY_SUBTEXT": "Essayez de modifier vos critères de recherche."
+  },
+  "SHIFTS": {
+    "TITLE": "Créneaux de travail",
+    "WEEK_LABEL": "Semaine du {{start}} au {{end}}",
+    "PREV_WEEK": "Semaine précédente",
+    "NEXT_WEEK": "Semaine suivante",
+    "CURRENT_WEEK": "Cette semaine",
+    "ADD_SHIFT": "Nouveau créneau",
+    "EDIT_SHIFT": "Modifier le créneau",
+    "DELETE_SHIFT": "Supprimer le créneau",
+    "CONFIRM_DELETE": "Voulez-vous vraiment supprimer ce créneau de travail ?",
+    "NO_SHIFTS": "Aucun créneau planifié pour cette semaine",
+    "TOTAL_HOURS": "Total heures semaine",
+    "CANCEL_FORM": "Annuler",
+    "SAVE_SHIFT": "Enregistrer",
+    "FIELDS": {
+      "DATE": "Date du shift",
+      "TYPE_SHIFT": "Type de créneau",
+      "TYPE_POSTE": "Poste occupé",
+      "START_TIME": "Heure de début",
+      "END_TIME": "Heure de fin",
+      "HOURS": "Heures effectuées",
+      "NOTES": "Remarques / Notes"
+    },
+    "SHIFT_TYPES": {
+      "MATIN": "Matin",
+      "SOIR": "Soir",
+      "COUPURE": "Coupure",
+      "NUIT": "Nuit",
+      "CONGE": "Congé"
+    },
+    "POSTE_TYPES": {
+      "SERVEUR": "Serveur",
+      "BARMAN": "Barman",
+      "CAISSE": "Caisse",
+      "MANAGER": "Manager"
+    }
   }
 }
+
