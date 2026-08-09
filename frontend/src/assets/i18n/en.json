@@ -736,6 +736,7 @@
     "ACTIONS": {
       "CREATE_USER": "Create User",
       "USERS_LIST": "Staff List",
+      "EMPLOYEES_SHIFTS": "Staff Schedule & Shifts",
       "LEGAL_CONFIG": "Establishment Details (SIRET / VAT / 58mm Ticket)",
       "THEME_STUDIO": "Theme & Color Customization",
       "AUDIT_LOGS": "System Audit Log",

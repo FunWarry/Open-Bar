@@ -736,6 +736,7 @@
     "ACTIONS": {
       "CREATE_USER": "Créer un Utilisateur",
       "USERS_LIST": "Liste du Personnel",
+      "EMPLOYEES_SHIFTS": "Planning & Shifts du personnel",
       "LEGAL_CONFIG": "Configuration Établissement (SIRET / TVA / Ticket 58mm)",
       "THEME_STUDIO": "Personnalisation & Thèmes",
       "AUDIT_LOGS": "Journal d'Audit Système",
