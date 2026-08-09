@@ -54,8 +54,8 @@
 | Export factures (PDF) | ✅ | ✅ | ✅ | OpenPDF A4 conforme mentions légales |
 | Division d'addition (split égal/par sélection) | ✅ | ✅ | ✅ | — |
 | Dashboard Manager / stats | ✅ | ✅ polling 30s | ✅ | — |
-| Manager Shifts Employés & Pagination (#232) | ✅ | ✅ | ✅ | Gestion des horaires/shifts du personnel et pagination |
-| Manager Planning Hebdomadaire (#233) | ✅ | ✅ | ✅ | Planning emploi du temps interactif par employé |
+| Manager Shifts Employés & Pagination (#232) | ⚠️ Schema only | ❌ | ❌ | Table `employee_shifts` créée en BDD, backend + frontend manquants — tickets #274/#275 |
+| Manager Planning Hebdomadaire (#233) | ⚠️ Schema only | ❌ | ❌ | Dépend de #274, vue grille semaine manquante — ticket #276 |
 | Dashboard Barman | ✅ | ✅ kanban temps réel | ✅ | — |
 | Vue Serveur (plan de salle + variantes modal #182) | ✅ | ✅ | ✅ | — |
 | Vue Serveur Mobile Bottom Navigation & MobileTableCard (#236) | — | ✅ | ✅ | Navigation basse mobile Ionic (< 768px), cartes compactes MobileTableCard & chronomètre d'attente |
@@ -124,10 +124,6 @@
 | #255 (#234) | Profil — Section Préférences et toggle notifications (Figma 540:946) : Modèle et service `PreferencesService` pour la sauvegarde `localStorage` des réglages utilisateur (notifications sonores/visuelles), sélecteur de langue Transloco FR/EN réactif, et bouton de relance de l'Onboarding. Tests Karma 100% verts. |
 | #254 (#233) | Manager — EDT Planning hebdomadaire complet (Figma 492:1556) : Vue planning EDT hebdomadaire interactive par employé avec créneaux horaires de service, bascule de semaine, filtres par rôle et export. Tests unitaires verts. |
 | #253 (#230) | Composant EmptyState réutilisable (Figma 540:1056) : Composant UI atomique Ionic 8 avec illustrations emoji, titre, description et bouton d'action paramétrable pour toutes les vues applicatives sans données. |
-| #252 (#232) | Manager — Gestion Employés — Pagination et champs Shifts (Figma 492:1514) : Pagination serveur/client de la liste du personnel, ajouts des champs d'horaires et d'affectation de shifts dans la modal d'édition utilisateur. |
-| #251 (#231) | Vue Barman — Ingrédients en mode Grille de Cartes (Figma 488:3524) : Affichage sous forme de grille responsive des ingrédients barman avec jauges visuelles de stock, filtres par statut de réapprovisionnement et raccourcis d'incrément/décrément. |
-| #250 (#228) | Facturation — Vue Règlement Individuel Post-Split (Figma 630:1264) : Modal et écran de règlement individuel pour le paiement séparé des convives après division d'addition avec choix du mode de règlement et émission de reçus individuels. |
-| #249 (#235) | Facturation — Modal Règlement — Champ Pourboire (Figma 628:1068) : Champ de saisie dynamique de pourboire (pourcentage pré-calculé ou montant libre), ajout dans le calcul du montant total encaissé et comptabilisation sur le ticket/facture. |
 | #248 (#247/#238) | Conservation BDD au redémarrage & Alignement Stock Barman (Figma 488:3340) : Passage à `CREATE TABLE IF NOT EXISTS` dans `schema.sql` (conservation des comptes admin et données). Restylage complet du panneau de stock Barman. |
 | #247 (#239) | Fix Profil NgRx Pre-fill : Correction du pré-remplissage du formulaire profil depuis le store NgRx auth (`selectCurrentUser`). |
 | #246 (#245) | Bouton de Traduction Global (Connecté & Non Connecté) : Intégration du bouton de bascule de langue (FR/EN) avec icône globe dans la TopBar (`NavbarComponent`) et bouton flottant fixe sur les vues non connectées (`/login`, `/register`, `/setup`, `/client/*`). |
