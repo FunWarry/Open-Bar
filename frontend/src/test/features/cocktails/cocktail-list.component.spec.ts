@@ -200,7 +200,7 @@ describe('CocktailListComponent', () => {
     expect(activeStyle['background-color']).toBe('#10b981');
 
     const inactiveStyle = component.getCategoryPillStyle('ALCOOLISE', false);
-    expect(inactiveStyle['color']).toBe('#ffffff');
+    expect(inactiveStyle['color']).toBe('var(--text-primary)');
   });
 
   // --- toggle disponibilité ---
