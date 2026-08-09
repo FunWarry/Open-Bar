@@ -60,7 +60,7 @@ describe('ShiftPresetsConfigComponent', () => {
   it('should create component and load shift presets', () => {
     expect(component).toBeTruthy();
     expect(mockShiftService.getPresets).toHaveBeenCalled();
-    expect(component.presets.length).toBe(2);
+    expect(component.presets).toHaveSize(2);
   });
 
   it('should save preset and present success toast', async () => {

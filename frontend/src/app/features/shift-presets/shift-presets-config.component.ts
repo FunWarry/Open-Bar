@@ -16,7 +16,6 @@ import {
   IonInput,
   IonBadge,
   IonSpinner,
-  IonToast,
   IonButtons,
   ToastController
 } from '@ionic/angular/standalone';
@@ -51,7 +50,6 @@ import { ShiftService } from '../../core/services/shift.service';
     IonInput,
     IonBadge,
     IonSpinner,
-    IonToast,
     IonButtons
   ]
 })
