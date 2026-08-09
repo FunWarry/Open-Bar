@@ -231,7 +231,7 @@
 
   &.active.occupied {
     background: var(--table-occupied, #f59e0b);
-    color: #ffffff;
+    color: #0f172a;
     border-color: var(--table-occupied, #f59e0b);
     box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
   }
