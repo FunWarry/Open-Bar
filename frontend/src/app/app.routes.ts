@@ -185,6 +185,12 @@ export const routes: Routes = [
     data: { roles: ['MANAGER', 'ADMIN'] }
   },
   {
+    path: 'manager/shift-presets',
+    loadComponent: () => import('./features/shift-presets/shift-presets-config.component').then(m => m.ShiftPresetsConfigComponent),
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['MANAGER', 'ADMIN'] }
+  },
+  {
     path: 'factures',
     loadComponent: () => import('./features/factures/facture-list/facture-list.component').then(m => m.FactureListComponent),
     canActivate: [AuthGuard, RoleGuard],

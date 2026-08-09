@@ -1,6 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import {
   IonCard,
   IonCardHeader,
@@ -43,6 +44,7 @@ interface EmployeeSummary {
   imports: [
     CommonModule,
     FormsModule,
+    RouterModule,
     TranslocoModule,
     IonCard,
     IonCardHeader,

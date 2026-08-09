@@ -40,44 +40,12 @@
         {{ 'SHIFTS.SUMMARY.OVERTIME' | transloco:{ hours: totalOvertimeWeekHours } }}
       </ion-badge>
 
-      <ion-button color="secondary" size="small" fill="outline" (click)="togglePresetManager()" (keydown.enter)="togglePresetManager()" *ngIf="isManagerOrAdmin" data-testid="toggle-presets-btn">
-        <ion-icon name="settings-outline" slot="start"></ion-icon>
-        {{ (showPresetManager ? 'SHIFTS.PRESETS.CLOSE_BTN' : 'SHIFTS.PRESETS.MANAGE_BTN') | transloco }}
-      </ion-button>
-
       <ion-button color="primary" size="small" (click)="openNewShiftForm()" (keydown.enter)="openNewShiftForm()" *ngIf="!showForm" data-testid="add-shift-btn">
         <ion-icon name="add-outline" slot="start"></ion-icon>
         {{ 'SHIFTS.ADD_SHIFT' | transloco }}
       </ion-button>
     </div>
   </div>
-
-  <!-- Manager Preset Configuration Card -->
-  <ion-card *ngIf="showPresetManager" class="presets-card ion-margin-bottom" data-testid="presets-card">
-    <ion-card-header>
-      <ion-card-title>
-        ⚙️ {{ 'SHIFTS.PRESETS.TITLE' | transloco }}
-      </ion-card-title>
-    </ion-card-header>
-    <ion-card-content>
-      <p class="presets-notice">{{ 'SHIFTS.PRESETS.DEFAULT_NOTICE' | transloco }}</p>
-      <div class="preset-list-grid">
-        <div *ngFor="let p of presets" class="preset-item-card">
-          <div class="preset-header">
-            <ion-badge [color]="getShiftBadgeColor(p.typeShift)">{{ p.nom || p.typeShift }}</ion-badge>
-          </div>
-          <div class="preset-fields">
-            <ion-input type="text" [(ngModel)]="p.heureDebut" fill="outline" size="small" label="Début" labelPlacement="stacked"></ion-input>
-            <ion-input type="text" [(ngModel)]="p.heureFin" fill="outline" size="small" label="Fin" labelPlacement="stacked"></ion-input>
-            <ion-input type="number" [(ngModel)]="p.dureePauseMinutes" fill="outline" size="small" label="Pause (m)" labelPlacement="stacked"></ion-input>
-          </div>
-          <ion-button size="small" fill="clear" color="primary" (click)="savePreset(p)" (keydown.enter)="savePreset(p)">
-            {{ 'SHIFTS.PRESETS.SAVE_PRESET' | transloco }}
-          </ion-button>
-        </div>
-      </div>
-    </ion-card-content>
-  </ion-card>
 
   <!-- Form card for creating/editing shift -->
   <ion-card *ngIf="showForm" class="shift-form-card ion-margin-bottom" data-testid="shift-form-card">

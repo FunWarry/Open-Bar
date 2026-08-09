@@ -802,6 +802,12 @@
       "REAL": "Actual: {{hours}}h",
       "OVERTIME": "Overtime: {{hours}}h"
     },
+    "CONFIG": {
+      "TITLE": "Shift Templates Configuration",
+      "SUBTITLE": "Define default working hours (start, end, break duration) automatically pre-filled for each shift type.",
+      "BACK_TO_EMPLOYEES": "Back to employee management",
+      "SAVE_SUCCESS": "Template updated successfully"
+    },
     "SHIFT_TYPES": {
       "MATIN": "Morning",
       "SOIR": "Evening",

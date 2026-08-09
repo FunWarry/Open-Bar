@@ -802,6 +802,12 @@
       "REAL": "Réalisé: {{hours}}h",
       "OVERTIME": "Heures Sup: {{hours}}h"
     },
+    "CONFIG": {
+      "TITLE": "Configuration des Modèles de Créneaux",
+      "SUBTITLE": "Définissez les horaires par défaut (début, fin, pause) pré-remplis automatiquement pour chaque type de créneau.",
+      "BACK_TO_EMPLOYEES": "Retour à la gestion du personnel",
+      "SAVE_SUCCESS": "Modèle mis à jour avec succès"
+    },
     "SHIFT_TYPES": {
       "MATIN": "Matin",
       "SOIR": "Soir",
