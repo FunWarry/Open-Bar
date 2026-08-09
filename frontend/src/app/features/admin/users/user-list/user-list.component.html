@@ -50,7 +50,15 @@
         </div>
 
         <ion-list *ngIf="users.length > 0" data-testid="user-list">
-          <ion-item *ngFor="let user of users; trackBy: trackById" lines="full" [attr.data-testid]="'user-item-' + user.id">
+          <ion-item
+            *ngFor="let user of users; trackBy: trackById"
+            lines="full"
+            [attr.data-testid]="'user-item-' + user.id"
+            class="user-item-clickable"
+            (click)="openEditDialog(user)"
+            (keydown.enter)="openEditDialog(user)"
+            tabindex="0"
+            [attr.aria-label]="'Modifier ' + user.username">
             <div class="user-row">
               <div class="user-info">
                 <h3 class="user-username">
@@ -66,10 +74,13 @@
               </div>
 
               <div class="action-buttons">
-                <ion-button fill="clear" color="primary" (click)="openEditDialog(user)" (keydown.enter)="openEditDialog(user)" [attr.data-testid]="'edit-user-btn-' + user.id">
-                  <ion-icon name="create" slot="icon-only"></ion-icon>
-                </ion-button>
-                <ion-button fill="clear" color="danger" (click)="openDeleteDialog(user)" (keydown.enter)="openDeleteDialog(user)" [attr.data-testid]="'delete-user-btn-' + user.id">
+                <ion-button
+                  fill="clear"
+                  color="danger"
+                  (click)="openDeleteDialog(user); $event.stopPropagation()"
+                  (keydown.enter)="openDeleteDialog(user); $event.stopPropagation()"
+                  [attr.data-testid]="'delete-user-btn-' + user.id"
+                  [attr.aria-label]="'Supprimer ' + user.username">
                   <ion-icon name="trash" slot="icon-only"></ion-icon>
                 </ion-button>
               </div>
