@@ -1,80 +1,344 @@
-<ion-content>
+<ion-content class="tables-content">
   <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
   <div class="table-list-container">
-    <ion-card class="wrapper-card">
-      <ion-card-header>
-        <div class="card-header-row">
-          <ion-card-title>Tables ({{ tables.length }})</ion-card-title>
+    <!-- Header & Action Row -->
+    <div class="tables-header-card">
+      <div class="header-main-row">
+        <div class="title-with-badge">
+          <h1 class="page-title">{{ 'TABLES.TITLE' | transloco }}</h1>
+          <span class="count-pill">{{ filteredTables.length }} / {{ tables.length }}</span>
+        </div>
+        <div class="header-buttons">
           @if (isAdmin$ | async) {
-            <div class="header-buttons">
-              <ion-button fill="outline" color="primary" (click)="onManageZones()" (keyup.enter)="onManageZones()" data-testid="table-manage-zones-btn">
-                <ion-icon slot="start" name="layers-outline"></ion-icon>
-                Gérer les Zones
-              </ion-button>
-              <ion-button color="primary" (click)="onAdd()" (keyup.enter)="onAdd()" data-testid="table-add-btn">
-                <ion-icon slot="start" name="add"></ion-icon>
-                Nouvelle Table
-              </ion-button>
-            </div>
+            <ion-button fill="outline" color="primary" class="header-action-btn" (click)="onManageZones()" (keyup.enter)="onManageZones()" data-testid="table-manage-zones-btn">
+              <ion-icon slot="start" name="layers-outline"></ion-icon>
+              {{ 'TABLES.MANAGE_ZONES' | transloco }}
+            </ion-button>
+            <ion-button color="primary" class="header-action-btn" (click)="onAdd()" (keyup.enter)="onAdd()" data-testid="table-add-btn">
+              <ion-icon slot="start" name="add"></ion-icon>
+              {{ 'TABLES.NEW_TABLE' | transloco }}
+            </ion-button>
           }
         </div>
-      </ion-card-header>
+      </div>
 
-      <ion-card-content>
-        @if (isLoading) {
-          <div style="text-align:center;padding:24px">
-            <ion-spinner name="crescent"></ion-spinner>
+      <!-- Quick KPI Stats Bar -->
+      <div class="stats-overview-grid">
+        <div class="stat-card">
+          <div class="stat-icon-wrapper total">
+            <ion-icon name="restaurant-outline"></ion-icon>
           </div>
-        } @else {
-          <ion-grid>
-            <ion-row>
-              @for (table of tables; track table.id) {
-                <ion-col size="12" size-sm="6" size-md="4" size-lg="3">
-                  <ion-card class="table-card" [class.occupied]="table.occupee">
-                    <ion-card-header>
-                      <ion-card-title>Table {{ table.numero }}</ion-card-title>
-                      <ion-card-subtitle>{{ table.zone }}</ion-card-subtitle>
-                    </ion-card-header>
+          <div class="stat-info">
+            <span class="stat-label">{{ 'TABLES.STATS.TOTAL' | transloco }}</span>
+            <span class="stat-value">{{ tableStats.totalCount }}</span>
+          </div>
+        </div>
 
-                    <ion-card-content>
-                      <div class="capacity-row">
-                        <ion-icon name="people"></ion-icon>
-                        <span>Capacité : {{ table.capacite }} personnes</span>
-                      </div>
-                      <ion-badge [color]="table.occupee ? 'danger' : 'success'">
-                        <ion-icon [name]="table.occupee ? 'close-circle' : 'checkmark-circle'"></ion-icon>
-                        {{ table.occupee ? 'Occupée' : 'Libre' }}
-                      </ion-badge>
-                    </ion-card-content>
+        <div class="stat-card">
+          <div class="stat-icon-wrapper free">
+            <ion-icon name="checkmark-circle-outline"></ion-icon>
+          </div>
+          <div class="stat-info">
+            <span class="stat-label">{{ 'TABLES.STATS.AVAILABLE' | transloco }}</span>
+            <span class="stat-value stat-free">{{ tableStats.freeCount }}</span>
+          </div>
+        </div>
 
-                    <div class="card-actions">
-                      <ion-button fill="clear" color="primary" (click)="onView(table)" (keyup.enter)="onView(table)" data-testid="table-view-btn">
-                        <ion-icon slot="start" name="eye"></ion-icon>
-                        Détails
-                      </ion-button>
-                      @if (isAdmin$ | async) {
-                        <ion-button fill="clear" color="tertiary" (click)="onEdit(table)" (keyup.enter)="onEdit(table)" data-testid="table-edit-btn">
-                          <ion-icon slot="start" name="create"></ion-icon>
-                          Modifier
-                        </ion-button>
-                      }
-                    </div>
-                  </ion-card>
-                </ion-col>
-              }
-            </ion-row>
-          </ion-grid>
-
-          @if (tables.length === 0) {
-            <div style="text-align:center;padding:24px;color:var(--ion-color-medium)">
-              Aucune table
+        <div class="stat-card">
+          <div class="stat-icon-wrapper occupied">
+            <ion-icon name="close-circle-outline"></ion-icon>
+          </div>
+          <div class="stat-info">
+            <span class="stat-label">{{ 'TABLES.STATS.OCCUPIED' | transloco }}</span>
+            <div class="stat-val-group">
+              <span class="stat-value stat-occupied">{{ tableStats.occupiedCount }}</span>
+              <span class="stat-sub">({{ tableStats.occupancyRate }}%)</span>
             </div>
-          }
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon-wrapper capacity">
+            <ion-icon name="people"></ion-icon>
+          </div>
+          <div class="stat-info">
+            <span class="stat-label">{{ 'TABLES.STATS.CAPACITY' | transloco }}</span>
+            <span class="stat-value">{{ tableStats.occupiedCapacity }} / {{ tableStats.totalCapacity }} <small>{{ 'TABLES.STATS.SEATS' | transloco }}</small></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filters, Search & View Controls -->
+    <div class="controls-card">
+      <div class="controls-row-top">
+        <!-- Searchbar -->
+        <ion-searchbar
+          class="custom-searchbar"
+          [placeholder]="'TABLES.FILTERS.SEARCH_PLACEHOLDER' | transloco"
+          [value]="searchTerm"
+          (ionInput)="onSearchChange($event)"
+          data-testid="table-search-input"
+          [debounce]="200"
+        ></ion-searchbar>
+
+        <!-- Status Filter Segment -->
+        <div class="status-segment-wrapper">
+          <button
+            type="button"
+            class="filter-pill-btn"
+            [class.active]="selectedStatus === 'ALL'"
+            (click)="setStatusFilter('ALL')"
+            data-testid="table-filter-all">
+            {{ 'TABLES.FILTERS.ALL_STATUS' | transloco }} ({{ tables.length }})
+          </button>
+          <button
+            type="button"
+            class="filter-pill-btn free"
+            [class.active]="selectedStatus === 'FREE'"
+            (click)="setStatusFilter('FREE')"
+            data-testid="table-filter-free">
+            <span class="status-dot free"></span>
+            {{ 'TABLES.FILTERS.STATUS_FREE' | transloco }} ({{ tableStats.freeCount }})
+          </button>
+          <button
+            type="button"
+            class="filter-pill-btn occupied"
+            [class.active]="selectedStatus === 'OCCUPIED'"
+            (click)="setStatusFilter('OCCUPIED')"
+            data-testid="table-filter-occupied">
+            <span class="status-dot occupied"></span>
+            {{ 'TABLES.FILTERS.STATUS_OCCUPIED' | transloco }} ({{ tableStats.occupiedCount }})
+          </button>
+        </div>
+      </div>
+
+      <!-- Filters & Sort Row -->
+      <div class="controls-row-bottom">
+        <div class="filter-dropdowns">
+          <!-- Floor Select -->
+          <div class="filter-select-box">
+            <label class="filter-label" for="table-floor-select-input">
+              <ion-icon name="business-outline"></ion-icon>
+              {{ 'TABLES.FILTERS.FLOOR_LABEL' | transloco }}
+            </label>
+            <select
+              id="table-floor-select-input"
+              class="custom-select"
+              [value]="selectedEtage"
+              (change)="onEtageFilterChange($event)"
+              data-testid="table-floor-select">
+              <option value="ALL">{{ 'TABLES.FILTERS.ALL_FLOORS' | transloco }}</option>
+              @for (etage of etages; track etage.code) {
+                <option [value]="etage.code">{{ etage.nom }}</option>
+              }
+            </select>
+          </div>
+
+          <!-- Zone Select -->
+          <div class="filter-select-box">
+            <label class="filter-label" for="table-zone-select-input">
+              <ion-icon name="layers-outline"></ion-icon>
+              {{ 'TABLES.FILTERS.ZONE_LABEL' | transloco }}
+            </label>
+            <select
+              id="table-zone-select-input"
+              class="custom-select"
+              [value]="selectedZone"
+              (change)="onZoneFilterChange($event)"
+              data-testid="table-zone-select">
+              <option value="ALL">{{ 'TABLES.FILTERS.ALL_ZONES' | transloco }}</option>
+              @for (z of availableZonesForFilter; track z.nom) {
+                <option [value]="z.nom">{{ z.nom }}</option>
+              }
+            </select>
+          </div>
+
+          <!-- Sort Select -->
+          <div class="filter-select-box">
+            <label class="filter-label" for="table-sort-select-input">
+              <ion-icon name="swap-vertical-outline"></ion-icon>
+              {{ 'TABLES.FILTERS.SORT_LABEL' | transloco }}
+            </label>
+            <select
+              id="table-sort-select-input"
+              class="custom-select"
+              [value]="sortOption"
+              (change)="onSortChange($event)"
+              data-testid="table-sort-select">
+              <option value="NUMBER_ASC">{{ 'TABLES.SORT.NUMBER_ASC' | transloco }}</option>
+              <option value="NUMBER_DESC">{{ 'TABLES.SORT.NUMBER_DESC' | transloco }}</option>
+              <option value="CAPACITY_ASC">{{ 'TABLES.SORT.CAPACITY_ASC' | transloco }}</option>
+              <option value="CAPACITY_DESC">{{ 'TABLES.SORT.CAPACITY_DESC' | transloco }}</option>
+              <option value="STATUS_OCCUPIED">{{ 'TABLES.SORT.STATUS_OCCUPIED' | transloco }}</option>
+              <option value="STATUS_FREE">{{ 'TABLES.SORT.STATUS_FREE' | transloco }}</option>
+              <option value="ZONE_NAME">{{ 'TABLES.SORT.ZONE_NAME' | transloco }}</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- View Mode Segment (Group by Zone / Floor / Flat Grid) -->
+        <div class="view-mode-group">
+          <button
+            type="button"
+            class="view-toggle-btn"
+            [class.active]="viewMode === 'BY_ZONE'"
+            (click)="setViewMode('BY_ZONE')"
+            title="{{ 'TABLES.VIEW_MODE.BY_ZONE' | transloco }}">
+            <ion-icon name="layers-outline"></ion-icon>
+            <span>{{ 'TABLES.VIEW_MODE.BY_ZONE' | transloco }}</span>
+          </button>
+          <button
+            type="button"
+            class="view-toggle-btn"
+            [class.active]="viewMode === 'BY_FLOOR'"
+            (click)="setViewMode('BY_FLOOR')"
+            title="{{ 'TABLES.VIEW_MODE.BY_FLOOR' | transloco }}">
+            <ion-icon name="business-outline"></ion-icon>
+            <span>{{ 'TABLES.VIEW_MODE.BY_FLOOR' | transloco }}</span>
+          </button>
+          <button
+            type="button"
+            class="view-toggle-btn"
+            [class.active]="viewMode === 'GRID'"
+            (click)="setViewMode('GRID')"
+            title="{{ 'TABLES.VIEW_MODE.GRID' | transloco }}">
+            <ion-icon name="grid-outline"></ion-icon>
+            <span>{{ 'TABLES.VIEW_MODE.GRID' | transloco }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content Area -->
+    @if (isLoading) {
+      <div class="loading-state">
+        <ion-spinner name="crescent"></ion-spinner>
+      </div>
+    } @else if (filteredTables.length === 0) {
+      <div class="empty-state-box">
+        <ion-icon name="restaurant-outline" class="empty-icon"></ion-icon>
+        <h3>{{ 'TABLES.EMPTY' | transloco }}</h3>
+        <p>{{ 'TABLES.EMPTY_SUB' | transloco }}</p>
+        <ion-button fill="outline" color="primary" (click)="resetFilters()" (keyup.enter)="resetFilters()">
+          <ion-icon slot="start" name="refresh-outline"></ion-icon>
+          {{ 'TABLES.FILTERS.RESET' | transloco }}
+        </ion-button>
+      </div>
+    } @else {
+      <!-- 1. GROUPED BY ZONE -->
+      @if (viewMode === 'BY_ZONE') {
+        @for (group of groupedByZone; track group.zoneName) {
+          <div class="section-group-container">
+            <div class="group-header">
+              <div class="group-title-row">
+                <ion-icon name="layers-outline" class="group-icon"></ion-icon>
+                <h3 class="group-title">{{ group.zoneName }}</h3>
+                @if (group.etageLabel) {
+                  <span class="floor-badge">{{ group.etageLabel }}</span>
+                }
+              </div>
+              <div class="group-meta">
+                <span class="meta-pill count">{{ group.tables.length }} tables</span>
+                <span class="meta-pill free">{{ group.freeCount }} libres</span>
+                <span class="meta-pill occupied">{{ group.occupiedCount }} occupées</span>
+              </div>
+            </div>
+
+            <div class="tables-grid">
+              @for (table of group.tables; track table.id) {
+                <ng-container *ngTemplateOutlet="tableCardTpl; context: { $implicit: table }"></ng-container>
+              }
+            </div>
+          </div>
         }
-      </ion-card-content>
-    </ion-card>
+      }
+
+      <!-- 2. GROUPED BY FLOOR -->
+      @else if (viewMode === 'BY_FLOOR') {
+        @for (group of groupedByFloor; track group.etageCode) {
+          <div class="section-group-container">
+            <div class="group-header">
+              <div class="group-title-row">
+                <ion-icon name="business-outline" class="group-icon"></ion-icon>
+                <h3 class="group-title">{{ group.etageLabel }}</h3>
+              </div>
+              <div class="group-meta">
+                <span class="meta-pill count">{{ group.tables.length }} tables</span>
+                <span class="meta-pill free">{{ group.freeCount }} libres</span>
+                <span class="meta-pill occupied">{{ group.occupiedCount }} occupées</span>
+              </div>
+            </div>
+
+            <div class="tables-grid">
+              @for (table of group.tables; track table.id) {
+                <ng-container *ngTemplateOutlet="tableCardTpl; context: { $implicit: table }"></ng-container>
+              }
+            </div>
+          </div>
+        }
+      }
+
+      <!-- 3. FLAT GRID -->
+      @else {
+        <div class="tables-grid">
+          @for (table of filteredTables; track table.id) {
+            <ng-container *ngTemplateOutlet="tableCardTpl; context: { $implicit: table }"></ng-container>
+          }
+        </div>
+      }
+    }
   </div>
+
+  <!-- Reusable Table Card Template -->
+  <ng-template #tableCardTpl let-table>
+    <div class="modern-table-card" [class.occupied]="table.occupee" [class.free]="!table.occupee">
+      <div class="card-top-bar">
+        <div class="table-ident">
+          <h2 class="table-number">Table {{ table.numero }}</h2>
+          <div class="table-location">
+            <span class="zone-name">{{ table.zone }}</span>
+            @if (getEtageLabelForZone(table.zone); as etageLabel) {
+              <span class="location-dot">•</span>
+              <span class="etage-name">{{ etageLabel }}</span>
+            }
+          </div>
+        </div>
+
+        <button
+          type="button"
+          class="status-toggle-badge"
+          [class.occupied]="table.occupee"
+          [class.free]="!table.occupee"
+          (click)="onToggleStatus(table, $event)"
+          title="{{ (table.occupee ? 'TABLES.CARD.FREE_UP' : 'TABLES.CARD.OCCUPY') | transloco }}">
+          <ion-icon [name]="table.occupee ? 'close-circle' : 'checkmark-circle'"></ion-icon>
+          <span>{{ (table.occupee ? 'TABLES.CARD.OCCUPIED' : 'TABLES.CARD.FREE') | transloco }}</span>
+        </button>
+      </div>
+
+      <div class="card-mid-section">
+        <div class="capacity-info">
+          <ion-icon name="people" class="capacity-icon"></ion-icon>
+          <span>{{ 'TABLES.CARD.CAPACITY' | transloco : { count: table.capacite } }}</span>
+        </div>
+      </div>
+
+      <div class="card-footer-actions">
+        <ion-button fill="outline" color="primary" size="small" class="card-btn" (click)="onView(table)" (keyup.enter)="onView(table)" data-testid="table-view-btn">
+          <ion-icon slot="start" name="eye"></ion-icon>
+          {{ 'TABLES.CARD.DETAILS' | transloco }}
+        </ion-button>
+        @if (isAdmin$ | async) {
+          <ion-button fill="outline" color="medium" size="small" class="card-btn" (click)="onEdit(table)" (keyup.enter)="onEdit(table)" data-testid="table-edit-btn">
+            <ion-icon slot="start" name="create"></ion-icon>
+            {{ 'TABLES.CARD.EDIT' | transloco }}
+          </ion-button>
+        }
+      </div>
+    </div>
+  </ng-template>
 </ion-content>

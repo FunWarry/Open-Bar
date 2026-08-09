@@ -3,7 +3,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   ToastController, IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-  IonIcon, IonThumbnail
+  IonIcon
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { calendarOutline, cameraOutline, imageOutline } from 'ionicons/icons';
@@ -27,7 +27,7 @@ import { CocktailSaisonnaliteComponent } from '../cocktail-saisonnalite/cocktail
   standalone: true,
   imports: [
     IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-    IonIcon, IonThumbnail,
+    IonIcon,
     ReactiveFormsModule, TranslocoModule,
     InputFieldComponent, ActionButtonComponent,
     CocktailSaisonnaliteComponent

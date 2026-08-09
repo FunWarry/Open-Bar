@@ -283,7 +283,8 @@
     "DELETE_ERROR": "Unable to delete this ingredient"
   },
   "TABLES": {
-    "TITLE": "Tables",
+    "TITLE": "Tables Management",
+    "SUBTITLE": "Real-time supervision of tables, zones and floors",
     "ADD": "New Table",
     "EDIT": "Edit Table",
     "DELETE_CONFIRM": "Delete this table?",
@@ -299,11 +300,61 @@
     "OCCUPY": "Occupy",
     "RELEASE": "Release",
     "MERGE": "Merge Tables",
+    "MANAGE_ZONES": "Manage Zones & Floors",
+    "NEW_TABLE": "New Table",
     "ZONES": {
       "TERASSE": "Terrace",
       "INTERIEUR": "Indoor",
       "ETAGE": "Floor"
-    }
+    },
+    "STATS": {
+      "TOTAL": "Total Tables",
+      "AVAILABLE": "Available Tables",
+      "OCCUPIED": "Occupied Tables",
+      "RATE": "Occupancy Rate",
+      "CAPACITY": "Total Capacity",
+      "SEATS": "seats"
+    },
+    "FILTERS": {
+      "SEARCH_PLACEHOLDER": "Search a table, zone...",
+      "ALL_FLOORS": "All floors",
+      "ALL_ZONES": "All zones",
+      "ALL_STATUS": "All",
+      "STATUS_FREE": "Available",
+      "STATUS_OCCUPIED": "Occupied",
+      "FLOOR_LABEL": "Floor:",
+      "ZONE_LABEL": "Zone:",
+      "STATUS_LABEL": "Status:",
+      "SORT_LABEL": "Sort by:",
+      "RESET": "Reset filters"
+    },
+    "SORT": {
+      "NUMBER_ASC": "Table number (asc)",
+      "NUMBER_DESC": "Table number (desc)",
+      "CAPACITY_ASC": "Capacity (asc)",
+      "CAPACITY_DESC": "Capacity (desc)",
+      "STATUS_OCCUPIED": "Occupied first",
+      "STATUS_FREE": "Available first",
+      "ZONE_NAME": "Zone (A-Z)"
+    },
+    "VIEW_MODE": {
+      "GRID": "Grid",
+      "BY_ZONE": "By Zone",
+      "BY_FLOOR": "By Floor"
+    },
+    "CARD": {
+      "TABLE_NUM": "Table {{num}}",
+      "CAPACITY": "Capacity: {{count}} people",
+      "FREE": "Available",
+      "OCCUPIED": "Occupied",
+      "DETAILS": "Details",
+      "EDIT": "Edit",
+      "OCCUPY": "Occupy",
+      "FREE_UP": "Release"
+    },
+    "EMPTY": "No tables found",
+    "EMPTY_SUB": "No tables match your search or filter criteria.",
+    "NO_TABLES": "No tables registered in the establishment."
   },
   "COMMANDES": {
     "TITLE": "Order Tracking",

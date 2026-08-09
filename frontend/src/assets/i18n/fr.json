@@ -283,7 +283,8 @@
     "DELETE_ERROR": "Impossible de supprimer cet ingrédient"
   },
   "TABLES": {
-    "TITLE": "Tables",
+    "TITLE": "Gestion des Tables",
+    "SUBTITLE": "Supervision en temps réel des tables, zones et étages",
     "ADD": "Nouvelle table",
     "EDIT": "Modifier la table",
     "DELETE_CONFIRM": "Supprimer cette table ?",
@@ -299,11 +300,61 @@
     "OCCUPY": "Occuper",
     "RELEASE": "Libérer",
     "MERGE": "Fusionner les tables",
+    "MANAGE_ZONES": "Gérer les Zones & Étages",
+    "NEW_TABLE": "Nouvelle Table",
     "ZONES": {
       "TERASSE": "Terrasse",
       "INTERIEUR": "Intérieur",
       "ETAGE": "Étage"
-    }
+    },
+    "STATS": {
+      "TOTAL": "Total Tables",
+      "AVAILABLE": "Tables Libres",
+      "OCCUPIED": "Tables Occupées",
+      "RATE": "Taux d'occupation",
+      "CAPACITY": "Capacité totale",
+      "SEATS": "places assises"
+    },
+    "FILTERS": {
+      "SEARCH_PLACEHOLDER": "Rechercher une table, zone...",
+      "ALL_FLOORS": "Tous les étages",
+      "ALL_ZONES": "Toutes les zones",
+      "ALL_STATUS": "Toutes",
+      "STATUS_FREE": "Libres",
+      "STATUS_OCCUPIED": "Occupées",
+      "FLOOR_LABEL": "Étage :",
+      "ZONE_LABEL": "Zone :",
+      "STATUS_LABEL": "Statut :",
+      "SORT_LABEL": "Trier par :",
+      "RESET": "Réinitialiser les filtres"
+    },
+    "SORT": {
+      "NUMBER_ASC": "N° de table (croissant)",
+      "NUMBER_DESC": "N° de table (décroissant)",
+      "CAPACITY_ASC": "Capacité (croissante)",
+      "CAPACITY_DESC": "Capacité (décroissante)",
+      "STATUS_OCCUPIED": "Occupées en premier",
+      "STATUS_FREE": "Libres en premier",
+      "ZONE_NAME": "Zone (A-Z)"
+    },
+    "VIEW_MODE": {
+      "GRID": "Grille",
+      "BY_ZONE": "Par Zone",
+      "BY_FLOOR": "Par Étage"
+    },
+    "CARD": {
+      "TABLE_NUM": "Table {{num}}",
+      "CAPACITY": "Capacité : {{count}} personnes",
+      "FREE": "Libre",
+      "OCCUPIED": "Occupée",
+      "DETAILS": "Détails",
+      "EDIT": "Modifier",
+      "OCCUPY": "Occuper",
+      "FREE_UP": "Libérer"
+    },
+    "EMPTY": "Aucune table trouvée",
+    "EMPTY_SUB": "Aucune table ne correspond à vos critères de recherche ou de filtrage.",
+    "NO_TABLES": "Aucune table enregistrée dans l'établissement."
   },
   "COMMANDES": {
     "TITLE": "Suivi des Commandes",
