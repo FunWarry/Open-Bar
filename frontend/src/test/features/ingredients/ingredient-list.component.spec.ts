@@ -3,7 +3,7 @@ import { ComponentFixture } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { Router } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
-import { ToastController } from '@ionic/angular/standalone';
+import { ToastController, ModalController } from '@ionic/angular/standalone';
 import { Store } from '@ngrx/store';
 import { of, throwError, Subject } from 'rxjs';
 import { IngredientListComponent } from '../../../app/features/ingredients/ingredient-list/ingredient-list.component';
@@ -52,6 +52,13 @@ describe('IngredientListComponent', () => {
     storeSpy = jasmine.createSpyObj('Store', ['select', 'dispatch']);
     storeSpy.select.and.returnValue(of(false));
 
+    const modalSpy = {
+      present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+      onDidDismiss: jasmine.createSpy('onDidDismiss').and.returnValue(Promise.resolve({ role: 'saved', data: {} })),
+    };
+    const modalCtrlSpy = jasmine.createSpyObj('ModalController', ['create']);
+    modalCtrlSpy.create.and.returnValue(Promise.resolve(modalSpy as any));
+
     await TestBed.configureTestingModule({
       imports: [IngredientListComponent, IonicModule.forRoot(), RouterTestingModule, getTranslocoTestingModule()],
       providers: [
@@ -59,6 +66,7 @@ describe('IngredientListComponent', () => {
         { provide: IngredientService, useValue: serviceSpy },
         { provide: WebSocketService, useValue: wsSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
+        { provide: ModalController, useValue: modalCtrlSpy },
       ],
     }).compileComponents();
 
@@ -148,22 +156,20 @@ describe('IngredientListComponent', () => {
     expect(component.getStockColor(makeI(3, 'Normal', 20, 5))).toBe('success');
   });
 
-  it('onAdd() navigue vers /ingredients/new', () => {
-    spyOn(router, 'navigate');
+  it('openIngredientModal() ouvre le modal et recharge les ingredients sur role saved', fakeAsync(() => {
+    spyOn(component, 'charger');
+    component.openIngredientModal(mockIngredients[0]);
+    tick();
+    expect(component.charger).toHaveBeenCalled();
+  }));
+
+  it('onAdd() et onEdit() appellent openIngredientModal()', () => {
+    spyOn(component, 'openIngredientModal');
     component.onAdd();
-    expect(router.navigate).toHaveBeenCalledWith(['/ingredients/new']);
-  });
+    expect(component.openIngredientModal).toHaveBeenCalled();
 
-  it('onView() navigue vers /ingredients/:id', () => {
-    spyOn(router, 'navigate');
-    component.onView(mockIngredients[0]);
-    expect(router.navigate).toHaveBeenCalledWith(['/ingredients', 1]);
-  });
-
-  it('onEdit() navigue vers /ingredients/:id/edit', () => {
-    spyOn(router, 'navigate');
     component.onEdit(mockIngredients[0]);
-    expect(router.navigate).toHaveBeenCalledWith(['/ingredients', 1, 'edit']);
+    expect(component.openIngredientModal).toHaveBeenCalledWith(mockIngredients[0]);
   });
 
   it('trackById retourne l\'id de l\'ingrédient', () => {
@@ -192,8 +198,60 @@ describe('IngredientListComponent', () => {
     component.sortOption = 'STATUS_ALERT';
     expect(component.filteredIngredients[0].nom).toBe('Angostura'); // en alerte car 2 <= 5
 
+    component.sortOption = 'THRESHOLD_ASC';
+    expect(component.filteredIngredients.map(i => i.nom)).toEqual(['Angostura', 'Vodka', 'Menthe']);
+
+    component.sortOption = 'THRESHOLD_DESC';
+    expect(component.filteredIngredients.map(i => i.nom)).toEqual(['Menthe', 'Angostura', 'Vodka']);
+
     component.sortOption = 'CATEGORY';
-    expect(component.filteredIngredients.length).toBe(3);
+    expect(component.filteredIngredients).toHaveSize(3);
+  });
+
+  it('filtre par statut (NORMAL, ALERT, OUT_OF_STOCK)', () => {
+    component.ingredients = [
+      makeI(1, 'Vodka', 20, 5),
+      makeI(2, 'Angostura', 2, 5),
+      makeI(3, 'Menthe', 0, 5),
+    ];
+
+    component.setStatusFilter('ALL');
+    expect(component.filteredIngredients).toHaveSize(3);
+
+    component.setStatusFilter('NORMAL');
+    expect(component.filteredIngredients).toHaveSize(1);
+    expect(component.filteredIngredients[0].nom).toBe('Vodka');
+
+    component.setStatusFilter('ALERT');
+    expect(component.filteredIngredients).toHaveSize(1);
+    expect(component.filteredIngredients[0].nom).toBe('Angostura');
+
+    component.setStatusFilter('OUT_OF_STOCK');
+    expect(component.filteredIngredients).toHaveSize(1);
+    expect(component.filteredIngredients[0].nom).toBe('Menthe');
+
+    expect(component.normalCount).toBe(1);
+    expect(component.alertCount).toBe(1);
+    expect(component.outOfStockCount).toBe(1);
+  });
+
+  it('filtre par unite de mesure', () => {
+    component.ingredients = [
+      { id: 1, nom: 'Vodka', uniteMesure: 'cl', quantiteStock: 10, seuilAlerte: 2, createdAt: '', updatedAt: '' },
+      { id: 2, nom: 'Citron', uniteMesure: 'pièce', quantiteStock: 5, seuilAlerte: 2, createdAt: '', updatedAt: '' },
+    ];
+
+    component.onUnitChange({ target: { value: 'pièce' } } as unknown as Event);
+    expect(component.filteredIngredients).toHaveSize(1);
+    expect(component.filteredIngredients[0].nom).toBe('Citron');
+  });
+
+  it('met a jour la categorie et le viewMode', () => {
+    component.onCategoryChange({ target: { value: 'SPIRITS' } } as unknown as Event);
+    expect(component.selectedCategory).toBe('SPIRITS');
+
+    component.setViewMode('list');
+    expect(component.viewMode).toBe('list');
   });
 
   it('onSortChange() met a jour sortOption', () => {

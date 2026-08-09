@@ -9,12 +9,13 @@
   margin: 0 auto;
 }
 
+/* ── Header Card ────────────────────────────────────────── */
 .stock-header-card {
-  --background: var(--background-surface-1);
   background: var(--background-surface-1);
   border: 1px solid var(--border-medium);
   border-radius: 14px;
-  margin-bottom: 16px;
+  padding: 16px 20px;
+  margin-bottom: 14px;
   box-shadow: var(--elev-1);
 }
 
@@ -29,12 +30,28 @@
 .title-with-badge {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  flex-wrap: wrap;
+}
 
-  ion-card-title {
-    color: var(--text-primary);
-    font-weight: 700;
-  }
+.page-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.count-pill {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(108, 127, 232, 0.15);
+  color: var(--primary);
+  border: 1px solid rgba(108, 127, 232, 0.3);
+  border-radius: 20px;
+  padding: 3px 10px;
+  font-size: 0.775rem;
+  font-weight: 700;
 }
 
 .live-stream-badge {
@@ -45,7 +62,7 @@
   color: var(--semantic-success);
   border: 1px solid rgba(16, 185, 129, 0.35);
   border-radius: 20px;
-  padding: 4px 10px;
+  padding: 3px 10px;
   font-size: 0.75rem;
   font-weight: 700;
 }
@@ -60,34 +77,43 @@
   100% { opacity: 1; }
 }
 
-.header-actions {
+.header-buttons {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 }
 
-.view-mode-segment {
-  --background: var(--background-surface-2);
+.header-action-btn {
+  --border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  height: 38px;
+}
+
+/* ── Controls & Filter Bar ──────────────────────────────── */
+.controls-card {
+  background: var(--background-surface-1);
   border: 1px solid var(--border-medium);
-  border-radius: 8px;
-  width: auto;
-}
-
-.filter-section {
+  border-radius: 14px;
+  padding: 14px 16px;
+  box-shadow: var(--elev-1);
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding-top: 0;
+  margin-bottom: 16px;
 }
 
-.search-and-sort-row {
+.controls-row-top {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 12px;
   flex-wrap: wrap;
+  gap: 12px;
 }
 
-.stock-searchbar {
+.custom-searchbar {
+  flex: 1;
+  min-width: 240px;
   --background: var(--background-surface-2);
   --color: var(--text-primary);
   --placeholder-color: var(--text-muted);
@@ -95,8 +121,88 @@
   border: 1px solid var(--border-medium);
   border-radius: 10px;
   padding: 0;
-  flex: 1;
-  min-width: 260px;
+}
+
+.status-segment-wrapper {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.filter-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: var(--background-surface-3, rgba(255, 255, 255, 0.08));
+    color: var(--text-primary);
+  }
+
+  &.active {
+    background: var(--primary);
+    color: #ffffff;
+    border-color: var(--primary);
+    box-shadow: 0 4px 12px rgba(108, 127, 232, 0.3);
+  }
+
+  &.active.normal {
+    background: var(--semantic-success);
+    color: #ffffff;
+    border-color: var(--semantic-success);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  }
+
+  &.active.alert {
+    background: var(--semantic-warning);
+    color: #0f172a;
+    border-color: var(--semantic-warning);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+  }
+
+  &.active.out-of-stock {
+    background: var(--semantic-danger);
+    color: #ffffff;
+    border-color: var(--semantic-danger);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+  }
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+
+  &.normal { background: var(--semantic-success); }
+  &.alert { background: var(--semantic-warning); }
+  &.out-of-stock { background: var(--semantic-danger); }
+}
+
+.controls-row-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  border-top: 1px solid var(--border-medium);
+  padding-top: 12px;
+}
+
+.filter-dropdowns {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .filter-select-box {
@@ -106,15 +212,15 @@
   gap: 8px;
   background: var(--background-surface-2);
   border: 1px solid var(--border-medium);
-  border-radius: 10px;
-  padding: 4px 28px 4px 12px;
-  height: 42px;
+  border-radius: 8px;
+  padding: 4px 28px 4px 10px;
+  height: 36px;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 
   &::after {
     content: '';
     position: absolute;
-    right: 12px;
+    right: 10px;
     top: 50%;
     transform: translateY(-50%);
     width: 8px;
@@ -138,14 +244,14 @@
 .filter-label {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.8rem;
+  gap: 4px;
+  font-size: 0.775rem;
   font-weight: 600;
   color: var(--text-muted);
   white-space: nowrap;
 
   ion-icon {
-    font-size: 1.05rem;
+    font-size: 1rem;
     color: var(--primary);
   }
 }
@@ -158,11 +264,12 @@
   outline: none !important;
   box-shadow: none !important;
   background-color: transparent !important;
-  color: var(--text-primary);
-  font-size: 0.85rem;
+  color: var(--text-primary) !important;
+  font-size: 0.825rem;
   font-weight: 600;
   cursor: pointer;
-  padding: 0 4px;
+  padding: 0;
+  margin: 0;
 
   option {
     background-color: var(--background-surface-1);
@@ -170,12 +277,45 @@
   }
 }
 
-.category-segment {
-  --background: var(--background-surface-2);
+.view-mode-group {
+  display: flex;
+  background: var(--background-surface-2);
   border: 1px solid var(--border-medium);
   border-radius: 8px;
+  padding: 2px;
+  gap: 2px;
 }
 
+.view-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  ion-icon {
+    font-size: 0.95rem;
+  }
+
+  &:hover {
+    color: var(--text-primary);
+  }
+
+  &.active {
+    background: var(--primary);
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(108, 127, 232, 0.35);
+  }
+}
+
+/* ── Stock Grid & Cards ─────────────────────────────────── */
 .stock-grid {
   padding: 0;
 }
@@ -191,9 +331,12 @@
   flex-direction: column;
   justify-content: space-between;
   box-shadow: var(--elev-1);
+  cursor: pointer;
+  outline: none;
   transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 
-  &:hover {
+  &:hover,
+  &:focus-visible {
     transform: translateY(-2px);
     border-color: var(--primary);
     box-shadow: var(--elev-2);
@@ -278,6 +421,7 @@
   padding-top: 6px;
 }
 
+/* ── Stock List View ────────────────────────────────────── */
 .stock-list-card {
   --background: var(--background-surface-1);
   background: var(--background-surface-1);
@@ -290,6 +434,12 @@
   --background: transparent;
   --color: var(--text-primary);
   border-bottom: 1px solid var(--border-medium);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    --background: var(--background-surface-2);
+  }
 
   ion-label h3 {
     color: var(--text-primary);

@@ -108,8 +108,16 @@ public class NotificationService {
             return nomIngredient;
         }
 
+        public String getNom() {
+            return getNomIngredient();
+        }
+
         public double getQuantiteRestante() {
             return quantiteRestante;
+        }
+
+        public double getQuantiteActuelle() {
+            return getQuantiteRestante();
         }
     }
 }

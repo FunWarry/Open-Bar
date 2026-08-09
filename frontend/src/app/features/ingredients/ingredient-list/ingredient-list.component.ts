@@ -1,20 +1,22 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { Observable, Subject } from 'rxjs';
+import { Observable, Subject, firstValueFrom } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
 import { selectIsAdmin, selectCanEditIngredient } from '../../../core/store/auth.selectors';
 import {
-  IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardContent,
+  IonContent, IonCard, IonCardHeader, IonCardContent,
   IonList, IonItem, IonLabel, IonBadge, IonIcon, IonButton, IonButtons,
   IonRefresher, IonRefresherContent, IonSpinner, IonSearchbar,
-  IonSegment, IonSegmentButton, IonGrid, IonRow, IonCol, IonProgressBar,
-  ToastController,
+  IonGrid, IonRow, IonCol, IonProgressBar,
+  ToastController, ModalController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
   add, eye, create, trash, addCircle, removeCircle,
-  gridOutline, listOutline, pulseOutline, search, swapVerticalOutline
+  gridOutline, listOutline, pulseOutline, search, swapVerticalOutline,
+  scaleOutline, layersOutline, checkmarkCircleOutline, closeCircleOutline,
+  alertCircleOutline
 } from 'ionicons/icons';
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -23,12 +25,23 @@ import { IngredientService } from '../../../core/services/ingredient.service';
 import { WebSocketService } from '../../../core/services/websocket.service';
 import { Ingredient } from '../../../core/models/ingredient.model';
 import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
+import { IngredientFormComponent } from '../ingredient-form/ingredient-form.component';
 
-export type StockSortOption = 'NAME_ASC' | 'NAME_DESC' | 'STOCK_ASC' | 'STOCK_DESC' | 'STATUS_ALERT' | 'CATEGORY';
+export type StockSortOption =
+  | 'NAME_ASC'
+  | 'NAME_DESC'
+  | 'STOCK_ASC'
+  | 'STOCK_DESC'
+  | 'THRESHOLD_ASC'
+  | 'THRESHOLD_DESC'
+  | 'STATUS_ALERT'
+  | 'CATEGORY';
+
+export type StockStatusFilter = 'ALL' | 'NORMAL' | 'ALERT' | 'OUT_OF_STOCK';
 
 /**
  * Global Barman & Manager Stock Management View component in OpenBar (Figma 488:3566).
- * Features visual stock gauges, alert thresholds, category and text filters,
+ * Features visual stock gauges, alert thresholds, multi-criteria filters (status, category, unit, sorting),
  * quick stock adjustment (+/-), view mode toggles (grid/list), and live WebSocket stream updates.
  */
 @Component({
@@ -38,19 +51,23 @@ export type StockSortOption = 'NAME_ASC' | 'NAME_DESC' | 'STOCK_ASC' | 'STOCK_DE
   standalone: true,
   imports: [
     CommonModule, FormsModule, AsyncPipe, TranslocoModule,
-    IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardContent,
+    IonContent, IonCard, IonCardHeader, IonCardContent,
     IonList, IonItem, IonLabel, IonBadge, IonIcon, IonButton, IonButtons,
     IonRefresher, IonRefresherContent, IonSpinner, IonSearchbar,
-    IonSegment, IonSegmentButton, IonGrid, IonRow, IonCol, IonProgressBar,
+    IonGrid, IonRow, IonCol, IonProgressBar,
   ],
 })
 export class IngredientListComponent implements OnInit, OnDestroy {
   ingredients: Ingredient[] = [];
   isLoading = false;
   searchQuery = '';
+  selectedStatus: StockStatusFilter = 'ALL';
   selectedCategory = 'ALL';
+  selectedUnit = 'ALL';
   sortOption: StockSortOption = 'NAME_ASC';
   viewMode: 'grid' | 'list' = 'grid';
+
+  readonly availableUnits: string[] = ['cl', 'ml', 'g', 'kg', 'pièce', 'L'];
 
   isAdmin$: Observable<boolean>;
   canEdit$: Observable<boolean>;
@@ -63,13 +80,16 @@ export class IngredientListComponent implements OnInit, OnDestroy {
     private readonly ingredientService: IngredientService,
     private readonly webSocketService: WebSocketService,
     private readonly toastCtrl: ToastController,
+    private readonly modalCtrl: ModalController,
     private readonly transloco: TranslocoService,
   ) {
     this.isAdmin$ = this.store.select(selectIsAdmin);
     this.canEdit$ = this.store.select(selectCanEditIngredient);
     addIcons({
       add, eye, create, trash, addCircle, removeCircle,
-      gridOutline, listOutline, pulseOutline, search, swapVerticalOutline
+      gridOutline, listOutline, pulseOutline, search, swapVerticalOutline,
+      scaleOutline, layersOutline, checkmarkCircleOutline, closeCircleOutline,
+      alertCircleOutline
     });
   }
 
@@ -121,25 +141,67 @@ export class IngredientListComponent implements OnInit, OnDestroy {
       });
   }
 
+  setStatusFilter(status: StockStatusFilter): void {
+    this.selectedStatus = status;
+  }
+
+  onCategoryChange(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    this.selectedCategory = select.value;
+  }
+
+  onUnitChange(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    this.selectedUnit = select.value;
+  }
+
   onSortChange(event: Event): void {
     const select = event.target as HTMLSelectElement;
     this.sortOption = select.value as StockSortOption;
   }
 
+  setViewMode(mode: 'grid' | 'list'): void {
+    this.viewMode = mode;
+  }
+
+  get normalCount(): number {
+    return this.ingredients.filter(i => i.quantiteStock > i.seuilAlerte).length;
+  }
+
+  get alertCount(): number {
+    return this.ingredients.filter(i => i.quantiteStock > 0 && i.quantiteStock <= i.seuilAlerte).length;
+  }
+
+  get outOfStockCount(): number {
+    return this.ingredients.filter(i => i.quantiteStock <= 0).length;
+  }
+
   /**
-   * Returns filtered and sorted list of ingredients based on search query, category and sort option.
+   * Returns filtered and sorted list of ingredients based on search query, status, category, unit and sort option.
    */
   get filteredIngredients(): Ingredient[] {
     const query = this.searchQuery.toLowerCase().trim();
     const result = this.ingredients.filter(item => {
       const matchesSearch = !query ||
         item.nom.toLowerCase().includes(query) ||
+        (item.uniteMesure?.toLowerCase()?.includes(query) ?? false) ||
         (item.fournisseur?.toLowerCase()?.includes(query) ?? false);
 
       const category = this.getIngredientCategory(item.nom);
       const matchesCategory = this.selectedCategory === 'ALL' || category === this.selectedCategory;
 
-      return matchesSearch && matchesCategory;
+      const matchesUnit = this.selectedUnit === 'ALL' || item.uniteMesure === this.selectedUnit;
+
+      let matchesStatus = true;
+      if (this.selectedStatus === 'NORMAL') {
+        matchesStatus = item.quantiteStock > item.seuilAlerte;
+      } else if (this.selectedStatus === 'ALERT') {
+        matchesStatus = item.quantiteStock > 0 && item.quantiteStock <= item.seuilAlerte;
+      } else if (this.selectedStatus === 'OUT_OF_STOCK') {
+        matchesStatus = item.quantiteStock <= 0;
+      }
+
+      return matchesSearch && matchesCategory && matchesUnit && matchesStatus;
     });
 
     result.sort((a, b) => {
@@ -152,9 +214,13 @@ export class IngredientListComponent implements OnInit, OnDestroy {
           return a.quantiteStock - b.quantiteStock || (a.nom || '').localeCompare(b.nom || '');
         case 'STOCK_DESC':
           return b.quantiteStock - a.quantiteStock || (a.nom || '').localeCompare(b.nom || '');
+        case 'THRESHOLD_ASC':
+          return a.seuilAlerte - b.seuilAlerte || (a.nom || '').localeCompare(b.nom || '');
+        case 'THRESHOLD_DESC':
+          return b.seuilAlerte - a.seuilAlerte || (a.nom || '').localeCompare(b.nom || '');
         case 'STATUS_ALERT': {
-          const aAlert = this.isEnAlerte(a) ? 1 : 0;
-          const bAlert = this.isEnAlerte(b) ? 1 : 0;
+          const aAlert = this.getStockAlertScore(a);
+          const bAlert = this.getStockAlertScore(b);
           return bAlert - aAlert || a.quantiteStock - b.quantiteStock;
         }
         case 'CATEGORY': {
@@ -168,6 +234,16 @@ export class IngredientListComponent implements OnInit, OnDestroy {
     });
 
     return result;
+  }
+
+  /**
+   * Returns a numerical score representing the severity of the ingredient stock alert.
+   * @param item Target ingredient
+   */
+  private getStockAlertScore(item: Ingredient): number {
+    if (item.quantiteStock <= 0) return 2;
+    if (this.isEnAlerte(item)) return 1;
+    return 0;
   }
 
   /**
@@ -294,16 +370,39 @@ export class IngredientListComponent implements OnInit, OnDestroy {
       });
   }
 
-  onAdd(): void {
-    this.router.navigate(['/ingredients/new']);
+  /**
+   * Opens the ingredient form modal for creating, viewing, or editing an ingredient.
+   * @param ingredient Optional ingredient to view or edit
+   */
+  async openIngredientModal(ingredient?: Ingredient): Promise<void> {
+    let canEdit = true;
+    try {
+      canEdit = await firstValueFrom(this.canEdit$);
+    } catch {
+      canEdit = true;
+    }
+
+    const modal = await this.modalCtrl.create({
+      component: IngredientFormComponent,
+      componentProps: {
+        ingredient: ingredient ?? null,
+        canEdit,
+      },
+    });
+
+    await modal.present();
+    const { role } = await modal.onDidDismiss();
+    if (role === 'saved') {
+      this.charger();
+    }
   }
 
-  onView(i: Ingredient): void {
-    this.router.navigate(['/ingredients', i.id]);
+  onAdd(): void {
+    this.openIngredientModal();
   }
 
   onEdit(i: Ingredient): void {
-    this.router.navigate(['/ingredients', i.id, 'edit']);
+    this.openIngredientModal(i);
   }
 
   onRefresh(event: any): void {

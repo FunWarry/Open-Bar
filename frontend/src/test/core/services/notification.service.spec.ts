@@ -160,8 +160,21 @@ describe('NotificationService', () => {
     wsStub.emit('/topic/stock/alerte', { nom: 'Citron', quantiteActuelle: 0 });
     tick();
 
-    expect(alerts[0].message).toContain('Critical Stock');
+    expect(alerts[0].message).toContain('Stock');
+    expect(alerts[0].message).toContain('Citron');
     expect(alerts[0].message).toContain('0');
+  }));
+
+  it('onStockAlert() supporte les formats alternatifs nomIngredient et quantiteRestante', fakeAsync(() => {
+    const alerts: AppNotification[] = [];
+    service.onStockAlert().subscribe(a => alerts.push(a));
+
+    wsStub.emit('/topic/stock/alerte', { nomIngredient: 'Menthe', quantiteRestante: 4 });
+    tick();
+
+    expect(alerts).toHaveSize(1);
+    expect(alerts[0].message).toContain('Menthe');
+    expect(alerts[0].message).toContain('4');
   }));
 
   // -------------------------------------------------------------------------

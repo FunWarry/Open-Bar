@@ -44,7 +44,7 @@ export const routes: Routes = [
   },
   {
     path: 'ingredients/:id',
-    loadComponent: () => import('./features/ingredients/ingredient-detail/ingredient-detail.component').then(m => m.IngredientDetailComponent),
+    loadComponent: () => import('./features/ingredients/ingredient-form/ingredient-form.component').then(m => m.IngredientFormComponent),
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['ADMIN', 'MANAGER', 'BARMAN'] }
   },

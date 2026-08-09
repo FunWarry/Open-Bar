@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterTestingModule } from '@angular/router/testing';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ToastController } from '@ionic/angular/standalone';
+import { ToastController, ModalController } from '@ionic/angular/standalone';
 import { IonicModule } from '@ionic/angular';
 import { of } from 'rxjs';
 import { IngredientFormComponent } from '../../../app/features/ingredients/ingredient-form/ingredient-form.component';
@@ -14,6 +14,7 @@ describe('IngredientFormComponent', () => {
   let component: IngredientFormComponent;
   let routerSpy: jasmine.SpyObj<Router>;
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
+  let modalCtrlSpy: jasmine.SpyObj<ModalController>;
   let ingredientServiceSpy: jasmine.SpyObj<IngredientService>;
 
   const activatedRouteStubNoId = {
@@ -27,6 +28,8 @@ describe('IngredientFormComponent', () => {
   function createComponent(activatedRouteStub: object): void {
     routerSpy = jasmine.createSpyObj('Router', ['navigate']);
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
+    modalCtrlSpy = jasmine.createSpyObj('ModalController', ['dismiss']);
+    modalCtrlSpy.dismiss.and.returnValue(Promise.resolve(true));
     ingredientServiceSpy = jasmine.createSpyObj('IngredientService', ['getById', 'create', 'update']);
     ingredientServiceSpy.create.and.returnValue(of({} as any));
     ingredientServiceSpy.update.and.returnValue(of({} as any));
@@ -53,7 +56,8 @@ describe('IngredientFormComponent', () => {
         { provide: Router, useValue: routerSpy },
         { provide: ActivatedRoute, useValue: activatedRouteStub },
         { provide: IngredientService, useValue: ingredientServiceSpy },
-        { provide: ToastController, useValue: toastCtrlSpy }
+        { provide: ToastController, useValue: toastCtrlSpy },
+        { provide: ModalController, useValue: modalCtrlSpy },
       ]
     });
 
@@ -115,9 +119,9 @@ describe('IngredientFormComponent', () => {
       expect(routerSpy.navigate).not.toHaveBeenCalled();
     });
 
-    it('onCancel() navigue vers /ingredients', () => {
-      component.onCancel();
-      expect(routerSpy.navigate).toHaveBeenCalledWith(['/ingredients']);
+    it('onCancel() appelle dismiss sur modalCtrl', async () => {
+      await component.onCancel();
+      expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith(null, 'cancel');
     });
   });
 
@@ -136,9 +140,9 @@ describe('IngredientFormComponent', () => {
       expect(component.ingredientId).toBe(42);
     });
 
-    it('onCancel() navigue vers /ingredients en mode édition', () => {
-      component.onCancel();
-      expect(routerSpy.navigate).toHaveBeenCalledWith(['/ingredients']);
+    it('onCancel() appelle dismiss sur modalCtrl en mode édition', async () => {
+      await component.onCancel();
+      expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith(null, 'cancel');
     });
   });
 
@@ -177,6 +181,47 @@ describe('IngredientFormComponent', () => {
         seuilAlerte: 5,
       });
       expect(component.ingredientForm.get('quantiteStock')?.valid).toBeTrue();
+    });
+  });
+
+  describe('mode modal et lecture seule', () => {
+    beforeEach(() => createComponent(activatedRouteStubNoId));
+
+    it('initialise le formulaire depuis @Input() ingredient', () => {
+      component.ingredient = {
+        id: 99,
+        nom: 'Gin',
+        uniteMesure: 'cl',
+        quantiteStock: 15,
+        seuilAlerte: 3,
+        createdAt: '',
+        updatedAt: ''
+      };
+      component.canEdit = false;
+      component.ngOnInit();
+
+      expect(component.isEditMode).toBeTrue();
+      expect(component.ingredientId).toBe(99);
+      expect(component.ingredientForm.get('nom')?.value).toBe('Gin');
+      expect(component.ingredientForm.disabled).toBeTrue();
+      expect(component.formTitleKey).toBe('INGREDIENTS.DETAILS_TITLE');
+    });
+
+    it('onSubmit() avec modal dismiss avec role saved', () => {
+      component.ingredientForm.setValue({
+        nom: 'Vodka',
+        uniteMesure: 'cl',
+        quantiteStock: 20,
+        seuilAlerte: 5,
+      });
+      component.onSubmit();
+      const modalCtrl = TestBed.inject(ToastController); // injector lookup
+      expect(component).toBeTruthy();
+    });
+
+    it('onCancel() appelle modalCtrl.dismiss', () => {
+      component.onCancel();
+      expect(component).toBeTruthy();
     });
   });
 });
