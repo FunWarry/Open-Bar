@@ -226,23 +226,30 @@
 }
 
 .figma-edit-btn {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border-radius: 8px;
-  background: var(--background-surface-2);
-  border: 1px solid var(--border-medium);
-  color: var(--text-secondary);
+  background: rgba(108, 127, 232, 0.15);
+  border: 1.5px solid var(--primary);
+  color: var(--primary);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 1rem;
-  transition: all 0.15s ease;
+  font-size: 1.15rem;
+  box-shadow: 0 1px 4px rgba(108, 127, 232, 0.2);
+  transition: all 0.2s ease;
 
   &:hover {
     background: var(--primary);
     color: #ffffff;
     border-color: var(--primary);
+    box-shadow: 0 4px 12px rgba(108, 127, 232, 0.4);
+    transform: translateY(-1px) scale(1.05);
+  }
+
+  &:active {
+    transform: translateY(0) scale(0.98);
   }
 }
 
