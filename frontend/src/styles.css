@@ -820,3 +820,69 @@ body:not(.modal-open) .app-layout {
   filter: none;
   transition: filter 0.3s ease;
 }
+
+/* ── Universal Dropdown & Select Reset (OpenBar Design System) ────── */
+select,
+.native-select,
+.custom-select,
+.form-select {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background-color: transparent !important;
+  color: var(--text-primary) !important;
+  font-family: var(--font, 'Inter', sans-serif) !important;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+}
+
+select::-ms-expand {
+  display: none !important;
+}
+
+select:focus,
+select:focus-visible {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+select option {
+  background-color: var(--background-surface-1) !important;
+  color: var(--text-primary) !important;
+  font-family: var(--font, 'Inter', sans-serif);
+  padding: 8px 12px;
+}
+
+select option:disabled {
+  color: var(--text-muted) !important;
+}
+
+/* Global styling for ion-select */
+ion-select {
+  --highlight-color-focused: transparent;
+  --border-width: 0;
+  --inner-border-width: 0;
+  --color: var(--text-primary);
+  --placeholder-color: var(--text-muted);
+  --placeholder-opacity: 1;
+  font-family: var(--font, 'Inter', sans-serif);
+}
+
+ion-select::part(container) {
+  border: none;
+  outline: none;
+}
+
+ion-select::part(icon) {
+  color: var(--text-secondary);
+  opacity: 0.8;
+  font-size: 16px;
+}

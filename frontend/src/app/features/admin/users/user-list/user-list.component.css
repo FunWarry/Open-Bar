@@ -100,14 +100,30 @@
       align-items: center;
       gap: 8px;
       font-size: 0.9rem;
-      color: var(--ion-color-medium, #92949c);
+      color: var(--text-secondary, #92949c);
 
       select {
-        padding: 4px 8px;
-        border-radius: 6px;
-        background: var(--surface-2, #2c2c34);
-        color: var(--ion-color-dark, #fff);
-        border: 1px solid var(--ion-color-step-200, #3c3c44);
+        appearance: none !important;
+        -webkit-appearance: none !important;
+        -moz-appearance: none !important;
+        padding: 4px 26px 4px 10px !important;
+        border-radius: 8px;
+        background-color: var(--background-surface-2, #21263f) !important;
+        color: var(--text-primary, #fff) !important;
+        border: 1px solid var(--border-medium, #2e3450) !important;
+        background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6' fill='none'%3e%3cpath d='M1 1L5 5L9 1' stroke='%237E87A8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right 8px center;
+        background-size: 8px 5px;
+        font-size: 0.875rem;
+        cursor: pointer;
+        outline: none;
+        transition: border-color 0.15s ease;
+
+        &:focus {
+          border-color: var(--primary, #6c7fe8) !important;
+          box-shadow: 0 0 0 2px rgba(108, 127, 232, 0.2) !important;
+        }
       }
     }
 
