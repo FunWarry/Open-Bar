@@ -53,11 +53,12 @@ describe('ShiftService', () => {
       expect(shifts).toEqual([mockShift]);
     });
 
-    const req = httpMock.expectOne(r => r.url === `${environment.apiUrl}/shifts/week` && r.params.get('debut') === '2026-08-10' && r.params.get('fin') === '2026-08-16');
+    const req = httpMock.expectOne((r) => r.url.endsWith('/shifts/week'));
     expect(req.request.method).toBe('GET');
+    expect(req.request.params.get('debut')).toBe('2026-08-10');
+    expect(req.request.params.get('fin')).toBe('2026-08-16');
     req.flush([mockShift]);
   });
-
 
   it('createShift() should POST /api/shifts', () => {
     const requestPayload: EmployeeShiftRequest = {
@@ -77,5 +78,33 @@ describe('ShiftService', () => {
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual(requestPayload);
     req.flush(mockShift);
+  });
+
+  it('updateShift() should PUT /api/shifts/:id', () => {
+    const requestPayload: EmployeeShiftRequest = {
+      userId: 10,
+      dateShift: '2026-08-10',
+      typeShift: 'SOIR',
+      typePoste: 'SERVEUR',
+      heureDebut: '17:00',
+      heureFin: '01:00'
+    };
+
+    service.updateShift(1, requestPayload).subscribe(shift => {
+      expect(shift).toEqual(mockShift);
+    });
+
+    const req = httpMock.expectOne(`${environment.apiUrl}/shifts/1`);
+    expect(req.request.method).toBe('PUT');
+    expect(req.request.body).toEqual(requestPayload);
+    req.flush(mockShift);
+  });
+
+  it('deleteShift() should DELETE /api/shifts/:id', () => {
+    service.deleteShift(1).subscribe();
+
+    const req = httpMock.expectOne(`${environment.apiUrl}/shifts/1`);
+    expect(req.request.method).toBe('DELETE');
+    req.flush(null);
   });
 });
