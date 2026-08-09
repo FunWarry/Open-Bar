@@ -1,6 +1,6 @@
 # OpenBar — État des Features & Roadmap
 
-> Dernière mise à jour : 8 août 2026 — PR #271 : Ouverture détails commande par clic sur carte, modal avec actions et popup de confirmation (#270)
+> Dernière mise à jour : 9 août 2026 — PR #273 : Modal d'édition ingrédient au clic sur carte, suppression vue détail, filtres multi-critères et correction payload notification stock (#272)
 
 ## Tableau des Features
 
@@ -32,6 +32,7 @@
 | Vue Grille Cocktails & Verres 3D (#242) | ✅ | ✅ | ✅ | Cartes responsives, photos cocktails, verres 3D & auto-création BDD PostgreSQL |
 | Filtrage cocktails par allergène (#243) | — | ✅ | ✅ | Détection auto d'allergènes, filtres par exclusion et badges visuels |
 | Ingrédients CRUD & Routage (/ingredients) (#219) | ✅ | ✅ | ✅ | Endpoint `GET /api/ingredients`, routes `/ingredients` (+ new/detail/edit), guards & tests |
+| Modal édition ingrédient au clic carte, filtres multi-critères, fix notifs stock (#272) | ✅ | ✅ | ✅ | IngredientFormComponent en modal, suppression vue détail obsolète, filtres statut/catégorie/unité/tri, fix payload WS stock |
 | Vue Barman Ingrédients Mode Grille (#231) | — | ✅ | ✅ | Affichage en cartes responsives des stocks d'ingrédients barman |
 | Barman Stock Side Panel Alignement Figma (#238) | — | ✅ | ✅ | Ajustement visuel complet du panneau de stock barman |
 | Tables CRUD & Alignement Figma | ✅ | ✅ | ✅ | `TableListComponent` et `TableFormComponent` alignés Figma, chargement dynamique des zones via `ZoneService`, i18n FR/EN |
@@ -113,6 +114,7 @@
 
 | PR / Issue | Description |
 |------------|-------------|
+| #273 (#272) | Modal d'édition ingrédient au clic sur carte, suppression vue détail et correction notifs stock : Fix du payload WebSocket d'alerte stock dans `NotificationService.java` (alias getters `getNom`/`getQuantiteActuelle`) et `notification.service.ts` (fallback champs alternatifs). Fusion de la page `/ingredients/:id` dans `IngredientFormComponent` utilisé en `IonModal` (mode lecture seule si pas de droits d'édition). Suppression du composant `IngredientDetailComponent` obsolète. Clic sur carte/ligne ouvre le modal ; `stopPropagation` sur ajustements rapides (-10/-1/+1/+10) et suppression. Barre de contrôle alignée sur le style `TableListComponent` : pilules de statut (Tous/Normaux/En alerte/Épuisés) avec compteurs, filtres Catégorie / Unité / Tri / Vue. 8 options de tri (nom ASC/DESC, stock ASC/DESC, seuil ASC/DESC, statut alerte, catégorie). i18n FR/EN complet. Tests : Backend 402/402 OK, Frontend 1065/1065 OK, SonarCloud PASSED. |
 | #271 (#270) | Ouverture détails commande par clic sur carte, modal avec actions et popup de confirmation : Permet l'ouverture automatique des détails d'une commande dans un modal `CommandeDetailModalComponent` au clic sur n'importe quel endroit d'une carte de commande (Kanban & Barman). Intègre les boutons d'action contextuels dans le modal (progression statut `EN_ATTENTE` -> `EN_PREPARATION` -> `PRET` -> `LIVREE`, et annulation avec popup de confirmation `AlertController`). Uniformisation des cartes avec suppression du bouton yeux explicite et gestion de la propagation d'événements. Support i18n FR/EN complet. Tests Karma (1059/1059 OK). |
 | #263 (#262) | Refonte Suivi des Commandes (Figma 'Serveur — Suivi commandes') : Implémentation du mode d'affichage dual Kanban 4 colonnes (En Attente, En Préparation, Prêt à Servir, Livrées/Réglées) et Vue Liste Tableau. Swapper de vue réactif, filtre de recherche multi-critères, toggle d'affichage des livrées, badging de statut et détection automatique des retards/urgences (Priority). Sub-composant atomique `CommandeCardComponent` pour l'élimination des duplications de code template HTML. Synchronisation i18n Transloco 100% FR/EN. Tests Karma 1048/1048 OK. |
 | #259 (#237) | Facturation — Format ticket 58mm (Figma 640:1220) : Ajout de la gestion du format d'impression thermique 58mm en complément du 80mm. Champ backend `ticketFormat` dans `EstablishmentConfig`, `schema.sql`, DTOs et services. Formulaire de configuration Admin `EtablissementComponent` avec sélecteur de format. Composant `TicketReceiptComponent` avec sélecteur dynamique (80mm/58mm), mise en page compacte et règles CSS `@media print` adaptées. Clefs i18n Transloco FR/EN. Tests Karma (1044/1044 OK) et backend Spring Boot 100% verts. |
