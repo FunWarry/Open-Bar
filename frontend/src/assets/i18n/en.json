@@ -636,11 +636,19 @@
     "NORMAL_STOCK": "Normal Stock",
     "LOW_STOCK": "Low Stock",
     "VIEW_MODE_LIST": "List",
-    "VIEW_MODE_GRID": "Grid",
     "ADJUST": "Adjust",
     "ADJUST_SUCCESS": "Stock of {{name}} updated: {{qty}} {{unit}}",
     "ADJUST_ERROR": "Error updating stock",
-    "LIVE_UPDATE": "Live WebSocket Stream Active"
+    "LIVE_UPDATE": "Live WebSocket Stream Active",
+    "SORT_LABEL": "Sort by:",
+    "SORT": {
+      "NAME_ASC": "Name (A → Z)",
+      "NAME_DESC": "Name (Z → A)",
+      "STOCK_ASC": "Remaining stock (ascending)",
+      "STOCK_DESC": "Remaining stock (descending)",
+      "STATUS_ALERT": "Alerts & Low stock first",
+      "CATEGORY": "Category (Spirits, Softs...)"
+    }
   },
   "RECAP": {
     "TITLE": "Daily Closing Sales Summary",

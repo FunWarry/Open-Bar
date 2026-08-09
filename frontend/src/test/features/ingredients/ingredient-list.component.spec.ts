@@ -169,4 +169,51 @@ describe('IngredientListComponent', () => {
   it('trackById retourne l\'id de l\'ingrédient', () => {
     expect(component.trackById(0, mockIngredients[0])).toBe(1);
   });
+
+  it('trie les ingredients selon les options disponibles', () => {
+    component.ingredients = [
+      makeI(1, 'Vodka', 15, 5),
+      makeI(2, 'Angostura', 2, 5),
+      makeI(3, 'Menthe', 50, 10),
+    ];
+
+    component.sortOption = 'NAME_ASC';
+    expect(component.filteredIngredients.map(i => i.nom)).toEqual(['Angostura', 'Menthe', 'Vodka']);
+
+    component.sortOption = 'NAME_DESC';
+    expect(component.filteredIngredients.map(i => i.nom)).toEqual(['Vodka', 'Menthe', 'Angostura']);
+
+    component.sortOption = 'STOCK_ASC';
+    expect(component.filteredIngredients.map(i => i.nom)).toEqual(['Angostura', 'Vodka', 'Menthe']);
+
+    component.sortOption = 'STOCK_DESC';
+    expect(component.filteredIngredients.map(i => i.nom)).toEqual(['Menthe', 'Vodka', 'Angostura']);
+
+    component.sortOption = 'STATUS_ALERT';
+    expect(component.filteredIngredients[0].nom).toBe('Angostura'); // en alerte car 2 <= 5
+
+    component.sortOption = 'CATEGORY';
+    expect(component.filteredIngredients.length).toBe(3);
+  });
+
+  it('onSortChange() met a jour sortOption', () => {
+    const mockEvent = { target: { value: 'STOCK_DESC' } } as unknown as Event;
+    component.onSortChange(mockEvent);
+    expect(component.sortOption).toBe('STOCK_DESC');
+  });
+
+  it('adjustStock() supporte un ajustement de -10 et +10', fakeAsync(() => {
+    const item = makeI(1, 'Rhum', 25, 5);
+    component.adjustStock(item, -10);
+    tick();
+    flushMicrotasks();
+    expect(serviceSpy.updateStock).toHaveBeenCalledWith(1, 15);
+    expect(item.quantiteStock).toBe(15);
+
+    component.adjustStock(item, 10);
+    tick();
+    flushMicrotasks();
+    expect(serviceSpy.updateStock).toHaveBeenCalledWith(1, 25);
+    expect(item.quantiteStock).toBe(25);
+  }));
 });

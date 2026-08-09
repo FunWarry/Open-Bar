@@ -38,13 +38,35 @@
       </ion-card-header>
 
       <ion-card-content class="filter-section">
-        <!-- Searchbar -->
-        <ion-searchbar
-          [(ngModel)]="searchQuery"
-          [placeholder]="'STOCK.SEARCH_PLACEHOLDER' | transloco"
-          class="stock-searchbar"
-          data-testid="stock-searchbar">
-        </ion-searchbar>
+        <!-- Searchbar & Sort Row -->
+        <div class="search-and-sort-row">
+          <ion-searchbar
+            [(ngModel)]="searchQuery"
+            [placeholder]="'STOCK.SEARCH_PLACEHOLDER' | transloco"
+            class="stock-searchbar"
+            data-testid="stock-searchbar">
+          </ion-searchbar>
+
+          <div class="filter-select-box">
+            <label class="filter-label" for="ingredient-sort-select">
+              <ion-icon name="swap-vertical-outline"></ion-icon>
+              {{ 'STOCK.SORT_LABEL' | transloco }}
+            </label>
+            <select
+              id="ingredient-sort-select"
+              class="custom-select"
+              [value]="sortOption"
+              (change)="onSortChange($event)"
+              data-testid="stock-sort-select">
+              <option value="NAME_ASC">{{ 'STOCK.SORT.NAME_ASC' | transloco }}</option>
+              <option value="NAME_DESC">{{ 'STOCK.SORT.NAME_DESC' | transloco }}</option>
+              <option value="STOCK_ASC">{{ 'STOCK.SORT.STOCK_ASC' | transloco }}</option>
+              <option value="STOCK_DESC">{{ 'STOCK.SORT.STOCK_DESC' | transloco }}</option>
+              <option value="STATUS_ALERT">{{ 'STOCK.SORT.STATUS_ALERT' | transloco }}</option>
+              <option value="CATEGORY">{{ 'STOCK.SORT.CATEGORY' | transloco }}</option>
+            </select>
+          </div>
+        </div>
 
         <!-- Category Filter Segments -->
         <ion-segment [(ngModel)]="selectedCategory" scrollable class="category-segment" data-testid="stock-category-segment">
@@ -111,9 +133,19 @@
                       </ion-progress-bar>
                     </div>
 
-                    <!-- Quick Stock Adjust Controls (+ / -) -->
+                    <!-- Quick Stock Adjust Controls (-10 / -1 / +1 / +10) -->
                     @if (canEdit$ | async) {
                       <div class="quick-adjust-bar">
+                        <ion-button
+                          fill="clear"
+                          size="small"
+                          color="danger"
+                          (click)="adjustStock(ingredient, -10)"
+                          (keyup.enter)="adjustStock(ingredient, -10)"
+                          [disabled]="ingredient.quantiteStock <= 0"
+                          data-testid="stock-adjust-minus10-btn">
+                          -10
+                        </ion-button>
                         <ion-button
                           fill="outline"
                           size="small"
@@ -197,11 +229,43 @@
 
                   @if (canEdit$ | async) {
                     <div slot="end" class="list-quick-adjust">
-                      <ion-button fill="clear" size="small" color="danger" (click)="adjustStock(ingredient, -1)" (keyup.enter)="adjustStock(ingredient, -1)" [disabled]="ingredient.quantiteStock <= 0">
+                      <ion-button
+                        fill="clear"
+                        size="small"
+                        color="danger"
+                        (click)="adjustStock(ingredient, -10)"
+                        (keyup.enter)="adjustStock(ingredient, -10)"
+                        [disabled]="ingredient.quantiteStock <= 0"
+                        data-testid="stock-list-adjust-minus10-btn">
+                        -10
+                      </ion-button>
+                      <ion-button
+                        fill="clear"
+                        size="small"
+                        color="danger"
+                        (click)="adjustStock(ingredient, -1)"
+                        (keyup.enter)="adjustStock(ingredient, -1)"
+                        [disabled]="ingredient.quantiteStock <= 0"
+                        data-testid="stock-list-adjust-minus-btn">
                         <ion-icon name="remove-circle" slot="icon-only"></ion-icon>
                       </ion-button>
-                      <ion-button fill="clear" size="small" color="success" (click)="adjustStock(ingredient, 1)" (keyup.enter)="adjustStock(ingredient, 1)">
+                      <ion-button
+                        fill="clear"
+                        size="small"
+                        color="success"
+                        (click)="adjustStock(ingredient, 1)"
+                        (keyup.enter)="adjustStock(ingredient, 1)"
+                        data-testid="stock-list-adjust-plus-btn">
                         <ion-icon name="add-circle" slot="icon-only"></ion-icon>
+                      </ion-button>
+                      <ion-button
+                        fill="clear"
+                        size="small"
+                        color="tertiary"
+                        (click)="adjustStock(ingredient, 10)"
+                        (keyup.enter)="adjustStock(ingredient, 10)"
+                        data-testid="stock-list-adjust-plus10-btn">
+                        +10
                       </ion-button>
                     </div>
                   }

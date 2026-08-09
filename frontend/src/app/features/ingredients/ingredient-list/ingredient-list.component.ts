@@ -14,7 +14,7 @@ import {
 import { addIcons } from 'ionicons';
 import {
   add, eye, create, trash, addCircle, removeCircle,
-  gridOutline, listOutline, pulseOutline, search
+  gridOutline, listOutline, pulseOutline, search, swapVerticalOutline
 } from 'ionicons/icons';
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -23,6 +23,8 @@ import { IngredientService } from '../../../core/services/ingredient.service';
 import { WebSocketService } from '../../../core/services/websocket.service';
 import { Ingredient } from '../../../core/models/ingredient.model';
 import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
+
+export type StockSortOption = 'NAME_ASC' | 'NAME_DESC' | 'STOCK_ASC' | 'STOCK_DESC' | 'STATUS_ALERT' | 'CATEGORY';
 
 /**
  * Global Barman & Manager Stock Management View component in OpenBar (Figma 488:3566).
@@ -47,6 +49,7 @@ export class IngredientListComponent implements OnInit, OnDestroy {
   isLoading = false;
   searchQuery = '';
   selectedCategory = 'ALL';
+  sortOption: StockSortOption = 'NAME_ASC';
   viewMode: 'grid' | 'list' = 'grid';
 
   isAdmin$: Observable<boolean>;
@@ -66,7 +69,7 @@ export class IngredientListComponent implements OnInit, OnDestroy {
     this.canEdit$ = this.store.select(selectCanEditIngredient);
     addIcons({
       add, eye, create, trash, addCircle, removeCircle,
-      gridOutline, listOutline, pulseOutline, search
+      gridOutline, listOutline, pulseOutline, search, swapVerticalOutline
     });
   }
 
@@ -118,12 +121,17 @@ export class IngredientListComponent implements OnInit, OnDestroy {
       });
   }
 
+  onSortChange(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    this.sortOption = select.value as StockSortOption;
+  }
+
   /**
-   * Returns filtered list of ingredients based on search query and selected category filter.
+   * Returns filtered and sorted list of ingredients based on search query, category and sort option.
    */
   get filteredIngredients(): Ingredient[] {
-    const query = this.searchQuery.toLowerCase();
-    return this.ingredients.filter(item => {
+    const query = this.searchQuery.toLowerCase().trim();
+    const result = this.ingredients.filter(item => {
       const matchesSearch = !query ||
         item.nom.toLowerCase().includes(query) ||
         (item.fournisseur?.toLowerCase()?.includes(query) ?? false);
@@ -133,6 +141,33 @@ export class IngredientListComponent implements OnInit, OnDestroy {
 
       return matchesSearch && matchesCategory;
     });
+
+    result.sort((a, b) => {
+      switch (this.sortOption) {
+        case 'NAME_ASC':
+          return (a.nom || '').localeCompare(b.nom || '');
+        case 'NAME_DESC':
+          return (b.nom || '').localeCompare(a.nom || '');
+        case 'STOCK_ASC':
+          return a.quantiteStock - b.quantiteStock || (a.nom || '').localeCompare(b.nom || '');
+        case 'STOCK_DESC':
+          return b.quantiteStock - a.quantiteStock || (a.nom || '').localeCompare(b.nom || '');
+        case 'STATUS_ALERT': {
+          const aAlert = this.isEnAlerte(a) ? 1 : 0;
+          const bAlert = this.isEnAlerte(b) ? 1 : 0;
+          return bAlert - aAlert || a.quantiteStock - b.quantiteStock;
+        }
+        case 'CATEGORY': {
+          const catA = this.getIngredientCategory(a.nom);
+          const catB = this.getIngredientCategory(b.nom);
+          return catA.localeCompare(catB) || (a.nom || '').localeCompare(b.nom || '');
+        }
+        default:
+          return (a.nom || '').localeCompare(b.nom || '');
+      }
+    });
+
+    return result;
   }
 
   /**

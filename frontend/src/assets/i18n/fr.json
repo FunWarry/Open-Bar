@@ -636,11 +636,19 @@
     "NORMAL_STOCK": "Stock Normal",
     "LOW_STOCK": "Stock Faible",
     "VIEW_MODE_LIST": "Liste",
-    "VIEW_MODE_GRID": "Grille",
     "ADJUST": "Ajuster",
     "ADJUST_SUCCESS": "Stock de {{name}} mis à jour : {{qty}} {{unit}}",
     "ADJUST_ERROR": "Erreur lors de la mise à jour du stock",
-    "LIVE_UPDATE": "Flux WebSocket Actif"
+    "LIVE_UPDATE": "Flux WebSocket Actif",
+    "SORT_LABEL": "Trier par :",
+    "SORT": {
+      "NAME_ASC": "Nom (A → Z)",
+      "NAME_DESC": "Nom (Z → A)",
+      "STOCK_ASC": "Quantité restante (croissant)",
+      "STOCK_DESC": "Quantité restante (décroissant)",
+      "STATUS_ALERT": "En alerte / rupture d'abord",
+      "CATEGORY": "Catégorie (Alcools, Softs...)"
+    }
   },
   "RECAP": {
     "TITLE": "Récapitulatif de Caisse",
