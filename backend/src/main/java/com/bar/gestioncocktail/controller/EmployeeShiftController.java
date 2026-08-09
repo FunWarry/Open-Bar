@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -49,20 +50,63 @@ public class EmployeeShiftController {
     }
 
     /**
-     * Retrieves shifts for a specific date range (weekly schedule view).
+     * Retrieves a single shift by ID.
      *
-     * @param debut Start date (inclusive, format YYYY-MM-DD)
-     * @param fin End date (inclusive, format YYYY-MM-DD)
-     * @return List of shift DTOs in date range
+     * @param id Shift identifier
+     * @return Shift DTO
+     */
+    @GetMapping("/{id}")
+    @PreAuthorize("hasRole('MANAGER') or hasRole('ADMIN') or hasRole('SERVEUR') or hasRole('BARMAN')")
+    @Operation(summary = "Get shift by ID", description = "Retrieves details of a specific work shift.")
+    @ApiResponse(responseCode = "200", description = "Shift details retrieved")
+    public ResponseEntity<EmployeeShiftResponseDTO> getShiftById(@PathVariable Long id) {
+        return ResponseEntity.ok(EmployeeShiftResponseDTO.from(shiftService.getShiftById(id)));
+    }
+
+    /**
+     * Retrieves shifts for a specific date range or week.
+     *
+     * @param date Optional date in the target week
+     * @param debut Optional start date (inclusive, YYYY-MM-DD)
+     * @param fin Optional end date (inclusive, YYYY-MM-DD)
+     * @return List of shift DTOs in week
      */
     @GetMapping("/week")
     @PreAuthorize("hasRole('MANAGER') or hasRole('ADMIN') or hasRole('SERVEUR') or hasRole('BARMAN')")
-    @Operation(summary = "Get weekly shifts", description = "Retrieves shifts between debut and fin dates.")
+    @Operation(summary = "Get weekly shifts", description = "Retrieves shifts for the week containing 'date', or between 'debut' and 'fin'.")
     @ApiResponse(responseCode = "200", description = "Weekly shifts retrieved")
     public ResponseEntity<List<EmployeeShiftResponseDTO>> getShiftsForWeek(
-        @Parameter(description = "Start date (YYYY-MM-DD)") @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate debut,
-        @Parameter(description = "End date (YYYY-MM-DD)") @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fin) {
-        return ResponseEntity.ok(shiftService.getShiftsForWeek(debut, fin).stream()
+        @Parameter(description = "Date in target week (YYYY-MM-DD)") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+        @Parameter(description = "Start date (YYYY-MM-DD)") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate debut,
+        @Parameter(description = "End date (YYYY-MM-DD)") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fin) {
+
+        if (debut != null && fin != null) {
+            return ResponseEntity.ok(shiftService.getShiftsForWeek(debut, fin).stream()
+                .map(EmployeeShiftResponseDTO::from)
+                .toList());
+        }
+
+        return ResponseEntity.ok(shiftService.getShiftsForWeekOfDate(date != null ? date : LocalDate.now(java.time.ZoneId.systemDefault())).stream()
+            .map(EmployeeShiftResponseDTO::from)
+            .toList());
+    }
+
+    /**
+     * Retrieves shifts within a specified date range.
+     *
+     * @param from Start date (inclusive, YYYY-MM-DD)
+     * @param to End date (inclusive, YYYY-MM-DD)
+     * @return List of shift DTOs in range
+     */
+    @GetMapping("/range")
+    @PreAuthorize("hasRole('MANAGER') or hasRole('ADMIN') or hasRole('SERVEUR') or hasRole('BARMAN')")
+    @Operation(summary = "Get shifts in date range", description = "Retrieves shifts between from and to dates.")
+    @ApiResponse(responseCode = "200", description = "Shifts in date range retrieved")
+    public ResponseEntity<List<EmployeeShiftResponseDTO>> getShiftsForRange(
+        @Parameter(description = "Start date (YYYY-MM-DD)") @RequestParam("from") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+        @Parameter(description = "End date (YYYY-MM-DD)") @RequestParam("to") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+
+        return ResponseEntity.ok(shiftService.getShiftsForWeek(from, to).stream()
             .map(EmployeeShiftResponseDTO::from)
             .toList());
     }
@@ -93,7 +137,7 @@ public class EmployeeShiftController {
     @PreAuthorize("hasRole('MANAGER') or hasRole('ADMIN')")
     @Operation(summary = "Create shift", description = "Saves a new work shift.")
     @ApiResponse(responseCode = "200", description = "Shift created successfully")
-    public ResponseEntity<EmployeeShiftResponseDTO> createShift(@RequestBody EmployeeShiftRequestDTO request) {
+    public ResponseEntity<EmployeeShiftResponseDTO> createShift(@Valid @RequestBody EmployeeShiftRequestDTO request) {
         return ResponseEntity.ok(EmployeeShiftResponseDTO.from(shiftService.createShift(request)));
     }
 
@@ -110,7 +154,7 @@ public class EmployeeShiftController {
     @ApiResponse(responseCode = "200", description = "Shift updated successfully")
     public ResponseEntity<EmployeeShiftResponseDTO> updateShift(
         @PathVariable Long id,
-        @RequestBody EmployeeShiftRequestDTO request) {
+        @Valid @RequestBody EmployeeShiftRequestDTO request) {
         return ResponseEntity.ok(EmployeeShiftResponseDTO.from(shiftService.updateShift(id, request)));
     }
 

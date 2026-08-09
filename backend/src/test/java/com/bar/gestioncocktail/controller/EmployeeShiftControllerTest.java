@@ -67,12 +67,45 @@ class EmployeeShiftControllerTest {
     }
 
     @Test
-    void getShiftsForWeek_ShouldReturnList() {
+    void getShiftById_ShouldReturnShift() {
+        when(shiftService.getShiftById(1L)).thenReturn(sampleShift);
+
+        ResponseEntity<EmployeeShiftResponseDTO> response = shiftController.getShiftById(1L);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getBody().id()).isEqualTo(1L);
+    }
+
+    @Test
+    void getShiftsForWeek_WithDebutAndFin_ShouldReturnList() {
         LocalDate start = LocalDate.of(2026, 8, 10);
         LocalDate end = LocalDate.of(2026, 8, 16);
         when(shiftService.getShiftsForWeek(start, end)).thenReturn(List.of(sampleShift));
 
-        ResponseEntity<List<EmployeeShiftResponseDTO>> response = shiftController.getShiftsForWeek(start, end);
+        ResponseEntity<List<EmployeeShiftResponseDTO>> response = shiftController.getShiftsForWeek(null, start, end);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getBody().get(0).heureDebut()).isEqualTo("08:00");
+    }
+
+    @Test
+    void getShiftsForWeek_WithDate_ShouldCallWeekOfDate() {
+        LocalDate target = LocalDate.of(2026, 8, 12);
+        when(shiftService.getShiftsForWeekOfDate(target)).thenReturn(List.of(sampleShift));
+
+        ResponseEntity<List<EmployeeShiftResponseDTO>> response = shiftController.getShiftsForWeek(target, null, null);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getBody().get(0).heureDebut()).isEqualTo("08:00");
+    }
+
+    @Test
+    void getShiftsForRange_ShouldReturnRangeShifts() {
+        LocalDate from = LocalDate.of(2026, 8, 1);
+        LocalDate to = LocalDate.of(2026, 8, 31);
+        when(shiftService.getShiftsForWeek(from, to)).thenReturn(List.of(sampleShift));
+
+        ResponseEntity<List<EmployeeShiftResponseDTO>> response = shiftController.getShiftsForRange(from, to);
 
         assertThat(response.getStatusCode().value()).isEqualTo(200);
         assertThat(response.getBody().get(0).heureDebut()).isEqualTo("08:00");

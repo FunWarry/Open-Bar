@@ -64,6 +64,20 @@ public class EmployeeShiftService {
     }
 
     /**
+     * Retrieves shifts for the week containing the specified date (Monday to Sunday).
+     * If date is null, defaults to current date.
+     *
+     * @param date Date within the target week
+     * @return List of shifts for that week
+     */
+    public List<EmployeeShift> getShiftsForWeekOfDate(LocalDate date) {
+        LocalDate target = date != null ? date : LocalDate.now(java.time.ZoneId.systemDefault());
+        LocalDate monday = target.with(java.time.DayOfWeek.MONDAY);
+        LocalDate sunday = target.with(java.time.DayOfWeek.SUNDAY);
+        return getShiftsForWeek(monday, sunday);
+    }
+
+    /**
      * Retrieves a shift by its unique identifier.
      *
      * @param id Identifier of the shift

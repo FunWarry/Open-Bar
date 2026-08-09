@@ -95,6 +95,29 @@ class EmployeeShiftServiceTest {
     }
 
     @Test
+    void getShiftsForWeekOfDate_ShouldCalculateMondayAndSunday() {
+        LocalDate wednesday = LocalDate.of(2026, 8, 12);
+        LocalDate monday = LocalDate.of(2026, 8, 10);
+        LocalDate sunday = LocalDate.of(2026, 8, 16);
+        when(shiftRepository.findByDateShiftBetween(monday, sunday)).thenReturn(List.of(sampleShift));
+
+        List<EmployeeShift> result = shiftService.getShiftsForWeekOfDate(wednesday);
+
+        assertThat(result).hasSize(1);
+        verify(shiftRepository).findByDateShiftBetween(monday, sunday);
+    }
+
+    @Test
+    void getShiftsForWeekOfDate_WithNullDate_ShouldDefaultToCurrentWeek() {
+        when(shiftRepository.findByDateShiftBetween(any(LocalDate.class), any(LocalDate.class))).thenReturn(List.of(sampleShift));
+
+        List<EmployeeShift> result = shiftService.getShiftsForWeekOfDate(null);
+
+        assertThat(result).hasSize(1);
+        verify(shiftRepository).findByDateShiftBetween(any(LocalDate.class), any(LocalDate.class));
+    }
+
+    @Test
     void getShiftById_Success() {
         when(shiftRepository.findById(10L)).thenReturn(Optional.of(sampleShift));
 
