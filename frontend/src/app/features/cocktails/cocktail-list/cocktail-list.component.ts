@@ -259,9 +259,9 @@ export class CocktailListComponent implements OnInit, OnDestroy {
       };
     }
     return {
-      'background-color': `${color}26`,
-      'border-color': `${color}70`,
-      'color': '#ffffff'
+      'background-color': 'var(--background-surface-2)',
+      'border-color': 'var(--border-medium)',
+      'color': 'var(--text-primary)'
     };
   }
 

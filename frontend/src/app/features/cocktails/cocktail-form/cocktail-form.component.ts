@@ -3,8 +3,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   ToastController, IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-  IonItem, IonLabel, IonInput, IonButton, IonNote, IonSelect, IonSelectOption,
-  IonIcon, IonThumbnail
+  IonButton, IonIcon, IonThumbnail
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { calendarOutline, cameraOutline, imageOutline } from 'ionicons/icons';
@@ -13,6 +12,8 @@ import { of } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { CocktailService } from '../../../core/services/cocktail.service';
 import { Cocktail } from '../../../core/models/cocktail.model';
+import { InputFieldComponent } from '../../../core/components/ui/input-field/input-field.component';
+import { ActionButtonComponent } from '../../../core/components/ui/action-button/action-button.component';
 import { CocktailSaisonnaliteComponent } from '../cocktail-saisonnalite/cocktail-saisonnalite.component';
 
 /**
@@ -26,9 +27,9 @@ import { CocktailSaisonnaliteComponent } from '../cocktail-saisonnalite/cocktail
   standalone: true,
   imports: [
     IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-    IonItem, IonLabel, IonInput, IonButton, IonNote,
-    IonSelect, IonSelectOption, IonIcon, IonThumbnail,
+    IonButton, IonIcon, IonThumbnail,
     ReactiveFormsModule, TranslocoModule,
+    InputFieldComponent, ActionButtonComponent,
     CocktailSaisonnaliteComponent
   ]
 })

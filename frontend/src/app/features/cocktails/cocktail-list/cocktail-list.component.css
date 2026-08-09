@@ -1,3 +1,8 @@
+.cocktail-content {
+  --background: var(--background-bg-0);
+  color: var(--text-primary);
+}
+
 .cocktail-container {
   padding: 12px;
   max-width: 1400px;
@@ -5,11 +10,12 @@
 }
 
 .cocktail-header-card {
-  --background: var(--surface-1, #1e2438);
-  background: var(--surface-1, #1e2438);
-  border: 1px solid var(--border-medium, #2e3450);
-  border-radius: 12px;
+  --background: var(--background-surface-1);
+  background: var(--background-surface-1);
+  border: 1px solid var(--border-medium);
+  border-radius: 14px;
   margin-bottom: 16px;
+  box-shadow: var(--elev-1);
 }
 
 .header-main-row,
@@ -30,7 +36,16 @@
   gap: 12px;
 }
 
-.title-with-count { gap: 12px; }
+.title-with-count {
+  gap: 12px;
+
+  ion-card-title {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+}
+
 .header-actions { gap: 16px; }
 
 .pictures-toggle-pill {
@@ -40,14 +55,33 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  background: var(--background-surface-2);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-pill, 999px);
+  cursor: pointer;
+  transition: all 0.2s ease;
 
   ion-icon { font-size: 1.15rem; }
+
+  &:hover {
+    background: var(--background-surface-3);
+    color: var(--text-primary);
+  }
+
+  &.active {
+    background: var(--primary-tint-weak, rgba(108, 127, 232, 0.15));
+    color: var(--primary);
+    border-color: var(--primary);
+  }
 }
 
 .view-mode-segment {
-  --background: var(--surface-2, rgba(255, 255, 255, 0.05));
-  border-radius: 8px;
+  --background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
+  border-radius: 10px;
   width: auto;
+  color: var(--text-primary);
 }
 
 .filter-section {
@@ -57,11 +91,14 @@
 }
 
 .cocktail-searchbar {
-  --background: var(--surface-2, #262d45);
-  --color: var(--text-color, #ffffff);
-  --placeholder-color: var(--text-muted, #8f9bba);
-  --icon-color: var(--text-muted, #8f9bba);
-  --border-radius: 8px;
+  --background: var(--background-surface-2);
+  --color: var(--text-primary);
+  --placeholder-color: var(--text-muted);
+  --icon-color: var(--text-muted);
+  --border-radius: 10px;
+  border: 1px solid var(--border-medium);
+  border-radius: 10px;
+  padding: 0;
 }
 
 .category-pills-row {
@@ -76,26 +113,27 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: var(--surface-2, rgba(255, 255, 255, 0.05));
-  color: var(--text-color, #cbd5e1);
-  border: 1px solid var(--border-medium, rgba(255, 255, 255, 0.1));
+  background: var(--background-surface-2);
+  color: var(--text-primary);
+  border: 1px solid var(--border-medium);
   border-radius: 20px;
   padding: 6px 14px;
   font-size: 0.825rem;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
+  transition: all 0.15s ease;
 
   &:hover {
-    background: var(--surface-3, rgba(255, 255, 255, 0.1));
-    color: var(--text-color, #ffffff);
+    background: var(--background-surface-3);
+    color: var(--text-primary);
   }
 
   &.active {
-    background: var(--primary, #4f46e5);
+    background: var(--primary);
     color: #ffffff;
-    border-color: var(--primary, #4f46e5);
-    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+    border-color: var(--primary);
+    box-shadow: 0 4px 12px rgba(108, 127, 232, 0.35);
   }
 }
 
@@ -110,19 +148,20 @@
 .cocktail-grid { padding: 0; }
 
 .figma-cocktail-card {
-  background: var(--surface-1, #141727);
-  border: 1px solid var(--border-medium, #23293e);
+  background: var(--background-surface-1);
+  border: 1px solid var(--border-medium);
   border-radius: 14px;
   overflow: hidden;
   height: 100%;
   display: flex;
   flex-direction: column;
+  box-shadow: var(--elev-1);
   transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 
   &:hover {
     transform: translateY(-2px);
-    border-color: var(--primary, #3b82f6);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    border-color: var(--primary);
+    box-shadow: var(--elev-2);
   }
 
   &.no-picture { min-height: 140px; }
@@ -130,8 +169,8 @@
 
 .figma-card-image-area {
   width: 100%;
-  height: 140px;
-  background: var(--surface-2, #1a1e2e);
+  height: 150px;
+  background: var(--background-surface-2);
   overflow: hidden;
 
   img {
@@ -158,13 +197,13 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: var(--surface-2, rgba(255, 255, 255, 0.08));
-  color: var(--text-color, #ffffff);
+  background: var(--background-surface-2);
+  color: var(--text-primary);
   padding: 4px 10px;
   border-radius: 16px;
   font-size: 0.775rem;
   font-weight: 600;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid var(--border-medium);
 }
 
 .figma-alert-pill {
@@ -174,15 +213,15 @@
   border-radius: 12px;
 
   &.critical {
-    background: #991b1b;
-    color: #ffffff;
-    border: 1px solid #ef4444;
+    background: rgba(229, 96, 79, 0.15);
+    color: var(--semantic-danger);
+    border: 1px solid var(--semantic-danger);
   }
 
   &.low {
-    background: #92400e;
-    color: #ffffff;
-    border: 1px solid #f59e0b;
+    background: rgba(244, 165, 42, 0.15);
+    color: var(--semantic-warning);
+    border: 1px solid var(--semantic-warning);
   }
 }
 
@@ -190,19 +229,20 @@
   width: 32px;
   height: 32px;
   border-radius: 8px;
-  background: var(--surface-2, rgba(255, 255, 255, 0.07));
-  border: 1px solid var(--border-medium, rgba(255, 255, 255, 0.1));
-  color: var(--text-color, #e2e8f0);
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
+  color: var(--text-secondary);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   font-size: 1rem;
+  transition: all 0.15s ease;
 
   &:hover {
-    background: var(--primary, #4f46e5);
+    background: var(--primary);
     color: #ffffff;
-    border-color: var(--primary, #4f46e5);
+    border-color: var(--primary);
   }
 }
 
@@ -211,13 +251,13 @@
 .figma-cocktail-name {
   font-size: 1.15rem;
   font-weight: 700;
-  color: var(--text-color, #ffffff);
+  color: var(--text-primary);
   margin: 4px 0 2px 0;
 }
 
 .figma-ingredients-sub {
   font-size: 0.825rem;
-  color: var(--text-muted, #94a3b8);
+  color: var(--text-secondary);
   margin: 0;
   line-height: 1.4;
   display: -webkit-box;
@@ -229,7 +269,7 @@
 
 .figma-card-bottom-row {
   justify-content: space-between;
-  border-top: 1px solid var(--border-medium, rgba(255, 255, 255, 0.06));
+  border-top: 1px solid var(--border-medium);
   padding-top: 8px;
   margin-top: 4px;
 }
@@ -237,21 +277,22 @@
 .bottom-actions { gap: 4px; }
 
 .figma-cocktail-price {
-  font-size: 1.3rem;
+  font-size: 1.25rem;
   font-weight: 800;
-  color: var(--text-color, #ffffff);
+  color: var(--semantic-success);
 }
 
 .cocktail-list-card {
-  --background: var(--surface-1, #1e2438);
-  background: var(--surface-1, #1e2438);
-  border: 1px solid var(--border-medium, #2e3450);
-  border-radius: 12px;
+  --background: var(--background-surface-1);
+  background: var(--background-surface-1);
+  border: 1px solid var(--border-medium);
+  border-radius: 14px;
+  box-shadow: var(--elev-1);
 }
 
 .cocktail-list-item {
   --background: transparent;
-  --border-color: var(--border-medium, rgba(255, 255, 255, 0.05));
+  --border-color: var(--border-medium);
 }
 
 .loading-container, .empty-cocktail-message {
@@ -274,7 +315,7 @@
 .allergen-filter-label {
   font-size: 0.8rem;
   font-weight: 600;
-  color: var(--text-muted, #94a3b8);
+  color: var(--text-muted);
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -285,9 +326,9 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: var(--surface-2, rgba(255, 255, 255, 0.04));
-  color: var(--text-muted, #94a3b8);
-  border: 1px dashed var(--border-medium, rgba(255, 255, 255, 0.15));
+  background: var(--background-surface-2);
+  color: var(--text-secondary);
+  border: 1px dashed var(--border-medium);
   border-radius: 16px;
   padding: 4px 12px;
   font-size: 0.775rem;
@@ -297,16 +338,16 @@
   transition: all 0.2s ease;
 
   &:hover {
-    background: #991b1b;
-    color: #ffffff;
-    border-color: #f87171;
+    background: rgba(229, 96, 79, 0.15);
+    color: var(--semantic-danger);
+    border-color: var(--semantic-danger);
   }
 
   &.excluded {
-    background: #7f1d1d;
-    color: #ffffff;
-    border: 1px solid #ef4444;
-    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+    background: rgba(229, 96, 79, 0.15);
+    color: var(--semantic-danger);
+    border: 1px solid var(--semantic-danger);
+    box-shadow: 0 2px 8px rgba(229, 96, 79, 0.2);
   }
 }
 
@@ -320,9 +361,9 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background: #7f1d1d;
-  color: #ffffff;
-  border: 1px solid #ef4444;
+  background: rgba(229, 96, 79, 0.15);
+  color: var(--semantic-danger);
+  border: 1px solid var(--semantic-danger);
   border-radius: 16px;
   padding: 4px 10px;
   font-size: 0.75rem;
@@ -330,7 +371,7 @@
   cursor: pointer;
 
   &:hover {
-    background: #b91c1c;
+    background: var(--semantic-danger);
     color: #ffffff;
   }
 }
@@ -346,9 +387,9 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background: #78350f;
-  color: #fef3c7;
-  border: 1px solid #f59e0b;
+  background: rgba(244, 165, 42, 0.15);
+  color: var(--semantic-warning);
+  border: 1px solid var(--semantic-warning);
   border-radius: 12px;
   padding: 3px 8px;
   font-size: 0.7rem;
@@ -370,6 +411,6 @@
 }
 
 .allergen-warning-text {
-  color: #fcd34d;
+  color: var(--semantic-warning);
 }
 

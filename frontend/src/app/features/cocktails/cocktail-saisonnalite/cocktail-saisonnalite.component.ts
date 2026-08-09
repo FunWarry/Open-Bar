@@ -98,32 +98,41 @@ const MOIS = [
       padding: 12px 16px;
     }
 
+    .saison-preview ion-note {
+      color: var(--text-secondary);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
     .mois-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 4px;
+      gap: 6px;
       margin-top: 8px;
     }
 
     .mois-cell {
       padding: 8px 4px;
       text-align: center;
-      border-radius: 4px;
+      border-radius: var(--radius-sm, 6px);
       font-size: 12px;
-      background: rgba(255,255,255,0.05);
-      color: var(--ion-color-medium);
-      border: 2px solid transparent;
-      transition: background 0.2s, color 0.2s;
+      font-weight: 500;
+      background: var(--background-surface-2);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-medium);
+      transition: all 0.2s ease;
     }
 
     .mois-cell.actif {
-      background: rgba(var(--ion-color-primary-rgb), 0.2);
-      color: var(--ion-color-primary);
-      font-weight: 600;
+      background: var(--primary-tint-weak, rgba(108, 127, 232, 0.15));
+      color: var(--primary);
+      border-color: var(--primary);
+      font-weight: 700;
     }
 
     .mois-cell.courant {
-      border-color: var(--ion-color-primary);
+      border-color: var(--primary);
+      box-shadow: 0 0 0 1px var(--primary);
     }
 
     .disponibilite-badge {

@@ -1,19 +1,20 @@
-<ion-card>
-  <ion-card-header>
-    <ion-card-title>{{ (isEditMode ? 'COCKTAILS.EDIT' : 'COCKTAILS.ADD') | transloco }}</ion-card-title>
-  </ion-card-header>
-  <ion-card-content>
-    <form (ngSubmit)="onSubmit()" [formGroup]="cocktailForm">
-      <!-- Section Photo / Preview -->
-      <div class="photo-upload-section">
-        <ion-item lines="none" class="photo-item">
-          <ion-thumbnail slot="start" class="photo-preview-thumbnail">
+<div class="cocktail-form-container">
+  <ion-card class="form-card">
+    <ion-card-header>
+      <ion-card-title>{{ (isEditMode ? 'COCKTAILS.EDIT' : 'COCKTAILS.ADD') | transloco }}</ion-card-title>
+    </ion-card-header>
+
+    <ion-card-content>
+      <form (ngSubmit)="onSubmit()" [formGroup]="cocktailForm" class="cocktail-form">
+        <!-- Section Photo / Preview -->
+        <div class="photo-upload-section">
+          <div class="photo-preview-box">
             <img [src]="imagePreview || 'assets/images/verres/verre_tumbler.png'" alt="Aperçu cocktail" />
-          </ion-thumbnail>
-          <ion-label>
+          </div>
+          <div class="photo-details">
             <h3>{{ 'COCKTAILS.PHOTO' | transloco }}</h3>
             <p>{{ 'COCKTAILS.PHOTO_HINT' | transloco }}</p>
-          </ion-label>
+          </div>
           <input
             type="file"
             #fileInput
@@ -23,88 +24,101 @@
             capture="environment"
             style="display:none"
             (change)="onFileSelected($event)">
-          <ion-button
-            fill="outline"
-            color="secondary"
-            slot="end"
-            data-testid="cocktail-form-photo-btn"
-            (click)="triggerFileInput(fileInput)"
-            (keydown.enter)="triggerFileInput(fileInput)">
-            <ion-icon name="camera-outline" slot="start"></ion-icon>
+          <app-action-button
+            variant="secondary"
+            icon="camera-outline"
+            testId="cocktail-form-photo-btn"
+            (btnClick)="triggerFileInput(fileInput)">
             {{ (imagePreview ? 'COCKTAILS.CHANGE_PHOTO' : 'COCKTAILS.SELECT_PHOTO') | transloco }}
-          </ion-button>
-        </ion-item>
-      </div>
-
-      <ion-item>
-        <ion-label position="stacked">{{ 'COCKTAILS.NAME' | transloco }} *</ion-label>
-        <ion-input formControlName="name" [placeholder]="'COCKTAILS.NAME' | transloco" data-testid="cocktail-form-name-input"></ion-input>
-        @if (cocktailForm.get('name')?.touched && cocktailForm.get('name')?.hasError('required')) {
-          <ion-note slot="error">
-            {{ 'COMMON.ERROR' | transloco }}
-          </ion-note>
-        }
-      </ion-item>
-
-      <ion-item>
-        <ion-label position="stacked">{{ 'COCKTAILS.DESCRIPTION' | transloco }} *</ion-label>
-        <ion-input formControlName="description" [placeholder]="'COCKTAILS.DESCRIPTION' | transloco" data-testid="cocktail-form-description-input"></ion-input>
-        @if (cocktailForm.get('description')?.touched && cocktailForm.get('description')?.hasError('required')) {
-          <ion-note slot="error">
-            {{ 'COMMON.ERROR' | transloco }}
-          </ion-note>
-        }
-      </ion-item>
-
-      <ion-item>
-        <ion-label position="stacked">{{ 'COCKTAILS.PRICE' | transloco }} (€) *</ion-label>
-        <ion-input formControlName="price" type="number" placeholder="0.00" data-testid="cocktail-form-price-input"></ion-input>
-        @if (cocktailForm.get('price')?.touched && cocktailForm.get('price')?.hasError('required')) {
-          <ion-note slot="error">
-            {{ 'COMMON.ERROR' | transloco }}
-          </ion-note>
-        }
-      </ion-item>
-
-      <ion-item>
-        <ion-label position="stacked">{{ 'COCKTAILS.CATEGORY' | transloco }} *</ion-label>
-        <ion-select formControlName="category" [placeholder]="'COMMON.SELECT' | transloco" data-testid="cocktail-form-category-select">
-          <ion-select-option value="ALCOOLISE">{{ 'COCKTAILS.CATEGORIES.ALCOOLISE' | transloco }}</ion-select-option>
-          <ion-select-option value="SANS_ALCOOL">{{ 'COCKTAILS.CATEGORIES.SANS_ALCOOL' | transloco }}</ion-select-option>
-          <ion-select-option value="SHOT">{{ 'COCKTAILS.CATEGORIES.SHOT' | transloco }}</ion-select-option>
-          <ion-select-option value="APERITIF">{{ 'COCKTAILS.CATEGORIES.APERITIF' | transloco }}</ion-select-option>
-          <ion-select-option value="DIGESTIF">{{ 'COCKTAILS.CATEGORIES.DIGESTIF' | transloco }}</ion-select-option>
-          <ion-select-option value="SPECIAL">{{ 'COCKTAILS.CATEGORIES.SPECIAL' | transloco }}</ion-select-option>
-        </ion-select>
-        @if (cocktailForm.get('category')?.touched && cocktailForm.get('category')?.hasError('required')) {
-          <ion-note slot="error">
-            {{ 'COMMON.ERROR' | transloco }}
-          </ion-note>
-        }
-      </ion-item>
-
-      <!-- Section saisonnalité — visible uniquement en mode édition -->
-      @if (isEditMode && cocktailData) {
-        <div class="section-saisonnalite">
-          <ion-item lines="none" class="section-header">
-            <ion-icon name="calendar-outline" slot="start"></ion-icon>
-            <ion-label><strong>{{ 'COCKTAILS.SEASONAL' | transloco }}</strong></ion-label>
-          </ion-item>
-          <app-cocktail-saisonnalite
-            [cocktail]="cocktailData"
-            (updated)="onSaisonnaliteUpdated($event)">
-          </app-cocktail-saisonnalite>
+          </app-action-button>
         </div>
-      }
 
-      <div class="button-row">
-        <ion-button fill="outline" (click)="router.navigate(['/cocktails'])" (keydown.enter)="router.navigate(['/cocktails'])" type="button" data-testid="cocktail-form-cancel-btn">
-          {{ 'COMMON.CANCEL' | transloco }}
-        </ion-button>
-        <ion-button [disabled]="!cocktailForm.valid" color="primary" type="submit" data-testid="cocktail-form-submit-btn">
-          {{ (isEditMode ? 'COMMON.SAVE' : 'COMMON.ADD') | transloco }}
-        </ion-button>
-      </div>
-    </form>
-  </ion-card-content>
-</ion-card>
+        <!-- Input Fields -->
+        <div class="form-fields-grid">
+          <app-input-field
+            formControlName="name"
+            [label]="('COCKTAILS.NAME' | transloco) + ' *'"
+            [placeholder]="'COCKTAILS.NAME' | transloco"
+            [required]="true"
+            testId="cocktail-form-name-input"
+            [errorMessage]="(cocktailForm.get('name')?.touched && cocktailForm.get('name')?.hasError('required')) ? ('COMMON.ERROR' | transloco) : undefined"
+          ></app-input-field>
+
+          <app-input-field
+            formControlName="description"
+            [label]="('COCKTAILS.DESCRIPTION' | transloco) + ' *'"
+            [placeholder]="'COCKTAILS.DESCRIPTION' | transloco"
+            [required]="true"
+            testId="cocktail-form-description-input"
+            [errorMessage]="(cocktailForm.get('description')?.touched && cocktailForm.get('description')?.hasError('required')) ? ('COMMON.ERROR' | transloco) : undefined"
+          ></app-input-field>
+
+          <app-input-field
+            formControlName="price"
+            type="number"
+            [label]="('COCKTAILS.PRICE' | transloco) + ' (€) *'"
+            placeholder="0.00"
+            [required]="true"
+            testId="cocktail-form-price-input"
+            [errorMessage]="(cocktailForm.get('price')?.touched && (cocktailForm.get('price')?.hasError('required') || cocktailForm.get('price')?.hasError('min'))) ? ('COMMON.ERROR' | transloco) : undefined"
+          ></app-input-field>
+
+          <!-- Category Select Field -->
+          <div class="field-container">
+            <label class="field-label" for="category-select">
+              {{ 'COCKTAILS.CATEGORY' | transloco }} <span class="required-star">*</span>
+            </label>
+            <div class="select-wrapper" [class.has-error]="cocktailForm.get('category')?.touched && cocktailForm.get('category')?.hasError('required')">
+              <select
+                id="category-select"
+                formControlName="category"
+                class="native-select"
+                data-testid="cocktail-form-category-select">
+                <option value="" disabled selected>{{ 'COMMON.SELECT' | transloco }}</option>
+                <option value="ALCOOLISE">{{ 'COCKTAILS.CATEGORIES.ALCOOLISE' | transloco }}</option>
+                <option value="SANS_ALCOOL">{{ 'COCKTAILS.CATEGORIES.SANS_ALCOOL' | transloco }}</option>
+                <option value="SHOT">{{ 'COCKTAILS.CATEGORIES.SHOT' | transloco }}</option>
+                <option value="APERITIF">{{ 'COCKTAILS.CATEGORIES.APERITIF' | transloco }}</option>
+                <option value="DIGESTIF">{{ 'COCKTAILS.CATEGORIES.DIGESTIF' | transloco }}</option>
+                <option value="SPECIAL">{{ 'COCKTAILS.CATEGORIES.SPECIAL' | transloco }}</option>
+              </select>
+            </div>
+            @if (cocktailForm.get('category')?.touched && cocktailForm.get('category')?.hasError('required')) {
+              <div class="field-error">⚠ {{ 'COMMON.ERROR' | transloco }}</div>
+            }
+          </div>
+        </div>
+
+        <!-- Section saisonnalité — visible uniquement en mode édition -->
+        @if (isEditMode && cocktailData) {
+          <div class="section-saisonnalite">
+            <div class="saisonnalite-header">
+              <ion-icon name="calendar-outline"></ion-icon>
+              <h4>{{ 'COCKTAILS.SEASONAL' | transloco }}</h4>
+            </div>
+            <app-cocktail-saisonnalite
+              [cocktail]="cocktailData"
+              (updated)="onSaisonnaliteUpdated($event)">
+            </app-cocktail-saisonnalite>
+          </div>
+        }
+
+        <div class="button-row">
+          <app-action-button
+            variant="secondary"
+            (btnClick)="router.navigate(['/cocktails'])"
+            testId="cocktail-form-cancel-btn">
+            {{ 'COMMON.CANCEL' | transloco }}
+          </app-action-button>
+          <app-action-button
+            variant="primary"
+            type="submit"
+            [disabled]="!cocktailForm.valid"
+            testId="cocktail-form-submit-btn">
+            {{ (isEditMode ? 'COMMON.SAVE' : 'COMMON.ADD') | transloco }}
+          </app-action-button>
+        </div>
+      </form>
+    </ion-card-content>
+  </ion-card>
+</div>
