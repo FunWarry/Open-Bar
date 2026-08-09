@@ -19,7 +19,13 @@
     "STATUS": "Status",
     "DATE": "Date",
     "NOTES": "Notes",
-    "REFRESH": "Refresh"
+    "REFRESH": "Refresh",
+    "SELECT": "Select",
+    "ALL": "All",
+    "NONE": "None",
+    "FILTER": "Filter",
+    "SORT": "Sort",
+    "RESET": "Reset"
   },
   "THEME": {
     "LIGHT": "Light Mode",

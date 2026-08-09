@@ -876,6 +876,14 @@ ion-select {
   font-family: var(--font, 'Inter', sans-serif);
 }
 
+ion-select[fill="outline"] {
+  --border-color: var(--border-medium);
+  --border-radius: var(--radius-md, 10px);
+  --border-width: 1px;
+  --background: var(--background-surface-2);
+  --highlight-color-focused: var(--primary);
+}
+
 ion-select::part(container) {
   border: none;
   outline: none;

@@ -19,7 +19,13 @@
     "STATUS": "Statut",
     "DATE": "Date",
     "NOTES": "Notes",
-    "REFRESH": "Rafraîchir"
+    "REFRESH": "Rafraîchir",
+    "SELECT": "Sélectionner",
+    "ALL": "Tous",
+    "NONE": "Aucun",
+    "FILTER": "Filtrer",
+    "SORT": "Trier",
+    "RESET": "Réinitialiser"
   },
   "THEME": {
     "LIGHT": "Mode clair",
