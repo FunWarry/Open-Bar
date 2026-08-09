@@ -13,6 +13,19 @@
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
+  <!-- Quick Access Toolbar for Manager -->
+  <div class="manager-quick-actions ion-padding-horizontal ion-margin-top">
+    <ion-button routerLink="/manager/employees" color="primary" fill="solid" data-testid="manager-btn-employees">
+      <ion-icon name="people-outline" slot="start"></ion-icon>
+      Gestion du personnel & Shifts
+    </ion-button>
+
+    <ion-button routerLink="/manager/schedule" color="tertiary" fill="solid" class="ion-margin-start" data-testid="manager-btn-schedule">
+      <ion-icon name="calendar-outline" slot="start"></ion-icon>
+      Planning Semaine
+    </ion-button>
+  </div>
+
   <!-- KPIs — grille 2×2 -->
   <ion-grid class="stats-grid">
     <ion-row>

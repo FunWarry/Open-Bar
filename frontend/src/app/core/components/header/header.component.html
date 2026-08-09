@@ -18,6 +18,16 @@
         <ion-icon slot="start" name="table-restaurant"></ion-icon>
         <ion-label>Tables</ion-label>
       </ion-item>
+      @if ((currentUser$ | async)?.roles?.includes('MANAGER') || (currentUser$ | async)?.roles?.includes('ADMIN')) {
+        <ion-item button routerLink="/manager/employees" routerLinkActive="active-item" detail="false" data-testid="header-nav-employees">
+          <ion-icon slot="start" name="people"></ion-icon>
+          <ion-label>Employés & Shifts</ion-label>
+        </ion-item>
+        <ion-item button routerLink="/manager/schedule" routerLinkActive="active-item" detail="false" data-testid="header-nav-schedule">
+          <ion-icon slot="start" name="calendar"></ion-icon>
+          <ion-label>Planning Semaine</ion-label>
+        </ion-item>
+      }
       @if ((currentUser$ | async)?.roles?.includes('ADMIN')) {
         <ion-item button routerLink="/ingredients" routerLinkActive="active-item" detail="false">
           <ion-icon slot="start" name="nutrition"></ion-icon>

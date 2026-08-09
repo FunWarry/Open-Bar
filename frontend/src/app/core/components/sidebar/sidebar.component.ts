@@ -10,7 +10,7 @@ import {
   homeOutline, restaurantOutline, gridOutline, beerOutline,
   statsChartOutline, receiptOutline, wineOutline, cardOutline,
   nutritionOutline, settingsOutline, documentTextOutline, chevronBackOutline,
-  chevronForwardOutline, logOutOutline, personOutline, peopleOutline
+  chevronForwardOutline, logOutOutline, personOutline, peopleOutline, calendarOutline
 } from 'ionicons/icons';
 import { selectCurrentUser } from '../../store/auth.selectors';
 import * as AuthActions from '../../store/auth.actions';
@@ -40,6 +40,8 @@ export const SIDEBAR_NAV_ITEMS: NavItemDef[] = [
   { id: 'nav-plan-salle', route: '/plan-salle', icon: 'grid-outline', labelKey: 'NAV.PLAN_SALLE', roles: ['MANAGER', 'ADMIN', 'SERVEUR'], section: 'main' },
   { id: 'nav-barman', route: '/barman', icon: 'beer-outline', labelKey: 'NAV.BARMAN', roles: ['BARMAN', 'ADMIN', 'MANAGER'], section: 'main' },
   { id: 'nav-manager', route: '/manager', icon: 'stats-chart-outline', labelKey: 'NAV.DASHBOARD', roles: ['MANAGER', 'ADMIN'], section: 'main' },
+  { id: 'nav-employees', route: '/manager/employees', icon: 'people-outline', labelKey: 'NAV.EMPLOYEES', roles: ['MANAGER', 'ADMIN'], section: 'main' },
+  { id: 'nav-schedule', route: '/manager/schedule', icon: 'calendar-outline', labelKey: 'NAV.SCHEDULE', roles: ['MANAGER', 'ADMIN'], section: 'main' },
   { id: 'nav-cocktails', route: '/cocktails', icon: 'wine-outline', labelKey: 'NAV.COCKTAILS', section: 'main' },
   { id: 'nav-commandes', route: '/commandes', icon: 'receipt-outline', labelKey: 'NAV.COMMANDES', section: 'main' },
   { id: 'nav-tables', route: '/tables', icon: 'restaurant-outline', labelKey: 'NAV.TABLES', section: 'main' },
@@ -97,7 +99,7 @@ export class SidebarComponent implements OnDestroy {
       homeOutline, restaurantOutline, gridOutline, beerOutline,
       statsChartOutline, receiptOutline, wineOutline, cardOutline,
       nutritionOutline, settingsOutline, documentTextOutline, chevronBackOutline,
-      chevronForwardOutline, logOutOutline, personOutline, peopleOutline
+      chevronForwardOutline, logOutOutline, personOutline, peopleOutline, calendarOutline
     });
 
     this.currentUser$ = this.store.select(selectCurrentUser);
