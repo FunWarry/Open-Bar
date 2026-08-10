@@ -40,20 +40,11 @@ public class WeekSchedulePublicationService {
             EmployeeShiftRepository shiftRepository,
             SimpMessagingTemplate messagingTemplate,
             TimeService timeService) {
-        this(repository, shiftRepository, messagingTemplate, timeService, new ObjectMapper().findAndRegisterModules());
-    }
-
-    public WeekSchedulePublicationService(
-            WeekSchedulePublicationRepository repository,
-            EmployeeShiftRepository shiftRepository,
-            SimpMessagingTemplate messagingTemplate,
-            TimeService timeService,
-            ObjectMapper objectMapper) {
         this.repository = repository;
         this.shiftRepository = shiftRepository;
         this.messagingTemplate = messagingTemplate;
         this.timeService = timeService;
-        this.objectMapper = objectMapper != null ? objectMapper : new ObjectMapper().findAndRegisterModules();
+        this.objectMapper = new ObjectMapper().findAndRegisterModules();
     }
 
     /**
