@@ -56,4 +56,30 @@ describe('DayClosureModalComponent', () => {
       action: 'reopen'
     });
   });
+
+  it('selectPreset() should set reason and enable date range for Congés annuels', () => {
+    component.selectPreset('Congés annuels');
+    expect(component.reason).toBe('Congés annuels');
+    expect(component.isDateRange).toBeTrue();
+    expect(component.endDate).toBeDefined();
+
+    component.selectPreset('Jour Férié');
+    expect(component.reason).toBe('Jour Férié');
+  });
+
+  it('saveClosure() with date range enabled should include endDate in dismiss payload', () => {
+    component.isDateRange = true;
+    component.startDate = '2026-08-15';
+    component.endDate = '2026-08-22';
+    component.saveClosure();
+
+    expect(mockModalCtrl.dismiss).toHaveBeenCalledWith({
+      action: 'close',
+      startDate: '2026-08-15',
+      endDate: '2026-08-22',
+      reason: 'Fermeture exceptionnelle',
+      isAnnualRecurring: false
+    });
+  });
 });
+
