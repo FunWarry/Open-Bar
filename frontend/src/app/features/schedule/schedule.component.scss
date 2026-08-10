@@ -104,7 +104,7 @@
   margin-bottom: var(--space-3, 12px);
   gap: 16px;
   flex-wrap: wrap;
-  box-shadow: 0 4px 18px rgba(108, 127, 232, 0.2);
+  box-shadow: var(--shadow-glow-primary);
 
   .banner-info {
     display: flex;
@@ -172,7 +172,7 @@
   margin-bottom: var(--space-3, 12px);
   gap: 16px;
   flex-wrap: wrap;
-  box-shadow: 0 4px 18px rgba(229, 96, 79, 0.2);
+  box-shadow: var(--shadow-glow-danger);
 
   .banner-info {
     display: flex;
@@ -194,7 +194,7 @@
     background: var(--semantic-danger, #e5604f);
     padding: 3px 10px;
     border-radius: var(--radius-full, 9999px);
-    box-shadow: 0 2px 8px rgba(229, 96, 79, 0.4);
+    box-shadow: var(--shadow-glow-danger);
   }
 
   .banner-actions {
@@ -368,13 +368,13 @@
     // Comparison Mode Cell States
     &.diff-added {
       border: 2px solid var(--semantic-success, #2dd36f) !important;
-      box-shadow: 0 0 12px rgba(45, 211, 111, 0.5) !important;
+      box-shadow: var(--shadow-glow-success) !important;
       filter: brightness(1.15) !important;
     }
 
     &.diff-modified {
       border: 2px solid var(--semantic-warning, #f59e0b) !important;
-      box-shadow: 0 0 12px rgba(245, 158, 11, 0.5) !important;
+      box-shadow: var(--shadow-glow-warning) !important;
       filter: brightness(1.15) !important;
     }
 
@@ -387,7 +387,7 @@
         rgba(229, 96, 79, 0.35) 16px
       ) !important;
       border: 2px dashed var(--semantic-danger, #e5604f) !important;
-      box-shadow: 0 0 12px rgba(229, 96, 79, 0.4) !important;
+      box-shadow: var(--shadow-glow-danger) !important;
       cursor: not-allowed;
     }
 
