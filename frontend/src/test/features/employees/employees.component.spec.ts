@@ -127,4 +127,15 @@ describe('EmployeesComponent', () => {
 
     expect(mockModalCtrl.create).toHaveBeenCalled();
   });
+
+  it('getRoleBadgeColor() and trackById() should return correct values', () => {
+    expect(component.getRoleBadgeColor('MANAGER')).toBe('warning');
+    expect(component.getRoleBadgeColor('SERVEUR')).toBe('success');
+    expect(component.getRoleBadgeColor('BARMAN')).toBe('secondary');
+    expect(component.getRoleBadgeColor('ADMIN')).toBe('tertiary');
+    expect(component.getRoleBadgeColor('OTHER')).toBe('primary');
+
+    expect(component.trackById(0, component.employeeSummaries[0])).toBe(1);
+  });
 });
+

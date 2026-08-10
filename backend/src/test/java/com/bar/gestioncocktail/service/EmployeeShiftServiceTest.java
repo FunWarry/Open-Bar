@@ -243,6 +243,23 @@ class EmployeeShiftServiceTest {
     }
 
     @Test
+    void updateShift_WithNewUserId_UpdatesUserSuccessfully() {
+        EmployeeShiftRequestDTO request = new EmployeeShiftRequestDTO(
+            2L, LocalDate.of(2026, 8, 12), TypeShift.SOIR, TypePoste.BARMAN,
+            "16:00", "00:00", null, 30, null, null, null, null, null, "Transfer to new user"
+        );
+
+        when(shiftRepository.findById(10L)).thenReturn(Optional.of(sampleShift));
+        when(userRepository.findById(2L)).thenReturn(Optional.of(newUser));
+        when(shiftRepository.save(any(EmployeeShift.class))).thenAnswer(i -> i.getArgument(0));
+
+        EmployeeShift updated = shiftService.updateShift(10L, request);
+
+        assertThat(updated.getUser()).isEqualTo(newUser);
+        verify(userRepository).findById(2L);
+    }
+
+    @Test
     void createShift_WhenHeuresPrevuesNull_CalculatesFromTimesAndHandlesOvernight() {
         EmployeeShiftRequestDTO request = new EmployeeShiftRequestDTO(
             1L, LocalDate.of(2026, 8, 10), TypeShift.NUIT, TypePoste.BARMAN,
