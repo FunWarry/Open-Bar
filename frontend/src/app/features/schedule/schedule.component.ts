@@ -227,6 +227,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
 
     const publishedMap = this.parsePublishedShifts(this.publication.snapshotJson);
     const seenKeys = new Set<string>();
+    const activeEmployeeIds = new Set(this.schedule.employees.map(e => String(e.employeeId)));
 
     for (const emp of this.schedule.employees) {
       for (const shift of emp.shifts) {
@@ -237,7 +238,8 @@ export class ScheduleComponent implements OnInit, OnDestroy {
     }
 
     for (const [key, pub] of publishedMap.entries()) {
-      if (!seenKeys.has(key)) {
+      const [uId] = key.split('_');
+      if (activeEmployeeIds.has(uId) && !seenKeys.has(key)) {
         this.recordDeletedDiff(key, pub);
       }
     }
@@ -301,7 +303,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
 
   private compareCellWithPublication(key: string, shift: ShiftCell, pub?: any): void {
     const hasCurrent = Boolean(shift.rawShift && shift.startTime && !shift.isClosed);
-    const pubStart = this.normalizeTime(pub?.heureDebut || pub?.startTime);
+    const pubStart = this.normalizeTime(pub?.heureDebut || pub?.startTime || pub?.heure_debut || pub?.start_time);
     const hasPub = Boolean(pub && pubStart);
 
     if (hasCurrent && !hasPub) {
@@ -317,17 +319,17 @@ export class ScheduleComponent implements OnInit, OnDestroy {
   }
 
   private checkModifiedDiff(key: string, shift: ShiftCell, pub: any): void {
-    const pubStart = this.normalizeTime(pub.heureDebut || pub.startTime);
-    const pubEnd = this.normalizeTime(pub.heureFin || pub.endTime);
-    const pubType = pub.typeShift;
+    const pubStart = this.normalizeTime(pub.heureDebut || pub.startTime || pub.heure_debut || pub.start_time);
+    const pubEnd = this.normalizeTime(pub.heureFin || pub.endTime || pub.heure_fin || pub.end_time);
+    const pubType = pub.typeShift || pub.type_shift || pub.type;
 
     const currentStart = this.normalizeTime(shift.startTime);
     const currentEnd = this.normalizeTime(shift.endTime);
     const currentType = shift.typeShift || shift.rawShift?.typeShift;
 
     const isModified =
-      currentStart !== pubStart ||
-      currentEnd !== pubEnd ||
+      (pubStart && currentStart !== pubStart) ||
+      (pubEnd && currentEnd !== pubEnd) ||
       (pubType && currentType && pubType !== currentType);
 
     if (isModified) {
@@ -343,14 +345,15 @@ export class ScheduleComponent implements OnInit, OnDestroy {
   }
 
   private recordDeletedDiff(key: string, pub: any): void {
-    const pubStart = this.normalizeTime(pub.heureDebut || pub.startTime);
-    const pubEnd = this.normalizeTime(pub.heureFin || pub.endTime);
+    const pubStart = this.normalizeTime(pub.heureDebut || pub.startTime || pub.heure_debut || pub.start_time);
+    const pubEnd = this.normalizeTime(pub.heureFin || pub.endTime || pub.heure_fin || pub.end_time);
+    const pubType = pub.typeShift || pub.type_shift || pub.type;
     this.cellDiffMap.set(key, {
       status: 'DELETED',
       publishedShift: {
         heureDebut: pubStart,
         heureFin: pubEnd,
-        typeShift: pub.typeShift
+        typeShift: pubType
       }
     });
     this.diffDeletedCount++;
