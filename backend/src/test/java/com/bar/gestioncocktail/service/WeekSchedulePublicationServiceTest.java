@@ -4,7 +4,6 @@ import com.bar.gestioncocktail.dto.WeekSchedulePublicationDTO;
 import com.bar.gestioncocktail.model.WeekSchedulePublication;
 import com.bar.gestioncocktail.repository.WeekSchedulePublicationRepository;
 import com.bar.gestioncocktail.repository.EmployeeShiftRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -40,9 +39,6 @@ class WeekSchedulePublicationServiceTest {
     @Mock
     private TimeService timeService;
 
-    @Mock
-    private ObjectMapper objectMapper;
-
     @InjectMocks
     private WeekSchedulePublicationService service;
 
@@ -59,7 +55,6 @@ class WeekSchedulePublicationServiceTest {
         when(timeService.now()).thenReturn(LocalDateTime.of(2026, 8, 17, 12, 0));
         when(repository.findByWeekStart(monday)).thenReturn(Optional.empty());
         when(shiftRepository.findByDateShiftBetween(eq(monday), any(LocalDate.class))).thenReturn(List.of());
-        when(objectMapper.writeValueAsString(any())).thenReturn("[]");
 
         WeekSchedulePublication saved = new WeekSchedulePublication();
         saved.setId(1L);
@@ -87,7 +82,6 @@ class WeekSchedulePublicationServiceTest {
     void publishWeek_updatesExisting() throws Exception {
         when(timeService.now()).thenReturn(LocalDateTime.of(2026, 8, 17, 14, 0));
         when(shiftRepository.findByDateShiftBetween(eq(monday), any(LocalDate.class))).thenReturn(List.of());
-        when(objectMapper.writeValueAsString(any())).thenReturn("[]");
 
         WeekSchedulePublication existing = new WeekSchedulePublication();
         existing.setId(2L);
