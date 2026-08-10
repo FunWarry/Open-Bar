@@ -1,6 +1,6 @@
 # OpenBar — État des Features & Roadmap
 
-> Dernière mise à jour : 9 août 2026 — PR #273 : Modal d'édition ingrédient au clic sur carte, suppression vue détail, filtres multi-critères et correction payload notification stock (#272)
+> Dernière mise à jour : 11 août 2026 — PR #279 (#275) : Planning d'équipe & Gestion des Shifts par employé (Vues Manager & Employé, Modales de shifts, Fermetures, Presets, Duplication & STOMP)
 
 ## Tableau des Features
 
@@ -8,6 +8,7 @@
 |---------|---------|----------|-------|-------|
 | Documentation complète & API OpenAPI/Swagger (#192/#194) | ✅ | ✅ | ✅ | JavaDoc, TSDoc, OpenAPI 3.0 |
 | Quality Gate SonarCloud & Sécurité 100% sans `@SuppressWarnings` | ✅ | ✅ | ✅ | Coverage > 80%, Note A |
+| Planning d'équipe & Shifts Employés par personne (#275) | ✅ | ✅ | ✅ | Vue `/employees`, modal créneaux par personne, presets, fermetures, duplication drag & drop, WS `/topic/schedule-publications` |
 | Données légales établissement SIRET/TVA/RCS (#129/#134) | ✅ | ✅ | ✅ | Validation Luhn SIRET, format TVA FR, Formulaire Admin + Live preview ticket |
 | Format d'impression ticket 58mm & 80mm (#237) | ✅ | ✅ | ✅ | Sélection du format ticket d'impression (80mm/58mm) en admin + styles CSS compacts & @media print |
 | Calcul TVA multi-taux (20%, 10%, 5.5%) (#130) | ✅ | ✅ | ✅ | Calcul HT/TVA/TTC par article, récapitulatif CA3 |
@@ -114,6 +115,7 @@
 
 | PR / Issue | Description |
 |------------|-------------|
+| #279 (#275) | Planning d'équipe & Shifts Employés par personne (Figma 540:1022) : Vue Employés Manager (`/employees`), modal de gestion des créneaux par personne (`EmployeeShiftModalComponent`), modal de fermeture d'établissement (`ClosureConfigModalComponent`), modal d'exceptions de fermeture par jour (`DayClosureModalComponent`), configuration des modèles de shifts (`ShiftPresetsConfigComponent`), duplication par glisser-déposer, raccourcis clavier (Ctrl+C, Ctrl+V, Del, Esc), publication d'emploi du temps avec notifications STOMP temps réel `/topic/schedule-publications`, et Quality Gate SonarCloud 80.8% OK. |
 | #278 (#274) | Backend Gestion des Shifts Employés (ShiftController, Service, Repository) : Validation des payloads DTOs via annotations Jakarta et @Valid. Endpoints REST sous `/api/shifts` (GET par ID, par semaine avec calcul de date pivot, par plage from/to, par utilisateur, POST, PUT, DELETE avec `@PreAuthorize`). Tests unitaires 100% verts (407 backend OK). Correctifs UI style des modals et clic ligne utilisateur. |
 | #273 (#272) | Modal d'édition ingrédient au clic sur carte, suppression vue détail et correction notifs stock : Fix du payload WebSocket d'alerte stock dans `NotificationService.java` (alias getters `getNom`/`getQuantiteActuelle`) et `notification.service.ts` (fallback champs alternatifs). Fusion de la page `/ingredients/:id` dans `IngredientFormComponent` utilisé en `IonModal` (mode lecture seule si pas de droits d'édition). Suppression du composant `IngredientDetailComponent` obsolète. Clic sur carte/ligne ouvre le modal ; `stopPropagation` sur ajustements rapides (-10/-1/+1/+10) et suppression. Barre de contrôle alignée sur le style `TableListComponent` : pilules de statut (Tous/Normaux/En alerte/Épuisés) avec compteurs, filtres Catégorie / Unité / Tri / Vue. 8 options de tri (nom ASC/DESC, stock ASC/DESC, seuil ASC/DESC, statut alerte, catégorie). i18n FR/EN complet. Tests : Backend 402/402 OK, Frontend 1065/1065 OK, SonarCloud PASSED. |
 | #271 (#270) | Ouverture détails commande par clic sur carte, modal avec actions et popup de confirmation : Permet l'ouverture automatique des détails d'une commande dans un modal `CommandeDetailModalComponent` au clic sur n'importe quel endroit d'une carte de commande (Kanban & Barman). Intègre les boutons d'action contextuels dans le modal (progression statut `EN_ATTENTE` -> `EN_PREPARATION` -> `PRET` -> `LIVREE`, et annulation avec popup de confirmation `AlertController`). Uniformisation des cartes avec suppression du bouton yeux explicite et gestion de la propagation d'événements. Support i18n FR/EN complet. Tests Karma (1059/1059 OK). |

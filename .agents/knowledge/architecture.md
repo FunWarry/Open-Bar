@@ -85,6 +85,7 @@ frontend/src/
 
 ```
 users ──< user_roles
+users ──< employee_shifts              ← Shifts & plannings d'équipe
 users ──< tables (serveur_id)
 tables ──< commandes ──< commande_items ──< cocktails
                                          └──< cocktail_variantes
@@ -93,6 +94,9 @@ tables ──< factures ──< facture_items
 tables ──< table_sessions              ← QR code client (token temporaire)
 etages                                 ← Niveaux du bar (RDC, ETAGE_1…) — seed @PostConstruct
 zones ──< tables                       ← Polygones libres JSON plan de salle (étage FK via code)
+establishment_closures                 ← Exceptions & jours de fermeture
+shift_presets                          ← Modèles prédéfinis de créneaux
+week_schedule_publications             ← Suivi et journal des publications EDT
 users ──< audit_logs
 app_settings                           ← Singleton personnalisation admin
 ```
@@ -102,9 +106,9 @@ app_settings                           ← Singleton personnalisation admin
 | Rôle | Nature | Permissions clés |
 |------|--------|-----------------|
 | `ADMIN` | Maintenance technique uniquement | CRUD users, tout accès |
-| `MANAGER` | Supervision bar (rôle métier principal) | Stats, annulation commandes, toggle dispo cocktails |
-| `SERVEUR` | Prise de commande | Créer/annuler commandes, suivi tables |
-| `BARMAN` | Préparation + stocks | Changer statut commandes, CRUD cocktails/ingrédients |
+| `MANAGER` | Supervision bar (rôle métier principal) | Stats, annulation commandes, toggle dispo cocktails, gestion des shifts & plannings |
+| `SERVEUR` | Prise de commande | Créer/annuler commandes, suivi tables, consultation de ses shifts |
+| `BARMAN` | Préparation + stocks | Changer statut commandes, CRUD cocktails/ingrédients, consultation de ses shifts |
 
 **NgRx selectors** : `selectIsAdmin`, `selectIsManager`, `selectIsBarman`, `selectIsAuthenticated`, `selectCurrentUser`
 
@@ -125,6 +129,7 @@ EN_ATTENTE → EN_PREPARATION → PRET → LIVREE → REGLEE
 | `/topic/commandes/{id}` | Changement de statut |
 | `/topic/tables` | Occupation / libération |
 | `/topic/stock/alerte` | Stock faible |
+| `/topic/schedule-publications` | Publication d'emploi du temps |
 
 ## Lancer le Projet
 
