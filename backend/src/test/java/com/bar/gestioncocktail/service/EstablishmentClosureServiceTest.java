@@ -205,13 +205,16 @@ class EstablishmentClosureServiceTest {
     @Test
     @DisplayName("createClosure - Throws BusinessException when required fields are missing")
     void createClosure_validationErrors() {
-        assertThatThrownBy(() -> service.createClosure(new EstablishmentClosureRequestDTO(null, null, null, null, false, null)))
+        EstablishmentClosureRequestDTO reqNullType = new EstablishmentClosureRequestDTO(null, null, null, null, false, null);
+        assertThatThrownBy(() -> service.createClosure(reqNullType))
                 .isInstanceOf(BusinessException.class);
 
-        assertThatThrownBy(() -> service.createClosure(new EstablishmentClosureRequestDTO(ClosureType.WEEKLY_RECURRING, null, null, null, false, null)))
+        EstablishmentClosureRequestDTO reqWeeklyNoDay = new EstablishmentClosureRequestDTO(ClosureType.WEEKLY_RECURRING, null, null, null, false, null);
+        assertThatThrownBy(() -> service.createClosure(reqWeeklyNoDay))
                 .isInstanceOf(BusinessException.class);
 
-        assertThatThrownBy(() -> service.createClosure(new EstablishmentClosureRequestDTO(ClosureType.EXCEPTIONAL, null, null, null, false, null)))
+        EstablishmentClosureRequestDTO reqExceptionalNoDate = new EstablishmentClosureRequestDTO(ClosureType.EXCEPTIONAL, null, null, null, false, null);
+        assertThatThrownBy(() -> service.createClosure(reqExceptionalNoDate))
                 .isInstanceOf(BusinessException.class);
     }
 

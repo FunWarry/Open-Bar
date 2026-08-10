@@ -154,8 +154,69 @@ describe('EmployeeShiftModalComponent', () => {
     expect(component.showForm).toBeFalse();
   });
 
+  it('should open edit shift form and update existing shift', () => {
+    component.openEditShiftForm(sampleShift);
+    expect(component.showForm).toBeTrue();
+    expect(component.editingShiftId).toBe(10);
+    expect(component.formTypeShift).toBe('MATIN');
+
+    mockShiftService.updateShift.and.returnValue(of(sampleShift));
+    component.saveShift();
+
+    expect(mockShiftService.updateShift).toHaveBeenCalledWith(10, jasmine.any(Object));
+    expect(component.showForm).toBeFalse();
+  });
+
+  it('confirmDelete() should prompt alert and execute deleteShift on handler', async () => {
+    let confirmHandler: () => void = () => {};
+    mockAlertCtrl.create.and.callFake((options: any) => {
+      const deleteBtn = options.buttons.find((b: any) => b.role === 'destructive');
+      if (deleteBtn && deleteBtn.handler) {
+        confirmHandler = deleteBtn.handler;
+      }
+      return Promise.resolve({
+        present: () => Promise.resolve()
+      } as any);
+    });
+    mockShiftService.deleteShift.and.returnValue(of(undefined as any));
+
+    await component.confirmDeleteShift(sampleShift);
+    expect(mockAlertCtrl.create).toHaveBeenCalled();
+
+    confirmHandler();
+    expect(mockShiftService.deleteShift).toHaveBeenCalledWith(10);
+  });
+
+  it('togglePresetManager() and savePreset() should manage presets', () => {
+    expect(component.showPresetManager).toBeFalse();
+    component.togglePresetManager();
+    expect(component.showPresetManager).toBeTrue();
+
+    const updatedPreset: ShiftPreset = { ...samplePreset, dureePauseMinutes: 45 };
+    mockShiftService.updatePreset.and.returnValue(of(updatedPreset));
+
+    component.savePreset(updatedPreset);
+    expect(mockShiftService.updatePreset).toHaveBeenCalledWith('MATIN', updatedPreset);
+    expect(component.presets[0].dureePauseMinutes).toBe(45);
+  });
+
+  it('recalculatePlannedHours() should handle overnight shifts spanning midnight', () => {
+    component.formHeureDebut = '22:00';
+    component.formHeureFin = '06:00';
+    component.formDureePauseMinutes = 60;
+    component.recalculatePlannedHours();
+    expect(component.formHeuresPrevues).toBe(7);
+  });
+
+  it('resetToCurrentWeek() should reset week start to Monday and reload', () => {
+    component.prevWeek();
+    component.resetToCurrentWeek();
+    expect(mockShiftService.getShiftsForWeek).toHaveBeenCalled();
+  });
+
   it('should dismiss modal on dismiss call', () => {
     component.dismiss();
     expect(mockModalCtrl.dismiss).toHaveBeenCalled();
   });
 });
+

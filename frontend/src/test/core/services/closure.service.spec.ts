@@ -36,7 +36,7 @@ describe('ClosureService', () => {
 
     service.getClosures().subscribe(res => {
       expect(res).toEqual(mockClosures);
-      expect(res.length).toBe(1);
+      expect(res).toHaveSize(1);
     });
 
     const req = httpMock.expectOne(apiUrl);
