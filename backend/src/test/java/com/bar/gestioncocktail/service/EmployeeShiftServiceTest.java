@@ -243,6 +243,33 @@ class EmployeeShiftServiceTest {
     }
 
     @Test
+    void getShiftsForWeekOfDate_WhenNullDate_DefaultsToCurrentDate() {
+        when(shiftRepository.findByDateShiftBetween(any(LocalDate.class), any(LocalDate.class))).thenReturn(List.of(sampleShift));
+
+        List<EmployeeShift> result = shiftService.getShiftsForWeekOfDate(null);
+
+        assertThat(result).hasSize(1);
+        verify(shiftRepository).findByDateShiftBetween(any(LocalDate.class), any(LocalDate.class));
+    }
+
+    @Test
+    void createShift_WhenHeuresPrevuesNull_CalculatesFromTimesAndHandlesOvernight() {
+        EmployeeShiftRequestDTO request = new EmployeeShiftRequestDTO(
+            1L, LocalDate.of(2026, 8, 10), TypeShift.NUIT, TypePoste.BARMAN,
+            "22:00", "06:00", "02:00", 60, null, null, null, null, null, "Overnight"
+        );
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(sampleUser));
+        when(shiftRepository.save(any(EmployeeShift.class))).thenAnswer(i -> i.getArgument(0));
+
+        EmployeeShift created = shiftService.createShift(request);
+
+        // 22:00 to 06:00 (8h) - 60 min break = 7.00h
+        assertThat(created.getHeuresPrevues()).isEqualTo(new BigDecimal("7.00"));
+        assertThat(created.getHeuresEffectuees()).isEqualTo(new BigDecimal("7.00"));
+    }
+
+    @Test
     void deleteShift_Success() {
         when(shiftRepository.findById(10L)).thenReturn(Optional.of(sampleShift));
 
@@ -251,3 +278,4 @@ class EmployeeShiftServiceTest {
         verify(shiftRepository).delete(sampleShift);
     }
 }
+
