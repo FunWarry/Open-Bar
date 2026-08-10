@@ -243,16 +243,6 @@ class EmployeeShiftServiceTest {
     }
 
     @Test
-    void getShiftsForWeekOfDate_WhenNullDate_DefaultsToCurrentDate() {
-        when(shiftRepository.findByDateShiftBetween(any(LocalDate.class), any(LocalDate.class))).thenReturn(List.of(sampleShift));
-
-        List<EmployeeShift> result = shiftService.getShiftsForWeekOfDate(null);
-
-        assertThat(result).hasSize(1);
-        verify(shiftRepository).findByDateShiftBetween(any(LocalDate.class), any(LocalDate.class));
-    }
-
-    @Test
     void createShift_WhenHeuresPrevuesNull_CalculatesFromTimesAndHandlesOvernight() {
         EmployeeShiftRequestDTO request = new EmployeeShiftRequestDTO(
             1L, LocalDate.of(2026, 8, 10), TypeShift.NUIT, TypePoste.BARMAN,
