@@ -1,6 +1,15 @@
 export type TypeShift = 'MATIN' | 'SOIR' | 'COUPURE' | 'NUIT' | 'CONGE';
 export type TypePoste = 'SERVEUR' | 'BARMAN' | 'CAISSE' | 'MANAGER';
 
+export interface ShiftPreset {
+  id?: number;
+  typeShift: TypeShift;
+  nom: string;
+  heureDebut: string;
+  heureFin: string;
+  dureePauseMinutes?: number;
+}
+
 export interface EmployeeShift {
   id?: number;
   userId: number;
@@ -12,6 +21,12 @@ export interface EmployeeShift {
   typePoste: TypePoste;
   heureDebut: string; // HH:mm
   heureFin: string; // HH:mm
+  heurePauseDebut?: string;
+  dureePauseMinutes?: number;
+  heureDebutReelle?: string;
+  heureFinReelle?: string;
+  heuresSup?: number;
+  heuresPrevues?: number;
   heuresEffectuees?: number;
   notes?: string;
   createdAt?: string;
@@ -25,6 +40,12 @@ export interface EmployeeShiftRequest {
   typePoste: TypePoste;
   heureDebut: string;
   heureFin: string;
+  heurePauseDebut?: string;
+  dureePauseMinutes?: number;
+  heureDebutReelle?: string;
+  heureFinReelle?: string;
+  heuresSup?: number;
+  heuresPrevues?: number;
   heuresEffectuees?: number;
   notes?: string;
 }

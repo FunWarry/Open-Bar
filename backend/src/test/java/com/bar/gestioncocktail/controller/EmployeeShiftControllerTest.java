@@ -125,7 +125,7 @@ class EmployeeShiftControllerTest {
     void createShift_ShouldReturnDto() {
         EmployeeShiftRequestDTO request = new EmployeeShiftRequestDTO(
             1L, LocalDate.of(2026, 8, 10), TypeShift.MATIN, TypePoste.MANAGER,
-            "08:00", "16:00", new BigDecimal("8.0"), "Note"
+            "08:00", "16:00", "12:00", 30, null, null, BigDecimal.ZERO, BigDecimal.valueOf(7.5), new BigDecimal("8.0"), "Note"
         );
 
         when(shiftService.createShift(any(EmployeeShiftRequestDTO.class))).thenReturn(sampleShift);
@@ -141,7 +141,7 @@ class EmployeeShiftControllerTest {
     void updateShift_ShouldReturnUpdatedDto() {
         EmployeeShiftRequestDTO request = new EmployeeShiftRequestDTO(
             1L, LocalDate.of(2026, 8, 10), TypeShift.SOIR, TypePoste.MANAGER,
-            "17:00", "01:00", new BigDecimal("8.0"), "Modifié"
+            "17:00", "01:00", "20:00", 30, null, null, BigDecimal.ZERO, BigDecimal.valueOf(7.5), new BigDecimal("8.0"), "Modifié"
         );
 
         when(shiftService.updateShift(eq(1L), any(EmployeeShiftRequestDTO.class))).thenReturn(sampleShift);

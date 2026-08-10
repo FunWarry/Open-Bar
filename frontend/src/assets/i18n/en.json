@@ -25,7 +25,9 @@
     "NONE": "None",
     "FILTER": "Filter",
     "SORT": "Sort",
-    "RESET": "Reset"
+    "RESET": "Reset",
+    "PREV": "Prev.",
+    "NEXT": "Next"
   },
   "THEME": {
     "LIGHT": "Light Mode",
@@ -51,6 +53,8 @@
     "SOUND_DISABLE": "Disable sound",
     "AUDIT_LOGS": "Audit Logs",
     "USERS": "Users",
+    "EMPLOYEES": "Staff & Shifts",
+    "SCHEDULE": "Weekly Schedule",
     "TOPBAR": {
       "PAGE_TITLES": {
         "HOME": "Home",
@@ -736,6 +740,7 @@
     "ACTIONS": {
       "CREATE_USER": "Create User",
       "USERS_LIST": "Staff List",
+      "EMPLOYEES_SHIFTS": "Staff Schedule & Shifts",
       "LEGAL_CONFIG": "Establishment Details (SIRET / VAT / 58mm Ticket)",
       "THEME_STUDIO": "Theme & Color Customization",
       "AUDIT_LOGS": "System Audit Log",
@@ -744,5 +749,152 @@
       "DAILY_RECAP": "Daily Settlement & Z-Report",
       "INVOICES_LIST": "Invoices History"
     }
+  },
+  "EMPLOYEES": {
+    "TITLE": "Staff & Schedule Management",
+    "SUBTITLE": "View team members, filter by role, and manage work shifts",
+    "SEARCH_PLACEHOLDER": "Search by first name, last name, or username...",
+    "FILTER_ROLE": "All roles",
+    "TOTAL_EMPLOYEES": "employee(s)",
+    "HOURS_THIS_WEEK": "hrs this week",
+    "SHIFTS_THIS_WEEK": "shift(s)",
+    "MANAGE_SHIFTS": "Manage shifts",
+    "NO_EMPLOYEES": "No employees found",
+    "EMPTY_SUBTEXT": "Try adjusting your search criteria."
+  },
+  "SHIFTS": {
+    "TITLE": "Work Shifts",
+    "WEEK_LABEL": "Week of {{start}} to {{end}}",
+    "PREV_WEEK": "Previous week",
+    "NEXT_WEEK": "Next week",
+    "CURRENT_WEEK": "This week",
+    "ADD_SHIFT": "New shift",
+    "EDIT_SHIFT": "Edit shift",
+    "DELETE_SHIFT": "Delete shift",
+    "CONFIRM_DELETE": "Are you sure you want to delete this work shift?",
+    "NO_SHIFTS": "No shifts scheduled for this week",
+    "TOTAL_HOURS": "Total week hours",
+    "CANCEL_FORM": "Cancel",
+    "SAVE_SHIFT": "Save",
+    "FIELDS": {
+      "DATE": "Shift date",
+      "TYPE_SHIFT": "Shift type",
+      "TYPE_POSTE": "Assigned position",
+      "START_TIME": "Start time",
+      "END_TIME": "End time",
+      "HOURS": "Hours worked",
+      "BREAK_START": "Break start time",
+      "BREAK_DURATION": "Break (minutes)",
+      "PLANNED_HOURS": "Planned time",
+      "REAL_START": "Actual start time",
+      "REAL_END": "Actual end time",
+      "OVERTIME": "Overtime (h)",
+      "NOTES": "Notes / Remarks"
+    },
+    "REAL_TRACKING_TITLE": "Clock-in & Actual Hours",
+    "PRESETS": {
+      "TITLE": "Shift Templates & Presets",
+      "MANAGE_BTN": "Manage templates",
+      "CLOSE_BTN": "Close management",
+      "SAVE_PRESET": "Save template",
+      "DEFAULT_NOTICE": "Selecting a type automatically pre-fills default times and break duration (editable)."
+    },
+    "SUMMARY": {
+      "PLANNED": "Planned: {{hours}}h",
+      "REAL": "Actual: {{hours}}h",
+      "OVERTIME": "Overtime: {{hours}}h"
+    },
+    "CONFIG": {
+      "TITLE": "Shift Templates Configuration",
+      "SUBTITLE": "Define default working hours (start, end, break duration) automatically pre-filled for each shift type.",
+      "BACK_TO_EMPLOYEES": "Back to employee management",
+      "SAVE_SUCCESS": "Template updated successfully"
+    },
+    "SHIFT_TYPES": {
+      "MATIN": "Morning",
+      "SOIR": "Evening",
+      "COUPURE": "Split",
+      "NUIT": "Night",
+      "CONGE": "Time Off"
+    },
+    "POSTE_TYPES": {
+      "SERVEUR": "Waiter",
+      "BARMAN": "Bartender",
+      "CAISSE": "Cashier",
+      "MANAGER": "Manager"
+    },
+    "CLOSURES": {
+      "TITLE": "Establishment Closures",
+      "CONFIG_TITLE": "Establishment Closures Configuration",
+      "WEEKLY_TITLE": "Weekly Recurring Closures",
+      "WEEKLY_SUBTITLE": "Select days of the week when the bar is closed regularly. EDT columns will automatically be grayed out.",
+      "EXCEPTIONAL_TITLE": "Holidays & Exceptional Closures",
+      "CLOSED_BADGE": "Closed",
+      "OPEN_STATUS": "Establishment open",
+      "CLOSED_STATUS": "Establishment closed",
+      "REASON_LABEL": "Closure reason / Holiday / Vacation",
+      "REASON_PLACEHOLDER": "e.g. Annual leave, Holiday, Renovations...",
+      "QUICK_SUGGESTIONS": "Quick suggestions:",
+      "RANGE_TOGGLE": "Multi-day closure (Date range / Vacation)",
+      "RANGE_SUBTITLE": "Set closure from day A to day B (e.g. Summer vacation)",
+      "START_DATE": "Start date",
+      "END_DATE": "End date (inclusive)",
+      "ANNUAL_TOGGLE": "Repeat every year",
+      "ANNUAL_SUBTITLE": "Recurring holidays or fixed vacations (e.g. July 14, Fixed summer leave)",
+      "SAVE_CLOSURE": "Save closure",
+      "REOPEN_BAR": "Re-open bar for this day",
+      "NO_CLOSURES": "No exceptional closures configured."
+    },
+    "SHORTCUTS": {
+      "LEGEND_TITLE": "Shortcuts & Interactions:",
+      "LEFT_CLICK": "Left click",
+      "LEFT_CLICK_DESC": "Edit",
+      "DRAG_DROP": "Drag & drop",
+      "DRAG_DROP_DESC": "Bulk duplicate",
+      "RIGHT_CLICK": "Right click",
+      "RIGHT_CLICK_DESC": "Action menu",
+      "COPY_PASTE": "Ctrl + C / V",
+      "COPY_PASTE_DESC": "Copy / Paste",
+      "DELETE": "Del / Backspace",
+      "DELETE_DESC": "Delete shift",
+      "SHIFT_RIGHT_CLICK": "Shift + Right click",
+      "SHIFT_RIGHT_CLICK_DESC": "Browser menu"
+    },
+    "SCHEDULE": {
+      "THIS_WEEK": "This week",
+      "PUBLISH": "Publish schedule",
+      "REPUBLISH": "Publish changes",
+      "ALREADY_PUBLISHED": "Already published",
+      "PUBLISHED_BY": "Published on {{date}} by {{user}}",
+      "MODIFIED_SINCE_PUBLISHED": "⚠️ Pending changes (Last pub. {{date}} by {{user}})",
+      "PUBLISH_SUCCESS": "Week schedule published successfully"
+    },
+    "DIFF": {
+      "COMPARE_BTN": "Compare with published",
+      "EXIT_COMPARE_BTN": "Exit comparison",
+      "BANNER_TITLE": "Schedule Comparison Mode",
+      "BANNER_DESC": "Differences compared to the version published on {{date}} by {{user}}",
+      "ADDED_COUNT": "{{count}} Added",
+      "MODIFIED_COUNT": "{{count}} Modified",
+      "DELETED_COUNT": "{{count}} Deleted",
+      "UNCHANGED": "Unchanged",
+      "NO_DIFF": "The current schedule is identical to the published version.",
+      "TOOLTIP_ADDED": "New shift (unpublished)",
+      "TOOLTIP_MODIFIED": "Modified: was {{oldTime}}",
+      "TOOLTIP_DELETED": "Deleted shift (was {{oldTime}})"
+    },
+    "EMPLOYEE_HEADER": "Employee",
+    "BULK_DELETE": {
+      "TOOL_BUTTON": "Eraser Tool",
+      "EXIT_TOOL": "Exit eraser",
+      "ACTIVE_BANNER": "Eraser mode active: click on shifts to stage for deletion",
+      "SELECTED_COUNT": "{{count}} shift(s) selected",
+      "CONFIRM_BUTTON": "Delete selected ({{count}})",
+      "CLEAR_ALL_SELECTION": "Clear selection",
+      "CONFIRM_TITLE": "Confirm bulk deletion?",
+      "CONFIRM_MESSAGE": "Do you really want to permanently delete these {{count}} work shifts?",
+      "SUCCESS": "{{count}} shifts successfully deleted"
+    }
   }
 }
+

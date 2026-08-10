@@ -45,6 +45,9 @@ class SampleDataSeederServiceTest {
     private EmployeeShiftRepository employeeShiftRepository;
 
     @Mock
+    private EstablishmentClosureRepository establishmentClosureRepository;
+
+    @Mock
     private PasswordEncoder passwordEncoder;
 
     @Mock

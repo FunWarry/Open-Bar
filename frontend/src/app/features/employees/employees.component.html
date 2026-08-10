@@ -1,73 +1,112 @@
-<ion-header>
-  <ion-toolbar class="employees-toolbar">
-    <ion-title>
-      <span class="toolbar-title">👥 Employees</span>
-    </ion-title>
-  </ion-toolbar>
-</ion-header>
-
-<ion-content class="employees-content">
-  <!-- Header -->
-  <div class="employees-header">
-    <h2 class="section-title">EMPLOYEES</h2>
-    <app-action-button variant="primary" icon="add-circle-outline">+ Add</app-action-button>
-  </div>
-
-  <!-- Table -->
-  <div class="employees-table" *ngIf="!loading">
-    <div class="table-separator"></div>
-
-    <!-- Table Headers -->
-    <div class="table-headers">
-      <span class="col col--employee">EMPLOYÉ</span>
-      <span class="col col--role">ROLE</span>
-      <span class="col col--times">TIMES / SEM.</span>
-      <span class="col col--shifts">SHIFTS</span>
-      <span class="col col--status">STATUS</span>
-      <span class="col col--actions">ACTIONS</span>
-    </div>
-
-    <div class="table-separator"></div>
-
-    <!-- Table Rows -->
-    <div class="table-row" *ngFor="let emp of paginatedEmployees; trackBy: trackById">
-      <div class="col col--employee">
-        <app-user-avatar [name]="emp.name" [role]="emp.role" size="small"></app-user-avatar>
-        <div class="employee-info">
-          <span class="employee-title">{{ emp.role | titlecase }}</span>
-          <span class="employee-name">{{ emp.name }}</span>
-          <span class="employee-email">{{ emp.email }}</span>
+<div class="employees-container ion-padding">
+  <ion-card class="employees-card">
+    <ion-card-header class="card-header">
+      <div class="header-main">
+        <div>
+          <ion-card-title>{{ 'EMPLOYEES.TITLE' | transloco }}</ion-card-title>
+          <ion-card-subtitle>{{ 'EMPLOYEES.SUBTITLE' | transloco }}</ion-card-subtitle>
         </div>
-      </div>
-      <div class="col col--role">
-        <app-role-badge [role]="emp.role"></app-role-badge>
-      </div>
-      <div class="col col--times">{{ emp.email }}</div>
-      <div class="col col--shifts">{{ emp.shiftsCompleted }}/{{ emp.shiftsTotal }}</div>
-      <div class="col col--shifts">{{ emp.totalHours }}</div>
-      <div class="col col--status">
-        <span class="status-dot" [class.active]="emp.isInShift"></span>
-        <span class="status-text" [class.active]="emp.isInShift">{{ getStatusLabel(emp) }}</span>
-      </div>
-      <div class="col col--actions">
-        <ion-button fill="clear" size="small" class="edit-btn">
-          <ion-icon name="create-outline" slot="start"></ion-icon>
-          Edit
+        <ion-button routerLink="/manager/shift-presets" color="secondary" fill="outline" size="small" data-testid="employees-btn-presets">
+          <ion-icon name="settings-outline" slot="start"></ion-icon>
+          Modèles & Presets
         </ion-button>
       </div>
-    </div>
 
-    <!-- Bottom -->
-    <div class="table-bottom">
-      <span class="employee-count">{{ employees.length }} employes</span>
-      <div class="pagination">
-        <button type="button" class="page-btn" (click)="prevPage()" (keyup.enter)="prevPage()" [disabled]="currentPage === 1" [class.disabled]="currentPage === 1">← Préc.</button>
-        <span class="page-current">{{ currentPage }}</span>
-        <button type="button" class="page-btn" (click)="nextPage()" (keyup.enter)="nextPage()" [disabled]="currentPage === totalPages" [class.disabled]="currentPage === totalPages">Suiv. →</button>
+      <!-- Filters & Search Toolbar -->
+      <div class="filter-toolbar ion-margin-top">
+        <div class="search-box">
+          <ion-input
+            [(ngModel)]="searchQuery"
+            (ionInput)="onSearchChange()"
+            [placeholder]="'EMPLOYEES.SEARCH_PLACEHOLDER' | transloco"
+            fill="outline"
+            class="search-input"
+            data-testid="employee-search-input">
+            <ion-icon name="search-outline" slot="start"></ion-icon>
+          </ion-input>
+        </div>
+
+        <div class="role-filter">
+          <ion-select
+            [(ngModel)]="selectedRole"
+            (ionChange)="onRoleChange()"
+            interface="popover"
+            fill="outline"
+            aria-label="Filtrer par rôle"
+            data-testid="employee-role-select">
+            <ion-select-option *ngFor="let r of availableRoles" [value]="r.value">
+              {{ r.label }}
+            </ion-select-option>
+          </ion-select>
+        </div>
       </div>
-    </div>
-  </div>
+    </ion-card-header>
 
-  <!-- Loading -->
-  <div class="loading-state" *ngIf="loading">Chargement des employés...</div>
-</ion-content>
+    <ion-card-content>
+      <!-- Loading spinner -->
+      <div *ngIf="loading" class="spinner-container ion-text-center ion-padding" data-testid="employees-loading">
+        <ion-spinner name="crescent"></ion-spinner>
+      </div>
+
+      <ng-container *ngIf="!loading">
+        <!-- Empty State -->
+        <div *ngIf="filteredSummaries.length === 0" class="empty-state ion-text-center ion-padding" data-testid="empty-employees-state">
+          <h3>{{ 'EMPLOYEES.NO_EMPLOYEES' | transloco }}</h3>
+          <p>{{ 'EMPLOYEES.EMPTY_SUBTEXT' | transloco }}</p>
+        </div>
+
+        <!-- Employee List -->
+        <ion-list *ngIf="filteredSummaries.length > 0" class="employee-list" data-testid="employee-list">
+          <ion-item
+            *ngFor="let item of filteredSummaries; trackBy: trackById"
+            lines="full"
+            class="employee-item"
+            (click)="openEmployeeShiftsModal(item.user)"
+            (keydown.enter)="openEmployeeShiftsModal(item.user)"
+            tabindex="0"
+            [attr.data-testid]="'employee-item-' + item.user.id"
+            [attr.aria-label]="'EMPLOYEES.MANAGE_SHIFTS' | transloco">
+
+            <div class="employee-row">
+              <div class="employee-info">
+                <h3 class="employee-name">
+                  {{ item.user.username }}
+                  <span *ngIf="item.user.prenom || item.user.nom" class="employee-fullname">
+                    ({{ item.user.prenom }} {{ item.user.nom }})
+                  </span>
+                </h3>
+                <p class="employee-email">{{ item.user.email }}</p>
+
+                <div class="roles-container">
+                  <ion-badge *ngFor="let role of item.user.roles" [color]="getRoleBadgeColor(role)" class="role-badge">
+                    {{ role }}
+                  </ion-badge>
+                </div>
+              </div>
+
+              <!-- Weekly shift metrics -->
+              <div class="shift-metrics">
+                <div class="metric-chip" data-testid="employee-total-hours">
+                  <ion-icon name="time-outline"></ion-icon>
+                  <span><strong>{{ item.totalHours }}</strong> {{ 'EMPLOYEES.HOURS_THIS_WEEK' | transloco }}</span>
+                </div>
+                <div class="metric-chip" data-testid="employee-shifts-count">
+                  <ion-icon name="calendar-outline"></ion-icon>
+                  <span><strong>{{ item.shiftsCount }}</strong> {{ 'EMPLOYEES.SHIFTS_THIS_WEEK' | transloco }}</span>
+                </div>
+              </div>
+
+              <!-- Action CTA -->
+              <div class="action-buttons">
+                <ion-button fill="outline" color="primary" size="small" (click)="openEmployeeShiftsModal(item.user); $event.stopPropagation()" (keydown.enter)="openEmployeeShiftsModal(item.user); $event.stopPropagation()" [attr.data-testid]="'manage-shifts-btn-' + item.user.id">
+                  <ion-icon name="calendar-outline" slot="start"></ion-icon>
+                  {{ 'EMPLOYEES.MANAGE_SHIFTS' | transloco }}
+                </ion-button>
+              </div>
+            </div>
+          </ion-item>
+        </ion-list>
+      </ng-container>
+    </ion-card-content>
+  </ion-card>
+</div>

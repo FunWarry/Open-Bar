@@ -25,7 +25,9 @@
     "NONE": "Aucun",
     "FILTER": "Filtrer",
     "SORT": "Trier",
-    "RESET": "Réinitialiser"
+    "RESET": "Réinitialiser",
+    "PREV": "Préc.",
+    "NEXT": "Suiv."
   },
   "THEME": {
     "LIGHT": "Mode clair",
@@ -51,6 +53,8 @@
     "SOUND_DISABLE": "Désactiver le son",
     "AUDIT_LOGS": "Journal d'audit",
     "USERS": "Utilisateurs",
+    "EMPLOYEES": "Personnel & Shifts",
+    "SCHEDULE": "Planning Semaine",
     "TOPBAR": {
       "PAGE_TITLES": {
         "HOME": "Accueil",
@@ -736,6 +740,7 @@
     "ACTIONS": {
       "CREATE_USER": "Créer un Utilisateur",
       "USERS_LIST": "Liste du Personnel",
+      "EMPLOYEES_SHIFTS": "Planning & Shifts du personnel",
       "LEGAL_CONFIG": "Configuration Établissement (SIRET / TVA / Ticket 58mm)",
       "THEME_STUDIO": "Personnalisation & Thèmes",
       "AUDIT_LOGS": "Journal d'Audit Système",
@@ -744,5 +749,152 @@
       "DAILY_RECAP": "Récapitulatif Journée & Z-Report",
       "INVOICES_LIST": "Historique des Factures"
     }
+  },
+  "EMPLOYEES": {
+    "TITLE": "Gestion du Personnel & Planning",
+    "SUBTITLE": "Consultez l'équipe, filtrez par rôle et gérez les créneaux de travail",
+    "SEARCH_PLACEHOLDER": "Rechercher par nom, prénom ou nom d'utilisateur...",
+    "FILTER_ROLE": "Tous les rôles",
+    "TOTAL_EMPLOYEES": "employé(s)",
+    "HOURS_THIS_WEEK": "h cette semaine",
+    "SHIFTS_THIS_WEEK": "shift(s)",
+    "MANAGE_SHIFTS": "Gérer les créneaux",
+    "NO_EMPLOYEES": "Aucun employé trouvé",
+    "EMPTY_SUBTEXT": "Essayez de modifier vos critères de recherche."
+  },
+  "SHIFTS": {
+    "TITLE": "Créneaux de travail",
+    "WEEK_LABEL": "Semaine du {{start}} au {{end}}",
+    "PREV_WEEK": "Semaine précédente",
+    "NEXT_WEEK": "Semaine suivante",
+    "CURRENT_WEEK": "Cette semaine",
+    "ADD_SHIFT": "Nouveau créneau",
+    "EDIT_SHIFT": "Modifier le créneau",
+    "DELETE_SHIFT": "Supprimer le créneau",
+    "CONFIRM_DELETE": "Voulez-vous vraiment supprimer ce créneau de travail ?",
+    "NO_SHIFTS": "Aucun créneau planifié pour cette semaine",
+    "TOTAL_HOURS": "Total heures semaine",
+    "CANCEL_FORM": "Annuler",
+    "SAVE_SHIFT": "Enregistrer",
+    "FIELDS": {
+      "DATE": "Date du shift",
+      "TYPE_SHIFT": "Type de créneau",
+      "TYPE_POSTE": "Poste occupé",
+      "START_TIME": "Heure de début",
+      "END_TIME": "Heure de fin",
+      "HOURS": "Heures effectuées",
+      "BREAK_START": "Début de pause",
+      "BREAK_DURATION": "Pause (minutes)",
+      "PLANNED_HOURS": "Temps prévu",
+      "REAL_START": "Heure début réelle",
+      "REAL_END": "Heure fin réelle",
+      "OVERTIME": "Heures sup. (h)",
+      "NOTES": "Remarques / Notes"
+    },
+    "REAL_TRACKING_TITLE": "Pointage & Horaires Réels",
+    "PRESETS": {
+      "TITLE": "Modèles & Presets d'Horaires",
+      "MANAGE_BTN": "Gérer les modèles",
+      "CLOSE_BTN": "Fermer la gestion",
+      "SAVE_PRESET": "Enregistrer le modèle",
+      "DEFAULT_NOTICE": "Sélectionner un type pré-remplit automatiquement les horaires et la pause ci-dessous (modifiables)."
+    },
+    "SUMMARY": {
+      "PLANNED": "Prévu: {{hours}}h",
+      "REAL": "Réalisé: {{hours}}h",
+      "OVERTIME": "Heures Sup: {{hours}}h"
+    },
+    "CONFIG": {
+      "TITLE": "Configuration des Modèles de Créneaux",
+      "SUBTITLE": "Définissez les horaires par défaut (début, fin, pause) pré-remplis automatiquement pour chaque type de créneau.",
+      "BACK_TO_EMPLOYEES": "Retour à la gestion du personnel",
+      "SAVE_SUCCESS": "Modèle mis à jour avec succès"
+    },
+    "SHIFT_TYPES": {
+      "MATIN": "Matin",
+      "SOIR": "Soir",
+      "COUPURE": "Coupure",
+      "NUIT": "Nuit",
+      "CONGE": "Congé"
+    },
+    "POSTE_TYPES": {
+      "SERVEUR": "Serveur",
+      "BARMAN": "Barman",
+      "CAISSE": "Caisse",
+      "MANAGER": "Manager"
+    },
+    "CLOSURES": {
+      "TITLE": "Fermetures Établissement",
+      "CONFIG_TITLE": "Configuration des Fermetures Établissement",
+      "WEEKLY_TITLE": "Fermetures Hebdomadaires Récurrentes",
+      "WEEKLY_SUBTITLE": "Sélectionnez les jours de la semaine où le bar est fermé de manière habituelle. Les colonnes de l'EDT seront automatiquement grisées.",
+      "EXCEPTIONAL_TITLE": "Jours Fériés & Fermetures Exceptionnelles",
+      "CLOSED_BADGE": "Fermé",
+      "OPEN_STATUS": "Établissement ouvert",
+      "CLOSED_STATUS": "Établissement fermé",
+      "REASON_LABEL": "Motif de fermeture / Férié / Congés",
+      "REASON_PLACEHOLDER": "Ex: Congés annuels, Jour Férié, Travaux...",
+      "QUICK_SUGGESTIONS": "Suggestions rapides :",
+      "RANGE_TOGGLE": "Fermeture sur plusieurs jours (Plage de dates / Congés)",
+      "RANGE_SUBTITLE": "Définir une fermeture du jour A au jour B (ex: Congés d'été)",
+      "START_DATE": "Date de début",
+      "END_DATE": "Date de fin (inclus)",
+      "ANNUAL_TOGGLE": "Répéter chaque année",
+      "ANNUAL_SUBTITLE": "Congés ou fériés récurrents (ex: 14 Juillet, Congés d'été fixes)",
+      "SAVE_CLOSURE": "Enregistrer la fermeture",
+      "REOPEN_BAR": "Rouvrir le bar pour cette journée",
+      "NO_CLOSURES": "Aucune fermeture exceptionnelle configurée."
+    },
+    "SHORTCUTS": {
+      "LEGEND_TITLE": "Raccourcis & Interactions :",
+      "LEFT_CLICK": "Clic gauche",
+      "LEFT_CLICK_DESC": "Modifier",
+      "DRAG_DROP": "Glisser-déposer",
+      "DRAG_DROP_DESC": "Dupliquer en lot",
+      "RIGHT_CLICK": "Clic droit",
+      "RIGHT_CLICK_DESC": "Menu d'actions",
+      "COPY_PASTE": "Ctrl + C / V",
+      "COPY_PASTE_DESC": "Copier / Coller",
+      "DELETE": "Suppr / Del",
+      "DELETE_DESC": "Supprimer créneau",
+      "SHIFT_RIGHT_CLICK": "Shift + Clic droit",
+      "SHIFT_RIGHT_CLICK_DESC": "Menu navigateur"
+    },
+    "SCHEDULE": {
+      "THIS_WEEK": "Cette semaine",
+      "PUBLISH": "Publier le planning",
+      "REPUBLISH": "Publier les modifications",
+      "ALREADY_PUBLISHED": "Déjà publié",
+      "PUBLISHED_BY": "Publié le {{date}} par {{user}}",
+      "MODIFIED_SINCE_PUBLISHED": "⚠️ Modifications non publiées (Dernière pub. {{date}} par {{user}})",
+      "PUBLISH_SUCCESS": "Planning de la semaine publié avec succès"
+    },
+    "DIFF": {
+      "COMPARE_BTN": "Comparer avec la publication",
+      "EXIT_COMPARE_BTN": "Quitter la comparaison",
+      "BANNER_TITLE": "Mode Comparaison EDT",
+      "BANNER_DESC": "Écarts par rapport à la version publiée le {{date}} par {{user}}",
+      "ADDED_COUNT": "{{count}} Ajouté(s)",
+      "MODIFIED_COUNT": "{{count}} Modifié(s)",
+      "DELETED_COUNT": "{{count}} Supprimé(s)",
+      "UNCHANGED": "Inchangé",
+      "NO_DIFF": "L'EDT actuel est parfaitement conforme à la version publiée.",
+      "TOOLTIP_ADDED": "Nouveau créneau (non publié)",
+      "TOOLTIP_MODIFIED": "Modifié : était {{oldTime}}",
+      "TOOLTIP_DELETED": "Créneau supprimé (était {{oldTime}})"
+    },
+    "EMPLOYEE_HEADER": "Employé",
+    "BULK_DELETE": {
+      "TOOL_BUTTON": "Outil Gomme",
+      "EXIT_TOOL": "Quitter la gomme",
+      "ACTIVE_BANNER": "Mode Gomme actif : cliquez sur les créneaux à supprimer",
+      "SELECTED_COUNT": "{{count}} créneau(x) sélectionné(s)",
+      "CONFIRM_BUTTON": "Supprimer la sélection ({{count}})",
+      "CLEAR_ALL_SELECTION": "Tout désélectionner",
+      "CONFIRM_TITLE": "Confirmer la suppression groupée ?",
+      "CONFIRM_MESSAGE": "Voulez-vous vraiment supprimer définitivement ces {{count}} créneaux de travail ?",
+      "SUCCESS": "{{count}} créneaux supprimés avec succès"
+    }
   }
 }
+

@@ -36,6 +36,24 @@ public class EmployeeShift {
     @Column(name = "heure_fin", nullable = false)
     private String heureFin;
 
+    @Column(name = "heure_pause_debut")
+    private String heurePauseDebut;
+
+    @Column(name = "duree_pause_minutes")
+    private Integer dureePauseMinutes = 30;
+
+    @Column(name = "heure_debut_reelle")
+    private String heureDebutReelle;
+
+    @Column(name = "heure_fin_reelle")
+    private String heureFinReelle;
+
+    @Column(name = "heures_sup")
+    private BigDecimal heuresSup;
+
+    @Column(name = "heures_prevues")
+    private BigDecimal heuresPrevues;
+
     @Column(name = "heures_effectuees")
     private BigDecimal heuresEffectuees;
 
@@ -112,6 +130,54 @@ public class EmployeeShift {
 
     public void setHeureFin(String heureFin) {
         this.heureFin = heureFin;
+    }
+
+    public String getHeurePauseDebut() {
+        return heurePauseDebut;
+    }
+
+    public void setHeurePauseDebut(String heurePauseDebut) {
+        this.heurePauseDebut = heurePauseDebut;
+    }
+
+    public Integer getDureePauseMinutes() {
+        return dureePauseMinutes;
+    }
+
+    public void setDureePauseMinutes(Integer dureePauseMinutes) {
+        this.dureePauseMinutes = dureePauseMinutes;
+    }
+
+    public String getHeureDebutReelle() {
+        return heureDebutReelle;
+    }
+
+    public void setHeureDebutReelle(String heureDebutReelle) {
+        this.heureDebutReelle = heureDebutReelle;
+    }
+
+    public String getHeureFinReelle() {
+        return heureFinReelle;
+    }
+
+    public void setHeureFinReelle(String heureFinReelle) {
+        this.heureFinReelle = heureFinReelle;
+    }
+
+    public BigDecimal getHeuresSup() {
+        return heuresSup;
+    }
+
+    public void setHeuresSup(BigDecimal heuresSup) {
+        this.heuresSup = heuresSup;
+    }
+
+    public BigDecimal getHeuresPrevues() {
+        return heuresPrevues;
+    }
+
+    public void setHeuresPrevues(BigDecimal heuresPrevues) {
+        this.heuresPrevues = heuresPrevues;
     }
 
     public BigDecimal getHeuresEffectuees() {

@@ -3,6 +3,7 @@ import { ComponentFixture } from '@angular/core/testing';
 import { CommonModule } from '@angular/common';
 import { of, throwError, Subject } from 'rxjs';
 import { IonicModule } from '@ionic/angular';
+import { provideRouter } from '@angular/router';
 import { DashboardManagerComponent } from '../../../app/features/dashboard-manager/dashboard-manager.component';
 import { DashboardManagerService } from '../../../app/features/dashboard-manager/services/dashboard-manager.service';
 import { DashboardStats, TopCocktail } from '../../../app/features/dashboard-manager/models/dashboard-stats.model';
@@ -39,6 +40,7 @@ describe('DashboardManagerComponent', () => {
       imports: [DashboardManagerComponent, CommonModule, IonicModule.forRoot()],
       providers: [
         { provide: DashboardManagerService, useValue: dashboardServiceSpy },
+        provideRouter([]),
       ],
     }).compileComponents();
 

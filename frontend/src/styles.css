@@ -908,3 +908,198 @@ ion-select::part(icon) {
   opacity: 0.8;
   font-size: 16px;
 }
+
+/* ── OpenBar Design System — Global ActionSheet & Context Menu Styling ── */
+ion-action-sheet {
+  --background: var(--background-surface-2, #21263f);
+  --color: var(--text-primary, #eceefb);
+  --button-background: var(--background-surface-2, #21263f);
+  --button-background-selected: var(--background-surface-3, #2a3050);
+  --button-color: var(--text-primary, #eceefb);
+  --button-color-selected: var(--primary, #6c7fe8);
+  --backdrop-opacity: 0.55;
+}
+
+ion-action-sheet .action-sheet-wrapper {
+  border-radius: var(--radius-lg, 14px) var(--radius-lg, 14px) 0 0;
+  background: var(--background-surface-2, #21263f);
+  border-top: 1px solid var(--border-medium, #2e3450);
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
+}
+
+@media (min-width: 768px) {
+  ion-action-sheet .action-sheet-wrapper {
+    max-width: 440px;
+    margin: 0 auto;
+    border-radius: var(--radius-lg, 14px);
+    border: 1px solid var(--border-medium, #2e3450);
+    box-shadow: var(--elev-3, 0 12px 32px rgba(0, 0, 0, 0.55));
+  }
+}
+
+ion-action-sheet .action-sheet-group {
+  background: var(--background-surface-2, #21263f) !important;
+  border-radius: var(--radius-lg, 14px) !important;
+  overflow: hidden;
+}
+
+ion-action-sheet .action-sheet-title {
+  color: var(--text-primary, #eceefb) !important;
+  font-weight: 700 !important;
+  font-size: 15px !important;
+  font-family: var(--font, 'Inter', sans-serif);
+  padding-bottom: 4px;
+}
+
+ion-action-sheet .action-sheet-sub-title {
+  color: var(--text-secondary, #a4add0) !important;
+  font-size: 13px !important;
+}
+
+ion-action-sheet .action-sheet-button {
+  color: var(--text-primary, #eceefb) !important;
+  background: var(--background-surface-2, #21263f) !important;
+  border-bottom: 1px solid var(--border-medium, #2e3450);
+  font-family: var(--font, 'Inter', sans-serif);
+  font-size: 14px;
+  font-weight: 500;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+ion-action-sheet .action-sheet-button:hover,
+ion-action-sheet .action-sheet-button.activated {
+  background: var(--background-surface-3, #2a3050) !important;
+  color: #ffffff !important;
+}
+
+ion-action-sheet .action-sheet-button.action-sheet-destructive {
+  color: var(--semantic-danger, #e5604f) !important;
+}
+
+ion-action-sheet .action-sheet-button.action-sheet-cancel {
+  color: var(--text-muted, #7e87a8) !important;
+  font-weight: 600;
+}
+
+ion-action-sheet .action-sheet-icon {
+  color: var(--primary, #6c7fe8) !important;
+  margin-right: 12px;
+  font-size: 18px;
+}
+
+/* === Custom OpenBar Ionic Alert Styling === */
+ion-alert,
+ion-alert.openbar-alert,
+ion-alert.md,
+ion-alert.ios {
+  --background: var(--background-surface-1, #1a1a2e) !important;
+  --color: var(--text-primary, #eceefb) !important;
+  --backdrop-opacity: 0.75 !important;
+  --border-radius: var(--radius-lg, 16px) !important;
+  --min-width: 320px;
+  --max-width: 440px;
+  --width: 90%;
+}
+
+ion-alert .alert-wrapper {
+  background: var(--background-surface-1, #1a1a2e) !important;
+  background-color: var(--background-surface-1, #1a1a2e) !important;
+  border: 1px solid var(--border-medium, #2e3450) !important;
+  border-radius: var(--radius-lg, 16px) !important;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.08) !important;
+  padding: 16px !important;
+}
+
+ion-alert .alert-head {
+  padding: 8px 8px 12px 8px !important;
+  text-align: left !important;
+}
+
+ion-alert .alert-title {
+  font-family: var(--font-display, var(--font, 'Outfit', 'Inter', sans-serif)) !important;
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
+  color: var(--text-primary, #ffffff) !important;
+}
+
+ion-alert .alert-sub-title {
+  color: var(--text-secondary, #a4add0) !important;
+  font-size: 0.9rem !important;
+}
+
+ion-alert .alert-message {
+  padding: 0 8px 18px 8px !important;
+  font-family: var(--font, 'Inter', sans-serif) !important;
+  font-size: 0.95rem !important;
+  color: var(--text-secondary, #a4add0) !important;
+  line-height: 1.5 !important;
+  text-align: left !important;
+}
+
+ion-alert .alert-button-group {
+  padding: 14px 8px 4px 8px !important;
+  gap: 12px !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+  border-top: 1px solid var(--border-medium, #2e3450) !important;
+}
+
+ion-alert button.alert-button {
+  border-radius: var(--radius-md, 10px) !important;
+  font-weight: 600 !important;
+  font-family: var(--font, 'Inter', sans-serif) !important;
+  padding: 10px 20px !important;
+  font-size: 0.9rem !important;
+  text-transform: none !important;
+  transition: all 0.2s ease !important;
+  margin: 0 !important;
+  height: auto !important;
+  min-height: 40px !important;
+  cursor: pointer !important;
+}
+
+ion-alert button.alert-button.role-cancel,
+ion-alert button.alert-button.alert-button-cancel,
+ion-alert button.alert-button[aria-label="Annuler"] {
+  background: var(--background-surface-2, #21263f) !important;
+  background-color: var(--background-surface-2, #21263f) !important;
+  color: var(--text-secondary, #a4add0) !important;
+  border: 1px solid var(--border-medium, #2e3450) !important;
+
+  .alert-button-inner {
+    color: var(--text-secondary, #a4add0) !important;
+  }
+
+  &:hover {
+    background: var(--background-surface-3, #2a3050) !important;
+    background-color: var(--background-surface-3, #2a3050) !important;
+    color: var(--text-primary, #ffffff) !important;
+
+    .alert-button-inner {
+      color: var(--text-primary, #ffffff) !important;
+    }
+  }
+}
+
+ion-alert button.alert-button.role-destructive,
+ion-alert button.alert-button.alert-button-destructive,
+ion-alert button.alert-button[aria-label="Supprimer"] {
+  background: var(--semantic-danger, #e5604f) !important;
+  background-color: var(--semantic-danger, #e5604f) !important;
+  color: #ffffff !important;
+  border: 1px solid transparent !important;
+
+  .alert-button-inner {
+    color: #ffffff !important;
+  }
+
+  &:hover {
+    background: #d44d3c !important;
+    background-color: #d44d3c !important;
+    box-shadow: 0 4px 14px rgba(229, 96, 79, 0.45) !important;
+
+    .alert-button-inner {
+      color: #ffffff !important;
+    }
+  }
+}

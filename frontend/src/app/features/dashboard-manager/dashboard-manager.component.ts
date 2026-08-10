@@ -2,11 +2,13 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subject, timer } from 'rxjs';
 import { switchMap, takeUntil } from 'rxjs/operators';
+import { RouterLink } from '@angular/router';
 import {
   IonContent, IonHeader, IonToolbar, IonTitle,
   IonRefresher, IonRefresherContent,
   IonGrid, IonRow, IonCol,
-  IonCard, IonCardContent, IonCardHeader, IonCardTitle
+  IonCard, IonCardContent, IonCardHeader, IonCardTitle,
+  IonButton, IonIcon
 } from '@ionic/angular/standalone';
 import { StatCardComponent } from '../../core/components/ui/stat-card/stat-card.component';
 import { RoleBadgeComponent } from '../../core/components/ui/role-badge/role-badge.component';
@@ -17,15 +19,20 @@ import { DashboardStats, TopCocktail } from './models/dashboard-stats.model';
 import { OngoingOrder } from './models/ongoing-order.model';
 import { safeCompleteRefresher } from '../../core/utils/refresher-utils';
 
+import { addIcons } from 'ionicons';
+import { peopleOutline, calendarOutline } from 'ionicons/icons';
+
 @Component({
   selector: 'app-dashboard-manager',
   standalone: true,
   imports: [
     CommonModule,
+    RouterLink,
     IonContent, IonHeader, IonToolbar, IonTitle,
     IonRefresher, IonRefresherContent,
     IonGrid, IonRow, IonCol,
     IonCard, IonCardContent, IonCardHeader, IonCardTitle,
+    IonButton, IonIcon,
     StatCardComponent,
     RoleBadgeComponent,
     EmptyStateComponent,
@@ -40,7 +47,9 @@ export class DashboardManagerComponent implements OnInit, OnDestroy {
   loading = true;
   private readonly destroy$ = new Subject<void>();
 
-  constructor(private readonly dashboardService: DashboardManagerService) {}
+  constructor(private readonly dashboardService: DashboardManagerService) {
+    addIcons({ peopleOutline, calendarOutline });
+  }
 
   static readonly REFRESH_INTERVAL_MS = 30_000;
 
