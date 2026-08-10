@@ -4,6 +4,7 @@ import com.bar.gestioncocktail.dto.WeekSchedulePublicationDTO;
 import com.bar.gestioncocktail.model.WeekSchedulePublication;
 import com.bar.gestioncocktail.repository.WeekSchedulePublicationRepository;
 import com.bar.gestioncocktail.repository.EmployeeShiftRepository;
+import org.mockito.Mockito;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -34,6 +35,9 @@ class WeekSchedulePublicationServiceTest {
     private EmployeeShiftRepository shiftRepository;
 
     @Mock
+    private EstablishmentClosureService closureService;
+
+    @Mock
     private SimpMessagingTemplate messagingTemplate;
 
     @Mock
@@ -47,6 +51,7 @@ class WeekSchedulePublicationServiceTest {
     @BeforeEach
     void setUp() {
         monday = LocalDate.of(2026, 8, 17);
+        Mockito.lenient().when(closureService.isClosedOnDate(Mockito.any(LocalDate.class))).thenReturn(false);
     }
 
     @Test
