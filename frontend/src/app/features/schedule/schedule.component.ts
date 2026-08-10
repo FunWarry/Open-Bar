@@ -238,8 +238,9 @@ export class ScheduleComponent implements OnInit, OnDestroy {
     }
 
     for (const [key, pub] of publishedMap.entries()) {
-      const [uId] = key.split('_');
-      if (activeEmployeeIds.has(uId) && !seenKeys.has(key)) {
+      const [uId, dateStr] = key.split('_');
+      const isClosedDay = Boolean(this.schedule?.closedDays?.[dateStr]);
+      if (!isClosedDay && activeEmployeeIds.has(uId) && !seenKeys.has(key)) {
         this.recordDeletedDiff(key, pub);
       }
     }
@@ -302,7 +303,12 @@ export class ScheduleComponent implements OnInit, OnDestroy {
   }
 
   private compareCellWithPublication(key: string, shift: ShiftCell, pub?: any): void {
-    const hasCurrent = Boolean(shift.rawShift && shift.startTime && !shift.isClosed);
+    if (shift.isClosed) {
+      this.cellDiffMap.set(key, { status: 'UNCHANGED', currentShift: shift });
+      return;
+    }
+
+    const hasCurrent = Boolean(shift.rawShift && shift.startTime);
     const pubStart = this.normalizeTime(pub?.heureDebut || pub?.startTime || pub?.heure_debut || pub?.start_time);
     const hasPub = Boolean(pub && pubStart);
 

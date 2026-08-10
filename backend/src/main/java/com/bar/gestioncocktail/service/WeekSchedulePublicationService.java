@@ -36,6 +36,7 @@ public class WeekSchedulePublicationService {
 
     private final WeekSchedulePublicationRepository repository;
     private final EmployeeShiftRepository shiftRepository;
+    private final EstablishmentClosureService closureService;
     private final SimpMessagingTemplate messagingTemplate;
     private final TimeService timeService;
     private final ObjectMapper objectMapper;
@@ -43,10 +44,12 @@ public class WeekSchedulePublicationService {
     public WeekSchedulePublicationService(
             WeekSchedulePublicationRepository repository,
             EmployeeShiftRepository shiftRepository,
+            EstablishmentClosureService closureService,
             SimpMessagingTemplate messagingTemplate,
             TimeService timeService) {
         this.repository = repository;
         this.shiftRepository = shiftRepository;
+        this.closureService = closureService;
         this.messagingTemplate = messagingTemplate;
         this.timeService = timeService;
         this.objectMapper = new ObjectMapper()
@@ -78,7 +81,10 @@ public class WeekSchedulePublicationService {
         List<EmployeeShift> shifts = shiftRepository.findByDateShiftBetween(weekStart, sunday);
         String snapshotJson = "[]";
         try {
-            List<EmployeeShiftResponseDTO> dtos = shifts.stream().map(EmployeeShiftResponseDTO::from).toList();
+            List<EmployeeShiftResponseDTO> dtos = shifts.stream()
+                    .filter(s -> !closureService.isClosedOnDate(s.getDateShift()))
+                    .map(EmployeeShiftResponseDTO::from)
+                    .toList();
             snapshotJson = objectMapper.writeValueAsString(dtos);
         } catch (Exception e) {
             log.error("Failed to serialize shifts snapshot for week publication starting on {}", weekStart, e);
