@@ -7,6 +7,9 @@ import com.bar.gestioncocktail.model.WeekSchedulePublication;
 import com.bar.gestioncocktail.repository.EmployeeShiftRepository;
 import com.bar.gestioncocktail.repository.WeekSchedulePublicationRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +32,8 @@ import java.util.Optional;
 @Transactional(readOnly = true)
 public class WeekSchedulePublicationService {
 
+    private static final Logger log = LoggerFactory.getLogger(WeekSchedulePublicationService.class);
+
     private final WeekSchedulePublicationRepository repository;
     private final EmployeeShiftRepository shiftRepository;
     private final SimpMessagingTemplate messagingTemplate;
@@ -44,7 +49,9 @@ public class WeekSchedulePublicationService {
         this.shiftRepository = shiftRepository;
         this.messagingTemplate = messagingTemplate;
         this.timeService = timeService;
-        this.objectMapper = new ObjectMapper().findAndRegisterModules();
+        this.objectMapper = new ObjectMapper()
+                .findAndRegisterModules()
+                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     }
 
     /**
@@ -73,8 +80,8 @@ public class WeekSchedulePublicationService {
         try {
             List<EmployeeShiftResponseDTO> dtos = shifts.stream().map(EmployeeShiftResponseDTO::from).toList();
             snapshotJson = objectMapper.writeValueAsString(dtos);
-        } catch (Exception _) {
-            // fallback gracefully
+        } catch (Exception e) {
+            log.error("Failed to serialize shifts snapshot for week publication starting on {}", weekStart, e);
         }
         pub.setSnapshotJson(snapshotJson);
 

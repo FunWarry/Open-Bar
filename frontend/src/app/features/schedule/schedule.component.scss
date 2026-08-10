@@ -368,30 +368,32 @@
     // Comparison Mode Cell States
     &.diff-added {
       border: 2px solid var(--semantic-success, #2dd36f) !important;
-      box-shadow: 0 0 12px rgba(45, 211, 111, 0.45);
+      box-shadow: 0 0 12px rgba(45, 211, 111, 0.5) !important;
+      filter: brightness(1.15) !important;
     }
 
     &.diff-modified {
       border: 2px solid var(--semantic-warning, #f59e0b) !important;
-      box-shadow: 0 0 12px rgba(245, 158, 11, 0.45);
+      box-shadow: 0 0 12px rgba(245, 158, 11, 0.5) !important;
+      filter: brightness(1.15) !important;
     }
 
     &.diff-deleted {
       background: repeating-linear-gradient(
         -45deg,
-        rgba(229, 96, 79, 0.15),
-        rgba(229, 96, 79, 0.15) 8px,
-        rgba(229, 96, 79, 0.25) 8px,
-        rgba(229, 96, 79, 0.25) 16px
+        rgba(229, 96, 79, 0.2),
+        rgba(229, 96, 79, 0.2) 8px,
+        rgba(229, 96, 79, 0.35) 8px,
+        rgba(229, 96, 79, 0.35) 16px
       ) !important;
       border: 2px dashed var(--semantic-danger, #e5604f) !important;
+      box-shadow: 0 0 12px rgba(229, 96, 79, 0.4) !important;
       cursor: not-allowed;
-      opacity: 0.9;
     }
 
     &.diff-dimmed {
-      opacity: 0.4;
-      filter: grayscale(20%);
+      opacity: 0.35 !important;
+      filter: grayscale(35%) !important;
     }
   }
 }
