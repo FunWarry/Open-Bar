@@ -320,7 +320,7 @@ Pour les fichiers scopés par feature (ex : `fr/commandes.json`), déclarer le s
 
 ## Features implémentées vs. manquantes
 
-> Dernière mise à jour : 6 août 2026 — PR #257 (Resynchronisation complète avec le projet GitHub)
+> Dernière mise à jour : 11 août 2026 — PR #279 (#275) : Planning d'équipe & Gestion des Shifts par employé (Vues Manager & Employé, Modales de shifts, Fermetures, Presets, Duplication & STOMP)
 
 | Feature | Backend | Frontend | Tests |
 |---------|---------|----------|-------|
@@ -363,6 +363,7 @@ Pour les fichiers scopés par feature (ex : `fr/commandes.json`), déclarer le s
 | Export factures (PDF) | ✅ | ✅ | ✅ |
 | Division d'addition (splitEgal/splitParSelection) | ✅ | ✅ | ✅ |
 | Dashboard Manager / stats | ✅ | ✅ polling 30s | ✅ |
+| Planning d'équipe & Shifts Employés par personne (#275) | ✅ | ✅ | ✅ |
 | Manager — Shifts Employés & Pagination (#232) | ✅ | ✅ | ✅ |
 | Manager — Planning Hebdomadaire Complexe (#233) | ✅ | ✅ | ✅ |
 | Dashboard Barman | ✅ | ✅ kanban temps réel | ✅ |
