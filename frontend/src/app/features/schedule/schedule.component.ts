@@ -245,6 +245,31 @@ export class ScheduleComponent implements OnInit, OnDestroy {
     this.hasUnpublishedChanges = this.totalDiffCount > 0;
   }
 
+  private normalizeDate(dStr: any): string {
+    if (!dStr) return '';
+    if (Array.isArray(dStr)) {
+      const y = dStr[0];
+      const m = String(dStr[1]).padStart(2, '0');
+      const d = String(dStr[2]).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+    if (typeof dStr === 'object' && dStr !== null) {
+      const y = dStr.year;
+      const m = String(dStr.monthValue || dStr.month).padStart(2, '0');
+      const d = String(dStr.dayOfMonth || dStr.day).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+    const str = String(dStr).trim().split('T')[0];
+    const parts = str.split('-');
+    if (parts.length === 3) {
+      const y = parts[0];
+      const m = parts[1].padStart(2, '0');
+      const d = parts[2].padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+    return str;
+  }
+
   private parsePublishedShifts(snapshotJson: string): Map<string, any> {
     const map = new Map<string, any>();
     if (!snapshotJson || snapshotJson === '[]') return map;
@@ -252,21 +277,8 @@ export class ScheduleComponent implements OnInit, OnDestroy {
       const parsed = JSON.parse(snapshotJson);
       if (Array.isArray(parsed)) {
         for (const ps of parsed) {
-          const uId = ps.userId || ps.user?.id;
-          let dateStr = ps.dateShift || ps.date_shift || ps.date;
-          if (Array.isArray(dateStr)) {
-            const y = dateStr[0];
-            const m = String(dateStr[1]).padStart(2, '0');
-            const d = String(dateStr[2]).padStart(2, '0');
-            dateStr = `${y}-${m}-${d}`;
-          } else if (typeof dateStr === 'object' && dateStr !== null) {
-            const y = dateStr.year;
-            const m = String(dateStr.monthValue || dateStr.month).padStart(2, '0');
-            const d = String(dateStr.dayOfMonth || dateStr.day).padStart(2, '0');
-            dateStr = `${y}-${m}-${d}`;
-          } else if (typeof dateStr === 'string') {
-            dateStr = dateStr.split('T')[0];
-          }
+          const uId = ps.userId || ps.user?.id || ps.user_id || ps.employeeId || ps.employee_id;
+          const dateStr = this.normalizeDate(ps.dateShift || ps.date_shift || ps.date);
           if (uId && dateStr) {
             map.set(`${uId}_${dateStr}`, ps);
           }
@@ -370,7 +382,14 @@ export class ScheduleComponent implements OnInit, OnDestroy {
         next: async (pub) => {
           this.publication = pub;
           this.isPublished = true;
-          this.calculateScheduleDifferences();
+          this.scheduleService.getWeekSchedule(this.currentWeekStart)
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+              next: (data) => {
+                this.schedule = data;
+                this.calculateScheduleDifferences();
+              }
+            });
           const publishedDate = new Date(pub.publishedAt).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
           const toast = await this.toastCtrl.create({
             message: `✅ Planning de la semaine publié — ${publishedDate} par ${pub.publishedBy}`,
