@@ -69,4 +69,81 @@ describe('ClosureConfigModalComponent', () => {
     component.dismiss();
     expect(mockModalCtrl.dismiss).toHaveBeenCalledWith(true);
   });
+
+  it('toggleWeeklyDay() should delete closure if currently closed', () => {
+    mockClosureService.deleteClosure.and.returnValue(of(undefined as any));
+    const sunday = component.weeklyDays.find(d => d.dayOfWeek === 'SUNDAY')!;
+
+    component.toggleWeeklyDay(sunday);
+
+    expect(mockClosureService.deleteClosure).toHaveBeenCalledWith(1);
+    expect(mockClosureService.getClosures).toHaveBeenCalled();
+  });
+
+  it('toggleWeeklyDay() should create closure if currently open', () => {
+    mockClosureService.createClosure.and.returnValue(of({ id: 10, type: 'WEEKLY_RECURRING', dayOfWeek: 'MONDAY', reason: 'Fermé' }));
+    const monday = component.weeklyDays.find(d => d.dayOfWeek === 'MONDAY')!;
+
+    component.toggleWeeklyDay(monday);
+
+    expect(mockClosureService.createClosure).toHaveBeenCalledWith({
+      type: 'WEEKLY_RECURRING',
+      dayOfWeek: 'MONDAY',
+      reason: 'Fermeture hebdomadaire (Lundi)'
+    });
+  });
+
+  it('selectPreset() should populate reason and set date range for annual leaves', () => {
+    component.newClosureDate = '2026-08-01';
+    component.selectPreset('Congés annuels');
+    expect(component.newClosureReason).toBe('Congés annuels');
+    expect(component.newIsDateRange).toBeTrue();
+    expect(component.newEndDate).toBe('2026-08-08');
+
+    component.selectPreset('Jour Férié');
+    expect(component.newClosureReason).toBe('Jour Férié');
+  });
+
+  it('addExceptionalClosure() should create exceptional closure and reset form', () => {
+    mockClosureService.createClosure.and.returnValue(of({
+      id: 3,
+      type: 'EXCEPTIONAL',
+      closureDate: '2026-12-25',
+      isAnnualRecurring: true,
+      reason: 'Noël'
+    }));
+
+    component.newClosureDate = '2026-12-25';
+    component.newClosureReason = 'Noël';
+    component.newIsAnnualRecurring = true;
+
+    component.addExceptionalClosure();
+
+    expect(mockClosureService.createClosure).toHaveBeenCalledWith({
+      type: 'EXCEPTIONAL',
+      closureDate: '2026-12-25',
+      endDate: undefined,
+      isAnnualRecurring: true,
+      reason: 'Noël'
+    });
+    expect(component.newClosureReason).toBe('');
+    expect(component.saving).toBeFalse();
+  });
+
+  it('addExceptionalClosure() should not call service if fields are missing', () => {
+    component.newClosureDate = '';
+    component.newClosureReason = '';
+    component.addExceptionalClosure();
+    expect(mockClosureService.createClosure).not.toHaveBeenCalled();
+  });
+
+  it('deleteClosure() should delete closure and reload list', () => {
+    mockClosureService.deleteClosure.and.returnValue(of(undefined as any));
+
+    component.deleteClosure(2);
+
+    expect(mockClosureService.deleteClosure).toHaveBeenCalledWith(2);
+    expect(mockClosureService.getClosures).toHaveBeenCalled();
+  });
 });
+
