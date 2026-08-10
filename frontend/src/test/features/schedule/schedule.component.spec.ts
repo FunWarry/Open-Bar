@@ -350,6 +350,104 @@ describe('ScheduleComponent', () => {
       expect(component.getCellDiff(1, '2026-08-12')?.status).toBe('ADDED');
     });
 
+    it('executeDragDuplication() should call createShift for target cells on mouseup', fakeAsync(() => {
+      mockShiftService.createShift.and.returnValue(of({} as any));
+
+      component.schedule = {
+        weekStart: '2026-08-10',
+        weekEnd: '2026-08-16',
+        totalHours: 8,
+        totalEmployees: 1,
+        activeEmployees: 1,
+        employees: [
+          {
+            employeeId: 1,
+            name: 'Bob',
+            role: 'SERVEUR',
+            shifts: [
+              { day: 'Mon', date: '2026-08-10', isClosed: false, rawShift: { id: 10, typeShift: 'MATIN', heureDebut: '08:00', heureFin: '16:00' } as any } as any,
+              { day: 'Tue', date: '2026-08-11', isClosed: false } as any
+            ]
+          }
+        ]
+      };
+
+      const emp = component.schedule.employees[0];
+      component.onCellMouseDown(emp, emp.shifts[0], 0, new MouseEvent('mousedown', { button: 0 }));
+      component.onCellMouseEnter(emp, emp.shifts[1], 1);
+      component.onWindowMouseUp();
+      tick();
+
+      expect(mockShiftService.createShift).toHaveBeenCalledWith(jasmine.objectContaining({
+        userId: 1,
+        dateShift: '2026-08-11',
+        typeShift: 'MATIN'
+      }));
+    }));
+
+    it('keyboard shortcuts Ctrl+C, Ctrl+V, Delete, and Escape should trigger clipboard, delete, or mode toggle', () => {
+      const mockShiftCell: any = {
+        date: '2026-08-10',
+        rawShift: { id: 99, typeShift: 'MATIN' }
+      };
+      const mockEmpRow: any = { employeeId: 1, name: 'Bob' };
+      component.hoveredCell = { emp: mockEmpRow, shift: mockShiftCell };
+
+      spyOn(component, 'copyShift');
+      spyOn(component, 'pasteShift');
+      spyOn(component, 'confirmDeleteShift');
+
+      // Ctrl + C
+      component.onWindowKeyDown(new KeyboardEvent('keydown', { key: 'c', ctrlKey: true }));
+      expect(component.copyShift).toHaveBeenCalledWith(mockShiftCell);
+
+      // Ctrl + V
+      component.onWindowKeyDown(new KeyboardEvent('keydown', { key: 'v', ctrlKey: true }));
+      expect(component.pasteShift).toHaveBeenCalledWith(mockEmpRow, mockShiftCell);
+
+      // Delete key
+      component.onWindowKeyDown(new KeyboardEvent('keydown', { key: 'Delete' }));
+      expect(component.confirmDeleteShift).toHaveBeenCalledWith(99);
+
+      // Escape in delete mode
+      component.isDeleteMode = true;
+      component.onWindowKeyDown(new KeyboardEvent('keydown', { key: 'Escape' }));
+      expect(component.isDeleteMode).toBeFalse();
+    });
+
+    it('WebSocket messages on /topic/schedule-publications should refresh schedule', () => {
+      wsSubject.next({ action: 'PUBLISHED' });
+      expect(mockScheduleService.getWeekSchedule).toHaveBeenCalled();
+    });
+
+    it('openClosureConfigModal() should open ClosureConfigModalComponent and reload schedule on dismiss', async () => {
+      const mockModal = {
+        present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+        onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({ data: true }))
+      };
+      mockModalCtrl.create.and.returnValue(Promise.resolve(mockModal as any));
+
+      await component.openClosureConfigModal();
+
+      expect(mockModalCtrl.create).toHaveBeenCalled();
+      expect(mockScheduleService.getWeekSchedule).toHaveBeenCalled();
+    });
+
+    it('toggleDeleteMode() and toggleShiftSelection() should manage selection set', () => {
+      component.toggleDeleteMode();
+      expect(component.isDeleteMode).toBeTrue();
+
+      component.toggleShiftSelection(101);
+      expect(component.selectedShiftIds.has(101)).toBeTrue();
+
+      component.toggleShiftSelection(101);
+      expect(component.selectedShiftIds.has(101)).toBeFalse();
+
+      component.toggleDeleteMode();
+      expect(component.isDeleteMode).toBeFalse();
+      expect(component.selectedShiftIds.size).toBe(0);
+    });
+
     it('toggleComparisonMode() should toggle isComparisonMode flag', () => {
       expect(component.isComparisonMode).toBeFalse();
       component.toggleComparisonMode();
