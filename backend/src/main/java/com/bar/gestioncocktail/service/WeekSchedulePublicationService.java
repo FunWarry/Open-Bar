@@ -74,7 +74,7 @@ public class WeekSchedulePublicationService {
         try {
             List<EmployeeShiftResponseDTO> dtos = shifts.stream().map(EmployeeShiftResponseDTO::from).toList();
             snapshotJson = objectMapper.writeValueAsString(dtos);
-        } catch (Exception e) {
+        } catch (Exception _) {
             // fallback gracefully
         }
         pub.setSnapshotJson(snapshotJson);
