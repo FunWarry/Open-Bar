@@ -4,6 +4,7 @@ import { UserService } from '../../../app/core/services/user.service';
 import { ShiftService } from '../../../app/core/services/shift.service';
 import { ModalController } from '@ionic/angular/standalone';
 import { TranslocoTestingModule } from '@jsverse/transloco';
+import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 import { User } from '../../../app/core/models/user.model';
 import { EmployeeShift } from '../../../app/core/models/shift.model';
@@ -79,6 +80,7 @@ describe('EmployeesComponent', () => {
         })
       ],
       providers: [
+        provideRouter([]),
         { provide: UserService, useValue: mockUserService },
         { provide: ShiftService, useValue: mockShiftService },
         { provide: ModalController, useValue: mockModalCtrl }
