@@ -323,3 +323,29 @@ CREATE TABLE IF NOT EXISTS shift_presets (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Table des fermetures hebdomadaires et exceptionnelles (#275)
+CREATE TABLE IF NOT EXISTS establishment_closures (
+    id BIGSERIAL PRIMARY KEY,
+    type VARCHAR(30) NOT NULL,
+    day_of_week VARCHAR(15),
+    closure_date DATE,
+    end_date DATE,
+    is_annual_recurring BOOLEAN DEFAULT false,
+    reason VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+ALTER TABLE establishment_closures ADD COLUMN IF NOT EXISTS end_date DATE;
+
+-- Table de publication des plannings hebdomadaires (#275)
+CREATE TABLE IF NOT EXISTS week_schedule_publications (
+    id BIGSERIAL PRIMARY KEY,
+    week_start DATE NOT NULL UNIQUE,
+    published_at TIMESTAMP NOT NULL,
+    published_by VARCHAR(255) NOT NULL,
+    snapshot_json TEXT
+);
+
+ALTER TABLE week_schedule_publications ADD COLUMN IF NOT EXISTS snapshot_json TEXT;
