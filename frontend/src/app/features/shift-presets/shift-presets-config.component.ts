@@ -19,6 +19,8 @@ import {
   IonButtons,
   ToastController
 } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { arrowBackOutline, settingsOutline, saveOutline, timeOutline, cafeOutline, moonOutline, sunnyOutline, fitnessOutline } from 'ionicons/icons';
 import { TranslocoModule } from '@jsverse/transloco';
 import { ShiftPreset, TypeShift } from '../../core/models/shift.model';
 import { ShiftService } from '../../core/services/shift.service';
@@ -61,6 +63,19 @@ export class ShiftPresetsConfigComponent implements OnInit {
   savingMap: { [key: string]: boolean } = {};
   presets: ShiftPreset[] = [];
 
+  constructor() {
+    addIcons({
+      arrowBackOutline,
+      settingsOutline,
+      saveOutline,
+      timeOutline,
+      cafeOutline,
+      moonOutline,
+      sunnyOutline,
+      fitnessOutline
+    });
+  }
+
   ngOnInit(): void {
     this.loadPresets();
   }
@@ -89,8 +104,8 @@ export class ShiftPresetsConfigComponent implements OnInit {
         if (idx >= 0) this.presets[idx] = updated;
 
         const toast = await this.toastCtrl.create({
-          message: 'Modèle mis à jour avec succès',
-          duration: 2000,
+          message: 'Modèle de créneau mis à jour avec succès',
+          duration: 2500,
           color: 'success',
           position: 'bottom'
         });
@@ -100,7 +115,7 @@ export class ShiftPresetsConfigComponent implements OnInit {
         this.savingMap[preset.typeShift] = false;
         const toast = await this.toastCtrl.create({
           message: 'Erreur lors de la mise à jour du modèle',
-          duration: 2000,
+          duration: 3000,
           color: 'danger',
           position: 'bottom'
         });
@@ -117,6 +132,17 @@ export class ShiftPresetsConfigComponent implements OnInit {
       case 'NUIT': return 'secondary';
       case 'CONGE': return 'medium';
       default: return 'primary';
+    }
+  }
+
+  getShiftIcon(type: TypeShift): string {
+    switch (type) {
+      case 'MATIN': return 'sunny-outline';
+      case 'SOIR': return 'time-outline';
+      case 'COUPURE': return 'cafe-outline';
+      case 'NUIT': return 'moon-outline';
+      case 'CONGE': return 'fitness-outline';
+      default: return 'time-outline';
     }
   }
 }

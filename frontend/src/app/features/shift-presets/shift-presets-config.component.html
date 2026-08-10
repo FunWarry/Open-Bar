@@ -1,92 +1,117 @@
 <ion-header>
-  <ion-toolbar color="primary">
+  <ion-toolbar class="presets-toolbar">
     <ion-buttons slot="start">
-      <ion-button routerLink="/manager/employees" data-testid="back-to-employees-btn">
+      <ion-button routerLink="/manager/schedule" data-testid="back-to-schedule-btn" aria-label="Retour au planning">
         <ion-icon name="arrow-back-outline" slot="icon-only"></ion-icon>
       </ion-button>
     </ion-buttons>
-    <ion-title>⚙️ {{ 'SHIFTS.CONFIG.TITLE' | transloco }}</ion-title>
+    <ion-title>
+      <span class="toolbar-title">
+        <ion-icon name="settings-outline" class="title-icon"></ion-icon>
+        {{ 'SHIFTS.CONFIG.TITLE' | transloco }}
+      </span>
+    </ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding config-container">
-  <div class="config-header ion-margin-bottom">
-    <h2>{{ 'SHIFTS.CONFIG.TITLE' | transloco }}</h2>
-    <p>{{ 'SHIFTS.CONFIG.SUBTITLE' | transloco }}</p>
-  </div>
+<ion-content class="presets-content">
+  <div class="config-container">
+    <div class="config-header">
+      <div class="header-titles">
+        <h2>{{ 'SHIFTS.CONFIG.TITLE' | transloco }}</h2>
+        <p>{{ 'SHIFTS.CONFIG.SUBTITLE' | transloco }}</p>
+      </div>
+      <div class="preset-count-badge" *ngIf="!loading">
+        {{ presets.length }} modèles configurés
+      </div>
+    </div>
 
-  <div *ngIf="loading" class="ion-text-center ion-padding" data-testid="presets-loading">
-    <ion-spinner name="crescent"></ion-spinner>
-  </div>
+    <div *ngIf="loading" class="loading-state" data-testid="presets-loading">
+      <ion-spinner name="crescent"></ion-spinner>
+      <span>Chargement des modèles...</span>
+    </div>
 
-  <div *ngIf="!loading" class="preset-cards-grid">
-    <ion-card *ngFor="let p of presets" class="preset-card" [attr.data-testid]="'preset-card-' + p.typeShift">
-      <ion-card-header>
-        <div class="card-header-flex">
-          <ion-badge [color]="getShiftBadgeColor(p.typeShift)" class="preset-badge">
-            {{ 'SHIFTS.SHIFT_TYPES.' + p.typeShift | transloco }}
-          </ion-badge>
-          <ion-card-title class="preset-title">{{ p.nom || p.typeShift }}</ion-card-title>
-        </div>
-      </ion-card-header>
-      <ion-card-content>
-        <div class="preset-form-fields">
-          <div class="field">
-            <label [for]="'preset-nom-' + p.typeShift">Nom du modèle</label>
-            <ion-input
-              [id]="'preset-nom-' + p.typeShift"
-              type="text"
-              [(ngModel)]="p.nom"
-              fill="outline"
-              [attr.data-testid]="'preset-nom-input-' + p.typeShift"
-              aria-label="Nom du modèle">
-            </ion-input>
+    <div *ngIf="!loading" class="preset-cards-grid">
+      <ion-card *ngFor="let p of presets" class="preset-card" [attr.data-testid]="'preset-card-' + p.typeShift">
+        <ion-card-header>
+          <div class="card-header-flex">
+            <ion-badge [color]="getShiftBadgeColor(p.typeShift)" class="preset-badge">
+              <ion-icon [name]="getShiftIcon(p.typeShift)" class="badge-icon"></ion-icon>
+              {{ 'SHIFTS.SHIFT_TYPES.' + p.typeShift | transloco }}
+            </ion-badge>
+            <ion-card-title class="preset-title">{{ p.nom || p.typeShift }}</ion-card-title>
+          </div>
+        </ion-card-header>
+        <ion-card-content>
+          <div class="preset-form-fields">
+            <div class="field full-width">
+              <label [for]="'preset-nom-' + p.typeShift">Nom du modèle</label>
+              <ion-input
+                [id]="'preset-nom-' + p.typeShift"
+                type="text"
+                [(ngModel)]="p.nom"
+                fill="outline"
+                [attr.data-testid]="'preset-nom-input-' + p.typeShift"
+                aria-label="Nom du modèle">
+              </ion-input>
+            </div>
+
+            <div class="field">
+              <label [for]="'preset-start-' + p.typeShift">{{ 'SHIFTS.FIELDS.START_TIME' | transloco }}</label>
+              <ion-input
+                [id]="'preset-start-' + p.typeShift"
+                type="text"
+                placeholder="08:00"
+                [(ngModel)]="p.heureDebut"
+                fill="outline"
+                [attr.data-testid]="'preset-start-input-' + p.typeShift"
+                aria-label="Heure de début par défaut">
+              </ion-input>
+            </div>
+
+            <div class="field">
+              <label [for]="'preset-end-' + p.typeShift">{{ 'SHIFTS.FIELDS.END_TIME' | transloco }}</label>
+              <ion-input
+                [id]="'preset-end-' + p.typeShift"
+                type="text"
+                placeholder="16:00"
+                [(ngModel)]="p.heureFin"
+                fill="outline"
+                [attr.data-testid]="'preset-end-input-' + p.typeShift"
+                aria-label="Heure de fin par défaut">
+              </ion-input>
+            </div>
+
+            <div class="field full-width">
+              <label [for]="'preset-break-' + p.typeShift">{{ 'SHIFTS.FIELDS.BREAK_DURATION' | transloco }} (min)</label>
+              <ion-input
+                [id]="'preset-break-' + p.typeShift"
+                type="number"
+                placeholder="30"
+                [(ngModel)]="p.dureePauseMinutes"
+                fill="outline"
+                [attr.data-testid]="'preset-break-input-' + p.typeShift"
+                aria-label="Durée de la pause en minutes">
+              </ion-input>
+            </div>
           </div>
 
-          <div class="field">
-            <label [for]="'preset-start-' + p.typeShift">{{ 'SHIFTS.FIELDS.START_TIME' | transloco }}</label>
-            <ion-input
-              [id]="'preset-start-' + p.typeShift"
-              type="text"
-              [(ngModel)]="p.heureDebut"
-              fill="outline"
-              [attr.data-testid]="'preset-start-input-' + p.typeShift"
-              aria-label="Heure de début par défaut">
-            </ion-input>
+          <div class="card-actions">
+            <ion-button
+              color="primary"
+              expand="block"
+              class="save-preset-btn"
+              (click)="savePreset(p)"
+              (keydown.enter)="savePreset(p)"
+              [disabled]="savingMap[p.typeShift]"
+              [attr.data-testid]="'save-preset-btn-' + p.typeShift">
+              <ion-spinner name="crescent" *ngIf="savingMap[p.typeShift]"></ion-spinner>
+              <ion-icon name="save-outline" slot="start" *ngIf="!savingMap[p.typeShift]"></ion-icon>
+              <span *ngIf="!savingMap[p.typeShift]">{{ 'SHIFTS.PRESETS.SAVE_PRESET' | transloco }}</span>
+            </ion-button>
           </div>
-
-          <div class="field">
-            <label [for]="'preset-end-' + p.typeShift">{{ 'SHIFTS.FIELDS.END_TIME' | transloco }}</label>
-            <ion-input
-              [id]="'preset-end-' + p.typeShift"
-              type="text"
-              [(ngModel)]="p.heureFin"
-              fill="outline"
-              [attr.data-testid]="'preset-end-input-' + p.typeShift"
-              aria-label="Heure de fin par défaut">
-            </ion-input>
-          </div>
-
-          <div class="field">
-            <label [for]="'preset-break-' + p.typeShift">{{ 'SHIFTS.FIELDS.BREAK_DURATION' | transloco }}</label>
-            <ion-input
-              [id]="'preset-break-' + p.typeShift"
-              type="number"
-              [(ngModel)]="p.dureePauseMinutes"
-              fill="outline"
-              [attr.data-testid]="'preset-break-input-' + p.typeShift"
-              aria-label="Durée de la pause en minutes">
-            </ion-input>
-          </div>
-        </div>
-
-        <div class="card-actions ion-margin-top">
-          <ion-button color="primary" expand="block" (click)="savePreset(p)" (keydown.enter)="savePreset(p)" [disabled]="savingMap[p.typeShift]" [attr.data-testid]="'save-preset-btn-' + p.typeShift">
-            <ion-spinner name="crescent" *ngIf="savingMap[p.typeShift]"></ion-spinner>
-            <span *ngIf="!savingMap[p.typeShift]">{{ 'SHIFTS.PRESETS.SAVE_PRESET' | transloco }}</span>
-          </ion-button>
-        </div>
-      </ion-card-content>
-    </ion-card>
+        </ion-card-content>
+      </ion-card>
+    </div>
   </div>
 </ion-content>

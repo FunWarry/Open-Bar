@@ -25,7 +25,9 @@
     "NONE": "None",
     "FILTER": "Filter",
     "SORT": "Sort",
-    "RESET": "Reset"
+    "RESET": "Reset",
+    "PREV": "Prev.",
+    "NEXT": "Next"
   },
   "THEME": {
     "LIGHT": "Light Mode",
@@ -820,6 +822,78 @@
       "BARMAN": "Bartender",
       "CAISSE": "Cashier",
       "MANAGER": "Manager"
+    },
+    "CLOSURES": {
+      "TITLE": "Establishment Closures",
+      "CONFIG_TITLE": "Establishment Closures Configuration",
+      "WEEKLY_TITLE": "Weekly Recurring Closures",
+      "WEEKLY_SUBTITLE": "Select days of the week when the bar is closed regularly. EDT columns will automatically be grayed out.",
+      "EXCEPTIONAL_TITLE": "Holidays & Exceptional Closures",
+      "CLOSED_BADGE": "Closed",
+      "OPEN_STATUS": "Establishment open",
+      "CLOSED_STATUS": "Establishment closed",
+      "REASON_LABEL": "Closure reason / Holiday / Vacation",
+      "REASON_PLACEHOLDER": "e.g. Annual leave, Holiday, Renovations...",
+      "QUICK_SUGGESTIONS": "Quick suggestions:",
+      "RANGE_TOGGLE": "Multi-day closure (Date range / Vacation)",
+      "RANGE_SUBTITLE": "Set closure from day A to day B (e.g. Summer vacation)",
+      "START_DATE": "Start date",
+      "END_DATE": "End date (inclusive)",
+      "ANNUAL_TOGGLE": "Repeat every year",
+      "ANNUAL_SUBTITLE": "Recurring holidays or fixed vacations (e.g. July 14, Fixed summer leave)",
+      "SAVE_CLOSURE": "Save closure",
+      "REOPEN_BAR": "Re-open bar for this day",
+      "NO_CLOSURES": "No exceptional closures configured."
+    },
+    "SHORTCUTS": {
+      "LEGEND_TITLE": "Shortcuts & Interactions:",
+      "LEFT_CLICK": "Left click",
+      "LEFT_CLICK_DESC": "Edit",
+      "DRAG_DROP": "Drag & drop",
+      "DRAG_DROP_DESC": "Bulk duplicate",
+      "RIGHT_CLICK": "Right click",
+      "RIGHT_CLICK_DESC": "Action menu",
+      "COPY_PASTE": "Ctrl + C / V",
+      "COPY_PASTE_DESC": "Copy / Paste",
+      "DELETE": "Del / Backspace",
+      "DELETE_DESC": "Delete shift",
+      "SHIFT_RIGHT_CLICK": "Shift + Right click",
+      "SHIFT_RIGHT_CLICK_DESC": "Browser menu"
+    },
+    "SCHEDULE": {
+      "THIS_WEEK": "This week",
+      "PUBLISH": "Publish schedule",
+      "REPUBLISH": "Publish changes",
+      "ALREADY_PUBLISHED": "Already published",
+      "PUBLISHED_BY": "Published on {{date}} by {{user}}",
+      "MODIFIED_SINCE_PUBLISHED": "⚠️ Pending changes (Last pub. {{date}} by {{user}})",
+      "PUBLISH_SUCCESS": "Week schedule published successfully"
+    },
+    "DIFF": {
+      "COMPARE_BTN": "Compare with published",
+      "EXIT_COMPARE_BTN": "Exit comparison",
+      "BANNER_TITLE": "Schedule Comparison Mode",
+      "BANNER_DESC": "Differences compared to the version published on {{date}} by {{user}}",
+      "ADDED_COUNT": "{{count}} Added",
+      "MODIFIED_COUNT": "{{count}} Modified",
+      "DELETED_COUNT": "{{count}} Deleted",
+      "UNCHANGED": "Unchanged",
+      "NO_DIFF": "The current schedule is identical to the published version.",
+      "TOOLTIP_ADDED": "New shift (unpublished)",
+      "TOOLTIP_MODIFIED": "Modified: was {{oldTime}}",
+      "TOOLTIP_DELETED": "Deleted shift (was {{oldTime}})"
+    },
+    "EMPLOYEE_HEADER": "Employee",
+    "BULK_DELETE": {
+      "TOOL_BUTTON": "Eraser Tool",
+      "EXIT_TOOL": "Exit eraser",
+      "ACTIVE_BANNER": "Eraser mode active: click on shifts to stage for deletion",
+      "SELECTED_COUNT": "{{count}} shift(s) selected",
+      "CONFIRM_BUTTON": "Delete selected ({{count}})",
+      "CLEAR_ALL_SELECTION": "Clear selection",
+      "CONFIRM_TITLE": "Confirm bulk deletion?",
+      "CONFIRM_MESSAGE": "Do you really want to permanently delete these {{count}} work shifts?",
+      "SUCCESS": "{{count}} shifts successfully deleted"
     }
   }
 }

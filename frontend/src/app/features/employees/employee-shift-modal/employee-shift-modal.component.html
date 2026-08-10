@@ -250,7 +250,14 @@
 
   <!-- Shift List -->
   <ion-list *ngIf="!loading && shifts.length > 0" class="shift-list" data-testid="shift-list">
-    <ion-item *ngFor="let shift of shifts" lines="full" class="shift-item" [attr.data-testid]="'shift-item-' + shift.id">
+    <ion-item
+      *ngFor="let shift of shifts"
+      lines="none"
+      class="shift-item"
+      [attr.data-testid]="'shift-item-' + shift.id"
+      (click)="openEditShiftForm(shift)"
+      (keyup.enter)="openEditShiftForm(shift)"
+      tabindex="0">
       <div class="shift-row">
         <div class="shift-info">
           <div class="shift-header-line">
@@ -275,16 +282,21 @@
             — <strong>{{ shift.heuresEffectuees || shift.heuresPrevues || 0 }}h faites</strong>
           </p>
           <p *ngIf="shift.heureDebutReelle || shift.heureFinReelle" class="shift-real-detail">
-            ⏱️ Pointage réel: {{ shift.heureDebutReelle || '--:--' }} - {{ shift.heureFinReelle || '--:--' }}
+            Pointage réel: {{ shift.heureDebutReelle || '--:--' }} - {{ shift.heureFinReelle || '--:--' }}
           </p>
           <p *ngIf="shift.notes" class="shift-notes">{{ shift.notes }}</p>
         </div>
 
         <div class="shift-actions">
-          <ion-button fill="clear" color="primary" size="small" (click)="openEditShiftForm(shift)" (keydown.enter)="openEditShiftForm(shift)" [attr.data-testid]="'edit-shift-btn-' + shift.id" [attr.aria-label]="'SHIFTS.EDIT_SHIFT' | transloco">
-            <ion-icon name="create-outline" slot="icon-only"></ion-icon>
-          </ion-button>
-          <ion-button fill="clear" color="danger" size="small" (click)="confirmDeleteShift(shift)" (keydown.enter)="confirmDeleteShift(shift)" *ngIf="isManagerOrAdmin" [attr.data-testid]="'delete-shift-btn-' + shift.id" [attr.aria-label]="'SHIFTS.DELETE_SHIFT' | transloco">
+          <ion-button
+            fill="clear"
+            color="danger"
+            size="small"
+            (click)="$event.stopPropagation(); confirmDeleteShift(shift)"
+            (keydown.enter)="$event.stopPropagation(); confirmDeleteShift(shift)"
+            *ngIf="isManagerOrAdmin"
+            [attr.data-testid]="'delete-shift-btn-' + shift.id"
+            [attr.aria-label]="'SHIFTS.DELETE_SHIFT' | transloco">
             <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
           </ion-button>
         </div>
