@@ -278,9 +278,19 @@ export class ScheduleComponent implements OnInit, OnDestroy {
     return map;
   }
 
+  private normalizeTime(t?: string): string {
+    if (!t) return '';
+    const parts = t.trim().split(':');
+    if (parts.length >= 2) {
+      return `${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}`;
+    }
+    return t.trim();
+  }
+
   private compareCellWithPublication(key: string, shift: ShiftCell, pub?: any): void {
     const hasCurrent = Boolean(shift.rawShift && shift.startTime && !shift.isClosed);
-    const hasPub = Boolean(pub && (pub.heureDebut || pub.startTime));
+    const pubStart = this.normalizeTime(pub?.heureDebut || pub?.startTime);
+    const hasPub = Boolean(pub && pubStart);
 
     if (hasCurrent && !hasPub) {
       this.cellDiffMap.set(key, { status: 'ADDED', currentShift: shift });
@@ -295,14 +305,17 @@ export class ScheduleComponent implements OnInit, OnDestroy {
   }
 
   private checkModifiedDiff(key: string, shift: ShiftCell, pub: any): void {
-    const pubStart = pub.heureDebut || pub.startTime;
-    const pubEnd = pub.heureFin || pub.endTime;
+    const pubStart = this.normalizeTime(pub.heureDebut || pub.startTime);
+    const pubEnd = this.normalizeTime(pub.heureFin || pub.endTime);
     const pubType = pub.typeShift;
+
+    const currentStart = this.normalizeTime(shift.startTime);
+    const currentEnd = this.normalizeTime(shift.endTime);
     const currentType = shift.typeShift || shift.rawShift?.typeShift;
 
     const isModified =
-      shift.startTime !== pubStart ||
-      shift.endTime !== pubEnd ||
+      currentStart !== pubStart ||
+      currentEnd !== pubEnd ||
       (pubType && currentType && pubType !== currentType);
 
     if (isModified) {
@@ -318,11 +331,13 @@ export class ScheduleComponent implements OnInit, OnDestroy {
   }
 
   private recordDeletedDiff(key: string, pub: any): void {
+    const pubStart = this.normalizeTime(pub.heureDebut || pub.startTime);
+    const pubEnd = this.normalizeTime(pub.heureFin || pub.endTime);
     this.cellDiffMap.set(key, {
       status: 'DELETED',
       publishedShift: {
-        heureDebut: pub.heureDebut || pub.startTime,
-        heureFin: pub.heureFin || pub.endTime,
+        heureDebut: pubStart,
+        heureFin: pubEnd,
         typeShift: pub.typeShift
       }
     });
@@ -1141,10 +1156,8 @@ export class ScheduleComponent implements OnInit, OnDestroy {
       }
     });
     await modal.present();
-    const { data } = await modal.onWillDismiss();
-    if (data) {
-      this.loadSchedule();
-    }
+    await modal.onWillDismiss();
+    this.loadSchedule();
   }
 
   async openClosureConfigModal(): Promise<void> {
@@ -1152,10 +1165,8 @@ export class ScheduleComponent implements OnInit, OnDestroy {
       component: ClosureConfigModalComponent
     });
     await modal.present();
-    const { data } = await modal.onWillDismiss();
-    if (data) {
-      this.loadSchedule();
-    }
+    await modal.onWillDismiss();
+    this.loadSchedule();
   }
 
   private async showClosedDayNotice(shift: ShiftCell): Promise<void> {
