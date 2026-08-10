@@ -321,11 +321,11 @@ export class ScheduleComponent implements OnInit, OnDestroy {
   private checkModifiedDiff(key: string, shift: ShiftCell, pub: any): void {
     const pubStart = this.normalizeTime(pub.heureDebut || pub.startTime || pub.heure_debut || pub.start_time);
     const pubEnd = this.normalizeTime(pub.heureFin || pub.endTime || pub.heure_fin || pub.end_time);
-    const pubType = pub.typeShift || pub.type_shift || pub.type;
+    const pubType = (pub.typeShift || pub.type_shift || pub.type || '').toString().toUpperCase();
 
     const currentStart = this.normalizeTime(shift.startTime);
     const currentEnd = this.normalizeTime(shift.endTime);
-    const currentType = shift.typeShift || shift.rawShift?.typeShift;
+    const currentType = (shift.typeShift || shift.rawShift?.typeShift || '').toString().toUpperCase();
 
     const isModified =
       (pubStart && currentStart !== pubStart) ||
@@ -347,7 +347,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
   private recordDeletedDiff(key: string, pub: any): void {
     const pubStart = this.normalizeTime(pub.heureDebut || pub.startTime || pub.heure_debut || pub.start_time);
     const pubEnd = this.normalizeTime(pub.heureFin || pub.endTime || pub.heure_fin || pub.end_time);
-    const pubType = pub.typeShift || pub.type_shift || pub.type;
+    const pubType = (pub.typeShift || pub.type_shift || pub.type || '').toString().toUpperCase();
     this.cellDiffMap.set(key, {
       status: 'DELETED',
       publishedShift: {
@@ -385,6 +385,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
         next: async (pub) => {
           this.publication = pub;
           this.isPublished = true;
+          this.calculateScheduleDifferences();
           this.scheduleService.getWeekSchedule(this.currentWeekStart)
             .pipe(takeUntil(this.destroy$))
             .subscribe({
