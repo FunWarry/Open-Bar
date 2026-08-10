@@ -247,13 +247,28 @@ export class ScheduleComponent implements OnInit, OnDestroy {
 
   private parsePublishedShifts(snapshotJson: string): Map<string, any> {
     const map = new Map<string, any>();
+    if (!snapshotJson || snapshotJson === '[]') return map;
     try {
       const parsed = JSON.parse(snapshotJson);
       if (Array.isArray(parsed)) {
         for (const ps of parsed) {
           const uId = ps.userId || ps.user?.id;
-          if (uId && ps.dateShift) {
-            map.set(`${uId}_${ps.dateShift}`, ps);
+          let dateStr = ps.dateShift || ps.date_shift || ps.date;
+          if (Array.isArray(dateStr)) {
+            const y = dateStr[0];
+            const m = String(dateStr[1]).padStart(2, '0');
+            const d = String(dateStr[2]).padStart(2, '0');
+            dateStr = `${y}-${m}-${d}`;
+          } else if (typeof dateStr === 'object' && dateStr !== null) {
+            const y = dateStr.year;
+            const m = String(dateStr.monthValue || dateStr.month).padStart(2, '0');
+            const d = String(dateStr.dayOfMonth || dateStr.day).padStart(2, '0');
+            dateStr = `${y}-${m}-${d}`;
+          } else if (typeof dateStr === 'string') {
+            dateStr = dateStr.split('T')[0];
+          }
+          if (uId && dateStr) {
+            map.set(`${uId}_${dateStr}`, ps);
           }
         }
       }
@@ -275,7 +290,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
     } else if (!hasCurrent && hasPub) {
       this.recordDeletedDiff(key, pub);
     } else {
-      this.cellDiffMap.set(key, { status: 'UNCHANGED' });
+      this.cellDiffMap.set(key, { status: 'UNCHANGED', currentShift: shift });
     }
   }
 
@@ -283,7 +298,12 @@ export class ScheduleComponent implements OnInit, OnDestroy {
     const pubStart = pub.heureDebut || pub.startTime;
     const pubEnd = pub.heureFin || pub.endTime;
     const pubType = pub.typeShift;
-    const isModified = shift.startTime !== pubStart || shift.endTime !== pubEnd || (pubType && shift.typeShift !== pubType);
+    const currentType = shift.typeShift || shift.rawShift?.typeShift;
+
+    const isModified =
+      shift.startTime !== pubStart ||
+      shift.endTime !== pubEnd ||
+      (pubType && currentType && pubType !== currentType);
 
     if (isModified) {
       this.cellDiffMap.set(key, {
