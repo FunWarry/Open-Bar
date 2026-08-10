@@ -214,9 +214,40 @@ describe('EmployeeShiftModalComponent', () => {
     expect(mockShiftService.getShiftsForWeek).toHaveBeenCalled();
   });
 
+  it('onShiftTypeChange() and getShiftBadgeColor() should support all shift types', () => {
+    component.onShiftTypeChange('SOIR');
+    expect(component.formHeureDebut).toBe('16:00');
+    expect(component.getShiftBadgeColor('SOIR')).toBe('primary');
+
+    component.onShiftTypeChange('COUPURE');
+    expect(component.formHeureDebut).toBe('11:00');
+    expect(component.getShiftBadgeColor('COUPURE')).toBe('tertiary');
+
+    component.onShiftTypeChange('NUIT');
+    expect(component.formHeureDebut).toBe('22:00');
+    expect(component.getShiftBadgeColor('NUIT')).toBe('secondary');
+
+    component.onShiftTypeChange('CONGE');
+    expect(component.formHeureDebut).toBe('00:00');
+    expect(component.getShiftBadgeColor('CONGE')).toBe('medium');
+
+    expect(component.getShiftBadgeColor('MATIN')).toBe('warning');
+  });
+
+  it('totalPlannedWeekHours and totalOvertimeWeekHours getters should compute correct values', () => {
+    component.shifts = [
+      { id: 1, userId: 1, dateShift: '2026-08-10', typeShift: 'MATIN', typePoste: 'SERVEUR', heureDebut: '08:00', heureFin: '16:00', heuresPrevues: 8, heuresSup: 2 },
+      { id: 2, userId: 1, dateShift: '2026-08-11', typeShift: 'SOIR', typePoste: 'SERVEUR', heureDebut: '16:00', heureFin: '00:00', heuresPrevues: 7.5, heuresSup: 1 }
+    ];
+
+    expect(component.totalPlannedWeekHours).toBe(15.5);
+    expect(component.totalOvertimeWeekHours).toBe(3);
+  });
+
   it('should dismiss modal on dismiss call', () => {
     component.dismiss();
     expect(mockModalCtrl.dismiss).toHaveBeenCalled();
   });
 });
+
 
