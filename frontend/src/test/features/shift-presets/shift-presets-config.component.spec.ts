@@ -72,4 +72,19 @@ describe('ShiftPresetsConfigComponent', () => {
     expect(mockShiftService.updatePreset).toHaveBeenCalledWith('MATIN', target);
     expect(mockToastCtrl.create).toHaveBeenCalled();
   });
+
+  it('getShiftBadgeColor and getShiftIcon should return correct badge styles', () => {
+    expect(component.getShiftBadgeColor('MATIN')).toBe('warning');
+    expect(component.getShiftBadgeColor('SOIR')).toBe('primary');
+    expect(component.getShiftBadgeColor('COUPURE')).toBe('tertiary');
+    expect(component.getShiftBadgeColor('NUIT')).toBe('secondary');
+    expect(component.getShiftBadgeColor('CONGE')).toBe('medium');
+
+    expect(component.getShiftIcon('MATIN')).toBe('sunny-outline');
+    expect(component.getShiftIcon('SOIR')).toBe('time-outline');
+    expect(component.getShiftIcon('COUPURE')).toBe('cafe-outline');
+    expect(component.getShiftIcon('NUIT')).toBe('moon-outline');
+    expect(component.getShiftIcon('CONGE')).toBe('fitness-outline');
+  });
 });
+

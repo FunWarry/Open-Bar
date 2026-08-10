@@ -117,4 +117,59 @@ describe('ScheduleService — date range closure detection', () => {
       done();
     });
   });
+
+  it('should build full schedule matrix mapping users and shifts to employee rows', (done) => {
+    const mockUsers = [
+      { id: 1, nom: 'Dupont', prenom: 'Jean', username: 'jdupont', email: 'j@bar.fr', roles: ['BARMAN'], enabled: true, createdAt: '', updatedAt: '' },
+      { id: 2, nom: 'Martin', prenom: 'Claire', username: 'cmartin', email: 'c@bar.fr', roles: ['SERVEUR'], enabled: true, createdAt: '', updatedAt: '' },
+      { id: 3, nom: 'Boss', prenom: 'Paul', username: 'pboss', email: 'p@bar.fr', roles: ['MANAGER'], enabled: true, createdAt: '', updatedAt: '' },
+      { id: 4, nom: 'Root', prenom: 'Admin', username: 'root', email: 'r@bar.fr', roles: ['ADMIN'], enabled: true, createdAt: '', updatedAt: '' }
+    ];
+
+    const mockShifts: any[] = [
+      { id: 10, userId: 1, dateShift: '2026-08-17', typeShift: 'MATIN', typePoste: 'BARMAN', heureDebut: '08:00', heureFin: '16:00', heuresPrevues: 8 },
+      { id: 11, userId: 2, dateShift: '2026-08-18', typeShift: 'SOIR', typePoste: 'SERVEUR', heureDebut: '16:00', heureFin: '00:00', heuresEffectuees: 8 },
+      { id: 12, userId: 3, dateShift: '2026-08-19', typeShift: 'CONGE', typePoste: 'MANAGER', heureDebut: '00:00', heureFin: '00:00', heuresPrevues: 0 }
+    ];
+
+    const weeklyClosure: EstablishmentClosure = {
+      id: 5,
+      type: 'WEEKLY_RECURRING',
+      dayOfWeek: 'SUNDAY',
+      reason: 'Fermeture dimanche'
+    };
+
+    mockUserService.getUsers.and.returnValue(of(mockUsers));
+    mockShiftService.getShiftsForWeek.and.returnValue(of(mockShifts));
+    mockClosureService.getClosures.and.returnValue(of([weeklyClosure]));
+
+    service.getWeekSchedule(weekOf17Aug).subscribe((schedule) => {
+      expect(schedule.employees).toHaveSize(4);
+      expect(schedule.totalHours).toBe(16);
+      expect(schedule.totalEmployees).toBe(4);
+      expect(schedule.activeEmployees).toBe(3);
+
+      const barmanRow = schedule.employees.find(e => e.employeeId === 1)!;
+      expect(barmanRow.role).toBe('BARMAN');
+      expect(barmanRow.shifts[0].type).toBe('BARTENDER'); // Monday
+      expect(barmanRow.shifts[6].type).toBe('CLOSED'); // Sunday closed
+
+      const serverRow = schedule.employees.find(e => e.employeeId === 2)!;
+      expect(serverRow.role).toBe('SERVEUR');
+      expect(serverRow.shifts[1].type).toBe('WAITER'); // Tuesday
+
+      const managerRow = schedule.employees.find(e => e.employeeId === 3)!;
+      expect(managerRow.role).toBe('MANAGER');
+      expect(managerRow.shifts[2].type).toBe('DAY_OFF'); // Conge
+
+      done();
+    });
+  });
+
+  it('getMonday() and formatDateIso() should format dates correctly', () => {
+    const monday = service.getMonday(new Date('2026-08-20')); // Thursday
+    expect(monday.getDay()).toBe(1); // Monday
+    const iso = (service as any).formatDateIso(monday);
+    expect(iso).toBe('2026-08-17');
+  });
 });

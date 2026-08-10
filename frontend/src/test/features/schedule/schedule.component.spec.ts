@@ -357,5 +357,97 @@ describe('ScheduleComponent', () => {
       component.toggleComparisonMode();
       expect(component.isComparisonMode).toBeFalse();
     });
+
+    it('publishSchedule() should call publicationService.publishWeek and show toast', async () => {
+      const mockPub: WeekSchedulePublicationDTO = {
+        id: 10,
+        weekStart: '2026-08-10',
+        publishedAt: '2026-08-10T12:00:00',
+        publishedBy: 'manager',
+        snapshotJson: '[]'
+      };
+      mockPublicationService.publishWeek.and.returnValue(of(mockPub));
+
+      await component.publishSchedule();
+
+      expect(mockPublicationService.publishWeek).toHaveBeenCalledWith('2026-08-10');
+      expect(component.isPublished).toBeTrue();
+      expect(component.publication).toEqual(mockPub);
+      expect(mockToastCtrl.create).toHaveBeenCalled();
+    });
+
+    it('copyShift() and pasteShift() should store shift and trigger createShift on paste', async () => {
+      const sourceShift: any = {
+        date: '2026-08-10',
+        startTime: '08:00',
+        endTime: '16:00',
+        rawShift: {
+          id: 1,
+          userId: 10,
+          dateShift: '2026-08-10',
+          typeShift: 'MATIN',
+          typePoste: 'SERVEUR',
+          heureDebut: '08:00',
+          heureFin: '16:00',
+          dureePauseMinutes: 30,
+          heuresPrevues: 7.5
+        }
+      };
+
+      await component.copyShift(sourceShift);
+      expect(component.copiedShift).toEqual(sourceShift.rawShift);
+
+      const targetEmp: any = { employeeId: 10, name: 'Alice' };
+      const targetCell: any = { date: '2026-08-11', isClosed: false };
+
+      mockShiftService.createShift.and.returnValue(of({} as any));
+
+      await component.pasteShift(targetEmp, targetCell);
+      expect(mockShiftService.createShift).toHaveBeenCalledWith(jasmine.objectContaining({
+        userId: 10,
+        dateShift: '2026-08-11',
+        typeShift: 'MATIN'
+      }));
+    });
+
+    it('onHeaderDayClick() should open DayClosureModalComponent and execute action', async () => {
+      const mockModal = {
+        present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+        onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({
+          data: { action: 'close', startDate: '2026-08-10', reason: 'Fête nationale' }
+        }))
+      };
+      mockModalCtrl.create.and.returnValue(Promise.resolve(mockModal as any));
+      mockClosureService.createClosure.and.returnValue(of({} as any));
+
+      await component.onHeaderDayClick({
+        day: 'Mon',
+        date: '10',
+        dateISO: '2026-08-10',
+        isClosed: false
+      });
+
+      expect(mockModalCtrl.create).toHaveBeenCalled();
+      expect(mockClosureService.createClosure).toHaveBeenCalledWith(jasmine.objectContaining({
+        closureDate: '2026-08-10',
+        reason: 'Fête nationale'
+      }));
+    });
+
+    it('getShiftColorClass() should return proper CSS classes according to shift type', () => {
+      expect(component.getShiftColorClass({ isClosed: true } as any)).toBe('shift--closed');
+      expect(component.getShiftColorClass({ type: 'MANAGER' } as any)).toBe('shift--manager');
+      expect(component.getShiftColorClass({ type: 'WAITER' } as any)).toBe('shift--waiter');
+      expect(component.getShiftColorClass({ type: 'BARTENDER' } as any)).toBe('shift--bartender');
+      expect(component.getShiftColorClass({ type: 'DAY_OFF' } as any)).toBe('shift--dayoff');
+      expect(component.getShiftColorClass({ type: 'EMPTY' } as any)).toBe('shift--empty');
+    });
+
+    it('goToCurrentWeek() should reset to current Monday', () => {
+      component.goToCurrentWeek();
+      expect(mockScheduleService.getMonday).toHaveBeenCalled();
+      expect(mockScheduleService.getWeekSchedule).toHaveBeenCalled();
+    });
   });
 });
+
