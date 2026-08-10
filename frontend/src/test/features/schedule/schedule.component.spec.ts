@@ -433,6 +433,88 @@ describe('ScheduleComponent', () => {
       expect(mockScheduleService.getWeekSchedule).toHaveBeenCalled();
     });
 
+    it('onCellClick() should toggle selection in delete mode or open user modal in normal mode', async () => {
+      spyOn(component, 'openEmployeeModalForUser');
+
+      const emp: any = { employeeId: 5, name: 'Charlie' };
+      const shift: any = { isClosed: false, rawShift: { id: 202 } };
+
+      // Normal mode click
+      component.isDeleteMode = false;
+      component.onCellClick(emp, shift);
+      expect(component.openEmployeeModalForUser).toHaveBeenCalledWith(5);
+
+      // Delete mode click
+      component.isDeleteMode = true;
+      component.onCellClick(emp, shift);
+      expect(component.selectedShiftIds.has(202)).toBeTrue();
+    });
+
+    it('confirmBulkDelete() should prompt alert and execute bulk deletion on destructive button click', async () => {
+      component.selectedShiftIds.add(201);
+      component.selectedShiftIds.add(202);
+
+      let confirmHandler: () => void = () => {};
+      mockAlertCtrl.create.and.callFake((options: any) => {
+        const delBtn = options.buttons.find((b: any) => b.role === 'destructive');
+        if (delBtn && delBtn.handler) confirmHandler = delBtn.handler;
+        return Promise.resolve({ present: () => Promise.resolve() } as any);
+      });
+      mockShiftService.deleteShift.and.returnValue(of(undefined as any));
+
+      await component.confirmBulkDelete();
+
+      expect(mockAlertCtrl.create).toHaveBeenCalled();
+      confirmHandler();
+
+      expect(mockShiftService.deleteShift).toHaveBeenCalledWith(201);
+      expect(mockShiftService.deleteShift).toHaveBeenCalledWith(202);
+      expect(component.selectedShiftIds.size).toBe(0);
+      expect(component.isDeleteMode).toBeFalse();
+    });
+
+    it('duplicateShiftToNextDay() should send createShift request for the following day', () => {
+      mockShiftService.createShift.and.returnValue(of({} as any));
+
+      const sourceShift: any = {
+        date: '2026-08-10',
+        rawShift: {
+          userId: 1,
+          typeShift: 'MATIN',
+          typePoste: 'SERVEUR',
+          heureDebut: '08:00',
+          heureFin: '16:00',
+          dureePauseMinutes: 30,
+          heuresPrevues: 7.5
+        }
+      };
+
+      component.duplicateShiftToNextDay(sourceShift);
+
+      expect(mockShiftService.createShift).toHaveBeenCalledWith(jasmine.objectContaining({
+        userId: 1,
+        dateShift: '2026-08-11',
+        typeShift: 'MATIN'
+      }));
+    });
+
+    it('onContextMenu() should open action sheet when Shift key is not pressed', () => {
+      spyOn(component, 'openActionSheet');
+      const mockEvent = new MouseEvent('contextmenu');
+      spyOn(mockEvent, 'preventDefault');
+
+      component.onContextMenu(mockEvent, { employeeId: 1 } as any, { date: '2026-08-10' } as any);
+
+      expect(mockEvent.preventDefault).toHaveBeenCalled();
+      expect(component.openActionSheet).toHaveBeenCalled();
+    });
+
+    it('clearDeleteSelection() should clear selected shift IDs', () => {
+      component.selectedShiftIds.add(100);
+      component.clearDeleteSelection();
+      expect(component.selectedShiftIds.size).toBe(0);
+    });
+
     it('toggleDeleteMode() and toggleShiftSelection() should manage selection set', () => {
       component.toggleDeleteMode();
       expect(component.isDeleteMode).toBeTrue();
