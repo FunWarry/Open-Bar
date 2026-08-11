@@ -1,4 +1,4 @@
-<div
+<article
   class="product-card"
   [class.unavailable]="isUnavailable"
   [style.--category-accent]="CategoryColor"
@@ -9,7 +9,6 @@
   (touchend)="onTouchEnd($event)"
   (touchmove)="onTouchMove($event)"
   tabindex="0"
-  role="button"
   [attr.aria-disabled]="isUnavailable">
   <div class="product-header">
     <div class="product-icon-wrap">
@@ -39,4 +38,4 @@
       </span>
     </div>
   </div>
-</div>
+</article>

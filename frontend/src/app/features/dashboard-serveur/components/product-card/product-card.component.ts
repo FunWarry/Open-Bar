@@ -1,10 +1,9 @@
 import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
-import { ActionButtonComponent } from '../../../../core/components/ui/action-button/action-button.component';
 import { StockSeverityBadgeComponent } from '../../../../core/components/ui/stock-severity-badge/stock-severity-badge.component';
 import { addIcons } from 'ionicons';
-import { wineOutline, beerOutline, waterOutline, flameOutline, fastFoodOutline, addOutline } from 'ionicons/icons';
+import { wineOutline, beerOutline, waterOutline, flameOutline, fastFoodOutline } from 'ionicons/icons';
 
 export interface ProductVariant {
   id?: number;
@@ -29,7 +28,7 @@ export interface ProductItem {
 @Component({
   selector: 'app-product-card',
   standalone: true,
-  imports: [CommonModule, IonicModule, ActionButtonComponent, StockSeverityBadgeComponent],
+  imports: [CommonModule, IonicModule, StockSeverityBadgeComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './product-card.component.html',
   styleUrls: ['./product-card.component.scss'],
@@ -44,7 +43,7 @@ export class ProductCardComponent {
   private isLongPressTriggered = false;
 
   constructor() {
-    addIcons({ wineOutline, beerOutline, waterOutline, flameOutline, fastFoodOutline, addOutline });
+    addIcons({ wineOutline, beerOutline, waterOutline, flameOutline, fastFoodOutline });
   }
 
   get isUnavailable(): boolean {
@@ -72,16 +71,19 @@ export class ProductCardComponent {
     }, 500);
   }
 
-  onTouchEnd(event: TouchEvent) {
+  private cancelLongPress() {
     if (this.longPressTimer) {
       clearTimeout(this.longPressTimer);
+      this.longPressTimer = undefined;
     }
   }
 
+  onTouchEnd(event: TouchEvent) {
+    this.cancelLongPress();
+  }
+
   onTouchMove(event: TouchEvent) {
-    if (this.longPressTimer) {
-      clearTimeout(this.longPressTimer);
-    }
+    this.cancelLongPress();
   }
 
   onCardClick() {

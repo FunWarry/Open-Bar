@@ -35,7 +35,7 @@
     </app-empty-state>
 
     <div class="cart-item-row" *ngFor="let item of cart.items">
-      <div class="item-info" (click)="onEditItem(item)">
+      <div class="item-info" tabindex="0" (click)="onEditItem(item)" (keyup.enter)="onEditItem(item)">
         <div class="item-name-row">
           <span class="item-name">{{ item.nom }}</span>
           <span *ngIf="item.varianteNom" class="item-variant">({{ item.varianteNom }})</span>
