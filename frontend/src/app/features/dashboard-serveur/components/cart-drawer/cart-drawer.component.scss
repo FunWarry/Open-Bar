@@ -83,12 +83,20 @@
       border-radius: var(--radius-sm, 6px);
       border: 1px solid var(--border-medium, #2e3450);
 
+      .item-info-btn,
       .item-info {
+        background: transparent;
+        border: none;
+        padding: 0;
+        margin: 0;
+        text-align: left;
+        font-family: inherit;
         display: flex;
         flex-direction: column;
         flex: 1;
         cursor: pointer;
         padding-right: 8px;
+        outline: none;
 
         .item-name-row {
           display: flex;
@@ -108,12 +116,8 @@
             color: var(--primary-light, #aab4f3);
           }
 
-          .edit-custom-btn {
-            background: none;
-            border: none;
+          .edit-custom-icon {
             color: var(--text-secondary, #a4add0);
-            padding: 2px;
-            cursor: pointer;
             display: inline-flex;
             align-items: center;
             font-size: 0.85rem;

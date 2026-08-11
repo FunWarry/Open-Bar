@@ -1,15 +1,14 @@
-<article
+<button
+  type="button"
   class="product-card"
   [class.unavailable]="isUnavailable"
   [style.--category-accent]="CategoryColor"
+  [disabled]="isUnavailable"
   (click)="onCardClick()"
-  (keyup.enter)="onCardClick()"
   (contextmenu)="onRightClick($event)"
   (touchstart)="onTouchStart($event)"
   (touchend)="onTouchEnd($event)"
-  (touchmove)="onTouchMove($event)"
-  tabindex="0"
-  [attr.aria-disabled]="isUnavailable">
+  (touchmove)="onTouchMove($event)">
   <div class="product-header">
     <div class="product-icon-wrap">
       <ion-icon [name]="CategoryIcon"></ion-icon>
@@ -38,4 +37,4 @@
       </span>
     </div>
   </div>
-</article>
+</button>

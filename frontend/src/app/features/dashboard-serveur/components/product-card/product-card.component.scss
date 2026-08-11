@@ -1,4 +1,10 @@
+button.product-card,
 .product-card {
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+  margin: 0;
+  outline: none;
   background: var(--background-surface-1, #1a1a2e);
   border: 1px solid var(--border-medium, #2e3450);
   border-radius: var(--radius-md, 10px);
