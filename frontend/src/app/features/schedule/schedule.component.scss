@@ -609,8 +609,8 @@
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.03em;
-  background: rgba(0, 0, 0, 0.2);
-  color: inherit;
+  background: rgba(255, 255, 255, 0.18);
+  color: var(--text-on-accent, #ffffff);
   padding: 1px 4px;
   border-radius: 3px;
 }
@@ -626,7 +626,7 @@
   font-size: 8px;
   font-weight: 800;
   background: var(--semantic-success, #2dd36f);
-  color: #0f0f1a;
+  color: var(--text-on-accent, #ffffff);
   padding: 1px 4px;
   border-radius: 3px;
   text-transform: uppercase;
@@ -637,7 +637,7 @@
   font-size: 8px;
   font-weight: 700;
   background: var(--semantic-warning, #f59e0b);
-  color: #0f0f1a;
+  color: var(--text-on-accent, #ffffff);
   padding: 1px 4px;
   border-radius: 3px;
   letter-spacing: 0.02em;
