@@ -1,6 +1,6 @@
 # OpenBar — État des Features & Roadmap
 
-> Dernière mise à jour : 11 août 2026 — PR #289 (#285) : Audit log immutable des modifications EDT + vue historique EDT à un instant T (time-travel replay)
+> Dernière mise à jour : 11 août 2026 — PR #294 (#290) : Refonte complète de la page de prise de commande serveur (recherche live, filtres catégories/allergènes, décomposition HT/TVA/TTC, 100% tests & SonarCloud PASSED)
 
 ## Tableau des Features
 
@@ -60,6 +60,7 @@
 | Refacto Design System & Composants Atomiques Figma (#210) | — | ✅ | ✅ | Atoms UI Figma |
 | Harmonisation Vues Applicatives Figma (#211) | — | ✅ | ✅ | ProductCard, StatCard, etc. |
 | **Audit log immutable EDT + Time-Travel Replay (#285)** | ✅ | ✅ | ✅ | Table `shift_audit_log`, `ShiftAuditService`, `ScheduleHistoryModalComponent`, `ShiftHistoryModalComponent`, replay EDT à un instant T, SonarCloud 81.3% |
+| **Prise de commande serveur moderne (#290)** | ✅ | ✅ | ✅ | `NouvelleCommandeComponent`, recherche live, filtres catégories/allergènes, décomposition HT/TVA/TTC, 100% tests Karma (1195/1195), SonarCloud 100% coverage |
 
 ## Features Manquantes Prioritaires (Frontend & UI Figma)
 
@@ -77,6 +78,7 @@
 
 | PR / Issue | Description |
 |------------|-------------|
+| #294 (#290) | Refonte complète et modernisation de la prise de commande serveur (`/serveur/nouvelle-commande/:tableId`) : recherche textuelle en temps réel, puces de filtres par catégories de boissons (Cocktails, Softs, Bières, Vins, Snacks), sélecteur d'exclusion d'allergènes (Lactose, Gluten, Arachides...), panier réactif avec ajustement des quantités, décomposition comptable HT/TVA (20%)/Total TTC, 100% variables CSS adaptatives du thème, clés i18n FR/EN `SERVEUR.*` complétées, 1195/1195 tests Karma 100% verts, Quality Gate SonarCloud PASSED (100.0% new coverage, 0 bug). |
 | #289 (#285) | Audit log immutable des modifications de créneaux EDT + vue historique à un instant T (time-travel replay) : table `shift_audit_log`, entités `ShiftAuditLog`/`ShiftAuditAction`, service `ShiftAuditService` (`logCreation`, `logUpdate`, `logDeletion`, `reconstructScheduleAt`, `getAuditLogForWeek`), endpoints `GET /api/shifts/{id}/history`, `GET /api/schedule/audit-log`, `GET /api/schedule/at`, modaux `ScheduleHistoryModalComponent` (filtre par action/employé, snapshot before/after, déclencheur replay) et `ShiftHistoryModalComponent` (historique créneau individuel), mode Time-Travel Replay dans `ScheduleComponent` (sélecteur datetime, diff live vs planning courant, bannière lecture seule), i18n FR/EN (`SHIFTS.AUDIT`, `SHIFTS.REPLAY`), 470 backend tests + 1190 frontend tests, SonarCloud Quality Gate PASSED (81.3% new coverage, 0 bug). |
 | #287 (#276) | Fix bouton comparaison EDT & UX shifts : synchronisation `forkJoin` pour le chargement du planning et de la publication (élimine la disparition du bouton de comparaison au changement de semaine), clic sur cellule vide ouvre directement le formulaire de création pré-rempli (`initialDate`, `openInCreateMode`), en-tête employé converti en `<button>` sémantique pour ouvrir la liste des shifts d'une personne, et 100% tests Karma / SonarCloud Quality Gate PASSED. |
 | #279 (#275) | Planning d'équipe & Gestion des Shifts par employé (Figma 540:1022) : Vue Employés Manager (`/employees`), modal de gestion des créneaux par personne (`EmployeeShiftModalComponent`), modal de fermeture d'établissement (`ClosureConfigModalComponent`), modal d'exceptions de fermeture par jour (`DayClosureModalComponent`), configuration des modèles de shifts (`ShiftPresetsConfigComponent`), duplication par glisser-déposer, raccourcis clavier (Ctrl+C, Ctrl+V, Del, Esc), publication d'emploi du temps avec notifications STOMP temps réel `/topic/schedule-publications`, et Quality Gate SonarCloud 80.8% OK. |
