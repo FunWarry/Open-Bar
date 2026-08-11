@@ -93,6 +93,11 @@
 ion-content.dashboard-serveur-content {
   --background: var(--background-bg-0, #0f0f1a);
   --color: var(--text-primary, #eceefb);
+  --overflow: hidden;
+  --padding-top: 12px;
+  --padding-bottom: 12px;
+  --padding-start: 12px;
+  --padding-end: 12px;
 }
 
 // ── Controls & Filter Bar (Style identique à la page Tables) ────────
@@ -106,6 +111,15 @@ ion-content.dashboard-serveur-content {
   flex-direction: column;
   gap: 12px;
   margin-bottom: 20px;
+}
+
+.order-taking-layout {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: var(--space-4, 16px);
+  height: 100%;
+  max-height: 100%;
+  overflow: hidden;
 }
 
 .controls-row-top {
@@ -507,8 +521,8 @@ ion-content.dashboard-serveur-content {
   display: grid;
   grid-template-columns: 1fr 340px;
   gap: var(--space-4, 16px);
-  height: calc(100vh - 140px);
-  max-height: calc(100vh - 140px);
+  height: 100%;
+  max-height: 100%;
   overflow: hidden;
 
   @media (max-width: 768px) {

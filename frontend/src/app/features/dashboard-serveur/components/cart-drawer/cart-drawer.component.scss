@@ -1,11 +1,18 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
 .cart-drawer-container {
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: var(--background-surface-1, #1a1a2e);
-  border-left: 1px solid var(--border-medium, #2e3450);
+  background: var(--background-surface-1, #16192b);
+  border: 1px solid var(--border-medium, #2e3450);
+  border-radius: var(--radius-lg, 14px);
   padding: var(--space-4, 16px);
   gap: var(--space-3, 12px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
 
   .cart-header {
     display: flex;
