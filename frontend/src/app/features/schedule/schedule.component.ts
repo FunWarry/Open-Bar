@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy, inject, HostListener } from '@angular/cor
 import { CommonModule } from '@angular/common';
 import {
   IonSpinner,
+  IonIcon,
   ModalController,
   ActionSheetController,
   ToastController,
@@ -22,7 +23,10 @@ import {
   globeOutline,
   settingsOutline,
   calendarOutline,
-  gitCompareOutline
+  gitCompareOutline,
+  eyeOutline,
+  eyeOffOutline,
+  filterOutline
 } from 'ionicons/icons';
 import { Subject, takeUntil, forkJoin, firstValueFrom, catchError, of } from 'rxjs';
 import { UserAvatarComponent } from '../../core/components/ui/user-avatar/user-avatar.component';
@@ -66,6 +70,7 @@ export interface ShiftDiffInfo {
     CommonModule,
     TranslocoModule,
     IonSpinner,
+    IonIcon,
     UserAvatarComponent,
     ActionButtonComponent
   ],
@@ -138,9 +143,75 @@ export class ScheduleComponent implements OnInit, OnDestroy {
       globeOutline,
       settingsOutline,
       calendarOutline,
-      gitCompareOutline
+      gitCompareOutline,
+      eyeOutline,
+      eyeOffOutline,
+      filterOutline
     });
     this.currentWeekStart = this.scheduleService.getMonday(new Date());
+  }
+
+  /** Selected role filter: 'ALL' | 'BARMAN' | 'SERVEUR' | 'MANAGER' | 'ADMIN' */
+  selectedRoleFilter = 'ALL';
+
+  /** Whether to hide employees with 0 scheduled hours in the current week */
+  hideEmptyEmployees = false;
+
+  /**
+   * Returns the list of employees filtered by role and active status.
+   */
+  get filteredEmployees(): EmployeeScheduleRow[] {
+    if (!this.schedule?.employees) return [];
+    return this.schedule.employees.filter((emp) => {
+      // Role filter
+      if (this.selectedRoleFilter !== 'ALL' && emp.role !== this.selectedRoleFilter) {
+        return false;
+      }
+      // Empty shifts filter
+      if (this.hideEmptyEmployees && this.getEmployeeTotalHours(emp) === 0) {
+        return false;
+      }
+      return true;
+    });
+  }
+
+  /**
+   * Calculates the total scheduled hours for an employee row in the current week.
+   *
+   * @param emp - The employee row whose hours to sum.
+   * @returns Total planned hours as a rounded number.
+   */
+  getEmployeeTotalHours(emp: EmployeeScheduleRow): number {
+    if (!emp?.shifts) return 0;
+    return emp.shifts.reduce((sum, cell) => {
+      if (cell.isClosed || !cell.startTime) return sum;
+      if (cell.rawShift?.heuresPrevues) return sum + Number(cell.rawShift.heuresPrevues);
+      if (cell.rawShift?.heuresEffectuees) return sum + Number(cell.rawShift.heuresEffectuees);
+      if (cell.startTime && cell.endTime) {
+        const [h1, m1] = cell.startTime.split(':').map(Number);
+        const [h2, m2] = cell.endTime.split(':').map(Number);
+        let diff = (h2 * 60 + m2) - (h1 * 60 + m1);
+        if (diff < 0) diff += 24 * 60;
+        return sum + Math.round((diff / 60) * 10) / 10;
+      }
+      return sum;
+    }, 0);
+  }
+
+  /**
+   * Sets the role filter for the schedule grid.
+   *
+   * @param role - The role to filter by ('ALL', 'BARMAN', 'SERVEUR', 'MANAGER', 'ADMIN').
+   */
+  setRoleFilter(role: string): void {
+    this.selectedRoleFilter = role;
+  }
+
+  /**
+   * Toggles the visibility of employees with zero scheduled hours.
+   */
+  toggleHideEmptyEmployees(): void {
+    this.hideEmptyEmployees = !this.hideEmptyEmployees;
   }
 
   ngOnInit(): void {

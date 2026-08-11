@@ -885,6 +885,17 @@
     },
     "EMPLOYEE_HEADER": "Employee",
     "EMPLOYEE_HEADER_CLICK_HINT": "Click to view this employee's shift list",
+    "HOURS_SUFFIX": "h",
+    "FILTERS": {
+      "ROLE_LABEL": "Role",
+      "ALL_ROLES": "All",
+      "BARMAN": "Bartender",
+      "SERVEUR": "Waiter",
+      "MANAGER": "Manager",
+      "HIDE_EMPTY": "Hide without shifts",
+      "SHOW_ALL": "Show all",
+      "NO_MATCHING_EMPLOYEES": "No employee matches the selected filters"
+    },
     "BULK_DELETE": {
       "TOOL_BUTTON": "Eraser Tool",
       "EXIT_TOOL": "Exit eraser",

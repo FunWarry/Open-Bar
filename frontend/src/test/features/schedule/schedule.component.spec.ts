@@ -797,5 +797,104 @@ describe('ScheduleComponent', () => {
       expect(component.selectedShiftIds.size).toBe(0);
     });
   });
+
+  // ─── Ticket #276 — Role Filters, Inactive Employee Toggle & Weekly Hours ────
+  describe('#276 — Role Filters, Inactive Employee Toggle & Hours Calculation', () => {
+    const empWaiterWithShifts: any = {
+      employeeId: 1,
+      name: 'Lucas Bernard',
+      role: 'SERVEUR',
+      shifts: [
+        { date: '2026-08-10', isClosed: false, startTime: '08:00', endTime: '16:00', rawShift: { heuresPrevues: 7.5 } },
+        { date: '2026-08-11', isClosed: false, startTime: '08:00', endTime: '16:00', rawShift: { heuresEffectuees: 8 } },
+        { date: '2026-08-12', isClosed: false, startTime: '18:00', endTime: '23:30', rawShift: null },
+        { date: '2026-08-13', isClosed: true, startTime: null, rawShift: null }
+      ]
+    };
+
+    const empBartenderEmpty: any = {
+      employeeId: 2,
+      name: 'Sophie Martin',
+      role: 'BARMAN',
+      shifts: [
+        { date: '2026-08-10', isClosed: false, startTime: null, rawShift: null },
+        { date: '2026-08-11', isClosed: false, startTime: null, rawShift: null }
+      ]
+    };
+
+    const empManagerWithShifts: any = {
+      employeeId: 3,
+      name: 'Antoine Dupont',
+      role: 'MANAGER',
+      shifts: [
+        { date: '2026-08-10', isClosed: false, startTime: '09:00', endTime: '17:00', rawShift: { heuresPrevues: 8 } }
+      ]
+    };
+
+    beforeEach(() => {
+      component.schedule = {
+        weekStart: '2026-08-10',
+        weekEnd: '2026-08-16',
+        employees: [empWaiterWithShifts, empBartenderEmpty, empManagerWithShifts],
+        totalHours: 29,
+        totalEmployees: 3,
+        activeEmployees: 2
+      };
+      component.selectedRoleFilter = 'ALL';
+      component.hideEmptyEmployees = false;
+    });
+
+    it('getEmployeeTotalHours() should compute total planned hours from heuresPrevues, heuresEffectuees and fallback times', () => {
+      // 7.5 (heuresPrevues) + 8 (heuresEffectuees) + 5.5 (18:00-23:30 fallback) = 21h
+      const total = component.getEmployeeTotalHours(empWaiterWithShifts);
+      expect(total).toBe(21);
+    });
+
+    it('getEmployeeTotalHours() should return 0 for employee with no shifts or closed days only', () => {
+      expect(component.getEmployeeTotalHours(empBartenderEmpty)).toBe(0);
+      expect(component.getEmployeeTotalHours({ employeeId: 99, name: 'Empty', role: 'SERVEUR', shifts: [] } as any)).toBe(0);
+      expect(component.getEmployeeTotalHours(null as any)).toBe(0);
+    });
+
+    it('filteredEmployees should return all employees when selectedRoleFilter is ALL and hideEmptyEmployees is false', () => {
+      expect(component.filteredEmployees.length).toBe(3);
+    });
+
+    it('filteredEmployees should filter by role correctly', () => {
+      component.setRoleFilter('BARMAN');
+      expect(component.filteredEmployees.length).toBe(1);
+      expect(component.filteredEmployees[0].name).toBe('Sophie Martin');
+
+      component.setRoleFilter('SERVEUR');
+      expect(component.filteredEmployees.length).toBe(1);
+      expect(component.filteredEmployees[0].name).toBe('Lucas Bernard');
+
+      component.setRoleFilter('MANAGER');
+      expect(component.filteredEmployees.length).toBe(1);
+      expect(component.filteredEmployees[0].name).toBe('Antoine Dupont');
+    });
+
+    it('filteredEmployees should hide inactive employees with 0 hours when hideEmptyEmployees is true', () => {
+      component.toggleHideEmptyEmployees();
+      expect(component.hideEmptyEmployees).toBeTrue();
+
+      // Only Waiter and Manager have scheduled hours
+      expect(component.filteredEmployees.length).toBe(2);
+      expect(component.filteredEmployees.some(e => e.name === 'Sophie Martin')).toBeFalse();
+    });
+
+    it('filteredEmployees should combine role filter and hideEmptyEmployees toggle', () => {
+      component.setRoleFilter('BARMAN');
+      component.hideEmptyEmployees = true;
+
+      // Sophie Martin is BARMAN but has 0 hours
+      expect(component.filteredEmployees.length).toBe(0);
+    });
+
+    it('filteredEmployees should return empty array if schedule is null', () => {
+      component.schedule = null;
+      expect(component.filteredEmployees).toEqual([]);
+    });
+  });
 });
 
