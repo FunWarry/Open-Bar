@@ -57,9 +57,10 @@ describe('EmployeeShiftModalComponent', () => {
       'updateShift',
       'deleteShift',
       'getPresets',
-      'updatePreset'
+      'updatePreset',
+      'getShiftHistory'
     ]);
-    mockModalCtrl = jasmine.createSpyObj('ModalController', ['dismiss']);
+    mockModalCtrl = jasmine.createSpyObj('ModalController', ['dismiss', 'create']);
     mockAlertCtrl = jasmine.createSpyObj('AlertController', ['create']);
 
     mockShiftService.getShiftsForWeek.and.returnValue(of([sampleShift]));
@@ -329,6 +330,27 @@ describe('EmployeeShiftModalComponent', () => {
       component.saveShift();
       expect(mockShiftService.updateShift).not.toHaveBeenCalled();
       expect(mockShiftService.createShift).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('openShiftHistoryModal()', () => {
+    it('should create and present the ShiftHistoryModal with shiftId and employee name', async () => {
+      const mockModal = { present: jasmine.createSpy('present').and.returnValue(Promise.resolve()) };
+      mockModalCtrl.create.and.returnValue(Promise.resolve(mockModal as any));
+
+      component.openEditShiftForm(sampleShift); // sets editingShiftId = 10
+      await component.openShiftHistoryModal();
+
+      expect(mockModalCtrl.create).toHaveBeenCalledWith(jasmine.objectContaining({
+        componentProps: jasmine.objectContaining({ shiftId: 10 })
+      }));
+      expect(mockModal.present).toHaveBeenCalled();
+    });
+
+    it('should do nothing when editingShiftId is null', async () => {
+      component.editingShiftId = null;
+      await component.openShiftHistoryModal();
+      expect(mockModalCtrl.create).not.toHaveBeenCalled();
     });
   });
 });

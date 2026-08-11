@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -34,6 +35,7 @@ public class ShiftAuditService {
 
     private static final Logger log = LoggerFactory.getLogger(ShiftAuditService.class);
     private static final String DEFAULT_SYSTEM_AUTHOR = "SYSTEM";
+    private static final String SHIFT_NULL_MSG = "shift must not be null";
 
     private final ShiftAuditLogRepository auditLogRepository;
     private final EmployeeShiftRepository shiftRepository;
@@ -108,6 +110,7 @@ public class ShiftAuditService {
      */
     @Transactional
     public ShiftAuditLog logCreation(EmployeeShift shift, String username) {
+        Objects.requireNonNull(shift, SHIFT_NULL_MSG);
         EmployeeShiftResponseDTO dto = EmployeeShiftResponseDTO.from(shift);
         String newSnapshot = toJson(dto);
         String author = resolveAuthor(username);
@@ -137,6 +140,7 @@ public class ShiftAuditService {
      */
     @Transactional
     public ShiftAuditLog logUpdate(EmployeeShift shift, String previousSnapshot, String newSnapshot, String username) {
+        Objects.requireNonNull(shift, SHIFT_NULL_MSG);
         String author = resolveAuthor(username);
 
         ShiftAuditLog auditLog = ShiftAuditLog.builder()
@@ -163,6 +167,7 @@ public class ShiftAuditService {
      */
     @Transactional
     public ShiftAuditLog logDeletion(EmployeeShift shift, String previousSnapshot, String username) {
+        Objects.requireNonNull(shift, SHIFT_NULL_MSG);
         String author = resolveAuthor(username);
 
         ShiftAuditLog auditLog = ShiftAuditLog.builder()
