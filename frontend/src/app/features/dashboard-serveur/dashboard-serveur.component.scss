@@ -101,9 +101,9 @@
             }
 
             &.active {
-              background: var(--primary, #6c7fe8);
+              background: #4f46e5;
               color: #ffffff;
-              box-shadow: 0 2px 8px rgba(108, 127, 232, 0.35);
+              box-shadow: 0 2px 8px rgba(79, 70, 229, 0.35);
             }
 
             &:hover:not(.active) {
@@ -133,9 +133,9 @@
           }
 
           &:hover {
-            background: var(--primary, #6c7fe8);
+            background: #4f46e5;
             color: #ffffff;
-            border-color: var(--primary, #6c7fe8);
+            border-color: #4f46e5;
 
             ion-icon {
               color: #ffffff;
@@ -201,17 +201,17 @@ ion-content.dashboard-serveur-content {
         }
 
         &.active {
-          background: var(--primary, #6c7fe8);
+          background: #4f46e5;
           color: #ffffff;
-          box-shadow: 0 2px 8px rgba(108, 127, 232, 0.3);
+          box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
 
           &.warning {
-            background: #d97706;
+            background: #b45309;
             color: #ffffff;
           }
 
           &.success {
-            background: #16a34a;
+            background: #15803d;
             color: #ffffff;
           }
         }
@@ -436,12 +436,12 @@ body.light-theme {
           color: #ffffff;
 
           &.warning {
-            background: #d97706;
+            background: #b45309;
             color: #ffffff;
           }
 
           &.success {
-            background: #16a34a;
+            background: #15803d;
             color: #ffffff;
           }
         }
