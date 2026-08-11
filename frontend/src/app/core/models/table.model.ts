@@ -3,6 +3,7 @@ export interface TableBar {
   numero: number;
   capacite: number;
   zone: string;
+  etage?: string;
   occupee: boolean;
   serveurId?: number;
   dateOccupation?: string;

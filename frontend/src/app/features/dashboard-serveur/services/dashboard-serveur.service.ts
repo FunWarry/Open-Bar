@@ -1,25 +1,67 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
 import { TableBar } from '../../../core/models/table.model';
 import { Commande, CommandeStatut, CreateCommandeRequest, AjouterItemRequest } from '../../../core/models/commande.model';
 import { TableView } from '../models/table-view.model';
+import { TablePosition } from '../../plan-salle/models/table-position.model';
+
+export interface ZoneItem {
+  id: number;
+  nom: string;
+  etage: string;
+}
+
+export interface EtageItem {
+  id: number;
+  code: string;
+  nom: string;
+  ordre: number;
+}
 
 /**
- * Feature service for the Waiter dashboard managing tables, orders, and transfers.
+ * Feature service for the Waiter dashboard managing tables, orders, floor levels, zones, and transfers.
  */
 @Injectable({ providedIn: 'root' })
 export class DashboardServeurService {
   private readonly tablesUrl = `${environment.apiUrl}/tables`;
   private readonly commandesUrl = `${environment.apiUrl}/commandes`;
+  private readonly zonesUrl = `${environment.apiUrl}/zones`;
+  private readonly etagesUrl = `${environment.apiUrl}/etages`;
 
   constructor(private readonly http: HttpClient) {}
 
   getAllTables(): Observable<TableView[]> {
     return this.http.get<TableBar[]>(this.tablesUrl).pipe(
       map(tables => tables.map(t => this.toTableView(t))),
+    );
+  }
+
+  getZones(): Observable<ZoneItem[]> {
+    return this.http.get<ZoneItem[]>(this.zonesUrl).pipe(
+      catchError(() => of([
+        { id: 1, nom: 'Salle Principale', etage: 'RDC' },
+        { id: 2, nom: 'Terrasse', etage: 'TERRASSE' },
+        { id: 3, nom: 'Mezzanine', etage: 'ETAGE_1' },
+      ]))
+    );
+  }
+
+  getEtages(): Observable<EtageItem[]> {
+    return this.http.get<EtageItem[]>(this.etagesUrl).pipe(
+      catchError(() => of([
+        { id: 1, code: 'RDC', nom: 'Rez-de-chaussée (RDC)', ordre: 1 },
+        { id: 2, code: 'ETAGE_1', nom: '1er Étage', ordre: 2 },
+        { id: 3, code: 'TERRASSE', nom: 'Terrasse', ordre: 3 },
+      ]))
+    );
+  }
+
+  getPlanSallePositions(): Observable<TablePosition[]> {
+    return this.http.get<TablePosition[]>(`${this.tablesUrl}/positions`).pipe(
+      catchError(() => of([]))
     );
   }
 
@@ -67,13 +109,6 @@ export class DashboardServeurService {
     return this.http.patch<Commande>(`${this.commandesUrl}/${commandeId}/statut`, { statut });
   }
 
-  /**
-   * Transfers an order to a new target table.
-   *
-   * @param commandeId Unique identifier of the order to transfer.
-   * @param targetTableId Identifier of the target table.
-   * @returns Observable emitting the updated {@link Commande}.
-   */
   transfererCommande(commandeId: number, targetTableId: number): Observable<Commande> {
     return this.http.put<Commande>(`${this.commandesUrl}/${commandeId}/table/${targetTableId}`, {});
   }
@@ -83,6 +118,7 @@ export class DashboardServeurService {
       id: t.id,
       nom: `Table ${t.numero}`,
       zone: t.zone,
+      etage: t.etage,
       capacite: t.capacite,
       occupee: t.occupee,
       commandesActives: [],

@@ -43,9 +43,15 @@ describe('DashboardServeurComponent', () => {
     dashboardServiceSpy = jasmine.createSpyObj('DashboardServeurService', [
       'getAllTables',
       'libererTable',
+      'getEtages',
+      'getZones',
+      'getPlanSallePositions',
     ]);
     dashboardServiceSpy.getAllTables.and.returnValue(of(mockTables));
     dashboardServiceSpy.libererTable.and.returnValue(of({} as any));
+    dashboardServiceSpy.getEtages.and.returnValue(of([]));
+    dashboardServiceSpy.getZones.and.returnValue(of([]));
+    dashboardServiceSpy.getPlanSallePositions.and.returnValue(of([]));
 
     notificationServiceSpy = jasmine.createSpyObj('NotificationService', ['onNotification', 'onStockAlert']);
     notificationServiceSpy.onNotification.and.returnValue(notification$.asObservable());
@@ -263,6 +269,25 @@ describe('DashboardServeurComponent', () => {
     tick();
     expect(target.complete).toHaveBeenCalled();
   }));
+
+  it('onEtageFilterChange() met à jour selectedEtage et filtre les tables', () => {
+    component.onEtageFilterChange('TERRASSE');
+    expect(component.selectedEtage).toBe('TERRASSE');
+  });
+
+  it('onZoneFilterChange() met à jour selectedZone et filtre les tables', () => {
+    component.onZoneFilterChange('Terrasse');
+    expect(component.selectedZone).toBe('Terrasse');
+    expect(component.filteredTables.every(t => t.zone === 'Terrasse')).toBeTrue();
+  });
+
+  it('onViewModeToggle() bascule entre la vue grille et plan', () => {
+    component.onViewModeToggle('plan');
+    expect(component.viewMode).toBe('plan');
+
+    component.onViewModeToggle('grid');
+    expect(component.viewMode).toBe('grid');
+  });
 
   // --- ngOnDestroy ---
 

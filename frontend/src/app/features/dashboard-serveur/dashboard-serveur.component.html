@@ -1,7 +1,26 @@
 <ion-header class="ion-no-border">
   <ion-toolbar>
     <ion-title>Espace Serveur — OpenBar</ion-title>
+
     <ion-buttons slot="end">
+      <!-- Sélecteur de Mode de Vue (Grille vs Plan 2D Konva.js) -->
+      <div class="view-mode-toggle">
+        <ion-button
+          [class.active]="viewMode === 'grid'"
+          (click)="onViewModeToggle('grid')"
+          (keyup.enter)="onViewModeToggle('grid')"
+          title="Vue Grille (Tuiles)">
+          <ion-icon slot="icon-only" name="grid-outline"></ion-icon>
+        </ion-button>
+        <ion-button
+          [class.active]="viewMode === 'plan'"
+          (click)="onViewModeToggle('plan')"
+          (keyup.enter)="onViewModeToggle('plan')"
+          title="Vue Plan de Salle 2D">
+          <ion-icon slot="icon-only" name="map-outline"></ion-icon>
+        </ion-button>
+      </div>
+
       <ion-button (click)="naviguerKanban()" (keyup.enter)="naviguerKanban()" title="Vue Kanban Suivi">
         <ion-icon slot="icon-only" name="list-outline"></ion-icon>
       </ion-button>
@@ -16,21 +35,75 @@
 
   <!-- ONGLET 1 : MES TABLES SERVEUR -->
   <ng-container *ngIf="activeTab === 'tables'">
-    <div class="segment-container">
-      <ion-segment [value]="selectedFilter" (ionChange)="onSegmentChange($event)">
-        <ion-segment-button value="toutes">
-          <ion-label>Toutes ({{ tables.length }})</ion-label>
-        </ion-segment-button>
-        <ion-segment-button value="occupees">
-          <ion-label>Occupées ({{ countOccupees }})</ion-label>
-        </ion-segment-button>
-        <ion-segment-button value="libres">
-          <ion-label>Libres ({{ countLibres }})</ion-label>
-        </ion-segment-button>
-      </ion-segment>
+    <!-- SECTION FILTRES COMBINÉS : STATUT + ÉTAGE + ZONE -->
+    <div class="filters-header-bar">
+      <!-- 1. Segment Statuts (Toutes, Occupées, Libres) -->
+      <div class="segment-container">
+        <ion-segment [value]="selectedFilter" (ionChange)="onSegmentChange($event)">
+          <ion-segment-button value="toutes">
+            <ion-label>Toutes ({{ tables.length }})</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="occupees">
+            <ion-label>Occupées ({{ countOccupees }})</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="libres">
+            <ion-label>Libres ({{ countLibres }})</ion-label>
+          </ion-segment-button>
+        </ion-segment>
+      </div>
+
+      <!-- 2. Filtres par Étage et par Zone -->
+      <div class="floor-zone-filters">
+        <!-- Filtre Étage -->
+        <div class="filter-group">
+          <span class="filter-label">
+            <ion-icon name="layers-outline"></ion-icon>
+            Étage:
+          </span>
+          <div class="chip-scroll">
+            <app-filter-chip
+              label="Tous"
+              [active]="selectedEtage === 'TOUS'"
+              (click)="onEtageFilterChange('TOUS')"
+              (keyup.enter)="onEtageFilterChange('TOUS')">
+            </app-filter-chip>
+            <app-filter-chip
+              *ngFor="let etage of etagesList"
+              [label]="etage.nom"
+              [active]="selectedEtage === etage.code"
+              (click)="onEtageFilterChange(etage.code)"
+              (keyup.enter)="onEtageFilterChange(etage.code)">
+            </app-filter-chip>
+          </div>
+        </div>
+
+        <!-- Filtre Zone -->
+        <div class="filter-group">
+          <span class="filter-label">
+            <ion-icon name="funnel-outline"></ion-icon>
+            Zone:
+          </span>
+          <div class="chip-scroll">
+            <app-filter-chip
+              label="Toutes"
+              [active]="selectedZone === 'TOUTES'"
+              (click)="onZoneFilterChange('TOUTES')"
+              (keyup.enter)="onZoneFilterChange('TOUTES')">
+            </app-filter-chip>
+            <app-filter-chip
+              *ngFor="let zoneNom of uniqueZoneNames"
+              [label]="zoneNom"
+              [active]="selectedZone === zoneNom"
+              (click)="onZoneFilterChange(zoneNom)"
+              (keyup.enter)="onZoneFilterChange(zoneNom)">
+            </app-filter-chip>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="mobile-tables-grid">
+    <!-- MODE 1 : VUE GRILLE (TUILES) -->
+    <div class="mobile-tables-grid" *ngIf="viewMode === 'grid'">
       <app-mobile-table-card
         *ngFor="let table of filteredTables; trackBy: trackById"
         [table]="table"
@@ -38,6 +111,17 @@
         (tableSelect)="onSelectionner($event)"
         (newOrder)="onNewOrderForTable($event)">
       </app-mobile-table-card>
+    </div>
+
+    <!-- MODE 2 : VUE PLAN DE SALLE 2D (KONVA.JS) -->
+    <div class="plan-salle-interactive-wrapper" *ngIf="viewMode === 'plan'">
+      <div class="plan-legend-bar">
+        <span class="legend-item"><span class="color-dot libre"></span> Libre</span>
+        <span class="legend-item"><span class="color-dot occupee"></span> Occupée (&lt;20 min)</span>
+        <span class="legend-item"><span class="color-dot retard"></span> Attente prolongée (&gt;20 min)</span>
+        <span class="legend-info">Cliquez sur une table pour ouvrir le menu ou prendre une commande</span>
+      </div>
+      <div #konvaFloorPlanContainer class="konva-floor-plan-container"></div>
     </div>
   </ng-container>
 

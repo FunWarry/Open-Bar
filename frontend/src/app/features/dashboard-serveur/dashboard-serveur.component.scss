@@ -20,6 +20,28 @@ ion-header {
       font-weight: 700;
     }
 
+    .view-mode-toggle {
+      display: inline-flex;
+      background: var(--background-surface-2, #21263f);
+      border-radius: 8px;
+      padding: 2px;
+      margin-right: 8px;
+      border: 1px solid var(--border-medium, #2a2e4d);
+
+      ion-button {
+        --color: var(--text-secondary, #a4add0);
+        --background-hover: var(--background-surface-3, #2a3050);
+        height: 32px;
+        margin: 0;
+
+        &.active {
+          --color: #ffffff;
+          --background: var(--primary, #6c7fe8);
+          border-radius: 6px;
+        }
+      }
+    }
+
     ion-button {
       --color: var(--text-secondary, #a4add0);
     }
@@ -32,20 +54,63 @@ ion-content.dashboard-serveur-content {
   padding-bottom: 85px;
 }
 
-.segment-container {
+.filters-header-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
   margin-bottom: var(--space-4, 16px);
 
-  ion-segment {
-    --background: var(--background-surface-1, #16192b);
-    border-radius: 10px;
-    padding: 3px;
+  .segment-container {
+    ion-segment {
+      --background: var(--background-surface-1, #16192b);
+      border-radius: 10px;
+      padding: 3px;
+      border: 1px solid var(--border-medium, #2a2e4d);
+
+      ion-segment-button {
+        --color: var(--text-secondary, #a4add0);
+        --color-checked: var(--text-primary, #eceefb);
+        --indicator-color: var(--primary, #6c7fe8);
+        font-weight: 600;
+      }
+    }
+  }
+
+  .floor-zone-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    background: var(--background-surface-1, #16192b);
+    padding: 10px 14px;
+    border-radius: 12px;
     border: 1px solid var(--border-medium, #2a2e4d);
 
-    ion-segment-button {
-      --color: var(--text-secondary, #a4add0);
-      --color-checked: var(--text-primary, #eceefb);
-      --indicator-color: var(--primary, #6c7fe8);
-      font-weight: 600;
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      .filter-label {
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--text-secondary, #a4add0);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        white-space: nowrap;
+
+        ion-icon {
+          color: var(--primary, #6c7fe8);
+        }
+      }
+
+      .chip-scroll {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        overflow-x: auto;
+        padding-bottom: 2px;
+      }
     }
   }
 }
@@ -54,6 +119,58 @@ ion-content.dashboard-serveur-content {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 16px;
+}
+
+// Vue Plan de Salle 2D Konva.js
+.plan-salle-interactive-wrapper {
+  background: var(--background-surface-1, #16192b);
+  border-radius: 14px;
+  border: 1px solid var(--border-medium, #2a2e4d);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+
+  .plan-legend-bar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding: 10px 16px;
+    background: var(--background-surface-2, #21263f);
+    border-bottom: 1px solid var(--border-medium, #2a2e4d);
+    font-size: 0.8rem;
+    color: var(--text-secondary, #a4add0);
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 500;
+
+      .color-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+
+        &.libre { background: #27ae60; }
+        &.occupee { background: #e67e22; }
+        &.retard { background: #e74c3c; }
+      }
+    }
+
+    .legend-info {
+      margin-left: auto;
+      font-style: italic;
+      color: var(--text-muted, #717baa);
+    }
+  }
+
+  .konva-floor-plan-container {
+    width: 100%;
+    min-height: 520px;
+    position: relative;
+    background: var(--background-bg-0, #0f0f1a);
+  }
 }
 
 .order-taking-layout {
