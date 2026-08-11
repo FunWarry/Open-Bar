@@ -185,9 +185,9 @@
       }
 
       &:hover {
-        background: #4f46e5;
+        background-color: #3730a3;
         color: #ffffff;
-        border-color: #4f46e5;
+        border-color: #3730a3;
 
         ion-icon {
           color: #ffffff;
@@ -206,6 +206,7 @@ body.light-theme .table-tile {
       color: #15803d;
       border-color: #86efac;
     }
+
     &.occupied {
       background: #fef3c7;
       color: #b45309;
@@ -219,11 +220,13 @@ body.light-theme .table-tile {
       color: #15803d;
       border-color: #86efac;
     }
+
     &.wait-warning {
       background: #fef3c7;
       color: #b45309;
       border-color: #fde68a;
     }
+
     &.wait-danger {
       background: #fee2e2;
       color: #b91c1c;
