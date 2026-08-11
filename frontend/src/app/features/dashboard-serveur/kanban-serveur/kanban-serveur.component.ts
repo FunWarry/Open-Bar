@@ -214,8 +214,19 @@ export class KanbanServeurComponent implements OnInit, OnDestroy {
    * @param cmd - The command to compute wait time for.
    */
   getWaitMinutes(cmd: Commande): number {
+    if (!cmd.dateCommande) return 0;
     const ordered = new Date(cmd.dateCommande).getTime();
-    return Math.floor((Date.now() - ordered) / 60000);
+    const diff = Math.floor((Date.now() - ordered) / 60000);
+    return diff > 0 ? diff : 0;
+  }
+
+  formatWaitTime(cmd: Commande): string {
+    const min = this.getWaitMinutes(cmd);
+    if (min >= 120) {
+      const hours = Math.floor(min / 60);
+      return `+${hours}h`;
+    }
+    return `${min} min`;
   }
 
   /** Whether a command has been waiting too long (> 20 min). */

@@ -85,10 +85,12 @@
 
             <!-- Meta -->
             <div class="card-meta">
-              <ion-icon name="time-outline"></ion-icon>
-              <span>{{ cmd.serveurUsername }} · {{ cmd.dateCommande | date:'HH:mm' }}</span>
+              <span class="waiter-name">
+                <ion-icon name="time-outline"></ion-icon>
+                {{ cmd.serveurUsername }} · {{ cmd.dateCommande | date:'HH:mm' }}
+              </span>
               <span class="wait-time" *ngIf="col.statut !== 'LIVREE'" [class.late]="isLate(cmd)">
-                {{ getWaitMinutes(cmd) }}min
+                {{ formatWaitTime(cmd) }}
               </span>
             </div>
 
@@ -100,41 +102,37 @@
                   <span class="item-name">{{ item.cocktailNom }}</span>
                 </div>
                 <div *ngIf="grouped.length === 0" class="item-line item-empty">
-                  —
+                  Aucun article
                 </div>
               </ng-container>
             </div>
 
-            <!-- Total -->
+            <!-- Total & Actions -->
             <div class="card-footer">
               <span class="card-total">{{ cmd.total | number:'1.2-2' }} €</span>
 
               <div class="card-actions">
-                <ion-button
+                <button
                   *ngIf="col.statut === 'PRET'"
-                  fill="solid"
-                  color="success"
-                  size="small"
-                  [title]="'COMMANDES.ACTIONS.MARK_DELIVERED_TOOLTIP' | transloco"
+                  type="button"
+                  class="action-btn deliver-btn"
                   (click)="marquerLivree(cmd.id)"
                   (keyup.enter)="marquerLivree(cmd.id)"
                   [attr.data-testid]="'btn-livrer-' + cmd.id">
-                  <ion-icon name="checkmark-outline" slot="start"></ion-icon>
-                  {{ 'COMMANDES.ACTIONS.MARK_DELIVERED' | transloco }}
-                </ion-button>
+                  <ion-icon name="checkmark-outline"></ion-icon>
+                  Marquer livrée
+                </button>
 
-                <ion-button
+                <button
                   *ngIf="col.statut !== 'LIVREE'"
-                  fill="outline"
-                  color="danger"
-                  size="small"
-                  [title]="'COMMANDES.ACTIONS.CANCEL_TOOLTIP' | transloco"
+                  type="button"
+                  class="action-btn cancel-btn"
                   (click)="annuler(cmd.id)"
                   (keyup.enter)="annuler(cmd.id)"
                   [attr.data-testid]="'btn-annuler-' + cmd.id">
-                  <ion-icon name="ban-outline" slot="start"></ion-icon>
-                  {{ 'COMMANDES.ACTIONS.CANCEL' | transloco }}
-                </ion-button>
+                  <ion-icon name="ban-outline"></ion-icon>
+                  Annuler
+                </button>
               </div>
             </div>
           </div>
