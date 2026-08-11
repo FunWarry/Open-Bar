@@ -17,6 +17,7 @@ import { TableView } from '../../models/table-view.model';
 import { Commande } from '../../../../core/models/commande.model';
 import { DashboardServeurService } from '../../services/dashboard-serveur.service';
 import { TransfertModalComponent } from '../transfert-modal/transfert-modal.component';
+import { fastModalEnterAnimation, fastModalLeaveAnimation } from '../../../../core/utils/modal-animation.utils';
 
 /**
  * Modal displaying active orders for a specific table with actions for new orders, cancellation, and table transfer.
@@ -85,6 +86,8 @@ export class TableDetailModalComponent implements OnInit {
         commandeId,
       },
       cssClass: 'transfert-modal-container',
+      enterAnimation: fastModalEnterAnimation,
+      leaveAnimation: fastModalLeaveAnimation,
     });
     await modal.present();
     const { data } = await modal.onWillDismiss();

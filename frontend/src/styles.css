@@ -664,7 +664,7 @@ ion-button {
   pointer-events: none;
 }
 
-/* Ionic Modal Global Styling & Rounding (Figma Design System) */
+/* Ionic Modal Global Styling & Performance Optimization (OpenBar DS) */
 ion-modal {
   --border-radius: var(--radius-lg, 16px);
   --background: var(--background-surface-1);
@@ -672,6 +672,7 @@ ion-modal {
   --height: min(700px, 88vh);
   --max-height: 90vh;
   --width: min(680px, 92vw);
+  contain: layout style paint;
 }
 
 @media (min-width: 900px) {
@@ -681,12 +682,26 @@ ion-modal {
   }
 }
 
+ion-modal::part(backdrop) {
+  background-color: rgba(15, 15, 26, 0.75);
+  will-change: opacity;
+}
+
 ion-modal::part(content) {
   border-radius: var(--radius-lg, 16px);
   border: 1px solid var(--border-medium);
   overflow: hidden;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55);
   background: var(--background-surface-1);
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Specific sizing for Table Detail Modal */
+ion-modal.table-detail-modal-container::part(content) {
+  --width: min(560px, 92vw);
+  --height: min(620px, 85vh);
 }
 
 /* Ionic Alert & Popover Theme Overrides (Figma Design System) */

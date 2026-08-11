@@ -23,6 +23,7 @@ import { TableDetailModalComponent } from './components/table-detail-modal/table
 import { NotificationService } from '../../core/services/notification.service';
 import { DashboardServeurService, EtageItem, ZoneItem } from './services/dashboard-serveur.service';
 import { safeCompleteRefresher } from '../../core/utils/refresher-utils';
+import { fastModalEnterAnimation, fastModalLeaveAnimation } from '../../core/utils/modal-animation.utils';
 import { TableView } from './models/table-view.model';
 import { TablePosition } from '../plan-salle/models/table-position.model';
 
@@ -565,6 +566,8 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
       component: TableDetailModalComponent,
       componentProps: { table },
       cssClass: 'table-detail-modal-container',
+      enterAnimation: fastModalEnterAnimation,
+      leaveAnimation: fastModalLeaveAnimation,
     });
     await modal.present();
     const { data } = await modal.onWillDismiss();
