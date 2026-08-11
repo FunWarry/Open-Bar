@@ -5,7 +5,7 @@ import { takeUntil, finalize } from 'rxjs/operators';
 import {
   IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
   IonContent, IonRefresher, IonRefresherContent,
-  IonButton, IonIcon, IonBadge, IonSpinner,
+  IonButton, IonIcon, IonSpinner,
   ToastController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
