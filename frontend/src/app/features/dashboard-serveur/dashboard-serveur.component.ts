@@ -62,7 +62,7 @@ export interface GroupedTables {
   occupiedCount: number;
 }
 
-import { KanbanServeurComponent } from './kanban-serveur/kanban-serveur.component';
+import { CommandeListComponent } from '../commandes/commande-list/commande-list.component';
 
 /**
  * Main dashboard component for waiters providing table list supervision,
@@ -82,7 +82,7 @@ import { KanbanServeurComponent } from './kanban-serveur/kanban-serveur.componen
     BottomNavigationComponent,
     ProductCardComponent,
     CartDrawerComponent,
-    KanbanServeurComponent,
+    CommandeListComponent,
   ],
   templateUrl: './dashboard-serveur.component.html',
   styleUrls: ['./dashboard-serveur.component.scss'],
