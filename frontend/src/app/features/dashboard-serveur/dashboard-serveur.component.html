@@ -18,10 +18,11 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="dashboard-serveur-content ion-padding" *ngIf="activeTab !== 'suivi'">
-  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
-    <ion-refresher-content></ion-refresher-content>
-  </ion-refresher>
+@if (activeTab !== 'suivi') {
+  <ion-content class="dashboard-serveur-content ion-padding">
+    <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+      <ion-refresher-content></ion-refresher-content>
+    </ion-refresher>
 
   <!-- ONGLET 1 : TABLES SERVEUR -->
   <ng-container *ngIf="activeTab === 'tables'">
@@ -422,12 +423,15 @@
     </div>
   </ng-container>
 
-</ion-content>
+  </ion-content>
+}
 
 <!-- ONGLET 3 : SUIVI DES COMMANDES EN TEMPS REEL (possède son propre ion-content) -->
-<div class="suivi-tab-wrapper" *ngIf="activeTab === 'suivi'">
-  <app-commande-list></app-commande-list>
-</div>
+@if (activeTab === 'suivi') {
+  <div class="suivi-tab-wrapper">
+    <app-commande-list></app-commande-list>
+  </div>
+}
 
 <!-- BOTTOM NAVIGATION MOBILE / TABLETTE -->
 <app-bottom-navigation
