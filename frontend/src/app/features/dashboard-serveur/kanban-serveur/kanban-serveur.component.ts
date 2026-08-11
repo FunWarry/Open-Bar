@@ -217,7 +217,7 @@ export class KanbanServeurComponent implements OnInit, OnDestroy {
     if (!cmd.dateCommande) return 0;
     const ordered = new Date(cmd.dateCommande).getTime();
     const diff = Math.floor((Date.now() - ordered) / 60000);
-    return diff > 0 ? diff : 0;
+    return Math.max(0, diff);
   }
 
   formatWaitTime(cmd: Commande): string {

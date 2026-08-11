@@ -445,12 +445,12 @@
       }
 
       &.deliver-btn {
-        background: linear-gradient(135deg, #2fbf6b, #25a25a);
+        background: var(--semantic-success, #2fbf6b);
         color: #ffffff;
         box-shadow: 0 4px 12px rgba(47, 191, 107, 0.3);
 
         &:hover {
-          background: linear-gradient(135deg, #34d075, #2ab665);
+          background: #25a25a;
           transform: translateY(-1px);
           box-shadow: 0 6px 16px rgba(47, 191, 107, 0.4);
         }
