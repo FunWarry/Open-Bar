@@ -245,6 +245,11 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
     return ((table.id * 7) % 25) + 5;
   }
 
+  onFilterSelect(filter: string) {
+    this.selectedFilter = filter;
+    this.filtrer();
+  }
+
   onSegmentChange(event: { detail?: { value?: any } }) {
     this.selectedFilter = String(event.detail?.value || 'toutes');
     this.filtrer();
