@@ -445,14 +445,14 @@
       }
 
       &.deliver-btn {
-        background: var(--semantic-success, #2fbf6b);
+        background: #1b8245;
         color: #ffffff;
-        box-shadow: 0 4px 12px rgba(47, 191, 107, 0.3);
+        box-shadow: 0 4px 12px rgba(27, 130, 69, 0.35);
 
         &:hover {
-          background: #25a25a;
+          background: #156837;
           transform: translateY(-1px);
-          box-shadow: 0 6px 16px rgba(47, 191, 107, 0.4);
+          box-shadow: 0 6px 16px rgba(27, 130, 69, 0.45);
         }
       }
 
