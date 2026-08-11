@@ -15,6 +15,7 @@ export interface ProductItem {
   stockStatus?: 'CRITIQUE' | 'FAIBLE' | 'NORMAL';
   description?: string;
   image?: string;
+  ingredients?: any[];
 }
 
 @Component({

@@ -571,10 +571,11 @@ ion-content.dashboard-serveur-content {
       }
 
       &.active {
-        background: var(--primary, #6c7fe8);
+        background: var(--primary-strong, #4f46e5);
         color: #ffffff;
-        border-color: var(--primary, #6c7fe8);
-        box-shadow: 0 4px 12px rgba(108, 127, 232, 0.35);
+        font-weight: 700;
+        border-color: var(--primary-strong, #4f46e5);
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
       }
     }
 
@@ -659,8 +660,9 @@ ion-content.dashboard-serveur-content {
       cursor: pointer;
 
       &:hover {
-        background: var(--semantic-danger, #e5604f);
+        background: #dc2626;
         color: #ffffff;
+        font-weight: 700;
       }
     }
 
