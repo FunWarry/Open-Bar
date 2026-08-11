@@ -1,7 +1,34 @@
 // Waiter Dashboard Main Styles
 // Adaptive Theme colors using CSS variables from variables.css (Rule #9)
 
-.dashboard-serveur-content {
+:host {
+  display: block;
+  height: 100%;
+  background: var(--background-bg-0, #0f0f1a);
+  color: var(--text-primary, #eceefb);
+}
+
+ion-header {
+  ion-toolbar {
+    --background: var(--background-surface-1, #16192b);
+    --color: var(--text-primary, #eceefb);
+    --border-color: var(--border-medium, #2a2e4d);
+    border-bottom: 1px solid var(--border-medium, #2a2e4d);
+
+    ion-title {
+      color: var(--text-primary, #eceefb);
+      font-weight: 700;
+    }
+
+    ion-button {
+      --color: var(--text-secondary, #a4add0);
+    }
+  }
+}
+
+ion-content.dashboard-serveur-content {
+  --background: var(--background-bg-0, #0f0f1a);
+  --color: var(--text-primary, #eceefb);
   padding-bottom: 85px;
 }
 
@@ -12,6 +39,7 @@
     --background: var(--background-surface-1, #16192b);
     border-radius: 10px;
     padding: 3px;
+    border: 1px solid var(--border-medium, #2a2e4d);
 
     ion-segment-button {
       --color: var(--text-secondary, #a4add0);

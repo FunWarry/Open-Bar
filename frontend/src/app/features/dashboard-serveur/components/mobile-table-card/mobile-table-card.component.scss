@@ -11,14 +11,14 @@
   gap: 12px;
   cursor: pointer;
   position: relative;
-  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+  box-shadow: var(--shadow-sm, 0 2px 6px rgba(0, 0, 0, 0.15));
 
   &:hover,
   &:focus-visible {
     border-color: var(--primary, #6c7fe8);
     transform: translateY(-3px);
-    box-shadow: 0 8px 24px rgba(108, 127, 232, 0.25);
+    box-shadow: var(--shadow-md, 0 4px 14px rgba(0, 0, 0, 0.25));
     outline: none;
   }
 
@@ -66,15 +66,15 @@
       letter-spacing: 0.3px;
 
       &.free {
-        background: rgba(45, 211, 111, 0.15);
-        color: var(--semantic-success, #2dd36f);
-        border: 1px solid rgba(45, 211, 111, 0.3);
+        background: rgba(38, 174, 96, 0.15);
+        color: var(--table-free, #26ae60);
+        border: 1px solid rgba(38, 174, 96, 0.3);
       }
 
       &.occupied {
-        background: rgba(244, 165, 42, 0.15);
-        color: var(--semantic-warning, #f4a52a);
-        border: 1px solid rgba(244, 165, 42, 0.3);
+        background: rgba(230, 126, 34, 0.15);
+        color: var(--table-occupied, #e67e22);
+        border: 1px solid rgba(230, 126, 34, 0.3);
       }
     }
   }
@@ -177,7 +177,7 @@
       font-size: 0.88rem;
       font-weight: 600;
       cursor: pointer;
-      transition: background 0.15s ease, border-color 0.15s ease;
+      transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 
       ion-icon {
         color: var(--primary, #6c7fe8);
@@ -185,14 +185,49 @@
       }
 
       &:hover {
-        background: #4f46e5;
+        background: var(--primary, #6c7fe8);
         color: #ffffff;
-        border-color: #4f46e5;
+        border-color: var(--primary, #6c7fe8);
 
         ion-icon {
           color: #ffffff;
         }
       }
+    }
+  }
+}
+
+// Light theme specific overrides for perfect contrast in Light Mode
+:host-context(body.light-theme) .table-tile,
+body.light-theme .table-tile {
+  .status-pill {
+    &.free {
+      background: #dcfce7;
+      color: #15803d;
+      border-color: #86efac;
+    }
+    &.occupied {
+      background: #fef3c7;
+      color: #b45309;
+      border-color: #fde68a;
+    }
+  }
+
+  .wait-time-banner {
+    &.wait-normal {
+      background: #dcfce7;
+      color: #15803d;
+      border-color: #86efac;
+    }
+    &.wait-warning {
+      background: #fef3c7;
+      color: #b45309;
+      border-color: #fde68a;
+    }
+    &.wait-danger {
+      background: #fee2e2;
+      color: #b91c1c;
+      border-color: #fca5a5;
     }
   }
 }
