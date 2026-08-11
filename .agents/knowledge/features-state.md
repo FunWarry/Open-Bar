@@ -7,73 +7,57 @@
 | Feature | Backend | Frontend | Tests | Notes |
 |---------|---------|----------|-------|-------|
 | Documentation complète & API OpenAPI/Swagger (#192/#194) | ✅ | ✅ | ✅ | JavaDoc, TSDoc, OpenAPI 3.0 |
-| Quality Gate SonarCloud & Sécurité 100% sans `@SuppressWarnings` | ✅ | ✅ | ✅ | Coverage > 80%, Note A |
-| Planning d'équipe & Shifts Employés par personne (#275) | ✅ | ✅ | ✅ | Vue `/employees`, modal créneaux par personne, presets, fermetures, mode comparaison diff, WS `/topic/schedule/published` |
+| Quality Gate SonarCloud & Sécurité 100% sans `@SuppressWarnings` | ✅ | ✅ | ✅ | |
+| Planning d'équipe & Gestion des Shifts (#274/#275/#276/#283) | ✅ | ✅ | ✅ | Backend REST /api/shifts (#274), Vue /employees & Modales créneaux/presets/fermetures (#275), Grille EDT hebdomadaire /schedule avec filtres postes & indicateurs d'heures (#276), Mode comparaison publication STOMP (#283) |
 | Données légales établissement SIRET/TVA/RCS (#129/#134) | ✅ | ✅ | ✅ | Validation Luhn SIRET, format TVA FR, Formulaire Admin + Live preview ticket |
-| Format d'impression ticket 58mm & 80mm (#237) | ✅ | ✅ | ✅ | Sélection du format ticket d'impression (80mm/58mm) en admin + styles CSS compacts & @media print |
 | Calcul TVA multi-taux (20%, 10%, 5.5%) (#130) | ✅ | ✅ | ✅ | Calcul HT/TVA/TTC par article, récapitulatif CA3 |
 | Numérotation séquentielle factures (FAC-YYYY-NNNNN) (#131) | ✅ | ✅ | ✅ | Conformité CGI art. 289, émission Avoirs (AV-YYYY-NNNNN) |
 | Archivage légal 10 ans & Intégrité SHA-256 (#132) | ✅ | ✅ | ✅ | Factures immuables finalisées + verification hash SHA256 PDF |
 | Export comptable CSV & Déclaration TVA mensuelle (#133) | ✅ | ✅ | ✅ | Export UTF-8 BOM Excel, récapitulatif mensuel TVA |
-| Impression Ticket 80mm / 58mm & Facture PDF A4 (#180/#237) | ✅ | ✅ | ✅ | Ticket thermique 80mm/58mm, en-tête légal, ventilation TVA, mentions de paiement |
+| Impression Ticket 80mm & Facture PDF A4 (#180) | ✅ | ✅ | ✅ | Ticket thermique 80mm, en-tête légal, ventilation TVA, mentions de paiement |
 | Auth JWT | ✅ | ✅ | ✅ | — |
 | Configuration initiale (/setup admin) | ✅ | ✅ | ✅ | — |
 | Bibliothèque composants UI Figma | — | ✅ | ✅ | — |
 | Écrans communs (Login, Register, Profile, 404, Loading) | — | ✅ | ✅ | — |
 | Écrans Vue Barman (kanban, badges, action buttons) | — | ✅ | ✅ | — |
+| Section Préférences Profil & Toggles Notifications (#234) | — | ✅ | ✅ | Section PREFERENCES Figma 540:1022 (toggles son/visuel + sélecteur langue) |
 | Refresh token JWT | ✅ | ✅ | ✅ | Rotation + interceptor |
-| Gestion users (admin) | ✅ | ✅ | ✅ | Service UserService REST + UserListComponent CRUD complet (#204/#203) |
+| Gestion users (admin) | ✅ | ✅ | ✅ | Service UserService REST + UserListComponent CRUD & UserDialog modal refactoré (#204/#203) |
 | Rôles ADMIN/MANAGER/SERVEUR/BARMAN | ✅ | ✅ | ✅ | — |
 | DTOs de sortie (tous controllers) | ✅ | — | ✅ | Java records `from(entity)` |
 | GlobalExceptionHandler | ✅ | — | ✅ | — |
 | Error interceptor frontend | — | ✅ | ✅ | — |
+| Filtre Allergènes cocktails (#244) | ✅ | ✅ | ✅ | Multi-sélection allergènes côté frontend, filtre combiné avec catégories |
+| Bouton langue global (non connecté) (#245) | ✅ | ✅ | ✅ | Toggle FR/EN dans NavbarComponent + bouton flottant glassmorphique dans AppComponent |
 | Cocktails CRUD | ✅ | ✅ | ✅ | — |
 | Saisonnalité cocktails | ✅ | ✅ | ✅ | — |
 | Variantes & Déduction auto stocks (#185/#182) | ✅ | ✅ | ✅ | Modal sélection & personnalisation |
-| Vue Grille Cocktails & Verres 3D (#242) | ✅ | ✅ | ✅ | Cartes responsives, photos cocktails, verres 3D & auto-création BDD PostgreSQL |
-| Filtrage cocktails par allergène (#243) | — | ✅ | ✅ | Détection auto d'allergènes, filtres par exclusion et badges visuels |
-| Ingrédients CRUD & Routage (/ingredients) (#219) | ✅ | ✅ | ✅ | Endpoint `GET /api/ingredients`, routes `/ingredients` (+ new/detail/edit), guards & tests |
-| Modal édition ingrédient au clic carte, filtres multi-critères, fix notifs stock (#272) | ✅ | ✅ | ✅ | IngredientFormComponent en modal, suppression vue détail obsolète, filtres statut/catégorie/unité/tri, fix payload WS stock |
-| Vue Barman Ingrédients Mode Grille (#231) | — | ✅ | ✅ | Affichage en cartes responsives des stocks d'ingrédients barman |
-| Barman Stock Side Panel Alignement Figma (#238) | — | ✅ | ✅ | Ajustement visuel complet du panneau de stock barman |
-| Tables CRUD & Alignement Figma | ✅ | ✅ | ✅ | `TableListComponent` et `TableFormComponent` alignés Figma, chargement dynamique des zones via `ZoneService`, i18n FR/EN |
+| Ingrédients CRUD & Routage (/ingredients) (#219) | ✅ | ✅ | ✅ | Endpoint `GET /api/ingredients`, routes `/ingredients` (+ new/detail/edit), modal & select dark theme |
+| Stock ingrédients PATCH (#249) | ✅ | ✅ | ✅ | CORS PATCH autorisé, endpoints `/{id}/stock` et `/{id}/seuil-alerte` acceptent PUT+PATCH + `@RequestParam` ou JSON `@RequestBody` |
+| Tables CRUD | ✅ | ✅ | ✅ | — |
 | Transfert commande entre tables (#186/#205) | ✅ | ✅ | ✅ | Bouton & TransfertModalComponent raccordés (#205/#207) |
-| Suivi des Commandes Kanban 4 Colonnes, Modal & Actions (#270/#262) | ✅ | ✅ | ✅ | Mode Kanban & Liste, ouverture au clic sur la carte, modal avec métriques & items, actions étape suivante et annulation avec confirmation AlertController |
+| Commandes | ✅ | ✅ | ✅ | — |
 | Passage commande publique QR (#184) | ✅ | ✅ | ✅ | — |
-| Écran Scanner QR Code Client (Figma 636:988) (#225) | — | ✅ | ✅ | Viseur vidéo live native BarcodeDetector, saisie manuelle & redirection commande |
 | Déstockage auto (EN_PREPARATION & Variantes) | ✅ | — | ✅ | — |
 | Alertes stock WebSocket | ✅ | ✅ | ✅ | — |
 | Notifications WS (toasts + panneau navbar) | ✅ | ✅ | ✅ | — |
 | Service Broadcast STOMP (#187) | ✅ | — | ✅ | — |
 | Notifications Sonores & Visuelles (#181) | ✅ | ✅ | ✅ | Synthétiseur Web Audio API & Badges |
 | Configuration Seuils Alertes Commandes & Stock (#197) | ✅ | ✅ | ✅ | Réglages Manager et Barman |
-| Refactorisation Modernisée Page Factures (#260) | ✅ | ✅ | ✅ | Cartes KPI (CA, total, taux règlement, Z-Report CTA), recherche dynamique & segment filtres statut |
-| Facturation Vue Récap Journée & Z-Report (#227) | ✅ | ✅ | ✅ | Endpoint daily-recap, ventilation TVA/règlements et export PDF A4 |
-| Facturation Vue Règlement Post-Split (#228) | ✅ | ✅ | ✅ | Flow de paiement individuel séparé convives après division |
-| Facturation Champ Pourboire (#235) | ✅ | ✅ | ✅ | Modal règlement avec saisie et comptabilisation du pourboire |
+| Factures (liste + détail + règlement) | ✅ | ✅ | ✅ | — |
 | Fusion d'additions (#186) | ✅ | ✅ | ✅ | FusionModalComponent dans plan-salle |
 | Export factures (PDF) | ✅ | ✅ | ✅ | OpenPDF A4 conforme mentions légales |
 | Division d'addition (split égal/par sélection) | ✅ | ✅ | ✅ | — |
 | Dashboard Manager / stats | ✅ | ✅ polling 30s | ✅ | — |
-| Manager Shifts Employés & API (#232/#274) | ✅ | ❌ | ✅ | Endpoints /api/shifts (CRUD, par semaine, par utilisateur, par plage), DTOs, validations et tests backend |
-| Manager Planning Hebdomadaire (#233) | ⚠️ Schema only | ❌ | ❌ | Dépend de #274, vue grille semaine manquante — ticket #276 |
 | Dashboard Barman | ✅ | ✅ kanban temps réel | ✅ | — |
 | Vue Serveur (plan de salle + variantes modal #182) | ✅ | ✅ | ✅ | — |
-| Vue Serveur Mobile Bottom Navigation & MobileTableCard (#236) | — | ✅ | ✅ | Navigation basse mobile Ionic (< 768px), cartes compactes MobileTableCard & chronomètre d'attente |
-| Plan de salle interactif (Konva.js) | ✅ | ✅ | ✅ | — |
+| Plan de salle interactif (Konva.js) | ✅ | ✅ | ✅ | CRUD complet des Zones avec catégories d'Étages (RDC, 1er Étage, Terrasse, etc.) |
 | Vue Client QR Code (passage commande + suivi STOMP) | ✅ | ✅ | ✅ | Vue Client mobile complète (`/client/commande`, `/client/suivi/:id`) |
-| Écran Onboarding Flow par Rôle (Figma 633:1100–1173) (#229) | — | ✅ | ✅ | Tutoriel interactif guidé 5 rôles + relance Profil & i18n |
-| Composant EmptyState Réutilisable (Figma 540:1056) (#230) | — | ✅ | ✅ | Composant UI atomique avec illustration & action |
-| Profil Section Préférences & Notifications (#234) | — | ✅ | ✅ | Toggles son/visuel, sélecteur de langue & relance Onboarding |
-| Profil Formulaire NgRx Pre-fill Fix (#239) | — | ✅ | ✅ | Correction du pré-remplissage des champs username/email depuis Auth store |
 | Fuseau horaire paramétrable (Etablissement / TimeService) | ✅ | ✅ | ✅ | TimeZone configurable par l'admin + fallback Système |
 | Journal d'audit système (/api/audit-logs) (#206) | ✅ | ✅ | ✅ | Component & Service Admin |
 | Gestion directe des Étages (#222/#223) | ✅ | ✅ | ✅ | EtageEntity, EtageController, EtageService, ZoneManagerComponent onglet Étages |
 | TopBar globale conforme Figma (#208) | — | ✅ | ✅ | NavbarComponent |
 | NavBar / Sidebar 64-220px globale Figma (#209) | — | ✅ | ✅ | SidebarComponent |
-| Refacto Design System & Composants Atomiques Figma (#210) | — | ✅ | ✅ | Atoms UI Figma |
-| Harmonisation Vues Applicatives Figma (#211) | — | ✅ | ✅ | ProductCard, StatCard, etc. |
-| Vue Globale Stock Barman & Manager (#226) | ✅ | ✅ | ✅ | Jauges visuelles, filtres recherche/catégorie, ajustement +/- et WebSocket |
 
 ## Roadmap des Tickets Restants (Audit Figma 8 pages)
 
@@ -87,8 +71,8 @@
 
 ### 🟡 Priorité MOYENNE
 - ~~**Issue #231** (Ticket #G) : `feat: Vue Barman — Ingrédients en mode Grille de Cartes [BARMAN]` (Figma 488:3524)~~ ✅ (Mergé PR #251)
-- ~~**Issue #232** (Ticket #H) : `feat: Manager — Gestion Employés — Pagination et champs Shifts [MANAGER]` (Figma 492:1514)~~ ✅ (Mergé PR #252)
-- ~~**Issue #233** (Ticket #I) : `feat: Manager — EDT Planning hebdomadaire complet [MANAGER]` (Figma 492:1556)~~ ✅ (Mergé PR #254)
+- ~~**Issue #232** (Ticket #H) : `feat: Manager — Gestion Employés — Pagination et champs Shifts [MANAGER]` (Figma 492:1514)~~ ✅ (Mergé PR #279 / #278)
+- ~~**Issue #233** (Ticket #I) : `feat: Manager — EDT Planning hebdomadaire complet [MANAGER]` (Figma 492:1556)~~ ✅ (Mergé PR #287 / #286 / #279)
 - ~~**Issue #234** (Ticket #J) : `feat: Profil — Section Préférences et toggle notifications [TOUS]` (Figma 540:946)~~ ✅ (Mergé PR #255)
 - ~~**Issue #235** (Ticket #K) : `feat: Facturation — Modal Règlement — Champ Pourboire [MANAGER, SERVEUR]` (Figma 628:1068)~~ ✅ (Mergé PR #249)
 - ~~**Issue #236** (Ticket #L) : `feat: Vue Serveur Mobile — Bottom Navigation & MobileTableCard [SERVEUR]` (Figma 632:2240)~~ ✅ (Mergé PR #258)
@@ -115,6 +99,8 @@
 
 | PR / Issue | Description |
 |------------|-------------|
+| #287 (#276) | Planning hebdomadaire EDT — Filtres par poste & Indicateurs d'heures : Ajout de la barre de filtres (Tous, Barman, Serveur, Manager), toggle 'Masquer sans créneau', calcul et affichage dynamique des heures totales hebdomadaires par employé (`getEmployeeTotalHours`), état vide stylé en variables CSS adaptatives, et 100% tests Karma / SonarCloud PASSED. |
+| #286 (#283) | Fix bouton comparaison EDT & UX shifts : synchronisation `forkJoin` pour le chargement du planning et de la publication (élimine la disparition du bouton de comparaison au changement de semaine), clic sur cellule vide ouvre directement le formulaire de création pré-rempli (`initialDate`, `openInCreateMode`), en-tête employé converti en `<button>` sémantique pour ouvrir la liste des shifts d'une personne, et 100% tests Karma / SonarCloud Quality Gate PASSED. |
 | #280 (#275) | Fix Mode Comparaison EDT : Correction de la sérialisation Jackson des dates dans `WeekSchedulePublicationService.java` (`disable(WRITE_DATES_AS_TIMESTAMPS)` & logging des erreurs), parsing JS récursif et tolérant (`parsePublishedShifts()`), comparaison précise des statuts `ADDED`/`MODIFIED`/`DELETED`/`UNCHANGED`, et restylage CSS haute visibilité des cases du planning en mode comparaison (`.diff-added` vert glowing, `.diff-modified` ambre avec horaire initial, `.diff-deleted` rouge hachuré ghost, `.diff-dimmed` atténué). |
 | #279 (#275) | Planning d'équipe & Shifts Employés par personne (Figma 540:1022) : Vue Employés Manager (`/employees`), modal de gestion des créneaux par personne (`EmployeeShiftModalComponent`), modal de fermeture d'établissement (`ClosureConfigModalComponent`), modal d'exceptions de fermeture par jour (`DayClosureModalComponent`), configuration des modèles de shifts (`ShiftPresetsConfigComponent`), duplication par glisser-déposer, raccourcis clavier (Ctrl+C, Ctrl+V, Del, Esc), publication d'emploi du temps avec notifications STOMP temps réel `/topic/schedule-publications`, et Quality Gate SonarCloud 80.8% OK. |
 | #278 (#274) | Backend Gestion des Shifts Employés (ShiftController, Service, Repository) : Validation des payloads DTOs via annotations Jakarta et @Valid. Endpoints REST sous `/api/shifts` (GET par ID, par semaine avec calcul de date pivot, par plage from/to, par utilisateur, POST, PUT, DELETE avec `@PreAuthorize`). Tests unitaires 100% verts (407 backend OK). Correctifs UI style des modals et clic ligne utilisateur. |
