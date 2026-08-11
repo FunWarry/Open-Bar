@@ -352,4 +352,52 @@ describe('NouvelleCommandeComponent', () => {
     };
     expect(component.trackByKey(0, item)).toBe('test-key');
   });
+
+  // --- Search, Category, Allergen Filters & VAT ---
+
+  it('filteredCocktails filters by search query', () => {
+    component.cocktails = mockCocktails;
+    component.searchQuery = 'mojito';
+    expect(component.filteredCocktails).toHaveSize(1);
+    expect(component.filteredCocktails[0].nom).toBe('Mojito');
+  });
+
+  it('filteredCocktails filters by category', () => {
+    component.cocktails = mockCocktails;
+    component.selectCategory('ALCOOLISE');
+    expect(component.filteredCocktails).toHaveSize(1);
+    expect(component.filteredCocktails[0].nom).toBe('Martini');
+  });
+
+  it('filteredCocktails excludes drinks containing selected allergen', () => {
+    const cocktailWithLactose: Cocktail = {
+      id: 3, nom: 'Piña Colada', prix: 10, categorie: 'ALCOOLISE', disponible: true,
+      saisonnier: false, ingredients: [{ id: 1, ingredientId: 10, ingredientNom: 'Lactose crème', quantite: 5, uniteMesure: 'cl' }],
+      variantes: [], createdAt: '', updatedAt: '',
+    };
+    component.cocktails = [...mockCocktails, cocktailWithLactose];
+
+    component.selectedAllergen = 'LACTOSE';
+    expect(component.filteredCocktails.some(c => c.nom === 'Piña Colada')).toBeFalse();
+  });
+
+  it('clearFilters() resets search query, selected category and allergen', () => {
+    component.searchQuery = 'test';
+    component.selectedCategory = 'ALCOOLISE';
+    component.selectedAllergen = 'LACTOSE';
+
+    component.clearFilters();
+
+    expect(component.searchQuery).toBe('');
+    expect(component.selectedCategory).toBe('ALL');
+    expect(component.selectedAllergen).toBe('NONE');
+  });
+
+  it('totalHT and totalTVA calculate subtotal and VAT breakdown correctly', () => {
+    component.ajouterDepuisModal(mockCocktailWithoutVariante, makeResult({ prixEffectif: 12.00 })); // Total 12 TTC
+    expect(component.totalPanier).toBe(12.00);
+    expect(component.totalHT).toBeCloseTo(10.00, 2);
+    expect(component.totalTVA).toBeCloseTo(2.00, 2);
+  });
 });
+

@@ -1,14 +1,16 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, forkJoin, of } from 'rxjs';
 import { switchMap, takeUntil, finalize } from 'rxjs/operators';
 import {
   IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
   IonContent, IonGrid, IonRow, IonCol,
-  IonCard, IonCardHeader, IonCardTitle, IonCardContent,
+  IonCard, IonCardContent,
   IonButton, IonIcon, IonBadge, IonChip, IonSpinner,
   IonFooter, IonToolbar as IonFooterToolbar,
+  IonSearchbar, IonSelect, IonSelectOption,
   ToastController, ModalController,
 } from '@ionic/angular/standalone';
 import { TranslocoModule } from '@jsverse/transloco';
@@ -16,6 +18,9 @@ import { addIcons } from 'ionicons';
 import {
   addOutline, removeOutline, trashOutline,
   checkmarkOutline, arrowBackOutline, colorWandOutline,
+  searchOutline, filterOutline, closeCircleOutline,
+  wineOutline, beerOutline, restaurantOutline, optionsOutline,
+  alertCircleOutline, refreshOutline,
 } from 'ionicons/icons';
 import { DashboardServeurService } from '../services/dashboard-serveur.service';
 import { CocktailService } from '../../../core/services/cocktail.service';
@@ -54,18 +59,21 @@ export interface CartItem {
  * Tapping a cocktail card opens the {@link VarianteModalComponent} to pick a
  * variant and enter optional barman notes. Each unique (cocktail + variant +
  * notes) combination results in a separate cart line.
+ * Features live search, category chips, allergen exclusion filters, and VAT breakdown.
  */
 @Component({
   selector: 'app-nouvelle-commande',
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     TranslocoModule,
     IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
     IonContent, IonGrid, IonRow, IonCol,
     IonCard, IonCardContent,
     IonButton, IonIcon, IonBadge, IonChip, IonSpinner,
     IonFooter, IonFooterToolbar,
+    IonSearchbar, IonSelect, IonSelectOption,
   ],
   templateUrl: './nouvelle-commande.component.html',
   styleUrls: ['./nouvelle-commande.component.scss'],
@@ -86,6 +94,21 @@ export class NouvelleCommandeComponent implements OnInit, OnDestroy {
   /** True while the order creation request is in flight. */
   isSubmitting = false;
 
+  /** Live search query typed by the user. */
+  searchQuery = '';
+
+  /** Selected product category filter ('ALL', 'ALCOOLISE', 'SANS_ALCOOL', 'BIERE', 'VIN', 'SNACK'). */
+  selectedCategory = 'ALL';
+
+  /** Selected allergen filter to exclude ('NONE', 'LACTOSE', 'GLUTEN', 'ARACHIDE', 'FRUITS_A_COQUE'). */
+  selectedAllergen = 'NONE';
+
+  /** Available product category filter keys. */
+  readonly categories = ['ALL', 'ALCOOLISE', 'SANS_ALCOOL', 'BIERE', 'VIN', 'SNACK'];
+
+  /** Available allergen filter keys to exclude. */
+  readonly allergens = ['NONE', 'LACTOSE', 'GLUTEN', 'ARACHIDE', 'FRUITS_A_COQUE'];
+
   private tableId!: number;
   private readonly destroy$ = new Subject<void>();
 
@@ -97,7 +120,12 @@ export class NouvelleCommandeComponent implements OnInit, OnDestroy {
     private readonly toastCtrl: ToastController,
     private readonly modalCtrl: ModalController,
   ) {
-    addIcons({ addOutline, removeOutline, trashOutline, checkmarkOutline, arrowBackOutline, colorWandOutline });
+    addIcons({
+      addOutline, removeOutline, trashOutline, checkmarkOutline,
+      arrowBackOutline, colorWandOutline, searchOutline, filterOutline,
+      closeCircleOutline, wineOutline, beerOutline, restaurantOutline,
+      optionsOutline, alertCircleOutline, refreshOutline,
+    });
   }
 
   /** @inheritdoc */
@@ -142,6 +170,58 @@ export class NouvelleCommandeComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Returns cocktails filtered by search query, category, and allergen exclusion.
+   */
+  get filteredCocktails(): Cocktail[] {
+    return this.cocktails.filter(cocktail => {
+      // Category filter
+      if (this.selectedCategory !== 'ALL' && cocktail.categorie !== this.selectedCategory) {
+        return false;
+      }
+
+      // Search filter
+      if (this.searchQuery && this.searchQuery.trim().length > 0) {
+        const query = this.searchQuery.toLowerCase().trim();
+        const matchesNom = cocktail.nom.toLowerCase().includes(query);
+        const matchesCat = cocktail.categorie.toLowerCase().includes(query);
+        if (!matchesNom && !matchesCat) {
+          return false;
+        }
+      }
+
+      // Allergen filter (exclude drinks containing selected allergen in ingredient names)
+      if (this.selectedAllergen !== 'NONE' && cocktail.ingredients) {
+        const allergenKey = this.selectedAllergen.toLowerCase().replaceAll('_', ' ');
+        const hasAllergen = cocktail.ingredients.some(ing =>
+          ing.ingredientNom?.toLowerCase().includes(allergenKey)
+        );
+        if (hasAllergen) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }
+
+  /**
+   * Sets the active product category filter.
+   * @param category - Category key ('ALL', 'ALCOOLISE', etc.)
+   */
+  selectCategory(category: string): void {
+    this.selectedCategory = category;
+  }
+
+  /**
+   * Clears search query and resets category & allergen filters.
+   */
+  clearFilters(): void {
+    this.searchQuery = '';
+    this.selectedCategory = 'ALL';
+    this.selectedAllergen = 'NONE';
+  }
+
+  /**
    * Opens the variant selection modal for the given cocktail.
    * After confirmation, adds the item to the cart via {@link ajouterDepuisModal}.
    *
@@ -165,9 +245,6 @@ export class NouvelleCommandeComponent implements OnInit, OnDestroy {
 
   /**
    * Adds (or increments) a cart item based on the result from the variant modal.
-   *
-   * Items with the same (cocktailId, varianteId, notes) are merged;
-   * different customisations always create separate cart lines.
    *
    * @param cocktail - The cocktail being added.
    * @param result - The selection result from {@link VarianteModalComponent}.
@@ -209,7 +286,6 @@ export class NouvelleCommandeComponent implements OnInit, OnDestroy {
 
   /**
    * Increments the quantity of an existing cart item identified by its unique key.
-   * This is a direct quantity increment that does NOT re-open the variant modal.
    *
    * @param key - The unique cart item key.
    */
@@ -219,7 +295,6 @@ export class NouvelleCommandeComponent implements OnInit, OnDestroy {
       item.quantite++;
     }
   }
-
 
   /**
    * Removes a cart item entirely by its unique key.
@@ -232,7 +307,6 @@ export class NouvelleCommandeComponent implements OnInit, OnDestroy {
 
   /**
    * Returns the total quantity of a cocktail across all its variants in the cart.
-   * Used to visually highlight cocktail cards that have been added.
    *
    * @param cocktailId - The cocktail id to look up.
    * @returns Total quantity across all cart lines for that cocktail.
@@ -243,9 +317,19 @@ export class NouvelleCommandeComponent implements OnInit, OnDestroy {
       .reduce((sum, i) => sum + i.quantite, 0);
   }
 
-  /** Total price of all items in the cart. */
+  /** Total price of all items in the cart (TTC). */
   get totalPanier(): number {
     return this.cart.reduce((sum, i) => sum + i.prixUnitaire * i.quantite, 0);
+  }
+
+  /** Subtotal HT (20% VAT rate assumption). */
+  get totalHT(): number {
+    return this.totalPanier / 1.20;
+  }
+
+  /** VAT amount (20% VAT rate assumption). */
+  get totalTVA(): number {
+    return this.totalPanier - this.totalHT;
   }
 
   /** Total number of individual drink units in the cart. */
@@ -256,7 +340,6 @@ export class NouvelleCommandeComponent implements OnInit, OnDestroy {
   /**
    * Creates the order and submits all cart items to the API.
    * On success, navigates back to the serveur dashboard.
-   * Does nothing if the cart is empty or a submission is already in progress.
    */
   valider(): void {
     if (this.cart.length === 0 || this.isSubmitting) return;
@@ -309,11 +392,6 @@ export class NouvelleCommandeComponent implements OnInit, OnDestroy {
 
   /**
    * Builds a unique key for a cart item based on cocktail, variant and notes.
-   *
-   * @param cocktailId - Id of the cocktail.
-   * @param varianteId - Id of the selected variant, or undefined for classic.
-   * @param notes - Optional barman notes.
-   * @returns A string key combining the three values.
    */
   buildCartKey(cocktailId: number, varianteId: number | undefined, notes: string | undefined): string {
     return `${cocktailId}-${varianteId ?? 'none'}-${notes ?? ''}`;
