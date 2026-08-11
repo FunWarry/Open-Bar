@@ -248,6 +248,30 @@ describe('EmployeeShiftModalComponent', () => {
     component.dismiss();
     expect(mockModalCtrl.dismiss).toHaveBeenCalled();
   });
+
+  it('ngOnInit() should initialize in create mode when openInCreateMode is true and initialDate is provided', () => {
+    const newFixture = TestBed.createComponent(EmployeeShiftModalComponent);
+    const newComponent = newFixture.componentInstance;
+    newComponent.employee = sampleUser;
+    newComponent.openInCreateMode = true;
+    newComponent.initialDate = '2026-08-15';
+    newComponent.ngOnInit();
+
+    expect(newComponent.showForm).toBeTrue();
+    expect(newComponent.formDate).toBe('2026-08-15');
+    expect(newComponent.editingShiftId).toBeNull();
+  });
+
+  it('ngOnInit() should not open create form when openInCreateMode is false', () => {
+    const newFixture = TestBed.createComponent(EmployeeShiftModalComponent);
+    const newComponent = newFixture.componentInstance;
+    newComponent.employee = sampleUser;
+    newComponent.openInCreateMode = false;
+    newComponent.initialDate = '2026-08-15';
+    newComponent.ngOnInit();
+
+    expect(newComponent.showForm).toBeFalse();
+  });
 });
 
 

@@ -9,7 +9,7 @@ import { ClosureService } from '../../../app/core/services/closure.service';
 import { PublicationService, WeekSchedulePublicationDTO } from '../../../app/core/services/publication.service';
 import { WebSocketService } from '../../../app/core/services/websocket.service';
 import { ModalController, ActionSheetController, ToastController, AlertController } from '@ionic/angular/standalone';
-import { of, Subject } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 
 describe('ScheduleComponent', () => {
@@ -747,6 +747,54 @@ describe('ScheduleComponent', () => {
       expect(mockModalCtrl.create).toHaveBeenCalledWith(jasmine.objectContaining({
         componentProps: jasmine.objectContaining({ employee: { id: 7 } })
       }));
+    });
+
+    it('loadSchedule() should set loading=false on error', fakeAsync(() => {
+      mockPublicationService.getPublication.and.returnValue(of(null));
+      mockScheduleService.getWeekSchedule.and.returnValue(throwError(() => new Error('Network error')));
+
+      component.loadSchedule();
+      tick();
+
+      expect(component.loading).toBeFalse();
+    }));
+
+    it('openCreateShiftModal() should return early if user is not found', async () => {
+      mockModalCtrl.create.calls.reset();
+      mockUserService.getUserById = jasmine.createSpy('getUserById').and.returnValue(of(null as any));
+
+      await component.openCreateShiftModal({ employeeId: 999 } as any, '2026-08-15');
+
+      expect(mockModalCtrl.create).not.toHaveBeenCalled();
+    });
+
+    it('onCellClick() should abort when wasDraggingMultiple is true in normal or delete mode', () => {
+      const emp: any = { employeeId: 5, name: 'Lucas' };
+      const shift: any = { date: '2026-08-11', startTime: '08:00', rawShift: { id: 10 } };
+      spyOn(component, 'openEmployeeModalForUser');
+
+      // Normal mode with wasDraggingMultiple
+      component.isDeleteMode = false;
+      component.wasDraggingMultiple = true;
+      component.onCellClick(emp, shift);
+      expect(component.wasDraggingMultiple).toBeFalse();
+      expect(component.openEmployeeModalForUser).not.toHaveBeenCalled();
+
+      // Normal mode with dragTargets.length > 1
+      component.dragTargets = [
+        { emp: emp, dayIndex: 0, shift: shift } as any,
+        { emp: emp, dayIndex: 1, shift: shift } as any
+      ];
+      component.onCellClick(emp, shift);
+      expect(component.openEmployeeModalForUser).not.toHaveBeenCalled();
+
+      // Delete mode with wasDraggingMultiple
+      component.isDeleteMode = true;
+      component.wasDraggingMultiple = true;
+      component.selectedShiftIds.clear();
+      component.onCellClick(emp, shift);
+      expect(component.wasDraggingMultiple).toBeFalse();
+      expect(component.selectedShiftIds.size).toBe(0);
     });
   });
 });
