@@ -1,4 +1,16 @@
-<div class="product-card" [class.unavailable]="isUnavailable" [style.--category-accent]="CategoryColor">
+<div
+  class="product-card"
+  [class.unavailable]="isUnavailable"
+  [style.--category-accent]="CategoryColor"
+  (click)="onCardClick()"
+  (keyup.enter)="onCardClick()"
+  (contextmenu)="onRightClick($event)"
+  (touchstart)="onTouchStart($event)"
+  (touchend)="onTouchEnd($event)"
+  (touchmove)="onTouchMove($event)"
+  tabindex="0"
+  role="button"
+  [attr.aria-disabled]="isUnavailable">
   <div class="product-header">
     <div class="product-icon-wrap">
       <ion-icon [name]="CategoryIcon"></ion-icon>
@@ -20,18 +32,11 @@
   <div class="product-body">
     <h4 class="product-title">{{ product.nom }}</h4>
     <p class="product-description" *ngIf="product.description">{{ product.description }}</p>
-    <div class="product-price">{{ product.prix | number:'1.2-2' }} €</div>
-  </div>
-
-  <div class="product-footer">
-    <app-action-button
-      variant="primary"
-      size="small"
-      iconLeft="add-outline"
-      [disabled]="isUnavailable"
-      (click)="onAdd()"
-      (keyup.enter)="onAdd()">
-      {{ isUnavailable ? 'Épuisé' : 'Ajouter' }}
-    </app-action-button>
+    <div class="product-footer-row">
+      <span class="product-price">{{ product.prix | number:'1.2-2' }} €</span>
+      <span *ngIf="product.variantes && product.variantes.length > 0" class="variants-badge">
+        {{ product.variantes.length }} formats
+      </span>
+    </div>
   </div>
 </div>

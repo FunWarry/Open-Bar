@@ -35,9 +35,21 @@
     </app-empty-state>
 
     <div class="cart-item-row" *ngFor="let item of cart.items">
-      <div class="item-info">
-        <span class="item-name">{{ item.nom }}</span>
+      <div class="item-info" (click)="onEditItem(item)">
+        <div class="item-name-row">
+          <span class="item-name">{{ item.nom }}</span>
+          <span *ngIf="item.varianteNom" class="item-variant">({{ item.varianteNom }})</span>
+          <button class="edit-custom-btn" (click)="$event.stopPropagation(); onEditItem(item)" title="Modifier remarques">
+            <ion-icon name="create-outline"></ion-icon>
+          </button>
+        </div>
         <span class="item-unit-price">{{ item.prix | number:'1.2-2' }} € / u</span>
+
+        <!-- Exclusions & Commentaire attachés à l'élément -->
+        <div *ngIf="(item.exclusions && item.exclusions.length > 0) || item.commentaire" class="item-customizations">
+          <span *ngFor="let ex of item.exclusions" class="custom-badge exclusion-badge">Sans {{ ex }}</span>
+          <span *ngIf="item.commentaire" class="custom-badge comment-badge">💬 {{ item.commentaire }}</span>
+        </div>
       </div>
 
       <div class="item-controls">

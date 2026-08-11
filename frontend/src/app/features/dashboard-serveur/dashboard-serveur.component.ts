@@ -35,6 +35,9 @@ import { PlanSalleService } from '../plan-salle/services/plan-salle.service';
 import { Store } from '@ngrx/store';
 import { selectCurrentUser } from '../../core/store/auth.selectors';
 
+import { VariantSelectionModalComponent } from './components/variant-selection-modal/variant-selection-modal.component';
+import { ItemCustomizationModalComponent } from './components/item-customization-modal/item-customization-modal.component';
+
 // ─── Plan constants — must match plan-salle.component.ts exactly ───────────────
 const PLAN_TABLE_SIZE = 64;
 const PLAN_GAP        = 48;
@@ -118,10 +121,36 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
   cart: CartModel = { tableId: null, items: [] };
 
   products: ProductItem[] = [
-    { id: 1, nom: 'Mojito Traditional', prix: 8.5, categorie: 'COCKTAIL', stock: 15, stockStatus: 'NORMAL', description: 'Rhum blanc, menthe fraîche, citron vert' },
-    { id: 2, nom: 'Pinte Blonde Pression', prix: 6.0, categorie: 'BEER', stock: 40, stockStatus: 'NORMAL', description: 'Blonde artisanale 5%' },
-    { id: 3, nom: 'Cocktail Signature OpenBar', prix: 10.0, categorie: 'COCKTAIL', stock: 5, stockStatus: 'FAIBLE', description: 'Gin infusé, tonic premium' },
-    { id: 4, nom: 'Limonade Maison', prix: 4.5, categorie: 'SOFT', stock: 25, stockStatus: 'NORMAL', description: 'Citron pressé & sirop d\'agave' },
+    {
+      id: 1,
+      nom: 'Mojito Traditional',
+      prix: 8.5,
+      categorie: 'COCKTAIL',
+      stock: 15,
+      stockStatus: 'NORMAL',
+      description: 'Rhum blanc, Menthe fraîche, Citron vert, Sucre, Eau gazeuse, Glaçons',
+      ingredients: ['Rhum blanc', 'Menthe fraîche', 'Citron vert', 'Sucre', 'Eau gazeuse', 'Glaçons'],
+      variantes: [
+        { nom: 'Verre (33cl)', prix: 8.5 },
+        { nom: 'Pitcher (1L)', prix: 24.0 },
+      ]
+    },
+    {
+      id: 2,
+      nom: 'Pinte Blonde Pression',
+      prix: 6.0,
+      categorie: 'BEER',
+      stock: 40,
+      stockStatus: 'NORMAL',
+      description: 'Blonde artisanale 5%',
+      variantes: [
+        { nom: 'Demi (25cl)', prix: 3.5 },
+        { nom: 'Pinte (50cl)', prix: 6.0 },
+        { nom: 'Pitcher (1.5L)', prix: 16.0 },
+      ]
+    },
+    { id: 3, nom: 'Cocktail Signature OpenBar', prix: 10.0, categorie: 'COCKTAIL', stock: 5, stockStatus: 'FAIBLE', description: 'Gin infusé, tonic premium', ingredients: ['Gin infusé', 'Tonic premium', 'Glaçons', 'Zeste de concombre'] },
+    { id: 4, nom: 'Limonade Maison', prix: 4.5, categorie: 'SOFT', stock: 25, stockStatus: 'NORMAL', description: 'Citron pressé & sirop d\'agave', ingredients: ['Citron pressé', 'Sirop d\'agave', 'Eau gazeuse', 'Glaçons'] },
     { id: 5, nom: 'Planche de Nachos & Guacamole', prix: 9.0, categorie: 'SNACK', stock: 8, stockStatus: 'NORMAL', description: 'Cheddar fondu et sauces maison' },
     { id: 6, nom: 'Shot Tequila Special', prix: 4.0, categorie: 'SHOT', stock: 3, stockStatus: 'CRITIQUE', description: 'Tequila reposado' },
   ];
@@ -826,20 +855,101 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
     this.selectedCategory = cat;
   }
 
-  onAddToCart(product: ProductItem) {
-    const existing = this.cart.items.find(i => i.boissonId === product.id);
+  async onAddToCart(product: ProductItem) {
+    if (product.variantes && product.variantes.length > 0) {
+      const modal = await this.modalCtrl.create({
+        component: VariantSelectionModalComponent,
+        componentProps: { product },
+      });
+      await modal.present();
+      const { data, role } = await modal.onWillDismiss();
+      if (role === 'confirm' && data?.selectedVariant) {
+        this.pushItemToCart(product, data.selectedVariant.nom, data.selectedVariant.prix);
+      }
+      return;
+    }
+    this.pushItemToCart(product, undefined, product.prix);
+  }
+
+  async onCustomizeProduct(product: ProductItem) {
+    let varianteNom: string | undefined;
+    let prix = product.prix;
+
+    if (product.variantes && product.variantes.length > 0) {
+      const vModal = await this.modalCtrl.create({
+        component: VariantSelectionModalComponent,
+        componentProps: { product },
+      });
+      await vModal.present();
+      const { data: vData, role: vRole } = await vModal.onWillDismiss();
+      if (vRole !== 'confirm' || !vData?.selectedVariant) return;
+      varianteNom = vData.selectedVariant.nom;
+      prix = vData.selectedVariant.prix;
+    }
+
+    const cModal = await this.modalCtrl.create({
+      component: ItemCustomizationModalComponent,
+      componentProps: { product, variantNom: varianteNom },
+    });
+    await cModal.present();
+    const { data: cData, role: cRole } = await cModal.onWillDismiss();
+    if (cRole === 'confirm' && cData) {
+      this.pushItemToCart(product, varianteNom, prix, cData.commentaire, cData.exclusions);
+    }
+  }
+
+  async onEditCartItemCustomization(cartItem: CartItemModel) {
+    const product = this.products.find(p => p.id === cartItem.boissonId) || {
+      id: cartItem.boissonId,
+      nom: cartItem.nom,
+      prix: cartItem.prix,
+      categorie: cartItem.typeBoisson || 'COCKTAIL',
+    };
+
+    const modal = await this.modalCtrl.create({
+      component: ItemCustomizationModalComponent,
+      componentProps: {
+        product,
+        variantNom: cartItem.varianteNom,
+        initialCommentaire: cartItem.commentaire,
+        initialExclusions: cartItem.exclusions || [],
+      },
+    });
+    await modal.present();
+    const { data, role } = await modal.onWillDismiss();
+    if (role === 'confirm' && data) {
+      cartItem.commentaire = data.commentaire;
+      cartItem.exclusions = data.exclusions;
+      this.cart = { ...this.cart };
+      this.cdr.detectChanges();
+    }
+  }
+
+  private pushItemToCart(product: ProductItem, varianteNom?: string, prix?: number, commentaire?: string, exclusions?: string[]) {
+    const itemPrice = prix ?? product.prix;
+    const existing = this.cart.items.find(i =>
+      i.boissonId === product.id &&
+      i.varianteNom === varianteNom &&
+      i.commentaire === commentaire &&
+      JSON.stringify(i.exclusions || []) === JSON.stringify(exclusions || [])
+    );
+
     if (existing) {
       existing.quantite++;
     } else {
       this.cart.items.push({
         boissonId: product.id,
         nom: product.nom,
-        prix: product.prix,
+        prix: itemPrice,
         quantite: 1,
         typeBoisson: product.categorie,
+        varianteNom,
+        commentaire,
+        exclusions,
       });
     }
     this.cart = { ...this.cart };
+    this.cdr.detectChanges();
   }
 
   onCartQuantityChanged(event: { item: CartItemModel; newQty: number }) {
@@ -848,7 +958,9 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
   }
 
   onCartItemRemoved(item: CartItemModel) {
-    this.cart.items = this.cart.items.filter(i => i.boissonId !== item.boissonId);
+    this.cart.items = this.cart.items.filter(i =>
+      !(i.boissonId === item.boissonId && i.varianteNom === item.varianteNom && i.commentaire === item.commentaire)
+    );
     this.cart = { ...this.cart };
   }
 

@@ -395,7 +395,8 @@
             *ngFor="let p of filteredProducts; trackBy: trackById"
             [product]="p"
             [canSeeLowStock]="canSeeLowStock"
-            (add)="onAddToCart($event)">
+            (add)="onAddToCart($event)"
+            (customize)="onCustomizeProduct($event)">
           </app-product-card>
           <div *ngIf="filteredProducts.length === 0" class="empty-products-msg">
             Aucun produit ne correspond aux filtres sélectionnés.
@@ -412,7 +413,8 @@
           (removeItem)="onCartItemRemoved($event)"
           (tableSelect)="onTableSelectForOrder($event)"
           (submitOrder)="onSubmitCart()"
-          (clearCart)="onClearCart()">
+          (clearCart)="onClearCart()"
+          (editCustomization)="onEditCartItemCustomization($event)">
         </app-cart-drawer>
       </div>
     </div>

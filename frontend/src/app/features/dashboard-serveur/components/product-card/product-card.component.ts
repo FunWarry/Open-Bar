@@ -6,6 +6,12 @@ import { StockSeverityBadgeComponent } from '../../../../core/components/ui/stoc
 import { addIcons } from 'ionicons';
 import { wineOutline, beerOutline, waterOutline, flameOutline, fastFoodOutline, addOutline } from 'ionicons/icons';
 
+export interface ProductVariant {
+  id?: number;
+  nom: string;
+  prix: number;
+}
+
 export interface ProductItem {
   id: number;
   nom: string;
@@ -17,6 +23,7 @@ export interface ProductItem {
   description?: string;
   image?: string;
   ingredients?: any[];
+  variantes?: ProductVariant[];
 }
 
 @Component({
@@ -31,6 +38,10 @@ export class ProductCardComponent {
   @Input({ required: true }) product!: ProductItem;
   @Input() canSeeLowStock = false;
   @Output() add = new EventEmitter<ProductItem>();
+  @Output() customize = new EventEmitter<ProductItem>();
+
+  private longPressTimer?: any;
+  private isLongPressTriggered = false;
 
   constructor() {
     addIcons({ wineOutline, beerOutline, waterOutline, flameOutline, fastFoodOutline, addOutline });
@@ -44,7 +55,40 @@ export class ProductCardComponent {
     return this.canSeeLowStock && this.product.stockStatus === 'FAIBLE';
   }
 
-  onAdd() {
+  onRightClick(event: MouseEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    if (!this.isUnavailable) {
+      this.customize.emit(this.product);
+    }
+  }
+
+  onTouchStart(event: TouchEvent) {
+    if (this.isUnavailable) return;
+    this.isLongPressTriggered = false;
+    this.longPressTimer = setTimeout(() => {
+      this.isLongPressTriggered = true;
+      this.customize.emit(this.product);
+    }, 500);
+  }
+
+  onTouchEnd(event: TouchEvent) {
+    if (this.longPressTimer) {
+      clearTimeout(this.longPressTimer);
+    }
+  }
+
+  onTouchMove(event: TouchEvent) {
+    if (this.longPressTimer) {
+      clearTimeout(this.longPressTimer);
+    }
+  }
+
+  onCardClick() {
+    if (this.isLongPressTriggered) {
+      this.isLongPressTriggered = false;
+      return;
+    }
     if (!this.isUnavailable) {
       this.add.emit(this.product);
     }

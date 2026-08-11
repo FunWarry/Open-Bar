@@ -5,6 +5,9 @@ export interface CartItemModel {
   quantite: number;
   notes?: string;
   typeBoisson?: string;
+  varianteNom?: string;
+  commentaire?: string;
+  exclusions?: string[];
 }
 
 export interface CartModel {

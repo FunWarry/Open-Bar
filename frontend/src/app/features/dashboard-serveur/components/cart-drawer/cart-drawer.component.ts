@@ -9,7 +9,7 @@ import { ActionButtonComponent } from '../../../../core/components/ui/action-but
 import { EmptyStateComponent } from '../../../../core/components/ui/empty-state/empty-state.component';
 
 import { addIcons } from 'ionicons';
-import { cartOutline, basketOutline, paperPlaneOutline } from 'ionicons/icons';
+import { cartOutline, basketOutline, paperPlaneOutline, chatbubbleEllipsesOutline, createOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-cart-drawer',
@@ -36,9 +36,14 @@ export class CartDrawerComponent {
   @Output() tableSelect = new EventEmitter<number>();
   @Output() submitOrder = new EventEmitter<CartModel>();
   @Output() clearCart = new EventEmitter<void>();
+  @Output() editCustomization = new EventEmitter<CartItemModel>();
 
   constructor() {
-    addIcons({ cartOutline, basketOutline, paperPlaneOutline });
+    addIcons({ cartOutline, basketOutline, paperPlaneOutline, chatbubbleEllipsesOutline, createOutline });
+  }
+
+  onEditItem(item: CartItemModel) {
+    this.editCustomization.emit(item);
   }
 
   onQuantityChanged(item: CartItemModel, newQty: number) {
