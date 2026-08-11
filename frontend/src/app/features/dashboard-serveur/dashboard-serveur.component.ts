@@ -4,7 +4,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { Subject, forkJoin } from 'rxjs';
 import { finalize, takeUntil } from 'rxjs/operators';
 import Konva from 'konva';
@@ -167,6 +167,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
     private readonly toastCtrl: ToastController,
     private readonly modalCtrl: ModalController,
     private readonly router: Router,
+    private readonly route: ActivatedRoute,
     private readonly notificationService: NotificationService,
     private readonly ngZone: NgZone,
     private readonly cdr: ChangeDetectorRef,
@@ -185,6 +186,17 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
   ngOnInit() {
     this.chargerFiltresSauvegardes();
     this.chargerDonnees();
+
+    this.route.queryParams
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(params => {
+        if (params['tableId']) {
+          const tableId = +params['tableId'];
+          this.onTableSelectForOrder(tableId);
+          this.activeTab = 'commande';
+          this.cdr.detectChanges();
+        }
+      });
 
     this.store.select(selectCurrentUser)
       .pipe(takeUntil(this.destroy$))

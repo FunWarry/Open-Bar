@@ -132,7 +132,7 @@ export class TableDetailModalComponent implements OnInit {
 
   nouvelleCommande(): void {
     this.modalCtrl.dismiss();
-    this.router.navigate(['/serveur/nouvelle-commande', this.table.id]);
+    this.router.navigate(['/serveur'], { queryParams: { tableId: this.table.id } });
   }
 
   liberer(): void {

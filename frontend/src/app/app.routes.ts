@@ -150,15 +150,12 @@ export const routes: Routes = [
   },
   {
     path: 'serveur/nouvelle-commande',
-    loadComponent: () => import('./features/dashboard-serveur/nouvelle-commande/nouvelle-commande.component').then(m => m.NouvelleCommandeComponent),
-    canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['SERVEUR', 'MANAGER', 'ADMIN'] }
+    redirectTo: '/serveur',
+    pathMatch: 'full',
   },
   {
     path: 'serveur/nouvelle-commande/:tableId',
-    loadComponent: () => import('./features/dashboard-serveur/nouvelle-commande/nouvelle-commande.component').then(m => m.NouvelleCommandeComponent),
-    canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['SERVEUR', 'MANAGER', 'ADMIN'] }
+    redirectTo: route => `/serveur?tableId=${route.params['tableId']}`,
   },
   {
     path: 'serveur/suivi-commandes',
