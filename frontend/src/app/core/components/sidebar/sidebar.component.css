@@ -34,7 +34,13 @@
   border-bottom: 1px solid var(--border-medium);
 }
 
+button.sidebar-brand,
 .sidebar-brand {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font-family: inherit;
   font-size: 1.15rem;
   font-weight: 800;
   color: var(--primary, #6c7fe8);
