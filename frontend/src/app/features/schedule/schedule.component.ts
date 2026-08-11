@@ -389,24 +389,30 @@ export class ScheduleComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: async (pub) => {
-          this.publication = pub;
-          this.isPublished = true;
-          this.calculateScheduleDifferences();
+          // 1. Reload the schedule first so calculateScheduleDifferences
+          //    compares the fresh snapshot against the fresh shifts
           this.scheduleService.getWeekSchedule(this.currentWeekStart)
             .pipe(takeUntil(this.destroy$))
             .subscribe({
-              next: (data) => {
+              next: async (data) => {
                 this.schedule = data;
-                this.calculateScheduleDifferences();
+                // 2. Now update publication state — both sides are in sync
+                this.publication = pub;
+                this.isPublished = true;
+                this.hasUnpublishedChanges = false;
+                this.cellDiffMap.clear();
+                this.diffAddedCount = 0;
+                this.diffModifiedCount = 0;
+                this.diffDeletedCount = 0;
+                const publishedDate = new Date(pub.publishedAt).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+                const toast = await this.toastCtrl.create({
+                  message: `✅ Planning de la semaine publié — ${publishedDate} par ${pub.publishedBy}`,
+                  duration: 4000,
+                  color: 'success'
+                });
+                await toast.present();
               }
             });
-          const publishedDate = new Date(pub.publishedAt).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
-          const toast = await this.toastCtrl.create({
-            message: `✅ Planning de la semaine publié — ${publishedDate} par ${pub.publishedBy}`,
-            duration: 4000,
-            color: 'success'
-          });
-          await toast.present();
         },
         error: async () => {
           const toast = await this.toastCtrl.create({
