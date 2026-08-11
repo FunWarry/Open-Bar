@@ -9,11 +9,12 @@ import { Store } from '@ngrx/store';
 import Konva from 'konva';
 import {
   IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
-  IonFab, IonFabButton, IonBadge, IonSpinner,
-  ToastController, ModalController,
+  IonBadge, IonSpinner, ToastController, ModalController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { pencilOutline, saveOutline, closeOutline, refreshOutline } from 'ionicons/icons';
+import { pencilOutline, saveOutline, closeOutline, refreshOutline, alertCircleOutline } from 'ionicons/icons';
+import { TranslocoModule } from '@jsverse/transloco';
+
 import { TableService } from '../../core/services/table.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { PlanSalleService } from './services/plan-salle.service';
@@ -23,21 +24,29 @@ import { TablePosition } from './models/table-position.model';
 import { TableSidePanelComponent } from './components/table-side-panel/table-side-panel.component';
 import { FusionModalComponent } from './components/fusion-modal/fusion-modal.component';
 
-// Tokens couleur Figma — design system OpenBar
-const COULEUR_LIBRE   = '#27ae60';
-const COULEUR_OCCUPEE = '#e67e22';
-const TAILLE_TABLE       = 64;
-const GAP                = 48;
-const MARGIN             = 80;
-const COLS               = 5;
+// OpenBar Figma Design System Color Tokens for Table Statuses
+const COLOR_LIBRE = '#2fbf6b';
+const COLOR_OCCUPEE = '#e5604f';
+const COLOR_PAYMENT = '#f4a52a';
+const COLOR_RESERVEE = '#9b8af2';
+const TABLE_SIZE = 72;
+const GAP = 44;
+const MARGIN = 70;
+const COLS = 5;
 
+/**
+ * Interactive Floor Plan Component powered by Konva.js canvas rendering.
+ * Provides real-time table status supervision, floor/zone filters, 2D drag & drop editing,
+ * and contextual side panel actions.
+ */
 @Component({
   selector: 'app-plan-salle',
   standalone: true,
   imports: [
     CommonModule,
+    TranslocoModule,
     IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
-    IonFab, IonFabButton, IonBadge, IonSpinner,
+    IonBadge, IonSpinner,
     TableSidePanelComponent,
   ],
   templateUrl: './plan-salle.component.html',
@@ -46,16 +55,40 @@ const COLS               = 5;
 export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('konvaContainer') containerRef!: ElementRef<HTMLDivElement>;
 
+  /** List of all bar tables loaded from the backend API. */
   tables: TableBar[] = [];
+
+  /** Currently filtered tables based on selected floor. */
+  filteredTables: TableBar[] = [];
+
+  /** Available floors in the establishment. */
+  floors = ['RDC', '1er Étage', 'Terrasse', 'VIP'];
+
+  /** Active floor filter, or null for all floors. */
+  selectedFloor: string | null = null;
+
+  /** Whether the component is currently fetching data. */
   isLoading = false;
+
+  /** Whether the admin edit mode is active. */
   isEditMode = false;
+
+  /** Whether the authenticated user has ADMIN privileges. */
   isAdmin = false;
+
+  /** Track if any table positions have been modified but not yet saved. */
   hasUnsavedChanges = false;
 
-  // Side Panel & Fusion
+  /** Currently selected table for side panel inspection. */
   selectedTable: TableBar | null = null;
+
+  /** Controls side panel visibility. */
   isSidePanelOpen = false;
+
+  /** Source table during table merge / transfer operations. */
   fusionSourceTable: TableBar | null = null;
+
+  /** Flag indicating active table merge mode. */
   isFusionMode = false;
 
   private stage!: Konva.Stage;
@@ -63,7 +96,7 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly positions = new Map<number, TablePosition>();
   private readonly tableShapes = new Map<number, Konva.Group>();
   private readonly destroy$ = new Subject<void>();
-  private readonly charger$  = new Subject<void>();
+  private readonly charger$ = new Subject<void>();
 
   constructor(
     private readonly tableService: TableService,
@@ -75,18 +108,23 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
     private readonly toastCtrl: ToastController,
     private readonly modalCtrl: ModalController,
   ) {
-    addIcons({ pencilOutline, saveOutline, closeOutline, refreshOutline });
+    addIcons({ pencilOutline, saveOutline, closeOutline, refreshOutline, alertCircleOutline });
   }
 
   ngOnInit() {
     this.store.select(selectIsAdmin)
       .pipe(takeUntil(this.destroy$))
-      .subscribe(isAdmin => { this.isAdmin = isAdmin; this.cdr.detectChanges(); });
+      .subscribe(isAdmin => {
+        this.isAdmin = isAdmin;
+        this.cdr.detectChanges();
+      });
 
     this.notifService.onNotification()
       .pipe(takeUntil(this.destroy$))
       .subscribe(notif => {
-        if (notif.type === 'table') this.charger();
+        if (notif.type === 'table' || notif.type === 'commande') {
+          this.charger();
+        }
       });
   }
 
@@ -96,7 +134,7 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
     this.charger$
       .pipe(
         switchMap(() => forkJoin({
-          tables:    this.tableService.getAll(),
+          tables: this.tableService.getAll(),
           positions: this.planSalleService.getPositions(),
         }).pipe(
           catchError(() => {
@@ -115,6 +153,7 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
         positions.forEach(p => this.positions.set(p.tableId, p));
         this.hasUnsavedChanges = false;
         this.isLoading = false;
+        this.applyFloorFilter();
         this.cdr.detectChanges();
         this.ngZone.runOutsideAngular(() => this.dessinerTables());
       });
@@ -129,15 +168,34 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
     this.stage?.destroy();
   }
 
-  // ─── Konva ─────────────────────────────────────────────────────────────────
+  /** Filters tables displayed on the floor plan based on floor selection. */
+  selectFloor(floor: string | null) {
+    this.selectedFloor = floor;
+    this.applyFloorFilter();
+    this.cdr.detectChanges();
+    this.ngZone.runOutsideAngular(() => this.dessinerTables());
+  }
+
+  private applyFloorFilter() {
+    if (!this.selectedFloor) {
+      this.filteredTables = [...this.tables];
+    } else {
+      this.filteredTables = this.tables.filter(t => {
+        const pos = this.positions.get(t.id);
+        return pos?.floor === this.selectedFloor || t.emplacement === this.selectedFloor;
+      });
+    }
+  }
+
+  // ─── Konva Rendering Engine ──────────────────────────────────────────────────
 
   private initKonva() {
     const el = this.containerRef?.nativeElement;
     if (!el) return;
     this.stage = new Konva.Stage({
       container: el,
-      width: el.offsetWidth || 800,
-      height: el.offsetHeight || 600,
+      width: el.offsetWidth || 900,
+      height: el.offsetHeight || 650,
     });
     this.layer = new Konva.Layer();
     this.stage.add(this.layer);
@@ -148,7 +206,7 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
     this.layer.destroyChildren();
     this.tableShapes.clear();
 
-    this.tables.forEach((table, idx) => {
+    this.filteredTables.forEach((table, idx) => {
       const pos = this.positions.get(table.id) ?? this.positionDefaut(idx, table.id);
       const group = this.creerGroupeTable(table, pos);
       this.tableShapes.set(table.id, group);
@@ -160,26 +218,38 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private creerGroupeTable(table: TableBar, pos: TablePosition): Konva.Group {
     const group = new Konva.Group({
-      x: pos.x, y: pos.y,
+      x: pos.x,
+      y: pos.y,
       rotation: pos.rotation,
       draggable: this.isEditMode,
     });
 
     const couleur = this.couleurTable(table);
-    const S = TAILLE_TABLE;
+    const S = TABLE_SIZE;
 
+    // Table body shape
     const forme = pos.shape === 'circle'
-      ? new Konva.Circle({ radius: S / 2, fill: couleur, stroke: '#ffffff44', strokeWidth: 2 })
-      : new Konva.Rect({ width: S, height: S, offsetX: S / 2, offsetY: S / 2, fill: couleur, stroke: '#ffffff44', strokeWidth: 2, cornerRadius: 10 });
+      ? new Konva.Circle({ radius: S / 2, fill: couleur, stroke: '#ffffff44', strokeWidth: 2, shadowBlur: 10, shadowColor: couleur })
+      : new Konva.Rect({ width: S, height: S, offsetX: S / 2, offsetY: S / 2, fill: couleur, stroke: '#ffffff44', strokeWidth: 2, cornerRadius: 12, shadowBlur: 10, shadowColor: couleur });
 
+    // Table Label (Number + Capacity)
     const label = new Konva.Text({
-      text: String(table.numero),
-      fontSize: 16, fontStyle: 'bold', fill: '#fff',
-      align: 'center', verticalAlign: 'middle',
-      width: S, height: S, offsetX: S / 2, offsetY: S / 2,
+      text: `#${table.numero}\n${table.capacite}p`,
+      fontSize: 14,
+      fontStyle: 'bold',
+      fill: '#ffffff',
+      align: 'center',
+      verticalAlign: 'middle',
+      width: S,
+      height: S,
+      offsetX: S / 2,
+      offsetY: S / 2,
     });
 
-    group.add(forme, label);
+    // Add surrounding seats around table
+    const seatsGroup = this.creerSieges(table.capacite, S, pos.shape, couleur);
+
+    group.add(seatsGroup, forme, label);
 
     group.on('click tap', () => {
       this.ngZone.run(() => this.onClickTable(table));
@@ -188,33 +258,87 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.isEditMode) {
       group.on('dragend', () => {
         const updated: TablePosition = {
-          tableId: table.id, x: group.x(), y: group.y(),
-          rotation: group.rotation(), shape: pos.shape,
+          tableId: table.id,
+          x: group.x(),
+          y: group.y(),
+          rotation: group.rotation(),
+          shape: pos.shape,
+          floor: pos.floor,
+          zone: pos.zone,
         };
         this.positions.set(table.id, updated);
-        this.ngZone.run(() => { this.hasUnsavedChanges = true; this.cdr.detectChanges(); });
+        this.ngZone.run(() => {
+          this.hasUnsavedChanges = true;
+          this.cdr.detectChanges();
+        });
       });
     }
 
     return group;
   }
 
+  /** Draws small circular seats around the main table shape. */
+  private creerSieges(capacite: number, size: number, shape: string, color: string): Konva.Group {
+    const seats = new Konva.Group();
+    const seatRadius = 6;
+    const distance = size / 2 + 10;
+    const count = Math.min(capacite, 8);
+
+    for (let i = 0; i < count; i++) {
+      const angle = (i * 2 * Math.PI) / count;
+      const sx = distance * Math.cos(angle);
+      const sy = distance * Math.sin(angle);
+
+      const seat = new Konva.Circle({
+        x: sx,
+        y: sy,
+        radius: seatRadius,
+        fill: color,
+        stroke: '#ffffff66',
+        strokeWidth: 1.5,
+      });
+      seats.add(seat);
+    }
+    return seats;
+  }
+
   private couleurTable(table: TableBar): string {
-    if (!table.occupee) return COULEUR_LIBRE;
-    return COULEUR_OCCUPEE;
+    if (table.reservee) return COLOR_RESERVEE;
+    if (!table.occupee) return COLOR_LIBRE;
+    return COLOR_OCCUPEE;
   }
 
   private positionDefaut(idx: number, tableId: number): TablePosition {
     return {
       tableId,
-      x: MARGIN + (idx % COLS) * (TAILLE_TABLE + GAP),
-      y: MARGIN + Math.floor(idx / COLS) * (TAILLE_TABLE + GAP),
+      x: MARGIN + (idx % COLS) * (TABLE_SIZE + GAP),
+      y: MARGIN + Math.floor(idx / COLS) * (TABLE_SIZE + GAP),
       rotation: 0,
       shape: 'rect',
+      floor: 'RDC',
     };
   }
 
-  // ─── Données ───────────────────────────────────────────────────────────────
+  /** Toggles shape between rectangle and circle for a table. */
+  toggleForme(tableId: number) {
+    const pos = this.positions.get(tableId);
+    if (!pos) return;
+    pos.shape = pos.shape === 'rect' ? 'circle' : 'rect';
+    const table = this.tables.find(t => t.id === tableId);
+    if (table) {
+      this.ngZone.runOutsideAngular(() => {
+        const group = this.creerGroupeTable(table, pos);
+        const old = this.tableShapes.get(tableId);
+        old?.destroy();
+        this.tableShapes.set(tableId, group);
+        this.layer.add(group);
+        this.layer.batchDraw();
+      });
+    }
+    this.hasUnsavedChanges = true;
+  }
+
+  // ─── Actions & Modals ────────────────────────────────────────────────────────
 
   charger() {
     if (this.isEditMode && this.hasUnsavedChanges) return;
@@ -222,8 +346,6 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
     this.cdr.detectChanges();
     this.charger$.next();
   }
-
-  // ─── Actions ───────────────────────────────────────────────────────────────
 
   async onClickTable(table: TableBar) {
     if (this.isFusionMode && this.fusionSourceTable && this.fusionSourceTable.id !== table.id) {
@@ -247,7 +369,7 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
     this.isFusionMode = true;
     this.closeSidePanel();
     this.toastCtrl.create({
-      message: `Sélectionnez la table avec laquelle fusionner la Table ${table.numero}`,
+      message: `Sélectionnez la table cible pour fusionner avec la Table ${table.numero}`,
       duration: 4000,
       color: 'primary',
     }).then(t => t.present());
@@ -263,11 +385,11 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
 
     const { data } = await modal.onWillDismiss();
     if (data?.confirmed) {
-      // Regrouper les capacités et fusionner les 2 tables
       target.capacite += source.capacite;
       this.tables = this.tables.filter(t => t.id !== source.id);
       this.isFusionMode = false;
       this.fusionSourceTable = null;
+      this.applyFloorFilter();
       this.toastCtrl.create({
         message: `Tables ${source.numero} et ${target.numero} fusionnées avec succès !`,
         duration: 3000,
@@ -304,31 +426,13 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
       .subscribe({
         next: () => {
           this.hasUnsavedChanges = false;
-          this.toastCtrl.create({ message: 'Plan sauvegardé', duration: 2000, color: 'success' })
+          this.toastCtrl.create({ message: 'Plan de salle sauvegardé', duration: 2000, color: 'success' })
             .then(t => t.present());
         },
         error: () => {
-          this.toastCtrl.create({ message: 'Erreur lors de la sauvegarde', duration: 3000, color: 'danger' })
+          this.toastCtrl.create({ message: 'Erreur lors de la sauvegarde du plan', duration: 3000, color: 'danger' })
             .then(t => t.present());
         },
       });
-  }
-
-  toggleForme(tableId: number) {
-    const pos = this.positions.get(tableId);
-    if (!pos) return;
-    pos.shape = pos.shape === 'rect' ? 'circle' : 'rect';
-    const table = this.tables.find(t => t.id === tableId);
-    if (table) {
-      this.ngZone.runOutsideAngular(() => {
-        const group = this.creerGroupeTable(table, pos);
-        const old = this.tableShapes.get(tableId);
-        old?.destroy();
-        this.tableShapes.set(tableId, group);
-        this.layer.add(group);
-        this.layer.batchDraw();
-      });
-    }
-    this.hasUnsavedChanges = true;
   }
 }

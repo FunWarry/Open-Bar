@@ -121,6 +121,10 @@ export class ProductCardComponent {
     }
   }
 
+  onAdd() {
+    this.onCardClick();
+  }
+
   get CategoryColor(): string {
     switch (this.product.categorie?.toUpperCase()) {
       case 'COCKTAIL':
