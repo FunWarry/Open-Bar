@@ -39,6 +39,30 @@ export class ScheduleService {
     );
   }
 
+  /**
+   * Reconstructs the weekly schedule as it existed at a historical timestamp T.
+   *
+   * @param weekStart Monday Date of target week
+   * @param atIsoDateTime Historical timestamp in ISO format (YYYY-MM-DDTHH:mm:ss)
+   * @returns Observable WeekSchedule reconstructed at instant T
+   */
+  getWeekScheduleAt(weekStart: Date, atIsoDateTime: string): Observable<WeekSchedule> {
+    const mondayDate = this.getMonday(weekStart);
+    const sundayDate = new Date(mondayDate);
+    sundayDate.setDate(sundayDate.getDate() + 6);
+
+    const startStr = this.formatDateIso(mondayDate);
+    const endStr = this.formatDateIso(sundayDate);
+
+    return forkJoin({
+      users: this.userService.getUsers().pipe(catchError(() => of([] as User[]))),
+      shifts: this.shiftService.getScheduleAt(startStr, atIsoDateTime).pipe(catchError(() => of([] as EmployeeShift[]))),
+      closures: this.closureService.getClosures().pipe(catchError(() => of([] as EstablishmentClosure[])))
+    }).pipe(
+      map(({ users, shifts, closures }) => this.buildWeekSchedule(mondayDate, startStr, endStr, users, shifts, closures))
+    );
+  }
+
   private buildWeekSchedule(
     mondayDate: Date,
     startStr: string,

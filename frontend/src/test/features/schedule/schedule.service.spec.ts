@@ -15,11 +15,12 @@ describe('ScheduleService — date range closure detection', () => {
   const weekOf17Aug = new Date('2026-08-17'); // Monday
 
   beforeEach(() => {
-    mockShiftService = jasmine.createSpyObj('ShiftService', ['getShiftsForWeek']);
+    mockShiftService = jasmine.createSpyObj('ShiftService', ['getShiftsForWeek', 'getScheduleAt']);
     mockUserService = jasmine.createSpyObj('UserService', ['getUsers']);
     mockClosureService = jasmine.createSpyObj('ClosureService', ['getClosures']);
 
     mockShiftService.getShiftsForWeek.and.returnValue(of([]));
+    mockShiftService.getScheduleAt.and.returnValue(of([]));
     mockUserService.getUsers.and.returnValue(of([]));
 
     TestBed.configureTestingModule({
@@ -162,6 +163,32 @@ describe('ScheduleService — date range closure detection', () => {
       expect(managerRow.role).toBe('MANAGER');
       expect(managerRow.shifts[2].type).toBe('DAY_OFF'); // Conge
 
+      done();
+    });
+  });
+
+  it('getWeekScheduleAt() should fetch shifts at instant T and build WeekSchedule', (done) => {
+    mockUserService.getUsers.and.returnValue(of([
+      { id: 1, username: 'barman1', nom: 'Doe', prenom: 'John', email: 'b@bar.com', roles: ['BARMAN'], enabled: true, actif: true, createdAt: '', updatedAt: '' }
+    ]));
+    mockShiftService.getScheduleAt.and.returnValue(of([
+      {
+        id: 10,
+        userId: 1,
+        dateShift: '2026-08-17',
+        typeShift: 'MATIN',
+        typePoste: 'BARMAN',
+        heureDebut: '08:00',
+        heureFin: '16:00',
+        heuresPrevues: 8
+      }
+    ]));
+    mockClosureService.getClosures.and.returnValue(of([]));
+
+    service.getWeekScheduleAt(weekOf17Aug, '2026-08-17T12:00:00').subscribe((schedule) => {
+      expect(schedule.employees).toHaveSize(1);
+      expect(schedule.totalHours).toBe(8);
+      expect(schedule.employees[0].shifts[0].startTime).toBe('08:00');
       done();
     });
   });

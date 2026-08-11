@@ -767,6 +767,112 @@
   }
 }
 
+.replay-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--status-waiting-15);
+  color: var(--semantic-warning);
+  border: 1px solid var(--semantic-warning);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.replay-mode-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  background: var(--status-waiting-15);
+  border: 1px solid var(--semantic-warning);
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+
+  .banner-info {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    .banner-header-line {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+
+      .banner-title {
+        font-weight: 700;
+        font-size: 0.95rem;
+        color: var(--semantic-warning);
+      }
+
+      .banner-desc {
+        font-size: 0.82rem;
+        color: var(--text-secondary);
+      }
+    }
+
+    .replay-datetime-picker {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      color: var(--text-primary);
+
+      label {
+        font-weight: 600;
+      }
+
+      .replay-input {
+        background: var(--background-surface-1);
+        border: 1px solid var(--border-medium);
+        color: var(--text-primary);
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        font-family: inherit;
+      }
+
+      .btn-refresh-replay {
+        background: var(--background-surface-1);
+        border: 1px solid var(--border-medium);
+        color: var(--primary);
+        padding: 4px 8px;
+        border-radius: 6px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+
+        &:hover {
+          background: var(--background-surface-2);
+        }
+      }
+    }
+  }
+
+  .banner-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+}
+
+.comparison-mode-banner.replay-comparison {
+  background: var(--background-surface-2);
+  border-color: var(--primary);
+}
+
+.schedule-grid.in-replay-mode {
+  .interactive-cell {
+    cursor: default;
+  }
+}
+
 .loading-state {
   display: flex;
   flex-direction: column;

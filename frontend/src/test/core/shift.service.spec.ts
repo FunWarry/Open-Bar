@@ -107,4 +107,39 @@ describe('ShiftService', () => {
     expect(req.request.method).toBe('DELETE');
     req.flush(null);
   });
+
+  it('getShiftHistory() should GET /api/shifts/:id/history', () => {
+    service.getShiftHistory(1).subscribe(logs => {
+      expect(logs).toHaveSize(1);
+      expect(logs[0].shiftId).toBe(1);
+    });
+
+    const req = httpMock.expectOne(`${environment.apiUrl}/shifts/1/history`);
+    expect(req.request.method).toBe('GET');
+    req.flush([{ id: 100, shiftId: 1, action: 'CREATED', changedBy: 'manager1', changedAt: '2026-08-11T10:00:00' }]);
+  });
+
+  it('getWeekAuditLog() should GET /api/schedule/audit-log with week and userId', () => {
+    service.getWeekAuditLog('2026-08-10', 10).subscribe(logs => {
+      expect(logs).toHaveSize(1);
+    });
+
+    const req = httpMock.expectOne((r) => r.url.endsWith('/schedule/audit-log'));
+    expect(req.request.method).toBe('GET');
+    expect(req.request.params.get('week')).toBe('2026-08-10');
+    expect(req.request.params.get('userId')).toBe('10');
+    req.flush([{ id: 100, shiftId: 1, action: 'CREATED', changedBy: 'manager1', changedAt: '2026-08-11T10:00:00' }]);
+  });
+
+  it('getScheduleAt() should GET /api/schedule/at with week and at ISO params', () => {
+    service.getScheduleAt('2026-08-10', '2026-08-11T12:00:00').subscribe(shifts => {
+      expect(shifts).toEqual([mockShift]);
+    });
+
+    const req = httpMock.expectOne((r) => r.url.endsWith('/schedule/at'));
+    expect(req.request.method).toBe('GET');
+    expect(req.request.params.get('week')).toBe('2026-08-10');
+    expect(req.request.params.get('at')).toBe('2026-08-11T12:00:00');
+    req.flush([mockShift]);
+  });
 });

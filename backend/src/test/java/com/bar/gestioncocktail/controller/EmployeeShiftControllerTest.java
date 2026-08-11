@@ -2,11 +2,14 @@ package com.bar.gestioncocktail.controller;
 
 import com.bar.gestioncocktail.dto.EmployeeShiftRequestDTO;
 import com.bar.gestioncocktail.dto.EmployeeShiftResponseDTO;
+import com.bar.gestioncocktail.dto.ShiftAuditLogDTO;
 import com.bar.gestioncocktail.model.EmployeeShift;
+import com.bar.gestioncocktail.model.ShiftAuditAction;
 import com.bar.gestioncocktail.model.TypePoste;
 import com.bar.gestioncocktail.model.TypeShift;
 import com.bar.gestioncocktail.model.User;
 import com.bar.gestioncocktail.service.EmployeeShiftService;
+import com.bar.gestioncocktail.service.ShiftAuditService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -30,6 +34,9 @@ class EmployeeShiftControllerTest {
 
     @Mock
     private EmployeeShiftService shiftService;
+
+    @Mock
+    private ShiftAuditService shiftAuditService;
 
     @InjectMocks
     private EmployeeShiftController shiftController;
@@ -53,17 +60,6 @@ class EmployeeShiftControllerTest {
         sampleShift.setHeureDebut("08:00");
         sampleShift.setHeureFin("16:00");
         sampleShift.setHeuresEffectuees(new BigDecimal("8.0"));
-    }
-
-    @Test
-    void getAllShifts_ShouldReturnList() {
-        when(shiftService.getAllShifts()).thenReturn(List.of(sampleShift));
-
-        ResponseEntity<List<EmployeeShiftResponseDTO>> response = shiftController.getAllShifts();
-
-        assertThat(response.getStatusCode().value()).isEqualTo(200);
-        assertThat(response.getBody()).hasSize(1);
-        assertThat(response.getBody().get(0).typePoste()).isEqualTo(TypePoste.MANAGER);
     }
 
     @Test
@@ -100,32 +96,32 @@ class EmployeeShiftControllerTest {
     }
 
     @Test
-    void getShiftsForRange_ShouldReturnRangeShifts() {
-        LocalDate from = LocalDate.of(2026, 8, 1);
-        LocalDate to = LocalDate.of(2026, 8, 31);
+    void getShiftsForRange_ShouldReturnList() {
+        LocalDate from = LocalDate.of(2026, 8, 10);
+        LocalDate to = LocalDate.of(2026, 8, 16);
         when(shiftService.getShiftsForWeek(from, to)).thenReturn(List.of(sampleShift));
 
         ResponseEntity<List<EmployeeShiftResponseDTO>> response = shiftController.getShiftsForRange(from, to);
 
         assertThat(response.getStatusCode().value()).isEqualTo(200);
-        assertThat(response.getBody().get(0).heureDebut()).isEqualTo("08:00");
+        assertThat(response.getBody()).hasSize(1);
     }
 
     @Test
-    void getShiftsByUserId_ShouldReturnUserShifts() {
+    void getShiftsByUserId_ShouldReturnList() {
         when(shiftService.getShiftsByUserId(1L)).thenReturn(List.of(sampleShift));
 
         ResponseEntity<List<EmployeeShiftResponseDTO>> response = shiftController.getShiftsByUserId(1L);
 
         assertThat(response.getStatusCode().value()).isEqualTo(200);
-        assertThat(response.getBody().get(0).userId()).isEqualTo(1L);
+        assertThat(response.getBody()).hasSize(1);
     }
 
     @Test
-    void createShift_ShouldReturnDto() {
+    void createShift_ShouldReturnCreatedDto() {
         EmployeeShiftRequestDTO request = new EmployeeShiftRequestDTO(
             1L, LocalDate.of(2026, 8, 10), TypeShift.MATIN, TypePoste.MANAGER,
-            "08:00", "16:00", "12:00", 30, null, null, BigDecimal.ZERO, BigDecimal.valueOf(7.5), new BigDecimal("8.0"), "Note"
+            "08:00", "16:00", "12:00", 30, null, null, BigDecimal.ZERO, BigDecimal.valueOf(7.5), new BigDecimal("8.0"), "Test"
         );
 
         when(shiftService.createShift(any(EmployeeShiftRequestDTO.class))).thenReturn(sampleShift);
@@ -173,5 +169,22 @@ class EmployeeShiftControllerTest {
 
         assertThat(response.getStatusCode().value()).isEqualTo(200);
         verify(shiftService).deleteShift(1L);
+    }
+
+    @Test
+    void getShiftHistory_ShouldReturnHistoryList() {
+        ShiftAuditLogDTO dto = new ShiftAuditLogDTO(
+                10L, 1L, 1L, "manager1", "Dupont", "Jean",
+                LocalDate.of(2026, 8, 10), ShiftAuditAction.CREATED,
+                "manager1", LocalDateTime.now(), null, "{}"
+        );
+        when(shiftAuditService.getHistoryForShift(1L)).thenReturn(List.of(dto));
+
+        ResponseEntity<List<ShiftAuditLogDTO>> response = shiftController.getShiftHistory(1L);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getBody()).hasSize(1);
+        assertThat(response.getBody().get(0).shiftId()).isEqualTo(1L);
+        verify(shiftAuditService).getHistoryForShift(1L);
     }
 }

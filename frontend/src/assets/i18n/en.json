@@ -909,7 +909,44 @@
       "CONFIRM_TITLE": "Confirm bulk deletion?",
       "CONFIRM_MESSAGE": "Do you really want to permanently delete these {{count}} work shifts?",
       "SUCCESS": "{{count}} shifts successfully deleted"
+    },
+    "AUDIT": {
+      "HISTORY_BUTTON": "Schedule History",
+      "MODAL_TITLE": "Schedule Audit Log & History",
+      "EMPLOYEE_FILTER": "Employee",
+      "ALL_EMPLOYEES": "All employees",
+      "ACTION_FILTER": "Action",
+      "ALL_ACTIONS": "All actions",
+      "ACTION_CREATED": "Creation",
+      "ACTION_UPDATED": "Update",
+      "ACTION_DELETED": "Deletion",
+      "SEARCH_PLACEHOLDER": "Search by name, author, date...",
+      "NO_LOGS_FOUND": "No audit entries found",
+      "NO_LOGS_DESC": "All shift creations, modifications and deletions will be listed here.",
+      "BEFORE": "Before modification",
+      "AFTER": "After modification",
+      "HOURS": "Hours",
+      "TYPE": "Type",
+      "REAL_HOURS": "Actual hours",
+      "NOTES": "Notes",
+      "REPLAY_BUTTON": "Replay at this instant",
+      "SHIFT_HISTORY_TITLE": "Shift History",
+      "SHIFT_HISTORY_BTN": "Modification History"
+    },
+    "REPLAY": {
+      "BANNER_TITLE": "Time-Travel Replay Mode (Instant T)",
+      "BANNER_DESC": "Read-only view of the schedule as it was at this exact historical timestamp.",
+      "AT_LABEL": "Instant T",
+      "COMPARE_CURRENT": "Compare with Current Schedule",
+      "EXIT_COMPARE": "Exit Comparison",
+      "EXIT_REPLAY": "Exit Replay",
+      "READ_ONLY_NOTICE": "Historical read-only view. Exit replay mode to edit the schedule.",
+      "DIFF_BANNER_TITLE": "Differences between Historical Instant T vs Current",
+      "ADDED_SINCE": "Added since",
+      "MODIFIED_SINCE": "Modified since",
+      "DELETED_SINCE": "Deleted since"
     }
   }
 }
+
 

@@ -252,6 +252,10 @@
         <ion-button fill="clear" color="medium" (click)="closeForm()" (keydown.enter)="closeForm()" data-testid="cancel-shift-btn">
           {{ 'SHIFTS.CANCEL_FORM' | transloco }}
         </ion-button>
+        <ion-button fill="outline" color="secondary" (click)="openShiftHistoryModal()" (keydown.enter)="openShiftHistoryModal()" *ngIf="editingShiftId && isManagerOrAdmin" data-testid="shift-history-btn">
+          <ion-icon name="time-outline" slot="start"></ion-icon>
+          {{ 'SHIFTS.AUDIT.SHIFT_HISTORY_BTN' | transloco }}
+        </ion-button>
         <ion-button color="primary" (click)="saveShift()" (keydown.enter)="saveShift()" *ngIf="canEditShift" [disabled]="saving" data-testid="save-shift-btn">
           <ion-spinner name="crescent" *ngIf="saving"></ion-spinner>
           <span *ngIf="!saving">{{ 'SHIFTS.SAVE_SHIFT' | transloco }}</span>

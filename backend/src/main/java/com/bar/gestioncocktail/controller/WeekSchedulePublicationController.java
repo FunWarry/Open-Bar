@@ -1,6 +1,9 @@
 package com.bar.gestioncocktail.controller;
 
+import com.bar.gestioncocktail.dto.EmployeeShiftResponseDTO;
+import com.bar.gestioncocktail.dto.ShiftAuditLogDTO;
 import com.bar.gestioncocktail.dto.WeekSchedulePublicationDTO;
+import com.bar.gestioncocktail.service.ShiftAuditService;
 import com.bar.gestioncocktail.service.WeekSchedulePublicationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -17,19 +20,32 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
 
 /**
- * REST controller exposing endpoints for publishing and querying week schedule publications.
+ * REST controller exposing endpoints for publishing weekly schedules, retrieving immutable audit logs,
+ * and performing time-travel replay at an instant T.
  */
 @RestController
 @RequestMapping("/api/schedule")
-@Tag(name = "Schedule Publication", description = "Endpoints for publishing weekly planning and querying its publication state")
+@Tag(name = "Schedule Management", description = "Endpoints for publishing planning, querying audit history, and historical replay")
 public class WeekSchedulePublicationController {
 
     private final WeekSchedulePublicationService service;
+    private final ShiftAuditService shiftAuditService;
 
-    public WeekSchedulePublicationController(WeekSchedulePublicationService service) {
+    /**
+     * Constructs the controller with the publication service and shift audit service.
+     *
+     * @param service Week schedule publication service
+     * @param shiftAuditService Shift audit service
+     */
+    public WeekSchedulePublicationController(
+            WeekSchedulePublicationService service,
+            ShiftAuditService shiftAuditService) {
         this.service = service;
+        this.shiftAuditService = shiftAuditService;
     }
 
     /**
@@ -77,5 +93,51 @@ public class WeekSchedulePublicationController {
         return service.getPublication(weekStart)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.noContent().build());
+    }
+
+    /**
+     * Retrieves the audit log of all shift modifications for a given week, optionally filtered by user ID.
+     *
+     * @param week Date in target week (yyyy-MM-dd)
+     * @param userId Optional employee user identifier
+     * @return List of immutable audit log entries for the week
+     */
+    @GetMapping("/audit-log")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    @Operation(
+            summary = "Get weekly schedule audit log",
+            description = "Retrieves immutable audit entries for all shift changes within a target week"
+    )
+    @ApiResponse(responseCode = "200", description = "Weekly audit log retrieved successfully")
+    public ResponseEntity<List<ShiftAuditLogDTO>> getAuditLog(
+            @Parameter(description = "Date in target week (yyyy-MM-dd)")
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate week,
+            @Parameter(description = "Optional employee ID filter")
+            @RequestParam(required = false) Long userId) {
+
+        return ResponseEntity.ok(shiftAuditService.getAuditLogForWeek(week, userId));
+    }
+
+    /**
+     * Reconstructs the weekly schedule state at a specific historical point in time (replay).
+     *
+     * @param week Date in target week (yyyy-MM-dd)
+     * @param at Historical ISO timestamp (yyyy-MM-dd'T'HH:mm:ss)
+     * @return List of reconstructed shift DTOs at instant T
+     */
+    @GetMapping("/at")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN', 'SERVEUR', 'BARMAN')")
+    @Operation(
+            summary = "Reconstruct schedule at instant T",
+            description = "Replays and reconstructs the weekly schedule as it existed at a specific historical timestamp"
+    )
+    @ApiResponse(responseCode = "200", description = "Historical schedule reconstructed successfully")
+    public ResponseEntity<List<EmployeeShiftResponseDTO>> getScheduleAt(
+            @Parameter(description = "Date in target week (yyyy-MM-dd)")
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate week,
+            @Parameter(description = "Historical cut-off timestamp (ISO-8601)")
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime at) {
+
+        return ResponseEntity.ok(shiftAuditService.reconstructScheduleAt(week, at));
     }
 }

@@ -29,7 +29,7 @@ describe('ScheduleComponent', () => {
 
   beforeEach(async () => {
     wsSubject = new Subject<any>();
-    mockScheduleService = jasmine.createSpyObj('ScheduleService', ['getWeekSchedule', 'getMonday']);
+    mockScheduleService = jasmine.createSpyObj('ScheduleService', ['getWeekSchedule', 'getWeekScheduleAt', 'getMonday']);
     mockShiftService = jasmine.createSpyObj('ShiftService', ['createShift', 'deleteShift']);
     mockUserService = jasmine.createSpyObj('UserService', ['getUsers']);
     mockClosureService = jasmine.createSpyObj('ClosureService', ['getClosures', 'createClosure', 'deleteClosure']);
@@ -48,6 +48,16 @@ describe('ScheduleComponent', () => {
         weekEnd: '2026-08-16',
         employees: [],
         totalHours: 40,
+        totalEmployees: 5,
+        activeEmployees: 3
+      })
+    );
+    mockScheduleService.getWeekScheduleAt.and.returnValue(
+      of({
+        weekStart: '2026-08-10',
+        weekEnd: '2026-08-16',
+        employees: [],
+        totalHours: 35,
         totalEmployees: 5,
         activeEmployees: 3
       })
@@ -894,6 +904,70 @@ describe('ScheduleComponent', () => {
     it('filteredEmployees should return empty array if schedule is null', () => {
       component.schedule = null;
       expect(component.filteredEmployees).toEqual([]);
+    });
+  });
+
+  describe('Audit Log and Time-Travel Replay', () => {
+    it('openScheduleHistoryModal should open modal and trigger replay if requested', async () => {
+      const dummyModal = {
+        present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+        onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({
+          data: { action: 'replay', timestamp: '2026-08-10T12:00:00' }
+        }))
+      };
+      mockModalCtrl.create.and.returnValue(Promise.resolve(dummyModal as any));
+
+      await component.openScheduleHistoryModal();
+
+      expect(mockModalCtrl.create).toHaveBeenCalled();
+      expect(component.isReplayMode).toBeTrue();
+      expect(component.replayTimestamp).toBe('2026-08-10T12:00');
+    });
+
+    it('startReplay and exitReplayMode should toggle replay state', () => {
+      component.startReplay('2026-08-10T14:00:00');
+      expect(component.isReplayMode).toBeTrue();
+      expect(component.replayTimestamp).toBe('2026-08-10T14:00');
+      expect(mockScheduleService.getWeekScheduleAt).toHaveBeenCalled();
+
+      component.exitReplayMode();
+      expect(component.isReplayMode).toBeFalse();
+      expect(component.replaySchedule).toBeNull();
+      expect(component.isReplayComparisonMode).toBeFalse();
+    });
+
+    it('toggleReplayComparison should toggle diff calculation against active schedule', () => {
+      component.startReplay('2026-08-10T14:00:00');
+      expect(component.isReplayComparisonMode).toBeFalse();
+
+      component.toggleReplayComparison();
+      expect(component.isReplayComparisonMode).toBeTrue();
+
+      component.toggleReplayComparison();
+      expect(component.isReplayComparisonMode).toBeFalse();
+    });
+
+    it('onCellClick in replay mode should show read-only toast and prevent opening edit modals', () => {
+      component.isReplayMode = true;
+      const dummyEmp: EmployeeScheduleRow = {
+        employeeId: 1,
+        name: 'Jean',
+        role: 'SERVEUR',
+        shifts: []
+      };
+      const dummyCell = {
+        userId: 1,
+        day: 'Mon',
+        date: '2026-08-10',
+        isClosed: false,
+        startTime: '08:00',
+        endTime: '16:00',
+        type: 'WAITER' as const
+      };
+
+      component.onCellClick(dummyEmp, dummyCell);
+
+      expect(mockToastCtrl.create).toHaveBeenCalled();
     });
   });
 });
