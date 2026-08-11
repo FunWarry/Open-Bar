@@ -1,102 +1,197 @@
-.mobile-table-card {
-  background: var(--background-surface-1, #1a1a2e);
-  border: 1px solid var(--border-medium, #2e3450);
-  border-radius: var(--radius-lg, 12px);
-  padding: var(--space-3, 12px);
+// Modern Table Tile Component Styling
+// Adaptive Theme colors using CSS variables from variables.css (Rule #9)
+
+.table-tile {
+  background: var(--background-surface-1, #16192b);
+  border: 1px solid var(--border-medium, #2a2e4d);
+  border-radius: 14px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: var(--space-3, 12px);
+  gap: 12px;
   cursor: pointer;
-  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  position: relative;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 
   &:hover,
   &:focus-visible {
     border-color: var(--primary, #6c7fe8);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(108, 127, 232, 0.25);
     outline: none;
   }
 
-  .card-header {
+  &.is-occupied {
+    border-left: 4px solid var(--semantic-warning, #f4a52a);
+  }
+
+  .tile-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
 
-    .table-badge {
+    .table-identity {
       display: flex;
       align-items: center;
-      gap: var(--space-2, 8px);
-      font-weight: 700;
-      font-size: 1rem;
-      color: var(--text-primary, #eceefb);
+      gap: 10px;
 
-      ion-icon {
-        color: var(--primary, #6c7fe8);
-        font-size: 1.15rem;
+      .icon-box {
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        background: var(--background-surface-2, #21263f);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        ion-icon {
+          color: var(--primary, #6c7fe8);
+          font-size: 1.15rem;
+        }
+      }
+
+      .table-name {
+        font-weight: 700;
+        font-size: 1.05rem;
+        color: var(--text-primary, #eceefb);
+      }
+    }
+
+    .status-pill {
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+
+      &.free {
+        background: rgba(45, 211, 111, 0.15);
+        color: var(--semantic-success, #2dd36f);
+        border: 1px solid rgba(45, 211, 111, 0.3);
+      }
+
+      &.occupied {
+        background: rgba(244, 165, 42, 0.15);
+        color: var(--semantic-warning, #f4a52a);
+        border: 1px solid rgba(244, 165, 42, 0.3);
       }
     }
   }
 
-  .card-body {
+  .tile-body {
     display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-3, 12px);
-    font-size: 0.85rem;
+    flex-direction: column;
+    gap: 8px;
 
-    .info-item {
+    .meta-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.85rem;
+      color: var(--text-secondary, #a4add0);
+
+      .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+
+        ion-icon {
+          font-size: 1rem;
+          color: var(--text-muted, #717baa);
+        }
+
+        &.zone-chip {
+          background: var(--background-surface-2, #21263f);
+          padding: 2px 8px;
+          border-radius: 6px;
+          color: var(--text-secondary, #a4add0);
+        }
+      }
+    }
+
+    .wait-time-banner {
       display: flex;
       align-items: center;
       gap: 6px;
-      color: var(--text-secondary, #a4add0);
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
 
-      ion-icon {
-        font-size: 1rem;
+      &.wait-normal {
+        background: rgba(16, 185, 129, 0.18);
+        color: #34d399;
+        border: 1px solid rgba(52, 211, 153, 0.35);
       }
 
-      &.wait-timer {
-        font-weight: 600;
-        padding: 2px 8px;
-        border-radius: var(--radius-pill, 999px);
+      &.wait-warning {
+        background: rgba(245, 158, 11, 0.18);
+        color: #fbbf24;
+        border: 1px solid rgba(251, 191, 36, 0.35);
+      }
 
-        &.wait-normal {
-          background: #064e3b;
-          color: #a7f3d0;
-        }
-
-        &.wait-warning {
-          background: #78350f;
-          color: #fde68a;
-        }
-
-        &.wait-danger {
-          background: #7f1d1d;
-          color: #fca5a5;
-        }
+      &.wait-danger {
+        background: rgba(239, 68, 68, 0.18);
+        color: #f87171;
+        border: 1px solid rgba(248, 113, 113, 0.35);
       }
     }
   }
 
-  .card-footer {
+  .tile-footer {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    border-top: 1px solid var(--border-light, #2e3450);
-    padding-top: var(--space-2, 8px);
-    margin-top: auto;
+    justify-content: space-between;
+    margin-top: 4px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border-medium, #2a2e4d);
 
-    .total-wrap {
+    .total-badge {
       display: flex;
       flex-direction: column;
 
       .label {
-        font-size: 0.75rem;
-        color: var(--text-muted, #7e87a8);
+        font-size: 0.72rem;
+        color: var(--text-muted, #717baa);
+        text-transform: uppercase;
       }
 
       .amount {
-        font-size: 0.95rem;
-        font-weight: 700;
+        font-size: 1.05rem;
+        font-weight: 800;
+        color: var(--semantic-success, #2dd36f);
+      }
+    }
+
+    .order-btn {
+      margin-left: auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--background-surface-2, #21263f);
+      color: var(--text-primary, #eceefb);
+      border: 1px solid var(--border-medium, #2a2e4d);
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease;
+
+      ion-icon {
         color: var(--primary, #6c7fe8);
+        font-size: 1rem;
+      }
+
+      &:hover {
+        background: var(--primary, #6c7fe8);
+        color: #ffffff;
+        border-color: var(--primary, #6c7fe8);
+
+        ion-icon {
+          color: #ffffff;
+        }
       }
     }
   }

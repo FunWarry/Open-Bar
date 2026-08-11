@@ -1,15 +1,23 @@
+// Bottom Navigation Bar
+// Positioned relative to sidebar width so it stays inside the content area on desktop/tablet (Rule #9)
+
 .bottom-nav {
   position: fixed;
   bottom: 0;
-  left: 0;
+  left: var(--sidebar-width, 220px);
   right: 0;
   height: 60px;
-  background: var(--background-surface-1, #1a1a2e);
-  border-top: 1px solid var(--border-medium, #2e3450);
+  background: var(--background-surface-1, #16192b);
+  border-top: 1px solid var(--border-medium, #2a2e4d);
   display: flex;
   justify-content: space-around;
   align-items: center;
-  z-index: 100;
+  z-index: 80;
+  transition: left 0.3s ease;
+
+  @media (max-width: 767px) {
+    left: 0;
+  }
 
   .nav-tab {
     background: none;
@@ -19,7 +27,7 @@
     align-items: center;
     justify-content: center;
     gap: 3px;
-    color: var(--text-muted, #7e87a8);
+    color: var(--text-secondary, #a4add0);
     font-size: 0.75rem;
     font-weight: 500;
     cursor: pointer;
@@ -42,7 +50,7 @@
         top: -4px;
         right: -8px;
         background: var(--primary, #6c7fe8);
-        color: #fff;
+        color: #ffffff;
         font-size: 0.65rem;
         font-weight: 700;
         padding: 1px 5px;
@@ -50,6 +58,7 @@
 
         &.warning {
           background: var(--semantic-warning, #f4a52a);
+          color: #000000;
         }
       }
     }

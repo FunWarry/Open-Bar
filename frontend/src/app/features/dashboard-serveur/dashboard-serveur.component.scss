@@ -1,19 +1,31 @@
+// Waiter Dashboard Main Styles
+// Adaptive Theme colors using CSS variables from variables.css (Rule #9)
+
 .dashboard-serveur-content {
-  padding-bottom: 70px;
+  padding-bottom: 85px;
 }
 
 .segment-container {
   margin-bottom: var(--space-4, 16px);
 
   ion-segment {
-    --background: var(--background-surface-1, #1a1a2e);
+    --background: var(--background-surface-1, #16192b);
+    border-radius: 10px;
+    padding: 3px;
+
+    ion-segment-button {
+      --color: var(--text-secondary, #a4add0);
+      --color-checked: var(--text-primary, #eceefb);
+      --indicator-color: var(--primary, #6c7fe8);
+      font-weight: 600;
+    }
   }
 }
 
 .mobile-tables-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: var(--space-3, 12px);
+  gap: 16px;
 }
 
 .order-taking-layout {
