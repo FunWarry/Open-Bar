@@ -1,146 +1,460 @@
 /**
- * Kanban Serveur – Suivi des commandes en temps réel.
+ * Kanban Serveur – Real-time order tracking kanban board.
  * Uses theme CSS variables exclusively; no hardcoded colors.
  */
 
+// ─── Accessibility ─────────────────────────────────────────────────────────────
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+// ─── Host & Ion-Content override ───────────────────────────────────────────────
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.kanban-content {
+  --background: var(--background-bg-0);
+  --padding-start: 0;
+  --padding-end: 0;
+  --padding-top: 0;
+  --padding-bottom: 0;
+}
+
+// ─── Header ────────────────────────────────────────────────────────────────────
+.kanban-header {
+  ion-toolbar {
+    --background: var(--background-surface-1);
+    --color: var(--text-primary);
+    --border-color: var(--border-medium);
+  }
+
+  .header-center {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+
+    ion-title {
+      font-weight: 800;
+      padding-inline: 0;
+    }
+
+    .active-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 10px;
+      border-radius: var(--radius-pill);
+      background: rgba(108, 127, 232, 0.15);
+      color: var(--primary);
+      font-size: 0.75rem;
+      font-weight: 700;
+      border: 1px solid rgba(108, 127, 232, 0.3);
+      white-space: nowrap;
+    }
+  }
+}
+
 // ─── Filter toolbar ────────────────────────────────────────────────────────────
 .filter-toolbar {
-  --background: var(--surface-2);
-  padding: 0 var(--space-2) var(--space-2);
+  --background: var(--background-surface-2);
+  --border-color: var(--border-medium);
 
-  .table-select {
-    --background: var(--surface-1);
-    --color: var(--text-primary);
-    --placeholder-color: var(--text-muted);
-    border-radius: var(--radius-md);
-    padding: 4px var(--space-2);
-    font-size: 13px;
+  .filter-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: 6px var(--space-4);
+    flex-wrap: wrap;
+  }
+
+  .filter-select-box {
+    flex: 1;
+    min-width: 180px;
+    max-width: 280px;
+  }
+
+  .table-native-select {
     width: 100%;
+    padding: 6px 10px;
+    border-radius: var(--radius-md);
+    background: var(--background-surface-1);
+    color: var(--text-primary);
+    border: 1px solid var(--border-medium);
+    font-size: 0.82rem;
+    font-weight: 500;
+    cursor: pointer;
+    outline: none;
+    appearance: auto;
+
+    &:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(108, 127, 232, 0.2);
+    }
+
+    option {
+      background: var(--background-surface-1);
+      color: var(--text-primary);
+    }
+  }
+
+  .filter-info {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: var(--radius-pill);
+    background: rgba(108, 127, 232, 0.12);
+    border: 1px solid rgba(108, 127, 232, 0.3);
+    color: var(--primary-light);
+    font-size: 0.78rem;
+    font-weight: 600;
+
+    ion-icon {
+      font-size: 0.85rem;
+    }
+
+    .clear-filter-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 0 2px;
+      font-size: 0.75rem;
+      line-height: 1;
+
+      &:hover {
+        color: var(--semantic-danger);
+      }
+    }
   }
 }
 
 // ─── Loading ────────────────────────────────────────────────────────────────────
 .loading-state {
   display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
-  padding: 48px var(--space-4);
+  gap: var(--space-3);
+  padding: 64px var(--space-4);
+  color: var(--text-muted);
+  font-size: 0.88rem;
+}
+
+// ─── Kanban scroll wrapper ──────────────────────────────────────────────────────
+// This is the key fix: the wrapper takes full available height from ion-content
+// and allows horizontal scroll while each column has fixed width.
+.kanban-scroll-wrapper {
+  height: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: var(--space-3);
+
+  // Custom scrollbar for webkit
+  &::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: var(--background-surface-1);
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--border-light);
+    border-radius: 3px;
+  }
 }
 
 // ─── Kanban board ──────────────────────────────────────────────────────────────
 .kanban-board {
   display: flex;
   gap: var(--space-3);
+  height: 100%;
+  // Use inline-flex so the board expands to fit all columns and the wrapper scrolls
+  width: max-content;
+  min-width: 100%;
+}
+
+// ─── Column ─────────────────────────────────────────────────────────────────────
+.kanban-col {
+  width: 280px;
+  min-width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  height: 100%;
+  overflow-y: auto;
+
+  // Custom scrollbar per column
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--border-medium);
+    border-radius: 2px;
+  }
+}
+
+// Column header
+.col-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+
+  .col-header-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .col-status-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    flex-shrink: 0;
+
+    &.dot-waiting    { background: var(--status-waiting); }
+    &.dot-inprogress { background: var(--status-inprogress); }
+    &.dot-ready      { background: var(--status-ready); }
+    &.dot-served     { background: var(--status-served); }
+  }
+
+  .col-title {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+
+  .col-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--background-surface-3);
+    color: var(--text-secondary);
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+}
+
+// Column left accent by status
+.col-waiting  .col-header { border-left: 3px solid var(--status-waiting); }
+.col-inprogress .col-header { border-left: 3px solid var(--status-inprogress); }
+.col-ready    .col-header { border-left: 3px solid var(--status-ready); }
+.col-served   .col-header { border-left: 3px solid var(--status-served); }
+
+// Empty state
+.col-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 32px 12px;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--surface-2) 40%, transparent);
+  border: 1px dashed var(--border-medium);
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-style: italic;
+
+  ion-icon {
+    font-size: 1.4rem;
+    opacity: 0.4;
+  }
+}
+
+// Cards list inside a column
+.cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  flex: 1;
+}
+
+// ─── Commande card ──────────────────────────────────────────────────────────────
+.commande-card {
+  background: var(--background-surface-2);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-medium);
   padding: var(--space-3);
-  overflow-x: auto;
-  // removed min-height: 100vh to avoid full-screen forced sizing
-  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+  cursor: default;
 
-  .kanban-col {
-    min-width: 240px;
-    flex: 1;
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+  }
 
-    .col-header {
-      display: flex;
-      align-items: center;
-      gap: var(--space-2);
-      margin-bottom: 10px;
-      padding: 0 2px;
+  // Status left border
+  &.card-waiting    { border-left: 3px solid var(--status-waiting); }
+  &.card-inprogress { border-left: 3px solid var(--status-inprogress); }
+  &.card-ready      { border-left: 3px solid var(--status-ready); }
+  &.card-served     { border-left: 3px solid var(--status-served); opacity: 0.72; }
 
-      .col-title {
-        font-size: 13px;
-        font-weight: 700;
-        color: var(--text-primary);
-      }
-    }
+  // Late orders get a danger tint
+  &.card-late {
+    border-color: var(--semantic-danger);
+    background: color-mix(in srgb, var(--semantic-danger) 6%, var(--surface-2));
+  }
+}
 
-    .col-empty {
-      text-align: center;
-      padding: 24px var(--space-2);
-      color: var(--text-muted);
-      font-size: 12px;
-      font-style: italic;
-      background: color-mix(in srgb, var(--surface-2) 50%, transparent);
-      border-radius: var(--radius-md);
-      border: 1px dashed var(--border-medium);
+// Card header row
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  .card-id-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .card-id {
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+
+  .card-late-badge {
+    display: inline-flex;
+    align-items: center;
+    color: var(--semantic-danger);
+    font-size: 1rem;
+    animation: pulse-late 1.5s ease-in-out infinite;
+  }
+
+  .card-table {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    padding: 2px 7px;
+    border-radius: var(--radius-pill);
+    background: var(--background-surface-3);
+    border: 1px solid var(--border-medium);
+  }
+}
+
+// Card meta (server + time + wait)
+.card-meta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+
+  ion-icon {
+    font-size: 0.8rem;
+    flex-shrink: 0;
+  }
+
+  .wait-time {
+    margin-left: auto;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: var(--radius-pill);
+    background: var(--background-surface-3);
+    color: var(--text-secondary);
+    font-size: 0.7rem;
+
+    &.late {
+      background: rgba(229, 96, 79, 0.18);
+      color: var(--semantic-danger);
     }
   }
 }
 
-// ─── Commande card ─────────────────────────────────────────────────────────────
-.commande-card {
-  --background: var(--surface-2);
-  margin: 0 0 10px;
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
+// Items list
+.card-items {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 6px 8px;
+  background: var(--background-bg-0);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-medium);
 
-  &.card-en_attente {
-    border-left: 3px solid var(--status-waiting);
-  }
-
-  &.card-en_preparation {
-    border-left: 3px solid var(--status-inprogress);
-  }
-
-  &.card-pret {
-    border-left: 3px solid var(--status-ready);
-  }
-
-  &.card-livree {
-    border-left: 3px solid var(--status-served);
-    opacity: 0.72;
-  }
-
-  .card-header-row {
+  .item-line {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2px;
-  }
+    align-items: baseline;
+    gap: 5px;
+    font-size: 0.78rem;
 
-  .cmd-id {
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--text-primary);
-  }
-
-  .cmd-table {
-    font-size: 11px;
-    color: var(--text-muted);
-    font-weight: 600;
-  }
-
-  .cmd-meta {
-    font-size: 11px;
-    color: var(--text-muted);
-    margin-top: 2px;
-  }
-
-  .items-list {
-    margin: var(--space-1) 0;
-
-    .item-line {
-      font-size: 12px;
-      color: var(--text-secondary);
-      padding: 2px 0;
+    .item-qty {
+      font-weight: 700;
+      color: var(--primary-light);
+      min-width: 22px;
+      flex-shrink: 0;
     }
 
-    .no-items {
-      font-size: 11px;
+    .item-name {
+      color: var(--text-secondary);
+      line-height: 1.3;
+    }
+
+    &.item-empty {
       color: var(--text-muted);
       font-style: italic;
+      justify-content: center;
     }
   }
+}
+
+// Card footer
+.card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  flex-wrap: wrap;
 
   .card-total {
-    font-size: 14px;
-    font-weight: 700;
+    font-size: 0.9rem;
+    font-weight: 800;
     color: var(--semantic-success);
-    margin: var(--space-1) 0 var(--space-2);
   }
 
   .card-actions {
     display: flex;
     flex-direction: column;
-    gap: var(--space-1);
+    gap: 4px;
+    flex: 1;
+
+    ion-button {
+      --border-radius: var(--radius-md);
+      font-size: 0.75rem;
+    }
   }
+}
+
+// ─── Animation ──────────────────────────────────────────────────────────────────
+@keyframes pulse-late {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.5; transform: scale(1.2); }
 }

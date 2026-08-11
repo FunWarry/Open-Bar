@@ -1,17 +1,15 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { CommonModule, LowerCasePipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Subject, forkJoin } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
 import {
   IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
   IonContent, IonRefresher, IonRefresherContent,
-  IonSelect, IonSelectOption,
-  IonCard, IonCardHeader, IonCardTitle, IonCardContent,
   IonButton, IonIcon, IonBadge, IonSpinner,
   ToastController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { checkmarkOutline, banOutline, refreshOutline } from 'ionicons/icons';
+import { checkmarkOutline, banOutline, timeOutline, flameOutline, funnelOutline, checkmarkCircleOutline } from 'ionicons/icons';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { DashboardServeurService } from '../services/dashboard-serveur.service';
 import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
@@ -26,9 +24,11 @@ interface Colonne {
   statut: CommandeStatut;
   /** Transloco i18n key for the column label. */
   labelKey: string;
+  /** CSS status class suffix. */
+  statusClass: string;
   /** Ionic color token for the badge. */
   color: string;
-  /** Commands displayed in this column. */
+  /** Commands displayed in this column after applying the table filter. */
   commandes: Commande[];
 }
 
@@ -37,13 +37,10 @@ interface Colonne {
   standalone: true,
   imports: [
     CommonModule,
-    LowerCasePipe,
     TranslocoModule,
     IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
     IonContent, IonRefresher, IonRefresherContent,
-    IonSelect, IonSelectOption,
-    IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-    IonButton, IonIcon, IonBadge, IonSpinner,
+    IonButton, IonIcon, IonSpinner,
   ],
   templateUrl: './kanban-serveur.component.html',
   styleUrls: ['./kanban-serveur.component.scss'],
@@ -51,14 +48,19 @@ interface Colonne {
 export class KanbanServeurComponent implements OnInit, OnDestroy {
   /** Kanban columns ordered by workflow step. */
   readonly colonnes: Colonne[] = [
-    { statut: 'EN_ATTENTE',     labelKey: 'COMMANDES.STATUTS.EN_ATTENTE',    color: 'warning', commandes: [] },
-    { statut: 'EN_PREPARATION', labelKey: 'COMMANDES.STATUTS.EN_PREPARATION', color: 'primary', commandes: [] },
-    { statut: 'PRET',           labelKey: 'COMMANDES.STATUTS.PRET',           color: 'success', commandes: [] },
-    { statut: 'LIVREE',         labelKey: 'COMMANDES.STATUTS.LIVREE',         color: 'medium',  commandes: [] },
+    { statut: 'EN_ATTENTE',     labelKey: 'COMMANDES.STATUTS.EN_ATTENTE',    statusClass: 'waiting',     color: 'warning', commandes: [] },
+    { statut: 'EN_PREPARATION', labelKey: 'COMMANDES.STATUTS.EN_PREPARATION', statusClass: 'inprogress',  color: 'primary', commandes: [] },
+    { statut: 'PRET',           labelKey: 'COMMANDES.STATUTS.PRET',           statusClass: 'ready',       color: 'success', commandes: [] },
+    { statut: 'LIVREE',         labelKey: 'COMMANDES.STATUTS.LIVREE',         statusClass: 'served',      color: 'medium',  commandes: [] },
   ];
 
+  /** List of tables for the filter dropdown. */
   tables: TableView[] = [];
+
+  /** Currently selected table ID for filtering (null = all tables). */
   filtreTableId: number | null = null;
+
+  /** Whether data is being loaded from the API. */
   isLoading = false;
 
   private readonly allCommandes: Map<CommandeStatut, Commande[]> = new Map();
@@ -70,7 +72,7 @@ export class KanbanServeurComponent implements OnInit, OnDestroy {
     private readonly notificationService: NotificationService,
     private readonly transloco: TranslocoService,
   ) {
-    addIcons({ checkmarkOutline, banOutline, refreshOutline });
+    addIcons({ checkmarkOutline, banOutline, timeOutline, flameOutline, funnelOutline, checkmarkCircleOutline });
   }
 
   ngOnInit() {
@@ -90,14 +92,18 @@ export class KanbanServeurComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  /**
+   * Loads all orders grouped by status and the table list.
+   * @param refreshEvent - Optional refresher event to complete after loading.
+   */
   charger(refreshEvent?: any) {
     this.isLoading = true;
     forkJoin({
-      enAttente:    this.service.getCommandesParStatut('EN_ATTENTE'),
-      enPrepa:      this.service.getCommandesParStatut('EN_PREPARATION'),
-      pret:         this.service.getCommandesParStatut('PRET'),
-      livree:       this.service.getCommandesParStatut('LIVREE'),
-      tables:       this.service.getAllTables(),
+      enAttente: this.service.getCommandesParStatut('EN_ATTENTE'),
+      enPrepa:   this.service.getCommandesParStatut('EN_PREPARATION'),
+      pret:      this.service.getCommandesParStatut('PRET'),
+      livree:    this.service.getCommandesParStatut('LIVREE'),
+      tables:    this.service.getAllTables(),
     })
       .pipe(
         takeUntil(this.destroy$),
@@ -126,9 +132,20 @@ export class KanbanServeurComponent implements OnInit, OnDestroy {
       });
   }
 
+  /**
+   * Updates the table filter and refreshes column contents.
+   * @param tableId - Table ID to filter by, or null for all tables.
+   */
   onFiltreChange(tableId: number | null) {
     this.filtreTableId = tableId;
     this.appliquerFiltre();
+  }
+
+  /** Returns the total number of active (non-delivered) orders. */
+  get totalActif(): number {
+    return (this.allCommandes.get('EN_ATTENTE')?.length ?? 0)
+      + (this.allCommandes.get('EN_PREPARATION')?.length ?? 0)
+      + (this.allCommandes.get('PRET')?.length ?? 0);
   }
 
   private appliquerFiltre() {
@@ -140,6 +157,10 @@ export class KanbanServeurComponent implements OnInit, OnDestroy {
     });
   }
 
+  /**
+   * Marks an order as delivered.
+   * @param commandeId - ID of the order to mark delivered.
+   */
   async marquerLivree(commandeId: number) {
     this.service.changerStatutCommande(commandeId, 'LIVREE')
       .pipe(takeUntil(this.destroy$))
@@ -164,6 +185,10 @@ export class KanbanServeurComponent implements OnInit, OnDestroy {
       });
   }
 
+  /**
+   * Cancels an order.
+   * @param commandeId - ID of the order to cancel.
+   */
   async annuler(commandeId: number) {
     this.service.annulerCommande(commandeId)
       .pipe(takeUntil(this.destroy$))
@@ -188,7 +213,36 @@ export class KanbanServeurComponent implements OnInit, OnDestroy {
       });
   }
 
+  /**
+   * Returns the elapsed wait time in minutes for an occupied table.
+   * @param cmd - The command to compute wait time for.
+   */
+  getWaitMinutes(cmd: Commande): number {
+    const ordered = new Date(cmd.dateCommande).getTime();
+    return Math.floor((Date.now() - ordered) / 60000);
+  }
+
+  /** Whether a command has been waiting too long (> 20 min). */
+  isLate(cmd: Commande): boolean {
+    return this.getWaitMinutes(cmd) > 20;
+  }
+
   onRefresh(event: any) { this.charger(event); }
+
   trackById(_: number, cmd: Commande): number { return cmd.id; }
-  groupItems(items: any[]): any[] { return groupCommandeItems(items); }
+
+  /**
+   * Groups and returns the items of a command for display.
+   * @param items - Raw command items array.
+   */
+  groupItems(items: any[]): any[] { return groupCommandeItems(items ?? []); }
+
+  /**
+   * Returns the display name of a table by its ID.
+   * @param tableId - ID of the table to look up.
+   */
+  getTableNom(tableId: number | null): string {
+    if (!tableId) return '';
+    return this.tables.find(t => t.id === tableId)?.nom ?? `#${tableId}`;
+  }
 }

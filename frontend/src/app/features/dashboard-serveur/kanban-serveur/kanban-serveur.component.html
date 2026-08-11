@@ -1,104 +1,157 @@
-<ion-header>
-  <ion-toolbar class="serveur-toolbar">
+<ion-header class="ion-no-border kanban-header">
+  <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/serveur"></ion-back-button>
+      <ion-back-button defaultHref="/serveur" data-testid="kanban-back-btn"></ion-back-button>
     </ion-buttons>
-    <ion-title>{{ 'COMMANDES.TITLE' | transloco }}</ion-title>
+
+    <div class="header-center">
+      <ion-title>{{ 'COMMANDES.TITLE' | transloco }}</ion-title>
+      <span class="active-badge" *ngIf="!isLoading">
+        {{ totalActif }} {{ 'SERVEUR_MOBILE.CARD.COMMANDES_COUNT' | transloco }}
+      </span>
+    </div>
   </ion-toolbar>
 
   <!-- Filtre par table -->
   <ion-toolbar class="filter-toolbar">
-    <ion-select
-      class="table-select"
-      [placeholder]="'SERVEUR_MOBILE.NAV.TABLES' | transloco"
-      [value]="filtreTableId"
-      (ionChange)="onFiltreChange($event.detail.value)"
-      interface="popover"
-      data-testid="kanban-filtre-table">
-      <ion-select-option [value]="null">{{ 'COMMON.ALL' | transloco }} {{ 'SERVEUR_MOBILE.NAV.TABLES' | transloco | lowercase }}</ion-select-option>
-      <ion-select-option *ngFor="let t of tables" [value]="t.id">{{ t.nom }}</ion-select-option>
-    </ion-select>
+    <div class="filter-row">
+      <div class="filter-select-box">
+        <label for="kanban-table-select" class="sr-only">{{ 'COMMANDES.TABLE' | transloco }}</label>
+        <select
+          id="kanban-table-select"
+          class="table-native-select"
+          [value]="filtreTableId ?? ''"
+          (change)="onFiltreChange($any($event.target).value ? +$any($event.target).value : null)"
+          data-testid="kanban-filtre-table">
+          <option value="">{{ 'COMMANDES.STATUTS.TOUTES' | transloco }} {{ 'SERVEUR_MOBILE.NAV.TABLES' | transloco }}</option>
+          <option *ngFor="let t of tables" [value]="t.id">{{ t.nom }}</option>
+        </select>
+      </div>
+      <div class="filter-info" *ngIf="filtreTableId">
+        <ion-icon name="funnel-outline"></ion-icon>
+        <span>{{ 'COMMON.FILTER' | transloco }}: {{ getTableNom(filtreTableId) }}</span>
+        <button class="clear-filter-btn" (click)="onFiltreChange(null)" data-testid="kanban-clear-filter">✕</button>
+      </div>
+    </div>
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="serveur-content">
+<ion-content class="kanban-content">
   <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
+  <!-- Loading -->
   <div *ngIf="isLoading" class="loading-state">
     <ion-spinner name="crescent" color="primary"></ion-spinner>
+    <p>{{ 'COMMON.LOADING' | transloco }}</p>
   </div>
 
-  <div *ngIf="!isLoading" class="kanban-board">
-    <div *ngFor="let col of colonnes" class="kanban-col" [attr.data-testid]="'kanban-col-' + col.statut.toLowerCase()">
-      <div class="col-header">
-        <ion-badge [color]="col.color">{{ col.commandes.length }}</ion-badge>
-        <span class="col-title">{{ col.labelKey | transloco }}</span>
-      </div>
+  <!-- Kanban board — horizontal scroll container -->
+  <div *ngIf="!isLoading" class="kanban-scroll-wrapper">
+    <div class="kanban-board">
 
-      <div *ngIf="col.commandes.length === 0" class="col-empty">
-        {{ 'COMMANDES.MESSAGES.EMPTY_COLUMN' | transloco }}
-      </div>
+      <div
+        *ngFor="let col of colonnes"
+        class="kanban-col"
+        [class]="'kanban-col col-' + col.statusClass"
+        [attr.data-testid]="'kanban-col-' + col.statusClass">
 
-      <ion-card
-        *ngFor="let cmd of col.commandes; trackBy: trackById"
-        class="commande-card"
-        [class]="'card-' + col.statut.toLowerCase()"
-        [attr.data-testid]="'commande-card-' + cmd.id">
-        <ion-card-header>
-          <div class="card-header-row">
-            <ion-card-title class="cmd-id">#{{ cmd.id }}</ion-card-title>
-            <span class="cmd-table">{{ cmd.tableNumero !== undefined ? ('COMMANDES.TABLE' | transloco) + ' ' + cmd.tableNumero : '' }}</span>
+        <!-- Column header -->
+        <div class="col-header">
+          <div class="col-header-left">
+            <span class="col-status-dot" [class]="'dot-' + col.statusClass"></span>
+            <span class="col-title">{{ col.labelKey | transloco }}</span>
           </div>
-          <div class="cmd-meta">{{ cmd.serveurUsername }} · {{ cmd.dateCommande | date:'HH:mm' }}</div>
-        </ion-card-header>
+          <span class="col-count">{{ col.commandes.length }}</span>
+        </div>
 
-        <ion-card-content>
-          <div class="items-list">
-            <ng-container *ngIf="groupItems(cmd.items) as grouped">
-              <div *ngIf="grouped.length > 0; else noItems">
-                <div *ngFor="let item of grouped" class="item-line">
-                  {{ item.quantite }}× {{ item.cocktailNom }}
-                </div>
+        <!-- Empty state -->
+        <div *ngIf="col.commandes.length === 0" class="col-empty">
+          <ion-icon name="checkmark-circle-outline"></ion-icon>
+          <span>{{ 'COMMANDES.MESSAGES.EMPTY_COLUMN' | transloco }}</span>
+        </div>
+
+        <!-- Command cards -->
+        <div class="cards-list">
+          <div
+            *ngFor="let cmd of col.commandes; trackBy: trackById"
+            class="commande-card"
+            [class]="'card-' + col.statusClass"
+            [class.card-late]="col.statut === 'EN_ATTENTE' && isLate(cmd)"
+            [attr.data-testid]="'commande-card-' + cmd.id">
+
+            <!-- Card header -->
+            <div class="card-header">
+              <div class="card-id-group">
+                <span class="card-id">#{{ cmd.id }}</span>
+                <span class="card-late-badge" *ngIf="col.statut === 'EN_ATTENTE' && isLate(cmd)">
+                  <ion-icon name="flame-outline"></ion-icon>
+                </span>
               </div>
-              <ng-template #noItems>
-                <div class="no-items">{{ 'COMMANDES.MESSAGES.EMPTY_LIST' | transloco }}</div>
-              </ng-template>
-            </ng-container>
-          </div>
-          <div class="card-total">{{ cmd.total | currency:'EUR':'symbol':'1.2-2':'fr' }}</div>
+              <span class="card-table" *ngIf="cmd.tableNumero">
+                {{ 'COMMANDES.TABLE' | transloco }} {{ cmd.tableNumero }}
+              </span>
+            </div>
 
-          <div class="card-actions">
-            <ion-button
-              *ngIf="col.statut === 'PRET'"
-              fill="solid"
-              color="success"
-              size="small"
-              expand="block"
-              [title]="'COMMANDES.ACTIONS.MARK_DELIVERED_TOOLTIP' | transloco"
-              (click)="marquerLivree(cmd.id)"
-              (keyup.enter)="marquerLivree(cmd.id)"
-              [attr.data-testid]="'btn-livrer-' + cmd.id">
-              <ion-icon name="checkmark-outline" slot="start"></ion-icon>
-              {{ 'COMMANDES.ACTIONS.MARK_DELIVERED' | transloco }}
-            </ion-button>
-            <ion-button
-              *ngIf="col.statut !== 'LIVREE'"
-              fill="outline"
-              color="danger"
-              size="small"
-              expand="block"
-              [title]="'COMMANDES.ACTIONS.CANCEL_TOOLTIP' | transloco"
-              (click)="annuler(cmd.id)"
-              (keyup.enter)="annuler(cmd.id)"
-              [attr.data-testid]="'btn-annuler-' + cmd.id">
-              <ion-icon name="ban-outline" slot="start"></ion-icon>
-              {{ 'COMMANDES.ACTIONS.CANCEL' | transloco }}
-            </ion-button>
+            <!-- Meta -->
+            <div class="card-meta">
+              <ion-icon name="time-outline"></ion-icon>
+              <span>{{ cmd.serveurUsername }} · {{ cmd.dateCommande | date:'HH:mm' }}</span>
+              <span class="wait-time" *ngIf="col.statut !== 'LIVREE'" [class.late]="isLate(cmd)">
+                {{ getWaitMinutes(cmd) }}min
+              </span>
+            </div>
+
+            <!-- Items list -->
+            <div class="card-items">
+              <ng-container *ngIf="groupItems(cmd.items) as grouped">
+                <div *ngFor="let item of grouped" class="item-line">
+                  <span class="item-qty">{{ item.quantite }}×</span>
+                  <span class="item-name">{{ item.cocktailNom }}</span>
+                </div>
+                <div *ngIf="grouped.length === 0" class="item-line item-empty">
+                  —
+                </div>
+              </ng-container>
+            </div>
+
+            <!-- Total -->
+            <div class="card-footer">
+              <span class="card-total">{{ cmd.total | currency:'EUR':'symbol':'1.2-2':'fr' }}</span>
+
+              <div class="card-actions">
+                <ion-button
+                  *ngIf="col.statut === 'PRET'"
+                  fill="solid"
+                  color="success"
+                  size="small"
+                  [title]="'COMMANDES.ACTIONS.MARK_DELIVERED_TOOLTIP' | transloco"
+                  (click)="marquerLivree(cmd.id)"
+                  (keyup.enter)="marquerLivree(cmd.id)"
+                  [attr.data-testid]="'btn-livrer-' + cmd.id">
+                  <ion-icon name="checkmark-outline" slot="start"></ion-icon>
+                  {{ 'COMMANDES.ACTIONS.MARK_DELIVERED' | transloco }}
+                </ion-button>
+
+                <ion-button
+                  *ngIf="col.statut !== 'LIVREE'"
+                  fill="outline"
+                  color="danger"
+                  size="small"
+                  [title]="'COMMANDES.ACTIONS.CANCEL_TOOLTIP' | transloco"
+                  (click)="annuler(cmd.id)"
+                  (keyup.enter)="annuler(cmd.id)"
+                  [attr.data-testid]="'btn-annuler-' + cmd.id">
+                  <ion-icon name="ban-outline" slot="start"></ion-icon>
+                  {{ 'COMMANDES.ACTIONS.CANCEL' | transloco }}
+                </ion-button>
+              </div>
+            </div>
           </div>
-        </ion-card-content>
-      </ion-card>
+        </div>
+      </div>
+
     </div>
   </div>
 </ion-content>
