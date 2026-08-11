@@ -114,6 +114,30 @@ button.product-card,
       line-height: 1.2;
     }
 
+    .allergens-badges-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 4px;
+
+      .card-allergen-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        padding: 1px 6px;
+        border-radius: var(--radius-pill, 999px);
+        background: rgba(244, 165, 42, 0.12);
+        color: var(--semantic-warning, #f4a52a);
+        border: 1px solid rgba(244, 165, 42, 0.25);
+
+        .alg-symbol {
+          font-size: 0.75rem;
+        }
+      }
+    }
+
     .product-footer-row {
       display: flex;
       justify-content: space-between;

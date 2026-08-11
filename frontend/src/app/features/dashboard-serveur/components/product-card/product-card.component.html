@@ -30,6 +30,14 @@
   <div class="product-body">
     <h4 class="product-title">{{ product.nom }}</h4>
     <p class="product-description" *ngIf="product.description">{{ product.description }}</p>
+
+    <!-- Badges d'allergènes détectés sur la boisson -->
+    <div *ngIf="detectedAllergens.length > 0" class="allergens-badges-row">
+      <span *ngFor="let alg of detectedAllergens" class="card-allergen-badge" [title]="'Contient : ' + alg.label">
+        <span class="alg-symbol">{{ alg.symbol }}</span> {{ alg.label }}
+      </span>
+    </div>
+
     <div class="product-footer-row">
       <span class="product-price">{{ product.prix | number:'1.2-2' }} €</span>
       <span *ngIf="product.variantes && product.variantes.length > 0" class="variants-badge">

@@ -54,6 +54,31 @@ export class ProductCardComponent {
     return this.canSeeLowStock && this.product.stockStatus === 'FAIBLE';
   }
 
+  static readonly ALLERGEN_DEFINITIONS = [
+    { key: 'LAIT', label: 'Lactose', symbol: '🥛', keywords: ['lait', 'creme', 'crème', 'cream', 'beurre', 'lactose', 'baileys', 'yaourt', 'fromage'] },
+    { key: 'GLUTEN', label: 'Gluten', symbol: '🌾', keywords: ['biere', 'bière', 'beer', 'whisky', 'whiskey', 'orge', 'seigle', 'ble', 'blé', 'gluten'] },
+    { key: 'OEUF', label: 'Œuf', symbol: '🥚', keywords: ['oeuf', 'œuf', 'egg', 'albumine'] },
+    { key: 'FRUITS_A_COQUE', label: 'Noix', symbol: '🥜', keywords: ['amande', 'almond', 'amaretto', 'noisette', 'hazelnut', 'noix', 'walnut', 'pistache', 'pistachio', 'cashew', 'anacarde'] },
+    { key: 'ARACHIDE', label: 'Arachide', symbol: '🥜', keywords: ['arachide', 'peanut', 'cacahuete', 'cacahuète'] },
+    { key: 'SULFITES', label: 'Sulfites', symbol: '🍷', keywords: ['vin', 'wine', 'champagne', 'prosecco', 'vermouth', 'sulfite', 'sulfites', 'cidre', 'cider', 'aperol', 'campari'] },
+    { key: 'SOJA', label: 'Soja', symbol: '🌱', keywords: ['soja', 'soy', 'tofu'] },
+  ];
+
+  get detectedAllergens(): { key: string; label: string; symbol: string }[] {
+    const ingredientsText = Array.isArray(this.product.ingredients)
+      ? this.product.ingredients.map(i => (typeof i === 'object' && i !== null) ? (i.ingredientNom || i.nom || '') : i).join(' ')
+      : '';
+    const textToSearch = [
+      this.product.nom,
+      this.product.description || '',
+      ingredientsText,
+    ].join(' ').toLowerCase();
+
+    return ProductCardComponent.ALLERGEN_DEFINITIONS
+      .filter(a => a.keywords.some(kw => textToSearch.includes(kw)))
+      .map(a => ({ key: a.key, label: a.label, symbol: a.symbol }));
+  }
+
   onRightClick(event: MouseEvent) {
     event.preventDefault();
     event.stopPropagation();

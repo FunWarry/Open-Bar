@@ -1190,3 +1190,24 @@ ion-alert button.alert-button[aria-label="Supprimer"] {
     }
   }
 }
+
+/* Customization & Variant Modals Auto-Shrink Sizing */
+.item-customization-modal-container {
+  --height: auto;
+  --max-height: 85vh;
+  --width: auto;
+  --max-width: 580px;
+  --min-width: 340px;
+  --border-radius: 14px;
+}
+.item-customization-modal-container::part(content) {
+  height: auto;
+  max-height: 85vh;
+  width: auto;
+  max-width: 580px;
+  min-width: 340px;
+  border-radius: 14px;
+  border: 1px solid var(--border-medium, #2e3450);
+  background: var(--background-surface-1, #16192b);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}

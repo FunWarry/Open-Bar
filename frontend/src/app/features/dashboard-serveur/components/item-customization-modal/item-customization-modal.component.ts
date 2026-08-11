@@ -88,11 +88,15 @@ import { ProductItem } from '../product-card/product-card.component';
   `,
   styles: [`
     :host {
-      --background: var(--background-surface-1, #16192b);
+      display: flex;
+      flex-direction: column;
+      max-height: 85vh;
+      background: var(--background-surface-1, #16192b);
     }
     ion-toolbar {
       --background: var(--background-surface-2, #21263f);
       --color: var(--text-primary, #eceefb);
+      flex-shrink: 0;
       .title-icon {
         color: var(--primary, #6c7fe8);
         margin-right: 6px;
@@ -101,6 +105,8 @@ import { ProductItem } from '../product-card/product-card.component';
     .custom-modal-content {
       --background: var(--background-bg-0, #0f0f1a);
       --color: var(--text-primary, #eceefb);
+      max-height: calc(85vh - 56px);
+      overflow-y: auto;
     }
     .section-block {
       margin-bottom: 20px;
@@ -245,7 +251,15 @@ export class ItemCustomizationModalComponent implements OnInit {
 
   get ingredientsList(): string[] {
     if (Array.isArray(this.product.ingredients) && this.product.ingredients.length > 0) {
-      return this.product.ingredients;
+      return this.product.ingredients
+        .map(ing => {
+          if (typeof ing === 'string') return ing;
+          if (typeof ing === 'object' && ing !== null) {
+            return ing.ingredientNom || ing.nom || ing.name || '';
+          }
+          return String(ing);
+        })
+        .filter(s => s && s.length > 0 && !s.includes('[object'));
     }
     if (this.product.description) {
       return this.product.description
