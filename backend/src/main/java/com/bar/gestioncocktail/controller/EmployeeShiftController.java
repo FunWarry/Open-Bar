@@ -2,7 +2,9 @@ package com.bar.gestioncocktail.controller;
 
 import com.bar.gestioncocktail.dto.EmployeeShiftRequestDTO;
 import com.bar.gestioncocktail.dto.EmployeeShiftResponseDTO;
+import com.bar.gestioncocktail.dto.ShiftAuditLogDTO;
 import com.bar.gestioncocktail.service.EmployeeShiftService;
+import com.bar.gestioncocktail.service.ShiftAuditService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -20,18 +22,21 @@ import java.util.List;
  * REST Controller for managing employee work shifts and weekly schedules.
  */
 @RestController
-@RequestMapping("/api/shifts")
-@Tag(name = "Shifts", description = "Management of employee work shifts and weekly schedules (MANAGER, ADMIN)")
+@RequestMapping({"/api/shifts", "/api/employee-shifts"})
+@Tag(name = "Shifts", description = "Management of employee work shifts, weekly schedules and audit history (MANAGER, ADMIN)")
 public class EmployeeShiftController {
     private final EmployeeShiftService shiftService;
+    private final ShiftAuditService shiftAuditService;
 
     /**
-     * Constructs the controller with the shift service.
+     * Constructs the controller with the shift service and audit service.
      *
      * @param shiftService Shift service implementation
+     * @param shiftAuditService Shift audit service implementation
      */
-    public EmployeeShiftController(EmployeeShiftService shiftService) {
+    public EmployeeShiftController(EmployeeShiftService shiftService, ShiftAuditService shiftAuditService) {
         this.shiftService = shiftService;
+        this.shiftAuditService = shiftAuditService;
     }
 
     /**
@@ -191,5 +196,19 @@ public class EmployeeShiftController {
     public ResponseEntity<Void> deleteShift(@PathVariable Long id) {
         shiftService.deleteShift(id);
         return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Retrieves the audit history for a specific work shift.
+     *
+     * @param id Shift identifier
+     * @return List of immutable audit log entries for the shift
+     */
+    @GetMapping("/{id}/history")
+    @PreAuthorize("hasRole('MANAGER') or hasRole('ADMIN')")
+    @Operation(summary = "Get shift audit history", description = "Retrieves the immutable audit log entries for a given work shift.")
+    @ApiResponse(responseCode = "200", description = "Shift audit history retrieved successfully")
+    public ResponseEntity<List<ShiftAuditLogDTO>> getShiftHistory(@PathVariable Long id) {
+        return ResponseEntity.ok(shiftAuditService.getHistoryForShift(id));
     }
 }

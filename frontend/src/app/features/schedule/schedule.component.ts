@@ -26,7 +26,10 @@ import {
   gitCompareOutline,
   eyeOutline,
   eyeOffOutline,
-  filterOutline
+  filterOutline,
+  timeOutline,
+  playOutline,
+  refreshOutline
 } from 'ionicons/icons';
 import { Subject, takeUntil, forkJoin, firstValueFrom, catchError, of } from 'rxjs';
 import { UserAvatarComponent } from '../../core/components/ui/user-avatar/user-avatar.component';
@@ -41,8 +44,10 @@ import { WebSocketService } from '../../core/services/websocket.service';
 import { EmployeeShiftModalComponent } from '../employees/employee-shift-modal/employee-shift-modal.component';
 import { ClosureConfigModalComponent } from './closure-config-modal/closure-config-modal.component';
 import { DayClosureModalComponent } from './day-closure-modal/day-closure-modal.component';
+import { ScheduleHistoryModalComponent } from './schedule-history-modal/schedule-history-modal.component';
 import { EmployeeShift, EmployeeShiftRequest, TypePoste } from '../../core/models/shift.model';
 
+import { FormsModule } from '@angular/forms';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 
 export type DiffStatus = 'ADDED' | 'MODIFIED' | 'DELETED' | 'UNCHANGED';
@@ -68,6 +73,7 @@ export interface ShiftDiffInfo {
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     TranslocoModule,
     IonSpinner,
     IonIcon,
@@ -115,8 +121,30 @@ export class ScheduleComponent implements OnInit, OnDestroy {
   diffDeletedCount = 0;
   private readonly cellDiffMap = new Map<string, ShiftDiffInfo>();
 
+  /** Time-Travel Historical Replay mode active */
+  isReplayMode = false;
+  /** Target historical instant T in ISO format (YYYY-MM-DDTHH:mm) for datetime-local input */
+  replayTimestamp = '';
+  /** Reconstructed schedule at instant T */
+  replaySchedule: WeekSchedule | null = null;
+  /** Replay vs Active schedule comparison mode active */
+  isReplayComparisonMode = false;
+  /** Diff statistics for replay vs current schedule */
+  replayDiffAddedCount = 0;
+  replayDiffModifiedCount = 0;
+  replayDiffDeletedCount = 0;
+  private readonly replayCellDiffMap = new Map<string, ShiftDiffInfo>();
+
   get totalDiffCount(): number {
     return this.diffAddedCount + this.diffModifiedCount + this.diffDeletedCount;
+  }
+
+  get totalReplayDiffCount(): number {
+    return this.replayDiffAddedCount + this.replayDiffModifiedCount + this.replayDiffDeletedCount;
+  }
+
+  get displaySchedule(): WeekSchedule | null {
+    return this.isReplayMode && this.replaySchedule ? this.replaySchedule : this.schedule;
   }
 
   // Copy & Paste buffer
@@ -146,7 +174,10 @@ export class ScheduleComponent implements OnInit, OnDestroy {
       gitCompareOutline,
       eyeOutline,
       eyeOffOutline,
-      filterOutline
+      filterOutline,
+      timeOutline,
+      playOutline,
+      refreshOutline
     });
     this.currentWeekStart = this.scheduleService.getMonday(new Date());
   }
@@ -161,8 +192,9 @@ export class ScheduleComponent implements OnInit, OnDestroy {
    * Returns the list of employees filtered by role and active status.
    */
   get filteredEmployees(): EmployeeScheduleRow[] {
-    if (!this.schedule?.employees) return [];
-    return this.schedule.employees.filter((emp) => {
+    const current = this.displaySchedule;
+    if (!current?.employees) return [];
+    return current.employees.filter((emp) => {
       // Role filter
       if (this.selectedRoleFilter !== 'ALL' && emp.role !== this.selectedRoleFilter) {
         return false;
@@ -433,6 +465,9 @@ export class ScheduleComponent implements OnInit, OnDestroy {
    * Retrieves the diff info for a specific cell.
    */
   getCellDiff(employeeId: number, dateIso: string): ShiftDiffInfo | undefined {
+    if (this.isReplayMode && this.isReplayComparisonMode) {
+      return this.replayCellDiffMap.get(`${employeeId}_${dateIso}`);
+    }
     return this.cellDiffMap.get(`${employeeId}_${dateIso}`);
   }
 
@@ -441,6 +476,165 @@ export class ScheduleComponent implements OnInit, OnDestroy {
    */
   toggleComparisonMode(): void {
     this.isComparisonMode = !this.isComparisonMode;
+  }
+
+  /**
+   * Opens the weekly audit log modal for shift modifications and time-travel replay.
+   */
+  async openScheduleHistoryModal(): Promise<void> {
+    const weekStartISO = this.formatDateIso(this.currentWeekStart);
+    const modal = await this.modalCtrl.create({
+      component: ScheduleHistoryModalComponent,
+      componentProps: {
+        weekISO: weekStartISO
+      }
+    });
+    await modal.present();
+    const { data } = await modal.onWillDismiss();
+    if (data?.action === 'replay' && data.timestamp) {
+      this.startReplay(data.timestamp);
+    }
+  }
+
+  /**
+   * Initiates historical time-travel replay mode for the current week at instant T.
+   *
+   * @param isoDateTime Optional ISO timestamp to initialize replay
+   */
+  startReplay(isoDateTime?: string): void {
+    this.isReplayMode = true;
+    this.isDeleteMode = false;
+    this.selectedShiftIds.clear();
+    if (isoDateTime) {
+      this.replayTimestamp = isoDateTime.substring(0, 16);
+    } else {
+      const now = new Date();
+      this.replayTimestamp = now.toISOString().substring(0, 16);
+    }
+    this.loadReplaySchedule();
+  }
+
+  /**
+   * Loads the reconstructed weekly schedule at timestamp T from the backend API.
+   */
+  loadReplaySchedule(): void {
+    if (!this.replayTimestamp) return;
+    this.loading = true;
+    const isoParam = this.replayTimestamp.length === 16 ? `${this.replayTimestamp}:00` : this.replayTimestamp;
+    this.scheduleService.getWeekScheduleAt(this.currentWeekStart, isoParam)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (reconstructed) => {
+          this.replaySchedule = reconstructed;
+          this.loading = false;
+          if (this.isReplayComparisonMode) {
+            this.calculateReplayDifferences();
+          }
+        },
+        error: () => {
+          this.loading = false;
+        }
+      });
+  }
+
+  /**
+   * Handles change in the datetime-local input during replay mode.
+   */
+  onReplayTimestampChange(): void {
+    this.loadReplaySchedule();
+  }
+
+  /**
+   * Exits historical time-travel replay mode and restores the active schedule view.
+   */
+  exitReplayMode(): void {
+    this.isReplayMode = false;
+    this.replaySchedule = null;
+    this.isReplayComparisonMode = false;
+    this.replayCellDiffMap.clear();
+    this.replayDiffAddedCount = 0;
+    this.replayDiffModifiedCount = 0;
+    this.replayDiffDeletedCount = 0;
+  }
+
+  /**
+   * Toggles diff comparison between the historical replay at instant T and the current active schedule.
+   */
+  toggleReplayComparison(): void {
+    this.isReplayComparisonMode = !this.isReplayComparisonMode;
+    if (this.isReplayComparisonMode) {
+      this.calculateReplayDifferences();
+    } else {
+      this.replayCellDiffMap.clear();
+      this.replayDiffAddedCount = 0;
+      this.replayDiffModifiedCount = 0;
+      this.replayDiffDeletedCount = 0;
+    }
+  }
+
+  /**
+   * Calculates differences between historical replay shifts (at instant T) and the current active schedule.
+   */
+  calculateReplayDifferences(): void {
+    this.replayCellDiffMap.clear();
+    this.replayDiffAddedCount = 0;
+    this.replayDiffModifiedCount = 0;
+    this.replayDiffDeletedCount = 0;
+
+    if (!this.schedule || !this.replaySchedule) return;
+
+    const historicalMap = this.buildShiftCellMap(this.replaySchedule);
+    const currentMap = this.buildShiftCellMap(this.schedule);
+    const allKeys = new Set<string>([...historicalMap.keys(), ...currentMap.keys()]);
+
+    for (const key of allKeys) {
+      this.compareReplayCell(key, historicalMap.get(key), currentMap.get(key));
+    }
+  }
+
+  private buildShiftCellMap(weekSchedule: WeekSchedule): Map<string, ShiftCell> {
+    const map = new Map<string, ShiftCell>();
+    for (const emp of weekSchedule.employees) {
+      for (const shift of emp.shifts) {
+        if (shift.startTime && !shift.isClosed) {
+          map.set(`${emp.employeeId}_${shift.date}`, shift);
+        }
+      }
+    }
+    return map;
+  }
+
+  private compareReplayCell(key: string, hist?: ShiftCell, curr?: ShiftCell): void {
+    if (!hist && curr) {
+      this.replayCellDiffMap.set(key, { status: 'ADDED', currentShift: curr });
+      this.replayDiffAddedCount++;
+    } else if (hist && !curr) {
+      this.replayCellDiffMap.set(key, {
+        status: 'DELETED',
+        publishedShift: { heureDebut: hist.startTime, heureFin: hist.endTime, typeShift: hist.typeShift }
+      });
+      this.replayDiffDeletedCount++;
+    } else if (hist && curr) {
+      this.checkReplayModified(key, hist, curr);
+    }
+  }
+
+  private checkReplayModified(key: string, hist: ShiftCell, curr: ShiftCell): void {
+    const isModified =
+      hist.startTime !== curr.startTime ||
+      hist.endTime !== curr.endTime ||
+      hist.typeShift !== curr.typeShift;
+
+    if (isModified) {
+      this.replayCellDiffMap.set(key, {
+        status: 'MODIFIED',
+        currentShift: curr,
+        publishedShift: { heureDebut: hist.startTime, heureFin: hist.endTime, typeShift: hist.typeShift }
+      });
+      this.replayDiffModifiedCount++;
+    } else {
+      this.replayCellDiffMap.set(key, { status: 'UNCHANGED', currentShift: curr });
+    }
   }
 
   /**
@@ -538,7 +732,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
       const dateNum = String(d.getDate()).padStart(2, '0');
       const dateISO = `${year}-${month}-${dateNum}`;
 
-      const closureReason = this.schedule?.closedDays?.[dateISO];
+      const closureReason = this.displaySchedule?.closedDays?.[dateISO];
       return {
         day,
         date: String(d.getDate()),
@@ -677,7 +871,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
   wasDraggingMultiple = false;
 
   onCellMouseDown(emp: EmployeeScheduleRow, shift: ShiftCell, dayIndex: number, event: MouseEvent): void {
-    if (event.button !== 0) return; // Left-click only
+    if (event.button !== 0 || this.isReplayMode) return; // Left-click only, disabled in replay
     if (shift.isClosed) {
       if (!this.isDeleteMode) {
         this.showClosedDayNotice(shift);
@@ -906,6 +1100,15 @@ export class ScheduleComponent implements OnInit, OnDestroy {
    * - Delete mode: toggles shift selection.
    */
   onCellClick(emp: EmployeeScheduleRow, shift: ShiftCell): void {
+    if (this.isReplayMode) {
+      this.toastCtrl.create({
+        message: this.translocoService.translate('SHIFTS.REPLAY.READ_ONLY_NOTICE'),
+        duration: 2500,
+        color: 'warning'
+      }).then((t) => t.present());
+      return;
+    }
+
     if (this.isDeleteMode) {
       if (this.wasDraggingMultiple) {
         this.wasDraggingMultiple = false;
@@ -1125,7 +1328,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
   }
 
   onContextMenu(event: MouseEvent, emp: EmployeeScheduleRow, shift: ShiftCell): void {
-    if (event.shiftKey) return;
+    if (event.shiftKey || this.isReplayMode) return;
     event.preventDefault();
     this.openActionSheet(emp, shift);
   }

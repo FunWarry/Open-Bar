@@ -909,7 +909,44 @@
       "CONFIRM_TITLE": "Confirmer la suppression groupée ?",
       "CONFIRM_MESSAGE": "Voulez-vous vraiment supprimer définitivement ces {{count}} créneaux de travail ?",
       "SUCCESS": "{{count}} créneaux supprimés avec succès"
+    },
+    "AUDIT": {
+      "HISTORY_BUTTON": "Historique EDT",
+      "MODAL_TITLE": "Journal d'audit EDT & Modifications",
+      "EMPLOYEE_FILTER": "Employé",
+      "ALL_EMPLOYEES": "Tous les employés",
+      "ACTION_FILTER": "Action",
+      "ALL_ACTIONS": "Toutes les actions",
+      "ACTION_CREATED": "Création",
+      "ACTION_UPDATED": "Modification",
+      "ACTION_DELETED": "Suppression",
+      "SEARCH_PLACEHOLDER": "Rechercher par nom, auteur, date...",
+      "NO_LOGS_FOUND": "Aucune entrée d'audit trouvée",
+      "NO_LOGS_DESC": "Toutes les créations, modifications et suppressions de shifts apparaîtront ici.",
+      "BEFORE": "Avant modification",
+      "AFTER": "Après modification",
+      "HOURS": "Horaires",
+      "TYPE": "Type",
+      "REAL_HOURS": "Pointage réel",
+      "NOTES": "Notes",
+      "REPLAY_BUTTON": "Rejouer à cet instant",
+      "SHIFT_HISTORY_TITLE": "Historique du créneau",
+      "SHIFT_HISTORY_BTN": "Historique des modifications"
+    },
+    "REPLAY": {
+      "BANNER_TITLE": "Mode Historique Replay (Instant T)",
+      "BANNER_DESC": "Visualisation en lecture seule de l'EDT tel qu'il était à cet instant précis.",
+      "AT_LABEL": "Instant T",
+      "COMPARE_CURRENT": "Comparer avec l'EDT actuel",
+      "EXIT_COMPARE": "Quitter la comparaison",
+      "EXIT_REPLAY": "Quitter le Replay",
+      "READ_ONLY_NOTICE": "Visualisation historique en lecture seule. Quittez le mode replay pour modifier l'EDT.",
+      "DIFF_BANNER_TITLE": "Écarts Historique Instant T vs Actuel",
+      "ADDED_SINCE": "Ajouté depuis",
+      "MODIFIED_SINCE": "Modifié depuis",
+      "DELETED_SINCE": "Supprimé depuis"
     }
   }
 }
+
 

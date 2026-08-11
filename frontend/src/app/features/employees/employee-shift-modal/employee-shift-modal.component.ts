@@ -42,6 +42,7 @@ import { User } from '../../../core/models/user.model';
 import { EmployeeShift, EmployeeShiftRequest, ShiftPreset, TypePoste, TypeShift } from '../../../core/models/shift.model';
 import { ShiftService } from '../../../core/services/shift.service';
 import { selectCurrentUser } from '../../../core/store/auth.selectors';
+import { ShiftHistoryModalComponent } from '../../schedule/shift-history-modal/shift-history-modal.component';
 
 /**
  * Modal component for viewing and managing work shifts of a specific employee.
@@ -498,6 +499,18 @@ export class EmployeeShiftModalComponent implements OnInit, OnDestroy {
       ]
     });
     await alert.present();
+  }
+
+  async openShiftHistoryModal(): Promise<void> {
+    if (!this.editingShiftId) return;
+    const modal = await this.modalCtrl.create({
+      component: ShiftHistoryModalComponent,
+      componentProps: {
+        shiftId: this.editingShiftId,
+        employeeName: `${this.employee.prenom || ''} ${this.employee.nom || ''}`
+      }
+    });
+    await modal.present();
   }
 
   dismiss(): void {

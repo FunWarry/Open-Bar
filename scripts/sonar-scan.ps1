@@ -13,6 +13,9 @@ Pop-Location
 # 2. Frontend — Génération du rapport LCOV
 Write-Host "`n[2/3] Frontend - Generation du rapport LCOV (Karma)..." -ForegroundColor Yellow
 Set-Location "$PSScriptRoot/../frontend"
+if (-not $env:CHROME_BIN -and (Test-Path "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe")) {
+    $env:CHROME_BIN = "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
+}
 npx ng test --watch=false --browsers=ChromeHeadless --code-coverage
 
 # 3. SonarScanner Local

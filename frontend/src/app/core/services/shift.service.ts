@@ -1,11 +1,11 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { EmployeeShift, EmployeeShiftRequest, ShiftPreset, TypeShift } from '../models/shift.model';
+import { EmployeeShift, EmployeeShiftRequest, ShiftAuditLog, ShiftPreset, TypeShift } from '../models/shift.model';
 import { environment } from '../../../environments/environment';
 
 /**
- * Service handling HTTP requests for employee work shifts and weekly schedules.
+ * Service handling HTTP requests for employee work shifts, weekly schedules, immutable audit logs, and historical replay.
  */
 @Injectable({
   providedIn: 'root'
@@ -118,5 +118,42 @@ export class ShiftService {
    */
   updatePreset(typeShift: TypeShift, preset: Partial<ShiftPreset>): Observable<ShiftPreset> {
     return this.http.put<ShiftPreset>(`${environment.apiUrl}/shift-presets/${typeShift}`, preset);
+  }
+
+  /**
+   * Retrieves the immutable audit log of modifications for a specific shift.
+   *
+   * @param shiftId Shift identifier
+   * @returns Observable array of ShiftAuditLog entries
+   */
+  getShiftHistory(shiftId: number): Observable<ShiftAuditLog[]> {
+    return this.http.get<ShiftAuditLog[]>(`${this.apiUrl}/${shiftId}/history`);
+  }
+
+  /**
+   * Retrieves the weekly immutable audit log of shift modifications.
+   *
+   * @param week Date in target week (YYYY-MM-DD)
+   * @param userId Optional employee filter
+   * @returns Observable array of ShiftAuditLog entries
+   */
+  getWeekAuditLog(week: string, userId?: number): Observable<ShiftAuditLog[]> {
+    let params = new HttpParams().set('week', week);
+    if (userId != null) {
+      params = params.set('userId', userId.toString());
+    }
+    return this.http.get<ShiftAuditLog[]>(`${environment.apiUrl}/schedule/audit-log`, { params });
+  }
+
+  /**
+   * Reconstructs the weekly schedule state at a specific historical point in time (replay).
+   *
+   * @param week Date in target week (YYYY-MM-DD)
+   * @param at Historical ISO timestamp (YYYY-MM-DDTHH:mm:ss)
+   * @returns Observable array of reconstructed EmployeeShift objects at timestamp T
+   */
+  getScheduleAt(week: string, at: string): Observable<EmployeeShift[]> {
+    const params = new HttpParams().set('week', week).set('at', at);
+    return this.http.get<EmployeeShift[]>(`${environment.apiUrl}/schedule/at`, { params });
   }
 }

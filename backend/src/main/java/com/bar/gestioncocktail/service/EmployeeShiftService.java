@@ -1,6 +1,7 @@
 package com.bar.gestioncocktail.service;
 
 import com.bar.gestioncocktail.dto.EmployeeShiftRequestDTO;
+import com.bar.gestioncocktail.dto.EmployeeShiftResponseDTO;
 import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.model.EmployeeShift;
 import com.bar.gestioncocktail.model.User;
@@ -24,16 +25,21 @@ import java.util.List;
 public class EmployeeShiftService {
     private final EmployeeShiftRepository shiftRepository;
     private final UserRepository userRepository;
+    private final ShiftAuditService shiftAuditService;
 
     /**
-     * Constructs the shift service with required repositories.
+     * Constructs the shift service with required repositories and audit service.
      *
      * @param shiftRepository Repository for shift persistence
      * @param userRepository Repository for user lookup
+     * @param shiftAuditService Service for recording shift audit logs
      */
-    public EmployeeShiftService(EmployeeShiftRepository shiftRepository, UserRepository userRepository) {
+    public EmployeeShiftService(EmployeeShiftRepository shiftRepository,
+                                UserRepository userRepository,
+                                ShiftAuditService shiftAuditService) {
         this.shiftRepository = shiftRepository;
         this.userRepository = userRepository;
+        this.shiftAuditService = shiftAuditService;
     }
 
     /**
@@ -118,7 +124,9 @@ public class EmployeeShiftService {
         shift.setHeuresEffectuees(request.heuresEffectuees() != null ? request.heuresEffectuees() : shift.getHeuresPrevues());
         shift.setNotes(request.notes());
 
-        return shiftRepository.save(shift);
+        EmployeeShift saved = shiftRepository.save(shift);
+        shiftAuditService.logCreation(saved, getCurrentUsername());
+        return saved;
     }
 
     /**
@@ -156,6 +164,8 @@ public class EmployeeShiftService {
 
         checkShiftUpdatePermission(shift, request);
 
+        String previousSnapshot = shiftAuditService.toJson(EmployeeShiftResponseDTO.from(shift));
+
         if (request.userId() != null && !request.userId().equals(shift.getUser().getId())) {
             User user = userRepository.findById(request.userId())
                 .orElseThrow(() -> new ResourceNotFoundException("Utilisateur non trouvé avec l'id: " + request.userId()));
@@ -165,7 +175,11 @@ public class EmployeeShiftService {
         applyScheduleUpdates(shift, request);
         applyClockingUpdates(shift, request);
 
-        return shiftRepository.save(shift);
+        EmployeeShift saved = shiftRepository.save(shift);
+        String newSnapshot = shiftAuditService.toJson(EmployeeShiftResponseDTO.from(saved));
+        shiftAuditService.logUpdate(saved, previousSnapshot, newSnapshot, getCurrentUsername());
+
+        return saved;
     }
 
     /**
@@ -253,6 +267,17 @@ public class EmployeeShiftService {
     @Transactional
     public void deleteShift(Long id) {
         EmployeeShift shift = getShiftById(id);
+        String previousSnapshot = shiftAuditService.toJson(EmployeeShiftResponseDTO.from(shift));
+        shiftAuditService.logDeletion(shift, previousSnapshot, getCurrentUsername());
         shiftRepository.delete(shift);
     }
+
+    /**
+     * Resolves the username of the currently authenticated principal.
+     */
+    private String getCurrentUsername() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return (auth != null && auth.isAuthenticated() && auth.getName() != null) ? auth.getName() : "SYSTEM";
+    }
 }
+

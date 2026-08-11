@@ -349,3 +349,16 @@ CREATE TABLE IF NOT EXISTS week_schedule_publications (
 );
 
 ALTER TABLE week_schedule_publications ADD COLUMN IF NOT EXISTS snapshot_json TEXT;
+
+-- Table d'audit immutable des modifications des shifts employés (#285)
+CREATE TABLE IF NOT EXISTS shift_audit_log (
+    id BIGSERIAL PRIMARY KEY,
+    shift_id BIGINT NOT NULL,
+    user_id BIGINT REFERENCES users(id),
+    date_shift DATE,
+    action VARCHAR(20) NOT NULL,
+    changed_by VARCHAR(50) NOT NULL,
+    changed_at TIMESTAMP NOT NULL,
+    previous_snapshot TEXT,
+    new_snapshot TEXT
+);

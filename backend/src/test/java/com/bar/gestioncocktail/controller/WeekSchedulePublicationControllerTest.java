@@ -1,6 +1,14 @@
 package com.bar.gestioncocktail.controller;
 
+import com.bar.gestioncocktail.dto.EmployeeShiftResponseDTO;
+import com.bar.gestioncocktail.dto.ShiftAuditLogDTO;
 import com.bar.gestioncocktail.dto.WeekSchedulePublicationDTO;
+import com.bar.gestioncocktail.model.EmployeeShift;
+import com.bar.gestioncocktail.model.ShiftAuditAction;
+import com.bar.gestioncocktail.model.TypePoste;
+import com.bar.gestioncocktail.model.TypeShift;
+import com.bar.gestioncocktail.model.User;
+import com.bar.gestioncocktail.service.ShiftAuditService;
 import com.bar.gestioncocktail.service.WeekSchedulePublicationService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,6 +22,7 @@ import org.springframework.http.ResponseEntity;
 import java.security.Principal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,6 +34,9 @@ class WeekSchedulePublicationControllerTest {
 
     @Mock
     private WeekSchedulePublicationService service;
+
+    @Mock
+    private ShiftAuditService shiftAuditService;
 
     @Mock
     private Principal principal;
@@ -70,5 +82,54 @@ class WeekSchedulePublicationControllerTest {
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
         assertThat(response.getBody()).isNull();
+    }
+
+    @Test
+    @DisplayName("GET /audit-log returns 200 with weekly audit logs")
+    void getAuditLog_returnsOkWithLogs() {
+        ShiftAuditLogDTO dto = new ShiftAuditLogDTO(
+                1L, 100L, 10L, "serveur1", "Martin", "Alice",
+                LocalDate.of(2026, 8, 18), ShiftAuditAction.CREATED,
+                "manager1", LocalDateTime.now(), null, "{}"
+        );
+        when(shiftAuditService.getAuditLogForWeek(monday, null)).thenReturn(List.of(dto));
+
+        ResponseEntity<List<ShiftAuditLogDTO>> response = controller.getAuditLog(monday, null);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).hasSize(1);
+        assertThat(response.getBody().get(0).shiftId()).isEqualTo(100L);
+        verify(shiftAuditService).getAuditLogForWeek(monday, null);
+    }
+
+    @Test
+    @DisplayName("GET /at returns 200 with reconstructed shifts at instant T")
+    void getScheduleAt_returnsOkWithShifts() {
+        LocalDateTime at = LocalDateTime.of(2026, 8, 18, 12, 0, 0);
+
+        User user = new User();
+        user.setId(10L);
+        user.setUsername("serveur1");
+        user.setNom("Martin");
+        user.setPrenom("Alice");
+
+        EmployeeShift shiftEntity = new EmployeeShift();
+        shiftEntity.setId(100L);
+        shiftEntity.setUser(user);
+        shiftEntity.setDateShift(LocalDate.of(2026, 8, 18));
+        shiftEntity.setTypeShift(TypeShift.SOIR);
+        shiftEntity.setTypePoste(TypePoste.SERVEUR);
+        shiftEntity.setHeureDebut("17:00");
+        shiftEntity.setHeureFin("01:00");
+
+        EmployeeShiftResponseDTO shift = EmployeeShiftResponseDTO.from(shiftEntity);
+        when(shiftAuditService.reconstructScheduleAt(monday, at)).thenReturn(List.of(shift));
+
+        ResponseEntity<List<EmployeeShiftResponseDTO>> response = controller.getScheduleAt(monday, at);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).hasSize(1);
+        assertThat(response.getBody().get(0).id()).isEqualTo(100L);
+        verify(shiftAuditService).reconstructScheduleAt(monday, at);
     }
 }

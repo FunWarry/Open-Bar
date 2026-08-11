@@ -34,6 +34,9 @@ class EmployeeShiftServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private ShiftAuditService shiftAuditService;
+
     @InjectMocks
     private EmployeeShiftService shiftService;
 
