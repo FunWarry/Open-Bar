@@ -123,6 +123,8 @@
 *::before,
 *::after {
   box-sizing: border-box;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-medium, #2e3450) transparent;
 }
 
 html,
@@ -144,15 +146,7 @@ body {
   min-height: 100vh;
 }
 
-/* ── Global Scrollbar — matches sidebar style ─────────────────────────────── */
-*,
-*::before,
-*::after {
-  scrollbar-width: thin;
-  scrollbar-color: var(--border-medium, #2e3450) transparent;
-}
-
-/* Webkit (Chrome, Edge, Safari) */
+/* ── Global Scrollbar — Webkit (Chrome, Edge, Safari) ─────────────────────── */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
