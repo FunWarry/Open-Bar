@@ -77,15 +77,6 @@
     overflow-x: auto;
     padding-bottom: 8px;
     margin-bottom: 8px;
-    scrollbar-width: thin;
-
-    &::-webkit-scrollbar {
-      height: 4px;
-    }
-    &::-webkit-scrollbar-thumb {
-      background: var(--border-medium, #2a2e4d);
-      border-radius: 2px;
-    }
 
     .category-chip {
       --background: var(--background-surface-2, #21263f);

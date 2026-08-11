@@ -144,6 +144,38 @@ body {
   min-height: 100vh;
 }
 
+/* ── Global Scrollbar — matches sidebar style ─────────────────────────────── */
+*,
+*::before,
+*::after {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-medium, #2e3450) transparent;
+}
+
+/* Webkit (Chrome, Edge, Safari) */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-medium, #2e3450);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-light, #3a4682);
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+
 /* Default Ionic component styling overrides to match OpenBar DS */
 ion-app {
   background-color: var(--bg-0);
