@@ -2,14 +2,16 @@
   <ion-toolbar>
     <div class="header-content">
       <div class="header-title-group">
-        <h1 class="page-title">Prise de commande — Espace Serveur</h1>
-        <span class="count-pill">{{ filteredTables.length }} / {{ tables.length }}</span>
+        <h1 class="page-title">
+          {{ activeTab === 'suivi' ? 'Suivi des commandes' : 'Prise de commande' }} — Espace Serveur
+        </h1>
+        <span class="count-pill" *ngIf="activeTab !== 'suivi'">{{ filteredTables.length }} / {{ tables.length }}</span>
       </div>
 
       <div class="header-actions">
-        <button class="kanban-action-btn" (click)="naviguerKanban()" title="Suivi des commandes">
+        <button class="kanban-action-btn" [class.active]="activeTab === 'suivi'" (click)="onTabSelected(activeTab === 'suivi' ? 'tables' : 'suivi')" title="Suivi des commandes">
           <ion-icon name="list-outline"></ion-icon>
-          <span class="btn-label">Suivi des commandes</span>
+          <span class="btn-label">{{ activeTab === 'suivi' ? 'Retour aux tables' : 'Suivi des commandes' }}</span>
         </button>
       </div>
     </div>
