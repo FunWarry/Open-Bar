@@ -18,7 +18,7 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="dashboard-serveur-content ion-padding">
+<ion-content class="dashboard-serveur-content ion-padding" *ngIf="activeTab !== 'suivi'">
   <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
@@ -422,11 +422,12 @@
     </div>
   </ng-container>
 
-  <!-- ONGLET 3 : SUIVI DES COMMANDES EN TEMPS REEL (KANBAN FIGMA) -->
-  <ng-container *ngIf="activeTab === 'suivi'">
-    <app-commande-list></app-commande-list>
-  </ng-container>
 </ion-content>
+
+<!-- ONGLET 3 : SUIVI DES COMMANDES EN TEMPS REEL (possède son propre ion-content) -->
+<div class="suivi-tab-wrapper" *ngIf="activeTab === 'suivi'">
+  <app-commande-list></app-commande-list>
+</div>
 
 <!-- BOTTOM NAVIGATION MOBILE / TABLETTE -->
 <app-bottom-navigation
