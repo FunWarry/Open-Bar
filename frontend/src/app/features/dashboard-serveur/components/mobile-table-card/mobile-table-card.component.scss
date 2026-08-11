@@ -120,21 +120,21 @@
       font-weight: 600;
 
       &.wait-normal {
-        background: rgba(16, 185, 129, 0.18);
-        color: #34d399;
-        border: 1px solid rgba(52, 211, 153, 0.35);
+        background: #064e3b;
+        color: #a7f3d0;
+        border: 1px solid #10b981;
       }
 
       &.wait-warning {
-        background: rgba(245, 158, 11, 0.18);
-        color: #fbbf24;
-        border: 1px solid rgba(251, 191, 36, 0.35);
+        background: #78350f;
+        color: #fde68a;
+        border: 1px solid #f59e0b;
       }
 
       &.wait-danger {
-        background: rgba(239, 68, 68, 0.18);
-        color: #f87171;
-        border: 1px solid rgba(248, 113, 113, 0.35);
+        background: #7f1d1d;
+        color: #fca5a5;
+        border: 1px solid #ef4444;
       }
     }
   }
@@ -185,9 +185,9 @@
       }
 
       &:hover {
-        background: var(--primary, #6c7fe8);
+        background: #4f46e5;
         color: #ffffff;
-        border-color: var(--primary, #6c7fe8);
+        border-color: #4f46e5;
 
         ion-icon {
           color: #ffffff;
