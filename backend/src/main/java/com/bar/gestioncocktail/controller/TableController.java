@@ -55,7 +55,13 @@ public class TableController {
      * @param id Identifiant de la table
      * @return DTO de la table
      */
-    @GetMapping("/{id}")
+    /**
+     * Obtenir les informations d'une table par son identifiant.
+     *
+     * @param id Identifiant de la table
+     * @return DTO de la table
+     */
+    @GetMapping("/{id:\\d+}")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Obtenir une table par son ID")
     @ApiResponse(responseCode = "200", description = "Table trouvée")
@@ -70,8 +76,7 @@ public class TableController {
     /**
      * Liste les tables d'une zone géographique spécifique (ex: INTERIEUR, TERRASSE, ETAGE).
      *
-     * @param zone La zone ciblée
-     * @return Liste des tables de la zone
+     * @return Liste des noms de zones
      */
     @GetMapping("/zones")
     @PreAuthorize("isAuthenticated()")
@@ -109,7 +114,7 @@ public class TableController {
      * @param serveurId Identifiant du serveur
      * @return Liste des tables du serveur
      */
-    @GetMapping("/serveur/{serveurId}")
+    @GetMapping("/serveur/{serveurId:\\d+}")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Lister les tables attribuées à un serveur")
     @ApiResponse(responseCode = "200", description = "Tables du serveur récupérées")
@@ -138,7 +143,7 @@ public class TableController {
      * @param request Updated table data
      * @return DTO of the updated table
      */
-    @PutMapping("/{id}")
+    @PutMapping("/{id:\\d+}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
     @Operation(summary = "Update a table (MANAGER/ADMIN)")
     @ApiResponse(responseCode = "200", description = "Table updated")
@@ -154,7 +159,7 @@ public class TableController {
      * @param id Identifiant de la table
      * @return Statut 200 OK
      */
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{id:\\d+}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
     @Operation(summary = "Supprimer une table (MANAGER/ADMIN)")
     @ApiResponse(responseCode = "200", description = "Table supprimée")
@@ -170,13 +175,13 @@ public class TableController {
      * @param serveurId Identifiant du serveur référent
      * @return Table mise à jour
      */
-    @PostMapping("/{id}/occuper")
+    @RequestMapping(value = "/{id:\\d+}/occuper", method = {RequestMethod.POST, RequestMethod.PATCH})
     @PreAuthorize("hasRole('SERVEUR') or hasRole('ADMIN') or hasRole('MANAGER')")
     @Operation(summary = "Passer la table en état occupée (SERVEUR/MANAGER/ADMIN)")
     @ApiResponse(responseCode = "200", description = "Table marquée occupée")
     public ResponseEntity<TableResponseDTO> occuperTable(
         @PathVariable Long id,
-        @RequestParam Long serveurId) {
+        @RequestParam(required = false) Long serveurId) {
         return ResponseEntity.ok(TableResponseDTO.from(tableService.occuperTable(id, serveurId)));
     }
 
@@ -186,7 +191,7 @@ public class TableController {
      * @param id Identifiant de la table
      * @return Table libérée
      */
-    @PostMapping("/{id}/liberer")
+    @RequestMapping(value = "/{id:\\d+}/liberer", method = {RequestMethod.POST, RequestMethod.PATCH})
     @PreAuthorize("hasRole('SERVEUR') or hasRole('ADMIN') or hasRole('MANAGER')")
     @Operation(summary = "Libérer une table (SERVEUR/MANAGER/ADMIN)")
     @ApiResponse(responseCode = "200", description = "Table libérée")
@@ -199,7 +204,7 @@ public class TableController {
      *
      * @return Liste des tables enrichies des données de positionnement canvas
      */
-    @GetMapping("/plan")
+    @GetMapping({"/plan", "/positions"})
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Obtenir le plan de salle interactif avec positions Konva.js")
     @ApiResponse(responseCode = "200", description = "Plan de salle récupéré avec coordonnées")
@@ -218,7 +223,7 @@ public class TableController {
      * @param forme Forme (Ronde, Carrée, Rectangulaire)
      * @return Table mise à jour
      */
-    @PutMapping("/{id}/position")
+    @PutMapping("/{id:\\d+}/position")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
     @Operation(summary = "Mettre à jour les coordonnées 2D d'une table (MANAGER/ADMIN)")
     @ApiResponse(responseCode = "200", description = "Coordonnées enregistrées")
@@ -238,7 +243,7 @@ public class TableController {
      * @param positions Liste des DTOs de positionnement
      * @return Statut 200 OK
      */
-    @PutMapping("/plan/positions")
+    @PutMapping({"/plan/positions", "/positions"})
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
     @Operation(summary = "Sauvegarder en lot les positions du plan de salle (drag & drop batch)")
     @ApiResponse(responseCode = "200", description = "Positions enregistrées")
@@ -254,7 +259,7 @@ public class TableController {
      * @param targetId Table de destination
      * @return Table de destination mise à jour
      */
-    @PostMapping("/{sourceId}/transfer/{targetId}")
+    @PostMapping("/{sourceId:\\d+}/transfer/{targetId:\\d+}")
     @PreAuthorize("hasRole('SERVEUR') or hasRole('ADMIN') or hasRole('MANAGER')")
     @Operation(summary = "Transférer les commandes d'une table vers une autre (SERVEUR/MANAGER/ADMIN)")
     @ApiResponse(responseCode = "200", description = "Transfert effectué")

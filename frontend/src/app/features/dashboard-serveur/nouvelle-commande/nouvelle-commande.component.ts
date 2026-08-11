@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, forkJoin, of } from 'rxjs';
-import { switchMap, takeUntil, finalize } from 'rxjs/operators';
+import { switchMap, takeUntil, finalize, map } from 'rxjs/operators';
 import {
   IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
   IonContent, IonGrid, IonRow, IonCol,
@@ -140,13 +140,20 @@ export class NouvelleCommandeComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  /** List of available tables when taking an order. */
+  availableTables: TableView[] = [];
+
   /**
-   * Loads the table details and available cocktails in parallel.
+   * Loads the table details (or all available tables if tableId is unspecified) and cocktails in parallel.
    */
   charger(): void {
     this.isLoading = true;
+    const tableObs = (this.tableId && !isNaN(this.tableId) && this.tableId > 0)
+      ? this.service.getTableById(this.tableId).pipe(map(t => [t]))
+      : this.service.getAllTables();
+
     forkJoin({
-      table: this.service.getTableById(this.tableId),
+      tables: tableObs,
       cocktails: this.cocktailService.getDisponibles(),
     })
       .pipe(
@@ -154,8 +161,12 @@ export class NouvelleCommandeComponent implements OnInit, OnDestroy {
         finalize(() => (this.isLoading = false)),
       )
       .subscribe({
-        next: ({ table, cocktails }) => {
-          this.table = table;
+        next: ({ tables, cocktails }) => {
+          this.availableTables = tables;
+          if (tables.length > 0) {
+            this.table = tables[0];
+            this.tableId = tables[0].id;
+          }
           this.cocktails = cocktails;
         },
         error: async () => {
@@ -167,6 +178,18 @@ export class NouvelleCommandeComponent implements OnInit, OnDestroy {
           toast.present();
         },
       });
+  }
+
+  /**
+   * Updates current active table when selected from the header dropdown.
+   * @param targetTableId - Id of the newly selected table.
+   */
+  onTableSelectChange(targetTableId: number): void {
+    const selected = this.availableTables.find(t => t.id === targetTableId);
+    if (selected) {
+      this.table = selected;
+      this.tableId = selected.id;
+    }
   }
 
   /**
