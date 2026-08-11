@@ -13,14 +13,16 @@ import { NotificationService, AppNotification } from '../../../app/core/services
 import { TableBar } from '../../../app/core/models/table.model';
 import { TablePosition } from '../../../app/features/plan-salle/models/table-position.model';
 
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
+
 const mockTables: TableBar[] = [
-  { id: 1, numero: 1, capacite: 4, zone: 'TERRASSE', occupee: false, createdAt: '', updatedAt: '' },
-  { id: 2, numero: 2, capacite: 2, zone: 'INTERIEUR', occupee: true,  createdAt: '', updatedAt: '' },
+  { id: 1, numero: 1, capacite: 4, zone: 'TERRASSE', emplacement: 'RDC', occupee: false, createdAt: '', updatedAt: '' },
+  { id: 2, numero: 2, capacite: 2, zone: 'INTERIEUR', emplacement: '1er Étage', occupee: true,  createdAt: '', updatedAt: '' },
 ];
 
 const mockPositions: TablePosition[] = [
-  { tableId: 1, x: 100, y: 100, rotation: 0, shape: 'rect' },
-  { tableId: 2, x: 200, y: 100, rotation: 0, shape: 'circle' },
+  { tableId: 1, x: 100, y: 100, rotation: 0, shape: 'rect', floor: 'RDC' },
+  { tableId: 2, x: 200, y: 100, rotation: 0, shape: 'circle', floor: '1er Étage' },
 ];
 
 describe('PlanSalleComponent', () => {
@@ -66,7 +68,7 @@ describe('PlanSalleComponent', () => {
     storeSpy.select.and.returnValue(of(false));
 
     await TestBed.configureTestingModule({
-      imports: [PlanSalleComponent, IonicModule.forRoot(), RouterTestingModule],
+      imports: [PlanSalleComponent, IonicModule.forRoot(), RouterTestingModule, getTranslocoTestingModule()],
       providers: [
         { provide: TableService,        useValue: tableServiceSpy },
         { provide: PlanSalleService,    useValue: planSalleServiceSpy },
@@ -273,5 +275,16 @@ describe('PlanSalleComponent', () => {
     notif$.next({ id: 's-1', type: 'stock', message: '', severity: 'warning', timestamp: new Date(), lue: false });
     tick();
     expect(tableServiceSpy.getAll.calls.count()).toBe(before);
+  }));
+
+  it('selectFloor() filtre les tables par étage', fakeAsync(() => {
+    component.charger();
+    tick();
+    component.selectFloor('RDC');
+    expect(component.filteredTables.length).toBe(1);
+    expect(component.filteredTables[0].numero).toBe(1);
+
+    component.selectFloor(null);
+    expect(component.filteredTables.length).toBe(2);
   }));
 });

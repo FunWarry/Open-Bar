@@ -47,6 +47,31 @@
     "LOGOUT": "Logout",
     "DASHBOARD": "Dashboard",
     "PLAN_SALLE": "Floor Plan",
+    "PLAN_SALLE_PAGE": {
+      "TITLE": "Interactive Floor Plan",
+      "SUBTITLE": "Real-time visual table and zone management",
+      "EDIT_MODE_ON": "Edit Mode Active — Drag & Drop tables to customize layout",
+      "EDIT_MODE_OFF": "Enable Edit Mode",
+      "SAVE_PLAN": "Save Floor Plan",
+      "UNSAVED_CHANGES": "Unsaved Changes",
+      "REFRESH": "Refresh",
+      "ALL_FLOORS": "All Floors",
+      "ALL_ZONES": "All Zones",
+      "STATUS": {
+        "LIBRE": "Available",
+        "OCCUPEE": "Occupied",
+        "PAYMENT_PENDING": "Payment Pending",
+        "RESERVEE": "Reserved"
+      },
+      "ACTIONS": {
+        "TAKE_ORDER": "Take Order",
+        "VIEW_DETAILS": "Details & Bill",
+        "TRANSFER_FUSION": "Transfer / Merge",
+        "TOGGLE_SHAPE": "Change Shape",
+        "ROTATE": "Rotate 90°",
+        "ADD_TABLE": "Add Table"
+      }
+    },
     "SERVEUR": "Order Taking",
     "BARMAN": "Bar Counter",
     "SOUND_ENABLE": "Enable sound",

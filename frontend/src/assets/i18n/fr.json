@@ -47,6 +47,31 @@
     "LOGOUT": "Déconnexion",
     "DASHBOARD": "Tableau de bord",
     "PLAN_SALLE": "Plan de salle",
+    "PLAN_SALLE_PAGE": {
+      "TITLE": "Plan de salle interactif",
+      "SUBTITLE": "Gestion visuelle des tables et zones en temps réel",
+      "EDIT_MODE_ON": "Mode édition actif — Glissez-déposez les tables",
+      "EDIT_MODE_OFF": "Activer l'édition",
+      "SAVE_PLAN": "Enregistrer le plan",
+      "UNSAVED_CHANGES": "Non sauvegardé",
+      "REFRESH": "Actualiser",
+      "ALL_FLOORS": "Tous les étages",
+      "ALL_ZONES": "Toutes les zones",
+      "STATUS": {
+        "LIBRE": "Libre",
+        "OCCUPEE": "Occupée",
+        "PAYMENT_PENDING": "Addition demandée",
+        "RESERVEE": "Réservée"
+      },
+      "ACTIONS": {
+        "TAKE_ORDER": "Prendre commande",
+        "VIEW_DETAILS": "Détails & Addition",
+        "TRANSFER_FUSION": "Transférer / Fusionner",
+        "TOGGLE_SHAPE": "Changer la forme",
+        "ROTATE": "Pivoter 90°",
+        "ADD_TABLE": "Ajouter une table"
+      }
+    },
     "SERVEUR": "Prise de commande",
     "BARMAN": "Comptoir bar",
     "SOUND_ENABLE": "Activer le son",

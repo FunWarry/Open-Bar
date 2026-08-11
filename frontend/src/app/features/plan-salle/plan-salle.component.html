@@ -1,45 +1,101 @@
-<ion-header>
-  <ion-toolbar class="plan-toolbar">
-    <ion-title>
-      Plan de salle
-      <ion-badge *ngIf="hasUnsavedChanges" color="warning" class="unsaved-badge">Non sauvegardé</ion-badge>
-    </ion-title>
-    <ion-buttons slot="end">
-      <ion-button fill="clear" (click)="charger()" (keyup.enter)="charger()" aria-label="Actualiser">
-        <ion-icon name="refresh-outline" slot="icon-only"></ion-icon>
-      </ion-button>
-      <ion-button *ngIf="isAdmin" fill="clear" (click)="toggleEditMode()" (keyup.enter)="toggleEditMode()" [color]="isEditMode ? 'warning' : 'medium'"
-        [attr.aria-label]="isEditMode ? 'Quitter le mode édition' : 'Activer le mode édition'">
-        <ion-icon [name]="isEditMode ? 'close-outline' : 'pencil-outline'" slot="icon-only"></ion-icon>
-      </ion-button>
-    </ion-buttons>
+<ion-header class="ion-no-border plan-salle-header">
+  <ion-toolbar>
+    <div class="header-content">
+      <div class="header-title-group">
+        <h1 class="page-title">{{ 'PLAN_SALLE_PAGE.TITLE' | transloco }}</h1>
+        <p class="page-subtitle">{{ 'PLAN_SALLE_PAGE.SUBTITLE' | transloco }}</p>
+      </div>
+
+      <div class="header-actions">
+        <span *ngIf="hasUnsavedChanges" class="unsaved-pill" data-testid="badge-unsaved">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+          {{ 'PLAN_SALLE_PAGE.UNSAVED_CHANGES' | transloco }}
+        </span>
+
+        <button
+          type="button"
+          class="action-btn refresh-btn"
+          (click)="charger()"
+          (keyup.enter)="charger()"
+          [title]="'PLAN_SALLE_PAGE.REFRESH' | transloco"
+          data-testid="btn-refresh-plan">
+          <ion-icon name="refresh-outline"></ion-icon>
+        </button>
+
+        <button
+          *ngIf="isAdmin"
+          type="button"
+          class="action-btn edit-toggle-btn"
+          [class.active]="isEditMode"
+          (click)="toggleEditMode()"
+          (keyup.enter)="toggleEditMode()"
+          data-testid="btn-toggle-edit-plan">
+          <ion-icon [name]="isEditMode ? 'close-outline' : 'pencil-outline'"></ion-icon>
+          <span>{{ (isEditMode ? 'PLAN_SALLE_PAGE.EDIT_MODE_ON' : 'PLAN_SALLE_PAGE.EDIT_MODE_OFF') | transloco }}</span>
+        </button>
+
+        <button
+          *ngIf="isAdmin && isEditMode && hasUnsavedChanges"
+          type="button"
+          class="action-btn save-btn"
+          (click)="sauvegarder()"
+          (keyup.enter)="sauvegarder()"
+          data-testid="btn-save-plan">
+          <ion-icon name="save-outline"></ion-icon>
+          <span>{{ 'PLAN_SALLE_PAGE.SAVE_PLAN' | transloco }}</span>
+        </button>
+      </div>
+    </div>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="plan-content">
-  <!-- Légende -->
-  <div class="legend-bar">
-    <div class="legend-item"><span class="dot dot-libre"></span><span>Libre</span></div>
-    <div class="legend-item"><span class="dot dot-occupee"></span><span>Occupée</span></div>
-    <div class="legend-item" *ngIf="isEditMode">
-      <ion-badge color="warning" class="edit-badge">Mode édition — drag &amp; drop actif</ion-badge>
+  <!-- Control Banner: Floor & Zone Filters + Legend -->
+  <div class="plan-control-bar">
+    <div class="filter-chips-group">
+      <span class="filter-label">Étage:</span>
+      <button
+        type="button"
+        class="floor-chip"
+        [class.active]="selectedFloor === null"
+        (click)="selectFloor(null)"
+        data-testid="chip-floor-all">
+        {{ 'PLAN_SALLE_PAGE.ALL_FLOORS' | transloco }}
+      </button>
+      <button
+        *ngFor="let f of floors"
+        type="button"
+        class="floor-chip"
+        [class.active]="selectedFloor === f"
+        (click)="selectFloor(f)"
+        [attr.data-testid]="'chip-floor-' + f">
+        {{ f }}
+      </button>
+    </div>
+
+    <div class="legend-bar">
+      <div class="legend-item"><span class="dot dot-libre"></span><span>{{ 'PLAN_SALLE_PAGE.STATUS.LIBRE' | transloco }}</span></div>
+      <div class="legend-item"><span class="dot dot-occupee"></span><span>{{ 'PLAN_SALLE_PAGE.STATUS.OCCUPEE' | transloco }}</span></div>
+      <div class="legend-item"><span class="dot dot-payment"></span><span>{{ 'PLAN_SALLE_PAGE.STATUS.PAYMENT_PENDING' | transloco }}</span></div>
+      <div class="legend-item"><span class="dot dot-reservee"></span><span>{{ 'PLAN_SALLE_PAGE.STATUS.RESERVEE' | transloco }}</span></div>
     </div>
   </div>
 
-  <!-- Canvas Konva -->
-  <div *ngIf="isLoading" class="loading-overlay">
-    <ion-spinner name="crescent" color="primary"></ion-spinner>
+  <!-- Interactive Konva Canvas Container -->
+  <div class="canvas-wrapper">
+    <div *ngIf="isLoading" class="loading-overlay">
+      <ion-spinner name="crescent" color="primary"></ion-spinner>
+    </div>
+
+    <div
+      #konvaContainer
+      class="konva-container"
+      [class.edit-mode]="isEditMode"
+      data-testid="konva-canvas">
+    </div>
   </div>
-  <div #konvaContainer class="konva-container" [class.edit-mode]="isEditMode"></div>
 
-  <!-- FAB sauvegarde (mode édition admin) -->
-  <ion-fab *ngIf="isAdmin && isEditMode && hasUnsavedChanges" vertical="bottom" horizontal="end" slot="fixed">
-    <ion-fab-button color="success" (click)="sauvegarder()" (keyup.enter)="sauvegarder()" aria-label="Sauvegarder le plan">
-      <ion-icon name="save-outline"></ion-icon>
-    </ion-fab-button>
-  </ion-fab>
-
-  <!-- Side Panel Détail / Édition Table (Figma TableEditionSidePanel) -->
+  <!-- Side Panel Détail / Édition Table -->
   <app-table-side-panel
     [table]="selectedTable"
     [isOpen]="isSidePanelOpen"
