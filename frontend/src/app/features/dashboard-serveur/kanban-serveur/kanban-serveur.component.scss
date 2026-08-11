@@ -21,60 +21,58 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+  width: 100%;
 }
 
-.kanban-content {
-  --background: var(--background-bg-0);
-  --padding-start: 0;
-  --padding-end: 0;
-  --padding-top: 0;
-  --padding-bottom: 0;
+.kanban-tab-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  background: var(--background-bg-0, #0f0f1a);
+  overflow: hidden;
 }
 
-// ─── Header ────────────────────────────────────────────────────────────────────
-.kanban-header {
-  ion-toolbar {
-    --background: var(--background-surface-1);
-    --color: var(--text-primary);
-    --border-color: var(--border-medium);
-  }
+// ─── Filter toolbar ────────────────────────────────────────────────────────────
+.filter-toolbar {
+  background: var(--background-surface-2, #1a1a2e);
+  border-bottom: 1px solid var(--border-medium, #2e3450);
+  border-radius: var(--radius-md, 10px);
+  margin-bottom: 12px;
 
-  .header-center {
+  .filter-row {
     display: flex;
     align-items: center;
-    gap: var(--space-2);
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding: 10px var(--space-4);
+    flex-wrap: wrap;
+  }
 
-    ion-title {
+  .filter-title-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    .kanban-section-title {
+      margin: 0;
+      font-size: 1.1rem;
       font-weight: 800;
-      padding-inline: 0;
+      color: var(--text-primary, #eceefb);
     }
 
     .active-badge {
       display: inline-flex;
       align-items: center;
       padding: 2px 10px;
-      border-radius: var(--radius-pill);
+      border-radius: var(--radius-pill, 999px);
       background: rgba(108, 127, 232, 0.15);
-      color: var(--primary);
-      font-size: 0.75rem;
+      color: var(--primary, #6c7fe8);
+      font-size: 0.78rem;
       font-weight: 700;
       border: 1px solid rgba(108, 127, 232, 0.3);
       white-space: nowrap;
     }
-  }
-}
-
-// ─── Filter toolbar ────────────────────────────────────────────────────────────
-.filter-toolbar {
-  --background: var(--background-surface-2);
-  --border-color: var(--border-medium);
-
-  .filter-row {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-    padding: 6px var(--space-4);
-    flex-wrap: wrap;
   }
 
   .filter-select-box {

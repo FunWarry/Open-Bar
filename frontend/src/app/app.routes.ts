@@ -159,9 +159,8 @@ export const routes: Routes = [
   },
   {
     path: 'serveur/suivi-commandes',
-    loadComponent: () => import('./features/dashboard-serveur/kanban-serveur/kanban-serveur.component').then(m => m.KanbanServeurComponent),
-    canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['SERVEUR', 'MANAGER', 'ADMIN'] }
+    redirectTo: '/serveur?tab=suivi',
+    pathMatch: 'full',
   },
   {
     path: 'plan-salle',

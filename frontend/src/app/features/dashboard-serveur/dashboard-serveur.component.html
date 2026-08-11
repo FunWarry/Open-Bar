@@ -419,6 +419,11 @@
       </div>
     </div>
   </ng-container>
+
+  <!-- ONGLET 3 : SUIVI DES COMMANDES EN TEMPS REEL (KANBAN) -->
+  <ng-container *ngIf="activeTab === 'suivi'">
+    <app-kanban-serveur></app-kanban-serveur>
+  </ng-container>
 </ion-content>
 
 <!-- BOTTOM NAVIGATION MOBILE / TABLETTE -->

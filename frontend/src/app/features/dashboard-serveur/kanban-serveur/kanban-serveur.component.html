@@ -1,50 +1,39 @@
-<ion-header class="ion-no-border kanban-header">
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-back-button defaultHref="/serveur" data-testid="kanban-back-btn"></ion-back-button>
-    </ion-buttons>
-
-    <div class="header-center">
-      <ion-title>{{ 'COMMANDES.TITLE' | transloco }}</ion-title>
-      <span class="active-badge" *ngIf="!isLoading">
-        {{ totalActif }} {{ 'SERVEUR_MOBILE.CARD.COMMANDES_COUNT' | transloco }}
-      </span>
-    </div>
-  </ion-toolbar>
-
-  <!-- Filtre par table -->
-  <ion-toolbar class="filter-toolbar">
+<div class="kanban-tab-container">
+  <!-- Filtre par table + Total active count -->
+  <div class="filter-toolbar">
     <div class="filter-row">
+      <div class="filter-title-group">
+        <h3 class="kanban-section-title">Suivi des commandes</h3>
+        <span class="active-badge" *ngIf="!isLoading">
+          {{ totalActif }} active(s)
+        </span>
+      </div>
+
       <div class="filter-select-box">
-        <label for="kanban-table-select" class="sr-only">{{ 'COMMANDES.TABLE' | transloco }}</label>
+        <label for="kanban-table-select" class="sr-only">Table</label>
         <select
           id="kanban-table-select"
           class="table-native-select"
           [value]="filtreTableId ?? ''"
           (change)="onFiltreChange($any($event.target).value ? +$any($event.target).value : null)"
           data-testid="kanban-filtre-table">
-          <option value="">{{ 'COMMANDES.STATUTS.TOUTES' | transloco }} {{ 'SERVEUR_MOBILE.NAV.TABLES' | transloco }}</option>
+          <option value="">Toutes les tables</option>
           <option *ngFor="let t of tables" [value]="t.id">{{ t.nom }}</option>
         </select>
       </div>
+
       <div class="filter-info" *ngIf="filtreTableId">
         <ion-icon name="funnel-outline"></ion-icon>
-        <span>{{ 'COMMON.FILTER' | transloco }}: {{ getTableNom(filtreTableId) }}</span>
+        <span>Filtre: {{ getTableNom(filtreTableId) }}</span>
         <button class="clear-filter-btn" (click)="onFiltreChange(null)" data-testid="kanban-clear-filter">✕</button>
       </div>
     </div>
-  </ion-toolbar>
-</ion-header>
-
-<ion-content class="kanban-content">
-  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
-    <ion-refresher-content></ion-refresher-content>
-  </ion-refresher>
+  </div>
 
   <!-- Loading -->
   <div *ngIf="isLoading" class="loading-state">
     <ion-spinner name="crescent" color="primary"></ion-spinner>
-    <p>{{ 'COMMON.LOADING' | transloco }}</p>
+    <p>Chargement des commandes...</p>
   </div>
 
   <!-- Kanban board — horizontal scroll container -->
@@ -90,7 +79,7 @@
                 </span>
               </div>
               <span class="card-table" *ngIf="cmd.tableNumero">
-                {{ 'COMMANDES.TABLE' | transloco }} {{ cmd.tableNumero }}
+                Table {{ cmd.tableNumero }}
               </span>
             </div>
 
@@ -154,4 +143,4 @@
 
     </div>
   </div>
-</ion-content>
+</div>

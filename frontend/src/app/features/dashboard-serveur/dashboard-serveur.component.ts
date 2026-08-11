@@ -62,6 +62,8 @@ export interface GroupedTables {
   occupiedCount: number;
 }
 
+import { KanbanServeurComponent } from './kanban-serveur/kanban-serveur.component';
+
 /**
  * Main dashboard component for waiters providing table list supervision,
  * grouped view modes (By Zone, By Floor, Grid, Interactive 2D Plan),
@@ -80,6 +82,7 @@ export interface GroupedTables {
     BottomNavigationComponent,
     ProductCardComponent,
     CartDrawerComponent,
+    KanbanServeurComponent,
   ],
   templateUrl: './dashboard-serveur.component.html',
   styleUrls: ['./dashboard-serveur.component.scss'],
@@ -194,6 +197,10 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
           const tableId = +params['tableId'];
           this.onTableSelectForOrder(tableId);
           this.activeTab = 'commande';
+          this.cdr.detectChanges();
+        }
+        if (params['tab'] === 'suivi' || params['tab'] === 'kanban') {
+          this.activeTab = 'suivi';
           this.cdr.detectChanges();
         }
       });
@@ -752,7 +759,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
   }
 
   naviguerKanban() {
-    this.router.navigate(['/serveur/suivi-commandes']);
+    this.activeTab = 'suivi';
   }
 
   async onLiberer(tableId: number) {
@@ -858,9 +865,6 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
 
   onTabSelected(tab: ServeurTab) {
     this.activeTab = tab;
-    if (tab === 'suivi') {
-      this.naviguerKanban();
-    }
   }
 
   onCategorySelect(cat: string) {
