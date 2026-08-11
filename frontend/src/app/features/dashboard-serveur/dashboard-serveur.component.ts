@@ -117,7 +117,10 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
     });
   }
 
+  private static readonly FILTER_STORAGE_KEY = 'openbar_serveur_dashboard_filters';
+
   ngOnInit() {
+    this.chargerFiltresSauvegardes();
     this.chargerDonnees();
 
     this.notificationService.onNotification()
@@ -224,6 +227,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
   }
 
   filtrer() {
+    this.sauvegarderFiltres();
     let result = [...this.tables];
 
     // Search term filter
@@ -277,6 +281,39 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
 
     if (this.displayMode === 'PLAN') {
       this.renderKonvaPlan();
+    }
+  }
+
+  private chargerFiltresSauvegardes() {
+    try {
+      const saved = localStorage.getItem(DashboardServeurComponent.FILTER_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.searchTerm !== undefined) this.searchTerm = parsed.searchTerm;
+        if (parsed.selectedStatus) this.selectedStatus = parsed.selectedStatus;
+        if (parsed.selectedEtage) this.selectedEtage = parsed.selectedEtage;
+        if (parsed.selectedZone) this.selectedZone = parsed.selectedZone;
+        if (parsed.sortOption) this.sortOption = parsed.sortOption;
+        if (parsed.displayMode) this.displayMode = parsed.displayMode;
+      }
+    } catch {
+      // Fallback cleanly on error
+    }
+  }
+
+  private sauvegarderFiltres() {
+    try {
+      const config = {
+        searchTerm: this.searchTerm,
+        selectedStatus: this.selectedStatus,
+        selectedEtage: this.selectedEtage,
+        selectedZone: this.selectedZone,
+        sortOption: this.sortOption,
+        displayMode: this.displayMode,
+      };
+      localStorage.setItem(DashboardServeurComponent.FILTER_STORAGE_KEY, JSON.stringify(config));
+    } catch {
+      // Fallback cleanly on storage error
     }
   }
 
@@ -371,6 +408,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
 
   setDisplayMode(mode: DashboardViewMode) {
     this.displayMode = mode;
+    this.sauvegarderFiltres();
     if (mode === 'PLAN') {
       setTimeout(() => this.initOrUpdateKonva(), 80);
     }

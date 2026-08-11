@@ -296,9 +296,39 @@ describe('DashboardServeurComponent', () => {
     expect(component.displayMode).toBe('GRID');
   });
 
+  it('sauvegarderFiltres() persiste la configuration des filtres dans localStorage', () => {
+    component.setStatusFilter('OCCUPIED');
+    component.setDisplayMode('GRID');
+    const saved = localStorage.getItem('openbar_serveur_dashboard_filters');
+    expect(saved).not.toBeNull();
+    const parsed = JSON.parse(saved!);
+    expect(parsed.selectedStatus).toBe('OCCUPIED');
+    expect(parsed.displayMode).toBe('GRID');
+  });
+
+  it('chargerFiltresSauvegardes() restaure la configuration depuis localStorage', () => {
+    const config = {
+      searchTerm: '',
+      selectedStatus: 'FREE',
+      selectedEtage: 'RDC',
+      selectedZone: 'Salle Principale',
+      sortOption: 'CAPACITY_DESC',
+      displayMode: 'BY_FLOOR',
+    };
+    localStorage.setItem('openbar_serveur_dashboard_filters', JSON.stringify(config));
+
+    component.ngOnInit();
+
+    expect(component.selectedStatus).toBe('FREE');
+    expect(component.selectedEtage).toBe('RDC');
+    expect(component.selectedZone).toBe('Salle Principale');
+    expect(component.sortOption).toBe('CAPACITY_DESC');
+    expect(component.displayMode).toBe('BY_FLOOR');
+  });
+
   // --- ngOnDestroy ---
 
-  it('ngOnDestroy() complète le Subject destroy$ sans erreur', () => {
+  it('ngOnDestroy désinscrit les observables', () => {
     expect(() => component.ngOnDestroy()).not.toThrow();
   });
 });
