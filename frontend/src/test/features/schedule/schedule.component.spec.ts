@@ -857,20 +857,20 @@ describe('ScheduleComponent', () => {
     });
 
     it('filteredEmployees should return all employees when selectedRoleFilter is ALL and hideEmptyEmployees is false', () => {
-      expect(component.filteredEmployees.length).toBe(3);
+      expect(component.filteredEmployees).toHaveSize(3);
     });
 
     it('filteredEmployees should filter by role correctly', () => {
       component.setRoleFilter('BARMAN');
-      expect(component.filteredEmployees.length).toBe(1);
+      expect(component.filteredEmployees).toHaveSize(1);
       expect(component.filteredEmployees[0].name).toBe('Sophie Martin');
 
       component.setRoleFilter('SERVEUR');
-      expect(component.filteredEmployees.length).toBe(1);
+      expect(component.filteredEmployees).toHaveSize(1);
       expect(component.filteredEmployees[0].name).toBe('Lucas Bernard');
 
       component.setRoleFilter('MANAGER');
-      expect(component.filteredEmployees.length).toBe(1);
+      expect(component.filteredEmployees).toHaveSize(1);
       expect(component.filteredEmployees[0].name).toBe('Antoine Dupont');
     });
 
@@ -879,7 +879,7 @@ describe('ScheduleComponent', () => {
       expect(component.hideEmptyEmployees).toBeTrue();
 
       // Only Waiter and Manager have scheduled hours
-      expect(component.filteredEmployees.length).toBe(2);
+      expect(component.filteredEmployees).toHaveSize(2);
       expect(component.filteredEmployees.some(e => e.name === 'Sophie Martin')).toBeFalse();
     });
 
@@ -888,7 +888,7 @@ describe('ScheduleComponent', () => {
       component.hideEmptyEmployees = true;
 
       // Sophie Martin is BARMAN but has 0 hours
-      expect(component.filteredEmployees.length).toBe(0);
+      expect(component.filteredEmployees).toHaveSize(0);
     });
 
     it('filteredEmployees should return empty array if schedule is null', () => {

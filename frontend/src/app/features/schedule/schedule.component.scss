@@ -256,7 +256,7 @@
     }
 
     &.active {
-      color: #ffffff;
+      color: var(--text-on-primary, #ffffff);
       background: var(--primary, #6c7fe8);
       border-color: var(--primary, #6c7fe8);
       box-shadow: 0 0 8px rgba(108, 127, 232, 0.4);
