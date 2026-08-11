@@ -37,7 +37,7 @@ Pattern strict **Controller → Service → Repository** — aucun saut de couch
 
 ```
 src/main/java/com/bar/gestioncocktail/
-├── config/     # SecurityConfig, WebSocketConfig, JwtProperties, DatabaseAutoCreationConfig (auto-création BDD PostgreSQL multi-env)
+├── config/     # SecurityConfig, WebSocketConfig, JwtProperties
 ├── controller/ # REST endpoints (@PreAuthorize obligatoire sur writes)
 ├── service/    # Logique métier (@Transactional sur writes)
 ├── repository/ # Spring Data JPA (extends JpaRepository<Entity, Long>)
@@ -67,8 +67,10 @@ frontend/src/
 │       ├── dashboard-barman/
 │       ├── dashboard-manager/
 │       ├── dashboard-serveur/
+│       ├── employees/             # Gestion shifts par employé + EmployeeShiftModalComponent
 │       ├── factures/
 │       ├── ingredients/
+│       ├── schedule/              # Planning EDT + ScheduleHistoryModal + ShiftHistoryModal (replay)
 │       └── tables/
 └── test/                      # Miroir de src/app/ — TOUS les *.spec.ts ici
     ├── core/
@@ -86,14 +88,14 @@ frontend/src/
 ```
 users ──< user_roles
 users ──< employee_shifts              ← Shifts & plannings d'équipe
+employee_shifts ──< shift_audit_log    ← Audit log immutable (CREATED/UPDATED/DELETED)
 users ──< tables (serveur_id)
 tables ──< commandes ──< commande_items ──< cocktails
                                          └──< cocktail_variantes
 cocktails ──< cocktail_ingredients ──< ingredients
 tables ──< factures ──< facture_items
 tables ──< table_sessions              ← QR code client (token temporaire)
-etages                                 ← Niveaux du bar (RDC, ETAGE_1…) — seed @PostConstruct
-zones ──< tables                       ← Polygones libres JSON plan de salle (étage FK via code)
+zones ──< tables                       ← Polygones libres JSON plan de salle
 establishment_closures                 ← Exceptions & jours de fermeture
 shift_presets                          ← Modèles prédéfinis de créneaux
 week_schedule_publications             ← Suivi et journal des publications EDT
@@ -130,6 +132,14 @@ EN_ATTENTE → EN_PREPARATION → PRET → LIVREE → REGLEE
 | `/topic/tables` | Occupation / libération |
 | `/topic/stock/alerte` | Stock faible |
 | `/topic/schedule-publications` | Publication d'emploi du temps |
+
+## Endpoints Audit & Replay (PR #285)
+
+| Méthode | URL | Rôles | Description |
+|---------|-----|-------|-------------|
+| `GET` | `/api/shifts/{id}/history` | MANAGER, ADMIN | Historique immutable d'un créneau |
+| `GET` | `/api/schedule/audit-log?week=&userId=` | MANAGER, ADMIN | Audit log hebdomadaire (filtre optionnel par employé) |
+| `GET` | `/api/schedule/at?week=&at=` | Tous rôles auth | Reconstruction du planning à un instant T (replay) |
 
 ## Lancer le Projet
 
