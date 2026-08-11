@@ -1,6 +1,6 @@
 # OpenBar — État des Features & Roadmap
 
-> Dernière mise à jour : 11 août 2026 — PR #280 (#275) : Fix mode comparaison EDT (sérialisation Jackson ISO dates backend, parsing robuste JS & styles CSS diff haute visibilité)
+> Dernière mise à jour : 11 août 2026 — PR #287 (#276) / PR #286 (#283) : Planning hebdomadaire EDT (filtres par poste, toggle sans créneau, indicateurs d'heures par employé & synchronisation KIs)
 
 ## Tableau des Features
 
