@@ -2,9 +2,11 @@
 // Adaptive Theme using CSS variables from variables.css (Rule #9)
 
 :host {
-  display: block;
+  display: flex;
+  flex-direction: column;
   width: 100%;
   height: 100%;
+  overflow: hidden;
   background: var(--background-bg-0, #0f0f1a);
 }
 
