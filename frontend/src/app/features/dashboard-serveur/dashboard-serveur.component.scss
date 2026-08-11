@@ -369,15 +369,15 @@ ion-content.dashboard-serveur-content {
         border: 1px solid var(--border-medium, #2a2e4d);
 
         &.free {
-          background: rgba(38, 174, 96, 0.15);
-          color: #16a34a;
-          border-color: rgba(38, 174, 96, 0.3);
+          background: var(--status-ready-15, rgba(47, 191, 107, 0.15));
+          color: var(--status-ready, #2fbf6b);
+          border-color: var(--status-ready, #2fbf6b);
         }
 
         &.occupied {
-          background: rgba(230, 126, 34, 0.15);
-          color: #d97706;
-          border-color: rgba(230, 126, 34, 0.3);
+          background: var(--status-waiting-15, rgba(244, 165, 42, 0.15));
+          color: var(--status-waiting, #f4a52a);
+          border-color: var(--status-waiting, #f4a52a);
         }
       }
     }
