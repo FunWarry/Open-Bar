@@ -84,6 +84,7 @@ export class TableDetailModalComponent implements OnInit {
         currentTableId: this.table.id,
         commandeId,
       },
+      cssClass: 'transfert-modal-container',
     });
     await modal.present();
     const { data } = await modal.onWillDismiss();

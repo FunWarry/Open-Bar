@@ -164,8 +164,7 @@ export class DashboardServeurComponent implements OnInit, OnDestroy {
     const modal = await this.modalCtrl.create({
       component: TableDetailModalComponent,
       componentProps: { table },
-      breakpoints: [0, 0.5, 0.9],
-      initialBreakpoint: 0.9,
+      cssClass: 'table-detail-modal-container',
     });
     await modal.present();
     const { data } = await modal.onWillDismiss();

@@ -254,9 +254,7 @@ export class NouvelleCommandeComponent implements OnInit, OnDestroy {
     const modal = await this.modalCtrl.create({
       component: VarianteModalComponent,
       componentProps: { cocktail },
-      cssClass: 'variante-modal',
-      breakpoints: [0, 0.75, 1],
-      initialBreakpoint: 0.75,
+      cssClass: 'variante-modal-container',
     });
     await modal.present();
 
