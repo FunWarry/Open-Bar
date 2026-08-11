@@ -26,6 +26,13 @@ import { safeCompleteRefresher } from '../../core/utils/refresher-utils';
 import { fastModalEnterAnimation, fastModalLeaveAnimation } from '../../core/utils/modal-animation.utils';
 import { TableView } from './models/table-view.model';
 import { TablePosition } from '../plan-salle/models/table-position.model';
+import { PlanSalleService } from '../plan-salle/services/plan-salle.service';
+
+// ─── Plan constants — must match plan-salle.component.ts exactly ───────────────
+const PLAN_TABLE_SIZE = 64;
+const PLAN_GAP        = 48;
+const PLAN_MARGIN     = 80;
+const PLAN_COLS       = 5;
 
 import { MobileTableCardComponent } from './components/mobile-table-card/mobile-table-card.component';
 import { BottomNavigationComponent, ServeurTab } from './components/bottom-navigation/bottom-navigation.component';
@@ -104,6 +111,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
 
   constructor(
     private readonly service: DashboardServeurService,
+    private readonly planSalleService: PlanSalleService,
     private readonly toastCtrl: ToastController,
     private readonly modalCtrl: ModalController,
     private readonly router: Router,
@@ -148,10 +156,12 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
   chargerDonnees() {
     this.isLoading = true;
     forkJoin({
-      tables: this.service.getAllTables(),
-      etages: this.service.getEtages(),
-      zones: this.service.getZones(),
-      positions: this.service.getPlanSallePositions(),
+      tables:    this.service.getAllTables(),
+      etages:    this.service.getEtages(),
+      zones:     this.service.getZones(),
+      // Use PlanSalleService directly — shares the same localStorage fallback
+      // as the plan management page so positions are always in sync.
+      positions: this.planSalleService.getPositions(),
     })
     .pipe(
       takeUntil(this.destroy$),
@@ -168,16 +178,19 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
         this.positionsMap.clear();
         positions.forEach(p => this.positionsMap.set(p.tableId, p));
 
-        this.tables = tables.map(t => {
+        this.tables = tables.map((t, idx) => {
           const pos = this.positionsMap.get(t.id);
           const zoneObj = this.zonesList.find(z => z.nom.toLowerCase() === (t.zone || '').toLowerCase());
+          // Default position uses exact same algorithm as plan-salle.component.ts
+          const defaultX = PLAN_MARGIN + (idx % PLAN_COLS) * (PLAN_TABLE_SIZE + PLAN_GAP);
+          const defaultY = PLAN_MARGIN + Math.floor(idx / PLAN_COLS) * (PLAN_TABLE_SIZE + PLAN_GAP);
           return {
             ...t,
             etage: t.etage || zoneObj?.etage || 'RDC',
-            planX: pos?.x,
-            planY: pos?.y,
+            planX: pos?.x ?? defaultX,
+            planY: pos?.y ?? defaultY,
             planForme: pos?.shape === 'circle' ? 'ROND' : 'CARRE',
-            planRotation: pos?.rotation || 0,
+            planRotation: pos?.rotation ?? 0,
           };
         });
 
@@ -448,108 +461,183 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
     this.ngZone.runOutsideAngular(() => {
       this.layer!.destroyChildren();
 
-      const stageWidth = this.stage?.width() || 800;
+      const stageWidth  = this.stage?.width()  || 800;
       const stageHeight = this.stage?.height() || 550;
 
-      // Grille millimétrée
+      // ── 1. Background grid (identical to plan-salle) ────────────────────────
       const gridGroup = new Konva.Group();
       const gridSize = 40;
       for (let x = 0; x < stageWidth; x += gridSize) {
-        gridGroup.add(new Konva.Line({ points: [x, 0, x, stageHeight], stroke: 'rgba(255, 255, 255, 0.04)', strokeWidth: 1 }));
+        gridGroup.add(new Konva.Line({
+          points: [x, 0, x, stageHeight],
+          stroke: 'rgba(255, 255, 255, 0.04)',
+          strokeWidth: 1,
+        }));
       }
       for (let y = 0; y < stageHeight; y += gridSize) {
-        gridGroup.add(new Konva.Line({ points: [0, y, stageWidth, y], stroke: 'rgba(255, 255, 255, 0.04)', strokeWidth: 1 }));
+        gridGroup.add(new Konva.Line({
+          points: [0, y, stageWidth, y],
+          stroke: 'rgba(255, 255, 255, 0.04)',
+          strokeWidth: 1,
+        }));
       }
       this.layer!.add(gridGroup);
 
-      this.filteredTables.forEach((table, index) => {
-        const posX = table.planX ?? (80 + (index % 5) * 130);
-        const posY = table.planY ?? (80 + Math.floor(index / 5) * 110);
+      // ── 2. Zone regions — drawn BEFORE tables so they appear behind ─────────
+      // Collect bounding boxes per zone from filteredTables' positions
+      const zoneColors: Record<string, string> = {
+        'Salle Principale': 'rgba(108, 127, 232, 0.08)',
+        'Terrasse':         'rgba(47, 191, 107, 0.08)',
+        'Mezzanine':        'rgba(244, 165, 42, 0.08)',
+      };
+      const zoneBorders: Record<string, string> = {
+        'Salle Principale': 'rgba(108, 127, 232, 0.25)',
+        'Terrasse':         'rgba(47, 191, 107, 0.25)',
+        'Mezzanine':        'rgba(244, 165, 42, 0.25)',
+      };
+
+      // Group tables by zone and compute bounding box
+      const zoneMap = new Map<string, { minX: number; minY: number; maxX: number; maxY: number }>();
+      const S = PLAN_TABLE_SIZE;
+      const PAD = 20;
+
+      this.filteredTables.forEach(table => {
+        const zoneName = table.zone || 'Salle Principale';
+        const cx = (table.planX ?? 0);
+        const cy = (table.planY ?? 0);
+        const existing = zoneMap.get(zoneName);
+        if (!existing) {
+          zoneMap.set(zoneName, { minX: cx - S / 2 - PAD, minY: cy - S / 2 - PAD, maxX: cx + S / 2 + PAD, maxY: cy + S / 2 + PAD });
+        } else {
+          existing.minX = Math.min(existing.minX, cx - S / 2 - PAD);
+          existing.minY = Math.min(existing.minY, cy - S / 2 - PAD);
+          existing.maxX = Math.max(existing.maxX, cx + S / 2 + PAD);
+          existing.maxY = Math.max(existing.maxY, cy + S / 2 + PAD);
+        }
+      });
+
+      zoneMap.forEach((box, zoneName) => {
+        const fill   = zoneColors[zoneName]   ?? 'rgba(255, 255, 255, 0.05)';
+        const stroke = zoneBorders[zoneName]  ?? 'rgba(255, 255, 255, 0.15)';
+        const zoneRect = new Konva.Rect({
+          x: box.minX, y: box.minY,
+          width:  box.maxX - box.minX,
+          height: box.maxY - box.minY,
+          fill, stroke, strokeWidth: 1,
+          cornerRadius: 12,
+          dash: [6, 4],
+        });
+        const zoneLabel = new Konva.Text({
+          text: zoneName,
+          x: box.minX + 8,
+          y: box.minY + 6,
+          fontSize: 10,
+          fontStyle: '600',
+          fill: stroke,
+          letterSpacing: 0.5,
+        });
+        this.layer!.add(zoneRect);
+        this.layer!.add(zoneLabel);
+      });
+
+      // ── 3. Tables — same rendering as plan-salle.component.ts ───────────────
+      this.filteredTables.forEach(table => {
+        const posX    = table.planX ?? PLAN_MARGIN;
+        const posY    = table.planY ?? PLAN_MARGIN;
         const waitTime = this.getWaitTimeMinutes(table);
 
-        let fill = '#27ae60';
-        let stroke = '#1e8449';
-        if (table.occupee) {
-          if (waitTime > 20) {
-            fill = '#e74c3c';
-            stroke = '#c0392b';
-          } else {
-            fill = '#e67e22';
-            stroke = '#d35400';
-          }
+        // Same color logic as plan-salle (COULEUR_LIBRE / COULEUR_OCCUPEE)
+        // + red tint for late orders on waiter dashboard
+        let fill: string;
+        let stroke: string;
+        if (!table.occupee) {
+          fill = '#27ae60'; stroke = '#1e8449';
+        } else if (waitTime > 20) {
+          fill = '#e74c3c'; stroke = '#c0392b';
+        } else {
+          fill = '#e67e22'; stroke = '#d35400';
         }
 
         const group = new Konva.Group({
           x: posX,
           y: posY,
-          rotation: table.planRotation || 0,
+          rotation: table.planRotation ?? 0,
         });
 
         const isCircle = table.planForme === 'ROND';
+        // Sizes exactly matching plan-salle: S=64, centered at (0,0)
         const shape = isCircle
-          ? new Konva.Circle({ radius: 32, fill, stroke, strokeWidth: 2, shadowBlur: 8, shadowColor: 'rgba(0,0,0,0.3)' })
-          : new Konva.Rect({ x: -32, y: -32, width: 64, height: 64, cornerRadius: 10, fill, stroke, strokeWidth: 2, shadowBlur: 8, shadowColor: 'rgba(0,0,0,0.3)' });
-
+          ? new Konva.Circle({
+              radius: S / 2,
+              fill, stroke,
+              strokeWidth: 2,
+              shadowBlur: 8,
+              shadowColor: 'rgba(0,0,0,0.3)',
+            })
+          : new Konva.Rect({
+              width: S, height: S,
+              offsetX: S / 2, offsetY: S / 2,
+              cornerRadius: 10,
+              fill, stroke,
+              strokeWidth: 2,
+              shadowBlur: 8,
+              shadowColor: 'rgba(0,0,0,0.3)',
+            });
         group.add(shape);
 
-        const textNumero = new Konva.Text({
+        // Table number label (matches plan-salle label)
+        const labelNumero = new Konva.Text({
           text: `T${table.id}`,
           fontSize: 14,
           fontStyle: 'bold',
           fill: '#ffffff',
-          x: -25,
-          y: -14,
-          width: 50,
-          align: 'center',
+          width: S, height: S / 2,
+          offsetX: S / 2, offsetY: S / 2,
+          align: 'center', verticalAlign: 'middle',
         });
-        group.add(textNumero);
+        group.add(labelNumero);
 
-        const textCapacite = new Konva.Text({
+        // Capacity sub-label
+        const labelCap = new Konva.Text({
           text: `${table.capacite}p`,
           fontSize: 11,
-          fill: 'rgba(255, 255, 255, 0.85)',
-          x: -25,
-          y: 2,
-          width: 50,
-          align: 'center',
+          fill: 'rgba(255,255,255,0.85)',
+          width: S, height: S / 2,
+          offsetX: S / 2, offsetY: 0,
+          align: 'center', verticalAlign: 'middle',
         });
-        group.add(textCapacite);
+        group.add(labelCap);
 
+        // Wait-time badge for occupied tables
         if (table.occupee && waitTime > 0) {
-          const waitBadge = new Konva.Rect({
-            x: -20,
-            y: 18,
-            width: 40,
-            height: 14,
+          const badgeBg = new Konva.Rect({
+            x: -18, y: S / 2 - 4,
+            width: 36, height: 14,
             cornerRadius: 7,
-            fill: 'rgba(0, 0, 0, 0.65)',
+            fill: 'rgba(0,0,0,0.65)',
           });
-          const waitText = new Konva.Text({
+          const badgeTxt = new Konva.Text({
             text: `${waitTime}m`,
             fontSize: 9,
             fontStyle: 'bold',
             fill: '#ffffff',
-            x: -20,
-            y: 20,
-            width: 40,
+            x: -18, y: S / 2 - 2,
+            width: 36,
             align: 'center',
           });
-          group.add(waitBadge);
-          group.add(waitText);
+          group.add(badgeBg, badgeTxt);
         }
 
         group.on('mouseenter', () => {
-          const containerEl = this.konvaContainerRef?.nativeElement;
-          if (containerEl) containerEl.style.cursor = 'pointer';
+          const el = this.konvaContainerRef?.nativeElement;
+          if (el) el.style.cursor = 'pointer';
           group.to({ scaleX: 1.08, scaleY: 1.08, duration: 0.1 });
         });
-
         group.on('mouseleave', () => {
-          const containerEl = this.konvaContainerRef?.nativeElement;
-          if (containerEl) containerEl.style.cursor = 'default';
+          const el = this.konvaContainerRef?.nativeElement;
+          if (el) el.style.cursor = 'default';
           group.to({ scaleX: 1, scaleY: 1, duration: 0.1 });
         });
-
         group.on('click tap', () => {
           this.ngZone.run(() => this.onSelectionner(table));
         });
