@@ -29,9 +29,19 @@
   height: 48px;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
   padding: 0 12px;
   border-bottom: 1px solid var(--border-medium);
+}
+
+.sidebar-brand {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--primary, #6c7fe8);
+  letter-spacing: -0.5px;
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
 }
 
 .sidebar.collapsed .sidebar-header {

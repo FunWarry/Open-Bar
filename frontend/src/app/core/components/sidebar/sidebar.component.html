@@ -4,8 +4,19 @@
   data-testid="sidebar-container"
   aria-label="Sidebar Navigation">
 
-  <!-- Header: Collapse / Expand toggle button -->
+  <!-- Header: Brand Name + Collapse / Expand toggle button -->
   <div class="sidebar-header">
+    @if (!isCollapsed()) {
+      <div
+        class="sidebar-brand"
+        (click)="navigationService.navigateToHome()"
+        (keyup.enter)="navigationService.navigateToHome()"
+        tabindex="0"
+        role="button"
+        data-testid="sidebar-brand">
+        OpenBar
+      </div>
+    }
     <button
       type="button"
       class="collapse-toggle-btn"

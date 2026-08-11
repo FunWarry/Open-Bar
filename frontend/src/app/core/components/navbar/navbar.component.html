@@ -1,14 +1,16 @@
 @if (shouldShowNavbar$ | async) {
   <ion-header>
     <ion-toolbar>
-      <!-- App logo / home link -->
-      <ion-title
-        (click)="navigationService.navigateToHome()"
-        (keyup.enter)="navigationService.navigateToHome()"
-        class="topbar-logo"
-        data-testid="topbar-logo">
-        OpenBar
-      </ion-title>
+      <!-- App logo / home link (Displayed only when sidebar is collapsed) -->
+      @if (navigationService.isSidebarCollapsed()) {
+        <ion-title
+          (click)="navigationService.navigateToHome()"
+          (keyup.enter)="navigationService.navigateToHome()"
+          class="topbar-logo"
+          data-testid="topbar-logo">
+          OpenBar
+        </ion-title>
+      }
 
       <!-- Dynamic page title (center) -->
       <div class="topbar-page-title" data-testid="topbar-page-title">

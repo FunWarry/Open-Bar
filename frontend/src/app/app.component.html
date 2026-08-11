@@ -1,13 +1,15 @@
 @if (showNavbar$ | async) {
   <div class="app-layout">
-    <app-navbar></app-navbar>
-    <div class="app-body">
-      <app-sidebar></app-sidebar>
-      <main class="main-content" id="main-content">
-        <router-outlet></router-outlet>
-      </main>
-      <div class="notif-drawer-wrapper" [class.open]="notifService.isNotifPanelOpen()" data-testid="side-notif-drawer">
-        <app-notification-panel (closePanel)="notifService.closeNotifPanel()"></app-notification-panel>
+    <app-sidebar></app-sidebar>
+    <div class="app-main-wrapper">
+      <app-navbar></app-navbar>
+      <div class="app-content-body">
+        <main class="main-content" id="main-content">
+          <router-outlet></router-outlet>
+        </main>
+        <div class="notif-drawer-wrapper" [class.open]="notifService.isNotifPanelOpen()" data-testid="side-notif-drawer">
+          <app-notification-panel (closePanel)="notifService.closeNotifPanel()"></app-notification-panel>
+        </div>
       </div>
     </div>
   </div>

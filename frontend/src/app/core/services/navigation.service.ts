@@ -1,4 +1,4 @@
-import {Injectable} from '@angular/core';
+import {Injectable, signal} from '@angular/core';
 import {Router} from '@angular/router';
 import {Store} from '@ngrx/store';
 import {map, take} from 'rxjs/operators';
@@ -8,7 +8,13 @@ import {selectIsAdmin, selectIsAuthenticated} from '../store/auth.selectors';
   providedIn: 'root'
 })
 export class NavigationService {
+  readonly isSidebarCollapsed = signal<boolean>(false);
+
   constructor(private readonly router: Router,private readonly store: Store) {
+  }
+
+  toggleSidebarCollapse(): void {
+    this.isSidebarCollapsed.update(val => !val);
   }
 
   navigateToHome(): void {

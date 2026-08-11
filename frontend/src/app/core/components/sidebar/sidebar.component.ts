@@ -83,8 +83,9 @@ const ROLE_COLORS: Record<string, string> = {
 })
 export class SidebarComponent implements OnDestroy {
 
-  /** Signal controlling whether the sidebar is collapsed (64px) or expanded (220px). */
-  readonly isCollapsed = signal<boolean>(false);
+  get isCollapsed() {
+    return this.navigationService.isSidebarCollapsed;
+  }
 
   /** Observable emitting the currently authenticated user from the NgRx auth store. */
   readonly currentUser$: Observable<User | null>;
@@ -112,7 +113,7 @@ export class SidebarComponent implements OnDestroy {
 
   /** Toggles the collapse state of the sidebar between 64px and 220px. */
   toggleCollapse(): void {
-    this.isCollapsed.update(val => !val);
+    this.navigationService.toggleSidebarCollapse();
   }
 
   /**
