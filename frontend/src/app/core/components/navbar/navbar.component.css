@@ -1,6 +1,8 @@
 /* === TopBar / Navbar — OpenBar Design System === */
 
 ion-toolbar {
+  --min-height: 56px;
+  height: 56px;
   --background: var(--surface-1, #1a1a2e);
   --color: var(--text-primary, #eceefb);
   --border-color: var(--border-medium, #2e3450);
