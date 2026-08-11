@@ -136,13 +136,18 @@
 
     <!-- Employee rows -->
     <div class="grid-row" *ngFor="let emp of schedule.employees; trackBy: trackByEmployee">
-      <div class="grid-row__employee">
+      <button
+           type="button"
+           class="grid-row__employee"
+           (click)="onEmployeeHeaderClick(emp)"
+           [title]="'SHIFTS.EMPLOYEE_HEADER_CLICK_HINT' | transloco"
+           [attr.data-testid]="'employee-header-' + emp.employeeId">
         <app-user-avatar [name]="emp.name" [role]="emp.role" size="small"></app-user-avatar>
         <div class="emp-info">
           <span class="emp-role">{{ emp.role | titlecase }}</span>
           <span class="emp-name">{{ emp.name }}</span>
         </div>
-      </div>
+      </button>
       <button
         type="button"
         class="grid-row__cell interactive-cell"

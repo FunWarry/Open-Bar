@@ -67,7 +67,21 @@ import { selectCurrentUser } from '../../../core/store/auth.selectors';
   ]
 })
 export class EmployeeShiftModalComponent implements OnInit {
+  /** The employee whose shifts are being managed. */
   @Input() employee!: User;
+
+  /**
+   * Optional ISO date string (yyyy-MM-dd) to pre-fill the shift creation form.
+   * When set alongside {@link openInCreateMode}, the form will be displayed immediately
+   * with this date pre-selected.
+   */
+  @Input() initialDate: string | null = null;
+
+  /**
+   * When true, the modal will open directly in shift creation mode instead
+   * of showing the shift list first.
+   */
+  @Input() openInCreateMode = false;
 
   private readonly modalCtrl = inject(ModalController);
   private readonly alertCtrl = inject(AlertController);
@@ -126,6 +140,13 @@ export class EmployeeShiftModalComponent implements OnInit {
 
     this.loadPresets();
     this.loadShifts();
+
+    // If opened from the schedule grid with a pre-selected date, jump straight to the creation form
+    if (this.openInCreateMode && this.initialDate) {
+      this.formDate = this.initialDate;
+      this.showForm = true;
+      this.editingShiftId = null;
+    }
   }
 
   /**

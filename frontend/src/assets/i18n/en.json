@@ -884,6 +884,7 @@
       "TOOLTIP_DELETED": "Deleted shift (was {{oldTime}})"
     },
     "EMPLOYEE_HEADER": "Employee",
+    "EMPLOYEE_HEADER_CLICK_HINT": "Click to view this employee's shift list",
     "BULK_DELETE": {
       "TOOL_BUTTON": "Eraser Tool",
       "EXIT_TOOL": "Exit eraser",

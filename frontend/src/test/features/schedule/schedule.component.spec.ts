@@ -9,7 +9,7 @@ import { ClosureService } from '../../../app/core/services/closure.service';
 import { PublicationService, WeekSchedulePublicationDTO } from '../../../app/core/services/publication.service';
 import { WebSocketService } from '../../../app/core/services/websocket.service';
 import { ModalController, ActionSheetController, ToastController, AlertController } from '@ionic/angular/standalone';
-import { of, Subject } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 
 describe('ScheduleComponent', () => {
@@ -434,19 +434,31 @@ describe('ScheduleComponent', () => {
     });
 
     it('onCellClick() should toggle selection in delete mode or open user modal in normal mode', async () => {
-      spyOn(component, 'openEmployeeModalForUser');
-
       const emp: any = { employeeId: 5, name: 'Charlie' };
-      const shift: any = { isClosed: false, rawShift: { id: 202 } };
+      const filledShift: any = { isClosed: false, startTime: '08:00', date: '2026-08-11', rawShift: { id: 202 } };
 
-      // Normal mode click
+      const mockModal = {
+        present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+        onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({ data: null }))
+      };
+      mockModalCtrl.create.and.returnValue(Promise.resolve(mockModal as any));
+      mockUserService.getUserById = jasmine.createSpy('getUserById').and.returnValue(of({ id: 5 } as any));
+      mockScheduleService.getWeekSchedule.and.returnValue(of({
+        weekStart: '2026-08-10', weekEnd: '2026-08-16',
+        employees: [], totalHours: 0, totalEmployees: 0, activeEmployees: 0
+      }));
+      mockPublicationService.getPublication.and.returnValue(of(null));
+
+      // Normal mode click on filled cell → opens employee shift modal
       component.isDeleteMode = false;
-      component.onCellClick(emp, shift);
-      expect(component.openEmployeeModalForUser).toHaveBeenCalledWith(5);
+      await component.onCellClick(emp, filledShift);
+      expect(mockUserService.getUserById).toHaveBeenCalledWith(5);
+      expect(mockModalCtrl.create).toHaveBeenCalled();
 
-      // Delete mode click
+      // Delete mode click → toggles selection
+      mockModalCtrl.create.calls.reset();
       component.isDeleteMode = true;
-      component.onCellClick(emp, shift);
+      component.onCellClick(emp, filledShift);
       expect(component.selectedShiftIds.has(202)).toBeTrue();
     });
 
@@ -627,6 +639,162 @@ describe('ScheduleComponent', () => {
       component.goToCurrentWeek();
       expect(mockScheduleService.getMonday).toHaveBeenCalled();
       expect(mockScheduleService.getWeekSchedule).toHaveBeenCalled();
+    });
+  });
+
+  // ─── Bug #283 — Race condition + UX ─────────────────────────────────────────
+  describe('#283 — loadSchedule forkJoin + cell click UX', () => {
+    it('loadSchedule() should set isPublished=true when publication exists (forkJoin sync)', fakeAsync(() => {
+      const pub: WeekSchedulePublicationDTO = {
+        id: 1,
+        weekStart: '2026-08-10',
+        publishedAt: '2026-08-10T10:00:00',
+        publishedBy: 'manager',
+        snapshotJson: '[]'
+      };
+      mockPublicationService.getPublication.and.returnValue(of(pub));
+      mockScheduleService.getWeekSchedule.and.returnValue(of({
+        weekStart: '2026-08-10', weekEnd: '2026-08-16',
+        employees: [], totalHours: 0, totalEmployees: 0, activeEmployees: 0
+      }));
+
+      component.loadSchedule();
+      tick();
+
+      expect(component.isPublished).toBeTrue();
+      expect(component.publication).toEqual(pub);
+    }));
+
+    it('loadSchedule() should set isPublished=false when no publication', fakeAsync(() => {
+      mockPublicationService.getPublication.and.returnValue(of(null));
+      mockScheduleService.getWeekSchedule.and.returnValue(of({
+        weekStart: '2026-08-10', weekEnd: '2026-08-16',
+        employees: [], totalHours: 0, totalEmployees: 0, activeEmployees: 0
+      }));
+
+      component.loadSchedule();
+      tick();
+
+      expect(component.isPublished).toBeFalse();
+      expect(component.publication).toBeNull();
+    }));
+
+    it('onCellClick() on empty cell should call openCreateShiftModal, not openEmployeeModalForUser', async () => {
+      const emp: any = { employeeId: 5, name: 'Lucas B.', role: 'SERVEUR', shifts: [] };
+      const emptyShift: any = { date: '2026-08-11', isClosed: false, startTime: null, rawShift: null };
+
+      const mockModal = {
+        present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+        onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({ data: null }))
+      };
+      mockModalCtrl.create.and.returnValue(Promise.resolve(mockModal as any));
+      mockUserService.getUserById = jasmine.createSpy('getUserById').and.returnValue(of({ id: 5 } as any));
+      mockScheduleService.getWeekSchedule.and.returnValue(of({
+        weekStart: '2026-08-10', weekEnd: '2026-08-16',
+        employees: [], totalHours: 0, totalEmployees: 0, activeEmployees: 0
+      }));
+      mockPublicationService.getPublication.and.returnValue(of(null));
+
+      await component.onCellClick(emp, emptyShift);
+
+      expect(mockModalCtrl.create).toHaveBeenCalledWith(jasmine.objectContaining({
+        componentProps: jasmine.objectContaining({
+          initialDate: '2026-08-11',
+          openInCreateMode: true
+        })
+      }));
+    });
+
+    it('onCellClick() on filled cell should open employee modal without openInCreateMode', async () => {
+      const emp: any = { employeeId: 5, name: 'Lucas B.', role: 'SERVEUR', shifts: [] };
+      const filledShift: any = { date: '2026-08-11', isClosed: false, startTime: '08:00', rawShift: { id: 42 } };
+
+      const mockModal = {
+        present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+        onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({ data: null }))
+      };
+      mockModalCtrl.create.and.returnValue(Promise.resolve(mockModal as any));
+      mockUserService.getUserById = jasmine.createSpy('getUserById').and.returnValue(of({ id: 5 } as any));
+      mockScheduleService.getWeekSchedule.and.returnValue(of({
+        weekStart: '2026-08-10', weekEnd: '2026-08-16',
+        employees: [], totalHours: 0, totalEmployees: 0, activeEmployees: 0
+      }));
+      mockPublicationService.getPublication.and.returnValue(of(null));
+
+      await component.onCellClick(emp, filledShift);
+
+      const callArgs = mockModalCtrl.create.calls.mostRecent().args[0];
+      expect(callArgs['componentProps']?.['openInCreateMode']).toBeFalsy();
+    });
+
+    it('onEmployeeHeaderClick() should open shift list modal for the employee', async () => {
+      const emp: any = { employeeId: 7, name: 'Emma L.', role: 'BARMAN', shifts: [] };
+      const mockModal = {
+        present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+        onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({ data: null }))
+      };
+      mockModalCtrl.create.and.returnValue(Promise.resolve(mockModal as any));
+      mockUserService.getUserById = jasmine.createSpy('getUserById').and.returnValue(of({ id: 7 } as any));
+      mockScheduleService.getWeekSchedule.and.returnValue(of({
+        weekStart: '2026-08-10', weekEnd: '2026-08-16',
+        employees: [], totalHours: 0, totalEmployees: 0, activeEmployees: 0
+      }));
+      mockPublicationService.getPublication.and.returnValue(of(null));
+
+      await component.onEmployeeHeaderClick(emp);
+
+      expect(mockUserService.getUserById).toHaveBeenCalledWith(7);
+      expect(mockModalCtrl.create).toHaveBeenCalledWith(jasmine.objectContaining({
+        componentProps: jasmine.objectContaining({ employee: { id: 7 } })
+      }));
+    });
+
+    it('loadSchedule() should set loading=false on error', fakeAsync(() => {
+      mockPublicationService.getPublication.and.returnValue(of(null));
+      mockScheduleService.getWeekSchedule.and.returnValue(throwError(() => new Error('Network error')));
+
+      component.loadSchedule();
+      tick();
+
+      expect(component.loading).toBeFalse();
+    }));
+
+    it('openCreateShiftModal() should return early if user is not found', async () => {
+      mockModalCtrl.create.calls.reset();
+      mockUserService.getUserById = jasmine.createSpy('getUserById').and.returnValue(of(null as any));
+
+      await component.openCreateShiftModal({ employeeId: 999 } as any, '2026-08-15');
+
+      expect(mockModalCtrl.create).not.toHaveBeenCalled();
+    });
+
+    it('onCellClick() should abort when wasDraggingMultiple is true in normal or delete mode', () => {
+      const emp: any = { employeeId: 5, name: 'Lucas' };
+      const shift: any = { date: '2026-08-11', startTime: '08:00', rawShift: { id: 10 } };
+      spyOn(component, 'openEmployeeModalForUser');
+
+      // Normal mode with wasDraggingMultiple
+      component.isDeleteMode = false;
+      component.wasDraggingMultiple = true;
+      component.onCellClick(emp, shift);
+      expect(component.wasDraggingMultiple).toBeFalse();
+      expect(component.openEmployeeModalForUser).not.toHaveBeenCalled();
+
+      // Normal mode with dragTargets.length > 1
+      component.dragTargets = [
+        { emp: emp, dayIndex: 0, shift: shift } as any,
+        { emp: emp, dayIndex: 1, shift: shift } as any
+      ];
+      component.onCellClick(emp, shift);
+      expect(component.openEmployeeModalForUser).not.toHaveBeenCalled();
+
+      // Delete mode with wasDraggingMultiple
+      component.isDeleteMode = true;
+      component.wasDraggingMultiple = true;
+      component.selectedShiftIds.clear();
+      component.onCellClick(emp, shift);
+      expect(component.wasDraggingMultiple).toBeFalse();
+      expect(component.selectedShiftIds.size).toBe(0);
     });
   });
 });
