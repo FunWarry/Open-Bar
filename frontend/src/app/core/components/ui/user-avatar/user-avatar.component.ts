@@ -1,5 +1,7 @@
 import { Component, Input } from '@angular/core';
 import { IonAvatar, IonIcon } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { shieldCheckmark, briefcase, wine, restaurant, person } from 'ionicons/icons';
 import { UserRoleType } from '../role-badge/role-badge.component';
 
 /**
@@ -15,6 +17,15 @@ import { UserRoleType } from '../role-badge/role-badge.component';
   styleUrls: ['./user-avatar.component.css']
 })
 export class UserAvatarComponent {
+  constructor() {
+    addIcons({
+      shieldCheckmark,
+      briefcase,
+      wine,
+      restaurant,
+      person
+    });
+  }
   /** User's full name or username. */
   @Input() name?: string;
 

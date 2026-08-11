@@ -1,22 +1,41 @@
 :host {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
-ion-avatar {
+.avatar-container {
   position: relative;
+  display: inline-block;
+  line-height: 1;
 }
 
-ion-avatar.avatar-small {
+.avatar-container.avatar-small {
   width: 32px;
   height: 32px;
 }
 
-ion-avatar.avatar-medium {
+.avatar-container.avatar-small ion-avatar {
+  width: 32px;
+  height: 32px;
+}
+
+.avatar-container.avatar-medium {
   width: 44px;
   height: 44px;
 }
 
-ion-avatar.avatar-large {
+.avatar-container.avatar-medium ion-avatar {
+  width: 44px;
+  height: 44px;
+}
+
+.avatar-container.avatar-large {
+  width: 64px;
+  height: 64px;
+}
+
+.avatar-container.avatar-large ion-avatar {
   width: 64px;
   height: 64px;
 }
@@ -31,17 +50,52 @@ ion-avatar.avatar-large {
   color: #ffffff;
   font-weight: 700;
   border-radius: 50%;
+  font-size: 0.9em;
 }
 
 .avatar-role-badge {
   position: absolute;
-  bottom: 0;
-  right: 0;
-  background: var(--ion-background-color, #1e1e1e);
+  bottom: -2px;
+  right: -2px;
+  background: var(--background-surface-1, #1e1e2d);
+  border: 1.5px solid var(--background-bg-0, #0f0f1a);
   border-radius: 50%;
-  padding: 2px;
-  font-size: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
+  color: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  z-index: 2;
+}
+
+.avatar-small .avatar-role-badge {
+  width: 15px;
+  height: 15px;
+}
+
+.avatar-small .avatar-role-badge ion-icon {
+  font-size: 10px;
+}
+
+.avatar-medium .avatar-role-badge {
+  width: 19px;
+  height: 19px;
+}
+
+.avatar-medium .avatar-role-badge ion-icon {
+  font-size: 12px;
+}
+
+.avatar-large .avatar-role-badge {
+  width: 25px;
+  height: 25px;
+}
+
+.avatar-large .avatar-role-badge ion-icon {
+  font-size: 15px;
+}
+
+.avatar-role-badge ion-icon {
+  color: #ffffff !important;
+  display: block;
 }
