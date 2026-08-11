@@ -518,11 +518,159 @@ ion-content.dashboard-serveur-content {
     flex-direction: column;
     gap: var(--space-3, 12px);
 
-    .categories-bar {
+    // ── Cocktails Filter Card & Pills (Style identique à la page Cocktails) ─────────
+    .cocktail-filters-card {
+      background: var(--background-surface-1, #16192b);
+      border: 1px solid var(--border-medium, #2a2e4d);
+      border-radius: var(--radius-lg, 14px);
+      padding: 14px 16px;
       display: flex;
-      gap: var(--space-2, 8px);
+      flex-direction: column;
+      gap: 12px;
+
+      .cocktail-searchbar {
+        --background: var(--background-surface-2, #21263f);
+        --color: var(--text-primary, #eceefb);
+        --placeholder-color: var(--text-muted, #717baa);
+        --icon-color: var(--text-secondary, #a4add0);
+        --clear-button-color: var(--text-secondary, #a4add0);
+        --box-shadow: none;
+        --border-radius: var(--radius-md, 10px);
+        padding: 0;
+      }
+    }
+
+    .category-pills-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
       overflow-x: auto;
       padding-bottom: 4px;
+
+      &::-webkit-scrollbar { height: 4px; }
+    }
+
+    .figma-filter-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--background-surface-2, #21263f);
+      color: var(--text-primary, #eceefb);
+      border: 1px solid var(--border-medium, #2e3450);
+      border-radius: var(--radius-pill, 999px);
+      padding: 6px 14px;
+      font-size: 0.825rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+
+      &:hover {
+        background: var(--background-surface-3, #2a3050);
+        color: var(--text-primary, #eceefb);
+      }
+
+      &.active {
+        background: var(--primary, #6c7fe8);
+        color: #ffffff;
+        border-color: var(--primary, #6c7fe8);
+        box-shadow: 0 4px 12px rgba(108, 127, 232, 0.35);
+      }
+    }
+
+    .dot-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+
+    .allergen-pills-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      padding-top: 6px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+
+      .allergen-filter-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--text-muted, #7e87a8);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-right: 4px;
+
+        ion-icon {
+          font-size: 0.9rem;
+          color: var(--primary, #6c7fe8);
+        }
+      }
+    }
+
+    .figma-allergen-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--background-surface-2, #21263f);
+      color: var(--text-secondary, #a4add0);
+      border: 1px solid var(--border-medium, #2e3450);
+      border-radius: var(--radius-pill, 999px);
+      padding: 4px 10px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+
+      &:hover {
+        background: var(--background-surface-3, #2a3050);
+        color: var(--text-primary, #eceefb);
+      }
+
+      &.excluded {
+        background: rgba(229, 96, 79, 0.15);
+        color: var(--semantic-danger, #e5604f);
+        border: 1px solid var(--semantic-danger, #e5604f);
+        box-shadow: 0 2px 8px rgba(229, 96, 79, 0.2);
+      }
+
+      .allergen-close-icon {
+        font-size: 0.75rem;
+        margin-left: 2px;
+        font-weight: bold;
+      }
+    }
+
+    .figma-clear-allergens-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(229, 96, 79, 0.15);
+      color: var(--semantic-danger, #e5604f);
+      border: 1px solid var(--semantic-danger, #e5604f);
+      border-radius: var(--radius-pill, 999px);
+      padding: 4px 10px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+
+      &:hover {
+        background: var(--semantic-danger, #e5604f);
+        color: #ffffff;
+      }
+    }
+
+    .empty-products-msg {
+      padding: 32px 16px;
+      text-align: center;
+      color: var(--text-muted, #7e87a8);
+      font-style: italic;
+      font-size: 0.9rem;
+      grid-column: 1 / -1;
     }
 
     .products-grid {

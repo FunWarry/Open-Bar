@@ -80,21 +80,40 @@
     padding-bottom: 8px;
     margin-bottom: 8px;
 
-    .category-chip {
-      --background: var(--background-surface-2, #21263f);
-      --color: var(--text-secondary, #a4add0);
-      font-size: 0.85rem;
+    .figma-filter-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--background-surface-2, #21263f);
+      color: var(--text-primary, #eceefb);
+      border: 1px solid var(--border-medium, #2e3450);
+      border-radius: var(--radius-pill, 999px);
+      padding: 6px 14px;
+      font-size: 0.825rem;
       font-weight: 600;
-      border: 1px solid var(--border-medium, #2a2e4d);
-      margin: 0;
       cursor: pointer;
-      transition: all 0.2s ease;
+      white-space: nowrap;
+      transition: all 0.15s ease;
 
-      &.active-chip {
-        --background: var(--primary, #6c7fe8);
-        --color: #ffffff;
-        border-color: var(--primary, #6c7fe8);
+      &:hover {
+        background: var(--background-surface-3, #2a3050);
+        color: var(--text-primary, #eceefb);
       }
+
+      &.active {
+        background: var(--primary, #6c7fe8);
+        color: #ffffff;
+        border-color: var(--primary, #6c7fe8);
+        box-shadow: 0 4px 12px rgba(108, 127, 232, 0.35);
+      }
+    }
+
+    .dot-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+      flex-shrink: 0;
     }
   }
 

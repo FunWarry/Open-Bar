@@ -17,8 +17,11 @@ import { addIcons } from 'ionicons';
 import {
   listOutline, gridOutline, mapOutline, funnelOutline, layersOutline,
   businessOutline, swapVerticalOutline, refreshOutline, restaurantOutline,
-  checkmarkCircleOutline, closeCircleOutline, peopleOutline
+  checkmarkCircleOutline, closeCircleOutline, peopleOutline, wineOutline,
+  nutritionOutline, eggOutline, leafOutline, sparklesOutline, flameOutline,
+  waterOutline, beerOutline, fastFoodOutline, searchOutline
 } from 'ionicons/icons';
+import { CocktailService } from '../../core/services/cocktail.service';
 import { TableDetailModalComponent } from './components/table-detail-modal/table-detail-modal.component';
 import { NotificationService } from '../../core/services/notification.service';
 import { DashboardServeurService, EtageItem, ZoneItem } from './services/dashboard-serveur.service';
@@ -62,6 +65,7 @@ export interface GroupedTables {
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     IonContent, IonHeader, IonToolbar,
     IonRefresher, IonRefresherContent,
     IonSearchbar, IonIcon,
@@ -93,6 +97,18 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
   isLoading = false;
   activeTab: ServeurTab = 'tables';
   selectedCategory = 'ALL';
+  productSearchQuery = '';
+  selectedAllergens: string[] = [];
+
+  readonly availableAllergens = [
+    { key: 'LAIT', label: 'Sans Lait / Lactose', icon: 'nutrition-outline', keywords: ['lait', 'creme', 'crème', 'cream', 'beurre', 'lactose', 'baileys', 'yaourt', 'fromage'] },
+    { key: 'GLUTEN', label: 'Sans Gluten', icon: 'leaf-outline', keywords: ['biere', 'bière', 'beer', 'whisky', 'whiskey', 'orge', 'seigle', 'ble', 'blé', 'gluten'] },
+    { key: 'OEUF', label: 'Sans Œufs', icon: 'egg-outline', keywords: ['oeuf', 'œuf', 'egg', 'albumine'] },
+    { key: 'FRUITS_A_COQUE', label: 'Sans Fruits à coque', icon: 'nutrition-outline', keywords: ['amande', 'almond', 'amaretto', 'noisette', 'hazelnut', 'noix', 'walnut', 'pistache', 'pistachio', 'cashew', 'anacarde'] },
+    { key: 'ARACHIDE', label: 'Sans Arachides', icon: 'nutrition-outline', keywords: ['arachide', 'peanut', 'cacahuete', 'cacahuète'] },
+    { key: 'SULFITES', label: 'Sans Sulfites', icon: 'wine-outline', keywords: ['vin', 'wine', 'champagne', 'prosecco', 'vermouth', 'sulfite', 'sulfites', 'cidre', 'cider', 'aperol', 'campari'] },
+    { key: 'SOJA', label: 'Sans Soja', icon: 'leaf-outline', keywords: ['soja', 'soy', 'tofu'] },
+  ];
 
   cart: CartModel = { tableId: null, items: [] };
 
@@ -112,6 +128,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
   constructor(
     private readonly service: DashboardServeurService,
     private readonly planSalleService: PlanSalleService,
+    private readonly cocktailService: CocktailService,
     private readonly toastCtrl: ToastController,
     private readonly modalCtrl: ModalController,
     private readonly router: Router,
@@ -122,7 +139,9 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
     addIcons({
       listOutline, gridOutline, mapOutline, funnelOutline, layersOutline,
       businessOutline, swapVerticalOutline, refreshOutline, restaurantOutline,
-      checkmarkCircleOutline, closeCircleOutline, peopleOutline
+      checkmarkCircleOutline, closeCircleOutline, peopleOutline, wineOutline,
+      nutritionOutline, eggOutline, leafOutline, sparklesOutline, flameOutline,
+      waterOutline, beerOutline, fastFoodOutline, searchOutline
     });
   }
 
@@ -159,9 +178,8 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
       tables:    this.service.getAllTables(),
       etages:    this.service.getEtages(),
       zones:     this.service.getZones(),
-      // Use PlanSalleService directly — shares the same localStorage fallback
-      // as the plan management page so positions are always in sync.
       positions: this.planSalleService.getPositions(),
+      cocktails: this.cocktailService.getAll(),
     })
     .pipe(
       takeUntil(this.destroy$),
@@ -171,9 +189,24 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
       }),
     )
     .subscribe({
-      next: ({ tables, etages, zones, positions }) => {
+      next: ({ tables, etages, zones, positions, cocktails }) => {
         this.etagesList = etages;
         this.zonesList = zones;
+
+        if (cocktails && cocktails.length > 0) {
+          this.products = cocktails.map(c => ({
+            id: c.id,
+            nom: c.nom,
+            prix: c.prix,
+            categorie: c.categorie,
+            description: c.ingredients && c.ingredients.length > 0
+              ? c.ingredients.map(i => i.ingredientNom).join(' · ')
+              : (c.description || ''),
+            image: c.imageUrl,
+            stockStatus: c.disponible ? 'NORMAL' : 'CRITIQUE',
+            ingredients: c.ingredients,
+          }));
+        }
 
         this.positionsMap.clear();
         positions.forEach(p => this.positionsMap.set(p.tableId, p));
@@ -693,8 +726,76 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
   }
 
   get filteredProducts(): ProductItem[] {
-    if (this.selectedCategory === 'ALL') return this.products;
-    return this.products.filter(p => p.categorie === this.selectedCategory);
+    const query = this.productSearchQuery.toLowerCase().trim();
+    return this.products.filter(p => {
+      const matchesSearch = !query ||
+        p.nom.toLowerCase().includes(query) ||
+        (p.description?.toLowerCase()?.includes(query) ?? false);
+
+      const matchesCategory = this.selectedCategory === 'ALL' || p.categorie === this.selectedCategory;
+
+      let matchesAllergens = true;
+      if (this.selectedAllergens.length > 0) {
+        const itemAllergens = this.getProductAllergens(p);
+        matchesAllergens = !this.selectedAllergens.some(a => itemAllergens.includes(a));
+      }
+
+      return matchesSearch && matchesCategory && matchesAllergens;
+    });
+  }
+
+  getProductAllergens(product: ProductItem): string[] {
+    const textToSearch = [
+      product.nom,
+      product.description || '',
+      ...(product.ingredients ? product.ingredients.map((i: any) => i.ingredientNom) : [])
+    ].join(' ').toLowerCase();
+
+    return this.availableAllergens
+      .filter(allergen => allergen.keywords.some(kw => textToSearch.includes(kw)))
+      .map(allergen => allergen.key);
+  }
+
+  toggleAllergenFilter(allergenKey: string): void {
+    const idx = this.selectedAllergens.indexOf(allergenKey);
+    if (idx >= 0) {
+      this.selectedAllergens.splice(idx, 1);
+    } else {
+      this.selectedAllergens.push(allergenKey);
+    }
+  }
+
+  clearAllergenFilters(): void {
+    this.selectedAllergens = [];
+  }
+
+  getCategoryDotColor(category: string): string {
+    switch (category) {
+      case 'ALCOOLISE': return '#10b981';
+      case 'SANS_ALCOOL': return '#06b6d4';
+      case 'SHOT': return '#84cc16';
+      case 'APERITIF': return '#f97316';
+      case 'DIGESTIF': return '#ef4444';
+      case 'SPECIAL': return '#eab308';
+      case 'COCKTAIL': return '#ff8800';
+      case 'BEER': return '#ffd900';
+      case 'SOFT': return '#00aaff';
+      case 'SNACK': return '#3b82f6';
+      default: return '#6366f1';
+    }
+  }
+
+  getCategoryPillStyle(category: string, isActive = false): Record<string, string> {
+    const color = this.getCategoryDotColor(category);
+    if (isActive) {
+      return {
+        'background-color': color,
+        'border-color': color,
+        'color': '#ffffff',
+        'box-shadow': `0 4px 14px ${color}66`
+      };
+    }
+    return {};
   }
 
   get cartTotalCount(): number {

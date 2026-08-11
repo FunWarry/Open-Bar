@@ -104,10 +104,39 @@ export class NouvelleCommandeComponent implements OnInit, OnDestroy {
   selectedAllergen = 'NONE';
 
   /** Available product category filter keys. */
-  readonly categories = ['ALL', 'ALCOOLISE', 'SANS_ALCOOL', 'BIERE', 'VIN', 'SNACK'];
+  readonly categories = ['ALL', 'ALCOOLISE', 'SANS_ALCOOL', 'SHOT', 'APERITIF', 'DIGESTIF', 'SPECIAL', 'BIERE', 'VIN', 'SNACK'];
 
   /** Available allergen filter keys to exclude. */
   readonly allergens = ['NONE', 'LACTOSE', 'GLUTEN', 'ARACHIDE', 'FRUITS_A_COQUE'];
+
+  getCategoryDotColor(category: string): string {
+    switch (category) {
+      case 'ALCOOLISE': return '#10b981';
+      case 'SANS_ALCOOL': return '#06b6d4';
+      case 'SHOT': return '#84cc16';
+      case 'APERITIF': return '#f97316';
+      case 'DIGESTIF': return '#ef4444';
+      case 'SPECIAL': return '#eab308';
+      case 'BIERE':
+      case 'BEER': return '#ffd900';
+      case 'VIN': return '#8b5cf6';
+      case 'SNACK': return '#3b82f6';
+      default: return '#6366f1';
+    }
+  }
+
+  getCategoryPillStyle(category: string, isActive = false): Record<string, string> {
+    const color = this.getCategoryDotColor(category);
+    if (isActive) {
+      return {
+        'background-color': color,
+        'border-color': color,
+        'color': '#ffffff',
+        'box-shadow': `0 4px 14px ${color}66`
+      };
+    }
+    return {};
+  }
 
   private tableId!: number;
   private readonly destroy$ = new Subject<void>();

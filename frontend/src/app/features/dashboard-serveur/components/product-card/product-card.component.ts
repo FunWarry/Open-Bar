@@ -39,23 +39,32 @@ export class ProductCardComponent {
 
   get CategoryColor(): string {
     switch (this.product.categorie?.toUpperCase()) {
-      case 'COCKTAIL': return 'var(--types-cocktail, #ff8800)';
-      case 'BEER': return 'var(--types-beer, #ffd900)';
-      case 'SOFT': return 'var(--types-nonalcoholic, #00aaff)';
-      case 'SHOT': return 'var(--types-shot, #d9ff00)';
-      case 'SNACK': return 'var(--types-snacks, #0051ff)';
+      case 'COCKTAIL':
+      case 'ALCOOLISE': return '#10b981';
+      case 'SANS_ALCOOL':
+      case 'SOFT': return '#06b6d4';
+      case 'SHOT': return '#84cc16';
+      case 'APERITIF': return '#f97316';
+      case 'DIGESTIF': return '#ef4444';
+      case 'SPECIAL': return '#eab308';
+      case 'BEER': return '#ffd900';
+      case 'SNACK': return '#3b82f6';
       default: return 'var(--primary, #6c7fe8)';
     }
   }
 
   get CategoryIcon(): string {
     switch (this.product.categorie?.toUpperCase()) {
-      case 'COCKTAIL': return 'wine-outline';
-      case 'BEER': return 'beer-outline';
+      case 'COCKTAIL':
+      case 'ALCOOLISE':
+      case 'APERITIF': return 'wine-outline';
+      case 'SANS_ALCOOL':
       case 'SOFT': return 'water-outline';
-      case 'SHOT': return 'flame-outline';
+      case 'SHOT':
+      case 'DIGESTIF': return 'flame-outline';
+      case 'BEER': return 'beer-outline';
       case 'SNACK': return 'fast-food-outline';
-      default: return 'drink-outline';
+      default: return 'wine-outline';
     }
   }
 }

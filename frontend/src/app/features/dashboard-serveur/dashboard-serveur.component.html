@@ -287,49 +287,107 @@
     <div class="order-taking-layout">
       <!-- Zone Produits & Filtres (Gauche) -->
       <div class="products-section">
-        <div class="categories-bar">
-          <button
-            type="button"
-            class="filter-pill-btn"
-            [class.active]="selectedCategory === 'ALL'"
-            (click)="onCategorySelect('ALL')">
-            Tous
-          </button>
-          <button
-            type="button"
-            class="filter-pill-btn"
-            [class.active]="selectedCategory === 'COCKTAIL'"
-            (click)="onCategorySelect('COCKTAIL')">
-            Cocktails
-          </button>
-          <button
-            type="button"
-            class="filter-pill-btn"
-            [class.active]="selectedCategory === 'BEER'"
-            (click)="onCategorySelect('BEER')">
-            Bières
-          </button>
-          <button
-            type="button"
-            class="filter-pill-btn"
-            [class.active]="selectedCategory === 'SOFT'"
-            (click)="onCategorySelect('SOFT')">
-            Softs
-          </button>
-          <button
-            type="button"
-            class="filter-pill-btn"
-            [class.active]="selectedCategory === 'SNACK'"
-            (click)="onCategorySelect('SNACK')">
-            Snacks
-          </button>
-          <button
-            type="button"
-            class="filter-pill-btn"
-            [class.active]="selectedCategory === 'SHOT'"
-            (click)="onCategorySelect('SHOT')">
-            Shots
-          </button>
+        <!-- Barre de filtres Cocktails (style page Cocktail) -->
+        <div class="cocktail-filters-card">
+          <!-- Searchbar -->
+          <ion-searchbar
+            [(ngModel)]="productSearchQuery"
+            placeholder="Rechercher un cocktail, boisson..."
+            class="cocktail-searchbar"
+            data-testid="product-searchbar">
+          </ion-searchbar>
+
+          <!-- Category Dot Filter Pills -->
+          <div class="category-pills-row">
+            <button
+              class="figma-filter-pill"
+              [class.active]="selectedCategory === 'ALL'"
+              [ngStyle]="getCategoryPillStyle('ALL', selectedCategory === 'ALL')"
+              (click)="onCategorySelect('ALL')"
+              data-testid="category-all-btn">
+              <span class="dot-indicator" style="background-color: #6366f1;"></span>
+              Toutes
+            </button>
+            <button
+              class="figma-filter-pill"
+              [class.active]="selectedCategory === 'ALCOOLISE'"
+              [ngStyle]="getCategoryPillStyle('ALCOOLISE', selectedCategory === 'ALCOOLISE')"
+              (click)="onCategorySelect('ALCOOLISE')"
+              data-testid="category-alcoolise-btn">
+              <span class="dot-indicator" style="background-color: #10b981;"></span>
+              Alcoolisé
+            </button>
+            <button
+              class="figma-filter-pill"
+              [class.active]="selectedCategory === 'SANS_ALCOOL'"
+              [ngStyle]="getCategoryPillStyle('SANS_ALCOOL', selectedCategory === 'SANS_ALCOOL')"
+              (click)="onCategorySelect('SANS_ALCOOL')"
+              data-testid="category-sans-alcool-btn">
+              <span class="dot-indicator" style="background-color: #06b6d4;"></span>
+              Sans alcool
+            </button>
+            <button
+              class="figma-filter-pill"
+              [class.active]="selectedCategory === 'SHOT'"
+              [ngStyle]="getCategoryPillStyle('SHOT', selectedCategory === 'SHOT')"
+              (click)="onCategorySelect('SHOT')"
+              data-testid="category-shot-btn">
+              <span class="dot-indicator" style="background-color: #84cc16;"></span>
+              Shot
+            </button>
+            <button
+              class="figma-filter-pill"
+              [class.active]="selectedCategory === 'APERITIF'"
+              [ngStyle]="getCategoryPillStyle('APERITIF', selectedCategory === 'APERITIF')"
+              (click)="onCategorySelect('APERITIF')"
+              data-testid="category-aperitif-btn">
+              <span class="dot-indicator" style="background-color: #f97316;"></span>
+              Apéritif
+            </button>
+            <button
+              class="figma-filter-pill"
+              [class.active]="selectedCategory === 'DIGESTIF'"
+              [ngStyle]="getCategoryPillStyle('DIGESTIF', selectedCategory === 'DIGESTIF')"
+              (click)="onCategorySelect('DIGESTIF')"
+              data-testid="category-digestif-btn">
+              <span class="dot-indicator" style="background-color: #ef4444;"></span>
+              Digestif
+            </button>
+            <button
+              class="figma-filter-pill"
+              [class.active]="selectedCategory === 'SPECIAL'"
+              [ngStyle]="getCategoryPillStyle('SPECIAL', selectedCategory === 'SPECIAL')"
+              (click)="onCategorySelect('SPECIAL')"
+              data-testid="category-special-btn">
+              <span class="dot-indicator" style="background-color: #eab308;"></span>
+              Spécial
+            </button>
+          </div>
+
+          <!-- Allergen Filter Pills Row -->
+          <div class="allergen-pills-row" data-testid="allergen-filter-section">
+            <span class="allergen-filter-label">
+              <ion-icon name="funnel-outline"></ion-icon>
+              Exclure :
+            </span>
+            <button
+              *ngFor="let allergen of availableAllergens"
+              class="figma-allergen-pill"
+              [class.excluded]="selectedAllergens.includes(allergen.key)"
+              (click)="toggleAllergenFilter(allergen.key)"
+              [attr.data-testid]="'allergen-filter-' + allergen.key.toLowerCase()">
+              <ion-icon [name]="allergen.icon"></ion-icon>
+              {{ allergen.label }}
+              <span class="allergen-close-icon" *ngIf="selectedAllergens.includes(allergen.key)">✕</span>
+            </button>
+            <button
+              *ngIf="selectedAllergens.length > 0"
+              class="figma-clear-allergens-btn"
+              (click)="clearAllergenFilters()">
+              <ion-icon name="close-circle-outline"></ion-icon>
+              Réinitialiser
+            </button>
+          </div>
         </div>
 
         <div class="products-grid">
@@ -338,6 +396,9 @@
             [product]="p"
             (add)="onAddToCart($event)">
           </app-product-card>
+          <div *ngIf="filteredProducts.length === 0" class="empty-products-msg">
+            Aucun produit ne correspond aux filtres sélectionnés.
+          </div>
         </div>
       </div>
 

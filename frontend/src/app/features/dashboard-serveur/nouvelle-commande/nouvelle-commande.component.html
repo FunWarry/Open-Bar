@@ -34,16 +34,16 @@
 
       <!-- Category Filter Chips -->
       <div class="category-chips-scroll" data-testid="category-chips-scroll">
-        <ion-chip
+        <button
           *ngFor="let cat of categories"
-          [class.active-chip]="selectedCategory === cat"
+          class="figma-filter-pill"
+          [class.active]="selectedCategory === cat"
+          [ngStyle]="getCategoryPillStyle(cat, selectedCategory === cat)"
           (click)="selectCategory(cat)"
-          (keyup.enter)="selectCategory(cat)"
-          tabindex="0"
-          [attr.data-testid]="'cat-chip-' + cat"
-          class="category-chip">
+          [attr.data-testid]="'cat-chip-' + cat">
+          <span class="dot-indicator" [style.background-color]="getCategoryDotColor(cat)"></span>
           {{ 'SERVEUR.CATEGORIES.' + cat | transloco }}
-        </ion-chip>
+        </button>
       </div>
 
       <!-- Allergen Exclusion Filter -->
