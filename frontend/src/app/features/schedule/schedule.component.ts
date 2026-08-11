@@ -153,39 +153,32 @@ export class ScheduleComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  /**
+   * Loads both the week schedule and its publication state in parallel.
+   * Uses forkJoin to ensure both responses are available before updating the component
+   * state, preventing the race condition where the comparison button would disappear
+   * when switching weeks.
+   */
   loadSchedule(): void {
     this.loading = true;
-    this.scheduleService
-      .getWeekSchedule(this.currentWeekStart)
+    const weekStartISO = this.formatDateIso(this.currentWeekStart);
+
+    forkJoin({
+      schedule: this.scheduleService.getWeekSchedule(this.currentWeekStart),
+      publication: this.publicationService.getPublication(weekStartISO).pipe(catchError(() => of(null)))
+    })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (data) => {
-          this.schedule = data;
+        next: ({ schedule, publication }) => {
+          this.schedule = schedule;
+          this.publication = publication;
+          this.isPublished = publication !== null;
           this.loading = false;
           this.calculateScheduleDifferences();
         },
         error: () => {
           this.loading = false;
         }
-      });
-    this.loadPublicationState();
-  }
-
-  /**
-   * Fetches the current week's publication state from the backend.
-   * Resets isPublished/publication when switching weeks.
-   */
-  private loadPublicationState(): void {
-    const weekStartISO = this.formatDateIso(this.currentWeekStart);
-    this.publicationService.getPublication(weekStartISO)
-      .pipe(
-        catchError(() => of(null)),
-        takeUntil(this.destroy$)
-      )
-      .subscribe(pub => {
-        this.publication = pub;
-        this.isPublished = pub !== null;
-        this.calculateScheduleDifferences();
       });
   }
 
@@ -834,6 +827,13 @@ export class ScheduleComponent implements OnInit, OnDestroy {
     this.selectedShiftIds.clear();
   }
 
+  /**
+   * Handles click on a schedule grid cell.
+   * - Empty cell: opens the shift creation form pre-filled with the employee and date.
+   * - Cell with shift: opens the employee shift modal in edit mode.
+   * - Closed day: shows a notice toast.
+   * - Delete mode: toggles shift selection.
+   */
   onCellClick(emp: EmployeeScheduleRow, shift: ShiftCell): void {
     if (this.isDeleteMode) {
       if (this.wasDraggingMultiple) {
@@ -856,7 +856,46 @@ export class ScheduleComponent implements OnInit, OnDestroy {
       return;
     }
 
+    if (!shift.startTime) {
+      // Empty cell: open creation form pre-filled with the employee and date
+      this.openCreateShiftModal(emp, shift.date);
+    } else {
+      // Cell with shift: open list/edit modal for this employee
+      this.openEmployeeModalForUser(emp.employeeId);
+    }
+  }
+
+  /**
+   * Handles click on the employee header (avatar/name column).
+   * Opens the employee shift list modal for the selected employee.
+   *
+   * @param emp - The employee schedule row that was clicked.
+   */
+  onEmployeeHeaderClick(emp: EmployeeScheduleRow): void {
     this.openEmployeeModalForUser(emp.employeeId);
+  }
+
+  /**
+   * Opens the shift creation form pre-filled with the given employee and date.
+   *
+   * @param emp - The employee for whom to create a shift.
+   * @param dateISO - The ISO date string (yyyy-MM-dd) of the target cell.
+   */
+  async openCreateShiftModal(emp: EmployeeScheduleRow, dateISO: string): Promise<void> {
+    const userObj = await firstValueFrom(this.userService.getUserById(emp.employeeId));
+    if (!userObj) return;
+
+    const modal = await this.modalCtrl.create({
+      component: EmployeeShiftModalComponent,
+      componentProps: {
+        employee: userObj,
+        initialDate: dateISO,
+        openInCreateMode: true
+      }
+    });
+    await modal.present();
+    await modal.onWillDismiss();
+    this.loadSchedule();
   }
 
   /**

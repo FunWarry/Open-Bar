@@ -884,6 +884,7 @@
       "TOOLTIP_DELETED": "Créneau supprimé (était {{oldTime}})"
     },
     "EMPLOYEE_HEADER": "Employé",
+    "EMPLOYEE_HEADER_CLICK_HINT": "Cliquer pour voir la liste des créneaux de cet employé",
     "BULK_DELETE": {
       "TOOL_BUTTON": "Outil Gomme",
       "EXIT_TOOL": "Quitter la gomme",
