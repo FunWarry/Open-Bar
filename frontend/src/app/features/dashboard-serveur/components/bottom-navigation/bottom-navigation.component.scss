@@ -55,9 +55,9 @@
         position: absolute;
         top: -6px;
         right: -10px;
-        background: var(--primary, #6c7fe8);
+        background: #4338ca;
         color: #ffffff;
-        font-size: 0.65rem;
+        font-size: 0.7rem;
         font-weight: 800;
         min-width: 17px;
         height: 17px;
@@ -119,12 +119,13 @@
       }
 
       &.active {
-        background: rgba(67, 56, 202, 0.14);
-        color: #4338ca;
-        border-color: rgba(67, 56, 202, 0.35);
+        background: #e0e7ff;
+        color: #3730a3;
+        border-color: #6366f1;
+        font-weight: 800;
 
         ion-icon {
-          color: #4338ca;
+          color: #3730a3;
         }
       }
 
