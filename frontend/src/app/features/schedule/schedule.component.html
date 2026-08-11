@@ -115,6 +115,57 @@
     </div>
   </div>
 
+  <!-- Filters Bar -->
+  <div class="schedule-filters" data-testid="schedule-filters-bar">
+    <div class="filter-roles">
+      <span class="filter-label">{{ 'SHIFTS.FILTERS.ROLE_LABEL' | transloco }}:</span>
+      <button
+        type="button"
+        class="filter-chip"
+        [class.active]="selectedRoleFilter === 'ALL'"
+        (click)="setRoleFilter('ALL')"
+        data-testid="filter-role-all">
+        {{ 'SHIFTS.FILTERS.ALL_ROLES' | transloco }}
+      </button>
+      <button
+        type="button"
+        class="filter-chip"
+        [class.active]="selectedRoleFilter === 'BARMAN'"
+        (click)="setRoleFilter('BARMAN')"
+        data-testid="filter-role-barman">
+        {{ 'SHIFTS.FILTERS.BARMAN' | transloco }}
+      </button>
+      <button
+        type="button"
+        class="filter-chip"
+        [class.active]="selectedRoleFilter === 'SERVEUR'"
+        (click)="setRoleFilter('SERVEUR')"
+        data-testid="filter-role-serveur">
+        {{ 'SHIFTS.FILTERS.SERVEUR' | transloco }}
+      </button>
+      <button
+        type="button"
+        class="filter-chip"
+        [class.active]="selectedRoleFilter === 'MANAGER'"
+        (click)="setRoleFilter('MANAGER')"
+        data-testid="filter-role-manager">
+        {{ 'SHIFTS.FILTERS.MANAGER' | transloco }}
+      </button>
+    </div>
+
+    <div class="filter-toggles">
+      <button
+        type="button"
+        class="filter-chip filter-toggle"
+        [class.active]="hideEmptyEmployees"
+        (click)="toggleHideEmptyEmployees()"
+        data-testid="filter-toggle-empty">
+        <ion-icon [name]="hideEmptyEmployees ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+        {{ 'SHIFTS.FILTERS.HIDE_EMPTY' | transloco }}
+      </button>
+    </div>
+  </div>
+
   <!-- Grid -->
   <div class="schedule-grid" [class.in-delete-mode]="isDeleteMode" [class.in-comparison-mode]="isComparisonMode">
     <!-- Header row -->
@@ -134,8 +185,13 @@
       </button>
     </div>
 
+    <!-- Empty filter state -->
+    <div class="empty-filtered-state" *ngIf="filteredEmployees.length === 0" data-testid="empty-filtered-notice">
+      <span>{{ 'SHIFTS.FILTERS.NO_MATCHING_EMPLOYEES' | transloco }}</span>
+    </div>
+
     <!-- Employee rows -->
-    <div class="grid-row" *ngFor="let emp of schedule.employees; trackBy: trackByEmployee">
+    <div class="grid-row" *ngFor="let emp of filteredEmployees; trackBy: trackByEmployee">
       <button
            type="button"
            class="grid-row__employee"
@@ -146,6 +202,9 @@
         <div class="emp-info">
           <span class="emp-role">{{ emp.role | titlecase }}</span>
           <span class="emp-name">{{ emp.name }}</span>
+          <span class="emp-hours" [attr.data-testid]="'employee-hours-' + emp.employeeId">
+            {{ getEmployeeTotalHours(emp) }}{{ 'SHIFTS.HOURS_SUFFIX' | transloco }}
+          </span>
         </div>
       </button>
       <button

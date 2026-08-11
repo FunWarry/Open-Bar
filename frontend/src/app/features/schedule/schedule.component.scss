@@ -205,6 +205,86 @@
   }
 }
 
+// Schedule Filters Bar
+.schedule-filters {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3, 12px);
+  margin-bottom: var(--space-3, 12px);
+  padding: 8px 12px;
+  background: var(--background-surface-1, #16192b);
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+  border-radius: var(--radius-md, 8px);
+  flex-wrap: wrap;
+
+  .filter-roles {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .filter-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted, #717baa);
+    margin-right: 4px;
+  }
+
+  .filter-chip {
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary, #a4add0);
+    background: var(--background-surface-2, #21263f);
+    border: 1px solid var(--border-medium, rgba(255, 255, 255, 0.12));
+    padding: 4px 10px;
+    border-radius: var(--radius-full, 9999px);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+
+    &:hover {
+      color: var(--text-primary, #eceefb);
+      background: var(--background-surface-3, rgba(255, 255, 255, 0.1));
+      border-color: var(--border-strong, rgba(255, 255, 255, 0.25));
+    }
+
+    &.active {
+      color: var(--text-on-primary, #ffffff);
+      background: var(--primary, #6c7fe8);
+      border-color: var(--primary, #6c7fe8);
+      box-shadow: 0 0 8px rgba(108, 127, 232, 0.4);
+    }
+  }
+
+  .filter-toggles {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .filter-toggle {
+    ion-icon {
+      font-size: 14px;
+    }
+  }
+}
+
+.empty-filtered-state {
+  padding: 32px 16px;
+  text-align: center;
+  color: var(--text-muted, #717baa);
+  font-size: 13px;
+  font-weight: 500;
+  background: var(--background-surface-1, #16192b);
+}
+
 // Grid
 .schedule-grid {
   border: 1px solid var(--border-medium);
@@ -424,6 +504,17 @@
   font-size: 12px;
   font-weight: 600;
   color: var(--text-primary);
+}
+
+.emp-hours {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--primary, #6c7fe8);
+  background: rgba(108, 127, 232, 0.15);
+  padding: 1px 5px;
+  border-radius: 4px;
+  width: fit-content;
+  margin-top: 1px;
 }
 
 // Shift color classes using theme variables

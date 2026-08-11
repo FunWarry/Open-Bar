@@ -885,6 +885,17 @@
     },
     "EMPLOYEE_HEADER": "Employé",
     "EMPLOYEE_HEADER_CLICK_HINT": "Cliquer pour voir la liste des créneaux de cet employé",
+    "HOURS_SUFFIX": "h",
+    "FILTERS": {
+      "ROLE_LABEL": "Poste",
+      "ALL_ROLES": "Tous",
+      "BARMAN": "Barman",
+      "SERVEUR": "Serveur",
+      "MANAGER": "Manager",
+      "HIDE_EMPTY": "Masquer sans créneau",
+      "SHOW_ALL": "Afficher tous",
+      "NO_MATCHING_EMPLOYEES": "Aucun employé ne correspond aux filtres sélectionnés"
+    },
     "BULK_DELETE": {
       "TOOL_BUTTON": "Outil Gomme",
       "EXIT_TOOL": "Quitter la gomme",
