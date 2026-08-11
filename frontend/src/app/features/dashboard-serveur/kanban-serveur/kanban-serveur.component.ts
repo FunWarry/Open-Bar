@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, LowerCasePipe } from '@angular/common';
 import { Subject, forkJoin } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
 import {
@@ -12,6 +12,7 @@ import {
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { checkmarkOutline, banOutline, refreshOutline } from 'ionicons/icons';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { DashboardServeurService } from '../services/dashboard-serveur.service';
 import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
 import { NotificationService } from '../../../core/services/notification.service';
@@ -19,10 +20,15 @@ import { Commande, CommandeStatut } from '../../../core/models/commande.model';
 import { TableView } from '../models/table-view.model';
 import { groupCommandeItems } from '../../../core/utils/order-item-grouper';
 
+/** Represents a single kanban column with its status and ordered list of commands. */
 interface Colonne {
+  /** Backend status key for this column. */
   statut: CommandeStatut;
-  label: string;
+  /** Transloco i18n key for the column label. */
+  labelKey: string;
+  /** Ionic color token for the badge. */
   color: string;
+  /** Commands displayed in this column. */
   commandes: Commande[];
 }
 
@@ -31,6 +37,8 @@ interface Colonne {
   standalone: true,
   imports: [
     CommonModule,
+    LowerCasePipe,
+    TranslocoModule,
     IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
     IonContent, IonRefresher, IonRefresherContent,
     IonSelect, IonSelectOption,
@@ -41,11 +49,12 @@ interface Colonne {
   styleUrls: ['./kanban-serveur.component.scss'],
 })
 export class KanbanServeurComponent implements OnInit, OnDestroy {
-  colonnes: Colonne[] = [
-    { statut: 'EN_ATTENTE',    label: 'En attente',    color: 'warning', commandes: [] },
-    { statut: 'EN_PREPARATION', label: 'En préparation', color: 'primary', commandes: [] },
-    { statut: 'PRET',          label: 'Prêt',          color: 'success', commandes: [] },
-    { statut: 'LIVREE',        label: 'Livré',         color: 'medium',  commandes: [] },
+  /** Kanban columns ordered by workflow step. */
+  readonly colonnes: Colonne[] = [
+    { statut: 'EN_ATTENTE',     labelKey: 'COMMANDES.STATUTS.EN_ATTENTE',    color: 'warning', commandes: [] },
+    { statut: 'EN_PREPARATION', labelKey: 'COMMANDES.STATUTS.EN_PREPARATION', color: 'primary', commandes: [] },
+    { statut: 'PRET',           labelKey: 'COMMANDES.STATUTS.PRET',           color: 'success', commandes: [] },
+    { statut: 'LIVREE',         labelKey: 'COMMANDES.STATUTS.LIVREE',         color: 'medium',  commandes: [] },
   ];
 
   tables: TableView[] = [];
@@ -55,7 +64,11 @@ export class KanbanServeurComponent implements OnInit, OnDestroy {
   private readonly allCommandes: Map<CommandeStatut, Commande[]> = new Map();
   private readonly destroy$ = new Subject<void>();
 
-  constructor(private readonly service: DashboardServeurService,private readonly toastCtrl: ToastController,private readonly notificationService: NotificationService,
+  constructor(
+    private readonly service: DashboardServeurService,
+    private readonly toastCtrl: ToastController,
+    private readonly notificationService: NotificationService,
+    private readonly transloco: TranslocoService,
   ) {
     addIcons({ checkmarkOutline, banOutline, refreshOutline });
   }
@@ -104,7 +117,7 @@ export class KanbanServeurComponent implements OnInit, OnDestroy {
         },
         error: async () => {
           const toast = await this.toastCtrl.create({
-            message: 'Erreur lors du chargement des commandes',
+            message: this.transloco.translate('COMMANDES.MESSAGES.UPDATE_ERROR'),
             duration: 3000,
             color: 'danger',
           });
@@ -134,7 +147,7 @@ export class KanbanServeurComponent implements OnInit, OnDestroy {
         next: async () => {
           this.charger();
           const toast = await this.toastCtrl.create({
-            message: 'Commande marquée comme livrée',
+            message: this.transloco.translate('COMMANDES.MESSAGES.STATUS_UPDATED'),
             duration: 2000,
             color: 'success',
           });
@@ -142,7 +155,7 @@ export class KanbanServeurComponent implements OnInit, OnDestroy {
         },
         error: async () => {
           const toast = await this.toastCtrl.create({
-            message: 'Impossible de mettre à jour le statut',
+            message: this.transloco.translate('COMMANDES.MESSAGES.UPDATE_ERROR'),
             duration: 3000,
             color: 'danger',
           });
@@ -158,7 +171,7 @@ export class KanbanServeurComponent implements OnInit, OnDestroy {
         next: async () => {
           this.charger();
           const toast = await this.toastCtrl.create({
-            message: 'Commande annulée',
+            message: this.transloco.translate('COMMANDES.MESSAGES.CANCELLED_SUCCESS'),
             duration: 2000,
             color: 'medium',
           });
@@ -166,7 +179,7 @@ export class KanbanServeurComponent implements OnInit, OnDestroy {
         },
         error: async () => {
           const toast = await this.toastCtrl.create({
-            message: 'Impossible d\'annuler la commande',
+            message: this.transloco.translate('COMMANDES.MESSAGES.CANCELLED_ERROR'),
             duration: 3000,
             color: 'danger',
           });

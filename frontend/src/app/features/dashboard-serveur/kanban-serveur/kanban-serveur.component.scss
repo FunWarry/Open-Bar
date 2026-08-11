@@ -1,30 +1,39 @@
+/**
+ * Kanban Serveur – Suivi des commandes en temps réel.
+ * Uses theme CSS variables exclusively; no hardcoded colors.
+ */
+
+// ─── Filter toolbar ────────────────────────────────────────────────────────────
 .filter-toolbar {
-  --background: #21263f;
-  padding: 0 8px 8px;
+  --background: var(--surface-2);
+  padding: 0 var(--space-2) var(--space-2);
 
   .table-select {
-    --background: #1a1a2e;
-    --color: #eceefb;
-    --placeholder-color: #7e87a8;
-    border-radius: 8px;
-    padding: 4px 8px;
+    --background: var(--surface-1);
+    --color: var(--text-primary);
+    --placeholder-color: var(--text-muted);
+    border-radius: var(--radius-md);
+    padding: 4px var(--space-2);
     font-size: 13px;
     width: 100%;
   }
 }
 
+// ─── Loading ────────────────────────────────────────────────────────────────────
 .loading-state {
   display: flex;
   justify-content: center;
-  padding: 48px 16px;
+  padding: 48px var(--space-4);
 }
 
+// ─── Kanban board ──────────────────────────────────────────────────────────────
 .kanban-board {
   display: flex;
-  gap: 12px;
-  padding: 12px;
+  gap: var(--space-3);
+  padding: var(--space-3);
   overflow-x: auto;
-  min-height: calc(100vh - 120px);
+  // removed min-height: 100vh to avoid full-screen forced sizing
+  min-height: 0;
 
   .kanban-col {
     min-width: 240px;
@@ -33,38 +42,53 @@
     .col-header {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: var(--space-2);
       margin-bottom: 10px;
       padding: 0 2px;
 
       .col-title {
         font-size: 13px;
         font-weight: 700;
-        color: #eceefb;
+        color: var(--text-primary);
       }
     }
 
     .col-empty {
       text-align: center;
-      padding: 24px 8px;
-      color: #7e87a8;
+      padding: 24px var(--space-2);
+      color: var(--text-muted);
       font-size: 12px;
       font-style: italic;
-      background: rgba(33, 38, 63, 0.5);
-      border-radius: 10px;
+      background: color-mix(in srgb, var(--surface-2) 50%, transparent);
+      border-radius: var(--radius-md);
+      border: 1px dashed var(--border-medium);
     }
   }
 }
 
+// ─── Commande card ─────────────────────────────────────────────────────────────
 .commande-card {
-  --background: #21263f;
+  --background: var(--surface-2);
   margin: 0 0 10px;
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
 
-  &.card-en_attente   { border-left: 3px solid #f39c12; }
-  &.card-en_preparation { border-left: 3px solid #6c7fe8; }
-  &.card-pret         { border-left: 3px solid #27ae60; }
-  &.card-livree       { border-left: 3px solid #5d6d8a; opacity: 0.75; }
+  &.card-en_attente {
+    border-left: 3px solid var(--status-waiting);
+  }
+
+  &.card-en_preparation {
+    border-left: 3px solid var(--status-inprogress);
+  }
+
+  &.card-pret {
+    border-left: 3px solid var(--status-ready);
+  }
+
+  &.card-livree {
+    border-left: 3px solid var(--status-served);
+    opacity: 0.72;
+  }
 
   .card-header-row {
     display: flex;
@@ -76,38 +100,47 @@
   .cmd-id {
     font-size: 14px;
     font-weight: 700;
-    color: #eceefb;
+    color: var(--text-primary);
   }
 
   .cmd-table {
     font-size: 11px;
-    color: #7e87a8;
+    color: var(--text-muted);
+    font-weight: 600;
   }
 
   .cmd-meta {
     font-size: 11px;
-    color: #7e87a8;
+    color: var(--text-muted);
+    margin-top: 2px;
   }
 
   .items-list {
-    margin: 6px 0;
+    margin: var(--space-1) 0;
+
     .item-line {
       font-size: 12px;
-      color: #b0b8d0;
+      color: var(--text-secondary);
       padding: 2px 0;
+    }
+
+    .no-items {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-style: italic;
     }
   }
 
   .card-total {
     font-size: 14px;
     font-weight: 700;
-    color: #34c77b;
-    margin: 6px 0 8px;
+    color: var(--semantic-success);
+    margin: var(--space-1) 0 var(--space-2);
   }
 
   .card-actions {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: var(--space-1);
   }
 }
