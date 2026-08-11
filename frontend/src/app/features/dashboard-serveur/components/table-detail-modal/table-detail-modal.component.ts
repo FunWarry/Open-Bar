@@ -5,7 +5,7 @@ import { finalize } from 'rxjs/operators';
 import {
   IonHeader, IonToolbar, IonTitle, IonButtons, IonButton,
   IonContent, IonList, IonItem, IonLabel, IonBadge, IonIcon,
-  IonSpinner, IonNote, IonChip,
+  IonSpinner, IonNote, IonChip, IonFooter,
   ModalController, ToastController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -28,7 +28,7 @@ import { TransfertModalComponent } from '../transfert-modal/transfert-modal.comp
     CommonModule,
     IonHeader, IonToolbar, IonTitle, IonButtons, IonButton,
     IonContent, IonList, IonItem, IonLabel, IonBadge, IonIcon,
-    IonSpinner, IonNote, IonChip,
+    IonSpinner, IonNote, IonChip, IonFooter,
   ],
   templateUrl: './table-detail-modal.component.html',
   styleUrls: ['./table-detail-modal.component.scss'],

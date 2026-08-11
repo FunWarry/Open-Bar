@@ -148,7 +148,7 @@ export class NouvelleCommandeComponent implements OnInit, OnDestroy {
    */
   charger(): void {
     this.isLoading = true;
-    const tableObs = (this.tableId && !isNaN(this.tableId) && this.tableId > 0)
+    const tableObs = (this.tableId && !Number.isNaN(this.tableId) && this.tableId > 0)
       ? this.service.getTableById(this.tableId).pipe(map(t => [t]))
       : this.service.getAllTables();
 

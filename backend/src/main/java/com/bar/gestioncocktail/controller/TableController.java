@@ -55,12 +55,6 @@ public class TableController {
      * @param id Identifiant de la table
      * @return DTO de la table
      */
-    /**
-     * Obtenir les informations d'une table par son identifiant.
-     *
-     * @param id Identifiant de la table
-     * @return DTO de la table
-     */
     @GetMapping("/{id:\\d+}")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Obtenir une table par son ID")

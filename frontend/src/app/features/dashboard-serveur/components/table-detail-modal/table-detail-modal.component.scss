@@ -1,14 +1,32 @@
+// Modal Detail de Table
+// Adaptive Theme colors using CSS variables from variables.css (Rule #9)
+
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: 100%;
+  overflow: hidden;
+}
+
 .modal-toolbar {
-  --background: #21263f;
-  --color: #eceefb;
+  --background: var(--background-surface-1, #16192b);
+  --color: var(--text-primary, #eceefb);
+  --border-color: var(--border-medium, #2a2e4d);
+  border-bottom: 1px solid var(--border-medium, #2a2e4d);
+
+  ion-title {
+    color: var(--text-primary, #eceefb);
+    font-weight: 700;
+  }
 }
 
 .zone-badge {
   font-size: 10px;
   font-weight: 600;
-  color: #6c7fe8;
-  border: 1px solid rgba(108, 127, 232, 0.5);
-  background: rgba(108, 127, 232, 0.12);
+  color: var(--primary, #6c7fe8);
+  border: 1px solid var(--primary, #6c7fe8);
+  background: var(--background-surface-2, #21263f);
   padding: 2px 6px;
   border-radius: 6px;
   margin-left: 8px;
@@ -16,7 +34,9 @@
 }
 
 .modal-content {
-  --background: #0f0f1a;
+  flex: 1;
+  --background: var(--background-bg-0, #0f0f1a);
+  --color: var(--text-primary, #eceefb);
 }
 
 .table-meta {
@@ -28,7 +48,7 @@
 
   .capacite, .serveur-nom {
     font-size: 13px;
-    color: #7e87a8;
+    color: var(--text-secondary, #a4add0);
   }
 }
 
@@ -36,7 +56,7 @@
   padding: 12px 16px 4px;
   font-size: 12px;
   font-weight: 700;
-  color: #7e87a8;
+  color: var(--text-secondary, #a4add0);
   text-transform: uppercase;
   letter-spacing: 0.8px;
 }
@@ -46,7 +66,7 @@
   flex-direction: column;
   align-items: center;
   padding: 32px 16px;
-  color: #7e87a8;
+  color: var(--text-muted, #717baa);
   font-size: 14px;
   gap: 8px;
 
@@ -58,10 +78,11 @@
 }
 
 .commande-item {
-  --background: #21263f;
+  --background: var(--background-surface-1, #16192b);
   --border-radius: 10px;
   margin: 4px 8px;
-  --border-color: transparent;
+  --border-color: var(--border-medium, #2a2e4d);
+  border: 1px solid var(--border-medium, #2a2e4d);
 
   .commande-header {
     display: flex;
@@ -72,40 +93,44 @@
 
   .commande-id {
     font-weight: 700;
-    color: #eceefb;
+    color: var(--text-primary, #eceefb);
     font-size: 13px;
   }
 
   .commande-items {
     display: block;
     font-size: 12px;
-    color: #7e87a8;
+    color: var(--text-secondary, #a4add0);
     margin-bottom: 4px;
   }
 
   .item-line {
     font-size: 12px;
-    color: #b0b8d0;
+    color: var(--text-primary, #eceefb);
     padding: 1px 0;
   }
 }
 
-.modal-footer {
+ion-footer.modal-footer {
+  flex-shrink: 0;
   padding: 12px 16px;
-  padding-bottom: max(12px, env(safe-area-inset-bottom));
-  background: #21263f;
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+  background: var(--background-surface-1, #16192b);
+  border-top: 1px solid var(--border-medium, #2a2e4d);
   display: flex;
   flex-direction: column;
   gap: 8px;
 
   .btn-nouvelle {
-    --background: #6c7fe8;
-    --color: #fff;
-    font-weight: 600;
+    --background: var(--primary, #6c7fe8);
+    --color: #ffffff;
+    font-weight: 700;
+    margin: 0;
   }
 
   .btn-liberer {
-    --color: #e74c3c;
-    --border-color: #e74c3c;
+    --color: var(--semantic-danger, #e5604f);
+    --border-color: var(--semantic-danger, #e5604f);
+    margin: 0;
   }
 }
