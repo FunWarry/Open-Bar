@@ -231,12 +231,71 @@
 
     <!-- MODE 4 : PLAN DE SALLE 2D (PLAN) -->
     <div class="plan-salle-interactive-wrapper" *ngIf="displayMode === 'PLAN'">
+      <!-- Légende statut -->
       <div class="plan-legend-bar">
         <span class="legend-item"><span class="color-dot libre"></span> Libre</span>
         <span class="legend-item"><span class="color-dot occupee"></span> Occupée (&lt;20 min)</span>
         <span class="legend-item"><span class="color-dot retard"></span> Attente prolongée (&gt;20 min)</span>
         <span class="legend-info">Cliquez sur une table pour prendre une commande</span>
       </div>
+
+      <!-- Barre de filtres Étage + Zone inline au plan -->
+      <div class="plan-filter-bar">
+        <!-- Onglets Étages -->
+        <div class="plan-filter-section">
+          <span class="plan-filter-label">
+            <ion-icon name="business-outline"></ion-icon>
+            Étage
+          </span>
+          <div class="plan-chips-row">
+            <button
+              type="button"
+              class="plan-chip"
+              [class.active]="selectedEtage === 'ALL'"
+              (click)="selectedEtage = 'ALL'; filtrer()"
+              data-testid="plan-filtre-etage-all">
+              Tous
+            </button>
+            <button
+              *ngFor="let etage of etagesList"
+              type="button"
+              class="plan-chip"
+              [class.active]="selectedEtage === etage.code"
+              (click)="selectedEtage = etage.code; filtrer()"
+              [attr.data-testid]="'plan-filtre-etage-' + etage.code">
+              {{ etage.nom }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Chips Zones (filtrées selon étage sélectionné) -->
+        <div class="plan-filter-section" *ngIf="availableZonesForFilter.length > 0">
+          <span class="plan-filter-label">
+            <ion-icon name="layers-outline"></ion-icon>
+            Zone
+          </span>
+          <div class="plan-chips-row">
+            <button
+              type="button"
+              class="plan-chip"
+              [class.active]="selectedZone === 'ALL'"
+              (click)="selectedZone = 'ALL'; filtrer()"
+              data-testid="plan-filtre-zone-all">
+              Toutes
+            </button>
+            <button
+              *ngFor="let z of availableZonesForFilter"
+              type="button"
+              class="plan-chip zone"
+              [class.active]="selectedZone === z.nom"
+              (click)="selectedZone = z.nom; filtrer()"
+              [attr.data-testid]="'plan-filtre-zone-' + z.nom">
+              {{ z.nom }}
+            </button>
+          </div>
+        </div>
+      </div>
+
       <div #konvaFloorPlanContainer class="konva-floor-plan-container"></div>
     </div>
   </ng-container>
