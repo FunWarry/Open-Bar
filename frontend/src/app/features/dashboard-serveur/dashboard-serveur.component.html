@@ -2,44 +2,14 @@
   <ion-toolbar>
     <div class="header-content">
       <div class="header-title-group">
-        <h1 class="page-title">Espace Serveur</h1>
-        <div class="status-summary-pills">
-          <span class="summary-pill total">
-            <span class="dot"></span> {{ tables.length }} Tables
-          </span>
-          <span class="summary-pill occupees">
-            <span class="dot"></span> {{ countOccupees }} Occupées
-          </span>
-          <span class="summary-pill libres">
-            <span class="dot"></span> {{ countLibres }} Libres
-          </span>
-        </div>
+        <h1 class="page-title">Prise de commande — Espace Serveur</h1>
+        <span class="count-pill">{{ filteredTables.length }} / {{ tables.length }}</span>
       </div>
 
       <div class="header-actions">
-        <!-- Sélecteur Vue Grille vs Vue Plan 2D -->
-        <div class="view-mode-pill-toggle">
-          <button
-            class="toggle-btn"
-            [class.active]="viewMode === 'grid'"
-            (click)="onViewModeToggle('grid')"
-            title="Vue Grille (Tuiles)">
-            <ion-icon name="grid-outline"></ion-icon>
-            <span class="btn-label">Grille</span>
-          </button>
-          <button
-            class="toggle-btn"
-            [class.active]="viewMode === 'plan'"
-            (click)="onViewModeToggle('plan')"
-            title="Vue Plan 2D">
-            <ion-icon name="map-outline"></ion-icon>
-            <span class="btn-label">Plan 2D</span>
-          </button>
-        </div>
-
         <button class="kanban-action-btn" (click)="naviguerKanban()" title="Suivi des commandes">
           <ion-icon name="list-outline"></ion-icon>
-          <span class="btn-label">Suivi</span>
+          <span class="btn-label">Suivi des commandes</span>
         </button>
       </div>
     </div>
@@ -53,83 +23,203 @@
 
   <!-- ONGLET 1 : TABLES SERVEUR -->
   <ng-container *ngIf="activeTab === 'tables'">
-    <!-- PANEL DE CONTROL FLUIDE ET COMPACT -->
-    <div class="filter-panel">
-      <!-- Ligne 1 : Boutons Pilules de Statut (Toutes, Occupées, Libres) -->
-      <div class="status-segment-row">
-        <div class="segment-pill-wrapper">
+    <!-- CONTROLS CARD (COMPARAISON AVEC LA PAGE TABLES) -->
+    <div class="controls-card">
+      <!-- LIGNE SUPERIEURE : SEARCHBAR & PILLULES STATUT -->
+      <div class="controls-row-top">
+        <ion-searchbar
+          class="custom-searchbar"
+          placeholder="Rechercher une table, zone..."
+          [value]="searchTerm"
+          (ionInput)="onSearchChange($event)"
+          [debounce]="200"
+        ></ion-searchbar>
+
+        <div class="status-segment-wrapper">
           <button
-            class="segment-pill"
-            [class.active]="selectedFilter === 'toutes'"
-            (click)="onFilterSelect('toutes')">
-            Toutes <span class="badge">{{ tables.length }}</span>
+            type="button"
+            class="filter-pill-btn"
+            [class.active]="selectedStatus === 'ALL'"
+            (click)="setStatusFilter('ALL')">
+            Toutes ({{ tables.length }})
           </button>
           <button
-            class="segment-pill warning"
-            [class.active]="selectedFilter === 'occupees'"
-            (click)="onFilterSelect('occupees')">
-            Occupées <span class="badge">{{ countOccupees }}</span>
+            type="button"
+            class="filter-pill-btn free"
+            [class.active]="selectedStatus === 'FREE'"
+            (click)="setStatusFilter('FREE')">
+            <span class="status-dot free"></span>
+            Libres ({{ countLibres }})
           </button>
           <button
-            class="segment-pill success"
-            [class.active]="selectedFilter === 'libres'"
-            (click)="onFilterSelect('libres')">
-            Libres <span class="badge">{{ countLibres }}</span>
+            type="button"
+            class="filter-pill-btn occupied"
+            [class.active]="selectedStatus === 'OCCUPIED'"
+            (click)="setStatusFilter('OCCUPIED')">
+            <span class="status-dot occupied"></span>
+            Occupées ({{ countOccupees }})
           </button>
         </div>
       </div>
 
-      <!-- Ligne 2 : Filtres Étage & Zone compacts -->
-      <div class="sub-filters-row">
-        <!-- Groupe Étage -->
-        <div class="filter-row-group">
-          <span class="group-label">
-            <ion-icon name="layers-outline"></ion-icon>
-            Étage
-          </span>
-          <div class="chip-scroll">
-            <app-filter-chip
-              label="Tous"
-              [active]="selectedEtage === 'TOUS'"
-              (chipClick)="onEtageFilterChange('TOUS')">
-            </app-filter-chip>
-            <app-filter-chip
-              *ngFor="let etage of etagesList"
-              [label]="etage.nom"
-              [active]="selectedEtage === etage.code"
-              (chipClick)="onEtageFilterChange(etage.code)">
-            </app-filter-chip>
+      <!-- LIGNE INFERIEURE : DROPDOWNS SELECTION & BOUTONS MODE D'AFFICHAGE -->
+      <div class="controls-row-bottom">
+        <div class="filter-dropdowns">
+          <!-- Dropdown Étage -->
+          <div class="filter-select-box">
+            <label class="filter-label" for="serveur-etage-select-input">
+              <ion-icon name="business-outline"></ion-icon>
+              Étage:
+            </label>
+            <select
+              id="serveur-etage-select-input"
+              class="custom-select"
+              [value]="selectedEtage"
+              (change)="onEtageSelectChange($event)">
+              <option value="ALL">Tous les étages</option>
+              <option *ngFor="let etage of etagesList" [value]="etage.code">{{ etage.nom }}</option>
+            </select>
+          </div>
+
+          <!-- Dropdown Zone -->
+          <div class="filter-select-box">
+            <label class="filter-label" for="serveur-zone-select-input">
+              <ion-icon name="layers-outline"></ion-icon>
+              Zone:
+            </label>
+            <select
+              id="serveur-zone-select-input"
+              class="custom-select"
+              [value]="selectedZone"
+              (change)="onZoneSelectChange($event)">
+              <option value="ALL">Toutes les zones</option>
+              <option *ngFor="let z of availableZonesForFilter" [value]="z.nom">{{ z.nom }}</option>
+            </select>
+          </div>
+
+          <!-- Dropdown Trier Par -->
+          <div class="filter-select-box">
+            <label class="filter-label" for="serveur-sort-select-input">
+              <ion-icon name="swap-vertical-outline"></ion-icon>
+              Trier par:
+            </label>
+            <select
+              id="serveur-sort-select-input"
+              class="custom-select"
+              [value]="sortOption"
+              (change)="onSortSelectChange($event)">
+              <option value="NUMBER_ASC">N° de table (croissant)</option>
+              <option value="NUMBER_DESC">N° de table (décroissant)</option>
+              <option value="CAPACITY_ASC">Capacité (croissante)</option>
+              <option value="CAPACITY_DESC">Capacité (décroissante)</option>
+              <option value="STATUS_OCCUPIED">Occupées d'abord</option>
+              <option value="STATUS_FREE">Libres d'abord</option>
+            </select>
           </div>
         </div>
 
-        <!-- Séparateur vertical -->
-        <div class="filter-divider"></div>
+        <!-- Boutons de Mode d'Affichage (Par Zone, Par Étage, Grille, Plan 2D) -->
+        <div class="view-mode-group">
+          <button
+            type="button"
+            class="view-toggle-btn"
+            [class.active]="displayMode === 'BY_ZONE'"
+            (click)="setDisplayMode('BY_ZONE')"
+            title="Grouper par zone">
+            <ion-icon name="layers-outline"></ion-icon>
+            <span>Par Zone</span>
+          </button>
 
-        <!-- Groupe Zone -->
-        <div class="filter-row-group">
-          <span class="group-label">
-            <ion-icon name="funnel-outline"></ion-icon>
-            Zone
-          </span>
-          <div class="chip-scroll">
-            <app-filter-chip
-              label="Toutes"
-              [active]="selectedZone === 'TOUTES'"
-              (chipClick)="onZoneFilterChange('TOUTES')">
-            </app-filter-chip>
-            <app-filter-chip
-              *ngFor="let zoneNom of uniqueZoneNames"
-              [label]="zoneNom"
-              [active]="selectedZone === zoneNom"
-              (chipClick)="onZoneFilterChange(zoneNom)">
-            </app-filter-chip>
-          </div>
+          <button
+            type="button"
+            class="view-toggle-btn"
+            [class.active]="displayMode === 'BY_FLOOR'"
+            (click)="setDisplayMode('BY_FLOOR')"
+            title="Grouper par étage">
+            <ion-icon name="business-outline"></ion-icon>
+            <span>Par Étage</span>
+          </button>
+
+          <button
+            type="button"
+            class="view-toggle-btn"
+            [class.active]="displayMode === 'GRID'"
+            (click)="setDisplayMode('GRID')"
+            title="Vue Grille simple">
+            <ion-icon name="grid-outline"></ion-icon>
+            <span>Grille</span>
+          </button>
+
+          <button
+            type="button"
+            class="view-toggle-btn"
+            [class.active]="displayMode === 'PLAN'"
+            (click)="setDisplayMode('PLAN')"
+            title="Vue Plan 2D Konva">
+            <ion-icon name="map-outline"></ion-icon>
+            <span>Plan 2D</span>
+          </button>
         </div>
       </div>
     </div>
 
-    <!-- VUE 1 : GRILLE (TUILES) -->
-    <div class="mobile-tables-grid" *ngIf="viewMode === 'grid'">
+    <!-- MODE 1 : GROUPÉ PAR ZONE (BY_ZONE) -->
+    <ng-container *ngIf="displayMode === 'BY_ZONE'">
+      <div class="zone-section-group" *ngFor="let group of groupedTables">
+        <div class="zone-section-header">
+          <div class="section-title-group">
+            <ion-icon name="layers-outline"></ion-icon>
+            <h2 class="section-title">{{ group.title }}</h2>
+            <span class="floor-chip" *ngIf="group.subTitle">{{ group.subTitle }}</span>
+          </div>
+          <div class="section-metrics">
+            <span class="metric-chip">{{ group.tables.length }} tables</span>
+            <span class="metric-chip free">{{ group.freeCount }} libres</span>
+            <span class="metric-chip occupied">{{ group.occupiedCount }} occupées</span>
+          </div>
+        </div>
+
+        <div class="mobile-tables-grid">
+          <app-mobile-table-card
+            *ngFor="let table of group.tables; trackBy: trackById"
+            [table]="table"
+            [waitTimeMinutes]="getWaitTimeMinutes(table)"
+            (tableSelect)="onSelectionner($event)"
+            (newOrder)="onNewOrderForTable($event)">
+          </app-mobile-table-card>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- MODE 2 : GROUPÉ PAR ÉTAGE (BY_FLOOR) -->
+    <ng-container *ngIf="displayMode === 'BY_FLOOR'">
+      <div class="zone-section-group" *ngFor="let group of groupedTables">
+        <div class="zone-section-header">
+          <div class="section-title-group">
+            <ion-icon name="business-outline"></ion-icon>
+            <h2 class="section-title">{{ group.title }}</h2>
+          </div>
+          <div class="section-metrics">
+            <span class="metric-chip">{{ group.tables.length }} tables</span>
+            <span class="metric-chip free">{{ group.freeCount }} libres</span>
+            <span class="metric-chip occupied">{{ group.occupiedCount }} occupées</span>
+          </div>
+        </div>
+
+        <div class="mobile-tables-grid">
+          <app-mobile-table-card
+            *ngFor="let table of group.tables; trackBy: trackById"
+            [table]="table"
+            [waitTimeMinutes]="getWaitTimeMinutes(table)"
+            (tableSelect)="onSelectionner($event)"
+            (newOrder)="onNewOrderForTable($event)">
+          </app-mobile-table-card>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- MODE 3 : GRILLE SIMPLE (GRID) -->
+    <div class="mobile-tables-grid" *ngIf="displayMode === 'GRID'">
       <app-mobile-table-card
         *ngFor="let table of filteredTables; trackBy: trackById"
         [table]="table"
@@ -139,8 +229,8 @@
       </app-mobile-table-card>
     </div>
 
-    <!-- VUE 2 : PLAN DE SALLE 2D KONVA.JS -->
-    <div class="plan-salle-interactive-wrapper" *ngIf="viewMode === 'plan'">
+    <!-- MODE 4 : PLAN DE SALLE 2D (PLAN) -->
+    <div class="plan-salle-interactive-wrapper" *ngIf="displayMode === 'PLAN'">
       <div class="plan-legend-bar">
         <span class="legend-item"><span class="color-dot libre"></span> Libre</span>
         <span class="legend-item"><span class="color-dot occupee"></span> Occupée (&lt;20 min)</span>
@@ -157,36 +247,48 @@
       <!-- Zone Produits & Filtres (Gauche) -->
       <div class="products-section">
         <div class="categories-bar">
-          <app-filter-chip
-            label="Tous"
-            [active]="selectedCategory === 'ALL'"
-            (chipClick)="onCategorySelect('ALL')">
-          </app-filter-chip>
-          <app-filter-chip
-            label="Cocktails"
-            [active]="selectedCategory === 'COCKTAIL'"
-            (chipClick)="onCategorySelect('COCKTAIL')">
-          </app-filter-chip>
-          <app-filter-chip
-            label="Bières"
-            [active]="selectedCategory === 'BEER'"
-            (chipClick)="onCategorySelect('BEER')">
-          </app-filter-chip>
-          <app-filter-chip
-            label="Softs"
-            [active]="selectedCategory === 'SOFT'"
-            (chipClick)="onCategorySelect('SOFT')">
-          </app-filter-chip>
-          <app-filter-chip
-            label="Snacks"
-            [active]="selectedCategory === 'SNACK'"
-            (chipClick)="onCategorySelect('SNACK')">
-          </app-filter-chip>
-          <app-filter-chip
-            label="Shots"
-            [active]="selectedCategory === 'SHOT'"
-            (chipClick)="onCategorySelect('SHOT')">
-          </app-filter-chip>
+          <button
+            type="button"
+            class="filter-pill-btn"
+            [class.active]="selectedCategory === 'ALL'"
+            (click)="onCategorySelect('ALL')">
+            Tous
+          </button>
+          <button
+            type="button"
+            class="filter-pill-btn"
+            [class.active]="selectedCategory === 'COCKTAIL'"
+            (click)="onCategorySelect('COCKTAIL')">
+            Cocktails
+          </button>
+          <button
+            type="button"
+            class="filter-pill-btn"
+            [class.active]="selectedCategory === 'BEER'"
+            (click)="onCategorySelect('BEER')">
+            Bières
+          </button>
+          <button
+            type="button"
+            class="filter-pill-btn"
+            [class.active]="selectedCategory === 'SOFT'"
+            (click)="onCategorySelect('SOFT')">
+            Softs
+          </button>
+          <button
+            type="button"
+            class="filter-pill-btn"
+            [class.active]="selectedCategory === 'SNACK'"
+            (click)="onCategorySelect('SNACK')">
+            Snacks
+          </button>
+          <button
+            type="button"
+            class="filter-pill-btn"
+            [class.active]="selectedCategory === 'SHOT'"
+            (click)="onCategorySelect('SHOT')">
+            Shots
+          </button>
         </div>
 
         <div class="products-grid">

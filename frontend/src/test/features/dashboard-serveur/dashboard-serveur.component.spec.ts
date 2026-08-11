@@ -106,21 +106,21 @@ describe('DashboardServeurComponent', () => {
 
   // --- filtrer() ---
 
-  it('filtrer() avec "toutes" retourne toutes les tables', () => {
-    component.selectedFilter = 'toutes';
+  it('filtrer() avec "ALL" retourne toutes les tables', () => {
+    component.selectedStatus = 'ALL';
     component.filtrer();
     expect(component.filteredTables).toHaveSize(3);
   });
 
-  it('filtrer() avec "occupees" ne retourne que les tables occupées', () => {
-    component.selectedFilter = 'occupees';
+  it('filtrer() avec "OCCUPIED" ne retourne que les tables occupées', () => {
+    component.selectedStatus = 'OCCUPIED';
     component.filtrer();
     expect(component.filteredTables.every(t => t.occupee)).toBeTrue();
     expect(component.filteredTables).toHaveSize(2);
   });
 
-  it('filtrer() avec "libres" ne retourne que les tables libres', () => {
-    component.selectedFilter = 'libres';
+  it('filtrer() avec "FREE" ne retourne que les tables libres', () => {
+    component.selectedStatus = 'FREE';
     component.filtrer();
     expect(component.filteredTables.every(t => !t.occupee)).toBeTrue();
     expect(component.filteredTables).toHaveSize(1);
@@ -144,12 +144,11 @@ describe('DashboardServeurComponent', () => {
     expect(component.getWaitTimeMinutes(occupee)).toBeGreaterThan(0);
   });
 
-  // --- onSegmentChange() ---
+  // --- setStatusFilter() ---
 
-  it('onSegmentChange() met à jour le filtre et relance filtrer()', () => {
-    const event = { detail: { value: 'occupees' } };
-    component.onSegmentChange(event);
-    expect(component.selectedFilter).toBe('occupees');
+  it('setStatusFilter() met à jour le filtre et relance filtrer()', () => {
+    component.setStatusFilter('OCCUPIED');
+    expect(component.selectedStatus).toBe('OCCUPIED');
     expect(component.filteredTables).toHaveSize(2);
   });
 
@@ -270,23 +269,31 @@ describe('DashboardServeurComponent', () => {
     expect(target.complete).toHaveBeenCalled();
   }));
 
-  it('onEtageFilterChange() met à jour selectedEtage et filtre les tables', () => {
-    component.onEtageFilterChange('TERRASSE');
+  it('onEtageSelectChange() met à jour selectedEtage et filtre les tables', () => {
+    const event = { target: { value: 'TERRASSE' } } as any;
+    component.onEtageSelectChange(event);
     expect(component.selectedEtage).toBe('TERRASSE');
   });
 
-  it('onZoneFilterChange() met à jour selectedZone et filtre les tables', () => {
-    component.onZoneFilterChange('Terrasse');
+  it('onZoneSelectChange() met à jour selectedZone et filtre les tables', () => {
+    const event = { target: { value: 'Terrasse' } } as any;
+    component.onZoneSelectChange(event);
     expect(component.selectedZone).toBe('Terrasse');
     expect(component.filteredTables.every(t => t.zone === 'Terrasse')).toBeTrue();
   });
 
-  it('onViewModeToggle() bascule entre la vue grille et plan', () => {
-    component.onViewModeToggle('plan');
-    expect(component.viewMode).toBe('plan');
+  it('setDisplayMode() bascule entre les différents modes d\'affichage', () => {
+    component.setDisplayMode('PLAN');
+    expect(component.displayMode).toBe('PLAN');
 
-    component.onViewModeToggle('grid');
-    expect(component.viewMode).toBe('grid');
+    component.setDisplayMode('BY_ZONE');
+    expect(component.displayMode).toBe('BY_ZONE');
+
+    component.setDisplayMode('BY_FLOOR');
+    expect(component.displayMode).toBe('BY_FLOOR');
+
+    component.setDisplayMode('GRID');
+    expect(component.displayMode).toBe('GRID');
   });
 
   // --- ngOnDestroy ---

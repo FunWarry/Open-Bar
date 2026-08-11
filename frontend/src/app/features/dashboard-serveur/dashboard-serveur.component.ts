@@ -8,14 +8,17 @@ import { Subject, forkJoin } from 'rxjs';
 import { finalize, takeUntil } from 'rxjs/operators';
 import Konva from 'konva';
 import {
-  IonContent, IonHeader, IonToolbar, IonTitle,
+  IonContent, IonHeader, IonToolbar,
   IonRefresher, IonRefresherContent,
-  IonSegment, IonSegmentButton, IonLabel,
-  IonButtons, IonButton, IonIcon,
+  IonSearchbar, IonIcon,
   ToastController, ModalController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { listOutline, gridOutline, mapOutline, funnelOutline, layersOutline, refreshOutline } from 'ionicons/icons';
+import {
+  listOutline, gridOutline, mapOutline, funnelOutline, layersOutline,
+  businessOutline, swapVerticalOutline, refreshOutline, restaurantOutline,
+  checkmarkCircleOutline, closeCircleOutline, peopleOutline
+} from 'ionicons/icons';
 import { TableDetailModalComponent } from './components/table-detail-modal/table-detail-modal.component';
 import { NotificationService } from '../../core/services/notification.service';
 import { DashboardServeurService, EtageItem, ZoneItem } from './services/dashboard-serveur.service';
@@ -28,27 +31,36 @@ import { BottomNavigationComponent, ServeurTab } from './components/bottom-navig
 import { ProductCardComponent, ProductItem } from './components/product-card/product-card.component';
 import { CartDrawerComponent } from './components/cart-drawer/cart-drawer.component';
 import { CartModel, CartItemModel } from './models/cart.model';
-import { FilterChipComponent } from '../../core/components/ui/filter-chip/filter-chip.component';
+
+export type DashboardViewMode = 'BY_ZONE' | 'BY_FLOOR' | 'GRID' | 'PLAN';
+export type DashboardSortOption = 'NUMBER_ASC' | 'NUMBER_DESC' | 'CAPACITY_ASC' | 'CAPACITY_DESC' | 'STATUS_OCCUPIED' | 'STATUS_FREE';
+
+export interface GroupedTables {
+  key: string;
+  title: string;
+  subTitle?: string;
+  tables: TableView[];
+  freeCount: number;
+  occupiedCount: number;
+}
 
 /**
- * Main dashboard component for waiters providing table list overview,
- * 2D interactive floor plan visualization (Konva.js), zone/floor filtering,
- * rapid order entry, and real-time STOMP notification synchronization.
+ * Main dashboard component for waiters providing table list supervision,
+ * grouped view modes (By Zone, By Floor, Grid, Interactive 2D Plan),
+ * dropdown filters (Floor, Zone, Sort), rapid order entry, and STOMP notifications.
  */
 @Component({
   selector: 'app-dashboard-serveur',
   standalone: true,
   imports: [
     CommonModule,
-    IonContent, IonHeader, IonToolbar, IonTitle,
+    IonContent, IonHeader, IonToolbar,
     IonRefresher, IonRefresherContent,
-    IonSegment, IonSegmentButton, IonLabel,
-    IonButtons, IonButton, IonIcon,
+    IonSearchbar, IonIcon,
     MobileTableCardComponent,
     BottomNavigationComponent,
     ProductCardComponent,
     CartDrawerComponent,
-    FilterChipComponent,
   ],
   templateUrl: './dashboard-serveur.component.html',
   styleUrls: ['./dashboard-serveur.component.scss'],
@@ -60,10 +72,12 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
   filteredTables: TableView[] = [];
   positionsMap = new Map<number, TablePosition>();
 
-  selectedFilter = 'toutes';
-  selectedEtage = 'TOUS';
-  selectedZone = 'TOUTES';
-  viewMode: 'grid' | 'plan' = 'grid';
+  searchTerm = '';
+  selectedStatus: 'ALL' | 'FREE' | 'OCCUPIED' = 'ALL';
+  selectedEtage = 'ALL';
+  selectedZone = 'ALL';
+  sortOption: DashboardSortOption = 'NUMBER_ASC';
+  displayMode: DashboardViewMode = 'BY_ZONE';
 
   etagesList: EtageItem[] = [];
   zonesList: ZoneItem[] = [];
@@ -96,7 +110,11 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
     private readonly ngZone: NgZone,
     private readonly cdr: ChangeDetectorRef,
   ) {
-    addIcons({ listOutline, gridOutline, mapOutline, funnelOutline, layersOutline, refreshOutline });
+    addIcons({
+      listOutline, gridOutline, mapOutline, funnelOutline, layersOutline,
+      businessOutline, swapVerticalOutline, refreshOutline, restaurantOutline,
+      checkmarkCircleOutline, closeCircleOutline, peopleOutline
+    });
   }
 
   ngOnInit() {
@@ -112,7 +130,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
   }
 
   ngAfterViewInit() {
-    if (this.viewMode === 'plan') {
+    if (this.displayMode === 'PLAN') {
       setTimeout(() => this.initOrUpdateKonva(), 100);
     }
   }
@@ -146,7 +164,6 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
         this.positionsMap.clear();
         positions.forEach(p => this.positionsMap.set(p.tableId, p));
 
-        // Synchronisation des positions & étage sur les tables
         this.tables = tables.map(t => {
           const pos = this.positionsMap.get(t.id);
           const zoneObj = this.zonesList.find(z => z.nom.toLowerCase() === (t.zone || '').toLowerCase());
@@ -162,13 +179,13 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
 
         this.filtrer();
       },
-        error: () => {
-          this.toastCtrl.create({
-            message: 'Erreur lors du chargement des tables',
-            duration: 3000,
-            color: 'danger',
-          }).then(t => t.present());
-        },
+      error: () => {
+        this.toastCtrl.create({
+          message: 'Erreur lors du chargement des tables',
+          duration: 3000,
+          color: 'danger',
+        }).then(t => t.present());
+      },
     });
   }
 
@@ -207,23 +224,101 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
   }
 
   filtrer() {
-    this.filteredTables = this.tables.filter(table => {
-      // 1. Filtre statut occupation
-      if (this.selectedFilter === 'occupees' && !table.occupee) return false;
-      if (this.selectedFilter === 'libres' && table.occupee) return false;
+    let result = [...this.tables];
 
-      // 2. Filtre par Étage
-      if (this.selectedEtage !== 'TOUS' && (table.etage || 'RDC') !== this.selectedEtage) return false;
+    // Search term filter
+    if (this.searchTerm.trim()) {
+      const q = this.searchTerm.toLowerCase().trim();
+      result = result.filter(t =>
+        t.nom.toLowerCase().includes(q) ||
+        String(t.id).includes(q) ||
+        (t.zone?.toLowerCase().includes(q) ?? false)
+      );
+    }
 
-      // 3. Filtre par Zone
-      if (this.selectedZone !== 'TOUTES' && table.zone !== this.selectedZone) return false;
+    // Status filter
+    if (this.selectedStatus === 'FREE') {
+      result = result.filter(t => !t.occupee);
+    } else if (this.selectedStatus === 'OCCUPIED') {
+      result = result.filter(t => t.occupee);
+    }
 
-      return true;
+    // Floor filter
+    if (this.selectedEtage !== 'ALL') {
+      result = result.filter(t => (t.etage || 'RDC') === this.selectedEtage);
+    }
+
+    // Zone filter
+    if (this.selectedZone !== 'ALL') {
+      result = result.filter(t => t.zone === this.selectedZone);
+    }
+
+    // Sorting
+    result.sort((a, b) => {
+      switch (this.sortOption) {
+        case 'NUMBER_ASC':
+          return a.id - b.id;
+        case 'NUMBER_DESC':
+          return b.id - a.id;
+        case 'CAPACITY_ASC':
+          return a.capacite - b.capacite || a.id - b.id;
+        case 'CAPACITY_DESC':
+          return b.capacite - a.capacite || a.id - b.id;
+        case 'STATUS_OCCUPIED':
+          return (b.occupee ? 1 : 0) - (a.occupee ? 1 : 0) || a.id - b.id;
+        case 'STATUS_FREE':
+          return (a.occupee ? 1 : 0) - (b.occupee ? 1 : 0) || a.id - b.id;
+        default:
+          return a.id - b.id;
+      }
     });
 
-    if (this.viewMode === 'plan') {
+    this.filteredTables = result;
+
+    if (this.displayMode === 'PLAN') {
       this.renderKonvaPlan();
     }
+  }
+
+  get groupedTables(): GroupedTables[] {
+    if (this.displayMode === 'BY_FLOOR') {
+      const map = new Map<string, TableView[]>();
+      for (const table of this.filteredTables) {
+        const key = table.etage || 'RDC';
+        if (!map.has(key)) map.set(key, []);
+        map.get(key)!.push(table);
+      }
+      return Array.from(map.entries()).map(([etageCode, tables]) => {
+        const etageObj = this.etagesList.find(e => e.code === etageCode);
+        return {
+          key: etageCode,
+          title: etageObj ? etageObj.nom : etageCode,
+          tables,
+          freeCount: tables.filter(t => !t.occupee).length,
+          occupiedCount: tables.filter(t => t.occupee).length,
+        };
+      });
+    }
+
+    // Default: BY_ZONE
+    const map = new Map<string, TableView[]>();
+    for (const table of this.filteredTables) {
+      const key = table.zone || 'Salle Principale';
+      if (!map.has(key)) map.set(key, []);
+      map.get(key)!.push(table);
+    }
+    return Array.from(map.entries()).map(([zoneName, tables]) => {
+      const zoneObj = this.zonesList.find(z => z.nom === zoneName);
+      const etageObj = zoneObj ? this.etagesList.find(e => e.code === zoneObj.etage) : undefined;
+      return {
+        key: zoneName,
+        title: zoneName,
+        subTitle: etageObj ? etageObj.nom : undefined,
+        tables,
+        freeCount: tables.filter(t => !t.occupee).length,
+        occupiedCount: tables.filter(t => t.occupee).length,
+      };
+    });
   }
 
   get countOccupees(): number {
@@ -234,10 +329,11 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
     return this.tables.filter(t => !t.occupee).length;
   }
 
-  get uniqueZoneNames(): string[] {
-    const set = new Set<string>();
-    this.tables.forEach(t => { if (t.zone) set.add(t.zone); });
-    return Array.from(set);
+  get availableZonesForFilter(): ZoneItem[] {
+    if (this.selectedEtage === 'ALL') {
+      return this.zonesList;
+    }
+    return this.zonesList.filter(z => z.etage === this.selectedEtage);
   }
 
   getWaitTimeMinutes(table: TableView): number {
@@ -245,29 +341,37 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
     return ((table.id * 7) % 25) + 5;
   }
 
-  onFilterSelect(filter: string) {
-    this.selectedFilter = filter;
+  onSearchChange(event: { detail?: { value?: string | null } }) {
+    this.searchTerm = event.detail?.value || '';
     this.filtrer();
   }
 
-  onSegmentChange(event: { detail?: { value?: any } }) {
-    this.selectedFilter = String(event.detail?.value || 'toutes');
+  setStatusFilter(status: 'ALL' | 'FREE' | 'OCCUPIED') {
+    this.selectedStatus = status;
     this.filtrer();
   }
 
-  onEtageFilterChange(etageCode: string) {
-    this.selectedEtage = etageCode;
+  onEtageSelectChange(event: Event) {
+    const val = (event.target as HTMLSelectElement).value;
+    this.selectedEtage = val;
     this.filtrer();
   }
 
-  onZoneFilterChange(zoneNom: string) {
-    this.selectedZone = zoneNom;
+  onZoneSelectChange(event: Event) {
+    const val = (event.target as HTMLSelectElement).value;
+    this.selectedZone = val;
     this.filtrer();
   }
 
-  onViewModeToggle(mode: 'grid' | 'plan') {
-    this.viewMode = mode;
-    if (mode === 'plan') {
+  onSortSelectChange(event: Event) {
+    const val = (event.target as HTMLSelectElement).value as DashboardSortOption;
+    this.sortOption = val;
+    this.filtrer();
+  }
+
+  setDisplayMode(mode: DashboardViewMode) {
+    this.displayMode = mode;
+    if (mode === 'PLAN') {
       setTimeout(() => this.initOrUpdateKonva(), 80);
     }
   }
@@ -308,7 +412,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
       const stageWidth = this.stage?.width() || 800;
       const stageHeight = this.stage?.height() || 550;
 
-      // 1. Grille millimétrée d'arrière-plan
+      // Grille millimétrée
       const gridGroup = new Konva.Group();
       const gridSize = 40;
       for (let x = 0; x < stageWidth; x += gridSize) {
@@ -319,22 +423,19 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
       }
       this.layer!.add(gridGroup);
 
-      // 2. Rendu des tables filtrées
       this.filteredTables.forEach((table, index) => {
-        // Positionnement automatique en grille si pas de coordonnées explicites
         const posX = table.planX ?? (80 + (index % 5) * 130);
         const posY = table.planY ?? (80 + Math.floor(index / 5) * 110);
         const waitTime = this.getWaitTimeMinutes(table);
 
-        // Couleur selon statut
-        let fill = '#27ae60'; // Libre (Vert)
+        let fill = '#27ae60';
         let stroke = '#1e8449';
         if (table.occupee) {
           if (waitTime > 20) {
-            fill = '#e74c3c'; // Danger (Rouge)
+            fill = '#e74c3c';
             stroke = '#c0392b';
           } else {
-            fill = '#e67e22'; // Occupée (Orange)
+            fill = '#e67e22';
             stroke = '#d35400';
           }
         }
@@ -352,7 +453,6 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
 
         group.add(shape);
 
-        // Libellé Numéro de table
         const textNumero = new Konva.Text({
           text: `T${table.id}`,
           fontSize: 14,
@@ -365,7 +465,6 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
         });
         group.add(textNumero);
 
-        // Libellé Capacité / Couverts
         const textCapacite = new Konva.Text({
           text: `${table.capacite}p`,
           fontSize: 11,
@@ -377,7 +476,6 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
         });
         group.add(textCapacite);
 
-        // Badge Temps d'attente si occupé
         if (table.occupee && waitTime > 0) {
           const waitBadge = new Konva.Rect({
             x: -20,
@@ -401,7 +499,6 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
           group.add(waitText);
         }
 
-        // Curseur & Interaction au clic
         group.on('mouseenter', () => {
           const containerEl = this.konvaContainerRef?.nativeElement;
           if (containerEl) containerEl.style.cursor = 'pointer';
