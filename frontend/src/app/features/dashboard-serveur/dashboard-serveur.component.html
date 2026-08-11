@@ -239,61 +239,43 @@
         <span class="legend-info">Cliquez sur une table pour prendre une commande</span>
       </div>
 
-      <!-- Barre de filtres Étage + Zone inline au plan -->
+      <!-- Filtres Étage + Zone inline au plan (dropdowns) -->
       <div class="plan-filter-bar">
-        <!-- Onglets Étages -->
-        <div class="plan-filter-section">
-          <span class="plan-filter-label">
+
+        <!-- Dropdown Étage -->
+        <div class="plan-filter-item">
+          <label class="plan-filter-label" for="plan-etage-select">
             <ion-icon name="business-outline"></ion-icon>
-            Étage
-          </span>
-          <div class="plan-chips-row">
-            <button
-              type="button"
-              class="plan-chip"
-              [class.active]="selectedEtage === 'ALL'"
-              (click)="selectedEtage = 'ALL'; filtrer()"
-              data-testid="plan-filtre-etage-all">
-              Tous
-            </button>
-            <button
-              *ngFor="let etage of etagesList"
-              type="button"
-              class="plan-chip"
-              [class.active]="selectedEtage === etage.code"
-              (click)="selectedEtage = etage.code; filtrer()"
-              [attr.data-testid]="'plan-filtre-etage-' + etage.code">
-              {{ etage.nom }}
-            </button>
-          </div>
+            Étage :
+          </label>
+          <select
+            id="plan-etage-select"
+            class="plan-native-select"
+            [value]="selectedEtage"
+            (change)="onEtageSelectChange($event)"
+            data-testid="plan-filtre-etage-select">
+            <option value="ALL">Tous les étages</option>
+            <option *ngFor="let etage of etagesList" [value]="etage.code">{{ etage.nom }}</option>
+          </select>
         </div>
 
-        <!-- Chips Zones (filtrées selon étage sélectionné) -->
-        <div class="plan-filter-section" *ngIf="availableZonesForFilter.length > 0">
-          <span class="plan-filter-label">
+        <!-- Dropdown Zone -->
+        <div class="plan-filter-item">
+          <label class="plan-filter-label" for="plan-zone-select">
             <ion-icon name="layers-outline"></ion-icon>
-            Zone
-          </span>
-          <div class="plan-chips-row">
-            <button
-              type="button"
-              class="plan-chip"
-              [class.active]="selectedZone === 'ALL'"
-              (click)="selectedZone = 'ALL'; filtrer()"
-              data-testid="plan-filtre-zone-all">
-              Toutes
-            </button>
-            <button
-              *ngFor="let z of availableZonesForFilter"
-              type="button"
-              class="plan-chip zone"
-              [class.active]="selectedZone === z.nom"
-              (click)="selectedZone = z.nom; filtrer()"
-              [attr.data-testid]="'plan-filtre-zone-' + z.nom">
-              {{ z.nom }}
-            </button>
-          </div>
+            Zone :
+          </label>
+          <select
+            id="plan-zone-select"
+            class="plan-native-select"
+            [value]="selectedZone"
+            (change)="onZoneSelectChange($event)"
+            data-testid="plan-filtre-zone-select">
+            <option value="ALL">Toutes les zones</option>
+            <option *ngFor="let z of availableZonesForFilter" [value]="z.nom">{{ z.nom }}</option>
+          </select>
         </div>
+
       </div>
 
       <div #konvaFloorPlanContainer class="konva-floor-plan-container"></div>
