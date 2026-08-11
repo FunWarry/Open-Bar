@@ -792,6 +792,9 @@
       "NOTES": "Remarques / Notes"
     },
     "REAL_TRACKING_TITLE": "Pointage & Horaires Réels",
+    "READ_ONLY_NOTICE": "Mode consultation : vous n'avez pas les droits pour modifier les créneaux d'un autre employé.",
+    "SELF_CLOCKING_NOTICE": "Vous pouvez renseigner vos heures réelles de pointage. La planification est modifiable uniquement par un manager.",
+    "PLANNING_RESTRICTED": "Modification réservée aux managers",
     "PRESETS": {
       "TITLE": "Modèles & Presets d'Horaires",
       "MANAGE_BTN": "Gérer les modèles",

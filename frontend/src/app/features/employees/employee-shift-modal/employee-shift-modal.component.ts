@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, inject } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -24,6 +24,18 @@ import {
   ModalController,
   AlertController
 } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import {
+  closeOutline,
+  chevronBackOutline,
+  chevronForwardOutline,
+  addOutline,
+  trashOutline,
+  timeOutline,
+  lockClosedOutline,
+  informationCircleOutline
+} from 'ionicons/icons';
+import { Subject, takeUntil } from 'rxjs';
 import { TranslocoModule } from '@jsverse/transloco';
 import { Store } from '@ngrx/store';
 import { User } from '../../../core/models/user.model';
@@ -33,8 +45,10 @@ import { selectCurrentUser } from '../../../core/store/auth.selectors';
 
 /**
  * Modal component for viewing and managing work shifts of a specific employee.
- * Supports shift preset defaults, auto-populating times, break tracking, live planned duration calculations,
- * actual clock-in/out tracking (pointage réel), overtime, and manager preset configuration.
+ * Enforces strict access control:
+ * - Managers and Admins can create, modify planning and clocking fields, and delete shifts.
+ * - Employees can only edit their own clocking/actual hours (pointage réel) on existing shifts.
+ * - Other users have read-only access.
  */
 @Component({
   selector: 'app-employee-shift-modal',
@@ -66,7 +80,7 @@ import { selectCurrentUser } from '../../../core/store/auth.selectors';
     IonTextarea
   ]
 })
-export class EmployeeShiftModalComponent implements OnInit {
+export class EmployeeShiftModalComponent implements OnInit, OnDestroy {
   /** The employee whose shifts are being managed. */
   @Input() employee!: User;
 
@@ -87,14 +101,63 @@ export class EmployeeShiftModalComponent implements OnInit {
   private readonly alertCtrl = inject(AlertController);
   private readonly shiftService = inject(ShiftService);
   private readonly store = inject(Store);
+  private readonly destroy$ = new Subject<void>();
 
   loading = true;
   saving = false;
   shifts: EmployeeShift[] = [];
   presets: ShiftPreset[] = [];
 
-  // User role state
+  // Authenticated user state
+  currentUser: User | null = null;
   isManagerOrAdmin = false;
+
+  /**
+   * Checks if the currently logged-in user is the employee being viewed.
+   */
+  get isSelf(): boolean {
+    return Boolean(this.currentUser?.id && this.currentUser.id === this.employee?.id);
+  }
+
+  /**
+   * Whether the logged-in user has permission to edit this employee's shift.
+   * True for Managers/Admins (all employees) and for the employee themselves (own shifts).
+   */
+  get canEditShift(): boolean {
+    return this.isManagerOrAdmin || this.isSelf;
+  }
+
+  /**
+   * Whether the logged-in user can create a brand new scheduled shift.
+   * Restricted to Managers/Admins.
+   */
+  get canCreateShift(): boolean {
+    return this.isManagerOrAdmin;
+  }
+
+  /**
+   * Whether the logged-in user can modify planning fields (date, start/end scheduled times, break duration, shift type, poste).
+   * Restricted to Managers/Admins.
+   */
+  get canEditPlanningFields(): boolean {
+    return this.isManagerOrAdmin;
+  }
+
+  /**
+   * Whether the logged-in user can edit clocking/real tracking fields (real start/end, overtime, hours done, notes).
+   * Allowed for Managers/Admins and the employee themselves.
+   */
+  get canEditRealHours(): boolean {
+    return this.isManagerOrAdmin || this.isSelf;
+  }
+
+  /**
+   * Whether the logged-in user can delete a shift.
+   * Restricted to Managers/Admins.
+   */
+  get canDeleteShift(): boolean {
+    return this.isManagerOrAdmin;
+  }
 
   // Preset manager toggle
   showPresetManager = false;
@@ -122,15 +185,31 @@ export class EmployeeShiftModalComponent implements OnInit {
   availableShiftTypes: TypeShift[] = ['MATIN', 'SOIR', 'COUPURE', 'NUIT', 'CONGE'];
   availablePosteTypes: TypePoste[] = ['SERVEUR', 'BARMAN', 'CAISSE', 'MANAGER'];
 
+  constructor() {
+    addIcons({
+      closeOutline,
+      chevronBackOutline,
+      chevronForwardOutline,
+      addOutline,
+      trashOutline,
+      timeOutline,
+      lockClosedOutline,
+      informationCircleOutline
+    });
+  }
+
   ngOnInit(): void {
     const today = new Date();
     this.currentWeekStart = this.getMonday(today);
 
-    this.store.select(selectCurrentUser).subscribe((user) => {
-      if (user?.roles) {
-        this.isManagerOrAdmin = user.roles.includes('ADMIN') || user.roles.includes('MANAGER');
-      }
-    });
+    this.store.select(selectCurrentUser)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((user) => {
+        this.currentUser = user;
+        if (user?.roles) {
+          this.isManagerOrAdmin = user.roles.includes('ADMIN') || user.roles.includes('MANAGER');
+        }
+      });
 
     if (this.employee?.roles?.length) {
       if (this.employee.roles.includes('BARMAN')) this.formTypePoste = 'BARMAN';
@@ -141,12 +220,17 @@ export class EmployeeShiftModalComponent implements OnInit {
     this.loadPresets();
     this.loadShifts();
 
-    // If opened from the schedule grid with a pre-selected date, jump straight to the creation form
-    if (this.openInCreateMode && this.initialDate) {
+    // If opened from the schedule grid with a pre-selected date, jump straight to the creation form (managers only)
+    if (this.openInCreateMode && this.initialDate && this.canCreateShift) {
       this.formDate = this.initialDate;
       this.showForm = true;
       this.editingShiftId = null;
     }
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   /**
@@ -297,6 +381,7 @@ export class EmployeeShiftModalComponent implements OnInit {
   }
 
   openNewShiftForm(): void {
+    if (!this.canCreateShift) return;
     this.editingShiftId = null;
     this.formDate = this.formatDateISO(new Date());
     this.onShiftTypeChange('MATIN');
@@ -347,6 +432,7 @@ export class EmployeeShiftModalComponent implements OnInit {
   }
 
   saveShift(): void {
+    if (!this.canEditShift) return;
     if (!this.formDate || !this.formHeureDebut || !this.formHeureFin) return;
 
     this.recalculatePlannedHours();
@@ -379,7 +465,7 @@ export class EmployeeShiftModalComponent implements OnInit {
           this.saving = false;
         }
       });
-    } else {
+    } else if (this.canCreateShift) {
       this.shiftService.createShift(payload).subscribe({
         next: () => {
           this.saving = false;

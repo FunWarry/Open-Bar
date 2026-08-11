@@ -6,6 +6,9 @@ import com.bar.gestioncocktail.model.EmployeeShift;
 import com.bar.gestioncocktail.model.User;
 import com.bar.gestioncocktail.repository.EmployeeShiftRepository;
 import com.bar.gestioncocktail.repository.UserRepository;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -151,6 +154,8 @@ public class EmployeeShiftService {
     public EmployeeShift updateShift(Long id, EmployeeShiftRequestDTO request) {
         EmployeeShift shift = getShiftById(id);
 
+        checkShiftUpdatePermission(shift, request);
+
         if (request.userId() != null && !request.userId().equals(shift.getUser().getId())) {
             User user = userRepository.findById(request.userId())
                 .orElseThrow(() -> new ResourceNotFoundException("Utilisateur non trouvé avec l'id: " + request.userId()));
@@ -161,6 +166,60 @@ public class EmployeeShiftService {
         applyClockingUpdates(shift, request);
 
         return shiftRepository.save(shift);
+    }
+
+    /**
+     * Checks if the currently authenticated user is allowed to modify the given shift.
+     * Rules:
+     * - MANAGER or ADMIN: full modification access to all shifts (planning + actual hours).
+     * - Regular employees (SERVEUR, BARMAN, etc.): can only update their own shift (shift.user.id == currentUser.id),
+     *   and cannot change the planning schedule or reassign the shift user.
+     *
+     * @param shift Target shift entity
+     * @param request Update request payload
+     * @throws AccessDeniedException if the caller is not authorized
+     */
+    private void checkShiftUpdatePermission(EmployeeShift shift, EmployeeShiftRequestDTO request) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || isManagerOrAdmin(auth)) {
+            return;
+        }
+
+        validateEmployeeOwnership(shift, auth.getName(), request.userId());
+        validatePlanningFieldsUnchanged(shift, request);
+    }
+
+    private boolean isManagerOrAdmin(Authentication auth) {
+        return auth.getAuthorities().stream()
+            .anyMatch(a -> "ROLE_MANAGER".equals(a.getAuthority()) || "ROLE_ADMIN".equals(a.getAuthority()));
+    }
+
+    private void validateEmployeeOwnership(EmployeeShift shift, String currentUsername, Long requestedUserId) {
+        User shiftUser = shift.getUser();
+        if (shiftUser == null || !currentUsername.equals(shiftUser.getUsername())) {
+            throw new AccessDeniedException("Vous n'êtes pas autorisé à modifier les créneaux d'un autre employé");
+        }
+        if (requestedUserId != null && !requestedUserId.equals(shiftUser.getId())) {
+            throw new AccessDeniedException("Vous ne pouvez pas réassigner un créneau à un autre employé");
+        }
+    }
+
+    private void validatePlanningFieldsUnchanged(EmployeeShift shift, EmployeeShiftRequestDTO request) {
+        if (request.dateShift() != null && !request.dateShift().equals(shift.getDateShift())) {
+            throw new AccessDeniedException("Seul un manager peut modifier la date planifiée d'un créneau");
+        }
+        if (request.typeShift() != null && request.typeShift() != shift.getTypeShift()) {
+            throw new AccessDeniedException("Seul un manager peut modifier le type de créneau planifié");
+        }
+        if (request.typePoste() != null && request.typePoste() != shift.getTypePoste()) {
+            throw new AccessDeniedException("Seul un manager peut modifier le poste assigné");
+        }
+        if (request.heureDebut() != null && !request.heureDebut().equals(shift.getHeureDebut())) {
+            throw new AccessDeniedException("Seul un manager peut modifier l'heure de début planifiée");
+        }
+        if (request.heureFin() != null && !request.heureFin().equals(shift.getHeureFin())) {
+            throw new AccessDeniedException("Seul un manager peut modifier l'heure de fin planifiée");
+        }
     }
 
     private void applyScheduleUpdates(EmployeeShift shift, EmployeeShiftRequestDTO request) {

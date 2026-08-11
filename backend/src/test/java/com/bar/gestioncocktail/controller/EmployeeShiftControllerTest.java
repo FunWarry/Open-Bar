@@ -153,6 +153,21 @@ class EmployeeShiftControllerTest {
     }
 
     @Test
+    void patchShift_ShouldReturnUpdatedDto() {
+        EmployeeShiftRequestDTO request = new EmployeeShiftRequestDTO(
+            null, null, null, null,
+            null, null, null, null, "08:15", "16:20", BigDecimal.valueOf(0.33), null, BigDecimal.valueOf(8.0), "Pointage partiel"
+        );
+
+        when(shiftService.updateShift(eq(1L), any(EmployeeShiftRequestDTO.class))).thenReturn(sampleShift);
+
+        ResponseEntity<EmployeeShiftResponseDTO> response = shiftController.patchShift(1L, request);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        verify(shiftService).updateShift(1L, request);
+    }
+
+    @Test
     void deleteShift_ShouldReturnOk() {
         ResponseEntity<Void> response = shiftController.deleteShift(1L);
 
