@@ -11,9 +11,41 @@
   position: relative;
   overflow: hidden;
 
-  &:hover {
+  &:hover:not(.unavailable) {
     transform: translateY(-2px);
     border-color: var(--category-accent, var(--primary, #6c7fe8));
+  }
+
+  &.unavailable {
+    opacity: 0.55;
+    filter: grayscale(0.85);
+    background: var(--background-surface-2, #151828);
+    border-color: var(--border-medium, #2e3450) !important;
+
+    &::before {
+      background: var(--semantic-danger, #e5604f);
+    }
+
+    .product-title {
+      text-decoration: line-through;
+      color: var(--text-muted, #7e87a8);
+    }
+
+    .product-price {
+      color: var(--text-muted, #7e87a8);
+    }
+  }
+
+  .badge-indisponible {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: var(--radius-pill, 999px);
+    background: rgba(229, 96, 79, 0.2);
+    color: var(--semantic-danger, #e5604f);
+    border: 1px solid var(--semantic-danger, #e5604f);
+    font-size: 0.7rem;
+    font-weight: 700;
   }
 
   &::before {

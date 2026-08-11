@@ -13,6 +13,7 @@ export interface ProductItem {
   categorie: string; // 'COCKTAIL' | 'BEER' | 'SOFT' | 'SNACK' | 'SHOT'
   stock?: number;
   stockStatus?: 'CRITIQUE' | 'FAIBLE' | 'NORMAL';
+  disponible?: boolean;
   description?: string;
   image?: string;
   ingredients?: any[];
@@ -28,14 +29,25 @@ export interface ProductItem {
 })
 export class ProductCardComponent {
   @Input({ required: true }) product!: ProductItem;
+  @Input() canSeeLowStock = false;
   @Output() add = new EventEmitter<ProductItem>();
 
   constructor() {
     addIcons({ wineOutline, beerOutline, waterOutline, flameOutline, fastFoodOutline, addOutline });
   }
 
+  get isUnavailable(): boolean {
+    return this.product.disponible === false || this.product.stockStatus === 'CRITIQUE';
+  }
+
+  get isStockLow(): boolean {
+    return this.canSeeLowStock && this.product.stockStatus === 'FAIBLE';
+  }
+
   onAdd() {
-    this.add.emit(this.product);
+    if (!this.isUnavailable) {
+      this.add.emit(this.product);
+    }
   }
 
   get CategoryColor(): string {

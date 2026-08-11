@@ -32,6 +32,9 @@ import { TableView } from './models/table-view.model';
 import { TablePosition } from '../plan-salle/models/table-position.model';
 import { PlanSalleService } from '../plan-salle/services/plan-salle.service';
 
+import { Store } from '@ngrx/store';
+import { selectCurrentUser } from '../../core/store/auth.selectors';
+
 // ─── Plan constants — must match plan-salle.component.ts exactly ───────────────
 const PLAN_TABLE_SIZE = 64;
 const PLAN_GAP        = 48;
@@ -100,6 +103,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
   selectedCategory = 'ALL';
   productSearchQuery = '';
   selectedAllergens: string[] = [];
+  canSeeLowStock = false;
 
   readonly availableAllergens = [
     { key: 'LAIT', label: 'Sans Lait / Lactose', icon: 'nutrition-outline', keywords: ['lait', 'creme', 'crème', 'cream', 'beurre', 'lactose', 'baileys', 'yaourt', 'fromage'] },
@@ -130,6 +134,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
     private readonly service: DashboardServeurService,
     private readonly planSalleService: PlanSalleService,
     private readonly cocktailService: CocktailService,
+    private readonly store: Store,
     private readonly toastCtrl: ToastController,
     private readonly modalCtrl: ModalController,
     private readonly router: Router,
@@ -151,6 +156,13 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
   ngOnInit() {
     this.chargerFiltresSauvegardes();
     this.chargerDonnees();
+
+    this.store.select(selectCurrentUser)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(user => {
+        this.canSeeLowStock = user?.roles?.some(r => r === 'BARMAN' || r === 'MANAGER' || r === 'ADMIN') ?? false;
+        this.cdr.detectChanges();
+      });
 
     this.notificationService.onNotification()
       .pipe(takeUntil(this.destroy$))

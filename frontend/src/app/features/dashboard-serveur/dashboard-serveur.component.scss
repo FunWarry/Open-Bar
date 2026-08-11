@@ -507,6 +507,7 @@ ion-content.dashboard-serveur-content {
   display: grid;
   grid-template-columns: 1fr 340px;
   gap: var(--space-4, 16px);
+  align-items: start;
   min-height: calc(100vh - 150px);
 
   @media (max-width: 768px) {
@@ -518,8 +519,11 @@ ion-content.dashboard-serveur-content {
     flex-direction: column;
     gap: var(--space-3, 12px);
 
-    // ── Cocktails Filter Card & Pills (Style identique à la page Cocktails) ─────────
+    // ── Cocktails Filter Card & Pills (Sticky at top when scrolling) ─────────
     .cocktail-filters-card {
+      position: sticky;
+      top: 0;
+      z-index: 20;
       background: var(--background-surface-1, #16192b);
       border: 1px solid var(--border-medium, #2a2e4d);
       border-radius: var(--radius-lg, 14px);
@@ -527,6 +531,7 @@ ion-content.dashboard-serveur-content {
       display: flex;
       flex-direction: column;
       gap: 12px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
 
       .cocktail-searchbar {
         --background: var(--background-surface-2, #21263f);
@@ -683,7 +688,14 @@ ion-content.dashboard-serveur-content {
   }
 
   .cart-section {
-    height: 100%;
+    position: sticky;
+    top: 0;
+    height: calc(100vh - 120px);
+    max-height: calc(100vh - 120px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: var(--radius-lg, 14px);
   }
 }
 

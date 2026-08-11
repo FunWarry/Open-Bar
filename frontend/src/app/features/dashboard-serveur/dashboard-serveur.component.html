@@ -394,6 +394,7 @@
           <app-product-card
             *ngFor="let p of filteredProducts; trackBy: trackById"
             [product]="p"
+            [canSeeLowStock]="canSeeLowStock"
             (add)="onAddToCart($event)">
           </app-product-card>
           <div *ngIf="filteredProducts.length === 0" class="empty-products-msg">
