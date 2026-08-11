@@ -3,8 +3,6 @@ import { CommonModule } from '@angular/common';
 import { Subject, forkJoin } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
 import {
-  IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
-  IonContent, IonRefresher, IonRefresherContent,
   IonButton, IonIcon, IonSpinner,
   ToastController,
 } from '@ionic/angular/standalone';
@@ -38,8 +36,6 @@ interface Colonne {
   imports: [
     CommonModule,
     TranslocoModule,
-    IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
-    IonContent, IonRefresher, IonRefresherContent,
     IonButton, IonIcon, IonSpinner,
   ],
   templateUrl: './kanban-serveur.component.html',
