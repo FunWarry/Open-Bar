@@ -40,7 +40,7 @@
         {{ 'SHIFTS.SUMMARY.OVERTIME' | transloco:{ hours: totalOvertimeWeekHours } }}
       </ion-badge>
 
-      <ion-button color="primary" size="small" (click)="openNewShiftForm()" (keydown.enter)="openNewShiftForm()" *ngIf="!showForm" data-testid="add-shift-btn">
+      <ion-button color="primary" size="small" (click)="openNewShiftForm()" (keydown.enter)="openNewShiftForm()" *ngIf="canCreateShift && !showForm" data-testid="add-shift-btn">
         <ion-icon name="add-outline" slot="start"></ion-icon>
         {{ 'SHIFTS.ADD_SHIFT' | transloco }}
       </ion-button>
@@ -55,6 +55,18 @@
       </ion-card-title>
     </ion-card-header>
     <ion-card-content>
+      <!-- Read-Only Banner for other employees -->
+      <div class="read-only-banner" *ngIf="!canEditShift" data-testid="read-only-banner">
+        <ion-icon name="lock-closed-outline"></ion-icon>
+        <span>{{ 'SHIFTS.READ_ONLY_NOTICE' | transloco }}</span>
+      </div>
+
+      <!-- Self Clocking Notice for the employee themselves -->
+      <div class="self-clocking-banner" *ngIf="isSelf && !isManagerOrAdmin" data-testid="self-clocking-banner">
+        <ion-icon name="information-circle-outline"></ion-icon>
+        <span>{{ 'SHIFTS.SELF_CLOCKING_NOTICE' | transloco }}</span>
+      </div>
+
       <div class="form-grid">
         <!-- Date -->
         <div class="field">
@@ -63,6 +75,7 @@
             id="shift-date-input-field"
             type="date"
             [(ngModel)]="formDate"
+            [disabled]="!canEditPlanningFields"
             fill="outline"
             data-testid="shift-date-input"
             aria-label="Date du shift">
@@ -72,7 +85,7 @@
         <!-- Shift Type (Triggers Preset auto-fill) -->
         <div class="field">
           <label for="shift-type-select-field">{{ 'SHIFTS.FIELDS.TYPE_SHIFT' | transloco }}</label>
-          <ion-select id="shift-type-select-field" [(ngModel)]="formTypeShift" (ionChange)="onShiftTypeChange($event.detail.value)" fill="outline" interface="popover" data-testid="shift-type-select" aria-label="Type de créneau">
+          <ion-select id="shift-type-select-field" [(ngModel)]="formTypeShift" [disabled]="!canEditPlanningFields" (ionChange)="onShiftTypeChange($event.detail.value)" fill="outline" interface="popover" data-testid="shift-type-select" aria-label="Type de créneau">
             <ion-select-option *ngFor="let t of availableShiftTypes" [value]="t">
               {{ 'SHIFTS.SHIFT_TYPES.' + t | transloco }}
             </ion-select-option>
@@ -82,14 +95,14 @@
         <!-- Poste -->
         <div class="field">
           <label for="shift-poste-select-field">{{ 'SHIFTS.FIELDS.TYPE_POSTE' | transloco }}</label>
-          <ion-select id="shift-poste-select-field" [(ngModel)]="formTypePoste" fill="outline" interface="popover" data-testid="shift-poste-select" aria-label="Poste occupé">
+          <ion-select id="shift-poste-select-field" [(ngModel)]="formTypePoste" [disabled]="!canEditPlanningFields" fill="outline" interface="popover" data-testid="shift-poste-select" aria-label="Poste occupé">
             <ion-select-option *ngFor="let p of availablePosteTypes" [value]="p">
               {{ 'SHIFTS.POSTE_TYPES.' + p | transloco }}
             </ion-select-option>
           </ion-select>
         </div>
 
-        <!-- Start Time (Editable) -->
+        <!-- Start Time (Editable by Manager) -->
         <div class="field">
           <label for="shift-start-input-field">{{ 'SHIFTS.FIELDS.START_TIME' | transloco }}</label>
           <ion-input
@@ -97,6 +110,7 @@
             type="text"
             placeholder="08:00"
             [(ngModel)]="formHeureDebut"
+            [disabled]="!canEditPlanningFields"
             (ionInput)="recalculatePlannedHours()"
             fill="outline"
             data-testid="shift-start-input"
@@ -104,7 +118,7 @@
           </ion-input>
         </div>
 
-        <!-- End Time (Editable) -->
+        <!-- End Time (Editable by Manager) -->
         <div class="field">
           <label for="shift-end-input-field">{{ 'SHIFTS.FIELDS.END_TIME' | transloco }}</label>
           <ion-input
@@ -112,6 +126,7 @@
             type="text"
             placeholder="16:00"
             [(ngModel)]="formHeureFin"
+            [disabled]="!canEditPlanningFields"
             (ionInput)="recalculatePlannedHours()"
             fill="outline"
             data-testid="shift-end-input"
@@ -127,6 +142,7 @@
             type="text"
             placeholder="12:00"
             [(ngModel)]="formHeurePauseDebut"
+            [disabled]="!canEditPlanningFields"
             fill="outline"
             data-testid="shift-break-start-input"
             aria-label="Début de pause">
@@ -140,6 +156,7 @@
             type="number"
             placeholder="30"
             [(ngModel)]="formDureePauseMinutes"
+            [disabled]="!canEditPlanningFields"
             (ionInput)="recalculatePlannedHours()"
             fill="outline"
             data-testid="shift-break-duration-input"
@@ -166,6 +183,7 @@
                 type="text"
                 placeholder="08:00"
                 [(ngModel)]="formHeureDebutReelle"
+                [disabled]="!canEditRealHours"
                 fill="outline"
                 data-testid="shift-real-start-input"
                 aria-label="Heure de début réelle">
@@ -179,6 +197,7 @@
                 type="text"
                 placeholder="16:00"
                 [(ngModel)]="formHeureFinReelle"
+                [disabled]="!canEditRealHours"
                 fill="outline"
                 data-testid="shift-real-end-input"
                 aria-label="Heure de fin réelle">
@@ -192,6 +211,7 @@
                 type="number"
                 placeholder="0"
                 [(ngModel)]="formHeuresSup"
+                [disabled]="!canEditRealHours"
                 fill="outline"
                 data-testid="shift-overtime-input"
                 aria-label="Heures supplémentaires">
@@ -204,6 +224,7 @@
                 id="shift-hours-input-field"
                 type="number"
                 [(ngModel)]="formHeuresEffectuees"
+                [disabled]="!canEditRealHours"
                 fill="outline"
                 data-testid="shift-hours-input"
                 aria-label="Heures effectuées au total">
@@ -219,6 +240,7 @@
             id="shift-notes-input-field"
             rows="2"
             [(ngModel)]="formNotes"
+            [disabled]="!canEditRealHours"
             fill="outline"
             data-testid="shift-notes-input"
             aria-label="Remarques ou notes">
@@ -230,7 +252,7 @@
         <ion-button fill="clear" color="medium" (click)="closeForm()" (keydown.enter)="closeForm()" data-testid="cancel-shift-btn">
           {{ 'SHIFTS.CANCEL_FORM' | transloco }}
         </ion-button>
-        <ion-button color="primary" (click)="saveShift()" (keydown.enter)="saveShift()" [disabled]="saving" data-testid="save-shift-btn">
+        <ion-button color="primary" (click)="saveShift()" (keydown.enter)="saveShift()" *ngIf="canEditShift" [disabled]="saving" data-testid="save-shift-btn">
           <ion-spinner name="crescent" *ngIf="saving"></ion-spinner>
           <span *ngIf="!saving">{{ 'SHIFTS.SAVE_SHIFT' | transloco }}</span>
         </ion-button>

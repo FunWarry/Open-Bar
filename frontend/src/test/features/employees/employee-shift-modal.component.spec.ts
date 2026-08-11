@@ -272,6 +272,65 @@ describe('EmployeeShiftModalComponent', () => {
 
     expect(newComponent.showForm).toBeFalse();
   });
+
+  describe('Access Control Rules (#284)', () => {
+    it('should grant full permissions to MANAGER / ADMIN', () => {
+      component.currentUser = { id: 99, username: 'admin', roles: ['ADMIN'] } as User;
+      component.isManagerOrAdmin = true;
+
+      expect(component.isManagerOrAdmin).toBeTrue();
+      expect(component.canCreateShift).toBeTrue();
+      expect(component.canEditShift).toBeTrue();
+      expect(component.canEditPlanningFields).toBeTrue();
+      expect(component.canEditRealHours).toBeTrue();
+      expect(component.canDeleteShift).toBeTrue();
+    });
+
+    it('should allow employee to edit own real hours but restrict planning fields and creation', () => {
+      component.currentUser = { id: 1, username: 'serveur1', roles: ['SERVEUR'] } as User;
+      component.isManagerOrAdmin = false;
+
+      expect(component.isSelf).toBeTrue();
+      expect(component.canCreateShift).toBeFalse();
+      expect(component.canEditShift).toBeTrue();
+      expect(component.canEditPlanningFields).toBeFalse();
+      expect(component.canEditRealHours).toBeTrue();
+      expect(component.canDeleteShift).toBeFalse();
+    });
+
+    it('should completely restrict other employees (view-only mode)', () => {
+      component.currentUser = { id: 2, username: 'barman1', roles: ['BARMAN'] } as User;
+      component.isManagerOrAdmin = false;
+
+      expect(component.isSelf).toBeFalse();
+      expect(component.canCreateShift).toBeFalse();
+      expect(component.canEditShift).toBeFalse();
+      expect(component.canEditPlanningFields).toBeFalse();
+      expect(component.canEditRealHours).toBeFalse();
+      expect(component.canDeleteShift).toBeFalse();
+    });
+
+    it('openNewShiftForm() should do nothing when canCreateShift is false', () => {
+      component.currentUser = { id: 1, username: 'serveur1', roles: ['SERVEUR'] } as User;
+      component.isManagerOrAdmin = false;
+      component.showForm = false;
+
+      component.openNewShiftForm();
+      expect(component.showForm).toBeFalse();
+    });
+
+    it('saveShift() should do nothing when canEditShift is false', () => {
+      component.currentUser = { id: 2, username: 'barman1', roles: ['BARMAN'] } as User;
+      component.isManagerOrAdmin = false;
+      component.formDate = '2026-08-10';
+      component.formHeureDebut = '08:00';
+      component.formHeureFin = '16:00';
+
+      component.saveShift();
+      expect(mockShiftService.updateShift).not.toHaveBeenCalled();
+      expect(mockShiftService.createShift).not.toHaveBeenCalled();
+    });
+  });
 });
 
 

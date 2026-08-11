@@ -44,6 +44,34 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
+    @DisplayName("handleAccessDenied - returns 403 ErrorResponse")
+    void handleAccessDenied() {
+        org.springframework.security.access.AccessDeniedException ex = new org.springframework.security.access.AccessDeniedException("Accès refusé");
+        ResponseEntity<ErrorResponse> response = handler.handleAccessDenied(ex);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(403);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getMessage()).isEqualTo("Accès refusé");
+    }
+
+    @Test
+    @DisplayName("handleValidationErrors - returns 400 ErrorResponse with field errors")
+    void handleValidationErrors() {
+        org.springframework.validation.BeanPropertyBindingResult bindingResult =
+            new org.springframework.validation.BeanPropertyBindingResult(new Object(), "testObject");
+        bindingResult.addError(new org.springframework.validation.FieldError("testObject", "username", "Username is required"));
+
+        org.springframework.web.bind.MethodArgumentNotValidException ex =
+            new org.springframework.web.bind.MethodArgumentNotValidException(null, bindingResult);
+
+        ResponseEntity<ErrorResponse> response = handler.handleValidationErrors(ex);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(400);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getFieldErrors()).containsEntry("username", "Username is required");
+    }
+
+    @Test
     @DisplayName("handleGenericException - returns 500 ErrorResponse")
     void handleGenericException() {
         Exception ex = new Exception("Unexpected error");

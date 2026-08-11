@@ -143,18 +143,38 @@ public class EmployeeShiftController {
 
     /**
      * Updates an existing employee shift.
+     * Managers and Admins have full access. Regular employees can only update their own actual hours.
      *
      * @param id Shift identifier
      * @param request Shift update data
      * @return Updated shift DTO
      */
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('MANAGER') or hasRole('ADMIN')")
-    @Operation(summary = "Update shift", description = "Modifies an existing work shift.")
+    @PreAuthorize("hasRole('MANAGER') or hasRole('ADMIN') or hasRole('SERVEUR') or hasRole('BARMAN')")
+    @Operation(summary = "Update shift", description = "Modifies an existing work shift (Managers full access, employees own actual hours).")
     @ApiResponse(responseCode = "200", description = "Shift updated successfully")
+    @ApiResponse(responseCode = "403", description = "Access denied when modifying another employee's shift")
     public ResponseEntity<EmployeeShiftResponseDTO> updateShift(
         @PathVariable Long id,
         @Valid @RequestBody EmployeeShiftRequestDTO request) {
+        return ResponseEntity.ok(EmployeeShiftResponseDTO.from(shiftService.updateShift(id, request)));
+    }
+
+    /**
+     * Partially updates an existing employee shift.
+     *
+     * @param id Shift identifier
+     * @param request Partial shift update data
+     * @return Updated shift DTO
+     */
+    @PatchMapping("/{id}")
+    @PreAuthorize("hasRole('MANAGER') or hasRole('ADMIN') or hasRole('SERVEUR') or hasRole('BARMAN')")
+    @Operation(summary = "Patch shift", description = "Partially modifies an existing work shift (e.g. clocking hours).")
+    @ApiResponse(responseCode = "200", description = "Shift updated successfully")
+    @ApiResponse(responseCode = "403", description = "Access denied when modifying another employee's shift")
+    public ResponseEntity<EmployeeShiftResponseDTO> patchShift(
+        @PathVariable Long id,
+        @RequestBody EmployeeShiftRequestDTO request) {
         return ResponseEntity.ok(EmployeeShiftResponseDTO.from(shiftService.updateShift(id, request)));
     }
 

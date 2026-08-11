@@ -51,6 +51,22 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Gère les exceptions d'accès refusé (HTTP 403).
+     *
+     * @param ex Exception d'accès refusé
+     * @return Réponse HTTP 403
+     */
+    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAccessDenied(org.springframework.security.access.AccessDeniedException ex) {
+        ErrorResponse body = ErrorResponse.builder(
+                HttpStatus.FORBIDDEN.value(),
+                "Forbidden",
+                ex.getMessage()
+        ).build();
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
+    }
+
+    /**
      * Gère les erreurs de validation Bean (HTTP 400 avec détails des champs).
      *
      * @param ex Exception de validation

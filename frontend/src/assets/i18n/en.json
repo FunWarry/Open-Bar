@@ -792,6 +792,9 @@
       "NOTES": "Notes / Remarks"
     },
     "REAL_TRACKING_TITLE": "Clock-in & Actual Hours",
+    "READ_ONLY_NOTICE": "View-only mode: you do not have permission to modify another employee's shifts.",
+    "SELF_CLOCKING_NOTICE": "You can log your actual clocking hours. The planned schedule can only be modified by a manager.",
+    "PLANNING_RESTRICTED": "Schedule modification restricted to managers",
     "PRESETS": {
       "TITLE": "Shift Templates & Presets",
       "MANAGE_BTN": "Manage templates",
