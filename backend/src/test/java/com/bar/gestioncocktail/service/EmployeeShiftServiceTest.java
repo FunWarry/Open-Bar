@@ -373,6 +373,72 @@ class EmployeeShiftServiceTest {
     }
 
     @Test
+    void updateShift_ByEmployee_WhenModifyingTypeShift_ThrowsAccessDeniedException() {
+        setSecurityContext("serveur1", "SERVEUR");
+
+        EmployeeShiftRequestDTO request = new EmployeeShiftRequestDTO(
+            1L, LocalDate.of(2026, 8, 10), TypeShift.SOIR, TypePoste.SERVEUR,
+            "08:00", "16:00", null, null, null, null, null, null, null, null
+        );
+
+        when(shiftRepository.findById(10L)).thenReturn(Optional.of(sampleShift));
+
+        assertThatThrownBy(() -> shiftService.updateShift(10L, request))
+            .isInstanceOf(org.springframework.security.access.AccessDeniedException.class)
+            .hasMessageContaining("Seul un manager peut modifier le type de créneau planifié");
+    }
+
+    @Test
+    void updateShift_ByEmployee_WhenModifyingTypePoste_ThrowsAccessDeniedException() {
+        setSecurityContext("serveur1", "SERVEUR");
+
+        EmployeeShiftRequestDTO request = new EmployeeShiftRequestDTO(
+            1L, LocalDate.of(2026, 8, 10), TypeShift.MATIN, TypePoste.BARMAN,
+            "08:00", "16:00", null, null, null, null, null, null, null, null
+        );
+
+        when(shiftRepository.findById(10L)).thenReturn(Optional.of(sampleShift));
+
+        assertThatThrownBy(() -> shiftService.updateShift(10L, request))
+            .isInstanceOf(org.springframework.security.access.AccessDeniedException.class)
+            .hasMessageContaining("Seul un manager peut modifier le poste assigné");
+    }
+
+    @Test
+    void updateShift_ByEmployee_WhenModifyingHeureFin_ThrowsAccessDeniedException() {
+        setSecurityContext("serveur1", "SERVEUR");
+
+        EmployeeShiftRequestDTO request = new EmployeeShiftRequestDTO(
+            1L, LocalDate.of(2026, 8, 10), TypeShift.MATIN, TypePoste.SERVEUR,
+            "08:00", "18:00", null, null, null, null, null, null, null, null
+        );
+
+        when(shiftRepository.findById(10L)).thenReturn(Optional.of(sampleShift));
+
+        assertThatThrownBy(() -> shiftService.updateShift(10L, request))
+            .isInstanceOf(org.springframework.security.access.AccessDeniedException.class)
+            .hasMessageContaining("Seul un manager peut modifier l'heure de fin planifiée");
+    }
+
+    @Test
+    void updateShift_ByAdmin_CanUpdateAllFields() {
+        setSecurityContext("admin1", "ADMIN");
+
+        EmployeeShiftRequestDTO request = new EmployeeShiftRequestDTO(
+            1L, LocalDate.of(2026, 8, 11), TypeShift.SOIR, TypePoste.BARMAN,
+            "18:00", "02:00", null, null, null, null, null, null, null, null
+        );
+
+        when(shiftRepository.findById(10L)).thenReturn(Optional.of(sampleShift));
+        when(shiftRepository.save(any(EmployeeShift.class))).thenAnswer(i -> i.getArgument(0));
+
+        EmployeeShift updated = shiftService.updateShift(10L, request);
+
+        assertThat(updated.getDateShift()).isEqualTo(LocalDate.of(2026, 8, 11));
+        assertThat(updated.getTypeShift()).isEqualTo(TypeShift.SOIR);
+    }
+
+    @Test
     void deleteShift_Success() {
         when(shiftRepository.findById(10L)).thenReturn(Optional.of(sampleShift));
 
