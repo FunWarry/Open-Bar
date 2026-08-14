@@ -165,7 +165,7 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
       const name = cmd.tableNom || (cmd.tableNumero ? `Table ${cmd.tableNumero}` : '');
       if (name) tables.add(name);
     });
-    return Array.from(tables).sort();
+    return Array.from(tables).sort((a, b) => a.localeCompare(b));
   }
 
   /**
@@ -287,15 +287,15 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
       const matchesTable = tableName.toLowerCase().includes(q) || String(cmd.tableNumero || '').includes(q);
       const matchesId = String(cmd.id).includes(q);
       const matchesServer =
-        (cmd.serveurNom && cmd.serveurNom.toLowerCase().includes(q)) ||
-        (cmd.serveurUsername && cmd.serveurUsername.toLowerCase().includes(q));
+        cmd.serveurNom?.toLowerCase().includes(q) ||
+        cmd.serveurUsername?.toLowerCase().includes(q);
       const matchesItems = cmd.items?.some(item =>
         item.cocktailNom.toLowerCase().includes(q) ||
-        (item.varianteNom && item.varianteNom.toLowerCase().includes(q)) ||
-        (item.notes && item.notes.toLowerCase().includes(q))
+        item.varianteNom?.toLowerCase().includes(q) ||
+        item.notes?.toLowerCase().includes(q)
       );
 
-      return matchesTable || matchesId || matchesServer || matchesItems;
+      return Boolean(matchesTable || matchesId || matchesServer || matchesItems);
     });
   }
 

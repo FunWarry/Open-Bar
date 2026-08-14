@@ -96,7 +96,7 @@ export class CommandeCardComponent implements OnInit, OnDestroy {
         ? new Date(this.commande.datePreparation).getTime()
         : new Date(this.commande.dateCommande).getTime();
 
-    if (isNaN(baseDate)) {
+    if (Number.isNaN(baseDate)) {
       this.tempsEcoule = '00:00';
       return;
     }

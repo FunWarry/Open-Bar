@@ -2,7 +2,7 @@
   <ion-toolbar class="ticket-modal-toolbar">
     <ion-title>{{ 'BARMAN_DASHBOARD.BAR_TICKET_PREVIEW' | transloco }}</ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="dismiss()" aria-label="Close">
+      <ion-button (click)="dismiss()" (keyup.enter)="dismiss()" aria-label="Close">
         <ion-icon slot="icon-only" name="close-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -96,12 +96,12 @@
 <ion-footer class="ticket-modal-footer">
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-button color="medium" (click)="dismiss()">
+      <ion-button color="medium" (click)="dismiss()" (keyup.enter)="dismiss()">
         {{ 'COMMON.CANCEL' | transloco }}
       </ion-button>
     </ion-buttons>
     <ion-buttons slot="end">
-      <ion-button color="primary" fill="solid" (click)="printTicket()" data-testid="confirm-print-btn">
+      <ion-button color="primary" fill="solid" (click)="printTicket()" (keyup.enter)="printTicket()" data-testid="confirm-print-btn">
         <ion-icon slot="start" name="print-outline"></ion-icon>
         {{ 'BARMAN_DASHBOARD.PRINT_TICKET' | transloco }}
       </ion-button>

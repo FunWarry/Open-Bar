@@ -11,7 +11,7 @@
       </div>
     </ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="dismiss()" aria-label="Close">
+      <ion-button (click)="dismiss()" (keyup.enter)="dismiss()" aria-label="Close">
         <ion-icon slot="icon-only" name="close-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -125,6 +125,7 @@
                 color="danger"
                 title="Mettre en rupture immédiate (0)"
                 (click)="updateStock(ingredient, 0)"
+                (keyup.enter)="updateStock(ingredient, 0)"
                 data-testid="btn-rupture-zero">
                 0
               </ion-button>
@@ -133,14 +134,16 @@
                 size="small"
                 color="medium"
                 [disabled]="(ingredient.quantiteStock || 0) <= 0"
-                (click)="updateStock(ingredient, (ingredient.quantiteStock || 0) - 1)">
+                (click)="updateStock(ingredient, (ingredient.quantiteStock || 0) - 1)"
+                (keyup.enter)="updateStock(ingredient, (ingredient.quantiteStock || 0) - 1)">
                 <ion-icon slot="icon-only" name="remove-circle-outline"></ion-icon>
               </ion-button>
               <ion-button
                 fill="clear"
                 size="small"
                 color="primary"
-                (click)="updateStock(ingredient, (ingredient.quantiteStock || 0) + 5)">
+                (click)="updateStock(ingredient, (ingredient.quantiteStock || 0) + 5)"
+                (keyup.enter)="updateStock(ingredient, (ingredient.quantiteStock || 0) + 5)">
                 <ion-icon slot="icon-only" name="add-circle-outline"></ion-icon>
               </ion-button>
             </div>

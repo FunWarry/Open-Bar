@@ -16,6 +16,7 @@
         class="header-action-btn"
         [class.sound-muted]="!isSoundEnabled"
         (click)="toggleSound()"
+        (keyup.enter)="toggleSound()"
         [title]="isSoundEnabled ? ('BARMAN_DASHBOARD.SOUND_ALERTS_ENABLED' | transloco) : ('BARMAN_DASHBOARD.SOUND_ALERTS_DISABLED' | transloco)"
         data-testid="toggle-sound-btn">
         <ion-icon slot="icon-only" [name]="isSoundEnabled ? 'volume-high-outline' : 'volume-mute-outline'"></ion-icon>
@@ -25,6 +26,7 @@
       <ion-button
         class="header-action-btn btn-ruptures"
         (click)="openRupturesModal()"
+        (keyup.enter)="openRupturesModal()"
         title="Gestion rapide des ruptures de stock pendant le service"
         data-testid="open-ruptures-btn">
         <ion-icon slot="start" name="flame-outline"></ion-icon>
@@ -35,6 +37,7 @@
       <ion-button
         class="header-action-btn"
         (click)="chargerCommandes()"
+        (keyup.enter)="chargerCommandes()"
         title="Rafraîchir les commandes"
         data-testid="refresh-orders-btn">
         <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
@@ -56,16 +59,20 @@
 
     <div class="chips-wrapper">
       <ion-chip
+        tabindex="0"
         [class.chip--active]="!urgentOnly && selectedTable === 'ALL'"
         (click)="urgentOnly = false; selectedTable = 'ALL'"
+        (keyup.enter)="urgentOnly = false; selectedTable = 'ALL'"
         data-testid="chip-filter-all">
         <ion-label>{{ 'BARMAN_DASHBOARD.FILTER_ALL' | transloco }}</ion-label>
       </ion-chip>
 
       <ion-chip
+        tabindex="0"
         [class.chip--active]="urgentOnly"
         [class.chip--urgent]="urgentOrdersCount > 0"
         (click)="urgentOnly = !urgentOnly"
+        (keyup.enter)="urgentOnly = !urgentOnly"
         data-testid="chip-filter-urgent">
         <ion-icon name="flash-outline"></ion-icon>
         <ion-label>{{ 'BARMAN_DASHBOARD.FILTER_URGENT_ONLY' | transloco }}</ion-label>
@@ -76,8 +83,10 @@
 
       @for (table of availableTables; track table) {
         <ion-chip
+          tabindex="0"
           [class.chip--active]="selectedTable === table"
           (click)="selectedTable = selectedTable === table ? 'ALL' : table"
+          (keyup.enter)="selectedTable = selectedTable === table ? 'ALL' : table"
           data-testid="chip-filter-table">
           <ion-label>{{ table }}</ion-label>
         </ion-chip>
