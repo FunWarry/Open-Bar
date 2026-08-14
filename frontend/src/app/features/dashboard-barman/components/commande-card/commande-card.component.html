@@ -4,6 +4,7 @@
   [class.card-urgent]="isUrgent"
   [class.card-warning]="isWarning && !isUrgent"
   (click)="openDetails()"
+  (keyup.enter)="openDetails()"
 >
   <!-- Liseré de statut (barre verticale colorée) -->
   <div class="lisere" [style.background-color]="lisereColor"></div>
@@ -41,7 +42,7 @@
           class="icon-btn-print"
           title="Imprimer le bon de bar (80mm)"
           (click)="onPrintTicket($event)"
-          (keydown.enter)="onPrintTicket($event)"
+          (keyup.enter)="onPrintTicket($event)"
           data-testid="print-ticket-btn">
           <ion-icon name="print-outline"></ion-icon>
         </button>
@@ -69,7 +70,7 @@
               [class.active]="expandedRecipeItemIndex === idx"
               title="Voir la fiche recette & ingrédients"
               (click)="toggleRecipe(idx, item, $event)"
-              (keydown.enter)="toggleRecipe(idx, item, $event)"
+              (keyup.enter)="toggleRecipe(idx, item, $event)"
               data-testid="toggle-recipe-btn">
               <ion-icon name="book-outline"></ion-icon>
             </button>
@@ -83,7 +84,8 @@
           @if (expandedRecipeItemIndex === idx) {
             <div
               class="recipe-sheet"
-              (click)="$event.stopPropagation()">
+              (click)="$event.stopPropagation()"
+              (keyup.enter)="$event.stopPropagation()">
               <div class="recipe-header">
                 <ion-icon name="information-circle-outline"></ion-icon>
                 <span>{{ 'BARMAN_DASHBOARD.RECIPE_SHEET' | transloco }} ({{ item.cocktailNom }})</span>
@@ -123,7 +125,7 @@
     }
 
     <!-- Boutons d'action contextuels -->
-    <div class="card-actions" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
+    <div class="card-actions" (click)="$event.stopPropagation()" (keyup.enter)="$event.stopPropagation()">
       @if (commande.statut === 'EN_ATTENTE') {
         <app-action-button
           variant="primary"
