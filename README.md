@@ -92,7 +92,7 @@ EN_ATTENTE → EN_PREPARATION → PRET → LIVREE → REGLEE
 
 ## État d'implémentation
 
-> Dernière mise à jour : 15 août 2026 — PR #297 (#291) : Alignement visuel & fonctionnel plan 2D serveur (/serveur) avec /plan-salle, magnétisme bord-à-bord & snap 50cm, timer d'attente centré, sélection multi-zones, isolation gestes tactiles/pull-to-refresh mobile, 100% CI passée
+> Dernière mise à jour : 15 août 2026 — PR #298 (#292) : Refonte complète du tableau de bord comptoir barman (/barman), Kanban STOMP, timers précis et alertes d'urgence Web Audio API, fiches recettes dépliables, ruptures à chaud, impression tickets 80mm, 100% CI passée
 > Légende : ✅ complet · 🔄 en cours · ❌ manquant · — non applicable
 
 | Feature | Backend | Frontend | Tests |
@@ -123,7 +123,7 @@ EN_ATTENTE → EN_PREPARATION → PRET → LIVREE → REGLEE
 | Dashboard Manager / statistiques | ✅ | ✅ | ✅ |
 | Manager Shifts Employés & Pagination (#232) | ✅ | ✅ | ✅ |
 | Manager Planning Hebdomadaire Complexe (#233) | ✅ | ✅ | ✅ |
-| Dashboard Barman (kanban temps réel) | ✅ | ✅ | ✅ |
+| Dashboard Barman Moderne, Fiches Recettes & Ruptures à Chaud (#292) | ✅ | ✅ | ✅ |
 | Vue Serveur (plan de salle 2D Konva + prise de commande + kanban) (#290/#297) | ✅ | ✅ | ✅ |
 | Vue Serveur Mobile (Bottom Navigation & MobileTableCard) (#236) | — | ✅ | ✅ |
 | Plan de salle interactif Konva.js, Snap 50cm & Magnétisme (#291/#297) | ✅ | ✅ | ✅ |

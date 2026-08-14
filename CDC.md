@@ -203,7 +203,7 @@ Service frontend : `websocket.service.ts` — ✅ pleinement implémenté (RxSto
 | **Saisonnalité cocktails** | ✅ | ✅ | ✅ | ❌ | — |
 | **Ingrédients CRUD** | ✅ | ✅ | ✅ | ✅ | — |
 | **Tables CRUD** | ✅ | ✅ | ✅ | ✅ | — |
-| **Commandes (liste + détail + kanban barman)** | ✅ | ✅ | ✅ | ✅ | — |
+| **Commandes (liste + détail + kanban barman moderne #292)** | ✅ | ✅ | ✅ | ✅ | — |
 | Déstockage auto à la commande | ✅ | — | ✅ | — | — |
 | **Stock — vue rapide (shift)** | ✅ | ✅ | ✅ | ✅ | — |
 | **Stock — vue globale (gestion complète)** | ✅ | ✅ | ✅ | ✅ designé | — |
@@ -244,7 +244,7 @@ Service frontend : `websocket.service.ts` — ✅ pleinement implémenté (RxSto
 | **Personnalisation admin (branding)** | ✅ | ✅ | ✅ | ✅ | — |
 
 > Légende tests : ✅ tests écrits et passants · ⚠️ tests partiels · ❌ aucun test · — non applicable
-> Dernière mise à jour : 6 août 2026 (PRs #225–#257)
+> Dernière mise à jour : 15 août 2026 (PR #298 / Issue #292)
 
 ---
 
