@@ -1,95 +1,135 @@
-// Design system Figma — OpenBar Dark
-// surface-1: #1a1a2e | surface-2: #21263f | bg-0: #0f0f1a
-// primary: #6c7fe8 | primary-strong: #5a68d6
-// waiting: #f4a52a | inprogress: #2ba8e8 | ready: #2fbf6b
-// text/primary: #eceefb | text/muted: #7e87a8
-// border/medium: #2e3450
-
 .barman-toolbar {
-  --background: #21263f;
-  --color: #eceefb;
+  --background: var(--background-surface-1);
+  --color: var(--text-primary);
+  --border-color: var(--border-medium);
 }
 
-.toolbar-title {
-  font-size: 16px;
+.toolbar-title-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.toolbar-brand {
+  font-family: 'Inter', sans-serif;
+  font-size: 1.1rem;
   font-weight: 700;
-  color: #eceefb;
+  color: var(--text-primary);
 }
 
-.toolbar-role {
-  margin-left: 8px;
-  font-size: 10px;
+.active-orders-counter {
+  font-size: 0.75rem;
   font-weight: 600;
-  color: #4fc3f7;
-  letter-spacing: 0.66px;
-  text-transform: uppercase;
-  border: 1px solid rgba(79, 195, 247, 0.5);
-  background: rgba(79, 195, 247, 0.15);
-  padding: 2px 6px;
-  border-radius: 6px;
+  color: var(--text-secondary);
+  background: var(--background-surface-2);
+  padding: 3px 8px;
+  border-radius: var(--radius-sm, 6px);
+  border: 1px solid var(--border-medium);
 }
 
-.barman-content {
-  --background: #0f0f1a;
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
-/* ── Bannières d'alerte stock ── */
-.stock-alerts {
+.header-action-btn {
+  --color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+
+  &.sound-muted {
+    --color: var(--text-muted);
+  }
+
+  &.btn-ruptures {
+    --background: rgba(229, 96, 79, 0.15);
+    --color: var(--semantic-danger);
+    --border-radius: var(--radius-md, 8px);
+    border: 1px solid rgba(229, 96, 79, 0.4);
+
+    .btn-text {
+      display: none;
+      @media (min-width: 640px) {
+        display: inline;
+        margin-left: 4px;
+      }
+    }
+  }
+}
+
+/* ── Barre de recherche et filtres ── */
+.barman-filter-bar {
+  background: var(--background-surface-1);
+  border-bottom: 1px solid var(--border-medium);
+  padding: 6px 12px 10px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 8px 12px 0;
-}
+  gap: 8px;
 
-.stock-alert-banner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-radius: 10px;
-  border: 1px solid;
-
-  &.alert--warning {
-    background: rgba(244, 165, 42, 0.15);
-    border-color: rgba(244, 165, 42, 0.5);
-    color: #f4a52a;
-  }
-
-  &.alert--critical {
-    background: rgba(229, 96, 79, 0.15);
-    border-color: rgba(229, 96, 79, 0.5);
-    color: #e5604f;
+  @media (min-width: 768px) {
+    flex-direction: row;
+    align-items: center;
   }
 }
 
-.alert-message {
-  font-size: 12px;
-  font-family: 'Inter', sans-serif;
+.search-wrapper {
   flex: 1;
+  min-width: 0;
+
+  ion-searchbar {
+    --background: var(--background-surface-2);
+    --color: var(--text-primary);
+    --placeholder-color: var(--text-muted);
+    --icon-color: var(--text-secondary);
+    padding: 0;
+  }
 }
 
-.alert-dismiss {
-  background: none;
-  border: 1px solid #3a4682;
-  border-radius: 6px;
-  width: 28px;
-  height: 28px;
-  color: #7e87a8;
-  font-size: 16px;
-  font-weight: 700;
-  cursor: pointer;
+.chips-wrapper {
   display: flex;
   align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  margin-left: 8px;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 2px;
 
-  &:hover { border-color: #7e87a8; }
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  ion-chip {
+    --background: var(--background-surface-2);
+    --color: var(--text-secondary);
+    border: 1px solid var(--border-medium);
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin: 0;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+
+    &.chip--active {
+      --background: var(--primary);
+      --color: var(--text-primary);
+      border-color: var(--primary-strong);
+    }
+
+    &.chip--urgent {
+      border-color: var(--semantic-danger);
+      ion-icon {
+        color: var(--semantic-danger);
+      }
+    }
+  }
 }
 
-/* ── Kanban grid ── */
+/* ── Contenu & Grid Kanban ── */
+.barman-content {
+  --background: var(--background-bg-0);
+}
+
 .kanban-grid {
-  padding: 8px;
+  padding: 10px;
 }
 
 .kanban-row {
@@ -97,31 +137,41 @@
 }
 
 .kanban-col-wrapper {
-  padding: 4px;
+  padding: 6px;
 }
 
 .kanban-col {
-  background: #21263f;
-  border-radius: 12px;
+  background: var(--background-surface-1);
+  border-radius: var(--radius-lg, 12px);
+  border: 1px solid var(--border-medium);
   padding: 10px;
-  min-height: 180px;
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-/* ── En-têtes de colonnes (KanbanColHeader) ── */
+/* ── En-têtes de colonnes Kanban ── */
 .kanban-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #0f0f1a;
-  border-radius: 6px;
-  padding: 10px 8px;
-  margin-bottom: 10px;
+  background: var(--background-surface-2);
+  border-radius: var(--radius-md, 8px);
+  padding: 10px 12px;
+  border: 1px solid var(--border-medium);
+
+  &.urgent-pending {
+    border-color: var(--semantic-danger);
+    background: rgba(229, 96, 79, 0.1);
+  }
 }
 
 .header-status {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .status-dot {
@@ -131,52 +181,41 @@
   flex-shrink: 0;
 }
 
-.dot--pending    { background: #f4a52a; }
-.dot--inprogress { background: #2ba8e8; }
-.dot--ready      { background: #2fbf6b; }
+.dot--pending    { background: var(--semantic-warning); }
+.dot--inprogress { background: var(--semantic-info); }
+.dot--ready      { background: var(--semantic-success); }
 
 .header-label {
   font-family: 'Inter', sans-serif;
-  font-weight: 600;
-  font-size: 13px;
+  font-weight: 700;
+  font-size: 0.9rem;
 }
 
-.kanban-header--pending    .header-label { color: #f4a52a; }
-.kanban-header--inprogress .header-label { color: #2ba8e8; }
-.kanban-header--ready      .header-label { color: #2fbf6b; }
+.kanban-header--pending    .header-label { color: var(--semantic-warning); }
+.kanban-header--inprogress .header-label { color: var(--semantic-info); }
+.kanban-header--ready      .header-label { color: var(--semantic-success); }
 
 .header-count {
   font-family: 'Inter', sans-serif;
   font-weight: 700;
-  font-size: 11px;
-  width: 24px;
-  height: 20px;
-  border-radius: 6px;
+  font-size: 0.8rem;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm, 6px);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.count--pending    { background: rgba(244, 165, 42, 0.15);  color: #f4a52a; }
-.count--inprogress { background: rgba(43, 168, 232, 0.15);  color: #2ba8e8; }
-.count--ready      { background: rgba(47, 191, 107, 0.15); color: #2fbf6b; }
+.count--pending    { background: rgba(244, 165, 42, 0.15);  color: var(--semantic-warning); }
+.count--inprogress { background: rgba(43, 168, 232, 0.15);  color: var(--semantic-info); }
+.count--ready      { background: rgba(47, 191, 107, 0.15); color: var(--semantic-success); }
 
-/* ── Colonne vide ── */
-.empty-col {
-  text-align: center;
-  color: #7e87a8;
-  font-style: italic;
-  font-size: 13px;
-  padding: 24px 8px;
-}
-
-/* ── Indicateur Urgent & Animations ── */
 .urgent-badge {
-  font-size: 10px;
+  font-size: 0.7rem;
   font-weight: 700;
-  color: #e5604f;
-  background: rgba(229, 96, 79, 0.2);
-  border: 1px solid rgba(229, 96, 79, 0.6);
+  color: var(--semantic-danger);
+  background: rgba(229, 96, 79, 0.15);
+  border: 1px solid var(--semantic-danger);
   padding: 2px 6px;
   border-radius: 4px;
   animation: pulse-urgent 1.5s infinite;
@@ -184,12 +223,19 @@
 
 .count--urgent {
   background: rgba(229, 96, 79, 0.2) !important;
-  color: #e5604f !important;
-  border: 1px solid #e5604f;
+  color: var(--semantic-danger) !important;
+  border: 1px solid var(--semantic-danger);
 }
 
 @keyframes pulse-urgent {
   0% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.05); opacity: 0.8; }
+  50% { transform: scale(1.05); opacity: 0.85; }
   100% { transform: scale(1); opacity: 1; }
+}
+
+.cards-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
 }

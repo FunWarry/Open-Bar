@@ -1,0 +1,230 @@
+.ticket-modal-toolbar {
+  --background: var(--background-surface-1);
+  --color: var(--text-primary);
+  --border-color: var(--border-medium);
+}
+
+.ticket-modal-content {
+  --background: var(--background-bg-0);
+}
+
+.ticket-modal-footer {
+  ion-toolbar {
+    --background: var(--background-surface-1);
+    --border-color: var(--border-medium);
+  }
+}
+
+.ticket-preview-wrapper {
+  display: flex;
+  justify-content: center;
+  padding: 16px;
+}
+
+/* Format ticket thermique 80mm */
+.thermal-receipt {
+  width: 320px;
+  max-width: 100%;
+  background: var(--background-surface-1);
+  color: var(--text-primary);
+  border: 1px dashed var(--border-medium);
+  border-radius: var(--radius-md, 8px);
+  padding: 16px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 13px;
+  line-height: 1.4;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+.receipt-header {
+  text-align: center;
+  margin-bottom: 8px;
+
+  .establishment-title {
+    font-size: 18px;
+    font-weight: bold;
+    margin: 0 0 4px;
+    color: var(--text-primary);
+    text-transform: uppercase;
+  }
+
+  .ticket-type {
+    font-size: 12px;
+    font-weight: bold;
+    color: var(--primary);
+    margin-bottom: 8px;
+  }
+}
+
+.ticket-meta {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 12px;
+
+  .meta-row {
+    display: flex;
+    justify-content: space-between;
+
+    &.highlight-table {
+      font-size: 15px;
+      margin: 4px 0;
+      color: var(--primary);
+    }
+  }
+
+  .priority-banner {
+    margin-top: 6px;
+    text-align: center;
+    font-weight: bold;
+    color: var(--semantic-danger);
+    background: rgba(229, 96, 79, 0.15);
+    padding: 4px;
+    border-radius: 4px;
+  }
+}
+
+.receipt-divider {
+  text-align: center;
+  color: var(--border-medium);
+  letter-spacing: -1px;
+  user-select: none;
+  margin: 6px 0;
+}
+
+.receipt-items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  .receipt-item-row {
+    display: flex;
+    flex-direction: column;
+
+    .item-main {
+      display: flex;
+      gap: 6px;
+      font-weight: bold;
+      font-size: 14px;
+
+      .item-qty {
+        color: var(--primary);
+      }
+
+      .item-name {
+        flex: 1;
+      }
+    }
+
+    .item-sub {
+      font-size: 12px;
+      color: var(--text-secondary);
+      padding-left: 16px;
+    }
+
+    .item-note {
+      font-size: 11px;
+      font-style: italic;
+      color: var(--semantic-warning);
+      padding-left: 16px;
+    }
+  }
+}
+
+.receipt-notes {
+  background: rgba(244, 165, 42, 0.08);
+  border-left: 3px solid var(--semantic-warning);
+  padding: 6px 8px;
+  border-radius: 4px;
+  margin: 4px 0;
+
+  .notes-header {
+    font-size: 11px;
+    font-weight: bold;
+    color: var(--semantic-warning);
+  }
+
+  .notes-body {
+    font-size: 12px;
+    margin-top: 2px;
+    color: var(--text-primary);
+  }
+}
+
+.receipt-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 4px 0;
+
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    font-weight: bold;
+    font-size: 14px;
+  }
+}
+
+.receipt-footer {
+  text-align: center;
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 10px;
+
+  .print-timestamp {
+    margin-top: 2px;
+  }
+}
+
+/* @media print styles for pure black on white thermal printing */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .thermal-receipt, .thermal-receipt * {
+    visibility: visible;
+  }
+
+  .thermal-receipt {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 80mm;
+    background: #ffffff !important;
+    color: #000000 !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .receipt-header .establishment-title,
+  .receipt-header .ticket-type,
+  .meta-row strong,
+  .meta-row.highlight-table,
+  .receipt-item-row .item-main,
+  .receipt-summary strong {
+    color: #000000 !important;
+  }
+
+  .ticket-meta .priority-banner {
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+    background: none !important;
+  }
+
+  .receipt-divider {
+    color: #000000 !important;
+  }
+
+  .receipt-item-row .item-sub,
+  .receipt-item-row .item-note,
+  .receipt-notes,
+  .receipt-footer {
+    color: #000000 !important;
+    background: none !important;
+    border-color: #000000 !important;
+  }
+}

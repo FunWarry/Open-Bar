@@ -1,10 +1,89 @@
-<ion-header>
+<ion-header class="ion-no-border">
   <ion-toolbar class="barman-toolbar">
     <ion-title>
-      <span class="toolbar-title">🍹 OpenBar</span>
-      <app-role-badge [role]="'BARMAN'"></app-role-badge>
+      <div class="toolbar-title-container">
+        <span class="toolbar-brand">🍹 OpenBar</span>
+        <app-role-badge [role]="'BARMAN'"></app-role-badge>
+        <span class="active-orders-counter" title="Commandes en cours de traitement">
+          {{ totalActiveOrdersCount }} {{ 'BARMAN_DASHBOARD.PENDING_ORDERS' | transloco }}
+        </span>
+      </div>
     </ion-title>
+
+    <ion-buttons slot="end" class="toolbar-actions">
+      <!-- Toggle Son -->
+      <ion-button
+        class="header-action-btn"
+        [class.sound-muted]="!isSoundEnabled"
+        (click)="toggleSound()"
+        [title]="isSoundEnabled ? ('BARMAN_DASHBOARD.SOUND_ALERTS_ENABLED' | transloco) : ('BARMAN_DASHBOARD.SOUND_ALERTS_DISABLED' | transloco)"
+        data-testid="toggle-sound-btn">
+        <ion-icon slot="icon-only" [name]="isSoundEnabled ? 'volume-high-outline' : 'volume-mute-outline'"></ion-icon>
+      </ion-button>
+
+      <!-- Ruptures à chaud -->
+      <ion-button
+        class="header-action-btn btn-ruptures"
+        (click)="openRupturesModal()"
+        title="Gestion rapide des ruptures de stock pendant le service"
+        data-testid="open-ruptures-btn">
+        <ion-icon slot="start" name="flame-outline"></ion-icon>
+        <span class="btn-text">{{ 'BARMAN_DASHBOARD.QUICK_STOCK_TOGGLES' | transloco }}</span>
+      </ion-button>
+
+      <!-- Refresh manuel -->
+      <ion-button
+        class="header-action-btn"
+        (click)="chargerCommandes()"
+        title="Rafraîchir les commandes"
+        data-testid="refresh-orders-btn">
+        <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
+
+  <!-- Barre de filtres et recherche -->
+  <div class="barman-filter-bar">
+    <div class="search-wrapper">
+      <ion-searchbar
+        [(ngModel)]="searchQuery"
+        [placeholder]="'BARMAN_DASHBOARD.SEARCH_PLACEHOLDER' | transloco"
+        mode="ios"
+        [debounce]="150"
+        data-testid="barman-searchbar">
+      </ion-searchbar>
+    </div>
+
+    <div class="chips-wrapper">
+      <ion-chip
+        [class.chip--active]="!urgentOnly && selectedTable === 'ALL'"
+        (click)="urgentOnly = false; selectedTable = 'ALL'"
+        data-testid="chip-filter-all">
+        <ion-label>{{ 'BARMAN_DASHBOARD.FILTER_ALL' | transloco }}</ion-label>
+      </ion-chip>
+
+      <ion-chip
+        [class.chip--active]="urgentOnly"
+        [class.chip--urgent]="urgentOrdersCount > 0"
+        (click)="urgentOnly = !urgentOnly"
+        data-testid="chip-filter-urgent">
+        <ion-icon name="flash-outline"></ion-icon>
+        <ion-label>{{ 'BARMAN_DASHBOARD.FILTER_URGENT_ONLY' | transloco }}</ion-label>
+        @if (urgentOrdersCount > 0) {
+          <ion-badge color="danger">{{ urgentOrdersCount }}</ion-badge>
+        }
+      </ion-chip>
+
+      @for (table of availableTables; track table) {
+        <ion-chip
+          [class.chip--active]="selectedTable === table"
+          (click)="selectedTable = selectedTable === table ? 'ALL' : table"
+          data-testid="chip-filter-table">
+          <ion-label>{{ table }}</ion-label>
+        </ion-chip>
+      }
+    </div>
+  </div>
 </ion-header>
 
 <ion-content class="barman-content">
@@ -19,79 +98,102 @@
 
       <!-- Colonne EN_ATTENTE -->
       <ion-col size="12" size-md="4" class="kanban-col-wrapper">
-        <div class="kanban-col">
+        <div class="kanban-col kanban-col--pending">
           <div class="kanban-header kanban-header--pending" [class.urgent-pending]="hasUrgentOrders">
             <div class="header-status">
               <span class="status-dot dot--pending"></span>
-              <span class="header-label">{{ 'DASHBOARD.PENDING_ORDERS' | transloco }}</span>
+              <span class="header-label">{{ 'BARMAN_DASHBOARD.PENDING_ORDERS' | transloco }}</span>
               @if (hasUrgentOrders) {
-                <span class="urgent-badge" data-testid="urgent-orders-badge">⚠ &gt; {{ tempsAlerteCommandeMinutes }} min</span>
+                <span class="urgent-badge" data-testid="urgent-orders-badge">
+                  ⚡ &gt; {{ tempsAlerteCommandeMinutes }} min ({{ urgentOrdersCount }})
+                </span>
               }
             </div>
-            <span class="header-count count--pending" [class.count--urgent]="hasUrgentOrders" data-testid="pending-count">{{ commandesEnAttente.length }}</span>
+            <span
+              class="header-count count--pending"
+              [class.count--urgent]="hasUrgentOrders"
+              data-testid="pending-count">
+              {{ filteredCommandesEnAttente.length }}
+            </span>
           </div>
 
-          @for (cmd of commandesEnAttente; track cmd.id) {
-            <app-commande-card
-              [commande]="cmd"
-              (changerStatut)="onChangerStatut($event)">
-            </app-commande-card>
-          } @empty {
-            <app-empty-state
-              [title]="'DASHBOARD.NO_PENDING' | transloco"
-              icon="time-outline">
-            </app-empty-state>
-          }
+          <div class="cards-container">
+            @for (cmd of filteredCommandesEnAttente; track cmd.id) {
+              <app-commande-card
+                [commande]="cmd"
+                [tempsAlerteCommandeMinutes]="tempsAlerteCommandeMinutes"
+                (changerStatut)="onChangerStatut($event)"
+                (printTicket)="onPrintTicket($event)">
+              </app-commande-card>
+            } @empty {
+              <app-empty-state
+                [title]="'BARMAN_DASHBOARD.NO_PENDING' | transloco"
+                icon="time-outline">
+              </app-empty-state>
+            }
+          </div>
         </div>
       </ion-col>
 
       <!-- Colonne EN_PREPARATION -->
       <ion-col size="12" size-md="4" class="kanban-col-wrapper">
-        <div class="kanban-col">
+        <div class="kanban-col kanban-col--inprogress">
           <div class="kanban-header kanban-header--inprogress">
             <div class="header-status">
               <span class="status-dot dot--inprogress"></span>
-              <span class="header-label">{{ 'DASHBOARD.IN_PROGRESS' | transloco }}</span>
+              <span class="header-label">{{ 'BARMAN_DASHBOARD.IN_PROGRESS_ORDERS' | transloco }}</span>
             </div>
-            <span class="header-count count--inprogress">{{ commandesEnPreparation.length }}</span>
+            <span class="header-count count--inprogress" data-testid="inprogress-count">
+              {{ filteredCommandesEnPreparation.length }}
+            </span>
           </div>
 
-          @for (cmd of commandesEnPreparation; track cmd.id) {
-            <app-commande-card
-              [commande]="cmd"
-              (changerStatut)="onChangerStatut($event)">
-            </app-commande-card>
-          } @empty {
-            <app-empty-state
-              [title]="'DASHBOARD.NO_IN_PROGRESS' | transloco"
-              icon="wine-outline">
-            </app-empty-state>
-          }
+          <div class="cards-container">
+            @for (cmd of filteredCommandesEnPreparation; track cmd.id) {
+              <app-commande-card
+                [commande]="cmd"
+                [tempsAlerteCommandeMinutes]="tempsAlerteCommandeMinutes"
+                (changerStatut)="onChangerStatut($event)"
+                (printTicket)="onPrintTicket($event)">
+              </app-commande-card>
+            } @empty {
+              <app-empty-state
+                [title]="'BARMAN_DASHBOARD.NO_IN_PROGRESS' | transloco"
+                icon="wine-outline">
+              </app-empty-state>
+            }
+          </div>
         </div>
       </ion-col>
 
       <!-- Colonne PRET -->
       <ion-col size="12" size-md="4" class="kanban-col-wrapper">
-        <div class="kanban-col">
+        <div class="kanban-col kanban-col--ready">
           <div class="kanban-header kanban-header--ready">
             <div class="header-status">
               <span class="status-dot dot--ready"></span>
-              <span class="header-label">{{ 'DASHBOARD.READY' | transloco }}</span>
+              <span class="header-label">{{ 'BARMAN_DASHBOARD.READY_ORDERS' | transloco }}</span>
             </div>
-            <span class="header-count count--ready">{{ commandesPret.length }}</span>
+            <span class="header-count count--ready" data-testid="ready-count">
+              {{ filteredCommandesPret.length }}
+            </span>
           </div>
 
-          @for (cmd of commandesPret; track cmd.id) {
-            <app-commande-card
-              [commande]="cmd"
-              (changerStatut)="onChangerStatut($event)">
-            </app-commande-card>
-          } @empty {
-            <app-empty-state
-              [title]="'DASHBOARD.NO_READY' | transloco"
-              icon="checkmark-done-outline">
-            </app-empty-state>
-          }
+          <div class="cards-container">
+            @for (cmd of filteredCommandesPret; track cmd.id) {
+              <app-commande-card
+                [commande]="cmd"
+                [tempsAlerteCommandeMinutes]="tempsAlerteCommandeMinutes"
+                (changerStatut)="onChangerStatut($event)"
+                (printTicket)="onPrintTicket($event)">
+              </app-commande-card>
+            } @empty {
+              <app-empty-state
+                [title]="'BARMAN_DASHBOARD.NO_READY' | transloco"
+                icon="checkmark-done-outline">
+              </app-empty-state>
+            }
+          </div>
         </div>
       </ion-col>
 

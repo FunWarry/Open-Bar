@@ -30,7 +30,7 @@ export class CocktailService {
   }
 
   toggleDisponibilite(id: number): Observable<Cocktail> {
-    return this.http.patch<Cocktail>(`${this.api}/${id}/toggle-disponibilite`, {});
+    return this.http.put<Cocktail>(`${this.api}/${id}/disponibilite`, {});
   }
 
   search(nom: string): Observable<Cocktail[]> {

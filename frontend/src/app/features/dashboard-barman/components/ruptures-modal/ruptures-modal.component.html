@@ -1,0 +1,156 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="ruptures-toolbar">
+    <ion-title>
+      <div class="title-with-badge">
+        <span>{{ 'BARMAN_DASHBOARD.QUICK_STOCK_TOGGLE_TITLE' | transloco }}</span>
+        @if (outOfStockCocktailsCount > 0 || outOfStockIngredientsCount > 0) {
+          <ion-badge color="warning">
+            {{ outOfStockCocktailsCount + outOfStockIngredientsCount }} {{ 'BARMAN_DASHBOARD.RUPTURES_BADGE' | transloco }}
+          </ion-badge>
+        }
+      </div>
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="dismiss()" aria-label="Close">
+        <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+
+  <div class="segment-container">
+    <ion-segment [(ngModel)]="activeTab" mode="ios">
+      <ion-segment-button value="cocktails" data-testid="segment-cocktails">
+        <ion-label>
+          <ion-icon name="wine-outline"></ion-icon>
+          {{ 'BARMAN_DASHBOARD.COCKTAILS_TAB' | transloco }} ({{ outOfStockCocktailsCount }} 🚫)
+        </ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="ingredients" data-testid="segment-ingredients">
+        <ion-label>
+          <ion-icon name="nutrition-outline"></ion-icon>
+          {{ 'BARMAN_DASHBOARD.INGREDIENTS_TAB' | transloco }} ({{ outOfStockIngredientsCount }} ⚠️)
+        </ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </div>
+
+  <div class="search-container">
+    <ion-searchbar
+      [(ngModel)]="searchQuery"
+      [placeholder]="activeTab === 'cocktails' ? ('BARMAN_DASHBOARD.SEARCH_COCKTAIL_PLACEHOLDER' | transloco) : ('BARMAN_DASHBOARD.SEARCH_INGREDIENT_PLACEHOLDER' | transloco)"
+      mode="ios"
+      [debounce]="200"
+      data-testid="ruptures-searchbar">
+    </ion-searchbar>
+  </div>
+</ion-header>
+
+<ion-content class="ruptures-content">
+  @if (isLoading) {
+    <div class="loading-state">
+      <ion-spinner name="crescent" color="primary"></ion-spinner>
+      <p>{{ 'COMMON.LOADING' | transloco }}</p>
+    </div>
+  } @else {
+    <!-- Onglet Cocktails -->
+    @if (activeTab === 'cocktails') {
+      <ion-list class="ruptures-list" lines="full">
+        @for (cocktail of filteredCocktails; track cocktail.id) {
+          <ion-item class="rupture-item" [class.item-unavailable]="!cocktail.disponible">
+            <div class="item-icon-wrapper" [class.icon-unavailable]="!cocktail.disponible">
+              <ion-icon name="wine-outline"></ion-icon>
+            </div>
+
+            <div class="item-info">
+              <div class="item-title-row">
+                <span class="item-title">{{ cocktail.nom }}</span>
+                <span class="item-category-badge">{{ cocktail.categorie }}</span>
+              </div>
+              <div class="item-subtitle">
+                <span class="item-price">{{ cocktail.prix }} €</span>
+                @if (!cocktail.disponible) {
+                  <span class="status-indicator rupture">🚫 {{ 'BARMAN_DASHBOARD.STATUS_OUT_OF_STOCK' | transloco }}</span>
+                } @else {
+                  <span class="status-indicator available">✅ {{ 'BARMAN_DASHBOARD.STATUS_AVAILABLE' | transloco }}</span>
+                }
+              </div>
+            </div>
+
+            <ion-toggle
+              slot="end"
+              [checked]="cocktail.disponible"
+              (ionChange)="toggleCocktail(cocktail)"
+              color="success"
+              data-testid="toggle-cocktail-dispo">
+            </ion-toggle>
+          </ion-item>
+        } @empty {
+          <div class="empty-results">
+            <p>{{ 'BARMAN_DASHBOARD.NO_COCKTAILS_FOUND' | transloco }}</p>
+          </div>
+        }
+      </ion-list>
+    }
+
+    <!-- Onglet Ingrédients -->
+    @if (activeTab === 'ingredients') {
+      <ion-list class="ruptures-list" lines="full">
+        @for (ingredient of filteredIngredients; track ingredient.id) {
+          <ion-item class="rupture-item" [class.item-low-stock]="(ingredient.quantiteStock || 0) <= (ingredient.seuilAlerte || 0)">
+            <div class="item-icon-wrapper" [class.icon-low-stock]="(ingredient.quantiteStock || 0) <= (ingredient.seuilAlerte || 0)">
+              <ion-icon name="nutrition-outline"></ion-icon>
+            </div>
+
+            <div class="item-info">
+              <div class="item-title-row">
+                <span class="item-title">{{ ingredient.nom }}</span>
+                @if ((ingredient.quantiteStock || 0) === 0) {
+                  <span class="stock-badge zero">0 {{ ingredient.uniteMesure }} (RUPTURE)</span>
+                } @else if ((ingredient.quantiteStock || 0) <= (ingredient.seuilAlerte || 0)) {
+                  <span class="stock-badge low">{{ ingredient.quantiteStock }} {{ ingredient.uniteMesure }} (FAIBLE)</span>
+                } @else {
+                  <span class="stock-badge normal">{{ ingredient.quantiteStock }} {{ ingredient.uniteMesure }}</span>
+                }
+              </div>
+              <div class="item-subtitle">
+                <span>{{ 'BARMAN_DASHBOARD.ALERT_THRESHOLD' | transloco }}: {{ ingredient.seuilAlerte }} {{ ingredient.uniteMesure }}</span>
+              </div>
+            </div>
+
+            <!-- Quick stock adjustment buttons -->
+            <div slot="end" class="quick-stock-actions">
+              <ion-button
+                fill="outline"
+                size="small"
+                color="danger"
+                title="Mettre en rupture immédiate (0)"
+                (click)="updateStock(ingredient, 0)"
+                data-testid="btn-rupture-zero">
+                0
+              </ion-button>
+              <ion-button
+                fill="clear"
+                size="small"
+                color="medium"
+                [disabled]="(ingredient.quantiteStock || 0) <= 0"
+                (click)="updateStock(ingredient, (ingredient.quantiteStock || 0) - 1)">
+                <ion-icon slot="icon-only" name="remove-circle-outline"></ion-icon>
+              </ion-button>
+              <ion-button
+                fill="clear"
+                size="small"
+                color="primary"
+                (click)="updateStock(ingredient, (ingredient.quantiteStock || 0) + 5)">
+                <ion-icon slot="icon-only" name="add-circle-outline"></ion-icon>
+              </ion-button>
+            </div>
+          </ion-item>
+        } @empty {
+          <div class="empty-results">
+            <p>{{ 'BARMAN_DASHBOARD.NO_INGREDIENTS_FOUND' | transloco }}</p>
+          </div>
+        }
+      </ion-list>
+    }
+  }
+</ion-content>
