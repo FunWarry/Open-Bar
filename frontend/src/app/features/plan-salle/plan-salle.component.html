@@ -7,6 +7,17 @@
       </div>
 
       <div class="header-actions">
+        <button
+          *ngIf="isAdmin"
+          type="button"
+          class="action-btn zone-manage-btn"
+          (click)="ouvrirGestionZonesEtages()"
+          [title]="'TABLES.MANAGE_ZONES' | transloco"
+          data-testid="btn-manage-zones">
+          <ion-icon name="layers-outline"></ion-icon>
+          <span>{{ 'TABLES.MANAGE_ZONES' | transloco }}</span>
+        </button>
+
         <span *ngIf="hasUnsavedChanges" class="unsaved-pill" data-testid="badge-unsaved">
           <ion-icon name="alert-circle-outline"></ion-icon>
           {{ 'PLAN_SALLE_PAGE.UNSAVED_CHANGES' | transloco }}
@@ -35,7 +46,7 @@
         </button>
 
         <button
-          *ngIf="isAdmin && isEditMode && hasUnsavedChanges"
+          *ngIf="isAdmin && hasUnsavedChanges"
           type="button"
           class="action-btn save-btn"
           (click)="sauvegarder()"
@@ -50,29 +61,47 @@
 </ion-header>
 
 <ion-content class="plan-content">
-  <!-- Control Banner: Floor & Zone Filters + Legend -->
+  <!-- Floor & Zone Filter Control Bar -->
   <div class="plan-control-bar">
-    <div class="filter-chips-group">
-      <span class="filter-label">Étage:</span>
-      <button
-        type="button"
-        class="floor-chip"
-        [class.active]="selectedFloor === null"
-        (click)="selectFloor(null)"
-        data-testid="chip-floor-all">
-        {{ 'PLAN_SALLE_PAGE.ALL_FLOORS' | transloco }}
-      </button>
-      <button
-        *ngFor="let f of floors"
-        type="button"
-        class="floor-chip"
-        [class.active]="selectedFloor === f"
-        (click)="selectFloor(f)"
-        [attr.data-testid]="'chip-floor-' + f">
-        {{ f }}
-      </button>
+    <div class="filters-column">
+      <!-- Floor Level Tabs (Strict Single Floor View) -->
+      <div class="filter-chips-group floor-group">
+        <span class="filter-label">{{ 'PLAN_SALLE_PAGE.FLOOR_LABEL' | transloco }}</span>
+        <button
+          *ngFor="let e of etages"
+          type="button"
+          class="floor-chip"
+          [class.active]="selectedFloor === e.code"
+          (click)="selectFloor(e.code)"
+          [attr.data-testid]="'chip-floor-' + e.code">
+          {{ e.nom }}
+        </button>
+      </div>
+
+      <!-- Sub-zone Filter Chips for Active Floor -->
+      <div *ngIf="floorZones.length > 0" class="filter-chips-group zone-group">
+        <span class="filter-label">{{ 'PLAN_SALLE_PAGE.ZONE_LABEL' | transloco }}</span>
+        <button
+          type="button"
+          class="zone-chip"
+          [class.active]="selectedZones.length === 0"
+          (click)="clearZoneFilter()"
+          data-testid="chip-zone-all">
+          {{ 'PLAN_SALLE_PAGE.ALL_ZONES' | transloco }}
+        </button>
+        <button
+          *ngFor="let z of floorZones"
+          type="button"
+          class="zone-chip"
+          [class.active]="isZoneSelected(z.nom)"
+          (click)="toggleZone(z.nom)"
+          [attr.data-testid]="'chip-zone-' + z.nom">
+          {{ z.nom }}
+        </button>
+      </div>
     </div>
 
+    <!-- Status Legend -->
     <div class="legend-bar">
       <div class="legend-item"><span class="dot dot-libre"></span><span>{{ 'PLAN_SALLE_PAGE.STATUS.LIBRE' | transloco }}</span></div>
       <div class="legend-item"><span class="dot dot-occupee"></span><span>{{ 'PLAN_SALLE_PAGE.STATUS.OCCUPEE' | transloco }}</span></div>
@@ -83,6 +112,13 @@
 
   <!-- Interactive Konva Canvas Container -->
   <div class="canvas-wrapper">
+    <!-- Floating Fusion Mode Indicator Banner -->
+    <div *ngIf="isFusionMode" class="fusion-banner-floating" data-testid="fusion-banner">
+      <ion-icon name="git-merge-outline"></ion-icon>
+      <span>{{ 'PLAN_SALLE_PAGE.FUSION_MODE_BANNER' | transloco: { num: fusionSourceTable?.numero } }}</span>
+      <button type="button" class="btn-cancel-fusion" (click)="annulerFusion()">{{ 'PLAN_SALLE_PAGE.CANCEL' | transloco }}</button>
+    </div>
+
     <div *ngIf="isLoading" class="loading-overlay">
       <ion-spinner name="crescent" color="primary"></ion-spinner>
     </div>
@@ -93,14 +129,142 @@
       [class.edit-mode]="isEditMode"
       data-testid="konva-canvas">
     </div>
+
+    <!-- Floating Zoom & Navigation Controls Widget -->
+    <div class="zoom-controls-floating" data-testid="zoom-controls">
+      <button
+        type="button"
+        class="zoom-btn"
+        (click)="zoomerIn()"
+        [title]="'PLAN_SALLE_PAGE.ZOOM_IN' | transloco"
+        data-testid="btn-zoom-in">
+        <ion-icon name="add-outline"></ion-icon>
+      </button>
+
+      <button
+        type="button"
+        class="zoom-level-badge"
+        (click)="reinitialiserVue()"
+        (keyup.enter)="reinitialiserVue()"
+        [title]="'PLAN_SALLE_PAGE.RESET_VIEW' | transloco"
+        data-testid="btn-reset-zoom-badge">
+        {{ (zoomScale * 100) | number:'1.0-0' }}%
+      </button>
+
+      <button
+        type="button"
+        class="zoom-btn"
+        (click)="zoomerOut()"
+        [title]="'PLAN_SALLE_PAGE.ZOOM_OUT' | transloco"
+        data-testid="btn-zoom-out">
+        <ion-icon name="remove-outline"></ion-icon>
+      </button>
+
+      <div class="zoom-divider"></div>
+
+      <button
+        type="button"
+        class="zoom-btn reset-btn"
+        (click)="reinitialiserVue()"
+        [title]="'PLAN_SALLE_PAGE.RESET_VIEW' | transloco"
+        data-testid="btn-reset-view">
+        <ion-icon name="locate-outline"></ion-icon>
+      </button>
+    </div>
+
+    <!-- Floating Editor Toolbar (Mode Édition Admin/Manager) -->
+    <div *ngIf="isAdmin && isEditMode" class="editor-toolbar-floating" data-testid="editor-toolbar">
+      <div class="editor-toolbar-title">
+        <ion-icon name="options-outline"></ion-icon>
+        <span>{{ 'PLAN_SALLE_PAGE.EDITOR_TOOLS' | transloco }}</span>
+      </div>
+
+      <div class="editor-tools-group">
+        <button
+          type="button"
+          class="editor-tool-btn"
+          (click)="ajouterNouvelleTable()"
+          [title]="'PLAN_SALLE_PAGE.ACTIONS.ADD_TABLE' | transloco"
+          data-testid="btn-add-table">
+          <ion-icon name="add-circle-outline"></ion-icon>
+          <span>{{ 'PLAN_SALLE_PAGE.ACTIONS.ADD_TABLE' | transloco }}</span>
+        </button>
+
+        <button
+          type="button"
+          class="editor-tool-btn"
+          [disabled]="!selectedTable"
+          (click)="pivoterTableSelectionnee()"
+          [title]="'PLAN_SALLE_PAGE.ACTIONS.ROTATE' | transloco"
+          data-testid="btn-rotate-table">
+          <ion-icon name="refresh-circle-outline"></ion-icon>
+          <span>{{ 'PLAN_SALLE_PAGE.ACTIONS.ROTATE' | transloco }}</span>
+        </button>
+
+        <button
+          type="button"
+          class="editor-tool-btn"
+          [disabled]="!selectedTable"
+          (click)="toggleFormeTableSelectionnee()"
+          [title]="'PLAN_SALLE_PAGE.ACTIONS.TOGGLE_SHAPE' | transloco"
+          data-testid="btn-toggle-shape">
+          <ion-icon name="shapes-outline"></ion-icon>
+          <span>{{ 'PLAN_SALLE_PAGE.ACTIONS.TOGGLE_SHAPE' | transloco }}</span>
+        </button>
+
+        <button
+          type="button"
+          class="editor-tool-btn"
+          (click)="creerNouvelleZoneSurPlan()"
+          [title]="'PLAN_SALLE_PAGE.ACTIONS.DRAW_ZONE' | transloco"
+          data-testid="btn-draw-zone">
+          <ion-icon name="create-outline"></ion-icon>
+          <span>{{ 'PLAN_SALLE_PAGE.ACTIONS.DRAW_ZONE' | transloco }}</span>
+        </button>
+
+        <div class="toolbar-divider"></div>
+
+        <button
+          type="button"
+          class="editor-tool-btn toggle-snap-btn"
+          [class.active-toggle]="isGridSnapEnabled"
+          (click)="toggleGridSnap()"
+          [title]="'PLAN_SALLE_PAGE.ACTIONS.SNAP_GRID' | transloco"
+          data-testid="btn-toggle-grid-snap">
+          <ion-icon name="grid-outline"></ion-icon>
+          <span>{{ 'PLAN_SALLE_PAGE.ACTIONS.SNAP_GRID' | transloco }}</span>
+        </button>
+
+        <button
+          type="button"
+          class="editor-tool-btn toggle-snap-btn"
+          [class.active-toggle]="isMagnetSnapEnabled"
+          (click)="toggleMagnetSnap()"
+          [title]="'PLAN_SALLE_PAGE.ACTIONS.SNAP_MAGNET' | transloco"
+          data-testid="btn-toggle-magnet-snap">
+          <ion-icon name="magnet-outline"></ion-icon>
+          <span>{{ 'PLAN_SALLE_PAGE.ACTIONS.SNAP_MAGNET' | transloco }}</span>
+        </button>
+      </div>
+    </div>
   </div>
 
-  <!-- Side Panel Détail / Édition Table -->
+  <!-- Side Panel Détail / Édition Table & Zone (Figma TableEditionSidePanel spec 495:2978) -->
   <app-table-side-panel
     [table]="selectedTable"
+    [position]="getSelectedTablePosition()"
+    [selectedZoneArea]="selectedZoneArea"
     [isOpen]="isSidePanelOpen"
+    [isEditMode]="isEditMode"
+    [availableZones]="zones"
+    [availableEtages]="etages"
     (closePanel)="closeSidePanel()"
-    (saveTable)="onSaveTable($event)"
-    (startFusion)="onStartFusion($event)">
+    (saveTable)="onSaveTableAndPosition($event)"
+    (liveUpdateTable)="onLiveUpdateTable($event)"
+    (saveZoneArea)="onSaveZoneArea($event)"
+    (liveUpdateZone)="onLiveUpdateZone($event)"
+    (startFusion)="onStartFusion($event)"
+    (deleteTable)="onDeleteTable($event)"
+    (deleteZoneArea)="onDeleteZoneArea($event)">
   </app-table-side-panel>
 </ion-content>

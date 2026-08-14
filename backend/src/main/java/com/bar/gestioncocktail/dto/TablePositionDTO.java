@@ -5,5 +5,7 @@ public record TablePositionDTO(
     Double planX,
     Double planY,
     Double planRotation,
-    String planForme
+    String planForme,
+    Double planWidth,
+    Double planHeight
 ) {}

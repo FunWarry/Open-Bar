@@ -525,20 +525,20 @@ try {
 - [x] ~~Notifications temps réel~~ — fait (#117) : panneau historique navbar, badge non-lues
 - [x] ~~Migration Angular Material → Ionic~~ — fait (PR #103)
 
-### Phase 3 — Features avancées
+### Phase 3 — Features avancées ✅ Terminée
 
-- [ ] Plan de salle interactif avec **Konva.js** — canvas libre, drag & drop, rotation, zones polygones
-- [ ] QR code client — `TableSession` + interface non authentifiée (designé en Figma)
-- [ ] Fusion de tables — modèle de données + API + UI Manager
-- [ ] **i18n** — Transloco décidé, à câbler (fichiers `fr.json` / `en.json`)
-- [ ] **Intégration Capacitor** — configuration iOS + Android
+- [x] ~~Plan de salle interactif avec **Konva.js**~~ — fait (PR #291/#297) : canvas libre 1px=1cm, drag & drop, rotation, zones polygones, modes snap 50cm & magnétisme bord-à-bord, synchronisation vue serveur `/serveur`
+- [x] ~~QR code client — `TableSession` + interface non authentifiée~~ — fait (PR #184/#225/#256)
+- [x] ~~Fusion de tables — modèle de données + API + UI Manager~~ — fait (PR #186)
+- [x] ~~**i18n** — Transloco~~ — fait (`fr.json` / `en.json` 100% synchronisés)
+- [ ] **PWA & Offline** — Service worker & résilience réseau local
 
-### Phase 4 — Personnalisation
+### Phase 4 — Personnalisation & Audit ✅ Terminée
 
 - [x] ~~Saisonnalité cocktails~~ — fait (PR #102)
-- [ ] Alertes stock configurables — seuils par ingrédient
-- [ ] Historique / audit complet — `AuditLogService` déjà en place + tests écrits
-- [ ] **Personnalisation admin (branding)** — voir spec détaillée ci-dessous (#153)
+- [x] ~~Alertes stock configurables~~ — fait (PR #197) : seuils par ingrédient, bannières barman
+- [x] ~~Historique / audit complet~~ — fait (PR #285/#289) : `shift_audit_log`, `ShiftAuditService`, replay temporel
+- [x] ~~**Personnalisation admin (branding & palettes HSL)**~~ — fait (PR #217/#218)
 
 #### Spec — Personnalisation admin (branding)
 
@@ -735,9 +735,9 @@ Après une authentification réussie, l'utilisateur est redirigé directement ve
 
 ## 13. Prochaine session — priorités
 
-> Mis à jour le 6 août 2026 — Bilan post-merge PRs #225–#257 & audit du projet GitHub.
+> Mis à jour le 15 août 2026 — Bilan post-merge PRs #291–#297 & audit du projet GitHub.
 
-### Roadmap des Tickets Restants (Audit Figma)
+### Roadmap des Tickets Restants & Réalisés
 
 #### 🔴 Priorité Haute
 1. ~~📱 **Ticket #A — Vue Client Scanner QR Code** (Issue #225)~~ ✅ (Mergé PR #256)
@@ -754,15 +754,16 @@ Après une authentification réussie, l'utilisateur est redirigé directement ve
 10. ~~🔔 **Ticket #J — Profil Section Préférences et Toggle Son** (Issue #234)~~ ✅ (Mergé PR #255)
 11. ~~💵 **Ticket #K — Modal Règlement Champ Pourboire** (Issue #235)~~ ✅ (Mergé PR #249)
 12. ~~📱 **Ticket #L — Vue Serveur Mobile Bottom Navigation & MobileTableCard** (Issue #236)~~ ✅ (Mergé PR #258)
+13. ~~🗺️ **Ticket #S — Plan de Salle Konva.js & Alignement Vue Serveur** (Issue #291)~~ ✅ (Mergé PR #297)
 
 #### 🟢 Priorité Basse / Dette technique
-13. ~~🐛 **Ticket #M — Bug dateLivraison**~~ ✅ (Résolu #224)
-14. ~~🔄 **Ticket #N — Supprimer `allow-circular-references: true`**~~ ✅ (Résolu #224)
-15. ~~⚠️ **Ticket #O — Exceptions métier**~~ ✅ (Résolu #224)
-16. ~~🖨️ **Ticket #P — Facturation Format ticket 58mm** (Issue #237)~~ ✅ (Mergé PR #259)
-17. ~~📦 **Ticket #Q — Barman Panel Stock Alignement** (Issue #238)~~ ✅ (Mergé PR #248)
-18. ~~👤 **Ticket #R — Profil Formulaire Pré-rempli NgRx** (Issue #239)~~ ✅ (Mergé PR #247)
-19. 🧪 **Issue #193 — Tests d'intégration Spring Boot (Testcontainers) et E2E Playwright** [OPEN]
+14. ~~🐛 **Ticket #M — Bug dateLivraison**~~ ✅ (Résolu #224)
+15. ~~🔄 **Ticket #N — Supprimer `allow-circular-references: true`**~~ ✅ (Résolu #224)
+16. ~~⚠️ **Ticket #O — Exceptions métier**~~ ✅ (Résolu #224)
+17. ~~🖨️ **Ticket #P — Facturation Format ticket 58mm** (Issue #237)~~ ✅ (Mergé PR #259)
+18. ~~📦 **Ticket #Q — Barman Panel Stock Alignement** (Issue #238)~~ ✅ (Mergé PR #248)
+19. ~~👤 **Ticket #R — Profil Formulaire Pré-rempli NgRx** (Issue #239)~~ ✅ (Mergé PR #247)
+20. 🧪 **Issue #193 — Tests d'intégration Spring Boot (Testcontainers) et E2E Playwright** [OPEN]
 
 ### Rappels plugin Figma
 

@@ -47,31 +47,6 @@
     "LOGOUT": "Déconnexion",
     "DASHBOARD": "Tableau de bord",
     "PLAN_SALLE": "Plan de salle",
-    "PLAN_SALLE_PAGE": {
-      "TITLE": "Plan de salle interactif",
-      "SUBTITLE": "Gestion visuelle des tables et zones en temps réel",
-      "EDIT_MODE_ON": "Mode édition actif — Glissez-déposez les tables",
-      "EDIT_MODE_OFF": "Activer l'édition",
-      "SAVE_PLAN": "Enregistrer le plan",
-      "UNSAVED_CHANGES": "Non sauvegardé",
-      "REFRESH": "Actualiser",
-      "ALL_FLOORS": "Tous les étages",
-      "ALL_ZONES": "Toutes les zones",
-      "STATUS": {
-        "LIBRE": "Libre",
-        "OCCUPEE": "Occupée",
-        "PAYMENT_PENDING": "Addition demandée",
-        "RESERVEE": "Réservée"
-      },
-      "ACTIONS": {
-        "TAKE_ORDER": "Prendre commande",
-        "VIEW_DETAILS": "Détails & Addition",
-        "TRANSFER_FUSION": "Transférer / Fusionner",
-        "TOGGLE_SHAPE": "Changer la forme",
-        "ROTATE": "Pivoter 90°",
-        "ADD_TABLE": "Ajouter une table"
-      }
-    },
     "SERVEUR": "Prise de commande",
     "BARMAN": "Comptoir bar",
     "SOUND_ENABLE": "Activer le son",
@@ -110,6 +85,42 @@
       "NAVIGATION": "Navigation",
       "MANAGEMENT": "Gestion & Admin",
       "USER_PROFILE": "Profil utilisateur"
+    }
+  },
+  "PLAN_SALLE_PAGE": {
+    "TITLE": "Plan de Salle",
+    "SUBTITLE": "Gestion des tables et des zones",
+    "UNSAVED_CHANGES": "Modifications non enregistrées",
+    "REFRESH": "Rafraîchir le plan",
+    "EDIT_MODE_ON": "Quitter le mode Édition",
+    "EDIT_MODE_OFF": "Mode Édition",
+    "SAVE_PLAN": "Enregistrer le plan",
+    "FLOOR_LABEL": "Étage :",
+    "ZONE_LABEL": "Zone :",
+    "ALL_ZONES": "Toutes les zones",
+    "ALL_FLOORS": "Tous les étages",
+    "FUSION_MODE_BANNER": "Mode Fusion : Cliquez sur la table destination pour fusionner avec la Table #{{num}}",
+    "CANCEL": "Annuler",
+    "ZOOM_IN": "Zoom avant (+)",
+    "ZOOM_OUT": "Zoom arrière (-)",
+    "RESET_VIEW": "Réinitialiser la vue et la position d'origine",
+    "EDITOR_TOOLS": "Outils d'Édition",
+    "STATUS": {
+      "LIBRE": "Libre",
+      "OCCUPEE": "Occupée",
+      "PAYMENT_PENDING": "Addition demandée",
+      "RESERVEE": "Réservée"
+    },
+    "ACTIONS": {
+      "TAKE_ORDER": "Prendre commande",
+      "VIEW_DETAILS": "Détails & Addition",
+      "TRANSFER_FUSION": "Transférer / Fusionner",
+      "TOGGLE_SHAPE": "Forme (Rect/Rond)",
+      "ROTATE": "Pivoter 90°",
+      "ADD_TABLE": "Ajouter Table",
+      "DRAW_ZONE": "Dessiner Zone",
+      "SNAP_GRID": "Grille (50 cm)",
+      "SNAP_MAGNET": "Aimantation"
     }
   },
   "ETABLISSEMENT": {
@@ -326,7 +337,6 @@
     "DELETE_CONFIRM": "Supprimer cette table ?",
     "NUMBER": "Numéro",
     "CAPACITY": "Capacité",
-    "ZONE": "Zone",
     "ZONE_REQUIRED": "La zone est requise",
     "SELECT_ZONE": "Sélectionner une zone",
     "LOADING_ZONES": "Chargement des zones...",
@@ -988,6 +998,46 @@
       "MODIFIED_SINCE": "Modifié depuis",
       "DELETED_SINCE": "Supprimé depuis"
     }
+  },
+  "TABLE_SIDE_PANEL": {
+    "ZONE_TITLE": "Zone : {{name}}",
+    "ZONE_CANVAS_BADGE": "Zone Canvas",
+    "ZONE_PROPERTIES": "PROPRIÉTÉS DE LA ZONE",
+    "ZONE_NAME_LABEL": "Nom de la Zone :",
+    "ZONE_COLOR_LABEL": "Couleur du contour :",
+    "ZONE_SHAPE_LABEL": "Forme de la zone :",
+    "SHAPE_RECT": "Rectangle",
+    "SHAPE_POLYGON": "Polygone",
+    "DIMENSIONS_AND_CORNER_RADII": "DIMENSIONS & ANGLE (RADIUS DE COINS)",
+    "WIDTH_PX": "Largeur (px) :",
+    "HEIGHT_PX": "Hauteur (px) :",
+    "CORNER_RADII_LABEL": "Arrondis des coins (Radius px) :",
+    "CORNER_TOP_LEFT": "↖️ Haut-G.",
+    "CORNER_TOP_RIGHT": "↗️ Haut-D.",
+    "CORNER_BOTTOM_LEFT": "↙️ Bas-G.",
+    "CORNER_BOTTOM_RIGHT": "↘️ Bas-D.",
+    "POLYGON_VERTICES_HEADER": "SOMMETS & ARRONDIS DU POLYGONE",
+    "ADD_VERTEX_TOOLTIP": "Ajouter un sommet",
+    "POLYGON_HINT": "Glissez les poignées blanches (sommets) et oranges (arrondis) sur le plan, ou gérez-les ci-dessous :",
+    "RADIUS_SHORT": "Arrondi:",
+    "DELETE_VERTEX_TOOLTIP": "Supprimer ce sommet",
+    "SAVE_ZONE_BTN": "Enregistrer la Zone",
+    "DELETE_ZONE_BTN": "Supprimer cette Zone",
+    "TABLE_TITLE": "Table #{{numero}}",
+    "TABLE_PROPERTIES": "PROPRIÉTÉS DE LA TABLE",
+    "NUMBER_LABEL": "Numéro :",
+    "CAPACITY_LABEL": "Capacité (personnes) :",
+    "ATTACHED_ZONE_LABEL": "Zone rattachée :",
+    "GEOMETRY_AND_DIMENSIONS": "GÉOMÉTRIE & DIMENSIONS",
+    "SHAPE_LABEL": "Forme :",
+    "SHAPE_RECTANGULAR": "Rectangulaire",
+    "SHAPE_CIRCULAR": "Circulaire",
+    "ROTATION_DEG": "Rotation (deg) :",
+    "ROTATE_90_TOOLTIP": "Tourner +90°",
+    "ACTIONS_MANAGER": "ACTIONS MANAGER",
+    "SAVE_BTN": "Enregistrer",
+    "MERGE_BTN": "Fusionner",
+    "DELETE_TABLE_BTN": "Supprimer cette table"
   }
 }
 

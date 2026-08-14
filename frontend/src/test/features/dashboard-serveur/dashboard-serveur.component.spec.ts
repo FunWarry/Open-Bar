@@ -16,6 +16,10 @@ import { DashboardServeurService } from '../../../app/features/dashboard-serveur
 import { NotificationService, AppNotification } from '../../../app/core/services/notification.service';
 import { TableCardComponent } from '../../../app/features/dashboard-serveur/components/table-card/table-card.component';
 import { TableView } from '../../../app/features/dashboard-serveur/models/table-view.model';
+import { ZoneService } from '../../../app/core/services/zone.service';
+import { CocktailService } from '../../../app/core/services/cocktail.service';
+import { PlanSalleService } from '../../../app/features/plan-salle/services/plan-salle.service';
+import { provideMockStore } from '@ngrx/store/testing';
 
 import { provideIonicAngular } from '@ionic/angular/standalone';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
@@ -25,6 +29,9 @@ describe('DashboardServeurComponent', () => {
   let fixture: ComponentFixture<DashboardServeurComponent>;
   let dashboardServiceSpy: jasmine.SpyObj<DashboardServeurService>;
   let notificationServiceSpy: jasmine.SpyObj<NotificationService>;
+  let zoneServiceSpy: jasmine.SpyObj<ZoneService>;
+  let cocktailServiceSpy: jasmine.SpyObj<CocktailService>;
+  let planSalleServiceSpy: jasmine.SpyObj<PlanSalleService>;
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
   let modalCtrlSpy: jasmine.SpyObj<ModalController>;
   let notification$: Subject<AppNotification>;
@@ -40,6 +47,7 @@ describe('DashboardServeurComponent', () => {
   beforeEach(async () => {
     notification$ = new Subject<AppNotification>();
 
+    localStorage.clear();
     dashboardServiceSpy = jasmine.createSpyObj('DashboardServeurService', [
       'getAllTables',
       'libererTable',
@@ -52,6 +60,15 @@ describe('DashboardServeurComponent', () => {
     dashboardServiceSpy.getEtages.and.returnValue(of([]));
     dashboardServiceSpy.getZones.and.returnValue(of([]));
     dashboardServiceSpy.getPlanSallePositions.and.returnValue(of([]));
+
+    zoneServiceSpy = jasmine.createSpyObj('ZoneService', ['getAll']);
+    zoneServiceSpy.getAll.and.returnValue(of([]));
+
+    cocktailServiceSpy = jasmine.createSpyObj('CocktailService', ['getAll']);
+    cocktailServiceSpy.getAll.and.returnValue(of([]));
+
+    planSalleServiceSpy = jasmine.createSpyObj('PlanSalleService', ['getPositions']);
+    planSalleServiceSpy.getPositions.and.returnValue(of([]));
 
     notificationServiceSpy = jasmine.createSpyObj('NotificationService', ['onNotification', 'onStockAlert']);
     notificationServiceSpy.onNotification.and.returnValue(notification$.asObservable());
@@ -79,7 +96,11 @@ describe('DashboardServeurComponent', () => {
       ],
       providers: [
         provideIonicAngular(),
+        provideMockStore({ initialState: { auth: { user: null } } }),
         { provide: DashboardServeurService, useValue: dashboardServiceSpy },
+        { provide: ZoneService, useValue: zoneServiceSpy },
+        { provide: CocktailService, useValue: cocktailServiceSpy },
+        { provide: PlanSalleService, useValue: planSalleServiceSpy },
         { provide: NotificationService, useValue: notificationServiceSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
         { provide: ModalController, useValue: modalCtrlSpy },
@@ -324,6 +345,32 @@ describe('DashboardServeurComponent', () => {
     expect(component.selectedZone).toBe('Salle Principale');
     expect(component.sortOption).toBe('CAPACITY_DESC');
     expect(component.displayMode).toBe('BY_FLOOR');
+  });
+
+  it('toggleZone(), isZoneSelected() et clearZoneFilter() gèrent la sélection multi-zones', () => {
+    expect(component.isZoneSelected('Terrasse')).toBeFalse();
+
+    // Toggle Terrasse
+    component.toggleZone('Terrasse');
+    expect(component.isZoneSelected('Terrasse')).toBeTrue();
+    expect(component.selectedZones).toEqual(['Terrasse']);
+    expect(component.selectedZone).toBe('Terrasse');
+
+    // Toggle Salle Principale (multi-selection)
+    component.toggleZone('Salle Principale');
+    expect(component.isZoneSelected('Salle Principale')).toBeTrue();
+    expect(component.selectedZones).toEqual(['Terrasse', 'Salle Principale']);
+    expect(component.selectedZone).toBe('MULTI');
+
+    // Untoggle Terrasse
+    component.toggleZone('Terrasse');
+    expect(component.isZoneSelected('Terrasse')).toBeFalse();
+    expect(component.selectedZones).toEqual(['Salle Principale']);
+
+    // Clear all zones
+    component.clearZoneFilter();
+    expect(component.selectedZones).toEqual([]);
+    expect(component.selectedZone).toBe('ALL');
   });
 
   // --- ngOnDestroy ---

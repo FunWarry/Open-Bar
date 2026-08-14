@@ -13,6 +13,9 @@ import { NotificationService, AppNotification } from '../../../app/core/services
 import { TableBar } from '../../../app/core/models/table.model';
 import { TablePosition } from '../../../app/features/plan-salle/models/table-position.model';
 
+import { EtageService } from '../../../app/core/services/etage.service';
+import { ZoneService } from '../../../app/core/services/zone.service';
+
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 
 const mockTables: TableBar[] = [
@@ -30,6 +33,8 @@ describe('PlanSalleComponent', () => {
   let fixture: ComponentFixture<PlanSalleComponent>;
   let tableServiceSpy: jasmine.SpyObj<TableService>;
   let planSalleServiceSpy: jasmine.SpyObj<PlanSalleService>;
+  let etageServiceSpy: jasmine.SpyObj<EtageService>;
+  let zoneServiceSpy: jasmine.SpyObj<ZoneService>;
   let notifSpy: jasmine.SpyObj<NotificationService>;
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
   let modalCtrlSpy: jasmine.SpyObj<ModalController>;
@@ -47,12 +52,24 @@ describe('PlanSalleComponent', () => {
     notif$ = new Subject<AppNotification>();
     mockModalDismissData = { data: null };
 
-    tableServiceSpy = jasmine.createSpyObj('TableService', ['getAll']);
+    tableServiceSpy = jasmine.createSpyObj('TableService', ['getAll', 'update', 'create', 'delete']);
     tableServiceSpy.getAll.and.returnValue(of(mockTables));
+    tableServiceSpy.update.and.callFake((id, t) => of({ ...mockTables[0], ...t, id } as any));
+    tableServiceSpy.create.and.callFake(t => of({ ...mockTables[0], ...t, id: 10 } as any));
+    tableServiceSpy.delete.and.returnValue(of(void 0));
 
     planSalleServiceSpy = jasmine.createSpyObj('PlanSalleService', ['getPositions', 'sauvegarderPositions']);
     planSalleServiceSpy.getPositions.and.returnValue(of(mockPositions));
     planSalleServiceSpy.sauvegarderPositions.and.returnValue(of(mockPositions));
+
+    etageServiceSpy = jasmine.createSpyObj('EtageService', ['getAll']);
+    etageServiceSpy.getAll.and.returnValue(of([{ code: 'RDC', nom: 'Rez-de-chaussée' }, { code: '1er Étage', nom: '1er Étage' }]));
+
+    zoneServiceSpy = jasmine.createSpyObj('ZoneService', ['getAll', 'update', 'create', 'delete']);
+    zoneServiceSpy.getAll.and.returnValue(of([{ id: 1, nom: 'TERRASSE', etage: 'RDC' }]));
+    zoneServiceSpy.update.and.callFake((id, z) => of({ id, nom: 'TERRASSE', etage: 'RDC', ...z } as any));
+    zoneServiceSpy.create.and.callFake(z => of({ id: 2, nom: 'NOUVELLE', etage: 'RDC', ...z } as any));
+    zoneServiceSpy.delete.and.returnValue(of(void 0));
 
     notifSpy = jasmine.createSpyObj('NotificationService', ['onNotification', 'onStockAlert']);
     notifSpy.onNotification.and.returnValue(notif$.asObservable());
@@ -72,6 +89,8 @@ describe('PlanSalleComponent', () => {
       providers: [
         { provide: TableService,        useValue: tableServiceSpy },
         { provide: PlanSalleService,    useValue: planSalleServiceSpy },
+        { provide: EtageService,        useValue: etageServiceSpy },
+        { provide: ZoneService,         useValue: zoneServiceSpy },
         { provide: NotificationService, useValue: notifSpy },
         { provide: ToastController,     useValue: toastCtrlSpy },
         { provide: ModalController,     useValue: modalCtrlSpy },
@@ -155,9 +174,10 @@ describe('PlanSalleComponent', () => {
 
   // --- onClickTable & side panel ---
 
-  it('onClickTable() ouvre le side panel pour la table sélectionnée', async () => {
+  it('onClickTable() ouvre le side panel pour la table sélectionnée en mode édition', async () => {
+    component.isEditMode = true;
     await component.onClickTable(mockTables[0]);
-    expect(component.selectedTable).toEqual(mockTables[0]);
+    expect(component.selectedTable as any).toEqual(mockTables[0]);
     expect(component.isSidePanelOpen).toBeTrue();
   });
 
@@ -179,6 +199,28 @@ describe('PlanSalleComponent', () => {
     expect(component.isSidePanelOpen).toBeFalse();
     expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'primary' }));
   }));
+
+  it('onClickTable() ne fait rien et n\'ouvre pas le side panel si isEditMode est faux', async () => {
+    component.isEditMode = false;
+    component.selectedTable = null;
+    component.isSidePanelOpen = false;
+
+    await component.onClickTable(mockTables[0]);
+
+    expect(component.selectedTable).toBeNull();
+    expect(component.isSidePanelOpen).toBeFalse();
+  });
+
+  it('onClickTable() sélectionne la table et ouvre le side panel si isEditMode est vrai', async () => {
+    component.isEditMode = true;
+    component.selectedTable = null;
+    component.isSidePanelOpen = false;
+
+    await component.onClickTable(mockTables[0]);
+
+    expect(component.selectedTable as any).toEqual(mockTables[0]);
+    expect(component.isSidePanelOpen).toBeTrue();
+  });
 
   it('onClickTable() en mode fusion déclenche la confirmation de fusion', async () => {
     component.isFusionMode = true;
@@ -221,13 +263,15 @@ describe('PlanSalleComponent', () => {
 
   // --- onSaveTable ---
 
-  it('onSaveTable() met à jour la table sélectionnée et marque les changements', fakeAsync(() => {
+  it('onSaveTable() met à jour la table sélectionnée et persiste les changements', fakeAsync(() => {
     component.selectedTable = { ...mockTables[0] };
     component.onSaveTable({ capacite: 8, zone: 'TERRASSE' });
     tick();
     expect(component.selectedTable.capacite).toBe(8);
     expect(component.selectedTable.zone).toBe('TERRASSE');
-    expect(component.hasUnsavedChanges).toBeTrue();
+    expect(tableServiceSpy.update).toHaveBeenCalled();
+    expect(planSalleServiceSpy.sauvegarderPositions).toHaveBeenCalled();
+    expect(component.hasUnsavedChanges).toBeFalse();
     expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'success' }));
   }));
 
@@ -237,6 +281,57 @@ describe('PlanSalleComponent', () => {
     component.onSaveTable({ capacite: 8 });
     expect(component.hasUnsavedChanges).toBeFalse();
   });
+
+  it('onLiveUpdateTable() met à jour la forme et les dimensions en direct sans erreur', fakeAsync(() => {
+    component.charger();
+    tick();
+    component.selectedTable = { ...mockTables[0] };
+    (component as any).positions.set(1, { tableId: 1, x: 100, y: 100, width: 90, height: 90, rotation: 0, shape: 'rect' });
+
+    // Live update shape from rect to circle
+    component.onLiveUpdateTable({
+      table: { numero: 1, capacite: 6 },
+      position: { shape: 'circle', width: 100, height: 100 },
+    });
+    tick();
+
+    expect(component.selectedTable.capacite).toBe(6);
+    const updatedPos = (component as any).positions.get(1);
+    expect(updatedPos.shape).toBe('circle');
+    expect(updatedPos.width).toBe(100);
+    expect(component.hasUnsavedChanges).toBeTrue();
+
+    // Live update back to rect
+    component.onLiveUpdateTable({
+      table: { numero: 1 },
+      position: { shape: 'rect', width: 120, height: 80 },
+    });
+    tick();
+    expect((component as any).positions.get(1).shape).toBe('rect');
+    expect((component as any).positions.get(1).width).toBe(120);
+  }));
+
+  it('onSaveTableAndPosition() met à jour table, position, persiste et dessine le plan', fakeAsync(() => {
+    component.charger();
+    tick();
+    component.selectedTable = { ...mockTables[0] };
+    component.onSaveTableAndPosition({
+      table: { numero: 1, capacite: 8, zone: 'TERRASSE' },
+      position: { width: 110, height: 110, rotation: 45, shape: 'circle' },
+    });
+    tick();
+
+    expect(component.tables.find(t => t.id === 1)?.capacite).toBe(8);
+    expect(component.selectedTable).toBeNull();
+    const pos = (component as any).positions.get(1);
+    expect(pos.width).toBe(110);
+    expect(pos.rotation).toBe(45);
+    expect(pos.shape).toBe('circle');
+    expect(tableServiceSpy.update).toHaveBeenCalled();
+    expect(planSalleServiceSpy.sauvegarderPositions).toHaveBeenCalled();
+    expect(component.hasUnsavedChanges).toBeFalse();
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'success' }));
+  }));
 
   // --- toggleForme ---
 
@@ -281,10 +376,53 @@ describe('PlanSalleComponent', () => {
     component.charger();
     tick();
     component.selectFloor('RDC');
-    expect(component.filteredTables.length).toBe(1);
+    expect(component.filteredTables).toHaveSize(1);
     expect(component.filteredTables[0].numero).toBe(1);
 
-    component.selectFloor(null);
-    expect(component.filteredTables.length).toBe(2);
+    component.selectFloor('1er Étage');
+    expect(component.filteredTables).toHaveSize(1);
   }));
+
+  it('ajouterNouvelleTable() crée une nouvelle table et l\'ajoute au plan', fakeAsync(() => {
+    component.charger();
+    tick();
+    const countBefore = component.tables.length;
+    component.ajouterNouvelleTable();
+    expect(component.tables).toHaveSize(countBefore + 1);
+    expect(component.hasUnsavedChanges).toBeTrue();
+  }));
+
+  it('pivoterTableSelectionnee() pivote la table sélectionnée de 90°', fakeAsync(() => {
+    component.charger();
+    tick();
+    component.selectedTable = mockTables[0];
+    component.pivoterTableSelectionnee();
+    expect(component.hasUnsavedChanges).toBeTrue();
+  }));
+
+  it('onDeleteTable() supprime la table du plan et persiste la suppression', fakeAsync(() => {
+    component.charger();
+    tick();
+    const countBefore = component.tables.length;
+    component.onDeleteTable(1);
+    tick();
+    expect(component.tables).toHaveSize(countBefore - 1);
+    expect(tableServiceSpy.delete).toHaveBeenCalledWith(1);
+    expect(planSalleServiceSpy.sauvegarderPositions).toHaveBeenCalled();
+    expect(component.hasUnsavedChanges).toBeFalse();
+  }));
+
+  it('toggleGridSnap() bascule l\'état de la grille et affiche un toast', () => {
+    const init = component.isGridSnapEnabled;
+    component.toggleGridSnap();
+    expect(component.isGridSnapEnabled).toBe(!init);
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'info' }));
+  });
+
+  it('toggleMagnetSnap() bascule l\'état de l\'aimantation et affiche un toast', () => {
+    const init = component.isMagnetSnapEnabled;
+    component.toggleMagnetSnap();
+    expect(component.isMagnetSnapEnabled).toBe(!init);
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'info' }));
+  });
 });

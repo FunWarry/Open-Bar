@@ -49,25 +49,126 @@
       "roles": ["BARMAN"]
     }
   ],
+  "etages": [
+    { "code": "RDC", "nom": "Rez-de-chaussée (RDC)", "ordre": 1 },
+    { "code": "ETAGE_1", "nom": "1er Étage", "ordre": 2 },
+    { "code": "ETAGE_2", "nom": "2ème Étage / Rooftop", "ordre": 3 }
+  ],
   "zones": [
-    { "nom": "Salle Principale", "etage": "RDC" },
-    { "nom": "Terrasse", "etage": "RDC" },
-    { "nom": "Mezzanine", "etage": "1er Étage" }
+    {
+      "nom": "Salle Principale",
+      "etage": "RDC",
+      "planX": 50.0,
+      "planY": 50.0,
+      "planWidth": 850.0,
+      "planHeight": 500.0,
+      "shapeType": "rect",
+      "cornerRadii": [24, 24, 24, 24],
+      "couleur": "#6c7fe8"
+    },
+    {
+      "nom": "Terrasse",
+      "etage": "RDC",
+      "planX": 950.0,
+      "planY": 50.0,
+      "planWidth": 750.0,
+      "planHeight": 500.0,
+      "shapeType": "polygon",
+      "points": [0, 0, 750, 0, 750, 220, 480, 220, 480, 500, 0, 500],
+      "cornerRadii": [20, 20, 12, 20],
+      "couleur": "#f0a33b"
+    },
+    {
+      "nom": "Bar Counter",
+      "etage": "RDC",
+      "planX": 50.0,
+      "planY": 600.0,
+      "planWidth": 850.0,
+      "planHeight": 220.0,
+      "shapeType": "polygon",
+      "points": [0, 0, 850, 0, 850, 220, 0, 220],
+      "cornerRadii": [16, 16, 16, 16],
+      "couleur": "#2fbf6b"
+    },
+    {
+      "nom": "Mezzanine",
+      "etage": "ETAGE_1",
+      "planX": 50.0,
+      "planY": 50.0,
+      "planWidth": 800.0,
+      "planHeight": 450.0,
+      "shapeType": "rect",
+      "cornerRadii": [30, 30, 10, 10],
+      "couleur": "#9b8af2"
+    },
+    {
+      "nom": "Salon VIP",
+      "etage": "ETAGE_1",
+      "planX": 900.0,
+      "planY": 50.0,
+      "planWidth": 800.0,
+      "planHeight": 450.0,
+      "shapeType": "polygon",
+      "points": [0, 0, 800, 0, 800, 450, 500, 450, 500, 300, 0, 300],
+      "cornerRadii": [20, 20, 16, 20],
+      "couleur": "#e86c8d"
+    },
+    {
+      "nom": "Rooftop Sky Lounge",
+      "etage": "ETAGE_2",
+      "planX": 50.0,
+      "planY": 50.0,
+      "planWidth": 800.0,
+      "planHeight": 450.0,
+      "shapeType": "rect",
+      "cornerRadii": [24, 24, 24, 24],
+      "couleur": "#38bdf8"
+    },
+    {
+      "nom": "Balcon Panoramique",
+      "etage": "ETAGE_2",
+      "planX": 900.0,
+      "planY": 50.0,
+      "planWidth": 800.0,
+      "planHeight": 450.0,
+      "shapeType": "polygon",
+      "points": [0, 0, 800, 0, 800, 450, 0, 450],
+      "cornerRadii": [40, 40, 10, 10],
+      "couleur": "#fbbf24"
+    }
   ],
   "tables": [
-    { "numero": 1, "zone": "Salle Principale", "capacite": 2, "occupee": false, "serveurUsername": null, "planX": 100.0, "planY": 100.0, "planForme": "CARRE" },
-    { "numero": 2, "zone": "Salle Principale", "capacite": 4, "occupee": true, "serveurUsername": "serveur1", "planX": 250.0, "planY": 100.0, "planForme": "CARRE" },
-    { "numero": 3, "zone": "Salle Principale", "capacite": 4, "occupee": true, "serveurUsername": "serveur2", "planX": 400.0, "planY": 100.0, "planForme": "RONDE" },
-    { "numero": 4, "zone": "Salle Principale", "capacite": 6, "occupee": true, "serveurUsername": "serveur1", "planX": 550.0, "planY": 100.0, "planForme": "RECTANGLE" },
-    { "numero": 5, "zone": "Salle Principale", "capacite": 2, "occupee": false, "serveurUsername": null, "planX": 100.0, "planY": 250.0, "planForme": "CARRE" },
-    { "numero": 6, "zone": "Salle Principale", "capacite": 8, "occupee": true, "serveurUsername": "serveur1", "planX": 300.0, "planY": 250.0, "planForme": "RECTANGLE" },
-    { "numero": 10, "zone": "Terrasse", "capacite": 4, "occupee": true, "serveurUsername": "serveur2", "planX": 100.0, "planY": 400.0, "planForme": "RONDE" },
-    { "numero": 11, "zone": "Terrasse", "capacite": 2, "occupee": false, "serveurUsername": null, "planX": 250.0, "planY": 400.0, "planForme": "CARRE" },
-    { "numero": 12, "zone": "Terrasse", "capacite": 4, "occupee": true, "serveurUsername": "serveur2", "planX": 400.0, "planY": 400.0, "planForme": "RONDE" },
-    { "numero": 13, "zone": "Terrasse", "capacite": 6, "occupee": false, "serveurUsername": null, "planX": 550.0, "planY": 400.0, "planForme": "RECTANGLE" },
-    { "numero": 20, "zone": "Mezzanine", "capacite": 4, "occupee": true, "serveurUsername": "serveur1", "planX": 100.0, "planY": 550.0, "planForme": "CARRE" },
-    { "numero": 21, "zone": "Mezzanine", "capacite": 2, "occupee": false, "serveurUsername": null, "planX": 250.0, "planY": 550.0, "planForme": "CARRE" },
-    { "numero": 22, "zone": "Mezzanine", "capacite": 6, "occupee": false, "serveurUsername": null, "planX": 400.0, "planY": 550.0, "planForme": "RECTANGLE" }
+    { "numero": 1, "zone": "Salle Principale", "capacite": 4, "occupee": false, "serveurUsername": null, "planX": 180.0, "planY": 180.0, "planWidth": 90.0, "planHeight": 90.0, "planRotation": 0.0, "planForme": "CARRE" },
+    { "numero": 2, "zone": "Salle Principale", "capacite": 4, "occupee": true, "serveurUsername": "serveur1", "planX": 380.0, "planY": 180.0, "planWidth": 100.0, "planHeight": 100.0, "planRotation": 0.0, "planForme": "RONDE" },
+    { "numero": 3, "zone": "Salle Principale", "capacite": 6, "occupee": true, "serveurUsername": "serveur2", "planX": 600.0, "planY": 180.0, "planWidth": 160.0, "planHeight": 90.0, "planRotation": 30.0, "planForme": "RECTANGLE" },
+    { "numero": 4, "zone": "Salle Principale", "capacite": 2, "occupee": false, "serveurUsername": null, "planX": 780.0, "planY": 180.0, "planWidth": 80.0, "planHeight": 80.0, "planRotation": 0.0, "planForme": "CARRE" },
+    { "numero": 5, "zone": "Salle Principale", "capacite": 8, "occupee": true, "serveurUsername": "serveur1", "planX": 250.0, "planY": 380.0, "planWidth": 180.0, "planHeight": 100.0, "planRotation": 0.0, "planForme": "RECTANGLE" },
+    { "numero": 6, "zone": "Salle Principale", "capacite": 6, "occupee": false, "serveurUsername": null, "planX": 550.0, "planY": 380.0, "planWidth": 120.0, "planHeight": 120.0, "planRotation": 45.0, "planForme": "RONDE" },
+
+    { "numero": 10, "zone": "Terrasse", "capacite": 2, "occupee": false, "serveurUsername": null, "planX": 1060.0, "planY": 180.0, "planWidth": 80.0, "planHeight": 80.0, "planRotation": 0.0, "planForme": "CARRE" },
+    { "numero": 11, "zone": "Terrasse", "capacite": 4, "occupee": true, "serveurUsername": "serveur1", "planX": 1260.0, "planY": 180.0, "planWidth": 100.0, "planHeight": 100.0, "planRotation": 15.0, "planForme": "RONDE" },
+    { "numero": 12, "zone": "Terrasse", "capacite": 6, "occupee": false, "serveurUsername": null, "planX": 1480.0, "planY": 180.0, "planWidth": 150.0, "planHeight": 90.0, "planRotation": 0.0, "planForme": "RECTANGLE" },
+    { "numero": 13, "zone": "Terrasse", "capacite": 2, "occupee": false, "serveurUsername": null, "planX": 1160.0, "planY": 380.0, "planWidth": 80.0, "planHeight": 80.0, "planRotation": 45.0, "planForme": "RONDE" },
+
+    { "numero": 7, "zone": "Bar Counter", "capacite": 2, "occupee": false, "serveurUsername": null, "planX": 200.0, "planY": 710.0, "planWidth": 140.0, "planHeight": 70.0, "planRotation": 0.0, "planForme": "RECTANGLE" },
+    { "numero": 8, "zone": "Bar Counter", "capacite": 2, "occupee": true, "serveurUsername": "serveur2", "planX": 450.0, "planY": 710.0, "planWidth": 70.0, "planHeight": 70.0, "planRotation": 0.0, "planForme": "CARRE" },
+
+    { "numero": 20, "zone": "Mezzanine", "capacite": 4, "occupee": true, "serveurUsername": "serveur1", "planX": 180.0, "planY": 160.0, "planWidth": 90.0, "planHeight": 90.0, "planRotation": 0.0, "planForme": "CARRE" },
+    { "numero": 21, "zone": "Mezzanine", "capacite": 2, "occupee": false, "serveurUsername": null, "planX": 380.0, "planY": 160.0, "planWidth": 80.0, "planHeight": 80.0, "planRotation": 0.0, "planForme": "RONDE" },
+    { "numero": 22, "zone": "Mezzanine", "capacite": 6, "occupee": false, "serveurUsername": null, "planX": 580.0, "planY": 160.0, "planWidth": 150.0, "planHeight": 90.0, "planRotation": 90.0, "planForme": "RECTANGLE" },
+    { "numero": 23, "zone": "Mezzanine", "capacite": 4, "occupee": false, "serveurUsername": null, "planX": 280.0, "planY": 340.0, "planWidth": 90.0, "planHeight": 90.0, "planRotation": 0.0, "planForme": "CARRE" },
+
+    { "numero": 30, "zone": "Salon VIP", "capacite": 8, "occupee": true, "serveurUsername": "serveur2", "planX": 1060.0, "planY": 220.0, "planWidth": 140.0, "planHeight": 140.0, "planRotation": 0.0, "planForme": "RONDE" },
+    { "numero": 31, "zone": "Salon VIP", "capacite": 10, "occupee": false, "serveurUsername": null, "planX": 1340.0, "planY": 220.0, "planWidth": 200.0, "planHeight": 110.0, "planRotation": 15.0, "planForme": "RECTANGLE" },
+    { "numero": 32, "zone": "Salon VIP", "capacite": 4, "occupee": true, "serveurUsername": "serveur1", "planX": 1580.0, "planY": 220.0, "planWidth": 100.0, "planHeight": 100.0, "planRotation": 0.0, "planForme": "CARRE" },
+
+    { "numero": 40, "zone": "Rooftop Sky Lounge", "capacite": 4, "occupee": false, "serveurUsername": null, "planX": 180.0, "planY": 180.0, "planWidth": 100.0, "planHeight": 100.0, "planRotation": 0.0, "planForme": "RONDE" },
+    { "numero": 41, "zone": "Rooftop Sky Lounge", "capacite": 6, "occupee": true, "serveurUsername": "serveur2", "planX": 420.0, "planY": 180.0, "planWidth": 160.0, "planHeight": 90.0, "planRotation": 45.0, "planForme": "RECTANGLE" },
+    { "numero": 42, "zone": "Rooftop Sky Lounge", "capacite": 2, "occupee": false, "serveurUsername": null, "planX": 650.0, "planY": 180.0, "planWidth": 80.0, "planHeight": 80.0, "planRotation": 0.0, "planForme": "CARRE" },
+
+    { "numero": 50, "zone": "Balcon Panoramique", "capacite": 8, "occupee": true, "serveurUsername": "serveur1", "planX": 1050.0, "planY": 200.0, "planWidth": 180.0, "planHeight": 80.0, "planRotation": 0.0, "planForme": "RECTANGLE" },
+    { "numero": 51, "zone": "Balcon Panoramique", "capacite": 2, "occupee": false, "serveurUsername": null, "planX": 1350.0, "planY": 200.0, "planWidth": 80.0, "planHeight": 80.0, "planRotation": 0.0, "planForme": "RONDE" },
+    { "numero": 52, "zone": "Balcon Panoramique", "capacite": 4, "occupee": false, "serveurUsername": null, "planX": 1550.0, "planY": 200.0, "planWidth": 90.0, "planHeight": 90.0, "planRotation": 0.0, "planForme": "CARRE" }
   ],
   "shifts": [
     { "username": "serveur1", "shiftType": "MATIN", "poste": "SERVEUR", "heureDebut": "10:00", "heureFin": "18:00" },

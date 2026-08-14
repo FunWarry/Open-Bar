@@ -92,7 +92,7 @@ EN_ATTENTE → EN_PREPARATION → PRET → LIVREE → REGLEE
 
 ## État d'implémentation
 
-> Dernière mise à jour : 6 août 2026 — PR #257 : Resynchronisation complète avec le projet GitHub
+> Dernière mise à jour : 15 août 2026 — PR #297 (#291) : Alignement visuel & fonctionnel plan 2D serveur (/serveur) avec /plan-salle, magnétisme bord-à-bord & snap 50cm, timer d'attente centré, sélection multi-zones, isolation gestes tactiles/pull-to-refresh mobile, 100% CI passée
 > Légende : ✅ complet · 🔄 en cours · ❌ manquant · — non applicable
 
 | Feature | Backend | Frontend | Tests |
@@ -124,9 +124,9 @@ EN_ATTENTE → EN_PREPARATION → PRET → LIVREE → REGLEE
 | Manager Shifts Employés & Pagination (#232) | ✅ | ✅ | ✅ |
 | Manager Planning Hebdomadaire Complexe (#233) | ✅ | ✅ | ✅ |
 | Dashboard Barman (kanban temps réel) | ✅ | ✅ | ✅ |
-| Vue Serveur (plan de salle + commandes) | ✅ | ✅ | ✅ |
+| Vue Serveur (plan de salle 2D Konva + prise de commande + kanban) (#290/#297) | ✅ | ✅ | ✅ |
 | Vue Serveur Mobile (Bottom Navigation & MobileTableCard) (#236) | — | ✅ | ✅ |
-| Plan de salle interactif & Gestion des Étages (#223) | ✅ | ✅ | ✅ |
+| Plan de salle interactif Konva.js, Snap 50cm & Magnétisme (#291/#297) | ✅ | ✅ | ✅ |
 | Écran Onboarding Flow par Rôle (#229) | — | ✅ | ✅ |
 | Composant EmptyState Réutilisable (#230) | — | ✅ | ✅ |
 | Profil Section Préférences & Notifications (#234) | — | ✅ | ✅ |
@@ -138,7 +138,7 @@ EN_ATTENTE → EN_PREPARATION → PRET → LIVREE → REGLEE
 | Layout Global TopBar / NavBar Figma (#208–#211) | — | ✅ | ✅ |
 | Personnalisation Thème & Palettes HSL (#217) | — | ✅ | ✅ |
 | Documentation OpenAPI / Swagger UI | ✅ | — | ✅ |
-| JavaDoc & TSDoc | ✅ | ✅ | ✅ |
+| JavaDoc & TSDoc (100% en anglais) | ✅ | ✅ | ✅ |
 
 ### 🎯 Roadmap des Tickets Restants (Audit Figma 8 pages)
 

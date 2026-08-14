@@ -7,6 +7,14 @@ export interface ZoneBar {
   id?: number;
   nom: string;
   etage: string;
+  planX?: number;
+  planY?: number;
+  planWidth?: number;
+  planHeight?: number;
+  shapeType?: 'rect' | 'polygon';
+  pointsJson?: string;
+  cornerRadiiJson?: string;
+  couleur?: string;
   createdAt?: string;
   updatedAt?: string;
 }

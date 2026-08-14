@@ -8,12 +8,12 @@
     <ion-title>{{ 'ZONE_MANAGER.TITLE' | transloco }}</ion-title>
     <ion-buttons slot="end">
       @if (activeTab === 'zones') {
-        <ion-button color="primary" fill="solid" (click)="toggleAddForm()" (onKeyUp)="toggleAddForm()" (keydown.enter)="toggleAddForm()" data-testid="zone-add-btn">
+        <ion-button class="modal-header-btn" fill="solid" (click)="toggleAddForm()" (onKeyUp)="toggleAddForm()" (keydown.enter)="toggleAddForm()" data-testid="zone-add-btn">
           <ion-icon slot="start" [name]="showAddForm ? 'close' : 'add'"></ion-icon>
           {{ showAddForm ? ('ZONE_MANAGER.CLOSE' | transloco) : ('ZONE_MANAGER.NEW_ZONE' | transloco) }}
         </ion-button>
       } @else {
-        <ion-button color="primary" fill="solid" (click)="toggleAddEtageForm()" (onKeyUp)="toggleAddEtageForm()" (keydown.enter)="toggleAddEtageForm()" data-testid="etage-add-btn">
+        <ion-button class="modal-header-btn" fill="solid" (click)="toggleAddEtageForm()" (onKeyUp)="toggleAddEtageForm()" (keydown.enter)="toggleAddEtageForm()" data-testid="etage-add-btn">
           <ion-icon slot="start" [name]="showAddEtageForm ? 'close' : 'add'"></ion-icon>
           {{ showAddEtageForm ? ('ZONE_MANAGER.CLOSE' | transloco) : ('ZONE_MANAGER.NEW_ETAGE' | transloco) }}
         </ion-button>

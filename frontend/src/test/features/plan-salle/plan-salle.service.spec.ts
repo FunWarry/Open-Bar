@@ -32,13 +32,21 @@ describe('PlanSalleService', () => {
 
   // --- getPositions ---
 
-  it('getPositions() appelle GET /api/tables/positions', () => {
+  it('getPositions() appelle GET /api/tables/positions et mappe le format backend', () => {
+    const backendDto = [
+      { id: 1, planX: 100, planY: 100, planRotation: 0, planForme: 'RECTANGLE', etage: 'RDC', zone: 'TERRASSE' },
+      { id: 2, planX: 200, planY: 150, planRotation: 90, planForme: 'RONDE', etage: '1er Étage', zone: 'INTERIEUR' },
+    ];
+
     service.getPositions().subscribe(positions => {
-      expect(positions).toEqual(mockPositions);
+      expect(positions).toEqual([
+        { tableId: 1, x: 100, y: 100, width: undefined, height: undefined, rotation: 0, shape: 'rect', floor: 'RDC', zone: 'TERRASSE' },
+        { tableId: 2, x: 200, y: 150, width: undefined, height: undefined, rotation: 90, shape: 'circle', floor: '1er Étage', zone: 'INTERIEUR' },
+      ]);
     });
     const req = http.expectOne(`${environment.apiUrl}/tables/positions`);
     expect(req.request.method).toBe('GET');
-    req.flush(mockPositions);
+    req.flush(backendDto);
   });
 
   it('getPositions() retourne [] en fallback si le backend échoue et le localStorage est vide', () => {
@@ -60,13 +68,16 @@ describe('PlanSalleService', () => {
 
   // --- sauvegarderPositions ---
 
-  it('sauvegarderPositions() appelle PUT /api/tables/positions', () => {
+  it('sauvegarderPositions() appelle PUT /api/tables/positions avec le payload DTO', () => {
     service.sauvegarderPositions(mockPositions).subscribe(result => {
       expect(result).toEqual(mockPositions);
     });
     const req = http.expectOne(`${environment.apiUrl}/tables/positions`);
     expect(req.request.method).toBe('PUT');
-    expect(req.request.body).toEqual(mockPositions);
+    expect(req.request.body).toEqual([
+      { id: 1, planX: 100, planY: 100, planRotation: 0, planForme: 'RECTANGLE', planWidth: null, planHeight: null },
+      { id: 2, planX: 200, planY: 150, planRotation: 90, planForme: 'RONDE', planWidth: null, planHeight: null },
+    ]);
     req.flush(mockPositions);
   });
 

@@ -61,6 +61,14 @@ public class TableService {
         return tableRepository.save(table);
     }
 
+    /**
+     * Updates table configuration details (number, capacity, zone, floor plan attributes)
+     * while preserving its current operational state (occupation, server, timestamps).
+     *
+     * @param id           The ID of the table to update
+     * @param tableDetails The updated table attributes
+     * @return The saved table entity
+     */
     @Transactional
     public TableEntity updateTable(Long id, TableEntity tableDetails) {
         TableEntity table = tableRepository.findById(id)
@@ -69,10 +77,25 @@ public class TableService {
         table.setNumero(tableDetails.getNumero());
         table.setCapacite(tableDetails.getCapacite());
         table.setZone(tableDetails.getZone());
-        table.setOccupee(tableDetails.isOccupee());
-        table.setServeurId(tableDetails.getServeurId());
-        table.setDateOccupation(tableDetails.getDateOccupation());
-        table.setDateLiberation(tableDetails.getDateLiberation());
+
+        if (tableDetails.getPlanX() != null) {
+            table.setPlanX(tableDetails.getPlanX());
+        }
+        if (tableDetails.getPlanY() != null) {
+            table.setPlanY(tableDetails.getPlanY());
+        }
+        if (tableDetails.getPlanRotation() != null) {
+            table.setPlanRotation(tableDetails.getPlanRotation());
+        }
+        if (tableDetails.getPlanForme() != null) {
+            table.setPlanForme(tableDetails.getPlanForme());
+        }
+        if (tableDetails.getPlanWidth() != null) {
+            table.setPlanWidth(tableDetails.getPlanWidth());
+        }
+        if (tableDetails.getPlanHeight() != null) {
+            table.setPlanHeight(tableDetails.getPlanHeight());
+        }
 
         return tableRepository.save(table);
     }
@@ -134,15 +157,22 @@ public class TableService {
 
     @Transactional
     public void updatePositionsBatch(List<TablePositionDTO> positions) {
-        for (TablePositionDTO dto : positions) {
-            tableRepository.findById(dto.id()).ifPresent(table -> {
-                table.setPlanX(dto.planX());
-                table.setPlanY(dto.planY());
-                table.setPlanRotation(dto.planRotation() != null ? dto.planRotation() : 0.0);
-                if (dto.planForme() != null) table.setPlanForme(dto.planForme());
-                tableRepository.save(table);
-            });
-        }
+        if (positions == null) return;
+        positions.stream()
+                .filter(dto -> dto != null && dto.id() != null)
+                .forEach(this::updateSingleTablePosition);
+    }
+
+    private void updateSingleTablePosition(TablePositionDTO dto) {
+        tableRepository.findById(dto.id()).ifPresent(table -> {
+            if (dto.planX() != null) table.setPlanX(dto.planX());
+            if (dto.planY() != null) table.setPlanY(dto.planY());
+            table.setPlanRotation(dto.planRotation() != null ? dto.planRotation() : 0.0);
+            if (dto.planForme() != null) table.setPlanForme(dto.planForme());
+            if (dto.planWidth() != null) table.setPlanWidth(dto.planWidth());
+            if (dto.planHeight() != null) table.setPlanHeight(dto.planHeight());
+            tableRepository.save(table);
+        });
     }
 
     @Transactional

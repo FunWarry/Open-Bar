@@ -60,6 +60,12 @@ public class TableEntity {
     @Column(name = "plan_forme", length = 20)
     private String planForme = "CARRE"; // CARRE ou ROND
 
+    @Column(name = "plan_width")
+    private Double planWidth;
+
+    @Column(name = "plan_height")
+    private Double planHeight;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now(java.time.ZoneId.systemDefault());
@@ -173,5 +179,21 @@ public class TableEntity {
 
     public void setPlanForme(String planForme) {
         this.planForme = planForme;
+    }
+
+    public Double getPlanWidth() {
+        return planWidth;
+    }
+
+    public void setPlanWidth(Double planWidth) {
+        this.planWidth = planWidth;
+    }
+
+    public Double getPlanHeight() {
+        return planHeight;
+    }
+
+    public void setPlanHeight(Double planHeight) {
+        this.planHeight = planHeight;
     }
 }

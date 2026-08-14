@@ -33,6 +33,9 @@ class SampleDataSeederServiceTest {
     private ZoneRepository zoneRepository;
 
     @Mock
+    private EtageRepository etageRepository;
+
+    @Mock
     private CocktailRepository cocktailRepository;
 
     @Mock
@@ -83,9 +86,8 @@ class SampleDataSeederServiceTest {
         when(userRepository.findByUsername(any())).thenReturn(Optional.empty());
         when(userRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        ZoneEntity mockZone = new ZoneEntity();
-        mockZone.setNom("Salle Principale");
-        when(zoneRepository.findByNom(any())).thenReturn(Optional.of(mockZone));
+        lenient().when(etageRepository.existsByCode(any())).thenReturn(false);
+        lenient().when(zoneRepository.existsByNom(any())).thenReturn(false);
 
         TableEntity mockTable = new TableEntity();
         mockTable.setNumero(1);

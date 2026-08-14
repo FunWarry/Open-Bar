@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { signal, WritableSignal } from '@angular/core';
 import { RouterTestingModule } from '@angular/router/testing';
 import { provideMockStore, MockStore } from '@ngrx/store/testing';
 import { MemoizedSelector } from '@ngrx/store';
@@ -16,6 +17,7 @@ describe('SidebarComponent', () => {
   let store: MockStore;
   let mockSelectCurrentUser: MemoizedSelector<any, User | null>;
   let mockNavigationService: jasmine.SpyObj<NavigationService>;
+  let isSidebarCollapsedSignal: WritableSignal<boolean>;
 
   const initialState = {
     auth: { token: 'mock-jwt-token', user: null, error: null },
@@ -52,9 +54,15 @@ describe('SidebarComponent', () => {
   };
 
   beforeEach(async () => {
+    isSidebarCollapsedSignal = signal(false);
     mockNavigationService = jasmine.createSpyObj('NavigationService', [
-      'navigateToHome', 'navigateToLogin', 'navigateToAdmin', 'navigateToUserProfile'
-    ]);
+      'navigateToHome', 'navigateToLogin', 'navigateToAdmin', 'navigateToUserProfile', 'toggleSidebarCollapse'
+    ], {
+      isSidebarCollapsed: isSidebarCollapsedSignal
+    });
+    mockNavigationService.toggleSidebarCollapse.and.callFake(() => {
+      isSidebarCollapsedSignal.update(v => !v);
+    });
 
     await TestBed.configureTestingModule({
       imports: [
@@ -169,7 +177,7 @@ describe('SidebarComponent', () => {
     });
 
     it('should apply collapsed class when isCollapsed is true', () => {
-      component.isCollapsed.set(true);
+      isSidebarCollapsedSignal.set(true);
       fixture.detectChanges();
       const compiled = fixture.nativeElement as HTMLElement;
       const sidebarEl = compiled.querySelector('[data-testid="sidebar-container"]');

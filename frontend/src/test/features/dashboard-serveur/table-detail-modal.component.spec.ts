@@ -145,7 +145,7 @@ describe('TableDetailModalComponent', () => {
     component.nouvelleCommande();
 
     expect(modalCtrlSpy.dismiss).toHaveBeenCalled();
-    expect(routerSpy.navigate).toHaveBeenCalledWith(['/serveur/nouvelle-commande', 1]);
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/serveur'], { queryParams: { tableId: 1 } });
   });
 
   it('liberer() ferme le modal avec l\'action liberer', () => {

@@ -6,7 +6,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { Subject, forkJoin } from 'rxjs';
-import { finalize, takeUntil } from 'rxjs/operators';
+import { catchError, finalize, takeUntil } from 'rxjs/operators';
 import Konva from 'konva';
 import {
   IonContent, IonHeader, IonToolbar,
@@ -20,16 +20,18 @@ import {
   businessOutline, swapVerticalOutline, refreshOutline, restaurantOutline,
   checkmarkCircleOutline, closeCircleOutline, peopleOutline, wineOutline,
   nutritionOutline, eggOutline, leafOutline, sparklesOutline, flameOutline,
-  waterOutline, beerOutline, fastFoodOutline, searchOutline
+  waterOutline, beerOutline, fastFoodOutline, searchOutline,
+  addOutline, removeOutline, locateOutline,
 } from 'ionicons/icons';
 import { CocktailService } from '../../core/services/cocktail.service';
+import { ZoneService, ZoneBar } from '../../core/services/zone.service';
 import { TableDetailModalComponent } from './components/table-detail-modal/table-detail-modal.component';
 import { NotificationService } from '../../core/services/notification.service';
 import { DashboardServeurService, EtageItem, ZoneItem } from './services/dashboard-serveur.service';
 import { safeCompleteRefresher } from '../../core/utils/refresher-utils';
 import { fastModalEnterAnimation, fastModalLeaveAnimation } from '../../core/utils/modal-animation.utils';
 import { TableView } from './models/table-view.model';
-import { TablePosition } from '../plan-salle/models/table-position.model';
+import { TablePosition, ZoneArea } from '../plan-salle/models/table-position.model';
 import { PlanSalleService } from '../plan-salle/services/plan-salle.service';
 
 import { Store } from '@ngrx/store';
@@ -38,11 +40,12 @@ import { selectCurrentUser } from '../../core/store/auth.selectors';
 import { VariantSelectionModalComponent } from './components/variant-selection-modal/variant-selection-modal.component';
 import { ItemCustomizationModalComponent } from './components/item-customization-modal/item-customization-modal.component';
 
-// ─── Plan constants — must match plan-salle.component.ts exactly ───────────────
-const PLAN_TABLE_SIZE = 64;
-const PLAN_GAP        = 48;
-const PLAN_MARGIN     = 80;
-const PLAN_COLS       = 5;
+// ─── Plan constants — matches plan-salle.component.ts exactly ────────────────
+const DEFAULT_TABLE_SIZE = 90;
+const PLAN_TABLE_SIZE = 90;
+const PLAN_GAP = 60;
+const PLAN_MARGIN = 80;
+const PLAN_COLS = 5;
 
 import { MobileTableCardComponent } from './components/mobile-table-card/mobile-table-card.component';
 import { BottomNavigationComponent, ServeurTab } from './components/bottom-navigation/bottom-navigation.component';
@@ -98,6 +101,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
   selectedStatus: 'ALL' | 'FREE' | 'OCCUPIED' = 'ALL';
   selectedEtage = 'ALL';
   selectedZone = 'ALL';
+  selectedZones: string[] = [];
   sortOption: DashboardSortOption = 'NUMBER_ASC';
   displayMode: DashboardViewMode = 'BY_ZONE';
 
@@ -159,12 +163,16 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
   ];
 
   private stage?: Konva.Stage;
+  private zoneLayer?: Konva.Layer;
   private layer?: Konva.Layer;
+  zoneAreas: ZoneArea[] = [];
+  zoomScale = 1;
   private readonly destroy$ = new Subject<void>();
 
   constructor(
     private readonly service: DashboardServeurService,
     private readonly planSalleService: PlanSalleService,
+    private readonly zoneService: ZoneService,
     private readonly cocktailService: CocktailService,
     private readonly store: Store,
     private readonly toastCtrl: ToastController,
@@ -180,7 +188,8 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
       businessOutline, swapVerticalOutline, refreshOutline, restaurantOutline,
       checkmarkCircleOutline, closeCircleOutline, peopleOutline, wineOutline,
       nutritionOutline, eggOutline, leafOutline, sparklesOutline, flameOutline,
-      waterOutline, beerOutline, fastFoodOutline, searchOutline
+      waterOutline, beerOutline, fastFoodOutline, searchOutline,
+      addOutline, removeOutline, locateOutline,
     });
   }
 
@@ -238,7 +247,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
     forkJoin({
       tables:    this.service.getAllTables(),
       etages:    this.service.getEtages(),
-      zones:     this.service.getZones(),
+      zones:     this.zoneService.getAll().pipe(catchError(() => this.service.getZones())),
       positions: this.planSalleService.getPositions(),
       cocktails: this.cocktailService.getAll(),
     })
@@ -252,7 +261,9 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
     .subscribe({
       next: ({ tables, etages, zones, positions, cocktails }) => {
         this.etagesList = etages;
-        this.zonesList = zones;
+        const rawZones = (zones || []) as ZoneBar[];
+        this.zonesList = rawZones.map(z => ({ id: z.id ?? 0, nom: z.nom, etage: z.etage }));
+        this.synchroniserZonesAvecBackend(rawZones);
 
         if (cocktails && cocktails.length > 0) {
           this.products = cocktails.map(c => ({
@@ -275,7 +286,6 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
         this.tables = tables.map((t, idx) => {
           const pos = this.positionsMap.get(t.id);
           const zoneObj = this.zonesList.find(z => z.nom.toLowerCase() === (t.zone || '').toLowerCase());
-          // Default position uses exact same algorithm as plan-salle.component.ts
           const defaultX = PLAN_MARGIN + (idx % PLAN_COLS) * (PLAN_TABLE_SIZE + PLAN_GAP);
           const defaultY = PLAN_MARGIN + Math.floor(idx / PLAN_COLS) * (PLAN_TABLE_SIZE + PLAN_GAP);
           return {
@@ -357,11 +367,18 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
 
     // Floor filter
     if (this.selectedEtage !== 'ALL') {
-      result = result.filter(t => (t.etage || 'RDC') === this.selectedEtage);
+      const selectedNorm = this.normalizeFloorCode(this.selectedEtage);
+      result = result.filter(t => {
+        const pos = this.positionsMap.get(t.id);
+        return this.resolveTableFloor(t, pos) === selectedNorm;
+      });
     }
 
     // Zone filter
-    if (this.selectedZone !== 'ALL') {
+    if (this.selectedZones.length > 0) {
+      const lowerSelected = new Set(this.selectedZones.map(z => z.toLowerCase()));
+      result = result.filter(t => t.zone && lowerSelected.has(t.zone.toLowerCase()));
+    } else if (this.selectedZone !== 'ALL' && this.selectedZone !== 'MULTI') {
       result = result.filter(t => t.zone === this.selectedZone);
     }
 
@@ -395,18 +412,26 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
   private chargerFiltresSauvegardes() {
     try {
       const saved = localStorage.getItem(DashboardServeurComponent.FILTER_STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed.searchTerm !== undefined) this.searchTerm = parsed.searchTerm;
-        if (parsed.selectedStatus) this.selectedStatus = parsed.selectedStatus;
-        if (parsed.selectedEtage) this.selectedEtage = parsed.selectedEtage;
-        if (parsed.selectedZone) this.selectedZone = parsed.selectedZone;
-        if (parsed.sortOption) this.sortOption = parsed.sortOption;
-        if (parsed.displayMode) this.displayMode = parsed.displayMode;
-      }
+      if (!saved) return;
+      const parsed = JSON.parse(saved);
+      this.appliquerFiltresSauvegardes(parsed);
     } catch {
       // Fallback cleanly on error
     }
+  }
+
+  private appliquerFiltresSauvegardes(parsed: Record<string, any>) {
+    if (parsed['searchTerm'] !== undefined) this.searchTerm = parsed['searchTerm'];
+    if (parsed['selectedStatus']) this.selectedStatus = parsed['selectedStatus'];
+    if (parsed['selectedEtage']) this.selectedEtage = parsed['selectedEtage'];
+    if (parsed['selectedZone']) this.selectedZone = parsed['selectedZone'];
+    if (Array.isArray(parsed['selectedZones'])) {
+      this.selectedZones = parsed['selectedZones'];
+    } else if (parsed['selectedZone'] && parsed['selectedZone'] !== 'ALL') {
+      this.selectedZones = [parsed['selectedZone']];
+    }
+    if (parsed['sortOption']) this.sortOption = parsed['sortOption'];
+    if (parsed['displayMode']) this.displayMode = parsed['displayMode'];
   }
 
   private sauvegarderFiltres() {
@@ -416,6 +441,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
         selectedStatus: this.selectedStatus,
         selectedEtage: this.selectedEtage,
         selectedZone: this.selectedZone,
+        selectedZones: this.selectedZones,
         sortOption: this.sortOption,
         displayMode: this.displayMode,
       };
@@ -429,15 +455,22 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
     if (this.displayMode === 'BY_FLOOR') {
       const map = new Map<string, TableView[]>();
       for (const table of this.filteredTables) {
-        const key = table.etage || 'RDC';
+        const pos = this.positionsMap.get(table.id);
+        const key = this.resolveTableFloor(table, pos);
         if (!map.has(key)) map.set(key, []);
         map.get(key)!.push(table);
       }
       return Array.from(map.entries()).map(([etageCode, tables]) => {
-        const etageObj = this.etagesList.find(e => e.code === etageCode);
+        const etageObj = this.etagesList.find(e => this.normalizeFloorCode(e.code) === etageCode);
+        let title = etageCode;
+        if (etageObj?.nom) {
+          title = etageObj.nom;
+        } else if (etageCode === 'RDC') {
+          title = 'Rez-de-chaussée';
+        }
         return {
           key: etageCode,
-          title: etageObj ? etageObj.nom : etageCode,
+          title,
           tables,
           freeCount: tables.filter(t => !t.occupee).length,
           occupiedCount: tables.filter(t => t.occupee).length,
@@ -453,8 +486,8 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
       map.get(key)!.push(table);
     }
     return Array.from(map.entries()).map(([zoneName, tables]) => {
-      const zoneObj = this.zonesList.find(z => z.nom === zoneName);
-      const etageObj = zoneObj ? this.etagesList.find(e => e.code === zoneObj.etage) : undefined;
+      const zoneObj = this.zonesList.find(z => z.nom.toLowerCase() === zoneName.toLowerCase());
+      const etageObj = zoneObj ? this.etagesList.find(e => this.normalizeFloorCode(e.code) === this.normalizeFloorCode(zoneObj.etage)) : undefined;
       return {
         key: zoneName,
         title: zoneName,
@@ -478,7 +511,8 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
     if (this.selectedEtage === 'ALL') {
       return this.zonesList;
     }
-    return this.zonesList.filter(z => z.etage === this.selectedEtage);
+    const selectedNorm = this.normalizeFloorCode(this.selectedEtage);
+    return this.zonesList.filter(z => this.normalizeFloorCode(z.etage) === selectedNorm);
   }
 
   getWaitTimeMinutes(table: TableView): number {
@@ -505,6 +539,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
   onZoneSelectChange(event: Event) {
     const val = (event.target as HTMLSelectElement).value;
     this.selectedZone = val;
+    this.selectedZones = val === 'ALL' ? [] : [val];
     this.filtrer();
   }
 
@@ -517,12 +552,173 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
   setDisplayMode(mode: DashboardViewMode) {
     this.displayMode = mode;
     this.sauvegarderFiltres();
+    this.filtrer();
+    this.cdr.detectChanges();
     if (mode === 'PLAN') {
       setTimeout(() => this.initOrUpdateKonva(), 80);
     }
   }
 
+  onEtageSelectChangeDirect(code: string) {
+    this.selectedEtage = code;
+    this.selectedZones = [];
+    this.selectedZone = 'ALL';
+    this.filtrer();
+  }
+
+  onZoneSelectChangeDirect(zoneNom: string) {
+    if (zoneNom === 'ALL') {
+      this.clearZoneFilter();
+    } else {
+      this.toggleZone(zoneNom);
+    }
+  }
+
+  /** Toggles a zone in the multi-select zone filter. */
+  toggleZone(zoneNom: string) {
+    const idx = this.selectedZones.indexOf(zoneNom);
+    if (idx >= 0) {
+      this.selectedZones.splice(idx, 1);
+    } else {
+      this.selectedZones.push(zoneNom);
+    }
+    this.updateSelectedZoneState();
+    this.filtrer();
+  }
+
+  private updateSelectedZoneState() {
+    if (this.selectedZones.length === 1) {
+      this.selectedZone = this.selectedZones[0];
+    } else if (this.selectedZones.length === 0) {
+      this.selectedZone = 'ALL';
+    } else {
+      this.selectedZone = 'MULTI';
+    }
+  }
+
+  /** Clears all zone selection (shows All Zones). */
+  clearZoneFilter() {
+    this.selectedZones = [];
+    this.selectedZone = 'ALL';
+    this.filtrer();
+  }
+
+  isZoneSelected(zoneNom: string): boolean {
+    return this.selectedZones.includes(zoneNom);
+  }
+
   // ─── KONVA 2D FLOOR PLAN RENDERER ──────────────────────────────────────────
+
+  private normalizeFloorCode(raw?: string): string {
+    if (!raw) return 'RDC';
+    const val = raw.trim().toUpperCase();
+    if (val === 'RDC' || val.includes('REZ')) return 'RDC';
+    if (val === 'ETAGE_1' || val.includes('1ER') || val.includes('1ÉTAGE') || val.includes('1ETAGE')) return 'ETAGE_1';
+    if (val === 'ETAGE_2' || val.includes('2ÈME') || val.includes('2EME') || val.includes('ROOFTOP')) return 'ETAGE_2';
+    return val;
+  }
+
+  private resolveTableFloor(t: TableView, pos?: TablePosition): string {
+    const zoneName = pos?.zone || t.zone;
+    if (zoneName) {
+      const z = this.zonesList.find(zItem => zItem.nom.toLowerCase() === zoneName.toLowerCase());
+      if (z?.etage) return this.normalizeFloorCode(z.etage);
+    }
+    if (t.etage) return this.normalizeFloorCode(t.etage);
+    if (pos?.floor) return this.normalizeFloorCode(pos.floor);
+    return 'RDC';
+  }
+
+  private synchroniserZonesAvecBackend(backendZones: ZoneBar[]) {
+    this.zoneAreas = [];
+    backendZones.forEach((backendZone, idx) => {
+      const zoneEtageNormalized = this.normalizeFloorCode(backendZone.etage);
+      let parsedPoints: number[] | undefined;
+      let parsedRadii: [number, number, number, number] | undefined;
+
+      if (backendZone.pointsJson) {
+        try {
+          parsedPoints = JSON.parse(backendZone.pointsJson);
+        } catch {
+          parsedPoints = undefined;
+        }
+      }
+      if (backendZone.cornerRadiiJson) {
+        try {
+          parsedRadii = JSON.parse(backendZone.cornerRadiiJson);
+        } catch {
+          parsedRadii = undefined;
+        }
+      }
+
+      this.zoneAreas.push({
+        id: `za-${backendZone.id}`,
+        nom: backendZone.nom,
+        etage: zoneEtageNormalized,
+        x: backendZone.planX ?? (140 + (idx % 3) * 380),
+        y: backendZone.planY ?? (140 + Math.floor(idx / 3) * 280),
+        width: backendZone.planWidth ?? 400,
+        height: backendZone.planHeight ?? 280,
+        shapeType: backendZone.shapeType ?? 'rect',
+        points: parsedPoints,
+        cornerRadii: parsedRadii ?? [16, 16, 16, 16],
+        couleur: backendZone.couleur ?? '#6c7fe8',
+      });
+    });
+  }
+
+  buildPolygonPathData(points: number[], cornerRadii: number[] = []): string {
+    const numPts = Math.floor(points.length / 2);
+    if (numPts < 3) return '';
+
+    const pts: { x: number; y: number }[] = [];
+    for (let i = 0; i < numPts; i++) {
+      pts.push({ x: points[i * 2], y: points[i * 2 + 1] });
+    }
+
+    let pathData = '';
+
+    for (let i = 0; i < numPts; i++) {
+      const prev = pts[(i - 1 + numPts) % numPts];
+      const curr = pts[i];
+      const next = pts[(i + 1) % numPts];
+
+      const r = Math.max(0, cornerRadii[i] ?? 0);
+
+      const dPrevX = prev.x - curr.x;
+      const dPrevY = prev.y - curr.y;
+      const lenPrev = Math.hypot(dPrevX, dPrevY) || 1;
+
+      const dNextX = next.x - curr.x;
+      const dNextY = next.y - curr.y;
+      const lenNext = Math.hypot(dNextX, dNextY) || 1;
+
+      const actualR = Math.min(r, lenPrev / 2, lenNext / 2);
+
+      if (actualR <= 1) {
+        if (i === 0) {
+          pathData += `M ${curr.x} ${curr.y}`;
+        } else {
+          pathData += ` L ${curr.x} ${curr.y}`;
+        }
+      } else {
+        const pStartX = curr.x + (dPrevX / lenPrev) * actualR;
+        const pStartY = curr.y + (dPrevY / lenPrev) * actualR;
+
+        const pEndX = curr.x + (dNextX / lenNext) * actualR;
+        const pEndY = curr.y + (dNextY / lenNext) * actualR;
+
+        if (i === 0) {
+          pathData += `M ${pStartX} ${pStartY} Q ${curr.x} ${curr.y} ${pEndX} ${pEndY}`;
+        } else {
+          pathData += ` L ${pStartX} ${pStartY} Q ${curr.x} ${curr.y} ${pEndX} ${pEndY}`;
+        }
+      }
+    }
+
+    pathData += ' Z';
+    return pathData;
+  }
 
   private initOrUpdateKonva() {
     const container = this.konvaContainerRef?.nativeElement;
@@ -531,15 +727,51 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
     const width = container.offsetWidth || 800;
     const height = Math.max(520, container.offsetHeight || 550);
 
+    if (this.stage && this.stage.container() !== container) {
+      this.stage.destroy();
+      this.stage = null as any;
+    }
+
     if (!this.stage) {
       this.ngZone.runOutsideAngular(() => {
         this.stage = new Konva.Stage({
           container,
           width,
           height,
+          draggable: true,
         });
+
+        this.zoneLayer = new Konva.Layer();
         this.layer = new Konva.Layer();
-        this.stage.add(this.layer);
+        this.stage.add(this.zoneLayer, this.layer);
+
+        this.stage.on('dragmove', () => this.syncGridPosition());
+
+        this.stage.on('wheel', (e) => {
+          e.evt.preventDefault();
+          const scaleBy = 1.05;
+          const oldScale = this.stage!.scaleX();
+          const pointer = this.stage!.getPointerPosition();
+          if (!pointer) return;
+
+          const mousePointTo = {
+            x: (pointer.x - this.stage!.x()) / oldScale,
+            y: (pointer.y - this.stage!.y()) / oldScale,
+          };
+
+          const direction = e.evt.deltaY > 0 ? -1 : 1;
+          const newScale = direction > 0 ? oldScale * scaleBy : oldScale / scaleBy;
+          const clampedScale = Math.max(0.3, Math.min(2.5, newScale));
+
+          this.stage!.scale({ x: clampedScale, y: clampedScale });
+          const newPos = {
+            x: pointer.x - mousePointTo.x * clampedScale,
+            y: pointer.y - mousePointTo.y * clampedScale,
+          };
+          this.stage!.position(newPos);
+          this.stage!.batchDraw();
+          this.syncGridPosition();
+        });
       });
     } else {
       this.stage.width(width);
@@ -550,197 +782,328 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
   }
 
   private renderKonvaPlan() {
-    if (!this.layer) return;
+    if (!this.layer || !this.zoneLayer) return;
 
     this.ngZone.runOutsideAngular(() => {
-      this.layer!.destroyChildren();
-
-      const stageWidth  = this.stage?.width()  || 800;
-      const stageHeight = this.stage?.height() || 550;
-
-      // ── 1. Background grid (identical to plan-salle) ────────────────────────
-      const gridGroup = new Konva.Group();
-      const gridSize = 40;
-      for (let x = 0; x < stageWidth; x += gridSize) {
-        gridGroup.add(new Konva.Line({
-          points: [x, 0, x, stageHeight],
-          stroke: 'rgba(255, 255, 255, 0.04)',
-          strokeWidth: 1,
-        }));
-      }
-      for (let y = 0; y < stageHeight; y += gridSize) {
-        gridGroup.add(new Konva.Line({
-          points: [0, y, stageWidth, y],
-          stroke: 'rgba(255, 255, 255, 0.04)',
-          strokeWidth: 1,
-        }));
-      }
-      this.layer!.add(gridGroup);
-
-      // ── 2. Zone regions — drawn BEFORE tables so they appear behind ─────────
-      // Collect bounding boxes per zone from filteredTables' positions
-      const zoneColors: Record<string, string> = {
-        'Salle Principale': 'rgba(108, 127, 232, 0.08)',
-        'Terrasse':         'rgba(47, 191, 107, 0.08)',
-        'Mezzanine':        'rgba(244, 165, 42, 0.08)',
-      };
-      const zoneBorders: Record<string, string> = {
-        'Salle Principale': 'rgba(108, 127, 232, 0.25)',
-        'Terrasse':         'rgba(47, 191, 107, 0.25)',
-        'Mezzanine':        'rgba(244, 165, 42, 0.25)',
-      };
-
-      // Group tables by zone and compute bounding box
-      const zoneMap = new Map<string, { minX: number; minY: number; maxX: number; maxY: number }>();
-      const S = PLAN_TABLE_SIZE;
-      const PAD = 20;
-
-      this.filteredTables.forEach(table => {
-        const zoneName = table.zone || 'Salle Principale';
-        const cx = (table.planX ?? 0);
-        const cy = (table.planY ?? 0);
-        const existing = zoneMap.get(zoneName);
-        if (!existing) {
-          zoneMap.set(zoneName, { minX: cx - S / 2 - PAD, minY: cy - S / 2 - PAD, maxX: cx + S / 2 + PAD, maxY: cy + S / 2 + PAD });
-        } else {
-          existing.minX = Math.min(existing.minX, cx - S / 2 - PAD);
-          existing.minY = Math.min(existing.minY, cy - S / 2 - PAD);
-          existing.maxX = Math.max(existing.maxX, cx + S / 2 + PAD);
-          existing.maxY = Math.max(existing.maxY, cy + S / 2 + PAD);
-        }
-      });
-
-      zoneMap.forEach((box, zoneName) => {
-        const fill   = zoneColors[zoneName]   ?? 'rgba(255, 255, 255, 0.05)';
-        const stroke = zoneBorders[zoneName]  ?? 'rgba(255, 255, 255, 0.15)';
-        const zoneRect = new Konva.Rect({
-          x: box.minX, y: box.minY,
-          width:  box.maxX - box.minX,
-          height: box.maxY - box.minY,
-          fill, stroke, strokeWidth: 1,
-          cornerRadius: 12,
-          dash: [6, 4],
-        });
-        const zoneLabel = new Konva.Text({
-          text: zoneName,
-          x: box.minX + 8,
-          y: box.minY + 6,
-          fontSize: 10,
-          fontStyle: '600',
-          fill: stroke,
-          letterSpacing: 0.5,
-        });
-        this.layer!.add(zoneRect);
-        this.layer!.add(zoneLabel);
-      });
-
-      // ── 3. Tables — same rendering as plan-salle.component.ts ───────────────
-      this.filteredTables.forEach(table => {
-        const posX    = table.planX ?? PLAN_MARGIN;
-        const posY    = table.planY ?? PLAN_MARGIN;
-        const waitTime = this.getWaitTimeMinutes(table);
-
-        // Same color logic as plan-salle (COULEUR_LIBRE / COULEUR_OCCUPEE)
-        // + red tint for late orders on waiter dashboard
-        let fill: string;
-        let stroke: string;
-        if (!table.occupee) {
-          fill = '#27ae60'; stroke = '#1e8449';
-        } else if (waitTime > 20) {
-          fill = '#e74c3c'; stroke = '#c0392b';
-        } else {
-          fill = '#e67e22'; stroke = '#d35400';
-        }
-
-        const group = new Konva.Group({
-          x: posX,
-          y: posY,
-          rotation: table.planRotation ?? 0,
-        });
-
-        const isCircle = table.planForme === 'ROND';
-        // Sizes exactly matching plan-salle: S=64, centered at (0,0)
-        const shape = isCircle
-          ? new Konva.Circle({
-              radius: S / 2,
-              fill, stroke,
-              strokeWidth: 2,
-              shadowBlur: 8,
-              shadowColor: 'rgba(0,0,0,0.3)',
-            })
-          : new Konva.Rect({
-              width: S, height: S,
-              offsetX: S / 2, offsetY: S / 2,
-              cornerRadius: 10,
-              fill, stroke,
-              strokeWidth: 2,
-              shadowBlur: 8,
-              shadowColor: 'rgba(0,0,0,0.3)',
-            });
-        group.add(shape);
-
-        // Table number label (matches plan-salle label)
-        const labelNumero = new Konva.Text({
-          text: `T${table.id}`,
-          fontSize: 14,
-          fontStyle: 'bold',
-          fill: '#ffffff',
-          width: S, height: S / 2,
-          offsetX: S / 2, offsetY: S / 2,
-          align: 'center', verticalAlign: 'middle',
-        });
-        group.add(labelNumero);
-
-        // Capacity sub-label
-        const labelCap = new Konva.Text({
-          text: `${table.capacite}p`,
-          fontSize: 11,
-          fill: 'rgba(255,255,255,0.85)',
-          width: S, height: S / 2,
-          offsetX: S / 2, offsetY: 0,
-          align: 'center', verticalAlign: 'middle',
-        });
-        group.add(labelCap);
-
-        // Wait-time badge for occupied tables
-        if (table.occupee && waitTime > 0) {
-          const badgeBg = new Konva.Rect({
-            x: -18, y: S / 2 - 4,
-            width: 36, height: 14,
-            cornerRadius: 7,
-            fill: 'rgba(0,0,0,0.65)',
-          });
-          const badgeTxt = new Konva.Text({
-            text: `${waitTime}m`,
-            fontSize: 9,
-            fontStyle: 'bold',
-            fill: '#ffffff',
-            x: -18, y: S / 2 - 2,
-            width: 36,
-            align: 'center',
-          });
-          group.add(badgeBg, badgeTxt);
-        }
-
-        group.on('mouseenter', () => {
-          const el = this.konvaContainerRef?.nativeElement;
-          if (el) el.style.cursor = 'pointer';
-          group.to({ scaleX: 1.08, scaleY: 1.08, duration: 0.1 });
-        });
-        group.on('mouseleave', () => {
-          const el = this.konvaContainerRef?.nativeElement;
-          if (el) el.style.cursor = 'default';
-          group.to({ scaleX: 1, scaleY: 1, duration: 0.1 });
-        });
-        group.on('click tap', () => {
-          this.ngZone.run(() => this.onSelectionner(table));
-        });
-
-        this.layer!.add(group);
-      });
-
-      this.layer!.draw();
+      this.dessinerZones();
+      this.dessinerTables();
     });
+  }
+
+  private dessinerZones() {
+    if (!this.zoneLayer) return;
+    this.zoneLayer.destroyChildren();
+
+    const selectedFloorNorm = this.selectedEtage === 'ALL' ? 'RDC' : this.normalizeFloorCode(this.selectedEtage);
+    const zonesToDraw = this.zoneAreas.filter(z => {
+      const matchesFloor = this.normalizeFloorCode(z.etage) === selectedFloorNorm;
+      const matchesZone = this.selectedZones.length === 0 || this.selectedZones.some(sz => sz.toLowerCase() === z.nom.toLowerCase());
+      return matchesFloor && matchesZone;
+    });
+
+    zonesToDraw.forEach(zone => {
+      const color = zone.couleur || '#6c7fe8';
+      const zoneFill = color.startsWith('#')
+        ? `rgba(${Number.parseInt(color.slice(1, 3), 16)}, ${Number.parseInt(color.slice(3, 5), 16)}, ${Number.parseInt(color.slice(5, 7), 16)}, 0.08)`
+        : 'rgba(108, 127, 232, 0.08)';
+
+      const group = new Konva.Group({
+        x: zone.x,
+        y: zone.y,
+        name: `zone-group-${zone.id}`,
+      });
+
+      let shapeNode: Konva.Shape;
+      if (zone.shapeType === 'polygon' && zone.points && zone.points.length >= 6) {
+        const pathData = this.buildPolygonPathData(zone.points, zone.cornerRadii);
+        shapeNode = new Konva.Path({
+          data: pathData,
+          fill: zoneFill,
+          stroke: color,
+          strokeWidth: 1.5,
+          dash: [6, 6],
+          name: 'zone-shape',
+        });
+      } else {
+        const radii = zone.cornerRadii || [16, 16, 16, 16];
+        shapeNode = new Konva.Rect({
+          width: zone.width,
+          height: zone.height,
+          fill: zoneFill,
+          stroke: color,
+          strokeWidth: 1.5,
+          dash: [6, 6],
+          cornerRadius: radii,
+          name: 'zone-shape',
+        });
+      }
+
+      let defaultX = 14;
+      let defaultY = 12;
+      if (zone.shapeType === 'polygon' && zone.points && zone.points.length >= 2) {
+        let minX = Infinity;
+        let minY = Infinity;
+        for (let i = 0; i < zone.points.length; i += 2) {
+          if (zone.points[i] < minX) minX = zone.points[i];
+          if (zone.points[i + 1] < minY) minY = zone.points[i + 1];
+        }
+        defaultX = minX + 14;
+        defaultY = minY + 12;
+      }
+
+      const label = new Konva.Text({
+        text: `📍 ${zone.nom.toUpperCase()}`,
+        fontSize: 12,
+        fontStyle: 'bold',
+        fill: color,
+        x: zone.labelX ?? defaultX,
+        y: zone.labelY ?? defaultY,
+        name: 'zone-label',
+      });
+
+      group.add(shapeNode, label);
+      this.zoneLayer!.add(group);
+    });
+
+    this.zoneLayer.batchDraw();
+  }
+
+  private getTableColors(table: TableView, waitTime: number): { mainColor: string; fillColor: string } {
+    if ((table as any).reservee === true) {
+      return { mainColor: '#9b8af2', fillColor: 'rgba(155, 138, 242, 0.16)' };
+    }
+    if (table.occupee) {
+      if (waitTime > 20) {
+        return { mainColor: '#e5604f', fillColor: 'rgba(229, 96, 79, 0.16)' };
+      }
+      return { mainColor: '#f0a33b', fillColor: 'rgba(240, 163, 59, 0.16)' };
+    }
+    return { mainColor: '#2fbf6b', fillColor: 'rgba(47, 191, 107, 0.16)' };
+  }
+
+  private calculateLabelOffsets(hasCap: boolean, hasWaitTime: boolean): { titleY: number; capY: number; badgeY: number } {
+    if (hasCap && hasWaitTime) return { titleY: -22, capY: -6, badgeY: 12 };
+    if (hasCap) return { titleY: -14, capY: 4, badgeY: 12 };
+    if (hasWaitTime) return { titleY: -14, capY: 0, badgeY: 4 };
+    return { titleY: -8, capY: 0, badgeY: 0 };
+  }
+
+  private createTableShape(shapeType: string, width: number, height: number, mainColor: string, fillColor: string): Konva.Shape {
+    if (shapeType === 'circle') {
+      return new Konva.Ellipse({
+        radiusX: width / 2,
+        radiusY: height / 2,
+        fill: fillColor,
+        stroke: mainColor,
+        strokeWidth: 2,
+        name: 'forme',
+      });
+    }
+    return new Konva.Rect({
+      width,
+      height,
+      offsetX: width / 2,
+      offsetY: height / 2,
+      cornerRadius: 8,
+      fill: fillColor,
+      stroke: mainColor,
+      strokeWidth: 2,
+      name: 'forme',
+    });
+  }
+
+  private createTableLabelGroup(
+    table: TableView,
+    width: number,
+    rotation: number,
+    waitTime: number,
+    mainColor: string
+  ): Konva.Group {
+    const labelGroup = new Konva.Group({
+      rotation: -rotation,
+      name: 'label-group',
+    });
+
+    const hasWaitTime = table.occupee && waitTime > 0;
+    const hasCap = !!table.capacite;
+    const { titleY, capY, badgeY } = this.calculateLabelOffsets(hasCap, hasWaitTime);
+
+    const titleText = new Konva.Text({
+      text: `T${table.nom ? table.nom.replace(/^Table\s*/i, '') : table.id}`,
+      fontSize: 13,
+      fontStyle: 'bold',
+      fill: '#ffffff',
+      align: 'center',
+      width,
+      x: -width / 2,
+      y: titleY,
+      name: 'label-title',
+      listening: false,
+    });
+    labelGroup.add(titleText);
+
+    if (hasCap) {
+      const subText = new Konva.Text({
+        text: `${table.capacite} pers`,
+        fontSize: 11,
+        fontStyle: 'normal',
+        fill: '#a4add0',
+        align: 'center',
+        width,
+        x: -width / 2,
+        y: capY,
+        name: 'label-sub',
+        listening: false,
+      });
+      labelGroup.add(subText);
+    }
+
+    if (hasWaitTime) {
+      const badgeWidth = 38;
+      const badgeHeight = 15;
+      const badgeBg = new Konva.Rect({
+        x: -badgeWidth / 2,
+        y: badgeY,
+        width: badgeWidth,
+        height: badgeHeight,
+        cornerRadius: 7,
+        fill: 'rgba(0, 0, 0, 0.75)',
+        stroke: mainColor,
+        strokeWidth: 1,
+      });
+      const badgeTxt = new Konva.Text({
+        text: `${waitTime}m`,
+        fontSize: 9,
+        fontStyle: 'bold',
+        fill: '#ffffff',
+        x: -badgeWidth / 2,
+        y: badgeY + 2.5,
+        width: badgeWidth,
+        align: 'center',
+      });
+      labelGroup.add(badgeBg, badgeTxt);
+    }
+
+    return labelGroup;
+  }
+
+  private dessinerTables() {
+    if (!this.layer) return;
+    this.layer.destroyChildren();
+
+    const selectedFloorNorm = this.selectedEtage === 'ALL' ? 'RDC' : this.normalizeFloorCode(this.selectedEtage);
+    const tablesToDraw = this.filteredTables.filter(t => {
+      const pos = this.positionsMap.get(t.id);
+      const tableFloor = this.resolveTableFloor(t, pos);
+      return tableFloor === selectedFloorNorm;
+    });
+
+    tablesToDraw.forEach(table => {
+      const pos = this.positionsMap.get(table.id);
+      const W = pos?.width || DEFAULT_TABLE_SIZE;
+      const H = pos?.height || DEFAULT_TABLE_SIZE;
+      const posX = pos?.x ?? (table.planX ?? PLAN_MARGIN);
+      const posY = pos?.y ?? (table.planY ?? PLAN_MARGIN);
+      const rotation = pos?.rotation ?? (table.planRotation ?? 0);
+      const shapeType = pos?.shape ?? (table.planForme === 'ROND' ? 'circle' : 'rect');
+      const waitTime = this.getWaitTimeMinutes(table);
+
+      const { mainColor, fillColor } = this.getTableColors(table, waitTime);
+
+      const group = new Konva.Group({
+        x: posX,
+        y: posY,
+        rotation,
+        name: `table-group-${table.id}`,
+      });
+
+      const shapeNode = this.createTableShape(shapeType, W, H, mainColor, fillColor);
+      const labelGroup = this.createTableLabelGroup(table, W, rotation, waitTime, mainColor);
+
+      group.add(shapeNode, labelGroup);
+
+      group.on('mouseenter', () => {
+        const el = this.konvaContainerRef?.nativeElement;
+        if (el) el.style.cursor = 'pointer';
+        group.to({ scaleX: 1.05, scaleY: 1.05, duration: 0.1 });
+      });
+
+      group.on('mouseleave', () => {
+        const el = this.konvaContainerRef?.nativeElement;
+        if (el) el.style.cursor = 'default';
+        group.to({ scaleX: 1, scaleY: 1, duration: 0.1 });
+      });
+
+      group.on('click tap', () => {
+        this.ngZone.run(() => this.onSelectionner(table));
+      });
+
+      this.layer!.add(group);
+    });
+
+    this.layer!.batchDraw();
+  }
+
+  // ─── Zoom & View Navigation Controls ─────────────────────────────────────
+
+  zoomerIn() {
+    if (!this.stage) return;
+    const center = {
+      x: this.stage.width() / 2,
+      y: this.stage.height() / 2,
+    };
+    this.appliquerZoom(1.2, center);
+  }
+
+  zoomerOut() {
+    if (!this.stage) return;
+    const center = {
+      x: this.stage.width() / 2,
+      y: this.stage.height() / 2,
+    };
+    this.appliquerZoom(1 / 1.2, center);
+  }
+
+  reinitialiserVue() {
+    if (!this.stage) return;
+    this.stage.position({ x: 0, y: 0 });
+    this.stage.scale({ x: 1, y: 1 });
+    this.stage.batchDraw();
+    this.zoomScale = 1;
+    this.syncGridPosition();
+    this.cdr.detectChanges();
+  }
+
+  private appliquerZoom(factor: number, center: { x: number; y: number }) {
+    const oldScale = this.stage?.scaleX() || 1;
+    const mousePointTo = {
+      x: (center.x - (this.stage?.x() || 0)) / oldScale,
+      y: (center.y - (this.stage?.y() || 0)) / oldScale,
+    };
+
+    const newScale = Math.max(0.3, Math.min(2.5, oldScale * factor));
+    this.stage?.scale({ x: newScale, y: newScale });
+    const newPos = {
+      x: center.x - mousePointTo.x * newScale,
+      y: center.y - mousePointTo.y * newScale,
+    };
+    this.stage?.position(newPos);
+    this.stage?.batchDraw();
+    this.syncGridPosition();
+    this.cdr.detectChanges();
+  }
+
+  private syncGridPosition() {
+    const container = this.konvaContainerRef?.nativeElement;
+    if (!container || !this.stage) return;
+
+    const posX = this.stage.x();
+    const posY = this.stage.y();
+    const scale = this.stage.scaleX();
+
+    const scaledGridSize = 50 * scale;
+    container.style.backgroundPosition = `${posX}px ${posY}px`;
+    container.style.backgroundSize = `${scaledGridSize}px ${scaledGridSize}px`;
   }
 
   async onSelectionner(table: TableView) {

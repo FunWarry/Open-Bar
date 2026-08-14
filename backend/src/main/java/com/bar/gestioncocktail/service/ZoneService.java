@@ -16,6 +16,8 @@ import java.util.List;
  */
 @Service
 public class ZoneService {
+    private static final String ZONE_NOT_FOUND_MSG = "Zone non trouvée avec l'id : ";
+
     private final ZoneRepository zoneRepository;
     private final TableRepository tableRepository;
 
@@ -29,8 +31,11 @@ public class ZoneService {
     }
 
     public ZoneEntity getZoneById(Long id) {
+        if (id == null) {
+            throw new ResourceNotFoundException("Zone non trouvée (ID null)");
+        }
         return zoneRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Zone non trouvée avec l'id : " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(ZONE_NOT_FOUND_MSG + id));
     }
 
     @Transactional
@@ -43,8 +48,11 @@ public class ZoneService {
 
     @Transactional
     public ZoneEntity updateZone(Long id, ZoneEntity updated) {
+        if (id == null) {
+            throw new BusinessException("L'ID de zone ne peut pas être null");
+        }
         ZoneEntity existing = zoneRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Zone non trouvée avec l'id : " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(ZONE_NOT_FOUND_MSG + id));
 
         String oldNom = existing.getNom();
         String newNom = updated.getNom();
@@ -56,6 +64,30 @@ public class ZoneService {
         existing.setNom(newNom);
         if (updated.getEtage() != null) {
             existing.setEtage(updated.getEtage());
+        }
+        if (updated.getPlanX() != null) {
+            existing.setPlanX(updated.getPlanX());
+        }
+        if (updated.getPlanY() != null) {
+            existing.setPlanY(updated.getPlanY());
+        }
+        if (updated.getPlanWidth() != null) {
+            existing.setPlanWidth(updated.getPlanWidth());
+        }
+        if (updated.getPlanHeight() != null) {
+            existing.setPlanHeight(updated.getPlanHeight());
+        }
+        if (updated.getShapeType() != null) {
+            existing.setShapeType(updated.getShapeType());
+        }
+        if (updated.getPointsJson() != null) {
+            existing.setPointsJson(updated.getPointsJson());
+        }
+        if (updated.getCornerRadiiJson() != null) {
+            existing.setCornerRadiiJson(updated.getCornerRadiiJson());
+        }
+        if (updated.getCouleur() != null) {
+            existing.setCouleur(updated.getCouleur());
         }
 
         ZoneEntity saved = zoneRepository.save(existing);
@@ -74,8 +106,11 @@ public class ZoneService {
 
     @Transactional
     public void deleteZone(Long id) {
+        if (id == null) {
+            throw new BusinessException("L'ID de zone ne peut pas être null");
+        }
         ZoneEntity zone = zoneRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Zone non trouvée avec l'id : " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(ZONE_NOT_FOUND_MSG + id));
         zoneRepository.delete(zone);
     }
 }

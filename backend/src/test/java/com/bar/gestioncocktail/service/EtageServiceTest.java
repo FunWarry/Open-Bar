@@ -45,25 +45,7 @@ class EtageServiceTest {
         sampleEtage.setOrdre(1);
     }
 
-    @Test
-    @DisplayName("initDefaultEtages should seed database if count is 0")
-    void initDefaultEtages_whenEmpty_shouldSeed() {
-        when(etageRepository.count()).thenReturn(0L);
 
-        etageService.initDefaultEtages();
-
-        verify(etageRepository, times(5)).save(any(EtageEntity.class));
-    }
-
-    @Test
-    @DisplayName("initDefaultEtages should do nothing if count > 0")
-    void initDefaultEtages_whenNotEmpty_shouldNotSeed() {
-        when(etageRepository.count()).thenReturn(5L);
-
-        etageService.initDefaultEtages();
-
-        verify(etageRepository, never()).save(any(EtageEntity.class));
-    }
 
     @Test
     @DisplayName("getAllEtages should return list ordered by position")

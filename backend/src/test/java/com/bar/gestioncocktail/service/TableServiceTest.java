@@ -81,6 +81,31 @@ class TableServiceTest {
     }
 
     @Test
+    void updateTable_conserveEtatOccupation() {
+        table.setOccupee(true);
+        table.setServeurId(99L);
+        table.setDateOccupation(java.time.LocalDateTime.now());
+
+        TableEntity modif = new TableEntity();
+        modif.setNumero(15);
+        modif.setCapacite(8);
+        modif.setZone("TERRASSE");
+        // modif.isOccupee() is false by default in DTO conversions
+
+        when(tableRepository.findById(1L)).thenReturn(Optional.of(table));
+        when(tableRepository.save(any(TableEntity.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        TableEntity result = tableService.updateTable(1L, modif);
+
+        assertThat(result.getNumero()).isEqualTo(15);
+        assertThat(result.getCapacite()).isEqualTo(8);
+        assertThat(result.getZone()).isEqualTo("TERRASSE");
+        assertThat(result.isOccupee()).isTrue();
+        assertThat(result.getServeurId()).isEqualTo(99L);
+        assertThat(result.getDateOccupation()).isNotNull();
+    }
+
+    @Test
     void occuperTable_setOccupeeEtServeur() {
         when(tableRepository.findById(1L)).thenReturn(Optional.of(table));
         when(tableRepository.save(any(TableEntity.class))).thenReturn(table);

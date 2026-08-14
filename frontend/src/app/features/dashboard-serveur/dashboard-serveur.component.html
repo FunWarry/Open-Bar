@@ -20,7 +20,7 @@
 
 @if (activeTab !== 'suivi') {
   <ion-content class="dashboard-serveur-content ion-padding">
-    <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+    <ion-refresher slot="fixed" [disabled]="displayMode === 'PLAN'" (ionRefresh)="onRefresh($event)">
       <ion-refresher-content></ion-refresher-content>
     </ion-refresher>
 
@@ -234,54 +234,100 @@
 
     <!-- MODE 4 : PLAN DE SALLE 2D (PLAN) -->
     <div class="plan-salle-interactive-wrapper" *ngIf="displayMode === 'PLAN'">
-      <!-- Légende statut -->
-      <div class="plan-legend-bar">
-        <span class="legend-item"><span class="color-dot libre"></span> Libre</span>
-        <span class="legend-item"><span class="color-dot occupee"></span> Occupée (&lt;20 min)</span>
-        <span class="legend-item"><span class="color-dot retard"></span> Attente prolongée (&gt;20 min)</span>
-        <span class="legend-info">Cliquez sur une table pour prendre une commande</span>
-      </div>
+      <!-- Floor & Zone Filter Control Bar & Status Legend -->
+      <div class="plan-control-bar">
+        <div class="filters-column">
+          <!-- Floor Level Tabs -->
+          <div class="filter-chips-group floor-group">
+            <span class="filter-label">Étage :</span>
+            <button
+              type="button"
+              class="floor-chip"
+              [class.active]="selectedEtage === 'ALL' || selectedEtage === 'RDC'"
+              (click)="onEtageSelectChangeDirect('RDC')"
+              data-testid="plan-pill-etage-rdc">
+              Rez-de-chaussée (RDC)
+            </button>
+            <button
+              *ngFor="let etage of etagesList"
+              [hidden]="etage.code === 'RDC'"
+              type="button"
+              class="floor-chip"
+              [class.active]="selectedEtage === etage.code"
+              (click)="onEtageSelectChangeDirect(etage.code)"
+              [attr.data-testid]="'plan-pill-etage-' + etage.code">
+              {{ etage.nom }}
+            </button>
+          </div>
 
-      <!-- Filtres Étage + Zone inline au plan (dropdowns) -->
-      <div class="plan-filter-bar">
-
-        <!-- Dropdown Étage -->
-        <div class="plan-filter-item">
-          <label class="plan-filter-label" for="plan-etage-select">
-            <ion-icon name="business-outline"></ion-icon>
-            Étage :
-          </label>
-          <select
-            id="plan-etage-select"
-            class="plan-native-select"
-            [value]="selectedEtage"
-            (change)="onEtageSelectChange($event)"
-            data-testid="plan-filtre-etage-select">
-            <option value="ALL">Tous les étages</option>
-            <option *ngFor="let etage of etagesList" [value]="etage.code">{{ etage.nom }}</option>
-          </select>
+          <!-- Sub-zone Filter Chips -->
+          <div *ngIf="availableZonesForFilter.length > 0" class="filter-chips-group zone-group">
+            <span class="filter-label">Zone :</span>
+            <button
+              type="button"
+              class="zone-chip"
+              [class.active]="selectedZones.length === 0"
+              (click)="clearZoneFilter()"
+              data-testid="plan-pill-zone-all">
+              Toutes les zones
+            </button>
+            <button
+              *ngFor="let z of availableZonesForFilter"
+              type="button"
+              class="zone-chip"
+              [class.active]="isZoneSelected(z.nom)"
+              (click)="toggleZone(z.nom)"
+              [attr.data-testid]="'plan-pill-zone-' + z.id">
+              {{ z.nom }}
+            </button>
+          </div>
         </div>
 
-        <!-- Dropdown Zone -->
-        <div class="plan-filter-item">
-          <label class="plan-filter-label" for="plan-zone-select">
-            <ion-icon name="layers-outline"></ion-icon>
-            Zone :
-          </label>
-          <select
-            id="plan-zone-select"
-            class="plan-native-select"
-            [value]="selectedZone"
-            (change)="onZoneSelectChange($event)"
-            data-testid="plan-filtre-zone-select">
-            <option value="ALL">Toutes les zones</option>
-            <option *ngFor="let z of availableZonesForFilter" [value]="z.nom">{{ z.nom }}</option>
-          </select>
+        <!-- Status Legend -->
+        <div class="legend-bar">
+          <div class="legend-item"><span class="dot dot-libre"></span><span>Libre</span></div>
+          <div class="legend-item"><span class="dot dot-occupee"></span><span>Occupée (&lt;20m)</span></div>
+          <div class="legend-item"><span class="dot dot-retard"></span><span>Attente prolongée (&gt;20m)</span></div>
+          <div class="legend-item"><span class="dot dot-reservee"></span><span>Réservée</span></div>
         </div>
-
       </div>
 
-      <div #konvaFloorPlanContainer class="konva-floor-plan-container"></div>
+      <!-- Interactive Konva Canvas Container -->
+      <div class="canvas-wrapper">
+        <div
+          #konvaFloorPlanContainer
+          class="konva-container"
+          data-testid="konva-canvas">
+        </div>
+
+        <!-- Floating Zoom & Navigation Controls Widget -->
+        <div class="zoom-controls-floating" data-testid="zoom-controls">
+          <button
+            type="button"
+            class="zoom-btn"
+            (click)="zoomerIn()"
+            title="Zoom avant (+)"
+            data-testid="btn-zoom-in">
+            <ion-icon name="add-outline"></ion-icon>
+          </button>
+          <button
+            type="button"
+            class="zoom-btn"
+            (click)="zoomerOut()"
+            title="Zoom arrière (-)"
+            data-testid="btn-zoom-out">
+            <ion-icon name="remove-outline"></ion-icon>
+          </button>
+          <button
+            type="button"
+            class="zoom-btn"
+            (click)="reinitialiserVue()"
+            title="Réinitialiser la vue"
+            data-testid="btn-reset-view">
+            <ion-icon name="locate-outline"></ion-icon>
+          </button>
+        </div>
+      </div>
     </div>
   </ng-container>
 

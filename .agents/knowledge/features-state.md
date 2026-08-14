@@ -1,6 +1,6 @@
 # OpenBar — État des Features & Roadmap
 
-> Dernière mise à jour : 11 août 2026 — PR #294 (#290) : Refonte complète de la page de prise de commande serveur (recherche live, filtres catégories/allergènes, décomposition HT/TVA/TTC, 100% tests & SonarCloud PASSED)
+> Dernière mise à jour : 15 août 2026 — PR #297 / Fix #291 : Alignement visuel et fonctionnel du plan 2D serveur (/serveur) avec le plan de salle (/plan-salle), modes magnétisme bord-à-bord & snap-to-grid 50cm, timer centré sous capacité, sélection multi-zones, isolation gestes tactiles/pull-to-refresh mobile, 100% CI passée (469 backend / 1212 frontend tests)
 
 ## Tableau des Features
 
@@ -50,8 +50,8 @@
 | Division d'addition (split égal/par sélection) | ✅ | ✅ | ✅ | — |
 | Dashboard Manager / stats | ✅ | ✅ polling 30s | ✅ | — |
 | Dashboard Barman | ✅ | ✅ kanban temps réel | ✅ | — |
-| Vue Serveur (plan de salle + variantes modal #182) | ✅ | ✅ | ✅ | — |
-| Plan de salle interactif (Konva.js) | ✅ | ✅ | ✅ | CRUD complet des Zones avec catégories d'Étages (RDC, 1er Étage, Terrasse, etc.) |
+| Vue Serveur (plan de salle + variantes modal #182) | ✅ | ✅ modal + nouvelle commande + kanban + plan 2D | ✅ | Synchronisation complète du plan 2D avec /plan-salle (thème, formes, badge timer centré, sélection multi-zones, bascule fluide de vues, isolation gestes tactiles) |
+| Plan de salle interactif Konva.js (#291) | ✅ | ✅ | ✅ | Canvas réactif Konva.js, échelle réelle 1px=1cm, modes magnétisme bord-à-bord & snap grille 50cm, protection mode non-édition, 0 lag, conforme Figma |
 | Vue Client QR Code (passage commande + suivi STOMP) | ✅ | ✅ | ✅ | Vue Client mobile complète (`/client/commande`, `/client/suivi/:id`) |
 | Fuseau horaire paramétrable (Etablissement / TimeService) | ✅ | ✅ | ✅ | TimeZone configurable par l'admin + fallback Système |
 | Journal d'audit système (/api/audit-logs) (#206) | ✅ | ✅ | ✅ | Component & Service Admin |
@@ -78,6 +78,7 @@
 
 | PR / Issue | Description |
 |------------|-------------|
+| #297 (#291) | Alignement complet de la vue plan 2D serveur (`/serveur`) avec le plan de salle (`/plan-salle`) : synchronisation visuelle (formes rectangles, cercles, ovales, polygones, lueur et bordures néon selon statut/occupation), modes snap-to-grid (50cm) et magnétisme bord-à-bord des tables, positionnement du badge timer d'attente centré sous la capacité sans distorsion en rotation, filtre multi-zones par chips, protection du panneau latéral d'édition hors mode édition, correction de la réinitialisation du canevas Konva et du filtrage d'étages lors du changement de mode d'affichage, désactivation du pull-to-refresh mobile (`[disabled]="displayMode === 'PLAN'"`) et blocage des gestes de scroll natif sur le canvas (`touch-action: none !important`), 469 tests backend + 1212 tests frontend 100% verts, CI build production OK. |
 | #294 (#290) | Refonte complète et modernisation de la prise de commande serveur (`/serveur/nouvelle-commande/:tableId`) : recherche textuelle en temps réel, puces de filtres par catégories de boissons (Cocktails, Softs, Bières, Vins, Snacks), sélecteur d'exclusion d'allergènes (Lactose, Gluten, Arachides...), panier réactif avec ajustement des quantités, décomposition comptable HT/TVA (20%)/Total TTC, 100% variables CSS adaptatives du thème, clés i18n FR/EN `SERVEUR.*` complétées, 1195/1195 tests Karma 100% verts, Quality Gate SonarCloud PASSED (100.0% new coverage, 0 bug). |
 | #289 (#285) | Audit log immutable des modifications de créneaux EDT + vue historique à un instant T (time-travel replay) : table `shift_audit_log`, entités `ShiftAuditLog`/`ShiftAuditAction`, service `ShiftAuditService` (`logCreation`, `logUpdate`, `logDeletion`, `reconstructScheduleAt`, `getAuditLogForWeek`), endpoints `GET /api/shifts/{id}/history`, `GET /api/schedule/audit-log`, `GET /api/schedule/at`, modaux `ScheduleHistoryModalComponent` (filtre par action/employé, snapshot before/after, déclencheur replay) et `ShiftHistoryModalComponent` (historique créneau individuel), mode Time-Travel Replay dans `ScheduleComponent` (sélecteur datetime, diff live vs planning courant, bannière lecture seule), i18n FR/EN (`SHIFTS.AUDIT`, `SHIFTS.REPLAY`), 470 backend tests + 1190 frontend tests, SonarCloud Quality Gate PASSED (81.3% new coverage, 0 bug). |
 | #287 (#276) | Fix bouton comparaison EDT & UX shifts : synchronisation `forkJoin` pour le chargement du planning et de la publication (élimine la disparition du bouton de comparaison au changement de semaine), clic sur cellule vide ouvre directement le formulaire de création pré-rempli (`initialDate`, `openInCreateMode`), en-tête employé converti en `<button>` sémantique pour ouvrir la liste des shifts d'une personne, et 100% tests Karma / SonarCloud Quality Gate PASSED. |

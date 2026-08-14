@@ -42,6 +42,7 @@ public class SampleDataSeederService {
     private final UserRepository userRepository;
     private final TableRepository tableRepository;
     private final ZoneRepository zoneRepository;
+    private final EtageRepository etageRepository;
     private final CocktailRepository cocktailRepository;
     private final CommandeRepository commandeRepository;
     private final FactureRepository factureRepository;
@@ -55,6 +56,7 @@ public class SampleDataSeederService {
             UserRepository userRepository,
             TableRepository tableRepository,
             ZoneRepository zoneRepository,
+            EtageRepository etageRepository,
             CocktailRepository cocktailRepository,
             CommandeRepository commandeRepository,
             FactureRepository factureRepository,
@@ -65,6 +67,7 @@ public class SampleDataSeederService {
         this.userRepository = userRepository;
         this.tableRepository = tableRepository;
         this.zoneRepository = zoneRepository;
+        this.etageRepository = etageRepository;
         this.cocktailRepository = cocktailRepository;
         this.commandeRepository = commandeRepository;
         this.factureRepository = factureRepository;
@@ -98,18 +101,18 @@ public class SampleDataSeederService {
             JsonNode root = objectMapper.readTree(stream);
 
             Map<String, User> usersMap = seedUsersFromJson(root.get("users"));
+            seedEtagesFromJson(root.get("etages"));
             seedZonesFromJson(root.get("zones"));
             Map<Integer, TableEntity> tablesMap = seedTablesFromJson(root.get("tables"), usersMap);
             seedShiftsFromJson(root.get("shifts"), usersMap);
 
-            List<Cocktail> cocktails = cocktailRepository.findAll();
-            if (cocktails.isEmpty()) {
-                log.warn("No cocktails found during demo seeding. Create cocktails first.");
-                return;
+            if (commandeRepository.count() == 0) {
+                List<Cocktail> cocktails = cocktailRepository.findAll();
+                if (!cocktails.isEmpty()) {
+                    seedOrdersFromJson(root.get("orders"), usersMap, tablesMap, cocktails);
+                    seedInvoicesFromJson(root.get("invoices"), tablesMap);
+                }
             }
-
-            seedOrdersFromJson(root.get("orders"), usersMap, tablesMap, cocktails);
-            seedInvoicesFromJson(root.get("invoices"), tablesMap);
 
         } catch (Exception e) {
             log.error("Failed to seed demo dataset from JSON file '{}'", DATASET_PATH, e);
@@ -195,23 +198,56 @@ public class SampleDataSeederService {
         return "default123";
     }
 
+    private void seedEtagesFromJson(JsonNode etagesNode) {
+        if (etagesNode == null || !etagesNode.isArray()) return;
+
+        for (JsonNode eNode : etagesNode) {
+            String code = eNode.get("code").asText();
+            String nom = eNode.get("nom").asText();
+            int ordre = eNode.has("ordre") ? eNode.get("ordre").asInt() : 0;
+
+            if (!etageRepository.existsByCode(code)) {
+                EtageEntity e = new EtageEntity();
+                e.setCode(code);
+                e.setNom(nom);
+                e.setOrdre(ordre);
+                etageRepository.save(e);
+                log.trace("Etage seeded: {}", nom);
+            }
+        }
+    }
+
+    private static final String PLAN_X = "planX";
+    private static final String PLAN_Y = "planY";
+    private static final String PLAN_WIDTH = "planWidth";
+    private static final String PLAN_HEIGHT = "planHeight";
+
     private void seedZonesFromJson(JsonNode zonesNode) {
         if (zonesNode == null || !zonesNode.isArray()) return;
 
         for (JsonNode zNode : zonesNode) {
             String nom = zNode.get("nom").asText();
-            String etage = zNode.get("etage").asText();
-
-            ZoneEntity zone = zoneRepository.findByNom(nom).orElseGet(() -> {
-                ZoneEntity z = new ZoneEntity();
-                z.setNom(nom);
-                z.setEtage(etage);
-                z.setCreatedAt(timeService.now());
-                z.setUpdatedAt(timeService.now());
-                return zoneRepository.save(z);
+            ZoneEntity z = zoneRepository.findByNom(nom).orElseGet(() -> {
+                ZoneEntity newZ = new ZoneEntity();
+                newZ.setNom(nom);
+                return newZ;
             });
-            log.trace("Zone seeded: {}", zone.getNom());
+            updateZoneFromNode(z, zNode);
+            zoneRepository.save(z);
+            log.trace("Zone seeded: {}", nom);
         }
+    }
+
+    private void updateZoneFromNode(ZoneEntity z, JsonNode zNode) {
+        z.setEtage(zNode.get("etage").asText());
+        z.setPlanX(zNode.hasNonNull(PLAN_X) ? zNode.get(PLAN_X).asDouble() : null);
+        z.setPlanY(zNode.hasNonNull(PLAN_Y) ? zNode.get(PLAN_Y).asDouble() : null);
+        z.setPlanWidth(zNode.hasNonNull(PLAN_WIDTH) ? zNode.get(PLAN_WIDTH).asDouble() : null);
+        z.setPlanHeight(zNode.hasNonNull(PLAN_HEIGHT) ? zNode.get(PLAN_HEIGHT).asDouble() : null);
+        z.setShapeType(zNode.hasNonNull("shapeType") ? zNode.get("shapeType").asText() : "rect");
+        z.setPointsJson(zNode.hasNonNull("points") ? zNode.get("points").toString() : null);
+        z.setCornerRadiiJson(zNode.hasNonNull("cornerRadii") ? zNode.get("cornerRadii").toString() : null);
+        z.setCouleur(zNode.hasNonNull("couleur") ? zNode.get("couleur").asText() : null);
     }
 
     private Map<Integer, TableEntity> seedTablesFromJson(JsonNode tablesNode, Map<String, User> usersMap) {
@@ -219,41 +255,52 @@ public class SampleDataSeederService {
         if (tablesNode == null || !tablesNode.isArray()) return tablesMap;
 
         for (JsonNode tNode : tablesNode) {
-            int numero = tNode.get("numero").asInt();
-            String zone = tNode.get("zone").asText();
-            int capacite = tNode.get("capacite").asInt();
-            boolean occupee = tNode.get("occupee").asBoolean();
-            String serveurUsername = tNode.hasNonNull(KEY_SERVEUR_USERNAME) ? tNode.get(KEY_SERVEUR_USERNAME).asText() : null;
-            Double planX = tNode.get("planX").asDouble();
-            Double planY = tNode.get("planY").asDouble();
-            String planForme = tNode.get("planForme").asText();
-
-            User serveur = serveurUsername != null ? usersMap.get(serveurUsername) : null;
-
-            TableEntity t = tableRepository.findByNumero(numero).orElseGet(() -> {
-                TableEntity table = new TableEntity();
-                table.setNumero(numero);
-                return table;
-            });
-
-            t.setZone(zone);
-            t.setCapacite(capacite);
-            t.setOccupee(occupee);
-            t.setServeurId(serveur != null ? serveur.getId() : null);
-            t.setPlanX(planX);
-            t.setPlanY(planY);
-            t.setPlanForme(planForme);
-
-            if (occupee) {
-                t.setDateOccupation(timeService.now().minusMinutes(25));
-            } else {
-                t.setDateOccupation(null);
-                t.setDateLiberation(timeService.now().minusMinutes(45));
-            }
-
-            tablesMap.put(numero, tableRepository.save(t));
+            TableEntity table = createOrUpdateTableFromNode(tNode, usersMap);
+            tablesMap.put(table.getNumero(), table);
         }
         return tablesMap;
+    }
+
+    private TableEntity createOrUpdateTableFromNode(JsonNode tNode, Map<String, User> usersMap) {
+        int numero = tNode.get("numero").asInt();
+        String zone = tNode.get("zone").asText();
+        int capacite = tNode.get("capacite").asInt();
+        boolean occupee = tNode.get("occupee").asBoolean();
+        String serveurUsername = tNode.hasNonNull(KEY_SERVEUR_USERNAME) ? tNode.get(KEY_SERVEUR_USERNAME).asText() : null;
+        Double planX = tNode.get(PLAN_X).asDouble();
+        Double planY = tNode.get(PLAN_Y).asDouble();
+        String planForme = tNode.get("planForme").asText();
+        Double planWidth = tNode.hasNonNull(PLAN_WIDTH) ? tNode.get(PLAN_WIDTH).asDouble() : null;
+        Double planHeight = tNode.hasNonNull(PLAN_HEIGHT) ? tNode.get(PLAN_HEIGHT).asDouble() : null;
+        Double planRotation = tNode.hasNonNull("planRotation") ? tNode.get("planRotation").asDouble() : 0.0;
+
+        User serveur = serveurUsername != null ? usersMap.get(serveurUsername) : null;
+
+        TableEntity t = tableRepository.findByNumero(numero).orElseGet(() -> {
+            TableEntity table = new TableEntity();
+            table.setNumero(numero);
+            return table;
+        });
+
+        t.setZone(zone);
+        t.setCapacite(capacite);
+        t.setOccupee(occupee);
+        t.setServeurId(serveur != null ? serveur.getId() : null);
+        t.setPlanX(planX);
+        t.setPlanY(planY);
+        t.setPlanForme(planForme);
+        t.setPlanWidth(planWidth);
+        t.setPlanHeight(planHeight);
+        t.setPlanRotation(planRotation);
+
+        if (occupee) {
+            t.setDateOccupation(timeService.now().minusMinutes(25));
+        } else {
+            t.setDateOccupation(null);
+            t.setDateLiberation(timeService.now().minusMinutes(45));
+        }
+
+        return tableRepository.save(t);
     }
 
     private static final String TIME_16_00 = "16:00";

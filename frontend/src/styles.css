@@ -1211,3 +1211,24 @@ ion-alert button.alert-button[aria-label="Supprimer"] {
   background: var(--background-surface-1, #16192b);
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
 }
+
+/* Zone Manager & Floor Modals Styling */
+.zone-manager-modal-class {
+  --height: 600px;
+  --min-height: 480px;
+  --max-height: 85vh;
+  --width: 640px;
+  --max-width: 90vw;
+  --border-radius: 16px;
+}
+.zone-manager-modal-class::part(content) {
+  height: 600px;
+  min-height: 480px;
+  max-height: 85vh;
+  width: 640px;
+  max-width: 90vw;
+  border-radius: 16px;
+  border: 1px solid var(--border-medium, #2e3450);
+  background: var(--background-surface-1, #1a1a2e);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
+}

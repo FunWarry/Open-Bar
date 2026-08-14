@@ -35,12 +35,38 @@ describe('TableSidePanelComponent', () => {
     expect(component.startFusion.emit).toHaveBeenCalledWith(mockTable);
   });
 
-  it('should emit saveTable event with table', () => {
+  it('should emit saveTable event with table and position data', () => {
     const mockTable: TableBar = { id: 2, numero: 8, capacite: 2, occupee: true, zone: 'TERRASSE', createdAt: '', updatedAt: '' };
     component.table = mockTable;
+    component.position = { tableId: 2, x: 100, y: 100, width: 80, height: 80, rotation: 0, shape: 'rect', zone: 'TERRASSE' };
     spyOn(component.saveTable, 'emit');
 
     component.onSave();
-    expect(component.saveTable.emit).toHaveBeenCalledWith(mockTable);
+    expect(component.saveTable.emit).toHaveBeenCalledWith({
+      table: {
+        numero: 8,
+        capacite: 2,
+        zone: 'TERRASSE',
+      },
+      position: {
+        width: 80,
+        height: 80,
+        rotation: 0,
+        shape: 'rect',
+        zone: 'TERRASSE',
+      },
+    });
+  });
+
+  it('should emit liveUpdateTable when changing table shape to circle or oval', () => {
+    component.table = { id: 1, numero: 1, capacite: 4, occupee: false, zone: 'INTERIEUR', createdAt: '', updatedAt: '' };
+    component.position = { tableId: 1, x: 50, y: 50, width: 120, height: 80, rotation: 0, shape: 'rect' };
+    spyOn(component.liveUpdateTable, 'emit');
+
+    component.onChangeTableShape('circle');
+    expect(component.position.shape).toBe('circle');
+    expect(component.position.width).toBe(120);
+    expect(component.position.height).toBe(80);
+    expect(component.liveUpdateTable.emit).toHaveBeenCalled();
   });
 });

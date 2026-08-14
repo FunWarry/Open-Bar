@@ -6,7 +6,6 @@ import com.bar.gestioncocktail.model.EtageEntity;
 import com.bar.gestioncocktail.repository.EtageRepository;
 import com.bar.gestioncocktail.repository.ZoneRepository;
 import com.bar.gestioncocktail.model.ZoneEntity;
-import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,29 +35,6 @@ public class EtageService {
     }
 
     /**
-     * Seeding initial floor entries if the database table is empty.
-     */
-    @PostConstruct
-    @Transactional
-    public void initDefaultEtages() {
-        if (etageRepository.count() == 0) {
-            createInitialEtage("RDC", "Rez-de-chaussée (RDC)", 1);
-            createInitialEtage("ETAGE_1", "1er Étage", 2);
-            createInitialEtage("ETAGE_2", "2ème Étage", 3);
-            createInitialEtage("TERRASSE", "Terrasse / Extérieur", 4);
-            createInitialEtage("SOUS_SOL", "Sous-sol / Cave", 5);
-        }
-    }
-
-    private void createInitialEtage(String code, String nom, int ordre) {
-        EtageEntity entity = new EtageEntity();
-        entity.setCode(code);
-        entity.setNom(nom);
-        entity.setOrdre(ordre);
-        etageRepository.save(entity);
-    }
-
-    /**
      * Retrieves all floors ordered by display order.
      *
      * @return list of floor entities
@@ -77,6 +53,9 @@ public class EtageService {
      */
     @Transactional(readOnly = true)
     public EtageEntity getEtageById(Long id) {
+        if (id == null) {
+            throw new ResourceNotFoundException(ERROR_ETAGE_NOT_FOUND + null);
+        }
         return etageRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(ERROR_ETAGE_NOT_FOUND + id));
     }
@@ -117,6 +96,9 @@ public class EtageService {
      */
     @Transactional
     public EtageEntity updateEtage(Long id, String code, String nom, Integer ordre) {
+        if (id == null) {
+            throw new BusinessException("L'ID d'étage ne peut pas être null");
+        }
         EtageEntity existing = etageRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(ERROR_ETAGE_NOT_FOUND + id));
 
@@ -153,6 +135,9 @@ public class EtageService {
      */
     @Transactional
     public void deleteEtage(Long id) {
+        if (id == null) {
+            throw new BusinessException("L'ID d'étage ne peut pas être null");
+        }
         EtageEntity etage = etageRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(ERROR_ETAGE_NOT_FOUND + id));
 

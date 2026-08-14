@@ -320,7 +320,7 @@ Pour les fichiers scopés par feature (ex : `fr/commandes.json`), déclarer le s
 
 ## Features implémentées vs. manquantes
 
-> Dernière mise à jour : 11 août 2026 — PR #279 (#275) : Planning d'équipe & Gestion des Shifts par employé (Vues Manager & Employé, Modales de shifts, Fermetures, Presets, Duplication & STOMP)
+> Dernière mise à jour : 15 août 2026 — PR #297 (#291) : Alignement visuel et fonctionnel du plan 2D serveur (/serveur) avec /plan-salle, modes magnétisme bord-à-bord & snap-to-grid 50cm, timer d'attente centré, sélection multi-zones, isolation gestes tactiles/pull-to-refresh mobile, 100% CI passée (469 backend / 1212 frontend tests)
 
 | Feature | Backend | Frontend | Tests |
 |---------|---------|----------|-------|

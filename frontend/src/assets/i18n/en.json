@@ -47,31 +47,6 @@
     "LOGOUT": "Logout",
     "DASHBOARD": "Dashboard",
     "PLAN_SALLE": "Floor Plan",
-    "PLAN_SALLE_PAGE": {
-      "TITLE": "Interactive Floor Plan",
-      "SUBTITLE": "Real-time visual table and zone management",
-      "EDIT_MODE_ON": "Edit Mode Active — Drag & Drop tables to customize layout",
-      "EDIT_MODE_OFF": "Enable Edit Mode",
-      "SAVE_PLAN": "Save Floor Plan",
-      "UNSAVED_CHANGES": "Unsaved Changes",
-      "REFRESH": "Refresh",
-      "ALL_FLOORS": "All Floors",
-      "ALL_ZONES": "All Zones",
-      "STATUS": {
-        "LIBRE": "Available",
-        "OCCUPEE": "Occupied",
-        "PAYMENT_PENDING": "Payment Pending",
-        "RESERVEE": "Reserved"
-      },
-      "ACTIONS": {
-        "TAKE_ORDER": "Take Order",
-        "VIEW_DETAILS": "Details & Bill",
-        "TRANSFER_FUSION": "Transfer / Merge",
-        "TOGGLE_SHAPE": "Change Shape",
-        "ROTATE": "Rotate 90°",
-        "ADD_TABLE": "Add Table"
-      }
-    },
     "SERVEUR": "Order Taking",
     "BARMAN": "Bar Counter",
     "SOUND_ENABLE": "Enable sound",
@@ -110,6 +85,42 @@
       "NAVIGATION": "Navigation",
       "MANAGEMENT": "Management & Admin",
       "USER_PROFILE": "User profile"
+    }
+  },
+  "PLAN_SALLE_PAGE": {
+    "TITLE": "Floor Plan",
+    "SUBTITLE": "Table and zone management",
+    "UNSAVED_CHANGES": "Unsaved changes",
+    "REFRESH": "Refresh plan",
+    "EDIT_MODE_ON": "Exit Edit Mode",
+    "EDIT_MODE_OFF": "Edit Mode",
+    "SAVE_PLAN": "Save plan",
+    "FLOOR_LABEL": "Floor:",
+    "ZONE_LABEL": "Zone:",
+    "ALL_ZONES": "All zones",
+    "ALL_FLOORS": "All floors",
+    "FUSION_MODE_BANNER": "Merge Mode: Click target table to merge with Table #{{num}}",
+    "CANCEL": "Cancel",
+    "ZOOM_IN": "Zoom In (+)",
+    "ZOOM_OUT": "Zoom Out (-)",
+    "RESET_VIEW": "Reset view to default position",
+    "EDITOR_TOOLS": "Editor Tools",
+    "STATUS": {
+      "LIBRE": "Available",
+      "OCCUPEE": "Occupied",
+      "PAYMENT_PENDING": "Bill Requested",
+      "RESERVEE": "Reserved"
+    },
+    "ACTIONS": {
+      "TAKE_ORDER": "Take order",
+      "VIEW_DETAILS": "Details & Bill",
+      "TRANSFER_FUSION": "Transfer / Merge",
+      "TOGGLE_SHAPE": "Shape (Rect/Round)",
+      "ROTATE": "Rotate 90°",
+      "ADD_TABLE": "Add Table",
+      "DRAW_ZONE": "Draw Zone",
+      "SNAP_GRID": "Grid Snap (50 cm)",
+      "SNAP_MAGNET": "Magnet Snap"
     }
   },
   "ETABLISSEMENT": {
@@ -988,6 +999,46 @@
       "MODIFIED_SINCE": "Modified since",
       "DELETED_SINCE": "Deleted since"
     }
+  },
+  "TABLE_SIDE_PANEL": {
+    "ZONE_TITLE": "Zone: {{name}}",
+    "ZONE_CANVAS_BADGE": "Canvas Zone",
+    "ZONE_PROPERTIES": "ZONE PROPERTIES",
+    "ZONE_NAME_LABEL": "Zone Name:",
+    "ZONE_COLOR_LABEL": "Outline Color:",
+    "ZONE_SHAPE_LABEL": "Zone Shape:",
+    "SHAPE_RECT": "Rectangle",
+    "SHAPE_POLYGON": "Polygon",
+    "DIMENSIONS_AND_CORNER_RADII": "DIMENSIONS & CORNER RADII",
+    "WIDTH_PX": "Width (px):",
+    "HEIGHT_PX": "Height (px):",
+    "CORNER_RADII_LABEL": "Corner Radii (px):",
+    "CORNER_TOP_LEFT": "↖️ Top-L.",
+    "CORNER_TOP_RIGHT": "↗️ Top-R.",
+    "CORNER_BOTTOM_LEFT": "↙️ Bottom-L.",
+    "CORNER_BOTTOM_RIGHT": "↘️ Bottom-R.",
+    "POLYGON_VERTICES_HEADER": "POLYGON VERTICES & RADII",
+    "ADD_VERTEX_TOOLTIP": "Add a vertex",
+    "POLYGON_HINT": "Drag the white handles (vertices) and orange handles (radii) on the floor plan, or manage them below:",
+    "RADIUS_SHORT": "Radius:",
+    "DELETE_VERTEX_TOOLTIP": "Delete this vertex",
+    "SAVE_ZONE_BTN": "Save Zone",
+    "DELETE_ZONE_BTN": "Delete this Zone",
+    "TABLE_TITLE": "Table #{{numero}}",
+    "TABLE_PROPERTIES": "TABLE PROPERTIES",
+    "NUMBER_LABEL": "Number:",
+    "CAPACITY_LABEL": "Capacity (people):",
+    "ATTACHED_ZONE_LABEL": "Assigned Zone:",
+    "GEOMETRY_AND_DIMENSIONS": "GEOMETRY & DIMENSIONS",
+    "SHAPE_LABEL": "Shape:",
+    "SHAPE_RECTANGULAR": "Rectangular",
+    "SHAPE_CIRCULAR": "Circular",
+    "ROTATION_DEG": "Rotation (deg):",
+    "ROTATE_90_TOOLTIP": "Rotate +90°",
+    "ACTIONS_MANAGER": "MANAGER ACTIONS",
+    "SAVE_BTN": "Save",
+    "MERGE_BTN": "Merge",
+    "DELETE_TABLE_BTN": "Delete this table"
   }
 }
 

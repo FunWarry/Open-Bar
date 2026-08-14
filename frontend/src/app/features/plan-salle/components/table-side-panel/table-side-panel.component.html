@@ -1,45 +1,312 @@
-<div class="side-panel" [class.open]="isOpen" *ngIf="table">
-  <div class="side-panel__header">
-    <div class="title-group">
-      <h3>Table {{ table.numero }}</h3>
-      <ion-badge [color]="table.occupee ? 'warning' : 'success'">
-        {{ table.occupee ? 'Occupée' : 'Libre' }}
-      </ion-badge>
-    </div>
-    <ion-button fill="clear" (click)="onClose()" (keyup.enter)="onClose()">
-      <ion-icon name="close-outline"></ion-icon>
-    </ion-button>
-  </div>
-
-  <div class="side-panel__content">
-    <!-- Infos Générales -->
-    <div class="info-section">
-      <h4>DÉTAILS</h4>
-      <div class="field-row">
-        <label for="panel-zone-input">Zone :</label>
-        <input id="panel-zone-input" type="text" [(ngModel)]="table.zone" class="dark-input" />
+<div class="side-panel" [class.open]="isOpen" data-testid="table-side-panel">
+  <!-- ZONE AREA EDITOR -->
+  <ng-container *ngIf="selectedZoneArea">
+    <div class="side-panel__header">
+      <div class="title-group">
+        <h3>{{ 'TABLE_SIDE_PANEL.ZONE_TITLE' | transloco: { name: selectedZoneArea.nom } }}</h3>
+        <ion-badge color="primary">{{ (selectedZoneArea.shapeType === 'polygon' ? 'TABLE_SIDE_PANEL.SHAPE_POLYGON' : 'TABLE_SIDE_PANEL.SHAPE_RECT') | transloco }}</ion-badge>
       </div>
-      <div class="field-row">
-        <label for="panel-capacite-input">Capacité :</label>
-        <input id="panel-capacite-input" type="number" [(ngModel)]="table.capacite" class="dark-input" min="1" />
-      </div>
-      <div class="field-row">
-        <span class="field-label">Statut :</span>
-        <span>{{ table.occupee ? 'Occupée' : 'Disponible' }}</span>
-      </div>
+      <ion-button fill="clear" (click)="onClose()" (keyup.enter)="onClose()" data-testid="btn-close-zone-panel">
+        <ion-icon name="close-outline"></ion-icon>
+      </ion-button>
     </div>
 
-    <!-- Actions rapides -->
-    <div class="actions-section">
-      <h4>ACTIONS MANAGER</h4>
-      <div class="buttons-grid">
-        <app-action-button variant="secondary" icon="git-merge-outline" (btnClick)="onStartFusion()">
-          Fusionner
+    <div class="side-panel__content">
+      <div class="info-section">
+        <h4>{{ 'TABLE_SIDE_PANEL.ZONE_PROPERTIES' | transloco }}</h4>
+
+        <div class="field-row">
+          <label for="zone-nom-input">{{ 'TABLE_SIDE_PANEL.ZONE_NAME_LABEL' | transloco }}</label>
+          <input id="zone-nom-input" type="text" [(ngModel)]="selectedZoneArea.nom" (ngModelChange)="onLiveZoneChange()" class="dark-input" data-testid="input-zone-nom" />
+        </div>
+
+        <div class="field-row">
+          <span class="field-label">{{ 'TABLE_SIDE_PANEL.ZONE_COLOR_LABEL' | transloco }}</span>
+          <div class="color-palette">
+            <button
+              *ngFor="let c of availableColors"
+              type="button"
+              class="color-dot"
+              [style.background]="c.hex"
+              [class.active]="selectedZoneArea.couleur === c.hex"
+              (click)="selectedZoneArea.couleur = c.hex; onLiveZoneChange()"
+              [title]="c.label">
+            </button>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <span class="field-label">{{ 'TABLE_SIDE_PANEL.ZONE_SHAPE_LABEL' | transloco }}</span>
+          <div class="shape-selector-group">
+            <button
+              type="button"
+              class="shape-chip-btn"
+              [class.active]="(selectedZoneArea.shapeType || 'rect') === 'rect'"
+              (click)="onChangeZoneShape('rect')">
+              {{ 'TABLE_SIDE_PANEL.SHAPE_RECT' | transloco }}
+            </button>
+            <button
+              type="button"
+              class="shape-chip-btn"
+              [class.active]="selectedZoneArea.shapeType === 'polygon'"
+              (click)="onChangeZoneShape('polygon')">
+              {{ 'TABLE_SIDE_PANEL.SHAPE_POLYGON' | transloco }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section Dimensions & Coins Indépendants -->
+      <div class="info-section">
+        <h4>{{ 'TABLE_SIDE_PANEL.DIMENSIONS_AND_CORNER_RADII' | transloco }}</h4>
+
+        <div class="field-row">
+          <label for="zone-width-input">{{ 'TABLE_SIDE_PANEL.WIDTH_PX' | transloco }}</label>
+          <input id="zone-width-input" type="number" [(ngModel)]="selectedZoneArea.width" (ngModelChange)="onLiveZoneChange()" class="dark-input" min="80" max="1400" step="20" data-testid="input-zone-width" />
+        </div>
+
+        <div class="field-row">
+          <label for="zone-height-input">{{ 'TABLE_SIDE_PANEL.HEIGHT_PX' | transloco }}</label>
+          <input id="zone-height-input" type="number" [(ngModel)]="selectedZoneArea.height" (ngModelChange)="onLiveZoneChange()" class="dark-input" min="80" max="1200" step="20" data-testid="input-zone-height" />
+        </div>
+
+        <!-- 4 Radius d'angles indépendants pour Rectangle uniquement -->
+        <ng-container *ngIf="(selectedZoneArea.shapeType || 'rect') === 'rect'">
+          <div class="corner-radii-title">
+            <span>{{ 'TABLE_SIDE_PANEL.CORNER_RADII_LABEL' | transloco }}</span>
+          </div>
+          <div class="radii-grid">
+            <div class="radius-field">
+              <label for="radius-top-left-input" class="radius-label">{{ 'TABLE_SIDE_PANEL.CORNER_TOP_LEFT' | transloco }}</label>
+              <input id="radius-top-left-input" type="number" [(ngModel)]="cornerRadii[0]" (ngModelChange)="setCornerRadius(0, cornerRadii[0])" class="dark-input num-sm" min="0" max="100" />
+            </div>
+            <div class="radius-field">
+              <label for="radius-top-right-input" class="radius-label">{{ 'TABLE_SIDE_PANEL.CORNER_TOP_RIGHT' | transloco }}</label>
+              <input id="radius-top-right-input" type="number" [(ngModel)]="cornerRadii[1]" (ngModelChange)="setCornerRadius(1, cornerRadii[1])" class="dark-input num-sm" min="0" max="100" />
+            </div>
+            <div class="radius-field">
+              <label for="radius-bottom-left-input" class="radius-label">{{ 'TABLE_SIDE_PANEL.CORNER_BOTTOM_LEFT' | transloco }}</label>
+              <input id="radius-bottom-left-input" type="number" [(ngModel)]="cornerRadii[3]" (ngModelChange)="setCornerRadius(3, cornerRadii[3])" class="dark-input num-sm" min="0" max="100" />
+            </div>
+            <div class="radius-field">
+              <label for="radius-bottom-right-input" class="radius-label">{{ 'TABLE_SIDE_PANEL.CORNER_BOTTOM_RIGHT' | transloco }}</label>
+              <input id="radius-bottom-right-input" type="number" [(ngModel)]="cornerRadii[2]" (ngModelChange)="setCornerRadius(2, cornerRadii[2])" class="dark-input num-sm" min="0" max="100" />
+            </div>
+          </div>
+        </ng-container>
+      </div>
+
+      <!-- Section Sommets Polygone sur mesure -->
+      <div class="info-section" *ngIf="selectedZoneArea.shapeType === 'polygon'">
+        <div class="section-header-row">
+          <h4>{{ 'TABLE_SIDE_PANEL.POLYGON_VERTICES_HEADER' | transloco }}</h4>
+          <button type="button" class="icon-tool-btn add-vertex-btn" (click)="addPolygonVertex()" [title]="'TABLE_SIDE_PANEL.ADD_VERTEX_TOOLTIP' | transloco">
+            <ion-icon name="add-outline"></ion-icon>
+            <span>Ajouter</span>
+          </button>
+        </div>
+        <p class="section-hint">{{ 'TABLE_SIDE_PANEL.POLYGON_HINT' | transloco }}</p>
+
+        <div class="vertex-list">
+          <div *ngFor="let pt of polygonVertices; let i = index; trackBy: trackByIndex" class="vertex-card">
+            <div class="vertex-card__header">
+              <div class="vertex-card__title">
+                <span class="vertex-dot"></span>
+                <span class="vertex-label">Sommet P{{ i + 1 }}</span>
+              </div>
+              <button
+                type="button"
+                class="vertex-del-btn"
+                (click)="removePolygonVertex(i)"
+                [title]="'TABLE_SIDE_PANEL.DELETE_VERTEX_TOOLTIP' | transloco"
+                [disabled]="(selectedZoneArea.points?.length || 0) <= 6"
+                data-testid="btn-delete-vertex">
+                <ion-icon name="trash-outline"></ion-icon>
+              </button>
+            </div>
+
+            <div class="vertex-card__fields">
+              <div class="coord-field">
+                <label [for]="'vertex-x-' + i">X</label>
+                <div class="input-with-unit">
+                  <input
+                    [id]="'vertex-x-' + i"
+                    type="number"
+                    [(ngModel)]="pt.x"
+                    (ngModelChange)="updatePolygonVertex(i, pt.x, pt.y)"
+                    class="coord-input" />
+                  <span class="unit">px</span>
+                </div>
+              </div>
+
+              <div class="coord-field">
+                <label [for]="'vertex-y-' + i">Y</label>
+                <div class="input-with-unit">
+                  <input
+                    [id]="'vertex-y-' + i"
+                    type="number"
+                    [(ngModel)]="pt.y"
+                    (ngModelChange)="updatePolygonVertex(i, pt.x, pt.y)"
+                    class="coord-input" />
+                  <span class="unit">px</span>
+                </div>
+              </div>
+
+              <div class="coord-field">
+                <label [for]="'vertex-r-' + i">Radius</label>
+                <div class="input-with-unit">
+                  <input
+                    [id]="'vertex-r-' + i"
+                    type="number"
+                    [ngModel]="getVertexRadius(i)"
+                    (ngModelChange)="setVertexRadius(i, $event)"
+                    class="coord-input"
+                    min="0"
+                    max="100" />
+                  <span class="unit">px</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions-section">
+        <app-action-button variant="primary" icon="save-outline" (btnClick)="onSaveZoneArea()" data-testid="btn-save-zone-area">
+          {{ 'TABLE_SIDE_PANEL.SAVE_ZONE_BTN' | transloco }}
         </app-action-button>
-        <app-action-button variant="primary" icon="save-outline" (btnClick)="onSave()">
-          Enregistrer
-        </app-action-button>
+
+        <button *ngIf="isEditMode" type="button" class="delete-danger-btn" (click)="onDeleteZoneArea()" data-testid="btn-delete-zone-area">
+          <ion-icon name="trash-outline"></ion-icon>
+          <span>{{ 'TABLE_SIDE_PANEL.DELETE_ZONE_BTN' | transloco }}</span>
+        </button>
       </div>
     </div>
-  </div>
+  </ng-container>
+
+  <!-- TABLE EDITOR -->
+  <ng-container *ngIf="table && !selectedZoneArea">
+    <div class="side-panel__header">
+      <div class="title-group">
+        <h3>{{ 'TABLE_SIDE_PANEL.TABLE_TITLE' | transloco: { numero: table.numero } }}</h3>
+        <ion-badge [color]="table.reservee ? 'tertiary' : (table.occupee ? 'danger' : 'success')">
+          {{ (table.reservee ? 'PLAN_SALLE_PAGE.STATUS.RESERVEE' : (table.occupee ? 'PLAN_SALLE_PAGE.STATUS.OCCUPEE' : 'PLAN_SALLE_PAGE.STATUS.LIBRE')) | transloco }}
+        </ion-badge>
+      </div>
+      <ion-button fill="clear" (click)="onClose()" (keyup.enter)="onClose()" data-testid="btn-close-side-panel">
+        <ion-icon name="close-outline"></ion-icon>
+      </ion-button>
+    </div>
+
+    <div class="side-panel__content">
+      <!-- Section 1 : Propriétés générales -->
+      <div class="info-section">
+        <h4>{{ 'TABLE_SIDE_PANEL.TABLE_PROPERTIES' | transloco }}</h4>
+
+        <div class="field-row">
+          <label for="panel-numero-input">{{ 'TABLE_SIDE_PANEL.NUMBER_LABEL' | transloco }}</label>
+          <input id="panel-numero-input" type="number" [(ngModel)]="table.numero" (ngModelChange)="onLiveTableChange()" class="dark-input" min="1" data-testid="input-table-numero" />
+        </div>
+
+        <div class="field-row">
+          <label for="panel-capacite-input">{{ 'TABLE_SIDE_PANEL.CAPACITY_LABEL' | transloco }}</label>
+          <input id="panel-capacite-input" type="number" [(ngModel)]="table.capacite" (ngModelChange)="onLiveTableChange()" class="dark-input" min="1" max="30" data-testid="input-table-capacite" />
+        </div>
+
+        <div class="field-row">
+          <span class="field-label">{{ 'TABLE_SIDE_PANEL.ATTACHED_ZONE_LABEL' | transloco }}</span>
+          <div class="custom-dropdown-container">
+            <button
+              type="button"
+              class="custom-dropdown-trigger"
+              [class.open]="isZoneDropdownOpen"
+              (click)="toggleZoneDropdown($event)"
+              data-testid="select-table-zone">
+              <span class="selected-val">{{ table.zone || 'INTERIEUR' }}</span>
+              <ion-icon [name]="isZoneDropdownOpen ? 'chevron-up-outline' : 'chevron-down-outline'" class="arrow-icon"></ion-icon>
+            </button>
+
+            <div *ngIf="isZoneDropdownOpen" class="custom-dropdown-popover">
+              <button
+                *ngFor="let z of availableZones"
+                type="button"
+                class="dropdown-option-btn"
+                [class.active]="table.zone === z.nom"
+                (click)="selectZoneOption(z.nom)">
+                <span>{{ z.nom }}</span>
+                <ion-icon *ngIf="table.zone === z.nom" name="checkmark-outline" class="check-icon"></ion-icon>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 2 : Géométrie & Dimensions (Mode Édition uniquement) -->
+      <div class="info-section" *ngIf="position && isEditMode">
+        <h4>{{ 'TABLE_SIDE_PANEL.GEOMETRY_AND_DIMENSIONS' | transloco }}</h4>
+
+        <div class="field-row">
+          <span class="field-label">{{ 'TABLE_SIDE_PANEL.SHAPE_LABEL' | transloco }}</span>
+          <div class="shape-selector-group">
+            <button
+              type="button"
+              class="shape-chip-btn"
+              [class.active]="(position.shape || 'rect') === 'rect'"
+              (click)="onChangeTableShape('rect')"
+              data-testid="btn-panel-shape-rect">
+              <ion-icon name="square-outline"></ion-icon>
+              <span>{{ 'TABLE_SIDE_PANEL.SHAPE_RECTANGULAR' | transloco }}</span>
+            </button>
+            <button
+              type="button"
+              class="shape-chip-btn"
+              [class.active]="position.shape === 'circle'"
+              (click)="onChangeTableShape('circle')"
+              data-testid="btn-panel-shape-circle">
+              <ion-icon name="ellipse-outline"></ion-icon>
+              <span>{{ 'TABLE_SIDE_PANEL.SHAPE_CIRCULAR' | transloco }}</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <label for="panel-width-input">{{ 'TABLE_SIDE_PANEL.WIDTH_PX' | transloco }}</label>
+          <input id="panel-width-input" type="number" [(ngModel)]="position.width" (ngModelChange)="onLiveTableChange()" class="dark-input" min="40" max="400" step="10" data-testid="input-table-width" />
+        </div>
+
+        <div class="field-row">
+          <label for="panel-height-input">{{ 'TABLE_SIDE_PANEL.HEIGHT_PX' | transloco }}</label>
+          <input id="panel-height-input" type="number" [(ngModel)]="position.height" (ngModelChange)="onLiveTableChange()" class="dark-input" min="40" max="400" step="10" data-testid="input-table-height" />
+        </div>
+
+        <div class="field-row">
+          <label for="panel-rotation-input">{{ 'TABLE_SIDE_PANEL.ROTATION_DEG' | transloco }}</label>
+          <div class="rotation-group">
+            <input id="panel-rotation-input" type="number" [(ngModel)]="position.rotation" (ngModelChange)="onLiveTableChange()" class="dark-input" min="0" max="359" data-testid="input-table-rotation" />
+            <button type="button" class="icon-tool-btn" (click)="onRotate90()" [title]="'TABLE_SIDE_PANEL.ROTATE_90_TOOLTIP' | transloco" data-testid="btn-panel-rotate90">
+              <ion-icon name="refresh-outline"></ion-icon>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 3 : Actions Manager -->
+      <div class="actions-section">
+        <h4>{{ 'TABLE_SIDE_PANEL.ACTIONS_MANAGER' | transloco }}</h4>
+        <div class="buttons-grid">
+          <app-action-button variant="primary" icon="save-outline" (btnClick)="onSave()" data-testid="btn-panel-save">
+            {{ 'TABLE_SIDE_PANEL.SAVE_BTN' | transloco }}
+          </app-action-button>
+          <app-action-button variant="secondary" icon="git-merge-outline" (btnClick)="onStartFusion()" data-testid="btn-panel-fusion">
+            {{ 'TABLE_SIDE_PANEL.MERGE_BTN' | transloco }}
+          </app-action-button>
+        </div>
+
+        <button *ngIf="isEditMode" type="button" class="delete-danger-btn" (click)="onDeleteTable()" data-testid="btn-panel-delete">
+          <ion-icon name="trash-outline"></ion-icon>
+          <span>{{ 'TABLE_SIDE_PANEL.DELETE_TABLE_BTN' | transloco }}</span>
+        </button>
+      </div>
+    </div>
+  </ng-container>
 </div>

@@ -58,3 +58,4 @@ frontend/coverage
 /qodana.sarif.json
 /uploads/
 /backend/uploads/
+.gemini/
