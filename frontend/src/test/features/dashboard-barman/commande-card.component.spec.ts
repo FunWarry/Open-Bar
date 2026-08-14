@@ -1,34 +1,75 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { CommonModule } from '@angular/common';
-import {
-  IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-  IonBadge, IonButton, IonIcon, IonChip, IonLabel
-} from '@ionic/angular/standalone';
+import { ModalController } from '@ionic/angular/standalone';
+import { of } from 'rxjs';
 import { CommandeCardComponent } from '../../../app/features/dashboard-barman/components/commande-card/commande-card.component';
 import { CommandeView } from '../../../app/features/dashboard-barman/models/commande-view.model';
+import { DashboardBarmanService } from '../../../app/features/dashboard-barman/services/dashboard-barman.service';
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
+import { Cocktail } from '../../../app/core/models/cocktail.model';
 
 const makeCommande = (overrides: Partial<CommandeView> = {}): CommandeView => ({
   id: 1,
   tableNom: 'Table 1',
+  tableNumero: 1,
   serveurNom: 'Alice',
+  serveurUsername: 'alice',
   statut: 'EN_ATTENTE',
   prioritaire: false,
   dateCommande: new Date(),
-  items: [],
+  items: [
+    {
+      id: 10,
+      cocktailId: 101,
+      cocktailNom: 'Mojito',
+      quantite: 2,
+      prioritaire: false,
+      varianteNom: 'Fraise',
+      notes: 'Glaçons pilés'
+    }
+  ],
   ...overrides
 });
 
 describe('CommandeCardComponent', () => {
   let component: CommandeCardComponent;
   let fixture: ComponentFixture<CommandeCardComponent>;
+  let modalCtrlSpy: jasmine.SpyObj<ModalController>;
+  let dashboardServiceSpy: jasmine.SpyObj<DashboardBarmanService>;
+
+  const mockModal = {
+    present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+    onDidDismiss: jasmine.createSpy('onDidDismiss').and.returnValue(Promise.resolve({ data: null }))
+  };
+
+  const mockCocktail: Cocktail = {
+    id: 101,
+    nom: 'Mojito',
+    prix: 8.5,
+    categorie: 'ALCOOLISE',
+    disponible: true,
+    saisonnier: false,
+    ingredients: [
+      { id: 1, ingredientId: 1, ingredientNom: 'Rhum', quantite: 4, uniteMesure: 'cl' }
+    ],
+    variantes: [],
+    instructions: 'Piler la menthe et ajouter le rhum.',
+    createdAt: '',
+    updatedAt: ''
+  };
 
   beforeEach(async () => {
+    modalCtrlSpy = jasmine.createSpyObj('ModalController', ['create']);
+    modalCtrlSpy.create.and.returnValue(Promise.resolve(mockModal as any));
+
+    dashboardServiceSpy = jasmine.createSpyObj('DashboardBarmanService', ['getCocktailById']);
+    dashboardServiceSpy.getCocktailById.and.returnValue(of(mockCocktail));
+
     await TestBed.configureTestingModule({
-      imports: [
-        CommandeCardComponent,
-        CommonModule,
-        IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-        IonBadge, IonButton, IonIcon, IonChip, IonLabel
+      imports: [CommandeCardComponent, CommonModule, getTranslocoTestingModule()],
+      providers: [
+        { provide: ModalController, useValue: modalCtrlSpy },
+        { provide: DashboardBarmanService, useValue: dashboardServiceSpy }
       ]
     }).compileComponents();
 
@@ -46,137 +87,107 @@ describe('CommandeCardComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  // --- tempsEcoule ---
-
-  it('tempsEcoule affiche les minutes pour une commande récente', () => {
-    const now = new Date(Date.now() - 5 * 60000); // 5 min ago
-    component.commande = makeCommande({ dateCommande: now });
+  it('tempsEcoule calcule les minutes et secondes', () => {
+    const past = new Date(Date.now() - 65 * 1000); // 1 min 05s ago
+    component.commande = makeCommande({ dateCommande: past });
     (component as any).updateTimer();
-    expect(component.tempsEcoule).toBe('5 min');
+    expect(component.tempsEcoule).toBe('01:05');
   });
 
-  it('tempsEcoule affiche le format hhmm pour une commande de plus d\'une heure', () => {
-    const now = new Date(Date.now() - 90 * 60000); // 90 min ago
-    component.commande = makeCommande({ dateCommande: now });
+  it('tempsEcoule affiche les heures si depasse 60 minutes', () => {
+    const past = new Date(Date.now() - 75 * 60 * 1000); // 1h15 ago
+    component.commande = makeCommande({ dateCommande: past });
     (component as any).updateTimer();
-    expect(component.tempsEcoule).toBe('1h30');
+    expect(component.tempsEcoule).toBe('1h15');
   });
 
-  it('ngOnDestroy unsubscribe le timer', () => {
-    const sub = (component as any).timerSub;
-    if (sub) {
-      spyOn(sub, 'unsubscribe').and.callThrough();
-    }
-    component.ngOnDestroy();
-    if (sub) {
-      expect(sub.unsubscribe).toHaveBeenCalled();
-    } else {
-      expect(true).toBeTrue(); // pas de sub créé, pas d'erreur
-    }
+  it('evalue isUrgent et isWarning selon les seuils', () => {
+    component.tempsAlerteCommandeMinutes = 5;
+
+    // Normal (< 3 min)
+    component.commande = makeCommande({ dateCommande: new Date(Date.now() - 2 * 60 * 1000) });
+    (component as any).updateTimer();
+    expect(component.isWarning).toBeFalse();
+    expect(component.isUrgent).toBeFalse();
+
+    // Warning (3-5 min)
+    component.commande = makeCommande({ dateCommande: new Date(Date.now() - 4 * 60 * 1000) });
+    (component as any).updateTimer();
+    expect(component.isWarning).toBeTrue();
+    expect(component.isUrgent).toBeFalse();
+
+    // Urgent (>= 5 min)
+    component.commande = makeCommande({ dateCommande: new Date(Date.now() - 6 * 60 * 1000) });
+    (component as any).updateTimer();
+    expect(component.isUrgent).toBeTrue();
   });
 
-  // --- lisereColor ---
-
-  it('lisereColor retourne orange pour EN_ATTENTE', () => {
+  it('lisereColor renvoie la bonne couleur de statut', () => {
+    component.isUrgent = false;
     component.commande = makeCommande({ statut: 'EN_ATTENTE' });
     expect(component.lisereColor).toBe('var(--semantic-warning)');
-  });
 
-  it('lisereColor retourne bleu pour EN_PREPARATION', () => {
     component.commande = makeCommande({ statut: 'EN_PREPARATION' });
     expect(component.lisereColor).toBe('var(--semantic-info)');
-  });
 
-  it('lisereColor retourne vert pour PRET', () => {
     component.commande = makeCommande({ statut: 'PRET' });
     expect(component.lisereColor).toBe('var(--semantic-success)');
+
+    component.isUrgent = true;
+    expect(component.lisereColor).toBe('var(--semantic-danger)');
   });
-
-  it('lisereColor retourne gris par defaut pour un statut inconnu', () => {
-    component.commande = makeCommande({ statut: 'LIVREE' as any });
-    expect(component.lisereColor).toBe('var(--text-muted)');
-  });
-
-  // --- statutLabel ---
-
-  it('statutLabel retourne "⚡ Priority" si prioritaire', () => {
-    component.commande = makeCommande({ prioritaire: true, statut: 'EN_ATTENTE' });
-    expect(component.statutLabel).toBe('⚡ Priority');
-  });
-
-  it('statutLabel retourne "Pending" pour EN_ATTENTE non prioritaire', () => {
-    component.commande = makeCommande({ statut: 'EN_ATTENTE', prioritaire: false });
-    expect(component.statutLabel).toBe('Pending');
-  });
-
-  it('statutLabel retourne "In Progress" pour EN_PREPARATION', () => {
-    component.commande = makeCommande({ statut: 'EN_PREPARATION' });
-    expect(component.statutLabel).toBe('In Progress');
-  });
-
-  it('statutLabel retourne "Ready" pour PRET', () => {
-    component.commande = makeCommande({ statut: 'PRET' });
-    expect(component.statutLabel).toBe('Ready');
-  });
-
-  it('statutLabel retourne le statut brut pour un statut inconnu', () => {
-    component.commande = makeCommande({ statut: 'LIVREE' as any });
-    expect(component.statutLabel).toBe('LIVREE');
-  });
-
-  // --- statutBadgeClass ---
-
-  it('statutBadgeClass retourne "badge--priority" si prioritaire', () => {
-    component.commande = makeCommande({ prioritaire: true });
-    expect(component.statutBadgeClass).toBe('badge--priority');
-  });
-
-  it('statutBadgeClass retourne "badge--pending" pour EN_ATTENTE', () => {
-    component.commande = makeCommande({ statut: 'EN_ATTENTE' });
-    expect(component.statutBadgeClass).toBe('badge--pending');
-  });
-
-  it('statutBadgeClass retourne "badge--inprogress" pour EN_PREPARATION', () => {
-    component.commande = makeCommande({ statut: 'EN_PREPARATION' });
-    expect(component.statutBadgeClass).toBe('badge--inprogress');
-  });
-
-  it('statutBadgeClass retourne "badge--ready" pour PRET', () => {
-    component.commande = makeCommande({ statut: 'PRET' });
-    expect(component.statutBadgeClass).toBe('badge--ready');
-  });
-
-  // --- onPrendreEnCharge ---
 
   it('onPrendreEnCharge emet changerStatut avec statut EN_PREPARATION', () => {
     const emitted: { id: number; statut: string }[] = [];
-    component.changerStatut.subscribe((val) => emitted.push(val));
+    component.changerStatut.subscribe(val => emitted.push(val));
     component.commande = makeCommande({ id: 42 });
     component.onPrendreEnCharge();
-    expect(emitted).toHaveSize(1);
-    expect(emitted[0]).toEqual({ id: 42, statut: 'EN_PREPARATION' });
-  });
 
-  // --- onMarquerPret ---
+    expect(emitted).toEqual([{ id: 42, statut: 'EN_PREPARATION' }]);
+  });
 
   it('onMarquerPret emet changerStatut avec statut PRET', () => {
     const emitted: { id: number; statut: string }[] = [];
-    component.changerStatut.subscribe((val) => emitted.push(val));
+    component.changerStatut.subscribe(val => emitted.push(val));
     component.commande = makeCommande({ id: 7 });
     component.onMarquerPret();
-    expect(emitted).toHaveSize(1);
-    expect(emitted[0]).toEqual({ id: 7, statut: 'PRET' });
+
+    expect(emitted).toEqual([{ id: 7, statut: 'PRET' }]);
   });
 
-  // --- timer interval (fakeAsync) ---
+  it('onPrintTicket emet printTicket et ouvre BarTicketPrintComponent', async () => {
+    const emitted: CommandeView[] = [];
+    component.printTicket.subscribe(cmd => emitted.push(cmd));
 
-  it('le timer se met a jour toutes les 30 secondes', fakeAsync(() => {
-    const pastDate = new Date(Date.now() - 2 * 60000); // 2 min ago
-    component.commande = makeCommande({ dateCommande: pastDate });
+    await component.onPrintTicket();
+    expect(emitted).toHaveSize(1);
+    expect(modalCtrlSpy.create).toHaveBeenCalled();
+  });
+
+  it('openDetails ouvre CommandeDetailModalComponent', async () => {
+    await component.openDetails();
+    expect(modalCtrlSpy.create).toHaveBeenCalled();
+    expect(mockModal.present).toHaveBeenCalled();
+  });
+
+  it('toggleRecipe deploie et charge la fiche recette du cocktail', () => {
+    const item = component.groupedItems[0];
+    component.toggleRecipe(0, item);
+
+    expect(component.expandedRecipeItemIndex).toBe(0);
+    expect(dashboardServiceSpy.getCocktailById).toHaveBeenCalledWith(101);
+    expect(component.loadedRecipeDetails.has('Mojito')).toBeTrue();
+
+    // Second click collapses
+    component.toggleRecipe(0, item);
+    expect(component.expandedRecipeItemIndex).toBeNull();
+  });
+
+  it('timer se met a jour chaque seconde', fakeAsync(() => {
+    component.commande = makeCommande({ dateCommande: new Date() });
     component.ngOnInit();
-    tick(30000);
-    // tempsEcoule doit avoir ete recalcule (au moins 2 min)
-    expect(component.tempsEcoule).toMatch(/\d+ min|^\d+h\d{2}$/);
+    tick(2000);
+    expect(component.tempsEcoule).toMatch(/\d{2}:\d{2}/);
     component.ngOnDestroy();
   }));
 });

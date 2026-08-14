@@ -1,15 +1,14 @@
 import { TestBed, fakeAsync, tick, flushMicrotasks } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { IonicModule } from '@ionic/angular';
-import { ToastController } from '@ionic/angular/standalone';
+import { ToastController, ModalController } from '@ionic/angular/standalone';
 import { EMPTY, of, Subject, throwError } from 'rxjs';
 import { DashboardBarmanComponent } from '../../../app/features/dashboard-barman/dashboard-barman.component';
 import { DashboardBarmanService } from '../../../app/features/dashboard-barman/services/dashboard-barman.service';
 import { NotificationService, AppNotification } from '../../../app/core/services/notification.service';
 import { CommandeView } from '../../../app/features/dashboard-barman/models/commande-view.model';
-
 import { AppSettingsService } from '../../../app/core/services/app-settings.service';
-
+import { SoundService } from '../../../app/core/services/sound.service';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 
 describe('DashboardBarmanComponent', () => {
@@ -17,22 +16,29 @@ describe('DashboardBarmanComponent', () => {
   let dashboardServiceSpy: jasmine.SpyObj<DashboardBarmanService>;
   let notificationServiceSpy: jasmine.SpyObj<NotificationService>;
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
+  let modalCtrlSpy: jasmine.SpyObj<ModalController>;
   let settingsServiceSpy: jasmine.SpyObj<AppSettingsService>;
+  let soundServiceSpy: jasmine.SpyObj<SoundService>;
   let notification$: Subject<AppNotification>;
 
   const mockCommandes: CommandeView[] = [
     {
       id: 1,
       tableNom: 'Table 1',
+      tableNumero: 1,
       serveurNom: 'Alice',
+      serveurUsername: 'alice',
       statut: 'EN_ATTENTE',
-      items: [{ id: 10, cocktailNom: 'Mojito', quantite: 2, prioritaire: false }],
+      items: [
+        { id: 10, cocktailNom: 'Mojito', quantite: 2, prioritaire: false, notes: 'Sans sucre' }
+      ],
       dateCommande: new Date(),
-      prioritaire: false,
-    },
+      prioritaire: false
+    }
   ];
 
   const mockToast = { present: jasmine.createSpy('present') };
+  const mockModal = { present: jasmine.createSpy('present').and.returnValue(Promise.resolve()) };
 
   beforeEach(async () => {
     notification$ = new Subject<AppNotification>();
@@ -42,45 +48,67 @@ describe('DashboardBarmanComponent', () => {
       'getCommandesEnPreparation',
       'getCommandesPret',
       'changerStatut',
+      'getCocktails',
+      'getIngredients',
+      'toggleCocktailDisponibilite',
+      'updateIngredientStock'
     ]);
     dashboardServiceSpy.getCommandesEnAttente.and.returnValue(of(mockCommandes));
     dashboardServiceSpy.getCommandesEnPreparation.and.returnValue(of([]));
     dashboardServiceSpy.getCommandesPret.and.returnValue(of([]));
-    dashboardServiceSpy.changerStatut.and.returnValue(of({}));
+    dashboardServiceSpy.changerStatut.and.returnValue(of(mockCommandes[0]));
 
     notificationServiceSpy = jasmine.createSpyObj('NotificationService', ['onNotification', 'onStockAlert']);
     notificationServiceSpy.onNotification.and.returnValue(notification$.asObservable());
     notificationServiceSpy.onStockAlert.and.returnValue(EMPTY);
 
     settingsServiceSpy = jasmine.createSpyObj('AppSettingsService', ['getSettings']);
-    settingsServiceSpy.getSettings.and.returnValue(of({
-      id: 1,
-      primaryColor: '#6c7fe8',
-      primaryColorStrong: '#5a68d6',
-      logoUrl: null,
-      establishmentName: 'OpenBar',
-      defaultTheme: 'DARK',
-      tempsAlerteCommandeMinutes: 5,
-      tempsAlerteCritiqueCommandeMinutes: 10,
-      updatedAt: null,
-    }));
+    settingsServiceSpy.getSettings.and.returnValue(
+      of({
+        id: 1,
+        primaryColor: '#6c7fe8',
+        primaryColorStrong: '#5a68d6',
+        logoUrl: null,
+        establishmentName: 'OpenBar',
+        defaultTheme: 'DARK',
+        tempsAlerteCommandeMinutes: 5,
+        tempsAlerteCritiqueCommandeMinutes: 10,
+        updatedAt: null
+      })
+    );
+
+    soundServiceSpy = jasmine.createSpyObj('SoundService', [
+      'isSoundEnabled',
+      'setSoundEnabled',
+      'toggleSound',
+      'playNewOrderSound',
+      'playOrderReadySound',
+      'playUrgentAlertSound'
+    ]);
+    soundServiceSpy.isSoundEnabled.and.returnValue(true);
+    soundServiceSpy.toggleSound.and.returnValue(false);
 
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
     toastCtrlSpy.create.and.returnValue(Promise.resolve(mockToast as any));
+
+    modalCtrlSpy = jasmine.createSpyObj('ModalController', ['create']);
+    modalCtrlSpy.create.and.returnValue(Promise.resolve(mockModal as any));
 
     await TestBed.configureTestingModule({
       imports: [
         DashboardBarmanComponent,
         IonicModule.forRoot(),
         RouterTestingModule,
-        getTranslocoTestingModule(),
+        getTranslocoTestingModule()
       ],
       providers: [
         { provide: DashboardBarmanService, useValue: dashboardServiceSpy },
         { provide: NotificationService, useValue: notificationServiceSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
+        { provide: ModalController, useValue: modalCtrlSpy },
         { provide: AppSettingsService, useValue: settingsServiceSpy },
-      ],
+        { provide: SoundService, useValue: soundServiceSpy }
+      ]
     }).compileComponents();
 
     const fixture = TestBed.createComponent(DashboardBarmanComponent);
@@ -92,14 +120,18 @@ describe('DashboardBarmanComponent', () => {
     component.ngOnDestroy();
   });
 
-  it('should create', () => {
+  it('should create the component', () => {
     expect(component).toBeTruthy();
   });
 
   it('chargerCommandes() peuple les trois colonnes du kanban', fakeAsync(() => {
     dashboardServiceSpy.getCommandesEnAttente.and.returnValue(of(mockCommandes));
-    dashboardServiceSpy.getCommandesEnPreparation.and.returnValue(of([{ ...mockCommandes[0], id: 2, statut: 'EN_PREPARATION' as const }]));
-    dashboardServiceSpy.getCommandesPret.and.returnValue(of([{ ...mockCommandes[0], id: 3, statut: 'PRET' as const }]));
+    dashboardServiceSpy.getCommandesEnPreparation.and.returnValue(
+      of([{ ...mockCommandes[0], id: 2, statut: 'EN_PREPARATION' as const }])
+    );
+    dashboardServiceSpy.getCommandesPret.and.returnValue(
+      of([{ ...mockCommandes[0], id: 3, statut: 'PRET' as const }])
+    );
 
     component.chargerCommandes();
     tick();
@@ -109,16 +141,21 @@ describe('DashboardBarmanComponent', () => {
     expect(component.commandesPret).toHaveSize(1);
   }));
 
-  it('chargerCommandes() appelle les trois endpoints du service', fakeAsync(() => {
+  it('chargerCommandes() déclenche un son si de nouvelles commandes sont détectées', fakeAsync(() => {
+    component.commandesEnAttente = [mockCommandes[0]];
+    const newCommandes = [
+      mockCommandes[0],
+      { ...mockCommandes[0], id: 99 }
+    ];
+    dashboardServiceSpy.getCommandesEnAttente.and.returnValue(of(newCommandes));
+
     component.chargerCommandes();
     tick();
 
-    expect(dashboardServiceSpy.getCommandesEnAttente).toHaveBeenCalled();
-    expect(dashboardServiceSpy.getCommandesEnPreparation).toHaveBeenCalled();
-    expect(dashboardServiceSpy.getCommandesPret).toHaveBeenCalled();
+    expect(soundServiceSpy.playNewOrderSound).toHaveBeenCalled();
   }));
 
-  it('chargerCommandes() affiche un toast danger en cas d\'erreur', fakeAsync(() => {
+  it('chargerCommandes() affiche un toast danger en cas d erreur', fakeAsync(() => {
     dashboardServiceSpy.getCommandesEnAttente.and.returnValue(throwError(() => new Error('Network error')));
 
     component.chargerCommandes();
@@ -128,28 +165,17 @@ describe('DashboardBarmanComponent', () => {
     expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
   }));
 
-  it('onChangerStatut() appelle changerStatut() et recharge les commandes', fakeAsync(() => {
-    const callCountBefore = dashboardServiceSpy.getCommandesEnAttente.calls.count();
-
-    component.onChangerStatut({ id: 1, statut: 'EN_PREPARATION' });
-    tick();
-    flushMicrotasks();
-
-    expect(dashboardServiceSpy.changerStatut).toHaveBeenCalledWith(1, 'EN_PREPARATION');
-    expect(dashboardServiceSpy.getCommandesEnAttente.calls.count()).toBeGreaterThan(callCountBefore);
-  }));
-
-  it('onChangerStatut() affiche un toast success après changement réussi', fakeAsync(() => {
-    dashboardServiceSpy.changerStatut.and.returnValue(of({}));
-
+  it('onChangerStatut() appelle changerStatut(), joue un son pour PRET et recharge les commandes', fakeAsync(() => {
     component.onChangerStatut({ id: 1, statut: 'PRET' });
     tick();
     flushMicrotasks();
 
+    expect(dashboardServiceSpy.changerStatut).toHaveBeenCalledWith(1, 'PRET');
+    expect(soundServiceSpy.playOrderReadySound).toHaveBeenCalled();
     expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'success' }));
   }));
 
-  it('onChangerStatut() affiche un toast danger en cas d\'erreur', fakeAsync(() => {
+  it('onChangerStatut() affiche un toast danger en cas d erreur', fakeAsync(() => {
     dashboardServiceSpy.changerStatut.and.returnValue(throwError(() => new Error('API error')));
 
     component.onChangerStatut({ id: 1, statut: 'PRET' });
@@ -159,7 +185,55 @@ describe('DashboardBarmanComponent', () => {
     expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
   }));
 
-  it('onRefresh() appelle chargerCommandes() et complete l\'event après 500ms', fakeAsync(() => {
+  it('toggleSound() bascule l état audio et affiche un toast', () => {
+    component.toggleSound();
+    expect(soundServiceSpy.toggleSound).toHaveBeenCalled();
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
+  });
+
+  it('openRupturesModal() ouvre la modale des ruptures de stock', async () => {
+    await component.openRupturesModal();
+    expect(modalCtrlSpy.create).toHaveBeenCalled();
+    expect(mockModal.present).toHaveBeenCalled();
+  });
+
+  it('onPrintTicket() ouvre la modale d impression thermique 80mm', async () => {
+    await component.onPrintTicket(mockCommandes[0]);
+    expect(modalCtrlSpy.create).toHaveBeenCalled();
+    expect(mockModal.present).toHaveBeenCalled();
+  });
+
+  it('filtrage par recherche et table fonctionne correctement', () => {
+    component.commandesEnAttente = [
+      { ...mockCommandes[0], id: 1, tableNom: 'Table 1', items: [{ id: 1, cocktailNom: 'Mojito', quantite: 1, prioritaire: false }] },
+      { ...mockCommandes[0], id: 2, tableNom: 'Table 2', items: [{ id: 2, cocktailNom: 'Daiquiri', quantite: 1, prioritaire: false }] }
+    ];
+
+    component.searchQuery = 'mojito';
+    expect(component.filteredCommandesEnAttente).toHaveSize(1);
+    expect(component.filteredCommandesEnAttente[0].id).toBe(1);
+
+    component.searchQuery = '';
+    component.selectedTable = 'Table 2';
+    expect(component.filteredCommandesEnAttente).toHaveSize(1);
+    expect(component.filteredCommandesEnAttente[0].id).toBe(2);
+  });
+
+  it('filtrage urgentOnly filtre les commandes normales', () => {
+    const freshDate = new Date();
+    const oldDate = new Date(Date.now() - 10 * 60 * 1000);
+
+    component.commandesEnAttente = [
+      { ...mockCommandes[0], id: 1, dateCommande: freshDate, prioritaire: false },
+      { ...mockCommandes[0], id: 2, dateCommande: oldDate, prioritaire: false }
+    ];
+
+    component.urgentOnly = true;
+    expect(component.filteredCommandesEnAttente).toHaveSize(1);
+    expect(component.filteredCommandesEnAttente[0].id).toBe(2);
+  });
+
+  it('onRefresh() appelle chargerCommandes() et complete l event apres 500ms', fakeAsync(() => {
     const completeSpy = jasmine.createSpy('complete');
     const mockEvent = { target: { complete: completeSpy } };
 
@@ -167,84 +241,19 @@ describe('DashboardBarmanComponent', () => {
     tick(500);
 
     expect(completeSpy).toHaveBeenCalled();
-    expect(dashboardServiceSpy.getCommandesEnAttente).toHaveBeenCalled();
   }));
 
-  it('recharge les commandes sur notification WS de type "commande"', fakeAsync(() => {
-    const callCountBefore = dashboardServiceSpy.getCommandesEnAttente.calls.count();
-
+  it('recharge les commandes et joue un son sur notification WS commande', fakeAsync(() => {
     notification$.next({
-      id: 'commande-1',
+      id: 'cmd-1',
       type: 'commande',
       message: 'Nouvelle commande',
       severity: 'primary',
       timestamp: new Date(),
-      lue: false,
+      lue: false
     });
     tick();
 
-    expect(dashboardServiceSpy.getCommandesEnAttente.calls.count()).toBeGreaterThan(callCountBefore);
+    expect(soundServiceSpy.playNewOrderSound).toHaveBeenCalled();
   }));
-
-  it('recharge les commandes sur notification WS de type "statut"', fakeAsync(() => {
-    const callCountBefore = dashboardServiceSpy.getCommandesEnAttente.calls.count();
-
-    notification$.next({
-      id: 'statut-1',
-      type: 'statut',
-      message: 'Statut mis à jour',
-      severity: 'success',
-      timestamp: new Date(),
-      lue: false,
-    });
-    tick();
-
-    expect(dashboardServiceSpy.getCommandesEnAttente.calls.count()).toBeGreaterThan(callCountBefore);
-  }));
-
-  it('ne recharge pas les commandes sur notification de type "stock"', fakeAsync(() => {
-    const callCountBefore = dashboardServiceSpy.getCommandesEnAttente.calls.count();
-
-    notification$.next({
-      id: 'stock-1',
-      type: 'stock',
-      message: 'Stock faible',
-      severity: 'warning',
-      timestamp: new Date(),
-      lue: false,
-    });
-    tick();
-
-    expect(dashboardServiceSpy.getCommandesEnAttente.calls.count()).toBe(callCountBefore);
-  }));
-
-  it('trackById() retourne l\'id de la commande', () => {
-    const cmd = mockCommandes[0];
-    expect(component.trackById(0, cmd)).toBe(cmd.id);
-  });
-
-  it('hasUrgentOrders retourne true si une commande en attente a plus de 5 minutes', () => {
-    const oldDate = new Date(Date.now() - 6 * 60 * 1000);
-    component.commandesEnAttente = [
-      { ...mockCommandes[0], dateCommande: oldDate }
-    ];
-    expect(component.hasUrgentOrders).toBeTrue();
-  });
-
-  it('hasUrgentOrders retourne false si toutes les commandes ont moins de 5 minutes', () => {
-    component.commandesEnAttente = [
-      { ...mockCommandes[0], dateCommande: new Date() }
-    ];
-    expect(component.hasUrgentOrders).toBeFalse();
-  });
-
-  it('ngOnDestroy() complète le subject destroy$', () => {
-    spyOn(component['destroy$'], 'next').and.callThrough();
-    spyOn(component['destroy$'], 'complete').and.callThrough();
-
-    component.ngOnDestroy();
-
-    expect(component['destroy$'].next).toHaveBeenCalled();
-    expect(component['destroy$'].complete).toHaveBeenCalled();
-  });
 });

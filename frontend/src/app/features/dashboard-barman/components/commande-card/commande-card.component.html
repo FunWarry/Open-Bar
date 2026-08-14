@@ -1,60 +1,162 @@
 <div
   class="commande-card"
   [class.prioritaire]="commande.prioritaire"
+  [class.card-urgent]="isUrgent"
+  [class.card-warning]="isWarning && !isUrgent"
   (click)="openDetails()"
-  (keydown.enter)="openDetails()"
+  (keyup.enter)="openDetails()"
 >
   <!-- Liseré de statut (barre verticale colorée) -->
   <div class="lisere" [style.background-color]="lisereColor"></div>
 
   <div class="card-content">
-    <!-- En-tête : table + badge statut -->
+    <!-- En-tête : table + ID + serveur + timer + badge statut -->
     <div class="card-header">
       <div class="card-header-text">
-        <span class="table-name">Table {{ commande.tableNom }}</span>
-        <span class="order-id">#{{ commande.id }}</span>
-        <span class="card-timer">
-          <ion-icon name="time-outline"></ion-icon>
-          {{ tempsEcoule }}
-        </span>
+        <div class="table-row">
+          <span class="table-name">{{ commande.tableNom || ('Table ' + commande.tableNumero) }}</span>
+          <span class="order-id">#{{ commande.id }}</span>
+          @if (commande.prioritaire) {
+            <span class="priority-chip" data-testid="priority-chip">⚡ URGENT</span>
+          }
+        </div>
+
+        <div class="meta-row">
+          @if (commande.serveurNom || commande.serveurUsername) {
+            <span class="server-name">👤 {{ commande.serveurNom || commande.serveurUsername }}</span>
+          }
+          <span
+            class="card-timer"
+            [class.timer--urgent]="isUrgent"
+            [class.timer--warning]="isWarning && !isUrgent"
+            data-testid="card-timer">
+            <ion-icon name="time-outline"></ion-icon>
+            {{ tempsEcoule }}
+          </span>
+        </div>
       </div>
-      <app-status-badge [status]="commande.statut" [prioritary]="commande.prioritaire"></app-status-badge>
+
+      <div class="card-header-actions">
+        <button
+          type="button"
+          class="icon-btn-print"
+          title="Imprimer le bon de bar (80mm)"
+          (click)="onPrintTicket($event)"
+          (keyup.enter)="onPrintTicket($event)"
+          data-testid="print-ticket-btn">
+          <ion-icon name="print-outline"></ion-icon>
+        </button>
+        <app-status-badge [status]="commande.statut" [prioritary]="commande.prioritaire"></app-status-badge>
+      </div>
     </div>
 
     <div class="divider"></div>
 
-    <!-- Liste des items -->
+    <!-- Liste des items commandés -->
     <ul class="items-list">
-      <li *ngFor="let item of groupedItems" class="item-row">
-        <span class="qty">{{ item.quantite }}×</span>
-        <span class="cocktail-nom">{{ item.cocktailNom }}</span>
-        <span *ngIf="item.notes" class="item-note">— {{ item.notes }}</span>
-      </li>
+      @for (item of groupedItems; track item.id; let idx = $index) {
+        <li class="item-row">
+          <div class="item-main-line">
+            <span class="qty">{{ item.quantite }}×</span>
+            <span class="cocktail-nom">{{ item.cocktailNom }}</span>
+
+            @if (item.varianteNom) {
+              <span class="variant-tag">{{ item.varianteNom }}</span>
+            }
+
+            <button
+              type="button"
+              class="recipe-toggle-btn"
+              [class.active]="expandedRecipeItemIndex === idx"
+              title="Voir la fiche recette & ingrédients"
+              (click)="toggleRecipe(idx, item, $event)"
+              (keyup.enter)="toggleRecipe(idx, item, $event)"
+              data-testid="toggle-recipe-btn">
+              <ion-icon name="book-outline"></ion-icon>
+            </button>
+          </div>
+
+          @if (item.notes) {
+            <div class="item-note">💬 {{ item.notes }}</div>
+          }
+
+          <!-- Fiche recette dépliée pour cet item -->
+          @if (expandedRecipeItemIndex === idx) {
+            <div
+              class="recipe-sheet"
+              (click)="$event.stopPropagation()"
+              (keyup.enter)="$event.stopPropagation()">
+              <div class="recipe-header">
+                <ion-icon name="information-circle-outline"></ion-icon>
+                <span>{{ 'BARMAN_DASHBOARD.RECIPE_SHEET' | transloco }} ({{ item.cocktailNom }})</span>
+              </div>
+
+              @if (loadedRecipeDetails.get(item.cocktailNom); as cocktail) {
+                @if (cocktail.ingredients && cocktail.ingredients.length > 0) {
+                  <div class="recipe-ingredients">
+                    <strong>{{ 'BARMAN_DASHBOARD.DOSAGES' | transloco }}:</strong>
+                    <ul class="ingredients-sublist">
+                      @for (ing of cocktail.ingredients; track ing.id) {
+                        <li>• {{ ing.ingredientNom }}: <em>{{ ing.quantite }} {{ ing.uniteMesure }}</em></li>
+                      }
+                    </ul>
+                  </div>
+                }
+                @if (cocktail.instructions) {
+                  <div class="recipe-instructions">
+                    <strong>{{ 'BARMAN_DASHBOARD.INSTRUCTIONS' | transloco }}:</strong> {{ cocktail.instructions }}
+                  </div>
+                }
+              } @else {
+                <div class="recipe-loading">
+                  <span>{{ 'COMMON.LOADING' | transloco }}...</span>
+                </div>
+              }
+            </div>
+          }
+        </li>
+      }
     </ul>
 
-    <p *ngIf="commande.notes" class="commande-notes">📝 {{ commande.notes }}</p>
+    @if (commande.notes) {
+      <div class="commande-notes">
+        <span>📝 {{ commande.notes }}</span>
+      </div>
+    }
 
-    <!-- Actions -->
-    <div class="card-actions" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
-      <app-action-button
-        *ngIf="commande.statut === 'EN_ATTENTE'"
-        variant="primary"
-        icon="arrow-forward-circle-outline"
-        expand="block"
-        title="Démarrer la préparation de la commande"
-        (btnClick)="onPrendreEnCharge($event)">
-        Démarrer
-      </app-action-button>
+    <!-- Boutons d'action contextuels -->
+    <div class="card-actions" (click)="$event.stopPropagation()" (keyup.enter)="$event.stopPropagation()">
+      @if (commande.statut === 'EN_ATTENTE') {
+        <app-action-button
+          variant="primary"
+          icon="arrow-forward-circle-outline"
+          expand="block"
+          title="Démarrer la préparation de la commande"
+          (btnClick)="onPrendreEnCharge($event)"
+          data-testid="start-prep-btn">
+          {{ 'BARMAN_DASHBOARD.START_PREPARATION' | transloco }}
+        </app-action-button>
+      }
 
-      <app-action-button
-        *ngIf="commande.statut === 'EN_PREPARATION'"
-        variant="primary"
-        icon="checkmark-circle-outline"
-        expand="block"
-        title="Marquer la commande comme prête"
-        (btnClick)="onMarquerPret($event)">
-        Marquer prêt
-      </app-action-button>
+      @if (commande.statut === 'EN_PREPARATION') {
+        <app-action-button
+          variant="primary"
+          icon="checkmark-circle-outline"
+          expand="block"
+          title="Marquer la commande comme prête"
+          (btnClick)="onMarquerPret($event)"
+          data-testid="mark-ready-btn">
+          {{ 'BARMAN_DASHBOARD.MARK_READY' | transloco }}
+        </app-action-button>
+      }
+
+      @if (commande.statut === 'PRET') {
+        <div class="ready-indicator">
+          <ion-icon name="checkmark-circle-outline"></ion-icon>
+          <span>{{ 'BARMAN_DASHBOARD.ORDER_READY_AWAITING_SERVICE' | transloco }}</span>
+        </div>
+      }
     </div>
   </div>
 </div>
+

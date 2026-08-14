@@ -1,50 +1,83 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Subject, forkJoin } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { TranslocoModule } from '@jsverse/transloco';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import {
   IonContent,
   IonHeader,
   IonToolbar,
   IonTitle,
+  IonButtons,
+  IonButton,
+  IonIcon,
   IonRefresher,
   IonRefresherContent,
   IonGrid,
   IonRow,
   IonCol,
+  IonSearchbar,
+  IonChip,
+  IonLabel,
+  IonBadge,
+  ModalController,
   ToastController
 } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import {
+  wineOutline,
+  timeOutline,
+  checkmarkDoneOutline,
+  volumeHighOutline,
+  volumeMuteOutline,
+  flashOutline,
+  refreshOutline,
+  filterOutline,
+  flameOutline,
+  printOutline
+} from 'ionicons/icons';
 import { CommandeCardComponent } from './components/commande-card/commande-card.component';
 import { StockAlertBannerComponent } from '../../core/components/stock-alert-banner/stock-alert-banner.component';
 import { NotificationService } from '../../core/services/notification.service';
 import { DashboardBarmanService } from './services/dashboard-barman.service';
 import { safeCompleteRefresher } from '../../core/utils/refresher-utils';
 import { CommandeView } from './models/commande-view.model';
-
 import { RoleBadgeComponent } from '../../core/components/ui/role-badge/role-badge.component';
 import { EmptyStateComponent } from '../../core/components/ui/empty-state/empty-state.component';
 import { AppSettingsService } from '../../core/services/app-settings.service';
+import { SoundService } from '../../core/services/sound.service';
+import { RupturesModalComponent } from './components/ruptures-modal/ruptures-modal.component';
+import { BarTicketPrintComponent } from './components/bar-ticket-print/bar-ticket-print.component';
 
 /**
- * Dashboard Barman Component managing real-time orders kanban (En attente, En préparation, Prêtes).
- * Aligned with Figma Vue Barman specs (`57:2`).
+ * Dashboard Barman Component managing the real-time preparation Kanban board.
+ * Equipped with live STOMP WebSocket sync, audio chimes, urgency threshold alerts,
+ * instant out-of-stock toggles ("Ruptures à chaud"), and 80mm thermal bar ticket printing.
  */
 @Component({
   selector: 'app-dashboard-barman',
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     TranslocoModule,
     IonContent,
     IonHeader,
     IonToolbar,
     IonTitle,
+    IonButtons,
+    IonButton,
+    IonIcon,
     IonRefresher,
     IonRefresherContent,
     IonGrid,
     IonRow,
     IonCol,
+    IonSearchbar,
+    IonChip,
+    IonLabel,
+    IonBadge,
     CommandeCardComponent,
     StockAlertBannerComponent,
     RoleBadgeComponent,
@@ -59,31 +92,109 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
   commandesPret: CommandeView[] = [];
   tempsAlerteCommandeMinutes = 5;
 
-  private readonly destroy$ = new Subject<void>();
+  searchQuery = '';
+  urgentOnly = false;
+  selectedTable = 'ALL';
 
-  get hasUrgentOrders(): boolean {
-    const now = Date.now();
-    const alertThresholdMs = (this.tempsAlerteCommandeMinutes || 5) * 60 * 1000;
-    return this.commandesEnAttente.some((cmd) => {
-      if (!cmd.dateCommande) return false;
-      const created = new Date(cmd.dateCommande).getTime();
-      return now - created > alertThresholdMs;
+  private readonly destroy$ = new Subject<void>();
+  private readonly dashboardService = inject(DashboardBarmanService);
+  private readonly toastCtrl = inject(ToastController);
+  private readonly modalCtrl = inject(ModalController);
+  private readonly notificationService = inject(NotificationService);
+  private readonly settingsService = inject(AppSettingsService);
+  private readonly soundService = inject(SoundService);
+  private readonly transloco = inject(TranslocoService);
+
+  constructor() {
+    addIcons({
+      wineOutline,
+      timeOutline,
+      checkmarkDoneOutline,
+      volumeHighOutline,
+      volumeMuteOutline,
+      flashOutline,
+      refreshOutline,
+      filterOutline,
+      flameOutline,
+      printOutline
     });
   }
 
-  constructor(
-    private readonly dashboardService: DashboardBarmanService,
-    private readonly toastCtrl: ToastController,
-    private readonly notificationService: NotificationService,
-    private readonly settingsService: AppSettingsService
-  ) {}
+  /**
+   * Whether sound notifications are enabled.
+   */
+  get isSoundEnabled(): boolean {
+    return this.soundService.isSoundEnabled();
+  }
 
-  ngOnInit() {
+  /**
+   * Evaluates if any pending order is currently past the urgency threshold.
+   */
+  get hasUrgentOrders(): boolean {
+    return this.urgentOrdersCount > 0;
+  }
+
+  /**
+   * Count of urgent pending orders.
+   */
+  get urgentOrdersCount(): number {
+    const now = Date.now();
+    const alertThresholdMs = (this.tempsAlerteCommandeMinutes || 5) * 60 * 1000;
+    return this.commandesEnAttente.filter(cmd => {
+      if (cmd.prioritaire) return true;
+      if (!cmd.dateCommande) return false;
+      const created = new Date(cmd.dateCommande).getTime();
+      return now - created > alertThresholdMs;
+    }).length;
+  }
+
+  /**
+   * Total count of active orders (pending + in preparation).
+   */
+  get totalActiveOrdersCount(): number {
+    return this.commandesEnAttente.length + this.commandesEnPreparation.length;
+  }
+
+  /**
+   * List of unique table identifiers present in active orders.
+   */
+  get availableTables(): string[] {
+    const tables = new Set<string>();
+    const all = [...this.commandesEnAttente, ...this.commandesEnPreparation, ...this.commandesPret];
+    all.forEach(cmd => {
+      const name = cmd.tableNom || (cmd.tableNumero ? `Table ${cmd.tableNumero}` : '');
+      if (name) tables.add(name);
+    });
+    return Array.from(tables).sort((a, b) => a.localeCompare(b));
+  }
+
+  /**
+   * Filtered list of pending orders matching the active search and filter criteria.
+   */
+  get filteredCommandesEnAttente(): CommandeView[] {
+    return this.applyFilters(this.commandesEnAttente);
+  }
+
+  /**
+   * Filtered list of in-preparation orders matching the active search and filter criteria.
+   */
+  get filteredCommandesEnPreparation(): CommandeView[] {
+    return this.applyFilters(this.commandesEnPreparation);
+  }
+
+  /**
+   * Filtered list of ready orders matching the active search and filter criteria.
+   */
+  get filteredCommandesPret(): CommandeView[] {
+    return this.applyFilters(this.commandesPret);
+  }
+
+  ngOnInit(): void {
     this.settingsService
       .getSettings()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (settings) => {
+        next: settings => {
           if (settings.tempsAlerteCommandeMinutes) {
             this.tempsAlerteCommandeMinutes = settings.tempsAlerteCommandeMinutes;
           }
@@ -96,19 +207,25 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
     this.notificationService
       .onNotification()
       .pipe(takeUntil(this.destroy$))
-      .subscribe((notif) => {
-        if (notif.type === 'commande' || notif.type === 'statut') {
+      .subscribe(notif => {
+        if (notif.type === 'commande') {
+          this.soundService.playNewOrderSound();
+          this.chargerCommandes();
+        } else if (notif.type === 'statut') {
           this.chargerCommandes();
         }
       });
   }
 
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
   }
 
-  chargerCommandes() {
+  /**
+   * Fetches all Kanban column lists concurrently from the API.
+   */
+  chargerCommandes(): void {
     forkJoin({
       enAttente: this.dashboardService.getCommandesEnAttente(),
       enPreparation: this.dashboardService.getCommandesEnPreparation(),
@@ -117,13 +234,22 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: ({ enAttente, enPreparation, pret }) => {
-          this.commandesEnAttente = enAttente as CommandeView[];
-          this.commandesEnPreparation = enPreparation as CommandeView[];
-          this.commandesPret = pret as CommandeView[];
+          const prevPendingCount = this.commandesEnAttente.length;
+          this.commandesEnAttente = enAttente;
+          this.commandesEnPreparation = enPreparation;
+          this.commandesPret = pret;
+
+          if (enAttente.length > prevPendingCount && prevPendingCount > 0) {
+            this.soundService.playNewOrderSound();
+          }
+
+          if (this.hasUrgentOrders) {
+            this.soundService.playUrgentAlertSound();
+          }
         },
         error: async () => {
           const toast = await this.toastCtrl.create({
-            message: 'Erreur lors du chargement des commandes',
+            message: this.transloco.translate('BARMAN_DASHBOARD.LOAD_ORDERS_ERROR'),
             duration: 3000,
             color: 'danger'
           });
@@ -132,37 +258,117 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
       });
   }
 
-  async onChangerStatut(event: { id: number; statut: string }) {
+  /**
+   * Applies search string, table chip filter, and urgency criteria to a list of orders.
+   */
+  private applyFilters(commandes: CommandeView[]): CommandeView[] {
+    const q = this.searchQuery.toLowerCase().trim();
+    const now = Date.now();
+    const alertThresholdMs = (this.tempsAlerteCommandeMinutes || 5) * 60 * 1000;
+
+    return commandes.filter(cmd => {
+      // Table filter
+      const tableName = cmd.tableNom || (cmd.tableNumero ? `Table ${cmd.tableNumero}` : '');
+      if (this.selectedTable !== 'ALL' && tableName !== this.selectedTable) {
+        return false;
+      }
+
+      // Urgent filter
+      if (this.urgentOnly) {
+        const isUrgent =
+          cmd.prioritaire ||
+          (cmd.dateCommande && now - new Date(cmd.dateCommande).getTime() > alertThresholdMs);
+        if (!isUrgent) return false;
+      }
+
+      // Search term filter
+      if (!q) return true;
+
+      const matchesTable = tableName.toLowerCase().includes(q) || String(cmd.tableNumero || '').includes(q);
+      const matchesId = String(cmd.id).includes(q);
+      const matchesServer =
+        cmd.serveurNom?.toLowerCase().includes(q) ||
+        cmd.serveurUsername?.toLowerCase().includes(q);
+      const matchesItems = cmd.items?.some(item =>
+        item.cocktailNom.toLowerCase().includes(q) ||
+        item.varianteNom?.toLowerCase().includes(q) ||
+        item.notes?.toLowerCase().includes(q)
+      );
+
+      return Boolean(matchesTable || matchesId || matchesServer || matchesItems);
+    });
+  }
+
+  /**
+   * Toggles sound notification setting.
+   */
+  toggleSound(): void {
+    const state = this.soundService.toggleSound();
+    const msg = state
+      ? this.transloco.translate('BARMAN_DASHBOARD.SOUND_ALERTS_ENABLED')
+      : this.transloco.translate('BARMAN_DASHBOARD.SOUND_ALERTS_DISABLED');
+    this.showToast(msg, 'primary');
+  }
+
+  /**
+   * Opens the Quick Out-of-Stock ("Ruptures à chaud") modal.
+   */
+  async openRupturesModal(): Promise<void> {
+    const modal = await this.modalCtrl.create({
+      component: RupturesModalComponent,
+      cssClass: 'ruptures-modal-container'
+    });
+    await modal.present();
+  }
+
+  /**
+   * Opens the 80mm thermal bar preparation receipt modal.
+   */
+  async onPrintTicket(cmd: CommandeView): Promise<void> {
+    const modal = await this.modalCtrl.create({
+      component: BarTicketPrintComponent,
+      componentProps: { commande: cmd },
+      cssClass: 'bar-ticket-modal-container'
+    });
+    await modal.present();
+  }
+
+  /**
+   * Updates order workflow status.
+   */
+  onChangerStatut(event: { id: number; statut: string }): void {
     this.dashboardService
       .changerStatut(event.id, event.statut)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: async () => {
+        next: () => {
           this.chargerCommandes();
-          const toast = await this.toastCtrl.create({
-            message: 'Statut mis à jour',
-            duration: 2000,
-            color: 'success'
-          });
-          toast.present();
+          if (event.statut === 'PRET') {
+            this.soundService.playOrderReadySound();
+          }
+          this.showToast(this.transloco.translate('BARMAN_DASHBOARD.STATUS_UPDATED_SUCCESS'), 'success');
         },
-        error: async () => {
-          const toast = await this.toastCtrl.create({
-            message: 'Impossible de mettre à jour le statut',
-            duration: 3000,
-            color: 'danger'
-          });
-          toast.present();
+        error: () => {
+          this.showToast(this.transloco.translate('BARMAN_DASHBOARD.STATUS_UPDATE_ERROR'), 'danger');
         }
       });
   }
 
-  onRefresh(event: any) {
+  onRefresh(event: any): void {
     this.chargerCommandes();
     setTimeout(() => safeCompleteRefresher(event), 500);
   }
 
   trackById(_: number, cmd: CommandeView): number {
     return cmd.id;
+  }
+
+  private async showToast(message: string, color: 'primary' | 'success' | 'danger'): Promise<void> {
+    const toast = await this.toastCtrl.create({
+      message,
+      duration: 2000,
+      color
+    });
+    toast.present();
   }
 }

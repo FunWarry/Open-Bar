@@ -1,0 +1,110 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="ticket-modal-toolbar">
+    <ion-title>{{ 'BARMAN_DASHBOARD.BAR_TICKET_PREVIEW' | transloco }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="dismiss()" (keyup.enter)="dismiss()" aria-label="Close">
+        <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ticket-modal-content">
+  <div class="ticket-preview-wrapper">
+    <div class="thermal-receipt" data-testid="thermal-receipt-80mm">
+      <!-- En-tête du ticket -->
+      <div class="receipt-header">
+        <h2 class="establishment-title">{{ establishmentName }}</h2>
+        <div class="ticket-type">*** BON DE PREPARATION BAR ***</div>
+        <div class="ticket-meta">
+          <div class="meta-row highlight-table">
+            <span>{{ 'BARMAN_DASHBOARD.TABLE' | transloco }}:</span>
+            <strong>{{ commande.tableNom || ('Table ' + commande.tableNumero) }}</strong>
+          </div>
+          <div class="meta-row">
+            <span>{{ 'BARMAN_DASHBOARD.ORDER_NUM' | transloco }}:</span>
+            <strong>#{{ commande.id }}</strong>
+          </div>
+          <div class="meta-row">
+            <span>{{ 'BARMAN_DASHBOARD.SERVER' | transloco }}:</span>
+            <span>{{ commande.serveurNom || commande.serveurUsername || '-' }}</span>
+          </div>
+          <div class="meta-row">
+            <span>{{ 'BARMAN_DASHBOARD.TIME' | transloco }}:</span>
+            <span>{{ commande.dateCommande | date:'dd/MM/yyyy HH:mm:ss' }}</span>
+          </div>
+          @if (commande.prioritaire) {
+            <div class="priority-banner">
+              ⚡⚡⚡ URGENT - PRIORITAIRE ⚡⚡⚡
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="receipt-divider">--------------------------------</div>
+
+      <!-- Articles commandés -->
+      <div class="receipt-items">
+        @for (item of groupedItems; track item.id) {
+          <div class="receipt-item-row">
+            <div class="item-main">
+              <span class="item-qty">{{ item.quantite }}x</span>
+              <span class="item-name">{{ item.cocktailNom }}</span>
+            </div>
+            @if (item.varianteNom) {
+              <div class="item-sub">
+                ↳ Variante: {{ item.varianteNom }}
+              </div>
+            }
+            @if (item.notes) {
+              <div class="item-note">
+                ↳ Note: {{ item.notes }}
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="receipt-divider">--------------------------------</div>
+
+      <!-- Consignes globales de la commande -->
+      @if (commande.notes) {
+        <div class="receipt-notes">
+          <div class="notes-header">INSTRUCTIONS GENERALES:</div>
+          <div class="notes-body">{{ commande.notes }}</div>
+        </div>
+        <div class="receipt-divider">--------------------------------</div>
+      }
+
+      <!-- Récapitulatif -->
+      <div class="receipt-summary">
+        <div class="summary-row">
+          <span>TOTAL ARTICLES:</span>
+          <strong>{{ totalItemsCount }}</strong>
+        </div>
+      </div>
+
+      <!-- Bas de ticket -->
+      <div class="receipt-footer">
+        <div>SERVICE BARMAN COMPTOIR</div>
+        <div class="print-timestamp">Imprimé le {{ '' | date:'dd/MM/yyyy HH:mm:ss' }}</div>
+      </div>
+    </div>
+  </div>
+</ion-content>
+
+<ion-footer class="ticket-modal-footer">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button color="medium" (click)="dismiss()" (keyup.enter)="dismiss()">
+        {{ 'COMMON.CANCEL' | transloco }}
+      </ion-button>
+    </ion-buttons>
+    <ion-buttons slot="end">
+      <ion-button color="primary" fill="solid" (click)="printTicket()" (keyup.enter)="printTicket()" data-testid="confirm-print-btn">
+        <ion-icon slot="start" name="print-outline"></ion-icon>
+        {{ 'BARMAN_DASHBOARD.PRINT_TICKET' | transloco }}
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>

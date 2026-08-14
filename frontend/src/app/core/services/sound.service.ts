@@ -68,6 +68,18 @@ export class SoundService {
   }
 
   /**
+   * Plays an urgent alert tone sequence for delayed/overdue orders.
+   */
+  playUrgentAlertSound(): void {
+    if (!this.prefs.soundEnabled()) return;
+    this.playBeepSequence([
+      { frequency: 740.0, duration: 0.1, delay: 0 },
+      { frequency: 740.0, duration: 0.1, delay: 0.15 },
+      { frequency: 740.0, duration: 0.1, delay: 0.3 }
+    ]);
+  }
+
+  /**
    * Synthesizes audio tones using Web Audio API AudioContext.
    */
   private playBeepSequence(notes: Array<{ frequency: number; duration: number; delay: number }>): void {
