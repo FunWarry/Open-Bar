@@ -37,7 +37,6 @@ import {
   flameOutline,
   printOutline
 } from 'ionicons/icons';
-import { SafeHtml } from '@angular/platform-browser';
 import { CommandeCardComponent } from './components/commande-card/commande-card.component';
 import { StockAlertBannerComponent } from '../../core/components/stock-alert-banner/stock-alert-banner.component';
 import { NotificationService } from '../../core/services/notification.service';
@@ -350,7 +349,7 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
     this.isRecipePanelOpen = true;
 
     if (this.cachedCocktails.has(event.item.cocktailNom)) {
-      this.activeRecipeCocktail = this.cachedCocktails.get(event.item.cocktailNom) || null;
+      this.activeRecipeCocktail = this.cachedCocktails.get(event.item.cocktailNom) ?? null;
       this.isRecipeLoading = false;
       return;
     }

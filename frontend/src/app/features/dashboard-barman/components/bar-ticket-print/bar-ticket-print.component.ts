@@ -97,20 +97,12 @@ export class BarTicketPrintComponent implements OnInit {
     printIframe.style.width = '0';
     printIframe.style.height = '0';
     printIframe.style.border = '0';
-    document.body.appendChild(printIframe);
 
-    const doc = printIframe.contentWindow?.document;
-    if (!doc) {
-      window.print();
-      return;
-    }
-
-    doc.open();
-    doc.write(`
+    printIframe.srcdoc = `
       <!DOCTYPE html>
       <html>
         <head>
-          <title>Ticket Bar #${this.commande?.id || ''}</title>
+          <title>Ticket Bar #${this.commande?.id ?? ''}</title>
           <style>
             @page {
               size: 80mm auto;
@@ -146,18 +138,17 @@ export class BarTicketPrintComponent implements OnInit {
           ${receiptEl.innerHTML}
         </body>
       </html>
-    `);
-    doc.close();
+    `;
 
-    setTimeout(() => {
+    printIframe.onload = () => {
       printIframe.contentWindow?.focus();
       printIframe.contentWindow?.print();
       setTimeout(() => {
-        if (document.body.contains(printIframe)) {
-          document.body.removeChild(printIframe);
-        }
+        printIframe.remove();
       }, 1000);
-    }, 200);
+    };
+
+    document.body.appendChild(printIframe);
   }
 
   /**

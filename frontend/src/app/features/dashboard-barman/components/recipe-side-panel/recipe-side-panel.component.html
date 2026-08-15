@@ -26,8 +26,8 @@
       <div class="header-title-block">
         <div class="cocktail-badge-row">
           <span class="qty-pill">{{ quantity }}x</span>
-          @if (cocktail?.categorie) {
-            <span class="category-pill">{{ cocktail?.categorie }}</span>
+          @if (cocktail?.categorie; as cat) {
+            <span class="category-pill">{{ cat }}</span>
           }
         </div>
         <h2 class="cocktail-title">{{ item?.cocktailNom || cocktail?.nom || 'Cocktail' }}</h2>
@@ -78,23 +78,23 @@
       }
 
       <!-- Customization & Notes Warning (if present) -->
-      @if (item?.notes || item?.varianteNom) {
+      @if (item && (item.notes || item.varianteNom)) {
         <section class="alert-notes-card">
           <div class="alert-notes-header">
             <ion-icon name="alert-circle-outline"></ion-icon>
             <span>{{ 'BARMAN_DASHBOARD.SPECIAL_INSTRUCTIONS' | transloco }}</span>
           </div>
 
-          @if (item?.varianteNom) {
+          @if (item.varianteNom) {
             <div class="variant-highlight">
               <span class="v-label">{{ 'BARMAN_DASHBOARD.VARIANT_SELECTED' | transloco }} :</span>
-              <span class="v-name">{{ item?.varianteNom }}</span>
+              <span class="v-name">{{ item.varianteNom }}</span>
             </div>
           }
 
-          @if (item?.notes) {
+          @if (item.notes) {
             <div class="note-highlight">
-              « {{ item?.notes }} »
+              « {{ item.notes }} »
             </div>
           }
         </section>
@@ -114,9 +114,9 @@
           }
         </div>
 
-        @if (cocktail?.ingredients?.length) {
+        @if (cocktail && cocktail.ingredients && cocktail.ingredients.length > 0) {
           <div class="ingredients-list">
-            @for (ing of cocktail?.ingredients; track ing.id) {
+            @for (ing of cocktail.ingredients; track ing.id) {
               <div class="ingredient-card">
                 <div class="ing-bullet"></div>
                 <div class="ing-info">
@@ -149,9 +149,9 @@
           </div>
         </div>
 
-        @if (cocktail?.instructions) {
+        @if (cocktail && cocktail.instructions) {
           <div class="instructions-box">
-            <p class="instructions-text">{{ cocktail?.instructions }}</p>
+            <p class="instructions-text">{{ cocktail.instructions }}</p>
           </div>
         } @else {
           <div class="instructions-box default-steps">

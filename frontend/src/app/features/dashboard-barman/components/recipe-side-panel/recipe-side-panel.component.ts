@@ -1,6 +1,6 @@
-import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonIcon, IonButton, IonBadge, IonSpinner } from '@ionic/angular/standalone';
+import { IonIcon, IonButton, IonSpinner } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
   closeOutline,
@@ -32,7 +32,6 @@ import { Cocktail } from '../../../../core/models/cocktail.model';
     CommonModule,
     IonIcon,
     IonButton,
-    IonBadge,
     IonSpinner,
     TranslocoPipe
   ],

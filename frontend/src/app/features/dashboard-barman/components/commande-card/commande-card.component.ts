@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, Optional, inject } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, Optional } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonIcon, ModalController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
