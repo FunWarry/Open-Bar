@@ -2,7 +2,7 @@ import { TestBed, fakeAsync, tick, flushMicrotasks } from '@angular/core/testing
 import { ComponentFixture } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { IonicModule } from '@ionic/angular';
-import { ToastController } from '@ionic/angular/standalone';
+import { ModalController, ToastController } from '@ionic/angular/standalone';
 import { EMPTY, of, Subject, throwError } from 'rxjs';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { KanbanServeurComponent } from '../../../app/features/dashboard-serveur/kanban-serveur/kanban-serveur.component';
@@ -28,6 +28,7 @@ describe('KanbanServeurComponent', () => {
   let serviceSpy: jasmine.SpyObj<DashboardServeurService>;
   let notificationSpy: jasmine.SpyObj<NotificationService>;
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
+  let modalCtrlSpy: jasmine.SpyObj<ModalController>;
   let notification$: Subject<AppNotification>;
 
   const mockToast = { present: jasmine.createSpy('present') };
@@ -57,12 +58,19 @@ describe('KanbanServeurComponent', () => {
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
     toastCtrlSpy.create.and.returnValue(Promise.resolve(mockToast as any));
 
+    modalCtrlSpy = jasmine.createSpyObj('ModalController', ['create']);
+    modalCtrlSpy.create.and.returnValue(Promise.resolve({
+      present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+      onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({ data: { action: 'settled' } })),
+    } as any));
+
     await TestBed.configureTestingModule({
       imports: [KanbanServeurComponent, IonicModule.forRoot(), RouterTestingModule, getTranslocoTestingModule()],
       providers: [
         { provide: DashboardServeurService, useValue: serviceSpy },
         { provide: NotificationService, useValue: notificationSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
+        { provide: ModalController, useValue: modalCtrlSpy },
       ],
     }).compileComponents();
 
@@ -179,4 +187,11 @@ describe('KanbanServeurComponent', () => {
   it('trackById retourne l\'id de la commande', () => {
     expect(component.trackById(0, cmd(7, 'PRET', 1))).toBe(7);
   });
+
+  it('ouvrirEncaissementParTableId ouvre le modal d\'encaissement', fakeAsync(() => {
+    component.tables = mockTables;
+    component.ouvrirEncaissementParTableId(1);
+    tick();
+    expect(modalCtrlSpy.create).toHaveBeenCalled();
+  }));
 });

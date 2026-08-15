@@ -148,6 +148,12 @@ describe('TableDetailModalComponent', () => {
     expect(routerSpy.navigate).toHaveBeenCalledWith(['/serveur'], { queryParams: { tableId: 1 } });
   });
 
+  it('encaisser() ferme le modal avec l\'action encaisser', () => {
+    component.encaisser();
+
+    expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith({ action: 'encaisser', table: mockTable });
+  });
+
   it('liberer() ferme le modal avec l\'action liberer', () => {
     component.liberer();
 

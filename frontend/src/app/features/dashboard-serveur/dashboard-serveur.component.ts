@@ -26,6 +26,7 @@ import {
 import { CocktailService } from '../../core/services/cocktail.service';
 import { ZoneService, ZoneBar } from '../../core/services/zone.service';
 import { TableDetailModalComponent } from './components/table-detail-modal/table-detail-modal.component';
+import { EncaissementModalComponent } from './components/encaissement-modal/encaissement-modal.component';
 import { NotificationService } from '../../core/services/notification.service';
 import { DashboardServeurService, EtageItem, ZoneItem } from './services/dashboard-serveur.service';
 import { safeCompleteRefresher } from '../../core/utils/refresher-utils';
@@ -1118,6 +1119,28 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
     const { data } = await modal.onWillDismiss();
     if (data?.action === 'liberer') {
       this.onLiberer(data.tableId);
+    } else if (data?.action === 'encaisser') {
+      this.ouvrirEncaissement(data.table || table);
+    }
+  }
+
+  /**
+   * Opens the full table encaissement and payment modal.
+   *
+   * @param table Target table to settle.
+   */
+  async ouvrirEncaissement(table: TableView) {
+    const modal = await this.modalCtrl.create({
+      component: EncaissementModalComponent,
+      componentProps: { table },
+      cssClass: 'encaissement-modal-container',
+      enterAnimation: fastModalEnterAnimation,
+      leaveAnimation: fastModalLeaveAnimation,
+    });
+    await modal.present();
+    const { data } = await modal.onWillDismiss();
+    if (data?.action === 'settled') {
+      this.chargerTables();
     }
   }
 

@@ -38,6 +38,15 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import org.mockito.Spy;
+import com.bar.gestioncocktail.dto.EncaissementRequestDTO;
+import com.bar.gestioncocktail.dto.TableAdditionResponseDTO;
+import com.bar.gestioncocktail.model.Cocktail;
+import com.bar.gestioncocktail.model.Commande;
+import com.bar.gestioncocktail.model.CommandeItem;
+import com.bar.gestioncocktail.model.CommandeStatut;
+import com.bar.gestioncocktail.model.User;
+import com.bar.gestioncocktail.repository.CommandeRepository;
+import com.bar.gestioncocktail.repository.UserRepository;
 
 @ExtendWith(MockitoExtension.class)
 class FactureServiceTest {
@@ -47,6 +56,15 @@ class FactureServiceTest {
 
     @Mock
     TableRepository tableRepository;
+
+    @Mock
+    CommandeRepository commandeRepository;
+
+    @Mock
+    NotificationService notificationService;
+
+    @Mock
+    UserRepository userRepository;
 
     @Mock
     FactureItemRepository factureItemRepository;
@@ -424,5 +442,359 @@ class FactureServiceTest {
         assertThat(result.getModePaiement()).isEqualTo("CARTE");
         assertThat(result.getPourboire()).isEqualByComparingTo(new BigDecimal("5.00"));
         assertThat(result.getTotalTTC()).isEqualByComparingTo(new BigDecimal("30.00"));
+    }
+
+    @Test
+    void getTableAddition_success_withActiveCommandes() {
+        TableEntity table = new TableEntity();
+        table.setId(1L);
+        table.setNumero(5);
+        table.setZone("Terrasse");
+        table.setServeurId(2L);
+        table.setDateOccupation(LocalDateTime.of(2026, 8, 15, 20, 0));
+
+        User waiter = new User();
+        waiter.setId(2L);
+        waiter.setUsername("john_waiter");
+        waiter.setPrenom("John");
+        waiter.setNom("Doe");
+
+        Cocktail c1 = new Cocktail();
+        c1.setId(101L);
+        c1.setNom("Mojito");
+
+        CommandeItem item = new CommandeItem();
+        item.setId(11L);
+        item.setCocktail(c1);
+        item.setQuantite(2);
+        item.setPrixUnitaire(new BigDecimal("8.00"));
+
+        Commande cmd = new Commande();
+        cmd.setId(201L);
+        cmd.setTable(table);
+        cmd.setStatut(CommandeStatut.LIVREE);
+        cmd.setItems(List.of(item));
+
+        when(tableRepository.findById(1L)).thenReturn(Optional.of(table));
+        when(commandeRepository.findByTable(table)).thenReturn(List.of(cmd));
+        when(factureRepository.findByTable(table)).thenReturn(List.of());
+        when(userRepository.findById(2L)).thenReturn(Optional.of(waiter));
+
+        TableAdditionResponseDTO addition = factureService.getTableAddition(1L);
+
+        assertThat(addition.tableId()).isEqualTo(1L);
+        assertThat(addition.tableNumero()).isEqualTo(5);
+        assertThat(addition.zone()).isEqualTo("Terrasse");
+        assertThat(addition.serveurNom()).isEqualTo("John Doe");
+        assertThat(addition.items()).hasSize(1);
+        assertThat(addition.totalTTC()).isEqualByComparingTo(new BigDecimal("16.00"));
+        assertThat(addition.totalHT()).isEqualByComparingTo(new BigDecimal("13.33"));
+        assertThat(addition.totalVAT()).isEqualByComparingTo(new BigDecimal("2.67"));
+        assertThat(addition.nombreArticles()).isEqualTo(2);
+        assertThat(addition.hasUnpaidFacture()).isFalse();
+    }
+
+    @Test
+    void getTableAddition_tableNotFound_throwsResourceNotFoundException() {
+        when(tableRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> factureService.getTableAddition(999L))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Table non trouvée avec l'id: 999");
+    }
+
+    @Test
+    void encaisserTable_success_cashWithDiscountAndTipAndLiberation() {
+        TableEntity table = new TableEntity();
+        table.setId(1L);
+        table.setNumero(3);
+        table.setOccupee(true);
+
+        Cocktail c1 = new Cocktail();
+        c1.setId(101L);
+        c1.setNom("Mojito");
+
+        CommandeItem item = new CommandeItem();
+        item.setId(11L);
+        item.setCocktail(c1);
+        item.setQuantite(2);
+        item.setPrixUnitaire(new BigDecimal("10.00"));
+
+        Commande cmd = new Commande();
+        cmd.setId(201L);
+        cmd.setTable(table);
+        cmd.setStatut(CommandeStatut.LIVREE);
+        cmd.setItems(List.of(item));
+
+        when(tableRepository.findById(1L)).thenReturn(Optional.of(table));
+        when(commandeRepository.findByTable(table)).thenReturn(List.of(cmd));
+        when(factureRepository.findByTable(table)).thenReturn(List.of());
+        when(factureRepository.count()).thenReturn(10L);
+        when(factureRepository.save(any(Facture.class))).thenAnswer(i -> {
+            Facture f = i.getArgument(0);
+            f.setId(55L);
+            return f;
+        });
+
+        EncaissementRequestDTO request = new EncaissementRequestDTO(
+                "ESPECES",
+                new BigDecimal("2.00"),
+                new BigDecimal("5.00"),
+                BigDecimal.ZERO,
+                new BigDecimal("20.00"),
+                "Encaissement terrasse",
+                true,
+                null
+        );
+
+        com.bar.gestioncocktail.dto.FactureResponseDTO result = factureService.encaisserTable(1L, request);
+
+        assertThat(result.id()).isEqualTo(55L);
+        assertThat(result.modePaiement()).isEqualTo("ESPECES");
+        assertThat(result.pourboire()).isEqualByComparingTo(new BigDecimal("2.00"));
+        assertThat(result.totalTTC()).isEqualByComparingTo(new BigDecimal("17.00")); // 20 - 5 + 2 = 17
+        assertThat(result.reglee()).isTrue();
+
+        assertThat(cmd.getStatut()).isEqualTo(CommandeStatut.REGLEE);
+        assertThat(table.isOccupee()).isFalse();
+
+        verify(notificationService).notifierLiberationTable(table);
+        verify(notificationService).notifierChangementStatutCommande(201L, CommandeStatut.LIVREE, CommandeStatut.REGLEE);
+    }
+
+    @Test
+    void encaisserTable_noActiveCommandes_throwsBusinessException() {
+        TableEntity table = new TableEntity();
+        table.setId(1L);
+        table.setNumero(3);
+        table.setOccupee(true);
+
+        when(tableRepository.findById(1L)).thenReturn(Optional.of(table));
+        when(commandeRepository.findByTable(table)).thenReturn(List.of());
+        when(factureRepository.findByTable(table)).thenReturn(List.of());
+
+        EncaissementRequestDTO request = new EncaissementRequestDTO(
+                "CARTE",
+                null,
+                null,
+                null,
+                null,
+                null,
+                true,
+                null
+        );
+
+        assertThatThrownBy(() -> factureService.encaisserTable(1L, request))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("Aucune commande active à encaisser pour la table 3");
+    }
+
+    @Test
+    void getTableAddition_withExistingUnpaidFactureItems_andServeurFromCommande() {
+        TableEntity table = new TableEntity();
+        table.setId(2L);
+        table.setNumero(7);
+        table.setServeurId(null);
+
+        User serveur = new User();
+        serveur.setId(88L);
+        serveur.setUsername("julien");
+
+        Facture unpaidFacture = new Facture();
+        unpaidFacture.setId(102L);
+        unpaidFacture.setTable(table);
+        unpaidFacture.setReglee(false);
+
+        FactureItem fi = new FactureItem();
+        fi.setId(1L);
+        fi.setFacture(unpaidFacture);
+        fi.setDescription("Cosmopolitan");
+        fi.setQuantite(2);
+        fi.setPrixUnitaire(new BigDecimal("9.00"));
+        fi.setTotal(new BigDecimal("18.00"));
+        fi.setPriceHT(new BigDecimal("15.00"));
+        fi.setVatAmount(new BigDecimal("3.00"));
+        unpaidFacture.setItems(List.of(fi));
+
+        table.setServeurId(88L);
+        when(tableRepository.findById(2L)).thenReturn(Optional.of(table));
+        when(commandeRepository.findByTable(table)).thenReturn(List.of());
+        when(factureRepository.findByTable(table)).thenReturn(List.of(unpaidFacture));
+        when(userRepository.findById(88L)).thenReturn(Optional.of(serveur));
+
+        TableAdditionResponseDTO addition = factureService.getTableAddition(2L);
+
+        assertThat(addition.hasUnpaidFacture()).isTrue();
+        assertThat(addition.existingFactureId()).isEqualTo(102L);
+        assertThat(addition.items()).hasSize(1);
+        assertThat(addition.items().get(0).cocktailNom()).isEqualTo("Cosmopolitan");
+        assertThat(addition.totalTTC()).isEqualByComparingTo(new BigDecimal("18.00"));
+        assertThat(addition.serveurNom()).isEqualTo("julien");
+    }
+
+    @Test
+    void encaisserTable_withExistingUnpaidFacture_andPercentageDiscount_andNoLiberation() {
+        TableEntity table = new TableEntity();
+        table.setId(2L);
+        table.setNumero(7);
+        table.setOccupee(true);
+
+        Facture unpaidFacture = new Facture();
+        unpaidFacture.setId(102L);
+        unpaidFacture.setNumero("FAC-2026-00102");
+        unpaidFacture.setTable(table);
+        unpaidFacture.setReglee(false);
+
+        FactureItem fi = new FactureItem();
+        fi.setId(1L);
+        fi.setFacture(unpaidFacture);
+        fi.setDescription("Cosmopolitan");
+        fi.setQuantite(2);
+        fi.setPrixUnitaire(new BigDecimal("12.00"));
+        fi.setTotal(new BigDecimal("24.00"));
+        fi.setPriceHT(new BigDecimal("20.00"));
+        fi.setVatAmount(new BigDecimal("4.00"));
+        unpaidFacture.setItems(List.of(fi));
+
+        when(tableRepository.findById(2L)).thenReturn(Optional.of(table));
+        when(commandeRepository.findByTable(table)).thenReturn(List.of());
+        when(factureRepository.findByTable(table)).thenReturn(List.of(unpaidFacture));
+        when(factureRepository.save(any(Facture.class))).thenAnswer(i -> i.getArgument(0));
+
+        EncaissementRequestDTO request = new EncaissementRequestDTO(
+                "CARTE",
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
+                new BigDecimal("10.00"), // 10% discount -> -2.40€
+                new BigDecimal("21.60"),
+                "Remise fidelite",
+                false, // do NOT liberate table
+                List.of()
+        );
+
+        com.bar.gestioncocktail.dto.FactureResponseDTO result = factureService.encaisserTable(2L, request);
+
+        assertThat(result.id()).isEqualTo(102L);
+        assertThat(result.modePaiement()).isEqualTo("CARTE");
+        assertThat(result.totalTTC()).isEqualByComparingTo(new BigDecimal("21.60"));
+        assertThat(result.reglee()).isTrue();
+        assertThat(table.isOccupee()).isTrue(); // Table not liberated
+    }
+
+    @Test
+    void encaisserTable_tableNotFound_throwsResourceNotFoundException() {
+        when(tableRepository.findById(999L)).thenReturn(Optional.empty());
+
+        EncaissementRequestDTO request = new EncaissementRequestDTO("CARTE", null, null, null, null, null, true, null);
+
+        assertThatThrownBy(() -> factureService.encaisserTable(999L, request))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Table non trouvée avec l'id: 999");
+    }
+
+    @Test
+    void getTableAddition_withVarianteAndServeurFromActiveCommande() {
+        TableEntity table = new TableEntity();
+        table.setId(3L);
+        table.setNumero(12);
+        table.setServeurId(null);
+
+        User serveur = new User();
+        serveur.setId(99L);
+        serveur.setUsername("sophie");
+
+        Cocktail c1 = new Cocktail();
+        c1.setId(50L);
+        c1.setNom("Gin Tonic");
+
+        com.bar.gestioncocktail.model.CocktailVariante v = new com.bar.gestioncocktail.model.CocktailVariante();
+        v.setId(22L);
+        v.setNom("Concombre");
+
+        CommandeItem item = new CommandeItem();
+        item.setId(401L);
+        item.setCocktail(c1);
+        item.setVariante(v);
+        item.setQuantite(3);
+        item.setPrixUnitaire(new BigDecimal("12.00"));
+
+        Commande cmd = new Commande();
+        cmd.setId(501L);
+        cmd.setTable(table);
+        cmd.setServeur(serveur);
+        cmd.setStatut(CommandeStatut.PRET);
+        cmd.setItems(List.of(item));
+
+        when(tableRepository.findById(3L)).thenReturn(Optional.of(table));
+        when(commandeRepository.findByTable(table)).thenReturn(List.of(cmd));
+        when(factureRepository.findByTable(table)).thenReturn(List.of());
+
+        TableAdditionResponseDTO addition = factureService.getTableAddition(3L);
+
+        assertThat(addition.items()).hasSize(1);
+        assertThat(addition.items().get(0).cocktailNom()).isEqualTo("Gin Tonic");
+        assertThat(addition.items().get(0).varianteNom()).isEqualTo("Concombre");
+        assertThat(addition.items().get(0).quantite()).isEqualTo(3);
+        assertThat(addition.totalTTC()).isEqualByComparingTo(new BigDecimal("36.00"));
+        assertThat(addition.serveurNom()).isEqualTo("sophie");
+    }
+
+    @Test
+    void encaisserTable_withVarianteAndCreationOfNewFacture() {
+        TableEntity table = new TableEntity();
+        table.setId(4L);
+        table.setNumero(14);
+        table.setOccupee(true);
+
+        Cocktail c1 = new Cocktail();
+        c1.setId(60L);
+        c1.setNom("Spritz");
+
+        com.bar.gestioncocktail.model.CocktailVariante v = new com.bar.gestioncocktail.model.CocktailVariante();
+        v.setId(33L);
+        v.setNom("Limoncello");
+
+        CommandeItem item = new CommandeItem();
+        item.setId(402L);
+        item.setCocktail(c1);
+        item.setVariante(v);
+        item.setQuantite(2);
+        item.setPrixUnitaire(new BigDecimal("8.00"));
+
+        Commande cmd = new Commande();
+        cmd.setId(502L);
+        cmd.setTable(table);
+        cmd.setStatut(CommandeStatut.EN_ATTENTE);
+        cmd.setItems(List.of(item));
+
+        when(tableRepository.findById(4L)).thenReturn(Optional.of(table));
+        when(commandeRepository.findByTable(table)).thenReturn(List.of(cmd));
+        when(factureRepository.findByTable(table)).thenReturn(List.of());
+        when(factureRepository.count()).thenReturn(5L);
+        when(factureRepository.save(any(Facture.class))).thenAnswer(i -> {
+            Facture f = i.getArgument(0);
+            f.setId(88L);
+            return f;
+        });
+
+        EncaissementRequestDTO request = new EncaissementRequestDTO(
+                "TITRES_RESTAURANT",
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
+                new BigDecimal("16.00"),
+                null,
+                true,
+                List.of(502L)
+        );
+
+        com.bar.gestioncocktail.dto.FactureResponseDTO result = factureService.encaisserTable(4L, request);
+
+        assertThat(result.id()).isEqualTo(88L);
+        assertThat(result.modePaiement()).isEqualTo("TITRES_RESTAURANT");
+        assertThat(result.totalTTC()).isEqualByComparingTo(new BigDecimal("16.00"));
+        assertThat(result.reglee()).isTrue();
+        assertThat(cmd.getStatut()).isEqualTo(CommandeStatut.REGLEE);
+        assertThat(table.isOccupee()).isFalse();
     }
 }

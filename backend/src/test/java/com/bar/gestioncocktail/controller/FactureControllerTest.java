@@ -116,4 +116,55 @@ class FactureControllerTest {
         assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         verify(factureService).reglerFacture(10L, "ESPECES", new BigDecimal("3.50"));
     }
+
+    @Test
+    void getTableAddition_appelleServiceEtRetourneDTO() {
+        com.bar.gestioncocktail.dto.TableAdditionResponseDTO addition = new com.bar.gestioncocktail.dto.TableAdditionResponseDTO(
+                1L,
+                5,
+                "Salle",
+                2L,
+                "Serveur 1",
+                java.time.LocalDateTime.now(),
+                List.of(),
+                List.of(101L),
+                new BigDecimal("20.00"),
+                new BigDecimal("4.00"),
+                new BigDecimal("24.00"),
+                3,
+                false,
+                null
+        );
+
+        when(factureService.getTableAddition(1L)).thenReturn(addition);
+
+        ResponseEntity<com.bar.gestioncocktail.dto.TableAdditionResponseDTO> response = factureController.getTableAddition(1L);
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getBody()).isEqualTo(addition);
+        verify(factureService).getTableAddition(1L);
+    }
+
+    @Test
+    void encaisserTable_appelleServiceEtRetourneFactureResponseDTO() {
+        com.bar.gestioncocktail.dto.EncaissementRequestDTO request = new com.bar.gestioncocktail.dto.EncaissementRequestDTO(
+                "CARTE",
+                new BigDecimal("2.00"),
+                null,
+                null,
+                null,
+                "Règlement table 1",
+                true,
+                null
+        );
+
+        com.bar.gestioncocktail.dto.FactureResponseDTO responseDTO = com.bar.gestioncocktail.dto.FactureResponseDTO.from(facture);
+        when(factureService.encaisserTable(1L, request)).thenReturn(responseDTO);
+
+        ResponseEntity<com.bar.gestioncocktail.dto.FactureResponseDTO> response = factureController.encaisserTable(1L, request);
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getBody()).isEqualTo(responseDTO);
+        verify(factureService).encaisserTable(1L, request);
+    }
 }

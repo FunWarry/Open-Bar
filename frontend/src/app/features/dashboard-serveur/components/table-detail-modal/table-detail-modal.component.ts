@@ -12,6 +12,7 @@ import { addIcons } from 'ionicons';
 import {
   closeOutline, addCircleOutline, banOutline,
   timeOutline, checkmarkCircleOutline, swapHorizontalOutline,
+  cardOutline,
 } from 'ionicons/icons';
 import { TableView } from '../../models/table-view.model';
 import { Commande } from '../../../../core/models/commande.model';
@@ -45,7 +46,7 @@ export class TableDetailModalComponent implements OnInit {
     private readonly service: DashboardServeurService,
     private readonly toastCtrl: ToastController,
   ) {
-    addIcons({ closeOutline, addCircleOutline, banOutline, timeOutline, checkmarkCircleOutline, swapHorizontalOutline });
+    addIcons({ closeOutline, addCircleOutline, banOutline, timeOutline, checkmarkCircleOutline, swapHorizontalOutline, cardOutline });
   }
 
   ngOnInit(): void {
@@ -133,6 +134,10 @@ export class TableDetailModalComponent implements OnInit {
   nouvelleCommande(): void {
     this.modalCtrl.dismiss();
     this.router.navigate(['/serveur'], { queryParams: { tableId: this.table.id } });
+  }
+
+  encaisser(): void {
+    this.modalCtrl.dismiss({ action: 'encaisser', table: this.table });
   }
 
   liberer(): void {

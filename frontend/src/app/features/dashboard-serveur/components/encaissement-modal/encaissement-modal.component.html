@@ -1,0 +1,394 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="modal-toolbar">
+    <ion-title>
+      <div class="toolbar-title-wrap">
+        <ion-icon name="receipt-outline" class="title-icon"></ion-icon>
+        <span>{{ 'ENCAISSEMENT.MODAL_TITLE' | transloco }} - {{ table.nom }}</span>
+        <ion-badge *ngIf="table.zone" color="secondary" class="zone-badge">{{ table.zone }}</ion-badge>
+      </div>
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="fermer()" (keydown.enter)="fermer()" (keyup.enter)="fermer()" data-testid="btn-close-encaissement" aria-label="Fermer">
+        <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+
+  <ion-toolbar class="segment-toolbar">
+    <ion-segment [(ngModel)]="paymentTab" data-testid="segment-payment-tab">
+      <ion-segment-button value="single" data-testid="tab-single-payment">
+        <ion-icon name="card-outline"></ion-icon>
+        <ion-label>{{ 'ENCAISSEMENT.TAB_SINGLE_PAYMENT' | transloco }}</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="split" data-testid="tab-split-payment">
+        <ion-icon name="people-outline"></ion-icon>
+        <ion-label>{{ 'ENCAISSEMENT.TAB_SPLIT_PAYMENT' | transloco }}</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="encaissement-content ion-padding">
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="state-container" data-testid="loading-addition">
+    <ion-spinner name="crescent" color="primary"></ion-spinner>
+    <p>{{ 'ENCAISSEMENT.LOADING_BILL' | transloco }}</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="errorMessage && !isLoading" class="state-container error-state" data-testid="error-addition">
+    <ion-icon name="alert-circle-outline" color="danger" class="state-icon"></ion-icon>
+    <p>{{ errorMessage }}</p>
+    <ion-button (click)="chargerAddition()" (keydown.enter)="chargerAddition()" (keyup.enter)="chargerAddition()" fill="outline" color="primary" size="small" data-testid="btn-retry-addition">
+      <ion-icon name="refresh-outline" slot="start"></ion-icon>
+      {{ 'COMMON.RETRY' | transloco }}
+    </ion-button>
+  </div>
+
+  <!-- Content Loaded -->
+  <div *ngIf="!isLoading && addition" class="encaissement-grid">
+    
+    <!-- LEFT PANEL: Bill Breakdown / Détail de l'addition -->
+    <div class="bill-panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <ion-icon name="restaurant-outline"></ion-icon>
+          <h3>{{ 'ENCAISSEMENT.BILL_SUMMARY' | transloco }}</h3>
+        </div>
+        <ion-badge color="medium">{{ addition.nombreArticles }} {{ 'ENCAISSEMENT.ITEMS_COUNT' | transloco }}</ion-badge>
+      </div>
+
+      <!-- Server & Occupation info -->
+      <div class="table-meta-bar" *ngIf="addition.serveurNom || addition.dateOccupation">
+        <span *ngIf="addition.serveurNom" class="meta-item">
+          <strong>{{ 'ENCAISSEMENT.SERVER_LABEL' | transloco }}:</strong> {{ addition.serveurNom }}
+        </span>
+        <span *ngIf="addition.dateOccupation" class="meta-item">
+          <ion-icon name="time-outline"></ion-icon>
+          {{ addition.dateOccupation | date:'shortTime' }}
+        </span>
+      </div>
+
+      <!-- Itemized Table -->
+      <div class="items-list-container">
+        <div *ngIf="!addition.items || addition.items.length === 0" class="no-items-note">
+          <p>{{ 'ENCAISSEMENT.NO_ITEMS' | transloco }}</p>
+        </div>
+
+        <div *ngFor="let item of addition.items; trackBy: trackByItemId" class="bill-item-row" data-testid="bill-item-row">
+          <div class="item-qty-badge">{{ item.quantite }}x</div>
+          <div class="item-details">
+            <span class="item-name">{{ item.cocktailNom }}</span>
+            <span *ngIf="item.varianteNom" class="item-variant">({{ item.varianteNom }})</span>
+            <span class="item-unit-price">{{ item.prixUnitaire | currency:'EUR':'symbol':'1.2-2' }} / u</span>
+          </div>
+          <div class="item-total-col">
+            <span class="item-line-total">{{ item.total | currency:'EUR':'symbol':'1.2-2' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Financial Totals -->
+      <div class="totals-breakdown">
+        <div class="total-row sub-row">
+          <span>{{ 'ENCAISSEMENT.SUBTOTAL_HT' | transloco }}</span>
+          <span>{{ totalHT | currency:'EUR':'symbol':'1.2-2' }}</span>
+        </div>
+        <div class="total-row sub-row">
+          <span>{{ 'ENCAISSEMENT.TOTAL_VAT' | transloco }} (20%)</span>
+          <span>{{ totalVAT | currency:'EUR':'symbol':'1.2-2' }}</span>
+        </div>
+        <div class="total-row sub-row" *ngIf="discountAmount > 0">
+          <span class="discount-label">
+            <ion-icon name="pricetag-outline"></ion-icon>
+            {{ 'ENCAISSEMENT.DISCOUNT' | transloco }}
+          </span>
+          <span class="discount-value">-{{ discountAmount | currency:'EUR':'symbol':'1.2-2' }}</span>
+        </div>
+        <div class="total-row sub-row" *ngIf="pourboire > 0">
+          <span class="tip-label">
+            <ion-icon name="heart-outline"></ion-icon>
+            {{ 'ENCAISSEMENT.TIP' | transloco }}
+          </span>
+          <span class="tip-value">+{{ pourboire | currency:'EUR':'symbol':'1.2-2' }}</span>
+        </div>
+        <div class="total-row main-total-row">
+          <span class="total-label">{{ 'ENCAISSEMENT.TOTAL_TTC' | transloco }}</span>
+          <span class="total-amount" data-testid="total-net-to-pay">{{ totalNetAPayer | currency:'EUR':'symbol':'1.2-2' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL: Payment Methods & Actions -->
+    <div class="payment-panel">
+
+      <!-- ================= MODE 1: PAIEMENT UNIQUE ================= -->
+      <div *ngIf="paymentTab === 'single'" class="single-payment-flow">
+        
+        <!-- Payment Mode Selector -->
+        <div class="section-block">
+          <h4 class="section-title">{{ 'ENCAISSEMENT.SELECT_PAYMENT_MODE' | transloco }}</h4>
+          <div class="mode-buttons-grid">
+            <button type="button" class="mode-btn" [class.active]="modePaiement === 'CARTE'" (click)="modePaiement = 'CARTE'" data-testid="btn-mode-carte">
+              <ion-icon name="card-outline"></ion-icon>
+              <span>{{ 'FACTURE.MODE_CARTE' | transloco }}</span>
+            </button>
+            <button type="button" class="mode-btn" [class.active]="modePaiement === 'ESPECES'" (click)="modePaiement = 'ESPECES'" data-testid="btn-mode-especes">
+              <ion-icon name="cash-outline"></ion-icon>
+              <span>{{ 'FACTURE.MODE_ESPECES' | transloco }}</span>
+            </button>
+            <button type="button" class="mode-btn" [class.active]="modePaiement === 'TITRES_RESTAURANT'" (click)="modePaiement = 'TITRES_RESTAURANT'" data-testid="btn-mode-titres-resto">
+              <ion-icon name="wallet-outline"></ion-icon>
+              <span>{{ 'FACTURE.MODE_TITRES_RESTO' | transloco }}</span>
+            </button>
+            <button type="button" class="mode-btn" [class.active]="modePaiement === 'CHEQUES_VACANCES'" (click)="modePaiement = 'CHEQUES_VACANCES'" data-testid="btn-mode-cheques-vacances">
+              <ion-icon name="document-text-outline"></ion-icon>
+              <span>{{ 'FACTURE.MODE_CHEQUES_VACANCES' | transloco }}</span>
+            </button>
+            <button type="button" class="mode-btn" [class.active]="modePaiement === 'AUTRE'" (click)="modePaiement = 'AUTRE'" data-testid="btn-mode-autre">
+              <ion-icon name="pricetag-outline"></ion-icon>
+              <span>{{ 'FACTURE.MODE_AUTRE' | transloco }}</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Cash Calculator Block (Visible if ESPECES selected) -->
+        <div *ngIf="modePaiement === 'ESPECES'" class="cash-calc-card" data-testid="cash-calculator">
+          <div class="cash-header">
+            <ion-icon name="cash-outline" color="warning"></ion-icon>
+            <h5>{{ 'ENCAISSEMENT.CASH_CALCULATOR_TITLE' | transloco }}</h5>
+          </div>
+
+          <div class="cash-input-wrap">
+            <ion-item class="cash-item" lines="none">
+              <ion-label position="stacked">{{ 'ENCAISSEMENT.CASH_RECEIVED_LABEL' | transloco }} (€)</ion-label>
+              <ion-input type="number" step="0.5" [(ngModel)]="montantRecu" placeholder="0.00" data-testid="input-montant-recu"></ion-input>
+            </ion-item>
+          </div>
+
+          <!-- Quick Cash Chips -->
+          <div class="quick-cash-chips">
+            <button type="button" class="cash-chip exact-chip" (click)="definirMontantExact()" data-testid="chip-cash-exact">
+              {{ 'ENCAISSEMENT.EXACT_AMOUNT' | transloco }}
+            </button>
+            <button type="button" class="cash-chip" (click)="ajouterEspeces(5)" data-testid="chip-cash-5">+5 €</button>
+            <button type="button" class="cash-chip" (click)="ajouterEspeces(10)" data-testid="chip-cash-10">+10 €</button>
+            <button type="button" class="cash-chip" (click)="ajouterEspeces(20)" data-testid="chip-cash-20">+20 €</button>
+            <button type="button" class="cash-chip" (click)="ajouterEspeces(50)" data-testid="chip-cash-50">+50 €</button>
+          </div>
+
+          <!-- Change calculation display -->
+          <div class="change-display-box" [class.insufficient]="!isMontantRecuSuffisant">
+            <div *ngIf="isMontantRecuSuffisant" class="change-row">
+              <span>{{ 'ENCAISSEMENT.CHANGE_TO_RETURN' | transloco }}:</span>
+              <strong class="change-amount" data-testid="change-amount">{{ monnaieARendre | currency:'EUR':'symbol':'1.2-2' }}</strong>
+            </div>
+            <div *ngIf="!isMontantRecuSuffisant" class="insufficient-row" data-testid="warning-insufficient-cash">
+              <ion-icon name="alert-circle-outline" color="danger"></ion-icon>
+              <span>{{ 'ENCAISSEMENT.INSUFFICIENT_CASH_WARNING' | transloco }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tip / Pourboire Selection -->
+        <div class="section-block">
+          <h4 class="section-title">{{ 'ENCAISSEMENT.TIP_SELECTION' | transloco }}</h4>
+          <div class="chips-row">
+            <button type="button" class="option-chip" [class.active]="tipMode === 'none'" (click)="setTipMode('none')" data-testid="chip-tip-none">0%</button>
+            <button type="button" class="option-chip" [class.active]="tipMode === '5pct'" (click)="setTipMode('5pct')" data-testid="chip-tip-5pct">+5%</button>
+            <button type="button" class="option-chip" [class.active]="tipMode === '10pct'" (click)="setTipMode('10pct')" data-testid="chip-tip-10pct">+10%</button>
+            <button type="button" class="option-chip" [class.active]="tipMode === 'custom'" (click)="setTipMode('custom')" data-testid="chip-tip-custom">
+              {{ 'ENCAISSEMENT.CUSTOM_TIP' | transloco }}
+            </button>
+          </div>
+          <div *ngIf="tipMode === 'custom'" class="custom-input-box">
+            <ion-item lines="none" class="custom-field">
+              <ion-label position="stacked">{{ 'ENCAISSEMENT.CUSTOM_TIP_AMOUNT' | transloco }} (€)</ion-label>
+              <ion-input type="number" step="0.5" [(ngModel)]="customTip" placeholder="0.00" data-testid="input-custom-tip"></ion-input>
+            </ion-item>
+          </div>
+        </div>
+
+        <!-- Commercial Discount / Remise -->
+        <div class="section-block">
+          <h4 class="section-title">{{ 'ENCAISSEMENT.DISCOUNT_SELECTION' | transloco }}</h4>
+          <div class="chips-row">
+            <button type="button" class="option-chip" [class.active]="discountMode === 'none'" (click)="setDiscountMode('none')" data-testid="chip-discount-none">
+              {{ 'ENCAISSEMENT.NO_DISCOUNT' | transloco }}
+            </button>
+            <button type="button" class="option-chip" [class.active]="discountMode === 'percent'" (click)="setDiscountMode('percent')" data-testid="chip-discount-percent">
+              {{ 'ENCAISSEMENT.DISCOUNT_PERCENT' | transloco }} (%)
+            </button>
+            <button type="button" class="option-chip" [class.active]="discountMode === 'fixed'" (click)="setDiscountMode('fixed')" data-testid="chip-discount-fixed">
+              {{ 'ENCAISSEMENT.DISCOUNT_FIXED' | transloco }} (€)
+            </button>
+          </div>
+          <div *ngIf="discountMode === 'percent'" class="custom-input-box">
+            <ion-item lines="none" class="custom-field">
+              <ion-label position="stacked">{{ 'ENCAISSEMENT.DISCOUNT_PERCENT_LABEL' | transloco }} (%)</ion-label>
+              <ion-input type="number" min="0" max="100" [(ngModel)]="discountPercent" placeholder="10" data-testid="input-discount-percent"></ion-input>
+            </ion-item>
+          </div>
+          <div *ngIf="discountMode === 'fixed'" class="custom-input-box">
+            <ion-item lines="none" class="custom-field">
+              <ion-label position="stacked">{{ 'ENCAISSEMENT.DISCOUNT_FIXED_LABEL' | transloco }} (€)</ion-label>
+              <ion-input type="number" min="0" [(ngModel)]="discountFixed" placeholder="5.00" data-testid="input-discount-fixed"></ion-input>
+            </ion-item>
+          </div>
+        </div>
+
+        <!-- Table Release Checkbox -->
+        <div class="checkbox-row">
+          <ion-checkbox [(ngModel)]="libererTable" data-testid="cb-liberer-table">
+            <span class="cb-label">{{ 'ENCAISSEMENT.RELEASE_TABLE_LABEL' | transloco }}</span>
+          </ion-checkbox>
+        </div>
+
+        <!-- Main Action CTA -->
+        <div class="actions-group">
+          <ion-button expand="block" color="success" size="large" (click)="validerEncaissement()" (keydown.enter)="validerEncaissement()" (keyup.enter)="validerEncaissement()" [disabled]="isSubmitting || !isMontantRecuSuffisant" data-testid="btn-submit-encaissement" class="btn-encaisser">
+            <ion-spinner *ngIf="isSubmitting" name="crescent" slot="start"></ion-spinner>
+            <ion-icon *ngIf="!isSubmitting" name="checkmark-circle-outline" slot="start"></ion-icon>
+            <span>{{ 'ENCAISSEMENT.SUBMIT_SETTLEMENT' | transloco }} ({{ totalNetAPayer | currency:'EUR':'symbol':'1.2-2' }})</span>
+          </ion-button>
+
+          <!-- Quick Print & PDF Buttons -->
+          <div class="secondary-actions-row">
+            <ion-button fill="outline" color="medium" size="small" (click)="imprimerRecu()" (keydown.enter)="imprimerRecu()" (keyup.enter)="imprimerRecu()" data-testid="btn-print-receipt">
+              <ion-icon name="print-outline" slot="start"></ion-icon>
+              {{ 'ENCAISSEMENT.PRINT_RECEIPT_80MM' | transloco }}
+            </ion-button>
+            <ion-button fill="outline" color="primary" size="small" (click)="telechargerPdf()" (keydown.enter)="telechargerPdf()" (keyup.enter)="telechargerPdf()" data-testid="btn-download-pdf">
+              <ion-icon name="download-outline" slot="start"></ion-icon>
+              {{ 'ENCAISSEMENT.DOWNLOAD_PDF' | transloco }}
+            </ion-button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= MODE 2: DIVISER L'ADDITION (SPLIT) ================= -->
+      <div *ngIf="paymentTab === 'split'" class="split-payment-flow">
+        
+        <div class="split-mode-selector">
+          <ion-segment [(ngModel)]="splitMode" data-testid="segment-split-submode">
+            <ion-segment-button value="egal" data-testid="btn-split-submode-egal">
+              <ion-label>{{ 'ENCAISSEMENT.SPLIT_EQUAL' | transloco }}</ion-label>
+            </ion-segment-button>
+            <ion-segment-button value="selection" data-testid="btn-split-submode-selection">
+              <ion-label>{{ 'ENCAISSEMENT.SPLIT_BY_ITEM' | transloco }}</ion-label>
+            </ion-segment-button>
+          </ion-segment>
+        </div>
+
+        <!-- SPLIT EGAL -->
+        <div *ngIf="splitMode === 'egal'" class="split-egal-section">
+          <div class="guests-stepper-box">
+            <span class="guests-label" id="label-num-guests">{{ 'ENCAISSEMENT.NUMBER_OF_GUESTS' | transloco }}</span>
+            <div class="stepper-controls" aria-labelledby="label-num-guests">
+              <button type="button" class="stepper-btn" (click)="ajusterConvives(-1)" [disabled]="nombreConvives <= 2" data-testid="btn-decrease-guests">
+                <ion-icon name="remove-outline"></ion-icon>
+              </button>
+              <span class="guests-count" data-testid="guests-count-display">{{ nombreConvives }}</span>
+              <button type="button" class="stepper-btn" (click)="ajusterConvives(1)" [disabled]="nombreConvives >= 20" data-testid="btn-increase-guests">
+                <ion-icon name="add-outline"></ion-icon>
+              </button>
+            </div>
+            <span class="part-preview">
+              ≈ {{ (subTotalTTC / nombreConvives) | currency:'EUR':'symbol':'1.2-2' }} / {{ 'ENCAISSEMENT.PERSON' | transloco }}
+            </span>
+          </div>
+
+          <ion-button expand="block" fill="outline" color="primary" (click)="calculerSplitEgal()" (keydown.enter)="calculerSplitEgal()" (keyup.enter)="calculerSplitEgal()" data-testid="btn-calculate-split-egal">
+            <ion-icon name="refresh-outline" slot="start"></ion-icon>
+            {{ 'ENCAISSEMENT.GENERATE_PARTS' | transloco }}
+          </ion-button>
+        </div>
+
+        <!-- SPLIT SELECTION -->
+        <div *ngIf="splitMode === 'selection'" class="split-selection-section">
+          <div class="convives-manager">
+            <div class="convives-header">
+              <h5>{{ 'ENCAISSEMENT.GUESTS_LIST' | transloco }}</h5>
+              <button type="button" class="add-guest-btn" (click)="addConvive()" data-testid="btn-add-guest">
+                <ion-icon name="add-outline"></ion-icon>
+                {{ 'ENCAISSEMENT.ADD_GUEST' | transloco }}
+              </button>
+            </div>
+            <div *ngFor="let c of convives; let idx = index" class="convive-input-row">
+              <ion-input [(ngModel)]="c.nom" [placeholder]="'Convive ' + (idx + 1)" class="convive-name-input"></ion-input>
+              <button *ngIf="convives.length > 2" type="button" class="del-guest-btn" (click)="removeConvive(idx)">
+                <ion-icon name="close-outline"></ion-icon>
+              </button>
+            </div>
+          </div>
+
+          <!-- Items Assignment -->
+          <div class="items-assign-list">
+            <h5>{{ 'ENCAISSEMENT.ASSIGN_ITEMS' | transloco }}</h5>
+            <div *ngFor="let item of addition.items; trackBy: trackByItemId" class="assign-item-card">
+              <div class="assign-item-info">
+                <span>{{ item.quantite }}x {{ item.cocktailNom }}</span>
+                <strong>{{ item.total | currency:'EUR':'symbol':'1.2-2' }}</strong>
+              </div>
+              <select id="select-guest-{{item.itemId}}" [attr.aria-label]="'Attribuer ' + item.cocktailNom" [(ngModel)]="itemAssignments[item.itemId]" class="guest-select" [attr.data-testid]="'select-guest-item-' + item.itemId">
+                <option [ngValue]="undefined">{{ 'ENCAISSEMENT.UNASSIGNED' | transloco }}</option>
+                <option *ngFor="let c of convives; let i = index" [ngValue]="i">{{ conviveNom(i) }}</option>
+              </select>
+            </div>
+          </div>
+
+          <ion-button expand="block" fill="outline" color="primary" (click)="calculerSplitSelection()" (keydown.enter)="calculerSplitSelection()" (keyup.enter)="calculerSplitSelection()" data-testid="btn-calculate-split-selection">
+            <ion-icon name="refresh-outline" slot="start"></ion-icon>
+            {{ 'ENCAISSEMENT.CALCULATE_SPLIT' | transloco }}
+          </ion-button>
+        </div>
+
+        <!-- Split Progress & Results -->
+        <div *ngIf="splitResults.length > 0" class="split-results-container" data-testid="split-results-list">
+          <div class="split-summary-bar">
+            <div class="summary-stat">
+              <span>{{ 'ENCAISSEMENT.SETTLED_AMOUNT' | transloco }}</span>
+              <strong class="stat-paid">{{ montantRegleSplit | currency:'EUR':'symbol':'1.2-2' }}</strong>
+            </div>
+            <div class="summary-stat">
+              <span>{{ 'ENCAISSEMENT.REMAINING_BALANCE' | transloco }}</span>
+              <strong class="stat-remaining">{{ soldeRestantSplit | currency:'EUR':'symbol':'1.2-2' }}</strong>
+            </div>
+          </div>
+
+          <ion-progress-bar [value]="ratioRegleSplit" [color]="toutesPartsReglees ? 'success' : 'primary'" class="split-progress"></ion-progress-bar>
+
+          <!-- Individual Parts List -->
+          <div class="parts-cards-list">
+            <div *ngFor="let part of splitResults; let idx = index" class="part-card" [class.settled]="partStates[idx]?.reglee" [attr.data-testid]="'split-part-card-' + idx">
+              <div class="part-header">
+                <h6>{{ part.nomConvive }}</h6>
+                <ion-badge [color]="partStates[idx]?.reglee ? 'success' : 'warning'">
+                  {{ (partStates[idx]?.reglee ? 'ENCAISSEMENT.SETTLED' : 'ENCAISSEMENT.PENDING') | transloco }}
+                </ion-badge>
+              </div>
+
+              <div class="part-amount-row">
+                <span>{{ 'ENCAISSEMENT.PART_AMOUNT' | transloco }}:</span>
+                <strong>{{ part.sousTotal | currency:'EUR':'symbol':'1.2-2' }}</strong>
+              </div>
+
+              <div *ngIf="partStates[idx]?.reglee" class="settlement-info">
+                <span>{{ 'ENCAISSEMENT.MODE_USED' | transloco }}: <strong>{{ partStates[idx].modePaiement }}</strong></span>
+                <span *ngIf="partStates[idx].pourboire">+{{ partStates[idx].pourboire | currency:'EUR':'symbol':'1.2-2' }} pourboire</span>
+              </div>
+
+              <ion-button *ngIf="!partStates[idx]?.reglee" size="small" color="primary" expand="block" (click)="reglerPart(idx, part)" (keydown.enter)="reglerPart(idx, part)" (keyup.enter)="reglerPart(idx, part)" [attr.data-testid]="'btn-settle-part-' + idx">
+                <ion-icon name="card-outline" slot="start"></ion-icon>
+                {{ 'ENCAISSEMENT.PAY_THIS_PART' | transloco }}
+              </ion-button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+</ion-content>

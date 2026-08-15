@@ -375,6 +375,37 @@ describe('DashboardServeurComponent', () => {
 
   // --- ngOnDestroy ---
 
+  it('onSelectionner avec action encaisser ouvre le modal d\'encaissement', fakeAsync(() => {
+    const table: TableView = { id: 1, nom: 'Table 1', zone: 'Terrasse', capacite: 4, occupee: true, commandesActives: [] };
+    const modalMock = {
+      present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+      onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({ data: { action: 'encaisser', table } })),
+    };
+    modalCtrlSpy.create.and.returnValue(Promise.resolve(modalMock as any));
+    spyOn(component, 'ouvrirEncaissement').and.callThrough();
+
+    component.onSelectionner(table);
+    tick();
+
+    expect(component.ouvrirEncaissement).toHaveBeenCalledWith(table);
+  }));
+
+  it('ouvrirEncaissement ouvre le modal EncaissementModalComponent et recharge si réglé', fakeAsync(() => {
+    const table: TableView = { id: 1, nom: 'Table 1', zone: 'Terrasse', capacite: 4, occupee: true, commandesActives: [] };
+    const modalMock = {
+      present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+      onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({ data: { action: 'settled' } })),
+    };
+    modalCtrlSpy.create.and.returnValue(Promise.resolve(modalMock as any));
+    spyOn(component, 'chargerTables').and.callThrough();
+
+    component.ouvrirEncaissement(table);
+    tick();
+
+    expect(modalCtrlSpy.create).toHaveBeenCalled();
+    expect(component.chargerTables).toHaveBeenCalled();
+  }));
+
   it('ngOnDestroy désinscrit les observables', () => {
     expect(() => component.ngOnDestroy()).not.toThrow();
   });
