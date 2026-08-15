@@ -43,7 +43,6 @@ import { NotificationService } from '../../core/services/notification.service';
 import { DashboardBarmanService } from './services/dashboard-barman.service';
 import { safeCompleteRefresher } from '../../core/utils/refresher-utils';
 import { CommandeView } from './models/commande-view.model';
-import { RoleBadgeComponent } from '../../core/components/ui/role-badge/role-badge.component';
 import { EmptyStateComponent } from '../../core/components/ui/empty-state/empty-state.component';
 import { AppSettingsService } from '../../core/services/app-settings.service';
 import { SoundService } from '../../core/services/sound.service';
@@ -80,7 +79,6 @@ import { BarTicketPrintComponent } from './components/bar-ticket-print/bar-ticke
     IonBadge,
     CommandeCardComponent,
     StockAlertBannerComponent,
-    RoleBadgeComponent,
     EmptyStateComponent
   ],
   templateUrl: './dashboard-barman.component.html',

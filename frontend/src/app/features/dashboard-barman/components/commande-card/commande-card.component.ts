@@ -20,7 +20,6 @@ import { groupCommandeItems } from '../../../../core/utils/order-item-grouper';
 import { StatusBadgeComponent } from '../../../../core/components/ui/status-badge/status-badge.component';
 import { ActionButtonComponent } from '../../../../core/components/ui/action-button/action-button.component';
 import { CommandeDetailModalComponent } from '../../../commandes/commande-detail-modal/commande-detail-modal.component';
-import { BarTicketPrintComponent } from '../bar-ticket-print/bar-ticket-print.component';
 import { DashboardBarmanService } from '../../services/dashboard-barman.service';
 import { Cocktail } from '../../../../core/models/cocktail.model';
 
