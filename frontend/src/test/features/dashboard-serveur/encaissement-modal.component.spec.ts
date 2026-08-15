@@ -239,6 +239,76 @@ describe('EncaissementModalComponent', () => {
     expect(component.splitResults[1].sousTotal).toBe(10.0);
   });
 
+  it('should manage convives addition, removal and naming in item split mode', () => {
+    component.convives = [{ nom: 'Alice' }, { nom: 'Bob' }];
+    component.addConvive();
+    expect(component.convives).toHaveSize(3);
+
+    expect(component.conviveNom(0)).toBe('Alice');
+    component.convives[2].nom = '';
+    expect(component.conviveNom(2)).toBe('Convive 3');
+
+    component.removeConvive(2);
+    expect(component.convives).toHaveSize(2);
+  });
+
+  it('should handle validerEncaissement error gracefully with toast feedback', fakeAsync(() => {
+    component.addition = mockAddition;
+    dashboardServiceSpy.encaisserTable.and.returnValue(throwError(() => new Error('Settlement failed')));
+
+    component.validerEncaissement();
+    tick();
+
+    expect(component.isSubmitting).toBeFalse();
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
+  }));
+
+  it('should settle an individual split part via ReglementModalComponent and finalize if all paid', fakeAsync(() => {
+    component.addition = mockAddition;
+    component.splitMode = 'egal';
+    component.nombreConvives = 2;
+    component.calculerSplitEgal();
+
+    const mockModal = {
+      present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+      onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({
+        data: {
+          modePaiement: 'CARTE',
+          pourboire: 1.0,
+          montantRecu: 15.0,
+          monnaieRendue: 0,
+          totalTotal: 15.0
+        }
+      }))
+    };
+    modalCtrlSpy.create.and.returnValue(Promise.resolve(mockModal as any));
+
+    component.reglerPart(0, component.splitResults[0]);
+    tick();
+
+    expect(component.partStates[0].reglee).toBeTrue();
+    expect(component.partStates[0].modePaiement).toBe('CARTE');
+    expect(component.partStates[0].pourboire).toBe(1.0);
+    expect(component.montantRegleSplit).toBe(14.0);
+  }));
+
+  it('imprimerRecu() invokes window.print()', () => {
+    spyOn(window, 'print');
+    component.imprimerRecu();
+    expect(window.print).toHaveBeenCalled();
+  });
+
+  it('telechargerPdf() opens the invoice PDF URL', () => {
+    spyOn(window, 'open');
+    component.addition = { ...mockAddition, hasUnpaidFacture: true, existingFactureId: 99 };
+    component.telechargerPdf();
+    expect(window.open).toHaveBeenCalledWith(jasmine.stringMatching(/\/api\/factures\/99\/pdf/), '_blank');
+  });
+
+  it('trackByItemId returns itemId', () => {
+    expect(component.trackByItemId(0, mockItems[0])).toBe(101);
+  });
+
   it('should dismiss modal when clicking close', () => {
     component.fermer();
     expect(modalCtrlSpy.dismiss).toHaveBeenCalled();

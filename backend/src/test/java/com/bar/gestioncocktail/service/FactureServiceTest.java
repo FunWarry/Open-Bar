@@ -588,4 +588,107 @@ class FactureServiceTest {
                 .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("Aucune commande active à encaisser pour la table 3");
     }
+
+    @Test
+    void getTableAddition_withExistingUnpaidFactureItems_andServeurFromCommande() {
+        TableEntity table = new TableEntity();
+        table.setId(2L);
+        table.setNumero(7);
+        table.setServeurId(null);
+
+        User serveur = new User();
+        serveur.setId(88L);
+        serveur.setUsername("julien");
+
+        Facture unpaidFacture = new Facture();
+        unpaidFacture.setId(102L);
+        unpaidFacture.setTable(table);
+        unpaidFacture.setReglee(false);
+
+        FactureItem fi = new FactureItem();
+        fi.setId(1L);
+        fi.setFacture(unpaidFacture);
+        fi.setDescription("Cosmopolitan");
+        fi.setQuantite(2);
+        fi.setPrixUnitaire(new BigDecimal("9.00"));
+        fi.setTotal(new BigDecimal("18.00"));
+        fi.setPriceHT(new BigDecimal("15.00"));
+        fi.setVatAmount(new BigDecimal("3.00"));
+        unpaidFacture.setItems(List.of(fi));
+
+        table.setServeurId(88L);
+        when(tableRepository.findById(2L)).thenReturn(Optional.of(table));
+        when(commandeRepository.findByTable(table)).thenReturn(List.of());
+        when(factureRepository.findByTable(table)).thenReturn(List.of(unpaidFacture));
+        when(userRepository.findById(88L)).thenReturn(Optional.of(serveur));
+
+        TableAdditionResponseDTO addition = factureService.getTableAddition(2L);
+
+        assertThat(addition.hasUnpaidFacture()).isTrue();
+        assertThat(addition.existingFactureId()).isEqualTo(102L);
+        assertThat(addition.items()).hasSize(1);
+        assertThat(addition.items().get(0).cocktailNom()).isEqualTo("Cosmopolitan");
+        assertThat(addition.totalTTC()).isEqualByComparingTo(new BigDecimal("18.00"));
+        assertThat(addition.serveurNom()).isEqualTo("julien");
+    }
+
+    @Test
+    void encaisserTable_withExistingUnpaidFacture_andPercentageDiscount_andNoLiberation() {
+        TableEntity table = new TableEntity();
+        table.setId(2L);
+        table.setNumero(7);
+        table.setOccupee(true);
+
+        Facture unpaidFacture = new Facture();
+        unpaidFacture.setId(102L);
+        unpaidFacture.setNumero("FAC-2026-00102");
+        unpaidFacture.setTable(table);
+        unpaidFacture.setReglee(false);
+
+        FactureItem fi = new FactureItem();
+        fi.setId(1L);
+        fi.setFacture(unpaidFacture);
+        fi.setDescription("Cosmopolitan");
+        fi.setQuantite(2);
+        fi.setPrixUnitaire(new BigDecimal("12.00"));
+        fi.setTotal(new BigDecimal("24.00"));
+        fi.setPriceHT(new BigDecimal("20.00"));
+        fi.setVatAmount(new BigDecimal("4.00"));
+        unpaidFacture.setItems(List.of(fi));
+
+        when(tableRepository.findById(2L)).thenReturn(Optional.of(table));
+        when(commandeRepository.findByTable(table)).thenReturn(List.of());
+        when(factureRepository.findByTable(table)).thenReturn(List.of(unpaidFacture));
+        when(factureRepository.save(any(Facture.class))).thenAnswer(i -> i.getArgument(0));
+
+        EncaissementRequestDTO request = new EncaissementRequestDTO(
+                "CARTE",
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
+                new BigDecimal("10.00"), // 10% discount -> -2.40€
+                new BigDecimal("21.60"),
+                "Remise fidelite",
+                false, // do NOT liberate table
+                List.of()
+        );
+
+        com.bar.gestioncocktail.dto.FactureResponseDTO result = factureService.encaisserTable(2L, request);
+
+        assertThat(result.id()).isEqualTo(102L);
+        assertThat(result.modePaiement()).isEqualTo("CARTE");
+        assertThat(result.totalTTC()).isEqualByComparingTo(new BigDecimal("21.60"));
+        assertThat(result.reglee()).isTrue();
+        assertThat(table.isOccupee()).isTrue(); // Table not liberated
+    }
+
+    @Test
+    void encaisserTable_tableNotFound_throwsResourceNotFoundException() {
+        when(tableRepository.findById(999L)).thenReturn(Optional.empty());
+
+        EncaissementRequestDTO request = new EncaissementRequestDTO("CARTE", null, null, null, null, null, true, null);
+
+        assertThatThrownBy(() -> factureService.encaisserTable(999L, request))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Table non trouvée avec l'id: 999");
+    }
 }
