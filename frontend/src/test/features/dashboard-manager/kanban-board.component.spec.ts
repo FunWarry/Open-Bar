@@ -8,13 +8,14 @@ import {
   MiniCommandeCardComponent
 } from '../../../app/features/dashboard-manager/components/mini-commande-card/mini-commande-card.component';
 import {OngoingOrder} from '../../../app/features/dashboard-manager/models/ongoing-order.model';
+import {getTranslocoTestingModule} from '../../transloco-testing.module';
 
 describe('KanbanBoardComponent', () => {
   let component: KanbanBoardComponent;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [KanbanBoardComponent, CommonModule, IonBadge, MiniCommandeCardComponent]
+      imports: [KanbanBoardComponent, CommonModule, IonBadge, MiniCommandeCardComponent, getTranslocoTestingModule()]
     }).compileComponents();
 
     const fixture = TestBed.createComponent(KanbanBoardComponent);
@@ -48,7 +49,12 @@ describe('KanbanBoardComponent', () => {
 
   it('should have correct column labels', () => {
     const labels = component.columns.map((c: any) => c.label);
-    expect(labels).toEqual(['Pending', 'In Progress', 'Ready to Serve', 'Served']);
+    expect(labels).toEqual([
+      'MANAGER_DASHBOARD.STATUS_PENDING',
+      'MANAGER_DASHBOARD.STATUS_IN_PROGRESS',
+      'MANAGER_DASHBOARD.STATUS_READY',
+      'MANAGER_DASHBOARD.STATUS_DELIVERED'
+    ]);
   });
 
   it('trackByOrderId returns order id', () => {
