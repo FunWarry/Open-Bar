@@ -3,9 +3,6 @@
   class="side-panel-backdrop"
   [class.open]="isOpen"
   (click)="onClose()"
-  (keyup.enter)="onClose()"
-  tabindex="0"
-  aria-label="Fermer le panneau"
   data-testid="recipe-panel-backdrop">
 </div>
 
@@ -14,8 +11,7 @@
   class="recipe-side-panel"
   [class.open]="isOpen"
   data-testid="recipe-side-panel"
-  role="dialog"
-  aria-modal="true">
+  aria-label="Fiche Recette & Préparation">
 
   <!-- Header -->
   <header class="panel-header">

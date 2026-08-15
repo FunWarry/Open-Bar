@@ -91,4 +91,21 @@ describe('RecipeSidePanelComponent', () => {
     component.onClose();
     expect(closed).toBeTrue();
   });
+
+  it('handleEscapeKey declenche onClose si le panneau est ouvert', () => {
+    let closed = false;
+    component.closePanel.subscribe(() => {
+      closed = true;
+    });
+
+    component.isOpen = true;
+    component.handleEscapeKey();
+    expect(closed).toBeTrue();
+
+    // If closed, does not emit
+    closed = false;
+    component.isOpen = false;
+    component.handleEscapeKey();
+    expect(closed).toBeFalse();
+  });
 });

@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonIcon, IonButton, IonSpinner } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -94,5 +94,15 @@ export class RecipeSidePanelComponent {
    */
   onClose(): void {
     this.closePanel.emit();
+  }
+
+  /**
+   * Listens to Escape key presses to dismiss the side panel.
+   */
+  @HostListener('document:keydown.escape')
+  handleEscapeKey(): void {
+    if (this.isOpen) {
+      this.onClose();
+    }
   }
 }
