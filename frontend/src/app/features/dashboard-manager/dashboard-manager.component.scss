@@ -1,115 +1,444 @@
-// Dashboard Manager — tokens Figma
-// surface-1: #1a1a2e  |  surface-2: #21263f
-// primary: #6c7fe8    |  border-medium: #2e3450
-// text-primary: #eceefb  |  text-muted: #7e87a8
+// ============================================================================
+// Dashboard Manager — Theme & Tokens Conforming to Figma DS
+// ============================================================================
 
 .manager-toolbar {
   --background: var(--background-surface-1, #1a1a2e);
   --border-color: var(--border-medium, #2e3450);
+  border-bottom: 1px solid var(--border-medium, #2e3450);
+  padding: 6px 12px;
 
-  .toolbar-title {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: var(--text-primary, #eceefb);
-    margin-right: 12px;
+  .toolbar-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .toolbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-md, 8px);
+      background: rgba(108, 127, 232, 0.15);
+      color: var(--primary, #6c7fe8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+
+    .brand-titles {
+      display: flex;
+      flex-direction: column;
+
+      .main-title {
+        margin: 0;
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--text-primary, #eceefb);
+        letter-spacing: -0.01em;
+      }
+
+      .subtitle {
+        margin: 2px 0 0;
+        font-size: 0.8rem;
+        color: var(--text-muted, #7e87a8);
+      }
+    }
+  }
+
+  .toolbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    .last-sync-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      color: var(--text-muted, #7e87a8);
+      padding: 4px 10px;
+      border-radius: var(--radius-pill, 999px);
+      background: var(--background-surface-2, #21263f);
+      border: 1px solid var(--border-light, #3a4682);
+    }
+
+    .btn-action-outline {
+      --border-radius: var(--radius-md, 8px);
+      --border-color: var(--border-medium, #2e3450);
+      --color: var(--text-primary, #eceefb);
+      margin: 0;
+    }
+
+    .btn-export-csv {
+      --border-radius: var(--radius-md, 8px);
+      font-weight: 600;
+      margin: 0;
+    }
   }
 }
 
-.stats-grid {
-  padding: 8px;
+.manager-content {
+  --background: var(--background-bg-0, #0f0f1a);
 }
 
-// Sections cards
-.section-card {
-  --background: var(--ion-card-background, var(--background-surface-2, #21263f));
-  margin: 8px;
-  border-radius: 12px;
+.dashboard-body {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
 
-  ion-card-title {
-    font-size: 1rem;
+// ----------------------------------------------------------------------------
+// Quick Actions Bar
+// ----------------------------------------------------------------------------
+.quick-actions-bar {
+  .quick-actions-scroll {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: thin;
+
+    &::-webkit-scrollbar {
+      height: 4px;
+    }
+    &::-webkit-scrollbar-thumb {
+      background: var(--border-medium, #2e3450);
+      border-radius: 4px;
+    }
+  }
+
+  .qa-btn {
+    --border-radius: var(--radius-pill, 999px);
+    font-size: 0.85rem;
     font-weight: 600;
-    color: var(--text-primary, #eceefb);
+    white-space: nowrap;
+    margin: 0;
+    flex-shrink: 0;
+
+    &.btn-ghost {
+      --border-color: var(--border-medium, #2e3450);
+      --color: var(--text-primary, #eceefb);
+      --background-hover: var(--background-surface-2, #21263f);
+    }
   }
 }
 
-// TopCocktailRow — Figma 265:160
-// rang | nom | barre de progression (--primary) | compteur
-.top-cocktail-row {
+// ----------------------------------------------------------------------------
+// Operational Alerts
+// ----------------------------------------------------------------------------
+.alerts-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  .alert-banner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    border-radius: var(--radius-md, 8px);
+    font-size: 0.88rem;
+    font-weight: 500;
+
+    ion-icon {
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .alert-text {
+      flex: 1;
+    }
+
+    &.critical {
+      background: rgba(229, 96, 79, 0.15);
+      border: 1px solid var(--semantic-danger, #e5604f);
+      color: var(--semantic-danger, #e5604f);
+    }
+
+    &.warning {
+      background: rgba(244, 165, 42, 0.15);
+      border: 1px solid var(--semantic-warning, #f4a52a);
+      color: var(--semantic-warning, #f4a52a);
+    }
+  }
+}
+
+// ----------------------------------------------------------------------------
+// Primary KPI Stats Grid
+// ----------------------------------------------------------------------------
+.stats-grid {
+  ion-col {
+    padding: 6px;
+  }
+}
+
+// ----------------------------------------------------------------------------
+// Two-Column Analytics Grid
+// ----------------------------------------------------------------------------
+.analytics-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+
+  @media (min-width: 900px) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.analytics-card {
+  --background: var(--background-surface-1, #1a1a2e);
+  border: 1px solid var(--border-medium, #2e3450);
+  border-radius: var(--radius-lg, 12px);
+  margin: 0;
+  box-shadow: var(--shadow-sm, 0 2px 8px rgba(0, 0, 0, 0.2));
+
+  ion-card-header {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border-medium, #2e3450);
+
+    .card-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      .title-with-icon {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        .title-icon {
+          font-size: 18px;
+          color: var(--primary, #6c7fe8);
+        }
+
+        ion-card-title {
+          font-size: 0.95rem;
+          font-weight: 700;
+          color: var(--text-primary, #eceefb);
+        }
+      }
+    }
+  }
+
+  ion-card-content {
+    padding: 16px;
+  }
+}
+
+// Top Cocktails List
+.top-cocktails-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.top-cocktail-item {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 7px 0;
-  border-bottom: 1px solid var(--border-medium, #2e3450);
 
-  &:last-child { border-bottom: none; }
+  .rank-badge {
+    font-size: 1.1rem;
+    min-width: 24px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .cocktail-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    .cocktail-name-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      .cocktail-name {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text-primary, #eceefb);
+      }
+
+      .sold-badge {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--primary, #6c7fe8);
+      }
+    }
+
+    .progress-bar-track {
+      width: 100%;
+      height: 8px;
+      border-radius: 4px;
+      background: var(--background-bg-1, #151521);
+      overflow: hidden;
+
+      .progress-bar-fill {
+        height: 100%;
+        border-radius: 4px;
+        background: linear-gradient(90deg, var(--primary, #6c7fe8), var(--primary-light, #aab4f3));
+        transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+    }
+  }
 }
 
-.rank {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-muted, #7e87a8);
-  width: 16px;
-  text-align: center;
-  flex-shrink: 0;
-}
-
-.cocktail-nom {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-primary, #eceefb);
-  flex-shrink: 0;
-  min-width: 64px;
-}
-
-.progress-bar-track {
-  flex: 1;
-  background: var(--background-bg-1, #15151f);
-  border-radius: 6px;
-  height: 10px;
-  overflow: hidden;
-}
-
-.progress-bar-fill {
-  height: 100%;
-  background: var(--primary, #6c7fe8);
-  border-radius: 6px;
-  transition: width 0.4s ease;
-}
-
-.vendus {
-  font-size: 12px;
-  color: var(--text-muted, #7e87a8);
-  flex-shrink: 0;
-}
-
-// Statuts commandes
-.statut-row {
+// Workflow Distribution
+.workflow-rows {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 14px;
+
+  .workflow-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    .wf-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.88rem;
+
+      .wf-status {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 500;
+
+        .dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+        }
+
+        &.status-pending {
+          color: var(--status-waiting, #f4a52a);
+          .dot { background: var(--status-waiting, #f4a52a); }
+        }
+        &.status-prep {
+          color: var(--status-in-progress, #2ba8e8);
+          .dot { background: var(--status-in-progress, #2ba8e8); }
+        }
+        &.status-ready {
+          color: var(--status-ready, #2fbf6b);
+          .dot { background: var(--status-ready, #2fbf6b); }
+        }
+        &.status-delivered {
+          color: var(--text-muted, #7e87a8);
+          .dot { background: var(--text-muted, #7e87a8); }
+        }
+      }
+
+      .wf-count {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--text-primary, #eceefb);
+      }
+    }
+
+    .wf-track {
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: var(--background-bg-1, #151521);
+      overflow: hidden;
+
+      .wf-fill {
+        height: 100%;
+        border-radius: 3px;
+        transition: width 0.5s ease-out;
+
+        &.pending-fill { background: var(--status-waiting, #f4a52a); }
+        &.prep-fill { background: var(--status-in-progress, #2ba8e8); }
+        &.ready-fill { background: var(--status-ready, #2fbf6b); }
+        &.delivered-fill { background: var(--text-muted, #7e87a8); }
+      }
+    }
+  }
+}
+
+// ----------------------------------------------------------------------------
+// Kanban Section Card
+// ----------------------------------------------------------------------------
+.kanban-section-card {
+  --background: var(--background-surface-1, #1a1a2e);
+  border: 1px solid var(--border-medium, #2e3450);
+  border-radius: var(--radius-lg, 12px);
+  margin: 0;
+  box-shadow: var(--shadow-sm, 0 2px 8px rgba(0, 0, 0, 0.2));
+
+  ion-card-header {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border-medium, #2e3450);
+
+    .card-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      .title-with-icon {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        .title-icon {
+          font-size: 18px;
+          color: var(--primary, #6c7fe8);
+        }
+
+        ion-card-title {
+          font-size: 0.95rem;
+          font-weight: 700;
+          color: var(--text-primary, #eceefb);
+        }
+      }
+    }
+  }
+
+  ion-card-content {
+    padding: 12px 8px;
+  }
+}
+
+// ----------------------------------------------------------------------------
+// Loading & Error States
+// ----------------------------------------------------------------------------
+.loading-state-wrapper,
+.error-state-wrapper {
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  padding: 6px 0;
-  border-bottom: 1px solid var(--border-medium, #2e3450);
-
-  &:last-child { border-bottom: none; }
-}
-
-.statut-label {
-  font-size: 14px;
-  color: var(--text-primary, #eceefb);
-}
-
-.total-row {
-  margin-top: 4px;
-  .statut-label { font-weight: 600; }
-}
-
-// États vides
-.loading-state,
-.error-state {
-  display: flex;
   justify-content: center;
-  align-items: center;
-  padding: 48px 24px;
-  font-size: 14px;
-  color: var(--text-muted, #7e87a8);
+  padding: 80px 24px;
+  text-align: center;
+  gap: 16px;
+
+  p {
+    color: var(--text-muted, #7e87a8);
+    font-size: 0.95rem;
+    margin: 0;
+  }
 }
+
+.empty-substate {
+  text-align: center;
+  padding: 24px;
+  color: var(--text-muted, #7e87a8);
+  font-size: 0.85rem;
+}
+

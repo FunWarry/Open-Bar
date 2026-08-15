@@ -16,6 +16,9 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * Service calculating real-time dashboard statistics and operational KPIs for managers.
+ */
 @Service
 public class DashboardService {
 
@@ -27,6 +30,14 @@ public class DashboardService {
     private final IngredientRepository ingredientRepository;
     private final TimeService timeService;
 
+    /**
+     * Constructor injecting required repositories and time service.
+     *
+     * @param commandeRepository Orders repository
+     * @param tableRepository Tables repository
+     * @param ingredientRepository Ingredients repository
+     * @param timeService System time provider
+     */
     public DashboardService(
         CommandeRepository commandeRepository,
         TableRepository tableRepository,
@@ -39,6 +50,11 @@ public class DashboardService {
         this.timeService = timeService;
     }
 
+    /**
+     * Aggregates and returns the full operational and financial statistics for today.
+     *
+     * @return DashboardStatsDTO containing revenues, counts, and top cocktail rankings
+     */
     @Transactional(readOnly = true)
     public DashboardStatsDTO getStats() {
         LocalDateTime debutJour = timeService.today().atStartOfDay();

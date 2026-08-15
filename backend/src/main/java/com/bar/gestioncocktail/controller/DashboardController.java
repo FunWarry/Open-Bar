@@ -12,34 +12,34 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Controller REST gérant le tableau de bord et les statistiques de supervision du bar.
+ * REST Controller managing the manager dashboard and live bar performance metrics.
  */
 @RestController
 @RequestMapping("/api/dashboard")
-@Tag(name = "Dashboard", description = "Statistiques d'activité, chiffres d'affaires et métriques temps réel pour les managers")
+@Tag(name = "Dashboard", description = "Activity statistics, revenue analytics, and real-time operational metrics for managers")
 public class DashboardController {
 
     private final DashboardService dashboardService;
 
     /**
-     * Constructeur avec injection du service de dashboard.
+     * Constructor with dependency injection.
      *
-     * @param dashboardService Le service de calcul des statistiques
+     * @param dashboardService The dashboard analytics computation service
      */
     public DashboardController(DashboardService dashboardService) {
         this.dashboardService = dashboardService;
     }
 
     /**
-     * Calcule et retourne les métriques et statistiques globales de l'établissement.
+     * Computes and returns the overall operations metrics and financial statistics of the establishment.
      *
-     * @return DTO contenant les chiffres d'affaires, nombre de commandes et tops cocktails
+     * @return DTO containing revenues, active order counts, and top cocktail sales
      */
     @GetMapping("/stats")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
-    @Operation(summary = "Obtenir les statistiques du tableau de bord (MANAGER/ADMIN)")
-    @ApiResponse(responseCode = "200", description = "Statistiques calculées avec succès")
-    @ApiResponse(responseCode = "403", description = "Accès non autorisé")
+    @Operation(summary = "Get manager dashboard statistics (MANAGER/ADMIN)")
+    @ApiResponse(responseCode = "200", description = "Dashboard statistics computed successfully")
+    @ApiResponse(responseCode = "403", description = "Access forbidden")
     public ResponseEntity<DashboardStatsDTO> getStats() {
         return ResponseEntity.ok(dashboardService.getStats());
     }
