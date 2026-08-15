@@ -117,6 +117,12 @@ describe('MiniCommandeCardComponent', () => {
 
     component.order = {
       ...component.order,
+      dateCommande: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString()
+    };
+    expect(component.waitTimeLabel).toBe('+2j');
+
+    component.order = {
+      ...component.order,
       statut: 'LIVREE'
     };
     expect(component.waitTimeSeverity).toBe('normal');

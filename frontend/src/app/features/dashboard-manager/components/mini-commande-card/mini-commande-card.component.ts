@@ -40,12 +40,16 @@ export class MiniCommandeCardComponent {
     return Math.floor(diffMs / 60000);
   }
 
-  /** Human-readable elapsed waiting time string (e.g. "5 min", "1h 12m"). */
+  /** Human-readable elapsed waiting time string (e.g. "5 min", "1h 12m", "+2j"). */
   get waitTimeLabel(): string {
     const mins = this.waitTimeMinutes;
     if (mins < 1) return '< 1 min';
     if (mins < 60) return `${mins} min`;
     const hours = Math.floor(mins / 60);
+    if (hours >= 24) {
+      const days = Math.floor(hours / 24);
+      return `+${days}j`;
+    }
     const remMins = mins % 60;
     return `${hours}h ${remMins}m`;
   }

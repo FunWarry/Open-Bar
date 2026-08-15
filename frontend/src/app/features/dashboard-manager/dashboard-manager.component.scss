@@ -2,6 +2,16 @@
 // Dashboard Manager — Theme & Tokens Conforming to Figma DS
 // ============================================================================
 
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background: var(--background-bg-0, #0f0f1a);
+  color: var(--text-primary, #eceefb);
+}
+
 .manager-toolbar {
   --background: var(--background-surface-1, #1a1a2e);
   --border-color: var(--border-medium, #2e3450);
