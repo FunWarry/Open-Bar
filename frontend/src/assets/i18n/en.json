@@ -1085,7 +1085,19 @@
     "SOUND_ALERTS_DISABLED": "Sound alerts muted",
     "STATUS_UPDATED_SUCCESS": "Status updated successfully",
     "STATUS_UPDATE_ERROR": "Failed to update status",
-    "LOAD_ORDERS_ERROR": "Error loading orders"
+    "LOAD_ORDERS_ERROR": "Error loading orders",
+    "SIDE_PANEL_RECIPE_TITLE": "Recipe & Preparation Details",
+    "ORDER_CONTEXT": "Order Context",
+    "SPECIAL_INSTRUCTIONS": "Special Instructions",
+    "VARIANT_SELECTED": "Selected variant",
+    "DOSAGES_TITLE": "Dosages & Ingredients",
+    "TOTAL_DOSAGE_FOR_ORDER": "Total doses for {{qty}} cocktail(s)",
+    "SINGLE_DOSE": "Single dose",
+    "PREPARATION_STEPS_TITLE": "Preparation Steps",
+    "GLASS_RECOMMENDED": "Recommended Glass",
+    "GARNISH_RECOMMENDED": "Garnish & Decoration",
+    "TECHNIQUE_TITLE": "Technique",
+    "CLOSE_PANEL": "Close"
   }
 }
 

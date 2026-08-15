@@ -1,0 +1,209 @@
+<!-- Backdrop -->
+<div
+  class="side-panel-backdrop"
+  [class.open]="isOpen"
+  (click)="onClose()"
+  (keyup.enter)="onClose()"
+  tabindex="0"
+  aria-label="Fermer le panneau"
+  data-testid="recipe-panel-backdrop">
+</div>
+
+<!-- Sliding Panel -->
+<aside
+  class="recipe-side-panel"
+  [class.open]="isOpen"
+  data-testid="recipe-side-panel"
+  role="dialog"
+  aria-modal="true">
+
+  <!-- Header -->
+  <header class="panel-header">
+    <div class="header-main">
+      <div class="header-icon-wrapper">
+        <ion-icon name="wine-outline"></ion-icon>
+      </div>
+      <div class="header-title-block">
+        <div class="cocktail-badge-row">
+          <span class="qty-pill">{{ quantity }}x</span>
+          @if (cocktail?.categorie) {
+            <span class="category-pill">{{ cocktail?.categorie }}</span>
+          }
+        </div>
+        <h2 class="cocktail-title">{{ item?.cocktailNom || cocktail?.nom || 'Cocktail' }}</h2>
+      </div>
+    </div>
+
+    <ion-button
+      fill="clear"
+      class="close-btn"
+      (click)="onClose()"
+      (keyup.enter)="onClose()"
+      aria-label="Fermer"
+      data-testid="btn-close-recipe-panel">
+      <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+    </ion-button>
+  </header>
+
+  <!-- Content -->
+  <div class="panel-content">
+    @if (isLoading) {
+      <div class="loading-state">
+        <ion-spinner name="crescent" color="primary"></ion-spinner>
+        <span>Chargement de la fiche recette...</span>
+      </div>
+    } @else {
+      <!-- Order Context Card -->
+      @if (commande) {
+        <section class="context-card">
+          <div class="context-header">
+            <ion-icon name="restaurant-outline"></ion-icon>
+            <span>{{ 'BARMAN_DASHBOARD.ORDER_CONTEXT' | transloco }}</span>
+          </div>
+          <div class="context-grid">
+            <div class="context-cell">
+              <span class="context-label">{{ 'BARMAN_DASHBOARD.TABLE' | transloco }}</span>
+              <strong class="context-value">{{ commande.tableNom || ('Table ' + commande.tableNumero) }}</strong>
+            </div>
+            <div class="context-cell">
+              <span class="context-label">{{ 'BARMAN_DASHBOARD.ORDER_NUM' | transloco }}</span>
+              <strong class="context-value">#{{ commande.id }}</strong>
+            </div>
+            <div class="context-cell">
+              <span class="context-label">{{ 'BARMAN_DASHBOARD.SERVER' | transloco }}</span>
+              <strong class="context-value">{{ commande.serveurNom || commande.serveurUsername || '-' }}</strong>
+            </div>
+          </div>
+        </section>
+      }
+
+      <!-- Customization & Notes Warning (if present) -->
+      @if (item?.notes || item?.varianteNom) {
+        <section class="alert-notes-card">
+          <div class="alert-notes-header">
+            <ion-icon name="alert-circle-outline"></ion-icon>
+            <span>{{ 'BARMAN_DASHBOARD.SPECIAL_INSTRUCTIONS' | transloco }}</span>
+          </div>
+
+          @if (item?.varianteNom) {
+            <div class="variant-highlight">
+              <span class="v-label">{{ 'BARMAN_DASHBOARD.VARIANT_SELECTED' | transloco }} :</span>
+              <span class="v-name">{{ item?.varianteNom }}</span>
+            </div>
+          }
+
+          @if (item?.notes) {
+            <div class="note-highlight">
+              « {{ item?.notes }} »
+            </div>
+          }
+        </section>
+      }
+
+      <!-- Ingredients & Measurements section -->
+      <section class="recipe-section">
+        <div class="section-title-row">
+          <div class="section-title-left">
+            <ion-icon name="leaf-outline"></ion-icon>
+            <h3>{{ 'BARMAN_DASHBOARD.DOSAGES_TITLE' | transloco }}</h3>
+          </div>
+          @if (quantity > 1) {
+            <span class="quantity-scale-badge">
+              {{ 'BARMAN_DASHBOARD.TOTAL_DOSAGE_FOR_ORDER' | transloco: { qty: quantity } }}
+            </span>
+          }
+        </div>
+
+        @if (cocktail?.ingredients?.length) {
+          <div class="ingredients-list">
+            @for (ing of cocktail?.ingredients; track ing.id) {
+              <div class="ingredient-card">
+                <div class="ing-bullet"></div>
+                <div class="ing-info">
+                  <span class="ing-name">{{ ing.ingredientNom }}</span>
+                </div>
+                <div class="ing-measurements">
+                  @if (quantity > 1) {
+                    <span class="total-dosage">{{ getTotalDosage(ing.quantite) }} {{ ing.uniteMesure }}</span>
+                    <span class="unit-dosage">({{ ing.quantite }} {{ ing.uniteMesure }} / verre)</span>
+                  } @else {
+                    <span class="total-dosage">{{ ing.quantite }} {{ ing.uniteMesure }}</span>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="empty-ingredients">
+            Aucun ingrédient spécifique renseigné.
+          </div>
+        }
+      </section>
+
+      <!-- Step-by-Step Preparation -->
+      <section class="recipe-section">
+        <div class="section-title-row">
+          <div class="section-title-left">
+            <ion-icon name="sparkles-outline"></ion-icon>
+            <h3>{{ 'BARMAN_DASHBOARD.PREPARATION_STEPS_TITLE' | transloco }}</h3>
+          </div>
+        </div>
+
+        @if (cocktail?.instructions) {
+          <div class="instructions-box">
+            <p class="instructions-text">{{ cocktail?.instructions }}</p>
+          </div>
+        } @else {
+          <div class="instructions-box default-steps">
+            <div class="step-item">
+              <span class="step-number">1</span>
+              <span class="step-text">Préparer et rafraîchir le verre de service avec des glaçons.</span>
+            </div>
+            <div class="step-item">
+              <span class="step-number">2</span>
+              <span class="step-text">Verser et assembler les ingrédients selon les dosages indiqués.</span>
+            </div>
+            <div class="step-item">
+              <span class="step-number">3</span>
+              <span class="step-text">Mélanger ou shaker vigoureusement, puis filtrer et servir immédiatement.</span>
+            </div>
+          </div>
+        }
+      </section>
+
+      <!-- Glassware & Tips -->
+      <section class="recipe-section glassware-section">
+        <div class="tips-grid">
+          <div class="tip-card">
+            <ion-icon name="wine-outline"></ion-icon>
+            <div class="tip-body">
+              <span class="tip-label">{{ 'BARMAN_DASHBOARD.GLASS_RECOMMENDED' | transloco }}</span>
+              <strong class="tip-val">Verre Cocktail / Tumbler</strong>
+            </div>
+          </div>
+
+          <div class="tip-card">
+            <ion-icon name="cube-outline"></ion-icon>
+            <div class="tip-body">
+              <span class="tip-label">{{ 'BARMAN_DASHBOARD.GARNISH_RECOMMENDED' | transloco }}</span>
+              <strong class="tip-val">Glace fraîche & Zeste</strong>
+            </div>
+          </div>
+        </div>
+      </section>
+    }
+  </div>
+
+  <!-- Footer Actions -->
+  <footer class="panel-footer">
+    <ion-button
+      expand="block"
+      fill="outline"
+      class="btn-done"
+      (click)="onClose()"
+      (keyup.enter)="onClose()"
+      data-testid="btn-close-recipe-footer">
+      {{ 'BARMAN_DASHBOARD.CLOSE_PANEL' | transloco }}
+    </ion-button>
+  </footer>
+</aside>

@@ -81,10 +81,83 @@ export class BarTicketPrintComponent implements OnInit {
   }
 
   /**
-   * Triggers native print dialog.
+   * Triggers isolated 80mm thermal receipt printing without browser backdrop or UI interference.
    */
   printTicket(): void {
-    window.print();
+    const receiptEl = document.querySelector('.thermal-receipt') as HTMLElement;
+    if (!receiptEl) {
+      window.print();
+      return;
+    }
+
+    const printIframe = document.createElement('iframe');
+    printIframe.style.position = 'fixed';
+    printIframe.style.right = '0';
+    printIframe.style.bottom = '0';
+    printIframe.style.width = '0';
+    printIframe.style.height = '0';
+    printIframe.style.border = '0';
+    document.body.appendChild(printIframe);
+
+    const doc = printIframe.contentWindow?.document;
+    if (!doc) {
+      window.print();
+      return;
+    }
+
+    doc.open();
+    doc.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Ticket Bar #${this.commande?.id || ''}</title>
+          <style>
+            @page {
+              size: 80mm auto;
+              margin: 0;
+            }
+            body {
+              margin: 0;
+              padding: 6mm 4mm;
+              font-family: 'Courier Prime', 'Courier New', Courier, monospace;
+              font-size: 13px;
+              line-height: 1.4;
+              color: #000000;
+              background: #ffffff;
+              width: 80mm;
+              box-sizing: border-box;
+            }
+            .establishment-title { font-size: 17px; font-weight: 800; text-align: center; margin: 0 0 4px; text-transform: uppercase; }
+            .ticket-type { font-size: 11px; font-weight: 700; text-align: center; margin-bottom: 6px; }
+            .receipt-divider { border-bottom: 1px dashed #000; margin: 8px 0; }
+            .meta-row { display: flex; justify-content: space-between; margin: 2px 0; }
+            .highlight-table { font-size: 16px; font-weight: 900; margin: 4px 0; }
+            .priority-banner { border: 1px dashed #000; text-align: center; font-weight: 800; padding: 4px; margin: 6px 0; }
+            .receipt-items { display: flex; flex-direction: column; gap: 6px; }
+            .item-main { display: flex; gap: 8px; font-weight: 700; font-size: 14px; }
+            .item-qty { min-width: 24px; }
+            .item-sub, .item-note { font-size: 12px; padding-left: 32px; font-weight: normal; }
+            .receipt-notes { border-left: 2px solid #000; padding-left: 6px; margin: 6px 0; font-size: 12px; }
+            .summary-row { display: flex; justify-content: space-between; font-weight: 800; font-size: 14px; }
+            .receipt-footer { text-align: center; font-size: 11px; margin-top: 8px; }
+          </style>
+        </head>
+        <body>
+          ${receiptEl.innerHTML}
+        </body>
+      </html>
+    `);
+    doc.close();
+
+    setTimeout(() => {
+      printIframe.contentWindow?.focus();
+      printIframe.contentWindow?.print();
+      setTimeout(() => {
+        if (document.body.contains(printIframe)) {
+          document.body.removeChild(printIframe);
+        }
+      }, 1000);
+    }, 200);
   }
 
   /**

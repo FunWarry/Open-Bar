@@ -37,22 +37,26 @@ import {
   flameOutline,
   printOutline
 } from 'ionicons/icons';
+import { SafeHtml } from '@angular/platform-browser';
 import { CommandeCardComponent } from './components/commande-card/commande-card.component';
 import { StockAlertBannerComponent } from '../../core/components/stock-alert-banner/stock-alert-banner.component';
 import { NotificationService } from '../../core/services/notification.service';
 import { DashboardBarmanService } from './services/dashboard-barman.service';
 import { safeCompleteRefresher } from '../../core/utils/refresher-utils';
-import { CommandeView } from './models/commande-view.model';
+import { CommandeView, CommandeItemView } from './models/commande-view.model';
 import { EmptyStateComponent } from '../../core/components/ui/empty-state/empty-state.component';
 import { AppSettingsService } from '../../core/services/app-settings.service';
 import { SoundService } from '../../core/services/sound.service';
 import { RupturesModalComponent } from './components/ruptures-modal/ruptures-modal.component';
 import { BarTicketPrintComponent } from './components/bar-ticket-print/bar-ticket-print.component';
+import { RecipeSidePanelComponent } from './components/recipe-side-panel/recipe-side-panel.component';
+import { Cocktail } from '../../core/models/cocktail.model';
 
 /**
  * Dashboard Barman Component managing the real-time preparation Kanban board.
  * Equipped with live STOMP WebSocket sync, audio chimes, urgency threshold alerts,
- * instant out-of-stock toggles ("Ruptures à chaud"), and 80mm thermal bar ticket printing.
+ * instant out-of-stock toggles ("Ruptures à chaud"), 80mm thermal bar ticket printing,
+ * and an interactive preparation & recipe side panel.
  */
 @Component({
   selector: 'app-dashboard-barman',
@@ -79,7 +83,8 @@ import { BarTicketPrintComponent } from './components/bar-ticket-print/bar-ticke
     IonBadge,
     CommandeCardComponent,
     StockAlertBannerComponent,
-    EmptyStateComponent
+    EmptyStateComponent,
+    RecipeSidePanelComponent
   ],
   templateUrl: './dashboard-barman.component.html',
   styleUrls: ['./dashboard-barman.component.scss']
@@ -92,6 +97,13 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
 
   searchQuery = '';
   urgentOnly = false;
+
+  isRecipePanelOpen = false;
+  activeRecipeItem: CommandeItemView | null = null;
+  activeRecipeOrder: CommandeView | null = null;
+  activeRecipeCocktail: Cocktail | null = null;
+  isRecipeLoading = false;
+  private readonly cachedCocktails: Map<string, Cocktail> = new Map();
 
   private readonly destroy$ = new Subject<void>();
   private readonly dashboardService = inject(DashboardBarmanService);
@@ -327,6 +339,48 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
           this.showToast(this.transloco.translate('BARMAN_DASHBOARD.STATUS_UPDATE_ERROR'), 'danger');
         }
       });
+  }
+
+  /**
+   * Opens the detailed recipe and preparation side panel for an ordered drink.
+   */
+  onShowRecipe(event: { item: CommandeItemView; commande: CommandeView }): void {
+    this.activeRecipeItem = event.item;
+    this.activeRecipeOrder = event.commande;
+    this.isRecipePanelOpen = true;
+
+    if (this.cachedCocktails.has(event.item.cocktailNom)) {
+      this.activeRecipeCocktail = this.cachedCocktails.get(event.item.cocktailNom) || null;
+      this.isRecipeLoading = false;
+      return;
+    }
+
+    if (event.item.cocktailId) {
+      this.isRecipeLoading = true;
+      this.dashboardService
+        .getCocktailById(event.item.cocktailId)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: cocktail => {
+            this.activeRecipeCocktail = cocktail;
+            this.cachedCocktails.set(event.item.cocktailNom, cocktail);
+            this.isRecipeLoading = false;
+          },
+          error: () => {
+            this.isRecipeLoading = false;
+          }
+        });
+    } else {
+      this.activeRecipeCocktail = null;
+      this.isRecipeLoading = false;
+    }
+  }
+
+  /**
+   * Closes the recipe and preparation side panel.
+   */
+  onCloseRecipePanel(): void {
+    this.isRecipePanelOpen = false;
   }
 
   onRefresh(event: any): void {

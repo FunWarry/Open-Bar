@@ -49,6 +49,7 @@ describe('DashboardBarmanComponent', () => {
       'getCommandesPret',
       'changerStatut',
       'getCocktails',
+      'getCocktailById',
       'getIngredients',
       'toggleCocktailDisponibilite',
       'updateIngredientStock'
@@ -57,6 +58,19 @@ describe('DashboardBarmanComponent', () => {
     dashboardServiceSpy.getCommandesEnPreparation.and.returnValue(of([]));
     dashboardServiceSpy.getCommandesPret.and.returnValue(of([]));
     dashboardServiceSpy.changerStatut.and.returnValue(of(mockCommandes[0]));
+    dashboardServiceSpy.getCocktailById.and.returnValue(of({
+      id: 101,
+      nom: 'Mojito',
+      prix: 8.5,
+      categorie: 'ALCOOLISE',
+      disponible: true,
+      saisonnier: false,
+      ingredients: [],
+      variantes: [],
+      instructions: 'Shaker bien',
+      createdAt: '',
+      updatedAt: ''
+    }));
 
     notificationServiceSpy = jasmine.createSpyObj('NotificationService', ['onNotification', 'onStockAlert']);
     notificationServiceSpy.onNotification.and.returnValue(notification$.asObservable());
@@ -201,6 +215,40 @@ describe('DashboardBarmanComponent', () => {
     await component.onPrintTicket(mockCommandes[0]);
     expect(modalCtrlSpy.create).toHaveBeenCalled();
     expect(mockModal.present).toHaveBeenCalled();
+  });
+
+  it('onShowRecipe() ouvre le panneau latéral et charge les détails du cocktail', () => {
+    const item = { id: 1, cocktailId: 101, cocktailNom: 'Mojito', quantite: 2, prioritaire: false };
+    dashboardServiceSpy.getCocktailById.and.returnValue(of({
+      id: 101,
+      nom: 'Mojito',
+      prix: 8.5,
+      categorie: 'ALCOOLISE',
+      disponible: true,
+      saisonnier: false,
+      ingredients: [],
+      variantes: [],
+      instructions: 'Shaker bien',
+      createdAt: '',
+      updatedAt: ''
+    }));
+
+    component.onShowRecipe({ item, commande: mockCommandes[0] });
+
+    expect(component.isRecipePanelOpen).toBeTrue();
+    expect(component.activeRecipeItem).toBe(item);
+    expect(component.activeRecipeOrder).toBe(mockCommandes[0]);
+    expect(dashboardServiceSpy.getCocktailById).toHaveBeenCalledWith(101);
+    expect(component.activeRecipeCocktail?.nom).toBe('Mojito');
+
+    // Second call uses cache
+    dashboardServiceSpy.getCocktailById.calls.reset();
+    component.onShowRecipe({ item, commande: mockCommandes[0] });
+    expect(dashboardServiceSpy.getCocktailById).not.toHaveBeenCalled();
+
+    // Closing panel
+    component.onCloseRecipePanel();
+    expect(component.isRecipePanelOpen).toBeFalse();
   });
 
   it('filtrage par recherche fonctionne correctement', () => {

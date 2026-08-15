@@ -20,8 +20,6 @@ import { groupCommandeItems } from '../../../../core/utils/order-item-grouper';
 import { StatusBadgeComponent } from '../../../../core/components/ui/status-badge/status-badge.component';
 import { ActionButtonComponent } from '../../../../core/components/ui/action-button/action-button.component';
 import { CommandeDetailModalComponent } from '../../../commandes/commande-detail-modal/commande-detail-modal.component';
-import { DashboardBarmanService } from '../../services/dashboard-barman.service';
-import { Cocktail } from '../../../../core/models/cocktail.model';
 
 /**
  * Kanban order ticket card component for the bar counter preparation dashboard.
@@ -47,15 +45,13 @@ export class CommandeCardComponent implements OnInit, OnDestroy {
 
   @Output() changerStatut = new EventEmitter<{ id: number; statut: string }>();
   @Output() printTicket = new EventEmitter<CommandeView>();
+  @Output() showRecipe = new EventEmitter<{ item: CommandeItemView; commande: CommandeView }>();
 
   tempsEcoule = '00:00';
   isUrgent = false;
   isWarning = false;
-  expandedRecipeItemIndex: number | null = null;
-  loadedRecipeDetails: Map<string, Cocktail> = new Map();
 
   private timerSub?: Subscription;
-  private readonly dashboardService = inject(DashboardBarmanService);
 
   get groupedItems(): CommandeItemView[] {
     return groupCommandeItems(this.commande?.items) as CommandeItemView[];
@@ -174,26 +170,11 @@ export class CommandeCardComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Toggles recipe sheet expansion for a given cocktail item.
+   * Emits event to open the detailed recipe and preparation side panel.
    */
-  toggleRecipe(index: number, item: CommandeItemView, event?: Event): void {
+  onOpenRecipe(item: CommandeItemView, event?: Event): void {
     if (event) event.stopPropagation();
-
-    if (this.expandedRecipeItemIndex === index) {
-      this.expandedRecipeItemIndex = null;
-      return;
-    }
-
-    this.expandedRecipeItemIndex = index;
-
-    if (item.cocktailId && !this.loadedRecipeDetails.has(item.cocktailNom)) {
-      this.dashboardService.getCocktailById(item.cocktailId).subscribe({
-        next: cocktail => {
-          this.loadedRecipeDetails.set(item.cocktailNom, cocktail);
-        },
-        error: () => {}
-      });
-    }
+    this.showRecipe.emit({ item, commande: this.commande });
   }
 
   /**

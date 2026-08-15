@@ -1084,7 +1084,19 @@
     "SOUND_ALERTS_DISABLED": "Alertes sonores coupées",
     "STATUS_UPDATED_SUCCESS": "Statut mis à jour avec succès",
     "STATUS_UPDATE_ERROR": "Impossible de mettre à jour le statut",
-    "LOAD_ORDERS_ERROR": "Erreur lors du chargement des commandes"
+    "LOAD_ORDERS_ERROR": "Erreur lors du chargement des commandes",
+    "SIDE_PANEL_RECIPE_TITLE": "Fiche Recette & Préparation",
+    "ORDER_CONTEXT": "Contexte de la Commande",
+    "SPECIAL_INSTRUCTIONS": "Consignes Spéciales",
+    "VARIANT_SELECTED": "Variante sélectionnée",
+    "DOSAGES_TITLE": "Dosages & Ingrédients",
+    "TOTAL_DOSAGE_FOR_ORDER": "Doses totales pour {{qty}} cocktail(s)",
+    "SINGLE_DOSE": "Dose unitaire",
+    "PREPARATION_STEPS_TITLE": "Étapes de Réalisation",
+    "GLASS_RECOMMENDED": "Verre conseillé",
+    "GARNISH_RECOMMENDED": "Garniture & Décoration",
+    "TECHNIQUE_TITLE": "Méthode",
+    "CLOSE_PANEL": "Fermer"
   }
 }
 

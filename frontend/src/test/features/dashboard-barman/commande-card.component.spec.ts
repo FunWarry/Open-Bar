@@ -170,17 +170,15 @@ describe('CommandeCardComponent', () => {
     expect(mockModal.present).toHaveBeenCalled();
   });
 
-  it('toggleRecipe deploie et charge la fiche recette du cocktail', () => {
+  it('onOpenRecipe emet showRecipe avec l item et la commande', () => {
+    const emitted: { item: any; commande: CommandeView }[] = [];
+    component.showRecipe.subscribe(val => emitted.push(val));
     const item = component.groupedItems[0];
-    component.toggleRecipe(0, item);
 
-    expect(component.expandedRecipeItemIndex).toBe(0);
-    expect(dashboardServiceSpy.getCocktailById).toHaveBeenCalledWith(101);
-    expect(component.loadedRecipeDetails.has('Mojito')).toBeTrue();
-
-    // Second click collapses
-    component.toggleRecipe(0, item);
-    expect(component.expandedRecipeItemIndex).toBeNull();
+    component.onOpenRecipe(item);
+    expect(emitted).toHaveSize(1);
+    expect(emitted[0].item.cocktailNom).toBe('Mojito');
+    expect(emitted[0].commande.id).toBe(1);
   });
 
   it('timer se met a jour chaque seconde', fakeAsync(() => {

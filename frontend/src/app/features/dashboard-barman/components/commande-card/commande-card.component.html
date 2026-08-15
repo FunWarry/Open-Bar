@@ -54,7 +54,7 @@
 
     <!-- Liste des items commandés -->
     <ul class="items-list">
-      @for (item of groupedItems; track item.id; let idx = $index) {
+      @for (item of groupedItems; track item.id) {
         <li class="item-row">
           <div class="item-main-line">
             <span class="qty">{{ item.quantite }}×</span>
@@ -67,10 +67,9 @@
             <button
               type="button"
               class="recipe-toggle-btn"
-              [class.active]="expandedRecipeItemIndex === idx"
-              title="Voir la fiche recette & ingrédients"
-              (click)="toggleRecipe(idx, item, $event)"
-              (keyup.enter)="toggleRecipe(idx, item, $event)"
+              title="Voir la fiche recette détaillée & dosages"
+              (click)="onOpenRecipe(item, $event)"
+              (keyup.enter)="onOpenRecipe(item, $event)"
               data-testid="toggle-recipe-btn">
               <ion-icon name="book-outline"></ion-icon>
             </button>
@@ -78,41 +77,6 @@
 
           @if (item.notes) {
             <div class="item-note">💬 {{ item.notes }}</div>
-          }
-
-          <!-- Fiche recette dépliée pour cet item -->
-          @if (expandedRecipeItemIndex === idx) {
-            <div
-              class="recipe-sheet"
-              (click)="$event.stopPropagation()"
-              (keyup.enter)="$event.stopPropagation()">
-              <div class="recipe-header">
-                <ion-icon name="information-circle-outline"></ion-icon>
-                <span>{{ 'BARMAN_DASHBOARD.RECIPE_SHEET' | transloco }} ({{ item.cocktailNom }})</span>
-              </div>
-
-              @if (loadedRecipeDetails.get(item.cocktailNom); as cocktail) {
-                @if (cocktail.ingredients && cocktail.ingredients.length > 0) {
-                  <div class="recipe-ingredients">
-                    <strong>{{ 'BARMAN_DASHBOARD.DOSAGES' | transloco }}:</strong>
-                    <ul class="ingredients-sublist">
-                      @for (ing of cocktail.ingredients; track ing.id) {
-                        <li>• {{ ing.ingredientNom }}: <em>{{ ing.quantite }} {{ ing.uniteMesure }}</em></li>
-                      }
-                    </ul>
-                  </div>
-                }
-                @if (cocktail.instructions) {
-                  <div class="recipe-instructions">
-                    <strong>{{ 'BARMAN_DASHBOARD.INSTRUCTIONS' | transloco }}:</strong> {{ cocktail.instructions }}
-                  </div>
-                }
-              } @else {
-                <div class="recipe-loading">
-                  <span>{{ 'COMMON.LOADING' | transloco }}...</span>
-                </div>
-              }
-            </div>
           }
         </li>
       }

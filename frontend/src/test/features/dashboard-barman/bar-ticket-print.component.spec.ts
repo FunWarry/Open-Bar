@@ -70,10 +70,10 @@ describe('BarTicketPrintComponent', () => {
     expect(component.totalItemsCount).toBe(3);
   });
 
-  it('printTicket() déclenche window.print', () => {
-    spyOn(window, 'print');
+  it('printTicket() déclenche l impression thermique du ticket', () => {
+    spyOn(document.body, 'appendChild').and.callThrough();
     component.printTicket();
-    expect(window.print).toHaveBeenCalled();
+    expect(document.body.appendChild).toHaveBeenCalled();
   });
 
   it('dismiss() ferme la modale', () => {

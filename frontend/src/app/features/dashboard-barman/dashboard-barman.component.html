@@ -10,17 +10,6 @@
     </ion-title>
 
     <ion-buttons slot="end" class="toolbar-actions">
-      <!-- Toggle Son -->
-      <ion-button
-        class="header-action-btn"
-        [class.sound-muted]="!isSoundEnabled"
-        (click)="toggleSound()"
-        (keyup.enter)="toggleSound()"
-        [title]="isSoundEnabled ? ('BARMAN_DASHBOARD.SOUND_ALERTS_ENABLED' | transloco) : ('BARMAN_DASHBOARD.SOUND_ALERTS_DISABLED' | transloco)"
-        data-testid="toggle-sound-btn">
-        <ion-icon slot="icon-only" [name]="isSoundEnabled ? 'volume-high-outline' : 'volume-mute-outline'"></ion-icon>
-      </ion-button>
-
       <!-- Ruptures à chaud -->
       <ion-button
         class="header-action-btn btn-ruptures"
@@ -96,7 +85,7 @@
       <!-- Colonne EN_ATTENTE -->
       <ion-col size="12" size-md="4" class="kanban-col-wrapper">
         <div class="kanban-col kanban-col--pending">
-          <div class="kanban-header kanban-header--pending" [class.urgent-pending]="hasUrgentOrders">
+          <div class="kanban-header kanban-header--pending">
             <div class="header-status">
               <span class="status-dot dot--pending"></span>
               <span class="header-label">{{ 'BARMAN_DASHBOARD.PENDING_ORDERS' | transloco }}</span>
@@ -106,10 +95,7 @@
                 </span>
               }
             </div>
-            <span
-              class="header-count count--pending"
-              [class.count--urgent]="hasUrgentOrders"
-              data-testid="pending-count">
+            <span class="header-count count--pending" data-testid="pending-count">
               {{ filteredCommandesEnAttente.length }}
             </span>
           </div>
@@ -120,7 +106,8 @@
                 [commande]="cmd"
                 [tempsAlerteCommandeMinutes]="tempsAlerteCommandeMinutes"
                 (changerStatut)="onChangerStatut($event)"
-                (printTicket)="onPrintTicket($event)">
+                (printTicket)="onPrintTicket($event)"
+                (showRecipe)="onShowRecipe($event)">
               </app-commande-card>
             } @empty {
               <app-empty-state
@@ -151,7 +138,8 @@
                 [commande]="cmd"
                 [tempsAlerteCommandeMinutes]="tempsAlerteCommandeMinutes"
                 (changerStatut)="onChangerStatut($event)"
-                (printTicket)="onPrintTicket($event)">
+                (printTicket)="onPrintTicket($event)"
+                (showRecipe)="onShowRecipe($event)">
               </app-commande-card>
             } @empty {
               <app-empty-state
@@ -182,7 +170,8 @@
                 [commande]="cmd"
                 [tempsAlerteCommandeMinutes]="tempsAlerteCommandeMinutes"
                 (changerStatut)="onChangerStatut($event)"
-                (printTicket)="onPrintTicket($event)">
+                (printTicket)="onPrintTicket($event)"
+                (showRecipe)="onShowRecipe($event)">
               </app-commande-card>
             } @empty {
               <app-empty-state
@@ -197,3 +186,13 @@
     </ion-row>
   </ion-grid>
 </ion-content>
+
+<!-- Panneau latéral détaillé Fiche Recette & Préparation -->
+<app-recipe-side-panel
+  [isOpen]="isRecipePanelOpen"
+  [item]="activeRecipeItem"
+  [commande]="activeRecipeOrder"
+  [cocktail]="activeRecipeCocktail"
+  [isLoading]="isRecipeLoading"
+  (closePanel)="onCloseRecipePanel()">
+</app-recipe-side-panel>

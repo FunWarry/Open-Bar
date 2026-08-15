@@ -1,0 +1,458 @@
+/* ── Backdrop ── */
+.side-panel-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(3px);
+  z-index: 1000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+
+  &.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+/* ── Panel Container ── */
+.recipe-side-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 440px;
+  max-width: 90vw;
+  height: 100%;
+  background: var(--background-surface-1);
+  border-left: 1px solid var(--border-medium);
+  box-shadow: -8px 0 32px rgba(0, 0, 0, 0.45);
+  z-index: 1001;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+
+  &.open {
+    transform: translateX(0);
+  }
+}
+
+/* ── Header ── */
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: var(--background-surface-2);
+  border-bottom: 1px solid var(--border-medium);
+  flex-shrink: 0;
+}
+
+.header-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.header-icon-wrapper {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md, 8px);
+  background: rgba(108, 127, 232, 0.15);
+  border: 1px solid rgba(108, 127, 232, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.header-title-block {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.cocktail-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.qty-pill {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--primary);
+  background: rgba(108, 127, 232, 0.2);
+  padding: 1px 6px;
+  border-radius: var(--radius-pill, 999px);
+}
+
+.category-pill {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  background: var(--background-surface-1);
+  border: 1px solid var(--border-medium);
+  padding: 1px 6px;
+  border-radius: var(--radius-pill, 999px);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.cocktail-title {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.close-btn {
+  --color: var(--text-secondary);
+  font-size: 24px;
+  margin: 0;
+
+  &:hover {
+    --color: var(--text-primary);
+  }
+}
+
+/* ── Content ── */
+.panel-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 40px 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+/* ── Context Card ── */
+.context-card {
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md, 8px);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.context-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  ion-icon {
+    font-size: 14px;
+    color: var(--primary);
+  }
+}
+
+.context-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.context-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.context-label {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.context-value {
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+/* ── Notes / Variant Alert ── */
+.alert-notes-card {
+  background: rgba(244, 165, 42, 0.1);
+  border-left: 3px solid var(--semantic-warning);
+  border-radius: var(--radius-md, 8px);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.alert-notes-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--semantic-warning);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.variant-highlight {
+  font-size: 0.85rem;
+  color: var(--text-primary);
+
+  .v-label {
+    color: var(--text-secondary);
+    margin-right: 4px;
+  }
+
+  .v-name {
+    font-weight: 700;
+    color: var(--primary);
+  }
+}
+
+.note-highlight {
+  font-size: 0.85rem;
+  font-style: italic;
+  font-weight: 600;
+  color: var(--semantic-warning);
+}
+
+/* ── Sections ── */
+.recipe-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.section-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.section-title-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  ion-icon {
+    font-size: 16px;
+    color: var(--semantic-info);
+  }
+
+  h3 {
+    margin: 0;
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+}
+
+.quantity-scale-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--primary);
+  background: rgba(108, 127, 232, 0.15);
+  border: 1px solid rgba(108, 127, 232, 0.3);
+  padding: 2px 8px;
+  border-radius: var(--radius-pill, 999px);
+}
+
+/* ── Ingrédients List ── */
+.ingredients-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ingredient-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md, 8px);
+  padding: 10px 12px;
+  gap: 8px;
+}
+
+.ing-bullet {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--primary);
+  flex-shrink: 0;
+}
+
+.ing-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.ing-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.ing-measurements {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.total-dosage {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.unit-dosage {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.empty-ingredients {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-style: italic;
+  padding: 8px 0;
+}
+
+/* ── Instructions Box ── */
+.instructions-box {
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md, 8px);
+  padding: 12px 14px;
+
+  .instructions-text {
+    margin: 0;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: var(--text-primary);
+  }
+}
+
+.default-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  .step-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+
+    .step-number {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: var(--text-primary);
+      font-size: 0.75rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .step-text {
+      font-size: 0.85rem;
+      line-height: 1.4;
+      color: var(--text-primary);
+    }
+  }
+}
+
+/* ── Tips / Glassware ── */
+.tips-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.tip-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md, 8px);
+  padding: 10px 12px;
+
+  ion-icon {
+    font-size: 20px;
+    color: var(--semantic-info);
+    flex-shrink: 0;
+  }
+}
+
+.tip-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.tip-label {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.tip-val {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Footer ── */
+.panel-footer {
+  padding: 14px 20px;
+  background: var(--background-surface-2);
+  border-top: 1px solid var(--border-medium);
+  flex-shrink: 0;
+
+  .btn-done {
+    --color: var(--text-primary);
+    --border-color: var(--border-medium);
+    margin: 0;
+    font-weight: 700;
+  }
+}
