@@ -691,4 +691,110 @@ class FactureServiceTest {
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("Table non trouvée avec l'id: 999");
     }
+
+    @Test
+    void getTableAddition_withVarianteAndServeurFromActiveCommande() {
+        TableEntity table = new TableEntity();
+        table.setId(3L);
+        table.setNumero(12);
+        table.setServeurId(null);
+
+        User serveur = new User();
+        serveur.setId(99L);
+        serveur.setUsername("sophie");
+
+        Cocktail c1 = new Cocktail();
+        c1.setId(50L);
+        c1.setNom("Gin Tonic");
+
+        com.bar.gestioncocktail.model.CocktailVariante v = new com.bar.gestioncocktail.model.CocktailVariante();
+        v.setId(22L);
+        v.setNom("Concombre");
+
+        CommandeItem item = new CommandeItem();
+        item.setId(401L);
+        item.setCocktail(c1);
+        item.setVariante(v);
+        item.setQuantite(3);
+        item.setPrixUnitaire(new BigDecimal("12.00"));
+
+        Commande cmd = new Commande();
+        cmd.setId(501L);
+        cmd.setTable(table);
+        cmd.setServeur(serveur);
+        cmd.setStatut(CommandeStatut.PRET);
+        cmd.setItems(List.of(item));
+
+        when(tableRepository.findById(3L)).thenReturn(Optional.of(table));
+        when(commandeRepository.findByTable(table)).thenReturn(List.of(cmd));
+        when(factureRepository.findByTable(table)).thenReturn(List.of());
+
+        TableAdditionResponseDTO addition = factureService.getTableAddition(3L);
+
+        assertThat(addition.items()).hasSize(1);
+        assertThat(addition.items().get(0).cocktailNom()).isEqualTo("Gin Tonic");
+        assertThat(addition.items().get(0).varianteNom()).isEqualTo("Concombre");
+        assertThat(addition.items().get(0).quantite()).isEqualTo(3);
+        assertThat(addition.totalTTC()).isEqualByComparingTo(new BigDecimal("36.00"));
+        assertThat(addition.serveurNom()).isEqualTo("sophie");
+    }
+
+    @Test
+    void encaisserTable_withVarianteAndCreationOfNewFacture() {
+        TableEntity table = new TableEntity();
+        table.setId(4L);
+        table.setNumero(14);
+        table.setOccupee(true);
+
+        Cocktail c1 = new Cocktail();
+        c1.setId(60L);
+        c1.setNom("Spritz");
+
+        com.bar.gestioncocktail.model.CocktailVariante v = new com.bar.gestioncocktail.model.CocktailVariante();
+        v.setId(33L);
+        v.setNom("Limoncello");
+
+        CommandeItem item = new CommandeItem();
+        item.setId(402L);
+        item.setCocktail(c1);
+        item.setVariante(v);
+        item.setQuantite(2);
+        item.setPrixUnitaire(new BigDecimal("8.00"));
+
+        Commande cmd = new Commande();
+        cmd.setId(502L);
+        cmd.setTable(table);
+        cmd.setStatut(CommandeStatut.EN_ATTENTE);
+        cmd.setItems(List.of(item));
+
+        when(tableRepository.findById(4L)).thenReturn(Optional.of(table));
+        when(commandeRepository.findByTable(table)).thenReturn(List.of(cmd));
+        when(factureRepository.findByTable(table)).thenReturn(List.of());
+        when(factureRepository.count()).thenReturn(5L);
+        when(factureRepository.save(any(Facture.class))).thenAnswer(i -> {
+            Facture f = i.getArgument(0);
+            f.setId(88L);
+            return f;
+        });
+
+        EncaissementRequestDTO request = new EncaissementRequestDTO(
+                "TITRES_RESTAURANT",
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
+                new BigDecimal("16.00"),
+                null,
+                true,
+                List.of(502L)
+        );
+
+        com.bar.gestioncocktail.dto.FactureResponseDTO result = factureService.encaisserTable(4L, request);
+
+        assertThat(result.id()).isEqualTo(88L);
+        assertThat(result.modePaiement()).isEqualTo("TITRES_RESTAURANT");
+        assertThat(result.totalTTC()).isEqualByComparingTo(new BigDecimal("16.00"));
+        assertThat(result.reglee()).isTrue();
+        assertThat(cmd.getStatut()).isEqualTo(CommandeStatut.REGLEE);
+        assertThat(table.isOccupee()).isFalse();
+    }
 }
