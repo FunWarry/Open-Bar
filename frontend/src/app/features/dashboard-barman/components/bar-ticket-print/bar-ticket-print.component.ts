@@ -152,9 +152,11 @@ export class BarTicketPrintComponent implements OnInit {
   }
 
   /**
-   * Dismisses the modal dialog.
+   * Dismisses the ticket printing modal dialog.
    */
   dismiss(): void {
-    this.modalCtrl?.dismiss();
+    if (this.modalCtrl) {
+      this.modalCtrl.dismiss();
+    }
   }
 }
