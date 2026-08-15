@@ -27,11 +27,24 @@ describe('KanbanBoardComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should have 4 columns by default', () => {
+  it('should have 3 columns by default when showDelivered is false', () => {
+    expect(component.columns).toHaveSize(3);
+  });
+
+  it('should have 4 columns when showDelivered is true', () => {
+    component.showDelivered = true;
     expect(component.columns).toHaveSize(4);
+    const labels = component.columns.map((c: any) => c.label);
+    expect(labels).toEqual([
+      'MANAGER_DASHBOARD.STATUS_PENDING',
+      'MANAGER_DASHBOARD.STATUS_IN_PROGRESS',
+      'MANAGER_DASHBOARD.STATUS_READY',
+      'MANAGER_DASHBOARD.STATUS_DELIVERED'
+    ]);
   });
 
   it('should distribute orders to correct columns', () => {
+    component.showDelivered = true;
     component.orders = [
       {id: 1, tableNumero: 5, statut: 'EN_ATTENTE', dateCommande: '2026-07-26T10:00:00'},
       {id: 2, tableNumero: 3, statut: 'EN_PREPARATION', dateCommande: '2026-07-26T10:05:00'},
@@ -45,16 +58,6 @@ describe('KanbanBoardComponent', () => {
     expect(columns[1].orders).toHaveSize(1); // EN_PREPARATION
     expect(columns[2].orders).toHaveSize(1); // PRET
     expect(columns[3].orders).toHaveSize(1); // LIVREE
-  });
-
-  it('should have correct column labels', () => {
-    const labels = component.columns.map((c: any) => c.label);
-    expect(labels).toEqual([
-      'MANAGER_DASHBOARD.STATUS_PENDING',
-      'MANAGER_DASHBOARD.STATUS_IN_PROGRESS',
-      'MANAGER_DASHBOARD.STATUS_READY',
-      'MANAGER_DASHBOARD.STATUS_DELIVERED'
-    ]);
   });
 
   it('trackByOrderId returns order id', () => {
@@ -78,7 +81,7 @@ describe('MiniCommandeCardComponent', () => {
       tableNumero: 5,
       tableNom: 'Table VIP',
       statut: 'EN_ATTENTE',
-      dateCommande: '2026-07-26T07:32:00',
+      dateCommande: new Date(Date.now() - 10 * 60 * 1000).toISOString(),
       serveurUsername: 'bob',
       total: 25.5,
       items: [{ cocktailNom: 'Mojito', quantite: 2 }]
@@ -91,12 +94,32 @@ describe('MiniCommandeCardComponent', () => {
   });
 
   it('should format time correctly', () => {
-    expect(component.formattedTime).toMatch(/07:32/);
+    expect(component.formattedTime).toBeTruthy();
   });
 
   it('should return empty string for missing dateCommande', () => {
     component.order = { id: 1, tableNumero: 1, statut: 'EN_ATTENTE', dateCommande: '' };
     expect(component.formattedTime).toBe('');
+    expect(component.waitTimeMinutes).toBe(0);
+    expect(component.waitTimeLabel).toBe('< 1 min');
+  });
+
+  it('should calculate waitTimeMinutes, waitTimeLabel and waitTimeSeverity', () => {
+    expect(component.waitTimeMinutes).toBeGreaterThanOrEqual(9);
+    expect(component.waitTimeLabel).toContain('min');
+    expect(component.waitTimeSeverity).toBe('warning');
+
+    component.order = {
+      ...component.order,
+      dateCommande: new Date(Date.now() - 25 * 60 * 1000).toISOString()
+    };
+    expect(component.waitTimeSeverity).toBe('urgent');
+
+    component.order = {
+      ...component.order,
+      statut: 'LIVREE'
+    };
+    expect(component.waitTimeSeverity).toBe('normal');
   });
 
   it('formatCurrency should format number to EUR currency', () => {

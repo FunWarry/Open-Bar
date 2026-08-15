@@ -206,6 +206,14 @@ describe('DashboardManagerComponent', () => {
     expect(component.chargerStatsSilent).toHaveBeenCalledTimes(2);
   });
 
+  it('toggleShowDelivered() inverse la visibilité de la colonne livrées', () => {
+    expect(component.showDelivered).toBeFalse();
+    component.toggleShowDelivered();
+    expect(component.showDelivered).toBeTrue();
+    component.toggleShowDelivered();
+    expect(component.showDelivered).toBeFalse();
+  });
+
   it('trackByCocktailId() retourne le cocktailId', () => {
     const cocktail: TopCocktail = { cocktailId: 42, nom: 'Gin Tonic', nombreCommandes: 5 };
     expect(component.trackByCocktailId(0, cocktail)).toBe(42);

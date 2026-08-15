@@ -296,11 +296,24 @@
             <ion-icon name="receipt-outline" class="title-icon"></ion-icon>
             <ion-card-title>{{ 'MANAGER_DASHBOARD.ONGOING_ORDERS_TITLE' | transloco }}</ion-card-title>
           </div>
-          <ion-badge color="medium">{{ ongoingOrders.length }} active(s)</ion-badge>
+          <div class="header-right-actions">
+            <ion-button
+              size="small"
+              [fill]="showDelivered ? 'solid' : 'outline'"
+              color="medium"
+              class="btn-toggle-delivered"
+              (click)="toggleShowDelivered()"
+              (keyup.enter)="toggleShowDelivered()"
+              data-testid="btn-toggle-delivered">
+              <ion-icon slot="start" [name]="showDelivered ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+              {{ (showDelivered ? 'MANAGER_DASHBOARD.HIDE_DELIVERED' : 'MANAGER_DASHBOARD.SHOW_DELIVERED') | transloco }}
+            </ion-button>
+            <ion-badge color="primary">{{ ongoingOrders.length }} active(s)</ion-badge>
+          </div>
         </div>
       </ion-card-header>
       <ion-card-content>
-        <app-kanban-board [orders]="ongoingOrders"></app-kanban-board>
+        <app-kanban-board [orders]="ongoingOrders" [showDelivered]="showDelivered"></app-kanban-board>
       </ion-card-content>
     </ion-card>
   </div>

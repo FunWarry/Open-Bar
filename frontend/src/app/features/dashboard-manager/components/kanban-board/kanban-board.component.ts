@@ -20,16 +20,27 @@ export class KanbanBoardComponent {
   /** List of ongoing in-flight orders to categorize into columns. */
   @Input() orders: OngoingOrder[] = [];
 
+  /** Whether delivered/closed orders column is visible. */
+  @Input() showDelivered = false;
+
   /**
    * Resolved Kanban columns mapped to corresponding order statuses.
    */
   get columns(): KanbanColumn[] {
-    return [
+    const cols: KanbanColumn[] = [
       { statut: 'EN_ATTENTE',     label: 'MANAGER_DASHBOARD.STATUS_PENDING',     color: 'warning',   orders: this.filterByStatut('EN_ATTENTE') },
       { statut: 'EN_PREPARATION', label: 'MANAGER_DASHBOARD.STATUS_IN_PROGRESS', color: 'primary',   orders: this.filterByStatut('EN_PREPARATION') },
       { statut: 'PRET',           label: 'MANAGER_DASHBOARD.STATUS_READY',       color: 'success',   orders: this.filterByStatut('PRET') },
-      { statut: 'LIVREE',         label: 'MANAGER_DASHBOARD.STATUS_DELIVERED',   color: 'medium',    orders: this.filterByStatut('LIVREE') },
     ];
+    if (this.showDelivered) {
+      cols.push({
+        statut: 'LIVREE',
+        label: 'MANAGER_DASHBOARD.STATUS_DELIVERED',
+        color: 'medium',
+        orders: this.filterByStatut('LIVREE')
+      });
+    }
+    return cols;
   }
 
   private filterByStatut(statut: string): OngoingOrder[] {

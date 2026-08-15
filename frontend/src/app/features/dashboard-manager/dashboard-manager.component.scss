@@ -407,11 +407,30 @@
           color: var(--text-primary, #eceefb);
         }
       }
+
+      .header-right-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+
+        .btn-toggle-delivered {
+          --border-radius: var(--radius-sm, 6px);
+          font-size: 0.78rem;
+          font-weight: 600;
+          height: 30px;
+          margin: 0;
+
+          ion-icon {
+            font-size: 14px;
+            margin-right: 4px;
+          }
+        }
+      }
     }
   }
 
   ion-card-content {
-    padding: 12px 8px;
+    padding: 12px;
   }
 }
 

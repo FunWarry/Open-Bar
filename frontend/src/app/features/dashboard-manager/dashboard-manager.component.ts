@@ -39,7 +39,9 @@ import {
   trendingUpOutline,
   statsChartOutline,
   warningOutline,
-  syncOutline
+  syncOutline,
+  eyeOutline,
+  eyeOffOutline
 } from 'ionicons/icons';
 
 /**
@@ -81,6 +83,9 @@ export class DashboardManagerComponent implements OnInit, OnDestroy {
   /** Active orders list. */
   ongoingOrders: OngoingOrder[] = [];
 
+  /** Whether the delivered orders column is displayed in the Kanban board. */
+  showDelivered = false;
+
   /** Whether the initial dashboard metrics are currently loading. */
   loading = true;
 
@@ -115,8 +120,17 @@ export class DashboardManagerComponent implements OnInit, OnDestroy {
       trendingUpOutline,
       statsChartOutline,
       warningOutline,
-      syncOutline
+      syncOutline,
+      eyeOutline,
+      eyeOffOutline
     });
+  }
+
+  /**
+   * Toggles visibility of delivered orders column in Kanban.
+   */
+  toggleShowDelivered(): void {
+    this.showDelivered = !this.showDelivered;
   }
 
   ngOnInit(): void {

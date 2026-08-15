@@ -1,11 +1,17 @@
 <ion-card class="mini-card" button [attr.data-testid]="'manager-order-card-' + order.id">
   <ion-card-content class="mini-card__content">
-    <!-- Header: Table & Order ID -->
+    <!-- Header: Table, Wait Time & Order ID -->
     <div class="mini-card__header">
       <div class="table-badge">
         <strong class="table-label">{{ order.tableNom || ('Table ' + order.tableNumero) }}</strong>
       </div>
-      <span class="order-id">#{{ order.id }}</span>
+      <div class="header-badges">
+        <span class="wait-time-badge" [ngClass]="waitTimeSeverity" *ngIf="order.dateCommande" [title]="'Temps d\'attente : ' + waitTimeLabel">
+          <ion-icon name="timer-outline"></ion-icon>
+          <span>{{ waitTimeLabel }}</span>
+        </span>
+        <span class="order-id">#{{ order.id }}</span>
+      </div>
     </div>
 
     <!-- Items Preview List -->

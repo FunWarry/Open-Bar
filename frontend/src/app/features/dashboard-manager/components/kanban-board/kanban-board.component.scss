@@ -1,8 +1,8 @@
 // Kanban Board — Modern Operations Kanban
 .kanban {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px;
   padding: 4px;
 
   &__column {
@@ -12,14 +12,14 @@
     background: var(--background-bg-1, #151521);
     border: 1px solid var(--border-medium, #2e3450);
     border-radius: var(--radius-md, 8px);
-    padding: 8px;
+    padding: 10px;
   }
 
   &__header {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 8px 6px 10px;
+    padding: 6px 4px 10px;
     border-bottom: 1px solid var(--border-medium, #2e3450);
     margin-bottom: 10px;
   }
@@ -54,39 +54,23 @@
     flex-direction: column;
     gap: 0;
     flex: 1;
-    overflow-y: auto;
-    max-height: 380px;
-    padding-right: 2px;
-
-    scrollbar-width: thin;
-    &::-webkit-scrollbar {
-      width: 4px;
-    }
-    &::-webkit-scrollbar-thumb {
-      background: var(--border-medium, #2e3450);
-      border-radius: 4px;
-    }
+    overflow: visible;
   }
 
   &__empty {
     font-size: 0.8rem;
     color: var(--text-muted, #7e87a8);
     text-align: center;
-    padding: 32px 8px;
+    padding: 36px 8px;
     font-style: italic;
   }
 }
 
-// Responsive: stack columns on small screens
-@media (max-width: 900px) {
-  .kanban {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 520px) {
+// Responsive: stack columns on very small screens
+@media (max-width: 580px) {
   .kanban {
     grid-template-columns: 1fr;
   }
 }
+
 
