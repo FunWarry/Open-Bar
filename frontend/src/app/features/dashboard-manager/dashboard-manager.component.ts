@@ -4,7 +4,7 @@ import { Subject, timer } from 'rxjs';
 import { switchMap, takeUntil } from 'rxjs/operators';
 import { RouterLink } from '@angular/router';
 import {
-  IonContent, IonHeader, IonToolbar, IonTitle,
+  IonContent, IonHeader, IonToolbar,
   IonRefresher, IonRefresherContent,
   IonGrid, IonRow, IonCol,
   IonCard, IonCardContent, IonCardHeader, IonCardTitle,
@@ -61,7 +61,7 @@ import {
     CommonModule,
     RouterLink,
     TranslocoPipe,
-    IonContent, IonHeader, IonToolbar, IonTitle,
+    IonContent, IonHeader, IonToolbar,
     IonRefresher, IonRefresherContent,
     IonGrid, IonRow, IonCol,
     IonCard, IonCardContent, IonCardHeader, IonCardTitle,
@@ -303,6 +303,24 @@ export class DashboardManagerComponent implements OnInit, OnDestroy {
   get activeOrdersCount(): number {
     if (!this.stats) return 0;
     return this.stats.commandesEnAttente + this.stats.commandesEnPreparation + this.stats.commandesPret;
+  }
+
+  /**
+   * Calculates service delivery completion rate in percentage.
+   */
+  get deliveryRate(): number {
+    if (!this.stats || this.stats.commandesTotales <= 0) {
+      return 0;
+    }
+    return Math.round((this.stats.commandesLivrees / this.stats.commandesTotales) * 100);
+  }
+
+  /**
+   * Total number of cocktails sold today across top ranks.
+   */
+  get totalCocktailsSold(): number {
+    if (!this.stats?.topCocktails?.length) return 0;
+    return this.stats.topCocktails.reduce((acc, c) => acc + c.nombreCommandes, 0);
   }
 
   /**

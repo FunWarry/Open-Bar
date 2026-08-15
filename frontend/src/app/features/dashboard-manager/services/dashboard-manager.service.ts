@@ -42,13 +42,24 @@ export class DashboardManagerService {
         const orders: OngoingOrder[] = [];
         results.forEach((commandeList, idx) => {
           commandeList.forEach(c => {
+            const mappedItems = (c.items || []).map((it: any) => ({
+              cocktailNom: it.cocktailNom || it.nom || '',
+              quantite: it.quantite || 1,
+              varianteNom: it.varianteNom,
+              notes: it.notes
+            }));
+
             orders.push({
               id: c.id,
               tableNumero: c.tableNumero ?? 0,
+              tableNom: c.tableNom,
               statut: statuts[idx],
               dateCommande: c.dateCommande,
               serveurUsername: c.serveurUsername,
-              itemCount: c.items?.length ?? 0,
+              itemCount: mappedItems.reduce((acc: number, item: any) => acc + item.quantite, 0) || (c.items?.length ?? 0),
+              total: c.total ?? 0,
+              notes: c.notes,
+              items: mappedItems
             });
           });
         });
@@ -79,7 +90,7 @@ export class DashboardManagerService {
       `Ingredients sous Seuil Critique,${stats.stockIngredientsCritiques}`,
       '',
       'Top Cocktails,Nombre de Ventes',
-      ...(stats.topCocktails || []).map(tc => `"${tc.nom.replace(/"/g, '""')}",${tc.nombreCommandes}`)
+      ...(stats.topCocktails || []).map(tc => `"${tc.nom.replaceAll('"', '""')}",${tc.nombreCommandes}`)
     ].join('\n');
 
     const csvContent = '\uFEFF' + headers + rows;
@@ -90,7 +101,7 @@ export class DashboardManagerService {
     link.setAttribute('download', `openbar_rapport_manager_${dateStr}.csv`);
     document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
+    link.remove();
     URL.revokeObjectURL(url);
   }
 }

@@ -157,7 +157,7 @@ describe('DashboardManagerComponent', () => {
     expect(component.getBarWidth({ cocktailId: 1, nom: 'Mojito', nombreCommandes: 5 })).toBe(0);
   });
 
-  it('calcule averageTicket, occupancyRate, et activeOrdersCount correctement', () => {
+  it('calcule averageTicket, occupancyRate, activeOrdersCount, deliveryRate et totalCocktailsSold correctement', () => {
     component.stats = mockStats;
     // CA 150.5 / 20 = 7.525 -> 7.53
     expect(component.averageTicket).toBe(7.53);
@@ -165,17 +165,25 @@ describe('DashboardManagerComponent', () => {
     expect(component.occupancyRate).toBe(50);
     // 3 + 4 + 2 = 9
     expect(component.activeOrdersCount).toBe(9);
+    // 11 / 20 = 55%
+    expect(component.deliveryRate).toBe(55);
+    // 10 + 6 + 4 = 20
+    expect(component.totalCocktailsSold).toBe(20);
   });
 
-  it('averageTicket et occupancyRate renvoient 0 si stats null ou zéro commandes/tables', () => {
+  it('averageTicket, occupancyRate et deliveryRate renvoient 0 si stats null ou zéro commandes/tables', () => {
     component.stats = null;
     expect(component.averageTicket).toBe(0);
     expect(component.occupancyRate).toBe(0);
     expect(component.activeOrdersCount).toBe(0);
+    expect(component.deliveryRate).toBe(0);
+    expect(component.totalCocktailsSold).toBe(0);
 
-    component.stats = { ...mockStats, commandesTotales: 0, tablesTotales: 0 };
+    component.stats = { ...mockStats, commandesTotales: 0, tablesTotales: 0, topCocktails: [] };
     expect(component.averageTicket).toBe(0);
     expect(component.occupancyRate).toBe(0);
+    expect(component.deliveryRate).toBe(0);
+    expect(component.totalCocktailsSold).toBe(0);
   });
 
   it('onExportCsv() appelle dashboardService.exportStatsCsv et affiche un toast', async () => {

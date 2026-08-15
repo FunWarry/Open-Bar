@@ -68,12 +68,21 @@ describe('MiniCommandeCardComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [MiniCommandeCardComponent, CommonModule]
+      imports: [MiniCommandeCardComponent, CommonModule, getTranslocoTestingModule()]
     }).compileComponents();
 
     const fixture = TestBed.createComponent(MiniCommandeCardComponent);
     component = fixture.componentInstance;
-    component.order = { id: 1020, tableNumero: 5, statut: 'EN_ATTENTE', dateCommande: '2026-07-26T07:32:00' };
+    component.order = {
+      id: 1020,
+      tableNumero: 5,
+      tableNom: 'Table VIP',
+      statut: 'EN_ATTENTE',
+      dateCommande: '2026-07-26T07:32:00',
+      serveurUsername: 'bob',
+      total: 25.5,
+      items: [{ cocktailNom: 'Mojito', quantite: 2 }]
+    };
     fixture.detectChanges();
   });
 
@@ -88,5 +97,11 @@ describe('MiniCommandeCardComponent', () => {
   it('should return empty string for missing dateCommande', () => {
     component.order = { id: 1, tableNumero: 1, statut: 'EN_ATTENTE', dateCommande: '' };
     expect(component.formattedTime).toBe('');
+  });
+
+  it('formatCurrency should format number to EUR currency', () => {
+    expect(component.formatCurrency(25.5)).toContain('25');
+    expect(component.formatCurrency(25.5)).toContain('€');
+    expect(component.formatCurrency(undefined)).toBe('');
   });
 });

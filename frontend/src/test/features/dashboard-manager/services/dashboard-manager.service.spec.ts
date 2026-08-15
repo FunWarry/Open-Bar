@@ -53,7 +53,7 @@ describe('DashboardManagerService', () => {
 
   it('getOngoingOrders() recupere et aggrege les commandes par statut', () => {
     service.getOngoingOrders().subscribe(orders => {
-      expect(orders.length).toBe(2);
+      expect(orders).toHaveSize(2);
       expect(orders[0].statut).toBe('EN_ATTENTE');
       expect(orders[1].statut).toBe('EN_PREPARATION');
     });
@@ -71,10 +71,8 @@ describe('DashboardManagerService', () => {
 
   it('exportStatsCsv() genere et declenche le telechargement du fichier CSV', () => {
     spyOn(document.body, 'appendChild').and.callThrough();
-    spyOn(document.body, 'removeChild').and.callThrough();
 
     service.exportStatsCsv(mockStats, new Date('2026-08-15'));
     expect(document.body.appendChild).toHaveBeenCalled();
-    expect(document.body.removeChild).toHaveBeenCalled();
   });
 });

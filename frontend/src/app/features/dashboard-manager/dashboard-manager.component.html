@@ -23,6 +23,7 @@
           size="small"
           class="btn-action-outline"
           (click)="onRefresh()"
+          (keyup.enter)="onRefresh()"
           [title]="'MANAGER_DASHBOARD.REFRESH_TOOLTIP' | transloco"
           data-testid="manager-btn-refresh">
           <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
@@ -34,6 +35,7 @@
           size="small"
           class="btn-export-csv"
           (click)="onExportCsv()"
+          (keyup.enter)="onExportCsv()"
           data-testid="manager-btn-export-csv">
           <ion-icon slot="start" name="download-outline"></ion-icon>
           {{ 'MANAGER_DASHBOARD.ACTION_EXPORT_CSV' | transloco }}
@@ -95,11 +97,11 @@
       </div>
     </section>
 
-    <!-- Primary 4 KPI Stat Cards -->
+    <!-- Enriched 6 KPI Stat Cards Grid -->
     <ion-grid class="stats-grid ion-no-padding">
       <ion-row>
         <!-- CA du Jour -->
-        <ion-col size="12" size-sm="6" size-lg="3">
+        <ion-col size="12" size-sm="6" size-md="4" size-lg="2">
           <app-stat-card
             [title]="'MANAGER_DASHBOARD.KPI_REVENUE_TODAY' | transloco"
             [value]="formatCurrency(stats.chiffreAffairesJour)"
@@ -111,8 +113,20 @@
           </app-stat-card>
         </ion-col>
 
+        <!-- CA du Mois -->
+        <ion-col size="12" size-sm="6" size-md="4" size-lg="2">
+          <app-stat-card
+            [title]="'MANAGER_DASHBOARD.KPI_REVENUE_MONTH' | transloco"
+            [value]="formatCurrency(stats.chiffreAffairesMois)"
+            icon="cash-outline"
+            color="success"
+            trendDirection="neutral"
+            testId="stat-card-revenue-month">
+          </app-stat-card>
+        </ion-col>
+
         <!-- Commandes Actives -->
-        <ion-col size="12" size-sm="6" size-lg="3">
+        <ion-col size="12" size-sm="6" size-md="4" size-lg="2">
           <app-stat-card
             [title]="'MANAGER_DASHBOARD.KPI_ACTIVE_ORDERS' | transloco"
             [value]="activeOrdersCount"
@@ -125,7 +139,7 @@
         </ion-col>
 
         <!-- Panier Moyen -->
-        <ion-col size="12" size-sm="6" size-lg="3">
+        <ion-col size="12" size-sm="6" size-md="4" size-lg="2">
           <app-stat-card
             [title]="'MANAGER_DASHBOARD.KPI_AVERAGE_BASKET' | transloco"
             [value]="formatCurrency(averageTicket)"
@@ -137,7 +151,7 @@
         </ion-col>
 
         <!-- Taux d'Occupation -->
-        <ion-col size="12" size-sm="6" size-lg="3">
+        <ion-col size="12" size-sm="6" size-md="4" size-lg="2">
           <app-stat-card
             [title]="'MANAGER_DASHBOARD.KPI_OCCUPANCY_RATE' | transloco"
             [value]="occupancyRate + '%'"
@@ -146,6 +160,19 @@
             [trend]="stats.tablesOccupees + ' / ' + stats.tablesTotales + ' tables'"
             trendDirection="neutral"
             testId="stat-card-occupancy">
+          </app-stat-card>
+        </ion-col>
+
+        <!-- Taux de Service / Livraison -->
+        <ion-col size="12" size-sm="6" size-md="4" size-lg="2">
+          <app-stat-card
+            [title]="'MANAGER_DASHBOARD.KPI_DELIVERY_RATE' | transloco"
+            [value]="deliveryRate + '%'"
+            icon="checkmark-circle-outline"
+            color="success"
+            [trend]="stats.commandesLivrees + ' livrée(s)'"
+            trendDirection="up"
+            testId="stat-card-delivery-rate">
           </app-stat-card>
         </ion-col>
       </ion-row>
@@ -161,7 +188,7 @@
               <ion-icon name="wine-outline" class="title-icon"></ion-icon>
               <ion-card-title>{{ 'MANAGER_DASHBOARD.TOP_COCKTAILS_TITLE' | transloco }}</ion-card-title>
             </div>
-            <ion-badge color="primary">{{ stats.topCocktails?.length || 0 }} cocktail(s)</ion-badge>
+            <ion-badge color="primary">{{ stats.topCocktails.length }} cocktail(s)</ion-badge>
           </div>
         </ion-card-header>
         <ion-card-content>
@@ -294,7 +321,7 @@
       [title]="'MANAGER_DASHBOARD.ERROR_STATS' | transloco"
       icon="warning-outline">
     </app-empty-state>
-    <ion-button color="primary" fill="solid" (click)="chargerStats()" data-testid="manager-btn-retry">
+    <ion-button color="primary" fill="solid" (click)="chargerStats()" (keyup.enter)="chargerStats()" data-testid="manager-btn-retry">
       <ion-icon slot="start" name="refresh-outline"></ion-icon>
       {{ 'MANAGER_DASHBOARD.RETRY' | transloco }}
     </ion-button>
