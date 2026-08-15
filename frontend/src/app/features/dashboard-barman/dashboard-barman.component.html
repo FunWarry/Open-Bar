@@ -2,8 +2,7 @@
   <ion-toolbar class="barman-toolbar">
     <ion-title>
       <div class="toolbar-title-container">
-        <span class="toolbar-brand">🍹 OpenBar</span>
-        <app-role-badge [role]="'BARMAN'"></app-role-badge>
+        <span class="toolbar-brand">{{ 'BARMAN_DASHBOARD.TITLE' | transloco }}</span>
         <span class="active-orders-counter" title="Commandes en cours de traitement">
           {{ totalActiveOrdersCount }} {{ 'BARMAN_DASHBOARD.PENDING_ORDERS' | transloco }}
         </span>
@@ -60,9 +59,9 @@
     <div class="chips-wrapper">
       <ion-chip
         tabindex="0"
-        [class.chip--active]="!urgentOnly && selectedTable === 'ALL'"
-        (click)="urgentOnly = false; selectedTable = 'ALL'"
-        (keyup.enter)="urgentOnly = false; selectedTable = 'ALL'"
+        [class.chip--active]="!urgentOnly"
+        (click)="urgentOnly = false"
+        (keyup.enter)="urgentOnly = false"
         data-testid="chip-filter-all">
         <ion-label>{{ 'BARMAN_DASHBOARD.FILTER_ALL' | transloco }}</ion-label>
       </ion-chip>
@@ -80,17 +79,6 @@
           <ion-badge color="danger">{{ urgentOrdersCount }}</ion-badge>
         }
       </ion-chip>
-
-      @for (table of availableTables; track table) {
-        <ion-chip
-          tabindex="0"
-          [class.chip--active]="selectedTable === table"
-          (click)="selectedTable = selectedTable === table ? 'ALL' : table"
-          (keyup.enter)="selectedTable = selectedTable === table ? 'ALL' : table"
-          data-testid="chip-filter-table">
-          <ion-label>{{ table }}</ion-label>
-        </ion-chip>
-      }
     </div>
   </div>
 </ion-header>

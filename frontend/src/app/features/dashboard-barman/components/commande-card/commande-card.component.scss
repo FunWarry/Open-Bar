@@ -21,20 +21,12 @@
 
   &.prioritaire,
   &.card-urgent {
-    border-color: var(--semantic-danger);
-    box-shadow: 0 0 0 1px var(--semantic-danger);
-    animation: border-pulse 1.8s infinite;
+    border-color: rgba(229, 96, 79, 0.5);
   }
 
   &.card-warning {
-    border-color: var(--semantic-warning);
+    border-color: rgba(244, 165, 42, 0.4);
   }
-}
-
-@keyframes border-pulse {
-  0% { box-shadow: 0 0 0 1px rgba(229, 96, 79, 0.4); }
-  50% { box-shadow: 0 0 0 3px rgba(229, 96, 79, 0.8); }
-  100% { box-shadow: 0 0 0 1px rgba(229, 96, 79, 0.4); }
 }
 
 .lisere {

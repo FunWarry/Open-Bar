@@ -15,33 +15,36 @@
       <!-- En-tête du ticket -->
       <div class="receipt-header">
         <h2 class="establishment-title">{{ establishmentName }}</h2>
-        <div class="ticket-type">*** BON DE PREPARATION BAR ***</div>
-        <div class="ticket-meta">
-          <div class="meta-row highlight-table">
-            <span>{{ 'BARMAN_DASHBOARD.TABLE' | transloco }}:</span>
-            <strong>{{ commande.tableNom || ('Table ' + commande.tableNumero) }}</strong>
-          </div>
-          <div class="meta-row">
-            <span>{{ 'BARMAN_DASHBOARD.ORDER_NUM' | transloco }}:</span>
-            <strong>#{{ commande.id }}</strong>
-          </div>
-          <div class="meta-row">
-            <span>{{ 'BARMAN_DASHBOARD.SERVER' | transloco }}:</span>
-            <span>{{ commande.serveurNom || commande.serveurUsername || '-' }}</span>
-          </div>
-          <div class="meta-row">
-            <span>{{ 'BARMAN_DASHBOARD.TIME' | transloco }}:</span>
-            <span>{{ commande.dateCommande | date:'dd/MM/yyyy HH:mm:ss' }}</span>
-          </div>
-          @if (commande.prioritaire) {
-            <div class="priority-banner">
-              ⚡⚡⚡ URGENT - PRIORITAIRE ⚡⚡⚡
-            </div>
-          }
-        </div>
+        <div class="ticket-type">*** BON DE PRÉPARATION BAR ***</div>
       </div>
 
-      <div class="receipt-divider">--------------------------------</div>
+      <div class="receipt-divider"></div>
+
+      <div class="ticket-meta">
+        <div class="meta-row highlight-table">
+          <span class="meta-label">{{ 'BARMAN_DASHBOARD.TABLE' | transloco }} :</span>
+          <strong class="table-val">{{ commande.tableNom || ('Table ' + commande.tableNumero) }}</strong>
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">{{ 'BARMAN_DASHBOARD.ORDER_NUM' | transloco }} :</span>
+          <strong>#{{ commande.id }}</strong>
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">{{ 'BARMAN_DASHBOARD.SERVER' | transloco }} :</span>
+          <span>{{ commande.serveurNom || commande.serveurUsername || '-' }}</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">{{ 'BARMAN_DASHBOARD.TIME' | transloco }} :</span>
+          <span>{{ commande.dateCommande | date:'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+        @if (commande.prioritaire) {
+          <div class="priority-banner">
+            ⚡ COMMANDE PRIORITAIRE ⚡
+          </div>
+        }
+      </div>
+
+      <div class="receipt-divider"></div>
 
       <!-- Articles commandés -->
       <div class="receipt-items">
@@ -53,41 +56,43 @@
             </div>
             @if (item.varianteNom) {
               <div class="item-sub">
-                ↳ Variante: {{ item.varianteNom }}
+                ↳ Variante : {{ item.varianteNom }}
               </div>
             }
             @if (item.notes) {
               <div class="item-note">
-                ↳ Note: {{ item.notes }}
+                ↳ Note : {{ item.notes }}
               </div>
             }
           </div>
         }
       </div>
 
-      <div class="receipt-divider">--------------------------------</div>
+      <div class="receipt-divider"></div>
 
       <!-- Consignes globales de la commande -->
       @if (commande.notes) {
         <div class="receipt-notes">
-          <div class="notes-header">INSTRUCTIONS GENERALES:</div>
+          <div class="notes-header">INSTRUCTIONS :</div>
           <div class="notes-body">{{ commande.notes }}</div>
         </div>
-        <div class="receipt-divider">--------------------------------</div>
+        <div class="receipt-divider"></div>
       }
 
       <!-- Récapitulatif -->
       <div class="receipt-summary">
         <div class="summary-row">
-          <span>TOTAL ARTICLES:</span>
+          <span>TOTAL ARTICLES :</span>
           <strong>{{ totalItemsCount }}</strong>
         </div>
       </div>
 
+      <div class="receipt-divider"></div>
+
       <!-- Bas de ticket -->
       <div class="receipt-footer">
-        <div>SERVICE BARMAN COMPTOIR</div>
-        <div class="print-timestamp">Imprimé le {{ '' | date:'dd/MM/yyyy HH:mm:ss' }}</div>
+        <div class="service-tag">SERVICE COMPTOIR BAR</div>
+        <div class="print-timestamp">Imprimé le {{ now | date:'dd/MM/yyyy HH:mm:ss' }}</div>
       </div>
     </div>
   </div>

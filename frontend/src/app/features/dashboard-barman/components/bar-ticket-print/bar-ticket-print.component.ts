@@ -44,6 +44,7 @@ export class BarTicketPrintComponent implements OnInit {
   @Input({ required: true }) commande!: CommandeView;
 
   establishmentName = 'OpenBar';
+  readonly now = new Date();
 
   private readonly modalCtrl = inject(ModalController, { optional: true });
   private readonly settingsService = inject(AppSettingsService, { optional: true });

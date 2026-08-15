@@ -18,41 +18,42 @@
 .ticket-preview-wrapper {
   display: flex;
   justify-content: center;
-  padding: 16px;
+  padding: 24px 16px;
 }
 
-/* Format ticket thermique 80mm */
+/* Format ticket thermique 80mm réaliste */
 .thermal-receipt {
-  width: 320px;
+  width: 330px;
   max-width: 100%;
-  background: var(--background-surface-1);
-  color: var(--text-primary);
-  border: 1px dashed var(--border-medium);
+  background: #fdfdfd;
+  color: #111827;
   border-radius: var(--radius-md, 8px);
-  padding: 16px;
-  font-family: 'Courier New', Courier, monospace;
+  padding: 20px 18px;
+  font-family: 'Courier Prime', 'Courier New', Courier, monospace;
   font-size: 13px;
-  line-height: 1.4;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  line-height: 1.45;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .receipt-header {
   text-align: center;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 
   .establishment-title {
     font-size: 18px;
-    font-weight: bold;
+    font-weight: 800;
     margin: 0 0 4px;
-    color: var(--text-primary);
+    color: #111827;
     text-transform: uppercase;
+    letter-spacing: 1px;
   }
 
   .ticket-type {
-    font-size: 12px;
-    font-weight: bold;
-    color: var(--primary);
-    margin-bottom: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #4b5563;
+    letter-spacing: 0.5px;
   }
 }
 
@@ -60,37 +61,52 @@
   text-align: left;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
   font-size: 12px;
 
   .meta-row {
     display: flex;
     justify-content: space-between;
+    align-items: center;
+
+    .meta-label {
+      color: #6b7280;
+    }
+
+    strong {
+      color: #111827;
+    }
 
     &.highlight-table {
-      font-size: 15px;
+      font-size: 16px;
       margin: 4px 0;
-      color: var(--primary);
+      padding: 4px 0;
+
+      .table-val {
+        font-weight: 900;
+        color: #111827;
+        font-size: 17px;
+      }
     }
   }
 
   .priority-banner {
     margin-top: 6px;
     text-align: center;
-    font-weight: bold;
-    color: var(--semantic-danger);
-    background: rgba(229, 96, 79, 0.15);
-    padding: 4px;
+    font-weight: 800;
+    font-size: 12px;
+    color: #b91c1c;
+    background: #fee2e2;
+    padding: 5px 8px;
     border-radius: 4px;
+    border: 1px dashed #ef4444;
   }
 }
 
 .receipt-divider {
-  text-align: center;
-  color: var(--border-medium);
-  letter-spacing: -1px;
-  user-select: none;
-  margin: 6px 0;
+  border-bottom: 1px dashed #9ca3af;
+  margin: 10px 0;
+  width: 100%;
 }
 
 .receipt-items {
@@ -104,12 +120,14 @@
 
     .item-main {
       display: flex;
-      gap: 6px;
-      font-weight: bold;
+      gap: 8px;
+      font-weight: 700;
       font-size: 14px;
+      color: #111827;
 
       .item-qty {
-        color: var(--primary);
+        color: #1e40af;
+        min-width: 24px;
       }
 
       .item-name {
@@ -119,36 +137,36 @@
 
     .item-sub {
       font-size: 12px;
-      color: var(--text-secondary);
-      padding-left: 16px;
+      color: #4b5563;
+      padding-left: 32px;
+      font-weight: 600;
     }
 
     .item-note {
       font-size: 11px;
       font-style: italic;
-      color: var(--semantic-warning);
-      padding-left: 16px;
+      color: #b45309;
+      padding-left: 32px;
     }
   }
 }
 
 .receipt-notes {
-  background: rgba(244, 165, 42, 0.08);
-  border-left: 3px solid var(--semantic-warning);
-  padding: 6px 8px;
+  background: #fef3c7;
+  border-left: 3px solid #d97706;
+  padding: 6px 10px;
   border-radius: 4px;
-  margin: 4px 0;
 
   .notes-header {
-    font-size: 11px;
-    font-weight: bold;
-    color: var(--semantic-warning);
+    font-size: 10px;
+    font-weight: 800;
+    color: #92400e;
   }
 
   .notes-body {
     font-size: 12px;
     margin-top: 2px;
-    color: var(--text-primary);
+    color: #78350f;
   }
 }
 
@@ -156,24 +174,31 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
-  margin: 4px 0;
 
   .summary-row {
     display: flex;
     justify-content: space-between;
-    font-weight: bold;
+    font-weight: 800;
     font-size: 14px;
+    color: #111827;
   }
 }
 
 .receipt-footer {
   text-align: center;
-  font-size: 10px;
-  color: var(--text-muted);
-  margin-top: 10px;
+  font-size: 11px;
+  color: #6b7280;
+  margin-top: 4px;
+
+  .service-tag {
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: #374151;
+  }
 
   .print-timestamp {
     margin-top: 2px;
+    font-size: 10px;
   }
 }
 

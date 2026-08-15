@@ -107,7 +107,9 @@ export class CommandeCardComponent implements OnInit, OnDestroy {
     const seconds = totalSeconds % 60;
     const hours = Math.floor(minutes / 60);
 
-    if (hours > 0) {
+    if (hours > 24) {
+      this.tempsEcoule = '+24h';
+    } else if (hours > 0) {
       this.tempsEcoule = `${hours}h${String(minutes % 60).padStart(2, '0')}`;
     } else {
       this.tempsEcoule = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
@@ -165,22 +167,11 @@ export class CommandeCardComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Opens the 80mm thermal bar preparation receipt modal.
+   * Emits event to open the 80mm thermal bar preparation receipt modal.
    */
-  async onPrintTicket(event?: Event): Promise<void> {
+  onPrintTicket(event?: Event): void {
     if (event) event.stopPropagation();
     this.printTicket.emit(this.commande);
-
-    if (this.modalCtrl) {
-      const modal = await this.modalCtrl.create({
-        component: BarTicketPrintComponent,
-        componentProps: {
-          commande: this.commande
-        },
-        cssClass: 'bar-ticket-modal-container'
-      });
-      await modal.present();
-    }
   }
 
   /**

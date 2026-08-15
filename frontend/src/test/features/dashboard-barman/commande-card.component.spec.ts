@@ -155,13 +155,13 @@ describe('CommandeCardComponent', () => {
     expect(emitted).toEqual([{ id: 7, statut: 'PRET' }]);
   });
 
-  it('onPrintTicket emet printTicket et ouvre BarTicketPrintComponent', async () => {
+  it('onPrintTicket emet printTicket', () => {
     const emitted: CommandeView[] = [];
     component.printTicket.subscribe(cmd => emitted.push(cmd));
 
-    await component.onPrintTicket();
+    component.onPrintTicket();
     expect(emitted).toHaveSize(1);
-    expect(modalCtrlSpy.create).toHaveBeenCalled();
+    expect(emitted[0].id).toBe(1);
   });
 
   it('openDetails ouvre CommandeDetailModalComponent', async () => {

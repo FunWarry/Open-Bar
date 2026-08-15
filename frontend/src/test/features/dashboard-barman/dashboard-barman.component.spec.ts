@@ -203,7 +203,7 @@ describe('DashboardBarmanComponent', () => {
     expect(mockModal.present).toHaveBeenCalled();
   });
 
-  it('filtrage par recherche et table fonctionne correctement', () => {
+  it('filtrage par recherche fonctionne correctement', () => {
     component.commandesEnAttente = [
       { ...mockCommandes[0], id: 1, tableNom: 'Table 1', items: [{ id: 1, cocktailNom: 'Mojito', quantite: 1, prioritaire: false }] },
       { ...mockCommandes[0], id: 2, tableNom: 'Table 2', items: [{ id: 2, cocktailNom: 'Daiquiri', quantite: 1, prioritaire: false }] }
@@ -213,8 +213,7 @@ describe('DashboardBarmanComponent', () => {
     expect(component.filteredCommandesEnAttente).toHaveSize(1);
     expect(component.filteredCommandesEnAttente[0].id).toBe(1);
 
-    component.searchQuery = '';
-    component.selectedTable = 'Table 2';
+    component.searchQuery = 'Table 2';
     expect(component.filteredCommandesEnAttente).toHaveSize(1);
     expect(component.filteredCommandesEnAttente[0].id).toBe(2);
   });

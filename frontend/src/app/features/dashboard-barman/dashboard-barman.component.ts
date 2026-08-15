@@ -94,7 +94,6 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
 
   searchQuery = '';
   urgentOnly = false;
-  selectedTable = 'ALL';
 
   private readonly destroy$ = new Subject<void>();
   private readonly dashboardService = inject(DashboardBarmanService);
@@ -156,19 +155,6 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * List of unique table identifiers present in active orders.
-   */
-  get availableTables(): string[] {
-    const tables = new Set<string>();
-    const all = [...this.commandesEnAttente, ...this.commandesEnPreparation, ...this.commandesPret];
-    all.forEach(cmd => {
-      const name = cmd.tableNom || (cmd.tableNumero ? `Table ${cmd.tableNumero}` : '');
-      if (name) tables.add(name);
-    });
-    return Array.from(tables).sort((a, b) => a.localeCompare(b));
-  }
-
-  /**
    * Filtered list of pending orders matching the active search and filter criteria.
    */
   get filteredCommandesEnAttente(): CommandeView[] {
@@ -223,7 +209,7 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Fetches all Kanban column lists concurrently from the API.
+   * Loads active orders for all three columns and notifies if new orders arrived.
    */
   chargerCommandes(): void {
     forkJoin({
@@ -234,17 +220,13 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: ({ enAttente, enPreparation, pret }) => {
-          const prevPendingCount = this.commandesEnAttente.length;
+          const previousCount = this.commandesEnAttente.length;
           this.commandesEnAttente = enAttente;
           this.commandesEnPreparation = enPreparation;
           this.commandesPret = pret;
 
-          if (enAttente.length > prevPendingCount && prevPendingCount > 0) {
+          if (enAttente.length > previousCount && previousCount > 0) {
             this.soundService.playNewOrderSound();
-          }
-
-          if (this.hasUrgentOrders) {
-            this.soundService.playUrgentAlertSound();
           }
         },
         error: async () => {
@@ -259,7 +241,7 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Applies search string, table chip filter, and urgency criteria to a list of orders.
+   * Applies search string and urgency criteria to a list of orders.
    */
   private applyFilters(commandes: CommandeView[]): CommandeView[] {
     const q = this.searchQuery.toLowerCase().trim();
@@ -267,12 +249,6 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
     const alertThresholdMs = (this.tempsAlerteCommandeMinutes || 5) * 60 * 1000;
 
     return commandes.filter(cmd => {
-      // Table filter
-      const tableName = cmd.tableNom || (cmd.tableNumero ? `Table ${cmd.tableNumero}` : '');
-      if (this.selectedTable !== 'ALL' && tableName !== this.selectedTable) {
-        return false;
-      }
-
       // Urgent filter
       if (this.urgentOnly) {
         const isUrgent =
@@ -284,7 +260,8 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
       // Search term filter
       if (!q) return true;
 
-      const matchesTable = tableName.toLowerCase().includes(q) || String(cmd.tableNumero || '').includes(q);
+      const tableName = cmd.tableNom || (cmd.tableNumero ? `Table ${cmd.tableNumero}` : '');
+      const matchesTable = tableName.toLowerCase().includes(q) || String(cmd.tableNumero || '').includes(q);;
       const matchesId = String(cmd.id).includes(q);
       const matchesServer =
         cmd.serveurNom?.toLowerCase().includes(q) ||
