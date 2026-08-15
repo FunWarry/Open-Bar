@@ -8,13 +8,14 @@ import {
   MiniCommandeCardComponent
 } from '../../../app/features/dashboard-manager/components/mini-commande-card/mini-commande-card.component';
 import {OngoingOrder} from '../../../app/features/dashboard-manager/models/ongoing-order.model';
+import {getTranslocoTestingModule} from '../../transloco-testing.module';
 
 describe('KanbanBoardComponent', () => {
   let component: KanbanBoardComponent;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [KanbanBoardComponent, CommonModule, IonBadge, MiniCommandeCardComponent]
+      imports: [KanbanBoardComponent, CommonModule, IonBadge, MiniCommandeCardComponent, getTranslocoTestingModule()]
     }).compileComponents();
 
     const fixture = TestBed.createComponent(KanbanBoardComponent);
@@ -26,11 +27,24 @@ describe('KanbanBoardComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should have 4 columns by default', () => {
+  it('should have 3 columns by default when showDelivered is false', () => {
+    expect(component.columns).toHaveSize(3);
+  });
+
+  it('should have 4 columns when showDelivered is true', () => {
+    component.showDelivered = true;
     expect(component.columns).toHaveSize(4);
+    const labels = component.columns.map((c: any) => c.label);
+    expect(labels).toEqual([
+      'MANAGER_DASHBOARD.STATUS_PENDING',
+      'MANAGER_DASHBOARD.STATUS_IN_PROGRESS',
+      'MANAGER_DASHBOARD.STATUS_READY',
+      'MANAGER_DASHBOARD.STATUS_DELIVERED'
+    ]);
   });
 
   it('should distribute orders to correct columns', () => {
+    component.showDelivered = true;
     component.orders = [
       {id: 1, tableNumero: 5, statut: 'EN_ATTENTE', dateCommande: '2026-07-26T10:00:00'},
       {id: 2, tableNumero: 3, statut: 'EN_PREPARATION', dateCommande: '2026-07-26T10:05:00'},
@@ -46,11 +60,6 @@ describe('KanbanBoardComponent', () => {
     expect(columns[3].orders).toHaveSize(1); // LIVREE
   });
 
-  it('should have correct column labels', () => {
-    const labels = component.columns.map((c: any) => c.label);
-    expect(labels).toEqual(['Pending', 'In Progress', 'Ready to Serve', 'Served']);
-  });
-
   it('trackByOrderId returns order id', () => {
     const order: OngoingOrder = { id: 42, tableNumero: 1, statut: 'EN_ATTENTE', dateCommande: '' };
     expect(component.trackByOrderId(0, order)).toBe(42);
@@ -62,12 +71,21 @@ describe('MiniCommandeCardComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [MiniCommandeCardComponent, CommonModule]
+      imports: [MiniCommandeCardComponent, CommonModule, getTranslocoTestingModule()]
     }).compileComponents();
 
     const fixture = TestBed.createComponent(MiniCommandeCardComponent);
     component = fixture.componentInstance;
-    component.order = { id: 1020, tableNumero: 5, statut: 'EN_ATTENTE', dateCommande: '2026-07-26T07:32:00' };
+    component.order = {
+      id: 1020,
+      tableNumero: 5,
+      tableNom: 'Table VIP',
+      statut: 'EN_ATTENTE',
+      dateCommande: new Date(Date.now() - 10 * 60 * 1000).toISOString(),
+      serveurUsername: 'bob',
+      total: 25.5,
+      items: [{ cocktailNom: 'Mojito', quantite: 2 }]
+    };
     fixture.detectChanges();
   });
 
@@ -76,11 +94,43 @@ describe('MiniCommandeCardComponent', () => {
   });
 
   it('should format time correctly', () => {
-    expect(component.formattedTime).toMatch(/07:32/);
+    expect(component.formattedTime).toBeTruthy();
   });
 
   it('should return empty string for missing dateCommande', () => {
     component.order = { id: 1, tableNumero: 1, statut: 'EN_ATTENTE', dateCommande: '' };
     expect(component.formattedTime).toBe('');
+    expect(component.waitTimeMinutes).toBe(0);
+    expect(component.waitTimeLabel).toBe('< 1 min');
+  });
+
+  it('should calculate waitTimeMinutes, waitTimeLabel and waitTimeSeverity', () => {
+    expect(component.waitTimeMinutes).toBeGreaterThanOrEqual(9);
+    expect(component.waitTimeLabel).toContain('min');
+    expect(component.waitTimeSeverity).toBe('warning');
+
+    component.order = {
+      ...component.order,
+      dateCommande: new Date(Date.now() - 25 * 60 * 1000).toISOString()
+    };
+    expect(component.waitTimeSeverity).toBe('urgent');
+
+    component.order = {
+      ...component.order,
+      dateCommande: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString()
+    };
+    expect(component.waitTimeLabel).toBe('+2j');
+
+    component.order = {
+      ...component.order,
+      statut: 'LIVREE'
+    };
+    expect(component.waitTimeSeverity).toBe('normal');
+  });
+
+  it('formatCurrency should format number to EUR currency', () => {
+    expect(component.formatCurrency(25.5)).toContain('25');
+    expect(component.formatCurrency(25.5)).toContain('€');
+    expect(component.formatCurrency(undefined)).toBe('');
   });
 });

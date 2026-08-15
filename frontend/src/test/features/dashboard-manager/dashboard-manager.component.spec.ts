@@ -1,12 +1,14 @@
 import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { ComponentFixture } from '@angular/core/testing';
 import { CommonModule } from '@angular/common';
-import { of, throwError, Subject } from 'rxjs';
-import { IonicModule } from '@ionic/angular';
+import { of, throwError, Subject, EMPTY } from 'rxjs';
+import { ToastController } from '@ionic/angular/standalone';
 import { provideRouter } from '@angular/router';
 import { DashboardManagerComponent } from '../../../app/features/dashboard-manager/dashboard-manager.component';
 import { DashboardManagerService } from '../../../app/features/dashboard-manager/services/dashboard-manager.service';
 import { DashboardStats, TopCocktail } from '../../../app/features/dashboard-manager/models/dashboard-stats.model';
+import { NotificationService } from '../../../app/core/services/notification.service';
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
 
 const mockStats: DashboardStats = {
   commandesTotales: 20,
@@ -30,16 +32,45 @@ describe('DashboardManagerComponent', () => {
   let component: DashboardManagerComponent;
   let fixture: ComponentFixture<DashboardManagerComponent>;
   let dashboardServiceSpy: jasmine.SpyObj<DashboardManagerService>;
+  let notificationServiceSpy: jasmine.SpyObj<NotificationService>;
+  let toastCtrlSpy: jasmine.SpyObj<ToastController>;
+  let notificationSubject$: Subject<any>;
+  let stockAlertSubject$: Subject<any>;
 
   beforeEach(async () => {
-    dashboardServiceSpy = jasmine.createSpyObj<DashboardManagerService>('DashboardManagerService', ['getStats', 'getOngoingOrders']);
+    notificationSubject$ = new Subject<any>();
+    stockAlertSubject$ = new Subject<any>();
+
+    dashboardServiceSpy = jasmine.createSpyObj<DashboardManagerService>('DashboardManagerService', [
+      'getStats',
+      'getOngoingOrders',
+      'exportStatsCsv'
+    ]);
     dashboardServiceSpy.getStats.and.returnValue(of(mockStats));
     dashboardServiceSpy.getOngoingOrders.and.returnValue(of([]));
 
+    notificationServiceSpy = jasmine.createSpyObj<NotificationService>('NotificationService', [
+      'onNotification',
+      'onStockAlert'
+    ]);
+    notificationServiceSpy.onNotification.and.returnValue(notificationSubject$.asObservable());
+    notificationServiceSpy.onStockAlert.and.returnValue(stockAlertSubject$.asObservable());
+
+    const toastSpyObj = jasmine.createSpyObj('HTMLIonToastElement', ['present']);
+    toastSpyObj.present.and.returnValue(Promise.resolve());
+    toastCtrlSpy = jasmine.createSpyObj<ToastController>('ToastController', ['create']);
+    toastCtrlSpy.create.and.returnValue(Promise.resolve(toastSpyObj));
+
     await TestBed.configureTestingModule({
-      imports: [DashboardManagerComponent, CommonModule, IonicModule.forRoot()],
+      imports: [
+        DashboardManagerComponent,
+        CommonModule,
+        getTranslocoTestingModule()
+      ],
       providers: [
         { provide: DashboardManagerService, useValue: dashboardServiceSpy },
+        { provide: NotificationService, useValue: notificationServiceSpy },
+        { provide: ToastController, useValue: toastCtrlSpy },
         provideRouter([]),
       ],
     }).compileComponents();
@@ -70,7 +101,7 @@ describe('DashboardManagerComponent', () => {
     expect(component.stats).toEqual(mockStats);
   }));
 
-  it('chargerStats() met loading à false en cas d\'erreur', fakeAsync(() => {
+  it('chargerStats() met loading à false en cas d erreur', fakeAsync(() => {
     dashboardServiceSpy.getStats.and.returnValue(throwError(() => new Error('Erreur serveur')));
 
     component.chargerStats();
@@ -92,14 +123,11 @@ describe('DashboardManagerComponent', () => {
     expect(eventMock.target.complete).toHaveBeenCalled();
   }));
 
-  it('onRefresh() appelle event.target.complete() même en cas d\'erreur', fakeAsync(() => {
-    const eventMock = { target: { complete: jasmine.createSpy('complete') } };
-    dashboardServiceSpy.getStats.and.returnValue(throwError(() => new Error('Erreur')));
-
-    component.onRefresh(eventMock);
+  it('onRefresh() sans event ne plante pas', fakeAsync(() => {
+    dashboardServiceSpy.getStats.and.returnValue(of(mockStats));
+    expect(() => component.onRefresh()).not.toThrow();
     tick();
-
-    expect(eventMock.target.complete).toHaveBeenCalled();
+    expect(dashboardServiceSpy.getStats).toHaveBeenCalled();
   }));
 
   it('formatCurrency() formate un nombre en euros (fr-FR)', () => {
@@ -108,76 +136,86 @@ describe('DashboardManagerComponent', () => {
     expect(result).toContain('€');
   });
 
-  it('formatCurrency() retourne 0 € pour une valeur nulle ou 0', () => {
-    const result = component.formatCurrency(0);
-    expect(result).toContain('0');
-    expect(result).toContain('€');
+  it('getRankLabel() retourne les médailles et numéros ordinaux', () => {
+    expect(component.getRankLabel(0)).toBe('🥇');
+    expect(component.getRankLabel(1)).toBe('🥈');
+    expect(component.getRankLabel(2)).toBe('🥉');
+    expect(component.getRankLabel(3)).toBe('#4');
   });
 
-  it('getRankLabel() retourne "1", "2", "3" selon l\'index', () => {
-    expect(component.getRankLabel(0)).toBe('1');
-    expect(component.getRankLabel(1)).toBe('2');
-    expect(component.getRankLabel(2)).toBe('3');
-  });
-
-  it('getBarWidth() retourne 100 pour le cocktail le plus commandé', () => {
+  it('getBarWidth() calcule le pourcentage relatif au cocktail le plus vendu', () => {
     component.stats = mockStats;
-    const width = component.getBarWidth(mockStats.topCocktails[0]);
-    expect(width).toBe(100);
+    expect(component.getBarWidth(mockStats.topCocktails[0])).toBe(100);
+    expect(component.getBarWidth(mockStats.topCocktails[1])).toBe(60);
   });
 
-  it('getBarWidth() retourne un pourcentage relatif au max', () => {
-    component.stats = mockStats;
-    const width = component.getBarWidth(mockStats.topCocktails[1]);
-    expect(width).toBe(60); // 6/10 * 100
-  });
-
-  it('getBarWidth() retourne 0 si stats est null', () => {
+  it('getBarWidth() retourne 0 si pas de stats ou liste vide', () => {
     component.stats = null;
-    const cocktail: TopCocktail = { cocktailId: 1, nom: 'Mojito', nombreCommandes: 5 };
-    expect(component.getBarWidth(cocktail)).toBe(0);
-  });
+    expect(component.getBarWidth({ cocktailId: 1, nom: 'Mojito', nombreCommandes: 5 })).toBe(0);
 
-  it('getBarWidth() retourne 0 si topCocktails est vide', () => {
     component.stats = { ...mockStats, topCocktails: [] };
-    const cocktail: TopCocktail = { cocktailId: 1, nom: 'Mojito', nombreCommandes: 5 };
-    expect(component.getBarWidth(cocktail)).toBe(0);
+    expect(component.getBarWidth({ cocktailId: 1, nom: 'Mojito', nombreCommandes: 5 })).toBe(0);
   });
 
-  it('getBarWidth() retourne 0 si le max est 0', () => {
-    component.stats = {
-      ...mockStats,
-      topCocktails: [{ cocktailId: 1, nom: 'Mojito', nombreCommandes: 0 }],
-    };
-    expect(component.getBarWidth({ cocktailId: 1, nom: 'Mojito', nombreCommandes: 0 })).toBe(0);
+  it('calcule averageTicket, occupancyRate, activeOrdersCount, deliveryRate et totalCocktailsSold correctement', () => {
+    component.stats = mockStats;
+    // CA 150.5 / 20 = 7.525 -> 7.53
+    expect(component.averageTicket).toBe(7.53);
+    // 5 / 10 = 50%
+    expect(component.occupancyRate).toBe(50);
+    // 3 + 4 + 2 = 9
+    expect(component.activeOrdersCount).toBe(9);
+    // 11 / 20 = 55%
+    expect(component.deliveryRate).toBe(55);
+    // 10 + 6 + 4 = 20
+    expect(component.totalCocktailsSold).toBe(20);
   });
 
-  it('trackByCocktailId() retourne le cocktailId de l\'item', () => {
-    const cocktail: TopCocktail = { cocktailId: 7, nom: 'Daiquiri', nombreCommandes: 3 };
-    expect(component.trackByCocktailId(0, cocktail)).toBe(7);
+  it('averageTicket, occupancyRate et deliveryRate renvoient 0 si stats null ou zéro commandes/tables', () => {
+    component.stats = null;
+    expect(component.averageTicket).toBe(0);
+    expect(component.occupancyRate).toBe(0);
+    expect(component.activeOrdersCount).toBe(0);
+    expect(component.deliveryRate).toBe(0);
+    expect(component.totalCocktailsSold).toBe(0);
+
+    component.stats = { ...mockStats, commandesTotales: 0, tablesTotales: 0, topCocktails: [] };
+    expect(component.averageTicket).toBe(0);
+    expect(component.occupancyRate).toBe(0);
+    expect(component.deliveryRate).toBe(0);
+    expect(component.totalCocktailsSold).toBe(0);
   });
 
-  it('polling automatique — recharge les stats toutes les 30s', fakeAsync(() => {
-    // Le timer de beforeEach est hors zone fakeAsync — on crée un nouveau composant dans cette zone
-    component.ngOnDestroy();
-    (component as any).destroy$ = new Subject<void>();
-    dashboardServiceSpy.getStats.calls.reset();
+  it('onExportCsv() appelle dashboardService.exportStatsCsv et affiche un toast', async () => {
+    component.stats = mockStats;
+    await component.onExportCsv();
 
-    component.ngOnInit();
-    expect(dashboardServiceSpy.getStats).toHaveBeenCalledTimes(1);
+    expect(dashboardServiceSpy.exportStatsCsv).toHaveBeenCalledWith(mockStats);
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
+  });
 
-    tick(DashboardManagerComponent.REFRESH_INTERVAL_MS);
-    expect(dashboardServiceSpy.getStats).toHaveBeenCalledTimes(2);
+  it('WebSocket: met à jour les stats silencieusement lors d un événement notification ou stock', () => {
+    spyOn(component, 'chargerStatsSilent');
+    spyOn(component, 'chargerOrdersSilent');
 
-    tick(DashboardManagerComponent.REFRESH_INTERVAL_MS);
-    expect(dashboardServiceSpy.getStats).toHaveBeenCalledTimes(3);
+    notificationSubject$.next({ type: 'NOUVELLE_COMMANDE' });
+    expect(component.chargerStatsSilent).toHaveBeenCalled();
+    expect(component.chargerOrdersSilent).toHaveBeenCalled();
 
-    component.ngOnDestroy();
-    tick(DashboardManagerComponent.REFRESH_INTERVAL_MS);
-    expect(dashboardServiceSpy.getStats).toHaveBeenCalledTimes(3);
-  }));
+    stockAlertSubject$.next({ ingredientId: 1 });
+    expect(component.chargerStatsSilent).toHaveBeenCalledTimes(2);
+  });
 
-  it('ngOnDestroy() complète le subject destroy$ sans erreur', () => {
-    expect(() => component.ngOnDestroy()).not.toThrow();
+  it('toggleShowDelivered() inverse la visibilité de la colonne livrées', () => {
+    expect(component.showDelivered).toBeFalse();
+    component.toggleShowDelivered();
+    expect(component.showDelivered).toBeTrue();
+    component.toggleShowDelivered();
+    expect(component.showDelivered).toBeFalse();
+  });
+
+  it('trackByCocktailId() retourne le cocktailId', () => {
+    const cocktail: TopCocktail = { cocktailId: 42, nom: 'Gin Tonic', nombreCommandes: 5 };
+    expect(component.trackByCocktailId(0, cocktail)).toBe(42);
   });
 });

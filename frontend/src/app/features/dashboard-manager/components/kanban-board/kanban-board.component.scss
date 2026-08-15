@@ -1,44 +1,52 @@
-// Kanban Board — Figma Ongoing Orders
+// Kanban Board — Modern Operations Kanban
 .kanban {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-  padding: 0;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px;
+  padding: 4px;
 
   &__column {
     display: flex;
     flex-direction: column;
-    min-height: 200px;
+    min-height: 240px;
+    background: var(--background-bg-1, #151521);
+    border: 1px solid var(--border-medium, #2e3450);
+    border-radius: var(--radius-md, 8px);
+    padding: 10px;
   }
 
   &__header {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 10px 8px;
+    padding: 6px 4px 10px;
     border-bottom: 1px solid var(--border-medium, #2e3450);
-    margin-bottom: 8px;
+    margin-bottom: 10px;
   }
 
   &__dot {
-    width: 10px;
-    height: 10px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
     flex-shrink: 0;
   }
 
   &__label {
-    font-size: 13px;
-    font-weight: 600;
+    font-size: 0.85rem;
+    font-weight: 700;
     color: var(--text-primary, #eceefb);
     flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   &__count {
-    font-size: 11px;
+    font-size: 0.75rem;
     font-weight: 700;
-    min-width: 22px;
+    min-width: 20px;
     text-align: center;
+    border-radius: 10px;
   }
 
   &__cards {
@@ -46,29 +54,23 @@
     flex-direction: column;
     gap: 0;
     flex: 1;
-    overflow-y: auto;
-    max-height: 320px;
-    padding: 0 2px;
+    overflow: visible;
   }
 
   &__empty {
-    font-size: 12px;
+    font-size: 0.8rem;
     color: var(--text-muted, #7e87a8);
     text-align: center;
-    padding: 24px 8px;
-    opacity: 0.6;
+    padding: 36px 8px;
+    font-style: italic;
   }
 }
 
-// Responsive: stack columns on small screens
-@media (max-width: 768px) {
-  .kanban {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 480px) {
+// Responsive: stack columns on very small screens
+@media (max-width: 580px) {
   .kanban {
     grid-template-columns: 1fr;
   }
 }
+
+

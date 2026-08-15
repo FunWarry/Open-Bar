@@ -23,7 +23,10 @@
 
 .main-content {
   flex: 1;
-  overflow-y: auto;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   background-color: var(--bg-0, #0f0f1a);
   color: var(--text-primary, #eceefb);
 }
