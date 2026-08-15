@@ -1,6 +1,6 @@
 # OpenBar — État des Features & Roadmap
 
-> Dernière mise à jour : 15 août 2026 — PR #298 / Issue #292 : Refonte complète et modernisation du tableau de bord comptoir barman (/barman), Kanban temps réel STOMP, timers précis d'urgence avec alertes sonores Web Audio API, fiches recettes/dosages dépliables sur chaque ticket, gestion des ruptures de stock à chaud, impression tickets 80mm, 100% CI passée (469 backend / 1224 frontend tests, SonarCloud 86.6% coverage)
+> Dernière mise à jour : 15 août 2026 — PR #299 / Issue #293 : Refonte complète et modernisation du tableau de bord manager (/manager), cockpit de supervision opérationnelle en direct avec synchronisation WebSocket STOMP, 6 cartes KPI (CA Jour, CA Mois, Commandes Actives, Panier Moyen, Taux d'Occupation, Taux de Service), classements Top Cocktails avec jauges animées, alertes stocks critiques, Kanban opérationnel enrichi (détails articles, serveurs, montants, timers d'attente avec alertes de sévérité, toggle d'affichage des livrées, suppression double scrollbar), export CSV des statistiques, 100% CI passée (1235 frontend / 469 backend tests, SonarCloud 87.0% coverage, 0 issue).
 
 ## Tableau des Features
 
@@ -48,7 +48,7 @@
 | Fusion d'additions (#186) | ✅ | ✅ | ✅ | FusionModalComponent dans plan-salle |
 | Export factures (PDF) | ✅ | ✅ | ✅ | OpenPDF A4 conforme mentions légales |
 | Division d'addition (split égal/par sélection) | ✅ | ✅ | ✅ | — |
-| Dashboard Manager / stats | ✅ | ✅ polling 30s | ✅ | — |
+| Dashboard Manager (#293) | ✅ | ✅ live STOMP + analytics | ✅ | Cockpit manager complet, synchronisation WebSocket STOMP, 6 KPI cards (CA Jour/Mois, Commandes Actives, Panier Moyen, Occupation, Taux Service), Top Cocktails, flux de commandes, alertes stocks critiques, Kanban opérationnel enrichi avec filtres et alertes d'attente, export CSV, 1235 tests frontend + 469 backend 100% verts, SonarCloud 87.0% coverage |
 | Dashboard Barman (#292) | ✅ | ✅ kanban temps réel | ✅ | Kanban temps réel STOMP, timers de préparation dynamiques avec alertes sonores et visuelles d'urgence, fiches recettes et dosages dépliables, modal de ruptures à chaud (cocktails/ingrédients), impression thermique 80mm, filtres et recherche multi-critères, thème adaptatif, 1224 tests frontend + 469 backend 100% verts, SonarCloud Note A (86.6% coverage, 0 bug) |
 | Vue Serveur (plan de salle + variantes modal #182) | ✅ | ✅ modal + nouvelle commande + kanban + plan 2D | ✅ | Synchronisation complète du plan 2D avec /plan-salle (thème, formes, badge timer centré, sélection multi-zones, bascule fluide de vues, isolation gestes tactiles) |
 | Plan de salle interactif Konva.js (#291) | ✅ | ✅ | ✅ | Canvas réactif Konva.js, échelle réelle 1px=1cm, modes magnétisme bord-à-bord & snap grille 50cm, protection mode non-édition, 0 lag, conforme Figma |
