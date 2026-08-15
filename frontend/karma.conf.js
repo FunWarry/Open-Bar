@@ -34,6 +34,16 @@ module.exports = function karma (config) {
     browsers: ['Chrome'],
     singleRun: false,
     restartOnFileChange: true,
+    browserDisconnectTimeout: 30000,
+    browserDisconnectTolerance: 3,
+    browserNoActivityTimeout: 60000,
+    captureTimeout: 60000,
+    customLaunchers: {
+      ChromeHeadlessNoSandbox: {
+        base: 'ChromeHeadless',
+        flags: ['--no-sandbox', '--disable-gpu', '--disable-dev-shm-usage']
+      }
+    }
   });
 
   // En CI (GitHub Actions), ajouter le reporter JUnit pour publier les résultats en annotations PR

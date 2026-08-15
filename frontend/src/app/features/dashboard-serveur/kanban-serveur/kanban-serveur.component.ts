@@ -4,10 +4,10 @@ import { Subject, forkJoin } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
 import {
   IonIcon, IonSpinner,
-  ToastController,
+  ToastController, ModalController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { checkmarkOutline, banOutline, timeOutline, flameOutline, funnelOutline, checkmarkCircleOutline } from 'ionicons/icons';
+import { checkmarkOutline, banOutline, timeOutline, flameOutline, funnelOutline, checkmarkCircleOutline, cardOutline } from 'ionicons/icons';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { DashboardServeurService } from '../services/dashboard-serveur.service';
 import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
@@ -15,6 +15,7 @@ import { NotificationService } from '../../../core/services/notification.service
 import { Commande, CommandeStatut } from '../../../core/models/commande.model';
 import { TableView } from '../models/table-view.model';
 import { groupCommandeItems } from '../../../core/utils/order-item-grouper';
+import { EncaissementModalComponent } from '../components/encaissement-modal/encaissement-modal.component';
 
 /** Represents a single kanban column with its status and ordered list of commands. */
 interface Colonne {
@@ -65,10 +66,11 @@ export class KanbanServeurComponent implements OnInit, OnDestroy {
   constructor(
     private readonly service: DashboardServeurService,
     private readonly toastCtrl: ToastController,
+    private readonly modalCtrl: ModalController,
     private readonly notificationService: NotificationService,
     private readonly transloco: TranslocoService,
   ) {
-    addIcons({ checkmarkOutline, banOutline, timeOutline, flameOutline, funnelOutline, checkmarkCircleOutline });
+    addIcons({ checkmarkOutline, banOutline, timeOutline, flameOutline, funnelOutline, checkmarkCircleOutline, cardOutline });
   }
 
   ngOnInit() {
@@ -251,5 +253,33 @@ export class KanbanServeurComponent implements OnInit, OnDestroy {
   getTableNom(tableId: number | null): string {
     if (!tableId) return '';
     return this.tables.find(t => t.id === tableId)?.nom ?? `#${tableId}`;
+  }
+
+  /**
+   * Opens the encaissement modal directly for a table with delivered orders.
+   * @param tableId Table ID
+   */
+  async ouvrirEncaissementParTableId(tableId: number | null) {
+    if (!tableId) return;
+    const table = this.tables.find(t => t.id === tableId) || {
+      id: tableId,
+      nom: `Table ${tableId}`,
+      zone: '',
+      etage: '',
+      capacite: 4,
+      occupee: true,
+      commandesActives: []
+    };
+
+    const modal = await this.modalCtrl.create({
+      component: EncaissementModalComponent,
+      componentProps: { table },
+      cssClass: 'encaissement-modal-container'
+    });
+    await modal.present();
+    const { data } = await modal.onWillDismiss();
+    if (data?.action === 'settled') {
+      this.charger();
+    }
   }
 }

@@ -28,6 +28,17 @@ import com.bar.gestioncocktail.dto.VatSummaryDTO;
 import com.bar.gestioncocktail.dto.VatMonthlySummaryDTO;
 import com.bar.gestioncocktail.repository.AvoirCreditRepository;
 
+import com.bar.gestioncocktail.dto.EncaissementRequestDTO;
+import com.bar.gestioncocktail.dto.FactureResponseDTO;
+import com.bar.gestioncocktail.dto.TableAdditionItemDTO;
+import com.bar.gestioncocktail.dto.TableAdditionResponseDTO;
+import com.bar.gestioncocktail.model.Commande;
+import com.bar.gestioncocktail.model.CommandeItem;
+import com.bar.gestioncocktail.model.CommandeStatut;
+import com.bar.gestioncocktail.model.User;
+import com.bar.gestioncocktail.repository.CommandeRepository;
+import com.bar.gestioncocktail.repository.UserRepository;
+
 import java.security.MessageDigest;
 import java.time.Year;
 import java.util.EnumMap;
@@ -39,19 +50,27 @@ import java.util.Map;
 public class FactureService {
     private static final String NOT_FOUND_ID_PREFIX = "Facture non trouvée avec l'id: ";
     private static final String NOT_FOUND_PREFIX = "Facture non trouvée: ";
+    private static final String ENTITY_FACTURE = "Facture";
 
     private final FactureRepository factureRepository;
     private final TableRepository tableRepository;
+    private final CommandeRepository commandeRepository;
+    private final NotificationService notificationService;
+    private final UserRepository userRepository;
     private final EntityManager entityManager;
     private final AuditLogService auditLogService;
     private final AvoirCreditRepository avoirCreditRepository;
     private final TimeService timeService;
 
     public FactureService(FactureRepository factureRepository, TableRepository tableRepository,
-            EntityManager entityManager, AuditLogService auditLogService, AvoirCreditRepository avoirCreditRepository,
-            TimeService timeService) {
+            CommandeRepository commandeRepository, NotificationService notificationService,
+            UserRepository userRepository, EntityManager entityManager, AuditLogService auditLogService,
+            AvoirCreditRepository avoirCreditRepository, TimeService timeService) {
         this.factureRepository = factureRepository;
         this.tableRepository = tableRepository;
+        this.commandeRepository = commandeRepository;
+        this.notificationService = notificationService;
+        this.userRepository = userRepository;
         this.entityManager = entityManager;
         this.auditLogService = auditLogService;
         this.avoirCreditRepository = avoirCreditRepository;
@@ -194,10 +213,327 @@ public class FactureService {
         if (facture.getTable() != null) {
             TableEntity table = facture.getTable();
             table.setOccupee(false);
+            table.setServeurId(null);
+            table.setDateLiberation(LocalDateTime.now(timeService.getZoneId()));
             tableRepository.save(table);
+            notificationService.notifierLiberationTable(table);
         }
 
-        return factureRepository.save(facture);
+        Facture saved = factureRepository.save(facture);
+        auditLogService.logAction(null, "REGLEMENT_FACTURE", ENTITY_FACTURE, saved.getId(),
+                "Règlement de la facture " + saved.getNumero() + " (" + modePaiement + ")", null);
+        return saved;
+    }
+
+    /**
+     * Computes the detailed bill summary for a given table based on its active and delivered orders.
+     *
+     * @param tableId Table identifier
+     * @return TableAdditionResponseDTO containing aggregated items, tax breakdown, and totals
+     */
+    @Transactional(readOnly = true)
+    public TableAdditionResponseDTO getTableAddition(Long tableId) {
+        TableEntity table = tableRepository.findById(tableId)
+                .orElseThrow(() -> new ResourceNotFoundException("Table non trouvée avec l'id: " + tableId));
+
+        List<Commande> allCommandes = commandeRepository.findByTable(table);
+        List<Commande> activeCommandes = filterActiveOrders(allCommandes, null);
+
+        List<Facture> facturesTable = factureRepository.findByTable(table);
+        Optional<Facture> unpaidFacture = findUnpaidFacture(facturesTable);
+
+        String serveurNom = resolveServeurName(table, activeCommandes);
+        List<TableAdditionItemDTO> items = buildAdditionItemList(activeCommandes, unpaidFacture);
+
+        BigDecimal totalHT = BigDecimal.ZERO;
+        BigDecimal totalVAT = BigDecimal.ZERO;
+        BigDecimal totalTTC = BigDecimal.ZERO;
+        int totalArticles = 0;
+
+        for (TableAdditionItemDTO item : items) {
+            if (item.priceHT() != null) {
+                totalHT = totalHT.add(item.priceHT());
+            }
+            if (item.vatAmount() != null) {
+                totalVAT = totalVAT.add(item.vatAmount());
+            }
+            if (item.total() != null) {
+                totalTTC = totalTTC.add(item.total());
+            }
+            totalArticles += item.quantite();
+        }
+
+        List<Long> commandeIds = new ArrayList<>();
+        for (Commande c : activeCommandes) {
+            if (c.getId() != null) {
+                commandeIds.add(c.getId());
+            }
+        }
+
+        return new TableAdditionResponseDTO(
+                table.getId(),
+                table.getNumero(),
+                table.getZone(),
+                table.getServeurId(),
+                serveurNom,
+                table.getDateOccupation(),
+                items,
+                commandeIds,
+                totalHT,
+                totalVAT,
+                totalTTC,
+                totalArticles,
+                unpaidFacture.isPresent(),
+                unpaidFacture.isPresent() ? unpaidFacture.get().getId() : null
+        );
+    }
+
+    /**
+     * Settles and closes a table's bill: generates or updates invoice, applies discounts/tips,
+     * updates order statuses to REGLEE, releases the table, and broadcasts STOMP events.
+     *
+     * @param tableId Table identifier
+     * @param request Encaissement request payload
+     * @return FactureResponseDTO of the settled invoice
+     */
+    @Transactional
+    public FactureResponseDTO encaisserTable(Long tableId, EncaissementRequestDTO request) {
+        TableEntity table = tableRepository.findById(tableId)
+                .orElseThrow(() -> new ResourceNotFoundException("Table non trouvée avec l'id: " + tableId));
+
+        List<Commande> allCommandes = commandeRepository.findByTable(table);
+        List<Commande> activeCommandes = filterActiveOrders(allCommandes, request.commandeIds());
+
+        List<Facture> facturesTable = factureRepository.findByTable(table);
+        Optional<Facture> unpaidFacture = findUnpaidFacture(facturesTable);
+
+        if (activeCommandes.isEmpty() && unpaidFacture.isEmpty()) {
+            throw new BusinessException("Aucune commande active à encaisser pour la table " + table.getNumero());
+        }
+
+        Facture facture = unpaidFacture.orElseGet(() -> createNewFactureForTable(table, activeCommandes));
+        computeAndSetInvoiceTaxTotals(facture);
+        BigDecimal netTTC = applyDiscountAndTip(facture, request);
+
+        facture.setReglee(true);
+        facture.setModePaiement(request.modePaiement());
+        facture.setDateReglement(LocalDateTime.now(timeService.getZoneId()));
+        if (request.notes() != null && !request.notes().isBlank()) {
+            facture.setNotes(request.notes());
+        }
+
+        Facture savedFacture = factureRepository.save(facture);
+
+        markOrdersAsSettled(activeCommandes);
+        releaseTableIfRequested(table, request.shouldLibererTable());
+
+        auditLogService.logAction(null, "ENCAISSEMENT_TABLE", ENTITY_FACTURE, savedFacture.getId(),
+                "Encaissement table " + table.getNumero() + " (" + request.modePaiement() + " - " + netTTC + " €)", null);
+
+        return FactureResponseDTO.from(savedFacture);
+    }
+
+    private List<Commande> filterActiveOrders(List<Commande> allCommandes, List<Long> filterIds) {
+        return allCommandes.stream()
+                .filter(c -> c.getStatut() != CommandeStatut.REGLEE && c.getStatut() != CommandeStatut.ANNULEE)
+                .filter(c -> filterIds == null || filterIds.isEmpty() || filterIds.contains(c.getId()))
+                .toList();
+    }
+
+    private Optional<Facture> findUnpaidFacture(List<Facture> facturesTable) {
+        return facturesTable.stream()
+                .filter(f -> !f.isReglee())
+                .findFirst();
+    }
+
+    private List<TableAdditionItemDTO> buildAdditionItemList(List<Commande> activeCommandes, Optional<Facture> unpaidFacture) {
+        List<TableAdditionItemDTO> items = new ArrayList<>();
+        if (!activeCommandes.isEmpty()) {
+            for (Commande cmd : activeCommandes) {
+                if (cmd.getItems() != null) {
+                    for (CommandeItem item : cmd.getItems()) {
+                        items.add(buildAdditionItemDTO(item, cmd.getId()));
+                    }
+                }
+            }
+        } else if (unpaidFacture.isPresent() && unpaidFacture.get().getItems() != null) {
+            for (FactureItem fi : unpaidFacture.get().getItems()) {
+                items.add(buildAdditionItemDTOFromFactureItem(fi));
+            }
+        }
+        return items;
+    }
+
+    private void computeAndSetInvoiceTaxTotals(Facture facture) {
+        BigDecimal subTotalTTC = BigDecimal.ZERO;
+        BigDecimal totalHT = BigDecimal.ZERO;
+        BigDecimal totalVAT = BigDecimal.ZERO;
+
+        if (facture.getItems() != null) {
+            for (FactureItem fi : facture.getItems()) {
+                if (fi.getTotal() != null) {
+                    subTotalTTC = subTotalTTC.add(fi.getTotal());
+                }
+                if (fi.getPriceHT() != null) {
+                    totalHT = totalHT.add(fi.getPriceHT());
+                }
+                if (fi.getVatAmount() != null) {
+                    totalVAT = totalVAT.add(fi.getVatAmount());
+                }
+            }
+        }
+
+        facture.setTotal(subTotalTTC);
+        facture.setTotalHT(totalHT);
+        facture.setTotalVAT(totalVAT);
+    }
+
+    private BigDecimal applyDiscountAndTip(Facture facture, EncaissementRequestDTO request) {
+        BigDecimal subTotalTTC = facture.getTotal() != null ? facture.getTotal() : BigDecimal.ZERO;
+        BigDecimal discount = BigDecimal.ZERO;
+
+        if (request.remiseMontant() != null && request.remiseMontant().compareTo(BigDecimal.ZERO) > 0) {
+            discount = request.remiseMontant();
+        } else if (request.remisePourcentage() != null && request.remisePourcentage().compareTo(BigDecimal.ZERO) > 0) {
+            discount = subTotalTTC.multiply(request.remisePourcentage())
+                    .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+        }
+        BigDecimal netTTC = subTotalTTC.subtract(discount).max(BigDecimal.ZERO);
+
+        if (request.pourboire() != null && request.pourboire().compareTo(BigDecimal.ZERO) > 0) {
+            facture.setPourboire(request.pourboire());
+            netTTC = netTTC.add(request.pourboire());
+        }
+        facture.setTotalTTC(netTTC);
+        return netTTC;
+    }
+
+    private void markOrdersAsSettled(List<Commande> activeCommandes) {
+        for (Commande cmd : activeCommandes) {
+            CommandeStatut oldStatut = cmd.getStatut();
+            cmd.setStatut(CommandeStatut.REGLEE);
+            cmd.setDateReglement(LocalDateTime.now(timeService.getZoneId()));
+            cmd.setUpdatedAt(timeService.now());
+            commandeRepository.save(cmd);
+
+            notificationService.notifierChangementStatutCommande(cmd.getId(), oldStatut, CommandeStatut.REGLEE);
+            notificationService.notifierStatutCommande(cmd);
+        }
+    }
+
+    private void releaseTableIfRequested(TableEntity table, boolean shouldLiberer) {
+        if (shouldLiberer) {
+            table.setOccupee(false);
+            table.setServeurId(null);
+            table.setDateLiberation(LocalDateTime.now(timeService.getZoneId()));
+            tableRepository.save(table);
+            notificationService.notifierLiberationTable(table);
+        }
+    }
+
+    private Facture createNewFactureForTable(TableEntity table, List<Commande> activeCommandes) {
+        Facture facture = new Facture();
+        facture.setTable(table);
+        facture.setDateFacture(LocalDateTime.now(timeService.getZoneId()));
+
+        int currentYear = Year.now(timeService.getZoneId()).getValue();
+        long countThisYear = factureRepository.count() + 1;
+        facture.setNumero(String.format("FAC-%d-%05d", currentYear, countThisYear));
+
+        List<FactureItem> factureItems = new ArrayList<>();
+        for (Commande cmd : activeCommandes) {
+            if (cmd.getItems() != null) {
+                for (CommandeItem ci : cmd.getItems()) {
+                    factureItems.add(buildFactureItemFromCommandeItem(ci, facture));
+                }
+            }
+        }
+        facture.setItems(factureItems);
+        return facture;
+    }
+
+    private FactureItem buildFactureItemFromCommandeItem(CommandeItem item, Facture facture) {
+        FactureItem fi = new FactureItem();
+        fi.setFacture(facture);
+        fi.setCommandeItem(item);
+        String desc = item.getCocktail() != null ? item.getCocktail().getNom() : "Article";
+        if (item.getVariante() != null && item.getVariante().getNom() != null) {
+            desc += " (" + item.getVariante().getNom() + ")";
+        }
+        fi.setDescription(desc);
+        fi.setQuantite(item.getQuantite());
+        BigDecimal unitPrice = item.getPrixUnitaire() != null ? item.getPrixUnitaire() : BigDecimal.ZERO;
+        fi.setPrixUnitaire(unitPrice);
+
+        BigDecimal lineTTC = unitPrice.multiply(BigDecimal.valueOf(item.getQuantite()));
+        fi.setTotal(lineTTC);
+        fi.setVatRate(VatRate.TWENTY);
+        BigDecimal lineHT = lineTTC.divide(BigDecimal.valueOf(1.20), 2, RoundingMode.HALF_UP);
+        fi.setPriceHT(lineHT);
+        fi.setVatAmount(lineTTC.subtract(lineHT));
+        return fi;
+    }
+
+    private TableAdditionItemDTO buildAdditionItemDTO(CommandeItem item, Long commandeId) {
+        BigDecimal qty = BigDecimal.valueOf(item.getQuantite());
+        BigDecimal unitPrice = item.getPrixUnitaire() != null ? item.getPrixUnitaire() : BigDecimal.ZERO;
+        BigDecimal lineTTC = unitPrice.multiply(qty);
+        BigDecimal lineHT = lineTTC.divide(BigDecimal.valueOf(1.20), 2, RoundingMode.HALF_UP);
+        BigDecimal lineVAT = lineTTC.subtract(lineHT);
+        String cocktailNom = item.getCocktail() != null ? item.getCocktail().getNom() : "Article";
+        String varianteNom = item.getVariante() != null ? item.getVariante().getNom() : null;
+
+        return new TableAdditionItemDTO(
+                item.getId(),
+                commandeId,
+                item.getCocktail() != null ? item.getCocktail().getId() : null,
+                cocktailNom,
+                varianteNom,
+                item.getQuantite(),
+                unitPrice,
+                lineTTC,
+                lineHT,
+                lineVAT,
+                "20%"
+        );
+    }
+
+    private TableAdditionItemDTO buildAdditionItemDTOFromFactureItem(FactureItem fi) {
+        BigDecimal unitPrice = fi.getPrixUnitaire() != null ? fi.getPrixUnitaire() : BigDecimal.ZERO;
+        BigDecimal lineTTC = fi.getTotal() != null ? fi.getTotal() : BigDecimal.ZERO;
+        BigDecimal lineHT = fi.getPriceHT() != null ? fi.getPriceHT() : lineTTC.divide(BigDecimal.valueOf(1.20), 2, RoundingMode.HALF_UP);
+        BigDecimal lineVAT = fi.getVatAmount() != null ? fi.getVatAmount() : lineTTC.subtract(lineHT);
+
+        return new TableAdditionItemDTO(
+                fi.getId(),
+                fi.getCommandeItem() != null && fi.getCommandeItem().getCommande() != null ? fi.getCommandeItem().getCommande().getId() : null,
+                fi.getCommandeItem() != null && fi.getCommandeItem().getCocktail() != null ? fi.getCommandeItem().getCocktail().getId() : null,
+                fi.getDescription(),
+                null,
+                fi.getQuantite(),
+                unitPrice,
+                lineTTC,
+                lineHT,
+                lineVAT,
+                fi.getVatRate() != null ? fi.getVatRate().getLabel() : "20%"
+        );
+    }
+
+    private String resolveServeurName(TableEntity table, List<Commande> activeCommandes) {
+        if (table.getServeurId() != null) {
+            Optional<User> userOpt = userRepository.findById(table.getServeurId());
+            if (userOpt.isPresent()) {
+                User u = userOpt.get();
+                return u.getPrenom() != null ? u.getPrenom() + " " + u.getNom() : u.getUsername();
+            }
+        }
+        for (Commande c : activeCommandes) {
+            if (c.getServeur() != null) {
+                User u = c.getServeur();
+                return u.getPrenom() != null ? u.getPrenom() + " " + u.getNom() : u.getUsername();
+            }
+        }
+        return null;
     }
 
     public List<Facture> getFacturesReglees() {
@@ -333,7 +669,7 @@ public class FactureService {
 
         Facture saved = factureRepository.save(merged);
 
-        auditLogService.logAction(null, "FUSION_FACTURES", "Facture", saved.getId(),
+        auditLogService.logAction(null, "FUSION_FACTURES", ENTITY_FACTURE, saved.getId(),
                 "Fusion de " + factures.size() + " factures en " + saved.getNumero(), null);
 
         return saved;

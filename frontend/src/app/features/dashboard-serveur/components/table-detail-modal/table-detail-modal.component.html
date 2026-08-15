@@ -73,6 +73,17 @@
 </ion-content>
 
 <ion-footer class="modal-footer">
+  <ion-button
+    *ngIf="table.occupee || commandes.length > 0"
+    expand="block"
+    color="success"
+    (click)="encaisser()"
+    (keydown.enter)="encaisser()"
+    class="btn-encaisser"
+    data-testid="btn-encaisser-modal">
+    <ion-icon name="card-outline" slot="start"></ion-icon>
+    Encaisser l'addition
+  </ion-button>
   <ion-button expand="block" color="primary" (click)="nouvelleCommande()" (keydown.enter)="nouvelleCommande()" class="btn-nouvelle" data-testid="btn-nouvelle-commande">
     <ion-icon name="add-circle-outline" slot="start"></ion-icon>
     Nouvelle commande

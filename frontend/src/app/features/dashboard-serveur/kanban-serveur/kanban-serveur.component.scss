@@ -456,6 +456,17 @@
         }
       }
 
+      &.pay-btn {
+        background: var(--primary);
+        color: #ffffff;
+        box-shadow: 0 4px 12px rgba(var(--primary-rgb, 100, 100, 255), 0.35);
+
+        &:hover {
+          filter: brightness(1.1);
+          transform: translateY(-1px);
+        }
+      }
+
       &.cancel-btn {
         background: transparent;
         color: var(--semantic-danger, #e5604f);

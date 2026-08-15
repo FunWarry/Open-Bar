@@ -1,5 +1,6 @@
 package com.bar.gestioncocktail.controller;
 
+import com.bar.gestioncocktail.dto.EncaissementRequestDTO;
 import com.bar.gestioncocktail.dto.FactureItemRequestDTO;
 import com.bar.gestioncocktail.dto.FactureRequestDTO;
 import com.bar.gestioncocktail.dto.FactureResponseDTO;
@@ -7,6 +8,7 @@ import com.bar.gestioncocktail.dto.MergeFacturesRequestDTO;
 import com.bar.gestioncocktail.dto.SplitAdditionRequest;
 import com.bar.gestioncocktail.dto.SplitEgalRequest;
 import com.bar.gestioncocktail.dto.SplitResultDTO;
+import com.bar.gestioncocktail.dto.TableAdditionResponseDTO;
 import com.bar.gestioncocktail.model.Facture;
 import com.bar.gestioncocktail.model.TableEntity;
 import com.bar.gestioncocktail.exception.ResourceNotFoundException;
@@ -146,6 +148,41 @@ public class FactureController {
         table.setId(tableId);
         return ResponseEntity.ok(factureService.getFacturesByTable(table).stream()
                 .map(FactureResponseDTO::from).toList());
+    }
+
+    /**
+     * Calcule le récapitulatif détaillé de l'addition d'une table avec ses commandes actives.
+     *
+     * @param tableId Identifiant de la table
+     * @return DTO contenant le détail des articles, les totaux HT/TVA/TTC
+     */
+    @GetMapping("/table/{tableId}/addition")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
+    @Operation(summary = "Obtenir le récapitulatif de l'addition d'une table", description = "Calcule l'addition complète d'une table (articles, sous-total HT, ventilation TVA, total TTC).")
+    @ApiResponse(responseCode = "200", description = "Récapitulatif de l'addition calculé avec succès")
+    @ApiResponse(responseCode = "404", description = "Table non trouvée")
+    public ResponseEntity<TableAdditionResponseDTO> getTableAddition(
+            @Parameter(description = "ID de la table") @PathVariable Long tableId) {
+        return ResponseEntity.ok(factureService.getTableAddition(tableId));
+    }
+
+    /**
+     * Valide l'encaissement d'une table : génère la facture officielle, règle les commandes et libère la table.
+     *
+     * @param tableId Identifiant de la table
+     * @param request Données de l'encaissement (mode de paiement, pourboire, remise, libération)
+     * @return Facture officielle générée et réglée
+     */
+    @PostMapping("/table/{tableId}/encaisser")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
+    @Operation(summary = "Encaisser et clôturer une table", description = "Enregistre le règlement d'une table, émet la facture, marque les commandes comme réglées et libère la table.")
+    @ApiResponse(responseCode = "200", description = "Table encaissée et facture émise avec succès")
+    @ApiResponse(responseCode = "400", description = "Erreur de validation ou aucune commande active")
+    @ApiResponse(responseCode = "404", description = "Table non trouvée")
+    public ResponseEntity<FactureResponseDTO> encaisserTable(
+            @Parameter(description = "ID de la table") @PathVariable Long tableId,
+            @Valid @RequestBody EncaissementRequestDTO request) {
+        return ResponseEntity.ok(factureService.encaisserTable(tableId, request));
     }
 
     /**

@@ -7,6 +7,7 @@ import { TableBar } from '../../../core/models/table.model';
 import { Commande, CommandeStatut, CreateCommandeRequest, AjouterItemRequest } from '../../../core/models/commande.model';
 import { TableView } from '../models/table-view.model';
 import { TablePosition } from '../../plan-salle/models/table-position.model';
+import { Facture } from '../../factures/models/facture.model';
 
 export interface ZoneItem {
   id: number;
@@ -21,6 +22,48 @@ export interface EtageItem {
   ordre: number;
 }
 
+export interface TableAdditionItem {
+  itemId: number;
+  commandeId: number;
+  cocktailId?: number;
+  cocktailNom: string;
+  varianteNom?: string;
+  quantite: number;
+  prixUnitaire: number;
+  total: number;
+  priceHT: number;
+  vatAmount: number;
+  vatRate: string;
+}
+
+export interface TableAdditionResponse {
+  tableId: number;
+  tableNumero: number;
+  zone: string;
+  serveurId?: number;
+  serveurNom?: string;
+  dateOccupation?: string;
+  items: TableAdditionItem[];
+  commandeIds: number[];
+  totalHT: number;
+  totalVAT: number;
+  totalTTC: number;
+  nombreArticles: number;
+  hasUnpaidFacture: boolean;
+  existingFactureId?: number;
+}
+
+export interface EncaissementRequest {
+  modePaiement: string;
+  pourboire?: number;
+  remiseMontant?: number;
+  remisePourcentage?: number;
+  montantRecu?: number;
+  notes?: string;
+  libererTable?: boolean;
+  commandeIds?: number[];
+}
+
 /**
  * Feature service for the Waiter dashboard managing tables, orders, floor levels, zones, and transfers.
  */
@@ -28,6 +71,7 @@ export interface EtageItem {
 export class DashboardServeurService {
   private readonly tablesUrl = `${environment.apiUrl}/tables`;
   private readonly commandesUrl = `${environment.apiUrl}/commandes`;
+  private readonly facturesUrl = `${environment.apiUrl}/factures`;
   private readonly zonesUrl = `${environment.apiUrl}/zones`;
   private readonly etagesUrl = `${environment.apiUrl}/etages`;
 
@@ -111,6 +155,14 @@ export class DashboardServeurService {
 
   transfererCommande(commandeId: number, targetTableId: number): Observable<Commande> {
     return this.http.put<Commande>(`${this.commandesUrl}/${commandeId}/table/${targetTableId}`, {});
+  }
+
+  getTableAddition(tableId: number): Observable<TableAdditionResponse> {
+    return this.http.get<TableAdditionResponse>(`${this.facturesUrl}/table/${tableId}/addition`);
+  }
+
+  encaisserTable(tableId: number, request: EncaissementRequest): Observable<Facture> {
+    return this.http.post<Facture>(`${this.facturesUrl}/table/${tableId}/encaisser`, request);
   }
 
   private toTableView(t: TableBar): TableView {
