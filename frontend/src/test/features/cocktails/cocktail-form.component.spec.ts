@@ -170,14 +170,40 @@ describe('CocktailFormComponent', () => {
       expect(component.templatesList()).toHaveSize(2);
     });
 
-    it('should navigate between wizard steps correctly', () => {
+    it('should prevent proceeding to step 2 when step 1 fields are empty or invalid', () => {
       expect(component.currentStep()).toBe(1);
+      expect(component.isStep1Valid()).toBeFalse();
+      expect(component.canProceedFromCurrentStep()).toBeFalse();
+
+      component.nextStep();
+      expect(component.currentStep()).toBe(1); // Blocked
+
+      component.goToStep(2);
+      expect(component.currentStep()).toBe(1); // Blocked
+    });
+
+    it('should navigate between wizard steps correctly when form data is valid', () => {
+      expect(component.currentStep()).toBe(1);
+
+      component.cocktailForm.patchValue({
+        name: 'Margarita',
+        description: 'Tequila based classic',
+        price: 10.0,
+        category: 'ALCOOLISE',
+      });
+
+      expect(component.isStep1Valid()).toBeTrue();
+      expect(component.canProceedFromCurrentStep()).toBeTrue();
+
       component.nextStep();
       expect(component.currentStep()).toBe(2);
+
       component.nextStep();
       expect(component.currentStep()).toBe(3);
+
       component.nextStep();
       expect(component.currentStep()).toBe(4);
+
       component.nextStep();
       expect(component.currentStep()).toBe(4); // capped at totalSteps
 
@@ -185,7 +211,7 @@ describe('CocktailFormComponent', () => {
       expect(component.currentStep()).toBe(3);
 
       component.goToStep(1);
-      expect(component.currentStep()).toBe(1);
+      expect(component.currentStep()).toBe(1); // Allowed backward
     });
 
     it('should manage modular recipe step blocks (add, reorder, delete)', () => {

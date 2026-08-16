@@ -306,16 +306,123 @@ export class CocktailFormComponent implements OnInit {
     });
   }
 
-  // --- Wizard Navigation ---
+  // --- Wizard Navigation & Step Validation ---
+  isStep1Valid(): boolean {
+    const f = this.cocktailForm;
+    const name = f.get('name')?.value;
+    const desc = f.get('description')?.value;
+    const price = f.get('price')?.value;
+    const cat = f.get('category')?.value;
+
+    const isNameValid = typeof name === 'string' && name.trim().length > 0;
+    const isDescValid = typeof desc === 'string' && desc.trim().length > 0;
+    const isPriceValid = price != null && !isNaN(price) && Number(price) > 0;
+    const isCatValid = cat != null && typeof cat === 'string' && cat.trim().length > 0;
+
+    return isNameValid && isDescValid && isPriceValid && isCatValid;
+  }
+
+  isStep2Valid(): boolean {
+    if (!this.isStep1Valid()) return false;
+    for (const ctrl of this.recipeStepsArray.controls) {
+      const stepType = ctrl.get('stepType')?.value;
+      if (stepType === 'INGREDIENT') {
+        const ingId = ctrl.get('ingredientId')?.value;
+        const qty = ctrl.get('quantite')?.value;
+        if (!ingId || qty == null || isNaN(qty) || Number(qty) <= 0) {
+          return false;
+        }
+      } else if (stepType === 'ACTION_TEMPLATE') {
+        const templateId = ctrl.get('templateId')?.value;
+        const templateName = ctrl.get('templateName')?.value;
+        if (!templateId && (!templateName || !templateName.trim())) {
+          return false;
+        }
+      } else if (stepType === 'CUSTOM_TEXT') {
+        const actionTitle = ctrl.get('actionTitle')?.value;
+        if (!actionTitle || !actionTitle.trim()) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  isStep3Valid(): boolean {
+    if (!this.isStep2Valid()) return false;
+    for (const ctrl of this.variantesArray.controls) {
+      const nom = ctrl.get('nom')?.value;
+      const supp = ctrl.get('prixSupplement')?.value;
+      if (!nom || typeof nom !== 'string' || !nom.trim() || supp == null || isNaN(supp) || Number(supp) < 0) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  isFormValid(): boolean {
+    return this.isStep3Valid();
+  }
+
+  canGoToStep(targetStep: number): boolean {
+    if (targetStep <= this.currentStep()) {
+      return true;
+    }
+    if (targetStep === 2) {
+      return this.isStep1Valid();
+    }
+    if (targetStep === 3) {
+      return this.isStep2Valid();
+    }
+    if (targetStep === 4) {
+      return this.isStep3Valid();
+    }
+    return false;
+  }
+
+  canProceedFromCurrentStep(): boolean {
+    const current = this.currentStep();
+    if (current === 1) return this.isStep1Valid();
+    if (current === 2) return this.isStep2Valid();
+    if (current === 3) return this.isStep3Valid();
+    return this.isFormValid();
+  }
+
+  markCurrentStepAsTouched(): void {
+    const current = this.currentStep();
+    if (current === 1) {
+      this.cocktailForm.get('name')?.markAsTouched();
+      this.cocktailForm.get('description')?.markAsTouched();
+      this.cocktailForm.get('price')?.markAsTouched();
+      this.cocktailForm.get('category')?.markAsTouched();
+    } else if (current === 2) {
+      this.recipeStepsArray.controls.forEach((ctrl) => ctrl.markAllAsTouched());
+    } else if (current === 3) {
+      this.variantesArray.controls.forEach((ctrl) => ctrl.markAllAsTouched());
+    }
+  }
+
   goToStep(step: number): void {
-    if (step >= 1 && step <= this.totalSteps) {
+    if (step < 1 || step > this.totalSteps || step === this.currentStep()) {
+      return;
+    }
+    if (this.canGoToStep(step)) {
       this.currentStep.set(step);
+    } else {
+      this.markCurrentStepAsTouched();
+      this.showToast(this.transloco.translate('COCKTAILS.WIZARD.VALIDATION_ERROR'), 'warning');
     }
   }
 
   nextStep(): void {
-    if (this.currentStep() < this.totalSteps) {
-      this.currentStep.update((s) => s + 1);
+    const current = this.currentStep();
+    if (current < this.totalSteps) {
+      if (this.canGoToStep(current + 1)) {
+        this.currentStep.set(current + 1);
+      } else {
+        this.markCurrentStepAsTouched();
+        this.showToast(this.transloco.translate('COCKTAILS.WIZARD.VALIDATION_ERROR'), 'warning');
+      }
     }
   }
 

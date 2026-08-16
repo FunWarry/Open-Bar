@@ -95,6 +95,16 @@
       }
     }
 
+    &.disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+      pointer-events: none;
+
+      &:hover {
+        background: transparent;
+      }
+    }
+
     .step-badge {
       width: 28px;
       height: 28px;

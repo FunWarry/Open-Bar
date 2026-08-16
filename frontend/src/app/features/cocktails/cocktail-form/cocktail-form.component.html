@@ -19,6 +19,7 @@
       class="step-tab"
       [class.active]="currentStep() === 2"
       [class.completed]="currentStep() > 2"
+      [class.disabled]="!canGoToStep(2)"
       (click)="goToStep(2)"
       data-testid="wizard-step-2-tab">
       <span class="step-badge">2</span>
@@ -32,6 +33,7 @@
       class="step-tab"
       [class.active]="currentStep() === 3"
       [class.completed]="currentStep() > 3"
+      [class.disabled]="!canGoToStep(3)"
       (click)="goToStep(3)"
       data-testid="wizard-step-3-tab">
       <span class="step-badge">3</span>
@@ -44,6 +46,7 @@
       type="button"
       class="step-tab"
       [class.active]="currentStep() === 4"
+      [class.disabled]="!canGoToStep(4)"
       (click)="goToStep(4)"
       data-testid="wizard-step-4-tab">
       <span class="step-badge">4</span>
@@ -100,7 +103,7 @@
             <div class="form-fields-grid">
               <app-input-field
                 formControlName="name"
-                [label]="('COCKTAILS.NAME' | transloco) + ' *'"
+                [label]="'COCKTAILS.NAME' | transloco"
                 [placeholder]="'COCKTAILS.NAME' | transloco"
                 [required]="true"
                 testId="cocktail-form-name-input"
@@ -110,7 +113,7 @@
               <app-input-field
                 formControlName="price"
                 type="number"
-                [label]="('COCKTAILS.PRICE' | transloco) + ' (€) *'"
+                [label]="('COCKTAILS.PRICE' | transloco) + ' (€)'"
                 placeholder="0.00"
                 [required]="true"
                 testId="cocktail-form-price-input"
@@ -121,7 +124,7 @@
               <div class="field-container">
                 <app-searchable-select
                   formControlName="category"
-                  [label]="('COCKTAILS.CATEGORY' | transloco) + ' *'"
+                  [label]="'COCKTAILS.CATEGORY' | transloco"
                   [placeholder]="'COMMON.SELECT' | transloco"
                   [searchPlaceholder]="'Rechercher une catégorie...'"
                   [required]="true"
@@ -132,7 +135,7 @@
 
               <app-input-field
                 formControlName="description"
-                [label]="('COCKTAILS.DESCRIPTION' | transloco) + ' *'"
+                [label]="'COCKTAILS.DESCRIPTION' | transloco"
                 [placeholder]="'COCKTAILS.DESCRIPTION' | transloco"
                 [required]="true"
                 testId="cocktail-form-description-input"
@@ -673,6 +676,7 @@
                 variant="primary"
                 icon="chevron-forward-outline"
                 testId="wizard-btn-next"
+                [disabled]="!canProceedFromCurrentStep()"
                 (btnClick)="nextStep()">
                 {{ 'COCKTAILS.WIZARD.NEXT_STEP' | transloco }}
               </app-action-button>
@@ -681,7 +685,7 @@
                 variant="primary"
                 type="submit"
                 icon="checkmark-circle-outline"
-                [disabled]="!cocktailForm.valid"
+                [disabled]="!isFormValid()"
                 testId="cocktail-form-submit-btn">
                 {{ (isEditMode ? 'COMMON.SAVE' : 'COCKTAILS.WIZARD.SAVE_COCKTAIL') | transloco }}
               </app-action-button>

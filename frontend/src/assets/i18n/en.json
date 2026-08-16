@@ -445,7 +445,8 @@
       "PREV_STEP": "Previous Step",
       "NEXT_STEP": "Next Step",
       "STEP_N_OF_TOTAL": "Step {{current}} of {{total}}",
-      "SAVE_COCKTAIL": "Save Cocktail"
+      "SAVE_COCKTAIL": "Save Cocktail",
+      "VALIDATION_ERROR": "Please fill in all required fields before continuing."
     },
     "BUILDER": {
       "SECTION_TITLE": "Step-by-Step Recipe Builder",

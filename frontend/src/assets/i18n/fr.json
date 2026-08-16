@@ -445,7 +445,8 @@
       "PREV_STEP": "Étape précédente",
       "NEXT_STEP": "Étape suivante",
       "STEP_N_OF_TOTAL": "Étape {{current}} sur {{total}}",
-      "SAVE_COCKTAIL": "Enregistrer le Cocktail"
+      "SAVE_COCKTAIL": "Enregistrer le Cocktail",
+      "VALIDATION_ERROR": "Veuillez remplir tous les champs obligatoires avant de continuer."
     },
     "BUILDER": {
       "SECTION_TITLE": "Composer la recette pas à pas",
