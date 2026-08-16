@@ -19,6 +19,7 @@
         icon="mail-outline"
         [required]="true"
         autocomplete="username"
+        testId="login-username"
         [errorMessage]="
           loginForm.get('username')?.touched && loginForm.get('username')?.hasError('required')
             ? ('AUTH.REQUIRED_USER' | transloco)
@@ -32,6 +33,7 @@
         placeholder="••••••••"
         [required]="true"
         autocomplete="current-password"
+        testId="login-password"
         [errorMessage]="
           loginForm.get('password')?.touched && loginForm.get('password')?.hasError('required')
             ? ('AUTH.REQUIRED_PASS' | transloco)
@@ -40,7 +42,7 @@
       </app-password-input>
 
       @if (errorMessage) {
-        <div class="error-toast">
+        <div class="error-toast" data-testid="login-error">
           <div class="toast-accent"></div>
           <div class="toast-content">
             <span class="toast-icon">✕</span>
@@ -54,6 +56,7 @@
         variant="primary"
         size="large"
         expand="block"
+        testId="login-btn"
         [disabled]="loginForm.invalid">
         {{ 'AUTH.LOGIN_BTN' | transloco }}
       </app-action-button>
