@@ -40,7 +40,7 @@ class StockIntegrationTest extends BaseIntegrationTest {
                         .param("quantite", "5.00")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + getBarmanToken()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.stockActuel").value(5.00));
+                .andExpect(jsonPath("$.quantiteStock").value(5.00));
 
         // 2. Set alert threshold higher than current stock
         mockMvc.perform(put("/api/ingredients/" + ingredientId + "/seuil-alerte")

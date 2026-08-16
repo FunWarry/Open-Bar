@@ -2,6 +2,7 @@ package com.bar.gestioncocktail.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -48,6 +49,22 @@ public class GlobalExceptionHandler {
                 ex.getMessage()
         ).build();
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+    }
+
+    /**
+     * Handles authentication failures (HTTP 401).
+     *
+     * @param ex Authentication exception
+     * @return HTTP 401 response
+     */
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ErrorResponse> handleAuthenticationException(AuthenticationException ex) {
+        ErrorResponse body = ErrorResponse.builder(
+                HttpStatus.UNAUTHORIZED.value(),
+                "Unauthorized",
+                ex.getMessage()
+        ).build();
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(body);
     }
 
     /**

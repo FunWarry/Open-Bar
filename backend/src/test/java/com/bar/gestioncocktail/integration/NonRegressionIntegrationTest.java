@@ -48,6 +48,9 @@ class NonRegressionIntegrationTest extends BaseIntegrationTest {
                     newFacture.setNumero("FACT-TEST-NONREG-" + System.currentTimeMillis());
                     newFacture.setTable(table);
                     newFacture.setTotal(new BigDecimal("45.00"));
+                    newFacture.setTotalHT(new BigDecimal("37.50"));
+                    newFacture.setTotalVAT(new BigDecimal("7.50"));
+                    newFacture.setTotalTTC(new BigDecimal("45.00"));
                     newFacture.setDateFacture(LocalDateTime.now());
                     newFacture.setReglee(false);
                     return factureRepository.save(newFacture);

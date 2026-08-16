@@ -3,6 +3,7 @@ package com.bar.gestioncocktail.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -11,6 +12,7 @@ import java.util.List;
  * Response DTO on successful authentication.
  */
 @Data
+@NoArgsConstructor
 @AllArgsConstructor
 @Schema(description = "Authentication response containing tokens and user information")
 public class LoginResponse {

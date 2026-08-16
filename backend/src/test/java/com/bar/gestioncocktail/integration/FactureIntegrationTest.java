@@ -49,6 +49,9 @@ class FactureIntegrationTest extends BaseIntegrationTest {
                     newFacture.setNumero("FACT-TEST-" + System.currentTimeMillis());
                     newFacture.setTable(table);
                     newFacture.setTotal(new BigDecimal("30.00"));
+                    newFacture.setTotalHT(new BigDecimal("25.00"));
+                    newFacture.setTotalVAT(new BigDecimal("5.00"));
+                    newFacture.setTotalTTC(new BigDecimal("30.00"));
                     newFacture.setDateFacture(LocalDateTime.now());
                     newFacture.setReglee(false);
                     return factureRepository.save(newFacture);

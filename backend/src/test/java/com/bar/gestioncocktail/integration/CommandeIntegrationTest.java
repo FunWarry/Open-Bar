@@ -4,6 +4,7 @@ import com.bar.gestioncocktail.dto.CommandeItemRequestDTO;
 import com.bar.gestioncocktail.dto.CommandeRequestDTO;
 import com.bar.gestioncocktail.dto.CommandeResponseDTO;
 import com.bar.gestioncocktail.model.Cocktail;
+import com.bar.gestioncocktail.model.CocktailCategorie;
 import com.bar.gestioncocktail.model.CommandeStatut;
 import com.bar.gestioncocktail.model.TableEntity;
 import com.bar.gestioncocktail.repository.CocktailRepository;
@@ -51,6 +52,7 @@ class CommandeIntegrationTest extends BaseIntegrationTest {
             Cocktail c = new Cocktail();
             c.setNom("Mojito Test");
             c.setPrix(new BigDecimal("8.50"));
+            c.setCategorie(CocktailCategorie.CLASSIQUE);
             return cocktailRepository.save(c);
         });
         Long cocktailId = cocktail.getId();

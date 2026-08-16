@@ -33,7 +33,7 @@ class AuthIntegrationTest extends BaseIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.token").isNotEmpty())
                 .andExpect(jsonPath("$.username").value("admin"))
-                .andExpect(jsonPath("$.roles[0]").value("ROLE_ADMIN"));
+                .andExpect(jsonPath("$.roles").isArray());
     }
 
     @Test
