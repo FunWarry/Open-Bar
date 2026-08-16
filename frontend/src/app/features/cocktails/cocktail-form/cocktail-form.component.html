@@ -554,7 +554,13 @@
               } @else {
                 <div class="recipe-timeline" data-testid="recipe-preview-timeline">
                   @for (stepGroup of recipeStepsArray.controls; track $index; let sIdx = $index) {
-                    <div class="timeline-step-row" [attr.data-testid]="'preview-step-' + sIdx">
+                    <div
+                      class="timeline-step-row"
+                      [class.type-ingredient]="stepGroup.get('stepType')?.value === 'INGREDIENT'"
+                      [class.type-action]="stepGroup.get('stepType')?.value === 'ACTION_TEMPLATE'"
+                      [class.type-custom]="stepGroup.get('stepType')?.value === 'CUSTOM_TEXT'"
+                      [attr.data-testid]="'preview-step-' + sIdx">
+
                       <div class="step-badge-col">
                         <span class="timeline-num">{{ sIdx + 1 }}</span>
                       </div>
@@ -562,14 +568,17 @@
                       <div class="step-card-content">
                         <!-- Step 1: Ingredient block -->
                         @if (stepGroup.get('stepType')?.value === 'INGREDIENT') {
-                          <div class="timeline-ing-content">
-                            <div class="ing-main-row">
-                              <span class="ing-name">
-                                🧪 {{ stepGroup.get('ingredientNom')?.value || ('COCKTAILS.BUILDER.ADD_INGREDIENT' | transloco) }}
-                              </span>
+                          <div class="timeline-block-body">
+                            <div class="step-header-line">
+                              <div class="step-title-with-icon">
+                                <ion-icon name="leaf-outline" class="step-type-icon icon-ingredient"></ion-icon>
+                                <span class="step-main-title">
+                                  {{ stepGroup.get('ingredientNom')?.value || ('COCKTAILS.BUILDER.ADD_INGREDIENT' | transloco) }}
+                                </span>
+                              </div>
                               @if (stepGroup.get('quantite')?.value != null) {
-                                <div class="ing-dosage-badge" data-testid="ing-dosage-badge">
-                                  <strong>{{ getScaledQuantity(stepGroup.get('quantite')?.value) }} {{ stepGroup.get('unite')?.value }}</strong>
+                                <div class="dosage-pill" data-testid="ing-dosage-badge">
+                                  <strong class="dosage-value">{{ getScaledQuantity(stepGroup.get('quantite')?.value) }} {{ stepGroup.get('unite')?.value }}</strong>
                                   @if (previewPortions() > 1) {
                                     <small class="unit-ref">({{ stepGroup.get('quantite')?.value }} {{ stepGroup.get('unite')?.value }} / verre)</small>
                                   }
@@ -584,17 +593,17 @@
 
                         <!-- Step 2: Action Template block -->
                         @if (stepGroup.get('stepType')?.value === 'ACTION_TEMPLATE') {
-                          <div class="timeline-action-content">
-                            <div class="action-main-row">
-                              <div class="action-title-with-icon">
-                                <ion-icon [name]="getActionIcon(stepGroup.get('actionType')?.value)"></ion-icon>
-                                <strong>{{ stepGroup.get('templateName')?.value || 'Action Mixologie' }}</strong>
+                          <div class="timeline-block-body">
+                            <div class="step-header-line">
+                              <div class="step-title-with-icon">
+                                <ion-icon [name]="getActionIcon(stepGroup.get('actionType')?.value)" class="step-type-icon icon-action"></ion-icon>
+                                <span class="step-main-title">{{ stepGroup.get('templateName')?.value || 'Action Mixologie' }}</span>
                               </div>
                               @if (stepGroup.get('durationSeconds')?.value) {
-                                <span class="duration-pill">
+                                <div class="duration-pill">
                                   <ion-icon name="time-outline"></ion-icon>
-                                  {{ stepGroup.get('durationSeconds')?.value }} {{ 'COCKTAILS.PREVIEW.SECONDS' | transloco }}
-                                </span>
+                                  <span>{{ stepGroup.get('durationSeconds')?.value }} {{ 'COCKTAILS.PREVIEW.SECONDS' | transloco }}</span>
+                                </div>
                               }
                             </div>
                             @if (stepGroup.get('customText')?.value) {
@@ -605,17 +614,17 @@
 
                         <!-- Step 3: Custom Text block -->
                         @if (stepGroup.get('stepType')?.value === 'CUSTOM_TEXT') {
-                          <div class="timeline-custom-content">
-                            <div class="action-main-row">
-                              <div class="action-title-with-icon">
-                                <ion-icon name="create-outline"></ion-icon>
-                                <strong>{{ stepGroup.get('actionTitle')?.value || 'Étape Spécifique' }}</strong>
+                          <div class="timeline-block-body">
+                            <div class="step-header-line">
+                              <div class="step-title-with-icon">
+                                <ion-icon name="create-outline" class="step-type-icon icon-custom"></ion-icon>
+                                <span class="step-main-title">{{ stepGroup.get('actionTitle')?.value || 'Étape Spécifique' }}</span>
                               </div>
                               @if (stepGroup.get('durationSeconds')?.value) {
-                                <span class="duration-pill">
+                                <div class="duration-pill">
                                   <ion-icon name="time-outline"></ion-icon>
-                                  {{ stepGroup.get('durationSeconds')?.value }} {{ 'COCKTAILS.PREVIEW.SECONDS' | transloco }}
-                                </span>
+                                  <span>{{ stepGroup.get('durationSeconds')?.value }} {{ 'COCKTAILS.PREVIEW.SECONDS' | transloco }}</span>
+                                </div>
                               }
                             </div>
                             @if (stepGroup.get('customText')?.value) {
