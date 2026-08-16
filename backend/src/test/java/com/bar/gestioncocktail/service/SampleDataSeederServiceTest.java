@@ -84,13 +84,19 @@ class SampleDataSeederServiceTest {
     void seedDemoDataIfEmpty_executesSeedingWhenEmpty() {
         when(commandeRepository.count()).thenReturn(0L);
         when(userRepository.findByUsername(any())).thenReturn(Optional.empty());
-        when(userRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(userRepository.save(any())).thenAnswer(invocation -> {
+            User u = invocation.getArgument(0);
+            if (u.getId() == null) u.setId(1L);
+            return u;
+        });
 
         lenient().when(etageRepository.existsByCode(any())).thenReturn(false);
         lenient().when(zoneRepository.existsByNom(any())).thenReturn(false);
+        lenient().when(establishmentClosureRepository.count()).thenReturn(0L);
 
         TableEntity mockTable = new TableEntity();
         mockTable.setNumero(1);
+        mockTable.setId(1L);
         when(tableRepository.findByNumero(anyInt())).thenReturn(Optional.of(mockTable));
         when(tableRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -104,7 +110,31 @@ class SampleDataSeederServiceTest {
 
         verify(userRepository, atLeastOnce()).save(any());
         verify(tableRepository, atLeastOnce()).save(any());
+        verify(employeeShiftRepository, atLeastOnce()).save(any());
+        verify(establishmentClosureRepository, atLeastOnce()).save(any());
         verify(commandeRepository, atLeastOnce()).save(any());
         verify(factureRepository, atLeastOnce()).save(any());
+    }
+
+    @Test
+    @DisplayName("seedAllDemoData - skips closures when closures already exist")
+    void seedAllDemoData_skipsClosuresWhenAlreadyExist() {
+        when(userRepository.findByUsername(any())).thenReturn(Optional.empty());
+        when(userRepository.save(any())).thenAnswer(invocation -> {
+            User u = invocation.getArgument(0);
+            if (u.getId() == null) u.setId(1L);
+            return u;
+        });
+        TableEntity mockTable = new TableEntity();
+        mockTable.setNumero(1);
+        mockTable.setId(1L);
+        when(tableRepository.findByNumero(anyInt())).thenReturn(Optional.of(mockTable));
+        when(tableRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(establishmentClosureRepository.count()).thenReturn(3L);
+        when(commandeRepository.count()).thenReturn(1L);
+
+        sampleDataSeederService.seedAllDemoData();
+
+        verify(establishmentClosureRepository, never()).save(any());
     }
 }

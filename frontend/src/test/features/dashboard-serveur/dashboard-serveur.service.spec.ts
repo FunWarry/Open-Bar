@@ -80,4 +80,42 @@ describe('DashboardServeurService', () => {
     expect(req.request.body).toEqual(encaissementReq);
     req.flush(mockFacture);
   });
+
+  it('getZones() returns zones from backend or empty array on error', () => {
+    const mockZones = [{ id: 1, nom: 'Salle Principale', etage: 'RDC' }];
+
+    service.getZones().subscribe(zones => {
+      expect(zones).toEqual(mockZones);
+    });
+
+    const req = httpTesting.expectOne(`${environment.apiUrl}/zones`);
+    expect(req.request.method).toBe('GET');
+    req.flush(mockZones);
+
+    service.getZones().subscribe(zones => {
+      expect(zones).toEqual([]);
+    });
+
+    const reqErr = httpTesting.expectOne(`${environment.apiUrl}/zones`);
+    reqErr.flush('Server error', { status: 500, statusText: 'Internal Server Error' });
+  });
+
+  it('getEtages() returns etages from backend or empty array on error', () => {
+    const mockEtages = [{ id: 1, code: 'RDC', nom: 'Rez-de-chaussée (RDC)', ordre: 1 }];
+
+    service.getEtages().subscribe(etages => {
+      expect(etages).toEqual(mockEtages);
+    });
+
+    const req = httpTesting.expectOne(`${environment.apiUrl}/etages`);
+    expect(req.request.method).toBe('GET');
+    req.flush(mockEtages);
+
+    service.getEtages().subscribe(etages => {
+      expect(etages).toEqual([]);
+    });
+
+    const reqErr = httpTesting.expectOne(`${environment.apiUrl}/etages`);
+    reqErr.flush('Server error', { status: 500, statusText: 'Internal Server Error' });
+  });
 });
