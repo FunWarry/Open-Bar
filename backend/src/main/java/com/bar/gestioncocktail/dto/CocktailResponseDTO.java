@@ -61,15 +61,36 @@ public record CocktailResponseDTO(
      * @return Corresponding response DTO
      */
     public static CocktailResponseDTO from(Cocktail c) {
-        List<CocktailIngredientResponseDTO> ings = c.getIngredients() != null
-            ? c.getIngredients().stream().map(CocktailIngredientResponseDTO::from).toList()
-            : Collections.emptyList();
-        List<CocktailVarianteResponseDTO> vars = c.getVariantes() != null
-            ? c.getVariantes().stream().map(CocktailVarianteResponseDTO::from).toList()
-            : Collections.emptyList();
-        List<CocktailRecipeStepResponseDTO> steps = c.getRecipeSteps() != null
-            ? c.getRecipeSteps().stream().map(CocktailRecipeStepResponseDTO::from).toList()
-            : Collections.emptyList();
+        if (c == null) {
+            return null;
+        }
+        List<CocktailIngredientResponseDTO> ings;
+        try {
+            ings = (c.getIngredients() != null && org.hibernate.Hibernate.isInitialized(c.getIngredients()))
+                ? c.getIngredients().stream().map(CocktailIngredientResponseDTO::from).toList()
+                : Collections.emptyList();
+        } catch (Exception e) {
+            ings = Collections.emptyList();
+        }
+
+        List<CocktailVarianteResponseDTO> vars;
+        try {
+            vars = (c.getVariantes() != null && org.hibernate.Hibernate.isInitialized(c.getVariantes()))
+                ? c.getVariantes().stream().map(CocktailVarianteResponseDTO::from).toList()
+                : Collections.emptyList();
+        } catch (Exception e) {
+            vars = Collections.emptyList();
+        }
+
+        List<CocktailRecipeStepResponseDTO> steps;
+        try {
+            steps = (c.getRecipeSteps() != null && org.hibernate.Hibernate.isInitialized(c.getRecipeSteps()))
+                ? c.getRecipeSteps().stream().map(CocktailRecipeStepResponseDTO::from).toList()
+                : Collections.emptyList();
+        } catch (Exception e) {
+            steps = Collections.emptyList();
+        }
+
         return new CocktailResponseDTO(
             c.getId(), c.getNom(), c.getDescription(), c.getPrix(), c.getCategorie(),
             c.isDisponible(), c.isSaisonnier(), c.getDateDebutSaison(), c.getDateFinSaison(),

@@ -20,6 +20,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.transaction.annotation.Transactional;
+
 /**
  * REST controller managing cocktail catalog and drink menu.
  * <p>
@@ -28,6 +30,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api/cocktails")
+@Transactional(readOnly = true)
 @Tag(name = "Cocktails", description = "Cocktail catalog management, pricing, availability, and seasonality")
 public class CocktailController {
     private final CocktailService cocktailService;
@@ -62,6 +65,7 @@ public class CocktailController {
      * @return DTO of the created cocktail
      */
     @PostMapping
+    @Transactional
     @PreAuthorize("hasRole('ADMIN') or hasRole('BARMAN')")
     @Operation(summary = "Create a cocktail (BARMAN/ADMIN)", description = "Adds a new cocktail with recipe steps to the menu.")
     @ApiResponse(responseCode = "200", description = "Cocktail created successfully")
@@ -78,6 +82,7 @@ public class CocktailController {
      * @return DTO of the updated cocktail
      */
     @PutMapping("/{id}")
+    @Transactional
     @PreAuthorize("hasRole('ADMIN') or hasRole('BARMAN')")
     @Operation(summary = "Update a cocktail (BARMAN/ADMIN)", description = "Updates cocktail metadata and recipe steps.")
     @ApiResponse(responseCode = "200", description = "Cocktail updated")
@@ -95,6 +100,7 @@ public class CocktailController {
      * @return HTTP 200 OK
      */
     @DeleteMapping("/{id}")
+    @Transactional
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Delete a cocktail (ADMIN)")
     @ApiResponse(responseCode = "200", description = "Cocktail deleted")
@@ -197,6 +203,7 @@ public class CocktailController {
      * @return Updated cocktail DTO
      */
     @PutMapping("/{id}/disponibilite")
+    @Transactional
     @PreAuthorize("hasRole('ADMIN') or hasRole('BARMAN') or hasRole('MANAGER')")
     @Operation(summary = "Toggle cocktail availability (BARMAN/MANAGER/ADMIN)")
     @ApiResponse(responseCode = "200", description = "Availability toggled")
@@ -221,6 +228,7 @@ public class CocktailController {
      * @return Updated cocktail DTO
      */
     @PutMapping("/{id}/saisonnalite")
+    @Transactional
     @PreAuthorize("hasRole('ADMIN') or hasRole('BARMAN')")
     @Operation(summary = "Set date-based seasonality range")
     @ApiResponse(responseCode = "200", description = "Seasonality saved")
@@ -246,6 +254,7 @@ public class CocktailController {
      * @return Updated cocktail DTO
      */
     @PatchMapping("/{id}/saisonnalite")
+    @Transactional
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('BARMAN')")
     @Operation(summary = "Update month-based seasonality (1-12)")
     @ApiResponse(responseCode = "200", description = "Month seasonality updated")
@@ -264,6 +273,7 @@ public class CocktailController {
      * @return Updated cocktail DTO with new photo URL
      */
     @PostMapping(value = "/{id}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Transactional
     @PreAuthorize("hasRole('ADMIN') or hasRole('BARMAN') or hasRole('MANAGER')")
     @Operation(summary = "Upload custom cocktail photo (BARMAN/MANAGER/ADMIN)", description = "Stores uploaded photo and updates cocktail photoUrl.")
     @ApiResponse(responseCode = "200", description = "Photo uploaded and cocktail updated")

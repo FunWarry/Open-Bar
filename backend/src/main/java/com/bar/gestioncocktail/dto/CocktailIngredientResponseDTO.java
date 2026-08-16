@@ -12,11 +12,17 @@ public record CocktailIngredientResponseDTO(
     String notes
 ) {
     public static CocktailIngredientResponseDTO from(CocktailIngredient ci) {
+        if (ci == null) {
+            return null;
+        }
+        Long ingId = ci.getIngredient() != null ? ci.getIngredient().getId() : null;
+        String ingNom = ci.getIngredient() != null ? ci.getIngredient().getNom() : null;
+        String unite = ci.getIngredient() != null ? ci.getIngredient().getUniteMesure() : null;
         return new CocktailIngredientResponseDTO(
             ci.getId(),
-            ci.getIngredient().getId(),
-            ci.getIngredient().getNom(),
-            ci.getIngredient().getUniteMesure(),
+            ingId,
+            ingNom,
+            unite,
             ci.getQuantite(),
             ci.getNotes()
         );
