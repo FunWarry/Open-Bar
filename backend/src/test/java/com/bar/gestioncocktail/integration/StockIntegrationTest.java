@@ -35,14 +35,14 @@ class StockIntegrationTest extends BaseIntegrationTest {
         });
         Long ingredientId = ingredient.getId();
 
-        // 1. Update stock
+        // 1. Update stock to 0 (out of stock / alerting)
         mockMvc.perform(put("/api/ingredients/" + ingredientId + "/stock")
-                        .param("quantite", "5.00")
+                        .param("quantite", "0.00")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + getBarmanToken()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.quantiteStock").value(5.00));
+                .andExpect(jsonPath("$.quantiteStock").value(0.00));
 
-        // 2. Set alert threshold higher than current stock
+        // 2. Set alert threshold
         mockMvc.perform(put("/api/ingredients/" + ingredientId + "/seuil-alerte")
                         .param("seuil", "10.00")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + getBarmanToken()))

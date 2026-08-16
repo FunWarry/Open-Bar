@@ -9,6 +9,7 @@ import com.bar.gestioncocktail.model.CocktailIngredient;
 import com.bar.gestioncocktail.model.Ingredient;
 import com.bar.gestioncocktail.model.TableEntity;
 import com.bar.gestioncocktail.model.User;
+import com.bar.gestioncocktail.repository.CocktailRepository;
 import com.bar.gestioncocktail.repository.CommandeRepository;
 import com.bar.gestioncocktail.repository.CommandeItemRepository;
 import com.bar.gestioncocktail.repository.IngredientRepository;
@@ -36,6 +37,7 @@ public class CommandeService {
     private final CommandeItemRepository commandeItemRepository;
     private final IngredientRepository ingredientRepository;
     private final TableRepository tableRepository;
+    private final CocktailRepository cocktailRepository;
     private final SimpMessagingTemplate messagingTemplate;
     private final TimeService timeService;
 
@@ -44,12 +46,14 @@ public class CommandeService {
             CommandeItemRepository commandeItemRepository,
             IngredientRepository ingredientRepository,
             TableRepository tableRepository,
+            CocktailRepository cocktailRepository,
             SimpMessagingTemplate messagingTemplate,
             TimeService timeService) {
         this.commandeRepository = commandeRepository;
         this.commandeItemRepository = commandeItemRepository;
         this.ingredientRepository = ingredientRepository;
         this.tableRepository = tableRepository;
+        this.cocktailRepository = cocktailRepository;
         this.messagingTemplate = messagingTemplate;
         this.timeService = timeService;
     }
@@ -115,8 +119,18 @@ public class CommandeService {
         Commande commande = commandeRepository.findById(commandeId)
                 .orElseThrow(() -> new ResourceNotFoundException(COMMANDE_NOT_FOUND + commandeId));
 
+        if (item.getCocktail() != null && item.getCocktail().getId() != null) {
+            cocktailRepository.findById(item.getCocktail().getId()).ifPresent(item::setCocktail);
+        }
+
         item.setCommande(commande);
         commandeItemRepository.save(item);
+        if (commande.getItems() == null) {
+            commande.setItems(new java.util.ArrayList<>());
+        }
+        if (!commande.getItems().contains(item)) {
+            commande.getItems().add(item);
+        }
 
         BigDecimal total = BigDecimal.ZERO;
         if (commande.getItems() != null) {
@@ -128,7 +142,6 @@ public class CommandeService {
                 }
             }
         }
-
 
         commande.setTotal(total);
         commande.setDateModification(timeService.now());
@@ -197,11 +210,18 @@ public class CommandeService {
 
         for (Map.Entry<Long, BigDecimal> entry : quantitesParIngredient.entrySet()) {
             Ingredient ingredient = ingredientsMap.get(entry.getKey());
-            BigDecimal nouveauStock = ingredient.getQuantiteStock().subtract(entry.getValue());
+            if (ingredient == null) {
+                ingredient = ingredientRepository.findById(entry.getKey()).orElse(null);
+            }
+            if (ingredient == null) {
+                continue;
+            }
+            BigDecimal currentStock = ingredient.getQuantiteStock() != null ? ingredient.getQuantiteStock() : BigDecimal.ZERO;
+            BigDecimal nouveauStock = currentStock.subtract(entry.getValue());
             ingredient.setQuantiteStock(nouveauStock);
             ingredient.setUpdatedAt(timeService.now());
             ingredientRepository.save(ingredient);
-            if (ingredient.getSeuilAlerte() != null && nouveauStock.compareTo(ingredient.getSeuilAlerte()) <= 0) {
+            if (ingredient.getSeuilAlerte() != null && nouveauStock.compareTo(ingredient.getSeuilAlerte()) <= 0 && messagingTemplate != null) {
                 messagingTemplate.convertAndSend("/topic/stock/alerte",
                         new StockAlerteEvent(
                                 ingredient.getId(),
@@ -220,7 +240,14 @@ public class CommandeService {
 
         for (Map.Entry<Long, BigDecimal> entry : quantitesParIngredient.entrySet()) {
             Ingredient ingredient = ingredientsMap.get(entry.getKey());
-            BigDecimal nouveauStock = ingredient.getQuantiteStock().add(entry.getValue());
+            if (ingredient == null) {
+                ingredient = ingredientRepository.findById(entry.getKey()).orElse(null);
+            }
+            if (ingredient == null) {
+                continue;
+            }
+            BigDecimal currentStock = ingredient.getQuantiteStock() != null ? ingredient.getQuantiteStock() : BigDecimal.ZERO;
+            BigDecimal nouveauStock = currentStock.add(entry.getValue());
             ingredient.setQuantiteStock(nouveauStock);
             ingredient.setUpdatedAt(timeService.now());
             ingredientRepository.save(ingredient);
