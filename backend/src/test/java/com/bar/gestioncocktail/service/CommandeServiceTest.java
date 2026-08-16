@@ -179,6 +179,31 @@ class CommandeServiceTest {
         );
     }
 
+    @Test
+    void destockerIngredients_cocktailIngredientRepoThrowsException_fallsBackGracefully() {
+        when(cocktailIngredientRepository.findByCocktail(any())).thenThrow(new RuntimeException("DB down"));
+        when(commandeRepository.findById(1L)).thenReturn(Optional.of(commande));
+
+        org.junit.jupiter.api.Assertions.assertDoesNotThrow(
+                () -> commandeService.changerStatut(1L, CommandeStatut.EN_PREPARATION)
+        );
+        verify(ingredientRepository).save(any(Ingredient.class));
+    }
+
+    @Test
+    void destockerIngredients_itemCocktailNull_skipsSafely() {
+        CommandeItem nullCocktailItem = new CommandeItem();
+        nullCocktailItem.setId(99L);
+        nullCocktailItem.setCocktail(null);
+        commande.getItems().add(nullCocktailItem);
+
+        when(commandeRepository.findById(1L)).thenReturn(Optional.of(commande));
+
+        org.junit.jupiter.api.Assertions.assertDoesNotThrow(
+                () -> commandeService.changerStatut(1L, CommandeStatut.EN_PREPARATION)
+        );
+    }
+
     // ─── Stock replenishment on cancellation & variants ───────────────────────
 
     @Test
@@ -193,6 +218,17 @@ class CommandeServiceTest {
         verify(ingredientRepository).save(captor.capture());
         // 100 + (4 cl * 2) = 108
         assertThat(captor.getValue().getQuantiteStock()).isEqualByComparingTo(new BigDecimal("108.00"));
+    }
+
+    @Test
+    void annulerCommande_sansItems_skipsSafely() {
+        commande.setStatut(CommandeStatut.EN_PREPARATION);
+        commande.setDatePreparation(LocalDateTime.now());
+        commande.setItems(null);
+
+        commandeService.annulerCommande(commande);
+
+        assertThat(commande.getStatut()).isEqualTo(CommandeStatut.ANNULEE);
     }
 
     @Test
@@ -309,6 +345,30 @@ class CommandeServiceTest {
 
         assertThat(result).isNotNull();
         verify(commandeItemRepository).save(newItem);
+    }
+
+    @Test
+    @DisplayName("ajouterItem - with null items list initializes and adds item")
+    void ajouterItem_withNullItems_initializesList() {
+        commande.setItems(null);
+
+        Cocktail mockCocktail = new Cocktail();
+        mockCocktail.setId(1L);
+
+        CommandeItem newItem = new CommandeItem();
+        newItem.setCocktail(mockCocktail);
+        newItem.setPrixUnitaire(new BigDecimal("5.00"));
+        newItem.setQuantite(1);
+
+        when(commandeRepository.findById(1L)).thenReturn(Optional.of(commande));
+        when(cocktailRepository.findById(1L)).thenReturn(Optional.of(mockCocktail));
+        when(commandeItemRepository.save(any(CommandeItem.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Commande result = commandeService.ajouterItem(1L, newItem);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getItems()).isNotNull();
+        assertThat(result.getTotal()).isEqualByComparingTo(new BigDecimal("5.00"));
     }
 
     @Test
