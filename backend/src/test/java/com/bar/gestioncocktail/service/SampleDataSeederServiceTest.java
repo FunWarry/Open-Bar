@@ -16,6 +16,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.time.ZoneId;
 import java.util.*;
 
@@ -39,6 +40,12 @@ class SampleDataSeederServiceTest {
 
     @Mock
     private CocktailRepository cocktailRepository;
+
+    @Mock
+    private IngredientRepository ingredientRepository;
+
+    @Mock
+    private RecipeStepTemplateRepository recipeStepTemplateRepository;
 
     @Mock
     private CommandeRepository commandeRepository;
@@ -66,8 +73,12 @@ class SampleDataSeederServiceTest {
 
     @BeforeEach
     void setUp() {
-        lenient().when(timeService.now()).thenReturn(LocalDateTime.of(2026, 8, 6, 17, 0));
+        lenient().when(timeService.now()).thenReturn(LocalDateTime.of(2026, Month.AUGUST, 6, 17, 0));
         lenient().when(passwordEncoder.encode(any())).thenReturn("encodedPassword");
+        lenient().when(recipeStepTemplateRepository.findByName(any())).thenReturn(Optional.empty());
+        lenient().when(recipeStepTemplateRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        lenient().when(ingredientRepository.findByNomIgnoreCase(any())).thenReturn(Optional.empty());
+        lenient().when(cocktailRepository.findByNomIgnoreCase(any())).thenReturn(Optional.empty());
     }
 
     @Test

@@ -1,3 +1,5 @@
+import { CocktailRecipeStep } from './recipe-step.model';
+
 export type CocktailCategorie =
   | 'ALCOOLISE'
   | 'SANS_ALCOOL'
@@ -43,6 +45,7 @@ type CocktailBase = {
   disponibleAujourdhui?: boolean;
   ingredients: CocktailIngredientItem[];
   variantes: CocktailVariante[];
+  recipeSteps?: CocktailRecipeStep[];
   instructions?: string;
   imageUrl?: string;
   createdAt: string;

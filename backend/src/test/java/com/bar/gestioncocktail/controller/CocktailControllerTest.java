@@ -23,6 +23,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -36,6 +37,7 @@ class CocktailControllerTest {
     private CocktailController cocktailController;
 
     private Cocktail cocktail;
+    private CocktailResponseDTO cocktailDto;
 
     @BeforeEach
     void setUp() {
@@ -45,6 +47,7 @@ class CocktailControllerTest {
         cocktail.setPrix(new BigDecimal("8.50"));
         cocktail.setCategorie(CocktailCategorie.ALCOOLISE);
         cocktail.setDisponible(true);
+        cocktailDto = CocktailResponseDTO.from(cocktail);
     }
 
     @Test
@@ -63,7 +66,7 @@ class CocktailControllerTest {
     @DisplayName("createCocktail - calls service and returns DTO")
     void createCocktail_success() {
         CocktailRequestDTO request = new CocktailRequestDTO("Mojito", "Mint", new BigDecimal("8.50"), CocktailCategorie.ALCOOLISE, true, false, null, null, null, null);
-        when(cocktailService.createCocktail(any(Cocktail.class))).thenReturn(cocktail);
+        when(cocktailService.createCocktailFromRequest(any(CocktailRequestDTO.class))).thenReturn(cocktailDto);
 
         ResponseEntity<CocktailResponseDTO> response = cocktailController.createCocktail(request);
 
@@ -76,7 +79,7 @@ class CocktailControllerTest {
     @DisplayName("updateCocktail - updates cocktail and returns DTO")
     void updateCocktail_success() {
         CocktailRequestDTO request = new CocktailRequestDTO("Mojito", "Mint", new BigDecimal("8.50"), CocktailCategorie.ALCOOLISE, true, false, null, null, null, null);
-        when(cocktailService.updateCocktail(any(Cocktail.class))).thenReturn(cocktail);
+        when(cocktailService.updateCocktailFromRequest(eq(1L), any(CocktailRequestDTO.class))).thenReturn(cocktailDto);
 
         ResponseEntity<CocktailResponseDTO> response = cocktailController.updateCocktail(1L, request);
 

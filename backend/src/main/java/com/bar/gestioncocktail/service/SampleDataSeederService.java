@@ -39,12 +39,15 @@ public class SampleDataSeederService {
     private static final String KEY_ITEMS = "items";
     private static final String KEY_QUANTITE = "quantite";
     private static final String KEY_DAY_OF_WEEK = "dayOfWeek";
+    private static final String KEY_DESCRIPTION = "description";
 
     private final UserRepository userRepository;
     private final TableRepository tableRepository;
     private final ZoneRepository zoneRepository;
     private final EtageRepository etageRepository;
     private final CocktailRepository cocktailRepository;
+    private final IngredientRepository ingredientRepository;
+    private final RecipeStepTemplateRepository recipeStepTemplateRepository;
     private final CommandeRepository commandeRepository;
     private final FactureRepository factureRepository;
     private final EmployeeShiftRepository employeeShiftRepository;
@@ -59,6 +62,8 @@ public class SampleDataSeederService {
             ZoneRepository zoneRepository,
             EtageRepository etageRepository,
             CocktailRepository cocktailRepository,
+            IngredientRepository ingredientRepository,
+            RecipeStepTemplateRepository recipeStepTemplateRepository,
             CommandeRepository commandeRepository,
             FactureRepository factureRepository,
             EmployeeShiftRepository employeeShiftRepository,
@@ -70,6 +75,8 @@ public class SampleDataSeederService {
         this.zoneRepository = zoneRepository;
         this.etageRepository = etageRepository;
         this.cocktailRepository = cocktailRepository;
+        this.ingredientRepository = ingredientRepository;
+        this.recipeStepTemplateRepository = recipeStepTemplateRepository;
         this.commandeRepository = commandeRepository;
         this.factureRepository = factureRepository;
         this.employeeShiftRepository = employeeShiftRepository;
@@ -107,6 +114,9 @@ public class SampleDataSeederService {
             Map<Integer, TableEntity> tablesMap = seedTablesFromJson(root.get("tables"), usersMap);
             seedShiftsFromJson(root.get("shifts"), usersMap);
             seedClosuresFromJson(root.get("closures"));
+
+            Map<String, RecipeStepTemplate> templatesMap = seedRecipeStepTemplatesFromJson(root.get("recipe_step_templates"));
+            seedCocktailRecipeStepsFromJson(root.get("cocktail_recipe_steps"), templatesMap);
 
             if (commandeRepository.count() == 0) {
                 List<Cocktail> cocktails = cocktailRepository.findAll();
@@ -559,7 +569,7 @@ public class SampleDataSeederService {
 
         if (itemsNode != null && itemsNode.isArray()) {
             for (JsonNode itemNode : itemsNode) {
-                String description = itemNode.get("description").asText();
+                String description = itemNode.get(KEY_DESCRIPTION).asText();
                 int quantite = itemNode.get(KEY_QUANTITE).asInt();
                 BigDecimal prixUnitaire = new BigDecimal(itemNode.get("prixUnitaire").asText());
                 BigDecimal itemTotal = prixUnitaire.multiply(BigDecimal.valueOf(quantite));
@@ -584,5 +594,92 @@ public class SampleDataSeederService {
                 .filter(c -> c.getNom().equalsIgnoreCase(name))
                 .findFirst()
                 .orElse(cocktails.get(0));
+    }
+
+    private Map<String, RecipeStepTemplate> seedRecipeStepTemplatesFromJson(JsonNode templatesNode) {
+        Map<String, RecipeStepTemplate> map = new HashMap<>();
+        if (templatesNode == null || !templatesNode.isArray()) return map;
+
+        for (JsonNode node : templatesNode) {
+            String name = node.get("name").asText();
+            RecipeStepTemplate template = recipeStepTemplateRepository.findByName(name)
+                .orElseGet(() -> createTemplateFromNode(node, name));
+            map.put(name, template);
+        }
+        return map;
+    }
+
+    private RecipeStepTemplate createTemplateFromNode(JsonNode node, String name) {
+        RecipeStepTemplate t = new RecipeStepTemplate();
+        t.setName(name);
+        t.setActionType(RecipeStepActionType.valueOf(node.get("actionType").asText()));
+        t.setDefaultDurationSeconds(node.has("defaultDurationSeconds") ? node.get("defaultDurationSeconds").asInt() : 0);
+        t.setIcon(node.has("icon") ? node.get("icon").asText() : null);
+        t.setDescription(node.has(KEY_DESCRIPTION) ? node.get(KEY_DESCRIPTION).asText() : null);
+        t.setPredefined(node.has("isPredefined") && node.get("isPredefined").asBoolean());
+        t.setCreatedAt(timeService.now());
+        t.setUpdatedAt(timeService.now());
+        return recipeStepTemplateRepository.save(t);
+    }
+
+    private void seedCocktailRecipeStepsFromJson(JsonNode cocktailStepsNode, Map<String, RecipeStepTemplate> templatesMap) {
+        if (cocktailStepsNode == null || !cocktailStepsNode.isArray()) return;
+
+        for (JsonNode cocktailNode : cocktailStepsNode) {
+            seedSingleCocktailSteps(cocktailNode, templatesMap);
+        }
+    }
+
+    private void seedSingleCocktailSteps(JsonNode cocktailNode, Map<String, RecipeStepTemplate> templatesMap) {
+        String cocktailName = cocktailNode.get("cocktailName").asText();
+        Cocktail cocktail = cocktailRepository.findByNomIgnoreCase(cocktailName).orElse(null);
+        if (cocktail == null) return;
+
+        JsonNode stepsNode = cocktailNode.get("steps");
+        if (stepsNode == null || !stepsNode.isArray() || (cocktail.getRecipeSteps() != null && !cocktail.getRecipeSteps().isEmpty())) {
+            return;
+        }
+
+        List<CocktailRecipeStep> steps = new ArrayList<>();
+        for (JsonNode stepNode : stepsNode) {
+            steps.add(buildSingleRecipeStep(cocktail, stepNode, templatesMap));
+        }
+        cocktail.setRecipeSteps(steps);
+        cocktailRepository.save(cocktail);
+    }
+
+    private CocktailRecipeStep buildSingleRecipeStep(Cocktail cocktail, JsonNode stepNode, Map<String, RecipeStepTemplate> templatesMap) {
+        CocktailRecipeStep step = new CocktailRecipeStep();
+        step.setCocktail(cocktail);
+        step.setStepOrder(stepNode.get("stepOrder").asInt());
+        step.setStepType(RecipeStepType.valueOf(stepNode.get("stepType").asText()));
+        if (stepNode.has(KEY_QUANTITE)) {
+            step.setQuantite(new BigDecimal(stepNode.get(KEY_QUANTITE).asText()));
+        }
+        if (stepNode.has("unite")) {
+            step.setUnite(stepNode.get("unite").asText());
+        }
+        if (stepNode.has("actionTitle")) {
+            step.setActionTitle(stepNode.get("actionTitle").asText());
+        }
+        if (stepNode.has("customText")) {
+            step.setCustomText(stepNode.get("customText").asText());
+        }
+        if (stepNode.has("durationSeconds")) {
+            step.setDurationSeconds(stepNode.get("durationSeconds").asInt());
+        }
+        if (stepNode.has("ingredientName")) {
+            String ingName = stepNode.get("ingredientName").asText();
+            Ingredient ing = ingredientRepository.findByNomIgnoreCase(ingName).orElse(null);
+            step.setIngredient(ing);
+        }
+        if (stepNode.has("templateName")) {
+            String tplName = stepNode.get("templateName").asText();
+            RecipeStepTemplate tpl = templatesMap.getOrDefault(tplName, recipeStepTemplateRepository.findByName(tplName).orElse(null));
+            step.setTemplate(tpl);
+        }
+        step.setCreatedAt(timeService.now());
+        step.setUpdatedAt(timeService.now());
+        return step;
     }
 }

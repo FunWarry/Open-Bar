@@ -146,9 +146,82 @@
             <ion-icon name="sparkles-outline"></ion-icon>
             <h3>{{ 'BARMAN_DASHBOARD.PREPARATION_STEPS_TITLE' | transloco }}</h3>
           </div>
+          @if (cocktail && cocktail.recipeSteps && cocktail.recipeSteps.length > 0 && quantity > 1) {
+            <span class="quantity-scale-badge">
+              ⚡ Dosages × {{ quantity }}
+            </span>
+          }
         </div>
 
-        @if (cocktail && cocktail.instructions) {
+        @if (cocktail && cocktail.recipeSteps && cocktail.recipeSteps.length > 0) {
+          <div class="modular-steps-list" data-testid="barman-recipe-steps-list">
+            @for (step of cocktail.recipeSteps; track step.id || $index; let sIdx = $index) {
+              <div class="modular-step-card" [attr.data-testid]="'barman-step-' + sIdx">
+                <div class="step-num-badge">{{ sIdx + 1 }}</div>
+
+                <div class="step-details-col">
+                  <!-- INGREDIENT STEP -->
+                  @if (step.stepType === 'INGREDIENT') {
+                    <div class="step-header-line">
+                      <span class="step-title-text">
+                        🧪 {{ step.ingredientNom || 'Ingrédient' }}
+                      </span>
+                      @if (step.quantite != null) {
+                        <span class="step-dosage-tag">
+                          <strong>{{ getScaledStepQuantity(step.quantite) }} {{ step.unite }}</strong>
+                          @if (quantity > 1) {
+                            <small>({{ step.quantite }} {{ step.unite }}/verre)</small>
+                          }
+                        </span>
+                      }
+                    </div>
+                    @if (step.customText) {
+                      <p class="step-subtext">{{ step.customText }}</p>
+                    }
+                  }
+
+                  <!-- ACTION_TEMPLATE STEP -->
+                  @if (step.stepType === 'ACTION_TEMPLATE') {
+                    <div class="step-header-line">
+                      <span class="step-title-text">
+                        <ion-icon [name]="getActionIcon(step.actionType)"></ion-icon>
+                        {{ step.templateName || 'Action Technique' }}
+                      </span>
+                      @if (step.durationSeconds) {
+                        <span class="step-duration-badge">
+                          <ion-icon name="time-outline"></ion-icon>
+                          {{ step.durationSeconds }}s
+                        </span>
+                      }
+                    </div>
+                    @if (step.customText) {
+                      <p class="step-subtext">{{ step.customText }}</p>
+                    }
+                  }
+
+                  <!-- CUSTOM_TEXT STEP -->
+                  @if (step.stepType === 'CUSTOM_TEXT') {
+                    <div class="step-header-line">
+                      <span class="step-title-text">
+                        <ion-icon name="create-outline"></ion-icon>
+                        {{ step.actionTitle || 'Consigne spécifique' }}
+                      </span>
+                      @if (step.durationSeconds) {
+                        <span class="step-duration-badge">
+                          <ion-icon name="time-outline"></ion-icon>
+                          {{ step.durationSeconds }}s
+                        </span>
+                      }
+                    </div>
+                    @if (step.customText) {
+                      <p class="step-subtext">{{ step.customText }}</p>
+                    }
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        } @else if (cocktail && cocktail.instructions) {
           <div class="instructions-box">
             <p class="instructions-text">{{ cocktail.instructions }}</p>
           </div>

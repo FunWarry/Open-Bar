@@ -67,6 +67,10 @@ public class Cocktail {
     @OneToMany(mappedBy = "cocktail", cascade = CascadeType.ALL)
     private List<CocktailVariante> variantes;
 
+    @OneToMany(mappedBy = "cocktail", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("stepOrder ASC")
+    private List<CocktailRecipeStep> recipeSteps = new java.util.ArrayList<>();
+
     private String instructions;
     private String imageUrl;
     private LocalDateTime createdAt;
