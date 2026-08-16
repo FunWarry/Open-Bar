@@ -33,7 +33,7 @@ public record CommandeItemRequestDTO(
     BigDecimal prixUnitaire,
 
     String notes,
-    boolean prioritaire
+    Boolean prioritaire
 ) {
     /**
      * Converts this DTO into a {@link CommandeItem} JPA entity.
@@ -55,7 +55,7 @@ public record CommandeItemRequestDTO(
         item.setQuantite(quantite);
         item.setPrixUnitaire(prixUnitaire);
         item.setNotes(notes);
-        item.setPrioritaire(prioritaire);
+        item.setPrioritaire(Boolean.TRUE.equals(prioritaire));
         return item;
     }
 }

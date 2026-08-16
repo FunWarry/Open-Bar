@@ -33,7 +33,7 @@ public record RecipeStepTemplateRequestDTO(
 
     String description,
 
-    boolean isPredefined
+    Boolean isPredefined
 ) {
     /**
      * Converts this DTO into a {@link RecipeStepTemplate} entity.
@@ -47,7 +47,7 @@ public record RecipeStepTemplateRequestDTO(
         t.setDefaultDurationSeconds(defaultDurationSeconds != null ? defaultDurationSeconds : 0);
         t.setIcon(icon);
         t.setDescription(description);
-        t.setPredefined(isPredefined);
+        t.setPredefined(Boolean.TRUE.equals(isPredefined));
         return t;
     }
 }

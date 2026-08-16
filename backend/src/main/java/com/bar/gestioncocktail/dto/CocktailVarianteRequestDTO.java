@@ -29,7 +29,7 @@ public record CocktailVarianteRequestDTO(
     @DecimalMin(value = "0.0", inclusive = false, message = "Le multiplicateur doit être positif")
     BigDecimal multiplicateurIngredient,
 
-    boolean disponible,
+    Boolean disponible,
     String instructions
 ) {
     /**
@@ -50,7 +50,7 @@ public record CocktailVarianteRequestDTO(
         if (multiplicateurIngredient != null) {
             variante.setMultiplicateurIngredient(multiplicateurIngredient);
         }
-        variante.setDisponible(disponible);
+        variante.setDisponible(!Boolean.FALSE.equals(disponible));
         variante.setInstructions(instructions);
         return variante;
     }

@@ -43,8 +43,8 @@ public record CocktailRequestDTO(
     @NotNull(message = "Category is required")
     CocktailCategorie categorie,
 
-    boolean disponible,
-    boolean saisonnier,
+    Boolean disponible,
+    Boolean saisonnier,
     LocalDateTime dateDebutSaison,
     LocalDateTime dateFinSaison,
     Integer moisDebut,
@@ -61,8 +61,8 @@ public record CocktailRequestDTO(
         String description,
         BigDecimal prix,
         CocktailCategorie categorie,
-        boolean disponible,
-        boolean saisonnier,
+        Boolean disponible,
+        Boolean saisonnier,
         LocalDateTime dateDebutSaison,
         LocalDateTime dateFinSaison,
         Integer moisDebut,
@@ -82,8 +82,8 @@ public record CocktailRequestDTO(
         cocktail.setDescription(description);
         cocktail.setPrix(prix);
         cocktail.setCategorie(categorie);
-        cocktail.setDisponible(disponible);
-        cocktail.setSaisonnier(saisonnier);
+        cocktail.setDisponible(!Boolean.FALSE.equals(disponible));
+        cocktail.setSaisonnier(Boolean.TRUE.equals(saisonnier));
         cocktail.setDateDebutSaison(dateDebutSaison);
         cocktail.setDateFinSaison(dateFinSaison);
         cocktail.setMoisDebut(moisDebut);
