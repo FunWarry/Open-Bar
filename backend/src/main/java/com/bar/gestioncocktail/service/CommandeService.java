@@ -10,9 +10,10 @@ import com.bar.gestioncocktail.model.CommandeStatut;
 import com.bar.gestioncocktail.model.Ingredient;
 import com.bar.gestioncocktail.model.TableEntity;
 import com.bar.gestioncocktail.model.User;
+import com.bar.gestioncocktail.repository.CocktailIngredientRepository;
 import com.bar.gestioncocktail.repository.CocktailRepository;
-import com.bar.gestioncocktail.repository.CommandeRepository;
 import com.bar.gestioncocktail.repository.CommandeItemRepository;
+import com.bar.gestioncocktail.repository.CommandeRepository;
 import com.bar.gestioncocktail.repository.IngredientRepository;
 import com.bar.gestioncocktail.repository.TableRepository;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -27,11 +28,11 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Business service managing order placement, items, status transitions, stock deduction, and table transfer.
+ * Service managing order lifecycle, status transitions, item manipulation, and automated stock deductions.
  */
 @Service
-@Transactional
 public class CommandeService {
+
     private static final String COMMANDE_NOT_FOUND = "Order not found with id: ";
 
     private final CommandeRepository commandeRepository;
@@ -39,6 +40,7 @@ public class CommandeService {
     private final IngredientRepository ingredientRepository;
     private final TableRepository tableRepository;
     private final CocktailRepository cocktailRepository;
+    private final CocktailIngredientRepository cocktailIngredientRepository;
     private final SimpMessagingTemplate messagingTemplate;
     private final TimeService timeService;
 
@@ -48,6 +50,7 @@ public class CommandeService {
             IngredientRepository ingredientRepository,
             TableRepository tableRepository,
             CocktailRepository cocktailRepository,
+            CocktailIngredientRepository cocktailIngredientRepository,
             SimpMessagingTemplate messagingTemplate,
             TimeService timeService) {
         this.commandeRepository = commandeRepository;
@@ -55,10 +58,12 @@ public class CommandeService {
         this.ingredientRepository = ingredientRepository;
         this.tableRepository = tableRepository;
         this.cocktailRepository = cocktailRepository;
+        this.cocktailIngredientRepository = cocktailIngredientRepository;
         this.messagingTemplate = messagingTemplate;
         this.timeService = timeService;
     }
 
+    @Transactional(readOnly = true)
     public List<Commande> getAllCommandes() {
         return commandeRepository.findAll();
     }
@@ -68,6 +73,7 @@ public class CommandeService {
         return commandeRepository.findAll().stream().map(com.bar.gestioncocktail.dto.CommandeResponseDTO::from).toList();
     }
 
+    @Transactional(readOnly = true)
     public Optional<Commande> getCommandeById(Long id) {
         return commandeRepository.findById(id);
     }
@@ -77,6 +83,7 @@ public class CommandeService {
         return commandeRepository.findById(id).map(com.bar.gestioncocktail.dto.CommandeResponseDTO::from);
     }
 
+    @Transactional(readOnly = true)
     public List<Commande> getCommandesByTable(TableEntity table) {
         return commandeRepository.findByTable(table);
     }
@@ -88,10 +95,12 @@ public class CommandeService {
         return commandeRepository.findByTable(table).stream().map(com.bar.gestioncocktail.dto.CommandeResponseDTO::from).toList();
     }
 
+    @Transactional(readOnly = true)
     public List<Commande> getCommandesByServeur(User serveur) {
         return commandeRepository.findByServeur(serveur);
     }
 
+    @Transactional(readOnly = true)
     public List<Commande> getCommandesByStatut(CommandeStatut statut) {
         return commandeRepository.findByStatut(statut);
     }
@@ -101,10 +110,12 @@ public class CommandeService {
         return commandeRepository.findByStatut(statut).stream().map(com.bar.gestioncocktail.dto.CommandeResponseDTO::from).toList();
     }
 
+    @Transactional(readOnly = true)
     public List<Commande> getCommandesByTableAndStatut(TableEntity table, CommandeStatut statut) {
         return commandeRepository.findByTableAndStatut(table, statut);
     }
 
+    @Transactional(readOnly = true)
     public List<Commande> getCommandesByDate(LocalDateTime debut, LocalDateTime fin) {
         return commandeRepository.findByDateCommandeBetween(debut, fin);
     }
@@ -123,18 +134,25 @@ public class CommandeService {
         Commande commande = commandeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(COMMANDE_NOT_FOUND + id));
 
-        commande.setTable(commandeDetails.getTable());
-        commande.setItems(commandeDetails.getItems());
-        commande.setStatut(commandeDetails.getStatut());
         commande.setNotes(commandeDetails.getNotes());
+        commande.setPourboire(commandeDetails.getPourboire());
         commande.setUpdatedAt(timeService.now());
+
+        if (commandeDetails.getTable() != null) {
+            commande.setTable(commandeDetails.getTable());
+        }
+        if (commandeDetails.getServeur() != null) {
+            commande.setServeur(commandeDetails.getServeur());
+        }
 
         return commandeRepository.save(commande);
     }
 
     @Transactional
     public void deleteCommande(Long id) {
-        commandeRepository.deleteById(id);
+        Commande commande = commandeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(COMMANDE_NOT_FOUND + id));
+        commandeRepository.delete(commande);
     }
 
     @Transactional
@@ -297,17 +315,25 @@ public class CommandeService {
             return;
         }
         Cocktail cocktail = item.getCocktail();
-        if (cocktail.getIngredients() == null && cocktail.getId() != null) {
-            cocktail = cocktailRepository.findById(cocktail.getId()).orElse(cocktail);
+        List<CocktailIngredient> ingredientsList = null;
+        if (cocktailIngredientRepository != null) {
+            try {
+                ingredientsList = cocktailIngredientRepository.findByCocktail(cocktail);
+            } catch (Exception _) {
+                // Fallback to navigation
+            }
         }
-        if (cocktail == null || cocktail.getIngredients() == null) {
+        if (ingredientsList == null || ingredientsList.isEmpty()) {
+            ingredientsList = cocktail.getIngredients();
+        }
+        if (ingredientsList == null || ingredientsList.isEmpty()) {
             return;
         }
         BigDecimal mult = (item.getVariante() != null && item.getVariante().getMultiplicateurIngredient() != null)
                 ? item.getVariante().getMultiplicateurIngredient()
                 : BigDecimal.ONE;
 
-        for (CocktailIngredient ci : cocktail.getIngredients()) {
+        for (CocktailIngredient ci : ingredientsList) {
             traiterQuantiteIngredient(quantites, item, ci, mult);
         }
     }
@@ -339,11 +365,19 @@ public class CommandeService {
         if (cocktail == null || cocktail.getId() == null) {
             return;
         }
-        if (cocktail.getIngredients() == null) {
-            cocktail = cocktailRepository.findById(cocktail.getId()).orElse(cocktail);
+        List<CocktailIngredient> ingredientsList = null;
+        if (cocktailIngredientRepository != null) {
+            try {
+                ingredientsList = cocktailIngredientRepository.findByCocktail(cocktail);
+            } catch (Exception _) {
+                // Fallback to navigation
+            }
         }
-        if (cocktail != null && cocktail.getIngredients() != null) {
-            for (CocktailIngredient ci : cocktail.getIngredients()) {
+        if (ingredientsList == null || ingredientsList.isEmpty()) {
+            ingredientsList = cocktail.getIngredients();
+        }
+        if (ingredientsList != null) {
+            for (CocktailIngredient ci : ingredientsList) {
                 if (ci.getIngredient() != null && ci.getIngredient().getId() != null) {
                     map.put(ci.getIngredient().getId(), ci.getIngredient());
                 }

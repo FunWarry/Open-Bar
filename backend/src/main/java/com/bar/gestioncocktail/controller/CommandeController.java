@@ -51,7 +51,9 @@ public class CommandeController {
     @Operation(summary = "List all orders", description = "Retrieves all orders in the system.")
     @ApiResponse(responseCode = "200", description = "List of orders retrieved")
     public ResponseEntity<List<CommandeResponseDTO>> getAllCommandes() {
-        return ResponseEntity.ok(commandeService.getAllCommandesDto());
+        return ResponseEntity.ok(commandeService.getAllCommandes().stream()
+            .map(CommandeResponseDTO::from)
+            .toList());
     }
 
     /**
@@ -112,7 +114,8 @@ public class CommandeController {
     @ApiResponse(responseCode = "200", description = "Order found")
     @ApiResponse(responseCode = "404", description = "Order not found")
     public ResponseEntity<CommandeResponseDTO> getCommandeById(@Parameter(description = "Order ID") @PathVariable Long id) {
-        return commandeService.getCommandeDtoById(id)
+        return commandeService.getCommandeById(id)
+            .map(CommandeResponseDTO::from)
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
     }
@@ -128,7 +131,10 @@ public class CommandeController {
     @Operation(summary = "List orders for a table")
     @ApiResponse(responseCode = "200", description = "Table orders retrieved")
     public ResponseEntity<List<CommandeResponseDTO>> getCommandesByTable(@Parameter(description = "Table ID") @PathVariable Long tableId) {
-        return ResponseEntity.ok(commandeService.getCommandesDtoByTable(tableId));
+        TableEntity table = new TableEntity();
+        table.setId(tableId);
+        return ResponseEntity.ok(commandeService.getCommandesByTable(table).stream()
+            .map(CommandeResponseDTO::from).toList());
     }
 
     /**
