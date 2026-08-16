@@ -1,10 +1,14 @@
 package com.bar.gestioncocktail.integration;
 
+import com.bar.gestioncocktail.model.User;
+import com.bar.gestioncocktail.model.UserRole;
+import com.bar.gestioncocktail.repository.UserRepository;
 import com.bar.gestioncocktail.security.JwtTokenProvider;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -12,6 +16,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import org.testcontainers.containers.PostgreSQLContainer;
+
+import java.util.Set;
 
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 
@@ -67,6 +73,12 @@ public abstract class BaseIntegrationTest {
     @Autowired
     protected JwtTokenProvider jwtTokenProvider;
 
+    @Autowired
+    protected UserRepository userRepository;
+
+    @Autowired
+    protected PasswordEncoder passwordEncoder;
+
     protected MockMvc mockMvc;
 
     @BeforeEach
@@ -75,6 +87,25 @@ public abstract class BaseIntegrationTest {
                 .webAppContextSetup(webApplicationContext)
                 .apply(springSecurity())
                 .build();
+        ensureTestUsersExist();
+    }
+
+    private void ensureTestUsersExist() {
+        createTestUserIfNotExists("admin", UserRole.ADMIN, UserRole.MANAGER);
+        createTestUserIfNotExists("manager", UserRole.MANAGER);
+        createTestUserIfNotExists("serveur1", UserRole.SERVEUR);
+        createTestUserIfNotExists("barman1", UserRole.BARMAN);
+    }
+
+    private void createTestUserIfNotExists(String username, UserRole... roles) {
+        if (userRepository.findByUsername(username).isEmpty()) {
+            User user = new User();
+            user.setUsername(username);
+            user.setPassword(passwordEncoder.encode(username + "123"));
+            user.setEmail(username + "@openbar.fr");
+            user.setRoles(Set.of(roles));
+            userRepository.save(user);
+        }
     }
 
     /**
