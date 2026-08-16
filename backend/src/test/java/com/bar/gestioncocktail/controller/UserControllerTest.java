@@ -62,9 +62,9 @@ class UserControllerTest {
     @Test
     @DisplayName("getAllUsers - retrieves list of all users")
     void getAllUsers_success() {
-        when(userService.getAllUsers()).thenReturn(java.util.List.of(user));
+        when(userService.getAllUsers()).thenReturn(List.of(user));
 
-        ResponseEntity<java.util.List<UserResponseDTO>> response = userController.getAllUsers();
+        ResponseEntity<List<UserResponseDTO>> response = userController.getAllUsers();
 
         assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         assertThat(response.getBody()).hasSize(1);
@@ -93,24 +93,43 @@ class UserControllerTest {
     }
 
     @Test
-    @DisplayName("getUserById - returns DTO if found")
-    void getUserById_found() {
+    @DisplayName("getUserById - returns DTO if found, 404 otherwise")
+    void getUserById_foundAndNotFound() {
         when(userService.getUserById(1L)).thenReturn(Optional.of(user));
+        when(userService.getUserById(99L)).thenReturn(Optional.empty());
 
-        ResponseEntity<UserResponseDTO> response = userController.getUserById(1L);
+        ResponseEntity<UserResponseDTO> found = userController.getUserById(1L);
+        ResponseEntity<UserResponseDTO> notFound = userController.getUserById(99L);
 
-        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        assertThat(response.getBody()).isNotNull();
+        assertThat(found.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(notFound.getStatusCode().value()).isEqualTo(404);
     }
 
     @Test
-    @DisplayName("getUserById - returns 404 if not found")
-    void getUserById_notFound() {
-        when(userService.getUserById(1L)).thenReturn(Optional.empty());
+    @DisplayName("getUserByUsername, getUsersByRole, checkUsernameExists, checkEmailExists")
+    void additionalQueries() {
+        when(userService.getUserByUsername("testuser")).thenReturn(Optional.of(user));
+        when(userService.getUserByUsername("unknown")).thenReturn(Optional.empty());
+        when(userService.getUsersByRole(UserRole.ADMIN)).thenReturn(List.of(user));
+        when(userService.existsByUsername("testuser")).thenReturn(true);
+        when(userService.existsByEmail("test@example.com")).thenReturn(false);
 
-        ResponseEntity<UserResponseDTO> response = userController.getUserById(1L);
+        assertThat(userController.getUserByUsername("testuser").getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(userController.getUserByUsername("unknown").getStatusCode().value()).isEqualTo(404);
+        assertThat(userController.getUsersByRole(UserRole.ADMIN).getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(userController.checkUsernameExists("testuser").getBody()).isTrue();
+        assertThat(userController.checkEmailExists("test@example.com").getBody()).isFalse();
+    }
 
-        assertThat(response.getStatusCode().value()).isEqualTo(404);
+    @Test
+    @DisplayName("changePassword - updates password when user exists")
+    void changePassword_success() {
+        when(userService.getUserById(1L)).thenReturn(Optional.of(user));
+
+        ResponseEntity<Void> response = userController.changePassword(1L, "newPassword123");
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        verify(userService).changePassword(user, "newPassword123");
     }
 
     @Test

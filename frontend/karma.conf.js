@@ -36,6 +36,14 @@ module.exports = function karma (config) {
       dir: require('node:path').join(__dirname, './coverage/gestion-cocktail-frontend'),
       subdir: '.',
       reporters: [{ type: 'html' }, { type: 'text-summary' }, { type: 'lcovonly' }],
+      check: {
+        global: {
+          statements: 70,
+          lines: 70,
+          branches: 50,
+          functions: 70,
+        },
+      },
     },
     reporters: ['progress', 'kjhtml', 'coverage'],
     port: 9876,

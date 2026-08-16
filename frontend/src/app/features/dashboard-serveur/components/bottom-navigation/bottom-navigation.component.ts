@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonicModule } from '@ionic/angular';
+import { IonIcon } from '@ionic/angular/standalone';
 import { TranslocoPipe } from '@jsverse/transloco';
 
 import { addIcons } from 'ionicons';
@@ -18,7 +18,7 @@ export type ServeurTab = 'tables' | 'commande' | 'suivi';
 @Component({
   selector: 'app-bottom-navigation',
   standalone: true,
-  imports: [CommonModule, IonicModule, TranslocoPipe],
+  imports: [CommonModule, IonIcon, TranslocoPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './bottom-navigation.component.html',
   styleUrls: ['./bottom-navigation.component.scss'],

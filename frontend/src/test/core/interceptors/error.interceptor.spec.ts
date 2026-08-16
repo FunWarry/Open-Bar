@@ -9,7 +9,7 @@ import {
   HttpTestingController,
   provideHttpClientTesting,
 } from '@angular/common/http/testing';
-import { ToastController } from '@ionic/angular';
+import { ToastController } from '@ionic/angular/standalone';
 import { TranslocoService } from '@jsverse/transloco';
 import { errorInterceptor } from '../../../app/core/interceptors/error.interceptor';
 
@@ -71,10 +71,10 @@ describe('errorInterceptor', () => {
   });
 
   // -----------------------------------------------------------------------
-  // 401 — l'intercepteur re-throw sans toast
+  // 401 — interceptor re-throws without toast
   // -----------------------------------------------------------------------
 
-  it('re-throw sans toast pour une erreur 401', (done) => {
+  it('re-throws without toast for 401 Unauthorized', (done) => {
     http.get('/api/protected').subscribe({
       error: (err: HttpErrorResponse) => {
         expect(err.status).toBe(401);
@@ -91,7 +91,7 @@ describe('errorInterceptor', () => {
   // 403 — ERRORS.FORBIDDEN
   // -----------------------------------------------------------------------
 
-  it('displays a toast et re-throw pour une erreur 403', (done) => {
+  it('displays a toast and re-throws for 403 Forbidden error', (done) => {
     http.get('/api/admin').subscribe({
       error: (err: HttpErrorResponse) => {
         expect(err.status).toBe(403);
@@ -110,7 +110,7 @@ describe('errorInterceptor', () => {
   // 404 — ERRORS.NOT_FOUND
   // -----------------------------------------------------------------------
 
-  it('displays a toast et re-throw pour une erreur 404', (done) => {
+  it('displays a toast and re-throws for 404 Not Found error', (done) => {
     http.get('/api/missing').subscribe({
       error: (err: HttpErrorResponse) => {
         expect(err.status).toBe(404);
@@ -129,7 +129,7 @@ describe('errorInterceptor', () => {
   // 500 — ERRORS.SERVER (generic fallback)
   // -----------------------------------------------------------------------
 
-  it('displays a toast et re-throw pour une erreur 500', (done) => {
+  it('displays a toast and re-throws for 500 Server Error', (done) => {
     http.get('/api/crash').subscribe({
       error: (err: HttpErrorResponse) => {
         expect(err.status).toBe(500);

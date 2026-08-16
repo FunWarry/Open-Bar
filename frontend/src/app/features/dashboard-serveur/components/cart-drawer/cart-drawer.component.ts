@@ -1,7 +1,7 @@
 import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonicModule } from '@ionic/angular';
+import { IonIcon, IonSelect, IonSelectOption } from '@ionic/angular/standalone';
 import { CartModel, CartItemModel } from '../../models/cart.model';
 import { TableView } from '../../models/table-view.model';
 import { QuantityStepperComponent } from '../../../../core/components/ui/quantity-stepper/quantity-stepper.component';
@@ -18,7 +18,9 @@ import { cartOutline, basketOutline, paperPlaneOutline, chatbubbleEllipsesOutlin
   imports: [
     CommonModule,
     FormsModule,
-    IonicModule,
+    IonIcon,
+    IonSelect,
+    IonSelectOption,
     QuantityStepperComponent,
     ActionButtonComponent,
     EmptyStateComponent,

@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonicModule } from '@ionic/angular';
+import { IonIcon } from '@ionic/angular/standalone';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { TableView } from '../../models/table-view.model';
 
@@ -14,7 +14,7 @@ import { restaurantOutline, peopleOutline, locationOutline, timeOutline, addCirc
 @Component({
   selector: 'app-mobile-table-card',
   standalone: true,
-  imports: [CommonModule, IonicModule, TranslocoPipe],
+  imports: [CommonModule, IonIcon, TranslocoPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './mobile-table-card.component.html',
   styleUrls: ['./mobile-table-card.component.scss'],

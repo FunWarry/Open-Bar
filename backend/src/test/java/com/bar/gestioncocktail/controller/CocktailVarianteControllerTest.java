@@ -27,10 +27,10 @@ import static org.mockito.Mockito.when;
 class CocktailVarianteControllerTest {
 
     @Mock
-    CocktailVarianteService cocktailVarianteService;
+    private CocktailVarianteService cocktailVarianteService;
 
     @InjectMocks
-    CocktailVarianteController controller;
+    private CocktailVarianteController controller;
 
     private CocktailVariante variante;
 
@@ -44,38 +44,21 @@ class CocktailVarianteControllerTest {
         variante.setCocktail(cocktail);
         variante.setNom("Sans Alcool");
         variante.setPrixSupplement(new BigDecimal("0.00"));
+        variante.setDisponible(true);
     }
 
     @Test
-    @DisplayName("getVariantesByCocktail - returns list of DTOs for cocktail")
-    void getVariantesByCocktail_returnsList() {
-        when(cocktailVarianteService.getVariantesByCocktail(any(Cocktail.class))).thenReturn(List.of(variante));
-
-        ResponseEntity<List<CocktailVarianteResponseDTO>> response = controller.getVariantesByCocktail(1L);
-
-        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        assertThat(response.getBody()).hasSize(1);
-    }
-
-    @Test
-    @DisplayName("getCocktailVarianteById - returns DTO if found")
-    void getById_found() {
-        when(cocktailVarianteService.getCocktailVarianteById(10L)).thenReturn(Optional.of(variante));
-
-        ResponseEntity<CocktailVarianteResponseDTO> response = controller.getCocktailVarianteById(10L);
-
-        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-    }
-
-    @Test
-    @DisplayName("createCocktailVariante - creates variant and returns DTO")
-    void create_success() {
+    @DisplayName("createCocktailVariante and updateCocktailVariante - mutations")
+    void mutations() {
         CocktailVarianteRequestDTO request = new CocktailVarianteRequestDTO(1L, "XL", null, new BigDecimal("2.00"), null, true, null);
         when(cocktailVarianteService.createCocktailVariante(any(CocktailVariante.class))).thenReturn(variante);
+        when(cocktailVarianteService.updateCocktailVariante(any(CocktailVariante.class))).thenReturn(variante);
 
-        ResponseEntity<CocktailVarianteResponseDTO> response = controller.createCocktailVariante(request);
+        ResponseEntity<CocktailVarianteResponseDTO> createResp = controller.createCocktailVariante(request);
+        ResponseEntity<CocktailVarianteResponseDTO> updateResp = controller.updateCocktailVariante(10L, request);
 
-        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(createResp.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(updateResp.getStatusCode().is2xxSuccessful()).isTrue();
     }
 
     @Test
@@ -85,5 +68,54 @@ class CocktailVarianteControllerTest {
 
         assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         verify(cocktailVarianteService).deleteCocktailVariante(10L);
+    }
+
+    @Test
+    @DisplayName("getCocktailVarianteById - returns DTO if found, 404 otherwise")
+    void getById_foundAndNotFound() {
+        when(cocktailVarianteService.getCocktailVarianteById(10L)).thenReturn(Optional.of(variante));
+        when(cocktailVarianteService.getCocktailVarianteById(99L)).thenReturn(Optional.empty());
+
+        ResponseEntity<CocktailVarianteResponseDTO> found = controller.getCocktailVarianteById(10L);
+        ResponseEntity<CocktailVarianteResponseDTO> notFound = controller.getCocktailVarianteById(99L);
+
+        assertThat(found.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(notFound.getStatusCode().value()).isEqualTo(404);
+    }
+
+    @Test
+    @DisplayName("getVariantesByCocktail, getVariantesDisponiblesByCocktail, searchVariantes")
+    void queries() {
+        when(cocktailVarianteService.getVariantesByCocktail(any(Cocktail.class))).thenReturn(List.of(variante));
+        when(cocktailVarianteService.getVariantesDisponiblesByCocktail(any(Cocktail.class))).thenReturn(List.of(variante));
+        when(cocktailVarianteService.searchVariantes("Sans")).thenReturn(List.of(variante));
+
+        ResponseEntity<List<CocktailVarianteResponseDTO>> resp1 = controller.getVariantesByCocktail(1L);
+        ResponseEntity<List<CocktailVarianteResponseDTO>> resp2 = controller.getVariantesDisponiblesByCocktail(1L);
+        ResponseEntity<List<CocktailVarianteResponseDTO>> resp3 = controller.searchVariantes("Sans");
+
+        assertThat(resp1.getBody()).hasSize(1);
+        assertThat(resp2.getBody()).hasSize(1);
+        assertThat(resp3.getBody()).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("toggleDisponibilite and updatePrixSupplement - state changes")
+    void toggleAndPrice() {
+        when(cocktailVarianteService.getCocktailVarianteById(10L)).thenReturn(Optional.of(variante));
+        when(cocktailVarianteService.getCocktailVarianteById(99L)).thenReturn(Optional.empty());
+
+        ResponseEntity<CocktailVarianteResponseDTO> resp1 = controller.toggleDisponibilite(10L);
+        ResponseEntity<CocktailVarianteResponseDTO> resp2 = controller.toggleDisponibilite(99L);
+
+        ResponseEntity<CocktailVarianteResponseDTO> resp3 = controller.updatePrixSupplement(10L, new BigDecimal("1.50"));
+        ResponseEntity<CocktailVarianteResponseDTO> resp4 = controller.updatePrixSupplement(99L, new BigDecimal("1.50"));
+
+        assertThat(resp1.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(resp2.getStatusCode().value()).isEqualTo(404);
+        assertThat(resp3.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(resp4.getStatusCode().value()).isEqualTo(404);
+        verify(cocktailVarianteService).toggleDisponibilite(variante);
+        verify(cocktailVarianteService).updatePrixSupplement(variante, new BigDecimal("1.50"));
     }
 }

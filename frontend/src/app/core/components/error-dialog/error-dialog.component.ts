@@ -5,10 +5,9 @@ import { TranslocoPipe } from '@jsverse/transloco';
 @Component({
   selector: 'app-error-dialog',
   templateUrl: './error-dialog.component.html',
-  styleUrls: ['./error-dialog.component.scss'],
+  styleUrls: ['./error-dialog.component.css'],
   standalone: true,
   imports: [IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonContent, TranslocoPipe],
-  providers: [ModalController]
 })
 export class ErrorDialogComponent {
   @Input() data!: {message: string};

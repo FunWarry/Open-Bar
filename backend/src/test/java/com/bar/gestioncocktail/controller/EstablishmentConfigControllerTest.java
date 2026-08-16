@@ -5,6 +5,7 @@ import com.bar.gestioncocktail.dto.EstablishmentConfigUpdateRequest;
 import com.bar.gestioncocktail.service.EstablishmentConfigService;
 import com.bar.gestioncocktail.service.TimeService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -15,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -46,7 +48,8 @@ class EstablishmentConfigControllerTest {
     }
 
     @Test
-    void getConfig_delegueAuServiceEtRetourneDTO() {
+    @DisplayName("getConfig - delegates to service and returns DTO")
+    void getConfig_delegates() {
         when(service.getConfigDTO()).thenReturn(dto);
 
         ResponseEntity<EstablishmentConfigDTO> response = controller.getConfig();
@@ -57,21 +60,31 @@ class EstablishmentConfigControllerTest {
     }
 
     @Test
-    void updateConfig_delegueAuServiceEtRetourneDTOMisAJour() {
-        when(service.updateConfig(any())).thenReturn(dto);
+    @DisplayName("getTimeZones - delegates to timeService")
+    void getTimeZones_delegates() {
+        when(timeService.getAvailableTimeZones()).thenReturn(List.of("Europe/Paris", "UTC"));
 
-        EstablishmentConfigUpdateRequest request = new EstablishmentConfigUpdateRequest(
-            "OpenBar SARL", "SARL", "73282932000074", "Paris", "B 123",
-            "FR12732829320", "5630Z", new BigDecimal("10000"), "Adresse",
-            "0102030405", "email@bar.fr", "Immediate", "None", new BigDecimal("0.12"),
-            "SYSTEM", "80mm"
-        );
-
-        ResponseEntity<EstablishmentConfigDTO> response = controller.updateConfig(request);
+        ResponseEntity<List<String>> response = controller.getTimeZones();
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).isNotNull();
-        verify(service).updateConfig(any());
+        assertThat(response.getBody()).contains("Europe/Paris", "UTC");
+    }
+
+    @Test
+    @DisplayName("updateConfig - delegates to service and returns updated DTO")
+    void updateConfig_delegates() {
+        EstablishmentConfigUpdateRequest req = new EstablishmentConfigUpdateRequest(
+            "OpenBar SAS", "SAS", "73282932000074", "Lyon", "B 456",
+            "FR12732829320", "5630Z", new BigDecimal("20000"), "Nouvelle adresse",
+            "0600000000", "contact@openbar.fr", "30 jours", "Pénalités", new BigDecimal("0.15"),
+            "Europe/Paris", "A4"
+        );
+
+        when(service.updateConfig(any(EstablishmentConfigUpdateRequest.class))).thenReturn(dto);
+
+        ResponseEntity<EstablishmentConfigDTO> response = controller.updateConfig(req);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        verify(service).updateConfig(req);
     }
 }
-

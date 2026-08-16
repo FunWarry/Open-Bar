@@ -45,7 +45,7 @@ class AppSettingsControllerTest {
     }
 
     @Test
-    void getSettings_delegueAuServiceEtRetourneLeDTO() {
+    void getSettings_delegatesToServiceAndReturnsDTO() {
         when(appSettingsService.getSettings()).thenReturn(settings);
 
         ResponseEntity<AppSettingsResponseDTO> response = appSettingsController.getSettings();
@@ -57,7 +57,7 @@ class AppSettingsControllerTest {
     }
 
     @Test
-    void updateSettings_delegueAuServiceAvecLaRequeteEtRetourneLeDTOMisAJour() {
+    void updateSettings_delegatesToServiceWithRequestAndReturnsUpdatedDTO() {
         AppSettingsUpdateRequest request = new AppSettingsUpdateRequest(
             "#ff0000", "#cc0000", "https://example.com/new-logo.png", "Le Bar Test", DefaultTheme.DARK, 5, 10
         );

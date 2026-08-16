@@ -2,6 +2,7 @@ package com.bar.gestioncocktail.controller;
 
 import com.bar.gestioncocktail.dto.IngredientRequestDTO;
 import com.bar.gestioncocktail.dto.IngredientResponseDTO;
+import com.bar.gestioncocktail.exception.BusinessException;
 import com.bar.gestioncocktail.model.Ingredient;
 import com.bar.gestioncocktail.service.IngredientService;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,8 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 
 import java.math.BigDecimal;
-
-import com.bar.gestioncocktail.exception.BusinessException;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -45,14 +45,15 @@ class IngredientControllerTest {
         ingredient.setUniteMesure("cl");
         ingredient.setQuantiteStock(new BigDecimal("500.00"));
         ingredient.setSeuilAlerte(new BigDecimal("50.00"));
+        ingredient.setFournisseur("Distillerie XYZ");
     }
 
     @Test
     @DisplayName("getAllIngredients - calls service and returns list of DTOs")
     void getAllIngredients_success() {
-        when(ingredientService.getAllIngredients()).thenReturn(java.util.List.of(ingredient));
+        when(ingredientService.getAllIngredients()).thenReturn(List.of(ingredient));
 
-        ResponseEntity<java.util.List<IngredientResponseDTO>> response = ingredientController.getAllIngredients();
+        ResponseEntity<List<IngredientResponseDTO>> response = ingredientController.getAllIngredients();
 
         assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         assertThat(response.getBody()).hasSize(1);
@@ -90,6 +91,33 @@ class IngredientControllerTest {
 
         assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         verify(ingredientService).deleteIngredient(1L);
+    }
+
+    @Test
+    @DisplayName("getIngredientById - returns DTO if found, 404 otherwise")
+    void getIngredientById_foundAndNotFound() {
+        when(ingredientService.getIngredientById(1L)).thenReturn(Optional.of(ingredient));
+        when(ingredientService.getIngredientById(99L)).thenReturn(Optional.empty());
+
+        ResponseEntity<IngredientResponseDTO> found = ingredientController.getIngredientById(1L);
+        ResponseEntity<IngredientResponseDTO> notFound = ingredientController.getIngredientById(99L);
+
+        assertThat(found.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(notFound.getStatusCode().value()).isEqualTo(404);
+    }
+
+    @Test
+    @DisplayName("getIngredientsBySeuilAlerte, searchIngredients, getIngredientsByFournisseur, getIngredientsByUniteMesure")
+    void queries() {
+        when(ingredientService.getIngredientsBySeuilAlerte()).thenReturn(List.of(ingredient));
+        when(ingredientService.searchIngredients("Rhum")).thenReturn(List.of(ingredient));
+        when(ingredientService.getIngredientsByFournisseur("Distillerie XYZ")).thenReturn(List.of(ingredient));
+        when(ingredientService.getIngredientsByUniteMesure("cl")).thenReturn(List.of(ingredient));
+
+        assertThat(ingredientController.getIngredientsBySeuilAlerte().getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(ingredientController.searchIngredients("Rhum").getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(ingredientController.getIngredientsByFournisseur("Distillerie XYZ").getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(ingredientController.getIngredientsByUniteMesure("cl").getStatusCode().is2xxSuccessful()).isTrue();
     }
 
     @Test
