@@ -3,6 +3,7 @@
   [class.prioritaire]="commande.prioritaire"
   [class.card-urgent]="isUrgent"
   [class.card-warning]="isWarning && !isUrgent"
+  [attr.data-testid]="'kanban-card-' + commande.id"
   (click)="openDetails()"
   (keyup.enter)="openDetails()"
 >

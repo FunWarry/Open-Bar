@@ -26,7 +26,7 @@ public class CommandeItem {
     private Cocktail cocktail;
 
     @ManyToOne
-    @JoinColumn(name = "variante_id")
+    @JoinColumn(name = "cocktail_variante_id")
     private CocktailVariante variante;
 
     @Min(value = 1, message = "La quantité doit être d'au moins 1")

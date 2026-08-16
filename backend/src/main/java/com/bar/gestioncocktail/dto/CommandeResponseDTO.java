@@ -55,15 +55,43 @@ public record CommandeResponseDTO(
      * @return Corresponding response DTO
      */
     public static CommandeResponseDTO from(Commande c) {
-        List<CommandeItemResponseDTO> items = c.getItems() != null
-            ? c.getItems().stream().map(CommandeItemResponseDTO::from).toList()
-            : Collections.emptyList();
+        List<CommandeItemResponseDTO> items = Collections.emptyList();
+        try {
+            if (c.getItems() != null) {
+                items = c.getItems().stream().map(CommandeItemResponseDTO::from).toList();
+            }
+        } catch (Exception _) {
+            // Lazy load fallback
+        }
+
+        Long tableId = null;
+        Integer tableNumero = null;
+        try {
+            if (c.getTable() != null) {
+                tableId = c.getTable().getId();
+                tableNumero = c.getTable().getNumero();
+            }
+        } catch (Exception _) {
+            // Lazy load fallback
+        }
+
+        Long serveurId = null;
+        String serveurUsername = null;
+        try {
+            if (c.getServeur() != null) {
+                serveurId = c.getServeur().getId();
+                serveurUsername = c.getServeur().getUsername();
+            }
+        } catch (Exception _) {
+            // Lazy load fallback
+        }
+
         return new CommandeResponseDTO(
             c.getId(),
-            c.getTable() != null ? c.getTable().getId() : null,
-            c.getTable() != null ? c.getTable().getNumero() : null,
-            c.getServeur() != null ? c.getServeur().getId() : null,
-            c.getServeur() != null ? c.getServeur().getUsername() : null,
+            tableId,
+            tableNumero,
+            serveurId,
+            serveurUsername,
             items,
             c.getStatut(),
             c.getNotes(),

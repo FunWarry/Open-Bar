@@ -9,6 +9,8 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "test:ci": "ng test --watch=false --browsers=ChromeHeadless --code-coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
     "sonar": "npm run test:ci && npx sonar-scanner -Dsonar.qualitygate.wait=true"
   },
   "private": true,
@@ -38,6 +40,7 @@
     "@angular/build": "^20.3.31",
     "@angular/cli": "^20.3.29",
     "@angular/compiler-cli": "^20.3.25",
+    "@playwright/test": "^1.62.1",
     "@types/jasmine": "~5.1.0",
     "jasmine-core": "~5.6.0",
     "karma": "~6.4.0",

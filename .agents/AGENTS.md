@@ -61,9 +61,17 @@ Deployed as a PWA on a local WiFi network (Raspberry Pi 5 / mini-PC). No interne
 4. **100% Translatable UI (Transloco mandatory)** — ALL user-visible text (pages, forms, buttons, toasts, modals, alerts, badges, table headers, notifications) MUST use Transloco (`{{ 'KEY' | transloco }}` or `translocoService.translate('KEY')`). NEVER hardcode text directly in HTML templates or TypeScript strings.
 5. **i18n Parity MANDATORY for every frontend change** — any text addition or modification MUST update **both** `fr.json` AND `en.json` in the **same commit** as the component. A missing key in `en.json` is treated as a regression.
 6. **TSDoc MANDATORY (in English)** on all Angular services (`core/services/` + feature services), guards, interceptors, and NgRx store
-7. **`data-testid`** on all interactive elements (required for E2E tests)
-8. Tests go in `frontend/src/test/` (mirror of `src/app/`) — never co-located
-9. **Adaptive Theme & No Hardcoded Colors** — The application uses an adaptive theme system (Light/Dark). NEVER hardcode hex (`#1a1a2e`), RGB (`rgb(...)`), or named colors in CSS/SCSS or TS templates. Always use CSS variables from `frontend/src/theme/variables.css` (`var(--background-bg-0)`, `var(--background-surface-1)`, `var(--background-surface-2)`, `var(--text-primary)`, `var(--text-secondary)`, `var(--text-muted)`, `var(--border-medium)`, `var(--primary)`, `var(--semantic-success)`, `var(--semantic-danger)`, `var(--semantic-warning)`, `var(--semantic-info)`, etc.).
+7. **Adaptive Theme & No Hardcoded Colors** — The application uses an adaptive theme system (Light/Dark). NEVER hardcode hex (`#1a1a2e`), RGB (`rgb(...)`), or named colors in CSS/SCSS or TS templates. Always use CSS variables from `frontend/src/theme/variables.css` (`var(--background-bg-0)`, `var(--background-surface-1)`, `var(--background-surface-2)`, `var(--text-primary)`, `var(--text-secondary)`, `var(--text-muted)`, `var(--border-medium)`, `var(--primary)`, `var(--semantic-success)`, `var(--semantic-danger)`, `var(--semantic-warning)`, `var(--semantic-info)`, etc.).
+
+### Testing & Quality Assurance (Mandatory for ALL code written)
+1. **Full Test Pyramid MANDATORY for every feature / change**:
+   - **Unit Tests**: Every service, component, guard, interceptor, repository, and controller MUST have unit tests covering nominal, edge, and error branches.
+   - **Non-Regression Tests**: Every bug fix, refactor, or optimization MUST include dedicated non-regression tests demonstrating the issue was fixed and guarding against regressions.
+   - **Integration Tests (Backend)**: Critical workflows (order lifecycle, stock alerts, invoice settlement, auth/security) MUST have Spring Boot integration tests backed by Testcontainers (`backend/src/test/java/.../integration/`).
+   - **End-to-End Tests (Frontend Playwright)**: ALL user-facing screens, navigation flows, and interactive components MUST include Playwright E2E tests (`frontend/e2e/`) validating browser interactions with `data-testid` selectors.
+2. **`data-testid`** on all interactive elements in frontend templates.
+3. Frontend tests go in `frontend/src/test/` (mirror of `src/app/`) — never co-located.
+4. All test descriptions, test method names, assertions, and mock data MUST be in English.
 
 ### Git / Workflow
 1. Every task must be linked to a GitHub issue — see [Kanban](https://github.com/users/FunWarry/projects/3/views/1)

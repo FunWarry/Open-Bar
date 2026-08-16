@@ -50,14 +50,14 @@
     <ion-title>OpenBar</ion-title>
     <ion-buttons slot="end">
       @if (currentUser$ | async; as user) {
-        <ion-button id="header-user-trigger">
+        <ion-button id="header-user-trigger" data-testid="header-user-btn">
           {{ user.username }}
           <ion-icon slot="end" name="chevron-down"></ion-icon>
         </ion-button>
         <ion-popover trigger="header-user-trigger" triggerAction="click" [dismissOnSelect]="true">
           <ng-template>
             <ion-list lines="none">
-              <ion-item button (click)="onLogout()" (keyup.enter)="onLogout()">
+              <ion-item button (click)="onLogout()" (keyup.enter)="onLogout()" data-testid="header-logout-btn">
                 <ion-icon slot="start" name="log-out"></ion-icon>
                 <ion-label>{{ 'AUTH.LOGOUT' | transloco }}</ion-label>
               </ion-item>

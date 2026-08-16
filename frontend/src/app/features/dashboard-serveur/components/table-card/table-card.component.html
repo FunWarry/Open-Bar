@@ -1,4 +1,4 @@
-<ion-card class="table-card" [ngClass]="statutClass">
+<ion-card class="table-card" [ngClass]="statutClass" [attr.data-testid]="'table-card-' + table.id">
   <ion-card-header>
     <div class="table-header">
       <ion-card-title class="table-name">{{ table.nom }}</ion-card-title>
@@ -37,7 +37,8 @@
         expand="block"
         fill="outline"
         size="small"
-        class="btn-voir">
+        class="btn-voir"
+        [attr.data-testid]="'table-btn-voir-' + table.id">
         {{ 'TABLE_CARD.VIEW_ORDERS' | transloco }}
       </ion-button>
       <ion-button

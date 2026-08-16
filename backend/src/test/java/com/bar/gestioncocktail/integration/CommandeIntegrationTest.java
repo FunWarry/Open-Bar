@@ -1,0 +1,144 @@
+package com.bar.gestioncocktail.integration;
+
+import com.bar.gestioncocktail.dto.CommandeItemRequestDTO;
+import com.bar.gestioncocktail.dto.CommandeRequestDTO;
+import com.bar.gestioncocktail.dto.CommandeResponseDTO;
+import com.bar.gestioncocktail.model.Cocktail;
+import com.bar.gestioncocktail.model.CocktailCategorie;
+import com.bar.gestioncocktail.model.CocktailIngredient;
+import com.bar.gestioncocktail.model.CommandeStatut;
+import com.bar.gestioncocktail.model.Ingredient;
+import com.bar.gestioncocktail.model.TableEntity;
+import com.bar.gestioncocktail.repository.CocktailIngredientRepository;
+import com.bar.gestioncocktail.repository.CocktailRepository;
+import com.bar.gestioncocktail.repository.IngredientRepository;
+import com.bar.gestioncocktail.repository.TableRepository;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MvcResult;
+
+import java.math.BigDecimal;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+/**
+ * End-to-end integration tests for order lifecycle (creation, item additions, status transitions).
+ */
+class CommandeIntegrationTest extends BaseIntegrationTest {
+
+    @Autowired
+    private TableRepository tableRepository;
+
+    @Autowired
+    private CocktailRepository cocktailRepository;
+
+    @Autowired
+    private IngredientRepository ingredientRepository;
+
+    @Autowired
+    private CocktailIngredientRepository cocktailIngredientRepository;
+
+    @Test
+    @DisplayName("fullOrderLifecycle_fromCreationToDelivery_success")
+    void fullOrderLifecycle_fromCreationToDelivery_success() throws Exception {
+        TableEntity table = new TableEntity();
+        table.setNumero(999);
+        table.setZone("Intérieur Test");
+        table.setCapacite(4);
+        table = tableRepository.save(table);
+        Long tableId = table.getId();
+
+        Ingredient ingredient = new Ingredient();
+        ingredient.setNom("Rhum Test Commande");
+        ingredient.setQuantiteStock(new BigDecimal("100.00"));
+        ingredient.setSeuilAlerte(new BigDecimal("10.00"));
+        ingredient.setUniteMesure("cl");
+        ingredient = ingredientRepository.save(ingredient);
+
+        Cocktail cocktail = new Cocktail();
+        cocktail.setNom("Mojito Test Commande");
+        cocktail.setPrix(new BigDecimal("8.50"));
+        cocktail.setCategorie(CocktailCategorie.ALCOOLISE);
+        cocktail = cocktailRepository.save(cocktail);
+
+        CocktailIngredient ci = new CocktailIngredient();
+        ci.setCocktail(cocktail);
+        ci.setIngredient(ingredient);
+        ci.setQuantite(new BigDecimal("5.00"));
+        cocktailIngredientRepository.save(ci);
+
+        Long cocktailId = cocktail.getId();
+
+        // 1. Create order
+        CommandeRequestDTO createRequest = new CommandeRequestDTO(tableId, null, "Table order test", BigDecimal.ZERO);
+        MvcResult createResult = mockMvc.perform(post("/api/commandes")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + getServeurToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.statut").value("EN_ATTENTE"))
+                .andReturn();
+
+        CommandeResponseDTO createResponse = objectMapper.readValue(
+                createResult.getResponse().getContentAsString(), CommandeResponseDTO.class
+        );
+        Long commandeId = createResponse.id();
+
+        // 2. Add item line to order
+        CommandeItemRequestDTO itemRequest = new CommandeItemRequestDTO(
+                cocktailId, null, 2, new BigDecimal("8.50"), "Sans paille", false
+        );
+        mockMvc.perform(post("/api/commandes/" + commandeId + "/items")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + getServeurToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(itemRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items").isArray());
+
+        // 3. Advance status to EN_PREPARATION
+        mockMvc.perform(put("/api/commandes/" + commandeId + "/statut")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + getBarmanToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .param("statut", "EN_PREPARATION")
+                        .content("{\"statut\": \"EN_PREPARATION\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.statut").value("EN_PREPARATION"));
+
+        // 4. Advance status to PRET
+        mockMvc.perform(put("/api/commandes/" + commandeId + "/statut")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + getBarmanToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .param("statut", "PRET")
+                        .content("{\"statut\": \"PRET\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.statut").value("PRET"));
+
+        // 5. Advance status to LIVREE
+        mockMvc.perform(put("/api/commandes/" + commandeId + "/statut")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + getServeurToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .param("statut", "LIVREE")
+                        .content("{\"statut\": \"LIVREE\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.statut").value("LIVREE"));
+
+        // 6. Verify GET order details
+        MvcResult getResult = mockMvc.perform(get("/api/commandes/" + commandeId)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + getServeurToken()))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        CommandeResponseDTO finalOrder = objectMapper.readValue(
+                getResult.getResponse().getContentAsString(), CommandeResponseDTO.class
+        );
+        assertThat(finalOrder.statut()).isEqualTo(CommandeStatut.LIVREE);
+    }
+}

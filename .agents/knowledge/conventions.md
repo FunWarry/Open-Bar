@@ -39,8 +39,22 @@ class XxxServiceTest {
 }
 ```
 - Location: `backend/src/test/java/.../service/`
-- One test per business method — nominal cases + error cases + edge cases mandatory
+- One test per business method — nominal cases + error cases + edge cases + non-regression cases mandatory.
 - All test method names, mock data, and assertions MUST be in English.
+
+### Backend Integration Tests (Testcontainers + Spring Boot)
+```java
+class XxxIntegrationTest extends BaseIntegrationTest {
+    @Test
+    void completeFlow_success() throws Exception {
+        mockMvc.perform(post("/api/...").header(HttpHeaders.AUTHORIZATION, "Bearer " + getServeurToken()))
+            .andExpect(status().isOk());
+    }
+}
+```
+- Location: `backend/src/test/java/.../integration/`
+- Tests the complete Spring Boot web stack with real PostgreSQL container via Testcontainers.
+- Verifies transactions, security filters, role authorizations, DTO mapping, and database persistence.
 
 ---
 
@@ -68,10 +82,11 @@ features/<name>/
 - Files: `src/assets/i18n/fr.json` and `en.json` + scoped feature files when needed
 - 100% key parity required between `fr.json` and `en.json` in every commit modifying text
 
-### Frontend Tests (Karma + Jasmine)
+### Frontend Unit Tests (Karma + Jasmine)
 - Location: **`frontend/src/test/`** — mirror structure of `src/app/` (matching Maven structure)
 - Never co-located next to component source files
 - `tsconfig.spec.json`: `"src/test/**/*.spec.ts"`
+- Covers nominal, edge cases, error cases, and non-regression fixes.
 
 ```typescript
 describe('XxxService', () => {
@@ -82,6 +97,20 @@ describe('XxxService', () => {
     providers: [XxxService]
   }));
   it('getAll() calls GET /api/xxx', () => { ... });
+});
+```
+
+### Frontend E2E Tests (Playwright)
+- Location: **`frontend/e2e/`**
+- Uses `data-testid` selectors for resilient, robust UI tests.
+- Covers complete user flows across roles (Serveur, Barman, Manager, Admin).
+- Executed locally via `npm run test:e2e` and in CI pipeline.
+
+```typescript
+test('should create order and track status', async ({ page }) => {
+  await page.goto('/dashboard-serveur');
+  await page.click('[data-testid="create-order-btn"]');
+  // ...
 });
 ```
 

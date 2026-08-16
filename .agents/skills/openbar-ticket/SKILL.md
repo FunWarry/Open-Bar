@@ -79,64 +79,54 @@ rtk git commit -m "feat(#X): description courte"
 
 ---
 
-### Étape 4 — Écrire les tests
+### Étape 4 — Écrire les tests (Unitaires, Non-Régression, Intégration et E2E)
 
-**Règle absolue : les tests font partie du même ticket, pas d'un ticket séparé.**
+**Règle absolue : les tests font partie intégrante du même ticket, pas d'un ticket séparé.**
 
-#### Frontend (Angular — `src/test/`)
+#### 1. Tests Unitaires & Non-Régression Frontend (Karma — `src/test/`)
+- Structure miroir de `src/app/` dans `frontend/src/test/`
+- Couvrir pour chaque composant/service :
+  - ✅ Cas nominal (appel HTTP, rendu, interaction utilisateur)
+  - ✅ Cas d'erreur (HTTP 4xx/5xx, champ null, état vide)
+  - ✅ Cas limites (liste vide, valeur zéro, permissions insuffisantes)
+  - ✅ Non-régression : test dédié pour tout bugfix
 
-Structure miroir de `src/app/` :
-```
-src/test/features/<nom>/<composant>.spec.ts
-src/test/features/<nom>/services/<service>.spec.ts
-```
+#### 2. Tests Unitaires & Non-Régression Backend (JUnit 5 + Mockito — `backend/src/test/java/`)
+- Un test par méthode métier dans `XxxServiceTest` (nominal, erreurs, limites, non-régression).
 
-Couvrir pour chaque composant/service :
-- ✅ Cas nominal (appel HTTP, rendu, interaction utilisateur)
-- ✅ Cas d'erreur (HTTP 4xx/5xx, champ null, état vide)
-- ✅ Cas limites (liste vide, valeur zéro, permissions insuffisantes)
+#### 3. Tests d'Intégration Backend (Spring Boot + Testcontainers)
+- Pour toute nouvelle logique ou flow API (`backend/src/test/java/.../integration/`).
 
-Vérifier que les tests passent :
-```bash
-cd frontend && rtk npx ng test --watch=false --browsers=ChromeHeadless 2>&1 | tail -20
-```
-
-#### Backend (Java — `src/test/java/`)
-
-Un test par méthode métier dans `XxxServiceTest` :
-```java
-@Test void methode_cas_comportementAttendu() { ... }
-```
-
-Vérifier :
-```bash
-cd backend && rtk mvn test -q 2>&1 | tail -20
-```
+#### 4. Tests E2E Frontend (Playwright — `frontend/e2e/`)
+- Pour toute modification d'écran, formulaire ou workflow utilisateur.
+- Utiliser les attributs `data-testid`.
 
 **Commit des tests :**
 ```bash
-rtk git add src/test/...
-rtk git commit -m "test(#X): tests <NomComposant> et <NomService>"
+git add frontend/src/test/... backend/src/test/... frontend/e2e/...
+git commit -m "test(#X): unit, non-regression, integration and e2e tests"
 ```
 
 ---
 
 ### Étape 5 — Validation complète en LOCAL avant push (OBLIGATOIRE)
 
-**Ne jamais pousser vers GitHub sans avoir exécuté et validé TOUS les tests et builds en local.** Cela évite les allers-retours inutiles et gagne du temps sur les runners CI.
+**Ne jamais pousser vers GitHub sans avoir exécuté et validé TOUS les tests et builds en local.**
 
-1. **Frontend — Vérification TypeScript & Templates :**
+1. **Frontend — Type check & Tests unitaires :**
 ```bash
-cd frontend && npx tsc --noEmit 2>&1 | grep -v "node_modules" | head -20
+cd frontend && npx tsc --noEmit && npx ng test --watch=false --browsers=ChromeHeadless
 ```
 
-2. **Frontend — Exécution des tests Karma unitaires en local :**
+2. **Frontend — Tests E2E Playwright en local :**
 ```bash
-cd frontend && npx ng test --watch=false --browsers=ChromeHeadless
+cd frontend && npm run test:e2e
 ```
-> S'assurer que `ng test` passe à 100% sans erreur de type ou de chemin.
 
-3. **Backend — Build, dépendances et tests Maven en local :**
+3. **Backend — Compilation et tests Maven (unitaires + intégration) :**
+```bash
+cd backend && mvn test -q
+```
 ```bash
 cd backend && mvn test-compile dependency:copy-dependencies -DincludeScope=test -DoutputDirectory=target/dependency -q
 ```

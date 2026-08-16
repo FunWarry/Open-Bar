@@ -3,6 +3,7 @@ package com.bar.gestioncocktail.controller;
 import com.bar.gestioncocktail.dto.CommandeItemRequestDTO;
 import com.bar.gestioncocktail.dto.CommandeRequestDTO;
 import com.bar.gestioncocktail.dto.CommandeResponseDTO;
+import com.bar.gestioncocktail.exception.BusinessException;
 import com.bar.gestioncocktail.model.Commande;
 import com.bar.gestioncocktail.model.CommandeItem;
 import com.bar.gestioncocktail.model.CommandeStatut;
@@ -19,8 +20,10 @@ import org.springframework.http.ResponseEntity;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -91,5 +94,37 @@ class CommandeControllerTest {
         ResponseEntity<CommandeResponseDTO> response = commandeController.ajouterItem(10L, request);
 
         assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+    }
+
+    @Test
+    @DisplayName("changerStatut - updates status using body map")
+    void changerStatut_withBody_success() {
+        when(commandeService.changerStatut(10L, CommandeStatut.EN_PREPARATION)).thenReturn(commande);
+
+        ResponseEntity<CommandeResponseDTO> response = commandeController.changerStatut(
+                10L, Map.of("statut", "EN_PREPARATION"), null
+        );
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+    }
+
+    @Test
+    @DisplayName("changerStatut - updates status using query parameter")
+    void changerStatut_withQueryParam_success() {
+        when(commandeService.changerStatut(10L, CommandeStatut.PRET)).thenReturn(commande);
+
+        ResponseEntity<CommandeResponseDTO> response = commandeController.changerStatut(
+                10L, null, CommandeStatut.PRET
+        );
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+    }
+
+    @Test
+    @DisplayName("changerStatut - throws BusinessException when status missing")
+    void changerStatut_missingStatus_throwsException() {
+        assertThatThrownBy(() -> commandeController.changerStatut(10L, null, null))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("Order status is required");
     }
 }

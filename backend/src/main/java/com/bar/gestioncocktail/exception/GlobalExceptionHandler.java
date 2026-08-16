@@ -2,6 +2,7 @@ package com.bar.gestioncocktail.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -51,6 +52,22 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Handles authentication failures (HTTP 401).
+     *
+     * @param ex Authentication exception
+     * @return HTTP 401 response
+     */
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ErrorResponse> handleAuthenticationException(AuthenticationException ex) {
+        ErrorResponse body = ErrorResponse.builder(
+                HttpStatus.UNAUTHORIZED.value(),
+                "Unauthorized",
+                ex.getMessage()
+        ).build();
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(body);
+    }
+
+    /**
      * Handles access denied exceptions (HTTP 403).
      *
      * @param ex Access denied exception
@@ -96,11 +113,11 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
-        log.error("Unhandled exception", ex);
+        log.error("Unhandled exception: " + ex.getMessage(), ex);
         ErrorResponse body = ErrorResponse.builder(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 "Internal Server Error",
-                "An unexpected error occurred"
+                ex.getMessage() != null ? ex.getMessage() : "An unexpected error occurred"
         ).build();
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
     }

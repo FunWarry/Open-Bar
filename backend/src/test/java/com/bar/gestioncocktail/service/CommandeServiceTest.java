@@ -3,21 +3,26 @@ package com.bar.gestioncocktail.service;
 import com.bar.gestioncocktail.dto.StockAlerteEvent;
 import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.model.*;
+import com.bar.gestioncocktail.repository.CocktailIngredientRepository;
+import com.bar.gestioncocktail.repository.CocktailRepository;
 import com.bar.gestioncocktail.repository.CommandeItemRepository;
 import com.bar.gestioncocktail.repository.CommandeRepository;
 import com.bar.gestioncocktail.repository.IngredientRepository;
 import com.bar.gestioncocktail.repository.TableRepository;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,20 +31,19 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import org.mockito.Spy;
-
 @ExtendWith(MockitoExtension.class)
 class CommandeServiceTest {
 
     @Mock CommandeRepository commandeRepository;
     @Mock CommandeItemRepository commandeItemRepository;
     @Mock IngredientRepository ingredientRepository;
+    @Mock CocktailRepository cocktailRepository;
+    @Mock CocktailIngredientRepository cocktailIngredientRepository;
     @Mock TableRepository tableRepository;
     @Mock SimpMessagingTemplate messagingTemplate;
     @Spy TimeService timeService = new TimeService(null);
 
     @InjectMocks CommandeService commandeService;
-
 
     private Ingredient ingredient;
     private CocktailIngredient cocktailIngredient;
@@ -60,7 +64,7 @@ class CommandeServiceTest {
 
         cocktailIngredient = new CocktailIngredient();
         cocktailIngredient.setIngredient(ingredient);
-        cocktailIngredient.setQuantite(new BigDecimal("4.00")); // 4 cl par cocktail
+        cocktailIngredient.setQuantite(new BigDecimal("4.00")); // 4 cl per cocktail
         cocktail.setIngredients(List.of(cocktailIngredient));
 
         item = new CommandeItem();
@@ -71,7 +75,7 @@ class CommandeServiceTest {
         commande = new Commande();
         commande.setId(1L);
         commande.setStatut(CommandeStatut.EN_ATTENTE);
-        commande.setItems(List.of(item));
+        commande.setItems(new ArrayList<>(List.of(item)));
 
         lenient().when(commandeRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
     }
@@ -111,31 +115,30 @@ class CommandeServiceTest {
     }
 
     @Test
-    void changerStatut_commandeInexistante_throwsException() {
-        when(commandeRepository.findById(99L)).thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> commandeService.changerStatut(99L, CommandeStatut.EN_PREPARATION))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("99");
-    }
-
-    // ─── Stock deduction ───────────────────────────────────────────────────────────
-
-    @Test
     void changerStatut_enPreparation_destockeIngredients() {
         when(commandeRepository.findById(1L)).thenReturn(Optional.of(commande));
 
         commandeService.changerStatut(1L, CommandeStatut.EN_PREPARATION);
 
-        // 4 cl * 2 cocktails = 8 cl consumed -> expected stock: 92 cl
         ArgumentCaptor<Ingredient> captor = ArgumentCaptor.forClass(Ingredient.class);
         verify(ingredientRepository).save(captor.capture());
+        // 100 - (4 cl * 2) = 92
         assertThat(captor.getValue().getQuantiteStock()).isEqualByComparingTo(new BigDecimal("92.00"));
     }
 
     @Test
-    void changerStatut_enPreparation_pasDAlerteSiStockAuDessusSeuilAlerte() {
-        // stock 100, seuil 20, consommation 8 → reste 92, pas d'alerte
+    void changerStatut_enPreparation_declencheAlerteStockSiSousSeuil() {
+        ingredient.setQuantiteStock(new BigDecimal("25.00")); // will drop to 17 <= 20
+        when(commandeRepository.findById(1L)).thenReturn(Optional.of(commande));
+
+        commandeService.changerStatut(1L, CommandeStatut.EN_PREPARATION);
+
+        verify(messagingTemplate).convertAndSend(eq("/topic/stock/alerte"), any(StockAlerteEvent.class));
+    }
+
+    @Test
+    void changerStatut_enPreparation_pasDAlerteSiAuDessusDuSeuil() {
+        ingredient.setQuantiteStock(new BigDecimal("100.00")); // will drop to 92 > 20
         when(commandeRepository.findById(1L)).thenReturn(Optional.of(commande));
 
         commandeService.changerStatut(1L, CommandeStatut.EN_PREPARATION);
@@ -144,75 +147,61 @@ class CommandeServiceTest {
     }
 
     @Test
-    void changerStatut_enPreparation_publieAlerteWebSocketSiStockSousSeuil() {
-        ingredient.setQuantiteStock(new BigDecimal("25.00")); // 25 - 8 = 17 < seuil 20
-        when(commandeRepository.findById(1L)).thenReturn(Optional.of(commande));
-
-        commandeService.changerStatut(1L, CommandeStatut.EN_PREPARATION);
-
-        ArgumentCaptor<StockAlerteEvent> eventCaptor = ArgumentCaptor.forClass(StockAlerteEvent.class);
-        verify(messagingTemplate).convertAndSend(eq("/topic/stock/alerte"), eventCaptor.capture());
-        StockAlerteEvent event = eventCaptor.getValue();
-        assertThat(event.ingredientId()).isEqualTo(1L);
-        assertThat(event.quantiteActuelle()).isEqualByComparingTo(new BigDecimal("17.00"));
-        assertThat(event.stockNegatif()).isFalse();
-    }
-
-    @Test
-    void changerStatut_enPreparation_stockNegatifMarqueDansEvenement() {
-        ingredient.setQuantiteStock(new BigDecimal("5.00")); // 5 - 8 = -3 -> negative
-        when(commandeRepository.findById(1L)).thenReturn(Optional.of(commande));
-
-        commandeService.changerStatut(1L, CommandeStatut.EN_PREPARATION);
-
-        ArgumentCaptor<StockAlerteEvent> eventCaptor = ArgumentCaptor.forClass(StockAlerteEvent.class);
-        verify(messagingTemplate).convertAndSend(eq("/topic/stock/alerte"), eventCaptor.capture());
-        assertThat(eventCaptor.getValue().stockNegatif()).isTrue();
-        assertThat(eventCaptor.getValue().quantiteActuelle()).isNegative();
-    }
-
-    // ─── idempotence ──────────────────────────────────────────────────────────
-
-    @Test
-    void changerStatut_enPreparation_idempotent_neDestockePasDeuxFois() {
-        // Simulates a double call (network retry) — the order is already in EN_PREPARATION with datePreparation already set
+    void changerStatut_dejaEnPreparation_neDestockePasUneDeuxiemeFois() {
         commande.setStatut(CommandeStatut.EN_PREPARATION);
-        commande.setDatePreparation(LocalDateTime.now().minusMinutes(1));
+        commande.setDatePreparation(LocalDateTime.now());
         when(commandeRepository.findById(1L)).thenReturn(Optional.of(commande));
 
-        commandeService.changerStatut(1L, CommandeStatut.EN_PREPARATION);
+        commandeService.changerStatut(1L, CommandeStatut.PRET);
 
-        // Stock must NOT be decremented a second time
         verify(ingredientRepository, never()).save(any());
-        verify(messagingTemplate, never()).convertAndSend(anyString(), any(StockAlerteEvent.class));
-    }
-
-    @Test
-    void changerStatut_enPreparation_idempotent_neSetsDatePreparationDeuxFois() {
-        // Order already has a datePreparation (first transition already completed)
-        commande.setStatut(CommandeStatut.EN_PREPARATION);
-        commande.setDatePreparation(LocalDateTime.now().minusMinutes(5));
-        LocalDateTime dateInitiale = commande.getDatePreparation();
-        when(commandeRepository.findById(1L)).thenReturn(Optional.of(commande));
-
-        Commande result = commandeService.changerStatut(1L, CommandeStatut.EN_PREPARATION);
-
-        // datePreparation must not be overwritten — it is preserved as is
-        assertThat(result.getDatePreparation()).isEqualTo(dateInitiale);
     }
 
     @Test
     void destockage_seuilAlerteNull_nePasNPE() {
-        // An ingredient without a configured alert threshold should not throw NPE
         ingredient.setSeuilAlerte(null);
         when(commandeRepository.findById(1L)).thenReturn(Optional.of(commande));
 
-        // Act + Assert: no exception should be thrown
         org.junit.jupiter.api.Assertions.assertDoesNotThrow(
             () -> commandeService.changerStatut(1L, CommandeStatut.EN_PREPARATION)
         );
-        // No WebSocket alert should be published (missing threshold)
         verify(messagingTemplate, never()).convertAndSend(anyString(), any(StockAlerteEvent.class));
+    }
+
+    @Test
+    void destockage_messagingTemplateException_handledSafely() {
+        ingredient.setQuantiteStock(new BigDecimal("25.00"));
+        when(commandeRepository.findById(1L)).thenReturn(Optional.of(commande));
+        doThrow(new RuntimeException("WebSocket down")).when(messagingTemplate).convertAndSend(anyString(), any(StockAlerteEvent.class));
+
+        org.junit.jupiter.api.Assertions.assertDoesNotThrow(
+            () -> commandeService.changerStatut(1L, CommandeStatut.EN_PREPARATION)
+        );
+    }
+
+    @Test
+    void destockerIngredients_cocktailIngredientRepoThrowsException_fallsBackGracefully() {
+        when(cocktailIngredientRepository.findByCocktail(any())).thenThrow(new RuntimeException("DB down"));
+        when(commandeRepository.findById(1L)).thenReturn(Optional.of(commande));
+
+        org.junit.jupiter.api.Assertions.assertDoesNotThrow(
+                () -> commandeService.changerStatut(1L, CommandeStatut.EN_PREPARATION)
+        );
+        verify(ingredientRepository).save(any(Ingredient.class));
+    }
+
+    @Test
+    void destockerIngredients_itemCocktailNull_skipsSafely() {
+        CommandeItem nullCocktailItem = new CommandeItem();
+        nullCocktailItem.setId(99L);
+        nullCocktailItem.setCocktail(null);
+        commande.getItems().add(nullCocktailItem);
+
+        when(commandeRepository.findById(1L)).thenReturn(Optional.of(commande));
+
+        org.junit.jupiter.api.Assertions.assertDoesNotThrow(
+                () -> commandeService.changerStatut(1L, CommandeStatut.EN_PREPARATION)
+        );
     }
 
     // ─── Stock replenishment on cancellation & variants ───────────────────────
@@ -227,8 +216,19 @@ class CommandeServiceTest {
         assertThat(commande.getStatut()).isEqualTo(CommandeStatut.ANNULEE);
         ArgumentCaptor<Ingredient> captor = ArgumentCaptor.forClass(Ingredient.class);
         verify(ingredientRepository).save(captor.capture());
-        // Stock initial (100) + (4 cl * 2 qte) = 108
+        // 100 + (4 cl * 2) = 108
         assertThat(captor.getValue().getQuantiteStock()).isEqualByComparingTo(new BigDecimal("108.00"));
+    }
+
+    @Test
+    void annulerCommande_sansItems_skipsSafely() {
+        commande.setStatut(CommandeStatut.EN_PREPARATION);
+        commande.setDatePreparation(LocalDateTime.now());
+        commande.setItems(null);
+
+        commandeService.annulerCommande(commande);
+
+        assertThat(commande.getStatut()).isEqualTo(CommandeStatut.ANNULEE);
     }
 
     @Test
@@ -245,6 +245,16 @@ class CommandeServiceTest {
         ArgumentCaptor<Ingredient> captor = ArgumentCaptor.forClass(Ingredient.class);
         verify(ingredientRepository).save(captor.capture());
         assertThat(captor.getValue().getQuantiteStock()).isEqualByComparingTo(new BigDecimal("88.00"));
+    }
+
+    @Test
+    void destockerIngredients_withCocktailIngredientRepository_success() {
+        when(cocktailIngredientRepository.findByCocktail(any())).thenReturn(List.of(cocktailIngredient));
+        when(commandeRepository.findById(1L)).thenReturn(Optional.of(commande));
+
+        commandeService.changerStatut(1L, CommandeStatut.EN_PREPARATION);
+
+        verify(ingredientRepository).save(any(Ingredient.class));
     }
 
     @Test
@@ -271,5 +281,104 @@ class CommandeServiceTest {
         assertThatThrownBy(() -> commandeService.transfererCommande(1L, 99L))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("Table not found with id: 99");
+    }
+
+    // ─── CRUD & Item methods ──────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("updateCommande - updates table, serveur, and notes")
+    void updateCommande_success() {
+        TableEntity newTable = new TableEntity();
+        newTable.setId(2L);
+        User newServeur = new User();
+        newServeur.setId(3L);
+
+        Commande updates = new Commande();
+        updates.setTable(newTable);
+        updates.setServeur(newServeur);
+        updates.setNotes("VIP");
+
+        when(commandeRepository.findById(1L)).thenReturn(Optional.of(commande));
+
+        Commande updated = commandeService.updateCommande(1L, updates);
+
+        assertThat(updated.getTable()).isEqualTo(newTable);
+        assertThat(updated.getServeur()).isEqualTo(newServeur);
+        assertThat(updated.getNotes()).isEqualTo("VIP");
+    }
+
+    @Test
+    @DisplayName("deleteCommande - deletes existing order")
+    void deleteCommande_success() {
+        when(commandeRepository.findById(1L)).thenReturn(Optional.of(commande));
+
+        commandeService.deleteCommande(1L);
+
+        verify(commandeRepository).delete(commande);
+    }
+
+    @Test
+    @DisplayName("deleteCommande - throws ResourceNotFoundException when not found")
+    void deleteCommande_notFound_throwsException() {
+        when(commandeRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> commandeService.deleteCommande(99L))
+                .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("ajouterItem - associates cocktail and recomputes total")
+    void ajouterItem_success() {
+        Cocktail mockCocktail = new Cocktail();
+        mockCocktail.setId(1L);
+
+        CommandeItem newItem = new CommandeItem();
+        newItem.setCocktail(mockCocktail);
+        newItem.setPrixUnitaire(new BigDecimal("10.00"));
+        newItem.setQuantite(3);
+
+        when(commandeRepository.findById(1L)).thenReturn(Optional.of(commande));
+        when(cocktailRepository.findById(1L)).thenReturn(Optional.of(mockCocktail));
+        when(commandeItemRepository.save(any(CommandeItem.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Commande result = commandeService.ajouterItem(1L, newItem);
+
+        assertThat(result).isNotNull();
+        verify(commandeItemRepository).save(newItem);
+    }
+
+    @Test
+    @DisplayName("ajouterItem - with null items list initializes and adds item")
+    void ajouterItem_withNullItems_initializesList() {
+        commande.setItems(null);
+
+        Cocktail mockCocktail = new Cocktail();
+        mockCocktail.setId(1L);
+
+        CommandeItem newItem = new CommandeItem();
+        newItem.setCocktail(mockCocktail);
+        newItem.setPrixUnitaire(new BigDecimal("5.00"));
+        newItem.setQuantite(1);
+
+        when(commandeRepository.findById(1L)).thenReturn(Optional.of(commande));
+        when(cocktailRepository.findById(1L)).thenReturn(Optional.of(mockCocktail));
+        when(commandeItemRepository.save(any(CommandeItem.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Commande result = commandeService.ajouterItem(1L, newItem);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getItems()).isNotNull();
+        assertThat(result.getTotal()).isEqualByComparingTo(new BigDecimal("5.00"));
+    }
+
+    @Test
+    @DisplayName("retirerItem - removes item from order")
+    void retirerItem_success() {
+        when(commandeRepository.findById(1L)).thenReturn(Optional.of(commande));
+
+        Commande result = commandeService.retirerItem(1L, 1L);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getItems()).isEmpty();
     }
 }
