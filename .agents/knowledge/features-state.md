@@ -1,11 +1,12 @@
 # OpenBar — État des Features & Roadmap
 
-> Dernière mise à jour : 16 août 2026 — PR #301 / Issue #297 : Suppression de toutes les structures et données de test écrites en dur dans le code (Java et TypeScript) et centralisation 100% exclusive dans `backend/src/main/resources/data/demo_dataset.json` (étages, zones avec coordonnées/points de polygone/rayons, tables avec dimensions/formes/rotations/assignations, utilisateurs, 26 shifts de l'équipe avec pauses et heures prévues, fermetures d'établissement dominicales et annuelles récurrentes, commandes et factures). Seeders dynamiques `seedShiftsFromJson` et `seedClosuresFromJson` dans `SampleDataSeederService.java`, fallbacks propres dans `dashboard-serveur.service.ts` et `plan-salle.component.ts`, 100% tests au vert (1260 tests Karma frontend, 482 tests JUnit backend, SonarCloud Quality Gate PASSED avec 0 anomalie).
+> Dernière mise à jour : 16 août 2026 — PR #302 / Issue #282 : Traduction intégrale de l'interface utilisateur, de la documentation du codebase (JavaDoc, TSDoc, OpenAPI/Swagger), des tests (méthodes de test, mock data), des commentaires et des fonctions/variables internes en anglais. Parité stricte 1:1 garantie entre `fr.json` et `en.json` (1209 clés chacune). Règles du projet actualisées dans `.agents/AGENTS.md` et `.agents/knowledge/conventions.md`. 100% tests au vert (1260 tests Karma frontend, 486 tests JUnit backend, SonarCloud Quality Gate PASSED avec 81.3% coverage).
 
 ## Tableau des Features
 
 | Feature | Backend | Frontend | Tests | Notes |
 |---------|---------|----------|-------|-------|
+| **Traduction Intégrale & Internationalisation UI/Code (#282)** | ✅ | ✅ | ✅ | 100% UI translatable via Transloco (1209 clés FR/EN en stricte parité), 100% JavaDoc/TSDoc/OpenAPI/tests/comments en anglais |
 | Documentation complète & API OpenAPI/Swagger (#192/#194) | ✅ | ✅ | ✅ | JavaDoc, TSDoc, OpenAPI 3.0 |
 | Quality Gate SonarCloud & Sécurité 100% sans `@SuppressWarnings` | ✅ | ✅ | ✅ | Coverage > 80%, Note A |
 | **Centralisation Jeu de Données Démo & Seeders Dynamiques (#297)** | ✅ | ✅ | ✅ | Centralisation 100% dans `demo_dataset.json` (étages, zones, tables, users, 26 shifts, closures, commandes, factures), `SampleDataSeederService.java` dynamique, 0 data hardcodée |
