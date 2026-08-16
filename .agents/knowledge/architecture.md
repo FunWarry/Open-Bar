@@ -28,9 +28,10 @@
 | i18n | Transloco (`@jsverse/transloco`) | — | All user-visible text must use `{{ 'KEY' | transloco }}` |
 | Canvas | Konva.js | — | Interactive 2D floor plan |
 | PDF | OpenPDF | 2.0.3 | Legal invoices and receipts |
-| Backend tests | JUnit 5 + Mockito | — | |
-| Frontend tests | Karma + Jasmine | — | Headless browser execution |
-| CI | GitHub Actions | 1 workflow (`ci.yml`) | |
+| Backend tests | JUnit 5 + Mockito + Testcontainers | — | Unit + Spring Boot integration tests with isolated PostgreSQL |
+| Frontend tests | Karma + Jasmine | — | Headless browser unit tests |
+| E2E tests | Playwright | 1.50+ | End-to-end browser tests (Chromium headless) |
+| CI | GitHub Actions | 1 workflow (`ci.yml`) | Backend, Frontend, E2E, SonarCloud |
 | Quality | SonarCloud + Qodana | — | Quality Gate enforcement |
 
 ---
