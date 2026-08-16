@@ -130,6 +130,13 @@ describe('PlanSalleComponent', () => {
     expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
   }));
 
+  it('charger() sets empty etages array when backend returns no floors', fakeAsync(() => {
+    etageServiceSpy.getAll.and.returnValue(of([]));
+    component.charger();
+    tick();
+    expect(component.etages).toEqual([]);
+  }));
+
   // --- toggleEditMode ---
 
   it('toggleEditMode() ne s\'active pas si non admin', () => {

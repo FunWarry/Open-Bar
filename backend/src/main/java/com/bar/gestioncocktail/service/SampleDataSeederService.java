@@ -360,13 +360,6 @@ public class SampleDataSeederService {
         if (sNode.has("dayOffset")) {
             return monday.plusDays(sNode.get("dayOffset").asLong());
         }
-        if (sNode.has(KEY_DAY_OF_WEEK)) {
-            DayOfWeek dow = DayOfWeek.valueOf(sNode.get(KEY_DAY_OF_WEEK).asText());
-            return monday.plusDays((long) dow.getValue() - 1);
-        }
-        if (sNode.has("date")) {
-            return LocalDate.parse(sNode.get("date").asText());
-        }
         return today;
     }
 
@@ -388,9 +381,6 @@ public class SampleDataSeederService {
             }
             if (cNode.hasNonNull("closureDate")) {
                 closure.setClosureDate(LocalDate.parse(cNode.get("closureDate").asText()));
-            }
-            if (cNode.hasNonNull("endDate")) {
-                closure.setEndDate(LocalDate.parse(cNode.get("endDate").asText()));
             }
             if (cNode.has("isAnnualRecurring")) {
                 closure.setIsAnnualRecurring(cNode.get("isAnnualRecurring").asBoolean());
