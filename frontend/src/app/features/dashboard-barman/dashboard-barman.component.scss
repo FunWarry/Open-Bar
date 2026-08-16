@@ -17,6 +17,7 @@ ion-header {
 }
 
 .barman-content {
+  --background: var(--background-bg-0);
   flex: 1;
   min-height: 0;
   position: relative;
@@ -152,10 +153,6 @@ ion-header {
 }
 
 /* ── Contenu & Grid Kanban ── */
-.barman-content {
-  --background: var(--background-bg-0);
-}
-
 .kanban-grid {
   padding: 10px;
 }
