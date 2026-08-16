@@ -317,51 +317,26 @@ Topics existants : `/topic/commandes`, `/topic/commandes/{id}`, `/topic/tables`,
 
 ---
 
-## Tests à écrire (obligatoires dans le même ticket)
+## Tests à écrire (OBLIGATOIRES lors de chaque développement)
 
-### Backend (JUnit 5 + Mockito)
-```java
-@ExtendWith(MockitoExtension.class)
-class MonEntiteServiceTest {
-    @Mock MonEntiteRepository repo;
-    @InjectMocks MonEntiteService service;
+### 1. Tests Unitaires (Backend JUnit 5 + Mockito / Frontend Karma + Jasmine)
+- Un test par méthode métier, couvrant les cas nominaux, erreurs et cas limites.
+- Documentation et assertions 100% en anglais.
+- Localisation Backend : `backend/src/test/java/.../service/XxxServiceTest.java`
+- Localisation Frontend : `frontend/src/test/features/.../xxx.spec.ts`
 
-    @Test void getAll_retourneListe() {
-        given(repo.findAll()).willReturn(List.of(new MonEntite()));
-        assertThat(service.getAll()).hasSize(1);
-    }
+### 2. Tests de Non-Régression
+- Tout correctif de bug ou refactoring DOIT s'accompagner d'un test unitaire ou d'intégration dédié reproduisant et verrouillant le comportement attendu.
 
-    @Test void getById_idInexistant_leveException() {
-        given(repo.findById(99L)).willReturn(Optional.empty());
-        assertThatThrownBy(() -> service.getById(99L))
-            .isInstanceOf(ResourceNotFoundException.class);
-    }
-}
-```
+### 3. Tests d'Intégration Backend (Spring Boot + Testcontainers)
+- Valident le flux applicatif complet (sécurité, MockMvc, transactions, base PostgreSQL).
+- Localisation : `backend/src/test/java/.../integration/XxxIntegrationTest.java`
 
-Localisation : `backend/src/test/java/.../service/MonEntiteServiceTest.java`
-
-### Frontend (Karma + Jasmine)
-```typescript
-describe('MonEntiteService', () => {
-  let service: MonEntiteService;
-  let http: HttpTestingController;
-
-  beforeEach(() => TestBed.configureTestingModule({
-    imports: [provideHttpClientTesting()],
-    providers: [MonEntiteService]
-  }));
-
-  it('getAll() appelle GET /api/mon-entite', () => {
-    service.getAll().subscribe(data => expect(data.length).toBe(1));
-    const req = http.expectOne('/api/mon-entite');
-    expect(req.request.method).toBe('GET');
-    req.flush([{ id: 1, nom: 'Test' }]);
-  });
-});
-```
-
-Localisation : `frontend/src/test/features/mon-entite/services/mon-entite.service.spec.ts`
+### 4. Tests E2E Frontend (Playwright)
+- Obligatoires pour toute feature modifiant l'interface utilisateur, les formulaires, la navigation ou les interactions utilisateur.
+- Utilisation stricte des sélecteurs `data-testid`.
+- Localisation : `frontend/e2e/<domaine>/<feature>.spec.ts`
+- Exécution : `npm run test:e2e`
 
 ---
 
@@ -378,7 +353,9 @@ Localisation : `frontend/src/test/features/mon-entite/services/mon-entite.servic
 - [ ] Route lazy-loadée dans `app.routes.ts`
 - [ ] **`fr.json` mis à jour** — aucun texte visible hardcodé
 - [ ] **`en.json` mis à jour** — même clés qu'en français, dans le même commit ✅
-- [ ] `data-testid` sur les éléments interactifs
-- [ ] Tests backend : cas nominal + cas erreur + cas limites
-- [ ] Tests frontend : même couverture
+- [ ] `data-testid` sur tous les éléments interactifs
+- [ ] **Tests unitaires backend & frontend** : cas nominal + cas erreur + cas limites
+- [ ] **Tests de non-régression** si bugfix / refactor
+- [ ] **Tests d'intégration backend (Testcontainers)** si nouvelle logique d'API ou flux complexe
+- [ ] **Tests E2E Playwright** pour toute nouvelle vue ou flow utilisateur
 - [ ] Lien navbar si pertinent
