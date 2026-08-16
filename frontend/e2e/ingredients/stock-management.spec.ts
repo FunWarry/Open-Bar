@@ -1,8 +1,10 @@
 import { test, expect } from '@playwright/test';
+import { setupMockApi } from '../helpers/mock-api.helper';
 
 test.describe('Ingredients & Stock Management E2E', () => {
 
   test.beforeEach(async ({ page }) => {
+    await setupMockApi(page);
     // Authenticate as Admin
     await page.goto('/auth/login');
     await page.fill('input[data-testid="login-username"]', 'admin');

@@ -58,4 +58,8 @@ frontend/coverage
 /qodana.sarif.json
 /uploads/
 /backend/uploads/
+frontend/playwright-report/
+frontend/test-results/
+playwright-report/
+test-results/
 .gemini/

@@ -1,8 +1,10 @@
 import { test, expect } from '@playwright/test';
+import { setupMockApi } from '../helpers/mock-api.helper';
 
 test.describe('Factures & Règlement E2E Flow', () => {
 
   test.beforeEach(async ({ page }) => {
+    await setupMockApi(page);
     // Authenticate as server / manager
     await page.goto('/auth/login');
     await page.fill('input[data-testid="login-username"]', 'admin');

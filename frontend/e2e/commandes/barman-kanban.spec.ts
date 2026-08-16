@@ -1,8 +1,10 @@
 import { test, expect } from '@playwright/test';
+import { setupMockApi } from '../helpers/mock-api.helper';
 
 test.describe('Barman Kanban E2E Flow', () => {
 
   test.beforeEach(async ({ page }) => {
+    await setupMockApi(page);
     // Authenticate as barman
     await page.goto('/auth/login');
     await page.fill('input[data-testid="login-username"]', 'barman1');
@@ -12,7 +14,7 @@ test.describe('Barman Kanban E2E Flow', () => {
   });
 
   test('should display barman kanban dashboard', async ({ page }) => {
-    await page.goto('/dashboard-barman');
+    await page.goto('/barman');
     await expect(page.locator('ion-content')).toBeVisible();
   });
 });

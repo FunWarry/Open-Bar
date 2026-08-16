@@ -1,10 +1,15 @@
 import { test, expect } from '@playwright/test';
+import { setupMockApi } from '../helpers/mock-api.helper';
 
 test.describe('Non-Regression E2E Test Suite', () => {
 
+  test.beforeEach(async ({ page }) => {
+    await setupMockApi(page);
+  });
+
   test('should protect private routes from unauthenticated access', async ({ page }) => {
     // Attempt to access protected dashboard directly
-    await page.goto('/dashboard-serveur');
+    await page.goto('/serveur');
     // Should be redirected to login
     await page.waitForURL('**/auth/login', { timeout: 10000 });
     expect(page.url()).toContain('/auth/login');

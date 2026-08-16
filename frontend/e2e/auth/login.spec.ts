@@ -1,6 +1,11 @@
 import { test, expect } from '@playwright/test';
+import { setupMockApi } from '../helpers/mock-api.helper';
 
 test.describe('Authentication E2E Flow', () => {
+
+  test.beforeEach(async ({ page }) => {
+    await setupMockApi(page);
+  });
 
   test('should display login form with all elements', async ({ page }) => {
     await page.goto('/auth/login');
@@ -24,7 +29,7 @@ test.describe('Authentication E2E Flow', () => {
     await page.fill('input[data-testid="login-password"]', 'admin123');
     await page.click('button[data-testid="login-btn"]');
 
-    // Wait for redirect to dashboard or home
+    // Wait for redirect to app-home
     await page.waitForURL((url) => !url.pathname.includes('/auth/login'), { timeout: 10000 });
     expect(page.url()).not.toContain('/auth/login');
 
