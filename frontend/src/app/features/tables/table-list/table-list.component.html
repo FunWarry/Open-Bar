@@ -305,15 +305,14 @@
       <div class="card-header-row">
         <div class="table-badge-group">
           <div class="table-num-avatar" [class.occupied]="table.occupee">
-            <span class="avatar-prefix">T</span>
-            <span class="avatar-num">{{ table.numero }}</span>
+            <ion-icon name="restaurant-outline" class="avatar-icon"></ion-icon>
           </div>
           <div class="table-meta-text">
             <h3 class="table-title">Table {{ table.numero }}</h3>
             <div class="table-zone-chip">
               <ion-icon name="location-outline" class="zone-icon"></ion-icon>
               <span class="zone-name">{{ table.zone }}</span>
-              @if (getEtageLabelForZone(table.zone); as etageLabel) {
+              @if (getEtageShortLabelForZone(table.zone); as etageLabel) {
                 <span class="zone-sep">•</span>
                 <span class="etage-name">{{ etageLabel }}</span>
               }

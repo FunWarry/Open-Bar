@@ -158,6 +158,17 @@ export class TableListComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Returns a compact formatted floor label (e.g. "RDC", "1er Étage", "Terrasse")
+   * to avoid overflowing card headers.
+   */
+  getEtageShortLabelForZone(zoneName: string): string {
+    const etage = this.getEtageForZone(zoneName);
+    if (!etage) return '';
+    if (etage.code === 'RDC') return 'RDC';
+    return etage.nom.replace(/\s*\(.*\)/, '');
+  }
+
+  /**
    * Returns zones available according to selected floor filter.
    */
   get availableZonesForFilter(): ZoneBar[] {
