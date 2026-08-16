@@ -1,11 +1,12 @@
 # OpenBar — État des Features & Roadmap
 
-> Dernière mise à jour : 16 août 2026 — PR #303 / Issue #193 : Mise en place de la pyramide de tests complète : suite de tests d'intégration Spring Boot avec Testcontainers (PostgreSQL isolé), suite E2E complète Playwright (Chromium headless, 21 tests de flux réels et non-régression, mock API déterministe), et intégration dans le pipeline CI/CD GitHub Actions. 100% tests au vert (1265 tests unitaires frontend Karma, 496 tests backend JUnit + Testcontainers, 21 tests Playwright E2E, SonarCloud Quality Gate PASSED avec 82.2% coverage).
+> Dernière mise à jour : 16 août 2026 — PR #304 / Issue #281 : Couverture de tests obligatoire et renforcement de la qualité globale (Backend & Frontend). Ajout de la suite exhaustive de tests unitaires et de non-régression pour tous les controllers, services, guards, intercepteurs et modals. Configuration stricte de JaCoCo et Karma. 100% du code et des tests rédigés en anglais. 100% tests au vert (1 321 tests unitaires frontend Karma, 555 tests backend JUnit + Testcontainers, 21 tests Playwright E2E, SonarCloud Quality Gate PASSED).
 
 ## Tableau des Features
 
 | Feature | Backend | Frontend | Tests | Notes |
 |---------|---------|----------|-------|-------|
+| **Couverture de Tests Obligatoire & Règle JaCoCo / Karma (#281)** | ✅ | ✅ | ✅ | Suite complète de tests unitaires & non-régression (1 321 tests frontend Karma, 555 tests backend JUnit 5, 21 tests Playwright E2E), règle JaCoCo dans pom.xml, règle Karma dans karma.conf.js, SonarCloud Quality Gate PASSED. |
 | **Tests d'Intégration (Testcontainers) & E2E (Playwright) (#193)** | ✅ | ✅ | ✅ | Suite complète : Spring Boot Testcontainers (Auth, Commande, Stock, Facture, Non-Regression), Playwright E2E (Auth, Dashboard Serveur/Barman/Manager, Cocktails, Ingrédients, Facturation, Client QR, Non-Régression), job CI dédié. |
 | **Traduction Intégrale & Internationalisation UI/Code (#282)** | ✅ | ✅ | ✅ | 100% UI translatable via Transloco (1209 clés FR/EN en stricte parité), 100% JavaDoc/TSDoc/OpenAPI/tests/comments en anglais |
 | Documentation complète & API OpenAPI/Swagger (#192/#194) | ✅ | ✅ | ✅ | JavaDoc, TSDoc, OpenAPI 3.0 |
