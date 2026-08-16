@@ -35,7 +35,7 @@ describe('Shared UI Components (Figma Design System)', () => {
       expect(component.fillAttr).toBe('solid');
     });
 
-    it('calcule correctement colorAttr et fillAttr pour chaque variante', () => {
+    it('correctly computes colorAttr and fillAttr for each variant', () => {
       component.variant = 'danger';
       expect(component.colorAttr).toBe('danger');
       expect(component.fillAttr).toBe('solid');
@@ -113,7 +113,7 @@ describe('Shared UI Components (Figma Design System)', () => {
       fixture.detectChanges();
     });
 
-    it('bascule l\'affichage du mot de passe avec toggleVisibility', () => {
+    it('toggles password visibility with toggleVisibility', () => {
       expect(component.showPassword).toBeFalse();
       component.toggleVisibility();
       expect(component.showPassword).toBeTrue();
@@ -169,7 +169,6 @@ describe('Shared UI Components (Figma Design System)', () => {
     });
   });
 
-
   describe('StockSeverityBadgeComponent', () => {
     let component: StockSeverityBadgeComponent;
     let fixture: ComponentFixture<StockSeverityBadgeComponent>;
@@ -181,7 +180,7 @@ describe('Shared UI Components (Figma Design System)', () => {
       fixture.detectChanges();
     });
 
-    it('mappe la couleur et le texte de l\'alerte stock', () => {
+    it('maps color and text for stock alert', () => {
       component.severity = 'CRITIQUE';
       expect(component.badgeColor).toBe('danger');
       expect(component.label).toBe('Stock Critique');
@@ -293,7 +292,7 @@ describe('Shared UI Components (Figma Design System)', () => {
       expect(component.valueChange.emit).toHaveBeenCalledWith(2);
     });
 
-    it('respecte les bornes min et max', () => {
+    it('respects min and max bounds', () => {
       component.value = 1;
       component.min = 1;
       component.decrement();
@@ -408,7 +407,7 @@ describe('Shared UI Components (Figma Design System)', () => {
       expect(component.checked).toBeTrue();
     });
 
-    it('devrait propager les changements au ControlValueAccessor de l\'interrupteur', () => {
+    it('should propagate changes to toggle ControlValueAccessor', () => {
       component.writeValue(true);
       expect(component.checked).toBeTrue();
 
@@ -517,5 +516,3 @@ describe('Shared UI Components (Figma Design System)', () => {
     });
   });
 });
-
-

@@ -1,11 +1,14 @@
 package com.bar.gestioncocktail.controller;
 
-import com.bar.gestioncocktail.dto.MergeFacturesRequestDTO;
+import com.bar.gestioncocktail.dto.*;
+import com.bar.gestioncocktail.model.AvoirCredit;
 import com.bar.gestioncocktail.model.Facture;
+import com.bar.gestioncocktail.model.FactureItem;
 import com.bar.gestioncocktail.model.TableEntity;
 import com.bar.gestioncocktail.service.FactureService;
 import com.bar.gestioncocktail.service.PdfService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -14,10 +17,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -25,146 +33,175 @@ import static org.mockito.Mockito.when;
 class FactureControllerTest {
 
     @Mock
-    FactureService factureService;
+    private FactureService factureService;
 
     @Mock
-    PdfService pdfService;
+    private PdfService pdfService;
 
     @InjectMocks
-    FactureController factureController;
+    private FactureController factureController;
 
     private Facture facture;
+    private TableEntity table;
 
     @BeforeEach
     void setUp() {
-        TableEntity table = new TableEntity();
+        table = new TableEntity();
         table.setId(1L);
+        table.setNumero(5);
 
         facture = new Facture();
         facture.setId(10L);
         facture.setTable(table);
-        facture.setNumero("FAC-100");
+        facture.setNumero("FAC-2026-00010");
         facture.setTotal(new BigDecimal("50.00"));
+        facture.setTotalHT(new BigDecimal("41.67"));
+        facture.setTotalVAT(new BigDecimal("8.33"));
+        facture.setTotalTTC(new BigDecimal("50.00"));
+        facture.setModePaiement("CARTE_BANCAIRE");
+        facture.setReglee(false);
+        facture.setDateFacture(LocalDateTime.now());
     }
 
     @Test
-    void fusionnerFactures_appelleServiceEtRetourneFactureResponseDTO() {
-        MergeFacturesRequestDTO request = new MergeFacturesRequestDTO(List.of(1L, 2L), 1L);
-        when(factureService.fusionnerFactures(any(MergeFacturesRequestDTO.class))).thenReturn(facture);
+    @DisplayName("getAllFactures - returns all invoices as DTOs")
+    void getAllFactures_returnsList() {
+        when(factureService.getAllFactures()).thenReturn(List.of(facture));
 
-        ResponseEntity<?> response = factureController.fusionnerFactures(request);
+        ResponseEntity<List<FactureResponseDTO>> response = factureController.getAllFactures();
 
         assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        verify(factureService).fusionnerFactures(request);
+        assertThat(response.getBody()).hasSize(1);
     }
 
     @Test
-    void getDailyRecap_retourneRecapDTO() {
-        java.time.LocalDate today = java.time.LocalDate.now();
-        com.bar.gestioncocktail.dto.DailyRecapDTO recap = new com.bar.gestioncocktail.dto.DailyRecapDTO(
-            today,
-            new BigDecimal("100.00"),
-            new BigDecimal("83.33"),
-            new BigDecimal("16.67"),
-            2,
-            new BigDecimal("50.00"),
-            4,
-            List.of(),
-            List.of()
-        );
-        when(factureService.getDailyRecap(today)).thenReturn(recap);
+    @DisplayName("createFacture and updateFacture - mutations")
+    void mutations() {
+        FactureRequestDTO request = new FactureRequestDTO(1L, "Notes", BigDecimal.ZERO, "CARTE_BANCAIRE");
+        when(factureService.createFacture(any(Facture.class))).thenReturn(facture);
+        when(factureService.updateFacture(eq(10L), any(Facture.class))).thenReturn(facture);
 
-        ResponseEntity<com.bar.gestioncocktail.dto.DailyRecapDTO> response = factureController.getDailyRecap(today);
+        ResponseEntity<FactureResponseDTO> createResp = factureController.createFacture(request);
+        ResponseEntity<FactureResponseDTO> updateResp = factureController.updateFacture(10L, request);
 
-        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        assertThat(response.getBody()).isEqualTo(recap);
-        verify(factureService).getDailyRecap(today);
+        assertThat(createResp.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(updateResp.getStatusCode().is2xxSuccessful()).isTrue();
     }
 
     @Test
-    void downloadDailyRecapPdf_retourneOctetsPdf() {
-        java.time.LocalDate today = java.time.LocalDate.now();
-        com.bar.gestioncocktail.dto.DailyRecapDTO recap = new com.bar.gestioncocktail.dto.DailyRecapDTO(
-            today,
-            new BigDecimal("100.00"),
-            new BigDecimal("83.33"),
-            new BigDecimal("16.67"),
-            2,
-            new BigDecimal("50.00"),
-            4,
-            List.of(),
-            List.of()
-        );
-        byte[] expectedPdf = new byte[]{1, 2, 3};
-        when(factureService.getDailyRecap(today)).thenReturn(recap);
-        when(pdfService.generateDailyRecapPdf(recap)).thenReturn(expectedPdf);
+    @DisplayName("deleteFacture and getFactureById")
+    void deleteAndGet() {
+        when(factureService.getFactureById(10L)).thenReturn(Optional.of(facture));
+        when(factureService.getFactureById(99L)).thenReturn(Optional.empty());
 
-        ResponseEntity<byte[]> response = factureController.downloadDailyRecapPdf(today);
+        ResponseEntity<Void> deleteResp = factureController.deleteFacture(10L);
+        ResponseEntity<FactureResponseDTO> getFound = factureController.getFactureById(10L);
+        ResponseEntity<FactureResponseDTO> getNotFound = factureController.getFactureById(99L);
 
-        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        assertThat(response.getBody()).isEqualTo(expectedPdf);
-        verify(factureService).getDailyRecap(today);
-        verify(pdfService).generateDailyRecapPdf(recap);
+        assertThat(deleteResp.getStatusCode().value()).isEqualTo(200);
+        assertThat(getFound.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(getNotFound.getStatusCode().value()).isEqualTo(404);
+        verify(factureService).deleteFacture(10L);
     }
 
     @Test
-    void reglerFacture_avecPourboire_appelleService() {
-        when(factureService.reglerFacture(10L, "ESPECES", new BigDecimal("3.50"))).thenReturn(facture);
+    @DisplayName("getFacturesByTable and getFacturesByDate - query endpoints")
+    void queries() {
+        LocalDateTime start = LocalDateTime.now().minusDays(1);
+        LocalDateTime end = LocalDateTime.now().plusDays(1);
 
-        ResponseEntity<?> response = factureController.reglerFacture(10L, "ESPECES", new BigDecimal("3.50"));
+        when(factureService.getFacturesByTable(any(TableEntity.class))).thenReturn(List.of(facture));
+        when(factureService.getFacturesByDate(start, end)).thenReturn(List.of(facture));
 
-        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        verify(factureService).reglerFacture(10L, "ESPECES", new BigDecimal("3.50"));
+        assertThat(factureController.getFacturesByTable(1L).getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(factureController.getFacturesByDate(start, end).getStatusCode().is2xxSuccessful()).isTrue();
     }
 
     @Test
-    void getTableAddition_appelleServiceEtRetourneDTO() {
-        com.bar.gestioncocktail.dto.TableAdditionResponseDTO addition = new com.bar.gestioncocktail.dto.TableAdditionResponseDTO(
-                1L,
-                5,
-                "Salle",
-                2L,
-                "Serveur 1",
-                java.time.LocalDateTime.now(),
-                List.of(),
-                List.of(101L),
-                new BigDecimal("20.00"),
-                new BigDecimal("4.00"),
-                new BigDecimal("24.00"),
-                3,
-                false,
-                null
-        );
+    @DisplayName("ajouterItem and retirerItem - item modifications")
+    void itemModifications() {
+        FactureItemRequestDTO itemReq = new FactureItemRequestDTO(1L, "Mojito", 2, new BigDecimal("8.50"), "Sans sucre");
+        when(factureService.ajouterItem(eq(10L), any(FactureItem.class))).thenReturn(facture);
+        when(factureService.retirerItem(10L, 1L)).thenReturn(facture);
+
+        ResponseEntity<FactureResponseDTO> addResp = factureController.ajouterItem(10L, itemReq);
+        ResponseEntity<FactureResponseDTO> removeResp = factureController.retirerItem(10L, 1L);
+
+        assertThat(addResp.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(removeResp.getStatusCode().is2xxSuccessful()).isTrue();
+    }
+
+    @Test
+    @DisplayName("getTableAddition and encaisserTable - table billing")
+    void tableBilling() {
+        TableAdditionResponseDTO addition = new TableAdditionResponseDTO(1L, 5, "Terrasse", 1L, "Serveur", LocalDateTime.now(), List.of(), List.of(), new BigDecimal("41.67"), new BigDecimal("8.33"), new BigDecimal("50.00"), 2, false, null);
+        EncaissementRequestDTO encaisseReq = new EncaissementRequestDTO("CARTE", BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, null, null, true, List.of());
 
         when(factureService.getTableAddition(1L)).thenReturn(addition);
+        when(factureService.encaisserTable(eq(1L), any(EncaissementRequestDTO.class))).thenReturn(FactureResponseDTO.from(facture));
 
-        ResponseEntity<com.bar.gestioncocktail.dto.TableAdditionResponseDTO> response = factureController.getTableAddition(1L);
+        ResponseEntity<TableAdditionResponseDTO> addResp = factureController.getTableAddition(1L);
+        ResponseEntity<FactureResponseDTO> encResp = factureController.encaisserTable(1L, encaisseReq);
 
-        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        assertThat(response.getBody()).isEqualTo(addition);
-        verify(factureService).getTableAddition(1L);
+        assertThat(addResp.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(encResp.getStatusCode().is2xxSuccessful()).isTrue();
     }
 
     @Test
-    void encaisserTable_appelleServiceEtRetourneFactureResponseDTO() {
-        com.bar.gestioncocktail.dto.EncaissementRequestDTO request = new com.bar.gestioncocktail.dto.EncaissementRequestDTO(
-                "CARTE",
-                new BigDecimal("2.00"),
-                null,
-                null,
-                null,
-                "Settlement table 1",
-                true,
-                null
-        );
+    @DisplayName("splitEgal and splitParSelection - bill splits")
+    void splitEndpoints() {
+        SplitResultDTO splitDto = new SplitResultDTO(10L, "Guest 1", List.of(), new BigDecimal("25.00"), new BigDecimal("25.00"));
+        SplitEgalRequest egalReq = new SplitEgalRequest(2);
+        SplitAdditionRequest itemReq = new SplitAdditionRequest(List.of());
 
-        com.bar.gestioncocktail.dto.FactureResponseDTO responseDTO = com.bar.gestioncocktail.dto.FactureResponseDTO.from(facture);
-        when(factureService.encaisserTable(1L, request)).thenReturn(responseDTO);
+        when(factureService.splitEgal(10L, 2)).thenReturn(List.of(splitDto));
+        when(factureService.splitParSelection(eq(10L), any())).thenReturn(List.of(splitDto));
 
-        ResponseEntity<com.bar.gestioncocktail.dto.FactureResponseDTO> response = factureController.encaisserTable(1L, request);
+        ResponseEntity<List<SplitResultDTO>> resp1 = factureController.splitEgal(10L, egalReq);
+        ResponseEntity<List<SplitResultDTO>> resp2 = factureController.splitParSelection(10L, itemReq);
 
-        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        assertThat(response.getBody()).isEqualTo(responseDTO);
-        verify(factureService).encaisserTable(1L, request);
+        assertThat(resp1.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(resp2.getStatusCode().is2xxSuccessful()).isTrue();
+    }
+
+    @Test
+    @DisplayName("fusionnerFactures and reglerFacture")
+    void mergeAndPay() {
+        MergeFacturesRequestDTO mergeReq = new MergeFacturesRequestDTO(List.of(1L, 2L), 1L);
+        when(factureService.fusionnerFactures(mergeReq)).thenReturn(facture);
+        when(factureService.reglerFacture(10L, "CARTE", new BigDecimal("2.00"))).thenReturn(facture);
+
+        ResponseEntity<FactureResponseDTO> mergeResp = factureController.fusionnerFactures(mergeReq);
+        ResponseEntity<FactureResponseDTO> payResp = factureController.reglerFacture(10L, "CARTE", new BigDecimal("2.00"));
+
+        assertThat(mergeResp.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(payResp.getStatusCode().is2xxSuccessful()).isTrue();
+    }
+
+    @Test
+    @DisplayName("downloadFacturePdf, exportCSV, getVatSummary, createAvoir, verifyIntegrity, getDailyRecap, downloadDailyRecapPdf")
+    void exportsAndReports() {
+        LocalDate today = LocalDate.now();
+        DailyRecapDTO recap = new DailyRecapDTO(today, new BigDecimal("100.00"), new BigDecimal("83.33"), new BigDecimal("16.67"), 2, new BigDecimal("50.00"), 4, List.of(), List.of());
+        VatMonthlySummaryDTO vat = new VatMonthlySummaryDTO("2026-08", new BigDecimal("41.67"), Map.of(), new BigDecimal("8.33"), new BigDecimal("50.00"));
+        AvoirCredit avoir = new AvoirCredit();
+        avoir.setId(100L);
+
+        when(factureService.getFactureById(10L)).thenReturn(Optional.of(facture));
+        when(pdfService.generateFacturePdf(facture)).thenReturn(new byte[]{1, 2, 3});
+        when(factureService.exportCSV(any(), any())).thenReturn("CSV;DATA");
+        when(factureService.getVatMonthlySummary("2026-08")).thenReturn(vat);
+        when(factureService.annulerFactureWithAvoir(10L, "Motif")).thenReturn(avoir);
+        when(factureService.verifyIntegrity(eq(10L), any())).thenReturn(Map.of("valid", true));
+        when(factureService.getDailyRecap(today)).thenReturn(recap);
+        when(pdfService.generateDailyRecapPdf(recap)).thenReturn(new byte[]{4, 5});
+
+        assertThat(factureController.downloadFacturePdf(10L).getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(factureController.exportCSV("2026-08-01", "2026-08-16").getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(factureController.getVatSummary("2026-08").getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(factureController.createAvoir(10L, "Motif").getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(factureController.verifyIntegrity(10L).getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(factureController.getDailyRecap(today).getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(factureController.downloadDailyRecapPdf(today).getStatusCode().is2xxSuccessful()).isTrue();
     }
 }

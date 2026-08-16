@@ -243,7 +243,7 @@ class CocktailVarianteServiceTest {
     }
 
     @Test
-    void searchVariantes_delegueIgnoreCaseAuRepository() {
+    void searchVariantes_delegatesIgnoreCaseToRepository() {
         given(cocktailVarianteRepository.findByNomContainingIgnoreCase("SANS"))
                 .willReturn(List.of(variante));
 

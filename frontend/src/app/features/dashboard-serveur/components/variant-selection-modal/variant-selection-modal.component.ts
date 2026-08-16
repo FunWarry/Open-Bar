@@ -1,6 +1,8 @@
 import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { IonicModule, ModalController } from '@ionic/angular';
+import { CommonModule, DecimalPipe } from '@angular/common';
+import {
+  IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, IonContent, ModalController
+} from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { closeOutline, optionsOutline, checkmarkCircleOutline } from 'ionicons/icons';
 import { ProductItem, ProductVariant } from '../product-card/product-card.component';
@@ -8,7 +10,7 @@ import { ProductItem, ProductVariant } from '../product-card/product-card.compon
 @Component({
   selector: 'app-variant-selection-modal',
   standalone: true,
-  imports: [CommonModule, IonicModule],
+  imports: [CommonModule, DecimalPipe, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, IonContent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <ion-header class="ion-no-border">

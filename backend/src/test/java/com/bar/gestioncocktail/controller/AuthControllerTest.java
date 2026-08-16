@@ -30,26 +30,25 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class AuthControllerTest {
 
     @Mock
-    AuthenticationManager authenticationManager;
+    private AuthenticationManager authenticationManager;
 
     @Mock
-    JwtTokenProvider tokenProvider;
+    private JwtTokenProvider tokenProvider;
 
     @Mock
-    UserService userService;
+    private UserService userService;
 
     @Mock
-    RefreshTokenService refreshTokenService;
+    private RefreshTokenService refreshTokenService;
 
     @InjectMocks
-    AuthController authController;
+    private AuthController authController;
 
     private User user;
 
@@ -142,5 +141,48 @@ class AuthControllerTest {
         assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().accessToken()).isEqualTo("new-jwt-token");
+    }
+
+    @Test
+    @DisplayName("refreshToken - returns 401 when token not found")
+    void refreshToken_notFound_returns401() {
+        RefreshTokenRequest request = new RefreshTokenRequest("invalid-token");
+        when(refreshTokenService.findByToken("invalid-token")).thenReturn(Optional.empty());
+
+        ResponseEntity<TokenRefreshResponse> response = authController.refreshToken(request);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(401);
+    }
+
+    @Test
+    @DisplayName("refreshToken - returns 401 and deletes when token expired")
+    void refreshToken_expired_returns401() {
+        RefreshTokenRequest request = new RefreshTokenRequest("expired-token");
+        RefreshToken refreshToken = new RefreshToken();
+        refreshToken.setToken("expired-token");
+        refreshToken.setUser(user);
+
+        when(refreshTokenService.findByToken("expired-token")).thenReturn(Optional.of(refreshToken));
+        when(refreshTokenService.isExpired(refreshToken)).thenReturn(true);
+
+        ResponseEntity<TokenRefreshResponse> response = authController.refreshToken(request);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(401);
+        verify(refreshTokenService).deleteByUser(user);
+    }
+
+    @Test
+    @DisplayName("logout - cleans up user refresh tokens and clears context")
+    void logout_authenticatedAndAnonymous() {
+        Authentication auth = mock(Authentication.class);
+        when(auth.getName()).thenReturn("testuser");
+        when(userService.getUserByUsername("testuser")).thenReturn(Optional.of(user));
+
+        ResponseEntity<Void> resp1 = authController.logout(auth);
+        ResponseEntity<Void> resp2 = authController.logout(null);
+
+        assertThat(resp1.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(resp2.getStatusCode().is2xxSuccessful()).isTrue();
+        verify(refreshTokenService).deleteByUser(user);
     }
 }

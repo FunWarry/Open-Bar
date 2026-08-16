@@ -7,51 +7,57 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class SecurityConfigTest {
 
     @Mock
-    JwtAuthenticationFilter jwtAuthFilter;
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Mock
-    JwtAuthorizationFilter jwtAuthorFilter;
-
-    @Mock
-    AuthenticationConfiguration authConfig;
-
-    @Mock
-    AuthenticationManager authManager;
+    private JwtAuthorizationFilter jwtAuthorizationFilter;
 
     @Test
-    @DisplayName("corsConfigurationSource - should build non-null CORS configuration source with PATCH allowed")
-    void corsConfigurationSource_returnsValidSource() {
-        SecurityConfig config = new SecurityConfig(jwtAuthFilter, jwtAuthorFilter);
-
+    @DisplayName("corsConfigurationSource - validates allowed origins, methods, and credentials")
+    void corsConfigurationSource_validConfig() {
+        SecurityConfig config = new SecurityConfig(jwtAuthenticationFilter, jwtAuthorizationFilter);
         CorsConfigurationSource source = config.corsConfigurationSource();
 
-        assertThat(source).isNotNull();
-        org.springframework.web.cors.CorsConfiguration corsConfig = ((org.springframework.web.cors.UrlBasedCorsConfigurationSource) source)
-                .getCorsConfigurations().get("/**");
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setRequestURI("/api/cocktails");
+
+        CorsConfiguration corsConfig = source.getCorsConfiguration(request);
+
         assertThat(corsConfig).isNotNull();
+        assertThat(corsConfig.getAllowCredentials()).isTrue();
         assertThat(corsConfig.getAllowedMethods()).contains("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS");
+        assertThat(corsConfig.getAllowedOriginPatterns()).contains(
+                "http://localhost:[*]",
+                "http://127.0.0.1:[*]",
+                "http://192.168.[*]",
+                "http://10.[*]"
+        );
     }
 
     @Test
-    @DisplayName("authenticationManager - should delegate to AuthenticationConfiguration")
-    void authenticationManager_delegatesToConfig() {
-        SecurityConfig config = new SecurityConfig(jwtAuthFilter, jwtAuthorFilter);
+    @DisplayName("authenticationManager - delegates to AuthenticationConfiguration")
+    void authenticationManager_delegates() {
+        SecurityConfig config = new SecurityConfig(jwtAuthenticationFilter, jwtAuthorizationFilter);
+        AuthenticationConfiguration authConfig = mock(AuthenticationConfiguration.class);
+        AuthenticationManager authManager = mock(AuthenticationManager.class);
 
         when(authConfig.getAuthenticationManager()).thenReturn(authManager);
 
         AuthenticationManager result = config.authenticationManager(authConfig);
-
         assertThat(result).isEqualTo(authManager);
     }
 }

@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonicModule } from '@ionic/angular';
+import { IonIcon } from '@ionic/angular/standalone';
 import { StockSeverityBadgeComponent } from '../../../../core/components/ui/stock-severity-badge/stock-severity-badge.component';
 import { addIcons } from 'ionicons';
 import { wineOutline, beerOutline, waterOutline, flameOutline, fastFoodOutline } from 'ionicons/icons';
@@ -28,7 +28,7 @@ export interface ProductItem {
 @Component({
   selector: 'app-product-card',
   standalone: true,
-  imports: [CommonModule, IonicModule, StockSeverityBadgeComponent],
+  imports: [CommonModule, IonIcon, StockSeverityBadgeComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './product-card.component.html',
   styleUrls: ['./product-card.component.scss'],
