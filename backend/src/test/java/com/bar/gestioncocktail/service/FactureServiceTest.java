@@ -810,13 +810,13 @@ class FactureServiceTest {
         f1.setTable(table);
         f1.setReglee(false);
 
-        FactureItem item1 = new FactureItem();
-        item1.setId(101L);
-        item1.setQuantite(2);
-        item1.setPrixUnitaire(new BigDecimal("8.00"));
-        item1.setTotal(new BigDecimal("16.00"));
-        item1.setDescription("Mojito");
-        f1.setItems(List.of(item1));
+        FactureItem factureItem1 = new FactureItem();
+        factureItem1.setId(101L);
+        factureItem1.setQuantite(2);
+        factureItem1.setPrixUnitaire(new BigDecimal("8.00"));
+        factureItem1.setTotal(new BigDecimal("16.00"));
+        factureItem1.setDescription("Mojito");
+        f1.setItems(List.of(factureItem1));
 
         Facture f2 = new Facture();
         f2.setId(20L);
@@ -824,13 +824,13 @@ class FactureServiceTest {
         f2.setTable(table);
         f2.setReglee(false);
 
-        FactureItem item2 = new FactureItem();
-        item2.setId(102L);
-        item2.setQuantite(1);
-        item2.setPrixUnitaire(new BigDecimal("10.00"));
-        item2.setTotal(null); // tests null total branch
-        item2.setDescription("Gin Tonic");
-        f2.setItems(List.of(item2));
+        FactureItem factureItem2 = new FactureItem();
+        factureItem2.setId(102L);
+        factureItem2.setQuantite(1);
+        factureItem2.setPrixUnitaire(new BigDecimal("10.00"));
+        factureItem2.setTotal(null); // tests null total branch
+        factureItem2.setDescription("Gin Tonic");
+        f2.setItems(List.of(factureItem2));
 
         when(factureRepository.findAllById(List.of(10L, 20L))).thenReturn(List.of(f1, f2));
 
