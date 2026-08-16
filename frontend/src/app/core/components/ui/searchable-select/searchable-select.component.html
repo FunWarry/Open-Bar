@@ -1,0 +1,157 @@
+<div
+  class="searchable-select-container"
+  [class.is-open]="isOpen()"
+  [class.is-disabled]="disabled"
+  [attr.data-testid]="testId">
+
+  <!-- Optional Accessible Label -->
+  @if (label) {
+    <label [for]="selectId" class="select-label">
+      {{ label }}
+      @if (required) {
+        <span class="required-star">*</span>
+      }
+    </label>
+  }
+
+  <!-- Trigger Button Box -->
+  <button
+    #triggerButton
+    [id]="selectId"
+    type="button"
+    class="select-trigger"
+    [disabled]="disabled"
+    (click)="toggleDropdown()"
+    (keydown)="onKeyDown($event)"
+    [attr.data-testid]="testId + '-trigger'"
+    [attr.aria-expanded]="isOpen()"
+    aria-haspopup="listbox">
+
+    <div class="trigger-content">
+      @if (selectedOption(); as sel) {
+        <div class="selected-item-display">
+          @if (sel.icon) {
+            <ion-icon [name]="sel.icon" class="item-icon"></ion-icon>
+          }
+          <span class="item-label">{{ sel.label }}</span>
+          @if (sel.badge) {
+            <span class="item-badge" [ngClass]="'badge-' + (sel.badgeType || 'neutral')">
+              {{ sel.badge }}
+            </span>
+          }
+          @if (sel.subLabel) {
+            <span class="item-sublabel">{{ sel.subLabel }}</span>
+          }
+        </div>
+      } @else {
+        <span class="placeholder-text">{{ placeholder }}</span>
+      }
+    </div>
+
+    <div class="trigger-actions">
+      @if (clearable && selectedOption() && !disabled) {
+        <button
+          type="button"
+          class="clear-btn"
+          (click)="clearSelection($event)"
+          [attr.data-testid]="testId + '-clear-btn'"
+          aria-label="Effacer la sélection"
+          title="Effacer">
+          <ion-icon name="close-circle-outline"></ion-icon>
+        </button>
+      }
+      <ion-icon name="chevron-down-outline" class="chevron-icon"></ion-icon>
+    </div>
+  </button>
+
+  <!-- Dropdown Overlay Panel -->
+  @if (isOpen()) {
+    <div class="dropdown-panel" [attr.data-testid]="testId + '-dropdown'">
+      <!-- Search Bar -->
+      <div class="search-box">
+        <ion-icon name="search-outline" class="search-icon"></ion-icon>
+        <input
+          #searchInput
+          [id]="selectId + '-search'"
+          type="text"
+          class="search-input"
+          [placeholder]="searchPlaceholder"
+          [attr.aria-label]="searchPlaceholder"
+          [value]="searchQuery()"
+          (input)="onSearchInput($event)"
+          (keydown)="onKeyDown($event)"
+          [attr.data-testid]="testId + '-search-input'"
+          autocomplete="off">
+        @if (searchQuery()) {
+          <button
+            type="button"
+            class="search-clear-btn"
+            aria-label="Effacer la recherche"
+            (click)="searchQuery.set(''); searchInput.value = ''; onSearchInput($event)">
+            <ion-icon name="close-circle-outline"></ion-icon>
+          </button>
+        }
+      </div>
+
+      <!-- Options List -->
+      <div class="options-list">
+        @if (filteredOptions().length === 0) {
+          <div class="empty-option-msg" [attr.data-testid]="testId + '-empty-msg'">
+            <ion-icon name="search-outline"></ion-icon>
+            <span>{{ emptyMessage }}</span>
+          </div>
+        }
+
+        @for (opt of filteredOptions(); track opt.value; let idx = $index) {
+          <button
+            type="button"
+            class="option-item"
+            [class.is-selected]="opt.value === value"
+            [class.is-highlighted]="idx === highlightedIndex()"
+            [class.is-disabled]="opt.disabled"
+            [disabled]="opt.disabled"
+            (click)="selectOption(opt, $event)"
+            [attr.data-testid]="testId + '-option-' + opt.value">
+
+            <div class="option-content">
+              @if (opt.icon) {
+                <ion-icon [name]="opt.icon" class="option-icon"></ion-icon>
+              }
+              <div class="option-text-stack">
+                <span class="option-title">{{ opt.label }}</span>
+                @if (opt.subLabel) {
+                  <span class="option-subtitle">{{ opt.subLabel }}</span>
+                }
+              </div>
+            </div>
+
+            <div class="option-extras">
+              @if (opt.badge) {
+                <span class="option-badge" [ngClass]="'badge-' + (opt.badgeType || 'neutral')">
+                  {{ opt.badge }}
+                </span>
+              }
+              @if (opt.value === value) {
+                <ion-icon name="checkmark-outline" class="check-icon"></ion-icon>
+              }
+            </div>
+          </button>
+        }
+      </div>
+
+      <!-- Optional Bottom Action (e.g. + Nouveau modèle) -->
+      @if (actionButtonLabel) {
+        <div class="dropdown-footer">
+          <button
+            type="button"
+            class="dropdown-action-btn"
+            (click)="onActionClick($event)"
+            [attr.data-testid]="testId + '-action-btn'">
+            <ion-icon [name]="actionButtonIcon || 'add-outline'"></ion-icon>
+            <span>{{ actionButtonLabel }}</span>
+          </button>
+        </div>
+      }
+    </div>
+  }
+</div>

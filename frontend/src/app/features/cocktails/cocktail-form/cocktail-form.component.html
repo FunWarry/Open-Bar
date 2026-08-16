@@ -119,24 +119,15 @@
 
               <!-- Category Select Field -->
               <div class="field-container">
-                <label class="field-label" for="category-select">
-                  {{ 'COCKTAILS.CATEGORY' | transloco }} <span class="required-star">*</span>
-                </label>
-                <div class="select-wrapper" [class.has-error]="cocktailForm.get('category')?.touched && cocktailForm.get('category')?.hasError('required')">
-                  <select
-                    id="category-select"
-                    formControlName="category"
-                    class="native-select"
-                    data-testid="cocktail-form-category-select">
-                    <option value="" disabled selected>{{ 'COMMON.SELECT' | transloco }}</option>
-                    <option value="ALCOOLISE">{{ 'COCKTAILS.CATEGORIES.ALCOOLISE' | transloco }}</option>
-                    <option value="SANS_ALCOOL">{{ 'COCKTAILS.CATEGORIES.SANS_ALCOOL' | transloco }}</option>
-                    <option value="SHOT">{{ 'COCKTAILS.CATEGORIES.SHOT' | transloco }}</option>
-                    <option value="APERITIF">{{ 'COCKTAILS.CATEGORIES.APERITIF' | transloco }}</option>
-                    <option value="DIGESTIF">{{ 'COCKTAILS.CATEGORIES.DIGESTIF' | transloco }}</option>
-                    <option value="SPECIAL">{{ 'COCKTAILS.CATEGORIES.SPECIAL' | transloco }}</option>
-                  </select>
-                </div>
+                <app-searchable-select
+                  formControlName="category"
+                  [label]="('COCKTAILS.CATEGORY' | transloco) + ' *'"
+                  [placeholder]="'COMMON.SELECT' | transloco"
+                  [searchPlaceholder]="'Rechercher une catégorie...'"
+                  [required]="true"
+                  [options]="categoryOptions()"
+                  testId="cocktail-form-category-select">
+                </app-searchable-select>
               </div>
 
               <app-input-field
@@ -275,18 +266,15 @@
                     @if (stepGroup.get('stepType')?.value === 'INGREDIENT') {
                       <div class="ingredient-block-inputs">
                         <div class="field-item ingredient-select-col">
-                          <label [for]="'ing-select-' + i">{{ 'COCKTAILS.BUILDER.SELECT_INGREDIENT' | transloco }}</label>
-                          <select
-                            [id]="'ing-select-' + i"
-                            class="native-select"
-                            [value]="stepGroup.get('ingredientId')?.value || ''"
-                            (change)="onIngredientSelected(i, $any($event.target).value)"
-                            [attr.data-testid]="'select-ingredient-' + i">
-                            <option value="" disabled>{{ 'COCKTAILS.BUILDER.SELECT_INGREDIENT' | transloco }}</option>
-                            @for (ing of ingredientsList(); track ing.id) {
-                              <option [value]="ing.id">{{ ing.nom }} ({{ ing.uniteMesure }})</option>
-                            }
-                          </select>
+                          <app-searchable-select
+                            [label]="'COCKTAILS.BUILDER.SELECT_INGREDIENT' | transloco"
+                            [placeholder]="'COCKTAILS.BUILDER.SELECT_INGREDIENT' | transloco"
+                            [searchPlaceholder]="'Rechercher un ingrédient...'"
+                            [options]="ingredientOptions()"
+                            [value]="stepGroup.get('ingredientId')?.value"
+                            [testId]="'select-ingredient-' + i"
+                            (selectionChange)="onIngredientOptionSelected(i, $event)">
+                          </app-searchable-select>
                         </div>
 
                         <div class="field-item qty-col">
@@ -330,29 +318,17 @@
                     @if (stepGroup.get('stepType')?.value === 'ACTION_TEMPLATE') {
                       <div class="template-block-inputs">
                         <div class="field-item template-select-col">
-                          <label [for]="'tpl-select-' + i">{{ 'COCKTAILS.BUILDER.SELECT_TEMPLATE' | transloco }}</label>
-                          <div class="select-with-btn">
-                            <select
-                              [id]="'tpl-select-' + i"
-                              class="native-select"
-                              [value]="stepGroup.get('templateId')?.value || ''"
-                              (change)="onTemplateSelected(i, $any($event.target).value)"
-                              [attr.data-testid]="'select-template-' + i">
-                              <option value="" disabled>{{ 'COCKTAILS.BUILDER.SELECT_TEMPLATE' | transloco }}</option>
-                              @for (tpl of templatesList(); track tpl.id) {
-                                <option [value]="tpl.id">{{ tpl.name }} ({{ tpl.defaultDurationSeconds }}s)</option>
-                              }
-                            </select>
-
-                            <button
-                              type="button"
-                              class="btn-inline-new-tpl"
-                              (click)="openCreateTemplateModal(stepGroup)"
-                              data-testid="btn-open-create-template-modal"
-                              [title]="'COCKTAILS.BUILDER.SAVE_AS_NEW_TEMPLATE' | transloco">
-                              + Nouveau modèle
-                            </button>
-                          </div>
+                          <app-searchable-select
+                            [label]="'COCKTAILS.BUILDER.SELECT_TEMPLATE' | transloco"
+                            [placeholder]="'COCKTAILS.BUILDER.SELECT_TEMPLATE' | transloco"
+                            [searchPlaceholder]="'Rechercher une action ou modèle...'"
+                            [options]="templateOptions()"
+                            [value]="stepGroup.get('templateId')?.value"
+                            [testId]="'select-template-' + i"
+                            [actionButtonLabel]="'+ ' + ('COCKTAILS.BUILDER.SAVE_AS_NEW_TEMPLATE' | transloco)"
+                            (actionButtonClick)="openCreateTemplateModal(stepGroup)"
+                            (selectionChange)="onTemplateOptionSelected(i, $event)">
+                          </app-searchable-select>
                         </div>
 
                         <div class="field-item duration-col">
@@ -729,20 +705,15 @@
           </div>
 
           <div class="field-item">
-            <label for="modal-tpl-type-select">{{ 'COCKTAILS.BUILDER.TEMPLATE_ACTION_TYPE' | transloco }}</label>
-            <select id="modal-tpl-type-select" [(ngModel)]="newTemplateActionType" class="native-select" data-testid="modal-template-type-select">
-              <option value="SHAKE">{{ 'COCKTAILS.ACTIONS.SHAKE' | transloco }}</option>
-              <option value="STRAIN">{{ 'COCKTAILS.ACTIONS.STRAIN' | transloco }}</option>
-              <option value="MUDDLE">{{ 'COCKTAILS.ACTIONS.MUDDLE' | transloco }}</option>
-              <option value="STIR">{{ 'COCKTAILS.ACTIONS.STIR' | transloco }}</option>
-              <option value="ADD_ICE">{{ 'COCKTAILS.ACTIONS.ADD_ICE' | transloco }}</option>
-              <option value="POUR">{{ 'COCKTAILS.ACTIONS.POUR' | transloco }}</option>
-              <option value="TOP_UP">{{ 'COCKTAILS.ACTIONS.TOP_UP' | transloco }}</option>
-              <option value="GARNISH">{{ 'COCKTAILS.ACTIONS.GARNISH' | transloco }}</option>
-              <option value="BLEND">{{ 'COCKTAILS.ACTIONS.BLEND' | transloco }}</option>
-              <option value="FLAME">{{ 'COCKTAILS.ACTIONS.FLAME' | transloco }}</option>
-              <option value="OTHER">{{ 'COCKTAILS.ACTIONS.OTHER' | transloco }}</option>
-            </select>
+            <app-searchable-select
+              [label]="'COCKTAILS.BUILDER.TEMPLATE_ACTION_TYPE' | transloco"
+              [placeholder]="'Sélectionner une action'"
+              [searchPlaceholder]="'Rechercher un type d\'action...'"
+              [options]="actionTypeOptions()"
+              [value]="newTemplateActionType"
+              testId="modal-template-type-select"
+              (selectionChange)="onModalActionTypeSelected($event)">
+            </app-searchable-select>
           </div>
 
           <div class="field-item">

@@ -69,7 +69,7 @@ public record CocktailResponseDTO(
             ings = (c.getIngredients() != null && org.hibernate.Hibernate.isInitialized(c.getIngredients()))
                 ? c.getIngredients().stream().map(CocktailIngredientResponseDTO::from).toList()
                 : Collections.emptyList();
-        } catch (Exception e) {
+        } catch (Exception _) {
             ings = Collections.emptyList();
         }
 
@@ -78,7 +78,7 @@ public record CocktailResponseDTO(
             vars = (c.getVariantes() != null && org.hibernate.Hibernate.isInitialized(c.getVariantes()))
                 ? c.getVariantes().stream().map(CocktailVarianteResponseDTO::from).toList()
                 : Collections.emptyList();
-        } catch (Exception e) {
+        } catch (Exception _) {
             vars = Collections.emptyList();
         }
 
@@ -87,7 +87,7 @@ public record CocktailResponseDTO(
             steps = (c.getRecipeSteps() != null && org.hibernate.Hibernate.isInitialized(c.getRecipeSteps()))
                 ? c.getRecipeSteps().stream().map(CocktailRecipeStepResponseDTO::from).toList()
                 : Collections.emptyList();
-        } catch (Exception e) {
+        } catch (Exception _) {
             steps = Collections.emptyList();
         }
 

@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, inject } from '@angular/core';
+import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
@@ -66,6 +66,10 @@ import {
 } from '../../../core/models/recipe-step.model';
 import { InputFieldComponent } from '../../../core/components/ui/input-field/input-field.component';
 import { ActionButtonComponent } from '../../../core/components/ui/action-button/action-button.component';
+import {
+  SearchableSelectComponent,
+  SearchableOption,
+} from '../../../core/components/ui/searchable-select/searchable-select.component';
 import { CocktailSaisonnaliteComponent } from '../cocktail-saisonnalite/cocktail-saisonnalite.component';
 import { CommonModule } from '@angular/common';
 
@@ -94,6 +98,7 @@ import { CommonModule } from '@angular/common';
     TranslocoModule,
     InputFieldComponent,
     ActionButtonComponent,
+    SearchableSelectComponent,
     CocktailSaisonnaliteComponent,
   ],
 })
@@ -121,6 +126,58 @@ export class CocktailFormComponent implements OnInit {
   // Available database items for dropdowns
   ingredientsList = signal<Ingredient[]>([]);
   templatesList = signal<RecipeStepTemplate[]>([]);
+
+  // Category options for searchable combobox
+  categoryOptions = computed<SearchableOption[]>(() => [
+    { value: 'ALCOOLISE', label: this.transloco.translate('COCKTAILS.CATEGORIES.ALCOOLISE'), icon: 'wine-outline' },
+    { value: 'SANS_ALCOOL', label: this.transloco.translate('COCKTAILS.CATEGORIES.SANS_ALCOOL'), icon: 'water-outline' },
+    { value: 'SHOT', label: this.transloco.translate('COCKTAILS.CATEGORIES.SHOT'), icon: 'flame-outline' },
+    { value: 'APERITIF', label: this.transloco.translate('COCKTAILS.CATEGORIES.APERITIF'), icon: 'restaurant-outline' },
+    { value: 'DIGESTIF', label: this.transloco.translate('COCKTAILS.CATEGORIES.DIGESTIF'), icon: 'wine-outline' },
+    { value: 'SPECIAL', label: this.transloco.translate('COCKTAILS.CATEGORIES.SPECIAL'), icon: 'sparkles-outline' },
+  ]);
+
+  // Ingredient options with live search, unit badges, and stock indicators
+  ingredientOptions = computed<SearchableOption[]>(() => {
+    return this.ingredientsList().map((ing) => ({
+      value: ing.id,
+      label: ing.nom,
+      badge: ing.uniteMesure || undefined,
+      badgeType:
+        ing.quantiteStock != null && ing.seuilAlerte != null && ing.quantiteStock <= ing.seuilAlerte
+          ? 'warning'
+          : 'neutral',
+      subLabel: ing.quantiteStock != null ? `Stock: ${ing.quantiteStock} ${ing.uniteMesure || ''}` : undefined,
+      icon: 'leaf-outline',
+    }));
+  });
+
+  // Action template options with duration badges and action icons
+  templateOptions = computed<SearchableOption[]>(() => {
+    return this.templatesList().map((tpl) => ({
+      value: tpl.id,
+      label: tpl.name,
+      badge: tpl.defaultDurationSeconds ? `${tpl.defaultDurationSeconds}s` : undefined,
+      badgeType: 'primary',
+      subLabel: tpl.description || undefined,
+      icon: this.getActionIcon(tpl.actionType),
+    }));
+  });
+
+  // Action type options for template creation modal
+  actionTypeOptions = computed<SearchableOption[]>(() => [
+    { value: 'SHAKE', label: this.transloco.translate('COCKTAILS.ACTIONS.SHAKE'), icon: 'sync-outline' },
+    { value: 'STRAIN', label: this.transloco.translate('COCKTAILS.ACTIONS.STRAIN'), icon: 'funnel-outline' },
+    { value: 'MUDDLE', label: this.transloco.translate('COCKTAILS.ACTIONS.MUDDLE'), icon: 'hammer-outline' },
+    { value: 'STIR', label: this.transloco.translate('COCKTAILS.ACTIONS.STIR'), icon: 'funnel-outline' },
+    { value: 'ADD_ICE', label: this.transloco.translate('COCKTAILS.ACTIONS.ADD_ICE'), icon: 'cube-outline' },
+    { value: 'POUR', label: this.transloco.translate('COCKTAILS.ACTIONS.POUR'), icon: 'water-outline' },
+    { value: 'TOP_UP', label: this.transloco.translate('COCKTAILS.ACTIONS.TOP_UP'), icon: 'water-outline' },
+    { value: 'GARNISH', label: this.transloco.translate('COCKTAILS.ACTIONS.GARNISH'), icon: 'leaf-outline' },
+    { value: 'BLEND', label: this.transloco.translate('COCKTAILS.ACTIONS.BLEND'), icon: 'hardware-chip-outline' },
+    { value: 'FLAME', label: this.transloco.translate('COCKTAILS.ACTIONS.FLAME'), icon: 'flame-outline' },
+    { value: 'OTHER', label: this.transloco.translate('COCKTAILS.ACTIONS.OTHER'), icon: 'sparkles-outline' },
+  ]);
 
   // Interactive portions count for preview scaling
   previewPortions = signal<number>(1);
@@ -331,11 +388,20 @@ export class CocktailFormComponent implements OnInit {
     this.recipeStepsArray.push(group);
   }
 
-  onIngredientSelected(index: number, ingredientIdStr: string): void {
-    const ingredientId = +ingredientIdStr;
-    const ingredient = this.ingredientsList().find((i) => i.id === ingredientId);
+  onIngredientOptionSelected(index: number, option: SearchableOption | null): void {
     const stepGroup = this.recipeStepsArray.at(index) as FormGroup;
-    if (ingredient && stepGroup) {
+    if (!stepGroup) return;
+
+    if (!option) {
+      stepGroup.patchValue({
+        ingredientId: null,
+        ingredientNom: '',
+      });
+      return;
+    }
+
+    const ingredient = this.ingredientsList().find((i) => i.id === option.value);
+    if (ingredient) {
       stepGroup.patchValue({
         ingredientId: ingredient.id,
         ingredientNom: ingredient.nom,
@@ -344,11 +410,20 @@ export class CocktailFormComponent implements OnInit {
     }
   }
 
-  onTemplateSelected(index: number, templateIdStr: string): void {
-    const templateId = +templateIdStr;
-    const template = this.templatesList().find((t) => t.id === templateId);
+  onTemplateOptionSelected(index: number, option: SearchableOption | null): void {
     const stepGroup = this.recipeStepsArray.at(index) as FormGroup;
-    if (template && stepGroup) {
+    if (!stepGroup) return;
+
+    if (!option) {
+      stepGroup.patchValue({
+        templateId: null,
+        templateName: '',
+      });
+      return;
+    }
+
+    const template = this.templatesList().find((t) => t.id === option.value);
+    if (template) {
       stepGroup.patchValue({
         templateId: template.id,
         templateName: template.name,
@@ -356,6 +431,12 @@ export class CocktailFormComponent implements OnInit {
         durationSeconds: template.defaultDurationSeconds,
         customText: template.description || '',
       });
+    }
+  }
+
+  onModalActionTypeSelected(option: SearchableOption | null): void {
+    if (option) {
+      this.newTemplateActionType = option.value as RecipeStepActionType;
     }
   }
 

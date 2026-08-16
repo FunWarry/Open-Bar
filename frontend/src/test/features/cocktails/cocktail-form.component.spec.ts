@@ -220,18 +220,21 @@ describe('CocktailFormComponent', () => {
 
     it('should handle ingredient and template selection events', () => {
       component.addIngredientBlock();
-      component.onIngredientSelected(0, '1');
+      component.onIngredientOptionSelected(0, { value: 1, label: 'White Rum' });
       const step0 = component.recipeStepsArray.at(0);
       expect(step0.get('ingredientId')?.value).toBe(1);
       expect(step0.get('ingredientNom')?.value).toBe('White Rum');
       expect(step0.get('unite')?.value).toBe('cl');
 
       component.addActionTemplateBlock();
-      component.onTemplateSelected(1, '2');
+      component.onTemplateOptionSelected(1, { value: 2, label: 'Muddle gently' });
       const step1 = component.recipeStepsArray.at(1);
       expect(step1.get('templateId')?.value).toBe(2);
       expect(step1.get('templateName')?.value).toBe('Muddle gently');
       expect(step1.get('actionType')?.value).toBe('MUDDLE');
+
+      component.onModalActionTypeSelected({ value: 'FLAME', label: 'Flamber' });
+      expect(component.newTemplateActionType).toBe('FLAME');
     });
 
     it('should scale quantities properly when adjusting portions', () => {
