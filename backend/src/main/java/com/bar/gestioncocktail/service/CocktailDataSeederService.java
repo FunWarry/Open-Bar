@@ -173,7 +173,7 @@ public class CocktailDataSeederService {
         if (node.hasNonNull("categorie")) {
             try {
                 return CocktailCategorie.valueOf(node.get("categorie").asText().trim());
-            } catch (IllegalArgumentException | NullPointerException e) {
+            } catch (IllegalArgumentException | NullPointerException _) {
                 // fallback to automatic detection
             }
         }

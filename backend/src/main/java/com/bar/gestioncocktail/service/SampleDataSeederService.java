@@ -471,9 +471,10 @@ public class SampleDataSeederService {
         cmd.setNotes(notes);
 
         List<CommandeItem> items = buildOrderItems(cmd, oNode.get(KEY_ITEMS), cocktails);
-        BigDecimal total = items.stream()
-                .map(it -> it.getPrixUnitaire().multiply(BigDecimal.valueOf(it.getQuantite())))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal total = BigDecimal.ZERO;
+        for (CommandeItem it : items) {
+            total = total.add(it.getPrixUnitaire().multiply(BigDecimal.valueOf(it.getQuantite())));
+        }
 
         cmd.setItems(items);
         cmd.setTotal(total);
