@@ -87,7 +87,7 @@ describe('AppComponent', () => {
     expect(app).toBeTruthy();
   });
 
-  it('ngOnInit appelle getSettings() et gère les succès et erreurs', () => {
+  it('ngOnInit calls getSettings() and handles success and errors', () => {
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;
 
@@ -95,7 +95,7 @@ describe('AppComponent', () => {
     expect(mockAppSettingsService.getSettings).toHaveBeenCalled();
   });
 
-  it('ngOnInit gère l\'erreur getSettings() sans planter', () => {
+  it('ngOnInit handles getSettings() error gracefully', () => {
     mockAppSettingsService.getSettings.and.returnValue(throwError(() => new Error('API indisponible')));
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;
@@ -103,7 +103,7 @@ describe('AppComponent', () => {
     expect(() => app.ngOnInit()).not.toThrow();
   });
 
-  it('showNavbar$ est vrai pour un utilisateur connecté sur une route normale', fakeAsync(() => {
+  it('showNavbar$ is true for connected user on regular route', fakeAsync(() => {
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;
 

@@ -1,3 +1,4 @@
+import { getTranslocoTestingModule } from '../../../transloco-testing.module';
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { DashboardManagerService } from '../../../../app/features/dashboard-manager/services/dashboard-manager.service';
@@ -26,7 +27,7 @@ describe('DashboardManagerService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
+      imports: [HttpClientTestingModule, getTranslocoTestingModule()],
       providers: [DashboardManagerService]
     });
     service = TestBed.inject(DashboardManagerService);

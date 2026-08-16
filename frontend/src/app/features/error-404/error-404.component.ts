@@ -5,7 +5,7 @@ import { ActionButtonComponent } from '../../core/components/ui/action-button/ac
 
 /**
  * 404 Error Component displayed when navigating to non-existing routes.
- * Aligned with Figma Vue système commun 404 specs (`540:1040`).
+ * Aligned with Figma Common system view 404 specs (`540:1040`).
  */
 @Component({
   selector: 'app-error-404',

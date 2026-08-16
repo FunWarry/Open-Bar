@@ -30,7 +30,7 @@ import java.util.Optional;
 @Service
 @Transactional
 public class CommandeService {
-    private static final String COMMANDE_NOT_FOUND = "Commande non trouvée avec l'id: ";
+    private static final String COMMANDE_NOT_FOUND = "Order not found with id: ";
 
     private final CommandeRepository commandeRepository;
     private final CommandeItemRepository commandeItemRepository;
@@ -157,8 +157,7 @@ public class CommandeService {
 
         switch (nouveauStatut) {
             case EN_PREPARATION:
-                // Idempotence : ne déstocke qu'une seule fois, même en cas de retry ou de
-                // réactivation depuis ANNULEE
+                // Idempotence: only deduct stock once, even on retry or reactivation from ANNULEE
                 if (commande.getDatePreparation() == null) {
                     commande.setDatePreparation(timeService.now());
                     destockerIngredients(commande);
@@ -290,7 +289,7 @@ public class CommandeService {
         Commande commande = commandeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(COMMANDE_NOT_FOUND + id));
         TableEntity targetTable = tableRepository.findById(newTableId)
-                .orElseThrow(() -> new ResourceNotFoundException("Table non trouvée avec l'id: " + newTableId));
+                .orElseThrow(() -> new ResourceNotFoundException("Table not found with id: " + newTableId));
 
         commande.setTable(targetTable);
         commande.setUpdatedAt(timeService.now());

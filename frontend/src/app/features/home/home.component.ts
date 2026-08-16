@@ -3,7 +3,8 @@ import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs';
 import { selectCurrentUser, selectIsAdmin, selectIsBarman, selectIsManager, selectIsServeur } from '../../core/store/auth.selectors';
 import { Router, RouterLink } from '@angular/router';
-import { NgIf, NgFor, AsyncPipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { ActionButtonComponent } from '../../core/components/ui/action-button/action-button.component';
 import { RoleBadgeComponent } from '../../core/components/ui/role-badge/role-badge.component';
 
@@ -12,7 +13,7 @@ import { RoleBadgeComponent } from '../../core/components/ui/role-badge/role-bad
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.css'],
   standalone: true,
-  imports: [NgIf, NgFor, AsyncPipe, RouterLink, ActionButtonComponent, RoleBadgeComponent]
+  imports: [CommonModule, RouterLink, ActionButtonComponent, RoleBadgeComponent, TranslocoPipe]
 })
 export class HomeComponent {
   currentUser$: Observable<any>;

@@ -72,9 +72,9 @@
       <div class="simulation-box">
         <span class="sim-label">{{ 'CLIENT_QR.SIMULATION_LABEL' | transloco }}</span>
         <div class="sim-buttons">
-          <button type="button" class="sim-btn" (click)="simulateScan(1)" data-testid="btn-sim-table-1">Table 1</button>
-          <button type="button" class="sim-btn" (click)="simulateScan(4)" data-testid="btn-sim-table-4">Table 4</button>
-          <button type="button" class="sim-btn" (click)="simulateScan(12)" data-testid="btn-sim-table-12">Table 12</button>
+          <button type="button" class="sim-btn" (click)="simulateScan(1)" data-testid="btn-sim-table-1">{{ 'CLIENT.TABLE' | transloco:{ num: 1 } }}</button>
+          <button type="button" class="sim-btn" (click)="simulateScan(4)" data-testid="btn-sim-table-4">{{ 'CLIENT.TABLE' | transloco:{ num: 4 } }}</button>
+          <button type="button" class="sim-btn" (click)="simulateScan(12)" data-testid="btn-sim-table-12">{{ 'CLIENT.TABLE' | transloco:{ num: 12 } }}</button>
         </div>
       </div>
     </div>

@@ -40,7 +40,7 @@ import { Ingredient } from '../../../../core/models/ingredient.model';
 
 /**
  * Modal component allowing barmen to instantly toggle cocktails and ingredients out of stock
- * or update stock levels on the fly during active service ("Ruptures à chaud").
+ * or update stock levels on the fly during active service ("Quick Out-of-Stock").
  */
 @Component({
   selector: 'app-ruptures-modal',

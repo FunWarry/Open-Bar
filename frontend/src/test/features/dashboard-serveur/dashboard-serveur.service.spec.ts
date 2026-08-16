@@ -101,7 +101,7 @@ describe('DashboardServeurService', () => {
   });
 
   it('getEtages() returns etages from backend or empty array on error', () => {
-    const mockEtages = [{ id: 1, code: 'RDC', nom: 'Rez-de-chaussée (RDC)', ordre: 1 }];
+    const mockEtages = [{ id: 1, code: 'RDC', nom: 'Ground Floor (RDC)', ordre: 1 }];
 
     service.getEtages().subscribe(etages => {
       expect(etages).toEqual(mockEtages);

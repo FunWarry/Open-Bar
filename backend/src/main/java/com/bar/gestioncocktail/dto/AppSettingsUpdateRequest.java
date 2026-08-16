@@ -8,41 +8,43 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 /**
- * DTO de requête pour la mise à jour des paramètres de l'établissement.
+ * Request DTO for updating establishment settings.
  *
- * @param primaryColor Couleur primaire (#RRGGBB)
- * @param primaryColorStrong Couleur primaire accentuée (#RRGGBB)
- * @param logoUrl URL du logo d'établissement
- * @param establishmentName Nom commercial de l'établissement
- * @param defaultTheme Thème par défaut appliqué à l'interface
+ * @param primaryColor Primary color (#RRGGBB)
+ * @param primaryColorStrong Strong primary accent color (#RRGGBB)
+ * @param logoUrl Establishment logo URL
+ * @param establishmentName Commercial name of the establishment
+ * @param defaultTheme Default UI theme
+ * @param tempsAlerteCommandeMinutes Order warning alert threshold in minutes
+ * @param tempsAlerteCritiqueCommandeMinutes Order critical alert threshold in minutes
  */
-@Schema(description = "Requête de mise à jour de la configuration de l'établissement")
+@Schema(description = "Request payload for updating establishment configuration")
 public record AppSettingsUpdateRequest(
-    @NotBlank(message = "La couleur primaire est obligatoire")
-    @Pattern(regexp = "^#[0-9A-Fa-f]{6}$", message = "La couleur primaire doit être un code hexadécimal (#RRGGBB)")
+    @NotBlank(message = "Primary color is required")
+    @Pattern(regexp = "^#[0-9A-Fa-f]{6}$", message = "Primary color must be a valid hexadecimal code (#RRGGBB)")
     String primaryColor,
 
-    @NotBlank(message = "La couleur primaire forte est obligatoire")
-    @Pattern(regexp = "^#[0-9A-Fa-f]{6}$", message = "La couleur primaire forte doit être un code hexadécimal (#RRGGBB)")
+    @NotBlank(message = "Strong primary color is required")
+    @Pattern(regexp = "^#[0-9A-Fa-f]{6}$", message = "Strong primary color must be a valid hexadecimal code (#RRGGBB)")
     String primaryColorStrong,
 
-    @Pattern(regexp = "^https?://.+", message = "Le logo doit être une URL http(s) valide")
-    @Size(max = 2048, message = "L'URL du logo ne peut pas dépasser 2048 caractères")
+    @Pattern(regexp = "^https?://.+", message = "Logo must be a valid http(s) URL")
+    @Size(max = 2048, message = "Logo URL cannot exceed 2048 characters")
     String logoUrl,
 
-    @NotBlank(message = "Le nom de l'établissement est obligatoire")
-    @Size(max = 100, message = "Le nom de l'établissement ne peut pas dépasser 100 caractères")
+    @NotBlank(message = "Establishment name is required")
+    @Size(max = 100, message = "Establishment name cannot exceed 100 characters")
     String establishmentName,
 
-    @NotNull(message = "Le thème par défaut est obligatoire")
+    @NotNull(message = "Default theme is required")
     DefaultTheme defaultTheme,
 
-    @jakarta.validation.constraints.Min(value = 1, message = "Le temps d'alerte doit être d'au moins 1 minute")
-    @jakarta.validation.constraints.Max(value = 120, message = "Le temps d'alerte ne peut pas dépasser 120 minutes")
+    @jakarta.validation.constraints.Min(value = 1, message = "Alert time must be at least 1 minute")
+    @jakarta.validation.constraints.Max(value = 120, message = "Alert time cannot exceed 120 minutes")
     Integer tempsAlerteCommandeMinutes,
 
-    @jakarta.validation.constraints.Min(value = 1, message = "Le temps d'alerte critique doit être d'au moins 1 minute")
-    @jakarta.validation.constraints.Max(value = 120, message = "Le temps d'alerte critique ne peut pas dépasser 120 minutes")
+    @jakarta.validation.constraints.Min(value = 1, message = "Critical alert time must be at least 1 minute")
+    @jakarta.validation.constraints.Max(value = 120, message = "Critical alert time cannot exceed 120 minutes")
     Integer tempsAlerteCritiqueCommandeMinutes
 ) {
 }

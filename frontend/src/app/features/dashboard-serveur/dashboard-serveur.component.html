@@ -128,9 +128,9 @@
             class="view-toggle-btn"
             [class.active]="displayMode === 'BY_ZONE'"
             (click)="setDisplayMode('BY_ZONE')"
-            title="Grouper par zone">
+            [title]="'TABLES.BY_ZONE' | transloco">
             <ion-icon name="layers-outline"></ion-icon>
-            <span>Par Zone</span>
+            <span>{{ 'TABLES.BY_ZONE' | transloco }}</span>
           </button>
 
           <button
@@ -138,9 +138,9 @@
             class="view-toggle-btn"
             [class.active]="displayMode === 'BY_FLOOR'"
             (click)="setDisplayMode('BY_FLOOR')"
-            title="Grouper par étage">
+            [title]="'TABLES.BY_FLOOR' | transloco">
             <ion-icon name="business-outline"></ion-icon>
-            <span>Par Étage</span>
+            <span>{{ 'TABLES.BY_FLOOR' | transloco }}</span>
           </button>
 
           <button
@@ -239,7 +239,7 @@
         <div class="filters-column">
           <!-- Floor Level Tabs -->
           <div class="filter-chips-group floor-group">
-            <span class="filter-label">Étage :</span>
+            <span class="filter-label">{{ 'PLAN_SALLE_PAGE.FLOOR_LABEL' | transloco }}</span>
             <button
               type="button"
               class="floor-chip"
@@ -262,14 +262,14 @@
 
           <!-- Sub-zone Filter Chips -->
           <div *ngIf="availableZonesForFilter.length > 0" class="filter-chips-group zone-group">
-            <span class="filter-label">Zone :</span>
+            <span class="filter-label">{{ 'PLAN_SALLE_PAGE.ZONE_LABEL' | transloco }}</span>
             <button
               type="button"
               class="zone-chip"
               [class.active]="selectedZones.length === 0"
               (click)="clearZoneFilter()"
               data-testid="plan-pill-zone-all">
-              Toutes les zones
+              {{ 'PLAN_SALLE_PAGE.ALL_ZONES' | transloco }}
             </button>
             <button
               *ngFor="let z of availableZonesForFilter"

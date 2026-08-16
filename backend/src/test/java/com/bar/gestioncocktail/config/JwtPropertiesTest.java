@@ -49,7 +49,7 @@ class JwtPropertiesTest {
     }
 
     @Test
-    void validate_secretTropCourt_leveIllegalStateExceptionAvecTailleMinimale() {
+    void validate_secretTooShort_throwsIllegalStateExceptionWithMinSize() {
         JwtProperties properties = new JwtProperties();
         properties.setSecret("trop-court");
 
@@ -59,9 +59,9 @@ class JwtPropertiesTest {
     }
 
     @Test
-    void validate_secretNonAsciiAvecMoinsDe32CaracteresMaisAssezDOctets_neLevePasException() {
-        // "é" = 2 octets en UTF-8 : 20 caractères = 40 octets (≥ 32), doit être accepté
-        // même si le nombre de caractères est inférieur au seuil.
+    void validate_nonAsciiSecretWithFewerThan32CharsButSufficientBytes_doesNotThrow() {
+        // "é" = 2 bytes in UTF-8: 20 characters = 40 bytes (>= 32), must be accepted
+        // even if the character count is below the threshold.
         JwtProperties properties = new JwtProperties();
         properties.setSecret("é".repeat(20));
 
@@ -70,7 +70,7 @@ class JwtPropertiesTest {
     }
 
     @Test
-    void toString_neContientPasLeSecretEnClair() {
+    void toString_doesNotContainPlainSecret() {
         JwtProperties properties = new JwtProperties();
         properties.setSecret("secret-tres-confidentiel-32-caracteres");
 

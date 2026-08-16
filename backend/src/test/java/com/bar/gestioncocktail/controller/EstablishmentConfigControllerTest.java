@@ -40,7 +40,7 @@ class EstablishmentConfigControllerTest {
         dto = new EstablishmentConfigDTO(
             1L, "OpenBar SARL", "SARL", "73282932000074", "Paris", "B 123",
             "FR12732829320", "5630Z", new BigDecimal("10000"), "Adresse",
-            "0102030405", "email@bar.fr", "Immédiat", "Aucun", new BigDecimal("0.12"),
+            "0102030405", "email@bar.fr", "Immediate", "None", new BigDecimal("0.12"),
             "SYSTEM", "80mm", LocalDateTime.now(), LocalDateTime.now()
         );
     }
@@ -63,7 +63,7 @@ class EstablishmentConfigControllerTest {
         EstablishmentConfigUpdateRequest request = new EstablishmentConfigUpdateRequest(
             "OpenBar SARL", "SARL", "73282932000074", "Paris", "B 123",
             "FR12732829320", "5630Z", new BigDecimal("10000"), "Adresse",
-            "0102030405", "email@bar.fr", "Immédiat", "Aucun", new BigDecimal("0.12"),
+            "0102030405", "email@bar.fr", "Immediate", "None", new BigDecimal("0.12"),
             "SYSTEM", "80mm"
         );
 

@@ -43,7 +43,7 @@ const ROUTE_TITLE_MAP: Record<string, string> = {
   '/app-home': 'NAV.TOPBAR.PAGE_TITLES.HOME',
 };
 
-/** Figma role colors from the Design System `Rôles` collection. */
+/** Figma role colors from the Design System `Roles` collection. */
 const ROLE_COLORS: Record<string, string> = {
   ADMIN: '#9b8af2',
   MANAGER: '#f0a33b',

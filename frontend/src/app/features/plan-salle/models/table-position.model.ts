@@ -21,7 +21,7 @@ export interface TablePosition {
   rotation: number;
   /** Geometric shape of the table. */
   shape: TableShape;
-  /** Floor identifier (e.g. 'RDC', '1er Étage', 'Terrasse', 'VIP'). */
+  /** Floor identifier (e.g. 'RDC', 'First Floor', 'Terrasse', 'VIP'). */
   floor?: string;
   /** Zone identifier (e.g. 'Salle Principale', 'Bar', 'VIP'). */
   zone?: string;

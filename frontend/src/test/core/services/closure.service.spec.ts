@@ -31,7 +31,7 @@ describe('ClosureService', () => {
 
   it('getClosures() should fetch all establishment closures via GET', () => {
     const mockClosures: EstablishmentClosure[] = [
-      { id: 1, type: 'WEEKLY_RECURRING', dayOfWeek: 'MONDAY', reason: 'Fermé le lundi' }
+      { id: 1, type: 'WEEKLY_RECURRING', dayOfWeek: 'MONDAY', reason: 'Closed on Monday' }
     ];
 
     service.getClosures().subscribe(res => {
@@ -50,7 +50,7 @@ describe('ClosureService', () => {
       closureDate: '2026-12-25',
       endDate: '2026-12-26',
       isAnnualRecurring: true,
-      reason: 'Noël'
+      reason: 'Christmas'
     };
     const mockResponse: EstablishmentClosure = { id: 2, ...request };
 

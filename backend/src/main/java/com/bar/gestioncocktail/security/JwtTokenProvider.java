@@ -14,10 +14,10 @@ import javax.crypto.SecretKey;
 import java.time.Instant;
 
 /**
- * Composant de gestion des jetons JWT (JSON Web Tokens).
+ * Component for JSON Web Token (JWT) management.
  * <p>
- * Responsable de la signature HMAC-SHA, de la génération d'access tokens à partir du contexte
- * d'authentification ou du nom d'utilisateur, de l'extraction du sujet et de la validation d'intégrité.
+ * Responsible for HMAC-SHA signing, generating access tokens from Spring Security authentication
+ * contexts or usernames, subject extraction, and token integrity validation.
  */
 @Component
 public class JwtTokenProvider {
@@ -26,9 +26,9 @@ public class JwtTokenProvider {
     private final long jwtExpiration;
 
     /**
-     * Constructeur injectant les propriétés JWT (secret et durée de validité).
+     * Constructs the provider injecting JWT properties (secret and expiration duration).
      *
-     * @param jwtProperties Propriétés de configuration {@link JwtProperties}
+     * @param jwtProperties JWT configuration properties {@link JwtProperties}
      */
     public JwtTokenProvider(JwtProperties jwtProperties) {
         this.key = Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes());
@@ -36,10 +36,10 @@ public class JwtTokenProvider {
     }
 
     /**
-     * Génère un jeton JWT signé à partir du principal d'authentification Spring Security.
+     * Generates a signed JWT token from Spring Security authentication principal.
      *
-     * @param authentication Le contexte d'authentification valide
-     * @return Le token JWT sous forme de chaîne de caractères compactée
+     * @param authentication Valid authentication context
+     * @return Compacted JWT token string
      */
     public String generateToken(Authentication authentication) {
         if (authentication != null && authentication.getPrincipal() instanceof UserDetails userDetails) {
@@ -52,10 +52,10 @@ public class JwtTokenProvider {
     }
 
     /**
-     * Génère un jeton JWT signé pour un nom d'utilisateur spécifique.
+     * Generates a signed JWT token for a specific username.
      *
-     * @param username Nom d'utilisateur
-     * @return Le token JWT compacté
+     * @param username Username
+     * @return Compacted JWT token string
      */
     public String generateToken(String username) {
         Instant now = Instant.now();
@@ -70,10 +70,10 @@ public class JwtTokenProvider {
     }
 
     /**
-     * Extrait le nom d'utilisateur (Subject) contenu dans le jeton JWT.
+     * Extracts username (Subject) from JWT token.
      *
-     * @param token Le token JWT
-     * @return Le nom d'utilisateur extrait
+     * @param token JWT token string
+     * @return Extracted username
      */
     public String getUsernameFromJWT(String token) {
         return Jwts.parser()
@@ -85,17 +85,17 @@ public class JwtTokenProvider {
     }
 
     /**
-     * Valide la signature, le format et la durée de conservation du jeton JWT.
+     * Validates JWT signature, format, and expiration.
      *
-     * @param authToken Le token JWT à vérifier
-     * @return {@code true} si le token est valide, {@code false} s'il est altéré ou expiré
+     * @param authToken JWT token to verify
+     * @return {@code true} if valid, {@code false} if altered or expired
      */
     public boolean validateToken(String authToken) {
         try {
             Jwts.parser().verifyWith(key).build().parseSignedClaims(authToken);
             return true;
         } catch (JwtException | IllegalArgumentException e) {
-            logger.error("Token JWT invalide : {}", e.getMessage());
+            logger.error("Invalid JWT token: {}", e.getMessage());
             return false;
         }
     }

@@ -1,3 +1,4 @@
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { TestBed } from '@angular/core/testing';
 import { ComponentFixture } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
@@ -9,7 +10,7 @@ describe('FooterComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [FooterComponent]
+      imports: [FooterComponent, getTranslocoTestingModule()]
     }).compileComponents();
 
     fixture = TestBed.createComponent(FooterComponent);
@@ -28,7 +29,7 @@ describe('FooterComponent', () => {
 
   it('should display copyright text', () => {
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.textContent).toContain('© 2024 Gestion Cocktail');
+    expect(compiled.textContent).toContain('© 2024 OpenBar');
   });
 
   it('should display version number', () => {

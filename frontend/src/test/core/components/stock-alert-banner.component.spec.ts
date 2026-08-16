@@ -1,3 +1,4 @@
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Subject } from 'rxjs';
 import { StockAlertBannerComponent } from '../../../app/core/components/stock-alert-banner/stock-alert-banner.component';
@@ -32,7 +33,7 @@ describe('StockAlertBannerComponent', () => {
     notificationServiceSpy.onStockAlert.and.returnValue(stockAlerts$.asObservable());
 
     await TestBed.configureTestingModule({
-      imports: [StockAlertBannerComponent],
+      imports: [StockAlertBannerComponent, getTranslocoTestingModule()],
       providers: [
         { provide: NotificationService, useValue: notificationServiceSpy },
       ],
@@ -60,7 +61,7 @@ describe('StockAlertBannerComponent', () => {
     stockAlerts$.next(alert2);
 
     expect(component.stockAlerts).toHaveSize(2);
-    // unshift : la plus récente est en index 0
+    // unshift: most recent is at index 0
     expect(component.stockAlerts[0].id).toBe('stock-2');
     expect(component.stockAlerts[1].id).toBe('stock-1');
   });
@@ -112,7 +113,7 @@ describe('StockAlertBannerComponent', () => {
     component.ngOnDestroy();
 
     stockAlerts$.next(makeAlert({ id: 'stock-after' }));
-    // après destroy la subscription est complétée — aucun nouvel élément
+    // after destroy subscription is completed — no new items
     expect(component.stockAlerts).toHaveSize(1);
     expect(component.stockAlerts[0].id).toBe('stock-before');
   });

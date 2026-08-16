@@ -1,3 +1,4 @@
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { EtageService, EtageBar } from '../../../app/core/services/etage.service';
@@ -11,13 +12,13 @@ describe('EtageService', () => {
   const mockEtage: EtageBar = {
     id: 1,
     code: 'RDC',
-    nom: 'Rez-de-chaussée',
+    nom: 'Ground Floor',
     ordre: 1
   };
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
+      imports: [HttpClientTestingModule, getTranslocoTestingModule()],
       providers: [EtageService]
     });
     service = TestBed.inject(EtageService);
@@ -67,16 +68,16 @@ describe('EtageService', () => {
   });
 
   it('should update a floor', () => {
-    const payload: Partial<EtageBar> = { nom: 'Rez-de-chaussée Modifié' };
+    const payload: Partial<EtageBar> = { nom: 'Ground Floor Modified' };
 
     service.update(1, payload).subscribe((etage) => {
-      expect(etage.nom).toBe('Rez-de-chaussée Modifié');
+      expect(etage.nom).toBe('Ground Floor Modified');
     });
 
     const req = httpMock.expectOne(`${baseUrl}/1`);
     expect(req.request.method).toBe('PUT');
     expect(req.request.body).toEqual(payload);
-    req.flush({ ...mockEtage, nom: 'Rez-de-chaussée Modifié' });
+    req.flush({ ...mockEtage, nom: 'Ground Floor Modified' });
   });
 
   it('should delete a floor', () => {

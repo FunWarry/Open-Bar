@@ -1,3 +1,4 @@
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { TestBed } from '@angular/core/testing';
 import { ComponentFixture } from '@angular/core/testing';
 import { ActivatedRoute } from '@angular/router';
@@ -50,7 +51,7 @@ describe('FactureSplitComponent', () => {
     modalCtrlSpy = jasmine.createSpyObj('ModalController', ['create']);
 
     await TestBed.configureTestingModule({
-      imports: [FactureSplitComponent, IonicModule.forRoot(), RouterTestingModule],
+      imports: [FactureSplitComponent, IonicModule.forRoot(), RouterTestingModule, getTranslocoTestingModule()],
       providers: [
         {
           provide: ActivatedRoute,
@@ -73,7 +74,7 @@ describe('FactureSplitComponent', () => {
   });
 
   it('should initialize with default values', () => {
-    expect(component.mode).toBe('egal');
+    expect(component.mode).toBe('equal');
     expect(component.nombreConvives).toBe(2);
     expect(component.results).toEqual([]);
     expect(component.loading).toBeFalse();
@@ -107,7 +108,7 @@ describe('FactureSplitComponent', () => {
     });
   });
 
-  // ── Mode égal ─────────────────────────────────────────────────────────────────
+  // ── Equal mode ─────────────────────────────────────────────────────────────────
 
   describe('ajusterConvives()', () => {
     it('should increase nombreConvives by delta', () => {
@@ -186,7 +187,7 @@ describe('FactureSplitComponent', () => {
       component.itemAssignments = { 10: 1, 11: 2 };
       component.removeConvive(1); // supprime Bob
       expect(component.itemAssignments[10]).toBeUndefined();
-      expect(component.itemAssignments[11]).toBe(1); // Charlie décalé de 2→1
+      expect(component.itemAssignments[11]).toBe(1); // Charlie shifted from 2->1
     });
   });
 
@@ -244,7 +245,7 @@ describe('FactureSplitComponent', () => {
 
     it('should exclude convives with no items', () => {
       component.convives = [{ nom: 'Alice' }, { nom: 'Bob' }, { nom: 'Charlie' }];
-      component.itemAssignments = { 10: 0, 11: 0 }; // tout à Alice, Bob et Charlie sans items
+      component.itemAssignments = { 10: 0, 11: 0 }; // all to Alice, Bob and Charlie without items
       component.calculerSplitSelection();
       const call = factureServiceSpy.splitParSelection.calls.mostRecent().args[1];
       expect(call.find(p => p.nomConvive === 'Bob')).toBeUndefined();

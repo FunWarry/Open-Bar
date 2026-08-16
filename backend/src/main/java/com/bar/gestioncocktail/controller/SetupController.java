@@ -20,22 +20,22 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Controller REST gérant l'initialisation et le premier démarrage de
- * l'application (assistant d'installation et jeux de données de démonstration).
+ * REST controller managing application initialization and first-run setup
+ * (setup wizard and demo seed dataset).
  */
 @RestController
 @RequestMapping("/api/setup")
-@Tag(name = "Setup", description = "Initialisation du système, création du compte administrateur initial et jeux de test")
+@Tag(name = "Setup", description = "System initialization, initial admin account creation, and demo data seeding")
 public class SetupController {
 
     private final SetupService setupService;
     private final Optional<SampleDataSeederService> sampleDataSeederService;
 
     /**
-     * Constructeur avec injection du service d'initialisation et seeder optionnel.
+     * Constructs the controller with setup service and optional sample data seeder.
      *
-     * @param setupService Le service gérant la configuration initiale
-     * @param sampleDataSeederService Le service optionnel de génération des données de démonstration
+     * @param setupService Service managing initial setup configuration
+     * @param sampleDataSeederService Optional service for demo dataset seeding
      */
     public SetupController(SetupService setupService, Optional<SampleDataSeederService> sampleDataSeederService) {
         this.setupService = setupService;
@@ -43,50 +43,50 @@ public class SetupController {
     }
 
     /**
-     * Indique si l'application a déjà été configurée (présence d'un compte admin).
+     * Checks if the application has already been configured (presence of an administrator account).
      *
-     * @return DTO indiquant si le setup est requis
+     * @return DTO indicating whether setup is required
      */
     @GetMapping("/status")
-    @Operation(summary = "Vérifier le statut d'initialisation de l'application", description = "Retourne true si un administrateur existe déjà.")
-    @ApiResponse(responseCode = "200", description = "Statut de configuration retourné")
+    @Operation(summary = "Check application initialization status", description = "Returns true if an administrator already exists.")
+    @ApiResponse(responseCode = "200", description = "Configuration status returned")
     public ResponseEntity<SetupStatusDTO> getStatus() {
         return ResponseEntity.ok(setupService.getSetupStatus());
     }
 
     /**
-     * Crée le compte administrateur initial au premier lancement.
+     * Creates the initial administrator account on first application launch.
      *
-     * @param request Identifiants et informations du compte admin à créer
-     * @return DTO de l'utilisateur administrateur créé
+     * @param request Admin credentials and details
+     * @return DTO of created administrator user
      */
     @PostMapping("/admin")
-    @Operation(summary = "Créer le premier administrateur", description = "Désactivé dès qu'un administrateur existe déjà.")
-    @ApiResponse(responseCode = "200", description = "Compte administrateur créé avec succès")
-    @ApiResponse(responseCode = "400", description = "Un administrateur existe déjà ou données invalides")
+    @Operation(summary = "Create initial administrator", description = "Disabled as soon as an administrator account already exists.")
+    @ApiResponse(responseCode = "200", description = "Administrator account created successfully")
+    @ApiResponse(responseCode = "400", description = "An administrator already exists or invalid data")
     public ResponseEntity<UserResponseDTO> createAdmin(@Valid @RequestBody CreateAdminRequestDTO request) {
         return ResponseEntity.ok(setupService.createInitialAdmin(request));
     }
 
     /**
-     * Génère un jeu de données complet de démonstration (Utilisateurs, Zones, Tables, Commandes, Factures, Retards).
+     * Generates a complete demo dataset (Users, Floors, Zones, Tables, Shifts, Orders, Invoices).
      *
-     * @return Message de confirmation de génération des données de test
+     * @return Confirmation message of test data generation
      */
     @PostMapping("/seed-demo")
-    @Operation(summary = "Générer le jeu de données de test complet", description = "Popule la base avec des tables, serveurs, commandes actives/retardées et factures.")
-    @ApiResponse(responseCode = "200", description = "Jeu de données de démonstration généré avec succès")
+    @Operation(summary = "Generate complete test demo dataset", description = "Populates database with floors, zones, tables, staff users, shifts, orders, and invoices.")
+    @ApiResponse(responseCode = "200", description = "Demo dataset generated successfully")
     public ResponseEntity<Map<String, String>> seedDemoData() {
         if (sampleDataSeederService.isPresent()) {
             sampleDataSeederService.get().seedAllDemoData();
             return ResponseEntity.ok(Map.of(
                     "status", "success",
-                    "message", "Jeu de données de test (tables, serveurs, commandes actives & retardées, factures) généré avec succès."
+                    "message", "Demo dataset (floors, zones, tables, staff, shifts, orders, invoices) generated successfully."
             ));
         } else {
             return ResponseEntity.ok(Map.of(
                     "status", "skipped",
-                    "message", "Le seeder de données de démonstration est désactivé en environnement de production."
+                    "message", "Demo data seeder is disabled in production environment."
             ));
         }
     }

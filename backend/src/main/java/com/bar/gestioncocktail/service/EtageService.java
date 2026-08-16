@@ -12,13 +12,12 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 /**
- * Service managing floor (étages) categorization and CRUD operations for
- * OpenBar.
+ * Service managing floor categorization and CRUD operations for OpenBar.
  */
 @Service
 public class EtageService {
 
-    private static final String ERROR_ETAGE_NOT_FOUND = "Étage non trouvé avec l'id : ";
+    private static final String ERROR_ETAGE_NOT_FOUND = "Floor not found with id: ";
 
     private final EtageRepository etageRepository;
     private final ZoneRepository zoneRepository;
@@ -73,7 +72,7 @@ public class EtageService {
     public EtageEntity createEtage(String code, String nom, Integer ordre) {
         String normalizedCode = code.trim().toUpperCase();
         if (etageRepository.existsByCode(normalizedCode)) {
-            throw new BusinessException("Un étage avec le code '" + normalizedCode + "' existe déjà.");
+            throw new BusinessException("A floor with code '" + normalizedCode + "' already exists.");
         }
 
         EtageEntity etage = new EtageEntity();
@@ -97,7 +96,7 @@ public class EtageService {
     @Transactional
     public EtageEntity updateEtage(Long id, String code, String nom, Integer ordre) {
         if (id == null) {
-            throw new BusinessException("L'ID d'étage ne peut pas être null");
+            throw new BusinessException("Floor ID cannot be null");
         }
         EtageEntity existing = etageRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(ERROR_ETAGE_NOT_FOUND + id));
@@ -107,7 +106,7 @@ public class EtageService {
 
         if (!oldCode.equalsIgnoreCase(newCode)) {
             if (etageRepository.existsByCode(newCode)) {
-                throw new BusinessException("Un étage avec le code '" + newCode + "' existe déjà.");
+                throw new BusinessException("A floor with code '" + newCode + "' already exists.");
             }
             List<ZoneEntity> associatedZones = zoneRepository.findByEtage(oldCode);
             for (ZoneEntity zone : associatedZones) {
@@ -130,20 +129,19 @@ public class EtageService {
      *
      * @param id the floor ID
      * @throws ResourceNotFoundException if floor ID is not found
-     * @throws BusinessException         if one or more zones are using this floor
-     *                                   code
+     * @throws BusinessException         if one or more zones are using this floor code
      */
     @Transactional
     public void deleteEtage(Long id) {
         if (id == null) {
-            throw new BusinessException("L'ID d'étage ne peut pas être null");
+            throw new BusinessException("Floor ID cannot be null");
         }
         EtageEntity etage = etageRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(ERROR_ETAGE_NOT_FOUND + id));
 
         if (zoneRepository.existsByEtage(etage.getCode())) {
             throw new BusinessException(
-                    "Impossible de supprimer cet étage car une ou plusieurs zones y sont associées.");
+                    "Cannot delete floor because one or more zones are assigned to it.");
         }
 
         etageRepository.delete(etage);

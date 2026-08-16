@@ -60,7 +60,7 @@ describe('LoginComponent', () => {
     component.ngOnDestroy();
   });
 
-  // ─── Création ────────────────────────────────────────────────────────────────
+  // ─── Creation ────────────────────────────────────────────────────────────────
 
   it('should create', () => {
     expect(component).toBeTruthy();
@@ -72,25 +72,25 @@ describe('LoginComponent', () => {
     expect(component.loginForm.valid).toBeFalse();
   });
 
-  it('loginForm est valide quand username et password sont renseignés', () => {
+  it('loginForm is valid when username and password are provided', () => {
     component.loginForm.setValue({ username: 'admin', password: 'secret' });
     expect(component.loginForm.valid).toBeTrue();
   });
 
-  it('errorMessage est null à l\'initialisation', () => {
+  it('errorMessage is null at initialization', () => {
     expect(component.errorMessage).toBeNull();
   });
 
-  // ─── ngOnInit : redirection si déjà authentifié ──────────────────────────────
+  // ─── ngOnInit: redirection if already authenticated ──────────────────────────────
 
-  it('ngOnInit redirige vers /app-home si l\'utilisateur est déjà authentifié', fakeAsync(() => {
+  it('ngOnInit redirects to /app-home if user is already authenticated', fakeAsync(() => {
     isAuthenticatedSubject.next(true);
     component.ngOnInit();
     tick();
     expect(mockRouter.navigate).toHaveBeenCalledWith(['/app-home']);
   }));
 
-  it('ngOnInit ne redirige pas si l\'utilisateur n\'est pas authentifié', fakeAsync(() => {
+  it('ngOnInit does not redirect if user is not authenticated', fakeAsync(() => {
     isAuthenticatedSubject.next(false);
     component.ngOnInit();
     tick();
@@ -115,8 +115,8 @@ describe('LoginComponent', () => {
     );
   });
 
-  it('onSubmit réinitialise errorMessage à null avant le dispatch', () => {
-    component.errorMessage = 'Erreur précédente';
+  it('onSubmit resets errorMessage to null before dispatch', () => {
+    component.errorMessage = 'Previous error';
     component.loginForm.setValue({ username: 'barman', password: 'pass123' });
     component.onSubmit();
     expect(component.errorMessage).toBeNull();
@@ -138,9 +138,9 @@ describe('LoginComponent', () => {
     expect(component.errorMessage).toBe("Nom d'utilisateur ou mot de passe incorrect.");
   }));
 
-  // ─── Succès d'auth : redirection après login ──────────────────────────────────
+  // ─── Auth success: redirection after login ──────────────────────────────────
 
-  it('onSubmit redirige vers /app-home quand l\'authentification réussit', fakeAsync(() => {
+  it('onSubmit redirects to /app-home when authentication succeeds', fakeAsync(() => {
     mockStore.select.and.callFake((selector: unknown) => {
       if (selector === selectAuthError) return of(null);
       return of(true);
@@ -155,7 +155,7 @@ describe('LoginComponent', () => {
 
   // ─── ngOnDestroy ─────────────────────────────────────────────────────────────
 
-  it('ngOnDestroy désinscrit toutes les subscriptions sans lever d\'erreur', () => {
+  it('ngOnDestroy unsubs all subscriptions without error', () => {
     expect(() => component.ngOnDestroy()).not.toThrow();
   });
 });

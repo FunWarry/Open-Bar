@@ -13,50 +13,50 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * DTO de réponse pour la commande publique effectuée via scan de QR code.
+ * Response DTO for public order placed via table QR code scan.
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Données de confirmation et de suivi d'une commande publique QR Code")
+@Schema(description = "Confirmation and tracking data for a public QR code order")
 public class PublicCommandeResponseDTO {
-    @Schema(description = "ID unique de la commande")
+    @Schema(description = "Unique order ID")
     private Long commandeId;
 
-    @Schema(description = "Token UUID de suivi anonyme")
+    @Schema(description = "Anonymous UUID tracking token")
     private String trackingToken;
 
-    @Schema(description = "ID de la table")
+    @Schema(description = "Table ID")
     private Long tableId;
 
-    @Schema(description = "Numéro de la table")
+    @Schema(description = "Table number")
     private String tableNumero;
 
-    @Schema(description = "Montant total de la commande")
+    @Schema(description = "Total order amount")
     private BigDecimal total;
 
-    @Schema(description = "Statut actuel de la commande")
+    @Schema(description = "Current order status")
     private CommandeStatut statut;
 
-    @Schema(description = "Date et heure de la commande")
+    @Schema(description = "Order creation timestamp")
     private LocalDateTime dateCreation;
 
-    @Schema(description = "Temps d'attente estimé en minutes")
+    @Schema(description = "Estimated wait time in minutes")
     private Integer tempsEstimeMinutes;
 
-    @Schema(description = "Remarques ou consignes particulières")
+    @Schema(description = "Customer preparation notes")
     private String notes;
 
-    @Schema(description = "Liste des articles commandés")
+    @Schema(description = "List of ordered items")
     private List<CommandeItemResponseDTO> items;
 
     /**
-     * Crée un {@link PublicCommandeResponseDTO} depuis une entité {@link Commande}.
+     * Creates a {@link PublicCommandeResponseDTO} from a {@link Commande} entity.
      *
-     * @param commande La commande source
-     * @param tempsEstimeMinutes Le temps de préparation estimé
-     * @return Le DTO construit
+     * @param commande Source order entity
+     * @param tempsEstimeMinutes Estimated preparation time
+     * @return Constructed DTO
      */
     public static PublicCommandeResponseDTO from(Commande commande, Integer tempsEstimeMinutes) {
         List<CommandeItemResponseDTO> itemDTOs = commande.getItems() != null

@@ -1,3 +1,4 @@
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { TestBed } from '@angular/core/testing';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -9,7 +10,7 @@ describe('TableSidePanelComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [TableSidePanelComponent, CommonModule, FormsModule],
+      imports: [TableSidePanelComponent, CommonModule, FormsModule, getTranslocoTestingModule()],
     }).compileComponents();
 
     const fixture = TestBed.createComponent(TableSidePanelComponent);

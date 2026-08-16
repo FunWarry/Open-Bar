@@ -119,7 +119,7 @@ class IngredientControllerTest {
     void updateStock_missingQuantity_throwsException() {
         assertThatThrownBy(() -> ingredientController.updateStock(1L, null, null))
                 .isInstanceOf(BusinessException.class)
-                .hasMessageContaining("La quantité est obligatoire");
+                .hasMessageContaining("Quantity is required.");
     }
 
     @Test
@@ -159,7 +159,7 @@ class IngredientControllerTest {
     void definirSeuilAlerte_missingSeuil_throwsException() {
         assertThatThrownBy(() -> ingredientController.definirSeuilAlerte(1L, null, null))
                 .isInstanceOf(BusinessException.class)
-                .hasMessageContaining("Le seuil est obligatoire");
+                .hasMessageContaining("Threshold is required.");
     }
 
     @Test

@@ -15,7 +15,7 @@ const mockCmd: Commande = {
   statut: 'EN_ATTENTE',
   total: 19,
   dateCommande: new Date(Date.now() - 5 * 60000).toISOString(),
-  notes: 'Sans glaçons',
+  notes: 'No ice',
   createdAt: '',
   updatedAt: '',
 };

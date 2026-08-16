@@ -94,7 +94,7 @@ export class KanbanServeurComponent implements OnInit, OnDestroy {
    * Loads all orders grouped by status and the table list.
    * @param refreshEvent - Optional refresher event to complete after loading.
    */
-  charger(refreshEvent?: any) {
+  loadOrders(refreshEvent?: any) {
     this.isLoading = true;
     forkJoin({
       enAttente: this.service.getCommandesParStatut('EN_ATTENTE'),
@@ -117,17 +117,21 @@ export class KanbanServeurComponent implements OnInit, OnDestroy {
           this.allCommandes.set('PRET',          pret);
           this.allCommandes.set('LIVREE',        livree);
           this.tables = tables;
-          this.appliquerFiltre();
+          this.applyFilter();
         },
         error: async () => {
           const toast = await this.toastCtrl.create({
-            message: this.transloco.translate('COMMANDES.MESSAGES.UPDATE_ERROR'),
+            message: String(this.transloco.translate('COMMANDES.MESSAGES.UPDATE_ERROR')),
             duration: 3000,
             color: 'danger',
           });
           toast.present();
         },
       });
+  }
+
+  charger(refreshEvent?: any) {
+    this.loadOrders(refreshEvent);
   }
 
   /**
@@ -136,17 +140,21 @@ export class KanbanServeurComponent implements OnInit, OnDestroy {
    */
   onFiltreChange(tableId: number | null) {
     this.filtreTableId = tableId;
-    this.appliquerFiltre();
+    this.applyFilter();
   }
 
   /** Returns the total number of active (non-delivered) orders. */
-  get totalActif(): number {
+  get activeOrdersCount(): number {
     return (this.allCommandes.get('EN_ATTENTE')?.length ?? 0)
       + (this.allCommandes.get('EN_PREPARATION')?.length ?? 0)
       + (this.allCommandes.get('PRET')?.length ?? 0);
   }
 
-  private appliquerFiltre() {
+  get totalActif(): number {
+    return this.activeOrdersCount;
+  }
+
+  applyFilter() {
     this.colonnes.forEach(col => {
       const all = this.allCommandes.get(col.statut) ?? [];
       col.commandes = this.filtreTableId
@@ -155,18 +163,22 @@ export class KanbanServeurComponent implements OnInit, OnDestroy {
     });
   }
 
+  appliquerFiltre() {
+    this.applyFilter();
+  }
+
   /**
    * Marks an order as delivered.
    * @param commandeId - ID of the order to mark delivered.
    */
-  async marquerLivree(commandeId: number) {
+  async markDelivered(commandeId: number) {
     this.service.changerStatutCommande(commandeId, 'LIVREE')
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: async () => {
-          this.charger();
+          this.loadOrders();
           const toast = await this.toastCtrl.create({
-            message: this.transloco.translate('COMMANDES.MESSAGES.STATUS_UPDATED'),
+            message: String(this.transloco.translate('COMMANDES.MESSAGES.STATUS_UPDATED')),
             duration: 2000,
             color: 'success',
           });
@@ -174,7 +186,7 @@ export class KanbanServeurComponent implements OnInit, OnDestroy {
         },
         error: async () => {
           const toast = await this.toastCtrl.create({
-            message: this.transloco.translate('COMMANDES.MESSAGES.UPDATE_ERROR'),
+            message: String(this.transloco.translate('COMMANDES.MESSAGES.UPDATE_ERROR')),
             duration: 3000,
             color: 'danger',
           });
@@ -183,18 +195,22 @@ export class KanbanServeurComponent implements OnInit, OnDestroy {
       });
   }
 
+  async marquerLivree(commandeId: number) {
+    await this.markDelivered(commandeId);
+  }
+
   /**
    * Cancels an order.
    * @param commandeId - ID of the order to cancel.
    */
-  async annuler(commandeId: number) {
+  async cancelOrder(commandeId: number) {
     this.service.annulerCommande(commandeId)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: async () => {
-          this.charger();
+          this.loadOrders();
           const toast = await this.toastCtrl.create({
-            message: this.transloco.translate('COMMANDES.MESSAGES.CANCELLED_SUCCESS'),
+            message: String(this.transloco.translate('COMMANDES.MESSAGES.CANCELLED_SUCCESS')),
             duration: 2000,
             color: 'medium',
           });
@@ -202,13 +218,17 @@ export class KanbanServeurComponent implements OnInit, OnDestroy {
         },
         error: async () => {
           const toast = await this.toastCtrl.create({
-            message: this.transloco.translate('COMMANDES.MESSAGES.CANCELLED_ERROR'),
+            message: String(this.transloco.translate('COMMANDES.MESSAGES.CANCELLED_ERROR')),
             duration: 3000,
             color: 'danger',
           });
           toast.present();
         },
       });
+  }
+
+  async annuler(commandeId: number) {
+    await this.cancelOrder(commandeId);
   }
 
   /**
@@ -236,7 +256,7 @@ export class KanbanServeurComponent implements OnInit, OnDestroy {
     return this.getWaitMinutes(cmd) > 20;
   }
 
-  onRefresh(event: any) { this.charger(event); }
+  onRefresh(event: any) { this.loadOrders(event); }
 
   trackById(_: number, cmd: Commande): number { return cmd.id; }
 
@@ -250,16 +270,20 @@ export class KanbanServeurComponent implements OnInit, OnDestroy {
    * Returns the display name of a table by its ID.
    * @param tableId - ID of the table to look up.
    */
-  getTableNom(tableId: number | null): string {
+  getTableDisplayName(tableId: number | null): string {
     if (!tableId) return '';
     return this.tables.find(t => t.id === tableId)?.nom ?? `#${tableId}`;
+  }
+
+  getTableNom(tableId: number | null): string {
+    return this.getTableDisplayName(tableId);
   }
 
   /**
    * Opens the encaissement modal directly for a table with delivered orders.
    * @param tableId Table ID
    */
-  async ouvrirEncaissementParTableId(tableId: number | null) {
+  async openSettlementByTableId(tableId: number | null) {
     if (!tableId) return;
     const table = this.tables.find(t => t.id === tableId) || {
       id: tableId,
@@ -279,7 +303,11 @@ export class KanbanServeurComponent implements OnInit, OnDestroy {
     await modal.present();
     const { data } = await modal.onWillDismiss();
     if (data?.action === 'settled') {
-      this.charger();
+      this.loadOrders();
     }
+  }
+
+  async ouvrirEncaissementParTableId(tableId: number | null) {
+    await this.openSettlementByTableId(tableId);
   }
 }

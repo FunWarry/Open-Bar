@@ -23,7 +23,7 @@ describe('RecipeSidePanelComponent', () => {
       { id: 4, ingredientId: 104, ingredientNom: 'Jus de Raisin', quantite: 8, uniteMesure: 'cl' }
     ],
     variantes: [],
-    instructions: 'Mettre tous les ingrédients dans le shaker. Shaker vigoureusement. Chauffer à la vapeur. Servir dans une tasse.',
+    instructions: 'Put all ingredients in shaker. Shake vigorously. Steam heat. Serve in a mug.',
     createdAt: '',
     updatedAt: ''
   };
@@ -34,7 +34,7 @@ describe('RecipeSidePanelComponent', () => {
     cocktailNom: 'Aulp',
     quantite: 2,
     prioritaire: false,
-    varianteNom: 'Épicée',
+    varianteNom: 'Spicy',
     notes: 'Servir bien chaud'
   };
 

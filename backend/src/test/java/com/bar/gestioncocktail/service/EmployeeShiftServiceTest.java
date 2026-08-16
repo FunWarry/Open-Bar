@@ -175,7 +175,7 @@ class EmployeeShiftServiceTest {
     void updateShift_Success_AllFields() {
         EmployeeShiftRequestDTO request = new EmployeeShiftRequestDTO(
             2L, LocalDate.of(2026, 8, 11), TypeShift.SOIR, TypePoste.BARMAN,
-            "18:00", "02:00", "21:00", 30, "18:00", "02:00", BigDecimal.ZERO, BigDecimal.valueOf(7.5), new BigDecimal("8.0"), "Soirée spéciale"
+            "18:00", "02:00", "21:00", 30, "18:00", "02:00", BigDecimal.ZERO, BigDecimal.valueOf(7.5), new BigDecimal("8.0"), "Special evening"
         );
 
         when(shiftRepository.findById(10L)).thenReturn(Optional.of(sampleShift));
@@ -190,7 +190,7 @@ class EmployeeShiftServiceTest {
         assertThat(updated.getTypePoste()).isEqualTo(TypePoste.BARMAN);
         assertThat(updated.getHeureDebut()).isEqualTo("18:00");
         assertThat(updated.getHeureFin()).isEqualTo("02:00");
-        assertThat(updated.getNotes()).isEqualTo("Soirée spéciale");
+        assertThat(updated.getNotes()).isEqualTo("Special evening");
     }
 
     @Test
@@ -297,7 +297,7 @@ class EmployeeShiftServiceTest {
 
         EmployeeShiftRequestDTO request = new EmployeeShiftRequestDTO(
             1L, LocalDate.of(2026, 8, 10), TypeShift.MATIN, TypePoste.SERVEUR,
-            "08:00", "16:00", null, null, "08:05", "16:15", BigDecimal.valueOf(0.25), BigDecimal.valueOf(8.0), BigDecimal.valueOf(8.25), "Arrivé 5m après"
+            "08:00", "16:00", null, null, "08:05", "16:15", BigDecimal.valueOf(0.25), BigDecimal.valueOf(8.0), BigDecimal.valueOf(8.25), "Arrived 5m late"
         );
 
         when(shiftRepository.findById(10L)).thenReturn(Optional.of(sampleShift));
@@ -308,7 +308,7 @@ class EmployeeShiftServiceTest {
         assertThat(updated.getHeureDebutReelle()).isEqualTo("08:05");
         assertThat(updated.getHeureFinReelle()).isEqualTo("16:15");
         assertThat(updated.getHeuresSup()).isEqualTo(BigDecimal.valueOf(0.25));
-        assertThat(updated.getNotes()).isEqualTo("Arrivé 5m après");
+        assertThat(updated.getNotes()).isEqualTo("Arrived 5m late");
     }
 
     @Test
@@ -324,7 +324,7 @@ class EmployeeShiftServiceTest {
 
         assertThatThrownBy(() -> shiftService.updateShift(10L, request))
             .isInstanceOf(org.springframework.security.access.AccessDeniedException.class)
-            .hasMessageContaining("Vous n'êtes pas autorisé à modifier les créneaux d'un autre employé");
+            .hasMessageContaining("You are not authorized to modify shifts of another employee");
     }
 
     @Test
@@ -340,7 +340,7 @@ class EmployeeShiftServiceTest {
 
         assertThatThrownBy(() -> shiftService.updateShift(10L, request))
             .isInstanceOf(org.springframework.security.access.AccessDeniedException.class)
-            .hasMessageContaining("Vous ne pouvez pas réassigner un créneau à un autre employé");
+            .hasMessageContaining("You cannot reassign a shift to another employee");
     }
 
     @Test
@@ -356,7 +356,7 @@ class EmployeeShiftServiceTest {
 
         assertThatThrownBy(() -> shiftService.updateShift(10L, request))
             .isInstanceOf(org.springframework.security.access.AccessDeniedException.class)
-            .hasMessageContaining("Seul un manager peut modifier la date planifiée");
+            .hasMessageContaining("Only a manager can modify the scheduled shift date");
     }
 
     @Test
@@ -372,7 +372,7 @@ class EmployeeShiftServiceTest {
 
         assertThatThrownBy(() -> shiftService.updateShift(10L, request))
             .isInstanceOf(org.springframework.security.access.AccessDeniedException.class)
-            .hasMessageContaining("Seul un manager peut modifier l'heure de début planifiée");
+            .hasMessageContaining("Only a manager can modify the planned start time");
     }
 
     @Test
@@ -388,7 +388,7 @@ class EmployeeShiftServiceTest {
 
         assertThatThrownBy(() -> shiftService.updateShift(10L, request))
             .isInstanceOf(org.springframework.security.access.AccessDeniedException.class)
-            .hasMessageContaining("Seul un manager peut modifier le type de créneau planifié");
+            .hasMessageContaining("Only a manager can modify the planned shift type");
     }
 
     @Test
@@ -404,7 +404,7 @@ class EmployeeShiftServiceTest {
 
         assertThatThrownBy(() -> shiftService.updateShift(10L, request))
             .isInstanceOf(org.springframework.security.access.AccessDeniedException.class)
-            .hasMessageContaining("Seul un manager peut modifier le poste assigné");
+            .hasMessageContaining("Only a manager can modify the assigned job position");
     }
 
     @Test
@@ -420,7 +420,7 @@ class EmployeeShiftServiceTest {
 
         assertThatThrownBy(() -> shiftService.updateShift(10L, request))
             .isInstanceOf(org.springframework.security.access.AccessDeniedException.class)
-            .hasMessageContaining("Seul un manager peut modifier l'heure de fin planifiée");
+            .hasMessageContaining("Only a manager can modify the planned end time");
     }
 
     @Test

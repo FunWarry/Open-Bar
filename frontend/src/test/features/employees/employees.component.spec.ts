@@ -67,9 +67,9 @@ describe('EmployeesComponent', () => {
             fr: {
               EMPLOYEES: {
                 TITLE: 'Gestion du Personnel',
-                SUBTITLE: 'Consultez l\'équipe',
+                SUBTITLE: 'Browse the team',
                 SEARCH_PLACEHOLDER: 'Rechercher...',
-                NO_EMPLOYEES: 'Aucun employé'
+                NO_EMPLOYEES: 'No employees'
               }
             }
           },

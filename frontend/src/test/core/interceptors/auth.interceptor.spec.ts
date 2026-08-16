@@ -77,7 +77,7 @@ describe('authInterceptor', () => {
     req.flush([]);
   });
 
-  // ─── Pas d'interférence sur les routes auth ──────────────────────────────────
+  // ─── No interference on auth routes ──────────────────────────────────
 
   it('laisse passer les erreurs 401 sur les routes /api/auth/ sans tenter un refresh', () => {
     setup('some-token', null);
@@ -92,7 +92,7 @@ describe('authInterceptor', () => {
 
     expect(errorCaught).toBeDefined();
     expect(errorCaught!.status).toBe(401);
-    // Aucune requête de refresh ne doit avoir été émise
+    // No refresh request should have been emitted
     httpMock.expectNone(authApiUrl);
   });
 
@@ -104,18 +104,18 @@ describe('authInterceptor', () => {
     let responseData: unknown;
     httpClient.get(apiUrl).subscribe(data => { responseData = data; });
 
-    // 1) Requête originale — répond 401
+    // 1) Original request — responds 401
     const originalReq = httpMock.expectOne(apiUrl);
     expect(originalReq.request.headers.get('Authorization')).toBe('Bearer expired-token');
     originalReq.flush('Unauthorized', { status: 401, statusText: 'Unauthorized' });
 
-    // 2) Requête de refresh
+    // 2) Refresh request
     const refreshReq = httpMock.expectOne(authApiUrl);
     expect(refreshReq.request.method).toBe('POST');
     expect(refreshReq.request.body).toEqual({ refreshToken: 'valid-refresh-token' });
     refreshReq.flush({ accessToken: 'new-access-token', refreshToken: 'new-refresh-token' });
 
-    // 3) Requête originale rejouée avec le nouveau token
+    // 3) Original request replayed with new token
     const replayedReq = httpMock.expectOne(apiUrl);
     expect(replayedReq.request.headers.get('Authorization')).toBe('Bearer new-access-token');
     replayedReq.flush([{ id: 1 }]);
@@ -124,7 +124,7 @@ describe('authInterceptor', () => {
     expect(responseData).toEqual([{ id: 1 }]);
   });
 
-  // ─── Refresh token : pas de refresh token stocké → logout ───────────────────
+  // ─── Refresh token: no refresh token stored -> logout ───────────────────
 
   it('dispatche logout et propage une erreur quand aucun refreshToken nest disponible en cas de 401', () => {
     setup('expired-token', null);
@@ -144,7 +144,7 @@ describe('authInterceptor', () => {
     httpMock.expectNone(authApiUrl);
   });
 
-  // ─── Refresh token : échec du refresh → logout ───────────────────────────────
+  // ─── Refresh token: refresh failure -> logout ───────────────────────────────
 
   it('dispatche logout et propage une erreur quand le endpoint de refresh repond 401', () => {
     setup('expired-token', 'bad-refresh-token');
@@ -155,11 +155,11 @@ describe('authInterceptor', () => {
       error: (err: HttpErrorResponse) => { errorCaught = err; }
     });
 
-    // 1) Requête originale → 401
+    // 1) Original request -> 401
     const originalReq = httpMock.expectOne(apiUrl);
     originalReq.flush('Unauthorized', { status: 401, statusText: 'Unauthorized' });
 
-    // 2) Refresh échoue
+    // 2) Refresh fails
     const refreshReq = httpMock.expectOne(authApiUrl);
     refreshReq.flush('Invalid refresh token', { status: 401, statusText: 'Unauthorized' });
 
@@ -168,7 +168,7 @@ describe('authInterceptor', () => {
     expect(errorCaught!.status).toBe(401);
   });
 
-  // ─── Erreurs non-401 propagées sans refresh ───────────────────────────────────
+  // ─── Non-401 errors propagated without refresh ───────────────────────────────────
 
   it('propage les erreurs non-401 sans tenter de refresh', () => {
     setup('valid-token', 'some-refresh-token');
@@ -186,7 +186,7 @@ describe('authInterceptor', () => {
     httpMock.expectNone(authApiUrl);
   });
 
-  // ─── Requête réussie passée telle quelle ─────────────────────────────────────
+  // ─── Successful request passed through ─────────────────────────────────────
 
   it('laisse passer une reponse 200 sans modification', () => {
     setup('valid-token');

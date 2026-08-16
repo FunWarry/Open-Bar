@@ -188,7 +188,7 @@ public class TableService {
                 .toList();
 
         if (commandesActives.isEmpty()) {
-            throw new BusinessException("Aucune commande active à transférer sur la table " + source.getNumero());
+            throw new BusinessException("No active orders to transfer from table " + source.getNumero());
         }
 
         for (Commande c : commandesActives) {
@@ -214,7 +214,7 @@ public class TableService {
         }
 
         auditLogService.logAction(null, "TRANSFERT_TABLE", "TableEntity", sourceId,
-                "Transfert des commandes de la table " + source.getNumero() + " vers la table " + target.getNumero(), null);
+                "Transfer orders from table " + source.getNumero() + " to table " + target.getNumero(), null);
 
         return target;
     }

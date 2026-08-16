@@ -130,7 +130,7 @@ class CocktailVarianteServiceTest {
     void deleteCocktailVariante_idInexistant_nepasLeverException() {
         doNothing().when(cocktailVarianteRepository).deleteById(99L);
 
-        // Le service délègue directement sans vérification — pas d'exception attendue
+        // Service delegates directly without verification — no exception expected
         cocktailVarianteService.deleteCocktailVariante(99L);
 
         verify(cocktailVarianteRepository).deleteById(99L);

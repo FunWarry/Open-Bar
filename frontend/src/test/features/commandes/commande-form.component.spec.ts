@@ -1,3 +1,4 @@
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -31,7 +32,7 @@ describe('CommandeFormComponent', () => {
         CommandeFormComponent,
         ReactiveFormsModule,
         RouterTestingModule
-      ],
+      , getTranslocoTestingModule()],
       providers: [
         { provide: Router, useValue: routerSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
@@ -53,14 +54,14 @@ describe('CommandeFormComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('devrait initialiser le formulaire avec les valeurs par défaut', () => {
+  it('should initialize form with default values', () => {
     expect(component.commandeForm).toBeDefined();
     expect(component.commandeForm.get('tableId')?.value).toBe('');
     expect(component.isEditMode).toBeFalse();
     expect(component.commandeId).toBeNull();
   });
 
-  it('devrait passer en mode édition si un id est présent dans la route', async () => {
+  it('should switch to edit mode if an id is present in route', async () => {
     await TestBed.resetTestingModule();
 
     const routeWithId = { snapshot: { paramMap: { get: () => '5' } } };
@@ -69,7 +70,8 @@ describe('CommandeFormComponent', () => {
       imports: [
         CommandeFormComponent,
         ReactiveFormsModule,
-        RouterTestingModule
+        RouterTestingModule,
+        getTranslocoTestingModule()
       ],
       providers: [
         { provide: Router, useValue: routerSpy },
@@ -79,6 +81,8 @@ describe('CommandeFormComponent', () => {
         { provide: ActivatedRoute, useValue: routeWithId }
       ]
     }).compileComponents();
+
+    commandeServiceSpy.getById.and.returnValue(of({ id: 5, tableId: 2, items: [] } as any));
 
     const fixture = TestBed.createComponent(CommandeFormComponent);
     const comp = fixture.componentInstance;
@@ -97,12 +101,12 @@ describe('CommandeFormComponent', () => {
   it('onSubmit() navigue vers /commandes si le formulaire est valide', async () => {
     component.commandeForm.get('tableId')?.setValue(1);
     component.onSubmit();
-    // Attendre la résolution de la promesse du toast
+    // Wait for resolution de la promesse du toast
     await Promise.resolve();
     expect(routerSpy.navigate).toHaveBeenCalledWith(['/commandes']);
   });
 
-  it('onSubmit() affiche un toast de succès si le formulaire est valide', async () => {
+  it('onSubmit() displays success toast if form is valid', async () => {
     component.commandeForm.get('tableId')?.setValue(2);
     component.onSubmit();
     await Promise.resolve();
@@ -111,7 +115,7 @@ describe('CommandeFormComponent', () => {
     );
   });
 
-  it('le champ tableId doit être requis', () => {
+  it('field tableId should be required', () => {
     const ctrl = component.commandeForm.get('tableId');
     ctrl?.setValue('');
     expect(ctrl?.valid).toBeFalse();

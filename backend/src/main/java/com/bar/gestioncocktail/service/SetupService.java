@@ -37,15 +37,15 @@ public class SetupService {
     @Transactional
     public UserResponseDTO createInitialAdmin(CreateAdminRequestDTO request) {
         if (userRepository.count() > 0) {
-            throw new BusinessException("L'application est déjà initialisée. La création du compte admin initial n'est plus autorisée.");
+            throw new BusinessException("The application is already initialized. Initial admin account creation is no longer allowed.");
         }
 
         if (userRepository.existsByUsername(request.username())) {
-            throw new BusinessException("Ce nom d'utilisateur est déjà pris.");
+            throw new BusinessException("This username is already taken.");
         }
 
         if (userRepository.existsByEmail(request.email())) {
-            throw new BusinessException("Cette adresse email est déjà utilisée.");
+            throw new BusinessException("This email address is already in use.");
         }
 
         User admin = new User();

@@ -21,6 +21,10 @@ describe('ClientSuiviComponent', () => {
     serveurUsername: 'serveur',
     statut: 'EN_PREPARATION' as const,
     prixTotal: 17.5,
+    total: 17.5,
+    dateCommande: '2026-08-16T12:00:00',
+    createdAt: '',
+    updatedAt: '',
     items: [
       { id: 1, cocktailId: 1, cocktailNom: 'Mojito', quantite: 2, prixUnitaire: 8.75 }
     ]
@@ -65,6 +69,33 @@ describe('ClientSuiviComponent', () => {
 
   it('should compute status step 2 for EN_PREPARATION', () => {
     expect(component.statusStep).toBe(2);
-    expect(component.statusLabel).toBe('En préparation par le barman');
+    expect(component.statusLabelKey).toBe('CLIENT.STATUS_PREPARING');
+    expect(component.statusLabel).toBe('CLIENT.STATUS_PREPARING');
+  });
+
+  it('should compute status steps and labels for all statuses', () => {
+    component.commande = { ...mockCommande, statut: 'EN_ATTENTE' };
+    expect(component.statusStep).toBe(1);
+    expect(component.statusLabelKey).toBe('CLIENT.STATUS_RECEIVED');
+
+    component.commande = { ...mockCommande, statut: 'PRET' };
+    expect(component.statusStep).toBe(3);
+    expect(component.statusLabelKey).toBe('CLIENT.STATUS_READY');
+
+    component.commande = { ...mockCommande, statut: 'LIVREE' };
+    expect(component.statusStep).toBe(3);
+    expect(component.statusLabelKey).toBe('CLIENT.STATUS_SERVED');
+
+    component.commande = { ...mockCommande, statut: 'REGLEE' };
+    expect(component.statusStep).toBe(3);
+    expect(component.statusLabelKey).toBe('CLIENT.STATUS_SETTLED');
+
+    component.commande = { ...mockCommande, statut: 'ANNULEE' as any };
+    expect(component.statusStep).toBe(1);
+    expect(component.statusLabelKey).toBe('ANNULEE');
+
+    component.commande = null;
+    expect(component.statusStep).toBe(1);
+    expect(component.statusLabelKey).toBe('CLIENT.STATUS_RECEIVED');
   });
 });

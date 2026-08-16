@@ -84,7 +84,7 @@ public class PdfService {
             return out.toByteArray();
 
         } catch (DocumentException | IOException e) {
-            throw new IllegalStateException("Erreur génération PDF facture " + facture.getId(), e);
+            throw new IllegalStateException("Error generating invoice PDF " + facture.getId(), e);
         }
     }
 
@@ -444,7 +444,7 @@ public class PdfService {
             doc.close();
             return out.toByteArray();
         } catch (DocumentException | IOException e) {
-            throw new IllegalStateException("Erreur génération PDF récap journalier du " + recap.date(), e);
+            throw new IllegalStateException("Error generating daily recap PDF for " + recap.date(), e);
         }
     }
 

@@ -1,3 +1,4 @@
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { TestBed, fakeAsync, tick, flushMicrotasks } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -38,7 +39,7 @@ describe('TableDetailComponent', () => {
     storeSpy.select.and.returnValue(of(false));
 
     await TestBed.configureTestingModule({
-      imports: [TableDetailComponent, IonicModule.forRoot(), RouterTestingModule],
+      imports: [TableDetailComponent, IonicModule.forRoot(), RouterTestingModule, getTranslocoTestingModule()],
       providers: [
         { provide: Store, useValue: storeSpy },
         { provide: TableService, useValue: tableServiceSpy },
@@ -108,7 +109,7 @@ describe('TableDetailComponent', () => {
     expect(router.navigate).toHaveBeenCalledWith(['/commandes', 1]);
   });
 
-  it('isAdmin$ émet false par défaut', (done) => {
+  it('isAdmin$ emits false by default', (done) => {
     component.isAdmin$.subscribe(v => { expect(v).toBe(false); done(); });
   });
 });

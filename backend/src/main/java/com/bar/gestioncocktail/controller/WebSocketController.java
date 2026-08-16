@@ -10,9 +10,9 @@ import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Controller;
 
 /**
- * Controller STOMP WebSocket gérant les interactions messaging et diffusions temps réel.
+ * STOMP WebSocket controller managing messaging interactions and real-time broadcasts.
  * <p>
- * Traite les messages entrants des clients et déclenche la diffusion sur les topics WebSocket correspondants.
+ * Handles incoming client messages and triggers broadcasts to corresponding WebSocket topics.
  */
 @Controller
 public class WebSocketController {
@@ -20,19 +20,19 @@ public class WebSocketController {
     private final NotificationService notificationService;
 
     /**
-     * Constructeur avec injection du service de notification.
+     * Constructs the controller with notification service dependency.
      *
-     * @param notificationService Service de notification WebSocket
+     * @param notificationService WebSocket notification service
      */
     public WebSocketController(NotificationService notificationService) {
         this.notificationService = notificationService;
     }
 
     /**
-     * Notifie la création d'une nouvelle commande sur le topic {@code /topic/commandes}.
+     * Broadcasts notification of a newly placed order to {@code /topic/commandes}.
      *
-     * @param commande La commande créée
-     * @return DTO de la commande diffusé aux abonnés
+     * @param commande Created order entity
+     * @return Order response DTO broadcast to subscribers
      */
     @MessageMapping("/commandes/nouvelle")
     @SendTo("/topic/commandes")
@@ -42,10 +42,10 @@ public class WebSocketController {
     }
 
     /**
-     * Notifie la mise à jour du statut d'une commande sur son topic spécifique {@code /topic/commandes/{commandeId}}.
+     * Broadcasts notification of order status updates to {@code /topic/commandes/{commandeId}}.
      *
-     * @param commande La commande modifiée
-     * @return DTO de la commande diffusé
+     * @param commande Updated order entity
+     * @return Broadcast order DTO
      */
     @MessageMapping("/commandes/statut")
     @SendTo("/topic/commandes/{commandeId}")
@@ -55,10 +55,10 @@ public class WebSocketController {
     }
 
     /**
-     * Notifie l'occupation d'une table sur le topic {@code /topic/tables}.
+     * Broadcasts table occupancy status to {@code /topic/tables}.
      *
-     * @param table La table occupée
-     * @return DTO de la table
+     * @param table Occupied table entity
+     * @return Broadcast table DTO
      */
     @MessageMapping("/tables/occuper")
     @SendTo("/topic/tables")
@@ -68,10 +68,10 @@ public class WebSocketController {
     }
 
     /**
-     * Notifie la libération d'une table sur le topic {@code /topic/tables}.
+     * Broadcasts table liberation to {@code /topic/tables}.
      *
-     * @param table La table libérée
-     * @return DTO de la table
+     * @param table Liberated table entity
+     * @return Broadcast table DTO
      */
     @MessageMapping("/tables/liberer")
     @SendTo("/topic/tables")

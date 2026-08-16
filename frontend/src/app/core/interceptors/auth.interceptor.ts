@@ -8,19 +8,19 @@ import { logout } from '../store/auth.actions';
 import { AuthService } from '../services/auth.service';
 import { environment } from '../../../environments/environment';
 
-// État partagé entre les requêtes concurrentes lors du rafraîchissement de jeton
+// Shared state across concurrent requests during token refresh
 let isRefreshing = false;
 const refreshDone$ = new BehaviorSubject<string | null>(null);
 
 /**
- * Intercepteur HTTP fonctionnel d'authentification JWT.
+ * Functional HTTP authentication interceptor for JWT handling.
  * <p>
- * Injecte l'en-tête {@code Authorization: Bearer <token>} sur toutes les requêtes sortantes.
- * En cas de réponse 401 Unauthorized, tente un rafraîchissement automatique de jeton via le refresh token.
+ * Injects the {@code Authorization: Bearer <token>} header on all outgoing HTTP requests.
+ * On 401 Unauthorized responses, attempts automatic token refresh via the refresh token.
  *
- * @param req La requête HTTP à intercepter
- * @param next Le handler de la chaîne d'interception
- * @returns Observable de l'événement HTTP
+ * @param req HTTP request to intercept
+ * @param next Interception chain handler
+ * @returns Observable of HTTP events
  */
 export const authInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, next: HttpHandlerFn): Observable<any> => {
   const store = inject(Store);
@@ -48,26 +48,26 @@ export const authInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, ne
 };
 
 /**
- * Ajoute l'en-tête de sécurité Bearer JWT à une requête HTTP.
+ * Adds the Bearer JWT security header to an HTTP request.
  *
- * @param req La requête d'origine
- * @param token Le jeton JWT d'accès
- * @returns La requête clonée avec l'en-tête d'autorisation
+ * @param req Source request
+ * @param token Access JWT token
+ * @returns Cloned request with authorization header
  */
 function addAuthHeader(req: HttpRequest<unknown>, token: string): HttpRequest<unknown> {
   return req.clone({ headers: req.headers.set('Authorization', `Bearer ${token}`) });
 }
 
 /**
- * Gère le processus de rafraîchissement de jeton lors d'une erreur 401.
- * Mutualise le rafraîchissement pour éviter les requêtes concourantes multiples.
+ * Handles the token refresh flow upon a 401 error.
+ * Coordinates refresh requests to prevent redundant duplicate refresh calls.
  *
- * @param req Requête d'origine
- * @param next Handler HTTP
- * @param store Store NgRx
- * @param authService Service d'authentification
- * @param http Client HTTP
- * @returns Observable de la requête rejouée avec le nouveau token
+ * @param req Source request
+ * @param next HTTP handler
+ * @param store NgRx store
+ * @param authService Authentication service
+ * @param http HTTP client
+ * @returns Observable of replayed request with fresh access token
  */
 function handleRefresh(
   req: HttpRequest<unknown>,

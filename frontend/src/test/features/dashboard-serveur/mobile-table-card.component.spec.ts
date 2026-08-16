@@ -33,7 +33,7 @@ describe('MobileTableCardComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should compute status label as Occupée when occupee is true', () => {
+  it('should compute status label as Occupied when occupee is true', () => {
     expect(component.StatusLabel).toBeTruthy();
   });
 

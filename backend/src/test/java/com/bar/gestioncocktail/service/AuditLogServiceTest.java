@@ -49,7 +49,7 @@ class AuditLogServiceTest {
         auditLog.setAction("CREATE");
         auditLog.setEntityType("Cocktail");
         auditLog.setEntityId(42L);
-        auditLog.setDetails("Mojito créé");
+        auditLog.setDetails("Mojito created");
         auditLog.setIpAddress("127.0.0.1");
     }
 
@@ -82,7 +82,7 @@ class AuditLogServiceTest {
     void logAction_nominal_persisteAuditLogAvecTousLesChamps() {
         given(auditLogRepository.save(any(AuditLog.class))).willAnswer(inv -> inv.getArgument(0));
 
-        auditLogService.logAction(user, "DELETE", "Ingredient", 7L, "Rhum supprimé", "192.168.1.1");
+        auditLogService.logAction(user, "DELETE", "Ingredient", 7L, "Rum deleted", "192.168.1.1");
 
         ArgumentCaptor<AuditLog> captor = ArgumentCaptor.forClass(AuditLog.class);
         verify(auditLogRepository).save(captor.capture());
@@ -91,7 +91,7 @@ class AuditLogServiceTest {
         assertThat(saved.getAction()).isEqualTo("DELETE");
         assertThat(saved.getEntityType()).isEqualTo("Ingredient");
         assertThat(saved.getEntityId()).isEqualTo(7L);
-        assertThat(saved.getDetails()).isEqualTo("Rhum supprimé");
+        assertThat(saved.getDetails()).isEqualTo("Rum deleted");
         assertThat(saved.getIpAddress()).isEqualTo("192.168.1.1");
     }
 
@@ -111,7 +111,7 @@ class AuditLogServiceTest {
     void logAction_detailsNull_neLevePasException() {
         given(auditLogRepository.save(any(AuditLog.class))).willAnswer(inv -> inv.getArgument(0));
 
-        // details et ipAddress peuvent être null — doit fonctionner sans NPE
+        // details and ipAddress can be null — should work without NPE
         org.junit.jupiter.api.Assertions.assertDoesNotThrow(
             () -> auditLogService.logAction(user, "READ", "Commande", 10L, null, null)
         );

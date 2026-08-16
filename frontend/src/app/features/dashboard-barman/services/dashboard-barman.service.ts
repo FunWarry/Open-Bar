@@ -8,7 +8,7 @@ import { Ingredient } from '../../../core/models/ingredient.model';
 
 /**
  * Service managing real-time counter barman operations including order fetching by status,
- * state transitions, rapid out-of-stock toggles ("Ruptures à chaud"), and recipe lookups.
+ * state transitions, rapid out-of-stock toggles ("Quick Out-of-Stock"), and recipe lookups.
  */
 @Injectable({ providedIn: 'root' })
 export class DashboardBarmanService {

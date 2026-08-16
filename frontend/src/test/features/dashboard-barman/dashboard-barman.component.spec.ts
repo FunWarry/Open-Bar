@@ -155,7 +155,7 @@ describe('DashboardBarmanComponent', () => {
     expect(component.commandesPret).toHaveSize(1);
   }));
 
-  it('chargerCommandes() déclenche un son si de nouvelles commandes sont détectées', fakeAsync(() => {
+  it('chargerCommandes() triggers sound if new orders are detected', fakeAsync(() => {
     component.commandesEnAttente = [mockCommandes[0]];
     const newCommandes = [
       mockCommandes[0],
@@ -199,7 +199,7 @@ describe('DashboardBarmanComponent', () => {
     expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
   }));
 
-  it('toggleSound() bascule l état audio et affiche un toast', () => {
+  it('toggleSound() toggles audio state and displays toast', () => {
     component.toggleSound();
     expect(soundServiceSpy.toggleSound).toHaveBeenCalled();
     expect(toastCtrlSpy.create).toHaveBeenCalled();
@@ -217,7 +217,7 @@ describe('DashboardBarmanComponent', () => {
     expect(mockModal.present).toHaveBeenCalled();
   });
 
-  it('onShowRecipe() ouvre le panneau latéral et charge les détails du cocktail', () => {
+  it('onShowRecipe() opens side panel and loads cocktail details', () => {
     const item = { id: 1, cocktailId: 101, cocktailNom: 'Mojito', quantite: 2, prioritaire: false };
     dashboardServiceSpy.getCocktailById.and.returnValue(of({
       id: 101,

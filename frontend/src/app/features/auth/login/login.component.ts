@@ -13,7 +13,7 @@ import { ActionButtonComponent } from '../../../core/components/ui/action-button
 
 /**
  * Login Component allowing users to sign in to their OpenBar workspace.
- * Conforms to Figma Vue système commun Login card specs (`538:906`).
+ * Conforms to Figma Common system view Login card specs (`538:906`).
  */
 @Component({
   selector: 'app-login',

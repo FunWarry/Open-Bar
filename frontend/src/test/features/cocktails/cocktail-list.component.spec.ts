@@ -114,7 +114,7 @@ describe('CocktailListComponent', () => {
     expect(component.filteredCocktails).toHaveSize(2);
   }));
 
-  it('filtre par catégorie et recherche textuelle', fakeAsync(() => {
+  it('filters by category and text search', fakeAsync(() => {
     component.charger(); tick();
     component.selectedCategory = 'SANS_ALCOOL';
     expect(component.filteredCocktails).toHaveSize(1);
@@ -126,19 +126,19 @@ describe('CocktailListComponent', () => {
 
   // --- Allergens ---
 
-  it('getCocktailAllergens() détecte correctement les allergènes présents', () => {
+  it('getCocktailAllergens() correctly detects present allergens', () => {
     const cocktailLait: Cocktail = {
       ...mockCocktails[0],
       ingredients: [
         { id: 1, ingredientId: 10, ingredientNom: 'Rhum', quantite: 5, uniteMesure: 'cl' },
-        { id: 2, ingredientId: 12, ingredientNom: 'Crème fraîche', quantite: 3, uniteMesure: 'cl' },
+        { id: 2, ingredientId: 12, ingredientNom: 'Sour cream', quantite: 3, uniteMesure: 'cl' },
       ],
     };
     const allergens = component.getCocktailAllergens(cocktailLait);
     expect(allergens).toContain('LAIT');
   });
 
-  it('toggleAllergenFilter() ajoute et retire un allergène des filtres exclus', () => {
+  it('toggleAllergenFilter() adds and removes allergen from excluded filters', () => {
     expect(component.selectedAllergens).toHaveSize(0);
     component.toggleAllergenFilter('LAIT');
     expect(component.selectedAllergens).toContain('LAIT');
@@ -147,13 +147,13 @@ describe('CocktailListComponent', () => {
     expect(component.selectedAllergens).not.toContain('LAIT');
   });
 
-  it('clearAllergenFilters() réinitialise les filtres d\'allergènes', () => {
+  it('clearAllergenFilters() resets allergen filters', () => {
     component.selectedAllergens = ['LAIT', 'GLUTEN'];
     component.clearAllergenFilters();
     expect(component.selectedAllergens).toHaveSize(0);
   });
 
-  it('filteredCocktails exclut les cocktails contenant un allergène sélectionné', fakeAsync(() => {
+  it('filteredCocktails excludes cocktails containing selected allergen', fakeAsync(() => {
     const cocktailLait: Cocktail = {
       ...makeC(10, 'Pina Colada'),
       ingredients: [
@@ -173,19 +173,19 @@ describe('CocktailListComponent', () => {
 
   // --- getIngredientsText ---
 
-  it('getIngredientsText() retourne les ingrédients séparés par des puces', () => {
+  it('getIngredientsText() returns bullet-separated ingredients', () => {
     const text = component.getIngredientsText(mockCocktails[0]);
     expect(text).toBe('Rhum · Menthe');
   });
 
-  it('getIngredientsText() retourne la description si pas d\'ingrédients', () => {
+  it('getIngredientsText() returns description if no ingredients', () => {
     const noIng: Cocktail = { ...mockCocktails[0], ingredients: [], description: 'Test desc' };
     expect(component.getIngredientsText(noIng)).toBe('Test desc');
   });
 
   // --- Category pill styling ---
 
-  it('getCategoryDotColor() retourne la couleur appropriée selon la catégorie', () => {
+  it('getCategoryDotColor() returns appropriate color by category', () => {
     expect(component.getCategoryDotColor('ALCOOLISE')).toBe('#10b981');
     expect(component.getCategoryDotColor('SANS_ALCOOL')).toBe('#06b6d4');
     expect(component.getCategoryDotColor('SHOT')).toBe('#84cc16');
@@ -195,7 +195,7 @@ describe('CocktailListComponent', () => {
     expect(component.getCategoryDotColor('AUTRE')).toBe('#6366f1');
   });
 
-  it('getCategoryPillStyle() génère les styles actifs et inactifs', () => {
+  it('getCategoryPillStyle() generates active and inactive styles', () => {
     const activeStyle = component.getCategoryPillStyle('ALCOOLISE', true);
     expect(activeStyle['background-color']).toBe('#10b981');
 
@@ -203,9 +203,9 @@ describe('CocktailListComponent', () => {
     expect(inactiveStyle['color']).toBe('var(--text-primary)');
   });
 
-  // --- toggle disponibilité ---
+  // --- toggle availability ---
 
-  it('onToggleDisponibilite() appelle le service et met à jour la liste', fakeAsync(() => {
+  it('onToggleDisponibilite() calls service and updates list', fakeAsync(() => {
     component.charger(); tick();
     component.onToggleDisponibilite(mockCocktails[0]);
     tick();
@@ -222,7 +222,7 @@ describe('CocktailListComponent', () => {
 
   // --- delete ---
 
-  it('onDelete() retire le cocktail de la liste et affiche un toast de succès', fakeAsync(() => {
+  it('onDelete() removes cocktail from list and displays success toast', fakeAsync(() => {
     component.charger(); tick();
     component.onDelete(mockCocktails[0]);
     tick();
@@ -253,7 +253,7 @@ describe('CocktailListComponent', () => {
     expect(router.navigate).toHaveBeenCalledWith(['/cocktails', 1, 'edit']);
   });
 
-  it('onRefresh() recharge les cocktails avec l\'événement refresher', () => {
+  it('onRefresh() reloads cocktails with refresher event', () => {
     const event = { target: { complete: jasmine.createSpy('complete') } };
     component.onRefresh(event);
     expect(serviceSpy.getAll).toHaveBeenCalled();
@@ -275,7 +275,7 @@ describe('CocktailListComponent', () => {
 
   // --- toggle pictures ---
 
-  it('togglePictures() inverse showPictures et sauvegarde la préférence', () => {
+  it('togglePictures() toggles showPictures and saves preference', () => {
     const initial = component.showPictures;
     component.togglePictures();
     expect(component.showPictures).toBe(!initial);

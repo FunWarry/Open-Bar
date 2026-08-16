@@ -1,3 +1,4 @@
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { provideMockStore, MockStore } from '@ngrx/store/testing';
@@ -37,7 +38,7 @@ describe('HeaderComponent', () => {
       imports: [
         HeaderComponent,
         RouterTestingModule
-      ],
+      , getTranslocoTestingModule()],
       providers: [
         provideMockStore({
           initialState: {
@@ -60,7 +61,7 @@ describe('HeaderComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('currentUser$ émet la valeur du store via selectCurrentUser', () => {
+  it('currentUser$ emits store value via selectCurrentUser', () => {
     store.overrideSelector(selectCurrentUser, mockUserServeur);
     store.refreshState();
 
@@ -70,7 +71,7 @@ describe('HeaderComponent', () => {
     expect(emittedUser).toEqual(mockUserServeur);
   });
 
-  it('currentUser$ émet null quand aucun utilisateur connecté', () => {
+  it('currentUser$ emits null when no connected user', () => {
     store.overrideSelector(selectCurrentUser, null);
     store.refreshState();
 
@@ -96,7 +97,7 @@ describe('HeaderComponent', () => {
     expect(dispatchSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('affiche le username de l\'utilisateur connecté dans le header', async () => {
+  it('displays username of connected user in header', async () => {
     store.overrideSelector(selectCurrentUser, mockUserServeur);
     store.refreshState();
     fixture.detectChanges();
@@ -106,7 +107,7 @@ describe('HeaderComponent', () => {
     expect(headerEl.textContent).toContain('serveur01');
   });
 
-  it('masque le bouton utilisateur quand aucun utilisateur connecté', async () => {
+  it('hides user button when no user connected', async () => {
     store.overrideSelector(selectCurrentUser, null);
     store.refreshState();
     fixture.detectChanges();

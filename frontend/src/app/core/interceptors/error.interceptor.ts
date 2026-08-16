@@ -5,24 +5,24 @@ import { TranslocoService } from '@jsverse/transloco';
 import { catchError, from, switchMap, throwError } from 'rxjs';
 
 const FALLBACK_MESSAGES: Record<string, string> = {
-  'ERRORS.NETWORK': 'Erreur réseau — vérifiez votre connexion.',
-  'ERRORS.UNAUTHORIZED': 'Accès refusé.',
-  'ERRORS.FORBIDDEN': 'Accès interdit.',
-  'ERRORS.NOT_FOUND': 'Ressource introuvable.',
-  'ERRORS.SERVER': 'Erreur serveur inattendue.',
+  'ERRORS.NETWORK': 'Network error — please check your internet connection.',
+  'ERRORS.UNAUTHORIZED': 'Access denied.',
+  'ERRORS.FORBIDDEN': 'Forbidden.',
+  'ERRORS.NOT_FOUND': 'Resource not found.',
+  'ERRORS.SERVER': 'Unexpected server error.',
 };
 
 const DEV = isDevMode();
 
 /**
- * Intercepteur HTTP fonctionnel de gestion globale des erreurs.
+ * Functional HTTP interceptor for global error handling.
  * <p>
- * Intercepte les erreurs HTTP (4xx/5xx/0) et affiche automatiquement un Toast Ionic d'erreur à l'utilisateur
- * avec traduction i18n via Transloco.
+ * Intercepts HTTP errors (4xx/5xx/0) and automatically displays an Ionic error toast
+ * with i18n translation via Transloco.
  *
- * @param req La requête HTTP à intercepter
- * @param next Le handler de la chaîne d'interception
- * @returns Observable propageant l'erreur après affichage du Toast
+ * @param req HTTP request to intercept
+ * @param next Interception chain handler
+ * @returns Observable propagating the error after displaying toast
  */
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const toastCtrl = inject(ToastController);
@@ -35,7 +35,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 
       const key = getErrorKey(error.status);
       const translated = transloco.translate(key);
-      const message = translated !== key ? translated : (FALLBACK_MESSAGES[key] ?? 'Une erreur est survenue.');
+      const message = translated !== key ? translated : (FALLBACK_MESSAGES[key] ?? 'An error occurred.');
 
       if (DEV) console.error('[HTTP Error]', error.status, error.url, error);
 
@@ -58,10 +58,10 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 };
 
 /**
- * Mappe le code de statut HTTP vers la clé de traduction Transloco correspondante.
+ * Maps an HTTP status code to its corresponding Transloco translation key.
  *
- * @param status Code de statut HTTP (0, 403, 404, 500, etc.)
- * @returns La clé i18n correspondante
+ * @param status HTTP status code (0, 403, 404, 500, etc.)
+ * @returns Corresponding i18n translation key
  */
 function getErrorKey(status: number): string {
   if (status === 0)   return 'ERRORS.NETWORK';

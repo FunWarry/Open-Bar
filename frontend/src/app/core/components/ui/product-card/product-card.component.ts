@@ -26,7 +26,7 @@ export class ProductCardComponent {
   /** Price in EUR. */
   @Input() price!: number;
 
-  /** Category badge text (e.g. Alcoolisé, Sans Alcool). */
+  /** Category badge text (e.g. Alcoholic, Non-Alcoholic). */
   @Input() category?: string;
 
   /** Optional image URL. */

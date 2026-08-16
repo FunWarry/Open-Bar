@@ -1,3 +1,4 @@
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { ModalController, ToastController } from '@ionic/angular/standalone';
@@ -48,7 +49,7 @@ describe('TableDetailModalComponent', () => {
     toastCtrlSpy.create.and.returnValue(Promise.resolve(toastSpy as any));
 
     TestBed.configureTestingModule({
-      imports: [TableDetailModalComponent],
+      imports: [TableDetailModalComponent, getTranslocoTestingModule()],
       providers: [
         { provide: ModalController, useValue: modalCtrlSpy },
         { provide: Router, useValue: routerSpy },
@@ -82,7 +83,7 @@ describe('TableDetailModalComponent', () => {
     expect(toastCtrlSpy.create).toHaveBeenCalled();
   });
 
-  it('transferer() ouvre le transfert-modal et transfère la commande lors de la validation', fakeAsync(() => {
+  it('transferer() opens transfert-modal and transfers order on confirmation', fakeAsync(() => {
     const modalMock = {
       present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
       onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(
@@ -102,7 +103,7 @@ describe('TableDetailModalComponent', () => {
     );
   }));
 
-  it('transferer() affiche un toast d\'erreur si le transfert échoue', fakeAsync(() => {
+  it('transferer() displays error toast if transfer fails', fakeAsync(() => {
     const modalMock = {
       present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
       onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(
@@ -120,7 +121,7 @@ describe('TableDetailModalComponent', () => {
     );
   }));
 
-  it('transferer() ne fait rien si le modal est annulé', fakeAsync(() => {
+  it('transferer() does nothing if modal is cancelled', fakeAsync(() => {
     const modalMock = {
       present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
       onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({ data: null })),

@@ -46,12 +46,12 @@ class GlobalExceptionHandlerTest {
     @Test
     @DisplayName("handleAccessDenied - returns 403 ErrorResponse")
     void handleAccessDenied() {
-        org.springframework.security.access.AccessDeniedException ex = new org.springframework.security.access.AccessDeniedException("Accès refusé");
+        org.springframework.security.access.AccessDeniedException ex = new org.springframework.security.access.AccessDeniedException("Access denied");
         ResponseEntity<ErrorResponse> response = handler.handleAccessDenied(ex);
 
         assertThat(response.getStatusCode().value()).isEqualTo(403);
         assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getMessage()).isEqualTo("Accès refusé");
+        assertThat(response.getBody().getMessage()).isEqualTo("Access denied");
     }
 
     @Test

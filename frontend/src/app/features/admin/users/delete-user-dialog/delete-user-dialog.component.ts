@@ -1,6 +1,7 @@
 import {Component, Input} from '@angular/core';
 import {User} from '../../../../core/models/user.model';
 import { ModalController, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonContent, IonIcon } from '@ionic/angular/standalone';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import {addIcons} from 'ionicons';
 import {trash} from 'ionicons/icons';
@@ -12,7 +13,7 @@ import {trash} from 'ionicons/icons';
   standalone: true,
   imports: [
     IonHeader, IonToolbar, IonTitle, IonButtons, IonButton,
-    IonContent, IonIcon
+    IonContent, IonIcon, TranslocoPipe
   ],
 })
 export class DeleteUserDialogComponent {

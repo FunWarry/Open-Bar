@@ -1,3 +1,4 @@
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ProductCardComponent, ProductItem } from '../../../app/features/dashboard-serveur/components/product-card/product-card.component';
 import { provideIonicAngular } from '@ionic/angular/standalone';
@@ -18,7 +19,7 @@ describe('ProductCardComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ProductCardComponent],
+      imports: [ProductCardComponent, getTranslocoTestingModule()],
       providers: [provideIonicAngular()],
     }).compileComponents();
 

@@ -67,7 +67,7 @@ describe('WebSocketService', () => {
     expect(mockRxStomp.activate).toHaveBeenCalledTimes(1);
   });
 
-  it('connect() ne fait rien si rxStomp est déjà actif', () => {
+  it('connect() does nothing if rxStomp is already active', () => {
     (mockRxStomp as any).active = true;
     mockRxStomp.configure.calls.reset();
     mockRxStomp.activate.calls.reset();
@@ -128,7 +128,7 @@ describe('WebSocketService', () => {
 
   // ─── watch() ────────────────────────────────────────────────────────────────
 
-  it('watch() délègue à rxStomp.watch() avec la destination fournie', () => {
+  it('watch() delegates to rxStomp.watch() with provided destination', () => {
     const subject = new Subject<any>();
     mockRxStomp.watch.and.returnValue(subject.asObservable() as any);
 
@@ -138,7 +138,7 @@ describe('WebSocketService', () => {
     expect(result).toBeDefined();
   });
 
-  it('watch() retourne les messages émis par le STOMP broker', (done) => {
+  it('watch() returns messages emitted by STOMP broker', (done) => {
     const subject = new Subject<any>();
     mockRxStomp.watch.and.returnValue(subject.asObservable() as any);
 
@@ -154,7 +154,7 @@ describe('WebSocketService', () => {
 
   // ─── connected$ ─────────────────────────────────────────────────────────────
 
-  it('connected$ émet true quand l\'état STOMP est OPEN', (done) => {
+  it('connected$ emits true when STOMP state is OPEN', (done) => {
     // connected$ is derived from connectionState$ — make sure the mock uses it
     (mockRxStomp as any).connectionState$ = connectionStateSubject.asObservable();
 
@@ -168,7 +168,7 @@ describe('WebSocketService', () => {
     connectionStateSubject.next(RxStompState.OPEN);
   });
 
-  it('connected$ émet false quand l\'état STOMP n\'est pas OPEN', (done) => {
+  it('connected$ emits false when STOMP state is not OPEN', (done) => {
     (mockRxStomp as any).connectionState$ = connectionStateSubject.asObservable();
 
     service.connected$.pipe(take(1)).subscribe(val => {
@@ -177,12 +177,12 @@ describe('WebSocketService', () => {
     });
   });
 
-  // ─── connexion / déconnexion automatique selon auth state ───────────────────
+  // ─── Auto connect / disconnect according to auth state ───────────────────
 
-  it('se connecte automatiquement quand isAuthenticated passe à true et que rxStomp est inactif', () => {
+  it('connects automatically when isAuthenticated becomes true and rxStomp is inactive', () => {
     (mockRxStomp as any).active = false;
 
-    // Force une transition false → true pour déclencher l'abonnement (distinctUntilChanged)
+    // Force false -> true transition to trigger subscription (distinctUntilChanged)
     store.overrideSelector(selectIsAuthenticated, false);
     store.refreshState();
 
@@ -196,7 +196,7 @@ describe('WebSocketService', () => {
     expect(mockRxStomp.activate).toHaveBeenCalled();
   });
 
-  it('ne se connecte pas si rxStomp est déjà actif quand isAuthenticated est true', () => {
+  it('does not connect if rxStomp is already active when isAuthenticated is true', () => {
     (mockRxStomp as any).active = true;
     mockRxStomp.configure.calls.reset();
     mockRxStomp.activate.calls.reset();
@@ -208,7 +208,7 @@ describe('WebSocketService', () => {
     expect(mockRxStomp.activate).not.toHaveBeenCalled();
   });
 
-  it('se déconnecte automatiquement quand isAuthenticated passe à false et que rxStomp est actif', () => {
+  it('disconnects automatically when isAuthenticated becomes false and rxStomp is active', () => {
     (mockRxStomp as any).active = true;
     mockRxStomp.deactivate.calls.reset();
 
@@ -218,7 +218,7 @@ describe('WebSocketService', () => {
     expect(mockRxStomp.deactivate).toHaveBeenCalled();
   });
 
-  it('ne déconnecte pas si rxStomp est inactif quand isAuthenticated passe à false', () => {
+  it('does not disconnect if rxStomp is inactive when isAuthenticated becomes false', () => {
     (mockRxStomp as any).active = false;
     mockRxStomp.deactivate.calls.reset();
 

@@ -5,13 +5,12 @@ import com.bar.gestioncocktail.exception.BusinessException;
 import com.bar.gestioncocktail.model.AppSettings;
 import com.bar.gestioncocktail.model.DefaultTheme;
 import com.bar.gestioncocktail.repository.AppSettingsRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Service métier gérant le singleton de configuration et de personnalisation visuelle de l'établissement (AppSettings).
+ * Business service managing the establishment customization and visual branding singleton (AppSettings).
  */
 @Service
 @Transactional
@@ -20,20 +19,19 @@ public class AppSettingsService {
     private final AppSettingsRepository appSettingsRepository;
 
     /**
-     * Constructeur avec injection du repository de paramètres.
+     * Constructs the service with settings repository dependency.
      *
-     * @param appSettingsRepository Repository JPA des paramètres
+     * @param appSettingsRepository JPA settings repository
      */
-    @Autowired
     public AppSettingsService(AppSettingsRepository appSettingsRepository) {
         this.appSettingsRepository = appSettingsRepository;
     }
 
     /**
-     * Récupère la configuration singleton actuelle de l'établissement.
-     * Crée une configuration par défaut si aucune n'existe.
+     * Retrieves the current establishment settings singleton.
+     * Creates default settings if none exist.
      *
-     * @return L'instance singleton {@link AppSettings}
+     * @return The singleton {@link AppSettings} instance
      */
     public AppSettings getSettings() {
         return appSettingsRepository.findById(AppSettings.SINGLETON_ID)
@@ -41,16 +39,16 @@ public class AppSettingsService {
     }
 
     /**
-     * Met à jour la configuration visuelle et le nom de l'établissement.
+     * Updates visual branding configuration and establishment details.
      *
-     * @param request DTO contenant les nouvelles options de personnalisation
-     * @return Les paramètres mis à jour
-     * @throws BusinessException Si une règle métier est violée (ex: thème non supporté)
+     * @param request DTO containing new customization options
+     * @return Updated settings entity
+     * @throws BusinessException If a business rule is violated (e.g. unsupported theme)
      */
     public AppSettings updateSettings(AppSettingsUpdateRequest request) {
         if (request.defaultTheme() == DefaultTheme.LIGHT) {
             throw new BusinessException(
-                "Le thème clair n'est pas encore disponible (conception Figma en cours, cf. ticket #154)");
+                "Light theme is not yet available (Figma design in progress, cf. ticket #154)");
         }
         AppSettings current = getSettings();
         current.setPrimaryColor(request.primaryColor());
@@ -68,13 +66,13 @@ public class AppSettingsService {
     }
 
     /**
-     * Crée et sauvegarde une instance de paramètres par défaut.
+     * Creates and persists a default settings instance.
+     * <p>
+     * Two concurrent requests may encounter an empty table simultaneously (e.g. two devices booting
+     * at the same time) — the second insert triggers a primary key constraint violation on the fixed ID
+     * and falls back to loading the persisted singleton.
      *
-     * Deux requêtes concurrentes peuvent trouver la table vide simultanément (ex: deux
-     * tablettes qui bootent en même temps) — la seconde tentative de création tombe sur
-     * une violation de contrainte de clé primaire (id fixe) plutôt que sur une vraie erreur.
-     *
-     * @return Les paramètres créés ou récupérés
+     * @return Created or loaded default settings
      */
     private AppSettings createDefaultSettings() {
         try {

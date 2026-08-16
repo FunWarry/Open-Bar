@@ -21,33 +21,33 @@ import java.util.List;
  */
 @Schema(description = "Request payload for table payment and settlement")
 public record EncaissementRequestDTO(
-    @NotBlank(message = "Le mode de paiement est obligatoire")
-    @Schema(description = "Mode de paiement (CARTE, ESPECES, TITRES_RESTAURANT, CHEQUES_VACANCES, etc.)", example = "CARTE")
+    @NotBlank(message = "Payment method is mandatory")
+    @Schema(description = "Payment method (CARTE, ESPECES, TITRES_RESTAURANT, CHEQUES_VACANCES, etc.)", example = "CARTE")
     String modePaiement,
 
-    @PositiveOrZero(message = "Le pourboire ne peut pas être négatif")
-    @Schema(description = "Montant du pourboire en euros", example = "2.50")
+    @PositiveOrZero(message = "Tip amount cannot be negative")
+    @Schema(description = "Tip amount in EUR", example = "2.50")
     BigDecimal pourboire,
 
-    @PositiveOrZero(message = "La remise ne peut pas être négative")
-    @Schema(description = "Montant fixe de remise en euros", example = "5.00")
+    @PositiveOrZero(message = "Discount amount cannot be negative")
+    @Schema(description = "Fixed discount amount in EUR", example = "5.00")
     BigDecimal remiseMontant,
 
-    @PositiveOrZero(message = "Le pourcentage de remise ne peut pas être négatif")
-    @Schema(description = "Pourcentage de remise (0 à 100)", example = "10.0")
+    @PositiveOrZero(message = "Discount percentage cannot be negative")
+    @Schema(description = "Discount percentage (0 to 100)", example = "10.0")
     BigDecimal remisePourcentage,
 
-    @PositiveOrZero(message = "Le montant reçu ne peut pas être négatif")
-    @Schema(description = "Montant en espèces reçu", example = "50.00")
+    @PositiveOrZero(message = "Received amount cannot be negative")
+    @Schema(description = "Cash amount received from customer", example = "50.00")
     BigDecimal montantRecu,
 
-    @Schema(description = "Notes ou remarques complémentaires")
+    @Schema(description = "Additional payment notes or remarks")
     String notes,
 
-    @Schema(description = "Indique s'il faut libérer la table après l'encaissement", defaultValue = "true")
+    @Schema(description = "Whether to automatically release the table after settlement", defaultValue = "true")
     Boolean libererTable,
 
-    @Schema(description = "Identifiants spécifiques des commandes à encaisser (optionnel)")
+    @Schema(description = "Specific order IDs to settle (optional)")
     List<Long> commandeIds
 ) {
     /**

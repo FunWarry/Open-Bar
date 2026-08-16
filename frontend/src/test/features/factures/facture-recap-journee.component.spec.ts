@@ -75,7 +75,7 @@ describe('FactureRecapJourneeComponent', () => {
     expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
   }));
 
-  it('exportPdf() déclenche le téléchargement du PDF', fakeAsync(() => {
+  it('exportPdf() triggers PDF download', fakeAsync(() => {
     component.recap = mockDailyRecap;
     component.exportPdf();
     tick();
@@ -84,7 +84,7 @@ describe('FactureRecapJourneeComponent', () => {
     expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'success' }));
   }));
 
-  it('onDateChange() recharge le récapitulatif pour la date choisie', fakeAsync(() => {
+  it('onDateChange() reloads recap for chosen date', fakeAsync(() => {
     component.onDateChange({ target: { value: '2026-08-01' } });
     tick();
     expect(component.selectedDate).toBe('2026-08-01');

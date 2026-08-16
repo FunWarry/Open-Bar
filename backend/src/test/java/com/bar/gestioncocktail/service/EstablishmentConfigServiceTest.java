@@ -60,7 +60,7 @@ class EstablishmentConfigServiceTest {
             "Nouveau Nom SARL", "SAS", "73282932000074", "Paris", "B 123",
             "FR12732829320", "5630Z", new BigDecimal("15000"),
             "10 rue Test", "0102030405", "email@test.fr",
-            "Immédiat", "Pas d escompte", new BigDecimal("0.12"),
+            "Immediate", "No discount", new BigDecimal("0.12"),
             "Europe/Paris", "58mm"
         );
 
@@ -83,7 +83,7 @@ class EstablishmentConfigServiceTest {
             "OpenBar SARL", "SARL", "73282932000074", "Paris", "B 123",
             "FR12732829320", "5630Z", new BigDecimal("10000"),
             "12 Rue du Bar", "+33123456789", "contact@openbar.local",
-            "Paiement immédiat", "Aucun", new BigDecimal("0.12"),
+            "Immediate payment", "None", new BigDecimal("0.12"),
             "SYSTEM", "80mm"
         );
 
@@ -105,6 +105,6 @@ class EstablishmentConfigServiceTest {
 
         assertThatThrownBy(() -> service.updateConfig(request))
             .isInstanceOf(BusinessException.class)
-            .hasMessageContaining("numéro SIRET spécifié est invalide");
+            .hasMessageContaining("SIRET number is invalid");
     }
 }

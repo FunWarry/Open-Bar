@@ -1,6 +1,7 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { TranslocoModule } from '@jsverse/transloco';
 import { TableView } from '../../models/table-view.model';
 import {
   IonCard, IonCardHeader, IonCardTitle, IonCardContent,
@@ -13,7 +14,7 @@ import { peopleOutline, restaurantOutline, checkmarkOutline, timeOutline } from 
   selector: 'app-table-card',
   standalone: true,
   imports: [
-    CommonModule, RouterModule,
+    CommonModule, RouterModule, TranslocoModule,
     IonCard, IonCardHeader, IonCardTitle, IonCardContent,
     IonButton, IonIcon
   ],
@@ -29,38 +30,45 @@ export class TableCardComponent {
     addIcons({ peopleOutline, restaurantOutline, checkmarkOutline, timeOutline });
   }
 
-  /** Libellé du statut affiché */
+  /** Displayed status i18n key */
+  get statutKey(): string {
+    if (!this.table?.occupee) return 'TABLE_CARD.STATUS_FREE';
+    if (this.commandesEnCours > 0) return 'TABLE_CARD.STATUS_IN_PROGRESS';
+    return 'TABLE_CARD.STATUS_OCCUPIED';
+  }
+
+  /** Backwards compatibility label */
   get statutLabel(): string {
     if (!this.table?.occupee) return 'Libre';
     if (this.commandesEnCours > 0) return 'En cours';
     return 'Occupée';
   }
 
-  /** Classe CSS de la carte selon statut Figma */
+  /** CSS class for card based on Figma status */
   get statutClass(): string {
     if (!this.table?.occupee) return 'table-free';
     if (this.commandesEnCours > 0) return 'table-inprogress';
     return 'table-occupied';
   }
 
-  /** Nombre de commandes actives en cours de préparation */
+  /** Number of active orders in preparation */
   get commandesEnCours(): number {
     return (this.table?.commandesActives ?? [])
       .filter(c => c.statut === 'EN_PREPARATION').length;
   }
 
-  /** Nombre de commandes prêtes à servir */
+  /** Number of orders ready to serve */
   get commandesPretes(): number {
     return (this.table?.commandesActives ?? [])
       .filter(c => c.statut === 'PRET' || c.statut === 'PRETE').length;
   }
 
-  /** Indique si la table a au moins une commande prête */
+  /** Whether the table has at least one order ready */
   get hasCommandePrete(): boolean {
     return this.commandesPretes > 0;
   }
 
-  /** Nombre total de commandes actives */
+  /** Total number of active orders */
   get totalCommandes(): number {
     return (this.table?.commandesActives ?? []).length;
   }

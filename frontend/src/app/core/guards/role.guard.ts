@@ -5,31 +5,31 @@ import {map, Observable, of, take} from 'rxjs';
 import {selectCurrentUser} from '../store/auth.selectors';
 
 /**
- * Guard de contrôle des rôles utilisateur (RBAC) pour restreindre l'accès à une route selon les rôles spécifiés dans {@code route.data.roles}.
+ * Role-Based Access Control (RBAC) route guard restricting route access according to required roles specified in {@code route.data.roles}.
  */
 @Injectable({
   providedIn: 'root'
 })
 export class RoleGuard implements CanActivate {
   /**
-   * Constructeur avec injection du Store NgRx et du Router.
+   * Constructs the guard with NgRx store and Router dependencies.
    *
-   * @param store Store NgRx centralisé
-   * @param router Router d'Angular
+   * @param store Centralized NgRx store
+   * @param router Angular Router
    */
   constructor(private readonly store: Store, private readonly router: Router) {
   }
 
   /**
-   * Vérifie si l'utilisateur possède au moins un des rôles requis pour accéder à la route.
+   * Verifies if the authenticated user has at least one of the required roles to access the route.
    *
-   * @param route Métadonnées et paramètres de la route activée
-   * @returns Observable émettant {@code true} si autorisé, ou {@code false} avec redirection sinon
+   * @param route Metadata and parameters of the activated route
+   * @returns Observable emitting {@code true} if authorized, or {@code false} with redirection otherwise
    */
   canActivate(route: ActivatedRouteSnapshot): Observable<boolean> {
     const allowedRoles: string[] = route.data?.['roles'] ?? [];
     if (!allowedRoles.length) {
-      console.error('RoleGuard: data.roles manquant sur la route', route.url.toString());
+      console.error('RoleGuard: data.roles missing on route', route.url.toString());
       this.router.navigate(['/']);
       return of(false);
     }

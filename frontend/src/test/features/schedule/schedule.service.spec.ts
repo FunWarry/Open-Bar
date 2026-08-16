@@ -1,3 +1,4 @@
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { ScheduleService } from '../../../app/features/schedule/services/schedule.service';
@@ -24,7 +25,7 @@ describe('ScheduleService — date range closure detection', () => {
     mockUserService.getUsers.and.returnValue(of([]));
 
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
+      imports: [HttpClientTestingModule, getTranslocoTestingModule()],
       providers: [
         ScheduleService,
         { provide: ShiftService, useValue: mockShiftService },
@@ -43,16 +44,16 @@ describe('ScheduleService — date range closure detection', () => {
       closureDate: '2026-08-17',
       endDate: '2026-08-23',
       isAnnualRecurring: false,
-      reason: 'Congés annuels'
+      reason: 'Annual Leave'
     };
     mockClosureService.getClosures.and.returnValue(of([rangeClosure]));
 
     service.getWeekSchedule(weekOf17Aug).subscribe((schedule) => {
       // All 7 days of week 17–23 Aug should appear in closedDays
       expect(Object.keys(schedule.closedDays!)).toHaveSize(7);
-      expect(schedule.closedDays!['2026-08-17']).toBe('Congés annuels');
-      expect(schedule.closedDays!['2026-08-20']).toBe('Congés annuels'); // Wednesday mid-range
-      expect(schedule.closedDays!['2026-08-23']).toBe('Congés annuels');
+      expect(schedule.closedDays!['2026-08-17']).toBe('Annual Leave');
+      expect(schedule.closedDays!['2026-08-20']).toBe('Annual Leave'); // Wednesday mid-range
+      expect(schedule.closedDays!['2026-08-23']).toBe('Annual Leave');
       done();
     });
   });
@@ -88,15 +89,15 @@ describe('ScheduleService — date range closure detection', () => {
       closureDate: '2025-08-17', // last year's dates
       endDate: '2025-08-23',
       isAnnualRecurring: true,
-      reason: 'Fête annuelle'
+      reason: 'Annual Festival'
     };
     mockClosureService.getClosures.and.returnValue(of([annualRange]));
 
     service.getWeekSchedule(weekOf17Aug).subscribe((schedule) => {
       // All days 17–23 Aug 2026 should match the annual recurring range from 2025
-      expect(schedule.closedDays!['2026-08-17']).toBe('Fête annuelle');
-      expect(schedule.closedDays!['2026-08-20']).toBe('Fête annuelle');
-      expect(schedule.closedDays!['2026-08-23']).toBe('Fête annuelle');
+      expect(schedule.closedDays!['2026-08-17']).toBe('Annual Festival');
+      expect(schedule.closedDays!['2026-08-20']).toBe('Annual Festival');
+      expect(schedule.closedDays!['2026-08-23']).toBe('Annual Festival');
       done();
     });
   });

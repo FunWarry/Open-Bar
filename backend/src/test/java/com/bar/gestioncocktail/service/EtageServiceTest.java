@@ -41,7 +41,7 @@ class EtageServiceTest {
         sampleEtage = new EtageEntity();
         sampleEtage.setId(1L);
         sampleEtage.setCode("RDC");
-        sampleEtage.setNom("Rez-de-chaussée");
+        sampleEtage.setNom("Ground Floor");
         sampleEtage.setOrdre(1);
     }
 
@@ -86,9 +86,9 @@ class EtageServiceTest {
     void createEtage_duplicateCode_throwsException() {
         when(etageRepository.existsByCode("RDC")).thenReturn(true);
 
-        assertThatThrownBy(() -> etageService.createEtage("RDC", "Rez-de-chaussée", 1))
+        assertThatThrownBy(() -> etageService.createEtage("RDC", "Ground Floor", 1))
                 .isInstanceOf(BusinessException.class)
-                .hasMessageContaining("existe déjà");
+                .hasMessageContaining("already exists");
     }
 
     @Test
@@ -116,9 +116,9 @@ class EtageServiceTest {
         when(etageRepository.findById(1L)).thenReturn(Optional.of(sampleEtage));
         when(etageRepository.save(any(EtageEntity.class))).thenAnswer(i -> i.getArgument(0));
 
-        EtageEntity updated = etageService.updateEtage(1L, "RDC", "Rez-de-chaussée Modifié", 2);
+        EtageEntity updated = etageService.updateEtage(1L, "RDC", "Ground Floor Modified", 2);
 
-        assertThat(updated.getNom()).isEqualTo("Rez-de-chaussée Modifié");
+        assertThat(updated.getNom()).isEqualTo("Ground Floor Modified");
         assertThat(updated.getOrdre()).isEqualTo(2);
     }
 
@@ -148,7 +148,7 @@ class EtageServiceTest {
 
         assertThatThrownBy(() -> etageService.updateEtage(1L, "EXISTING", "New Name", 1))
                 .isInstanceOf(BusinessException.class)
-                .hasMessageContaining("existe déjà");
+                .hasMessageContaining("already exists");
     }
 
     @Test
@@ -157,7 +157,7 @@ class EtageServiceTest {
         when(etageRepository.findById(1L)).thenReturn(Optional.of(sampleEtage));
         when(etageRepository.save(any(EtageEntity.class))).thenAnswer(i -> i.getArgument(0));
 
-        EtageEntity updated = etageService.updateEtage(1L, "RDC", "Rez-de-chaussée Modifié", null);
+        EtageEntity updated = etageService.updateEtage(1L, "RDC", "Ground Floor Modified", null);
 
         assertThat(updated.getOrdre()).isEqualTo(1);
     }
@@ -188,7 +188,7 @@ class EtageServiceTest {
 
         assertThatThrownBy(() -> etageService.deleteEtage(1L))
                 .isInstanceOf(BusinessException.class)
-                .hasMessageContaining("associées");
+                .hasMessageContaining("zones are assigned to it");
 
         verify(etageRepository, never()).delete(any());
     }

@@ -1,3 +1,4 @@
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { TestBed } from '@angular/core/testing';
 import { DeleteUserDialogComponent } from '../../../app/features/admin/users/delete-user-dialog/delete-user-dialog.component';
 import { ModalController } from '@ionic/angular/standalone';
@@ -11,7 +12,7 @@ describe('DeleteUserDialogComponent', () => {
     modalCtrlSpy.dismiss.and.returnValue(Promise.resolve(true));
 
     await TestBed.configureTestingModule({
-      imports: [DeleteUserDialogComponent],
+      imports: [DeleteUserDialogComponent, getTranslocoTestingModule()],
       providers: [
         { provide: ModalController, useValue: modalCtrlSpy }
       ]
@@ -42,7 +43,7 @@ describe('DeleteUserDialogComponent', () => {
     expect(modalCtrlSpy.dismiss).toHaveBeenCalledOnceWith(false);
   });
 
-  it('data est correctement initialisé via @Input()', () => {
+  it('data is properly initialized via @Input()', () => {
     expect(component.data).toBeDefined();
     expect(component.data.id).toBe(1);
     expect(component.data.username).toBe('john.doe');

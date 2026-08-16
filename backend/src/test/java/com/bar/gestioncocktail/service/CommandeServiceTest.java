@@ -66,7 +66,7 @@ class CommandeServiceTest {
         item = new CommandeItem();
         item.setId(1L);
         item.setCocktail(cocktail);
-        item.setQuantite(2); // 2 cocktails commandés
+        item.setQuantite(2); // 2 ordered cocktails
 
         commande = new Commande();
         commande.setId(1L);
@@ -119,7 +119,7 @@ class CommandeServiceTest {
                 .hasMessageContaining("99");
     }
 
-    // ─── déstockage ───────────────────────────────────────────────────────────
+    // ─── Stock deduction ───────────────────────────────────────────────────────────
 
     @Test
     void changerStatut_enPreparation_destockeIngredients() {
@@ -127,7 +127,7 @@ class CommandeServiceTest {
 
         commandeService.changerStatut(1L, CommandeStatut.EN_PREPARATION);
 
-        // 4 cl × 2 cocktails = 8 cl consommés → stock attendu : 92 cl
+        // 4 cl * 2 cocktails = 8 cl consumed -> expected stock: 92 cl
         ArgumentCaptor<Ingredient> captor = ArgumentCaptor.forClass(Ingredient.class);
         verify(ingredientRepository).save(captor.capture());
         assertThat(captor.getValue().getQuantiteStock()).isEqualByComparingTo(new BigDecimal("92.00"));
@@ -160,7 +160,7 @@ class CommandeServiceTest {
 
     @Test
     void changerStatut_enPreparation_stockNegatifMarqueDansEvenement() {
-        ingredient.setQuantiteStock(new BigDecimal("5.00")); // 5 - 8 = -3 → négatif
+        ingredient.setQuantiteStock(new BigDecimal("5.00")); // 5 - 8 = -3 -> negative
         when(commandeRepository.findById(1L)).thenReturn(Optional.of(commande));
 
         commandeService.changerStatut(1L, CommandeStatut.EN_PREPARATION);
@@ -175,21 +175,21 @@ class CommandeServiceTest {
 
     @Test
     void changerStatut_enPreparation_idempotent_neDestockePasDeuxFois() {
-        // Simule un appel double (retry réseau) — la commande est déjà EN_PREPARATION avec datePreparation déjà set
+        // Simulates a double call (network retry) — the order is already in EN_PREPARATION with datePreparation already set
         commande.setStatut(CommandeStatut.EN_PREPARATION);
         commande.setDatePreparation(LocalDateTime.now().minusMinutes(1));
         when(commandeRepository.findById(1L)).thenReturn(Optional.of(commande));
 
         commandeService.changerStatut(1L, CommandeStatut.EN_PREPARATION);
 
-        // Le stock NE doit PAS être décrémenté une seconde fois
+        // Stock must NOT be decremented a second time
         verify(ingredientRepository, never()).save(any());
         verify(messagingTemplate, never()).convertAndSend(anyString(), any(StockAlerteEvent.class));
     }
 
     @Test
     void changerStatut_enPreparation_idempotent_neSetsDatePreparationDeuxFois() {
-        // La commande a déjà une datePreparation (premier passage déjà effectué)
+        // Order already has a datePreparation (first transition already completed)
         commande.setStatut(CommandeStatut.EN_PREPARATION);
         commande.setDatePreparation(LocalDateTime.now().minusMinutes(5));
         LocalDateTime dateInitiale = commande.getDatePreparation();
@@ -197,25 +197,25 @@ class CommandeServiceTest {
 
         Commande result = commandeService.changerStatut(1L, CommandeStatut.EN_PREPARATION);
 
-        // datePreparation ne doit pas être écrasée — elle est préservée telle quelle
+        // datePreparation must not be overwritten — it is preserved as is
         assertThat(result.getDatePreparation()).isEqualTo(dateInitiale);
     }
 
     @Test
     void destockage_seuilAlerteNull_nePasNPE() {
-        // Un ingrédient sans seuil d'alerte configuré ne doit pas lever de NPE
+        // An ingredient without a configured alert threshold should not throw NPE
         ingredient.setSeuilAlerte(null);
         when(commandeRepository.findById(1L)).thenReturn(Optional.of(commande));
 
-        // Act + Assert : aucune exception ne doit être levée
+        // Act + Assert: no exception should be thrown
         org.junit.jupiter.api.Assertions.assertDoesNotThrow(
             () -> commandeService.changerStatut(1L, CommandeStatut.EN_PREPARATION)
         );
-        // Aucune alerte WebSocket ne doit être publiée (seuil absent)
+        // No WebSocket alert should be published (missing threshold)
         verify(messagingTemplate, never()).convertAndSend(anyString(), any(StockAlerteEvent.class));
     }
 
-    // ─── ré-incrémentation stock annulation & variantes ───────────────────────
+    // ─── Stock replenishment on cancellation & variants ───────────────────────
 
     @Test
     void annulerCommande_apresPreparation_reincrementeStockIngredients() {
@@ -241,7 +241,7 @@ class CommandeServiceTest {
 
         commandeService.changerStatut(1L, CommandeStatut.EN_PREPARATION);
 
-        // 4 cl * 2 qte * 1.5 mult = 12 cl consommés -> 100 - 12 = 88
+        // 4 cl * 2 qty * 1.5 mult = 12 cl consumed -> 100 - 12 = 88
         ArgumentCaptor<Ingredient> captor = ArgumentCaptor.forClass(Ingredient.class);
         verify(ingredientRepository).save(captor.capture());
         assertThat(captor.getValue().getQuantiteStock()).isEqualByComparingTo(new BigDecimal("88.00"));
@@ -270,6 +270,6 @@ class CommandeServiceTest {
 
         assertThatThrownBy(() -> commandeService.transfererCommande(1L, 99L))
                 .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("Table non trouvée avec l'id: 99");
+                .hasMessageContaining("Table not found with id: 99");
     }
 }

@@ -22,13 +22,13 @@
         <p>{{ 'SHIFTS.CONFIG.SUBTITLE' | transloco }}</p>
       </div>
       <div class="preset-count-badge" *ngIf="!loading">
-        {{ presets.length }} modèles configurés
+        {{ 'SHIFTS.CONFIG.PRESETS_CONFIGURED' | transloco:{ count: presets.length } }}
       </div>
     </div>
 
     <div *ngIf="loading" class="loading-state" data-testid="presets-loading">
       <ion-spinner name="crescent"></ion-spinner>
-      <span>Chargement des modèles...</span>
+      <span>{{ 'COMMON.LOADING' | transloco }}</span>
     </div>
 
     <div *ngIf="!loading" class="preset-cards-grid">

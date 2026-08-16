@@ -47,7 +47,7 @@ export class NotificationService implements OnDestroy {
   }
 
   private initSubscriptions(): void {
-    // Nouvelle commande
+    // New order
     this.ws.watch('/topic/commandes')
       .pipe(takeUntil(this.destroy$))
       .subscribe(msg => {
@@ -55,16 +55,16 @@ export class NotificationService implements OnDestroy {
           const data = JSON.parse(msg.body);
           this.emit({
             type: 'commande',
-            message: `Nouvelle commande — Table ${data.tableNom ?? data.table?.nom ?? '#'}`,
+            message: `New order — Table ${data.tableNom ?? data.table?.nom ?? '#'}`,
             severity: 'primary',
             data,
           });
         } catch {
-          // message malformé — on ignore
+          // malformed message — ignore
         }
       });
 
-    // Changement de statut commande (topic générique)
+    // Order status update (generic topic)
     this.ws.watch('/topic/commandes/statut')
       .pipe(takeUntil(this.destroy$))
       .subscribe(msg => {
@@ -72,31 +72,31 @@ export class NotificationService implements OnDestroy {
           const data = JSON.parse(msg.body);
           this.emit({
             type: 'statut',
-            message: `Commande #${data.id} — ${data.statut ?? 'statut mis à jour'}`,
+            message: `Order #${data.id} — ${data.statut ?? 'status updated'}`,
             severity: 'success',
             data,
           });
         } catch {
-          // message malformé — on ignore
+          // malformed message — ignore
         }
       });
 
-    // Alerte stock
+    // Stock alert
     this.ws.watch('/topic/stock/alerte')
       .pipe(takeUntil(this.destroy$))
       .subscribe(msg => {
         try {
           const data = typeof msg.body === 'string' ? JSON.parse(msg.body) : msg.body;
-          const nom = data.nom || data.nomIngredient || data.ingredientNom || 'Ingrédient';
+          const nom = data.nom || data.nomIngredient || data.ingredientNom || 'Ingredient';
           const qty = data.quantiteActuelle ?? data.quantiteRestante ?? data.quantiteStock ?? data.stock ?? 0;
           const unite = data.uniteMesure || data.unite || '';
           const isCritical = Number(qty) <= 0;
-          const labelPrefix = isCritical ? 'Stock Épuisé' : 'Stock Faible';
+          const labelPrefix = isCritical ? 'Out of Stock' : 'Low Stock';
           const unitStr = unite ? ` ${unite}` : '';
           const notif: AppNotification = {
             id: `stock-${Date.now()}`,
             type: 'stock',
-            message: `⚠ ${labelPrefix} : ${nom} (${qty}${unitStr} restant)`,
+            message: `⚠ ${labelPrefix}: ${nom} (${qty}${unitStr} remaining)`,
             severity: isCritical ? 'danger' : 'warning',
             data,
             timestamp: new Date(),
@@ -106,11 +106,11 @@ export class NotificationService implements OnDestroy {
           this.stockAlerts$.next(notif);
           this.showToast(notif.message, isCritical ? 'danger' : 'warning');
         } catch {
-          // message malformé — on ignore
+          // malformed message — ignore
         }
       });
 
-    // Occupation / libération d'une table
+    // Table occupancy / release
     this.ws.watch('/topic/tables')
       .pipe(takeUntil(this.destroy$))
       .subscribe(msg => {
@@ -118,12 +118,12 @@ export class NotificationService implements OnDestroy {
           const data = JSON.parse(msg.body);
           this.emit({
             type: 'table',
-            message: `Table ${data.nom} — ${data.occupee ? 'Occupée' : 'Libérée'}`,
+            message: `Table ${data.nom} — ${data.occupee ? 'Occupied' : 'Available'}`,
             severity: 'success',
             data,
           });
         } catch {
-          // message malformé — on ignore
+          // malformed message — ignore
         }
       });
   }

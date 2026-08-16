@@ -101,21 +101,25 @@ export class ClientSuiviComponent implements OnInit, OnDestroy {
     }
   }
 
-  get statusLabel(): string {
-    if (!this.commande) return 'Commande reçue';
+  get statusLabelKey(): string {
+    if (!this.commande) return 'CLIENT.STATUS_RECEIVED';
     switch (this.commande.statut) {
       case 'EN_ATTENTE':
-        return 'Commande transmise';
+        return 'CLIENT.STATUS_RECEIVED';
       case 'EN_PREPARATION':
-        return 'En préparation par le barman';
+        return 'CLIENT.STATUS_PREPARING';
       case 'PRET':
-        return 'Votre commande est prête !';
+        return 'CLIENT.STATUS_READY';
       case 'LIVREE':
-        return 'Commande servie à votre table';
+        return 'CLIENT.STATUS_SERVED';
       case 'REGLEE':
-        return 'Commande réglée';
+        return 'CLIENT.STATUS_SETTLED';
       default:
         return this.commande.statut;
     }
+  }
+
+  get statusLabel(): string {
+    return this.statusLabelKey;
   }
 }

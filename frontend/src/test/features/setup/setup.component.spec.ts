@@ -39,15 +39,15 @@ describe('SetupComponent', () => {
     fixture.detectChanges();
   });
 
-  it('devrait être créé', () => {
+  it('should be created', () => {
     expect(component).toBeTruthy();
   });
 
-  it('formulaire invalide par défaut (champs requis vides)', () => {
+  it('form is invalid by default (empty required fields)', () => {
     expect(component.setupForm.valid).toBeFalse();
   });
 
-  it('valide le formulaire si les champs requis sont corrects', () => {
+  it('validates the form si les champs requis sont corrects', () => {
     component.setupForm.setValue({
       username: 'admin',
       email: 'admin@test.com',
@@ -59,7 +59,7 @@ describe('SetupComponent', () => {
     expect(component.setupForm.valid).toBeTrue();
   });
 
-  it('invalide si les mots de passe ne correspondent pas', () => {
+  it('invalid if les mots de passe ne correspondent pas', () => {
     component.setupForm.setValue({
       username: 'admin',
       email: 'admin@test.com',
@@ -71,7 +71,7 @@ describe('SetupComponent', () => {
     expect(component.setupForm.hasError('passwordMismatch')).toBeTrue();
   });
 
-  it('soumet les données via SetupService et redirige vers /auth/login en cas de succès', async () => {
+  it('submits data via SetupService and redirects to /auth/login on success', async () => {
     setupServiceSpy.createAdmin.and.returnValue(of({ id: 1, username: 'admin', email: 'admin@test.com', roles: ['ADMIN'] }));
 
     component.setupForm.setValue({
@@ -97,8 +97,8 @@ describe('SetupComponent', () => {
     expect(routerSpy.navigate).toHaveBeenCalledWith(['/auth/login']);
   });
 
-  it('affiche un message d\'erreur si createAdmin échoue', () => {
-    setupServiceSpy.createAdmin.and.returnValue(throwError(() => ({ error: { message: 'Nom d\'utilisateur déjà pris' } })));
+  it('displays an error message if createAdmin fails', () => {
+    setupServiceSpy.createAdmin.and.returnValue(throwError(() => ({ error: { message: 'Username already taken' } })));
 
     component.setupForm.setValue({
       username: 'admin',
@@ -111,6 +111,6 @@ describe('SetupComponent', () => {
 
     component.onSubmit();
 
-    expect(component.errorMessage).toBe('Nom d\'utilisateur déjà pris');
+    expect(component.errorMessage).toBe('Username already taken');
   });
 });

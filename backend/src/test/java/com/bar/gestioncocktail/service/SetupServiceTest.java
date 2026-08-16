@@ -49,17 +49,17 @@ class SetupServiceTest {
     }
 
     @Test
-    void getSetupStatus_baseVide_renvoieFalseEtCount0() {
+    void getSetupStatus_emptyDatabase_returnsFalseAndZeroCount() {
         when(userRepository.count()).thenReturn(0L);
 
         SetupStatusDTO status = setupService.getSetupStatus();
 
         assertThat(status.initialized()).isFalse();
-        assertThat(status.userCount()).isEqualTo(0L);
+        assertThat(status.userCount()).isZero();
     }
 
     @Test
-    void getSetupStatus_baseContientUsers_renvoieTrueEtCountPositif() {
+    void getSetupStatus_databaseWithUsers_returnsTrueAndPositiveCount() {
         when(userRepository.count()).thenReturn(5L);
 
         SetupStatusDTO status = setupService.getSetupStatus();
@@ -69,7 +69,7 @@ class SetupServiceTest {
     }
 
     @Test
-    void createInitialAdmin_baseVide_creeAdminAvecSucces() {
+    void createInitialAdmin_emptyDatabase_createsAdminSuccessfully() {
         when(userRepository.count()).thenReturn(0L);
         when(userRepository.existsByUsername(validRequest.username())).thenReturn(false);
         when(userRepository.existsByEmail(validRequest.email())).thenReturn(false);
@@ -96,37 +96,37 @@ class SetupServiceTest {
     }
 
     @Test
-    void createInitialAdmin_baseNonVide_leveBusinessException() {
+    void createInitialAdmin_nonEmptyDatabase_throwsBusinessException() {
         when(userRepository.count()).thenReturn(1L);
 
         assertThatThrownBy(() -> setupService.createInitialAdmin(validRequest))
             .isInstanceOf(BusinessException.class)
-            .hasMessageContaining("déjà initialisée");
+            .hasMessageContaining("already initialized");
 
         verify(userRepository, never()).save(any());
     }
 
     @Test
-    void createInitialAdmin_usernameExistant_leveBusinessException() {
+    void createInitialAdmin_existingUsername_throwsBusinessException() {
         when(userRepository.count()).thenReturn(0L);
         when(userRepository.existsByUsername(validRequest.username())).thenReturn(true);
 
         assertThatThrownBy(() -> setupService.createInitialAdmin(validRequest))
             .isInstanceOf(BusinessException.class)
-            .hasMessageContaining("déjà pris");
+            .hasMessageContaining("already taken");
 
         verify(userRepository, never()).save(any());
     }
 
     @Test
-    void createInitialAdmin_emailExistant_leveBusinessException() {
+    void createInitialAdmin_existingEmail_throwsBusinessException() {
         when(userRepository.count()).thenReturn(0L);
         when(userRepository.existsByUsername(validRequest.username())).thenReturn(false);
         when(userRepository.existsByEmail(validRequest.email())).thenReturn(true);
 
         assertThatThrownBy(() -> setupService.createInitialAdmin(validRequest))
             .isInstanceOf(BusinessException.class)
-            .hasMessageContaining("déjà utilisée");
+            .hasMessageContaining("already in use");
 
         verify(userRepository, never()).save(any());
     }

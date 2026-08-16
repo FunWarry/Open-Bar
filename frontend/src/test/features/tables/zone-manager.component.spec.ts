@@ -21,8 +21,8 @@ describe('ZoneManagerComponent', () => {
   ];
 
   const mockEtages: EtageBar[] = [
-    { id: 1, code: 'RDC', nom: 'Rez-de-chaussée', ordre: 1 },
-    { id: 2, code: 'TERRASSE', nom: 'Terrasse / Extérieur', ordre: 2 }
+    { id: 1, code: 'RDC', nom: 'Ground Floor', ordre: 1 },
+    { id: 2, code: 'TERRASSE', nom: 'Terrace / Outdoor', ordre: 2 }
   ];
 
   const mockToast = { present: jasmine.createSpy('present') };
@@ -31,13 +31,13 @@ describe('ZoneManagerComponent', () => {
     zoneServiceSpy = jasmine.createSpyObj('ZoneService', ['getAll', 'create', 'update', 'delete']);
     zoneServiceSpy.getAll.and.returnValue(of(mockZones));
     zoneServiceSpy.create.and.returnValue(of({ id: 2, nom: 'VIP', etage: 'RDC' }));
-    zoneServiceSpy.update.and.returnValue(of({ id: 1, nom: 'Terrasse Modifiée', etage: 'TERRASSE' }));
+    zoneServiceSpy.update.and.returnValue(of({ id: 1, nom: 'Terrace Modified', etage: 'TERRASSE' }));
     zoneServiceSpy.delete.and.returnValue(of(undefined));
 
     etageServiceSpy = jasmine.createSpyObj('EtageService', ['getAll', 'create', 'update', 'delete']);
     etageServiceSpy.getAll.and.returnValue(of(mockEtages));
     etageServiceSpy.create.and.returnValue(of({ id: 3, code: 'ROOFTOP', nom: 'Rooftop', ordre: 3 }));
-    etageServiceSpy.update.and.returnValue(of({ id: 1, code: 'RDC', nom: 'Rez-de-chaussée Modifié', ordre: 1 }));
+    etageServiceSpy.update.and.returnValue(of({ id: 1, code: 'RDC', nom: 'Ground Floor Modified', ordre: 1 }));
     etageServiceSpy.delete.and.returnValue(of(undefined));
 
     modalCtrlSpy = jasmine.createSpyObj('ModalController', ['dismiss']);
@@ -68,7 +68,7 @@ describe('ZoneManagerComponent', () => {
   });
 
   it('should format etage label correctly', () => {
-    expect(component.getEtageLabel('TERRASSE')).toBe('Terrasse / Extérieur');
+    expect(component.getEtageLabel('TERRASSE')).toBe('Terrace / Outdoor');
     expect(component.getEtageLabel('UNKNOWN')).toBe('UNKNOWN');
   });
 
@@ -82,10 +82,10 @@ describe('ZoneManagerComponent', () => {
     component.toggleAddForm();
     expect(component.showAddForm).toBeTrue();
 
-    component.zoneForm.setValue({ nom: 'Salle Intérieure', etage: 'RDC' });
+    component.zoneForm.setValue({ nom: 'Indoor Room', etage: 'RDC' });
     component.onSave();
 
-    expect(zoneServiceSpy.create).toHaveBeenCalledWith({ nom: 'Salle Intérieure', etage: 'RDC' });
+    expect(zoneServiceSpy.create).toHaveBeenCalledWith({ nom: 'Indoor Room', etage: 'RDC' });
   });
 
   it('should open and edit existing zone', () => {
@@ -93,10 +93,10 @@ describe('ZoneManagerComponent', () => {
     expect(component.editingZoneId).toBe(1);
     expect(component.zoneForm.value.nom).toBe('Terrasse Principale');
 
-    component.zoneForm.setValue({ nom: 'Terrasse Modifiée', etage: 'TERRASSE' });
+    component.zoneForm.setValue({ nom: 'Terrace Modified', etage: 'TERRASSE' });
     component.onSave();
 
-    expect(zoneServiceSpy.update).toHaveBeenCalledWith(1, { nom: 'Terrasse Modifiée', etage: 'TERRASSE' });
+    expect(zoneServiceSpy.update).toHaveBeenCalledWith(1, { nom: 'Terrace Modified', etage: 'TERRASSE' });
   });
 
   it('should open and save new etage', () => {
@@ -114,10 +114,10 @@ describe('ZoneManagerComponent', () => {
     expect(component.editingEtageId).toBe(1);
     expect(component.etageForm.value.code).toBe('RDC');
 
-    component.etageForm.setValue({ nom: 'Rez-de-chaussée Modifié', code: 'RDC', ordre: 1 });
+    component.etageForm.setValue({ nom: 'Ground Floor Modified', code: 'RDC', ordre: 1 });
     component.onSaveEtage();
 
-    expect(etageServiceSpy.update).toHaveBeenCalledWith(1, { nom: 'Rez-de-chaussée Modifié', code: 'RDC', ordre: 1 });
+    expect(etageServiceSpy.update).toHaveBeenCalledWith(1, { nom: 'Ground Floor Modified', code: 'RDC', ordre: 1 });
   });
 
   it('should handle error when saving zone fails', () => {

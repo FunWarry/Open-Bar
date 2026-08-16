@@ -18,7 +18,7 @@ export interface CocktailVariante {
   id: number;
   nom: string;
   description?: string;
-  /** Prix mappé depuis BigDecimal Java — affichage uniquement, pas de calcul JS direct */
+  /** Price mapped from Java BigDecimal — display only, not for direct JS financial math */
   prixSupplement: number;
   disponible: boolean;
 }
@@ -31,15 +31,15 @@ type CocktailBase = {
   id: number;
   nom: string;
   description?: string;
-  /** Prix mappé depuis BigDecimal Java — affichage uniquement, pas de calcul JS direct */
+  /** Price mapped from Java BigDecimal — display only, not for direct JS financial math */
   prix: number;
   categorie: CocktailCategorie;
   disponible: boolean;
-  /** Mois de début de saison (1-12), null = toute l'année */
+  /** Season start month (1-12), null = year-round */
   moisDebut?: number | null;
-  /** Mois de fin de saison (1-12), null = toute l'année */
+  /** Season end month (1-12), null = year-round */
   moisFin?: number | null;
-  /** Calculé côté backend : le cocktail est-il disponible ce mois-ci ? */
+  /** Calculated on backend: is this drink available during the current month? */
   disponibleAujourdhui?: boolean;
   ingredients: CocktailIngredientItem[];
   variantes: CocktailVariante[];

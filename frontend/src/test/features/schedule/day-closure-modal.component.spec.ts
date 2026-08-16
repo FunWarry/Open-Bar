@@ -57,14 +57,14 @@ describe('DayClosureModalComponent', () => {
     });
   });
 
-  it('selectPreset() should set reason and enable date range for Congés annuels', () => {
-    component.selectPreset('Congés annuels');
-    expect(component.reason).toBe('Congés annuels');
+  it('selectPreset() should set reason and enable date range for Annual Leave', () => {
+    component.selectPreset('Annual Leave');
+    expect(component.reason).toBe('Annual Leave');
     expect(component.isDateRange).toBeTrue();
     expect(component.endDate).toBeDefined();
 
-    component.selectPreset('Jour Férié');
-    expect(component.reason).toBe('Jour Férié');
+    component.selectPreset('Public Holiday');
+    expect(component.reason).toBe('Public Holiday');
   });
 
   it('saveClosure() with date range enabled should include endDate in dismiss payload', () => {

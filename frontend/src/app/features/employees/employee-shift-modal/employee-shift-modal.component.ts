@@ -36,7 +36,7 @@ import {
   informationCircleOutline
 } from 'ionicons/icons';
 import { Subject, takeUntil } from 'rxjs';
-import { TranslocoModule } from '@jsverse/transloco';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { Store } from '@ngrx/store';
 import { User } from '../../../core/models/user.model';
 import { EmployeeShift, EmployeeShiftRequest, ShiftPreset, TypePoste, TypeShift } from '../../../core/models/shift.model';
@@ -48,7 +48,7 @@ import { ShiftHistoryModalComponent } from '../../schedule/shift-history-modal/s
  * Modal component for viewing and managing work shifts of a specific employee.
  * Enforces strict access control:
  * - Managers and Admins can create, modify planning and clocking fields, and delete shifts.
- * - Employees can only edit their own clocking/actual hours (pointage réel) on existing shifts.
+ * - Employees can only edit their own clocking/actual hours (actual clocking) on existing shifts.
  * - Other users have read-only access.
  */
 @Component({
@@ -102,6 +102,7 @@ export class EmployeeShiftModalComponent implements OnInit, OnDestroy {
   private readonly alertCtrl = inject(AlertController);
   private readonly shiftService = inject(ShiftService);
   private readonly store = inject(Store);
+  private readonly transloco = inject(TranslocoService);
   private readonly destroy$ = new Subject<void>();
 
   loading = true;
@@ -483,12 +484,12 @@ export class EmployeeShiftModalComponent implements OnInit, OnDestroy {
   async confirmDeleteShift(shift: EmployeeShift): Promise<void> {
     if (!shift.id) return;
     const alert = await this.alertCtrl.create({
-      header: 'Suppression',
-      message: 'Voulez-vous vraiment supprimer ce créneau ?',
+      header: String(this.transloco.translate('COMMON.DELETE')),
+      message: String(this.transloco.translate('SHIFTS.CONFIRM_DELETE')),
       buttons: [
-        { text: 'Annuler', role: 'cancel' },
+        { text: String(this.transloco.translate('COMMON.CANCEL')), role: 'cancel' },
         {
-          text: 'Supprimer',
+          text: String(this.transloco.translate('COMMON.DELETE')),
           role: 'destructive',
           handler: () => {
             if (shift.id) {

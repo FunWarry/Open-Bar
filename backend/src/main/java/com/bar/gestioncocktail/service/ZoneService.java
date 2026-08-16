@@ -16,7 +16,7 @@ import java.util.List;
  */
 @Service
 public class ZoneService {
-    private static final String ZONE_NOT_FOUND_MSG = "Zone non trouvée avec l'id : ";
+    private static final String ZONE_NOT_FOUND_MSG = "Zone not found with id: ";
 
     private final ZoneRepository zoneRepository;
     private final TableRepository tableRepository;
@@ -32,7 +32,7 @@ public class ZoneService {
 
     public ZoneEntity getZoneById(Long id) {
         if (id == null) {
-            throw new ResourceNotFoundException("Zone non trouvée (ID null)");
+            throw new ResourceNotFoundException("Zone not found (null ID)");
         }
         return zoneRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(ZONE_NOT_FOUND_MSG + id));
@@ -41,7 +41,7 @@ public class ZoneService {
     @Transactional
     public ZoneEntity createZone(ZoneEntity zone) {
         if (zoneRepository.existsByNom(zone.getNom())) {
-            throw new BusinessException("Une zone avec le nom '" + zone.getNom() + "' existe déjà");
+            throw new BusinessException("A zone with name '" + zone.getNom() + "' already exists");
         }
         return zoneRepository.save(zone);
     }
@@ -49,7 +49,7 @@ public class ZoneService {
     @Transactional
     public ZoneEntity updateZone(Long id, ZoneEntity updated) {
         if (id == null) {
-            throw new BusinessException("L'ID de zone ne peut pas être null");
+            throw new BusinessException("Zone ID cannot be null");
         }
         ZoneEntity existing = zoneRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(ZONE_NOT_FOUND_MSG + id));
@@ -58,7 +58,7 @@ public class ZoneService {
         String newNom = updated.getNom();
 
         if (!oldNom.equalsIgnoreCase(newNom) && zoneRepository.existsByNom(newNom)) {
-            throw new BusinessException("Une zone avec le nom '" + newNom + "' existe déjà");
+            throw new BusinessException("A zone with name '" + newNom + "' already exists");
         }
 
         existing.setNom(newNom);
@@ -107,7 +107,7 @@ public class ZoneService {
     @Transactional
     public void deleteZone(Long id) {
         if (id == null) {
-            throw new BusinessException("L'ID de zone ne peut pas être null");
+            throw new BusinessException("Zone ID cannot be null");
         }
         ZoneEntity zone = zoneRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(ZONE_NOT_FOUND_MSG + id));

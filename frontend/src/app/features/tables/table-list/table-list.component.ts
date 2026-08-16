@@ -158,7 +158,7 @@ export class TableListComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Returns a compact formatted floor label (e.g. "RDC", "1er Étage", "Terrasse")
+   * Returns a compact formatted floor label (e.g. "RDC", "First Floor", "Terrasse")
    * to avoid overflowing card headers.
    */
   getEtageShortLabelForZone(zoneName: string): string {

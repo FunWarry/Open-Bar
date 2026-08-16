@@ -68,7 +68,7 @@ describe('IngredientFormComponent', () => {
 
   afterEach(() => TestBed.resetTestingModule());
 
-  describe('initialisation sans id (mode création)', () => {
+  describe('initialization without id (creation mode)', () => {
     beforeEach(() => createComponent(activatedRouteStubNoId));
 
     it('should create', () => {
@@ -83,7 +83,7 @@ describe('IngredientFormComponent', () => {
       expect(component.ingredientId).toBeNull();
     });
 
-    it('le formulaire est initialisé avec des champs vides ou par défaut', () => {
+    it('form is initialized with empty or default fields', () => {
       const form = component.ingredientForm;
       expect(form.get('nom')?.value).toBe('');
       expect(form.get('uniteMesure')?.value).toBe('');
@@ -91,13 +91,13 @@ describe('IngredientFormComponent', () => {
       expect(form.get('seuilAlerte')?.value).toBe(5);
     });
 
-    it('le formulaire est invalide quand les champs requis sont vides', () => {
+    it('form should be invalid quand les champs requis sont vides', () => {
       component.ingredientForm.get('nom')?.setValue('');
       component.ingredientForm.get('uniteMesure')?.setValue('');
       expect(component.ingredientForm.invalid).toBeTrue();
     });
 
-    it('le formulaire est valide quand tous les champs requis sont remplis', () => {
+    it('form should be valid quand tous les champs requis sont remplis', () => {
       component.ingredientForm.setValue({
         nom: 'Citron',
         uniteMesure: 'kg',
@@ -107,7 +107,7 @@ describe('IngredientFormComponent', () => {
       expect(component.ingredientForm.valid).toBeTrue();
     });
 
-    it('le champ quantiteStock est invalide si négatif', () => {
+    it('quantiteStock field is invalid if negative', () => {
       component.ingredientForm.patchValue({ quantiteStock: -1 });
       expect(component.ingredientForm.get('quantiteStock')?.invalid).toBeTrue();
     });
@@ -125,22 +125,22 @@ describe('IngredientFormComponent', () => {
     });
   });
 
-  describe('initialisation avec id (mode édition)', () => {
+  describe('initialization with id (edit mode)', () => {
     beforeEach(() => createComponent(activatedRouteStubWithId));
 
-    it('should create en mode édition', () => {
+    it('should create in edit mode', () => {
       expect(component).toBeTruthy();
     });
 
-    it('isEditMode est true quand un id est présent dans la route', () => {
+    it('isEditMode is true when id is present in route', () => {
       expect(component.isEditMode).toBeTrue();
     });
 
-    it('ingredientId est valorisé depuis la route', () => {
+    it('ingredientId is set from route', () => {
       expect(component.ingredientId).toBe(42);
     });
 
-    it('onCancel() appelle dismiss sur modalCtrl en mode édition', async () => {
+    it('onCancel() calls dismiss on modalCtrl in edit mode', async () => {
       await component.onCancel();
       expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith(null, 'cancel');
     });
@@ -187,7 +187,7 @@ describe('IngredientFormComponent', () => {
   describe('mode modal et lecture seule', () => {
     beforeEach(() => createComponent(activatedRouteStubNoId));
 
-    it('initialise le formulaire depuis @Input() ingredient', () => {
+    it('initializes the form depuis @Input() ingredient', () => {
       component.ingredient = {
         id: 99,
         nom: 'Gin',

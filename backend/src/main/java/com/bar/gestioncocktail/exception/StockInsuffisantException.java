@@ -1,14 +1,14 @@
 package com.bar.gestioncocktail.exception;
 
 /**
- * Exception levée lorsque le stock d'un ingrédient est insuffisant pour préparer une commande.
+ * Exception thrown when an ingredient's stock is insufficient to fulfill an order.
  */
 public class StockInsuffisantException extends BusinessException {
 
     /**
-     * Constructeur avec message d'erreur de rupture de stock.
+     * Constructs the exception with an out-of-stock message.
      *
-     * @param message Message décrivant le manque d'ingrédient
+     * @param message Message describing missing stock
      */
     public StockInsuffisantException(String message) {
         super(message);

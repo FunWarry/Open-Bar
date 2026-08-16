@@ -10,28 +10,28 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * DTO de réponse décrivant un cocktail, son tarif, ses ingrédients et ses variantes.
+ * Response DTO describing a cocktail, pricing, ingredients, and variants.
  *
- * @param id Identifiant unique du cocktail
- * @param nom Intitulé commercial
- * @param description Description détaillée
- * @param prix Prix TTC en Euros
- * @param categorie Catégorie (ALCOOLISE, SANS_ALCOOL, SHOT, APERITIF, DIGESTIF, SPECIAL)
- * @param disponible Disponibilité générale
- * @param saisonnier Indique si la boisson est saisonnière
- * @param dateDebutSaison Date de début de saison
- * @param dateFinSaison Date de fin de saison
- * @param moisDebut Mois de début (1-12)
- * @param moisFin Mois de fin (1-12)
- * @param disponibleAujourdhui Calcul de disponibilité incluant le calendrier de saison
- * @param instructions Conseils de préparation pour le barman
- * @param imageUrl URL de la photo
- * @param ingredients Liste des ingrédients composants la recette
- * @param variantes Déclinaisons disponibles
- * @param createdAt Date de création
- * @param updatedAt Date de modification
+ * @param id Unique cocktail identifier
+ * @param nom Commercial drink title
+ * @param description Detailed description
+ * @param prix Price including taxes in EUR
+ * @param categorie Category (ALCOOLISE, SANS_ALCOOL, SHOT, APERITIF, DIGESTIF, SPECIAL)
+ * @param disponible General availability flag
+ * @param saisonnier Indicates whether the drink is seasonal
+ * @param dateDebutSaison Season start date
+ * @param dateFinSaison Season end date
+ * @param moisDebut Season start month (1-12)
+ * @param moisFin Season end month (1-12)
+ * @param disponibleAujourdhui Availability calculation including seasonal schedule
+ * @param instructions Preparation instructions for bartender
+ * @param imageUrl Photo URL
+ * @param ingredients List of recipe ingredients
+ * @param variantes List of available variants
+ * @param createdAt Creation timestamp
+ * @param updatedAt Modification timestamp
  */
-@Schema(description = "Représentation DTO complète d'un cocktail")
+@Schema(description = "Complete DTO representation of a cocktail")
 public record CocktailResponseDTO(
     Long id,
     String nom,
@@ -53,10 +53,10 @@ public record CocktailResponseDTO(
     LocalDateTime updatedAt
 ) {
     /**
-     * Convertit une entité {@link Cocktail} en DTO de réponse.
+     * Converts a {@link Cocktail} entity into a response DTO.
      *
-     * @param c L'entité cocktail source
-     * @return Le DTO correspondant
+     * @param c Source cocktail entity
+     * @return Corresponding response DTO
      */
     public static CocktailResponseDTO from(Cocktail c) {
         List<CocktailIngredientResponseDTO> ings = c.getIngredients() != null

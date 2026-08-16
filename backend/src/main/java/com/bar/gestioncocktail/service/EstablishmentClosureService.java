@@ -91,23 +91,23 @@ public class EstablishmentClosureService {
     @Transactional
     public EstablishmentClosureDTO createClosure(EstablishmentClosureRequestDTO dto) {
         if (dto.type() == null) {
-            throw new BusinessException("Le type de fermeture est obligatoire");
+            throw new BusinessException("Closure type is mandatory");
         }
         if (ClosureType.WEEKLY_RECURRING.equals(dto.type()) && dto.dayOfWeek() == null) {
-            throw new BusinessException("Le jour de la semaine est obligatoire pour une fermeture hebdomadaire");
+            throw new BusinessException("Day of week is mandatory for weekly recurring closure");
         }
         if (ClosureType.EXCEPTIONAL.equals(dto.type()) && dto.closureDate() == null) {
-            throw new BusinessException("La date de fermeture est obligatoire pour une fermeture exceptionnelle");
+            throw new BusinessException("Closure date is mandatory for exceptional closure");
         }
         if (dto.closureDate() != null && dto.endDate() != null && dto.endDate().isBefore(dto.closureDate())) {
-            throw new BusinessException("La date de fin ne peut pas être antérieure à la date de début");
+            throw new BusinessException("End date cannot be before start date");
         }
 
         // Check duplicate weekly closure
         if (ClosureType.WEEKLY_RECURRING.equals(dto.type())) {
             repository.findByTypeAndDayOfWeek(ClosureType.WEEKLY_RECURRING, dto.dayOfWeek())
                     .ifPresent(existing -> {
-                        throw new BusinessException("Une fermeture existe déjà pour " + dto.dayOfWeek());
+                        throw new BusinessException("A closure rule already exists for " + dto.dayOfWeek());
                     });
         }
 
@@ -117,7 +117,7 @@ public class EstablishmentClosureService {
         closure.setClosureDate(dto.closureDate());
         closure.setEndDate(dto.endDate());
         closure.setIsAnnualRecurring(Boolean.TRUE.equals(dto.isAnnualRecurring()));
-        closure.setReason(dto.reason() != null ? dto.reason().trim() : "Fermeture");
+        closure.setReason(dto.reason() != null ? dto.reason().trim() : "Closure");
 
         return EstablishmentClosureDTO.from(repository.save(closure));
     }
@@ -130,7 +130,7 @@ public class EstablishmentClosureService {
     @Transactional
     public void deleteClosure(Long id) {
         EstablishmentClosure closure = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Fermeture introuvable avec l'ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Closure not found with ID: " + id));
         repository.delete(closure);
     }
 }

@@ -20,12 +20,12 @@ import { getTranslocoTestingModule } from '../../transloco-testing.module';
 
 const mockTables: TableBar[] = [
   { id: 1, numero: 1, capacite: 4, zone: 'TERRASSE', emplacement: 'RDC', occupee: false, createdAt: '', updatedAt: '' },
-  { id: 2, numero: 2, capacite: 2, zone: 'INTERIEUR', emplacement: '1er Étage', occupee: true,  createdAt: '', updatedAt: '' },
+  { id: 2, numero: 2, capacite: 2, zone: 'INTERIEUR', emplacement: 'First Floor', occupee: true,  createdAt: '', updatedAt: '' },
 ];
 
 const mockPositions: TablePosition[] = [
   { tableId: 1, x: 100, y: 100, rotation: 0, shape: 'rect', floor: 'RDC' },
-  { tableId: 2, x: 200, y: 100, rotation: 0, shape: 'circle', floor: '1er Étage' },
+  { tableId: 2, x: 200, y: 100, rotation: 0, shape: 'circle', floor: 'First Floor' },
 ];
 
 describe('PlanSalleComponent', () => {
@@ -63,7 +63,7 @@ describe('PlanSalleComponent', () => {
     planSalleServiceSpy.sauvegarderPositions.and.returnValue(of(mockPositions));
 
     etageServiceSpy = jasmine.createSpyObj('EtageService', ['getAll']);
-    etageServiceSpy.getAll.and.returnValue(of([{ code: 'RDC', nom: 'Rez-de-chaussée' }, { code: '1er Étage', nom: '1er Étage' }]));
+    etageServiceSpy.getAll.and.returnValue(of([{ code: 'RDC', nom: 'Ground Floor' }, { code: 'First Floor', nom: 'First Floor' }]));
 
     zoneServiceSpy = jasmine.createSpyObj('ZoneService', ['getAll', 'update', 'create', 'delete']);
     zoneServiceSpy.getAll.and.returnValue(of([{ id: 1, nom: 'TERRASSE', etage: 'RDC' }]));
@@ -163,7 +163,7 @@ describe('PlanSalleComponent', () => {
     expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'success' }));
   }));
 
-  it('sauvegarder() remet hasUnsavedChanges à false', fakeAsync(() => {
+  it('sauvegarder() resets hasUnsavedChanges to false', fakeAsync(() => {
     component.hasUnsavedChanges = true;
     component.sauvegarder();
     tick();
@@ -171,7 +171,7 @@ describe('PlanSalleComponent', () => {
     expect(component.hasUnsavedChanges).toBeFalse();
   }));
 
-  it('sauvegarder() affiche un toast danger si le service échoue', fakeAsync(() => {
+  it('sauvegarder() displays danger toast if service fails', fakeAsync(() => {
     planSalleServiceSpy.sauvegarderPositions.and.returnValue(throwError(() => new Error('err')));
     component.sauvegarder();
     tick();
@@ -181,14 +181,14 @@ describe('PlanSalleComponent', () => {
 
   // --- onClickTable & side panel ---
 
-  it('onClickTable() ouvre le side panel pour la table sélectionnée en mode édition', async () => {
+  it('onClickTable() opens side panel for selected table in edit mode', async () => {
     component.isEditMode = true;
     await component.onClickTable(mockTables[0]);
     expect(component.selectedTable as any).toEqual(mockTables[0]);
     expect(component.isSidePanelOpen).toBeTrue();
   });
 
-  it('closeSidePanel() ferme le panneau latéral et réinitialise la table sélectionnée', () => {
+  it('closeSidePanel() closes side panel and resets selected table', () => {
     component.selectedTable = mockTables[0];
     component.isSidePanelOpen = true;
     component.closeSidePanel();
@@ -218,7 +218,7 @@ describe('PlanSalleComponent', () => {
     expect(component.isSidePanelOpen).toBeFalse();
   });
 
-  it('onClickTable() sélectionne la table et ouvre le side panel si isEditMode est vrai', async () => {
+  it('onClickTable() selects table and opens side panel if isEditMode is true', async () => {
     component.isEditMode = true;
     component.selectedTable = null;
     component.isSidePanelOpen = false;
@@ -229,7 +229,7 @@ describe('PlanSalleComponent', () => {
     expect(component.isSidePanelOpen).toBeTrue();
   });
 
-  it('onClickTable() en mode fusion déclenche la confirmation de fusion', async () => {
+  it('onClickTable() in fusion mode triggers fusion confirmation', async () => {
     component.isFusionMode = true;
     component.fusionSourceTable = mockTables[0];
     spyOn(component, 'confirmerFusion').and.returnValue(Promise.resolve());
@@ -238,7 +238,7 @@ describe('PlanSalleComponent', () => {
     expect(component.confirmerFusion).toHaveBeenCalledWith(mockTables[0], mockTables[1]);
   });
 
-  it('confirmerFusion() fusionne les deux tables si confirmé', fakeAsync(() => {
+  it('confirmerFusion() merges both tables if confirmed', fakeAsync(() => {
     mockModalDismissData = { data: { confirmed: true } };
     component.tables = [...mockTables];
     component.isFusionMode = true;
@@ -255,7 +255,7 @@ describe('PlanSalleComponent', () => {
     expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'success' }));
   }));
 
-  it('confirmerFusion() annule la fusion si non confirmé', fakeAsync(() => {
+  it('confirmerFusion() cancels fusion if not confirmed', fakeAsync(() => {
     mockModalDismissData = { data: { confirmed: false } };
     component.isFusionMode = true;
     component.fusionSourceTable = mockTables[0];
@@ -270,7 +270,7 @@ describe('PlanSalleComponent', () => {
 
   // --- onSaveTable ---
 
-  it('onSaveTable() met à jour la table sélectionnée et persiste les changements', fakeAsync(() => {
+  it('onSaveTable() updates selected table and persists changes', fakeAsync(() => {
     component.selectedTable = { ...mockTables[0] };
     component.onSaveTable({ capacite: 8, zone: 'TERRASSE' });
     tick();
@@ -289,7 +289,7 @@ describe('PlanSalleComponent', () => {
     expect(component.hasUnsavedChanges).toBeFalse();
   });
 
-  it('onLiveUpdateTable() met à jour la forme et les dimensions en direct sans erreur', fakeAsync(() => {
+  it('onLiveUpdateTable() updates shape and dimensions live without error', fakeAsync(() => {
     component.charger();
     tick();
     component.selectedTable = { ...mockTables[0] };
@@ -318,7 +318,7 @@ describe('PlanSalleComponent', () => {
     expect((component as any).positions.get(1).width).toBe(120);
   }));
 
-  it('onSaveTableAndPosition() met à jour table, position, persiste et dessine le plan', fakeAsync(() => {
+  it('onSaveTableAndPosition() updates table, position, persists and draws plan', fakeAsync(() => {
     component.charger();
     tick();
     component.selectedTable = { ...mockTables[0] };
@@ -379,18 +379,18 @@ describe('PlanSalleComponent', () => {
     expect(tableServiceSpy.getAll.calls.count()).toBe(before);
   }));
 
-  it('selectFloor() filtre les tables par étage', fakeAsync(() => {
+  it('selectFloor() filters tables by floor', fakeAsync(() => {
     component.charger();
     tick();
     component.selectFloor('RDC');
     expect(component.filteredTables).toHaveSize(1);
     expect(component.filteredTables[0].numero).toBe(1);
 
-    component.selectFloor('1er Étage');
+    component.selectFloor('First Floor');
     expect(component.filteredTables).toHaveSize(1);
   }));
 
-  it('ajouterNouvelleTable() crée une nouvelle table et l\'ajoute au plan', fakeAsync(() => {
+  it('ajouterNouvelleTable() creates new table and adds it to plan', fakeAsync(() => {
     component.charger();
     tick();
     const countBefore = component.tables.length;
@@ -399,7 +399,7 @@ describe('PlanSalleComponent', () => {
     expect(component.hasUnsavedChanges).toBeTrue();
   }));
 
-  it('pivoterTableSelectionnee() pivote la table sélectionnée de 90°', fakeAsync(() => {
+  it('pivoterTableSelectionnee() rotates selected table by 90 deg', fakeAsync(() => {
     component.charger();
     tick();
     component.selectedTable = mockTables[0];
@@ -419,14 +419,14 @@ describe('PlanSalleComponent', () => {
     expect(component.hasUnsavedChanges).toBeFalse();
   }));
 
-  it('toggleGridSnap() bascule l\'état de la grille et affiche un toast', () => {
+  it('toggleGridSnap() toggles grid snapping state and displays toast', () => {
     const init = component.isGridSnapEnabled;
     component.toggleGridSnap();
     expect(component.isGridSnapEnabled).toBe(!init);
     expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'info' }));
   });
 
-  it('toggleMagnetSnap() bascule l\'état de l\'aimantation et affiche un toast', () => {
+  it('toggleMagnetSnap() toggles magnet snapping state and displays a toast', () => {
     const init = component.isMagnetSnapEnabled;
     component.toggleMagnetSnap();
     expect(component.isMagnetSnapEnabled).toBe(!init);

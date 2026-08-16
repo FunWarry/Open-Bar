@@ -28,7 +28,7 @@ export interface ReglementModalResult {
  * Payment modal component supporting payment method selection, quick tip suggestions (+5%, +10%, custom),
  * dynamic total recalculation, and cash change calculation (rendu de monnaie).
  *
- * Aligned with Figma Vue système commun Payment / Settlement layout (`628:1068`).
+ * Aligned with Figma Common system view Payment / Settlement layout (`628:1068`).
  */
 @Component({
   selector: 'app-reglement-modal',
@@ -44,22 +44,64 @@ export interface ReglementModalResult {
 })
 export class ReglementModalComponent implements OnInit {
   /** Base amount to pay in EUR. */
-  @Input() totalInitial = 0;
+  @Input() initialTotal = 0;
+
+  /** Alias for backward-compatibility. */
+  @Input()
+  get totalInitial(): number {
+    return this.initialTotal;
+  }
+  set totalInitial(val: number) {
+    this.initialTotal = val;
+  }
 
   /** Optional title suffix (e.g. guest name for split payments). */
-  @Input() nomPart?: string;
+  @Input() shareName?: string;
+
+  /** Alias for backward-compatibility. */
+  @Input()
+  get nomPart(): string | undefined {
+    return this.shareName;
+  }
+  set nomPart(val: string | undefined) {
+    this.shareName = val;
+  }
 
   /** Selected payment method (default: CARTE). */
-  modePaiement = 'CARTE';
+  paymentMethod = 'CARTE';
+
+  /** Alias for backward-compatibility. */
+  get modePaiement(): string {
+    return this.paymentMethod;
+  }
+  set modePaiement(val: string) {
+    this.paymentMethod = val;
+  }
 
   /** Selected tip mode: 'none', '5pct', '10pct', 'custom'. */
   tipMode: 'none' | '5pct' | '10pct' | 'custom' = 'none';
 
   /** Custom tip amount in EUR. */
-  customPourboire = 0;
+  customTip = 0;
+
+  /** Alias for backward-compatibility. */
+  get customPourboire(): number {
+    return this.customTip;
+  }
+  set customPourboire(val: number) {
+    this.customTip = val;
+  }
 
   /** Amount received from customer for cash payment. */
-  montantRecu: number | null = null;
+  receivedAmount: number | null = null;
+
+  /** Alias for backward-compatibility. */
+  get montantRecu(): number | null {
+    return this.receivedAmount;
+  }
+  set montantRecu(val: number | null) {
+    this.receivedAmount = val;
+  }
 
   private readonly modalCtrl = inject(ModalController);
   private readonly transloco = inject(TranslocoService);
@@ -69,8 +111,8 @@ export class ReglementModalComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    if (!this.totalInitial || this.totalInitial < 0) {
-      this.totalInitial = 0;
+    if (!this.initialTotal || this.initialTotal < 0) {
+      this.initialTotal = 0;
     }
   }
 
@@ -79,72 +121,102 @@ export class ReglementModalComponent implements OnInit {
    *
    * @returns Tip amount rounded to 2 decimal places.
    */
-  get pourboire(): number {
+  get tip(): number {
     switch (this.tipMode) {
       case '5pct':
-        return Math.round(this.totalInitial * 0.05 * 100) / 100;
+        return Math.round(this.initialTotal * 0.05 * 100) / 100;
       case '10pct':
-        return Math.round(this.totalInitial * 0.10 * 100) / 100;
+        return Math.round(this.initialTotal * 0.10 * 100) / 100;
       case 'custom':
-        return Math.max(0, this.customPourboire || 0);
+        return Math.max(0, this.customTip || 0);
       case 'none':
       default:
         return 0;
     }
   }
 
+  /** Alias for backward-compatibility. */
+  get pourboire(): number {
+    return this.tip;
+  }
+
   /**
    * Returns total amount due including tip.
    */
+  get totalWithTip(): number {
+    return Math.round((this.initialTotal + this.tip) * 100) / 100;
+  }
+
+  /** Alias for backward-compatibility. */
   get totalAvecPourboire(): number {
-    return Math.round((this.totalInitial + this.pourboire) * 100) / 100;
+    return this.totalWithTip;
   }
 
   /**
    * Calculates change to return for cash payments.
    */
-  get monnaieARendre(): number {
-    if (this.modePaiement !== 'ESPECES' || !this.montantRecu) {
+  get changeToReturn(): number {
+    if (this.paymentMethod !== 'ESPECES' || !this.receivedAmount) {
       return 0;
     }
-    return Math.max(0, Math.round((this.montantRecu - this.totalAvecPourboire) * 100) / 100);
+    return Math.max(0, Math.round((this.receivedAmount - this.totalWithTip) * 100) / 100);
+  }
+
+  /** Alias for backward-compatibility. */
+  get monnaieARendre(): number {
+    return this.changeToReturn;
   }
 
   /**
    * Whether amount received in cash is sufficient.
    */
+  get isReceivedAmountSufficient(): boolean {
+    if (this.paymentMethod !== 'ESPECES') {
+      return true;
+    }
+    if (this.receivedAmount === null || this.receivedAmount === undefined) {
+      return true;
+    }
+    return this.receivedAmount >= this.totalWithTip;
+  }
+
+  /** Alias for backward-compatibility. */
   get isMontantRecuSuffisant(): boolean {
-    if (this.modePaiement !== 'ESPECES') {
-      return true;
-    }
-    if (this.montantRecu === null || this.montantRecu === undefined) {
-      return true;
-    }
-    return this.montantRecu >= this.totalAvecPourboire;
+    return this.isReceivedAmountSufficient;
   }
 
   /** Sets tip mode and resets custom tip value if not custom. */
   setTipMode(mode: 'none' | '5pct' | '10pct' | 'custom'): void {
     this.tipMode = mode;
     if (mode !== 'custom') {
-      this.customPourboire = 0;
+      this.customTip = 0;
     }
   }
 
   /** Dismisses the modal without confirming payment. */
-  annuler(): void {
+  cancel(): void {
     this.modalCtrl.dismiss(null);
   }
 
+  /** Alias for backward-compatibility. */
+  annuler(): void {
+    this.cancel();
+  }
+
   /** Confirms payment and dismisses modal emitting result payload. */
-  validerReglement(): void {
+  confirmPayment(): void {
     const result: ReglementModalResult = {
-      modePaiement: this.modePaiement,
-      pourboire: this.pourboire,
-      totalTotal: this.totalAvecPourboire,
-      montantRecu: this.modePaiement === 'ESPECES' && this.montantRecu ? this.montantRecu : undefined,
-      monnaieARendre: this.modePaiement === 'ESPECES' ? this.monnaieARendre : undefined
+      modePaiement: this.paymentMethod,
+      pourboire: this.tip,
+      totalTotal: this.totalWithTip,
+      montantRecu: this.paymentMethod === 'ESPECES' && this.receivedAmount ? this.receivedAmount : undefined,
+      monnaieARendre: this.paymentMethod === 'ESPECES' ? this.changeToReturn : undefined
     };
     this.modalCtrl.dismiss(result);
+  }
+
+  /** Alias for backward-compatibility. */
+  validerReglement(): void {
+    this.confirmPayment();
   }
 }

@@ -90,7 +90,7 @@ describe('DashboardManagerComponent', () => {
     expect(component.loading).toBeFalse();
   });
 
-  it('chargerStats() met loading à true puis false après réponse', fakeAsync(() => {
+  it('chargerStats() sets loading to true then false after response', fakeAsync(() => {
     component.loading = false;
     dashboardServiceSpy.getStats.and.returnValue(of(mockStats));
 
@@ -101,7 +101,7 @@ describe('DashboardManagerComponent', () => {
     expect(component.stats).toEqual(mockStats);
   }));
 
-  it('chargerStats() met loading à false en cas d erreur', fakeAsync(() => {
+  it('chargerStats() sets loading to false on error', fakeAsync(() => {
     dashboardServiceSpy.getStats.and.returnValue(throwError(() => new Error('Erreur serveur')));
 
     component.chargerStats();
@@ -136,7 +136,7 @@ describe('DashboardManagerComponent', () => {
     expect(result).toContain('€');
   });
 
-  it('getRankLabel() retourne les médailles et numéros ordinaux', () => {
+  it('getRankLabel() returns medals and ordinal numbers', () => {
     expect(component.getRankLabel(0)).toBe('🥇');
     expect(component.getRankLabel(1)).toBe('🥈');
     expect(component.getRankLabel(2)).toBe('🥉');
@@ -171,7 +171,7 @@ describe('DashboardManagerComponent', () => {
     expect(component.totalCocktailsSold).toBe(20);
   });
 
-  it('averageTicket, occupancyRate et deliveryRate renvoient 0 si stats null ou zéro commandes/tables', () => {
+  it('averageTicket, occupancyRate and deliveryRate return 0 if stats null or zero orders/tables', () => {
     component.stats = null;
     expect(component.averageTicket).toBe(0);
     expect(component.occupancyRate).toBe(0);
@@ -194,7 +194,7 @@ describe('DashboardManagerComponent', () => {
     expect(toastCtrlSpy.create).toHaveBeenCalled();
   });
 
-  it('WebSocket: met à jour les stats silencieusement lors d un événement notification ou stock', () => {
+  it('WebSocket: updates stats silently on notification or stock event', () => {
     spyOn(component, 'chargerStatsSilent');
     spyOn(component, 'chargerOrdersSilent');
 
@@ -206,7 +206,7 @@ describe('DashboardManagerComponent', () => {
     expect(component.chargerStatsSilent).toHaveBeenCalledTimes(2);
   });
 
-  it('toggleShowDelivered() inverse la visibilité de la colonne livrées', () => {
+  it('toggleShowDelivered() toggles visibility of delivered column', () => {
     expect(component.showDelivered).toBeFalse();
     component.toggleShowDelivered();
     expect(component.showDelivered).toBeTrue();

@@ -65,33 +65,33 @@ describe('TableFormComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('initialise le formulaire avec les champs numero, zone et capacite', () => {
+  it('initializes the form avec les champs numero, zone et capacite', () => {
     expect(component.tableForm.contains('numero')).toBeTrue();
     expect(component.tableForm.contains('zone')).toBeTrue();
     expect(component.tableForm.contains('capacite')).toBeTrue();
   });
 
-  it('le formulaire est invalide quand les champs sont vides', () => {
+  it('form should be invalid quand les champs sont vides', () => {
     component.tableForm.setValue({ numero: '', zone: '', capacite: '' });
     expect(component.tableForm.valid).toBeFalse();
   });
 
-  it('le formulaire est valide quand tous les champs sont remplis correctement', () => {
+  it('form should be valid quand tous les champs sont remplis correctement', () => {
     component.tableForm.setValue({ numero: 12, zone: 'Terrasse', capacite: 4 });
     expect(component.tableForm.valid).toBeTrue();
   });
 
-  it('capacite invalide si valeur inférieure à 1', () => {
+  it('capacity invalid if value is less than 1', () => {
     component.tableForm.get('capacite')?.setValue(0);
     expect(component.tableForm.get('capacite')?.valid).toBeFalse();
   });
 
-  it('isEditMode est false par défaut (pas de paramètre id)', () => {
+  it('isEditMode is false by default (no id parameter)', () => {
     expect(component.isEditMode).toBeFalse();
     expect(component.tableId).toBeNull();
   });
 
-  it('isEditMode est true si un id est présent dans la route', async () => {
+  it('isEditMode is true if an id is present in route', async () => {
     await TestBed.resetTestingModule();
     await TestBed.configureTestingModule({
       imports: [
@@ -121,7 +121,7 @@ describe('TableFormComponent', () => {
     expect(comp.tableId).toBe(5);
   });
 
-  it('onSubmit() ne déclenche rien si le formulaire est invalide', () => {
+  it('onSubmit() does not trigger anything if form is invalid', () => {
     component.tableForm.setValue({ numero: '', zone: '', capacite: '' });
     component.onSubmit();
     expect(tableServiceSpy.create).not.toHaveBeenCalled();

@@ -54,7 +54,7 @@ import { Cocktail } from '../../core/models/cocktail.model';
 /**
  * Dashboard Barman Component managing the real-time preparation Kanban board.
  * Equipped with live STOMP WebSocket sync, audio chimes, urgency threshold alerts,
- * instant out-of-stock toggles ("Ruptures à chaud"), 80mm thermal bar ticket printing,
+ * instant out-of-stock toggles ("Quick Out-of-Stock"), 80mm thermal bar ticket printing,
  * and an interactive preparation & recipe side panel.
  */
 @Component({
@@ -297,7 +297,7 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Opens the Quick Out-of-Stock ("Ruptures à chaud") modal.
+   * Opens the Quick Out-of-Stock modal.
    */
   async openRupturesModal(): Promise<void> {
     const modal = await this.modalCtrl.create({

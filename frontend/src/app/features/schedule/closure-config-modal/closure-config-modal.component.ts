@@ -155,7 +155,7 @@ export class ClosureConfigModalComponent implements OnInit {
 
   selectPreset(preset: string): void {
     this.newClosureReason = preset;
-    if (preset === 'Congés annuels') {
+    if (preset === 'Congés annuels' || preset === 'Annual Leave') {
       this.newIsDateRange = true;
       if (this.newClosureDate) {
         const d = new Date(this.newClosureDate);

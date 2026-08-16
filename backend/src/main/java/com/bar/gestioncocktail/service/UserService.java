@@ -40,7 +40,7 @@ public class UserService implements UserDetailsService {
                     .map(role -> new SimpleGrantedAuthority("ROLE_" + role.name()))
                     .toList()
             ))
-            .orElseThrow(() -> new UsernameNotFoundException("Utilisateur non trouvé: " + username));
+            .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
     }
 
     public User createUser(User user) {
@@ -52,7 +52,7 @@ public class UserService implements UserDetailsService {
 
     public User updateUser(Long id, User updatedData) {
         User existing = userRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Utilisateur non trouvé avec l'ID: " + id));
+            .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + id));
 
         if (updatedData.getUsername() != null && !updatedData.getUsername().isBlank()) {
             existing.setUsername(updatedData.getUsername());

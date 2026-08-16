@@ -14,17 +14,21 @@ import {
   peopleOutline, listOutline, calculatorOutline,
   removeOutline, addOutline, closeOutline, checkmarkCircleOutline, cardOutline, cashOutline
 } from 'ionicons/icons';
-import { TranslocoModule } from '@jsverse/transloco';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { FactureService, SplitResultDTO, SplitPartRequest } from '../services/facture.service';
 import { Facture } from '../models/facture.model';
 import { ReglementModalComponent, ReglementModalResult } from '../reglement-modal/reglement-modal.component';
 
 /** State tracking for individual guest split settlements. */
 export interface PartSettlementState {
-  reglee: boolean;
+  settled: boolean;
+  paymentMethod?: string;
+  tip?: number;
+  totalPaid?: number;
+  reglee?: boolean;
   modePaiement?: string;
   pourboire?: number;
-  totalPaid?: number;
+  totalRegle?: number;
 }
 
 /**
@@ -32,7 +36,7 @@ export interface PartSettlementState {
  * Supports equal split, split by item selection, and individual guest payment tracking
  * with real-time remaining balance calculations and automatic main invoice settlement.
  *
- * Aligned with Figma Vue système commun Split Settlement layout (`630:1264`).
+ * Aligned with Figma Common System Split Settlement layout (`630:1264`).
  */
 @Component({
   selector: 'app-facture-split',
@@ -49,15 +53,27 @@ export interface PartSettlementState {
   styleUrls: ['./facture-split.component.scss'],
 })
 export class FactureSplitComponent implements OnInit {
+  private readonly transloco = inject(TranslocoService);
   factureId!: number;
-  mode: 'egal' | 'selection' = 'egal';
+  mode: 'equal' | 'itemized' | 'selection' | 'egal' = 'equal';
 
-  // Mode égal
-  nombreConvives = 2;
+  // Equal split mode
+  guestCount = 2;
 
-  // Mode par article
+  get nombreConvives(): number {
+    return this.guestCount;
+  }
+  set nombreConvives(val: number) {
+    this.guestCount = val;
+  }
+
+  ajusterConvives(delta: number): void {
+    this.adjustGuestCount(delta);
+  }
+
+  // Itemized split mode
   facture: Facture | null = null;
-  convives: { nom: string }[] = [{ nom: '' }, { nom: '' }];
+  guests: { name: string }[] = [{ name: '' }, { name: '' }];
   itemAssignments: { [itemId: number]: number } = {};
 
   results: SplitResultDTO[] = [];
@@ -88,7 +104,7 @@ export class FactureSplitComponent implements OnInit {
     this.results = [];
     this.partStates = {};
     this.errorMessage = null;
-    if (this.mode === 'selection' && !this.facture) {
+    if ((this.mode === 'itemized' || this.mode === 'selection') && !this.facture) {
       this.loadFacture();
     }
   }
@@ -96,39 +112,39 @@ export class FactureSplitComponent implements OnInit {
   private loadFacture() {
     this.factureService.getFactureById(this.factureId).subscribe({
       next: f => { this.facture = f; },
-      error: () => { this.errorMessage = 'Impossible de charger les articles de la facture'; },
+      error: () => { this.errorMessage = String(this.transloco.translate('SPLIT.LOAD_ITEMS_ERROR')); },
     });
   }
 
-  // ─── Mode égal ───────────────────────────────────────────────────────────────
+  // ─── Equal Split Mode ────────────────────────────────────────────────────────
 
-  ajusterConvives(delta: number) {
-    this.nombreConvives = Math.max(2, Math.min(20, this.nombreConvives + delta));
+  adjustGuestCount(delta: number) {
+    this.guestCount = Math.max(2, Math.min(20, this.guestCount + delta));
   }
 
-  calculerSplitEgal() {
+  calculateEqualSplit() {
     this.loading = true;
     this.errorMessage = null;
     this.partStates = {};
-    this.factureService.splitEgal(this.factureId, this.nombreConvives).subscribe({
+    this.factureService.splitEgal(this.factureId, this.guestCount).subscribe({
       next: r => { this.results = r; this.loading = false; },
       error: err => {
-        this.errorMessage = err?.error?.message ?? 'Erreur lors du calcul';
+        this.errorMessage = err?.error?.message ?? String(this.transloco.translate('SPLIT.CALCULATION_ERROR'));
         this.loading = false;
       },
     });
   }
 
-  // ─── Mode par article ─────────────────────────────────────────────────────────
+  // ─── Itemized Split Mode ───────────────────────────────────────────────────
 
-  addConvive() {
-    if (this.convives.length < 20) {
-      this.convives.push({ nom: '' });
+  addGuest() {
+    if (this.guests.length < 20) {
+      this.guests.push({ name: '' });
     }
   }
 
-  removeConvive(index: number) {
-    this.convives.splice(index, 1);
+  removeGuest(index: number) {
+    this.guests.splice(index, 1);
     Object.keys(this.itemAssignments).forEach(id => {
       const itemId = +id;
       if (this.itemAssignments[itemId] === index) {
@@ -139,24 +155,24 @@ export class FactureSplitComponent implements OnInit {
     });
   }
 
-  conviveNom(index: number): string {
-    return this.convives[index]?.nom?.trim() || `Convive ${index + 1}`;
+  getGuestName(index: number): string {
+    return this.guests[index]?.name?.trim() || `${this.transloco.translate('SPLIT.GUEST_PLACEHOLDER', { number: index + 1 })}`;
   }
 
-  get tousItemsAssignes(): boolean {
+  get allItemsAssigned(): boolean {
     if (!this.facture?.items?.length) return false;
     return this.facture.items.every(item => this.itemAssignments[item.id] !== undefined);
   }
 
-  calculerSplitSelection() {
+  calculateItemizedSplit() {
     if (!this.facture) return;
     this.loading = true;
     this.errorMessage = null;
     this.partStates = {};
 
-    const parts: SplitPartRequest[] = this.convives
+    const parts: SplitPartRequest[] = this.guests
       .map((_, i) => ({
-        nomConvive: this.conviveNom(i),
+        nomConvive: this.getGuestName(i),
         itemIds: this.facture!.items
           .filter(item => this.itemAssignments[item.id] === i)
           .map(item => item.id),
@@ -166,40 +182,40 @@ export class FactureSplitComponent implements OnInit {
     this.factureService.splitParSelection(this.factureId, parts).subscribe({
       next: r => { this.results = r; this.loading = false; },
       error: err => {
-        this.errorMessage = err?.error?.message ?? 'Erreur lors du calcul';
+        this.errorMessage = err?.error?.message ?? String(this.transloco.translate('SPLIT.CALCULATION_ERROR'));
         this.loading = false;
       },
     });
   }
 
-  // ─── Règlement Individuel Post-Split ──────────────────────────────────────────
+  // ─── Individual Post-Split Settlement ──────────────────────────────────────
 
   get totalSplit(): number {
     return this.results.reduce((acc, r) => acc + r.sousTotal, 0);
   }
 
-  get montantTotalAddition(): number {
+  get totalBillAmount(): number {
     return this.facture?.totalTTC ?? this.facture?.total ?? this.totalSplit;
   }
 
-  get montantRegle(): number {
+  get paidAmount(): number {
     return this.results.reduce((acc, r, i) => {
       const state = this.partStates[i];
-      return state?.reglee ? acc + r.sousTotal : acc;
+      return state?.settled ? acc + r.sousTotal : acc;
     }, 0);
   }
 
-  get soldeRestant(): number {
-    return Math.max(0, Math.round((this.montantTotalAddition - this.montantRegle) * 100) / 100);
+  get remainingBalance(): number {
+    return Math.max(0, Math.round((this.totalBillAmount - this.paidAmount) * 100) / 100);
   }
 
-  get ratioRegle(): number {
-    if (!this.montantTotalAddition || this.montantTotalAddition <= 0) return 0;
-    return Math.min(1, this.montantRegle / this.montantTotalAddition);
+  get paidRatio(): number {
+    if (!this.totalBillAmount || this.totalBillAmount <= 0) return 0;
+    return Math.min(1, this.paidAmount / this.totalBillAmount);
   }
 
-  get toutesPartsReglees(): boolean {
-    return this.results.length > 0 && this.results.every((_, i) => !!this.partStates[i]?.reglee);
+  get allPartsSettled(): boolean {
+    return this.results.length > 0 && this.results.every((_, i) => !!this.partStates[i]?.settled);
   }
 
   /**
@@ -210,8 +226,8 @@ export class FactureSplitComponent implements OnInit {
    * @param index Guest index in results array
    * @param part The guest's split result DTO
    */
-  async reglerPart(index: number, part: SplitResultDTO) {
-    if (this.partStates[index]?.reglee) return;
+  async settleGuestPart(index: number, part: SplitResultDTO) {
+    if (this.partStates[index]?.settled) return;
 
     const modal = await this.modalCtrl.create({
       component: ReglementModalComponent,
@@ -227,30 +243,92 @@ export class FactureSplitComponent implements OnInit {
     if (!data) return;
 
     this.partStates[index] = {
+      settled: true,
+      paymentMethod: data.modePaiement,
+      tip: data.pourboire,
+      totalPaid: data.totalTotal,
       reglee: true,
       modePaiement: data.modePaiement,
       pourboire: data.pourboire,
-      totalPaid: data.totalTotal
+      totalRegle: data.totalTotal,
     };
 
     const toast = await this.toastCtrl.create({
-      message: `Part de ${part.nomConvive} réglée avec succès (${data.modePaiement})`,
+      message: String(this.transloco.translate('SPLIT.PART_PAID_SUCCESS', { guest: part.nomConvive, mode: data.modePaiement })),
       duration: 2000,
       color: 'success'
     });
     await toast.present();
 
-    if (this.toutesPartsReglees) {
-      this.finaliserReglementFactureGlobale();
+    if (this.allPartsSettled) {
+      this.finalizeGlobalInvoiceSettlement();
     }
   }
 
-  private finaliserReglementFactureGlobale() {
-    const totalPourboires = Object.values(this.partStates).reduce((acc, s) => acc + (s.pourboire || 0), 0);
-    this.factureService.reglerFacture(this.factureId, 'MIXTE_SPLIT', totalPourboires).subscribe({
+  // ─── Aliases for compatibility ─────────────────────────────────────────────
+
+  get convives(): { nom: string }[] {
+    return this.guests.map(g => ({ nom: g.name }));
+  }
+
+  set convives(val: { nom: string }[]) {
+    this.guests = val.map(g => ({ name: g.nom }));
+  }
+
+  conviveNom(index: number): string {
+    return this.getGuestName(index);
+  }
+
+  removeConvive(index: number): void {
+    this.removeGuest(index);
+  }
+
+  addConvive(): void {
+    this.addGuest();
+  }
+
+  get tousItemsAssignes(): boolean {
+    return this.allItemsAssigned;
+  }
+
+  calculerSplitSelection(): void {
+    this.calculateItemizedSplit();
+  }
+
+  calculerSplitEgal(): void {
+    this.calculateEqualSplit();
+  }
+
+  get montantTotalAddition(): number {
+    return this.totalBillAmount;
+  }
+
+  get montantRegle(): number {
+    return this.paidAmount;
+  }
+
+  get soldeRestant(): number {
+    return this.remainingBalance;
+  }
+
+  get ratioRegle(): number {
+    return this.paidRatio;
+  }
+
+  get toutesPartsReglees(): boolean {
+    return this.allPartsSettled;
+  }
+
+  async reglerPart(index: number, part: SplitResultDTO) {
+    return this.settleGuestPart(index, part);
+  }
+
+  private finalizeGlobalInvoiceSettlement() {
+    const totalTips = Object.values(this.partStates).reduce((acc, s) => acc + (s.tip || 0), 0);
+    this.factureService.reglerFacture(this.factureId, 'MIXTE_SPLIT', totalTips).subscribe({
       next: async () => {
         const toast = await this.toastCtrl.create({
-          message: 'Toutes les parts ont été réglées ! Facture finalisée et table libérée.',
+          message: String(this.transloco.translate('SPLIT.ALL_PARTS_PAID')),
           duration: 3000,
           color: 'success'
         });
@@ -258,7 +336,7 @@ export class FactureSplitComponent implements OnInit {
       },
       error: async () => {
         const toast = await this.toastCtrl.create({
-          message: 'Erreur lors de la finalisation globale',
+          message: String(this.transloco.translate('SPLIT.FINALIZATION_ERROR')),
           duration: 3000,
           color: 'danger'
         });

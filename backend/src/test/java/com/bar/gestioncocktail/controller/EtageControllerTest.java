@@ -38,7 +38,7 @@ class EtageControllerTest {
         etage = new EtageEntity();
         etage.setId(1L);
         etage.setCode("RDC");
-        etage.setNom("Rez-de-chaussée");
+        etage.setNom("Ground Floor");
         etage.setOrdre(1);
     }
 
@@ -88,21 +88,21 @@ class EtageControllerTest {
 
     @Test
     void updateEtage_shouldReturnUpdatedStatusAndDTO() {
-        EtageRequestDTO dto = new EtageRequestDTO("RDC", "Rez-de-chaussée Modifié", 1);
+        EtageRequestDTO dto = new EtageRequestDTO("RDC", "Ground Floor Modified", 1);
         EtageEntity updated = new EtageEntity();
         updated.setId(1L);
         updated.setCode("RDC");
-        updated.setNom("Rez-de-chaussée Modifié");
+        updated.setNom("Ground Floor Modified");
         updated.setOrdre(1);
 
-        when(etageService.updateEtage(1L, "RDC", "Rez-de-chaussée Modifié", 1)).thenReturn(updated);
+        when(etageService.updateEtage(1L, "RDC", "Ground Floor Modified", 1)).thenReturn(updated);
 
         ResponseEntity<EtageResponseDTO> response = etageController.updateEtage(1L, dto);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().nom()).isEqualTo("Rez-de-chaussée Modifié");
-        verify(etageService).updateEtage(1L, "RDC", "Rez-de-chaussée Modifié", 1);
+        assertThat(response.getBody().nom()).isEqualTo("Ground Floor Modified");
+        verify(etageService).updateEtage(1L, "RDC", "Ground Floor Modified", 1);
     }
 
     @Test

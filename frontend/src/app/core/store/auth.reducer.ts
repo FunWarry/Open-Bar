@@ -3,16 +3,16 @@ import {User} from '../models/user.model';
 import * as AuthActions from './auth.actions';
 
 /**
- * Interface représentant l'état du store NgRx d'authentification.
+ * Interface representing the state of the NgRx authentication store.
  */
 export interface AuthState {
-  /** Profil de l'utilisateur connecté ou {@code null} */
+  /** Authenticated user profile or {@code null} */
   user: User | null;
-  /** Jeton JWT d'accès ou {@code null} */
+  /** JWT access token or {@code null} */
   token: string | null;
-  /** Indicateur d'état d'authentification */
+  /** Flag indicating authentication state */
   isAuthenticated: boolean;
-  /** Message d'erreur d'authentification éventuel */
+  /** Authentication error message if any */
   error: string | null;
 }
 
@@ -35,7 +35,7 @@ export function getInitialAuthState(): AuthState {
       }
     }
   } catch {
-    // Ignoré si localStorage est indisponible ou corrompu
+    // Ignored if localStorage is unavailable or corrupt
   }
   return {
     user: null,
@@ -46,12 +46,12 @@ export function getInitialAuthState(): AuthState {
 }
 
 /**
- * État initial du store NgRx d'authentification (réhydraté depuis LocalStorage).
+ * Initial state of the NgRx authentication store (hydrated from LocalStorage).
  */
 export const initialState: AuthState = getInitialAuthState();
 
 /**
- * Reducer NgRx gérant les mutations de l'état d'authentification.
+ * NgRx Reducer handling authentication state mutations.
  */
 export const authReducer = createReducer(
   initialState,

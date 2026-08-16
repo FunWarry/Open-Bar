@@ -15,6 +15,7 @@ import {
 } from 'ionicons/icons';
 import {RouterLink, RouterLinkActive} from '@angular/router';
 import {AsyncPipe} from '@angular/common';
+import {TranslocoPipe} from '@jsverse/transloco';
 import * as AuthActions from '../../store/auth.actions';
 
 @Component({
@@ -25,7 +26,7 @@ import * as AuthActions from '../../store/auth.actions';
   imports: [
     IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
     IonMenu, IonMenuButton, IonContent, IonList, IonItem, IonLabel,
-    IonPopover, RouterLink, RouterLinkActive, AsyncPipe
+    IonPopover, RouterLink, RouterLinkActive, AsyncPipe, TranslocoPipe
   ]
 })
 export class HeaderComponent {

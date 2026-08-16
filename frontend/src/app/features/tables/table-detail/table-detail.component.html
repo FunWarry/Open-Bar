@@ -3,15 +3,15 @@
     <ion-buttons slot="start">
       <ion-button (click)="onBack()" (keyup.enter)="onBack()" data-testid="table-detail-back-btn">
         <ion-icon slot="start" name="arrow-back"></ion-icon>
-        Retour
+        {{ 'COMMON.BACK' | transloco }}
       </ion-button>
     </ion-buttons>
-    <ion-title>Table {{ table?.numero }}</ion-title>
+    <ion-title>{{ 'TABLES.TABLE_NUMBER' | transloco:{ number: table?.numero } }}</ion-title>
     <ion-buttons slot="end">
       @if (isAdmin$ | async) {
         <ion-button fill="solid" color="primary" (click)="onEdit()" (keyup.enter)="onEdit()" data-testid="table-detail-edit-btn">
           <ion-icon slot="start" name="create"></ion-icon>
-          Modifier
+          {{ 'COMMON.EDIT' | transloco }}
         </ion-button>
       }
     </ion-buttons>
@@ -22,34 +22,34 @@
   <div class="table-detail-content">
 
     <div class="detail-section">
-      <h3 class="section-title">Informations</h3>
+      <h3 class="section-title">{{ 'COMMON.INFO' | transloco }}</h3>
       <div class="info-card">
         <div class="info-row">
-          <span class="detail-label">Zone</span>
-          <span class="detail-value zone-badge">{{ table?.zone || 'Non définie' }}</span>
+          <span class="detail-label">{{ 'TABLES.ZONE' | transloco }}</span>
+          <span class="detail-value zone-badge">{{ table?.zone || ('COMMON.NOT_SPECIFIED' | transloco) }}</span>
         </div>
         <div class="info-row">
-          <span class="detail-label">Capacité</span>
-          <span class="detail-value">{{ table?.capacite }} personnes</span>
+          <span class="detail-label">{{ 'TABLES.CAPACITY' | transloco }}</span>
+          <span class="detail-value">{{ 'TABLE_SIDE_PANEL.SEATS_FORMAT' | transloco:{ count: table?.capacite } }}</span>
         </div>
         <div class="info-row">
-          <span class="detail-label">Statut</span>
+          <span class="detail-label">{{ 'TABLES.STATUS' | transloco }}</span>
           <ion-badge [color]="table?.occupee ? 'danger' : 'success'">
-            {{ table?.occupee ? 'Occupée' : 'Libre' }}
+            {{ (table?.occupee ? 'TABLES.OCCUPIED' : 'TABLES.FREE') | transloco }}
           </ion-badge>
         </div>
       </div>
     </div>
 
     <div class="detail-section">
-      <h3 class="section-title">Historique des commandes</h3>
+      <h3 class="section-title">{{ 'TABLES.ORDERS_HISTORY' | transloco }}</h3>
       @if (commandes && commandes.length > 0) {
         <div class="history-table">
           <div class="list-header-row">
-            <span>Commande</span>
-            <span>Date</span>
-            <span>Total</span>
-            <span>Statut</span>
+            <span>{{ 'COMMANDES.TITLE' | transloco }}</span>
+            <span>{{ 'FACTURES.DATE' | transloco }}</span>
+            <span>{{ 'SERVEUR.DETAILS.TOTAL' | transloco }}</span>
+            <span>{{ 'COMMANDES.STATUS' | transloco }}</span>
           </div>
           @for (commande of commandes; track commande.id) {
             <div class="history-item-row" (click)="onViewCommande(commande)" (keyup.enter)="onViewCommande(commande)">
@@ -63,7 +63,7 @@
           }
         </div>
       } @else {
-        <p class="empty-text">Aucune commande enregistrée sur cette table.</p>
+        <p class="empty-text">{{ 'TABLES.NO_ORDERS' | transloco }}</p>
       }
     </div>
 

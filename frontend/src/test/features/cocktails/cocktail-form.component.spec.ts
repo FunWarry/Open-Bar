@@ -74,19 +74,19 @@ describe('CocktailFormComponent', () => {
     fixture.detectChanges();
   };
 
-  describe('mode création (sans id dans la route)', () => {
+  describe('creation mode (no id in route)', () => {
     beforeEach(async () => buildModule(null));
 
     it('should create the component', () => {
       expect(component).toBeTruthy();
     });
 
-    it('isEditMode est false et cocktailId est null en mode création', () => {
+    it('isEditMode is false and cocktailId is null in creation mode', () => {
       expect(component.isEditMode).toBeFalse();
       expect(component.cocktailId).toBeNull();
     });
 
-    it('le formulaire est initialisé avec des valeurs par défaut', () => {
+    it('form is initialized with default values', () => {
       const form = component.cocktailForm;
       expect(form.get('name')?.value).toBe('');
       expect(form.get('description')?.value).toBe('');
@@ -94,11 +94,11 @@ describe('CocktailFormComponent', () => {
       expect(form.get('category')?.value).toBe('');
     });
 
-    it('le formulaire est invalide si les champs requis sont vides', () => {
+    it('form should be invalid si les champs requis sont vides', () => {
       expect(component.cocktailForm.valid).toBeFalse();
     });
 
-    it('le formulaire est valide quand tous les champs requis sont remplis', () => {
+    it('form should be valid quand tous les champs requis sont remplis', () => {
       component.cocktailForm.setValue({
         name: 'Mojito',
         description: 'Cocktail cubain',
@@ -123,21 +123,21 @@ describe('CocktailFormComponent', () => {
       expect(routerSpy.navigate).toHaveBeenCalledWith(['/cocktails']);
     });
 
-    it('onSubmit() avec formulaire invalide ne navigue pas et ne crée pas de toast', () => {
+    it('onSubmit() with invalid form does not navigate or create toast', () => {
       component.onSubmit();
       expect(toastCtrlSpy.create).not.toHaveBeenCalled();
       expect(routerSpy.navigate).not.toHaveBeenCalled();
     });
 
-    it('getById() ne doit pas être appelé en mode création', () => {
+    it('getById() must not be called in creation mode', () => {
       expect(cocktailServiceSpy.getById).not.toHaveBeenCalled();
     });
   });
 
-  describe('mode édition (avec id dans la route)', () => {
+  describe('edit mode (with id in route)', () => {
     beforeEach(async () => buildModule('42'));
 
-    it('should create the component en mode édition', () => {
+    it('should create the component in edit mode', () => {
       expect(component).toBeTruthy();
     });
 
@@ -146,18 +146,18 @@ describe('CocktailFormComponent', () => {
       expect(component.cocktailId).toBe(42);
     });
 
-    it('getById() est appelé avec l\'id de la route au ngOnInit', () => {
+    it('getById() is called with route id at ngOnInit', () => {
       expect(cocktailServiceSpy.getById).toHaveBeenCalledWith(42);
     });
 
-    it('le formulaire est pré-rempli avec les données du cocktail chargé', () => {
+    it('form is prefilled with loaded cocktail data', () => {
       expect(component.cocktailForm.get('name')?.value).toBe('Mojito');
       expect(component.cocktailForm.get('description')?.value).toBe('Cocktail cubain');
       expect(component.cocktailForm.get('price')?.value).toBe(9.5);
       expect(component.cocktailForm.get('category')?.value).toBe('SANS_ALCOOL');
     });
 
-    it('cocktailData est alimenté avec la réponse du service', () => {
+    it('cocktailData is populated with service response', () => {
       expect(component.cocktailData).toEqual(mockCocktail);
     });
   });
@@ -165,7 +165,7 @@ describe('CocktailFormComponent', () => {
   describe('onSaisonnaliteUpdated()', () => {
     beforeEach(async () => buildModule(null));
 
-    it('met à jour cocktailData avec le cocktail reçu', async () => {
+    it('updates cocktailData with received cocktail', async () => {
       const updated: Cocktail = { ...mockCocktail, moisDebut: 6, moisFin: 8, saisonnier: true, dateDebutSaison: '2024-06-01', dateFinSaison: '2024-08-31' };
       component.onSaisonnaliteUpdated(updated);
       await Promise.resolve();
@@ -179,7 +179,7 @@ describe('CocktailFormComponent', () => {
   describe('validation du champ price', () => {
     beforeEach(async () => buildModule(null));
 
-    it('le champ price est invalide si la valeur est négative', () => {
+    it('price field is invalid if value is negative', () => {
       component.cocktailForm.get('price')?.setValue(-1);
       expect(component.cocktailForm.get('price')?.valid).toBeFalse();
     });
@@ -195,7 +195,7 @@ describe('CocktailFormComponent', () => {
     });
   });
 
-  describe('gestion d\'erreur lors du chargement en mode édition', () => {
+  describe('error handling during loading in edit mode', () => {
     it('cocktailData reste null si getById retourne une erreur', async () => {
       cocktailServiceSpy = jasmine.createSpyObj('CocktailService', [
         'getAll', 'getById', 'create', 'update', 'delete',

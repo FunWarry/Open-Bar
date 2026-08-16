@@ -5,7 +5,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 /**
- * Data Transfer Object representing the daily closing financial summary report (Z-Report / Récap Journée) in OpenBar.
+ * Data Transfer Object representing the daily closing financial summary report (Z-Report / Daily Register Closing) in OpenBar.
  * Contains total revenue KPIs, VAT breakdown by tax rate, payment mode breakdown, and guest statistics.
  *
  * @param date                   Target summary date

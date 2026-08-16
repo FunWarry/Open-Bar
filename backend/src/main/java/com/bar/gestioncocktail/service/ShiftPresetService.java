@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 /**
- * Service for managing shift template presets (horaires par défaut par type de créneau).
+ * Service for managing shift template presets (default hours per shift type).
  */
 @Service
 @Transactional(readOnly = true)

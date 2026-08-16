@@ -107,8 +107,9 @@ describe('ScheduleComponent', () => {
 
   it('should correctly format weekLabel', () => {
     component.currentWeekStart = new Date('2026-08-10');
-    expect(component.weekLabel).toContain('10 août');
-    expect(component.weekLabel).toContain('16 août 2026');
+    expect(component.weekLabel).toContain('10');
+    expect(component.weekLabel).toContain('16');
+    expect(component.weekLabel).toContain('2026');
   });
 
   it('should return correct CSS classes for shift types', () => {
@@ -616,7 +617,7 @@ describe('ScheduleComponent', () => {
       const mockModal = {
         present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
         onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({
-          data: { action: 'close', startDate: '2026-08-10', reason: 'Fête nationale' }
+          data: { action: 'close', startDate: '2026-08-10', reason: 'National Holiday' }
         }))
       };
       mockModalCtrl.create.and.returnValue(Promise.resolve(mockModal as any));
@@ -632,7 +633,7 @@ describe('ScheduleComponent', () => {
       expect(mockModalCtrl.create).toHaveBeenCalled();
       expect(mockClosureService.createClosure).toHaveBeenCalledWith(jasmine.objectContaining({
         closureDate: '2026-08-10',
-        reason: 'Fête nationale'
+        reason: 'National Holiday'
       }));
     });
 

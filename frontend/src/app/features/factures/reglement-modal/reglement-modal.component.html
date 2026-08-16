@@ -1,10 +1,10 @@
 <ion-header>
   <ion-toolbar color="primary">
     <ion-title data-testid="reglement-modal-title">
-      {{ 'FACTURES.PAYMENT_MODAL_TITLE' | transloco }} {{ nomPart ? '(' + nomPart + ')' : '' }}
+      {{ 'FACTURES.PAYMENT_MODAL_TITLE' | transloco }} {{ shareName ? '(' + shareName + ')' : '' }}
     </ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="annuler()" (keydown.enter)="annuler()" data-testid="reglement-close-btn" aria-label="Fermer">
+      <ion-button (click)="cancel()" (keydown.enter)="cancel()" data-testid="reglement-close-btn" [attr.aria-label]="'FACTURES.CANCEL' | transloco">
         <ion-icon name="close-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -17,17 +17,17 @@
     <ion-card-content class="ion-text-center">
       <p class="total-label">{{ 'FACTURES.INITIAL_TOTAL' | transloco }}</p>
       <h2 class="total-amount" data-testid="reglement-initial-total">
-        {{ totalInitial | currency:'EUR':'symbol':'1.2-2':'fr' }}
+        {{ initialTotal | currency:'EUR':'symbol':'1.2-2':'fr' }}
       </h2>
-      <div *ngIf="pourboire > 0" class="tip-badge-row">
+      <div *ngIf="tip > 0" class="tip-badge-row">
         <ion-badge color="success" data-testid="reglement-tip-badge">
-          + {{ pourboire | currency:'EUR':'symbol':'1.2-2':'fr' }} (Pourboire)
+          + {{ tip | currency:'EUR':'symbol':'1.2-2':'fr' }} ({{ 'FACTURES.TIP' | transloco }})
         </ion-badge>
       </div>
       <div class="grand-total-row">
-        <span>Total dû : </span>
+        <span>{{ 'FACTURES.DUE_TOTAL' | transloco }}</span>
         <strong class="grand-total" data-testid="reglement-grand-total">
-          {{ totalAvecPourboire | currency:'EUR':'symbol':'1.2-2':'fr' }}
+          {{ totalWithTip | currency:'EUR':'symbol':'1.2-2':'fr' }}
         </strong>
       </div>
     </ion-card-content>
@@ -39,18 +39,18 @@
       <ion-card-title>{{ 'FACTURES.PAYMENT_METHOD' | transloco }}</ion-card-title>
     </ion-card-header>
     <ion-card-content>
-      <ion-segment [(ngModel)]="modePaiement" data-testid="reglement-method-segment">
+      <ion-segment [(ngModel)]="paymentMethod" data-testid="reglement-method-segment">
         <ion-segment-button value="CARTE" data-testid="reglement-method-cb">
           <ion-icon name="card-outline"></ion-icon>
-          <ion-label>CB</ion-label>
+          <ion-label>{{ 'FACTURES.CARD' | transloco }}</ion-label>
         </ion-segment-button>
         <ion-segment-button value="ESPECES" data-testid="reglement-method-cash">
           <ion-icon name="cash-outline"></ion-icon>
-          <ion-label>Espèces</ion-label>
+          <ion-label>{{ 'FACTURES.CASH' | transloco }}</ion-label>
         </ion-segment-button>
         <ion-segment-button value="TICKETS_RESTO" data-testid="reglement-method-ticket">
           <ion-icon name="wallet-outline"></ion-icon>
-          <ion-label>Titres Resto</ion-label>
+          <ion-label>{{ 'FACTURES.MEAL_VOUCHER' | transloco }}</ion-label>
         </ion-segment-button>
       </ion-segment>
     </ion-card-content>
@@ -72,7 +72,7 @@
           (click)="setTipMode('none')"
           (keydown.enter)="setTipMode('none')"
           data-testid="tip-btn-none">
-          Pas de pourboire
+          {{ 'FACTURES.NO_TIP' | transloco }}
         </ion-button>
         <ion-button
           [fill]="tipMode === '5pct' ? 'solid' : 'outline'"
@@ -80,7 +80,7 @@
           (click)="setTipMode('5pct')"
           (keydown.enter)="setTipMode('5pct')"
           data-testid="tip-btn-5pct">
-          +5% ({{ (totalInitial * 0.05) | currency:'EUR':'symbol':'1.2-2':'fr' }})
+          +5% ({{ (initialTotal * 0.05) | currency:'EUR':'symbol':'1.2-2':'fr' }})
         </ion-button>
         <ion-button
           [fill]="tipMode === '10pct' ? 'solid' : 'outline'"
@@ -88,7 +88,7 @@
           (click)="setTipMode('10pct')"
           (keydown.enter)="setTipMode('10pct')"
           data-testid="tip-btn-10pct">
-          +10% ({{ (totalInitial * 0.10) | currency:'EUR':'symbol':'1.2-2':'fr' }})
+          +10% ({{ (initialTotal * 0.10) | currency:'EUR':'symbol':'1.2-2':'fr' }})
         </ion-button>
         <ion-button
           [fill]="tipMode === 'custom' ? 'solid' : 'outline'"
@@ -96,18 +96,18 @@
           (click)="setTipMode('custom')"
           (keydown.enter)="setTipMode('custom')"
           data-testid="tip-btn-custom">
-          Montant libre
+          {{ 'FACTURES.CUSTOM_TIP' | transloco }}
         </ion-button>
       </div>
 
       <div *ngIf="tipMode === 'custom'" class="custom-tip-field ion-margin-top">
         <ion-item lines="full">
-          <ion-label position="stacked">Montant du pourboire (€)</ion-label>
+          <ion-label position="stacked">{{ 'FACTURES.CUSTOM_TIP_LABEL' | transloco }}</ion-label>
           <ion-input
             type="number"
             min="0"
             step="0.50"
-            [(ngModel)]="customPourboire"
+            [(ngModel)]="customTip"
             placeholder="Ex: 2.50"
             data-testid="custom-tip-input">
           </ion-input>
@@ -116,33 +116,33 @@
     </ion-card-content>
   </ion-card>
 
-  <!-- Cash Change Calculation (Rendu de monnaie) -->
-  <ion-card *ngIf="modePaiement === 'ESPECES'">
+  <!-- Cash Change Calculation -->
+  <ion-card *ngIf="paymentMethod === 'ESPECES'">
     <ion-card-header>
       <ion-card-title>{{ 'FACTURES.CASH_CHANGE_CALCULATOR' | transloco }}</ion-card-title>
     </ion-card-header>
     <ion-card-content>
       <ion-item lines="full">
-        <ion-label position="stacked">Montant reçu (€)</ion-label>
+        <ion-label position="stacked">{{ 'FACTURES.AMOUNT_RECEIVED' | transloco }}</ion-label>
         <ion-input
           type="number"
           min="0"
           step="1.00"
-          [(ngModel)]="montantRecu"
+          [(ngModel)]="receivedAmount"
           placeholder="Ex: 50.00"
           data-testid="cash-received-input">
         </ion-input>
       </ion-item>
 
       <div class="change-display ion-margin-top ion-padding-vertical ion-text-center">
-        <span class="label">Rendu de monnaie : </span>
-        <strong class="change-amount" [class.success]="monnaieARendre > 0" data-testid="cash-change-amount">
-          {{ monnaieARendre | currency:'EUR':'symbol':'1.2-2':'fr' }}
+        <span class="label">{{ 'FACTURES.CHANGE_TO_RETURN' | transloco }}</span>
+        <strong class="change-amount" [class.success]="changeToReturn > 0" data-testid="cash-change-amount">
+          {{ changeToReturn | currency:'EUR':'symbol':'1.2-2':'fr' }}
         </strong>
       </div>
 
-      <ion-note color="danger" *ngIf="montantRecu !== null && !isMontantRecuSuffisant" data-testid="cash-insufficient-warning">
-        Montant reçu insuffisant (manque {{ (totalAvecPourboire - (montantRecu || 0)) | currency:'EUR':'symbol':'1.2-2':'fr' }})
+      <ion-note color="danger" *ngIf="receivedAmount !== null && !isReceivedAmountSufficient" data-testid="cash-insufficient-warning">
+        {{ 'FACTURES.INSUFFICIENT_AMOUNT' | transloco:{ missing: ((totalWithTip - (receivedAmount || 0)) | currency:'EUR':'symbol':'1.2-2':'fr') } }}
       </ion-note>
     </ion-card-content>
   </ion-card>
@@ -152,12 +152,12 @@
     <ion-button
       expand="block"
       color="success"
-      [disabled]="!isMontantRecuSuffisant"
-      (click)="validerReglement()"
-      (keydown.enter)="validerReglement()"
+      [disabled]="!isReceivedAmountSufficient"
+      (click)="confirmPayment()"
+      (keydown.enter)="confirmPayment()"
       data-testid="confirm-payment-btn">
       <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
-      Valider le règlement ({{ totalAvecPourboire | currency:'EUR':'symbol':'1.2-2':'fr' }})
+      {{ 'FACTURES.CONFIRM_PAYMENT' | transloco:{ amount: (totalWithTip | currency:'EUR':'symbol':'1.2-2':'fr') } }}
     </ion-button>
   </div>
 </ion-content>

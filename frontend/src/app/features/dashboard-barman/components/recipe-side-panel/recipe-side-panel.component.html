@@ -3,6 +3,9 @@
   class="side-panel-backdrop"
   [class.open]="isOpen"
   (click)="onClose()"
+  (keyup.escape)="onClose()"
+  tabindex="-1"
+  aria-hidden="true"
   data-testid="recipe-panel-backdrop">
 </div>
 
@@ -11,7 +14,7 @@
   class="recipe-side-panel"
   [class.open]="isOpen"
   data-testid="recipe-side-panel"
-  aria-label="Fiche Recette & Préparation">
+  [attr.aria-label]="'BARMAN_DASHBOARD.RECIPE_PANEL_TITLE' | transloco">
 
   <!-- Header -->
   <header class="panel-header">
@@ -46,7 +49,7 @@
     @if (isLoading) {
       <div class="loading-state">
         <ion-spinner name="crescent" color="primary"></ion-spinner>
-        <span>Chargement de la fiche recette...</span>
+        <span>{{ 'COMMON.LOADING' | transloco }}</span>
       </div>
     } @else {
       <!-- Order Context Card -->
@@ -174,7 +177,7 @@
             <ion-icon name="wine-outline"></ion-icon>
             <div class="tip-body">
               <span class="tip-label">{{ 'BARMAN_DASHBOARD.GLASS_RECOMMENDED' | transloco }}</span>
-              <strong class="tip-val">Verre Cocktail / Tumbler</strong>
+              <strong class="tip-val">{{ 'BARMAN_DASHBOARD.DEFAULT_GLASS' | transloco }}</strong>
             </div>
           </div>
 
@@ -182,7 +185,7 @@
             <ion-icon name="cube-outline"></ion-icon>
             <div class="tip-body">
               <span class="tip-label">{{ 'BARMAN_DASHBOARD.GARNISH_RECOMMENDED' | transloco }}</span>
-              <strong class="tip-val">Glace fraîche & Zeste</strong>
+              <strong class="tip-val">{{ 'BARMAN_DASHBOARD.DEFAULT_GARNISH' | transloco }}</strong>
             </div>
           </div>
         </div>

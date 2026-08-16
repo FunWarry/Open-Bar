@@ -109,7 +109,7 @@ class EntityToDtoMappersTest {
         commande.setTable(table);
         commande.setStatut(CommandeStatut.EN_ATTENTE);
         commande.setTotal(new BigDecimal("25.00"));
-        commande.setNotes("Pas de glaçons");
+        commande.setNotes("No ice cubes");
         commande.setPourboire(new BigDecimal("2.00"));
         commande.setTrackingToken("TOKEN-999");
         commande.setItems(List.of());
@@ -121,7 +121,7 @@ class EntityToDtoMappersTest {
         assertThat(dto.tableId()).isEqualTo(3L);
         assertThat(dto.tableNumero()).isEqualTo(15);
         assertThat(dto.statut()).isEqualTo(CommandeStatut.EN_ATTENTE);
-        assertThat(dto.notes()).isEqualTo("Pas de glaçons");
+        assertThat(dto.notes()).isEqualTo("No ice cubes");
     }
 
     @Test

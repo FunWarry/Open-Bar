@@ -6,7 +6,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
- * Entité JPA représentant un créneau de travail (shift) d'un employé.
+ * JPA entity representing an employee work shift.
  */
 @Entity
 @Table(name = "employee_shifts")

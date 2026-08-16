@@ -11,32 +11,32 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 /**
- * DTO de requête pour le passage d'une commande publique via QR Code client.
+ * Request DTO for placing a public order via table QR code.
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Requête de prise de commande anonyme via scan QR code")
+@Schema(description = "Anonymous order request via QR code scan")
 public class PublicCommandeRequestDTO {
 
     /**
-     * Identifiant de la table scannée par le client.
+     * Table identifier scanned by patron.
      */
-    @NotNull(message = "La table est obligatoire")
-    @Schema(description = "ID de la table scannée", example = "5")
+    @NotNull(message = "Table is required")
+    @Schema(description = "Scanned table ID", example = "5")
     private Long tableId;
 
     /**
-     * Liste des cocktails et variantes commandés.
+     * List of ordered cocktails and variants.
      */
-    @NotEmpty(message = "La liste des articles ne peut pas être vide")
+    @NotEmpty(message = "Item list cannot be empty")
     @Valid
-    @Schema(description = "Liste des articles commandés")
+    @Schema(description = "List of ordered items")
     private List<PublicCommandeItemRequestDTO> items;
 
     /**
-     * Remarques éventuelles du client (ex: "Sans glaçons").
+     * Customer notes (e.g. "No ice").
      */
-    @Schema(description = "Consignes spécifiques du client", example = "Sans glaçons")
+    @Schema(description = "Customer preparation notes", example = "No ice")
     private String notes;
 }

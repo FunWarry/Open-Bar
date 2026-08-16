@@ -1,3 +1,4 @@
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { TableService } from '../../../app/core/services/table.service';
@@ -33,7 +34,7 @@ describe('TableService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
+      imports: [HttpClientTestingModule, getTranslocoTestingModule()],
       providers: [TableService]
     });
     service = TestBed.inject(TableService);
@@ -117,7 +118,7 @@ describe('TableService', () => {
     req.flush({ ...mockTable, ...payload });
   });
 
-  it('update() retourne la table mise à jour', () => {
+  it('update() returns updated table', () => {
     const payload: Partial<TableBar> = { capacite: 8 };
     let result: TableBar | undefined;
     service.update(1, payload).subscribe(t => (result = t));
@@ -160,7 +161,7 @@ describe('TableService', () => {
     req.flush({ ...mockTable, occupee: true, serveurId: 10 });
   });
 
-  it('occuper() retourne la table occupée', () => {
+  it('occuper() returns occupied table', () => {
     let result: TableBar | undefined;
     service.occuper(2, 10).subscribe(t => (result = t));
     const req = httpMock.expectOne(`${baseUrl}/2/occuper`);
@@ -179,7 +180,7 @@ describe('TableService', () => {
     req.flush({ ...mockTableOccupee, occupee: false });
   });
 
-  it('liberer() retourne la table libérée', () => {
+  it('liberer() returns liberated table', () => {
     let result: TableBar | undefined;
     service.liberer(2).subscribe(t => (result = t));
     const req = httpMock.expectOne(`${baseUrl}/2/liberer`);
@@ -213,7 +214,7 @@ describe('TableService', () => {
     req.flush([]);
   });
 
-  it('getOccupees() retourne uniquement les tables occupées', () => {
+  it('getOccupees() returns only occupied tables', () => {
     let result: TableBar[] = [];
     service.getOccupees().subscribe(tables => (result = tables));
     const req = httpMock.expectOne(`${baseUrl}/occupees`);

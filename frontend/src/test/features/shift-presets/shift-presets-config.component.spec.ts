@@ -33,11 +33,11 @@ describe('ShiftPresetsConfigComponent', () => {
             fr: {
               SHIFTS: {
                 CONFIG: {
-                  TITLE: 'Configuration des Modèles',
-                  SUBTITLE: 'Définissez les horaires par défaut'
+                  TITLE: 'Preset Configuration',
+                  SUBTITLE: 'Define default schedules'
                 },
                 PRESETS: {
-                  SAVE_PRESET: 'Enregistrer le modèle'
+                  SAVE_PRESET: 'Save preset'
                 }
               }
             }

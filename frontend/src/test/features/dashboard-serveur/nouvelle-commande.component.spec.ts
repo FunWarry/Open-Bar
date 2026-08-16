@@ -372,7 +372,7 @@ describe('NouvelleCommandeComponent', () => {
   it('filteredCocktails excludes drinks containing selected allergen', () => {
     const cocktailWithLactose: Cocktail = {
       id: 3, nom: 'Piña Colada', prix: 10, categorie: 'ALCOOLISE', disponible: true,
-      saisonnier: false, ingredients: [{ id: 1, ingredientId: 10, ingredientNom: 'Lactose crème', quantite: 5, uniteMesure: 'cl' }],
+      saisonnier: false, ingredients: [{ id: 1, ingredientId: 10, ingredientNom: 'Cream lactose', quantite: 5, uniteMesure: 'cl' }],
       variantes: [], createdAt: '', updatedAt: '',
     };
     component.cocktails = [...mockCocktails, cocktailWithLactose];
@@ -398,6 +398,24 @@ describe('NouvelleCommandeComponent', () => {
     expect(component.totalPanier).toBe(12.00);
     expect(component.totalHT).toBeCloseTo(10.00, 2);
     expect(component.totalTVA).toBeCloseTo(2.00, 2);
+  });
+
+  it('tests English alias methods for cart manipulation and validation', () => {
+    component.ajouterDepuisModal(mockCocktailWithoutVariante, makeResult({ prixEffectif: 10.00 }));
+    const key = component.cart[0].cartItemKey;
+
+    component.increaseQuantity(key);
+    expect(component.cart[0].quantite).toBe(2);
+
+    component.decreaseQuantity(key);
+    expect(component.cart[0].quantite).toBe(1);
+
+    component.removeItem(key);
+    expect(component.cart).toHaveSize(0);
+
+    spyOn(component, 'submitOrder');
+    component.valider();
+    expect(component.submitOrder).toHaveBeenCalled();
   });
 });
 

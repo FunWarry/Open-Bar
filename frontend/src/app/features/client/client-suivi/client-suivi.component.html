@@ -5,13 +5,13 @@
   @if (isLoading) {
     <div class="loading-card">
       <span class="spinner-icon">🍹</span>
-      <p>Chargement du suivi de commande...</p>
+      <p>{{ 'CLIENT.LOADING' | transloco }}</p>
     </div>
   } @else if (commande) {
     <div class="suivi-card">
       <div class="suivi-header">
-        <h1 class="order-id">Commande #{{ commande.id }}</h1>
-        <span class="table-badge">Table {{ commande.tableNumero }}</span>
+        <h1 class="order-id">{{ 'CLIENT.ORDER_TITLE' | transloco:{ id: commande.id } }}</h1>
+        <span class="table-badge">{{ 'CLIENT.TABLE' | transloco:{ num: commande.tableNumero } }}</span>
       </div>
 
       <div class="hero-status">
@@ -24,14 +24,14 @@
             <span class="status-emoji">✅</span>
           }
         </div>
-        <h2 class="status-title">{{ statusLabel }}</h2>
+        <h2 class="status-title">{{ statusLabelKey | transloco }}</h2>
         <p class="status-subtitle">
           @if (statusStep === 1) {
-            Votre commande a bien été reçue et attend d'être prise en charge.
+            {{ 'CLIENT.STATUS_RECEIVED_DESC' | transloco }}
           } @else if (statusStep === 2) {
-            Votre boisson est actuellement en cours de préparation par le barman.
+            {{ 'CLIENT.STATUS_PREPARING_DESC' | transloco }}
           } @else {
-            Votre commande est prête ! Le serveur arrive à votre table.
+            {{ 'CLIENT.STATUS_READY_DESC' | transloco }}
           }
         </p>
       </div>
@@ -40,23 +40,23 @@
       <div class="stepper">
         <div class="step-item" [class.active]="statusStep >= 1" [class.completed]="statusStep > 1">
           <div class="step-circle">1</div>
-          <span class="step-text">Reçue</span>
+          <span class="step-text">{{ 'CLIENT.STEP_RECEIVED' | transloco }}</span>
         </div>
         <div class="step-line" [class.active]="statusStep >= 2"></div>
         <div class="step-item" [class.active]="statusStep >= 2" [class.completed]="statusStep > 2">
           <div class="step-circle">2</div>
-          <span class="step-text">En préparation</span>
+          <span class="step-text">{{ 'CLIENT.STEP_PREPARING' | transloco }}</span>
         </div>
         <div class="step-line" [class.active]="statusStep >= 3"></div>
         <div class="step-item" [class.active]="statusStep >= 3" [class.completed]="statusStep === 3">
           <div class="step-circle">3</div>
-          <span class="step-text">Prête</span>
+          <span class="step-text">{{ 'CLIENT.STEP_READY' | transloco }}</span>
         </div>
       </div>
 
       <!-- Détail des articles -->
       <div class="order-items-box">
-        <h3 class="box-title">Détails de la commande</h3>
+        <h3 class="box-title">{{ 'CLIENT.DETAILS_TITLE' | transloco }}</h3>
         <div class="items-list">
           @for (item of commande.items; track item.id) {
             <div class="item-row">
@@ -67,7 +67,7 @@
           }
         </div>
         <div class="total-row">
-          <span>Total TTC</span>
+          <span>{{ 'CLIENT.TOTAL_TTC' | transloco }}</span>
           <span class="total-price">{{ commande.total | currency:'EUR' }}</span>
         </div>
       </div>
@@ -79,18 +79,18 @@
           expand="block"
           [routerLink]="['/client/commande']"
           [queryParams]="{ table: commande.tableNumero }">
-          + Passer une nouvelle commande
+          {{ 'CLIENT.NEW_ORDER' | transloco }}
         </app-action-button>
       </div>
     </div>
   } @else {
     <div class="suivi-card">
-      <h2 class="card-title">Commande introuvable</h2>
-      <p class="card-subtitle">Aucune commande ne correspond à cet identifiant.</p>
+      <h2 class="card-title">{{ 'CLIENT.NOT_FOUND_TITLE' | transloco }}</h2>
+      <p class="card-subtitle">{{ 'CLIENT.NOT_FOUND_DESC' | transloco }}</p>
       <app-action-button
         variant="primary"
         routerLink="/client/commande">
-        Passer une commande
+        {{ 'CLIENT.ORDER_NOW' | transloco }}
       </app-action-button>
     </div>
   }

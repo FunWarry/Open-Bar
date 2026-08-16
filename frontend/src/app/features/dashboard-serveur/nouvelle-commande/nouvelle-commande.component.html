@@ -56,10 +56,10 @@
           class="allergen-select"
           data-testid="allergen-select">
           <ion-select-option value="NONE">{{ 'COMMON.NONE' | transloco }}</ion-select-option>
-          <ion-select-option value="LACTOSE">Lactose</ion-select-option>
-          <ion-select-option value="GLUTEN">Gluten</ion-select-option>
-          <ion-select-option value="ARACHIDE">Arachides</ion-select-option>
-          <ion-select-option value="FRUITS_A_COQUE">Fruits à coque</ion-select-option>
+          <ion-select-option value="LACTOSE">{{ 'COCKTAILS.ALLERGENS.LACTOSE' | transloco }}</ion-select-option>
+          <ion-select-option value="GLUTEN">{{ 'COCKTAILS.ALLERGENS.GLUTEN' | transloco }}</ion-select-option>
+          <ion-select-option value="ARACHIDE">{{ 'COCKTAILS.ALLERGENS.ARACHIDE' | transloco }}</ion-select-option>
+          <ion-select-option value="FRUITS_A_COQUE">{{ 'COCKTAILS.ALLERGENS.FRUITS_A_COQUE' | transloco }}</ion-select-option>
         </ion-select>
         <ion-button
           *ngIf="searchQuery || selectedCategory !== 'ALL' || selectedAllergen !== 'NONE'"

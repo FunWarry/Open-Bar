@@ -137,7 +137,7 @@ class EmployeeShiftControllerTest {
     void updateShift_ShouldReturnUpdatedDto() {
         EmployeeShiftRequestDTO request = new EmployeeShiftRequestDTO(
             1L, LocalDate.of(2026, 8, 10), TypeShift.SOIR, TypePoste.MANAGER,
-            "17:00", "01:00", "20:00", 30, null, null, BigDecimal.ZERO, BigDecimal.valueOf(7.5), new BigDecimal("8.0"), "Modifié"
+            "17:00", "01:00", "20:00", 30, null, null, BigDecimal.ZERO, BigDecimal.valueOf(7.5), new BigDecimal("8.0"), "Modified"
         );
 
         when(shiftService.updateShift(eq(1L), any(EmployeeShiftRequestDTO.class))).thenReturn(sampleShift);

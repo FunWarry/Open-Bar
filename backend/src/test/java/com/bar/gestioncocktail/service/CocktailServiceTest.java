@@ -88,12 +88,12 @@ class CocktailServiceTest {
 
     @Test
     void updateCocktail_existant_miseAJour() {
-        cocktail.setNom("Mojito Revisité");
+        cocktail.setNom("Mojito Revisited");
         when(cocktailRepository.save(any(Cocktail.class))).thenReturn(cocktail);
 
         Cocktail result = cocktailService.updateCocktail(cocktail);
 
-        assertThat(result.getNom()).isEqualTo("Mojito Revisité");
+        assertThat(result.getNom()).isEqualTo("Mojito Revisited");
         verify(cocktailRepository, times(1)).save(cocktail);
     }
 
