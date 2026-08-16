@@ -2,10 +2,11 @@ package com.bar.gestioncocktail.service;
 
 import com.bar.gestioncocktail.dto.StockAlerteEvent;
 import com.bar.gestioncocktail.exception.ResourceNotFoundException;
+import com.bar.gestioncocktail.model.Cocktail;
+import com.bar.gestioncocktail.model.CocktailIngredient;
 import com.bar.gestioncocktail.model.Commande;
 import com.bar.gestioncocktail.model.CommandeItem;
 import com.bar.gestioncocktail.model.CommandeStatut;
-import com.bar.gestioncocktail.model.CocktailIngredient;
 import com.bar.gestioncocktail.model.Ingredient;
 import com.bar.gestioncocktail.model.TableEntity;
 import com.bar.gestioncocktail.model.User;
@@ -306,19 +307,26 @@ public class CommandeService {
             return map;
         }
         for (CommandeItem item : commande.getItems()) {
-            Cocktail cocktail = item.getCocktail();
-            if (cocktail != null && cocktail.getId() != null && cocktail.getIngredients() == null) {
-                cocktail = cocktailRepository.findById(cocktail.getId()).orElse(cocktail);
-            }
-            if (cocktail != null && cocktail.getIngredients() != null) {
-                for (CocktailIngredient ci : cocktail.getIngredients()) {
-                    if (ci.getIngredient() != null && ci.getIngredient().getId() != null) {
-                        map.put(ci.getIngredient().getId(), ci.getIngredient());
-                    }
+            extraireIngredientsItem(map, item);
+        }
+        return map;
+    }
+
+    private void extraireIngredientsItem(Map<Long, Ingredient> map, CommandeItem item) {
+        Cocktail cocktail = item.getCocktail();
+        if (cocktail == null || cocktail.getId() == null) {
+            return;
+        }
+        if (cocktail.getIngredients() == null) {
+            cocktail = cocktailRepository.findById(cocktail.getId()).orElse(cocktail);
+        }
+        if (cocktail != null && cocktail.getIngredients() != null) {
+            for (CocktailIngredient ci : cocktail.getIngredients()) {
+                if (ci.getIngredient() != null && ci.getIngredient().getId() != null) {
+                    map.put(ci.getIngredient().getId(), ci.getIngredient());
                 }
             }
         }
-        return map;
     }
 
     /**
