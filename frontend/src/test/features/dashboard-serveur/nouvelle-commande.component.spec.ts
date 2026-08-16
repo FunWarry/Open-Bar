@@ -402,7 +402,7 @@ describe('NouvelleCommandeComponent', () => {
 
   it('tests English alias methods for cart manipulation and validation', () => {
     component.ajouterDepuisModal(mockCocktailWithoutVariante, makeResult({ prixEffectif: 10.00 }));
-    const key = component.cart[0].itemKey;
+    const key = component.cart[0].cartItemKey;
 
     component.increaseQuantity(key);
     expect(component.cart[0].quantite).toBe(2);

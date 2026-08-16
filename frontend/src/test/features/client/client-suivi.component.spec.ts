@@ -21,6 +21,10 @@ describe('ClientSuiviComponent', () => {
     serveurUsername: 'serveur',
     statut: 'EN_PREPARATION' as const,
     prixTotal: 17.5,
+    total: 17.5,
+    dateCommande: '2026-08-16T12:00:00',
+    createdAt: '',
+    updatedAt: '',
     items: [
       { id: 1, cocktailId: 1, cocktailNom: 'Mojito', quantite: 2, prixUnitaire: 8.75 }
     ]
