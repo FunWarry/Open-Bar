@@ -198,11 +198,11 @@ jobs:
 
       - name: Install Playwright browsers
         working-directory: frontend
-        run: npx playwright install --with-deps chromium
+        run: npx --no-install playwright install --with-deps chromium
 
       - name: Run E2E tests
         working-directory: frontend
-        run: npx playwright test
+        run: npm run test:e2e
         env:
           FRONTEND_URL: http://localhost:4200
           CI: 'true'
