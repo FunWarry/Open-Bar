@@ -1,12 +1,16 @@
 package com.bar.gestioncocktail.integration;
 
 import com.bar.gestioncocktail.dto.SplitEgalRequest;
+import com.bar.gestioncocktail.model.Facture;
 import com.bar.gestioncocktail.repository.FactureRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -24,11 +28,19 @@ class NonRegressionIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("nonRegression_splitEgalAmountConservation_sumOfSplitsEqualsTotal")
     void nonRegression_splitEgalAmountConservation_sumOfSplitsEqualsTotal() throws Exception {
-        Long factureId = factureRepository.findAll().stream()
+        Facture facture = factureRepository.findAll().stream()
                 .filter(f -> !f.isReglee())
                 .findFirst()
-                .orElseThrow()
-                .getId();
+                .orElseGet(() -> {
+                    Facture newFacture = new Facture();
+                    newFacture.setNumero("FACT-TEST-NONREG-" + System.currentTimeMillis());
+                    newFacture.setTableNumero(2);
+                    newFacture.setTotal(new BigDecimal("45.00"));
+                    newFacture.setDateFacture(LocalDateTime.now());
+                    newFacture.setReglee(false);
+                    return factureRepository.save(newFacture);
+                });
+        Long factureId = facture.getId();
 
         SplitEgalRequest request = new SplitEgalRequest(3);
         mockMvc.perform(post("/api/factures/" + factureId + "/split/egal")

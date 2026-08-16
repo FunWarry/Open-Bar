@@ -69,9 +69,9 @@ class AuthIntegrationTest extends BaseIntegrationTest {
         String refreshToken = loginResponse.getRefreshToken();
         assertThat(refreshToken).isNotBlank();
 
-        // 2. Request new access token using refresh token
+        // 2. Request new access token using refresh endpoint
         RefreshTokenRequest refreshRequest = new RefreshTokenRequest(refreshToken);
-        mockMvc.perform(post("/api/auth/refresh-token")
+        mockMvc.perform(post("/api/auth/refresh")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(refreshRequest)))
                 .andExpect(status().isOk())
@@ -80,10 +80,10 @@ class AuthIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
-    @DisplayName("protectedEndpoint_withoutToken_returns401Or403")
-    void protectedEndpoint_withoutToken_returns401Or403() throws Exception {
+    @DisplayName("protectedEndpoint_withoutToken_returns401Unauthorized")
+    void protectedEndpoint_withoutToken_returns401Unauthorized() throws Exception {
         mockMvc.perform(get("/api/users"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test

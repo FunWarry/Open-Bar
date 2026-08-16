@@ -1,12 +1,16 @@
 package com.bar.gestioncocktail.integration;
 
 import com.bar.gestioncocktail.dto.SplitEgalRequest;
+import com.bar.gestioncocktail.model.Facture;
 import com.bar.gestioncocktail.repository.FactureRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -25,11 +29,19 @@ class FactureIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("factureLifecycle_splitPdfAndSettlement_success")
     void factureLifecycle_splitPdfAndSettlement_success() throws Exception {
-        Long factureId = factureRepository.findAll().stream()
+        Facture facture = factureRepository.findAll().stream()
                 .filter(f -> !f.isReglee())
                 .findFirst()
-                .orElseThrow()
-                .getId();
+                .orElseGet(() -> {
+                    Facture newFacture = new Facture();
+                    newFacture.setNumero("FACT-TEST-" + System.currentTimeMillis());
+                    newFacture.setTableNumero(1);
+                    newFacture.setTotal(new BigDecimal("30.00"));
+                    newFacture.setDateFacture(LocalDateTime.now());
+                    newFacture.setReglee(false);
+                    return factureRepository.save(newFacture);
+                });
+        Long factureId = facture.getId();
 
         // 1. Equal bill split
         SplitEgalRequest splitRequest = new SplitEgalRequest(2);

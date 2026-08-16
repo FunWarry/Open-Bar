@@ -3,7 +3,9 @@ package com.bar.gestioncocktail.integration;
 import com.bar.gestioncocktail.dto.CommandeItemRequestDTO;
 import com.bar.gestioncocktail.dto.CommandeRequestDTO;
 import com.bar.gestioncocktail.dto.CommandeResponseDTO;
+import com.bar.gestioncocktail.model.Cocktail;
 import com.bar.gestioncocktail.model.CommandeStatut;
+import com.bar.gestioncocktail.model.TableBar;
 import com.bar.gestioncocktail.repository.CocktailRepository;
 import com.bar.gestioncocktail.repository.TableRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -36,8 +38,22 @@ class CommandeIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("fullOrderLifecycle_fromCreationToDelivery_success")
     void fullOrderLifecycle_fromCreationToDelivery_success() throws Exception {
-        Long tableId = tableRepository.findAll().getFirst().getId();
-        Long cocktailId = cocktailRepository.findAll().getFirst().getId();
+        TableBar table = tableRepository.findAll().stream().findFirst().orElseGet(() -> {
+            TableBar t = new TableBar();
+            t.setNumero(1);
+            t.setNom("Table 1");
+            t.setCapacite(4);
+            return tableRepository.save(t);
+        });
+        Long tableId = table.getId();
+
+        Cocktail cocktail = cocktailRepository.findAll().stream().findFirst().orElseGet(() -> {
+            Cocktail c = new Cocktail();
+            c.setNom("Mojito Test");
+            c.setPrix(new BigDecimal("8.50"));
+            return cocktailRepository.save(c);
+        });
+        Long cocktailId = cocktail.getId();
 
         // 1. Create order
         CommandeRequestDTO createRequest = new CommandeRequestDTO(tableId, null, "Table order test", BigDecimal.ZERO);

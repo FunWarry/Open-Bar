@@ -1,10 +1,13 @@
 package com.bar.gestioncocktail.integration;
 
+import com.bar.gestioncocktail.model.Ingredient;
 import com.bar.gestioncocktail.repository.IngredientRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
+
+import java.math.BigDecimal;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -22,7 +25,15 @@ class StockIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("stockManagement_updateStockAndAlertThreshold_success")
     void stockManagement_updateStockAndAlertThreshold_success() throws Exception {
-        Long ingredientId = ingredientRepository.findAll().getFirst().getId();
+        Ingredient ingredient = ingredientRepository.findAll().stream().findFirst().orElseGet(() -> {
+            Ingredient ing = new Ingredient();
+            ing.setNom("Menthe Test Stock");
+            ing.setStockActuel(new BigDecimal("5.00"));
+            ing.setSeuilAlerte(new BigDecimal("2.00"));
+            ing.setUnite("feuilles");
+            return ingredientRepository.save(ing);
+        });
+        Long ingredientId = ingredient.getId();
 
         // 1. Update stock
         mockMvc.perform(put("/api/ingredients/" + ingredientId + "/stock")
