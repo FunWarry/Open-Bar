@@ -13,7 +13,7 @@ import {
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
-  add, create, trash, leafOutline, toggleOutline, gridOutline, listOutline,
+  add, create, trash, leafOutline, toggle, toggleOutline, gridOutline, listOutline,
   search, imageOutline, image, wineOutline, nutritionOutline, eggOutline,
   funnelOutline, closeCircleOutline, alertCircleOutline
 } from 'ionicons/icons';
@@ -87,7 +87,7 @@ export class CocktailListComponent implements OnInit, OnDestroy {
   ) {
     this.isAdmin$ = this.store.select(selectIsAdmin);
     addIcons({
-      add, create, trash, leafOutline, toggleOutline, gridOutline, listOutline,
+      add, create, trash, leafOutline, toggle, toggleOutline, gridOutline, listOutline,
       search, imageOutline, image, wineOutline, nutritionOutline, eggOutline,
       funnelOutline, closeCircleOutline, alertCircleOutline
     });

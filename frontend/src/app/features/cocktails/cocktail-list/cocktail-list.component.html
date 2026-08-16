@@ -211,7 +211,7 @@
                     <div class="figma-card-bottom-row">
                       <div class="bottom-actions">
                         <ion-button fill="clear" size="small" [color]="cocktail.disponible ? 'success' : 'medium'" [attr.data-testid]="'toggle-dispo-btn-' + cocktail.id" (click)="onToggleDisponibilite(cocktail)" (keydown.enter)="onToggleDisponibilite(cocktail)">
-                          <ion-icon slot="start" name="toggle-outline"></ion-icon>
+                          <ion-icon slot="start" [name]="cocktail.disponible ? 'toggle' : 'toggle-outline'"></ion-icon>
                           {{ cocktail.disponible ? ('COCKTAILS.AVAILABLE' | transloco) : ('COCKTAILS.UNAVAILABLE' | transloco) }}
                         </ion-button>
                         @if (isAdmin$ | async) {
@@ -266,7 +266,7 @@
                   <ion-badge slot="end" color="primary">{{ cocktail.prix | currency:'EUR' }}</ion-badge>
                   <ion-buttons slot="end">
                     <ion-button fill="clear" color="warning" [attr.data-testid]="'toggle-dispo-btn-' + cocktail.id" (click)="onToggleDisponibilite(cocktail)" (keydown.enter)="onToggleDisponibilite(cocktail)">
-                      <ion-icon slot="icon-only" name="toggle-outline"></ion-icon>
+                      <ion-icon slot="icon-only" [name]="cocktail.disponible ? 'toggle' : 'toggle-outline'"></ion-icon>
                     </ion-button>
                     @if (isAdmin$ | async) {
                       <ion-button fill="clear" color="tertiary" [attr.data-testid]="'edit-cocktail-btn-' + cocktail.id" (click)="onEdit(cocktail)" (keydown.enter)="onEdit(cocktail)">
