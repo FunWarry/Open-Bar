@@ -797,4 +797,133 @@ class FactureServiceTest {
         assertThat(cmd.getStatut()).isEqualTo(CommandeStatut.REGLEE);
         assertThat(table.isOccupee()).isFalse();
     }
+
+    @Test
+    void mergeInvoices_success_mergesTwoInvoicesIntoOne() {
+        TableEntity table = new TableEntity();
+        table.setId(1L);
+        table.setNumero(5);
+
+        Facture f1 = new Facture();
+        f1.setId(10L);
+        f1.setNumero("FAC-1");
+        f1.setTable(table);
+        f1.setReglee(false);
+
+        FactureItem item1 = new FactureItem();
+        item1.setId(101L);
+        item1.setQuantite(2);
+        item1.setPrixUnitaire(new BigDecimal("8.00"));
+        item1.setTotal(new BigDecimal("16.00"));
+        item1.setDescription("Mojito");
+        f1.setItems(List.of(item1));
+
+        Facture f2 = new Facture();
+        f2.setId(20L);
+        f2.setNumero("FAC-2");
+        f2.setTable(table);
+        f2.setReglee(false);
+
+        FactureItem item2 = new FactureItem();
+        item2.setId(102L);
+        item2.setQuantite(1);
+        item2.setPrixUnitaire(new BigDecimal("10.00"));
+        item2.setTotal(null); // tests null total branch
+        item2.setDescription("Gin Tonic");
+        f2.setItems(List.of(item2));
+
+        when(factureRepository.findAllById(List.of(10L, 20L))).thenReturn(List.of(f1, f2));
+
+        Query queryMock = mock(Query.class);
+        when(entityManager.createNativeQuery("SELECT NEXTVAL('facture_seq')")).thenReturn(queryMock);
+        when(queryMock.getSingleResult()).thenReturn(123L);
+
+        when(factureRepository.save(any(Facture.class))).thenAnswer(invocation -> {
+            Facture saved = invocation.getArgument(0);
+            if (saved.getId() == null) {
+                saved.setId(99L);
+            }
+            return saved;
+        });
+
+        MergeFacturesRequestDTO request = new MergeFacturesRequestDTO(List.of(10L, 20L), null);
+        Facture merged = factureService.fusionnerFactures(request);
+
+        assertThat(merged).isNotNull();
+        assertThat(merged.getId()).isEqualTo(99L);
+        assertThat(merged.getNumero()).startsWith("FAC-MERGE-");
+        assertThat(merged.getTotal()).isEqualByComparingTo(new BigDecimal("26.00"));
+        assertThat(merged.getItems()).hasSize(2);
+        assertThat(f1.isReglee()).isTrue();
+        assertThat(f1.getModePaiement()).isEqualTo("MERGED");
+        assertThat(f2.isReglee()).isTrue();
+        assertThat(f2.getModePaiement()).isEqualTo("MERGED");
+    }
+
+    @Test
+    void mergeInvoices_withTargetTableId_usesTargetTable() {
+        TableEntity tableOriginal = new TableEntity();
+        tableOriginal.setId(1L);
+
+        TableEntity tableTarget = new TableEntity();
+        tableTarget.setId(2L);
+
+        Facture f1 = new Facture();
+        f1.setId(10L);
+        f1.setTable(tableOriginal);
+        f1.setReglee(false);
+
+        Facture f2 = new Facture();
+        f2.setId(20L);
+        f2.setTable(tableOriginal);
+        f2.setReglee(false);
+
+        when(factureRepository.findAllById(List.of(10L, 20L))).thenReturn(List.of(f1, f2));
+        when(tableRepository.findById(2L)).thenReturn(Optional.of(tableTarget));
+
+        Query queryMock = mock(Query.class);
+        when(entityManager.createNativeQuery("SELECT NEXTVAL('facture_seq')")).thenReturn(queryMock);
+        when(queryMock.getSingleResult()).thenReturn(124L);
+
+        when(factureRepository.save(any(Facture.class))).thenAnswer(i -> i.getArgument(0));
+
+        MergeFacturesRequestDTO request = new MergeFacturesRequestDTO(List.of(10L, 20L), 2L);
+        Facture merged = factureService.fusionnerFactures(request);
+
+        assertThat(merged.getTable()).isEqualTo(tableTarget);
+    }
+
+    @Test
+    void mergeInvoices_fewerThanTwoInvoices_throwsBusinessException() {
+        Facture f1 = new Facture();
+        f1.setId(10L);
+        when(factureRepository.findAllById(List.of(10L))).thenReturn(List.of(f1));
+
+        MergeFacturesRequestDTO request = new MergeFacturesRequestDTO(List.of(10L), null);
+
+        assertThatThrownBy(() -> factureService.fusionnerFactures(request))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("At least 2 valid invoices are required for merge.");
+    }
+
+    @Test
+    void mergeInvoices_alreadySettledInvoice_throwsBusinessException() {
+        Facture f1 = new Facture();
+        f1.setId(10L);
+        f1.setNumero("FAC-1");
+        f1.setReglee(true);
+
+        Facture f2 = new Facture();
+        f2.setId(20L);
+        f2.setNumero("FAC-2");
+        f2.setReglee(false);
+
+        when(factureRepository.findAllById(List.of(10L, 20L))).thenReturn(List.of(f1, f2));
+
+        MergeFacturesRequestDTO request = new MergeFacturesRequestDTO(List.of(10L, 20L), null);
+
+        assertThatThrownBy(() -> factureService.fusionnerFactures(request))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("is already settled and cannot be merged.");
+    }
 }
