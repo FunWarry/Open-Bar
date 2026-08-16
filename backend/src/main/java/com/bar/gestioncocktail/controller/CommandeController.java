@@ -245,17 +245,30 @@ public class CommandeController {
      * Progresses the status of an order (e.g. advance to EN_PREPARATION by bartender).
      *
      * @param id Order identifier
-     * @param nouveauStatut New status to set
+     * @param body Optional JSON body (string or object)
+     * @param statut Optional query param
      * @return Updated order DTO
      */
-    @PutMapping("/{id}/statut")
-    @PreAuthorize("hasRole('BARMAN') or hasRole('SERVEUR')")
-    @Operation(summary = "Update order status (BARMAN/SERVEUR)", description = "Updates order status and triggers WebSocket broadcasts.")
+    @RequestMapping(value = "/{id}/statut", method = {RequestMethod.PUT, RequestMethod.PATCH})
+    @PreAuthorize("hasRole('BARMAN') or hasRole('SERVEUR') or hasRole('ADMIN')")
+    @Operation(summary = "Update order status (BARMAN/SERVEUR/ADMIN)", description = "Updates order status and triggers WebSocket broadcasts.")
     @ApiResponse(responseCode = "200", description = "Status updated")
     public ResponseEntity<CommandeResponseDTO> changerStatut(
         @Parameter(description = "Order ID") @PathVariable Long id,
-        @RequestBody CommandeStatut nouveauStatut) {
-        return ResponseEntity.ok(CommandeResponseDTO.from(commandeService.changerStatut(id, nouveauStatut)));
+        @RequestBody(required = false) com.fasterxml.jackson.databind.JsonNode body,
+        @RequestParam(required = false) CommandeStatut statut) {
+        CommandeStatut targetStatut = statut;
+        if (targetStatut == null && body != null) {
+            if (body.isTextual()) {
+                targetStatut = CommandeStatut.valueOf(body.asText());
+            } else if (body.has("statut")) {
+                targetStatut = CommandeStatut.valueOf(body.get("statut").asText());
+            }
+        }
+        if (targetStatut == null) {
+            throw new com.bar.gestioncocktail.exception.BusinessException("Order status is required");
+        }
+        return ResponseEntity.ok(CommandeResponseDTO.from(commandeService.changerStatut(id, targetStatut)));
     }
 
     /**
