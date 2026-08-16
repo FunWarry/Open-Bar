@@ -107,7 +107,8 @@ class CommandeIntegrationTest extends BaseIntegrationTest {
         mockMvc.perform(put("/api/commandes/" + commandeId + "/statut")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + getBarmanToken())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(CommandeStatut.EN_PREPARATION)))
+                        .param("statut", "EN_PREPARATION")
+                        .content("{\"statut\": \"EN_PREPARATION\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.statut").value("EN_PREPARATION"));
 
@@ -115,7 +116,8 @@ class CommandeIntegrationTest extends BaseIntegrationTest {
         mockMvc.perform(put("/api/commandes/" + commandeId + "/statut")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + getBarmanToken())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(CommandeStatut.PRET)))
+                        .param("statut", "PRET")
+                        .content("{\"statut\": \"PRET\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.statut").value("PRET"));
 
@@ -123,7 +125,8 @@ class CommandeIntegrationTest extends BaseIntegrationTest {
         mockMvc.perform(put("/api/commandes/" + commandeId + "/statut")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + getServeurToken())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(CommandeStatut.LIVREE)))
+                        .param("statut", "LIVREE")
+                        .content("{\"statut\": \"LIVREE\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.statut").value("LIVREE"));
 

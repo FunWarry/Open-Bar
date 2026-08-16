@@ -113,11 +113,11 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
-        log.error("Unhandled exception", ex);
+        log.error("Unhandled exception: " + ex.getMessage(), ex);
         ErrorResponse body = ErrorResponse.builder(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 "Internal Server Error",
-                "An unexpected error occurred"
+                ex.getMessage() != null ? ex.getMessage() : "An unexpected error occurred"
         ).build();
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
     }

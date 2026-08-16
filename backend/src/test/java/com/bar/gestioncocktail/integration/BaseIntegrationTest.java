@@ -86,6 +86,7 @@ public abstract class BaseIntegrationTest {
         this.mockMvc = MockMvcBuilders
                 .webAppContextSetup(webApplicationContext)
                 .apply(springSecurity())
+                .alwaysDo(org.springframework.test.web.servlet.result.MockMvcResultHandlers.print())
                 .build();
         ensureTestUsersExist();
     }
