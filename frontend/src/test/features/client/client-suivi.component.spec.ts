@@ -65,6 +65,6 @@ describe('ClientSuiviComponent', () => {
 
   it('should compute status step 2 for EN_PREPARATION', () => {
     expect(component.statusStep).toBe(2);
-    expect(component.statusLabel).toBe('En préparation par le barman');
+    expect(component.statusLabelKey).toBe('CLIENT.STATUS_PREPARING');
   });
 });

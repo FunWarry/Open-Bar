@@ -1,3 +1,4 @@
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { EtageService, EtageBar } from '../../../app/core/services/etage.service';
@@ -17,7 +18,7 @@ describe('EtageService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
+      imports: [HttpClientTestingModule, getTranslocoTestingModule()],
       providers: [EtageService]
     });
     service = TestBed.inject(EtageService);

@@ -1,3 +1,4 @@
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { provideMockStore, MockStore } from '@ngrx/store/testing';
@@ -37,7 +38,7 @@ describe('HeaderComponent', () => {
       imports: [
         HeaderComponent,
         RouterTestingModule
-      ],
+      , getTranslocoTestingModule()],
       providers: [
         provideMockStore({
           initialState: {

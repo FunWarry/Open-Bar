@@ -1,3 +1,4 @@
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Subject } from 'rxjs';
 import { StockAlertBannerComponent } from '../../../app/core/components/stock-alert-banner/stock-alert-banner.component';
@@ -32,7 +33,7 @@ describe('StockAlertBannerComponent', () => {
     notificationServiceSpy.onStockAlert.and.returnValue(stockAlerts$.asObservable());
 
     await TestBed.configureTestingModule({
-      imports: [StockAlertBannerComponent],
+      imports: [StockAlertBannerComponent, getTranslocoTestingModule()],
       providers: [
         { provide: NotificationService, useValue: notificationServiceSpy },
       ],

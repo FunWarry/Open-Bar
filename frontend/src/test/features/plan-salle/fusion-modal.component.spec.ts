@@ -1,3 +1,4 @@
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { TestBed } from '@angular/core/testing';
 import { CommonModule } from '@angular/common';
 import { ModalController } from '@ionic/angular/standalone';
@@ -12,7 +13,7 @@ describe('FusionModalComponent', () => {
     modalCtrlSpy = jasmine.createSpyObj('ModalController', ['dismiss']);
 
     await TestBed.configureTestingModule({
-      imports: [FusionModalComponent, CommonModule],
+      imports: [FusionModalComponent, CommonModule, getTranslocoTestingModule()],
       providers: [{ provide: ModalController, useValue: modalCtrlSpy }],
     }).compileComponents();
 

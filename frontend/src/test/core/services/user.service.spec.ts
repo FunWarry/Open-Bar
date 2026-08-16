@@ -1,3 +1,4 @@
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { UserService } from '../../../../src/app/core/services/user.service';
@@ -32,7 +33,7 @@ describe('UserService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
+      imports: [HttpClientTestingModule, getTranslocoTestingModule()],
       providers: [UserService]
     });
     service = TestBed.inject(UserService);

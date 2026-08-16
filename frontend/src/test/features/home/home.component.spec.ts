@@ -1,3 +1,4 @@
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { HomeComponent } from '../../../app/features/home/home.component';
 import { Store } from '@ngrx/store';
@@ -25,7 +26,7 @@ describe('HomeComponent', () => {
     });
 
     await TestBed.configureTestingModule({
-      imports: [HomeComponent, RouterTestingModule],
+      imports: [HomeComponent, RouterTestingModule, getTranslocoTestingModule()],
       providers: [
         { provide: Store, useValue: storeSpy }
       ]

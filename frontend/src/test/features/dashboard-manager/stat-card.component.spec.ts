@@ -1,3 +1,4 @@
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { TestBed } from '@angular/core/testing';
 import { CommonModule } from '@angular/common';
 import { IonCard, IonCardContent } from '@ionic/angular/standalone';
@@ -8,7 +9,7 @@ describe('StatCardComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [StatCardComponent, CommonModule, IonCard, IonCardContent]
+      imports: [StatCardComponent, CommonModule, IonCard, IonCardContent, getTranslocoTestingModule()]
     }).compileComponents();
 
     const fixture = TestBed.createComponent(StatCardComponent);

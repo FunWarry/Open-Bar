@@ -1,3 +1,4 @@
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { TestBed } from '@angular/core/testing';
 import { DeleteUserDialogComponent } from '../../../app/features/admin/users/delete-user-dialog/delete-user-dialog.component';
 import { ModalController } from '@ionic/angular/standalone';
@@ -11,7 +12,7 @@ describe('DeleteUserDialogComponent', () => {
     modalCtrlSpy.dismiss.and.returnValue(Promise.resolve(true));
 
     await TestBed.configureTestingModule({
-      imports: [DeleteUserDialogComponent],
+      imports: [DeleteUserDialogComponent, getTranslocoTestingModule()],
       providers: [
         { provide: ModalController, useValue: modalCtrlSpy }
       ]

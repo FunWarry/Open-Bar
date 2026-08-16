@@ -113,12 +113,12 @@ describe('FactureDetailComponent', () => {
     expect(component.statutColor(false)).toBe('warning');
   });
 
-  it('statutLabel retourne "RÉGLÉE" pour une facture réglée', () => {
-    expect(component.statutLabel(true)).toBe('RÉGLÉE');
+  it('statutLabel retourne "FACTURES.SETTLED" pour une facture réglée', () => {
+    expect(component.statutLabel(true)).toBe('FACTURES.SETTLED');
   });
 
-  it('statutLabel retourne "EN ATTENTE" pour une facture non réglée', () => {
-    expect(component.statutLabel(false)).toBe('EN ATTENTE');
+  it('statutLabel retourne "FACTURES.PENDING" pour une facture non réglée', () => {
+    expect(component.statutLabel(false)).toBe('FACTURES.PENDING');
   });
 
   it('trackById retourne l\'id de l\'item', () => {

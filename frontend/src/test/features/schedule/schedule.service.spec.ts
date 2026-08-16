@@ -1,3 +1,4 @@
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { ScheduleService } from '../../../app/features/schedule/services/schedule.service';
@@ -24,7 +25,7 @@ describe('ScheduleService — date range closure detection', () => {
     mockUserService.getUsers.and.returnValue(of([]));
 
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
+      imports: [HttpClientTestingModule, getTranslocoTestingModule()],
       providers: [
         ScheduleService,
         { provide: ShiftService, useValue: mockShiftService },

@@ -1,3 +1,4 @@
+import { getTranslocoTestingModule } from '../../../transloco-testing.module';
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { FactureService, SplitPartRequest, SplitResultDTO } from '../../../../app/features/factures/services/facture.service';
@@ -26,7 +27,7 @@ describe('FactureService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
+      imports: [HttpClientTestingModule, getTranslocoTestingModule()],
       providers: [FactureService]
     });
     service = TestBed.inject(FactureService);

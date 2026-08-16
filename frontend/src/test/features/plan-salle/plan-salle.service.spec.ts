@@ -1,3 +1,4 @@
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { PlanSalleService } from '../../../app/features/plan-salle/services/plan-salle.service';
@@ -18,7 +19,7 @@ describe('PlanSalleService', () => {
   beforeEach(() => {
     localStorage.removeItem(STORAGE_KEY);
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
+      imports: [HttpClientTestingModule, getTranslocoTestingModule()],
       providers: [PlanSalleService],
     });
     service = TestBed.inject(PlanSalleService);

@@ -1,3 +1,4 @@
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { UserDialogComponent } from '../../../app/features/admin/users/user-dialog/user-dialog.component';
 import { ModalController } from '@ionic/angular/standalone';
@@ -23,7 +24,7 @@ describe('UserDialogComponent', () => {
     modalCtrlSpy = jasmine.createSpyObj('ModalController', ['dismiss']);
 
     TestBed.configureTestingModule({
-      imports: [UserDialogComponent],
+      imports: [UserDialogComponent, getTranslocoTestingModule()],
       providers: [
         { provide: ModalController, useValue: modalCtrlSpy }
       ]

@@ -1,3 +1,4 @@
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { ModalController } from '@ionic/angular/standalone';
 import { of, throwError } from 'rxjs';
@@ -22,7 +23,7 @@ describe('TransfertModalComponent', () => {
     tableServiceSpy.getAll.and.returnValue(of(mockTables));
 
     TestBed.configureTestingModule({
-      imports: [TransfertModalComponent],
+      imports: [TransfertModalComponent, getTranslocoTestingModule()],
       providers: [
         { provide: ModalController, useValue: modalCtrlSpy },
         { provide: TableService, useValue: tableServiceSpy },

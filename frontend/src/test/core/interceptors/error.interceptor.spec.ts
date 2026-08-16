@@ -217,7 +217,7 @@ describe('errorInterceptor', () => {
     http.get('/api/forbidden').subscribe({
       error: () => {
         expect(toastCtrlSpy.create).toHaveBeenCalledOnceWith(
-          jasmine.objectContaining({ message: 'Accès interdit.' })
+          jasmine.objectContaining({ message: 'Forbidden.' })
         );
         done();
       },

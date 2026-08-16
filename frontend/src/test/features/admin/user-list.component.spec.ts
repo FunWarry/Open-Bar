@@ -1,3 +1,4 @@
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { UserListComponent } from '../../../app/features/admin/users/user-list/user-list.component';
 import { ModalController, ToastController } from '@ionic/angular/standalone';
@@ -37,7 +38,7 @@ describe('UserListComponent', () => {
     toastCtrlSpy.create.and.returnValue(Promise.resolve(toastSpy as any));
 
     TestBed.configureTestingModule({
-      imports: [UserListComponent],
+      imports: [UserListComponent, getTranslocoTestingModule()],
       providers: [
         { provide: UserService, useValue: userServiceSpy },
         { provide: ModalController, useValue: modalCtrlSpy },

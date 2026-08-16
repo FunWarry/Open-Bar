@@ -1,3 +1,4 @@
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { TestBed } from '@angular/core/testing';
 import { ComponentFixture } from '@angular/core/testing';
 import { ActivatedRoute } from '@angular/router';
@@ -50,7 +51,7 @@ describe('FactureSplitComponent', () => {
     modalCtrlSpy = jasmine.createSpyObj('ModalController', ['create']);
 
     await TestBed.configureTestingModule({
-      imports: [FactureSplitComponent, IonicModule.forRoot(), RouterTestingModule],
+      imports: [FactureSplitComponent, IonicModule.forRoot(), RouterTestingModule, getTranslocoTestingModule()],
       providers: [
         {
           provide: ActivatedRoute,
@@ -73,7 +74,7 @@ describe('FactureSplitComponent', () => {
   });
 
   it('should initialize with default values', () => {
-    expect(component.mode).toBe('egal');
+    expect(component.mode).toBe('equal');
     expect(component.nombreConvives).toBe(2);
     expect(component.results).toEqual([]);
     expect(component.loading).toBeFalse();

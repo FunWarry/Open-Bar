@@ -1,3 +1,4 @@
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CartDrawerComponent } from '../../../app/features/dashboard-serveur/components/cart-drawer/cart-drawer.component';
 import { IonicModule } from '@ionic/angular';
@@ -18,7 +19,7 @@ describe('CartDrawerComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [CartDrawerComponent],
+      imports: [CartDrawerComponent, getTranslocoTestingModule()],
       providers: [provideIonicAngular()],
     }).compileComponents();
 

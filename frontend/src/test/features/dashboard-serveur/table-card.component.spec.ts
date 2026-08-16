@@ -1,3 +1,4 @@
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CommonModule } from '@angular/common';
 import { RouterTestingModule } from '@angular/router/testing';
@@ -50,7 +51,7 @@ describe('TableCardComponent', () => {
         CommonModule,
         RouterTestingModule,
         IonicModule.forRoot()
-      ]
+      , getTranslocoTestingModule()]
     }).compileComponents();
 
     fixture = TestBed.createComponent(TableCardComponent);

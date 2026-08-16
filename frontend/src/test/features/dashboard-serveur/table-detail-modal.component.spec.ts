@@ -1,3 +1,4 @@
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { ModalController, ToastController } from '@ionic/angular/standalone';
@@ -48,7 +49,7 @@ describe('TableDetailModalComponent', () => {
     toastCtrlSpy.create.and.returnValue(Promise.resolve(toastSpy as any));
 
     TestBed.configureTestingModule({
-      imports: [TableDetailModalComponent],
+      imports: [TableDetailModalComponent, getTranslocoTestingModule()],
       providers: [
         { provide: ModalController, useValue: modalCtrlSpy },
         { provide: Router, useValue: routerSpy },

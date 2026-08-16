@@ -121,18 +121,18 @@ describe('NotificationService', () => {
     expect(received).toHaveSize(1);
     expect(received[0].type).toBe('table');
     expect(received[0].message).toContain('B2');
-    expect(received[0].message).toContain('Occupée');
+    expect(received[0].message).toContain('Occupied');
     expect(received[0].severity).toBe('success');
   }));
 
-  it('onNotification() émet une notification "Libérée" quand occupee est false', fakeAsync(() => {
+  it('onNotification() émet une notification "Available" quand occupee est false', fakeAsync(() => {
     const received: AppNotification[] = [];
     service.onNotification().subscribe(n => received.push(n));
 
     wsStub.emit('/topic/tables', { nom: 'C3', occupee: false });
     tick();
 
-    expect(received[0].message).toContain('Libérée');
+    expect(received[0].message).toContain('Available');
   }));
 
   // -------------------------------------------------------------------------

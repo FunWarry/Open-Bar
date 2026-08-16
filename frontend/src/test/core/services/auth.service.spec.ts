@@ -1,3 +1,4 @@
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { AuthService } from '../../../app/core/services/auth.service';
@@ -23,7 +24,7 @@ describe('AuthService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
+      imports: [HttpClientTestingModule, getTranslocoTestingModule()],
       providers: [AuthService]
     });
     service = TestBed.inject(AuthService);
@@ -71,7 +72,7 @@ describe('AuthService', () => {
       error: (err: Error) => (errorMessage = err.message)
     });
 
-    expect(errorMessage).toBe('Une opération est déjà en cours');
+    expect(errorMessage).toBe('An operation is already in progress');
     // Flusher le premier pour que afterEach verify() ne se plaigne pas
     req.flush(mockAuthResponse);
   });

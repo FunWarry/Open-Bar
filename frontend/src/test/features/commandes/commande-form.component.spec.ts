@@ -1,3 +1,4 @@
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -31,7 +32,7 @@ describe('CommandeFormComponent', () => {
         CommandeFormComponent,
         ReactiveFormsModule,
         RouterTestingModule
-      ],
+      , getTranslocoTestingModule()],
       providers: [
         { provide: Router, useValue: routerSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
@@ -69,7 +70,8 @@ describe('CommandeFormComponent', () => {
       imports: [
         CommandeFormComponent,
         ReactiveFormsModule,
-        RouterTestingModule
+        RouterTestingModule,
+        getTranslocoTestingModule()
       ],
       providers: [
         { provide: Router, useValue: routerSpy },

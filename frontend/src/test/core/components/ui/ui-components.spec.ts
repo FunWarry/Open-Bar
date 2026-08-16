@@ -1,3 +1,4 @@
+import { getTranslocoTestingModule } from '../../../transloco-testing.module';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActionButtonComponent } from '../../../../app/core/components/ui/action-button/action-button.component';
 import { InputFieldComponent } from '../../../../app/core/components/ui/input-field/input-field.component';
@@ -21,7 +22,7 @@ describe('Shared UI Components (Figma Design System)', () => {
     let fixture: ComponentFixture<ActionButtonComponent>;
 
     beforeEach(async () => {
-      await TestBed.configureTestingModule({ imports: [ActionButtonComponent] }).compileComponents();
+      await TestBed.configureTestingModule({ imports: [ActionButtonComponent, getTranslocoTestingModule()] }).compileComponents();
       fixture = TestBed.createComponent(ActionButtonComponent);
       component = fixture.componentInstance;
       fixture.detectChanges();
