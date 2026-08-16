@@ -60,7 +60,7 @@ jobs:
           JWT_SECRET: test_jwt_secret_for_ci_only_not_used_in_prod
 
       - name: Publish backend test results
-        uses: mikepenz/action-junit-report@v4
+        uses: mikepenz/action-junit-report@db71d41eb79864e25ab0337e395c352e84523afe # v4.3.1
         if: always()  # afficher même si les tests ont échoué
         with:
           report_paths: 'backend/target/surefire-reports/*.xml'
@@ -170,7 +170,7 @@ jobs:
 
       - name: SonarCloud Scan
         if: ${{ env.SONAR_TOKEN != '' }}
-        uses: SonarSource/sonarcloud-github-action@v3
+        uses: SonarSource/sonarcloud-github-action@383f7e52eae3ab0510c3cb0e7d9d150bbaeab838 # v3.1.0
         with:
           args: >
             -Dsonar.qualitygate.wait=true
