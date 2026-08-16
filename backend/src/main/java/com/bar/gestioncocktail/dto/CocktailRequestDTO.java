@@ -9,6 +9,7 @@ import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * Request DTO for creating or updating a cocktail.
@@ -23,20 +24,23 @@ import java.time.LocalDateTime;
  * @param dateFinSaison   End date of availability season
  * @param moisDebut   Starting month (1-12) of seasonal availability
  * @param moisFin     Ending month (1-12) of seasonal availability
+ * @param instructions Preparation instructions text
+ * @param imageUrl    Image URL
+ * @param recipeSteps Ordered list of recipe step blocks
  */
 public record CocktailRequestDTO(
-    @NotBlank(message = "Le nom du cocktail est obligatoire")
-    @Size(max = 255, message = "Le nom ne peut pas dépasser 255 caractères")
+    @NotBlank(message = "Cocktail name is required")
+    @Size(max = 255, message = "Name cannot exceed 255 characters")
     String nom,
 
-    @Size(max = 1000, message = "La description ne peut pas dépasser 1000 caractères")
+    @Size(max = 1000, message = "Description cannot exceed 1000 characters")
     String description,
 
-    @NotNull(message = "Le prix est obligatoire")
-    @DecimalMin(value = "0.0", inclusive = false, message = "Le prix doit être supérieur à 0")
+    @NotNull(message = "Price is required")
+    @DecimalMin(value = "0.0", inclusive = false, message = "Price must be greater than 0")
     BigDecimal prix,
 
-    @NotNull(message = "La catégorie est obligatoire")
+    @NotNull(message = "Category is required")
     CocktailCategorie categorie,
 
     boolean disponible,
@@ -44,8 +48,29 @@ public record CocktailRequestDTO(
     LocalDateTime dateDebutSaison,
     LocalDateTime dateFinSaison,
     Integer moisDebut,
-    Integer moisFin
+    Integer moisFin,
+    String instructions,
+    String imageUrl,
+    List<CocktailRecipeStepRequestDTO> recipeSteps
 ) {
+    /**
+     * Backward-compatible 10-parameter constructor.
+     */
+    public CocktailRequestDTO(
+        String nom,
+        String description,
+        BigDecimal prix,
+        CocktailCategorie categorie,
+        boolean disponible,
+        boolean saisonnier,
+        LocalDateTime dateDebutSaison,
+        LocalDateTime dateFinSaison,
+        Integer moisDebut,
+        Integer moisFin
+    ) {
+        this(nom, description, prix, categorie, disponible, saisonnier, dateDebutSaison, dateFinSaison, moisDebut, moisFin, null, null, null);
+    }
+
     /**
      * Converts this DTO into a {@link Cocktail} JPA entity.
      *
@@ -63,6 +88,8 @@ public record CocktailRequestDTO(
         cocktail.setDateFinSaison(dateFinSaison);
         cocktail.setMoisDebut(moisDebut);
         cocktail.setMoisFin(moisFin);
+        cocktail.setInstructions(instructions);
+        cocktail.setImageUrl(imageUrl);
         return cocktail;
     }
 }

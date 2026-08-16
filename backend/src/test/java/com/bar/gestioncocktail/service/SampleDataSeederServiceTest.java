@@ -16,6 +16,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.time.ZoneId;
 import java.util.*;
 
@@ -39,6 +40,12 @@ class SampleDataSeederServiceTest {
 
     @Mock
     private CocktailRepository cocktailRepository;
+
+    @Mock
+    private IngredientRepository ingredientRepository;
+
+    @Mock
+    private RecipeStepTemplateRepository recipeStepTemplateRepository;
 
     @Mock
     private CommandeRepository commandeRepository;
@@ -66,8 +73,26 @@ class SampleDataSeederServiceTest {
 
     @BeforeEach
     void setUp() {
-        lenient().when(timeService.now()).thenReturn(LocalDateTime.of(2026, 8, 6, 17, 0));
+        lenient().when(timeService.now()).thenReturn(LocalDateTime.of(2026, Month.AUGUST, 6, 17, 0));
         lenient().when(passwordEncoder.encode(any())).thenReturn("encodedPassword");
+        lenient().when(recipeStepTemplateRepository.findByName(any())).thenReturn(Optional.empty());
+        lenient().when(recipeStepTemplateRepository.save(any())).thenAnswer(invocation -> {
+            RecipeStepTemplate t = invocation.getArgument(0);
+            if (t.getId() == null) t.setId(1L);
+            return t;
+        });
+
+        Ingredient mockIng = new Ingredient();
+        mockIng.setId(1L);
+        mockIng.setNom("Rhum Blanc");
+        lenient().when(ingredientRepository.findByNomIgnoreCase(any())).thenReturn(Optional.of(mockIng));
+
+        Cocktail mockMojito = new Cocktail();
+        mockMojito.setId(1L);
+        mockMojito.setNom("Mojito");
+        mockMojito.setRecipeSteps(new ArrayList<>());
+        lenient().when(cocktailRepository.findByNomIgnoreCase(any())).thenReturn(Optional.of(mockMojito));
+        lenient().when(cocktailRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
     }
 
     @Test
@@ -82,7 +107,7 @@ class SampleDataSeederServiceTest {
     }
 
     @Test
-    @DisplayName("seedDemoDataIfEmpty - executes dataset seeding when orders count is 0")
+    @DisplayName("seedDemoDataIfEmpty - executes dataset seeding and seeds recipe steps")
     void seedDemoDataIfEmpty_executesSeedingWhenEmpty() {
         when(commandeRepository.count()).thenReturn(0L);
         when(userRepository.findByUsername(any())).thenReturn(Optional.empty());
@@ -116,6 +141,8 @@ class SampleDataSeederServiceTest {
         verify(establishmentClosureRepository, atLeastOnce()).save(any());
         verify(commandeRepository, atLeastOnce()).save(any());
         verify(factureRepository, atLeastOnce()).save(any());
+        verify(recipeStepTemplateRepository, atLeastOnce()).save(any());
+        verify(cocktailRepository, atLeastOnce()).save(any());
     }
 
     @Test

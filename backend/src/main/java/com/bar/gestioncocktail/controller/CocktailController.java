@@ -63,11 +63,11 @@ public class CocktailController {
      */
     @PostMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('BARMAN')")
-    @Operation(summary = "Create a cocktail (BARMAN/ADMIN)", description = "Adds a new cocktail to the menu.")
+    @Operation(summary = "Create a cocktail (BARMAN/ADMIN)", description = "Adds a new cocktail with recipe steps to the menu.")
     @ApiResponse(responseCode = "200", description = "Cocktail created successfully")
     @ApiResponse(responseCode = "403", description = "Access denied")
     public ResponseEntity<CocktailResponseDTO> createCocktail(@Valid @RequestBody CocktailRequestDTO request) {
-        return ResponseEntity.ok(CocktailResponseDTO.from(cocktailService.createCocktail(request.toEntity())));
+        return ResponseEntity.ok(cocktailService.createCocktailFromRequest(request));
     }
 
     /**
@@ -79,15 +79,13 @@ public class CocktailController {
      */
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('BARMAN')")
-    @Operation(summary = "Update a cocktail (BARMAN/ADMIN)")
+    @Operation(summary = "Update a cocktail (BARMAN/ADMIN)", description = "Updates cocktail metadata and recipe steps.")
     @ApiResponse(responseCode = "200", description = "Cocktail updated")
     @ApiResponse(responseCode = "404", description = "Cocktail not found")
     public ResponseEntity<CocktailResponseDTO> updateCocktail(
         @Parameter(description = "Cocktail ID") @PathVariable Long id,
         @Valid @RequestBody CocktailRequestDTO request) {
-        Cocktail cocktail = request.toEntity();
-        cocktail.setId(id);
-        return ResponseEntity.ok(CocktailResponseDTO.from(cocktailService.updateCocktail(cocktail)));
+        return ResponseEntity.ok(cocktailService.updateCocktailFromRequest(id, request));
     }
 
     /**

@@ -71,12 +71,76 @@ export async function setupMockApi(page: Page): Promise<void> {
   });
 
   await page.route('**/api/cocktails**', async (route) => {
+    if (route.request().method() === 'POST') {
+      const body = route.request().postDataJSON();
+      await route.fulfill({
+        status: 201,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 42,
+          ...body,
+          disponible: true,
+          saisonnier: false,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        }),
+      });
+      return;
+    }
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify([
         { id: 1, nom: 'Mojito', prix: 8.5, categorie: 'ALCOOLISE', ingredients: [], variantes: [] },
         { id: 2, nom: 'Virgin Mojito', prix: 6.0, categorie: 'SANS_ALCOOL', ingredients: [], variantes: [] },
+      ]),
+    });
+  });
+
+  await page.route('**/api/recipe-step-templates**', async (route) => {
+    if (route.request().method() === 'POST') {
+      const body = route.request().postDataJSON();
+      await route.fulfill({
+        status: 201,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 99,
+          ...body,
+          isPredefined: false,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        }),
+      });
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([
+        {
+          id: 1,
+          name: 'Shaker vigoureusement',
+          actionType: 'SHAKE',
+          defaultDurationSeconds: 15,
+          icon: 'wine-outline',
+          isPredefined: true,
+        },
+        {
+          id: 2,
+          name: 'Filtrer (Passoire)',
+          actionType: 'STRAIN',
+          defaultDurationSeconds: 10,
+          icon: 'funnel-outline',
+          isPredefined: true,
+        },
+        {
+          id: 3,
+          name: 'Piler au pilon',
+          actionType: 'MUDDLE',
+          defaultDurationSeconds: 12,
+          icon: 'hammer-outline',
+          isPredefined: true,
+        },
       ]),
     });
   });

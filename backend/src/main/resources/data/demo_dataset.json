@@ -1501,5 +1501,262 @@
         }
       ]
     }
+  ],
+  "recipe_step_templates": [
+    {
+      "name": "Piler (Muddle)",
+      "actionType": "MUDDLE",
+      "defaultDurationSeconds": 15,
+      "icon": "hammer-outline",
+      "description": "Piler délicatement les ingrédients (agrumes, menthe, sucre) au fond du verre sans déchirer les feuilles.",
+      "isPredefined": true
+    },
+    {
+      "name": "Shaker énergiquement (Shake)",
+      "actionType": "SHAKE",
+      "defaultDurationSeconds": 15,
+      "icon": "wine-outline",
+      "description": "Remplir le shaker de glace cube et shaker vigoureusement pendant 12 à 15 secondes jusqu'à formation de givre.",
+      "isPredefined": true
+    },
+    {
+      "name": "Filtrer simple (Strain)",
+      "actionType": "STRAIN",
+      "defaultDurationSeconds": 10,
+      "icon": "funnel-outline",
+      "description": "Verser en filtrant à travers la passoire Hawthorne au-dessus du verre de service.",
+      "isPredefined": true
+    },
+    {
+      "name": "Double filtrer (Double Strain)",
+      "actionType": "STRAIN",
+      "defaultDurationSeconds": 15,
+      "icon": "funnel-outline",
+      "description": "Filtrer simultanément avec la passoire Hawthorne et la passoire fine pour retenir tous les éclats de glace et pulpes.",
+      "isPredefined": true
+    },
+    {
+      "name": "Remuer au verre à mélange (Stir)",
+      "actionType": "STIR",
+      "defaultDurationSeconds": 25,
+      "icon": "sync-outline",
+      "description": "Rafraîchir les spiritueux avec la cuillère de bar en effectuant des mouvements circulaires fluides pendant 20-30s.",
+      "isPredefined": true
+    },
+    {
+      "name": "Ajouter des glaçons (Add Ice)",
+      "actionType": "ADD_ICE",
+      "defaultDurationSeconds": 5,
+      "icon": "cube-outline",
+      "description": "Remplir le verre de glaçons frais ou glace pilée jusqu'en haut.",
+      "isPredefined": true
+    },
+    {
+      "name": "Compléter / Top up (Top Up)",
+      "actionType": "TOP_UP",
+      "defaultDurationSeconds": 10,
+      "icon": "water-outline",
+      "description": "Compléter avec de l'eau gazeuse, soda, tonic ou champagne frais.",
+      "isPredefined": true
+    },
+    {
+      "name": "Garnir & Dresser (Garnish)",
+      "actionType": "GARNISH",
+      "defaultDurationSeconds": 10,
+      "icon": "leaf-outline",
+      "description": "Disposer soigneusement la garniture (rondelle déshydratée, tête de menthe réveillée, zeste taillé).",
+      "isPredefined": true
+    },
+    {
+      "name": "Flamber / Exprimer les zestes (Flame / Zest)",
+      "actionType": "FLAME",
+      "defaultDurationSeconds": 10,
+      "icon": "flame-outline",
+      "description": "Pincer le zeste d'agrume au-dessus du verre pour libérer les huiles essentielles sur la surface et frotter le buvant.",
+      "isPredefined": true
+    },
+    {
+      "name": "Mixer au blender (Blend)",
+      "actionType": "BLEND",
+      "defaultDurationSeconds": 20,
+      "icon": "hardware-chip-outline",
+      "description": "Mixer à vitesse maximale jusqu'à obtenir une texture onctueuse et homogène de type frappé.",
+      "isPredefined": true
+    }
+  ],
+  "cocktail_recipe_steps": [
+    {
+      "cocktailName": "Mojito",
+      "steps": [
+        {
+          "stepOrder": 1,
+          "stepType": "INGREDIENT",
+          "ingredientName": "Citron vert",
+          "quantite": 0.5,
+          "unite": "pièce",
+          "customText": "Couper en 4 quartiers et déposer dans le verre highball"
+        },
+        {
+          "stepOrder": 2,
+          "stepType": "INGREDIENT",
+          "ingredientName": "Sucre de canne",
+          "quantite": 2,
+          "unite": "cuillère",
+          "customText": "Ajouter sur les citrons"
+        },
+        {
+          "stepOrder": 3,
+          "stepType": "INGREDIENT",
+          "ingredientName": "Menthe fraîche",
+          "quantite": 8,
+          "unite": "feuille",
+          "customText": "Claquer les feuilles de menthe dans la paume avant d'ajouter"
+        },
+        {
+          "stepOrder": 4,
+          "stepType": "ACTION_TEMPLATE",
+          "templateName": "Piler (Muddle)",
+          "durationSeconds": 15,
+          "customText": "Piler doucement pour extraire le jus sans broyer la menthe"
+        },
+        {
+          "stepOrder": 5,
+          "stepType": "ACTION_TEMPLATE",
+          "templateName": "Ajouter des glaçons (Add Ice)",
+          "durationSeconds": 5,
+          "customText": "Remplir le verre de glace pilée à mi-hauteur"
+        },
+        {
+          "stepOrder": 6,
+          "stepType": "INGREDIENT",
+          "ingredientName": "Rhum blanc",
+          "quantite": 6,
+          "unite": "cl",
+          "customText": "Verser le rhum blanc cubain sur la glace"
+        },
+        {
+          "stepOrder": 7,
+          "stepType": "ACTION_TEMPLATE",
+          "templateName": "Compléter / Top up (Top Up)",
+          "durationSeconds": 10,
+          "customText": "Compléter avec de l'eau gazeuse bien fraîche"
+        },
+        {
+          "stepOrder": 8,
+          "stepType": "ACTION_TEMPLATE",
+          "templateName": "Remuer au verre à mélange (Stir)",
+          "durationSeconds": 10,
+          "customText": "Remuer de bas en haut avec la cuillère de bar pour homogénéiser"
+        },
+        {
+          "stepOrder": 9,
+          "stepType": "ACTION_TEMPLATE",
+          "templateName": "Garnir & Dresser (Garnish)",
+          "durationSeconds": 10,
+          "customText": "Garnir d'une belle tête de menthe fraîche et d'une paille"
+        }
+      ]
+    },
+    {
+      "cocktailName": "Margarita",
+      "steps": [
+        {
+          "stepOrder": 1,
+          "stepType": "CUSTOM_TEXT",
+          "actionTitle": "Givrage du verre",
+          "customText": "Frotter le bord d'une coupe avec un quartier de citron vert et tremper délicatement dans du sel fin",
+          "durationSeconds": 15
+        },
+        {
+          "stepOrder": 2,
+          "stepType": "INGREDIENT",
+          "ingredientName": "Tequila",
+          "quantite": 5,
+          "unite": "cl"
+        },
+        {
+          "stepOrder": 3,
+          "stepType": "INGREDIENT",
+          "ingredientName": "Triple sec",
+          "quantite": 3,
+          "unite": "cl"
+        },
+        {
+          "stepOrder": 4,
+          "stepType": "INGREDIENT",
+          "ingredientName": "Jus de citron vert",
+          "quantite": 2,
+          "unite": "cl"
+        },
+        {
+          "stepOrder": 5,
+          "stepType": "ACTION_TEMPLATE",
+          "templateName": "Shaker énergiquement (Shake)",
+          "durationSeconds": 15,
+          "customText": "Remplir le shaker de glaçons et shaker avec vigueur"
+        },
+        {
+          "stepOrder": 6,
+          "stepType": "ACTION_TEMPLATE",
+          "templateName": "Double filtrer (Double Strain)",
+          "durationSeconds": 15,
+          "customText": "Verser dans la coupe givrée au sel"
+        },
+        {
+          "stepOrder": 7,
+          "stepType": "ACTION_TEMPLATE",
+          "templateName": "Garnir & Dresser (Garnish)",
+          "durationSeconds": 10,
+          "customText": "Déposer une rondelle de citron vert déshydraté sur le buvant"
+        }
+      ]
+    },
+    {
+      "cocktailName": "Piña Colada",
+      "steps": [
+        {
+          "stepOrder": 1,
+          "stepType": "INGREDIENT",
+          "ingredientName": "Rhum blanc",
+          "quantite": 6,
+          "unite": "cl"
+        },
+        {
+          "stepOrder": 2,
+          "stepType": "INGREDIENT",
+          "ingredientName": "Crème de coco",
+          "quantite": 4,
+          "unite": "cl"
+        },
+        {
+          "stepOrder": 3,
+          "stepType": "INGREDIENT",
+          "ingredientName": "Jus d'ananas",
+          "quantite": 12,
+          "unite": "cl"
+        },
+        {
+          "stepOrder": 4,
+          "stepType": "ACTION_TEMPLATE",
+          "templateName": "Shaker énergiquement (Shake)",
+          "durationSeconds": 20,
+          "customText": "Shaker très énergiquement avec beaucoup de glace pour faire mousser"
+        },
+        {
+          "stepOrder": 5,
+          "stepType": "ACTION_TEMPLATE",
+          "templateName": "Filtrer simple (Strain)",
+          "durationSeconds": 10,
+          "customText": "Verser dans un grand verre Hurricane rempli de glace pilée"
+        },
+        {
+          "stepOrder": 6,
+          "stepType": "ACTION_TEMPLATE",
+          "templateName": "Garnir & Dresser (Garnish)",
+          "durationSeconds": 10,
+          "customText": "Garnir d'un triangle d'ananas frais et d'une cerise au marasquin"
+        }
+      ]
+    }
   ]
 }

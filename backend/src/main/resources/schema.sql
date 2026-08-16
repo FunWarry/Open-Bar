@@ -381,3 +381,33 @@ CREATE TABLE IF NOT EXISTS shift_audit_log (
     previous_snapshot TEXT,
     new_snapshot TEXT
 );
+
+-- Table des modèles d'actions réutilisables de mixologie (#305)
+CREATE TABLE IF NOT EXISTS recipe_step_templates (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    action_type VARCHAR(50) NOT NULL,
+    default_duration_seconds INT DEFAULT 0,
+    icon VARCHAR(50),
+    description TEXT,
+    is_predefined BOOLEAN DEFAULT false,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Table des étapes séquentielles de recette d'un cocktail (#305)
+CREATE TABLE IF NOT EXISTS cocktail_recipe_steps (
+    id BIGSERIAL PRIMARY KEY,
+    cocktail_id BIGINT REFERENCES cocktails(id) ON DELETE CASCADE,
+    step_order INT NOT NULL,
+    step_type VARCHAR(50) NOT NULL,
+    ingredient_id BIGINT REFERENCES ingredients(id) ON DELETE SET NULL,
+    quantite DECIMAL(10,2),
+    unite VARCHAR(20),
+    template_id BIGINT REFERENCES recipe_step_templates(id) ON DELETE SET NULL,
+    action_title VARCHAR(100),
+    custom_text TEXT,
+    duration_seconds INT DEFAULT 0,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);

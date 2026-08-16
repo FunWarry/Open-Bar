@@ -28,6 +28,7 @@ import java.util.List;
  * @param imageUrl Photo URL
  * @param ingredients List of recipe ingredients
  * @param variantes List of available variants
+ * @param recipeSteps List of chronological recipe steps
  * @param createdAt Creation timestamp
  * @param updatedAt Modification timestamp
  */
@@ -49,6 +50,7 @@ public record CocktailResponseDTO(
     String imageUrl,
     List<CocktailIngredientResponseDTO> ingredients,
     List<CocktailVarianteResponseDTO> variantes,
+    List<CocktailRecipeStepResponseDTO> recipeSteps,
     LocalDateTime createdAt,
     LocalDateTime updatedAt
 ) {
@@ -65,11 +67,14 @@ public record CocktailResponseDTO(
         List<CocktailVarianteResponseDTO> vars = c.getVariantes() != null
             ? c.getVariantes().stream().map(CocktailVarianteResponseDTO::from).toList()
             : Collections.emptyList();
+        List<CocktailRecipeStepResponseDTO> steps = c.getRecipeSteps() != null
+            ? c.getRecipeSteps().stream().map(CocktailRecipeStepResponseDTO::from).toList()
+            : Collections.emptyList();
         return new CocktailResponseDTO(
             c.getId(), c.getNom(), c.getDescription(), c.getPrix(), c.getCategorie(),
             c.isDisponible(), c.isSaisonnier(), c.getDateDebutSaison(), c.getDateFinSaison(),
             c.getMoisDebut(), c.getMoisFin(), c.isDisponibleAujourdhui(),
-            c.getInstructions(), c.getImageUrl(), ings, vars, c.getCreatedAt(), c.getUpdatedAt()
+            c.getInstructions(), c.getImageUrl(), ings, vars, steps, c.getCreatedAt(), c.getUpdatedAt()
         );
     }
 }

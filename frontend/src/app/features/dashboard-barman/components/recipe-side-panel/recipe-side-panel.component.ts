@@ -12,7 +12,13 @@ import {
   timeOutline,
   alertCircleOutline,
   checkmarkCircleOutline,
-  cubeOutline
+  cubeOutline,
+  funnelOutline,
+  hammerOutline,
+  syncOutline,
+  flameOutline,
+  hardwareChipOutline,
+  createOutline,
 } from 'ionicons/icons';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { CommandeItemView, CommandeView } from '../../models/commande-view.model';
@@ -23,6 +29,7 @@ import { Cocktail } from '../../../../core/models/cocktail.model';
  * Provides a comprehensive, step-by-step preparation breakdown including:
  * - Dynamic dosage calculations for single dose and total ordered quantity
  * - Customization notes and variant instructions
+ * - Ordered modular recipe steps (ingredients, mixology action templates, custom instructions)
  * - Preparation steps, glassware recommendations, and garnishes
  */
 @Component({
@@ -33,10 +40,10 @@ import { Cocktail } from '../../../../core/models/cocktail.model';
     IonIcon,
     IonButton,
     IonSpinner,
-    TranslocoPipe
+    TranslocoPipe,
   ],
   templateUrl: './recipe-side-panel.component.html',
-  styleUrls: ['./recipe-side-panel.component.scss']
+  styleUrls: ['./recipe-side-panel.component.scss'],
 })
 export class RecipeSidePanelComponent {
   /** Whether the side panel is currently open and visible. */
@@ -68,7 +75,13 @@ export class RecipeSidePanelComponent {
       timeOutline,
       alertCircleOutline,
       checkmarkCircleOutline,
-      cubeOutline
+      cubeOutline,
+      funnelOutline,
+      hammerOutline,
+      syncOutline,
+      flameOutline,
+      hardwareChipOutline,
+      createOutline,
     });
   }
 
@@ -90,6 +103,50 @@ export class RecipeSidePanelComponent {
   }
 
   /**
+   * Calculates scaled quantity for a recipe step.
+   *
+   * @param baseQty Base quantity per glass
+   * @returns Total scaled quantity for this order
+   */
+  getScaledStepQuantity(baseQty: number | null | undefined): number {
+    if (baseQty == null) return 0;
+    return Math.round(baseQty * this.quantity * 100) / 100;
+  }
+
+  /**
+   * Returns the corresponding Ionic icon for a mixology action type.
+   *
+   * @param actionType Action category identifier
+   * @returns IonIcon name
+   */
+  getActionIcon(actionType?: string): string {
+    switch (actionType) {
+      case 'SHAKE':
+        return 'wine-outline';
+      case 'STRAIN':
+        return 'funnel-outline';
+      case 'MUDDLE':
+        return 'hammer-outline';
+      case 'STIR':
+        return 'sync-outline';
+      case 'ADD_ICE':
+        return 'cube-outline';
+      case 'POUR':
+        return 'water-outline';
+      case 'TOP_UP':
+        return 'water-outline';
+      case 'GARNISH':
+        return 'leaf-outline';
+      case 'BLEND':
+        return 'hardware-chip-outline';
+      case 'FLAME':
+        return 'flame-outline';
+      default:
+        return 'sparkles-outline';
+    }
+  }
+
+  /**
    * Closes the side panel.
    */
   onClose(): void {
@@ -100,7 +157,7 @@ export class RecipeSidePanelComponent {
    * Listens to Escape key presses to dismiss the side panel.
    */
   @HostListener('document:keydown.escape')
-  handleEscapeKey(): void {
+  onEscapePress(): void {
     if (this.isOpen) {
       this.onClose();
     }
