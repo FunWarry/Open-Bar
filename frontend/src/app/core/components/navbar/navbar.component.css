@@ -25,7 +25,7 @@ ion-toolbar {
   min-width: fit-content;
 }
 
-/* Dynamic page title — 100% centered horizontally and vertically */
+/* Dynamic page title — 100% centered horizontally and vertically on large screens */
 .topbar-page-title {
   position: absolute;
   top: 50%;
@@ -42,7 +42,7 @@ ion-toolbar {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 40%;
+  max-width: calc(100vw - 780px);
   pointer-events: none;
   z-index: 5;
 }
@@ -158,4 +158,23 @@ ion-popover ion-item:hover ion-icon {
 
 .notif-drawer-wrapper.open {
   transform: translateX(0);
+}
+
+/* ── Responsive adjustments ─────────────────────────────── */
+@media (max-width: 1199px) {
+  .topbar-page-title {
+    display: none !important;
+  }
+}
+
+@media (max-width: 991px) {
+  .topbar-time {
+    display: none !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .role-badge {
+    display: none !important;
+  }
 }

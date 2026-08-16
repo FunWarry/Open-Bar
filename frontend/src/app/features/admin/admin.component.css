@@ -1,16 +1,8 @@
 :host {
-  display: flex;
-  flex-direction: column;
+  display: block;
   height: 100%;
   width: 100%;
-  min-height: 0;
-  overflow: hidden;
-}
-
-ion-content {
-  flex: 1;
-  min-height: 0;
-  height: 100%;
+  overflow-y: auto;
 }
 
 .admin-page {

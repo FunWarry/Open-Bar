@@ -47,14 +47,13 @@ app-navbar {
 }
 
 .main-content > *:not(router-outlet) {
-  display: flex;
-  flex-direction: column;
+  display: block;
   flex: 1;
   height: 100%;
   width: 100%;
   min-height: 0;
   min-width: 0;
-  overflow: hidden;
+  overflow-y: auto;
   position: relative;
 }
 
