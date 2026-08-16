@@ -74,6 +74,7 @@ public class CocktailDataSeederService {
     @PostConstruct
     @Transactional
     public void seedCocktailsIfEmpty() {
+        fixLegacyImageUrls();
         if (cocktailRepository.count() > 0) {
             log.info("Database already contains cocktails, skipping test dataset seeding.");
             return;
@@ -102,6 +103,20 @@ public class CocktailDataSeederService {
             log.info("Successfully seeded database with {} cocktails from test dataset.", importedCount);
         } catch (Exception e) {
             log.error("Failed to seed cocktail test dataset", e);
+        }
+    }
+
+    private void fixLegacyImageUrls() {
+        try {
+            List<Cocktail> existing = cocktailRepository.findAll();
+            for (Cocktail c : existing) {
+                if (c.getImageUrl() != null && c.getImageUrl().contains("assets/images/cocktails/")) {
+                    c.setImageUrl("assets/images/verres/verre_tumbler.png");
+                    cocktailRepository.save(c);
+                }
+            }
+        } catch (Exception _) {
+            // Ignored if DB table not yet populated
         }
     }
 

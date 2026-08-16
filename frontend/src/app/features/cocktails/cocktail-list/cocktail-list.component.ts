@@ -293,4 +293,15 @@ export class CocktailListComponent implements OnInit, OnDestroy {
   onEdit(c: Cocktail): void { this.router.navigate(['/cocktails', c.id, 'edit']); }
   onRefresh(event: any): void { this.charger(event); }
   trackById(_: number, item: Cocktail): number { return item.id; }
+
+  /**
+   * Returns a valid image URL for the cocktail, falling back to a glass asset
+   * if the URL is empty or points to a legacy nonexistent path.
+   */
+  getCocktailImage(cocktail: Cocktail): string {
+    if (!cocktail.imageUrl || cocktail.imageUrl.includes('assets/images/cocktails/')) {
+      return 'assets/images/verres/verre_tumbler.png';
+    }
+    return cocktail.imageUrl;
+  }
 }

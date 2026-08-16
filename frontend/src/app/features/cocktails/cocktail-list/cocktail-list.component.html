@@ -165,7 +165,7 @@
                   @if (showPictures) {
                     <div class="figma-card-image-area">
                       <img
-                        [src]="cocktail.imageUrl || 'assets/images/verres/verre_tumbler.png'"
+                        [src]="getCocktailImage(cocktail)"
                         [alt]="cocktail.nom"
                         (error)="$any($event.target).src = 'assets/images/verres/verre_tumbler.png'" />
                     </div>
