@@ -85,21 +85,13 @@ export class DashboardServeurService {
 
   getZones(): Observable<ZoneItem[]> {
     return this.http.get<ZoneItem[]>(this.zonesUrl).pipe(
-      catchError(() => of([
-        { id: 1, nom: 'Salle Principale', etage: 'RDC' },
-        { id: 2, nom: 'Terrasse', etage: 'TERRASSE' },
-        { id: 3, nom: 'Mezzanine', etage: 'ETAGE_1' },
-      ]))
+      catchError(() => of([]))
     );
   }
 
   getEtages(): Observable<EtageItem[]> {
     return this.http.get<EtageItem[]>(this.etagesUrl).pipe(
-      catchError(() => of([
-        { id: 1, code: 'RDC', nom: 'Rez-de-chaussée (RDC)', ordre: 1 },
-        { id: 2, code: 'ETAGE_1', nom: '1er Étage', ordre: 2 },
-        { id: 3, code: 'TERRASSE', nom: 'Terrasse', ordre: 3 },
-      ]))
+      catchError(() => of([]))
     );
   }
 

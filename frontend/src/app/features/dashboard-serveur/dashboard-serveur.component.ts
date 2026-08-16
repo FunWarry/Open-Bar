@@ -482,7 +482,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
     // Default: BY_ZONE
     const map = new Map<string, TableView[]>();
     for (const table of this.filteredTables) {
-      const key = table.zone || 'Salle Principale';
+      const key = table.zone || 'NON_ASSIGNE';
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(table);
     }

@@ -38,6 +38,7 @@ public class SampleDataSeederService {
     private static final String KEY_NOTES = "notes";
     private static final String KEY_ITEMS = "items";
     private static final String KEY_QUANTITE = "quantite";
+    private static final String KEY_DAY_OF_WEEK = "dayOfWeek";
 
     private final UserRepository userRepository;
     private final TableRepository tableRepository;
@@ -105,6 +106,7 @@ public class SampleDataSeederService {
             seedZonesFromJson(root.get("zones"));
             Map<Integer, TableEntity> tablesMap = seedTablesFromJson(root.get("tables"), usersMap);
             seedShiftsFromJson(root.get("shifts"), usersMap);
+            seedClosuresFromJson(root.get("closures"));
 
             if (commandeRepository.count() == 0) {
                 List<Cocktail> cocktails = cocktailRepository.findAll();
@@ -303,10 +305,6 @@ public class SampleDataSeederService {
         return tableRepository.save(t);
     }
 
-    private static final String TIME_16_00 = "16:00";
-    private static final String TIME_00_00 = "00:00";
-    private static final String TIME_19_30 = "19:30";
-
     private record ShiftSeedDetail(
             LocalDate date,
             TypeShift shiftType,
@@ -318,113 +316,79 @@ public class SampleDataSeederService {
             BigDecimal prevues
     ) {}
 
+    /**
+     * Seeds shifts dynamically from the provided JSON node.
+     *
+     * @param shiftsNode JSON array node containing shifts
+     * @param usersMap map of usernames to persisted User entities
+     */
     private void seedShiftsFromJson(JsonNode shiftsNode, Map<String, User> usersMap) {
+        if (shiftsNode == null || !shiftsNode.isArray()) return;
+
         LocalDate today = LocalDate.now(ZoneId.systemDefault());
         LocalDate monday = today.minusDays((long) today.getDayOfWeek().getValue() - 1);
 
-        // 1. Seed base shifts from JSON if present
-        if (shiftsNode != null && shiftsNode.isArray()) {
-            for (JsonNode sNode : shiftsNode) {
-                String username = sNode.get("username").asText();
-                User user = usersMap.get(username);
-                if (user == null) continue;
-
-                TypeShift shiftType = TypeShift.valueOf(sNode.get("shiftType").asText());
-                TypePoste poste = TypePoste.valueOf(sNode.get("poste").asText());
-                String heureDebut = sNode.get("heureDebut").asText();
-                String heureFin = sNode.get("heureFin").asText();
-
-                boolean exists = employeeShiftRepository.findByUserId(user.getId()).stream()
-                        .anyMatch(s -> s.getDateShift().equals(today) && s.getTypeShift() == shiftType);
-
-                if (!exists) {
-                    createAndSaveShift(user, new ShiftSeedDetail(today, shiftType, poste, heureDebut, heureFin, "13:00", 30, new BigDecimal("7.50")), "Créneau JSON auto-généré");
-                }
-            }
-        }
-
-        // 2. Generate a full, realistic 7-day weekly schedule for all active staff
-        seedRealisticWeeklySchedule(monday, usersMap);
-
-        // 3. Seed default establishment closures (weekly Sunday + holidays)
-        seedDefaultClosures();
-    }
-
-    private void seedDefaultClosures() {
-        if (establishmentClosureRepository.count() > 0) return;
-
-        EstablishmentClosure sundayClosure = new EstablishmentClosure();
-        sundayClosure.setType(ClosureType.WEEKLY_RECURRING);
-        sundayClosure.setDayOfWeek(DayOfWeek.SUNDAY);
-        sundayClosure.setReason("Repos hebdomadaire dominical");
-        establishmentClosureRepository.save(sundayClosure);
-
-        EstablishmentClosure july14 = new EstablishmentClosure();
-        july14.setType(ClosureType.EXCEPTIONAL);
-        july14.setClosureDate(LocalDate.of(2026, 7, 14));
-        july14.setIsAnnualRecurring(true);
-        july14.setReason("14 Juillet — Fête Nationale");
-        establishmentClosureRepository.save(july14);
-
-        EstablishmentClosure dec25 = new EstablishmentClosure();
-        dec25.setType(ClosureType.EXCEPTIONAL);
-        dec25.setClosureDate(LocalDate.of(2026, 12, 25));
-        dec25.setIsAnnualRecurring(true);
-        dec25.setReason("25 Décembre — Noël");
-        establishmentClosureRepository.save(dec25);
-    }
-
-    private void seedRealisticWeeklySchedule(LocalDate monday, Map<String, User> usersMap) {
-        seedManagerSchedule(monday, usersMap.get("manager"));
-        seedServerSchedules(monday, usersMap.get("serveur1"), usersMap.get("serveur2"));
-        seedBartenderSchedules(monday, usersMap.get("barman1"), usersMap.get("barman2"));
-    }
-
-    private void seedManagerSchedule(LocalDate monday, User manager) {
-        if (manager == null) return;
-        for (int day = 0; day < 5; day++) {
-            createShiftIfNotExists(manager, new ShiftSeedDetail(monday.plusDays(day), TypeShift.MATIN, TypePoste.MANAGER, "08:00", TIME_16_00, "12:00", 30, new BigDecimal("7.50")));
+        for (JsonNode sNode : shiftsNode) {
+            seedSingleShiftFromJson(sNode, usersMap, monday, today);
         }
     }
 
-    private void seedServerSchedules(LocalDate monday, User serveur1, User serveur2) {
-        if (serveur1 != null) {
-            for (int day = 0; day < 5; day++) {
-                createShiftIfNotExists(serveur1, new ShiftSeedDetail(monday.plusDays(day), TypeShift.MATIN, TypePoste.SERVEUR, "09:00", "17:00", "13:00", 30, new BigDecimal("7.50")));
-            }
-            createShiftIfNotExists(serveur1, new ShiftSeedDetail(monday.plusDays(5), TypeShift.SOIR, TypePoste.SERVEUR, "17:00", "01:00", "20:00", 30, new BigDecimal("7.50")));
-        }
+    private void seedSingleShiftFromJson(JsonNode sNode, Map<String, User> usersMap, LocalDate monday, LocalDate today) {
+        String username = sNode.get("username").asText();
+        User user = usersMap.get(username);
+        if (user == null) return;
 
-        if (serveur2 != null) {
-            for (int day = 1; day < 6; day++) {
-                createShiftIfNotExists(serveur2, new ShiftSeedDetail(monday.plusDays(day), TypeShift.SOIR, TypePoste.SERVEUR, TIME_16_00, TIME_00_00, TIME_19_30, 30, new BigDecimal("7.50")));
-            }
-        }
-    }
+        LocalDate shiftDate = resolveShiftDate(sNode, monday, today);
+        TypeShift shiftType = TypeShift.valueOf(sNode.get("shiftType").asText());
+        TypePoste poste = TypePoste.valueOf(sNode.get("poste").asText());
+        String heureDebut = sNode.get("heureDebut").asText();
+        String heureFin = sNode.get("heureFin").asText();
+        String heurePauseDebut = sNode.hasNonNull("heurePauseDebut") ? sNode.get("heurePauseDebut").asText() : "13:00";
+        int dureePause = sNode.hasNonNull("dureePauseMinutes") ? sNode.get("dureePauseMinutes").asInt() : 30;
+        BigDecimal heuresPrevues = sNode.hasNonNull("heuresPrevues") ? new BigDecimal(sNode.get("heuresPrevues").asText()) : new BigDecimal("7.50");
+        String notes = sNode.hasNonNull(KEY_NOTES) ? sNode.get(KEY_NOTES).asText() : "Planning hebdo démo";
 
-    private void seedBartenderSchedules(LocalDate monday, User barman1, User barman2) {
-        if (barman1 != null) {
-            for (int day = 0; day < 5; day++) {
-                createShiftIfNotExists(barman1, new ShiftSeedDetail(monday.plusDays(day), TypeShift.SOIR, TypePoste.BARMAN, TIME_16_00, TIME_00_00, TIME_19_30, 30, new BigDecimal("7.50")));
-            }
-            createShiftIfNotExists(barman1, new ShiftSeedDetail(monday.plusDays(5), TypeShift.NUIT, TypePoste.BARMAN, "22:00", "06:00", "02:00", 30, new BigDecimal("7.50")));
-        }
-
-        if (barman2 != null) {
-            for (int day = 2; day < 5; day++) {
-                createShiftIfNotExists(barman2, new ShiftSeedDetail(monday.plusDays(day), TypeShift.COUPURE, TypePoste.BARMAN, "11:00", "22:00", "15:00", 120, new BigDecimal("9.00")));
-            }
-            for (int day = 5; day <= 6; day++) {
-                createShiftIfNotExists(barman2, new ShiftSeedDetail(monday.plusDays(day), TypeShift.SOIR, TypePoste.BARMAN, TIME_16_00, TIME_00_00, TIME_19_30, 30, new BigDecimal("7.50")));
-            }
-        }
-    }
-
-    private void createShiftIfNotExists(User user, ShiftSeedDetail detail) {
         boolean exists = employeeShiftRepository.findByUserId(user.getId()).stream()
-                .anyMatch(s -> s.getDateShift().equals(detail.date()));
+                .anyMatch(s -> s.getDateShift().equals(shiftDate) && s.getTypeShift() == shiftType);
+
         if (!exists) {
-            createAndSaveShift(user, detail, "Planning hebdo démo");
+            createAndSaveShift(user, new ShiftSeedDetail(shiftDate, shiftType, poste, heureDebut, heureFin, heurePauseDebut, dureePause, heuresPrevues), notes);
+        }
+    }
+
+    private LocalDate resolveShiftDate(JsonNode sNode, LocalDate monday, LocalDate today) {
+        if (sNode.has("dayOffset")) {
+            return monday.plusDays(sNode.get("dayOffset").asLong());
+        }
+        return today;
+    }
+
+    /**
+     * Seeds establishment closures from the provided JSON node.
+     *
+     * @param closuresNode JSON array node containing closure definitions
+     */
+    private void seedClosuresFromJson(JsonNode closuresNode) {
+        if (closuresNode == null || !closuresNode.isArray() || establishmentClosureRepository.count() > 0) return;
+
+        for (JsonNode cNode : closuresNode) {
+            EstablishmentClosure closure = new EstablishmentClosure();
+            ClosureType type = ClosureType.valueOf(cNode.get("type").asText());
+            closure.setType(type);
+
+            if (cNode.hasNonNull(KEY_DAY_OF_WEEK)) {
+                closure.setDayOfWeek(DayOfWeek.valueOf(cNode.get(KEY_DAY_OF_WEEK).asText()));
+            }
+            if (cNode.hasNonNull("closureDate")) {
+                closure.setClosureDate(LocalDate.parse(cNode.get("closureDate").asText()));
+            }
+            if (cNode.has("isAnnualRecurring")) {
+                closure.setIsAnnualRecurring(cNode.get("isAnnualRecurring").asBoolean());
+            }
+            closure.setReason(cNode.get("reason").asText());
+
+            establishmentClosureRepository.save(closure);
+            log.trace("Establishment closure seeded: {}", closure.getReason());
         }
     }
 

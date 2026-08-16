@@ -221,12 +221,7 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
             this.selectedFloor = this.etages[0].code;
           }
         } else {
-          this.etages = [
-            { code: 'RDC', nom: 'Rez-de-chaussée' },
-            { code: 'ETAGE_1', nom: '1er Étage' },
-            { code: 'TERRASSE', nom: 'Terrasse' },
-            { code: 'VIP', nom: 'VIP' },
-          ];
+          this.etages = [];
         }
 
         if (zones) {
