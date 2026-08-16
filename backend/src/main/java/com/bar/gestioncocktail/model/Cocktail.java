@@ -61,10 +61,10 @@ public class Cocktail {
         return moisActuel >= moisDebut || moisActuel <= moisFin;
     }
 
-    @OneToMany(mappedBy = "cocktail", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "cocktail", cascade = CascadeType.ALL)
     private List<CocktailIngredient> ingredients;
 
-    @OneToMany(mappedBy = "cocktail", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "cocktail", cascade = CascadeType.ALL)
     private List<CocktailVariante> variantes;
 
     private String instructions;

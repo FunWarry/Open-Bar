@@ -222,14 +222,18 @@ public class CommandeService {
             ingredient.setUpdatedAt(timeService.now());
             ingredientRepository.save(ingredient);
             if (ingredient.getSeuilAlerte() != null && nouveauStock.compareTo(ingredient.getSeuilAlerte()) <= 0 && messagingTemplate != null) {
-                messagingTemplate.convertAndSend("/topic/stock/alerte",
-                        new StockAlerteEvent(
-                                ingredient.getId(),
-                                ingredient.getNom(),
-                                ingredient.getUniteMesure(),
-                                nouveauStock,
-                                ingredient.getSeuilAlerte(),
-                                nouveauStock.compareTo(BigDecimal.ZERO) < 0));
+                try {
+                    messagingTemplate.convertAndSend("/topic/stock/alerte",
+                            new StockAlerteEvent(
+                                    ingredient.getId(),
+                                    ingredient.getNom(),
+                                    ingredient.getUniteMesure(),
+                                    nouveauStock,
+                                    ingredient.getSeuilAlerte(),
+                                    nouveauStock.compareTo(BigDecimal.ZERO) < 0));
+                } catch (Exception _) {
+                    // Safe handling of WebSocket delivery
+                }
             }
         }
     }
@@ -266,14 +270,21 @@ public class CommandeService {
     }
 
     private void traiterQuantitesItem(Map<Long, BigDecimal> quantites, CommandeItem item) {
-        if (item.getCocktail() == null || item.getCocktail().getIngredients() == null) {
+        if (item.getCocktail() == null || item.getCocktail().getId() == null) {
+            return;
+        }
+        Cocktail cocktail = item.getCocktail();
+        if (cocktail.getIngredients() == null && cocktail.getId() != null) {
+            cocktail = cocktailRepository.findById(cocktail.getId()).orElse(cocktail);
+        }
+        if (cocktail == null || cocktail.getIngredients() == null) {
             return;
         }
         BigDecimal mult = (item.getVariante() != null && item.getVariante().getMultiplicateurIngredient() != null)
                 ? item.getVariante().getMultiplicateurIngredient()
                 : BigDecimal.ONE;
 
-        for (CocktailIngredient ci : item.getCocktail().getIngredients()) {
+        for (CocktailIngredient ci : cocktail.getIngredients()) {
             traiterQuantiteIngredient(quantites, item, ci, mult);
         }
     }
@@ -289,13 +300,19 @@ public class CommandeService {
         }
     }
 
-
     private Map<Long, Ingredient> mepIngredients(Commande commande) {
         Map<Long, Ingredient> map = new HashMap<>();
+        if (commande.getItems() == null) {
+            return map;
+        }
         for (CommandeItem item : commande.getItems()) {
-            if (item.getCocktail() != null && item.getCocktail().getIngredients() != null) {
-                for (CocktailIngredient ci : item.getCocktail().getIngredients()) {
-                    if (ci.getIngredient() != null) {
+            Cocktail cocktail = item.getCocktail();
+            if (cocktail != null && cocktail.getId() != null && cocktail.getIngredients() == null) {
+                cocktail = cocktailRepository.findById(cocktail.getId()).orElse(cocktail);
+            }
+            if (cocktail != null && cocktail.getIngredients() != null) {
+                for (CocktailIngredient ci : cocktail.getIngredients()) {
+                    if (ci.getIngredient() != null && ci.getIngredient().getId() != null) {
                         map.put(ci.getIngredient().getId(), ci.getIngredient());
                     }
                 }
