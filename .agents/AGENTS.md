@@ -36,9 +36,12 @@ Deployed as a PWA on a local WiFi network (Raspberry Pi 5 / mini-PC). No interne
 
 ## Absolute Rules
 
-### Documentation & Code Quality
-1. **Documentation is MANDATORY for all new or modified code** (JavaDoc on backend, TSDoc on frontend, OpenAPI annotations on controllers).
-2. **ALL code documentation (JavaDoc, TSDoc, OpenAPI descriptions) MUST BE WRITTEN IN ENGLISH**.
+### Documentation, Language & Code Quality
+1. **English is MANDATORY everywhere in the codebase**:
+   - ALL code documentation (JavaDoc, TSDoc, OpenAPI descriptions).
+   - ALL code comments, function names, variable names, enums, DTOs, and exception messages.
+   - ALL test descriptions, test method names, and test mock data across both backend and frontend.
+2. **Documentation is MANDATORY for all new or modified code** (JavaDoc on backend, TSDoc on frontend, OpenAPI annotations on controllers).
 3. **NEVER use `@SuppressWarnings` annotations to bypass quality/security issues** — always refactor and resolve underlying code issues directly.
 
 ### Backend
@@ -46,7 +49,7 @@ Deployed as a PWA on a local WiFi network (Raspberry Pi 5 / mini-PC). No interne
 2. **Never return JPA entities** from controllers — always a DTO (`Java record` with `static from(Entity e)`)
 3. **`@Transactional`** on all write service methods
 4. **`@PreAuthorize`** on every write endpoint
-5. **`ResourceNotFoundException`** (→ 404) for missing resources; `BusinessException` (→ 400) for business violations
+5. **`ResourceNotFoundException`** (→ 404) for missing resources; `BusinessException` (→ 400) for business violations (all exception messages in English)
 6. **JavaDoc MANDATORY (in English)** for all services, DTOs, controllers, security, and exception classes
 7. **OpenAPI annotations MANDATORY (in English)** on all REST controllers (`@Tag`, `@Operation`, `@ApiResponse`)
 8. New tables → `backend/src/main/resources/schema.sql`
@@ -55,8 +58,8 @@ Deployed as a PWA on a local WiFi network (Raspberry Pi 5 / mini-PC). No interne
 1. **Ionic components only** — `IonButton`, `IonCard`, `IonList`, etc. Never Angular Material
 2. **Standalone components** (`standalone: true`) — no NgModule
 3. **Lazy loading** on ALL routes (`loadComponent`)
-4. **Transloco mandatory** on all user-visible text — `{{ 'KEY' | transloco }}`
-5. **i18n MANDATORY for every frontend change** — any text addition or modification MUST update **both** `fr.json` AND `en.json` in the **same commit** as the component. A missing key in `en.json` is treated as a regression.
+4. **100% Translatable UI (Transloco mandatory)** — ALL user-visible text (pages, forms, buttons, toasts, modals, alerts, badges, table headers, notifications) MUST use Transloco (`{{ 'KEY' | transloco }}` or `translocoService.translate('KEY')`). NEVER hardcode text directly in HTML templates or TypeScript strings.
+5. **i18n Parity MANDATORY for every frontend change** — any text addition or modification MUST update **both** `fr.json` AND `en.json` in the **same commit** as the component. A missing key in `en.json` is treated as a regression.
 6. **TSDoc MANDATORY (in English)** on all Angular services (`core/services/` + feature services), guards, interceptors, and NgRx store
 7. **`data-testid`** on all interactive elements (required for E2E tests)
 8. Tests go in `frontend/src/test/` (mirror of `src/app/`) — never co-located

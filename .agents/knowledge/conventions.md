@@ -24,9 +24,9 @@ public class MyEntity {
 - **`@Transactional`** on **all** write methods in services
 - Output DTOs: **Java records** with `static XxxDTO from(Entity e)` — never return JPA entities directly in responses
 - **`@PreAuthorize("hasRole('...')")`** on every write endpoint
-- Exceptions: `ResourceNotFoundException` (404), `BusinessException` (400) → handled globally by `GlobalExceptionHandler`
+- Exceptions: `ResourceNotFoundException` (404), `BusinessException` (400) → handled globally by `GlobalExceptionHandler` (all error messages in English)
 - SQL Schema: all new tables must be added to `backend/src/main/resources/schema.sql`
-- **Documentation**: JavaDoc and OpenAPI Swagger annotations must be written in English. No `@SuppressWarnings` allowed.
+- **Language & Documentation**: ALL code, function names, variable names, enums, comments, JavaDoc, and OpenAPI Swagger annotations MUST be written in English. No `@SuppressWarnings` allowed.
 
 ### Backend Tests (JUnit 5 + Mockito)
 ```java
@@ -40,6 +40,7 @@ class XxxServiceTest {
 ```
 - Location: `backend/src/test/java/.../service/`
 - One test per business method — nominal cases + error cases + edge cases mandatory
+- All test method names, mock data, and assertions MUST be in English.
 
 ---
 
@@ -58,9 +59,9 @@ features/<name>/
 - **Lazy loading** on ALL routes (`loadComponent`)
 - NgRx **only for Auth store** — all other domain state managed via services and Angular signals
 - Never use unjustified `any` — type everything explicitly
-- Never hardcode user-visible French strings in templates → always `{{ 'KEY' | transloco }}`
+- **100% Translatable UI**: Never hardcode user-visible strings (French or English) in templates or TypeScript components → always use Transloco `{{ 'KEY' | transloco }}` or `translocoService.translate('KEY')`
 - **Adaptive Theme System & No Hardcoded Colors** — The application supports dynamic Light/Dark theme switching. NEVER hardcode hex (`#1a1a2e`), RGB, or named colors in CSS/SCSS/TS. Always use CSS variables from `frontend/src/theme/variables.css` (`var(--background-bg-0)`, `var(--background-surface-1)`, `var(--background-surface-2)`, `var(--text-primary)`, `var(--text-secondary)`, `var(--text-muted)`, `var(--border-medium)`, `var(--primary)`, `var(--semantic-success)`, `var(--semantic-danger)`, `var(--semantic-warning)`, `var(--semantic-info)`, etc.).
-- **Documentation**: TSDoc comments on all services, guards, interceptors, and store files must be written in English.
+- **Language & Documentation**: All TSDoc comments, service methods, variables, and models MUST be written in English.
 
 ### Internationalization (Transloco)
 - Keys in `SCREAMING_SNAKE_CASE`: `COMMANDE.STATUT.EN_ATTENTE`
