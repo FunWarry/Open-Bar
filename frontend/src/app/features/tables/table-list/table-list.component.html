@@ -293,50 +293,78 @@
     }
   </div>
 
-  <!-- Reusable Table Card Template -->
+  <!-- Reusable Modern Table Card Template -->
   <ng-template #tableCardTpl let-table>
-    <div class="modern-table-card" [class.occupied]="table.occupee" [class.free]="!table.occupee">
-      <div class="card-top-bar">
-        <div class="table-ident">
-          <h2 class="table-number">Table {{ table.numero }}</h2>
-          <div class="table-location">
-            <span class="zone-name">{{ table.zone }}</span>
-            @if (getEtageLabelForZone(table.zone); as etageLabel) {
-              <span class="location-dot">•</span>
-              <span class="etage-name">{{ etageLabel }}</span>
-            }
+    <div
+      class="modern-table-card"
+      [class.occupied]="table.occupee"
+      [class.free]="!table.occupee"
+      [attr.data-testid]="'table-card-' + table.id">
+      
+      <!-- Top Header: Table Number Avatar + Info + Status Toggle -->
+      <div class="card-header-row">
+        <div class="table-badge-group">
+          <div class="table-num-avatar" [class.occupied]="table.occupee">
+            <span class="avatar-prefix">T</span>
+            <span class="avatar-num">{{ table.numero }}</span>
+          </div>
+          <div class="table-meta-text">
+            <h3 class="table-title">Table {{ table.numero }}</h3>
+            <div class="table-zone-chip">
+              <ion-icon name="location-outline" class="zone-icon"></ion-icon>
+              <span class="zone-name">{{ table.zone }}</span>
+              @if (getEtageLabelForZone(table.zone); as etageLabel) {
+                <span class="zone-sep">•</span>
+                <span class="etage-name">{{ etageLabel }}</span>
+              }
+            </div>
           </div>
         </div>
 
         <button
           type="button"
-          class="status-toggle-badge"
+          class="modern-status-pill"
           [class.occupied]="table.occupee"
           [class.free]="!table.occupee"
           (click)="onToggleStatus(table, $event)"
-          title="{{ (table.occupee ? 'TABLES.CARD.FREE_UP' : 'TABLES.CARD.OCCUPY') | transloco }}">
-          <ion-icon [name]="table.occupee ? 'close-circle' : 'checkmark-circle'"></ion-icon>
-          <span>{{ (table.occupee ? 'TABLES.CARD.OCCUPIED' : 'TABLES.CARD.FREE') | transloco }}</span>
+          title="{{ (table.occupee ? 'TABLES.CARD.FREE_UP' : 'TABLES.CARD.OCCUPY') | transloco }}"
+          [attr.data-testid]="'table-status-toggle-' + table.id">
+          <span class="status-indicator-dot"></span>
+          <span class="status-text">{{ (table.occupee ? 'TABLES.CARD.OCCUPIED' : 'TABLES.CARD.FREE') | transloco }}</span>
         </button>
       </div>
 
-      <div class="card-mid-section">
-        <div class="capacity-info">
-          <ion-icon name="people" class="capacity-icon"></ion-icon>
+      <!-- Mid Section: Capacity & Details Badges -->
+      <div class="card-body-row">
+        <div class="meta-badge capacity-badge">
+          <ion-icon name="people-outline"></ion-icon>
           <span>{{ 'TABLES.CARD.CAPACITY' | transloco : { count: table.capacite } }}</span>
         </div>
       </div>
 
-      <div class="card-footer-actions">
-        <ion-button fill="outline" color="primary" size="small" class="card-btn" (click)="onView(table)" (keyup.enter)="onView(table)" data-testid="table-view-btn">
-          <ion-icon slot="start" name="eye"></ion-icon>
-          {{ 'TABLES.CARD.DETAILS' | transloco }}
-        </ion-button>
+      <!-- Footer Action Buttons -->
+      <div class="card-actions-row">
+        <button
+          type="button"
+          class="action-btn btn-view"
+          (click)="onView(table)"
+          (keyup.enter)="onView(table)"
+          data-testid="table-view-btn">
+          <ion-icon name="eye-outline"></ion-icon>
+          <span>{{ 'TABLES.CARD.DETAILS' | transloco }}</span>
+        </button>
+
         @if (isAdmin$ | async) {
-          <ion-button fill="outline" color="medium" size="small" class="card-btn" (click)="onEdit(table)" (keyup.enter)="onEdit(table)" data-testid="table-edit-btn">
-            <ion-icon slot="start" name="create"></ion-icon>
-            {{ 'TABLES.CARD.EDIT' | transloco }}
-          </ion-button>
+          <button
+            type="button"
+            class="action-btn btn-edit"
+            (click)="onEdit(table)"
+            (keyup.enter)="onEdit(table)"
+            data-testid="table-edit-btn"
+            title="{{ 'TABLES.CARD.EDIT' | transloco }}">
+            <ion-icon name="create-outline"></ion-icon>
+            <span>{{ 'TABLES.CARD.EDIT' | transloco }}</span>
+          </button>
         }
       </div>
     </div>

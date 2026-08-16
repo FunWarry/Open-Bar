@@ -13,7 +13,8 @@ import { addIcons } from 'ionicons';
 import {
   add, eye, create, people, checkmarkCircle, closeCircle, layersOutline,
   businessOutline, swapVerticalOutline, gridOutline, restaurantOutline,
-  refreshOutline, checkmarkCircleOutline, closeCircleOutline
+  refreshOutline, checkmarkCircleOutline, closeCircleOutline,
+  locationOutline, peopleOutline, eyeOutline, createOutline
 } from 'ionicons/icons';
 import { AsyncPipe, NgTemplateOutlet } from '@angular/common';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
@@ -90,7 +91,8 @@ export class TableListComponent implements OnInit, OnDestroy {
     addIcons({
       add, eye, create, people, checkmarkCircle, closeCircle, layersOutline,
       businessOutline, swapVerticalOutline, gridOutline, restaurantOutline,
-      refreshOutline, checkmarkCircleOutline, closeCircleOutline
+      refreshOutline, checkmarkCircleOutline, closeCircleOutline,
+      locationOutline, peopleOutline, eyeOutline, createOutline
     });
   }
 
