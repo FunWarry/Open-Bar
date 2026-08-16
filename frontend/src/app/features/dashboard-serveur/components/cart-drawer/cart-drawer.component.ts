@@ -7,6 +7,7 @@ import { TableView } from '../../models/table-view.model';
 import { QuantityStepperComponent } from '../../../../core/components/ui/quantity-stepper/quantity-stepper.component';
 import { ActionButtonComponent } from '../../../../core/components/ui/action-button/action-button.component';
 import { EmptyStateComponent } from '../../../../core/components/ui/empty-state/empty-state.component';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { addIcons } from 'ionicons';
 import { cartOutline, basketOutline, paperPlaneOutline, chatbubbleEllipsesOutline, createOutline } from 'ionicons/icons';
@@ -21,6 +22,7 @@ import { cartOutline, basketOutline, paperPlaneOutline, chatbubbleEllipsesOutlin
     QuantityStepperComponent,
     ActionButtonComponent,
     EmptyStateComponent,
+    TranslocoPipe,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './cart-drawer.component.html',

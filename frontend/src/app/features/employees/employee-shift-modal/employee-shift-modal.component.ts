@@ -36,7 +36,7 @@ import {
   informationCircleOutline
 } from 'ionicons/icons';
 import { Subject, takeUntil } from 'rxjs';
-import { TranslocoModule } from '@jsverse/transloco';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { Store } from '@ngrx/store';
 import { User } from '../../../core/models/user.model';
 import { EmployeeShift, EmployeeShiftRequest, ShiftPreset, TypePoste, TypeShift } from '../../../core/models/shift.model';
@@ -102,6 +102,7 @@ export class EmployeeShiftModalComponent implements OnInit, OnDestroy {
   private readonly alertCtrl = inject(AlertController);
   private readonly shiftService = inject(ShiftService);
   private readonly store = inject(Store);
+  private readonly transloco = inject(TranslocoService);
   private readonly destroy$ = new Subject<void>();
 
   loading = true;
@@ -483,12 +484,12 @@ export class EmployeeShiftModalComponent implements OnInit, OnDestroy {
   async confirmDeleteShift(shift: EmployeeShift): Promise<void> {
     if (!shift.id) return;
     const alert = await this.alertCtrl.create({
-      header: 'Suppression',
-      message: 'Voulez-vous vraiment supprimer ce créneau ?',
+      header: String(this.transloco.translate('COMMON.DELETE')),
+      message: String(this.transloco.translate('SHIFTS.CONFIRM_DELETE')),
       buttons: [
-        { text: 'Annuler', role: 'cancel' },
+        { text: String(this.transloco.translate('COMMON.CANCEL')), role: 'cancel' },
         {
-          text: 'Supprimer',
+          text: String(this.transloco.translate('COMMON.DELETE')),
           role: 'destructive',
           handler: () => {
             if (shift.id) {

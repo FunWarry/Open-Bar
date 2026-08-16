@@ -18,7 +18,7 @@ import {
   layersOutline, gitMergeOutline, expandOutline, createOutline,
   addOutline, removeOutline, locateOutline, gridOutline, magnetOutline,
 } from 'ionicons/icons';
-import { TranslocoModule } from '@jsverse/transloco';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 
 import { TableService } from '../../core/services/table.service';
 import { NotificationService } from '../../core/services/notification.service';
@@ -150,6 +150,7 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
     private readonly cdr: ChangeDetectorRef,
     private readonly toastCtrl: ToastController,
     private readonly modalCtrl: ModalController,
+    private readonly transloco: TranslocoService,
   ) {
     addIcons({
       pencilOutline, saveOutline, closeOutline, refreshOutline, alertCircleOutline,
@@ -192,7 +193,7 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
           catchError(() => {
             this.isLoading = false;
             this.cdr.detectChanges();
-            this.toastCtrl.create({ message: 'Erreur lors du chargement du plan', duration: 3000, color: 'danger' })
+            this.toastCtrl.create({ message: String(this.transloco.translate('PLAN_SALLE_PAGE.TOASTS.LOAD_ERROR')), duration: 3000, color: 'danger' })
               .then(t => t.present());
             return EMPTY;
           }),
@@ -2070,7 +2071,7 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
       this.fusionSourceTable = null;
       this.applyFilters();
       this.toastCtrl.create({
-        message: `Tables ${source.numero} et ${target.numero} fusionnées avec succès !`,
+        message: String(this.transloco.translate('PLAN_SALLE_PAGE.TOASTS.TABLES_MERGED', { src: source.numero, target: target.numero })),
         duration: 3000,
         color: 'success',
       }).then(t => t.present());
@@ -2147,11 +2148,11 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
         this.applyFilters();
         this.cdr.detectChanges();
         this.ngZone.runOutsideAngular(() => this.dessinerTables());
-        this.toastCtrl.create({ message: `Table #${tableToSave.numero} enregistrée avec succès`, duration: 2000, color: 'success' })
+        this.toastCtrl.create({ message: String(this.transloco.translate('PLAN_SALLE_PAGE.TOASTS.TABLE_SAVED', { num: tableToSave.numero })), duration: 2000, color: 'success' })
           .then(t => t.present());
       },
       error: () => {
-        this.toastCtrl.create({ message: 'Erreur lors de l\'enregistrement', duration: 3000, color: 'danger' })
+        this.toastCtrl.create({ message: String(this.transloco.translate('PLAN_SALLE_PAGE.TOASTS.SAVE_ERROR')), duration: 3000, color: 'danger' })
           .then(t => t.present());
       }
     });
@@ -2181,11 +2182,11 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
       next: () => {
         this.hasUnsavedChanges = false;
         this.cdr.detectChanges();
-        this.toastCtrl.create({ message: 'Table supprimée du plan', duration: 2000, color: 'warning' })
+        this.toastCtrl.create({ message: String(this.transloco.translate('PLAN_SALLE_PAGE.TOASTS.TABLE_DELETED')), duration: 2000, color: 'warning' })
           .then(t => t.present());
       },
       error: () => {
-        this.toastCtrl.create({ message: 'Table supprimée localement', duration: 2000, color: 'warning' })
+        this.toastCtrl.create({ message: String(this.transloco.translate('PLAN_SALLE_PAGE.TOASTS.TABLE_DELETED_LOCAL')), duration: 2000, color: 'warning' })
           .then(t => t.present());
       }
     });
@@ -2229,12 +2230,12 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
       ).subscribe({
         next: () => {
           this.hasUnsavedChanges = false;
-          this.toastCtrl.create({ message: 'Modifications enregistrées', duration: 2000, color: 'success' })
+          this.toastCtrl.create({ message: String(this.transloco.translate('PLAN_SALLE_PAGE.TOASTS.CHANGES_SAVED')), duration: 2000, color: 'success' })
             .then(t => t.present());
           this.ngZone.runOutsideAngular(() => this.dessinerTables());
         },
         error: () => {
-          this.toastCtrl.create({ message: 'Erreur lors de l\'enregistrement', duration: 3000, color: 'danger' })
+          this.toastCtrl.create({ message: String(this.transloco.translate('PLAN_SALLE_PAGE.TOASTS.SAVE_ERROR')), duration: 3000, color: 'danger' })
             .then(t => t.present());
         }
       });
@@ -2260,6 +2261,10 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
     this.zoneLayer?.batchDraw();
     this.dessinerZones();
     this.cdr.detectChanges();
+  }
+
+  save() {
+    this.sauvegarder();
   }
 
   sauvegarder() {
@@ -2318,11 +2323,11 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
         this.sauvegarderZonesLocales();
         this.hasUnsavedChanges = false;
         this.cdr.detectChanges();
-        this.toastCtrl.create({ message: 'Plan de salle sauvegardé', duration: 2000, color: 'success' })
+        this.toastCtrl.create({ message: String(this.transloco.translate('PLAN_SALLE_PAGE.TOASTS.PLAN_SAVED')), duration: 2000, color: 'success' })
           .then(t => t.present());
       },
       error: () => {
-        this.toastCtrl.create({ message: 'Erreur lors de la sauvegarde du plan', duration: 3000, color: 'danger' })
+        this.toastCtrl.create({ message: String(this.transloco.translate('PLAN_SALLE_PAGE.TOASTS.PLAN_SAVE_ERROR')), duration: 3000, color: 'danger' })
           .then(t => t.present());
       },
     });

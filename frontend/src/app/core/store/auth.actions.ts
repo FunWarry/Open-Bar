@@ -1,61 +1,61 @@
 import {createAction, props} from '@ngrx/store';
 import {User} from '../models/user.model';
 
-/** Action NgRx de mise à jour explicite de l'utilisateur courant dans le store. */
+/** NgRx action to explicitly update the current user in store. */
 export const setCurrentUser = createAction(
   '[Auth] Set Current User',
   props<{ user: User | null }>()
 );
 
-/** Action NgRx déclenchant la tentative de connexion d'un utilisateur. */
+/** NgRx action triggering user login attempt. */
 export const login = createAction(
   '[Auth] Login',
   props<{ email: string; password: string }>()
 );
 
-/** Action NgRx émise en cas de succès de la connexion. */
+/** NgRx action emitted upon successful login. */
 export const loginSuccess = createAction(
   '[Auth] Login Success',
   props<{ user: User; token: string }>()
 );
 
-/** Action NgRx émise en cas d'échec de la connexion. */
+/** NgRx action emitted upon login failure. */
 export const loginFailure = createAction(
   '[Auth] Login Failure',
   props<{ error: string }>()
 );
 
-/** Action NgRx déclenchant une inscription. */
+/** NgRx action triggering registration. */
 export const register = createAction(
   '[Auth] Register',
   props<{ userData: Partial<User> }>()
 );
 
-/** Action NgRx émise après une inscription réussie. */
+/** NgRx action emitted upon successful registration. */
 export const registerSuccess = createAction(
   '[Auth] Register Success',
   props<{ user: User; token: string }>()
 );
 
-/** Action NgRx émise en cas d'erreur d'inscription. */
+/** NgRx action emitted upon registration failure. */
 export const registerFailure = createAction(
   '[Auth] Register Failure',
   props<{ error: string }>()
 );
 
-/** Action NgRx déclenchant la déconnexion. */
+/** NgRx action triggering user logout. */
 export const logout = createAction('[Auth] Logout');
 
-/** Action NgRx confirmant la déconnexion réussie. */
+/** NgRx action confirming successful logout. */
 export const logoutSuccess = createAction('[Auth] Logout Success');
 
-/** Action NgRx émise en cas d'échec de déconnexion. */
+/** NgRx action emitted upon logout failure. */
 export const logoutFailure = createAction(
   '[Auth] Logout Failure',
   props<{ error: string }>()
 );
 
-/** Action NgRx de réhydratation du store d'authentification depuis le LocalStorage au démarrage. */
+/** NgRx action to hydrate authentication store from LocalStorage upon startup. */
 export const initAuthFromStorage = createAction(
   '[Auth] Init Auth From Storage',
   props<{ token: string; user?: User | null }>()

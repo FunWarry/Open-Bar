@@ -6,25 +6,25 @@ import {map, take} from 'rxjs/operators';
 import {selectCurrentUser} from '../store/auth.selectors';
 
 /**
- * Guard spécifique restreignant l'accès d'une route aux seuls utilisateurs possédant le rôle {@code ADMIN}.
+ * Route guard restricting access to users with the {@code ADMIN} role.
  */
 @Injectable({
   providedIn: 'root'
 })
 export class AdminGuard implements CanActivate {
   /**
-   * Constructeur avec injection du Store NgRx et du Router.
+   * Constructs the guard with NgRx store and Router dependencies.
    *
-   * @param store Store NgRx centralisé
-   * @param router Router d'Angular
+   * @param store Centralized NgRx Store
+   * @param router Angular Router
    */
   constructor(private readonly store: Store, private readonly router: Router) {
   }
 
   /**
-   * Vérifie si l'utilisateur possède le rôle ADMIN.
+   * Verifies if the authenticated user has the ADMIN role.
    *
-   * @returns Observable émettant {@code true} si admin, ou redirection vers l'accueil sinon.
+   * @returns Observable emitting {@code true} if admin, or redirecting to home otherwise.
    */
   canActivate(): Observable<boolean | UrlTree> {
     return this.store.select(selectCurrentUser).pipe(

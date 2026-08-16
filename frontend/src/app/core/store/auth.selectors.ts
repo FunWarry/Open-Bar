@@ -1,64 +1,64 @@
 import {createFeatureSelector, createSelector} from '@ngrx/store';
 import {AuthState} from './auth.reducer';
 
-/** Selecteur NgRx de niveau fonctionnalité pour l'état d'authentification. */
+/** Feature-level NgRx selector for authentication state. */
 export const selectAuthState = createFeatureSelector<AuthState>('auth');
 
-/** Selecteur du jeton JWT d'accès. */
+/** Selector for access JWT token. */
 export const selectAuthToken = createSelector(
   selectAuthState,
   (state: AuthState) => state.token
 );
 
-/** Selecteur indiquant si l'utilisateur est actuellement authentifié. */
+/** Selector indicating whether the user is currently authenticated. */
 export const selectIsAuthenticated = createSelector(
   selectAuthState,
   (state: AuthState) => !!state.token
 );
 
-/** Selecteur du profil de l'utilisateur actuellement connecté. */
+/** Selector for currently authenticated user profile. */
 export const selectCurrentUser = createSelector(
   selectAuthState,
   (state: AuthState) => state.user
 );
 
-/** Selecteur du message d'erreur d'authentification éventuel. */
+/** Selector for authentication error message if any. */
 export const selectAuthError = createSelector(
   selectAuthState,
   (state: AuthState) => state.error
 );
 
-/** Selecteur indiquant si l'utilisateur possède le rôle ADMIN. */
+/** Selector indicating whether the user has ADMIN role. */
 export const selectIsAdmin = createSelector(
   selectCurrentUser,
   (user) => user?.roles?.includes('ADMIN') ?? false
 );
 
-/** Selecteur indiquant si l'utilisateur possède le rôle MANAGER. */
+/** Selector indicating whether the user has MANAGER role. */
 export const selectIsManager = createSelector(
   selectCurrentUser,
   (user) => user?.roles?.includes('MANAGER') ?? false
 );
 
-/** Selecteur indiquant si l'utilisateur possède le rôle BARMAN. */
+/** Selector indicating whether the user has BARMAN role. */
 export const selectIsBarman = createSelector(
   selectCurrentUser,
   (user) => user?.roles?.includes('BARMAN') ?? false
 );
 
-/** Selecteur indiquant si l'utilisateur possède le rôle SERVEUR. */
+/** Selector indicating whether the user has SERVEUR role. */
 export const selectIsServeur = createSelector(
   selectCurrentUser,
   (user) => user?.roles?.includes('SERVEUR') ?? false
 );
 
-/** Selecteur indiquant si l'utilisateur peut gérer les ingrédients et seuils d'alerte (ADMIN, MANAGER ou BARMAN). */
+/** Selector indicating whether the user can manage ingredients and alert thresholds (ADMIN, MANAGER, or BARMAN). */
 export const selectCanEditIngredient = createSelector(
   selectCurrentUser,
   (user) => user?.roles?.some(r => r === 'ADMIN' || r === 'MANAGER' || r === 'BARMAN') ?? false
 );
 
-/** Selecteur indiquant si l'utilisateur peut modifier les photos de cocktails (ADMIN, MANAGER ou BARMAN). */
+/** Selector indicating whether the user can upload cocktail photos (ADMIN, MANAGER, or BARMAN). */
 export const selectCanUploadPhoto = createSelector(
   selectCurrentUser,
   (user) => user?.roles?.some(r => r === 'ADMIN' || r === 'MANAGER' || r === 'BARMAN') ?? false

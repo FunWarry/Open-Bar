@@ -6,7 +6,7 @@ import {AuthResponse} from '../models/auth-response.model';
 import {tap} from "rxjs/operators";
 
 /**
- * Service Angular d'authentification HTTP et de gestion des jetons dans le LocalStorage.
+ * Angular authentication service handling HTTP requests and LocalStorage token persistence.
  */
 @Injectable({
   providedIn: 'root'
@@ -19,23 +19,23 @@ export class AuthService {
   private inProgress = false;
 
   /**
-   * Constructeur avec injection du client HTTP.
+   * Constructs the service injecting HttpClient.
    *
-   * @param http Client HttpClient d'Angular
+   * @param http Angular HttpClient
    */
   constructor(private readonly http: HttpClient) {
   }
 
   /**
-   * Authentifie un utilisateur via l'API REST backend.
+   * Authenticates user against the backend REST API.
    *
-   * @param username Nom d'utilisateur
-   * @param password Mot de passe
-   * @returns Un {@link Observable} émettant la réponse d'authentification {@link AuthResponse}
+   * @param username Username
+   * @param password Password
+   * @returns An {@link Observable} emitting {@link AuthResponse}
    */
   login(username: string, password: string): Observable<AuthResponse> {
     if (this.inProgress) {
-      return throwError(() => new Error('Une opération est déjà en cours'));
+      return throwError(() => new Error('An operation is already in progress'));
     }
 
     this.inProgress = true;
@@ -54,7 +54,7 @@ export class AuthService {
   }
 
   /**
-   * Déconnecte l'utilisateur en purgeant les jetons et le profil utilisateur du LocalStorage et de la session.
+   * Logs out user by clearing stored tokens and user profile from LocalStorage and session.
    */
   logout(): void {
     if (this.inProgress) {
@@ -75,28 +75,28 @@ export class AuthService {
   }
 
   /**
-   * Récupère l'access token JWT stocké dans le LocalStorage.
+   * Retrieves stored JWT access token from LocalStorage.
    *
-   * @returns Le token sous forme de chaîne de caractères ou {@code null} s'il est absent
+   * @returns Token string or {@code null} if not found
    */
   getToken(): string | null {
     return this.inProgress ? null : localStorage.getItem(this.TOKEN_KEY);
   }
 
   /**
-   * Récupère le refresh token stocké dans le LocalStorage.
+   * Retrieves stored refresh token from LocalStorage.
    *
-   * @returns Le refresh token ou {@code null}
+   * @returns Refresh token string or {@code null}
    */
   getRefreshToken(): string | null {
     return localStorage.getItem(this.REFRESH_TOKEN_KEY);
   }
 
   /**
-   * Enregistre l'access token et le refresh token dans le LocalStorage.
+   * Persists access token and refresh token into LocalStorage.
    *
-   * @param accessToken Nouveau jeton d'accès JWT
-   * @param refreshToken Nouveau jeton de rafraîchissement
+   * @param accessToken Fresh JWT access token
+   * @param refreshToken Fresh refresh token
    */
   storeTokens(accessToken: string, refreshToken: string): void {
     localStorage.setItem(this.TOKEN_KEY, accessToken);
@@ -104,9 +104,9 @@ export class AuthService {
   }
 
   /**
-   * Récupère les données de l'utilisateur actuellement stocké en local.
+   * Retrieves stored user profile details.
    *
-   * @returns L'objet utilisateur désérialisé ou {@code null}
+   * @returns Deserialized user object or {@code null}
    */
   getStoredUser() {
     if (this.inProgress) return null;
@@ -116,9 +116,9 @@ export class AuthService {
   }
 
   /**
-   * Sauvegarde les jetons et les informations utilisateur dans le stockage local.
+   * Saves tokens and profile details to LocalStorage.
    *
-   * @param response Réponse d'authentification reçue du serveur
+   * @param response Authentication response received from backend
    */
   private saveUserData(response: AuthResponse): void {
     localStorage.setItem(this.TOKEN_KEY, response.token);

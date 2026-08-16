@@ -72,43 +72,59 @@ export class FactureDetailComponent implements OnInit, OnDestroy {
     }
   }
 
-  get montantAffiche(): number {
+  get displayedAmount(): number {
     return this.facture?.totalTTC ?? this.facture?.total ?? 0;
   }
 
+  get montantAffiche(): number {
+    return this.displayedAmount;
+  }
+
   get totalHT(): number {
-    return this.facture?.totalHT ?? (this.montantAffiche / 1.2);
+    return this.facture?.totalHT ?? (this.displayedAmount / 1.2);
   }
 
   get totalVAT(): number {
-    return this.facture?.totalVAT ?? (this.montantAffiche - this.totalHT);
+    return this.facture?.totalVAT ?? (this.displayedAmount - this.totalHT);
+  }
+
+  statusColor(settled: boolean): string {
+    return settled ? 'success' : 'warning';
   }
 
   statutColor(reglee: boolean): string {
-    return reglee ? 'success' : 'warning';
+    return this.statusColor(reglee);
+  }
+
+  statusLabel(settled: boolean): string {
+    return settled ? 'FACTURES.SETTLED' : 'FACTURES.PENDING';
   }
 
   statutLabel(reglee: boolean): string {
-    return reglee ? 'RÉGLÉE' : 'EN ATTENTE';
+    return this.statusLabel(reglee);
   }
 
   trackById(_: number, item: FactureItem) {
     return item.id;
   }
 
-  telechargerPdf() {
+  downloadPdf() {
     if (this.facture) {
       window.open(`${environment.apiUrl}/factures/${this.facture.id}/pdf`, '_blank');
     }
   }
 
-  async reglerFacture() {
+  telechargerPdf() {
+    this.downloadPdf();
+  }
+
+  async settleFacture() {
     if (!this.facture || this.facture.reglee) return;
 
     const modal = await this.modalCtrl.create({
       component: ReglementModalComponent,
       componentProps: {
-        totalInitial: this.montantAffiche
+        totalInitial: this.displayedAmount
       }
     });
 
@@ -122,14 +138,26 @@ export class FactureDetailComponent implements OnInit, OnDestroy {
       .subscribe({
         next: async f => {
           this.facture = f;
-          const toast = await this.toastCtrl.create({ message: 'Facture marquée comme réglée avec succès', duration: 2000, color: 'success' });
+          const toast = await this.toastCtrl.create({
+            message: 'FACTURES.SETTLE_SUCCESS',
+            duration: 2000,
+            color: 'success'
+          });
           toast.present();
         },
         error: async () => {
-          const toast = await this.toastCtrl.create({ message: 'Erreur lors du règlement', duration: 3000, color: 'danger' });
+          const toast = await this.toastCtrl.create({
+            message: 'FACTURES.SETTLE_ERROR',
+            duration: 3000,
+            color: 'danger'
+          });
           toast.present();
         },
       });
+  }
+
+  async reglerFacture() {
+    await this.settleFacture();
   }
 }
 

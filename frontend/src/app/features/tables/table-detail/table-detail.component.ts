@@ -11,6 +11,7 @@ import {
 import { addIcons } from 'ionicons';
 import { arrowBack, create, eye } from 'ionicons/icons';
 import { AsyncPipe, DatePipe, CurrencyPipe } from '@angular/common';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { TableService } from '../../../core/services/table.service';
 import { CommandeService } from '../../../core/services/commande.service';
 import { TableBar } from '../../../core/models/table.model';
@@ -25,6 +26,7 @@ import { Commande } from '../../../core/models/commande.model';
     IonHeader, IonToolbar, IonTitle, IonContent,
     IonBadge, IonButton, IonButtons, IonIcon,
     AsyncPipe, DatePipe, CurrencyPipe,
+    TranslocoPipe,
   ],
 })
 export class TableDetailComponent implements OnInit, OnDestroy {
@@ -35,7 +37,14 @@ export class TableDetailComponent implements OnInit, OnDestroy {
 
   private readonly destroy$ = new Subject<void>();
 
-  constructor(private readonly store: Store,private readonly router: Router,private readonly route: ActivatedRoute,private readonly tableService: TableService,private readonly commandeService: CommandeService,private readonly toastCtrl: ToastController,
+  constructor(
+    private readonly store: Store,
+    private readonly router: Router,
+    private readonly route: ActivatedRoute,
+    private readonly tableService: TableService,
+    private readonly commandeService: CommandeService,
+    private readonly toastCtrl: ToastController,
+    private readonly transloco: TranslocoService,
   ) {
     this.isAdmin$ = this.store.select(selectIsAdmin);
     addIcons({ arrowBack, create, eye });
@@ -56,7 +65,7 @@ export class TableDetailComponent implements OnInit, OnDestroy {
           this.commandes = commandes.filter(c => c.statut !== 'REGLEE' && c.statut !== 'ANNULEE');
         },
         error: async () => {
-          const toast = await this.toastCtrl.create({ message: 'Erreur lors du chargement', duration: 3000, color: 'danger' });
+          const toast = await this.toastCtrl.create({ message: String(this.transloco.translate('ERRORS.SERVER') || 'Erreur lors du chargement'), duration: 3000, color: 'danger' });
           toast.present();
           this.router.navigate(['/tables']);
         },

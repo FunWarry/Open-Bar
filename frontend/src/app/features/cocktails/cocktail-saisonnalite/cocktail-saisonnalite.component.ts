@@ -7,87 +7,94 @@ import {
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { calendarOutline, checkmarkCircleOutline, closeCircleOutline } from 'ionicons/icons';
+import { TranslocoModule } from '@jsverse/transloco';
 import { CocktailService } from '../../../core/services/cocktail.service';
 import { Cocktail } from '../../../core/models/cocktail.model';
 
-const MOIS = [
-  { value: 1, label: 'Janvier' }, { value: 2, label: 'Février' },
-  { value: 3, label: 'Mars' }, { value: 4, label: 'Avril' },
-  { value: 5, label: 'Mai' }, { value: 6, label: 'Juin' },
-  { value: 7, label: 'Juillet' }, { value: 8, label: 'Août' },
-  { value: 9, label: 'Septembre' }, { value: 10, label: 'Octobre' },
-  { value: 11, label: 'Novembre' }, { value: 12, label: 'Décembre' }
+const MONTH_KEYS = [
+  { value: 1, key: 'COCKTAILS.SEASONALITY.MONTHS.1' },
+  { value: 2, key: 'COCKTAILS.SEASONALITY.MONTHS.2' },
+  { value: 3, key: 'COCKTAILS.SEASONALITY.MONTHS.3' },
+  { value: 4, key: 'COCKTAILS.SEASONALITY.MONTHS.4' },
+  { value: 5, key: 'COCKTAILS.SEASONALITY.MONTHS.5' },
+  { value: 6, key: 'COCKTAILS.SEASONALITY.MONTHS.6' },
+  { value: 7, key: 'COCKTAILS.SEASONALITY.MONTHS.7' },
+  { value: 8, key: 'COCKTAILS.SEASONALITY.MONTHS.8' },
+  { value: 9, key: 'COCKTAILS.SEASONALITY.MONTHS.9' },
+  { value: 10, key: 'COCKTAILS.SEASONALITY.MONTHS.10' },
+  { value: 11, key: 'COCKTAILS.SEASONALITY.MONTHS.11' },
+  { value: 12, key: 'COCKTAILS.SEASONALITY.MONTHS.12' }
 ];
 
 @Component({
   selector: 'app-cocktail-saisonnalite',
   standalone: true,
   imports: [
-    CommonModule, FormsModule,
+    CommonModule, FormsModule, TranslocoModule,
     IonItem, IonLabel, IonSelect, IonSelectOption,
     IonButton, IonIcon, IonNote, IonChip, IonToggle
   ],
   template: `
     <div class="saisonnalite-container">
-      <!-- Toggle disponibilité toute l'année -->
+      <!-- Year-round availability toggle -->
       <ion-item lines="none">
-        <ion-label>Disponible toute l'année</ion-label>
+        <ion-label>{{ 'COCKTAILS.SEASONALITY.ALL_YEAR' | transloco }}</ion-label>
         <ion-toggle slot="end" [(ngModel)]="touteAnnee" (ionChange)="onTouteAnneeChange()"></ion-toggle>
       </ion-item>
 
-      <!-- Sélecteurs mois si saisonnier -->
+      <!-- Month selectors if seasonal -->
       @if (!touteAnnee) {
         <ion-item>
-          <ion-label position="stacked">Mois de début</ion-label>
-          <ion-select [(ngModel)]="moisDebut" placeholder="Sélectionner">
+          <ion-label position="stacked">{{ 'COCKTAILS.SEASONALITY.START_MONTH' | transloco }}</ion-label>
+          <ion-select [(ngModel)]="moisDebut" [placeholder]="'COMMON.SELECT' | transloco">
             @for (mois of listeMois; track mois.value) {
-              <ion-select-option [value]="mois.value">{{ mois.label }}</ion-select-option>
+              <ion-select-option [value]="mois.value">{{ mois.key | transloco }}</ion-select-option>
             }
           </ion-select>
         </ion-item>
 
         <ion-item>
-          <ion-label position="stacked">Mois de fin</ion-label>
-          <ion-select [(ngModel)]="moisFin" placeholder="Sélectionner">
+          <ion-label position="stacked">{{ 'COCKTAILS.SEASONALITY.END_MONTH' | transloco }}</ion-label>
+          <ion-select [(ngModel)]="moisFin" [placeholder]="'COMMON.SELECT' | transloco">
             @for (mois of listeMois; track mois.value) {
-              <ion-select-option [value]="mois.value">{{ mois.label }}</ion-select-option>
+              <ion-select-option [value]="mois.value">{{ mois.key | transloco }}</ion-select-option>
             }
           </ion-select>
         </ion-item>
 
-        <!-- Aperçu visuel 12 cases -->
+        <!-- 12-month period preview -->
         <div class="saison-preview">
-          <ion-note>Aperçu de la période</ion-note>
+          <ion-note>{{ 'COCKTAILS.SEASONALITY.PERIOD_PREVIEW' | transloco }}</ion-note>
           <div class="mois-grid">
             @for (mois of listeMois; track mois.value) {
               <div
                 class="mois-cell"
                 [class.actif]="isMoisActif(mois.value)"
                 [class.courant]="mois.value === moisCourant">
-                {{ mois.label.slice(0, 3) }}
+                {{ (mois.key | transloco).slice(0, 3) }}
               </div>
             }
           </div>
         </div>
 
-        <!-- Badge disponibilité aujourd'hui -->
+        <!-- Availability badge for current month -->
         <div class="disponibilite-badge">
           @if (isDisponibleAujourdhui) {
             <ion-chip color="success">
               <ion-icon name="checkmark-circle-outline"></ion-icon>
-              <ion-label>Disponible ce mois-ci</ion-label>
+              <ion-label>{{ 'COCKTAILS.SEASONALITY.AVAILABLE_NOW' | transloco }}</ion-label>
             </ion-chip>
           } @else {
             <ion-chip color="warning">
               <ion-icon name="close-circle-outline"></ion-icon>
-              <ion-label>Hors saison</ion-label>
+              <ion-label>{{ 'COCKTAILS.SEASONALITY.OUT_OF_SEASON' | transloco }}</ion-label>
             </ion-chip>
           }
         </div>
       }
 
       <ion-button expand="block" (click)="sauvegarder()" [disabled]="saving" class="save-btn">
-        {{ saving ? 'Enregistrement...' : 'Enregistrer la saisonnalité' }}
+        {{ (saving ? 'COCKTAILS.SEASONALITY.SAVING' : 'COCKTAILS.SEASONALITY.SAVE') | transloco }}
       </ion-button>
     </div>
   `,
@@ -148,7 +155,7 @@ export class CocktailSaisonnaliteComponent implements OnInit {
   @Input() cocktail!: Cocktail;
   @Output() updated = new EventEmitter<Cocktail>();
 
-  listeMois = MOIS;
+  listeMois = MONTH_KEYS;
   moisDebut: number | null = null;
   moisFin: number | null = null;
   touteAnnee = true;
@@ -177,7 +184,7 @@ export class CocktailSaisonnaliteComponent implements OnInit {
     if (this.moisDebut <= this.moisFin) {
       return mois >= this.moisDebut && mois <= this.moisFin;
     }
-    // Chevauchement d'année (ex: Oct → Fév)
+    // Year wrap-around (e.g. Oct -> Feb)
     return mois >= this.moisDebut || mois <= this.moisFin;
   }
 

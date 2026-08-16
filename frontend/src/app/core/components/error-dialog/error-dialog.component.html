@@ -1,8 +1,8 @@
 <ion-header>
   <ion-toolbar color="danger">
-    <ion-title>Erreur</ion-title>
+    <ion-title>{{ 'COMMON.ERROR' | transloco }}</ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="onClose()" (keyup.enter)="onClose()">Fermer</ion-button>
+      <ion-button (click)="onClose()" (keyup.enter)="onClose()">{{ 'COMMON.CLOSE' | transloco }}</ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
@@ -10,6 +10,6 @@
 <ion-content class="ion-padding">
   <p>{{ data.message }}</p>
   <div class="form-actions ion-padding-top">
-    <ion-button expand="block" (click)="onClose()" (keyup.enter)="onClose()">Fermer</ion-button>
+    <ion-button expand="block" (click)="onClose()" (keyup.enter)="onClose()">{{ 'COMMON.CLOSE' | transloco }}</ion-button>
   </div>
 </ion-content>

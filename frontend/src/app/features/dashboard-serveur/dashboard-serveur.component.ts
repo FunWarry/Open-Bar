@@ -66,6 +66,7 @@ export interface GroupedTables {
   occupiedCount: number;
 }
 
+import { TranslocoModule } from '@jsverse/transloco';
 import { CommandeListComponent } from '../commandes/commande-list/commande-list.component';
 
 /**
@@ -79,6 +80,7 @@ import { CommandeListComponent } from '../commandes/commande-list/commande-list.
   imports: [
     CommonModule,
     FormsModule,
+    TranslocoModule,
     IonContent, IonHeader, IonToolbar,
     IonRefresher, IonRefresherContent,
     IonSearchbar, IonIcon,

@@ -102,7 +102,7 @@
           <h4>{{ 'TABLE_SIDE_PANEL.POLYGON_VERTICES_HEADER' | transloco }}</h4>
           <button type="button" class="icon-tool-btn add-vertex-btn" (click)="addPolygonVertex()" [title]="'TABLE_SIDE_PANEL.ADD_VERTEX_TOOLTIP' | transloco">
             <ion-icon name="add-outline"></ion-icon>
-            <span>Ajouter</span>
+            <span>{{ 'COMMON.ADD' | transloco }}</span>
           </button>
         </div>
         <p class="section-hint">{{ 'TABLE_SIDE_PANEL.POLYGON_HINT' | transloco }}</p>
@@ -112,7 +112,7 @@
             <div class="vertex-card__header">
               <div class="vertex-card__title">
                 <span class="vertex-dot"></span>
-                <span class="vertex-label">Sommet P{{ i + 1 }}</span>
+                <span class="vertex-label">{{ 'TABLE_SIDE_PANEL.VERTEX_LABEL' | transloco:{ num: i + 1 } }}</span>
               </div>
               <button
                 type="button"

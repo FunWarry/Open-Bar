@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ToastController, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonLabel, IonButton, IonNote, IonSelect, IonSelectOption } from '@ionic/angular/standalone';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
 import { CommandeService } from '../../../core/services/commande.service';
 import { TableService } from '../../../core/services/table.service';
@@ -17,6 +18,7 @@ import { TableBar } from '../../../core/models/table.model';
     IonItem, IonLabel, IonButton, IonNote,
     IonSelect, IonSelectOption,
     ReactiveFormsModule,
+    TranslocoPipe
   ],
 })
 export class CommandeFormComponent implements OnInit {
@@ -31,7 +33,8 @@ export class CommandeFormComponent implements OnInit {
     public readonly router: Router,
     private readonly toastCtrl: ToastController,
     private readonly commandeService: CommandeService,
-    private readonly tableService: TableService
+    private readonly tableService: TableService,
+    private readonly transloco: TranslocoService
   ) {
     this.commandeForm = this.fb.group({
       tableId: ['', [Validators.required, Validators.min(1)]],
@@ -55,12 +58,12 @@ export class CommandeFormComponent implements OnInit {
     if (this.commandeForm.invalid) return;
     this.commandeService.create(this.commandeForm.value).subscribe({
       next: async () => {
-        const toast = await this.toastCtrl.create({ message: 'Commande créée', duration: 3000, color: 'success' });
+        const toast = await this.toastCtrl.create({ message: String(this.transloco.translate('MESSAGES.ORDER_CREATED') || 'Commande créée'), duration: 3000, color: 'success' });
         toast.present();
         this.router.navigate(['/commandes']);
       },
       error: async () => {
-        const toast = await this.toastCtrl.create({ message: 'Erreur lors de la création', duration: 3000, color: 'danger' });
+        const toast = await this.toastCtrl.create({ message: String(this.transloco.translate('ERRORS.SERVER') || 'Erreur lors de la création'), duration: 3000, color: 'danger' });
         toast.present();
       },
     });

@@ -101,7 +101,7 @@ export class ShiftService {
   }
 
   /**
-   * Retrieves all shift presets (modèles de créneaux horraires).
+   * Retrieves all shift presets (default shift templates).
    *
    * @returns Observable array of ShiftPreset objects
    */

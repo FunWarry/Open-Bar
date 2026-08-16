@@ -2,21 +2,21 @@
   <div class="cart-header">
     <h3>
       <ion-icon name="cart-outline"></ion-icon>
-      Commande en cours
+      {{ 'SERVEUR.CURRENT_ORDER' | transloco }}
     </h3>
     <button class="clear-btn" *ngIf="cart.items.length > 0" (click)="clearCart.emit()" (keyup.enter)="clearCart.emit()">
-      Vider
+      {{ 'SERVEUR.CLEAR' | transloco }}
     </button>
   </div>
 
   <!-- Table Selector -->
   <div class="table-selector-wrap">
-    <label for="table-select-cart">Table assignée :</label>
+    <label for="table-select-cart">{{ 'SERVEUR.ASSIGNED_TABLE' | transloco }} :</label>
     <ion-select
       id="table-select-cart"
-      aria-label="Table assignée"
+      [attr.aria-label]="'SERVEUR.ASSIGNED_TABLE' | transloco"
       [value]="cart.tableId"
-      placeholder="Sélectionner une table"
+      [placeholder]="'SERVEUR.SELECT_TABLE' | transloco"
       interface="popover"
       (ionChange)="onTableChanged($event)">
       <ion-select-option *ngFor="let t of tables" [value]="t.id">
@@ -30,8 +30,8 @@
     <app-empty-state
       *ngIf="cart.items.length === 0"
       icon="basket-outline"
-      title="Panier vide"
-      description="Ajoutez des boissons ou snacks depuis le menu ci-contre.">
+      [title]="'SERVEUR.EMPTY_CART_TITLE' | transloco"
+      [subtitle]="'SERVEUR.EMPTY_CART_DESC' | transloco">
     </app-empty-state>
 
     <div class="cart-item-row" *ngFor="let item of cart.items">
@@ -39,7 +39,7 @@
         <div class="item-name-row">
           <span class="item-name">{{ item.nom }}</span>
           <span *ngIf="item.varianteNom" class="item-variant">({{ item.varianteNom }})</span>
-          <span class="edit-custom-icon" title="Modifier remarques">
+          <span class="edit-custom-icon" [title]="'COMMON.EDIT' | transloco">
             <ion-icon name="create-outline"></ion-icon>
           </span>
         </div>
@@ -67,7 +67,7 @@
   <!-- Cart Footer -->
   <div class="cart-footer" *ngIf="cart.items.length > 0">
     <div class="cart-total-row">
-      <span>Total TTC</span>
+      <span>{{ 'SERVEUR.BREAKDOWN.TOTAL_TTC' | transloco }}</span>
       <span class="total-amount">{{ totalTTC | number:'1.2-2' }} €</span>
     </div>
 
@@ -78,7 +78,7 @@
       [disabled]="!cart.tableId || isSubmitting"
       (click)="onSubmit()"
       (keyup.enter)="onSubmit()">
-      Envoyer en préparation
+      {{ 'SERVEUR.SEND_PREPARATION' | transloco }}
     </app-action-button>
   </div>
 </div>

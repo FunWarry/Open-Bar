@@ -13,7 +13,7 @@ import {
   IonSearchbar, IonSelect, IonSelectOption,
   ToastController, ModalController,
 } from '@ionic/angular/standalone';
-import { TranslocoModule } from '@jsverse/transloco';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { addIcons } from 'ionicons';
 import {
   addOutline, removeOutline, trashOutline,
@@ -148,6 +148,7 @@ export class NouvelleCommandeComponent implements OnInit, OnDestroy {
     private readonly cocktailService: CocktailService,
     private readonly toastCtrl: ToastController,
     private readonly modalCtrl: ModalController,
+    private readonly transloco: TranslocoService,
   ) {
     addIcons({
       addOutline, removeOutline, trashOutline, checkmarkOutline,
@@ -391,7 +392,7 @@ export class NouvelleCommandeComponent implements OnInit, OnDestroy {
    * Creates the order and submits all cart items to the API.
    * On success, navigates back to the serveur dashboard.
    */
-  valider(): void {
+  submitOrder(): void {
     if (this.cart.length === 0 || this.isSubmitting) return;
     this.isSubmitting = true;
 
@@ -402,10 +403,10 @@ export class NouvelleCommandeComponent implements OnInit, OnDestroy {
           forkJoin(
             this.cart.map(item => {
               const req: AjouterItemRequest = {
-                cocktailId: item.cocktailId,
-                quantite: item.quantite,
-                varianteId: item.varianteId,
-                notes: item.notes,
+                 cocktailId: item.cocktailId,
+                 quantite: item.quantite,
+                 varianteId: item.varianteId,
+                 notes: item.notes,
               };
               return this.service.ajouterItem(commande.id, req);
             }),
@@ -416,7 +417,7 @@ export class NouvelleCommandeComponent implements OnInit, OnDestroy {
       .subscribe({
         next: async () => {
           const toast = await this.toastCtrl.create({
-            message: 'Commande créée avec succès',
+            message: String(this.transloco.translate('MESSAGES.ORDER_CREATED') || 'Commande créée avec succès'),
             duration: 2000,
             color: 'success',
           });
@@ -425,13 +426,33 @@ export class NouvelleCommandeComponent implements OnInit, OnDestroy {
         },
         error: async () => {
           const toast = await this.toastCtrl.create({
-            message: 'Erreur lors de la création de la commande',
+            message: String(this.transloco.translate('ERRORS.SERVER') || 'Erreur lors de la création de la commande'),
             duration: 3000,
             color: 'danger',
           });
           toast.present();
         },
       });
+  }
+
+  valider(): void {
+    this.submitOrder();
+  }
+
+  openModal(cocktail: Cocktail): Promise<void> {
+    return this.ouvrirModal(cocktail);
+  }
+
+  decreaseQuantity(key: string): void {
+    this.retirer(key);
+  }
+
+  increaseQuantity(key: string): void {
+    this.incrementer(key);
+  }
+
+  removeItem(key: string): void {
+    this.supprimer(key);
   }
 
   /** Track-by function for the cocktails ngFor loop. */

@@ -6,26 +6,26 @@ import {map, take} from 'rxjs/operators';
 import {selectIsAuthenticated} from '../store/auth.selectors';
 
 /**
- * Guard d'authentification Angular pour protéger les routes nécessitant un utilisateur connecté.
- * Redirige l'utilisateur non authentifié vers la page de login (/auth/login).
+ * Angular authentication route guard protecting endpoints that require an authenticated user.
+ * Redirects unauthenticated users to the login page (/auth/login).
  */
 @Injectable({
   providedIn: 'root'
 })
 export class AuthGuard implements CanActivate {
   /**
-   * Constructeur avec injection du Store NgRx et du Router Angular.
+   * Constructs the guard with NgRx store and Router dependencies.
    *
-   * @param store Store NgRx centralisé
-   * @param router Service de navigation Angular
+   * @param store Centralized NgRx store
+   * @param router Angular navigation router
    */
   constructor(private readonly store: Store, private readonly router: Router) {
   }
 
   /**
-   * Détermine si la route peut être activée.
+   * Determines if the route can be activated.
    *
-   * @returns Un {@link Observable} émettant {@code true} si authentifié, ou un {@link UrlTree} de redirection vers /auth/login sinon.
+   * @returns An {@link Observable} emitting {@code true} if authenticated, or a {@link UrlTree} redirecting to /auth/login otherwise.
    */
   canActivate(): Observable<boolean | UrlTree> {
     return this.store.select(selectIsAuthenticated).pipe(

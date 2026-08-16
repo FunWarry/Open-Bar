@@ -1,11 +1,11 @@
 <ion-card>
   <ion-card-header>
-    <ion-card-title>{{ isEditMode ? 'Modifier la Commande' : 'Nouvelle Commande' }}</ion-card-title>
+    <ion-card-title>{{ (isEditMode ? 'COMMANDES.ACTIONS.EDIT' : 'COMMANDES.NEW') | transloco }}</ion-card-title>
   </ion-card-header>
   <ion-card-content>
     <form (ngSubmit)="onSubmit()" [formGroup]="commandeForm">
       <ion-item>
-        <ion-label position="stacked">Table</ion-label>
+        <ion-label position="stacked">{{ 'COMMANDES.TABLE' | transloco }}</ion-label>
         <ion-select formControlName="tableId" required aria-label="Table">
           @for (t of tables; track t.id) {
             <ion-select-option [value]="t.id">Table #{{ t.numero }} ({{ t.zone }})</ion-select-option>
@@ -14,14 +14,14 @@
       </ion-item>
       @if (commandeForm.get('tableId')?.hasError('required') && commandeForm.get('tableId')?.touched) {
         <ion-note color="danger">
-          La table est requise
+          {{ 'TABLES.ZONE_REQUIRED' | transloco }}
         </ion-note>
       }
 
       <div class="button-row">
-        <ion-button fill="clear" type="button" (click)="router.navigate(['/commandes'])" (keydown.enter)="router.navigate(['/commandes'])" data-testid="btn-cancel-commande">Annuler</ion-button>
+        <ion-button fill="clear" type="button" (click)="router.navigate(['/commandes'])" (keydown.enter)="router.navigate(['/commandes'])" data-testid="btn-cancel-commande">{{ 'COMMON.CANCEL' | transloco }}</ion-button>
         <ion-button [disabled]="!commandeForm.valid" color="primary" type="submit" data-testid="btn-submit-commande">
-          {{ isEditMode ? 'Modifier' : 'Créer' }}
+          {{ (isEditMode ? 'COMMON.EDIT' : 'COMMON.CREATE') | transloco }}
         </ion-button>
       </div>
     </form>

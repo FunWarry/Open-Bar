@@ -1,6 +1,6 @@
 <ion-header>
   <ion-toolbar class="fusion-toolbar">
-    <ion-title>🔀 Confirmer la Fusion</ion-title>
+    <ion-title>🔀 {{ 'PLAN_SALLE_PAGE.FUSION_MODAL.TITLE' | transloco }}</ion-title>
     <ion-buttons slot="end">
       <ion-button (click)="cancel()" (keyup.enter)="cancel()">
         <ion-icon name="close-outline"></ion-icon>
@@ -12,32 +12,32 @@
 <ion-content class="fusion-content">
   <div class="fusion-body">
     <p class="fusion-text">
-      Voulez-vous vraiment fusionner la <strong>Table {{ sourceTable.numero }}</strong> avec la <strong>Table {{ targetTable.numero }}</strong> ?
+      {{ 'PLAN_SALLE_PAGE.FUSION_MODAL.PROMPT' | transloco:{ source: sourceTable.numero, target: targetTable.numero } }}
     </p>
 
     <div class="fusion-details" *ngIf="sourceTable && targetTable">
       <div class="table-box">
-        <span class="box-title">Source</span>
+        <span class="box-title">{{ 'PLAN_SALLE_PAGE.FUSION_MODAL.SOURCE' | transloco }}</span>
         <span class="table-num">T{{ sourceTable.numero }}</span>
-        <span class="table-cap">{{ sourceTable.capacite }} places</span>
+        <span class="table-cap">{{ 'PLAN_SALLE_PAGE.FUSION_MODAL.SEATS' | transloco:{ count: sourceTable.capacite } }}</span>
       </div>
 
       <ion-icon name="git-merge-outline" class="merge-icon"></ion-icon>
 
       <div class="table-box">
-        <span class="box-title">Cible</span>
+        <span class="box-title">{{ 'PLAN_SALLE_PAGE.FUSION_MODAL.TARGET' | transloco }}</span>
         <span class="table-num">T{{ targetTable.numero }}</span>
-        <span class="table-cap">{{ targetTable.capacite }} places</span>
+        <span class="table-cap">{{ 'PLAN_SALLE_PAGE.FUSION_MODAL.SEATS' | transloco:{ count: targetTable.capacite } }}</span>
       </div>
     </div>
 
     <p class="fusion-note">
-      Une commande commune sera créée et les deux tables seront regroupées en une seule table de {{ (sourceTable.capacite || 0) + (targetTable.capacite || 0) }} places.
+      {{ 'PLAN_SALLE_PAGE.FUSION_MODAL.NOTE' | transloco:{ total: (sourceTable.capacite || 0) + (targetTable.capacite || 0) } }}
     </p>
 
     <div class="modal-actions">
-      <app-action-button variant="secondary" (btnClick)="cancel()">Annuler</app-action-button>
-      <app-action-button variant="primary" icon="git-merge-outline" (btnClick)="confirm()">Fusionner</app-action-button>
+      <app-action-button variant="secondary" (btnClick)="cancel()">{{ 'COMMON.CANCEL' | transloco }}</app-action-button>
+      <app-action-button variant="primary" icon="git-merge-outline" (btnClick)="confirm()">{{ 'PLAN_SALLE_PAGE.FUSION_MODAL.CONFIRM' | transloco }}</app-action-button>
     </div>
   </div>
 </ion-content>
