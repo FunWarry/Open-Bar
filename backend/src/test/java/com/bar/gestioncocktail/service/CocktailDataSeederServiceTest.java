@@ -30,6 +30,9 @@ class CocktailDataSeederServiceTest {
     @Mock
     private CocktailIngredientRepository cocktailIngredientRepository;
 
+    @Mock
+    private com.bar.gestioncocktail.repository.CocktailVarianteRepository cocktailVarianteRepository;
+
     private CocktailDataSeederService seederService;
 
     @BeforeEach
@@ -37,7 +40,8 @@ class CocktailDataSeederServiceTest {
         seederService = new CocktailDataSeederService(
             cocktailRepository,
             ingredientRepository,
-            cocktailIngredientRepository
+            cocktailIngredientRepository,
+            cocktailVarianteRepository
         );
     }
 

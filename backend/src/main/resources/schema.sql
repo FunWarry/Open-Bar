@@ -291,6 +291,15 @@ ALTER TABLE commandes ADD COLUMN IF NOT EXISTS date_modification TIMESTAMP;
 ALTER TABLE tables ADD COLUMN IF NOT EXISTS date_occupation TIMESTAMP;
 ALTER TABLE tables ADD COLUMN IF NOT EXISTS date_liberation TIMESTAMP;
 
+-- Colonnes complémentaires ingrédients et variantes (#219/#185)
+ALTER TABLE ingredients ADD COLUMN IF NOT EXISTS quantite_stock DECIMAL(10,2) DEFAULT 0;
+ALTER TABLE ingredients ADD COLUMN IF NOT EXISTS prix_unitaire DECIMAL(10,4) DEFAULT 0;
+ALTER TABLE ingredients ADD COLUMN IF NOT EXISTS numero_lot VARCHAR(50);
+ALTER TABLE ingredients ADD COLUMN IF NOT EXISTS date_peremption TIMESTAMP;
+ALTER TABLE ingredients ADD COLUMN IF NOT EXISTS notes TEXT;
+ALTER TABLE cocktail_variantes ADD COLUMN IF NOT EXISTS multiplicateur_ingredient DECIMAL(10,2) DEFAULT 1.0;
+ALTER TABLE cocktail_variantes ADD COLUMN IF NOT EXISTS instructions TEXT;
+
 -- Colonnes horodatage par défaut
 ALTER TABLE cocktail_ingredients ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP;
 ALTER TABLE cocktail_ingredients ALTER COLUMN updated_at SET DEFAULT CURRENT_TIMESTAMP;

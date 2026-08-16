@@ -470,27 +470,10 @@ public class SampleDataSeederService {
         cmd.setTrackingToken("TRK-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
         cmd.setNotes(notes);
 
-        BigDecimal total = BigDecimal.ZERO;
-        List<CommandeItem> items = new ArrayList<>();
-
-        JsonNode itemsNode = oNode.get(KEY_ITEMS);
-        if (itemsNode != null && itemsNode.isArray()) {
-            for (JsonNode itemNode : itemsNode) {
-                String cocktailName = itemNode.get("cocktailName").asText();
-                int quantite = itemNode.has(KEY_QUANTITE) ? itemNode.get(KEY_QUANTITE).asInt() : 1;
-                Cocktail c = findCocktailByName(cocktails, cocktailName);
-                if (c != null) {
-                    CommandeItem item = new CommandeItem();
-                    item.setCommande(cmd);
-                    item.setCocktail(c);
-                    item.setQuantite(quantite);
-                    BigDecimal unitPrice = c.getPrix() != null ? c.getPrix() : new BigDecimal("9.50");
-                    item.setPrixUnitaire(unitPrice);
-                    items.add(item);
-                    total = total.add(unitPrice.multiply(new BigDecimal(quantite)));
-                }
-            }
-        }
+        List<CommandeItem> items = buildOrderItems(cmd, oNode.get(KEY_ITEMS), cocktails);
+        BigDecimal total = items.stream()
+                .map(it -> it.getPrixUnitaire().multiply(BigDecimal.valueOf(it.getQuantite())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         cmd.setItems(items);
         cmd.setTotal(total);
@@ -499,13 +482,65 @@ public class SampleDataSeederService {
         commandeRepository.save(cmd);
     }
 
+    private List<CommandeItem> buildOrderItems(Commande cmd, JsonNode itemsNode, List<Cocktail> cocktails) {
+        List<CommandeItem> items = new ArrayList<>();
+        if (itemsNode == null || !itemsNode.isArray()) {
+            return items;
+        }
+
+        for (JsonNode itemNode : itemsNode) {
+            CommandeItem item = buildSingleCommandeItem(cmd, itemNode, cocktails);
+            if (item != null) {
+                items.add(item);
+            }
+        }
+        return items;
+    }
+
+    private CommandeItem buildSingleCommandeItem(Commande cmd, JsonNode itemNode, List<Cocktail> cocktails) {
+        String cocktailName = itemNode.get("cocktailName").asText();
+        Cocktail c = findCocktailByName(cocktails, cocktailName);
+        if (c == null) {
+            return null;
+        }
+
+        int quantite = itemNode.has(KEY_QUANTITE) ? itemNode.get(KEY_QUANTITE).asInt() : 1;
+        BigDecimal unitPrice = c.getPrix() != null ? c.getPrix() : new BigDecimal("9.50");
+
+        CommandeItem item = new CommandeItem();
+        item.setCommande(cmd);
+        item.setCocktail(c);
+        item.setQuantite(quantite);
+
+        if (itemNode.hasNonNull("varianteName") && c.getVariantes() != null) {
+            String vNom = itemNode.get("varianteName").asText();
+            c.getVariantes().stream()
+                    .filter(v -> v.getNom().equalsIgnoreCase(vNom))
+                    .findFirst()
+                    .ifPresent(v -> {
+                        item.setVariante(v);
+                        if (v.getPrixSupplement() != null) {
+                            item.setPrixUnitaire(unitPrice.add(v.getPrixSupplement()));
+                        }
+                    });
+        }
+        if (item.getPrixUnitaire() == null) {
+            item.setPrixUnitaire(unitPrice);
+        }
+        return item;
+    }
+
     private void updateOrderTimestampsByStatus(Commande cmd, CommandeStatut statut, LocalDateTime orderTime) {
         if (statut == CommandeStatut.EN_PREPARATION) {
             cmd.setDatePreparation(orderTime.plusMinutes(2));
         } else if (statut == CommandeStatut.PRET) {
             cmd.setDatePreparation(orderTime.plusMinutes(2));
-            cmd.setDateLivraison(orderTime.plusMinutes(5));
+        } else if (statut == CommandeStatut.LIVREE) {
+            cmd.setDatePreparation(orderTime.plusMinutes(2));
+            cmd.setDateLivraison(orderTime.plusMinutes(7));
         } else if (statut == CommandeStatut.REGLEE) {
+            cmd.setDatePreparation(orderTime.plusMinutes(2));
+            cmd.setDateLivraison(orderTime.plusMinutes(7));
             cmd.setDateReglement(orderTime.plusMinutes(35));
         }
     }

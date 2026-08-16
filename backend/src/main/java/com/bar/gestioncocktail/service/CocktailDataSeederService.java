@@ -4,6 +4,7 @@ import com.bar.gestioncocktail.model.*;
 import com.bar.gestioncocktail.repository.CocktailIngredientRepository;
 import com.bar.gestioncocktail.repository.CocktailRepository;
 import com.bar.gestioncocktail.repository.IngredientRepository;
+import com.bar.gestioncocktail.repository.CocktailVarianteRepository;
 import com.fasterxml.jackson.core.json.JsonReadFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,15 +20,14 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 /**
  * Service responsible for automatically seeding the database with the cocktail
- * dataset
- * ONLY in the test environment if the database contains no cocktails on
- * application startup.
+ * dataset ONLY in the dev/test environment if the database contains no cocktails on startup.
  */
 @Service
 @Profile({"dev", "test"})
@@ -50,15 +50,18 @@ public class CocktailDataSeederService {
     private final CocktailRepository cocktailRepository;
     private final IngredientRepository ingredientRepository;
     private final CocktailIngredientRepository cocktailIngredientRepository;
+    private final CocktailVarianteRepository cocktailVarianteRepository;
     private final ObjectMapper objectMapper;
 
     public CocktailDataSeederService(
             CocktailRepository cocktailRepository,
             IngredientRepository ingredientRepository,
-            CocktailIngredientRepository cocktailIngredientRepository) {
+            CocktailIngredientRepository cocktailIngredientRepository,
+            CocktailVarianteRepository cocktailVarianteRepository) {
         this.cocktailRepository = cocktailRepository;
         this.ingredientRepository = ingredientRepository;
         this.cocktailIngredientRepository = cocktailIngredientRepository;
+        this.cocktailVarianteRepository = cocktailVarianteRepository;
         this.objectMapper = JsonMapper.builder()
                 .enable(JsonReadFeature.ALLOW_NON_NUMERIC_NUMBERS)
                 .build();
@@ -150,18 +153,67 @@ public class CocktailDataSeederService {
 
             JsonNode ingredientsNode = node.get("ingredients");
             boolean containsAlcohol = detectAlcohol(ingredientsNode, nom);
-            cocktail.setCategorie(containsAlcohol ? CocktailCategorie.ALCOOLISE : CocktailCategorie.SANS_ALCOOL);
+            cocktail.setCategorie(detectCategory(node, containsAlcohol));
 
             Cocktail savedCocktail = cocktailRepository.save(cocktail);
             List<CocktailIngredient> ingredientsList = importIngredients(savedCocktail, ingredientsNode);
 
             savedCocktail.setIngredients(ingredientsList);
             cocktailRepository.save(savedCocktail);
+
+            importVariantes(savedCocktail, node.get("variantes"));
             return true;
         } catch (Exception e) {
             log.error("Error importing cocktail node: {}", node, e);
             return false;
         }
+    }
+
+    private CocktailCategorie detectCategory(JsonNode node, boolean containsAlcohol) {
+        if (node.hasNonNull("categorie")) {
+            try {
+                return CocktailCategorie.valueOf(node.get("categorie").asText().trim());
+            } catch (IllegalArgumentException | NullPointerException e) {
+                // fallback to automatic detection
+            }
+        }
+        return containsAlcohol ? CocktailCategorie.ALCOOLISE : CocktailCategorie.SANS_ALCOOL;
+    }
+
+    private void importVariantes(Cocktail savedCocktail, JsonNode variantesNode) {
+        if (variantesNode == null || !variantesNode.isArray()) {
+            return;
+        }
+        for (JsonNode vNode : variantesNode) {
+            CocktailVariante v = createVarianteFromNode(savedCocktail, vNode);
+            if (v != null) {
+                cocktailVarianteRepository.save(v);
+            }
+        }
+    }
+
+    private CocktailVariante createVarianteFromNode(Cocktail savedCocktail, JsonNode vNode) {
+        String vNom = vNode.hasNonNull("nom") ? vNode.get("nom").asText().trim() : null;
+        if (vNom == null || vNom.isBlank()) {
+            return null;
+        }
+
+        CocktailVariante v = new CocktailVariante();
+        v.setCocktail(savedCocktail);
+        v.setNom(vNom);
+        v.setDescription(vNode.hasNonNull("description") ? vNode.get("description").asText() : null);
+        v.setPrixSupplement(extractBigDecimal(vNode, "prix_supplement", BigDecimal.ZERO));
+        v.setMultiplicateurIngredient(extractBigDecimal(vNode, "multiplicateur_ingredient", BigDecimal.ONE));
+        v.setDisponible(!vNode.hasNonNull("disponible") || vNode.get("disponible").asBoolean());
+        v.setInstructions(vNode.hasNonNull("instructions") ? vNode.get("instructions").asText() : null);
+        return v;
+    }
+
+    private BigDecimal extractBigDecimal(JsonNode node, String fieldName, BigDecimal defaultValue) {
+        if (node.hasNonNull(fieldName)) {
+            return BigDecimal.valueOf(node.get(fieldName).asDouble()).setScale(2, RoundingMode.HALF_UP);
+        }
+        return defaultValue;
     }
 
     private BigDecimal extractPrice(JsonNode node) {
@@ -223,7 +275,9 @@ public class CocktailDataSeederService {
                     newIng.setUniteMesure(unite.isEmpty() || unite.equalsIgnoreCase("nan") ? "cl" : unite);
                     newIng.setQuantiteStock(BigDecimal.valueOf(100.0));
                     newIng.setSeuilAlerte(BigDecimal.valueOf(10.0));
-                    newIng.setPrixUnitaire(BigDecimal.valueOf(costRaw).setScale(4, RoundingMode.HALF_UP));
+                    newIng.setPrixUnitaire(BigDecimal.valueOf(costRaw > 0 ? costRaw : 0.50).setScale(4, RoundingMode.HALF_UP));
+                    newIng.setFournisseur("Fournisseur Boissons & Primeurs");
+                    newIng.setDatePeremption(LocalDateTime.now(java.time.ZoneId.of("Europe/Paris")).plusMonths(6));
                     return ingredientRepository.save(newIng);
                 });
     }

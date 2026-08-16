@@ -6,7 +6,10 @@
       "authSecret": "admin123",
       "nom": "Dupont",
       "prenom": "Alexandre",
-      "roles": ["ADMIN", "MANAGER"]
+      "roles": [
+        "ADMIN",
+        "MANAGER"
+      ]
     },
     {
       "username": "manager",
@@ -14,7 +17,9 @@
       "authSecret": "manager123",
       "nom": "Martin",
       "prenom": "Sophie",
-      "roles": ["MANAGER"]
+      "roles": [
+        "MANAGER"
+      ]
     },
     {
       "username": "serveur1",
@@ -22,7 +27,9 @@
       "authSecret": "serveur123",
       "nom": "Bernard",
       "prenom": "Lucas",
-      "roles": ["SERVEUR"]
+      "roles": [
+        "SERVEUR"
+      ]
     },
     {
       "username": "serveur2",
@@ -30,7 +37,9 @@
       "authSecret": "serveur123",
       "nom": "Dubois",
       "prenom": "Camille",
-      "roles": ["SERVEUR"]
+      "roles": [
+        "SERVEUR"
+      ]
     },
     {
       "username": "barman1",
@@ -38,7 +47,9 @@
       "authSecret": "barman123",
       "nom": "Moreau",
       "prenom": "Antoine",
-      "roles": ["BARMAN"]
+      "roles": [
+        "BARMAN"
+      ]
     },
     {
       "username": "barman2",
@@ -46,236 +57,576 @@
       "authSecret": "barman123",
       "nom": "Laurent",
       "prenom": "Emma",
-      "roles": ["BARMAN"]
+      "roles": [
+        "BARMAN"
+      ]
     }
   ],
   "etages": [
-    { "code": "RDC", "nom": "Rez-de-chaussée (RDC)", "ordre": 1 },
-    { "code": "ETAGE_1", "nom": "1er Étage", "ordre": 2 },
-    { "code": "ETAGE_2", "nom": "2ème Étage / Rooftop", "ordre": 3 }
+    {
+      "code": "RDC",
+      "nom": "Rez-de-chaussée (RDC)",
+      "ordre": 1
+    },
+    {
+      "code": "ETAGE_1",
+      "nom": "1er Étage / Mezzanine",
+      "ordre": 2
+    },
+    {
+      "code": "ETAGE_2",
+      "nom": "2ème Étage / Rooftop",
+      "ordre": 3
+    }
   ],
   "zones": [
     {
       "nom": "Salle Principale",
       "etage": "RDC",
-      "planX": 50.0,
-      "planY": 50.0,
-      "planWidth": 850.0,
-      "planHeight": 500.0,
+      "planX": 50,
+      "planY": 50,
+      "planWidth": 850,
+      "planHeight": 500,
       "shapeType": "rect",
-      "cornerRadii": [24, 24, 24, 24],
+      "cornerRadii": [
+        24,
+        24,
+        24,
+        24
+      ],
       "couleur": "#6c7fe8"
     },
     {
       "nom": "Terrasse",
       "etage": "RDC",
-      "planX": 950.0,
-      "planY": 50.0,
-      "planWidth": 750.0,
-      "planHeight": 500.0,
+      "planX": 950,
+      "planY": 50,
+      "planWidth": 750,
+      "planHeight": 500,
       "shapeType": "polygon",
-      "points": [0, 0, 750, 0, 750, 220, 480, 220, 480, 500, 0, 500],
-      "cornerRadii": [20, 20, 12, 20],
+      "points": [
+        0,
+        0,
+        750,
+        0,
+        750,
+        220,
+        480,
+        220,
+        480,
+        500,
+        0,
+        500
+      ],
+      "cornerRadii": [
+        20,
+        20,
+        12,
+        20
+      ],
       "couleur": "#f0a33b"
     },
     {
       "nom": "Bar Counter",
       "etage": "RDC",
-      "planX": 50.0,
-      "planY": 600.0,
-      "planWidth": 850.0,
-      "planHeight": 220.0,
+      "planX": 50,
+      "planY": 600,
+      "planWidth": 850,
+      "planHeight": 220,
       "shapeType": "polygon",
-      "points": [0, 0, 850, 0, 850, 220, 0, 220],
-      "cornerRadii": [16, 16, 16, 16],
+      "points": [
+        0,
+        0,
+        850,
+        0,
+        850,
+        220,
+        0,
+        220
+      ],
+      "cornerRadii": [
+        16,
+        16,
+        16,
+        16
+      ],
       "couleur": "#2fbf6b"
     },
     {
       "nom": "Mezzanine",
       "etage": "ETAGE_1",
-      "planX": 50.0,
-      "planY": 50.0,
-      "planWidth": 800.0,
-      "planHeight": 450.0,
+      "planX": 50,
+      "planY": 50,
+      "planWidth": 800,
+      "planHeight": 450,
       "shapeType": "rect",
-      "cornerRadii": [30, 30, 10, 10],
+      "cornerRadii": [
+        30,
+        30,
+        10,
+        10
+      ],
       "couleur": "#9b8af2"
     },
     {
       "nom": "Salon VIP",
       "etage": "ETAGE_1",
-      "planX": 900.0,
-      "planY": 50.0,
-      "planWidth": 800.0,
-      "planHeight": 450.0,
+      "planX": 900,
+      "planY": 50,
+      "planWidth": 800,
+      "planHeight": 450,
       "shapeType": "polygon",
-      "points": [0, 0, 800, 0, 800, 450, 500, 450, 500, 300, 0, 300],
-      "cornerRadii": [20, 20, 16, 20],
+      "points": [
+        0,
+        0,
+        800,
+        0,
+        800,
+        450,
+        500,
+        450,
+        500,
+        300,
+        0,
+        300
+      ],
+      "cornerRadii": [
+        20,
+        20,
+        16,
+        20
+      ],
       "couleur": "#e86c8d"
     },
     {
       "nom": "Rooftop Sky Lounge",
       "etage": "ETAGE_2",
-      "planX": 50.0,
-      "planY": 50.0,
-      "planWidth": 800.0,
-      "planHeight": 450.0,
+      "planX": 50,
+      "planY": 50,
+      "planWidth": 800,
+      "planHeight": 450,
       "shapeType": "rect",
-      "cornerRadii": [24, 24, 24, 24],
+      "cornerRadii": [
+        24,
+        24,
+        24,
+        24
+      ],
       "couleur": "#38bdf8"
     },
     {
       "nom": "Balcon Panoramique",
       "etage": "ETAGE_2",
-      "planX": 900.0,
-      "planY": 50.0,
-      "planWidth": 800.0,
-      "planHeight": 450.0,
+      "planX": 900,
+      "planY": 50,
+      "planWidth": 800,
+      "planHeight": 450,
       "shapeType": "polygon",
-      "points": [0, 0, 800, 0, 800, 450, 0, 450],
-      "cornerRadii": [40, 40, 10, 10],
+      "points": [
+        0,
+        0,
+        800,
+        0,
+        800,
+        450,
+        0,
+        450
+      ],
+      "cornerRadii": [
+        40,
+        40,
+        10,
+        10
+      ],
       "couleur": "#fbbf24"
     }
   ],
   "tables": [
-    { "numero": 1, "zone": "Salle Principale", "capacite": 4, "occupee": false, "serveurUsername": null, "planX": 180.0, "planY": 180.0, "planWidth": 90.0, "planHeight": 90.0, "planRotation": 0.0, "planForme": "CARRE" },
-    { "numero": 2, "zone": "Salle Principale", "capacite": 4, "occupee": true, "serveurUsername": "serveur1", "planX": 380.0, "planY": 180.0, "planWidth": 100.0, "planHeight": 100.0, "planRotation": 0.0, "planForme": "RONDE" },
-    { "numero": 3, "zone": "Salle Principale", "capacite": 6, "occupee": true, "serveurUsername": "serveur2", "planX": 600.0, "planY": 180.0, "planWidth": 160.0, "planHeight": 90.0, "planRotation": 30.0, "planForme": "RECTANGLE" },
-    { "numero": 4, "zone": "Salle Principale", "capacite": 2, "occupee": false, "serveurUsername": null, "planX": 780.0, "planY": 180.0, "planWidth": 80.0, "planHeight": 80.0, "planRotation": 0.0, "planForme": "CARRE" },
-    { "numero": 5, "zone": "Salle Principale", "capacite": 8, "occupee": true, "serveurUsername": "serveur1", "planX": 250.0, "planY": 380.0, "planWidth": 180.0, "planHeight": 100.0, "planRotation": 0.0, "planForme": "RECTANGLE" },
-    { "numero": 6, "zone": "Salle Principale", "capacite": 6, "occupee": false, "serveurUsername": null, "planX": 550.0, "planY": 380.0, "planWidth": 120.0, "planHeight": 120.0, "planRotation": 45.0, "planForme": "RONDE" },
-
-    { "numero": 10, "zone": "Terrasse", "capacite": 2, "occupee": false, "serveurUsername": null, "planX": 1060.0, "planY": 180.0, "planWidth": 80.0, "planHeight": 80.0, "planRotation": 0.0, "planForme": "CARRE" },
-    { "numero": 11, "zone": "Terrasse", "capacite": 4, "occupee": true, "serveurUsername": "serveur1", "planX": 1260.0, "planY": 180.0, "planWidth": 100.0, "planHeight": 100.0, "planRotation": 15.0, "planForme": "RONDE" },
-    { "numero": 12, "zone": "Terrasse", "capacite": 6, "occupee": false, "serveurUsername": null, "planX": 1480.0, "planY": 180.0, "planWidth": 150.0, "planHeight": 90.0, "planRotation": 0.0, "planForme": "RECTANGLE" },
-    { "numero": 13, "zone": "Terrasse", "capacite": 2, "occupee": false, "serveurUsername": null, "planX": 1160.0, "planY": 380.0, "planWidth": 80.0, "planHeight": 80.0, "planRotation": 45.0, "planForme": "RONDE" },
-
-    { "numero": 7, "zone": "Bar Counter", "capacite": 2, "occupee": false, "serveurUsername": null, "planX": 200.0, "planY": 710.0, "planWidth": 140.0, "planHeight": 70.0, "planRotation": 0.0, "planForme": "RECTANGLE" },
-    { "numero": 8, "zone": "Bar Counter", "capacite": 2, "occupee": true, "serveurUsername": "serveur2", "planX": 450.0, "planY": 710.0, "planWidth": 70.0, "planHeight": 70.0, "planRotation": 0.0, "planForme": "CARRE" },
-
-    { "numero": 20, "zone": "Mezzanine", "capacite": 4, "occupee": true, "serveurUsername": "serveur1", "planX": 180.0, "planY": 160.0, "planWidth": 90.0, "planHeight": 90.0, "planRotation": 0.0, "planForme": "CARRE" },
-    { "numero": 21, "zone": "Mezzanine", "capacite": 2, "occupee": false, "serveurUsername": null, "planX": 380.0, "planY": 160.0, "planWidth": 80.0, "planHeight": 80.0, "planRotation": 0.0, "planForme": "RONDE" },
-    { "numero": 22, "zone": "Mezzanine", "capacite": 6, "occupee": false, "serveurUsername": null, "planX": 580.0, "planY": 160.0, "planWidth": 150.0, "planHeight": 90.0, "planRotation": 90.0, "planForme": "RECTANGLE" },
-    { "numero": 23, "zone": "Mezzanine", "capacite": 4, "occupee": false, "serveurUsername": null, "planX": 280.0, "planY": 340.0, "planWidth": 90.0, "planHeight": 90.0, "planRotation": 0.0, "planForme": "CARRE" },
-
-    { "numero": 30, "zone": "Salon VIP", "capacite": 8, "occupee": true, "serveurUsername": "serveur2", "planX": 1060.0, "planY": 220.0, "planWidth": 140.0, "planHeight": 140.0, "planRotation": 0.0, "planForme": "RONDE" },
-    { "numero": 31, "zone": "Salon VIP", "capacite": 10, "occupee": false, "serveurUsername": null, "planX": 1340.0, "planY": 220.0, "planWidth": 200.0, "planHeight": 110.0, "planRotation": 15.0, "planForme": "RECTANGLE" },
-    { "numero": 32, "zone": "Salon VIP", "capacite": 4, "occupee": true, "serveurUsername": "serveur1", "planX": 1580.0, "planY": 220.0, "planWidth": 100.0, "planHeight": 100.0, "planRotation": 0.0, "planForme": "CARRE" },
-
-    { "numero": 40, "zone": "Rooftop Sky Lounge", "capacite": 4, "occupee": false, "serveurUsername": null, "planX": 180.0, "planY": 180.0, "planWidth": 100.0, "planHeight": 100.0, "planRotation": 0.0, "planForme": "RONDE" },
-    { "numero": 41, "zone": "Rooftop Sky Lounge", "capacite": 6, "occupee": true, "serveurUsername": "serveur2", "planX": 420.0, "planY": 180.0, "planWidth": 160.0, "planHeight": 90.0, "planRotation": 45.0, "planForme": "RECTANGLE" },
-    { "numero": 42, "zone": "Rooftop Sky Lounge", "capacite": 2, "occupee": false, "serveurUsername": null, "planX": 650.0, "planY": 180.0, "planWidth": 80.0, "planHeight": 80.0, "planRotation": 0.0, "planForme": "CARRE" },
-
-    { "numero": 50, "zone": "Balcon Panoramique", "capacite": 8, "occupee": true, "serveurUsername": "serveur1", "planX": 1050.0, "planY": 200.0, "planWidth": 180.0, "planHeight": 80.0, "planRotation": 0.0, "planForme": "RECTANGLE" },
-    { "numero": 51, "zone": "Balcon Panoramique", "capacite": 2, "occupee": false, "serveurUsername": null, "planX": 1350.0, "planY": 200.0, "planWidth": 80.0, "planHeight": 80.0, "planRotation": 0.0, "planForme": "RONDE" },
-    { "numero": 52, "zone": "Balcon Panoramique", "capacite": 4, "occupee": false, "serveurUsername": null, "planX": 1550.0, "planY": 200.0, "planWidth": 90.0, "planHeight": 90.0, "planRotation": 0.0, "planForme": "CARRE" }
+    {
+      "numero": 1,
+      "zone": "Salle Principale",
+      "capacite": 4,
+      "occupee": false,
+      "serveurUsername": null,
+      "planX": 180,
+      "planY": 180,
+      "planWidth": 90,
+      "planHeight": 90,
+      "planRotation": 0,
+      "planForme": "CARRE"
+    },
+    {
+      "numero": 2,
+      "zone": "Salle Principale",
+      "capacite": 4,
+      "occupee": true,
+      "serveurUsername": "serveur1",
+      "planX": 380,
+      "planY": 180,
+      "planWidth": 100,
+      "planHeight": 100,
+      "planRotation": 0,
+      "planForme": "RONDE"
+    },
+    {
+      "numero": 3,
+      "zone": "Salle Principale",
+      "capacite": 6,
+      "occupee": true,
+      "serveurUsername": "serveur2",
+      "planX": 600,
+      "planY": 180,
+      "planWidth": 160,
+      "planHeight": 90,
+      "planRotation": 30,
+      "planForme": "RECTANGLE"
+    },
+    {
+      "numero": 4,
+      "zone": "Salle Principale",
+      "capacite": 2,
+      "occupee": true,
+      "serveurUsername": "serveur1",
+      "planX": 780,
+      "planY": 180,
+      "planWidth": 80,
+      "planHeight": 80,
+      "planRotation": 0,
+      "planForme": "CARRE"
+    },
+    {
+      "numero": 5,
+      "zone": "Salle Principale",
+      "capacite": 8,
+      "occupee": true,
+      "serveurUsername": "serveur1",
+      "planX": 250,
+      "planY": 380,
+      "planWidth": 180,
+      "planHeight": 100,
+      "planRotation": 0,
+      "planForme": "RECTANGLE"
+    },
+    {
+      "numero": 6,
+      "zone": "Salle Principale",
+      "capacite": 6,
+      "occupee": true,
+      "serveurUsername": "serveur2",
+      "planX": 550,
+      "planY": 380,
+      "planWidth": 120,
+      "planHeight": 120,
+      "planRotation": 45,
+      "planForme": "RONDE"
+    },
+    {
+      "numero": 10,
+      "zone": "Terrasse",
+      "capacite": 2,
+      "occupee": true,
+      "serveurUsername": "serveur2",
+      "planX": 1060,
+      "planY": 180,
+      "planWidth": 80,
+      "planHeight": 80,
+      "planRotation": 0,
+      "planForme": "CARRE"
+    },
+    {
+      "numero": 11,
+      "zone": "Terrasse",
+      "capacite": 4,
+      "occupee": true,
+      "serveurUsername": "serveur1",
+      "planX": 1260,
+      "planY": 180,
+      "planWidth": 100,
+      "planHeight": 100,
+      "planRotation": 15,
+      "planForme": "RONDE"
+    },
+    {
+      "numero": 12,
+      "zone": "Terrasse",
+      "capacite": 6,
+      "occupee": true,
+      "serveurUsername": "serveur2",
+      "planX": 1480,
+      "planY": 180,
+      "planWidth": 150,
+      "planHeight": 90,
+      "planRotation": 0,
+      "planForme": "RECTANGLE"
+    },
+    {
+      "numero": 13,
+      "zone": "Terrasse",
+      "capacite": 2,
+      "occupee": false,
+      "serveurUsername": null,
+      "planX": 1160,
+      "planY": 380,
+      "planWidth": 80,
+      "planHeight": 80,
+      "planRotation": 45,
+      "planForme": "RONDE"
+    },
+    {
+      "numero": 7,
+      "zone": "Bar Counter",
+      "capacite": 2,
+      "occupee": false,
+      "serveurUsername": null,
+      "planX": 200,
+      "planY": 710,
+      "planWidth": 140,
+      "planHeight": 70,
+      "planRotation": 0,
+      "planForme": "RECTANGLE"
+    },
+    {
+      "numero": 8,
+      "zone": "Bar Counter",
+      "capacite": 2,
+      "occupee": true,
+      "serveurUsername": "serveur2",
+      "planX": 450,
+      "planY": 710,
+      "planWidth": 70,
+      "planHeight": 70,
+      "planRotation": 0,
+      "planForme": "CARRE"
+    },
+    {
+      "numero": 20,
+      "zone": "Mezzanine",
+      "capacite": 4,
+      "occupee": true,
+      "serveurUsername": "serveur1",
+      "planX": 180,
+      "planY": 160,
+      "planWidth": 90,
+      "planHeight": 90,
+      "planRotation": 0,
+      "planForme": "CARRE"
+    },
+    {
+      "numero": 21,
+      "zone": "Mezzanine",
+      "capacite": 2,
+      "occupee": false,
+      "serveurUsername": null,
+      "planX": 380,
+      "planY": 160,
+      "planWidth": 80,
+      "planHeight": 80,
+      "planRotation": 0,
+      "planForme": "RONDE"
+    },
+    {
+      "numero": 22,
+      "zone": "Mezzanine",
+      "capacite": 6,
+      "occupee": false,
+      "serveurUsername": null,
+      "planX": 580,
+      "planY": 160,
+      "planWidth": 150,
+      "planHeight": 90,
+      "planRotation": 90,
+      "planForme": "RECTANGLE"
+    },
+    {
+      "numero": 23,
+      "zone": "Mezzanine",
+      "capacite": 4,
+      "occupee": false,
+      "serveurUsername": null,
+      "planX": 280,
+      "planY": 340,
+      "planWidth": 90,
+      "planHeight": 90,
+      "planRotation": 0,
+      "planForme": "CARRE"
+    },
+    {
+      "numero": 30,
+      "zone": "Salon VIP",
+      "capacite": 8,
+      "occupee": true,
+      "serveurUsername": "serveur2",
+      "planX": 1060,
+      "planY": 220,
+      "planWidth": 140,
+      "planHeight": 140,
+      "planRotation": 0,
+      "planForme": "RONDE"
+    },
+    {
+      "numero": 31,
+      "zone": "Salon VIP",
+      "capacite": 10,
+      "occupee": false,
+      "serveurUsername": null,
+      "planX": 1340,
+      "planY": 220,
+      "planWidth": 200,
+      "planHeight": 110,
+      "planRotation": 15,
+      "planForme": "RECTANGLE"
+    },
+    {
+      "numero": 32,
+      "zone": "Salon VIP",
+      "capacite": 4,
+      "occupee": true,
+      "serveurUsername": "serveur1",
+      "planX": 1580,
+      "planY": 220,
+      "planWidth": 100,
+      "planHeight": 100,
+      "planRotation": 0,
+      "planForme": "CARRE"
+    },
+    {
+      "numero": 40,
+      "zone": "Rooftop Sky Lounge",
+      "capacite": 4,
+      "occupee": false,
+      "serveurUsername": null,
+      "planX": 180,
+      "planY": 180,
+      "planWidth": 100,
+      "planHeight": 100,
+      "planRotation": 0,
+      "planForme": "RONDE"
+    },
+    {
+      "numero": 41,
+      "zone": "Rooftop Sky Lounge",
+      "capacite": 6,
+      "occupee": true,
+      "serveurUsername": "serveur2",
+      "planX": 420,
+      "planY": 180,
+      "planWidth": 160,
+      "planHeight": 90,
+      "planRotation": 45,
+      "planForme": "RECTANGLE"
+    },
+    {
+      "numero": 42,
+      "zone": "Rooftop Sky Lounge",
+      "capacite": 2,
+      "occupee": false,
+      "serveurUsername": null,
+      "planX": 650,
+      "planY": 180,
+      "planWidth": 80,
+      "planHeight": 80,
+      "planRotation": 0,
+      "planForme": "CARRE"
+    },
+    {
+      "numero": 50,
+      "zone": "Balcon Panoramique",
+      "capacite": 8,
+      "occupee": true,
+      "serveurUsername": "serveur1",
+      "planX": 1050,
+      "planY": 200,
+      "planWidth": 180,
+      "planHeight": 80,
+      "planRotation": 0,
+      "planForme": "RECTANGLE"
+    },
+    {
+      "numero": 51,
+      "zone": "Balcon Panoramique",
+      "capacite": 2,
+      "occupee": false,
+      "serveurUsername": null,
+      "planX": 1350,
+      "planY": 200,
+      "planWidth": 80,
+      "planHeight": 80,
+      "planRotation": 0,
+      "planForme": "RONDE"
+    },
+    {
+      "numero": 52,
+      "zone": "Balcon Panoramique",
+      "capacite": 4,
+      "occupee": false,
+      "serveurUsername": null,
+      "planX": 1550,
+      "planY": 200,
+      "planWidth": 90,
+      "planHeight": 90,
+      "planRotation": 0,
+      "planForme": "CARRE"
+    }
   ],
   "shifts": [
-    { "username": "serveur1", "shiftType": "MATIN", "poste": "SERVEUR", "heureDebut": "10:00", "heureFin": "18:00" },
-    { "username": "serveur2", "shiftType": "SOIR", "poste": "SERVEUR", "heureDebut": "17:00", "heureFin": "01:00" },
-    { "username": "barman1", "shiftType": "SOIR", "poste": "BARMAN", "heureDebut": "16:00", "heureFin": "02:00" },
-    { "username": "barman2", "shiftType": "MATIN", "poste": "BARMAN", "heureDebut": "11:00", "heureFin": "17:00" }
+    {
+      "username": "serveur1",
+      "shiftType": "MATIN",
+      "poste": "SERVEUR",
+      "heureDebut": "10:00",
+      "heureFin": "18:00"
+    },
+    {
+      "username": "serveur2",
+      "shiftType": "SOIR",
+      "poste": "SERVEUR",
+      "heureDebut": "17:00",
+      "heureFin": "01:00"
+    },
+    {
+      "username": "barman1",
+      "shiftType": "SOIR",
+      "poste": "BARMAN",
+      "heureDebut": "16:00",
+      "heureFin": "02:00"
+    },
+    {
+      "username": "barman2",
+      "shiftType": "MATIN",
+      "poste": "BARMAN",
+      "heureDebut": "11:00",
+      "heureFin": "17:00"
+    }
   ],
   "orders": [
-    {
-      "tableNumero": 1,
-      "serveurUsername": "serveur1",
-      "statut": "REGLEE",
-      "minutesAgo": 120,
-      "notes": "Commande réglée",
-      "items": [
-        { "cocktailName": "Mojito", "quantite": 1 },
-        { "cocktailName": "Piña Colada", "quantite": 1 }
-      ]
-    },
-    {
-      "tableNumero": 5,
-      "serveurUsername": "serveur2",
-      "statut": "REGLEE",
-      "minutesAgo": 180,
-      "notes": "Commande réglée",
-      "items": [
-        { "cocktailName": "Aperol Spritz", "quantite": 2 },
-        { "cocktailName": "Espresso Martini", "quantite": 1 }
-      ]
-    },
-    {
-      "tableNumero": 11,
-      "serveurUsername": "serveur1",
-      "statut": "REGLEE",
-      "minutesAgo": 240,
-      "notes": "Commande réglée",
-      "items": [
-        { "cocktailName": "Margarita", "quantite": 1 },
-        { "cocktailName": "Mojito", "quantite": 1 }
-      ]
-    },
-    {
-      "tableNumero": 21,
-      "serveurUsername": "serveur2",
-      "statut": "REGLEE",
-      "minutesAgo": 300,
-      "notes": "Commande réglée",
-      "items": [
-        { "cocktailName": "Caïpirinha", "quantite": 2 },
-        { "cocktailName": "Negroni", "quantite": 1 }
-      ]
-    },
-    {
-      "tableNumero": 13,
-      "serveurUsername": "serveur1",
-      "statut": "REGLEE",
-      "minutesAgo": 360,
-      "notes": "Commande réglée",
-      "items": [
-        { "cocktailName": "Gin Tonic", "quantite": 1 },
-        { "cocktailName": "Negroni", "quantite": 1 },
-        { "cocktailName": "Mojito", "quantite": 1 }
-      ]
-    },
-    {
-      "tableNumero": 2,
-      "serveurUsername": "serveur1",
-      "statut": "EN_PREPARATION",
-      "minutesAgo": 4,
-      "notes": "Sans glaçons sur 1 Mojito",
-      "items": [
-        { "cocktailName": "Mojito", "quantite": 2 },
-        { "cocktailName": "Negroni", "quantite": 1 }
-      ]
-    },
-    {
-      "tableNumero": 10,
-      "serveurUsername": "serveur2",
-      "statut": "EN_PREPARATION",
-      "minutesAgo": 2,
-      "notes": null,
-      "items": [
-        { "cocktailName": "Margarita", "quantite": 1 },
-        { "cocktailName": "Aperol Spritz", "quantite": 1 },
-        { "cocktailName": "Gin Tonic", "quantite": 1 }
-      ]
-    },
-    {
-      "tableNumero": 4,
-      "serveurUsername": "serveur1",
-      "statut": "PRET",
-      "minutesAgo": 7,
-      "notes": "Servir vite",
-      "items": [
-        { "cocktailName": "Espresso Martini", "quantite": 1 },
-        { "cocktailName": "Piña Colada", "quantite": 1 },
-        { "cocktailName": "Mojito", "quantite": 1 }
-      ]
-    },
     {
       "tableNumero": 3,
       "serveurUsername": "serveur2",
       "statut": "EN_ATTENTE",
       "minutesAgo": 1,
-      "notes": null,
+      "notes": "Bien frais avec tranche d'orange",
       "items": [
-        { "cocktailName": "Aperol Spritz", "quantite": 2 }
+        {
+          "cocktailName": "Aperol Spritz",
+          "quantite": 2
+        }
+      ]
+    },
+    {
+      "tableNumero": 20,
+      "serveurUsername": "serveur1",
+      "statut": "EN_ATTENTE",
+      "minutesAgo": 3,
+      "notes": "1 Mojito avec peu de sucre",
+      "items": [
+        {
+          "cocktailName": "Mojito",
+          "quantite": 2
+        },
+        {
+          "cocktailName": "Gin Tonic",
+          "quantite": 1
+        }
       ]
     },
     {
@@ -283,11 +634,20 @@
       "serveurUsername": "serveur1",
       "statut": "EN_ATTENTE",
       "minutesAgo": 18,
-      "notes": "[ALERTE RETARD 18M] Table VIP 6",
+      "notes": "[ALERTE RETARD 18M] Table VIP 6 — Invités impatients",
       "items": [
-        { "cocktailName": "Mojito", "quantite": 3 },
-        { "cocktailName": "Piña Colada", "quantite": 1 },
-        { "cocktailName": "Margarita", "quantite": 1 }
+        {
+          "cocktailName": "Mojito",
+          "quantite": 3
+        },
+        {
+          "cocktailName": "Piña Colada",
+          "quantite": 1
+        },
+        {
+          "cocktailName": "Margarita",
+          "quantite": 1
+        }
       ]
     },
     {
@@ -297,9 +657,322 @@
       "minutesAgo": 28,
       "notes": "[ALERTE CRITIQUE RETARD 28M] Terrasse Table 12",
       "items": [
-        { "cocktailName": "Negroni", "quantite": 1 },
-        { "cocktailName": "Espresso Martini", "quantite": 1 },
-        { "cocktailName": "Caïpirinha", "quantite": 2 }
+        {
+          "cocktailName": "Negroni",
+          "quantite": 1
+        },
+        {
+          "cocktailName": "Espresso Martini",
+          "quantite": 1
+        },
+        {
+          "cocktailName": "Caïpirinha",
+          "quantite": 2
+        }
+      ]
+    },
+    {
+      "tableNumero": 2,
+      "serveurUsername": "serveur1",
+      "statut": "EN_PREPARATION",
+      "minutesAgo": 4,
+      "notes": "Sans glaçons sur 1 Mojito",
+      "items": [
+        {
+          "cocktailName": "Mojito",
+          "quantite": 2
+        },
+        {
+          "cocktailName": "Negroni",
+          "quantite": 1
+        }
+      ]
+    },
+    {
+      "tableNumero": 10,
+      "serveurUsername": "serveur2",
+      "statut": "EN_PREPARATION",
+      "minutesAgo": 2,
+      "notes": "Sel fin sur le bord du verre Margarita",
+      "items": [
+        {
+          "cocktailName": "Margarita",
+          "quantite": 1
+        },
+        {
+          "cocktailName": "Aperol Spritz",
+          "quantite": 1
+        },
+        {
+          "cocktailName": "Gin Tonic",
+          "quantite": 1
+        }
+      ]
+    },
+    {
+      "tableNumero": 30,
+      "serveurUsername": "serveur2",
+      "statut": "EN_PREPARATION",
+      "minutesAgo": 5,
+      "notes": "Tasses en cuivre bien givrées",
+      "items": [
+        {
+          "cocktailName": "Moscow Mule Artisanal",
+          "quantite": 2
+        },
+        {
+          "cocktailName": "Bière IPA Artisanale",
+          "quantite": 2
+        },
+        {
+          "cocktailName": "Planche Mixte Charcuteries & Fromages",
+          "quantite": 1
+        }
+      ]
+    },
+    {
+      "tableNumero": 4,
+      "serveurUsername": "serveur1",
+      "statut": "PRET",
+      "minutesAgo": 7,
+      "notes": "Prêt au passe-plat bar",
+      "items": [
+        {
+          "cocktailName": "Espresso Martini",
+          "quantite": 1
+        },
+        {
+          "cocktailName": "Piña Colada",
+          "quantite": 1
+        },
+        {
+          "cocktailName": "Mojito",
+          "quantite": 1
+        }
+      ]
+    },
+    {
+      "tableNumero": 8,
+      "serveurUsername": "serveur2",
+      "statut": "PRET",
+      "minutesAgo": 8,
+      "notes": "Servir au comptoir bar",
+      "items": [
+        {
+          "cocktailName": "Bière Blonde Pression",
+          "quantite": 2
+        },
+        {
+          "cocktailName": "Nachos & Guacamole Maison",
+          "quantite": 1
+        }
+      ]
+    },
+    {
+      "tableNumero": 41,
+      "serveurUsername": "serveur2",
+      "statut": "PRET",
+      "minutesAgo": 6,
+      "notes": "Flûtes fraîches pour le Rooftop",
+      "items": [
+        {
+          "cocktailName": "Coupe de Champagne Brut",
+          "quantite": 2
+        },
+        {
+          "cocktailName": "Bellini",
+          "quantite": 1
+        }
+      ]
+    },
+    {
+      "tableNumero": 5,
+      "serveurUsername": "serveur1",
+      "statut": "LIVREE",
+      "minutesAgo": 25,
+      "notes": "Addition demandée par la table",
+      "items": [
+        {
+          "cocktailName": "Aperol Spritz",
+          "quantite": 2
+        },
+        {
+          "cocktailName": "Espresso Martini",
+          "quantite": 1
+        },
+        {
+          "cocktailName": "Nachos & Guacamole Maison",
+          "quantite": 1
+        }
+      ]
+    },
+    {
+      "tableNumero": 11,
+      "serveurUsername": "serveur1",
+      "statut": "LIVREE",
+      "minutesAgo": 35,
+      "notes": "Service terrasse impeccable",
+      "items": [
+        {
+          "cocktailName": "Mojito",
+          "quantite": 2
+        },
+        {
+          "cocktailName": "Margarita",
+          "quantite": 2
+        },
+        {
+          "cocktailName": "Frites Maison & Sauces Barman",
+          "quantite": 1
+        }
+      ]
+    },
+    {
+      "tableNumero": 32,
+      "serveurUsername": "serveur1",
+      "statut": "LIVREE",
+      "minutesAgo": 40,
+      "notes": "Salon VIP - Service prestige",
+      "items": [
+        {
+          "cocktailName": "Coupe de Champagne Brut",
+          "quantite": 4
+        },
+        {
+          "cocktailName": "Planche Mixte Charcuteries & Fromages",
+          "quantite": 1
+        },
+        {
+          "cocktailName": "Espresso Martini",
+          "quantite": 2
+        }
+      ]
+    },
+    {
+      "tableNumero": 50,
+      "serveurUsername": "serveur1",
+      "statut": "LIVREE",
+      "minutesAgo": 30,
+      "notes": "Balcon Panoramique",
+      "items": [
+        {
+          "cocktailName": "Gin Tonic",
+          "quantite": 2
+        },
+        {
+          "cocktailName": "Bière Blonde Pression",
+          "quantite": 2
+        }
+      ]
+    },
+    {
+      "tableNumero": 1,
+      "serveurUsername": "serveur1",
+      "statut": "REGLEE",
+      "minutesAgo": 120,
+      "notes": "Règlement Carte Bancaire",
+      "items": [
+        {
+          "cocktailName": "Mojito",
+          "quantite": 1
+        },
+        {
+          "cocktailName": "Piña Colada",
+          "quantite": 1
+        }
+      ]
+    },
+    {
+      "tableNumero": 7,
+      "serveurUsername": "serveur2",
+      "statut": "REGLEE",
+      "minutesAgo": 160,
+      "notes": "Comptoir bar réglé en Espèces",
+      "items": [
+        {
+          "cocktailName": "B-52 Flambé",
+          "quantite": 2
+        },
+        {
+          "cocktailName": "Bière Blonde Pression",
+          "quantite": 2
+        }
+      ]
+    },
+    {
+      "tableNumero": 13,
+      "serveurUsername": "serveur1",
+      "statut": "REGLEE",
+      "minutesAgo": 210,
+      "notes": "Règlement terrasse CARTE_BANCAIRE",
+      "items": [
+        {
+          "cocktailName": "Gin Tonic",
+          "quantite": 1
+        },
+        {
+          "cocktailName": "Negroni",
+          "quantite": 1
+        },
+        {
+          "cocktailName": "Mojito",
+          "quantite": 1
+        }
+      ]
+    },
+    {
+      "tableNumero": 21,
+      "serveurUsername": "serveur2",
+      "statut": "REGLEE",
+      "minutesAgo": 270,
+      "notes": "Mezzanine réglée",
+      "items": [
+        {
+          "cocktailName": "Caïpirinha",
+          "quantite": 2
+        },
+        {
+          "cocktailName": "Negroni",
+          "quantite": 1
+        }
+      ]
+    },
+    {
+      "tableNumero": 31,
+      "serveurUsername": "serveur1",
+      "statut": "REGLEE",
+      "minutesAgo": 330,
+      "notes": "Groupe VIP réglé TITRES_RESTAURANT",
+      "items": [
+        {
+          "cocktailName": "Aperol Spritz",
+          "quantite": 4
+        },
+        {
+          "cocktailName": "Planche Mixte Charcuteries & Fromages",
+          "quantite": 2
+        },
+        {
+          "cocktailName": "Coupe de Champagne Brut",
+          "quantite": 2
+        }
+      ]
+    },
+    {
+      "tableNumero": 51,
+      "serveurUsername": "serveur2",
+      "statut": "REGLEE",
+      "minutesAgo": 390,
+      "notes": "Règlement Balcon Panoramique",
+      "items": [
+        {
+          "cocktailName": "Virgin Colada",
+          "quantite": 1
+        },
+        {
+          "cocktailName": "Moscow Mule Artisanal",
+          "quantite": 1
+        }
       ]
     }
   ],
@@ -308,107 +981,209 @@
       "numero": "FAC-2026-00001",
       "tableNumero": 1,
       "reglee": true,
-      "modePaiement": "CARTE_BANCAIRE",
-      "pourboire": 0.0,
+      "modePaiement": "CARTE",
+      "pourboire": 1,
       "minutesAgo": 120,
-      "notes": "Facture acquittée CARTE_BANCAIRE",
+      "notes": "Facture acquittée CARTE",
       "items": [
-        { "description": "Mojito", "quantite": 1, "prixUnitaire": 9.50 },
-        { "description": "Piña Colada", "quantite": 1, "prixUnitaire": 10.00 }
+        {
+          "description": "Mojito",
+          "quantite": 1,
+          "prixUnitaire": 9.5
+        },
+        {
+          "description": "Piña Colada",
+          "quantite": 1,
+          "prixUnitaire": 10
+        }
       ]
     },
     {
       "numero": "FAC-2026-00002",
-      "tableNumero": 5,
+      "tableNumero": 7,
       "reglee": true,
       "modePaiement": "ESPECES",
-      "pourboire": 3.00,
-      "minutesAgo": 180,
+      "pourboire": 2,
+      "minutesAgo": 160,
       "notes": "Facture acquittée ESPECES",
       "items": [
-        { "description": "Aperol Spritz", "quantite": 2, "prixUnitaire": 8.50 },
-        { "description": "Espresso Martini", "quantite": 1, "prixUnitaire": 10.50 }
+        {
+          "description": "B-52 Flambé",
+          "quantite": 2,
+          "prixUnitaire": 5
+        },
+        {
+          "description": "Bière Blonde Pression",
+          "quantite": 2,
+          "prixUnitaire": 4.5
+        }
       ]
     },
     {
       "numero": "FAC-2026-00003",
-      "tableNumero": 11,
+      "tableNumero": 13,
       "reglee": true,
-      "modePaiement": "CARTE_BANCAIRE",
-      "pourboire": 0.0,
-      "minutesAgo": 240,
-      "notes": "Facture acquittée CARTE_BANCAIRE",
+      "modePaiement": "CARTE",
+      "pourboire": 2.5,
+      "minutesAgo": 210,
+      "notes": "Facture acquittée CARTE",
       "items": [
-        { "description": "Margarita", "quantite": 1, "prixUnitaire": 9.50 },
-        { "description": "Mojito", "quantite": 1, "prixUnitaire": 9.50 }
+        {
+          "description": "Gin Tonic",
+          "quantite": 1,
+          "prixUnitaire": 9
+        },
+        {
+          "description": "Negroni",
+          "quantite": 1,
+          "prixUnitaire": 10
+        },
+        {
+          "description": "Mojito",
+          "quantite": 1,
+          "prixUnitaire": 9.5
+        }
       ]
     },
     {
       "numero": "FAC-2026-00004",
       "tableNumero": 21,
       "reglee": true,
-      "modePaiement": "CONTREMARQUE",
-      "pourboire": 0.0,
-      "minutesAgo": 300,
-      "notes": "Facture acquittée CONTREMARQUE",
+      "modePaiement": "TITRES_RESTAURANT",
+      "pourboire": 0,
+      "minutesAgo": 270,
+      "notes": "Facture acquittée TITRES_RESTAURANT",
       "items": [
-        { "description": "Caïpirinha", "quantite": 2, "prixUnitaire": 9.00 },
-        { "description": "Negroni", "quantite": 1, "prixUnitaire": 10.00 }
+        {
+          "description": "Caïpirinha",
+          "quantite": 2,
+          "prixUnitaire": 9.5
+        },
+        {
+          "description": "Negroni",
+          "quantite": 1,
+          "prixUnitaire": 10
+        }
       ]
     },
     {
       "numero": "FAC-2026-00005",
-      "tableNumero": 13,
+      "tableNumero": 31,
       "reglee": true,
-      "modePaiement": "CARTE_BANCAIRE",
-      "pourboire": 2.50,
-      "minutesAgo": 360,
-      "notes": "Facture acquittée CARTE_BANCAIRE",
+      "modePaiement": "CARTE",
+      "pourboire": 10,
+      "minutesAgo": 330,
+      "notes": "Facture acquittée CARTE",
       "items": [
-        { "description": "Gin Tonic", "quantite": 1, "prixUnitaire": 9.00 },
-        { "description": "Negroni", "quantite": 1, "prixUnitaire": 10.00 },
-        { "description": "Mojito", "quantite": 1, "prixUnitaire": 9.50 }
+        {
+          "description": "Aperol Spritz",
+          "quantite": 4,
+          "prixUnitaire": 8.5
+        },
+        {
+          "description": "Planche Mixte Charcuteries & Fromages",
+          "quantite": 2,
+          "prixUnitaire": 14
+        },
+        {
+          "description": "Coupe de Champagne Brut",
+          "quantite": 2,
+          "prixUnitaire": 11
+        }
       ]
     },
     {
       "numero": "FAC-2026-00006",
-      "tableNumero": 2,
-      "reglee": false,
-      "modePaiement": null,
-      "pourboire": 0.0,
-      "minutesAgo": 10,
-      "notes": "En attente de règlement par la table N°2",
+      "tableNumero": 51,
+      "reglee": true,
+      "modePaiement": "CHEQUES_VACANCES",
+      "pourboire": 0,
+      "minutesAgo": 390,
+      "notes": "Facture acquittée CHEQUES_VACANCES",
       "items": [
-        { "description": "Mojito", "quantite": 2, "prixUnitaire": 9.50 },
-        { "description": "Negroni", "quantite": 1, "prixUnitaire": 10.00 }
+        {
+          "description": "Virgin Colada",
+          "quantite": 1,
+          "prixUnitaire": 6.5
+        },
+        {
+          "description": "Moscow Mule Artisanal",
+          "quantite": 1,
+          "prixUnitaire": 9.5
+        }
       ]
     },
     {
       "numero": "FAC-2026-00007",
-      "tableNumero": 4,
+      "tableNumero": 2,
       "reglee": false,
       "modePaiement": null,
-      "pourboire": 0.0,
-      "minutesAgo": 15,
-      "notes": "En attente de règlement par la table N°4",
+      "pourboire": 0,
+      "minutesAgo": 10,
+      "notes": "En cours - Table 2",
       "items": [
-        { "description": "Espresso Martini", "quantite": 1, "prixUnitaire": 10.50 },
-        { "description": "Piña Colada", "quantite": 1, "prixUnitaire": 10.00 },
-        { "description": "Mojito", "quantite": 1, "prixUnitaire": 9.50 }
+        {
+          "description": "Mojito",
+          "quantite": 2,
+          "prixUnitaire": 9.5
+        },
+        {
+          "description": "Negroni",
+          "quantite": 1,
+          "prixUnitaire": 10
+        }
       ]
     },
     {
       "numero": "FAC-2026-00008",
-      "tableNumero": 10,
+      "tableNumero": 5,
       "reglee": false,
       "modePaiement": null,
-      "pourboire": 0.0,
-      "minutesAgo": 20,
-      "notes": "En attente de règlement par la table N°10",
+      "pourboire": 0,
+      "minutesAgo": 25,
+      "notes": "Addition prête à encaisser - Table 5",
       "items": [
-        { "description": "Margarita", "quantite": 1, "prixUnitaire": 9.50 },
-        { "description": "Aperol Spritz", "quantite": 1, "prixUnitaire": 8.50 },
-        { "description": "Gin Tonic", "quantite": 1, "prixUnitaire": 9.00 }
+        {
+          "description": "Aperol Spritz",
+          "quantite": 2,
+          "prixUnitaire": 8.5
+        },
+        {
+          "description": "Espresso Martini",
+          "quantite": 1,
+          "prixUnitaire": 10.5
+        },
+        {
+          "description": "Nachos & Guacamole Maison",
+          "quantite": 1,
+          "prixUnitaire": 7
+        }
+      ]
+    },
+    {
+      "numero": "FAC-2026-00009",
+      "tableNumero": 11,
+      "reglee": false,
+      "modePaiement": null,
+      "pourboire": 0,
+      "minutesAgo": 35,
+      "notes": "Addition prête à encaisser - Table 11",
+      "items": [
+        {
+          "description": "Mojito",
+          "quantite": 2,
+          "prixUnitaire": 9.5
+        },
+        {
+          "description": "Margarita",
+          "quantite": 2,
+          "prixUnitaire": 9.5
+        },
+        {
+          "description": "Frites Maison & Sauces Barman",
+          "quantite": 1,
+          "prixUnitaire": 5.5
+        }
       ]
     }
   ]
