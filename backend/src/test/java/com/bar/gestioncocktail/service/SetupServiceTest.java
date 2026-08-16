@@ -55,7 +55,7 @@ class SetupServiceTest {
         SetupStatusDTO status = setupService.getSetupStatus();
 
         assertThat(status.initialized()).isFalse();
-        assertThat(status.userCount()).isEqualTo(0L);
+        assertThat(status.userCount()).isZero();
     }
 
     @Test
