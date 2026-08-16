@@ -1,3 +1,18 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+ion-content {
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+}
+
 .home-container {
   position: relative;
   min-height: calc(100vh - 64px);

@@ -1,3 +1,28 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--background-bg-0, #0f0f1a);
+  color: var(--text-primary, #eceefb);
+}
+
+ion-header {
+  flex-shrink: 0;
+  position: relative;
+  width: 100%;
+  z-index: 5;
+}
+
+.barman-content {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  height: 100%;
+}
+
 .barman-toolbar {
   --background: var(--background-surface-1);
   --color: var(--text-primary);

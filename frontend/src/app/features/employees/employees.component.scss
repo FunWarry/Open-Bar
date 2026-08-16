@@ -1,5 +1,17 @@
-// Employees — Figma Vue 6 tokens
-// surface-1: #1a1a2e | surface-2: #21263f | border-medium: #2e3450
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+ion-content {
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+}
 
 .employees-toolbar {
   --background: var(--background-surface-1, #1a1a2e);

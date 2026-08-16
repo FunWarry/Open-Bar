@@ -1,3 +1,18 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+ion-content {
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+}
+
 .admin-page {
   padding: 28px;
   max-width: 1320px;
