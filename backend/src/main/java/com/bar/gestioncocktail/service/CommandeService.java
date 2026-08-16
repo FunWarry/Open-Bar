@@ -63,12 +63,29 @@ public class CommandeService {
         return commandeRepository.findAll();
     }
 
+    @Transactional(readOnly = true)
+    public List<com.bar.gestioncocktail.dto.CommandeResponseDTO> getAllCommandesDto() {
+        return commandeRepository.findAll().stream().map(com.bar.gestioncocktail.dto.CommandeResponseDTO::from).toList();
+    }
+
     public Optional<Commande> getCommandeById(Long id) {
         return commandeRepository.findById(id);
     }
 
+    @Transactional(readOnly = true)
+    public Optional<com.bar.gestioncocktail.dto.CommandeResponseDTO> getCommandeDtoById(Long id) {
+        return commandeRepository.findById(id).map(com.bar.gestioncocktail.dto.CommandeResponseDTO::from);
+    }
+
     public List<Commande> getCommandesByTable(TableEntity table) {
         return commandeRepository.findByTable(table);
+    }
+
+    @Transactional(readOnly = true)
+    public List<com.bar.gestioncocktail.dto.CommandeResponseDTO> getCommandesDtoByTable(Long tableId) {
+        TableEntity table = new TableEntity();
+        table.setId(tableId);
+        return commandeRepository.findByTable(table).stream().map(com.bar.gestioncocktail.dto.CommandeResponseDTO::from).toList();
     }
 
     public List<Commande> getCommandesByServeur(User serveur) {
@@ -77,6 +94,11 @@ public class CommandeService {
 
     public List<Commande> getCommandesByStatut(CommandeStatut statut) {
         return commandeRepository.findByStatut(statut);
+    }
+
+    @Transactional(readOnly = true)
+    public List<com.bar.gestioncocktail.dto.CommandeResponseDTO> getCommandesDtoByStatut(CommandeStatut statut) {
+        return commandeRepository.findByStatut(statut).stream().map(com.bar.gestioncocktail.dto.CommandeResponseDTO::from).toList();
     }
 
     public List<Commande> getCommandesByTableAndStatut(TableEntity table, CommandeStatut statut) {
