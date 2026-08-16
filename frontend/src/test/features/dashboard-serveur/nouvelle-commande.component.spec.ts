@@ -399,5 +399,23 @@ describe('NouvelleCommandeComponent', () => {
     expect(component.totalHT).toBeCloseTo(10.00, 2);
     expect(component.totalTVA).toBeCloseTo(2.00, 2);
   });
+
+  it('tests English alias methods for cart manipulation and validation', () => {
+    component.ajouterDepuisModal(mockCocktailWithoutVariante, makeResult({ prixEffectif: 10.00 }));
+    const key = component.cart[0].itemKey;
+
+    component.increaseQuantity(key);
+    expect(component.cart[0].quantite).toBe(2);
+
+    component.decreaseQuantity(key);
+    expect(component.cart[0].quantite).toBe(1);
+
+    component.removeItem(key);
+    expect(component.cart).toHaveSize(0);
+
+    spyOn(component, 'submitOrder');
+    component.valider();
+    expect(component.submitOrder).toHaveBeenCalled();
+  });
 });
 

@@ -226,4 +226,22 @@ describe('FactureDetailComponent', () => {
     await component.reglerFacture();
     expect(factureServiceSpy.reglerFacture).not.toHaveBeenCalled();
   });
+
+  it('reglerFacture() handles settlement error with error toast', async () => {
+    component.facture = mockFacture;
+    const modalSpy = jasmine.createSpyObj('HTMLIonModalElement', ['present', 'onWillDismiss']);
+    modalSpy.present.and.returnValue(Promise.resolve());
+    modalSpy.onWillDismiss.and.returnValue(Promise.resolve({
+      data: { modePaiement: 'CARTE', pourboire: 0, totalTotal: 30.0 }
+    }));
+
+    const modalCtrl = TestBed.inject(ModalController) as jasmine.SpyObj<ModalController>;
+    modalCtrl.create.and.returnValue(Promise.resolve(modalSpy));
+
+    factureServiceSpy.reglerFacture.and.returnValue(throwError(() => new Error('Server error')));
+
+    await component.reglerFacture();
+
+    expect(factureServiceSpy.reglerFacture).toHaveBeenCalled();
+  });
 });

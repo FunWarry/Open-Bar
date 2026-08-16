@@ -81,6 +81,19 @@ describe('TableCardComponent', () => {
     expect(component.statutLabel).toBe('Occupée');
   });
 
+  // --- statutKey ---
+
+  it('statutKey returns correct translation key according to table state', () => {
+    component.table = tableLibre;
+    expect(component.statutKey).toBe('TABLE_CARD.STATUS_FREE');
+
+    component.table = tableEnCours;
+    expect(component.statutKey).toBe('TABLE_CARD.STATUS_IN_PROGRESS');
+
+    component.table = tableOccupee;
+    expect(component.statutKey).toBe('TABLE_CARD.STATUS_OCCUPIED');
+  });
+
   // --- statutClass ---
 
   it('statutClass returns "table-free" if table not occupied', () => {

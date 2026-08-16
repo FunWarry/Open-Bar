@@ -66,5 +66,32 @@ describe('ClientSuiviComponent', () => {
   it('should compute status step 2 for EN_PREPARATION', () => {
     expect(component.statusStep).toBe(2);
     expect(component.statusLabelKey).toBe('CLIENT.STATUS_PREPARING');
+    expect(component.statusLabel).toBe('CLIENT.STATUS_PREPARING');
+  });
+
+  it('should compute status steps and labels for all statuses', () => {
+    component.commande = { ...mockCommande, statut: 'EN_ATTENTE' };
+    expect(component.statusStep).toBe(1);
+    expect(component.statusLabelKey).toBe('CLIENT.STATUS_RECEIVED');
+
+    component.commande = { ...mockCommande, statut: 'PRET' };
+    expect(component.statusStep).toBe(3);
+    expect(component.statusLabelKey).toBe('CLIENT.STATUS_READY');
+
+    component.commande = { ...mockCommande, statut: 'LIVREE' };
+    expect(component.statusStep).toBe(3);
+    expect(component.statusLabelKey).toBe('CLIENT.STATUS_SERVED');
+
+    component.commande = { ...mockCommande, statut: 'REGLEE' };
+    expect(component.statusStep).toBe(3);
+    expect(component.statusLabelKey).toBe('CLIENT.STATUS_SETTLED');
+
+    component.commande = { ...mockCommande, statut: 'ANNULEE' as any };
+    expect(component.statusStep).toBe(1);
+    expect(component.statusLabelKey).toBe('ANNULEE');
+
+    component.commande = null;
+    expect(component.statusStep).toBe(1);
+    expect(component.statusLabelKey).toBe('CLIENT.STATUS_RECEIVED');
   });
 });
