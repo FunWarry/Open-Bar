@@ -170,6 +170,13 @@ body {
 }
 
 
+app-root {
+  display: block;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
 /* Default Ionic component styling overrides to match OpenBar DS */
 ion-app {
   background-color: var(--bg-0);
@@ -180,6 +187,12 @@ ion-content {
   --background: var(--bg-0);
   --color: var(--text-primary);
   background-color: var(--bg-0);
+  display: block;
+  position: relative;
+  flex: 1;
+  height: 100%;
+  width: 100%;
+  min-height: 0;
 }
 
 ion-header,

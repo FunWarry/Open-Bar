@@ -11,24 +11,51 @@
   flex-direction: column;
   flex: 1;
   height: 100vh;
+  min-height: 0;
+  min-width: 0;
   overflow: hidden;
+}
+
+app-navbar {
+  display: block;
+  width: 100%;
+  flex-shrink: 0;
+  z-index: 10;
 }
 
 .app-content-body {
   display: flex;
   flex: 1;
+  min-height: 0;
+  min-width: 0;
   overflow: hidden;
   position: relative;
 }
 
 .main-content {
   flex: 1;
+  min-height: 0;
+  min-width: 0;
   overflow: hidden;
   display: flex;
   flex-direction: column;
   height: 100%;
+  width: 100%;
+  position: relative;
   background-color: var(--bg-0, #0f0f1a);
   color: var(--text-primary, #eceefb);
+}
+
+.main-content > *:not(router-outlet) {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  height: 100%;
+  width: 100%;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  position: relative;
 }
 
 /* Sliding notification drawer panel — shifts main content flex area */
