@@ -428,19 +428,19 @@
             <!-- Variantes FormArray -->
             <div class="variantes-section" formArrayName="variantes">
               <div class="variantes-header">
-                <h4>Variantes disponibles (alcools alternatifs, sans alcool...)</h4>
+                <h4>{{ 'COCKTAILS.VARIANTS_SECTION.TITLE' | transloco }}</h4>
                 <button
                   type="button"
                   class="btn-add-variant"
                   (click)="addVariant()"
                   data-testid="btn-add-variant">
-                  + Ajouter une variante
+                  + {{ 'COCKTAILS.VARIANTS_SECTION.ADD_VARIANT' | transloco }}
                 </button>
               </div>
 
               @if (variantesArray.controls.length === 0) {
                 <div class="empty-variantes-hint">
-                  Aucune variante spécifique configurée pour ce cocktail.
+                  {{ 'COCKTAILS.VARIANTS_SECTION.EMPTY' | transloco }}
                 </div>
               }
 
@@ -448,18 +448,18 @@
                 <div class="variant-item-card" [formGroupName]="vIdx" [attr.data-testid]="'variant-card-' + vIdx">
                   <div class="variant-inputs-row">
                     <div class="field-item name-col">
-                      <label [for]="'v-nom-' + vIdx">Nom variante</label>
+                      <label [for]="'v-nom-' + vIdx">{{ 'COCKTAILS.VARIANTS_SECTION.NAME_LABEL' | transloco }}</label>
                       <input
                         type="text"
                         [id]="'v-nom-' + vIdx"
                         formControlName="nom"
                         class="native-input"
-                        placeholder="ex: Rhum Brun Vieilli"
+                        [placeholder]="'COCKTAILS.VARIANTS_SECTION.NAME_PLACEHOLDER' | transloco"
                         [attr.data-testid]="'input-variant-nom-' + vIdx">
                     </div>
 
                     <div class="field-item supp-col">
-                      <label [for]="'v-supp-' + vIdx">Supplément (€)</label>
+                      <label [for]="'v-supp-' + vIdx">{{ 'COCKTAILS.VARIANTS_SECTION.SUPPLEMENT_LABEL' | transloco }}</label>
                       <input
                         type="number"
                         step="0.5"
@@ -471,14 +471,17 @@
                         [attr.data-testid]="'input-variant-supp-' + vIdx">
                     </div>
 
-                    <button
-                      type="button"
-                      class="icon-action-btn btn-delete"
-                      (click)="removeVariant(vIdx)"
-                      title="Supprimer la variante"
-                      [attr.data-testid]="'btn-remove-variant-' + vIdx">
-                      <ion-icon name="trash-outline"></ion-icon>
-                    </button>
+                    <div class="field-item action-col">
+                      <label class="action-label-spacer" aria-hidden="true">&nbsp;</label>
+                      <button
+                        type="button"
+                        class="icon-action-btn btn-delete"
+                        (click)="removeVariant(vIdx)"
+                        [title]="'COCKTAILS.VARIANTS_SECTION.REMOVE' | transloco"
+                        [attr.data-testid]="'btn-remove-variant-' + vIdx">
+                        <ion-icon name="trash-outline"></ion-icon>
+                      </button>
+                    </div>
                   </div>
                 </div>
               }

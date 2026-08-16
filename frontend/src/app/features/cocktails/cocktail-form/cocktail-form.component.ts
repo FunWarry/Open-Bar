@@ -624,6 +624,12 @@ export class CocktailFormComponent implements OnInit {
       prix: formVal.price,
       categorie: formVal.category,
       instructions: formVal.instructions || null,
+      disponible: this.cocktailData ? this.cocktailData.disponible : true,
+      saisonnier: this.cocktailData ? this.cocktailData.saisonnier : false,
+      dateDebutSaison: this.cocktailData?.dateDebutSaison || null,
+      dateFinSaison: this.cocktailData?.dateFinSaison || null,
+      moisDebut: this.cocktailData?.moisDebut || null,
+      moisFin: this.cocktailData?.moisFin || null,
       recipeSteps: recipeStepsPayload,
     };
 

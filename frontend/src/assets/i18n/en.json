@@ -415,6 +415,15 @@
     "SEASONAL": "Seasonal",
     "INGREDIENTS": "Ingredients",
     "VARIANTS": "Variants",
+    "VARIANTS_SECTION": {
+      "TITLE": "Available variants (alternative spirits, non-alcoholic...)",
+      "ADD_VARIANT": "Add a variant",
+      "NAME_LABEL": "Variant name",
+      "NAME_PLACEHOLDER": "e.g.: Aged Dark Rum",
+      "SUPPLEMENT_LABEL": "Extra (€)",
+      "EMPTY": "No specific variants configured for this cocktail.",
+      "REMOVE": "Remove variant"
+    },
     "INSTRUCTIONS": "Preparation instructions",
     "CHANGE_PHOTO": "Change photo",
     "SELECT_PHOTO": "Choose a photo",

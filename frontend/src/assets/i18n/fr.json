@@ -415,6 +415,15 @@
     "SEASONAL": "Saisonnier",
     "INGREDIENTS": "Ingrédients",
     "VARIANTS": "Variantes",
+    "VARIANTS_SECTION": {
+      "TITLE": "Variantes disponibles (alcools alternatifs, sans alcool...)",
+      "ADD_VARIANT": "Ajouter une variante",
+      "NAME_LABEL": "Nom variante",
+      "NAME_PLACEHOLDER": "ex: Rhum Brun Vieilli",
+      "SUPPLEMENT_LABEL": "Supplément (€)",
+      "EMPTY": "Aucune variante spécifique configurée pour ce cocktail.",
+      "REMOVE": "Supprimer la variante"
+    },
     "INSTRUCTIONS": "Instructions de préparation",
     "CHANGE_PHOTO": "Changer la photo",
     "SELECT_PHOTO": "Choisir une photo",

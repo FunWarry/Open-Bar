@@ -124,8 +124,12 @@ public class CocktailService {
         cocktail.setDescription(request.description());
         cocktail.setPrix(request.prix());
         cocktail.setCategorie(request.categorie());
-        cocktail.setDisponible(request.disponible());
-        cocktail.setSaisonnier(request.saisonnier());
+        if (request.disponible() != null) {
+            cocktail.setDisponible(request.disponible());
+        }
+        if (request.saisonnier() != null) {
+            cocktail.setSaisonnier(request.saisonnier());
+        }
         cocktail.setDateDebutSaison(request.dateDebutSaison());
         cocktail.setDateFinSaison(request.dateFinSaison());
         cocktail.setMoisDebut(request.moisDebut());

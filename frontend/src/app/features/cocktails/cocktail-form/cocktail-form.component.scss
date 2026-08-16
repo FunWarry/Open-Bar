@@ -644,9 +644,9 @@
 
     .variant-inputs-row {
       display: grid;
-      grid-template-columns: 2fr 1fr auto;
+      grid-template-columns: 1fr 140px 42px;
       gap: 1rem;
-      align-items: end;
+      align-items: flex-start;
 
       .field-item {
         display: flex;
@@ -657,13 +657,24 @@
           font-size: 0.825rem;
           color: var(--text-secondary);
           font-weight: 600;
+          height: 18px;
+          line-height: 18px;
+          margin: 0;
+          display: block;
+        }
+
+        .action-label-spacer {
+          user-select: none;
+          visibility: hidden;
         }
 
         .native-input {
+          height: 42px;
+          box-sizing: border-box;
           background: var(--background-surface-2);
           border: 1px solid var(--border-medium);
           border-radius: 0.65rem;
-          padding: 0.65rem 0.85rem;
+          padding: 0 0.85rem;
           color: var(--text-primary);
           font-size: 0.95rem;
           outline: none;
@@ -674,37 +685,42 @@
             box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2);
           }
         }
-      }
 
-      .icon-action-btn.btn-delete {
-        background: var(--background-surface-3);
-        border: 1px solid var(--border-medium);
-        color: var(--text-secondary);
-        width: 40px;
-        height: 40px;
-        border-radius: 0.65rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        margin-bottom: 1px;
+        &.action-col {
+          width: 42px;
+          align-items: center;
 
-        ion-icon {
-          font-size: 1.25rem;
-          color: inherit;
-        }
+          .icon-action-btn.btn-delete {
+            height: 42px;
+            width: 42px;
+            box-sizing: border-box;
+            background: var(--background-surface-3);
+            border: 1px solid var(--border-medium);
+            color: var(--text-secondary);
+            border-radius: 0.65rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
-        &:hover {
-          background: rgba(239, 68, 68, 0.15);
-          color: var(--semantic-danger);
-          border-color: var(--semantic-danger);
-          transform: scale(1.06);
-          box-shadow: 0 2px 10px rgba(239, 68, 68, 0.25);
-        }
+            ion-icon {
+              font-size: 1.25rem;
+              color: inherit;
+            }
 
-        &:active {
-          transform: scale(0.96);
+            &:hover {
+              background: var(--semantic-danger);
+              color: #ffffff;
+              border-color: var(--semantic-danger);
+              box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
+              transform: scale(1.05);
+            }
+
+            &:active {
+              transform: scale(0.96);
+            }
+          }
         }
       }
     }
