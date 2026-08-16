@@ -200,6 +200,7 @@ export class SearchableSelectComponent extends BaseControlValueAccessor<any> imp
     if (opt.disabled) return;
 
     this.value = opt.value;
+    this.selectedValue.set(opt.value);
     this.onChange(this.value);
     this.selectionChange.emit(opt);
     this.closeDropdown();
@@ -211,6 +212,7 @@ export class SearchableSelectComponent extends BaseControlValueAccessor<any> imp
     if (this.disabled) return;
 
     this.value = null;
+    this.selectedValue.set(null);
     this.onChange(this.value);
     this.selectionChange.emit(null);
     this.closeDropdown();
