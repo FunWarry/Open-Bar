@@ -9,7 +9,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -18,20 +17,19 @@ import java.math.BigDecimal;
 import java.util.List;
 
 /**
- * Controller REST pour la gestion des variantes de cocktails (ex: Sans alcool, XL, Premium).
+ * REST controller for managing cocktail variants (e.g. Alcohol-free, XL, Premium).
  */
 @RestController
 @RequestMapping("/api/cocktail-variantes")
-@Tag(name = "Variantes Cocktails", description = "Gestion des déclinaisons et options de cocktails")
+@Tag(name = "Cocktail Variants", description = "Cocktail customization options and variant management")
 public class CocktailVarianteController {
     private final CocktailVarianteService cocktailVarianteService;
 
     /**
-     * Constructeur avec injection du service de variante.
+     * Constructs the controller with variant service dependency.
      *
-     * @param cocktailVarianteService Service gérant les variantes de cocktails
+     * @param cocktailVarianteService Service managing cocktail variants
      */
-    @Autowired
     public CocktailVarianteController(CocktailVarianteService cocktailVarianteService) {
         this.cocktailVarianteService = cocktailVarianteService;
     }
@@ -72,32 +70,32 @@ public class CocktailVarianteController {
     }
 
     /**
-     * Supprime une variante de cocktail.
+     * Deletes a cocktail variant.
      *
-     * @param id Identifiant de la variante
-     * @return Statut 200 OK
+     * @param id Identifier of the variant
+     * @return HTTP 200 OK
      */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('BARMAN')")
-    @Operation(summary = "Supprimer une variante (BARMAN/ADMIN)")
-    @ApiResponse(responseCode = "200", description = "Variante supprimée")
-    public ResponseEntity<Void> deleteCocktailVariante(@Parameter(description = "ID de la variante") @PathVariable Long id) {
+    @Operation(summary = "Delete a variant (BARMAN/ADMIN)")
+    @ApiResponse(responseCode = "200", description = "Variant deleted")
+    public ResponseEntity<Void> deleteCocktailVariante(@Parameter(description = "Variant ID") @PathVariable Long id) {
         cocktailVarianteService.deleteCocktailVariante(id);
         return ResponseEntity.ok().build();
     }
 
     /**
-     * Récupère une variante par son ID.
+     * Retrieves a variant by its ID.
      *
-     * @param id Identifiant de la variante
-     * @return DTO de la variante
+     * @param id Identifier of the variant
+     * @return DTO of the variant
      */
     @GetMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "Obtenir une variante par son ID")
-    @ApiResponse(responseCode = "200", description = "Variante trouvée")
-    @ApiResponse(responseCode = "404", description = "Variante non trouvée")
-    public ResponseEntity<CocktailVarianteResponseDTO> getCocktailVarianteById(@Parameter(description = "ID de la variante") @PathVariable Long id) {
+    @Operation(summary = "Get variant by ID")
+    @ApiResponse(responseCode = "200", description = "Variant found")
+    @ApiResponse(responseCode = "404", description = "Variant not found")
+    public ResponseEntity<CocktailVarianteResponseDTO> getCocktailVarianteById(@Parameter(description = "Variant ID") @PathVariable Long id) {
         return cocktailVarianteService.getCocktailVarianteById(id)
             .map(CocktailVarianteResponseDTO::from)
             .map(ResponseEntity::ok)
@@ -105,17 +103,17 @@ public class CocktailVarianteController {
     }
 
     /**
-     * Liste toutes les variantes associées à un cocktail.
+     * Lists all variants associated with a cocktail.
      *
-     * @param cocktailId Identifiant du cocktail
-     * @return Liste des variantes du cocktail
+     * @param cocktailId Identifier of the cocktail
+     * @return List of cocktail variants
      */
     @GetMapping("/cocktail/{cocktailId}")
     @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "Lister les variantes d'un cocktail")
-    @ApiResponse(responseCode = "200", description = "Variantes récupérées")
+    @Operation(summary = "List variants for a cocktail")
+    @ApiResponse(responseCode = "200", description = "Variants retrieved")
     public ResponseEntity<List<CocktailVarianteResponseDTO>> getVariantesByCocktail(
-        @Parameter(description = "ID du cocktail") @PathVariable Long cocktailId) {
+        @Parameter(description = "Cocktail ID") @PathVariable Long cocktailId) {
         Cocktail cocktail = new Cocktail();
         cocktail.setId(cocktailId);
         return ResponseEntity.ok(cocktailVarianteService.getVariantesByCocktail(cocktail).stream()
@@ -123,17 +121,17 @@ public class CocktailVarianteController {
     }
 
     /**
-     * Liste les variantes disponibles pour un cocktail donné.
+     * Lists available variants for a given cocktail.
      *
-     * @param cocktailId Identifiant du cocktail
-     * @return Liste des variantes disponibles
+     * @param cocktailId Identifier of the cocktail
+     * @return List of available variants
      */
     @GetMapping("/cocktail/{cocktailId}/disponibles")
     @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "Lister les variantes disponibles d'un cocktail")
-    @ApiResponse(responseCode = "200", description = "Variantes disponibles récupérées")
+    @Operation(summary = "List available variants for a cocktail")
+    @ApiResponse(responseCode = "200", description = "Available variants retrieved")
     public ResponseEntity<List<CocktailVarianteResponseDTO>> getVariantesDisponiblesByCocktail(
-        @Parameter(description = "ID du cocktail") @PathVariable Long cocktailId) {
+        @Parameter(description = "Cocktail ID") @PathVariable Long cocktailId) {
         Cocktail cocktail = new Cocktail();
         cocktail.setId(cocktailId);
         return ResponseEntity.ok(cocktailVarianteService.getVariantesDisponiblesByCocktail(cocktail).stream()
@@ -141,31 +139,31 @@ public class CocktailVarianteController {
     }
 
     /**
-     * Recherche des variantes par nom.
+     * Searches variants by name.
      *
-     * @param nom Terme de recherche
-     * @return Liste des variantes trouvées
+     * @param nom Search term
+     * @return List of matching variants
      */
     @GetMapping("/search")
     @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "Rechercher des variantes par nom")
-    @ApiResponse(responseCode = "200", description = "Résultats de recherche")
+    @Operation(summary = "Search variants by name")
+    @ApiResponse(responseCode = "200", description = "Search results retrieved")
     public ResponseEntity<List<CocktailVarianteResponseDTO>> searchVariantes(@RequestParam String nom) {
         return ResponseEntity.ok(cocktailVarianteService.searchVariantes(nom).stream()
             .map(CocktailVarianteResponseDTO::from).toList());
     }
 
     /**
-     * Bascule la disponibilité d'une variante.
+     * Toggles availability of a variant.
      *
-     * @param id Identifiant de la variante
-     * @return DTO de la variante modifiée
+     * @param id Identifier of the variant
+     * @return Updated variant DTO
      */
     @PutMapping("/{id}/disponibilite")
     @PreAuthorize("hasRole('ADMIN') or hasRole('BARMAN') or hasRole('MANAGER')")
-    @Operation(summary = "Basculer la disponibilité d'une variante (BARMAN/MANAGER/ADMIN)")
-    @ApiResponse(responseCode = "200", description = "Disponibilité basculée")
-    @ApiResponse(responseCode = "404", description = "Variante non trouvée")
+    @Operation(summary = "Toggle variant availability (BARMAN/MANAGER/ADMIN)")
+    @ApiResponse(responseCode = "200", description = "Availability toggled")
+    @ApiResponse(responseCode = "404", description = "Variant not found")
     public ResponseEntity<CocktailVarianteResponseDTO> toggleDisponibilite(@PathVariable Long id) {
         return cocktailVarianteService.getCocktailVarianteById(id)
             .map(variante -> {
@@ -176,17 +174,17 @@ public class CocktailVarianteController {
     }
 
     /**
-     * Met à jour le supplément tarifaire d'une variante.
+     * Updates extra price surcharge for a variant.
      *
-     * @param id Identifiant de la variante
-     * @param prixSupplement Nouveau prix du supplément
-     * @return DTO de la variante modifiée
+     * @param id Identifier of the variant
+     * @param prixSupplement New extra surcharge price
+     * @return Updated variant DTO
      */
     @PutMapping("/{id}/prix-supplement")
     @PreAuthorize("hasRole('ADMIN') or hasRole('BARMAN')")
-    @Operation(summary = "Mettre à jour le prix du supplément d'une variante (BARMAN/ADMIN)")
-    @ApiResponse(responseCode = "200", description = "Prix du supplément mis à jour")
-    @ApiResponse(responseCode = "404", description = "Variante non trouvée")
+    @Operation(summary = "Update variant surcharge price (BARMAN/ADMIN)")
+    @ApiResponse(responseCode = "200", description = "Surcharge price updated")
+    @ApiResponse(responseCode = "404", description = "Variant not found")
     public ResponseEntity<CocktailVarianteResponseDTO> updatePrixSupplement(
         @PathVariable Long id,
         @RequestParam BigDecimal prixSupplement) {

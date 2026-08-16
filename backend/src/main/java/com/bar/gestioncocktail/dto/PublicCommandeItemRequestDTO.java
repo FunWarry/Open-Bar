@@ -8,37 +8,37 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * DTO représentant un article individuel dans une commande publique.
+ * DTO representing an individual item in a public QR order.
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Ligne d'article dans une commande publique")
+@Schema(description = "Ordered item line in a public QR order")
 public class PublicCommandeItemRequestDTO {
 
     /**
-     * Identifiant du cocktail choisi.
+     * Selected cocktail identifier.
      */
-    @NotNull(message = "Le cocktail est obligatoire")
-    @Schema(description = "ID du cocktail", example = "12")
+    @NotNull(message = "Cocktail is required")
+    @Schema(description = "Cocktail ID", example = "12")
     private Long cocktailId;
 
     /**
-     * Identifiant optionnel de la variante sélectionnée.
+     * Optional selected variant identifier.
      */
-    @Schema(description = "ID optionnel de la variante", example = "3")
+    @Schema(description = "Optional variant ID", example = "3")
     private Long varianteId;
 
     /**
-     * Quantité commandée (au moins 1).
+     * Ordered quantity (at least 1).
      */
-    @Min(value = 1, message = "La quantité doit être d'au moins 1")
-    @Schema(description = "Quantité d'articles", example = "2")
+    @Min(value = 1, message = "Quantity must be at least 1")
+    @Schema(description = "Item quantity", example = "2")
     private int quantite = 1;
 
     /**
-     * Remarques spécifiques pour cet article.
+     * Special preparation instructions for this item.
      */
-    @Schema(description = "Remarques sur cet article", example = "Bien frais")
+    @Schema(description = "Item notes", example = "Extra ice")
     private String notes;
 }

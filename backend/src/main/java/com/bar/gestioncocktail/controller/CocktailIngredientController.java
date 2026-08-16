@@ -9,7 +9,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -18,22 +17,19 @@ import java.math.BigDecimal;
 import java.util.List;
 
 /**
- * Controller REST pour la gestion de la composition des cocktails (liaison
- * cocktail ↔ ingrédient et proportions).
+ * REST controller managing cocktail recipes and ingredient compositions (cocktail ↔ ingredient relationships and proportions).
  */
 @RestController
 @RequestMapping("/api/cocktail-ingredients")
-@Tag(name = "Cocktail Ingrédients", description = "Gestion des recettes et compositions (liaisons cocktails et ingrédients)")
+@Tag(name = "Cocktail Ingredients", description = "Recipe and composition management (cocktail and ingredient associations)")
 public class CocktailIngredientController {
     private final CocktailIngredientService cocktailIngredientService;
 
     /**
-     * Constructeur avec injection du service de recette cocktail-ingrédient.
+     * Constructs the controller with cocktail ingredient recipe service dependency.
      *
-     * @param cocktailIngredientService Service gérant les liaisons entre cocktails
-     *                                  et ingrédients
+     * @param cocktailIngredientService Service managing relationships between cocktails and ingredients
      */
-    @Autowired
     public CocktailIngredientController(CocktailIngredientService cocktailIngredientService) {
         this.cocktailIngredientService = cocktailIngredientService;
     }
@@ -55,33 +51,33 @@ public class CocktailIngredientController {
     }
 
     /**
-     * Supprime une liaison cocktail-ingrédient par son identifiant.
+     * Deletes a cocktail-ingredient association by its ID.
      *
-     * @param id Identifiant de la liaison
-     * @return Statut 200 OK
+     * @param id Identifier of the association
+     * @return HTTP 200 OK
      */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('BARMAN')")
-    @Operation(summary = "Supprimer un ingrédient d'une recette par ID (BARMAN/ADMIN)")
-    @ApiResponse(responseCode = "200", description = "Liaison supprimée")
+    @Operation(summary = "Remove an ingredient from a recipe by ID (BARMAN/ADMIN)")
+    @ApiResponse(responseCode = "200", description = "Association deleted")
     public ResponseEntity<Void> deleteCocktailIngredient(
-            @Parameter(description = "ID de la liaison") @PathVariable Long id) {
+            @Parameter(description = "Association ID") @PathVariable Long id) {
         cocktailIngredientService.deleteCocktailIngredient(id);
         return ResponseEntity.ok().build();
     }
 
     /**
-     * Récupère la liste des ingrédients composant un cocktail.
+     * Retrieves the list of ingredients composing a cocktail recipe.
      *
-     * @param cocktailId Identifiant du cocktail
-     * @return Liste des ingrédients de la recette
+     * @param cocktailId Cocktail identifier
+     * @return List of recipe ingredients
      */
     @GetMapping("/cocktail/{cocktailId}")
     @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "Obtenir les ingrédients d'un cocktail")
-    @ApiResponse(responseCode = "200", description = "Ingrédients de la recette récupérés")
+    @Operation(summary = "Get recipe ingredients for a cocktail")
+    @ApiResponse(responseCode = "200", description = "Recipe ingredients retrieved")
     public ResponseEntity<List<CocktailIngredientResponseDTO>> getIngredientsByCocktail(
-            @Parameter(description = "ID du cocktail") @PathVariable Long cocktailId) {
+            @Parameter(description = "Cocktail ID") @PathVariable Long cocktailId) {
         Cocktail cocktail = new Cocktail();
         cocktail.setId(cocktailId);
         return ResponseEntity.ok(cocktailIngredientService.getIngredientsByCocktail(cocktail).stream()
@@ -89,17 +85,17 @@ public class CocktailIngredientController {
     }
 
     /**
-     * Récupère la liste des cocktails utilisant un ingrédient spécifique.
+     * Retrieves the list of cocktails using a specific ingredient.
      *
-     * @param ingredientId Identifiant de l'ingrédient
-     * @return Liste des cocktails recettes associées
+     * @param ingredientId Ingredient identifier
+     * @return List of associated cocktail recipes
      */
     @GetMapping("/ingredient/{ingredientId}")
     @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "Obtenir les cocktails utilisant un ingrédient")
-    @ApiResponse(responseCode = "200", description = "Cocktails associés récupérés")
+    @Operation(summary = "Get cocktails using an ingredient")
+    @ApiResponse(responseCode = "200", description = "Associated cocktails retrieved")
     public ResponseEntity<List<CocktailIngredientResponseDTO>> getCocktailsByIngredient(
-            @Parameter(description = "ID de l'ingrédient") @PathVariable Long ingredientId) {
+            @Parameter(description = "Ingredient ID") @PathVariable Long ingredientId) {
         Ingredient ingredient = new Ingredient();
         ingredient.setId(ingredientId);
         return ResponseEntity.ok(cocktailIngredientService.getCocktailsByIngredient(ingredient).stream()
@@ -107,20 +103,20 @@ public class CocktailIngredientController {
     }
 
     /**
-     * Met à jour la dose/quantité d'un ingrédient dans un cocktail.
+     * Updates the quantity/dosage of an ingredient within a cocktail recipe.
      *
-     * @param id       Identifiant de la liaison
-     * @param quantite Nouvelle quantité
-     * @return DTO de la liaison mise à jour
+     * @param id       Association identifier
+     * @param quantite New dosage amount
+     * @return Updated association DTO
      */
     @PutMapping("/{id}/quantite")
     @PreAuthorize("hasRole('ADMIN') or hasRole('BARMAN')")
-    @Operation(summary = "Mettre à jour la dose d'un ingrédient (BARMAN/ADMIN)")
-    @ApiResponse(responseCode = "200", description = "Quantité mise à jour")
-    @ApiResponse(responseCode = "404", description = "Liaison non trouvée")
+    @Operation(summary = "Update ingredient dose in recipe (BARMAN/ADMIN)")
+    @ApiResponse(responseCode = "200", description = "Quantity updated")
+    @ApiResponse(responseCode = "404", description = "Association not found")
     public ResponseEntity<CocktailIngredientResponseDTO> updateQuantite(
-            @Parameter(description = "ID de la liaison") @PathVariable Long id,
-            @Parameter(description = "Nouvelle dose") @RequestParam BigDecimal quantite) {
+            @Parameter(description = "Association ID") @PathVariable Long id,
+            @Parameter(description = "New dosage") @RequestParam BigDecimal quantite) {
         return cocktailIngredientService.getCocktailIngredientById(id)
                 .map(cocktailIngredient -> {
                     cocktailIngredientService.updateQuantite(cocktailIngredient, quantite);
@@ -130,20 +126,19 @@ public class CocktailIngredientController {
     }
 
     /**
-     * Supprime le lien entre un cocktail et un ingrédient désignés par leurs IDs
-     * respectifs.
+     * Deletes the link between a cocktail and an ingredient by their respective IDs.
      *
-     * @param cocktailId   Identifiant du cocktail
-     * @param ingredientId Identifiant de l'ingrédient
-     * @return Statut 200 OK
+     * @param cocktailId   Cocktail identifier
+     * @param ingredientId Ingredient identifier
+     * @return HTTP 200 OK
      */
     @DeleteMapping("/cocktail/{cocktailId}/ingredient/{ingredientId}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('BARMAN')")
-    @Operation(summary = "Supprimer un ingrédient d'une recette par IDs (BARMAN/ADMIN)")
-    @ApiResponse(responseCode = "200", description = "Liaison supprimée")
+    @Operation(summary = "Remove an ingredient from a recipe by IDs (BARMAN/ADMIN)")
+    @ApiResponse(responseCode = "200", description = "Association deleted")
     public ResponseEntity<Void> deleteCocktailIngredient(
-            @Parameter(description = "ID du cocktail") @PathVariable Long cocktailId,
-            @Parameter(description = "ID de l'ingrédient") @PathVariable Long ingredientId) {
+            @Parameter(description = "Cocktail ID") @PathVariable Long cocktailId,
+            @Parameter(description = "Ingredient ID") @PathVariable Long ingredientId) {
         Cocktail cocktail = new Cocktail();
         cocktail.setId(cocktailId);
         Ingredient ingredient = new Ingredient();

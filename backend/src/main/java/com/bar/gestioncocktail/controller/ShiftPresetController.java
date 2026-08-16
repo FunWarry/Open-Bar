@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * REST controller for managing shift template presets (modèles de créneaux horraires).
+ * REST controller for managing shift template presets (working hour schedule templates).
  */
 @RestController
 @RequestMapping("/api/shift-presets")
@@ -28,7 +28,7 @@ public class ShiftPresetController {
     }
 
     @GetMapping
-    @Operation(summary = "Get all shift presets", description = "Retrieves all default shift presets (Matin, Soir, Coupure, Nuit, Congé).")
+    @Operation(summary = "Get all shift presets", description = "Retrieves all default shift presets (Morning, Evening, Split, Night, Leave).")
     @ApiResponse(responseCode = "200", description = "List of shift presets retrieved successfully")
     public ResponseEntity<List<ShiftPresetDTO>> getAllPresets() {
         return ResponseEntity.ok(presetService.getAllPresets());

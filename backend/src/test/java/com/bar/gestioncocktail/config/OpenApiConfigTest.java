@@ -16,7 +16,7 @@ class OpenApiConfigTest {
 
         assertThat(openAPI).isNotNull();
         assertThat(openAPI.getInfo()).isNotNull();
-        assertThat(openAPI.getInfo().getTitle()).isEqualTo("OpenBar API REST");
+        assertThat(openAPI.getInfo().getTitle()).isEqualTo("OpenBar REST API");
         assertThat(openAPI.getInfo().getVersion()).isEqualTo("1.0.0");
         assertThat(openAPI.getComponents()).isNotNull();
         assertThat(openAPI.getComponents().getSecuritySchemes()).containsKey("bearerAuth");

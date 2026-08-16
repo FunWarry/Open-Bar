@@ -10,26 +10,26 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * DTO de réponse représentant une commande avec ses lignes d'articles et son avancement temporel.
+ * Response DTO representing an order with its item lines and lifecycle timestamps.
  *
- * @param id Identifiant unique de la commande
- * @param tableId Identifiant de la table rattachée
- * @param tableNumero Numéro lisible de la table
- * @param serveurId Identifiant du serveur référent
- * @param serveurUsername Nom d'utilisateur du serveur
- * @param items Liste des lignes d'articles commandés
- * @param statut Statut courant de la commande
- * @param notes Consignes particulières
- * @param total Montant total de la commande
- * @param pourboire Pourboire éventuel
- * @param dateCommande Timestamp de prise de commande
- * @param datePreparation Timestamp de début de préparation (Barman)
- * @param dateLivraison Timestamp de service/livraison
- * @param dateReglement Timestamp de paiement
- * @param createdAt Date de création en base
- * @param updatedAt Date de dernière modification
+ * @param id Unique order identifier
+ * @param tableId Identifier of attached table
+ * @param tableNumero Human-readable table number
+ * @param serveurId Server user ID
+ * @param serveurUsername Server username
+ * @param items List of ordered item lines
+ * @param statut Current order status
+ * @param notes Special preparation notes
+ * @param total Total order amount
+ * @param pourboire Tip amount
+ * @param dateCommande Order placement timestamp
+ * @param datePreparation Preparation start timestamp (Bartender)
+ * @param dateLivraison Delivery timestamp
+ * @param dateReglement Settlement timestamp
+ * @param createdAt Database creation timestamp
+ * @param updatedAt Last modification timestamp
  */
-@Schema(description = "Représentation DTO d'une commande")
+@Schema(description = "DTO representation of an order")
 public record CommandeResponseDTO(
     Long id,
     Long tableId,
@@ -49,10 +49,10 @@ public record CommandeResponseDTO(
     LocalDateTime updatedAt
 ) {
     /**
-     * Convertit une entité {@link Commande} en DTO de réponse.
+     * Converts a {@link Commande} entity into a response DTO.
      *
-     * @param c L'entité commande
-     * @return Le DTO correspondant
+     * @param c Order entity
+     * @return Corresponding response DTO
      */
     public static CommandeResponseDTO from(Commande c) {
         List<CommandeItemResponseDTO> items = c.getItems() != null

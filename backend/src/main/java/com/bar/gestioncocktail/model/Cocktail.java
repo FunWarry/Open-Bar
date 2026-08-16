@@ -18,21 +18,21 @@ public class Cocktail {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "Le nom du cocktail est obligatoire")
-    @Size(max = 255, message = "Le nom ne peut pas dépasser 255 caractères")
+    @NotBlank(message = "Cocktail name is required")
+    @Size(max = 255, message = "Name cannot exceed 255 characters")
     @Column(nullable = false)
     private String nom;
 
-    @Size(max = 1000, message = "La description ne peut pas dépasser 1000 caractères")
+    @Size(max = 1000, message = "Description cannot exceed 1000 characters")
     @Column(length = 1000)
     private String description;
 
-    @NotNull(message = "Le prix est obligatoire")
-    @DecimalMin(value = "0.0", inclusive = false, message = "Le prix doit être supérieur à 0")
+    @NotNull(message = "Price is required")
+    @DecimalMin(value = "0.0", inclusive = false, message = "Price must be greater than 0")
     @Column(nullable = false)
     private BigDecimal prix;
 
-    @NotNull(message = "La catégorie est obligatoire")
+    @NotNull(message = "Category is required")
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private CocktailCategorie categorie;
@@ -46,7 +46,7 @@ public class Cocktail {
     private LocalDateTime dateDebutSaison;
     private LocalDateTime dateFinSaison;
 
-    // Saisonnalité par mois (1-12), null = toute l'année
+    // Monthly seasonality (1-12), null = year-round
     private Integer moisDebut;
     private Integer moisFin;
 
@@ -57,7 +57,7 @@ public class Cocktail {
         if (moisDebut <= moisFin) {
             return moisActuel >= moisDebut && moisActuel <= moisFin;
         }
-        // Chevauchement d'année (ex: Oct → Fév)
+        // Year wrap-around (e.g. Oct → Feb)
         return moisActuel >= moisDebut || moisActuel <= moisFin;
     }
 

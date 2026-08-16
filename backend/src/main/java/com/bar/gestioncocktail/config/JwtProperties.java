@@ -7,14 +7,17 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.nio.charset.StandardCharsets;
 
+/**
+ * Configuration properties for JWT authentication.
+ */
 @Getter
 @Setter
 @ConfigurationProperties(prefix = "spring.security.jwt")
 public class JwtProperties {
 
-    // 256 bits minimum requis par HMAC-SHA, mesurés en octets — c'est bien le nombre
-    // d'octets de secret.getBytes() (utilisé par Keys.hmacShaKeyFor) qui compte pour
-    // JJWT, pas le nombre de caractères (qui diverge pour un secret non-ASCII).
+    // 256 bits minimum required by HMAC-SHA, measured in bytes — JJWT relies on
+    // the byte length of secret.getBytes() (used by Keys.hmacShaKeyFor),
+    // not the character count (which can diverge for non-ASCII secrets).
     private static final int MIN_SECRET_BYTES = 32;
 
     private String secret;
@@ -24,17 +27,17 @@ public class JwtProperties {
     void validate() {
         if (secret == null || secret.isBlank() || secret.equals("${JWT_SECRET}")) {
             throw new IllegalStateException(
-                    "La variable d'environnement JWT_SECRET n'est pas définie. "
-                            + "Définissez-la avant de lancer le backend, par exemple : "
+                    "The JWT_SECRET environment variable is not defined. "
+                            + "Please define it before starting the backend, for example: "
                             + "export JWT_SECRET=$(openssl rand -base64 32) "
-                            + "— voir backend/.env.example pour un exemple de format (à remplacer par une valeur générée).");
+                            + "— see backend/.env.example for format reference.");
         }
         int secretBytes = secret.getBytes(StandardCharsets.UTF_8).length;
         if (secretBytes < MIN_SECRET_BYTES) {
             throw new IllegalStateException(
-                    "JWT_SECRET fait " + secretBytes + " octets, il en faut au moins "
-                            + MIN_SECRET_BYTES + " (256 bits) pour un HMAC-SHA sécurisé. "
-                            + "Générez-en un nouveau, par exemple : export JWT_SECRET=$(openssl rand -base64 32)");
+                    "JWT_SECRET length is " + secretBytes + " bytes, but at least "
+                            + MIN_SECRET_BYTES + " bytes (256 bits) are required for secure HMAC-SHA. "
+                            + "Generate a new one, for example: export JWT_SECRET=$(openssl rand -base64 32)");
         }
     }
 

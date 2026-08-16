@@ -10,8 +10,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * Gestionnaire global des exceptions pour l'API REST OpenBar (ControllerAdvice).
- * Intercepte les exceptions métier, de validation Bean et d'infrastructure pour retourner un format {@link ErrorResponse} unifié.
+ * Global REST exception handler for OpenBar API (ControllerAdvice).
+ * Intercepts business exceptions, Bean validation errors, and infrastructure failures to return unified {@link ErrorResponse} payloads.
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -19,10 +19,10 @@ public class GlobalExceptionHandler {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     /**
-     * Gère les exceptions de ressource introuvable (HTTP 404).
+     * Handles resource not found exceptions (HTTP 404).
      *
-     * @param ex Exception interceptee
-     * @return Reponse HTTP 404
+     * @param ex Intercepted exception
+     * @return HTTP 404 response
      */
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleResourceNotFound(ResourceNotFoundException ex) {
@@ -35,10 +35,10 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Gère les exceptions de règles métier (HTTP 400).
+     * Handles business rule violations (HTTP 400).
      *
-     * @param ex Exception métier interceptee
-     * @return Reponse HTTP 400
+     * @param ex Intercepted business exception
+     * @return HTTP 400 response
      */
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ErrorResponse> handleBusinessException(BusinessException ex) {
@@ -51,10 +51,10 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Gère les exceptions d'accès refusé (HTTP 403).
+     * Handles access denied exceptions (HTTP 403).
      *
-     * @param ex Exception d'accès refusé
-     * @return Réponse HTTP 403
+     * @param ex Access denied exception
+     * @return HTTP 403 response
      */
     @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> handleAccessDenied(org.springframework.security.access.AccessDeniedException ex) {
@@ -67,10 +67,10 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Gère les erreurs de validation Bean (HTTP 400 avec détails des champs).
+     * Handles Bean validation errors (HTTP 400 with field details).
      *
-     * @param ex Exception de validation
-     * @return Reponse HTTP 400 avec carte des erreurs par champ
+     * @param ex Validation exception
+     * @return HTTP 400 response with field error map
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationErrors(MethodArgumentNotValidException ex) {
@@ -89,10 +89,10 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Gère les exceptions non rattrapées (HTTP 500).
+     * Handles uncaught generic exceptions (HTTP 500).
      *
-     * @param ex Exception générique
-     * @return Reponse HTTP 500
+     * @param ex Generic exception
+     * @return HTTP 500 response
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {

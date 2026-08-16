@@ -8,50 +8,50 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * DTO de réponse lors d'une authentification réussie.
+ * Response DTO on successful authentication.
  */
 @Data
 @AllArgsConstructor
-@Schema(description = "Réponse d'authentification contenant les tokens et les données utilisateur")
+@Schema(description = "Authentication response containing tokens and user information")
 public class LoginResponse {
 
     /**
-     * Access token JWT pour authentifier les requêtes subséquentes.
+     * JWT access token for authenticating subsequent requests (Bearer).
      */
-    @Schema(description = "Access token JWT (Bearer)")
+    @Schema(description = "JWT access token (Bearer)")
     private String token;
 
     /**
-     * Token de rafraîchissement permettant d'obtenir un nouvel access token.
+     * Refresh token UUID to obtain new access tokens.
      */
     @Schema(description = "Refresh token UUID")
     private String refreshToken;
 
     /**
-     * Nom d'utilisateur connecté.
+     * Authenticated username.
      */
-    @Schema(description = "Nom d'utilisateur")
+    @Schema(description = "Username")
     private String username;
 
     /**
-     * Liste des rôles attribués (ex: ROLE_ADMIN, ROLE_BARMAN, etc.).
+     * Assigned roles (e.g. ROLE_ADMIN, ROLE_BARMAN, etc.).
      */
-    @Schema(description = "Rôles attribués à l'utilisateur")
+    @Schema(description = "Roles assigned to user")
     private List<String> roles;
 
     /**
-     * Adresse email de l'utilisateur.
+     * User email address.
      */
-    @Schema(description = "Adresse email")
+    @Schema(description = "Email address")
     private String email;
 
     /**
-     * Date de création du compte.
+     * Account creation timestamp.
      */
     private LocalDateTime createdAt;
 
     /**
-     * Date de dernière modification du compte.
+     * Account last modification timestamp.
      */
     private LocalDateTime updatedAt;
 }

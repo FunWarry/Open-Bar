@@ -5,23 +5,23 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 /**
- * DTO de requête contenant les identifiants d'authentification pour la connexion.
+ * Request DTO containing user credentials for authentication.
  */
 @Data
-@Schema(description = "Requête d'authentification utilisateur")
+@Schema(description = "User authentication request payload")
 public class LoginRequest {
 
     /**
-     * Nom d'utilisateur unique.
+     * Unique username.
      */
-    @NotBlank(message = "Le nom d'utilisateur est requis")
-    @Schema(description = "Nom d'utilisateur", example = "admin")
+    @NotBlank(message = "Username is required")
+    @Schema(description = "Username", example = "admin")
     private String username;
 
     /**
-     * Mot de passe du compte.
+     * Account password.
      */
-    @NotBlank(message = "Le mot de passe est requis")
-    @Schema(description = "Mot de passe", example = "password123")
+    @NotBlank(message = "Password is required")
+    @Schema(description = "Password", example = "password123")
     private String password;
 }

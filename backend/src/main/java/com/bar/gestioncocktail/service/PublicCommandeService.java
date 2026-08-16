@@ -47,7 +47,7 @@ public class PublicCommandeService {
 
     public PublicCommandeResponseDTO creerCommandePublique(PublicCommandeRequestDTO dto) {
         TableEntity table = tableRepository.findById(dto.getTableId())
-                .orElseThrow(() -> new ResourceNotFoundException("Table non trouvée avec l'id: " + dto.getTableId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Table not found with id: " + dto.getTableId()));
 
         Commande commande = new Commande();
         commande.setTable(table);
@@ -81,12 +81,12 @@ public class PublicCommandeService {
 
     private CommandeItem construireCommandeItem(PublicCommandeItemRequestDTO itemDto, Commande commande) {
         Cocktail cocktail = cocktailRepository.findById(itemDto.getCocktailId())
-                .orElseThrow(() -> new ResourceNotFoundException("Cocktail non trouvé avec l'id: " + itemDto.getCocktailId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Cocktail not found with id: " + itemDto.getCocktailId()));
 
         CocktailVariante variante = null;
         if (itemDto.getVarianteId() != null) {
             variante = varianteRepository.findById(itemDto.getVarianteId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Variante non trouvée avec l'id: " + itemDto.getVarianteId()));
+                    .orElseThrow(() -> new ResourceNotFoundException("Variant not found with id: " + itemDto.getVarianteId()));
         }
 
         BigDecimal prixUnitaire = cocktail.getPrix();
@@ -116,7 +116,7 @@ public class PublicCommandeService {
             if (ing != null && ing.getQuantiteStock() != null) {
                 BigDecimal besoin = ci.getQuantite().multiply(BigDecimal.valueOf(quantite));
                 if (ing.getQuantiteStock().compareTo(besoin) < 0) {
-                    throw new StockInsuffisantException("Stock insuffisant pour l'ingrédient: " + ing.getNom());
+                    throw new StockInsuffisantException("Insufficient stock for ingredient: " + ing.getNom());
                 }
             }
         }
@@ -138,7 +138,7 @@ public class PublicCommandeService {
     @Transactional(readOnly = true)
     public PublicCommandeResponseDTO getCommandeParTrackingToken(String trackingToken) {
         Commande commande = commandeRepository.findByTrackingToken(trackingToken)
-                .orElseThrow(() -> new ResourceNotFoundException("Commande non trouvée pour le token: " + trackingToken));
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found for tracking token: " + trackingToken));
 
         int tempsEstime = 0;
         if (commande.getStatut() == CommandeStatut.EN_ATTENTE) {

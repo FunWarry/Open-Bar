@@ -270,6 +270,6 @@ class CommandeServiceTest {
 
         assertThatThrownBy(() -> commandeService.transfererCommande(1L, 99L))
                 .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("Table non trouvée avec l'id: 99");
+                .hasMessageContaining("Table not found with id: 99");
     }
 }

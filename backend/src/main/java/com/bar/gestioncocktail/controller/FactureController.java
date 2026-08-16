@@ -19,7 +19,6 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -31,101 +30,99 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * Controller REST pour la gestion de la facturation, des règlements, de la
- * division d'addition et de l'export PDF.
+ * REST controller for managing invoices, payments, bill splitting, and PDF exports.
  */
 @RestController
 @RequestMapping("/api/factures")
-@Tag(name = "Factures", description = "Gestion des factures, règlements, division d'addition (split), fusion et génération de tickets PDF")
+@Tag(name = "Invoices", description = "Invoice management, payments, bill splitting (split), table checkout, and PDF generation")
 public class FactureController {
     private final FactureService factureService;
     private final PdfService pdfService;
 
     /**
-     * Constructeur avec injection des services de facturation et de génération PDF.
+     * Constructs the controller with invoice and PDF service dependencies.
      *
-     * @param factureService Service gérant les factures
-     * @param pdfService     Service d'export PDF
+     * @param factureService Invoice management service
+     * @param pdfService     PDF export and generation service
      */
-    @Autowired
     public FactureController(FactureService factureService, PdfService pdfService) {
         this.factureService = factureService;
         this.pdfService = pdfService;
     }
 
     /**
-     * Liste toutes les factures.
+     * Lists all invoices.
      *
-     * @return Liste des factures enregistrées
+     * @return List of registered invoices
      */
     @GetMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
-    @Operation(summary = "Lister toutes les factures (SERVEUR/MANAGER/ADMIN)")
-    @ApiResponse(responseCode = "200", description = "Factures récupérées")
+    @Operation(summary = "List all invoices (SERVEUR/MANAGER/ADMIN)")
+    @ApiResponse(responseCode = "200", description = "Invoices retrieved")
     public ResponseEntity<List<FactureResponseDTO>> getAllFactures() {
         return ResponseEntity.ok(factureService.getAllFactures().stream()
                 .map(FactureResponseDTO::from).toList());
     }
 
     /**
-     * Création d'une nouvelle facture.
+     * Creates a new invoice.
      *
-     * @param facture Données de la facture à créer
-     * @return DTO de la facture créée
+     * @param request Invoice data to create
+     * @return DTO of the created invoice
      */
     @PostMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
-    @Operation(summary = "Créer une facture (SERVEUR/MANAGER/ADMIN)")
-    @ApiResponse(responseCode = "200", description = "Facture créée avec succès")
+    @Operation(summary = "Create an invoice (SERVEUR/MANAGER/ADMIN)")
+    @ApiResponse(responseCode = "200", description = "Invoice created successfully")
     public ResponseEntity<FactureResponseDTO> createFacture(@Valid @RequestBody FactureRequestDTO request) {
         return ResponseEntity.ok(FactureResponseDTO.from(factureService.createFacture(request.toEntity())));
     }
 
     /**
-     * Met à jour une facture existante.
+     * Updates an existing invoice.
      *
-     * @param id      Identifiant de la facture
-     * @param request Données modifiées
-     * @return DTO mis à jour
+     * @param id      Invoice identifier
+     * @param request Updated data
+     * @return Updated invoice DTO
      */
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
-    @Operation(summary = "Mettre à jour une facture (MANAGER/ADMIN)")
-    @ApiResponse(responseCode = "200", description = "Facture mise à jour")
+    @Operation(summary = "Update an invoice (MANAGER/ADMIN)")
+    @ApiResponse(responseCode = "200", description = "Invoice updated")
     public ResponseEntity<FactureResponseDTO> updateFacture(
-            @Parameter(description = "ID de la facture") @PathVariable Long id,
+            @Parameter(description = "Invoice ID") @PathVariable Long id,
             @Valid @RequestBody FactureRequestDTO request) {
         return ResponseEntity.ok(FactureResponseDTO.from(factureService.updateFacture(id, request.toEntity())));
     }
 
     /**
-     * Supprime une facture.
+     * Deletes an invoice.
      *
-     * @param id Identifiant de la facture
-     * @return Statut 200 OK
+     * @param id Invoice identifier
+     * @return HTTP 200 OK
      */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Supprimer une facture (ADMIN)")
-    @ApiResponse(responseCode = "200", description = "Facture supprimée")
-    public ResponseEntity<Void> deleteFacture(@Parameter(description = "ID de la facture") @PathVariable Long id) {
+    @Operation(summary = "Delete an invoice (ADMIN)")
+    @ApiResponse(responseCode = "200", description = "Invoice deleted")
+    public ResponseEntity<Void> deleteFacture(@Parameter(description = "Invoice ID") @PathVariable Long id) {
         factureService.deleteFacture(id);
         return ResponseEntity.ok().build();
     }
 
     /**
-     * Obtient une facture par son identifiant.
+     * Retrieves an invoice by its identifier.
      *
-     * @param id Identifiant de la facture
-     * @return DTO de la facture
+     * @param id Invoice identifier
+     * @return Found invoice DTO
      */
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
-    @Operation(summary = "Obtenir une facture par son ID")
-    @ApiResponse(responseCode = "200", description = "Facture trouvée")
-    @ApiResponse(responseCode = "404", description = "Facture non trouvée")
+    @Operation(summary = "Get invoice by ID")
+    @ApiResponse(responseCode = "200", description = "Invoice found")
+    @ApiResponse(responseCode = "404", description = "Invoice not found")
     public ResponseEntity<FactureResponseDTO> getFactureById(
-            @Parameter(description = "ID de la facture") @PathVariable Long id) {
+            @Parameter(description = "Invoice ID") @PathVariable Long id) {
         return factureService.getFactureById(id)
                 .map(FactureResponseDTO::from)
                 .map(ResponseEntity::ok)
@@ -133,17 +130,17 @@ public class FactureController {
     }
 
     /**
-     * Obtient les factures rattachées à une table.
+     * Retrieves invoices attached to a table.
      *
-     * @param tableId Identifiant de la table
-     * @return Liste des factures
+     * @param tableId Table identifier
+     * @return List of table invoices
      */
     @GetMapping("/table/{tableId}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
-    @Operation(summary = "Lister les factures d'une table")
-    @ApiResponse(responseCode = "200", description = "Factures de la table récupérées")
+    @Operation(summary = "List invoices for a table")
+    @ApiResponse(responseCode = "200", description = "Table invoices retrieved")
     public ResponseEntity<List<FactureResponseDTO>> getFacturesByTable(
-            @Parameter(description = "ID de la table") @PathVariable Long tableId) {
+            @Parameter(description = "Table ID") @PathVariable Long tableId) {
         TableEntity table = new TableEntity();
         table.setId(tableId);
         return ResponseEntity.ok(factureService.getFacturesByTable(table).stream()
@@ -151,51 +148,51 @@ public class FactureController {
     }
 
     /**
-     * Calcule le récapitulatif détaillé de l'addition d'une table avec ses commandes actives.
+     * Calculates the detailed bill breakdown for a table with active delivered orders.
      *
-     * @param tableId Identifiant de la table
-     * @return DTO contenant le détail des articles, les totaux HT/TVA/TTC
+     * @param tableId Table identifier
+     * @return DTO containing item breakdown, pre-tax subtotal, VAT breakdown, and total TTC
      */
     @GetMapping("/table/{tableId}/addition")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
-    @Operation(summary = "Obtenir le récapitulatif de l'addition d'une table", description = "Calcule l'addition complète d'une table (articles, sous-total HT, ventilation TVA, total TTC).")
-    @ApiResponse(responseCode = "200", description = "Récapitulatif de l'addition calculé avec succès")
-    @ApiResponse(responseCode = "404", description = "Table non trouvée")
+    @Operation(summary = "Get table bill summary", description = "Calculates complete table bill breakdown (items, pre-tax subtotal, VAT breakdown, total TTC).")
+    @ApiResponse(responseCode = "200", description = "Bill summary calculated successfully")
+    @ApiResponse(responseCode = "404", description = "Table not found")
     public ResponseEntity<TableAdditionResponseDTO> getTableAddition(
-            @Parameter(description = "ID de la table") @PathVariable Long tableId) {
+            @Parameter(description = "Table ID") @PathVariable Long tableId) {
         return ResponseEntity.ok(factureService.getTableAddition(tableId));
     }
 
     /**
-     * Valide l'encaissement d'une table : génère la facture officielle, règle les commandes et libère la table.
+     * Validates table checkout: generates official invoice, settles orders, and frees the table.
      *
-     * @param tableId Identifiant de la table
-     * @param request Données de l'encaissement (mode de paiement, pourboire, remise, libération)
-     * @return Facture officielle générée et réglée
+     * @param tableId Table identifier
+     * @param request Checkout request payload (payment method, tip, discount, freeTable flag)
+     * @return Generated and settled official invoice DTO
      */
     @PostMapping("/table/{tableId}/encaisser")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
-    @Operation(summary = "Encaisser et clôturer une table", description = "Enregistre le règlement d'une table, émet la facture, marque les commandes comme réglées et libère la table.")
-    @ApiResponse(responseCode = "200", description = "Table encaissée et facture émise avec succès")
-    @ApiResponse(responseCode = "400", description = "Erreur de validation ou aucune commande active")
-    @ApiResponse(responseCode = "404", description = "Table non trouvée")
+    @Operation(summary = "Settle and checkout table", description = "Records table payment, issues official invoice, marks orders as settled, and frees table.")
+    @ApiResponse(responseCode = "200", description = "Table checked out and invoice issued successfully")
+    @ApiResponse(responseCode = "400", description = "Validation error or no active orders")
+    @ApiResponse(responseCode = "404", description = "Table not found")
     public ResponseEntity<FactureResponseDTO> encaisserTable(
-            @Parameter(description = "ID de la table") @PathVariable Long tableId,
+            @Parameter(description = "Table ID") @PathVariable Long tableId,
             @Valid @RequestBody EncaissementRequestDTO request) {
         return ResponseEntity.ok(factureService.encaisserTable(tableId, request));
     }
 
     /**
-     * Filtre les factures sur une plage de dates.
+     * Filters invoices within a date range.
      *
-     * @param debut Date et heure de début
-     * @param fin   Date et heure de fin
-     * @return Liste des factures correspondantes
+     * @param debut Start date and time
+     * @param fin   End date and time
+     * @return List of matching invoices
      */
     @GetMapping("/date")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
-    @Operation(summary = "Lister les factures par plage de dates")
-    @ApiResponse(responseCode = "200", description = "Factures récupérées")
+    @Operation(summary = "List invoices in date range")
+    @ApiResponse(responseCode = "200", description = "Invoices retrieved")
     public ResponseEntity<List<FactureResponseDTO>> getFacturesByDate(
             @RequestParam LocalDateTime debut,
             @RequestParam LocalDateTime fin) {
@@ -204,72 +201,73 @@ public class FactureController {
     }
 
     /**
-     * Ajoute une ligne d'article à une facture.
+     * Adds an item line to an invoice.
      *
-     * @param id      Identifiant de la facture
-     * @param request Ligne d'article
-     * @return Facture mise à jour
+     * @param id      Invoice identifier
+     * @param request Invoice item payload
+     * @return Updated invoice DTO
      */
     @PostMapping("/{id}/items")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
-    @Operation(summary = "Ajouter une ligne à une facture")
-    @ApiResponse(responseCode = "200", description = "Ligne ajoutée")
+    @Operation(summary = "Add an item line to an invoice")
+    @ApiResponse(responseCode = "200", description = "Item line added")
     public ResponseEntity<FactureResponseDTO> ajouterItem(
-            @Parameter(description = "ID de la facture") @PathVariable Long id,
+            @Parameter(description = "Invoice ID") @PathVariable Long id,
             @Valid @RequestBody FactureItemRequestDTO request) {
         return ResponseEntity.ok(FactureResponseDTO.from(factureService.ajouterItem(id, request.toEntity())));
     }
 
     /**
-     * Retire une ligne d'article d'une facture.
+     * Removes an item line from an invoice.
      *
-     * @param id     Identifiant de la facture
-     * @param itemId Identifiant de la ligne d'article
-     * @return Facture mise à jour
+     * @param id     Invoice identifier
+     * @param itemId Invoice item identifier
+     * @return Updated invoice DTO
      */
     @DeleteMapping("/{id}/items/{itemId}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
-    @Operation(summary = "Retirer une ligne d'une facture")
-    @ApiResponse(responseCode = "200", description = "Ligne retirée")
+    @Operation(summary = "Remove an item line from an invoice")
+    @ApiResponse(responseCode = "200", description = "Item line removed")
     public ResponseEntity<FactureResponseDTO> retirerItem(
-            @Parameter(description = "ID de la facture") @PathVariable Long id,
-            @Parameter(description = "ID du facture item") @PathVariable Long itemId) {
+            @Parameter(description = "Invoice ID") @PathVariable Long id,
+            @Parameter(description = "Invoice Item ID") @PathVariable Long itemId) {
         return ResponseEntity.ok(FactureResponseDTO.from(factureService.retirerItem(id, itemId)));
     }
 
     /**
-     * Valide le règlement d'une facture avec enregistrement du mode de paiement.
+     * Records settlement payment for an invoice with payment method.
      *
-     * @param id           Identifiant de la facture
-     * @param modePaiement Mode de paiement (ex: CARTE, ESPECES, TICKETS_RESTO)
-     * @return Facture réglée
+     * @param id           Invoice identifier
+     * @param modePaiement Payment method (e.g. CARTE, ESPECES, TICKETS_RESTO)
+     * @param pourboire    Optional tip amount
+     * @return Settled invoice DTO
      */
     @PostMapping("/{id}/regler")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
-    @Operation(summary = "Enregistrer le règlement d'une facture", description = "Marque la facture comme réglée et libère la table associée si pertinent.")
-    @ApiResponse(responseCode = "200", description = "Règlement effectué")
+    @Operation(summary = "Record invoice payment settlement", description = "Marks invoice as settled and liberates table when appropriate.")
+    @ApiResponse(responseCode = "200", description = "Settlement completed")
     public ResponseEntity<FactureResponseDTO> reglerFacture(
-            @Parameter(description = "ID de la facture") @PathVariable Long id,
-            @Parameter(description = "Mode de paiement (CARTE, ESPECES, etc.)") @RequestParam String modePaiement,
-            @Parameter(description = "Pourboire éventuel") @RequestParam(required = false) BigDecimal pourboire) {
+            @Parameter(description = "Invoice ID") @PathVariable Long id,
+            @Parameter(description = "Payment method (CARTE, ESPECES, etc.)") @RequestParam String modePaiement,
+            @Parameter(description = "Optional tip amount") @RequestParam(required = false) BigDecimal pourboire) {
         return ResponseEntity.ok(FactureResponseDTO.from(factureService.reglerFacture(id, modePaiement, pourboire)));
     }
 
     /**
-     * Génère et télécharge le ticket/facture au format PDF.
+     * Generates and downloads the invoice receipt in PDF format.
      *
-     * @param id Identifiant de la facture
-     * @return Fichier PDF binaire sous forme d'un tableau d'octets
+     * @param id Invoice identifier
+     * @return Binary PDF file as byte array
      */
     @GetMapping("/{id}/pdf")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
-    @Operation(summary = "Télécharger la facture au format PDF", description = "Génère un document PDF aux normes légales (TVA, SIRET, numérotation).")
-    @ApiResponse(responseCode = "200", description = "PDF généré")
-    @ApiResponse(responseCode = "404", description = "Facture introuvable")
+    @Operation(summary = "Download invoice as PDF", description = "Generates a PDF document compliant with legal standards (VAT, SIRET, sequential numbering).")
+    @ApiResponse(responseCode = "200", description = "PDF generated")
+    @ApiResponse(responseCode = "404", description = "Invoice not found")
     public ResponseEntity<byte[]> downloadFacturePdf(
-            @Parameter(description = "ID de la facture") @PathVariable Long id) {
+            @Parameter(description = "Invoice ID") @PathVariable Long id) {
         Facture facture = factureService.getFactureById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Facture non trouvée: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Invoice not found: " + id));
         byte[] pdf = pdfService.generateFacturePdf(facture);
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_PDF_VALUE)
@@ -278,16 +276,16 @@ public class FactureController {
     }
 
     /**
-     * Divise une facture à parts égales entre N convives.
+     * Splits an invoice into equal parts among N guests.
      *
-     * @param id      Identifiant de la facture
-     * @param request DTO indiquant le nombre de convives
-     * @return Résultats du calcul de répartition
+     * @param id      Invoice identifier
+     * @param request DTO specifying number of guests
+     * @return Breakdown results
      */
     @PostMapping("/{id}/split/egal")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
-    @Operation(summary = "Diviser l'addition à parts égales", description = "Calcule le sous-total par convive pour un partage équitable.")
-    @ApiResponse(responseCode = "200", description = "Répartition calculée")
+    @Operation(summary = "Split bill equally", description = "Calculates equal subtotal per guest.")
+    @ApiResponse(responseCode = "200", description = "Equal split calculated")
     public ResponseEntity<List<SplitResultDTO>> splitEgal(
             @PathVariable Long id,
             @RequestBody SplitEgalRequest request) {
@@ -295,16 +293,16 @@ public class FactureController {
     }
 
     /**
-     * Divise une facture par sélection d'articles choisis par chaque convive.
+     * Splits an invoice based on specific item selection per guest.
      *
-     * @param id      Identifiant de la facture
-     * @param request DTO décrivant la répartition des articles par convive
-     * @return Résultats détaillés de la répartition
+     * @param id      Invoice identifier
+     * @param request DTO describing item assignments per guest
+     * @return Detailed split results
      */
     @PostMapping("/{id}/split/selection")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
-    @Operation(summary = "Diviser l'addition par sélection d'articles", description = "Permet à chaque convive de régler des articles spécifiques.")
-    @ApiResponse(responseCode = "200", description = "Répartition sur mesure calculée")
+    @Operation(summary = "Split bill by item selection", description = "Enables each guest to pay for their specific selected items.")
+    @ApiResponse(responseCode = "200", description = "Custom split calculated")
     public ResponseEntity<List<SplitResultDTO>> splitParSelection(
             @PathVariable Long id,
             @RequestBody SplitAdditionRequest request) {
@@ -312,23 +310,23 @@ public class FactureController {
     }
 
     /**
-     * Fusionne plusieurs factures en une seule facture regroupée.
+     * Merges multiple invoices into a single combined invoice.
      *
-     * @param request DTO contenant la liste des IDs de factures à fusionner
-     * @return La nouvelle facture fusionnée
+     * @param request DTO containing list of invoice IDs to merge
+     * @return Newly merged invoice DTO
      */
     @PostMapping("/merge")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
-    @Operation(summary = "Fusionner plusieurs factures en une seule", description = "Regroupe plusieurs sous-additions ou tables.")
-    @ApiResponse(responseCode = "200", description = "Factures fusionnées")
+    @Operation(summary = "Merge multiple invoices into one", description = "Combines several sub-bills or table checks.")
+    @ApiResponse(responseCode = "200", description = "Invoices merged")
     public ResponseEntity<FactureResponseDTO> fusionnerFactures(@Valid @RequestBody MergeFacturesRequestDTO request) {
         return ResponseEntity.ok(FactureResponseDTO.from(factureService.fusionnerFactures(request)));
     }
 
     @GetMapping(value = "/export/csv", produces = "text/csv;charset=UTF-8")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    @Operation(summary = "Export CSV des factures (Comptabilité)", description = "Génère un fichier CSV UTF-8 BOM compatible Excel pour la comptabilité.")
-    @ApiResponse(responseCode = "200", description = "Fichier CSV généré")
+    @Operation(summary = "Export invoices to CSV (Accounting)", description = "Generates Excel-compatible UTF-8 BOM CSV file for accounting.")
+    @ApiResponse(responseCode = "200", description = "CSV file generated")
     public ResponseEntity<String> exportCSV(
             @RequestParam(required = false) String dateFrom,
             @RequestParam(required = false) String dateTo) {
@@ -343,16 +341,16 @@ public class FactureController {
 
     @GetMapping("/vat-summary")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    @Operation(summary = "Récapitulatif mensuel de TVA (Déclaration CA3)", description = "Calcule le récapitulatif multi-taux de TVA pour un mois donné (ex: 2026-06).")
-    @ApiResponse(responseCode = "200", description = "Récapitulatif de TVA généré")
+    @Operation(summary = "Monthly VAT declaration summary", description = "Calculates multi-rate VAT summary for a given month (e.g. 2026-06).")
+    @ApiResponse(responseCode = "200", description = "VAT summary generated")
     public ResponseEntity<com.bar.gestioncocktail.dto.VatMonthlySummaryDTO> getVatSummary(@RequestParam String month) {
         return ResponseEntity.ok(factureService.getVatMonthlySummary(month));
     }
 
     @PostMapping("/{id}/avoir")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    @Operation(summary = "Créer un avoir d'annulation (Credit Note)", description = "Émet un avoir légal pour annuler une facture finalisée.")
-    @ApiResponse(responseCode = "200", description = "Avoir créé")
+    @Operation(summary = "Create cancellation credit note", description = "Issues a legal credit note (avoir) to cancel a finalized invoice.")
+    @ApiResponse(responseCode = "200", description = "Credit note created")
     public ResponseEntity<com.bar.gestioncocktail.model.AvoirCredit> createAvoir(
             @PathVariable Long id,
             @RequestParam(required = false) String motif) {
@@ -361,19 +359,19 @@ public class FactureController {
 
     @GetMapping("/{id}/verify-integrity")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Vérifier l'intégrité légale du PDF", description = "Vérifie le hash SHA-256 du PDF archivé par rapport au hash enregistré.")
-    @ApiResponse(responseCode = "200", description = "Résultat de vérification d'intégrité")
+    @Operation(summary = "Verify legal PDF integrity", description = "Verifies the archived PDF SHA-256 hash against recorded hash.")
+    @ApiResponse(responseCode = "200", description = "Integrity verification result")
     public ResponseEntity<java.util.Map<String, Object>> verifyIntegrity(@PathVariable Long id) {
         Facture facture = factureService.getFactureById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Facture non trouvée: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Invoice not found: " + id));
         byte[] pdfBytes = pdfService.generateFacturePdf(facture);
         return ResponseEntity.ok(factureService.verifyIntegrity(id, pdfBytes));
     }
 
     @GetMapping("/daily-recap")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    @Operation(summary = "Récapitulatif financier de clôture de journée (Z-Report)", description = "Calcule le récapitulatif du chiffre d'affaires, panier moyen, modes de règlement et ventilation TVA pour une date donnée.")
-    @ApiResponse(responseCode = "200", description = "Récapitulatif journalier généré")
+    @Operation(summary = "Daily financial closing recap (Z-Report)", description = "Calculates revenue, average ticket, payment methods breakdown, and VAT distribution for a given date.")
+    @ApiResponse(responseCode = "200", description = "Daily recap generated")
     public ResponseEntity<com.bar.gestioncocktail.dto.DailyRecapDTO> getDailyRecap(
             @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate date) {
         return ResponseEntity.ok(factureService.getDailyRecap(date));
@@ -381,8 +379,8 @@ public class FactureController {
 
     @GetMapping("/daily-recap/pdf")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    @Operation(summary = "Télécharger le récapitulatif de caisse journalier en PDF", description = "Génère un document PDF A4 aux normes comptables de clôture de caisse.")
-    @ApiResponse(responseCode = "200", description = "PDF récapitulatif généré")
+    @Operation(summary = "Download daily cash closing recap PDF", description = "Generates A4 PDF document meeting accounting standards for daily register closing.")
+    @ApiResponse(responseCode = "200", description = "Daily recap PDF generated")
     public ResponseEntity<byte[]> downloadDailyRecapPdf(
             @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate date) {
         com.bar.gestioncocktail.dto.DailyRecapDTO recap = factureService.getDailyRecap(date);

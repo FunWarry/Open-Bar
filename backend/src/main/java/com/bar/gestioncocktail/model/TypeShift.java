@@ -1,7 +1,7 @@
 package com.bar.gestioncocktail.model;
 
 /**
- * Types de créneaux de travail (shifts) pour les employés.
+ * Work shift schedule types for employees.
  */
 public enum TypeShift {
     MATIN,

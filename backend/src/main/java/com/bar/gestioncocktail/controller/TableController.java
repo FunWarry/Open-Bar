@@ -17,50 +17,50 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * Controller REST pour la gestion des tables du bar, du plan de salle interactif (Konva.js)
- * et du transfert de commandes entre tables.
+ * REST controller for managing bar tables, interactive 2D floor plans (Konva.js),
+ * and order transfers between tables.
  */
 @RestController
 @RequestMapping("/api/tables")
-@Tag(name = "Tables & Plan de salle", description = "Gestion des tables, occupation, disposition 2D (Konva.js) et transfert d'addition")
+@Tag(name = "Tables & Floor Plan", description = "Table management, occupancy, 2D floor plan layout (Konva.js), and order transfers")
 public class TableController {
 
     private final TableService tableService;
 
     /**
-     * Constructeur avec injection du service de gestion des tables.
+     * Constructs the controller with the table service dependency.
      *
-     * @param tableService Le service gérant la logique des tables
+     * @param tableService Service managing table business logic
      */
     public TableController(TableService tableService) {
         this.tableService = tableService;
     }
 
     /**
-     * Liste l'ensemble des tables de l'établissement.
+     * Lists all tables in the establishment.
      *
-     * @return Liste des tables au format DTO
+     * @return List of all table DTOs
      */
     @GetMapping
     @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "Lister toutes les tables")
-    @ApiResponse(responseCode = "200", description = "Tables récupérées")
+    @Operation(summary = "List all tables")
+    @ApiResponse(responseCode = "200", description = "Tables retrieved")
     public List<TableResponseDTO> getAllTables() {
         return tableService.getAllTables().stream().map(TableResponseDTO::from).toList();
     }
 
     /**
-     * Obtenir les informations d'une table par son identifiant.
+     * Retrieves table details by its identifier.
      *
-     * @param id Identifiant de la table
-     * @return DTO de la table
+     * @param id Table identifier
+     * @return Found table DTO
      */
     @GetMapping("/{id:\\d+}")
     @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "Obtenir une table par son ID")
-    @ApiResponse(responseCode = "200", description = "Table trouvée")
-    @ApiResponse(responseCode = "404", description = "Table introuvable")
-    public ResponseEntity<TableResponseDTO> getTableById(@Parameter(description = "ID de la table") @PathVariable Long id) {
+    @Operation(summary = "Get table by ID")
+    @ApiResponse(responseCode = "200", description = "Table found")
+    @ApiResponse(responseCode = "404", description = "Table not found")
+    public ResponseEntity<TableResponseDTO> getTableById(@Parameter(description = "Table ID") @PathVariable Long id) {
         return tableService.getTableById(id)
             .map(TableResponseDTO::from)
             .map(ResponseEntity::ok)
@@ -68,51 +68,51 @@ public class TableController {
     }
 
     /**
-     * Liste les tables d'une zone géographique spécifique (ex: INTERIEUR, TERRASSE, ETAGE).
+     * Lists configured zones in the establishment.
      *
-     * @return Liste des noms de zones
+     * @return List of zone names
      */
     @GetMapping("/zones")
     @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "Lister toutes les zones configurées dans le bar")
-    @ApiResponse(responseCode = "200", description = "Liste des noms de zones")
+    @Operation(summary = "List all configured zones in the bar")
+    @ApiResponse(responseCode = "200", description = "List of zone names")
     public List<String> getAllZones() {
         return tableService.getAllZones();
     }
 
     @GetMapping("/zone/{zone}")
     @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "Lister les tables par zone")
-    @ApiResponse(responseCode = "200", description = "Tables récupérées")
-    public List<TableResponseDTO> getTablesByZone(@Parameter(description = "Zone géographique") @PathVariable String zone) {
+    @Operation(summary = "List tables by zone")
+    @ApiResponse(responseCode = "200", description = "Tables retrieved")
+    public List<TableResponseDTO> getTablesByZone(@Parameter(description = "Geographic zone") @PathVariable String zone) {
         return tableService.getTablesByZone(zone).stream().map(TableResponseDTO::from).toList();
     }
 
     /**
-     * Liste les tables filtrées par leur statut d'occupation (occupée ou libre).
+     * Lists tables filtered by their occupancy state.
      *
-     * @param occupee True pour les tables occupées, false pour les libres
-     * @return Liste des tables
+     * @param occupee True for occupied tables, false for free tables
+     * @return List of tables matching occupancy
      */
     @GetMapping("/occupee/{occupee}")
     @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "Lister les tables par état d'occupation")
-    @ApiResponse(responseCode = "200", description = "Tables récupérées")
-    public List<TableResponseDTO> getTablesByOccupee(@Parameter(description = "État d'occupation") @PathVariable boolean occupee) {
+    @Operation(summary = "List tables by occupancy status")
+    @ApiResponse(responseCode = "200", description = "Tables retrieved")
+    public List<TableResponseDTO> getTablesByOccupee(@Parameter(description = "Occupancy status") @PathVariable boolean occupee) {
         return tableService.getTablesByOccupee(occupee).stream().map(TableResponseDTO::from).toList();
     }
 
     /**
-     * Liste les tables attribuées à un serveur spécifique.
+     * Lists tables assigned to a specific server.
      *
-     * @param serveurId Identifiant du serveur
-     * @return Liste des tables du serveur
+     * @param serveurId Server user identifier
+     * @return List of tables assigned to the server
      */
     @GetMapping("/serveur/{serveurId:\\d+}")
     @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "Lister les tables attribuées à un serveur")
-    @ApiResponse(responseCode = "200", description = "Tables du serveur récupérées")
-    public List<TableResponseDTO> getTablesByServeurId(@Parameter(description = "ID du serveur") @PathVariable Long serveurId) {
+    @Operation(summary = "List tables assigned to a server")
+    @ApiResponse(responseCode = "200", description = "Server tables retrieved")
+    public List<TableResponseDTO> getTablesByServeurId(@Parameter(description = "Server user ID") @PathVariable Long serveurId) {
         return tableService.getTablesByServeurId(serveurId).stream().map(TableResponseDTO::from).toList();
     }
 
@@ -148,31 +148,31 @@ public class TableController {
     }
 
     /**
-     * Supprime une table.
+     * Deletes a table.
      *
-     * @param id Identifiant de la table
-     * @return Statut 200 OK
+     * @param id Table identifier
+     * @return HTTP 200 OK
      */
     @DeleteMapping("/{id:\\d+}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
-    @Operation(summary = "Supprimer une table (MANAGER/ADMIN)")
-    @ApiResponse(responseCode = "200", description = "Table supprimée")
-    public ResponseEntity<Void> deleteTable(@Parameter(description = "ID de la table") @PathVariable Long id) {
+    @Operation(summary = "Delete a table (MANAGER/ADMIN)")
+    @ApiResponse(responseCode = "200", description = "Table deleted")
+    public ResponseEntity<Void> deleteTable(@Parameter(description = "Table ID") @PathVariable Long id) {
         tableService.deleteTable(id);
         return ResponseEntity.ok().build();
     }
 
     /**
-     * Marque une table comme occupée et lui assigne un serveur.
+     * Marks a table as occupied and assigns an optional server.
      *
-     * @param id Identifiant de la table
-     * @param serveurId Identifiant du serveur référent
-     * @return Table mise à jour
+     * @param id Table identifier
+     * @param serveurId Optional server user identifier
+     * @return Updated table DTO
      */
     @RequestMapping(value = "/{id:\\d+}/occuper", method = {RequestMethod.POST, RequestMethod.PATCH})
     @PreAuthorize("hasRole('SERVEUR') or hasRole('ADMIN') or hasRole('MANAGER')")
-    @Operation(summary = "Passer la table en état occupée (SERVEUR/MANAGER/ADMIN)")
-    @ApiResponse(responseCode = "200", description = "Table marquée occupée")
+    @Operation(summary = "Mark table as occupied (SERVEUR/MANAGER/ADMIN)")
+    @ApiResponse(responseCode = "200", description = "Table marked as occupied")
     public ResponseEntity<TableResponseDTO> occuperTable(
         @PathVariable Long id,
         @RequestParam(required = false) Long serveurId) {
@@ -180,47 +180,47 @@ public class TableController {
     }
 
     /**
-     * Libère une table (déclenche la réinitialisation de son état).
+     * Liberates a table (resets its state to FREE).
      *
-     * @param id Identifiant de la table
-     * @return Table libérée
+     * @param id Table identifier
+     * @return Liberated table DTO
      */
     @RequestMapping(value = "/{id:\\d+}/liberer", method = {RequestMethod.POST, RequestMethod.PATCH})
     @PreAuthorize("hasRole('SERVEUR') or hasRole('ADMIN') or hasRole('MANAGER')")
-    @Operation(summary = "Libérer une table (SERVEUR/MANAGER/ADMIN)")
-    @ApiResponse(responseCode = "200", description = "Table libérée")
+    @Operation(summary = "Liberate a table (SERVEUR/MANAGER/ADMIN)")
+    @ApiResponse(responseCode = "200", description = "Table liberated")
     public ResponseEntity<TableResponseDTO> libererTable(@PathVariable Long id) {
         return ResponseEntity.ok(TableResponseDTO.from(tableService.libererTable(id)));
     }
 
     /**
-     * Récupère le plan de salle 2D complet avec coordonnées (X, Y) et formes géométriques pour Konva.js.
+     * Retrieves full 2D floor plan with coordinates (X, Y) and geometric shapes for Konva.js canvas.
      *
-     * @return Liste des tables enrichies des données de positionnement canvas
+     * @return List of tables enriched with canvas positioning data
      */
     @GetMapping({"/plan", "/positions"})
     @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "Obtenir le plan de salle interactif avec positions Konva.js")
-    @ApiResponse(responseCode = "200", description = "Plan de salle récupéré avec coordonnées")
+    @Operation(summary = "Get interactive floor plan with Konva.js coordinates")
+    @ApiResponse(responseCode = "200", description = "Floor plan retrieved with coordinates")
     public List<PlanSalleDTO> getPlanSalle() {
         return tableService.getAllTablesAvecPositions()
             .stream().map(PlanSalleDTO::from).toList();
     }
 
     /**
-     * Met à jour la position 2D (X, Y, rotation, forme) d'une table sur le plan de salle.
+     * Updates 2D position (X, Y, rotation, shape) of a table on the floor plan canvas.
      *
-     * @param id Identifiant de la table
-     * @param x Coordonnée X
-     * @param y Coordonnée Y
-     * @param rotation Angle de rotation
-     * @param forme Forme (Ronde, Carrée, Rectangulaire)
-     * @return Table mise à jour
+     * @param id Table identifier
+     * @param x X coordinate
+     * @param y Y coordinate
+     * @param rotation Rotation angle
+     * @param forme Shape (Round, Square, Rectangular)
+     * @return Updated table DTO
      */
     @PutMapping("/{id:\\d+}/position")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
-    @Operation(summary = "Mettre à jour les coordonnées 2D d'une table (MANAGER/ADMIN)")
-    @ApiResponse(responseCode = "200", description = "Coordonnées enregistrées")
+    @Operation(summary = "Update 2D table coordinates (MANAGER/ADMIN)")
+    @ApiResponse(responseCode = "200", description = "Coordinates saved")
     public ResponseEntity<TableResponseDTO> updatePosition(
         @PathVariable Long id,
         @RequestParam Double x,
@@ -232,34 +232,34 @@ public class TableController {
     }
 
     /**
-     * Sauvegarde en lot (batch) la disposition et les positions de plusieurs tables du plan de salle.
+     * Batch updates layout positions for multiple floor plan tables (drag & drop batch).
      *
-     * @param positions Liste des DTOs de positionnement
-     * @return Statut 200 OK
+     * @param positions List of positioning DTOs
+     * @return HTTP 200 OK
      */
     @PutMapping({"/plan/positions", "/positions"})
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
-    @Operation(summary = "Sauvegarder en lot les positions du plan de salle (drag & drop batch)")
-    @ApiResponse(responseCode = "200", description = "Positions enregistrées")
+    @Operation(summary = "Batch save floor plan table positions (drag & drop batch)")
+    @ApiResponse(responseCode = "200", description = "Positions saved")
     public ResponseEntity<Void> updatePositionsBatch(@RequestBody List<TablePositionDTO> positions) {
         tableService.updatePositionsBatch(positions);
         return ResponseEntity.ok().build();
     }
 
     /**
-     * Transfère les commandes en cours d'une table source vers une table cible.
+     * Transfers active orders from a source table to a target table.
      *
-     * @param sourceId Table d'origine
-     * @param targetId Table de destination
-     * @return Table de destination mise à jour
+     * @param sourceId Source table ID
+     * @param targetId Destination table ID
+     * @return Updated target table DTO
      */
     @PostMapping("/{sourceId:\\d+}/transfer/{targetId:\\d+}")
     @PreAuthorize("hasRole('SERVEUR') or hasRole('ADMIN') or hasRole('MANAGER')")
-    @Operation(summary = "Transférer les commandes d'une table vers une autre (SERVEUR/MANAGER/ADMIN)")
-    @ApiResponse(responseCode = "200", description = "Transfert effectué")
+    @Operation(summary = "Transfer orders from one table to another (SERVEUR/MANAGER/ADMIN)")
+    @ApiResponse(responseCode = "200", description = "Orders transferred")
     public ResponseEntity<TableResponseDTO> transfererCommandes(
-        @Parameter(description = "ID table d'origine") @PathVariable Long sourceId,
-        @Parameter(description = "ID table de destination") @PathVariable Long targetId) {
+        @Parameter(description = "Source table ID") @PathVariable Long sourceId,
+        @Parameter(description = "Destination table ID") @PathVariable Long targetId) {
         return ResponseEntity.ok(TableResponseDTO.from(tableService.transfererCommandes(sourceId, targetId)));
     }
 }

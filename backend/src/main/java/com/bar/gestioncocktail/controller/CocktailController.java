@@ -21,14 +21,14 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * Controller REST gérant la carte des cocktails.
+ * REST controller managing cocktail catalog and drink menu.
  * <p>
- * Offre les fonctionnalités CRUD pour les cocktails, la gestion de disponibilité,
- * de la saisonnalité et la recherche par catégorie ou nom.
+ * Provides CRUD operations for cocktails, availability toggling,
+ * seasonality management, and filtering by category or name.
  */
 @RestController
 @RequestMapping("/api/cocktails")
-@Tag(name = "Cocktails", description = "Gestion du catalogue de cocktails, prix, disponibilité et saisonnalité")
+@Tag(name = "Cocktails", description = "Cocktail catalog management, pricing, availability, and seasonality")
 public class CocktailController {
     private final CocktailService cocktailService;
 
@@ -91,32 +91,32 @@ public class CocktailController {
     }
 
     /**
-     * Supprime un cocktail du système.
+     * Deletes a cocktail from the system.
      *
-     * @param id Identifiant du cocktail à supprimer
-     * @return Statut 200 OK
+     * @param id Identifier of the cocktail to delete
+     * @return HTTP 200 OK
      */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Supprimer un cocktail (ADMIN)")
-    @ApiResponse(responseCode = "200", description = "Cocktail supprimé")
-    @ApiResponse(responseCode = "404", description = "Cocktail non trouvé")
-    public ResponseEntity<Void> deleteCocktail(@Parameter(description = "ID du cocktail") @PathVariable Long id) {
+    @Operation(summary = "Delete a cocktail (ADMIN)")
+    @ApiResponse(responseCode = "200", description = "Cocktail deleted")
+    @ApiResponse(responseCode = "404", description = "Cocktail not found")
+    public ResponseEntity<Void> deleteCocktail(@Parameter(description = "Cocktail ID") @PathVariable Long id) {
         cocktailService.deleteCocktail(id);
         return ResponseEntity.ok().build();
     }
 
     /**
-     * Récupère un cocktail par son identifiant.
+     * Retrieves a cocktail by its identifier.
      *
-     * @param id Identifiant du cocktail
-     * @return DTO du cocktail trouvé
+     * @param id Identifier of the cocktail
+     * @return DTO of found cocktail
      */
     @GetMapping("/{id}")
-    @Operation(summary = "Obtenir un cocktail par son ID")
-    @ApiResponse(responseCode = "200", description = "Cocktail trouvé")
-    @ApiResponse(responseCode = "404", description = "Cocktail non trouvé")
-    public ResponseEntity<CocktailResponseDTO> getCocktailById(@Parameter(description = "ID du cocktail") @PathVariable Long id) {
+    @Operation(summary = "Get cocktail by ID")
+    @ApiResponse(responseCode = "200", description = "Cocktail found")
+    @ApiResponse(responseCode = "404", description = "Cocktail not found")
+    public ResponseEntity<CocktailResponseDTO> getCocktailById(@Parameter(description = "Cocktail ID") @PathVariable Long id) {
         return cocktailService.getCocktailById(id)
             .map(CocktailResponseDTO::from)
             .map(ResponseEntity::ok)
@@ -124,85 +124,85 @@ public class CocktailController {
     }
 
     /**
-     * Liste les cocktails filtrés par catégorie (ex: ALCOOLISE, SANS_ALCOOL, SHOT).
+     * Lists cocktails filtered by category (e.g. ALCOOLISE, SANS_ALCOOL, SHOT).
      *
-     * @param categorie Catégorie ciblée
-     * @return Liste des cocktails de la catégorie
+     * @param categorie Target category
+     * @return List of cocktails in category
      */
     @GetMapping("/categorie/{categorie}")
-    @Operation(summary = "Lister les cocktails par catégorie")
-    @ApiResponse(responseCode = "200", description = "Liste récupérée")
+    @Operation(summary = "List cocktails by category")
+    @ApiResponse(responseCode = "200", description = "Cocktail list retrieved")
     public ResponseEntity<List<CocktailResponseDTO>> getCocktailsByCategorie(
-        @Parameter(description = "Catégorie de cocktail") @PathVariable CocktailCategorie categorie) {
+        @Parameter(description = "Cocktail category") @PathVariable CocktailCategorie categorie) {
         return ResponseEntity.ok(cocktailService.getCocktailsByCategorie(categorie).stream()
             .map(CocktailResponseDTO::from).toList());
     }
 
     /**
-     * Liste l'ensemble des cocktails actuellement disponibles au service.
+     * Lists all cocktails currently available for service.
      *
-     * @return Liste des cocktails disponibles
+     * @return List of available cocktails
      */
     @GetMapping("/disponibles")
-    @Operation(summary = "Lister les cocktails disponibles", description = "Retourne la liste des cocktails dont la disponibilité est à true.")
-    @ApiResponse(responseCode = "200", description = "Liste récupérée")
+    @Operation(summary = "List available cocktails", description = "Returns the list of cocktails whose availability is true.")
+    @ApiResponse(responseCode = "200", description = "Available cocktails retrieved")
     public ResponseEntity<List<CocktailResponseDTO>> getCocktailsDisponibles() {
         return ResponseEntity.ok(cocktailService.getCocktailsDisponibles().stream()
             .map(CocktailResponseDTO::from).toList());
     }
 
     /**
-     * Liste les cocktails définis comme saisonniers.
+     * Lists cocktails designated as seasonal.
      *
-     * @return Liste des cocktails saisonniers
+     * @return List of seasonal cocktails
      */
     @GetMapping("/saisonniers")
-    @Operation(summary = "Lister les cocktails saisonniers")
-    @ApiResponse(responseCode = "200", description = "Liste récupérée")
+    @Operation(summary = "List seasonal cocktails")
+    @ApiResponse(responseCode = "200", description = "Seasonal cocktails retrieved")
     public ResponseEntity<List<CocktailResponseDTO>> getCocktailsSaisonniers() {
         return ResponseEntity.ok(cocktailService.getCocktailsSaisonniers().stream()
             .map(CocktailResponseDTO::from).toList());
     }
 
     /**
-     * Liste les cocktails saisonniers actuellement en cours de saison.
+     * Lists seasonal cocktails currently in season.
      *
-     * @return Liste des cocktails en saison
+     * @return List of in-season cocktails
      */
     @GetMapping("/saisonniers/actuels")
-    @Operation(summary = "Lister les cocktails actuellement de saison")
-    @ApiResponse(responseCode = "200", description = "Liste récupérée")
+    @Operation(summary = "List currently in-season cocktails")
+    @ApiResponse(responseCode = "200", description = "In-season cocktails retrieved")
     public ResponseEntity<List<CocktailResponseDTO>> getCocktailsSaisonniersActuels() {
         return ResponseEntity.ok(cocktailService.getCocktailsSaisonniersActuels().stream()
             .map(CocktailResponseDTO::from).toList());
     }
 
     /**
-     * Recherche des cocktails par leur nom (recherche partielle).
+     * Searches cocktails by name (partial match).
      *
-     * @param nom Mot-clé de recherche
-     * @return Liste des cocktails correspondants
+     * @param nom Search keyword
+     * @return List of matching cocktails
      */
     @GetMapping("/search")
-    @Operation(summary = "Rechercher des cocktails par nom")
-    @ApiResponse(responseCode = "200", description = "Liste des résultats")
+    @Operation(summary = "Search cocktails by name")
+    @ApiResponse(responseCode = "200", description = "Search results retrieved")
     public ResponseEntity<List<CocktailResponseDTO>> searchCocktails(
-        @Parameter(description = "Terme de recherche dans le nom") @RequestParam String nom) {
+        @Parameter(description = "Name search query") @RequestParam String nom) {
         return ResponseEntity.ok(cocktailService.searchCocktails(nom).stream()
             .map(CocktailResponseDTO::from).toList());
     }
 
     /**
-     * Bascule l'état de disponibilité d'un cocktail (disponible / indisponible).
+     * Toggles the availability status of a cocktail (available / unavailable).
      *
-     * @param id Identifiant du cocktail
-     * @return DTO mis à jour
+     * @param id Identifier of the cocktail
+     * @return Updated cocktail DTO
      */
     @PutMapping("/{id}/disponibilite")
     @PreAuthorize("hasRole('ADMIN') or hasRole('BARMAN') or hasRole('MANAGER')")
-    @Operation(summary = "Basculer la disponibilité d'un cocktail (BARMAN/MANAGER/ADMIN)")
-    @ApiResponse(responseCode = "200", description = "Disponibilité basculée")
-    @ApiResponse(responseCode = "404", description = "Cocktail non trouvé")
+    @Operation(summary = "Toggle cocktail availability (BARMAN/MANAGER/ADMIN)")
+    @ApiResponse(responseCode = "200", description = "Availability toggled")
+    @ApiResponse(responseCode = "404", description = "Cocktail not found")
     public ResponseEntity<CocktailResponseDTO> toggleDisponibilite(@PathVariable Long id) {
         return cocktailService.getCocktailById(id)
             .map(cocktail -> {
@@ -215,17 +215,17 @@ public class CocktailController {
     }
 
     /**
-     * Définit la plage de dates de saisonnalité d'un cocktail.
+     * Sets date-based seasonality bounds for a cocktail.
      *
-     * @param id Identifiant du cocktail
-     * @param dateDebut Date de début de saison
-     * @param dateFin Date de fin de saison
-     * @return DTO du cocktail mis à jour
+     * @param id Cocktail identifier
+     * @param dateDebut Season start date
+     * @param dateFin Season end date
+     * @return Updated cocktail DTO
      */
     @PutMapping("/{id}/saisonnalite")
     @PreAuthorize("hasRole('ADMIN') or hasRole('BARMAN')")
-    @Operation(summary = "Définir la plage de saisonnalité (date début / fin)")
-    @ApiResponse(responseCode = "200", description = "Saisonnalité enregistrée")
+    @Operation(summary = "Set date-based seasonality range")
+    @ApiResponse(responseCode = "200", description = "Seasonality saved")
     public ResponseEntity<CocktailResponseDTO> definirSaisonnalite(
         @PathVariable Long id,
         @RequestParam LocalDateTime dateDebut,
@@ -241,16 +241,16 @@ public class CocktailController {
     }
 
     /**
-     * Met à jour les mois de début et de fin de saisonnalité d'un cocktail.
+     * Updates month-based seasonality bounds (1-12) for a cocktail.
      *
-     * @param id Identifiant du cocktail
-     * @param request DTO contenant les mois de début (1-12) et de fin (1-12)
-     * @return DTO du cocktail mis à jour
+     * @param id Cocktail identifier
+     * @param request DTO containing start month (1-12) and end month (1-12)
+     * @return Updated cocktail DTO
      */
     @PatchMapping("/{id}/saisonnalite")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('BARMAN')")
-    @Operation(summary = "Mettre à jour les mois de saisonnalité (1-12)")
-    @ApiResponse(responseCode = "200", description = "Saisonnalité par mois mise à jour")
+    @Operation(summary = "Update month-based seasonality (1-12)")
+    @ApiResponse(responseCode = "200", description = "Month seasonality updated")
     public ResponseEntity<CocktailResponseDTO> updateSaisonnalite(
         @PathVariable Long id,
         @RequestBody SaisonnaliteRequest request) {

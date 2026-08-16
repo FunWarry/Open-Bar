@@ -41,7 +41,7 @@ public class IngredientService {
 
     public Ingredient updateIngredient(Long id, Ingredient updatedData) {
         Ingredient existing = ingredientRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Ingrédient non trouvé avec l'ID: " + id));
+            .orElseThrow(() -> new ResourceNotFoundException("Ingredient not found with ID: " + id));
         existing.setNom(updatedData.getNom());
         existing.setUniteMesure(updatedData.getUniteMesure());
         existing.setQuantiteStock(updatedData.getQuantiteStock());

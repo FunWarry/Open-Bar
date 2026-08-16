@@ -1,7 +1,7 @@
 package com.bar.gestioncocktail.model;
 
 /**
- * Types de postes occupés par un employé durant un créneau.
+ * Types of staff roles assigned to an employee during a shift.
  */
 public enum TypePoste {
     SERVEUR,

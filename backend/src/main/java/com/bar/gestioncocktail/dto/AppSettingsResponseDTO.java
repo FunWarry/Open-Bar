@@ -7,17 +7,19 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
 
 /**
- * DTO de réponse pour la transmission des paramètres de personnalisation de l'établissement.
+ * Response DTO for transmitting establishment customization and branding settings.
  *
- * @param id Identifiant unique du réglage
- * @param primaryColor Couleur primaire au format hexadécimal
- * @param primaryColorStrong Couleur primaire accentuée
- * @param logoUrl URL ou chemin du logo de l'établissement
- * @param establishmentName Nom commercial du bar ou de l'établissement
- * @param defaultTheme Thème par défaut (DARK, LIGHT, SYSTEM)
- * @param updatedAt Date de dernière modification
+ * @param id Unique setting identifier
+ * @param primaryColor Primary color in hexadecimal format
+ * @param primaryColorStrong Strong primary accent color
+ * @param logoUrl URL or path to the establishment logo
+ * @param establishmentName Commercial name of the establishment
+ * @param defaultTheme Default UI theme (DARK, LIGHT, SYSTEM)
+ * @param tempsAlerteCommandeMinutes Order warning alert threshold in minutes
+ * @param tempsAlerteCritiqueCommandeMinutes Order critical alert threshold in minutes
+ * @param updatedAt Last modification timestamp
  */
-@Schema(description = "Données de configuration visuelle et légale de l'établissement")
+@Schema(description = "Visual and operational configuration data of the establishment")
 public record AppSettingsResponseDTO(
     Long id,
     String primaryColor,
@@ -30,10 +32,10 @@ public record AppSettingsResponseDTO(
     LocalDateTime updatedAt
 ) {
     /**
-     * Convertit une entité {@link AppSettings} en DTO de réponse.
+     * Converts an {@link AppSettings} entity into a response DTO.
      *
-     * @param s L'entité source
-     * @return Le DTO de réponse
+     * @param s Source entity
+     * @return Response DTO
      */
     public static AppSettingsResponseDTO from(AppSettings s) {
         return new AppSettingsResponseDTO(

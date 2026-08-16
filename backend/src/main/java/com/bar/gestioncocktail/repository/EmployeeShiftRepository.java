@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Repository JPA pour la gestion des créneaux de travail (shifts).
+ * JPA Repository for managing employee work shifts.
  */
 @Repository
 public interface EmployeeShiftRepository extends JpaRepository<EmployeeShift, Long> {

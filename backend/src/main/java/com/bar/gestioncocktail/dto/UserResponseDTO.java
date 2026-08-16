@@ -8,18 +8,18 @@ import java.time.LocalDateTime;
 import java.util.Set;
 
 /**
- * DTO de réponse contenant les informations publiques d'un utilisateur.
+ * Response DTO containing public profile information of a user.
  *
- * @param id Identifiant unique
- * @param username Nom d'utilisateur
- * @param email Adresse email
- * @param nom Nom de famille
- * @param prenom Prénom
- * @param roles Ensemble des rôles attribués
- * @param createdAt Date de création du compte
- * @param updatedAt Date de dernière mise à jour
+ * @param id Unique identifier
+ * @param username Username
+ * @param email Email address
+ * @param nom Last name
+ * @param prenom First name
+ * @param roles Set of assigned user roles
+ * @param createdAt Account creation timestamp
+ * @param updatedAt Account last modification timestamp
  */
-@Schema(description = "Représentation sécurisée d'un profil utilisateur")
+@Schema(description = "Secure representation of a user profile")
 public record UserResponseDTO(
     Long id,
     String username,
@@ -31,10 +31,10 @@ public record UserResponseDTO(
     LocalDateTime updatedAt
 ) {
     /**
-     * Convertit une entité {@link User} en DTO de réponse.
+     * Converts a {@link User} entity into a response DTO.
      *
-     * @param user L'entité utilisateur
-     * @return Le DTO correspondant
+     * @param user Source user entity
+     * @return Corresponding response DTO
      */
     public static UserResponseDTO from(User user) {
         return new UserResponseDTO(

@@ -9,34 +9,34 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Controller REST utilitaire pour les contrôles de santé (health check) et tests de connectivité.
+ * Utility REST controller for health checks and connectivity diagnostics.
  */
 @RestController
 @RequestMapping("/api/test")
-@Tag(name = "Health Check & Test", description = "Vérification de l'état de santé du service backend")
+@Tag(name = "Health Check & Test", description = "Backend service health checks and diagnostics")
 public class TestController {
 
     /**
-     * Endpoint public de contrôle de santé du backend.
+     * Public backend service health check endpoint.
      *
-     * @return Message de confirmation du bon fonctionnement du service
+     * @return Confirmation message indicating service is operational
      */
     @GetMapping("/health")
-    @Operation(summary = "Contrôle de santé du serveur", description = "Accès public retournant un statut 200 OK si le serveur backend est opérationnel.")
-    @ApiResponse(responseCode = "200", description = "Service opérationnel")
+    @Operation(summary = "Server health check", description = "Public endpoint returning 200 OK if backend is operational.")
+    @ApiResponse(responseCode = "200", description = "Service operational")
     public ResponseEntity<String> healthCheck() {
         return ResponseEntity.ok("Service is up and running");
     }
 
     /**
-     * Endpoint sécurisé de test.
+     * Authenticated diagnostic test endpoint.
      *
-     * @return Message de confirmation
+     * @return Confirmation message
      */
     @GetMapping("/blocked")
-    @Operation(summary = "Endpoint de test sécurisé", description = "Nécessite une authentification JWT.")
-    @ApiResponse(responseCode = "200", description = "Accès accordé")
-    @ApiResponse(responseCode = "401", description = "Non authentifié")
+    @Operation(summary = "Authenticated diagnostic test endpoint", description = "Requires valid JWT authentication.")
+    @ApiResponse(responseCode = "200", description = "Access granted")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
     public ResponseEntity<String> testEndpoint() {
         return ResponseEntity.ok("Test endpoint is blocking");
     }

@@ -94,7 +94,7 @@ public class EmployeeShiftService {
      */
     public EmployeeShift getShiftById(Long id) {
         return shiftRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Shift non trouvé avec l'id: " + id));
+            .orElseThrow(() -> new ResourceNotFoundException("Shift not found with id: " + id));
     }
 
     /**
@@ -106,7 +106,7 @@ public class EmployeeShiftService {
     @Transactional
     public EmployeeShift createShift(EmployeeShiftRequestDTO request) {
         User user = userRepository.findById(request.userId())
-            .orElseThrow(() -> new ResourceNotFoundException("Utilisateur non trouvé avec l'id: " + request.userId()));
+            .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + request.userId()));
 
         EmployeeShift shift = new EmployeeShift();
         shift.setUser(user);
@@ -168,7 +168,7 @@ public class EmployeeShiftService {
 
         if (request.userId() != null && !request.userId().equals(shift.getUser().getId())) {
             User user = userRepository.findById(request.userId())
-                .orElseThrow(() -> new ResourceNotFoundException("Utilisateur non trouvé avec l'id: " + request.userId()));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + request.userId()));
             shift.setUser(user);
         }
 
@@ -211,28 +211,28 @@ public class EmployeeShiftService {
     private void validateEmployeeOwnership(EmployeeShift shift, String currentUsername, Long requestedUserId) {
         User shiftUser = shift.getUser();
         if (shiftUser == null || !currentUsername.equals(shiftUser.getUsername())) {
-            throw new AccessDeniedException("Vous n'êtes pas autorisé à modifier les créneaux d'un autre employé");
+            throw new AccessDeniedException("You are not authorized to modify shifts of another employee");
         }
         if (requestedUserId != null && !requestedUserId.equals(shiftUser.getId())) {
-            throw new AccessDeniedException("Vous ne pouvez pas réassigner un créneau à un autre employé");
+            throw new AccessDeniedException("You cannot reassign a shift to another employee");
         }
     }
 
     private void validatePlanningFieldsUnchanged(EmployeeShift shift, EmployeeShiftRequestDTO request) {
         if (request.dateShift() != null && !request.dateShift().equals(shift.getDateShift())) {
-            throw new AccessDeniedException("Seul un manager peut modifier la date planifiée d'un créneau");
+            throw new AccessDeniedException("Only a manager can modify the scheduled shift date");
         }
         if (request.typeShift() != null && request.typeShift() != shift.getTypeShift()) {
-            throw new AccessDeniedException("Seul un manager peut modifier le type de créneau planifié");
+            throw new AccessDeniedException("Only a manager can modify the planned shift type");
         }
         if (request.typePoste() != null && request.typePoste() != shift.getTypePoste()) {
-            throw new AccessDeniedException("Seul un manager peut modifier le poste assigné");
+            throw new AccessDeniedException("Only a manager can modify the assigned job position");
         }
         if (request.heureDebut() != null && !request.heureDebut().equals(shift.getHeureDebut())) {
-            throw new AccessDeniedException("Seul un manager peut modifier l'heure de début planifiée");
+            throw new AccessDeniedException("Only a manager can modify the planned start time");
         }
         if (request.heureFin() != null && !request.heureFin().equals(shift.getHeureFin())) {
-            throw new AccessDeniedException("Seul un manager peut modifier l'heure de fin planifiée");
+            throw new AccessDeniedException("Only a manager can modify the planned end time");
         }
     }
 

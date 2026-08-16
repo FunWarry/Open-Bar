@@ -101,7 +101,7 @@ class SetupServiceTest {
 
         assertThatThrownBy(() -> setupService.createInitialAdmin(validRequest))
             .isInstanceOf(BusinessException.class)
-            .hasMessageContaining("déjà initialisée");
+            .hasMessageContaining("already initialized");
 
         verify(userRepository, never()).save(any());
     }
@@ -113,7 +113,7 @@ class SetupServiceTest {
 
         assertThatThrownBy(() -> setupService.createInitialAdmin(validRequest))
             .isInstanceOf(BusinessException.class)
-            .hasMessageContaining("déjà pris");
+            .hasMessageContaining("already taken");
 
         verify(userRepository, never()).save(any());
     }
@@ -126,7 +126,7 @@ class SetupServiceTest {
 
         assertThatThrownBy(() -> setupService.createInitialAdmin(validRequest))
             .isInstanceOf(BusinessException.class)
-            .hasMessageContaining("déjà utilisée");
+            .hasMessageContaining("already in use");
 
         verify(userRepository, never()).save(any());
     }

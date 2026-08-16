@@ -175,7 +175,7 @@ class EstablishmentClosureServiceTest {
 
         assertThatThrownBy(() -> service.createClosure(req))
                 .isInstanceOf(BusinessException.class)
-                .hasMessageContaining("existe déjà");
+                .hasMessageContaining("already exists");
     }
 
     @Test

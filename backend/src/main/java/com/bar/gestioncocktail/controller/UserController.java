@@ -15,11 +15,11 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * Controller REST pour la gestion des comptes utilisateurs, rôles (ADMIN, MANAGER, SERVEUR, BARMAN) et mots de passe.
+ * REST controller for managing user accounts, roles (ADMIN, MANAGER, SERVEUR, BARMAN), and passwords.
  */
 @RestController
 @RequestMapping("/api/users")
-@Tag(name = "Utilisateurs", description = "Administration des comptes utilisateurs, attribution des rôles et réinitialisation de mot de passe")
+@Tag(name = "Users", description = "User account administration, role assignment, and password management")
 public class UserController {
     private final UserService userService;
 
@@ -101,32 +101,32 @@ public class UserController {
     }
 
     /**
-     * Supprime un utilisateur.
+     * Deletes a user account.
      *
-     * @param id Identifiant de l'utilisateur
-     * @return Statut 200 OK
+     * @param id User identifier
+     * @return HTTP 200 OK
      */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Supprimer un utilisateur (ADMIN)")
-    @ApiResponse(responseCode = "200", description = "Utilisateur supprimé")
-    public ResponseEntity<Void> deleteUser(@Parameter(description = "ID de l'utilisateur") @PathVariable Long id) {
+    @Operation(summary = "Delete a user (ADMIN)")
+    @ApiResponse(responseCode = "200", description = "User deleted")
+    public ResponseEntity<Void> deleteUser(@Parameter(description = "User ID") @PathVariable Long id) {
         userService.deleteUser(id);
         return ResponseEntity.ok().build();
     }
 
     /**
-     * Récupère un utilisateur par son identifiant.
+     * Retrieves a user by identifier.
      *
-     * @param id Identifiant
-     * @return DTO de l'utilisateur
+     * @param id User identifier
+     * @return User DTO
      */
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
-    @Operation(summary = "Obtenir un utilisateur par son ID")
-    @ApiResponse(responseCode = "200", description = "Utilisateur trouvé")
-    @ApiResponse(responseCode = "404", description = "Utilisateur non trouvé")
-    public ResponseEntity<UserResponseDTO> getUserById(@Parameter(description = "ID de l'utilisateur") @PathVariable Long id) {
+    @Operation(summary = "Get user by ID")
+    @ApiResponse(responseCode = "200", description = "User found")
+    @ApiResponse(responseCode = "404", description = "User not found")
+    public ResponseEntity<UserResponseDTO> getUserById(@Parameter(description = "User ID") @PathVariable Long id) {
         return userService.getUserById(id)
             .map(UserResponseDTO::from)
             .map(ResponseEntity::ok)
@@ -134,15 +134,15 @@ public class UserController {
     }
 
     /**
-     * Récupère un utilisateur par son nom d'utilisateur.
+     * Retrieves a user by username.
      *
-     * @param username Nom d'utilisateur
-     * @return DTO de l'utilisateur
+     * @param username Username
+     * @return User DTO
      */
     @GetMapping("/username/{username}")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Obtenir un utilisateur par son username (ADMIN)")
-    @ApiResponse(responseCode = "200", description = "Utilisateur trouvé")
+    @Operation(summary = "Get user by username (ADMIN)")
+    @ApiResponse(responseCode = "200", description = "User found")
     public ResponseEntity<UserResponseDTO> getUserByUsername(@PathVariable String username) {
         return userService.getUserByUsername(username)
             .map(UserResponseDTO::from)
@@ -151,57 +151,57 @@ public class UserController {
     }
 
     /**
-     * Liste les utilisateurs possédant un rôle donné (ADMIN, MANAGER, SERVEUR, BARMAN).
+     * Lists users matching a specific role (ADMIN, MANAGER, SERVEUR, BARMAN).
      *
-     * @param role Le rôle recherché
-     * @return Liste des utilisateurs
+     * @param role Target role
+     * @return List of matching users
      */
     @GetMapping("/role/{role}")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Lister les utilisateurs par rôle (ADMIN)")
-    @ApiResponse(responseCode = "200", description = "Liste des utilisateurs")
+    @Operation(summary = "List users by role (ADMIN)")
+    @ApiResponse(responseCode = "200", description = "List of users")
     public ResponseEntity<List<UserResponseDTO>> getUsersByRole(@PathVariable UserRole role) {
         return ResponseEntity.ok(userService.getUsersByRole(role).stream()
             .map(UserResponseDTO::from).toList());
     }
 
     /**
-     * Vérifie la disponibilité d'un nom d'utilisateur (endpoint public pour validation lors de l'inscription).
+     * Checks username availability (public endpoint for signup/creation validation).
      *
-     * @param username Nom d'utilisateur à tester
-     * @return True si le nom d'utilisateur est déjà pris, false sinon
+     * @param username Username to test
+     * @return True if username is already taken, false otherwise
      */
     @GetMapping("/check-username/{username}")
-    @Operation(summary = "Vérifier la disponibilité d'un username", description = "Accès public pour contrôle d'unicité.")
-    @ApiResponse(responseCode = "200", description = "Résultat du contrôle d'unicité")
+    @Operation(summary = "Check username availability", description = "Public endpoint for uniqueness verification.")
+    @ApiResponse(responseCode = "200", description = "Uniqueness check result")
     public ResponseEntity<Boolean> checkUsernameExists(@PathVariable String username) {
         return ResponseEntity.ok(userService.existsByUsername(username));
     }
 
     /**
-     * Vérifie la disponibilité d'une adresse email.
+     * Checks email availability.
      *
-     * @param email Adresse email à tester
-     * @return True si l'email existe déjà
+     * @param email Email address to test
+     * @return True if email already exists, false otherwise
      */
     @GetMapping("/check-email/{email}")
-    @Operation(summary = "Vérifier la disponibilité d'un email", description = "Accès public pour contrôle d'unicité.")
-    @ApiResponse(responseCode = "200", description = "Résultat du contrôle d'unicité")
+    @Operation(summary = "Check email availability", description = "Public endpoint for uniqueness verification.")
+    @ApiResponse(responseCode = "200", description = "Uniqueness check result")
     public ResponseEntity<Boolean> checkEmailExists(@PathVariable String email) {
         return ResponseEntity.ok(userService.existsByEmail(email));
     }
 
     /**
-     * Modifie le mot de passe d'un utilisateur.
+     * Updates a user's password.
      *
-     * @param id Identifiant de l'utilisateur
-     * @param newPassword Nouveau mot de passe
-     * @return Statut 200 OK
+     * @param id User identifier
+     * @param newPassword New password string
+     * @return HTTP 200 OK
      */
     @PutMapping("/{id}/password")
     @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
-    @Operation(summary = "Changer le mot de passe d'un utilisateur")
-    @ApiResponse(responseCode = "200", description = "Mot de passe modifié")
+    @Operation(summary = "Change user password")
+    @ApiResponse(responseCode = "200", description = "Password updated")
     public ResponseEntity<Void> changePassword(
         @PathVariable Long id,
         @RequestBody String newPassword) {

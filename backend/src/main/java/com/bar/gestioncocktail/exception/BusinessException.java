@@ -1,14 +1,14 @@
 package com.bar.gestioncocktail.exception;
 
 /**
- * Exception levée lors d'une violation de règle métier (mappée vers HTTP 400 Bad Request par {@link GlobalExceptionHandler}).
+ * Exception thrown on business rule violations (mapped to HTTP 400 Bad Request by {@link GlobalExceptionHandler}).
  */
 public class BusinessException extends RuntimeException {
 
     /**
-     * Constructeur avec message d'erreur métier.
+     * Constructs the exception with a business error message.
      *
-     * @param message Message d'explication de l'erreur
+     * @param message Explanatory error message
      */
     public BusinessException(String message) {
         super(message);

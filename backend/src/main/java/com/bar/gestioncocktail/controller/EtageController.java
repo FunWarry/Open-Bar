@@ -20,7 +20,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api/etages")
-@Tag(name = "Étages", description = "Endpoints for managing bar floor levels and hierarchy")
+@Tag(name = "Floors", description = "Endpoints for managing bar floor levels and hierarchy")
 public class EtageController {
 
     private final EtageService etageService;

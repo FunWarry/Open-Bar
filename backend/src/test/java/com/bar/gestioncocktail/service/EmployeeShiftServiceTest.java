@@ -324,7 +324,7 @@ class EmployeeShiftServiceTest {
 
         assertThatThrownBy(() -> shiftService.updateShift(10L, request))
             .isInstanceOf(org.springframework.security.access.AccessDeniedException.class)
-            .hasMessageContaining("Vous n'êtes pas autorisé à modifier les créneaux d'un autre employé");
+            .hasMessageContaining("You are not authorized to modify shifts of another employee");
     }
 
     @Test
@@ -340,7 +340,7 @@ class EmployeeShiftServiceTest {
 
         assertThatThrownBy(() -> shiftService.updateShift(10L, request))
             .isInstanceOf(org.springframework.security.access.AccessDeniedException.class)
-            .hasMessageContaining("Vous ne pouvez pas réassigner un créneau à un autre employé");
+            .hasMessageContaining("You cannot reassign a shift to another employee");
     }
 
     @Test
@@ -356,7 +356,7 @@ class EmployeeShiftServiceTest {
 
         assertThatThrownBy(() -> shiftService.updateShift(10L, request))
             .isInstanceOf(org.springframework.security.access.AccessDeniedException.class)
-            .hasMessageContaining("Seul un manager peut modifier la date planifiée");
+            .hasMessageContaining("Only a manager can modify the scheduled shift date");
     }
 
     @Test
@@ -372,7 +372,7 @@ class EmployeeShiftServiceTest {
 
         assertThatThrownBy(() -> shiftService.updateShift(10L, request))
             .isInstanceOf(org.springframework.security.access.AccessDeniedException.class)
-            .hasMessageContaining("Seul un manager peut modifier l'heure de début planifiée");
+            .hasMessageContaining("Only a manager can modify the planned start time");
     }
 
     @Test
@@ -388,7 +388,7 @@ class EmployeeShiftServiceTest {
 
         assertThatThrownBy(() -> shiftService.updateShift(10L, request))
             .isInstanceOf(org.springframework.security.access.AccessDeniedException.class)
-            .hasMessageContaining("Seul un manager peut modifier le type de créneau planifié");
+            .hasMessageContaining("Only a manager can modify the planned shift type");
     }
 
     @Test
@@ -404,7 +404,7 @@ class EmployeeShiftServiceTest {
 
         assertThatThrownBy(() -> shiftService.updateShift(10L, request))
             .isInstanceOf(org.springframework.security.access.AccessDeniedException.class)
-            .hasMessageContaining("Seul un manager peut modifier le poste assigné");
+            .hasMessageContaining("Only a manager can modify the assigned job position");
     }
 
     @Test
@@ -420,7 +420,7 @@ class EmployeeShiftServiceTest {
 
         assertThatThrownBy(() -> shiftService.updateShift(10L, request))
             .isInstanceOf(org.springframework.security.access.AccessDeniedException.class)
-            .hasMessageContaining("Seul un manager peut modifier l'heure de fin planifiée");
+            .hasMessageContaining("Only a manager can modify the planned end time");
     }
 
     @Test

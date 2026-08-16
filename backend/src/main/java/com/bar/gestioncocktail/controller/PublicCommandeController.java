@@ -8,61 +8,59 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * Controller REST public permettant la prise de commande par les clients via scan de QR code sur table.
+ * Public REST controller allowing customer orders via table QR code scans.
  * <p>
- * Cet endpoint ne nécessite aucune authentification utilisateur (accessible anonymement par le client).
- * À la création de la commande, un {@code trackingToken} UUID est retourné pour le suivi temps réel.
+ * This endpoint requires no user authentication (accessible anonymously by patrons).
+ * Upon creation, a UUID {@code trackingToken} is returned for real-time tracking.
  */
 @RestController
 @RequestMapping("/api/public/commandes")
-@Tag(name = "Commandes Publiques QR Code", description = "Prise de commande anonyme par scan de QR code par le client final")
+@Tag(name = "Public QR Orders", description = "Anonymous client order intake via table QR code scans")
 public class PublicCommandeController {
 
     private final PublicCommandeService publicCommandeService;
 
     /**
-     * Constructeur avec injection du service de commande publique.
+     * Constructs the controller with the public order service dependency.
      *
-     * @param publicCommandeService Le service de gestion des commandes publiques
+     * @param publicCommandeService Public order service
      */
-    @Autowired
     public PublicCommandeController(PublicCommandeService publicCommandeService) {
         this.publicCommandeService = publicCommandeService;
     }
 
     /**
-     * Crée une commande publique à partir d'un scan QR code.
+     * Creates a public order from a QR code scan.
      *
-     * @param requestDTO Les articles commandés et l'identifiant de la table
-     * @return Réponse contenant l'ID de commande et le token de suivi anonyme
+     * @param requestDTO Ordered items and table identifier
+     * @return Response containing order ID and anonymous tracking token
      */
     @PostMapping
-    @Operation(summary = "Créer une commande publique sans authentification", description = "Valide le stock, crée la commande et émet le token anonyme de suivi.")
-    @ApiResponse(responseCode = "201", description = "Commande publique enregistrée")
-    @ApiResponse(responseCode = "400", description = "Stock insuffisant ou données invalides")
+    @Operation(summary = "Create a public order without authentication", description = "Validates stock, creates the order, and issues an anonymous tracking token.")
+    @ApiResponse(responseCode = "201", description = "Public order created successfully")
+    @ApiResponse(responseCode = "400", description = "Insufficient stock or invalid request data")
     public ResponseEntity<PublicCommandeResponseDTO> creerCommande(@Valid @RequestBody PublicCommandeRequestDTO requestDTO) {
         PublicCommandeResponseDTO response = publicCommandeService.creerCommandePublique(requestDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     /**
-     * Récupère le statut et l'avancement d'une commande via son token de suivi anonyme.
+     * Retrieves the status and progression of an order via its anonymous tracking token.
      *
-     * @param trackingToken Token UUID de suivi généré à la commande
-     * @return Statut courant de la commande
+     * @param trackingToken UUID tracking token issued during order creation
+     * @return Current order status and details
      */
     @GetMapping("/{trackingToken}")
-    @Operation(summary = "Suivre l'avancement d'une commande par token anonyme", description = "Permet au client de consulter en direct l'avancement de sa commande.")
-    @ApiResponse(responseCode = "200", description = "Commande et statut trouvés")
-    @ApiResponse(responseCode = "404", description = "Token de suivi invalide")
+    @Operation(summary = "Track order progress via anonymous token", description = "Allows patrons to check the real-time progress of their order.")
+    @ApiResponse(responseCode = "200", description = "Order status found")
+    @ApiResponse(responseCode = "404", description = "Invalid tracking token")
     public ResponseEntity<PublicCommandeResponseDTO> getCommandeParTrackingToken(
-        @Parameter(description = "Token UUID de suivi anonyme") @PathVariable String trackingToken) {
+        @Parameter(description = "Anonymous UUID tracking token") @PathVariable String trackingToken) {
         PublicCommandeResponseDTO response = publicCommandeService.getCommandeParTrackingToken(trackingToken);
         return ResponseEntity.ok(response);
     }

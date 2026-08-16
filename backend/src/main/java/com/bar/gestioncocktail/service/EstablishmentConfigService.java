@@ -61,7 +61,7 @@ public class EstablishmentConfigService {
     @Transactional
     public EstablishmentConfigDTO updateConfig(EstablishmentConfigUpdateRequest request) {
         if (request.siret() != null && !request.siret().isBlank() && !SiretLuhnValidator.isValidSiret(request.siret())) {
-            throw new BusinessException("Le numéro SIRET spécifié est invalide (échec du contrôle de Luhn)");
+            throw new BusinessException("The specified SIRET number is invalid (Luhn checksum failed)");
         }
 
         EstablishmentConfig config = getConfigInternal();
@@ -113,7 +113,7 @@ public class EstablishmentConfigService {
             try {
                 java.time.ZoneId.of(tz);
             } catch (Exception _) {
-                throw new BusinessException("Le fuseau horaire spécifié est invalide : " + tz);
+                throw new BusinessException("The specified time zone is invalid: " + tz);
             }
         }
         config.setTimeZone(tz.isBlank() ? "SYSTEM" : tz);

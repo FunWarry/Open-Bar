@@ -105,6 +105,6 @@ class EstablishmentConfigServiceTest {
 
         assertThatThrownBy(() -> service.updateConfig(request))
             .isInstanceOf(BusinessException.class)
-            .hasMessageContaining("numéro SIRET spécifié est invalide");
+            .hasMessageContaining("SIRET number is invalid");
     }
 }

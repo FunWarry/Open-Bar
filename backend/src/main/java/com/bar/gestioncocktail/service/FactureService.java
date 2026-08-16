@@ -45,12 +45,16 @@ import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Business service managing billing, invoice issuance, VAT multi-rate calculations,
+ * bill splitting, table checkout, credit notes, and accounting exports.
+ */
 @Service
 @Transactional
 public class FactureService {
-    private static final String NOT_FOUND_ID_PREFIX = "Facture non trouvée avec l'id: ";
-    private static final String NOT_FOUND_PREFIX = "Facture non trouvée: ";
-    private static final String ENTITY_FACTURE = "Facture";
+    private static final String NOT_FOUND_ID_PREFIX = "Invoice not found with id: ";
+    private static final String NOT_FOUND_PREFIX = "Invoice not found: ";
+    private static final String ENTITY_FACTURE = "Invoice";
 
     private final FactureRepository factureRepository;
     private final TableRepository tableRepository;
@@ -221,7 +225,7 @@ public class FactureService {
 
         Facture saved = factureRepository.save(facture);
         auditLogService.logAction(null, "REGLEMENT_FACTURE", ENTITY_FACTURE, saved.getId(),
-                "Règlement de la facture " + saved.getNumero() + " (" + modePaiement + ")", null);
+                "Payment settlement of invoice " + saved.getNumero() + " (" + modePaiement + ")", null);
         return saved;
     }
 
@@ -234,7 +238,7 @@ public class FactureService {
     @Transactional(readOnly = true)
     public TableAdditionResponseDTO getTableAddition(Long tableId) {
         TableEntity table = tableRepository.findById(tableId)
-                .orElseThrow(() -> new ResourceNotFoundException("Table non trouvée avec l'id: " + tableId));
+                .orElseThrow(() -> new ResourceNotFoundException("Table not found with id: " + tableId));
 
         List<Commande> allCommandes = commandeRepository.findByTable(table);
         List<Commande> activeCommandes = filterActiveOrders(allCommandes, null);
@@ -299,7 +303,7 @@ public class FactureService {
     @Transactional
     public FactureResponseDTO encaisserTable(Long tableId, EncaissementRequestDTO request) {
         TableEntity table = tableRepository.findById(tableId)
-                .orElseThrow(() -> new ResourceNotFoundException("Table non trouvée avec l'id: " + tableId));
+                .orElseThrow(() -> new ResourceNotFoundException("Table not found with id: " + tableId));
 
         List<Commande> allCommandes = commandeRepository.findByTable(table);
         List<Commande> activeCommandes = filterActiveOrders(allCommandes, request.commandeIds());
@@ -308,7 +312,7 @@ public class FactureService {
         Optional<Facture> unpaidFacture = findUnpaidFacture(facturesTable);
 
         if (activeCommandes.isEmpty() && unpaidFacture.isEmpty()) {
-            throw new BusinessException("Aucune commande active à encaisser pour la table " + table.getNumero());
+            throw new BusinessException("No active orders to checkout for table " + table.getNumero());
         }
 
         Facture facture = unpaidFacture.orElseGet(() -> createNewFactureForTable(table, activeCommandes));
@@ -560,13 +564,12 @@ public class FactureService {
     }
 
     /**
-     * Split égal : divise le total TTC (ou total si pas de pourboire) en N parts
-     * égales.
-     * Ne crée pas de sous-factures — retourne uniquement le calcul.
+     * Equal split: divides the total TTC (or total without tip) into N equal parts.
+     * Does not persist child invoices — returns calculated portions.
      */
     public List<SplitResultDTO> splitEgal(Long factureId, int nombreConvives) {
         if (nombreConvives < 2 || nombreConvives > 20) {
-            throw new BusinessException("Le nombre de convives doit être compris entre 2 et 20");
+            throw new BusinessException("Number of guests must be between 2 and 20");
         }
         Facture facture = factureRepository.findById(factureId)
                 .orElseThrow(() -> new ResourceNotFoundException(NOT_FOUND_PREFIX + factureId));
@@ -581,7 +584,7 @@ public class FactureService {
         for (int i = 1; i <= nombreConvives; i++) {
             result.add(new SplitResultDTO(
                     factureId,
-                    "Convive " + i,
+                    "Guest " + i,
                     List.of(),
                     partParPersonne,
                     partParPersonne));
@@ -590,15 +593,14 @@ public class FactureService {
     }
 
     /**
-     * Split par sélection d'articles : chaque convive indique les itemIds qu'il
-     * prend en charge.
-     * Vérifie que chaque itemId appartient bien à la facture.
+     * Itemized split: each guest selects the item IDs they are paying for.
+     * Verifies that each itemId belongs to the invoice.
      */
     public List<SplitResultDTO> splitParSelection(Long factureId, SplitAdditionRequest request) {
         Facture facture = factureRepository.findById(factureId)
                 .orElseThrow(() -> new ResourceNotFoundException(NOT_FOUND_PREFIX + factureId));
 
-        // Index des items de la facture par id pour lookup O(1)
+        // Index invoice items by ID for O(1) lookup
         Map<Long, FactureItem> itemsIndex = new HashMap<>();
         if (facture.getItems() != null) {
             for (FactureItem item : facture.getItems()) {
@@ -616,7 +618,7 @@ public class FactureService {
                 FactureItem item = itemsIndex.get(itemId);
                 if (item == null) {
                     throw new BusinessException(
-                            "L'item " + itemId + " n'appartient pas à la facture " + factureId);
+                            "Item " + itemId + " does not belong to invoice " + factureId);
                 }
                 splitItems.add(new SplitResultDTO.SplitItemDTO(
                         item.getId(),
@@ -687,7 +689,7 @@ public class FactureService {
         for (Facture f : factures) {
             if (f.isReglee()) {
                 throw new BusinessException(
-                        "La facture " + f.getNumero() + " est déjà réglée et ne peut pas être fusionnée.");
+                        "Invoice " + f.getNumero() + " is already settled and cannot be merged.");
             }
         }
     }
@@ -721,8 +723,8 @@ public class FactureService {
             }
         }
         f.setReglee(true);
-        f.setModePaiement("FUSIONNE");
-        f.setNotes("Fusionnée dans la facture " + merged.getNumero());
+        f.setModePaiement("MERGED");
+        f.setNotes("Merged into invoice " + merged.getNumero());
         factureRepository.save(f);
         return subTotal;
     }
@@ -737,7 +739,7 @@ public class FactureService {
                 .orElseThrow(() -> new ResourceNotFoundException(NOT_FOUND_PREFIX + id));
 
         if (facture.isFinalized()) {
-            throw new BusinessException("La facture " + facture.getNumero() + " est déjà finalisée et immuable.");
+            throw new BusinessException("Invoice " + facture.getNumero() + " is already finalized and immutable.");
         }
 
         LocalDateTime now = LocalDateTime.now(timeService.getZoneId());
@@ -773,15 +775,15 @@ public class FactureService {
         avoir.setTotalHT(facture.getTotalHT() != null ? facture.getTotalHT() : BigDecimal.ZERO);
         avoir.setTotalVAT(facture.getTotalVAT() != null ? facture.getTotalVAT() : BigDecimal.ZERO);
         avoir.setTotalTTC(facture.getTotalTTC() != null ? facture.getTotalTTC() : facture.getTotal());
-        avoir.setMotif(motif != null ? motif : "Annulation de la facture " + facture.getNumero());
+        avoir.setMotif(motif != null ? motif : "Cancellation of invoice " + facture.getNumero());
 
         AvoirCredit savedAvoir = avoirCreditRepository.save(avoir);
 
-        facture.setNotes("Annulée par l'avoir " + numeroAvoir + (motif != null ? " (" + motif + ")" : ""));
+        facture.setNotes("Cancelled by credit note " + numeroAvoir + (motif != null ? " (" + motif + ")" : ""));
         factureRepository.save(facture);
 
         auditLogService.logAction(null, "CREATION_AVOIR", "AvoirCredit", savedAvoir.getId(),
-                "Avoir " + numeroAvoir + " créé pour la facture " + facture.getNumero(), null);
+                "Credit note " + numeroAvoir + " created for invoice " + facture.getNumero(), null);
 
         return savedAvoir;
     }
@@ -802,7 +804,7 @@ public class FactureService {
 
         if (facture.getPdfHash() == null || currentPdfBytes == null) {
             result.put("valid", false);
-            result.put("reason", "Aucun hash ou document PDF disponible pour vérification");
+            result.put("reason", "No hash or PDF document available for verification");
             return result;
         }
 

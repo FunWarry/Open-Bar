@@ -9,9 +9,9 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * DTO de réponse représentant une facture émise.
+ * Response DTO representing an issued invoice.
  */
-@Schema(description = "Représentation DTO d'une facture")
+@Schema(description = "DTO representation of an invoice")
 public record FactureResponseDTO(
     Long id,
     Long tableId,
@@ -32,10 +32,10 @@ public record FactureResponseDTO(
     LocalDateTime updatedAt
 ) {
     /**
-     * Convertit une entité {@link Facture} en DTO de réponse.
+     * Converts a {@link Facture} entity into a response DTO.
      *
-     * @param f L'entité facture
-     * @return Le DTO correspondant
+     * @param f Source invoice entity
+     * @return Corresponding response DTO
      */
     public static FactureResponseDTO from(Facture f) {
         List<FactureItemResponseDTO> items = f.getItems() != null

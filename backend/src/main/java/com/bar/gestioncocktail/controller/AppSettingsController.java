@@ -7,7 +7,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,53 +16,50 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Controller REST pour la gestion des paramètres globaux de l'application
- * (personnalisation, branding, etc.).
+ * REST controller for global application settings (branding, theme customization, alert thresholds).
  * <p>
- * L'endpoint {@code GET} est public afin de permettre la lecture des paramètres
- * dès l'écran de connexion.
- * L'endpoint {@code PUT} est réservé aux administrateurs.
+ * The {@code GET} endpoint is public to enable reading establishment parameters on the login screen.
+ * The {@code PUT} endpoint is restricted to administrators and managers.
  */
 @RestController
 @RequestMapping("/api/settings")
-@Tag(name = "Settings", description = "Paramètres de personnalisation globale de l'établissement")
+@Tag(name = "Settings", description = "Global establishment settings and customization")
 public class AppSettingsController {
 
     private final AppSettingsService appSettingsService;
 
     /**
-     * Constructeur avec injection du service de paramètres.
+     * Constructs the controller with the settings service dependency.
      *
-     * @param appSettingsService Le service gérant les paramètres d'application
+     * @param appSettingsService Application settings service
      */
-    @Autowired
     public AppSettingsController(AppSettingsService appSettingsService) {
         this.appSettingsService = appSettingsService;
     }
 
     /**
-     * Récupère les paramètres actuels de l'application.
+     * Retrieves current application settings.
      *
-     * @return Les paramètres de l'établissement au format DTO
+     * @return Establishment settings DTO
      */
     @GetMapping
-    @Operation(summary = "Obtenir les paramètres de l'établissement", description = "Accès public permettant d'afficher le nom et le logo de l'établissement dès la page de login.")
-    @ApiResponse(responseCode = "200", description = "Paramètres récupérés avec succès")
+    @Operation(summary = "Get establishment settings", description = "Public endpoint to retrieve establishment branding and alert thresholds.")
+    @ApiResponse(responseCode = "200", description = "Settings retrieved successfully")
     public ResponseEntity<AppSettingsResponseDTO> getSettings() {
         return ResponseEntity.ok(AppSettingsResponseDTO.from(appSettingsService.getSettings()));
     }
 
     /**
-     * Met à jour les paramètres de l'établissement.
+     * Updates establishment settings.
      *
-     * @param request Les nouveaux paramètres à appliquer
-     * @return Les paramètres mis à jour
+     * @param request New settings payload
+     * @return Updated settings DTO
      */
     @PutMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
-    @Operation(summary = "Mettre à jour les paramètres (ADMIN/MANAGER)", description = "Permet d'adapter le nom de l'établissement, les seuils d'alerte et la charte.")
-    @ApiResponse(responseCode = "200", description = "Paramètres mis à jour")
-    @ApiResponse(responseCode = "403", description = "Accès refusé - Rôle ADMIN ou MANAGER requis")
+    @Operation(summary = "Update settings (ADMIN/MANAGER)", description = "Updates establishment name, alert thresholds, and branding.")
+    @ApiResponse(responseCode = "200", description = "Settings updated successfully")
+    @ApiResponse(responseCode = "403", description = "Access denied - ADMIN or MANAGER role required")
     public ResponseEntity<AppSettingsResponseDTO> updateSettings(@Valid @RequestBody AppSettingsUpdateRequest request) {
         return ResponseEntity.ok(AppSettingsResponseDTO.from(appSettingsService.updateSettings(request)));
     }

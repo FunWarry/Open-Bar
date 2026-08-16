@@ -176,8 +176,8 @@ class FactureServiceTest {
         assertThat(result).hasSize(2);
         assertThat(result.get(0).sousTotal()).isEqualByComparingTo(new BigDecimal("12.50"));
         assertThat(result.get(1).sousTotal()).isEqualByComparingTo(new BigDecimal("12.50"));
-        assertThat(result.get(0).nomConvive()).isEqualTo("Convive 1");
-        assertThat(result.get(1).nomConvive()).isEqualTo("Convive 2");
+        assertThat(result.get(0).nomConvive()).isEqualTo("Guest 1");
+        assertThat(result.get(1).nomConvive()).isEqualTo("Guest 2");
     }
 
     @Test
@@ -223,14 +223,14 @@ class FactureServiceTest {
     void splitEgal_unConvive_throwsBusinessException() {
         assertThatThrownBy(() -> factureService.splitEgal(10L, 1))
                 .isInstanceOf(BusinessException.class)
-                .hasMessageContaining("convives");
+                .hasMessageContaining("guests");
     }
 
     @Test
     void splitEgal_vingtEtUnConvives_throwsBusinessException() {
         assertThatThrownBy(() -> factureService.splitEgal(10L, 21))
                 .isInstanceOf(BusinessException.class)
-                .hasMessageContaining("convives");
+                .hasMessageContaining("guests");
     }
 
     @Test
@@ -390,7 +390,7 @@ class FactureServiceTest {
         assertThat(merged.getItems()).hasSize(2);
         assertThat(f1.isReglee()).isTrue();
         assertThat(f2.isReglee()).isTrue();
-        verify(auditLogService).logAction(eq(null), eq("FUSION_FACTURES"), eq("Facture"), any(), anyString(), eq(null));
+        verify(auditLogService).logAction(eq(null), eq("FUSION_FACTURES"), eq("Invoice"), any(), anyString(), eq(null));
     }
 
     @Test
@@ -500,7 +500,7 @@ class FactureServiceTest {
 
         assertThatThrownBy(() -> factureService.getTableAddition(999L))
                 .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("Table non trouvée avec l'id: 999");
+                .hasMessageContaining("Table not found with id: 999");
     }
 
     @Test
@@ -586,7 +586,7 @@ class FactureServiceTest {
 
         assertThatThrownBy(() -> factureService.encaisserTable(1L, request))
                 .isInstanceOf(BusinessException.class)
-                .hasMessageContaining("Aucune commande active à encaisser pour la table 3");
+                .hasMessageContaining("No active orders to checkout for table 3");
     }
 
     @Test
@@ -689,7 +689,7 @@ class FactureServiceTest {
 
         assertThatThrownBy(() -> factureService.encaisserTable(999L, request))
                 .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("Table non trouvée avec l'id: 999");
+                .hasMessageContaining("Table not found with id: 999");
     }
 
     @Test

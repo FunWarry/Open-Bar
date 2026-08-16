@@ -24,6 +24,10 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * Spring Security configuration for OpenBar.
+ * Configures stateless JWT authentication, CORS, CSRF, and role-based endpoint permissions.
+ */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -63,14 +67,14 @@ public class SecurityConfig {
                             .requestMatchers("/api/users/check-username/**").permitAll()
                             .requestMatchers("/api/users/check-email/**").permitAll()
                             .requestMatchers("/ws/**", "/api/ws/**").permitAll()
-                            // Réglages de personnalisation lisibles avant authentification (écran de login)
+                            // Application customization settings readable prior to authentication (login screen)
                             .requestMatchers(HttpMethod.GET, "/api/settings").permitAll()
                             .anyRequest().authenticated())
                     .exceptionHandling(ex -> ex
                             .accessDeniedHandler((request, response, _) -> writeError(response,
-                                    HttpServletResponse.SC_FORBIDDEN, "Forbidden", "Accès refusé"))
+                                    HttpServletResponse.SC_FORBIDDEN, "Forbidden", "Access denied"))
                             .authenticationEntryPoint((request, response, _) -> writeError(response,
-                                    HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized", "Non authentifié")))
+                                    HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized", "Not authenticated")))
                     .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                     .addFilterBefore(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class)
                     .build();

@@ -88,7 +88,7 @@ class EtageServiceTest {
 
         assertThatThrownBy(() -> etageService.createEtage("RDC", "Rez-de-chaussée", 1))
                 .isInstanceOf(BusinessException.class)
-                .hasMessageContaining("existe déjà");
+                .hasMessageContaining("already exists");
     }
 
     @Test
@@ -148,7 +148,7 @@ class EtageServiceTest {
 
         assertThatThrownBy(() -> etageService.updateEtage(1L, "EXISTING", "New Name", 1))
                 .isInstanceOf(BusinessException.class)
-                .hasMessageContaining("existe déjà");
+                .hasMessageContaining("already exists");
     }
 
     @Test
@@ -188,7 +188,7 @@ class EtageServiceTest {
 
         assertThatThrownBy(() -> etageService.deleteEtage(1L))
                 .isInstanceOf(BusinessException.class)
-                .hasMessageContaining("associées");
+                .hasMessageContaining("zones are assigned to it");
 
         verify(etageRepository, never()).delete(any());
     }

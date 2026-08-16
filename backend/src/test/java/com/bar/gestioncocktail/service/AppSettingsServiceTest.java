@@ -138,6 +138,6 @@ class AppSettingsServiceTest {
 
         assertThatThrownBy(() -> appSettingsService.updateSettings(request))
             .isInstanceOf(BusinessException.class)
-            .hasMessageContaining("clair");
+            .hasMessageContaining("Light theme");
     }
 }

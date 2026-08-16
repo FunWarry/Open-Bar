@@ -21,21 +21,21 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * Controller REST gérant le cycle de vie des commandes.
+ * REST controller managing order lifecycle.
  * <p>
- * Permet la création, la mise à jour des lignes de commande, le suivi par table ou statut,
- * le changement d'état (EN_ATTENTE, EN_PREPARATION, PRET, LIVREE, REGLEE, ANNULEE) et la gestion des priorités.
+ * Handles creation, order item updates, table or status tracking,
+ * status progression (EN_ATTENTE, EN_PREPARATION, PRET, LIVREE, REGLEE, ANNULEE), and priority flags.
  */
 @RestController
 @RequestMapping("/api/commandes")
-@Tag(name = "Commandes", description = "Gestion du cycle de vie des commandes bar et table")
+@Tag(name = "Commandes", description = "Order lifecycle management for bar and table service")
 public class CommandeController {
     private final CommandeService commandeService;
 
     /**
-     * Constructeur avec injection du service de commande.
+     * Constructs the controller with the order service dependency.
      *
-     * @param commandeService Le service gérant la logique métier des commandes
+     * @param commandeService Service managing order domain logic
      */
     public CommandeController(CommandeService commandeService) {
         this.commandeService = commandeService;
@@ -88,32 +88,32 @@ public class CommandeController {
     }
 
     /**
-     * Supprime une commande du système.
+     * Deletes an order from the system.
      *
-     * @param id Identifiant de la commande à supprimer
-     * @return Statut 200 OK
+     * @param id Identifier of the order to delete
+     * @return HTTP 200 OK
      */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Supprimer une commande (ADMIN)")
-    @ApiResponse(responseCode = "200", description = "Commande supprimée")
-    public ResponseEntity<Void> deleteCommande(@Parameter(description = "ID de la commande") @PathVariable Long id) {
+    @Operation(summary = "Delete an order (ADMIN)")
+    @ApiResponse(responseCode = "200", description = "Order deleted")
+    public ResponseEntity<Void> deleteCommande(@Parameter(description = "Order ID") @PathVariable Long id) {
         commandeService.deleteCommande(id);
         return ResponseEntity.ok().build();
     }
 
     /**
-     * Récupère une commande par son identifiant.
+     * Retrieves an order by its identifier.
      *
-     * @param id Identifiant de la commande
-     * @return DTO de la commande
+     * @param id Identifier of the order
+     * @return DTO of the found order
      */
     @GetMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "Obtenir une commande par son ID")
-    @ApiResponse(responseCode = "200", description = "Commande trouvée")
-    @ApiResponse(responseCode = "404", description = "Commande non trouvée")
-    public ResponseEntity<CommandeResponseDTO> getCommandeById(@Parameter(description = "ID de la commande") @PathVariable Long id) {
+    @Operation(summary = "Get order by ID")
+    @ApiResponse(responseCode = "200", description = "Order found")
+    @ApiResponse(responseCode = "404", description = "Order not found")
+    public ResponseEntity<CommandeResponseDTO> getCommandeById(@Parameter(description = "Order ID") @PathVariable Long id) {
         return commandeService.getCommandeById(id)
             .map(CommandeResponseDTO::from)
             .map(ResponseEntity::ok)
@@ -121,16 +121,16 @@ public class CommandeController {
     }
 
     /**
-     * Liste les commandes associées à une table.
+     * Lists orders associated with a table.
      *
-     * @param tableId Identifiant de la table
-     * @return Liste des commandes de la table
+     * @param tableId Table identifier
+     * @return List of table orders
      */
     @GetMapping("/table/{tableId}")
     @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "Lister les commandes d'une table")
-    @ApiResponse(responseCode = "200", description = "Commandes de la table récupérées")
-    public ResponseEntity<List<CommandeResponseDTO>> getCommandesByTable(@Parameter(description = "ID de la table") @PathVariable Long tableId) {
+    @Operation(summary = "List orders for a table")
+    @ApiResponse(responseCode = "200", description = "Table orders retrieved")
+    public ResponseEntity<List<CommandeResponseDTO>> getCommandesByTable(@Parameter(description = "Table ID") @PathVariable Long tableId) {
         TableEntity table = new TableEntity();
         table.setId(tableId);
         return ResponseEntity.ok(commandeService.getCommandesByTable(table).stream()
@@ -138,16 +138,16 @@ public class CommandeController {
     }
 
     /**
-     * Liste les commandes enregistrées par un serveur.
+     * Lists orders created by a server.
      *
-     * @param serveurId Identifiant du serveur
-     * @return Liste des commandes du serveur
+     * @param serveurId Server user identifier
+     * @return List of server orders
      */
     @GetMapping("/serveur/{serveurId}")
     @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "Lister les commandes d'un serveur")
-    @ApiResponse(responseCode = "200", description = "Commandes récupérées")
-    public ResponseEntity<List<CommandeResponseDTO>> getCommandesByServeur(@Parameter(description = "ID du serveur") @PathVariable Long serveurId) {
+    @Operation(summary = "List orders by server")
+    @ApiResponse(responseCode = "200", description = "Server orders retrieved")
+    public ResponseEntity<List<CommandeResponseDTO>> getCommandesByServeur(@Parameter(description = "Server user ID") @PathVariable Long serveurId) {
         User serveur = new User();
         serveur.setId(serveurId);
         return ResponseEntity.ok(commandeService.getCommandesByServeur(serveur).stream()
@@ -155,34 +155,34 @@ public class CommandeController {
     }
 
     /**
-     * Liste les commandes filtrées par leur statut actuel.
+     * Lists orders filtered by current status.
      *
-     * @param statut Statut de commande (EN_ATTENTE, EN_PREPARATION, PRET, LIVREE, etc.)
-     * @return Liste des commandes dans cet état
+     * @param statut Order status (EN_ATTENTE, EN_PREPARATION, PRET, LIVREE, etc.)
+     * @return List of orders matching status
      */
     @GetMapping("/statut/{statut}")
     @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "Lister les commandes par statut")
-    @ApiResponse(responseCode = "200", description = "Commandes récupérées")
-    public ResponseEntity<List<CommandeResponseDTO>> getCommandesByStatut(@Parameter(description = "Statut de la commande") @PathVariable CommandeStatut statut) {
+    @Operation(summary = "List orders by status")
+    @ApiResponse(responseCode = "200", description = "Orders retrieved")
+    public ResponseEntity<List<CommandeResponseDTO>> getCommandesByStatut(@Parameter(description = "Order status") @PathVariable CommandeStatut statut) {
         return ResponseEntity.ok(commandeService.getCommandesByStatut(statut).stream()
             .map(CommandeResponseDTO::from).toList());
     }
 
     /**
-     * Liste les commandes d'une table filtrées par statut.
+     * Lists orders for a table filtered by status.
      *
-     * @param tableId Identifiant de la table
-     * @param statut Statut recherché
-     * @return Liste des commandes filtrées
+     * @param tableId Table identifier
+     * @param statut Target status
+     * @return List of filtered orders
      */
     @GetMapping("/table/{tableId}/statut/{statut}")
     @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "Lister les commandes d'une table filtrées par statut")
-    @ApiResponse(responseCode = "200", description = "Commandes récupérées")
+    @Operation(summary = "List table orders filtered by status")
+    @ApiResponse(responseCode = "200", description = "Table orders retrieved")
     public ResponseEntity<List<CommandeResponseDTO>> getCommandesByTableAndStatut(
-        @Parameter(description = "ID de la table") @PathVariable Long tableId,
-        @Parameter(description = "Statut de la commande") @PathVariable CommandeStatut statut) {
+        @Parameter(description = "Table ID") @PathVariable Long tableId,
+        @Parameter(description = "Order status") @PathVariable CommandeStatut statut) {
         TableEntity table = new TableEntity();
         table.setId(tableId);
         return ResponseEntity.ok(commandeService.getCommandesByTableAndStatut(table, statut).stream()
@@ -190,16 +190,16 @@ public class CommandeController {
     }
 
     /**
-     * Liste les commandes créées sur une période de temps.
+     * Lists orders created within a date range.
      *
-     * @param debut Date et heure de début
-     * @param fin Date et heure de fin
-     * @return Liste des commandes dans la période
+     * @param debut Start date and time
+     * @param fin End date and time
+     * @return List of orders within period
      */
     @GetMapping("/date")
     @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "Lister les commandes sur une plage de dates")
-    @ApiResponse(responseCode = "200", description = "Commandes récupérées")
+    @Operation(summary = "List orders in date range")
+    @ApiResponse(responseCode = "200", description = "Orders retrieved")
     public ResponseEntity<List<CommandeResponseDTO>> getCommandesByDate(
         @RequestParam LocalDateTime debut,
         @RequestParam LocalDateTime fin) {
@@ -208,11 +208,11 @@ public class CommandeController {
     }
 
     /**
-     * Ajoute un article (cocktail / variante) à une commande existante.
+     * Adds an item (cocktail / variant) to an existing order.
      *
-     * @param id Identifiant de la commande
-     * @param item Ligne de commande à rajouter
-     * @return DTO de la commande mise à jour
+     * @param id Order identifier
+     * @param request Order item payload to add
+     * @return Updated order DTO
      */
     @PostMapping("/{id}/items")
     @PreAuthorize("hasRole('SERVEUR') or hasRole('ADMIN')")
@@ -225,51 +225,51 @@ public class CommandeController {
     }
 
     /**
-     * Retire un article d'une commande.
+     * Removes an item line from an order.
      *
-     * @param id Identifiant de la commande
-     * @param itemId Identifiant de la ligne d'article
-     * @return DTO de la commande mise à jour
+     * @param id Order identifier
+     * @param itemId Order item identifier
+     * @return Updated order DTO
      */
     @DeleteMapping("/{id}/items/{itemId}")
     @PreAuthorize("hasRole('SERVEUR') or hasRole('ADMIN')")
-    @Operation(summary = "Retirer un article d'une commande (SERVEUR/ADMIN)")
-    @ApiResponse(responseCode = "200", description = "Article retiré")
+    @Operation(summary = "Remove an item from an order (SERVEUR/ADMIN)")
+    @ApiResponse(responseCode = "200", description = "Item removed")
     public ResponseEntity<CommandeResponseDTO> retirerItem(
-        @Parameter(description = "ID de la commande") @PathVariable Long id,
-        @Parameter(description = "ID de l'article") @PathVariable Long itemId) {
+        @Parameter(description = "Order ID") @PathVariable Long id,
+        @Parameter(description = "Item ID") @PathVariable Long itemId) {
         return ResponseEntity.ok(CommandeResponseDTO.from(commandeService.retirerItem(id, itemId)));
     }
 
     /**
-     * Fait évoluer le statut d'une commande (ex: passage à EN_PREPARATION par le barman).
+     * Progresses the status of an order (e.g. advance to EN_PREPARATION by bartender).
      *
-     * @param id Identifiant de la commande
-     * @param nouveauStatut Le nouveau statut à appliquer
-     * @return DTO de la commande mise à jour
+     * @param id Order identifier
+     * @param nouveauStatut New status to set
+     * @return Updated order DTO
      */
     @PutMapping("/{id}/statut")
     @PreAuthorize("hasRole('BARMAN') or hasRole('SERVEUR')")
-    @Operation(summary = "Changer le statut d'une commande (BARMAN/SERVEUR)", description = "Déclenche la mise à jour des timestamps et les évènements WebSocket.")
-    @ApiResponse(responseCode = "200", description = "Statut mis à jour")
+    @Operation(summary = "Update order status (BARMAN/SERVEUR)", description = "Updates order status and triggers WebSocket broadcasts.")
+    @ApiResponse(responseCode = "200", description = "Status updated")
     public ResponseEntity<CommandeResponseDTO> changerStatut(
-        @Parameter(description = "ID de la commande") @PathVariable Long id,
+        @Parameter(description = "Order ID") @PathVariable Long id,
         @RequestBody CommandeStatut nouveauStatut) {
         return ResponseEntity.ok(CommandeResponseDTO.from(commandeService.changerStatut(id, nouveauStatut)));
     }
 
     /**
-     * Annule une commande en cours.
+     * Cancels an active order.
      *
-     * @param id Identifiant de la commande à annuler
-     * @return DTO de la commande annulée
+     * @param id Identifier of the order to cancel
+     * @return DTO of the canceled order
      */
     @PutMapping("/{id}/annuler")
     @PreAuthorize("hasRole('SERVEUR') or hasRole('MANAGER')")
-    @Operation(summary = "Annuler une commande (SERVEUR/MANAGER)")
-    @ApiResponse(responseCode = "200", description = "Commande annulée")
-    @ApiResponse(responseCode = "404", description = "Commande non trouvée")
-    public ResponseEntity<CommandeResponseDTO> annulerCommande(@Parameter(description = "ID de la commande") @PathVariable Long id) {
+    @Operation(summary = "Cancel an order (SERVEUR/MANAGER)")
+    @ApiResponse(responseCode = "200", description = "Order canceled")
+    @ApiResponse(responseCode = "404", description = "Order not found")
+    public ResponseEntity<CommandeResponseDTO> annulerCommande(@Parameter(description = "Order ID") @PathVariable Long id) {
         return commandeService.getCommandeById(id)
             .map(commande -> {
                 commandeService.annulerCommande(commande);
@@ -279,18 +279,18 @@ public class CommandeController {
     }
 
     /**
-     * Définit si une ligne de commande est prioritaire.
+     * Sets whether an order item line is marked as priority.
      *
-     * @param itemId Identifiant de la ligne d'article
-     * @param prioritaire Indique si la préparation est prioritaire
-     * @return Statut 200 OK
+     * @param itemId Order item identifier
+     * @param prioritaire Priority status flag
+     * @return HTTP 200 OK
      */
     @PutMapping("/items/{itemId}/priorite")
     @PreAuthorize("hasRole('SERVEUR') or hasRole('BARMAN')")
-    @Operation(summary = "Marquer un article comme prioritaire (SERVEUR/BARMAN)")
-    @ApiResponse(responseCode = "200", description = "Priorité mise à jour")
+    @Operation(summary = "Mark order item as priority (SERVEUR/BARMAN)")
+    @ApiResponse(responseCode = "200", description = "Priority updated")
     public ResponseEntity<Void> definirPriorite(
-        @Parameter(description = "ID de l'article") @PathVariable Long itemId,
+        @Parameter(description = "Item ID") @PathVariable Long itemId,
         @RequestParam boolean prioritaire) {
         CommandeItem item = new CommandeItem();
         item.setId(itemId);

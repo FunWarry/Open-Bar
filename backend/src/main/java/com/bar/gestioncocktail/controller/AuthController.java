@@ -17,7 +17,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -29,14 +28,13 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Controller REST gérant le flux d'authentification utilisateur.
+ * REST controller managing user authentication workflows.
  * <p>
- * Fournit les endpoints de connexion (login), rafraîchissement de token (refresh token),
- * déconnexion (logout) et enregistrement d'utilisateurs.
+ * Provides endpoints for login, JWT access token refresh, logout, and user registration.
  */
 @RestController
 @RequestMapping("/api/auth")
-@Tag(name = "Authentification", description = "Endpoints de connexion, rafraîchissement de token JWT et déconnexion")
+@Tag(name = "Authentication", description = "User authentication, JWT token refresh, and logout endpoints")
 public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
@@ -44,14 +42,13 @@ public class AuthController {
     private final RefreshTokenService refreshTokenService;
 
     /**
-     * Constructeur avec injection des dépendances d'authentification et de gestion de tokens.
+     * Constructs the controller with authentication and token service dependencies.
      *
-     * @param authenticationManager Manager Spring Security d'authentification
-     * @param jwtTokenProvider Service de génération et validation de tokens JWT
-     * @param userService Service de gestion des utilisateurs
-     * @param refreshTokenService Service de gestion des tokens de rafraîchissement
+     * @param authenticationManager Spring Security authentication manager
+     * @param jwtTokenProvider JWT token provider service
+     * @param userService User management service
+     * @param refreshTokenService Refresh token management service
      */
-    @Autowired
     public AuthController(
             AuthenticationManager authenticationManager,
             JwtTokenProvider jwtTokenProvider,
@@ -64,15 +61,15 @@ public class AuthController {
     }
 
     /**
-     * Authentifie un utilisateur avec ses identifiants (username et mot de passe).
+     * Authenticates a user using credentials (username and password).
      *
-     * @param loginRequest DTO contenant les identifiants
-     * @return Les tokens Access Token et Refresh Token ainsi que le profil utilisateur
+     * @param loginRequest DTO containing credentials
+     * @return Access token, refresh token, and user profile
      */
     @PostMapping("/login")
-    @Operation(summary = "Authentifier un utilisateur", description = "Vérifie les identifiants et retourne un access token JWT ainsi qu'un refresh token.")
-    @ApiResponse(responseCode = "200", description = "Authentification réussie")
-    @ApiResponse(responseCode = "401", description = "Identifiants invalides")
+    @Operation(summary = "Authenticate user", description = "Validates user credentials and returns JWT access token along with refresh token.")
+    @ApiResponse(responseCode = "200", description = "Authentication successful")
+    @ApiResponse(responseCode = "401", description = "Invalid credentials")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -84,7 +81,7 @@ public class AuthController {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String accessToken = jwtTokenProvider.generateToken(authentication);
         User user = userService.getUserByUsername(loginRequest.getUsername())
-                .orElseThrow(() -> new ResourceNotFoundException("Utilisateur non trouvé"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         List<String> userRoles = new java.util.ArrayList<>();
         if (user.getRoles() != null) {
             for (UserRole role : user.getRoles()) {
@@ -108,15 +105,15 @@ public class AuthController {
     }
 
     /**
-     * Génère un nouvel access token à partir d'un refresh token valide.
+     * Generates a new access token from a valid refresh token.
      *
-     * @param request DTO contenant le refresh token
-     * @return Le nouveau couple access token et refresh token
+     * @param request DTO containing the refresh token
+     * @return New pair of access token and refresh token
      */
     @PostMapping("/refresh")
-    @Operation(summary = "Rafraîchir l'access token JWT", description = "Valide le refresh token et en émet un nouveau si celui-ci n'est pas expiré.")
-    @ApiResponse(responseCode = "200", description = "Nouveau token généré avec succès")
-    @ApiResponse(responseCode = "401", description = "Refresh token invalide ou expiré")
+    @Operation(summary = "Refresh JWT access token", description = "Validates refresh token and issues a new access token if not expired.")
+    @ApiResponse(responseCode = "200", description = "New token generated successfully")
+    @ApiResponse(responseCode = "401", description = "Invalid or expired refresh token")
     public ResponseEntity<TokenRefreshResponse> refreshToken(@RequestBody RefreshTokenRequest request) {
         Optional<RefreshToken> optToken = refreshTokenService.findByToken(request.refreshToken());
         if (optToken.isEmpty()) {
@@ -133,14 +130,14 @@ public class AuthController {
     }
 
     /**
-     * Déconnecte l'utilisateur courant en invalidant ses refresh tokens et réinitialisant le contexte de sécurité.
+     * Logs out current user by invalidating their refresh tokens and clearing the security context.
      *
-     * @param authentication Contexte d'authentification courant
-     * @return Statut 200 OK
+     * @param authentication Current authentication context
+     * @return HTTP 200 OK
      */
     @PostMapping("/logout")
-    @Operation(summary = "Déconnecter l'utilisateur", description = "Invalide le refresh token de l'utilisateur et nettoie la session.")
-    @ApiResponse(responseCode = "200", description = "Déconnexion effectuée")
+    @Operation(summary = "Logout user", description = "Invalidates user refresh tokens and clears authentication context.")
+    @ApiResponse(responseCode = "200", description = "Logged out successfully")
     public ResponseEntity<Void> logout(Authentication authentication) {
         if (authentication != null) {
             userService.getUserByUsername(authentication.getName())
