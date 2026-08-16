@@ -103,6 +103,8 @@ users ──< tables (serveur_id)
 tables ──< commandes ──< commande_items ──< cocktails
                                          └──< cocktail_variantes
 cocktails ──< cocktail_ingredients ──< ingredients
+cocktails ──< cocktail_recipe_steps ──< recipe_step_templates
+                                    └──< ingredients
 tables ──< factures ──< facture_items
 tables ──< table_sessions              ← Client QR code temporary session
 zones ──< tables                       ← Floor plan polygon coordinates
