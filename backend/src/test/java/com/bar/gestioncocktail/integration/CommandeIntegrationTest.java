@@ -52,7 +52,7 @@ class CommandeIntegrationTest extends BaseIntegrationTest {
             Cocktail c = new Cocktail();
             c.setNom("Mojito Test");
             c.setPrix(new BigDecimal("8.50"));
-            c.setCategorie(CocktailCategorie.CLASSIQUE);
+            c.setCategorie(CocktailCategorie.ALCOOLISE);
             return cocktailRepository.save(c);
         });
         Long cocktailId = cocktail.getId();
