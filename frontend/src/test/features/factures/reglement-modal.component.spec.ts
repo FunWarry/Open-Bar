@@ -127,4 +127,24 @@ describe('ReglementModalComponent', () => {
     component.montantRecu = null;
     expect(component.isMontantRecuSuffisant).toBeTrue();
   });
+
+  it('tests English property aliases and cancel/confirmPayment methods', () => {
+    component.paymentMethod = 'CARTE';
+    expect(component.modePaiement).toBe('CARTE');
+
+    component.customTip = 4.00;
+    expect(component.customPourboire).toBe(4.00);
+
+    component.receivedAmount = 70.00;
+    expect(component.montantRecu).toBe(70.00);
+
+    component.setTipMode('none');
+    expect(component.customTip).toBe(0);
+
+    component.cancel();
+    expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith(null);
+
+    component.confirmPayment();
+    expect(modalCtrlSpy.dismiss).toHaveBeenCalled();
+  });
 });
