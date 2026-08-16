@@ -255,14 +255,13 @@ public class CommandeController {
     @ApiResponse(responseCode = "200", description = "Status updated")
     public ResponseEntity<CommandeResponseDTO> changerStatut(
         @Parameter(description = "Order ID") @PathVariable Long id,
-        @RequestBody(required = false) com.fasterxml.jackson.databind.JsonNode body,
+        @RequestBody(required = false) Map<String, Object> body,
         @RequestParam(required = false) CommandeStatut statut) {
         CommandeStatut targetStatut = statut;
         if (targetStatut == null && body != null) {
-            if (body.isTextual()) {
-                targetStatut = CommandeStatut.valueOf(body.asText());
-            } else if (body.has("statut")) {
-                targetStatut = CommandeStatut.valueOf(body.get("statut").asText());
+            Object statutObj = body.get("statut");
+            if (statutObj != null) {
+                targetStatut = CommandeStatut.valueOf(statutObj.toString());
             }
         }
         if (targetStatut == null) {
