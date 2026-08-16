@@ -2,7 +2,9 @@ package com.bar.gestioncocktail.integration;
 
 import com.bar.gestioncocktail.dto.SplitEgalRequest;
 import com.bar.gestioncocktail.model.Facture;
+import com.bar.gestioncocktail.model.TableEntity;
 import com.bar.gestioncocktail.repository.FactureRepository;
+import com.bar.gestioncocktail.repository.TableRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +28,9 @@ class FactureIntegrationTest extends BaseIntegrationTest {
     @Autowired
     private FactureRepository factureRepository;
 
+    @Autowired
+    private TableRepository tableRepository;
+
     @Test
     @DisplayName("factureLifecycle_splitPdfAndSettlement_success")
     void factureLifecycle_splitPdfAndSettlement_success() throws Exception {
@@ -33,9 +38,16 @@ class FactureIntegrationTest extends BaseIntegrationTest {
                 .filter(f -> !f.isReglee())
                 .findFirst()
                 .orElseGet(() -> {
+                    TableEntity table = tableRepository.findAll().stream().findFirst().orElseGet(() -> {
+                        TableEntity t = new TableEntity();
+                        t.setNumero(1);
+                        t.setZone("Terrasse");
+                        t.setCapacite(4);
+                        return tableRepository.save(t);
+                    });
                     Facture newFacture = new Facture();
                     newFacture.setNumero("FACT-TEST-" + System.currentTimeMillis());
-                    newFacture.setTableNumero(1);
+                    newFacture.setTable(table);
                     newFacture.setTotal(new BigDecimal("30.00"));
                     newFacture.setDateFacture(LocalDateTime.now());
                     newFacture.setReglee(false);

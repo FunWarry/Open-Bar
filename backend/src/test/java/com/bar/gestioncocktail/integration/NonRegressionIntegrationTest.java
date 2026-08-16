@@ -2,7 +2,9 @@ package com.bar.gestioncocktail.integration;
 
 import com.bar.gestioncocktail.dto.SplitEgalRequest;
 import com.bar.gestioncocktail.model.Facture;
+import com.bar.gestioncocktail.model.TableEntity;
 import com.bar.gestioncocktail.repository.FactureRepository;
+import com.bar.gestioncocktail.repository.TableRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +27,9 @@ class NonRegressionIntegrationTest extends BaseIntegrationTest {
     @Autowired
     private FactureRepository factureRepository;
 
+    @Autowired
+    private TableRepository tableRepository;
+
     @Test
     @DisplayName("nonRegression_splitEgalAmountConservation_sumOfSplitsEqualsTotal")
     void nonRegression_splitEgalAmountConservation_sumOfSplitsEqualsTotal() throws Exception {
@@ -32,9 +37,16 @@ class NonRegressionIntegrationTest extends BaseIntegrationTest {
                 .filter(f -> !f.isReglee())
                 .findFirst()
                 .orElseGet(() -> {
+                    TableEntity table = tableRepository.findAll().stream().findFirst().orElseGet(() -> {
+                        TableEntity t = new TableEntity();
+                        t.setNumero(2);
+                        t.setZone("Bar");
+                        t.setCapacite(2);
+                        return tableRepository.save(t);
+                    });
                     Facture newFacture = new Facture();
                     newFacture.setNumero("FACT-TEST-NONREG-" + System.currentTimeMillis());
-                    newFacture.setTableNumero(2);
+                    newFacture.setTable(table);
                     newFacture.setTotal(new BigDecimal("45.00"));
                     newFacture.setDateFacture(LocalDateTime.now());
                     newFacture.setReglee(false);

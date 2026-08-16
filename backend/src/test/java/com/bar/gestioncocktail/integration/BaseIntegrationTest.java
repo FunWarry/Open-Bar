@@ -22,16 +22,21 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 @ActiveProfiles("test")
 public abstract class BaseIntegrationTest {
 
-    protected static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15-alpine")
-            .withDatabaseName("gestion_cocktail_test")
-            .withUsername("postgres")
-            .withPassword("postgres");
+    protected static final PostgreSQLContainer<?> postgres = createPostgresContainer();
+
+    private static PostgreSQLContainer<?> createPostgresContainer() {
+        PostgreSQLContainer<?> container = new PostgreSQLContainer<>("postgres:15-alpine");
+        container.withDatabaseName("gestion_cocktail_test");
+        container.withUsername("postgres");
+        container.withPassword("postgres");
+        return container;
+    }
 
     static {
         try {
             postgres.start();
-        } catch (Exception ignored) {
-            // Container startup is optional if running with existing database in environment
+        } catch (Exception _) {
+            // Optional start if DB is pre-provisioned in test environment
         }
     }
 

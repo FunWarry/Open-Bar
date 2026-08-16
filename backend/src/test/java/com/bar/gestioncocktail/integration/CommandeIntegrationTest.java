@@ -5,7 +5,7 @@ import com.bar.gestioncocktail.dto.CommandeRequestDTO;
 import com.bar.gestioncocktail.dto.CommandeResponseDTO;
 import com.bar.gestioncocktail.model.Cocktail;
 import com.bar.gestioncocktail.model.CommandeStatut;
-import com.bar.gestioncocktail.model.TableBar;
+import com.bar.gestioncocktail.model.TableEntity;
 import com.bar.gestioncocktail.repository.CocktailRepository;
 import com.bar.gestioncocktail.repository.TableRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -38,10 +38,10 @@ class CommandeIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("fullOrderLifecycle_fromCreationToDelivery_success")
     void fullOrderLifecycle_fromCreationToDelivery_success() throws Exception {
-        TableBar table = tableRepository.findAll().stream().findFirst().orElseGet(() -> {
-            TableBar t = new TableBar();
+        TableEntity table = tableRepository.findAll().stream().findFirst().orElseGet(() -> {
+            TableEntity t = new TableEntity();
             t.setNumero(1);
-            t.setNom("Table 1");
+            t.setZone("Intérieur");
             t.setCapacite(4);
             return tableRepository.save(t);
         });

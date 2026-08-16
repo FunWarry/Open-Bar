@@ -28,9 +28,9 @@ class StockIntegrationTest extends BaseIntegrationTest {
         Ingredient ingredient = ingredientRepository.findAll().stream().findFirst().orElseGet(() -> {
             Ingredient ing = new Ingredient();
             ing.setNom("Menthe Test Stock");
-            ing.setStockActuel(new BigDecimal("5.00"));
+            ing.setQuantiteStock(new BigDecimal("5.00"));
             ing.setSeuilAlerte(new BigDecimal("2.00"));
-            ing.setUnite("feuilles");
+            ing.setUniteMesure("feuilles");
             return ingredientRepository.save(ing);
         });
         Long ingredientId = ingredient.getId();
