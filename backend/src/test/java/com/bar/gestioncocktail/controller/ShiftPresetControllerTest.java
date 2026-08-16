@@ -44,7 +44,7 @@ class ShiftPresetControllerTest {
     @Test
     @DisplayName("PUT /api/shift-presets/{typeShift} - Updates and returns preset")
     void updatePreset_returnsUpdatedDto() {
-        ShiftPresetDTO dto = new ShiftPresetDTO(1L, TypeShift.MATIN, "Matin Modifié", "07:30", "15:30", 45);
+        ShiftPresetDTO dto = new ShiftPresetDTO(1L, TypeShift.MATIN, "Morning Modified", "07:30", "15:30", 45);
         when(presetService.updatePreset(TypeShift.MATIN, dto)).thenReturn(dto);
 
         ResponseEntity<ShiftPresetDTO> response = controller.updatePreset(TypeShift.MATIN, dto);

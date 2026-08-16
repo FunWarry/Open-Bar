@@ -68,7 +68,7 @@ describe('CommandeDetailComponent', () => {
     expect(component.getItemLineTotal(component.groupedItems[0])).toBe(16);
   }));
 
-  it('ngOnInit() navigue vers /commandes si getById échoue', fakeAsync(() => {
+  it('ngOnInit() navigates to /commandes if getById fails', fakeAsync(() => {
     serviceSpy.getById.and.returnValue(throwError(() => new Error('err')));
     component.ngOnInit(); tick();
     flushMicrotasks();
@@ -97,7 +97,7 @@ describe('CommandeDetailComponent', () => {
     expect(component.peutAnnuler()).toBeFalse();
   });
 
-  it('onAnnuler() appelle annuler() et met à jour la commande', fakeAsync(() => {
+  it('onAnnuler() calls annuler() and updates order', fakeAsync(() => {
     component.ngOnInit(); tick();
     component.onAnnuler();
     tick();

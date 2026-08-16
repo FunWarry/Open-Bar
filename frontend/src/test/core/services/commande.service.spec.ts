@@ -63,7 +63,7 @@ describe('CommandeService', () => {
   it('getById() propage une erreur 404 si commande introuvable', () => {
     let errorOccurred = false;
     service.getById(999).subscribe({
-      next: () => fail('devrait échouer'),
+      next: () => fail('should fail'),
       error: (err) => {
         errorOccurred = true;
         expect(err.status).toBe(404);
@@ -121,7 +121,7 @@ describe('CommandeService', () => {
     let errorOccurred = false;
     const payload: CreateCommandeRequest = { tableId: 3, items: [] } as CreateCommandeRequest;
     service.create(payload).subscribe({
-      next: () => fail('devrait échouer'),
+      next: () => fail('should fail'),
       error: (err) => {
         errorOccurred = true;
         expect(err.status).toBe(500);
@@ -159,7 +159,7 @@ describe('CommandeService', () => {
   it('retirerItem() propage une erreur 404 si item introuvable', () => {
     let errorOccurred = false;
     service.retirerItem(1, 999).subscribe({
-      next: () => fail('devrait échouer'),
+      next: () => fail('should fail'),
       error: (err) => {
         errorOccurred = true;
         expect(err.status).toBe(404);
@@ -185,7 +185,7 @@ describe('CommandeService', () => {
   it('changerStatut() propage une erreur 400 si transition de statut invalide', () => {
     let errorOccurred = false;
     service.changerStatut(1, 'EN_ATTENTE').subscribe({
-      next: () => fail('devrait échouer'),
+      next: () => fail('should fail'),
       error: (err) => {
         errorOccurred = true;
         expect(err.status).toBe(400);

@@ -27,8 +27,8 @@ const mockZones: ZoneBar[] = [
 ];
 
 const mockEtages: EtageBar[] = [
-  { id: 1, code: 'RDC', nom: 'Rez-de-chaussée', ordre: 1 },
-  { id: 2, code: 'ETAGE_1', nom: '1er Étage', ordre: 2 }
+  { id: 1, code: 'RDC', nom: 'Ground Floor', ordre: 1 },
+  { id: 2, code: 'ETAGE_1', nom: 'First Floor', ordre: 2 }
 ];
 
 describe('TableListComponent', () => {
@@ -187,7 +187,7 @@ describe('TableListComponent', () => {
     expect(router.navigate).toHaveBeenCalledWith(['/tables', 1, 'edit']);
   });
 
-  it('isAdmin$ émet false par défaut', (done) => {
+  it('isAdmin$ emits false by default', (done) => {
     component.isAdmin$.subscribe(v => { expect(v).toBe(false); done(); });
   });
 

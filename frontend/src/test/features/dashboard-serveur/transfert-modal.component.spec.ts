@@ -48,7 +48,7 @@ describe('TransfertModalComponent', () => {
     expect(component.isLoading).toBeFalse();
   });
 
-  it('chargerTables() gère l\'erreur API proprement', () => {
+  it('chargerTables() handles API error properly', () => {
     tableServiceSpy.getAll.and.returnValue(throwError(() => new Error('API Error')));
 
     component.chargerTables();
@@ -56,7 +56,7 @@ describe('TransfertModalComponent', () => {
     expect(component.isLoading).toBeFalse();
   });
 
-  it('selectionnerTable() ferme le modal avec l\'ID et le numéro de la table cible', () => {
+  it('selectionnerTable() closes modal with target table ID and number', () => {
     const targetTable = mockTables[1];
 
     component.selectionnerTable(targetTable);
@@ -67,7 +67,7 @@ describe('TransfertModalComponent', () => {
     });
   });
 
-  it('fermer() ferme le modal sans sélection', () => {
+  it('fermer() closes modal without selection', () => {
     component.fermer();
 
     expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith(null);

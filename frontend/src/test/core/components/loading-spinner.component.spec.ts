@@ -24,12 +24,12 @@ describe('LoadingSpinnerComponent', () => {
     expect(component.isLoading).toBeFalse();
   });
 
-  it('show()_appelé_isLoadingPasseÀTrue', () => {
+  it('show()_called_isLoadingBecomesTrue', () => {
     component.show();
     expect(component.isLoading).toBeTrue();
   });
 
-  it('hide()_appelé_isLoadingPasseÀFalse', () => {
+  it('hide()_called_isLoadingBecomesFalse', () => {
     component.isLoading = true;
     component.hide();
     expect(component.isLoading).toBeFalse();
@@ -42,12 +42,12 @@ describe('LoadingSpinnerComponent', () => {
     expect(component.isLoading).toBeFalse();
   });
 
-  it('hide()_sansShow()_préalable_isLoadingResteÀFalse', () => {
+  it('hide()_withoutPriorShow_isLoadingRemainsFalse', () => {
     component.hide();
     expect(component.isLoading).toBeFalse();
   });
 
-  it('show()_appelé_deuxFois_isLoadingResteÀTrue', () => {
+  it('show()_calledTwice_isLoadingRemainsTrue', () => {
     component.show();
     component.show();
     expect(component.isLoading).toBeTrue();

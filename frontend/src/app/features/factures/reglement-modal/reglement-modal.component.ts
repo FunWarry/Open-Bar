@@ -28,7 +28,7 @@ export interface ReglementModalResult {
  * Payment modal component supporting payment method selection, quick tip suggestions (+5%, +10%, custom),
  * dynamic total recalculation, and cash change calculation (rendu de monnaie).
  *
- * Aligned with Figma Vue système commun Payment / Settlement layout (`628:1068`).
+ * Aligned with Figma Common system view Payment / Settlement layout (`628:1068`).
  */
 @Component({
   selector: 'app-reglement-modal',

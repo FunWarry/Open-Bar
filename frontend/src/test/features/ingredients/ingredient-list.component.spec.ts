@@ -101,7 +101,7 @@ describe('IngredientListComponent', () => {
     expect(component.charger).toHaveBeenCalled();
   }));
 
-  it('filteredIngredients filtre correctement par recherche et par catégorie', () => {
+  it('filteredIngredients filters correctly by search and category', () => {
     component.ingredients = mockIngredients;
     component.searchQuery = 'Rhum';
     expect(component.filteredIngredients).toHaveSize(1);
@@ -113,12 +113,12 @@ describe('IngredientListComponent', () => {
     expect(component.filteredIngredients[0].nom).toBe('Coca Cola');
   });
 
-  it('getIngredientCategory catégorise correctement les ingrédients', () => {
+  it('getIngredientCategory categorizes ingredients correctly', () => {
     expect(component.getIngredientCategory('Rhum Blanc')).toBe('SPIRITS');
     expect(component.getIngredientCategory('Coca Cola')).toBe('SOFTS');
     expect(component.getIngredientCategory('Sirop de Canne')).toBe('SYRUPS');
     expect(component.getIngredientCategory('Citron Vert')).toBe('FRUITS');
-    expect(component.getIngredientCategory('Glace Pilée')).toBe('OTHER');
+    expect(component.getIngredientCategory('Crushed Ice')).toBe('OTHER');
   });
 
   it('adjustStock() modifie le stock et appelle le service backend', fakeAsync(() => {
@@ -138,7 +138,7 @@ describe('IngredientListComponent', () => {
     expect(serviceSpy.updateStock).toHaveBeenCalledWith(1, 0);
   }));
 
-  it('onDelete() retire l\'ingrédient de la liste', fakeAsync(() => {
+  it('onDelete() removes ingredient from list', fakeAsync(() => {
     component.charger(); tick();
     component.onDelete(mockIngredients[0]);
     tick();
@@ -172,7 +172,7 @@ describe('IngredientListComponent', () => {
     expect(component.openIngredientModal).toHaveBeenCalledWith(mockIngredients[0]);
   });
 
-  it('trackById retourne l\'id de l\'ingrédient', () => {
+  it('trackById returns ingredient id', () => {
     expect(component.trackById(0, mockIngredients[0])).toBe(1);
   });
 
@@ -238,10 +238,10 @@ describe('IngredientListComponent', () => {
   it('filtre par unite de mesure', () => {
     component.ingredients = [
       { id: 1, nom: 'Vodka', uniteMesure: 'cl', quantiteStock: 10, seuilAlerte: 2, createdAt: '', updatedAt: '' },
-      { id: 2, nom: 'Citron', uniteMesure: 'pièce', quantiteStock: 5, seuilAlerte: 2, createdAt: '', updatedAt: '' },
+      { id: 2, nom: 'Citron', uniteMesure: 'unit', quantiteStock: 5, seuilAlerte: 2, createdAt: '', updatedAt: '' },
     ];
 
-    component.onUnitChange({ target: { value: 'pièce' } } as unknown as Event);
+    component.onUnitChange({ target: { value: 'unit' } } as unknown as Event);
     expect(component.filteredIngredients).toHaveSize(1);
     expect(component.filteredIngredients[0].nom).toBe('Citron');
   });

@@ -22,9 +22,9 @@ import static org.mockito.Mockito.lenient;
 /**
  * Tests unitaires pour PdfService.
  *
- * PdfService n'a pas de dépendance injectée : il utilise OpenPDF directement.
+ * PdfService has no injected dependency: it uses OpenPDF directly.
  * On l'instancie simplement avec @InjectMocks (ou new PdfService()) et on
- * vérifie que generateFacturePdf() retourne un byte[] non vide (PDF valide).
+ * Verifies that generateFacturePdf() returns a non-empty byte[] (valid PDF).
  */
 @ExtendWith(MockitoExtension.class)
 class PdfServiceTest {
@@ -74,7 +74,7 @@ class PdfServiceTest {
         factureComplete.setTotalTTC(new BigDecimal("28.00"));
         factureComplete.setReglee(true);
         factureComplete.setDateReglement(LocalDateTime.of(2024, 6, 15, 21, 0));
-        factureComplete.setNotes("Client fidèle — offrir un digestif");
+        factureComplete.setNotes("Loyal customer — offer a digestif");
         factureComplete.setItems(List.of(item1, item2));
     }
 
@@ -98,7 +98,7 @@ class PdfServiceTest {
 
     @Test
     void generateFacturePdf_factureComplete_tailleSuffisante() {
-        // Un PDF contenant du texte et un tableau doit dépasser 1 Ko
+        // A PDF containing text and a table must exceed 1 KB
         byte[] pdf = pdfService.generateFacturePdf(factureComplete);
 
         assertThat(pdf).hasSizeGreaterThan(1_000);
@@ -171,7 +171,7 @@ class PdfServiceTest {
         facture.setNumero("FAC-2024-006");
         facture.setTotal(new BigDecimal("18.00"));
         facture.setPourboire(new BigDecimal("2.00"));
-        facture.setTotalTTC(null); // doit être calculé en interne
+        facture.setTotalTTC(null); // must be calculated internally
         facture.setItems(new ArrayList<>());
 
         byte[] pdf = pdfService.generateFacturePdf(facture);
@@ -212,7 +212,7 @@ class PdfServiceTest {
     void generateFacturePdf_itemAvecPrixUnitaireNull_neLeveAucuneException() {
         FactureItem itemSansPrix = new FactureItem();
         itemSansPrix.setId(10L);
-        itemSansPrix.setDescription("Eau pétillante");
+        itemSansPrix.setDescription("Sparkling water");
         itemSansPrix.setQuantite(1);
         itemSansPrix.setPrixUnitaire(null);  // prix null → doit valoir 0
         itemSansPrix.setTotal(new BigDecimal("2.00"));
@@ -232,10 +232,10 @@ class PdfServiceTest {
     void generateFacturePdf_itemAvecTotalNull_calculeQuantiteFoisPrix() {
         FactureItem itemSansTotal = new FactureItem();
         itemSansTotal.setId(11L);
-        itemSansTotal.setDescription("Bière pression");
+        itemSansTotal.setDescription("Draft beer");
         itemSansTotal.setQuantite(3);
         itemSansTotal.setPrixUnitaire(new BigDecimal("4.50"));
-        itemSansTotal.setTotal(null); // total null → calculé via quantite × prixUnitaire
+        itemSansTotal.setTotal(null); // total null -> calculated via quantity * unitPrice
 
         Facture facture = new Facture();
         facture.setId(10L);
@@ -268,7 +268,7 @@ class PdfServiceTest {
         assertThat(pdf).isNotEmpty();
     }
 
-    // ─── statut règlement ──────────────────────────────────────────────────────
+    // ─── Settlement status ──────────────────────────────────────────────────────
 
     @Test
     void generateFacturePdf_factureNonReglee_retournePdfValide() {
@@ -309,7 +309,7 @@ class PdfServiceTest {
         Facture factureAvecNotes = new Facture();
         factureAvecNotes.setId(14L);
         factureAvecNotes.setNumero("FAC-2024-014");
-        factureAvecNotes.setNotes("Anniversaire — décoration spéciale");
+        factureAvecNotes.setNotes("Birthday — special decoration");
         factureAvecNotes.setTotal(new BigDecimal("60.00"));
         factureAvecNotes.setItems(new ArrayList<>());
 
@@ -323,7 +323,7 @@ class PdfServiceTest {
         Facture factureNotesVides = new Facture();
         factureNotesVides.setId(15L);
         factureNotesVides.setNumero("FAC-2024-015");
-        factureNotesVides.setNotes("   "); // blank — ne doit pas être affiché
+        factureNotesVides.setNotes("   "); // blank — should not be displayed
         factureNotesVides.setTotal(new BigDecimal("12.00"));
         factureNotesVides.setItems(new ArrayList<>());
 
@@ -332,7 +332,7 @@ class PdfServiceTest {
         assertThat(pdf).isNotEmpty();
     }
 
-    // ─── pourboire affiché uniquement si > 0 ──────────────────────────────────
+    // ─── Tip displayed only if > 0 ──────────────────────────────────
 
     @Test
     void generateFacturePdf_pourboireZero_retournePdfValide() {

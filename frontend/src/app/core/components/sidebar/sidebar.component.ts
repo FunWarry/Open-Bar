@@ -52,7 +52,7 @@ export const SIDEBAR_NAV_ITEMS: NavItemDef[] = [
   { id: 'nav-audit-logs', route: '/admin/audit-logs', icon: 'document-text-outline', labelKey: 'NAV.AUDIT_LOGS', roles: ['ADMIN'], section: 'admin' },
 ];
 
-/** Role hex colors per Figma Design System `Rôles` collection. */
+/** Role hex colors per Figma Design System `Roles` collection. */
 const ROLE_COLORS: Record<string, string> = {
   ADMIN: '#9b8af2',
   MANAGER: '#f0a33b',

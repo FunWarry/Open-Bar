@@ -75,7 +75,7 @@ describe('NotificationService', () => {
   // onNotification() — commande topic
   // -------------------------------------------------------------------------
 
-  it('onNotification() émet une notification quand /topic/commandes reçoit un message', fakeAsync(() => {
+  it('onNotification() emits notification when /topic/commandes receives message', fakeAsync(() => {
     const received: AppNotification[] = [];
     service.onNotification().subscribe(n => received.push(n));
 
@@ -90,14 +90,14 @@ describe('NotificationService', () => {
     expect(soundSpy.playNewOrderSound).toHaveBeenCalled();
   }));
 
-  it('onNotification() déclenche playOrderReadySound quand statut est PRET', fakeAsync(() => {
+  it('onNotification() triggers playOrderReadySound when status is PRET', fakeAsync(() => {
     wsStub.emit('/topic/commandes/statut', { id: 8, statut: 'PRET' });
     tick();
 
     expect(soundSpy.playOrderReadySound).toHaveBeenCalled();
   }));
 
-  it('onNotification() émet une notification quand /topic/commandes/statut reçoit un message', fakeAsync(() => {
+  it('onNotification() emits notification when /topic/commandes/statut receives message', fakeAsync(() => {
     const received: AppNotification[] = [];
     service.onNotification().subscribe(n => received.push(n));
 
@@ -111,7 +111,7 @@ describe('NotificationService', () => {
     expect(received[0].severity).toBe('success');
   }));
 
-  it('onNotification() émet une notification quand /topic/tables reçoit un message', fakeAsync(() => {
+  it('onNotification() emits notification when /topic/tables receives message', fakeAsync(() => {
     const received: AppNotification[] = [];
     service.onNotification().subscribe(n => received.push(n));
 
@@ -125,7 +125,7 @@ describe('NotificationService', () => {
     expect(received[0].severity).toBe('success');
   }));
 
-  it('onNotification() émet une notification "Available" quand occupee est false', fakeAsync(() => {
+  it('onNotification() emits "Available" notification when occupee is false', fakeAsync(() => {
     const received: AppNotification[] = [];
     service.onNotification().subscribe(n => received.push(n));
 
@@ -139,7 +139,7 @@ describe('NotificationService', () => {
   // onStockAlert()
   // -------------------------------------------------------------------------
 
-  it('onStockAlert() émet une alerte quand /topic/stock/alerte reçoit un message', fakeAsync(() => {
+  it('onStockAlert() emits alert when /topic/stock/alerte receives message', fakeAsync(() => {
     const alerts: AppNotification[] = [];
     service.onStockAlert().subscribe(a => alerts.push(a));
 
@@ -181,7 +181,7 @@ describe('NotificationService', () => {
   // getHistory()
   // -------------------------------------------------------------------------
 
-  it('getHistory() retourne toutes les notifications reçues', fakeAsync(() => {
+  it('getHistory() returns all received notifications', fakeAsync(() => {
     wsStub.emit('/topic/commandes', { tableNom: 'T1' });
     wsStub.emit('/topic/tables', { nom: 'T2', occupee: false });
     tick();
@@ -190,7 +190,7 @@ describe('NotificationService', () => {
     expect(history).toHaveSize(2);
   }));
 
-  it('getHistory() retourne une copie indépendante (immutabilité)', fakeAsync(() => {
+  it('getHistory() returns an independent copy (immutability)', fakeAsync(() => {
     wsStub.emit('/topic/commandes', { tableNom: 'T1' });
     tick();
 
@@ -233,7 +233,7 @@ describe('NotificationService', () => {
   // showToast
   // -------------------------------------------------------------------------
 
-  it('showToast() est appelé via ToastController.create() après chaque notification', fakeAsync(() => {
+  it('showToast() is called via ToastController.create() after each notification', fakeAsync(() => {
     wsStub.emit('/topic/commandes', { tableNom: 'T1' });
     tick();
 
@@ -242,7 +242,7 @@ describe('NotificationService', () => {
     );
   }));
 
-  it('showToast() est appelé avec color warning pour les alertes stock', fakeAsync(() => {
+  it('showToast() is called with warning color for stock alerts', fakeAsync(() => {
     wsStub.emit('/topic/stock/alerte', { nom: 'Sirop', quantiteActuelle: 1 });
     tick();
 
@@ -252,10 +252,10 @@ describe('NotificationService', () => {
   }));
 
   // -------------------------------------------------------------------------
-  // Résilience — messages malformés
+  // Resilience — malformed messages
   // -------------------------------------------------------------------------
 
-  it('ignore les messages malformés sur /topic/commandes sans lancer d\'erreur', fakeAsync(() => {
+  it('ignores malformed messages on /topic/commandes without error', fakeAsync(() => {
     expect(() => {
       wsStub.emitRaw('/topic/commandes', 'NOT_JSON');
       tick();
@@ -264,7 +264,7 @@ describe('NotificationService', () => {
     expect(service.getHistory()).toHaveSize(0);
   }));
 
-  it('ignore les messages malformés sur /topic/stock/alerte sans lancer d\'erreur', fakeAsync(() => {
+  it('ignores malformed messages on /topic/stock/alerte without error', fakeAsync(() => {
     expect(() => {
       wsStub.emitRaw('/topic/stock/alerte', '{bad json}');
       tick();
@@ -275,7 +275,7 @@ describe('NotificationService', () => {
   // ngOnDestroy
   // -------------------------------------------------------------------------
 
-  it('ngOnDestroy() désinscrit les subscriptions WS (plus de notifications après destroy)', fakeAsync(() => {
+  it('ngOnDestroy() unsubs WS subscriptions (no notifications after destroy)', fakeAsync(() => {
     const received: AppNotification[] = [];
     service.onNotification().subscribe(n => received.push(n));
 
@@ -288,10 +288,10 @@ describe('NotificationService', () => {
   }));
 
   // -------------------------------------------------------------------------
-  // Données des notifications — champs attendus
+  // Data des notifications — champs attendus
   // -------------------------------------------------------------------------
 
-  it('chaque notification a un id, un timestamp et lue = false par défaut', fakeAsync(() => {
+  it('each notification has an id, timestamp and lue = false by default', fakeAsync(() => {
     wsStub.emit('/topic/commandes', { tableNom: 'T1' });
     tick();
 
@@ -301,7 +301,7 @@ describe('NotificationService', () => {
     expect(notif.lue).toBeFalse();
   }));
 
-  it('l\'id de notification contient le type comme préfixe', fakeAsync(() => {
+  it('notification id contains type as prefix', fakeAsync(() => {
     wsStub.emit('/topic/tables', { nom: 'T1', occupee: true });
     tick();
 
@@ -309,15 +309,15 @@ describe('NotificationService', () => {
     expect(notif.id).toMatch(/^table-/);
   }));
 
-  it('les notifications les plus récentes sont en tête de getHistory()', fakeAsync(() => {
-    wsStub.emit('/topic/commandes', { tableNom: 'première' });
+  it('most recent notifications are at head of getHistory()', fakeAsync(() => {
+    wsStub.emit('/topic/commandes', { tableNom: 'first' });
     tick();
-    wsStub.emit('/topic/commandes', { tableNom: 'deuxième' });
+    wsStub.emit('/topic/commandes', { tableNom: 'second' });
     tick();
 
     const history = service.getHistory();
-    expect(history[0].message).toContain('deuxième');
-    expect(history[1].message).toContain('première');
+    expect(history[0].message).toContain('second');
+    expect(history[1].message).toContain('first');
   }));
 
   it('table.nom fallback utilise data.table.nom quand tableNom est absent', fakeAsync(() => {

@@ -49,7 +49,7 @@ class SetupServiceTest {
     }
 
     @Test
-    void getSetupStatus_baseVide_renvoieFalseEtCount0() {
+    void getSetupStatus_emptyDatabase_returnsFalseAndZeroCount() {
         when(userRepository.count()).thenReturn(0L);
 
         SetupStatusDTO status = setupService.getSetupStatus();
@@ -59,7 +59,7 @@ class SetupServiceTest {
     }
 
     @Test
-    void getSetupStatus_baseContientUsers_renvoieTrueEtCountPositif() {
+    void getSetupStatus_databaseWithUsers_returnsTrueAndPositiveCount() {
         when(userRepository.count()).thenReturn(5L);
 
         SetupStatusDTO status = setupService.getSetupStatus();
@@ -69,7 +69,7 @@ class SetupServiceTest {
     }
 
     @Test
-    void createInitialAdmin_baseVide_creeAdminAvecSucces() {
+    void createInitialAdmin_emptyDatabase_createsAdminSuccessfully() {
         when(userRepository.count()).thenReturn(0L);
         when(userRepository.existsByUsername(validRequest.username())).thenReturn(false);
         when(userRepository.existsByEmail(validRequest.email())).thenReturn(false);
@@ -96,7 +96,7 @@ class SetupServiceTest {
     }
 
     @Test
-    void createInitialAdmin_baseNonVide_leveBusinessException() {
+    void createInitialAdmin_nonEmptyDatabase_throwsBusinessException() {
         when(userRepository.count()).thenReturn(1L);
 
         assertThatThrownBy(() -> setupService.createInitialAdmin(validRequest))
@@ -107,7 +107,7 @@ class SetupServiceTest {
     }
 
     @Test
-    void createInitialAdmin_usernameExistant_leveBusinessException() {
+    void createInitialAdmin_existingUsername_throwsBusinessException() {
         when(userRepository.count()).thenReturn(0L);
         when(userRepository.existsByUsername(validRequest.username())).thenReturn(true);
 
@@ -119,7 +119,7 @@ class SetupServiceTest {
     }
 
     @Test
-    void createInitialAdmin_emailExistant_leveBusinessException() {
+    void createInitialAdmin_existingEmail_throwsBusinessException() {
         when(userRepository.count()).thenReturn(0L);
         when(userRepository.existsByUsername(validRequest.username())).thenReturn(false);
         when(userRepository.existsByEmail(validRequest.email())).thenReturn(true);

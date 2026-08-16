@@ -17,7 +17,7 @@ const mockCocktailWithVariantes: Cocktail = {
   saisonnier: false,
   ingredients: [],
   variantes: [
-    { id: 10, nom: 'Martini Dry', description: 'Très sec', prixSupplement: 2, disponible: true },
+    { id: 10, nom: 'Martini Dry', description: 'Very dry', prixSupplement: 2, disponible: true },
     { id: 11, nom: 'Martini Rosso', prixSupplement: 0, disponible: true },
     { id: 12, nom: 'Indisponible', prixSupplement: 1, disponible: false },
   ],

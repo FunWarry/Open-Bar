@@ -39,7 +39,7 @@ class DashboardServiceTest {
 
     @BeforeEach
     void setUp() {
-        // stubs par défaut neutres pour éviter les NPE dans les tests ciblés
+        // Neutral default stubs to prevent NPEs in targeted tests
         given(commandeRepository.countByStatut(any())).willReturn(0L);
         given(commandeRepository.count()).willReturn(0L);
         given(commandeRepository.sumTotalByStatutAndDateCommandeAfter(any(), any())).willReturn(BigDecimal.ZERO);
@@ -108,7 +108,7 @@ class DashboardServiceTest {
 
         DashboardStatsDTO stats = dashboardService.getStats();
 
-        // Premier appel = jour, deuxième = mois
+        // First call = day, second = month
         assertThat(stats.chiffreAffairesJour()).isEqualByComparingTo(new BigDecimal("150.00"));
     }
 
@@ -142,7 +142,7 @@ class DashboardServiceTest {
 
         DashboardStatsDTO stats = dashboardService.getStats();
 
-        // Le service gère l'exception et retourne ZERO — aucune exception ne remonte
+        // Service handles the exception and returns ZERO — no exception escapes
         assertThat(stats.chiffreAffairesJour()).isEqualByComparingTo(BigDecimal.ZERO);
         assertThat(stats.chiffreAffairesMois()).isEqualByComparingTo(BigDecimal.ZERO);
     }
@@ -224,7 +224,7 @@ class DashboardServiceTest {
         assertThat(stats.stockIngredientsCritiques()).isZero();
     }
 
-    // ─── cohérence globale du DTO ─────────────────────────────────────────────
+    // ─── Overall DTO consistency ─────────────────────────────────────────────
 
     @Test
     void getStats_retourneDtoCompletAvecToutesLesValeurs() {
@@ -256,11 +256,11 @@ class DashboardServiceTest {
         assertThat(stats.stockIngredientsCritiques()).isEqualTo(1L);
     }
 
-    // ─── base de données vide ─────────────────────────────────────────────────
+    // ─── Empty database ─────────────────────────────────────────────────
 
     @Test
     void getStats_baseVide_retourneToutAZero() {
-        // stubs déjà positionnés à 0 dans setUp()
+        // Stubs already positioned at 0 in setUp()
 
         DashboardStatsDTO stats = dashboardService.getStats();
 

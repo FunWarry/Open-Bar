@@ -152,7 +152,7 @@ describe('FactureService', () => {
       }
     });
     const req = httpMock.expectOne(`${baseUrl}/999`);
-    req.flush('Non trouvé', { status: 404, statusText: 'Not Found' });
+    req.flush('Not Found', { status: 404, statusText: 'Not Found' });
     expect(errorCaught).toBeTrue();
   });
 

@@ -44,7 +44,7 @@ describe('RupturesModalComponent', () => {
   const mockIngredients: Ingredient[] = [
     {
       id: 1,
-      nom: 'Menthe Fraîche',
+      nom: 'Fresh Mint',
       uniteMesure: 'g',
       quantiteStock: 100,
       seuilAlerte: 20,
@@ -108,7 +108,7 @@ describe('RupturesModalComponent', () => {
     expect(component.ingredients).toHaveSize(2);
   });
 
-  it('affiche un toast d erreur si le chargement échoue', () => {
+  it('displays an error toast if loading fails', () => {
     dashboardServiceSpy.getCocktails.and.returnValue(throwError(() => new Error('API Error')));
     component.loadData();
     expect(toastCtrlSpy.create).toHaveBeenCalled();
@@ -124,9 +124,9 @@ describe('RupturesModalComponent', () => {
     expect(component.filteredCocktails).toHaveSize(1);
     expect(component.filteredCocktails[0].nom).toBe('Mojito');
 
-    component.searchQuery = 'menthe';
+    component.searchQuery = 'mint';
     expect(component.filteredIngredients).toHaveSize(1);
-    expect(component.filteredIngredients[0].nom).toBe('Menthe Fraîche');
+    expect(component.filteredIngredients[0].nom).toBe('Fresh Mint');
   });
 
   it('toggleCocktail() bascule la disponibilite et affiche un toast', () => {
@@ -137,7 +137,7 @@ describe('RupturesModalComponent', () => {
     expect(toastCtrlSpy.create).toHaveBeenCalled();
   });
 
-  it('toggleCocktail() rollback l état en cas d erreur API', () => {
+  it('toggleCocktail() rolls back state on API error', () => {
     const cocktail = component.cocktails[0];
     const originalDispo = cocktail.disponible;
     dashboardServiceSpy.toggleCocktailDisponibilite.and.returnValue(

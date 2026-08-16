@@ -49,8 +49,8 @@ const mockConfig: EstablishmentConfig = {
   address: '12 Rue du Bar, 75001 Paris',
   phone: '+33123456789',
   email: 'contact@openbar.local',
-  paymentTerms: 'Paiement immédiat',
-  discountPolicy: 'Aucun escompte',
+  paymentTerms: 'Immediate payment',
+  discountPolicy: 'No discount',
   latePaymentRate: 0.12,
   ticketFormat: '58mm'
 };

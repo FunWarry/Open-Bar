@@ -116,7 +116,7 @@ export class CommandeCardComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Returns vertical status accent liseré color.
+   * Returns vertical status accent border color.
    */
   get lisereColor(): string {
     if (this.isUrgent) return 'var(--semantic-danger)';

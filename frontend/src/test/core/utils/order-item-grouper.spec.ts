@@ -23,7 +23,7 @@ describe('order-item-grouper utility', () => {
 
   it('should keep items separate if variants or notes differ', () => {
     const items: GroupableCommandeItem[] = [
-      { id: 1, cocktailId: 10, cocktailNom: 'Mojito', quantite: 1, notes: 'Sans glaçons' },
+      { id: 1, cocktailId: 10, cocktailNom: 'Mojito', quantite: 1, notes: 'No ice' },
       { id: 2, cocktailId: 10, cocktailNom: 'Mojito', quantite: 1, notes: 'Extra menthe' },
       { id: 3, cocktailId: 10, cocktailNom: 'Mojito', quantite: 1, varianteId: 2, varianteNom: 'Grand Format' },
     ];

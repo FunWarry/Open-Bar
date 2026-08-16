@@ -28,7 +28,7 @@ describe('Shared UI Components (Figma Design System)', () => {
       fixture.detectChanges();
     });
 
-    it('devrait se créer avec les valeurs par défaut', () => {
+    it('should be created with default values', () => {
       expect(component).toBeTruthy();
       expect(component.variant).toBe('primary');
       expect(component.colorAttr).toBe('primary');
@@ -51,13 +51,13 @@ describe('Shared UI Components (Figma Design System)', () => {
       expect(component.fillAttr).toBe('outline');
     });
 
-    it('émet un événement btnClick au clic quand non-désactivé', () => {
+    it('emits btnClick event on click when not disabled', () => {
       spyOn(component.btnClick, 'emit');
       component.onClick(new MouseEvent('click'));
       expect(component.btnClick.emit).toHaveBeenCalled();
     });
 
-    it('n\'émet pas au clic quand désactivé ou en cours de chargement', () => {
+    it('does not emit on click when disabled or loading', () => {
       spyOn(component.btnClick, 'emit');
       component.disabled = true;
       component.onClick(new MouseEvent('click'));
@@ -81,7 +81,7 @@ describe('Shared UI Components (Figma Design System)', () => {
       fixture.detectChanges();
     });
 
-    it('implémente correctement ControlValueAccessor', () => {
+    it('properly implements ControlValueAccessor', () => {
       component.writeValue('Test Input');
       expect(component.value).toBe('Test Input');
 
@@ -121,7 +121,7 @@ describe('Shared UI Components (Figma Design System)', () => {
       expect(component.showPassword).toBeFalse();
     });
 
-    it('gère les saisies et les événements ControlValueAccessor', () => {
+    it('handles inputs and ControlValueAccessor events', () => {
       const fn = jasmine.createSpy('onChange');
       component.registerOnChange(fn);
 
@@ -142,7 +142,7 @@ describe('Shared UI Components (Figma Design System)', () => {
       fixture.detectChanges();
     });
 
-    it('mappe correctement la couleur et le libellé selon le statut', () => {
+    it('correctly maps color and label according to status', () => {
       component.status = 'EN_ATTENTE';
       expect(component.badgeColor).toBe('warning');
       expect(component.label).toBe('En attente');
@@ -207,7 +207,7 @@ describe('Shared UI Components (Figma Design System)', () => {
       fixture.detectChanges();
     });
 
-    it('mappe la couleur du badge et l\'icône selon le rôle', () => {
+    it('maps badge color and icon according to role', () => {
       component.role = 'ADMIN';
       expect(component.badgeColor).toBe('danger');
       expect(component.icon).toBe('shield-checkmark');
@@ -241,7 +241,7 @@ describe('Shared UI Components (Figma Design System)', () => {
       fixture.detectChanges();
     });
 
-    it('génère les initiales et l\'icône de rôle', () => {
+    it('generates initials and role icon', () => {
       component.name = 'Jean Dupont';
       expect(component.initials).toBe('JD');
 
@@ -281,7 +281,7 @@ describe('Shared UI Components (Figma Design System)', () => {
       fixture.detectChanges();
     });
 
-    it('incrémente et décrémente la quantité et émet la nouvelle valeur', () => {
+    it('increments and decrements quantity and emits new value', () => {
       spyOn(component.valueChange, 'emit');
       component.value = 2;
       component.increment();
@@ -317,7 +317,7 @@ describe('Shared UI Components (Figma Design System)', () => {
       fixture.detectChanges();
     });
 
-    it('bascule l\'état actif au clic si non désactivé', () => {
+    it('toggles active state on click if not disabled', () => {
       spyOn(component.chipClick, 'emit');
       expect(component.active).toBeFalse();
       component.onClick();
@@ -341,7 +341,7 @@ describe('Shared UI Components (Figma Design System)', () => {
       fixture.detectChanges();
     });
 
-    it('émet l\'événement d\'action au clic', () => {
+    it('emits action event on click', () => {
       spyOn(component.actionClick, 'emit');
       component.onAction();
       expect(component.actionClick.emit).toHaveBeenCalled();
@@ -359,7 +359,7 @@ describe('Shared UI Components (Figma Design System)', () => {
       fixture.detectChanges();
     });
 
-    it('devrait se créer et calculer displayTitle correctement', () => {
+    it('should create and calculate displayTitle correctly', () => {
       expect(component).toBeTruthy();
       expect(component.displayTitle).toBe('');
 
@@ -370,7 +370,7 @@ describe('Shared UI Components (Figma Design System)', () => {
       expect(component.displayTitle).toBe('Title Test');
     });
 
-    it('accepte les entrées value, icon, trend, trendDirection, color', () => {
+    it('accepts inputs value, icon, trend, trendDirection, color', () => {
       component.value = 100;
       component.icon = 'cash-outline';
       component.trend = '+12%';
@@ -396,7 +396,7 @@ describe('Shared UI Components (Figma Design System)', () => {
       fixture.detectChanges();
     });
 
-    it('devrait basculer la valeur du interrupteur et respecter l\'état désactivé', () => {
+    it('should toggle switch value and respect disabled state', () => {
       expect(component).toBeTruthy();
       expect(component.checked).toBeFalse();
 
@@ -431,7 +431,7 @@ describe('Shared UI Components (Figma Design System)', () => {
       fixture.detectChanges();
     });
 
-    it('devrait basculer la coche de la case et générer un inputId unique', () => {
+    it('should toggle checkbox and generate unique inputId', () => {
       expect(component).toBeTruthy();
       expect(component.inputId).toContain('app-checkbox-');
       expect(component.checked).toBeFalse();
@@ -444,7 +444,7 @@ describe('Shared UI Components (Figma Design System)', () => {
       expect(component.checked).toBeTrue();
     });
 
-    it('devrait lier correctement la valeur booléenne avec ReactiveForms', () => {
+    it('should correctly bind boolean value with ReactiveForms', () => {
       component.writeValue(false);
       expect(component.checked).toBeFalse();
 
@@ -467,7 +467,7 @@ describe('Shared UI Components (Figma Design System)', () => {
       fixture.detectChanges();
     });
 
-    it('devrait attribuer l\'icône Ionic correspondant aux 4 niveaux de sévérité', () => {
+    it('should assign Ionic icon corresponding to 4 severity levels', () => {
       expect(component).toBeTruthy();
       component.severity = 'success';
       expect(component.severityIcon).toBe('checkmark-circle-outline');
@@ -482,7 +482,7 @@ describe('Shared UI Components (Figma Design System)', () => {
       expect(component.severityIcon).toBe('information-circle-outline');
     });
 
-    it('devrait émettre un événement dismissed lors du clic sur le bouton de fermeture', () => {
+    it('should emit dismissed event on close button click', () => {
       spyOn(component.dismissed, 'emit');
       component.onClose();
       expect(component.dismissed.emit).toHaveBeenCalled();
@@ -502,7 +502,7 @@ describe('Shared UI Components (Figma Design System)', () => {
       fixture.detectChanges();
     });
 
-    it('devrait se créer et émettre des événements addClick et removeClick', () => {
+    it('should create and emit addClick and removeClick events', () => {
       expect(component).toBeTruthy();
       expect(component.title).toBe('Mojito');
       expect(component.price).toBe(10.5);

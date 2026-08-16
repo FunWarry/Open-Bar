@@ -168,7 +168,7 @@ class FactureServiceTest {
     // ─── splitEgal ────────────────────────────────────────────────────────────
 
     @Test
-    void splitEgal_deuxConvives_retourneDeuxPartsEgales() {
+    void splitEqual_twoGuests_returnsTwoEqualParts() {
         given(factureRepository.findById(10L)).willReturn(Optional.of(facture));
 
         List<SplitResultDTO> result = factureService.splitEgal(10L, 2);
@@ -181,7 +181,7 @@ class FactureServiceTest {
     }
 
     @Test
-    void splitEgal_troisConvives_arrondiHalfUp() {
+    void splitEqual_threeGuests_roundsHalfUp() {
         // total 25.00 / 3 = 8.33 (arrondi HALF_UP)
         given(factureRepository.findById(10L)).willReturn(Optional.of(facture));
 
@@ -194,8 +194,8 @@ class FactureServiceTest {
     }
 
     @Test
-    void splitEgal_utiliseTotalTTCSiDisponible() {
-        // totalTTC prévaut sur total
+    void splitEqual_usesTotalTTCWhenAvailable() {
+        // totalTTC takes precedence over total
         facture.setTotal(new BigDecimal("20.00"));
         facture.setTotalTTC(new BigDecimal("24.00")); // avec pourboire
         given(factureRepository.findById(10L)).willReturn(Optional.of(facture));
@@ -206,7 +206,7 @@ class FactureServiceTest {
     }
 
     @Test
-    void splitEgal_sansTotal_utiliseZero() {
+    void splitEqual_withoutTotal_usesZero() {
         facture.setTotal(null);
         facture.setTotalTTC(null);
         given(factureRepository.findById(10L)).willReturn(Optional.of(facture));
@@ -220,21 +220,21 @@ class FactureServiceTest {
     }
 
     @Test
-    void splitEgal_unConvive_throwsBusinessException() {
+    void splitEqual_oneGuest_throwsBusinessException() {
         assertThatThrownBy(() -> factureService.splitEgal(10L, 1))
                 .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("guests");
     }
 
     @Test
-    void splitEgal_vingtEtUnConvives_throwsBusinessException() {
+    void splitEqual_twentyOneGuests_throwsBusinessException() {
         assertThatThrownBy(() -> factureService.splitEgal(10L, 21))
                 .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("guests");
     }
 
     @Test
-    void splitEgal_factureInexistante_throwsResourceNotFoundException() {
+    void splitEqual_nonExistentInvoice_throwsResourceNotFoundException() {
         given(factureRepository.findById(99L)).willReturn(Optional.empty());
 
         assertThatThrownBy(() -> factureService.splitEgal(99L, 2))
@@ -243,7 +243,7 @@ class FactureServiceTest {
     }
 
     @Test
-    void splitEgal_chaquePart_contientListeItemsVide() {
+    void splitEqual_eachPart_containsEmptyItemsList() {
         given(factureRepository.findById(10L)).willReturn(Optional.of(facture));
 
         List<SplitResultDTO> result = factureService.splitEgal(10L, 4);
@@ -255,7 +255,7 @@ class FactureServiceTest {
     // ─── splitParSelection ────────────────────────────────────────────────────
 
     @Test
-    void splitParSelection_deuxConvivesItemsDistincts_retourneSubtotauxCorrects() {
+    void splitBySelection_twoGuestsDistinctItems_returnsCorrectSubtotals() {
         given(factureRepository.findById(10L)).willReturn(Optional.of(facture));
 
         SplitAdditionRequest request = new SplitAdditionRequest(List.of(
@@ -310,7 +310,7 @@ class FactureServiceTest {
     }
 
     @Test
-    void splitParSelection_factureInexistante_throwsResourceNotFoundException() {
+    void splitBySelection_nonExistentInvoice_throwsResourceNotFoundException() {
         given(factureRepository.findById(77L)).willReturn(Optional.empty());
 
         SplitAdditionRequest request = new SplitAdditionRequest(List.of(
@@ -338,7 +338,7 @@ class FactureServiceTest {
     }
 
     @Test
-    void splitParSelection_requeteVide_retourneListeVide() {
+    void splitBySelection_emptyRequest_returnsEmptyList() {
         given(factureRepository.findById(10L)).willReturn(Optional.of(facture));
 
         SplitAdditionRequest request = new SplitAdditionRequest(List.of());
@@ -351,7 +351,7 @@ class FactureServiceTest {
     // ─── fusionnerFactures ───────────────────────────────────────────────────
 
     @Test
-    void fusionnerFactures_combineItemsEtGenereNouvelleFacture() {
+    void mergeInvoices_combinesItemsAndGeneratesNewInvoice() {
         TableEntity table = new TableEntity();
         table.setId(1L);
 
@@ -394,7 +394,7 @@ class FactureServiceTest {
     }
 
     @Test
-    void getDailyRecap_calculeCorrectementStatsJournee() {
+    void getDailyRecap_calculatesDailyStatsCorrectly() {
         java.time.LocalDate today = java.time.LocalDate.now();
         TableEntity t1 = new TableEntity();
         t1.setCapacite(2);

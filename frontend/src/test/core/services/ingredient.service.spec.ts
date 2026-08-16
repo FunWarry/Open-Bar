@@ -27,10 +27,10 @@ describe('IngredientService', () => {
     req.flush([]);
   });
 
-  it('getAll() retourne la liste des ingrédients', () => {
+  it('getAll() returns ingredient list', () => {
     const mockIngredients = [
       { id: 1, nom: 'Rhum', uniteMesure: 'cl', quantiteStock: 10, seuilAlerte: 2, createdAt: '', updatedAt: '' },
-      { id: 2, nom: 'Citron', uniteMesure: 'pièce', quantiteStock: 5, seuilAlerte: 1, createdAt: '', updatedAt: '' }
+      { id: 2, nom: 'Citron', uniteMesure: 'unit', quantiteStock: 5, seuilAlerte: 1, createdAt: '', updatedAt: '' }
     ];
     service.getAll().subscribe(result => {
       expect(result).toEqual(mockIngredients);
@@ -47,7 +47,7 @@ describe('IngredientService', () => {
     req.flush({});
   });
 
-  it('getById() retourne un ingrédient par son id', () => {
+  it('getById() returns ingredient by id', () => {
     const mockIngredient = { id: 42, nom: 'Menthe', uniteMesure: 'g', quantiteStock: 3, seuilAlerte: 1, createdAt: '', updatedAt: '' };
     service.getById(42).subscribe(result => {
       expect(result).toEqual(mockIngredient);
@@ -56,10 +56,10 @@ describe('IngredientService', () => {
     req.flush(mockIngredient);
   });
 
-  it('getById() propage une erreur 404 si ingrédient introuvable', () => {
+  it('getById() propagates 404 error if ingredient not found', () => {
     let errorReceived = false;
     service.getById(999).subscribe({
-      next: () => fail('Devrait échouer'),
+      next: () => fail('Should fail'),
       error: err => {
         errorReceived = true;
         expect(err.status).toBe(404);
@@ -79,7 +79,7 @@ describe('IngredientService', () => {
     req.flush({ id: 10, ...payload, uniteMesure: 'g', createdAt: '', updatedAt: '' });
   });
 
-  it('create() retourne l\'ingrédient créé', () => {
+  it('create() returns created ingredient', () => {
     const payload = { nom: 'Sucre', quantiteStock: 20 };
     const mockResponse = { id: 10, nom: 'Sucre', uniteMesure: 'g', quantiteStock: 20, seuilAlerte: 0, createdAt: '', updatedAt: '' };
     service.create(payload).subscribe(result => {
@@ -89,10 +89,10 @@ describe('IngredientService', () => {
     req.flush(mockResponse);
   });
 
-  it('create() propage une erreur 500 en cas d\'échec serveur', () => {
+  it('create() propagates 500 error on server failure', () => {
     let errorReceived = false;
     service.create({ nom: 'Test' }).subscribe({
-      next: () => fail('Devrait échouer'),
+      next: () => fail('Should fail'),
       error: err => {
         errorReceived = true;
         expect(err.status).toBe(500);
@@ -104,7 +104,7 @@ describe('IngredientService', () => {
   });
 
   it('update() appelle PUT /api/ingredients/:id avec le bon body', () => {
-    const payload = { nom: 'Menthe fraîche', quantiteStock: 8 };
+    const payload = { nom: 'Fresh mint', quantiteStock: 8 };
     service.update(3, payload).subscribe();
     const req = httpMock.expectOne(`${baseUrl}/3`);
     expect(req.request.method).toBe('PUT');
@@ -112,9 +112,9 @@ describe('IngredientService', () => {
     req.flush({ id: 3, ...payload, uniteMesure: 'g', seuilAlerte: 0, createdAt: '', updatedAt: '' });
   });
 
-  it('update() retourne l\'ingrédient mis à jour', () => {
-    const payload = { nom: 'Menthe fraîche' };
-    const mockResponse = { id: 3, nom: 'Menthe fraîche', uniteMesure: 'g', quantiteStock: 8, seuilAlerte: 2, createdAt: '', updatedAt: '' };
+  it('update() returns updated ingredient', () => {
+    const payload = { nom: 'Fresh mint' };
+    const mockResponse = { id: 3, nom: 'Fresh mint', uniteMesure: 'g', quantiteStock: 8, seuilAlerte: 2, createdAt: '', updatedAt: '' };
     service.update(3, payload).subscribe(result => {
       expect(result).toEqual(mockResponse);
     });
@@ -129,10 +129,10 @@ describe('IngredientService', () => {
     req.flush(null);
   });
 
-  it('delete() propage une erreur 404 si ingrédient introuvable', () => {
+  it('delete() propagates 404 error if ingredient not found', () => {
     let errorReceived = false;
     service.delete(999).subscribe({
-      next: () => fail('Devrait échouer'),
+      next: () => fail('Should fail'),
       error: err => {
         errorReceived = true;
         expect(err.status).toBe(404);
@@ -143,7 +143,7 @@ describe('IngredientService', () => {
     expect(errorReceived).toBeTrue();
   });
 
-  it('updateStock() appelle PATCH /api/ingredients/:id/stock avec la quantité', () => {
+  it('updateStock() calls PATCH /api/ingredients/:id/stock with quantity', () => {
     service.updateStock(5, 15).subscribe();
     const req = httpMock.expectOne(`${baseUrl}/5/stock`);
     expect(req.request.method).toBe('PATCH');
@@ -151,7 +151,7 @@ describe('IngredientService', () => {
     req.flush({});
   });
 
-  it('updateStock() retourne l\'ingrédient avec le stock mis à jour', () => {
+  it('updateStock() returns ingredient with updated stock', () => {
     const mockResponse = { id: 5, nom: 'Rhum', uniteMesure: 'cl', quantiteStock: 15, seuilAlerte: 3, createdAt: '', updatedAt: '' };
     service.updateStock(5, 15).subscribe(result => {
       expect(result).toEqual(mockResponse);
@@ -168,8 +168,8 @@ describe('IngredientService', () => {
     req.flush({});
   });
 
-  it('setSeuilAlerte() retourne l\'ingrédient avec le nouveau seuil', () => {
-    const mockResponse = { id: 7, nom: 'Citron', uniteMesure: 'pièce', quantiteStock: 4, seuilAlerte: 3, createdAt: '', updatedAt: '' };
+  it('setSeuilAlerte() returns ingredient with new threshold', () => {
+    const mockResponse = { id: 7, nom: 'Citron', uniteMesure: 'unit', quantiteStock: 4, seuilAlerte: 3, createdAt: '', updatedAt: '' };
     service.setSeuilAlerte(7, 3).subscribe(result => {
       expect(result).toEqual(mockResponse);
     });
@@ -177,14 +177,14 @@ describe('IngredientService', () => {
     req.flush(mockResponse);
   });
 
-  it('search() appelle GET /api/ingredients/search avec le paramètre nom', () => {
+  it('search() calls GET /api/ingredients/search with name parameter', () => {
     service.search('Rhum').subscribe();
     const req = httpMock.expectOne(r => r.url === `${baseUrl}/search` && r.params.get('nom') === 'Rhum');
     expect(req.request.method).toBe('GET');
     req.flush([]);
   });
 
-  it('search() retourne la liste filtrée des ingrédients', () => {
+  it('search() returns filtered list of ingredients', () => {
     const mockResults = [{ id: 1, nom: 'Rhum blanc', uniteMesure: 'cl', quantiteStock: 10, seuilAlerte: 2, createdAt: '', updatedAt: '' }];
     service.search('Rhum').subscribe(result => {
       expect(result).toEqual(mockResults);
@@ -194,7 +194,7 @@ describe('IngredientService', () => {
     req.flush(mockResults);
   });
 
-  it('search() retourne une liste vide si aucun résultat', () => {
+  it('search() returns empty list if no results', () => {
     service.search('XYZ inconnu').subscribe(result => {
       expect(result).toEqual([]);
     });
@@ -209,9 +209,9 @@ describe('IngredientService', () => {
     req.flush([]);
   });
 
-  it('getEnAlerte() retourne les ingrédients sous le seuil d\'alerte', () => {
+  it('getEnAlerte() returns ingredients below alert threshold', () => {
     const mockAlerte = [
-      { id: 2, nom: 'Citron', uniteMesure: 'pièce', quantiteStock: 1, seuilAlerte: 3, createdAt: '', updatedAt: '' },
+      { id: 2, nom: 'Citron', uniteMesure: 'unit', quantiteStock: 1, seuilAlerte: 3, createdAt: '', updatedAt: '' },
       { id: 4, nom: 'Glace', uniteMesure: 'kg', quantiteStock: 0, seuilAlerte: 5, createdAt: '', updatedAt: '' }
     ];
     service.getEnAlerte().subscribe(result => {
@@ -222,10 +222,10 @@ describe('IngredientService', () => {
     req.flush(mockAlerte);
   });
 
-  it('getEnAlerte() propage une erreur 500 en cas d\'échec serveur', () => {
+  it('getEnAlerte() propagates 500 error on server failure', () => {
     let errorReceived = false;
     service.getEnAlerte().subscribe({
-      next: () => fail('Devrait échouer'),
+      next: () => fail('Should fail'),
       error: err => {
         errorReceived = true;
         expect(err.status).toBe(500);

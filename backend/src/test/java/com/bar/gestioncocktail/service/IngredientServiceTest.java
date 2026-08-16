@@ -71,7 +71,7 @@ class IngredientServiceTest {
     void createIngredient_sauvegarde() {
         Ingredient nouveau = new Ingredient();
         nouveau.setNom("Citron vert");
-        nouveau.setUniteMesure("pièce");
+        nouveau.setUniteMesure("unit");
         nouveau.setQuantiteStock(new BigDecimal("50.00"));
         nouveau.setSeuilAlerte(new BigDecimal("10.00"));
 

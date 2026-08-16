@@ -109,7 +109,7 @@ describe('TableDetailComponent', () => {
     expect(router.navigate).toHaveBeenCalledWith(['/commandes', 1]);
   });
 
-  it('isAdmin$ émet false par défaut', (done) => {
+  it('isAdmin$ emits false by default', (done) => {
     component.isAdmin$.subscribe(v => { expect(v).toBe(false); done(); });
   });
 });

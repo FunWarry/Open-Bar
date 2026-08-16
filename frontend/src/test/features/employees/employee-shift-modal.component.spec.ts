@@ -73,16 +73,16 @@ describe('EmployeeShiftModalComponent', () => {
           langs: {
             fr: {
               SHIFTS: {
-                TITLE: 'Créneaux',
-                NO_SHIFTS: 'Aucun créneau',
+                TITLE: 'Shifts',
+                NO_SHIFTS: 'No shifts',
                 SUMMARY: {
-                  PLANNED: 'Prévu: {{hours}}h',
-                  REAL: 'Réalisé: {{hours}}h',
+                  PLANNED: 'Planned: {{hours}}h',
+                  REAL: 'Actual: {{hours}}h',
                   OVERTIME: 'Heures Sup: {{hours}}h'
                 },
                 PRESETS: {
-                  TITLE: 'Modèles',
-                  MANAGE_BTN: 'Gérer',
+                  TITLE: 'Presets',
+                  MANAGE_BTN: 'Manage',
                   CLOSE_BTN: 'Fermer',
                   SAVE_PRESET: 'Enregistrer',
                   DEFAULT_NOTICE: 'Notice'

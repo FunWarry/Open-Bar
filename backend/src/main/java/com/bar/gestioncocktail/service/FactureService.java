@@ -643,18 +643,18 @@ public class FactureService {
     @Transactional
     public Facture fusionnerFactures(MergeFacturesRequestDTO request) {
         List<Facture> factures = factureRepository.findAllById(request.factureIds());
-        validateFacturesPourFusion(factures);
+        validateInvoicesForMerge(factures);
 
-        TableEntity tableCible = request.targetTableId() != null
+        TableEntity targetTable = request.targetTableId() != null
                 ? tableRepository.findById(request.targetTableId()).orElse(factures.get(0).getTable())
                 : factures.get(0).getTable();
 
         Facture merged = new Facture();
-        merged.setTable(tableCible);
+        merged.setTable(targetTable);
         long sequence = ((Number) entityManager.createNativeQuery("SELECT NEXTVAL('facture_seq')").getSingleResult())
                 .longValue();
-        String mois = LocalDateTime.now(timeService.getZoneId()).format(DateTimeFormatter.ofPattern("yyyyMM"));
-        merged.setNumero(String.format("FAC-MERGE-%s-%04d", mois, sequence));
+        String month = LocalDateTime.now(timeService.getZoneId()).format(DateTimeFormatter.ofPattern("yyyyMM"));
+        merged.setNumero(String.format("FAC-MERGE-%s-%04d", month, sequence));
         merged.setDateFacture(LocalDateTime.now(timeService.getZoneId()));
         merged.setReglee(false);
 
@@ -662,7 +662,7 @@ public class FactureService {
         List<FactureItem> newItems = new ArrayList<>();
 
         for (Facture f : factures) {
-            total = total.add(copierItemsEtMarquerFacture(f, merged, newItems));
+            total = total.add(copyItemsAndMarkInvoiceMerged(f, merged, newItems));
         }
 
         merged.setItems(newItems);
@@ -672,7 +672,7 @@ public class FactureService {
         Facture saved = factureRepository.save(merged);
 
         auditLogService.logAction(null, "FUSION_FACTURES", ENTITY_FACTURE, saved.getId(),
-                "Fusion de " + factures.size() + " factures en " + saved.getNumero(), null);
+                "Merged " + factures.size() + " invoices into " + saved.getNumero(), null);
 
         return saved;
     }
@@ -682,9 +682,9 @@ public class FactureService {
      *
      * @param factures the list of invoices to validate
      */
-    private void validateFacturesPourFusion(List<Facture> factures) {
+    private void validateInvoicesForMerge(List<Facture> factures) {
         if (factures.size() < 2) {
-            throw new BusinessException("Au moins 2 factures valides sont requises pour la fusion.");
+            throw new BusinessException("At least 2 valid invoices are required for merge.");
         }
         for (Facture f : factures) {
             if (f.isReglee()) {
@@ -703,7 +703,7 @@ public class FactureService {
      * @param newItems the cumulative list of merged items
      * @return total price accumulated from the source invoice
      */
-    private BigDecimal copierItemsEtMarquerFacture(Facture f, Facture merged, List<FactureItem> newItems) {
+    private BigDecimal copyItemsAndMarkInvoiceMerged(Facture f, Facture merged, List<FactureItem> newItems) {
         BigDecimal subTotal = BigDecimal.ZERO;
         if (f.getItems() != null) {
             for (FactureItem item : f.getItems()) {

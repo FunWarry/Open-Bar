@@ -11,7 +11,7 @@ import { ActionButtonComponent } from '../../../core/components/ui/action-button
 
 /**
  * Register Component allowing Admin users to create new accounts for personnel.
- * Conforms to Figma Vue système commun Register specs (`538:936`).
+ * Conforms to Figma Common system view Register specs (`538:936`).
  */
 @Component({
   selector: 'app-register',

@@ -81,7 +81,7 @@ describe('ClosureConfigModalComponent', () => {
   });
 
   it('toggleWeeklyDay() should create closure if currently open', () => {
-    mockClosureService.createClosure.and.returnValue(of({ id: 10, type: 'WEEKLY_RECURRING', dayOfWeek: 'MONDAY', reason: 'Fermé' }));
+    mockClosureService.createClosure.and.returnValue(of({ id: 10, type: 'WEEKLY_RECURRING', dayOfWeek: 'MONDAY', reason: 'Closed' }));
     const monday = component.weeklyDays.find(d => d.dayOfWeek === 'MONDAY')!;
 
     component.toggleWeeklyDay(monday);
@@ -95,13 +95,13 @@ describe('ClosureConfigModalComponent', () => {
 
   it('selectPreset() should populate reason and set date range for annual leaves', () => {
     component.newClosureDate = '2026-08-01';
-    component.selectPreset('Congés annuels');
-    expect(component.newClosureReason).toBe('Congés annuels');
+    component.selectPreset('Annual Leave');
+    expect(component.newClosureReason).toBe('Annual Leave');
     expect(component.newIsDateRange).toBeTrue();
     expect(component.newEndDate).toBe('2026-08-08');
 
-    component.selectPreset('Jour Férié');
-    expect(component.newClosureReason).toBe('Jour Férié');
+    component.selectPreset('Public Holiday');
+    expect(component.newClosureReason).toBe('Public Holiday');
   });
 
   it('addExceptionalClosure() should create exceptional closure and reset form', () => {
@@ -110,11 +110,11 @@ describe('ClosureConfigModalComponent', () => {
       type: 'EXCEPTIONAL',
       closureDate: '2026-12-25',
       isAnnualRecurring: true,
-      reason: 'Noël'
+      reason: 'Christmas'
     }));
 
     component.newClosureDate = '2026-12-25';
-    component.newClosureReason = 'Noël';
+    component.newClosureReason = 'Christmas';
     component.newIsAnnualRecurring = true;
 
     component.addExceptionalClosure();
@@ -124,7 +124,7 @@ describe('ClosureConfigModalComponent', () => {
       closureDate: '2026-12-25',
       endDate: undefined,
       isAnnualRecurring: true,
-      reason: 'Noël'
+      reason: 'Christmas'
     });
     expect(component.newClosureReason).toBe('');
     expect(component.saving).toBeFalse();

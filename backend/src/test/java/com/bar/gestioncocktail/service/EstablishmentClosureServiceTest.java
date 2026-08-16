@@ -53,7 +53,7 @@ class EstablishmentClosureServiceTest {
         summerHoliday.setClosureDate(LocalDate.of(2026, 8, 1));
         summerHoliday.setEndDate(LocalDate.of(2026, 8, 15));
         summerHoliday.setIsAnnualRecurring(false);
-        summerHoliday.setReason("Congés annuels");
+        summerHoliday.setReason("Annual leave");
 
         annualChristmas = new EstablishmentClosure();
         annualChristmas.setId(3L);
@@ -61,7 +61,7 @@ class EstablishmentClosureServiceTest {
         annualChristmas.setClosureDate(LocalDate.of(2025, 12, 25));
         annualChristmas.setEndDate(LocalDate.of(2026, 1, 2));
         annualChristmas.setIsAnnualRecurring(true);
-        annualChristmas.setReason("Fêtes de fin d'année");
+        annualChristmas.setReason("Holiday season");
     }
 
     @Test
@@ -73,7 +73,7 @@ class EstablishmentClosureServiceTest {
 
         assertThat(result).hasSize(2);
         assertThat(result.get(0).dayOfWeek()).isEqualTo(DayOfWeek.MONDAY);
-        assertThat(result.get(1).reason()).isEqualTo("Congés annuels");
+        assertThat(result.get(1).reason()).isEqualTo("Annual leave");
     }
 
     @Test
@@ -142,7 +142,7 @@ class EstablishmentClosureServiceTest {
                 null,
                 null,
                 false,
-                "Fermé le mardi"
+                "Closed on Tuesday"
         );
         when(repository.findByTypeAndDayOfWeek(ClosureType.WEEKLY_RECURRING, DayOfWeek.TUESDAY))
                 .thenReturn(Optional.empty());
@@ -156,7 +156,7 @@ class EstablishmentClosureServiceTest {
 
         assertThat(created.id()).isEqualTo(10L);
         assertThat(created.dayOfWeek()).isEqualTo(DayOfWeek.TUESDAY);
-        assertThat(created.reason()).isEqualTo("Fermé le mardi");
+        assertThat(created.reason()).isEqualTo("Closed on Tuesday");
     }
 
     @Test
@@ -168,7 +168,7 @@ class EstablishmentClosureServiceTest {
                 null,
                 null,
                 false,
-                "Fermé le lundi"
+                "Closed on Monday"
         );
         when(repository.findByTypeAndDayOfWeek(ClosureType.WEEKLY_RECURRING, DayOfWeek.MONDAY))
                 .thenReturn(Optional.of(weeklyMonday));

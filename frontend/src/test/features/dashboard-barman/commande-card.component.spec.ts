@@ -25,7 +25,7 @@ const makeCommande = (overrides: Partial<CommandeView> = {}): CommandeView => ({
       quantite: 2,
       prioritaire: false,
       varianteNom: 'Fraise',
-      notes: 'Glaçons pilés'
+      notes: 'Crushed ice'
     }
   ],
   ...overrides

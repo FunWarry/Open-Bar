@@ -66,34 +66,34 @@ describe('TableCardComponent', () => {
 
   // --- statutLabel ---
 
-  it('statutLabel retourne "Libre" si table non occupée', () => {
+  it('statutLabel returns "Libre" if table is not occupied', () => {
     component.table = tableLibre;
     expect(component.statutLabel).toBe('Libre');
   });
 
-  it('statutLabel retourne "En cours" si table occupée avec commandes EN_PREPARATION', () => {
+  it('statutLabel returns "En cours" if table occupied with EN_PREPARATION orders', () => {
     component.table = tableEnCours;
     expect(component.statutLabel).toBe('En cours');
   });
 
-  it('statutLabel retourne "Occupée" si table occupée sans commandes EN_PREPARATION', () => {
+  it('statutLabel returns "Occupée" if table occupied without EN_PREPARATION orders', () => {
     component.table = tableOccupee;
     expect(component.statutLabel).toBe('Occupée');
   });
 
   // --- statutClass ---
 
-  it('statutClass retourne "table-free" si table non occupée', () => {
+  it('statutClass returns "table-free" if table not occupied', () => {
     component.table = tableLibre;
     expect(component.statutClass).toBe('table-free');
   });
 
-  it('statutClass retourne "table-inprogress" si table occupée avec commandes EN_PREPARATION', () => {
+  it('statutClass returns "table-inprogress" if table occupied with EN_PREPARATION orders', () => {
     component.table = tableEnCours;
     expect(component.statutClass).toBe('table-inprogress');
   });
 
-  it('statutClass retourne "table-occupied" si table occupée sans commandes EN_PREPARATION', () => {
+  it('statutClass returns "table-occupied" if table occupied without EN_PREPARATION orders', () => {
     component.table = tableOccupee;
     expect(component.statutClass).toBe('table-occupied');
   });
@@ -129,7 +129,7 @@ describe('TableCardComponent', () => {
 
   // --- @Output liberer ---
 
-  it('liberer émet l\'id de la table quand appelé', () => {
+  it('liberer emits table id when called', () => {
     let emittedId: number | undefined;
     component.liberer.subscribe((id: number) => (emittedId = id));
     component.liberer.emit(tableOccupee.id);
@@ -138,7 +138,7 @@ describe('TableCardComponent', () => {
 
   // --- @Output selectionner ---
 
-  it('selectionner émet l\'objet TableView quand appelé', () => {
+  it('selectionner emits TableView object when called', () => {
     let emitted: TableView | undefined;
     component.selectionner.subscribe((t: TableView) => (emitted = t));
     component.selectionner.emit(tableOccupee);
@@ -147,12 +147,12 @@ describe('TableCardComponent', () => {
 
   // --- cas limites ---
 
-  it('statutLabel gère une table avec commandesActives undefined-like (null guard)', () => {
+  it('statutLabel handles table with undefined-like commandesActives (null guard)', () => {
     component.table = { ...tableLibre, commandesActives: [] as any };
     expect(component.statutLabel).toBe('Libre');
   });
 
-  it('commandesEnCours gère un tableau commandesActives vide', () => {
+  it('commandesEnCours handles empty commandesActives array', () => {
     component.table = { ...tableOccupee, commandesActives: [] };
     expect(component.commandesEnCours).toBe(0);
   });

@@ -13,7 +13,7 @@ const mockUser: User = {
 };
 
 describe('authReducer', () => {
-  describe('état initial', () => {
+  describe('initial state', () => {
     it('initialState_appelSansAction_retourneEtatVide', () => {
       const state = authReducer(undefined, { type: '@@INIT' } as any);
       expect(state).toEqual(initialState);
@@ -39,7 +39,7 @@ describe('authReducer', () => {
     });
 
     it('loginSuccess_avecErreurPrecedente_effaceLErreur', () => {
-      const stateWithError: AuthState = { ...initialState, error: 'Erreur précédente' };
+      const stateWithError: AuthState = { ...initialState, error: 'Previous error' };
       const action = AuthActions.loginSuccess({ user: mockUser, token: 'tok' });
       const state = authReducer(stateWithError, action);
 
@@ -79,13 +79,13 @@ describe('authReducer', () => {
         isAuthenticated: true,
         error: null,
       };
-      const action = AuthActions.loginFailure({ error: 'Session expirée' });
+      const action = AuthActions.loginFailure({ error: 'Session expired' });
       const state = authReducer(stateWithUser, action);
 
       expect(state.user).toEqual(mockUser);
       expect(state.token).toBe('tok');
       expect(state.isAuthenticated).toBeTrue();
-      expect(state.error).toBe('Session expirée');
+      expect(state.error).toBe('Session expired');
     });
 
     it('loginFailure_remplaceErreurPrecedente_parNouvelleErreur', () => {
@@ -108,7 +108,7 @@ describe('authReducer', () => {
       const action = AuthActions.logout();
       const state = authReducer(stateWithUser, action);
 
-      // logout (sans Success) ne réinitialise pas l'état — c'est l'effect qui déclenche logoutSuccess
+      // logout (without Success) does not reset state — effect triggers logoutSuccess
       expect(state.user).toEqual(mockUser);
       expect(state.token).toBe('tok');
       expect(state.isAuthenticated).toBeTrue();
@@ -194,7 +194,7 @@ describe('authReducer', () => {
     });
 
     it('initAuthFromStorage_effaceLErreur', () => {
-      const stateWithError: AuthState = { ...initialState, error: 'Erreur présente' };
+      const stateWithError: AuthState = { ...initialState, error: 'Error present' };
       const action = AuthActions.initAuthFromStorage({ token: 'tok' });
       const state = authReducer(stateWithError, action);
 
@@ -202,7 +202,7 @@ describe('authReducer', () => {
     });
   });
 
-  describe('immutabilité', () => {
+  describe('immutability', () => {
     it('loginSuccess_neModifiePasEtatOriginal', () => {
       const originalState: AuthState = { ...initialState };
       const action = AuthActions.loginSuccess({ user: mockUser, token: 'tok' });

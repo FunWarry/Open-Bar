@@ -48,7 +48,7 @@ import { ShiftHistoryModalComponent } from '../../schedule/shift-history-modal/s
  * Modal component for viewing and managing work shifts of a specific employee.
  * Enforces strict access control:
  * - Managers and Admins can create, modify planning and clocking fields, and delete shifts.
- * - Employees can only edit their own clocking/actual hours (pointage réel) on existing shifts.
+ * - Employees can only edit their own clocking/actual hours (actual clocking) on existing shifts.
  * - Other users have read-only access.
  */
 @Component({

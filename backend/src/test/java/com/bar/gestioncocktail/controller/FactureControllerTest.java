@@ -153,7 +153,7 @@ class FactureControllerTest {
                 null,
                 null,
                 null,
-                "Règlement table 1",
+                "Settlement table 1",
                 true,
                 null
         );

@@ -41,13 +41,13 @@ describe('StatCardComponent', () => {
   });
 
   describe('@Input() defaults', () => {
-    it('trend vaut "neutral" par défaut', () => {
+    it('trend defaults to "neutral"', () => {
       const fixture = TestBed.createComponent(StatCardComponent);
       const comp = fixture.componentInstance;
       expect(comp.trend).toBe('neutral');
     });
 
-    it('color vaut "primary" par défaut', () => {
+    it('color defaults to "primary"', () => {
       const fixture = TestBed.createComponent(StatCardComponent);
       const comp = fixture.componentInstance;
       expect(comp.color).toBe('primary');
@@ -55,7 +55,7 @@ describe('StatCardComponent', () => {
   });
 
   describe('@Input() bindings', () => {
-    it('accepte une valeur numérique pour value', () => {
+    it('accepts numerical value for value', () => {
       component.value = 100;
       expect(component.value).toBe(100);
     });

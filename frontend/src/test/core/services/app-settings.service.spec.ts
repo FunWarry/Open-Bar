@@ -41,7 +41,7 @@ describe('AppSettingsService', () => {
     req.flush(mockSettings);
   });
 
-  it('getSettings() retourne les réglages et applique les tokens couleur sur :root', () => {
+  it('getSettings() returns settings and applies color tokens on :root', () => {
     service.getSettings().subscribe(result => {
       expect(result).toEqual(mockSettings);
     });
@@ -52,12 +52,12 @@ describe('AppSettingsService', () => {
     expect(document.documentElement.style.getPropertyValue('--primary-strong')).toBe('#5a68d6');
   });
 
-  it('applyTokens() calcule --ion-color-primary-rgb depuis primaryColor pour rester cohérent avec les effets Ionic', () => {
+  it('applyTokens() calculates --ion-color-primary-rgb from primaryColor for Ionic effects consistency', () => {
     service.applyTokens({ primaryColor: '#ff0000', primaryColorStrong: '#cc0000' });
     expect(document.documentElement.style.getPropertyValue('--ion-color-primary-rgb')).toBe('255, 0, 0');
   });
 
-  it('applyTokens() retombe sur le RGB par défaut si primaryColor n\'est pas un hex valide', () => {
+  it('applyTokens() falls back to default RGB if primaryColor is invalid hex', () => {
     service.applyTokens({ primaryColor: 'pas-un-hex', primaryColorStrong: '#cc0000' });
     expect(document.documentElement.style.getPropertyValue('--ion-color-primary-rgb')).toBe('108, 127, 232');
   });

@@ -116,7 +116,7 @@ describe('DashboardServeurComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('ngOnInit() charge les tables au démarrage', () => {
+  it('ngOnInit() loads tables on startup', () => {
     expect(dashboardServiceSpy.getAllTables).toHaveBeenCalled();
     expect(component.tables).toHaveSize(3);
   });
@@ -133,7 +133,7 @@ describe('DashboardServeurComponent', () => {
     expect(component.filteredTables).toHaveSize(3);
   });
 
-  it('filtrer() avec "OCCUPIED" ne retourne que les tables occupées', () => {
+  it('filtrer() with "OCCUPIED" returns only occupied tables', () => {
     component.selectedStatus = 'OCCUPIED';
     component.filtrer();
     expect(component.filteredTables.every(t => t.occupee)).toBeTrue();
@@ -149,7 +149,7 @@ describe('DashboardServeurComponent', () => {
 
   // --- countOccupees / countLibres ---
 
-  it('countOccupees retourne le bon nombre de tables occupées', () => {
+  it('countOccupees returns correct count of occupied tables', () => {
     expect(component.countOccupees).toBe(2);
   });
 
@@ -157,7 +157,7 @@ describe('DashboardServeurComponent', () => {
     expect(component.countLibres).toBe(1);
   });
 
-  it('getWaitTimeMinutes() retourne 0 pour une table libre et > 0 pour une table occupée', () => {
+  it('getWaitTimeMinutes() returns 0 for free table and > 0 for occupied table', () => {
     const libre = mockTables[1];
     const occupee = mockTables[0];
 
@@ -167,7 +167,7 @@ describe('DashboardServeurComponent', () => {
 
   // --- setStatusFilter() ---
 
-  it('setStatusFilter() met à jour le filtre et relance filtrer()', () => {
+  it('setStatusFilter() updates filter and triggers filtrer()', () => {
     component.setStatusFilter('OCCUPIED');
     expect(component.selectedStatus).toBe('OCCUPIED');
     expect(component.filteredTables).toHaveSize(2);
@@ -175,13 +175,13 @@ describe('DashboardServeurComponent', () => {
 
   // --- chargerTables() ---
 
-  it('chargerTables() met isLoading à false après la réponse', fakeAsync(() => {
+  it('chargerTables() sets isLoading to false after response', fakeAsync(() => {
     component.chargerTables();
     tick();
     expect(component.isLoading).toBeFalse();
   }));
 
-  it('chargerTables() appelle complete() sur l\'event de refresh si présent', fakeAsync(() => {
+  it('chargerTables() calls complete() on refresh event if present', fakeAsync(() => {
     const target = { complete: jasmine.createSpy('complete') };
     const refreshEvent = { target };
     component.chargerTables(refreshEvent);
@@ -189,7 +189,7 @@ describe('DashboardServeurComponent', () => {
     expect(target.complete).toHaveBeenCalled();
   }));
 
-  it('chargerTables() affiche un toast d\'erreur en cas d\'échec', fakeAsync(() => {
+  it('chargerTables() displays error toast on failure', fakeAsync(() => {
     dashboardServiceSpy.getAllTables.and.returnValue(throwError(() => new Error('Network error')));
     component.chargerTables();
     tick();
@@ -203,14 +203,14 @@ describe('DashboardServeurComponent', () => {
   it('onLiberer() appelle libererTable et recharge les tables', fakeAsync(() => {
     component.onLiberer(1);
     tick();
-    // getAllTables appelé une fois au ngOnInit + une fois après liberer
+    // getAllTables called once at ngOnInit + once after liberer
     expect(dashboardServiceSpy.getAllTables).toHaveBeenCalledTimes(2);
     expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({
       color: 'success'
     }));
   }));
 
-  it('onLiberer() affiche un toast d\'erreur si libererTable échoue', fakeAsync(() => {
+  it('onLiberer() displays error toast if libererTable fails', fakeAsync(() => {
     dashboardServiceSpy.libererTable.and.returnValue(throwError(() => new Error('Forbidden')));
     component.onLiberer(99);
     tick();
@@ -221,22 +221,22 @@ describe('DashboardServeurComponent', () => {
 
   // --- Notification WS ---
 
-  it('recharge les tables à la réception d\'une notification de type "table"', fakeAsync(() => {
+  it('reloads tables on receiving "table" notification', fakeAsync(() => {
     const notif: AppNotification = {
       id: 'table-1',
       type: 'table',
-      message: 'Table libérée',
+      message: 'Table liberated',
       severity: 'success',
       timestamp: new Date(),
       lue: false
     };
     notification$.next(notif);
     tick();
-    // 1 appel au ngOnInit + 1 appel déclenché par la notif
+    // 1 call at ngOnInit + 1 call triggered by notification
     expect(dashboardServiceSpy.getAllTables).toHaveBeenCalledTimes(2);
   }));
 
-  it('recharge les tables à la réception d\'une notification de type "commande"', fakeAsync(() => {
+  it('reloads tables on receiving "commande" notification', fakeAsync(() => {
     const notif: AppNotification = {
       id: 'commande-1',
       type: 'commande',
@@ -282,7 +282,7 @@ describe('DashboardServeurComponent', () => {
 
   // --- onRefresh ---
 
-  it('onRefresh() délègue à chargerTables avec l\'event', fakeAsync(() => {
+  it('onRefresh() delegates to chargerTables with event', fakeAsync(() => {
     const target = { complete: jasmine.createSpy('complete') };
     const event = { target };
     component.onRefresh(event);
@@ -290,20 +290,20 @@ describe('DashboardServeurComponent', () => {
     expect(target.complete).toHaveBeenCalled();
   }));
 
-  it('onEtageSelectChange() met à jour selectedEtage et filtre les tables', () => {
+  it('onEtageSelectChange() updates selectedEtage and filters tables', () => {
     const event = { target: { value: 'TERRASSE' } } as any;
     component.onEtageSelectChange(event);
     expect(component.selectedEtage).toBe('TERRASSE');
   });
 
-  it('onZoneSelectChange() met à jour selectedZone et filtre les tables', () => {
+  it('onZoneSelectChange() updates selectedZone and filters tables', () => {
     const event = { target: { value: 'Terrasse' } } as any;
     component.onZoneSelectChange(event);
     expect(component.selectedZone).toBe('Terrasse');
     expect(component.filteredTables.every(t => t.zone === 'Terrasse')).toBeTrue();
   });
 
-  it('setDisplayMode() bascule entre les différents modes d\'affichage', () => {
+  it('setDisplayMode() toggles between different display modes', () => {
     component.setDisplayMode('PLAN');
     expect(component.displayMode).toBe('PLAN');
 
@@ -347,7 +347,7 @@ describe('DashboardServeurComponent', () => {
     expect(component.displayMode).toBe('BY_FLOOR');
   });
 
-  it('toggleZone(), isZoneSelected() et clearZoneFilter() gèrent la sélection multi-zones', () => {
+  it('toggleZone(), isZoneSelected() and clearZoneFilter() handle multi-zone selection', () => {
     expect(component.isZoneSelected('Terrasse')).toBeFalse();
 
     // Toggle Terrasse
@@ -390,7 +390,7 @@ describe('DashboardServeurComponent', () => {
     expect(component.ouvrirEncaissement).toHaveBeenCalledWith(table);
   }));
 
-  it('ouvrirEncaissement ouvre le modal EncaissementModalComponent et recharge si réglé', fakeAsync(() => {
+  it('ouvrirEncaissement opens EncaissementModalComponent and reloads if settled', fakeAsync(() => {
     const table: TableView = { id: 1, nom: 'Table 1', zone: 'Terrasse', capacite: 4, occupee: true, commandesActives: [] };
     const modalMock = {
       present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
@@ -406,7 +406,7 @@ describe('DashboardServeurComponent', () => {
     expect(component.chargerTables).toHaveBeenCalled();
   }));
 
-  it('ngOnDestroy désinscrit les observables', () => {
+  it('ngOnDestroy unsubs from observables', () => {
     expect(() => component.ngOnDestroy()).not.toThrow();
   });
 });

@@ -40,18 +40,18 @@ describe('HomeComponent', () => {
     fixture.detectChanges();
   });
 
-  it('devrait créer le composant', () => {
+  it('should create component', () => {
     expect(component).toBeTruthy();
   });
 
-  it('currentUser$ devrait émettre l\'utilisateur courant', (done) => {
+  it('currentUser$ should emit current user', (done) => {
     component.currentUser$.subscribe(user => {
       expect(user).toEqual({ username: 'testuser', roles: ['SERVEUR'] });
       done();
     });
   });
 
-  it('isServeur$ devrait émettre true pour le rôle SERVEUR', (done) => {
+  it('isServeur$ should emit true for SERVEUR role', (done) => {
     component.isServeur$.subscribe(val => {
       expect(val).toBeTrue();
       done();

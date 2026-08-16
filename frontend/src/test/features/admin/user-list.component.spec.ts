@@ -55,13 +55,13 @@ describe('UserListComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('ngOnInit() charge les utilisateurs paginés', () => {
+  it('ngOnInit() loads paginated users', () => {
     expect(userServiceSpy.getUsersPaged).toHaveBeenCalledWith(0, 10, '', 'ALL');
     expect(component.users).toEqual(mockUsers);
     expect(component.loading).toBeFalse();
   });
 
-  it('onSearchChange() réinitialise la page et charge les résultats', () => {
+  it('onSearchChange() resets page and loads results', () => {
     component.searchQuery = 'alice';
     component.onSearchChange();
 
@@ -90,7 +90,7 @@ describe('UserListComponent', () => {
     expect(component.currentPage).toBe(0);
   });
 
-  it('loadUsers() affiche un toast d\'erreur si la requête échoue', () => {
+  it('loadUsers() displays error toast if request fails', () => {
     userServiceSpy.getUsersPaged.and.returnValue(throwError(() => new Error('Server error')));
 
     component.loadUsers();
@@ -99,12 +99,12 @@ describe('UserListComponent', () => {
     expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
   });
 
-  it('trackById() retourne user.id si présent', () => {
+  it('trackById() returns user.id if present', () => {
     const user = { id: 42, username: 'test' } as User;
     expect(component.trackById(0, user)).toBe(42);
   });
 
-  it('getRoleColor() retourne les bonnes couleurs par rôle', () => {
+  it('getRoleColor() returns correct colors per role', () => {
     expect(component.getRoleColor('ADMIN')).toBe('tertiary');
     expect(component.getRoleColor('MANAGER')).toBe('secondary');
     expect(component.getRoleColor('SERVEUR')).toBe('primary');
@@ -112,7 +112,7 @@ describe('UserListComponent', () => {
     expect(component.getRoleColor('UNKNOWN')).toBe('medium');
   });
 
-  it('onRoleChange() réinitialise la page et charge les résultats', () => {
+  it('onRoleChange() resets page and loads results', () => {
     component.selectedRole = 'BARMAN';
     component.onRoleChange();
 
@@ -120,7 +120,7 @@ describe('UserListComponent', () => {
     expect(userServiceSpy.getUsersPaged).toHaveBeenCalledWith(0, 10, '', 'BARMAN');
   });
 
-  it('changePageSize() met à jour la taille et recharge', () => {
+  it('changePageSize() updates size and reloads', () => {
     userServiceSpy.getUsersPaged.and.returnValue(of({
       ...mockPageResponse,
       pageSize: 20

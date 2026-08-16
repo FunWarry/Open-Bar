@@ -88,7 +88,7 @@ export class DayClosureModalComponent implements OnInit {
 
   selectPreset(preset: string): void {
     this.reason = preset;
-    if (preset === 'Congés annuels') {
+    if (preset === 'Congés annuels' || preset === 'Annual Leave') {
       this.isDateRange = true;
       // Default to 1 week from start date
       if (this.startDate) {

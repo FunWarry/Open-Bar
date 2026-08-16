@@ -1604,7 +1604,7 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
       gy = Math.round(gy / GRID_SNAP_SIZE) * GRID_SNAP_SIZE;
     }
 
-    // 2. Aimantation automatique bord à bord avec les tables voisines
+    // 2. Automatic edge-to-edge magnetic snapping with neighboring tables
     if (this.isMagnetSnapEnabled) {
       const currentPos = this.positions.get(currentTableId);
       const curW = currentPos?.width || DEFAULT_TABLE_SIZE;
@@ -1627,8 +1627,8 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
         const otherY = otherPos.y;
 
         // Candidats d'alignement horizontal (X) :
-        // - Coller à droite: bord gauche de la table = bord droit de la voisine
-        // - Coller à gauche: bord droit de la table = bord gauche de la voisine
+        // - Snap to right: left edge of table = right edge of neighbor
+        // - Snap to left: right edge of table = left edge of neighbor
         // - Aligner centres
         // - Aligner bords gauches
         // - Aligner bords droits

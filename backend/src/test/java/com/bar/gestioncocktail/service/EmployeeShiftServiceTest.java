@@ -175,7 +175,7 @@ class EmployeeShiftServiceTest {
     void updateShift_Success_AllFields() {
         EmployeeShiftRequestDTO request = new EmployeeShiftRequestDTO(
             2L, LocalDate.of(2026, 8, 11), TypeShift.SOIR, TypePoste.BARMAN,
-            "18:00", "02:00", "21:00", 30, "18:00", "02:00", BigDecimal.ZERO, BigDecimal.valueOf(7.5), new BigDecimal("8.0"), "Soirée spéciale"
+            "18:00", "02:00", "21:00", 30, "18:00", "02:00", BigDecimal.ZERO, BigDecimal.valueOf(7.5), new BigDecimal("8.0"), "Special evening"
         );
 
         when(shiftRepository.findById(10L)).thenReturn(Optional.of(sampleShift));
@@ -190,7 +190,7 @@ class EmployeeShiftServiceTest {
         assertThat(updated.getTypePoste()).isEqualTo(TypePoste.BARMAN);
         assertThat(updated.getHeureDebut()).isEqualTo("18:00");
         assertThat(updated.getHeureFin()).isEqualTo("02:00");
-        assertThat(updated.getNotes()).isEqualTo("Soirée spéciale");
+        assertThat(updated.getNotes()).isEqualTo("Special evening");
     }
 
     @Test
@@ -297,7 +297,7 @@ class EmployeeShiftServiceTest {
 
         EmployeeShiftRequestDTO request = new EmployeeShiftRequestDTO(
             1L, LocalDate.of(2026, 8, 10), TypeShift.MATIN, TypePoste.SERVEUR,
-            "08:00", "16:00", null, null, "08:05", "16:15", BigDecimal.valueOf(0.25), BigDecimal.valueOf(8.0), BigDecimal.valueOf(8.25), "Arrivé 5m après"
+            "08:00", "16:00", null, null, "08:05", "16:15", BigDecimal.valueOf(0.25), BigDecimal.valueOf(8.0), BigDecimal.valueOf(8.25), "Arrived 5m late"
         );
 
         when(shiftRepository.findById(10L)).thenReturn(Optional.of(sampleShift));
@@ -308,7 +308,7 @@ class EmployeeShiftServiceTest {
         assertThat(updated.getHeureDebutReelle()).isEqualTo("08:05");
         assertThat(updated.getHeureFinReelle()).isEqualTo("16:15");
         assertThat(updated.getHeuresSup()).isEqualTo(BigDecimal.valueOf(0.25));
-        assertThat(updated.getNotes()).isEqualTo("Arrivé 5m après");
+        assertThat(updated.getNotes()).isEqualTo("Arrived 5m late");
     }
 
     @Test

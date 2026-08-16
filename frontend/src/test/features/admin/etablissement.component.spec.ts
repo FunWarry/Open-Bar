@@ -27,7 +27,7 @@ describe('EtablissementComponent', () => {
     address: '12 Rue du Bar',
     phone: '+33123456789',
     email: 'contact@openbar.local',
-    paymentTerms: 'Paiement immédiat',
+    paymentTerms: 'Immediate payment',
     discountPolicy: 'Aucun',
     latePaymentRate: 0.12,
     ticketFormat: '58mm',
@@ -57,14 +57,14 @@ describe('EtablissementComponent', () => {
     fixture.detectChanges();
   });
 
-  it('devrait créer le composant et charger la configuration', () => {
+  it('should create component and load configuration', () => {
     expect(component).toBeTruthy();
     expect(etablissementServiceSpy.getConfig).toHaveBeenCalled();
     expect(component.configForm.get('legalName')?.value).toBe('OpenBar SARL');
     expect(component.configForm.get('ticketFormat')?.value).toBe('58mm');
   });
 
-  it('siretLuhnValidator devrait valider un SIRET correct et rejeter un SIRET erroné', () => {
+  it('siretLuhnValidator should validate correct SIRET and reject invalid SIRET', () => {
     const validControl = new FormControl('73282932000074');
     expect(siretLuhnValidator(validControl)).toBeNull();
 

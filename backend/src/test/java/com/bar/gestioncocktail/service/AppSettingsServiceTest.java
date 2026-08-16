@@ -70,7 +70,7 @@ class AppSettingsServiceTest {
             .thenReturn(Optional.empty())
             .thenReturn(Optional.of(existing));
         when(appSettingsRepository.save(any(AppSettings.class)))
-            .thenThrow(new DataIntegrityViolationException("id déjà inséré par une requête concurrente"));
+            .thenThrow(new DataIntegrityViolationException("ID already inserted by concurrent request"));
 
         AppSettings result = appSettingsService.getSettings();
 

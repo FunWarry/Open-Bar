@@ -59,7 +59,7 @@ class EstablishmentClosureControllerTest {
                 LocalDate.of(2026, 12, 25),
                 LocalDate.of(2026, 12, 26),
                 true,
-                "Noël"
+                "Christmas"
         );
         EstablishmentClosureDTO created = new EstablishmentClosureDTO(
                 2L,
@@ -68,14 +68,14 @@ class EstablishmentClosureControllerTest {
                 LocalDate.of(2026, 12, 25),
                 LocalDate.of(2026, 12, 26),
                 true,
-                "Noël"
+                "Christmas"
         );
         when(closureService.createClosure(req)).thenReturn(created);
 
         EstablishmentClosureDTO response = controller.createClosure(req);
 
         assertThat(response.id()).isEqualTo(2L);
-        assertThat(response.reason()).isEqualTo("Noël");
+        assertThat(response.reason()).isEqualTo("Christmas");
         verify(closureService).createClosure(req);
     }
 

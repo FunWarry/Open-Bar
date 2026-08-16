@@ -36,13 +36,13 @@ describe('PlanSalleService', () => {
   it('getPositions() appelle GET /api/tables/positions et mappe le format backend', () => {
     const backendDto = [
       { id: 1, planX: 100, planY: 100, planRotation: 0, planForme: 'RECTANGLE', etage: 'RDC', zone: 'TERRASSE' },
-      { id: 2, planX: 200, planY: 150, planRotation: 90, planForme: 'RONDE', etage: '1er Étage', zone: 'INTERIEUR' },
+      { id: 2, planX: 200, planY: 150, planRotation: 90, planForme: 'RONDE', etage: 'First Floor', zone: 'INTERIEUR' },
     ];
 
     service.getPositions().subscribe(positions => {
       expect(positions).toEqual([
         { tableId: 1, x: 100, y: 100, width: undefined, height: undefined, rotation: 0, shape: 'rect', floor: 'RDC', zone: 'TERRASSE' },
-        { tableId: 2, x: 200, y: 150, width: undefined, height: undefined, rotation: 90, shape: 'circle', floor: '1er Étage', zone: 'INTERIEUR' },
+        { tableId: 2, x: 200, y: 150, width: undefined, height: undefined, rotation: 90, shape: 'circle', floor: 'First Floor', zone: 'INTERIEUR' },
       ]);
     });
     const req = http.expectOne(`${environment.apiUrl}/tables/positions`);
@@ -50,7 +50,7 @@ describe('PlanSalleService', () => {
     req.flush(backendDto);
   });
 
-  it('getPositions() retourne [] en fallback si le backend échoue et le localStorage est vide', () => {
+  it('getPositions() returns [] as fallback if backend fails and localStorage is empty', () => {
     service.getPositions().subscribe(positions => {
       expect(positions).toEqual([]);
     });
@@ -58,7 +58,7 @@ describe('PlanSalleService', () => {
     req.error(new ProgressEvent('error'));
   });
 
-  it('getPositions() retourne les positions du localStorage en fallback si le backend échoue', () => {
+  it('getPositions() returns localStorage positions as fallback if backend fails', () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(mockPositions));
     service.getPositions().subscribe(positions => {
       expect(positions).toEqual(mockPositions);
@@ -89,7 +89,7 @@ describe('PlanSalleService', () => {
     expect(stored).toEqual(mockPositions);
   });
 
-  it('sauvegarderPositions() retourne les positions en fallback si le backend échoue', () => {
+  it('sauvegarderPositions() returns positions as fallback if backend fails', () => {
     service.sauvegarderPositions(mockPositions).subscribe(result => {
       expect(result).toEqual(mockPositions);
     });

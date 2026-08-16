@@ -61,7 +61,7 @@ describe('StockAlertBannerComponent', () => {
     stockAlerts$.next(alert2);
 
     expect(component.stockAlerts).toHaveSize(2);
-    // unshift : la plus récente est en index 0
+    // unshift: most recent is at index 0
     expect(component.stockAlerts[0].id).toBe('stock-2');
     expect(component.stockAlerts[1].id).toBe('stock-1');
   });
@@ -113,7 +113,7 @@ describe('StockAlertBannerComponent', () => {
     component.ngOnDestroy();
 
     stockAlerts$.next(makeAlert({ id: 'stock-after' }));
-    // après destroy la subscription est complétée — aucun nouvel élément
+    // after destroy subscription is completed — no new items
     expect(component.stockAlerts).toHaveSize(1);
     expect(component.stockAlerts[0].id).toBe('stock-before');
   });

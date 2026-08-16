@@ -19,7 +19,7 @@ function passwordMatchValidator(control: AbstractControl): ValidationErrors | nu
 
 /**
  * Setup Component for initial workspace configuration and creation of the first Admin account.
- * Fully aligned with Figma Vue système commun Onboarding design.
+ * Fully aligned with Figma Common system view Onboarding design.
  */
 @Component({
   selector: 'app-setup',

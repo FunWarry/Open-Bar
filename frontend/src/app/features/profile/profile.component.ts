@@ -25,7 +25,7 @@ import { ToggleSwitchComponent } from '../../core/components/ui/toggle-switch/to
  * Profile Component displaying personal user information, roles, profile settings form,
  * and user preferences (sound/visual notifications, language).
  *
- * <p>Aligned with Figma Vue système commun Profile layout ({@code 540:946}),
+ * <p>Aligned with Figma Common system view Profile layout ({@code 540:946}),
  * including the PREFERENCES section with toggles and language selector.</p>
  *
  * <p>The form fields (username, email) are reactively pre-filled from the NgRx Auth store
@@ -120,7 +120,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
         }
       });
 
-    // Initialise preference toggles from PreferencesService signals
+    // Initializes preference toggles from PreferencesService signals
     this.soundEnabled = this.preferences.soundEnabled();
     this.visualNotifEnabled = this.preferences.visualNotifEnabled();
     this.selectedLanguage = this.languageService.currentLanguage;

@@ -57,7 +57,7 @@ describe('CocktailSaisonnaliteComponent', () => {
     expect(component.moisFin).toBeNull();
   });
 
-  it('ngOnInit() initialise touteAnnee=false quand moisDebut et moisFin sont définis', () => {
+  it('ngOnInit() initializes touteAnnee=false when moisDebut and moisFin are set', () => {
     component.cocktail = { ...mockCocktail, moisDebut: 3, moisFin: 9 };
     component.ngOnInit();
     expect(component.touteAnnee).toBeFalse();
@@ -65,7 +65,7 @@ describe('CocktailSaisonnaliteComponent', () => {
     expect(component.moisFin).toBe(9);
   });
 
-  it('ngOnInit() initialise touteAnnee=false quand seulement moisDebut est défini', () => {
+  it('ngOnInit() initializes touteAnnee=false when only moisDebut is set', () => {
     component.cocktail = { ...mockCocktail, moisDebut: 6, moisFin: null };
     component.ngOnInit();
     expect(component.touteAnnee).toBeFalse();
@@ -73,7 +73,7 @@ describe('CocktailSaisonnaliteComponent', () => {
 
   // ── onTouteAnneeChange ───────────────────────────────────────────────────────
 
-  it('onTouteAnneeChange() remet moisDebut et moisFin à null quand touteAnnee=true', () => {
+  it('onTouteAnneeChange() resets moisDebut and moisFin to null when touteAnnee=true', () => {
     component.moisDebut = 4;
     component.moisFin = 8;
     component.touteAnnee = true;
@@ -99,7 +99,7 @@ describe('CocktailSaisonnaliteComponent', () => {
     expect(component.isMoisActif(5)).toBeFalse();
   });
 
-  it('isMoisActif() retourne true pour un mois dans la période simple (même année)', () => {
+  it('isMoisActif() returns true for month in simple period (same year)', () => {
     component.moisDebut = 3;
     component.moisFin = 9;
     expect(component.isMoisActif(3)).toBeTrue();
@@ -107,14 +107,14 @@ describe('CocktailSaisonnaliteComponent', () => {
     expect(component.isMoisActif(9)).toBeTrue();
   });
 
-  it('isMoisActif() retourne false pour un mois hors de la période simple', () => {
+  it('isMoisActif() returns false for month outside simple period', () => {
     component.moisDebut = 3;
     component.moisFin = 9;
     expect(component.isMoisActif(1)).toBeFalse();
     expect(component.isMoisActif(10)).toBeFalse();
   });
 
-  it('isMoisActif() gère le chevauchement d\'année (ex: Oct → Fév)', () => {
+  it('isMoisActif() handles year rollover (e.g. Oct -> Feb)', () => {
     component.moisDebut = 10;
     component.moisFin = 2;
     expect(component.isMoisActif(10)).toBeTrue();
@@ -132,18 +132,18 @@ describe('CocktailSaisonnaliteComponent', () => {
     expect(component.isDisponibleAujourdhui).toBeTrue();
   });
 
-  it('isDisponibleAujourdhui retourne true quand le mois courant est dans la période', () => {
+  it('isDisponibleAujourdhui returns true when current month is in active period', () => {
     component.moisDebut = 1;
     component.moisFin = 12;
     expect(component.isDisponibleAujourdhui).toBeTrue();
   });
 
   it('isDisponibleAujourdhui retourne false quand le mois courant est hors saison', () => {
-    // Forcer moisCourant à une valeur connue pour rendre le test déterministe
+    // Force current month to a known value for deterministic testing
     component.moisCourant = 7;
     component.moisDebut = 10;
     component.moisFin = 3;
-    // Période Oct→Mars : juillet est hors saison
+    // Period Oct->Mar: July is out of season
     expect(component.isDisponibleAujourdhui).toBeFalse();
   });
 
@@ -160,7 +160,7 @@ describe('CocktailSaisonnaliteComponent', () => {
     expect(cocktailServiceSpy.updateSaisonnalite).toHaveBeenCalledOnceWith(mockCocktail.id, 4, 9);
   });
 
-  it('sauvegarder() emet l\'événement updated avec le cocktail mis à jour', () => {
+  it('sauvegarder() emits updated event with updated cocktail', () => {
     const updatedCocktail: Cocktail = { ...mockCocktail, moisDebut: 4, moisFin: 9 };
     cocktailServiceSpy.updateSaisonnalite.and.returnValue(of(updatedCocktail));
     spyOn(component.updated, 'emit');
@@ -170,7 +170,7 @@ describe('CocktailSaisonnaliteComponent', () => {
     expect(component.updated.emit).toHaveBeenCalledOnceWith(updatedCocktail);
   });
 
-  it('sauvegarder() remet saving=false après succès', () => {
+  it('sauvegarder() resets saving=false after success', () => {
     const updatedCocktail: Cocktail = { ...mockCocktail };
     cocktailServiceSpy.updateSaisonnalite.and.returnValue(of(updatedCocktail));
 
@@ -180,14 +180,14 @@ describe('CocktailSaisonnaliteComponent', () => {
   });
 
   it('sauvegarder() remet saving=false en cas d\'erreur', () => {
-    cocktailServiceSpy.updateSaisonnalite.and.returnValue(throwError(() => new Error('Erreur réseau')));
+    cocktailServiceSpy.updateSaisonnalite.and.returnValue(throwError(() => new Error('Network error')));
 
     component.sauvegarder();
 
     expect(component.saving).toBeFalse();
   });
 
-  it('sauvegarder() ne déclenche pas updated.emit en cas d\'erreur', () => {
+  it('sauvegarder() does not trigger updated.emit on error', () => {
     cocktailServiceSpy.updateSaisonnalite.and.returnValue(throwError(() => new Error('500')));
     spyOn(component.updated, 'emit');
 

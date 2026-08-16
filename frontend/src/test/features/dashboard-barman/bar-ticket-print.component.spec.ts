@@ -62,7 +62,7 @@ describe('BarTicketPrintComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('charge le nom de l établissement depuis AppSettingsService', () => {
+  it('loads establishment name from AppSettingsService', () => {
     expect(component.establishmentName).toBe('Le Bar Basque');
   });
 
@@ -70,7 +70,7 @@ describe('BarTicketPrintComponent', () => {
     expect(component.totalItemsCount).toBe(3);
   });
 
-  it('printTicket() déclenche l impression thermique du ticket', () => {
+  it('printTicket() triggers thermal ticket print', () => {
     spyOn(document.body, 'appendChild').and.callThrough();
     component.printTicket();
     expect(document.body.appendChild).toHaveBeenCalled();
