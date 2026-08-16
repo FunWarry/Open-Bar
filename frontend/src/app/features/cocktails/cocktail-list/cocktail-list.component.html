@@ -162,10 +162,12 @@
             @for (cocktail of filteredCocktails; track cocktail.id) {
               <ion-col size="12" size-sm="6" size-md="4" size-lg="4">
                 <div class="figma-cocktail-card" [class.no-picture]="!showPictures" [attr.data-testid]="'cocktail-card-' + cocktail.id">
-                  <!-- Image Banner (Conditionally displayed via Pictures toggle) -->
                   @if (showPictures) {
                     <div class="figma-card-image-area">
-                      <img [src]="cocktail.imageUrl || 'assets/images/verres/verre_tumbler.png'" [alt]="cocktail.nom" />
+                      <img
+                        [src]="cocktail.imageUrl || 'assets/images/verres/verre_tumbler.png'"
+                        [alt]="cocktail.nom"
+                        (error)="$any($event.target).src = 'assets/images/verres/verre_tumbler.png'" />
                     </div>
                   }
 

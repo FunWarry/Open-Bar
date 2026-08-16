@@ -1,7 +1,11 @@
 <div class="product-card-container" [attr.data-testid]="testId">
   @if (imageUrl) {
     <div class="product-image-wrapper">
-      <img [src]="imageUrl" [alt]="title" class="product-img" />
+      <img
+        [src]="imageUrl"
+        [alt]="title"
+        class="product-img"
+        (error)="$any($event.target).src = 'assets/images/verres/verre_tumbler.png'" />
     </div>
   }
   <div class="product-details">
