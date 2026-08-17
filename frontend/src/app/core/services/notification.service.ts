@@ -81,6 +81,23 @@ export class NotificationService implements OnDestroy {
         }
       });
 
+    // Barman orders topic
+    this.ws.watch('/topic/barman/commandes')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(msg => {
+        try {
+          const data = JSON.parse(msg.body);
+          this.emit({
+            type: 'commande',
+            message: `Order #${data.id} — ${data.statut ?? 'updated'}`,
+            severity: 'primary',
+            data,
+          });
+        } catch {
+          // malformed message — ignore
+        }
+      });
+
     // Stock alert
     this.ws.watch('/topic/stock/alerte')
       .pipe(takeUntil(this.destroy$))
