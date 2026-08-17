@@ -49,6 +49,7 @@ import { RupturesModalComponent } from './components/ruptures-modal/ruptures-mod
 import { BarTicketPrintComponent } from './components/bar-ticket-print/bar-ticket-print.component';
 import { RecipeSidePanelComponent } from './components/recipe-side-panel/recipe-side-panel.component';
 import { Cocktail } from '../../core/models/cocktail.model';
+import { WebSocketService } from '../../core/services/websocket.service';
 
 /**
  * Dashboard Barman Component managing the real-time preparation Kanban board.
@@ -111,6 +112,7 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
   private readonly soundService = inject(SoundService);
   private readonly transloco = inject(TranslocoService);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly wsService = inject(WebSocketService);
 
   constructor() {
     addIcons({
@@ -206,6 +208,25 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
           this.soundService.playNewOrderSound();
           this.chargerCommandes();
         } else if (notif.type === 'statut') {
+          this.chargerCommandes();
+        }
+      });
+
+    this.wsService
+      .watch('/topic/barman/commandes')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(msg => {
+        try {
+          const commande = JSON.parse(msg.body);
+          if (commande.statut === 'ANNULEE' || commande.statut === 'REGLEE' || commande.statut === 'LIVREE') {
+            this.commandesEnAttente = this.commandesEnAttente.filter(c => c.id !== commande.id);
+            this.commandesEnPreparation = this.commandesEnPreparation.filter(c => c.id !== commande.id);
+            this.commandesPret = this.commandesPret.filter(c => c.id !== commande.id);
+            this.cdr.detectChanges();
+          } else {
+            this.chargerCommandes();
+          }
+        } catch {
           this.chargerCommandes();
         }
       });

@@ -9,17 +9,20 @@ import { NotificationService, AppNotification } from '../../../app/core/services
 import { CommandeView } from '../../../app/features/dashboard-barman/models/commande-view.model';
 import { AppSettingsService } from '../../../app/core/services/app-settings.service';
 import { SoundService } from '../../../app/core/services/sound.service';
+import { WebSocketService } from '../../../app/core/services/websocket.service';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 
 describe('DashboardBarmanComponent', () => {
   let component: DashboardBarmanComponent;
   let dashboardServiceSpy: jasmine.SpyObj<DashboardBarmanService>;
   let notificationServiceSpy: jasmine.SpyObj<NotificationService>;
+  let wsServiceSpy: jasmine.SpyObj<WebSocketService>;
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
   let modalCtrlSpy: jasmine.SpyObj<ModalController>;
   let settingsServiceSpy: jasmine.SpyObj<AppSettingsService>;
   let soundServiceSpy: jasmine.SpyObj<SoundService>;
   let notification$: Subject<AppNotification>;
+  let wsTopic$: Subject<{ body: string }>;
 
   const mockCommandes: CommandeView[] = [
     {
@@ -108,6 +111,10 @@ describe('DashboardBarmanComponent', () => {
     modalCtrlSpy = jasmine.createSpyObj('ModalController', ['create']);
     modalCtrlSpy.create.and.returnValue(Promise.resolve(mockModal as any));
 
+    wsTopic$ = new Subject<{ body: string }>();
+    wsServiceSpy = jasmine.createSpyObj('WebSocketService', ['watch']);
+    wsServiceSpy.watch.and.returnValue(wsTopic$.asObservable() as any);
+
     await TestBed.configureTestingModule({
       imports: [
         DashboardBarmanComponent,
@@ -118,6 +125,7 @@ describe('DashboardBarmanComponent', () => {
       providers: [
         { provide: DashboardBarmanService, useValue: dashboardServiceSpy },
         { provide: NotificationService, useValue: notificationServiceSpy },
+        { provide: WebSocketService, useValue: wsServiceSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
         { provide: ModalController, useValue: modalCtrlSpy },
         { provide: AppSettingsService, useValue: settingsServiceSpy },
@@ -302,5 +310,40 @@ describe('DashboardBarmanComponent', () => {
     tick();
 
     expect(soundServiceSpy.playNewOrderSound).toHaveBeenCalled();
+  }));
+
+  it('supprime immediatement la commande annulee ou reglee lors d un message WS /topic/barman/commandes', fakeAsync(() => {
+    component.commandesEnAttente = [{ ...mockCommandes[0], id: 10 }];
+    component.commandesEnPreparation = [{ ...mockCommandes[0], id: 20 }];
+    component.commandesPret = [{ ...mockCommandes[0], id: 30 }];
+
+    wsTopic$.next({ body: JSON.stringify({ id: 10, statut: 'ANNULEE' }) });
+    tick();
+
+    expect(component.commandesEnAttente).toHaveSize(0);
+    expect(component.commandesEnPreparation).toHaveSize(1);
+    expect(component.commandesPret).toHaveSize(1);
+
+    wsTopic$.next({ body: JSON.stringify({ id: 20, statut: 'REGLEE' }) });
+    tick();
+
+    expect(component.commandesEnPreparation).toHaveSize(0);
+
+    wsTopic$.next({ body: JSON.stringify({ id: 30, statut: 'LIVREE' }) });
+    tick();
+
+    expect(component.commandesPret).toHaveSize(0);
+  }));
+
+  it('recharge les commandes lors d un message WS de mise a jour standard ou malforme', fakeAsync(() => {
+    spyOn(component, 'chargerCommandes');
+
+    wsTopic$.next({ body: JSON.stringify({ id: 40, statut: 'EN_PREPARATION' }) });
+    tick();
+    expect(component.chargerCommandes).toHaveBeenCalledTimes(1);
+
+    wsTopic$.next({ body: 'malformed json' });
+    tick();
+    expect(component.chargerCommandes).toHaveBeenCalledTimes(2);
   }));
 });
