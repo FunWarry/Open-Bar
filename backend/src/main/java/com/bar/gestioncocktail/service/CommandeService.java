@@ -35,7 +35,8 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Service managing order lifecycle, status transitions, item manipulation, and automated stock deductions.
+ * Service managing order lifecycle, status transitions, item manipulation, and
+ * automated stock deductions.
  */
 @Service
 public class CommandeService {
@@ -114,7 +115,9 @@ public class CommandeService {
         commande.setUpdatedAt(timeService.now());
         commande.setDateCommande(timeService.now());
         commande.setStatut(CommandeStatut.EN_ATTENTE);
-        return commandeRepository.save(commande);
+        Commande saved = commandeRepository.save(commande);
+        notifyOrderUpdated(saved);
+        return saved;
     }
 
     @Transactional
@@ -133,13 +136,17 @@ public class CommandeService {
             commande.setServeur(commandeDetails.getServeur());
         }
 
-        return commandeRepository.save(commande);
+        Commande saved = commandeRepository.save(commande);
+        notifyOrderUpdated(saved);
+        return saved;
     }
 
     @Transactional
     public void deleteCommande(Long id) {
         Commande commande = commandeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(COMMANDE_NOT_FOUND + id));
+        commande.setStatut(CommandeStatut.ANNULEE);
+        notifyOrderUpdated(commande);
         commandeRepository.delete(commande);
     }
 
@@ -175,7 +182,9 @@ public class CommandeService {
         commande.setTotal(total);
         commande.setDateModification(timeService.now());
 
-        return commandeRepository.save(commande);
+        Commande saved = commandeRepository.save(commande);
+        notifyOrderUpdated(saved);
+        return saved;
     }
 
     @Transactional
@@ -184,9 +193,14 @@ public class CommandeService {
                 .orElseThrow(() -> new ResourceNotFoundException(COMMANDE_NOT_FOUND + commandeId));
 
         commande.getItems().removeIf(item -> item.getId().equals(itemId));
+        if (commande.getItems().isEmpty()) {
+            commande.setStatut(CommandeStatut.ANNULEE);
+        }
         commande.setDateModification(timeService.now());
 
-        return commandeRepository.save(commande);
+        Commande saved = commandeRepository.save(commande);
+        notifyOrderUpdated(saved);
+        return saved;
     }
 
     @Transactional
@@ -199,7 +213,8 @@ public class CommandeService {
 
         switch (nouveauStatut) {
             case EN_PREPARATION:
-                // Idempotence: only deduct stock once, even on retry or reactivation from ANNULEE
+                // Idempotence: only deduct stock once, even on retry or reactivation from
+                // ANNULEE
                 if (commande.getDatePreparation() == null) {
                     commande.setDatePreparation(timeService.now());
                     destockerIngredients(commande);
@@ -215,7 +230,9 @@ public class CommandeService {
                 break;
         }
 
-        return commandeRepository.save(commande);
+        Commande saved = commandeRepository.save(commande);
+        notifyOrderUpdated(saved);
+        return saved;
     }
 
     @Transactional
@@ -225,7 +242,8 @@ public class CommandeService {
         }
         commande.setStatut(CommandeStatut.ANNULEE);
         commande.setUpdatedAt(timeService.now());
-        commandeRepository.save(commande);
+        Commande saved = commandeRepository.save(commande);
+        notifyOrderUpdated(saved);
     }
 
     public void definirPriorite(CommandeItem item, boolean prioritaire) {
@@ -245,14 +263,17 @@ public class CommandeService {
             if (ingredient == null) {
                 continue;
             }
-            BigDecimal currentStock = ingredient.getQuantiteStock() != null ? ingredient.getQuantiteStock() : BigDecimal.ZERO;
+            BigDecimal currentStock = ingredient.getQuantiteStock() != null ? ingredient.getQuantiteStock()
+                    : BigDecimal.ZERO;
             BigDecimal rawNouveauStock = currentStock.subtract(entry.getValue());
             boolean stockNegatif = rawNouveauStock.compareTo(BigDecimal.ZERO) < 0;
             BigDecimal nouveauStock = rawNouveauStock.max(BigDecimal.ZERO);
             ingredient.setQuantiteStock(nouveauStock);
             ingredient.setUpdatedAt(timeService.now());
             ingredientRepository.save(ingredient);
-            if (ingredient.getSeuilAlerte() != null && (nouveauStock.compareTo(ingredient.getSeuilAlerte()) <= 0 || stockNegatif) && messagingTemplate != null) {
+            if (ingredient.getSeuilAlerte() != null
+                    && (nouveauStock.compareTo(ingredient.getSeuilAlerte()) <= 0 || stockNegatif)
+                    && messagingTemplate != null) {
                 try {
                     messagingTemplate.convertAndSend("/topic/stock/alerte",
                             new StockAlerteEvent(
@@ -281,7 +302,8 @@ public class CommandeService {
             if (ingredient == null) {
                 continue;
             }
-            BigDecimal currentStock = ingredient.getQuantiteStock() != null ? ingredient.getQuantiteStock() : BigDecimal.ZERO;
+            BigDecimal currentStock = ingredient.getQuantiteStock() != null ? ingredient.getQuantiteStock()
+                    : BigDecimal.ZERO;
             BigDecimal nouveauStock = currentStock.add(entry.getValue());
             ingredient.setQuantiteStock(nouveauStock);
             ingredient.setUpdatedAt(timeService.now());
@@ -328,7 +350,8 @@ public class CommandeService {
         }
     }
 
-    private void traiterQuantiteIngredient(Map<Long, BigDecimal> quantites, CommandeItem item, CocktailIngredient ci, BigDecimal mult) {
+    private void traiterQuantiteIngredient(Map<Long, BigDecimal> quantites, CommandeItem item, CocktailIngredient ci,
+            BigDecimal mult) {
         Ingredient ingredient = ci.getIngredient();
         if (ingredient != null && ingredient.getId() != null && ci.getQuantite() != null) {
             BigDecimal qte = ci.getQuantite()
@@ -378,7 +401,7 @@ public class CommandeService {
     /**
      * Transfers an existing order to a new target table.
      *
-     * @param id Identifier of the order to transfer
+     * @param id         Identifier of the order to transfer
      * @param newTableId Identifier of the target table
      * @return Updated order entity
      */
@@ -399,9 +422,10 @@ public class CommandeService {
     }
 
     /**
-     * Modifies an active order's cocktail items, quantities, notes and recalculates order total.
+     * Modifies an active order's cocktail items, quantities, notes and recalculates
+     * order total.
      *
-     * @param id Identifier of the order to modify
+     * @param id      Identifier of the order to modify
      * @param request Update request payload
      * @return Updated order entity
      */
@@ -463,7 +487,8 @@ public class CommandeService {
 
     private CommandeItem createCommandeItemFromDto(Commande commande, ModifierCommandeItemDTO itemDto) {
         Cocktail cocktail = cocktailRepository.findById(itemDto.cocktailId())
-                .orElseThrow(() -> new ResourceNotFoundException("Cocktail not found with id: " + itemDto.cocktailId()));
+                .orElseThrow(
+                        () -> new ResourceNotFoundException("Cocktail not found with id: " + itemDto.cocktailId()));
 
         BigDecimal unitPrice = cocktail.getPrix();
         CocktailVariante variante = null;
@@ -486,11 +511,12 @@ public class CommandeService {
     }
 
     private void notifyOrderUpdated(Commande saved) {
-        if (messagingTemplate != null) {
+        if (messagingTemplate != null && saved != null) {
             try {
-                messagingTemplate.convertAndSend("/topic/commandes", saved);
-                messagingTemplate.convertAndSend("/topic/commandes/statut", saved);
-                messagingTemplate.convertAndSend("/topic/barman/commandes", CommandeResponseDTO.from(saved));
+                CommandeResponseDTO dto = CommandeResponseDTO.from(saved);
+                messagingTemplate.convertAndSend("/topic/commandes", dto);
+                messagingTemplate.convertAndSend("/topic/commandes/statut", dto);
+                messagingTemplate.convertAndSend("/topic/barman/commandes", dto);
             } catch (Exception _) {
                 // Safe handling of WebSocket delivery
             }

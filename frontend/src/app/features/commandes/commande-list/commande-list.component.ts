@@ -20,6 +20,8 @@ import { CurrencyPipe, DatePipe } from '@angular/common';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { CommandeService } from '../../../core/services/commande.service';
 import { Commande, CommandeStatut } from '../../../core/models/commande.model';
+import { NotificationService } from '../../../core/services/notification.service';
+import { WebSocketService } from '../../../core/services/websocket.service';
 import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
 
 import { CommandeCardComponent } from '../commande-card/commande-card.component';
@@ -80,6 +82,8 @@ export class CommandeListComponent implements OnInit, OnDestroy {
     private readonly store: Store,
     private readonly router: Router,
     private readonly commandeService: CommandeService,
+    private readonly notificationService: NotificationService,
+    private readonly wsService: WebSocketService,
     private readonly toastCtrl: ToastController,
     private readonly modalCtrl: ModalController,
   ) {
@@ -93,6 +97,32 @@ export class CommandeListComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.charger();
+
+    this.notificationService
+      .onNotification()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(notif => {
+        if (notif.type === 'commande' || notif.type === 'statut') {
+          this.charger();
+        }
+      });
+
+    this.wsService
+      .watch('/topic/barman/commandes')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(msg => {
+        try {
+          const commande = JSON.parse(msg.body);
+          if (commande.statut === 'ANNULEE') {
+            this.commandes = this.commandes.filter(c => c.id !== commande.id);
+            this.appliquerFiltre();
+          } else {
+            this.charger();
+          }
+        } catch {
+          this.charger();
+        }
+      });
   }
 
   ngOnDestroy(): void {

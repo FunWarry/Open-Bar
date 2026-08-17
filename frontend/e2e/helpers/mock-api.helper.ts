@@ -156,7 +156,38 @@ export async function setupMockApi(page: Page): Promise<void> {
     });
   });
 
+  await page.route('**/api/commandes/*/items', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        id: 1,
+        tableId: 1,
+        statut: 'EN_ATTENTE',
+        items: [],
+      }),
+    });
+  });
+
   await page.route('**/api/commandes**', async (route) => {
+    if (route.request().method() === 'POST') {
+      const body = route.request().postDataJSON();
+      await route.fulfill({
+        status: 201,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 101,
+          tableId: body?.tableId || 1,
+          tableNumero: 1,
+          statut: 'EN_ATTENTE',
+          items: [],
+          total: 8.5,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        }),
+      });
+      return;
+    }
     await route.fulfill({
       status: 200,
       contentType: 'application/json',

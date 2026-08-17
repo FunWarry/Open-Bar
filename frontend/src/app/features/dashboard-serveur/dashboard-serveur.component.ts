@@ -5,8 +5,8 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
-import { Subject, forkJoin } from 'rxjs';
-import { catchError, finalize, takeUntil } from 'rxjs/operators';
+import { Subject, forkJoin, of } from 'rxjs';
+import { catchError, finalize, map, switchMap, takeUntil } from 'rxjs/operators';
 import Konva from 'konva';
 import {
   IonContent, IonHeader, IonToolbar,
@@ -34,6 +34,7 @@ import { fastModalEnterAnimation, fastModalLeaveAnimation } from '../../core/uti
 import { TableView } from './models/table-view.model';
 import { TablePosition, ZoneArea } from '../plan-salle/models/table-position.model';
 import { PlanSalleService } from '../plan-salle/services/plan-salle.service';
+import { AjouterItemRequest } from '../../core/models/commande.model';
 
 import { Store } from '@ngrx/store';
 import { selectCurrentUser } from '../../core/store/auth.selectors';
@@ -66,7 +67,7 @@ export interface GroupedTables {
   occupiedCount: number;
 }
 
-import { TranslocoModule } from '@jsverse/transloco';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { CommandeListComponent } from '../commandes/commande-list/commande-list.component';
 
 /**
@@ -129,6 +130,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
   ];
 
   cart: CartModel = { tableId: null, items: [] };
+  isSubmitting = false;
 
   products: ProductItem[] = [
     {
@@ -183,6 +185,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
     private readonly router: Router,
     private readonly route: ActivatedRoute,
     private readonly notificationService: NotificationService,
+    private readonly translocoService: TranslocoService,
     private readonly ngZone: NgZone,
     private readonly cdr: ChangeDetectorRef,
   ) {
@@ -280,6 +283,11 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
             image: c.imageUrl,
             stockStatus: c.disponible ? 'NORMAL' : 'CRITIQUE',
             ingredients: c.ingredients,
+            variantes: c.variantes ? c.variantes.map(v => ({
+              id: v.id,
+              nom: v.nom,
+              prix: Number((c.prix + (v.prixSupplement || 0)).toFixed(2)),
+            })) : [],
           }));
         }
 
@@ -1119,6 +1127,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
     });
     await modal.present();
     const { data } = await modal.onWillDismiss();
+    this.chargerTables();
     if (data?.action === 'liberer') {
       this.onLiberer(data.tableId);
     } else if (data?.action === 'encaisser') {
@@ -1268,7 +1277,14 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
       await modal.present();
       const { data, role } = await modal.onWillDismiss();
       if (role === 'confirm' && data?.selectedVariant) {
-        this.pushItemToCart(product, data.selectedVariant.nom, data.selectedVariant.prix);
+        this.pushItemToCart(
+          product,
+          data.selectedVariant.nom,
+          data.selectedVariant.prix,
+          undefined,
+          undefined,
+          data.selectedVariant.id,
+        );
       }
       return;
     }
@@ -1277,6 +1293,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
 
   async onCustomizeProduct(product: ProductItem) {
     let varianteNom: string | undefined;
+    let varianteId: number | undefined;
     let prix = product.prix;
 
     if (product.variantes && product.variantes.length > 0) {
@@ -1288,6 +1305,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
       const { data: vData, role: vRole } = await vModal.onWillDismiss();
       if (vRole !== 'confirm' || !vData?.selectedVariant) return;
       varianteNom = vData.selectedVariant.nom;
+      varianteId = vData.selectedVariant.id;
       prix = vData.selectedVariant.prix;
     }
 
@@ -1298,7 +1316,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
     await cModal.present();
     const { data: cData, role: cRole } = await cModal.onWillDismiss();
     if (cRole === 'confirm' && cData) {
-      this.pushItemToCart(product, varianteNom, prix, cData.commentaire, cData.exclusions);
+      this.pushItemToCart(product, varianteNom, prix, cData.commentaire, cData.exclusions, varianteId);
     }
   }
 
@@ -1329,11 +1347,19 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
     }
   }
 
-  private pushItemToCart(product: ProductItem, varianteNom?: string, prix?: number, commentaire?: string, exclusions?: string[]) {
+  private pushItemToCart(
+    product: ProductItem,
+    varianteNom?: string,
+    prix?: number,
+    commentaire?: string,
+    exclusions?: string[],
+    varianteId?: number,
+  ) {
     const itemPrice = prix ?? product.prix;
     const existing = this.cart.items.find(i =>
       i.boissonId === product.id &&
       i.varianteNom === varianteNom &&
+      i.varianteId === varianteId &&
       i.commentaire === commentaire &&
       JSON.stringify(i.exclusions || []) === JSON.stringify(exclusions || [])
     );
@@ -1347,6 +1373,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
         prix: itemPrice,
         quantite: 1,
         typeBoisson: product.categorie,
+        varianteId,
         varianteNom,
         commentaire,
         exclusions,
@@ -1372,7 +1399,8 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
     this.cart.tableId = tableId;
     const found = this.tables.find(t => t.id === tableId);
     if (found) {
-      this.cart.tableNumero = found.id;
+      const match = /\d+/.exec(found.nom);
+      this.cart.tableNumero = match ? Number.parseInt(match[0], 10) : found.id;
     }
     this.cart = { ...this.cart };
   }
@@ -1383,16 +1411,82 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
   }
 
   async onSubmitCart() {
-    if (!this.cart.tableId || this.cart.items.length === 0) return;
+    if (!this.cart.tableId || this.cart.items.length === 0 || this.isSubmitting) return;
 
-    const toast = await this.toastCtrl.create({
-      message: `Commande envoyée pour la Table #${this.cart.tableId}`,
-      duration: 2500,
-      color: 'success',
-    });
-    await toast.present();
+    this.isSubmitting = true;
+    this.cdr.detectChanges();
 
-    this.cart = { tableId: null, items: [] };
+    const targetTableId = this.cart.tableId;
+    const targetTableNumero = this.cart.tableNumero ?? targetTableId;
+    const itemsToSubmit = [...this.cart.items];
+    const generalNote = this.cart.noteGenerale;
+
+    this.service.createCommande({ tableId: targetTableId, notes: generalNote })
+      .pipe(
+        takeUntil(this.destroy$),
+        switchMap(commande => {
+          const itemObservables = itemsToSubmit.map(item => {
+            const notesArray: string[] = [];
+            if (item.commentaire?.trim()) {
+              notesArray.push(item.commentaire.trim());
+            }
+            if (item.exclusions && item.exclusions.length > 0) {
+              notesArray.push(`Sans: ${item.exclusions.join(', ')}`);
+            }
+            if (item.notes?.trim()) {
+              notesArray.push(item.notes.trim());
+            }
+            const fullNotes = notesArray.length > 0 ? notesArray.join(' | ') : undefined;
+
+            const req: AjouterItemRequest = {
+              cocktailId: item.boissonId,
+              quantite: item.quantite,
+              prixUnitaire: item.prix,
+              varianteId: item.varianteId,
+              notes: fullNotes,
+            };
+            return this.service.ajouterItem(commande.id, req);
+          });
+
+          return (itemObservables.length > 0 ? forkJoin(itemObservables) : of([])).pipe(
+            map(() => commande),
+          );
+        }),
+        finalize(() => {
+          this.isSubmitting = false;
+          this.cdr.detectChanges();
+        }),
+      )
+      .subscribe({
+        next: async () => {
+          const message = this.translocoService.translate('SERVEUR.ORDER_SENT_SUCCESS', {
+            table: targetTableNumero,
+          }) || `Commande envoyée pour la Table #${targetTableNumero}`;
+
+          const toast = await this.toastCtrl.create({
+            message,
+            duration: 2500,
+            color: 'success',
+          });
+          await toast.present();
+
+          this.cart = { tableId: null, items: [] };
+          this.chargerTables();
+        },
+        error: async (err) => {
+          console.error('[DashboardServeur] Error submitting cart order:', err);
+          const errorMsg = this.translocoService.translate('SERVEUR.ORDER_CREATION_ERROR')
+            || this.translocoService.translate('ERRORS.SERVER')
+            || 'Erreur lors de l\'envoi de la commande';
+
+          const toast = await this.toastCtrl.create({
+            message: errorMsg,
+            duration: 3000,
+            color: 'danger',
+          });
+          await toast.present();
+        },
+      });
   }
 
   onClearCart() {

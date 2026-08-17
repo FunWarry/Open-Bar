@@ -47,39 +47,9 @@ export class NotificationService implements OnDestroy {
   }
 
   private initSubscriptions(): void {
-    // New order
-    this.ws.watch('/topic/commandes')
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(msg => {
-        try {
-          const data = JSON.parse(msg.body);
-          this.emit({
-            type: 'commande',
-            message: `New order — Table ${data.tableNom ?? data.table?.nom ?? '#'}`,
-            severity: 'primary',
-            data,
-          });
-        } catch {
-          // malformed message — ignore
-        }
-      });
-
-    // Order status update (generic topic)
-    this.ws.watch('/topic/commandes/statut')
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(msg => {
-        try {
-          const data = JSON.parse(msg.body);
-          this.emit({
-            type: 'statut',
-            message: `Order #${data.id} — ${data.statut ?? 'status updated'}`,
-            severity: 'success',
-            data,
-          });
-        } catch {
-          // malformed message — ignore
-        }
-      });
+    this.subscribeToTopic('/topic/commandes', 'commande', 'primary', d => `New order — Table ${d.tableNom ?? d.table?.nom ?? '#'}`);
+    this.subscribeToTopic('/topic/commandes/statut', 'statut', 'success', d => `Order #${d.id} — ${d.statut ?? 'status updated'}`);
+    this.subscribeToTopic('/topic/barman/commandes', 'commande', 'primary', d => `Order #${d.id} — ${d.statut ?? 'updated'}`);
 
     // Stock alert
     this.ws.watch('/topic/stock/alerte')
@@ -157,6 +127,29 @@ export class NotificationService implements OnDestroy {
       buttons: [{ text: '×', role: 'cancel' }],
     });
     await toast.present();
+  }
+
+  private subscribeToTopic(
+    topic: string,
+    type: 'commande' | 'statut',
+    severity: 'primary' | 'success',
+    getMessage: (d: any) => string,
+  ): void {
+    this.ws.watch(topic)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(msg => {
+        try {
+          const data = JSON.parse(msg.body);
+          this.emit({
+            type,
+            message: getMessage(data),
+            severity,
+            data,
+          });
+        } catch {
+          // malformed message — ignore
+        }
+      });
   }
 
   onNotification(): Observable<AppNotification> {

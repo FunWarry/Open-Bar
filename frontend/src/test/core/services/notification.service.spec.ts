@@ -111,6 +111,19 @@ describe('NotificationService', () => {
     expect(received[0].severity).toBe('success');
   }));
 
+  it('onNotification() emits notification when /topic/barman/commandes receives message', fakeAsync(() => {
+    const received: AppNotification[] = [];
+    service.onNotification().subscribe(n => received.push(n));
+
+    wsStub.emit('/topic/barman/commandes', { id: 18, statut: 'ANNULEE' });
+    tick();
+
+    expect(received).toHaveSize(1);
+    expect(received[0].type).toBe('commande');
+    expect(received[0].message).toContain('18');
+    expect(received[0].message).toContain('ANNULEE');
+  }));
+
   it('onNotification() emits notification when /topic/tables receives message', fakeAsync(() => {
     const received: AppNotification[] = [];
     service.onNotification().subscribe(n => received.push(n));

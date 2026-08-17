@@ -22,6 +22,7 @@ import { PlanSalleService } from '../../../app/features/plan-salle/services/plan
 import { provideMockStore } from '@ngrx/store/testing';
 
 import { provideIonicAngular } from '@ionic/angular/standalone';
+import { Commande } from '../../../app/core/models/commande.model';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 
 describe('DashboardServeurComponent', () => {
@@ -54,12 +55,16 @@ describe('DashboardServeurComponent', () => {
       'getEtages',
       'getZones',
       'getPlanSallePositions',
+      'createCommande',
+      'ajouterItem',
     ]);
     dashboardServiceSpy.getAllTables.and.returnValue(of(mockTables));
     dashboardServiceSpy.libererTable.and.returnValue(of({} as any));
     dashboardServiceSpy.getEtages.and.returnValue(of([]));
     dashboardServiceSpy.getZones.and.returnValue(of([]));
     dashboardServiceSpy.getPlanSallePositions.and.returnValue(of([]));
+    dashboardServiceSpy.createCommande.and.returnValue(of({ id: 10, tableId: 1 } as any));
+    dashboardServiceSpy.ajouterItem.and.returnValue(of({ id: 10 } as any));
 
     zoneServiceSpy = jasmine.createSpyObj('ZoneService', ['getAll']);
     zoneServiceSpy.getAll.and.returnValue(of([]));
@@ -408,5 +413,204 @@ describe('DashboardServeurComponent', () => {
 
   it('ngOnDestroy unsubs from observables', () => {
     expect(() => component.ngOnDestroy()).not.toThrow();
+  });
+
+  describe('Cart and Order Submission', () => {
+    it('should select table for order and extract table number', () => {
+      component.tables = mockTables;
+      component.onTableSelectForOrder(1);
+      expect(component.cart.tableId).toBe(1);
+      expect(component.cart.tableNumero).toBe(1);
+    });
+
+    it('should add item to cart and increment quantity when added multiple times', () => {
+      const product = { id: 10, nom: 'Mojito', prix: 8.5, categorie: 'COCKTAIL' };
+      component.cart = { tableId: 1, items: [] };
+
+      (component as any).pushItemToCart(product, undefined, 8.5);
+      expect(component.cart.items).toHaveSize(1);
+      expect(component.cart.items[0].quantite).toBe(1);
+
+      (component as any).pushItemToCart(product, undefined, 8.5);
+      expect(component.cart.items).toHaveSize(1);
+      expect(component.cart.items[0].quantite).toBe(2);
+    });
+
+    it('should submit order to backend, display success toast, refresh tables, and clear cart', fakeAsync(() => {
+      spyOn(component, 'chargerTables').and.callThrough();
+      component.cart = {
+        tableId: 1,
+        tableNumero: 1,
+        items: [
+          { boissonId: 10, nom: 'Mojito', prix: 8.5, quantite: 2, commentaire: 'Sans sucre', exclusions: ['Gluten'] },
+        ],
+      };
+
+      component.onSubmitCart();
+      tick();
+
+      expect(dashboardServiceSpy.createCommande).toHaveBeenCalledWith({ tableId: 1, notes: undefined });
+      expect(dashboardServiceSpy.ajouterItem).toHaveBeenCalledWith(10, {
+        cocktailId: 10,
+        quantite: 2,
+        prixUnitaire: 8.5,
+        varianteId: undefined,
+        notes: 'Sans sucre | Sans: Gluten',
+      });
+      expect(toastCtrlSpy.create).toHaveBeenCalled();
+      expect(component.cart.items).toHaveSize(0);
+      expect(component.cart.tableId).toBeNull();
+      expect(component.chargerTables).toHaveBeenCalled();
+      expect(component.isSubmitting).toBeFalse();
+    }));
+
+    it('should handle backend error on submitCart, show error toast, and keep cart items intact', fakeAsync(() => {
+      dashboardServiceSpy.createCommande.and.returnValue(throwError(() => new Error('Server error')));
+      component.cart = {
+        tableId: 1,
+        tableNumero: 1,
+        items: [{ boissonId: 10, nom: 'Mojito', prix: 8.5, quantite: 1 }],
+      };
+
+      component.onSubmitCart();
+      tick();
+
+      expect(toastCtrlSpy.create).toHaveBeenCalled();
+      expect(component.cart.items).toHaveSize(1);
+      expect(component.isSubmitting).toBeFalse();
+    }));
+
+    it('should not submit cart when cart is empty or missing tableId or isSubmitting', () => {
+      dashboardServiceSpy.createCommande.calls.reset();
+
+      // Missing tableId
+      component.cart = { tableId: null, items: [{ boissonId: 10, nom: 'Mojito', prix: 8.5, quantite: 1 }] };
+      component.onSubmitCart();
+      expect(dashboardServiceSpy.createCommande).not.toHaveBeenCalled();
+
+      // Empty items
+      component.cart = { tableId: 1, items: [] };
+      component.onSubmitCart();
+      expect(dashboardServiceSpy.createCommande).not.toHaveBeenCalled();
+
+      // isSubmitting = true
+      component.isSubmitting = true;
+      component.cart = { tableId: 1, items: [{ boissonId: 10, nom: 'Mojito', prix: 8.5, quantite: 1 }] };
+      component.onSubmitCart();
+      expect(dashboardServiceSpy.createCommande).not.toHaveBeenCalled();
+    });
+
+    it('should clear cart on onClearCart', () => {
+      component.cart = { tableId: 1, items: [{ boissonId: 10, nom: 'Mojito', prix: 8.5, quantite: 1 }] };
+      component.onClearCart();
+      expect(component.cart.items).toEqual([]);
+      expect(component.cart.tableId).toBeNull();
+    });
+
+    it('should remove item from cart on onCartItemRemoved', () => {
+      component.cart = {
+        tableId: 1,
+        items: [
+          { boissonId: 10, nom: 'Mojito', prix: 8.5, quantite: 1 },
+          { boissonId: 20, nom: 'Bière', prix: 5.0, quantite: 2 },
+        ],
+      };
+      component.onCartItemRemoved(component.cart.items[0]);
+      expect(component.cart.items).toHaveSize(1);
+      expect(component.cart.items[0].boissonId).toBe(20);
+    });
+
+    it('should set table and change activeTab to commande on onNewOrderForTable', () => {
+      const table: TableView = { id: 5, nom: 'Table 5', capacite: 4, occupee: true, zone: 'Terrasse', commandesActives: [] };
+      component.onNewOrderForTable(table);
+      expect(component.cart.tableId).toBe(5);
+      expect(component.activeTab).toBe('commande');
+    });
+
+    it('should submit cart without item notes when item has no comments or exclusions', fakeAsync(() => {
+      const mockCreated: Commande = {
+        id: 12,
+        tableId: 2,
+        tableNumero: 2,
+        serveurId: 1,
+        serveurUsername: 'serveur',
+        statut: 'EN_ATTENTE',
+        items: [],
+        total: 10.0,
+        dateCommande: '2026-08-17T12:00:00Z',
+        createdAt: '2026-08-17T12:00:00Z',
+        updatedAt: '2026-08-17T12:00:00Z',
+      };
+      dashboardServiceSpy.createCommande.and.returnValue(of(mockCreated));
+      dashboardServiceSpy.ajouterItem.and.returnValue(of(mockCreated));
+
+      component.cart = {
+        tableId: 2,
+        tableNumero: 2,
+        noteGenerale: 'Note table',
+        items: [{ boissonId: 20, nom: 'Gin Tonic', prix: 10.0, quantite: 1 }],
+      };
+
+      component.onSubmitCart();
+      tick();
+
+      expect(dashboardServiceSpy.createCommande).toHaveBeenCalledWith({ tableId: 2, notes: 'Note table' });
+      expect(dashboardServiceSpy.ajouterItem).toHaveBeenCalledWith(12, {
+        cocktailId: 20,
+        quantite: 1,
+        prixUnitaire: 10.0,
+        varianteId: undefined,
+        notes: undefined,
+      });
+      expect(component.cart.items).toHaveSize(0);
+    }));
+
+    it('onSubmitCart presents a danger toast on error', fakeAsync(() => {
+      component.cart = {
+        tableId: 2,
+        items: [{ boissonId: 20, nom: 'Gin Tonic', prix: 10.0, quantite: 1 }],
+      };
+      dashboardServiceSpy.createCommande.and.returnValue(throwError(() => new Error('Server error')));
+
+      component.onSubmitCart();
+      tick();
+
+      expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
+    }));
+
+    it('onSelectionner triggers onLiberer when modal dismisses with action liberer', fakeAsync(() => {
+      const mockModalDismiss = {
+        present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+        onWillDismiss: () => Promise.resolve({ data: { action: 'liberer', tableId: 2 } }),
+      };
+      modalCtrlSpy.create.and.returnValue(Promise.resolve(mockModalDismiss as any));
+      spyOn(component, 'onLiberer');
+
+      component.onSelectionner(mockTables[0]);
+      tick();
+
+      expect(component.onLiberer).toHaveBeenCalledWith(2);
+    }));
+
+    it('onSelectionner triggers ouvrirEncaissement when modal dismisses with action encaisser', fakeAsync(() => {
+      const mockModalDismiss = {
+        present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+        onWillDismiss: () => Promise.resolve({ data: { action: 'encaisser', table: mockTables[0] } }),
+      };
+      modalCtrlSpy.create.and.returnValue(Promise.resolve(mockModalDismiss as any));
+      spyOn(component, 'ouvrirEncaissement');
+
+      component.onSelectionner(mockTables[0]);
+      tick();
+
+      expect(component.ouvrirEncaissement).toHaveBeenCalledWith(mockTables[0]);
+    }));
+
+    it('chargerTables shows toast on error', fakeAsync(() => {
+      dashboardServiceSpy.getAllTables.and.returnValue(throwError(() => new Error('Failed')));
+      component.chargerTables();
+      tick();
+      expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
+    }));
   });
 });

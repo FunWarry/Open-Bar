@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, forkJoin } from 'rxjs';
@@ -49,6 +49,7 @@ import { RupturesModalComponent } from './components/ruptures-modal/ruptures-mod
 import { BarTicketPrintComponent } from './components/bar-ticket-print/bar-ticket-print.component';
 import { RecipeSidePanelComponent } from './components/recipe-side-panel/recipe-side-panel.component';
 import { Cocktail } from '../../core/models/cocktail.model';
+import { WebSocketService } from '../../core/services/websocket.service';
 
 /**
  * Dashboard Barman Component managing the real-time preparation Kanban board.
@@ -110,6 +111,8 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
   private readonly settingsService = inject(AppSettingsService);
   private readonly soundService = inject(SoundService);
   private readonly transloco = inject(TranslocoService);
+  private readonly cdr = inject(ChangeDetectorRef);
+  private readonly wsService = inject(WebSocketService);
 
   constructor() {
     addIcons({
@@ -202,9 +205,47 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(notif => {
         if (notif.type === 'commande') {
-          this.soundService.playNewOrderSound();
-          this.chargerCommandes();
+          const commande = notif.data;
+          if (commande && (commande.statut === 'ANNULEE' || commande.statut === 'REGLEE' || commande.statut === 'LIVREE')) {
+            const id = Number(commande.id);
+            this.commandesEnAttente = this.commandesEnAttente.filter(c => c.id !== id);
+            this.commandesEnPreparation = this.commandesEnPreparation.filter(c => c.id !== id);
+            this.commandesPret = this.commandesPret.filter(c => c.id !== id);
+            this.cdr.detectChanges();
+          } else {
+            this.soundService.playNewOrderSound();
+            this.chargerCommandes();
+          }
         } else if (notif.type === 'statut') {
+          const commande = notif.data;
+          if (commande && (commande.statut === 'ANNULEE' || commande.statut === 'REGLEE' || commande.statut === 'LIVREE')) {
+            const id = Number(commande.id);
+            this.commandesEnAttente = this.commandesEnAttente.filter(c => c.id !== id);
+            this.commandesEnPreparation = this.commandesEnPreparation.filter(c => c.id !== id);
+            this.commandesPret = this.commandesPret.filter(c => c.id !== id);
+            this.cdr.detectChanges();
+          } else {
+            this.chargerCommandes();
+          }
+        }
+      });
+
+    this.wsService
+      .watch('/topic/barman/commandes')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(msg => {
+        try {
+          const commande = JSON.parse(msg.body);
+          if (commande.statut === 'ANNULEE' || commande.statut === 'REGLEE' || commande.statut === 'LIVREE') {
+            const id = Number(commande.id);
+            this.commandesEnAttente = this.commandesEnAttente.filter(c => c.id !== id);
+            this.commandesEnPreparation = this.commandesEnPreparation.filter(c => c.id !== id);
+            this.commandesPret = this.commandesPret.filter(c => c.id !== id);
+            this.cdr.detectChanges();
+          } else {
+            this.chargerCommandes();
+          }
+        } catch {
           this.chargerCommandes();
         }
       });
@@ -228,13 +269,14 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
       .subscribe({
         next: ({ enAttente, enPreparation, pret }) => {
           const previousCount = this.commandesEnAttente.length;
-          this.commandesEnAttente = enAttente;
-          this.commandesEnPreparation = enPreparation;
-          this.commandesPret = pret;
+          this.commandesEnAttente = (enAttente || []).filter(c => c.statut === 'EN_ATTENTE' && c.items && c.items.length > 0);
+          this.commandesEnPreparation = (enPreparation || []).filter(c => c.statut === 'EN_PREPARATION' && c.items && c.items.length > 0);
+          this.commandesPret = (pret || []).filter(c => c.statut === 'PRET' && c.items && c.items.length > 0);
 
           if (enAttente.length > previousCount && previousCount > 0) {
             this.soundService.playNewOrderSound();
           }
+          this.cdr.detectChanges();
         },
         error: async () => {
           const toast = await this.toastCtrl.create({

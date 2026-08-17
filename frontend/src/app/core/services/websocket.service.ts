@@ -45,12 +45,14 @@ export class WebSocketService {
   connect(): void {
     if (this.rxStomp.active) return;
 
+    const token = this.authService.getToken();
     this.rxStomp.configure({
       brokerURL: environment.wsUrl,
+      connectHeaders: token ? { Authorization: `Bearer ${token}` } : {},
       beforeConnect: () => {
-        const token = this.authService.getToken();
-        this.rxStomp.stompClient.connectHeaders = token
-          ? { Authorization: `Bearer ${token}` }
+        const currentToken = this.authService.getToken();
+        this.rxStomp.stompClient.connectHeaders = currentToken
+          ? { Authorization: `Bearer ${currentToken}` }
           : {};
       },
       reconnectDelay: 5000,

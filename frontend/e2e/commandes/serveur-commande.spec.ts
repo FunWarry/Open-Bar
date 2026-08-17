@@ -22,4 +22,29 @@ test.describe('Serveur Order Creation E2E Flow', () => {
     await page.goto('/commandes');
     await expect(page.locator('ion-content, body').first()).toBeVisible();
   });
+
+  test('should allow creating an order via cart drawer on server dashboard', async ({ page }) => {
+    await page.goto('/serveur?tab=commande&tableId=1');
+    await page.waitForLoadState('networkidle');
+
+    // Verify cart drawer is visible
+    await expect(page.locator('app-cart-drawer')).toBeVisible();
+
+    // Click to add a product
+    const productCard = page.locator('app-product-card').first();
+    if (await productCard.isVisible()) {
+      await productCard.click();
+
+      // If variant selection modal appears, select the first variant
+      const variantBtn = page.locator('.variant-card-btn').first();
+      if (await variantBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await variantBtn.click();
+      }
+
+      // Verify item appears in cart
+      await expect(page.locator('[data-testid="cart-item-0"]')).toBeVisible({ timeout: 5000 });
+      // Submit cart order to bar
+      await page.click('[data-testid="btn-submit-cart"]');
+    }
+  });
 });

@@ -12,6 +12,7 @@ import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { DashboardServeurService } from '../services/dashboard-serveur.service';
 import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
 import { NotificationService } from '../../../core/services/notification.service';
+import { WebSocketService } from '../../../core/services/websocket.service';
 import { Commande, CommandeStatut } from '../../../core/models/commande.model';
 import { TableView } from '../models/table-view.model';
 import { groupCommandeItems } from '../../../core/utils/order-item-grouper';
@@ -68,6 +69,7 @@ export class KanbanServeurComponent implements OnInit, OnDestroy {
     private readonly toastCtrl: ToastController,
     private readonly modalCtrl: ModalController,
     private readonly notificationService: NotificationService,
+    private readonly wsService: WebSocketService,
     private readonly transloco: TranslocoService,
   ) {
     addIcons({ checkmarkOutline, banOutline, timeOutline, flameOutline, funnelOutline, checkmarkCircleOutline, cardOutline });
@@ -79,7 +81,33 @@ export class KanbanServeurComponent implements OnInit, OnDestroy {
     this.notificationService.onNotification()
       .pipe(takeUntil(this.destroy$))
       .subscribe(notif => {
-        if (notif.type === 'commande' || notif.type === 'statut') {
+        const commande = notif.data;
+        if (commande && (commande.statut === 'ANNULEE' || commande.statut === 'REGLEE')) {
+          const id = Number(commande.id);
+          this.allCommandes.forEach((cmds, statut) => {
+            this.allCommandes.set(statut, cmds.filter(c => c.id !== id));
+          });
+          this.applyFilter();
+        } else if (notif.type === 'commande' || notif.type === 'statut') {
+          this.charger();
+        }
+      });
+
+    this.wsService.watch('/topic/barman/commandes')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(msg => {
+        try {
+          const commande = JSON.parse(msg.body);
+          if (commande.statut === 'ANNULEE' || commande.statut === 'REGLEE') {
+            const id = Number(commande.id);
+            this.allCommandes.forEach((cmds, statut) => {
+              this.allCommandes.set(statut, cmds.filter(c => c.id !== id));
+            });
+            this.applyFilter();
+          } else {
+            this.charger();
+          }
+        } catch {
           this.charger();
         }
       });

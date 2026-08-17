@@ -35,17 +35,27 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class CommandeServiceTest {
 
-    @Mock CommandeRepository commandeRepository;
-    @Mock CommandeItemRepository commandeItemRepository;
-    @Mock IngredientRepository ingredientRepository;
-    @Mock CocktailRepository cocktailRepository;
-    @Mock CocktailVarianteRepository cocktailVarianteRepository;
-    @Mock CocktailIngredientRepository cocktailIngredientRepository;
-    @Mock TableRepository tableRepository;
-    @Mock SimpMessagingTemplate messagingTemplate;
-    @Spy TimeService timeService = new TimeService(null);
+    @Mock
+    CommandeRepository commandeRepository;
+    @Mock
+    CommandeItemRepository commandeItemRepository;
+    @Mock
+    IngredientRepository ingredientRepository;
+    @Mock
+    CocktailRepository cocktailRepository;
+    @Mock
+    CocktailVarianteRepository cocktailVarianteRepository;
+    @Mock
+    CocktailIngredientRepository cocktailIngredientRepository;
+    @Mock
+    TableRepository tableRepository;
+    @Mock
+    SimpMessagingTemplate messagingTemplate;
+    @Spy
+    TimeService timeService = new TimeService(null);
 
-    @InjectMocks CommandeService commandeService;
+    @InjectMocks
+    CommandeService commandeService;
 
     private Ingredient ingredient;
     private CocktailIngredient cocktailIngredient;
@@ -182,8 +192,7 @@ class CommandeServiceTest {
         when(commandeRepository.findById(1L)).thenReturn(Optional.of(commande));
 
         org.junit.jupiter.api.Assertions.assertDoesNotThrow(
-            () -> commandeService.changerStatut(1L, CommandeStatut.EN_PREPARATION)
-        );
+                () -> commandeService.changerStatut(1L, CommandeStatut.EN_PREPARATION));
         verify(messagingTemplate, never()).convertAndSend(anyString(), any(StockAlerteEvent.class));
     }
 
@@ -191,11 +200,11 @@ class CommandeServiceTest {
     void destockage_messagingTemplateException_handledSafely() {
         ingredient.setQuantiteStock(new BigDecimal("25.00"));
         when(commandeRepository.findById(1L)).thenReturn(Optional.of(commande));
-        doThrow(new RuntimeException("WebSocket down")).when(messagingTemplate).convertAndSend(anyString(), any(StockAlerteEvent.class));
+        doThrow(new RuntimeException("WebSocket down")).when(messagingTemplate).convertAndSend(anyString(),
+                any(StockAlerteEvent.class));
 
         org.junit.jupiter.api.Assertions.assertDoesNotThrow(
-            () -> commandeService.changerStatut(1L, CommandeStatut.EN_PREPARATION)
-        );
+                () -> commandeService.changerStatut(1L, CommandeStatut.EN_PREPARATION));
     }
 
     @Test
@@ -204,8 +213,7 @@ class CommandeServiceTest {
         when(commandeRepository.findById(1L)).thenReturn(Optional.of(commande));
 
         org.junit.jupiter.api.Assertions.assertDoesNotThrow(
-                () -> commandeService.changerStatut(1L, CommandeStatut.EN_PREPARATION)
-        );
+                () -> commandeService.changerStatut(1L, CommandeStatut.EN_PREPARATION));
         verify(ingredientRepository).save(any(Ingredient.class));
     }
 
@@ -219,8 +227,7 @@ class CommandeServiceTest {
         when(commandeRepository.findById(1L)).thenReturn(Optional.of(commande));
 
         org.junit.jupiter.api.Assertions.assertDoesNotThrow(
-                () -> commandeService.changerStatut(1L, CommandeStatut.EN_PREPARATION)
-        );
+                () -> commandeService.changerStatut(1L, CommandeStatut.EN_PREPARATION));
     }
 
     // ─── Stock replenishment on cancellation & variants ───────────────────────
@@ -419,7 +426,8 @@ class CommandeServiceTest {
         when(cocktailVarianteRepository.findById(20L)).thenReturn(Optional.of(mockVariante));
 
         var itemDto = new com.bar.gestioncocktail.dto.ModifierCommandeItemDTO(null, 10L, 20L, 2, "Sans paille", true);
-        var request = new com.bar.gestioncocktail.dto.ModifierCommandeRequestDTO(List.of(itemDto), "Table VIP", new BigDecimal("3.00"));
+        var request = new com.bar.gestioncocktail.dto.ModifierCommandeRequestDTO(List.of(itemDto), "Table VIP",
+                new BigDecimal("3.00"));
 
         Commande updated = commandeService.modifierCommande(1L, request);
 
@@ -431,9 +439,12 @@ class CommandeServiceTest {
         assertThat(updated.getNotes()).isEqualTo("Table VIP");
         assertThat(updated.getPourboire()).isEqualByComparingTo(new BigDecimal("3.00"));
 
-        verify(messagingTemplate).convertAndSend(eq("/topic/commandes"), any(Commande.class));
-        verify(messagingTemplate).convertAndSend(eq("/topic/commandes/statut"), any(Commande.class));
-        verify(messagingTemplate).convertAndSend(eq("/topic/barman/commandes"), any(com.bar.gestioncocktail.dto.CommandeResponseDTO.class));
+        verify(messagingTemplate).convertAndSend(eq("/topic/commandes"),
+                any(com.bar.gestioncocktail.dto.CommandeResponseDTO.class));
+        verify(messagingTemplate).convertAndSend(eq("/topic/commandes/statut"),
+                any(com.bar.gestioncocktail.dto.CommandeResponseDTO.class));
+        verify(messagingTemplate).convertAndSend(eq("/topic/barman/commandes"),
+                any(com.bar.gestioncocktail.dto.CommandeResponseDTO.class));
     }
 
     @Test
@@ -460,5 +471,15 @@ class CommandeServiceTest {
 
         assertThatThrownBy(() -> commandeService.modifierCommande(999L, request))
                 .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("notifyOrderUpdated - handles WebSocket exception gracefully without failing business operation")
+    void notifyOrderUpdated_exception_handledSafely() {
+        org.mockito.Mockito.lenient().doThrow(new RuntimeException("WebSocket down"))
+                .when(messagingTemplate).convertAndSend(anyString(), any(Object.class));
+        when(commandeRepository.save(any(Commande.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        org.junit.jupiter.api.Assertions.assertDoesNotThrow(() -> commandeService.annulerCommande(commande));
     }
 }
