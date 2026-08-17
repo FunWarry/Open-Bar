@@ -1127,6 +1127,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
     });
     await modal.present();
     const { data } = await modal.onWillDismiss();
+    this.chargerTables();
     if (data?.action === 'liberer') {
       this.onLiberer(data.tableId);
     } else if (data?.action === 'encaisser') {
