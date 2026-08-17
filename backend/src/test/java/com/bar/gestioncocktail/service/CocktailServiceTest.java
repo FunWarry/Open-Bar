@@ -3,6 +3,7 @@ package com.bar.gestioncocktail.service;
 import com.bar.gestioncocktail.dto.CocktailRecipeStepRequestDTO;
 import com.bar.gestioncocktail.dto.CocktailRequestDTO;
 import com.bar.gestioncocktail.dto.CocktailResponseDTO;
+import com.bar.gestioncocktail.dto.CocktailVarianteRequestDTO;
 import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.model.*;
 import com.bar.gestioncocktail.repository.CocktailRepository;
@@ -457,5 +458,110 @@ class CocktailServiceTest {
         cocktailService.deleteCocktail(1L);
 
         verify(cocktailRepository).deleteById(1L);
+    }
+
+    @Test
+    @DisplayName("createCocktailFromRequest(DTO) - creates and returns cocktail with glassware, steps, and variantes")
+    void shouldCreateCocktailFromDTO() {
+        Glassware glass = new Glassware();
+        glass.setId(5L);
+        glass.setNom("Verre Tumbler");
+
+        Ingredient rum = new Ingredient();
+        rum.setId(10L);
+        rum.setNom("White Rum");
+
+        RecipeStepTemplate template = new RecipeStepTemplate();
+        template.setId(20L);
+        template.setName("Shake");
+        template.setActionType(RecipeStepActionType.SHAKE);
+
+        when(glasswareRepository.findById(5L)).thenReturn(Optional.of(glass));
+        when(ingredientRepository.findById(10L)).thenReturn(Optional.of(rum));
+        when(templateRepository.findById(20L)).thenReturn(Optional.of(template));
+        when(cocktailRepository.save(any(Cocktail.class))).thenAnswer(i -> {
+            Cocktail c = i.getArgument(0);
+            c.setId(100L);
+            return c;
+        });
+
+        CocktailRecipeStepRequestDTO stepIng = new CocktailRecipeStepRequestDTO(
+            1, RecipeStepType.INGREDIENT, 10L, new BigDecimal("5.0"), "cl", null, null, null, null
+        );
+        CocktailRecipeStepRequestDTO stepTpl = new CocktailRecipeStepRequestDTO(
+            2, RecipeStepType.ACTION_TEMPLATE, null, null, null, 20L, null, null, 15
+        );
+        CocktailVarianteRequestDTO varDto = new CocktailVarianteRequestDTO(
+            null, "Sans Alcool", "Virgin version", BigDecimal.ZERO, BigDecimal.ONE, true, "Use alcohol-free spirit"
+        );
+
+        CocktailRequestDTO request = new CocktailRequestDTO(
+            "Mojito Premium", "Refined mojito", new BigDecimal("12.00"), CocktailCategorie.ALCOOLISE,
+            true, false, null, null, null, null, null, null,
+            List.of(stepIng, stepTpl), 5L, List.of(varDto)
+        );
+
+        CocktailResponseDTO response = cocktailService.createCocktailFromRequest(request);
+
+        assertThat(response).isNotNull();
+        assertThat(response.id()).isEqualTo(100L);
+        assertThat(response.nom()).isEqualTo("Mojito Premium");
+    }
+
+    @Test
+    @DisplayName("updateCocktailFromRequest(id, DTO) - updates cocktail properties, glassware, syncs ingredients and variantes")
+    void shouldUpdateCocktailFromDTO() {
+        Glassware glass = new Glassware();
+        glass.setId(5L);
+        glass.setNom("Coupe Martini");
+
+        Ingredient lime = new Ingredient();
+        lime.setId(11L);
+        lime.setNom("Lime Juice");
+
+        when(cocktailRepository.findById(1L)).thenReturn(Optional.of(cocktail));
+        when(glasswareRepository.findById(5L)).thenReturn(Optional.of(glass));
+        when(ingredientRepository.findById(11L)).thenReturn(Optional.of(lime));
+        when(cocktailRepository.save(any(Cocktail.class))).thenAnswer(i -> i.getArgument(0));
+
+        CocktailRecipeStepRequestDTO stepIng = new CocktailRecipeStepRequestDTO(
+            1, RecipeStepType.INGREDIENT, 11L, new BigDecimal("3.0"), "cl", null, null, null, null
+        );
+        CocktailVarianteRequestDTO varDto = new CocktailVarianteRequestDTO(
+            1L, "Spicy", "With chili rim", new BigDecimal("1.50"), BigDecimal.ONE, true, null
+        );
+
+        CocktailRequestDTO request = new CocktailRequestDTO(
+            "Mojito Updated", "Updated desc", new BigDecimal("10.00"), CocktailCategorie.ALCOOLISE,
+            true, false, null, null, null, null, null, "https://example.com/mojito.jpg",
+            List.of(stepIng), 5L, List.of(varDto)
+        );
+
+        CocktailResponseDTO response = cocktailService.updateCocktailFromRequest(1L, request);
+
+        assertThat(response).isNotNull();
+        assertThat(response.nom()).isEqualTo("Mojito Updated");
+        assertThat(response.imageUrl()).isEqualTo("https://example.com/mojito.jpg");
+    }
+
+    @Test
+    @DisplayName("updateCocktailFromRequest(id, DTO) - clears glassware when glasswareId is null and throws when not found")
+    void shouldHandleNullGlasswareAndNotFound() {
+        when(cocktailRepository.findById(1L)).thenReturn(Optional.of(cocktail));
+        when(cocktailRepository.save(any(Cocktail.class))).thenAnswer(i -> i.getArgument(0));
+
+        CocktailRequestDTO request = new CocktailRequestDTO(
+            "Mojito No Glass", null, new BigDecimal("10.00"), CocktailCategorie.ALCOOLISE,
+            true, false, null, null, null, null, null, null, null, null, null
+        );
+
+        CocktailResponseDTO response = cocktailService.updateCocktailFromRequest(1L, request);
+        assertThat(response).isNotNull();
+        assertThat(cocktail.getGlassware()).isNull();
+
+        when(cocktailRepository.findById(999L)).thenReturn(Optional.empty());
+        assertThatThrownBy(() -> cocktailService.updateCocktailFromRequest(999L, request))
+            .isInstanceOf(ResourceNotFoundException.class)
+            .hasMessageContaining("999");
     }
 }
