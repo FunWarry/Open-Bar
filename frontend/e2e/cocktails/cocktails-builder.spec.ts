@@ -44,6 +44,8 @@ test.describe('Step-by-Step Modular Cocktail Builder & Live Scaling E2E', () => 
     // Add an Action Template Block
     await page.click('[data-testid="btn-add-template-block"]');
     await expect(page.locator('[data-testid="recipe-block-1"]')).toBeVisible();
+    await page.click('[data-testid="select-template-1-trigger"]');
+    await page.locator('[data-testid^="select-template-1-option-"]').first().click();
 
     // Add a Custom Step Block
     await page.click('[data-testid="btn-add-custom-block"]');
