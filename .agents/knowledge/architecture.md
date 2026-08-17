@@ -105,6 +105,7 @@ tables ──< commandes ──< commande_items ──< cocktails
 cocktails ──< cocktail_ingredients ──< ingredients
 cocktails ──< cocktail_recipe_steps ──< recipe_step_templates
                                     └──< ingredients
+cocktails >── glassware                 ← Service glass definition & capacity
 tables ──< factures ──< facture_items
 tables ──< table_sessions              ← Client QR code temporary session
 zones ──< tables                       ← Floor plan polygon coordinates
