@@ -114,7 +114,9 @@ public class CommandeService {
         commande.setUpdatedAt(timeService.now());
         commande.setDateCommande(timeService.now());
         commande.setStatut(CommandeStatut.EN_ATTENTE);
-        return commandeRepository.save(commande);
+        Commande saved = commandeRepository.save(commande);
+        notifyOrderUpdated(saved);
+        return saved;
     }
 
     @Transactional
@@ -133,7 +135,9 @@ public class CommandeService {
             commande.setServeur(commandeDetails.getServeur());
         }
 
-        return commandeRepository.save(commande);
+        Commande saved = commandeRepository.save(commande);
+        notifyOrderUpdated(saved);
+        return saved;
     }
 
     @Transactional
@@ -175,7 +179,9 @@ public class CommandeService {
         commande.setTotal(total);
         commande.setDateModification(timeService.now());
 
-        return commandeRepository.save(commande);
+        Commande saved = commandeRepository.save(commande);
+        notifyOrderUpdated(saved);
+        return saved;
     }
 
     @Transactional
@@ -186,7 +192,9 @@ public class CommandeService {
         commande.getItems().removeIf(item -> item.getId().equals(itemId));
         commande.setDateModification(timeService.now());
 
-        return commandeRepository.save(commande);
+        Commande saved = commandeRepository.save(commande);
+        notifyOrderUpdated(saved);
+        return saved;
     }
 
     @Transactional
@@ -215,7 +223,9 @@ public class CommandeService {
                 break;
         }
 
-        return commandeRepository.save(commande);
+        Commande saved = commandeRepository.save(commande);
+        notifyOrderUpdated(saved);
+        return saved;
     }
 
     @Transactional
@@ -225,7 +235,8 @@ public class CommandeService {
         }
         commande.setStatut(CommandeStatut.ANNULEE);
         commande.setUpdatedAt(timeService.now());
-        commandeRepository.save(commande);
+        Commande saved = commandeRepository.save(commande);
+        notifyOrderUpdated(saved);
     }
 
     public void definirPriorite(CommandeItem item, boolean prioritaire) {

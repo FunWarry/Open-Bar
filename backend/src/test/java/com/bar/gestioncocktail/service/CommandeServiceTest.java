@@ -461,4 +461,34 @@ class CommandeServiceTest {
         assertThatThrownBy(() -> commandeService.modifierCommande(999L, request))
                 .isInstanceOf(ResourceNotFoundException.class);
     }
+
+    @Test
+    @DisplayName("annulerCommande - cancels order, sets ANNULEE status, and broadcasts WebSocket update")
+    void annulerCommande_broadcastsWebSocketNotification() {
+        commande.setStatut(CommandeStatut.EN_ATTENTE);
+        when(commandeRepository.save(any(Commande.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        commandeService.annulerCommande(commande);
+
+        assertThat(commande.getStatut()).isEqualTo(CommandeStatut.ANNULEE);
+        verify(commandeRepository).save(commande);
+        verify(messagingTemplate).convertAndSend(eq("/topic/commandes"), eq(commande));
+        verify(messagingTemplate).convertAndSend(eq("/topic/commandes/statut"), eq(commande));
+        verify(messagingTemplate).convertAndSend(eq("/topic/barman/commandes"), any(com.bar.gestioncocktail.dto.CommandeResponseDTO.class));
+    }
+
+    @Test
+    @DisplayName("changerStatut - updates order status and broadcasts WebSocket update")
+    void changerStatut_broadcastsWebSocketNotification() {
+        when(commandeRepository.findById(1L)).thenReturn(Optional.of(commande));
+        when(commandeRepository.save(any(Commande.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Commande result = commandeService.changerStatut(1L, CommandeStatut.EN_PREPARATION);
+
+        assertThat(result.getStatut()).isEqualTo(CommandeStatut.EN_PREPARATION);
+        verify(commandeRepository).save(commande);
+        verify(messagingTemplate).convertAndSend(eq("/topic/commandes"), eq(result));
+        verify(messagingTemplate).convertAndSend(eq("/topic/commandes/statut"), eq(result));
+        verify(messagingTemplate).convertAndSend(eq("/topic/barman/commandes"), any(com.bar.gestioncocktail.dto.CommandeResponseDTO.class));
+    }
 }
