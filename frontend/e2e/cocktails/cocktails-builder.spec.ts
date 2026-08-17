@@ -24,7 +24,8 @@ test.describe('Step-by-Step Modular Cocktail Builder & Live Scaling E2E', () => 
     // Fill general fields
     await page.fill('input[data-testid="cocktail-form-name-input"]', 'Paloma Especial');
     await page.fill('input[data-testid="cocktail-form-price-input"]', '11.5');
-    await page.selectOption('[data-testid="cocktail-form-category-select"]', 'ALCOOLISE');
+    await page.click('[data-testid="cocktail-form-category-select-trigger"]');
+    await page.click('[data-testid="cocktail-form-category-select-option-ALCOOLISE"]');
     await page.fill('input[data-testid="cocktail-form-description-input"]', 'Refreshing tequila and grapefruit cocktail');
 
     // 2. Navigate to Step 2: Recipe Blocks Builder
@@ -36,7 +37,8 @@ test.describe('Step-by-Step Modular Cocktail Builder & Live Scaling E2E', () => 
     await expect(page.locator('[data-testid="recipe-block-0"]')).toBeVisible();
 
     // Select ingredient & quantity
-    await page.selectOption('[data-testid="select-ingredient-0"]', { index: 1 });
+    await page.click('[data-testid="select-ingredient-0-trigger"]');
+    await page.locator('[data-testid^="select-ingredient-0-option-"]').first().click();
     await page.fill('[data-testid="input-ingredient-qty-0"]', '5');
 
     // Add an Action Template Block
@@ -81,15 +83,19 @@ test.describe('Step-by-Step Modular Cocktail Builder & Live Scaling E2E', () => 
     await page.goto('/cocktails/new');
     await page.waitForLoadState('networkidle');
 
-    // Jump directly to Step 2
-    await page.click('[data-testid="wizard-step-2-tab"]');
+    // Complete Step 1 first to enable wizard step 2
+    await page.fill('input[data-testid="cocktail-form-name-input"]', 'Fumage Test');
+    await page.fill('input[data-testid="cocktail-form-price-input"]', '12');
+    await page.click('[data-testid="cocktail-form-category-select-trigger"]');
+    await page.click('[data-testid="cocktail-form-category-select-option-ALCOOLISE"]');
+    await page.click('[data-testid="wizard-btn-next"]');
     await expect(page.locator('[data-testid="wizard-step-2-tab"]')).toHaveClass(/active/);
 
     // Add a template block first to display inline "+ Nouveau modèle" button
     await page.click('[data-testid="btn-add-template-block"]');
     await expect(page.locator('[data-testid="recipe-block-0"]')).toBeVisible();
 
-    // Open inline modal for creating a new template
+    // Open inline modal for creating a new template via trigger or button
     await page.click('[data-testid="btn-open-create-template-modal"]');
     await expect(page.locator('[data-testid="new-template-modal"]')).toBeVisible();
 
