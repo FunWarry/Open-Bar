@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, forkJoin } from 'rxjs';
@@ -110,6 +110,7 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
   private readonly settingsService = inject(AppSettingsService);
   private readonly soundService = inject(SoundService);
   private readonly transloco = inject(TranslocoService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   constructor() {
     addIcons({
@@ -235,6 +236,7 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
           if (enAttente.length > previousCount && previousCount > 0) {
             this.soundService.playNewOrderSound();
           }
+          this.cdr.detectChanges();
         },
         error: async () => {
           const toast = await this.toastCtrl.create({
