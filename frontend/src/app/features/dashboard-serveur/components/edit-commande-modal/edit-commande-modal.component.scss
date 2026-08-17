@@ -318,9 +318,9 @@
     }
 
     &.active {
-      background: var(--primary, #6c7fe8);
+      background: var(--surface-primary-subtle, rgba(108, 127, 232, 0.25));
       border-color: var(--primary, #6c7fe8);
-      color: #ffffff;
+      color: var(--text-primary, #eceefb);
       font-weight: 700;
     }
   }
