@@ -246,11 +246,13 @@ public class CommandeService {
                 continue;
             }
             BigDecimal currentStock = ingredient.getQuantiteStock() != null ? ingredient.getQuantiteStock() : BigDecimal.ZERO;
-            BigDecimal nouveauStock = currentStock.subtract(entry.getValue());
+            BigDecimal rawNouveauStock = currentStock.subtract(entry.getValue());
+            boolean stockNegatif = rawNouveauStock.compareTo(BigDecimal.ZERO) < 0;
+            BigDecimal nouveauStock = rawNouveauStock.max(BigDecimal.ZERO);
             ingredient.setQuantiteStock(nouveauStock);
             ingredient.setUpdatedAt(timeService.now());
             ingredientRepository.save(ingredient);
-            if (ingredient.getSeuilAlerte() != null && nouveauStock.compareTo(ingredient.getSeuilAlerte()) <= 0 && messagingTemplate != null) {
+            if (ingredient.getSeuilAlerte() != null && (nouveauStock.compareTo(ingredient.getSeuilAlerte()) <= 0 || stockNegatif) && messagingTemplate != null) {
                 try {
                     messagingTemplate.convertAndSend("/topic/stock/alerte",
                             new StockAlerteEvent(
@@ -259,7 +261,7 @@ public class CommandeService {
                                     ingredient.getUniteMesure(),
                                     nouveauStock,
                                     ingredient.getSeuilAlerte(),
-                                    nouveauStock.compareTo(BigDecimal.ZERO) < 0));
+                                    stockNegatif));
                 } catch (Exception _) {
                     // Safe handling of WebSocket delivery
                 }

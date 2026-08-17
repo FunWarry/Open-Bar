@@ -149,6 +149,23 @@ class CommandeServiceTest {
     }
 
     @Test
+    void changerStatut_enPreparation_clampsToZeroWhenStockInsufficientAndFlagsNegative() {
+        ingredient.setQuantiteStock(new BigDecimal("3.00")); // needs 8 -> raw -5, clamped to 0
+        when(commandeRepository.findById(1L)).thenReturn(Optional.of(commande));
+
+        commandeService.changerStatut(1L, CommandeStatut.EN_PREPARATION);
+
+        ArgumentCaptor<Ingredient> captor = ArgumentCaptor.forClass(Ingredient.class);
+        verify(ingredientRepository).save(captor.capture());
+        assertThat(captor.getValue().getQuantiteStock()).isEqualByComparingTo(BigDecimal.ZERO);
+
+        ArgumentCaptor<StockAlerteEvent> alertCaptor = ArgumentCaptor.forClass(StockAlerteEvent.class);
+        verify(messagingTemplate).convertAndSend(eq("/topic/stock/alerte"), alertCaptor.capture());
+        assertThat(alertCaptor.getValue().stockNegatif()).isTrue();
+        assertThat(alertCaptor.getValue().quantiteActuelle()).isEqualByComparingTo(BigDecimal.ZERO);
+    }
+
+    @Test
     void changerStatut_dejaEnPreparation_neDestockePasUneDeuxiemeFois() {
         commande.setStatut(CommandeStatut.EN_PREPARATION);
         commande.setDatePreparation(LocalDateTime.now());
