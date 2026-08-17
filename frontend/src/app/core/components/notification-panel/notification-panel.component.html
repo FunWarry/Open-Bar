@@ -24,27 +24,31 @@
     } @else {
       <div class="notif-list" data-testid="notif-list">
         @for (n of notifications; track n.id) {
-          <div
+          <button
+            type="button"
             class="notif-item"
             [class.lue]="n.lue"
+            [class.notif-stock]="n.type === 'stock'"
+            [class.notif-critical]="n.severity === 'danger'"
             (click)="marquerLue(n.id)"
             (keyup.enter)="marquerLue(n.id)"
-            tabindex="0"
-            role="button"
             data-testid="notif-item">
-            <div class="notif-badge-wrapper">
-              <span class="notif-type-badge" [attr.data-type]="n.type">
-                {{ n.type }}
-              </span>
+            <div class="notif-icon-badge" [attr.data-type]="n.type">
+              <ion-icon [name]="getNotificationIcon(n.type)"></ion-icon>
             </div>
             <div class="notif-content">
+              <div class="notif-top-row">
+                <span class="notif-type-badge" [attr.data-type]="n.type">
+                  {{ n.type }}
+                </span>
+                <span class="notif-time">{{ n.timestamp | date:'HH:mm' }}</span>
+              </div>
               <p class="notif-message">{{ n.message }}</p>
-              <span class="notif-time">{{ n.timestamp | date:'HH:mm dd/MM' }}</span>
             </div>
             @if (!n.lue) {
               <span class="unread-dot" data-testid="unread-dot"></span>
             }
-          </div>
+          </button>
         }
       </div>
     }

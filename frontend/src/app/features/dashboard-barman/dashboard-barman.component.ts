@@ -38,7 +38,6 @@ import {
   printOutline
 } from 'ionicons/icons';
 import { CommandeCardComponent } from './components/commande-card/commande-card.component';
-import { StockAlertBannerComponent } from '../../core/components/stock-alert-banner/stock-alert-banner.component';
 import { NotificationService } from '../../core/services/notification.service';
 import { DashboardBarmanService } from './services/dashboard-barman.service';
 import { safeCompleteRefresher } from '../../core/utils/refresher-utils';
@@ -81,7 +80,6 @@ import { Cocktail } from '../../core/models/cocktail.model';
     IonLabel,
     IonBadge,
     CommandeCardComponent,
-    StockAlertBannerComponent,
     EmptyStateComponent,
     RecipeSidePanelComponent
   ],

@@ -108,6 +108,9 @@
   align-items: flex-start;
   gap: 12px;
   padding: 12px;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
   border-radius: var(--radius-md, 8px);
   background-color: var(--surface-2, #21263f);
   border: 1px solid var(--border-subtle, #23233a);
@@ -125,29 +128,40 @@
     background-color: var(--surface-1, #1a1a2e);
   }
 
-  .notif-type-badge {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 999px;
-    font-size: 10px;
-    font-weight: 700;
-    text-transform: uppercase;
+  &.notif-stock {
+    border-left: 3px solid var(--semantic-warning, #f4a52a);
+
+    &.notif-critical {
+      border-left: 3px solid var(--semantic-danger, #e5604f);
+      background-color: rgba(229, 96, 79, 0.08);
+    }
+  }
+
+  .notif-icon-badge {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm, 6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
 
     &[data-type="commande"] {
-      background-color: rgba(108, 127, 232, 0.2);
+      background-color: rgba(108, 127, 232, 0.15);
       color: var(--primary, #6c7fe8);
     }
     &[data-type="statut"] {
-      background-color: rgba(47, 191, 107, 0.2);
-      color: var(--success, #2fbf6b);
+      background-color: rgba(47, 191, 107, 0.15);
+      color: var(--semantic-success, #2fbf6b);
     }
     &[data-type="table"] {
-      background-color: rgba(244, 165, 42, 0.2);
-      color: var(--warning, #f4a52a);
+      background-color: rgba(244, 165, 42, 0.15);
+      color: var(--semantic-warning, #f4a52a);
     }
     &[data-type="stock"] {
-      background-color: rgba(229, 96, 79, 0.2);
-      color: var(--danger, #e5604f);
+      background-color: rgba(229, 96, 79, 0.15);
+      color: var(--semantic-danger, #e5604f);
     }
   }
 
@@ -156,6 +170,40 @@
     display: flex;
     flex-direction: column;
     gap: 4px;
+    min-width: 0;
+
+    .notif-top-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .notif-type-badge {
+      display: inline-block;
+      padding: 1px 6px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+
+      &[data-type="commande"] {
+        background-color: rgba(108, 127, 232, 0.2);
+        color: var(--primary, #6c7fe8);
+      }
+      &[data-type="statut"] {
+        background-color: rgba(47, 191, 107, 0.2);
+        color: var(--semantic-success, #2fbf6b);
+      }
+      &[data-type="table"] {
+        background-color: rgba(244, 165, 42, 0.2);
+        color: var(--semantic-warning, #f4a52a);
+      }
+      &[data-type="stock"] {
+        background-color: rgba(229, 96, 79, 0.2);
+        color: var(--semantic-danger, #e5604f);
+      }
+    }
 
     .notif-message {
       margin: 0;
@@ -163,6 +211,7 @@
       font-weight: 500;
       color: var(--text-primary, #eceefb);
       line-height: 1.4;
+      overflow-wrap: anywhere;
     }
 
     .notif-time {
@@ -175,7 +224,7 @@
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background-color: var(--danger, #e5604f);
+    background-color: var(--semantic-danger, #e5604f);
     flex-shrink: 0;
     margin-top: 4px;
   }

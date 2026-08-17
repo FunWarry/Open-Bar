@@ -104,6 +104,7 @@ export class NotificationService implements OnDestroy {
           };
           this.notificationHistory.unshift(notif);
           this.stockAlerts$.next(notif);
+          this.notifications$.next(notif);
           this.showToast(notif.message, isCritical ? 'danger' : 'warning');
         } catch {
           // malformed message — ignore
