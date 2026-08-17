@@ -164,9 +164,16 @@ describe('CommandeCardComponent', () => {
     expect(emitted[0].id).toBe(1);
   });
 
-  it('openDetails ouvre CommandeDetailModalComponent', async () => {
+  it('openDetails ouvre TableDetailModalComponent avec les donnees de la table', async () => {
     await component.openDetails();
-    expect(modalCtrlSpy.create).toHaveBeenCalled();
+    expect(modalCtrlSpy.create).toHaveBeenCalledWith(
+      jasmine.objectContaining({
+        component: jasmine.anything(),
+        componentProps: jasmine.objectContaining({
+          table: jasmine.objectContaining({ nom: 'Table 1' }),
+        }),
+      })
+    );
     expect(mockModal.present).toHaveBeenCalled();
   });
 
