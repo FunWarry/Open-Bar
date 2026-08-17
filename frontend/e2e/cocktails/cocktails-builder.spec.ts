@@ -97,13 +97,15 @@ test.describe('Step-by-Step Modular Cocktail Builder & Live Scaling E2E', () => 
     await page.click('[data-testid="btn-add-template-block"]');
     await expect(page.locator('[data-testid="recipe-block-0"]')).toBeVisible();
 
-    // Open inline modal for creating a new template via trigger or button
-    await page.click('[data-testid="btn-open-create-template-modal"]');
+    // Open inline modal for creating a new template via dropdown action button
+    await page.click('[data-testid="select-template-0-trigger"]');
+    await page.click('[data-testid="select-template-0-action-btn"]');
     await expect(page.locator('[data-testid="new-template-modal"]')).toBeVisible();
 
     // Fill modal form
     await page.fill('[data-testid="modal-template-name-input"]', 'Fumage au bois de chêne');
-    await page.selectOption('[data-testid="modal-template-type-select"]', 'FLAME');
+    await page.click('[data-testid="modal-template-type-select-trigger"]');
+    await page.click('[data-testid="modal-template-type-select-option-FLAME"]');
     await page.fill('[data-testid="modal-template-duration-input"]', '20');
 
     // Save template
