@@ -143,6 +143,57 @@ class GlasswareServiceTest {
     }
 
     @Test
+    @DisplayName("Should update existing glassware successfully")
+    void shouldUpdateGlassware() {
+        GlasswareRequestDTO request = new GlasswareRequestDTO(
+            "Verre Tumbler Modifie", new BigDecimal("40.0"), "assets/images/verres/tumbler_new.png", "Large tumbler", false
+        );
+
+        when(glasswareRepository.findById(1L)).thenReturn(Optional.of(testGlassware));
+        when(glasswareRepository.findByNomIgnoreCase("Verre Tumbler Modifie")).thenReturn(Optional.empty());
+        when(timeService.now()).thenReturn(now);
+        when(glasswareRepository.save(any(Glassware.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        GlasswareResponseDTO result = glasswareService.update(1L, request);
+
+        assertThat(result).isNotNull();
+        assertThat(result.nom()).isEqualTo("Verre Tumbler Modifie");
+        assertThat(result.contenanceCl()).isEqualByComparingTo("40.0");
+        assertThat(result.imageUrl()).isEqualTo("assets/images/verres/tumbler_new.png");
+    }
+
+    @Test
+    @DisplayName("Should throw BusinessException when updating glassware with duplicate name from another glassware")
+    void shouldThrowWhenUpdateDuplicateName() {
+        Glassware otherGlassware = new Glassware();
+        otherGlassware.setId(2L);
+        otherGlassware.setNom("Verre Rocks");
+
+        GlasswareRequestDTO request = new GlasswareRequestDTO(
+            "Verre Rocks", new BigDecimal("25.0"), null, null, false
+        );
+
+        when(glasswareRepository.findById(1L)).thenReturn(Optional.of(testGlassware));
+        when(glasswareRepository.findByNomIgnoreCase("Verre Rocks")).thenReturn(Optional.of(otherGlassware));
+
+        assertThatThrownBy(() -> glasswareService.update(1L, request))
+            .isInstanceOf(BusinessException.class)
+            .hasMessageContaining("already exists");
+    }
+
+    @Test
+    @DisplayName("Should find entity by ID or return null if null or missing")
+    void shouldFindEntityById() {
+        assertThat(glasswareService.findEntityById(null)).isNull();
+
+        when(glasswareRepository.findById(1L)).thenReturn(Optional.of(testGlassware));
+        assertThat(glasswareService.findEntityById(1L)).isEqualTo(testGlassware);
+
+        when(glasswareRepository.findById(99L)).thenReturn(Optional.empty());
+        assertThat(glasswareService.findEntityById(99L)).isNull();
+    }
+
+    @Test
     @DisplayName("Should delete glassware by ID")
     void shouldDeleteGlassware() {
         when(glasswareRepository.findById(1L)).thenReturn(Optional.of(testGlassware));
@@ -150,5 +201,15 @@ class GlasswareServiceTest {
         glasswareService.delete(1L);
 
         verify(glasswareRepository).delete(testGlassware);
+    }
+
+    @Test
+    @DisplayName("Should throw ResourceNotFoundException when deleting non-existing glassware")
+    void shouldThrowWhenDeleteNotFound() {
+        when(glasswareRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> glasswareService.delete(99L))
+            .isInstanceOf(ResourceNotFoundException.class)
+            .hasMessageContaining("99");
     }
 }

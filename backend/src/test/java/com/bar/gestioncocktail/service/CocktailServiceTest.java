@@ -365,4 +365,97 @@ class CocktailServiceTest {
         verify(fileUploadService, times(1)).storeCocktailPhoto(1L, file);
         verify(cocktailRepository, times(1)).save(cocktail);
     }
+
+    @Test
+    @DisplayName("updateCocktailImage - throws ResourceNotFoundException when cocktail is missing")
+    void updateCocktailImage_throwsWhenNotFound() {
+        MockMultipartFile file = new MockMultipartFile("file", "mojito.jpg", "image/jpeg", "bytes".getBytes());
+        when(cocktailRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> cocktailService.updateCocktailImage(99L, file))
+            .isInstanceOf(ResourceNotFoundException.class)
+            .hasMessageContaining("99");
+    }
+
+    @Test
+    @DisplayName("getCocktailsByCategorie - retrieves cocktails by category")
+    void shouldGetCocktailsByCategorie() {
+        when(cocktailRepository.findByCategorie(CocktailCategorie.ALCOOLISE)).thenReturn(List.of(cocktail));
+
+        List<Cocktail> result = cocktailService.getCocktailsByCategorie(CocktailCategorie.ALCOOLISE);
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getCategorie()).isEqualTo(CocktailCategorie.ALCOOLISE);
+    }
+
+    @Test
+    @DisplayName("getCocktailsDisponibles - retrieves available cocktails")
+    void shouldGetCocktailsDisponibles() {
+        when(cocktailRepository.findByDisponible(true)).thenReturn(List.of(cocktail));
+
+        List<Cocktail> result = cocktailService.getCocktailsDisponibles();
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).isDisponible()).isTrue();
+    }
+
+    @Test
+    @DisplayName("getCocktailsSaisonniers - retrieves seasonal cocktails")
+    void shouldGetCocktailsSaisonniers() {
+        cocktail.setSaisonnier(true);
+        when(cocktailRepository.findBySaisonnier(true)).thenReturn(List.of(cocktail));
+
+        List<Cocktail> result = cocktailService.getCocktailsSaisonniers();
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).isSaisonnier()).isTrue();
+    }
+
+    @Test
+    @DisplayName("getCocktailsSaisonniersActuels - retrieves currently active seasonal cocktails")
+    void shouldGetCocktailsSaisonniersActuels() {
+        cocktail.setSaisonnier(true);
+        when(timeService.now()).thenReturn(LocalDateTime.of(2026, 7, 15, 12, 0));
+        when(cocktailRepository.findBySaisonnierAndDateDebutSaisonBeforeAndDateFinSaisonAfter(
+            eq(true), any(LocalDateTime.class), any(LocalDateTime.class)
+        )).thenReturn(List.of(cocktail));
+
+        List<Cocktail> result = cocktailService.getCocktailsSaisonniersActuels();
+
+        assertThat(result).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("searchCocktails - finds cocktails by name containing substring")
+    void shouldSearchCocktails() {
+        when(cocktailRepository.findByNomContainingIgnoreCase("moj")).thenReturn(List.of(cocktail));
+
+        List<Cocktail> result = cocktailService.searchCocktails("moj");
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getNom()).isEqualTo("Mojito");
+    }
+
+    @Test
+    @DisplayName("toggleDisponibilite - toggles availability flag")
+    void shouldToggleDisponibilite() {
+        cocktail.setDisponible(true);
+        when(cocktailRepository.save(any(Cocktail.class))).thenAnswer(i -> i.getArgument(0));
+
+        cocktailService.toggleDisponibilite(cocktail);
+
+        assertThat(cocktail.isDisponible()).isFalse();
+
+        cocktailService.toggleDisponibilite(cocktail);
+
+        assertThat(cocktail.isDisponible()).isTrue();
+    }
+
+    @Test
+    @DisplayName("deleteCocktail - deletes cocktail by ID")
+    void shouldDeleteCocktail() {
+        cocktailService.deleteCocktail(1L);
+
+        verify(cocktailRepository).deleteById(1L);
+    }
 }

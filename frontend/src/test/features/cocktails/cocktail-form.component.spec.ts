@@ -471,4 +471,102 @@ describe('CocktailFormComponent', () => {
       expect(routerSpy.navigate).toHaveBeenCalledWith(['/cocktails']);
     });
   });
+
+  describe('wizard navigation and validation', () => {
+    beforeEach(async () => buildModule());
+
+    it('should validate step 1 correctly', () => {
+      expect(component.isStep1Valid()).toBeFalse();
+
+      component.cocktailForm.patchValue({
+        name: 'Gin Fizz',
+        price: 8.5,
+        category: 'ALCOOLISE',
+      });
+      expect(component.isStep1Valid()).toBeTrue();
+    });
+
+    it('should navigate between steps using nextStep and prevStep', () => {
+      component.cocktailForm.patchValue({
+        name: 'Gin Fizz',
+        price: 8.5,
+        category: 'ALCOOLISE',
+      });
+
+      expect(component.currentStep()).toBe(1);
+      component.nextStep();
+      expect(component.currentStep()).toBe(2);
+
+      component.prevStep();
+      expect(component.currentStep()).toBe(1);
+    });
+
+    it('should manage custom text steps and reorder them', () => {
+      component.addIngredientStep();
+      component.addCustomTextStep();
+      expect(component.recipeStepsArray).toHaveSize(2);
+
+      const customGroup = component.recipeStepsArray.at(1);
+      expect(customGroup.get('stepType')?.value).toBe('CUSTOM_TEXT');
+
+      component.moveStepUp(1);
+      expect(component.recipeStepsArray.at(0).get('stepType')?.value).toBe('CUSTOM_TEXT');
+
+      component.moveStepDown(0);
+      expect(component.recipeStepsArray.at(1).get('stepType')?.value).toBe('CUSTOM_TEXT');
+
+      component.removeStep(1);
+      expect(component.recipeStepsArray).toHaveSize(1);
+    });
+
+    it('should manage variants correctly', () => {
+      expect(component.variantesArray).toHaveSize(0);
+
+      component.addVariant();
+      expect(component.variantesArray).toHaveSize(1);
+
+      component.variantesArray.at(0).patchValue({
+        nom: 'Double shot',
+        prixSupplement: 3.0,
+      });
+
+      expect(component.isStep3Valid()).toBeFalse(); // step 1 & 2 not valid yet
+
+      component.cocktailForm.patchValue({
+        name: 'Gin Tonic',
+        price: 7.0,
+        category: 'ALCOOLISE',
+      });
+
+      expect(component.isStep3Valid()).toBeTrue();
+
+      component.removeVariant(0);
+      expect(component.variantesArray).toHaveSize(0);
+    });
+
+    it('should scale preview portions and quantities', () => {
+      expect(component.previewPortions()).toBe(1);
+
+      component.incrementPortions();
+      expect(component.previewPortions()).toBe(2);
+
+      expect(component.getScaledQuantity(4)).toBe('8');
+      expect(component.getScaledQuantity(2.5)).toBe('5');
+      expect(component.getScaledQuantity(null)).toBe('-');
+
+      component.decrementPortions();
+      expect(component.previewPortions()).toBe(1);
+      expect(component.getScaledQuantity(4)).toBe('4');
+    });
+
+    it('should deduce bar equipment for multiple action types', () => {
+      component.addActionTemplateStep();
+      const group0 = component.getAsFormGroup(component.recipeStepsArray.at(0));
+      group0.patchValue({ stepType: 'ACTION_TEMPLATE', actionType: 'SHAKE', templateId: 1 });
+
+      component.recipeVersion.update(v => v + 1);
+      const equipment = component.deducedBarEquipment();
+      expect(equipment.some(e => e.name.includes('Shaker'))).toBeTrue();
+    });
+  });
 });
