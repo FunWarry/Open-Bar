@@ -64,6 +64,7 @@ public class SecurityConfig {
                             .permitAll()
                             .requestMatchers("/api/auth/**", "/api/test/health", "/api/setup/**", "/api/public/**")
                             .permitAll()
+                            .requestMatchers("/uploads/**").permitAll()
                             .requestMatchers("/api/users/check-username/**").permitAll()
                             .requestMatchers("/api/users/check-email/**").permitAll()
                             .requestMatchers("/ws/**", "/api/ws/**").permitAll()

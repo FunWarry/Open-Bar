@@ -5,6 +5,7 @@ import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.model.*;
 import com.bar.gestioncocktail.repository.CocktailIngredientRepository;
 import com.bar.gestioncocktail.repository.CocktailRepository;
+import com.bar.gestioncocktail.repository.CocktailVarianteRepository;
 import com.bar.gestioncocktail.repository.CommandeItemRepository;
 import com.bar.gestioncocktail.repository.CommandeRepository;
 import com.bar.gestioncocktail.repository.IngredientRepository;
@@ -38,6 +39,7 @@ class CommandeServiceTest {
     @Mock CommandeItemRepository commandeItemRepository;
     @Mock IngredientRepository ingredientRepository;
     @Mock CocktailRepository cocktailRepository;
+    @Mock CocktailVarianteRepository cocktailVarianteRepository;
     @Mock CocktailIngredientRepository cocktailIngredientRepository;
     @Mock TableRepository tableRepository;
     @Mock SimpMessagingTemplate messagingTemplate;
@@ -380,5 +382,66 @@ class CommandeServiceTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getItems()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("modifierCommande - successfully updates items, recalculates total and notifies WebSockets")
+    void modifierCommande_nominal_updatesItemsAndTotal() {
+        Cocktail mockCocktail = new Cocktail();
+        mockCocktail.setId(10L);
+        mockCocktail.setNom("Mojito");
+        mockCocktail.setPrix(new BigDecimal("9.00"));
+
+        CocktailVariante mockVariante = new CocktailVariante();
+        mockVariante.setId(20L);
+        mockVariante.setNom("XL");
+        mockVariante.setPrixSupplement(new BigDecimal("2.50"));
+
+        when(commandeRepository.findById(1L)).thenReturn(Optional.of(commande));
+        when(cocktailRepository.findById(10L)).thenReturn(Optional.of(mockCocktail));
+        when(cocktailVarianteRepository.findById(20L)).thenReturn(Optional.of(mockVariante));
+
+        var itemDto = new com.bar.gestioncocktail.dto.ModifierCommandeItemDTO(null, 10L, 20L, 2, "Sans paille", true);
+        var request = new com.bar.gestioncocktail.dto.ModifierCommandeRequestDTO(List.of(itemDto), "Table VIP", new BigDecimal("3.00"));
+
+        Commande updated = commandeService.modifierCommande(1L, request);
+
+        assertThat(updated).isNotNull();
+        assertThat(updated.getItems()).hasSize(1);
+        assertThat(updated.getItems().get(0).getCocktail().getNom()).isEqualTo("Mojito");
+        assertThat(updated.getItems().get(0).getPrixUnitaire()).isEqualByComparingTo(new BigDecimal("11.50"));
+        assertThat(updated.getTotal()).isEqualByComparingTo(new BigDecimal("23.00"));
+        assertThat(updated.getNotes()).isEqualTo("Table VIP");
+        assertThat(updated.getPourboire()).isEqualByComparingTo(new BigDecimal("3.00"));
+
+        verify(messagingTemplate).convertAndSend(eq("/topic/commandes"), any(Commande.class));
+        verify(messagingTemplate).convertAndSend(eq("/topic/commandes/statut"), any(Commande.class));
+        verify(messagingTemplate).convertAndSend(eq("/topic/barman/commandes"), any(com.bar.gestioncocktail.dto.CommandeResponseDTO.class));
+    }
+
+    @Test
+    @DisplayName("modifierCommande - throws BusinessException when order is delivered, settled, or canceled")
+    void modifierCommande_terminalStatus_throwsBusinessException() {
+        commande.setStatut(CommandeStatut.LIVREE);
+        when(commandeRepository.findById(1L)).thenReturn(Optional.of(commande));
+
+        var itemDto = new com.bar.gestioncocktail.dto.ModifierCommandeItemDTO(null, 10L, null, 1, null, false);
+        var request = new com.bar.gestioncocktail.dto.ModifierCommandeRequestDTO(List.of(itemDto), null, null);
+
+        assertThatThrownBy(() -> commandeService.modifierCommande(1L, request))
+                .isInstanceOf(com.bar.gestioncocktail.exception.BusinessException.class)
+                .hasMessageContaining("Cannot modify order with status: LIVREE");
+    }
+
+    @Test
+    @DisplayName("modifierCommande - throws ResourceNotFoundException when order does not exist")
+    void modifierCommande_notFound_throwsResourceNotFoundException() {
+        when(commandeRepository.findById(999L)).thenReturn(Optional.empty());
+
+        var itemDto = new com.bar.gestioncocktail.dto.ModifierCommandeItemDTO(null, 10L, null, 1, null, false);
+        var request = new com.bar.gestioncocktail.dto.ModifierCommandeRequestDTO(List.of(itemDto), null, null);
+
+        assertThatThrownBy(() -> commandeService.modifierCommande(999L, request))
+                .isInstanceOf(ResourceNotFoundException.class);
     }
 }

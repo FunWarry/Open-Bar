@@ -30,18 +30,24 @@
     <div class="trigger-content">
       @if (selectedOption(); as sel) {
         <div class="selected-item-display">
-          @if (sel.icon) {
+          @if (sel.imageUrl) {
+            <img [src]="resolveImageUrl(sel.imageUrl)" [alt]="sel.label" class="item-img" />
+          } @else if (sel.icon) {
             <ion-icon [name]="sel.icon" class="item-icon"></ion-icon>
           }
-          <span class="item-label">{{ sel.label }}</span>
-          @if (sel.badge) {
-            <span class="item-badge" [ngClass]="'badge-' + (sel.badgeType || 'neutral')">
-              {{ sel.badge }}
-            </span>
-          }
-          @if (sel.subLabel) {
-            <span class="item-sublabel">{{ sel.subLabel }}</span>
-          }
+          <div class="item-text-stack">
+            <div class="item-header-row">
+              <span class="item-label">{{ sel.label }}</span>
+              @if (sel.badge) {
+                <span class="item-badge" [ngClass]="'badge-' + (sel.badgeType || 'neutral')">
+                  {{ sel.badge }}
+                </span>
+              }
+            </div>
+            @if (sel.subLabel) {
+              <span class="item-sublabel">{{ sel.subLabel }}</span>
+            }
+          </div>
         </div>
       } @else {
         <span class="placeholder-text">{{ placeholder }}</span>
@@ -114,7 +120,9 @@
             [attr.data-testid]="testId + '-option-' + opt.value">
 
             <div class="option-content">
-              @if (opt.icon) {
+              @if (opt.imageUrl) {
+                <img [src]="resolveImageUrl(opt.imageUrl)" [alt]="opt.label" class="option-img" />
+              } @else if (opt.icon) {
                 <ion-icon [name]="opt.icon" class="option-icon"></ion-icon>
               }
               <div class="option-text-stack">

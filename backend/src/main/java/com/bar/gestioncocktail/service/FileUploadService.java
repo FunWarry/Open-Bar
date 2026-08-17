@@ -71,6 +71,52 @@ public class FileUploadService {
         }
     }
 
+    private static final String GLASSWARE_UPLOAD_DIR = "uploads/glassware";
+
+    /**
+     * Saves an uploaded glassware photo to local file storage.
+     *
+     * @param glasswareId Identifier of the target glassware
+     * @param file        Uploaded multipart image file
+     * @return Relative URL path to access the stored image
+     */
+    public String storeGlasswarePhoto(Long glasswareId, MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new BusinessException("Uploaded file is empty");
+        }
+
+        if (file.getSize() > MAX_FILE_SIZE) {
+            throw new BusinessException("File size exceeds maximum allowed limit of 5MB");
+        }
+
+        String contentType = file.getContentType();
+        if (contentType == null || !ALLOWED_CONTENT_TYPES.contains(contentType.toLowerCase())) {
+            throw new BusinessException("Invalid file type. Only JPEG, PNG, GIF, and WebP images are allowed.");
+        }
+
+        try {
+            Path uploadPath = Paths.get(GLASSWARE_UPLOAD_DIR);
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+            }
+
+            String originalFilename = file.getOriginalFilename();
+            String extension = getFileExtension(originalFilename);
+            String newFilename = "glassware_" + glasswareId + "_" + UUID.randomUUID().toString().substring(0, 8) + extension;
+            Path filePath = uploadPath.resolve(newFilename);
+
+            try (InputStream inputStream = file.getInputStream()) {
+                Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
+            }
+
+            log.info("Successfully stored glassware photo for ID {} at {}", glasswareId, filePath);
+            return "/uploads/glassware/" + newFilename;
+        } catch (IOException e) {
+            log.error("Failed to store uploaded file for glassware {}", glasswareId, e);
+            throw new BusinessException("Could not store the image file: " + e.getMessage());
+        }
+    }
+
     private String getFileExtension(String filename) {
         if (filename == null || !filename.contains(".")) {
             return ".jpg";

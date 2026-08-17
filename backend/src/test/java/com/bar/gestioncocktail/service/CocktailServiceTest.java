@@ -6,6 +6,7 @@ import com.bar.gestioncocktail.dto.CocktailResponseDTO;
 import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.model.*;
 import com.bar.gestioncocktail.repository.CocktailRepository;
+import com.bar.gestioncocktail.repository.GlasswareRepository;
 import com.bar.gestioncocktail.repository.IngredientRepository;
 import com.bar.gestioncocktail.repository.RecipeStepTemplateRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,6 +41,9 @@ class CocktailServiceTest {
 
     @Mock
     RecipeStepTemplateRepository templateRepository;
+
+    @Mock
+    GlasswareRepository glasswareRepository;
 
     @Spy
     TimeService timeService = new TimeService(null);

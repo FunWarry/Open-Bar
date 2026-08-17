@@ -411,3 +411,19 @@ CREATE TABLE IF NOT EXISTS cocktail_recipe_steps (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Table des types de verrerie / verres réutilisables (#306)
+CREATE TABLE IF NOT EXISTS glassware (
+    id BIGSERIAL PRIMARY KEY,
+    nom VARCHAR(100) NOT NULL UNIQUE,
+    contenance_cl DECIMAL(10,2) NOT NULL,
+    image_url TEXT,
+    description TEXT,
+    is_predefined BOOLEAN DEFAULT false,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+ALTER TABLE glassware ALTER COLUMN image_url TYPE TEXT;
+
+ALTER TABLE cocktails ADD COLUMN IF NOT EXISTS glassware_id BIGINT REFERENCES glassware(id) ON DELETE SET NULL;

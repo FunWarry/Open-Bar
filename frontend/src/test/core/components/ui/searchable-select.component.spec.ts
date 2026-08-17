@@ -93,13 +93,15 @@ describe('SearchableSelectComponent', () => {
     expect(component.selectionChange.emit).toHaveBeenCalledWith(null);
   });
 
-  it('should emit actionButtonClick when action button is clicked', () => {
+  it('should emit actionButtonClick and actionClick when action button is clicked', () => {
     spyOn(component.actionButtonClick, 'emit');
+    spyOn(component.actionClick, 'emit');
     const mockEvent = new MouseEvent('click');
 
     component.onActionClick(mockEvent);
 
     expect(component.actionButtonClick.emit).toHaveBeenCalled();
+    expect(component.actionClick.emit).toHaveBeenCalled();
     expect(component.isOpen()).toBeFalse();
   });
 
@@ -126,5 +128,29 @@ describe('SearchableSelectComponent', () => {
     component.writeValue(2);
     expect(component.value).toBe(2);
     expect(component.selectedOption()?.label).toBe('Sirop de Canne');
+  });
+
+  it('should render image when option has imageUrl', () => {
+    component.options = [
+      {
+        value: 10,
+        label: 'Verre Margarita',
+        subLabel: 'Coupette évasée idéale pour Margarita avec bord givré',
+        imageUrl: 'assets/images/verres/verre_margarita.png',
+        badge: '25 cl',
+      },
+    ];
+    component.writeValue(10);
+    fixture.detectChanges();
+
+    const imgElement = fixture.nativeElement.querySelector('.item-img');
+    expect(imgElement).toBeTruthy();
+    expect(imgElement.getAttribute('src')).toBe('assets/images/verres/verre_margarita.png');
+  });
+
+  it('should resolve /uploads/ relative images to backend host', () => {
+    const resolved = component.resolveImageUrl('/uploads/glassware/glassware_10.png');
+    expect(resolved).toContain('/uploads/glassware/glassware_10.png');
+    expect(resolved.startsWith('http')).toBeTrue();
   });
 });

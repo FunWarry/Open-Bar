@@ -118,4 +118,30 @@ describe('DashboardServeurService', () => {
     const reqErr = httpTesting.expectOne(`${environment.apiUrl}/etages`);
     reqErr.flush('Server error', { status: 500, statusText: 'Internal Server Error' });
   });
+
+  it('modifierCommande() sends PUT request to /commandes/:id/modifier', () => {
+    const modifierReq = {
+      items: [
+        { cocktailId: 1, quantite: 2, prixUnitaire: 8.5 }
+      ],
+      notes: 'Sans paille',
+      pourboire: 1.5,
+    };
+
+    const mockCommande = {
+      id: 10,
+      total: 18.5,
+      items: [],
+    };
+
+    service.modifierCommande(10, modifierReq).subscribe(res => {
+      expect(res.id).toBe(10);
+      expect(res.total).toBe(18.5);
+    });
+
+    const req = httpTesting.expectOne(`${environment.apiUrl}/commandes/10/modifier`);
+    expect(req.request.method).toBe('PUT');
+    expect(req.request.body).toEqual(modifierReq);
+    req.flush(mockCommande);
+  });
 });

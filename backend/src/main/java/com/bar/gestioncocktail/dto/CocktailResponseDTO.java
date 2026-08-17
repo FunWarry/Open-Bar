@@ -51,9 +51,41 @@ public record CocktailResponseDTO(
     List<CocktailIngredientResponseDTO> ingredients,
     List<CocktailVarianteResponseDTO> variantes,
     List<CocktailRecipeStepResponseDTO> recipeSteps,
+    GlasswareResponseDTO glassware,
     LocalDateTime createdAt,
     LocalDateTime updatedAt
 ) {
+    /**
+     * Backward-compatible constructor without glassware.
+     */
+    public CocktailResponseDTO(
+        Long id,
+        String nom,
+        String description,
+        BigDecimal prix,
+        CocktailCategorie categorie,
+        boolean disponible,
+        boolean saisonnier,
+        LocalDateTime dateDebutSaison,
+        LocalDateTime dateFinSaison,
+        Integer moisDebut,
+        Integer moisFin,
+        boolean disponibleAujourdhui,
+        String instructions,
+        String imageUrl,
+        List<CocktailIngredientResponseDTO> ingredients,
+        List<CocktailVarianteResponseDTO> variantes,
+        List<CocktailRecipeStepResponseDTO> recipeSteps,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
+    ) {
+        this(
+            id, nom, description, prix, categorie, disponible, saisonnier,
+            dateDebutSaison, dateFinSaison, moisDebut, moisFin, disponibleAujourdhui,
+            instructions, imageUrl, ingredients, variantes, recipeSteps, null, createdAt, updatedAt
+        );
+    }
+
     /**
      * Converts a {@link Cocktail} entity into a response DTO.
      *
@@ -66,7 +98,7 @@ public record CocktailResponseDTO(
         }
         List<CocktailIngredientResponseDTO> ings;
         try {
-            ings = (c.getIngredients() != null && org.hibernate.Hibernate.isInitialized(c.getIngredients()))
+            ings = (c.getIngredients() != null)
                 ? c.getIngredients().stream().map(CocktailIngredientResponseDTO::from).toList()
                 : Collections.emptyList();
         } catch (Exception _) {
@@ -75,7 +107,7 @@ public record CocktailResponseDTO(
 
         List<CocktailVarianteResponseDTO> vars;
         try {
-            vars = (c.getVariantes() != null && org.hibernate.Hibernate.isInitialized(c.getVariantes()))
+            vars = (c.getVariantes() != null)
                 ? c.getVariantes().stream().map(CocktailVarianteResponseDTO::from).toList()
                 : Collections.emptyList();
         } catch (Exception _) {
@@ -84,18 +116,20 @@ public record CocktailResponseDTO(
 
         List<CocktailRecipeStepResponseDTO> steps;
         try {
-            steps = (c.getRecipeSteps() != null && org.hibernate.Hibernate.isInitialized(c.getRecipeSteps()))
+            steps = (c.getRecipeSteps() != null)
                 ? c.getRecipeSteps().stream().map(CocktailRecipeStepResponseDTO::from).toList()
                 : Collections.emptyList();
         } catch (Exception _) {
             steps = Collections.emptyList();
         }
 
+        GlasswareResponseDTO glassDto = GlasswareResponseDTO.from(c.getGlassware());
+
         return new CocktailResponseDTO(
             c.getId(), c.getNom(), c.getDescription(), c.getPrix(), c.getCategorie(),
             c.isDisponible(), c.isSaisonnier(), c.getDateDebutSaison(), c.getDateFinSaison(),
             c.getMoisDebut(), c.getMoisFin(), c.isDisponibleAujourdhui(),
-            c.getInstructions(), c.getImageUrl(), ings, vars, steps, c.getCreatedAt(), c.getUpdatedAt()
+            c.getInstructions(), c.getImageUrl(), ings, vars, steps, glassDto, c.getCreatedAt(), c.getUpdatedAt()
         );
     }
 }
