@@ -717,7 +717,9 @@
     "NO_TABLES": "No tables registered in the establishment.",
     "TABLE_NUMBER": "Table {{number}}",
     "ORDERS_HISTORY": "Orders History",
-    "NO_ORDERS": "No orders registered for this table."
+    "NO_ORDERS": "No orders registered for this table.",
+    "BY_ZONE": "By Zone",
+    "BY_FLOOR": "By Floor"
   },
   "COMMANDES": {
     "TITLE": "Order Tracking",
@@ -949,10 +951,6 @@
       "DIGESTIF": "Digestif",
       "SPECIAL": "Special"
     }
-  },
-  "TABLES": {
-    "BY_ZONE": "By Zone",
-    "BY_FLOOR": "By Floor"
   },
   "DASHBOARD": {
     "SERVEUR_TITLE": "Server Area",

@@ -717,7 +717,9 @@
     "NO_TABLES": "Aucune table enregistrée dans l'établissement.",
     "TABLE_NUMBER": "Table {{number}}",
     "ORDERS_HISTORY": "Historique des commandes",
-    "NO_ORDERS": "Aucune commande enregistrée sur cette table."
+    "NO_ORDERS": "Aucune commande enregistrée sur cette table.",
+    "BY_ZONE": "Par zone",
+    "BY_FLOOR": "Par étage"
   },
   "COMMANDES": {
     "TITLE": "Suivi des Commandes",
@@ -949,10 +951,6 @@
       "DIGESTIF": "Digestif",
       "SPECIAL": "Spécial"
     }
-  },
-  "TABLES": {
-    "BY_ZONE": "Par zone",
-    "BY_FLOOR": "Par étage"
   },
   "DASHBOARD": {
     "SERVEUR_TITLE": "Espace Serveur",
