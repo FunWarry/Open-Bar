@@ -71,6 +71,10 @@ public class Cocktail {
     @OrderBy("stepOrder ASC")
     private List<CocktailRecipeStep> recipeSteps = new java.util.ArrayList<>();
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "glassware_id")
+    private Glassware glassware;
+
     private String instructions;
     private String imageUrl;
     private LocalDateTime createdAt;

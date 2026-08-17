@@ -1,27 +1,30 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs/operators';
 import {
   IonHeader, IonToolbar, IonTitle, IonButtons, IonButton,
-  IonContent, IonList, IonItem, IonLabel, IonBadge, IonIcon,
-  IonSpinner, IonNote, IonChip, IonFooter,
-  ModalController, ToastController,
+  IonContent, IonBadge, IonIcon, IonSpinner, IonFooter,
+  ModalController, ToastController, AlertController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
   closeOutline, addCircleOutline, banOutline,
   timeOutline, checkmarkCircleOutline, swapHorizontalOutline,
-  cardOutline,
+  cardOutline, pencilOutline, peopleOutline, personOutline,
+  restaurantOutline, receiptOutline, flameOutline,
 } from 'ionicons/icons';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { TableView } from '../../models/table-view.model';
-import { Commande } from '../../../../core/models/commande.model';
+import { Commande, CommandeItem } from '../../../../core/models/commande.model';
 import { DashboardServeurService } from '../../services/dashboard-serveur.service';
 import { TransfertModalComponent } from '../transfert-modal/transfert-modal.component';
+import { EditCommandeModalComponent } from '../edit-commande-modal/edit-commande-modal.component';
 import { fastModalEnterAnimation, fastModalLeaveAnimation } from '../../../../core/utils/modal-animation.utils';
 
 /**
- * Modal displaying active orders for a specific table with actions for new orders, cancellation, and table transfer.
+ * Redesigned modal displaying active orders for a specific table with rich card layouts,
+ * status badges, item breakdowns, bill summary, and actions for modification, transfer, and cancellation.
  */
 @Component({
   selector: 'app-table-detail-modal',
@@ -29,8 +32,8 @@ import { fastModalEnterAnimation, fastModalLeaveAnimation } from '../../../../co
   imports: [
     CommonModule,
     IonHeader, IonToolbar, IonTitle, IonButtons, IonButton,
-    IonContent, IonList, IonItem, IonLabel, IonBadge, IonIcon,
-    IonSpinner, IonNote, IonChip, IonFooter,
+    IonContent, IonBadge, IonIcon, IonSpinner, IonFooter,
+    TranslocoPipe,
   ],
   templateUrl: './table-detail-modal.component.html',
   styleUrls: ['./table-detail-modal.component.scss'],
@@ -40,13 +43,29 @@ export class TableDetailModalComponent implements OnInit {
   commandes: Commande[] = [];
   isLoading = false;
 
-  constructor(
-    private readonly modalCtrl: ModalController,
-    private readonly router: Router,
-    private readonly service: DashboardServeurService,
-    private readonly toastCtrl: ToastController,
-  ) {
-    addIcons({ closeOutline, addCircleOutline, banOutline, timeOutline, checkmarkCircleOutline, swapHorizontalOutline, cardOutline });
+  private readonly modalCtrl = inject(ModalController);
+  private readonly router = inject(Router);
+  private readonly service = inject(DashboardServeurService);
+  private readonly toastCtrl = inject(ToastController);
+  private readonly alertCtrl = inject(AlertController);
+  private readonly translocoService = inject(TranslocoService);
+
+  constructor() {
+    addIcons({
+      closeOutline,
+      addCircleOutline,
+      banOutline,
+      timeOutline,
+      checkmarkCircleOutline,
+      swapHorizontalOutline,
+      cardOutline,
+      pencilOutline,
+      peopleOutline,
+      personOutline,
+      restaurantOutline,
+      receiptOutline,
+      flameOutline,
+    });
   }
 
   ngOnInit(): void {
@@ -58,20 +77,44 @@ export class TableDetailModalComponent implements OnInit {
     this.service.getCommandesByTable(this.table.id)
       .pipe(finalize(() => (this.isLoading = false)))
       .subscribe({
-        next: commandes => {
-          this.commandes = commandes.filter(
+        next: (commandes: Commande[]) => {
+          this.commandes = (commandes ?? []).filter(
             c => c.statut !== 'REGLEE' && c.statut !== 'ANNULEE',
           );
         },
         error: async () => {
           const toast = await this.toastCtrl.create({
-            message: 'Erreur lors du chargement des commandes',
+            message: this.translocoService.translate('TABLE_MODAL.LOAD_ERROR'),
             duration: 3000,
             color: 'danger',
           });
-          toast.present();
+          await toast.present();
         },
       });
+  }
+
+  /**
+   * Opens the edit order modal allowing servers to adjust items, quantities, variants, and notes.
+   *
+   * @param commande Order entity to edit
+   */
+  async modifierCommande(commande: Commande): Promise<void> {
+    const modal = await this.modalCtrl.create({
+      component: EditCommandeModalComponent,
+      componentProps: {
+        commande,
+        tableNumero: this.table.id,
+      },
+      cssClass: 'edit-commande-modal-container',
+      enterAnimation: fastModalEnterAnimation,
+      leaveAnimation: fastModalLeaveAnimation,
+    });
+    await modal.present();
+    const { data } = await modal.onWillDismiss();
+
+    if (data?.updated) {
+      this.chargerCommandes();
+    }
   }
 
   /**
@@ -96,9 +139,8 @@ export class TableDetailModalComponent implements OnInit {
     if (data?.targetTableId) {
       this.service.transfererCommande(commandeId, data.targetTableId).subscribe({
         next: async () => {
-          const targetNum = data.targetTableNumero ? `Table ${data.targetTableNumero}` : 'la nouvelle table';
           const toast = await this.toastCtrl.create({
-            message: `Commande #${commandeId} transférée vers ${targetNum} avec succès !`,
+            message: this.translocoService.translate('TABLE_MODAL.TRANSFER_SUCCESS', { id: commandeId }),
             duration: 3000,
             color: 'success',
           });
@@ -107,7 +149,7 @@ export class TableDetailModalComponent implements OnInit {
         },
         error: async () => {
           const toast = await this.toastCtrl.create({
-            message: 'Erreur lors du transfert de la commande',
+            message: this.translocoService.translate('TABLE_MODAL.TRANSFER_ERROR'),
             duration: 3000,
             color: 'danger',
           });
@@ -118,15 +160,44 @@ export class TableDetailModalComponent implements OnInit {
   }
 
   async annuler(commandeId: number): Promise<void> {
+    const alert = await this.alertCtrl.create({
+      header: this.translocoService.translate('TABLE_MODAL.CONFIRM_CANCEL_TITLE', { id: commandeId }),
+      message: this.translocoService.translate('TABLE_MODAL.CONFIRM_CANCEL_MESSAGE'),
+      buttons: [
+        {
+          text: this.translocoService.translate('COMMON.CANCEL'),
+          role: 'cancel',
+        },
+        {
+          text: this.translocoService.translate('TABLE_MODAL.CONFIRM_CANCEL_BTN'),
+          role: 'destructive',
+          handler: () => {
+            this.executeAnnulation(commandeId);
+          },
+        },
+      ],
+    });
+    await alert.present();
+  }
+
+  private executeAnnulation(commandeId: number): void {
     this.service.annulerCommande(commandeId).subscribe({
-      next: () => this.chargerCommandes(),
+      next: async () => {
+        const toast = await this.toastCtrl.create({
+          message: this.translocoService.translate('TABLE_MODAL.CANCEL_SUCCESS', { id: commandeId }),
+          duration: 3000,
+          color: 'success',
+        });
+        await toast.present();
+        this.chargerCommandes();
+      },
       error: async () => {
         const toast = await this.toastCtrl.create({
-          message: 'Impossible d\'annuler la commande',
+          message: this.translocoService.translate('TABLE_MODAL.CANCEL_ERROR'),
           duration: 3000,
           color: 'danger',
         });
-        toast.present();
+        await toast.present();
       },
     });
   }
@@ -148,6 +219,10 @@ export class TableDetailModalComponent implements OnInit {
     this.modalCtrl.dismiss();
   }
 
+  calculerTotalActif(): number {
+    return this.commandes.reduce((sum, c) => sum + (c.total ?? 0), 0);
+  }
+
   statutColor(statut: string): string {
     const colors: Record<string, string> = {
       EN_ATTENTE: 'warning',
@@ -158,17 +233,48 @@ export class TableDetailModalComponent implements OnInit {
     return colors[statut] ?? 'medium';
   }
 
-  statutLabel(statut: string): string {
-    const labels: Record<string, string> = {
-      EN_ATTENTE: 'En attente',
-      EN_PREPARATION: 'En préparation',
-      PRET: 'Prêt',
-      LIVREE: 'Livré',
+  statutTranslocoKey(statut: string): string {
+    const keys: Record<string, string> = {
+      EN_ATTENTE: 'TABLE_MODAL.STATUS_EN_ATTENTE',
+      EN_PREPARATION: 'TABLE_MODAL.STATUS_EN_PREPARATION',
+      PRET: 'TABLE_MODAL.STATUS_PRET',
+      LIVREE: 'TABLE_MODAL.STATUS_LIVREE',
     };
-    return labels[statut] ?? statut;
+    return keys[statut] ?? statut;
+  }
+
+  peutModifier(statut: string): boolean {
+    return statut === 'EN_ATTENTE' || statut === 'EN_PREPARATION';
   }
 
   peutAnnuler(statut: string): boolean {
     return statut !== 'LIVREE' && statut !== 'REGLEE' && statut !== 'ANNULEE';
+  }
+
+  /**
+   * Groups identical items (matching cocktail, variant, and notes) and consolidates their quantity.
+   */
+  getGroupedItems(items: CommandeItem[]): CommandeItem[] {
+    if (!items || items.length === 0) return [];
+    const groupedMap = new Map<string, CommandeItem>();
+
+    for (const item of items) {
+      const key = `${item.cocktailNom}|${item.varianteNom ?? ''}|${item.notes ?? ''}`;
+      const existing = groupedMap.get(key);
+      if (existing) {
+        existing.quantite = (existing.quantite || 1) + (item.quantite || 1);
+      } else {
+        groupedMap.set(key, { ...item, quantite: item.quantite || 1 });
+      }
+    }
+    return Array.from(groupedMap.values());
+  }
+
+  /**
+   * Calculates the total number of drink units across all items in an order.
+   */
+  getArticlesTotalCount(items: CommandeItem[]): number {
+    if (!items || items.length === 0) return 0;
+    return items.reduce((sum, item) => sum + (item.quantite || 1), 0);
   }
 }

@@ -185,4 +185,17 @@ class CommandeControllerTest {
         assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         verify(commandeService).transfererCommande(10L, 2L);
     }
+
+    @Test
+    @DisplayName("modifierCommande - modifies active order items and details")
+    void modifierCommande_success() {
+        var itemDto = new com.bar.gestioncocktail.dto.ModifierCommandeItemDTO(null, 1L, null, 2, "Moins sucré", false);
+        var request = new com.bar.gestioncocktail.dto.ModifierCommandeRequestDTO(List.of(itemDto), "Urgent", new BigDecimal("2.00"));
+        when(commandeService.modifierCommande(eq(10L), any())).thenReturn(commande);
+
+        ResponseEntity<CommandeResponseDTO> response = commandeController.modifierCommande(10L, request);
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        verify(commandeService).modifierCommande(10L, request);
+    }
 }

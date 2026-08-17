@@ -19,7 +19,9 @@ import { CommandeView, CommandeItemView } from '../../models/commande-view.model
 import { groupCommandeItems } from '../../../../core/utils/order-item-grouper';
 import { StatusBadgeComponent } from '../../../../core/components/ui/status-badge/status-badge.component';
 import { ActionButtonComponent } from '../../../../core/components/ui/action-button/action-button.component';
-import { CommandeDetailModalComponent } from '../../../commandes/commande-detail-modal/commande-detail-modal.component';
+import { TableDetailModalComponent } from '../../../dashboard-serveur/components/table-detail-modal/table-detail-modal.component';
+import { TableView } from '../../../dashboard-serveur/models/table-view.model';
+import { fastModalEnterAnimation, fastModalLeaveAnimation } from '../../../../core/utils/modal-animation.utils';
 
 /**
  * Kanban order ticket card component for the bar counter preparation dashboard.
@@ -133,26 +135,38 @@ export class CommandeCardComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Opens the full order details modal.
+   * Opens the full table details modal with active orders list and actions.
    */
   async openDetails(): Promise<void> {
     if (!this.modalCtrl) return;
 
+    const table: TableView = {
+      id: this.commande.tableId ?? this.commande.tableNumero ?? 0,
+      nom: this.commande.tableNom || `Table ${this.commande.tableNumero}`,
+      zone: (this.commande as any).tableZone || (this.commande as any).zone || '',
+      capacite: 4,
+      occupee: true,
+      serveurNom: this.commande.serveurNom || this.commande.serveurUsername,
+      commandesActives: [],
+    };
+
     const modal = await this.modalCtrl.create({
-      component: CommandeDetailModalComponent,
+      component: TableDetailModalComponent,
       componentProps: {
-        commandeId: this.commande.id
+        table,
       },
-      cssClass: 'commande-detail-modal-container'
+      cssClass: 'table-detail-modal-container',
+      enterAnimation: fastModalEnterAnimation,
+      leaveAnimation: fastModalLeaveAnimation,
     });
 
     document.body.classList.add('modal-open');
     modal.onDidDismiss().then(result => {
       document.body.classList.remove('modal-open');
       if (result.data) {
-        if (result.data.role === 'statusUpdated' && result.data.targetStatut) {
+        if (result.data.action === 'statusUpdated' && result.data.targetStatut) {
           this.changerStatut.emit({ id: this.commande.id, statut: result.data.targetStatut });
-        } else if (result.data.role === 'cancelled') {
+        } else if (result.data.action === 'cancelled' || result.data.role === 'cancelled') {
           this.changerStatut.emit({ id: this.commande.id, statut: 'ANNULEE' });
         }
       }

@@ -16,6 +16,7 @@ export interface CommandeItem {
   /** Mapped from Java BigDecimal — display only, not for direct JS financial math */
   prixUnitaire: number;
   notes?: string;
+  prioritaire?: boolean;
 }
 
 export interface Commande {

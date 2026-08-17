@@ -64,6 +64,21 @@ export interface EncaissementRequest {
   commandeIds?: number[];
 }
 
+export interface ModifierCommandeItemRequest {
+  id?: number;
+  cocktailId: number;
+  varianteId?: number;
+  quantite: number;
+  notes?: string;
+  prioritaire?: boolean;
+}
+
+export interface ModifierCommandeRequest {
+  items: ModifierCommandeItemRequest[];
+  notes?: string;
+  pourboire?: number;
+}
+
 /**
  * Feature service for the Waiter dashboard managing tables, orders, floor levels, zones, and transfers.
  */
@@ -135,6 +150,10 @@ export class DashboardServeurService {
 
   ajouterItem(commandeId: number, item: AjouterItemRequest): Observable<Commande> {
     return this.http.post<Commande>(`${this.commandesUrl}/${commandeId}/items`, item);
+  }
+
+  modifierCommande(commandeId: number, request: ModifierCommandeRequest): Observable<Commande> {
+    return this.http.put<Commande>(`${this.commandesUrl}/${commandeId}/modifier`, request);
   }
 
   annulerCommande(commandeId: number): Observable<Commande> {

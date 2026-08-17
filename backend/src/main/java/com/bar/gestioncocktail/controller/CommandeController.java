@@ -277,9 +277,9 @@ public class CommandeController {
      * @param id Identifier of the order to cancel
      * @return DTO of the canceled order
      */
-    @PutMapping("/{id}/annuler")
-    @PreAuthorize("hasRole('SERVEUR') or hasRole('MANAGER')")
-    @Operation(summary = "Cancel an order (SERVEUR/MANAGER)")
+    @RequestMapping(value = "/{id}/annuler", method = {RequestMethod.PUT, RequestMethod.PATCH})
+    @PreAuthorize("hasRole('SERVEUR') or hasRole('MANAGER') or hasRole('ADMIN')")
+    @Operation(summary = "Cancel an order (SERVEUR/MANAGER/ADMIN)")
     @ApiResponse(responseCode = "200", description = "Order canceled")
     @ApiResponse(responseCode = "404", description = "Order not found")
     public ResponseEntity<CommandeResponseDTO> annulerCommande(@Parameter(description = "Order ID") @PathVariable Long id) {
@@ -289,6 +289,25 @@ public class CommandeController {
                 return ResponseEntity.ok(CommandeResponseDTO.from(commande));
             })
             .orElse(ResponseEntity.notFound().build());
+    }
+
+    /**
+     * Modifies an active order's cocktail items, quantities, and notes.
+     *
+     * @param id Identifier of the order to modify
+     * @param request Update request payload
+     * @return DTO of the updated order
+     */
+    @PutMapping("/{id}/modifier")
+    @PreAuthorize("hasRole('SERVEUR') or hasRole('BARMAN') or hasRole('ADMIN')")
+    @Operation(summary = "Modify an active order (SERVEUR/BARMAN/ADMIN)", description = "Updates order cocktail items, quantities, notes and recalculates order total.")
+    @ApiResponse(responseCode = "200", description = "Order modified successfully")
+    @ApiResponse(responseCode = "400", description = "Invalid request or order in non-editable status")
+    @ApiResponse(responseCode = "404", description = "Order not found")
+    public ResponseEntity<CommandeResponseDTO> modifierCommande(
+        @Parameter(description = "Order ID") @PathVariable Long id,
+        @Valid @RequestBody com.bar.gestioncocktail.dto.ModifierCommandeRequestDTO request) {
+        return ResponseEntity.ok(CommandeResponseDTO.from(commandeService.modifierCommande(id, request)));
     }
 
     /**

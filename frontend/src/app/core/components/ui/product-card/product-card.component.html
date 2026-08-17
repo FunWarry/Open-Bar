@@ -2,7 +2,7 @@
   @if (imageUrl) {
     <div class="product-image-wrapper">
       <img
-        [src]="imageUrl"
+        [src]="resolveImageUrl(imageUrl)"
         [alt]="title"
         class="product-img"
         (error)="$any($event.target).src = 'assets/images/verres/verre_tumbler.png'" />

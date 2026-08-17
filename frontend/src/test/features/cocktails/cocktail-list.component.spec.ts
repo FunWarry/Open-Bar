@@ -281,4 +281,19 @@ describe('CocktailListComponent', () => {
     expect(component.showPictures).toBe(!initial);
     expect(localStorage.getItem('openbar_show_pictures')).toBe(String(!initial));
   });
+
+  // --- getCocktailImage ---
+
+  it('getCocktailImage() returns fallback glass image when url is empty or legacy', () => {
+    expect(component.getCocktailImage({ ...mockCocktails[0], imageUrl: undefined })).toBe('assets/images/verres/verre_tumbler.png');
+    expect(component.getCocktailImage({ ...mockCocktails[0], imageUrl: 'assets/images/cocktails/mojito.png' })).toBe('assets/images/verres/verre_tumbler.png');
+  });
+
+  it('getCocktailImage() resolves /uploads/ paths with API baseUrl and returns other URLs directly', () => {
+    const uploadUrl = component.getCocktailImage({ ...mockCocktails[0], imageUrl: '/uploads/cocktails/mojito.jpg' });
+    expect(uploadUrl).toContain('/uploads/cocktails/mojito.jpg');
+
+    const externalUrl = component.getCocktailImage({ ...mockCocktails[0], imageUrl: 'https://example.com/mojito.png' });
+    expect(externalUrl).toBe('https://example.com/mojito.png');
+  });
 });

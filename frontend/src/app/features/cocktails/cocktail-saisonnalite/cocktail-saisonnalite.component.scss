@@ -1,0 +1,85 @@
+.saisonnalite-container {
+  padding: 8px 0;
+}
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.25rem 0.75rem;
+
+  .toggle-label {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+}
+
+.saison-fields-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.saison-field-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.saison-preview {
+  padding: 0.5rem 0 1rem;
+}
+
+.preview-title {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.mois-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.mois-cell {
+  padding: 10px 4px;
+  text-align: center;
+  border-radius: var(--radius-sm, 8px);
+  font-size: 0.85rem;
+  font-weight: 600;
+  background: var(--background-surface-2);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-medium);
+  transition: all 0.2s ease;
+}
+
+.mois-cell.actif {
+  background: rgba(108, 127, 232, 0.18);
+  color: var(--primary-light);
+  border-color: var(--primary);
+  font-weight: 700;
+  box-shadow: 0 0 10px rgba(108, 127, 232, 0.25);
+}
+
+.mois-cell.courant {
+  border-color: var(--primary-light);
+  box-shadow: 0 0 0 2px var(--primary);
+}
+
+.disponibilite-badge {
+  padding: 0 0 8px;
+}
+
+.saison-action-row {
+  margin-top: 0.75rem;
+  width: 100%;
+}

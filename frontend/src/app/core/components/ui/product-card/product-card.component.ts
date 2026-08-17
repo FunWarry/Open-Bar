@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { addOutline, removeOutline } from 'ionicons/icons';
+import { environment } from '../../../../../environments/environment';
 
 /**
  * Atomic Product Card component conforming to Figma Design System ProductCard (ID 129:95).
@@ -54,5 +55,20 @@ export class ProductCardComponent {
 
   onRemove(): void {
     this.removeClick.emit();
+  }
+
+  /**
+   * Resolves relative image paths to the backend host when starting with /uploads/.
+   *
+   * @param url Image URL or relative path
+   * @returns Fully qualified or untouched URL
+   */
+  resolveImageUrl(url?: string): string {
+    if (!url) return '';
+    if (url.startsWith('/uploads/')) {
+      const baseUrl = environment.apiUrl.replace(/\/api\/?$/, '');
+      return `${baseUrl}${url}`;
+    }
+    return url;
   }
 }

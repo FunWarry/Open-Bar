@@ -51,7 +51,9 @@ public record CocktailRequestDTO(
     Integer moisFin,
     String instructions,
     String imageUrl,
-    List<CocktailRecipeStepRequestDTO> recipeSteps
+    List<CocktailRecipeStepRequestDTO> recipeSteps,
+    Long glasswareId,
+    List<CocktailVarianteRequestDTO> variantes
 ) {
     /**
      * Backward-compatible 10-parameter constructor.
@@ -68,7 +70,50 @@ public record CocktailRequestDTO(
         Integer moisDebut,
         Integer moisFin
     ) {
-        this(nom, description, prix, categorie, disponible, saisonnier, dateDebutSaison, dateFinSaison, moisDebut, moisFin, null, null, null);
+        this(nom, description, prix, categorie, disponible, saisonnier, dateDebutSaison, dateFinSaison, moisDebut, moisFin, null, null, null, null, null);
+    }
+
+    /**
+     * Backward-compatible 13-parameter constructor.
+     */
+    public CocktailRequestDTO(
+        String nom,
+        String description,
+        BigDecimal prix,
+        CocktailCategorie categorie,
+        Boolean disponible,
+        Boolean saisonnier,
+        LocalDateTime dateDebutSaison,
+        LocalDateTime dateFinSaison,
+        Integer moisDebut,
+        Integer moisFin,
+        String instructions,
+        String imageUrl,
+        List<CocktailRecipeStepRequestDTO> recipeSteps
+    ) {
+        this(nom, description, prix, categorie, disponible, saisonnier, dateDebutSaison, dateFinSaison, moisDebut, moisFin, instructions, imageUrl, recipeSteps, null, null);
+    }
+
+    /**
+     * Backward-compatible 14-parameter constructor with glasswareId.
+     */
+    public CocktailRequestDTO(
+        String nom,
+        String description,
+        BigDecimal prix,
+        CocktailCategorie categorie,
+        Boolean disponible,
+        Boolean saisonnier,
+        LocalDateTime dateDebutSaison,
+        LocalDateTime dateFinSaison,
+        Integer moisDebut,
+        Integer moisFin,
+        String instructions,
+        String imageUrl,
+        List<CocktailRecipeStepRequestDTO> recipeSteps,
+        Long glasswareId
+    ) {
+        this(nom, description, prix, categorie, disponible, saisonnier, dateDebutSaison, dateFinSaison, moisDebut, moisFin, instructions, imageUrl, recipeSteps, glasswareId, null);
     }
 
     /**

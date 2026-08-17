@@ -49,6 +49,7 @@ import {
   restaurantOutline,
   helpCircleOutline,
   closeOutline,
+  informationCircleOutline,
 } from 'ionicons/icons';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { of } from 'rxjs';
@@ -56,8 +57,10 @@ import { switchMap } from 'rxjs/operators';
 import { CocktailService } from '../../../core/services/cocktail.service';
 import { IngredientService } from '../../../core/services/ingredient.service';
 import { RecipeStepTemplateService } from '../../../core/services/recipe-step-template.service';
+import { GlasswareService } from '../../../core/services/glassware.service';
 import { Cocktail } from '../../../core/models/cocktail.model';
 import { Ingredient } from '../../../core/models/ingredient.model';
+import { Glassware } from '../../../core/models/glassware.model';
 import {
   RecipeStepActionType,
   RecipeStepTemplate,
@@ -74,12 +77,22 @@ import { CocktailSaisonnaliteComponent } from '../cocktail-saisonnalite/cocktail
 import { CommonModule } from '@angular/common';
 
 /**
+ * Model representing a deduced bar tool / equipment item.
+ */
+export interface BarEquipmentItem {
+  name: string;
+  category: 'GLASS' | 'MEASURE' | 'PREPARATION' | 'FINISH';
+  icon: string;
+  reason: string;
+}
+
+/**
  * Step-by-Step Wizard & Modular Block Cocktail Builder Component.
  * Supports:
- * - Step 1: General Info & Photo Upload & Seasonal Settings
+ * - Step 1: General Info, Glassware Selection & Photo Upload
  * - Step 2: Recipe Block Builder (Ingredients, Action Templates, Custom Text)
- * - Step 3: Variants & Service Glassware
- * - Step 4: Interactive Recipe Preview with Live Portion Scaling
+ * - Step 3: Variants & Service Options
+ * - Step 4: Technical Recipe Card Preview with Scaled Dosages & Deduced Bar Equipment
  */
 @Component({
   selector: 'app-cocktail-form',
@@ -110,6 +123,7 @@ export class CocktailFormComponent implements OnInit {
   private readonly cocktailService = inject(CocktailService);
   private readonly ingredientService = inject(IngredientService);
   private readonly templateService = inject(RecipeStepTemplateService);
+  private readonly glasswareService = inject(GlasswareService);
   private readonly transloco = inject(TranslocoService);
 
   // Wizard state (1: General, 2: Recipe Blocks, 3: Variants, 4: Preview & Scaling)
@@ -126,6 +140,7 @@ export class CocktailFormComponent implements OnInit {
   // Available database items for dropdowns
   ingredientsList = signal<Ingredient[]>([]);
   templatesList = signal<RecipeStepTemplate[]>([]);
+  glasswareList = signal<Glassware[]>([]);
 
   // Category options for searchable combobox
   categoryOptions = computed<SearchableOption[]>(() => [
@@ -136,6 +151,19 @@ export class CocktailFormComponent implements OnInit {
     { value: 'DIGESTIF', label: this.transloco.translate('COCKTAILS.CATEGORIES.DIGESTIF'), icon: 'wine-outline' },
     { value: 'SPECIAL', label: this.transloco.translate('COCKTAILS.CATEGORIES.SPECIAL'), icon: 'sparkles-outline' },
   ]);
+
+  // Glassware options with live search, capacity badges and illustrations
+  glasswareOptions = computed<SearchableOption[]>(() => {
+    return this.glasswareList().map((g) => ({
+      value: g.id,
+      label: g.nom,
+      badge: `${g.contenanceCl} cl`,
+      badgeType: 'primary',
+      subLabel: g.description || undefined,
+      imageUrl: g.imageUrl || undefined,
+      icon: 'wine-outline',
+    }));
+  });
 
   // Ingredient options with live search, unit badges, and stock indicators
   ingredientOptions = computed<SearchableOption[]>(() => {
@@ -179,6 +207,18 @@ export class CocktailFormComponent implements OnInit {
     { value: 'OTHER', label: this.transloco.translate('COCKTAILS.ACTIONS.OTHER'), icon: 'sparkles-outline' },
   ]);
 
+  // Predefined image choices for glassware creation
+  glasswareImageChoices = [
+    { label: 'Tumbler / Highball', value: 'assets/images/verres/verre_tumbler.png' },
+    { label: 'Old Fashioned / Rocks', value: 'assets/images/verres/verre_old_fashioned.png' },
+    { label: 'Coupe Martini', value: 'assets/images/verres/verre_martini.png' },
+    { label: 'Verre Margarita', value: 'assets/images/verres/verre_margarita.png' },
+    { label: 'Verre Ballon / Copa', value: 'assets/images/verres/verre_ballon.png' },
+    { label: 'Flûte à Champagne', value: 'assets/images/verres/verre_flute.png' },
+    { label: 'Tasse en cuivre', value: 'assets/images/verres/tasse_cuivre.png' },
+    { label: 'Verre Tiki', value: 'assets/images/verres/verre_tiki.png' },
+  ];
+
   // Interactive portions count for preview scaling
   previewPortions = signal<number>(1);
 
@@ -190,15 +230,122 @@ export class CocktailFormComponent implements OnInit {
   newTemplateIcon = 'wine-outline';
   newTemplateDescription = '';
 
+  // New glassware modal state
+  isNewGlasswareModalOpen = signal<boolean>(false);
+  newGlasswareNom = '';
+  newGlasswareContenanceCl = 30;
+  newGlasswareImageUrl = 'assets/images/verres/verre_tumbler.png';
+  newGlasswareDescription = '';
+  newGlasswareSourceType = signal<'PRESET' | 'CUSTOM'>('PRESET');
+  customGlasswareFile: File | null = null;
+  customGlasswarePreview = signal<string | null>(null);
+
+  recipeVersion = signal<number>(0);
+  selectedGlasswareId = signal<number | null>(null);
+
   cocktailForm: FormGroup = this.fb.group({
     name: ['', Validators.required],
-    description: ['', Validators.required],
+    description: [''],
     price: [0, [Validators.required, Validators.min(0)]],
     category: ['', Validators.required],
+    glasswareId: [null],
     instructions: [''],
     recipeSteps: this.fb.array([]),
     variantes: this.fb.array([]),
   });
+
+  /**
+   * Automatically deduces required bar tools and equipment from
+   * selected glassware, measured quantities, and recipe actions.
+   */
+  deducedBarEquipment = computed<BarEquipmentItem[]>(() => {
+    this.recipeVersion(); // Track reactive changes
+    const items: BarEquipmentItem[] = [];
+
+    const glassId = this.selectedGlasswareId() ?? this.cocktailForm.get('glasswareId')?.value;
+    const glass = this.getGlassEquipment(glassId);
+    if (glass) {
+      items.push(glass);
+    }
+
+    if (this.hasMeasuredIngredients()) {
+      items.push({
+        name: 'Doseur gradué / Jigger',
+        category: 'MEASURE',
+        icon: 'funnel-outline',
+        reason: 'Dosage précis des composants',
+      });
+    }
+
+    const actionTypes = new Set<string>(
+      this.recipeStepsArray.controls
+        .filter((ctrl) => ctrl.get('stepType')?.value === 'ACTION_TEMPLATE')
+        .map((ctrl) => ctrl.get('actionType')?.value)
+        .filter((a): a is string => Boolean(a))
+    );
+
+    items.push(...this.getActionEquipment(actionTypes));
+    return items;
+  });
+
+  private getGlassEquipment(glasswareId: number | null): BarEquipmentItem | null {
+    if (!glasswareId) return null;
+    const selectedGlass = this.glasswareList().find((g) => g.id === +glasswareId);
+    if (!selectedGlass) return null;
+    return {
+      name: selectedGlass.nom,
+      category: 'GLASS',
+      icon: 'wine-outline',
+      reason: `${selectedGlass.contenanceCl} cl`,
+    };
+  }
+
+  private hasMeasuredIngredients(): boolean {
+    return this.recipeStepsArray.controls.some(
+      (ctrl) => ctrl.get('stepType')?.value === 'INGREDIENT' && Number(ctrl.get('quantite')?.value) > 0
+    );
+  }
+
+  private getActionEquipment(actionTypes: Set<string>): BarEquipmentItem[] {
+    const items: BarEquipmentItem[] = [];
+    const actionEquipmentMap: Record<string, BarEquipmentItem[]> = {
+      SHAKE: [
+        { name: 'Shaker cocktail (Boston / Parisian)', category: 'PREPARATION', icon: 'sync-outline', reason: 'Émulsion et aération rapide' },
+        { name: 'Passoire Hawthorne (Strainer)', category: 'PREPARATION', icon: 'funnel-outline', reason: 'Filtration de la glace' },
+        { name: 'Glaçons / Ice cubes', category: 'PREPARATION', icon: 'cube-outline', reason: 'Refroidissement shaker' },
+      ],
+      STRAIN: [
+        { name: 'Passoire fine (Fine mesh strainer)', category: 'PREPARATION', icon: 'funnel-outline', reason: 'Double filtration (pulpe/particules)' },
+      ],
+      MUDDLE: [
+        { name: 'Pilon de bar (Muddler)', category: 'PREPARATION', icon: 'hammer-outline', reason: 'Extraction des arômes et herbes' },
+      ],
+      STIR: [
+        { name: 'Verre à mélange (Mixing glass)', category: 'PREPARATION', icon: 'wine-outline', reason: 'Mélange délicat au bar' },
+        { name: 'Cuillère de bar torsadée (Bar spoon)', category: 'PREPARATION', icon: 'restaurant-outline', reason: 'Agitation douce sans bulles' },
+      ],
+      ADD_ICE: [
+        { name: 'Pince à glaçons / Pelle à glace', category: 'PREPARATION', icon: 'cube-outline', reason: 'Service et hygiène de la glace' },
+      ],
+      BLEND: [
+        { name: 'Mixeur / Blender électrique', category: 'PREPARATION', icon: 'hardware-chip-outline', reason: 'Texture frozen onctueuse' },
+      ],
+      FLAME: [
+        { name: 'Chalumeau de bar / Briquet', category: 'FINISH', icon: 'flame-outline', reason: 'Expression des huiles et flambage' },
+      ],
+      GARNISH: [
+        { name: 'Pince à garniture / Couteau d’office', category: 'FINISH', icon: 'leaf-outline', reason: 'Découpe et dressage des zestes' },
+      ],
+    };
+
+    for (const action of actionTypes) {
+      const toolList = actionEquipmentMap[action];
+      if (toolList) {
+        items.push(...toolList);
+      }
+    }
+    return items;
+  }
 
   constructor() {
     addIcons({
@@ -232,6 +379,7 @@ export class CocktailFormComponent implements OnInit {
       restaurantOutline,
       helpCircleOutline,
       closeOutline,
+      informationCircleOutline,
     });
   }
 
@@ -250,6 +398,12 @@ export class CocktailFormComponent implements OnInit {
   ngOnInit(): void {
     this.loadIngredients();
     this.loadTemplates();
+    this.loadGlassware();
+
+    this.cocktailForm.valueChanges.subscribe((val) => {
+      this.selectedGlasswareId.set(val?.glasswareId ?? null);
+      this.recipeVersion.update((v) => v + 1);
+    });
 
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
@@ -261,9 +415,10 @@ export class CocktailFormComponent implements OnInit {
           this.imagePreview = cocktail.imageUrl || null;
           this.cocktailForm.patchValue({
             name: cocktail.nom,
-            description: cocktail.description,
+            description: cocktail.description || '',
             price: cocktail.prix,
             category: cocktail.categorie,
+            glasswareId: cocktail.glassware?.id ?? cocktail.glasswareId ?? null,
             instructions: cocktail.instructions || '',
           });
 
@@ -271,6 +426,26 @@ export class CocktailFormComponent implements OnInit {
             this.recipeStepsArray.clear();
             cocktail.recipeSteps.forEach((step, index) => {
               this.recipeStepsArray.push(this.createStepFormGroup(step, index + 1));
+            });
+          } else if (cocktail.ingredients && cocktail.ingredients.length > 0) {
+            this.recipeStepsArray.clear();
+            cocktail.ingredients.forEach((ing: any, index: number) => {
+              this.recipeStepsArray.push(
+                this.fb.group({
+                  stepOrder: [index + 1],
+                  stepType: ['INGREDIENT', Validators.required],
+                  ingredientId: [ing.ingredient?.id ?? ing.ingredientId ?? null],
+                  ingredientNom: [ing.ingredient?.nom ?? ing.ingredientNom ?? ing.nom ?? ''],
+                  quantite: [ing.quantite ?? null],
+                  unite: [ing.uniteMesure ?? ing.unite ?? 'cl'],
+                  templateId: [null],
+                  templateName: [''],
+                  actionTitle: [''],
+                  actionType: ['SHAKE'],
+                  customText: [''],
+                  durationSeconds: [null],
+                })
+              );
             });
           }
 
@@ -306,46 +481,49 @@ export class CocktailFormComponent implements OnInit {
     });
   }
 
+  loadGlassware(): void {
+    this.glasswareService.getAll().subscribe({
+      next: (data) => this.glasswareList.set(data),
+      error: () => this.showToast(this.transloco.translate('COMMON.ERROR'), 'danger'),
+    });
+  }
+
   // --- Wizard Navigation & Step Validation ---
   isStep1Valid(): boolean {
     const f = this.cocktailForm;
     const name = f.get('name')?.value;
-    const desc = f.get('description')?.value;
     const price = f.get('price')?.value;
     const cat = f.get('category')?.value;
 
     const isNameValid = typeof name === 'string' && name.trim().length > 0;
-    const isDescValid = typeof desc === 'string' && desc.trim().length > 0;
-    const isPriceValid = price != null && !isNaN(price) && Number(price) > 0;
+    const isPriceValid = price != null && !Number.isNaN(Number(price)) && Number(price) > 0;
     const isCatValid = cat != null && typeof cat === 'string' && cat.trim().length > 0;
 
-    return isNameValid && isDescValid && isPriceValid && isCatValid;
+    return isNameValid && isPriceValid && isCatValid;
+  }
+
+  private isStepItemValid(ctrl: AbstractControl): boolean {
+    const stepType = ctrl.get('stepType')?.value;
+    if (stepType === 'INGREDIENT') {
+      const ingId = ctrl.get('ingredientId')?.value;
+      const qty = ctrl.get('quantite')?.value;
+      return Boolean(ingId) && qty != null && !Number.isNaN(Number(qty)) && Number(qty) > 0;
+    }
+    if (stepType === 'ACTION_TEMPLATE') {
+      const templateId = ctrl.get('templateId')?.value;
+      const templateName = ctrl.get('templateName')?.value?.trim();
+      return Boolean(templateId || templateName);
+    }
+    if (stepType === 'CUSTOM_TEXT') {
+      const actionTitle = ctrl.get('actionTitle')?.value?.trim();
+      return Boolean(actionTitle);
+    }
+    return true;
   }
 
   isStep2Valid(): boolean {
     if (!this.isStep1Valid()) return false;
-    for (const ctrl of this.recipeStepsArray.controls) {
-      const stepType = ctrl.get('stepType')?.value;
-      if (stepType === 'INGREDIENT') {
-        const ingId = ctrl.get('ingredientId')?.value;
-        const qty = ctrl.get('quantite')?.value;
-        if (!ingId || qty == null || isNaN(qty) || Number(qty) <= 0) {
-          return false;
-        }
-      } else if (stepType === 'ACTION_TEMPLATE') {
-        const templateId = ctrl.get('templateId')?.value;
-        const templateName = ctrl.get('templateName')?.value;
-        if (!templateId && (!templateName || !templateName.trim())) {
-          return false;
-        }
-      } else if (stepType === 'CUSTOM_TEXT') {
-        const actionTitle = ctrl.get('actionTitle')?.value;
-        if (!actionTitle || !actionTitle.trim()) {
-          return false;
-        }
-      }
-    }
-    return true;
+    return this.recipeStepsArray.controls.every((ctrl) => this.isStepItemValid(ctrl));
   }
 
   isStep3Valid(): boolean {
@@ -353,7 +531,7 @@ export class CocktailFormComponent implements OnInit {
     for (const ctrl of this.variantesArray.controls) {
       const nom = ctrl.get('nom')?.value;
       const supp = ctrl.get('prixSupplement')?.value;
-      if (!nom || typeof nom !== 'string' || !nom.trim() || supp == null || isNaN(supp) || Number(supp) < 0) {
+      if (!nom || typeof nom !== 'string' || !nom.trim() || supp == null || Number.isNaN(Number(supp)) || Number(supp) < 0) {
         return false;
       }
     }
@@ -381,183 +559,124 @@ export class CocktailFormComponent implements OnInit {
   }
 
   canProceedFromCurrentStep(): boolean {
-    const current = this.currentStep();
-    if (current === 1) return this.isStep1Valid();
-    if (current === 2) return this.isStep2Valid();
-    if (current === 3) return this.isStep3Valid();
-    return this.isFormValid();
-  }
-
-  markCurrentStepAsTouched(): void {
-    const current = this.currentStep();
-    if (current === 1) {
-      this.cocktailForm.get('name')?.markAsTouched();
-      this.cocktailForm.get('description')?.markAsTouched();
-      this.cocktailForm.get('price')?.markAsTouched();
-      this.cocktailForm.get('category')?.markAsTouched();
-    } else if (current === 2) {
-      this.recipeStepsArray.controls.forEach((ctrl) => ctrl.markAllAsTouched());
-    } else if (current === 3) {
-      this.variantesArray.controls.forEach((ctrl) => ctrl.markAllAsTouched());
-    }
+    const step = this.currentStep();
+    if (step === 1) return this.isStep1Valid();
+    if (step === 2) return this.isStep2Valid();
+    if (step === 3) return this.isStep3Valid();
+    return true;
   }
 
   goToStep(step: number): void {
-    if (step < 1 || step > this.totalSteps || step === this.currentStep()) {
-      return;
-    }
     if (this.canGoToStep(step)) {
       this.currentStep.set(step);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
-      this.markCurrentStepAsTouched();
       this.showToast(this.transloco.translate('COCKTAILS.WIZARD.VALIDATION_ERROR'), 'warning');
     }
   }
 
   nextStep(): void {
-    const current = this.currentStep();
-    if (current < this.totalSteps) {
-      if (this.canGoToStep(current + 1)) {
-        this.currentStep.set(current + 1);
-      } else {
-        this.markCurrentStepAsTouched();
-        this.showToast(this.transloco.translate('COCKTAILS.WIZARD.VALIDATION_ERROR'), 'warning');
-      }
+    if (this.currentStep() < this.totalSteps) {
+      this.goToStep(this.currentStep() + 1);
     }
   }
 
   prevStep(): void {
     if (this.currentStep() > 1) {
-      this.currentStep.update((s) => s - 1);
+      this.goToStep(this.currentStep() - 1);
     }
   }
 
-  // --- Block Step Builder Methods ---
-  createStepFormGroup(initial?: Partial<CocktailRecipeStep>, order = 1): FormGroup {
-    return this.fb.group({
-      stepOrder: [initial?.stepOrder || order],
-      stepType: [initial?.stepType || 'INGREDIENT', Validators.required],
-      ingredientId: [initial?.ingredientId || null],
-      ingredientNom: [initial?.ingredientNom || ''],
-      quantite: [initial?.quantite || null],
-      unite: [initial?.unite || 'cl'],
-      templateId: [initial?.templateId || null],
-      templateName: [initial?.templateName || ''],
-      actionType: [initial?.actionType || 'OTHER'],
-      actionTitle: [initial?.actionTitle || ''],
-      customText: [initial?.customText || ''],
-      durationSeconds: [initial?.durationSeconds || 15],
-    });
+  // --- Step 2: Recipe Block Builder Helpers ---
+  addIngredientStep(): void {
+    const order = this.recipeStepsArray.length + 1;
+    this.recipeStepsArray.push(
+      this.fb.group({
+        stepOrder: [order],
+        stepType: ['INGREDIENT', Validators.required],
+        ingredientId: [null, Validators.required],
+        ingredientNom: [''],
+        quantite: [4, [Validators.required, Validators.min(0.1)]],
+        unite: ['cl'],
+        templateId: [null],
+        actionTitle: [null],
+        actionType: [null],
+        customText: [''],
+        durationSeconds: [null],
+      })
+    );
   }
 
   addIngredientBlock(): void {
+    this.addIngredientStep();
+  }
+
+  addActionTemplateStep(): void {
     const order = this.recipeStepsArray.length + 1;
-    const group = this.createStepFormGroup(
-      {
-        stepType: 'INGREDIENT',
-        stepOrder: order,
-        quantite: 4,
-        unite: 'cl',
-      },
-      order
+    this.recipeStepsArray.push(
+      this.fb.group({
+        stepOrder: [order],
+        stepType: ['ACTION_TEMPLATE', Validators.required],
+        ingredientId: [null],
+        ingredientNom: [''],
+        quantite: [null],
+        unite: [null],
+        templateId: [null, Validators.required],
+        templateName: [''],
+        actionTitle: [null],
+        actionType: ['SHAKE'],
+        customText: [''],
+        durationSeconds: [15],
+      })
     );
-    this.recipeStepsArray.push(group);
   }
 
   addActionTemplateBlock(template?: RecipeStepTemplate): void {
+    this.addActionTemplateStep();
+    if (template) {
+      const lastGroup = this.recipeStepsArray.at(-1) as FormGroup;
+      this.onTemplateSelected(template.id, lastGroup);
+    }
+  }
+
+  addCustomTextStep(): void {
     const order = this.recipeStepsArray.length + 1;
-    const group = this.createStepFormGroup(
-      {
-        stepType: 'ACTION_TEMPLATE',
-        stepOrder: order,
-        templateId: template?.id,
-        templateName: template?.name || '',
-        actionType: template?.actionType || 'SHAKE',
-        durationSeconds: template?.defaultDurationSeconds || 15,
-        customText: template?.description || '',
-      },
-      order
+    this.recipeStepsArray.push(
+      this.fb.group({
+        stepOrder: [order],
+        stepType: ['CUSTOM_TEXT', Validators.required],
+        ingredientId: [null],
+        ingredientNom: [''],
+        quantite: [null],
+        unite: [null],
+        templateId: [null],
+        actionTitle: ['', Validators.required],
+        actionType: ['OTHER'],
+        customText: [''],
+        durationSeconds: [null],
+      })
     );
-    this.recipeStepsArray.push(group);
   }
 
   addCustomTextBlock(): void {
-    const order = this.recipeStepsArray.length + 1;
-    const group = this.createStepFormGroup(
-      {
-        stepType: 'CUSTOM_TEXT',
-        stepOrder: order,
-        actionTitle: 'Geste technique personnalisé',
-        durationSeconds: 15,
-      },
-      order
-    );
-    this.recipeStepsArray.push(group);
+    this.addCustomTextStep();
   }
 
-  onIngredientOptionSelected(index: number, option: SearchableOption | null): void {
-    const stepGroup = this.recipeStepsArray.at(index) as FormGroup;
-    if (!stepGroup) return;
-
-    if (!option) {
-      stepGroup.patchValue({
-        ingredientId: null,
-        ingredientNom: '',
-      });
-      return;
-    }
-
-    const ingredient = this.ingredientsList().find((i) => i.id === option.value);
-    if (ingredient) {
-      stepGroup.patchValue({
-        ingredientId: ingredient.id,
-        ingredientNom: ingredient.nom,
-        unite: ingredient.uniteMesure || 'cl',
-      });
-    }
-  }
-
-  onTemplateOptionSelected(index: number, option: SearchableOption | null): void {
-    const stepGroup = this.recipeStepsArray.at(index) as FormGroup;
-    if (!stepGroup) return;
-
-    if (!option) {
-      stepGroup.patchValue({
-        templateId: null,
-        templateName: '',
-      });
-      return;
-    }
-
-    const template = this.templatesList().find((t) => t.id === option.value);
-    if (template) {
-      stepGroup.patchValue({
-        templateId: template.id,
-        templateName: template.name,
-        actionType: template.actionType,
-        durationSeconds: template.defaultDurationSeconds,
-        customText: template.description || '',
-      });
-    }
-  }
-
-  onModalActionTypeSelected(option: SearchableOption | null): void {
-    if (option) {
-      this.newTemplateActionType = option.value as RecipeStepActionType;
-    }
+  removeRecipeStep(index: number): void {
+    this.recipeStepsArray.removeAt(index);
+    this.reorderSteps();
   }
 
   removeStep(index: number): void {
-    this.recipeStepsArray.removeAt(index);
-    this.reindexSteps();
+    this.removeRecipeStep(index);
   }
 
   moveStepUp(index: number): void {
-    if (index <= 0) return;
+    if (index === 0) return;
     const current = this.recipeStepsArray.at(index);
     this.recipeStepsArray.removeAt(index);
     this.recipeStepsArray.insert(index - 1, current);
-    this.reindexSteps();
+    this.reorderSteps();
   }
 
   moveStepDown(index: number): void {
@@ -565,16 +684,69 @@ export class CocktailFormComponent implements OnInit {
     const current = this.recipeStepsArray.at(index);
     this.recipeStepsArray.removeAt(index);
     this.recipeStepsArray.insert(index + 1, current);
-    this.reindexSteps();
+    this.reorderSteps();
   }
 
-  private reindexSteps(): void {
-    this.recipeStepsArray.controls.forEach((ctrl, idx) => {
-      ctrl.patchValue({ stepOrder: idx + 1 });
+  private reorderSteps(): void {
+    this.recipeStepsArray.controls.forEach((group, idx) => {
+      group.get('stepOrder')?.setValue(idx + 1);
     });
   }
 
-  // --- Variants Management ---
+  onIngredientSelected(ingId: any, stepGroup: FormGroup): void {
+    const selected = this.ingredientsList().find((i) => i.id === +ingId);
+    if (selected) {
+      stepGroup.patchValue({
+        ingredientId: selected.id,
+        ingredientNom: selected.nom,
+        unite: selected.uniteMesure || 'cl',
+      });
+    }
+  }
+
+  onIngredientOptionSelected(index: number, option: any): void {
+    const group = this.recipeStepsArray.at(index) as FormGroup;
+    const value = option && typeof option === 'object' && 'value' in option ? option.value : option;
+    this.onIngredientSelected(value, group);
+  }
+
+  onTemplateSelected(tplId: any, stepGroup: FormGroup): void {
+    const selected = this.templatesList().find((t) => t.id === +tplId);
+    if (selected) {
+      stepGroup.patchValue({
+        templateId: selected.id,
+        templateName: selected.name,
+        actionType: selected.actionType,
+        durationSeconds: selected.defaultDurationSeconds || null,
+        customText: selected.description || '',
+      });
+    }
+  }
+
+  onTemplateOptionSelected(index: number, option: any): void {
+    const group = this.recipeStepsArray.at(index) as FormGroup;
+    const value = option && typeof option === 'object' && 'value' in option ? option.value : option;
+    this.onTemplateSelected(value, group);
+  }
+
+  private createStepFormGroup(step: CocktailRecipeStep, order: number): FormGroup {
+    return this.fb.group({
+      stepOrder: [order],
+      stepType: [step.stepType, Validators.required],
+      ingredientId: [step.ingredientId || null],
+      ingredientNom: [step.ingredientNom || ''],
+      quantite: [step.quantite || null],
+      unite: [step.unite || 'cl'],
+      templateId: [step.templateId || null],
+      templateName: [step.templateName || ''],
+      actionTitle: [step.actionTitle || ''],
+      actionType: [step.actionType || 'SHAKE'],
+      customText: [step.customText || ''],
+      durationSeconds: [step.durationSeconds || null],
+    });
+  }
+
+  // --- Step 3: Variants Management ---
   addVariant(): void {
     this.variantesArray.push(
       this.fb.group({
@@ -590,24 +762,124 @@ export class CocktailFormComponent implements OnInit {
     this.variantesArray.removeAt(index);
   }
 
-  // --- Reusable Action Template Modal ---
-  openCreateTemplateModal(fromStepGroup?: AbstractControl | null): void {
-    if (fromStepGroup) {
-      this.newTemplateName = fromStepGroup.get('actionTitle')?.value || '';
-      this.newTemplateActionType = fromStepGroup.get('actionType')?.value || 'OTHER';
-      this.newTemplateDuration = fromStepGroup.get('durationSeconds')?.value || 15;
-      this.newTemplateDescription = fromStepGroup.get('customText')?.value || '';
-    } else {
-      this.newTemplateName = '';
-      this.newTemplateActionType = 'SHAKE';
-      this.newTemplateDuration = 15;
-      this.newTemplateDescription = '';
+  // --- Step 4: Portion Scaler & Math ---
+  incrementPortions(): void {
+    this.previewPortions.update((p) => Math.min(p + 1, 50));
+  }
+
+  decrementPortions(): void {
+    this.previewPortions.update((p) => Math.max(p - 1, 1));
+  }
+
+  getScaledQuantity(baseQty: number | null | undefined): string {
+    if (baseQty == null || Number.isNaN(Number(baseQty))) return '-';
+    const scaled = Number(baseQty) * this.previewPortions();
+    return scaled % 1 === 0 ? scaled.toString() : scaled.toFixed(1);
+  }
+
+  // --- Glassware Creation Modal ---
+  openCreateGlasswareModal(): void {
+    this.newGlasswareNom = '';
+    this.newGlasswareContenanceCl = 30;
+    this.newGlasswareImageUrl = 'assets/images/verres/verre_tumbler.png';
+    this.newGlasswareDescription = '';
+    this.newGlasswareSourceType.set('PRESET');
+    this.customGlasswareFile = null;
+    this.customGlasswarePreview.set(null);
+    this.isNewGlasswareModalOpen.set(true);
+  }
+
+  closeCreateGlasswareModal(): void {
+    this.isNewGlasswareModalOpen.set(false);
+  }
+
+  setGlasswareSourceType(type: 'PRESET' | 'CUSTOM'): void {
+    this.newGlasswareSourceType.set(type);
+  }
+
+  onCustomGlasswareFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+    const file = input.files[0];
+    this.customGlasswareFile = file;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      this.customGlasswarePreview.set(e.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  removeCustomGlasswareFile(): void {
+    this.customGlasswareFile = null;
+    this.customGlasswarePreview.set(null);
+  }
+
+  saveNewGlassware(): void {
+    if (!this.newGlasswareNom.trim() || !this.newGlasswareContenanceCl || this.newGlasswareContenanceCl <= 0) {
+      return;
     }
+
+    const payloadImageUrl = this.newGlasswareSourceType() === 'PRESET'
+      ? this.newGlasswareImageUrl
+      : 'assets/images/verres/verre_tumbler.png';
+
+    this.glasswareService
+      .create({
+        nom: this.newGlasswareNom.trim(),
+        contenanceCl: this.newGlasswareContenanceCl,
+        imageUrl: payloadImageUrl,
+        description: this.newGlasswareDescription.trim() || undefined,
+      })
+      .subscribe({
+        next: (created) => {
+          if (this.newGlasswareSourceType() === 'CUSTOM' && this.customGlasswareFile) {
+            this.glasswareService.uploadImage(created.id, this.customGlasswareFile).subscribe({
+              next: (withImage) => {
+                this.glasswareList.update((list) => [...list, withImage]);
+                this.cocktailForm.get('glasswareId')?.setValue(withImage.id);
+                this.recipeVersion.update((v) => v + 1);
+                this.closeCreateGlasswareModal();
+                this.showToast(this.transloco.translate('COCKTAILS.GLASSWARE.SAVED_SUCCESS'));
+              },
+              error: () => {
+                this.glasswareList.update((list) => [...list, created]);
+                this.cocktailForm.get('glasswareId')?.setValue(created.id);
+                this.recipeVersion.update((v) => v + 1);
+                this.closeCreateGlasswareModal();
+                this.showToast(this.transloco.translate('COCKTAILS.GLASSWARE.SAVED_SUCCESS'));
+              },
+            });
+          } else {
+            this.glasswareList.update((list) => [...list, created]);
+            this.cocktailForm.get('glasswareId')?.setValue(created.id);
+            this.recipeVersion.update((v) => v + 1);
+            this.closeCreateGlasswareModal();
+            this.showToast(this.transloco.translate('COCKTAILS.GLASSWARE.SAVED_SUCCESS'));
+          }
+        },
+        error: () => this.showToast(this.transloco.translate('COMMON.ERROR'), 'danger'),
+      });
+  }
+
+  // --- Action Template Creation Modal ---
+  openCreateTemplateModal(): void {
+    this.newTemplateName = '';
+    this.newTemplateActionType = 'SHAKE';
+    this.newTemplateDuration = 15;
+    this.newTemplateIcon = 'wine-outline';
+    this.newTemplateDescription = '';
     this.isNewTemplateModalOpen.set(true);
   }
 
   closeCreateTemplateModal(): void {
     this.isNewTemplateModalOpen.set(false);
+  }
+
+  onModalActionTypeSelected(actionType: any): void {
+    const value = actionType && typeof actionType === 'object' && 'value' in actionType ? actionType.value : actionType;
+    this.newTemplateActionType = value as RecipeStepActionType;
+    this.newTemplateIcon = this.getActionIcon(this.newTemplateActionType);
   }
 
   saveNewTemplate(): void {
@@ -618,48 +890,32 @@ export class CocktailFormComponent implements OnInit {
         name: this.newTemplateName.trim(),
         actionType: this.newTemplateActionType,
         defaultDurationSeconds: this.newTemplateDuration,
-        description: this.newTemplateDescription.trim(),
         icon: this.newTemplateIcon,
+        description: this.newTemplateDescription.trim() || undefined,
       })
       .subscribe({
-        next: (saved) => {
-          this.templatesList.update((list) => [...list, saved]);
-          this.showToast(this.transloco.translate('COCKTAILS.BUILDER.TEMPLATE_SAVED_SUCCESS'));
+        next: (created) => {
+          this.templatesList.update((list) => [...list, created]);
           this.closeCreateTemplateModal();
+          this.showToast(this.transloco.translate('COCKTAILS.BUILDER.TEMPLATE_SAVED_SUCCESS'));
         },
         error: () => this.showToast(this.transloco.translate('COMMON.ERROR'), 'danger'),
       });
   }
 
-  // --- Scaling Preview Helpers ---
-  incrementPortions(): void {
-    this.previewPortions.update((p) => Math.min(p + 1, 50));
-  }
-
-  decrementPortions(): void {
-    this.previewPortions.update((p) => Math.max(p - 1, 1));
-  }
-
-  getScaledQuantity(baseQuantity: number | null | undefined): number {
-    if (baseQuantity == null) return 0;
-    const total = baseQuantity * this.previewPortions();
-    return Math.round(total * 100) / 100;
-  }
-
-  getActionIcon(actionType?: string): string {
+  getActionIcon(actionType: string | undefined | null): string {
     switch (actionType) {
       case 'SHAKE':
-        return 'wine-outline';
+        return 'sync-outline';
       case 'STRAIN':
         return 'funnel-outline';
       case 'MUDDLE':
         return 'hammer-outline';
       case 'STIR':
-        return 'sync-outline';
+        return 'wine-outline';
       case 'ADD_ICE':
         return 'cube-outline';
       case 'POUR':
-        return 'water-outline';
       case 'TOP_UP':
         return 'water-outline';
       case 'GARNISH':
@@ -725,11 +981,19 @@ export class CocktailFormComponent implements OnInit {
       })
     );
 
+    const variantesPayload = (formVal.variantes || []).map((v: any) => ({
+      nom: v.nom,
+      description: v.description || null,
+      prixSupplement: v.prixSupplement != null ? +v.prixSupplement : 0,
+      disponible: v.disponible ?? true,
+    }));
+
     const payload = {
       nom: formVal.name,
-      description: formVal.description,
+      description: formVal.description || null,
       prix: formVal.price,
       categorie: formVal.category,
+      glasswareId: formVal.glasswareId ? +formVal.glasswareId : null,
       instructions: formVal.instructions || null,
       disponible: this.cocktailData ? this.cocktailData.disponible : true,
       saisonnier: this.cocktailData ? this.cocktailData.saisonnier : false,
@@ -738,6 +1002,7 @@ export class CocktailFormComponent implements OnInit {
       moisDebut: this.cocktailData?.moisDebut || null,
       moisFin: this.cocktailData?.moisFin || null,
       recipeSteps: recipeStepsPayload,
+      variantes: variantesPayload,
     };
 
     const obs$ = this.isEditMode

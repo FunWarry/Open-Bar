@@ -6,7 +6,16 @@ import {
   IonButton, IonIcon, PopoverController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { checkmarkDoneOutline, notificationsOffOutline, notificationsOutline, closeOutline } from 'ionicons/icons';
+import {
+  checkmarkDoneOutline,
+  notificationsOffOutline,
+  notificationsOutline,
+  closeOutline,
+  alertCircleOutline,
+  warningOutline,
+  restaurantOutline,
+  checkmarkCircleOutline,
+} from 'ionicons/icons';
 import { NotificationService, AppNotification } from '../../services/notification.service';
 
 /**
@@ -34,7 +43,16 @@ export class NotificationPanelComponent implements OnInit, OnDestroy {
     private readonly notifService: NotificationService,
     @Optional() private readonly popoverCtrl?: PopoverController,
   ) {
-    addIcons({ checkmarkDoneOutline, notificationsOffOutline, notificationsOutline, closeOutline });
+    addIcons({
+      checkmarkDoneOutline,
+      notificationsOffOutline,
+      notificationsOutline,
+      closeOutline,
+      alertCircleOutline,
+      warningOutline,
+      restaurantOutline,
+      checkmarkCircleOutline,
+    });
   }
 
   ngOnInit() {
@@ -74,5 +92,20 @@ export class NotificationPanelComponent implements OnInit, OnDestroy {
       commande: 'primary', statut: 'success', table: 'warning', stock: 'danger',
     };
     return map[type] ?? 'medium';
+  }
+
+  getNotificationIcon(type: string): string {
+    switch (type) {
+      case 'stock':
+        return 'alert-circle-outline';
+      case 'commande':
+        return 'restaurant-outline';
+      case 'statut':
+        return 'checkmark-circle-outline';
+      case 'table':
+        return 'warning-outline';
+      default:
+        return 'notifications-outline';
+    }
   }
 }

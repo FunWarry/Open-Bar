@@ -1,9 +1,14 @@
 package com.bar.gestioncocktail.service;
 
+import com.bar.gestioncocktail.dto.CommandeResponseDTO;
+import com.bar.gestioncocktail.dto.ModifierCommandeItemDTO;
+import com.bar.gestioncocktail.dto.ModifierCommandeRequestDTO;
 import com.bar.gestioncocktail.dto.StockAlerteEvent;
+import com.bar.gestioncocktail.exception.BusinessException;
 import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.model.Cocktail;
 import com.bar.gestioncocktail.model.CocktailIngredient;
+import com.bar.gestioncocktail.model.CocktailVariante;
 import com.bar.gestioncocktail.model.Commande;
 import com.bar.gestioncocktail.model.CommandeItem;
 import com.bar.gestioncocktail.model.CommandeStatut;
@@ -12,6 +17,7 @@ import com.bar.gestioncocktail.model.TableEntity;
 import com.bar.gestioncocktail.model.User;
 import com.bar.gestioncocktail.repository.CocktailIngredientRepository;
 import com.bar.gestioncocktail.repository.CocktailRepository;
+import com.bar.gestioncocktail.repository.CocktailVarianteRepository;
 import com.bar.gestioncocktail.repository.CommandeItemRepository;
 import com.bar.gestioncocktail.repository.CommandeRepository;
 import com.bar.gestioncocktail.repository.IngredientRepository;
@@ -22,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,6 +47,7 @@ public class CommandeService {
     private final IngredientRepository ingredientRepository;
     private final TableRepository tableRepository;
     private final CocktailRepository cocktailRepository;
+    private final CocktailVarianteRepository cocktailVarianteRepository;
     private final CocktailIngredientRepository cocktailIngredientRepository;
     private final SimpMessagingTemplate messagingTemplate;
     private final TimeService timeService;
@@ -50,6 +58,7 @@ public class CommandeService {
             IngredientRepository ingredientRepository,
             TableRepository tableRepository,
             CocktailRepository cocktailRepository,
+            CocktailVarianteRepository cocktailVarianteRepository,
             CocktailIngredientRepository cocktailIngredientRepository,
             SimpMessagingTemplate messagingTemplate,
             TimeService timeService) {
@@ -58,6 +67,7 @@ public class CommandeService {
         this.ingredientRepository = ingredientRepository;
         this.tableRepository = tableRepository;
         this.cocktailRepository = cocktailRepository;
+        this.cocktailVarianteRepository = cocktailVarianteRepository;
         this.cocktailIngredientRepository = cocktailIngredientRepository;
         this.messagingTemplate = messagingTemplate;
         this.timeService = timeService;
@@ -236,11 +246,13 @@ public class CommandeService {
                 continue;
             }
             BigDecimal currentStock = ingredient.getQuantiteStock() != null ? ingredient.getQuantiteStock() : BigDecimal.ZERO;
-            BigDecimal nouveauStock = currentStock.subtract(entry.getValue());
+            BigDecimal rawNouveauStock = currentStock.subtract(entry.getValue());
+            boolean stockNegatif = rawNouveauStock.compareTo(BigDecimal.ZERO) < 0;
+            BigDecimal nouveauStock = rawNouveauStock.max(BigDecimal.ZERO);
             ingredient.setQuantiteStock(nouveauStock);
             ingredient.setUpdatedAt(timeService.now());
             ingredientRepository.save(ingredient);
-            if (ingredient.getSeuilAlerte() != null && nouveauStock.compareTo(ingredient.getSeuilAlerte()) <= 0 && messagingTemplate != null) {
+            if (ingredient.getSeuilAlerte() != null && (nouveauStock.compareTo(ingredient.getSeuilAlerte()) <= 0 || stockNegatif) && messagingTemplate != null) {
                 try {
                     messagingTemplate.convertAndSend("/topic/stock/alerte",
                             new StockAlerteEvent(
@@ -249,7 +261,7 @@ public class CommandeService {
                                     ingredient.getUniteMesure(),
                                     nouveauStock,
                                     ingredient.getSeuilAlerte(),
-                                    nouveauStock.compareTo(BigDecimal.ZERO) < 0));
+                                    stockNegatif));
                 } catch (Exception _) {
                     // Safe handling of WebSocket delivery
                 }
@@ -384,5 +396,104 @@ public class CommandeService {
         messagingTemplate.convertAndSend("/topic/commandes", saved);
         messagingTemplate.convertAndSend("/topic/commandes/statut", saved);
         return saved;
+    }
+
+    /**
+     * Modifies an active order's cocktail items, quantities, notes and recalculates order total.
+     *
+     * @param id Identifier of the order to modify
+     * @param request Update request payload
+     * @return Updated order entity
+     */
+    @Transactional
+    public Commande modifierCommande(Long id, ModifierCommandeRequestDTO request) {
+        Commande commande = commandeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(COMMANDE_NOT_FOUND + id));
+
+        validateOrderModifiable(commande);
+
+        if (commande.getStatut() == CommandeStatut.EN_PREPARATION && commande.getDatePreparation() != null) {
+            reincrementerStockIngredients(commande);
+        }
+
+        resetCommandeItems(commande);
+
+        BigDecimal total = BigDecimal.ZERO;
+        for (ModifierCommandeItemDTO itemDto : request.items()) {
+            CommandeItem item = createCommandeItemFromDto(commande, itemDto);
+            commande.getItems().add(item);
+            BigDecimal lineTotal = item.getPrixUnitaire().multiply(BigDecimal.valueOf(itemDto.quantite()));
+            total = total.add(lineTotal);
+        }
+
+        commande.setTotal(total);
+        if (request.notes() != null) {
+            commande.setNotes(request.notes());
+        }
+        if (request.pourboire() != null) {
+            commande.setPourboire(request.pourboire());
+        }
+        commande.setDateModification(timeService.now());
+        commande.setUpdatedAt(timeService.now());
+
+        if (commande.getStatut() == CommandeStatut.EN_PREPARATION && commande.getDatePreparation() != null) {
+            destockerIngredients(commande);
+        }
+
+        Commande saved = commandeRepository.save(commande);
+        notifyOrderUpdated(saved);
+        return saved;
+    }
+
+    private void validateOrderModifiable(Commande commande) {
+        if (commande.getStatut() == CommandeStatut.LIVREE
+                || commande.getStatut() == CommandeStatut.REGLEE
+                || commande.getStatut() == CommandeStatut.ANNULEE) {
+            throw new BusinessException("Cannot modify order with status: " + commande.getStatut());
+        }
+    }
+
+    private void resetCommandeItems(Commande commande) {
+        if (commande.getItems() == null) {
+            commande.setItems(new ArrayList<>());
+        } else {
+            commande.getItems().clear();
+        }
+    }
+
+    private CommandeItem createCommandeItemFromDto(Commande commande, ModifierCommandeItemDTO itemDto) {
+        Cocktail cocktail = cocktailRepository.findById(itemDto.cocktailId())
+                .orElseThrow(() -> new ResourceNotFoundException("Cocktail not found with id: " + itemDto.cocktailId()));
+
+        BigDecimal unitPrice = cocktail.getPrix();
+        CocktailVariante variante = null;
+        if (itemDto.varianteId() != null) {
+            variante = cocktailVarianteRepository.findById(itemDto.varianteId()).orElse(null);
+            if (variante != null && variante.getPrixSupplement() != null) {
+                unitPrice = unitPrice.add(variante.getPrixSupplement());
+            }
+        }
+
+        CommandeItem item = new CommandeItem();
+        item.setCommande(commande);
+        item.setCocktail(cocktail);
+        item.setVariante(variante);
+        item.setQuantite(itemDto.quantite());
+        item.setPrixUnitaire(unitPrice);
+        item.setNotes(itemDto.notes());
+        item.setPrioritaire(Boolean.TRUE.equals(itemDto.prioritaire()));
+        return item;
+    }
+
+    private void notifyOrderUpdated(Commande saved) {
+        if (messagingTemplate != null) {
+            try {
+                messagingTemplate.convertAndSend("/topic/commandes", saved);
+                messagingTemplate.convertAndSend("/topic/commandes/statut", saved);
+                messagingTemplate.convertAndSend("/topic/barman/commandes", CommandeResponseDTO.from(saved));
+            } catch (Exception _) {
+                // Safe handling of WebSocket delivery
+            }
+        }
     }
 }

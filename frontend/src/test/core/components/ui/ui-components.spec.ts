@@ -514,5 +514,12 @@ describe('Shared UI Components (Figma Design System)', () => {
       component.onRemove();
       expect(component.removeClick.emit).toHaveBeenCalled();
     });
+
+    it('should resolve relative /uploads/ URLs properly and keep absolute URLs untouched', () => {
+      expect(component.resolveImageUrl('')).toBe('');
+      expect(component.resolveImageUrl(undefined)).toBe('');
+      expect(component.resolveImageUrl('https://images.unsplash.com/photo')).toBe('https://images.unsplash.com/photo');
+      expect(component.resolveImageUrl('/uploads/cocktails/mojito.png')).toContain('/uploads/cocktails/mojito.png');
+    });
   });
 });

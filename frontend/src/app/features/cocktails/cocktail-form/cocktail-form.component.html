@@ -133,13 +133,27 @@
                 </app-searchable-select>
               </div>
 
+              <!-- Glassware Select Field with + New Glass button -->
+              <div class="field-container">
+                <app-searchable-select
+                  formControlName="glasswareId"
+                  [label]="'COCKTAILS.GLASSWARE.LABEL' | transloco"
+                  [placeholder]="'COCKTAILS.GLASSWARE.PLACEHOLDER' | transloco"
+                  [searchPlaceholder]="'COCKTAILS.GLASSWARE.PLACEHOLDER' | transloco"
+                  [options]="glasswareOptions()"
+                  actionButtonIcon="add-outline"
+                  [actionButtonLabel]="'COCKTAILS.GLASSWARE.ADD_NEW' | transloco"
+                  (actionClick)="openCreateGlasswareModal()"
+                  testId="cocktail-form-glassware-select">
+                </app-searchable-select>
+              </div>
+
               <app-input-field
                 formControlName="description"
                 [label]="'COCKTAILS.DESCRIPTION' | transloco"
                 [placeholder]="'COCKTAILS.DESCRIPTION' | transloco"
-                [required]="true"
+                [required]="false"
                 testId="cocktail-form-description-input"
-                [errorMessage]="(cocktailForm.get('description')?.touched && cocktailForm.get('description')?.hasError('required')) ? ('COMMON.ERROR' | transloco) : undefined"
               ></app-input-field>
             </div>
 
@@ -328,8 +342,9 @@
                             [options]="templateOptions()"
                             [value]="stepGroup.get('templateId')?.value"
                             [testId]="'select-template-' + i"
+                            actionButtonIcon="add-outline"
                             [actionButtonLabel]="'+ ' + ('COCKTAILS.BUILDER.SAVE_AS_NEW_TEMPLATE' | transloco)"
-                            (actionButtonClick)="openCreateTemplateModal(stepGroup)"
+                            (actionClick)="openCreateTemplateModal()"
                             (selectionChange)="onTemplateOptionSelected(i, $event)">
                           </app-searchable-select>
                         </div>
@@ -475,7 +490,7 @@
                     </div>
 
                     <div class="field-item action-col">
-                      <label class="action-label-spacer" aria-hidden="true">&nbsp;</label>
+                      <span class="action-label-spacer" aria-hidden="true">&nbsp;</span>
                       <button
                         type="button"
                         class="icon-action-btn btn-delete"
@@ -644,6 +659,38 @@
                 </div>
               }
             </div>
+
+            <!-- Deduced Bar Equipment & Tools Section -->
+            <div class="equipment-deduction-section" data-testid="equipment-deduction-section">
+              <div class="preview-section-title">
+                <ion-icon name="hammer-outline"></ion-icon>
+                <div class="section-title-group">
+                  <h3>{{ 'COCKTAILS.EQUIPMENT.TITLE' | transloco }}</h3>
+                  <span class="section-subtitle">{{ 'COCKTAILS.EQUIPMENT.SUBTITLE' | transloco }}</span>
+                </div>
+              </div>
+
+              @if (deducedBarEquipment().length === 0) {
+                <div class="empty-equipment" data-testid="empty-equipment">
+                  <p>{{ 'COCKTAILS.EQUIPMENT.EMPTY' | transloco }}</p>
+                </div>
+              } @else {
+                <div class="equipment-grid" data-testid="equipment-grid">
+                  @for (eq of deducedBarEquipment(); track eq.name) {
+                    <div class="equipment-card" [class]="'cat-' + eq.category.toLowerCase()" data-testid="equipment-card">
+                      <div class="eq-icon-wrapper">
+                        <ion-icon [name]="eq.icon"></ion-icon>
+                      </div>
+                      <div class="eq-info">
+                        <span class="eq-name">{{ eq.name }}</span>
+                        <span class="eq-reason">{{ eq.reason }}</span>
+                      </div>
+                      <span class="eq-category-badge">{{ ('COCKTAILS.EQUIPMENT.CATEGORY_' + eq.category) | transloco }}</span>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
           </div>
         }
 
@@ -766,6 +813,145 @@
             [disabled]="!newTemplateName.trim()"
             (click)="saveNewTemplate()"
             data-testid="modal-btn-save-template">
+            {{ 'COMMON.SAVE' | transloco }}
+          </button>
+        </footer>
+      </div>
+    </div>
+  }
+
+  <!-- New Glassware Modal Backdrop / Dialog -->
+  @if (isNewGlasswareModalOpen()) {
+    <div class="custom-modal-backdrop" data-testid="new-glassware-modal">
+      <div class="modal-card">
+        <header class="modal-header">
+          <h3>{{ 'COCKTAILS.GLASSWARE.MODAL_TITLE' | transloco }}</h3>
+          <button type="button" class="btn-close-modal" (click)="closeCreateGlasswareModal()">
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        </header>
+
+        <div class="modal-body">
+          <div class="field-item">
+            <label for="modal-glass-name-input">{{ 'COCKTAILS.GLASSWARE.NAME_LABEL' | transloco }} *</label>
+            <input
+              type="text"
+              id="modal-glass-name-input"
+              [(ngModel)]="newGlasswareNom"
+              class="native-input"
+              [placeholder]="'COCKTAILS.GLASSWARE.NAME_PLACEHOLDER' | transloco"
+              data-testid="modal-glass-name-input">
+          </div>
+
+          <div class="field-item">
+            <label for="modal-glass-capacity-input">{{ 'COCKTAILS.GLASSWARE.CAPACITY_LABEL' | transloco }} *</label>
+            <input
+              type="number"
+              min="0.1"
+              step="0.5"
+              id="modal-glass-capacity-input"
+              [(ngModel)]="newGlasswareContenanceCl"
+              class="native-input"
+              placeholder="30"
+              data-testid="modal-glass-capacity-input">
+          </div>
+
+          <div class="field-item">
+            <div class="illustration-header">
+              <span class="field-label-text">{{ 'COCKTAILS.GLASSWARE.IMAGE_LABEL' | transloco }}</span>
+              <div class="illustration-tabs">
+                <button
+                  type="button"
+                  class="tab-btn"
+                  [class.active]="newGlasswareSourceType() === 'PRESET'"
+                  (click)="setGlasswareSourceType('PRESET')"
+                  data-testid="modal-glass-tab-preset">
+                  <ion-icon name="grid-outline"></ion-icon>
+                  <span>{{ 'COCKTAILS.GLASSWARE.TAB_PRESETS' | transloco }}</span>
+                </button>
+                <button
+                  type="button"
+                  class="tab-btn"
+                  [class.active]="newGlasswareSourceType() === 'CUSTOM'"
+                  (click)="setGlasswareSourceType('CUSTOM')"
+                  data-testid="modal-glass-tab-custom">
+                  <ion-icon name="cloud-upload-outline"></ion-icon>
+                  <span>{{ 'COCKTAILS.GLASSWARE.TAB_CUSTOM' | transloco }}</span>
+                </button>
+              </div>
+            </div>
+
+            @if (newGlasswareSourceType() === 'PRESET') {
+              <div class="glassware-image-selector">
+                @for (imgChoice of glasswareImageChoices; track imgChoice.value) {
+                  <button
+                    type="button"
+                    class="glass-choice-card"
+                    [class.selected]="newGlasswareImageUrl === imgChoice.value"
+                    (click)="newGlasswareImageUrl = imgChoice.value"
+                    [title]="imgChoice.label">
+                    <img [src]="imgChoice.value" [alt]="imgChoice.label" />
+                    <span>{{ imgChoice.label }}</span>
+                  </button>
+                }
+              </div>
+            } @else {
+              <div class="custom-illustration-container">
+                @if (customGlasswarePreview()) {
+                  <div class="custom-preview-card">
+                    <img [src]="customGlasswarePreview()" alt="Custom Glass Illustration" class="custom-preview-img" />
+                    <div class="custom-preview-info">
+                      <span class="custom-badge">{{ 'COCKTAILS.GLASSWARE.CUSTOM_IMAGE_BADGE' | transloco }}</span>
+                      <p class="custom-filename">{{ customGlasswareFile?.name }}</p>
+                    </div>
+                    <button
+                      type="button"
+                      class="btn-remove-custom"
+                      (click)="removeCustomGlasswareFile()"
+                      [title]="'COCKTAILS.GLASSWARE.REMOVE_CUSTOM_IMAGE' | transloco"
+                      data-testid="modal-glass-btn-remove-custom">
+                      <ion-icon name="trash-outline"></ion-icon>
+                    </button>
+                  </div>
+                } @else {
+                  <label class="custom-dropzone" for="custom-glass-file-input">
+                    <ion-icon name="image-outline" class="dropzone-icon"></ion-icon>
+                    <span class="dropzone-text">{{ 'COCKTAILS.GLASSWARE.UPLOAD_CUSTOM_HINT' | transloco }}</span>
+                    <input
+                      type="file"
+                      id="custom-glass-file-input"
+                      accept="image/png, image/jpeg, image/webp, image/gif"
+                      (change)="onCustomGlasswareFileSelected($event)"
+                      class="hidden-file-input"
+                      data-testid="modal-glass-file-input" />
+                  </label>
+                }
+              </div>
+            }
+          </div>
+
+          <div class="field-item">
+            <label for="modal-glass-desc-textarea">{{ 'COCKTAILS.GLASSWARE.DESCRIPTION_LABEL' | transloco }}</label>
+            <textarea
+              id="modal-glass-desc-textarea"
+              [(ngModel)]="newGlasswareDescription"
+              rows="2"
+              class="native-textarea"
+              placeholder="Idéal pour long drinks, cocktails servis on the rocks..."
+              data-testid="modal-glass-desc-textarea"></textarea>
+          </div>
+        </div>
+
+        <footer class="modal-footer">
+          <button type="button" class="btn-cancel" (click)="closeCreateGlasswareModal()">
+            {{ 'COMMON.CANCEL' | transloco }}
+          </button>
+          <button
+            type="button"
+            class="btn-save"
+            [disabled]="!newGlasswareNom.trim() || !newGlasswareContenanceCl || newGlasswareContenanceCl <= 0"
+            (click)="saveNewGlassware()"
+            data-testid="modal-btn-save-glassware">
             {{ 'COMMON.SAVE' | transloco }}
           </button>
         </footer>

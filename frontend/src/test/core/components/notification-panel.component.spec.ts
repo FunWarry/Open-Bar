@@ -84,4 +84,12 @@ describe('NotificationPanelComponent', () => {
     expect(component.typeCouleur('stock')).toBe('danger');
     expect(component.typeCouleur('unknown')).toBe('medium');
   });
+
+  it('should map notification types to appropriate icon names', () => {
+    expect(component.getNotificationIcon('stock')).toBe('alert-circle-outline');
+    expect(component.getNotificationIcon('commande')).toBe('restaurant-outline');
+    expect(component.getNotificationIcon('statut')).toBe('checkmark-circle-outline');
+    expect(component.getNotificationIcon('table')).toBe('warning-outline');
+    expect(component.getNotificationIcon('unknown')).toBe('notifications-outline');
+  });
 });

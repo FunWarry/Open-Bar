@@ -23,6 +23,7 @@ import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { CocktailService } from '../../../core/services/cocktail.service';
 import { Cocktail } from '../../../core/models/cocktail.model';
 import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
+import { environment } from '../../../../environments/environment';
 
 /**
  * Interface representing an allergen option for filtering.
@@ -301,6 +302,10 @@ export class CocktailListComponent implements OnInit, OnDestroy {
   getCocktailImage(cocktail: Cocktail): string {
     if (!cocktail.imageUrl || cocktail.imageUrl.includes('assets/images/cocktails/')) {
       return 'assets/images/verres/verre_tumbler.png';
+    }
+    if (cocktail.imageUrl.startsWith('/uploads/')) {
+      const baseUrl = environment.apiUrl.replace(/\/api\/?$/, '');
+      return `${baseUrl}${cocktail.imageUrl}`;
     }
     return cocktail.imageUrl;
   }

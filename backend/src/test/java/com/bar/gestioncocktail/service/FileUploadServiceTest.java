@@ -62,4 +62,60 @@ class FileUploadServiceTest {
 
         assertTrue(ex.getMessage().contains("Invalid file type"));
     }
+
+    @Test
+    @DisplayName("Should successfully store valid PNG glassware image file")
+    void shouldStoreValidGlasswareImage() {
+        MockMultipartFile file = new MockMultipartFile(
+            "file",
+            "glassware_coupe.png",
+            "image/png",
+            "fake-glassware-bytes".getBytes()
+        );
+
+        String resultPath = fileUploadService.storeGlasswarePhoto(2L, file);
+
+        assertNotNull(resultPath);
+        assertTrue(resultPath.startsWith("/uploads/glassware/glassware_2_"));
+        assertTrue(resultPath.endsWith(".png"));
+    }
+
+    @Test
+    @DisplayName("Should throw BusinessException when uploaded glassware file is empty")
+    void shouldThrowExceptionForEmptyGlasswareFile() {
+        MockMultipartFile emptyFile = new MockMultipartFile("file", "empty.png", "image/png", new byte[0]);
+
+        BusinessException ex = assertThrows(BusinessException.class, () ->
+            fileUploadService.storeGlasswarePhoto(2L, emptyFile)
+        );
+
+        assertEquals("Uploaded file is empty", ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("Should throw BusinessException when file size exceeds 5MB")
+    void shouldThrowExceptionForOversizedFile() {
+        byte[] largeBytes = new byte[6 * 1024 * 1024]; // 6 MB
+        MockMultipartFile largeFile = new MockMultipartFile(
+            "file", "large.jpg", "image/jpeg", largeBytes
+        );
+
+        BusinessException ex = assertThrows(BusinessException.class, () ->
+            fileUploadService.storeCocktailPhoto(1L, largeFile)
+        );
+
+        assertTrue(ex.getMessage().contains("exceeds maximum allowed limit"));
+    }
+
+    @Test
+    @DisplayName("Should handle missing extension by defaulting to .jpg")
+    void shouldDefaultExtensionWhenMissing() {
+        MockMultipartFile fileWithoutExt = new MockMultipartFile(
+            "file", "cocktail-photo-no-ext", "image/jpeg", "bytes".getBytes()
+        );
+
+        String resultPath = fileUploadService.storeCocktailPhoto(1L, fileWithoutExt);
+        assertNotNull(resultPath);
+        assertTrue(resultPath.endsWith(".jpg"));
+    }
 }

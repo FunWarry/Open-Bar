@@ -25,6 +25,7 @@ import {
   addOutline,
 } from 'ionicons/icons';
 import { BaseControlValueAccessor } from '../base-control-value-accessor';
+import { environment } from '../../../../../environments/environment';
 
 export interface SearchableOption<T = any> {
   value: T;
@@ -33,6 +34,7 @@ export interface SearchableOption<T = any> {
   badge?: string;
   badgeType?: 'primary' | 'success' | 'warning' | 'danger' | 'neutral';
   icon?: string;
+  imageUrl?: string;
   disabled?: boolean;
 }
 
@@ -125,6 +127,9 @@ export class SearchableSelectComponent extends BaseControlValueAccessor<any> imp
 
   /** Event emitted when bottom action button is clicked. */
   @Output() readonly actionButtonClick = new EventEmitter<void>();
+
+  /** Alias for actionButtonClick. */
+  @Output() readonly actionClick = new EventEmitter<void>();
 
   /** Event emitted when selected option changes. */
   @Output() readonly selectionChange = new EventEmitter<SearchableOption | null>();
@@ -222,6 +227,7 @@ export class SearchableSelectComponent extends BaseControlValueAccessor<any> imp
     event.stopPropagation();
     this.closeDropdown();
     this.actionButtonClick.emit();
+    this.actionClick.emit();
   }
 
   onSearchInput(event: Event): void {
@@ -268,5 +274,20 @@ export class SearchableSelectComponent extends BaseControlValueAccessor<any> imp
         this.closeDropdown();
       }
     }
+  }
+
+  /**
+   * Resolves relative image paths to the backend host when starting with /uploads/.
+   *
+   * @param url Image URL or relative path
+   * @returns Fully qualified or untouched URL
+   */
+  resolveImageUrl(url?: string): string {
+    if (!url) return '';
+    if (url.startsWith('/uploads/')) {
+      const baseUrl = environment.apiUrl.replace(/\/api\/?$/, '');
+      return `${baseUrl}${url}`;
+    }
+    return url;
   }
 }

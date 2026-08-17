@@ -1,3 +1,4 @@
+import { Glassware } from './glassware.model';
 import { CocktailRecipeStep } from './recipe-step.model';
 
 export type CocktailCategorie =
@@ -46,6 +47,8 @@ type CocktailBase = {
   ingredients: CocktailIngredientItem[];
   variantes: CocktailVariante[];
   recipeSteps?: CocktailRecipeStep[];
+  glassware?: Glassware;
+  glasswareId?: number;
   instructions?: string;
   imageUrl?: string;
   createdAt: string;
