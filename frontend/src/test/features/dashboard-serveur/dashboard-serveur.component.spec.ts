@@ -518,5 +518,50 @@ describe('DashboardServeurComponent', () => {
       expect(component.cart.items).toHaveSize(1);
       expect(component.cart.items[0].boissonId).toBe(20);
     });
+
+    it('should set table and change activeTab to commande on onNewOrderForTable', () => {
+      const table: TableView = { id: 5, nom: 'Table 5', capacite: 4, occupee: true, zone: 'Terrasse' };
+      component.onNewOrderForTable(table);
+      expect(component.cart.tableId).toBe(5);
+      expect(component.activeTab).toBe('commande');
+    });
+
+    it('should submit cart without item notes when item has no comments or exclusions', fakeAsync(() => {
+      const mockCreated: Commande = {
+        id: 12,
+        tableId: 2,
+        tableNumero: 2,
+        serveurId: 1,
+        serveurUsername: 'serveur',
+        statut: 'EN_ATTENTE',
+        items: [],
+        total: 10.0,
+        dateCommande: '2026-08-17T12:00:00Z',
+        createdAt: '2026-08-17T12:00:00Z',
+        updatedAt: '2026-08-17T12:00:00Z',
+      };
+      dashboardServiceSpy.createCommande.and.returnValue(of(mockCreated));
+      dashboardServiceSpy.ajouterItem.and.returnValue(of(mockCreated));
+
+      component.cart = {
+        tableId: 2,
+        tableNumero: 2,
+        noteGenerale: 'Note table',
+        items: [{ boissonId: 20, nom: 'Gin Tonic', prix: 10.0, quantite: 1 }],
+      };
+
+      component.onSubmitCart();
+      tick();
+
+      expect(dashboardServiceSpy.createCommande).toHaveBeenCalledWith({ tableId: 2, notes: 'Note table' });
+      expect(dashboardServiceSpy.ajouterItem).toHaveBeenCalledWith(12, {
+        cocktailId: 20,
+        quantite: 1,
+        prixUnitaire: 10.0,
+        varianteId: undefined,
+        notes: undefined,
+      });
+      expect(component.cart.items).toHaveSize(0);
+    }));
   });
 });

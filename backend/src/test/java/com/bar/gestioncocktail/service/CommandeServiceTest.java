@@ -470,4 +470,13 @@ class CommandeServiceTest {
         assertThatThrownBy(() -> commandeService.modifierCommande(999L, request))
                 .isInstanceOf(ResourceNotFoundException.class);
     }
+
+    @Test
+    @DisplayName("notifyOrderUpdated - handles WebSocket exception gracefully without failing business operation")
+    void notifyOrderUpdated_exception_handledSafely() {
+        doThrow(new RuntimeException("WebSocket down")).when(messagingTemplate).convertAndSend(anyString(), any(Object.class));
+        when(commandeRepository.save(any(Commande.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        org.junit.jupiter.api.Assertions.assertDoesNotThrow(() -> commandeService.annulerCommande(commande));
+    }
 }
