@@ -5,11 +5,14 @@ import { Router } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
 import { ToastController, ModalController } from '@ionic/angular/standalone';
 import { Store } from '@ngrx/store';
-import { of, throwError } from 'rxjs';
+import { of, throwError, Subject } from 'rxjs';
 import { CommandeListComponent } from '../../../app/features/commandes/commande-list/commande-list.component';
 import { CommandeService } from '../../../app/core/services/commande.service';
 import { Commande } from '../../../app/core/models/commande.model';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
+
+import { NotificationService } from '../../../app/core/services/notification.service';
+import { WebSocketService } from '../../../app/core/services/websocket.service';
 
 const makeCmd = (id: number, statut: Commande['statut'], tableNumero = 1, notes = ''): Commande => ({
   id,
@@ -39,9 +42,12 @@ describe('CommandeListComponent', () => {
   let component: CommandeListComponent;
   let fixture: ComponentFixture<CommandeListComponent>;
   let serviceSpy: jasmine.SpyObj<CommandeService>;
+  let notificationServiceSpy: jasmine.SpyObj<NotificationService>;
+  let wsServiceSpy: jasmine.SpyObj<WebSocketService>;
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
   let modalCtrlSpy: jasmine.SpyObj<ModalController>;
   let storeSpy: jasmine.SpyObj<Store>;
+  let wsTopic$: Subject<{ body: string }>;
 
   const mockToast = { present: jasmine.createSpy('present') };
   const mockModal = { present: jasmine.createSpy('present'), onDidDismiss: () => Promise.resolve({ data: null }) };
@@ -51,6 +57,13 @@ describe('CommandeListComponent', () => {
     serviceSpy.getAll.and.returnValue(of(mockCommandes));
     serviceSpy.annuler.and.returnValue(of(makeCmd(1, 'ANNULEE')));
     serviceSpy.changerStatut.and.returnValue(of(makeCmd(2, 'PRET')));
+
+    notificationServiceSpy = jasmine.createSpyObj('NotificationService', ['onNotification']);
+    notificationServiceSpy.onNotification.and.returnValue(of());
+
+    wsTopic$ = new Subject<{ body: string }>();
+    wsServiceSpy = jasmine.createSpyObj('WebSocketService', ['watch']);
+    wsServiceSpy.watch.and.returnValue(wsTopic$.asObservable() as any);
 
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
     toastCtrlSpy.create.and.returnValue(Promise.resolve(mockToast as any));
@@ -71,6 +84,8 @@ describe('CommandeListComponent', () => {
       providers: [
         { provide: Store, useValue: storeSpy },
         { provide: CommandeService, useValue: serviceSpy },
+        { provide: NotificationService, useValue: notificationServiceSpy },
+        { provide: WebSocketService, useValue: wsServiceSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
         { provide: ModalController, useValue: modalCtrlSpy },
       ],
@@ -169,5 +184,17 @@ describe('CommandeListComponent', () => {
     expect(modalCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({
       componentProps: { commandeId: 1, commandeInput: mockCommandes[0] },
     }));
+  }));
+
+  it('removes cancelled order from Kanban immediately upon /topic/barman/commandes message', fakeAsync(() => {
+    component.commandes = [makeCmd(1, 'EN_ATTENTE'), makeCmd(2, 'EN_PREPARATION')];
+    component.filteredCommandes = [...component.commandes];
+
+    wsTopic$.next({ body: JSON.stringify({ id: 1, statut: 'ANNULEE' }) });
+    tick();
+
+    expect(component.commandes).toHaveSize(1);
+    expect(component.commandes[0].id).toBe(2);
+    expect(component.pendingOrders).toHaveSize(0);
   }));
 });
