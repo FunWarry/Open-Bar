@@ -54,12 +54,16 @@ describe('DashboardServeurComponent', () => {
       'getEtages',
       'getZones',
       'getPlanSallePositions',
+      'createCommande',
+      'ajouterItem',
     ]);
     dashboardServiceSpy.getAllTables.and.returnValue(of(mockTables));
     dashboardServiceSpy.libererTable.and.returnValue(of({} as any));
     dashboardServiceSpy.getEtages.and.returnValue(of([]));
     dashboardServiceSpy.getZones.and.returnValue(of([]));
     dashboardServiceSpy.getPlanSallePositions.and.returnValue(of([]));
+    dashboardServiceSpy.createCommande.and.returnValue(of({ id: 10, tableId: 1 } as any));
+    dashboardServiceSpy.ajouterItem.and.returnValue(of({ id: 10 } as any));
 
     zoneServiceSpy = jasmine.createSpyObj('ZoneService', ['getAll']);
     zoneServiceSpy.getAll.and.returnValue(of([]));
@@ -408,5 +412,110 @@ describe('DashboardServeurComponent', () => {
 
   it('ngOnDestroy unsubs from observables', () => {
     expect(() => component.ngOnDestroy()).not.toThrow();
+  });
+
+  describe('Cart and Order Submission', () => {
+    it('should select table for order and extract table number', () => {
+      component.tables = mockTables;
+      component.onTableSelectForOrder(1);
+      expect(component.cart.tableId).toBe(1);
+      expect(component.cart.tableNumero).toBe(1);
+    });
+
+    it('should add item to cart and increment quantity when added multiple times', () => {
+      const product = { id: 10, nom: 'Mojito', prix: 8.5, categorie: 'COCKTAIL' };
+      component.cart = { tableId: 1, items: [] };
+
+      (component as any).pushItemToCart(product, undefined, 8.5);
+      expect(component.cart.items).toHaveSize(1);
+      expect(component.cart.items[0].quantite).toBe(1);
+
+      (component as any).pushItemToCart(product, undefined, 8.5);
+      expect(component.cart.items).toHaveSize(1);
+      expect(component.cart.items[0].quantite).toBe(2);
+    });
+
+    it('should submit order to backend, display success toast, refresh tables, and clear cart', fakeAsync(() => {
+      spyOn(component, 'chargerTables').and.callThrough();
+      component.cart = {
+        tableId: 1,
+        tableNumero: 1,
+        items: [
+          { boissonId: 10, nom: 'Mojito', prix: 8.5, quantite: 2, commentaire: 'Sans sucre', exclusions: ['Gluten'] },
+        ],
+      };
+
+      component.onSubmitCart();
+      tick();
+
+      expect(dashboardServiceSpy.createCommande).toHaveBeenCalledWith({ tableId: 1, notes: undefined });
+      expect(dashboardServiceSpy.ajouterItem).toHaveBeenCalledWith(10, {
+        cocktailId: 10,
+        quantite: 2,
+        varianteId: undefined,
+        notes: 'Sans sucre | Sans: Gluten',
+      });
+      expect(toastCtrlSpy.create).toHaveBeenCalled();
+      expect(component.cart.items).toHaveSize(0);
+      expect(component.cart.tableId).toBeNull();
+      expect(component.chargerTables).toHaveBeenCalled();
+      expect(component.isSubmitting).toBeFalse();
+    }));
+
+    it('should handle backend error on submitCart, show error toast, and keep cart items intact', fakeAsync(() => {
+      dashboardServiceSpy.createCommande.and.returnValue(throwError(() => new Error('Server error')));
+      component.cart = {
+        tableId: 1,
+        tableNumero: 1,
+        items: [{ boissonId: 10, nom: 'Mojito', prix: 8.5, quantite: 1 }],
+      };
+
+      component.onSubmitCart();
+      tick();
+
+      expect(toastCtrlSpy.create).toHaveBeenCalled();
+      expect(component.cart.items).toHaveSize(1);
+      expect(component.isSubmitting).toBeFalse();
+    }));
+
+    it('should not submit cart when cart is empty or missing tableId or isSubmitting', () => {
+      dashboardServiceSpy.createCommande.calls.reset();
+
+      // Missing tableId
+      component.cart = { tableId: null, items: [{ boissonId: 10, nom: 'Mojito', prix: 8.5, quantite: 1 }] };
+      component.onSubmitCart();
+      expect(dashboardServiceSpy.createCommande).not.toHaveBeenCalled();
+
+      // Empty items
+      component.cart = { tableId: 1, items: [] };
+      component.onSubmitCart();
+      expect(dashboardServiceSpy.createCommande).not.toHaveBeenCalled();
+
+      // isSubmitting = true
+      component.isSubmitting = true;
+      component.cart = { tableId: 1, items: [{ boissonId: 10, nom: 'Mojito', prix: 8.5, quantite: 1 }] };
+      component.onSubmitCart();
+      expect(dashboardServiceSpy.createCommande).not.toHaveBeenCalled();
+    });
+
+    it('should clear cart on onClearCart', () => {
+      component.cart = { tableId: 1, items: [{ boissonId: 10, nom: 'Mojito', prix: 8.5, quantite: 1 }] };
+      component.onClearCart();
+      expect(component.cart.items).toEqual([]);
+      expect(component.cart.tableId).toBeNull();
+    });
+
+    it('should remove item from cart on onCartItemRemoved', () => {
+      component.cart = {
+        tableId: 1,
+        items: [
+          { boissonId: 10, nom: 'Mojito', prix: 8.5, quantite: 1 },
+          { boissonId: 20, nom: 'Bière', prix: 5.0, quantite: 2 },
+        ],
+      };
+      component.onCartItemRemoved(component.cart.items[0]);
+      expect(component.cart.items).toHaveSize(1);
+      expect(component.cart.items[0].boissonId).toBe(20);
+    });
   });
 });

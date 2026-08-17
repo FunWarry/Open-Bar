@@ -874,6 +874,8 @@
     "PRODUCTS": "Drinks & Cocktails Catalog",
     "CART": "Order Cart",
     "SEND_PREPARATION": "Send Order to Bar",
+    "ORDER_SENT_SUCCESS": "Order sent for Table #{{table}}",
+    "ORDER_CREATION_ERROR": "Error sending order to bar",
     "SELECT_TABLE": "Select a table",
     "CLEAR": "Clear cart",
     "SELECT_VARIANTE": "Pick a variant",

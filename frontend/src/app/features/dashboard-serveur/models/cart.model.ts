@@ -5,6 +5,7 @@ export interface CartItemModel {
   quantite: number;
   notes?: string;
   typeBoisson?: string;
+  varianteId?: number;
   varianteNom?: string;
   commentaire?: string;
   exclusions?: string[];

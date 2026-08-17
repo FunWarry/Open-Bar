@@ -874,6 +874,8 @@
     "PRODUCTS": "Catalogue des boissons & cocktails",
     "CART": "Panier de la commande",
     "SEND_PREPARATION": "Envoyer la commande au bar",
+    "ORDER_SENT_SUCCESS": "Commande envoyée pour la Table #{{table}}",
+    "ORDER_CREATION_ERROR": "Erreur lors de l'envoi de la commande",
     "SELECT_TABLE": "Sélectionner une table",
     "CLEAR": "Vider le panier",
     "SELECT_VARIANTE": "Choisir une variante",
