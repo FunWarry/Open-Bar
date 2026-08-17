@@ -452,6 +452,7 @@ describe('DashboardServeurComponent', () => {
       expect(dashboardServiceSpy.ajouterItem).toHaveBeenCalledWith(10, {
         cocktailId: 10,
         quantite: 2,
+        prixUnitaire: 8.5,
         varianteId: undefined,
         notes: 'Sans sucre | Sans: Gluten',
       });

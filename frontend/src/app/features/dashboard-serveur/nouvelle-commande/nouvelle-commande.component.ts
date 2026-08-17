@@ -403,10 +403,11 @@ export class NouvelleCommandeComponent implements OnInit, OnDestroy {
           forkJoin(
             this.cart.map(item => {
               const req: AjouterItemRequest = {
-                 cocktailId: item.cocktailId,
-                 quantite: item.quantite,
-                 varianteId: item.varianteId,
-                 notes: item.notes,
+                cocktailId: item.cocktailId,
+                quantite: item.quantite,
+                prixUnitaire: item.prixUnitaire ?? 0,
+                varianteId: item.varianteId,
+                notes: item.notes,
               };
               return this.service.ajouterItem(commande.id, req);
             }),

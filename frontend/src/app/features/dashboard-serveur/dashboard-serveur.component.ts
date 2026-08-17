@@ -1440,6 +1440,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
             const req: AjouterItemRequest = {
               cocktailId: item.boissonId,
               quantite: item.quantite,
+              prixUnitaire: item.prix,
               varianteId: item.varianteId,
               notes: fullNotes,
             };

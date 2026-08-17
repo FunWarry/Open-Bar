@@ -49,5 +49,6 @@ export interface AjouterItemRequest {
   cocktailId: number;
   varianteId?: number;
   quantite: number;
+  prixUnitaire: number;
   notes?: string;
 }
