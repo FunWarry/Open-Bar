@@ -115,7 +115,9 @@ public class CommandeService {
         commande.setUpdatedAt(timeService.now());
         commande.setDateCommande(timeService.now());
         commande.setStatut(CommandeStatut.EN_ATTENTE);
-        return commandeRepository.save(commande);
+        Commande saved = commandeRepository.save(commande);
+        notifyOrderUpdated(saved);
+        return saved;
     }
 
     @Transactional
@@ -134,13 +136,17 @@ public class CommandeService {
             commande.setServeur(commandeDetails.getServeur());
         }
 
-        return commandeRepository.save(commande);
+        Commande saved = commandeRepository.save(commande);
+        notifyOrderUpdated(saved);
+        return saved;
     }
 
     @Transactional
     public void deleteCommande(Long id) {
         Commande commande = commandeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(COMMANDE_NOT_FOUND + id));
+        commande.setStatut(CommandeStatut.ANNULEE);
+        notifyOrderUpdated(commande);
         commandeRepository.delete(commande);
     }
 
@@ -176,7 +182,9 @@ public class CommandeService {
         commande.setTotal(total);
         commande.setDateModification(timeService.now());
 
-        return commandeRepository.save(commande);
+        Commande saved = commandeRepository.save(commande);
+        notifyOrderUpdated(saved);
+        return saved;
     }
 
     @Transactional
@@ -185,9 +193,14 @@ public class CommandeService {
                 .orElseThrow(() -> new ResourceNotFoundException(COMMANDE_NOT_FOUND + commandeId));
 
         commande.getItems().removeIf(item -> item.getId().equals(itemId));
+        if (commande.getItems().isEmpty()) {
+            commande.setStatut(CommandeStatut.ANNULEE);
+        }
         commande.setDateModification(timeService.now());
 
-        return commandeRepository.save(commande);
+        Commande saved = commandeRepository.save(commande);
+        notifyOrderUpdated(saved);
+        return saved;
     }
 
     @Transactional
@@ -217,7 +230,9 @@ public class CommandeService {
                 break;
         }
 
-        return commandeRepository.save(commande);
+        Commande saved = commandeRepository.save(commande);
+        notifyOrderUpdated(saved);
+        return saved;
     }
 
     @Transactional
@@ -227,7 +242,8 @@ public class CommandeService {
         }
         commande.setStatut(CommandeStatut.ANNULEE);
         commande.setUpdatedAt(timeService.now());
-        commandeRepository.save(commande);
+        Commande saved = commandeRepository.save(commande);
+        notifyOrderUpdated(saved);
     }
 
     public void definirPriorite(CommandeItem item, boolean prioritaire) {

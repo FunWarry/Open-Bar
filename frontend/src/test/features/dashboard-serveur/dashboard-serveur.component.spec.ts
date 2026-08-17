@@ -564,5 +564,46 @@ describe('DashboardServeurComponent', () => {
       });
       expect(component.cart.items).toHaveSize(0);
     }));
+
+    it('onSubmitCart presents a danger toast on error', fakeAsync(() => {
+      component.cart = {
+        tableId: 2,
+        items: [{ boissonId: 20, nom: 'Gin Tonic', prix: 10.0, quantite: 1 }],
+      };
+      dashboardServiceSpy.createCommande.and.returnValue(throwError(() => new Error('Server error')));
+
+      component.onSubmitCart();
+      tick();
+
+      expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
+    }));
+
+    it('onSelectionner triggers onLiberer when modal dismisses with action liberer', fakeAsync(() => {
+      const mockModalDismiss = {
+        present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+        onWillDismiss: () => Promise.resolve({ data: { action: 'liberer', tableId: 2 } }),
+      };
+      modalCtrlSpy.create.and.returnValue(Promise.resolve(mockModalDismiss as any));
+      spyOn(component, 'onLiberer');
+
+      component.onSelectionner(mockTables[0]);
+      tick();
+
+      expect(component.onLiberer).toHaveBeenCalledWith(2);
+    }));
+
+    it('onSelectionner triggers ouvrirEncaissement when modal dismisses with action encaisser', fakeAsync(() => {
+      const mockModalDismiss = {
+        present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+        onWillDismiss: () => Promise.resolve({ data: { action: 'encaisser', table: mockTables[0] } }),
+      };
+      modalCtrlSpy.create.and.returnValue(Promise.resolve(mockModalDismiss as any));
+      spyOn(component, 'ouvrirEncaissement');
+
+      component.onSelectionner(mockTables[0]);
+      tick();
+
+      expect(component.ouvrirEncaissement).toHaveBeenCalledWith(mockTables[0]);
+    }));
   });
 });
