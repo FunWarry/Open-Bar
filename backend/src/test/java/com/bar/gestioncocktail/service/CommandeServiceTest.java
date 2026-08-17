@@ -439,8 +439,10 @@ class CommandeServiceTest {
         assertThat(updated.getNotes()).isEqualTo("Table VIP");
         assertThat(updated.getPourboire()).isEqualByComparingTo(new BigDecimal("3.00"));
 
-        verify(messagingTemplate).convertAndSend(eq("/topic/commandes"), any(Commande.class));
-        verify(messagingTemplate).convertAndSend(eq("/topic/commandes/statut"), any(Commande.class));
+        verify(messagingTemplate).convertAndSend(eq("/topic/commandes"),
+                any(com.bar.gestioncocktail.dto.CommandeResponseDTO.class));
+        verify(messagingTemplate).convertAndSend(eq("/topic/commandes/statut"),
+                any(com.bar.gestioncocktail.dto.CommandeResponseDTO.class));
         verify(messagingTemplate).convertAndSend(eq("/topic/barman/commandes"),
                 any(com.bar.gestioncocktail.dto.CommandeResponseDTO.class));
     }

@@ -511,11 +511,12 @@ public class CommandeService {
     }
 
     private void notifyOrderUpdated(Commande saved) {
-        if (messagingTemplate != null) {
+        if (messagingTemplate != null && saved != null) {
             try {
-                messagingTemplate.convertAndSend("/topic/commandes", saved);
-                messagingTemplate.convertAndSend("/topic/commandes/statut", saved);
-                messagingTemplate.convertAndSend("/topic/barman/commandes", CommandeResponseDTO.from(saved));
+                CommandeResponseDTO dto = CommandeResponseDTO.from(saved);
+                messagingTemplate.convertAndSend("/topic/commandes", dto);
+                messagingTemplate.convertAndSend("/topic/commandes/statut", dto);
+                messagingTemplate.convertAndSend("/topic/barman/commandes", dto);
             } catch (Exception _) {
                 // Safe handling of WebSocket delivery
             }
