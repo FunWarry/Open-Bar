@@ -22,6 +22,7 @@ import { PlanSalleService } from '../../../app/features/plan-salle/services/plan
 import { provideMockStore } from '@ngrx/store/testing';
 
 import { provideIonicAngular } from '@ionic/angular/standalone';
+import { Commande } from '../../../app/core/models/commande.model';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 
 describe('DashboardServeurComponent', () => {
@@ -520,7 +521,7 @@ describe('DashboardServeurComponent', () => {
     });
 
     it('should set table and change activeTab to commande on onNewOrderForTable', () => {
-      const table: TableView = { id: 5, nom: 'Table 5', capacite: 4, occupee: true, zone: 'Terrasse' };
+      const table: TableView = { id: 5, nom: 'Table 5', capacite: 4, occupee: true, zone: 'Terrasse', commandesActives: [] };
       component.onNewOrderForTable(table);
       expect(component.cart.tableId).toBe(5);
       expect(component.activeTab).toBe('commande');
