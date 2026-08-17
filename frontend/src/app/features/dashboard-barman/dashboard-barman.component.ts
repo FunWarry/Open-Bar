@@ -205,10 +205,28 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(notif => {
         if (notif.type === 'commande') {
-          this.soundService.playNewOrderSound();
-          this.chargerCommandes();
+          const commande = notif.data;
+          if (commande && (commande.statut === 'ANNULEE' || commande.statut === 'REGLEE' || commande.statut === 'LIVREE')) {
+            const id = Number(commande.id);
+            this.commandesEnAttente = this.commandesEnAttente.filter(c => c.id !== id);
+            this.commandesEnPreparation = this.commandesEnPreparation.filter(c => c.id !== id);
+            this.commandesPret = this.commandesPret.filter(c => c.id !== id);
+            this.cdr.detectChanges();
+          } else {
+            this.soundService.playNewOrderSound();
+            this.chargerCommandes();
+          }
         } else if (notif.type === 'statut') {
-          this.chargerCommandes();
+          const commande = notif.data;
+          if (commande && (commande.statut === 'ANNULEE' || commande.statut === 'REGLEE' || commande.statut === 'LIVREE')) {
+            const id = Number(commande.id);
+            this.commandesEnAttente = this.commandesEnAttente.filter(c => c.id !== id);
+            this.commandesEnPreparation = this.commandesEnPreparation.filter(c => c.id !== id);
+            this.commandesPret = this.commandesPret.filter(c => c.id !== id);
+            this.cdr.detectChanges();
+          } else {
+            this.chargerCommandes();
+          }
         }
       });
 
@@ -219,9 +237,10 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
         try {
           const commande = JSON.parse(msg.body);
           if (commande.statut === 'ANNULEE' || commande.statut === 'REGLEE' || commande.statut === 'LIVREE') {
-            this.commandesEnAttente = this.commandesEnAttente.filter(c => c.id !== commande.id);
-            this.commandesEnPreparation = this.commandesEnPreparation.filter(c => c.id !== commande.id);
-            this.commandesPret = this.commandesPret.filter(c => c.id !== commande.id);
+            const id = Number(commande.id);
+            this.commandesEnAttente = this.commandesEnAttente.filter(c => c.id !== id);
+            this.commandesEnPreparation = this.commandesEnPreparation.filter(c => c.id !== id);
+            this.commandesPret = this.commandesPret.filter(c => c.id !== id);
             this.cdr.detectChanges();
           } else {
             this.chargerCommandes();

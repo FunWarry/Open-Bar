@@ -22,19 +22,24 @@ const mockTables: TableView[] = [
   { id: 2, nom: 'Table 2', zone: 'INTERIEUR', capacite: 2, occupee: false, commandesActives: [] },
 ];
 
+import { WebSocketService } from '../../../app/core/services/websocket.service';
+
 describe('KanbanServeurComponent', () => {
   let component: KanbanServeurComponent;
   let fixture: ComponentFixture<KanbanServeurComponent>;
   let serviceSpy: jasmine.SpyObj<DashboardServeurService>;
   let notificationSpy: jasmine.SpyObj<NotificationService>;
+  let wsServiceSpy: jasmine.SpyObj<WebSocketService>;
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
   let modalCtrlSpy: jasmine.SpyObj<ModalController>;
   let notification$: Subject<AppNotification>;
+  let wsTopic$: Subject<{ body: string }>;
 
   const mockToast = { present: jasmine.createSpy('present') };
 
   beforeEach(async () => {
     notification$ = new Subject<AppNotification>();
+    wsTopic$ = new Subject<{ body: string }>();
 
     serviceSpy = jasmine.createSpyObj('DashboardServeurService', [
       'getCommandesParStatut', 'getAllTables',
@@ -55,6 +60,9 @@ describe('KanbanServeurComponent', () => {
     notificationSpy.onNotification.and.returnValue(notification$.asObservable());
     notificationSpy.onStockAlert.and.returnValue(EMPTY);
 
+    wsServiceSpy = jasmine.createSpyObj('WebSocketService', ['watch']);
+    wsServiceSpy.watch.and.returnValue(wsTopic$.asObservable() as any);
+
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
     toastCtrlSpy.create.and.returnValue(Promise.resolve(mockToast as any));
 
@@ -69,6 +77,7 @@ describe('KanbanServeurComponent', () => {
       providers: [
         { provide: DashboardServeurService, useValue: serviceSpy },
         { provide: NotificationService, useValue: notificationSpy },
+        { provide: WebSocketService, useValue: wsServiceSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
         { provide: ModalController, useValue: modalCtrlSpy },
       ],
@@ -193,5 +202,39 @@ describe('KanbanServeurComponent', () => {
     component.ouvrirEncaissementParTableId(1);
     tick();
     expect(modalCtrlSpy.create).toHaveBeenCalled();
+  }));
+
+  it('removes cancelled order in memory when notification is received with statut ANNULEE', fakeAsync(() => {
+    notification$.next({
+      id: 'c-cancel',
+      type: 'statut',
+      message: 'Order #1 cancelled',
+      severity: 'primary',
+      data: { id: 1, statut: 'ANNULEE' },
+      timestamp: new Date(),
+      lue: false,
+    });
+    tick();
+
+    expect(component.colonnes[0].commandes.find(c => c.id === 1)).toBeUndefined();
+  }));
+
+  it('removes cancelled order in memory when /topic/barman/commandes receives statut ANNULEE', fakeAsync(() => {
+    wsTopic$.next({ body: JSON.stringify({ id: 1, statut: 'ANNULEE' }) });
+    tick();
+
+    expect(component.colonnes[0].commandes.find(c => c.id === 1)).toBeUndefined();
+  }));
+
+  it('reloads orders when /topic/barman/commandes receives non-cancelled order or invalid JSON', fakeAsync(() => {
+    const before = serviceSpy.getCommandesParStatut.calls.count();
+    wsTopic$.next({ body: JSON.stringify({ id: 99, statut: 'EN_PREPARATION' }) });
+    tick();
+    expect(serviceSpy.getCommandesParStatut.calls.count()).toBeGreaterThan(before);
+
+    const before2 = serviceSpy.getCommandesParStatut.calls.count();
+    wsTopic$.next({ body: 'malformed' });
+    tick();
+    expect(serviceSpy.getCommandesParStatut.calls.count()).toBeGreaterThan(before2);
   }));
 });
