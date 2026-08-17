@@ -346,4 +346,62 @@ describe('DashboardBarmanComponent', () => {
     tick();
     expect(component.chargerCommandes).toHaveBeenCalledTimes(2);
   }));
+
+  it('filters cancelled orders in memory on notification of type commande or statut', fakeAsync(() => {
+    component.commandesEnAttente = [{ ...mockCommandes[0], id: 50 }];
+    component.commandesEnPreparation = [{ ...mockCommandes[0], id: 51 }];
+    component.commandesPret = [{ ...mockCommandes[0], id: 52 }];
+
+    notification$.next({
+      id: 'cmd-cancel',
+      type: 'commande',
+      message: 'Cancelled',
+      severity: 'primary',
+      data: { id: 50, statut: 'ANNULEE' },
+      timestamp: new Date(),
+      lue: false,
+    });
+    tick();
+    expect(component.commandesEnAttente).toHaveSize(0);
+
+    notification$.next({
+      id: 'statut-reglee',
+      type: 'statut',
+      message: 'Settled',
+      severity: 'success',
+      data: { id: 51, statut: 'REGLEE' },
+      timestamp: new Date(),
+      lue: false,
+    });
+    tick();
+    expect(component.commandesEnPreparation).toHaveSize(0);
+
+    notification$.next({
+      id: 'statut-livree',
+      type: 'statut',
+      message: 'Delivered',
+      severity: 'success',
+      data: { id: 52, statut: 'LIVREE' },
+      timestamp: new Date(),
+      lue: false,
+    });
+    tick();
+    expect(component.commandesPret).toHaveSize(0);
+  }));
+
+  it('reloads orders on notification of type statut without terminal status', fakeAsync(() => {
+    spyOn(component, 'chargerCommandes');
+
+    notification$.next({
+      id: 'statut-prep',
+      type: 'statut',
+      message: 'In prep',
+      severity: 'success',
+      data: { id: 60, statut: 'EN_PREPARATION' },
+      timestamp: new Date(),
+      lue: false,
+    });
+    tick();
+    expect(component.chargerCommandes).toHaveBeenCalled();
+  }));
 });

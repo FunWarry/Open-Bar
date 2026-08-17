@@ -605,5 +605,12 @@ describe('DashboardServeurComponent', () => {
 
       expect(component.ouvrirEncaissement).toHaveBeenCalledWith(mockTables[0]);
     }));
+
+    it('chargerTables shows toast on error', fakeAsync(() => {
+      dashboardServiceSpy.getAllTables.and.returnValue(throwError(() => new Error('Failed')));
+      component.chargerTables();
+      tick();
+      expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
+    }));
   });
 });
