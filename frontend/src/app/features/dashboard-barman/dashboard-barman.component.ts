@@ -228,9 +228,9 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
       .subscribe({
         next: ({ enAttente, enPreparation, pret }) => {
           const previousCount = this.commandesEnAttente.length;
-          this.commandesEnAttente = enAttente;
-          this.commandesEnPreparation = enPreparation;
-          this.commandesPret = pret;
+          this.commandesEnAttente = (enAttente || []).filter(c => c.statut === 'EN_ATTENTE' && c.items && c.items.length > 0);
+          this.commandesEnPreparation = (enPreparation || []).filter(c => c.statut === 'EN_PREPARATION' && c.items && c.items.length > 0);
+          this.commandesPret = (pret || []).filter(c => c.statut === 'PRET' && c.items && c.items.length > 0);
 
           if (enAttente.length > previousCount && previousCount > 0) {
             this.soundService.playNewOrderSound();
