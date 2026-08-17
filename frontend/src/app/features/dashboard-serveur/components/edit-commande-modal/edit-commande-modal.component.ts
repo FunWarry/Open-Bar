@@ -95,17 +95,28 @@ export class EditCommandeModalComponent implements OnInit {
   }
 
   private initItemsFromCommande(items: CommandeItem[]): void {
-    this.items = items.map(item => ({
-      id: item.id,
-      cocktailId: item.cocktailId ?? 0,
-      cocktailNom: item.cocktailNom ?? 'Cocktail',
-      varianteId: item.varianteId,
-      varianteNom: item.varianteNom,
-      prixUnitaire: item.prixUnitaire ?? 0,
-      quantite: item.quantite ?? 1,
-      notes: item.notes ?? '',
-      prioritaire: !!item.prioritaire,
-    }));
+    const groupedMap = new Map<string, EditableOrderItem>();
+
+    for (const item of items) {
+      const key = `${item.cocktailId ?? item.cocktailNom}|${item.varianteId ?? ''}|${item.notes ?? ''}`;
+      const existing = groupedMap.get(key);
+      if (existing) {
+        existing.quantite += (item.quantite || 1);
+      } else {
+        groupedMap.set(key, {
+          id: item.id,
+          cocktailId: item.cocktailId ?? 0,
+          cocktailNom: item.cocktailNom ?? 'Cocktail',
+          varianteId: item.varianteId,
+          varianteNom: item.varianteNom,
+          prixUnitaire: item.prixUnitaire ?? 0,
+          quantite: item.quantite || 1,
+          notes: item.notes ?? '',
+          prioritaire: !!item.prioritaire,
+        });
+      }
+    }
+    this.items = Array.from(groupedMap.values());
   }
 
   loadCocktailCatalog(): void {

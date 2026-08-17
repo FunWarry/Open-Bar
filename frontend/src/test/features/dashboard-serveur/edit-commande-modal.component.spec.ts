@@ -99,6 +99,22 @@ describe('EditCommandeModalComponent', () => {
     expect(cocktailServiceSpy.getAll).toHaveBeenCalled();
   });
 
+  it('consolidates identical items into a single line upon initializing from commande', () => {
+    const fixture2 = TestBed.createComponent(EditCommandeModalComponent);
+    const comp2 = fixture2.componentInstance;
+    comp2.commande = {
+      ...mockCommande,
+      items: [
+        { id: 1, cocktailId: 1, cocktailNom: 'Mojito', quantite: 1, prixUnitaire: 8.5 },
+        { id: 2, cocktailId: 1, cocktailNom: 'Mojito', quantite: 2, prixUnitaire: 8.5 },
+      ] as any,
+    };
+    fixture2.detectChanges();
+
+    expect(comp2.items).toHaveSize(1);
+    expect(comp2.items[0].quantite).toBe(3);
+  });
+
   it('calculates total correctly including items and tip', () => {
     // 2 * 8.5 + 2.0 = 19.0
     expect(component.calculateTotal()).toBe(19.0);

@@ -155,6 +155,7 @@
   gap: 8px;
   flex-wrap: wrap;
   flex: 1;
+  min-width: 0;
 
   .item-name {
     font-weight: 600;
@@ -170,6 +171,7 @@
     border: 1px solid var(--border-primary, rgba(108, 127, 232, 0.3));
     padding: 2px 6px;
     border-radius: 4px;
+    white-space: nowrap;
   }
 
   .item-price {
@@ -177,6 +179,7 @@
     font-weight: 700;
     color: var(--semantic-success, #2dd36f);
     margin-left: auto;
+    white-space: nowrap;
 
     .unit-rate {
       font-size: 11px;
@@ -190,6 +193,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-shrink: 0;
 }
 
 .stepper-container {
@@ -327,16 +331,24 @@
 }
 
 .additions-row {
+  display: flex;
   flex-direction: row;
   align-items: flex-end;
   gap: 12px;
 
   .qty-field {
     flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
   }
 
   .new-notes-field {
     flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
   }
 }
 

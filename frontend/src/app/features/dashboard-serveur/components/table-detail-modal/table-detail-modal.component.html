@@ -99,13 +99,13 @@
           <!-- Items Subtitle -->
           <div class="order-items-summary">
             <span class="items-count-text">
-              {{ (cmd.items.length === 1 ? 'TABLE_MODAL.ARTICLES_COUNT' : 'TABLE_MODAL.ARTICLES_COUNT_PLURAL') | transloco:{ count: cmd.items.length } }}
+              {{ (getArticlesTotalCount(cmd.items) === 1 ? 'TABLE_MODAL.ARTICLES_COUNT' : 'TABLE_MODAL.ARTICLES_COUNT_PLURAL') | transloco:{ count: getArticlesTotalCount(cmd.items) } }}
             </span>
           </div>
 
           <!-- Order Items List -->
           <div class="order-items-lines">
-            <div *ngFor="let item of cmd.items" class="item-row">
+            <div *ngFor="let item of getGroupedItems(cmd.items)" class="item-row">
               <div class="item-qty-tag">{{ item.quantite }}×</div>
               <div class="item-name-group">
                 <span class="item-cocktail-name">{{ item.cocktailNom }}</span>

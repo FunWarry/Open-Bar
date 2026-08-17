@@ -253,6 +253,31 @@ describe('TableDetailModalComponent', () => {
     expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith({ action: 'liberer', tableId: 1 });
   });
 
+  it('getGroupedItems() consolidates duplicate items into single row with sum of quantities', () => {
+    const rawItems = [
+      { id: 1, cocktailNom: 'Mojito', quantite: 1, prixUnitaire: 8.5 },
+      { id: 2, cocktailNom: 'Mojito', quantite: 2, prixUnitaire: 8.5 },
+      { id: 3, cocktailNom: 'Piña Colada', quantite: 1, prixUnitaire: 10.0 },
+    ];
+
+    const grouped = component.getGroupedItems(rawItems as any);
+    expect(grouped).toHaveSize(2);
+    expect(grouped[0].cocktailNom).toBe('Mojito');
+    expect(grouped[0].quantite).toBe(3);
+    expect(grouped[1].cocktailNom).toBe('Piña Colada');
+    expect(grouped[1].quantite).toBe(1);
+  });
+
+  it('getArticlesTotalCount() calculates the total sum of quantities in an order', () => {
+    const rawItems = [
+      { id: 1, cocktailNom: 'Mojito', quantite: 2 },
+      { id: 2, cocktailNom: 'Bière', quantite: 3 },
+    ];
+
+    expect(component.getArticlesTotalCount(rawItems as any)).toBe(5);
+    expect(component.getArticlesTotalCount([])).toBe(0);
+  });
+
   it('fermer() ferme le modal sans action', () => {
     component.fermer();
 

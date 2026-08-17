@@ -16,7 +16,7 @@ import {
 } from 'ionicons/icons';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { TableView } from '../../models/table-view.model';
-import { Commande } from '../../../../core/models/commande.model';
+import { Commande, CommandeItem } from '../../../../core/models/commande.model';
 import { DashboardServeurService } from '../../services/dashboard-serveur.service';
 import { TransfertModalComponent } from '../transfert-modal/transfert-modal.component';
 import { EditCommandeModalComponent } from '../edit-commande-modal/edit-commande-modal.component';
@@ -249,5 +249,32 @@ export class TableDetailModalComponent implements OnInit {
 
   peutAnnuler(statut: string): boolean {
     return statut !== 'LIVREE' && statut !== 'REGLEE' && statut !== 'ANNULEE';
+  }
+
+  /**
+   * Groups identical items (matching cocktail, variant, and notes) and consolidates their quantity.
+   */
+  getGroupedItems(items: CommandeItem[]): CommandeItem[] {
+    if (!items || items.length === 0) return [];
+    const groupedMap = new Map<string, CommandeItem>();
+
+    for (const item of items) {
+      const key = `${item.cocktailNom}|${item.varianteNom ?? ''}|${item.notes ?? ''}`;
+      const existing = groupedMap.get(key);
+      if (existing) {
+        existing.quantite = (existing.quantite || 1) + (item.quantite || 1);
+      } else {
+        groupedMap.set(key, { ...item, quantite: item.quantite || 1 });
+      }
+    }
+    return Array.from(groupedMap.values());
+  }
+
+  /**
+   * Calculates the total number of drink units across all items in an order.
+   */
+  getArticlesTotalCount(items: CommandeItem[]): number {
+    if (!items || items.length === 0) return 0;
+    return items.reduce((sum, item) => sum + (item.quantite || 1), 0);
   }
 }
