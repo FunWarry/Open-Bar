@@ -3,15 +3,15 @@
     <div class="header-content">
       <div class="header-title-group">
         <h1 class="page-title">
-          {{ activeTab === 'suivi' ? 'Suivi des commandes' : 'Prise de commande' }} — Espace Serveur
+          {{ activeTab === 'suivi' ? ('SERVEUR.ORDER_TRACKING' | transloco) : ('SERVEUR.ORDER_TAKING' | transloco) }} — {{ 'SERVEUR.TITLE' | transloco }}
         </h1>
         <span class="count-pill" *ngIf="activeTab !== 'suivi'">{{ filteredTables.length }} / {{ tables.length }}</span>
       </div>
 
       <div class="header-actions">
-        <button class="kanban-action-btn" [class.active]="activeTab === 'suivi'" (click)="onTabSelected(activeTab === 'suivi' ? 'tables' : 'suivi')" title="Suivi des commandes">
+        <button class="kanban-action-btn" [class.active]="activeTab === 'suivi'" (click)="onTabSelected(activeTab === 'suivi' ? 'tables' : 'suivi')" [title]="'SERVEUR.ORDER_TRACKING' | transloco">
           <ion-icon name="list-outline"></ion-icon>
-          <span class="btn-label">{{ activeTab === 'suivi' ? 'Retour aux tables' : 'Suivi des commandes' }}</span>
+          <span class="btn-label">{{ activeTab === 'suivi' ? ('SERVEUR.RETURN_TO_TABLES' | transloco) : ('SERVEUR.ORDER_TRACKING' | transloco) }}</span>
         </button>
       </div>
     </div>
@@ -32,7 +32,7 @@
       <div class="controls-row-top">
         <ion-searchbar
           class="custom-searchbar"
-          placeholder="Rechercher une table, zone..."
+          [placeholder]="'SERVEUR.SEARCH_TABLE_PLACEHOLDER' | transloco"
           [value]="searchTerm"
           (ionInput)="onSearchChange($event)"
           [debounce]="200"
@@ -44,7 +44,7 @@
             class="filter-pill-btn"
             [class.active]="selectedStatus === 'ALL'"
             (click)="setStatusFilter('ALL')">
-            Toutes ({{ tables.length }})
+            {{ 'SERVEUR.ALL_TABLES' | transloco }} ({{ tables.length }})
           </button>
           <button
             type="button"
@@ -52,7 +52,7 @@
             [class.active]="selectedStatus === 'FREE'"
             (click)="setStatusFilter('FREE')">
             <span class="status-dot free"></span>
-            Libres ({{ countLibres }})
+            {{ 'SERVEUR.FREE_TABLES' | transloco }} ({{ countLibres }})
           </button>
           <button
             type="button"
@@ -60,7 +60,7 @@
             [class.active]="selectedStatus === 'OCCUPIED'"
             (click)="setStatusFilter('OCCUPIED')">
             <span class="status-dot occupied"></span>
-            Occupées ({{ countOccupees }})
+            {{ 'SERVEUR.OCCUPIED_TABLES' | transloco }} ({{ countOccupees }})
           </button>
         </div>
       </div>
@@ -72,14 +72,14 @@
           <div class="filter-select-box">
             <label class="filter-label" for="serveur-etage-select-input">
               <ion-icon name="business-outline"></ion-icon>
-              Étage:
+              {{ 'SERVEUR.FLOOR_LABEL' | transloco }}
             </label>
             <select
               id="serveur-etage-select-input"
               class="custom-select"
               [value]="selectedEtage"
               (change)="onEtageSelectChange($event)">
-              <option value="ALL">Tous les étages</option>
+              <option value="ALL">{{ 'SERVEUR.ALL_FLOORS' | transloco }}</option>
               <option *ngFor="let etage of etagesList" [value]="etage.code">{{ etage.nom }}</option>
             </select>
           </div>
@@ -88,14 +88,14 @@
           <div class="filter-select-box">
             <label class="filter-label" for="serveur-zone-select-input">
               <ion-icon name="layers-outline"></ion-icon>
-              Zone:
+              {{ 'SERVEUR.ZONE_LABEL' | transloco }}
             </label>
             <select
               id="serveur-zone-select-input"
               class="custom-select"
               [value]="selectedZone"
               (change)="onZoneSelectChange($event)">
-              <option value="ALL">Toutes les zones</option>
+              <option value="ALL">{{ 'SERVEUR.ALL_ZONES' | transloco }}</option>
               <option *ngFor="let z of availableZonesForFilter" [value]="z.nom">{{ z.nom }}</option>
             </select>
           </div>
@@ -104,19 +104,19 @@
           <div class="filter-select-box">
             <label class="filter-label" for="serveur-sort-select-input">
               <ion-icon name="swap-vertical-outline"></ion-icon>
-              Trier par:
+              {{ 'SERVEUR.SORT_LABEL' | transloco }}
             </label>
             <select
               id="serveur-sort-select-input"
               class="custom-select"
               [value]="sortOption"
               (change)="onSortSelectChange($event)">
-              <option value="NUMBER_ASC">N° de table (croissant)</option>
-              <option value="NUMBER_DESC">N° de table (décroissant)</option>
-              <option value="CAPACITY_ASC">Capacité (croissante)</option>
-              <option value="CAPACITY_DESC">Capacité (décroissante)</option>
-              <option value="STATUS_OCCUPIED">Occupées d'abord</option>
-              <option value="STATUS_FREE">Libres d'abord</option>
+              <option value="NUMBER_ASC">{{ 'SERVEUR.SORT_NUMBER_ASC' | transloco }}</option>
+              <option value="NUMBER_DESC">{{ 'SERVEUR.SORT_NUMBER_DESC' | transloco }}</option>
+              <option value="CAPACITY_ASC">{{ 'SERVEUR.SORT_CAPACITY_ASC' | transloco }}</option>
+              <option value="CAPACITY_DESC">{{ 'SERVEUR.SORT_CAPACITY_DESC' | transloco }}</option>
+              <option value="STATUS_OCCUPIED">{{ 'SERVEUR.SORT_STATUS_OCCUPIED' | transloco }}</option>
+              <option value="STATUS_FREE">{{ 'SERVEUR.SORT_STATUS_FREE' | transloco }}</option>
             </select>
           </div>
         </div>
@@ -128,9 +128,9 @@
             class="view-toggle-btn"
             [class.active]="displayMode === 'BY_ZONE'"
             (click)="setDisplayMode('BY_ZONE')"
-            [title]="'TABLES.BY_ZONE' | transloco">
+            [title]="'SERVEUR.VIEW_BY_ZONE' | transloco">
             <ion-icon name="layers-outline"></ion-icon>
-            <span>{{ 'TABLES.BY_ZONE' | transloco }}</span>
+            <span>{{ 'SERVEUR.BY_ZONE' | transloco }}</span>
           </button>
 
           <button
@@ -138,9 +138,9 @@
             class="view-toggle-btn"
             [class.active]="displayMode === 'BY_FLOOR'"
             (click)="setDisplayMode('BY_FLOOR')"
-            [title]="'TABLES.BY_FLOOR' | transloco">
+            [title]="'SERVEUR.VIEW_BY_FLOOR' | transloco">
             <ion-icon name="business-outline"></ion-icon>
-            <span>{{ 'TABLES.BY_FLOOR' | transloco }}</span>
+            <span>{{ 'SERVEUR.BY_FLOOR' | transloco }}</span>
           </button>
 
           <button
@@ -148,9 +148,9 @@
             class="view-toggle-btn"
             [class.active]="displayMode === 'GRID'"
             (click)="setDisplayMode('GRID')"
-            title="Vue Grille simple">
+            [title]="'SERVEUR.VIEW_GRID' | transloco">
             <ion-icon name="grid-outline"></ion-icon>
-            <span>Grille</span>
+            <span>{{ 'SERVEUR.GRID' | transloco }}</span>
           </button>
 
           <button
@@ -158,9 +158,9 @@
             class="view-toggle-btn"
             [class.active]="displayMode === 'PLAN'"
             (click)="setDisplayMode('PLAN')"
-            title="Vue Plan 2D Konva">
+            [title]="'SERVEUR.VIEW_PLAN' | transloco">
             <ion-icon name="map-outline"></ion-icon>
-            <span>Plan 2D</span>
+            <span>{{ 'SERVEUR.PLAN_2D' | transloco }}</span>
           </button>
         </div>
       </div>
@@ -176,9 +176,9 @@
             <span class="floor-chip" *ngIf="group.subTitle">{{ group.subTitle }}</span>
           </div>
           <div class="section-metrics">
-            <span class="metric-chip">{{ group.tables.length }} tables</span>
-            <span class="metric-chip free">{{ group.freeCount }} libres</span>
-            <span class="metric-chip occupied">{{ group.occupiedCount }} occupées</span>
+            <span class="metric-chip">{{ 'SERVEUR.TABLES_COUNT' | transloco:{ count: group.tables.length } }}</span>
+            <span class="metric-chip free">{{ 'SERVEUR.FREE_COUNT' | transloco:{ count: group.freeCount } }}</span>
+            <span class="metric-chip occupied">{{ 'SERVEUR.OCCUPIED_COUNT' | transloco:{ count: group.occupiedCount } }}</span>
           </div>
         </div>
 
@@ -203,9 +203,9 @@
             <h2 class="section-title">{{ group.title }}</h2>
           </div>
           <div class="section-metrics">
-            <span class="metric-chip">{{ group.tables.length }} tables</span>
-            <span class="metric-chip free">{{ group.freeCount }} libres</span>
-            <span class="metric-chip occupied">{{ group.occupiedCount }} occupées</span>
+            <span class="metric-chip">{{ 'SERVEUR.TABLES_COUNT' | transloco:{ count: group.tables.length } }}</span>
+            <span class="metric-chip free">{{ 'SERVEUR.FREE_COUNT' | transloco:{ count: group.freeCount } }}</span>
+            <span class="metric-chip occupied">{{ 'SERVEUR.OCCUPIED_COUNT' | transloco:{ count: group.occupiedCount } }}</span>
           </div>
         </div>
 
@@ -246,7 +246,7 @@
               [class.active]="selectedEtage === 'ALL' || selectedEtage === 'RDC'"
               (click)="onEtageSelectChangeDirect('RDC')"
               data-testid="plan-pill-etage-rdc">
-              Rez-de-chaussée (RDC)
+              {{ 'SERVEUR.RDC_LABEL' | transloco }}
             </button>
             <button
               *ngFor="let etage of etagesList"
@@ -285,10 +285,10 @@
 
         <!-- Status Legend -->
         <div class="legend-bar">
-          <div class="legend-item"><span class="dot dot-libre"></span><span>Libre</span></div>
-          <div class="legend-item"><span class="dot dot-occupee"></span><span>Occupée (&lt;20m)</span></div>
-          <div class="legend-item"><span class="dot dot-retard"></span><span>Attente prolongée (&gt;20m)</span></div>
-          <div class="legend-item"><span class="dot dot-reservee"></span><span>Réservée</span></div>
+          <div class="legend-item"><span class="dot dot-libre"></span><span>{{ 'SERVEUR.LEGEND_FREE' | transloco }}</span></div>
+          <div class="legend-item"><span class="dot dot-occupee"></span><span>{{ 'SERVEUR.LEGEND_OCCUPIED' | transloco }}</span></div>
+          <div class="legend-item"><span class="dot dot-retard"></span><span>{{ 'SERVEUR.LEGEND_WAITING' | transloco }}</span></div>
+          <div class="legend-item"><span class="dot dot-reservee"></span><span>{{ 'SERVEUR.LEGEND_RESERVED' | transloco }}</span></div>
         </div>
       </div>
 
@@ -306,7 +306,7 @@
             type="button"
             class="zoom-btn"
             (click)="zoomerIn()"
-            title="Zoom avant (+)"
+            [title]="'SERVEUR.ZOOM_IN' | transloco"
             data-testid="btn-zoom-in">
             <ion-icon name="add-outline"></ion-icon>
           </button>
@@ -314,7 +314,7 @@
             type="button"
             class="zoom-btn"
             (click)="zoomerOut()"
-            title="Zoom arrière (-)"
+            [title]="'SERVEUR.ZOOM_OUT' | transloco"
             data-testid="btn-zoom-out">
             <ion-icon name="remove-outline"></ion-icon>
           </button>
@@ -322,7 +322,7 @@
             type="button"
             class="zoom-btn"
             (click)="reinitialiserVue()"
-            title="Réinitialiser la vue"
+            [title]="'SERVEUR.RESET_VIEW' | transloco"
             data-testid="btn-reset-view">
             <ion-icon name="locate-outline"></ion-icon>
           </button>
@@ -341,7 +341,7 @@
           <!-- Searchbar -->
           <ion-searchbar
             [(ngModel)]="productSearchQuery"
-            placeholder="Rechercher un cocktail, boisson..."
+            [placeholder]="'SERVEUR.SEARCH_COCKTAIL_PLACEHOLDER' | transloco"
             class="cocktail-searchbar"
             data-testid="product-searchbar">
           </ion-searchbar>
@@ -355,7 +355,7 @@
               (click)="onCategorySelect('ALL')"
               data-testid="category-all-btn">
               <span class="dot-indicator" style="background-color: #6366f1;"></span>
-              Toutes
+              {{ 'SERVEUR.CATEGORIES.ALL' | transloco }}
             </button>
             <button
               class="figma-filter-pill"
@@ -364,7 +364,7 @@
               (click)="onCategorySelect('ALCOOLISE')"
               data-testid="category-alcoolise-btn">
               <span class="dot-indicator" style="background-color: #10b981;"></span>
-              Alcoolisé
+              {{ 'SERVEUR.CATEGORIES.ALCOOLISE' | transloco }}
             </button>
             <button
               class="figma-filter-pill"
@@ -373,7 +373,7 @@
               (click)="onCategorySelect('SANS_ALCOOL')"
               data-testid="category-sans-alcool-btn">
               <span class="dot-indicator" style="background-color: #06b6d4;"></span>
-              Sans alcool
+              {{ 'SERVEUR.CATEGORIES.SANS_ALCOOL' | transloco }}
             </button>
             <button
               class="figma-filter-pill"
@@ -382,7 +382,7 @@
               (click)="onCategorySelect('SHOT')"
               data-testid="category-shot-btn">
               <span class="dot-indicator" style="background-color: #84cc16;"></span>
-              Shot
+              {{ 'SERVEUR.CATEGORIES.SHOT' | transloco }}
             </button>
             <button
               class="figma-filter-pill"
@@ -391,7 +391,7 @@
               (click)="onCategorySelect('APERITIF')"
               data-testid="category-aperitif-btn">
               <span class="dot-indicator" style="background-color: #f97316;"></span>
-              Apéritif
+              {{ 'SERVEUR.CATEGORIES.APERITIF' | transloco }}
             </button>
             <button
               class="figma-filter-pill"
@@ -400,7 +400,7 @@
               (click)="onCategorySelect('DIGESTIF')"
               data-testid="category-digestif-btn">
               <span class="dot-indicator" style="background-color: #ef4444;"></span>
-              Digestif
+              {{ 'SERVEUR.CATEGORIES.DIGESTIF' | transloco }}
             </button>
             <button
               class="figma-filter-pill"
@@ -409,7 +409,7 @@
               (click)="onCategorySelect('SPECIAL')"
               data-testid="category-special-btn">
               <span class="dot-indicator" style="background-color: #eab308;"></span>
-              Spécial
+              {{ 'SERVEUR.CATEGORIES.SPECIAL' | transloco }}
             </button>
           </div>
 
@@ -417,7 +417,7 @@
           <div class="allergen-pills-row" data-testid="allergen-filter-section">
             <span class="allergen-filter-label">
               <ion-icon name="funnel-outline"></ion-icon>
-              Exclure :
+              {{ 'SERVEUR.ALLERGEN_FILTER' | transloco }} :
             </span>
             <button
               *ngFor="let allergen of availableAllergens"
@@ -434,7 +434,7 @@
               class="figma-clear-allergens-btn"
               (click)="clearAllergenFilters()">
               <ion-icon name="close-circle-outline"></ion-icon>
-              Réinitialiser
+              {{ 'COMMON.RESET' | transloco }}
             </button>
           </div>
         </div>
@@ -448,7 +448,7 @@
             (customize)="onCustomizeProduct($event)">
           </app-product-card>
           <div *ngIf="filteredProducts.length === 0" class="empty-products-msg">
-            Aucun produit ne correspond aux filtres sélectionnés.
+            {{ 'SERVEUR.NO_PRODUCTS' | transloco }}
           </div>
         </div>
       </div>
