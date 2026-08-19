@@ -108,7 +108,7 @@
                 </div>
                 <div class="brand-names">
                   <h2 class="est-name">{{ establishmentConfig?.legalName || 'OpenBar' }}</h2>
-                  <span class="est-form" *ngIf="establishmentConfig?.legalForm">{{ establishmentConfig?.legalForm }}</span>
+                  <span class="est-form" *ngIf="establishmentConfig as cfg">{{ cfg.legalForm }}</span>
                 </div>
               </div>
               <div class="est-details-list" *ngIf="establishmentConfig as cfg">
@@ -229,9 +229,9 @@
               <ion-icon name="information-circle-outline"></ion-icon>
               <div class="legal-notice-text">
                 <span class="notice-title">{{ t('FACTURES.ESTABLISHMENT_INFO') }}</span>
-                <p class="notice-desc">
-                  {{ establishmentConfig?.legalName || 'OpenBar' }} — {{ establishmentConfig?.address }}
-                  <span *ngIf="establishmentConfig?.rcsNumber"> — RCS {{ establishmentConfig?.rcsCity }} {{ establishmentConfig?.rcsNumber }}</span>
+                <p class="notice-desc" *ngIf="establishmentConfig as cfg">
+                  {{ cfg.legalName || 'OpenBar' }} — {{ cfg.address }}
+                  <span *ngIf="cfg.rcsNumber"> — RCS {{ cfg.rcsCity }} {{ cfg.rcsNumber }}</span>
                 </p>
               </div>
             </div>

@@ -4,7 +4,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil, switchMap } from 'rxjs/operators';
 import {
-  IonContent, IonButton, IonIcon, ToastController,
+  IonContent, IonIcon, ToastController,
   ModalController, IonSpinner
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -27,7 +27,7 @@ import { environment } from '../../../../environments/environment';
   standalone: true,
   imports: [
     CommonModule, RouterLink, TranslocoModule, TicketReceiptComponent,
-    IonContent, IonButton, IonIcon, IonSpinner
+    IonContent, IonIcon, IonSpinner
   ],
   templateUrl: './facture-detail.component.html',
   styleUrls: ['./facture-detail.component.scss'],
