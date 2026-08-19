@@ -48,21 +48,22 @@ class GlasswareDataSeederServiceTest {
         verify(glasswareRepository, times(1)).saveAll(captor.capture());
 
         Iterable<Glassware> savedIterable = captor.getValue();
-        assertThat(savedIterable).hasSize(9);
-        assertThat(savedIterable)
-                .extracting(Glassware::getNom)
-                .contains(
-                        "Verre Tumbler / Highball",
-                        "Verre Old Fashioned / Rocks",
-                        "Coupe à Cocktail / Martini",
-                        "Verre Margarita",
-                        "Verre Ballon / Copa",
-                        "Flûte à Champagne",
-                        "Tasse en cuivre",
-                        "Verre Tiki",
-                        "Verre à Shot / Chupito"
-                );
-        assertThat(savedIterable).allMatch(Glassware::isPredefined);
+        List<Glassware> savedList = java.util.stream.StreamSupport.stream(savedIterable.spliterator(), false).toList();
+        assertThat(savedList).hasSize(9);
+
+        List<String> names = savedList.stream().map(Glassware::getNom).toList();
+        assertThat(names).contains(
+                "Verre Tumbler / Highball",
+                "Verre Old Fashioned / Rocks",
+                "Coupe à Cocktail / Martini",
+                "Verre Margarita",
+                "Verre Ballon / Copa",
+                "Flûte à Champagne",
+                "Tasse en cuivre",
+                "Verre Tiki",
+                "Verre à Shot / Chupito"
+        );
+        assertThat(savedList.stream().allMatch(Glassware::isPredefined)).isTrue();
     }
 
     @Test
