@@ -41,6 +41,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { CommandeItemView, CommandeView } from '../../models/commande-view.model';
 import { Cocktail } from '../../../../core/models/cocktail.model';
 import { Glassware } from '../../../../core/models/glassware.model';
+import { CocktailRecipeStep } from '../../../../core/models/recipe-step.model';
 import { environment } from '../../../../../environments/environment';
 
 /**
@@ -50,13 +51,13 @@ export const BARMAN_RECIPE_VIEW_MODE_STORAGE_KEY = 'openbar_barman_recipe_view_m
 
 /**
  * View mode options for the barman recipe side panel.
- * - 'compact': Quick dosages, order context, variants, and glassware (rush optimized).
+ * - 'compact': Quick dosages showing only ingredients in recipe sequence (rush optimized).
  * - 'full': Complete sequential mixology steps, techniques, action timers, and instructions.
  */
 export type RecipeViewMode = 'compact' | 'full';
 
 /**
- * Clean deduplicated ingredient view model for display in the side panel.
+ * Clean deduplicated ingredient view model for display in fallback scenarios.
  */
 export interface DeduplicatedIngredient {
   id?: number;
@@ -248,6 +249,26 @@ export class RecipeSidePanelComponent implements OnInit, OnChanges {
     }
 
     return null;
+  }
+
+  /**
+   * Returns the visible recipe steps depending on the active view mode:
+   * - In 'full' mode: all steps (mixology flow, ingredients, actions, instructions).
+   * - In 'compact' mode: only INGREDIENT steps in the exact order of the recipe.
+   */
+  get visibleRecipeSteps(): CocktailRecipeStep[] {
+    const steps = this.cocktail?.recipeSteps ?? [];
+    if (this.viewMode === 'compact') {
+      return steps.filter((s) => s.stepType === 'INGREDIENT');
+    }
+    return steps;
+  }
+
+  /**
+   * Whether any steps are currently visible for the active view mode.
+   */
+  get hasVisibleSteps(): boolean {
+    return this.visibleRecipeSteps.length > 0;
   }
 
   /**

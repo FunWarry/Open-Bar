@@ -190,6 +190,20 @@ describe('RecipeSidePanelComponent', () => {
       component.restoreViewModePreference();
       expect(component.viewMode).toBe('full');
     });
+
+    it('should filter visible steps to only ingredients in compact mode', () => {
+      component.viewMode = 'compact';
+      const steps = component.visibleRecipeSteps;
+      expect(steps).toHaveSize(1);
+      expect(steps[0].stepType).toBe('INGREDIENT');
+      expect(steps[0].ingredientNom).toBe('Rhum Blanc');
+    });
+
+    it('should return all steps in full mode', () => {
+      component.viewMode = 'full';
+      const steps = component.visibleRecipeSteps;
+      expect(steps).toHaveSize(5);
+    });
   });
 
   describe('Glassware & Presentation Resolution', () => {
@@ -423,7 +437,9 @@ describe('RecipeSidePanelComponent', () => {
 
       expect(component.viewMode).toBe('compact');
       expect(compactBtn.classList.contains('active')).toBeTrue();
-      expect(fixture.nativeElement.querySelector('[data-testid="recipe-compact-notice"]')).toBeTruthy();
+
+      const stepCards = fixture.nativeElement.querySelectorAll('.modular-step-card');
+      expect(stepCards.length).toBe(1); // Only INGREDIENT step visible in compact mode
     });
 
     it('should render special instructions and priority pill when present', () => {

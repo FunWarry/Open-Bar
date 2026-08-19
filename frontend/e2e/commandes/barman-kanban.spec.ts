@@ -35,7 +35,7 @@ test.describe('Barman Kanban E2E Flow', () => {
       const compactBtn = page.locator('[data-testid="btn-view-mode-compact"]');
       await expect(compactBtn).toBeVisible();
       await compactBtn.click();
-      await expect(page.locator('[data-testid="recipe-compact-notice"]')).toBeVisible();
+      await expect(page.locator('[data-testid="recipe-modular-steps-section"]')).toBeVisible();
 
       // Check switch back to full
       const fullBtn = page.locator('[data-testid="btn-view-mode-full"]');
