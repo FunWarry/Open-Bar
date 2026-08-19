@@ -268,8 +268,6 @@
                   [class.completed]="isStepCompleted(step.id, sIdx)"
                   [attr.data-testid]="'barman-step-' + sIdx"
                   (click)="toggleStepCompleted(step.id, sIdx)"
-                  (keyup.enter)="toggleStepCompleted(step.id, sIdx)"
-                  tabindex="0"
                   [title]="'BARMAN_DASHBOARD.STEP_CLICK_TO_TOGGLE' | transloco">
 
                   <!-- Step Number / Checkbox Button -->
