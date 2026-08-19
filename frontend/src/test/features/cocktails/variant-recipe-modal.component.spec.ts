@@ -376,6 +376,55 @@ describe('VariantRecipeModalComponent', () => {
     expect(component.recipeSteps[0].actionTitle).toBe('Direct Step');
   });
 
+  it('should reorder steps with moveStepUp and moveStepDown respecting boundaries', () => {
+    component.variante = null;
+    component.ngOnInit();
+
+    expect(component.recipeSteps[0].stepOrder).toBe(1);
+    expect(component.recipeSteps[1].stepOrder).toBe(2);
+
+    // Boundary top
+    component.moveStepUp(0);
+    expect(component.recipeSteps[0].stepOrder).toBe(1);
+
+    // Move step 1 up
+    const firstStepNom = component.recipeSteps[0].ingredientNom;
+    component.moveStepUp(1);
+    expect(component.recipeSteps[0].ingredientNom).not.toBe(firstStepNom);
+
+    // Boundary bottom
+    const lastIdx = component.recipeSteps.length - 1;
+    component.moveStepDown(lastIdx);
+    expect(component.recipeSteps).toHaveSize(3);
+
+    // Move step down
+    component.moveStepDown(0);
+    expect(component.recipeSteps[0].ingredientNom).toBe(firstStepNom);
+  });
+
+  it('should add ingredient, template, and custom text steps', () => {
+    component.variante = null;
+    component.ngOnInit();
+    const initialCount = component.recipeSteps.length;
+
+    component.addIngredientStep();
+    expect(component.recipeSteps).toHaveSize(initialCount + 1);
+    expect(component.recipeSteps[initialCount].stepType).toBe('INGREDIENT');
+
+    component.addActionTemplateStep();
+    expect(component.recipeSteps).toHaveSize(initialCount + 2);
+    expect(component.recipeSteps[initialCount + 1].stepType).toBe('ACTION_TEMPLATE');
+
+    component.addCustomTextStep();
+    expect(component.recipeSteps).toHaveSize(initialCount + 3);
+    expect(component.recipeSteps[initialCount + 2].stepType).toBe('CUSTOM_TEXT');
+  });
+
+  it('should provide computed ingredientOptions and templateOptions', () => {
+    expect(component.ingredientOptions().length).toBeGreaterThan(0);
+    expect(component.templateOptions().length).toBeGreaterThan(0);
+  });
+
   it('should cancel and dismiss with null', () => {
     component.cancel();
     expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith(null, 'cancel');

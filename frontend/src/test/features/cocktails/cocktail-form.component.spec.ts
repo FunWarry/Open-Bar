@@ -576,14 +576,42 @@ describe('CocktailFormComponent', () => {
       const customGroup = component.recipeStepsArray.at(1);
       expect(customGroup.get('stepType')?.value).toBe('CUSTOM_TEXT');
 
+      // Top boundary
+      component.moveStepUp(0);
+      expect(component.recipeStepsArray.at(0).get('stepType')?.value).toBe('INGREDIENT');
+
       component.moveStepUp(1);
       expect(component.recipeStepsArray.at(0).get('stepType')?.value).toBe('CUSTOM_TEXT');
+
+      // Bottom boundary
+      component.moveStepDown(1);
+      expect(component.recipeStepsArray.at(1).get('stepType')?.value).toBe('INGREDIENT');
 
       component.moveStepDown(0);
       expect(component.recipeStepsArray.at(1).get('stepType')?.value).toBe('CUSTOM_TEXT');
 
       component.removeStep(1);
       expect(component.recipeStepsArray).toHaveSize(1);
+    });
+
+    it('should support block builder helpers and option selection', () => {
+      component.addIngredientBlock();
+      component.onIngredientOptionSelected(component.recipeStepsArray.length - 1, { value: 1 });
+      const ingGroup = component.recipeStepsArray.at(-1);
+      expect(ingGroup.get('ingredientId')?.value).toBe(1);
+
+      const mockTpl = { id: 2, name: 'Stirring', actionType: 'STIR', defaultDurationSeconds: 20 } as any;
+      component.addActionTemplateBlock(mockTpl);
+      const tplGroup = component.recipeStepsArray.at(-1);
+      expect(tplGroup.get('templateId')?.value).toBe(2);
+
+      component.addCustomTextBlock();
+      expect(component.recipeStepsArray.at(-1).get('stepType')?.value).toBe('CUSTOM_TEXT');
+
+      component.onTemplateOptionSelected(component.recipeStepsArray.length - 2, { value: 1 });
+      expect(component.recipeStepsArray.at(-2).get('templateId')?.value).toBe(1);
+
+      component.removeRecipeStep(0);
     });
 
     it('should manage variants correctly', async () => {
