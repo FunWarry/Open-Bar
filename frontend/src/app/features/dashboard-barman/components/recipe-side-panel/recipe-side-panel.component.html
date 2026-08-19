@@ -14,7 +14,7 @@
   class="recipe-side-panel"
   [class.open]="isOpen"
   data-testid="recipe-side-panel"
-  [attr.aria-label]="'BARMAN_DASHBOARD.RECIPE_PANEL_TITLE' | transloco">
+  [attr.aria-label]="'BARMAN_DASHBOARD.SIDE_PANEL_RECIPE_TITLE' | transloco">
 
   <!-- Header -->
   <header class="panel-header">
@@ -24,13 +24,46 @@
       </div>
       <div class="header-title-block">
         <div class="cocktail-badge-row">
-          <span class="qty-pill">{{ quantity }}x</span>
+          <span class="qty-pill" data-testid="recipe-qty-pill">{{ quantity }}x</span>
           @if (cocktail?.categorie; as cat) {
             <span class="category-pill">{{ cat }}</span>
           }
+          @if (item?.prioritaire || commande?.prioritaire) {
+            <span class="priority-pill" data-testid="recipe-priority-pill">
+              <ion-icon name="flash-outline"></ion-icon>
+              {{ 'BARMAN_DASHBOARD.PRIORITY_ORDER' | transloco }}
+            </span>
+          }
         </div>
-        <h2 class="cocktail-title">{{ item?.cocktailNom || cocktail?.nom || 'Cocktail' }}</h2>
+        <h2 class="cocktail-title" data-testid="recipe-cocktail-title">
+          {{ item?.cocktailNom || cocktail?.nom || 'Cocktail' }}
+        </h2>
       </div>
+    </div>
+
+    <!-- View Mode Toggle (Segmented Switcher) -->
+    <div class="view-mode-toggle-group" [attr.aria-label]="'BARMAN_DASHBOARD.VIEW_MODE_LABEL' | transloco">
+      <button
+        type="button"
+        class="view-mode-btn"
+        [class.active]="viewMode === 'compact'"
+        (click)="setViewMode('compact')"
+        [title]="'BARMAN_DASHBOARD.VIEW_MODE_COMPACT_TOOLTIP' | transloco"
+        data-testid="btn-view-mode-compact">
+        <ion-icon name="flash-outline"></ion-icon>
+        <span class="btn-label">{{ 'BARMAN_DASHBOARD.VIEW_MODE_COMPACT' | transloco }}</span>
+      </button>
+
+      <button
+        type="button"
+        class="view-mode-btn"
+        [class.active]="viewMode === 'full'"
+        (click)="setViewMode('full')"
+        [title]="'BARMAN_DASHBOARD.VIEW_MODE_FULL_TOOLTIP' | transloco"
+        data-testid="btn-view-mode-full">
+        <ion-icon name="layers-outline"></ion-icon>
+        <span class="btn-label">{{ 'BARMAN_DASHBOARD.VIEW_MODE_FULL' | transloco }}</span>
+      </button>
     </div>
 
     <ion-button
@@ -38,7 +71,7 @@
       class="close-btn"
       (click)="onClose()"
       (keyup.enter)="onClose()"
-      aria-label="Fermer"
+      [attr.aria-label]="'BARMAN_DASHBOARD.CLOSE_PANEL' | transloco"
       data-testid="btn-close-recipe-panel">
       <ion-icon slot="icon-only" name="close-outline"></ion-icon>
     </ion-button>
@@ -47,14 +80,14 @@
   <!-- Content -->
   <div class="panel-content">
     @if (isLoading) {
-      <div class="loading-state">
+      <div class="loading-state" data-testid="recipe-loading-state">
         <ion-spinner name="crescent" color="primary"></ion-spinner>
         <span>{{ 'COMMON.LOADING' | transloco }}</span>
       </div>
     } @else {
       <!-- Order Context Card -->
       @if (commande) {
-        <section class="context-card">
+        <section class="context-card" data-testid="recipe-order-context">
           <div class="context-header">
             <ion-icon name="restaurant-outline"></ion-icon>
             <span>{{ 'BARMAN_DASHBOARD.ORDER_CONTEXT' | transloco }}</span>
@@ -78,45 +111,118 @@
 
       <!-- Customization & Notes Warning (if present) -->
       @if (item && (item.notes || item.varianteNom)) {
-        <section class="alert-notes-card">
+        <section class="alert-notes-card" data-testid="recipe-special-instructions">
           <div class="alert-notes-header">
             <ion-icon name="alert-circle-outline"></ion-icon>
             <span>{{ 'BARMAN_DASHBOARD.SPECIAL_INSTRUCTIONS' | transloco }}</span>
           </div>
 
           @if (item.varianteNom) {
-            <div class="variant-highlight">
+            <div class="variant-highlight" data-testid="recipe-variant-badge">
               <span class="v-label">{{ 'BARMAN_DASHBOARD.VARIANT_SELECTED' | transloco }} :</span>
               <span class="v-name">{{ item.varianteNom }}</span>
             </div>
           }
 
           @if (item.notes) {
-            <div class="note-highlight">
+            <div class="note-highlight" data-testid="recipe-notes-text">
               « {{ item.notes }} »
             </div>
           }
         </section>
       }
 
+      <!-- Glassware & Presentation Section -->
+      <section class="recipe-section glassware-presentation-section" data-testid="recipe-glassware-presentation">
+        <div class="section-title-row">
+          <div class="section-title-left">
+            <ion-icon name="wine-outline"></ion-icon>
+            <h3>{{ 'BARMAN_DASHBOARD.GLASS_RECOMMENDED' | transloco }}</h3>
+          </div>
+        </div>
+
+        <div class="glassware-dual-grid">
+          <!-- Glass Card -->
+          <div class="glass-hero-card" data-testid="recipe-glassware-card">
+            @if (resolvedGlassware; as glass) {
+              <div class="glass-visual">
+                @if (glass.imageUrl) {
+                  <img
+                    [src]="resolveImageUrl(glass.imageUrl)"
+                    [alt]="glass.nom"
+                    class="glass-img"
+                    data-testid="recipe-glassware-img" />
+                } @else {
+                  <div class="glass-icon-circle">
+                    <ion-icon name="wine-outline"></ion-icon>
+                  </div>
+                }
+              </div>
+
+              <div class="glass-meta">
+                <div class="glass-title-row">
+                  <strong class="glass-name" data-testid="recipe-glassware-name">
+                    {{ glass.nom }}
+                  </strong>
+                  @if (glass.contenanceCl) {
+                    <span class="glass-capacity-badge" data-testid="recipe-glassware-capacity">
+                      {{ 'BARMAN_DASHBOARD.GLASS_CAPACITY' | transloco: { capacity: glass.contenanceCl } }}
+                    </span>
+                  }
+                </div>
+                @if (glass.description) {
+                  <p class="glass-desc">{{ glass.description }}</p>
+                }
+              </div>
+            } @else {
+              <div class="glass-visual">
+                <div class="glass-icon-circle">
+                  <ion-icon name="wine-outline"></ion-icon>
+                </div>
+              </div>
+              <div class="glass-meta">
+                <div class="glass-title-row">
+                  <strong class="glass-name" data-testid="recipe-glassware-name">
+                    {{ 'BARMAN_DASHBOARD.DEFAULT_GLASS' | transloco }}
+                  </strong>
+                </div>
+              </div>
+            }
+          </div>
+
+          <!-- Garnish Card -->
+          <div class="garnish-hero-card" data-testid="recipe-garnish-card">
+            <div class="garnish-icon-circle">
+              <ion-icon name="leaf-outline"></ion-icon>
+            </div>
+            <div class="garnish-meta">
+              <span class="garnish-label">{{ 'BARMAN_DASHBOARD.GARNISH_RECOMMENDED' | transloco }}</span>
+              <strong class="garnish-name" data-testid="recipe-garnish-name">
+                {{ resolvedGarnish || ('BARMAN_DASHBOARD.DEFAULT_GARNISH' | transloco) }}
+              </strong>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- Ingredients & Measurements section -->
-      <section class="recipe-section">
+      <section class="recipe-section" data-testid="recipe-ingredients-section">
         <div class="section-title-row">
           <div class="section-title-left">
             <ion-icon name="leaf-outline"></ion-icon>
             <h3>{{ 'BARMAN_DASHBOARD.DOSAGES_TITLE' | transloco }}</h3>
           </div>
           @if (quantity > 1) {
-            <span class="quantity-scale-badge">
+            <span class="quantity-scale-badge" data-testid="recipe-scale-badge">
               {{ 'BARMAN_DASHBOARD.TOTAL_DOSAGE_FOR_ORDER' | transloco: { qty: quantity } }}
             </span>
           }
         </div>
 
-        @if (cocktail && cocktail.ingredients && cocktail.ingredients.length > 0) {
-          <div class="ingredients-list">
-            @for (ing of cocktail.ingredients; track ing.id) {
-              <div class="ingredient-card">
+        @if (deduplicatedIngredients.length > 0) {
+          <div class="ingredients-list" data-testid="recipe-ingredients-list">
+            @for (ing of deduplicatedIngredients; track ing.id || ing.ingredientNom; let iIdx = $index) {
+              <div class="ingredient-card" [attr.data-testid]="'recipe-ing-row-' + iIdx">
                 <div class="ing-bullet"></div>
                 <div class="ing-info">
                   <span class="ing-name">{{ ing.ingredientNom }}</span>
@@ -133,136 +239,172 @@
             }
           </div>
         } @else {
-          <div class="empty-ingredients">
-            Aucun ingrédient spécifique renseigné.
+          <div class="empty-ingredients" data-testid="recipe-empty-ingredients">
+            {{ 'BARMAN_DASHBOARD.NO_INGREDIENTS_SPECIFIED' | transloco }}
           </div>
         }
       </section>
 
-      <!-- Step-by-Step Preparation -->
-      <section class="recipe-section">
-        <div class="section-title-row">
-          <div class="section-title-left">
-            <ion-icon name="sparkles-outline"></ion-icon>
-            <h3>{{ 'BARMAN_DASHBOARD.PREPARATION_STEPS_TITLE' | transloco }}</h3>
-          </div>
-          @if (cocktail && cocktail.recipeSteps && cocktail.recipeSteps.length > 0 && quantity > 1) {
-            <span class="quantity-scale-badge">
-              ⚡ Dosages × {{ quantity }}
-            </span>
-          }
-        </div>
-
-        @if (cocktail && cocktail.recipeSteps && cocktail.recipeSteps.length > 0) {
-          <div class="modular-steps-list" data-testid="barman-recipe-steps-list">
-            @for (step of cocktail.recipeSteps; track step.id || $index; let sIdx = $index) {
-              <div class="modular-step-card" [attr.data-testid]="'barman-step-' + sIdx">
-                <div class="step-num-badge">{{ sIdx + 1 }}</div>
-
-                <div class="step-details-col">
-                  <!-- INGREDIENT STEP -->
-                  @if (step.stepType === 'INGREDIENT') {
-                    <div class="step-header-line">
-                      <span class="step-title-text">
-                        🧪 {{ step.ingredientNom || 'Ingrédient' }}
-                      </span>
-                      @if (step.quantite != null) {
-                        <span class="step-dosage-tag">
-                          <strong>{{ getScaledStepQuantity(step.quantite) }} {{ step.unite }}</strong>
-                          @if (quantity > 1) {
-                            <small>({{ step.quantite }} {{ step.unite }}/verre)</small>
-                          }
-                        </span>
-                      }
-                    </div>
-                    @if (step.customText) {
-                      <p class="step-subtext">{{ step.customText }}</p>
-                    }
-                  }
-
-                  <!-- ACTION_TEMPLATE STEP -->
-                  @if (step.stepType === 'ACTION_TEMPLATE') {
-                    <div class="step-header-line">
-                      <span class="step-title-text">
-                        <ion-icon [name]="getActionIcon(step.actionType)"></ion-icon>
-                        {{ step.templateName || 'Action Technique' }}
-                      </span>
-                      @if (step.durationSeconds) {
-                        <span class="step-duration-badge">
-                          <ion-icon name="time-outline"></ion-icon>
-                          {{ step.durationSeconds }}s
-                        </span>
-                      }
-                    </div>
-                    @if (step.customText) {
-                      <p class="step-subtext">{{ step.customText }}</p>
-                    }
-                  }
-
-                  <!-- CUSTOM_TEXT STEP -->
-                  @if (step.stepType === 'CUSTOM_TEXT') {
-                    <div class="step-header-line">
-                      <span class="step-title-text">
-                        <ion-icon name="create-outline"></ion-icon>
-                        {{ step.actionTitle || 'Consigne spécifique' }}
-                      </span>
-                      @if (step.durationSeconds) {
-                        <span class="step-duration-badge">
-                          <ion-icon name="time-outline"></ion-icon>
-                          {{ step.durationSeconds }}s
-                        </span>
-                      }
-                    </div>
-                    @if (step.customText) {
-                      <p class="step-subtext">{{ step.customText }}</p>
-                    }
-                  }
-                </div>
-              </div>
+      <!-- Step-by-Step Preparation Flow (Full Mode) -->
+      @if (viewMode === 'full') {
+        <section class="recipe-section modular-flow-section" data-testid="recipe-modular-steps-section">
+          <div class="section-title-row">
+            <div class="section-title-left">
+              <ion-icon name="sparkles-outline"></ion-icon>
+              <h3>{{ 'BARMAN_DASHBOARD.PREPARATION_STEPS_TITLE' | transloco }}</h3>
+            </div>
+            @if (cocktail?.recipeSteps?.length; as totalSteps) {
+              <span class="steps-count-badge">
+                {{ totalSteps }} {{ 'BARMAN_DASHBOARD.PREPARATION_STEPS_TITLE' | transloco | lowercase }}
+              </span>
             }
           </div>
-        } @else if (cocktail && cocktail.instructions) {
-          <div class="instructions-box">
-            <p class="instructions-text">{{ cocktail.instructions }}</p>
-          </div>
-        } @else {
-          <div class="instructions-box default-steps">
-            <div class="step-item">
-              <span class="step-number">1</span>
-              <span class="step-text">Préparer et rafraîchir le verre de service avec des glaçons.</span>
-            </div>
-            <div class="step-item">
-              <span class="step-number">2</span>
-              <span class="step-text">Verser et assembler les ingrédients selon les dosages indiqués.</span>
-            </div>
-            <div class="step-item">
-              <span class="step-number">3</span>
-              <span class="step-text">Mélanger ou shaker vigoureusement, puis filtrer et servir immédiatement.</span>
-            </div>
-          </div>
-        }
-      </section>
 
-      <!-- Glassware & Tips -->
-      <section class="recipe-section glassware-section">
-        <div class="tips-grid">
-          <div class="tip-card">
-            <ion-icon name="wine-outline"></ion-icon>
-            <div class="tip-body">
-              <span class="tip-label">{{ 'BARMAN_DASHBOARD.GLASS_RECOMMENDED' | transloco }}</span>
-              <strong class="tip-val">{{ 'BARMAN_DASHBOARD.DEFAULT_GLASS' | transloco }}</strong>
-            </div>
-          </div>
+          @if (cocktail && cocktail.recipeSteps && cocktail.recipeSteps.length > 0) {
+            <div class="modular-steps-list" data-testid="barman-recipe-steps-list">
+              @for (step of cocktail.recipeSteps; track step.id || $index; let sIdx = $index) {
+                <div
+                  class="modular-step-card"
+                  [class.completed]="isStepCompleted(step.id, sIdx)"
+                  [attr.data-testid]="'barman-step-' + sIdx"
+                  (click)="toggleStepCompleted(step.id, sIdx)"
+                  (keyup.enter)="toggleStepCompleted(step.id, sIdx)"
+                  tabindex="0"
+                  [title]="'BARMAN_DASHBOARD.STEP_CLICK_TO_TOGGLE' | transloco">
 
-          <div class="tip-card">
-            <ion-icon name="cube-outline"></ion-icon>
-            <div class="tip-body">
-              <span class="tip-label">{{ 'BARMAN_DASHBOARD.GARNISH_RECOMMENDED' | transloco }}</span>
-              <strong class="tip-val">{{ 'BARMAN_DASHBOARD.DEFAULT_GARNISH' | transloco }}</strong>
+                  <!-- Step Number / Checkbox Button -->
+                  <button
+                    type="button"
+                    class="step-num-badge"
+                    [class.checked]="isStepCompleted(step.id, sIdx)"
+                    [attr.data-testid]="'barman-step-check-' + sIdx"
+                    (click)="toggleStepCompleted(step.id, sIdx); $event.stopPropagation()"
+                    [attr.aria-label]="'BARMAN_DASHBOARD.STEP_CLICK_TO_TOGGLE' | transloco">
+                    @if (isStepCompleted(step.id, sIdx)) {
+                      <ion-icon name="checkmark-outline"></ion-icon>
+                    } @else {
+                      <span>{{ sIdx + 1 }}</span>
+                    }
+                  </button>
+
+                  <div class="step-details-col">
+                    <!-- INGREDIENT STEP -->
+                    @if (step.stepType === 'INGREDIENT') {
+                      <div class="step-header-line">
+                        <span class="step-title-text">
+                          <span class="type-pill ingredient-pill">
+                            {{ 'BARMAN_DASHBOARD.INGREDIENT_BADGE' | transloco }}
+                          </span>
+                          <strong>{{ step.ingredientNom || 'Ingrédient' }}</strong>
+                        </span>
+                        @if (step.quantite != null) {
+                          <span class="step-dosage-tag">
+                            <strong>{{ getScaledStepQuantity(step.quantite) }} {{ step.unite }}</strong>
+                            @if (quantity > 1) {
+                              <small>({{ step.quantite }} {{ step.unite }}/verre)</small>
+                            }
+                          </span>
+                        }
+                      </div>
+                      @if (step.customText) {
+                        <p class="step-subtext">{{ step.customText }}</p>
+                      }
+                    }
+
+                    <!-- ACTION_TEMPLATE STEP -->
+                    @if (step.stepType === 'ACTION_TEMPLATE') {
+                      <div class="step-header-line">
+                        <span class="step-title-text">
+                          <span
+                            class="type-pill action-pill"
+                            [ngClass]="getActionBadgeClass(step.actionType)">
+                            <ion-icon [name]="getActionIcon(step.actionType)"></ion-icon>
+                            {{ getActionLabelKey(step.actionType) | transloco }}
+                          </span>
+                          <strong class="action-template-name">
+                            {{ step.templateName || (getActionLabelKey(step.actionType) | transloco) }}
+                          </strong>
+                        </span>
+
+                        @if (step.durationSeconds) {
+                          <span class="step-duration-badge" data-testid="step-duration-badge">
+                            <ion-icon name="time-outline"></ion-icon>
+                            {{ 'BARMAN_DASHBOARD.DURATION_SECONDS' | transloco: { seconds: step.durationSeconds } }}
+                          </span>
+                        }
+                      </div>
+                      @if (step.customText) {
+                        <p class="step-subtext">{{ step.customText }}</p>
+                      }
+                    }
+
+                    <!-- CUSTOM_TEXT STEP -->
+                    @if (step.stepType === 'CUSTOM_TEXT') {
+                      <div class="step-header-line">
+                        <span class="step-title-text">
+                          <span class="type-pill custom-pill">
+                            <ion-icon name="create-outline"></ion-icon>
+                            {{ 'BARMAN_DASHBOARD.CUSTOM_STEP_BADGE' | transloco }}
+                          </span>
+                          <strong class="custom-step-title">
+                            {{ step.actionTitle || ('BARMAN_DASHBOARD.CUSTOM_STEP_BADGE' | transloco) }}
+                          </strong>
+                        </span>
+
+                        @if (step.durationSeconds) {
+                          <span class="step-duration-badge" data-testid="step-duration-badge">
+                            <ion-icon name="time-outline"></ion-icon>
+                            {{ 'BARMAN_DASHBOARD.DURATION_SECONDS' | transloco: { seconds: step.durationSeconds } }}
+                          </span>
+                        }
+                      </div>
+                      @if (step.customText) {
+                        <p class="step-subtext">{{ step.customText }}</p>
+                      }
+                    }
+                  </div>
+                </div>
+              }
             </div>
+          } @else if (cocktail && cocktail.instructions) {
+            <div class="instructions-box" data-testid="recipe-instructions-box">
+              <p class="instructions-text">{{ cocktail.instructions }}</p>
+            </div>
+          } @else {
+            <div class="instructions-box default-steps" data-testid="recipe-default-steps">
+              <div class="step-item">
+                <span class="step-number">1</span>
+                <span class="step-text">Préparer et rafraîchir le verre de service avec des glaçons.</span>
+              </div>
+              <div class="step-item">
+                <span class="step-number">2</span>
+                <span class="step-text">Verser et assembler les ingrédients selon les dosages indiqués.</span>
+              </div>
+              <div class="step-item">
+                <span class="step-number">3</span>
+                <span class="step-text">Mélanger ou shaker vigoureusement, puis filtrer et servir immédiatement.</span>
+              </div>
+            </div>
+          }
+        </section>
+      } @else {
+        <!-- Compact Mode Rush Helper Notice -->
+        <div class="compact-mode-notice" data-testid="recipe-compact-notice">
+          <ion-icon name="flash-outline"></ion-icon>
+          <div class="notice-body">
+            <span class="notice-title">{{ 'BARMAN_DASHBOARD.VIEW_MODE_COMPACT' | transloco }}</span>
+            <p class="notice-desc">{{ 'BARMAN_DASHBOARD.COMPACT_MODE_DESC' | transloco }}</p>
           </div>
+          <button
+            type="button"
+            class="switch-to-full-btn"
+            (click)="setViewMode('full')"
+            data-testid="btn-switch-to-full">
+            <ion-icon name="layers-outline"></ion-icon>
+            {{ 'BARMAN_DASHBOARD.VIEW_MODE_FULL' | transloco }}
+          </button>
         </div>
-      </section>
+      }
     }
   </div>
 

@@ -6,7 +6,7 @@
   width: 100%;
   height: 100%;
   background: rgba(0, 0, 0, 0.55);
-  backdrop-filter: blur(3px);
+  backdrop-filter: blur(4px);
   z-index: 1000;
   opacity: 0;
   pointer-events: none;
@@ -23,8 +23,8 @@
   position: fixed;
   top: 0;
   right: 0;
-  width: 440px;
-  max-width: 90vw;
+  width: 480px;
+  max-width: 92vw;
   height: 100%;
   background: var(--background-surface-1);
   border-left: 1px solid var(--border-medium);
@@ -45,10 +45,12 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 20px;
+  padding: 14px 18px;
   background: var(--background-surface-2);
   border-bottom: 1px solid var(--border-medium);
   flex-shrink: 0;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .header-main {
@@ -56,11 +58,12 @@
   align-items: center;
   gap: 12px;
   min-width: 0;
+  flex: 1;
 }
 
 .header-icon-wrapper {
-  width: 40px;
-  height: 40px;
+  width: 42px;
+  height: 42px;
   border-radius: var(--radius-md, 8px);
   background: rgba(108, 127, 232, 0.15);
   border: 1px solid rgba(108, 127, 232, 0.3);
@@ -68,14 +71,14 @@
   align-items: center;
   justify-content: center;
   color: var(--primary);
-  font-size: 22px;
+  font-size: 24px;
   flex-shrink: 0;
 }
 
 .header-title-block {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
   min-width: 0;
 }
 
@@ -83,6 +86,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
+  flex-wrap: wrap;
 }
 
 .qty-pill {
@@ -90,8 +94,9 @@
   font-weight: 800;
   color: var(--primary);
   background: rgba(108, 127, 232, 0.2);
-  padding: 1px 6px;
+  padding: 1px 7px;
   border-radius: var(--radius-pill, 999px);
+  border: 1px solid rgba(108, 127, 232, 0.35);
 }
 
 .category-pill {
@@ -106,6 +111,25 @@
   letter-spacing: 0.5px;
 }
 
+.priority-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: var(--semantic-danger);
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  padding: 1px 6px;
+  border-radius: var(--radius-pill, 999px);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  ion-icon {
+    font-size: 11px;
+  }
+}
+
 .cocktail-title {
   margin: 0;
   font-family: 'Inter', sans-serif;
@@ -115,6 +139,46 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* ── View Mode Toggle Group ── */
+.view-mode-toggle-group {
+  display: inline-flex;
+  align-items: center;
+  background: var(--background-surface-3);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-pill, 999px);
+  padding: 2px;
+  gap: 2px;
+}
+
+.view-mode-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill, 999px);
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  ion-icon {
+    font-size: 13px;
+  }
+
+  &:hover {
+    color: var(--text-primary);
+  }
+
+  &.active {
+    background: var(--primary);
+    color: var(--text-primary);
+    box-shadow: 0 2px 6px rgba(108, 127, 232, 0.35);
+  }
 }
 
 .close-btn {
@@ -131,10 +195,10 @@
 .panel-content {
   flex: 1;
   overflow-y: auto;
-  padding: 18px 20px;
+  padding: 16px 18px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 
 .loading-state {
@@ -143,7 +207,7 @@
   align-items: center;
   justify-content: center;
   gap: 12px;
-  padding: 40px 0;
+  padding: 48px 0;
   color: var(--text-secondary);
   font-size: 0.9rem;
 }
@@ -153,7 +217,7 @@
   background: var(--background-surface-2);
   border: 1px solid var(--border-medium);
   border-radius: var(--radius-md, 8px);
-  padding: 12px 14px;
+  padding: 10px 14px;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -163,7 +227,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 700;
   color: var(--text-secondary);
   text-transform: uppercase;
@@ -188,7 +252,7 @@
 }
 
 .context-label {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   color: var(--text-muted);
 }
 
@@ -203,7 +267,7 @@
   background: rgba(244, 165, 42, 0.1);
   border-left: 3px solid var(--semantic-warning);
   border-radius: var(--radius-md, 8px);
-  padding: 12px 14px;
+  padding: 10px 14px;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -213,7 +277,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 800;
   color: var(--semantic-warning);
   text-transform: uppercase;
@@ -242,7 +306,7 @@
   color: var(--semantic-warning);
 }
 
-/* ── Sections ── */
+/* ── Common Recipe Section ── */
 .recipe-section {
   display: flex;
   flex-direction: column;
@@ -269,7 +333,7 @@
 
   h3 {
     margin: 0;
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     font-weight: 800;
     color: var(--text-primary);
     text-transform: uppercase;
@@ -287,6 +351,141 @@
   border-radius: var(--radius-pill, 999px);
 }
 
+.steps-count-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
+  padding: 2px 8px;
+  border-radius: var(--radius-pill, 999px);
+}
+
+/* ── Glassware & Presentation Dual Grid ── */
+.glassware-dual-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 8px;
+}
+
+.glass-hero-card,
+.garnish-hero-card {
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md, 8px);
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.glass-visual {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md, 8px);
+  background: var(--background-surface-3);
+  border: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+
+  .glass-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 2px;
+  }
+
+  .glass-icon-circle {
+    font-size: 22px;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+.glass-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.glass-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.glass-name {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.glass-capacity-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--semantic-info);
+  background: rgba(59, 130, 246, 0.15);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  padding: 1px 5px;
+  border-radius: var(--radius-pill, 999px);
+}
+
+.glass-desc {
+  margin: 0;
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  line-height: 1.3;
+}
+
+.garnish-hero-card {
+  .garnish-icon-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-md, 8px);
+    background: rgba(34, 197, 94, 0.12);
+    border: 1px solid rgba(34, 197, 94, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--semantic-success);
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .garnish-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .garnish-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .garnish-name {
+    font-size: 0.82rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    line-height: 1.3;
+  }
+}
+
 /* ── Ingrédients List ── */
 .ingredients-list {
   display: flex;
@@ -301,8 +500,13 @@
   background: var(--background-surface-2);
   border: 1px solid var(--border-medium);
   border-radius: var(--radius-md, 8px);
-  padding: 10px 12px;
+  padding: 9px 12px;
   gap: 8px;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: var(--background-surface-3);
+  }
 }
 
 .ing-bullet {
@@ -319,7 +523,7 @@
 }
 
 .ing-name {
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   font-weight: 600;
   color: var(--text-primary);
 }
@@ -328,17 +532,17 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 2px;
+  gap: 1px;
 }
 
 .total-dosage {
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   font-weight: 800;
   color: var(--primary);
 }
 
 .unit-dosage {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   color: var(--text-muted);
 }
 
@@ -347,6 +551,230 @@
   font-size: 0.8rem;
   font-style: italic;
   padding: 8px 0;
+}
+
+/* ── Modular Steps (Builder Mixology Flow) ── */
+.modular-steps-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.modular-step-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md, 8px);
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: var(--primary);
+    background: var(--background-surface-3);
+  }
+
+  &.completed {
+    opacity: 0.7;
+    border-color: rgba(34, 197, 94, 0.4);
+    background: rgba(34, 197, 94, 0.05);
+
+    .step-title-text strong {
+      text-decoration: line-through;
+      color: var(--text-secondary);
+    }
+  }
+}
+
+.step-num-badge {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--background-surface-3);
+  border: 1px solid var(--primary);
+  color: var(--primary-light);
+  font-size: 0.75rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+  padding: 0;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &.checked {
+    background: var(--semantic-success);
+    border-color: var(--semantic-success);
+    color: var(--text-primary);
+    box-shadow: 0 0 8px rgba(34, 197, 94, 0.4);
+
+    ion-icon {
+      font-size: 16px;
+    }
+  }
+}
+
+.step-details-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.step-header-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.step-title-text {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+
+  strong {
+    white-space: normal;
+  }
+}
+
+/* ── Type & Action Pills ── */
+.type-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: var(--radius-pill, 999px);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+
+  ion-icon {
+    font-size: 12px;
+  }
+}
+
+.ingredient-pill {
+  background: rgba(59, 130, 246, 0.15);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: var(--semantic-info);
+}
+
+.custom-pill {
+  background: rgba(168, 85, 247, 0.15);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  color: var(--primary-light);
+}
+
+/* Action palette modifiers */
+.action-shake {
+  background: rgba(108, 127, 232, 0.18);
+  border: 1px solid rgba(108, 127, 232, 0.4);
+  color: var(--primary);
+}
+
+.action-strain {
+  background: rgba(6, 182, 212, 0.18);
+  border: 1px solid rgba(6, 182, 212, 0.4);
+  color: var(--semantic-info);
+}
+
+.action-muddle {
+  background: rgba(245, 158, 11, 0.18);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: var(--semantic-warning);
+}
+
+.action-stir {
+  background: rgba(20, 184, 166, 0.18);
+  border: 1px solid rgba(20, 184, 166, 0.4);
+  color: var(--semantic-info);
+}
+
+.action-ice {
+  background: rgba(14, 165, 233, 0.18);
+  border: 1px solid rgba(14, 165, 233, 0.4);
+  color: var(--semantic-info);
+}
+
+.action-pour {
+  background: rgba(99, 102, 241, 0.18);
+  border: 1px solid rgba(99, 102, 241, 0.4);
+  color: var(--primary-light);
+}
+
+.action-garnish {
+  background: rgba(34, 197, 94, 0.18);
+  border: 1px solid rgba(34, 197, 94, 0.4);
+  color: var(--semantic-success);
+}
+
+.action-blend {
+  background: rgba(217, 70, 239, 0.18);
+  border: 1px solid rgba(217, 70, 239, 0.4);
+  color: var(--primary);
+}
+
+.action-flame {
+  background: rgba(239, 68, 68, 0.18);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: var(--semantic-danger);
+}
+
+.action-default {
+  background: var(--background-surface-3);
+  border: 1px solid var(--border-medium);
+  color: var(--text-secondary);
+}
+
+.step-dosage-tag {
+  font-size: 0.85rem;
+  color: var(--semantic-success);
+  font-weight: 700;
+
+  small {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-left: 4px;
+  }
+}
+
+.step-duration-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--background-surface-3);
+  border: 1px solid var(--border-medium);
+  color: var(--primary-light);
+  padding: 2px 7px;
+  border-radius: var(--radius-pill, 999px);
+  font-size: 0.7rem;
+  font-weight: 700;
+
+  ion-icon {
+    font-size: 12px;
+  }
+}
+
+.step-subtext {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  font-style: italic;
+  line-height: 1.4;
 }
 
 /* ── Instructions Box ── */
@@ -380,7 +808,7 @@
       border-radius: 50%;
       background: var(--primary);
       color: var(--text-primary);
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       font-weight: 800;
       display: flex;
       align-items: center;
@@ -390,154 +818,74 @@
     }
 
     .step-text {
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       line-height: 1.4;
       color: var(--text-primary);
     }
   }
 }
 
-/* ── Modular Steps (Builder) ── */
-.modular-steps-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-
-  .modular-step-card {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    background: var(--background-surface-2);
-    border: 1px solid var(--border-medium);
-    border-radius: var(--radius-md, 8px);
-    padding: 10px 12px;
-
-    .step-num-badge {
-      width: 22px;
-      height: 22px;
-      border-radius: 50%;
-      background: var(--background-surface-3);
-      border: 1px solid var(--primary);
-      color: var(--primary-light);
-      font-size: 0.75rem;
-      font-weight: 800;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      margin-top: 2px;
-    }
-
-    .step-details-col {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-
-      .step-header-line {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 8px;
-
-        .step-title-text {
-          font-size: 0.85rem;
-          font-weight: 700;
-          color: var(--text-primary);
-          display: flex;
-          align-items: center;
-          gap: 6px;
-
-          ion-icon {
-            font-size: 16px;
-            color: var(--primary);
-          }
-        }
-
-        .step-dosage-tag {
-          font-size: 0.85rem;
-          color: var(--semantic-success);
-          font-weight: 700;
-
-          small {
-            font-size: 0.7rem;
-            color: var(--text-muted);
-            margin-left: 4px;
-          }
-        }
-
-        .step-duration-badge {
-          display: flex;
-          align-items: center;
-          gap: 4px;
-          background: var(--background-surface-3);
-          border: 1px solid var(--border-medium);
-          color: var(--primary-light);
-          padding: 2px 6px;
-          border-radius: 10px;
-          font-size: 0.7rem;
-          font-weight: 600;
-        }
-      }
-
-      .step-subtext {
-        margin: 0;
-        font-size: 0.8rem;
-        color: var(--text-secondary);
-        font-style: italic;
-      }
-    }
-  }
-}
-
-/* ── Tips / Glassware ── */
-.tips-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-}
-
-.tip-card {
+/* ── Compact Mode Rush Notice ── */
+.compact-mode-notice {
+  background: rgba(108, 127, 232, 0.08);
+  border: 1px dashed rgba(108, 127, 232, 0.35);
+  border-radius: var(--radius-md, 8px);
+  padding: 12px 14px;
   display: flex;
   align-items: center;
-  gap: 8px;
-  background: var(--background-surface-2);
-  border: 1px solid var(--border-medium);
-  border-radius: var(--radius-md, 8px);
-  padding: 10px 12px;
+  gap: 12px;
 
   ion-icon {
-    font-size: 20px;
-    color: var(--semantic-info);
+    font-size: 24px;
+    color: var(--primary);
     flex-shrink: 0;
   }
-}
 
-.tip-body {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
+  .notice-body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
 
-.tip-label {
-  font-size: 0.65rem;
-  color: var(--text-muted);
-  text-transform: uppercase;
-}
+  .notice-title {
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
 
-.tip-val {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  .notice-desc {
+    margin: 0;
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+  }
+
+  .switch-to-full-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--background-surface-2);
+    border: 1px solid var(--border-medium);
+    color: var(--primary-light);
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 5px 9px;
+    border-radius: var(--radius-pill, 999px);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: var(--primary);
+      color: var(--text-primary);
+    }
+  }
 }
 
 /* ── Footer ── */
 .panel-footer {
-  padding: 14px 20px;
+  padding: 12px 18px;
   background: var(--background-surface-2);
   border-top: 1px solid var(--border-medium);
   flex-shrink: 0;
