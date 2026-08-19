@@ -6,7 +6,7 @@
   width: 100%;
   height: 100%;
   background: rgba(0, 0, 0, 0.55);
-  backdrop-filter: blur(3px);
+  backdrop-filter: blur(4px);
   z-index: 1000;
   opacity: 0;
   pointer-events: none;
@@ -18,17 +18,17 @@
   }
 }
 
-/* ── Panel Container ── */
+/* ── Panel Container (Expanded ~2x width for barman comfort) ── */
 .recipe-side-panel {
   position: fixed;
   top: 0;
   right: 0;
-  width: 440px;
-  max-width: 90vw;
+  width: 760px;
+  max-width: 95vw;
   height: 100%;
   background: var(--background-surface-1);
   border-left: 1px solid var(--border-medium);
-  box-shadow: -8px 0 32px rgba(0, 0, 0, 0.45);
+  box-shadow: -10px 0 40px rgba(0, 0, 0, 0.5);
   z-index: 1001;
   display: flex;
   flex-direction: column;
@@ -45,22 +45,25 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 20px;
+  padding: 16px 22px;
   background: var(--background-surface-2);
   border-bottom: 1px solid var(--border-medium);
   flex-shrink: 0;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
 .header-main {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   min-width: 0;
+  flex: 1 1 300px;
 }
 
 .header-icon-wrapper {
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
   border-radius: var(--radius-md, 8px);
   background: rgba(108, 127, 232, 0.15);
   border: 1px solid rgba(108, 127, 232, 0.3);
@@ -68,58 +71,124 @@
   align-items: center;
   justify-content: center;
   color: var(--primary);
-  font-size: 22px;
+  font-size: 26px;
   flex-shrink: 0;
 }
 
 .header-title-block {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
   min-width: 0;
 }
 
 .cocktail-badge-row {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .qty-pill {
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   font-weight: 800;
   color: var(--primary);
   background: rgba(108, 127, 232, 0.2);
-  padding: 1px 6px;
+  padding: 2px 8px;
   border-radius: var(--radius-pill, 999px);
+  border: 1px solid rgba(108, 127, 232, 0.35);
 }
 
 .category-pill {
-  font-size: 0.65rem;
+  font-size: 0.7rem;
   font-weight: 700;
   color: var(--text-secondary);
   background: var(--background-surface-1);
   border: 1px solid var(--border-medium);
-  padding: 1px 6px;
+  padding: 2px 8px;
   border-radius: var(--radius-pill, 999px);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
+.priority-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: var(--semantic-danger);
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  padding: 2px 8px;
+  border-radius: var(--radius-pill, 999px);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  ion-icon {
+    font-size: 13px;
+  }
+}
+
 .cocktail-title {
   margin: 0;
   font-family: 'Inter', sans-serif;
-  font-size: 1.15rem;
+  font-size: 1.35rem;
   font-weight: 800;
   color: var(--text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  line-height: 1.2;
+}
+
+.header-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* ── View Mode Toggle Group ── */
+.view-mode-toggle-group {
+  display: inline-flex;
+  align-items: center;
+  background: var(--background-surface-3);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-pill, 999px);
+  padding: 3px;
+  gap: 3px;
+}
+
+.view-mode-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: var(--radius-pill, 999px);
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  ion-icon {
+    font-size: 15px;
+  }
+
+  &:hover {
+    color: var(--text-primary);
+  }
+
+  &.active {
+    background: var(--primary);
+    color: var(--text-primary);
+    box-shadow: 0 2px 8px rgba(108, 127, 232, 0.4);
+  }
 }
 
 .close-btn {
   --color: var(--text-secondary);
-  font-size: 24px;
+  font-size: 26px;
   margin: 0;
 
   &:hover {
@@ -131,7 +200,7 @@
 .panel-content {
   flex: 1;
   overflow-y: auto;
-  padding: 18px 20px;
+  padding: 18px 22px;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -143,9 +212,9 @@
   align-items: center;
   justify-content: center;
   gap: 12px;
-  padding: 40px 0;
+  padding: 60px 0;
   color: var(--text-secondary);
-  font-size: 0.9rem;
+  font-size: 0.95rem;
 }
 
 /* ── Context Card ── */
@@ -153,7 +222,7 @@
   background: var(--background-surface-2);
   border: 1px solid var(--border-medium);
   border-radius: var(--radius-md, 8px);
-  padding: 12px 14px;
+  padding: 12px 16px;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -170,7 +239,7 @@
   letter-spacing: 0.5px;
 
   ion-icon {
-    font-size: 14px;
+    font-size: 15px;
     color: var(--primary);
   }
 }
@@ -178,7 +247,7 @@
 .context-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+  gap: 12px;
 }
 
 .context-cell {
@@ -188,12 +257,12 @@
 }
 
 .context-label {
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   color: var(--text-muted);
 }
 
 .context-value {
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   color: var(--text-primary);
   font-weight: 700;
 }
@@ -201,9 +270,9 @@
 /* ── Notes / Variant Alert ── */
 .alert-notes-card {
   background: rgba(244, 165, 42, 0.1);
-  border-left: 3px solid var(--semantic-warning);
+  border-left: 4px solid var(--semantic-warning);
   border-radius: var(--radius-md, 8px);
-  padding: 12px 14px;
+  padding: 12px 16px;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -221,12 +290,12 @@
 }
 
 .variant-highlight {
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   color: var(--text-primary);
 
   .v-label {
     color: var(--text-secondary);
-    margin-right: 4px;
+    margin-right: 6px;
   }
 
   .v-name {
@@ -236,40 +305,40 @@
 }
 
 .note-highlight {
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   font-style: italic;
   font-weight: 600;
   color: var(--semantic-warning);
 }
 
-/* ── Sections ── */
+/* ── Common Recipe Section ── */
 .recipe-section {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .section-title-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
 .section-title-left {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 
   ion-icon {
-    font-size: 16px;
+    font-size: 18px;
     color: var(--semantic-info);
   }
 
   h3 {
     margin: 0;
-    font-size: 0.85rem;
+    font-size: 0.88rem;
     font-weight: 800;
     color: var(--text-primary);
     text-transform: uppercase;
@@ -277,88 +346,404 @@
   }
 }
 
-.quantity-scale-badge {
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: var(--primary);
-  background: rgba(108, 127, 232, 0.15);
-  border: 1px solid rgba(108, 127, 232, 0.3);
-  padding: 2px 8px;
-  border-radius: var(--radius-pill, 999px);
+/* ── Glassware & Presentation Dual Grid ── */
+.glassware-dual-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
 }
 
-/* ── Ingrédients List ── */
-.ingredients-list {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.ingredient-card {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: var(--background-surface-2);
-  border: 1px solid var(--border-medium);
-  border-radius: var(--radius-md, 8px);
-  padding: 10px 12px;
-  gap: 8px;
-}
-
-.ing-bullet {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--primary);
-  flex-shrink: 0;
-}
-
-.ing-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.ing-name {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.ing-measurements {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 2px;
-}
-
-.total-dosage {
-  font-size: 0.95rem;
-  font-weight: 800;
-  color: var(--primary);
-}
-
-.unit-dosage {
-  font-size: 0.7rem;
-  color: var(--text-muted);
-}
-
-.empty-ingredients {
-  color: var(--text-muted);
-  font-size: 0.8rem;
-  font-style: italic;
-  padding: 8px 0;
-}
-
-/* ── Instructions Box ── */
-.instructions-box {
+.glass-hero-card,
+.garnish-hero-card {
   background: var(--background-surface-2);
   border: 1px solid var(--border-medium);
   border-radius: var(--radius-md, 8px);
   padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.glass-visual {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md, 8px);
+  background: var(--background-surface-3);
+  border: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+
+  .glass-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 2px;
+  }
+
+  .glass-icon-circle {
+    font-size: 24px;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+.glass-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.glass-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.glass-name {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.glass-capacity-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--semantic-info);
+  background: rgba(59, 130, 246, 0.15);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  padding: 1px 6px;
+  border-radius: var(--radius-pill, 999px);
+}
+
+.glass-desc {
+  margin: 0;
+  font-size: 0.76rem;
+  color: var(--text-secondary);
+  line-height: 1.3;
+}
+
+.garnish-hero-card {
+  .garnish-icon-circle {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-md, 8px);
+    background: rgba(34, 197, 94, 0.12);
+    border: 1px solid rgba(34, 197, 94, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--semantic-success);
+    font-size: 24px;
+    flex-shrink: 0;
+  }
+
+  .garnish-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .garnish-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .garnish-name {
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    line-height: 1.3;
+  }
+}
+
+/* ── Main Unified Technical Recipe Card (Mirrors Cocktail Editor Summary) ── */
+.preview-recipe-section {
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-lg, 12px);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.preview-section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+
+  .section-title-left {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+
+    ion-icon {
+      font-size: 1.35rem;
+      color: var(--primary-light);
+    }
+
+    h3 {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      letter-spacing: -0.01em;
+    }
+  }
+
+  .section-title-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+}
+
+.scaling-indicator-tag {
+  background: rgba(124, 58, 237, 0.2);
+  color: var(--primary-light);
+  border: 1px solid rgba(124, 58, 237, 0.4);
+  padding: 0.25rem 0.65rem;
+  border-radius: 2rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.steps-count-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  background: var(--background-surface-3);
+  border: 1px solid var(--border-medium);
+  padding: 3px 10px;
+  border-radius: var(--radius-pill, 999px);
+}
+
+/* ── Recipe Timeline ── */
+.recipe-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+
+  .timeline-step-row {
+    display: flex;
+    align-items: center;
+    gap: 1.15rem;
+    position: relative;
+
+    .step-badge-col {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      width: 36px;
+      height: 36px;
+
+      .timeline-num {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: var(--background-surface-3);
+        border: 2px solid var(--border-medium);
+        color: var(--text-primary);
+        font-weight: 800;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        transition: all 0.2s ease;
+        padding: 0;
+        outline: none;
+        cursor: pointer;
+
+        &.checked {
+          background: var(--semantic-success);
+          border-color: var(--semantic-success);
+          color: #fff;
+          box-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+
+          ion-icon {
+            font-size: 20px;
+          }
+        }
+      }
+    }
+
+    &.type-ingredient .step-badge-col .timeline-num:not(.checked) {
+      border-color: var(--semantic-success);
+      color: var(--semantic-success);
+      background: rgba(34, 197, 94, 0.1);
+    }
+
+    &.type-action .step-badge-col .timeline-num:not(.checked) {
+      border-color: var(--primary);
+      color: var(--primary-light);
+      background: rgba(108, 127, 232, 0.1);
+    }
+
+    &.type-custom .step-badge-col .timeline-num:not(.checked) {
+      border-color: var(--semantic-warning);
+      color: var(--semantic-warning);
+      background: rgba(245, 158, 11, 0.1);
+    }
+
+    .step-card-content {
+      flex: 1;
+      background: var(--background-surface-1);
+      border: 1px solid var(--border-medium);
+      border-radius: 0.85rem;
+      padding: 0.85rem 1.25rem;
+      min-height: 52px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      box-sizing: border-box;
+      transition: all 0.2s ease;
+
+      &:hover {
+        border-color: var(--border-light);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+      }
+
+      .timeline-block-body {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+        width: 100%;
+
+        .step-header-line {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 1rem;
+          width: 100%;
+
+          .step-title-with-icon {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+
+            .step-type-icon {
+              font-size: 1.25rem;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              flex-shrink: 0;
+
+              &.icon-ingredient {
+                color: var(--semantic-success);
+              }
+              &.icon-action {
+                color: var(--primary-light);
+              }
+              &.icon-custom {
+                color: var(--semantic-warning);
+              }
+            }
+
+            .step-main-title {
+              font-size: 0.95rem;
+              font-weight: 700;
+              color: var(--text-primary);
+              line-height: 1.3;
+            }
+          }
+
+          .dosage-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(52, 199, 123, 0.12);
+            border: 1px solid rgba(52, 199, 123, 0.35);
+            padding: 0.3rem 0.75rem;
+            border-radius: 2rem;
+            flex-shrink: 0;
+
+            .dosage-value {
+              font-size: 0.95rem;
+              font-weight: 800;
+              color: var(--semantic-success);
+            }
+
+            .unit-ref {
+              font-size: 0.75rem;
+              color: var(--text-muted);
+            }
+          }
+
+          .duration-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: var(--background-surface-3);
+            border: 1px solid var(--border-medium);
+            color: var(--primary-light);
+            padding: 0.3rem 0.75rem;
+            border-radius: 2rem;
+            font-size: 0.85rem;
+            font-weight: 700;
+            flex-shrink: 0;
+
+            ion-icon {
+              font-size: 0.95rem;
+              color: var(--primary-light);
+            }
+          }
+        }
+
+        .step-notes {
+          margin: 0.2rem 0 0 0;
+          padding-left: 2rem;
+          font-size: 0.825rem;
+          color: var(--text-secondary);
+          font-style: italic;
+        }
+      }
+    }
+
+    &.completed {
+      opacity: 0.7;
+
+      .step-card-content {
+        border-color: rgba(34, 197, 94, 0.4);
+        background: rgba(34, 197, 94, 0.05);
+      }
+
+      .step-main-title {
+        text-decoration: line-through;
+        color: var(--text-secondary);
+      }
+    }
+  }
+}
+
+/* ── Instructions Box ── */
+.instructions-box {
+  background: var(--background-surface-1);
+  border: 1px solid var(--border-medium);
+  border-radius: 0.85rem;
+  padding: 14px 16px;
 
   .instructions-text {
     margin: 0;
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     line-height: 1.5;
     color: var(--text-primary);
   }
@@ -367,16 +752,16 @@
 .default-steps {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 
   .step-item {
     display: flex;
     align-items: flex-start;
-    gap: 8px;
+    gap: 10px;
 
     .step-number {
-      width: 20px;
-      height: 20px;
+      width: 24px;
+      height: 24px;
       border-radius: 50%;
       background: var(--primary);
       color: var(--text-primary);
@@ -390,154 +775,16 @@
     }
 
     .step-text {
-      font-size: 0.85rem;
+      font-size: 0.88rem;
       line-height: 1.4;
       color: var(--text-primary);
     }
   }
 }
 
-/* ── Modular Steps (Builder) ── */
-.modular-steps-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-
-  .modular-step-card {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    background: var(--background-surface-2);
-    border: 1px solid var(--border-medium);
-    border-radius: var(--radius-md, 8px);
-    padding: 10px 12px;
-
-    .step-num-badge {
-      width: 22px;
-      height: 22px;
-      border-radius: 50%;
-      background: var(--background-surface-3);
-      border: 1px solid var(--primary);
-      color: var(--primary-light);
-      font-size: 0.75rem;
-      font-weight: 800;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      margin-top: 2px;
-    }
-
-    .step-details-col {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-
-      .step-header-line {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 8px;
-
-        .step-title-text {
-          font-size: 0.85rem;
-          font-weight: 700;
-          color: var(--text-primary);
-          display: flex;
-          align-items: center;
-          gap: 6px;
-
-          ion-icon {
-            font-size: 16px;
-            color: var(--primary);
-          }
-        }
-
-        .step-dosage-tag {
-          font-size: 0.85rem;
-          color: var(--semantic-success);
-          font-weight: 700;
-
-          small {
-            font-size: 0.7rem;
-            color: var(--text-muted);
-            margin-left: 4px;
-          }
-        }
-
-        .step-duration-badge {
-          display: flex;
-          align-items: center;
-          gap: 4px;
-          background: var(--background-surface-3);
-          border: 1px solid var(--border-medium);
-          color: var(--primary-light);
-          padding: 2px 6px;
-          border-radius: 10px;
-          font-size: 0.7rem;
-          font-weight: 600;
-        }
-      }
-
-      .step-subtext {
-        margin: 0;
-        font-size: 0.8rem;
-        color: var(--text-secondary);
-        font-style: italic;
-      }
-    }
-  }
-}
-
-/* ── Tips / Glassware ── */
-.tips-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-}
-
-.tip-card {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--background-surface-2);
-  border: 1px solid var(--border-medium);
-  border-radius: var(--radius-md, 8px);
-  padding: 10px 12px;
-
-  ion-icon {
-    font-size: 20px;
-    color: var(--semantic-info);
-    flex-shrink: 0;
-  }
-}
-
-.tip-body {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.tip-label {
-  font-size: 0.65rem;
-  color: var(--text-muted);
-  text-transform: uppercase;
-}
-
-.tip-val {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 /* ── Footer ── */
 .panel-footer {
-  padding: 14px 20px;
+  padding: 14px 22px;
   background: var(--background-surface-2);
   border-top: 1px solid var(--border-medium);
   flex-shrink: 0;

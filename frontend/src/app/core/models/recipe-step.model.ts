@@ -51,18 +51,23 @@ export interface RecipeStepTemplateRequest {
  */
 export interface CocktailRecipeStep {
   id?: number;
+  cocktailId?: number;
   stepOrder: number;
   stepType: RecipeStepType;
   ingredientId?: number;
   ingredientNom?: string;
+  ingredientName?: string;
   quantite?: number;
   unite?: string;
   templateId?: number;
   templateName?: string;
+  template?: RecipeStepTemplate;
   actionType?: RecipeStepActionType;
   actionTitle?: string;
   customText?: string;
   durationSeconds?: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 /**
