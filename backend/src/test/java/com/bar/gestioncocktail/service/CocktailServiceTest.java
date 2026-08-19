@@ -777,5 +777,83 @@ class CocktailServiceTest {
         assertThat(varResp.recipeSteps().get(1).template()).isNotNull();
         assertThat(varResp.recipeSteps().get(1).template().name()).isEqualTo("Shake");
     }
+
+    @Test
+    @DisplayName("createCocktailFromRequest - maps explicit variant ingredients")
+    void shouldMapExplicitVariantIngredientsOnCreate() {
+        Ingredient mint = new Ingredient();
+        mint.setId(20L);
+        mint.setNom("Fresh Mint");
+
+        when(ingredientRepository.findById(20L)).thenReturn(Optional.of(mint));
+        when(cocktailRepository.save(any(Cocktail.class))).thenAnswer(i -> {
+            Cocktail c = i.getArgument(0);
+            c.setId(106L);
+            return c;
+        });
+
+        CocktailVarianteIngredientRequestDTO varIngDto = new CocktailVarianteIngredientRequestDTO(
+            20L, new BigDecimal("8"), "leaves", "Extra fresh"
+        );
+
+        CocktailVarianteRequestDTO varWithIngs = new CocktailVarianteRequestDTO(
+            null, null, "Mint Overload", null, BigDecimal.ONE, BigDecimal.ONE, true, null,
+            List.of(varIngDto), null
+        );
+
+        CocktailRequestDTO request = new CocktailRequestDTO(
+            "Mojito Mint", null, new BigDecimal("10.00"), CocktailCategorie.ALCOOLISE,
+            true, false, null, null, null, null, null, null,
+            null, null, List.of(varWithIngs)
+        );
+
+        CocktailResponseDTO response = cocktailService.createCocktailFromRequest(request);
+
+        assertThat(response).isNotNull();
+        assertThat(response.variantes()).hasSize(1);
+        assertThat(response.variantes().get(0).ingredients()).hasSize(1);
+        assertThat(response.variantes().get(0).ingredients().get(0).ingredientNom()).isEqualTo("Fresh Mint");
+    }
+
+    @Test
+    @DisplayName("updateCocktailFromRequest - updates variant with explicit ingredients and extracted ingredients from steps")
+    void shouldUpdateVariantWithExplicitAndExtractedIngredients() {
+        Ingredient lime = new Ingredient();
+        lime.setId(30L);
+        lime.setNom("Lime Juice");
+
+        CocktailVariante existingVar = new CocktailVariante();
+        existingVar.setId(300L);
+        existingVar.setNom("Variant To Update");
+        existingVar.setCocktail(cocktail);
+        cocktail.setVariantes(new ArrayList<>(List.of(existingVar)));
+
+        when(cocktailRepository.findById(1L)).thenReturn(Optional.of(cocktail));
+        when(ingredientRepository.findById(30L)).thenReturn(Optional.of(lime));
+        when(cocktailRepository.save(any(Cocktail.class))).thenAnswer(i -> i.getArgument(0));
+
+        CocktailVarianteIngredientRequestDTO varIngDto = new CocktailVarianteIngredientRequestDTO(
+            30L, new BigDecimal("3.0"), "cl", null
+        );
+
+        CocktailVarianteRequestDTO updatedVarWithIngs = new CocktailVarianteRequestDTO(
+            300L, 1L, "Variant With Ings", "Desc",
+            BigDecimal.ZERO, BigDecimal.ONE, true, "Notes",
+            List.of(varIngDto), null
+        );
+
+        CocktailRequestDTO request = new CocktailRequestDTO(
+            "Mojito In-Place Lime", null, new BigDecimal("12.00"), CocktailCategorie.ALCOOLISE,
+            true, false, null, null, null, null, null, null,
+            null, null, List.of(updatedVarWithIngs)
+        );
+
+        CocktailResponseDTO response = cocktailService.updateCocktailFromRequest(1L, request);
+
+        assertThat(response).isNotNull();
+        assertThat(cocktail.getVariantes()).hasSize(1);
+        assertThat(cocktail.getVariantes().get(0).getIngredients()).hasSize(1);
+        assertThat(cocktail.getVariantes().get(0).getIngredients().get(0).getIngredient().getNom()).isEqualTo("Lime Juice");
+    }
 }
 
