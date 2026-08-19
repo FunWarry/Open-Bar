@@ -855,5 +855,42 @@ class CocktailServiceTest {
         assertThat(cocktail.getVariantes().get(0).getIngredients()).hasSize(1);
         assertThat(cocktail.getVariantes().get(0).getIngredients().get(0).getIngredient().getNom()).isEqualTo("Lime Juice");
     }
+
+    @Test
+    @DisplayName("createCocktailFromRequest - serializes steps with unknown ingredient and template gracefully")
+    void shouldSerializeStepsWithUnknownIngredientAndTemplateGracefully() {
+        when(cocktailRepository.save(any(Cocktail.class))).thenAnswer(i -> {
+            Cocktail c = i.getArgument(0);
+            c.setId(107L);
+            return c;
+        });
+
+        CocktailRecipeStepRequestDTO stepUnknownIng = new CocktailRecipeStepRequestDTO(
+            1, RecipeStepType.INGREDIENT, 99999L, new BigDecimal("4.0"), "cl", null, null, null, null
+        );
+        CocktailRecipeStepRequestDTO stepUnknownTpl = new CocktailRecipeStepRequestDTO(
+            2, RecipeStepType.ACTION_TEMPLATE, null, null, null, 88888L, null, null, 10
+        );
+
+        CocktailVarianteRequestDTO varWithUnknowns = new CocktailVarianteRequestDTO(
+            null, null, "Unknowns Variant", null, BigDecimal.ONE, BigDecimal.ONE, true, null,
+            List.of(), List.of(stepUnknownIng, stepUnknownTpl)
+        );
+
+        CocktailRequestDTO request = new CocktailRequestDTO(
+            "Mojito Unknowns", null, new BigDecimal("10.00"), CocktailCategorie.ALCOOLISE,
+            true, false, null, null, null, null, null, null,
+            null, null, List.of(varWithUnknowns)
+        );
+
+        CocktailResponseDTO response = cocktailService.createCocktailFromRequest(request);
+
+        assertThat(response).isNotNull();
+        assertThat(response.variantes()).hasSize(1);
+        CocktailVarianteResponseDTO variantResp = response.variantes().get(0);
+        assertThat(variantResp.recipeSteps()).hasSize(2);
+        assertThat(variantResp.recipeSteps().get(0).ingredientName()).isNull();
+        assertThat(variantResp.recipeSteps().get(1).template()).isNull();
+    }
 }
 
