@@ -422,6 +422,12 @@ export class CocktailFormComponent implements OnInit {
             instructions: cocktail.instructions || '',
           });
 
+          this.saisonnaliteState = {
+            saisonnier: cocktail.saisonnier || false,
+            moisDebut: cocktail.moisDebut || null,
+            moisFin: cocktail.moisFin || null,
+          };
+
           if (cocktail.recipeSteps && cocktail.recipeSteps.length > 0) {
             this.recipeStepsArray.clear();
             cocktail.recipeSteps.forEach((step, index) => {
@@ -948,8 +954,23 @@ export class CocktailFormComponent implements OnInit {
     fileInput.click();
   }
 
+  saisonnaliteState = {
+    saisonnier: false,
+    moisDebut: null as number | null,
+    moisFin: null as number | null,
+  };
+
+  onSeasonalityChange(state: { saisonnier: boolean; moisDebut: number | null; moisFin: number | null }): void {
+    this.saisonnaliteState = state;
+  }
+
   onSaisonnaliteUpdated(updatedCocktail: Cocktail): void {
     this.cocktailData = updatedCocktail;
+    this.saisonnaliteState = {
+      saisonnier: updatedCocktail.saisonnier || false,
+      moisDebut: updatedCocktail.moisDebut || null,
+      moisFin: updatedCocktail.moisFin || null,
+    };
     this.showToast(this.transloco.translate('COMMON.SUCCESS'));
   }
 
@@ -996,11 +1017,11 @@ export class CocktailFormComponent implements OnInit {
       glasswareId: formVal.glasswareId ? +formVal.glasswareId : null,
       instructions: formVal.instructions || null,
       disponible: this.cocktailData ? this.cocktailData.disponible : true,
-      saisonnier: this.cocktailData ? this.cocktailData.saisonnier : false,
+      saisonnier: this.saisonnaliteState.saisonnier,
       dateDebutSaison: this.cocktailData?.dateDebutSaison || null,
       dateFinSaison: this.cocktailData?.dateFinSaison || null,
-      moisDebut: this.cocktailData?.moisDebut || null,
-      moisFin: this.cocktailData?.moisFin || null,
+      moisDebut: this.saisonnaliteState.moisDebut,
+      moisFin: this.saisonnaliteState.moisFin,
       recipeSteps: recipeStepsPayload,
       variantes: variantesPayload,
     };
