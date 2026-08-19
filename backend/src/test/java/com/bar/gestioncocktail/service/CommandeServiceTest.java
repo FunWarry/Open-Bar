@@ -274,6 +274,36 @@ class CommandeServiceTest {
     }
 
     @Test
+    void destockerIngredients_avecVarianteCustomIngredients_destockeIngredientsSpecifiquesVariante() {
+        Ingredient specialSpirit = new Ingredient();
+        specialSpirit.setId(55L);
+        specialSpirit.setNom("Non-Alcoholic Botanical Spirit");
+        specialSpirit.setQuantiteStock(new BigDecimal("50.00"));
+
+        CocktailVarianteIngredient varIng = new CocktailVarianteIngredient();
+        varIng.setId(1L);
+        varIng.setIngredient(specialSpirit);
+        varIng.setQuantite(new BigDecimal("6.00")); // 6 cl
+
+        CocktailVariante variante = new CocktailVariante();
+        variante.setId(20L);
+        variante.setNom("Virgin Botanical");
+        variante.setIngredients(List.of(varIng));
+
+        item.setVariante(variante);
+        // item quantity is 2 -> 6 cl * 2 = 12 cl deducted from specialSpirit (50 - 12 = 38)
+
+        when(commandeRepository.findById(1L)).thenReturn(Optional.of(commande));
+
+        commandeService.changerStatut(1L, CommandeStatut.EN_PREPARATION);
+
+        ArgumentCaptor<Ingredient> captor = ArgumentCaptor.forClass(Ingredient.class);
+        verify(ingredientRepository).save(captor.capture());
+        assertThat(captor.getValue().getId()).isEqualTo(55L);
+        assertThat(captor.getValue().getQuantiteStock()).isEqualByComparingTo(new BigDecimal("38.00"));
+    }
+
+    @Test
     void destockerIngredients_withCocktailIngredientRepository_success() {
         when(cocktailIngredientRepository.findByCocktail(any())).thenReturn(List.of(cocktailIngredient));
         when(commandeRepository.findById(1L)).thenReturn(Optional.of(commande));

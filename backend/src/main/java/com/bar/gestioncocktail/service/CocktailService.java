@@ -3,6 +3,7 @@ package com.bar.gestioncocktail.service;
 import com.bar.gestioncocktail.dto.CocktailRecipeStepRequestDTO;
 import com.bar.gestioncocktail.dto.CocktailRequestDTO;
 import com.bar.gestioncocktail.dto.CocktailResponseDTO;
+import com.bar.gestioncocktail.dto.CocktailVarianteIngredientRequestDTO;
 import com.bar.gestioncocktail.dto.CocktailVarianteRequestDTO;
 import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.model.Cocktail;
@@ -10,13 +11,18 @@ import com.bar.gestioncocktail.model.CocktailCategorie;
 import com.bar.gestioncocktail.model.CocktailIngredient;
 import com.bar.gestioncocktail.model.CocktailRecipeStep;
 import com.bar.gestioncocktail.model.CocktailVariante;
+import com.bar.gestioncocktail.model.CocktailVarianteIngredient;
 import com.bar.gestioncocktail.model.Ingredient;
 import com.bar.gestioncocktail.model.RecipeStepType;
 import com.bar.gestioncocktail.model.RecipeStepTemplate;
 import com.bar.gestioncocktail.repository.CocktailRepository;
+import com.bar.gestioncocktail.repository.CommandeItemRepository;
 import com.bar.gestioncocktail.repository.GlasswareRepository;
 import com.bar.gestioncocktail.repository.IngredientRepository;
 import com.bar.gestioncocktail.repository.RecipeStepTemplateRepository;
+import com.bar.gestioncocktail.dto.RecipeStepTemplateResponseDTO;
+import com.bar.gestioncocktail.dto.CocktailRecipeStepResponseDTO;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -33,7 +39,10 @@ import java.util.Optional;
 @Service
 @Transactional
 public class CocktailService {
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper().findAndRegisterModules();
+
     private final CocktailRepository cocktailRepository;
+    private final CommandeItemRepository commandeItemRepository;
     private final IngredientRepository ingredientRepository;
     private final RecipeStepTemplateRepository templateRepository;
     private final GlasswareRepository glasswareRepository;
@@ -44,6 +53,7 @@ public class CocktailService {
      * Constructs the service injecting required dependencies.
      *
      * @param cocktailRepository JPA repository for cocktails
+     * @param commandeItemRepository JPA repository for order items
      * @param ingredientRepository JPA repository for ingredients
      * @param templateRepository JPA repository for step templates
      * @param glasswareRepository JPA repository for glassware
@@ -52,6 +62,7 @@ public class CocktailService {
      */
     public CocktailService(
         CocktailRepository cocktailRepository,
+        CommandeItemRepository commandeItemRepository,
         IngredientRepository ingredientRepository,
         RecipeStepTemplateRepository templateRepository,
         GlasswareRepository glasswareRepository,
@@ -59,6 +70,7 @@ public class CocktailService {
         FileUploadService fileUploadService
     ) {
         this.cocktailRepository = cocktailRepository;
+        this.commandeItemRepository = commandeItemRepository;
         this.ingredientRepository = ingredientRepository;
         this.templateRepository = templateRepository;
         this.glasswareRepository = glasswareRepository;
@@ -180,16 +192,123 @@ public class CocktailService {
         }
 
         if (request.variantes() != null) {
-            if (cocktail.getVariantes() == null) {
-                cocktail.setVariantes(new ArrayList<>());
-            }
-            cocktail.getVariantes().clear();
-            List<CocktailVariante> vars = mapVariantes(cocktail, request.variantes());
-            cocktail.getVariantes().addAll(vars);
+            syncVariantes(cocktail, request.variantes());
         }
 
         Cocktail saved = cocktailRepository.save(cocktail);
         return CocktailResponseDTO.from(saved);
+    }
+
+    private void syncVariantes(Cocktail cocktail, List<CocktailVarianteRequestDTO> varianteDtos) {
+        if (cocktail.getVariantes() == null) {
+            cocktail.setVariantes(new ArrayList<>());
+        }
+
+        List<CocktailVariante> currentVars = new ArrayList<>(cocktail.getVariantes());
+        List<CocktailVariante> updatedList = processVarianteDtos(cocktail, varianteDtos, currentVars);
+
+        removeDeletedVariantes(cocktail, updatedList);
+
+        for (CocktailVariante v : updatedList) {
+            if (!cocktail.getVariantes().contains(v)) {
+                cocktail.getVariantes().add(v);
+            }
+        }
+    }
+
+    private List<CocktailVariante> processVarianteDtos(
+        Cocktail cocktail,
+        List<CocktailVarianteRequestDTO> dtos,
+        List<CocktailVariante> currentVars
+    ) {
+        List<CocktailVariante> updatedList = new ArrayList<>();
+        for (CocktailVarianteRequestDTO dto : dtos) {
+            CocktailVariante existing = findMatchingVariante(dto, currentVars);
+            if (existing != null) {
+                updateSingleVariante(existing, dto);
+                updatedList.add(existing);
+            } else {
+                updatedList.add(mapSingleVariante(cocktail, dto));
+            }
+        }
+        return updatedList;
+    }
+
+    private CocktailVariante findMatchingVariante(CocktailVarianteRequestDTO dto, List<CocktailVariante> currentVars) {
+        if (dto.id() != null) {
+            return currentVars.stream()
+                .filter(v -> dto.id().equals(v.getId()))
+                .findFirst().orElse(null);
+        }
+        if (dto.nom() != null) {
+            return currentVars.stream()
+                .filter(v -> dto.nom().equalsIgnoreCase(v.getNom()))
+                .findFirst().orElse(null);
+        }
+        return null;
+    }
+
+    private void removeDeletedVariantes(Cocktail cocktail, List<CocktailVariante> updatedList) {
+        List<CocktailVariante> toRemove = new ArrayList<>();
+        List<Long> idsToRemove = new ArrayList<>();
+
+        for (CocktailVariante existing : cocktail.getVariantes()) {
+            boolean keep = false;
+            for (CocktailVariante u : updatedList) {
+                if (isSameVariante(existing, u)) {
+                    keep = true;
+                    break;
+                }
+            }
+            if (!keep) {
+                toRemove.add(existing);
+                if (existing != null && existing.getId() != null) {
+                    idsToRemove.add(existing.getId());
+                }
+            }
+        }
+
+        if (!toRemove.isEmpty()) {
+            if (!idsToRemove.isEmpty()) {
+                commandeItemRepository.nullifyVarianteForIds(idsToRemove);
+            }
+            cocktail.getVariantes().removeAll(toRemove);
+        }
+    }
+
+    private boolean isSameVariante(CocktailVariante a, CocktailVariante b) {
+        if (a == null || b == null) return false;
+        if (a.getId() != null && b.getId() != null) {
+            return a.getId().equals(b.getId());
+        }
+        return a == b;
+    }
+
+    private void updateSingleVariante(CocktailVariante v, CocktailVarianteRequestDTO dto) {
+        v.setNom(dto.nom());
+        v.setDescription(dto.description());
+        v.setPrixSupplement(dto.prixSupplement() != null ? dto.prixSupplement() : BigDecimal.ZERO);
+        v.setMultiplicateurIngredient(dto.multiplicateurIngredient() != null ? dto.multiplicateurIngredient() : BigDecimal.ONE);
+        v.setDisponible(!Boolean.FALSE.equals(dto.disponible()));
+        v.setInstructions(dto.instructions());
+        v.setUpdatedAt(timeService.now());
+
+        if (dto.recipeSteps() != null && !dto.recipeSteps().isEmpty()) {
+            v.setRecipeStepsJson(serializeRecipeSteps(dto.recipeSteps()));
+        } else {
+            v.setRecipeStepsJson(null);
+        }
+
+        if (v.getIngredients() == null) {
+            v.setIngredients(new ArrayList<>());
+        }
+        v.getIngredients().clear();
+
+        if (dto.ingredients() != null && !dto.ingredients().isEmpty()) {
+            v.getIngredients().addAll(mapVarianteIngredients(v, dto.ingredients()));
+        } else if (dto.recipeSteps() != null && !dto.recipeSteps().isEmpty()) {
+            v.getIngredients().addAll(extractIngredientsFromSteps(v, dto.recipeSteps()));
+        }
     }
 
     private void syncIngredientsFromRecipeSteps(Cocktail cocktail, List<CocktailRecipeStep> steps) {
@@ -213,19 +332,119 @@ public class CocktailService {
     private List<CocktailVariante> mapVariantes(Cocktail cocktail, List<CocktailVarianteRequestDTO> varianteDtos) {
         List<CocktailVariante> variantes = new ArrayList<>();
         for (CocktailVarianteRequestDTO dto : varianteDtos) {
-            CocktailVariante v = new CocktailVariante();
-            v.setCocktail(cocktail);
-            v.setNom(dto.nom());
-            v.setDescription(dto.description());
-            v.setPrixSupplement(dto.prixSupplement() != null ? dto.prixSupplement() : BigDecimal.ZERO);
-            v.setMultiplicateurIngredient(dto.multiplicateurIngredient() != null ? dto.multiplicateurIngredient() : BigDecimal.ONE);
-            v.setDisponible(!Boolean.FALSE.equals(dto.disponible()));
-            v.setInstructions(dto.instructions());
-            v.setCreatedAt(timeService.now());
-            v.setUpdatedAt(timeService.now());
-            variantes.add(v);
+            variantes.add(mapSingleVariante(cocktail, dto));
         }
         return variantes;
+    }
+
+    private CocktailVariante mapSingleVariante(Cocktail cocktail, CocktailVarianteRequestDTO dto) {
+        CocktailVariante v = new CocktailVariante();
+        v.setCocktail(cocktail);
+        v.setNom(dto.nom());
+        v.setDescription(dto.description());
+        v.setPrixSupplement(dto.prixSupplement() != null ? dto.prixSupplement() : BigDecimal.ZERO);
+        v.setMultiplicateurIngredient(dto.multiplicateurIngredient() != null ? dto.multiplicateurIngredient() : BigDecimal.ONE);
+        v.setDisponible(!Boolean.FALSE.equals(dto.disponible()));
+        v.setInstructions(dto.instructions());
+        v.setCreatedAt(timeService.now());
+        v.setUpdatedAt(timeService.now());
+
+        if (dto.recipeSteps() != null && !dto.recipeSteps().isEmpty()) {
+            v.setRecipeStepsJson(serializeRecipeSteps(dto.recipeSteps()));
+        } else {
+            v.setRecipeStepsJson(null);
+        }
+
+        if (dto.ingredients() != null && !dto.ingredients().isEmpty()) {
+            v.setIngredients(mapVarianteIngredients(v, dto.ingredients()));
+        } else if (dto.recipeSteps() != null && !dto.recipeSteps().isEmpty()) {
+            v.setIngredients(extractIngredientsFromSteps(v, dto.recipeSteps()));
+        }
+        return v;
+    }
+
+    private String serializeRecipeSteps(List<CocktailRecipeStepRequestDTO> steps) {
+        if (steps == null || steps.isEmpty()) {
+            return null;
+        }
+        try {
+            List<CocktailRecipeStepResponseDTO> responseSteps = new ArrayList<>();
+            for (CocktailRecipeStepRequestDTO s : steps) {
+                String ingNom = null;
+                if (s.ingredientId() != null) {
+                    Optional<Ingredient> ingOpt = ingredientRepository.findById(s.ingredientId());
+                    if (ingOpt.isPresent()) {
+                        ingNom = ingOpt.get().getNom();
+                    }
+                }
+                RecipeStepTemplateResponseDTO tplDto = null;
+                if (s.templateId() != null) {
+                    Optional<RecipeStepTemplate> tplOpt = templateRepository.findById(s.templateId());
+                    if (tplOpt.isPresent()) {
+                        tplDto = RecipeStepTemplateResponseDTO.from(tplOpt.get());
+                    }
+                }
+                responseSteps.add(new CocktailRecipeStepResponseDTO(
+                    null,
+                    null,
+                    s.stepOrder(),
+                    s.stepType(),
+                    s.ingredientId(),
+                    ingNom,
+                    s.quantite(),
+                    s.unite(),
+                    s.templateId(),
+                    tplDto,
+                    s.actionTitle(),
+                    s.customText(),
+                    s.durationSeconds(),
+                    timeService.now(),
+                    timeService.now()
+                ));
+            }
+            return OBJECT_MAPPER.writeValueAsString(responseSteps);
+        } catch (Exception _) {
+            return null;
+        }
+    }
+
+    private List<CocktailVarianteIngredient> extractIngredientsFromSteps(
+        CocktailVariante v,
+        List<CocktailRecipeStepRequestDTO> steps
+    ) {
+        List<CocktailVarianteIngredient> list = new ArrayList<>();
+        for (CocktailRecipeStepRequestDTO s : steps) {
+            if (s.stepType() == RecipeStepType.INGREDIENT && s.ingredientId() != null) {
+                ingredientRepository.findById(s.ingredientId()).ifPresent(ing -> {
+                    CocktailVarianteIngredient vi = new CocktailVarianteIngredient();
+                    vi.setVariante(v);
+                    vi.setIngredient(ing);
+                    vi.setQuantite(s.quantite() != null ? s.quantite() : BigDecimal.ZERO);
+                    vi.setUnite(s.unite() != null ? s.unite() : "cl");
+                    vi.setNotes(s.customText());
+                    list.add(vi);
+                });
+            }
+        }
+        return list;
+    }
+
+    private List<CocktailVarianteIngredient> mapVarianteIngredients(CocktailVariante v, List<CocktailVarianteIngredientRequestDTO> dtoList) {
+        List<CocktailVarianteIngredient> varIngs = new ArrayList<>();
+        for (CocktailVarianteIngredientRequestDTO ingDto : dtoList) {
+            if (ingDto.ingredientId() != null) {
+                ingredientRepository.findById(ingDto.ingredientId()).ifPresent(ing -> {
+                    CocktailVarianteIngredient vi = new CocktailVarianteIngredient();
+                    vi.setVariante(v);
+                    vi.setIngredient(ing);
+                    vi.setQuantite(ingDto.quantite() != null ? ingDto.quantite() : BigDecimal.ZERO);
+                    vi.setUnite(ingDto.unite());
+                    vi.setNotes(ingDto.notes());
+                    varIngs.add(vi);
+                });
+            }
+        }
+        return varIngs;
     }
 
     private List<CocktailRecipeStep> mapRecipeSteps(Cocktail cocktail, List<CocktailRecipeStepRequestDTO> stepDtos) {

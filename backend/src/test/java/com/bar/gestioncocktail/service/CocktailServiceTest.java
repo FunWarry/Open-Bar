@@ -3,10 +3,13 @@ package com.bar.gestioncocktail.service;
 import com.bar.gestioncocktail.dto.CocktailRecipeStepRequestDTO;
 import com.bar.gestioncocktail.dto.CocktailRequestDTO;
 import com.bar.gestioncocktail.dto.CocktailResponseDTO;
+import com.bar.gestioncocktail.dto.CocktailVarianteIngredientRequestDTO;
 import com.bar.gestioncocktail.dto.CocktailVarianteRequestDTO;
+import com.bar.gestioncocktail.dto.CocktailVarianteResponseDTO;
 import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.model.*;
 import com.bar.gestioncocktail.repository.CocktailRepository;
+import com.bar.gestioncocktail.repository.CommandeItemRepository;
 import com.bar.gestioncocktail.repository.GlasswareRepository;
 import com.bar.gestioncocktail.repository.IngredientRepository;
 import com.bar.gestioncocktail.repository.RecipeStepTemplateRepository;
@@ -22,6 +25,7 @@ import org.springframework.mock.web.MockMultipartFile;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -36,6 +40,9 @@ class CocktailServiceTest {
 
     @Mock
     CocktailRepository cocktailRepository;
+
+    @Mock
+    CommandeItemRepository commandeItemRepository;
 
     @Mock
     IngredientRepository ingredientRepository;
@@ -416,7 +423,7 @@ class CocktailServiceTest {
     @DisplayName("getCocktailsSaisonniersActuels - retrieves currently active seasonal cocktails")
     void shouldGetCocktailsSaisonniersActuels() {
         cocktail.setSaisonnier(true);
-        when(timeService.now()).thenReturn(LocalDateTime.of(2026, 7, 15, 12, 0));
+        when(timeService.now()).thenReturn(LocalDateTime.of(2026, Month.JULY, 15, 12, 0));
         when(cocktailRepository.findBySaisonnierAndDateDebutSaisonBeforeAndDateFinSaisonAfter(
             eq(true), any(LocalDateTime.class), any(LocalDateTime.class)
         )).thenReturn(List.of(cocktail));
@@ -564,4 +571,126 @@ class CocktailServiceTest {
             .isInstanceOf(ResourceNotFoundException.class)
             .hasMessageContaining("999");
     }
+
+    @Test
+    @DisplayName("createCocktailFromRequest - correctly maps customized variant ingredients and instructions")
+    void shouldCreateCocktailWithCustomizedVariantIngredients() {
+        Ingredient rum = new Ingredient();
+        rum.setId(10L);
+        rum.setNom("White Rum");
+
+        Ingredient mint = new Ingredient();
+        mint.setId(12L);
+        mint.setNom("Fresh Mint");
+
+        when(ingredientRepository.findById(10L)).thenReturn(Optional.of(rum));
+        when(ingredientRepository.findById(12L)).thenReturn(Optional.of(mint));
+        when(cocktailRepository.save(any(Cocktail.class))).thenAnswer(i -> {
+            Cocktail c = i.getArgument(0);
+            c.setId(101L);
+            return c;
+        });
+
+        CocktailVarianteIngredientRequestDTO varIng1 = new CocktailVarianteIngredientRequestDTO(
+            10L, new BigDecimal("6.0"), "cl", "Extra rum"
+        );
+        CocktailVarianteIngredientRequestDTO varIng2 = new CocktailVarianteIngredientRequestDTO(
+            12L, new BigDecimal("8.0"), "feuilles", "Extra mint leaves"
+        );
+
+        CocktailVarianteRequestDTO customVar = new CocktailVarianteRequestDTO(
+            null, "Double Rum Mint", "Extra strong and fresh", new BigDecimal("3.00"),
+            new BigDecimal("1.5"), true, "Shake intensely with crushed ice", List.of(varIng1, varIng2)
+        );
+
+        CocktailRequestDTO request = new CocktailRequestDTO(
+            "Mojito Custom", "Custom description", new BigDecimal("10.00"), CocktailCategorie.ALCOOLISE,
+            true, false, null, null, null, null, null, null,
+            null, null, List.of(customVar)
+        );
+
+        CocktailResponseDTO response = cocktailService.createCocktailFromRequest(request);
+
+        assertThat(response).isNotNull();
+        assertThat(response.id()).isEqualTo(101L);
+        assertThat(response.variantes()).hasSize(1);
+        assertThat(response.variantes().get(0).nom()).isEqualTo("Double Rum Mint");
+        assertThat(response.variantes().get(0).ingredients()).hasSize(2);
+        assertThat(response.variantes().get(0).ingredients().get(0).ingredientNom()).isEqualTo("White Rum");
+        assertThat(response.variantes().get(0).instructions()).isEqualTo("Shake intensely with crushed ice");
+    }
+
+    @Test
+    @DisplayName("updateCocktailFromRequest - deletes removed variants cleanly and prevents duplication accumulation")
+    void shouldUpdateCocktailDeletingVariantsWithoutDuplication() {
+        CocktailVariante oldVar1 = new CocktailVariante();
+        oldVar1.setId(101L);
+        oldVar1.setNom("Old Variant 1");
+        oldVar1.setCocktail(cocktail);
+
+        CocktailVariante oldVar2 = new CocktailVariante();
+        oldVar2.setId(102L);
+        oldVar2.setNom("Old Variant 2");
+        oldVar2.setCocktail(cocktail);
+
+        cocktail.setVariantes(new ArrayList<>(List.of(oldVar1, oldVar2)));
+
+        when(cocktailRepository.findById(1L)).thenReturn(Optional.of(cocktail));
+        when(cocktailRepository.save(any(Cocktail.class))).thenAnswer(i -> i.getArgument(0));
+
+        // Submit with only 1 new variant (deleting oldVar1 and oldVar2, replacing with 1 new)
+        CocktailVarianteRequestDTO newVar = new CocktailVarianteRequestDTO(
+            1L, "New Single Variant", "Kept variant", new BigDecimal("1.00"),
+            BigDecimal.ONE, true, null, List.of()
+        );
+
+        CocktailRequestDTO request = new CocktailRequestDTO(
+            "Mojito Single Variant", null, new BigDecimal("10.00"), CocktailCategorie.ALCOOLISE,
+            true, false, null, null, null, null, null, null,
+            null, null, List.of(newVar)
+        );
+
+        CocktailResponseDTO response = cocktailService.updateCocktailFromRequest(1L, request);
+
+        assertThat(response).isNotNull();
+        assertThat(cocktail.getVariantes()).hasSize(1);
+        assertThat(cocktail.getVariantes().get(0).getNom()).isEqualTo("New Single Variant");
+    }
+
+    @Test
+    @DisplayName("updateCocktailFromRequest - correctly serializes and preserves mixology recipe steps on variants")
+    void shouldPersistVariantRecipeStepsCorrectly() {
+        when(cocktailRepository.findById(1L)).thenReturn(Optional.of(cocktail));
+        when(cocktailRepository.save(any(Cocktail.class))).thenAnswer(i -> i.getArgument(0));
+
+        CocktailRecipeStepRequestDTO step1 = new CocktailRecipeStepRequestDTO(
+            1, RecipeStepType.CUSTOM_TEXT, null, null, null, null, "Shaker vigoureusement 15s", "Avec beaucoup de glace", 15
+        );
+        CocktailRecipeStepRequestDTO step2 = new CocktailRecipeStepRequestDTO(
+            2, RecipeStepType.CUSTOM_TEXT, null, null, null, null, "Double filtrer dans verre tumbler", "Garnir de menthe", 5
+        );
+
+        CocktailVarianteRequestDTO variantWithSteps = new CocktailVarianteRequestDTO(
+            null, 1L, "Double Shake Variant", "Variant with detailed mixology steps",
+            new BigDecimal("2.50"), BigDecimal.valueOf(2), true, "Shake 15s then double strain",
+            List.of(), List.of(step1, step2)
+        );
+
+        CocktailRequestDTO request = new CocktailRequestDTO(
+            "Mojito Mixology", null, new BigDecimal("12.00"), CocktailCategorie.ALCOOLISE,
+            true, false, null, null, null, null, null, null,
+            null, null, List.of(variantWithSteps)
+        );
+
+        CocktailResponseDTO response = cocktailService.updateCocktailFromRequest(1L, request);
+
+        assertThat(response).isNotNull();
+        assertThat(response.variantes()).hasSize(1);
+        CocktailVarianteResponseDTO respVar = response.variantes().get(0);
+        assertThat(respVar.nom()).isEqualTo("Double Shake Variant");
+        assertThat(respVar.recipeSteps()).hasSize(2);
+        assertThat(respVar.recipeSteps().get(0).actionTitle()).isEqualTo("Shaker vigoureusement 15s");
+        assertThat(respVar.recipeSteps().get(1).actionTitle()).isEqualTo("Double filtrer dans verre tumbler");
+    }
 }
+

@@ -94,6 +94,18 @@ CREATE TABLE IF NOT EXISTS cocktail_variantes (
     disponible BOOLEAN DEFAULT true,
     multiplicateur_ingredient DECIMAL(10,2) DEFAULT 1.0,
     instructions TEXT,
+    recipe_steps_json TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS cocktail_variante_ingredients (
+    id BIGSERIAL PRIMARY KEY,
+    variante_id BIGINT REFERENCES cocktail_variantes(id) ON DELETE CASCADE,
+    ingredient_id BIGINT REFERENCES ingredients(id) ON DELETE CASCADE,
+    quantite DECIMAL(10,2) NOT NULL,
+    unite VARCHAR(20),
+    notes TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
