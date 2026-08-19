@@ -721,6 +721,56 @@ describe('CocktailFormComponent', () => {
       expect(component.currentStep()).toBe(4);
     });
 
+    it('should validate step items and proceed transitions', () => {
+      component.cocktailForm.patchValue({
+        name: 'French 75',
+        price: 11.0,
+        category: 'ALCOOLISE',
+      });
+
+      expect(component.canProceedFromCurrentStep()).toBeTrue();
+
+      component.nextStep();
+      expect(component.currentStep()).toBe(2);
+
+      component.addActionTemplateStep();
+      const tplGroup = component.getAsFormGroup(component.recipeStepsArray.at(-1));
+      tplGroup.patchValue({ templateId: null, templateName: '' });
+      expect(component.isStep2Valid()).toBeFalse();
+      tplGroup.patchValue({ templateId: 1 });
+      expect(component.isStep2Valid()).toBeTrue();
+
+      component.addCustomTextStep();
+      const customGroup = component.getAsFormGroup(component.recipeStepsArray.at(-1));
+      customGroup.patchValue({ actionTitle: '' });
+      expect(component.isStep2Valid()).toBeFalse();
+      customGroup.patchValue({ actionTitle: 'Zest expressed' });
+      expect(component.isStep2Valid()).toBeTrue();
+
+      component.nextStep();
+      expect(component.currentStep()).toBe(3);
+
+      // Invalid variant in step 3
+      component.variantesArray.push(
+        (component as any).fb.group({
+          nom: [''],
+          prixSupplement: [-1],
+        })
+      );
+      expect(component.isStep3Valid()).toBeFalse();
+      component.variantesArray.clear();
+      expect(component.isStep3Valid()).toBeTrue();
+    });
+
+    it('should count custom steps when only ingredients are present on variant', () => {
+      const vGroup = (component as any).fb.group({
+        nom: ['Ing Only Variant'],
+        recipeSteps: [[]],
+        ingredients: [[{ ingredientId: 1, quantite: 4 }]],
+      });
+      expect(component.getCustomStepsCount(vGroup)).toBe(1);
+    });
+
     it('should not submit if form is invalid', async () => {
       component.cocktailForm.patchValue({ name: '' });
       component.onSubmit();
