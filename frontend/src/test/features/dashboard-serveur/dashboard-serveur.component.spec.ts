@@ -644,7 +644,7 @@ describe('DashboardServeurComponent', () => {
       component.chargerDonnees();
       tick();
 
-      expect(component.products.length).toBe(2);
+      expect(component.products).toHaveSize(2);
       expect(component.products[0].stockStatus).toBe('NORMAL');
       expect(component.products[0].disponible).toBeTrue();
       expect(component.products[1].stockStatus).toBe('CRITIQUE');
@@ -659,7 +659,7 @@ describe('DashboardServeurComponent', () => {
       expect(component.cart.items[0].quantite).toBe(3);
 
       component.onCartItemRemoved(initialItem);
-      expect(component.cart.items.length).toBe(0);
+      expect(component.cart.items).toHaveSize(0);
 
       component.onTableSelectForOrder(2);
       expect(component.cart.tableId).toBe(2);
