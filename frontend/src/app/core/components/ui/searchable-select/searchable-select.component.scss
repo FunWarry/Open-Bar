@@ -39,8 +39,8 @@
   width: 100%;
   min-height: 44px;
   padding: 0.65rem 0.9rem;
-  background: var(--background-surface-1);
-  border: 1px solid var(--border-medium);
+  background: var(--input-bg, var(--background-surface-1));
+  border: 1px solid var(--input-border, var(--border-medium));
   border-radius: 0.75rem;
   color: var(--text-primary);
   display: flex;
@@ -55,7 +55,7 @@
 
   &:hover:not(:disabled) {
     border-color: var(--primary);
-    background: var(--background-surface-3);
+    background: var(--background-surface-2);
   }
 
   &:focus-visible {
@@ -464,3 +464,4 @@
     }
   }
 }
+

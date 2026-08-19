@@ -11,12 +11,14 @@ import {
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   ToastController,
+  ModalController,
   IonCard,
   IonCardHeader,
   IonCardTitle,
   IonCardContent,
   IonIcon,
 } from '@ionic/angular/standalone';
+import { VariantRecipeModalComponent } from '../components/variant-recipe-modal/variant-recipe-modal.component';
 import { addIcons } from 'ionicons';
 import {
   calendarOutline,
@@ -58,7 +60,10 @@ import { CocktailService } from '../../../core/services/cocktail.service';
 import { IngredientService } from '../../../core/services/ingredient.service';
 import { RecipeStepTemplateService } from '../../../core/services/recipe-step-template.service';
 import { GlasswareService } from '../../../core/services/glassware.service';
-import { Cocktail } from '../../../core/models/cocktail.model';
+import {
+  Cocktail,
+  CocktailIngredientItem,
+} from '../../../core/models/cocktail.model';
 import { Ingredient } from '../../../core/models/ingredient.model';
 import { Glassware } from '../../../core/models/glassware.model';
 import {
@@ -120,6 +125,7 @@ export class CocktailFormComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   public readonly router = inject(Router);
   private readonly toastCtrl = inject(ToastController);
+  private readonly modalCtrl = inject(ModalController);
   private readonly cocktailService = inject(CocktailService);
   private readonly ingredientService = inject(IngredientService);
   private readonly templateService = inject(RecipeStepTemplateService);
@@ -460,10 +466,15 @@ export class CocktailFormComponent implements OnInit {
             cocktail.variantes.forEach((v) => {
               this.variantesArray.push(
                 this.fb.group({
+                  id: [v.id || null],
                   nom: [v.nom, Validators.required],
                   description: [v.description || ''],
                   prixSupplement: [v.prixSupplement || 0, [Validators.required, Validators.min(0)]],
+                  multiplicateurIngredient: [v.multiplicateurIngredient || 1.0],
                   disponible: [v.disponible ?? true],
+                  instructions: [v.instructions || ''],
+                  ingredients: [v.ingredients || []],
+                  recipeSteps: [v.recipeSteps || []],
                 })
               );
             });
@@ -753,19 +764,98 @@ export class CocktailFormComponent implements OnInit {
   }
 
   // --- Step 3: Variants Management ---
-  addVariant(): void {
-    this.variantesArray.push(
-      this.fb.group({
-        nom: ['', Validators.required],
-        description: [''],
-        prixSupplement: [0, [Validators.required, Validators.min(0)]],
-        disponible: [true],
-      })
-    );
+  getBaseIngredientsForVariant(): CocktailIngredientItem[] {
+    const steps = this.recipeStepsArray.value || [];
+    return steps
+      .filter((s: any) => s.stepType === 'INGREDIENT' && s.ingredientId)
+      .map((s: any, idx: number) => {
+        const cat = this.ingredientsList().find((i) => i.id === +s.ingredientId);
+        return {
+          id: idx + 1,
+          ingredientId: +s.ingredientId,
+          ingredientNom: cat ? cat.nom : 'Ingrédient',
+          quantite: s.quantite != null ? +s.quantite : 0,
+          uniteMesure: s.unite || cat?.uniteMesure || 'cl',
+        };
+      });
+  }
+
+  async addVariant(): Promise<void> {
+    await this.openVariantRecipeModal();
+  }
+
+  async openVariantRecipeModal(index?: number): Promise<void> {
+    const isEdit = index !== undefined && index >= 0;
+    const existingVal = isEdit ? this.variantesArray.at(index).value : null;
+
+    const modal = await this.modalCtrl.create({
+      component: VariantRecipeModalComponent,
+      componentProps: {
+        variante: existingVal,
+        baseCocktailName: this.cocktailForm.get('name')?.value || '',
+        baseCocktailPrice: this.cocktailForm.get('price')?.value || 0,
+        baseRecipeSteps: this.recipeStepsArray.value || [],
+        availableIngredients: this.ingredientsList(),
+        availableTemplates: this.templatesList(),
+      },
+    });
+
+    await modal.present();
+    const { data, role } = await modal.onWillDismiss();
+
+    if (role === 'confirm' && data) {
+      const groupData = {
+        id: data.id ?? null,
+        nom: data.nom,
+        description: data.description || '',
+        prixSupplement: data.prixSupplement ?? 0,
+        multiplicateurIngredient: data.multiplicateurIngredient ?? 1.0,
+        disponible: data.disponible ?? true,
+        instructions: data.instructions || '',
+        ingredients: data.ingredients || [],
+        recipeSteps: data.recipeSteps || [],
+      };
+
+      if (isEdit) {
+        this.variantesArray.at(index).patchValue(groupData);
+      } else {
+        this.variantesArray.push(
+          this.fb.group({
+            id: [groupData.id],
+            nom: [groupData.nom, [Validators.required, Validators.maxLength(100)]],
+            description: [groupData.description],
+            prixSupplement: [groupData.prixSupplement, [Validators.min(0)]],
+            multiplicateurIngredient: [groupData.multiplicateurIngredient],
+            disponible: [groupData.disponible],
+            instructions: [groupData.instructions],
+            ingredients: this.fb.control(groupData.ingredients),
+            recipeSteps: this.fb.control(groupData.recipeSteps),
+          })
+        );
+      }
+    }
   }
 
   removeVariant(index: number): void {
     this.variantesArray.removeAt(index);
+  }
+
+  hasCustomVariantRecipe(vGroup: AbstractControl): boolean {
+    const ingredients = vGroup.get('ingredients')?.value;
+    const recipeSteps = vGroup.get('recipeSteps')?.value;
+    return (ingredients && ingredients.length > 0) || (recipeSteps && recipeSteps.length > 0);
+  }
+
+  getCustomStepsCount(vGroup: AbstractControl): number {
+    const recipeSteps = vGroup.get('recipeSteps')?.value;
+    if (recipeSteps && recipeSteps.length > 0) {
+      return recipeSteps.length;
+    }
+    const ingredients = vGroup.get('ingredients')?.value;
+    if (ingredients && ingredients.length > 0) {
+      return ingredients.length;
+    }
+    return 0;
   }
 
   // --- Step 4: Portion Scaler & Math ---
@@ -1003,10 +1093,31 @@ export class CocktailFormComponent implements OnInit {
     );
 
     const variantesPayload = (formVal.variantes || []).map((v: any) => ({
+      id: v.id || null,
       nom: v.nom,
       description: v.description || null,
       prixSupplement: v.prixSupplement != null ? +v.prixSupplement : 0,
+      multiplicateurIngredient: v.multiplicateurIngredient != null ? +v.multiplicateurIngredient : 1.0,
       disponible: v.disponible ?? true,
+      instructions: v.instructions || null,
+      recipeSteps: (v.recipeSteps || []).map((step: any, sIdx: number) => ({
+        stepOrder: sIdx + 1,
+        stepType: step.stepType,
+        ingredientId: step.ingredientId || null,
+        quantite: step.quantite != null ? +step.quantite : null,
+        unite: step.unite || null,
+        templateId: step.templateId || null,
+        actionTitle: step.actionTitle || null,
+        customText: step.customText || null,
+        durationSeconds: step.durationSeconds != null ? +step.durationSeconds : null,
+      })),
+      ingredients: (v.ingredients || []).map((ing: any) => ({
+        ingredientId: +ing.ingredientId,
+        ingredientNom: ing.ingredientNom,
+        quantite: +ing.quantite,
+        unite: ing.unite || 'cl',
+        notes: ing.notes || null,
+      })),
     }));
 
     const payload = {

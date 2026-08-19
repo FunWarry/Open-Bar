@@ -39,7 +39,7 @@ import {
 } from 'ionicons/icons';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { CommandeItemView, CommandeView } from '../../models/commande-view.model';
-import { Cocktail } from '../../../../core/models/cocktail.model';
+import { Cocktail, CocktailVariante } from '../../../../core/models/cocktail.model';
 import { Glassware } from '../../../../core/models/glassware.model';
 import { CocktailRecipeStep } from '../../../../core/models/recipe-step.model';
 import { environment } from '../../../../../environments/environment';
@@ -272,10 +272,43 @@ export class RecipeSidePanelComponent implements OnInit, OnChanges {
   }
 
   /**
+   * Resolves the CocktailVariante entity matching the currently inspected item.
+   */
+  get resolvedItemVariante(): CocktailVariante | null {
+    if (!this.item || !this.cocktail?.variantes) return null;
+    if (this.item.varianteId) {
+      const match = this.cocktail.variantes.find((v) => v.id === this.item?.varianteId);
+      if (match) return match;
+    }
+    if (this.item.varianteNom) {
+      const match = this.cocktail.variantes.find(
+        (v) => v.nom.toLowerCase() === this.item?.varianteNom?.toLowerCase()
+      );
+      if (match) return match;
+    }
+    return null;
+  }
+
+  /**
    * Returns a deduplicated and consolidated list of ingredients with unitary quantities.
    */
   get deduplicatedIngredients(): DeduplicatedIngredient[] {
     const ingredientMap = new Map<string, DeduplicatedIngredient>();
+
+    // 1. Prioritize variant-specific customized ingredients if available
+    const itemVariante = this.resolvedItemVariante;
+    if (itemVariante?.ingredients && itemVariante.ingredients.length > 0) {
+      for (const vi of itemVariante.ingredients) {
+        this.upsertIngredient(ingredientMap, {
+          id: vi.id,
+          ingredientId: vi.ingredientId,
+          ingredientNom: vi.ingredientNom || 'Ingrédient',
+          quantite: vi.quantite,
+          uniteMesure: vi.unite || 'cl',
+        });
+      }
+      return Array.from(ingredientMap.values());
+    }
 
     if (this.cocktail?.ingredients && this.cocktail.ingredients.length > 0) {
       this.collectFromIngredients(ingredientMap);

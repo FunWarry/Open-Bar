@@ -138,7 +138,7 @@
               *ngFor="let variant of selectedCocktailVariants"
               class="variant-pill"
               [class.active]="selectedVarianteId === variant.id"
-              (click)="selectedVarianteId = variant.id">
+              (click)="selectedVarianteId = variant.id ?? null">
               {{ variant.nom }}
               <span *ngIf="variant.prixSupplement">+{{ variant.prixSupplement | currency:'EUR':'symbol':'1.2-2' }}</span>
             </button>

@@ -64,7 +64,19 @@ export class VarianteModalComponent implements OnInit {
 
   /** @inheritdoc */
   ngOnInit(): void {
-    this.variantesDisponibles = this.cocktail.variantes.filter(v => v.disponible);
+    if (this.cocktail?.variantes) {
+      const seen = new Set<string>();
+      this.variantesDisponibles = this.cocktail.variantes
+        .filter(v => v.disponible)
+        .filter(v => {
+          const key = v.id ? `id-${v.id}` : `nom-${v.nom.toLowerCase()}`;
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+    } else {
+      this.variantesDisponibles = [];
+    }
   }
 
   /**

@@ -124,6 +124,19 @@
   --elev-1: var(--shadow-sm);
   --elev-2: var(--shadow-md);
   --elev-3: var(--shadow-lg);
+
+  /* Card & Input Surface Tokens */
+  --card-item-bg: var(--surface-1);
+  --card-item-border: var(--border-medium);
+  --card-item-shadow: var(--shadow-sm);
+  --card-header-border: var(--border-medium);
+  --input-bg: var(--surface-2);
+  --input-border: var(--border-medium);
+  --badge-num-bg: var(--surface-3);
+  --badge-num-color: var(--text-primary);
+  --action-btn-bg: var(--surface-3);
+  --action-btn-border: var(--border-medium);
+  --action-btn-color: var(--text-secondary);
 }
 
 /* Thème Clair (.light-theme) — conçu pour conformité WCAG AA (ticket #154) */
@@ -178,6 +191,19 @@ body.light-theme,
   --elev-1: var(--shadow-sm);
   --elev-2: var(--shadow-md);
   --elev-3: var(--shadow-lg);
+
+  /* Card & Input Surface Tokens en mode clair */
+  --card-item-bg: #ffffff;
+  --card-item-border: #e2e8f0;
+  --card-item-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+  --card-header-border: #f1f5f9;
+  --input-bg: #ffffff;
+  --input-border: #cbd5e1;
+  --badge-num-bg: #e0e7ff;
+  --badge-num-color: #4338ca;
+  --action-btn-bg: #f8fafc;
+  --action-btn-border: #cbd5e1;
+  --action-btn-color: #475569;
 }
 
 /* Mapping vers les variables Ionic — Dark (défaut) */

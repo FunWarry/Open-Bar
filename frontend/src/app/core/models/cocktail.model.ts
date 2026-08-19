@@ -17,13 +17,29 @@ export interface CocktailIngredientItem {
   uniteMesure: string;
 }
 
+export interface CocktailVarianteIngredient {
+  id?: number;
+  ingredientId: number;
+  ingredientNom?: string;
+  quantite: number;
+  unite?: string;
+  notes?: string;
+}
+
 export interface CocktailVariante {
-  id: number;
+  id?: number;
+  cocktailId?: number;
   nom: string;
   description?: string;
   /** Price mapped from Java BigDecimal — display only, not for direct JS financial math */
   prixSupplement: number;
+  multiplicateurIngredient?: number;
   disponible: boolean;
+  instructions?: string;
+  ingredients?: CocktailVarianteIngredient[];
+  recipeSteps?: CocktailRecipeStep[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 type SaisonInfo =

@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ToastController } from '@ionic/angular/standalone';
+import { ToastController, ModalController } from '@ionic/angular/standalone';
 import { of } from 'rxjs';
 import { CocktailFormComponent } from '../../../app/features/cocktails/cocktail-form/cocktail-form.component';
 import { CocktailService } from '../../../app/core/services/cocktail.service';
@@ -118,8 +118,33 @@ describe('CocktailFormComponent', () => {
   let glasswareServiceSpy: jasmine.SpyObj<GlasswareService>;
   let routerSpy: jasmine.SpyObj<Router>;
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
+  let modalCtrlSpy: jasmine.SpyObj<ModalController>;
 
   const toastMock = { present: jasmine.createSpy('present').and.returnValue(Promise.resolve()) };
+  const modalMock = {
+    present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+    onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(
+      Promise.resolve({
+        data: {
+          nom: 'Virgin Mojito',
+          description: 'Sans alcool',
+          prixSupplement: 0,
+          multiplicateurIngredient: 1.0,
+          disponible: true,
+          instructions: 'Shake with mint',
+          ingredients: [
+            {
+              ingredientId: 1,
+              ingredientNom: 'Mint Leaves',
+              quantite: 8,
+              unite: 'feuilles',
+            },
+          ],
+        },
+        role: 'confirm',
+      })
+    ),
+  };
 
   const buildModule = async (routeId: string | null = null) => {
     cocktailServiceSpy = jasmine.createSpyObj('CocktailService', [
@@ -140,6 +165,8 @@ describe('CocktailFormComponent', () => {
     routerSpy = jasmine.createSpyObj('Router', ['navigate']);
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
     toastCtrlSpy.create.and.returnValue(Promise.resolve(toastMock as any));
+    modalCtrlSpy = jasmine.createSpyObj('ModalController', ['create']);
+    modalCtrlSpy.create.and.returnValue(Promise.resolve(modalMock as any));
 
     ingredientServiceSpy.getAll.and.returnValue(of(mockIngredients));
     templateServiceSpy.getAll.and.returnValue(of(mockTemplates));
@@ -199,6 +226,7 @@ describe('CocktailFormComponent', () => {
         },
         { provide: Router, useValue: routerSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
+        { provide: ModalController, useValue: modalCtrlSpy },
         { provide: CocktailService, useValue: cocktailServiceSpy },
         { provide: IngredientService, useValue: ingredientServiceSpy },
         { provide: RecipeStepTemplateService, useValue: templateServiceSpy },
@@ -408,10 +436,14 @@ describe('CocktailFormComponent', () => {
       expect(component.getActionIcon('UNKNOWN')).toBe('sparkles-outline');
     });
 
-    it('should manage variants (add, remove)', () => {
+    it('should manage variants (open modal to add, edit, remove)', async () => {
       expect(component.variantesArray).toHaveSize(0);
-      component.addVariant();
+      await component.addVariant();
+      expect(modalCtrlSpy.create).toHaveBeenCalled();
       expect(component.variantesArray).toHaveSize(1);
+      expect(component.variantesArray.at(0).get('nom')?.value).toBe('Virgin Mojito');
+      expect(component.variantesArray.at(0).get('ingredients')?.value).toHaveSize(1);
+
       component.removeVariant(0);
       expect(component.variantesArray).toHaveSize(0);
     });
@@ -519,10 +551,10 @@ describe('CocktailFormComponent', () => {
       expect(component.recipeStepsArray).toHaveSize(1);
     });
 
-    it('should manage variants correctly', () => {
+    it('should manage variants correctly', async () => {
       expect(component.variantesArray).toHaveSize(0);
 
-      component.addVariant();
+      await component.addVariant();
       expect(component.variantesArray).toHaveSize(1);
 
       component.variantesArray.at(0).patchValue({
