@@ -15,7 +15,8 @@ import java.time.LocalDateTime;
  * @param logoUrl URL or path to the establishment logo
  * @param establishmentName Commercial name of the establishment
  * @param defaultTheme Default UI theme (DARK, LIGHT, SYSTEM)
- * @param tempsAlerteCommandeMinutes Order warning alert threshold in minutes
+ * @param tempsAlerteWarningMinutes Order warning alert threshold in minutes
+ * @param tempsAlerteCommandeMinutes Order urgent alert threshold in minutes
  * @param tempsAlerteCritiqueCommandeMinutes Order critical alert threshold in minutes
  * @param updatedAt Last modification timestamp
  */
@@ -27,6 +28,7 @@ public record AppSettingsResponseDTO(
     String logoUrl,
     String establishmentName,
     DefaultTheme defaultTheme,
+    Integer tempsAlerteWarningMinutes,
     Integer tempsAlerteCommandeMinutes,
     Integer tempsAlerteCritiqueCommandeMinutes,
     LocalDateTime updatedAt
@@ -41,6 +43,7 @@ public record AppSettingsResponseDTO(
         return new AppSettingsResponseDTO(
             s.getId(), s.getPrimaryColor(), s.getPrimaryColorStrong(),
             s.getLogoUrl(), s.getEstablishmentName(), s.getDefaultTheme(),
+            s.getTempsAlerteWarningMinutes(),
             s.getTempsAlerteCommandeMinutes(), s.getTempsAlerteCritiqueCommandeMinutes(),
             s.getUpdatedAt()
         );

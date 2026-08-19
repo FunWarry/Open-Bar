@@ -73,6 +73,14 @@
         border: 1px solid rgba(232, 80, 91, 0.45);
         animation: pulseUrgent 2s infinite ease-in-out;
       }
+
+      &.critical {
+        color: var(--text-primary, #ffffff);
+        background: var(--semantic-danger, #e8505b);
+        border: 1px solid var(--semantic-danger, #e8505b);
+        font-weight: 800;
+        animation: pulseUrgent 1.2s infinite ease-in-out;
+      }
     }
 
     .order-id {

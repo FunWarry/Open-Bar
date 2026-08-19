@@ -15,7 +15,8 @@ import jakarta.validation.constraints.Size;
  * @param logoUrl Establishment logo URL
  * @param establishmentName Commercial name of the establishment
  * @param defaultTheme Default UI theme
- * @param tempsAlerteCommandeMinutes Order warning alert threshold in minutes
+ * @param tempsAlerteWarningMinutes Order warning alert threshold in minutes
+ * @param tempsAlerteCommandeMinutes Order urgent alert threshold in minutes
  * @param tempsAlerteCritiqueCommandeMinutes Order critical alert threshold in minutes
  */
 @Schema(description = "Request payload for updating establishment configuration")
@@ -38,6 +39,10 @@ public record AppSettingsUpdateRequest(
 
     @NotNull(message = "Default theme is required")
     DefaultTheme defaultTheme,
+
+    @jakarta.validation.constraints.Min(value = 1, message = "Warning alert time must be at least 1 minute")
+    @jakarta.validation.constraints.Max(value = 120, message = "Warning alert time cannot exceed 120 minutes")
+    Integer tempsAlerteWarningMinutes,
 
     @jakarta.validation.constraints.Min(value = 1, message = "Alert time must be at least 1 minute")
     @jakarta.validation.constraints.Max(value = 120, message = "Alert time cannot exceed 120 minutes")

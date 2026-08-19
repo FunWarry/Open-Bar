@@ -53,7 +53,7 @@ describe('CommandeCardComponent', () => {
       { id: 1, ingredientId: 1, ingredientNom: 'Rhum', quantite: 4, uniteMesure: 'cl' }
     ],
     variantes: [],
-    instructions: 'Piler la menthe et ajouter le rhum.',
+    instructions: 'Crush mint and add rum.',
     createdAt: '',
     updatedAt: ''
   };
@@ -87,43 +87,58 @@ describe('CommandeCardComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('tempsEcoule calcule les minutes et secondes', () => {
+  it('tempsEcoule formats minutes and seconds correctly', () => {
     const past = new Date(Date.now() - 65 * 1000); // 1 min 05s ago
     component.commande = makeCommande({ dateCommande: past });
     (component as any).updateTimer();
     expect(component.tempsEcoule).toBe('01:05');
   });
 
-  it('tempsEcoule affiche les heures si depasse 60 minutes', () => {
+  it('tempsEcoule displays hours when duration exceeds 60 minutes', () => {
     const past = new Date(Date.now() - 75 * 60 * 1000); // 1h15 ago
     component.commande = makeCommande({ dateCommande: past });
     (component as any).updateTimer();
     expect(component.tempsEcoule).toBe('1h15');
   });
 
-  it('evalue isUrgent et isWarning selon les seuils', () => {
+  it('evaluates normal, warning, urgent, and critical tiers according to configured thresholds', () => {
+    component.tempsAlerteWarningMinutes = 3;
     component.tempsAlerteCommandeMinutes = 5;
+    component.tempsAlerteCritiqueCommandeMinutes = 10;
 
     // Normal (< 3 min)
     component.commande = makeCommande({ dateCommande: new Date(Date.now() - 2 * 60 * 1000) });
     (component as any).updateTimer();
     expect(component.isWarning).toBeFalse();
     expect(component.isUrgent).toBeFalse();
+    expect(component.isCritical).toBeFalse();
 
-    // Warning (3-5 min)
+    // Warning (3 to 5 min)
     component.commande = makeCommande({ dateCommande: new Date(Date.now() - 4 * 60 * 1000) });
     (component as any).updateTimer();
     expect(component.isWarning).toBeTrue();
     expect(component.isUrgent).toBeFalse();
+    expect(component.isCritical).toBeFalse();
 
-    // Urgent (>= 5 min)
-    component.commande = makeCommande({ dateCommande: new Date(Date.now() - 6 * 60 * 1000) });
+    // Urgent (5 to 10 min)
+    component.commande = makeCommande({ dateCommande: new Date(Date.now() - 7 * 60 * 1000) });
     (component as any).updateTimer();
+    expect(component.isWarning).toBeFalse();
     expect(component.isUrgent).toBeTrue();
+    expect(component.isCritical).toBeFalse();
+
+    // Critical (>= 10 min)
+    component.commande = makeCommande({ dateCommande: new Date(Date.now() - 12 * 60 * 1000) });
+    (component as any).updateTimer();
+    expect(component.isWarning).toBeFalse();
+    expect(component.isUrgent).toBeFalse();
+    expect(component.isCritical).toBeTrue();
   });
 
-  it('lisereColor renvoie la bonne couleur de statut', () => {
+  it('lisereColor returns appropriate semantic color for normal and alert states', () => {
+    component.isCritical = false;
     component.isUrgent = false;
+    component.isWarning = false;
     component.commande = makeCommande({ statut: 'EN_ATTENTE' });
     expect(component.lisereColor).toBe('var(--semantic-warning)');
 
@@ -133,11 +148,19 @@ describe('CommandeCardComponent', () => {
     component.commande = makeCommande({ statut: 'PRET' });
     expect(component.lisereColor).toBe('var(--semantic-success)');
 
+    component.isWarning = true;
+    expect(component.lisereColor).toBe('var(--semantic-warning)');
+
+    component.isWarning = false;
     component.isUrgent = true;
+    expect(component.lisereColor).toBe('var(--semantic-danger)');
+
+    component.isUrgent = false;
+    component.isCritical = true;
     expect(component.lisereColor).toBe('var(--semantic-danger)');
   });
 
-  it('onPrendreEnCharge emet changerStatut avec statut EN_PREPARATION', () => {
+  it('onPrendreEnCharge emits changerStatut with EN_PREPARATION status', () => {
     const emitted: { id: number; statut: string }[] = [];
     component.changerStatut.subscribe(val => emitted.push(val));
     component.commande = makeCommande({ id: 42 });
@@ -146,7 +169,7 @@ describe('CommandeCardComponent', () => {
     expect(emitted).toEqual([{ id: 42, statut: 'EN_PREPARATION' }]);
   });
 
-  it('onMarquerPret emet changerStatut avec statut PRET', () => {
+  it('onMarquerPret emits changerStatut with PRET status', () => {
     const emitted: { id: number; statut: string }[] = [];
     component.changerStatut.subscribe(val => emitted.push(val));
     component.commande = makeCommande({ id: 7 });
@@ -155,7 +178,7 @@ describe('CommandeCardComponent', () => {
     expect(emitted).toEqual([{ id: 7, statut: 'PRET' }]);
   });
 
-  it('onPrintTicket emet printTicket', () => {
+  it('onPrintTicket emits printTicket event', () => {
     const emitted: CommandeView[] = [];
     component.printTicket.subscribe(cmd => emitted.push(cmd));
 
@@ -164,7 +187,7 @@ describe('CommandeCardComponent', () => {
     expect(emitted[0].id).toBe(1);
   });
 
-  it('openDetails ouvre TableDetailModalComponent avec les donnees de la table', async () => {
+  it('openDetails opens TableDetailModalComponent with table data', async () => {
     await component.openDetails();
     expect(modalCtrlSpy.create).toHaveBeenCalledWith(
       jasmine.objectContaining({
@@ -177,7 +200,7 @@ describe('CommandeCardComponent', () => {
     expect(mockModal.present).toHaveBeenCalled();
   });
 
-  it('onOpenRecipe emet showRecipe avec l item et la commande', () => {
+  it('onOpenRecipe emits showRecipe with item and order reference', () => {
     const emitted: { item: any; commande: CommandeView }[] = [];
     component.showRecipe.subscribe(val => emitted.push(val));
     const item = component.groupedItems[0];
@@ -188,7 +211,7 @@ describe('CommandeCardComponent', () => {
     expect(emitted[0].commande.id).toBe(1);
   });
 
-  it('timer se met a jour chaque seconde', fakeAsync(() => {
+  it('timer updates each second', fakeAsync(() => {
     component.commande = makeCommande({ dateCommande: new Date() });
     component.ngOnInit();
     tick(2000);

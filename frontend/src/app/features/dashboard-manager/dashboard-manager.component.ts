@@ -41,7 +41,8 @@ import {
   warningOutline,
   syncOutline,
   eyeOutline,
-  eyeOffOutline
+  eyeOffOutline,
+  timerOutline
 } from 'ionicons/icons';
 
 /**
@@ -122,7 +123,8 @@ export class DashboardManagerComponent implements OnInit, OnDestroy {
       warningOutline,
       syncOutline,
       eyeOutline,
-      eyeOffOutline
+      eyeOffOutline,
+      timerOutline
     });
   }
 

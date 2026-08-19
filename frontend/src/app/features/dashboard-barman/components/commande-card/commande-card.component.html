@@ -1,8 +1,9 @@
 <div
   class="commande-card"
   [class.prioritaire]="commande.prioritaire"
-  [class.card-urgent]="isUrgent"
-  [class.card-warning]="isWarning && !isUrgent"
+  [class.card-critical]="isCritical"
+  [class.card-urgent]="isUrgent && !isCritical"
+  [class.card-warning]="isWarning && !isUrgent && !isCritical"
   [attr.data-testid]="'kanban-card-' + commande.id"
   (click)="openDetails()"
   (keyup.enter)="openDetails()"
@@ -28,8 +29,9 @@
           }
           <span
             class="card-timer"
-            [class.timer--urgent]="isUrgent"
-            [class.timer--warning]="isWarning && !isUrgent"
+            [class.timer--critical]="isCritical"
+            [class.timer--urgent]="isUrgent && !isCritical"
+            [class.timer--warning]="isWarning && !isUrgent && !isCritical"
             data-testid="card-timer">
             <ion-icon name="time-outline"></ion-icon>
             {{ tempsEcoule }}

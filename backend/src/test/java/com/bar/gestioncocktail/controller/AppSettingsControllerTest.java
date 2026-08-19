@@ -41,6 +41,9 @@ class AppSettingsControllerTest {
         settings.setLogoUrl("https://example.com/logo.png");
         settings.setEstablishmentName("OpenBar");
         settings.setDefaultTheme(DefaultTheme.DARK);
+        settings.setTempsAlerteWarningMinutes(3);
+        settings.setTempsAlerteCommandeMinutes(5);
+        settings.setTempsAlerteCritiqueCommandeMinutes(10);
         settings.setUpdatedAt(LocalDateTime.of(2026, Month.JULY, 9, 10, 0));
     }
 
@@ -54,20 +57,26 @@ class AppSettingsControllerTest {
         AppSettingsResponseDTO body = java.util.Objects.requireNonNull(response.getBody());
         assertThat(body.primaryColor()).isEqualTo("#6c7fe8");
         assertThat(body.establishmentName()).isEqualTo("OpenBar");
+        assertThat(body.tempsAlerteWarningMinutes()).isEqualTo(3);
+        assertThat(body.tempsAlerteCommandeMinutes()).isEqualTo(5);
+        assertThat(body.tempsAlerteCritiqueCommandeMinutes()).isEqualTo(10);
     }
 
     @Test
     void updateSettings_delegatesToServiceWithRequestAndReturnsUpdatedDTO() {
         AppSettingsUpdateRequest request = new AppSettingsUpdateRequest(
-            "#ff0000", "#cc0000", "https://example.com/new-logo.png", "Le Bar Test", DefaultTheme.DARK, 5, 10
+            "#ff0000", "#cc0000", "https://example.com/new-logo.png", "The Test Bar", DefaultTheme.DARK, 2, 6, 12
         );
         AppSettings updated = new AppSettings();
         updated.setId(AppSettings.SINGLETON_ID);
         updated.setPrimaryColor("#ff0000");
         updated.setPrimaryColorStrong("#cc0000");
         updated.setLogoUrl("https://example.com/new-logo.png");
-        updated.setEstablishmentName("Le Bar Test");
+        updated.setEstablishmentName("The Test Bar");
         updated.setDefaultTheme(DefaultTheme.DARK);
+        updated.setTempsAlerteWarningMinutes(2);
+        updated.setTempsAlerteCommandeMinutes(6);
+        updated.setTempsAlerteCritiqueCommandeMinutes(12);
         when(appSettingsService.updateSettings(request)).thenReturn(updated);
 
         ResponseEntity<AppSettingsResponseDTO> response = appSettingsController.updateSettings(request);
@@ -75,10 +84,10 @@ class AppSettingsControllerTest {
         verify(appSettingsService).updateSettings(request);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         AppSettingsResponseDTO body = java.util.Objects.requireNonNull(response.getBody());
-        assertThat(body.tempsAlerteCommandeMinutes()).isEqualTo(5);
-        assertThat(body.tempsAlerteCritiqueCommandeMinutes()).isEqualTo(10);
-        AppSettingsResponseDTO updatedBody = java.util.Objects.requireNonNull(response.getBody());
-        assertThat(updatedBody.primaryColor()).isEqualTo("#ff0000");
-        assertThat(updatedBody.establishmentName()).isEqualTo("Le Bar Test");
+        assertThat(body.tempsAlerteWarningMinutes()).isEqualTo(2);
+        assertThat(body.tempsAlerteCommandeMinutes()).isEqualTo(6);
+        assertThat(body.tempsAlerteCritiqueCommandeMinutes()).isEqualTo(12);
+        assertThat(body.primaryColor()).isEqualTo("#ff0000");
+        assertThat(body.establishmentName()).isEqualTo("The Test Bar");
     }
 }

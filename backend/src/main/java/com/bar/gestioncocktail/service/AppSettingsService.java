@@ -1,5 +1,6 @@
 package com.bar.gestioncocktail.service;
 
+import com.bar.gestioncocktail.dto.AppSettingsResponseDTO;
 import com.bar.gestioncocktail.dto.AppSettingsUpdateRequest;
 import com.bar.gestioncocktail.exception.BusinessException;
 import com.bar.gestioncocktail.model.AppSettings;
@@ -17,14 +18,17 @@ import org.springframework.transaction.annotation.Transactional;
 public class AppSettingsService {
 
     private final AppSettingsRepository appSettingsRepository;
+    private final NotificationService notificationService;
 
     /**
-     * Constructs the service with settings repository dependency.
+     * Constructs the service with settings repository and notification service dependencies.
      *
      * @param appSettingsRepository JPA settings repository
+     * @param notificationService Notification service for STOMP broadcasting
      */
-    public AppSettingsService(AppSettingsRepository appSettingsRepository) {
+    public AppSettingsService(AppSettingsRepository appSettingsRepository, NotificationService notificationService) {
         this.appSettingsRepository = appSettingsRepository;
+        this.notificationService = notificationService;
     }
 
     /**
@@ -39,11 +43,11 @@ public class AppSettingsService {
     }
 
     /**
-     * Updates visual branding configuration and establishment details.
+     * Updates visual branding configuration, alert thresholds, and establishment details.
      *
      * @param request DTO containing new customization options
      * @return Updated settings entity
-     * @throws BusinessException If a business rule is violated (e.g. unsupported theme)
+     * @throws BusinessException If a business rule is violated (e.g. unsupported theme or inconsistent thresholds)
      */
     public AppSettings updateSettings(AppSettingsUpdateRequest request) {
         if (request.defaultTheme() == DefaultTheme.LIGHT) {
@@ -56,13 +60,24 @@ public class AppSettingsService {
         current.setLogoUrl(request.logoUrl());
         current.setEstablishmentName(request.establishmentName());
         current.setDefaultTheme(request.defaultTheme());
-        if (request.tempsAlerteCommandeMinutes() != null) {
-            current.setTempsAlerteCommandeMinutes(request.tempsAlerteCommandeMinutes());
+
+        int warning = request.tempsAlerteWarningMinutes() != null ? request.tempsAlerteWarningMinutes() : current.getTempsAlerteWarningMinutes();
+        int urgent = request.tempsAlerteCommandeMinutes() != null ? request.tempsAlerteCommandeMinutes() : current.getTempsAlerteCommandeMinutes();
+        int critical = request.tempsAlerteCritiqueCommandeMinutes() != null ? request.tempsAlerteCritiqueCommandeMinutes() : current.getTempsAlerteCritiqueCommandeMinutes();
+
+        if (warning >= urgent || urgent >= critical) {
+            throw new BusinessException(
+                "Warning alert threshold (" + warning + " min) must be strictly less than urgent alert threshold (" +
+                urgent + " min), which must be strictly less than critical alert threshold (" + critical + " min)");
         }
-        if (request.tempsAlerteCritiqueCommandeMinutes() != null) {
-            current.setTempsAlerteCritiqueCommandeMinutes(request.tempsAlerteCritiqueCommandeMinutes());
-        }
-        return appSettingsRepository.save(current);
+
+        current.setTempsAlerteWarningMinutes(warning);
+        current.setTempsAlerteCommandeMinutes(urgent);
+        current.setTempsAlerteCritiqueCommandeMinutes(critical);
+
+        AppSettings saved = appSettingsRepository.save(current);
+        notificationService.notifierParametresMisAJour(AppSettingsResponseDTO.from(saved));
+        return saved;
     }
 
     /**

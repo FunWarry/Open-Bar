@@ -193,6 +193,17 @@ export const routes: Routes = [
     data: { roles: ['MANAGER', 'ADMIN'] }
   },
   {
+    path: 'manager/timers',
+    loadComponent: () => import('./features/dashboard-manager/components/order-timers-settings/order-timers-settings.component').then(m => m.OrderTimersSettingsComponent),
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['MANAGER', 'ADMIN'] }
+  },
+  {
+    path: 'admin/timers',
+    redirectTo: 'manager/timers',
+    pathMatch: 'full'
+  },
+  {
     path: 'factures',
     loadComponent: () => import('./features/factures/facture-list/facture-list.component').then(m => m.FactureListComponent),
     canActivate: [AuthGuard, RoleGuard],

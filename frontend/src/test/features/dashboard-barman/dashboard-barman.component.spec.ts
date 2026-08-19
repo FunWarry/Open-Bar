@@ -79,20 +79,22 @@ describe('DashboardBarmanComponent', () => {
     notificationServiceSpy.onNotification.and.returnValue(notification$.asObservable());
     notificationServiceSpy.onStockAlert.and.returnValue(EMPTY);
 
+    const mockAppSettings = {
+      id: 1,
+      primaryColor: '#6c7fe8',
+      primaryColorStrong: '#5a68d6',
+      logoUrl: null,
+      establishmentName: 'OpenBar',
+      defaultTheme: 'DARK' as const,
+      tempsAlerteWarningMinutes: 3,
+      tempsAlerteCommandeMinutes: 5,
+      tempsAlerteCritiqueCommandeMinutes: 10,
+      updatedAt: '',
+    };
+
     settingsServiceSpy = jasmine.createSpyObj('AppSettingsService', ['getSettings']);
-    settingsServiceSpy.getSettings.and.returnValue(
-      of({
-        id: 1,
-        primaryColor: '#6c7fe8',
-        primaryColorStrong: '#5a68d6',
-        logoUrl: null,
-        establishmentName: 'OpenBar',
-        defaultTheme: 'DARK',
-        tempsAlerteCommandeMinutes: 5,
-        tempsAlerteCritiqueCommandeMinutes: 10,
-        updatedAt: null
-      })
-    );
+    settingsServiceSpy.getSettings.and.returnValue(of(mockAppSettings as any));
+    (settingsServiceSpy as any).settings$ = of(mockAppSettings);
 
     soundServiceSpy = jasmine.createSpyObj('SoundService', [
       'isSoundEnabled',

@@ -70,6 +70,11 @@
           {{ 'MANAGER_DASHBOARD.ACTION_PRESETS' | transloco }}
         </ion-button>
 
+        <ion-button routerLink="/manager/timers" color="warning" fill="outline" class="qa-btn" data-testid="manager-btn-timers">
+          <ion-icon name="timer-outline" slot="start"></ion-icon>
+          {{ 'MANAGER_DASHBOARD.ACTION_ORDER_TIMERS' | transloco }}
+        </ion-button>
+
         <ion-button routerLink="/plan-salle" fill="outline" class="qa-btn btn-ghost" data-testid="manager-btn-floor-plan">
           <ion-icon name="map-outline" slot="start"></ion-icon>
           {{ 'MANAGER_DASHBOARD.ACTION_FLOOR_PLAN' | transloco }}

@@ -43,13 +43,16 @@ import { fastModalEnterAnimation, fastModalLeaveAnimation } from '../../../../co
 })
 export class CommandeCardComponent implements OnInit, OnDestroy {
   @Input({ required: true }) commande!: CommandeView;
+  @Input() tempsAlerteWarningMinutes = 3;
   @Input() tempsAlerteCommandeMinutes = 5;
+  @Input() tempsAlerteCritiqueCommandeMinutes = 10;
 
   @Output() changerStatut = new EventEmitter<{ id: number; statut: string }>();
   @Output() printTicket = new EventEmitter<CommandeView>();
   @Output() showRecipe = new EventEmitter<{ item: CommandeItemView; commande: CommandeView }>();
 
   tempsEcoule = '00:00';
+  isCritical = false;
   isUrgent = false;
   isWarning = false;
 
@@ -83,7 +86,7 @@ export class CommandeCardComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Updates real-time elapsed timer and evaluates urgency thresholds.
+   * Updates real-time elapsed timer and evaluates multi-tier urgency thresholds.
    */
   private updateTimer(): void {
     if (!this.commande) return;
@@ -112,16 +115,21 @@ export class CommandeCardComponent implements OnInit, OnDestroy {
       this.tempsEcoule = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
     }
 
-    const thresholdMinutes = this.tempsAlerteCommandeMinutes || 5;
-    this.isUrgent = minutes >= thresholdMinutes || this.commande.prioritaire;
-    this.isWarning = minutes >= 3 && minutes < thresholdMinutes;
+    const warningThreshold = this.tempsAlerteWarningMinutes || 3;
+    const urgentThreshold = this.tempsAlerteCommandeMinutes || 5;
+    const criticalThreshold = this.tempsAlerteCritiqueCommandeMinutes || 10;
+
+    this.isCritical = minutes >= criticalThreshold;
+    this.isUrgent = (minutes >= urgentThreshold && minutes < criticalThreshold) || (this.commande.prioritaire && !this.isCritical);
+    this.isWarning = minutes >= warningThreshold && minutes < urgentThreshold && !this.commande.prioritaire;
   }
 
   /**
    * Returns vertical status accent border color.
    */
   get lisereColor(): string {
-    if (this.isUrgent) return 'var(--semantic-danger)';
+    if (this.isCritical || this.isUrgent) return 'var(--semantic-danger)';
+    if (this.isWarning) return 'var(--semantic-warning)';
     switch (this.commande.statut) {
       case 'EN_ATTENTE':
         return 'var(--semantic-warning)';

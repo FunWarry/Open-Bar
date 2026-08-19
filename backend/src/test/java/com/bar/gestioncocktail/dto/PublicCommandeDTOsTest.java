@@ -79,9 +79,12 @@ class PublicCommandeDTOsTest {
     @Test
     @DisplayName("AppSettingsUpdateRequest - record fields")
     void appSettingsUpdateRequest() {
-        AppSettingsUpdateRequest dto = new AppSettingsUpdateRequest("#3880ff", "#3171e0", "https://bar.com/logo.png", "OpenBar", DefaultTheme.DARK, 5, 10);
+        AppSettingsUpdateRequest dto = new AppSettingsUpdateRequest("#3880ff", "#3171e0", "https://bar.com/logo.png", "OpenBar", DefaultTheme.DARK, 3, 5, 10);
         assertThat(dto.establishmentName()).isEqualTo("OpenBar");
         assertThat(dto.primaryColor()).isEqualTo("#3880ff");
+        assertThat(dto.tempsAlerteWarningMinutes()).isEqualTo(3);
+        assertThat(dto.tempsAlerteCommandeMinutes()).isEqualTo(5);
+        assertThat(dto.tempsAlerteCritiqueCommandeMinutes()).isEqualTo(10);
     }
 
     @Test
