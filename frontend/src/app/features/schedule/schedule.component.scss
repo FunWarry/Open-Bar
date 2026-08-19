@@ -12,6 +12,8 @@
   padding: var(--space-4, 16px);
   max-width: 1600px;
   margin: 0 auto;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .schedule-top {
@@ -291,6 +293,7 @@
   border-radius: var(--radius-md, 10px);
   overflow: hidden;
   box-shadow: var(--elev-2, 0 4px 12px rgba(0, 0, 0, 0.45));
+  min-width: 780px;
 
   &.in-delete-mode {
     .interactive-cell {

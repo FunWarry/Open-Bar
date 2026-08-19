@@ -25,13 +25,22 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
+    flex-wrap: wrap;
 
     .table-badge {
+      min-width: 0;
+      flex: 1 1 auto;
+
       .table-label {
         font-size: 0.9rem;
         font-weight: 700;
         color: var(--text-primary, #eceefb);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: inline-block;
+        max-width: 140px;
       }
     }
 
@@ -39,6 +48,7 @@
       display: flex;
       align-items: center;
       gap: 6px;
+      flex-shrink: 0;
     }
 
     .wait-time-badge {
@@ -49,6 +59,8 @@
       font-weight: 700;
       padding: 2px 6px;
       border-radius: var(--radius-sm, 4px);
+      white-space: nowrap;
+      flex-shrink: 0;
       transition: all 0.2s ease;
 
       ion-icon {
@@ -90,6 +102,8 @@
       background: rgba(108, 127, 232, 0.12);
       padding: 2px 6px;
       border-radius: var(--radius-sm, 4px);
+      white-space: nowrap;
+      flex-shrink: 0;
     }
   }
 

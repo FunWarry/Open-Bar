@@ -96,4 +96,21 @@ describe('MiniCommandeCardComponent', () => {
     component.order = createOrder(2);
     expect(component.formatCurrency(24.5)).toContain('24,50');
   });
+
+  it('should render header badges, table name and items without layout collision', () => {
+    component.order = createOrder(5);
+    fixture.detectChanges();
+
+    const tableLabel = fixture.nativeElement.querySelector('.table-label');
+    const orderId = fixture.nativeElement.querySelector('.order-id');
+    const waitBadge = fixture.nativeElement.querySelector('.wait-time-badge');
+    const itemQty = fixture.nativeElement.querySelector('.item-qty');
+    const itemName = fixture.nativeElement.querySelector('.item-name');
+
+    expect(tableLabel.textContent).toContain('Table 4');
+    expect(orderId.textContent).toContain('#101');
+    expect(waitBadge.textContent).toContain('5 min');
+    expect(itemQty.textContent).toContain('2x');
+    expect(itemName.textContent).toContain('Mojito');
+  });
 });

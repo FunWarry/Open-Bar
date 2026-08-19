@@ -1,5 +1,6 @@
 :host {
   display: inline-block;
+  flex-shrink: 0;
 }
 
 .status-badge {
@@ -8,4 +9,6 @@
   font-weight: 600;
   font-size: 0.8rem;
   letter-spacing: 0.02em;
+  white-space: nowrap;
+  flex-shrink: 0;
 }

@@ -213,6 +213,9 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
           this.onTableSelectForOrder(tableId);
           this.activeTab = 'commande';
           this.cdr.detectChanges();
+        } else if (params['tab'] === 'commande') {
+          this.activeTab = 'commande';
+          this.cdr.detectChanges();
         }
         if (params['tab'] === 'suivi' || params['tab'] === 'kanban') {
           this.activeTab = 'suivi';
@@ -281,7 +284,8 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
               ? c.ingredients.map(i => i.ingredientNom).join(' · ')
               : (c.description || ''),
             image: c.imageUrl,
-            stockStatus: c.disponible ? 'NORMAL' : 'CRITIQUE',
+            stockStatus: (c.disponible !== false) ? 'NORMAL' : 'CRITIQUE',
+            disponible: c.disponible !== false,
             ingredients: c.ingredients,
             variantes: c.variantes ? c.variantes.map(v => ({
               id: v.id,
@@ -1379,20 +1383,25 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
         exclusions,
       });
     }
-    this.cart = { ...this.cart };
+    this.cart = { ...this.cart, items: [...this.cart.items] };
+    this.cdr.markForCheck();
     this.cdr.detectChanges();
   }
 
   onCartQuantityChanged(event: { item: CartItemModel; newQty: number }) {
     event.item.quantite = event.newQty;
-    this.cart = { ...this.cart };
+    this.cart = { ...this.cart, items: [...this.cart.items] };
+    this.cdr.markForCheck();
+    this.cdr.detectChanges();
   }
 
   onCartItemRemoved(item: CartItemModel) {
     this.cart.items = this.cart.items.filter(i =>
       !(i.boissonId === item.boissonId && i.varianteNom === item.varianteNom && i.commentaire === item.commentaire)
     );
-    this.cart = { ...this.cart };
+    this.cart = { ...this.cart, items: [...this.cart.items] };
+    this.cdr.markForCheck();
+    this.cdr.detectChanges();
   }
 
   onTableSelectForOrder(tableId: number) {
@@ -1402,7 +1411,9 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
       const match = /\d+/.exec(found.nom);
       this.cart.tableNumero = match ? Number.parseInt(match[0], 10) : found.id;
     }
-    this.cart = { ...this.cart };
+    this.cart = { ...this.cart, items: [...this.cart.items] };
+    this.cdr.markForCheck();
+    this.cdr.detectChanges();
   }
 
   onNewOrderForTable(table: TableView) {

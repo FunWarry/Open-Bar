@@ -111,4 +111,21 @@ describe('NavigationService', () => {
 
     expect(routerSpy.navigate).toHaveBeenCalledWith(['/auth/login']);
   });
+
+  // --- Responsive Sidebar Collapse State ---
+
+  it('toggleSidebarCollapse toggles the collapse state signal correctly', () => {
+    const initial = service.isSidebarCollapsed();
+    service.toggleSidebarCollapse();
+    expect(service.isSidebarCollapsed()).toBe(!initial);
+    service.toggleSidebarCollapse();
+    expect(service.isSidebarCollapsed()).toBe(initial);
+  });
+
+  it('setSidebarCollapsed explicitly sets the collapse state', () => {
+    service.setSidebarCollapsed(true);
+    expect(service.isSidebarCollapsed()).toBeTrue();
+    service.setSidebarCollapsed(false);
+    expect(service.isSidebarCollapsed()).toBeFalse();
+  });
 });

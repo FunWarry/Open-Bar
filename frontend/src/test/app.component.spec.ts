@@ -24,8 +24,10 @@ describe('AppComponent', () => {
 
   beforeEach(async () => {
     const mockNavigationService = jasmine.createSpyObj('NavigationService', [
-      'navigateToHome', 'navigateToLogin', 'navigateToAdmin', 'navigateToUserProfile',
-    ]);
+      'navigateToHome', 'navigateToLogin', 'navigateToAdmin', 'navigateToUserProfile', 'toggleSidebarCollapse', 'setSidebarCollapsed'
+    ], {
+      isSidebarCollapsed: signal(false)
+    });
 
     const mockWebSocketService = jasmine.createSpyObj('WebSocketService', [
       'connect', 'disconnect', 'watch',
@@ -38,6 +40,7 @@ describe('AppComponent', () => {
     mockNotificationService.onNotification.and.returnValue(EMPTY);
     mockNotificationService.onStockAlert.and.returnValue(EMPTY);
     mockNotificationService.getNonLues.and.returnValue(0);
+    mockNotificationService.getHistory.and.returnValue([]);
     mockNotificationService.isNotifPanelOpen = signal(false);
 
     const mockPopoverCtrl = jasmine.createSpyObj('PopoverController', ['create']);
@@ -127,5 +130,38 @@ describe('AppComponent', () => {
     tick();
 
     expect(showNav).toBeFalse();
+  }));
+
+  it('renders notification backdrop when notif panel is open and handles click', fakeAsync(() => {
+    const fixture = TestBed.createComponent(AppComponent);
+    const app = fixture.componentInstance;
+    const notifService = TestBed.inject(NotificationService) as any;
+
+    router.navigate(['/app-home']);
+    tick();
+
+    notifService.isNotifPanelOpen.set(true);
+    fixture.detectChanges();
+
+    const backdropEl = fixture.nativeElement.querySelector('[data-testid="notif-backdrop"]');
+    expect(backdropEl).toBeTruthy();
+
+    backdropEl.click();
+    expect(notifService.closeNotifPanel).toHaveBeenCalled();
+  }));
+
+  it('does not render notification backdrop when panel is closed', fakeAsync(() => {
+    const fixture = TestBed.createComponent(AppComponent);
+    const app = fixture.componentInstance;
+    const notifService = TestBed.inject(NotificationService) as any;
+
+    router.navigate(['/app-home']);
+    tick();
+
+    notifService.isNotifPanelOpen.set(false);
+    fixture.detectChanges();
+
+    const backdropEl = fixture.nativeElement.querySelector('[data-testid="notif-backdrop"]');
+    expect(backdropEl).toBeNull();
   }));
 });
