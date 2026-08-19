@@ -128,4 +128,31 @@ describe('NavigationService', () => {
     service.setSidebarCollapsed(false);
     expect(service.isSidebarCollapsed()).toBeFalse();
   });
+
+  it('triggers responsive media query listener callback on viewport change', () => {
+    let changeHandler: ((e: any) => void) | undefined;
+    const mediaQueryMock = {
+      matches: true,
+      media: '(max-width: 1199px)',
+      addEventListener: jasmine.createSpy('addEventListener').and.callFake((event: string, handler: any) => {
+        if (event === 'change') changeHandler = handler;
+      }),
+      removeEventListener: jasmine.createSpy('removeEventListener')
+    };
+
+    spyOn(window, 'matchMedia').and.returnValue(mediaQueryMock as any);
+
+    // Call private method to trigger listener registration
+    (service as any).initResponsiveListener();
+    expect(mediaQueryMock.addEventListener).toHaveBeenCalledWith('change', jasmine.any(Function));
+
+    // Simulate match change
+    if (changeHandler) {
+      service.setSidebarCollapsed(false);
+      changeHandler({ matches: true });
+      expect(service.isSidebarCollapsed()).toBeTrue();
+
+      changeHandler({ matches: false });
+    }
+  });
 });

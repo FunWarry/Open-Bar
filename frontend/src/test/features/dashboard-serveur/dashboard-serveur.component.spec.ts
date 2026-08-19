@@ -1,6 +1,7 @@
 import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { ComponentFixture } from '@angular/core/testing';
 import { CommonModule } from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { EMPTY, of, Subject, throwError } from 'rxjs';
 import {
@@ -611,6 +612,57 @@ describe('DashboardServeurComponent', () => {
       component.chargerTables();
       tick();
       expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
+    }));
+
+    it('handles query parameters tab=commande and tableId correctly', fakeAsync(() => {
+      const route = TestBed.inject(ActivatedRoute);
+      (route as any).queryParams = of({ tab: 'commande', tableId: '1' });
+
+      component.ngOnInit();
+      tick();
+
+      expect(component.activeTab).toBe('commande');
+      expect(component.cart.tableId).toBe(1);
+    }));
+
+    it('handles query parameter tab=commande without tableId', fakeAsync(() => {
+      const route = TestBed.inject(ActivatedRoute);
+      (route as any).queryParams = of({ tab: 'commande' });
+
+      component.ngOnInit();
+      tick();
+
+      expect(component.activeTab).toBe('commande');
+    }));
+
+    it('maps available and unavailable cocktails into stockStatus correctly', fakeAsync(() => {
+      cocktailServiceSpy.getAll.and.returnValue(of([
+        { id: 1, nom: 'Mojito', prix: 8, categorie: 'ALCOOLISE', disponible: true, ingredients: [] } as any,
+        { id: 2, nom: 'Virgin', prix: 6, categorie: 'SANS_ALCOOL', disponible: false, ingredients: [] } as any,
+      ]));
+
+      component.chargerDonnees();
+      tick();
+
+      expect(component.products.length).toBe(2);
+      expect(component.products[0].stockStatus).toBe('NORMAL');
+      expect(component.products[0].disponible).toBeTrue();
+      expect(component.products[1].stockStatus).toBe('CRITIQUE');
+      expect(component.products[1].disponible).toBeFalse();
+    }));
+
+    it('updates cart items immutably on cart quantity change and item removal', fakeAsync(() => {
+      const initialItem = { boissonId: 1, nom: 'Mojito', prix: 8, quantite: 1, typeBoisson: 'ALCOOLISE' };
+      component.cart = { tableId: 1, items: [initialItem] };
+
+      component.onCartQuantityChanged({ item: initialItem, newQty: 3 });
+      expect(component.cart.items[0].quantite).toBe(3);
+
+      component.onCartItemRemoved(initialItem);
+      expect(component.cart.items.length).toBe(0);
+
+      component.onTableSelectForOrder(2);
+      expect(component.cart.tableId).toBe(2);
     }));
   });
 });
