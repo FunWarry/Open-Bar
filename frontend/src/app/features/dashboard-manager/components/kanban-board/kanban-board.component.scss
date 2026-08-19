@@ -4,11 +4,14 @@
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 14px;
   padding: 4px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 
   &__column {
     display: flex;
     flex-direction: column;
     min-height: 240px;
+    min-width: 270px;
     background: var(--background-bg-1, #151521);
     border: 1px solid var(--border-medium, #2e3450);
     border-radius: var(--radius-md, 8px);

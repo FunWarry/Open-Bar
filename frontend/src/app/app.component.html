@@ -7,6 +7,15 @@
         <main class="main-content" id="main-content">
           <router-outlet></router-outlet>
         </main>
+        @if (notifService.isNotifPanelOpen()) {
+          <button
+            type="button"
+            class="notif-backdrop"
+            (click)="notifService.closeNotifPanel()"
+            data-testid="notif-backdrop"
+            [attr.aria-label]="'COMMON.CLOSE' | transloco">
+          </button>
+        }
         <div class="notif-drawer-wrapper" [class.open]="notifService.isNotifPanelOpen()" data-testid="side-notif-drawer">
           <app-notification-panel (closePanel)="notifService.closeNotifPanel()"></app-notification-panel>
         </div>

@@ -65,7 +65,7 @@ export async function setupMockApi(page: Page): Promise<void> {
         id: 1,
         username: 'admin',
         email: 'admin@openbar.fr',
-        roles: ['ADMIN', 'MANAGER'],
+        roles: ['ADMIN', 'MANAGER', 'SERVEUR', 'BARMAN'],
       }),
     });
   });
@@ -91,8 +91,8 @@ export async function setupMockApi(page: Page): Promise<void> {
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify([
-        { id: 1, nom: 'Mojito', prix: 8.5, categorie: 'ALCOOLISE', ingredients: [], variantes: [] },
-        { id: 2, nom: 'Virgin Mojito', prix: 6.0, categorie: 'SANS_ALCOOL', ingredients: [], variantes: [] },
+        { id: 1, nom: 'Mojito', prix: 8.5, categorie: 'ALCOOLISE', disponible: true, ingredients: [], variantes: [] },
+        { id: 2, nom: 'Virgin Mojito', prix: 6.0, categorie: 'SANS_ALCOOL', disponible: true, ingredients: [], variantes: [] },
       ]),
     });
   });
@@ -156,6 +156,17 @@ export async function setupMockApi(page: Page): Promise<void> {
     });
   });
 
+  await page.route('**/api/glassware**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([
+        { id: 1, name: 'Verre Highball', capacityCl: 35.0, description: 'Verre classique pour long drinks' },
+        { id: 2, name: 'Coupe Martini', capacityCl: 20.0, description: 'Coupe cocktail élégante' }
+      ]),
+    });
+  });
+
   await page.route('**/api/commandes/*/items', async (route) => {
     await route.fulfill({
       status: 200,
@@ -205,13 +216,94 @@ export async function setupMockApi(page: Page): Promise<void> {
     });
   });
 
+  await page.route('**/api/commandes/statut/*', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([
+        {
+          id: 1,
+          tableId: 1,
+          tableNumero: 1,
+          tableNom: 'Table 1',
+          statut: 'EN_ATTENTE',
+          serveurUsername: 'Alex',
+          total: 14.5,
+          dateCommande: new Date().toISOString(),
+          items: [{ id: 1, cocktailNom: 'Mojito', quantite: 2 }],
+        }
+      ]),
+    });
+  });
+
+  await page.route('**/api/dashboard/stats', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        chiffreAffairesJour: 450.0,
+        chiffreAffairesMois: 12500.0,
+        commandesTotales: 28,
+        commandesEnAttente: 3,
+        commandesEnPreparation: 2,
+        commandesPret: 1,
+        commandesLivrees: 22,
+        topCocktails: [
+          { id: 1, nom: 'Mojito', nombreCommandes: 15, revenuTotal: 127.5 },
+          { id: 2, nom: 'Virgin Mojito', nombreCommandes: 8, revenuTotal: 48.0 },
+        ],
+      }),
+    });
+  });
+
+  await page.route('**/api/etages**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([
+        { id: 1, code: 'RDC', nom: 'Rez-de-chaussée', ordre: 1 },
+        { id: 2, code: 'ETAGE_1', nom: 'Étage 1', ordre: 2 },
+      ]),
+    });
+  });
+
+  await page.route('**/api/tables/etages', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(['RDC', 'Terrasse', 'Etage 1']),
+    });
+  });
+
   await page.route('**/api/tables**', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify([
-        { id: 1, numero: 1, capacite: 4, zone: 'Bar', occupee: false },
-        { id: 2, numero: 2, capacite: 2, zone: 'Terrasse', occupee: true },
+        { id: 1, numero: 1, nom: 'Table 1', capacite: 4, zone: 'Bar', etage: 'RDC', occupee: false },
+        { id: 2, numero: 2, nom: 'Table 2', capacite: 2, zone: 'Terrasse', etage: 'Terrasse', occupee: true },
+      ]),
+    });
+  });
+
+  await page.route('**/api/zones**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([
+        { id: 1, nom: 'Bar', etage: 'RDC' },
+        { id: 2, nom: 'Terrasse', etage: 'Terrasse' },
+      ]),
+    });
+  });
+
+  await page.route('**/api/plan-salle/positions**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([
+        { id: 1, tableId: 1, x: 100, y: 100, shape: 'square', rotation: 0 },
+        { id: 2, tableId: 2, x: 250, y: 100, shape: 'circle', rotation: 0 },
       ]),
     });
   });

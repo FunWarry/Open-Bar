@@ -56,8 +56,9 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 8px;
+  gap: 6px;
   padding-bottom: 4px;
+  flex-wrap: wrap;
 }
 
 .card-header-text {
@@ -65,6 +66,7 @@
   flex-direction: column;
   gap: 2px;
   min-width: 0;
+  flex: 1 1 auto;
 }
 
 .table-row {
@@ -80,6 +82,9 @@
   font-size: 0.95rem;
   color: var(--text-primary);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
 }
 
 .order-id {
@@ -87,6 +92,7 @@
   font-weight: 600;
   color: var(--text-secondary);
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .priority-chip {
@@ -98,6 +104,8 @@
   padding: 1px 5px;
   border-radius: 4px;
   letter-spacing: 0.5px;
+  white-space: nowrap;
+  flex-shrink: 0;
   animation: pulse-badge 1.5s infinite;
 }
 
@@ -110,9 +118,10 @@
 .meta-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   font-size: 0.75rem;
   color: var(--text-secondary);
+  flex-wrap: wrap;
 }
 
 .server-name {
@@ -123,7 +132,7 @@
 }
 
 .card-timer {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 3px;
   font-weight: 600;
@@ -131,6 +140,8 @@
   border-radius: 4px;
   background: var(--background-surface-2);
   color: var(--text-secondary);
+  white-space: nowrap;
+  flex-shrink: 0;
 
   ion-icon {
     font-size: 0.85rem;
@@ -189,6 +200,7 @@
   justify-content: center;
   cursor: pointer;
   font-size: 14px;
+  flex-shrink: 0;
   transition: all 0.15s ease;
 
   &:hover {

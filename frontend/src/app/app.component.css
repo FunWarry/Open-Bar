@@ -36,9 +36,8 @@ app-navbar {
   flex: 1;
   min-height: 0;
   min-width: 0;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
   height: 100%;
   width: 100%;
   position: relative;
@@ -48,22 +47,39 @@ app-navbar {
 
 .main-content > *:not(router-outlet) {
   display: block;
-  flex: 1;
-  height: 100%;
   width: 100%;
-  min-height: 0;
-  min-width: 0;
-  overflow-y: auto;
+  min-height: 100%;
   position: relative;
 }
 
-/* Sliding notification drawer panel — shifts main content flex area */
+/* Sliding notification drawer panel — floating overlay on < 1400px, responsive layout */
+.notif-backdrop {
+  display: none;
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(2px);
+  border: none;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 999;
+  cursor: pointer;
+  animation: fadeInBackdrop 0.2s ease;
+}
+
+@keyframes fadeInBackdrop {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 .notif-drawer-wrapper {
   width: 0;
   min-width: 0;
   height: 100%;
   overflow: hidden;
-  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
@@ -72,6 +88,35 @@ app-navbar {
 .notif-drawer-wrapper.open {
   width: 360px;
   min-width: 360px;
+}
+
+/* Floating overlay on narrow & medium viewports (< 1400px) so main content is never squeezed */
+@media (max-width: 1399px) {
+  .notif-backdrop {
+    display: block;
+  }
+
+  .notif-drawer-wrapper {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+    width: 360px;
+    max-width: 90vw;
+    min-width: 0;
+    transform: translateX(100%);
+    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.4);
+    pointer-events: none;
+  }
+
+  .notif-drawer-wrapper.open {
+    transform: translateX(0);
+    width: 360px;
+    max-width: 90vw;
+    min-width: 0;
+    pointer-events: auto;
+  }
 }
 
 .auth-content {

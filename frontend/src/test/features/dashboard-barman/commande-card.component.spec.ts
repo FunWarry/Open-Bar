@@ -218,4 +218,27 @@ describe('CommandeCardComponent', () => {
     expect(component.tempsEcoule).toMatch(/\d{2}:\d{2}/);
     component.ngOnDestroy();
   }));
+
+  it('renders priority chip when commande is prioritaire', () => {
+    component.commande = makeCommande({ prioritaire: true });
+    fixture.detectChanges();
+
+    const chipEl = fixture.nativeElement.querySelector('[data-testid="priority-chip"]');
+    expect(chipEl).toBeTruthy();
+    expect(chipEl.textContent).toContain('URGENT');
+  });
+
+  it('renders server name and print button in card header without collision', () => {
+    component.commande = makeCommande({ serveurNom: 'Benoit Chef Barman', tableNom: 'Terrasse 14' });
+    fixture.detectChanges();
+
+    const serverEl = fixture.nativeElement.querySelector('.server-name');
+    const tableEl = fixture.nativeElement.querySelector('.table-name');
+    const printBtnEl = fixture.nativeElement.querySelector('[data-testid="print-ticket-btn"]');
+
+    expect(serverEl).toBeTruthy();
+    expect(serverEl.textContent).toContain('Benoit Chef Barman');
+    expect(tableEl.textContent).toContain('Terrasse 14');
+    expect(printBtnEl).toBeTruthy();
+  });
 });
