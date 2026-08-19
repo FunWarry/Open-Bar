@@ -50,7 +50,10 @@ public class CocktailVariante {
     @OneToMany(mappedBy = "variante", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CocktailVarianteIngredient> ingredients = new ArrayList<>();
 
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
     @PrePersist
