@@ -4,13 +4,15 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil, switchMap } from 'rxjs/operators';
 import {
-  IonContent, IonHeader, IonToolbar, IonTitle, IonBackButton, IonButtons,
-  IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonList, IonItem,
-  IonLabel, IonBadge, IonButton, IonIcon, ToastController, IonSegment, IonSegmentButton,
+  IonContent, IonButton, IonIcon, ToastController,
   ModalController, IonSpinner
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { downloadOutline, peopleOutline, checkmarkCircleOutline, printOutline, documentTextOutline } from 'ionicons/icons';
+import {
+  downloadOutline, peopleOutline, checkmarkCircleOutline, printOutline,
+  documentTextOutline, arrowBackOutline, receiptOutline, businessOutline,
+  locationOutline, callOutline, fastFoodOutline, bagOutline, informationCircleOutline
+} from 'ionicons/icons';
 import { TranslocoModule } from '@jsverse/transloco';
 import { FactureService } from '../services/facture.service';
 import { Facture, FactureItem } from '../models/facture.model';
@@ -25,11 +27,7 @@ import { environment } from '../../../../environments/environment';
   standalone: true,
   imports: [
     CommonModule, RouterLink, TranslocoModule, TicketReceiptComponent,
-    IonContent, IonHeader, IonToolbar, IonTitle,
-    IonBackButton, IonButtons,
-    IonCard, IonCardContent, IonCardHeader, IonCardTitle,
-    IonList, IonItem, IonLabel, IonBadge, IonButton, IonIcon,
-    IonSegment, IonSegmentButton, IonSpinner
+    IonContent, IonButton, IonIcon, IonSpinner
   ],
   templateUrl: './facture-detail.component.html',
   styleUrls: ['./facture-detail.component.scss'],
@@ -47,7 +45,11 @@ export class FactureDetailComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
 
   constructor() {
-    addIcons({ downloadOutline, peopleOutline, checkmarkCircleOutline, printOutline, documentTextOutline });
+    addIcons({
+      downloadOutline, peopleOutline, checkmarkCircleOutline, printOutline,
+      documentTextOutline, arrowBackOutline, receiptOutline, businessOutline,
+      locationOutline, callOutline, fastFoodOutline, bagOutline, informationCircleOutline
+    });
   }
 
   ngOnInit() {
