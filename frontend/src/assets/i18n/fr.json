@@ -815,13 +815,19 @@
   },
   "FACTURES": {
     "NEW": "Nouvelle facture",
+    "HERO_BADGE": "Facturation",
     "TITLE": "Historique des Factures",
     "SUBTITLE": "Supervision des encaissements, recherche et consultation des pièces comptables",
+    "TTC_LABEL": "TTC",
+    "LOADING_DOCS": "Chargement des pièces comptables...",
     "STATS": {
       "TOTAL_CA": "Chiffre d'Affaires Cumulé",
       "TOTAL_COUNT": "Factures Émises",
       "SETTLED_RATE": "Taux de Règlement",
-      "RECAP_BTN": "Z-Report / Clôture Journée"
+      "RECAP_BTN": "Z-Report / Clôture Journée",
+      "RECAP_DESC": "Synthèse & export comptable",
+      "TOTAL_SETTLED_LABEL": "Total Encaissé",
+      "TOTAL_PENDING_LABEL": "Reste à Encaisser"
     },
     "SEARCH_PLACEHOLDER": "Rechercher par N° de facture, table ou serveur...",
     "FILTERS": {
@@ -829,6 +835,37 @@
       "SETTLED": "Réglées",
       "PENDING": "En Attente"
     },
+    "SORT": {
+      "LABEL": "Trier par",
+      "DATE_DESC": "Plus récentes d'abord",
+      "DATE_ASC": "Plus anciennes d'abord",
+      "AMOUNT_DESC": "Montant décroissant",
+      "AMOUNT_ASC": "Montant croissant",
+      "NUMBER": "N° Facture"
+    },
+    "VIEW_MODE": {
+      "GRID": "Vue Grille",
+      "LIST": "Vue Tableau"
+    },
+    "TABLE_HEADERS": {
+      "NUMBER": "N° Facture",
+      "DATE": "Date & Heure",
+      "TABLE": "Table",
+      "SERVER": "Serveur",
+      "PAYMENT": "Paiement",
+      "STATUS": "Statut",
+      "TOTAL": "Montant TTC",
+      "ACTIONS": "Actions"
+    },
+    "ACTIONS": {
+      "VIEW": "Consulter",
+      "SETTLE": "Régler",
+      "PDF": "PDF",
+      "COPY_NUM": "Copier le numéro",
+      "COPIED": "Numéro copié !",
+      "REFRESH": "Actualiser"
+    },
+    "UNASSIGNED": "Non assigné",
     "TABLE_LABEL": "Table {{num}}",
     "NO_FACTURES": "Aucune facture trouvée",
     "NO_FACTURES_DESC": "Aucune facture ne correspond à vos critères de recherche ou aucune commande n'a encore été encaissée.",

@@ -4,20 +4,50 @@
       <ion-refresher-content></ion-refresher-content>
     </ion-refresher>
 
-    <!-- Hero Header -->
-    <header class="factures-hero">
-      <div class="hero-content">
-        <div class="hero-badge">
+    <!-- Hero Header Bar -->
+    <header class="factures-hero" data-testid="factures-hero-header">
+      <div class="hero-brand-group">
+        <div class="hero-icon-badge">
           <ion-icon name="receipt-outline"></ion-icon>
-          <span>FACTURATION</span>
         </div>
-        <h1 class="hero-title">{{ t('FACTURES.TITLE') }}</h1>
-        <p class="hero-subtitle">{{ t('FACTURES.SUBTITLE') }}</p>
+        <div class="hero-titles">
+          <div class="hero-tag-row">
+            <span class="hero-tag">
+              <ion-icon name="card-outline"></ion-icon>
+              {{ t('FACTURES.HERO_BADGE') | uppercase }}
+            </span>
+            <span class="hero-count-pill" *ngIf="factures.length > 0">
+              {{ factures.length }} {{ factures.length > 1 ? t('FACTURES.STATS.TOTAL_COUNT') : t('FACTURES.NUMBER') }}
+            </span>
+          </div>
+          <h1 class="hero-title">{{ t('FACTURES.TITLE') }}</h1>
+          <p class="hero-subtitle">{{ t('FACTURES.SUBTITLE') }}</p>
+        </div>
+      </div>
+
+      <div class="hero-actions">
+        <ion-button
+          fill="outline"
+          size="small"
+          class="btn-refresh"
+          (click)="charger()"
+          (keyup.enter)="charger()"
+          [title]="t('FACTURES.ACTIONS.REFRESH')"
+          data-testid="factures-refresh-btn">
+          <ion-icon slot="icon-only" name="refresh-outline" [class.spinning]="loading"></ion-icon>
+        </ion-button>
+
+        <a routerLink="/factures/recap" class="btn-zreport-hero" data-testid="hero-zreport-btn">
+          <ion-icon name="stats-chart-outline"></ion-icon>
+          <span>{{ t('FACTURES.STATS.RECAP_BTN') }}</span>
+          <ion-icon name="arrow-forward-outline" class="btn-arrow"></ion-icon>
+        </a>
       </div>
     </header>
 
-    <!-- KPI Summary Cards -->
-    <section class="kpi-grid">
+    <!-- KPI Summary Metrics Grid -->
+    <section class="kpi-grid" data-testid="factures-kpi-grid">
+      <!-- Total Revenue (CA) -->
       <div class="kpi-card ca-card" data-testid="kpi-total-ca">
         <div class="kpi-icon-wrapper">
           <ion-icon name="cash-outline"></ion-icon>
@@ -25,9 +55,13 @@
         <div class="kpi-body">
           <span class="kpi-number">{{ totalCA | currency:'EUR':'symbol':'1.2-2' }}</span>
           <span class="kpi-title">{{ t('FACTURES.STATS.TOTAL_CA') }}</span>
+          <div class="kpi-subtext">
+            <span class="sub-settled">{{ t('FACTURES.STATS.TOTAL_SETTLED_LABEL') }}: {{ totalSettledCA | currency:'EUR':'symbol':'1.2-2' }}</span>
+          </div>
         </div>
       </div>
 
+      <!-- Total Invoices Issued -->
       <div class="kpi-card count-card" data-testid="kpi-factures-count">
         <div class="kpi-icon-wrapper">
           <ion-icon name="document-text-outline"></ion-icon>
@@ -35,32 +69,51 @@
         <div class="kpi-body">
           <span class="kpi-number">{{ factures.length }}</span>
           <span class="kpi-title">{{ t('FACTURES.STATS.TOTAL_COUNT') }}</span>
+          <div class="kpi-subtext">
+            <span>{{ settledCount }} {{ t('FACTURES.FILTERS.SETTLED') | lowercase }} • {{ pendingCount }} {{ t('FACTURES.FILTERS.PENDING') | lowercase }}</span>
+          </div>
         </div>
       </div>
 
+      <!-- Settlement Rate -->
       <div class="kpi-card rate-card" data-testid="kpi-settled-rate">
         <div class="kpi-icon-wrapper">
-          <ion-icon name="analytics-outline"></ion-icon>
+          <ion-icon name="checkmark-done-circle-outline"></ion-icon>
         </div>
         <div class="kpi-body">
-          <span class="kpi-number">{{ settledRate }}%</span>
+          <div class="rate-top">
+            <span class="kpi-number">{{ settledRate }}%</span>
+            <span class="rate-fraction">({{ settledCount }}/{{ factures.length }})</span>
+          </div>
           <span class="kpi-title">{{ t('FACTURES.STATS.SETTLED_RATE') }}</span>
+          <div class="rate-progress-box">
+            <ion-progress-bar [value]="settledRatio" color="warning" class="kpi-progress"></ion-progress-bar>
+          </div>
         </div>
       </div>
 
+      <!-- Z-Report Quick Link Card -->
       <div class="kpi-card action-card" data-testid="kpi-zreport-btn">
         <a routerLink="/factures/recap" class="zreport-link">
-          <div class="zreport-content">
-            <ion-icon name="analytics-outline"></ion-icon>
-            <span>{{ t('FACTURES.STATS.RECAP_BTN') }}</span>
+          <div class="zreport-main">
+            <div class="zreport-icon-box">
+              <ion-icon name="analytics-outline"></ion-icon>
+            </div>
+            <div class="zreport-text">
+              <span class="zreport-title">{{ t('FACTURES.STATS.RECAP_BTN') }}</span>
+              <span class="zreport-desc">{{ t('FACTURES.STATS.RECAP_DESC') }}</span>
+            </div>
           </div>
-          <span class="arrow">→</span>
+          <div class="zreport-arrow-box">
+            <ion-icon name="arrow-forward-outline"></ion-icon>
+          </div>
         </a>
       </div>
     </section>
 
-    <!-- Search & Filter Controls Bar -->
-    <section class="filter-bar-card">
+    <!-- Search, Filter & View Controls Bar -->
+    <section class="filter-controls-card" data-testid="factures-filter-bar">
+      <!-- Search Input -->
       <div class="search-box">
         <ion-searchbar
           [(ngModel)]="searchTerm"
@@ -71,81 +124,292 @@
         </ion-searchbar>
       </div>
 
-      <div class="segment-box">
-        <ion-segment [value]="activeFilter" (ionChange)="setFilter($any($event.detail.value))" data-testid="factures-filter-segment">
-          <ion-segment-button value="ALL" data-testid="filter-all">
-            <span>{{ t('FACTURES.FILTERS.ALL') }}</span>
-          </ion-segment-button>
-          <ion-segment-button value="SETTLED" data-testid="filter-settled">
-            <span>{{ t('FACTURES.FILTERS.SETTLED') }}</span>
-          </ion-segment-button>
-          <ion-segment-button value="PENDING" data-testid="filter-pending">
-            <span>{{ t('FACTURES.FILTERS.PENDING') }}</span>
-          </ion-segment-button>
-        </ion-segment>
+      <!-- Status Filter Chips -->
+      <div class="filter-chips-group">
+        <button
+          type="button"
+          class="filter-chip"
+          [class.active]="activeFilter === 'ALL'"
+          (click)="setFilter('ALL')"
+          data-testid="filter-all">
+          <span>{{ t('FACTURES.FILTERS.ALL') }}</span>
+          <span class="chip-count">{{ factures.length }}</span>
+        </button>
+
+        <button
+          type="button"
+          class="filter-chip chip-settled"
+          [class.active]="activeFilter === 'SETTLED'"
+          (click)="setFilter('SETTLED')"
+          data-testid="filter-settled">
+          <span class="status-dot dot-settled"></span>
+          <span>{{ t('FACTURES.FILTERS.SETTLED') }}</span>
+          <span class="chip-count">{{ settledCount }}</span>
+        </button>
+
+        <button
+          type="button"
+          class="filter-chip chip-pending"
+          [class.active]="activeFilter === 'PENDING'"
+          (click)="setFilter('PENDING')"
+          data-testid="filter-pending">
+          <span class="status-dot dot-pending"></span>
+          <span>{{ t('FACTURES.FILTERS.PENDING') }}</span>
+          <span class="chip-count">{{ pendingCount }}</span>
+        </button>
+      </div>
+
+      <!-- Sorting & View Mode Switches -->
+      <div class="controls-right-group">
+        <!-- Sort Selector -->
+        <div class="sort-selector-box">
+          <ion-icon name="swap-vertical-outline" class="sort-icon"></ion-icon>
+          <select
+            class="custom-sort-select"
+            [(ngModel)]="sortBy"
+            [attr.aria-label]="t('FACTURES.SORT.LABEL')"
+            data-testid="factures-sort-select">
+            <option value="DATE_DESC">{{ t('FACTURES.SORT.DATE_DESC') }}</option>
+            <option value="DATE_ASC">{{ t('FACTURES.SORT.DATE_ASC') }}</option>
+            <option value="AMOUNT_DESC">{{ t('FACTURES.SORT.AMOUNT_DESC') }}</option>
+            <option value="AMOUNT_ASC">{{ t('FACTURES.SORT.AMOUNT_ASC') }}</option>
+            <option value="NUMBER">{{ t('FACTURES.SORT.NUMBER') }}</option>
+          </select>
+        </div>
+
+        <!-- View Mode Segment Toggle -->
+        <div class="view-mode-toggle">
+          <button
+            type="button"
+            class="view-btn"
+            [class.active]="viewMode === 'grid'"
+            (click)="setViewMode('grid')"
+            [title]="t('FACTURES.VIEW_MODE.GRID')"
+            data-testid="view-mode-grid-btn">
+            <ion-icon name="grid-outline"></ion-icon>
+          </button>
+          <button
+            type="button"
+            class="view-btn"
+            [class.active]="viewMode === 'list'"
+            (click)="setViewMode('list')"
+            [title]="t('FACTURES.VIEW_MODE.LIST')"
+            data-testid="view-mode-list-btn">
+            <ion-icon name="list-outline"></ion-icon>
+          </button>
+        </div>
       </div>
     </section>
 
-    <!-- Invoices Grid / List -->
+    <!-- Invoices Content: Loading / Grid / Table / Empty -->
     @if (loading) {
-      <div class="loading-state">
+      <div class="loading-state" data-testid="factures-loading-state">
         <ion-spinner name="crescent"></ion-spinner>
+        <span class="loading-label">{{ t('FACTURES.LOADING_DOCS') }}</span>
       </div>
     } @else if (filteredFactures.length > 0) {
-      <section class="invoices-grid">
-        @for (facture of filteredFactures; track trackById($index, facture)) {
-          <ion-card class="invoice-card" [routerLink]="['/factures', facture.id]" data-testid="invoice-card-item">
-            <div class="card-top">
-              <div class="invoice-num-box">
-                <span class="num-label">{{ facture.numero }}</span>
-                <span class="table-badge">Table N°{{ facture.tableNumero }}</span>
-              </div>
-              <ion-badge [color]="statutColor(facture.reglee)" class="status-badge">
-                @if (facture.reglee) {
-                  <ion-icon name="checkmark-circle-outline"></ion-icon>
-                  <span>{{ t('FACTURES.SETTLED') }}</span>
-                } @else {
-                  <ion-icon name="time-outline"></ion-icon>
-                  <span>{{ t('FACTURES.PENDING') }}</span>
-                }
-              </ion-badge>
-            </div>
+      <!-- MODE 1: GRID VIEW OF CARDS -->
+      @if (viewMode === 'grid') {
+        <section class="invoices-grid" data-testid="factures-grid-container">
+          @for (facture of filteredFactures; track trackById($index, facture)) {
+            <article
+              class="invoice-card"
+              [class.card-settled]="facture.reglee"
+              [class.card-pending]="!facture.reglee"
+              [routerLink]="['/factures', facture.id]"
+              data-testid="invoice-card-item">
+              
+              <!-- Card Header -->
+              <div class="card-top">
+                <div class="invoice-num-group">
+                  <button
+                    type="button"
+                    class="num-chip"
+                    (click)="copyInvoiceNumber($event, facture.numero, facture.id)"
+                    (keydown.enter)="copyInvoiceNumber($event, facture.numero, facture.id)"
+                    [title]="t('FACTURES.ACTIONS.COPY_NUM')"
+                    [attr.aria-label]="t('FACTURES.ACTIONS.COPY_NUM')">
+                    <ion-icon name="receipt-outline"></ion-icon>
+                    <span class="num-text">{{ facture.numero }}</span>
+                    <span class="btn-copy">
+                      <ion-icon [name]="copiedInvoiceId === facture.id ? 'checkmark-outline' : 'copy-outline'"></ion-icon>
+                    </span>
+                  </button>
+                  @if (copiedInvoiceId === facture.id) {
+                    <span class="copied-badge">{{ t('FACTURES.ACTIONS.COPIED') }}</span>
+                  }
+                </div>
 
-            <div class="card-middle">
-              <div class="amount-box">
-                <span class="amount-val">{{ (facture.totalTTC ?? facture.total) | currency:'EUR':'symbol':'1.2-2' }}</span>
-              </div>
-              <div class="meta-row">
-                <span class="meta-item">
-                  <ion-icon name="calendar-outline"></ion-icon>
-                  {{ facture.dateFacture | date:'dd/MM/yyyy HH:mm' }}
-                </span>
-                @if (facture.serveurNom) {
-                  <span class="meta-item">
-                    <ion-icon name="person-outline"></ion-icon>
-                    {{ facture.serveurNom }}
+                <div class="badges-top-right">
+                  <span class="table-pill" data-testid="invoice-table-pill">
+                    <ion-icon name="restaurant-outline"></ion-icon>
+                    <span>{{ t('FACTURES.TABLE_LABEL', { num: facture.tableNumero }) }}</span>
                   </span>
-                }
-              </div>
-            </div>
 
-            <div class="card-bottom">
-              <span class="detail-link">
-                <span>Consulter</span>
-                <ion-icon name="chevron-forward-outline"></ion-icon>
-              </span>
-            </div>
-          </ion-card>
-        }
-      </section>
+                  <span class="status-pill" [class.settled]="facture.reglee" [class.pending]="!facture.reglee">
+                    @if (facture.reglee) {
+                      <ion-icon name="checkmark-circle-outline"></ion-icon>
+                      <span>{{ t('FACTURES.SETTLED') }}</span>
+                    } @else {
+                      <span class="pulse-indicator"></span>
+                      <span>{{ t('FACTURES.PENDING') }}</span>
+                    }
+                  </span>
+                </div>
+              </div>
+
+              <!-- Card Middle -->
+              <div class="card-middle">
+                <div class="amount-hero-box">
+                  <span class="amount-val">{{ (facture.totalTTC ?? facture.total) | currency:'EUR':'symbol':'1.2-2' }}</span>
+                  <span class="amount-tax-label">{{ t('FACTURES.TTC_LABEL') }}</span>
+                </div>
+
+                <div class="meta-tags-list">
+                  <span class="meta-tag">
+                    <ion-icon name="calendar-outline"></ion-icon>
+                    <span>{{ facture.dateFacture | date:'dd/MM/yyyy HH:mm' }}</span>
+                  </span>
+
+                  @if (facture.serveurNom) {
+                    <span class="meta-tag server-tag">
+                      <ion-icon name="person-outline"></ion-icon>
+                      <span>{{ facture.serveurNom }}</span>
+                    </span>
+                  }
+
+                  @if (facture.modePaiement) {
+                    <span class="meta-tag payment-tag">
+                      <ion-icon [name]="getPaymentModeIcon(facture.modePaiement)"></ion-icon>
+                      <span>{{ facture.modePaiement }}</span>
+                    </span>
+                  }
+                </div>
+              </div>
+
+              <!-- Card Bottom Actions -->
+              <div class="card-bottom">
+                <div class="quick-card-actions">
+                  <button
+                    type="button"
+                    class="btn-card-action btn-pdf"
+                    (click)="downloadPdf($event, facture.id)"
+                    [title]="t('FACTURES.ACTIONS.PDF')"
+                    data-testid="invoice-card-pdf-btn">
+                    <ion-icon name="download-outline"></ion-icon>
+                    <span>{{ t('FACTURES.ACTIONS.PDF') }}</span>
+                  </button>
+                </div>
+
+                <div class="detail-link-box">
+                  <span class="detail-link-text">{{ t('FACTURES.ACTIONS.VIEW') }}</span>
+                  <ion-icon name="chevron-forward-outline" class="detail-arrow"></ion-icon>
+                </div>
+              </div>
+            </article>
+          }
+        </section>
+      } @else {
+        <!-- MODE 2: TABLE VIEW -->
+        <section class="invoices-table-card" data-testid="factures-table-container">
+          <div class="table-scroll-wrapper">
+            <table class="factures-table">
+              <thead>
+                <tr>
+                  <th>{{ t('FACTURES.TABLE_HEADERS.NUMBER') }}</th>
+                  <th>{{ t('FACTURES.TABLE_HEADERS.DATE') }}</th>
+                  <th>{{ t('FACTURES.TABLE_HEADERS.TABLE') }}</th>
+                  <th>{{ t('FACTURES.TABLE_HEADERS.SERVER') }}</th>
+                  <th>{{ t('FACTURES.TABLE_HEADERS.PAYMENT') }}</th>
+                  <th>{{ t('FACTURES.TABLE_HEADERS.STATUS') }}</th>
+                  <th class="th-right">{{ t('FACTURES.TABLE_HEADERS.TOTAL') }}</th>
+                  <th class="th-right">{{ t('FACTURES.TABLE_HEADERS.ACTIONS') }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (facture of filteredFactures; track trackById($index, facture)) {
+                  <tr class="table-row" [routerLink]="['/factures', facture.id]" data-testid="invoice-table-row">
+                    <td>
+                      <div class="cell-num">
+                        <ion-icon name="receipt-outline" class="cell-icon"></ion-icon>
+                        <span class="num-code">{{ facture.numero }}</span>
+                        <button
+                          type="button"
+                          class="table-btn-copy"
+                          (click)="copyInvoiceNumber($event, facture.numero, facture.id)"
+                          [title]="t('FACTURES.ACTIONS.COPY_NUM')">
+                          <ion-icon [name]="copiedInvoiceId === facture.id ? 'checkmark-outline' : 'copy-outline'"></ion-icon>
+                        </button>
+                      </div>
+                    </td>
+                    <td>
+                      <span class="cell-date">{{ facture.dateFacture | date:'dd/MM/yyyy HH:mm' }}</span>
+                    </td>
+                    <td>
+                      <span class="table-pill-small">{{ t('FACTURES.TABLE_LABEL', { num: facture.tableNumero }) }}</span>
+                    </td>
+                    <td>
+                      <span class="cell-server">{{ facture.serveurNom || t('FACTURES.UNASSIGNED') }}</span>
+                    </td>
+                    <td>
+                      @if (facture.modePaiement) {
+                        <span class="payment-badge-small">
+                          <ion-icon [name]="getPaymentModeIcon(facture.modePaiement)"></ion-icon>
+                          {{ facture.modePaiement }}
+                        </span>
+                      } @else {
+                        <span class="text-muted">—</span>
+                      }
+                    </td>
+                    <td>
+                      <span class="status-pill" [class.settled]="facture.reglee" [class.pending]="!facture.reglee">
+                        @if (facture.reglee) {
+                          <ion-icon name="checkmark-circle-outline"></ion-icon>
+                          <span>{{ t('FACTURES.SETTLED') }}</span>
+                        } @else {
+                          <span class="pulse-indicator"></span>
+                          <span>{{ t('FACTURES.PENDING') }}</span>
+                        }
+                      </span>
+                    </td>
+                    <td class="td-right">
+                      <span class="cell-amount">{{ (facture.totalTTC ?? facture.total) | currency:'EUR':'symbol':'1.2-2' }}</span>
+                    </td>
+                    <td class="td-right">
+                      <div class="row-actions">
+                        <button
+                          type="button"
+                          class="table-action-btn"
+                          (click)="downloadPdf($event, facture.id)"
+                          [title]="t('FACTURES.ACTIONS.PDF')"
+                          data-testid="table-pdf-btn">
+                          <ion-icon name="download-outline"></ion-icon>
+                        </button>
+                        <a
+                          [routerLink]="['/factures', facture.id]"
+                          class="table-action-btn btn-view"
+                          [title]="t('FACTURES.ACTIONS.VIEW')"
+                          data-testid="table-view-btn">
+                          <ion-icon name="chevron-forward-outline"></ion-icon>
+                        </a>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </section>
+      }
     } @else {
+      <!-- Empty State -->
       <div class="empty-card" data-testid="factures-empty-box">
         <div class="empty-icon-wrapper">
           <ion-icon name="receipt-outline"></ion-icon>
         </div>
         <h3 class="empty-title">{{ t('FACTURES.NO_FACTURES') }}</h3>
         <p class="empty-desc">{{ t('FACTURES.NO_FACTURES_DESC') }}</p>
-        @if (searchTerm || activeFilter !== 'ALL') {
+        @if (searchTerm || activeFilter !== 'ALL' || sortBy !== 'DATE_DESC') {
           <ion-button fill="outline" size="small" (click)="resetFilters()" (keyup.enter)="resetFilters()" data-testid="reset-filters-btn">
             <ion-icon name="refresh-outline" slot="start"></ion-icon>
             {{ t('FACTURES.RESET_FILTERS') }}
@@ -155,3 +419,4 @@
     }
   </div>
 </ion-content>
+

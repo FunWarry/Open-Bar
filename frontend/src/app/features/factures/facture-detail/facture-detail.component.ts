@@ -6,7 +6,8 @@ import { takeUntil, switchMap } from 'rxjs/operators';
 import {
   IonContent, IonHeader, IonToolbar, IonTitle, IonBackButton, IonButtons,
   IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonList, IonItem,
-  IonLabel, IonBadge, IonButton, IonIcon, ToastController, IonSegment, IonSegmentButton, ModalController
+  IonLabel, IonBadge, IonButton, IonIcon, ToastController, IonSegment, IonSegmentButton,
+  ModalController, IonSpinner
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { downloadOutline, peopleOutline, checkmarkCircleOutline, printOutline, documentTextOutline } from 'ionicons/icons';
@@ -28,7 +29,7 @@ import { environment } from '../../../../environments/environment';
     IonBackButton, IonButtons,
     IonCard, IonCardContent, IonCardHeader, IonCardTitle,
     IonList, IonItem, IonLabel, IonBadge, IonButton, IonIcon,
-    IonSegment, IonSegmentButton
+    IonSegment, IonSegmentButton, IonSpinner
   ],
   templateUrl: './facture-detail.component.html',
   styleUrls: ['./facture-detail.component.scss'],

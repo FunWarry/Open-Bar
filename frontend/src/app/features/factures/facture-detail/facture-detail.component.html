@@ -1,131 +1,171 @@
 <ion-header>
-  <ion-toolbar color="primary">
+  <ion-toolbar color="primary" *transloco="let t">
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/factures"></ion-back-button>
     </ion-buttons>
-    <ion-title>{{ 'FACTURES.TITLE' | transloco }} {{ facture?.numero }}</ion-title>
+    <ion-title>{{ t('FACTURES.TITLE') }} {{ facture?.numero }}</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
-  <div *ngIf="!facture" class="ion-padding ion-text-center">
-    <p>{{ 'COMMON.LOADING' | transloco }}</p>
-  </div>
-
-  <ng-container *ngIf="facture">
-    <!-- Format Switcher Segment -->
-    <div class="ion-padding-bottom no-print">
-      <ion-segment [value]="activeView" (ionChange)="onViewChange($event)">
-        <ion-segment-button value="invoice" data-testid="segment-view-invoice">
-          <ion-icon name="document-text-outline"></ion-icon>
-          <ion-label>{{ 'FACTURES.VIEW_A4' | transloco }}</ion-label>
-        </ion-segment-button>
-        <ion-segment-button value="ticket" data-testid="segment-view-ticket">
-          <ion-icon name="print-outline"></ion-icon>
-          <ion-label>{{ 'FACTURES.VIEW_TICKET_80MM' | transloco }}</ion-label>
-        </ion-segment-button>
-      </ion-segment>
+<ion-content class="ion-padding" *transloco="let t">
+  @if (!facture) {
+    <div class="ion-padding ion-text-center">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>{{ t('COMMON.LOADING') }}</p>
     </div>
-
-    <!-- A4 Facture Detailed View -->
-    <div *ngIf="activeView === 'invoice'">
-      <ion-card data-testid="facture-header-card">
-        <ion-card-header>
-          <div class="header-top">
-            <ion-card-title>{{ facture.numero }}</ion-card-title>
-            <ion-badge [color]="statutColor(facture.reglee)" data-testid="facture-status-badge">
-              {{ (facture.reglee ? 'FACTURES.SETTLED' : 'FACTURES.PENDING') | transloco }}
-            </ion-badge>
-          </div>
-        </ion-card-header>
-        <ion-card-content>
-          <p><strong>{{ 'COMMANDES.TABLE' | transloco }} :</strong> N° {{ facture.tableNumero }}</p>
-          <p><strong>{{ 'COMMON.DATE' | transloco }} :</strong> {{ facture.dateFacture | date:'dd/MM/yyyy HH:mm' }}</p>
-          <p *ngIf="facture.modePaiement"><strong>{{ 'FACTURES.PAYMENT_METHOD' | transloco }} :</strong> {{ facture.modePaiement }}</p>
-          <p *ngIf="facture.dateReglement"><strong>{{ 'FACTURES.SETTLED_AT' | transloco }} :</strong> {{ facture.dateReglement | date:'dd/MM/yyyy HH:mm' }}</p>
-          <p *ngIf="facture.notes"><strong>{{ 'COMMON.NOTES' | transloco }} :</strong> {{ facture.notes }}</p>
-
-          <!-- Legal establishment header info -->
-          <div class="legal-info-box ion-margin-top" *ngIf="establishmentConfig">
-            <p><strong>{{ establishmentConfig.legalName }}</strong> ({{ establishmentConfig.legalForm }})</p>
-            <p>{{ establishmentConfig.address }} | Tél: {{ establishmentConfig.phone }}</p>
-            <p>SIRET: {{ establishmentConfig.siret }} | N° TVA: {{ establishmentConfig.tvaNumber }}</p>
-          </div>
-        </ion-card-content>
-      </ion-card>
-
-      <ion-card data-testid="facture-items-card">
-        <ion-card-header>
-          <ion-card-title>{{ 'COMMANDES.ITEMS' | transloco }}</ion-card-title>
-        </ion-card-header>
-        <ion-card-content>
-          <ion-list lines="full">
-            <ion-item *ngFor="let item of facture.items; trackBy: trackById" data-testid="facture-item-row">
-              <ion-label>
-                <h3>{{ item.description }}</h3>
-                <p>{{ item.quantite }} × {{ item.prixUnitaire | currency:'EUR':'symbol':'1.2-2':'fr' }} (TVA {{ item.vatRate || '20%' }})</p>
-                <p *ngIf="item.notes" class="notes">{{ item.notes }}</p>
-              </ion-label>
-              <ion-label slot="end" class="item-total">
-                {{ item.total | currency:'EUR':'symbol':'1.2-2':'fr' }}
-              </ion-label>
-            </ion-item>
-          </ion-list>
-
-          <div class="totaux">
-            <div class="total-row">
-              <span>{{ 'FACTURES.TOTAL_HT' | transloco }}</span>
-              <span>{{ totalHT | currency:'EUR':'symbol':'1.2-2':'fr' }}</span>
-            </div>
-            <div class="total-row">
-              <span>{{ 'FACTURES.TOTAL_VAT' | transloco }}</span>
-              <span>{{ totalVAT | currency:'EUR':'symbol':'1.2-2':'fr' }}</span>
-            </div>
-            <div class="total-row" *ngIf="facture.pourboire">
-              <span>{{ 'FACTURES.TIP' | transloco }}</span>
-              <span>{{ facture.pourboire | currency:'EUR':'symbol':'1.2-2':'fr' }}</span>
-            </div>
-            <div class="total-row total-ttc">
-              <strong>{{ 'FACTURES.TOTAL_TTC' | transloco }}</strong>
-              <strong>{{ montantAffiche | currency:'EUR':'symbol':'1.2-2':'fr' }}</strong>
-            </div>
-          </div>
-        </ion-card-content>
-      </ion-card>
-
-      <div class="action-buttons ion-padding-horizontal ion-padding-bottom">
-        <ion-button
-          *ngIf="!facture.reglee"
-          (click)="reglerFacture()"
-          (keyup.enter)="reglerFacture()"
-          (keydown.enter)="reglerFacture()"
-          color="success"
-          expand="block"
-          data-testid="mark-settled-btn"
-          class="ion-margin-bottom">
-          <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
-          {{ 'FACTURES.SETTLE' | transloco }}
-        </ion-button>
-        <ion-button (click)="telechargerPdf()" (keydown.enter)="telechargerPdf()" fill="outline" expand="block" data-testid="download-pdf-btn">
-          <ion-icon slot="start" name="download-outline"></ion-icon>
-          {{ 'FACTURES.DOWNLOAD_PDF' | transloco }}
-        </ion-button>
-        <ion-button
-          *ngIf="facture && facture.items && facture.items.length > 0"
-          [routerLink]="['/factures', facture.id, 'split']"
-          fill="outline"
-          expand="block"
-          data-testid="split-bill-btn"
-          class="split-btn ion-margin-top">
-          <ion-icon slot="start" name="people-outline"></ion-icon>
-          {{ 'FACTURES.SPLIT' | transloco }}
-        </ion-button>
+  } @else {
+    <div class="detail-container">
+      <!-- Format Switcher Segment -->
+      <div class="format-segment-box no-print">
+        <ion-segment [value]="activeView" (ionChange)="onViewChange($event)">
+          <ion-segment-button value="invoice" data-testid="segment-view-invoice">
+            <ion-icon name="document-text-outline"></ion-icon>
+            <ion-label>{{ t('FACTURES.VIEW_A4') }}</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="ticket" data-testid="segment-view-ticket">
+            <ion-icon name="print-outline"></ion-icon>
+            <ion-label>{{ t('FACTURES.VIEW_TICKET_80MM') }}</ion-label>
+          </ion-segment-button>
+        </ion-segment>
       </div>
-    </div>
 
-    <!-- Thermal Ticket 80mm View -->
-    <div *ngIf="activeView === 'ticket'" data-testid="ticket-view-container">
-      <app-ticket-receipt [facture]="facture" [establishmentConfig]="establishmentConfig || undefined"></app-ticket-receipt>
+      <!-- A4 Facture Detailed View -->
+      @if (activeView === 'invoice') {
+        <ion-card data-testid="facture-header-card">
+          <ion-card-header>
+            <div class="header-top">
+              <ion-card-title>{{ facture.numero }}</ion-card-title>
+              <ion-badge [color]="statutColor(facture.reglee)" data-testid="facture-status-badge">
+                {{ (facture.reglee ? t('FACTURES.SETTLED') : t('FACTURES.PENDING')) }}
+              </ion-badge>
+            </div>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="facture-meta-grid">
+              <div class="meta-item">
+                <span class="meta-label">{{ t('COMMANDES.TABLE') }}</span>
+                <span class="meta-val">{{ t('FACTURES.TABLE_LABEL', { num: facture.tableNumero }) }}</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-label">{{ t('COMMON.DATE') }}</span>
+                <span class="meta-val">{{ facture.dateFacture | date:'dd/MM/yyyy HH:mm' }}</span>
+              </div>
+              @if (facture.modePaiement) {
+                <div class="meta-item">
+                  <span class="meta-label">{{ t('FACTURES.PAYMENT_METHOD') }}</span>
+                  <span class="meta-val">{{ facture.modePaiement }}</span>
+                </div>
+              }
+              @if (facture.dateReglement) {
+                <div class="meta-item">
+                  <span class="meta-label">{{ t('FACTURES.SETTLED_AT') }}</span>
+                  <span class="meta-val">{{ facture.dateReglement | date:'dd/MM/yyyy HH:mm' }}</span>
+                </div>
+              }
+              @if (facture.serveurNom) {
+                <div class="meta-item">
+                  <span class="meta-label">{{ t('FACTURES.TABLE_HEADERS.SERVER') }}</span>
+                  <span class="meta-val">{{ facture.serveurNom }}</span>
+                </div>
+              }
+            </div>
+
+            @if (facture.notes) {
+              <p><strong>{{ t('COMMON.NOTES') }} :</strong> {{ facture.notes }}</p>
+            }
+
+            <!-- Legal establishment header info -->
+            @if (establishmentConfig) {
+              <div class="legal-info-box ion-margin-top">
+                <p><strong>{{ establishmentConfig.legalName }}</strong> ({{ establishmentConfig.legalForm }})</p>
+                <p>{{ establishmentConfig.address }} | Tél: {{ establishmentConfig.phone }}</p>
+                <p>SIRET: {{ establishmentConfig.siret }} | N° TVA: {{ establishmentConfig.tvaNumber }}</p>
+              </div>
+            }
+          </ion-card-content>
+        </ion-card>
+
+        <ion-card data-testid="facture-items-card">
+          <ion-card-header>
+            <ion-card-title>{{ t('COMMANDES.ITEMS') }}</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <ion-list lines="full">
+              @for (item of facture.items; track trackById($index, item)) {
+                <ion-item data-testid="facture-item-row">
+                  <ion-label>
+                    <h3>{{ item.description }}</h3>
+                    <p>{{ item.quantite }} × {{ item.prixUnitaire | currency:'EUR':'symbol':'1.2-2' }} (TVA {{ item.vatRate || '20%' }})</p>
+                    @if (item.notes) {
+                      <p class="notes">{{ item.notes }}</p>
+                    }
+                  </ion-label>
+                  <ion-label slot="end" class="item-total">
+                    {{ item.total | currency:'EUR':'symbol':'1.2-2' }}
+                  </ion-label>
+                </ion-item>
+              }
+            </ion-list>
+
+            <div class="totaux">
+              <div class="total-row">
+                <span>{{ t('FACTURES.TOTAL_HT') }}</span>
+                <span>{{ totalHT | currency:'EUR':'symbol':'1.2-2' }}</span>
+              </div>
+              <div class="total-row">
+                <span>{{ t('FACTURES.TOTAL_VAT') }}</span>
+                <span>{{ totalVAT | currency:'EUR':'symbol':'1.2-2' }}</span>
+              </div>
+              @if (facture.pourboire) {
+                <div class="total-row">
+                  <span>{{ t('FACTURES.TIP') }}</span>
+                  <span>{{ facture.pourboire | currency:'EUR':'symbol':'1.2-2' }}</span>
+                </div>
+              }
+              <div class="total-row total-ttc">
+                <strong>{{ t('FACTURES.TOTAL_TTC') }}</strong>
+                <strong>{{ montantAffiche | currency:'EUR':'symbol':'1.2-2' }}</strong>
+              </div>
+            </div>
+          </ion-card-content>
+        </ion-card>
+
+        <div class="action-buttons ion-padding-horizontal ion-padding-bottom">
+          @if (!facture.reglee) {
+            <ion-button
+              (click)="reglerFacture()"
+              (keyup.enter)="reglerFacture()"
+              (keydown.enter)="reglerFacture()"
+              color="success"
+              expand="block"
+              data-testid="mark-settled-btn">
+              <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
+              {{ t('FACTURES.SETTLE') }}
+            </ion-button>
+          }
+          <ion-button (click)="telechargerPdf()" (keydown.enter)="telechargerPdf()" fill="outline" expand="block" data-testid="download-pdf-btn">
+            <ion-icon slot="start" name="download-outline"></ion-icon>
+            {{ t('FACTURES.DOWNLOAD_PDF') }}
+          </ion-button>
+          @if (facture && facture.items && facture.items.length > 0) {
+            <ion-button
+              [routerLink]="['/factures', facture.id, 'split']"
+              fill="outline"
+              expand="block"
+              data-testid="split-bill-btn"
+              class="split-btn">
+              <ion-icon slot="start" name="people-outline"></ion-icon>
+              {{ t('FACTURES.SPLIT') }}
+            </ion-button>
+          }
+        </div>
+      } @else {
+        <!-- Thermal Ticket 80mm View -->
+        <div data-testid="ticket-view-container">
+          <app-ticket-receipt [facture]="facture" [establishmentConfig]="establishmentConfig || undefined"></app-ticket-receipt>
+        </div>
+      }
     </div>
-  </ng-container>
+  }
 </ion-content>
+
