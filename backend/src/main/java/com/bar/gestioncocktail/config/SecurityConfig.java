@@ -26,7 +26,8 @@ import java.util.List;
 
 /**
  * Spring Security configuration for OpenBar.
- * Configures stateless JWT authentication, CORS, CSRF, and role-based endpoint permissions.
+ * Configures stateless JWT authentication, CORS, CSRF, and role-based endpoint
+ * permissions.
  */
 @Configuration
 @EnableWebSecurity
@@ -68,7 +69,8 @@ public class SecurityConfig {
                             .requestMatchers("/api/users/check-username/**").permitAll()
                             .requestMatchers("/api/users/check-email/**").permitAll()
                             .requestMatchers("/ws/**", "/api/ws/**").permitAll()
-                            // Application customization settings readable prior to authentication (login screen)
+                            // Application customization settings readable prior to authentication (login
+                            // screen)
                             .requestMatchers(HttpMethod.GET, "/api/settings").permitAll()
                             .anyRequest().authenticated())
                     .exceptionHandling(ex -> ex
@@ -108,7 +110,11 @@ public class SecurityConfig {
                 "http://localhost:[*]",
                 "http://127.0.0.1:[*]",
                 "http://192.168.[*]",
-                "http://10.[*]"));
+                "http://10.[*]",
+                "http://open-bar.freeboxos.fr:[*]",
+                "https://open-bar.freeboxos.fr:[*]",
+                "http://open-bar.freeboxos.fr",
+                "https://open-bar.freeboxos.fr"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
