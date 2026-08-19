@@ -468,5 +468,60 @@ describe('RecipeSidePanelComponent', () => {
       expect(step1?.textContent).toContain('Piler la menthe fraîche');
       expect(step1?.textContent).toContain('15');
     });
+
+    it('should resolve item variant by id and prioritize its custom ingredients', () => {
+      const variantWithIngredients = {
+        id: 77,
+        nom: 'Custom Gin Variant',
+        prixSupplement: 2.0,
+        disponible: true,
+        ingredients: [
+          { id: 1, ingredientId: 99, ingredientNom: 'Artisanal Gin', quantite: 6, unite: 'cl' }
+        ],
+        recipeSteps: []
+      };
+
+      component.cocktail = {
+        ...mockCocktail,
+        variantes: [variantWithIngredients as any]
+      };
+      component.item = {
+        ...mockItem,
+        varianteId: 77,
+        varianteNom: 'Custom Gin Variant'
+      };
+
+      expect(component.resolvedItemVariante?.id).toBe(77);
+      const ingredients = component.deduplicatedIngredients;
+      expect(ingredients).toHaveSize(1);
+      expect(ingredients[0].ingredientNom).toBe('Artisanal Gin');
+      expect(ingredients[0].quantite).toBe(6);
+    });
+
+    it('should resolve item variant by name case-insensitively when varianteId is not set', () => {
+      const variantWithIngredients = {
+        id: 88,
+        nom: 'Spiced Rum Edition',
+        prixSupplement: 1.5,
+        disponible: true,
+        ingredients: [
+          { id: 2, ingredientId: 98, ingredientNom: 'Spiced Rum', quantite: 7, unite: 'cl' }
+        ],
+        recipeSteps: []
+      };
+
+      component.cocktail = {
+        ...mockCocktail,
+        variantes: [variantWithIngredients as any]
+      };
+      component.item = {
+        ...mockItem,
+        varianteId: undefined,
+        varianteNom: 'spiced rum edition'
+      };
+
+      expect(component.resolvedItemVariante?.id).toBe(88);
+      expect(component.deduplicatedIngredients[0].ingredientNom).toBe('Spiced Rum');
+    });
   });
 });

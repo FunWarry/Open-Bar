@@ -474,10 +474,45 @@ describe('CocktailFormComponent', () => {
       const group = component.getAsFormGroup(component.recipeStepsArray.at(0));
       component.onIngredientSelected(1, group);
 
+      modalCtrlSpy.create.and.returnValue(Promise.resolve({
+        present: () => Promise.resolve(),
+        onWillDismiss: () => Promise.resolve({
+          data: {
+            nom: 'Spicy Daiquiri',
+            description: 'With habanero',
+            prixSupplement: 1.5,
+            multiplicateurIngredient: 1.0,
+            disponible: true,
+            instructions: 'Shake with chili slice',
+            ingredients: [{ ingredientId: 1, quantite: 5, unite: 'cl', notes: 'spicy' }],
+            recipeSteps: [{ stepOrder: 1, stepType: 'INGREDIENT', ingredientId: 1, quantite: 5, unite: 'cl' }]
+          },
+          role: 'confirm'
+        })
+      } as any));
+
+      await component.openVariantRecipeModal();
+
       component.onSubmit();
       await Promise.resolve();
 
-      expect(cocktailServiceSpy.create).toHaveBeenCalled();
+      expect(cocktailServiceSpy.create).toHaveBeenCalledWith(
+        jasmine.objectContaining({
+          nom: 'Daiquiri',
+          variantes: jasmine.arrayContaining([
+            jasmine.objectContaining({
+              nom: 'Spicy Daiquiri',
+              prixSupplement: 1.5,
+              recipeSteps: jasmine.arrayContaining([
+                jasmine.objectContaining({ ingredientId: 1, quantite: 5 })
+              ]),
+              ingredients: jasmine.arrayContaining([
+                jasmine.objectContaining({ ingredientId: 1, quantite: 5 })
+              ])
+            })
+          ])
+        })
+      );
       expect(routerSpy.navigate).toHaveBeenCalledWith(['/cocktails']);
     });
   });

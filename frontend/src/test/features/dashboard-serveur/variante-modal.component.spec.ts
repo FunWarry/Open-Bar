@@ -87,6 +87,18 @@ describe('VarianteModalComponent', () => {
     expect(component.variantesDisponibles).toHaveSize(0);
   });
 
+  it('ngOnInit() deduplicates variants without IDs by name', () => {
+    component.cocktail = {
+      ...mockCocktailNoVariante,
+      variantes: [
+        { nom: 'Custom Variant', disponible: true, prixSupplement: 1 },
+        { nom: 'custom variant', disponible: true, prixSupplement: 2 },
+      ]
+    };
+    component.ngOnInit();
+    expect(component.variantesDisponibles).toHaveSize(1);
+  });
+
   // --- prixEffectif ---
 
   it('prixEffectif returns base price when no variant is selected', () => {

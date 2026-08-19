@@ -343,6 +343,39 @@ describe('VariantRecipeModalComponent', () => {
     expect(component.recipeSteps[0].quantite).toBe(qty);
   });
 
+  it('should calculate effectivePrice, totalVolume, and ingredientCount correctly', () => {
+    component.baseCocktailPrice = 10;
+    component.prixSupplement = 2.5;
+    component.variante = null;
+    component.ngOnInit();
+
+    expect(component.effectivePrice).toBe(12.5);
+    expect(component.ingredientCount).toBe(2);
+    expect(component.totalVolume).toBe(8); // 5cl + 3cl
+  });
+
+  it('should initialize correctly when editing variant with existing recipeSteps', () => {
+    component.variante = {
+      id: 55,
+      nom: 'Existing Steps Variant',
+      description: 'Custom steps description',
+      prixSupplement: 1.0,
+      multiplicateurIngredient: 1.0,
+      disponible: true,
+      instructions: 'Custom notes',
+      ingredients: [],
+      recipeSteps: [
+        { stepOrder: 1, stepType: 'CUSTOM_TEXT', actionTitle: 'Direct Step', durationSeconds: 5 }
+      ]
+    };
+    component.ngOnInit();
+
+    expect(component.id).toBe(55);
+    expect(component.nom).toBe('Existing Steps Variant');
+    expect(component.recipeSteps).toHaveSize(1);
+    expect(component.recipeSteps[0].actionTitle).toBe('Direct Step');
+  });
+
   it('should cancel and dismiss with null', () => {
     component.cancel();
     expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith(null, 'cancel');
