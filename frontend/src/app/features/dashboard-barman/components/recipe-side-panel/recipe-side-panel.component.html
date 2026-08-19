@@ -266,9 +266,7 @@
                 <div
                   class="modular-step-card"
                   [class.completed]="isStepCompleted(step.id, sIdx)"
-                  [attr.data-testid]="'barman-step-' + sIdx"
-                  (click)="toggleStepCompleted(step.id, sIdx)"
-                  [title]="'BARMAN_DASHBOARD.STEP_CLICK_TO_TOGGLE' | transloco">
+                  [attr.data-testid]="'barman-step-' + sIdx">
 
                   <!-- Step Number / Checkbox Button -->
                   <button
