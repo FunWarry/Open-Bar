@@ -101,7 +101,8 @@ users ──< employee_shifts              ← Staff shifts and schedules
 employee_shifts ──< shift_audit_log    ← Immutable audit log (CREATED/UPDATED/DELETED)
 users ──< tables (serveur_id)
 tables ──< commandes ──< commande_items ──< cocktails
-                                         └──< cocktail_variantes
+                                         └──< cocktail_variantes ──< cocktail_variante_ingredients ──< ingredients
+                                                                 └── recipe_steps_json (mixology steps)
 cocktails ──< cocktail_ingredients ──< ingredients
 cocktails ──< cocktail_recipe_steps ──< recipe_step_templates
                                     └──< ingredients
