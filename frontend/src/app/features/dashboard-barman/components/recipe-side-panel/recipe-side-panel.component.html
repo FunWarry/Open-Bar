@@ -207,23 +207,23 @@
         </div>
       </section>
 
-      <!-- Main Unified Preparation / Dosages Flow Section -->
-      <section class="recipe-section modular-flow-section" data-testid="recipe-modular-steps-section">
-        <div class="section-title-row">
+      <!-- Main Unified Technical Recipe Card / Fiche Technique de Réalisation -->
+      <section class="preview-recipe-section" data-testid="recipe-modular-steps-section">
+        <div class="preview-section-title">
           <div class="section-title-left">
             @if (viewMode === 'compact') {
               <ion-icon name="flash-outline"></ion-icon>
               <h3>{{ 'BARMAN_DASHBOARD.VIEW_MODE_COMPACT' | transloco }}</h3>
             } @else {
               <ion-icon name="sparkles-outline"></ion-icon>
-              <h3>{{ 'BARMAN_DASHBOARD.PREPARATION_STEPS_TITLE' | transloco }}</h3>
+              <h3>{{ 'COCKTAILS.PREVIEW.RECIPE_PREVIEW_TITLE' | transloco }}</h3>
             }
           </div>
 
           <div class="section-title-right">
             @if (quantity > 1) {
-              <span class="quantity-scale-badge" data-testid="recipe-scale-badge">
-                {{ 'BARMAN_DASHBOARD.TOTAL_DOSAGE_FOR_ORDER' | transloco: { qty: quantity } }}
+              <span class="scaling-indicator-tag" data-testid="recipe-scale-badge">
+                ⚡ {{ 'COCKTAILS.PREVIEW.SCALED_DOSAGE_HINT' | transloco: { count: quantity } }}
               </span>
             }
             @if (viewMode === 'full' && (cocktail?.recipeSteps?.length ?? 0) > 0) {
@@ -235,123 +235,136 @@
         </div>
 
         @if (hasVisibleSteps) {
-          <div class="modular-steps-list" data-testid="barman-recipe-steps-list">
+          <div class="recipe-timeline" data-testid="barman-recipe-steps-list">
             @for (step of visibleRecipeSteps; track step.id || $index; let sIdx = $index) {
               <div
-                class="modular-step-card"
+                class="timeline-step-row"
+                [class.type-ingredient]="step.stepType === 'INGREDIENT'"
+                [class.type-action]="step.stepType === 'ACTION_TEMPLATE'"
+                [class.type-custom]="step.stepType === 'CUSTOM_TEXT'"
                 [class.completed]="isStepCompleted(step.id, sIdx)"
                 [attr.data-testid]="'barman-step-' + sIdx">
 
-                <!-- Step Number / Checkbox Button -->
-                <button
-                  type="button"
-                  class="step-num-badge"
-                  [class.checked]="isStepCompleted(step.id, sIdx)"
-                  [attr.data-testid]="'barman-step-check-' + sIdx"
-                  (click)="toggleStepCompleted(step.id, sIdx); $event.stopPropagation()"
-                  [attr.aria-label]="'BARMAN_DASHBOARD.STEP_CLICK_TO_TOGGLE' | transloco">
-                  @if (isStepCompleted(step.id, sIdx)) {
-                    <ion-icon name="checkmark-outline"></ion-icon>
-                  } @else {
-                    <span>{{ sIdx + 1 }}</span>
-                  }
-                </button>
+                <!-- Step Number / Checkbox Badge Button -->
+                <div class="step-badge-col">
+                  <button
+                    type="button"
+                    class="timeline-num"
+                    [class.checked]="isStepCompleted(step.id, sIdx)"
+                    [attr.data-testid]="'barman-step-check-' + sIdx"
+                    (click)="toggleStepCompleted(step.id, sIdx); $event.stopPropagation()"
+                    [attr.aria-label]="'BARMAN_DASHBOARD.STEP_CLICK_TO_TOGGLE' | transloco">
+                    @if (isStepCompleted(step.id, sIdx)) {
+                      <ion-icon name="checkmark-outline"></ion-icon>
+                    } @else {
+                      <span>{{ sIdx + 1 }}</span>
+                    }
+                  </button>
+                </div>
 
-                <div class="step-details-col">
-                  <!-- INGREDIENT STEP -->
+                <!-- Step Content Card -->
+                <div class="step-card-content">
+                  <!-- INGREDIENT BLOCK -->
                   @if (step.stepType === 'INGREDIENT') {
-                    <div class="step-header-line">
-                      <span class="step-title-text">
-                        <span class="type-pill ingredient-pill">
-                          {{ 'BARMAN_DASHBOARD.INGREDIENT_BADGE' | transloco }}
-                        </span>
-                        <strong>{{ step.ingredientNom || 'Ingrédient' }}</strong>
-                      </span>
-                      @if (step.quantite != null) {
-                        <span class="step-dosage-tag">
-                          <strong>{{ getScaledStepQuantity(step.quantite) }} {{ step.unite || 'cl' }}</strong>
-                          @if (quantity > 1) {
-                            <small>({{ step.quantite }} {{ step.unite || 'cl' }} / verre)</small>
-                          }
-                        </span>
+                    <div class="timeline-block-body">
+                      <div class="step-header-line">
+                        <div class="step-title-with-icon">
+                          <ion-icon name="leaf-outline" class="step-type-icon icon-ingredient"></ion-icon>
+                          <span class="step-main-title">
+                            {{ getStepIngredientNom(step) }}
+                          </span>
+                        </div>
+                        @if (step.quantite != null) {
+                          <div class="dosage-pill" data-testid="ing-dosage-badge">
+                            <strong class="dosage-value">{{ getScaledStepQuantity(step.quantite) }} {{ step.unite || 'cl' }}</strong>
+                            @if (quantity > 1) {
+                              <small class="unit-ref">({{ step.quantite }} {{ step.unite || 'cl' }} / verre)</small>
+                            }
+                          </div>
+                        }
+                      </div>
+                      @if (step.customText) {
+                        <p class="step-notes">{{ step.customText }}</p>
                       }
                     </div>
-                    @if (step.customText) {
-                      <p class="step-subtext">{{ step.customText }}</p>
-                    }
                   }
 
-                  <!-- ACTION_TEMPLATE STEP (Only in full mode) -->
+                  <!-- ACTION_TEMPLATE BLOCK (Full Mode) -->
                   @if (step.stepType === 'ACTION_TEMPLATE') {
-                    <div class="step-header-line">
-                      <span class="step-title-text">
-                        <span
-                          class="type-pill action-pill"
-                          [ngClass]="getActionBadgeClass(step.actionType)">
-                          <ion-icon [name]="getActionIcon(step.actionType)"></ion-icon>
-                          {{ getActionLabelKey(step.actionType) | transloco }}
-                        </span>
-                        <strong class="action-template-name">
-                          {{ step.templateName || (getActionLabelKey(step.actionType) | transloco) }}
-                        </strong>
-                      </span>
-
-                      @if (step.durationSeconds) {
-                        <span class="step-duration-badge" data-testid="step-duration-badge">
-                          <ion-icon name="time-outline"></ion-icon>
-                          {{ 'BARMAN_DASHBOARD.DURATION_SECONDS' | transloco: { seconds: step.durationSeconds } }}
-                        </span>
+                    <div class="timeline-block-body">
+                      <div class="step-header-line">
+                        <div class="step-title-with-icon">
+                          <ion-icon [name]="getActionIcon(step.actionType)" class="step-type-icon icon-action"></ion-icon>
+                          <span class="step-main-title">
+                            {{ getStepActionName(step) || (getActionLabelKey(step.actionType) | transloco) }}
+                          </span>
+                        </div>
+                        @if (step.durationSeconds) {
+                          <div class="duration-pill" data-testid="step-duration-badge">
+                            <ion-icon name="time-outline"></ion-icon>
+                            <span>{{ step.durationSeconds }} {{ 'COCKTAILS.PREVIEW.SECONDS' | transloco }}</span>
+                          </div>
+                        }
+                      </div>
+                      @if (step.customText) {
+                        <p class="step-notes">{{ step.customText }}</p>
                       }
                     </div>
-                    @if (step.customText) {
-                      <p class="step-subtext">{{ step.customText }}</p>
-                    }
                   }
 
-                  <!-- CUSTOM_TEXT STEP (Only in full mode) -->
+                  <!-- CUSTOM_TEXT BLOCK (Full Mode) -->
                   @if (step.stepType === 'CUSTOM_TEXT') {
-                    <div class="step-header-line">
-                      <span class="step-title-text">
-                        <span class="type-pill custom-pill">
-                          <ion-icon name="create-outline"></ion-icon>
-                          {{ 'BARMAN_DASHBOARD.CUSTOM_STEP_BADGE' | transloco }}
-                        </span>
-                        <strong class="custom-step-title">
-                          {{ step.actionTitle || ('BARMAN_DASHBOARD.CUSTOM_STEP_BADGE' | transloco) }}
-                        </strong>
-                      </span>
-
-                      @if (step.durationSeconds) {
-                        <span class="step-duration-badge" data-testid="step-duration-badge">
-                          <ion-icon name="time-outline"></ion-icon>
-                          {{ 'BARMAN_DASHBOARD.DURATION_SECONDS' | transloco: { seconds: step.durationSeconds } }}
-                        </span>
+                    <div class="timeline-block-body">
+                      <div class="step-header-line">
+                        <div class="step-title-with-icon">
+                          <ion-icon name="create-outline" class="step-type-icon icon-custom"></ion-icon>
+                          <span class="step-main-title">
+                            {{ step.actionTitle || ('BARMAN_DASHBOARD.CUSTOM_STEP_BADGE' | transloco) }}
+                          </span>
+                        </div>
+                        @if (step.durationSeconds) {
+                          <div class="duration-pill" data-testid="step-duration-badge">
+                            <ion-icon name="time-outline"></ion-icon>
+                            <span>{{ step.durationSeconds }} {{ 'COCKTAILS.PREVIEW.SECONDS' | transloco }}</span>
+                          </div>
+                        }
+                      </div>
+                      @if (step.customText) {
+                        <p class="step-notes">{{ step.customText }}</p>
                       }
                     </div>
-                    @if (step.customText) {
-                      <p class="step-subtext">{{ step.customText }}</p>
-                    }
                   }
                 </div>
               </div>
             }
           </div>
         } @else if (viewMode === 'compact' && deduplicatedIngredients.length > 0) {
-          <!-- Fallback ingredients list in compact mode when cocktail has no modular recipe steps -->
-          <div class="ingredients-list" data-testid="recipe-ingredients-list">
+          <!-- Fallback compact ingredients when cocktail has no modular recipe steps -->
+          <div class="recipe-timeline" data-testid="recipe-ingredients-list">
             @for (ing of deduplicatedIngredients; track ing.id || ing.ingredientNom; let iIdx = $index) {
-              <div class="ingredient-card" [attr.data-testid]="'recipe-ing-row-' + iIdx">
-                <div class="ing-bullet"></div>
-                <div class="ing-info">
-                  <span class="ing-name">{{ ing.ingredientNom }}</span>
+              <div class="timeline-step-row type-ingredient" [attr.data-testid]="'recipe-ing-row-' + iIdx">
+                <div class="step-badge-col">
+                  <div class="timeline-num">
+                    <span>{{ iIdx + 1 }}</span>
+                  </div>
                 </div>
-                <div class="ing-measurements">
-                  @if (quantity > 1) {
-                    <span class="total-dosage">{{ getTotalDosage(ing.quantite) }} {{ ing.uniteMesure }}</span>
-                    <span class="unit-dosage">({{ ing.quantite }} {{ ing.uniteMesure }} / verre)</span>
-                  } @else {
-                    <span class="total-dosage">{{ ing.quantite }} {{ ing.uniteMesure }}</span>
-                  }
+                <div class="step-card-content">
+                  <div class="timeline-block-body">
+                    <div class="step-header-line">
+                      <div class="step-title-with-icon">
+                        <ion-icon name="leaf-outline" class="step-type-icon icon-ingredient"></ion-icon>
+                        <span class="step-main-title">{{ ing.ingredientNom }}</span>
+                      </div>
+                      <div class="dosage-pill">
+                        @if (quantity > 1) {
+                          <strong class="dosage-value">{{ getTotalDosage(ing.quantite) }} {{ ing.uniteMesure }}</strong>
+                          <small class="unit-ref">({{ ing.quantite }} {{ ing.uniteMesure }} / verre)</small>
+                        } @else {
+                          <strong class="dosage-value">{{ ing.quantite }} {{ ing.uniteMesure }}</strong>
+                        }
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             }

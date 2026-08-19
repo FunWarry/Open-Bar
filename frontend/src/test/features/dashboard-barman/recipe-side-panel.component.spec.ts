@@ -438,8 +438,8 @@ describe('RecipeSidePanelComponent', () => {
       expect(component.viewMode).toBe('compact');
       expect(compactBtn.classList.contains('active')).toBeTrue();
 
-      const stepCards = fixture.nativeElement.querySelectorAll('.modular-step-card');
-      expect(stepCards.length).toBe(1); // Only INGREDIENT step visible in compact mode
+      const stepCards = fixture.nativeElement.querySelectorAll('.timeline-step-row');
+      expect(stepCards).toHaveSize(1); // Only INGREDIENT step visible in compact mode
     });
 
     it('should render special instructions and priority pill when present', () => {
@@ -466,7 +466,7 @@ describe('RecipeSidePanelComponent', () => {
 
       const step1 = fixture.nativeElement.querySelector('[data-testid="barman-step-1"]');
       expect(step1?.textContent).toContain('Piler la menthe fraîche');
-      expect(step1?.textContent).toContain('15s');
+      expect(step1?.textContent).toContain('15');
     });
   });
 });

@@ -395,6 +395,37 @@ export class RecipeSidePanelComponent implements OnInit, OnChanges {
   }
 
   /**
+   * Resolves the ingredient name for a recipe step, with fallback lookup in cocktail.ingredients.
+   *
+   * @param step The recipe step
+   * @returns Resolved ingredient name
+   */
+  getStepIngredientNom(step: CocktailRecipeStep): string {
+    if (step.ingredientNom) {
+      return step.ingredientNom;
+    }
+    if (step.ingredientId && this.cocktail?.ingredients) {
+      const match = this.cocktail.ingredients.find(
+        (i) => i.ingredientId === step.ingredientId || i.id === step.ingredientId
+      );
+      if (match?.ingredientNom) {
+        return match.ingredientNom;
+      }
+    }
+    return 'Ingrédient';
+  }
+
+  /**
+   * Resolves the action name for a template recipe step.
+   *
+   * @param step The recipe step
+   * @returns Resolved action name or template name
+   */
+  getStepActionName(step: CocktailRecipeStep): string {
+    return step.templateName || step.actionTitle || '';
+  }
+
+  /**
    * Resolves relative image paths to the backend host when starting with /uploads/.
    *
    * @param url Image URL or relative path
