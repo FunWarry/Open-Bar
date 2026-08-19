@@ -28,6 +28,8 @@
     "RESET": "Réinitialiser",
     "PREV": "Préc.",
     "NEXT": "Suiv.",
+    "ITEM": "article",
+    "ITEMS": "articles",
     "ALL_RIGHTS_RESERVED": "Tous droits réservés."
   },
   "TABLE_CARD": {

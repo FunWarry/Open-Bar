@@ -172,8 +172,8 @@
                 <ion-icon name="fast-food-outline"></ion-icon>
                 <h3 class="section-title">{{ t('FACTURES.ITEMS_CONSUMED') }}</h3>
               </div>
-              <span class="items-count-badge" *ngIf="facture.items">
-                {{ facture.items.length }} {{ facture.items.length > 1 ? t('COMMANDES.ITEMS') : t('COMMON.ITEM') }}
+              <span class="items-count-badge" *ngIf="facture.items && facture.items.length > 0">
+                {{ facture.items.length }} {{ facture.items.length > 1 ? t('COMMON.ITEMS') : t('COMMON.ITEM') }}
               </span>
             </div>
 

@@ -28,6 +28,8 @@
     "RESET": "Reset",
     "PREV": "Prev.",
     "NEXT": "Next",
+    "ITEM": "item",
+    "ITEMS": "items",
     "ALL_RIGHTS_RESERVED": "All rights reserved."
   },
   "TABLE_CARD": {

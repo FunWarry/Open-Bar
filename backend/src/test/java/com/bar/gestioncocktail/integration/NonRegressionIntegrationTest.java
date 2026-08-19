@@ -2,7 +2,9 @@ package com.bar.gestioncocktail.integration;
 
 import com.bar.gestioncocktail.dto.SplitEgalRequest;
 import com.bar.gestioncocktail.model.Facture;
+import com.bar.gestioncocktail.model.FactureItem;
 import com.bar.gestioncocktail.model.TableEntity;
+import com.bar.gestioncocktail.model.VatRate;
 import com.bar.gestioncocktail.repository.FactureRepository;
 import com.bar.gestioncocktail.repository.TableRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -13,6 +15,7 @@ import org.springframework.http.MediaType;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -53,6 +56,18 @@ class NonRegressionIntegrationTest extends BaseIntegrationTest {
                     newFacture.setTotalTTC(new BigDecimal("45.00"));
                     newFacture.setDateFacture(LocalDateTime.now());
                     newFacture.setReglee(false);
+
+                    FactureItem fi = new FactureItem();
+                    fi.setFacture(newFacture);
+                    fi.setDescription("Cosmopolitan");
+                    fi.setQuantite(3);
+                    fi.setPrixUnitaire(new BigDecimal("15.00"));
+                    fi.setTotal(new BigDecimal("45.00"));
+                    fi.setPriceHT(new BigDecimal("37.50"));
+                    fi.setVatAmount(new BigDecimal("7.50"));
+                    fi.setVatRate(VatRate.TWENTY);
+                    newFacture.setItems(List.of(fi));
+
                     return factureRepository.save(newFacture);
                 });
         Long factureId = facture.getId();
