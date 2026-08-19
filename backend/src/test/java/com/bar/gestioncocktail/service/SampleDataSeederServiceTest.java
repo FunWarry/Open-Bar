@@ -235,4 +235,53 @@ class SampleDataSeederServiceTest {
         assertThat(firstFacture.getItems()).isNotEmpty();
         assertThat(firstFacture.getItems().get(0).getVatRate()).isNotNull();
     }
+
+    @Test
+    @DisplayName("seedAllDemoData - links facture items to matching commande items when orders exist on table")
+    void seedAllDemoData_linksFactureItemsToCommandeItems() {
+        when(userRepository.findByUsername(any())).thenReturn(Optional.empty());
+        when(userRepository.save(any())).thenAnswer(invocation -> {
+            User u = invocation.getArgument(0);
+            if (u.getId() == null) u.setId(1L);
+            return u;
+        });
+        TableEntity mockTable = new TableEntity();
+        mockTable.setNumero(1);
+        mockTable.setId(1L);
+        when(tableRepository.findByNumero(anyInt())).thenReturn(Optional.of(mockTable));
+        when(tableRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(establishmentClosureRepository.count()).thenReturn(0L);
+        when(commandeRepository.count()).thenReturn(0L);
+
+        Cocktail mockMojito = new Cocktail();
+        mockMojito.setId(1L);
+        mockMojito.setNom("Mojito");
+        mockMojito.setPrix(new BigDecimal("9.50"));
+
+        CommandeItem mockCi = new CommandeItem();
+        mockCi.setId(10L);
+        mockCi.setCocktail(mockMojito);
+        mockCi.setQuantite(2);
+        mockCi.setPrixUnitaire(new BigDecimal("9.50"));
+
+        Commande mockCmd = new Commande();
+        mockCmd.setId(5L);
+        mockCmd.setTable(mockTable);
+        mockCmd.setItems(List.of(mockCi));
+
+        when(commandeRepository.findByTable(any())).thenReturn(List.of(mockCmd));
+        when(cocktailRepository.findAll()).thenReturn(List.of(mockMojito));
+
+        sampleDataSeederService.seedAllDemoData();
+
+        ArgumentCaptor<Facture> factureCaptor = ArgumentCaptor.forClass(Facture.class);
+        verify(factureRepository, atLeastOnce()).save(factureCaptor.capture());
+
+        List<Facture> factures = factureCaptor.getAllValues();
+        Optional<Facture> matched = factures.stream()
+                .filter(f -> f.getItems().stream().anyMatch(i -> i.getCommandeItem() != null))
+                .findFirst();
+
+        assertThat(matched).isPresent();
+    }
 }
