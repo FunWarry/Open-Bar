@@ -161,8 +161,15 @@ export async function setupMockApi(page: Page): Promise<void> {
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify([
-        { id: 1, name: 'Verre Highball', capacityCl: 35.0, description: 'Verre classique pour long drinks' },
-        { id: 2, name: 'Coupe Martini', capacityCl: 20.0, description: 'Coupe cocktail élégante' }
+        { id: 1, nom: 'Verre Tumbler / Highball', contenanceCl: 35.0, description: 'Verre classique pour long drinks', isPredefined: true },
+        { id: 2, nom: 'Verre Old Fashioned / Rocks', contenanceCl: 30.0, description: 'Verre bas pour cocktails remués', isPredefined: true },
+        { id: 3, nom: 'Coupe à Cocktail / Martini', contenanceCl: 22.0, description: 'Coupe cocktail élégante', isPredefined: true },
+        { id: 4, nom: 'Verre Margarita', contenanceCl: 33.0, description: 'Verre pour margarita au sel', isPredefined: true },
+        { id: 5, nom: 'Verre Ballon / Copa', contenanceCl: 60.0, description: 'Grand verre ballon', isPredefined: true },
+        { id: 6, nom: 'Flûte à Champagne', contenanceCl: 18.0, description: 'Flûte à bulles', isPredefined: true },
+        { id: 7, nom: 'Tasse en cuivre', contenanceCl: 45.0, description: 'Tasse en cuivre pour Moscow Mule', isPredefined: true },
+        { id: 8, nom: 'Verre Tiki', contenanceCl: 50.0, description: 'Verre tiki exotique', isPredefined: true },
+        { id: 9, nom: 'Verre à Shot / Chupito', contenanceCl: 5.0, description: 'Verre à shooter', isPredefined: true }
       ]),
     });
   });
@@ -208,9 +215,13 @@ export async function setupMockApi(page: Page): Promise<void> {
           tableId: 1,
           tableNumero: 1,
           statut: 'EN_ATTENTE',
-          items: [],
-          total: 14.5,
+          items: [
+            { id: 1, cocktailId: 1, cocktailNom: 'Mojito', quantite: 2, prixUnitaire: 9.5 }
+          ],
+          total: 19.0,
+          dateCommande: new Date().toISOString(),
           createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
         },
       ]),
     });
@@ -227,10 +238,10 @@ export async function setupMockApi(page: Page): Promise<void> {
           tableNumero: 1,
           tableNom: 'Table 1',
           statut: 'EN_ATTENTE',
-          serveurUsername: 'Alex',
-          total: 14.5,
+          serveurUsername: 'serveur1',
+          total: 19.0,
           dateCommande: new Date().toISOString(),
-          items: [{ id: 1, cocktailNom: 'Mojito', quantite: 2 }],
+          items: [{ id: 1, cocktailNom: 'Mojito', quantite: 2, prixUnitaire: 9.5 }],
         }
       ]),
     });
@@ -313,7 +324,7 @@ export async function setupMockApi(page: Page): Promise<void> {
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify([
-        { id: 1, reference: 'FAC-2026-001', montantTotal: 25.0, statut: 'NON_REGLEE' },
+        { id: 1, numero: 'FAC-2026-001', tableNumero: 1, total: 25.0, totalTTC: 25.0, reglee: false, dateFacture: new Date().toISOString(), items: [] },
       ]),
     });
   });
@@ -326,6 +337,49 @@ export async function setupMockApi(page: Page): Promise<void> {
         { id: 1, username: 'admin', email: 'admin@openbar.fr', roles: ['ADMIN'] },
         { id: 2, username: 'serveur1', email: 'serveur1@openbar.fr', roles: ['SERVEUR'] },
       ]),
+    });
+  });
+
+  await page.route('**/api/shifts**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([
+        {
+          id: 1,
+          userId: 2,
+          userName: 'serveur1',
+          dateShift: '2026-08-20',
+          typeShift: 'MATIN',
+          typePoste: 'SERVEUR',
+          heureDebut: '10:00',
+          heureFin: '16:00',
+          dureePauseMinutes: 30
+        }
+      ]),
+    });
+  });
+
+  await page.route('**/api/closures**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([
+        { id: 1, type: 'WEEKLY_RECURRING', dayOfWeek: 'SUNDAY', reason: 'Fermeture hebdomadaire' }
+      ]),
+    });
+  });
+
+  await page.route('**/api/schedule/publication**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        id: 1,
+        weekStart: '2026-08-17',
+        publishedAt: '2026-08-15T18:00:00Z',
+        publishedBy: 'admin'
+      }),
     });
   });
 

@@ -7,6 +7,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -20,6 +21,7 @@ import java.time.Month;
 import java.time.ZoneId;
 import java.util.*;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -194,5 +196,43 @@ class SampleDataSeederServiceTest {
         sampleDataSeederService.seedAllDemoData();
 
         verify(employeeShiftRepository, atLeastOnce()).findByUserId(anyLong());
+    }
+
+    @Test
+    @DisplayName("seedAllDemoData - correctly seeds invoices with VAT rate and HT calculation")
+    void seedAllDemoData_correctlyCalculatesVatAndInvoiceTotals() {
+        when(userRepository.findByUsername(any())).thenReturn(Optional.empty());
+        when(userRepository.save(any())).thenAnswer(invocation -> {
+            User u = invocation.getArgument(0);
+            if (u.getId() == null) u.setId(1L);
+            return u;
+        });
+        TableEntity mockTable = new TableEntity();
+        mockTable.setNumero(1);
+        mockTable.setId(1L);
+        when(tableRepository.findByNumero(anyInt())).thenReturn(Optional.of(mockTable));
+        when(tableRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(establishmentClosureRepository.count()).thenReturn(0L);
+        when(commandeRepository.count()).thenReturn(0L);
+
+        Cocktail mockCocktail = new Cocktail();
+        mockCocktail.setId(1L);
+        mockCocktail.setNom("Mojito");
+        mockCocktail.setPrix(new BigDecimal("9.50"));
+        when(cocktailRepository.findAll()).thenReturn(List.of(mockCocktail));
+
+        sampleDataSeederService.seedAllDemoData();
+
+        ArgumentCaptor<Facture> factureCaptor = ArgumentCaptor.forClass(Facture.class);
+        verify(factureRepository, atLeastOnce()).save(factureCaptor.capture());
+
+        List<Facture> savedFactures = factureCaptor.getAllValues();
+        assertThat(savedFactures).isNotEmpty();
+        Facture firstFacture = savedFactures.get(0);
+        assertThat(firstFacture.getTotal()).isPositive();
+        assertThat(firstFacture.getTotalHT()).isPositive();
+        assertThat(firstFacture.getTotalVAT()).isPositive();
+        assertThat(firstFacture.getItems()).isNotEmpty();
+        assertThat(firstFacture.getItems().get(0).getVatRate()).isNotNull();
     }
 }
