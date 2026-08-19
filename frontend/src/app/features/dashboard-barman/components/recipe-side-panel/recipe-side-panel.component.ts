@@ -404,6 +404,9 @@ export class RecipeSidePanelComponent implements OnInit, OnChanges {
     if (step.ingredientNom) {
       return step.ingredientNom;
     }
+    if (step.ingredientName) {
+      return step.ingredientName;
+    }
     if (step.ingredientId && this.cocktail?.ingredients) {
       const match = this.cocktail.ingredients.find(
         (i) => i.ingredientId === step.ingredientId || i.id === step.ingredientId
@@ -422,7 +425,38 @@ export class RecipeSidePanelComponent implements OnInit, OnChanges {
    * @returns Resolved action name or template name
    */
   getStepActionName(step: CocktailRecipeStep): string {
-    return step.templateName || step.actionTitle || '';
+    return (
+      step.templateName ||
+      step.template?.name ||
+      step.actionTitle ||
+      ''
+    );
+  }
+
+  /**
+   * Resolves the action category type for a recipe step.
+   *
+   * @param step The recipe step
+   * @returns Resolved action type
+   */
+  getStepActionType(step: CocktailRecipeStep): string | undefined {
+    return step.actionType || step.template?.actionType;
+  }
+
+  /**
+   * Resolves the duration in seconds for a recipe step.
+   *
+   * @param step The recipe step
+   * @returns Duration in seconds or null
+   */
+  getStepDurationSeconds(step: CocktailRecipeStep): number | null {
+    if (step.durationSeconds != null) {
+      return step.durationSeconds;
+    }
+    if (step.template?.defaultDurationSeconds != null) {
+      return step.template.defaultDurationSeconds;
+    }
+    return null;
   }
 
   /**

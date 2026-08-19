@@ -294,15 +294,15 @@
                     <div class="timeline-block-body">
                       <div class="step-header-line">
                         <div class="step-title-with-icon">
-                          <ion-icon [name]="getActionIcon(step.actionType)" class="step-type-icon icon-action"></ion-icon>
+                          <ion-icon [name]="getActionIcon(getStepActionType(step))" class="step-type-icon icon-action"></ion-icon>
                           <span class="step-main-title">
-                            {{ getStepActionName(step) || (getActionLabelKey(step.actionType) | transloco) }}
+                            {{ getStepActionName(step) || (getActionLabelKey(getStepActionType(step)) | transloco) }}
                           </span>
                         </div>
-                        @if (step.durationSeconds) {
+                        @if (getStepDurationSeconds(step); as dur) {
                           <div class="duration-pill" data-testid="step-duration-badge">
                             <ion-icon name="time-outline"></ion-icon>
-                            <span>{{ step.durationSeconds }} {{ 'COCKTAILS.PREVIEW.SECONDS' | transloco }}</span>
+                            <span>{{ dur }} {{ 'COCKTAILS.PREVIEW.SECONDS' | transloco }}</span>
                           </div>
                         }
                       </div>
@@ -322,10 +322,10 @@
                             {{ step.actionTitle || ('BARMAN_DASHBOARD.CUSTOM_STEP_BADGE' | transloco) }}
                           </span>
                         </div>
-                        @if (step.durationSeconds) {
+                        @if (getStepDurationSeconds(step); as dur) {
                           <div class="duration-pill" data-testid="step-duration-badge">
                             <ion-icon name="time-outline"></ion-icon>
-                            <span>{{ step.durationSeconds }} {{ 'COCKTAILS.PREVIEW.SECONDS' | transloco }}</span>
+                            <span>{{ dur }} {{ 'COCKTAILS.PREVIEW.SECONDS' | transloco }}</span>
                           </div>
                         }
                       </div>
