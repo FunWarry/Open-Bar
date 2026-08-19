@@ -3,6 +3,7 @@ package com.bar.gestioncocktail.service;
 import com.bar.gestioncocktail.model.*;
 import com.bar.gestioncocktail.repository.CocktailIngredientRepository;
 import com.bar.gestioncocktail.repository.CocktailRepository;
+import com.bar.gestioncocktail.repository.GlasswareRepository;
 import com.bar.gestioncocktail.repository.IngredientRepository;
 import com.bar.gestioncocktail.repository.CocktailVarianteRepository;
 import com.fasterxml.jackson.core.json.JsonReadFeature;
@@ -12,6 +13,7 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
@@ -30,6 +32,7 @@ import java.util.Set;
  * dataset ONLY in the dev/test environment if the database contains no cocktails on startup.
  */
 @Service
+@DependsOn("glasswareDataSeederService")
 @Profile({"dev", "test"})
 public class CocktailDataSeederService {
 
@@ -40,28 +43,39 @@ public class CocktailDataSeederService {
     private static final String KEY_MEDIA = "media";
     private static final String KEY_MATERIEL = "materiel";
     private static final String KEY_SPECIFICATION = "specification";
+    private static final String KEY_VERRE = "verre";
+    private static final String KEY_RECETTE_ULTRA_DETAILLEE = "recette_ultra_detaillee";
+    private static final String KEY_DESCRIPTION = "description";
+    private static final String KEY_QUANTITE = "quantite";
+    private static final String KEY_UNITE = "unite";
+    private static final String KEY_ACTION = "action";
+    private static final String KEY_INGREDIENT = "ingredient";
+    private static final String KEY_CHAMPAGNE = "champagne";
 
     private static final Set<String> ALCOHOL_KEYWORDS = Set.of(
             "rhum", "vodka", "gin", "tequila", "whisky", "whiskey", "calvados", "cognac", "armagnac",
             "liqueur", "cointreau", "triple sec", "martini", "campari", "aperol", "bière", "vin",
-            "prosecco", "champagne", "kahlua", "baileys", "get", "manzana", "pastis", "ricard",
+            "prosecco", KEY_CHAMPAGNE, "kahlua", "baileys", "get", "manzana", "pastis", "ricard",
             "angostura", "bourbon", "absinthe", "amaretto", "malibu", "chartreuse", "suze");
 
     private final CocktailRepository cocktailRepository;
     private final IngredientRepository ingredientRepository;
     private final CocktailIngredientRepository cocktailIngredientRepository;
     private final CocktailVarianteRepository cocktailVarianteRepository;
+    private final GlasswareRepository glasswareRepository;
     private final ObjectMapper objectMapper;
 
     public CocktailDataSeederService(
             CocktailRepository cocktailRepository,
             IngredientRepository ingredientRepository,
             CocktailIngredientRepository cocktailIngredientRepository,
-            CocktailVarianteRepository cocktailVarianteRepository) {
+            CocktailVarianteRepository cocktailVarianteRepository,
+            GlasswareRepository glasswareRepository) {
         this.cocktailRepository = cocktailRepository;
         this.ingredientRepository = ingredientRepository;
         this.cocktailIngredientRepository = cocktailIngredientRepository;
         this.cocktailVarianteRepository = cocktailVarianteRepository;
+        this.glasswareRepository = glasswareRepository;
         this.objectMapper = JsonMapper.builder()
                 .enable(JsonReadFeature.ALLOW_NON_NUMERIC_NUMBERS)
                 .build();
@@ -94,9 +108,10 @@ public class CocktailDataSeederService {
                 return;
             }
 
+            List<Glassware> allGlassware = glasswareRepository.findAll();
             int importedCount = 0;
             for (JsonNode node : cocktailsNode) {
-                if (importSingleCocktail(node)) {
+                if (importSingleCocktail(node, allGlassware)) {
                     importedCount++;
                 }
             }
@@ -144,7 +159,7 @@ public class CocktailDataSeederService {
         return CocktailDataSeederService.class.getResourceAsStream("/" + DATASET_PATH);
     }
 
-    private boolean importSingleCocktail(JsonNode node) {
+    private boolean importSingleCocktail(JsonNode node, List<Glassware> allGlassware) {
         try {
             String nom = node.has("nom") ? node.get("nom").asText().trim() : null;
             if (nom == null || nom.isBlank() || cocktailRepository.findByNomIgnoreCase(nom).isPresent()) {
@@ -156,7 +171,6 @@ public class CocktailDataSeederService {
             cocktail.setPrix(extractPrice(node));
             cocktail.setDescription(buildDescription(node));
             cocktail.setInstructions(buildInstructions(node));
-            cocktail.setVatRate(VatRate.TWENTY);
             cocktail.setDisponible(true);
 
             if (node.has(KEY_MEDIA) && node.get(KEY_MEDIA).has("photo_url")) {
@@ -169,11 +183,19 @@ public class CocktailDataSeederService {
             JsonNode ingredientsNode = node.get("ingredients");
             boolean containsAlcohol = detectAlcohol(ingredientsNode, nom);
             cocktail.setCategorie(detectCategory(node, containsAlcohol));
+            cocktail.setVatRate(resolveVatRate(nom, containsAlcohol));
+            cocktail.setGlassware(resolveGlassware(node, allGlassware));
 
             Cocktail savedCocktail = cocktailRepository.save(cocktail);
             List<CocktailIngredient> ingredientsList = importIngredients(savedCocktail, ingredientsNode);
 
             savedCocktail.setIngredients(ingredientsList);
+
+            List<CocktailRecipeStep> steps = importRecipeSteps(savedCocktail, node);
+            if (!steps.isEmpty()) {
+                savedCocktail.setRecipeSteps(steps);
+            }
+
             cocktailRepository.save(savedCocktail);
 
             importVariantes(savedCocktail, node.get("variantes"));
@@ -182,6 +204,124 @@ public class CocktailDataSeederService {
             log.error("Error importing cocktail node: {}", node, e);
             return false;
         }
+    }
+
+    private VatRate resolveVatRate(String nom, boolean containsAlcohol) {
+        if (containsAlcohol) {
+            return VatRate.TWENTY;
+        }
+        String lower = nom.toLowerCase();
+        if (lower.contains("planche") || lower.contains("nachos") || lower.contains("frites") || lower.contains("snack")) {
+            return VatRate.FIVE_FIVE;
+        }
+        return VatRate.TEN;
+    }
+
+    private Glassware resolveGlassware(JsonNode node, List<Glassware> allGlassware) {
+        if (allGlassware == null || allGlassware.isEmpty()) {
+            return null;
+        }
+        String verreName = "";
+        if (node.has(KEY_MATERIEL) && node.get(KEY_MATERIEL).has(KEY_VERRE)) {
+            verreName = node.get(KEY_MATERIEL).get(KEY_VERRE).asText().toLowerCase();
+        }
+        String cocktailNom = node.has("nom") ? node.get("nom").asText().toLowerCase() : "";
+
+        String matchedName = matchGlasswarePreset(verreName, cocktailNom);
+        return findGlasswareByKeyword(allGlassware, matchedName);
+    }
+
+    private String matchGlasswarePreset(String verre, String nom) {
+        if (isCopperMug(verre, nom)) return "Tasse en cuivre";
+        if (isMargaritaGlass(verre, nom)) return "Verre Margarita";
+        if (isChampagneFlute(verre, nom)) return "Flûte à Champagne";
+        if (isMartiniGlass(verre, nom)) return "Coupe à Cocktail / Martini";
+        if (isCopaGlass(verre, nom)) return "Verre Ballon / Copa";
+        if (isRocksGlass(verre, nom)) return "Verre Old Fashioned / Rocks";
+        if (isTikiGlass(verre, nom)) return "Verre Tiki";
+        if (isShotGlass(verre, nom)) return "Verre à Shot / Chupito";
+        return "Verre Tumbler / Highball";
+    }
+
+    private boolean isCopperMug(String verre, String nom) {
+        return verre.contains("tasse") || verre.contains("mug") || verre.contains("cuivre") || nom.contains("mule");
+    }
+
+    private boolean isMargaritaGlass(String verre, String nom) {
+        return verre.contains("margarita") || nom.contains("margarita");
+    }
+
+    private boolean isChampagneFlute(String verre, String nom) {
+        return verre.contains("flûte") || verre.contains("flute") || verre.contains(KEY_CHAMPAGNE) || nom.contains(KEY_CHAMPAGNE) || nom.contains("bellini") || nom.contains("mimosa");
+    }
+
+    private boolean isMartiniGlass(String verre, String nom) {
+        return verre.contains("martini") || verre.contains("coupe") || verre.contains("coupette") || nom.contains("cosmopolitan") || nom.contains("manhattan");
+    }
+
+    private boolean isCopaGlass(String verre, String nom) {
+        return verre.contains("ballon") || verre.contains("copa") || nom.contains("spritz") || nom.contains("gin tonic");
+    }
+
+    private boolean isRocksGlass(String verre, String nom) {
+        return verre.contains("old fashioned") || verre.contains("rocks") || verre.contains("whisky") || nom.contains("negroni") || nom.contains("old fashioned") || nom.contains("caïpirinha");
+    }
+
+    private boolean isTikiGlass(String verre, String nom) {
+        return verre.contains("tiki") || nom.contains("tiki") || nom.contains("mai tai") || nom.contains("zombie");
+    }
+
+    private boolean isShotGlass(String verre, String nom) {
+        return verre.contains("shot") || verre.contains("shooter") || verre.contains("chupito") || nom.contains("b-52") || nom.contains("shot");
+    }
+
+    private Glassware findGlasswareByKeyword(List<Glassware> all, String name) {
+        return all.stream()
+                .filter(g -> g.getNom().equalsIgnoreCase(name))
+                .findFirst()
+                .orElse(all.get(0));
+    }
+
+    private List<CocktailRecipeStep> importRecipeSteps(Cocktail savedCocktail, JsonNode node) {
+        List<CocktailRecipeStep> steps = new ArrayList<>();
+        if (!node.has(KEY_RECETTE_ULTRA_DETAILLEE) || !node.get(KEY_RECETTE_ULTRA_DETAILLEE).isArray()) {
+            return steps;
+        }
+
+        JsonNode stepsNode = node.get(KEY_RECETTE_ULTRA_DETAILLEE);
+        int order = 1;
+        for (JsonNode stepNode : stepsNode) {
+            steps.add(createRecipeStepFromNode(savedCocktail, stepNode, order++));
+        }
+        return steps;
+    }
+
+    private CocktailRecipeStep createRecipeStepFromNode(Cocktail savedCocktail, JsonNode stepNode, int order) {
+        String action = stepNode.has(KEY_ACTION) ? stepNode.get(KEY_ACTION).asText() : "";
+        String desc = stepNode.has(KEY_DESCRIPTION) ? stepNode.get(KEY_DESCRIPTION).asText() : "";
+        CocktailRecipeStep step = new CocktailRecipeStep();
+        step.setCocktail(savedCocktail);
+        step.setStepOrder(order);
+
+        if ("AJOUTER_INGREDIENT".equalsIgnoreCase(action)) {
+            step.setStepType(RecipeStepType.INGREDIENT);
+            if (stepNode.has(KEY_INGREDIENT)) {
+                step.setIngredient(ingredientRepository.findByNomIgnoreCase(stepNode.get(KEY_INGREDIENT).asText()).orElse(null));
+            }
+            if (stepNode.has(KEY_QUANTITE)) {
+                step.setQuantite(BigDecimal.valueOf(stepNode.get(KEY_QUANTITE).asDouble()).setScale(2, RoundingMode.HALF_UP));
+            }
+            if (stepNode.has(KEY_UNITE)) {
+                step.setUnite(stepNode.get(KEY_UNITE).asText());
+            }
+            step.setCustomText(desc);
+        } else {
+            step.setStepType(RecipeStepType.CUSTOM_TEXT);
+            step.setActionTitle(action);
+            step.setCustomText(desc);
+            step.setDurationSeconds(15);
+        }
+        return step;
     }
 
     private CocktailCategorie detectCategory(JsonNode node, boolean containsAlcohol) {
@@ -216,7 +356,7 @@ public class CocktailDataSeederService {
         CocktailVariante v = new CocktailVariante();
         v.setCocktail(savedCocktail);
         v.setNom(vNom);
-        v.setDescription(vNode.hasNonNull("description") ? vNode.get("description").asText() : null);
+        v.setDescription(vNode.hasNonNull(KEY_DESCRIPTION) ? vNode.get(KEY_DESCRIPTION).asText() : null);
         v.setPrixSupplement(extractBigDecimal(vNode, "prix_supplement", BigDecimal.ZERO));
         v.setMultiplicateurIngredient(extractBigDecimal(vNode, "multiplicateur_ingredient", BigDecimal.ONE));
         v.setDisponible(!vNode.hasNonNull("disponible") || vNode.get("disponible").asBoolean());
@@ -262,8 +402,8 @@ public class CocktailDataSeederService {
             return null;
         }
 
-        String unite = ingNode.has("unite") ? ingNode.get("unite").asText().trim() : "cl";
-        double qtyRaw = ingNode.has("quantite") ? ingNode.get("quantite").asDouble(1.0) : 1.0;
+        String unite = ingNode.has(KEY_UNITE) ? ingNode.get(KEY_UNITE).asText().trim() : "cl";
+        double qtyRaw = ingNode.has(KEY_QUANTITE) ? ingNode.get(KEY_QUANTITE).asDouble(1.0) : 1.0;
         if (Double.isNaN(qtyRaw) || Double.isInfinite(qtyRaw)) {
             qtyRaw = 1.0;
         }
@@ -301,8 +441,8 @@ public class CocktailDataSeederService {
         StringBuilder sb = new StringBuilder();
         if (node.has(KEY_MATERIEL)) {
             JsonNode mat = node.get(KEY_MATERIEL);
-            if (mat.has("verre")) {
-                sb.append("Verre : ").append(mat.get("verre").asText());
+            if (mat.has(KEY_VERRE)) {
+                sb.append("Verre : ").append(mat.get(KEY_VERRE).asText());
             }
             if (mat.has("ustensiles")) {
                 if (!sb.isEmpty())

@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -15,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -28,6 +30,7 @@ import java.util.*;
  */
 @Service
 @Transactional
+@DependsOn({"glasswareDataSeederService", "cocktailDataSeederService"})
 @Profile({"dev", "test"})
 public class SampleDataSeederService {
 
@@ -554,17 +557,18 @@ public class SampleDataSeederService {
             f.setFinalizedAt(invoiceTime.plusMinutes(35));
         }
 
-        BigDecimal total = parseInvoiceItems(f, invNode.get(KEY_ITEMS));
-        f.setTotal(total);
-        f.setTotalHT(total.multiply(new BigDecimal("0.8333")));
-        f.setTotalVAT(total.multiply(new BigDecimal("0.1667")));
-        f.setTotalTTC(total);
+        List<Commande> tableOrders = table != null ? commandeRepository.findByTable(table) : List.of();
+        Commande latestOrder = !tableOrders.isEmpty() ? tableOrders.get(tableOrders.size() - 1) : null;
 
+        BigDecimal total = parseInvoiceItems(f, invNode.get(KEY_ITEMS), latestOrder);
+        f.setTotal(total);
         factureRepository.save(f);
     }
 
-    private BigDecimal parseInvoiceItems(Facture f, JsonNode itemsNode) {
+    private BigDecimal parseInvoiceItems(Facture f, JsonNode itemsNode, Commande latestOrder) {
         BigDecimal total = BigDecimal.ZERO;
+        BigDecimal totalHT = BigDecimal.ZERO;
+        BigDecimal totalVAT = BigDecimal.ZERO;
         List<FactureItem> items = new ArrayList<>();
 
         if (itemsNode != null && itemsNode.isArray()) {
@@ -574,19 +578,51 @@ public class SampleDataSeederService {
                 BigDecimal prixUnitaire = new BigDecimal(itemNode.get("prixUnitaire").asText());
                 BigDecimal itemTotal = prixUnitaire.multiply(BigDecimal.valueOf(quantite));
 
+                VatRate vatRate = resolveInvoiceItemVatRate(description);
+                BigDecimal rateMultiplier = BigDecimal.ONE.add(vatRate.getRate());
+                BigDecimal priceHT = itemTotal.divide(rateMultiplier, 2, RoundingMode.HALF_UP);
+                BigDecimal vatAmount = itemTotal.subtract(priceHT);
+
                 FactureItem fi = new FactureItem();
                 fi.setFacture(f);
                 fi.setDescription(description);
                 fi.setQuantite(quantite);
                 fi.setPrixUnitaire(prixUnitaire);
                 fi.setTotal(itemTotal);
+                fi.setVatRate(vatRate);
+                fi.setPriceHT(priceHT);
+                fi.setVatAmount(vatAmount);
+
+                if (latestOrder != null && latestOrder.getItems() != null) {
+                    latestOrder.getItems().stream()
+                            .filter(ci -> ci.getCocktail() != null && ci.getCocktail().getNom().equalsIgnoreCase(description))
+                            .findFirst()
+                            .ifPresent(fi::setCommandeItem);
+                }
+
                 items.add(fi);
 
                 total = total.add(itemTotal);
+                totalHT = totalHT.add(priceHT);
+                totalVAT = totalVAT.add(vatAmount);
             }
         }
         f.setItems(items);
+        f.setTotalHT(totalHT);
+        f.setTotalVAT(totalVAT);
+        f.setTotalTTC(total);
         return total;
+    }
+
+    private VatRate resolveInvoiceItemVatRate(String description) {
+        String lower = description.toLowerCase();
+        if (lower.contains("planche") || lower.contains("nachos") || lower.contains("frites") || lower.contains("snack")) {
+            return VatRate.FIVE_FIVE;
+        }
+        if (lower.contains("virgin") || lower.contains("jus") || lower.contains("eau") || lower.contains("coca") || lower.contains("limonade")) {
+            return VatRate.TEN;
+        }
+        return VatRate.TWENTY;
     }
 
     private Cocktail findCocktailByName(List<Cocktail> cocktails, String name) {
@@ -636,7 +672,7 @@ public class SampleDataSeederService {
         if (cocktail == null) return;
 
         JsonNode stepsNode = cocktailNode.get("steps");
-        if (stepsNode == null || !stepsNode.isArray() || (cocktail.getRecipeSteps() != null && !cocktail.getRecipeSteps().isEmpty())) {
+        if (stepsNode == null || !stepsNode.isArray()) {
             return;
         }
 
@@ -644,7 +680,12 @@ public class SampleDataSeederService {
         for (JsonNode stepNode : stepsNode) {
             steps.add(buildSingleRecipeStep(cocktail, stepNode, templatesMap));
         }
-        cocktail.setRecipeSteps(steps);
+        if (cocktail.getRecipeSteps() != null) {
+            cocktail.getRecipeSteps().clear();
+            cocktail.getRecipeSteps().addAll(steps);
+        } else {
+            cocktail.setRecipeSteps(steps);
+        }
         cocktailRepository.save(cocktail);
     }
 
