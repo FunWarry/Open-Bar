@@ -9,6 +9,7 @@ import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.model.Cocktail;
 import com.bar.gestioncocktail.model.CocktailIngredient;
 import com.bar.gestioncocktail.model.CocktailVariante;
+import com.bar.gestioncocktail.model.CocktailVarianteIngredient;
 import com.bar.gestioncocktail.model.Commande;
 import com.bar.gestioncocktail.model.CommandeItem;
 import com.bar.gestioncocktail.model.CommandeStatut;
@@ -326,7 +327,42 @@ public class CommandeService {
         if (item.getCocktail() == null || item.getCocktail().getId() == null) {
             return;
         }
-        Cocktail cocktail = item.getCocktail();
+        if (traiterQuantitesVariante(quantites, item)) {
+            return;
+        }
+        traiterQuantitesBaseCocktail(quantites, item);
+    }
+
+    private boolean traiterQuantitesVariante(Map<Long, BigDecimal> quantites, CommandeItem item) {
+        if (item.getVariante() == null || item.getVariante().getIngredients() == null || item.getVariante().getIngredients().isEmpty()) {
+            return false;
+        }
+        for (CocktailVarianteIngredient cvi : item.getVariante().getIngredients()) {
+            Ingredient ingredient = cvi.getIngredient();
+            if (ingredient != null && ingredient.getId() != null && cvi.getQuantite() != null) {
+                BigDecimal qte = cvi.getQuantite().multiply(BigDecimal.valueOf(item.getQuantite()));
+                BigDecimal existent = quantites.get(ingredient.getId());
+                quantites.put(ingredient.getId(), existent != null ? existent.add(qte) : qte);
+            }
+        }
+        return true;
+    }
+
+    private void traiterQuantitesBaseCocktail(Map<Long, BigDecimal> quantites, CommandeItem item) {
+        List<CocktailIngredient> ingredientsList = resolveCocktailIngredients(item.getCocktail());
+        if (ingredientsList == null || ingredientsList.isEmpty()) {
+            return;
+        }
+        BigDecimal mult = (item.getVariante() != null && item.getVariante().getMultiplicateurIngredient() != null)
+                ? item.getVariante().getMultiplicateurIngredient()
+                : BigDecimal.ONE;
+
+        for (CocktailIngredient ci : ingredientsList) {
+            traiterQuantiteIngredient(quantites, item, ci, mult);
+        }
+    }
+
+    private List<CocktailIngredient> resolveCocktailIngredients(Cocktail cocktail) {
         List<CocktailIngredient> ingredientsList = null;
         if (cocktailIngredientRepository != null) {
             try {
@@ -338,16 +374,7 @@ public class CommandeService {
         if (ingredientsList == null || ingredientsList.isEmpty()) {
             ingredientsList = cocktail.getIngredients();
         }
-        if (ingredientsList == null || ingredientsList.isEmpty()) {
-            return;
-        }
-        BigDecimal mult = (item.getVariante() != null && item.getVariante().getMultiplicateurIngredient() != null)
-                ? item.getVariante().getMultiplicateurIngredient()
-                : BigDecimal.ONE;
-
-        for (CocktailIngredient ci : ingredientsList) {
-            traiterQuantiteIngredient(quantites, item, ci, mult);
-        }
+        return ingredientsList;
     }
 
     private void traiterQuantiteIngredient(Map<Long, BigDecimal> quantites, CommandeItem item, CocktailIngredient ci,
@@ -374,21 +401,29 @@ public class CommandeService {
     }
 
     private void extraireIngredientsItem(Map<Long, Ingredient> map, CommandeItem item) {
-        Cocktail cocktail = item.getCocktail();
-        if (cocktail == null || cocktail.getId() == null) {
+        if (extraireIngredientsVariante(map, item)) {
             return;
         }
-        List<CocktailIngredient> ingredientsList = null;
-        if (cocktailIngredientRepository != null) {
-            try {
-                ingredientsList = cocktailIngredientRepository.findByCocktail(cocktail);
-            } catch (Exception _) {
-                // Fallback to navigation
+        extraireIngredientsBaseCocktail(map, item);
+    }
+
+    private boolean extraireIngredientsVariante(Map<Long, Ingredient> map, CommandeItem item) {
+        if (item.getVariante() == null || item.getVariante().getIngredients() == null || item.getVariante().getIngredients().isEmpty()) {
+            return false;
+        }
+        for (CocktailVarianteIngredient cvi : item.getVariante().getIngredients()) {
+            if (cvi.getIngredient() != null && cvi.getIngredient().getId() != null) {
+                map.put(cvi.getIngredient().getId(), cvi.getIngredient());
             }
         }
-        if (ingredientsList == null || ingredientsList.isEmpty()) {
-            ingredientsList = cocktail.getIngredients();
+        return true;
+    }
+
+    private void extraireIngredientsBaseCocktail(Map<Long, Ingredient> map, CommandeItem item) {
+        if (item.getCocktail() == null || item.getCocktail().getId() == null) {
+            return;
         }
+        List<CocktailIngredient> ingredientsList = resolveCocktailIngredients(item.getCocktail());
         if (ingredientsList != null) {
             for (CocktailIngredient ci : ingredientsList) {
                 if (ci.getIngredient() != null && ci.getIngredient().getId() != null) {

@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ToastController } from '@ionic/angular/standalone';
+import { ToastController, ModalController } from '@ionic/angular/standalone';
 import { of } from 'rxjs';
 import { CocktailFormComponent } from '../../../app/features/cocktails/cocktail-form/cocktail-form.component';
 import { CocktailService } from '../../../app/core/services/cocktail.service';
@@ -118,8 +118,33 @@ describe('CocktailFormComponent', () => {
   let glasswareServiceSpy: jasmine.SpyObj<GlasswareService>;
   let routerSpy: jasmine.SpyObj<Router>;
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
+  let modalCtrlSpy: jasmine.SpyObj<ModalController>;
 
   const toastMock = { present: jasmine.createSpy('present').and.returnValue(Promise.resolve()) };
+  const modalMock = {
+    present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+    onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(
+      Promise.resolve({
+        data: {
+          nom: 'Virgin Mojito',
+          description: 'Sans alcool',
+          prixSupplement: 0,
+          multiplicateurIngredient: 1.0,
+          disponible: true,
+          instructions: 'Shake with mint',
+          ingredients: [
+            {
+              ingredientId: 1,
+              ingredientNom: 'Mint Leaves',
+              quantite: 8,
+              unite: 'feuilles',
+            },
+          ],
+        },
+        role: 'confirm',
+      })
+    ),
+  };
 
   const buildModule = async (routeId: string | null = null) => {
     cocktailServiceSpy = jasmine.createSpyObj('CocktailService', [
@@ -140,6 +165,8 @@ describe('CocktailFormComponent', () => {
     routerSpy = jasmine.createSpyObj('Router', ['navigate']);
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
     toastCtrlSpy.create.and.returnValue(Promise.resolve(toastMock as any));
+    modalCtrlSpy = jasmine.createSpyObj('ModalController', ['create']);
+    modalCtrlSpy.create.and.returnValue(Promise.resolve(modalMock as any));
 
     ingredientServiceSpy.getAll.and.returnValue(of(mockIngredients));
     templateServiceSpy.getAll.and.returnValue(of(mockTemplates));
@@ -199,6 +226,7 @@ describe('CocktailFormComponent', () => {
         },
         { provide: Router, useValue: routerSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
+        { provide: ModalController, useValue: modalCtrlSpy },
         { provide: CocktailService, useValue: cocktailServiceSpy },
         { provide: IngredientService, useValue: ingredientServiceSpy },
         { provide: RecipeStepTemplateService, useValue: templateServiceSpy },
@@ -408,10 +436,14 @@ describe('CocktailFormComponent', () => {
       expect(component.getActionIcon('UNKNOWN')).toBe('sparkles-outline');
     });
 
-    it('should manage variants (add, remove)', () => {
+    it('should manage variants (open modal to add, edit, remove)', async () => {
       expect(component.variantesArray).toHaveSize(0);
-      component.addVariant();
+      await component.addVariant();
+      expect(modalCtrlSpy.create).toHaveBeenCalled();
       expect(component.variantesArray).toHaveSize(1);
+      expect(component.variantesArray.at(0).get('nom')?.value).toBe('Virgin Mojito');
+      expect(component.variantesArray.at(0).get('ingredients')?.value).toHaveSize(1);
+
       component.removeVariant(0);
       expect(component.variantesArray).toHaveSize(0);
     });
@@ -442,10 +474,45 @@ describe('CocktailFormComponent', () => {
       const group = component.getAsFormGroup(component.recipeStepsArray.at(0));
       component.onIngredientSelected(1, group);
 
+      modalCtrlSpy.create.and.returnValue(Promise.resolve({
+        present: () => Promise.resolve(),
+        onWillDismiss: () => Promise.resolve({
+          data: {
+            nom: 'Spicy Daiquiri',
+            description: 'With habanero',
+            prixSupplement: 1.5,
+            multiplicateurIngredient: 1.0,
+            disponible: true,
+            instructions: 'Shake with chili slice',
+            ingredients: [{ ingredientId: 1, quantite: 5, unite: 'cl', notes: 'spicy' }],
+            recipeSteps: [{ stepOrder: 1, stepType: 'INGREDIENT', ingredientId: 1, quantite: 5, unite: 'cl' }]
+          },
+          role: 'confirm'
+        })
+      } as any));
+
+      await component.openVariantRecipeModal();
+
       component.onSubmit();
       await Promise.resolve();
 
-      expect(cocktailServiceSpy.create).toHaveBeenCalled();
+      expect(cocktailServiceSpy.create).toHaveBeenCalledWith(
+        jasmine.objectContaining({
+          nom: 'Daiquiri',
+          variantes: jasmine.arrayContaining([
+            jasmine.objectContaining({
+              nom: 'Spicy Daiquiri',
+              prixSupplement: 1.5,
+              recipeSteps: jasmine.arrayContaining([
+                jasmine.objectContaining({ ingredientId: 1, quantite: 5 })
+              ]),
+              ingredients: jasmine.arrayContaining([
+                jasmine.objectContaining({ ingredientId: 1, quantite: 5 })
+              ])
+            })
+          ])
+        })
+      );
       expect(routerSpy.navigate).toHaveBeenCalledWith(['/cocktails']);
     });
   });
@@ -509,8 +576,16 @@ describe('CocktailFormComponent', () => {
       const customGroup = component.recipeStepsArray.at(1);
       expect(customGroup.get('stepType')?.value).toBe('CUSTOM_TEXT');
 
+      // Top boundary
+      component.moveStepUp(0);
+      expect(component.recipeStepsArray.at(0).get('stepType')?.value).toBe('INGREDIENT');
+
       component.moveStepUp(1);
       expect(component.recipeStepsArray.at(0).get('stepType')?.value).toBe('CUSTOM_TEXT');
+
+      // Bottom boundary
+      component.moveStepDown(1);
+      expect(component.recipeStepsArray.at(1).get('stepType')?.value).toBe('INGREDIENT');
 
       component.moveStepDown(0);
       expect(component.recipeStepsArray.at(1).get('stepType')?.value).toBe('CUSTOM_TEXT');
@@ -519,10 +594,30 @@ describe('CocktailFormComponent', () => {
       expect(component.recipeStepsArray).toHaveSize(1);
     });
 
-    it('should manage variants correctly', () => {
+    it('should support block builder helpers and option selection', () => {
+      component.addIngredientBlock();
+      component.onIngredientOptionSelected(component.recipeStepsArray.length - 1, { value: 1 });
+      const ingGroup = component.recipeStepsArray.at(-1);
+      expect(ingGroup.get('ingredientId')?.value).toBe(1);
+
+      const mockTpl = { id: 2, name: 'Stirring', actionType: 'STIR', defaultDurationSeconds: 20 } as any;
+      component.addActionTemplateBlock(mockTpl);
+      const tplGroup = component.recipeStepsArray.at(-1);
+      expect(tplGroup.get('templateId')?.value).toBe(2);
+
+      component.addCustomTextBlock();
+      expect(component.recipeStepsArray.at(-1).get('stepType')?.value).toBe('CUSTOM_TEXT');
+
+      component.onTemplateOptionSelected(component.recipeStepsArray.length - 2, { value: 1 });
+      expect(component.recipeStepsArray.at(-2).get('templateId')?.value).toBe(1);
+
+      component.removeRecipeStep(0);
+    });
+
+    it('should manage variants correctly', async () => {
       expect(component.variantesArray).toHaveSize(0);
 
-      component.addVariant();
+      await component.addVariant();
       expect(component.variantesArray).toHaveSize(1);
 
       component.variantesArray.at(0).patchValue({
@@ -544,29 +639,144 @@ describe('CocktailFormComponent', () => {
       expect(component.variantesArray).toHaveSize(0);
     });
 
-    it('should scale preview portions and quantities', () => {
-      expect(component.previewPortions()).toBe(1);
+    it('should edit an existing variant using the variant recipe modal', async () => {
+      component.cocktailForm.patchValue({
+        name: 'Mojito',
+        price: 8.5,
+        category: 'ALCOOLISE',
+      });
+      await component.addVariant();
+      expect(component.variantesArray).toHaveSize(1);
 
-      component.incrementPortions();
-      expect(component.previewPortions()).toBe(2);
+      const vGroup = component.getAsFormGroup(component.variantesArray.at(0));
+      expect(component.hasCustomVariantRecipe(vGroup)).toBeTrue();
+      expect(component.getCustomStepsCount(vGroup)).toBe(1);
 
-      expect(component.getScaledQuantity(4)).toBe('8');
-      expect(component.getScaledQuantity(2.5)).toBe('5');
-      expect(component.getScaledQuantity(null)).toBe('-');
+      // Now edit variant
+      modalCtrlSpy.create.and.returnValue(Promise.resolve({
+        present: () => Promise.resolve(),
+        onWillDismiss: () => Promise.resolve({
+          data: {
+            nom: 'Updated Variant',
+            description: 'Updated Desc',
+            prixSupplement: 3.5,
+            multiplicateurIngredient: 1.2,
+            disponible: false,
+            instructions: 'New instructions',
+            ingredients: [
+              { ingredientId: 1, quantite: 5, unite: 'cl' },
+              { ingredientId: 2, quantite: 3, unite: 'cl' }
+            ],
+            recipeSteps: [
+              { stepOrder: 1, stepType: 'INGREDIENT', ingredientId: 1, quantite: 5, unite: 'cl' },
+              { stepOrder: 2, stepType: 'INGREDIENT', ingredientId: 2, quantite: 3, unite: 'cl' },
+              { stepOrder: 3, stepType: 'CUSTOM_TEXT', actionTitle: 'Shake', durationSeconds: 10 }
+            ]
+          },
+          role: 'confirm'
+        })
+      } as any));
 
-      component.decrementPortions();
-      expect(component.previewPortions()).toBe(1);
-      expect(component.getScaledQuantity(4)).toBe('4');
+      await component.openVariantRecipeModal(0);
+
+      expect(vGroup.get('nom')?.value).toBe('Updated Variant');
+      expect(vGroup.get('prixSupplement')?.value).toBe(3.5);
+      expect(vGroup.get('disponible')?.value).toBeFalse();
+      expect(component.hasCustomVariantRecipe(vGroup)).toBeTrue();
+      expect(component.getCustomStepsCount(vGroup)).toBe(3);
     });
 
-    it('should deduce bar equipment for multiple action types', () => {
-      component.addActionTemplateStep();
-      const group0 = component.getAsFormGroup(component.recipeStepsArray.at(0));
-      group0.patchValue({ stepType: 'ACTION_TEMPLATE', actionType: 'SHAKE', templateId: 1 });
+    it('should handle modal dismissal without changes when editing variant', async () => {
+      await component.addVariant();
+      const initialName = component.variantesArray.at(0).get('nom')?.value;
 
-      component.recipeVersion.update(v => v + 1);
-      const equipment = component.deducedBarEquipment();
-      expect(equipment.some(e => e.name.includes('Shaker'))).toBeTrue();
+      modalCtrlSpy.create.and.returnValue(Promise.resolve({
+        present: () => Promise.resolve(),
+        onWillDismiss: () => Promise.resolve({ data: null, role: 'cancel' })
+      } as any));
+
+      await component.openVariantRecipeModal(0);
+      expect(component.variantesArray.at(0).get('nom')?.value).toBe(initialName);
+    });
+
+    it('should navigate directly to step if target step is valid', () => {
+      component.cocktailForm.patchValue({
+        name: 'Cosmopolitan',
+        price: 9.0,
+        category: 'ALCOOLISE',
+      });
+      component.goToStep(2);
+      expect(component.currentStep()).toBe(2);
+
+      component.goToStep(3);
+      expect(component.currentStep()).toBe(3);
+
+      component.goToStep(4);
+      expect(component.currentStep()).toBe(4);
+
+      // Cannot jump beyond 4 or below 1
+      component.goToStep(5);
+      expect(component.currentStep()).toBe(4);
+      component.goToStep(0);
+      expect(component.currentStep()).toBe(4);
+    });
+
+    it('should validate step items and proceed transitions', () => {
+      component.cocktailForm.patchValue({
+        name: 'French 75',
+        price: 11.0,
+        category: 'ALCOOLISE',
+      });
+
+      expect(component.canProceedFromCurrentStep()).toBeTrue();
+
+      component.nextStep();
+      expect(component.currentStep()).toBe(2);
+
+      component.addActionTemplateStep();
+      const tplGroup = component.getAsFormGroup(component.recipeStepsArray.at(-1));
+      tplGroup.patchValue({ templateId: null, templateName: '' });
+      expect(component.isStep2Valid()).toBeFalse();
+      tplGroup.patchValue({ templateId: 1 });
+      expect(component.isStep2Valid()).toBeTrue();
+
+      component.addCustomTextStep();
+      const customGroup = component.getAsFormGroup(component.recipeStepsArray.at(-1));
+      customGroup.patchValue({ actionTitle: '' });
+      expect(component.isStep2Valid()).toBeFalse();
+      customGroup.patchValue({ actionTitle: 'Zest expressed' });
+      expect(component.isStep2Valid()).toBeTrue();
+
+      component.nextStep();
+      expect(component.currentStep()).toBe(3);
+
+      // Invalid variant in step 3
+      component.variantesArray.push(
+        (component as any).fb.group({
+          nom: [''],
+          prixSupplement: [-1],
+        })
+      );
+      expect(component.isStep3Valid()).toBeFalse();
+      component.variantesArray.clear();
+      expect(component.isStep3Valid()).toBeTrue();
+    });
+
+    it('should count custom steps when only ingredients are present on variant', () => {
+      const vGroup = (component as any).fb.group({
+        nom: ['Ing Only Variant'],
+        recipeSteps: [[]],
+        ingredients: [[{ ingredientId: 1, quantite: 4 }]],
+      });
+      expect(component.getCustomStepsCount(vGroup)).toBe(1);
+    });
+
+    it('should not submit if form is invalid', async () => {
+      component.cocktailForm.patchValue({ name: '' });
+      component.onSubmit();
+      await Promise.resolve();
+
+      expect(cocktailServiceSpy.create).not.toHaveBeenCalled();
     });
   });
 });

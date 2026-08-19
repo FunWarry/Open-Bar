@@ -126,6 +126,15 @@
             </div>
           }
 
+          @if (resolvedItemVariante; as itemVar) {
+            @if (itemVar.instructions) {
+              <div class="variant-instructions-highlight" data-testid="recipe-variant-instructions">
+                <span class="v-label">{{ 'COCKTAILS.VARIANTS_SECTION.SPECIFIC_INSTRUCTIONS' | transloco }} :</span>
+                <p class="v-instructions-text">{{ itemVar.instructions }}</p>
+              </div>
+            }
+          }
+
           @if (item.notes) {
             <div class="note-highlight" data-testid="recipe-notes-text">
               « {{ item.notes }} »

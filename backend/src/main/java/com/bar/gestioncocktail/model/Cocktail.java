@@ -61,11 +61,11 @@ public class Cocktail {
         return moisActuel >= moisDebut || moisActuel <= moisFin;
     }
 
-    @OneToMany(mappedBy = "cocktail", cascade = CascadeType.ALL)
-    private List<CocktailIngredient> ingredients;
+    @OneToMany(mappedBy = "cocktail", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<CocktailIngredient> ingredients = new java.util.ArrayList<>();
 
-    @OneToMany(mappedBy = "cocktail", cascade = CascadeType.ALL)
-    private List<CocktailVariante> variantes;
+    @OneToMany(mappedBy = "cocktail", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<CocktailVariante> variantes = new java.util.ArrayList<>();
 
     @OneToMany(mappedBy = "cocktail", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("stepOrder ASC")

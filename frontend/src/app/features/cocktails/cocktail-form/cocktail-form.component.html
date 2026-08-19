@@ -454,7 +454,8 @@
                   class="btn-add-variant"
                   (click)="addVariant()"
                   data-testid="btn-add-variant">
-                  + {{ 'COCKTAILS.VARIANTS_SECTION.ADD_VARIANT' | transloco }}
+                  <ion-icon name="add-outline"></ion-icon>
+                  <span>{{ 'COCKTAILS.VARIANTS_SECTION.ADD_VARIANT' | transloco }}</span>
                 </button>
               </div>
 
@@ -466,33 +467,47 @@
 
               @for (vGroup of variantesArray.controls; track $index; let vIdx = $index) {
                 <div class="variant-item-card" [formGroupName]="vIdx" [attr.data-testid]="'variant-card-' + vIdx">
-                  <div class="variant-inputs-row">
-                    <div class="field-item name-col">
-                      <label [for]="'v-nom-' + vIdx">{{ 'COCKTAILS.VARIANTS_SECTION.NAME_LABEL' | transloco }}</label>
-                      <input
-                        type="text"
-                        [id]="'v-nom-' + vIdx"
-                        formControlName="nom"
-                        class="native-input"
-                        [placeholder]="'COCKTAILS.VARIANTS_SECTION.NAME_PLACEHOLDER' | transloco"
-                        [attr.data-testid]="'input-variant-nom-' + vIdx">
+                  <div class="variant-card-header">
+                    <div class="variant-title-group">
+                      <h5 class="variant-name">{{ vGroup.get('nom')?.value || ('COCKTAILS.VARIANTS' | transloco) }}</h5>
+                      <div class="variant-badges">
+                        @if (vGroup.get('disponible')?.value !== false) {
+                          <span class="badge-status active">{{ 'COCKTAILS.AVAILABLE' | transloco }}</span>
+                        } @else {
+                          <span class="badge-status inactive">{{ 'COCKTAILS.UNAVAILABLE' | transloco }}</span>
+                        }
+
+                        <span class="badge-price">
+                          @if ((vGroup.get('prixSupplement')?.value || 0) > 0) {
+                            +{{ vGroup.get('prixSupplement')?.value | number: '1.2-2' }} €
+                          } @else {
+                            0.00 €
+                          }
+                        </span>
+
+                        @if (hasCustomVariantRecipe(vGroup)) {
+                          <span class="badge-custom-recipe">
+                            <ion-icon name="sparkles-outline"></ion-icon>
+                            {{ 'COCKTAILS.VARIANTS_SECTION.CUSTOM_RECIPE_BADGE' | transloco: { count: getCustomStepsCount(vGroup) } }}
+                          </span>
+                        } @else {
+                          <span class="badge-standard-recipe">
+                            {{ 'COCKTAILS.VARIANTS_SECTION.NO_CUSTOM_RECIPE' | transloco }}
+                          </span>
+                        }
+                      </div>
                     </div>
 
-                    <div class="field-item supp-col">
-                      <label [for]="'v-supp-' + vIdx">{{ 'COCKTAILS.VARIANTS_SECTION.SUPPLEMENT_LABEL' | transloco }}</label>
-                      <input
-                        type="number"
-                        step="0.5"
-                        min="0"
-                        [id]="'v-supp-' + vIdx"
-                        formControlName="prixSupplement"
-                        class="native-input"
-                        placeholder="0.00"
-                        [attr.data-testid]="'input-variant-supp-' + vIdx">
-                    </div>
+                    <div class="variant-actions">
+                      <button
+                        type="button"
+                        class="btn-edit-recipe"
+                        (click)="openVariantRecipeModal(vIdx)"
+                        [attr.data-testid]="'btn-edit-variant-recipe-' + vIdx">
+                        <ion-icon name="create-outline"></ion-icon>
+                        <span>{{ 'COCKTAILS.VARIANTS_SECTION.EDIT_RECIPE' | transloco }}</span>
+                      </button>
 
-                    <div class="field-item action-col">
-                      <span class="action-label-spacer" aria-hidden="true">&nbsp;</span>
                       <button
                         type="button"
                         class="icon-action-btn btn-delete"
@@ -503,6 +518,17 @@
                       </button>
                     </div>
                   </div>
+
+                  @if (vGroup.get('description')?.value) {
+                    <p class="variant-description-text">{{ vGroup.get('description')?.value }}</p>
+                  }
+
+                  @if (vGroup.get('instructions')?.value) {
+                    <div class="variant-instructions-preview">
+                      <ion-icon name="document-text-outline"></ion-icon>
+                      <span>{{ vGroup.get('instructions')?.value }}</span>
+                    </div>
+                  }
                 </div>
               }
             </div>
