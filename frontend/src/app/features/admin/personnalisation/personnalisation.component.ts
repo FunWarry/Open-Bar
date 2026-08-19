@@ -116,6 +116,16 @@ export class PersonnalisationComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Checks if a preset is currently active based on current primary color.
+   */
+  isPresetActive(key: string): boolean {
+    const preset = THEME_PRESETS[key];
+    if (!preset) return false;
+    const formPrimary = this.colorForm?.get('primary')?.value;
+    return formPrimary?.toUpperCase() === preset.colors.primary.toUpperCase();
+  }
+
+  /**
    * Automatically generates a full harmonious color palette from current Primary color.
    */
   onAutoGeneratePalette(): void {

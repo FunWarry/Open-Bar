@@ -60,6 +60,7 @@
             <button
               type="button"
               class="preset-chip"
+              [class.active]="isPresetActive(preset.key)"
               (click)="onApplyPreset(preset.key)"
               [attr.data-testid]="'preset-' + preset.key">
               <span class="preset-dot" [style.background-color]="preset.colors.primary"></span>

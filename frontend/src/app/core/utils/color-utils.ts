@@ -71,3 +71,17 @@ export function hslToHex(h: number, s: number, l: number): string {
 
   return `#${calcHex(0)}${calcHex(8)}${calcHex(4)}`.toUpperCase();
 }
+
+/**
+ * Converts a hex color string (#rrggbb or #rgb) to an RGB triplet string ("r, g, b").
+ */
+export function hexToRgbString(hex: string): string {
+  let cleanHex = hex.replace(/^#/, '');
+  if (cleanHex.length === 3) {
+    cleanHex = cleanHex.split('').map(char => char + char).join('');
+  }
+  const r = Number.parseInt(cleanHex.substring(0, 2), 16) || 0;
+  const g = Number.parseInt(cleanHex.substring(2, 4), 16) || 0;
+  const b = Number.parseInt(cleanHex.substring(4, 6), 16) || 0;
+  return `${r}, ${g}, ${b}`;
+}
