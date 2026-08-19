@@ -281,6 +281,68 @@ describe('VariantRecipeModalComponent', () => {
     );
   });
 
+  it('should not save when variant name is empty', () => {
+    component.variante = null;
+    component.ngOnInit();
+    component.nom = '   ';
+
+    component.save();
+    expect(modalCtrlSpy.dismiss).not.toHaveBeenCalled();
+  });
+
+  it('should return correct action icons for different action types', () => {
+    expect(component.getActionIcon('SHAKE')).toBe('sync-outline');
+    expect(component.getActionIcon('STRAIN')).toBe('funnel-outline');
+    expect(component.getActionIcon('MUDDLE')).toBe('hammer-outline');
+    expect(component.getActionIcon('STIR')).toBe('wine-outline');
+    expect(component.getActionIcon('ADD_ICE')).toBe('cube-outline');
+    expect(component.getActionIcon('POUR')).toBe('water-outline');
+    expect(component.getActionIcon('GARNISH')).toBe('leaf-outline');
+    expect(component.getActionIcon('BLEND')).toBe('hardware-chip-outline');
+    expect(component.getActionIcon('FLAME')).toBe('flame-outline');
+    expect(component.getActionIcon(null)).toBe('sparkles-outline');
+  });
+
+  it('should correctly detect if recipe is customized vs identical to base', () => {
+    component.variante = null;
+    component.ngOnInit();
+    expect(component.checkIfRecipeIsCustomized()).toBeFalse();
+
+    component.recipeSteps[0].quantite = 99;
+    expect(component.checkIfRecipeIsCustomized()).toBeTrue();
+
+    component.resetToBaseRecipe();
+    expect(component.checkIfRecipeIsCustomized()).toBeFalse();
+
+    component.removeStep(0);
+    expect(component.checkIfRecipeIsCustomized()).toBeTrue();
+  });
+
+  it('should handle selecting non-existing ingredient or template gracefully', () => {
+    component.variante = null;
+    component.ngOnInit();
+
+    const origIngId = component.recipeSteps[0].ingredientId;
+    component.onIngredientSelected(0, { value: 99999 });
+    expect(component.recipeSteps[0].ingredientId).toBe(origIngId);
+
+    const origTplId = component.recipeSteps[2].templateId;
+    component.onTemplateSelected(2, { value: 99999 });
+    expect(component.recipeSteps[2].templateId).toBe(origTplId);
+  });
+
+  it('should ignore non-positive multipliers', () => {
+    component.variante = null;
+    component.ngOnInit();
+
+    const qty = component.recipeSteps[0].quantite;
+    component.applyMultiplier(0);
+    expect(component.recipeSteps[0].quantite).toBe(qty);
+
+    component.applyMultiplier(-1);
+    expect(component.recipeSteps[0].quantite).toBe(qty);
+  });
+
   it('should cancel and dismiss with null', () => {
     component.cancel();
     expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith(null, 'cancel');

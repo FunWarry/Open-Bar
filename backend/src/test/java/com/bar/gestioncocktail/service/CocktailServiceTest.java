@@ -692,5 +692,90 @@ class CocktailServiceTest {
         assertThat(respVar.recipeSteps().get(0).actionTitle()).isEqualTo("Shaker vigoureusement 15s");
         assertThat(respVar.recipeSteps().get(1).actionTitle()).isEqualTo("Double filtrer dans verre tumbler");
     }
+
+    @Test
+    @DisplayName("updateCocktailFromRequest - updates existing variant in-place when IDs match")
+    void shouldUpdateExistingVariantInPlace() {
+        CocktailVariante existingVar = new CocktailVariante();
+        existingVar.setId(200L);
+        existingVar.setNom("Initial Variant");
+        existingVar.setPrixSupplement(new BigDecimal("1.00"));
+        existingVar.setCocktail(cocktail);
+        cocktail.setVariantes(new ArrayList<>(List.of(existingVar)));
+
+        when(cocktailRepository.findById(1L)).thenReturn(Optional.of(cocktail));
+        when(cocktailRepository.save(any(Cocktail.class))).thenAnswer(i -> i.getArgument(0));
+
+        CocktailVarianteRequestDTO updatedVarDto = new CocktailVarianteRequestDTO(
+            200L, 1L, "Renamed Variant", "Updated description",
+            new BigDecimal("3.00"), BigDecimal.valueOf(1.5), false, "New instructions",
+            List.of(), null
+        );
+
+        CocktailRequestDTO request = new CocktailRequestDTO(
+            "Mojito In-Place", null, new BigDecimal("12.00"), CocktailCategorie.ALCOOLISE,
+            true, false, null, null, null, null, null, null,
+            null, null, List.of(updatedVarDto)
+        );
+
+        CocktailResponseDTO response = cocktailService.updateCocktailFromRequest(1L, request);
+
+        assertThat(response).isNotNull();
+        assertThat(cocktail.getVariantes()).hasSize(1);
+        CocktailVariante v = cocktail.getVariantes().get(0);
+        assertThat(v.getId()).isEqualTo(200L);
+        assertThat(v.getNom()).isEqualTo("Renamed Variant");
+        assertThat(v.getPrixSupplement()).isEqualByComparingTo(new BigDecimal("3.00"));
+        assertThat(v.isDisponible()).isFalse();
+    }
+
+    @Test
+    @DisplayName("createCocktailFromRequest - maps recipe steps with template and ingredient lookups")
+    void shouldMapRecipeStepsWithTemplateAndIngredientLookups() {
+        Ingredient rum = new Ingredient();
+        rum.setId(10L);
+        rum.setNom("White Rum");
+
+        RecipeStepTemplate template = new RecipeStepTemplate();
+        template.setId(50L);
+        template.setName("Shake");
+        template.setActionType(RecipeStepActionType.SHAKE);
+
+        when(ingredientRepository.findById(10L)).thenReturn(Optional.of(rum));
+        when(templateRepository.findById(50L)).thenReturn(Optional.of(template));
+        when(cocktailRepository.save(any(Cocktail.class))).thenAnswer(i -> {
+            Cocktail c = i.getArgument(0);
+            c.setId(105L);
+            return c;
+        });
+
+        CocktailRecipeStepRequestDTO stepIng = new CocktailRecipeStepRequestDTO(
+            1, RecipeStepType.INGREDIENT, 10L, new BigDecimal("5.0"), "cl", null, null, null, null
+        );
+        CocktailRecipeStepRequestDTO stepTpl = new CocktailRecipeStepRequestDTO(
+            2, RecipeStepType.ACTION_TEMPLATE, null, null, null, 50L, null, null, 15
+        );
+
+        CocktailVarianteRequestDTO varWithSteps = new CocktailVarianteRequestDTO(
+            null, null, "Custom Steps Variant", null, BigDecimal.ONE, BigDecimal.ONE, true, null,
+            List.of(), List.of(stepIng, stepTpl)
+        );
+
+        CocktailRequestDTO request = new CocktailRequestDTO(
+            "Mojito With Complex Variant Steps", null, new BigDecimal("10.00"), CocktailCategorie.ALCOOLISE,
+            true, false, null, null, null, null, null, null,
+            List.of(stepIng), null, List.of(varWithSteps)
+        );
+
+        CocktailResponseDTO response = cocktailService.createCocktailFromRequest(request);
+
+        assertThat(response).isNotNull();
+        assertThat(response.variantes()).hasSize(1);
+        CocktailVarianteResponseDTO varResp = response.variantes().get(0);
+        assertThat(varResp.recipeSteps()).hasSize(2);
+        assertThat(varResp.recipeSteps().get(0).ingredientName()).isEqualTo("White Rum");
+        assertThat(varResp.recipeSteps().get(1).template()).isNotNull();
+        assertThat(varResp.recipeSteps().get(1).template().name()).isEqualTo("Shake");
+    }
 }
 

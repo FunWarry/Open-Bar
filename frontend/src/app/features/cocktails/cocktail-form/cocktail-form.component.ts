@@ -560,6 +560,9 @@ export class CocktailFormComponent implements OnInit {
   }
 
   canGoToStep(targetStep: number): boolean {
+    if (targetStep < 1 || targetStep > this.totalSteps) {
+      return false;
+    }
     if (targetStep <= this.currentStep()) {
       return true;
     }

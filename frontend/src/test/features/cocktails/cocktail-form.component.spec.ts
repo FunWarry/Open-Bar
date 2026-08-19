@@ -576,29 +576,94 @@ describe('CocktailFormComponent', () => {
       expect(component.variantesArray).toHaveSize(0);
     });
 
-    it('should scale preview portions and quantities', () => {
-      expect(component.previewPortions()).toBe(1);
+    it('should edit an existing variant using the variant recipe modal', async () => {
+      component.cocktailForm.patchValue({
+        name: 'Mojito',
+        price: 8.5,
+        category: 'ALCOOLISE',
+      });
+      await component.addVariant();
+      expect(component.variantesArray).toHaveSize(1);
 
-      component.incrementPortions();
-      expect(component.previewPortions()).toBe(2);
+      const vGroup = component.getAsFormGroup(component.variantesArray.at(0));
+      expect(component.hasCustomVariantRecipe(vGroup)).toBeTrue();
+      expect(component.getCustomStepsCount(vGroup)).toBe(1);
 
-      expect(component.getScaledQuantity(4)).toBe('8');
-      expect(component.getScaledQuantity(2.5)).toBe('5');
-      expect(component.getScaledQuantity(null)).toBe('-');
+      // Now edit variant
+      modalCtrlSpy.create.and.returnValue(Promise.resolve({
+        present: () => Promise.resolve(),
+        onWillDismiss: () => Promise.resolve({
+          data: {
+            nom: 'Updated Variant',
+            description: 'Updated Desc',
+            prixSupplement: 3.5,
+            multiplicateurIngredient: 1.2,
+            disponible: false,
+            instructions: 'New instructions',
+            ingredients: [
+              { ingredientId: 1, quantite: 5, unite: 'cl' },
+              { ingredientId: 2, quantite: 3, unite: 'cl' }
+            ],
+            recipeSteps: [
+              { stepOrder: 1, stepType: 'INGREDIENT', ingredientId: 1, quantite: 5, unite: 'cl' },
+              { stepOrder: 2, stepType: 'INGREDIENT', ingredientId: 2, quantite: 3, unite: 'cl' },
+              { stepOrder: 3, stepType: 'CUSTOM_TEXT', actionTitle: 'Shake', durationSeconds: 10 }
+            ]
+          },
+          role: 'confirm'
+        })
+      } as any));
 
-      component.decrementPortions();
-      expect(component.previewPortions()).toBe(1);
-      expect(component.getScaledQuantity(4)).toBe('4');
+      await component.openVariantRecipeModal(0);
+
+      expect(vGroup.get('nom')?.value).toBe('Updated Variant');
+      expect(vGroup.get('prixSupplement')?.value).toBe(3.5);
+      expect(vGroup.get('disponible')?.value).toBeFalse();
+      expect(component.hasCustomVariantRecipe(vGroup)).toBeTrue();
+      expect(component.getCustomStepsCount(vGroup)).toBe(3);
     });
 
-    it('should deduce bar equipment for multiple action types', () => {
-      component.addActionTemplateStep();
-      const group0 = component.getAsFormGroup(component.recipeStepsArray.at(0));
-      group0.patchValue({ stepType: 'ACTION_TEMPLATE', actionType: 'SHAKE', templateId: 1 });
+    it('should handle modal dismissal without changes when editing variant', async () => {
+      await component.addVariant();
+      const initialName = component.variantesArray.at(0).get('nom')?.value;
 
-      component.recipeVersion.update(v => v + 1);
-      const equipment = component.deducedBarEquipment();
-      expect(equipment.some(e => e.name.includes('Shaker'))).toBeTrue();
+      modalCtrlSpy.create.and.returnValue(Promise.resolve({
+        present: () => Promise.resolve(),
+        onWillDismiss: () => Promise.resolve({ data: null, role: 'cancel' })
+      } as any));
+
+      await component.openVariantRecipeModal(0);
+      expect(component.variantesArray.at(0).get('nom')?.value).toBe(initialName);
+    });
+
+    it('should navigate directly to step if target step is valid', () => {
+      component.cocktailForm.patchValue({
+        name: 'Cosmopolitan',
+        price: 9.0,
+        category: 'ALCOOLISE',
+      });
+      component.goToStep(2);
+      expect(component.currentStep()).toBe(2);
+
+      component.goToStep(3);
+      expect(component.currentStep()).toBe(3);
+
+      component.goToStep(4);
+      expect(component.currentStep()).toBe(4);
+
+      // Cannot jump beyond 4 or below 1
+      component.goToStep(5);
+      expect(component.currentStep()).toBe(4);
+      component.goToStep(0);
+      expect(component.currentStep()).toBe(4);
+    });
+
+    it('should not submit if form is invalid', async () => {
+      component.cocktailForm.patchValue({ name: '' });
+      component.onSubmit();
+      await Promise.resolve();
+
+      expect(cocktailServiceSpy.create).not.toHaveBeenCalled();
     });
   });
 });

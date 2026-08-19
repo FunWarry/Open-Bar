@@ -289,6 +289,7 @@ export class VariantRecipeModalComponent implements OnInit {
    * Applies a global ingredient multiplier to all ingredient steps.
    */
   applyMultiplier(multiplier: number): void {
+    if (!multiplier || multiplier <= 0) return;
     const prev = this.multiplicateurIngredient || 1.0;
     const ratio = multiplier / prev;
     this.multiplicateurIngredient = multiplier;
