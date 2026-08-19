@@ -19,6 +19,7 @@
           [searchPlaceholder]="'COMMON.SEARCH' | transloco"
           [options]="getMonthOptions()"
           [(ngModel)]="moisDebut"
+          (ngModelChange)="onMonthChange()"
           testId="saisonnalite-mois-debut-select">
         </app-searchable-select>
       </div>
@@ -30,6 +31,7 @@
           [searchPlaceholder]="'COMMON.SEARCH' | transloco"
           [options]="getMonthOptions()"
           [(ngModel)]="moisFin"
+          (ngModelChange)="onMonthChange()"
           testId="saisonnalite-mois-fin-select">
         </app-searchable-select>
       </div>
@@ -45,7 +47,7 @@
             [class.actif]="isMoisActif(mois.value)"
             [class.courant]="mois.value === moisCourant"
             [attr.data-testid]="'saisonnalite-cell-' + mois.value">
-            {{ (mois.key | transloco).slice(0, 3) }}
+            {{ mois.shortKey | transloco }}
           </div>
         }
       </div>
@@ -67,16 +69,18 @@
     </div>
   }
 
-  <div class="saison-action-row">
-    <app-action-button
-      variant="primary"
-      icon="save-outline"
-      expand="block"
-      [loading]="saving"
-      [disabled]="saving"
-      testId="saisonnalite-save-btn"
-      (btnClick)="sauvegarder()">
-      {{ (saving ? 'COCKTAILS.SEASONALITY.SAVING' : 'COCKTAILS.SEASONALITY.SAVE') | transloco }}
-    </app-action-button>
-  </div>
+  @if (showSaveButton && cocktail?.id) {
+    <div class="saison-action-row">
+      <app-action-button
+        variant="primary"
+        icon="save-outline"
+        expand="block"
+        [loading]="saving"
+        [disabled]="saving"
+        testId="saisonnalite-save-btn"
+        (btnClick)="sauvegarder()">
+        {{ (saving ? 'COCKTAILS.SEASONALITY.SAVING' : 'COCKTAILS.SEASONALITY.SAVE') | transloco }}
+      </app-action-button>
+    </div>
+  }
 </div>

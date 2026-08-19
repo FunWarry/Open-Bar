@@ -22,18 +22,18 @@ import { ActionButtonComponent } from '../../../core/components/ui/action-button
  * Metadata mapping for 12 months with i18n keys.
  */
 const MONTH_KEYS = [
-  { value: 1, key: 'COCKTAILS.SEASONALITY.MONTHS.1' },
-  { value: 2, key: 'COCKTAILS.SEASONALITY.MONTHS.2' },
-  { value: 3, key: 'COCKTAILS.SEASONALITY.MONTHS.3' },
-  { value: 4, key: 'COCKTAILS.SEASONALITY.MONTHS.4' },
-  { value: 5, key: 'COCKTAILS.SEASONALITY.MONTHS.5' },
-  { value: 6, key: 'COCKTAILS.SEASONALITY.MONTHS.6' },
-  { value: 7, key: 'COCKTAILS.SEASONALITY.MONTHS.7' },
-  { value: 8, key: 'COCKTAILS.SEASONALITY.MONTHS.8' },
-  { value: 9, key: 'COCKTAILS.SEASONALITY.MONTHS.9' },
-  { value: 10, key: 'COCKTAILS.SEASONALITY.MONTHS.10' },
-  { value: 11, key: 'COCKTAILS.SEASONALITY.MONTHS.11' },
-  { value: 12, key: 'COCKTAILS.SEASONALITY.MONTHS.12' },
+  { value: 1, key: 'COCKTAILS.SEASONALITY.MONTHS.1', shortKey: 'COCKTAILS.SEASONALITY.MONTHS_SHORT.1' },
+  { value: 2, key: 'COCKTAILS.SEASONALITY.MONTHS.2', shortKey: 'COCKTAILS.SEASONALITY.MONTHS_SHORT.2' },
+  { value: 3, key: 'COCKTAILS.SEASONALITY.MONTHS.3', shortKey: 'COCKTAILS.SEASONALITY.MONTHS_SHORT.3' },
+  { value: 4, key: 'COCKTAILS.SEASONALITY.MONTHS.4', shortKey: 'COCKTAILS.SEASONALITY.MONTHS_SHORT.4' },
+  { value: 5, key: 'COCKTAILS.SEASONALITY.MONTHS.5', shortKey: 'COCKTAILS.SEASONALITY.MONTHS_SHORT.5' },
+  { value: 6, key: 'COCKTAILS.SEASONALITY.MONTHS.6', shortKey: 'COCKTAILS.SEASONALITY.MONTHS_SHORT.6' },
+  { value: 7, key: 'COCKTAILS.SEASONALITY.MONTHS.7', shortKey: 'COCKTAILS.SEASONALITY.MONTHS_SHORT.7' },
+  { value: 8, key: 'COCKTAILS.SEASONALITY.MONTHS.8', shortKey: 'COCKTAILS.SEASONALITY.MONTHS_SHORT.8' },
+  { value: 9, key: 'COCKTAILS.SEASONALITY.MONTHS.9', shortKey: 'COCKTAILS.SEASONALITY.MONTHS_SHORT.9' },
+  { value: 10, key: 'COCKTAILS.SEASONALITY.MONTHS.10', shortKey: 'COCKTAILS.SEASONALITY.MONTHS_SHORT.10' },
+  { value: 11, key: 'COCKTAILS.SEASONALITY.MONTHS.11', shortKey: 'COCKTAILS.SEASONALITY.MONTHS_SHORT.11' },
+  { value: 12, key: 'COCKTAILS.SEASONALITY.MONTHS.12', shortKey: 'COCKTAILS.SEASONALITY.MONTHS_SHORT.12' },
 ];
 
 /**
@@ -58,11 +58,23 @@ const MONTH_KEYS = [
   styleUrls: ['./cocktail-saisonnalite.component.scss'],
 })
 export class CocktailSaisonnaliteComponent implements OnInit {
-  /** Target cocktail to configure seasonality for. */
-  @Input() cocktail!: Cocktail;
+  /** Target cocktail to configure seasonality for (null in creation mode). */
+  @Input() cocktail?: Cocktail | null = null;
 
-  /** Event emitted when cocktail seasonality is successfully updated. */
+  /** Whether to show the standalone save button. */
+  @Input() showSaveButton = true;
+
+  /** Initial start month when no cocktail object is provided. */
+  @Input() initialMoisDebut: number | null = null;
+
+  /** Initial end month when no cocktail object is provided. */
+  @Input() initialMoisFin: number | null = null;
+
+  /** Event emitted when cocktail seasonality is successfully updated via API. */
   @Output() updated = new EventEmitter<Cocktail>();
+
+  /** Event emitted whenever seasonality form fields change (useful in creation wizards). */
+  @Output() seasonalityChange = new EventEmitter<{ saisonnier: boolean; moisDebut: number | null; moisFin: number | null }>();
 
   readonly listeMois = MONTH_KEYS;
   moisDebut: number | null = null;
@@ -79,9 +91,12 @@ export class CocktailSaisonnaliteComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.moisDebut = this.cocktail?.moisDebut ?? null;
-    this.moisFin = this.cocktail?.moisFin ?? null;
-    this.touteAnnee = !this.moisDebut && !this.moisFin;
+    this.moisDebut = this.cocktail?.moisDebut ?? this.initialMoisDebut ?? null;
+    this.moisFin = this.cocktail?.moisFin ?? this.initialMoisFin ?? null;
+    this.touteAnnee = this.cocktail
+      ? !this.cocktail.moisDebut && !this.cocktail.moisFin
+      : this.initialMoisDebut == null && this.initialMoisFin == null;
+    this.emitChange();
   }
 
   /**
@@ -103,6 +118,25 @@ export class CocktailSaisonnaliteComponent implements OnInit {
       this.moisDebut = null;
       this.moisFin = null;
     }
+    this.emitChange();
+  }
+
+  /**
+   * Handles change from month dropdown selectors.
+   */
+  onMonthChange(): void {
+    this.emitChange();
+  }
+
+  /**
+   * Emits the current seasonality state.
+   */
+  private emitChange(): void {
+    this.seasonalityChange.emit({
+      saisonnier: !this.touteAnnee,
+      moisDebut: this.touteAnnee ? null : this.moisDebut,
+      moisFin: this.touteAnnee ? null : this.moisFin,
+    });
   }
 
   /**
@@ -132,6 +166,7 @@ export class CocktailSaisonnaliteComponent implements OnInit {
    * Saves updated seasonality settings to backend service.
    */
   sauvegarder(): void {
+    if (!this.cocktail?.id) return;
     this.saving = true;
     this.cocktailService
       .updateSaisonnalite(this.cocktail.id, this.moisDebut, this.moisFin)

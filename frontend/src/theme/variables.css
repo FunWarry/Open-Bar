@@ -130,11 +130,11 @@
 body.light-theme,
 .light-theme {
   /* Thème — Background (base tokens + aliases) */
-  --bg-0: #f8fafc;
-  --bg-1: #f1f5f9;
+  --bg-0: #f4f6fb;
+  --bg-1: #ffffff;
   --surface-1: #ffffff;
   --surface-2: #f8fafc;
-  --surface-3: #e2e8f0;
+  --surface-3: #eef2f6;
 
   --background-bg-0: var(--bg-0);
   --background-bg-1: var(--bg-1);
@@ -146,24 +146,24 @@ body.light-theme,
   --primary: #4f46e5;
   --primary-strong: #4338ca;
   --primary-press: #3730a3;
-  --primary-light: #4f46e5;
+  --primary-light: #6366f1;
   --primary-border: #6366f1;
   --primary-tint: #e0e7ff;
   --primary-tint-weak: rgba(79, 70, 229, 0.08);
 
   /* Thème — Text */
   --text-primary: #0f172a;
-  --text-secondary: #475569;
+  --text-secondary: #334155;
   --text-muted: #64748b;
   --text-on-accent: #ffffff;
 
   /* Thème — Border */
-  --border-default: #e2e8f0;
+  --border-default: #cbd5e1;
   --border-subtle: #e2e8f0;
-  --border-medium: #e2e8f0;
-  --border-strong: #cbd5e1;
-  --border-light: #f1f5f9;
-  --border-selected: #6366f1;
+  --border-medium: #cbd5e1;
+  --border-strong: #94a3b8;
+  --border-light: #e2e8f0;
+  --border-selected: #4f46e5;
 
   /* Box Shadows / Elevation & Glow Tokens en mode clair */
   --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.06);
@@ -208,22 +208,22 @@ body.light-theme,
 
   --ion-item-background: var(--background-surface-1);
   --ion-toolbar-background: var(--background-surface-1);
-  --ion-card-background: var(--background-surface-2);
+  --ion-card-background: var(--background-surface-1);
   --ion-border-color: var(--border-medium);
 }
 
 /* Mapping vers les variables Ionic — Light Mode */
 .ios body.light-theme,
 .md body.light-theme {
-  --ion-background-color: #f8fafc;
-  --ion-text-color: #0f172a;
+  --ion-background-color: var(--background-bg-0);
+  --ion-text-color: var(--text-primary);
 
-  --ion-color-primary: #4f46e5;
+  --ion-color-primary: var(--primary);
   --ion-color-primary-rgb: 79, 70, 229;
-  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast: var(--text-on-accent, #ffffff);
   --ion-color-primary-contrast-rgb: 255, 255, 255;
-  --ion-color-primary-shade: #4338ca;
-  --ion-color-primary-tint: #e0e7ff;
+  --ion-color-primary-shade: var(--primary-strong);
+  --ion-color-primary-tint: var(--primary-light);
 
   /* Tertiary = statut EN_PREPARATION (bleu info) */
   --ion-color-tertiary: var(--semantic-info);
@@ -233,9 +233,14 @@ body.light-theme,
   --ion-color-tertiary-shade: #2494cc;
   --ion-color-tertiary-tint: #40b4e8;
 
-  --ion-item-background: #ffffff;
-  --ion-toolbar-background: #ffffff;
-  --ion-card-background: #f8fafc;
-  --ion-border-color: #e2e8f0;
+  --ion-color-danger: var(--semantic-danger);
+  --ion-color-success: var(--semantic-success);
+  --ion-color-warning: var(--semantic-warning);
+  --ion-color-info: var(--semantic-info);
+
+  --ion-item-background: var(--background-surface-1);
+  --ion-toolbar-background: var(--background-surface-1);
+  --ion-card-background: var(--background-surface-1);
+  --ion-border-color: var(--border-medium);
 }
 

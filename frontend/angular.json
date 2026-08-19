@@ -76,12 +76,8 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
             "host": "0.0.0.0",
-            "allowedHosts": [
-              "open-bar.freeboxos.fr",
-              "localhost",
-              "127.0.0.1",
-              "0.0.0.0"
-            ]
+            "disableHostCheck": true,
+            "proxyConfig": "proxy.conf.json"
           },
           "configurations": {
             "production": {

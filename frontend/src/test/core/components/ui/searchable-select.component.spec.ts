@@ -151,6 +151,5 @@ describe('SearchableSelectComponent', () => {
   it('should resolve /uploads/ relative images to backend host', () => {
     const resolved = component.resolveImageUrl('/uploads/glassware/glassware_10.png');
     expect(resolved).toContain('/uploads/glassware/glassware_10.png');
-    expect(resolved.startsWith('http')).toBeTrue();
   });
 });

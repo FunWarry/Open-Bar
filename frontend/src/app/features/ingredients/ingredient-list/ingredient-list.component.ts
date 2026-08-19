@@ -14,6 +14,7 @@ import {
 import { addIcons } from 'ionicons';
 import {
   add, eye, create, trash, addCircle, removeCircle,
+  removeOutline, addOutline, trashOutline,
   gridOutline, listOutline, pulseOutline, search, swapVerticalOutline,
   scaleOutline, layersOutline, checkmarkCircleOutline, closeCircleOutline,
   alertCircleOutline
@@ -87,6 +88,7 @@ export class IngredientListComponent implements OnInit, OnDestroy {
     this.canEdit$ = this.store.select(selectCanEditIngredient);
     addIcons({
       add, eye, create, trash, addCircle, removeCircle,
+      removeOutline, addOutline, trashOutline,
       gridOutline, listOutline, pulseOutline, search, swapVerticalOutline,
       scaleOutline, layersOutline, checkmarkCircleOutline, closeCircleOutline,
       alertCircleOutline

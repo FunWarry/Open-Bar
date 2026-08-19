@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { hexToHsl, hslToHex } from '../utils/color-utils';
+import { hexToHsl, hslToHex, hexToRgbString } from '../utils/color-utils';
 
 export type AppTheme = 'dark' | 'light' | 'system';
 
@@ -257,35 +257,65 @@ export class ThemeService {
     }
 
     const colors = this.customColorsSubject.value;
-    const rootStyle = document.documentElement.style;
+    const targetElements = [document.documentElement, document.body];
+    const primaryRgb = hexToRgbString(colors.primary);
 
-    rootStyle.setProperty('--primary', colors.primary);
-    rootStyle.setProperty('--primary-strong', this.adjustBrightness(colors.primary, -15));
-    rootStyle.setProperty('--primary-light', isEffectiveDark
-      ? this.adjustBrightness(colors.primary, +20)
-      : this.adjustBrightness(colors.primary, -20)
-    );
-    rootStyle.setProperty('--primary-tint', colors.primary + '33');
-    rootStyle.setProperty('--primary-tint-weak', colors.primary + '1f');
-    rootStyle.setProperty('--primary-border', colors.primary + '73');
+    for (const el of targetElements) {
+      const style = el.style;
 
-    rootStyle.setProperty('--role-admin', colors.roleAdmin);
-    rootStyle.setProperty('--role-manager', colors.roleManager);
-    rootStyle.setProperty('--role-serveur', colors.roleServeur);
-    rootStyle.setProperty('--role-barman', colors.roleBarman);
+      style.setProperty('--primary', colors.primary);
+      style.setProperty('--primary-rgb', primaryRgb);
+      style.setProperty('--primary-strong', this.adjustBrightness(colors.primary, -15));
+      style.setProperty('--primary-light', isEffectiveDark
+        ? this.adjustBrightness(colors.primary, +20)
+        : this.adjustBrightness(colors.primary, -20)
+      );
+      style.setProperty('--primary-tint', colors.primary + '33');
+      style.setProperty('--primary-tint-weak', colors.primary + '1f');
+      style.setProperty('--primary-border', colors.primary + '73');
 
-    if (isEffectiveDark) {
-      rootStyle.setProperty('--bg-0', colors.bgDark);
-      rootStyle.setProperty('--bg-1', this.adjustBrightness(colors.bgDark, +4));
-      rootStyle.setProperty('--surface-1', colors.surfaceDark);
-      rootStyle.setProperty('--surface-2', this.adjustBrightness(colors.surfaceDark, +6));
-      rootStyle.setProperty('--surface-3', this.adjustBrightness(colors.surfaceDark, +12));
-    } else {
-      rootStyle.setProperty('--bg-0', colors.bgLight);
-      rootStyle.setProperty('--bg-1', this.adjustBrightness(colors.bgLight, -3));
-      rootStyle.setProperty('--surface-1', colors.surfaceLight);
-      rootStyle.setProperty('--surface-2', this.adjustBrightness(colors.bgLight, -5));
-      rootStyle.setProperty('--surface-3', this.adjustBrightness(colors.bgLight, -10));
+      style.setProperty('--role-admin', colors.roleAdmin);
+      style.setProperty('--role-manager', colors.roleManager);
+      style.setProperty('--role-serveur', colors.roleServeur);
+      style.setProperty('--role-barman', colors.roleBarman);
+
+      if (isEffectiveDark) {
+        const bg0 = colors.bgDark;
+        const bg1 = this.adjustBrightness(colors.bgDark, +4);
+        const surf1 = colors.surfaceDark;
+        const surf2 = this.adjustBrightness(colors.surfaceDark, +6);
+        const surf3 = this.adjustBrightness(colors.surfaceDark, +12);
+
+        style.setProperty('--bg-0', bg0);
+        style.setProperty('--bg-1', bg1);
+        style.setProperty('--surface-1', surf1);
+        style.setProperty('--surface-2', surf2);
+        style.setProperty('--surface-3', surf3);
+
+        style.setProperty('--background-bg-0', bg0);
+        style.setProperty('--background-bg-1', bg1);
+        style.setProperty('--background-surface-1', surf1);
+        style.setProperty('--background-surface-2', surf2);
+        style.setProperty('--background-surface-3', surf3);
+      } else {
+        const bg0 = colors.bgLight;
+        const bg1 = this.adjustBrightness(colors.bgLight, -3);
+        const surf1 = colors.surfaceLight;
+        const surf2 = this.adjustBrightness(colors.bgLight, -5);
+        const surf3 = this.adjustBrightness(colors.bgLight, -10);
+
+        style.setProperty('--bg-0', bg0);
+        style.setProperty('--bg-1', bg1);
+        style.setProperty('--surface-1', surf1);
+        style.setProperty('--surface-2', surf2);
+        style.setProperty('--surface-3', surf3);
+
+        style.setProperty('--background-bg-0', bg0);
+        style.setProperty('--background-bg-1', bg1);
+        style.setProperty('--background-surface-1', surf1);
+        style.setProperty('--background-surface-2', surf2);
+        style.setProperty('--background-surface-3', surf3);
+      }
     }
   }
 

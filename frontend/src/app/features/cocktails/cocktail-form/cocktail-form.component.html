@@ -157,19 +157,21 @@
               ></app-input-field>
             </div>
 
-            <!-- Seasonal Info (Edit Mode) -->
-            @if (isEditMode && cocktailData) {
-              <div class="section-saisonnalite">
-                <div class="saisonnalite-header">
-                  <ion-icon name="calendar-outline"></ion-icon>
-                  <h4>{{ 'COCKTAILS.SEASONAL' | transloco }}</h4>
-                </div>
-                <app-cocktail-saisonnalite
-                  [cocktail]="cocktailData"
-                  (updated)="onSaisonnaliteUpdated($event)">
-                </app-cocktail-saisonnalite>
+            <!-- Seasonal Availability Section (Create & Edit Mode) -->
+            <div class="section-saisonnalite" data-testid="cocktail-form-seasonality-section">
+              <div class="saisonnalite-header">
+                <ion-icon name="calendar-outline"></ion-icon>
+                <h4>{{ 'COCKTAILS.SEASONAL' | transloco }}</h4>
               </div>
-            }
+              <app-cocktail-saisonnalite
+                [cocktail]="cocktailData"
+                [showSaveButton]="isEditMode"
+                [initialMoisDebut]="saisonnaliteState.moisDebut"
+                [initialMoisFin]="saisonnaliteState.moisFin"
+                (seasonalityChange)="onSeasonalityChange($event)"
+                (updated)="onSaisonnaliteUpdated($event)">
+              </app-cocktail-saisonnalite>
+            </div>
           </div>
         }
 

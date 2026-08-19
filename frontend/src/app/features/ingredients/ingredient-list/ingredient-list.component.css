@@ -361,13 +361,13 @@
 }
 
 .card-header-compact {
-  padding: 14px 16px 8px 16px;
+  padding: 16px 16px 8px 16px;
 }
 
 .card-title-row {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   gap: 8px;
 }
 
@@ -376,6 +376,21 @@
   font-size: 1.05rem;
   font-weight: 700;
   color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
+}
+
+.stock-badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  padding: 4px 8px;
+  border-radius: 6px;
 }
 
 .gauge-section {
@@ -385,19 +400,26 @@
 .gauge-labels {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: baseline;
   margin-bottom: 6px;
   font-size: 0.825rem;
+  gap: 6px;
 }
 
 .stock-qty-text {
   font-weight: 700;
   color: var(--text-primary);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .threshold-text {
   color: var(--text-muted);
-  font-size: 0.8rem;
+  font-size: 0.76rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: right;
 }
 
 .stock-progress-bar {
@@ -406,31 +428,57 @@
 }
 
 .quick-adjust-bar {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
   align-items: center;
-  justify-content: space-between;
   background: var(--background-surface-2);
   border: 1px solid var(--border-medium);
-  border-radius: 8px;
-  padding: 4px 8px;
-  margin-top: 12px;
+  border-radius: var(--radius-md, 10px);
+  padding: 3px;
+  margin-top: 14px;
+  gap: 3px;
 }
 
-.quick-adjust-label {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+.quick-adjust-bar ion-button {
+  --padding-start: 0;
+  --padding-end: 0;
+  --padding-top: 0;
+  --padding-bottom: 0;
+  --border-radius: 6px;
+  height: 28px;
+  min-height: 28px;
+  margin: 0;
+  width: 100%;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.quick-adjust-bar ion-button ion-icon {
+  font-size: 1.15rem;
 }
 
 .card-footer-actions {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   align-items: center;
-  border-top: 1px solid var(--border-medium);
+  border-top: 1px solid var(--border-subtle, var(--border-medium));
   margin-top: 12px;
   padding-top: 6px;
+}
+
+.card-footer-actions ion-button.delete-btn {
+  --padding-start: 10px;
+  --padding-end: 10px;
+  height: 26px;
+  min-height: 26px;
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+
+  ion-icon {
+    font-size: 0.95rem;
+    margin-right: 4px;
+  }
 }
 
 /* ── Stock List View ────────────────────────────────────── */

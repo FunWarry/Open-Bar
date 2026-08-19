@@ -36,12 +36,15 @@ import java.util.List;
 public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final JwtAuthorizationFilter jwtAuthorizationFilter;
+    private final List<String> allowedOriginPatterns;
 
     public SecurityConfig(
             JwtAuthenticationFilter jwtAuthenticationFilter,
-            JwtAuthorizationFilter jwtAuthorizationFilter) {
+            JwtAuthorizationFilter jwtAuthorizationFilter,
+            @org.springframework.beans.factory.annotation.Value("${openbar.cors.allowed-origin-patterns:*}") List<String> allowedOriginPatterns) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.jwtAuthorizationFilter = jwtAuthorizationFilter;
+        this.allowedOriginPatterns = allowedOriginPatterns;
     }
 
     @Bean
@@ -58,31 +61,40 @@ public class SecurityConfig {
                                     request.setAttribute("_csrf", token);
                                 }
                             }))
-                    .sessionManagement(session -> session
-                            .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                    .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     .authorizeHttpRequests(auth -> auth
-                            .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/api-docs/**")
+                            .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                            .requestMatchers(
+                                    "/api/auth/**",
+                                    "/api/setup/**",
+                                    "/api/settings",
+                                    "/api/ws/**",
+                                    "/ws/**",
+                                    "/api/client/**",
+                                    "/v3/api-docs/**",
+                                    "/swagger-ui/**",
+                                    "/swagger-ui.html",
+                                    "/uploads/**",
+                                    "/actuator/health",
+                                    "/actuator/info")
                             .permitAll()
-                            .requestMatchers("/api/auth/**", "/api/test/health", "/api/setup/**", "/api/public/**")
-                            .permitAll()
-                            .requestMatchers("/uploads/**").permitAll()
-                            .requestMatchers("/api/users/check-username/**").permitAll()
-                            .requestMatchers("/api/users/check-email/**").permitAll()
-                            .requestMatchers("/ws/**", "/api/ws/**").permitAll()
-                            // Application customization settings readable prior to authentication (login
-                            // screen)
-                            .requestMatchers(HttpMethod.GET, "/api/settings").permitAll()
                             .anyRequest().authenticated())
-                    .exceptionHandling(ex -> ex
-                            .accessDeniedHandler((request, response, _) -> writeError(response,
-                                    HttpServletResponse.SC_FORBIDDEN, "Forbidden", "Access denied"))
-                            .authenticationEntryPoint((request, response, _) -> writeError(response,
-                                    HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized", "Not authenticated")))
                     .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                    .addFilterBefore(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class)
+                    .addFilterAfter(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class)
+                    .exceptionHandling(ex -> ex
+                            .authenticationEntryPoint((request, response, authException) -> writeError(
+                                    response,
+                                    HttpServletResponse.SC_UNAUTHORIZED,
+                                    "Unauthorized",
+                                    "Authentication required or invalid token"))
+                            .accessDeniedHandler((request, response, accessDeniedException) -> writeError(
+                                    response,
+                                    HttpServletResponse.SC_FORBIDDEN,
+                                    "Forbidden",
+                                    "Insufficient permissions to access this resource")))
                     .build();
         } catch (Exception e) {
-            throw new IllegalStateException("Error building SecurityFilterChain", e);
+            throw new IllegalStateException("Failed to configure security filter chain", e);
         }
     }
 
@@ -106,15 +118,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(List.of(
-                "http://localhost:[*]",
-                "http://127.0.0.1:[*]",
-                "http://192.168.[*]",
-                "http://10.[*]",
-                "http://open-bar.freeboxos.fr:[*]",
-                "https://open-bar.freeboxos.fr:[*]",
-                "http://open-bar.freeboxos.fr",
-                "https://open-bar.freeboxos.fr"));
+        configuration.setAllowedOriginPatterns(this.allowedOriginPatterns);
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);

@@ -385,9 +385,9 @@
     gap: 4px;
     padding: 6px 12px;
     border-radius: var(--radius-pill, 999px);
-    background: rgba(26, 26, 46, 0.85);
+    background: var(--background-surface-1, #1a1a2e);
     border: 1px solid var(--border-medium, #2e3450);
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+    box-shadow: var(--elev-2, 0 4px 14px rgba(0, 0, 0, 0.25));
     backdrop-filter: blur(16px);
     user-select: none;
 
@@ -398,8 +398,8 @@
       width: 32px;
       height: 32px;
       border-radius: 50%;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: var(--background-surface-2, #21263f);
+      border: 1px solid var(--border-medium, #2e3450);
       color: var(--text-primary, #eceefb);
       cursor: pointer;
       transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -413,7 +413,7 @@
         border-color: var(--primary, #6c7fe8);
         color: var(--primary-light, #aab4f3);
         transform: scale(1.08);
-        box-shadow: 0 4px 12px rgba(108, 127, 232, 0.4);
+        box-shadow: 0 4px 12px var(--primary-tint, rgba(108, 127, 232, 0.4));
       }
 
       &:active {
@@ -435,7 +435,7 @@
       font-size: 0.8rem;
       font-weight: 700;
       letter-spacing: 0.5px;
-      color: #ffffff;
+      color: var(--text-primary, #eceefb);
       background: var(--background-surface-2, #21263f);
       border: 1px solid var(--border-medium, #2e3450);
       padding: 4px 10px;

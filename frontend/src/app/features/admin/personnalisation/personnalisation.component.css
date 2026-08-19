@@ -134,11 +134,18 @@
   color: var(--text-primary, #eceefb);
   font-size: 13px;
   cursor: pointer;
-  transition: border-color 0.15s ease;
+  transition: all 0.15s ease;
 }
 
 .preset-chip:hover {
   border-color: var(--primary, #6c7fe8);
+}
+
+.preset-chip.active {
+  border-color: var(--primary, #6c7fe8);
+  background-color: var(--primary-tint, rgba(108, 127, 232, 0.2));
+  color: var(--text-primary, #eceefb);
+  box-shadow: 0 0 10px var(--primary-tint, rgba(108, 127, 232, 0.3));
 }
 
 .preset-dot {
