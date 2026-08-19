@@ -207,15 +207,18 @@ CREATE TABLE IF NOT EXISTS app_settings (
     logo_url VARCHAR(2048),
     establishment_name VARCHAR(100) NOT NULL DEFAULT 'OpenBar',
     default_theme VARCHAR(20) NOT NULL DEFAULT 'DARK',
+    temps_alerte_warning_minutes INTEGER NOT NULL DEFAULT 3,
     temps_alerte_commande_minutes INTEGER NOT NULL DEFAULT 5,
     temps_alerte_critique_commande_minutes INTEGER NOT NULL DEFAULT 10,
     updated_at TIMESTAMP
 );
 
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS temps_alerte_warning_minutes INTEGER DEFAULT 3;
+
 -- Garantit que la ligne singleton existe dès le déploiement, pour éviter toute
 -- course entre requêtes GET /api/settings concurrentes au premier démarrage.
-INSERT INTO app_settings (id, primary_color, primary_color_strong, establishment_name, default_theme, temps_alerte_commande_minutes, temps_alerte_critique_commande_minutes)
-VALUES (1, '#6c7fe8', '#5a68d6', 'OpenBar', 'DARK', 5, 10)
+INSERT INTO app_settings (id, primary_color, primary_color_strong, establishment_name, default_theme, temps_alerte_warning_minutes, temps_alerte_commande_minutes, temps_alerte_critique_commande_minutes)
+VALUES (1, '#6c7fe8', '#5a68d6', 'OpenBar', 'DARK', 3, 5, 10)
 ON CONFLICT (id) DO NOTHING;
 
 -- Legal establishment configuration (#129)
@@ -427,3 +430,19 @@ CREATE TABLE IF NOT EXISTS glassware (
 ALTER TABLE glassware ALTER COLUMN image_url TYPE TEXT;
 
 ALTER TABLE cocktails ADD COLUMN IF NOT EXISTS glassware_id BIGINT REFERENCES glassware(id) ON DELETE SET NULL;
+
+-- Table des paramètres globaux et seuils d'alertes établissement (#311)
+CREATE TABLE IF NOT EXISTS app_settings (
+    id BIGINT PRIMARY KEY,
+    primary_color VARCHAR(7) NOT NULL DEFAULT '#6c7fe8',
+    primary_color_strong VARCHAR(7) NOT NULL DEFAULT '#5a68d6',
+    logo_url VARCHAR(2048),
+    establishment_name VARCHAR(100) NOT NULL DEFAULT 'OpenBar',
+    default_theme VARCHAR(20) NOT NULL DEFAULT 'DARK',
+    temps_alerte_warning_minutes INTEGER NOT NULL DEFAULT 3,
+    temps_alerte_commande_minutes INTEGER NOT NULL DEFAULT 5,
+    temps_alerte_critique_commande_minutes INTEGER NOT NULL DEFAULT 10,
+    updated_at TIMESTAMP
+);
+
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS temps_alerte_warning_minutes INTEGER DEFAULT 3;

@@ -1,5 +1,6 @@
 import {TestBed} from '@angular/core/testing';
 import {CommonModule} from '@angular/common';
+import {HttpClientTestingModule} from '@angular/common/http/testing';
 import {IonBadge} from '@ionic/angular/standalone';
 import {
   KanbanBoardComponent
@@ -15,7 +16,7 @@ describe('KanbanBoardComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [KanbanBoardComponent, CommonModule, IonBadge, MiniCommandeCardComponent, getTranslocoTestingModule()]
+      imports: [KanbanBoardComponent, CommonModule, HttpClientTestingModule, IonBadge, MiniCommandeCardComponent, getTranslocoTestingModule()]
     }).compileComponents();
 
     const fixture = TestBed.createComponent(KanbanBoardComponent);
@@ -71,7 +72,7 @@ describe('MiniCommandeCardComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [MiniCommandeCardComponent, CommonModule, getTranslocoTestingModule()]
+      imports: [MiniCommandeCardComponent, CommonModule, HttpClientTestingModule, getTranslocoTestingModule()]
     }).compileComponents();
 
     const fixture = TestBed.createComponent(MiniCommandeCardComponent);
@@ -81,7 +82,7 @@ describe('MiniCommandeCardComponent', () => {
       tableNumero: 5,
       tableNom: 'Table VIP',
       statut: 'EN_ATTENTE',
-      dateCommande: new Date(Date.now() - 10 * 60 * 1000).toISOString(),
+      dateCommande: new Date(Date.now() - 4 * 60 * 1000).toISOString(),
       serveurUsername: 'bob',
       total: 25.5,
       items: [{ cocktailNom: 'Mojito', quantite: 2 }]
@@ -105,15 +106,21 @@ describe('MiniCommandeCardComponent', () => {
   });
 
   it('should calculate waitTimeMinutes, waitTimeLabel and waitTimeSeverity', () => {
-    expect(component.waitTimeMinutes).toBeGreaterThanOrEqual(9);
+    expect(component.waitTimeMinutes).toBeGreaterThanOrEqual(3);
     expect(component.waitTimeLabel).toContain('min');
     expect(component.waitTimeSeverity).toBe('warning');
 
     component.order = {
       ...component.order,
-      dateCommande: new Date(Date.now() - 25 * 60 * 1000).toISOString()
+      dateCommande: new Date(Date.now() - 7 * 60 * 1000).toISOString()
     };
     expect(component.waitTimeSeverity).toBe('urgent');
+
+    component.order = {
+      ...component.order,
+      dateCommande: new Date(Date.now() - 15 * 60 * 1000).toISOString()
+    };
+    expect(component.waitTimeSeverity).toBe('critical');
 
     component.order = {
       ...component.order,

@@ -264,4 +264,43 @@ export async function setupMockApi(page: Page): Promise<void> {
       }),
     });
   });
+
+  await page.route('**/api/settings**', async (route) => {
+    if (route.request().method() === 'PUT') {
+      const data = route.request().postDataJSON();
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 1,
+          primaryColor: data?.primaryColor || '#6c7fe8',
+          primaryColorStrong: data?.primaryColorStrong || '#5a68d6',
+          logoUrl: data?.logoUrl || null,
+          establishmentName: data?.establishmentName || 'OpenBar',
+          defaultTheme: data?.defaultTheme || 'DARK',
+          tempsAlerteWarningMinutes: data?.tempsAlerteWarningMinutes ?? 3,
+          tempsAlerteCommandeMinutes: data?.tempsAlerteCommandeMinutes ?? 5,
+          tempsAlerteCritiqueCommandeMinutes: data?.tempsAlerteCritiqueCommandeMinutes ?? 10,
+          updatedAt: new Date().toISOString(),
+        }),
+      });
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        id: 1,
+        primaryColor: '#6c7fe8',
+        primaryColorStrong: '#5a68d6',
+        logoUrl: null,
+        establishmentName: 'OpenBar',
+        defaultTheme: 'DARK',
+        tempsAlerteWarningMinutes: 3,
+        tempsAlerteCommandeMinutes: 5,
+        tempsAlerteCritiqueCommandeMinutes: 10,
+        updatedAt: new Date().toISOString(),
+      }),
+    });
+  });
 }

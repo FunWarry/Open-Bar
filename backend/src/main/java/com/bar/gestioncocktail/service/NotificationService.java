@@ -65,6 +65,16 @@ public class NotificationService {
         messagingTemplate.convertAndSend(TOPIC_STOCK_ALERTE, payload);
     }
 
+    /**
+     * Broadcasts updated application settings over STOMP WebSocket topics.
+     *
+     * @param settings Updated application settings DTO or payload
+     */
+    public void notifierParametresMisAJour(Object settings) {
+        messagingTemplate.convertAndSend("/topic/app-settings", settings);
+        messagingTemplate.convertAndSend("/topic/settings", settings);
+    }
+
     public static class CommandeStatutNotification {
         private final Long commandeId;
         private final CommandeStatut ancienStatut;

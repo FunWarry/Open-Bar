@@ -91,7 +91,9 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
   commandesEnAttente: CommandeView[] = [];
   commandesEnPreparation: CommandeView[] = [];
   commandesPret: CommandeView[] = [];
+  tempsAlerteWarningMinutes = 3;
   tempsAlerteCommandeMinutes = 5;
+  tempsAlerteCritiqueCommandeMinutes = 10;
 
   searchQuery = '';
   urgentOnly = false;
@@ -191,11 +193,17 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: settings => {
-          if (settings.tempsAlerteCommandeMinutes) {
-            this.tempsAlerteCommandeMinutes = settings.tempsAlerteCommandeMinutes;
-          }
+          this.applyThresholdSettings(settings);
         },
         error: () => {}
+      });
+
+    this.settingsService.settings$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(settings => {
+        if (settings) {
+          this.applyThresholdSettings(settings);
+        }
       });
 
     this.chargerCommandes();
@@ -429,6 +437,19 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
 
   trackById(_: number, cmd: CommandeView): number {
     return cmd.id;
+  }
+
+  private applyThresholdSettings(settings: any): void {
+    if (settings?.tempsAlerteWarningMinutes) {
+      this.tempsAlerteWarningMinutes = settings.tempsAlerteWarningMinutes;
+    }
+    if (settings?.tempsAlerteCommandeMinutes) {
+      this.tempsAlerteCommandeMinutes = settings.tempsAlerteCommandeMinutes;
+    }
+    if (settings?.tempsAlerteCritiqueCommandeMinutes) {
+      this.tempsAlerteCritiqueCommandeMinutes = settings.tempsAlerteCritiqueCommandeMinutes;
+    }
+    this.cdr.detectChanges();
   }
 
   private async showToast(message: string, color: 'primary' | 'success' | 'danger'): Promise<void> {

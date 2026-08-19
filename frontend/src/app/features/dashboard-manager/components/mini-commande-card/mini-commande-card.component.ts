@@ -1,9 +1,10 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonCard, IonCardContent, IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { timeOutline, timerOutline, personOutline, documentTextOutline } from 'ionicons/icons';
 import { OngoingOrder } from '../../models/ongoing-order.model';
+import { AppSettingsService } from '../../../../core/services/app-settings.service';
 
 /**
  * Compact order card representation for Manager Kanban columns.
@@ -19,6 +20,8 @@ import { OngoingOrder } from '../../models/ongoing-order.model';
 export class MiniCommandeCardComponent {
   /** The ongoing order view displayed by the mini card. */
   @Input() order!: OngoingOrder;
+
+  private readonly appSettingsService = inject(AppSettingsService, { optional: true });
 
   constructor() {
     addIcons({ timeOutline, timerOutline, personOutline, documentTextOutline });
@@ -54,12 +57,18 @@ export class MiniCommandeCardComponent {
     return `${hours}h ${remMins}m`;
   }
 
-  /** Color-coded severity level based on elapsed wait duration and order status. */
-  get waitTimeSeverity(): 'normal' | 'warning' | 'urgent' {
+  /** Color-coded severity level based on elapsed wait duration, order status, and dynamic thresholds. */
+  get waitTimeSeverity(): 'normal' | 'warning' | 'urgent' | 'critical' {
     if (this.order?.statut === 'LIVREE') return 'normal';
     const mins = this.waitTimeMinutes;
-    if (mins >= 15) return 'urgent';
-    if (mins >= 8) return 'warning';
+    const settings = this.appSettingsService?.currentSettings;
+    const warning = settings?.tempsAlerteWarningMinutes ?? 3;
+    const urgent = settings?.tempsAlerteCommandeMinutes ?? 5;
+    const critical = settings?.tempsAlerteCritiqueCommandeMinutes ?? 10;
+
+    if (mins >= critical) return 'critical';
+    if (mins >= urgent) return 'urgent';
+    if (mins >= warning) return 'warning';
     return 'normal';
   }
 
