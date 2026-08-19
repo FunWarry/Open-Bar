@@ -139,7 +139,7 @@ class AppSettingsIntegrationTest extends BaseIntegrationTest {
         mockMvc.perform(put("/api/settings")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isForbidden());
     }
 
     @Test

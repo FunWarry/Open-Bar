@@ -13,6 +13,8 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -29,7 +31,8 @@ class SecurityConfigTest {
     @Test
     @DisplayName("corsConfigurationSource - validates allowed origins, methods, and credentials")
     void corsConfigurationSource_validConfig() {
-        SecurityConfig config = new SecurityConfig(jwtAuthenticationFilter, jwtAuthorizationFilter);
+        List<String> origins = List.of("http://localhost:[*]", "https://*.local:[*]", "https://example.com");
+        SecurityConfig config = new SecurityConfig(jwtAuthenticationFilter, jwtAuthorizationFilter, origins);
         CorsConfigurationSource source = config.corsConfigurationSource();
 
         MockHttpServletRequest request = new MockHttpServletRequest();
@@ -40,21 +43,13 @@ class SecurityConfigTest {
         assertThat(corsConfig).isNotNull();
         assertThat(corsConfig.getAllowCredentials()).isTrue();
         assertThat(corsConfig.getAllowedMethods()).contains("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS");
-        assertThat(corsConfig.getAllowedOriginPatterns()).contains(
-                "http://localhost:[*]",
-                "http://127.0.0.1:[*]",
-                "http://192.168.[*]",
-                "http://10.[*]",
-                "http://open-bar.freeboxos.fr:[*]",
-                "https://open-bar.freeboxos.fr:[*]",
-                "http://open-bar.freeboxos.fr",
-                "https://open-bar.freeboxos.fr");
+        assertThat(corsConfig.getAllowedOriginPatterns()).containsExactlyElementsOf(origins);
     }
 
     @Test
     @DisplayName("authenticationManager - delegates to AuthenticationConfiguration")
     void authenticationManager_delegates() {
-        SecurityConfig config = new SecurityConfig(jwtAuthenticationFilter, jwtAuthorizationFilter);
+        SecurityConfig config = new SecurityConfig(jwtAuthenticationFilter, jwtAuthorizationFilter, List.of("*"));
         AuthenticationConfiguration authConfig = mock(AuthenticationConfiguration.class);
         AuthenticationManager authManager = mock(AuthenticationManager.class);
 
