@@ -1,8 +1,8 @@
 import { Component, Input, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonButton, IonIcon, IonSegment, IonSegmentButton, IonLabel } from '@ionic/angular/standalone';
+import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { printOutline } from 'ionicons/icons';
+import { printOutline, receiptOutline } from 'ionicons/icons';
 import { TranslocoModule } from '@jsverse/transloco';
 import { Facture, FactureItem } from '../models/facture.model';
 import { EstablishmentConfig } from '../../../core/models/establishment-config.model';
@@ -14,7 +14,7 @@ import { EtablissementService } from '../../../core/services/etablissement.servi
 @Component({
   selector: 'app-ticket-receipt',
   standalone: true,
-  imports: [CommonModule, IonButton, IonIcon, IonSegment, IonSegmentButton, IonLabel, TranslocoModule],
+  imports: [CommonModule, IonIcon, TranslocoModule],
   templateUrl: './ticket-receipt.component.html',
   styleUrls: ['./ticket-receipt.component.scss'],
 })
@@ -28,7 +28,7 @@ export class TicketReceiptComponent implements OnInit {
   private readonly etablissementService = inject(EtablissementService);
 
   constructor() {
-    addIcons({ printOutline });
+    addIcons({ printOutline, receiptOutline });
   }
 
   ngOnInit(): void {

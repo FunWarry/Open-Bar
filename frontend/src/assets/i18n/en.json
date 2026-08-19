@@ -815,13 +815,19 @@
   },
   "FACTURES": {
     "NEW": "New Invoice",
+    "HERO_BADGE": "Billing",
     "TITLE": "Invoices History",
     "SUBTITLE": "Settlement supervision, accounting document search and inspection",
+    "TTC_LABEL": "Incl. Tax",
+    "LOADING_DOCS": "Loading accounting documents...",
     "STATS": {
       "TOTAL_CA": "Total Revenue",
       "TOTAL_COUNT": "Invoices Issued",
       "SETTLED_RATE": "Settlement Rate",
-      "RECAP_BTN": "Z-Report / Daily Settlement"
+      "RECAP_BTN": "Z-Report / Daily Settlement",
+      "RECAP_DESC": "Summary & accounting export",
+      "TOTAL_SETTLED_LABEL": "Total Settled",
+      "TOTAL_PENDING_LABEL": "Pending Collection"
     },
     "SEARCH_PLACEHOLDER": "Search by invoice number, table, or server...",
     "FILTERS": {
@@ -829,6 +835,37 @@
       "SETTLED": "Settled",
       "PENDING": "Pending"
     },
+    "SORT": {
+      "LABEL": "Sort by",
+      "DATE_DESC": "Newest first",
+      "DATE_ASC": "Oldest first",
+      "AMOUNT_DESC": "Highest amount",
+      "AMOUNT_ASC": "Lowest amount",
+      "NUMBER": "Invoice number"
+    },
+    "VIEW_MODE": {
+      "GRID": "Grid View",
+      "LIST": "Table View"
+    },
+    "TABLE_HEADERS": {
+      "NUMBER": "Invoice No.",
+      "DATE": "Date & Time",
+      "TABLE": "Table",
+      "SERVER": "Server",
+      "PAYMENT": "Payment",
+      "STATUS": "Status",
+      "TOTAL": "Total (TTC)",
+      "ACTIONS": "Actions"
+    },
+    "ACTIONS": {
+      "VIEW": "View",
+      "SETTLE": "Settle",
+      "PDF": "PDF",
+      "COPY_NUM": "Copy number",
+      "COPIED": "Number copied!",
+      "REFRESH": "Refresh"
+    },
+    "UNASSIGNED": "Unassigned",
     "TABLE_LABEL": "Table {{num}}",
     "NO_FACTURES": "No invoices found",
     "NO_FACTURES_DESC": "No invoices match your search criteria or no orders have been settled yet.",
@@ -860,6 +897,13 @@
     "DOWNLOAD_PDF": "Download PDF",
     "SPLIT": "Split Bill",
     "THANK_YOU": "Thank you for your visit!",
+    "BACK_TO_LIST": "Back to Invoices",
+    "ITEMS_CONSUMED": "Consumption Items",
+    "NO_ITEMS": "No items recorded on this invoice",
+    "PRINT_RECEIPT": "Print Receipt",
+    "ESTABLISHMENT_INFO": "Establishment Details",
+    "FINANCIAL_BREAKDOWN": "Financial Breakdown",
+    "INVOICE_DETAILS": "Invoice Details",
     "DUE_TOTAL": "Total due: ",
     "CARD": "Card",
     "CASH": "Cash",
