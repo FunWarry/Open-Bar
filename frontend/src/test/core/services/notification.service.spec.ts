@@ -72,14 +72,14 @@ describe('NotificationService', () => {
   });
 
   // -------------------------------------------------------------------------
-  // onNotification() — commande topic
+  // onNotification() — commande topic & deduplication state tracking (#330)
   // -------------------------------------------------------------------------
 
   it('onNotification() emits notification when /topic/commandes receives message', fakeAsync(() => {
     const received: AppNotification[] = [];
     service.onNotification().subscribe(n => received.push(n));
 
-    wsStub.emit('/topic/commandes', { tableNom: 'A1' });
+    wsStub.emit('/topic/commandes', { id: 101, tableNom: 'A1' });
     tick();
 
     expect(received).toHaveSize(1);
@@ -90,41 +90,86 @@ describe('NotificationService', () => {
     expect(soundSpy.playNewOrderSound).toHaveBeenCalled();
   }));
 
+  it('deduplicates multiple events for the same order with unchanged status (#330)', fakeAsync(() => {
+    const received: AppNotification[] = [];
+    service.onNotification().subscribe(n => received.push(n));
+
+    // 1. Initial creation
+    wsStub.emit('/topic/commandes', { id: 40, statut: 'EN_ATTENTE', tableNom: 'Table 3' });
+    tick();
+    expect(received).toHaveSize(1);
+    expect(service.unreadCount()).toBe(1);
+
+    // 2. Duplicate broadcast from /topic/commandes/statut
+    wsStub.emit('/topic/commandes/statut', { id: 40, statut: 'EN_ATTENTE', tableNom: 'Table 3' });
+    tick();
+    expect(received).toHaveSize(1);
+    expect(service.unreadCount()).toBe(1);
+
+    // 3. ajouterItem (Item 1)
+    wsStub.emit('/topic/commandes', { id: 40, statut: 'EN_ATTENTE', tableNom: 'Table 3' });
+    tick();
+    expect(received).toHaveSize(1);
+
+    // 4. ajouterItem (Item 2)
+    wsStub.emit('/topic/commandes', { id: 40, statut: 'EN_ATTENTE', tableNom: 'Table 3' });
+    tick();
+    expect(received).toHaveSize(1);
+    expect(service.unreadCount()).toBe(1);
+  }));
+
+  it('emits status transition notification when order status changes', fakeAsync(() => {
+    const received: AppNotification[] = [];
+    service.onNotification().subscribe(n => received.push(n));
+
+    // 1. Initial order
+    wsStub.emit('/topic/commandes', { id: 50, statut: 'EN_ATTENTE', tableNom: 'Table 2' });
+    tick();
+    expect(received).toHaveSize(1);
+    expect(received[0].type).toBe('commande');
+
+    // 2. Transition to EN_PREPARATION
+    wsStub.emit('/topic/commandes/statut', { id: 50, statut: 'EN_PREPARATION', tableNom: 'Table 2' });
+    tick();
+    expect(received).toHaveSize(2);
+    expect(received[1].type).toBe('statut');
+    expect(received[1].message).toContain('Order #50 — EN_PREPARATION');
+
+    // 3. Transition to PRET
+    wsStub.emit('/topic/commandes/statut', { id: 50, statut: 'PRET', tableNom: 'Table 2' });
+    tick();
+    expect(received).toHaveSize(3);
+    expect(received[2].type).toBe('statut');
+    expect(received[2].message).toContain('Order #50 — PRET');
+    expect(soundSpy.playOrderReadySound).toHaveBeenCalled();
+  }));
+
   it('onNotification() triggers playOrderReadySound when status is PRET', fakeAsync(() => {
+    wsStub.emit('/topic/commandes', { id: 8, statut: 'EN_PREPARATION' });
+    tick();
+
     wsStub.emit('/topic/commandes/statut', { id: 8, statut: 'PRET' });
     tick();
 
     expect(soundSpy.playOrderReadySound).toHaveBeenCalled();
   }));
 
-  it('onNotification() emits notification when /topic/commandes/statut receives message', fakeAsync(() => {
+  it('onNotification() emits notification with danger severity for ANNULEE status', fakeAsync(() => {
     const received: AppNotification[] = [];
     service.onNotification().subscribe(n => received.push(n));
 
-    wsStub.emit('/topic/commandes/statut', { id: 7, statut: 'EN_PREPARATION' });
+    wsStub.emit('/topic/commandes', { id: 77, statut: 'EN_ATTENTE' });
     tick();
 
-    expect(received).toHaveSize(1);
-    expect(received[0].type).toBe('statut');
-    expect(received[0].message).toContain('7');
-    expect(received[0].message).toContain('EN_PREPARATION');
-    expect(received[0].severity).toBe('success');
-  }));
-
-  it('onNotification() emits notification when /topic/barman/commandes receives message', fakeAsync(() => {
-    const received: AppNotification[] = [];
-    service.onNotification().subscribe(n => received.push(n));
-
-    wsStub.emit('/topic/barman/commandes', { id: 18, statut: 'ANNULEE' });
+    wsStub.emit('/topic/commandes/statut', { id: 77, statut: 'ANNULEE' });
     tick();
 
-    expect(received).toHaveSize(1);
-    expect(received[0].type).toBe('commande');
-    expect(received[0].message).toContain('18');
-    expect(received[0].message).toContain('ANNULEE');
+    expect(received).toHaveSize(2);
+    expect(received[1].severity).toBe('danger');
+    expect(received[1].message).toContain('Order #77 — ANNULEE');
   }));
 
-  it('onNotification() emits notification when /topic/tables receives message', fakeAsync(() => {
+  it('onNotification() emits notification when /topic/tables receives message and deduplicates identical status', fakeAsync(() => {
     const received: AppNotification[] = [];
     service.onNotification().subscribe(n => received.push(n));
 
@@ -136,16 +181,17 @@ describe('NotificationService', () => {
     expect(received[0].message).toContain('B2');
     expect(received[0].message).toContain('Occupied');
     expect(received[0].severity).toBe('success');
-  }));
 
-  it('onNotification() emits "Available" notification when occupee is false', fakeAsync(() => {
-    const received: AppNotification[] = [];
-    service.onNotification().subscribe(n => received.push(n));
-
-    wsStub.emit('/topic/tables', { nom: 'C3', occupee: false });
+    // Duplicate table event with same occupancy status
+    wsStub.emit('/topic/tables', { nom: 'B2', occupee: true });
     tick();
+    expect(received).toHaveSize(1);
 
-    expect(received[0].message).toContain('Available');
+    // Transition to Available
+    wsStub.emit('/topic/tables', { nom: 'B2', occupee: false });
+    tick();
+    expect(received).toHaveSize(2);
+    expect(received[1].message).toContain('Available');
   }));
 
   // -------------------------------------------------------------------------
