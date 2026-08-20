@@ -12,6 +12,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -35,7 +36,7 @@ class GlasswareDataSeederServiceTest {
 
     @BeforeEach
     void setUp() {
-        lenient().when(timeService.now()).thenReturn(LocalDateTime.of(2026, 8, 20, 1, 0));
+        lenient().when(timeService.now()).thenReturn(LocalDateTime.of(2026, Month.AUGUST, 20, 1, 0));
     }
 
     @Test
