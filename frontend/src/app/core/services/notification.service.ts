@@ -63,29 +63,19 @@ export class NotificationService implements OnDestroy {
   }
 
   private initSubscriptions(): void {
-    // Order updates on /topic/commandes
-    this.ws.watch('/topic/commandes')
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(msg => {
-        try {
-          const data = typeof msg.body === 'string' ? JSON.parse(msg.body) : msg.body;
-          this.handleOrderNotification(data);
-        } catch {
-          // malformed message — ignore
-        }
-      });
-
-    // Order status updates on /topic/commandes/statut
-    this.ws.watch('/topic/commandes/statut')
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(msg => {
-        try {
-          const data = typeof msg.body === 'string' ? JSON.parse(msg.body) : msg.body;
-          this.handleOrderNotification(data);
-        } catch {
-          // malformed message — ignore
-        }
-      });
+    // Order updates on /topic/commandes and /topic/commandes/statut
+    for (const topic of ['/topic/commandes', '/topic/commandes/statut']) {
+      this.ws.watch(topic)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(msg => {
+          try {
+            const data = typeof msg.body === 'string' ? JSON.parse(msg.body) : msg.body;
+            this.handleOrderNotification(data);
+          } catch {
+            // malformed message — ignore
+          }
+        });
+    }
 
     // Stock alerts on /topic/stock/alerte
     this.ws.watch('/topic/stock/alerte')
