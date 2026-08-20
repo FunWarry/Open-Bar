@@ -32,6 +32,9 @@ export class NotificationService implements OnDestroy {
   private readonly stockAlerts$ = new Subject<AppNotification>();
   private readonly destroy$ = new Subject<void>();
   private readonly notificationHistory: AppNotification[] = [];
+  private readonly orderStatusMap = new Map<number | string, string>();
+  private readonly tableStatusMap = new Map<string, boolean>();
+  private notifSequence = 0;
 
   private readonly prefs = inject(PreferencesService);
 
@@ -65,11 +68,31 @@ export class NotificationService implements OnDestroy {
   }
 
   private initSubscriptions(): void {
-    this.subscribeToTopic('/topic/commandes', 'commande', 'primary', d => `New order — Table ${d.tableNom ?? d.table?.nom ?? '#'}`);
-    this.subscribeToTopic('/topic/commandes/statut', 'statut', 'success', d => `Order #${d.id} — ${d.statut ?? 'status updated'}`);
-    this.subscribeToTopic('/topic/barman/commandes', 'commande', 'primary', d => `Order #${d.id} — ${d.statut ?? 'updated'}`);
+    // Order updates on /topic/commandes
+    this.ws.watch('/topic/commandes')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(msg => {
+        try {
+          const data = typeof msg.body === 'string' ? JSON.parse(msg.body) : msg.body;
+          this.handleOrderNotification(data);
+        } catch {
+          // malformed message — ignore
+        }
+      });
 
-    // Stock alert
+    // Order status updates on /topic/commandes/statut
+    this.ws.watch('/topic/commandes/statut')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(msg => {
+        try {
+          const data = typeof msg.body === 'string' ? JSON.parse(msg.body) : msg.body;
+          this.handleOrderNotification(data);
+        } catch {
+          // malformed message — ignore
+        }
+      });
+
+    // Stock alerts on /topic/stock/alerte
     this.ws.watch('/topic/stock/alerte')
       .pipe(takeUntil(this.destroy$))
       .subscribe(msg => {
@@ -82,7 +105,7 @@ export class NotificationService implements OnDestroy {
           const labelPrefix = isCritical ? 'Out of Stock' : 'Low Stock';
           const unitStr = unite ? ` ${unite}` : '';
           const notif: AppNotification = {
-            id: `stock-${Date.now()}`,
+            id: `stock-${Date.now()}-${++this.notifSequence}`,
             type: 'stock',
             message: `⚠ ${labelPrefix}: ${nom} (${qty}${unitStr} remaining)`,
             severity: isCritical ? 'danger' : 'warning',
@@ -100,15 +123,22 @@ export class NotificationService implements OnDestroy {
         }
       });
 
-    // Table occupancy / release
+    // Table occupancy / release on /topic/tables
     this.ws.watch('/topic/tables')
       .pipe(takeUntil(this.destroy$))
       .subscribe(msg => {
         try {
-          const data = JSON.parse(msg.body);
+          const data = typeof msg.body === 'string' ? JSON.parse(msg.body) : msg.body;
+          const tableKey = String(data.nom ?? (data.id ? `id-${data.id}` : 'unknown'));
+          const isOccupee = Boolean(data.occupee);
+          if (this.tableStatusMap.has(tableKey) && this.tableStatusMap.get(tableKey) === isOccupee) {
+            return; // Suppress duplicate table occupancy notification
+          }
+          this.tableStatusMap.set(tableKey, isOccupee);
+          const tableDisplay = this.formatTableDisplay(tableKey);
           this.emit({
             type: 'table',
-            message: `Table ${data.nom} — ${data.occupee ? 'Occupied' : 'Available'}`,
+            message: `${tableDisplay} — ${isOccupee ? 'Occupied' : 'Available'}`,
             severity: 'success',
             data,
           });
@@ -118,10 +148,77 @@ export class NotificationService implements OnDestroy {
       });
   }
 
+  /**
+   * Formats a table identifier or name into a user-friendly label.
+   *
+   * @param rawTable - Raw table name or identifier
+   * @returns Formatted table display label
+   */
+  private formatTableDisplay(rawTable: any): string {
+    if (!rawTable) return 'Table #';
+    const nomStr = String(rawTable).trim();
+    if (nomStr.toLowerCase().startsWith('table')) {
+      return nomStr;
+    }
+    return `Table ${nomStr}`;
+  }
+
+  /**
+   * Handles order WebSocket payloads with state tracking to prevent duplicate notifications.
+   *
+   * @param data - Raw or deserialized order data payload
+   */
+  private handleOrderNotification(data: any): void {
+    if (!data) return;
+    const orderId = data.id;
+    const currentStatut = data.statut ?? 'EN_ATTENTE';
+    const rawTableNom = data.tableNom ?? data.table?.nom ?? (data.table?.id ? `${data.table.id}` : null);
+    const tableDisplay = this.formatTableDisplay(rawTableNom);
+
+    if (orderId != null) {
+      if (!this.orderStatusMap.has(orderId)) {
+        // Initial new order event
+        this.orderStatusMap.set(orderId, currentStatut);
+        this.emit({
+          type: 'commande',
+          message: `New order — ${tableDisplay}`,
+          severity: 'primary',
+          data,
+        });
+        return;
+      }
+
+      const prevStatus = this.orderStatusMap.get(orderId);
+      if (prevStatus !== currentStatut) {
+        // Status transitioned to a new distinct state
+        this.orderStatusMap.set(orderId, currentStatut);
+        const severity = currentStatut === 'ANNULEE' ? 'danger' : 'success';
+        this.emit({
+          type: 'statut',
+          message: `Order #${orderId} — ${currentStatut}`,
+          severity,
+          data,
+        });
+        return;
+      }
+
+      // Status has not changed (e.g. intermediate item additions or multiple topic delivery) — suppress
+      return;
+    }
+
+    // Fallback if data doesn't have an order id
+    this.emit({
+      type: 'commande',
+      message: `New order — ${tableDisplay}`,
+      severity: 'primary',
+      data,
+    });
+  }
+
   private emit(partial: Omit<AppNotification, 'id' | 'timestamp' | 'lue'>): void {
     const notif: AppNotification = {
       ...partial,
-      id: `${partial.type}-${Date.now()}`,
+      id: `${partial.type}-${Date.now()}-${++this.notifSequence}`,
       timestamp: new Date(),
       lue: false,
     };
@@ -130,10 +227,10 @@ export class NotificationService implements OnDestroy {
     this.notifications$.next(notif);
     this.showToast(notif.message, notif.severity);
 
-    if (notif.type === 'commande') {
-      this.soundService.playNewOrderSound();
-    } else if (notif.type === 'statut' && (notif.data?.statut === 'PRET' || notif.data?.statut === 'PRETE')) {
+    if (notif.data?.statut === 'PRET' || notif.data?.statut === 'PRETE') {
       this.soundService.playOrderReadySound();
+    } else if (notif.type === 'commande') {
+      this.soundService.playNewOrderSound();
     }
   }
 
@@ -147,29 +244,6 @@ export class NotificationService implements OnDestroy {
       buttons: [{ text: '×', role: 'cancel' }],
     });
     await toast.present();
-  }
-
-  private subscribeToTopic(
-    topic: string,
-    type: 'commande' | 'statut',
-    severity: 'primary' | 'success',
-    getMessage: (d: any) => string,
-  ): void {
-    this.ws.watch(topic)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(msg => {
-        try {
-          const data = JSON.parse(msg.body);
-          this.emit({
-            type,
-            message: getMessage(data),
-            severity,
-            data,
-          });
-        } catch {
-          // malformed message — ignore
-        }
-      });
   }
 
   /**
