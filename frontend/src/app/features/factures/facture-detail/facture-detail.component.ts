@@ -91,6 +91,88 @@ export class FactureDetailComponent implements OnInit, OnDestroy {
     return this.facture?.totalVAT ?? (this.displayedAmount - this.totalHT);
   }
 
+  /**
+   * Computes the unit price excluding taxes (P.U. HT) for an invoice item.
+   *
+   * @param item Invoice item
+   * @returns Unit price HT
+   */
+  getItemPuHT(item: FactureItem): number {
+    const qty = Math.max(1, item.quantite);
+    if (item.priceHT !== undefined && item.priceHT !== null) {
+      return item.priceHT / qty;
+    }
+    const rate = this.parseVatRate(item.vatRate);
+    return (item.prixUnitaire || 0) / (1 + rate);
+  }
+
+  /**
+   * Computes the line total excluding taxes (Total HT) for an invoice item.
+   *
+   * @param item Invoice item
+   * @returns Line total HT
+   */
+  getItemTotalHT(item: FactureItem): number {
+    if (item.priceHT !== undefined && item.priceHT !== null) {
+      return item.priceHT;
+    }
+    const rate = this.parseVatRate(item.vatRate);
+    const total = item.total ?? ((item.prixUnitaire || 0) * item.quantite);
+    return total / (1 + rate);
+  }
+
+  /**
+   * Computes the line VAT amount for an invoice item.
+   *
+   * @param item Invoice item
+   * @returns VAT amount
+   */
+  getItemVatAmount(item: FactureItem): number {
+    if (item.vatAmount !== undefined && item.vatAmount !== null) {
+      return item.vatAmount;
+    }
+    const total = item.total ?? ((item.prixUnitaire || 0) * item.quantite);
+    return total - this.getItemTotalHT(item);
+  }
+
+  /**
+   * Groups invoice items by VAT rate to display the tax breakdown table.
+   */
+  get vatBreakdown(): { rateLabel: string; baseHT: number; amountVAT: number; totalTTC: number }[] {
+    if (!this.facture?.items || this.facture.items.length === 0) {
+      return [{
+        rateLabel: '20%',
+        baseHT: this.totalHT,
+        amountVAT: this.totalVAT,
+        totalTTC: this.displayedAmount - (this.facture?.pourboire || 0),
+      }];
+    }
+
+    const groups = new Map<string, { rateLabel: string; baseHT: number; amountVAT: number; totalTTC: number }>();
+
+    for (const item of this.facture.items) {
+      const label = item.vatRate || '20%';
+      const baseHT = this.getItemTotalHT(item);
+      const amountVAT = this.getItemVatAmount(item);
+      const totalTTC = item.total ?? ((item.prixUnitaire || 0) * item.quantite);
+
+      const existing = groups.get(label) || { rateLabel: label, baseHT: 0, amountVAT: 0, totalTTC: 0 };
+      existing.baseHT += baseHT;
+      existing.amountVAT += amountVAT;
+      existing.totalTTC += totalTTC;
+      groups.set(label, existing);
+    }
+
+    return Array.from(groups.values());
+  }
+
+  private parseVatRate(rateStr?: string): number {
+    if (!rateStr) return 0.20;
+    if (rateStr.includes('5.5') || rateStr.includes('5,5')) return 0.055;
+    if (rateStr.includes('10')) return 0.10;
+    return 0.20;
+  }
+
   statusColor(settled: boolean): string {
     return settled ? 'success' : 'warning';
   }

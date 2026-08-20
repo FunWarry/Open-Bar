@@ -458,6 +458,15 @@ public class SampleDataSeederService {
 
         updateOrderTimestampsByStatus(cmd, statut, orderTime);
         commandeRepository.save(cmd);
+
+        if (table != null && (statut == CommandeStatut.EN_ATTENTE || statut == CommandeStatut.EN_PREPARATION || statut == CommandeStatut.PRET)) {
+            table.setOccupee(true);
+            if (serveur != null) {
+                table.setServeurId(serveur.getId());
+            }
+            table.setDateOccupation(orderTime);
+            tableRepository.save(table);
+        }
     }
 
     private List<CommandeItem> buildOrderItems(Commande cmd, JsonNode itemsNode, List<Cocktail> cocktails) {

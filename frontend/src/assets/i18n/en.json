@@ -916,8 +916,15 @@
       "PAYMENT": "Payment",
       "STATUS": "Status",
       "TOTAL": "Total (TTC)",
+      "PU_HT": "Unit Price (excl. tax)",
+      "PU_TTC": "Unit Price (incl. tax)",
+      "VAT_RATE": "VAT Rate",
+      "TOTAL_HT": "Total excl. tax",
+      "BASE_HT": "Tax Base",
+      "VAT_AMOUNT": "VAT Amount",
       "ACTIONS": "Actions"
     },
+    "VAT_BREAKDOWN": "VAT Breakdown",
     "ACTIONS": {
       "VIEW": "View",
       "SETTLE": "Settle",

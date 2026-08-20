@@ -184,8 +184,9 @@
                     <tr>
                       <th class="th-desc">{{ t('COMMANDES.ITEMS') }}</th>
                       <th class="th-center">{{ t('COMMANDES.QUANTITY') }}</th>
-                      <th class="th-right">{{ t('COMMANDE_DETAIL.UNIT_PRICE') }}</th>
-                      <th class="th-center">{{ t('FACTURES.TOTAL_VAT') }}</th>
+                      <th class="th-right">{{ t('FACTURES.TABLE_HEADERS.PU_HT') }}</th>
+                      <th class="th-center">{{ t('FACTURES.TABLE_HEADERS.VAT_RATE') }}</th>
+                      <th class="th-right">{{ t('FACTURES.TABLE_HEADERS.TOTAL_HT') }}</th>
                       <th class="th-right">{{ t('COMMON.TOTAL') }} TTC</th>
                     </tr>
                   </thead>
@@ -202,10 +203,13 @@
                           <span class="qty-badge">{{ item.quantite }}</span>
                         </td>
                         <td class="td-right">
-                          <span class="unit-price">{{ item.prixUnitaire | currency:'EUR':'symbol':'1.2-2' }}</span>
+                          <span class="unit-price">{{ getItemPuHT(item) | currency:'EUR':'symbol':'1.2-2' }}</span>
                         </td>
                         <td class="td-center">
                           <span class="vat-badge">{{ item.vatRate || '20%' }}</span>
+                        </td>
+                        <td class="td-right">
+                          <span class="item-line-ht">{{ getItemTotalHT(item) | currency:'EUR':'symbol':'1.2-2' }}</span>
                         </td>
                         <td class="td-right">
                           <strong class="item-line-total">{{ item.total | currency:'EUR':'symbol':'1.2-2' }}</strong>
@@ -225,17 +229,48 @@
 
           <!-- Totals and Financial Summary Section -->
           <section class="sheet-totals-section">
-            <div class="legal-notice-box">
-              <ion-icon name="information-circle-outline"></ion-icon>
-              <div class="legal-notice-text">
-                <span class="notice-title">{{ t('FACTURES.ESTABLISHMENT_INFO') }}</span>
-                <p class="notice-desc" *ngIf="establishmentConfig as cfg">
-                  {{ cfg.legalName || 'OpenBar' }} — {{ cfg.address }}
-                  <span *ngIf="cfg.rcsNumber"> — RCS {{ cfg.rcsCity }} {{ cfg.rcsNumber }}</span>
-                </p>
+            <!-- Left Column: Establishment Notice & Ventilation TVA -->
+            <div class="totals-left-col">
+              <div class="legal-notice-box">
+                <ion-icon name="information-circle-outline"></ion-icon>
+                <div class="legal-notice-text">
+                  <span class="notice-title">{{ t('FACTURES.ESTABLISHMENT_INFO') }}</span>
+                  <p class="notice-desc" *ngIf="establishmentConfig as cfg">
+                    {{ cfg.legalName || 'OpenBar' }} — {{ cfg.address }}
+                    <span *ngIf="cfg.rcsNumber"> — RCS {{ cfg.rcsCity }} {{ cfg.rcsNumber }}</span>
+                  </p>
+                </div>
+              </div>
+
+              <!-- Ventilation TVA Breakdown Table -->
+              <div class="vat-breakdown-card" data-testid="vat-breakdown-card">
+                <div class="vat-card-header">
+                  <span class="vat-card-title">{{ t('FACTURES.VAT_BREAKDOWN') }}</span>
+                </div>
+                <table class="vat-table">
+                  <thead>
+                    <tr>
+                      <th class="th-left">{{ t('FACTURES.TABLE_HEADERS.VAT_RATE') }}</th>
+                      <th class="th-right">{{ t('FACTURES.TABLE_HEADERS.BASE_HT') }}</th>
+                      <th class="th-right">{{ t('FACTURES.TABLE_HEADERS.VAT_AMOUNT') }}</th>
+                      <th class="th-right">{{ t('COMMON.TOTAL') }} TTC</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (v of vatBreakdown; track v.rateLabel) {
+                      <tr>
+                        <td class="td-left"><span class="vat-pill">{{ v.rateLabel }}</span></td>
+                        <td class="td-right">{{ v.baseHT | currency:'EUR':'symbol':'1.2-2' }}</td>
+                        <td class="td-right">{{ v.amountVAT | currency:'EUR':'symbol':'1.2-2' }}</td>
+                        <td class="td-right font-bold">{{ v.totalTTC | currency:'EUR':'symbol':'1.2-2' }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
               </div>
             </div>
 
+            <!-- Right Column: Financial Totals Box -->
             <div class="totals-breakdown-box">
               <div class="breakdown-row">
                 <span class="b-label">{{ t('FACTURES.TOTAL_HT') }}</span>
@@ -245,10 +280,10 @@
                 <span class="b-label">{{ t('FACTURES.TOTAL_VAT') }}</span>
                 <span class="b-val">{{ totalVAT | currency:'EUR':'symbol':'1.2-2' }}</span>
               </div>
-              @if (facture.pourboire) {
+              @if (facture.pourboire && facture.pourboire > 0) {
                 <div class="breakdown-row tip-row">
                   <span class="b-label">{{ t('FACTURES.TIP') }}</span>
-                  <span class="b-val">{{ facture.pourboire | currency:'EUR':'symbol':'1.2-2' }}</span>
+                  <span class="b-val">+{{ facture.pourboire | currency:'EUR':'symbol':'1.2-2' }}</span>
                 </div>
               }
               <div class="breakdown-row grand-total-row">

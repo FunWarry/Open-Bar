@@ -597,6 +597,12 @@
       border-radius: 4px;
     }
 
+    .item-line-ht {
+      color: var(--text-secondary, #a4add0);
+      font-weight: 600;
+      font-size: 0.92rem;
+    }
+
     .item-line-total {
       color: var(--text-primary, #eceefb);
       font-weight: 800;
@@ -640,6 +646,12 @@
   }
 }
 
+.totals-left-col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 .legal-notice-box {
   background: var(--background-surface-1, #1a1a2e);
   border: 1px solid var(--border-medium, #2e3450);
@@ -672,6 +684,65 @@
       font-size: 0.78rem;
       color: var(--text-secondary, #a4add0);
       line-height: 1.4;
+    }
+  }
+}
+
+.vat-breakdown-card {
+  background: var(--background-surface-1, #1a1a2e);
+  border: 1px solid var(--border-medium, #2e3450);
+  border-radius: var(--radius-lg, 16px);
+  padding: 16px 20px;
+  box-shadow: var(--shadow-sm, 0 4px 14px rgba(0, 0, 0, 0.15));
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  .vat-card-header {
+    .vat-card-title {
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: var(--primary-light, #aab4f3);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+  }
+
+  .vat-table {
+    width: 100%;
+    border-collapse: collapse;
+
+    th {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text-muted, #7e87a8);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 6px 8px;
+      border-bottom: 1px solid var(--border-light, #3a4682);
+
+      &.th-left { text-align: left; }
+      &.th-right { text-align: right; }
+    }
+
+    td {
+      font-size: 0.84rem;
+      color: var(--text-secondary, #a4add0);
+      padding: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+
+      &.td-left { text-align: left; }
+      &.td-right { text-align: right; }
+      &.font-bold { font-weight: 700; color: var(--text-primary, #eceefb); }
+
+      .vat-pill {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--primary-light, #aab4f3);
+        background: var(--primary-tint-weak, rgba(108, 127, 232, 0.15));
+        padding: 2px 6px;
+        border-radius: 4px;
+      }
     }
   }
 }

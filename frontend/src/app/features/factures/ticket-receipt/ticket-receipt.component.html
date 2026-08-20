@@ -125,10 +125,10 @@
           <span>{{ t('FACTURES.TOTAL_VAT') }}</span>
           <span>{{ totalVAT | currency:'EUR':'symbol':'1.2-2' }}</span>
         </div>
-        @if (facture.pourboire) {
+        @if (facture.pourboire && facture.pourboire > 0) {
           <div class="totals-line">
             <span>{{ t('FACTURES.TIP') }}</span>
-            <span>{{ facture.pourboire | currency:'EUR':'symbol':'1.2-2' }}</span>
+            <span>+{{ facture.pourboire | currency:'EUR':'symbol':'1.2-2' }}</span>
           </div>
         }
         <div class="totals-line grand-total-line">

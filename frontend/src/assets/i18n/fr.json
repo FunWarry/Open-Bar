@@ -916,8 +916,15 @@
       "PAYMENT": "Paiement",
       "STATUS": "Statut",
       "TOTAL": "Montant TTC",
+      "PU_HT": "P.U. HT",
+      "PU_TTC": "P.U. TTC",
+      "VAT_RATE": "Taux TVA",
+      "TOTAL_HT": "Total HT",
+      "BASE_HT": "Base HT",
+      "VAT_AMOUNT": "Montant TVA",
       "ACTIONS": "Actions"
     },
+    "VAT_BREAKDOWN": "Ventilation TVA",
     "ACTIONS": {
       "VIEW": "Consulter",
       "SETTLE": "Régler",

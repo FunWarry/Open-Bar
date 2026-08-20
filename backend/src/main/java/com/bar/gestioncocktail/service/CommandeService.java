@@ -4,6 +4,7 @@ import com.bar.gestioncocktail.dto.CommandeResponseDTO;
 import com.bar.gestioncocktail.dto.ModifierCommandeItemDTO;
 import com.bar.gestioncocktail.dto.ModifierCommandeRequestDTO;
 import com.bar.gestioncocktail.dto.StockAlerteEvent;
+import com.bar.gestioncocktail.dto.TableResponseDTO;
 import com.bar.gestioncocktail.exception.BusinessException;
 import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.model.Cocktail;
@@ -117,6 +118,7 @@ public class CommandeService {
         commande.setDateCommande(timeService.now());
         commande.setStatut(CommandeStatut.EN_ATTENTE);
         Commande saved = commandeRepository.save(commande);
+        updateTableOccupancyOnOrderCreation(saved);
         notifyOrderUpdated(saved);
         return saved;
     }
@@ -146,9 +148,11 @@ public class CommandeService {
     public void deleteCommande(Long id) {
         Commande commande = commandeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(COMMANDE_NOT_FOUND + id));
+        TableEntity table = commande.getTable();
         commande.setStatut(CommandeStatut.ANNULEE);
         notifyOrderUpdated(commande);
         commandeRepository.delete(commande);
+        updateTableOccupancyIfNoActiveOrders(table);
     }
 
     @Transactional
@@ -232,6 +236,9 @@ public class CommandeService {
         }
 
         Commande saved = commandeRepository.save(commande);
+        if (nouveauStatut == CommandeStatut.REGLEE || nouveauStatut == CommandeStatut.ANNULEE) {
+            updateTableOccupancyIfNoActiveOrders(saved.getTable());
+        }
         notifyOrderUpdated(saved);
         return saved;
     }
@@ -244,6 +251,7 @@ public class CommandeService {
         commande.setStatut(CommandeStatut.ANNULEE);
         commande.setUpdatedAt(timeService.now());
         Commande saved = commandeRepository.save(commande);
+        updateTableOccupancyIfNoActiveOrders(saved.getTable());
         notifyOrderUpdated(saved);
     }
 
@@ -543,6 +551,48 @@ public class CommandeService {
         item.setNotes(itemDto.notes());
         item.setPrioritaire(Boolean.TRUE.equals(itemDto.prioritaire()));
         return item;
+    }
+
+    private void updateTableOccupancyOnOrderCreation(Commande commande) {
+        if (commande == null || commande.getTable() == null || commande.getTable().getId() == null) {
+            return;
+        }
+        tableRepository.findById(commande.getTable().getId()).ifPresent(table -> {
+            if (!table.isOccupee()) {
+                table.setOccupee(true);
+                if (commande.getServeur() != null) {
+                    table.setServeurId(commande.getServeur().getId());
+                }
+                table.setDateOccupation(timeService.now());
+                TableEntity savedTable = tableRepository.save(table);
+                notifyTableUpdated(savedTable);
+            }
+        });
+    }
+
+    private void updateTableOccupancyIfNoActiveOrders(TableEntity table) {
+        if (table == null || table.getId() == null) {
+            return;
+        }
+        boolean hasActive = commandeRepository.existsByTableAndStatutIn(
+                table, List.of(CommandeStatut.EN_ATTENTE, CommandeStatut.EN_PREPARATION, CommandeStatut.PRET));
+        if (!hasActive && table.isOccupee()) {
+            table.setOccupee(false);
+            table.setServeurId(null);
+            table.setDateLiberation(timeService.now());
+            TableEntity savedTable = tableRepository.save(table);
+            notifyTableUpdated(savedTable);
+        }
+    }
+
+    private void notifyTableUpdated(TableEntity table) {
+        if (messagingTemplate != null && table != null) {
+            try {
+                messagingTemplate.convertAndSend("/topic/tables", TableResponseDTO.from(table));
+            } catch (Exception _) {
+                // Safe handling of WebSocket delivery
+            }
+        }
     }
 
     private void notifyOrderUpdated(Commande saved) {
