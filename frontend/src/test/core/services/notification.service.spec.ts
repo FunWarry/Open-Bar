@@ -32,16 +32,6 @@ class WebSocketServiceStub {
   }
 }
 
-/** Minimal stub for ToastController */
-const toastPresentSpy = jasmine.createSpy('present').and.returnValue(Promise.resolve());
-const toastCreateSpy = jasmine.createSpy('create').and.returnValue(
-  Promise.resolve({ present: toastPresentSpy })
-);
-
-// ---------------------------------------------------------------------------
-// Suite
-// ---------------------------------------------------------------------------
-
 import { SoundService } from '../../../app/core/services/sound.service';
 
 describe('NotificationService', () => {
@@ -51,15 +41,12 @@ describe('NotificationService', () => {
 
   beforeEach(() => {
     wsStub = new WebSocketServiceStub();
-    toastCreateSpy.calls.reset();
-    toastPresentSpy.calls.reset();
     soundSpy = jasmine.createSpyObj<SoundService>('SoundService', ['playNewOrderSound', 'playOrderReadySound']);
 
     TestBed.configureTestingModule({
       providers: [
         NotificationService,
         { provide: WebSocketService, useValue: wsStub },
-        { provide: ToastController, useValue: { create: toastCreateSpy } },
         { provide: SoundService, useValue: soundSpy },
       ],
     });
@@ -340,28 +327,6 @@ describe('NotificationService', () => {
     service.toggleNotifPanel();
     expect(service.isNotifPanelOpen()).toBeFalse();
   });
-
-  // -------------------------------------------------------------------------
-  // showToast
-  // -------------------------------------------------------------------------
-
-  it('showToast() is called via ToastController.create() after each notification', fakeAsync(() => {
-    wsStub.emit('/topic/commandes', { tableNom: 'T1' });
-    tick();
-
-    expect(toastCreateSpy).toHaveBeenCalledOnceWith(
-      jasmine.objectContaining({ duration: 4000, color: 'primary', position: 'top' })
-    );
-  }));
-
-  it('showToast() is called with warning color for stock alerts', fakeAsync(() => {
-    wsStub.emit('/topic/stock/alerte', { nom: 'Sirop', quantiteActuelle: 1 });
-    tick();
-
-    expect(toastCreateSpy).toHaveBeenCalledWith(
-      jasmine.objectContaining({ color: 'warning' })
-    );
-  }));
 
   // -------------------------------------------------------------------------
   // Resilience — malformed messages

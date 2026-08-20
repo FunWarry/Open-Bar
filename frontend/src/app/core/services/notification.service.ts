@@ -1,10 +1,8 @@
-import { inject, Injectable, OnDestroy, signal } from '@angular/core';
+import { Injectable, OnDestroy, signal } from '@angular/core';
 import { Subject, Observable } from 'rxjs';
-import { ToastController } from '@ionic/angular/standalone';
 import { takeUntil } from 'rxjs/operators';
 import { WebSocketService } from './websocket.service';
 import { SoundService } from './sound.service';
-import { PreferencesService } from './preferences.service';
 
 export interface AppNotification {
   id: string;
@@ -18,7 +16,7 @@ export interface AppNotification {
 
 /**
  * Service managing real-time notifications received via WebSocket STOMP.
- * Handles audio playback, toast displays, unread count tracking, and notification history.
+ * Handles audio playback, unread count tracking, and notification history.
  */
 @Injectable({ providedIn: 'root' })
 export class NotificationService implements OnDestroy {
@@ -36,11 +34,8 @@ export class NotificationService implements OnDestroy {
   private readonly tableStatusMap = new Map<string, boolean>();
   private notifSequence = 0;
 
-  private readonly prefs = inject(PreferencesService);
-
   constructor(
     private readonly ws: WebSocketService,
-    private readonly toastCtrl: ToastController,
     private readonly soundService: SoundService
   ) {
     this.initSubscriptions();
@@ -117,7 +112,6 @@ export class NotificationService implements OnDestroy {
           this.updateUnreadCount();
           this.stockAlerts$.next(notif);
           this.notifications$.next(notif);
-          this.showToast(notif.message, isCritical ? 'danger' : 'warning');
         } catch {
           // malformed message — ignore
         }
@@ -225,25 +219,12 @@ export class NotificationService implements OnDestroy {
     this.notificationHistory.unshift(notif);
     this.updateUnreadCount();
     this.notifications$.next(notif);
-    this.showToast(notif.message, notif.severity);
 
     if (notif.data?.statut === 'PRET' || notif.data?.statut === 'PRETE') {
       this.soundService.playOrderReadySound();
     } else if (notif.type === 'commande') {
       this.soundService.playNewOrderSound();
     }
-  }
-
-  private async showToast(message: string, color: string): Promise<void> {
-    if (!this.prefs.visualNotifEnabled()) return;
-    const toast = await this.toastCtrl.create({
-      message,
-      duration: 4000,
-      color,
-      position: 'top',
-      buttons: [{ text: '×', role: 'cancel' }],
-    });
-    await toast.present();
   }
 
   /**
