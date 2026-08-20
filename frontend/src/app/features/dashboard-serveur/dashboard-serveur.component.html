@@ -187,6 +187,8 @@
             *ngFor="let table of group.tables; trackBy: trackById"
             [table]="table"
             [waitTimeMinutes]="getWaitTimeMinutes(table)"
+            [activeTotal]="table.activeTotal || 0"
+            [pendingOrdersCount]="table.commandesActives.length || 0"
             (tableSelect)="onSelectionner($event)"
             (newOrder)="onNewOrderForTable($event)">
           </app-mobile-table-card>
@@ -214,6 +216,8 @@
             *ngFor="let table of group.tables; trackBy: trackById"
             [table]="table"
             [waitTimeMinutes]="getWaitTimeMinutes(table)"
+            [activeTotal]="table.activeTotal || 0"
+            [pendingOrdersCount]="table.commandesActives.length || 0"
             (tableSelect)="onSelectionner($event)"
             (newOrder)="onNewOrderForTable($event)">
           </app-mobile-table-card>
@@ -227,6 +231,8 @@
         *ngFor="let table of filteredTables; trackBy: trackById"
         [table]="table"
         [waitTimeMinutes]="getWaitTimeMinutes(table)"
+        [activeTotal]="table.activeTotal || 0"
+        [pendingOrdersCount]="table.commandesActives.length || 0"
         (tableSelect)="onSelectionner($event)"
         (newOrder)="onNewOrderForTable($event)">
       </app-mobile-table-card>

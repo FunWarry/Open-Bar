@@ -136,6 +136,12 @@ export class DashboardServeurService {
     return this.http.get<Commande[]>(`${this.commandesUrl}/statut/${statut}`);
   }
 
+  getAllCommandes(): Observable<Commande[]> {
+    return this.http.get<Commande[]>(this.commandesUrl).pipe(
+      catchError(() => of([]))
+    );
+  }
+
   occuperTable(tableId: number, serveurId: number): Observable<TableBar> {
     return this.http.patch<TableBar>(`${this.tablesUrl}/${tableId}/occuper`, { serveurId });
   }
@@ -184,6 +190,7 @@ export class DashboardServeurService {
       etage: t.etage,
       capacite: t.capacite,
       occupee: t.occupee,
+      dateOccupation: t.dateOccupation,
       commandesActives: [],
     };
   }

@@ -1,6 +1,9 @@
 <div
   class="table-tile"
   [class.is-occupied]="table.occupee"
+  [class.wait-border-normal]="table.occupee && waitTimeMinutes > 0 && waitTimeMinutes < 10"
+  [class.wait-border-warning]="table.occupee && waitTimeMinutes >= 10 && waitTimeMinutes < 20"
+  [class.wait-border-danger]="table.occupee && waitTimeMinutes >= 20"
   [attr.data-testid]="'mobile-table-card-' + table.id"
   (click)="tableSelect.emit(table)"
   (keyup.enter)="tableSelect.emit(table)"

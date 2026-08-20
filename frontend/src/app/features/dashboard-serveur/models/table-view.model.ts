@@ -8,6 +8,9 @@ export interface TableView {
   capacite: number;
   occupee: boolean;
   serveurNom?: string;
+  dateOccupation?: string;
+  waitTimeMinutes?: number;
+  activeTotal?: number;
   commandesActives: CommandeResume[];
   planX?: number;
   planY?: number;
@@ -20,4 +23,5 @@ export interface CommandeResume {
   statut: string;
   itemCount: number;
   total: number;
+  dateCommande?: string;
 }

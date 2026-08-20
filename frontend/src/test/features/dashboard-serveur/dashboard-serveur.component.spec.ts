@@ -39,9 +39,9 @@ describe('DashboardServeurComponent', () => {
   let notification$: Subject<AppNotification>;
 
   const mockTables: TableView[] = [
-    { id: 1, nom: 'Table 1', zone: 'Terrasse', capacite: 4, occupee: true, serveurNom: 'Alice', commandesActives: [] },
-    { id: 2, nom: 'Table 2', zone: 'Salle', capacite: 2, occupee: false, commandesActives: [] },
-    { id: 3, nom: 'Table 3', zone: 'Bar', capacite: 6, occupee: true, commandesActives: [] },
+    { id: 1, nom: 'Table 1', zone: 'Terrasse', capacite: 4, occupee: true, waitTimeMinutes: 15, dateOccupation: new Date(Date.now() - 15 * 60000).toISOString(), serveurNom: 'Alice', commandesActives: [] },
+    { id: 2, nom: 'Table 2', zone: 'Salle', capacite: 2, occupee: false, waitTimeMinutes: 0, commandesActives: [] },
+    { id: 3, nom: 'Table 3', zone: 'Bar', capacite: 6, occupee: true, waitTimeMinutes: 25, dateOccupation: new Date(Date.now() - 25 * 60000).toISOString(), commandesActives: [] },
   ];
 
   const mockToast = { present: jasmine.createSpy('present') };
@@ -52,6 +52,7 @@ describe('DashboardServeurComponent', () => {
     localStorage.clear();
     dashboardServiceSpy = jasmine.createSpyObj('DashboardServeurService', [
       'getAllTables',
+      'getAllCommandes',
       'libererTable',
       'getEtages',
       'getZones',
@@ -60,6 +61,7 @@ describe('DashboardServeurComponent', () => {
       'ajouterItem',
     ]);
     dashboardServiceSpy.getAllTables.and.returnValue(of(mockTables));
+    dashboardServiceSpy.getAllCommandes.and.returnValue(of([]));
     dashboardServiceSpy.libererTable.and.returnValue(of({} as any));
     dashboardServiceSpy.getEtages.and.returnValue(of([]));
     dashboardServiceSpy.getZones.and.returnValue(of([]));

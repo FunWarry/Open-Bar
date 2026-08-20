@@ -144,4 +144,23 @@ describe('DashboardServeurService', () => {
     expect(req.request.body).toEqual(modifierReq);
     req.flush(mockCommande);
   });
+
+  it('getAllCommandes() retrieves all orders or empty array on error', () => {
+    const mockCommandes = [{ id: 10, total: 18.5 } as any];
+
+    service.getAllCommandes().subscribe(res => {
+      expect(res).toEqual(mockCommandes);
+    });
+
+    const req = httpTesting.expectOne(`${environment.apiUrl}/commandes`);
+    expect(req.request.method).toBe('GET');
+    req.flush(mockCommandes);
+
+    service.getAllCommandes().subscribe(res => {
+      expect(res).toEqual([]);
+    });
+
+    const reqErr = httpTesting.expectOne(`${environment.apiUrl}/commandes`);
+    reqErr.flush('Server error', { status: 500, statusText: 'Error' });
+  });
 });

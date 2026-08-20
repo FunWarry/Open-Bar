@@ -24,6 +24,18 @@
 
   &.is-occupied {
     border-left: 4px solid var(--semantic-warning, #f4a52a);
+
+    &.wait-border-normal {
+      border-left: 4px solid #10b981;
+    }
+
+    &.wait-border-warning {
+      border-left: 4px solid #f59e0b;
+    }
+
+    &.wait-border-danger {
+      border-left: 4px solid #ef4444;
+    }
   }
 
   .tile-header {
