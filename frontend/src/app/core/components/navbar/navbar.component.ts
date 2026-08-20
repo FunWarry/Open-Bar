@@ -87,8 +87,13 @@ export class NavbarComponent implements OnInit, OnDestroy {
   /** Transloco translation key for the page title derived from active route. */
   readonly pageTitleKey$: Observable<string>;
 
-  /** Number of unread notifications for the badge. */
-  nonLues = 0;
+  /** Reactive signal for the number of unread notifications from NotificationService. */
+  readonly unreadCount = this.notifService.unreadCount ?? signal(0);
+
+  /** Backwards compatible getter for the unread notifications count. */
+  get nonLues(): number {
+    return this.unreadCount();
+  }
 
   /** Whether the non-modal side drawer notification panel is open. */
   isNotifPanelOpen = false;
@@ -140,12 +145,6 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.notifService.onNotification()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(() => {
-        this.nonLues = this.notifService.getNonLues();
-      });
-
     // Update local time every minute.
     interval(60_000)
       .pipe(takeUntil(this.destroy$))

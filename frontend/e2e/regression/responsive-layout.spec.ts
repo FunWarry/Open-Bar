@@ -31,7 +31,7 @@ test.describe('Responsive Layout & Visibility E2E Suite', () => {
     await page.goto('/barman');
 
     // Open notifications drawer from navbar
-    const notifBtn = page.locator('[data-testid="navbar-notif-btn"]');
+    const notifBtn = page.locator('[data-testid="topbar-notifications-btn"]');
     if (await notifBtn.isVisible()) {
       await notifBtn.click();
 

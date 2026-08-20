@@ -4,6 +4,8 @@ import { NotificationService, AppNotification } from '../../../app/core/services
 import { PopoverController } from '@ionic/angular/standalone';
 import { Subject } from 'rxjs';
 
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
+
 describe('NotificationPanelComponent', () => {
   let component: NotificationPanelComponent;
   let fixture: ComponentFixture<NotificationPanelComponent>;
@@ -35,7 +37,10 @@ describe('NotificationPanelComponent', () => {
     notificationServiceSpy.onNotification.and.returnValue(notifSubject.asObservable());
 
     await TestBed.configureTestingModule({
-      imports: [NotificationPanelComponent],
+      imports: [
+        NotificationPanelComponent,
+        getTranslocoTestingModule(),
+      ],
       providers: [
         { provide: NotificationService, useValue: notificationServiceSpy },
         { provide: PopoverController, useValue: popoverCtrlSpy },

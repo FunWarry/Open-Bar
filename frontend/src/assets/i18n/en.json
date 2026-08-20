@@ -1779,6 +1779,18 @@
     "PACE_FAST": "Express / Fast Pace",
     "PACE_STANDARD": "Standard Service",
     "PACE_LOUNGE": "Lounge / Craft Cocktails"
+  },
+  "NOTIFICATIONS": {
+    "TITLE": "Notifications",
+    "MARK_ALL_READ": "Mark all as read",
+    "EMPTY": "No notifications",
+    "CLOSE": "Close notifications",
+    "TYPES": {
+      "COMMANDE": "Order",
+      "STATUT": "Status",
+      "TABLE": "Table",
+      "STOCK": "Stock"
+    }
   }
 }
 
