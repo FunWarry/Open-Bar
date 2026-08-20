@@ -1779,6 +1779,18 @@
     "PACE_FAST": "Établissement Express / Rapide",
     "PACE_STANDARD": "Service Standard",
     "PACE_LOUNGE": "Bar Lounge / Cocktails complexes"
+  },
+  "NOTIFICATIONS": {
+    "TITLE": "Notifications",
+    "MARK_ALL_READ": "Tout lu",
+    "EMPTY": "Aucune notification",
+    "CLOSE": "Fermer les notifications",
+    "TYPES": {
+      "COMMANDE": "Commande",
+      "STATUT": "Statut",
+      "TABLE": "Table",
+      "STOCK": "Stock"
+    }
   }
 }
 

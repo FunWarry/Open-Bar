@@ -53,12 +53,12 @@
           style="position:relative"
           data-testid="topbar-notifications-btn">
           <ion-icon slot="icon-only" name="notifications-outline"></ion-icon>
-          @if (nonLues > 0) {
+          @if (unreadCount() > 0) {
             <ion-badge
               color="danger"
               class="notif-badge"
               data-testid="topbar-notif-badge">
-              {{ nonLues > 9 ? '9+' : nonLues }}
+              {{ unreadCount() > 9 ? '9+' : unreadCount() }}
             </ion-badge>
           }
         </ion-button>

@@ -2,14 +2,14 @@
   <div class="panel-header">
     <div class="panel-title">
       <ion-icon name="notifications-outline" class="title-icon"></ion-icon>
-      <h3>Notifications</h3>
+      <h3>{{ 'NOTIFICATIONS.TITLE' | transloco }}</h3>
     </div>
     <div class="header-actions">
       <ion-button fill="clear" size="small" (click)="marquerToutLu()" (keyup.enter)="marquerToutLu()" class="action-btn" data-testid="notif-mark-all-read">
         <ion-icon name="checkmark-done-outline" slot="start"></ion-icon>
-        Tout lu
+        {{ 'NOTIFICATIONS.MARK_ALL_READ' | transloco }}
       </ion-button>
-      <ion-button fill="clear" size="small" (click)="fermer()" (keyup.enter)="fermer()" class="close-btn" data-testid="notif-close-btn">
+      <ion-button fill="clear" size="small" (click)="fermer()" (keyup.enter)="fermer()" class="close-btn" data-testid="notif-close-btn" [attr.aria-label]="'NOTIFICATIONS.CLOSE' | transloco">
         <ion-icon name="close-outline" slot="icon-only"></ion-icon>
       </ion-button>
     </div>
@@ -19,7 +19,7 @@
     @if (notifications.length === 0) {
       <div class="empty-notifs" data-testid="empty-notifs">
         <ion-icon name="notifications-off-outline"></ion-icon>
-        <p>Aucune notification</p>
+        <p>{{ 'NOTIFICATIONS.EMPTY' | transloco }}</p>
       </div>
     } @else {
       <div class="notif-list" data-testid="notif-list">
@@ -39,7 +39,7 @@
             <div class="notif-content">
               <div class="notif-top-row">
                 <span class="notif-type-badge" [attr.data-type]="n.type">
-                  {{ n.type }}
+                  {{ 'NOTIFICATIONS.TYPES.' + (n.type | uppercase) | transloco }}
                 </span>
                 <span class="notif-time">{{ n.timestamp | date:'HH:mm' }}</span>
               </div>

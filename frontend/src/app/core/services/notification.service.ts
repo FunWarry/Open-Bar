@@ -16,9 +16,18 @@ export interface AppNotification {
   lue: boolean;
 }
 
+/**
+ * Service managing real-time notifications received via WebSocket STOMP.
+ * Handles audio playback, toast displays, unread count tracking, and notification history.
+ */
 @Injectable({ providedIn: 'root' })
 export class NotificationService implements OnDestroy {
+  /** Reactive state indicating whether the side notification drawer is open. */
   readonly isNotifPanelOpen = signal<boolean>(false);
+
+  /** Reactive signal exposing the live count of unread notifications. */
+  readonly unreadCount = signal<number>(0);
+
   private readonly notifications$ = new Subject<AppNotification>();
   private readonly stockAlerts$ = new Subject<AppNotification>();
   private readonly destroy$ = new Subject<void>();
@@ -34,14 +43,23 @@ export class NotificationService implements OnDestroy {
     this.initSubscriptions();
   }
 
+  /**
+   * Toggles the open/closed state of the side notification drawer.
+   */
   toggleNotifPanel(): void {
     this.isNotifPanelOpen.update(v => !v);
   }
 
+  /**
+   * Closes the side notification drawer.
+   */
   closeNotifPanel(): void {
     this.isNotifPanelOpen.set(false);
   }
 
+  /**
+   * Opens the side notification drawer.
+   */
   openNotifPanel(): void {
     this.isNotifPanelOpen.set(true);
   }
@@ -73,6 +91,7 @@ export class NotificationService implements OnDestroy {
             lue: false,
           };
           this.notificationHistory.unshift(notif);
+          this.updateUnreadCount();
           this.stockAlerts$.next(notif);
           this.notifications$.next(notif);
           this.showToast(notif.message, isCritical ? 'danger' : 'warning');
@@ -107,6 +126,7 @@ export class NotificationService implements OnDestroy {
       lue: false,
     };
     this.notificationHistory.unshift(notif);
+    this.updateUnreadCount();
     this.notifications$.next(notif);
     this.showToast(notif.message, notif.severity);
 
@@ -152,29 +172,76 @@ export class NotificationService implements OnDestroy {
       });
   }
 
+  /**
+   * Returns an Observable emitting all received notifications in real time.
+   *
+   * @returns Observable stream of {@link AppNotification}.
+   */
   onNotification(): Observable<AppNotification> {
     return this.notifications$.asObservable();
   }
 
+  /**
+   * Returns an Observable emitting only stock alert notifications.
+   *
+   * @returns Observable stream of stock {@link AppNotification}.
+   */
   onStockAlert(): Observable<AppNotification> {
     return this.stockAlerts$.asObservable();
   }
 
+  /**
+   * Returns a snapshot of the current notification history.
+   *
+   * @returns An array of {@link AppNotification}.
+   */
   getHistory(): AppNotification[] {
     return [...this.notificationHistory];
   }
 
+  /**
+   * Marks a single notification as read by its unique ID and updates the unread count.
+   *
+   * @param id - Unique notification identifier.
+   */
   marquerLue(id: string): void {
     const notif = this.notificationHistory.find(n => n.id === id);
-    if (notif) notif.lue = true;
+    if (notif && !notif.lue) {
+      notif.lue = true;
+      this.updateUnreadCount();
+    }
   }
 
+  /**
+   * Marks all notifications in history as read and resets the unread count.
+   */
   marquerToutLu(): void {
-    this.notificationHistory.forEach(n => (n.lue = true));
+    let changed = false;
+    this.notificationHistory.forEach(n => {
+      if (!n.lue) {
+        n.lue = true;
+        changed = true;
+      }
+    });
+    if (changed || this.unreadCount() !== 0) {
+      this.updateUnreadCount();
+    }
   }
 
+  /**
+   * Returns the count of unread notifications from history.
+   *
+   * @returns Number of unread notifications.
+   */
   getNonLues(): number {
     return this.notificationHistory.filter(n => !n.lue).length;
+  }
+
+  /**
+   * Synchronizes the reactive {@link unreadCount} signal with the current count.
+   */
+  private updateUnreadCount(): void {
+    this.unreadCount.set(this.getNonLues());
   }
 
   ngOnDestroy(): void {
