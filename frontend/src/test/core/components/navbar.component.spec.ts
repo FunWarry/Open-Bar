@@ -19,11 +19,15 @@ import { TranslocoService } from '@jsverse/transloco';
 import { SoundService } from '../../../app/core/services/sound.service';
 import { User } from '../../../app/core/models/user.model';
 
+import { signal, WritableSignal } from '@angular/core';
+
 describe('NavbarComponent', () => {
   let component: NavbarComponent;
   let fixture: ComponentFixture<NavbarComponent>;
   let store: MockStore;
   let mockNavigationService: jasmine.SpyObj<NavigationService>;
+  let mockNotifService: any;
+  let unreadCountSignal: WritableSignal<number>;
 
   let mockSelectIsAuthenticated: MemoizedSelector<any, boolean>;
   let mockSelectIsAdmin: MemoizedSelector<any, boolean>;
@@ -50,10 +54,13 @@ describe('NavbarComponent', () => {
       'navigateToAdmin',
       'navigateToUserProfile',
     ]);
+    (mockNavigationService as any).isSidebarCollapsed = signal(false);
 
-    const mockNotifService = jasmine.createSpyObj('NotificationService', [
+    unreadCountSignal = signal(0);
+    mockNotifService = jasmine.createSpyObj('NotificationService', [
       'onNotification', 'onStockAlert', 'getNonLues', 'getHistory', 'marquerLue', 'marquerToutLu', 'toggleNotifPanel', 'closeNotifPanel',
     ]);
+    mockNotifService.unreadCount = unreadCountSignal;
     mockNotifService.onNotification.and.returnValue(of());
     mockNotifService.onStockAlert.and.returnValue(EMPTY);
     mockNotifService.getNonLues.and.returnValue(0);
@@ -264,6 +271,53 @@ describe('NavbarComponent', () => {
     it('closeNotifPanel() should delegate call to notifService.closeNotifPanel()', () => {
       component.closeNotifPanel();
       expect(component['notifService'].closeNotifPanel).toHaveBeenCalled();
+    });
+  });
+
+  describe('notification badge synchronization (#316)', () => {
+    beforeEach(() => {
+      store.overrideSelector(selectIsAuthenticated, true);
+      store.refreshState();
+      fixture.detectChanges();
+    });
+
+    it('should not display badge when unreadCount is 0', () => {
+      unreadCountSignal.set(0);
+      fixture.detectChanges();
+
+      const badge = fixture.nativeElement.querySelector('[data-testid="topbar-notif-badge"]');
+      expect(badge).toBeNull();
+      expect(component.nonLues).toBe(0);
+    });
+
+    it('should display exact count when unreadCount is between 1 and 9', () => {
+      unreadCountSignal.set(4);
+      fixture.detectChanges();
+
+      const badge = fixture.nativeElement.querySelector('[data-testid="topbar-notif-badge"]');
+      expect(badge).not.toBeNull();
+      expect(badge.textContent.trim()).toBe('4');
+      expect(component.nonLues).toBe(4);
+    });
+
+    it('should display 9+ when unreadCount exceeds 9', () => {
+      unreadCountSignal.set(15);
+      fixture.detectChanges();
+
+      const badge = fixture.nativeElement.querySelector('[data-testid="topbar-notif-badge"]');
+      expect(badge).not.toBeNull();
+      expect(badge.textContent.trim()).toBe('9+');
+      expect(component.nonLues).toBe(15);
+    });
+
+    it('should reactively remove badge when unreadCount transitions from positive to 0', () => {
+      unreadCountSignal.set(3);
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('[data-testid="topbar-notif-badge"]')).not.toBeNull();
+
+      unreadCountSignal.set(0);
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('[data-testid="topbar-notif-badge"]')).toBeNull();
     });
   });
 });

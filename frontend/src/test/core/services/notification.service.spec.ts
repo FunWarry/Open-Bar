@@ -214,8 +214,28 @@ describe('NotificationService', () => {
   }));
 
   // -------------------------------------------------------------------------
-  // marquerLue() / getNonLues()
+  // marquerLue() / getNonLues() / unreadCount signal / marquerToutLu()
   // -------------------------------------------------------------------------
+
+  it('unreadCount signal starts at 0', () => {
+    expect(service.unreadCount()).toBe(0);
+  });
+
+  it('unreadCount signal increments on incoming notifications', fakeAsync(() => {
+    expect(service.unreadCount()).toBe(0);
+
+    wsStub.emit('/topic/commandes', { tableNom: 'T1' });
+    tick();
+    expect(service.unreadCount()).toBe(1);
+
+    wsStub.emit('/topic/tables', { nom: 'T2', occupee: true });
+    tick();
+    expect(service.unreadCount()).toBe(2);
+
+    wsStub.emit('/topic/stock/alerte', { nom: 'Rhum', quantiteActuelle: 1 });
+    tick();
+    expect(service.unreadCount()).toBe(3);
+  }));
 
   it('getNonLues() retourne le nombre de notifications non lues', fakeAsync(() => {
     wsStub.emit('/topic/commandes', { tableNom: 'T1' });
@@ -225,21 +245,54 @@ describe('NotificationService', () => {
     expect(service.getNonLues()).toBe(2);
   }));
 
-  it('marquerLue() marque la notification correspondante comme lue', fakeAsync(() => {
+  it('marquerLue() marque la notification correspondante comme lue et decremente unreadCount', fakeAsync(() => {
     wsStub.emit('/topic/commandes', { tableNom: 'T1' });
+    wsStub.emit('/topic/tables', { nom: 'T2', occupee: true });
     tick();
 
+    expect(service.unreadCount()).toBe(2);
     const history = service.getHistory();
     expect(history[0].lue).toBeFalse();
 
     service.marquerLue(history[0].id);
 
     expect(service.getHistory()[0].lue).toBeTrue();
+    expect(service.getNonLues()).toBe(1);
+    expect(service.unreadCount()).toBe(1);
+  }));
+
+  it('marquerToutLu() marque toutes les notifications comme lues et remet unreadCount a 0', fakeAsync(() => {
+    wsStub.emit('/topic/commandes', { tableNom: 'T1' });
+    wsStub.emit('/topic/tables', { nom: 'T2', occupee: true });
+    tick();
+
+    expect(service.unreadCount()).toBe(2);
+
+    service.marquerToutLu();
+
+    expect(service.unreadCount()).toBe(0);
     expect(service.getNonLues()).toBe(0);
+    service.getHistory().forEach(n => expect(n.lue).toBeTrue());
   }));
 
   it('marquerLue() avec un id inconnu ne lance pas d\'erreur', () => {
     expect(() => service.marquerLue('inexistant-id')).not.toThrow();
+  });
+
+  it('panel open/close/toggle methods update isNotifPanelOpen signal', () => {
+    expect(service.isNotifPanelOpen()).toBeFalse();
+
+    service.openNotifPanel();
+    expect(service.isNotifPanelOpen()).toBeTrue();
+
+    service.closeNotifPanel();
+    expect(service.isNotifPanelOpen()).toBeFalse();
+
+    service.toggleNotifPanel();
+    expect(service.isNotifPanelOpen()).toBeTrue();
+
+    service.toggleNotifPanel();
+    expect(service.isNotifPanelOpen()).toBeFalse();
   });
 
   // -------------------------------------------------------------------------
