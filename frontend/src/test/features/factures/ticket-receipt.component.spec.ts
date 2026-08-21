@@ -177,4 +177,19 @@ describe('TicketReceiptComponent', () => {
     expect(component.establishmentConfig).toBeDefined();
     expect((component.establishmentConfig as any)?.legalName).toBe('OpenBar SARL');
   });
+
+  it('computes fallbacks for totalHT and totalVAT when not set explicitly', () => {
+    component.reglement = undefined;
+    component.facture = {
+      ...mockFacture,
+      totalHT: undefined,
+      totalVAT: undefined,
+      totalTTC: 30.0,
+      total: 30.0
+    };
+
+    expect(component.splitPartItems).toEqual([]);
+    expect(component.totalHT).toBeCloseTo(25.0, 1);
+    expect(component.totalVAT).toBeCloseTo(5.0, 1);
+  });
 });

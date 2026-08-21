@@ -25,6 +25,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -1151,5 +1152,59 @@ class FactureServiceTest {
         assertThat(res.reglee()).isTrue();
         assertThat(cmd.getStatut()).isEqualTo(CommandeStatut.REGLEE);
         assertThat(table.isOccupee()).isFalse();
+    }
+
+    @Test
+    void exportCSV_formatsRowsCorrectly() {
+        when(factureRepository.findAll()).thenReturn(List.of(facture));
+
+        String csv = factureService.exportCSV(null, null);
+
+        assertThat(csv).startsWith("\uFEFF");
+        assertThat(csv).contains("N° Facture;Date;Table");
+        assertThat(csv).contains("25.00");
+    }
+
+    @Test
+    void finalizeFacture_setsRetentionAndArchivedPath() {
+        when(factureRepository.findById(10L)).thenReturn(Optional.of(facture));
+        when(factureRepository.save(any(Facture.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Facture fin = factureService.finalizeFacture(10L, "Sample PDF content".getBytes());
+
+        assertThat(fin.isFinalized()).isTrue();
+        assertThat(fin.getPdfHash()).isNotNull();
+        assertThat(fin.getArchivedPdfPath()).isNotNull();
+    }
+
+    @Test
+    void verifyIntegrity_validatesMatchingHash() {
+        byte[] pdf = "Sample PDF".getBytes();
+        when(factureRepository.findById(10L)).thenReturn(Optional.of(facture));
+        when(factureRepository.save(any(Facture.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Facture fin = factureService.finalizeFacture(10L, pdf);
+
+        Map<String, Object> check = factureService.verifyIntegrity(10L, pdf);
+
+        assertThat(check.get("valid")).isEqualTo(true);
+        assertThat(check.get("storedHash")).isEqualTo(fin.getPdfHash());
+    }
+
+    @Test
+    void updateFacture_and_deleteFacture() {
+        when(factureRepository.findById(10L)).thenReturn(Optional.of(facture));
+        when(factureRepository.save(any(Facture.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Facture update = new Facture();
+        update.setTotal(new BigDecimal("100.00"));
+        update.setReglee(true);
+
+        Facture res = factureService.updateFacture(10L, update);
+        assertThat(res.getTotal()).isEqualByComparingTo("100.00");
+        assertThat(res.isReglee()).isTrue();
+
+        factureService.deleteFacture(10L);
+        verify(factureRepository).deleteById(10L);
     }
 }
