@@ -1,76 +1,713 @@
-.total-card {
-  background: var(--surface-1, #1e1e24);
-  border-radius: 12px;
-  border: 1px solid var(--ion-color-step-150, #2c2c34);
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  max-height: 100%;
+  overflow: hidden;
+  --modal-bg: var(--background-bg-0);
+  --modal-surface: var(--background-surface-1);
+  --modal-surface-2: var(--background-surface-2);
+  --modal-surface-3: var(--background-surface-3);
+  --modal-border: var(--border-medium);
+  --modal-text-main: var(--text-primary);
+  --modal-text-secondary: var(--text-secondary);
+  --modal-text-muted: var(--text-muted);
+}
 
-  .total-label {
-    margin: 0;
-    font-size: 0.85rem;
-    color: var(--ion-color-step-600, #999);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+.payment-modal-header {
+  background: var(--modal-surface);
+  border-bottom: 1px solid var(--modal-border);
+  flex-shrink: 0;
+
+  .payment-toolbar {
+    --background: var(--modal-surface);
+    --color: var(--modal-text-main);
+    padding: 6px 12px;
   }
 
-  .total-amount {
-    margin: 4px 0 8px;
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--primary, #3880ff);
+  .toolbar-content-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
   }
 
-  .tip-badge-row {
-    margin-bottom: 8px;
-  }
+  .modal-title-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
 
-  .grand-total-row {
-    font-size: 1.1rem;
-    color: var(--ion-color-step-800, #ccc);
-
-    .grand-total {
+    .icon-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-md, 10px);
+      background: var(--modal-surface-2);
+      border: 1px solid var(--modal-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary);
       font-size: 1.3rem;
-      color: var(--ion-color-success, #2dd36f);
+    }
+
+    .title-text-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+
+      .modal-main-title {
+        margin: 0;
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--modal-text-main);
+        letter-spacing: -0.2px;
+      }
+
+      .modal-subtitle-badges {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+
+        .meta-tag {
+          font-size: 0.75rem;
+          padding: 2px 8px;
+          border-radius: var(--radius-sm, 6px);
+          font-weight: 600;
+          background: var(--modal-surface-2);
+          border: 1px solid var(--modal-border);
+          color: var(--modal-text-secondary);
+
+          &.invoice-tag {
+            color: var(--primary);
+          }
+
+          &.table-tag {
+            color: var(--semantic-success);
+          }
+
+          &.share-tag {
+            color: var(--semantic-warning);
+          }
+        }
+      }
+    }
+  }
+
+  .btn-close-modal {
+    --color: var(--modal-text-muted);
+    --border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    transition: transform 0.2s ease, color 0.2s ease;
+
+    &:hover {
+      --color: var(--modal-text-main);
+      transform: scale(1.08);
     }
   }
 }
 
-.flex-title {
+.payment-modal-content {
+  --background: var(--modal-bg);
+  --color: var(--modal-text-main);
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary) var(--modal-surface-2);
+
+  &::part(scroll) {
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary) var(--modal-surface-2);
+    overflow-y: auto !important;
+
+    &::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+      display: block !important;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: var(--modal-surface-2);
+      border-radius: 4px;
+      margin: 6px 0;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: var(--primary);
+      border-radius: 4px;
+      border: 2px solid var(--modal-surface-2);
+
+      &:hover {
+        background: var(--primary-strong, #5a68d6);
+      }
+    }
+  }
+
+  .modal-body-container {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+}
+
+/* ── 1. Hero Amount Card ────────────────────────────────────────── */
+.hero-amount-card {
+  background: var(--modal-surface);
+  border: 1px solid var(--modal-border);
+  border-radius: var(--radius-lg, 16px);
+  padding: 20px;
+  text-align: center;
+  box-shadow: var(--shadow-md);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary), var(--semantic-success));
+  }
+
+  .hero-label {
+    display: block;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 700;
+    color: var(--modal-text-muted);
+    margin-bottom: 6px;
+  }
+
+  .hero-price-display {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 4px;
+    margin: 4px 0 12px;
+
+    .currency-symbol {
+      display: none;
+    }
+
+    .main-amount {
+      font-size: 2.75rem;
+      font-weight: 800;
+      color: var(--modal-text-main);
+      letter-spacing: -1px;
+    }
+  }
+
+  .hero-details-row {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+
+    .detail-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: var(--radius-pill, 20px);
+      background: var(--modal-surface-2);
+      border: 1px solid var(--modal-border);
+      font-size: 0.85rem;
+
+      .pill-label {
+        color: var(--modal-text-muted);
+      }
+
+      .pill-value {
+        color: var(--modal-text-main);
+        font-weight: 600;
+      }
+
+      &.tip-pill {
+        border-color: var(--semantic-success);
+
+        ion-icon {
+          color: var(--semantic-danger);
+        }
+
+        .pill-label {
+          color: var(--semantic-success);
+        }
+
+        .pill-value {
+          color: var(--semantic-success);
+        }
+      }
+    }
+  }
+}
+
+/* ── Common Section Container ───────────────────────────────────── */
+.section-container {
+  background: var(--modal-surface);
+  border: 1px solid var(--modal-border);
+  border-radius: var(--radius-lg, 16px);
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+
+    .section-icon {
+      font-size: 1.2rem;
+      color: var(--primary);
+
+      &.heart-icon-color {
+        color: var(--semantic-danger);
+      }
+
+      &.cash-icon-color {
+        color: var(--semantic-success);
+      }
+    }
+
+    .section-heading {
+      margin: 0;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--modal-text-main);
+      letter-spacing: -0.2px;
+    }
+
+    .section-badge-optional {
+      margin-left: auto;
+      font-size: 0.75rem;
+      color: var(--modal-text-muted);
+      background: var(--modal-surface-2);
+      border: 1px solid var(--modal-border);
+      padding: 2px 8px;
+      border-radius: var(--radius-sm, 6px);
+    }
+  }
+}
+
+/* ── 2. Payment Methods Grid ────────────────────────────────────── */
+.payment-methods-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .method-tile {
+    background: var(--modal-surface-2);
+    border: 2px solid var(--modal-border);
+    border-radius: var(--radius-md, 12px);
+    padding: 12px 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 6px;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s ease;
+    outline: none;
+
+    &:hover {
+      border-color: var(--primary-light, #6366f1);
+      transform: translateY(-2px);
+    }
+
+    &.active {
+      background: var(--modal-surface-3);
+      border-color: var(--primary);
+      box-shadow: var(--shadow-glow-primary);
+    }
+
+    .tile-icon-box {
+      width: 38px;
+      height: 38px;
+      border-radius: var(--radius-md, 10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      background: var(--modal-surface);
+      border: 1px solid var(--modal-border);
+
+      &.card-icon {
+        color: var(--primary);
+      }
+
+      &.cash-icon {
+        color: var(--semantic-success);
+      }
+
+      &.ticket-icon {
+        color: var(--semantic-warning);
+      }
+    }
+
+    .tile-label-box {
+      display: flex;
+      flex-direction: column;
+
+      .method-name {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--modal-text-main);
+      }
+
+      .method-desc {
+        font-size: 0.7rem;
+        color: var(--modal-text-muted);
+      }
+    }
+
+    .tile-check-indicator {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      color: var(--primary);
+      font-size: 1rem;
+    }
+  }
+}
+
+/* ── 3. Tip Selection Grid ──────────────────────────────────────── */
+.tip-options-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+
+  @media (max-width: 540px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .tip-chip {
+    background: var(--modal-surface-2);
+    border: 1px solid var(--modal-border);
+    border-radius: var(--radius-md, 10px);
+    padding: 8px 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    outline: none;
+
+    &:hover {
+      border-color: var(--primary);
+    }
+
+    &.active {
+      background: var(--modal-surface-3);
+      border-color: var(--semantic-success);
+      box-shadow: var(--shadow-glow-success);
+
+      .tip-pct {
+        color: var(--semantic-success);
+      }
+
+      .tip-eur {
+        color: var(--semantic-success);
+        font-weight: 700;
+      }
+    }
+
+    .tip-pct {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--modal-text-main);
+    }
+
+    .tip-eur {
+      font-size: 0.75rem;
+      color: var(--modal-text-muted);
+    }
+  }
+}
+
+.custom-tip-box {
+  margin-top: 12px;
+  background: var(--modal-surface-2);
+  border-radius: var(--radius-md, 12px);
+  padding: 12px;
   display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 8px;
-  font-size: 1.05rem;
-}
 
-.tip-buttons-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
+  .custom-tip-stepper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
 
-  ion-button {
-    font-size: 0.85rem;
-    --border-radius: 8px;
+    .btn-step {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-sm, 8px);
+      background: var(--modal-surface);
+      border: 1px solid var(--modal-border);
+      color: var(--modal-text-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: background 0.2s ease;
+
+      &:hover {
+        border-color: var(--primary);
+      }
+    }
+
+    .input-with-currency {
+      position: relative;
+      display: flex;
+      align-items: center;
+
+      .custom-tip-input {
+        width: 110px;
+        height: 40px;
+        background: var(--modal-surface);
+        border: 1px solid var(--modal-border);
+        border-radius: var(--radius-sm, 8px);
+        padding: 0 28px 0 12px;
+        color: var(--modal-text-main);
+        font-size: 1.1rem;
+        font-weight: 700;
+        text-align: right;
+        outline: none;
+
+        &:focus {
+          border-color: var(--primary);
+        }
+      }
+
+      .unit {
+        position: absolute;
+        right: 10px;
+        color: var(--modal-text-muted);
+        font-weight: 600;
+      }
+    }
   }
-}
 
-.change-display {
-  font-size: 1.1rem;
-  background: var(--ion-color-step-100, #18181c);
-  border-radius: 8px;
-  border: 1px solid var(--ion-color-step-200, #2a2a30);
+  .quick-step-pills {
+    display: flex;
+    gap: 8px;
 
-  .change-amount {
-    font-size: 1.4rem;
-    color: var(--ion-color-medium, #92949c);
+    .quick-pill {
+      background: var(--modal-surface);
+      border: 1px solid var(--modal-border);
+      border-radius: var(--radius-pill, 16px);
+      padding: 4px 10px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--modal-text-secondary);
+      cursor: pointer;
+      transition: all 0.2s ease;
 
-    &.success {
-      color: var(--ion-color-success, #2dd36f);
+      &:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+      }
     }
   }
 }
 
-.modal-actions {
-  ion-button {
-    --border-radius: 10px;
+/* ── 4. Cash Calculator Section ─────────────────────────────────── */
+.cash-input-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  .input-sublabel {
+    font-size: 0.8rem;
     font-weight: 600;
-    height: 48px;
+    color: var(--modal-text-muted);
+  }
+
+  .banknotes-quick-bar {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+
+    .banknote-btn {
+      flex: 1;
+      min-width: 60px;
+      padding: 8px 4px;
+      background: var(--modal-surface-2);
+      border: 1px solid var(--modal-border);
+      border-radius: var(--radius-sm, 8px);
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--modal-text-main);
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      &:hover {
+        border-color: var(--semantic-success);
+      }
+
+      &.selected {
+        background: var(--modal-surface-3);
+        border-color: var(--semantic-success);
+        color: var(--semantic-success);
+      }
+
+      &.exact-btn {
+        flex: 1.5;
+        background: var(--modal-surface-3);
+        border-color: var(--primary);
+        color: var(--primary);
+
+        &:hover {
+          background: var(--primary);
+          color: #ffffff;
+        }
+      }
+    }
+  }
+
+  .custom-received-input-row {
+    position: relative;
+    display: flex;
+    align-items: center;
+
+    .cash-received-field {
+      width: 100%;
+      height: 44px;
+      background: var(--modal-surface-2);
+      border: 1px solid var(--modal-border);
+      border-radius: var(--radius-md, 10px);
+      padding: 0 32px 0 14px;
+      color: var(--modal-text-main);
+      font-size: 1.1rem;
+      font-weight: 700;
+      outline: none;
+
+      &:focus {
+        border-color: var(--semantic-success);
+        box-shadow: var(--shadow-glow-success);
+      }
+    }
+
+    .field-unit {
+      position: absolute;
+      right: 14px;
+      color: var(--modal-text-muted);
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
   }
 }
+
+.change-result-card {
+  margin-top: 10px;
+  border-radius: var(--radius-md, 10px);
+  overflow: hidden;
+
+  .change-alert {
+    padding: 10px 14px;
+    border-radius: var(--radius-md, 10px);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.85rem;
+    background: var(--modal-surface-2);
+    border: 1px solid var(--modal-border);
+
+    &.alert-insufficient {
+      border-color: var(--semantic-danger);
+      color: var(--semantic-danger);
+
+      ion-icon {
+        font-size: 1.2rem;
+        color: var(--semantic-danger);
+      }
+    }
+
+    &.alert-return {
+      border-color: var(--semantic-success);
+      color: var(--semantic-success);
+      justify-content: space-between;
+
+      .return-text {
+        display: flex;
+        flex-direction: column;
+
+        .return-label {
+          font-size: 0.75rem;
+          color: var(--modal-text-muted);
+        }
+
+        .return-val {
+          font-size: 1.3rem;
+          font-weight: 800;
+          color: var(--semantic-success);
+        }
+      }
+
+      .return-icon-box {
+        font-size: 1.5rem;
+        color: var(--semantic-success);
+      }
+    }
+
+    &.alert-exact {
+      border-color: var(--primary);
+      color: var(--primary);
+
+      ion-icon {
+        font-size: 1.2rem;
+        color: var(--primary);
+      }
+    }
+  }
+}
+
+/* ── 5. Modal Footer Action ─────────────────────────────────────── */
+.payment-modal-footer {
+  padding: 12px 16px 16px;
+  background: var(--modal-surface);
+  border-top: 1px solid var(--modal-border);
+
+  .btn-confirm-payment {
+    --background: var(--semantic-success);
+    --background-hover: var(--semantic-success);
+    --color: #ffffff;
+    --border-radius: var(--radius-md, 12px);
+    --box-shadow: var(--shadow-glow-success);
+    height: 50px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: -0.2px;
+    margin: 0;
+
+    ion-icon {
+      font-size: 1.3rem;
+      margin-right: 6px;
+    }
+
+    &[disabled] {
+      --background: var(--modal-surface-2);
+      --color: var(--modal-text-muted);
+      --box-shadow: none;
+      opacity: 0.5;
+    }
+  }
+}
+
+

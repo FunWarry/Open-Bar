@@ -81,6 +81,9 @@ export class TableDetailModalComponent implements OnInit {
           this.commandes = (commandes ?? []).filter(
             c => c.statut !== 'REGLEE' && c.statut !== 'ANNULEE',
           );
+          if (this.commandes.length > 0) {
+            this.table.occupee = true;
+          }
         },
         error: async () => {
           const toast = await this.toastCtrl.create({

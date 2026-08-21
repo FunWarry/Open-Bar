@@ -171,4 +171,129 @@ class TableServiceTest {
         assertThat(commandeActive.getTable()).isEqualTo(target);
         verify(auditLogService).logAction(eq(null), eq("TRANSFERT_TABLE"), eq("TableEntity"), eq(1L), anyString(), eq(null));
     }
+
+    @Test
+    void getTableById_syncsOccupancyAndReturns() {
+        when(tableRepository.findById(1L)).thenReturn(Optional.of(table));
+        when(commandeRepository.existsByTableAndStatutIn(eq(table), anyList())).thenReturn(true);
+        when(tableRepository.save(any(TableEntity.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Optional<TableEntity> res = tableService.getTableById(1L);
+
+        assertThat(res).isPresent();
+        assertThat(res.get().isOccupee()).isTrue();
+    }
+
+    @Test
+    void getTablesByZone_syncsAndReturns() {
+        when(tableRepository.findByZone("INTERIEUR")).thenReturn(List.of(table));
+
+        List<TableEntity> res = tableService.getTablesByZone("INTERIEUR");
+
+        assertThat(res).hasSize(1);
+    }
+
+    @Test
+    void getAllZones_returnsDistinct() {
+        when(tableRepository.findDistinctZones()).thenReturn(List.of("INTERIEUR", "TERRASSE"));
+
+        List<String> res = tableService.getAllZones();
+
+        assertThat(res).containsExactly("INTERIEUR", "TERRASSE");
+    }
+
+    @Test
+    void getTablesByOccupee_and_ServeurId() {
+        when(tableRepository.findAll()).thenReturn(List.of(table));
+        when(tableRepository.findByOccupee(false)).thenReturn(List.of(table));
+        when(tableRepository.findByServeurId(42L)).thenReturn(List.of(table));
+
+        List<TableEntity> r1 = tableService.getTablesByOccupee(false);
+        assertThat(r1).hasSize(1);
+
+        List<TableEntity> r2 = tableService.getTablesByServeurId(42L);
+        assertThat(r2).hasSize(1);
+    }
+
+    @Test
+    void deleteTable_and_updatePosition() {
+        when(tableRepository.findById(1L)).thenReturn(Optional.of(table));
+        when(tableRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        tableService.deleteTable(1L);
+        verify(tableRepository).deleteById(1L);
+
+        TableEntity pos = tableService.updatePosition(1L, 100.0, 200.0, 45.0, "CARRE");
+        assertThat(pos.getPlanX()).isEqualTo(100.0);
+        assertThat(pos.getPlanY()).isEqualTo(200.0);
+        assertThat(pos.getPlanRotation()).isEqualTo(45.0);
+        assertThat(pos.getPlanForme()).isEqualTo("CARRE");
+    }
+
+    @Test
+    void updatePositionsBatch_updatesAllValidDTOs() {
+        when(tableRepository.findById(1L)).thenReturn(Optional.of(table));
+
+        com.bar.gestioncocktail.dto.TablePositionDTO dto = new com.bar.gestioncocktail.dto.TablePositionDTO(
+                1L, 50.0, 60.0, 90.0, "ROND", 80.0, 80.0
+        );
+
+        tableService.updatePositionsBatch(List.of(dto));
+
+        assertThat(table.getPlanX()).isEqualTo(50.0);
+        assertThat(table.getPlanY()).isEqualTo(60.0);
+        assertThat(table.getPlanRotation()).isEqualTo(90.0);
+        assertThat(table.getPlanForme()).isEqualTo("ROND");
+        assertThat(table.getPlanWidth()).isEqualTo(80.0);
+        assertThat(table.getPlanHeight()).isEqualTo(80.0);
+
+        tableService.updatePositionsBatch(null);
+    }
+
+    @Test
+    void getAllTablesAvecPositions_returnsAllTables() {
+        when(tableRepository.findAll()).thenReturn(List.of(table));
+
+        List<TableEntity> res = tableService.getAllTablesAvecPositions();
+
+        assertThat(res).hasSize(1);
+    }
+
+    @Test
+    void synchronizeTableOccupancy_setsOccupiedWhenActiveOrdersFound() {
+        table.setOccupee(false);
+        when(tableRepository.findById(1L)).thenReturn(Optional.of(table));
+        when(commandeRepository.existsByTableAndStatutIn(eq(table), anyList())).thenReturn(true);
+        when(tableRepository.save(any(TableEntity.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Optional<TableEntity> res = tableService.getTableById(1L);
+
+        assertThat(res).isPresent();
+        assertThat(res.get().isOccupee()).isTrue();
+        assertThat(res.get().getDateOccupation()).isNotNull();
+    }
+
+    @Test
+    void updateTable_updatesAllPlanFields() {
+        TableEntity details = new TableEntity();
+        details.setNumero(20);
+        details.setCapacite(8);
+        details.setZone("VIP");
+        details.setPlanX(150.0);
+        details.setPlanY(250.0);
+        details.setPlanRotation(180.0);
+        details.setPlanForme("ROND");
+        details.setPlanWidth(120.0);
+        details.setPlanHeight(120.0);
+
+        when(tableRepository.findById(1L)).thenReturn(Optional.of(table));
+        when(tableRepository.save(any(TableEntity.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        TableEntity updated = tableService.updateTable(1L, details);
+
+        assertThat(updated.getPlanWidth()).isEqualTo(120.0);
+        assertThat(updated.getPlanHeight()).isEqualTo(120.0);
+        assertThat(updated.getPlanRotation()).isEqualTo(180.0);
+        assertThat(updated.getPlanForme()).isEqualTo("ROND");
+    }
 }

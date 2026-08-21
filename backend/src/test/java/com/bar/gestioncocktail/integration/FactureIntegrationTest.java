@@ -98,4 +98,103 @@ class FactureIntegrationTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.reglee").value(true))
                 .andExpect(jsonPath("$.modePaiement").value("CARTE"));
     }
+
+    @Test
+    @DisplayName("factureSplitSettlement_persistenceAndRetrieval_success")
+    void factureSplitSettlement_persistenceAndRetrieval_success() throws Exception {
+        TableEntity table = tableRepository.findAll().stream().findFirst().orElseGet(() -> {
+            TableEntity t = new TableEntity();
+            t.setNumero(2);
+            t.setZone("Interieur");
+            t.setCapacite(4);
+            return tableRepository.save(t);
+        });
+
+        Facture newFacture = new Facture();
+        newFacture.setNumero("FACT-SPLIT-" + System.currentTimeMillis());
+        newFacture.setTable(table);
+        newFacture.setTotal(new BigDecimal("40.00"));
+        newFacture.setTotalHT(new BigDecimal("33.33"));
+        newFacture.setTotalVAT(new BigDecimal("6.67"));
+        newFacture.setTotalTTC(new BigDecimal("40.00"));
+        newFacture.setDateFacture(LocalDateTime.now());
+        newFacture.setReglee(false);
+
+        FactureItem fi1 = new FactureItem();
+        fi1.setFacture(newFacture);
+        fi1.setDescription("Gin Tonic");
+        fi1.setQuantite(2);
+        fi1.setPrixUnitaire(new BigDecimal("10.00"));
+        fi1.setTotal(new BigDecimal("20.00"));
+
+        FactureItem fi2 = new FactureItem();
+        fi2.setFacture(newFacture);
+        fi2.setDescription("Planche Mixte");
+        fi2.setQuantite(1);
+        fi2.setPrixUnitaire(new BigDecimal("20.00"));
+        fi2.setTotal(new BigDecimal("20.00"));
+
+        newFacture.setItems(List.of(fi1, fi2));
+        Facture savedFacture = factureRepository.save(newFacture);
+        Long factureId = savedFacture.getId();
+
+        // Part 1 settlement: 20 EUR by CARTE
+        com.bar.gestioncocktail.dto.EncaisserPartRequest part1 = new com.bar.gestioncocktail.dto.EncaisserPartRequest(
+                "Alice",
+                1,
+                2,
+                new BigDecimal("20.00"),
+                new BigDecimal("2.00"),
+                new BigDecimal("22.00"),
+                "CARTE",
+                "EGAL",
+                List.of()
+        );
+
+        mockMvc.perform(post("/api/factures/" + factureId + "/split/encaisser")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + getServeurToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(part1)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nomConvive").value("Alice"))
+                .andExpect(jsonPath("$.partIndex").value(1))
+                .andExpect(jsonPath("$.modePaiement").value("CARTE"));
+
+        // Part 2 settlement: 20 EUR by ESPECES -> Completes the 40.00 EUR total!
+        com.bar.gestioncocktail.dto.EncaisserPartRequest part2 = new com.bar.gestioncocktail.dto.EncaisserPartRequest(
+                "Bob",
+                2,
+                2,
+                new BigDecimal("20.00"),
+                BigDecimal.ZERO,
+                new BigDecimal("20.00"),
+                "ESPECES",
+                "EGAL",
+                List.of()
+        );
+
+        mockMvc.perform(post("/api/factures/" + factureId + "/split/encaisser")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + getServeurToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(part2)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nomConvive").value("Bob"))
+                .andExpect(jsonPath("$.partIndex").value(2));
+
+        // Verify retrieval of all settlements
+        mockMvc.perform(get("/api/factures/" + factureId + "/reglements")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + getServeurToken()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].nomConvive").value("Alice"))
+                .andExpect(jsonPath("$[1].nomConvive").value("Bob"));
+
+        // Verify invoice is now settled with MIXTE_SPLIT
+        mockMvc.perform(get("/api/factures/" + factureId)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + getServeurToken()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.reglee").value(true))
+                .andExpect(jsonPath("$.modePaiement").value("MIXTE_SPLIT"))
+                .andExpect(jsonPath("$.reglements.length()").value(2));
+    }
 }

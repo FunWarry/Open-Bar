@@ -15,9 +15,10 @@ import {
 } from 'ionicons/icons';
 import { TranslocoModule } from '@jsverse/transloco';
 import { FactureService } from '../services/facture.service';
-import { Facture, FactureItem } from '../models/facture.model';
+import { Facture, FactureItem, FactureReglement } from '../models/facture.model';
 import { TicketReceiptComponent } from '../ticket-receipt/ticket-receipt.component';
 import { ReglementModalComponent, ReglementModalResult } from '../reglement-modal/reglement-modal.component';
+import { FactureSplitComponent } from '../facture-split/facture-split.component';
 import { EstablishmentConfig } from '../../../core/models/establishment-config.model';
 import { EtablissementService } from '../../../core/services/etablissement.service';
 import { environment } from '../../../../environments/environment';
@@ -91,6 +92,88 @@ export class FactureDetailComponent implements OnInit, OnDestroy {
     return this.facture?.totalVAT ?? (this.displayedAmount - this.totalHT);
   }
 
+  /**
+   * Computes the unit price excluding taxes (P.U. HT) for an invoice item.
+   *
+   * @param item Invoice item
+   * @returns Unit price HT
+   */
+  getItemPuHT(item: FactureItem): number {
+    const qty = Math.max(1, item.quantite);
+    if (item.priceHT !== undefined && item.priceHT !== null) {
+      return item.priceHT / qty;
+    }
+    const rate = this.parseVatRate(item.vatRate);
+    return (item.prixUnitaire || 0) / (1 + rate);
+  }
+
+  /**
+   * Computes the line total excluding taxes (Total HT) for an invoice item.
+   *
+   * @param item Invoice item
+   * @returns Line total HT
+   */
+  getItemTotalHT(item: FactureItem): number {
+    if (item.priceHT !== undefined && item.priceHT !== null) {
+      return item.priceHT;
+    }
+    const rate = this.parseVatRate(item.vatRate);
+    const total = item.total ?? ((item.prixUnitaire || 0) * item.quantite);
+    return total / (1 + rate);
+  }
+
+  /**
+   * Computes the line VAT amount for an invoice item.
+   *
+   * @param item Invoice item
+   * @returns VAT amount
+   */
+  getItemVatAmount(item: FactureItem): number {
+    if (item.vatAmount !== undefined && item.vatAmount !== null) {
+      return item.vatAmount;
+    }
+    const total = item.total ?? ((item.prixUnitaire || 0) * item.quantite);
+    return total - this.getItemTotalHT(item);
+  }
+
+  /**
+   * Groups invoice items by VAT rate to display the tax breakdown table.
+   */
+  get vatBreakdown(): { rateLabel: string; baseHT: number; amountVAT: number; totalTTC: number }[] {
+    if (!this.facture?.items || this.facture.items.length === 0) {
+      return [{
+        rateLabel: '20%',
+        baseHT: this.totalHT,
+        amountVAT: this.totalVAT,
+        totalTTC: this.displayedAmount - (this.facture?.pourboire || 0),
+      }];
+    }
+
+    const groups = new Map<string, { rateLabel: string; baseHT: number; amountVAT: number; totalTTC: number }>();
+
+    for (const item of this.facture.items) {
+      const label = item.vatRate || '20%';
+      const baseHT = this.getItemTotalHT(item);
+      const amountVAT = this.getItemVatAmount(item);
+      const totalTTC = item.total ?? ((item.prixUnitaire || 0) * item.quantite);
+
+      const existing = groups.get(label) || { rateLabel: label, baseHT: 0, amountVAT: 0, totalTTC: 0 };
+      existing.baseHT += baseHT;
+      existing.amountVAT += amountVAT;
+      existing.totalTTC += totalTTC;
+      groups.set(label, existing);
+    }
+
+    return Array.from(groups.values());
+  }
+
+  private parseVatRate(rateStr?: string): number {
+    if (!rateStr) return 0.20;
+    if (rateStr.includes('5.5') || rateStr.includes('5,5')) return 0.055;
+    if (rateStr.includes('10')) return 0.10;
+    return 0.20;
+  }
+
   statusColor(settled: boolean): string {
     return settled ? 'success' : 'warning';
   }
@@ -127,7 +210,9 @@ export class FactureDetailComponent implements OnInit, OnDestroy {
     const modal = await this.modalCtrl.create({
       component: ReglementModalComponent,
       componentProps: {
-        totalInitial: this.displayedAmount
+        totalInitial: this.displayedAmount,
+        invoiceNumber: this.facture.numero,
+        tableNumber: this.facture.tableNumero
       }
     });
 
@@ -159,8 +244,48 @@ export class FactureDetailComponent implements OnInit, OnDestroy {
       });
   }
 
+  async openSplitModal() {
+    if (!this.facture) return;
+
+    const modal = await this.modalCtrl.create({
+      component: FactureSplitComponent,
+      componentProps: {
+        factureId: this.facture.id,
+        facture: this.facture
+      }
+    });
+
+    await modal.present();
+    await modal.onWillDismiss();
+
+    // Reload invoice data to reflect any settlements done during split
+    this.factureService.getFactureById(this.facture.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({ next: f => this.facture = f });
+  }
+
   async reglerFacture() {
     await this.settleFacture();
+  }
+
+  /**
+   * Opens the thermal receipt preview modal for a specific individual split payment share.
+   *
+   * @param reglement Split settlement details
+   */
+  async imprimerTicketPart(reglement: FactureReglement) {
+    if (!this.facture) return;
+
+    const modal = await this.modalCtrl.create({
+      component: TicketReceiptComponent,
+      componentProps: {
+        facture: this.facture,
+        reglement: reglement,
+        establishmentConfig: this.establishmentConfig || undefined,
+      },
+      cssClass: 'ticket-modal',
+    });
+    await modal.present();
   }
 }
 

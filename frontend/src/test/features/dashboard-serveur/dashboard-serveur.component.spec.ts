@@ -39,9 +39,9 @@ describe('DashboardServeurComponent', () => {
   let notification$: Subject<AppNotification>;
 
   const mockTables: TableView[] = [
-    { id: 1, nom: 'Table 1', zone: 'Terrasse', capacite: 4, occupee: true, serveurNom: 'Alice', commandesActives: [] },
-    { id: 2, nom: 'Table 2', zone: 'Salle', capacite: 2, occupee: false, commandesActives: [] },
-    { id: 3, nom: 'Table 3', zone: 'Bar', capacite: 6, occupee: true, commandesActives: [] },
+    { id: 1, nom: 'Table 1', zone: 'Terrasse', capacite: 4, occupee: true, waitTimeMinutes: 15, dateOccupation: new Date(Date.now() - 15 * 60000).toISOString(), serveurNom: 'Alice', commandesActives: [] },
+    { id: 2, nom: 'Table 2', zone: 'Salle', capacite: 2, occupee: false, waitTimeMinutes: 0, commandesActives: [] },
+    { id: 3, nom: 'Table 3', zone: 'Bar', capacite: 6, occupee: true, waitTimeMinutes: 25, dateOccupation: new Date(Date.now() - 25 * 60000).toISOString(), commandesActives: [] },
   ];
 
   const mockToast = { present: jasmine.createSpy('present') };
@@ -52,6 +52,7 @@ describe('DashboardServeurComponent', () => {
     localStorage.clear();
     dashboardServiceSpy = jasmine.createSpyObj('DashboardServeurService', [
       'getAllTables',
+      'getAllCommandes',
       'libererTable',
       'getEtages',
       'getZones',
@@ -60,6 +61,7 @@ describe('DashboardServeurComponent', () => {
       'ajouterItem',
     ]);
     dashboardServiceSpy.getAllTables.and.returnValue(of(mockTables));
+    dashboardServiceSpy.getAllCommandes.and.returnValue(of([]));
     dashboardServiceSpy.libererTable.and.returnValue(of({} as any));
     dashboardServiceSpy.getEtages.and.returnValue(of([]));
     dashboardServiceSpy.getZones.and.returnValue(of([]));
@@ -664,5 +666,257 @@ describe('DashboardServeurComponent', () => {
       component.onTableSelectForOrder(2);
       expect(component.cart.tableId).toBe(2);
     }));
+
+    it('filters tables by search term and floor', () => {
+      component.searchTerm = 'Table 1';
+      component.filtrer();
+      expect(component.filteredTables).toHaveSize(1);
+      expect(component.filteredTables[0].id).toBe(1);
+
+      component.searchTerm = '';
+      component.selectedEtage = 'RDC';
+      component.filtrer();
+      expect(component.filteredTables.length).toBeGreaterThan(0);
+    });
+
+    it('sorts tables according to all sort options', () => {
+      component.sortOption = 'NUMBER_DESC';
+      component.filtrer();
+      expect(component.filteredTables[0].id).toBe(3);
+
+      component.sortOption = 'CAPACITY_ASC';
+      component.filtrer();
+      expect(component.filteredTables[0].capacite).toBe(2);
+
+      component.sortOption = 'CAPACITY_DESC';
+      component.filtrer();
+      expect(component.filteredTables[0].capacite).toBe(6);
+
+      component.sortOption = 'STATUS_FREE';
+      component.filtrer();
+      expect(component.filteredTables[0].occupee).toBeFalse();
+
+      component.sortOption = 'STATUS_OCCUPIED';
+      component.filtrer();
+      expect(component.filteredTables[0].occupee).toBeTrue();
+    });
+
+    it('saves and loads filter preferences in localStorage', () => {
+      component.searchTerm = 'Terrasse';
+      component.selectedStatus = 'FREE';
+      component.filtrer();
+
+      const saved = localStorage.getItem('openbar_serveur_dashboard_filters');
+      expect(saved).toContain('Terrasse');
+      expect(saved).toContain('FREE');
+    });
+
+    it('groupedTables getter groups tables by floor and by zone', () => {
+      component.displayMode = 'BY_ZONE';
+      const byZone = component.groupedTables;
+      expect(byZone.length).toBeGreaterThan(0);
+      expect(byZone[0].tables.length).toBeGreaterThan(0);
+
+      component.displayMode = 'BY_FLOOR';
+      const byFloor = component.groupedTables;
+      expect(byFloor.length).toBeGreaterThan(0);
+    });
+
+    it('handles direct zone and floor toggling', () => {
+      component.onEtageSelectChangeDirect('ETAGE_1');
+      expect(component.selectedEtage).toBe('ETAGE_1');
+      expect(component.selectedZone).toBe('ALL');
+
+      component.onZoneSelectChangeDirect('Terrasse');
+      expect(component.isZoneSelected('Terrasse')).toBeTrue();
+
+      component.onZoneSelectChangeDirect('Terrasse');
+      expect(component.isZoneSelected('Terrasse')).toBeFalse();
+
+      component.onZoneSelectChangeDirect('ALL');
+      expect(component.selectedZone).toBe('ALL');
+    });
+
+    it('buildPolygonPathData generates valid SVG path data', () => {
+      const points = [0, 0, 100, 0, 100, 100, 0, 100];
+      const path = component.buildPolygonPathData(points, [10, 10, 10, 10]);
+      expect(path).toContain('M');
+      expect(path).toContain('Z');
+
+      const invalid = component.buildPolygonPathData([0, 0]);
+      expect(invalid).toBe('');
+    });
+
+    it('filters products by category, query, and allergens', () => {
+      component.products = [
+        { id: 1, nom: 'Mojito', prix: 8.5, categorie: 'ALCOOLISE', stockStatus: 'NORMAL', disponible: true, description: 'Rhum menthe' },
+        { id: 2, nom: 'Bière Blonde', prix: 5.0, categorie: 'BEER', stockStatus: 'NORMAL', disponible: true, description: 'Gluten orge' },
+      ];
+
+      component.productSearchQuery = 'Mojito';
+      expect(component.filteredProducts).toHaveSize(1);
+
+      component.productSearchQuery = '';
+      component.selectedCategory = 'BEER';
+      expect(component.filteredProducts).toHaveSize(1);
+
+      component.selectedCategory = 'ALL';
+      component.toggleAllergenFilter('GLUTEN');
+      expect(component.selectedAllergens).toContain('GLUTEN');
+      expect(component.filteredProducts).toHaveSize(1);
+      expect(component.filteredProducts[0].nom).toBe('Mojito');
+
+      component.clearAllergenFilters();
+      expect(component.selectedAllergens).toHaveSize(0);
+      expect(component.filteredProducts).toHaveSize(2);
+    });
+
+    it('returns proper category dot colors and styles', () => {
+      expect(component.getCategoryDotColor('ALCOOLISE')).toBe('#10b981');
+      expect(component.getCategoryDotColor('BEER')).toBe('#ffd900');
+      expect(component.getCategoryDotColor('UNKNOWN')).toBe('#6366f1');
+
+      const activeStyle = component.getCategoryPillStyle('ALCOOLISE', true);
+      expect(activeStyle['background-color']).toBe('#10b981');
+      expect(component.getCategoryPillStyle('ALCOOLISE', false)).toEqual({});
+    });
+
+    it('adds product directly to cart when no variants present', () => {
+      const prod = { id: 10, nom: 'Gin Tonic', prix: 9.0, categorie: 'ALCOOLISE', stockStatus: 'NORMAL' as const, disponible: true };
+      component.cart = { tableId: 1, items: [] };
+
+      component.onAddToCart(prod);
+
+      expect(component.cart.items).toHaveSize(1);
+      expect(component.cart.items[0].nom).toBe('Gin Tonic');
+      expect(component.cartTotalCount).toBe(1);
+    });
+
+    it('navigates tabs and liberates table properly', fakeAsync(() => {
+      component.onTabSelected('suivi');
+      expect(component.activeTab).toBe('suivi');
+
+      component.naviguerKanban();
+      expect(component.activeTab).toBe('suivi');
+
+      dashboardServiceSpy.libererTable.and.returnValue(of(mockTables[0] as any));
+      component.onLiberer(1);
+      tick();
+
+      expect(dashboardServiceSpy.libererTable).toHaveBeenCalledWith(1);
+      expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'success' }));
+    }));
+
+    it('computes table wait times and table colors correctly based on delays', () => {
+      const t1: any = { id: 1, occupee: true, waitTimeMinutes: 25 };
+      const colors25 = (component as any).getTableColors(t1, 25);
+      expect(colors25.mainColor).toBe('#e5604f');
+
+      const t2: any = { id: 2, occupee: true, waitTimeMinutes: 15 };
+      const colors15 = (component as any).getTableColors(t2, 15);
+      expect(colors15.mainColor).toBe('#f0a33b');
+
+      const t3: any = { id: 3, occupee: true, waitTimeMinutes: 5 };
+      const colors5 = (component as any).getTableColors(t3, 5);
+      expect(colors5.mainColor).toBe('#2fbf6b');
+
+      const tFree: any = { id: 4, occupee: false };
+      const colorsFree = (component as any).getTableColors(tFree, 0);
+      expect(colorsFree.mainColor).toBe('#2fbf6b');
+
+      const tReserved: any = { id: 5, occupee: false, reservee: true };
+      const colorsReserved = (component as any).getTableColors(tReserved, 0);
+      expect(colorsReserved.mainColor).toBe('#9b8af2');
+
+      const offsets1 = (component as any).calculateLabelOffsets(true, true);
+      expect(offsets1.titleY).toBe(-22);
+
+      const offsets2 = (component as any).calculateLabelOffsets(true, false);
+      expect(offsets2.titleY).toBe(-14);
+
+      const offsets3 = (component as any).calculateLabelOffsets(false, true);
+      expect(offsets3.titleY).toBe(-14);
+
+      const offsets4 = (component as any).calculateLabelOffsets(false, false);
+      expect(offsets4.titleY).toBe(-8);
+
+      const tOcc: any = { id: 6, occupee: true, dateOccupation: new Date(Date.now() - 15 * 60000).toISOString() };
+      expect(component.getWaitTimeMinutes(tOcc)).toBeGreaterThanOrEqual(14);
+
+      const tNoOcc: any = { id: 7, occupee: false };
+      expect(component.getWaitTimeMinutes(tNoOcc)).toBe(0);
+    });
+
+    it('enriches tables with orders having order dates, items, and totals', () => {
+      const tables: any[] = [{ id: 10, numero: 10, occupee: true, zone: 'TERRASSE' }];
+      const orders: any[] = [
+        {
+          id: 101,
+          tableId: 10,
+          statut: 'EN_ATTENTE',
+          dateCommande: new Date(Date.now() - 5 * 60000).toISOString(),
+          total: 25.5,
+          items: [{ id: 1, nom: 'Mojito' }, { id: 2, nom: 'Nachos' }]
+        }
+      ];
+
+      const enriched = (component as any).enrichTablesWithOrders(tables, orders);
+      expect(enriched[0].commandesActives).toHaveSize(1);
+      expect(enriched[0].commandesActives[0].total).toBe(25.5);
+      expect(enriched[0].commandesActives[0].itemCount).toBe(2);
+      expect(enriched[0].waitTimeMinutes).toBeGreaterThanOrEqual(4);
+    });
+
+    it('computes table counts, searches, and tests all sort options', () => {
+      expect(component.countOccupees).toBe(2);
+      expect(component.countLibres).toBe(1);
+
+      component.onSearchChange({ detail: { value: 'Table 1' } });
+      expect(component.filteredTables.length).toBeGreaterThanOrEqual(1);
+
+      component.setStatusFilter('FREE');
+      expect(component.selectedStatus).toBe('FREE');
+      expect(component.filteredTables.every(t => !t.occupee)).toBeTrue();
+
+      component.setStatusFilter('OCCUPIED');
+      expect(component.selectedStatus).toBe('OCCUPIED');
+      expect(component.filteredTables.every(t => t.occupee)).toBeTrue();
+
+      component.setStatusFilter('ALL');
+      component.searchTerm = '';
+      component.sortOption = 'NUMBER_DESC';
+      component.filtrer();
+      expect(component.filteredTables[0].id).toBeGreaterThanOrEqual(component.filteredTables[component.filteredTables.length - 1].id);
+
+      component.sortOption = 'CAPACITY_ASC';
+      component.filtrer();
+      expect(component.filteredTables[0].capacite).toBeLessThanOrEqual(component.filteredTables[component.filteredTables.length - 1].capacite);
+
+      component.sortOption = 'CAPACITY_DESC';
+      component.filtrer();
+      expect(component.filteredTables[0].capacite).toBeGreaterThanOrEqual(component.filteredTables[component.filteredTables.length - 1].capacite);
+
+      component.sortOption = 'STATUS_OCCUPIED';
+      component.filtrer();
+      expect(component.filteredTables[0].occupee).toBeTrue();
+
+      component.sortOption = 'STATUS_FREE';
+      component.filtrer();
+      expect(component.filteredTables[0].occupee).toBeFalse();
+    });
+
+    it('handles availableZonesForFilter and select changes', () => {
+      component.selectedEtage = 'ALL';
+      expect(component.availableZonesForFilter.length).toBeGreaterThanOrEqual(0);
+
+      component.selectedEtage = 'ETAGE_1';
+      expect(component.availableZonesForFilter.length).toBeGreaterThanOrEqual(0);
+
+      component.onEtageSelectChange({ target: { value: 'RDC' } } as any);
+      expect(component.selectedEtage).toBe('RDC');
+
+      component.onZoneSelectChange({ target: { value: 'Terrasse' } } as any);
+      expect(component.selectedZone).toBe('Terrasse');
+    });
   });
 });

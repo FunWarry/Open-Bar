@@ -34,7 +34,7 @@ import { fastModalEnterAnimation, fastModalLeaveAnimation } from '../../core/uti
 import { TableView } from './models/table-view.model';
 import { TablePosition, ZoneArea } from '../plan-salle/models/table-position.model';
 import { PlanSalleService } from '../plan-salle/services/plan-salle.service';
-import { AjouterItemRequest } from '../../core/models/commande.model';
+import { Commande, AjouterItemRequest } from '../../core/models/commande.model';
 
 import { Store } from '@ngrx/store';
 import { selectCurrentUser } from '../../core/store/auth.selectors';
@@ -255,6 +255,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
     this.isLoading = true;
     forkJoin({
       tables:    this.service.getAllTables(),
+      commandes: this.service.getAllCommandes(),
       etages:    this.service.getEtages(),
       zones:     this.zoneService.getAll().pipe(catchError(() => this.service.getZones())),
       positions: this.planSalleService.getPositions(),
@@ -268,7 +269,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
       }),
     )
     .subscribe({
-      next: ({ tables, etages, zones, positions, cocktails }) => {
+      next: ({ tables, commandes, etages, zones, positions, cocktails }) => {
         this.etagesList = etages;
         const rawZones = (zones || []) as ZoneBar[];
         this.zonesList = rawZones.map(z => ({ id: z.id ?? 0, nom: z.nom, etage: z.etage }));
@@ -298,21 +299,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
         this.positionsMap.clear();
         positions.forEach(p => this.positionsMap.set(p.tableId, p));
 
-        this.tables = tables.map((t, idx) => {
-          const pos = this.positionsMap.get(t.id);
-          const zoneObj = this.zonesList.find(z => z.nom.toLowerCase() === (t.zone || '').toLowerCase());
-          const defaultX = PLAN_MARGIN + (idx % PLAN_COLS) * (PLAN_TABLE_SIZE + PLAN_GAP);
-          const defaultY = PLAN_MARGIN + Math.floor(idx / PLAN_COLS) * (PLAN_TABLE_SIZE + PLAN_GAP);
-          return {
-            ...t,
-            etage: t.etage || zoneObj?.etage || 'RDC',
-            planX: pos?.x ?? defaultX,
-            planY: pos?.y ?? defaultY,
-            planForme: pos?.shape === 'circle' ? 'ROND' : 'CARRE',
-            planRotation: pos?.rotation ?? 0,
-          };
-        });
-
+        this.tables = this.enrichTablesWithOrders(tables, commandes);
         this.filtrer();
       },
       error: () => {
@@ -326,7 +313,10 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
   }
 
   chargerTables(refreshEvent?: any) {
-    this.service.getAllTables()
+    forkJoin({
+      tables: this.service.getAllTables(),
+      commandes: this.service.getAllCommandes(),
+    })
       .pipe(
         takeUntil(this.destroy$),
         finalize(() => {
@@ -334,19 +324,8 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
         }),
       )
       .subscribe({
-        next: tables => {
-          this.tables = tables.map(t => {
-            const pos = this.positionsMap.get(t.id);
-            const zoneObj = this.zonesList.find(z => z.nom.toLowerCase() === (t.zone || '').toLowerCase());
-            return {
-              ...t,
-              etage: t.etage || zoneObj?.etage || 'RDC',
-              planX: pos?.x,
-              planY: pos?.y,
-              planForme: pos?.shape === 'circle' ? 'ROND' : 'CARRE',
-              planRotation: pos?.rotation || 0,
-            };
-          });
+        next: ({ tables, commandes }) => {
+          this.tables = this.enrichTablesWithOrders(tables, commandes);
           this.filtrer();
         },
         error: () => {
@@ -357,6 +336,63 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
           }).then(t => t.present());
         },
       });
+  }
+
+  private enrichTablesWithOrders(tables: TableView[], commandes: Commande[]): TableView[] {
+    const now = Date.now();
+    return tables.map((t, idx) => {
+      const pos = this.positionsMap.get(t.id);
+      const zoneObj = this.zonesList.find(z => z.nom.toLowerCase() === (t.zone || '').toLowerCase());
+      const defaultX = PLAN_MARGIN + (idx % PLAN_COLS) * (PLAN_TABLE_SIZE + PLAN_GAP);
+      const defaultY = PLAN_MARGIN + Math.floor(idx / PLAN_COLS) * (PLAN_TABLE_SIZE + PLAN_GAP);
+
+      const tableOrders = (commandes || []).filter(
+        c => (c.tableId === t.id || c.tableNumero === t.id || (c as any).table?.id === t.id) &&
+             c.statut !== 'REGLEE' && c.statut !== 'ANNULEE' && c.statut !== 'LIVREE'
+      );
+
+      let maxWait = 0;
+      for (const cmd of tableOrders) {
+        if (cmd.dateCommande) {
+          const orderTime = new Date(cmd.dateCommande).getTime();
+          if (!Number.isNaN(orderTime)) {
+            const wait = Math.max(0, Math.floor((now - orderTime) / 60000));
+            if (wait > maxWait) {
+              maxWait = wait;
+            }
+          }
+        }
+      }
+
+      if (tableOrders.length === 0 && t.occupee && t.dateOccupation) {
+        const occTime = new Date(t.dateOccupation).getTime();
+        if (!Number.isNaN(occTime)) {
+          maxWait = Math.max(0, Math.floor((now - occTime) / 60000));
+        }
+      }
+
+      const activeTotal = tableOrders.reduce((sum, c) => sum + (c.total || 0), 0);
+      const commandesActives = tableOrders.map(c => ({
+        id: c.id,
+        statut: c.statut,
+        itemCount: c.items?.length || 0,
+        total: c.total || 0,
+        dateCommande: c.dateCommande,
+      }));
+
+      return {
+        ...t,
+        occupee: t.occupee || tableOrders.length > 0,
+        etage: t.etage || zoneObj?.etage || 'RDC',
+        planX: pos?.x ?? defaultX,
+        planY: pos?.y ?? defaultY,
+        planForme: pos?.shape === 'circle' ? 'ROND' : 'CARRE',
+        planRotation: pos?.rotation ?? 0,
+        commandesActives,
+        activeTotal,
+        waitTimeMinutes: maxWait,
+      };
+    });
   }
 
   filtrer() {
@@ -532,7 +568,16 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
 
   getWaitTimeMinutes(table: TableView): number {
     if (!table.occupee) return 0;
-    return ((table.id * 7) % 25) + 5;
+    if (table.waitTimeMinutes !== undefined) {
+      return table.waitTimeMinutes;
+    }
+    if (table.dateOccupation) {
+      const occTime = new Date(table.dateOccupation).getTime();
+      if (!Number.isNaN(occTime)) {
+        return Math.max(0, Math.floor((Date.now() - occTime) / 60000));
+      }
+    }
+    return 0;
   }
 
   onSearchChange(event: { detail?: { value?: string | null } }) {
@@ -888,10 +933,13 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
       return { mainColor: '#9b8af2', fillColor: 'rgba(155, 138, 242, 0.16)' };
     }
     if (table.occupee) {
-      if (waitTime > 20) {
+      if (waitTime >= 20) {
         return { mainColor: '#e5604f', fillColor: 'rgba(229, 96, 79, 0.16)' };
       }
-      return { mainColor: '#f0a33b', fillColor: 'rgba(240, 163, 59, 0.16)' };
+      if (waitTime >= 10) {
+        return { mainColor: '#f0a33b', fillColor: 'rgba(240, 163, 59, 0.16)' };
+      }
+      return { mainColor: '#2fbf6b', fillColor: 'rgba(47, 191, 107, 0.16)' };
     }
     return { mainColor: '#2fbf6b', fillColor: 'rgba(47, 191, 107, 0.16)' };
   }

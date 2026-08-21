@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { IonicModule } from '@ionic/angular';
 
 import { TicketReceiptComponent } from '../../../app/features/factures/ticket-receipt/ticket-receipt.component';
@@ -122,5 +122,100 @@ describe('TicketReceiptComponent', () => {
     spyOn(window, 'print');
     component.imprimerTicket();
     expect(window.print).toHaveBeenCalled();
+  });
+
+  it('supports individual equal split share receipt', () => {
+    component.reglement = {
+      factureId: 1,
+      nomConvive: 'Convive 1',
+      partIndex: 1,
+      totalParts: 2,
+      montant: 10.0,
+      pourboire: 1.0,
+      totalRegle: 11.0,
+      modePaiement: 'CARTE',
+      typeSplit: 'EGAL',
+    };
+
+    expect(component.isSplitPartReceipt).toBeTrue();
+    expect(component.totalTTC).toBe(11.0);
+    expect(component.splitPartItems).toHaveSize(1);
+    expect(component.splitPartItems[0].description).toContain('Part de l\'addition (1/2)');
+  });
+
+  it('supports individual itemized split share receipt', () => {
+    component.reglement = {
+      factureId: 1,
+      nomConvive: 'Alice',
+      partIndex: 1,
+      montant: 15.0,
+      pourboire: 0,
+      totalRegle: 15.0,
+      modePaiement: 'ESPECES',
+      typeSplit: 'SELECTION',
+      items: [
+        { itemId: 10, description: 'Mojito', quantite: 1, prixUnitaire: 15.0, total: 15.0 }
+      ],
+    };
+
+    expect(component.isSplitPartReceipt).toBeTrue();
+    expect(component.totalTTC).toBe(15.0);
+    expect(component.splitPartItems).toHaveSize(1);
+    expect(component.splitPartItems[0].description).toBe('Mojito');
+  });
+
+  it('trackById returns item id', () => {
+    expect(component.trackById(0, mockFacture.items[0])).toBe(10);
+  });
+
+  it('falls back to default establishmentConfig on service error', () => {
+    etablissementServiceSpy.getConfig.and.returnValue(throwError(() => new Error('Config load failed')));
+
+    component.establishmentConfig = undefined;
+    component.ngOnInit();
+
+    expect(component.establishmentConfig).toBeDefined();
+    expect((component.establishmentConfig as any)?.legalName).toBe('OpenBar SARL');
+  });
+
+  it('computes fallbacks for totalHT and totalVAT when not set explicitly', () => {
+    component.reglement = undefined;
+    component.facture = {
+      ...mockFacture,
+      totalHT: undefined,
+      totalVAT: undefined,
+      totalTTC: 30.0,
+      total: 30.0
+    };
+
+    expect(component.splitPartItems).toEqual([]);
+    expect(component.totalHT).toBeCloseTo(25.0, 1);
+    expect(component.totalVAT).toBeCloseTo(5.0, 1);
+  });
+
+  it('uses establishmentConfig ticketFormat directly when already provided', () => {
+    component.ticketFormat = undefined;
+    component.establishmentConfig = { ...mockConfig, ticketFormat: '58mm' };
+    component.ngOnInit();
+    expect(component.selectedFormat).toBe('58mm');
+  });
+
+  it('computes reglement totalTTC, totalHT, and totalVAT without totalRegle', () => {
+    component.reglement = {
+      factureId: 1,
+      nomConvive: 'Bob',
+      partIndex: 1,
+      totalParts: undefined,
+      montant: 12.0,
+      pourboire: 2.0,
+      totalRegle: undefined as any,
+      modePaiement: 'CARTE',
+      typeSplit: 'EGAL',
+    };
+
+    expect(component.totalTTC).toBe(14.0);
+    expect(component.totalHT).toBe(10.0);
+    expect(component.totalVAT).toBe(2.0);
+    expect(component.splitPartItems[0].description).toContain('?');
   });
 });

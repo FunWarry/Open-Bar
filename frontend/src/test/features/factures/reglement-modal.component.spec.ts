@@ -105,6 +105,39 @@ describe('ReglementModalComponent', () => {
     });
   });
 
+  it('supports 15pct tip mode, custom tip adjustment and presets', () => {
+    component.setTipMode('15pct');
+    expect(component.pourboire).toBe(7.50);
+    expect(component.totalAvecPourboire).toBe(57.50);
+
+    component.setTipMode('custom');
+    component.adjustCustomTip(2.5);
+    expect(component.pourboire).toBe(2.5);
+
+    component.adjustCustomTip(-1.0);
+    expect(component.pourboire).toBe(1.5);
+  });
+
+  it('handles cash presets and payment selection', () => {
+    component.selectPaymentMethod('ESPECES');
+    expect(component.paymentMethod).toBe('ESPECES');
+    expect(component.receivedAmount).toBe(50.00);
+
+    component.setCashAmount(100);
+    expect(component.receivedAmount).toBe(100);
+    expect(component.monnaieARendre).toBe(50.00);
+
+    component.setExactCash();
+    expect(component.receivedAmount).toBe(50.00);
+  });
+
+  it('handles negative or zero initialTotal gracefully', () => {
+    component.initialTotal = -10;
+    component.ngOnInit();
+    expect(component.initialTotal).toBe(0);
+    expect(component.getTipAmount(10)).toBe(0);
+  });
+
   it('resets totalInitial to 0 if negative on init', () => {
     const fixture2 = TestBed.createComponent(ReglementModalComponent);
     const comp2 = fixture2.componentInstance;

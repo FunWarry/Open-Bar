@@ -9,6 +9,7 @@ import com.bar.gestioncocktail.model.Facture;
 import com.bar.gestioncocktail.model.FactureItem;
 import com.bar.gestioncocktail.model.TableEntity;
 import com.bar.gestioncocktail.repository.FactureRepository;
+import com.bar.gestioncocktail.repository.FactureReglementRepository;
 import com.bar.gestioncocktail.repository.TableRepository;
 import jakarta.persistence.EntityManager;
 import org.springframework.stereotype.Service;
@@ -65,11 +66,13 @@ public class FactureService {
     private final AuditLogService auditLogService;
     private final AvoirCreditRepository avoirCreditRepository;
     private final TimeService timeService;
+    private final FactureReglementRepository factureReglementRepository;
 
     public FactureService(FactureRepository factureRepository, TableRepository tableRepository,
             CommandeRepository commandeRepository, NotificationService notificationService,
             UserRepository userRepository, EntityManager entityManager, AuditLogService auditLogService,
-            AvoirCreditRepository avoirCreditRepository, TimeService timeService) {
+            AvoirCreditRepository avoirCreditRepository, TimeService timeService,
+            FactureReglementRepository factureReglementRepository) {
         this.factureRepository = factureRepository;
         this.tableRepository = tableRepository;
         this.commandeRepository = commandeRepository;
@@ -79,14 +82,21 @@ public class FactureService {
         this.auditLogService = auditLogService;
         this.avoirCreditRepository = avoirCreditRepository;
         this.timeService = timeService;
+        this.factureReglementRepository = factureReglementRepository;
     }
 
     public List<Facture> getAllFactures() {
         return factureRepository.findAll();
     }
 
+    @Transactional(readOnly = true)
     public Optional<Facture> getFactureById(Long id) {
-        return factureRepository.findById(id);
+        return factureRepository.findById(id).map(f -> {
+            if (f.getReglements() != null) {
+                org.hibernate.Hibernate.initialize(f.getReglements());
+            }
+            return f;
+        });
     }
 
     public List<Facture> getFacturesByTable(TableEntity table) {
@@ -600,44 +610,207 @@ public class FactureService {
         Facture facture = factureRepository.findById(factureId)
                 .orElseThrow(() -> new ResourceNotFoundException(NOT_FOUND_PREFIX + factureId));
 
-        // Index invoice items by ID for O(1) lookup
+        Map<Long, FactureItem> itemsIndex = buildInvoiceItemsIndex(facture);
+        List<SplitResultDTO> result = new ArrayList<>();
+
+        for (com.bar.gestioncocktail.dto.SplitPartRequest part : request.parts()) {
+            result.add(createSplitResultForGuest(factureId, part, itemsIndex));
+        }
+
+        return result;
+    }
+
+    /**
+     * Builds an index map of invoice items by ID for O(1) lookups.
+     *
+     * @param facture the invoice entity
+     * @return map of item ID to FactureItem
+     */
+    private Map<Long, FactureItem> buildInvoiceItemsIndex(Facture facture) {
         Map<Long, FactureItem> itemsIndex = new HashMap<>();
         if (facture.getItems() != null) {
             for (FactureItem item : facture.getItems()) {
                 itemsIndex.put(item.getId(), item);
             }
         }
+        return itemsIndex;
+    }
 
-        List<SplitResultDTO> result = new ArrayList<>();
-
-        for (com.bar.gestioncocktail.dto.SplitPartRequest part : request.parts()) {
-            List<SplitResultDTO.SplitItemDTO> splitItems = new ArrayList<>();
-            BigDecimal sousTotal = BigDecimal.ZERO;
-
-            for (Long itemId : part.itemIds()) {
-                FactureItem item = itemsIndex.get(itemId);
-                if (item == null) {
-                    throw new BusinessException(
-                            "Item " + itemId + " does not belong to invoice " + factureId);
-                }
-                splitItems.add(new SplitResultDTO.SplitItemDTO(
-                        item.getId(),
-                        item.getDescription(),
-                        item.getQuantite(),
-                        item.getPrixUnitaire(),
-                        item.getTotal()));
-                sousTotal = sousTotal.add(item.getTotal());
-            }
-
-            result.add(new SplitResultDTO(
-                    factureId,
-                    part.nomConvive(),
-                    splitItems,
-                    sousTotal,
-                    sousTotal));
+    /**
+     * Creates a SplitResultDTO for a single guest part.
+     *
+     * @param factureId ID of the invoice
+     * @param part the guest split request
+     * @param itemsIndex lookup map of invoice items
+     * @return populated SplitResultDTO for this guest
+     */
+    private SplitResultDTO createSplitResultForGuest(
+            Long factureId,
+            com.bar.gestioncocktail.dto.SplitPartRequest part,
+            Map<Long, FactureItem> itemsIndex) {
+        List<SplitResultDTO.SplitItemDTO> splitItems = new ArrayList<>();
+        if (part.items() != null && !part.items().isEmpty()) {
+            splitItems.addAll(buildItemsFromSelections(part.items(), itemsIndex, factureId));
+        } else if (part.itemIds() != null) {
+            splitItems.addAll(buildItemsFromLegacyIds(part.itemIds(), itemsIndex, factureId));
         }
 
-        return result;
+        BigDecimal sousTotal = BigDecimal.ZERO;
+        for (SplitResultDTO.SplitItemDTO item : splitItems) {
+            sousTotal = sousTotal.add(item.total());
+        }
+
+        return new SplitResultDTO(factureId, part.nomConvive(), splitItems, sousTotal, sousTotal);
+    }
+
+    /**
+     * Builds SplitItemDTO objects from granular quantity split selections.
+     *
+     * @param requests list of item selection requests with quantities
+     * @param itemsIndex lookup map of invoice items
+     * @param factureId invoice ID for error context
+     * @return list of converted SplitItemDTO objects
+     */
+    private List<SplitResultDTO.SplitItemDTO> buildItemsFromSelections(
+            List<com.bar.gestioncocktail.dto.SplitPartItemRequest> requests,
+            Map<Long, FactureItem> itemsIndex,
+            Long factureId) {
+        List<SplitResultDTO.SplitItemDTO> items = new ArrayList<>();
+        for (com.bar.gestioncocktail.dto.SplitPartItemRequest req : requests) {
+            FactureItem item = itemsIndex.get(req.itemId());
+            if (item == null) {
+                throw new BusinessException("Item " + req.itemId() + " does not belong to invoice " + factureId);
+            }
+            int qte = (req.quantite() != null && req.quantite() > 0) ? req.quantite() : 1;
+            BigDecimal lineTotal = item.getPrixUnitaire().multiply(BigDecimal.valueOf(qte));
+            items.add(new SplitResultDTO.SplitItemDTO(item.getId(), item.getDescription(), qte, item.getPrixUnitaire(), lineTotal));
+        }
+        return items;
+    }
+
+    /**
+     * Builds SplitItemDTO objects from legacy item ID lists.
+     *
+     * @param itemIds list of item IDs allocated in full
+     * @param itemsIndex lookup map of invoice items
+     * @param factureId invoice ID for error context
+     * @return list of converted SplitItemDTO objects
+     */
+    private List<SplitResultDTO.SplitItemDTO> buildItemsFromLegacyIds(
+            List<Long> itemIds,
+            Map<Long, FactureItem> itemsIndex,
+            Long factureId) {
+        List<SplitResultDTO.SplitItemDTO> items = new ArrayList<>();
+        for (Long itemId : itemIds) {
+            FactureItem item = itemsIndex.get(itemId);
+            if (item == null) {
+                throw new BusinessException("Item " + itemId + " does not belong to invoice " + factureId);
+            }
+            items.add(new SplitResultDTO.SplitItemDTO(item.getId(), item.getDescription(), item.getQuantite(), item.getPrixUnitaire(), item.getTotal()));
+        }
+        return items;
+    }
+
+    /**
+     * Records and persists an individual split settlement for an invoice.
+     * If the sum of all settled parts covers the full invoice total, the invoice is marked as settled.
+     *
+     * @param factureId Target invoice ID
+     * @param request   Settlement request details
+     * @return Saved FactureReglementDTO
+     */
+    @Transactional
+    public com.bar.gestioncocktail.dto.FactureReglementDTO encaisserPart(Long factureId, com.bar.gestioncocktail.dto.EncaisserPartRequest request) {
+        Facture facture = factureRepository.findById(factureId)
+                .orElseThrow(() -> new ResourceNotFoundException(NOT_FOUND_PREFIX + factureId));
+
+        com.bar.gestioncocktail.model.FactureReglement reglement = new com.bar.gestioncocktail.model.FactureReglement();
+        reglement.setFacture(facture);
+        reglement.setNomConvive(request.nomConvive());
+        reglement.setPartIndex(request.partIndex());
+        reglement.setTotalParts(request.totalParts());
+        reglement.setMontant(request.montant());
+        reglement.setPourboire(request.pourboire() != null ? request.pourboire() : BigDecimal.ZERO);
+        reglement.setTotalRegle(request.totalRegle());
+        reglement.setModePaiement(request.modePaiement());
+        reglement.setTypeSplit(request.typeSplit());
+        reglement.setDateReglement(timeService.now());
+
+        if (request.items() != null && !request.items().isEmpty()) {
+            try {
+                com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                reglement.setItemsJson(mapper.writeValueAsString(request.items()));
+            } catch (Exception _) {
+                reglement.setItemsJson("[]");
+            }
+        } else {
+            reglement.setItemsJson("[]");
+        }
+
+        com.bar.gestioncocktail.model.FactureReglement saved = factureReglementRepository.save(reglement);
+        if (facture.getReglements() == null) {
+            facture.setReglements(new ArrayList<>());
+        }
+        facture.getReglements().add(saved);
+
+        List<com.bar.gestioncocktail.model.FactureReglement> allReglements = factureReglementRepository.findByFactureIdOrderByIdAsc(factureId);
+        checkAndFinalizeSplitSettlement(facture, factureId, allReglements);
+
+        return com.bar.gestioncocktail.dto.FactureReglementDTO.from(saved);
+    }
+
+    private void checkAndFinalizeSplitSettlement(Facture facture, Long factureId, List<com.bar.gestioncocktail.model.FactureReglement> allReglements) {
+        BigDecimal totalPaid = BigDecimal.ZERO;
+        BigDecimal totalTips = BigDecimal.ZERO;
+        for (com.bar.gestioncocktail.model.FactureReglement r : allReglements) {
+            if (r.getMontant() != null) {
+                totalPaid = totalPaid.add(r.getMontant());
+            }
+            if (r.getPourboire() != null) {
+                totalTips = totalTips.add(r.getPourboire());
+            }
+        }
+
+        BigDecimal invoiceTarget = facture.getTotalTTC();
+        if (invoiceTarget == null) {
+            invoiceTarget = facture.getTotal() != null ? facture.getTotal() : BigDecimal.ZERO;
+        }
+
+        if (totalPaid.compareTo(invoiceTarget.subtract(new BigDecimal("0.05"))) >= 0) {
+            facture.setReglee(true);
+            facture.setModePaiement("MIXTE_SPLIT");
+            facture.setPourboire(totalTips);
+            facture.setTotalTTC(invoiceTarget.add(totalTips));
+            facture.setDateReglement(timeService.now());
+            factureRepository.save(facture);
+
+            if (facture.getTable() != null) {
+                TableEntity table = facture.getTable();
+                table.setOccupee(false);
+                table.setServeurId(null);
+                table.setDateLiberation(LocalDateTime.now(timeService.getZoneId()));
+                tableRepository.save(table);
+                notificationService.notifierLiberationTable(table);
+            }
+            auditLogService.logAction(null, "FACTURE_SETTLED_SPLIT", ENTITY_FACTURE, factureId,
+                    "Invoice " + facture.getNumero() + " settled via split parts (" + allReglements.size() + " parts)", null);
+        }
+    }
+
+    /**
+     * Retrieves all persistent split settlements for an invoice.
+     *
+     * @param factureId Target invoice ID
+     * @return List of split settlements
+     */
+    @Transactional(readOnly = true)
+    public List<com.bar.gestioncocktail.dto.FactureReglementDTO> getReglementsByFactureId(Long factureId) {
+        if (!factureRepository.existsById(factureId)) {
+            throw new ResourceNotFoundException(NOT_FOUND_PREFIX + factureId);
+        }
+        return factureReglementRepository.findByFactureIdOrderByIdAsc(factureId).stream()
+                .map(com.bar.gestioncocktail.dto.FactureReglementDTO::from)
+                .toList();
     }
 
     @Transactional

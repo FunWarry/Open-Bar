@@ -32,28 +32,66 @@ public class TableService {
         this.timeService = timeService;
     }
 
+    @Transactional
     public List<TableEntity> getAllTables() {
-        return tableRepository.findAll();
+        List<TableEntity> tables = tableRepository.findAll();
+        for (TableEntity t : tables) {
+            synchronizeTableOccupancy(t);
+        }
+        return tables;
     }
 
+    @Transactional
     public Optional<TableEntity> getTableById(Long id) {
-        return tableRepository.findById(id);
+        Optional<TableEntity> opt = tableRepository.findById(id);
+        opt.ifPresent(this::synchronizeTableOccupancy);
+        return opt;
     }
 
+    @Transactional
     public List<TableEntity> getTablesByZone(String zone) {
-        return tableRepository.findByZone(zone);
+        List<TableEntity> tables = tableRepository.findByZone(zone);
+        for (TableEntity t : tables) {
+            synchronizeTableOccupancy(t);
+        }
+        return tables;
     }
 
     public List<String> getAllZones() {
         return tableRepository.findDistinctZones();
     }
 
+    @Transactional
     public List<TableEntity> getTablesByOccupee(boolean occupee) {
+        List<TableEntity> allTables = tableRepository.findAll();
+        for (TableEntity t : allTables) {
+            synchronizeTableOccupancy(t);
+        }
         return tableRepository.findByOccupee(occupee);
     }
 
+    @Transactional
     public List<TableEntity> getTablesByServeurId(Long serveurId) {
-        return tableRepository.findByServeurId(serveurId);
+        List<TableEntity> tables = tableRepository.findByServeurId(serveurId);
+        for (TableEntity t : tables) {
+            synchronizeTableOccupancy(t);
+        }
+        return tables;
+    }
+
+    private void synchronizeTableOccupancy(TableEntity table) {
+        if (table == null || table.getId() == null) {
+            return;
+        }
+        boolean hasActiveOrders = commandeRepository.existsByTableAndStatutIn(
+                table, List.of(CommandeStatut.EN_ATTENTE, CommandeStatut.EN_PREPARATION, CommandeStatut.PRET));
+        if (hasActiveOrders && !table.isOccupee()) {
+            table.setOccupee(true);
+            if (table.getDateOccupation() == null) {
+                table.setDateOccupation(timeService.now());
+            }
+            tableRepository.save(table);
+        }
     }
 
     @Transactional

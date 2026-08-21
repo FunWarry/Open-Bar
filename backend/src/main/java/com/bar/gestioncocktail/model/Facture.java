@@ -22,6 +22,9 @@ public class Facture {
     @OneToMany(mappedBy = "facture", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<FactureItem> items = new ArrayList<>();
 
+    @OneToMany(mappedBy = "facture", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<FactureReglement> reglements = new ArrayList<>();
+
     @Column(nullable = false)
     private String numero;
 

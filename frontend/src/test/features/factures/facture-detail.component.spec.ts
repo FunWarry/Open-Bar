@@ -244,4 +244,71 @@ describe('FactureDetailComponent', () => {
 
     expect(factureServiceSpy.reglerFacture).toHaveBeenCalled();
   });
+
+  it('imprimerTicketPart opens TicketReceiptComponent modal with split reglement', async () => {
+    component.facture = mockFacture;
+    const modalSpy = jasmine.createSpyObj('HTMLIonModalElement', ['present']);
+    modalSpy.present.and.returnValue(Promise.resolve());
+
+    const modalCtrl = TestBed.inject(ModalController) as jasmine.SpyObj<ModalController>;
+    modalCtrl.create.and.returnValue(Promise.resolve(modalSpy));
+
+    const reglement = {
+      id: 1,
+      factureId: 1,
+      nomConvive: 'Convive 1',
+      partIndex: 1,
+      totalParts: 2,
+      montant: 15.0,
+      totalRegle: 15.0,
+      modePaiement: 'CARTE',
+      typeSplit: 'EGAL' as const,
+    };
+
+    await component.imprimerTicketPart(reglement);
+
+    expect(modalCtrl.create).toHaveBeenCalled();
+    expect(modalSpy.present).toHaveBeenCalled();
+  });
+
+  it('onViewChange() updates activeView', () => {
+    component.onViewChange({ detail: { value: 'ticket' } } as any);
+    expect(component.activeView).toBe('ticket');
+
+    component.onViewChange({ detail: { value: 'invoice' } } as any);
+    expect(component.activeView).toBe('invoice');
+  });
+
+  it('computes VAT and HT helpers accurately', () => {
+    const item = {
+      id: 1, factureId: 1, commandeItemId: 1, description: 'Test', quantite: 2, prixUnitaire: 12.0, total: 24.0, vatRate: '20%'
+    };
+    expect(component.getItemPuHT(item)).toBeCloseTo(10.0, 1);
+    expect(component.getItemTotalHT(item)).toBeCloseTo(20.0, 1);
+    expect(component.getItemVatAmount(item)).toBeCloseTo(4.0, 1);
+
+    component.facture = {
+      ...mockFacture,
+      items: [item]
+    };
+    const breakdown = component.vatBreakdown;
+    expect(breakdown.length).toBeGreaterThan(0);
+    expect(breakdown[0].rateLabel).toBe('20%');
+  });
+
+  it('openSplitModal opens FactureSplitComponent modal and refreshes data on dismiss', async () => {
+    component.facture = mockFacture;
+    const modalSpy = jasmine.createSpyObj('HTMLIonModalElement', ['present', 'onWillDismiss']);
+    modalSpy.present.and.returnValue(Promise.resolve());
+    modalSpy.onWillDismiss.and.returnValue(Promise.resolve({ data: { settled: true } }));
+
+    const modalCtrl = TestBed.inject(ModalController) as jasmine.SpyObj<ModalController>;
+    modalCtrl.create.and.returnValue(Promise.resolve(modalSpy));
+
+    await component.openSplitModal();
+
+    expect(modalCtrl.create).toHaveBeenCalled();
+    expect(modalSpy.present).toHaveBeenCalled();
+    expect(factureServiceSpy.getFactureById).toHaveBeenCalled();
+  });
 });

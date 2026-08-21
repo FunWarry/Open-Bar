@@ -1,23 +1,24 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, Input, inject } from '@angular/core';
 import { CommonModule, CurrencyPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import {
-  IonContent, IonHeader, IonToolbar, IonTitle, IonBackButton, IonButtons,
-  IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-  IonItem, IonLabel, IonButton, IonIcon,
-  IonSegment, IonSegmentButton, IonList, IonBadge,
-  IonSpinner, IonInput, IonSelect, IonSelectOption, IonProgressBar, ModalController, ToastController
+  IonContent, IonHeader, IonToolbar, IonButtons,
+  IonButton, IonIcon, IonSegment, IonSegmentButton, IonLabel,
+  IonSpinner, IonProgressBar,
+  ModalController, ToastController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
   peopleOutline, listOutline, calculatorOutline,
-  removeOutline, addOutline, closeOutline, checkmarkCircleOutline, cardOutline, cashOutline
+  removeOutline, addOutline, closeOutline, checkmarkCircleOutline,
+  cardOutline, cashOutline, alertCircleOutline, trashOutline, printOutline
 } from 'ionicons/icons';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
-import { FactureService, SplitResultDTO, SplitPartRequest } from '../services/facture.service';
-import { Facture } from '../models/facture.model';
+import { FactureService, SplitResultDTO, SplitPartRequest, SplitPartItemRequest } from '../services/facture.service';
+import { Facture, FactureItem, FactureReglement, EncaisserPartRequest } from '../models/facture.model';
 import { ReglementModalComponent, ReglementModalResult } from '../reglement-modal/reglement-modal.component';
+import { TicketReceiptComponent } from '../ticket-receipt/ticket-receipt.component';
 
 /** State tracking for individual guest split settlements. */
 export interface PartSettlementState {
@@ -29,6 +30,7 @@ export interface PartSettlementState {
   modePaiement?: string;
   pourboire?: number;
   totalRegle?: number;
+  reglement?: FactureReglement;
 }
 
 /**
@@ -42,23 +44,40 @@ export interface PartSettlementState {
   selector: 'app-facture-split',
   standalone: true,
   imports: [
-    CommonModule, FormsModule, CurrencyPipe, RouterLink, TranslocoModule,
-    IonContent, IonHeader, IonToolbar, IonTitle, IonBackButton, IonButtons,
-    IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-    IonItem, IonLabel, IonButton, IonIcon,
-    IonSegment, IonSegmentButton, IonList, IonBadge,
-    IonSpinner, IonInput, IonSelect, IonSelectOption, IonProgressBar
+    CommonModule, FormsModule, CurrencyPipe, TranslocoModule,
+    IonContent, IonHeader, IonToolbar, IonButtons,
+    IonButton, IonIcon, IonSegment, IonSegmentButton, IonLabel,
+    IonSpinner, IonProgressBar
   ],
   templateUrl: './facture-split.component.html',
   styleUrls: ['./facture-split.component.scss'],
 })
 export class FactureSplitComponent implements OnInit {
   private readonly transloco = inject(TranslocoService);
-  factureId!: number;
+
+  /** Optional Input for Modal usage. */
+  @Input() factureId!: number;
+
+  /** Optional Input for Modal usage. */
+  @Input() facture: Facture | null = null;
+
+  get factureNumero(): string | undefined {
+    return this.facture?.numero;
+  }
+
+  get factureTableNumero(): number | undefined {
+    return this.facture?.tableNumero;
+  }
+
+  get factureItems(): FactureItem[] {
+    return this.facture?.items ?? [];
+  }
+
   mode: 'equal' | 'itemized' | 'selection' | 'egal' = 'equal';
 
   // Equal split mode
   guestCount = 2;
+  readonly guestPresets = [2, 3, 4, 5, 6];
 
   get nombreConvives(): number {
     return this.guestCount;
@@ -72,9 +91,56 @@ export class FactureSplitComponent implements OnInit {
   }
 
   // Itemized split mode
-  facture: Facture | null = null;
   guests: { name: string }[] = [{ name: '' }, { name: '' }];
-  itemAssignments: { [itemId: number]: number } = {};
+  /** Map storing guest index assigned to each unit key (e.g. "101_0", "101_1"). */
+  unitAssignments: { [unitKey: string]: number } = {};
+
+  /** Compatibility accessor for legacy tests and bindings. */
+  get itemAssignments(): { [itemId: number]: number } {
+    const map: { [itemId: number]: number } = {};
+    if (this.facture?.items) {
+      for (const item of this.facture.items) {
+        if (this.unitAssignments[`${item.id}_0`] !== undefined) {
+          map[item.id] = this.unitAssignments[`${item.id}_0`];
+        }
+      }
+    }
+    return map;
+  }
+  set itemAssignments(val: { [itemId: number]: number }) {
+    if (val && this.facture?.items) {
+      Object.keys(val).forEach(id => {
+        const itemId = +id;
+        const gIdx = val[itemId];
+        const item = this.facture?.items?.find(i => i.id === itemId);
+        const qte = item?.quantite || 1;
+        for (let u = 0; u < qte; u++) {
+          this.unitAssignments[`${itemId}_${u}`] = gIdx;
+        }
+      });
+    }
+  }
+
+  /** Explodes line items into individual unit consumable items for granular split. */
+  get splitUnits(): { key: string; itemId: number; description: string; unitIndex: number; totalUnits: number; unitLabel: string; prixUnitaire: number }[] {
+    if (!this.facture?.items) return [];
+    const units: { key: string; itemId: number; description: string; unitIndex: number; totalUnits: number; unitLabel: string; prixUnitaire: number }[] = [];
+    for (const item of this.facture.items) {
+      const qte = item.quantite || 1;
+      for (let u = 0; u < qte; u++) {
+        units.push({
+          key: `${item.id}_${u}`,
+          itemId: item.id,
+          description: item.description,
+          unitIndex: u,
+          totalUnits: qte,
+          unitLabel: qte > 1 ? `${item.description} (${u + 1}/${qte})` : item.description,
+          prixUnitaire: item.prixUnitaire
+        });
+      }
+    }
+    return units;
+  }
 
   results: SplitResultDTO[] = [];
   loading = false;
@@ -91,13 +157,27 @@ export class FactureSplitComponent implements OnInit {
   constructor() {
     addIcons({
       peopleOutline, listOutline, calculatorOutline,
-      removeOutline, addOutline, closeOutline, checkmarkCircleOutline, cardOutline, cashOutline
+      removeOutline, addOutline, closeOutline, checkmarkCircleOutline, cardOutline, cashOutline,
+      alertCircleOutline, trashOutline, printOutline
     });
   }
 
   ngOnInit() {
-    this.factureId = +this.route.snapshot.paramMap.get('id')!;
-    this.loadFacture();
+    if (!this.factureId) {
+      const routeId = this.route.snapshot?.paramMap?.get('id');
+      if (routeId) {
+        this.factureId = +routeId;
+      }
+    }
+
+    if (!this.facture && this.factureId) {
+      this.loadFacture();
+    }
+  }
+
+  /** Dismisses modal returning settlement status. */
+  closeModal(didSettle = false): void {
+    this.modalCtrl.dismiss({ settled: didSettle || this.allPartsSettled });
   }
 
   onModeChange() {
@@ -145,12 +225,11 @@ export class FactureSplitComponent implements OnInit {
 
   removeGuest(index: number) {
     this.guests.splice(index, 1);
-    Object.keys(this.itemAssignments).forEach(id => {
-      const itemId = +id;
-      if (this.itemAssignments[itemId] === index) {
-        delete this.itemAssignments[itemId];
-      } else if (this.itemAssignments[itemId] > index) {
-        this.itemAssignments[itemId]--;
+    Object.keys(this.unitAssignments).forEach(key => {
+      if (this.unitAssignments[key] === index) {
+        delete this.unitAssignments[key];
+      } else if (this.unitAssignments[key] > index) {
+        this.unitAssignments[key]--;
       }
     });
   }
@@ -160,8 +239,135 @@ export class FactureSplitComponent implements OnInit {
   }
 
   get allItemsAssigned(): boolean {
-    if (!this.facture?.items?.length) return false;
-    return this.facture.items.every(item => this.itemAssignments[item.id] !== undefined);
+    const units = this.splitUnits;
+    if (!units.length) return false;
+    return units.every(u => this.unitAssignments[u.key] !== undefined);
+  }
+
+  /** Returns the list of distinct items and quantities currently assigned to a guest. */
+  getAssignedItemsForGuest(guestIndex: number): { itemId: number; description: string; unitPrice: number; count: number; total: number }[] {
+    if (!this.facture?.items) return [];
+    const result: { itemId: number; description: string; unitPrice: number; count: number; total: number }[] = [];
+    for (const item of this.facture.items) {
+      let count = 0;
+      const qte = item.quantite || 1;
+      for (let u = 0; u < qte; u++) {
+        if (this.unitAssignments[`${item.id}_${u}`] === guestIndex) {
+          count++;
+        }
+      }
+      if (count > 0) {
+        result.push({
+          itemId: item.id,
+          description: item.description,
+          unitPrice: item.prixUnitaire,
+          count,
+          total: count * item.prixUnitaire
+        });
+      }
+    }
+    return result;
+  }
+
+  /** Computes the real-time monetary subtotal for a specific guest. */
+  getGuestTotal(guestIndex: number): number {
+    return this.getAssignedItemsForGuest(guestIndex).reduce((sum, item) => sum + item.total, 0);
+  }
+
+  /** Computes how many unassigned units remain for a specific bill item. */
+  getUnassignedCount(itemId: number): number {
+    const item = this.facture?.items?.find(i => i.id === itemId);
+    if (!item) return 0;
+    const qte = item.quantite || 1;
+    let assigned = 0;
+    for (let u = 0; u < qte; u++) {
+      if (this.unitAssignments[`${itemId}_${u}`] !== undefined) {
+        assigned++;
+      }
+    }
+    return Math.max(0, qte - assigned);
+  }
+
+  /** Returns total count of all unassigned items across the invoice. */
+  get totalUnassignedCount(): number {
+    if (!this.facture?.items) return 0;
+    return this.facture.items.reduce((sum, item) => sum + this.getUnassignedCount(item.id), 0);
+  }
+
+  /** Returns bill items that still have unassigned units available for distribution. */
+  get availableInvoiceItems(): (FactureItem & { remaining: number })[] {
+    if (!this.facture?.items) return [];
+    return this.facture.items
+      .map(item => ({ ...item, remaining: this.getUnassignedCount(item.id) }))
+      .filter(item => item.remaining > 0);
+  }
+
+  /** Assigns one available unit of the given item to the chosen guest. */
+  assignOneUnitToGuest(guestIndex: number, itemId: number): void {
+    const item = this.facture?.items?.find(i => i.id === itemId);
+    if (!item) return;
+    const qte = item.quantite || 1;
+    for (let u = 0; u < qte; u++) {
+      const key = `${itemId}_${u}`;
+      if (this.unitAssignments[key] === undefined) {
+        this.unitAssignments[key] = guestIndex;
+        break;
+      }
+    }
+  }
+
+  /** Unassigns one unit of the given item from the chosen guest (puts it back in the pool). */
+  unassignOneUnitFromGuest(guestIndex: number, itemId: number): void {
+    const item = this.facture?.items?.find(i => i.id === itemId);
+    if (!item) return;
+    const qte = item.quantite || 1;
+    for (let u = qte - 1; u >= 0; u--) {
+      const key = `${itemId}_${u}`;
+      if (this.unitAssignments[key] === guestIndex) {
+        delete this.unitAssignments[key];
+        break;
+      }
+    }
+  }
+
+  /** Removes all assigned units of a given item from a guest. */
+  removeAllUnitsOfItemFromGuest(guestIndex: number, itemId: number): void {
+    const item = this.facture?.items?.find(i => i.id === itemId);
+    if (!item) return;
+    const qte = item.quantite || 1;
+    for (let u = 0; u < qte; u++) {
+      const key = `${itemId}_${u}`;
+      if (this.unitAssignments[key] === guestIndex) {
+        delete this.unitAssignments[key];
+      }
+    }
+  }
+
+  /** Handles quick-assign dropdown selection for a guest. */
+  onQuickAssignSelect(guestIndex: number, event: CustomEvent): void {
+    const selectedItemId = event.detail.value;
+    if (selectedItemId !== undefined && selectedItemId !== null) {
+      this.assignOneUnitToGuest(guestIndex, +selectedItemId);
+      // Reset select value so the same item can be picked again if more units remain
+      const target = event.target as HTMLIonSelectElement;
+      if (target) {
+        target.value = null;
+      }
+    }
+  }
+
+  /** Assigns all units of a single line item to a chosen guest in one action. */
+  assignEntireItemToGuest(itemId: number, guestIndex: number): void {
+    const item = this.facture?.items?.find(i => i.id === itemId);
+    if (!item) return;
+    const qte = item.quantite || 1;
+    for (let u = 0; u < qte; u++) {
+      this.unitAssignments[`${itemId}_${u}`] = guestIndex;
+    }
+  }
+
+  getUnitArray(quantite: number): number[] {
+    return Array.from({ length: quantite || 1 }, (_, i) => i);
   }
 
   calculateItemizedSplit() {
@@ -170,14 +376,29 @@ export class FactureSplitComponent implements OnInit {
     this.errorMessage = null;
     this.partStates = {};
 
-    const parts: SplitPartRequest[] = this.guests
-      .map((_, i) => ({
-        nomConvive: this.getGuestName(i),
-        itemIds: this.facture!.items
-          .filter(item => this.itemAssignments[item.id] === i)
-          .map(item => item.id),
-      }))
-      .filter(p => p.itemIds.length > 0);
+    const units = this.splitUnits;
+
+    const parts: SplitPartRequest[] = this.guests.map((_, guestIdx) => {
+      const assignedUnits = units.filter(u => this.unitAssignments[u.key] === guestIdx);
+
+      const itemMap = new Map<number, number>();
+      for (const u of assignedUnits) {
+        itemMap.set(u.itemId, (itemMap.get(u.itemId) || 0) + 1);
+      }
+
+      const items: SplitPartItemRequest[] = Array.from(itemMap.entries()).map(([itemId, quantite]) => ({
+        itemId,
+        quantite
+      }));
+
+      const itemIds = Array.from(itemMap.keys());
+
+      return {
+        nomConvive: this.getGuestName(guestIdx),
+        itemIds,
+        items
+      };
+    }).filter(p => (p.items && p.items.length > 0) || (p.itemIds && p.itemIds.length > 0));
 
     this.factureService.splitParSelection(this.factureId, parts).subscribe({
       next: r => { this.results = r; this.loading = false; },
@@ -220,8 +441,8 @@ export class FactureSplitComponent implements OnInit {
 
   /**
    * Opens the payment modal for an individual guest part.
-   * On confirmation, updates part settlement state and automatically
-   * settles the main invoice when all parts are paid.
+   * On confirmation, saves the settlement in backend database, updates part settlement state,
+   * and automatically settles the main invoice when all parts are paid.
    *
    * @param index Guest index in results array
    * @param part The guest's split result DTO
@@ -233,7 +454,7 @@ export class FactureSplitComponent implements OnInit {
       component: ReglementModalComponent,
       componentProps: {
         totalInitial: part.sousTotal,
-        nomPart: part.nomConvive
+        nomPart: part.nomConvive,
       }
     });
 
@@ -241,6 +462,18 @@ export class FactureSplitComponent implements OnInit {
     const { data } = await modal.onWillDismiss<ReglementModalResult>();
 
     if (!data) return;
+
+    const request: EncaisserPartRequest = {
+      nomConvive: part.nomConvive,
+      partIndex: index + 1,
+      totalParts: this.mode === 'equal' ? this.guestCount : this.results.length,
+      montant: part.sousTotal,
+      pourboire: data.pourboire || 0,
+      totalRegle: data.totalTotal,
+      modePaiement: data.modePaiement,
+      typeSplit: this.mode === 'equal' ? 'EGAL' : 'SELECTION',
+      items: part.items,
+    };
 
     this.partStates[index] = {
       settled: true,
@@ -253,6 +486,19 @@ export class FactureSplitComponent implements OnInit {
       totalRegle: data.totalTotal,
     };
 
+    if (this.factureId) {
+      this.factureService.encaisserPart(this.factureId, request).subscribe({
+        next: (savedReglement) => {
+          if (this.partStates[index]) {
+            this.partStates[index].reglement = savedReglement;
+          }
+        },
+        error: (err) => {
+          console.error('Failed to persist split settlement', err);
+        }
+      });
+    }
+
     const toast = await this.toastCtrl.create({
       message: String(this.transloco.translate('SPLIT.PART_PAID_SUCCESS', { guest: part.nomConvive, mode: data.modePaiement })),
       duration: 2000,
@@ -263,6 +509,38 @@ export class FactureSplitComponent implements OnInit {
     if (this.allPartsSettled) {
       this.finalizeGlobalInvoiceSettlement();
     }
+  }
+
+  /**
+   * Opens the thermal receipt preview modal for a specific settled split share.
+   *
+   * @param index Index of the guest share
+   * @param part The guest's split result DTO
+   */
+  async printPartReceipt(index: number, part: SplitResultDTO) {
+    const reglement: FactureReglement = this.partStates[index]?.reglement || {
+      factureId: this.factureId,
+      nomConvive: part.nomConvive,
+      partIndex: index + 1,
+      totalParts: this.mode === 'equal' ? this.guestCount : this.results.length,
+      montant: part.sousTotal,
+      pourboire: this.partStates[index]?.tip || 0,
+      totalRegle: this.partStates[index]?.totalPaid || part.sousTotal,
+      modePaiement: this.partStates[index]?.paymentMethod || 'CARTE',
+      typeSplit: this.mode === 'equal' ? 'EGAL' : 'SELECTION',
+      items: part.items,
+      dateReglement: new Date().toISOString(),
+    };
+
+    const modal = await this.modalCtrl.create({
+      component: TicketReceiptComponent,
+      componentProps: {
+        facture: this.facture || { id: this.factureId, numero: `FAC-${this.factureId}`, items: [] },
+        reglement: reglement,
+      },
+      cssClass: 'ticket-modal',
+    });
+    await modal.present();
   }
 
   // ─── Aliases for compatibility ─────────────────────────────────────────────

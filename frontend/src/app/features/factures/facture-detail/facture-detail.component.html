@@ -53,13 +53,14 @@
         </button>
 
         @if (facture.items && facture.items.length > 0) {
-          <a
-            [routerLink]="['/factures', facture.id, 'split']"
+          <button
+            type="button"
+            (click)="openSplitModal()"
             class="btn-cta btn-split"
             data-testid="split-bill-btn">
             <ion-icon name="people-outline"></ion-icon>
             <span>{{ t('FACTURES.SPLIT') }}</span>
-          </a>
+          </button>
         }
       </div>
     </header>
@@ -184,8 +185,9 @@
                     <tr>
                       <th class="th-desc">{{ t('COMMANDES.ITEMS') }}</th>
                       <th class="th-center">{{ t('COMMANDES.QUANTITY') }}</th>
-                      <th class="th-right">{{ t('COMMANDE_DETAIL.UNIT_PRICE') }}</th>
-                      <th class="th-center">{{ t('FACTURES.TOTAL_VAT') }}</th>
+                      <th class="th-right">{{ t('FACTURES.TABLE_HEADERS.PU_HT') }}</th>
+                      <th class="th-center">{{ t('FACTURES.TABLE_HEADERS.VAT_RATE') }}</th>
+                      <th class="th-right">{{ t('FACTURES.TABLE_HEADERS.TOTAL_HT') }}</th>
                       <th class="th-right">{{ t('COMMON.TOTAL') }} TTC</th>
                     </tr>
                   </thead>
@@ -202,10 +204,13 @@
                           <span class="qty-badge">{{ item.quantite }}</span>
                         </td>
                         <td class="td-right">
-                          <span class="unit-price">{{ item.prixUnitaire | currency:'EUR':'symbol':'1.2-2' }}</span>
+                          <span class="unit-price">{{ getItemPuHT(item) | currency:'EUR':'symbol':'1.2-2' }}</span>
                         </td>
                         <td class="td-center">
                           <span class="vat-badge">{{ item.vatRate || '20%' }}</span>
+                        </td>
+                        <td class="td-right">
+                          <span class="item-line-ht">{{ getItemTotalHT(item) | currency:'EUR':'symbol':'1.2-2' }}</span>
                         </td>
                         <td class="td-right">
                           <strong class="item-line-total">{{ item.total | currency:'EUR':'symbol':'1.2-2' }}</strong>
@@ -225,17 +230,48 @@
 
           <!-- Totals and Financial Summary Section -->
           <section class="sheet-totals-section">
-            <div class="legal-notice-box">
-              <ion-icon name="information-circle-outline"></ion-icon>
-              <div class="legal-notice-text">
-                <span class="notice-title">{{ t('FACTURES.ESTABLISHMENT_INFO') }}</span>
-                <p class="notice-desc" *ngIf="establishmentConfig as cfg">
-                  {{ cfg.legalName || 'OpenBar' }} — {{ cfg.address }}
-                  <span *ngIf="cfg.rcsNumber"> — RCS {{ cfg.rcsCity }} {{ cfg.rcsNumber }}</span>
-                </p>
+            <!-- Left Column: Establishment Notice & Ventilation TVA -->
+            <div class="totals-left-col">
+              <div class="legal-notice-box">
+                <ion-icon name="information-circle-outline"></ion-icon>
+                <div class="legal-notice-text">
+                  <span class="notice-title">{{ t('FACTURES.ESTABLISHMENT_INFO') }}</span>
+                  <p class="notice-desc" *ngIf="establishmentConfig as cfg">
+                    {{ cfg.legalName || 'OpenBar' }} — {{ cfg.address }}
+                    <span *ngIf="cfg.rcsNumber"> — RCS {{ cfg.rcsCity }} {{ cfg.rcsNumber }}</span>
+                  </p>
+                </div>
+              </div>
+
+              <!-- Ventilation TVA Breakdown Table -->
+              <div class="vat-breakdown-card" data-testid="vat-breakdown-card">
+                <div class="vat-card-header">
+                  <span class="vat-card-title">{{ t('FACTURES.VAT_BREAKDOWN') }}</span>
+                </div>
+                <table class="vat-table">
+                  <thead>
+                    <tr>
+                      <th class="th-left">{{ t('FACTURES.TABLE_HEADERS.VAT_RATE') }}</th>
+                      <th class="th-right">{{ t('FACTURES.TABLE_HEADERS.BASE_HT') }}</th>
+                      <th class="th-right">{{ t('FACTURES.TABLE_HEADERS.VAT_AMOUNT') }}</th>
+                      <th class="th-right">{{ t('COMMON.TOTAL') }} TTC</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (v of vatBreakdown; track v.rateLabel) {
+                      <tr>
+                        <td class="td-left"><span class="vat-pill">{{ v.rateLabel }}</span></td>
+                        <td class="td-right">{{ v.baseHT | currency:'EUR':'symbol':'1.2-2' }}</td>
+                        <td class="td-right">{{ v.amountVAT | currency:'EUR':'symbol':'1.2-2' }}</td>
+                        <td class="td-right font-bold">{{ v.totalTTC | currency:'EUR':'symbol':'1.2-2' }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
               </div>
             </div>
 
+            <!-- Right Column: Financial Totals Box -->
             <div class="totals-breakdown-box">
               <div class="breakdown-row">
                 <span class="b-label">{{ t('FACTURES.TOTAL_HT') }}</span>
@@ -245,10 +281,10 @@
                 <span class="b-label">{{ t('FACTURES.TOTAL_VAT') }}</span>
                 <span class="b-val">{{ totalVAT | currency:'EUR':'symbol':'1.2-2' }}</span>
               </div>
-              @if (facture.pourboire) {
+              @if (facture.pourboire && facture.pourboire > 0) {
                 <div class="breakdown-row tip-row">
                   <span class="b-label">{{ t('FACTURES.TIP') }}</span>
-                  <span class="b-val">{{ facture.pourboire | currency:'EUR':'symbol':'1.2-2' }}</span>
+                  <span class="b-val">+{{ facture.pourboire | currency:'EUR':'symbol':'1.2-2' }}</span>
                 </div>
               }
               <div class="breakdown-row grand-total-row">
@@ -257,6 +293,57 @@
                   <span class="gt-sub">{{ t('FACTURES.TTC_LABEL') }}</span>
                 </div>
                 <span class="gt-amount">{{ montantAffiche | currency:'EUR':'symbol':'1.2-2' }}</span>
+              </div>
+            </div>
+          </section>
+
+          <!-- Split Settlements Breakdown Section (when split payments exist) -->
+          <section class="split-history-section" *ngIf="facture.reglements && facture.reglements.length > 0" data-testid="split-history-container">
+            <div class="split-history-header">
+              <div class="split-history-title-wrap">
+                <ion-icon name="people-outline"></ion-icon>
+                <h3>{{ t('FACTURES.SPLIT_HISTORY_TITLE') }}</h3>
+              </div>
+              <span class="split-count-badge">{{ t('FACTURES.SPLIT_PARTS_COUNT', { count: facture.reglements.length }) }}</span>
+            </div>
+
+            <div class="split-parts-list">
+              <div *ngFor="let reg of facture.reglements; let i = index" class="split-part-row" [attr.data-testid]="'split-history-row-' + i">
+                <div class="part-info-block">
+                  <div class="part-name-line">
+                    <span class="part-index-badge">#{{ reg.partIndex }}</span>
+                    <strong class="part-guest-name">{{ reg.nomConvive }}</strong>
+                    <span class="part-mode-badge">{{ reg.modePaiement }}</span>
+                    <span class="part-type-pill">{{ reg.typeSplit === 'EGAL' ? t('SPLIT.EQUAL_MODE') : t('SPLIT.ITEMIZED_MODE') }}</span>
+                  </div>
+                  <div class="part-date-line">
+                    <span>{{ (reg.dateReglement || facture.dateFacture) | date:'dd/MM/yyyy HH:mm' }}</span>
+                  </div>
+                  <!-- If itemized, list assigned items -->
+                  <div class="part-items-chips" *ngIf="reg.items && reg.items.length > 0">
+                    <span *ngFor="let item of reg.items" class="part-item-chip">
+                      {{ item.quantite }}x {{ item.description }} ({{ item.total | currency:'EUR':'symbol':'1.2-2' }})
+                    </span>
+                  </div>
+                </div>
+
+                <div class="part-amount-block">
+                  <div class="part-amounts-wrap">
+                    <span class="part-net-amount">{{ reg.montant | currency:'EUR':'symbol':'1.2-2' }}</span>
+                    <span class="part-tip-amount" *ngIf="reg.pourboire && reg.pourboire > 0">
+                      +{{ reg.pourboire | currency:'EUR':'symbol':'1.2-2' }} {{ t('FACTURES.TIP') }}
+                    </span>
+                    <strong class="part-total-paid">{{ reg.totalRegle | currency:'EUR':'symbol':'1.2-2' }}</strong>
+                  </div>
+                  <button
+                    type="button"
+                    class="btn-print-split-ticket"
+                    (click)="imprimerTicketPart(reg)"
+                    [attr.data-testid]="'print-history-ticket-btn-' + i">
+                    <ion-icon name="print-outline"></ion-icon>
+                    <span>{{ t('FACTURES.PRINT_TICKET') }}</span>
+                  </button>
+                </div>
               </div>
             </div>
           </section>
@@ -287,13 +374,14 @@
               </button>
 
               @if (facture.items && facture.items.length > 0) {
-                <a
-                  [routerLink]="['/factures', facture.id, 'split']"
+                <button
+                  type="button"
+                  (click)="openSplitModal()"
                   class="btn-footer btn-outline-split"
                   data-testid="split-bill-btn-footer">
                   <ion-icon name="people-outline"></ion-icon>
                   <span>{{ t('FACTURES.SPLIT') }}</span>
-                </a>
+                </button>
               }
 
               <button
