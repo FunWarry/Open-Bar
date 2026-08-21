@@ -761,8 +761,8 @@ describe('DashboardServeurComponent', () => {
       expect(component.filteredProducts).toHaveSize(1);
 
       component.selectedCategory = 'ALL';
-      component.toggleAllergenFilter('gluten');
-      expect(component.selectedAllergens).toContain('gluten');
+      component.toggleAllergenFilter('GLUTEN');
+      expect(component.selectedAllergens).toContain('GLUTEN');
       expect(component.filteredProducts).toHaveSize(1);
       expect(component.filteredProducts[0].nom).toBe('Mojito');
 
