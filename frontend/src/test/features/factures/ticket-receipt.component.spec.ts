@@ -192,4 +192,30 @@ describe('TicketReceiptComponent', () => {
     expect(component.totalHT).toBeCloseTo(25.0, 1);
     expect(component.totalVAT).toBeCloseTo(5.0, 1);
   });
+
+  it('uses establishmentConfig ticketFormat directly when already provided', () => {
+    component.ticketFormat = undefined;
+    component.establishmentConfig = { ...mockConfig, ticketFormat: '58mm' };
+    component.ngOnInit();
+    expect(component.selectedFormat).toBe('58mm');
+  });
+
+  it('computes reglement totalTTC, totalHT, and totalVAT without totalRegle', () => {
+    component.reglement = {
+      factureId: 1,
+      nomConvive: 'Bob',
+      partIndex: 1,
+      totalParts: undefined,
+      montant: 12.0,
+      pourboire: 2.0,
+      totalRegle: undefined as any,
+      modePaiement: 'CARTE',
+      typeSplit: 'EGAL',
+    };
+
+    expect(component.totalTTC).toBe(14.0);
+    expect(component.totalHT).toBe(10.0);
+    expect(component.totalVAT).toBe(2.0);
+    expect(component.splitPartItems[0].description).toContain('?');
+  });
 });

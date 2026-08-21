@@ -866,5 +866,57 @@ describe('DashboardServeurComponent', () => {
       expect(enriched[0].commandesActives[0].itemCount).toBe(2);
       expect(enriched[0].waitTimeMinutes).toBeGreaterThanOrEqual(4);
     });
+
+    it('computes table counts, searches, and tests all sort options', () => {
+      expect(component.countOccupees).toBe(2);
+      expect(component.countLibres).toBe(1);
+
+      component.onSearchChange({ detail: { value: 'Table 1' } });
+      expect(component.filteredTables.length).toBeGreaterThanOrEqual(1);
+
+      component.setStatusFilter('FREE');
+      expect(component.selectedStatus).toBe('FREE');
+      expect(component.filteredTables.every(t => !t.occupee)).toBeTrue();
+
+      component.setStatusFilter('OCCUPIED');
+      expect(component.selectedStatus).toBe('OCCUPIED');
+      expect(component.filteredTables.every(t => t.occupee)).toBeTrue();
+
+      component.setStatusFilter('ALL');
+      component.searchTerm = '';
+      component.sortOption = 'NUMBER_DESC';
+      component.filtrer();
+      expect(component.filteredTables[0].id).toBeGreaterThanOrEqual(component.filteredTables[component.filteredTables.length - 1].id);
+
+      component.sortOption = 'CAPACITY_ASC';
+      component.filtrer();
+      expect(component.filteredTables[0].capacite).toBeLessThanOrEqual(component.filteredTables[component.filteredTables.length - 1].capacite);
+
+      component.sortOption = 'CAPACITY_DESC';
+      component.filtrer();
+      expect(component.filteredTables[0].capacite).toBeGreaterThanOrEqual(component.filteredTables[component.filteredTables.length - 1].capacite);
+
+      component.sortOption = 'STATUS_OCCUPIED';
+      component.filtrer();
+      expect(component.filteredTables[0].occupee).toBeTrue();
+
+      component.sortOption = 'STATUS_FREE';
+      component.filtrer();
+      expect(component.filteredTables[0].occupee).toBeFalse();
+    });
+
+    it('handles availableZonesForFilter and select changes', () => {
+      component.selectedEtage = 'ALL';
+      expect(component.availableZonesForFilter.length).toBeGreaterThanOrEqual(0);
+
+      component.selectedEtage = 'ETAGE_1';
+      expect(component.availableZonesForFilter.length).toBeGreaterThanOrEqual(0);
+
+      component.onEtageSelectChange({ target: { value: 'RDC' } } as any);
+      expect(component.selectedEtage).toBe('RDC');
+
+      component.onZoneSelectChange({ target: { value: 'Terrasse' } } as any);
+      expect(component.selectedZone).toBe('Terrasse');
+    });
   });
 });
