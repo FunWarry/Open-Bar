@@ -381,5 +381,49 @@ describe('FactureSplitComponent', () => {
       component.closeModal(true);
       expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith({ settled: true });
     });
+
+    it('settleGuestPart() calls service.encaisserPart and updates partStates', async () => {
+      const modalSpy = jasmine.createSpyObj('HTMLIonModalElement', ['present', 'onWillDismiss']);
+      modalSpy.present.and.returnValue(Promise.resolve());
+      modalSpy.onWillDismiss.and.returnValue(Promise.resolve({
+        data: { modePaiement: 'CARTE', pourboire: 2.0, totalTotal: 12.5 }
+      }));
+      modalCtrlSpy.create.and.returnValue(Promise.resolve(modalSpy));
+
+      await component.settleGuestPart(0, mockSplitResults[0]);
+
+      expect(factureServiceSpy.encaisserPart).toHaveBeenCalled();
+      expect(component.partStates[0].settled).toBeTrue();
+      expect(component.partStates[0].paymentMethod).toBe('CARTE');
+      expect(component.partStates[0].tip).toBe(2.0);
+    });
+
+    it('printPartReceipt opens TicketReceiptComponent modal for a settled guest', async () => {
+      const modalSpy = jasmine.createSpyObj('HTMLIonModalElement', ['present']);
+      modalSpy.present.and.returnValue(Promise.resolve());
+      modalCtrlSpy.create.and.returnValue(Promise.resolve(modalSpy));
+
+      component.partStates[0] = {
+        settled: true,
+        paymentMethod: 'CARTE',
+        tip: 2.0,
+        totalPaid: 12.5,
+      };
+
+      await component.printPartReceipt(0, mockSplitResults[0]);
+
+      expect(modalCtrlSpy.create).toHaveBeenCalled();
+      expect(modalSpy.present).toHaveBeenCalled();
+    });
+
+    it('assignOneUnitToGuest and unassignOneUnitFromGuest modify item allocations accurately', () => {
+      const item = mockFacture.items[0];
+
+      component.assignOneUnitToGuest(0, item.id);
+      expect(component.getGuestTotal(0)).toBe(8);
+
+      component.unassignOneUnitFromGuest(0, item.id);
+      expect(component.getGuestTotal(0)).toBe(0);
+    });
   });
 });

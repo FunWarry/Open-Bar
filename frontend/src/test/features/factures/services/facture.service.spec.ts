@@ -173,4 +173,54 @@ describe('FactureService', () => {
     req.flush('Mode de paiement invalide', { status: 400, statusText: 'Bad Request' });
     expect(errorCaught).toBeTrue();
   });
+
+  it('encaisserPart() posts split part settlement and returns saved reglement', () => {
+    const encaissementReq = {
+      nomConvive: 'Alice',
+      partIndex: 1,
+      totalParts: 2,
+      montant: 20.0,
+      pourboire: 2.0,
+      totalRegle: 22.0,
+      modePaiement: 'CARTE',
+      typeSplit: 'EGAL' as const,
+      items: []
+    };
+
+    const mockReglement = {
+      id: 1,
+      factureId: 1,
+      nomConvive: 'Alice',
+      partIndex: 1,
+      totalParts: 2,
+      montant: 20.0,
+      totalRegle: 22.0,
+      modePaiement: 'CARTE',
+      typeSplit: 'EGAL' as const,
+    };
+
+    service.encaisserPart(1, encaissementReq).subscribe(res => {
+      expect(res.id).toBe(1);
+      expect(res.nomConvive).toBe('Alice');
+    });
+
+    const req = httpMock.expectOne(`${baseUrl}/1/split/encaisser`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual(encaissementReq);
+    req.flush(mockReglement);
+  });
+
+  it('getReglements() retrieves all split payments for an invoice', () => {
+    const mockReglements = [
+      { id: 1, factureId: 1, partIndex: 1, nomConvive: 'Alice', montant: 20.0, totalRegle: 20.0, modePaiement: 'CARTE', typeSplit: 'EGAL' as const }
+    ];
+
+    service.getReglements(1).subscribe(res => {
+      expect(res).toEqual(mockReglements);
+    });
+
+    const req = httpMock.expectOne(`${baseUrl}/1/reglements`);
+    expect(req.request.method).toBe('GET');
+    req.flush(mockReglements);
+  });
 });

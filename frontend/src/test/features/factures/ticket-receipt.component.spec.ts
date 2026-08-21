@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { IonicModule } from '@ionic/angular';
 
 import { TicketReceiptComponent } from '../../../app/features/factures/ticket-receipt/ticket-receipt.component';
@@ -162,5 +162,19 @@ describe('TicketReceiptComponent', () => {
     expect(component.totalTTC).toBe(15.0);
     expect(component.splitPartItems).toHaveSize(1);
     expect(component.splitPartItems[0].description).toBe('Mojito');
+  });
+
+  it('trackById returns item id', () => {
+    expect(component.trackById(0, mockFacture.items[0])).toBe(10);
+  });
+
+  it('falls back to default establishmentConfig on service error', () => {
+    etablissementServiceSpy.getConfig.and.returnValue(throwError(() => new Error('Config load failed')));
+
+    component.establishmentConfig = undefined;
+    component.ngOnInit();
+
+    expect(component.establishmentConfig).toBeDefined();
+    expect((component.establishmentConfig as any)?.legalName).toBe('OpenBar SARL');
   });
 });
