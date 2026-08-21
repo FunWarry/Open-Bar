@@ -710,5 +710,41 @@ describe('DashboardServeurComponent', () => {
       expect(saved).toContain('Terrasse');
       expect(saved).toContain('FREE');
     });
+
+    it('groupedTables getter groups tables by floor and by zone', () => {
+      component.displayMode = 'BY_ZONE';
+      const byZone = component.groupedTables;
+      expect(byZone.length).toBeGreaterThan(0);
+      expect(byZone[0].tables.length).toBeGreaterThan(0);
+
+      component.displayMode = 'BY_FLOOR';
+      const byFloor = component.groupedTables;
+      expect(byFloor.length).toBeGreaterThan(0);
+    });
+
+    it('handles direct zone and floor toggling', () => {
+      component.onEtageSelectChangeDirect('ETAGE_1');
+      expect(component.selectedEtage).toBe('ETAGE_1');
+      expect(component.selectedZone).toBe('ALL');
+
+      component.onZoneSelectChangeDirect('Terrasse');
+      expect(component.isZoneSelected('Terrasse')).toBeTrue();
+
+      component.onZoneSelectChangeDirect('Terrasse');
+      expect(component.isZoneSelected('Terrasse')).toBeFalse();
+
+      component.onZoneSelectChangeDirect('ALL');
+      expect(component.selectedZone).toBe('ALL');
+    });
+
+    it('buildPolygonPathData generates valid SVG path data', () => {
+      const points = [0, 0, 100, 0, 100, 100, 0, 100];
+      const path = component.buildPolygonPathData(points, [10, 10, 10, 10]);
+      expect(path).toContain('M');
+      expect(path).toContain('Z');
+
+      const invalid = component.buildPolygonPathData([0, 0]);
+      expect(invalid).toBe('');
+    });
   });
 });
