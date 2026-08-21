@@ -746,5 +746,65 @@ describe('DashboardServeurComponent', () => {
       const invalid = component.buildPolygonPathData([0, 0]);
       expect(invalid).toBe('');
     });
+
+    it('filters products by category, query, and allergens', () => {
+      component.products = [
+        { id: 1, nom: 'Mojito', prix: 8.5, categorie: 'ALCOOLISE', stockStatus: 'NORMAL', disponible: true, description: 'Rhum menthe' },
+        { id: 2, nom: 'Bière Blonde', prix: 5.0, categorie: 'BEER', stockStatus: 'NORMAL', disponible: true, description: 'Gluten orge' },
+      ];
+
+      component.productSearchQuery = 'Mojito';
+      expect(component.filteredProducts).toHaveSize(1);
+
+      component.productSearchQuery = '';
+      component.selectedCategory = 'BEER';
+      expect(component.filteredProducts).toHaveSize(1);
+
+      component.selectedCategory = 'ALL';
+      component.toggleAllergenFilter('gluten');
+      expect(component.selectedAllergens).toContain('gluten');
+      expect(component.filteredProducts).toHaveSize(1);
+      expect(component.filteredProducts[0].nom).toBe('Mojito');
+
+      component.clearAllergenFilters();
+      expect(component.selectedAllergens).toHaveSize(0);
+      expect(component.filteredProducts).toHaveSize(2);
+    });
+
+    it('returns proper category dot colors and styles', () => {
+      expect(component.getCategoryDotColor('ALCOOLISE')).toBe('#10b981');
+      expect(component.getCategoryDotColor('BEER')).toBe('#ffd900');
+      expect(component.getCategoryDotColor('UNKNOWN')).toBe('#6366f1');
+
+      const activeStyle = component.getCategoryPillStyle('ALCOOLISE', true);
+      expect(activeStyle['background-color']).toBe('#10b981');
+      expect(component.getCategoryPillStyle('ALCOOLISE', false)).toEqual({});
+    });
+
+    it('adds product directly to cart when no variants present', () => {
+      const prod = { id: 10, nom: 'Gin Tonic', prix: 9.0, categorie: 'ALCOOLISE', stockStatus: 'NORMAL' as const, disponible: true };
+      component.cart = { tableId: 1, items: [] };
+
+      component.onAddToCart(prod);
+
+      expect(component.cart.items).toHaveSize(1);
+      expect(component.cart.items[0].nom).toBe('Gin Tonic');
+      expect(component.cartTotalCount).toBe(1);
+    });
+
+    it('navigates tabs and liberates table properly', fakeAsync(() => {
+      component.onTabSelected('suivi');
+      expect(component.activeTab).toBe('suivi');
+
+      component.naviguerKanban();
+      expect(component.activeTab).toBe('suivi');
+
+      dashboardServiceSpy.libererTable.and.returnValue(of(mockTables[0] as any));
+      component.onLiberer(1);
+      tick();
+
+      expect(dashboardServiceSpy.libererTable).toHaveBeenCalledWith(1);
+      expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'success' }));
+    }));
   });
 });
