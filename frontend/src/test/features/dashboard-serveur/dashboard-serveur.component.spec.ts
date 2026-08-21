@@ -666,5 +666,49 @@ describe('DashboardServeurComponent', () => {
       component.onTableSelectForOrder(2);
       expect(component.cart.tableId).toBe(2);
     }));
+
+    it('filters tables by search term and floor', () => {
+      component.searchTerm = 'Table 1';
+      component.filtrer();
+      expect(component.filteredTables).toHaveSize(1);
+      expect(component.filteredTables[0].id).toBe(1);
+
+      component.searchTerm = '';
+      component.selectedEtage = 'RDC';
+      component.filtrer();
+      expect(component.filteredTables.length).toBeGreaterThan(0);
+    });
+
+    it('sorts tables according to all sort options', () => {
+      component.sortOption = 'NUMBER_DESC';
+      component.filtrer();
+      expect(component.filteredTables[0].id).toBe(3);
+
+      component.sortOption = 'CAPACITY_ASC';
+      component.filtrer();
+      expect(component.filteredTables[0].capacite).toBe(2);
+
+      component.sortOption = 'CAPACITY_DESC';
+      component.filtrer();
+      expect(component.filteredTables[0].capacite).toBe(6);
+
+      component.sortOption = 'STATUS_FREE';
+      component.filtrer();
+      expect(component.filteredTables[0].occupee).toBeFalse();
+
+      component.sortOption = 'STATUS_OCCUPIED';
+      component.filtrer();
+      expect(component.filteredTables[0].occupee).toBeTrue();
+    });
+
+    it('saves and loads filter preferences in localStorage', () => {
+      component.searchTerm = 'Terrasse';
+      component.selectedStatus = 'FREE';
+      component.filtrer();
+
+      const saved = localStorage.getItem('openbar_serveur_dashboard_filters');
+      expect(saved).toContain('Terrasse');
+      expect(saved).toContain('FREE');
+    });
   });
 });
