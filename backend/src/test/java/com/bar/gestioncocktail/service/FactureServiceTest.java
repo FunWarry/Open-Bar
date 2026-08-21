@@ -79,6 +79,9 @@ class FactureServiceTest {
     @Mock
     com.bar.gestioncocktail.repository.FactureReglementRepository factureReglementRepository;
 
+    @Mock
+    com.bar.gestioncocktail.repository.AvoirCreditRepository avoirCreditRepository;
+
     @Spy
     TimeService timeService = new TimeService(null);
 
@@ -1160,9 +1163,10 @@ class FactureServiceTest {
 
         String csv = factureService.exportCSV(null, null);
 
-        assertThat(csv).startsWith("\uFEFF");
-        assertThat(csv).contains("N° Facture;Date;Table");
-        assertThat(csv).contains("25.00");
+        assertThat(csv)
+                .startsWith("\uFEFF")
+                .contains("N° Facture;Date;Table")
+                .contains("25.00");
     }
 
     @Test
@@ -1187,8 +1191,9 @@ class FactureServiceTest {
 
         Map<String, Object> check = factureService.verifyIntegrity(10L, pdf);
 
-        assertThat(check.get("valid")).isEqualTo(true);
-        assertThat(check.get("storedHash")).isEqualTo(fin.getPdfHash());
+        assertThat(check)
+                .containsEntry("valid", true)
+                .containsEntry("storedHash", fin.getPdfHash());
     }
 
     @Test
@@ -1206,5 +1211,65 @@ class FactureServiceTest {
 
         factureService.deleteFacture(10L);
         verify(factureRepository).deleteById(10L);
+    }
+
+    @Test
+    void splitParSelection_withGranularSelections_computesLineTotals() {
+        FactureItem item = new FactureItem();
+        item.setId(101L);
+        item.setDescription("Cocktail Passion");
+        item.setQuantite(2);
+        item.setPrixUnitaire(new BigDecimal("12.00"));
+        item.setTotal(new BigDecimal("24.00"));
+
+        facture.setItems(List.of(item));
+        when(factureRepository.findById(10L)).thenReturn(Optional.of(facture));
+
+        com.bar.gestioncocktail.dto.SplitPartItemRequest itemReq = new com.bar.gestioncocktail.dto.SplitPartItemRequest(101L, 1);
+        com.bar.gestioncocktail.dto.SplitPartRequest partReq = new com.bar.gestioncocktail.dto.SplitPartRequest(
+                "Bob", null, List.of(itemReq)
+        );
+        SplitAdditionRequest req = new SplitAdditionRequest(List.of(partReq));
+
+        List<SplitResultDTO> results = factureService.splitParSelection(10L, req);
+
+        assertThat(results).hasSize(1);
+        assertThat(results.get(0).items()).hasSize(1);
+        assertThat(results.get(0).items().get(0).quantite()).isEqualTo(1);
+        assertThat(results.get(0).sousTotal()).isEqualByComparingTo("12.00");
+    }
+
+    @Test
+    void splitParSelection_withUnknownItem_throwsBusinessException() {
+        facture.setItems(List.of());
+        when(factureRepository.findById(10L)).thenReturn(Optional.of(facture));
+
+        com.bar.gestioncocktail.dto.SplitPartItemRequest itemReq = new com.bar.gestioncocktail.dto.SplitPartItemRequest(999L, 1);
+        com.bar.gestioncocktail.dto.SplitPartRequest partReq = new com.bar.gestioncocktail.dto.SplitPartRequest(
+                "Bob", null, List.of(itemReq)
+        );
+        SplitAdditionRequest req = new SplitAdditionRequest(List.of(partReq));
+
+        assertThatThrownBy(() -> factureService.splitParSelection(10L, req))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("Item 999 does not belong to invoice 10");
+    }
+
+    @Test
+    void annulerFactureWithAvoir_createsAvoirAndUpdatesInvoice() {
+        when(factureRepository.findById(10L)).thenReturn(Optional.of(facture));
+        when(avoirCreditRepository.count()).thenReturn(2L);
+        when(avoirCreditRepository.save(any(com.bar.gestioncocktail.model.AvoirCredit.class))).thenAnswer(inv -> {
+            com.bar.gestioncocktail.model.AvoirCredit a = inv.getArgument(0);
+            a.setId(3L);
+            return a;
+        });
+
+        com.bar.gestioncocktail.model.AvoirCredit avoir = factureService.annulerFactureWithAvoir(10L, "Client refund");
+
+        assertThat(avoir).isNotNull();
+        assertThat(avoir.getNumero()).startsWith("AV-");
+        assertThat(facture.getNotes()).contains("Client refund");
+        verify(factureRepository).save(facture);
     }
 }
