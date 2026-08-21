@@ -1,5 +1,4 @@
 import {bootstrapApplication} from '@angular/platform-browser';
-import {provideAnimations} from '@angular/platform-browser/animations';
 import {provideHttpClient, withFetch, withInterceptors} from '@angular/common/http';
 import {provideStore} from '@ngrx/store';
 import {provideEffects} from '@ngrx/effects';
@@ -7,7 +6,11 @@ import {provideStoreDevtools} from '@ngrx/store-devtools';
 import {provideRouter} from '@angular/router';
 import {isDevMode} from '@angular/core';
 import {provideTransloco} from '@jsverse/transloco';
+import {registerLocaleData} from '@angular/common';
+import localeFr from '@angular/common/locales/fr';
 import {provideIonicAngular} from '@ionic/angular/standalone';
+
+registerLocaleData(localeFr, 'fr');
 
 import {AppComponent} from './app/app.component';
 import {routes} from './app/app.routes';
@@ -19,7 +22,6 @@ import {TranslocoHttpLoader} from './app/core/transloco-loader';
 
 bootstrapApplication(AppComponent, {
   providers: [
-    provideAnimations(),
     provideIonicAngular(),
     provideHttpClient(withFetch(), withInterceptors([authInterceptor, errorInterceptor])),
     provideStore({auth: authReducer}),

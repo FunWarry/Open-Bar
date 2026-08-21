@@ -169,6 +169,32 @@ body {
   background: transparent;
 }
 
+/* ── Ionic ion-content Scrollbars (Shadow DOM) ────────────────────────────── */
+ion-content::part(scroll) {
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary, #6c7fe8) var(--background-surface-2, #21263f);
+}
+
+ion-content::part(scroll)::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+  display: block;
+}
+
+ion-content::part(scroll)::-webkit-scrollbar-track {
+  background: var(--background-surface-1, #1a1a2e);
+  border-radius: 4px;
+}
+
+ion-content::part(scroll)::-webkit-scrollbar-thumb {
+  background: var(--primary, #6c7fe8);
+  border-radius: 4px;
+}
+
+ion-content::part(scroll)::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-strong, #5a68d6);
+}
+
 
 app-root {
   display: block;
@@ -703,26 +729,68 @@ ion-button {
   pointer-events: none;
 }
 
-/* Ionic Modal Global Styling & Performance Optimization (OpenBar DS) */
+/* ── Ionic Modal Global System & Styling (OpenBar DS) ─────────────────────── */
 ion-modal {
   --border-radius: var(--radius-lg, 16px);
   --background: var(--background-surface-1);
-  --box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55);
-  --height: min(700px, 88vh);
-  --max-height: 90vh;
-  --width: min(680px, 92vw);
-  contain: layout style paint;
+  --box-shadow: 0 24px 64px rgba(0, 0, 0, 0.65);
+  --width: min(680px, 94vw);
+  --height: min(640px, 80vh);
+  --max-height: 80vh;
+  contain: layout style;
 }
 
 @media (min-width: 900px) {
   ion-modal {
-    --width: min(800px, 90vw);
-    --height: min(750px, 88vh);
+    --width: min(760px, 92vw);
+    --height: min(660px, 80vh);
+    --max-height: 80vh;
   }
 }
 
+/* Modal sizing variants for all modals across OpenBar */
+ion-modal.modal-sm,
+ion-modal.openbar-modal-sm,
+ion-modal.ruptures-modal-container,
+ion-modal.delete-modal,
+ion-modal.transfert-modal-container {
+  --width: min(460px, 92vw);
+  --height: min(480px, 80vh);
+  --max-height: 80vh;
+}
+
+ion-modal.bar-ticket-modal-container {
+  --width: min(440px, 92vw);
+  --height: min(540px, 80vh);
+  --max-height: 80vh;
+}
+
+ion-modal.modal-md,
+ion-modal.openbar-modal-md,
+ion-modal.table-detail-modal-container,
+ion-modal.variante-modal-container,
+ion-modal.variante-modal,
+ion-modal.zone-manager-modal-class {
+  --width: min(640px, 92vw);
+  --height: min(600px, 80vh);
+  --max-height: 80vh;
+}
+
+ion-modal.modal-lg,
+ion-modal.openbar-modal-lg,
+ion-modal.openbar-modal-split,
+ion-modal.openbar-modal-payment,
+ion-modal.commande-detail-modal-container,
+ion-modal.encaissement-modal-container {
+  --width: min(840px, 95vw);
+  --height: min(720px, 80vh);
+  --max-height: 80vh;
+}
+
 ion-modal::part(backdrop) {
-  background-color: rgba(15, 15, 26, 0.75);
+  background-color: rgba(10, 10, 20, 0.82);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   will-change: opacity;
 }
 
@@ -730,17 +798,53 @@ ion-modal::part(content) {
   border-radius: var(--radius-lg, 16px);
   border: 1px solid var(--border-medium);
   overflow: hidden;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.65);
   background: var(--background-surface-1);
+  display: flex;
+  flex-direction: column;
+  height: var(--height, min(640px, 80vh));
+  max-height: var(--max-height, 80vh);
+  width: var(--width, min(680px, 94vw));
+  max-width: var(--max-width, 94vw);
   will-change: transform, opacity;
   transform: translateZ(0);
   backface-visibility: hidden;
 }
 
-/* Specific sizing for Table Detail Modal */
-ion-modal.table-detail-modal-container::part(content) {
-  --width: min(560px, 92vw);
-  --height: min(620px, 85vh);
+ion-modal ion-header,
+ion-modal ion-footer {
+  flex-shrink: 0;
+}
+
+ion-modal ion-content {
+  --background: var(--background-surface-1);
+  flex: 1 1 auto;
+  height: 100%;
+  min-height: 0;
+}
+
+ion-modal ion-content::part(scroll) {
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-medium, #2e3450) transparent;
+}
+
+ion-modal ion-content::part(scroll)::-webkit-scrollbar {
+  width: 6px;
+}
+
+ion-modal ion-content::part(scroll)::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+ion-modal ion-content::part(scroll)::-webkit-scrollbar-thumb {
+  background: var(--border-medium, #2e3450);
+  border-radius: 4px;
+}
+
+ion-modal ion-content::part(scroll)::-webkit-scrollbar-thumb:hover {
+  background: var(--primary, #6c7fe8);
 }
 
 /* Ionic Alert & Popover Theme Overrides (Figma Design System) */
@@ -856,9 +960,9 @@ ion-segment-button[aria-selected="true"] ion-label {
 /* Commande Detail Modal Sizing (Responsive Desktop / Tablet) */
 ion-modal.commande-detail-modal-container {
   --width: 850px;
-  --max-width: 90vw;
-  --height: fit-content;
-  --max-height: 85vh;
+  --max-width: 92vw;
+  --height: auto;
+  --max-height: 80vh;
   --border-radius: 16px;
   --box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
   --backdrop-opacity: 0.25;
@@ -868,7 +972,7 @@ ion-modal.commande-detail-modal-container {
 ion-modal.table-detail-modal-container {
   --width: 580px;
   --max-width: 92vw;
-  --height: min(600px, 80vh);
+  --height: auto;
   --max-height: 80vh;
   --border-radius: 16px;
   --box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
@@ -880,8 +984,8 @@ ion-modal.variante-modal-container,
 ion-modal.variante-modal {
   --width: 520px;
   --max-width: 92vw;
-  --height: min(550px, 78vh);
-  --max-height: 78vh;
+  --height: auto;
+  --max-height: 80vh;
   --border-radius: 16px;
   --box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
   --backdrop-opacity: 0.25;
@@ -891,8 +995,8 @@ ion-modal.variante-modal {
 ion-modal.transfert-modal-container {
   --width: 520px;
   --max-width: 92vw;
-  --height: min(520px, 75vh);
-  --max-height: 75vh;
+  --height: auto;
+  --max-height: 80vh;
   --border-radius: 16px;
   --box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
   --backdrop-opacity: 0.25;
@@ -905,7 +1009,7 @@ ion-modal.transfert-modal-container {
   ion-modal.transfert-modal-container {
     --width: 100vw;
     --max-width: 100vw;
-    --height: 80vh;
+    --height: auto;
     --max-height: 80vh;
     --border-radius: 16px 16px 0 0;
   }
@@ -1207,7 +1311,7 @@ ion-alert button.alert-button[aria-label="Supprimer"] {
 /* Customization & Variant Modals Auto-Shrink Sizing */
 .item-customization-modal-container {
   --height: auto;
-  --max-height: 85vh;
+  --max-height: 80vh;
   --width: auto;
   --max-width: 580px;
   --min-width: 340px;
@@ -1215,7 +1319,7 @@ ion-alert button.alert-button[aria-label="Supprimer"] {
 }
 .item-customization-modal-container::part(content) {
   height: auto;
-  max-height: 85vh;
+  max-height: 80vh;
   width: auto;
   max-width: 580px;
   min-width: 340px;
@@ -1227,17 +1331,15 @@ ion-alert button.alert-button[aria-label="Supprimer"] {
 
 /* Zone Manager & Floor Modals Styling */
 .zone-manager-modal-class {
-  --height: 600px;
-  --min-height: 480px;
-  --max-height: 85vh;
+  --height: auto;
+  --max-height: 80vh;
   --width: 640px;
   --max-width: 90vw;
   --border-radius: 16px;
 }
 .zone-manager-modal-class::part(content) {
-  height: 600px;
-  min-height: 480px;
-  max-height: 85vh;
+  height: auto;
+  max-height: 80vh;
   width: 640px;
   max-width: 90vw;
   border-radius: 16px;

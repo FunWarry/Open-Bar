@@ -65,13 +65,18 @@
 
       <!-- Ticket Metadata -->
       <section class="receipt-meta">
+        <div class="meta-line split-highlight-line" *ngIf="reglement">
+          <span class="meta-key">{{ t('FACTURES.SPLIT_RECEIPT_LABEL') }}:</span>
+          <strong class="meta-val" *ngIf="reglement.typeSplit === 'EGAL'">{{ t('FACTURES.SPLIT_EQUAL_RECEIPT', { index: reglement.partIndex, total: reglement.totalParts }) }} ({{ reglement.nomConvive }})</strong>
+          <strong class="meta-val" *ngIf="reglement.typeSplit === 'SELECTION'">{{ t('FACTURES.SPLIT_ITEM_RECEIPT', { guest: reglement.nomConvive }) }}</strong>
+        </div>
         <div class="meta-line">
           <span class="meta-key">{{ t('FACTURES.TICKET_NUM') }}:</span>
-          <strong class="meta-val">{{ facture.numero }}</strong>
+          <strong class="meta-val">{{ reglement ? (facture.numero + '-P' + reglement.partIndex) : facture.numero }}</strong>
         </div>
         <div class="meta-line">
           <span class="meta-key">{{ t('COMMON.DATE') }}:</span>
-          <span class="meta-val">{{ facture.dateFacture | date:'dd/MM/yyyy HH:mm' }}</span>
+          <span class="meta-val">{{ (reglement?.dateReglement || facture.dateFacture) | date:'dd/MM/yyyy HH:mm' }}</span>
         </div>
         <div class="meta-line" *ngIf="facture.tableNumero">
           <span class="meta-key">{{ t('COMMANDES.TABLE') }}:</span>
@@ -81,9 +86,9 @@
           <span class="meta-key">{{ t('FACTURES.TABLE_HEADERS.SERVER') }}:</span>
           <span class="meta-val">{{ facture.serveurNom }}</span>
         </div>
-        <div class="meta-line" *ngIf="facture.modePaiement">
+        <div class="meta-line">
           <span class="meta-key">{{ t('FACTURES.PAYMENT_METHOD') }}:</span>
-          <span class="meta-val">{{ facture.modePaiement }}</span>
+          <span class="meta-val">{{ reglement?.modePaiement || facture.modePaiement }}</span>
         </div>
       </section>
 
@@ -98,17 +103,32 @@
         </div>
 
         <div class="items-table-body">
-          @for (item of facture.items; track trackById($index, item)) {
-            <div class="item-entry">
-              <div class="entry-primary">
-                <span class="col-item item-name">{{ item.description }}</span>
-                <span class="col-qty item-count">{{ item.quantite }}x</span>
-                <span class="col-total item-price">{{ item.total | currency:'EUR':'symbol':'1.2-2' }}</span>
+          @if (reglement) {
+            @for (item of splitPartItems; track $index) {
+              <div class="item-entry">
+                <div class="entry-primary">
+                  <span class="col-item item-name">{{ item.description }}</span>
+                  <span class="col-qty item-count">{{ item.quantite }}x</span>
+                  <span class="col-total item-price">{{ item.total | currency:'EUR':'symbol':'1.2-2' }}</span>
+                </div>
+                <div class="entry-secondary" *ngIf="item.quantite > 1">
+                  <span>{{ item.quantite }} × {{ item.prixUnitaire | currency:'EUR':'symbol':'1.2-2' }}</span>
+                </div>
               </div>
-              <div class="entry-secondary" *ngIf="item.quantite > 1 || item.vatRate">
-                <span>{{ item.quantite }} × {{ item.prixUnitaire | currency:'EUR':'symbol':'1.2-2' }} (TVA {{ item.vatRate || '20%' }})</span>
+            }
+          } @else {
+            @for (item of facture.items; track trackById($index, item)) {
+              <div class="item-entry">
+                <div class="entry-primary">
+                  <span class="col-item item-name">{{ item.description }}</span>
+                  <span class="col-qty item-count">{{ item.quantite }}x</span>
+                  <span class="col-total item-price">{{ item.total | currency:'EUR':'symbol':'1.2-2' }}</span>
+                </div>
+                <div class="entry-secondary" *ngIf="item.quantite > 1 || item.vatRate">
+                  <span>{{ item.quantite }} × {{ item.prixUnitaire | currency:'EUR':'symbol':'1.2-2' }} (TVA {{ item.vatRate || '20%' }})</span>
+                </div>
               </div>
-            </div>
+            }
           }
         </div>
       </section>
@@ -125,14 +145,16 @@
           <span>{{ t('FACTURES.TOTAL_VAT') }}</span>
           <span>{{ totalVAT | currency:'EUR':'symbol':'1.2-2' }}</span>
         </div>
-        @if (facture.pourboire && facture.pourboire > 0) {
-          <div class="totals-line">
-            <span>{{ t('FACTURES.TIP') }}</span>
-            <span>+{{ facture.pourboire | currency:'EUR':'symbol':'1.2-2' }}</span>
-          </div>
+        @if ((reglement ? reglement.pourboire : facture.pourboire); as tip) {
+          @if (tip > 0) {
+            <div class="totals-line">
+              <span>{{ t('FACTURES.TIP') }}</span>
+              <span>+{{ tip | currency:'EUR':'symbol':'1.2-2' }}</span>
+            </div>
+          }
         }
         <div class="totals-line grand-total-line">
-          <strong>{{ t('FACTURES.TOTAL_TTC') }}</strong>
+          <strong>{{ reglement ? t('FACTURES.TOTAL_PART_PAID') : t('FACTURES.TOTAL_TTC') }}</strong>
           <strong class="grand-total-amount">{{ totalTTC | currency:'EUR':'symbol':'1.2-2' }}</strong>
         </div>
       </section>
@@ -141,15 +163,15 @@
 
       <!-- Footer & Payment Status -->
       <footer class="receipt-footer">
-        <p class="status-banner" [class.settled]="facture.reglee">
-          *** {{ (facture.reglee ? t('FACTURES.SETTLED') : t('FACTURES.PENDING')) | uppercase }} ***
+        <p class="status-banner" [class.settled]="reglement || facture.reglee">
+          *** {{ (reglement ? t('FACTURES.PART_SETTLED') : (facture.reglee ? t('FACTURES.SETTLED') : t('FACTURES.PENDING'))) | uppercase }} ***
         </p>
         <p class="greeting-text">{{ t('FACTURES.THANK_YOU') }}</p>
 
         <!-- Simulated POS Barcode -->
         <div class="simulated-barcode">
           <div class="barcode-lines"></div>
-          <span class="barcode-number">{{ facture.numero }}</span>
+          <span class="barcode-number">{{ reglement ? (facture.numero + '-P' + reglement.partIndex) : facture.numero }}</span>
         </div>
 
         <p class="footer-subtext">OpenBar POS — Thermal {{ selectedFormat }}</p>

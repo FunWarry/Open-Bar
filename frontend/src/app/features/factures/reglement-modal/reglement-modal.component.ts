@@ -2,12 +2,15 @@ import { Component, Input, OnInit, inject } from '@angular/core';
 import { CommonModule, CurrencyPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
-  IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
-  IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-  IonItem, IonLabel, IonInput, IonSegment, IonSegmentButton, ModalController, IonBadge, IonNote
+  IonHeader, IonToolbar, IonButtons, IonButton, IonIcon,
+  IonContent, IonFooter, ModalController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { cardOutline, cashOutline, walletOutline, closeOutline, checkmarkCircleOutline, heartOutline } from 'ionicons/icons';
+import {
+  cardOutline, cashOutline, walletOutline, closeOutline,
+  checkmarkCircleOutline, heartOutline, sparklesOutline, receiptOutline,
+  calculatorOutline, addOutline, removeOutline
+} from 'ionicons/icons';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 
 /** Result emitted when a payment is confirmed via {@link ReglementModalComponent}. */
@@ -25,8 +28,8 @@ export interface ReglementModalResult {
 }
 
 /**
- * Payment modal component supporting payment method selection, quick tip suggestions (+5%, +10%, custom),
- * dynamic total recalculation, and cash change calculation (rendu de monnaie).
+ * Modern payment modal component supporting payment method selection, quick tip suggestions (+5%, +10%, +15%, custom),
+ * dynamic total recalculation, and quick banknote cash change calculation (rendu de monnaie).
  *
  * Aligned with Figma Common system view Payment / Settlement layout (`628:1068`).
  */
@@ -34,10 +37,17 @@ export interface ReglementModalResult {
   selector: 'app-reglement-modal',
   standalone: true,
   imports: [
-    CommonModule, FormsModule, CurrencyPipe, TranslocoModule,
-    IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
-    IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-    IonItem, IonLabel, IonInput, IonSegment, IonSegmentButton, IonBadge, IonNote
+    CommonModule,
+    FormsModule,
+    CurrencyPipe,
+    TranslocoModule,
+    IonHeader,
+    IonToolbar,
+    IonButtons,
+    IonButton,
+    IonIcon,
+    IonContent,
+    IonFooter
   ],
   templateUrl: './reglement-modal.component.html',
   styleUrls: ['./reglement-modal.component.scss']
@@ -54,6 +64,12 @@ export class ReglementModalComponent implements OnInit {
   set totalInitial(val: number) {
     this.initialTotal = val;
   }
+
+  /** Optional invoice number (e.g. FAC-2026-00042). */
+  @Input() invoiceNumber?: string;
+
+  /** Optional table number. */
+  @Input() tableNumber?: number;
 
   /** Optional title suffix (e.g. guest name for split payments). */
   @Input() shareName?: string;
@@ -78,8 +94,8 @@ export class ReglementModalComponent implements OnInit {
     this.paymentMethod = val;
   }
 
-  /** Selected tip mode: 'none', '5pct', '10pct', 'custom'. */
-  tipMode: 'none' | '5pct' | '10pct' | 'custom' = 'none';
+  /** Selected tip mode: 'none', '5pct', '10pct', '15pct', 'custom'. */
+  tipMode: 'none' | '5pct' | '10pct' | '15pct' | 'custom' = 'none';
 
   /** Custom tip amount in EUR. */
   customTip = 0;
@@ -103,17 +119,32 @@ export class ReglementModalComponent implements OnInit {
     this.receivedAmount = val;
   }
 
+  /** Cash denominations presets in EUR. */
+  readonly cashPresets = [10, 20, 50, 100];
+
   private readonly modalCtrl = inject(ModalController);
   private readonly transloco = inject(TranslocoService);
 
   constructor() {
-    addIcons({ cardOutline, cashOutline, walletOutline, closeOutline, checkmarkCircleOutline, heartOutline });
+    addIcons({
+      cardOutline, cashOutline, walletOutline, closeOutline,
+      checkmarkCircleOutline, heartOutline, sparklesOutline, receiptOutline,
+      calculatorOutline, addOutline, removeOutline
+    });
   }
 
   ngOnInit(): void {
     if (!this.initialTotal || this.initialTotal < 0) {
       this.initialTotal = 0;
     }
+  }
+
+  /**
+   * Calculates tip amount for a given percentage.
+   */
+  getTipAmount(percentage: number): number {
+    if (!this.initialTotal || this.initialTotal <= 0) return 0;
+    return Math.round(this.initialTotal * (percentage / 100) * 100) / 100;
   }
 
   /**
@@ -124,11 +155,13 @@ export class ReglementModalComponent implements OnInit {
   get tip(): number {
     switch (this.tipMode) {
       case '5pct':
-        return Math.round(this.initialTotal * 0.05 * 100) / 100;
+        return this.getTipAmount(5);
       case '10pct':
-        return Math.round(this.initialTotal * 0.10 * 100) / 100;
+        return this.getTipAmount(10);
+      case '15pct':
+        return this.getTipAmount(15);
       case 'custom':
-        return Math.max(0, this.customTip || 0);
+        return Math.max(0, Number(this.customTip) || 0);
       case 'none':
       default:
         return 0;
@@ -156,7 +189,7 @@ export class ReglementModalComponent implements OnInit {
    * Calculates change to return for cash payments.
    */
   get changeToReturn(): number {
-    if (this.paymentMethod !== 'ESPECES' || !this.receivedAmount) {
+    if (this.paymentMethod !== 'ESPECES' || this.receivedAmount === null || this.receivedAmount === undefined) {
       return 0;
     }
     return Math.max(0, Math.round((this.receivedAmount - this.totalWithTip) * 100) / 100);
@@ -185,12 +218,36 @@ export class ReglementModalComponent implements OnInit {
     return this.isReceivedAmountSufficient;
   }
 
+  /** Selects payment method. */
+  selectPaymentMethod(method: string): void {
+    this.paymentMethod = method;
+    if (method === 'ESPECES' && (!this.receivedAmount || this.receivedAmount < this.totalWithTip)) {
+      this.receivedAmount = this.totalWithTip;
+    }
+  }
+
   /** Sets tip mode and resets custom tip value if not custom. */
-  setTipMode(mode: 'none' | '5pct' | '10pct' | 'custom'): void {
+  setTipMode(mode: 'none' | '5pct' | '10pct' | '15pct' | 'custom'): void {
     this.tipMode = mode;
     if (mode !== 'custom') {
       this.customTip = 0;
     }
+  }
+
+  /** Quick cash preset: exact amount. */
+  setExactCash(): void {
+    this.receivedAmount = this.totalWithTip;
+  }
+
+  /** Quick cash preset: set specific denomination. */
+  setCashAmount(amount: number): void {
+    this.receivedAmount = amount;
+  }
+
+  /** Adjust custom tip with +/- buttons. */
+  adjustCustomTip(delta: number): void {
+    const current = Number(this.customTip) || 0;
+    this.customTip = Math.max(0, Math.round((current + delta) * 100) / 100);
   }
 
   /** Dismisses the modal without confirming payment. */
@@ -209,7 +266,7 @@ export class ReglementModalComponent implements OnInit {
       modePaiement: this.paymentMethod,
       pourboire: this.tip,
       totalTotal: this.totalWithTip,
-      montantRecu: this.paymentMethod === 'ESPECES' && this.receivedAmount ? this.receivedAmount : undefined,
+      montantRecu: this.paymentMethod === 'ESPECES' && this.receivedAmount !== null ? this.receivedAmount : undefined,
       monnaieARendre: this.paymentMethod === 'ESPECES' ? this.changeToReturn : undefined
     };
     this.modalCtrl.dismiss(result);

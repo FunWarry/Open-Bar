@@ -210,6 +210,23 @@
       font-weight: 700;
       color: #000000;
     }
+
+    &.split-highlight-line {
+      background: #f0f3ff;
+      border: 1px dashed #6c7fe8;
+      border-radius: 4px;
+      padding: 3px 6px;
+      margin-bottom: 2px;
+
+      .meta-key {
+        font-weight: 800;
+        color: #4a5dc7;
+      }
+
+      .meta-val {
+        color: #2b3990;
+      }
+    }
   }
 }
 

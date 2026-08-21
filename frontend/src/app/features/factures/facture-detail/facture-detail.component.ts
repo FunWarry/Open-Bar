@@ -15,9 +15,10 @@ import {
 } from 'ionicons/icons';
 import { TranslocoModule } from '@jsverse/transloco';
 import { FactureService } from '../services/facture.service';
-import { Facture, FactureItem } from '../models/facture.model';
+import { Facture, FactureItem, FactureReglement } from '../models/facture.model';
 import { TicketReceiptComponent } from '../ticket-receipt/ticket-receipt.component';
 import { ReglementModalComponent, ReglementModalResult } from '../reglement-modal/reglement-modal.component';
+import { FactureSplitComponent } from '../facture-split/facture-split.component';
 import { EstablishmentConfig } from '../../../core/models/establishment-config.model';
 import { EtablissementService } from '../../../core/services/etablissement.service';
 import { environment } from '../../../../environments/environment';
@@ -209,7 +210,9 @@ export class FactureDetailComponent implements OnInit, OnDestroy {
     const modal = await this.modalCtrl.create({
       component: ReglementModalComponent,
       componentProps: {
-        totalInitial: this.displayedAmount
+        totalInitial: this.displayedAmount,
+        invoiceNumber: this.facture.numero,
+        tableNumber: this.facture.tableNumero
       }
     });
 
@@ -241,8 +244,48 @@ export class FactureDetailComponent implements OnInit, OnDestroy {
       });
   }
 
+  async openSplitModal() {
+    if (!this.facture) return;
+
+    const modal = await this.modalCtrl.create({
+      component: FactureSplitComponent,
+      componentProps: {
+        factureId: this.facture.id,
+        facture: this.facture
+      }
+    });
+
+    await modal.present();
+    await modal.onWillDismiss();
+
+    // Reload invoice data to reflect any settlements done during split
+    this.factureService.getFactureById(this.facture.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({ next: f => this.facture = f });
+  }
+
   async reglerFacture() {
     await this.settleFacture();
+  }
+
+  /**
+   * Opens the thermal receipt preview modal for a specific individual split payment share.
+   *
+   * @param reglement Split settlement details
+   */
+  async imprimerTicketPart(reglement: FactureReglement) {
+    if (!this.facture) return;
+
+    const modal = await this.modalCtrl.create({
+      component: TicketReceiptComponent,
+      componentProps: {
+        facture: this.facture,
+        reglement: reglement,
+        establishmentConfig: this.establishmentConfig || undefined,
+      },
+      cssClass: 'ticket-modal',
+    });
+    await modal.present();
   }
 }
 

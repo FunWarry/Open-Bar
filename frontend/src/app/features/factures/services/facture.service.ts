@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
-import { Facture } from '../models/facture.model';
+import { Facture, FactureReglement, EncaisserPartRequest } from '../models/facture.model';
 
 export interface SplitItemDTO {
   itemId: number;
@@ -20,9 +20,15 @@ export interface SplitResultDTO {
   totalAvecPourboire: number;
 }
 
+export interface SplitPartItemRequest {
+  itemId: number;
+  quantite?: number;
+}
+
 export interface SplitPartRequest {
   nomConvive: string;
-  itemIds: number[];
+  itemIds?: number[];
+  items?: SplitPartItemRequest[];
 }
 
 @Injectable({ providedIn: 'root' })
@@ -62,5 +68,26 @@ export class FactureService {
 
   splitParSelection(id: number, parts: SplitPartRequest[]): Observable<SplitResultDTO[]> {
     return this.http.post<SplitResultDTO[]>(`${this.apiUrl}/${id}/split/selection`, { parts });
+  }
+
+  /**
+   * Persists an individual split share settlement to the backend database.
+   *
+   * @param factureId Target invoice ID
+   * @param request Settlement details for this specific guest part
+   * @returns Observable of saved FactureReglement
+   */
+  encaisserPart(factureId: number, request: EncaisserPartRequest): Observable<FactureReglement> {
+    return this.http.post<FactureReglement>(`${this.apiUrl}/${factureId}/split/encaisser`, request);
+  }
+
+  /**
+   * Retrieves all recorded split share settlements for a given invoice.
+   *
+   * @param factureId Target invoice ID
+   * @returns Observable of FactureReglement list
+   */
+  getReglements(factureId: number): Observable<FactureReglement[]> {
+    return this.http.get<FactureReglement[]>(`${this.apiUrl}/${factureId}/reglements`);
   }
 }

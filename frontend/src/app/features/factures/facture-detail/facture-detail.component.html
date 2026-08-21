@@ -53,13 +53,14 @@
         </button>
 
         @if (facture.items && facture.items.length > 0) {
-          <a
-            [routerLink]="['/factures', facture.id, 'split']"
+          <button
+            type="button"
+            (click)="openSplitModal()"
             class="btn-cta btn-split"
             data-testid="split-bill-btn">
             <ion-icon name="people-outline"></ion-icon>
             <span>{{ t('FACTURES.SPLIT') }}</span>
-          </a>
+          </button>
         }
       </div>
     </header>
@@ -296,6 +297,57 @@
             </div>
           </section>
 
+          <!-- Split Settlements Breakdown Section (when split payments exist) -->
+          <section class="split-history-section" *ngIf="facture.reglements && facture.reglements.length > 0" data-testid="split-history-container">
+            <div class="split-history-header">
+              <div class="split-history-title-wrap">
+                <ion-icon name="people-outline"></ion-icon>
+                <h3>{{ t('FACTURES.SPLIT_HISTORY_TITLE') }}</h3>
+              </div>
+              <span class="split-count-badge">{{ t('FACTURES.SPLIT_PARTS_COUNT', { count: facture.reglements.length }) }}</span>
+            </div>
+
+            <div class="split-parts-list">
+              <div *ngFor="let reg of facture.reglements; let i = index" class="split-part-row" [attr.data-testid]="'split-history-row-' + i">
+                <div class="part-info-block">
+                  <div class="part-name-line">
+                    <span class="part-index-badge">#{{ reg.partIndex }}</span>
+                    <strong class="part-guest-name">{{ reg.nomConvive }}</strong>
+                    <span class="part-mode-badge">{{ reg.modePaiement }}</span>
+                    <span class="part-type-pill">{{ reg.typeSplit === 'EGAL' ? t('SPLIT.EQUAL_MODE') : t('SPLIT.ITEMIZED_MODE') }}</span>
+                  </div>
+                  <div class="part-date-line">
+                    <span>{{ (reg.dateReglement || facture.dateFacture) | date:'dd/MM/yyyy HH:mm' }}</span>
+                  </div>
+                  <!-- If itemized, list assigned items -->
+                  <div class="part-items-chips" *ngIf="reg.items && reg.items.length > 0">
+                    <span *ngFor="let item of reg.items" class="part-item-chip">
+                      {{ item.quantite }}x {{ item.description }} ({{ item.total | currency:'EUR':'symbol':'1.2-2' }})
+                    </span>
+                  </div>
+                </div>
+
+                <div class="part-amount-block">
+                  <div class="part-amounts-wrap">
+                    <span class="part-net-amount">{{ reg.montant | currency:'EUR':'symbol':'1.2-2' }}</span>
+                    <span class="part-tip-amount" *ngIf="reg.pourboire && reg.pourboire > 0">
+                      +{{ reg.pourboire | currency:'EUR':'symbol':'1.2-2' }} {{ t('FACTURES.TIP') }}
+                    </span>
+                    <strong class="part-total-paid">{{ reg.totalRegle | currency:'EUR':'symbol':'1.2-2' }}</strong>
+                  </div>
+                  <button
+                    type="button"
+                    class="btn-print-split-ticket"
+                    (click)="imprimerTicketPart(reg)"
+                    [attr.data-testid]="'print-history-ticket-btn-' + i">
+                    <ion-icon name="print-outline"></ion-icon>
+                    <span>{{ t('FACTURES.PRINT_TICKET') }}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+
           <!-- Bottom Actions Bar -->
           <footer class="sheet-footer-actions no-print">
             <div class="footer-btn-group">
@@ -322,13 +374,14 @@
               </button>
 
               @if (facture.items && facture.items.length > 0) {
-                <a
-                  [routerLink]="['/factures', facture.id, 'split']"
+                <button
+                  type="button"
+                  (click)="openSplitModal()"
                   class="btn-footer btn-outline-split"
                   data-testid="split-bill-btn-footer">
                   <ion-icon name="people-outline"></ion-icon>
                   <span>{{ t('FACTURES.SPLIT') }}</span>
-                </a>
+                </button>
               }
 
               <button
