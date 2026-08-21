@@ -179,6 +179,32 @@ class FactureControllerTest {
     }
 
     @Test
+    @DisplayName("encaisserPart and getReglements endpoints")
+    void encaisserAndGetReglements() {
+        com.bar.gestioncocktail.dto.FactureReglementDTO reglementDto = new com.bar.gestioncocktail.dto.FactureReglementDTO(
+                1L, 10L, "Convive 1", 1, 2, new BigDecimal("25.00"), BigDecimal.ZERO,
+                new BigDecimal("25.00"), "CARTE", "EGAL", List.of(), LocalDateTime.now()
+        );
+        com.bar.gestioncocktail.dto.EncaisserPartRequest req = new com.bar.gestioncocktail.dto.EncaisserPartRequest(
+                "Convive 1", 1, 2, new BigDecimal("25.00"), BigDecimal.ZERO,
+                new BigDecimal("25.00"), "CARTE", "EGAL", List.of()
+        );
+
+        when(factureService.encaisserPart(10L, req)).thenReturn(reglementDto);
+        when(factureService.getReglementsByFactureId(10L)).thenReturn(List.of(reglementDto));
+
+        ResponseEntity<com.bar.gestioncocktail.dto.FactureReglementDTO> resp1 = factureController.encaisserPart(10L, req);
+        ResponseEntity<List<com.bar.gestioncocktail.dto.FactureReglementDTO>> resp2 = factureController.getReglements(10L);
+
+        assertThat(resp1.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(resp1.getBody()).isNotNull();
+        assertThat(resp1.getBody().nomConvive()).isEqualTo("Convive 1");
+
+        assertThat(resp2.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(resp2.getBody()).hasSize(1);
+    }
+
+    @Test
     @DisplayName("downloadFacturePdf, exportCSV, getVatSummary, createAvoir, verifyIntegrity, getDailyRecap, downloadDailyRecapPdf")
     void exportsAndReports() {
         LocalDate today = LocalDate.now();

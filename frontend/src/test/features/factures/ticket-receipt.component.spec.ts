@@ -123,4 +123,44 @@ describe('TicketReceiptComponent', () => {
     component.imprimerTicket();
     expect(window.print).toHaveBeenCalled();
   });
+
+  it('supports individual equal split share receipt', () => {
+    component.reglement = {
+      factureId: 1,
+      nomConvive: 'Convive 1',
+      partIndex: 1,
+      totalParts: 2,
+      montant: 10.0,
+      pourboire: 1.0,
+      totalRegle: 11.0,
+      modePaiement: 'CARTE',
+      typeSplit: 'EGAL',
+    };
+
+    expect(component.isSplitPartReceipt).toBeTrue();
+    expect(component.totalTTC).toBe(11.0);
+    expect(component.splitPartItems).toHaveSize(1);
+    expect(component.splitPartItems[0].description).toContain('Part de l\'addition (1/2)');
+  });
+
+  it('supports individual itemized split share receipt', () => {
+    component.reglement = {
+      factureId: 1,
+      nomConvive: 'Alice',
+      partIndex: 1,
+      montant: 15.0,
+      pourboire: 0,
+      totalRegle: 15.0,
+      modePaiement: 'ESPECES',
+      typeSplit: 'SELECTION',
+      items: [
+        { itemId: 10, description: 'Mojito', quantite: 1, prixUnitaire: 15.0, total: 15.0 }
+      ],
+    };
+
+    expect(component.isSplitPartReceipt).toBeTrue();
+    expect(component.totalTTC).toBe(15.0);
+    expect(component.splitPartItems).toHaveSize(1);
+    expect(component.splitPartItems[0].description).toBe('Mojito');
+  });
 });

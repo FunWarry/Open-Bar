@@ -36,19 +36,24 @@ describe('FactureSplitComponent', () => {
 
   beforeEach(async () => {
     factureServiceSpy = jasmine.createSpyObj<FactureService>('FactureService', [
-      'splitEgal', 'splitParSelection', 'getFactureById', 'reglerFacture'
+      'splitEgal', 'splitParSelection', 'getFactureById', 'reglerFacture', 'encaisserPart', 'getReglements'
     ]);
     factureServiceSpy.splitEgal.and.returnValue(of(mockSplitResults));
     factureServiceSpy.splitParSelection.and.returnValue(of(mockSplitResults));
     factureServiceSpy.getFactureById.and.returnValue(of(mockFacture));
     factureServiceSpy.reglerFacture.and.returnValue(of(mockFacture));
+    factureServiceSpy.encaisserPart.and.returnValue(of({
+      factureId: 42, nomConvive: 'Convive 1', partIndex: 1, montant: 10.5, totalRegle: 10.5, modePaiement: 'CARTE', typeSplit: 'EGAL'
+    }));
+    factureServiceSpy.getReglements.and.returnValue(of([]));
 
     toastSpy = jasmine.createSpyObj('HTMLIonToastElement', ['present']);
     toastSpy.present.and.returnValue(Promise.resolve());
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
     toastCtrlSpy.create.and.returnValue(Promise.resolve(toastSpy));
 
-    modalCtrlSpy = jasmine.createSpyObj('ModalController', ['create']);
+    modalCtrlSpy = jasmine.createSpyObj('ModalController', ['create', 'dismiss']);
+    modalCtrlSpy.dismiss.and.returnValue(Promise.resolve(true));
 
     await TestBed.configureTestingModule({
       imports: [FactureSplitComponent, IonicModule.forRoot(), RouterTestingModule, getTranslocoTestingModule()],
@@ -237,10 +242,44 @@ describe('FactureSplitComponent', () => {
     it('should call splitParSelection with correct parts', () => {
       component.calculerSplitSelection();
       expect(factureServiceSpy.splitParSelection).toHaveBeenCalledWith(42, [
-        { nomConvive: 'Alice', itemIds: [10] },
-        { nomConvive: 'Bob', itemIds: [11] },
+        { nomConvive: 'Alice', itemIds: [10], items: [{ itemId: 10, quantite: 1 }] },
+        { nomConvive: 'Bob', itemIds: [11], items: [{ itemId: 11, quantite: 2 }] },
       ]);
       expect(component.results).toEqual(mockSplitResults);
+    });
+
+    it('should correctly split multi-quantity item blocks between different guests', () => {
+      component.facture = {
+        id: 42,
+        tableId: 1,
+        tableNumero: 3,
+        numero: 'FAC-2026-0001',
+        total: 45,
+        totalTTC: 45,
+        totalHT: 37.5,
+        totalVAT: 7.5,
+        reglee: false,
+        dateFacture: '2026-06-22T12:00:00Z',
+        createdAt: '2026-06-22T12:00:00Z',
+        updatedAt: '2026-06-22T12:00:00Z',
+        items: [
+          { id: 101, factureId: 42, commandeItemId: 1001, description: 'Cosmopolitan', quantite: 3, prixUnitaire: 15, total: 45 },
+        ],
+      };
+      component.convives = [{ nom: 'Alice' }, { nom: 'Bob' }];
+      // 1 cocktail to Alice (unit 0), 2 cocktails to Bob (units 1 and 2)
+      component.unitAssignments['101_0'] = 0;
+      component.unitAssignments['101_1'] = 1;
+      component.unitAssignments['101_2'] = 1;
+
+      expect(component.allItemsAssigned).toBeTrue();
+      component.calculerSplitSelection();
+
+      const callArgs = factureServiceSpy.splitParSelection.calls.mostRecent().args[1];
+      expect(callArgs).toEqual([
+        { nomConvive: 'Alice', itemIds: [101], items: [{ itemId: 101, quantite: 1 }] },
+        { nomConvive: 'Bob', itemIds: [101], items: [{ itemId: 101, quantite: 2 }] },
+      ]);
     });
 
     it('should exclude convives with no items', () => {
@@ -336,6 +375,11 @@ describe('FactureSplitComponent', () => {
       await component.reglerPart(1, mockSplitResults[1]);
       expect(component.toutesPartsReglees).toBeTrue();
       expect(factureServiceSpy.reglerFacture).toHaveBeenCalledWith(42, 'MIXTE_SPLIT', 0);
+    });
+
+    it('closeModal() calls modalCtrl.dismiss with settlement status', () => {
+      component.closeModal(true);
+      expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith({ settled: true });
     });
   });
 });

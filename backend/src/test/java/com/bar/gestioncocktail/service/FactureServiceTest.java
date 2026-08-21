@@ -75,6 +75,9 @@ class FactureServiceTest {
     @Mock
     AuditLogService auditLogService;
 
+    @Mock
+    com.bar.gestioncocktail.repository.FactureReglementRepository factureReglementRepository;
+
     @Spy
     TimeService timeService = new TimeService(null);
 
@@ -293,6 +296,35 @@ class FactureServiceTest {
         assertThat(result).hasSize(1);
         assertThat(result.get(0).sousTotal()).isEqualByComparingTo(new BigDecimal("25.00"));
         assertThat(result.get(0).items()).hasSize(2);
+    }
+
+    @Test
+    void splitParSelection_multiQuantityItemsSplitAcrossGuests_calculatesAccurately() {
+        given(factureRepository.findById(10L)).willReturn(Optional.of(facture));
+
+        // Item 1 (Mojito): 2x @ 8.00 = 16.00
+        // Alice takes 1 Mojito (8.00), Bob takes 1 Mojito (8.00) and 1 Pina Colada (9.00)
+        SplitAdditionRequest request = new SplitAdditionRequest(List.of(
+                new SplitPartRequest("Alice", null, List.of(new com.bar.gestioncocktail.dto.SplitPartItemRequest(1L, 1))),
+                new SplitPartRequest("Bob", null, List.of(
+                        new com.bar.gestioncocktail.dto.SplitPartItemRequest(1L, 1),
+                        new com.bar.gestioncocktail.dto.SplitPartItemRequest(2L, 1)
+                ))
+        ));
+
+        List<SplitResultDTO> result = factureService.splitParSelection(10L, request);
+
+        assertThat(result).hasSize(2);
+        SplitResultDTO alice = result.get(0);
+        SplitResultDTO bob = result.get(1);
+
+        assertThat(alice.nomConvive()).isEqualTo("Alice");
+        assertThat(alice.sousTotal()).isEqualByComparingTo(new BigDecimal("8.00"));
+        assertThat(alice.items().get(0).quantite()).isEqualTo(1);
+
+        assertThat(bob.nomConvive()).isEqualTo("Bob");
+        assertThat(bob.sousTotal()).isEqualByComparingTo(new BigDecimal("17.00")); // 8 + 9
+        assertThat(bob.items()).hasSize(2);
     }
 
     @Test
@@ -925,5 +957,121 @@ class FactureServiceTest {
         assertThatThrownBy(() -> factureService.fusionnerFactures(request))
                 .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("is already settled and cannot be merged.");
+    }
+
+    @Test
+    void encaisserPart_equalSplit_savesReglementAndReturnsDTO() {
+        Facture f = new Facture();
+        f.setId(10L);
+        f.setNumero("FAC-SPLIT-1");
+        f.setTotal(new BigDecimal("60.00"));
+        f.setTotalTTC(new BigDecimal("60.00"));
+        f.setReglee(false);
+
+        when(factureRepository.findById(10L)).thenReturn(Optional.of(f));
+        when(factureReglementRepository.save(any(com.bar.gestioncocktail.model.FactureReglement.class)))
+                .thenAnswer(inv -> {
+                    com.bar.gestioncocktail.model.FactureReglement r = inv.getArgument(0);
+                    r.setId(101L);
+                    return r;
+                });
+
+        com.bar.gestioncocktail.model.FactureReglement savedPart1 = new com.bar.gestioncocktail.model.FactureReglement();
+        savedPart1.setId(101L);
+        savedPart1.setFacture(f);
+        savedPart1.setMontant(new BigDecimal("30.00"));
+        savedPart1.setPourboire(new BigDecimal("2.00"));
+        savedPart1.setTotalRegle(new BigDecimal("32.00"));
+        savedPart1.setNomConvive("Guest 1");
+        savedPart1.setPartIndex(1);
+        savedPart1.setTotalParts(2);
+        savedPart1.setModePaiement("CARTE");
+        savedPart1.setTypeSplit("EGAL");
+
+        when(factureReglementRepository.findByFactureIdOrderByIdAsc(10L)).thenReturn(List.of(savedPart1));
+
+        com.bar.gestioncocktail.dto.EncaisserPartRequest req = new com.bar.gestioncocktail.dto.EncaisserPartRequest(
+                "Guest 1", 1, 2, new BigDecimal("30.00"), new BigDecimal("2.00"),
+                new BigDecimal("32.00"), "CARTE", "EGAL", List.of()
+        );
+
+        com.bar.gestioncocktail.dto.FactureReglementDTO result = factureService.encaisserPart(10L, req);
+
+        assertThat(result).isNotNull();
+        assertThat(result.nomConvive()).isEqualTo("Guest 1");
+        assertThat(result.montant()).isEqualByComparingTo("30.00");
+        assertThat(result.pourboire()).isEqualByComparingTo("2.00");
+        assertThat(f.isReglee()).isFalse(); // only 30/60 paid
+    }
+
+    @Test
+    void encaisserPart_completesFullPayment_marksInvoiceSettled() {
+        TableEntity table = new TableEntity();
+        table.setId(1L);
+        table.setOccupee(true);
+
+        Facture f = new Facture();
+        f.setId(10L);
+        f.setTable(table);
+        f.setNumero("FAC-SPLIT-2");
+        f.setTotal(new BigDecimal("40.00"));
+        f.setTotalTTC(new BigDecimal("40.00"));
+        f.setReglee(false);
+
+        when(factureRepository.findById(10L)).thenReturn(Optional.of(f));
+        when(factureReglementRepository.save(any(com.bar.gestioncocktail.model.FactureReglement.class)))
+                .thenAnswer(inv -> {
+                    com.bar.gestioncocktail.model.FactureReglement r = inv.getArgument(0);
+                    r.setId(102L);
+                    return r;
+                });
+
+        com.bar.gestioncocktail.model.FactureReglement part1 = new com.bar.gestioncocktail.model.FactureReglement();
+        part1.setId(101L);
+        part1.setMontant(new BigDecimal("20.00"));
+
+        com.bar.gestioncocktail.model.FactureReglement part2 = new com.bar.gestioncocktail.model.FactureReglement();
+        part2.setId(102L);
+        part2.setMontant(new BigDecimal("20.00"));
+        part2.setPourboire(new BigDecimal("3.00"));
+
+        when(factureReglementRepository.findByFactureIdOrderByIdAsc(10L)).thenReturn(List.of(part1, part2));
+
+        com.bar.gestioncocktail.dto.EncaisserPartRequest req = new com.bar.gestioncocktail.dto.EncaisserPartRequest(
+                "Guest 2", 2, 2, new BigDecimal("20.00"), new BigDecimal("3.00"),
+                new BigDecimal("23.00"), "ESPECES", "EGAL", List.of()
+        );
+
+        com.bar.gestioncocktail.dto.FactureReglementDTO result = factureService.encaisserPart(10L, req);
+
+        assertThat(result).isNotNull();
+        assertThat(f.isReglee()).isTrue();
+        assertThat(f.getModePaiement()).isEqualTo("MIXTE_SPLIT");
+        verify(factureRepository).save(f);
+        verify(tableRepository).save(table);
+        verify(notificationService).notifierLiberationTable(table);
+    }
+
+    @Test
+    void getReglementsByFactureId_returnsList() {
+        when(factureRepository.existsById(10L)).thenReturn(true);
+        com.bar.gestioncocktail.model.FactureReglement r = new com.bar.gestioncocktail.model.FactureReglement();
+        r.setId(1L);
+        r.setNomConvive("Alice");
+        r.setPartIndex(1);
+        r.setMontant(new BigDecimal("15.00"));
+        r.setTotalRegle(new BigDecimal("15.00"));
+        r.setModePaiement("CARTE");
+        r.setTypeSplit("SELECTION");
+        r.setItemsJson("[{\"itemId\":1,\"description\":\"Mojito\",\"quantite\":1,\"prixUnitaire\":15.00,\"total\":15.00}]");
+
+        when(factureReglementRepository.findByFactureIdOrderByIdAsc(10L)).thenReturn(List.of(r));
+
+        List<com.bar.gestioncocktail.dto.FactureReglementDTO> list = factureService.getReglementsByFactureId(10L);
+
+        assertThat(list).hasSize(1);
+        assertThat(list.get(0).nomConvive()).isEqualTo("Alice");
+        assertThat(list.get(0).items()).hasSize(1);
+        assertThat(list.get(0).items().get(0).description()).isEqualTo("Mojito");
     }
 }

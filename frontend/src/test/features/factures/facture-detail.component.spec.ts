@@ -244,4 +244,30 @@ describe('FactureDetailComponent', () => {
 
     expect(factureServiceSpy.reglerFacture).toHaveBeenCalled();
   });
+
+  it('imprimerTicketPart opens TicketReceiptComponent modal with split reglement', async () => {
+    component.facture = mockFacture;
+    const modalSpy = jasmine.createSpyObj('HTMLIonModalElement', ['present']);
+    modalSpy.present.and.returnValue(Promise.resolve());
+
+    const modalCtrl = TestBed.inject(ModalController) as jasmine.SpyObj<ModalController>;
+    modalCtrl.create.and.returnValue(Promise.resolve(modalSpy));
+
+    const reglement = {
+      id: 1,
+      factureId: 1,
+      nomConvive: 'Convive 1',
+      partIndex: 1,
+      totalParts: 2,
+      montant: 15.0,
+      totalRegle: 15.0,
+      modePaiement: 'CARTE',
+      typeSplit: 'EGAL' as const,
+    };
+
+    await component.imprimerTicketPart(reglement);
+
+    expect(modalCtrl.create).toHaveBeenCalled();
+    expect(modalSpy.present).toHaveBeenCalled();
+  });
 });
