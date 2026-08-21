@@ -310,6 +310,37 @@ public class FactureController {
     }
 
     /**
+     * Persists an individual guest settlement share for an invoice.
+     *
+     * @param id      Invoice identifier
+     * @param request Payload containing guest payment details and assigned items
+     * @return Saved settlement DTO
+     */
+    @PostMapping("/{id}/split/encaisser")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
+    @Operation(summary = "Record individual split share payment", description = "Saves guest payment details, items consumed, and tips. Marks invoice settled if completed.")
+    @ApiResponse(responseCode = "200", description = "Split share settlement recorded")
+    public ResponseEntity<com.bar.gestioncocktail.dto.FactureReglementDTO> encaisserPart(
+            @PathVariable Long id,
+            @Valid @RequestBody com.bar.gestioncocktail.dto.EncaisserPartRequest request) {
+        return ResponseEntity.ok(factureService.encaisserPart(id, request));
+    }
+
+    /**
+     * Retrieves all recorded split share settlements for an invoice.
+     *
+     * @param id Invoice identifier
+     * @return List of settlement records
+     */
+    @GetMapping("/{id}/reglements")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
+    @Operation(summary = "Get all recorded split settlements", description = "Returns full breakdown of guest payments and itemized receipts for this invoice.")
+    @ApiResponse(responseCode = "200", description = "Settlement records retrieved")
+    public ResponseEntity<List<com.bar.gestioncocktail.dto.FactureReglementDTO>> getReglements(@PathVariable Long id) {
+        return ResponseEntity.ok(factureService.getReglementsByFactureId(id));
+    }
+
+    /**
      * Merges multiple invoices into a single combined invoice.
      *
      * @param request DTO containing list of invoice IDs to merge

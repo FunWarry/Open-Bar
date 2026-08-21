@@ -28,6 +28,7 @@ public record FactureResponseDTO(
     String modePaiement,
     String notes,
     List<FactureItemResponseDTO> items,
+    List<FactureReglementDTO> reglements,
     LocalDateTime createdAt,
     LocalDateTime updatedAt
 ) {
@@ -38,8 +39,11 @@ public record FactureResponseDTO(
      * @return Corresponding response DTO
      */
     public static FactureResponseDTO from(Facture f) {
-        List<FactureItemResponseDTO> items = f.getItems() != null
+        List<FactureItemResponseDTO> items = (f.getItems() != null && org.hibernate.Hibernate.isInitialized(f.getItems()))
             ? f.getItems().stream().map(FactureItemResponseDTO::from).toList()
+            : Collections.emptyList();
+        List<FactureReglementDTO> reglements = (f.getReglements() != null && org.hibernate.Hibernate.isInitialized(f.getReglements()))
+            ? f.getReglements().stream().map(FactureReglementDTO::from).toList()
             : Collections.emptyList();
         return new FactureResponseDTO(
             f.getId(),
@@ -57,6 +61,7 @@ public record FactureResponseDTO(
             f.getModePaiement(),
             f.getNotes(),
             items,
+            reglements,
             f.getCreatedAt(),
             f.getUpdatedAt()
         );

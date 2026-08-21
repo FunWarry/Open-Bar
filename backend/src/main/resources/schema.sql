@@ -254,6 +254,24 @@ CREATE TABLE IF NOT EXISTS facture_items (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS facture_reglements (
+    id BIGSERIAL PRIMARY KEY,
+    facture_id BIGINT NOT NULL REFERENCES factures(id) ON DELETE CASCADE,
+    nom_convive VARCHAR(100) NOT NULL,
+    part_index INTEGER NOT NULL,
+    total_parts INTEGER,
+    montant DECIMAL(10,2) NOT NULL,
+    pourboire DECIMAL(10,2) DEFAULT 0,
+    total_regle DECIMAL(10,2) NOT NULL,
+    mode_paiement VARCHAR(50) NOT NULL,
+    type_split VARCHAR(20) NOT NULL DEFAULT 'EGAL',
+    items_json TEXT,
+    date_reglement TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_facture_reglements_facture_id ON facture_reglements(facture_id);
+
 CREATE TABLE IF NOT EXISTS avoirs_credit (
     id BIGSERIAL PRIMARY KEY,
     numero VARCHAR(50) UNIQUE NOT NULL,
