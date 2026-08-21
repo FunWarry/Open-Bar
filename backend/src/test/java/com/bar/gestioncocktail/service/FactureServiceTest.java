@@ -1080,6 +1080,43 @@ class FactureServiceTest {
     }
 
     @Test
+    void getReglementsByFactureId_notFound_throwsException() {
+        when(factureRepository.existsById(999L)).thenReturn(false);
+
+        assertThatThrownBy(() -> factureService.getReglementsByFactureId(999L))
+                .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    void encaisserPart_withItemsAndNullReglementsList() {
+        Facture f = new Facture();
+        f.setId(20L);
+        f.setTotal(new BigDecimal("15.00"));
+        f.setTotalTTC(null);
+        f.setReglements(null);
+
+        when(factureRepository.findById(20L)).thenReturn(Optional.of(f));
+        when(factureReglementRepository.save(any())).thenAnswer(inv -> {
+            com.bar.gestioncocktail.model.FactureReglement reg = inv.getArgument(0);
+            reg.setId(5L);
+            return reg;
+        });
+        when(factureReglementRepository.findByFactureIdOrderByIdAsc(20L)).thenReturn(List.of());
+
+        com.bar.gestioncocktail.dto.SplitResultDTO.SplitItemDTO itemReq = new com.bar.gestioncocktail.dto.SplitResultDTO.SplitItemDTO(
+                10L, "Mojito", 1, new BigDecimal("7.50"), new BigDecimal("7.50")
+        );
+        com.bar.gestioncocktail.dto.EncaisserPartRequest req = new com.bar.gestioncocktail.dto.EncaisserPartRequest(
+                "Bob", 1, 2, new BigDecimal("7.50"), BigDecimal.ZERO, new BigDecimal("7.50"), "CARTE", "SELECTION", List.of(itemReq)
+        );
+
+        com.bar.gestioncocktail.dto.FactureReglementDTO res = factureService.encaisserPart(20L, req);
+
+        assertThat(res).isNotNull();
+        assertThat(f.getReglements()).hasSize(1);
+    }
+
+    @Test
     void getTableAddition_calculatesTotalsAndOrders() {
         TableEntity table = new TableEntity();
         table.setId(1L);

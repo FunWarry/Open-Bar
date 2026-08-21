@@ -806,5 +806,65 @@ describe('DashboardServeurComponent', () => {
       expect(dashboardServiceSpy.libererTable).toHaveBeenCalledWith(1);
       expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'success' }));
     }));
+
+    it('computes table wait times and table colors correctly based on delays', () => {
+      const t1: any = { id: 1, occupee: true, waitTimeMinutes: 25 };
+      const colors25 = (component as any).getTableColors(t1, 25);
+      expect(colors25.mainColor).toBe('#e5604f');
+
+      const t2: any = { id: 2, occupee: true, waitTimeMinutes: 15 };
+      const colors15 = (component as any).getTableColors(t2, 15);
+      expect(colors15.mainColor).toBe('#f0a33b');
+
+      const t3: any = { id: 3, occupee: true, waitTimeMinutes: 5 };
+      const colors5 = (component as any).getTableColors(t3, 5);
+      expect(colors5.mainColor).toBe('#2fbf6b');
+
+      const tFree: any = { id: 4, occupee: false };
+      const colorsFree = (component as any).getTableColors(tFree, 0);
+      expect(colorsFree.mainColor).toBe('#2fbf6b');
+
+      const tReserved: any = { id: 5, occupee: false, reservee: true };
+      const colorsReserved = (component as any).getTableColors(tReserved, 0);
+      expect(colorsReserved.mainColor).toBe('#9b8af2');
+
+      const offsets1 = (component as any).calculateLabelOffsets(true, true);
+      expect(offsets1.titleY).toBe(-22);
+
+      const offsets2 = (component as any).calculateLabelOffsets(true, false);
+      expect(offsets2.titleY).toBe(-14);
+
+      const offsets3 = (component as any).calculateLabelOffsets(false, true);
+      expect(offsets3.titleY).toBe(-14);
+
+      const offsets4 = (component as any).calculateLabelOffsets(false, false);
+      expect(offsets4.titleY).toBe(-8);
+
+      const tOcc: any = { id: 6, occupee: true, dateOccupation: new Date(Date.now() - 15 * 60000).toISOString() };
+      expect(component.getWaitTimeMinutes(tOcc)).toBeGreaterThanOrEqual(14);
+
+      const tNoOcc: any = { id: 7, occupee: false };
+      expect(component.getWaitTimeMinutes(tNoOcc)).toBe(0);
+    });
+
+    it('enriches tables with orders having order dates, items, and totals', () => {
+      const tables: any[] = [{ id: 10, numero: 10, occupee: true, zone: 'TERRASSE' }];
+      const orders: any[] = [
+        {
+          id: 101,
+          tableId: 10,
+          statut: 'EN_ATTENTE',
+          dateCommande: new Date(Date.now() - 5 * 60000).toISOString(),
+          total: 25.5,
+          items: [{ id: 1, nom: 'Mojito' }, { id: 2, nom: 'Nachos' }]
+        }
+      ];
+
+      const enriched = (component as any).enrichTablesWithOrders(tables, orders);
+      expect(enriched[0].commandesActives).toHaveSize(1);
+      expect(enriched[0].commandesActives[0].total).toBe(25.5);
+      expect(enriched[0].commandesActives[0].itemCount).toBe(2);
+      expect(enriched[0].waitTimeMinutes).toBeGreaterThanOrEqual(4);
+    });
   });
 });
