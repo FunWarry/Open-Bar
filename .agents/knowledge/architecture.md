@@ -108,6 +108,7 @@ cocktails ──< cocktail_recipe_steps ──< recipe_step_templates
                                     └──< ingredients
 cocktails >── glassware                 ← Service glass definition & capacity
 tables ──< factures ──< facture_items
+                    └──< facture_reglements       ← Persistent split settlement shares & receipt breakdown
 tables ──< table_sessions              ← Client QR code temporary session
 zones ──< tables                       ← Floor plan polygon coordinates
 establishment_closures                 ← Exceptional closures & recurring holidays
