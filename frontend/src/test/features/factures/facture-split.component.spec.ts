@@ -425,5 +425,53 @@ describe('FactureSplitComponent', () => {
       component.unassignOneUnitFromGuest(0, item.id);
       expect(component.getGuestTotal(0)).toBe(0);
     });
+
+    it('handles removeAllUnitsOfItemFromGuest and assignEntireItemToGuest', () => {
+      const item = mockFacture.items[1]; // Daiquiri, quantite: 2
+
+      component.assignEntireItemToGuest(item.id, 0);
+      expect(component.getGuestTotal(0)).toBe(18);
+
+      component.removeAllUnitsOfItemFromGuest(0, item.id);
+      expect(component.getGuestTotal(0)).toBe(0);
+    });
+
+    it('computes totalSplit, totalBillAmount, paidAmount, remainingBalance, and paidRatio', () => {
+      component.results = mockSplitResults;
+      component.partStates = {
+        0: { settled: true, totalPaid: 10.5 },
+        1: { settled: false }
+      };
+
+      expect(component.totalSplit).toBe(21);
+      expect(component.totalBillAmount).toBe(21);
+      expect(component.paidAmount).toBe(10.5);
+      expect(component.remainingBalance).toBe(10.5);
+      expect(component.paidRatio).toBe(0.5);
+      expect(component.allPartsSettled).toBeFalse();
+    });
+
+    it('handles error in calculateEqualSplit and calculateItemizedSplit', () => {
+      factureServiceSpy.splitEgal.and.returnValue(throwError(() => ({ error: { message: 'Failed split' } })));
+      component.calculateEqualSplit();
+      expect(component.errorMessage).toBe('Failed split');
+      expect(component.loading).toBeFalse();
+
+      factureServiceSpy.splitParSelection.and.returnValue(throwError(() => ({ error: { message: 'Selection failed' } })));
+      component.unitAssignments = { '10_0': 0 };
+      component.calculateItemizedSplit();
+      expect(component.errorMessage).toBe('Selection failed');
+    });
+
+    it('handles quick assign select event and guest count adjustment', () => {
+      const selectTarget = { value: null };
+      const event = { detail: { value: '10' }, target: selectTarget } as any;
+
+      component.onQuickAssignSelect(0, event);
+      expect(component.getGuestTotal(0)).toBe(8);
+
+      component.ajusterConvives(1);
+      expect(component.nombreConvives).toBe(3);
+    });
   });
 });
