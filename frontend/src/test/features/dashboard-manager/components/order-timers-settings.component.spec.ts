@@ -102,19 +102,20 @@ describe('OrderTimersSettingsComponent', () => {
     const fastPreset = component.presets.find(p => p.id === 'fast')!;
     component.applyPreset(fastPreset);
 
-    expect(component.timersForm.value).toEqual({
-      tempsAlerteWarningMinutes: 2,
-      tempsAlerteCommandeMinutes: 4,
-      tempsAlerteCritiqueCommandeMinutes: 7,
-    });
+    expect(component.timersForm.get('tempsAlerteWarningMinutes')?.value).toBe(2);
+    expect(component.timersForm.get('tempsAlerteCommandeMinutes')?.value).toBe(4);
+    expect(component.timersForm.get('tempsAlerteCritiqueCommandeMinutes')?.value).toBe(7);
     expect(component.timersForm.valid).toBe(true);
   });
 
-  it('should reset form to standard default thresholds (3, 5, 10 min)', () => {
+  it('should reset form to standard default thresholds and currency', () => {
     component.timersForm.patchValue({
       tempsAlerteWarningMinutes: 5,
       tempsAlerteCommandeMinutes: 8,
       tempsAlerteCritiqueCommandeMinutes: 15,
+      currencyCode: 'USD',
+      currencySymbol: '$',
+      currencyPosition: 'BEFORE'
     });
 
     component.resetToDefaults();
@@ -123,7 +124,36 @@ describe('OrderTimersSettingsComponent', () => {
       tempsAlerteWarningMinutes: 3,
       tempsAlerteCommandeMinutes: 5,
       tempsAlerteCritiqueCommandeMinutes: 10,
+      currencyCode: 'EUR',
+      currencySymbol: '€',
+      currencyPosition: 'AFTER'
     });
+  });
+
+  it('should apply currency preset correctly (e.g. USD $)', () => {
+    const usdPreset = component.currencyPresets.find(p => p.code === 'USD')!;
+    component.applyCurrencyPreset(usdPreset);
+
+    expect(component.currentCurrencyCode).toBe('USD');
+    expect(component.currentCurrencySymbol).toBe('$');
+    expect(component.currentCurrencyPosition).toBe('BEFORE');
+  });
+
+  it('should format preview price dynamically according to form values', () => {
+    component.timersForm.patchValue({
+      currencySymbol: '€',
+      currencyPosition: 'AFTER'
+    });
+    expect(component.formatPreviewPrice(12.5)).toContain('12,50');
+    expect(component.formatPreviewPrice(12.5)).toContain('€');
+
+    component.timersForm.patchValue({
+      currencySymbol: '$',
+      currencyPosition: 'BEFORE'
+    });
+    expect(component.formatPreviewPrice(12.5)).toContain('12,50');
+    expect(component.formatPreviewPrice(12.5)).toContain('$');
+    expect(component.formatPreviewPrice(12.5).startsWith('$')).toBe(true);
   });
 
   it('should trigger sound tests via SoundService', () => {
@@ -157,12 +187,15 @@ describe('OrderTimersSettingsComponent', () => {
     expect(component.simulatedSeverity).toBe('critical');
   });
 
-  it('should submit updated thresholds and display success toast', async () => {
+  it('should submit updated thresholds and currency and display success toast', async () => {
     const updatedMock: AppSettings = {
       ...initialSettings,
       tempsAlerteWarningMinutes: 2,
       tempsAlerteCommandeMinutes: 4,
       tempsAlerteCritiqueCommandeMinutes: 8,
+      currencyCode: 'GBP',
+      currencySymbol: '£',
+      currencyPosition: 'BEFORE'
     };
     settingsServiceMock.updateSettings.and.returnValue(of(updatedMock));
 
@@ -170,6 +203,9 @@ describe('OrderTimersSettingsComponent', () => {
       tempsAlerteWarningMinutes: 2,
       tempsAlerteCommandeMinutes: 4,
       tempsAlerteCritiqueCommandeMinutes: 8,
+      currencyCode: 'GBP',
+      currencySymbol: '£',
+      currencyPosition: 'BEFORE'
     });
 
     component.onSubmit();
@@ -178,6 +214,9 @@ describe('OrderTimersSettingsComponent', () => {
       tempsAlerteWarningMinutes: 2,
       tempsAlerteCommandeMinutes: 4,
       tempsAlerteCritiqueCommandeMinutes: 8,
+      currencyCode: 'GBP',
+      currencySymbol: '£',
+      currencyPosition: 'BEFORE'
     }));
     expect(toastControllerMock.create).toHaveBeenCalled();
   });

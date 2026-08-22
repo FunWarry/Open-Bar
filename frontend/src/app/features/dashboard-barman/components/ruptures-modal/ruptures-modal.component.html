@@ -67,7 +67,7 @@
                 <span class="item-category-badge">{{ cocktail.categorie }}</span>
               </div>
               <div class="item-subtitle">
-                <span class="item-price">{{ cocktail.prix }} €</span>
+                <span class="item-price">{{ cocktail.prix | appCurrency }}</span>
                 @if (!cocktail.disponible) {
                   <span class="status-indicator rupture">🚫 {{ 'BARMAN_DASHBOARD.STATUS_OUT_OF_STOCK' | transloco }}</span>
                 } @else {

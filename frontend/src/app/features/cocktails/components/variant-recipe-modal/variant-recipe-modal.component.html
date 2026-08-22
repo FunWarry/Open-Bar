@@ -59,7 +59,7 @@
 
         <div class="form-group">
           <label for="variant-price-input">
-            {{ 'COCKTAILS.VARIANTS_SECTION.PRICE_SUPPLEMENT' | transloco }} (€)
+            {{ 'COCKTAILS.VARIANTS_SECTION.PRICE_SUPPLEMENT' | transloco }} ({{ currencySymbol }})
           </label>
           <input
             id="variant-price-input"
@@ -434,9 +434,9 @@
     <div class="summary-item">
       <span class="summary-label">{{ 'COCKTAILS.VARIANT_MODAL.FINAL_PRICE' | transloco }}</span>
       <span class="summary-value price-val" data-testid="variant-modal-effective-price">
-        {{ effectivePrice | number: '1.2-2' }} €
+        {{ effectivePrice | appCurrency }}
         @if (prixSupplement > 0) {
-          <small class="supplement-tag">(+{{ prixSupplement | number: '1.2-2' }} €)</small>
+          <small class="supplement-tag">(+{{ prixSupplement | appCurrency }})</small>
         }
       </span>
     </div>

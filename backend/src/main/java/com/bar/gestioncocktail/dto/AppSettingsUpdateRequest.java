@@ -1,5 +1,6 @@
 package com.bar.gestioncocktail.dto;
 
+import com.bar.gestioncocktail.model.CurrencyPosition;
 import com.bar.gestioncocktail.model.DefaultTheme;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -15,6 +16,9 @@ import jakarta.validation.constraints.Size;
  * @param logoUrl Establishment logo URL
  * @param establishmentName Commercial name of the establishment
  * @param defaultTheme Default UI theme
+ * @param currencyCode ISO 4217 3-letter currency code (e.g. EUR, USD, GBP, CHF)
+ * @param currencySymbol Currency symbol (e.g. €, $, £, CHF)
+ * @param currencyPosition Display position of the currency symbol (BEFORE or AFTER)
  * @param tempsAlerteWarningMinutes Order warning alert threshold in minutes
  * @param tempsAlerteCommandeMinutes Order urgent alert threshold in minutes
  * @param tempsAlerteCritiqueCommandeMinutes Order critical alert threshold in minutes
@@ -40,6 +44,14 @@ public record AppSettingsUpdateRequest(
     @NotNull(message = "Default theme is required")
     DefaultTheme defaultTheme,
 
+    @Size(min = 3, max = 3, message = "Currency code must be a 3-letter ISO code")
+    String currencyCode,
+
+    @Size(max = 10, message = "Currency symbol cannot exceed 10 characters")
+    String currencySymbol,
+
+    CurrencyPosition currencyPosition,
+
     @jakarta.validation.constraints.Min(value = 1, message = "Warning alert time must be at least 1 minute")
     @jakarta.validation.constraints.Max(value = 120, message = "Warning alert time cannot exceed 120 minutes")
     Integer tempsAlerteWarningMinutes,
@@ -53,3 +65,4 @@ public record AppSettingsUpdateRequest(
     Integer tempsAlerteCritiqueCommandeMinutes
 ) {
 }
+

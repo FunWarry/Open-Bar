@@ -1,11 +1,11 @@
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { CurrencyPipe } from '@angular/common';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { ToastController } from '@ionic/angular/standalone';
+import { AppCurrencyPipe } from '../../../core/pipes/app-currency.pipe';
 import { CocktailService } from '../../../core/services/cocktail.service';
 import { CommandeService } from '../../../core/services/commande.service';
 import { Cocktail } from '../../../core/models/cocktail.model';
@@ -31,7 +31,7 @@ export interface CartItem {
   standalone: true,
   imports: [
     ReactiveFormsModule,
-    CurrencyPipe,
+    AppCurrencyPipe,
     TranslocoModule,
     InputFieldComponent,
     ActionButtonComponent,

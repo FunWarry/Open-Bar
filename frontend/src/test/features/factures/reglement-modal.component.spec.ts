@@ -180,4 +180,8 @@ describe('ReglementModalComponent', () => {
     component.confirmPayment();
     expect(modalCtrlSpy.dismiss).toHaveBeenCalled();
   });
+
+  it('should return currency symbol from appSettingsService', () => {
+    expect(component.currencySymbol).toBe('€');
+  });
 });

@@ -34,6 +34,7 @@ import {
   addCircleOutline
 } from 'ionicons/icons';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
+import { AppCurrencyPipe } from '../../../../core/pipes/app-currency.pipe';
 import { DashboardBarmanService } from '../../services/dashboard-barman.service';
 import { Cocktail } from '../../../../core/models/cocktail.model';
 import { Ingredient } from '../../../../core/models/ingredient.model';
@@ -49,6 +50,7 @@ import { Ingredient } from '../../../../core/models/ingredient.model';
     CommonModule,
     FormsModule,
     TranslocoModule,
+    AppCurrencyPipe,
     IonHeader,
     IonToolbar,
     IonTitle,

@@ -65,7 +65,9 @@ class AppSettingsControllerTest {
     @Test
     void updateSettings_delegatesToServiceWithRequestAndReturnsUpdatedDTO() {
         AppSettingsUpdateRequest request = new AppSettingsUpdateRequest(
-            "#ff0000", "#cc0000", "https://example.com/new-logo.png", "The Test Bar", DefaultTheme.DARK, 2, 6, 12
+            "#ff0000", "#cc0000", "https://example.com/new-logo.png", "The Test Bar", DefaultTheme.DARK,
+            "USD", "$", com.bar.gestioncocktail.model.CurrencyPosition.BEFORE,
+            2, 6, 12
         );
         AppSettings updated = new AppSettings();
         updated.setId(AppSettings.SINGLETON_ID);
@@ -74,6 +76,9 @@ class AppSettingsControllerTest {
         updated.setLogoUrl("https://example.com/new-logo.png");
         updated.setEstablishmentName("The Test Bar");
         updated.setDefaultTheme(DefaultTheme.DARK);
+        updated.setCurrencyCode("USD");
+        updated.setCurrencySymbol("$");
+        updated.setCurrencyPosition(com.bar.gestioncocktail.model.CurrencyPosition.BEFORE);
         updated.setTempsAlerteWarningMinutes(2);
         updated.setTempsAlerteCommandeMinutes(6);
         updated.setTempsAlerteCritiqueCommandeMinutes(12);
@@ -89,5 +94,8 @@ class AppSettingsControllerTest {
         assertThat(body.tempsAlerteCritiqueCommandeMinutes()).isEqualTo(12);
         assertThat(body.primaryColor()).isEqualTo("#ff0000");
         assertThat(body.establishmentName()).isEqualTo("The Test Bar");
+        assertThat(body.currencyCode()).isEqualTo("USD");
+        assertThat(body.currencySymbol()).isEqualTo("$");
+        assertThat(body.currencyPosition()).isEqualTo(com.bar.gestioncocktail.model.CurrencyPosition.BEFORE);
     }
 }

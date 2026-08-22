@@ -63,9 +63,9 @@
                     <ion-icon name="trending-up-outline"></ion-icon>
                   </div>
                 </div>
-                <h2 class="kpi-value primary-value">{{ recap.totalCaTtc | number:'1.2-2' }} €</h2>
+                <h2 class="kpi-value primary-value">{{ recap.totalCaTtc | appCurrency }}</h2>
                 <div class="kpi-subtext">
-                  <span>{{ 'RECAP.HT' | transloco }}: {{ recap.totalCaHt | number:'1.2-2' }} €</span>
+                  <span>{{ 'RECAP.HT' | transloco }}: {{ recap.totalCaHt | appCurrency }}</span>
                 </div>
               </ion-card-content>
             </ion-card>
@@ -81,9 +81,9 @@
                     <ion-icon name="cash-outline"></ion-icon>
                   </div>
                 </div>
-                <h2 class="kpi-value">{{ recap.totalTva | number:'1.2-2' }} €</h2>
+                <h2 class="kpi-value">{{ recap.totalTva | appCurrency }}</h2>
                 <div class="kpi-subtext">
-                  <span>{{ 'RECAP.NET_HT' | transloco }}: {{ recap.totalCaHt | number:'1.2-2' }} €</span>
+                  <span>{{ 'RECAP.NET_HT' | transloco }}: {{ recap.totalCaHt | appCurrency }}</span>
                 </div>
               </ion-card-content>
             </ion-card>
@@ -99,7 +99,7 @@
                     <ion-icon name="card-outline"></ion-icon>
                   </div>
                 </div>
-                <h2 class="kpi-value">{{ recap.panierMoyen | number:'1.2-2' }} €</h2>
+                <h2 class="kpi-value">{{ recap.panierMoyen | appCurrency }}</h2>
                 <div class="kpi-subtext">
                   <span>{{ recap.nombreFacturesReglees }} {{ 'RECAP.FACTURES_SETTLED' | transloco }}</span>
                 </div>
@@ -155,7 +155,7 @@
                       </ion-badge>
                     </td>
                     <td class="text-center">{{ pm.count }}</td>
-                    <td class="text-right font-bold">{{ pm.totalTtc | number:'1.2-2' }} €</td>
+                    <td class="text-right font-bold">{{ pm.totalTtc | appCurrency }}</td>
                     <td class="text-right">
                       <span class="share-badge">{{ getPaymentModePercentage(pm) }} %</span>
                     </td>
@@ -194,9 +194,9 @@
                 @for (vat of recap.ventilationTva; track vat.tauxLabel) {
                   <tr>
                     <td class="font-bold">{{ vat.tauxLabel }}</td>
-                    <td class="text-right">{{ vat.baseHt | number:'1.2-2' }} €</td>
-                    <td class="text-right text-warning">{{ vat.montantTva | number:'1.2-2' }} €</td>
-                    <td class="text-right font-bold text-success">{{ vat.totalTtc | number:'1.2-2' }} €</td>
+                    <td class="text-right">{{ vat.baseHt | appCurrency }}</td>
+                    <td class="text-right text-warning">{{ vat.montantTva | appCurrency }}</td>
+                    <td class="text-right font-bold text-success">{{ vat.totalTtc | appCurrency }}</td>
                   </tr>
                 } @empty {
                   <tr>
@@ -207,9 +207,9 @@
               <tfoot>
                 <tr class="total-row">
                   <td class="font-bold">{{ 'COMMON.TOTAL' | transloco }}</td>
-                  <td class="text-right font-bold">{{ recap.totalCaHt | number:'1.2-2' }} €</td>
-                  <td class="text-right font-bold text-warning">{{ recap.totalTva | number:'1.2-2' }} €</td>
-                  <td class="text-right font-bold text-success">{{ recap.totalCaTtc | number:'1.2-2' }} €</td>
+                  <td class="text-right font-bold">{{ recap.totalCaHt | appCurrency }}</td>
+                  <td class="text-right font-bold text-warning">{{ recap.totalTva | appCurrency }}</td>
+                  <td class="text-right font-bold text-success">{{ recap.totalCaTtc | appCurrency }}</td>
                 </tr>
               </tfoot>
             </table>

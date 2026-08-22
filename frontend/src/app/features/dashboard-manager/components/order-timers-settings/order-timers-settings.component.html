@@ -45,6 +45,99 @@
         </ion-card-content>
       </ion-card>
 
+      <!-- Currency Configuration Card -->
+      <ion-card class="section-card currency-card" data-testid="card-currency-settings">
+        <ion-card-header>
+          <div class="card-header-flex">
+            <ion-icon name="cash-outline" class="card-header-icon highlight-icon"></ion-icon>
+            <div>
+              <ion-card-title class="card-title">{{ t('SETTINGS.CURRENCY_TITLE') }}</ion-card-title>
+              <ion-card-subtitle>{{ t('SETTINGS.CURRENCY_SUBTITLE') }}</ion-card-subtitle>
+            </div>
+          </div>
+        </ion-card-header>
+        <ion-card-content>
+          <!-- Currency Quick Presets -->
+          <div class="currency-presets-section">
+            <span class="presets-label">{{ t('SETTINGS.CURRENCY_PRESETS') }}</span>
+            <div class="currency-presets-row">
+              <button
+                *ngFor="let cp of currencyPresets"
+                type="button"
+                class="currency-preset-btn"
+                [class.active-preset]="currentCurrencyCode === cp.code && currentCurrencySymbol === cp.symbol"
+                [attr.data-testid]="'currency-preset-btn-' + cp.code"
+                (click)="applyCurrencyPreset(cp)"
+                (keyup.enter)="applyCurrencyPreset(cp)">
+                {{ cp.label }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Currency Form Inputs -->
+          <form [formGroup]="timersForm">
+            <div class="currency-inputs-grid">
+              <!-- Currency Code -->
+              <div class="currency-input-group">
+                <label for="currency-code-input" class="input-label">
+                  <ion-icon name="globe-outline"></ion-icon>
+                  {{ t('SETTINGS.CURRENCY_CODE') }}
+                </label>
+                <input
+                  id="currency-code-input"
+                  type="text"
+                  class="custom-text-input"
+                  maxlength="3"
+                  formControlName="currencyCode"
+                  data-testid="currency-code-input"
+                  placeholder="EUR" />
+              </div>
+
+              <!-- Currency Symbol -->
+              <div class="currency-input-group">
+                <label for="currency-symbol-input" class="input-label">
+                  <ion-icon name="pricetag-outline"></ion-icon>
+                  {{ t('SETTINGS.CURRENCY_SYMBOL') }}
+                </label>
+                <input
+                  id="currency-symbol-input"
+                  type="text"
+                  class="custom-text-input"
+                  maxlength="10"
+                  formControlName="currencySymbol"
+                  data-testid="currency-symbol-input"
+                  placeholder="€" />
+              </div>
+            </div>
+
+            <!-- Currency Position Radio Selector -->
+            <div class="currency-position-group">
+              <span class="input-label">{{ t('SETTINGS.CURRENCY_POSITION') }}</span>
+              <div class="position-toggle-row">
+                <button
+                  type="button"
+                  class="pos-toggle-btn"
+                  [class.pos-active]="currentCurrencyPosition === 'AFTER'"
+                  data-testid="currency-pos-after-btn"
+                  (click)="timersForm.get('currencyPosition')?.setValue('AFTER'); timersForm.markAsDirty()"
+                  (keyup.enter)="timersForm.get('currencyPosition')?.setValue('AFTER'); timersForm.markAsDirty()">
+                  <span>{{ t('SETTINGS.CURRENCY_POS_AFTER') }}</span>
+                </button>
+                <button
+                  type="button"
+                  class="pos-toggle-btn"
+                  [class.pos-active]="currentCurrencyPosition === 'BEFORE'"
+                  data-testid="currency-pos-before-btn"
+                  (click)="timersForm.get('currencyPosition')?.setValue('BEFORE'); timersForm.markAsDirty()"
+                  (keyup.enter)="timersForm.get('currencyPosition')?.setValue('BEFORE'); timersForm.markAsDirty()">
+                  <span>{{ t('SETTINGS.CURRENCY_POS_BEFORE') }}</span>
+                </button>
+              </div>
+            </div>
+          </form>
+        </ion-card-content>
+      </ion-card>
+
       <!-- Form Controls Card -->
       <ion-card class="section-card form-card">
         <ion-card-content>
@@ -291,13 +384,25 @@
             <!-- Ticket Items -->
             <div class="ticket-items">
               <div class="ticket-item">
-                <span class="qty">2×</span>
-                <span class="item-name">Mojito Royal</span>
+                <div class="ticket-item-left">
+                  <span class="qty">2×</span>
+                  <span class="item-name">Mojito Royal</span>
+                </div>
+                <span class="item-price" data-testid="preview-cocktail-price-1">{{ formatPreviewPrice(17.00) }}</span>
               </div>
               <div class="ticket-item">
-                <span class="qty">1×</span>
-                <span class="item-name">Old Fashioned</span>
+                <div class="ticket-item-left">
+                  <span class="qty">1×</span>
+                  <span class="item-name">Old Fashioned</span>
+                </div>
+                <span class="item-price" data-testid="preview-cocktail-price-2">{{ formatPreviewPrice(9.00) }}</span>
               </div>
+            </div>
+
+            <!-- Ticket Total Row -->
+            <div class="ticket-total-preview-row">
+              <span class="total-label">Total :</span>
+              <strong class="total-price" data-testid="preview-cocktail-total">{{ formatPreviewPrice(26.00) }}</strong>
             </div>
 
             <!-- Ticket Footer -->

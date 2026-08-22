@@ -120,4 +120,112 @@ describe('AppSettingsService', () => {
     req.flush('Forbidden', { status: 403, statusText: 'Forbidden' });
     expect(errorReceived).toBe(true);
   });
+
+  describe('Currency Management and Formatting', () => {
+    it('should return default currency properties when settings are not loaded', () => {
+      expect(service.currencyCode).toBe('EUR');
+      expect(service.currencySymbol).toBe('€');
+      expect(service.currencyPosition).toBe('AFTER');
+    });
+
+    it('should return loaded currency properties from settings', () => {
+      const customSettings: AppSettings = {
+        ...mockSettings,
+        currencyCode: 'USD',
+        currencySymbol: '$',
+        currencyPosition: 'BEFORE'
+      };
+
+      service.getSettings().subscribe();
+      const req = httpMock.expectOne(baseUrl);
+      req.flush(customSettings);
+
+      expect(service.currencyCode).toBe('USD');
+      expect(service.currencySymbol).toBe('$');
+      expect(service.currencyPosition).toBe('BEFORE');
+    });
+
+    it('should format currency with AFTER position (default EUR)', () => {
+      service.getSettings().subscribe();
+      const req = httpMock.expectOne(baseUrl);
+      req.flush({
+        ...mockSettings,
+        currencyCode: 'EUR',
+        currencySymbol: '€',
+        currencyPosition: 'AFTER'
+      });
+
+      const formatted = service.formatCurrency(12.5);
+      expect(formatted).toContain('12,50');
+      expect(formatted).toContain('€');
+      expect(formatted.endsWith('€')).toBe(true);
+    });
+
+    it('should format currency with BEFORE position (e.g. USD $)', () => {
+      service.getSettings().subscribe();
+      const req = httpMock.expectOne(baseUrl);
+      req.flush({
+        ...mockSettings,
+        currencyCode: 'USD',
+        currencySymbol: '$',
+        currencyPosition: 'BEFORE'
+      });
+
+      const formatted = service.formatCurrency(24.99);
+      expect(formatted).toContain('24,99');
+      expect(formatted).toContain('$');
+      expect(formatted.startsWith('$')).toBe(true);
+    });
+
+    it('should format 0 and negative amounts accurately', () => {
+      expect(service.formatCurrency(0)).toContain('0,00');
+      expect(service.formatCurrency(-5.2)).toContain('-5,20');
+      expect(service.formatCurrency(null as any)).toBe('0,00 €');
+    });
+
+    it('should respect custom fraction digits parameters', () => {
+      expect(service.formatCurrency(100, 0, 0)).toContain('100');
+      expect(service.formatCurrency(100, 0, 0)).not.toContain(',00');
+    });
+  });
+
+  describe('Fallback behavior when HttpClient is not provided', () => {
+    let unprovidedService: AppSettingsService;
+
+    beforeEach(() => {
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [AppSettingsService]
+      });
+      unprovidedService = TestBed.inject(AppSettingsService);
+    });
+
+    it('should return fallback settings on getSettings() when HttpClient is missing', (done) => {
+      unprovidedService.getSettings().subscribe(settings => {
+        expect(settings).toBeTruthy();
+        expect(settings.establishmentName).toBe('OpenBar');
+        expect(settings.currencyCode).toBe('EUR');
+        done();
+      });
+    });
+
+    it('should return updated fallback settings on updateSettings() when HttpClient is missing', (done) => {
+      unprovidedService.updateSettings({
+        establishmentName: 'Custom Bar',
+        primaryColor: '#123456',
+        primaryColorStrong: '#654321',
+        logoUrl: null,
+        defaultTheme: 'LIGHT',
+        currencyCode: 'USD',
+        currencySymbol: '$',
+        currencyPosition: 'BEFORE'
+      }).subscribe(settings => {
+        expect(settings).toBeTruthy();
+        expect(settings.establishmentName).toBe('Custom Bar');
+        expect(settings.currencyCode).toBe('USD');
+        expect(settings.currencySymbol).toBe('$');
+        done();
+      });
+    });
+  });
 });

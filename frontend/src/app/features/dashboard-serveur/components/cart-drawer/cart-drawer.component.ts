@@ -8,6 +8,7 @@ import { QuantityStepperComponent } from '../../../../core/components/ui/quantit
 import { ActionButtonComponent } from '../../../../core/components/ui/action-button/action-button.component';
 import { EmptyStateComponent } from '../../../../core/components/ui/empty-state/empty-state.component';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { AppCurrencyPipe } from '../../../../core/pipes/app-currency.pipe';
 
 import { addIcons } from 'ionicons';
 import { cartOutline, basketOutline, paperPlaneOutline, chatbubbleEllipsesOutline, createOutline } from 'ionicons/icons';
@@ -25,6 +26,7 @@ import { cartOutline, basketOutline, paperPlaneOutline, chatbubbleEllipsesOutlin
     ActionButtonComponent,
     EmptyStateComponent,
     TranslocoPipe,
+    AppCurrencyPipe,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './cart-drawer.component.html',

@@ -1,9 +1,9 @@
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { CurrencyPipe } from '@angular/common';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { TranslocoModule } from '@jsverse/transloco';
+import { AppCurrencyPipe } from '../../../core/pipes/app-currency.pipe';
 import { CommandeService } from '../../../core/services/commande.service';
 import { WebSocketService } from '../../../core/services/websocket.service';
 import { Commande } from '../../../core/models/commande.model';
@@ -20,7 +20,7 @@ import { ActionButtonComponent } from '../../../core/components/ui/action-button
   standalone: true,
   imports: [
     RouterLink,
-    CurrencyPipe,
+    AppCurrencyPipe,
     TranslocoModule,
     ActionButtonComponent
   ]

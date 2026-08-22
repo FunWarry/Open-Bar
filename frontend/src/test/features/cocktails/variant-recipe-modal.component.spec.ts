@@ -429,4 +429,8 @@ describe('VariantRecipeModalComponent', () => {
     component.cancel();
     expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith(null, 'cancel');
   });
+
+  it('should return currency symbol from appSettingsService', () => {
+    expect(component.currencySymbol).toBe('€');
+  });
 });

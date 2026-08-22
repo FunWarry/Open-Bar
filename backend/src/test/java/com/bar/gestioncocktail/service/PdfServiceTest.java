@@ -32,6 +32,9 @@ class PdfServiceTest {
     @Mock
     private EstablishmentConfigService establishmentConfigService;
 
+    @Mock
+    private AppSettingsService appSettingsService;
+
     @InjectMocks
     private PdfService pdfService;
 
@@ -44,6 +47,12 @@ class PdfServiceTest {
         config.setLegalName("OpenBar SARL");
         config.setSiret("12345678900010");
         lenient().when(establishmentConfigService.getConfig()).thenReturn(config);
+
+        com.bar.gestioncocktail.model.AppSettings defaultSettings = new com.bar.gestioncocktail.model.AppSettings();
+        defaultSettings.setCurrencyCode("EUR");
+        defaultSettings.setCurrencySymbol("€");
+        defaultSettings.setCurrencyPosition(com.bar.gestioncocktail.model.CurrencyPosition.AFTER);
+        lenient().when(appSettingsService.getSettings()).thenReturn(defaultSettings);
 
         table = new TableEntity();
         table.setId(1L);
@@ -390,6 +399,80 @@ class PdfServiceTest {
         );
 
         byte[] pdf = pdfService.generateDailyRecapPdf(recap);
+
+        assertThat(pdf).isNotNull().isNotEmpty();
+        String header = new String(pdf, 0, Math.min(5, pdf.length));
+        assertThat(header).startsWith("%PDF");
+    }
+
+    @Test
+    void generateFacturePdf_withUsdCurrencyPrefix_generatesValidPdf() {
+        com.bar.gestioncocktail.model.AppSettings usdSettings = new com.bar.gestioncocktail.model.AppSettings();
+        usdSettings.setCurrencyCode("USD");
+        usdSettings.setCurrencySymbol("$");
+        usdSettings.setCurrencyPosition(com.bar.gestioncocktail.model.CurrencyPosition.BEFORE);
+        lenient().when(appSettingsService.getSettings()).thenReturn(usdSettings);
+
+        byte[] pdf = pdfService.generateFacturePdf(factureComplete);
+
+        assertThat(pdf).isNotNull().hasSizeGreaterThan(1_000);
+        String header = new String(pdf, 0, Math.min(5, pdf.length));
+        assertThat(header).startsWith("%PDF");
+    }
+
+    @Test
+    void generateDailyRecapPdf_withGbpCurrency_generatesValidPdf() {
+        com.bar.gestioncocktail.model.AppSettings gbpSettings = new com.bar.gestioncocktail.model.AppSettings();
+        gbpSettings.setCurrencyCode("GBP");
+        gbpSettings.setCurrencySymbol("£");
+        gbpSettings.setCurrencyPosition(com.bar.gestioncocktail.model.CurrencyPosition.BEFORE);
+        lenient().when(appSettingsService.getSettings()).thenReturn(gbpSettings);
+
+        com.bar.gestioncocktail.dto.DailyRecapDTO recap = new com.bar.gestioncocktail.dto.DailyRecapDTO(
+            java.time.LocalDate.now(),
+            new BigDecimal("250.00"),
+            new BigDecimal("208.33"),
+            new BigDecimal("41.67"),
+            10,
+            new BigDecimal("25.00"),
+            15,
+            List.of(new com.bar.gestioncocktail.dto.PaymentModeSummaryDTO("CARTE", 8L, new BigDecimal("200.00"))),
+            List.of(new com.bar.gestioncocktail.dto.VatSummaryDTO("20.0%", new BigDecimal("208.33"), new BigDecimal("41.67"), new BigDecimal("250.00")))
+        );
+
+        byte[] pdf = pdfService.generateDailyRecapPdf(recap);
+
+        assertThat(pdf).isNotNull().isNotEmpty();
+        String header = new String(pdf, 0, Math.min(5, pdf.length));
+        assertThat(header).startsWith("%PDF");
+    }
+
+    @Test
+    void generateFacturePdf_withNullConfigAndSettings_usesDefaults() {
+        PdfService fallbackPdfService = new PdfService(null, null);
+        byte[] pdf = fallbackPdfService.generateFacturePdf(factureComplete);
+
+        assertThat(pdf).isNotNull().isNotEmpty();
+        String header = new String(pdf, 0, Math.min(5, pdf.length));
+        assertThat(header).startsWith("%PDF");
+    }
+
+    @Test
+    void generateDailyRecapPdf_withNullConfigAndSettings_usesDefaults() {
+        PdfService fallbackPdfService = new PdfService(null, null);
+        com.bar.gestioncocktail.dto.DailyRecapDTO recap = new com.bar.gestioncocktail.dto.DailyRecapDTO(
+            java.time.LocalDate.now(),
+            new BigDecimal("100.00"),
+            new BigDecimal("83.33"),
+            new BigDecimal("16.67"),
+            5,
+            new BigDecimal("20.00"),
+            10,
+            List.of(new com.bar.gestioncocktail.dto.PaymentModeSummaryDTO("CARTE", 5L, new BigDecimal("100.00"))),
+            List.of(new com.bar.gestioncocktail.dto.VatSummaryDTO("20.0%", new BigDecimal("83.33"), new BigDecimal("16.67"), new BigDecimal("100.00")))
+        );
+
+        byte[] pdf = fallbackPdfService.generateDailyRecapPdf(recap);
 
         assertThat(pdf).isNotNull().isNotEmpty();
         String header = new String(pdf, 0, Math.min(5, pdf.length));

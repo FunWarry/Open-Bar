@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { BehaviorSubject, Observable, of, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AppSettings, AppSettingsUpdateRequest } from '../models/app-settings.model';
 import { WebSocketService } from './websocket.service';
@@ -12,7 +12,7 @@ import { WebSocketService } from './websocket.service';
 @Injectable({ providedIn: 'root' })
 export class AppSettingsService {
   private readonly api = `${environment.apiUrl}/settings`;
-  private readonly http = inject(HttpClient);
+  private readonly http = inject(HttpClient, { optional: true });
   private readonly ws = inject(WebSocketService, { optional: true });
 
   private readonly currentSettings$ = new BehaviorSubject<AppSettings | null>(null);
@@ -23,6 +23,44 @@ export class AppSettingsService {
   /** Current snapshot of settings. */
   get currentSettings(): AppSettings | null {
     return this.currentSettings$.getValue();
+  }
+
+  /** Current configured establishment currency ISO code (default: 'EUR'). */
+  get currencyCode(): string {
+    return this.currentSettings?.currencyCode || 'EUR';
+  }
+
+  /** Current configured establishment currency symbol (default: '€'). */
+  get currencySymbol(): string {
+    return this.currentSettings?.currencySymbol || '€';
+  }
+
+  /** Current configured establishment currency symbol position (default: 'AFTER'). */
+  get currencyPosition(): 'BEFORE' | 'AFTER' {
+    return this.currentSettings?.currencyPosition || 'AFTER';
+  }
+
+  /**
+   * Formats a monetary amount using configured establishment currency symbol and position.
+   *
+   * @param amount The numeric amount to format
+   * @param minFractionDigits Minimum fraction digits (default: 2)
+   * @param maxFractionDigits Maximum fraction digits (default: 2)
+   * @returns Formatted currency string
+   */
+  formatCurrency(amount: number | null | undefined, minFractionDigits: number = 2, maxFractionDigits: number = 2): string {
+    const numericAmount = (amount == null || Number.isNaN(Number(amount))) ? 0 : Number(amount);
+    const symbol = this.currencySymbol;
+    const pos = this.currencyPosition;
+    const formattedNumber = new Intl.NumberFormat('fr-FR', {
+      minimumFractionDigits: minFractionDigits,
+      maximumFractionDigits: maxFractionDigits
+    }).format(numericAmount);
+
+    if (pos === 'BEFORE') {
+      return `${symbol} ${formattedNumber}`;
+    }
+    return `${formattedNumber} ${symbol}`;
   }
 
   constructor() {
@@ -39,8 +77,8 @@ export class AppSettingsService {
           this.currentSettings$.next(data);
           this.applyTokens(data);
         }
-      } catch {
-        // Safe fallback for malformed messages
+      } catch (err) {
+        console.error('Failed to parse WebSocket app settings message:', err);
       }
     });
 
@@ -51,8 +89,8 @@ export class AppSettingsService {
           this.currentSettings$.next(data);
           this.applyTokens(data);
         }
-      } catch {
-        // Safe fallback for malformed messages
+      } catch (err) {
+        console.error('Failed to parse legacy WebSocket settings message:', err);
       }
     });
   }
@@ -62,6 +100,24 @@ export class AppSettingsService {
    * Updates internal reactive stream and applies branding tokens.
    */
   getSettings(): Observable<AppSettings> {
+    if (!this.http) {
+      const fallback: AppSettings = this.currentSettings || {
+        id: 1,
+        primaryColor: '#6c7fe8',
+        primaryColorStrong: '#5a68d6',
+        logoUrl: null,
+        establishmentName: 'OpenBar',
+        defaultTheme: 'DARK',
+        currencyCode: 'EUR',
+        currencySymbol: '€',
+        currencyPosition: 'AFTER',
+        tempsAlerteWarningMinutes: 3,
+        tempsAlerteCommandeMinutes: 5,
+        tempsAlerteCritiqueCommandeMinutes: 10,
+        updatedAt: null,
+      };
+      return of(fallback);
+    }
     return this.http.get<AppSettings>(this.api).pipe(
       tap(settings => {
         this.currentSettings$.next(settings);
@@ -76,6 +132,27 @@ export class AppSettingsService {
    * @param request Update request payload
    */
   updateSettings(request: AppSettingsUpdateRequest): Observable<AppSettings> {
+    if (!this.http) {
+      const fallback: AppSettings = {
+        ...(this.currentSettings || {
+          id: 1,
+          primaryColor: '#6c7fe8',
+          primaryColorStrong: '#5a68d6',
+          logoUrl: null,
+          establishmentName: 'OpenBar',
+          defaultTheme: 'DARK',
+          currencyCode: 'EUR',
+          currencySymbol: '€',
+          currencyPosition: 'AFTER',
+          tempsAlerteWarningMinutes: 3,
+          tempsAlerteCommandeMinutes: 5,
+          tempsAlerteCritiqueCommandeMinutes: 10,
+          updatedAt: null,
+        }),
+        ...request,
+      };
+      return of(fallback);
+    }
     return this.http.put<AppSettings>(this.api, request).pipe(
       tap(settings => {
         this.currentSettings$.next(settings);

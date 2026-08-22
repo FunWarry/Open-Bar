@@ -1839,6 +1839,19 @@
       "TABLE": "Table",
       "STOCK": "Stock"
     }
+  },
+  "SETTINGS": {
+    "CURRENCY_TITLE": "Establishment Currency",
+    "CURRENCY_SUBTITLE": "Set currency symbol, ISO code, and display position across all screens, receipts, and invoices.",
+    "CURRENCY_PRESETS": "Quick Presets:",
+    "CURRENCY_CODE": "ISO Code (3 letters)",
+    "CURRENCY_SYMBOL": "Symbol",
+    "CURRENCY_POSITION": "Symbol Position",
+    "CURRENCY_POS_AFTER": "After amount (12.50 €)",
+    "CURRENCY_POS_BEFORE": "Before amount ($ 12.50)",
+    "CURRENCY_PREVIEW_TITLE": "Live Price Preview",
+    "SAVE_SUCCESS": "Settings saved successfully!",
+    "SAVE_ERROR": "Failed to save settings"
   }
 }
 

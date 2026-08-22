@@ -10,8 +10,9 @@ import {
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { arrowBack, create, eye } from 'ionicons/icons';
-import { AsyncPipe, DatePipe, CurrencyPipe } from '@angular/common';
+import { AsyncPipe, DatePipe } from '@angular/common';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { AppCurrencyPipe } from '../../../core/pipes/app-currency.pipe';
 import { TableService } from '../../../core/services/table.service';
 import { CommandeService } from '../../../core/services/commande.service';
 import { TableBar } from '../../../core/models/table.model';
@@ -25,7 +26,7 @@ import { Commande } from '../../../core/models/commande.model';
   imports: [
     IonHeader, IonToolbar, IonTitle, IonContent,
     IonBadge, IonButton, IonButtons, IonIcon,
-    AsyncPipe, DatePipe, CurrencyPipe,
+    AsyncPipe, DatePipe, AppCurrencyPipe,
     TranslocoPipe,
   ],
 })

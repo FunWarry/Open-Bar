@@ -10,7 +10,7 @@
           <div class="modal-subtitle-badges">
             <span *ngIf="factureNumero" class="meta-tag invoice-tag">#{{ factureNumero }}</span>
             <span *ngIf="factureTableNumero" class="meta-tag table-tag">{{ 'FACTURES.TABLE_LABEL' | transloco:{ num: factureTableNumero } }}</span>
-            <span class="meta-tag total-tag">{{ totalBillAmount | currency:'EUR':'symbol':'1.2-2':'fr' }}</span>
+            <span class="meta-tag total-tag">{{ totalBillAmount | appCurrency }}</span>
           </div>
         </div>
       </div>
@@ -51,19 +51,19 @@
         <div class="metric-box">
           <span class="metric-label">{{ 'SPLIT.BILL_TOTAL' | transloco }}</span>
           <strong class="metric-val total-val" data-testid="balance-total">
-            {{ totalBillAmount | currency:'EUR':'symbol':'1.2-2':'fr' }}
+            {{ totalBillAmount | appCurrency }}
           </strong>
         </div>
         <div class="metric-box">
           <span class="metric-label">{{ 'SPLIT.PAID_TOTAL' | transloco }}</span>
           <strong class="metric-val paid-val" data-testid="balance-paid">
-            {{ paidAmount | currency:'EUR':'symbol':'1.2-2':'fr' }}
+            {{ paidAmount | appCurrency }}
           </strong>
         </div>
         <div class="metric-box">
           <span class="metric-label">{{ 'SPLIT.REMAINING_BALANCE' | transloco }}</span>
           <strong class="metric-val remaining-val" data-testid="balance-remaining">
-            {{ remainingBalance | currency:'EUR':'symbol':'1.2-2':'fr' }}
+            {{ remainingBalance | appCurrency }}
           </strong>
         </div>
       </div>
@@ -126,7 +126,7 @@
         <div class="share-preview-banner">
           <span class="preview-label">{{ 'SPLIT.AMOUNT_PER_PERSON' | transloco }}</span>
           <strong class="preview-val">
-            {{ (totalBillAmount / guestCount) | currency:'EUR':'symbol':'1.2-2':'fr' }}
+            {{ (totalBillAmount / guestCount) | appCurrency }}
           </strong>
         </div>
 
@@ -171,7 +171,7 @@
             [attr.data-testid]="'pool-item-' + item.id">
             <div class="pool-item-info">
               <span class="pool-item-name">{{ item.description }}</span>
-              <span class="pool-item-price">{{ item.prixUnitaire | currency:'EUR':'symbol':'1.2-2':'fr' }}</span>
+              <span class="pool-item-price">{{ item.prixUnitaire | appCurrency }}</span>
             </div>
             <div class="pool-item-count">
               <span class="count-pill" [class.done]="getUnassignedCount(item.id) === 0">
@@ -213,7 +213,7 @@
               <div class="guest-header-actions">
                 <div class="guest-subtotal-badge" [attr.data-testid]="'guest-subtotal-' + i">
                   <span class="subtotal-label">{{ 'SPLIT.SUBTOTAL_GUEST' | transloco }}</span>
-                  <strong class="subtotal-amount">{{ getGuestTotal(i) | currency:'EUR':'symbol':'1.2-2':'fr' }}</strong>
+                  <strong class="subtotal-amount">{{ getGuestTotal(i) | appCurrency }}</strong>
                 </div>
 
                 <button
@@ -236,7 +236,7 @@
                 [attr.data-testid]="'guest-' + i + '-item-' + item.itemId">
                 <div class="assigned-item-details">
                   <span class="assigned-item-name">{{ item.description }}</span>
-                  <span class="assigned-item-unit-price">{{ item.unitPrice | currency:'EUR':'symbol':'1.2-2':'fr' }} / u</span>
+                  <span class="assigned-item-unit-price">{{ item.unitPrice | appCurrency }} / u</span>
                 </div>
 
                 <div class="assigned-item-controls">
@@ -265,7 +265,7 @@
                   </div>
 
                   <!-- Line Total -->
-                  <span class="assigned-item-total">{{ item.total | currency:'EUR':'symbol':'1.2-2':'fr' }}</span>
+                  <span class="assigned-item-total">{{ item.total | appCurrency }}</span>
 
                   <!-- Remove all button -->
                   <button
@@ -298,7 +298,7 @@
                   <span class="chip-plus-badge">+ 1x</span>
                   <span class="chip-item-title">{{ opt.description }}</span>
                   <span class="chip-item-remaining">({{ opt.remaining }} {{ 'SPLIT.REMAINING_SHORT' | transloco }})</span>
-                  <span class="chip-item-price">{{ opt.prixUnitaire | currency:'EUR':'symbol':'1.2-2':'fr' }}</span>
+                  <span class="chip-item-price">{{ opt.prixUnitaire | appCurrency }}</span>
                 </button>
               </div>
             </div>
@@ -386,7 +386,7 @@
             <div class="part-amount-row">
               <span class="amount-label">{{ 'SPLIT.AMOUNT_DUE' | transloco }}</span>
               <strong class="amount-value" data-testid="guest-part-amount">
-                {{ part.sousTotal | currency:'EUR':'symbol':'1.2-2':'fr' }}
+                {{ part.sousTotal | appCurrency }}
               </strong>
             </div>
 
@@ -396,7 +396,7 @@
                   {{ 'SPLIT.MODE' | transloco:{ mode: partStates[i]?.paymentMethod } }}
                 </span>
                 <span *ngIf="partStates[i]?.tip" class="tip-detail">
-                  {{ 'SPLIT.TIP_LABEL' | transloco:{ amount: (partStates[i]?.tip | currency:'EUR':'symbol':'1.2-2':'fr') } }}
+                  {{ 'SPLIT.TIP_LABEL' | transloco:{ amount: (partStates[i]?.tip | appCurrency) } }}
                 </span>
               </div>
               <button

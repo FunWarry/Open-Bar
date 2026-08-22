@@ -14,6 +14,7 @@ import {
   locationOutline, callOutline, fastFoodOutline, bagOutline, informationCircleOutline
 } from 'ionicons/icons';
 import { TranslocoModule } from '@jsverse/transloco';
+import { AppCurrencyPipe } from '../../../core/pipes/app-currency.pipe';
 import { FactureService } from '../services/facture.service';
 import { Facture, FactureItem, FactureReglement } from '../models/facture.model';
 import { TicketReceiptComponent } from '../ticket-receipt/ticket-receipt.component';
@@ -28,7 +29,7 @@ import { environment } from '../../../../environments/environment';
   standalone: true,
   imports: [
     CommonModule, RouterLink, TranslocoModule, TicketReceiptComponent,
-    IonContent, IonIcon, IonSpinner
+    IonContent, IonIcon, IonSpinner, AppCurrencyPipe
   ],
   templateUrl: './facture-detail.component.html',
   styleUrls: ['./facture-detail.component.scss'],

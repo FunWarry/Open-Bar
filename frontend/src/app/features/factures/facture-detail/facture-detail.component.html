@@ -204,16 +204,16 @@
                           <span class="qty-badge">{{ item.quantite }}</span>
                         </td>
                         <td class="td-right">
-                          <span class="unit-price">{{ getItemPuHT(item) | currency:'EUR':'symbol':'1.2-2' }}</span>
+                          <span class="unit-price">{{ getItemPuHT(item) | appCurrency }}</span>
                         </td>
                         <td class="td-center">
                           <span class="vat-badge">{{ item.vatRate || '20%' }}</span>
                         </td>
                         <td class="td-right">
-                          <span class="item-line-ht">{{ getItemTotalHT(item) | currency:'EUR':'symbol':'1.2-2' }}</span>
+                          <span class="item-line-ht">{{ getItemTotalHT(item) | appCurrency }}</span>
                         </td>
                         <td class="td-right">
-                          <strong class="item-line-total">{{ item.total | currency:'EUR':'symbol':'1.2-2' }}</strong>
+                          <strong class="item-line-total">{{ item.total | appCurrency }}</strong>
                         </td>
                       </tr>
                     }
@@ -261,9 +261,9 @@
                     @for (v of vatBreakdown; track v.rateLabel) {
                       <tr>
                         <td class="td-left"><span class="vat-pill">{{ v.rateLabel }}</span></td>
-                        <td class="td-right">{{ v.baseHT | currency:'EUR':'symbol':'1.2-2' }}</td>
-                        <td class="td-right">{{ v.amountVAT | currency:'EUR':'symbol':'1.2-2' }}</td>
-                        <td class="td-right font-bold">{{ v.totalTTC | currency:'EUR':'symbol':'1.2-2' }}</td>
+                        <td class="td-right">{{ v.baseHT | appCurrency }}</td>
+                        <td class="td-right">{{ v.amountVAT | appCurrency }}</td>
+                        <td class="td-right font-bold">{{ v.totalTTC | appCurrency }}</td>
                       </tr>
                     }
                   </tbody>
@@ -275,16 +275,16 @@
             <div class="totals-breakdown-box">
               <div class="breakdown-row">
                 <span class="b-label">{{ t('FACTURES.TOTAL_HT') }}</span>
-                <span class="b-val">{{ totalHT | currency:'EUR':'symbol':'1.2-2' }}</span>
+                <span class="b-val">{{ totalHT | appCurrency }}</span>
               </div>
               <div class="breakdown-row">
                 <span class="b-label">{{ t('FACTURES.TOTAL_VAT') }}</span>
-                <span class="b-val">{{ totalVAT | currency:'EUR':'symbol':'1.2-2' }}</span>
+                <span class="b-val">{{ totalVAT | appCurrency }}</span>
               </div>
               @if (facture.pourboire && facture.pourboire > 0) {
                 <div class="breakdown-row tip-row">
                   <span class="b-label">{{ t('FACTURES.TIP') }}</span>
-                  <span class="b-val">+{{ facture.pourboire | currency:'EUR':'symbol':'1.2-2' }}</span>
+                  <span class="b-val">+{{ facture.pourboire | appCurrency }}</span>
                 </div>
               }
               <div class="breakdown-row grand-total-row">
@@ -292,7 +292,7 @@
                   <span class="gt-main">{{ t('FACTURES.TOTAL_TTC') }}</span>
                   <span class="gt-sub">{{ t('FACTURES.TTC_LABEL') }}</span>
                 </div>
-                <span class="gt-amount">{{ montantAffiche | currency:'EUR':'symbol':'1.2-2' }}</span>
+                <span class="gt-amount">{{ montantAffiche | appCurrency }}</span>
               </div>
             </div>
           </section>
@@ -322,18 +322,18 @@
                   <!-- If itemized, list assigned items -->
                   <div class="part-items-chips" *ngIf="reg.items && reg.items.length > 0">
                     <span *ngFor="let item of reg.items" class="part-item-chip">
-                      {{ item.quantite }}x {{ item.description }} ({{ item.total | currency:'EUR':'symbol':'1.2-2' }})
+                      {{ item.quantite }}x {{ item.description }} ({{ item.total | appCurrency }})
                     </span>
                   </div>
                 </div>
 
                 <div class="part-amount-block">
                   <div class="part-amounts-wrap">
-                    <span class="part-net-amount">{{ reg.montant | currency:'EUR':'symbol':'1.2-2' }}</span>
+                    <span class="part-net-amount">{{ reg.montant | appCurrency }}</span>
                     <span class="part-tip-amount" *ngIf="reg.pourboire && reg.pourboire > 0">
-                      +{{ reg.pourboire | currency:'EUR':'symbol':'1.2-2' }} {{ t('FACTURES.TIP') }}
+                      +{{ reg.pourboire | appCurrency }} {{ t('FACTURES.TIP') }}
                     </span>
-                    <strong class="part-total-paid">{{ reg.totalRegle | currency:'EUR':'symbol':'1.2-2' }}</strong>
+                    <strong class="part-total-paid">{{ reg.totalRegle | appCurrency }}</strong>
                   </div>
                   <button
                     type="button"

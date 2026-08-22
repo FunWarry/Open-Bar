@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, inject } from '@angular/core';
-import { CommonModule, CurrencyPipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
   IonHeader, IonToolbar, IonButtons, IonButton, IonIcon,
@@ -12,6 +12,8 @@ import {
   calculatorOutline, addOutline, removeOutline
 } from 'ionicons/icons';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
+import { AppCurrencyPipe } from '../../../core/pipes/app-currency.pipe';
+import { AppSettingsService } from '../../../core/services/app-settings.service';
 
 /** Result emitted when a payment is confirmed via {@link ReglementModalComponent}. */
 export interface ReglementModalResult {
@@ -39,7 +41,7 @@ export interface ReglementModalResult {
   imports: [
     CommonModule,
     FormsModule,
-    CurrencyPipe,
+    AppCurrencyPipe,
     TranslocoModule,
     IonHeader,
     IonToolbar,
@@ -53,6 +55,11 @@ export interface ReglementModalResult {
   styleUrls: ['./reglement-modal.component.scss']
 })
 export class ReglementModalComponent implements OnInit {
+  private readonly appSettingsService = inject(AppSettingsService);
+
+  get currencySymbol(): string {
+    return this.appSettingsService.currencySymbol;
+  }
   /** Base amount to pay in EUR. */
   @Input() initialTotal = 0;
 

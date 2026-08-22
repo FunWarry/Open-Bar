@@ -18,19 +18,22 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class AppSettingsIntegrationTest extends BaseIntegrationTest {
 
     @Test
-    @DisplayName("GET /api/settings - public endpoint returns settings with alert thresholds")
+    @DisplayName("GET /api/settings - public endpoint returns settings with alert thresholds and currency")
     void getSettings_publicEndpoint_returnsSettingsWithAlertThresholds() throws Exception {
         mockMvc.perform(get("/api/settings"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.primaryColor").isNotEmpty())
                 .andExpect(jsonPath("$.establishmentName").isNotEmpty())
+                .andExpect(jsonPath("$.currencyCode").isNotEmpty())
+                .andExpect(jsonPath("$.currencySymbol").isNotEmpty())
+                .andExpect(jsonPath("$.currencyPosition").isNotEmpty())
                 .andExpect(jsonPath("$.tempsAlerteWarningMinutes").isNumber())
                 .andExpect(jsonPath("$.tempsAlerteCommandeMinutes").isNumber())
                 .andExpect(jsonPath("$.tempsAlerteCritiqueCommandeMinutes").isNumber());
     }
 
     @Test
-    @DisplayName("PUT /api/settings - admin can update alert thresholds and branding")
+    @DisplayName("PUT /api/settings - admin can update alert thresholds, branding, and currency")
     void updateSettings_asAdmin_updatesAndReturnsNewSettings() throws Exception {
         AppSettingsUpdateRequest request = new AppSettingsUpdateRequest(
                 "#1a56db",
@@ -38,6 +41,9 @@ class AppSettingsIntegrationTest extends BaseIntegrationTest {
                 "https://example.com/bar-logo.png",
                 "OpenBar Central",
                 DefaultTheme.DARK,
+                "USD",
+                "$",
+                com.bar.gestioncocktail.model.CurrencyPosition.BEFORE,
                 2,
                 4,
                 8
@@ -50,13 +56,16 @@ class AppSettingsIntegrationTest extends BaseIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.establishmentName").value("OpenBar Central"))
                 .andExpect(jsonPath("$.primaryColor").value("#1a56db"))
+                .andExpect(jsonPath("$.currencyCode").value("USD"))
+                .andExpect(jsonPath("$.currencySymbol").value("$"))
+                .andExpect(jsonPath("$.currencyPosition").value("BEFORE"))
                 .andExpect(jsonPath("$.tempsAlerteWarningMinutes").value(2))
                 .andExpect(jsonPath("$.tempsAlerteCommandeMinutes").value(4))
                 .andExpect(jsonPath("$.tempsAlerteCritiqueCommandeMinutes").value(8));
     }
 
     @Test
-    @DisplayName("PUT /api/settings - manager can update alert thresholds and branding")
+    @DisplayName("PUT /api/settings - manager can update alert thresholds, branding, and currency")
     void updateSettings_asManager_updatesAndReturnsNewSettings() throws Exception {
         AppSettingsUpdateRequest request = new AppSettingsUpdateRequest(
                 "#6c7fe8",
@@ -64,6 +73,9 @@ class AppSettingsIntegrationTest extends BaseIntegrationTest {
                 null,
                 "OpenBar Manager Hub",
                 DefaultTheme.DARK,
+                "GBP",
+                "£",
+                com.bar.gestioncocktail.model.CurrencyPosition.BEFORE,
                 3,
                 6,
                 12
@@ -75,6 +87,9 @@ class AppSettingsIntegrationTest extends BaseIntegrationTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.establishmentName").value("OpenBar Manager Hub"))
+                .andExpect(jsonPath("$.currencyCode").value("GBP"))
+                .andExpect(jsonPath("$.currencySymbol").value("£"))
+                .andExpect(jsonPath("$.currencyPosition").value("BEFORE"))
                 .andExpect(jsonPath("$.tempsAlerteWarningMinutes").value(3))
                 .andExpect(jsonPath("$.tempsAlerteCommandeMinutes").value(6))
                 .andExpect(jsonPath("$.tempsAlerteCritiqueCommandeMinutes").value(12));
@@ -89,6 +104,9 @@ class AppSettingsIntegrationTest extends BaseIntegrationTest {
                 null,
                 "Unauthorized Bar",
                 DefaultTheme.DARK,
+                null,
+                null,
+                null,
                 3,
                 5,
                 10
@@ -110,6 +128,9 @@ class AppSettingsIntegrationTest extends BaseIntegrationTest {
                 null,
                 "Unauthorized Bar",
                 DefaultTheme.DARK,
+                null,
+                null,
+                null,
                 3,
                 5,
                 10
@@ -131,6 +152,9 @@ class AppSettingsIntegrationTest extends BaseIntegrationTest {
                 null,
                 "Unauthorized Bar",
                 DefaultTheme.DARK,
+                null,
+                null,
+                null,
                 3,
                 5,
                 10
@@ -151,6 +175,9 @@ class AppSettingsIntegrationTest extends BaseIntegrationTest {
                 null,
                 "OpenBar",
                 DefaultTheme.DARK,
+                null,
+                null,
+                null,
                 6,
                 5,
                 10

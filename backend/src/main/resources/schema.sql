@@ -305,6 +305,9 @@ CREATE TABLE IF NOT EXISTS app_settings (
     logo_url VARCHAR(2048),
     establishment_name VARCHAR(100) NOT NULL DEFAULT 'OpenBar',
     default_theme VARCHAR(20) NOT NULL DEFAULT 'DARK',
+    currency_code VARCHAR(3) NOT NULL DEFAULT 'EUR',
+    currency_symbol VARCHAR(10) NOT NULL DEFAULT '€',
+    currency_position VARCHAR(10) NOT NULL DEFAULT 'AFTER',
     temps_alerte_warning_minutes INTEGER NOT NULL DEFAULT 3,
     temps_alerte_commande_minutes INTEGER NOT NULL DEFAULT 5,
     temps_alerte_critique_commande_minutes INTEGER NOT NULL DEFAULT 10,
@@ -397,7 +400,11 @@ CREATE TABLE IF NOT EXISTS shift_audit_log (
     new_snapshot TEXT
 );
 
--- 10. Initial Singleton Seeds
+-- 10. Schema Migrations & Initial Singleton Seeds
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS currency_code VARCHAR(3) NOT NULL DEFAULT 'EUR';
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS currency_symbol VARCHAR(10) NOT NULL DEFAULT '€';
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS currency_position VARCHAR(10) NOT NULL DEFAULT 'AFTER';
+
 INSERT INTO app_settings (
     id,
     primary_color,
