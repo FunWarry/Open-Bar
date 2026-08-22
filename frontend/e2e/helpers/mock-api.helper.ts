@@ -7,6 +7,51 @@ import { Page } from '@playwright/test';
  * @param page Playwright page instance
  */
 export async function setupMockApi(page: Page): Promise<void> {
+  await page.route('**/api/settings**', async (route) => {
+    if (route.request().method() === 'PUT') {
+      const body = route.request().postDataJSON() || {};
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 1,
+          primaryColor: '#6c7fe8',
+          primaryColorStrong: '#5a68d6',
+          logoUrl: null,
+          establishmentName: 'OpenBar',
+          defaultTheme: 'DARK',
+          currencyCode: body.currencyCode || 'EUR',
+          currencySymbol: body.currencySymbol || '€',
+          currencyPosition: body.currencyPosition || 'AFTER',
+          tempsAlerteWarningMinutes: body.tempsAlerteWarningMinutes ?? 3,
+          tempsAlerteCommandeMinutes: body.tempsAlerteCommandeMinutes ?? 5,
+          tempsAlerteCritiqueCommandeMinutes: body.tempsAlerteCritiqueCommandeMinutes ?? 10,
+          updatedAt: new Date().toISOString(),
+        }),
+      });
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        id: 1,
+        primaryColor: '#6c7fe8',
+        primaryColorStrong: '#5a68d6',
+        logoUrl: null,
+        establishmentName: 'OpenBar',
+        defaultTheme: 'DARK',
+        currencyCode: 'EUR',
+        currencySymbol: '€',
+        currencyPosition: 'AFTER',
+        tempsAlerteWarningMinutes: 3,
+        tempsAlerteCommandeMinutes: 5,
+        tempsAlerteCritiqueCommandeMinutes: 10,
+        updatedAt: new Date().toISOString(),
+      }),
+    });
+  });
+
   await page.route('**/api/setup/status', async (route) => {
     await route.fulfill({
       status: 200,

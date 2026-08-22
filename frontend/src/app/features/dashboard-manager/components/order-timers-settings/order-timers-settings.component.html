@@ -66,7 +66,7 @@
                 type="button"
                 class="currency-preset-btn"
                 [class.active-preset]="currentCurrencyCode === cp.code && currentCurrencySymbol === cp.symbol"
-                [attr.data-testid]="'currency-preset-' + cp.code.toLowerCase()"
+                [attr.data-testid]="'currency-preset-btn-' + cp.code"
                 (click)="applyCurrencyPreset(cp)"
                 (keyup.enter)="applyCurrencyPreset(cp)">
                 {{ cp.label }}
@@ -118,7 +118,7 @@
                   type="button"
                   class="pos-toggle-btn"
                   [class.pos-active]="currentCurrencyPosition === 'AFTER'"
-                  data-testid="currency-pos-after"
+                  data-testid="currency-pos-after-btn"
                   (click)="timersForm.get('currencyPosition')?.setValue('AFTER'); timersForm.markAsDirty()"
                   (keyup.enter)="timersForm.get('currencyPosition')?.setValue('AFTER'); timersForm.markAsDirty()">
                   <span>{{ t('SETTINGS.CURRENCY_POS_AFTER') }}</span>
@@ -127,7 +127,7 @@
                   type="button"
                   class="pos-toggle-btn"
                   [class.pos-active]="currentCurrencyPosition === 'BEFORE'"
-                  data-testid="currency-pos-before"
+                  data-testid="currency-pos-before-btn"
                   (click)="timersForm.get('currencyPosition')?.setValue('BEFORE'); timersForm.markAsDirty()"
                   (keyup.enter)="timersForm.get('currencyPosition')?.setValue('BEFORE'); timersForm.markAsDirty()">
                   <span>{{ t('SETTINGS.CURRENCY_POS_BEFORE') }}</span>

@@ -33,8 +33,8 @@ test.describe('Manager Currency Settings E2E', () => {
     await expect(page.locator('[data-testid="currency-symbol-input"]')).toHaveValue('$');
 
     // Live preview prices should now show dollar symbol before amounts
-    await expect(page.locator('[data-testid="currency-preview-cocktail-1"]')).toContainText('$');
-    await expect(page.locator('[data-testid="currency-preview-total"]')).toContainText('$');
+    await expect(page.locator('[data-testid="preview-cocktail-price-1"]')).toContainText('$');
+    await expect(page.locator('[data-testid="preview-cocktail-total"]')).toContainText('$');
   });
 
   test('should toggle symbol position between BEFORE and AFTER', async ({ page }) => {
@@ -46,11 +46,11 @@ test.describe('Manager Currency Settings E2E', () => {
     await page.click('[data-testid="currency-pos-after-btn"]');
 
     // Live preview should show amount followed by $
-    await expect(page.locator('[data-testid="currency-preview-total"]')).toContainText('$');
+    await expect(page.locator('[data-testid="preview-cocktail-total"]')).toContainText('$');
 
     // Toggle back to BEFORE
     await page.click('[data-testid="currency-pos-before-btn"]');
-    await expect(page.locator('[data-testid="currency-preview-total"]')).toContainText('$');
+    await expect(page.locator('[data-testid="preview-cocktail-total"]')).toContainText('$');
   });
 
   test('should save updated currency settings', async ({ page }) => {
