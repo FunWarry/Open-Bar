@@ -13,6 +13,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -75,14 +76,14 @@ class PdfServiceTest {
         factureComplete = new Facture();
         factureComplete.setId(1L);
         factureComplete.setNumero("FAC-2024-001");
-        factureComplete.setDateFacture(LocalDateTime.of(2024, 6, 15, 20, 30));
+        factureComplete.setDateFacture(LocalDateTime.of(2024, Month.JUNE, 15, 20, 30));
         factureComplete.setTable(table);
         factureComplete.setModePaiement("CARTE");
         factureComplete.setTotal(new BigDecimal("26.00"));
         factureComplete.setPourboire(new BigDecimal("2.00"));
         factureComplete.setTotalTTC(new BigDecimal("28.00"));
         factureComplete.setReglee(true);
-        factureComplete.setDateReglement(LocalDateTime.of(2024, 6, 15, 21, 0));
+        factureComplete.setDateReglement(LocalDateTime.of(2024, Month.JUNE, 15, 21, 0));
         factureComplete.setNotes("Loyal customer — offer a digestif");
         factureComplete.setItems(List.of(item1, item2));
     }
@@ -302,7 +303,7 @@ class PdfServiceTest {
         factureReglee.setId(13L);
         factureReglee.setNumero("FAC-2024-013");
         factureReglee.setReglee(true);
-        factureReglee.setDateReglement(LocalDateTime.of(2024, 6, 20, 22, 15));
+        factureReglee.setDateReglement(LocalDateTime.of(2024, Month.JUNE, 20, 22, 15));
         factureReglee.setTotal(new BigDecimal("45.00"));
         factureReglee.setItems(new ArrayList<>());
 
