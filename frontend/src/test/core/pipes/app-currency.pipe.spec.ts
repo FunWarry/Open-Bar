@@ -58,4 +58,26 @@ describe('AppCurrencyPipe', () => {
     pipe.transform(0);
     expect(settingsServiceMock.formatCurrency).toHaveBeenCalledWith(0, 2, 2);
   });
+
+  describe('Fallback behavior when AppSettingsService is not provided', () => {
+    let unprovidedPipe: AppCurrencyPipe;
+
+    beforeEach(() => {
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [AppCurrencyPipe]
+      });
+      unprovidedPipe = TestBed.inject(AppCurrencyPipe);
+    });
+
+    it('should format with default euro format when service is unprovided', () => {
+      const result = unprovidedPipe.transform(12.5);
+      expect(result).toMatch(/12[,.]50 €/);
+    });
+
+    it('should fallback safely for null or NaN values when service is unprovided', () => {
+      expect(unprovidedPipe.transform(null)).toMatch(/0[,.]00 €/);
+      expect(unprovidedPipe.transform(Number.NaN)).toMatch(/0[,.]00 €/);
+    });
+  });
 });

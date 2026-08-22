@@ -446,4 +446,36 @@ class PdfServiceTest {
         String header = new String(pdf, 0, Math.min(5, pdf.length));
         assertThat(header).startsWith("%PDF");
     }
+
+    @Test
+    void generateFacturePdf_withNullConfigAndSettings_usesDefaults() {
+        PdfService fallbackPdfService = new PdfService(null, null);
+        byte[] pdf = fallbackPdfService.generateFacturePdf(factureComplete);
+
+        assertThat(pdf).isNotNull().isNotEmpty();
+        String header = new String(pdf, 0, Math.min(5, pdf.length));
+        assertThat(header).startsWith("%PDF");
+    }
+
+    @Test
+    void generateDailyRecapPdf_withNullConfigAndSettings_usesDefaults() {
+        PdfService fallbackPdfService = new PdfService(null, null);
+        com.bar.gestioncocktail.dto.DailyRecapDTO recap = new com.bar.gestioncocktail.dto.DailyRecapDTO(
+            java.time.LocalDate.now(),
+            new BigDecimal("100.00"),
+            new BigDecimal("83.33"),
+            new BigDecimal("16.67"),
+            5,
+            new BigDecimal("20.00"),
+            10,
+            List.of(new com.bar.gestioncocktail.dto.PaymentModeSummaryDTO("CARTE", 5L, new BigDecimal("100.00"))),
+            List.of(new com.bar.gestioncocktail.dto.VatSummaryDTO("20.0%", new BigDecimal("83.33"), new BigDecimal("16.67"), new BigDecimal("100.00")))
+        );
+
+        byte[] pdf = fallbackPdfService.generateDailyRecapPdf(recap);
+
+        assertThat(pdf).isNotNull().isNotEmpty();
+        String header = new String(pdf, 0, Math.min(5, pdf.length));
+        assertThat(header).startsWith("%PDF");
+    }
 }

@@ -411,9 +411,6 @@ INSERT INTO app_settings (
     primary_color_strong,
     establishment_name,
     default_theme,
-    currency_code,
-    currency_symbol,
-    currency_position,
     temps_alerte_warning_minutes,
     temps_alerte_commande_minutes,
     temps_alerte_critique_commande_minutes
@@ -424,9 +421,6 @@ VALUES (
     '#5a68d6',
     'OpenBar',
     'DARK',
-    'EUR',
-    '€',
-    'AFTER',
     3,
     5,
     10

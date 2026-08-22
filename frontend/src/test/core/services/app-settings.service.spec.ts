@@ -188,4 +188,44 @@ describe('AppSettingsService', () => {
       expect(service.formatCurrency(100, 0, 0)).not.toContain(',00');
     });
   });
+
+  describe('Fallback behavior when HttpClient is not provided', () => {
+    let unprovidedService: AppSettingsService;
+
+    beforeEach(() => {
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [AppSettingsService]
+      });
+      unprovidedService = TestBed.inject(AppSettingsService);
+    });
+
+    it('should return fallback settings on getSettings() when HttpClient is missing', (done) => {
+      unprovidedService.getSettings().subscribe(settings => {
+        expect(settings).toBeTruthy();
+        expect(settings.establishmentName).toBe('OpenBar');
+        expect(settings.currencyCode).toBe('EUR');
+        done();
+      });
+    });
+
+    it('should return updated fallback settings on updateSettings() when HttpClient is missing', (done) => {
+      unprovidedService.updateSettings({
+        establishmentName: 'Custom Bar',
+        primaryColor: '#123456',
+        primaryColorStrong: '#654321',
+        logoUrl: null,
+        defaultTheme: 'LIGHT',
+        currencyCode: 'USD',
+        currencySymbol: '$',
+        currencyPosition: 'BEFORE'
+      }).subscribe(settings => {
+        expect(settings).toBeTruthy();
+        expect(settings.establishmentName).toBe('Custom Bar');
+        expect(settings.currencyCode).toBe('USD');
+        expect(settings.currencySymbol).toBe('$');
+        done();
+      });
+    });
+  });
 });
