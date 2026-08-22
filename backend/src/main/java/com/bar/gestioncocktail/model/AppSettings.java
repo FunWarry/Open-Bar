@@ -52,6 +52,20 @@ public class AppSettings {
     @Column(nullable = false)
     private DefaultTheme defaultTheme = DefaultTheme.DARK;
 
+    @NotBlank(message = "Le code de devise est obligatoire")
+    @Size(min = 3, max = 3, message = "Le code de devise doit comporter 3 lettres (ISO 4217)")
+    @Column(name = "currency_code", nullable = false, length = 3)
+    private String currencyCode = "EUR";
+
+    @NotBlank(message = "Le symbole de devise est obligatoire")
+    @Size(max = 10, message = "Le symbole de devise ne peut pas dépasser 10 caractères")
+    @Column(name = "currency_symbol", nullable = false, length = 10)
+    private String currencySymbol = "€";
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "currency_position", nullable = false, length = 10)
+    private CurrencyPosition currencyPosition = CurrencyPosition.AFTER;
+
     @jakarta.validation.constraints.NotNull(message = "Le temps d'alerte avertissement des commandes est obligatoire")
     @jakarta.validation.constraints.Min(value = 1, message = "Le temps d'alerte avertissement doit être d'au moins 1 minute")
     @jakarta.validation.constraints.Max(value = 120, message = "Le temps d'alerte avertissement ne peut pas dépasser 120 minutes")

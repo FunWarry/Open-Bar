@@ -14,6 +14,8 @@ import {
   ModalController,
 } from '@ionic/angular/standalone';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { AppCurrencyPipe } from '../../../../core/pipes/app-currency.pipe';
+import { AppSettingsService } from '../../../../core/services/app-settings.service';
 import { addIcons } from 'ionicons';
 import {
   closeOutline,
@@ -58,8 +60,8 @@ import {
 
 /**
  * Interactive Modal for configuring and customizing complete cocktail variant recipes.
- * Allows editing all sequential steps (ingredients, action templates, custom instructions),
- * adjusting dosages, reordering, deleting, adding steps, price surcharges, and availability.
+ * Supports ingredient adjustments (replacements, extra/custom ingredients), volume recalculation,
+ * dynamic pricing overrides, and step-by-step recipe editing.
  */
 @Component({
   selector: 'app-variant-recipe-modal',
@@ -77,12 +79,18 @@ import {
     IonIcon,
     IonFooter,
     TranslocoPipe,
+    AppCurrencyPipe,
     SearchableSelectComponent,
   ],
   templateUrl: './variant-recipe-modal.component.html',
   styleUrls: ['./variant-recipe-modal.component.scss'],
 })
 export class VariantRecipeModalComponent implements OnInit {
+  private readonly appSettingsService = inject(AppSettingsService);
+
+  get currencySymbol(): string {
+    return this.appSettingsService.currencySymbol;
+  }
   /** The variant being edited, or null for creating a new variant. */
   @Input() variante: CocktailVariante | null = null;
 

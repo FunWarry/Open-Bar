@@ -38,19 +38,19 @@
       <span class="hero-label">{{ 'FACTURES.DUE_TOTAL' | transloco }}</span>
       <div class="hero-price-display">
         <span class="main-amount" data-testid="reglement-grand-total">
-          {{ totalWithTip | currency:'EUR':'symbol':'1.2-2':'fr' }}
+          {{ totalWithTip | appCurrency }}
         </span>
       </div>
 
       <div class="hero-details-row">
         <div class="detail-pill" data-testid="reglement-initial-total">
           <span class="pill-label">{{ 'FACTURES.INITIAL_TOTAL' | transloco }} :</span>
-          <strong class="pill-value">{{ initialTotal | currency:'EUR':'symbol':'1.2-2':'fr' }}</strong>
+          <strong class="pill-value">{{ initialTotal | appCurrency }}</strong>
         </div>
         <div *ngIf="tip > 0" class="detail-pill tip-pill" data-testid="reglement-tip-badge">
           <ion-icon name="heart-outline"></ion-icon>
           <span class="pill-label">{{ 'FACTURES.TIP' | transloco }} :</span>
-          <strong class="pill-value">+{{ tip | currency:'EUR':'symbol':'1.2-2':'fr' }}</strong>
+          <strong class="pill-value">+{{ tip | appCurrency }}</strong>
         </div>
       </div>
     </div>
@@ -139,7 +139,7 @@
           (click)="setTipMode('none')"
           data-testid="tip-btn-none">
           <span class="tip-pct">{{ 'FACTURES.NO_TIP' | transloco }}</span>
-          <span class="tip-eur">0,00 €</span>
+          <span class="tip-eur">{{ 0 | appCurrency }}</span>
         </button>
 
         <!-- +5% -->
@@ -150,7 +150,7 @@
           (click)="setTipMode('5pct')"
           data-testid="tip-btn-5pct">
           <span class="tip-pct">+5%</span>
-          <span class="tip-eur">+{{ getTipAmount(5) | currency:'EUR':'symbol':'1.2-2':'fr' }}</span>
+          <span class="tip-eur">+{{ getTipAmount(5) | appCurrency }}</span>
         </button>
 
         <!-- +10% -->
@@ -161,7 +161,7 @@
           (click)="setTipMode('10pct')"
           data-testid="tip-btn-10pct">
           <span class="tip-pct">+10%</span>
-          <span class="tip-eur">+{{ getTipAmount(10) | currency:'EUR':'symbol':'1.2-2':'fr' }}</span>
+          <span class="tip-eur">+{{ getTipAmount(10) | appCurrency }}</span>
         </button>
 
         <!-- +15% -->
@@ -172,7 +172,7 @@
           (click)="setTipMode('15pct')"
           data-testid="tip-btn-15pct">
           <span class="tip-pct">+15%</span>
-          <span class="tip-eur">+{{ getTipAmount(15) | currency:'EUR':'symbol':'1.2-2':'fr' }}</span>
+          <span class="tip-eur">+{{ getTipAmount(15) | appCurrency }}</span>
         </button>
 
         <!-- Montant libre -->
@@ -183,7 +183,7 @@
           (click)="setTipMode('custom')"
           data-testid="tip-btn-custom">
           <span class="tip-pct">{{ 'FACTURES.CUSTOM_TIP' | transloco }}</span>
-          <span class="tip-eur">{{ (customTip > 0 ? ('+' + (customTip | currency:'EUR':'symbol':'1.2-2':'fr')) : ('FACTURES.FREE_AMOUNT' | transloco)) }}</span>
+          <span class="tip-eur">{{ (customTip > 0 ? ('+' + (customTip | appCurrency)) : ('FACTURES.FREE_AMOUNT' | transloco)) }}</span>
         </button>
       </div>
 
@@ -205,7 +205,7 @@
               [attr.aria-label]="'FACTURES.CUSTOM_TIP_LABEL' | transloco"
               class="custom-tip-input"
               data-testid="custom-tip-input" />
-            <span class="unit">€</span>
+            <span class="unit">{{ currencySymbol }}</span>
           </div>
           <button type="button" class="btn-step" (click)="adjustCustomTip(1)" [attr.aria-label]="'FACTURES.INCREASE_TIP' | transloco">
             <ion-icon name="add-outline"></ion-icon>
@@ -213,9 +213,9 @@
         </div>
 
         <div class="quick-step-pills">
-          <button type="button" class="quick-pill" (click)="adjustCustomTip(1)">+1,00 €</button>
-          <button type="button" class="quick-pill" (click)="adjustCustomTip(2)">+2,00 €</button>
-          <button type="button" class="quick-pill" (click)="adjustCustomTip(5)">+5,00 €</button>
+          <button type="button" class="quick-pill" (click)="adjustCustomTip(1)">+{{ 1 | appCurrency }}</button>
+          <button type="button" class="quick-pill" (click)="adjustCustomTip(2)">+{{ 2 | appCurrency }}</button>
+          <button type="button" class="quick-pill" (click)="adjustCustomTip(5)">+{{ 5 | appCurrency }}</button>
         </div>
       </div>
     </div>
@@ -244,7 +244,7 @@
             [class.selected]="receivedAmount === note"
             (click)="setCashAmount(note)"
             [attr.data-testid]="'cash-preset-' + note">
-            {{ note }} €
+            {{ note | appCurrency:0:0 }}
           </button>
         </div>
 
@@ -259,7 +259,7 @@
             [attr.aria-label]="'FACTURES.AMOUNT_RECEIVED' | transloco"
             class="cash-received-field"
             data-testid="cash-received-input" />
-          <span class="field-unit">€</span>
+          <span class="field-unit">{{ currencySymbol }}</span>
         </div>
       </div>
 
@@ -273,14 +273,14 @@
         <div *ngIf="!isReceivedAmountSufficient" class="change-alert alert-insufficient" data-testid="cash-insufficient-warning">
           <ion-icon name="close-outline"></ion-icon>
           <span>
-            {{ 'FACTURES.INSUFFICIENT_AMOUNT' | transloco:{ missing: ((totalWithTip - (receivedAmount || 0)) | currency:'EUR':'symbol':'1.2-2':'fr') } }}
+            {{ 'FACTURES.INSUFFICIENT_AMOUNT' | transloco:{ missing: ((totalWithTip - (receivedAmount || 0)) | appCurrency) } }}
           </span>
         </div>
 
         <div *ngIf="isReceivedAmountSufficient && changeToReturn > 0" class="change-alert alert-return" data-testid="cash-change-amount">
           <div class="return-text">
             <span class="return-label">{{ 'FACTURES.CHANGE_TO_RETURN' | transloco }}</span>
-            <strong class="return-val">{{ changeToReturn | currency:'EUR':'symbol':'1.2-2':'fr' }}</strong>
+            <strong class="return-val">{{ changeToReturn | appCurrency }}</strong>
           </div>
           <div class="return-icon-box">
             <ion-icon name="checkmark-circle-outline"></ion-icon>
@@ -307,6 +307,6 @@
     (keydown.enter)="confirmPayment()"
     data-testid="confirm-payment-btn">
     <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
-    <span>{{ 'FACTURES.CONFIRM_PAYMENT' | transloco:{ amount: (totalWithTip | currency:'EUR':'symbol':'1.2-2':'fr') } }}</span>
+    <span>{{ 'FACTURES.CONFIRM_PAYMENT' | transloco:{ amount: (totalWithTip | appCurrency) } }}</span>
   </ion-button>
 </ion-footer>

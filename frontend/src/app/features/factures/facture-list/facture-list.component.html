@@ -53,10 +53,10 @@
           <ion-icon name="cash-outline"></ion-icon>
         </div>
         <div class="kpi-body">
-          <span class="kpi-number">{{ totalCA | currency:'EUR':'symbol':'1.2-2' }}</span>
+          <span class="kpi-number">{{ totalCA | appCurrency }}</span>
           <span class="kpi-title">{{ t('FACTURES.STATS.TOTAL_CA') }}</span>
           <div class="kpi-subtext">
-            <span class="sub-settled">{{ t('FACTURES.STATS.TOTAL_SETTLED_LABEL') }}: {{ totalSettledCA | currency:'EUR':'symbol':'1.2-2' }}</span>
+            <span class="sub-settled">{{ t('FACTURES.STATS.TOTAL_SETTLED_LABEL') }}: {{ totalSettledCA | appCurrency }}</span>
           </div>
         </div>
       </div>
@@ -261,7 +261,7 @@
               <!-- Card Middle -->
               <div class="card-middle">
                 <div class="amount-hero-box">
-                  <span class="amount-val">{{ (facture.totalTTC ?? facture.total) | currency:'EUR':'symbol':'1.2-2' }}</span>
+                  <span class="amount-val">{{ (facture.totalTTC ?? facture.total) | appCurrency }}</span>
                   <span class="amount-tax-label">{{ t('FACTURES.TTC_LABEL') }}</span>
                 </div>
 
@@ -373,7 +373,7 @@
                       </span>
                     </td>
                     <td class="td-right">
-                      <span class="cell-amount">{{ (facture.totalTTC ?? facture.total) | currency:'EUR':'symbol':'1.2-2' }}</span>
+                      <span class="cell-amount">{{ (facture.totalTTC ?? facture.total) | appCurrency }}</span>
                     </td>
                     <td class="td-right">
                       <div class="row-actions">

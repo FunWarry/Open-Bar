@@ -36,7 +36,8 @@ describe('ProductCardComponent', () => {
   it('should display product name and price', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.textContent).toContain('Mojito');
-    expect(compiled.textContent).toContain('8.50');
+    expect(compiled.textContent).toMatch(/8[,.]50/);
+    expect(compiled.textContent).toContain('€');
   });
 
   it('should emit add event on click', () => {

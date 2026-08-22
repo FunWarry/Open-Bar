@@ -14,6 +14,7 @@ import {
   cardOutline, receiptOutline, peopleOutline, trendingUpOutline, refreshOutline
 } from 'ionicons/icons';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
+import { AppCurrencyPipe } from '../../../core/pipes/app-currency.pipe';
 import { FactureService } from '../../../core/services/facture.service';
 import { DailyRecap, PaymentModeSummary } from '../../../core/models/daily-recap.model';
 import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
@@ -29,7 +30,7 @@ import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
   styleUrls: ['./facture-recap-journee.component.css'],
   standalone: true,
   imports: [
-    CommonModule, FormsModule, TranslocoModule,
+    CommonModule, FormsModule, TranslocoModule, AppCurrencyPipe,
     IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardContent,
     IonGrid, IonRow, IonCol, IonBadge, IonIcon, IonButton, IonSpinner,
     IonRefresher, IonRefresherContent,

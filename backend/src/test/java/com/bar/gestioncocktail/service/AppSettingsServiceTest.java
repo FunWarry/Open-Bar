@@ -98,7 +98,9 @@ class AppSettingsServiceTest {
         when(appSettingsRepository.save(any(AppSettings.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         AppSettingsUpdateRequest request = new AppSettingsUpdateRequest(
-            "#ff0000", "#cc0000", "https://example.com/logo.png", "The Test Bar", DefaultTheme.DARK, 2, 6, 12
+            "#ff0000", "#cc0000", "https://example.com/logo.png", "The Test Bar", DefaultTheme.DARK,
+            "USD", "$", com.bar.gestioncocktail.model.CurrencyPosition.BEFORE,
+            2, 6, 12
         );
 
         AppSettings result = appSettingsService.updateSettings(request);
@@ -113,9 +115,31 @@ class AppSettingsServiceTest {
         assertThat(result.getLogoUrl()).isEqualTo("https://example.com/logo.png");
         assertThat(result.getEstablishmentName()).isEqualTo("The Test Bar");
         assertThat(result.getDefaultTheme()).isEqualTo(DefaultTheme.DARK);
+        assertThat(result.getCurrencyCode()).isEqualTo("USD");
+        assertThat(result.getCurrencySymbol()).isEqualTo("$");
+        assertThat(result.getCurrencyPosition()).isEqualTo(com.bar.gestioncocktail.model.CurrencyPosition.BEFORE);
         assertThat(result.getTempsAlerteWarningMinutes()).isEqualTo(2);
         assertThat(result.getTempsAlerteCommandeMinutes()).isEqualTo(6);
         assertThat(result.getTempsAlerteCritiqueCommandeMinutes()).isEqualTo(12);
+    }
+
+    @Test
+    @DisplayName("updateSettings updates currency configuration to GBP")
+    void updateSettings_updatesCurrencyConfiguration() {
+        when(appSettingsRepository.findById(AppSettings.SINGLETON_ID)).thenReturn(Optional.of(existing));
+        when(appSettingsRepository.save(any(AppSettings.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        AppSettingsUpdateRequest request = new AppSettingsUpdateRequest(
+            "#6c7fe8", "#5a68d6", null, "OpenBar", DefaultTheme.DARK,
+            "GBP", "£", com.bar.gestioncocktail.model.CurrencyPosition.BEFORE,
+            3, 5, 10
+        );
+
+        AppSettings result = appSettingsService.updateSettings(request);
+
+        assertThat(result.getCurrencyCode()).isEqualTo("GBP");
+        assertThat(result.getCurrencySymbol()).isEqualTo("£");
+        assertThat(result.getCurrencyPosition()).isEqualTo(com.bar.gestioncocktail.model.CurrencyPosition.BEFORE);
     }
 
     @Test
@@ -125,7 +149,9 @@ class AppSettingsServiceTest {
         when(appSettingsRepository.save(any(AppSettings.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         AppSettingsUpdateRequest request = new AppSettingsUpdateRequest(
-            "#6c7fe8", "#5a68d6", null, "OpenBar", DefaultTheme.DARK, 4, 8, 15
+            "#6c7fe8", "#5a68d6", null, "OpenBar", DefaultTheme.DARK,
+            null, null, null,
+            4, 8, 15
         );
 
         AppSettings result = appSettingsService.updateSettings(request);
@@ -141,7 +167,9 @@ class AppSettingsServiceTest {
         when(appSettingsRepository.findById(AppSettings.SINGLETON_ID)).thenReturn(Optional.of(existing));
 
         AppSettingsUpdateRequest request = new AppSettingsUpdateRequest(
-            "#6c7fe8", "#5a68d6", null, "OpenBar", DefaultTheme.DARK, 5, 5, 10
+            "#6c7fe8", "#5a68d6", null, "OpenBar", DefaultTheme.DARK,
+            null, null, null,
+            5, 5, 10
         );
 
         assertThatThrownBy(() -> appSettingsService.updateSettings(request))
@@ -155,7 +183,9 @@ class AppSettingsServiceTest {
         when(appSettingsRepository.findById(AppSettings.SINGLETON_ID)).thenReturn(Optional.of(existing));
 
         AppSettingsUpdateRequest request = new AppSettingsUpdateRequest(
-            "#6c7fe8", "#5a68d6", null, "OpenBar", DefaultTheme.DARK, 3, 10, 10
+            "#6c7fe8", "#5a68d6", null, "OpenBar", DefaultTheme.DARK,
+            null, null, null,
+            3, 10, 10
         );
 
         assertThatThrownBy(() -> appSettingsService.updateSettings(request))
@@ -170,7 +200,9 @@ class AppSettingsServiceTest {
         when(appSettingsRepository.save(any(AppSettings.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         AppSettingsUpdateRequest request = new AppSettingsUpdateRequest(
-            "#6c7fe8", "#5a68d6", null, "OpenBar", DefaultTheme.DARK, 3, 5, 10
+            "#6c7fe8", "#5a68d6", null, "OpenBar", DefaultTheme.DARK,
+            null, null, null,
+            3, 5, 10
         );
 
         AppSettings result = appSettingsService.updateSettings(request);
@@ -182,7 +214,9 @@ class AppSettingsServiceTest {
     @DisplayName("updateSettings rejects LIGHT theme as not yet available")
     void updateSettings_lightTheme_rejectedWithBusinessException() {
         AppSettingsUpdateRequest request = new AppSettingsUpdateRequest(
-            "#6c7fe8", "#5a68d6", null, "OpenBar", DefaultTheme.LIGHT, 3, 5, 10
+            "#6c7fe8", "#5a68d6", null, "OpenBar", DefaultTheme.LIGHT,
+            null, null, null,
+            3, 5, 10
         );
 
         assertThatThrownBy(() -> appSettingsService.updateSettings(request))

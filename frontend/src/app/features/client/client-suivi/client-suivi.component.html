@@ -62,13 +62,13 @@
             <div class="item-row">
               <span class="item-qty">x{{ item.quantite }}</span>
               <span class="item-name">{{ item.cocktailNom }}</span>
-              <span class="item-price">{{ (item.prixUnitaire * item.quantite) | currency:'EUR' }}</span>
+              <span class="item-price">{{ (item.prixUnitaire * item.quantite) | appCurrency }}</span>
             </div>
           }
         </div>
         <div class="total-row">
           <span>{{ 'CLIENT.TOTAL_TTC' | transloco }}</span>
-          <span class="total-price">{{ commande.total | currency:'EUR' }}</span>
+          <span class="total-price">{{ commande.total | appCurrency }}</span>
         </div>
       </div>
 

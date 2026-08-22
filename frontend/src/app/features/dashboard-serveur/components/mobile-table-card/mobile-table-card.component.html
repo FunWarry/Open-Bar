@@ -46,7 +46,7 @@
   <div class="tile-footer">
     <div class="total-badge" *ngIf="activeTotal > 0">
       <span class="label">{{ 'SERVEUR_MOBILE.CARD.TOTAL' | transloco }}</span>
-      <span class="amount">{{ activeTotal | number:'1.2-2' }} €</span>
+      <span class="amount">{{ activeTotal | appCurrency }}</span>
     </div>
     <button
       type="button"

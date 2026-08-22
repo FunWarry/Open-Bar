@@ -61,6 +61,16 @@ public class AppSettingsService {
         current.setEstablishmentName(request.establishmentName());
         current.setDefaultTheme(request.defaultTheme());
 
+        if (request.currencyCode() != null && !request.currencyCode().isBlank()) {
+            current.setCurrencyCode(request.currencyCode().trim().toUpperCase());
+        }
+        if (request.currencySymbol() != null && !request.currencySymbol().isBlank()) {
+            current.setCurrencySymbol(request.currencySymbol().trim());
+        }
+        if (request.currencyPosition() != null) {
+            current.setCurrencyPosition(request.currencyPosition());
+        }
+
         int warning = request.tempsAlerteWarningMinutes() != null ? request.tempsAlerteWarningMinutes() : current.getTempsAlerteWarningMinutes();
         int urgent = request.tempsAlerteCommandeMinutes() != null ? request.tempsAlerteCommandeMinutes() : current.getTempsAlerteCommandeMinutes();
         int critical = request.tempsAlerteCritiqueCommandeMinutes() != null ? request.tempsAlerteCritiqueCommandeMinutes() : current.getTempsAlerteCritiqueCommandeMinutes();

@@ -39,7 +39,7 @@
     </div>
 
     <div class="product-footer-row">
-      <span class="product-price">{{ product.prix | number:'1.2-2' }} €</span>
+      <span class="product-price">{{ product.prix | appCurrency }}</span>
       <span *ngIf="product.variantes && product.variantes.length > 0" class="variants-badge">
         {{ product.variantes.length }} formats
       </span>

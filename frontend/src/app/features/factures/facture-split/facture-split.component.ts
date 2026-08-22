@@ -1,5 +1,5 @@
 import { Component, OnInit, Input, inject } from '@angular/core';
-import { CommonModule, CurrencyPipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import {
@@ -15,6 +15,7 @@ import {
   cardOutline, cashOutline, alertCircleOutline, trashOutline, printOutline
 } from 'ionicons/icons';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
+import { AppCurrencyPipe } from '../../../core/pipes/app-currency.pipe';
 import { FactureService, SplitResultDTO, SplitPartRequest, SplitPartItemRequest } from '../services/facture.service';
 import { Facture, FactureItem, FactureReglement, EncaisserPartRequest } from '../models/facture.model';
 import { ReglementModalComponent, ReglementModalResult } from '../reglement-modal/reglement-modal.component';
@@ -44,7 +45,7 @@ export interface PartSettlementState {
   selector: 'app-facture-split',
   standalone: true,
   imports: [
-    CommonModule, FormsModule, CurrencyPipe, TranslocoModule,
+    CommonModule, FormsModule, AppCurrencyPipe, TranslocoModule,
     IonContent, IonHeader, IonToolbar, IonButtons,
     IonButton, IonIcon, IonSegment, IonSegmentButton, IonLabel,
     IonSpinner, IonProgressBar

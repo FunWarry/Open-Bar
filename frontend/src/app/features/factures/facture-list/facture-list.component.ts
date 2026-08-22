@@ -1,10 +1,11 @@
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
-import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
 import { TranslocoModule } from '@jsverse/transloco';
+import { AppCurrencyPipe } from '../../../core/pipes/app-currency.pipe';
 import {
   IonContent, IonSearchbar, IonButton,
   IonRefresher, IonRefresherContent, IonIcon, IonSpinner, IonProgressBar, ToastController
@@ -37,7 +38,7 @@ export type FactureSortOption = 'DATE_DESC' | 'DATE_ASC' | 'AMOUNT_DESC' | 'AMOU
   selector: 'app-facture-list',
   standalone: true,
   imports: [
-    CommonModule, RouterLink, FormsModule, CurrencyPipe, DatePipe,
+    CommonModule, RouterLink, FormsModule, AppCurrencyPipe, DatePipe,
     TranslocoModule,
     IonContent, IonSearchbar, IonButton,
     IonRefresher, IonRefresherContent, IonIcon, IonSpinner, IonProgressBar

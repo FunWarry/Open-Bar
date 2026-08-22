@@ -13,12 +13,13 @@ import { addIcons } from 'ionicons';
 import {
   timerOutline, timeOutline, alertCircleOutline, flashOutline,
   saveOutline, refreshOutline, volumeHighOutline, checkmarkCircleOutline,
-  warningOutline, speedometerOutline, informationCircleOutline
+  warningOutline, speedometerOutline, informationCircleOutline,
+  cashOutline, globeOutline, pricetagOutline
 } from 'ionicons/icons';
 
 import { AppSettingsService } from '../../../../core/services/app-settings.service';
 import { SoundService } from '../../../../core/services/sound.service';
-import { AppSettings, AppSettingsUpdateRequest } from '../../../../core/models/app-settings.model';
+import { AppSettings, AppSettingsUpdateRequest, CurrencyPosition } from '../../../../core/models/app-settings.model';
 
 /**
  * Custom cross-field validator enforcing strict ascending order:
@@ -50,9 +51,17 @@ export interface PacePreset {
   critical: number;
 }
 
+/** Predefined currency presets for common currencies. */
+export interface CurrencyPreset {
+  code: string;
+  symbol: string;
+  position: CurrencyPosition;
+  label: string;
+}
+
 /**
- * Component for configuring order preparation timers and multi-tier alert thresholds.
- * Provides interactive sliders/steppers, presets, live ticket preview, and browser audio synthesis tests.
+ * Component for configuring establishment currency, order preparation timers, and multi-tier alert thresholds.
+ * Provides interactive currency selectors, presets, live ticket and price preview, and browser audio tests.
  */
 @Component({
   selector: 'app-order-timers-settings',
@@ -89,11 +98,22 @@ export class OrderTimersSettingsComponent implements OnInit, OnDestroy {
     { id: 'lounge', labelKey: 'ORDER_TIMERS.PACE_LOUNGE', warning: 5, urgent: 8, critical: 15 },
   ];
 
+  readonly currencyPresets: CurrencyPreset[] = [
+    { code: 'EUR', symbol: '€', position: 'AFTER', label: 'EUR (€)' },
+    { code: 'USD', symbol: '$', position: 'BEFORE', label: 'USD ($)' },
+    { code: 'GBP', symbol: '£', position: 'BEFORE', label: 'GBP (£)' },
+    { code: 'CHF', symbol: 'CHF', position: 'AFTER', label: 'CHF (CHF)' },
+    { code: 'CAD', symbol: '$', position: 'BEFORE', label: 'CAD ($)' },
+    { code: 'JPY', symbol: '¥', position: 'BEFORE', label: 'JPY (¥)' },
+    { code: 'AUD', symbol: '$', position: 'BEFORE', label: 'AUD ($)' },
+  ];
+
   constructor() {
     addIcons({
       timerOutline, timeOutline, alertCircleOutline, flashOutline,
       saveOutline, refreshOutline, volumeHighOutline, checkmarkCircleOutline,
-      warningOutline, speedometerOutline, informationCircleOutline
+      warningOutline, speedometerOutline, informationCircleOutline,
+      cashOutline, globeOutline, pricetagOutline
     });
   }
 
@@ -112,6 +132,9 @@ export class OrderTimersSettingsComponent implements OnInit, OnDestroy {
       tempsAlerteWarningMinutes: [3, [Validators.required, Validators.min(1), Validators.max(120)]],
       tempsAlerteCommandeMinutes: [5, [Validators.required, Validators.min(1), Validators.max(120)]],
       tempsAlerteCritiqueCommandeMinutes: [10, [Validators.required, Validators.min(1), Validators.max(120)]],
+      currencyCode: ['EUR', [Validators.required, Validators.minLength(3), Validators.maxLength(3)]],
+      currencySymbol: ['€', [Validators.required, Validators.maxLength(10)]],
+      currencyPosition: ['AFTER', [Validators.required]]
     }, { validators: thresholdHierarchyValidator });
   }
 
@@ -132,6 +155,9 @@ export class OrderTimersSettingsComponent implements OnInit, OnDestroy {
             tempsAlerteWarningMinutes: settings.tempsAlerteWarningMinutes ?? 3,
             tempsAlerteCommandeMinutes: settings.tempsAlerteCommandeMinutes ?? 5,
             tempsAlerteCritiqueCommandeMinutes: settings.tempsAlerteCritiqueCommandeMinutes ?? 10,
+            currencyCode: settings.currencyCode ?? 'EUR',
+            currencySymbol: settings.currencySymbol ?? '€',
+            currencyPosition: settings.currencyPosition ?? 'AFTER',
           });
         },
         error: async () => {
@@ -175,13 +201,30 @@ export class OrderTimersSettingsComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Resets alert thresholds to standard defaults (3 / 5 / 10 min).
+   * Applies one of the predefined establishment currency presets.
+   *
+   * @param preset Selected currency preset configuration
+   */
+  applyCurrencyPreset(preset: CurrencyPreset): void {
+    this.timersForm.patchValue({
+      currencyCode: preset.code,
+      currencySymbol: preset.symbol,
+      currencyPosition: preset.position,
+    });
+    this.timersForm.markAsDirty();
+  }
+
+  /**
+   * Resets alert thresholds and currency to standard defaults.
    */
   resetToDefaults(): void {
     this.timersForm.patchValue({
       tempsAlerteWarningMinutes: 3,
       tempsAlerteCommandeMinutes: 5,
       tempsAlerteCritiqueCommandeMinutes: 10,
+      currencyCode: 'EUR',
+      currencySymbol: '€',
+      currencyPosition: 'AFTER',
     });
     this.timersForm.markAsDirty();
   }
@@ -222,6 +265,28 @@ export class OrderTimersSettingsComponent implements OnInit, OnDestroy {
     return Number(this.timersForm.get('tempsAlerteCritiqueCommandeMinutes')?.value) || 10;
   }
 
+  get currentCurrencyCode(): string {
+    return this.timersForm.get('currencyCode')?.value || 'EUR';
+  }
+
+  get currentCurrencySymbol(): string {
+    return this.timersForm.get('currencySymbol')?.value || '€';
+  }
+
+  get currentCurrencyPosition(): CurrencyPosition {
+    return this.timersForm.get('currencyPosition')?.value || 'AFTER';
+  }
+
+  /**
+   * Formats a sample price with currently edited currency settings for preview.
+   */
+  formatPreviewPrice(amount: number): string {
+    const symbol = this.currentCurrencySymbol;
+    const pos = this.currentCurrencyPosition;
+    const formatted = new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
+    return pos === 'BEFORE' ? `${symbol} ${formatted}` : `${formatted} ${symbol}`;
+  }
+
   /**
    * Computes severity status for the simulated preview card.
    */
@@ -243,7 +308,7 @@ export class OrderTimersSettingsComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Submits updated threshold settings to backend REST API.
+   * Submits updated threshold and currency settings to backend REST API.
    */
   onSubmit(): void {
     if (this.timersForm.invalid) {
@@ -262,6 +327,9 @@ export class OrderTimersSettingsComponent implements OnInit, OnDestroy {
       logoUrl: this.currentSettings.logoUrl,
       establishmentName: this.currentSettings.establishmentName,
       defaultTheme: this.currentSettings.defaultTheme,
+      currencyCode: formValue.currencyCode,
+      currencySymbol: formValue.currencySymbol,
+      currencyPosition: formValue.currencyPosition,
       tempsAlerteWarningMinutes: Number(formValue.tempsAlerteWarningMinutes),
       tempsAlerteCommandeMinutes: Number(formValue.tempsAlerteCommandeMinutes),
       tempsAlerteCritiqueCommandeMinutes: Number(formValue.tempsAlerteCritiqueCommandeMinutes),
@@ -279,6 +347,9 @@ export class OrderTimersSettingsComponent implements OnInit, OnDestroy {
             tempsAlerteWarningMinutes: updated.tempsAlerteWarningMinutes ?? 3,
             tempsAlerteCommandeMinutes: updated.tempsAlerteCommandeMinutes ?? 5,
             tempsAlerteCritiqueCommandeMinutes: updated.tempsAlerteCritiqueCommandeMinutes ?? 10,
+            currencyCode: updated.currencyCode ?? 'EUR',
+            currencySymbol: updated.currencySymbol ?? '€',
+            currencyPosition: updated.currencyPosition ?? 'AFTER',
           });
           const toast = await this.toastCtrl.create({
             message: this.transloco.translate('ORDER_TIMERS.SAVE_SUCCESS'),
@@ -298,3 +369,4 @@ export class OrderTimersSettingsComponent implements OnInit, OnDestroy {
       });
   }
 }
+

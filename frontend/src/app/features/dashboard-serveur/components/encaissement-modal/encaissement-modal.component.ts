@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, OnDestroy, inject } from '@angular/core';
-import { CommonModule, CurrencyPipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
@@ -17,6 +17,8 @@ import {
   heartOutline, alertCircleOutline, refreshOutline, documentTextOutline
 } from 'ionicons/icons';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
+import { AppCurrencyPipe } from '../../../../core/pipes/app-currency.pipe';
+import { AppSettingsService } from '../../../../core/services/app-settings.service';
 import { TableView } from '../../models/table-view.model';
 import {
   DashboardServeurService,
@@ -38,7 +40,7 @@ import { environment } from '../../../../../environments/environment';
   selector: 'app-encaissement-modal',
   standalone: true,
   imports: [
-    CommonModule, FormsModule, CurrencyPipe, TranslocoModule,
+    CommonModule, FormsModule, AppCurrencyPipe, TranslocoModule,
     IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
     IonContent, IonSpinner, IonBadge, IonSegment, IonSegmentButton,
     IonItem, IonLabel, IonInput, IonCheckbox, IonProgressBar
@@ -47,6 +49,12 @@ import { environment } from '../../../../../environments/environment';
   styleUrls: ['./encaissement-modal.component.scss']
 })
 export class EncaissementModalComponent implements OnInit, OnDestroy {
+  private readonly appSettingsService = inject(AppSettingsService);
+
+  get currencySymbol(): string {
+    return this.appSettingsService.currencySymbol;
+  }
+
   /** The target table to settle */
   @Input({ required: true }) table!: TableView;
 

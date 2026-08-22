@@ -80,10 +80,10 @@
           <div class="item-details">
             <span class="item-name">{{ item.cocktailNom }}</span>
             <span *ngIf="item.varianteNom" class="item-variant">({{ item.varianteNom }})</span>
-            <span class="item-unit-price">{{ item.prixUnitaire | currency:'EUR':'symbol':'1.2-2' }} / u</span>
+            <span class="item-unit-price">{{ item.prixUnitaire | appCurrency }} / u</span>
           </div>
           <div class="item-total-col">
-            <span class="item-line-total">{{ item.total | currency:'EUR':'symbol':'1.2-2' }}</span>
+            <span class="item-line-total">{{ item.total | appCurrency }}</span>
           </div>
         </div>
       </div>
@@ -92,29 +92,29 @@
       <div class="totals-breakdown">
         <div class="total-row sub-row">
           <span>{{ 'ENCAISSEMENT.SUBTOTAL_HT' | transloco }}</span>
-          <span>{{ totalHT | currency:'EUR':'symbol':'1.2-2' }}</span>
+          <span>{{ totalHT | appCurrency }}</span>
         </div>
         <div class="total-row sub-row">
           <span>{{ 'ENCAISSEMENT.TOTAL_VAT' | transloco }} (20%)</span>
-          <span>{{ totalVAT | currency:'EUR':'symbol':'1.2-2' }}</span>
+          <span>{{ totalVAT | appCurrency }}</span>
         </div>
         <div class="total-row sub-row" *ngIf="discountAmount > 0">
           <span class="discount-label">
             <ion-icon name="pricetag-outline"></ion-icon>
             {{ 'ENCAISSEMENT.DISCOUNT' | transloco }}
           </span>
-          <span class="discount-value">-{{ discountAmount | currency:'EUR':'symbol':'1.2-2' }}</span>
+          <span class="discount-value">-{{ discountAmount | appCurrency }}</span>
         </div>
         <div class="total-row sub-row" *ngIf="pourboire > 0">
           <span class="tip-label">
             <ion-icon name="heart-outline"></ion-icon>
             {{ 'ENCAISSEMENT.TIP' | transloco }}
           </span>
-          <span class="tip-value">+{{ pourboire | currency:'EUR':'symbol':'1.2-2' }}</span>
+          <span class="tip-value">+{{ pourboire | appCurrency }}</span>
         </div>
         <div class="total-row main-total-row">
           <span class="total-label">{{ 'ENCAISSEMENT.TOTAL_TTC' | transloco }}</span>
-          <span class="total-amount" data-testid="total-net-to-pay">{{ totalNetAPayer | currency:'EUR':'symbol':'1.2-2' }}</span>
+          <span class="total-amount" data-testid="total-net-to-pay">{{ totalNetAPayer | appCurrency }}</span>
         </div>
       </div>
     </div>
@@ -161,7 +161,7 @@
 
           <div class="cash-input-wrap">
             <ion-item class="cash-item" lines="none">
-              <ion-label position="stacked">{{ 'ENCAISSEMENT.CASH_RECEIVED_LABEL' | transloco }} (€)</ion-label>
+              <ion-label position="stacked">{{ 'ENCAISSEMENT.CASH_RECEIVED_LABEL' | transloco }} ({{ currencySymbol }})</ion-label>
               <ion-input type="number" step="0.5" [(ngModel)]="montantRecu" placeholder="0.00" data-testid="input-montant-recu"></ion-input>
             </ion-item>
           </div>
@@ -171,17 +171,17 @@
             <button type="button" class="cash-chip exact-chip" (click)="definirMontantExact()" data-testid="chip-cash-exact">
               {{ 'ENCAISSEMENT.EXACT_AMOUNT' | transloco }}
             </button>
-            <button type="button" class="cash-chip" (click)="ajouterEspeces(5)" data-testid="chip-cash-5">+5 €</button>
-            <button type="button" class="cash-chip" (click)="ajouterEspeces(10)" data-testid="chip-cash-10">+10 €</button>
-            <button type="button" class="cash-chip" (click)="ajouterEspeces(20)" data-testid="chip-cash-20">+20 €</button>
-            <button type="button" class="cash-chip" (click)="ajouterEspeces(50)" data-testid="chip-cash-50">+50 €</button>
+            <button type="button" class="cash-chip" (click)="ajouterEspeces(5)" data-testid="chip-cash-5">+{{ 5 | appCurrency:0:0 }}</button>
+            <button type="button" class="cash-chip" (click)="ajouterEspeces(10)" data-testid="chip-cash-10">+{{ 10 | appCurrency:0:0 }}</button>
+            <button type="button" class="cash-chip" (click)="ajouterEspeces(20)" data-testid="chip-cash-20">+{{ 20 | appCurrency:0:0 }}</button>
+            <button type="button" class="cash-chip" (click)="ajouterEspeces(50)" data-testid="chip-cash-50">+{{ 50 | appCurrency:0:0 }}</button>
           </div>
 
           <!-- Change calculation display -->
           <div class="change-display-box" [class.insufficient]="!isMontantRecuSuffisant">
             <div *ngIf="isMontantRecuSuffisant" class="change-row">
               <span>{{ 'ENCAISSEMENT.CHANGE_TO_RETURN' | transloco }}:</span>
-              <strong class="change-amount" data-testid="change-amount">{{ monnaieARendre | currency:'EUR':'symbol':'1.2-2' }}</strong>
+              <strong class="change-amount" data-testid="change-amount">{{ monnaieARendre | appCurrency }}</strong>
             </div>
             <div *ngIf="!isMontantRecuSuffisant" class="insufficient-row" data-testid="warning-insufficient-cash">
               <ion-icon name="alert-circle-outline" color="danger"></ion-icon>
@@ -203,7 +203,7 @@
           </div>
           <div *ngIf="tipMode === 'custom'" class="custom-input-box">
             <ion-item lines="none" class="custom-field">
-              <ion-label position="stacked">{{ 'ENCAISSEMENT.CUSTOM_TIP_AMOUNT' | transloco }} (€)</ion-label>
+              <ion-label position="stacked">{{ 'ENCAISSEMENT.CUSTOM_TIP_AMOUNT' | transloco }} ({{ currencySymbol }})</ion-label>
               <ion-input type="number" step="0.5" [(ngModel)]="customTip" placeholder="0.00" data-testid="input-custom-tip"></ion-input>
             </ion-item>
           </div>
@@ -220,7 +220,7 @@
               {{ 'ENCAISSEMENT.DISCOUNT_PERCENT' | transloco }} (%)
             </button>
             <button type="button" class="option-chip" [class.active]="discountMode === 'fixed'" (click)="setDiscountMode('fixed')" data-testid="chip-discount-fixed">
-              {{ 'ENCAISSEMENT.DISCOUNT_FIXED' | transloco }} (€)
+              {{ 'ENCAISSEMENT.DISCOUNT_FIXED' | transloco }} ({{ currencySymbol }})
             </button>
           </div>
           <div *ngIf="discountMode === 'percent'" class="custom-input-box">
@@ -231,7 +231,7 @@
           </div>
           <div *ngIf="discountMode === 'fixed'" class="custom-input-box">
             <ion-item lines="none" class="custom-field">
-              <ion-label position="stacked">{{ 'ENCAISSEMENT.DISCOUNT_FIXED_LABEL' | transloco }} (€)</ion-label>
+              <ion-label position="stacked">{{ 'ENCAISSEMENT.DISCOUNT_FIXED_LABEL' | transloco }} ({{ currencySymbol }})</ion-label>
               <ion-input type="number" min="0" [(ngModel)]="discountFixed" placeholder="5.00" data-testid="input-discount-fixed"></ion-input>
             </ion-item>
           </div>
@@ -249,7 +249,7 @@
           <ion-button expand="block" color="success" size="large" (click)="validerEncaissement()" (keydown.enter)="validerEncaissement()" (keyup.enter)="validerEncaissement()" [disabled]="isSubmitting || !isMontantRecuSuffisant" data-testid="btn-submit-encaissement" class="btn-encaisser">
             <ion-spinner *ngIf="isSubmitting" name="crescent" slot="start"></ion-spinner>
             <ion-icon *ngIf="!isSubmitting" name="checkmark-circle-outline" slot="start"></ion-icon>
-            <span>{{ 'ENCAISSEMENT.SUBMIT_SETTLEMENT' | transloco }} ({{ totalNetAPayer | currency:'EUR':'symbol':'1.2-2' }})</span>
+            <span>{{ 'ENCAISSEMENT.SUBMIT_SETTLEMENT' | transloco }} ({{ totalNetAPayer | appCurrency }})</span>
           </ion-button>
 
           <!-- Quick Print & PDF Buttons -->
@@ -294,7 +294,7 @@
               </button>
             </div>
             <span class="part-preview">
-              ≈ {{ (subTotalTTC / nombreConvives) | currency:'EUR':'symbol':'1.2-2' }} / {{ 'ENCAISSEMENT.PERSON' | transloco }}
+              ≈ {{ (subTotalTTC / nombreConvives) | appCurrency }} / {{ 'ENCAISSEMENT.PERSON' | transloco }}
             </span>
           </div>
 
@@ -328,7 +328,7 @@
             <div *ngFor="let item of addition.items; trackBy: trackByItemId" class="assign-item-card">
               <div class="assign-item-info">
                 <span>{{ item.quantite }}x {{ item.cocktailNom }}</span>
-                <strong>{{ item.total | currency:'EUR':'symbol':'1.2-2' }}</strong>
+                <strong>{{ item.total | appCurrency }}</strong>
               </div>
               <select id="select-guest-{{item.itemId}}" [attr.aria-label]="'Attribuer ' + item.cocktailNom" [(ngModel)]="itemAssignments[item.itemId]" class="guest-select" [attr.data-testid]="'select-guest-item-' + item.itemId">
                 <option [ngValue]="undefined">{{ 'ENCAISSEMENT.UNASSIGNED' | transloco }}</option>
@@ -348,11 +348,11 @@
           <div class="split-summary-bar">
             <div class="summary-stat">
               <span>{{ 'ENCAISSEMENT.SETTLED_AMOUNT' | transloco }}</span>
-              <strong class="stat-paid">{{ montantRegleSplit | currency:'EUR':'symbol':'1.2-2' }}</strong>
+              <strong class="stat-paid">{{ montantRegleSplit | appCurrency }}</strong>
             </div>
             <div class="summary-stat">
               <span>{{ 'ENCAISSEMENT.REMAINING_BALANCE' | transloco }}</span>
-              <strong class="stat-remaining">{{ soldeRestantSplit | currency:'EUR':'symbol':'1.2-2' }}</strong>
+              <strong class="stat-remaining">{{ soldeRestantSplit | appCurrency }}</strong>
             </div>
           </div>
 
@@ -370,12 +370,12 @@
 
               <div class="part-amount-row">
                 <span>{{ 'ENCAISSEMENT.PART_AMOUNT' | transloco }}:</span>
-                <strong>{{ part.sousTotal | currency:'EUR':'symbol':'1.2-2' }}</strong>
+                <strong>{{ part.sousTotal | appCurrency }}</strong>
               </div>
 
               <div *ngIf="partStates[idx]?.reglee" class="settlement-info">
                 <span>{{ 'ENCAISSEMENT.MODE_USED' | transloco }}: <strong>{{ partStates[idx].modePaiement }}</strong></span>
-                <span *ngIf="partStates[idx].pourboire">+{{ partStates[idx].pourboire | currency:'EUR':'symbol':'1.2-2' }} pourboire</span>
+                <span *ngIf="partStates[idx].pourboire">+{{ partStates[idx].pourboire | appCurrency }} pourboire</span>
               </div>
 
               <ion-button *ngIf="!partStates[idx]?.reglee" size="small" color="primary" expand="block" (click)="reglerPart(idx, part)" (keydown.enter)="reglerPart(idx, part)" (keyup.enter)="reglerPart(idx, part)" [attr.data-testid]="'btn-settle-part-' + idx">

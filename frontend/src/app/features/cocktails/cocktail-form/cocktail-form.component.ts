@@ -74,11 +74,10 @@ import {
 } from '../../../core/models/recipe-step.model';
 import { InputFieldComponent } from '../../../core/components/ui/input-field/input-field.component';
 import { ActionButtonComponent } from '../../../core/components/ui/action-button/action-button.component';
-import {
-  SearchableSelectComponent,
-  SearchableOption,
-} from '../../../core/components/ui/searchable-select/searchable-select.component';
+import { SearchableSelectComponent, SearchableOption } from '../../../core/components/ui/searchable-select/searchable-select.component';
 import { CocktailSaisonnaliteComponent } from '../cocktail-saisonnalite/cocktail-saisonnalite.component';
+import { AppCurrencyPipe } from '../../../core/pipes/app-currency.pipe';
+import { AppSettingsService } from '../../../core/services/app-settings.service';
 import { CommonModule } from '@angular/common';
 
 /**
@@ -114,6 +113,7 @@ export interface BarEquipmentItem {
     FormsModule,
     ReactiveFormsModule,
     TranslocoModule,
+    AppCurrencyPipe,
     InputFieldComponent,
     ActionButtonComponent,
     SearchableSelectComponent,
@@ -121,6 +121,12 @@ export interface BarEquipmentItem {
   ],
 })
 export class CocktailFormComponent implements OnInit {
+  private readonly appSettingsService = inject(AppSettingsService);
+
+  get currencySymbol(): string {
+    return this.appSettingsService.currencySymbol;
+  }
+
   private readonly fb = inject(FormBuilder);
   private readonly route = inject(ActivatedRoute);
   public readonly router = inject(Router);

@@ -1840,6 +1840,19 @@
       "TABLE": "Table",
       "STOCK": "Stock"
     }
+  },
+  "SETTINGS": {
+    "CURRENCY_TITLE": "Devise de l'Établissement",
+    "CURRENCY_SUBTITLE": "Définissez le symbole monétaire, le code ISO et le format d'affichage sur tous les écrans, tickets et factures.",
+    "CURRENCY_PRESETS": "Présélections rapides :",
+    "CURRENCY_CODE": "Code ISO (3 lettres)",
+    "CURRENCY_SYMBOL": "Symbole",
+    "CURRENCY_POSITION": "Position du symbole",
+    "CURRENCY_POS_AFTER": "Après le montant (12,50 €)",
+    "CURRENCY_POS_BEFORE": "Avant le montant ($ 12.50)",
+    "CURRENCY_PREVIEW_TITLE": "Aperçu des prix en direct",
+    "SAVE_SUCCESS": "Paramètres enregistrés avec succès !",
+    "SAVE_ERROR": "Erreur lors de l'enregistrement des paramètres"
   }
 }
 

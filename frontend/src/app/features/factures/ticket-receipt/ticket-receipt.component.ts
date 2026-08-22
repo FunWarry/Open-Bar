@@ -4,6 +4,7 @@ import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { printOutline, receiptOutline } from 'ionicons/icons';
 import { TranslocoModule } from '@jsverse/transloco';
+import { AppCurrencyPipe } from '../../../core/pipes/app-currency.pipe';
 import { Facture, FactureItem, FactureReglement } from '../models/facture.model';
 import { EstablishmentConfig } from '../../../core/models/establishment-config.model';
 import { EtablissementService } from '../../../core/services/etablissement.service';
@@ -15,7 +16,7 @@ import { EtablissementService } from '../../../core/services/etablissement.servi
 @Component({
   selector: 'app-ticket-receipt',
   standalone: true,
-  imports: [CommonModule, IonIcon, TranslocoModule],
+  imports: [CommonModule, IonIcon, TranslocoModule, AppCurrencyPipe],
   templateUrl: './ticket-receipt.component.html',
   styleUrls: ['./ticket-receipt.component.scss'],
 })

@@ -55,7 +55,7 @@
             <div class="history-item-row" (click)="onViewCommande(commande)" (keyup.enter)="onViewCommande(commande)">
               <span class="cmd-num">#{{ commande.id }}</span>
               <span class="cmd-date">{{ commande.dateCommande | date:'dd/MM HH:mm' }}</span>
-              <span class="cmd-total">{{ commande.total | currency:'EUR' }}</span>
+              <span class="cmd-total">{{ commande.total | appCurrency }}</span>
               <ion-badge [color]="getStatutColor(commande.statut)">
                 {{ commande.statut }}
               </ion-badge>

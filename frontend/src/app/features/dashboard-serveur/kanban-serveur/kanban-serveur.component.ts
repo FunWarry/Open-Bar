@@ -9,6 +9,7 @@ import {
 import { addIcons } from 'ionicons';
 import { checkmarkOutline, banOutline, timeOutline, flameOutline, funnelOutline, checkmarkCircleOutline, cardOutline } from 'ionicons/icons';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
+import { AppCurrencyPipe } from '../../../core/pipes/app-currency.pipe';
 import { DashboardServeurService } from '../services/dashboard-serveur.service';
 import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
 import { NotificationService } from '../../../core/services/notification.service';
@@ -38,6 +39,7 @@ interface Colonne {
   imports: [
     CommonModule,
     TranslocoModule,
+    AppCurrencyPipe,
     IonIcon, IonSpinner,
   ],
   templateUrl: './kanban-serveur.component.html',

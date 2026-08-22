@@ -98,7 +98,7 @@
             <span class="cart-count">{{ totalItemsCount }} article(s)</span>
           </div>
           <div class="cart-action">
-            <span class="cart-total">{{ totalPrice | currency:'EUR' }}</span>
+            <span class="cart-total">{{ totalPrice | appCurrency }}</span>
             <button class="recap-btn" (click)="goToRecap()">Voir le récap →</button>
           </div>
         </div>
@@ -119,21 +119,21 @@
           <div class="recap-item">
             <div class="item-details">
               <span class="item-name">{{ item.cocktail.nom }}</span>
-              <span class="item-unit-price">{{ item.cocktail.prix | currency:'EUR' }}</span>
+              <span class="item-unit-price">{{ item.cocktail.prix | appCurrency }}</span>
             </div>
             <div class="quantity-controls">
               <button class="qty-btn" (click)="removeFromCart(item.cocktail.id)">-</button>
               <span class="qty-count">{{ item.quantite }}</span>
               <button class="qty-btn add-btn" (click)="addToCart(item.cocktail)">+</button>
             </div>
-            <span class="item-total-price">{{ (item.cocktail.prix * item.quantite) | currency:'EUR' }}</span>
+            <span class="item-total-price">{{ (item.cocktail.prix * item.quantite) | appCurrency }}</span>
           </div>
         }
       </div>
 
       <div class="recap-summary-row">
         <span class="summary-label">Total à payer</span>
-        <span class="summary-price">{{ totalPrice | currency:'EUR' }}</span>
+        <span class="summary-price">{{ totalPrice | appCurrency }}</span>
       </div>
 
       <div class="actions-row">

@@ -1,4 +1,5 @@
 export type DefaultTheme = 'DARK' | 'LIGHT';
+export type CurrencyPosition = 'BEFORE' | 'AFTER';
 
 export interface AppSettings {
   id: number;
@@ -7,6 +8,9 @@ export interface AppSettings {
   logoUrl: string | null;
   establishmentName: string;
   defaultTheme: DefaultTheme;
+  currencyCode?: string;
+  currencySymbol?: string;
+  currencyPosition?: CurrencyPosition;
   tempsAlerteWarningMinutes?: number;
   tempsAlerteCommandeMinutes?: number;
   tempsAlerteCritiqueCommandeMinutes?: number;
@@ -14,3 +18,4 @@ export interface AppSettings {
 }
 
 export type AppSettingsUpdateRequest = Omit<AppSettings, 'id' | 'updatedAt'>;
+

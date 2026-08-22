@@ -113,7 +113,7 @@
               <app-input-field
                 formControlName="price"
                 type="number"
-                [label]="('COCKTAILS.PRICE' | transloco) + ' (€)'"
+                [label]="('COCKTAILS.PRICE' | transloco) + ' (' + currencySymbol + ')'"
                 placeholder="0.00"
                 [required]="true"
                 testId="cocktail-form-price-input"
@@ -479,9 +479,9 @@
 
                         <span class="badge-price">
                           @if ((vGroup.get('prixSupplement')?.value || 0) > 0) {
-                            +{{ vGroup.get('prixSupplement')?.value | number: '1.2-2' }} €
+                            +{{ vGroup.get('prixSupplement')?.value | appCurrency }}
                           } @else {
-                            0.00 €
+                            {{ 0 | appCurrency }}
                           }
                         </span>
 
