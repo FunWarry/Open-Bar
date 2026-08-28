@@ -68,7 +68,8 @@ public abstract class BaseIntegrationTest {
     @Autowired
     protected WebApplicationContext webApplicationContext;
 
-    protected final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
+    @Autowired
+    protected ObjectMapper objectMapper;
 
     @Autowired
     protected JwtTokenProvider jwtTokenProvider;
