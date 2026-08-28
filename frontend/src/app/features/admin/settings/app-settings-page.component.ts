@@ -355,17 +355,21 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
     this.initialThemeMode = this.activeTheme;
     this.initialColors = { ...this.themeService.currentCustomColors };
 
-    this.route.data.pipe(takeUntil(this.destroy$)).subscribe(data => {
-      if (data?.['defaultTab'] && ['legal', 'timers', 'currency', 'theme'].includes(data['defaultTab'])) {
-        this.activeTab = data['defaultTab'] as SettingsTab;
-      }
-    });
+    if (this.route?.data) {
+      this.route.data.pipe(takeUntil(this.destroy$)).subscribe(data => {
+        if (data?.['defaultTab'] && ['legal', 'timers', 'currency', 'theme'].includes(data['defaultTab'])) {
+          this.activeTab = data['defaultTab'] as SettingsTab;
+        }
+      });
+    }
 
-    this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
-      if (params['tab'] && ['legal', 'timers', 'currency', 'theme'].includes(params['tab'])) {
-        this.activeTab = params['tab'] as SettingsTab;
-      }
-    });
+    if (this.route?.queryParams) {
+      this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
+        if (params?.['tab'] && ['legal', 'timers', 'currency', 'theme'].includes(params['tab'])) {
+          this.activeTab = params['tab'] as SettingsTab;
+        }
+      });
+    }
 
     this.loadAllSettings();
   }
