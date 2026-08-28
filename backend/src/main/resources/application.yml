@@ -39,5 +39,5 @@ springdoc:
 
 logging:
   file:
-    path: ${LOG_PATH:/var/log/openbar/backend}
+    path: ${LOG_PATH:target/logs}
 

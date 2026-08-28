@@ -5,7 +5,7 @@
     <conversionRule conversionWord="wex" class="org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter" />
     <conversionRule conversionWord="wEx" class="org.springframework.boot.logging.logback.ExtendedWhitespaceThrowableProxyConverter" />
 
-    <springProperty scope="context" name="LOG_PATH" source="logging.file.path" defaultValue="/var/log/openbar/backend"/>
+    <springProperty scope="context" name="LOG_PATH" source="logging.file.path" defaultValue="target/logs"/>
     <springProperty scope="context" name="LOG_LEVEL_APP" source="logging.level.com.bar.gestioncocktail" defaultValue="INFO"/>
     <springProperty scope="context" name="LOG_LEVEL_ROOT" source="logging.level.root" defaultValue="INFO"/>
 
