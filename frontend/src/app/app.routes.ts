@@ -167,22 +167,22 @@ export const routes: Routes = [
   },
   {
     path: 'admin/customization',
-    redirectTo: '/admin/settings?tab=theme',
+    redirectTo: '/admin/settings',
     pathMatch: 'full'
   },
   {
     path: 'admin/personnalisation',
-    redirectTo: '/admin/settings?tab=theme',
+    redirectTo: '/admin/settings',
     pathMatch: 'full'
   },
   {
     path: 'admin/establishment',
-    redirectTo: '/admin/settings?tab=legal',
+    redirectTo: '/admin/settings',
     pathMatch: 'full'
   },
   {
     path: 'admin/etablissement',
-    redirectTo: '/admin/settings?tab=legal',
+    redirectTo: '/admin/settings',
     pathMatch: 'full'
   },
   {
@@ -289,12 +289,12 @@ export const routes: Routes = [
   },
   {
     path: 'manager/timers',
-    redirectTo: '/admin/settings?tab=timers',
+    redirectTo: '/admin/settings',
     pathMatch: 'full'
   },
   {
     path: 'admin/timers',
-    redirectTo: '/admin/settings?tab=timers',
+    redirectTo: '/admin/settings',
     pathMatch: 'full'
   },
 
