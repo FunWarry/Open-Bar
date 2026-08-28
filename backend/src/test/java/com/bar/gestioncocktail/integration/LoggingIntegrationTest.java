@@ -28,7 +28,7 @@ class LoggingIntegrationTest extends BaseIntegrationTest {
 
     @Test
     @DisplayName("logbackSpring_createsLogFileAndWritesEventsInProductionProfile")
-    void logbackSpring_createsLogFileAndWritesEvents() throws Exception {
+    void logbackSpring_createsLogFileAndWritesEvents() {
         String testMessage = "OPENBAR_LOGGING_INTEGRATION_TEST_EVENT_" + System.currentTimeMillis();
         log.info(testMessage);
 
