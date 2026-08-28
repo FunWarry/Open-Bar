@@ -20,6 +20,7 @@
 | Database | PostgreSQL | — | Managed via Docker Compose |
 | ORM | JPA/Hibernate + Lombok `@Data` | via Spring | |
 | Security | Spring Security + custom JWT | JJWT 0.12.6 | Requires `JWT_SECRET` (≥ 32 characters) |
+| Rate Limiting | Bucket4j (`bucket4j_jdk17-core`) | 8.14.0 | Token bucket anti-brute force / DoS protection on login endpoint |
 | Real-time | WebSocket STOMP | via Spring | 5 active topics |
 | Frontend | Angular | 20 | |
 | UI | Ionic | 8.8.11 | Angular Material abandoned |
@@ -42,13 +43,13 @@ Strict layered pattern: **Controller → Service → Repository** (no layer skip
 
 ```
 src/main/java/com/bar/gestioncocktail/
-├── config/     # SecurityConfig, WebSocketConfig, JwtProperties, OpenApiConfig
+├── config/     # SecurityConfig, WebSocketConfig, JwtProperties, RateLimitProperties, OpenApiConfig
 ├── controller/ # REST endpoints (@PreAuthorize mandatory on write endpoints)
 ├── service/    # Business domain logic (@Transactional on write methods)
 ├── repository/ # Spring Data JPA (extends JpaRepository<Entity, Long>)
 ├── model/      # JPA entities (@Data Lombok, @PrePersist/@PreUpdate)
 ├── dto/        # Java records with static XxxDTO from(Entity e)
-└── security/   # JwtAuthenticationFilter, JwtAuthorizationFilter, JwtTokenProvider
+└── security/   # JwtAuthenticationFilter, JwtAuthorizationFilter, LoginRateLimitingFilter, RateLimiterService, ClientIpResolver
 ```
 
 **Secrets**: `JWT_SECRET` is required (≥ 256 bits) — defined in `.env` / environment variables, validated on startup via `JwtProperties.validate()`.
