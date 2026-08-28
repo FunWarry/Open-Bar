@@ -21,6 +21,11 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
+
 import java.io.IOException;
 import java.util.List;
 
@@ -28,22 +33,36 @@ import java.util.List;
  * Spring Security configuration for OpenBar.
  * Configures stateless JWT authentication, CORS, CSRF, and role-based endpoint
  * permissions.
+ * Enforces strict CORS origin patterns in production to prevent technical information leakage and unauthorized cross-origin requests.
  */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 @EnableConfigurationProperties(JwtProperties.class)
 public class SecurityConfig {
+    private static final Logger log = LoggerFactory.getLogger(SecurityConfig.class);
+
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final JwtAuthorizationFilter jwtAuthorizationFilter;
+    private final Environment environment;
     private final List<String> allowedOriginPatterns;
 
+    /**
+     * Constructs SecurityConfig with required filters, Spring Environment, and configured CORS origin patterns.
+     *
+     * @param jwtAuthenticationFilter JWT authentication filter
+     * @param jwtAuthorizationFilter JWT authorization filter
+     * @param environment Spring environment to inspect active profiles
+     * @param allowedOriginPatterns List of allowed CORS origin patterns
+     */
     public SecurityConfig(
             JwtAuthenticationFilter jwtAuthenticationFilter,
             JwtAuthorizationFilter jwtAuthorizationFilter,
-            @org.springframework.beans.factory.annotation.Value("${openbar.cors.allowed-origin-patterns:*}") List<String> allowedOriginPatterns) {
+            Environment environment,
+            @org.springframework.beans.factory.annotation.Value("${openbar.cors.allowed-origin-patterns:${OPENBAR_CORS_ALLOWED_ORIGINS:*}}") List<String> allowedOriginPatterns) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.jwtAuthorizationFilter = jwtAuthorizationFilter;
+        this.environment = environment;
         this.allowedOriginPatterns = allowedOriginPatterns;
     }
 
@@ -118,7 +137,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(this.allowedOriginPatterns);
+        configuration.setAllowedOriginPatterns(resolveEffectiveOrigins());
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
@@ -126,5 +145,34 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
+    }
+
+    private List<String> resolveEffectiveOrigins() {
+        if (isProdProfile()) {
+            List<String> filtered = (allowedOriginPatterns != null)
+                    ? allowedOriginPatterns.stream()
+                            .filter(p -> p != null && !p.trim().equals("*") && !p.trim().isEmpty())
+                            .toList()
+                    : List.of();
+            if (filtered.isEmpty()) {
+                log.warn("Wildcard '*' or empty CORS origin is disallowed in production. Falling back to default authorized local/PWA origins.");
+                return List.of(
+                        "http://localhost:[*]",
+                        "http://127.0.0.1:[*]",
+                        "https://open-bar.freeboxos.fr",
+                        "http://192.168.*:[*]",
+                        "http://10.*:[*]",
+                        "http://172.16.*:[*]"
+                );
+            }
+            return filtered;
+        }
+        return (allowedOriginPatterns != null && !allowedOriginPatterns.isEmpty())
+                ? allowedOriginPatterns
+                : List.of("*");
+    }
+
+    private boolean isProdProfile() {
+        return environment != null && environment.acceptsProfiles(Profiles.of("prod"));
     }
 }
