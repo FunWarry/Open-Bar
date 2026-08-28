@@ -121,62 +121,41 @@
         <div class="filter-dropdowns">
           <!-- Floor Select -->
           <div class="filter-select-box">
-            <label class="filter-label" for="table-floor-select-input">
-              <ion-icon name="business-outline"></ion-icon>
-              {{ 'TABLES.FILTERS.FLOOR_LABEL' | transloco }}
-            </label>
-            <select
-              id="table-floor-select-input"
-              class="custom-select"
-              [value]="selectedEtage"
-              (change)="onEtageFilterChange($event)"
-              data-testid="table-floor-select">
-              <option value="ALL">{{ 'TABLES.FILTERS.ALL_FLOORS' | transloco }}</option>
-              @for (etage of etages; track etage.code) {
-                <option [value]="etage.code">{{ etage.nom }}</option>
-              }
-            </select>
+            <app-searchable-select
+              [label]="'TABLES.FILTERS.FLOOR_LABEL' | transloco"
+              [options]="etageOptions"
+              [(ngModel)]="selectedEtage"
+              (selectionChange)="onEtageSelected($event)"
+              [enableSearch]="true"
+              [placeholder]="'TABLES.FILTERS.ALL_FLOORS' | transloco"
+              testId="table-floor-select">
+            </app-searchable-select>
           </div>
 
           <!-- Zone Select -->
           <div class="filter-select-box">
-            <label class="filter-label" for="table-zone-select-input">
-              <ion-icon name="layers-outline"></ion-icon>
-              {{ 'TABLES.FILTERS.ZONE_LABEL' | transloco }}
-            </label>
-            <select
-              id="table-zone-select-input"
-              class="custom-select"
-              [value]="selectedZone"
-              (change)="onZoneFilterChange($event)"
-              data-testid="table-zone-select">
-              <option value="ALL">{{ 'TABLES.FILTERS.ALL_ZONES' | transloco }}</option>
-              @for (z of availableZonesForFilter; track z.nom) {
-                <option [value]="z.nom">{{ z.nom }}</option>
-              }
-            </select>
+            <app-searchable-select
+              [label]="'TABLES.FILTERS.ZONE_LABEL' | transloco"
+              [options]="zoneOptions"
+              [(ngModel)]="selectedZone"
+              (selectionChange)="onZoneSelected($event)"
+              [enableSearch]="true"
+              [placeholder]="'TABLES.FILTERS.ALL_ZONES' | transloco"
+              testId="table-zone-select">
+            </app-searchable-select>
           </div>
 
           <!-- Sort Select -->
           <div class="filter-select-box">
-            <label class="filter-label" for="table-sort-select-input">
-              <ion-icon name="swap-vertical-outline"></ion-icon>
-              {{ 'TABLES.FILTERS.SORT_LABEL' | transloco }}
-            </label>
-            <select
-              id="table-sort-select-input"
-              class="custom-select"
-              [value]="sortOption"
-              (change)="onSortChange($event)"
-              data-testid="table-sort-select">
-              <option value="NUMBER_ASC">{{ 'TABLES.SORT.NUMBER_ASC' | transloco }}</option>
-              <option value="NUMBER_DESC">{{ 'TABLES.SORT.NUMBER_DESC' | transloco }}</option>
-              <option value="CAPACITY_ASC">{{ 'TABLES.SORT.CAPACITY_ASC' | transloco }}</option>
-              <option value="CAPACITY_DESC">{{ 'TABLES.SORT.CAPACITY_DESC' | transloco }}</option>
-              <option value="STATUS_OCCUPIED">{{ 'TABLES.SORT.STATUS_OCCUPIED' | transloco }}</option>
-              <option value="STATUS_FREE">{{ 'TABLES.SORT.STATUS_FREE' | transloco }}</option>
-              <option value="ZONE_NAME">{{ 'TABLES.SORT.ZONE_NAME' | transloco }}</option>
-            </select>
+            <app-searchable-select
+              [label]="'TABLES.FILTERS.SORT_LABEL' | transloco"
+              [options]="sortOptions"
+              [(ngModel)]="sortOption"
+              (selectionChange)="onSortSelected($event)"
+              [enableSearch]="false"
+              [placeholder]="'TABLES.FILTERS.SORT_LABEL' | transloco"
+              testId="table-sort-select">
+            </app-searchable-select>
           </div>
         </div>
 
@@ -363,6 +342,16 @@
             title="{{ 'TABLES.CARD.EDIT' | transloco }}">
             <ion-icon name="create-outline"></ion-icon>
             <span>{{ 'TABLES.CARD.EDIT' | transloco }}</span>
+          </button>
+
+          <button
+            type="button"
+            class="action-btn btn-delete"
+            (click)="onDelete(table, $event)"
+            (keyup.enter)="onDelete(table, $event)"
+            data-testid="table-delete-btn"
+            title="{{ 'TABLES.CARD.DELETE' | transloco }}">
+            <ion-icon name="trash-outline"></ion-icon>
           </button>
         }
       </div>

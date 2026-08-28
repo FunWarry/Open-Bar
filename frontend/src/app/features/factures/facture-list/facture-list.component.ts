@@ -4,7 +4,7 @@ import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
-import { TranslocoModule } from '@jsverse/transloco';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { AppCurrencyPipe } from '../../../core/pipes/app-currency.pipe';
 import {
   IonContent, IonSearchbar, IonButton,
@@ -25,14 +25,57 @@ import { FactureService } from '../services/facture.service';
 import { Facture } from '../models/facture.model';
 import { environment } from '../../../../environments/environment';
 import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
+import { SearchableSelectComponent, SearchableOption } from '../../../core/components/ui/searchable-select/searchable-select.component';
 
 export type FactureFilterStatus = 'ALL' | 'SETTLED' | 'PENDING';
 export type FactureSortOption = 'DATE_DESC' | 'DATE_ASC' | 'AMOUNT_DESC' | 'AMOUNT_ASC' | 'NUMBER';
+export type FacturePeriodMode = 'ALL_TIME' | 'OPERATIONAL_DAY' | 'WEEK' | 'MONTH';
+
+/**
+ * Computes the operational date string (YYYY-MM-DD) for a given date,
+ * shifting 00:00-04:59 to previous day (shift 05h00 -> 05h00 J+1).
+ */
+export function getOperationalDayString(d: Date = new Date()): string {
+  const adjusted = new Date(d);
+  if (adjusted.getHours() < 5) {
+    adjusted.setDate(adjusted.getDate() - 1);
+  }
+  const year = adjusted.getFullYear();
+  const month = String(adjusted.getMonth() + 1).padStart(2, '0');
+  const day = String(adjusted.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+/**
+ * Computes the ISO week string (YYYY-Www) based on operational day.
+ */
+export function getIsoWeekString(d: Date = new Date()): string {
+  const opDayStr = getOperationalDayString(d);
+  const [y, m, day] = opDayStr.split('-').map(Number);
+  const target = new Date(y, m - 1, day);
+  const dayNr = (target.getDay() + 6) % 7;
+  target.setDate(target.getDate() - dayNr + 3);
+  const firstThursday = target.valueOf();
+  target.setMonth(0, 1);
+  if (target.getDay() !== 4) {
+    target.setMonth(0, 1 + ((4 - target.getDay() + 7) % 7));
+  }
+  const weekNum = 1 + Math.ceil((firstThursday - target.valueOf()) / 604800000);
+  return `${y}-W${String(weekNum).padStart(2, '0')}`;
+}
+
+/**
+ * Computes the Month string (YYYY-MM) based on operational day.
+ */
+export function getMonthString(d: Date = new Date()): string {
+  const opDayStr = getOperationalDayString(d);
+  return opDayStr.substring(0, 7);
+}
 
 /**
  * Modern Standalone Component for displaying, searching, filtering, and managing invoices.
  * Conforms to Figma DS (Facturation 626:987) with high-density metrics, card/grid and table views,
- * real-time search, interactive filters, clipboard copy, and dark/light theme support.
+ * operational period filtering (05h00 -> 05h00 J+1, week, month), searchable dropdowns, and clipboard copy.
  */
 @Component({
   selector: 'app-facture-list',
@@ -41,7 +84,8 @@ export type FactureSortOption = 'DATE_DESC' | 'DATE_ASC' | 'AMOUNT_DESC' | 'AMOU
     CommonModule, RouterLink, FormsModule, AppCurrencyPipe, DatePipe,
     TranslocoModule,
     IonContent, IonSearchbar, IonButton,
-    IonRefresher, IonRefresherContent, IonIcon, IonSpinner, IonProgressBar
+    IonRefresher, IonRefresherContent, IonIcon, IonSpinner, IonProgressBar,
+    SearchableSelectComponent
   ],
   templateUrl: './facture-list.component.html',
   styleUrls: ['./facture-list.component.scss'],
@@ -49,6 +93,7 @@ export type FactureSortOption = 'DATE_DESC' | 'DATE_ASC' | 'AMOUNT_DESC' | 'AMOU
 export class FactureListComponent implements OnInit, OnDestroy {
   private readonly factureService = inject(FactureService);
   private readonly toastCtrl = inject(ToastController);
+  private readonly transloco = inject(TranslocoService);
   private readonly destroy$ = new Subject<void>();
 
   factures: Facture[] = [];
@@ -59,6 +104,12 @@ export class FactureListComponent implements OnInit, OnDestroy {
   viewMode: 'grid' | 'list' = 'grid';
   copiedInvoiceId: number | null = null;
   private copyTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  // Period filter state
+  periodMode: FacturePeriodMode = 'ALL_TIME';
+  selectedDay: string = getOperationalDayString();
+  selectedWeek: string = getIsoWeekString();
+  selectedMonth: string = getMonthString();
 
   constructor() {
     addIcons({
@@ -106,8 +157,6 @@ export class FactureListComponent implements OnInit, OnDestroy {
 
   /**
    * Refresher handler for pull-to-refresh.
-   *
-   * @param event Custom refresher event
    */
   onRefresh(event: CustomEvent): void {
     this.factureService.getAllFactures()
@@ -122,65 +171,126 @@ export class FactureListComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Computes the grand total revenue (TTC) of all loaded invoices.
+   * Checks whether an invoice falls within the active operational period.
    */
-  get totalCA(): number {
-    return this.factures.reduce((acc, f) => acc + (f.totalTTC ?? f.total ?? 0), 0);
+  isInvoiceInActivePeriod(facture: Facture): boolean {
+    if (this.periodMode === 'ALL_TIME') return true;
+    if (!facture.dateFacture) return false;
+
+    const invoiceDate = new Date(facture.dateFacture);
+    if (Number.isNaN(invoiceDate.getTime())) return false;
+
+    const invoiceOpDayStr = getOperationalDayString(invoiceDate);
+
+    if (this.periodMode === 'OPERATIONAL_DAY') {
+      return invoiceOpDayStr === this.selectedDay;
+    }
+
+    if (this.periodMode === 'WEEK') {
+      const invoiceWeek = getIsoWeekString(invoiceDate);
+      return invoiceWeek === this.selectedWeek;
+    }
+
+    if (this.periodMode === 'MONTH') {
+      return invoiceOpDayStr.substring(0, 7) === this.selectedMonth;
+    }
+
+    return true;
   }
 
   /**
-   * Computes the settled total revenue (TTC).
+   * Invoices matching the selected operational period.
+   */
+  get periodFilteredFactures(): Facture[] {
+    return this.factures.filter(f => this.isInvoiceInActivePeriod(f));
+  }
+
+  /**
+   * Computes the grand total revenue (TTC) of invoices in active period.
+   */
+  get totalCA(): number {
+    return this.periodFilteredFactures.reduce((acc, f) => acc + (f.totalTTC ?? f.total ?? 0), 0);
+  }
+
+  /**
+   * Computes the settled total revenue (TTC) in active period.
    */
   get totalSettledCA(): number {
-    return this.factures
+    return this.periodFilteredFactures
       .filter(f => f.reglee)
       .reduce((acc, f) => acc + (f.totalTTC ?? f.total ?? 0), 0);
   }
 
   /**
-   * Computes the pending total revenue (TTC).
+   * Computes the pending total revenue (TTC) in active period.
    */
   get totalPendingCA(): number {
-    return this.factures
+    return this.periodFilteredFactures
       .filter(f => !f.reglee)
       .reduce((acc, f) => acc + (f.totalTTC ?? f.total ?? 0), 0);
   }
 
   /**
-   * Returns count of settled invoices.
+   * Returns total count of invoices in active period.
+   */
+  get periodTotalCount(): number {
+    return this.periodFilteredFactures.length;
+  }
+
+  /**
+   * Returns count of settled invoices in active period.
    */
   get settledCount(): number {
-    return this.factures.filter(f => f.reglee).length;
+    return this.periodFilteredFactures.filter(f => f.reglee).length;
   }
 
   /**
-   * Returns count of pending invoices.
+   * Returns count of pending invoices in active period.
    */
   get pendingCount(): number {
-    return this.factures.filter(f => !f.reglee).length;
+    return this.periodFilteredFactures.filter(f => !f.reglee).length;
   }
 
   /**
-   * Returns percentage of settled invoices (0 to 100).
+   * Returns percentage of settled invoices (0 to 100) in active period.
    */
   get settledRate(): number {
-    if (this.factures.length === 0) return 0;
-    return Math.round((this.settledCount / this.factures.length) * 100);
+    if (this.periodFilteredFactures.length === 0) return 0;
+    return Math.round((this.settledCount / this.periodFilteredFactures.length) * 100);
   }
 
   /**
    * Returns ratio of settled invoices (0 to 1) for progress bars.
    */
   get settledRatio(): number {
-    if (this.factures.length === 0) return 0;
-    return this.settledCount / this.factures.length;
+    if (this.periodFilteredFactures.length === 0) return 0;
+    return this.settledCount / this.periodFilteredFactures.length;
   }
 
   /**
-   * Filters and sorts the invoice list according to search term, status filter, and sort option.
+   * Options for Sort searchable select dropdown.
+   */
+  get sortOptions(): SearchableOption<FactureSortOption>[] {
+    return [
+      { value: 'DATE_DESC', label: this.transloco.translate('FACTURES.SORT.DATE_DESC'), icon: 'time-outline' },
+      { value: 'DATE_ASC', label: this.transloco.translate('FACTURES.SORT.DATE_ASC'), icon: 'time-outline' },
+      { value: 'AMOUNT_DESC', label: this.transloco.translate('FACTURES.SORT.AMOUNT_DESC'), icon: 'cash-outline' },
+      { value: 'AMOUNT_ASC', label: this.transloco.translate('FACTURES.SORT.AMOUNT_ASC'), icon: 'cash-outline' },
+      { value: 'NUMBER', label: this.transloco.translate('FACTURES.SORT.NUMBER'), icon: 'receipt-outline' },
+    ];
+  }
+
+  onSortSelected(option: SearchableOption<FactureSortOption> | null): void {
+    if (option?.value) {
+      this.sortBy = option.value;
+    }
+  }
+
+  /**
+   * Filters and sorts the invoice list according to period, search term, status filter, and sort option.
    */
   get filteredFactures(): Facture[] {
-    let result = [...this.factures];
+    let result = [...this.periodFilteredFactures];
 
     // Status filter
     if (this.activeFilter === 'SETTLED') {
@@ -231,6 +341,50 @@ export class FactureListComponent implements OnInit, OnDestroy {
     });
 
     return result;
+  }
+
+  setPeriodMode(mode: FacturePeriodMode): void {
+    this.periodMode = mode;
+  }
+
+  setToday(): void {
+    this.periodMode = 'OPERATIONAL_DAY';
+    this.selectedDay = getOperationalDayString();
+  }
+
+  setYesterday(): void {
+    const d = new Date();
+    d.setDate(d.getDate() - 1);
+    this.periodMode = 'OPERATIONAL_DAY';
+    this.selectedDay = getOperationalDayString(d);
+  }
+
+  setThisWeek(): void {
+    this.periodMode = 'WEEK';
+    this.selectedWeek = getIsoWeekString();
+  }
+
+  setLastWeek(): void {
+    const d = new Date();
+    d.setDate(d.getDate() - 7);
+    this.periodMode = 'WEEK';
+    this.selectedWeek = getIsoWeekString(d);
+  }
+
+  setThisMonth(): void {
+    this.periodMode = 'MONTH';
+    this.selectedMonth = getMonthString();
+  }
+
+  setLastMonth(): void {
+    const d = new Date();
+    d.setMonth(d.getMonth() - 1);
+    this.periodMode = 'MONTH';
+    this.selectedMonth = getMonthString(d);
+  }
+
+  setAllTime(): void {
+    this.periodMode = 'ALL_TIME';
   }
 
   /**

@@ -17,6 +17,7 @@ import { CurrencyPipe, DatePipe } from '@angular/common';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { CommandeService } from '../../../core/services/commande.service';
 import { Commande, CommandeItem, CommandeStatut } from '../../../core/models/commande.model';
+import { CancelOrderModalComponent } from '../../../core/components/ui/cancel-order-modal/cancel-order-modal.component';
 import { groupCommandeItems } from '../../../core/utils/order-item-grouper';
 
 /**
@@ -144,33 +145,20 @@ export class CommandeDetailModalComponent implements OnInit, OnDestroy {
   async onAnnuler(): Promise<void> {
     if (!this.commande) return;
 
-    const title = this.translocoService.translate('COMMANDES.CONFIRM_CANCEL_TITLE');
-    const msg = this.translocoService.translate('COMMANDES.CONFIRM_CANCEL_MSG', {
-      id: this.commande.id,
-      table: this.commande.tableNumero,
-    });
-    const confirmBtnText = this.translocoService.translate('COMMANDES.CONFIRM_CANCEL_OK');
-    const keepBtnText = this.translocoService.translate('COMMANDES.CONFIRM_CANCEL_KEEP');
-
-    const alert = await this.alertCtrl.create({
-      header: title,
-      message: msg,
-      buttons: [
-        {
-          text: keepBtnText,
-          role: 'cancel',
-        },
-        {
-          text: confirmBtnText,
-          role: 'destructive',
-          handler: () => {
-            this.confirmAnnuler();
-          },
-        },
-      ],
+    const modal = await this.modalCtrl.create({
+      component: CancelOrderModalComponent,
+      componentProps: {
+        commande: this.commande,
+      },
+      cssClass: 'cancel-order-modal-dialog',
     });
 
-    await alert.present();
+    await modal.present();
+    const { data, role } = await modal.onWillDismiss();
+
+    if (role === 'confirm' || data?.confirmed) {
+      this.confirmAnnuler();
+    }
   }
 
   private confirmAnnuler(): void {

@@ -183,21 +183,17 @@ describe('TableDetailModalComponent', () => {
     expect(dashboardServiceSpy.transfererCommande).not.toHaveBeenCalled();
   }));
 
-  it('annuler() presents confirmation alert and cancels on handler execute', fakeAsync(() => {
-    let confirmHandler: () => void = () => {};
-    alertCtrlSpy.create.and.callFake((options: any) => {
-      confirmHandler = options.buttons.find((b: any) => b.role === 'destructive')?.handler;
-      return Promise.resolve(alertSpy as any);
-    });
+  it('annuler() presents confirmation modal and cancels on confirm', fakeAsync(() => {
+    modalCtrlSpy.create.and.returnValue(Promise.resolve({
+      present: () => Promise.resolve(),
+      onWillDismiss: () => Promise.resolve({ role: 'confirm', data: { confirmed: true } }),
+    } as any));
     dashboardServiceSpy.annulerCommande.and.returnValue(of(mockCommandes[0]));
 
     component.annuler(10);
     tick();
 
-    expect(alertCtrlSpy.create).toHaveBeenCalled();
-    expect(alertSpy.present).toHaveBeenCalled();
-
-    confirmHandler();
+    expect(modalCtrlSpy.create).toHaveBeenCalled();
     expect(dashboardServiceSpy.annulerCommande).toHaveBeenCalledWith(10);
   }));
 

@@ -27,9 +27,11 @@ import { User } from '../../models/user.model';
 const ROUTE_TITLE_MAP: Record<string, string> = {
   '/admin/audit-logs': 'NAV.TOPBAR.PAGE_TITLES.AUDIT_LOGS',
   '/admin/users': 'NAV.TOPBAR.PAGE_TITLES.ADMIN',
+  '/admin/settings': 'NAV.TOPBAR.PAGE_TITLES.ADMIN',
   '/admin/personnalisation': 'NAV.TOPBAR.PAGE_TITLES.ADMIN',
   '/admin/etablissement': 'NAV.TOPBAR.PAGE_TITLES.ADMIN',
   '/admin': 'NAV.TOPBAR.PAGE_TITLES.ADMIN',
+  '/settings': 'NAV.TOPBAR.PAGE_TITLES.ADMIN',
   '/barman': 'NAV.TOPBAR.PAGE_TITLES.BARMAN',
   '/serveur': 'NAV.TOPBAR.PAGE_TITLES.SERVEUR',
   '/plan-salle': 'NAV.TOPBAR.PAGE_TITLES.PLAN_SALLE',

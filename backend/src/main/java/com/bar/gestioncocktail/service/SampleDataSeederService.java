@@ -309,7 +309,8 @@ public class SampleDataSeederService {
         t.setPlanRotation(planRotation);
 
         if (occupee) {
-            t.setDateOccupation(timeService.now().minusMinutes(25));
+            int minOcc = tNode.has("minutesOccupation") ? tNode.get("minutesOccupation").asInt() : 5;
+            t.setDateOccupation(timeService.now().minusMinutes(minOcc));
         } else {
             t.setDateOccupation(null);
             t.setDateLiberation(timeService.now().minusMinutes(45));

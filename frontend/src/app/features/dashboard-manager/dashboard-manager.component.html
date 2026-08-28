@@ -14,6 +14,7 @@
 
       <div class="toolbar-actions">
         <span class="last-sync-badge" *ngIf="stats">
+          <span class="sync-dot"></span>
           <ion-icon name="time-outline"></ion-icon>
           <span>{{ 'MANAGER_DASHBOARD.LAST_UPDATE' | transloco: { time: formattedLastUpdated } }}</span>
         </span>
@@ -21,7 +22,7 @@
         <ion-button
           fill="outline"
           size="small"
-          class="btn-action-outline"
+          class="btn-manager-refresh"
           (click)="onRefresh()"
           (keyup.enter)="onRefresh()"
           [title]="'MANAGER_DASHBOARD.REFRESH_TOOLTIP' | transloco"
@@ -31,9 +32,8 @@
 
         <ion-button
           fill="solid"
-          color="primary"
           size="small"
-          class="btn-export-csv"
+          class="btn-manager-export"
           (click)="onExportCsv()"
           (keyup.enter)="onExportCsv()"
           data-testid="manager-btn-export-csv">
@@ -52,53 +52,101 @@
   </ion-refresher>
 
   <div class="dashboard-body">
-    <!-- Quick Access Actions Bar -->
-    <section class="quick-actions-bar" aria-label="Actions rapides manager">
-      <div class="quick-actions-scroll">
-        <ion-button routerLink="/manager/schedule" color="primary" fill="solid" class="qa-btn" data-testid="manager-btn-schedule">
-          <ion-icon name="calendar-outline" slot="start"></ion-icon>
-          {{ 'MANAGER_DASHBOARD.ACTION_SCHEDULE' | transloco }}
+    <!-- Operational Alerts Summary Banner (Top Priority Position) -->
+    <section class="alerts-container" *ngIf="stats.stockIngredientsCritiques > 0 || stats.commandesEnAttente >= 5" aria-label="Alertes prioritaires">
+      <div class="alert-banner warning" *ngIf="stats.commandesEnAttente >= 5" data-testid="alert-pending-orders">
+        <div class="alert-icon-wrapper">
+          <span class="alert-beacon"></span>
+          <ion-icon name="time-outline"></ion-icon>
+        </div>
+        <div class="alert-body">
+          <div class="alert-header-row">
+            <span class="alert-title">{{ 'MANAGER_DASHBOARD.ALERT_PENDING_ORDERS_TITLE' | transloco }}</span>
+            <span class="alert-count-pill">{{ stats.commandesEnAttente }}</span>
+          </div>
+          <span class="alert-text">{{ 'MANAGER_DASHBOARD.ALERT_PENDING_ORDERS_MSG' | transloco: { count: stats.commandesEnAttente } }}</span>
+        </div>
+        <ion-button size="small" fill="outline" class="btn-alert-cta warning" routerLink="/barman" data-testid="alert-btn-view-barman">
+          <span>{{ 'MANAGER_DASHBOARD.ALERT_ACTION_BARMAN' | transloco }}</span>
+          <ion-icon slot="end" name="arrow-forward-outline"></ion-icon>
         </ion-button>
+      </div>
 
-        <ion-button routerLink="/manager/employees" color="tertiary" fill="solid" class="qa-btn" data-testid="manager-btn-employees">
-          <ion-icon name="people-outline" slot="start"></ion-icon>
-          {{ 'MANAGER_DASHBOARD.ACTION_EMPLOYEES' | transloco }}
-        </ion-button>
-
-        <ion-button routerLink="/manager/shift-presets" color="secondary" fill="outline" class="qa-btn" data-testid="manager-btn-presets">
-          <ion-icon name="settings-outline" slot="start"></ion-icon>
-          {{ 'MANAGER_DASHBOARD.ACTION_PRESETS' | transloco }}
-        </ion-button>
-
-        <ion-button routerLink="/manager/timers" color="warning" fill="outline" class="qa-btn" data-testid="manager-btn-timers">
-          <ion-icon name="timer-outline" slot="start"></ion-icon>
-          {{ 'MANAGER_DASHBOARD.ACTION_ORDER_TIMERS' | transloco }}
-        </ion-button>
-
-        <ion-button routerLink="/plan-salle" fill="outline" class="qa-btn btn-ghost" data-testid="manager-btn-floor-plan">
-          <ion-icon name="map-outline" slot="start"></ion-icon>
-          {{ 'MANAGER_DASHBOARD.ACTION_FLOOR_PLAN' | transloco }}
-        </ion-button>
-
-        <ion-button routerLink="/barman" fill="outline" class="qa-btn btn-ghost" data-testid="manager-btn-bar-stock">
-          <ion-icon name="wine-outline" slot="start"></ion-icon>
-          {{ 'MANAGER_DASHBOARD.ACTION_BAR_STOCK' | transloco }}
+      <div class="alert-banner critical" *ngIf="stats.stockIngredientsCritiques > 0" data-testid="alert-critical-stock">
+        <div class="alert-icon-wrapper">
+          <span class="alert-beacon"></span>
+          <ion-icon name="alert-circle-outline"></ion-icon>
+        </div>
+        <div class="alert-body">
+          <div class="alert-header-row">
+            <span class="alert-title">{{ 'MANAGER_DASHBOARD.ALERT_CRITICAL_STOCK_TITLE' | transloco }}</span>
+            <span class="alert-count-pill">{{ stats.stockIngredientsCritiques }}</span>
+          </div>
+          <span class="alert-text">{{ 'MANAGER_DASHBOARD.ALERT_CRITICAL_STOCK_MSG' | transloco: { count: stats.stockIngredientsCritiques } }}</span>
+        </div>
+        <ion-button size="small" fill="outline" class="btn-alert-cta critical" routerLink="/barman" data-testid="alert-btn-view-stock">
+          <span>{{ 'MANAGER_DASHBOARD.ALERT_ACTION_STOCK' | transloco }}</span>
+          <ion-icon slot="end" name="arrow-forward-outline"></ion-icon>
         </ion-button>
       </div>
     </section>
 
-    <!-- Operational Alerts Summary Banner -->
-    <section class="alerts-container" *ngIf="stats.stockIngredientsCritiques > 0 || stats.commandesEnAttente >= 5">
-      <div class="alert-banner warning" *ngIf="stats.commandesEnAttente >= 5">
-        <ion-icon name="time-outline"></ion-icon>
-        <span class="alert-text">{{ 'MANAGER_DASHBOARD.ALERT_PENDING_ORDERS_MSG' | transloco: { count: stats.commandesEnAttente } }}</span>
-        <ion-button size="small" fill="clear" routerLink="/barman">Voir barman →</ion-button>
-      </div>
+    <!-- Quick Access Actions Bar (Modern Action Tiles) -->
+    <section class="quick-actions-bar" aria-label="Actions rapides manager">
+      <div class="quick-actions-scroll">
+        <ion-button routerLink="/manager/schedule" fill="clear" class="qa-action-tile qa-tile-schedule" data-testid="manager-btn-schedule">
+          <div class="qa-tile-inner">
+            <div class="qa-icon-wrapper schedule">
+              <ion-icon name="calendar-outline"></ion-icon>
+            </div>
+            <span class="qa-label">{{ 'MANAGER_DASHBOARD.ACTION_SCHEDULE' | transloco }}</span>
+          </div>
+        </ion-button>
 
-      <div class="alert-banner critical" *ngIf="stats.stockIngredientsCritiques > 0">
-        <ion-icon name="alert-circle-outline"></ion-icon>
-        <span class="alert-text">{{ 'MANAGER_DASHBOARD.ALERT_CRITICAL_STOCK_MSG' | transloco: { count: stats.stockIngredientsCritiques } }}</span>
-        <ion-button size="small" fill="clear" routerLink="/barman">Vérifier stocks →</ion-button>
+        <ion-button routerLink="/manager/employees" fill="clear" class="qa-action-tile qa-tile-employees" data-testid="manager-btn-employees">
+          <div class="qa-tile-inner">
+            <div class="qa-icon-wrapper employees">
+              <ion-icon name="people-outline"></ion-icon>
+            </div>
+            <span class="qa-label">{{ 'MANAGER_DASHBOARD.ACTION_EMPLOYEES' | transloco }}</span>
+          </div>
+        </ion-button>
+
+        <ion-button routerLink="/manager/shift-presets" fill="clear" class="qa-action-tile qa-tile-presets" data-testid="manager-btn-presets">
+          <div class="qa-tile-inner">
+            <div class="qa-icon-wrapper presets">
+              <ion-icon name="settings-outline"></ion-icon>
+            </div>
+            <span class="qa-label">{{ 'MANAGER_DASHBOARD.ACTION_PRESETS' | transloco }}</span>
+          </div>
+        </ion-button>
+
+        <ion-button routerLink="/manager/timers" fill="clear" class="qa-action-tile qa-tile-timers" data-testid="manager-btn-timers">
+          <div class="qa-tile-inner">
+            <div class="qa-icon-wrapper timers">
+              <ion-icon name="timer-outline"></ion-icon>
+            </div>
+            <span class="qa-label">{{ 'MANAGER_DASHBOARD.ACTION_ORDER_TIMERS' | transloco }}</span>
+          </div>
+        </ion-button>
+
+        <ion-button routerLink="/plan-salle" fill="clear" class="qa-action-tile qa-tile-floor" data-testid="manager-btn-floor-plan">
+          <div class="qa-tile-inner">
+            <div class="qa-icon-wrapper floor">
+              <ion-icon name="map-outline"></ion-icon>
+            </div>
+            <span class="qa-label">{{ 'MANAGER_DASHBOARD.ACTION_FLOOR_PLAN' | transloco }}</span>
+          </div>
+        </ion-button>
+
+        <ion-button routerLink="/barman" fill="clear" class="qa-action-tile qa-tile-bar" data-testid="manager-btn-bar-stock">
+          <div class="qa-tile-inner">
+            <div class="qa-icon-wrapper bar">
+              <ion-icon name="wine-outline"></ion-icon>
+            </div>
+            <span class="qa-label">{{ 'MANAGER_DASHBOARD.ACTION_BAR_STOCK' | transloco }}</span>
+          </div>
+        </ion-button>
       </div>
     </section>
 
@@ -174,7 +222,7 @@
             [title]="'MANAGER_DASHBOARD.KPI_DELIVERY_RATE' | transloco"
             [value]="deliveryRate + '%'"
             icon="checkmark-circle-outline"
-            color="success"
+            color="tertiary"
             [trend]="stats.commandesLivrees + ' livrée(s)'"
             trendDirection="up"
             testId="stat-card-delivery-rate">
@@ -190,10 +238,12 @@
         <ion-card-header>
           <div class="card-title-row">
             <div class="title-with-icon">
-              <ion-icon name="wine-outline" class="title-icon"></ion-icon>
+              <div class="analytics-icon-badge">
+                <ion-icon name="wine-outline"></ion-icon>
+              </div>
               <ion-card-title>{{ 'MANAGER_DASHBOARD.TOP_COCKTAILS_TITLE' | transloco }}</ion-card-title>
             </div>
-            <ion-badge color="primary">{{ stats.topCocktails.length }} cocktail(s)</ion-badge>
+            <span class="analytics-count-badge">{{ stats.topCocktails.length }} cocktail(s)</span>
           </div>
         </ion-card-header>
         <ion-card-content>
@@ -201,7 +251,9 @@
             <div
               class="top-cocktail-item"
               *ngFor="let cocktail of stats.topCocktails; let i = index; trackBy: trackByCocktailId">
-              <span class="rank-badge">{{ getRankLabel(i) }}</span>
+              <span class="rank-badge" [class.rank-gold]="i === 0" [class.rank-silver]="i === 1" [class.rank-bronze]="i === 2">
+                {{ getRankLabel(i) }}
+              </span>
               <div class="cocktail-info">
                 <div class="cocktail-name-row">
                   <span class="cocktail-name">{{ cocktail.nom }}</span>
@@ -226,7 +278,9 @@
         <ion-card-header>
           <div class="card-title-row">
             <div class="title-with-icon">
-              <ion-icon name="stats-chart-outline" class="title-icon"></ion-icon>
+              <div class="analytics-icon-badge workflow">
+                <ion-icon name="stats-chart-outline"></ion-icon>
+              </div>
               <ion-card-title>{{ 'MANAGER_DASHBOARD.WORKFLOW_OVERVIEW_TITLE' | transloco }}</ion-card-title>
             </div>
           </div>
@@ -298,22 +352,24 @@
       <ion-card-header>
         <div class="card-title-row">
           <div class="title-with-icon">
-            <ion-icon name="receipt-outline" class="title-icon"></ion-icon>
+            <div class="analytics-icon-badge kanban">
+              <ion-icon name="receipt-outline"></ion-icon>
+            </div>
             <ion-card-title>{{ 'MANAGER_DASHBOARD.ONGOING_ORDERS_TITLE' | transloco }}</ion-card-title>
           </div>
           <div class="header-right-actions">
             <ion-button
               size="small"
               [fill]="showDelivered ? 'solid' : 'outline'"
-              color="medium"
               class="btn-toggle-delivered"
+              [class.active]="showDelivered"
               (click)="toggleShowDelivered()"
               (keyup.enter)="toggleShowDelivered()"
               data-testid="btn-toggle-delivered">
               <ion-icon slot="start" [name]="showDelivered ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
               {{ (showDelivered ? 'MANAGER_DASHBOARD.HIDE_DELIVERED' : 'MANAGER_DASHBOARD.SHOW_DELIVERED') | transloco }}
             </ion-button>
-            <ion-badge color="primary">{{ ongoingOrders.length }} active(s)</ion-badge>
+            <span class="kanban-active-count-pill">{{ ongoingOrders.length }} active(s)</span>
           </div>
         </div>
       </ion-card-header>
@@ -339,7 +395,7 @@
       [title]="'MANAGER_DASHBOARD.ERROR_STATS' | transloco"
       icon="warning-outline">
     </app-empty-state>
-    <ion-button color="primary" fill="solid" (click)="chargerStats()" (keyup.enter)="chargerStats()" data-testid="manager-btn-retry">
+    <ion-button class="btn-retry-modern" fill="solid" (click)="chargerStats()" (keyup.enter)="chargerStats()" data-testid="manager-btn-retry">
       <ion-icon slot="start" name="refresh-outline"></ion-icon>
       {{ 'MANAGER_DASHBOARD.RETRY' | transloco }}
     </ion-button>

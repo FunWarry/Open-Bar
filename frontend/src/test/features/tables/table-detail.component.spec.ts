@@ -4,7 +4,7 @@ import { RouterTestingModule } from '@angular/router/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { IonicModule } from '@ionic/angular';
-import { ToastController } from '@ionic/angular/standalone';
+import { ToastController, ModalController } from '@ionic/angular/standalone';
 import { of, throwError } from 'rxjs';
 import { TableDetailComponent } from '../../../app/features/tables/table-detail/table-detail.component';
 import { TableService } from '../../../app/core/services/table.service';
@@ -20,20 +20,31 @@ describe('TableDetailComponent', () => {
   let tableServiceSpy: jasmine.SpyObj<TableService>;
   let commandeServiceSpy: jasmine.SpyObj<CommandeService>;
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
+  let modalCtrlSpy: jasmine.SpyObj<ModalController>;
   let storeSpy: jasmine.SpyObj<Store>;
   let router: Router;
 
   const mockToast = { present: jasmine.createSpy('present') };
+  const mockChildModal = {
+    present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+    onDidDismiss: jasmine.createSpy('onDidDismiss').and.returnValue(Promise.resolve({ data: { confirmed: true } }))
+  };
 
   beforeEach(async () => {
-    tableServiceSpy = jasmine.createSpyObj('TableService', ['getById']);
+    tableServiceSpy = jasmine.createSpyObj('TableService', ['getById', 'delete']);
     tableServiceSpy.getById.and.returnValue(of(mockTable));
+    tableServiceSpy.delete.and.returnValue(of(undefined as any));
 
     commandeServiceSpy = jasmine.createSpyObj('CommandeService', ['getByTable']);
     commandeServiceSpy.getByTable.and.returnValue(of([mockCommande]));
 
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
     toastCtrlSpy.create.and.returnValue(Promise.resolve(mockToast as any));
+
+    modalCtrlSpy = jasmine.createSpyObj('ModalController', ['create', 'dismiss', 'getTop']);
+    modalCtrlSpy.dismiss.and.returnValue(Promise.resolve(true));
+    modalCtrlSpy.getTop.and.returnValue(Promise.resolve({ dismiss: jasmine.createSpy('dismiss') } as any));
+    modalCtrlSpy.create.and.returnValue(Promise.resolve(mockChildModal as any));
 
     storeSpy = jasmine.createSpyObj('Store', ['select', 'dispatch']);
     storeSpy.select.and.returnValue(of(false));
@@ -45,6 +56,7 @@ describe('TableDetailComponent', () => {
         { provide: TableService, useValue: tableServiceSpy },
         { provide: CommandeService, useValue: commandeServiceSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
+        { provide: ModalController, useValue: modalCtrlSpy },
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => '5' } } } },
       ],
     }).compileComponents();
@@ -75,12 +87,12 @@ describe('TableDetailComponent', () => {
     expect(component.commandes).toHaveSize(1);
   }));
 
-  it('ngOnInit() navigue vers /tables en cas d\'erreur', fakeAsync(() => {
+  it('ngOnInit() navigue vers /tables ou dismiss modal en cas d\'erreur', fakeAsync(() => {
     tableServiceSpy.getById.and.returnValue(throwError(() => new Error('err')));
-    spyOn(router, 'navigate');
+    component.table = null;
     component.ngOnInit(); tick();
     flushMicrotasks();
-    expect(router.navigate).toHaveBeenCalledWith(['/tables']);
+    expect(modalCtrlSpy.dismiss).toHaveBeenCalled();
   }));
 
   it('getStatutColor() mappe les statuts correctement', () => {
@@ -90,24 +102,36 @@ describe('TableDetailComponent', () => {
     expect(component.getStatutColor('INCONNU')).toBe('primary');
   });
 
-  it('onBack() navigue vers /tables', () => {
-    spyOn(router, 'navigate');
-    component.onBack();
-    expect(router.navigate).toHaveBeenCalledWith(['/tables']);
-  });
-
-  it('onEdit() navigue vers /tables/:id/edit', fakeAsync(() => {
-    component.ngOnInit(); tick();
-    spyOn(router, 'navigate');
-    component.onEdit();
-    expect(router.navigate).toHaveBeenCalledWith(['/tables', 5, 'edit']);
+  it('onClose() ferme la modale', fakeAsync(() => {
+    component.onClose();
+    tick();
+    expect(modalCtrlSpy.dismiss).toHaveBeenCalled();
   }));
 
-  it('onViewCommande() navigue vers /commandes/:id', () => {
+  it('onEdit() ferme la modale avec signal edit', fakeAsync(() => {
+    component.ngOnInit(); tick();
+    component.onEdit();
+    tick();
+    expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith(jasmine.objectContaining({ action: 'edit' }));
+  }));
+
+  it('onDelete() ouvre ConfirmDeleteModalComponent et supprime la table si confirmée', fakeAsync(() => {
+    component.commandes = [];
+    component.table = mockTable;
+
+    component.onDelete();
+    tick();
+    expect(modalCtrlSpy.create).toHaveBeenCalled();
+    expect(tableServiceSpy.delete).toHaveBeenCalledWith(5);
+    expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith(jasmine.objectContaining({ action: 'deleted', tableId: 5 }));
+  }));
+
+  it('onViewCommande() ferme la modal et navigue vers /commandes/:id', fakeAsync(() => {
     spyOn(router, 'navigate');
     component.onViewCommande(mockCommande);
+    tick();
     expect(router.navigate).toHaveBeenCalledWith(['/commandes', 1]);
-  });
+  }));
 
   it('isAdmin$ emits false by default', (done) => {
     component.isAdmin$.subscribe(v => { expect(v).toBe(false); done(); });

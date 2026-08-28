@@ -14,16 +14,21 @@ import {
   add, eye, create, people, checkmarkCircle, closeCircle, layersOutline,
   businessOutline, swapVerticalOutline, gridOutline, restaurantOutline,
   refreshOutline, checkmarkCircleOutline, closeCircleOutline,
-  locationOutline, peopleOutline, eyeOutline, createOutline
+  locationOutline, peopleOutline, eyeOutline, createOutline, trashOutline
 } from 'ionicons/icons';
-import { AsyncPipe, NgTemplateOutlet } from '@angular/common';
+import { AsyncPipe, NgTemplateOutlet, CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { TableService } from '../../../core/services/table.service';
 import { ZoneService, ZoneBar } from '../../../core/services/zone.service';
 import { EtageService, EtageBar } from '../../../core/services/etage.service';
 import { TableBar } from '../../../core/models/table.model';
 import { ZoneManagerComponent } from '../zone-manager/zone-manager.component';
+import { TableDetailComponent } from '../table-detail/table-detail.component';
+import { TableFormComponent } from '../table-form/table-form.component';
+import { ConfirmDeleteModalComponent } from '../../../core/components/ui/confirm-delete-modal/confirm-delete-modal.component';
 import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
+import { SearchableSelectComponent, SearchableOption } from '../../../core/components/ui/searchable-select/searchable-select.component';
 
 export type SortOption =
   | 'NUMBER_ASC'
@@ -47,7 +52,7 @@ export interface GroupedTables {
 
 /**
  * Enhanced Table list management component in OpenBar.
- * Provides real-time supervision, filtering by floor/zone/status, sorting, and grouped view modes.
+ * Provides real-time supervision, searchable dropdown filtering by floor/zone/status, sorting, and grouped view modes.
  */
 @Component({
   selector: 'app-table-list',
@@ -55,9 +60,11 @@ export interface GroupedTables {
   styleUrls: ['./table-list.component.css'],
   standalone: true,
   imports: [
+    CommonModule, FormsModule,
     IonContent, IonIcon, IonButton,
     IonRefresher, IonRefresherContent, IonSpinner, IonSearchbar,
-    AsyncPipe, NgTemplateOutlet, TranslocoPipe
+    AsyncPipe, NgTemplateOutlet, TranslocoPipe,
+    SearchableSelectComponent,
   ],
 })
 export class TableListComponent implements OnInit, OnDestroy {
@@ -92,7 +99,7 @@ export class TableListComponent implements OnInit, OnDestroy {
       add, eye, create, people, checkmarkCircle, closeCircle, layersOutline,
       businessOutline, swapVerticalOutline, gridOutline, restaurantOutline,
       refreshOutline, checkmarkCircleOutline, closeCircleOutline,
-      locationOutline, peopleOutline, eyeOutline, createOutline
+      locationOutline, peopleOutline, eyeOutline, createOutline, trashOutline
     });
   }
 
@@ -166,6 +173,60 @@ export class TableListComponent implements OnInit, OnDestroy {
     if (!etage) return '';
     if (etage.code === 'RDC') return 'RDC';
     return etage.nom.replace(/\s*\(.*\)/, '');
+  }
+
+  /**
+   * Options for Floor searchable select dropdown.
+   */
+  get etageOptions(): SearchableOption<string>[] {
+    return [
+      { value: 'ALL', label: this.transloco.translate('TABLES.FILTERS.ALL_FLOORS'), icon: 'business-outline' },
+      ...this.etages.map(e => ({ value: e.code, label: e.nom }))
+    ];
+  }
+
+  /**
+   * Options for Zone searchable select dropdown.
+   */
+  get zoneOptions(): SearchableOption<string>[] {
+    return [
+      { value: 'ALL', label: this.transloco.translate('TABLES.FILTERS.ALL_ZONES'), icon: 'layers-outline' },
+      ...this.availableZonesForFilter.map(z => ({
+        value: z.nom,
+        label: z.nom,
+        subLabel: this.getEtageLabelForZone(z.nom)
+      }))
+    ];
+  }
+
+  /**
+   * Options for Sort searchable select dropdown.
+   */
+  get sortOptions(): SearchableOption<SortOption>[] {
+    return [
+      { value: 'NUMBER_ASC', label: this.transloco.translate('TABLES.SORT.NUMBER_ASC'), icon: 'swap-vertical-outline' },
+      { value: 'NUMBER_DESC', label: this.transloco.translate('TABLES.SORT.NUMBER_DESC'), icon: 'swap-vertical-outline' },
+      { value: 'CAPACITY_ASC', label: this.transloco.translate('TABLES.SORT.CAPACITY_ASC'), icon: 'people-outline' },
+      { value: 'CAPACITY_DESC', label: this.transloco.translate('TABLES.SORT.CAPACITY_DESC'), icon: 'people-outline' },
+      { value: 'STATUS_OCCUPIED', label: this.transloco.translate('TABLES.SORT.STATUS_OCCUPIED'), icon: 'close-circle-outline' },
+      { value: 'STATUS_FREE', label: this.transloco.translate('TABLES.SORT.STATUS_FREE'), icon: 'checkmark-circle-outline' },
+      { value: 'ZONE_NAME', label: this.transloco.translate('TABLES.SORT.ZONE_NAME'), icon: 'layers-outline' },
+    ];
+  }
+
+  onEtageSelected(option: SearchableOption<string> | null): void {
+    this.selectedEtage = option?.value || 'ALL';
+    this.selectedZone = 'ALL';
+  }
+
+  onZoneSelected(option: SearchableOption<string> | null): void {
+    this.selectedZone = option?.value || 'ALL';
+  }
+
+  onSortSelected(option: SearchableOption<SortOption> | null): void {
+    if (option?.value) {
+      this.sortOption = option.value;
+    }
   }
 
   /**
@@ -398,16 +459,116 @@ export class TableListComponent implements OnInit, OnDestroy {
   async onManageZones(): Promise<void> {
     const modal = await this.modalCtrl.create({
       component: ZoneManagerComponent,
-      cssClass: 'modal-standard'
+      cssClass: 'zone-manager-modal-container'
     });
     await modal.present();
     await modal.onDidDismiss();
     this.charger();
   }
 
-  onAdd(): void { this.router.navigate(['/tables/new']); }
-  onView(t: TableBar): void { this.router.navigate(['/tables', t.id]); }
-  onEdit(t: TableBar): void { this.router.navigate(['/tables', t.id, 'edit']); }
+  async onAdd(): Promise<void> {
+    const modal = await this.modalCtrl.create({
+      component: TableFormComponent,
+      componentProps: { tableId: null },
+      cssClass: 'table-form-modal-dialog'
+    });
+    await modal.present();
+    const { data } = await modal.onDidDismiss();
+    if (data?.action === 'saved') {
+      this.charger();
+    }
+  }
+
+  async onView(t: TableBar): Promise<void> {
+    const modal = await this.modalCtrl.create({
+      component: TableDetailComponent,
+      componentProps: { tableId: t.id, table: t },
+      cssClass: 'table-detail-modal-dialog'
+    });
+    await modal.present();
+    const { data } = await modal.onDidDismiss();
+    if (data?.action === 'edit') {
+      this.onEdit(data.table || t);
+    } else if (data?.action === 'deleted') {
+      this.charger();
+    }
+  }
+
+  async onEdit(t: TableBar): Promise<void> {
+    const modal = await this.modalCtrl.create({
+      component: TableFormComponent,
+      componentProps: { tableId: t.id, table: t },
+      cssClass: 'table-form-modal-dialog'
+    });
+    await modal.present();
+    const { data } = await modal.onDidDismiss();
+    if (data?.action === 'saved' || data?.action === 'deleted') {
+      this.charger();
+    }
+  }
+
+  async onDelete(table: TableBar, event?: Event): Promise<void> {
+    if (event) event.stopPropagation();
+
+    const modal = await this.modalCtrl.create({
+      component: ConfirmDeleteModalComponent,
+      cssClass: 'confirm-delete-modal-dialog',
+      componentProps: {
+        title: this.transloco.translate('TABLES.DELETE_CONFIRM_TITLE', { number: table.numero }),
+        itemName: `Table ${table.numero}`,
+        warningMessage: this.transloco.translate('TABLES.DELETE_CONFIRM_MSG', { number: table.numero }),
+        metaTags: [
+          { icon: 'restaurant-outline', text: `Table ${table.numero}` },
+          { icon: 'location-outline', text: table.zone || '-' },
+          { icon: 'people-outline', text: `${table.capacite} places` }
+        ],
+        detailsSummary: [
+          { label: this.transloco.translate('TABLES.NUMBER'), value: `#${table.numero}` },
+          { label: this.transloco.translate('TABLES.ZONE'), value: table.zone || '-' },
+          { label: this.transloco.translate('TABLES.CAPACITY'), value: `${table.capacite} personnes` },
+          {
+            label: this.transloco.translate('TABLES.STATUS'),
+            value: table.occupee
+              ? this.transloco.translate('TABLES.OCCUPIED')
+              : this.transloco.translate('TABLES.FREE')
+          }
+        ],
+        confirmBtnText: this.transloco.translate('TABLES.DELETE_BTN')
+      }
+    });
+
+    await modal.present();
+    const { data } = await modal.onDidDismiss();
+    if (data?.confirmed) {
+      this.confirmerSuppression(table.id);
+    }
+  }
+
+  private confirmerSuppression(tableId: number): void {
+    this.tableService.delete(tableId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: async () => {
+          const toast = await this.toastCtrl.create({
+            message: this.transloco.translate('TABLES.DELETE_SUCCESS'),
+            duration: 2500,
+            color: 'success'
+          });
+          toast.present();
+          this.charger();
+        },
+        error: async (err) => {
+          const errMsg = err?.error?.message || this.transloco.translate('TABLES.DELETE_ERROR');
+          const toast = await this.toastCtrl.create({
+            message: errMsg,
+            duration: 3500,
+            color: 'danger'
+          });
+          toast.present();
+        }
+      });
+  }
+
   onRefresh(event: any): void { this.charger(event); }
   trackById(_: number, t: TableBar): number { return t.id; }
 }

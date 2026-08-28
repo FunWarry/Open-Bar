@@ -69,7 +69,7 @@
         <span class="kpi-title">{{ t('ADMIN_DASHBOARD.STATS.ESTABLISHMENT') }}</span>
         <span class="kpi-desc">{{ t('ADMIN_DASHBOARD.STATS.ESTABLISHMENT_DESC') }}</span>
       </div>
-      <a routerLink="/admin/etablissement" class="kpi-action-btn" data-testid="kpi-etab-action">
+      <a routerLink="/admin/settings" [queryParams]="{ tab: 'legal' }" class="kpi-action-btn" data-testid="kpi-etab-action">
         <span>{{ t('ADMIN_DASHBOARD.STATS.VIEW_SETTINGS') }}</span>
         <span class="arrow">→</span>
       </a>
@@ -121,17 +121,17 @@
         </div>
       </div>
       <div class="category-actions">
-        <a routerLink="/admin/etablissement" class="hub-btn outline-hub-btn" data-testid="admin-action-legal-config">
+        <a routerLink="/admin/settings" [queryParams]="{ tab: 'legal' }" class="hub-btn outline-hub-btn" data-testid="admin-action-legal-config">
           <span class="btn-icon">🏛️</span>
           <span>{{ t('ADMIN_DASHBOARD.ACTIONS.LEGAL_CONFIG') }}</span>
         </a>
 
-        <a routerLink="/admin/personnalisation" class="hub-btn outline-hub-btn" data-testid="admin-action-theme-studio">
+        <a routerLink="/admin/settings" [queryParams]="{ tab: 'theme' }" class="hub-btn outline-hub-btn" data-testid="admin-action-theme-studio">
           <span class="btn-icon">🎨</span>
           <span>{{ t('ADMIN_DASHBOARD.ACTIONS.THEME_STUDIO') }}</span>
         </a>
 
-        <a routerLink="/manager/timers" class="hub-btn outline-hub-btn" data-testid="admin-action-order-timers">
+        <a routerLink="/admin/settings" [queryParams]="{ tab: 'timers' }" class="hub-btn outline-hub-btn" data-testid="admin-action-order-timers">
           <span class="btn-icon">⏱️</span>
           <span>{{ t('ADMIN_DASHBOARD.ACTIONS.ORDER_TIMERS') }}</span>
         </a>

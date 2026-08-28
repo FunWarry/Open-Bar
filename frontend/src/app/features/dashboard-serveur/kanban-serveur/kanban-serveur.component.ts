@@ -80,39 +80,47 @@ export class KanbanServeurComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.charger();
 
-    this.notificationService.onNotification()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(notif => {
-        const commande = notif.data;
-        if (commande && (commande.statut === 'ANNULEE' || commande.statut === 'REGLEE')) {
-          const id = Number(commande.id);
-          this.allCommandes.forEach((cmds, statut) => {
-            this.allCommandes.set(statut, cmds.filter(c => c.id !== id));
-          });
-          this.applyFilter();
-        } else if (notif.type === 'commande' || notif.type === 'statut') {
-          this.charger();
-        }
-      });
-
     this.wsService.watch('/topic/barman/commandes')
       .pipe(takeUntil(this.destroy$))
       .subscribe(msg => {
         try {
           const commande = JSON.parse(msg.body);
-          if (commande.statut === 'ANNULEE' || commande.statut === 'REGLEE') {
-            const id = Number(commande.id);
-            this.allCommandes.forEach((cmds, statut) => {
-              this.allCommandes.set(statut, cmds.filter(c => c.id !== id));
-            });
-            this.applyFilter();
-          } else {
-            this.charger();
+          if (commande?.id) {
+            this.handleLiveCommandeUpdate(commande);
           }
         } catch {
-          this.charger();
+          // ignore malformed message
         }
       });
+
+    this.wsService.watch('/topic/commandes')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(msg => {
+        try {
+          const commande = JSON.parse(msg.body);
+          if (commande?.id) {
+            this.handleLiveCommandeUpdate(commande);
+          }
+        } catch {
+          // ignore malformed message
+        }
+      });
+  }
+
+  /**
+   * Updates or moves an order across Kanban columns in-place without triggering a full page reload or spinner.
+   * @param commande Updated or newly created order
+   */
+  private handleLiveCommandeUpdate(commande: Commande): void {
+    const id = Number(commande.id);
+    this.allCommandes.forEach((cmds, statut) => {
+      this.allCommandes.set(statut, cmds.filter(c => c.id !== id));
+    });
+    if (commande.statut && commande.statut !== 'ANNULEE' && commande.statut !== 'REGLEE') {
+      const currentList = this.allCommandes.get(commande.statut) || [];
+      this.allCommandes.set(commande.statut, [commande, ...currentList]);
+    }
+    this.applyFilter();
   }
 
   ngOnDestroy() {

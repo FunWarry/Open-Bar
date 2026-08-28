@@ -48,14 +48,42 @@
       <span class="label">{{ 'SERVEUR_MOBILE.CARD.TOTAL' | transloco }}</span>
       <span class="amount">{{ activeTotal | appCurrency }}</span>
     </div>
-    <button
-      type="button"
-      class="order-btn"
-      [attr.data-testid]="'mobile-table-order-btn-' + table.id"
-      (click)="$event.stopPropagation(); newOrder.emit(table)"
-      (keyup.enter)="$event.stopPropagation(); newOrder.emit(table)">
-      <ion-icon name="add-circle-outline"></ion-icon>
-      {{ 'SERVEUR_MOBILE.CARD.ORDER_CTA' | transloco }}
-    </button>
+    
+    <div class="card-action-buttons">
+      <!-- Direct Occupy button if free -->
+      <button
+        *ngIf="!table.occupee"
+        type="button"
+        class="occupy-btn"
+        [attr.data-testid]="'mobile-table-occupy-btn-' + table.id"
+        (click)="$event.stopPropagation(); occupyTable.emit(table)"
+        (keyup.enter)="$event.stopPropagation(); occupyTable.emit(table)">
+        <ion-icon name="person-add-outline"></ion-icon>
+        <span>{{ 'SERVEUR_MOBILE.CARD.OCCUPY_CTA' | transloco }}</span>
+      </button>
+
+      <!-- Direct Free button if occupied without active orders -->
+      <button
+        *ngIf="table.occupee && pendingOrdersCount === 0"
+        type="button"
+        class="free-btn"
+        [attr.data-testid]="'mobile-table-free-btn-' + table.id"
+        (click)="$event.stopPropagation(); freeTable.emit(table)"
+        (keyup.enter)="$event.stopPropagation(); freeTable.emit(table)">
+        <ion-icon name="checkmark-done-outline"></ion-icon>
+        <span>{{ 'SERVEUR_MOBILE.CARD.FREE_CTA' | transloco }}</span>
+      </button>
+
+      <!-- Order / New Order button -->
+      <button
+        type="button"
+        class="order-btn"
+        [attr.data-testid]="'mobile-table-order-btn-' + table.id"
+        (click)="$event.stopPropagation(); newOrder.emit(table)"
+        (keyup.enter)="$event.stopPropagation(); newOrder.emit(table)">
+        <ion-icon name="add-circle-outline"></ion-icon>
+        <span>{{ 'SERVEUR_MOBILE.CARD.ORDER_CTA' | transloco }}</span>
+      </button>
+    </div>
   </div>
 </div>

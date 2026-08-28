@@ -198,38 +198,33 @@ describe('CommandeListComponent', () => {
     expect(component.pendingOrders).toHaveSize(0);
   }));
 
-  it('reloads orders when notification service receives a commande or statut event', fakeAsync(() => {
-    const notifSubject = new Subject<any>();
-    notificationServiceSpy.onNotification.and.returnValue(notifSubject.asObservable());
-
-    const fixtureLocal = TestBed.createComponent(CommandeListComponent);
-    const compLocal = fixtureLocal.componentInstance;
-    fixtureLocal.detectChanges();
-
+  it('updates existing order in-place upon /topic/barman/commandes message without full reload', fakeAsync(() => {
+    component.commandes = [makeCmd(1, 'EN_ATTENTE'), makeCmd(2, 'EN_PREPARATION')];
+    component.filteredCommandes = [...component.commandes];
     serviceSpy.getAll.calls.reset();
 
-    notifSubject.next({ type: 'commande', message: 'New order' });
+    wsTopic$.next({ body: JSON.stringify({ id: 1, statut: 'PRET' }) });
     tick();
-    expect(serviceSpy.getAll).toHaveBeenCalled();
 
-    serviceSpy.getAll.calls.reset();
-    notifSubject.next({ type: 'statut', message: 'Status changed' });
-    tick();
-    expect(serviceSpy.getAll).toHaveBeenCalled();
-
-    compLocal.ngOnDestroy();
+    expect(component.commandes.find(c => c.id === 1)?.statut).toBe('PRET');
+    expect(serviceSpy.getAll).not.toHaveBeenCalled();
   }));
 
-  it('reloads orders when /topic/barman/commandes receives a non-cancelled order or malformed payload', fakeAsync(() => {
-    serviceSpy.getAll.calls.reset();
+  it('prepends newly created order upon /topic/commandes message', fakeAsync(() => {
+    component.commandes = [makeCmd(1, 'EN_ATTENTE')];
+    component.filteredCommandes = [...component.commandes];
 
-    wsTopic$.next({ body: JSON.stringify({ id: 99, statut: 'PRET' }) });
+    wsTopic$.next({ body: JSON.stringify(makeCmd(99, 'EN_ATTENTE')) });
     tick();
-    expect(serviceSpy.getAll).toHaveBeenCalled();
 
-    serviceSpy.getAll.calls.reset();
-    wsTopic$.next({ body: 'invalid-json-content' });
-    tick();
-    expect(serviceSpy.getAll).toHaveBeenCalled();
+    expect(component.commandes.find(c => c.id === 99)).toBeDefined();
+    expect(component.commandes[0].id).toBe(99);
+  }));
+
+  it('ignores malformed messages on /topic/barman/commandes gracefully without throwing', fakeAsync(() => {
+    expect(() => {
+      wsTopic$.next({ body: 'invalid-json-content' });
+      tick();
+    }).not.toThrow();
   }));
 });

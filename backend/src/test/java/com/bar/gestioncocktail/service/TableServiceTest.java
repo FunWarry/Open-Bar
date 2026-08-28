@@ -31,7 +31,11 @@ class TableServiceTest {
     @Mock
     CommandeRepository commandeRepository;
     @Mock
+    com.bar.gestioncocktail.repository.FactureRepository factureRepository;
+    @Mock
     AuditLogService auditLogService;
+    @Mock
+    org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
     @Spy
     TimeService timeService = new TimeService(null);
 
@@ -216,12 +220,42 @@ class TableServiceTest {
     }
 
     @Test
-    void deleteTable_and_updatePosition() {
+    void deleteTable_nominal_supprimeEtNotifie() {
         when(tableRepository.findById(1L)).thenReturn(Optional.of(table));
-        when(tableRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(commandeRepository.existsByTableAndStatutIn(eq(table), anyList())).thenReturn(false);
 
         tableService.deleteTable(1L);
-        verify(tableRepository).deleteById(1L);
+
+        verify(commandeRepository).detachTableFromCommandes(1L);
+        verify(factureRepository).detachTableFromFactures(1L);
+        verify(tableRepository).delete(table);
+        verify(auditLogService).logAction(eq(null), eq("DELETE"), eq("TableEntity"), eq(1L), anyString(), eq(null));
+    }
+
+    @Test
+    void deleteTable_avecCommandesActives_lanceBusinessException() {
+        when(tableRepository.findById(1L)).thenReturn(Optional.of(table));
+        when(commandeRepository.existsByTableAndStatutIn(eq(table), anyList())).thenReturn(true);
+
+        assertThatThrownBy(() -> tableService.deleteTable(1L))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("Cannot delete table with active orders");
+
+        verify(tableRepository, never()).delete(any());
+    }
+
+    @Test
+    void deleteTable_tableInexistante_lanceResourceNotFoundException() {
+        when(tableRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> tableService.deleteTable(999L))
+                .isInstanceOf(com.bar.gestioncocktail.exception.ResourceNotFoundException.class);
+    }
+
+    @Test
+    void updatePosition_metAJourCoordonnees() {
+        when(tableRepository.findById(1L)).thenReturn(Optional.of(table));
+        when(tableRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         TableEntity pos = tableService.updatePosition(1L, 100.0, 200.0, 45.0, "CARRE");
         assertThat(pos.getPlanX()).isEqualTo(100.0);

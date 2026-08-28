@@ -1,7 +1,7 @@
 import { Component, Input, Output, EventEmitter, Optional } from '@angular/core';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import {
-  IonIcon, IonButton, AlertController,
+  IonIcon, IonButton, ModalController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -10,7 +10,7 @@ import {
 } from 'ionicons/icons';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { Commande, CommandeStatut } from '../../../core/models/commande.model';
-
+import { CancelOrderModalComponent } from '../../../core/components/ui/cancel-order-modal/cancel-order-modal.component';
 import { groupCommandeItems } from '../../../core/utils/order-item-grouper';
 
 export interface GroupedCommandeItem {
@@ -47,7 +47,7 @@ export class CommandeCardComponent {
   @Output() view = new EventEmitter<Commande>();
 
   constructor(
-    @Optional() private readonly alertCtrl?: AlertController,
+    @Optional() private readonly modalCtrl?: ModalController,
     @Optional() private readonly translocoService?: TranslocoService,
   ) {
     addIcons({
@@ -101,38 +101,25 @@ export class CommandeCardComponent {
   async onAnnuler(event?: Event): Promise<void> {
     if (event) event.stopPropagation();
 
-    if (!this.alertCtrl || !this.translocoService) {
+    if (!this.modalCtrl) {
       this.annuler.emit(this.commande);
       return;
     }
 
-    const title = this.translocoService.translate('COMMANDES.CONFIRM_CANCEL_TITLE');
-    const msg = this.translocoService.translate('COMMANDES.CONFIRM_CANCEL_MSG', {
-      id: this.commande.id,
-      table: this.commande.tableNumero,
-    });
-    const confirmBtnText = this.translocoService.translate('COMMANDES.CONFIRM_CANCEL_OK');
-    const keepBtnText = this.translocoService.translate('COMMANDES.CONFIRM_CANCEL_KEEP');
-
-    const alert = await this.alertCtrl.create({
-      header: title,
-      message: msg,
-      buttons: [
-        {
-          text: keepBtnText,
-          role: 'cancel',
-        },
-        {
-          text: confirmBtnText,
-          role: 'destructive',
-          handler: () => {
-            this.annuler.emit(this.commande);
-          },
-        },
-      ],
+    const modal = await this.modalCtrl.create({
+      component: CancelOrderModalComponent,
+      componentProps: {
+        commande: this.commande,
+      },
+      cssClass: 'cancel-order-modal-dialog',
     });
 
-    await alert.present();
+    await modal.present();
+    const { data, role } = await modal.onWillDismiss();
+
+    if (role === 'confirm' || data?.confirmed) {
+      this.annuler.emit(this.commande);
+    }
   }
 
   onUpdateStatus(targetStatut: CommandeStatut, event?: Event): void {

@@ -8,7 +8,7 @@ import {
   IonRefresher, IonRefresherContent,
   IonGrid, IonRow, IonCol,
   IonCard, IonCardContent, IonCardHeader, IonCardTitle,
-  IonButton, IonIcon, IonBadge, IonSpinner, ToastController
+  IonButton, IonIcon, IonSpinner, ToastController
 } from '@ionic/angular/standalone';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { StatCardComponent } from '../../core/components/ui/stat-card/stat-card.component';
@@ -42,7 +42,8 @@ import {
   syncOutline,
   eyeOutline,
   eyeOffOutline,
-  timerOutline
+  timerOutline,
+  arrowForwardOutline
 } from 'ionicons/icons';
 
 /**
@@ -68,7 +69,7 @@ import {
     IonRefresher, IonRefresherContent,
     IonGrid, IonRow, IonCol,
     IonCard, IonCardContent, IonCardHeader, IonCardTitle,
-    IonButton, IonIcon, IonBadge, IonSpinner,
+    IonButton, IonIcon, IonSpinner,
     StatCardComponent,
     RoleBadgeComponent,
     EmptyStateComponent,
@@ -124,7 +125,8 @@ export class DashboardManagerComponent implements OnInit, OnDestroy {
       syncOutline,
       eyeOutline,
       eyeOffOutline,
-      timerOutline
+      timerOutline,
+      arrowForwardOutline
     });
   }
 

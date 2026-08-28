@@ -6,7 +6,10 @@ import { AppCurrencyPipe } from '../../../../core/pipes/app-currency.pipe';
 import { TableView } from '../../models/table-view.model';
 
 import { addIcons } from 'ionicons';
-import { restaurantOutline, peopleOutline, locationOutline, timeOutline, addCircleOutline } from 'ionicons/icons';
+import {
+  restaurantOutline, peopleOutline, locationOutline,
+  timeOutline, addCircleOutline, personAddOutline, checkmarkDoneOutline,
+} from 'ionicons/icons';
 
 /**
  * Mobile table card component for waiter dashboard.
@@ -34,9 +37,16 @@ export class MobileTableCardComponent {
   @Output() tableSelect = new EventEmitter<TableView>();
   /** Emits when new order button is clicked */
   @Output() newOrder = new EventEmitter<TableView>();
+  /** Emits when occupy button is clicked */
+  @Output() occupyTable = new EventEmitter<TableView>();
+  /** Emits when free button is clicked */
+  @Output() freeTable = new EventEmitter<TableView>();
 
   constructor(private readonly translocoService: TranslocoService) {
-    addIcons({ restaurantOutline, peopleOutline, locationOutline, timeOutline, addCircleOutline });
+    addIcons({
+      restaurantOutline, peopleOutline, locationOutline,
+      timeOutline, addCircleOutline, personAddOutline, checkmarkDoneOutline,
+    });
   }
 
   /**

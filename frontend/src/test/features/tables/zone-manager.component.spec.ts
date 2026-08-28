@@ -1,5 +1,5 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ReactiveFormsModule } from '@angular/forms';
+import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { ModalController, ToastController } from '@ionic/angular/standalone';
 import { IonicModule } from '@ionic/angular';
 import { of, throwError } from 'rxjs';
@@ -17,7 +17,8 @@ describe('ZoneManagerComponent', () => {
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
 
   const mockZones: ZoneBar[] = [
-    { id: 1, nom: 'Terrasse Principale', etage: 'TERRASSE' }
+    { id: 1, nom: 'Terrasse Principale', etage: 'TERRASSE' },
+    { id: 2, nom: 'Bar Counter', etage: 'RDC' }
   ];
 
   const mockEtages: EtageBar[] = [
@@ -30,7 +31,7 @@ describe('ZoneManagerComponent', () => {
   beforeEach(async () => {
     zoneServiceSpy = jasmine.createSpyObj('ZoneService', ['getAll', 'create', 'update', 'delete']);
     zoneServiceSpy.getAll.and.returnValue(of(mockZones));
-    zoneServiceSpy.create.and.returnValue(of({ id: 2, nom: 'VIP', etage: 'RDC' }));
+    zoneServiceSpy.create.and.returnValue(of({ id: 3, nom: 'VIP', etage: 'RDC' }));
     zoneServiceSpy.update.and.returnValue(of({ id: 1, nom: 'Terrace Modified', etage: 'TERRASSE' }));
     zoneServiceSpy.delete.and.returnValue(of(undefined));
 
@@ -40,12 +41,19 @@ describe('ZoneManagerComponent', () => {
     etageServiceSpy.update.and.returnValue(of({ id: 1, code: 'RDC', nom: 'Ground Floor Modified', ordre: 1 }));
     etageServiceSpy.delete.and.returnValue(of(undefined));
 
-    modalCtrlSpy = jasmine.createSpyObj('ModalController', ['dismiss']);
+    const mockConfirmModal = {
+      present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+      onDidDismiss: jasmine.createSpy('onDidDismiss').and.returnValue(Promise.resolve({ data: { confirmed: true } }))
+    };
+
+    modalCtrlSpy = jasmine.createSpyObj('ModalController', ['dismiss', 'create']);
+    modalCtrlSpy.create.and.returnValue(Promise.resolve(mockConfirmModal as any));
+
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
     toastCtrlSpy.create.and.returnValue(Promise.resolve(mockToast as any));
 
     await TestBed.configureTestingModule({
-      imports: [ZoneManagerComponent, IonicModule.forRoot(), ReactiveFormsModule, getTranslocoTestingModule()],
+      imports: [ZoneManagerComponent, IonicModule.forRoot(), ReactiveFormsModule, FormsModule, getTranslocoTestingModule()],
       providers: [
         { provide: ZoneService, useValue: zoneServiceSpy },
         { provide: EtageService, useValue: etageServiceSpy },
@@ -63,19 +71,51 @@ describe('ZoneManagerComponent', () => {
     expect(component).toBeTruthy();
     expect(zoneServiceSpy.getAll).toHaveBeenCalled();
     expect(etageServiceSpy.getAll).toHaveBeenCalled();
-    expect(component.zones).toHaveSize(1);
+    expect(component.zones).toHaveSize(2);
     expect(component.etages).toHaveSize(2);
   });
 
-  it('should format etage label correctly', () => {
+  it('should format etage label and options correctly', () => {
     expect(component.getEtageLabel('TERRASSE')).toBe('Terrace / Outdoor');
     expect(component.getEtageLabel('UNKNOWN')).toBe('UNKNOWN');
+    expect(component.etageOptions).toHaveSize(2);
+    expect(component.etageOptions[0].value).toBe('RDC');
   });
 
-  it('should switch active tab', () => {
+  it('should filter zones by search query and floor filter', () => {
+    expect(component.filteredZones).toHaveSize(2);
+
+    component.searchQuery = 'Terrasse';
+    expect(component.filteredZones).toHaveSize(1);
+    expect(component.filteredZones[0].nom).toBe('Terrasse Principale');
+
+    component.searchQuery = '';
+    component.setFloorFilter('RDC');
+    expect(component.filteredZones).toHaveSize(1);
+    expect(component.filteredZones[0].nom).toBe('Bar Counter');
+  });
+
+  it('should filter and sort etages by search query and display order', () => {
+    expect(component.filteredEtages).toHaveSize(2);
+
+    component.searchQuery = 'Terrace';
+    expect(component.filteredEtages).toHaveSize(1);
+    expect(component.filteredEtages[0].code).toBe('TERRASSE');
+  });
+
+  it('should count zones associated with each etage', () => {
+    expect(component.getZonesForEtage('TERRASSE')).toHaveSize(1);
+    expect(component.getZonesForEtage('RDC')).toHaveSize(1);
+    expect(component.getZonesForEtage('NON_EXISTENT')).toHaveSize(0);
+  });
+
+  it('should switch active tab and reset search query', () => {
     expect(component.activeTab).toBe('zones');
+    component.searchQuery = 'test';
+
     component.onTabChange({ detail: { value: 'etages' } } as any);
     expect(component.activeTab).toBe('etages');
+    expect(component.searchQuery).toBe('');
   });
 
   it('should open and save new zone', () => {
@@ -86,11 +126,13 @@ describe('ZoneManagerComponent', () => {
     component.onSave();
 
     expect(zoneServiceSpy.create).toHaveBeenCalledWith({ nom: 'Indoor Room', etage: 'RDC' });
+    expect(component.showAddForm).toBeFalse();
   });
 
   it('should open and edit existing zone', () => {
     component.onEdit(mockZones[0]);
     expect(component.editingZoneId).toBe(1);
+    expect(component.showAddForm).toBeTrue();
     expect(component.zoneForm.value.nom).toBe('Terrasse Principale');
 
     component.zoneForm.setValue({ nom: 'Terrace Modified', etage: 'TERRASSE' });
@@ -107,11 +149,13 @@ describe('ZoneManagerComponent', () => {
     component.onSaveEtage();
 
     expect(etageServiceSpy.create).toHaveBeenCalledWith({ nom: 'Rooftop', code: 'ROOFTOP', ordre: 3 });
+    expect(component.showAddEtageForm).toBeFalse();
   });
 
   it('should open and edit existing etage', () => {
     component.onEditEtage(mockEtages[0]);
     expect(component.editingEtageId).toBe(1);
+    expect(component.showAddEtageForm).toBeTrue();
     expect(component.etageForm.value.code).toBe('RDC');
 
     component.etageForm.setValue({ nom: 'Ground Floor Modified', code: 'RDC', ordre: 1 });
@@ -129,23 +173,29 @@ describe('ZoneManagerComponent', () => {
     expect(toastCtrlSpy.create).toHaveBeenCalled();
   });
 
-  it('should handle error when deleting etage fails', () => {
+  it('should delete a zone after confirmation modal', fakeAsync(() => {
+    component.onDelete(mockZones[0]);
+    tick();
+
+    expect(modalCtrlSpy.create).toHaveBeenCalled();
+    expect(zoneServiceSpy.delete).toHaveBeenCalledWith(1);
+  }));
+
+  it('should delete an etage after confirmation modal', fakeAsync(() => {
+    component.onDeleteEtage(mockEtages[0]);
+    tick();
+
+    expect(modalCtrlSpy.create).toHaveBeenCalled();
+    expect(etageServiceSpy.delete).toHaveBeenCalledWith(1);
+  }));
+
+  it('should handle error when deleting etage fails', fakeAsync(() => {
     etageServiceSpy.delete.and.returnValue(throwError(() => new Error('Delete failed')));
     component.onDeleteEtage(mockEtages[0]);
+    tick();
 
     expect(toastCtrlSpy.create).toHaveBeenCalled();
-  });
-
-  it('should delete a zone', () => {
-    component.onDelete(mockZones[0]);
-    expect(zoneServiceSpy.delete).toHaveBeenCalledWith(1);
-  });
-
-  it('should delete an etage', () => {
-    component.onDeleteEtage(mockEtages[0]);
-    expect(etageServiceSpy.delete).toHaveBeenCalledWith(1);
-  });
-
+  }));
 
   it('should handle error when loading data fails', async () => {
     etageServiceSpy.getAll.and.returnValue(throwError(() => new Error('Load failed')));
@@ -158,17 +208,19 @@ describe('ZoneManagerComponent', () => {
     expect(component.isLoading).toBeFalse();
   });
 
-  it('should not delete zone if id is undefined', () => {
+  it('should not delete zone if id is undefined', fakeAsync(() => {
     const zoneWithoutId: ZoneBar = { nom: 'Sans ID', etage: 'RDC' };
     component.onDelete(zoneWithoutId);
+    tick();
     expect(zoneServiceSpy.delete).not.toHaveBeenCalled();
-  });
+  }));
 
-  it('should not delete etage if id is undefined', () => {
+  it('should not delete etage if id is undefined', fakeAsync(() => {
     const etageWithoutId: EtageBar = { code: 'SANS', nom: 'Sans ID', ordre: 99 };
     component.onDeleteEtage(etageWithoutId);
+    tick();
     expect(etageServiceSpy.delete).not.toHaveBeenCalled();
-  });
+  }));
 
   it('should handle error when saving etage fails', () => {
     etageServiceSpy.create.and.returnValue(throwError(() => ({ error: { message: 'Conflict' } })));

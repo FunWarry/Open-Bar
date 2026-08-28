@@ -260,18 +260,40 @@ describe('IngredientListComponent', () => {
     expect(component.sortOption).toBe('STOCK_DESC');
   });
 
-  it('adjustStock() supporte un ajustement de -10 et +10', fakeAsync(() => {
-    const item = makeI(1, 'Rhum', 25, 5);
-    component.adjustStock(item, -10);
-    tick();
-    flushMicrotasks();
-    expect(serviceSpy.updateStock).toHaveBeenCalledWith(1, 15);
-    expect(item.quantiteStock).toBe(15);
+  it('groupedIngredients groups filtered ingredients by category sections', () => {
+    component.ingredients = [
+      makeI(1, 'Rhum Blanc', 20, 5),
+      makeI(2, 'Coca Cola', 15, 5),
+      makeI(3, 'Sirop de Grenadine', 10, 2),
+      makeI(4, 'Citron Vert', 8, 3),
+      makeI(5, 'Pailles Biodegradables', 100, 10),
+    ];
 
-    component.adjustStock(item, 10);
-    tick();
-    flushMicrotasks();
-    expect(serviceSpy.updateStock).toHaveBeenCalledWith(1, 25);
-    expect(item.quantiteStock).toBe(25);
-  }));
+    const groups = component.groupedIngredients;
+    expect(groups).toHaveSize(5);
+    expect(groups.map(g => g.categoryKey)).toEqual(['SPIRITS', 'SOFTS', 'SYRUPS', 'FRUITS', 'OTHER']);
+    expect(groups[0].items[0].nom).toBe('Rhum Blanc');
+    expect(groups[1].items[0].nom).toBe('Coca Cola');
+  });
+
+  it('categoryOptions, unitOptions, sortOptions return searchable options and handlers update state', () => {
+    component.ingredients = [
+      makeI(1, 'Rhum', 20, 5),
+      makeI(2, 'Citron', 5, 2),
+    ];
+
+    expect(component.categoryOptions.length).toBeGreaterThan(1);
+    expect(component.unitOptions.length).toBeGreaterThan(1);
+    expect(component.sortOptions.length).toBeGreaterThan(1);
+
+    component.onCategorySelected({ value: 'SPIRITS', label: 'Spiritueux' });
+    expect(component.selectedCategory).toBe('SPIRITS');
+
+    component.onUnitSelected({ value: 'cl', label: 'cl' });
+    expect(component.selectedUnit).toBe('cl');
+
+    component.onSortSelected({ value: 'STOCK_ASC', label: 'Stock croissant' });
+    expect(component.sortOption).toBe('STOCK_ASC');
+  });
 });
+

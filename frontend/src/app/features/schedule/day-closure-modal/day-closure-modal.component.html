@@ -42,7 +42,7 @@
     <!-- Closure Form Section (If open or modifying closure) -->
     <div class="form-section" *ngIf="!isClosed">
       <div class="field">
-        <label for="closure-reason-input">{{ 'SHIFTS.CLOSURES.REASON_LABEL' | transloco }}</label>
+        <span class="field-label">{{ 'SHIFTS.CLOSURES.REASON_LABEL' | transloco }}</span>
         <ion-input
           id="closure-reason-input"
           type="text"
@@ -80,7 +80,7 @@
       <!-- Range Inputs (When enabled) -->
       <div class="range-inputs-grid" *ngIf="isDateRange">
         <div class="field">
-          <label for="start-date-input">{{ 'SHIFTS.CLOSURES.START_DATE' | transloco }}</label>
+          <span class="field-label">{{ 'SHIFTS.CLOSURES.START_DATE' | transloco }}</span>
           <ion-input
             id="start-date-input"
             type="date"
@@ -91,7 +91,7 @@
         </div>
 
         <div class="field">
-          <label for="end-date-input">{{ 'SHIFTS.CLOSURES.END_DATE' | transloco }}</label>
+          <span class="field-label">{{ 'SHIFTS.CLOSURES.END_DATE' | transloco }}</span>
           <ion-input
             id="end-date-input"
             type="date"

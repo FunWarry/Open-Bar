@@ -318,13 +318,15 @@ CREATE TABLE IF NOT EXISTS establishment_config (
     id BIGINT PRIMARY KEY,
     legal_name VARCHAR(255) NOT NULL DEFAULT 'OpenBar SARL',
     legal_form VARCHAR(50) DEFAULT 'SARL',
-    siret VARCHAR(14) DEFAULT '12345678900010',
+    siret VARCHAR(14) DEFAULT '73282932000074',
     rcs_city VARCHAR(100) DEFAULT 'Paris',
     rcs_number VARCHAR(50) DEFAULT 'B 123 456 789',
     tva_number VARCHAR(20) DEFAULT 'FR12123456789',
     code_ape VARCHAR(10) DEFAULT '5630Z',
     capital_social DECIMAL(12,2) DEFAULT 10000.00,
     address VARCHAR(500) DEFAULT '12 Rue du Bar, 75001 Paris',
+    country VARCHAR(100) DEFAULT 'France',
+    language VARCHAR(10) DEFAULT 'fr',
     phone VARCHAR(50) DEFAULT '+33123456789',
     email VARCHAR(100) DEFAULT 'contact@openbar.local',
     payment_terms VARCHAR(255) DEFAULT 'Paiement immédiat à réception',
@@ -335,6 +337,9 @@ CREATE TABLE IF NOT EXISTS establishment_config (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+ALTER TABLE establishment_config ADD COLUMN IF NOT EXISTS country VARCHAR(100) DEFAULT 'France';
+ALTER TABLE establishment_config ADD COLUMN IF NOT EXISTS language VARCHAR(10) DEFAULT 'fr';
 
 -- 9. Shift Planning, Presets, Closures & Shift Audit
 CREATE TABLE IF NOT EXISTS employee_shifts (

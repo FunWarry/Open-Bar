@@ -211,16 +211,22 @@ class AppSettingsServiceTest {
     }
 
     @Test
-    @DisplayName("updateSettings rejects LIGHT theme as not yet available")
-    void updateSettings_lightTheme_rejectedWithBusinessException() {
+    @DisplayName("updateSettings successfully updates defaultTheme to LIGHT")
+    void updateSettings_lightTheme_success() {
+        AppSettings current = new AppSettings();
+        current.setDefaultTheme(DefaultTheme.DARK);
+        when(appSettingsRepository.findById(AppSettings.SINGLETON_ID)).thenReturn(Optional.of(current));
+        when(appSettingsRepository.save(any(AppSettings.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
         AppSettingsUpdateRequest request = new AppSettingsUpdateRequest(
             "#6c7fe8", "#5a68d6", null, "OpenBar", DefaultTheme.LIGHT,
             null, null, null,
             3, 5, 10
         );
 
-        assertThatThrownBy(() -> appSettingsService.updateSettings(request))
-            .isInstanceOf(BusinessException.class)
-            .hasMessageContaining("Light theme");
+        AppSettings updated = appSettingsService.updateSettings(request);
+
+        assertThat(updated.getDefaultTheme()).isEqualTo(DefaultTheme.LIGHT);
+        verify(appSettingsRepository).save(any(AppSettings.class));
     }
 }

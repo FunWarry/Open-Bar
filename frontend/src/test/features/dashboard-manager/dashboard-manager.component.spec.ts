@@ -218,4 +218,33 @@ describe('DashboardManagerComponent', () => {
     const cocktail: TopCocktail = { cocktailId: 42, nom: 'Gin Tonic', nombreCommandes: 5 };
     expect(component.trackByCocktailId(0, cocktail)).toBe(42);
   });
+
+  it('renders top operational alert banners when stock or delays trigger alerts', () => {
+    component.stats = {
+      ...mockStats,
+      commandesEnAttente: 6,
+      stockIngredientsCritiques: 3,
+    };
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const pendingAlert = compiled.querySelector('[data-testid="alert-pending-orders"]');
+    const stockAlert = compiled.querySelector('[data-testid="alert-critical-stock"]');
+
+    expect(pendingAlert).toBeTruthy();
+    expect(stockAlert).toBeTruthy();
+  });
+
+  it('renders quick action buttons with appropriate testids', () => {
+    component.stats = mockStats;
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('[data-testid="manager-btn-schedule"]')).toBeTruthy();
+    expect(compiled.querySelector('[data-testid="manager-btn-employees"]')).toBeTruthy();
+    expect(compiled.querySelector('[data-testid="manager-btn-presets"]')).toBeTruthy();
+    expect(compiled.querySelector('[data-testid="manager-btn-timers"]')).toBeTruthy();
+    expect(compiled.querySelector('[data-testid="manager-btn-floor-plan"]')).toBeTruthy();
+    expect(compiled.querySelector('[data-testid="manager-btn-bar-stock"]')).toBeTruthy();
+  });
 });

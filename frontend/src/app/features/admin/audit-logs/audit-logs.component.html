@@ -1,176 +1,564 @@
-<ion-header>
-  <ion-toolbar color="primary">
-    <ion-buttons slot="start">
-      <ion-back-button defaultHref="/admin" data-testid="audit-back-btn"></ion-back-button>
-    </ion-buttons>
-    <ion-title>{{ 'AUDIT_LOGS.TITLE' | transloco }}</ion-title>
-    <ion-buttons slot="end">
-      <ion-button (click)="loadLogs()" (keydown.enter)="loadLogs()" data-testid="audit-refresh-btn">
-        <ion-icon name="refresh-outline" slot="icon-only"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>
+<div class="audit-page" data-testid="audit-logs-page">
+  <!-- ========================================================================= -->
+  <!-- --- HERO HEADER --- -->
+  <!-- ========================================================================= -->
+  <header class="audit-hero">
+    <div class="hero-top-row">
+      <div class="hero-brand">
+        <a routerLink="/admin" class="back-link" data-testid="audit-back-btn" [title]="'COMMON.BACK' | transloco">
+          <ion-icon name="arrow-back-outline"></ion-icon>
+        </a>
+        <div class="hero-badge">
+          <span class="pulse-dot"></span>
+          <span>{{ 'AUDIT_LOGS.HERO_BADGE' | transloco }}</span>
+        </div>
+      </div>
 
-<ion-content class="ion-padding">
-  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
-    <ion-refresher-content></ion-refresher-content>
-  </ion-refresher>
+      <div class="hero-actions">
+        <button
+          type="button"
+          class="action-btn refresh-btn"
+          (click)="handleRefresh()"
+          [disabled]="loading() || isRefreshing()"
+          data-testid="audit-refresh-btn">
+          <ion-icon name="refresh-outline" [class.spinning]="isRefreshing()"></ion-icon>
+          <span>{{ (isRefreshing() ? 'AUDIT_LOGS.REFRESHING' : 'AUDIT_LOGS.REFRESH') | transloco }}</span>
+        </button>
 
-  <div class="audit-container">
-    <!-- Header / Stats Overview Card -->
-    <ion-card class="overview-card">
-      <ion-card-header>
-        <div class="header-title-container">
-          <ion-icon name="shield-checkmark-outline" class="title-icon"></ion-icon>
-          <div>
-            <ion-card-title>{{ 'AUDIT_LOGS.SUBTITLE' | transloco }}</ion-card-title>
-            <p class="subtitle-text">{{ 'AUDIT_LOGS.DESCRIPTION' | transloco }}</p>
+        <button
+          type="button"
+          class="action-btn export-btn"
+          (click)="exportToCsv()"
+          [disabled]="filteredLogs().length === 0"
+          data-testid="audit-export-csv-btn">
+          <ion-icon name="download-outline"></ion-icon>
+          <span>{{ 'AUDIT_LOGS.EXPORT_CSV' | transloco }}</span>
+        </button>
+
+        <button
+          type="button"
+          class="action-btn export-btn"
+          (click)="exportToJson()"
+          [disabled]="filteredLogs().length === 0"
+          data-testid="audit-export-json-btn">
+          <ion-icon name="code-slash-outline"></ion-icon>
+          <span>{{ 'AUDIT_LOGS.EXPORT_JSON' | transloco }}</span>
+        </button>
+      </div>
+    </div>
+
+    <h1 class="hero-title">{{ 'AUDIT_LOGS.TITLE' | transloco }}</h1>
+    <p class="hero-subtitle">{{ 'AUDIT_LOGS.DESCRIPTION' | transloco }}</p>
+  </header>
+
+  <div class="audit-content">
+    <!-- ========================================================================= -->
+    <!-- --- KPI STATS OVERVIEW --- -->
+    <!-- ========================================================================= -->
+    <div class="kpi-grid">
+      <div class="kpi-card" data-testid="kpi-total">
+        <div class="kpi-icon-wrapper icon-total">
+          <ion-icon name="shield-checkmark-outline"></ion-icon>
+        </div>
+        <div class="kpi-data">
+          <span class="kpi-value">{{ kpiTotal() }}</span>
+          <span class="kpi-title">{{ 'AUDIT_LOGS.KPI_TOTAL_TITLE' | transloco }}</span>
+          <span class="kpi-sub">{{ 'AUDIT_LOGS.KPI_TOTAL_SUB' | transloco }}</span>
+        </div>
+      </div>
+
+      <div class="kpi-card" data-testid="kpi-today">
+        <div class="kpi-icon-wrapper icon-today">
+          <ion-icon name="time-outline"></ion-icon>
+        </div>
+        <div class="kpi-data">
+          <span class="kpi-value">{{ kpiToday() }}</span>
+          <span class="kpi-title">{{ 'AUDIT_LOGS.KPI_TODAY_TITLE' | transloco }}</span>
+          <span class="kpi-sub">{{ 'AUDIT_LOGS.KPI_TODAY_SUB' | transloco }}</span>
+        </div>
+      </div>
+
+      <div class="kpi-card" data-testid="kpi-critical">
+        <div class="kpi-icon-wrapper icon-critical">
+          <ion-icon name="trash-outline"></ion-icon>
+        </div>
+        <div class="kpi-data">
+          <span class="kpi-value">{{ kpiCritical() }}</span>
+          <span class="kpi-title">{{ 'AUDIT_LOGS.KPI_CRITICAL_TITLE' | transloco }}</span>
+          <span class="kpi-sub">{{ 'AUDIT_LOGS.KPI_CRITICAL_SUB' | transloco }}</span>
+        </div>
+      </div>
+
+      <div class="kpi-card" data-testid="kpi-actors">
+        <div class="kpi-icon-wrapper icon-actors">
+          <ion-icon name="person-outline"></ion-icon>
+        </div>
+        <div class="kpi-data">
+          <span class="kpi-value">{{ kpiUniqueUsers() }}</span>
+          <span class="kpi-title">{{ 'AUDIT_LOGS.KPI_ACTORS_TITLE' | transloco }}</span>
+          <span class="kpi-sub">{{ 'AUDIT_LOGS.KPI_ACTORS_SUB' | transloco }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- --- QUICK CATEGORY CHIPS --- -->
+    <!-- ========================================================================= -->
+    <div class="quick-filter-nav">
+      <button
+        type="button"
+        class="category-chip"
+        [class.active]="quickCategory() === 'ALL'"
+        (click)="setQuickCategory('ALL')"
+        data-testid="chip-cat-all">
+        <ion-icon name="layers-outline"></ion-icon>
+        <span>{{ 'AUDIT_LOGS.QUICK_ALL' | transloco }}</span>
+        <span class="chip-count">{{ logs().length }}</span>
+      </button>
+
+      <button
+        type="button"
+        class="category-chip"
+        [class.active]="quickCategory() === 'BILLING'"
+        (click)="setQuickCategory('BILLING')"
+        data-testid="chip-cat-billing">
+        <ion-icon name="receipt-outline"></ion-icon>
+        <span>{{ 'AUDIT_LOGS.QUICK_BILLING' | transloco }}</span>
+      </button>
+
+      <button
+        type="button"
+        class="category-chip"
+        [class.active]="quickCategory() === 'STOCK_TABLES'"
+        (click)="setQuickCategory('STOCK_TABLES')"
+        data-testid="chip-cat-stock-tables">
+        <ion-icon name="cube-outline"></ion-icon>
+        <span>{{ 'AUDIT_LOGS.QUICK_STOCK_TABLES' | transloco }}</span>
+      </button>
+
+      <button
+        type="button"
+        class="category-chip"
+        [class.active]="quickCategory() === 'SECURITY'"
+        (click)="setQuickCategory('SECURITY')"
+        data-testid="chip-cat-security">
+        <ion-icon name="lock-closed-outline"></ion-icon>
+        <span>{{ 'AUDIT_LOGS.QUICK_SECURITY' | transloco }}</span>
+      </button>
+
+      <button
+        type="button"
+        class="category-chip"
+        [class.active]="quickCategory() === 'CREATE'"
+        (click)="setQuickCategory('CREATE')"
+        data-testid="chip-cat-create">
+        <ion-icon name="add-circle-outline"></ion-icon>
+        <span>{{ 'AUDIT_LOGS.QUICK_CREATE' | transloco }}</span>
+      </button>
+
+      <button
+        type="button"
+        class="category-chip"
+        [class.active]="quickCategory() === 'DELETE'"
+        (click)="setQuickCategory('DELETE')"
+        data-testid="chip-cat-delete">
+        <ion-icon name="trash-outline"></ion-icon>
+        <span>{{ 'AUDIT_LOGS.QUICK_DELETE' | transloco }}</span>
+      </button>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- --- ADVANCED FILTERS PANEL --- -->
+    <!-- ========================================================================= -->
+    <div class="filters-panel-card">
+      <div class="filters-grid">
+        <!-- Text Search -->
+        <div class="filter-col search-col">
+          <label class="filter-label" for="audit-search-input">
+            <ion-icon name="search-outline"></ion-icon>
+            <span>{{ 'AUDIT_LOGS.SEARCH_PLACEHOLDER' | transloco }}</span>
+          </label>
+          <div class="search-input-wrapper">
+            <ion-icon name="search-outline" class="search-icon"></ion-icon>
+            <input
+              id="audit-search-input"
+              type="text"
+              class="custom-search-input"
+              [placeholder]="'AUDIT_LOGS.SEARCH_PLACEHOLDER' | transloco"
+              [ngModel]="searchQuery()"
+              (ngModelChange)="searchQuery.set($event); currentPage.set(1)"
+              data-testid="audit-search-input"
+              autocomplete="off" />
+            @if (searchQuery()) {
+              <button
+                type="button"
+                class="search-clear-btn"
+                (click)="searchQuery.set(''); currentPage.set(1)"
+                [attr.aria-label]="'AUDIT_LOGS.CLEAR_SEARCH' | transloco">
+                <ion-icon name="close-circle-outline"></ion-icon>
+              </button>
+            }
           </div>
         </div>
-      </ion-card-header>
-      <ion-card-content>
-        <div class="stats-row">
-          <ion-chip color="primary">
-            <ion-icon name="clipboard-outline"></ion-icon>
-            <ion-label>{{ 'AUDIT_LOGS.TOTAL' | transloco }}: {{ logs().length }}</ion-label>
-          </ion-chip>
-          <ion-chip color="tertiary" *ngIf="filteredLogs().length !== logs().length">
-            <ion-icon name="filter-outline"></ion-icon>
-            <ion-label>{{ 'AUDIT_LOGS.FILTERED' | transloco }}: {{ filteredLogs().length }}</ion-label>
-          </ion-chip>
+
+        <!-- Action Dropdown -->
+        <div class="filter-col">
+          <app-searchable-select
+            [options]="actionOptions()"
+            [ngModel]="selectedAction()"
+            (ngModelChange)="selectedAction.set($event); currentPage.set(1)"
+            [label]="'AUDIT_LOGS.FILTER_ACTION' | transloco"
+            [placeholder]="'AUDIT_LOGS.ALL_ACTIONS' | transloco"
+            [searchPlaceholder]="'AUDIT_LOGS.FILTER_ACTION' | transloco"
+            [enableSearch]="true"
+            [clearable]="false"
+            dropdownPosition="auto"
+            testId="audit-action-select">
+          </app-searchable-select>
         </div>
-      </ion-card-content>
-    </ion-card>
 
-    <!-- Filters Card -->
-    <ion-card class="filters-card">
-      <ion-card-content>
-        <ion-grid>
-          <ion-row>
-            <!-- Search Bar -->
-            <ion-col size="12" size-md="4">
-              <ion-searchbar
-                [ngModel]="searchQuery()"
-                (ngModelChange)="searchQuery.set($event)"
-                [placeholder]="'AUDIT_LOGS.SEARCH_PLACEHOLDER' | transloco"
-                data-testid="audit-search-input"
-                animated="true"
-                clearIcon="close-circle">
-              </ion-searchbar>
-            </ion-col>
+        <!-- Entity Type Dropdown -->
+        <div class="filter-col">
+          <app-searchable-select
+            [options]="entityTypeOptions()"
+            [ngModel]="selectedEntityType()"
+            (ngModelChange)="selectedEntityType.set($event); currentPage.set(1)"
+            [label]="'AUDIT_LOGS.FILTER_ENTITY' | transloco"
+            [placeholder]="'AUDIT_LOGS.ALL_ENTITIES' | transloco"
+            [searchPlaceholder]="'AUDIT_LOGS.FILTER_ENTITY' | transloco"
+            [enableSearch]="true"
+            [clearable]="false"
+            dropdownPosition="auto"
+            testId="audit-entity-select">
+          </app-searchable-select>
+        </div>
 
-            <!-- Action Filter Select -->
-            <ion-col size="12" size-sm="6" size-md="3">
-              <ion-item class="filter-item" lines="none">
-                <ion-label position="stacked">{{ 'AUDIT_LOGS.FILTER_ACTION' | transloco }}</ion-label>
-                <ion-select
-                  [ngModel]="selectedAction()"
-                  (ngModelChange)="selectedAction.set($event)"
-                  interface="popover"
-                  data-testid="audit-action-select">
-                  <ion-select-option *ngFor="let act of actionOptions" [value]="act">
-                    {{ act === 'ALL' ? ('AUDIT_LOGS.ALL_ACTIONS' | transloco) : act }}
-                  </ion-select-option>
-                </ion-select>
-              </ion-item>
-            </ion-col>
+        <!-- Date Range Filter -->
+        <div class="filter-col">
+          <app-searchable-select
+            [options]="dateFilterOptions()"
+            [ngModel]="dateFilter()"
+            (ngModelChange)="dateFilter.set($event); currentPage.set(1)"
+            [label]="'AUDIT_LOGS.DATE_FILTER_LABEL' | transloco"
+            [placeholder]="'AUDIT_LOGS.DATE_ALL' | transloco"
+            [searchPlaceholder]="'AUDIT_LOGS.DATE_FILTER_LABEL' | transloco"
+            [enableSearch]="false"
+            [clearable]="false"
+            dropdownPosition="auto"
+            testId="audit-date-select">
+          </app-searchable-select>
+        </div>
 
-            <!-- Entity Type Filter Select -->
-            <ion-col size="12" size-sm="6" size-md="3">
-              <ion-item class="filter-item" lines="none">
-                <ion-label position="stacked">{{ 'AUDIT_LOGS.FILTER_ENTITY' | transloco }}</ion-label>
-                <ion-select
-                  [ngModel]="selectedEntityType()"
-                  (ngModelChange)="selectedEntityType.set($event)"
-                  interface="popover"
-                  data-testid="audit-entity-select">
-                  <ion-select-option *ngFor="let ent of entityTypeOptions" [value]="ent">
-                    {{ ent === 'ALL' ? ('AUDIT_LOGS.ALL_ENTITIES' | transloco) : ent }}
-                  </ion-select-option>
-                </ion-select>
-              </ion-item>
-            </ion-col>
-
-            <!-- Reset Filters Button -->
-            <ion-col size="12" size-md="2" class="ion-align-self-end">
-              <ion-button
-                fill="outline"
-                expand="block"
-                (click)="resetFilters()"
-                (keydown.enter)="resetFilters()"
-                data-testid="audit-reset-filters-btn">
-                <ion-icon name="refresh-outline" slot="start"></ion-icon>
-                {{ 'COMMON.CANCEL' | transloco }}
-              </ion-button>
-            </ion-col>
-          </ion-row>
-        </ion-grid>
-      </ion-card-content>
-    </ion-card>
-
-    <!-- Loading Spinner -->
-    <div *ngIf="loading()" class="spinner-container ion-text-center ion-padding" data-testid="audit-loading-spinner">
-      <ion-spinner name="crescent" color="primary"></ion-spinner>
-      <p>{{ 'COMMON.LOADING' | transloco }}</p>
+        <!-- Reset Button -->
+        <div class="filter-col reset-col">
+          <button
+            type="button"
+            class="reset-btn"
+            (click)="resetFilters()"
+            data-testid="audit-reset-filters-btn">
+            <ion-icon name="refresh-outline"></ion-icon>
+            <span>{{ 'AUDIT_LOGS.RESET_FILTERS' | transloco }}</span>
+          </button>
+        </div>
+      </div>
     </div>
 
-    <!-- Error View -->
-    <div *ngIf="!loading() && errorMessage()" class="error-container ion-text-center ion-padding" data-testid="audit-error-message">
-      <ion-icon name="alert-circle-outline" color="danger" class="error-icon"></ion-icon>
-      <p>{{ errorMessage()! | transloco }}</p>
-      <ion-button fill="clear" color="primary" (click)="loadLogs()" (keydown.enter)="loadLogs()">
-        {{ 'COMMON.REFRESH' | transloco }}
-      </ion-button>
-    </div>
+    <!-- ========================================================================= -->
+    <!-- --- CONTENT STATES: LOADING / ERROR / EMPTY / LIST --- -->
+    <!-- ========================================================================= -->
+
+    <!-- Loading State -->
+    @if (loading()) {
+      <div class="state-container loading-state" data-testid="audit-loading-spinner">
+        <ion-spinner name="crescent" color="primary"></ion-spinner>
+        <p class="state-title">{{ 'COMMON.LOADING' | transloco }}</p>
+      </div>
+    }
+
+    <!-- Error State -->
+    @if (!loading() && errorMessage()) {
+      <div class="state-container error-state" data-testid="audit-error-message">
+        <div class="state-icon-circle error">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+        </div>
+        <h3 class="state-title">{{ errorMessage()! | transloco }}</h3>
+        <p class="state-sub">{{ 'AUDIT_LOGS.ERROR_SUB' | transloco }}</p>
+        <button type="button" class="action-btn refresh-btn" (click)="loadLogs()">
+          <ion-icon name="refresh-outline"></ion-icon>
+          <span>{{ 'COMMON.REFRESH' | transloco }}</span>
+        </button>
+      </div>
+    }
 
     <!-- Empty State -->
-    <div *ngIf="!loading() && !errorMessage() && filteredLogs().length === 0" class="empty-container ion-text-center ion-padding" data-testid="audit-empty-state">
-      <ion-icon name="clipboard-outline" color="medium" class="empty-icon"></ion-icon>
-      <h3>{{ 'AUDIT_LOGS.NO_LOGS_FOUND' | transloco }}</h3>
-      <p>{{ 'AUDIT_LOGS.TRY_CHANGING_FILTERS' | transloco }}</p>
-    </div>
-
-    <!-- Audit Logs List Card -->
-    <ion-card *ngIf="!loading() && !errorMessage() && filteredLogs().length > 0" class="logs-card">
-      <div class="logs-list">
-        <ion-item *ngFor="let log of filteredLogs()" class="log-item" data-testid="audit-log-item">
-          <ion-icon
-            name="time-outline"
-            slot="start"
-            class="log-icon">
-          </ion-icon>
-
-          <ion-label class="log-label">
-            <div class="log-top-row">
-              <span class="log-user">
-                <ion-icon name="person-outline"></ion-icon>
-                {{ log.userUsername }}
-              </span>
-
-              <span class="log-date">
-                {{ log.timestamp | date:'dd/MM/yyyy HH:mm:ss' }}
-              </span>
-            </div>
-
-            <div class="log-middle-row">
-              <ion-badge [color]="getActionBadgeColor(log.action)" class="action-badge">
-                {{ log.action }}
-              </ion-badge>
-
-              <span class="entity-info" *ngIf="log.entityType">
-                <ion-icon name="cube-outline"></ion-icon>
-                {{ log.entityType }}
-                <strong *ngIf="log.entityId !== null">#{{ log.entityId }}</strong>
-              </span>
-            </div>
-
-            <p class="log-details" *ngIf="log.details">
-              {{ log.details }}
-            </p>
-          </ion-label>
-        </ion-item>
+    @if (!loading() && !errorMessage() && filteredLogs().length === 0) {
+      <div class="state-container empty-state" data-testid="audit-empty-state">
+        <div class="state-icon-circle neutral">
+          <ion-icon name="shield-checkmark-outline"></ion-icon>
+        </div>
+        <h3 class="state-title">{{ 'AUDIT_LOGS.NO_LOGS_FOUND' | transloco }}</h3>
+        <p class="state-sub">{{ 'AUDIT_LOGS.TRY_CHANGING_FILTERS' | transloco }}</p>
+        <button type="button" class="action-btn reset-empty-btn" (click)="resetFilters()">
+          <ion-icon name="refresh-outline"></ion-icon>
+          <span>{{ 'AUDIT_LOGS.RESET_FILTERS' | transloco }}</span>
+        </button>
       </div>
-    </ion-card>
+    }
+
+    <!-- ========================================================================= -->
+    <!-- --- TIMELINE & LOG EVENT CARDS LIST --- -->
+    <!-- ========================================================================= -->
+    @if (!loading() && !errorMessage() && filteredLogs().length > 0) {
+      <div class="timeline-container">
+        <div class="timeline-header-bar">
+          <div class="results-count">
+            <span class="count-badge">{{ filteredLogs().length }}</span>
+            <span class="count-text">{{ 'AUDIT_LOGS.FILTERED' | transloco }}</span>
+          </div>
+
+          <div class="page-size-selector">
+            <span class="page-size-label">{{ 'AUDIT_LOGS.PAGE_SIZE' | transloco }}:</span>
+            <div class="page-size-chips">
+              @for (opt of pageSizeOptions; track opt.value) {
+                <button
+                  type="button"
+                  class="size-chip"
+                  [class.active]="pageSize() === opt.value"
+                  (click)="pageSize.set(+opt.value); currentPage.set(1)">
+                  {{ opt.value }}
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+
+        <div class="event-cards-stack">
+          @for (log of paginatedLogs(); track log.id) {
+            <article class="event-card" data-testid="audit-log-item">
+              <!-- Timeline node dot -->
+              <div class="timeline-node" [ngClass]="'node-' + getActionBadgeColor(log.action)">
+                <ion-icon [name]="getActionIcon(log.action, log.entityType)"></ion-icon>
+              </div>
+
+              <div class="event-card-inner">
+                <!-- Top Row: Actor, Action, Entity, Time -->
+                <div class="card-header-row">
+                  <div class="actor-info">
+                    <div class="actor-avatar" [class.is-system]="log.userUsername === 'SYSTEM'">
+                      <ion-icon [name]="log.userUsername === 'SYSTEM' ? 'shield-checkmark-outline' : 'person-outline'"></ion-icon>
+                    </div>
+                    <div class="actor-text">
+                      <span class="actor-name" [class.system-name]="log.userUsername === 'SYSTEM'">
+                        {{ log.userUsername || 'SYSTEM' }}
+                      </span>
+                      @if (log.userId) {
+                        <span class="actor-id">ID: #{{ log.userId }}</span>
+                      }
+                    </div>
+                  </div>
+
+                  <div class="tags-group">
+                    <!-- Action Badge -->
+                    <span class="action-pill" [ngClass]="'pill-' + getActionBadgeColor(log.action)">
+                      {{ getActionLabel(log.action) }}
+                    </span>
+
+                    <!-- Entity Tag -->
+                    @if (log.entityType) {
+                      <span class="entity-pill">
+                        <ion-icon name="cube-outline"></ion-icon>
+                        <span>{{ getEntityLabel(log.entityType) }}</span>
+                        @if (log.entityId !== null && log.entityId !== undefined) {
+                          <strong class="entity-id">#{{ log.entityId }}</strong>
+                        }
+                      </span>
+                    }
+                  </div>
+
+                  <div class="timestamp-meta" [title]="log.timestamp">
+                    <ion-icon name="time-outline"></ion-icon>
+                    <span class="rel-time">{{ getRelativeTime(log.timestamp) }}</span>
+                    <span class="abs-time">{{ log.timestamp | date:'dd/MM/yyyy HH:mm:ss' }}</span>
+                  </div>
+                </div>
+
+                <!-- Event Details Text -->
+                @if (log.details) {
+                  <div class="card-details-box">
+                    <p class="details-text">{{ log.details }}</p>
+                  </div>
+                }
+
+                <!-- Card Footer Actions -->
+                <div class="card-footer-row">
+                  <span class="log-id-badge">ID: #{{ log.id }}</span>
+                  <div class="card-actions">
+                    <button
+                      type="button"
+                      class="card-btn inspect-btn"
+                      (click)="openLogModal(log); $event.stopPropagation()"
+                      [title]="'AUDIT_LOGS.LOG_DETAILS_TITLE' | transloco">
+                      <ion-icon name="eye-outline"></ion-icon>
+                      <span>{{ 'AUDIT_LOGS.LOG_DETAILS_TITLE' | transloco }}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      class="card-btn copy-btn"
+                      (click)="copyJsonPayload(log); $event.stopPropagation()"
+                      [title]="'AUDIT_LOGS.COPY_JSON' | transloco">
+                      <ion-icon name="copy-outline"></ion-icon>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </article>
+          }
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- --- PAGINATION CONTROLS --- -->
+        <!-- ========================================================================= -->
+        @if (totalPages() > 1) {
+          <nav class="pagination-bar" [attr.aria-label]="'AUDIT_LOGS.TITLE' | transloco">
+            <div class="pagination-info">
+              {{ 'AUDIT_LOGS.PAGINATION_SHOWING' | transloco:{ start: paginationStart(), end: paginationEnd(), total: filteredLogs().length } }}
+            </div>
+
+            <div class="pagination-buttons">
+              <button
+                type="button"
+                class="page-nav-btn"
+                [disabled]="currentPage() === 1"
+                (click)="goToPage(currentPage() - 1)"
+                data-testid="audit-prev-page-btn">
+                <ion-icon name="chevron-back-outline"></ion-icon>
+                <span>{{ 'AUDIT_LOGS.PREVIOUS' | transloco }}</span>
+              </button>
+
+              <div class="page-numbers">
+                <span class="page-indicator">
+                  Page <strong>{{ currentPage() }}</strong> / {{ totalPages() }}
+                </span>
+              </div>
+
+              <button
+                type="button"
+                class="page-nav-btn"
+                [disabled]="currentPage() === totalPages()"
+                (click)="goToPage(currentPage() + 1)"
+                data-testid="audit-next-page-btn">
+                <span>{{ 'AUDIT_LOGS.NEXT' | transloco }}</span>
+                <ion-icon name="chevron-forward-outline"></ion-icon>
+              </button>
+            </div>
+          </nav>
+        }
+      </div>
+    }
   </div>
-</ion-content>
+
+  <!-- ========================================================================= -->
+  <!-- --- LOG INSPECTION MODAL (JSON & METADATA) --- -->
+  <!-- ========================================================================= -->
+  @if (selectedLogForModal(); as targetLog) {
+    <div class="modal-backdrop" data-testid="audit-modal-backdrop">
+      <button
+        type="button"
+        class="modal-backdrop-dismiss"
+        (click)="closeLogModal()"
+        [attr.aria-label]="'AUDIT_LOGS.CLOSE' | transloco">
+      </button>
+      <div class="modal-container" data-testid="audit-log-modal">
+        <div class="modal-header">
+          <div class="modal-title-group">
+            <div class="modal-icon-badge" [ngClass]="'badge-' + getActionBadgeColor(targetLog.action)">
+              <ion-icon [name]="getActionIcon(targetLog.action, targetLog.entityType)"></ion-icon>
+            </div>
+            <div>
+              <h2 class="modal-title">{{ 'AUDIT_LOGS.LOG_DETAILS_TITLE' | transloco }}</h2>
+              <span class="modal-subtitle">{{ 'AUDIT_LOGS.SYSTEM_EVENT' | transloco:{ id: targetLog.id } }}</span>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            class="modal-close-btn"
+            (click)="closeLogModal()"
+            [attr.aria-label]="'AUDIT_LOGS.CLOSE' | transloco">
+            <ion-icon name="close-circle-outline"></ion-icon>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <!-- Metadata Grid -->
+          <div class="modal-meta-grid">
+            <div class="meta-cell">
+              <span class="meta-label">{{ 'AUDIT_LOGS.DATETIME' | transloco }}</span>
+              <span class="meta-val">{{ targetLog.timestamp | date:'dd/MM/yyyy HH:mm:ss' }}</span>
+              <span class="meta-sub">{{ targetLog.timestamp }}</span>
+            </div>
+
+            <div class="meta-cell">
+              <span class="meta-label">{{ 'AUDIT_LOGS.ACTOR' | transloco }}</span>
+              <span class="meta-val actor-highlight">{{ targetLog.userUsername || 'SYSTEM' }}</span>
+              @if (targetLog.userId) {
+                <span class="meta-sub">User ID: #{{ targetLog.userId }}</span>
+              }
+            </div>
+
+            <div class="meta-cell">
+              <span class="meta-label">{{ 'AUDIT_LOGS.ACTION' | transloco }}</span>
+              <span class="action-pill" [ngClass]="'pill-' + getActionBadgeColor(targetLog.action)">
+                {{ getActionLabel(targetLog.action) }}
+              </span>
+            </div>
+
+            <div class="meta-cell">
+              <span class="meta-label">{{ 'AUDIT_LOGS.TARGET_ENTITY' | transloco }}</span>
+              <span class="entity-pill">
+                <ion-icon name="cube-outline"></ion-icon>
+                <span>{{ getEntityLabel(targetLog.entityType) }}</span>
+                @if (targetLog.entityId !== null && targetLog.entityId !== undefined) {
+                  <strong>#{{ targetLog.entityId }}</strong>
+                }
+              </span>
+            </div>
+          </div>
+
+          <!-- Text Details -->
+          @if (targetLog.details) {
+            <div class="modal-details-section">
+              <h4 class="section-heading">{{ 'AUDIT_LOGS.DETAILS_HEADING' | transloco }}</h4>
+              <div class="details-callout">
+                <p>{{ targetLog.details }}</p>
+              </div>
+            </div>
+          }
+
+          <!-- JSON Payload -->
+          <div class="modal-payload-section">
+            <div class="payload-header">
+              <h4 class="section-heading">{{ 'AUDIT_LOGS.PAYLOAD_HEADING' | transloco }}</h4>
+              <button
+                type="button"
+                class="copy-json-btn"
+                [class.copied]="copiedJson()"
+                (click)="copyJsonPayload(targetLog)">
+                <ion-icon [name]="copiedJson() ? 'checkmark-outline' : 'copy-outline'"></ion-icon>
+                <span>{{ (copiedJson() ? 'AUDIT_LOGS.COPIED' : 'AUDIT_LOGS.COPY_JSON') | transloco }}</span>
+              </button>
+            </div>
+            <pre class="json-code-viewer"><code>{{ targetLog | json }}</code></pre>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="modal-btn-close" (click)="closeLogModal()">
+            {{ 'AUDIT_LOGS.CLOSE' | transloco }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

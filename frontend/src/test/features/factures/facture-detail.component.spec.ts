@@ -48,7 +48,7 @@ describe('FactureDetailComponent', () => {
 
     etablissementServiceSpy = jasmine.createSpyObj('EtablissementService', ['getConfig']);
     etablissementServiceSpy.getConfig.and.returnValue(of({
-      legalName: 'OpenBar SARL', legalForm: 'SARL', siret: '12345678900010', rcsCity: 'Paris', rcsNumber: 'B 123 456 789',
+      legalName: 'OpenBar SARL', legalForm: 'SARL', siret: '73282932000074', rcsCity: 'Paris', rcsNumber: 'B 123 456 789',
       tvaNumber: 'FR12123456789', codeApe: '5630Z', capitalSocial: 10000, address: '12 Rue du Bar', phone: '+33123456789',
       email: 'contact@openbar.local', paymentTerms: 'Immediate payment', discountPolicy: 'No discount', latePaymentRate: 0.12
     }));

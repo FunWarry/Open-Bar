@@ -23,6 +23,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -487,7 +488,7 @@ class FactureServiceTest {
         table.setNumero(5);
         table.setZone("Terrasse");
         table.setServeurId(2L);
-        table.setDateOccupation(LocalDateTime.of(2026, 8, 15, 20, 0));
+        table.setDateOccupation(LocalDateTime.of(2026, Month.AUGUST, 15, 20, 0));
 
         User waiter = new User();
         waiter.setId(2L);

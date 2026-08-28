@@ -68,7 +68,7 @@ export class SearchableSelectComponent extends BaseControlValueAccessor<any> imp
 
   @HostBinding('style.z-index')
   get hostZIndex(): string {
-    return this.isOpen() ? '1050' : '1';
+    return this.isOpen() ? '50' : '1';
   }
 
   @HostBinding('style.position')
@@ -107,6 +107,12 @@ export class SearchableSelectComponent extends BaseControlValueAccessor<any> imp
 
   /** Whether the field is clearable with an (X) button. */
   @Input() clearable = true;
+
+  /** Whether the dropdown search bar is enabled. */
+  @Input() enableSearch = true;
+
+  /** Alias for enableSearch. */
+  @Input() searchable = true;
 
   /** Custom data-testid for testing. */
   @Input() testId = 'searchable-select';
@@ -171,6 +177,11 @@ export class SearchableSelectComponent extends BaseControlValueAccessor<any> imp
     });
   }
 
+  /** Dropdown placement: 'auto' dynamically selects best placement, 'top' forces dropup, 'bottom' forces dropdown. */
+  @Input() dropdownPosition: 'auto' | 'top' | 'bottom' = 'auto';
+
+  readonly openUpwards = signal<boolean>(false);
+
   toggleDropdown(): void {
     if (this.disabled) return;
     if (this.isOpen()) {
@@ -184,11 +195,44 @@ export class SearchableSelectComponent extends BaseControlValueAccessor<any> imp
     if (this.disabled) return;
     this.searchQuery.set('');
     this.highlightedIndex.set(-1);
+    this.computeDropdownDirection();
     this.isOpen.set(true);
 
     setTimeout(() => {
       this.searchInputElement?.nativeElement?.focus();
     }, 50);
+  }
+
+  /**
+   * Automatically calculates whether the dropdown panel should open downwards or upwards (dropup),
+   * preventing clipping at the bottom of the viewport or container.
+   */
+  computeDropdownDirection(): void {
+    if (this.dropdownPosition === 'top') {
+      this.openUpwards.set(true);
+      return;
+    }
+    if (this.dropdownPosition === 'bottom') {
+      this.openUpwards.set(false);
+      return;
+    }
+
+    const triggerEl = this.triggerButtonElement?.nativeElement;
+    if (!triggerEl || typeof window === 'undefined') {
+      this.openUpwards.set(false);
+      return;
+    }
+
+    const rect = triggerEl.getBoundingClientRect();
+    const dropdownEstimatedHeight = 280;
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const spaceAbove = rect.top;
+
+    if (spaceBelow < dropdownEstimatedHeight && spaceAbove > spaceBelow) {
+      this.openUpwards.set(true);
+    } else {
+      this.openUpwards.set(false);
+    }
   }
 
   closeDropdown(): void {

@@ -177,21 +177,7 @@ describe('KanbanServeurComponent', () => {
     expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
   }));
 
-  // --- WS ---
-
-  it('recharge les commandes sur notification "commande"', fakeAsync(() => {
-    const before = serviceSpy.getCommandesParStatut.calls.count();
-    notification$.next({ id: 'c-1', type: 'commande', message: '', severity: 'primary', timestamp: new Date(), lue: false });
-    tick();
-    expect(serviceSpy.getCommandesParStatut.calls.count()).toBeGreaterThan(before);
-  }));
-
-  it('ne recharge pas sur notification "stock"', fakeAsync(() => {
-    const before = serviceSpy.getCommandesParStatut.calls.count();
-    notification$.next({ id: 's-1', type: 'stock', message: '', severity: 'warning', timestamp: new Date(), lue: false });
-    tick();
-    expect(serviceSpy.getCommandesParStatut.calls.count()).toBe(before);
-  }));
+  // --- TrackBy & Encaissement ---
 
   it('trackById retourne l\'id de la commande', () => {
     expect(component.trackById(0, cmd(7, 'PRET', 1))).toBe(7);
@@ -204,21 +190,6 @@ describe('KanbanServeurComponent', () => {
     expect(modalCtrlSpy.create).toHaveBeenCalled();
   }));
 
-  it('removes cancelled order in memory when notification is received with statut ANNULEE', fakeAsync(() => {
-    notification$.next({
-      id: 'c-cancel',
-      type: 'statut',
-      message: 'Order #1 cancelled',
-      severity: 'primary',
-      data: { id: 1, statut: 'ANNULEE' },
-      timestamp: new Date(),
-      lue: false,
-    });
-    tick();
-
-    expect(component.colonnes[0].commandes.find(c => c.id === 1)).toBeUndefined();
-  }));
-
   it('removes cancelled order in memory when /topic/barman/commandes receives statut ANNULEE', fakeAsync(() => {
     wsTopic$.next({ body: JSON.stringify({ id: 1, statut: 'ANNULEE' }) });
     tick();
@@ -226,15 +197,22 @@ describe('KanbanServeurComponent', () => {
     expect(component.colonnes[0].commandes.find(c => c.id === 1)).toBeUndefined();
   }));
 
-  it('reloads orders when /topic/barman/commandes receives non-cancelled order or invalid JSON', fakeAsync(() => {
-    const before = serviceSpy.getCommandesParStatut.calls.count();
-    wsTopic$.next({ body: JSON.stringify({ id: 99, statut: 'EN_PREPARATION' }) });
+  it('updates and moves order in-place when /topic/barman/commandes receives updated status without full HTTP reload', fakeAsync(() => {
+    serviceSpy.getCommandesParStatut.calls.reset();
+    wsTopic$.next({ body: JSON.stringify({ id: 1, statut: 'PRET', items: [] }) });
     tick();
-    expect(serviceSpy.getCommandesParStatut.calls.count()).toBeGreaterThan(before);
 
-    const before2 = serviceSpy.getCommandesParStatut.calls.count();
-    wsTopic$.next({ body: 'malformed' });
-    tick();
-    expect(serviceSpy.getCommandesParStatut.calls.count()).toBeGreaterThan(before2);
+    // Order #1 moved from EN_ATTENTE (col 0) to PRET (col 2)
+    expect(component.colonnes[0].commandes.find(c => c.id === 1)).toBeUndefined();
+    expect(component.colonnes[2].commandes.find(c => c.id === 1)).toBeDefined();
+    // No full HTTP reload triggered
+    expect(serviceSpy.getCommandesParStatut).not.toHaveBeenCalled();
+  }));
+
+  it('ignores malformed messages on /topic/barman/commandes gracefully without throwing', fakeAsync(() => {
+    expect(() => {
+      wsTopic$.next({ body: 'malformed' });
+      tick();
+    }).not.toThrow();
   }));
 });

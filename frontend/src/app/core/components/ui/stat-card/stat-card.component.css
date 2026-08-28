@@ -1,50 +1,159 @@
 .stat-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   margin: 0;
-  border-radius: 12px;
-  background: var(--ion-card-background, #1e1e1e);
+  border-radius: var(--radius-lg, 14px);
+  background: var(--background-surface-1, #1a1a2e);
+  border: 1px solid var(--border-medium, #2e3450);
+  box-shadow: var(--shadow-sm, 0 2px 8px rgba(0, 0, 0, 0.25));
+  overflow: hidden;
+  transition: transform 0.24s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.24s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.24s ease;
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md, 0 8px 24px rgba(0, 0, 0, 0.2));
+    border-color: var(--border-strong, var(--primary));
+  }
+}
+
+.stat-accent-bar {
+  height: 3px;
+  width: 100%;
+  background: linear-gradient(90deg, var(--stat-accent, var(--primary, #6c7fe8)), transparent);
+  opacity: 0.85;
+}
+
+.stat-card-inner {
+  display: flex;
+  flex-direction: column;
+  padding: 14px 16px;
+  flex: 1;
 }
 
 .stat-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  gap: 8px;
+  margin-bottom: 10px;
 }
 
 .stat-title {
-  font-size: 0.85rem;
-  color: var(--ion-color-medium, #a0a0a0);
-  font-weight: 500;
+  font-size: 0.78rem;
+  color: var(--text-muted, #7e87a8);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.stat-icon {
-  font-size: 1.25rem;
-  color: var(--primary, #6c7fe8);
+.stat-icon-wrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md, 8px);
+  background: var(--stat-icon-bg, rgba(108, 127, 232, 0.12));
+  color: var(--stat-accent, var(--primary, #6c7fe8));
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+
+  .stat-icon {
+    font-size: 1.15rem;
+  }
+}
+
+.stat-card:hover .stat-icon-wrapper {
+  transform: scale(1.08);
 }
 
 .stat-value {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--ion-text-color, #ffffff);
-  margin-bottom: 4px;
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: var(--text-primary, #eceefb);
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.15;
+  margin-bottom: 8px;
 }
 
-.stat-trend {
+.stat-footer {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+}
+
+.stat-trend-badge {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 0.75rem;
+  padding: 3px 8px;
+  border-radius: var(--radius-pill, 999px);
+  font-size: 0.73rem;
   font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1;
+
+  ion-icon {
+    font-size: 0.85rem;
+  }
+
+  &.trend-up {
+    background: rgba(45, 211, 111, 0.14);
+    color: var(--semantic-success, #2dd36f);
+    border: 1px solid rgba(45, 211, 111, 0.3);
+  }
+
+  &.trend-down {
+    background: rgba(229, 96, 79, 0.14);
+    color: var(--semantic-danger, #e5604f);
+    border: 1px solid rgba(229, 96, 79, 0.3);
+  }
+
+  &.trend-neutral {
+    background: var(--background-surface-2, rgba(255, 255, 255, 0.06));
+    color: var(--text-muted, #92949c);
+    border: 1px solid var(--border-medium, rgba(255, 255, 255, 0.08));
+  }
 }
 
-.trend-up {
-  color: var(--ion-color-success, #2dd36f);
+/* ========================================================================= */
+/* --- COLOR VARIANTS --- */
+/* ========================================================================= */
+.color-primary {
+  --stat-accent: var(--primary, #6c7fe8);
+  --stat-icon-bg: rgba(108, 127, 232, 0.15);
 }
 
-.trend-down {
-  color: var(--ion-color-danger, #eb445a);
+.color-success {
+  --stat-accent: var(--semantic-success, #2dd36f);
+  --stat-icon-bg: rgba(45, 211, 111, 0.15);
 }
 
-.trend-neutral {
-  color: var(--ion-color-medium, #92949c);
+.color-warning {
+  --stat-accent: var(--semantic-warning, #f4a52a);
+  --stat-icon-bg: rgba(244, 165, 42, 0.15);
+}
+
+.color-danger {
+  --stat-accent: var(--semantic-danger, #e5604f);
+  --stat-icon-bg: rgba(229, 96, 79, 0.15);
+}
+
+.color-secondary {
+  --stat-accent: #38bdf8;
+  --stat-icon-bg: rgba(56, 189, 248, 0.15);
+}
+
+.color-tertiary {
+  --stat-accent: #a855f7;
+  --stat-icon-bg: rgba(168, 85, 247, 0.15);
 }

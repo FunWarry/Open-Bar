@@ -5,10 +5,10 @@ import { Observable, Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
 import { selectIsAdmin } from '../../../core/store/auth.selectors';
 import {
-  IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardContent,
+  IonContent, IonCard, IonCardContent,
   IonList, IonItem, IonLabel, IonBadge, IonIcon, IonButton, IonButtons,
-  IonRefresher, IonRefresherContent, IonSegment, IonSegmentButton,
-  IonSpinner, ToastController, IonThumbnail, IonSearchbar,
+  IonRefresher, IonRefresherContent,
+  IonSpinner, ToastController, IonThumbnail,
   IonGrid, IonRow, IonCol
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -21,6 +21,7 @@ import { AsyncPipe, CurrencyPipe, CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { CocktailService } from '../../../core/services/cocktail.service';
+import { WebSocketService } from '../../../core/services/websocket.service';
 import { Cocktail } from '../../../core/models/cocktail.model';
 import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
 import { environment } from '../../../../environments/environment';
@@ -43,14 +44,14 @@ export interface AllergenOption {
 @Component({
   selector: 'app-cocktail-list',
   templateUrl: './cocktail-list.component.html',
-  styleUrls: ['./cocktail-list.component.css'],
+  styleUrls: ['./cocktail-list.component.scss'],
   standalone: true,
   imports: [
     CommonModule, FormsModule, AsyncPipe, CurrencyPipe, TranslocoModule,
-    IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardContent,
+    IonContent, IonCard, IonCardContent,
     IonList, IonItem, IonLabel, IonBadge, IonIcon, IonButton, IonButtons,
-    IonRefresher, IonRefresherContent, IonSegment, IonSegmentButton,
-    IonSpinner, IonThumbnail, IonSearchbar, IonGrid, IonRow, IonCol,
+    IonRefresher, IonRefresherContent,
+    IonSpinner, IonThumbnail, IonGrid, IonRow, IonCol,
   ],
 })
 export class CocktailListComponent implements OnInit, OnDestroy {
@@ -83,6 +84,7 @@ export class CocktailListComponent implements OnInit, OnDestroy {
     private readonly store: Store,
     private readonly router: Router,
     private readonly cocktailService: CocktailService,
+    private readonly webSocketService: WebSocketService,
     private readonly toastCtrl: ToastController,
     private readonly transloco: TranslocoService,
   ) {
@@ -96,6 +98,53 @@ export class CocktailListComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.charger();
+    this.initWebSocketSubscription();
+  }
+
+  /**
+   * Subscribes to live WebSocket topics for real-time synchronization
+   * across multiple connected users without reloading the entire page.
+   */
+  private initWebSocketSubscription(): void {
+    // 1. Live cocktail updates & additions in-place
+    this.webSocketService.watch('/topic/cocktails')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (msg) => {
+          try {
+            const updatedCocktail: Cocktail = JSON.parse(msg.body);
+            if (updatedCocktail?.id) {
+              const idx = this.cocktails.findIndex(c => c.id === updatedCocktail.id);
+              if (idx !== -1) {
+                // Update in-place to avoid layout jump / spinner / resetting filters
+                this.cocktails[idx] = updatedCocktail;
+                this.cocktails = [...this.cocktails];
+              } else {
+                // Prepend new cocktail created by another user
+                this.cocktails = [updatedCocktail, ...this.cocktails];
+              }
+            }
+          } catch {
+            // Ignore malformed payload
+          }
+        },
+      });
+
+    // 2. Live cocktail deletions in-place
+    this.webSocketService.watch('/topic/cocktails/supprime')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (msg) => {
+          try {
+            const payload = JSON.parse(msg.body);
+            if (payload?.id) {
+              this.cocktails = this.cocktails.filter(c => c.id !== payload.id);
+            }
+          } catch {
+            // Ignore malformed payload
+          }
+        },
+      });
   }
 
   /**

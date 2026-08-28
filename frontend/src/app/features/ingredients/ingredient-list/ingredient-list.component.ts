@@ -17,7 +17,8 @@ import {
   removeOutline, addOutline, trashOutline,
   gridOutline, listOutline, pulseOutline, search, swapVerticalOutline,
   scaleOutline, layersOutline, checkmarkCircleOutline, closeCircleOutline,
-  alertCircleOutline
+  alertCircleOutline, wineOutline, waterOutline, colorFillOutline,
+  nutritionOutline, cubeOutline
 } from 'ionicons/icons';
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -27,6 +28,7 @@ import { WebSocketService } from '../../../core/services/websocket.service';
 import { Ingredient } from '../../../core/models/ingredient.model';
 import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
 import { IngredientFormComponent } from '../ingredient-form/ingredient-form.component';
+import { SearchableSelectComponent, SearchableOption } from '../../../core/components/ui/searchable-select/searchable-select.component';
 
 export type StockSortOption =
   | 'NAME_ASC'
@@ -40,15 +42,23 @@ export type StockSortOption =
 
 export type StockStatusFilter = 'ALL' | 'NORMAL' | 'ALERT' | 'OUT_OF_STOCK';
 
+export interface IngredientCategoryGroup {
+  categoryKey: string;
+  categoryLabel: string;
+  icon: string;
+  badgeType: 'primary' | 'success' | 'warning' | 'danger' | 'neutral';
+  items: Ingredient[];
+}
+
 /**
  * Global Barman & Manager Stock Management View component in OpenBar (Figma 488:3566).
  * Features visual stock gauges, alert thresholds, multi-criteria filters (status, category, unit, sorting),
- * quick stock adjustment (+/-), view mode toggles (grid/list), and live WebSocket stream updates.
+ * searchable dropdowns, categorized sections with dividers, quick stock adjustment, and live WebSocket stream updates.
  */
 @Component({
   selector: 'app-ingredient-list',
   templateUrl: './ingredient-list.component.html',
-  styleUrls: ['./ingredient-list.component.css'],
+  styleUrls: ['./ingredient-list.component.scss'],
   standalone: true,
   imports: [
     CommonModule, FormsModule, AsyncPipe, TranslocoModule,
@@ -56,6 +66,7 @@ export type StockStatusFilter = 'ALL' | 'NORMAL' | 'ALERT' | 'OUT_OF_STOCK';
     IonList, IonItem, IonLabel, IonBadge, IonIcon, IonButton, IonButtons,
     IonRefresher, IonRefresherContent, IonSpinner, IonSearchbar,
     IonGrid, IonRow, IonCol, IonProgressBar,
+    SearchableSelectComponent,
   ],
 })
 export class IngredientListComponent implements OnInit, OnDestroy {
@@ -69,6 +80,37 @@ export class IngredientListComponent implements OnInit, OnDestroy {
   viewMode: 'grid' | 'list' = 'grid';
 
   readonly availableUnits: string[] = ['cl', 'ml', 'g', 'kg', 'pièce', 'L'];
+
+  get categoryOptions(): SearchableOption<string>[] {
+    return [
+      { value: 'ALL', label: this.transloco.translate('STOCK.ALL_CATEGORIES'), icon: 'layers-outline' },
+      { value: 'SPIRITS', label: this.transloco.translate('STOCK.SPIRITS'), icon: 'wine-outline', badge: 'Alcools', badgeType: 'primary' },
+      { value: 'SOFTS', label: this.transloco.translate('STOCK.SOFTS'), icon: 'water-outline', badge: 'Softs', badgeType: 'success' },
+      { value: 'SYRUPS', label: this.transloco.translate('STOCK.SYRUPS'), icon: 'color-fill-outline', badge: 'Sirops', badgeType: 'warning' },
+      { value: 'FRUITS', label: this.transloco.translate('STOCK.FRUITS'), icon: 'nutrition-outline', badge: 'Fruits', badgeType: 'danger' },
+      { value: 'OTHER', label: this.transloco.translate('STOCK.OTHER'), icon: 'cube-outline', badge: 'Divers', badgeType: 'neutral' },
+    ];
+  }
+
+  get unitOptions(): SearchableOption<string>[] {
+    return [
+      { value: 'ALL', label: this.transloco.translate('STOCK.ALL_UNITS'), icon: 'scale-outline' },
+      ...this.availableUnits.map(u => ({ value: u, label: u })),
+    ];
+  }
+
+  get sortOptions(): SearchableOption<StockSortOption>[] {
+    return [
+      { value: 'NAME_ASC', label: this.transloco.translate('STOCK.SORT.NAME_ASC'), icon: 'swap-vertical-outline' },
+      { value: 'NAME_DESC', label: this.transloco.translate('STOCK.SORT.NAME_DESC'), icon: 'swap-vertical-outline' },
+      { value: 'STOCK_ASC', label: this.transloco.translate('STOCK.SORT.STOCK_ASC'), icon: 'swap-vertical-outline' },
+      { value: 'STOCK_DESC', label: this.transloco.translate('STOCK.SORT.STOCK_DESC'), icon: 'swap-vertical-outline' },
+      { value: 'THRESHOLD_ASC', label: this.transloco.translate('STOCK.SORT.THRESHOLD_ASC'), icon: 'swap-vertical-outline' },
+      { value: 'THRESHOLD_DESC', label: this.transloco.translate('STOCK.SORT.THRESHOLD_DESC'), icon: 'swap-vertical-outline' },
+      { value: 'STATUS_ALERT', label: this.transloco.translate('STOCK.SORT.STATUS_ALERT'), icon: 'alert-circle-outline' },
+      { value: 'CATEGORY', label: this.transloco.translate('STOCK.SORT.CATEGORY'), icon: 'layers-outline' },
+    ];
+  }
 
   isAdmin$: Observable<boolean>;
   canEdit$: Observable<boolean>;
@@ -91,7 +133,8 @@ export class IngredientListComponent implements OnInit, OnDestroy {
       removeOutline, addOutline, trashOutline,
       gridOutline, listOutline, pulseOutline, search, swapVerticalOutline,
       scaleOutline, layersOutline, checkmarkCircleOutline, closeCircleOutline,
-      alertCircleOutline
+      alertCircleOutline, wineOutline, waterOutline, colorFillOutline,
+      nutritionOutline, cubeOutline
     });
   }
 
@@ -147,6 +190,20 @@ export class IngredientListComponent implements OnInit, OnDestroy {
     this.selectedStatus = status;
   }
 
+  onCategorySelected(option: SearchableOption<string> | null): void {
+    this.selectedCategory = option?.value || 'ALL';
+  }
+
+  onUnitSelected(option: SearchableOption<string> | null): void {
+    this.selectedUnit = option?.value || 'ALL';
+  }
+
+  onSortSelected(option: SearchableOption<StockSortOption> | null): void {
+    if (option?.value) {
+      this.sortOption = option.value;
+    }
+  }
+
   onCategoryChange(event: Event): void {
     const select = event.target as HTMLSelectElement;
     this.selectedCategory = select.value;
@@ -176,6 +233,37 @@ export class IngredientListComponent implements OnInit, OnDestroy {
 
   get outOfStockCount(): number {
     return this.ingredients.filter(i => i.quantiteStock <= 0).length;
+  }
+
+  /**
+   * Returns filtered ingredients grouped by their category with icons and counters.
+   */
+  get groupedIngredients(): IngredientCategoryGroup[] {
+    const filtered = this.filteredIngredients;
+    const groupsDef: { key: string; labelKey: string; icon: string; badgeType: 'primary' | 'success' | 'warning' | 'danger' | 'neutral' }[] = [
+      { key: 'SPIRITS', labelKey: 'STOCK.SPIRITS', icon: 'wine-outline', badgeType: 'primary' },
+      { key: 'SOFTS', labelKey: 'STOCK.SOFTS', icon: 'water-outline', badgeType: 'success' },
+      { key: 'SYRUPS', labelKey: 'STOCK.SYRUPS', icon: 'color-fill-outline', badgeType: 'warning' },
+      { key: 'FRUITS', labelKey: 'STOCK.FRUITS', icon: 'nutrition-outline', badgeType: 'danger' },
+      { key: 'OTHER', labelKey: 'STOCK.OTHER', icon: 'cube-outline', badgeType: 'neutral' },
+    ];
+
+    const result: IngredientCategoryGroup[] = [];
+
+    for (const def of groupsDef) {
+      const items = filtered.filter(item => this.getIngredientCategory(item.nom) === def.key);
+      if (items.length > 0) {
+        result.push({
+          categoryKey: def.key,
+          categoryLabel: this.transloco.translate(def.labelKey),
+          icon: def.icon,
+          badgeType: def.badgeType,
+          items
+        });
+      }
+    }
+
+    return result;
   }
 
   /**

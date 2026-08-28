@@ -16,9 +16,8 @@ public class Commande {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull(message = "La table est obligatoire")
     @ManyToOne
-    @JoinColumn(name = "table_id", nullable = false)
+    @JoinColumn(name = "table_id", nullable = true)
     private TableEntity table;
 
     @ManyToOne

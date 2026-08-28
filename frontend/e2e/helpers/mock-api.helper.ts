@@ -52,6 +52,69 @@ export async function setupMockApi(page: Page): Promise<void> {
     });
   });
 
+  await page.route('**/api/admin/establishment/timezones**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(['Europe/Paris', 'UTC', 'America/New_York', 'Asia/Tokyo']),
+    });
+  });
+
+  await page.route('**/api/admin/establishment**', async (route) => {
+    if (route.request().method() === 'PUT') {
+      const body = route.request().postDataJSON() || {};
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 1,
+          nom: body.nom || 'OpenBar SAS',
+          siret: body.siret || '73282932000074',
+          numeroTva: body.numeroTva || 'FR12345678901',
+          formeJuridique: body.formeJuridique || 'SAS',
+          capitalSocial: body.capitalSocial || '10000',
+          adresse: body.adresse || '10 Rue de la Paix',
+          codePostal: body.codePostal || '75001',
+          ville: body.ville || 'Paris',
+          telephone: body.telephone || '0123456789',
+          email: body.email || 'contact@openbar.fr',
+          siteWeb: body.siteWeb || 'https://openbar.fr',
+          mentionLegaleTicket: body.mentionLegaleTicket || 'Merci de votre visite',
+          tauxTvaDefaut: body.tauxTvaDefaut || 20.0,
+          ticketFormat: body.ticketFormat || 'STANDARD',
+          timeZone: body.timeZone || 'Europe/Paris',
+          country: body.country || 'France',
+          language: body.language || 'fr',
+        }),
+      });
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        id: 1,
+        nom: 'OpenBar SAS',
+        siret: '73282932000074',
+        numeroTva: 'FR12345678901',
+        formeJuridique: 'SAS',
+        capitalSocial: '10000',
+        adresse: '10 Rue de la Paix',
+        codePostal: '75001',
+        ville: 'Paris',
+        telephone: '0123456789',
+        email: 'contact@openbar.fr',
+        siteWeb: 'https://openbar.fr',
+        mentionLegaleTicket: 'Merci de votre visite',
+        tauxTvaDefaut: 20.0,
+        ticketFormat: 'STANDARD',
+        timeZone: 'Europe/Paris',
+        country: 'France',
+        language: 'fr',
+      }),
+    });
+  });
+
   await page.route('**/api/setup/status', async (route) => {
     await route.fulfill({
       status: 200,
@@ -456,23 +519,19 @@ export async function setupMockApi(page: Page): Promise<void> {
     });
   });
 
-  await page.route('**/api/settings**', async (route) => {
+  await page.route('**/api/shift-presets**', async (route) => {
     if (route.request().method() === 'PUT') {
       const data = route.request().postDataJSON();
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({
+        body: JSON.stringify(data || {
           id: 1,
-          primaryColor: data?.primaryColor || '#6c7fe8',
-          primaryColorStrong: data?.primaryColorStrong || '#5a68d6',
-          logoUrl: data?.logoUrl || null,
-          establishmentName: data?.establishmentName || 'OpenBar',
-          defaultTheme: data?.defaultTheme || 'DARK',
-          tempsAlerteWarningMinutes: data?.tempsAlerteWarningMinutes ?? 3,
-          tempsAlerteCommandeMinutes: data?.tempsAlerteCommandeMinutes ?? 5,
-          tempsAlerteCritiqueCommandeMinutes: data?.tempsAlerteCritiqueCommandeMinutes ?? 10,
-          updatedAt: new Date().toISOString(),
+          typeShift: 'MATIN',
+          nom: 'Service Matin',
+          heureDebut: '08:00',
+          heureFin: '16:00',
+          dureePauseMinutes: 30,
         }),
       });
       return;
@@ -480,18 +539,32 @@ export async function setupMockApi(page: Page): Promise<void> {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify({
-        id: 1,
-        primaryColor: '#6c7fe8',
-        primaryColorStrong: '#5a68d6',
-        logoUrl: null,
-        establishmentName: 'OpenBar',
-        defaultTheme: 'DARK',
-        tempsAlerteWarningMinutes: 3,
-        tempsAlerteCommandeMinutes: 5,
-        tempsAlerteCritiqueCommandeMinutes: 10,
-        updatedAt: new Date().toISOString(),
-      }),
+      body: JSON.stringify([
+        { id: 1, typeShift: 'MATIN', nom: 'Service Matin', heureDebut: '08:00', heureFin: '16:00', dureePauseMinutes: 30 },
+        { id: 2, typeShift: 'SOIR', nom: 'Service Soir', heureDebut: '16:00', heureFin: '00:00', dureePauseMinutes: 30 },
+        { id: 3, typeShift: 'COUPURE', nom: 'Service Coupure', heureDebut: '11:00', heureFin: '22:00', dureePauseMinutes: 120 },
+        { id: 4, typeShift: 'NUIT', nom: 'Service Nuit', heureDebut: '22:00', heureFin: '06:00', dureePauseMinutes: 30 },
+        { id: 5, typeShift: 'CONGE', nom: 'Congé / Absence', heureDebut: '00:00', heureFin: '00:00', dureePauseMinutes: 0 },
+      ]),
+    });
+  });
+
+  await page.route('**/api/closures**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([
+        { id: 1, type: 'WEEKLY_RECURRING', dayOfWeek: 'SUNDAY', reason: 'Fermeture hebdomadaire' },
+      ]),
+    });
+  });
+
+  await page.route('**/api/schedule/publications**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([]),
     });
   });
 }
+

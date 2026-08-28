@@ -137,6 +137,15 @@
   --action-btn-bg: var(--surface-3);
   --action-btn-border: var(--border-medium);
   --action-btn-color: var(--text-secondary);
+
+  /* State Tokens — Unavailable / Disabled Items & Cards */
+  --state-unavailable-opacity: 0.48;
+  --state-unavailable-bg: var(--background-bg-0);
+  --state-unavailable-border: var(--border-medium);
+  --state-unavailable-filter: grayscale(1) brightness(0.8);
+  --state-unavailable-text: var(--text-muted);
+  --state-unavailable-badge-bg: rgba(229, 96, 79, 0.15);
+  --state-unavailable-badge-color: var(--semantic-danger);
 }
 
 /* Thème Clair (.light-theme) — conçu pour conformité WCAG AA (ticket #154) */
@@ -197,13 +206,22 @@ body.light-theme,
   --card-item-border: #e2e8f0;
   --card-item-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
   --card-header-border: #f1f5f9;
-  --input-bg: #ffffff;
+  --input-bg: var(--surface-2);
   --input-border: #cbd5e1;
   --badge-num-bg: #e0e7ff;
   --badge-num-color: #4338ca;
   --action-btn-bg: #f8fafc;
   --action-btn-border: #cbd5e1;
   --action-btn-color: #475569;
+
+  /* State Tokens — Unavailable / Disabled Items & Cards */
+  --state-unavailable-opacity: 0.52;
+  --state-unavailable-bg: var(--background-surface-3);
+  --state-unavailable-border: var(--border-strong);
+  --state-unavailable-filter: grayscale(1) contrast(0.85);
+  --state-unavailable-text: var(--text-muted);
+  --state-unavailable-badge-bg: rgba(229, 96, 79, 0.12);
+  --state-unavailable-badge-color: var(--semantic-danger);
 }
 
 /* Mapping vers les variables Ionic — Dark (défaut) */

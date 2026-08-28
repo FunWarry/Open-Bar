@@ -1,71 +1,178 @@
-<ion-header class="ion-no-border">
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-button (click)="onBack()" (keyup.enter)="onBack()" data-testid="table-detail-back-btn">
-        <ion-icon slot="start" name="arrow-back"></ion-icon>
-        {{ 'COMMON.BACK' | transloco }}
-      </ion-button>
-    </ion-buttons>
-    <ion-title>{{ 'TABLES.TABLE_NUMBER' | transloco:{ number: table?.numero } }}</ion-title>
-    <ion-buttons slot="end">
-      @if (isAdmin$ | async) {
-        <ion-button fill="solid" color="primary" (click)="onEdit()" (keyup.enter)="onEdit()" data-testid="table-detail-edit-btn">
-          <ion-icon slot="start" name="create"></ion-icon>
-          {{ 'COMMON.EDIT' | transloco }}
-        </ion-button>
-      }
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>
-
-<ion-content class="modal-content-container">
-  <div class="table-detail-content">
-
-    <div class="detail-section">
-      <h3 class="section-title">{{ 'COMMON.INFO' | transloco }}</h3>
-      <div class="info-card">
-        <div class="info-row">
-          <span class="detail-label">{{ 'TABLES.ZONE' | transloco }}</span>
-          <span class="detail-value zone-badge">{{ table?.zone || ('COMMON.NOT_SPECIFIED' | transloco) }}</span>
-        </div>
-        <div class="info-row">
-          <span class="detail-label">{{ 'TABLES.CAPACITY' | transloco }}</span>
-          <span class="detail-value">{{ 'TABLE_SIDE_PANEL.SEATS_FORMAT' | transloco:{ count: table?.capacite } }}</span>
-        </div>
-        <div class="info-row">
-          <span class="detail-label">{{ 'TABLES.STATUS' | transloco }}</span>
-          <ion-badge [color]="table?.occupee ? 'danger' : 'success'">
-            {{ (table?.occupee ? 'TABLES.OCCUPIED' : 'TABLES.FREE') | transloco }}
-          </ion-badge>
+<div class="table-modal-wrapper" data-testid="table-detail-modal">
+  <!-- ========================================================================= -->
+  <!-- --- HEADER --- -->
+  <!-- ========================================================================= -->
+  <div class="modal-header">
+    <div class="header-main-group">
+      <div class="table-avatar-badge" [class.occupied]="table?.occupee">
+        <ion-icon name="restaurant-outline"></ion-icon>
+      </div>
+      <div class="header-text">
+        <h2 class="modal-title" data-testid="table-detail-title">
+          {{ 'TABLES.MODAL_DETAIL_TITLE' | transloco:{ number: table?.numero ?? '...' } }}
+        </h2>
+        <div class="modal-meta-tags">
+          <span class="meta-tag zone-tag">
+            <ion-icon name="location-outline"></ion-icon>
+            <span>{{ table?.zone || ('COMMON.NOT_SPECIFIED' | transloco) }}</span>
+          </span>
+          <span class="meta-tag status-tag" [class.occupied]="table?.occupee" [class.free]="!table?.occupee">
+            <span class="status-dot"></span>
+            <span>{{ (table?.occupee ? 'TABLES.OCCUPIED' : 'TABLES.FREE') | transloco }}</span>
+          </span>
         </div>
       </div>
     </div>
 
-    <div class="detail-section">
-      <h3 class="section-title">{{ 'TABLES.ORDERS_HISTORY' | transloco }}</h3>
-      @if (commandes && commandes.length > 0) {
-        <div class="history-table">
-          <div class="list-header-row">
-            <span>{{ 'COMMANDES.TITLE' | transloco }}</span>
-            <span>{{ 'FACTURES.DATE' | transloco }}</span>
-            <span>{{ 'SERVEUR.DETAILS.TOTAL' | transloco }}</span>
-            <span>{{ 'COMMANDES.STATUS' | transloco }}</span>
+    <button
+      type="button"
+      class="close-icon-btn"
+      (click)="onClose()"
+      (keyup.enter)="onClose()"
+      [attr.aria-label]="'COMMON.CLOSE' | transloco"
+      data-testid="table-detail-close-btn">
+      <ion-icon name="close-outline"></ion-icon>
+    </button>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- --- BODY --- -->
+  <!-- ========================================================================= -->
+  <div class="modal-body">
+    @if (isLoading) {
+      <div class="loading-state-box">
+        <ion-spinner name="crescent" color="primary"></ion-spinner>
+        <p>{{ 'COMMON.LOADING' | transloco }}</p>
+      </div>
+    } @else if (table) {
+      <!-- Key Table Metadata Grid -->
+      <div class="metadata-grid">
+        <div class="meta-card">
+          <div class="meta-icon-box zone">
+            <ion-icon name="layers-outline"></ion-icon>
           </div>
-          @for (commande of commandes; track commande.id) {
-            <div class="history-item-row" (click)="onViewCommande(commande)" (keyup.enter)="onViewCommande(commande)">
-              <span class="cmd-num">#{{ commande.id }}</span>
-              <span class="cmd-date">{{ commande.dateCommande | date:'dd/MM HH:mm' }}</span>
-              <span class="cmd-total">{{ commande.total | appCurrency }}</span>
-              <ion-badge [color]="getStatutColor(commande.statut)">
-                {{ commande.statut }}
-              </ion-badge>
-            </div>
-          }
+          <div class="meta-info">
+            <span class="meta-label">{{ 'TABLES.ZONE' | transloco }}</span>
+            <span class="meta-value">{{ table.zone || '-' }}</span>
+          </div>
         </div>
-      } @else {
-        <p class="empty-text">{{ 'TABLES.NO_ORDERS' | transloco }}</p>
+
+        <div class="meta-card">
+          <div class="meta-icon-box capacity">
+            <ion-icon name="people-outline"></ion-icon>
+          </div>
+          <div class="meta-info">
+            <span class="meta-label">{{ 'TABLES.CAPACITY' | transloco }}</span>
+            <span class="meta-value">{{ 'TABLES.CARD.CAPACITY' | transloco:{ count: table.capacite } }}</span>
+          </div>
+        </div>
+
+        <div class="meta-card">
+          <div class="meta-icon-box status" [class.occupied]="table.occupee" [class.free]="!table.occupee">
+            <ion-icon [name]="table.occupee ? 'time-outline' : 'restaurant-outline'"></ion-icon>
+          </div>
+          <div class="meta-info">
+            <span class="meta-label">{{ 'TABLES.STATUS' | transloco }}</span>
+            <span class="meta-value status-text" [class.occupied]="table.occupee" [class.free]="!table.occupee">
+              {{ (table.occupee ? 'TABLES.OCCUPIED' : 'TABLES.FREE') | transloco }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Occupation Duration Banner -->
+      @if (table.occupee && table.dateOccupation) {
+        <div class="occupation-banner">
+          <div class="banner-icon-box">
+            <ion-icon name="time-outline"></ion-icon>
+          </div>
+          <div class="banner-text">
+            <span class="banner-title">Table occupée</span>
+            <span class="banner-time">Depuis {{ table.dateOccupation | date:'dd/MM à HH:mm' }}</span>
+          </div>
+        </div>
+      }
+
+      <!-- Active Orders Section -->
+      <div class="orders-section">
+        <div class="section-header">
+          <div class="section-title-wrapper">
+            <ion-icon name="receipt-outline" class="title-icon"></ion-icon>
+            <h3 class="section-title">{{ 'TABLES.ORDERS_HISTORY' | transloco }}</h3>
+          </div>
+          <span class="orders-count-badge">{{ commandes.length }}</span>
+        </div>
+
+        @if (commandes && commandes.length > 0) {
+          <div class="orders-list">
+            @for (cmd of commandes; track cmd.id) {
+              <div class="order-item-card" (click)="onViewCommande(cmd)" (keyup.enter)="onViewCommande(cmd)" [attr.data-testid]="'table-detail-cmd-' + cmd.id">
+                <div class="order-card-header">
+                  <div class="order-id-group">
+                    <span class="order-id">#{{ cmd.id }}</span>
+                    <span class="order-time">{{ cmd.dateCommande | date:'HH:mm' }}</span>
+                  </div>
+                  <ion-badge [color]="getStatutColor(cmd.statut)" class="cmd-status-badge">
+                    {{ cmd.statut }}
+                  </ion-badge>
+                </div>
+                <div class="order-card-footer">
+                  <span class="items-count">{{ cmd.items.length }} article(s)</span>
+                  <span class="order-total">{{ cmd.total | appCurrency }}</span>
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="empty-orders-card">
+            <ion-icon name="receipt-outline"></ion-icon>
+            <p>{{ 'TABLES.NO_ORDERS' | transloco }}</p>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- --- FOOTER --- -->
+  <!-- ========================================================================= -->
+  <div class="modal-footer">
+    <div class="footer-left">
+      @if (isAdmin$ | async) {
+        <button
+          type="button"
+          class="btn-action btn-danger"
+          [disabled]="isDeleting"
+          (click)="onDelete()"
+          (keyup.enter)="onDelete()"
+          data-testid="table-detail-delete-btn">
+          <ion-icon name="trash-outline"></ion-icon>
+          <span>{{ 'TABLES.DELETE_BTN' | transloco }}</span>
+        </button>
       }
     </div>
 
+    <div class="footer-right">
+      <button
+        type="button"
+        class="btn-action btn-secondary"
+        (click)="onClose()"
+        (keyup.enter)="onClose()"
+        data-testid="table-detail-back-btn">
+        <span>{{ 'COMMON.CLOSE' | transloco }}</span>
+      </button>
+
+      @if (isAdmin$ | async) {
+        <button
+          type="button"
+          class="btn-action btn-primary"
+          (click)="onEdit()"
+          (keyup.enter)="onEdit()"
+          data-testid="table-detail-edit-btn">
+          <ion-icon name="create-outline"></ion-icon>
+          <span>{{ 'COMMON.EDIT' | transloco }}</span>
+        </button>
+      }
+    </div>
   </div>
-</ion-content>
+</div>

@@ -40,7 +40,7 @@ const mockConfig: EstablishmentConfig = {
   id: 1,
   legalName: 'OpenBar SARL',
   legalForm: 'SARL',
-  siret: '12345678900010',
+  siret: '73282932000074',
   rcsCity: 'Paris',
   rcsNumber: 'B 123 456 789',
   tvaNumber: 'FR12123456789',
@@ -217,5 +217,19 @@ describe('TicketReceiptComponent', () => {
     expect(component.totalHT).toBe(10.0);
     expect(component.totalVAT).toBe(2.0);
     expect(component.splitPartItems[0].description).toContain('?');
+  });
+
+  it('translates ticket labels according to establishment language (FR and EN)', () => {
+    component.establishmentConfig = { ...mockConfig, language: 'fr' };
+    expect(component.isEnglish).toBeFalse();
+    expect(component.tr('TOTAL_TTC')).toBe('TOTAL TTC');
+    expect(component.tr('SETTLED')).toBe('RÉGLÉ');
+    expect(component.tr('THANK_YOU')).toBe('Merci de votre visite !');
+
+    component.establishmentConfig = { ...mockConfig, language: 'en' };
+    expect(component.isEnglish).toBeTrue();
+    expect(component.tr('TOTAL_TTC')).toBe('TOTAL INCL. VAT');
+    expect(component.tr('SETTLED')).toBe('SETTLED');
+    expect(component.tr('THANK_YOU')).toBe('Thank you for your visit!');
   });
 });

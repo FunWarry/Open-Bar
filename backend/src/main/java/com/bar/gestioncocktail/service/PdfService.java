@@ -33,6 +33,7 @@ public class PdfService {
     private static final Color MUTED   = new Color(126, 135, 168); // #7e87a8
     private static final Color DARK_TEXT = new Color(30, 30, 45);
     private static final String TOTAL_TTC_HEADER = "Total TTC";
+    private static final String BASE_HT_HEADER = "Base HT";
 
     private final EstablishmentConfigService establishmentConfigService;
     private final AppSettingsService appSettingsService;
@@ -113,7 +114,7 @@ public class PdfService {
         headerTable.setWidths(new float[]{1.2f, 1f});
 
         headerTable.addCell(buildEstablishmentCell(config, settings, normalFont, mutedFont));
-        headerTable.addCell(buildMetadataCell(facture, titleFont, normalFont));
+        headerTable.addCell(buildMetadataCell(facture, config, titleFont, normalFont));
 
         doc.add(headerTable);
         doc.add(Chunk.NEWLINE);
@@ -126,7 +127,8 @@ public class PdfService {
 
         String legalFormText = config.getLegalForm() != null ? config.getLegalForm() : "";
         if (config.getCapitalSocial() != null) {
-            legalFormText += " au capital de " + formatPrix(config.getCapitalSocial().doubleValue(), settings);
+            boolean isEn = "en".equalsIgnoreCase(config.getLanguage());
+            legalFormText += (isEn ? " share capital of " : " au capital de ") + formatPrix(config.getCapitalSocial().doubleValue(), settings);
         }
         if (!legalFormText.isBlank()) {
             cell.addElement(new Paragraph(legalFormText, mutedFont));
@@ -151,35 +153,31 @@ public class PdfService {
         return cell;
     }
 
-    private PdfPCell buildMetadataCell(Facture facture, Font titleFont, Font normalFont) {
+    private PdfPCell buildMetadataCell(Facture facture, EstablishmentConfig config, Font titleFont, Font normalFont) {
+        boolean isEn = "en".equalsIgnoreCase(config.getLanguage());
         PdfPCell cell = new PdfPCell();
         cell.setBorder(Rectangle.NO_BORDER);
-        Paragraph pTitle = new Paragraph("FACTURE", titleFont);
+
+        Paragraph pTitle = new Paragraph(isEn ? "INVOICE" : "FACTURE", titleFont);
         pTitle.setAlignment(Element.ALIGN_RIGHT);
         cell.addElement(pTitle);
 
         String numStr = facture.getNumero() != null ? facture.getNumero() : "-";
-        Paragraph pNum = new Paragraph("N° " + numStr, new Font(Font.HELVETICA, 12, Font.BOLD, DARK_TEXT));
+        Paragraph pNum = new Paragraph((isEn ? "No. " : "N° ") + numStr, new Font(Font.HELVETICA, 12, Font.BOLD, DARK_TEXT));
         pNum.setAlignment(Element.ALIGN_RIGHT);
         cell.addElement(pNum);
 
         if (facture.getDateFacture() != null) {
-            Paragraph pDate = new Paragraph("Date : " + facture.getDateFacture().format(DATE_FMT), normalFont);
-            pDate.setAlignment(Element.ALIGN_RIGHT);
-            cell.addElement(pDate);
+            addMetadataLine(cell, isEn ? "Date: " : "Date : ", facture.getDateFacture().format(DATE_FMT), normalFont);
         }
         if (facture.getTable() != null) {
-            Paragraph pTable = new Paragraph("Table : " + facture.getTable().getNumero(), normalFont);
-            pTable.setAlignment(Element.ALIGN_RIGHT);
-            cell.addElement(pTable);
+            addMetadataLine(cell, isEn ? "Table: " : "Table : ", String.valueOf(facture.getTable().getNumero()), normalFont);
         }
         if (facture.getModePaiement() != null) {
-            Paragraph pPaiement = new Paragraph("Mode de paiement : " + facture.getModePaiement(), normalFont);
-            pPaiement.setAlignment(Element.ALIGN_RIGHT);
-            cell.addElement(pPaiement);
+            addMetadataLine(cell, isEn ? "Payment method: " : "Mode de paiement : ", facture.getModePaiement(), normalFont);
         }
 
-        String statutText = facture.isReglee() ? "RÉGLÉE" : "EN ATTENTE DE RÈGLEMENT";
+        String statutText = getFactureStatusLabel(facture.isReglee(), isEn);
         Color statutColor = facture.isReglee() ? new Color(16, 185, 129) : new Color(245, 158, 11);
         Paragraph pStatut = new Paragraph(statutText, new Font(Font.HELVETICA, 9, Font.BOLD, statutColor));
         pStatut.setAlignment(Element.ALIGN_RIGHT);
@@ -187,18 +185,38 @@ public class PdfService {
         return cell;
     }
 
+    private void addMetadataLine(PdfPCell cell, String prefix, String value, Font font) {
+        Paragraph p = new Paragraph(prefix + value, font);
+        p.setAlignment(Element.ALIGN_RIGHT);
+        cell.addElement(p);
+    }
+
+    private String getFactureStatusLabel(boolean isReglee, boolean isEn) {
+        if (isEn) {
+            return isReglee ? "PAID" : "PENDING SETTLEMENT";
+        }
+        return isReglee ? "RÉGLÉE" : "EN ATTENTE DE RÈGLEMENT";
+    }
+
     private void addItemsTableSection(Document doc, Facture facture, AppSettings settings, Font headerFont, Font normalFont,
                                       Map<VatRate, BigDecimal[]> vatBreakdown) throws DocumentException {
+        EstablishmentConfig config = (establishmentConfigService != null) ? establishmentConfigService.getConfig() : null;
+        boolean isEn = config != null && "en".equalsIgnoreCase(config.getLanguage());
+
         PdfPTable table = new PdfPTable(6);
         table.setWidthPercentage(100);
         table.setWidths(new float[]{3.5f, 1f, 1.5f, 1.2f, 1.5f, 1.8f});
 
-        for (String header : new String[]{"Article", "Qté", "P.U. HT", "Taux TVA", "Total HT", TOTAL_TTC_HEADER}) {
+        String[] headers = isEn
+            ? new String[]{"Item", "Qty", "Unit Price HT", "VAT Rate", "Total HT", "Total Incl. VAT"}
+            : new String[]{"Article", "Qté", "P.U. HT", "Taux TVA", "Total HT", TOTAL_TTC_HEADER};
+
+        for (String header : headers) {
             PdfPCell cell = new PdfPCell(new Phrase(header, headerFont));
             cell.setBackgroundColor(SURFACE);
             cell.setPadding(6);
             cell.setBorderColor(PRIMARY);
-            boolean isRightAlign = "Qté".equals(header) || header.startsWith("P.U") || header.startsWith("Total") || header.startsWith("Taux");
+            boolean isRightAlign = "Qté".equals(header) || "Qty".equals(header) || header.startsWith("P.U") || header.startsWith("Unit") || header.startsWith("Total") || header.startsWith("Taux") || header.startsWith("VAT");
             cell.setHorizontalAlignment(isRightAlign ? Element.ALIGN_RIGHT : Element.ALIGN_LEFT);
             table.addCell(cell);
         }
@@ -260,18 +278,20 @@ public class PdfService {
         totalsTable.setWidthPercentage(100);
         totalsTable.setWidths(new float[]{1.5f, 1f});
 
-        totalsTable.addCell(buildVatBreakdownCell(vatBreakdown, settings, mutedFont));
-        totalsTable.addCell(buildSummaryCell(facture, settings, vatBreakdown, boldFont, totalFont, mutedFont));
+        EstablishmentConfig config = (establishmentConfigService != null) ? establishmentConfigService.getConfig() : null;
+        totalsTable.addCell(buildVatBreakdownCell(vatBreakdown, settings, config, mutedFont));
+        totalsTable.addCell(buildSummaryCell(facture, settings, config, vatBreakdown, boldFont, totalFont, mutedFont));
 
         doc.add(totalsTable);
         doc.add(Chunk.NEWLINE);
     }
 
-    private PdfPCell buildVatBreakdownCell(Map<VatRate, BigDecimal[]> vatBreakdown, AppSettings settings, Font mutedFont) {
+    private PdfPCell buildVatBreakdownCell(Map<VatRate, BigDecimal[]> vatBreakdown, AppSettings settings, EstablishmentConfig config, Font mutedFont) {
+        boolean isEn = config != null && "en".equalsIgnoreCase(config.getLanguage());
         PdfPCell vatCell = new PdfPCell();
         vatCell.setBorder(Rectangle.NO_BORDER);
 
-        Paragraph vatTitle = new Paragraph("VENTILATION TVA", new Font(Font.HELVETICA, 9, Font.BOLD, PRIMARY));
+        Paragraph vatTitle = new Paragraph(isEn ? "VAT BREAKDOWN" : "VENTILATION TVA", new Font(Font.HELVETICA, 9, Font.BOLD, PRIMARY));
         vatCell.addElement(vatTitle);
 
         PdfPTable vatTable = new PdfPTable(4);
@@ -282,7 +302,11 @@ public class PdfService {
             // Unreachable for valid widths
         }
 
-        for (String h : new String[]{"Taux", "Base HT", "TVA", TOTAL_TTC_HEADER}) {
+        String[] headers = isEn
+            ? new String[]{"Rate", BASE_HT_HEADER, "VAT", "Total Incl. VAT"}
+            : new String[]{"Taux", BASE_HT_HEADER, "TVA", TOTAL_TTC_HEADER};
+
+        for (String h : headers) {
             PdfPCell c = new PdfPCell(new Phrase(h, new Font(Font.HELVETICA, 8, Font.BOLD, TEXT)));
             c.setBackgroundColor(SURFACE);
             c.setPadding(4);
@@ -299,8 +323,9 @@ public class PdfService {
         return vatCell;
     }
 
-    private PdfPCell buildSummaryCell(Facture facture, AppSettings settings, Map<VatRate, BigDecimal[]> vatBreakdown,
+    private PdfPCell buildSummaryCell(Facture facture, AppSettings settings, EstablishmentConfig config, Map<VatRate, BigDecimal[]> vatBreakdown,
                                      Font boldFont, Font totalFont, Font mutedFont) {
+        boolean isEn = config != null && "en".equalsIgnoreCase(config.getLanguage());
         PdfPCell summaryCell = new PdfPCell();
         summaryCell.setBorder(Rectangle.NO_BORDER);
 
@@ -313,21 +338,21 @@ public class PdfService {
             : vatBreakdown.values().stream().mapToDouble(a -> a[1].doubleValue()).sum();
         double pourboireVal = (facture.getPourboire() != null) ? facture.getPourboire().doubleValue() : 0;
 
-        Paragraph pTotalHT = new Paragraph("Total HT : " + formatPrix(totalHTVal, settings), boldFont);
+        Paragraph pTotalHT = new Paragraph((isEn ? "Total Excl. VAT : " : "Total HT : ") + formatPrix(totalHTVal, settings), boldFont);
         pTotalHT.setAlignment(Element.ALIGN_RIGHT);
         summaryCell.addElement(pTotalHT);
 
-        Paragraph pTotalVAT = new Paragraph("Total TVA : " + formatPrix(totalVATVal, settings), boldFont);
+        Paragraph pTotalVAT = new Paragraph((isEn ? "Total VAT : " : "Total TVA : ") + formatPrix(totalVATVal, settings), boldFont);
         pTotalVAT.setAlignment(Element.ALIGN_RIGHT);
         summaryCell.addElement(pTotalVAT);
 
         if (pourboireVal > 0) {
-            Paragraph pTip = new Paragraph("Pourboire : " + formatPrix(pourboireVal, settings), mutedFont);
+            Paragraph pTip = new Paragraph((isEn ? "Tip : " : "Pourboire : ") + formatPrix(pourboireVal, settings), mutedFont);
             pTip.setAlignment(Element.ALIGN_RIGHT);
             summaryCell.addElement(pTip);
         }
 
-        Paragraph pTotalTTC = new Paragraph("TOTAL TTC : " + formatPrix(totalTTCVal, settings), totalFont);
+        Paragraph pTotalTTC = new Paragraph((isEn ? "TOTAL INCL. VAT : " : "TOTAL TTC : ") + formatPrix(totalTTCVal, settings), totalFont);
         pTotalTTC.setAlignment(Element.ALIGN_RIGHT);
         summaryCell.addElement(pTotalTTC);
         return summaryCell;
@@ -344,23 +369,49 @@ public class PdfService {
     }
 
     private void addLegalFooterSection(Document doc, EstablishmentConfig config, Font mutedFont) throws DocumentException {
-        Paragraph legalTitle = new Paragraph("MENTIONS LÉGALES & CONDITIONS DE PAIEMENT", new Font(Font.HELVETICA, 8, Font.BOLD, MUTED));
+        boolean isEn = config != null && "en".equalsIgnoreCase(config.getLanguage());
+        Paragraph legalTitle = new Paragraph(
+            isEn ? "LEGAL NOTICE & PAYMENT TERMS" : "MENTIONS LÉGALES & CONDITIONS DE PAIEMENT",
+            new Font(Font.HELVETICA, 8, Font.BOLD, MUTED)
+        );
         doc.add(legalTitle);
 
-        String payTerms = config.getPaymentTerms() != null ? config.getPaymentTerms() : "Paiement immédiat à réception";
-        String discPolicy = config.getDiscountPolicy() != null ? config.getDiscountPolicy() : "Aucun escompte pour paiement anticipé";
-        String lateRateStr = config.getLatePaymentRate() != null
-            ? String.format(Locale.US, "%.2f", config.getLatePaymentRate().doubleValue() * 100) + "%"
-            : "12.00%";
+        String payTerms = resolvePaymentTerms(config, isEn);
+        String discPolicy = resolveDiscountPolicy(config, isEn);
+        String lateRateStr = resolveLatePaymentRate(config);
 
-        doc.add(new Paragraph("Conditions de règlement : " + payTerms, mutedFont));
-        doc.add(new Paragraph("Politique d'escompte : " + discPolicy, mutedFont));
-        doc.add(new Paragraph("Pénalités de retard : Taux annuel de " + lateRateStr + " applicables de plein droit à compter de la date d'échéance. Indemnité forfaitaire pour frais de recouvrement : 40 € (C. Com. Art. L441-10).", mutedFont));
+        doc.add(new Paragraph((isEn ? "Payment terms : " : "Conditions de règlement : ") + payTerms, mutedFont));
+        doc.add(new Paragraph((isEn ? "Discount policy : " : "Politique d'escompte : ") + discPolicy, mutedFont));
+        doc.add(new Paragraph(isEn
+            ? "Late payment penalties : Annual rate of " + lateRateStr + " applicable automatically as of the due date. Fixed indemnity for recovery costs: 40 €."
+            : "Pénalités de retard : Taux annuel de " + lateRateStr + " applicables de plein droit à compter de la date d'échéance. Indemnité forfaitaire pour frais de recouvrement : 40 € (C. Com. Art. L441-10).", mutedFont));
 
         doc.add(Chunk.NEWLINE);
-        Paragraph footer = new Paragraph(config.getLegalName() + " — Merci de votre visite !", mutedFont);
+        String name = (config != null && config.getLegalName() != null) ? config.getLegalName() : "OpenBar";
+        Paragraph footer = new Paragraph(isEn ? name + " — Thank you for your visit!" : name + " — Merci de votre visite !", mutedFont);
         footer.setAlignment(Element.ALIGN_CENTER);
         doc.add(footer);
+    }
+
+    private String resolvePaymentTerms(EstablishmentConfig config, boolean isEn) {
+        if (config != null && config.getPaymentTerms() != null) {
+            return config.getPaymentTerms();
+        }
+        return isEn ? "Immediate payment upon receipt" : "Paiement immédiat à réception";
+    }
+
+    private String resolveDiscountPolicy(EstablishmentConfig config, boolean isEn) {
+        if (config != null && config.getDiscountPolicy() != null) {
+            return config.getDiscountPolicy();
+        }
+        return isEn ? "No discount for early payment" : "Aucun escompte pour paiement anticipé";
+    }
+
+    private String resolveLatePaymentRate(EstablishmentConfig config) {
+        if (config != null && config.getLatePaymentRate() != null) {
+            return String.format(Locale.US, "%.2f", config.getLatePaymentRate().doubleValue() * 100) + "%";
+        }
+        return "12.00%";
     }
 
     private void addCell(PdfPTable table, String text, Font font, int alignment) {
@@ -451,7 +502,7 @@ public class PdfService {
             PdfPTable vatTable = new PdfPTable(4);
             vatTable.setWidthPercentage(100);
             applyTableWidths(vatTable, new float[]{1.2f, 1.5f, 1.5f, 1.5f});
-            for (String h : new String[]{"Taux TVA", "Base HT", "Montant TVA", TOTAL_TTC_HEADER}) {
+            for (String h : new String[]{"Taux TVA", BASE_HT_HEADER, "Montant TVA", TOTAL_TTC_HEADER}) {
                 PdfPCell c = new PdfPCell(new Phrase(h, headerFont));
                 c.setBackgroundColor(SURFACE);
                 c.setPadding(4);

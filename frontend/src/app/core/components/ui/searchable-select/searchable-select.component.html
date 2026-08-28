@@ -2,6 +2,7 @@
   class="searchable-select-container"
   [class.is-open]="isOpen()"
   [class.is-disabled]="disabled"
+  [class.open-upwards]="openUpwards()"
   [attr.data-testid]="testId">
 
   <!-- Optional Accessible Label -->
@@ -73,31 +74,33 @@
   <!-- Dropdown Overlay Panel -->
   @if (isOpen()) {
     <div class="dropdown-panel" [attr.data-testid]="testId + '-dropdown'">
-      <!-- Search Bar -->
-      <div class="search-box">
-        <ion-icon name="search-outline" class="search-icon"></ion-icon>
-        <input
-          #searchInput
-          [id]="selectId + '-search'"
-          type="text"
-          class="search-input"
-          [placeholder]="searchPlaceholder"
-          [attr.aria-label]="searchPlaceholder"
-          [value]="searchQuery()"
-          (input)="onSearchInput($event)"
-          (keydown)="onKeyDown($event)"
-          [attr.data-testid]="testId + '-search-input'"
-          autocomplete="off">
-        @if (searchQuery()) {
-          <button
-            type="button"
-            class="search-clear-btn"
-            aria-label="Effacer la recherche"
-            (click)="searchQuery.set(''); searchInput.value = ''; onSearchInput($event)">
-            <ion-icon name="close-circle-outline"></ion-icon>
-          </button>
-        }
-      </div>
+      <!-- Search Bar (Optional) -->
+      @if (enableSearch && searchable) {
+        <div class="search-box">
+          <ion-icon name="search-outline" class="search-icon"></ion-icon>
+          <input
+            #searchInput
+            [id]="selectId + '-search'"
+            type="text"
+            class="search-input"
+            [placeholder]="searchPlaceholder"
+            [attr.aria-label]="searchPlaceholder"
+            [value]="searchQuery()"
+            (input)="onSearchInput($event)"
+            (keydown)="onKeyDown($event)"
+            [attr.data-testid]="testId + '-search-input'"
+            autocomplete="off">
+          @if (searchQuery()) {
+            <button
+              type="button"
+              class="search-clear-btn"
+              aria-label="Effacer la recherche"
+              (click)="searchQuery.set(''); searchInput.value = ''; onSearchInput($event)">
+              <ion-icon name="close-circle-outline"></ion-icon>
+            </button>
+          }
+        </div>
+      }
 
       <!-- Options List -->
       <div class="options-list">
