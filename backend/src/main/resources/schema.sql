@@ -338,9 +338,6 @@ CREATE TABLE IF NOT EXISTS establishment_config (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-ALTER TABLE establishment_config ADD COLUMN IF NOT EXISTS country VARCHAR(100) DEFAULT 'France';
-ALTER TABLE establishment_config ADD COLUMN IF NOT EXISTS language VARCHAR(10) DEFAULT 'fr';
-
 -- 9. Shift Planning, Presets, Closures & Shift Audit
 CREATE TABLE IF NOT EXISTS employee_shifts (
     id BIGSERIAL PRIMARY KEY,
@@ -406,9 +403,6 @@ CREATE TABLE IF NOT EXISTS shift_audit_log (
 );
 
 -- 10. Schema Migrations & Initial Singleton Seeds
-ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS currency_code VARCHAR(3) NOT NULL DEFAULT 'EUR';
-ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS currency_symbol VARCHAR(10) NOT NULL DEFAULT '€';
-ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS currency_position VARCHAR(10) NOT NULL DEFAULT 'AFTER';
 
 INSERT INTO app_settings (
     id,

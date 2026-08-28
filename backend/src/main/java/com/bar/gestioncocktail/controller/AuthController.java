@@ -30,7 +30,8 @@ import java.util.Optional;
 /**
  * REST controller managing user authentication workflows.
  * <p>
- * Provides endpoints for login, JWT access token refresh, logout, and user registration.
+ * Provides endpoints for login, JWT access token refresh, logout, and user
+ * registration.
  */
 @RestController
 @RequestMapping("/api/auth")
@@ -45,9 +46,9 @@ public class AuthController {
      * Constructs the controller with authentication and token service dependencies.
      *
      * @param authenticationManager Spring Security authentication manager
-     * @param jwtTokenProvider JWT token provider service
-     * @param userService User management service
-     * @param refreshTokenService Refresh token management service
+     * @param jwtTokenProvider      JWT token provider service
+     * @param userService           User management service
+     * @param refreshTokenService   Refresh token management service
      */
     public AuthController(
             AuthenticationManager authenticationManager,
@@ -70,14 +71,11 @@ public class AuthController {
     @Operation(summary = "Authenticate user", description = "Validates user credentials and returns JWT access token along with refresh token.")
     @ApiResponse(responseCode = "200", description = "Authentication successful")
     @ApiResponse(responseCode = "401", description = "Invalid credentials")
-    @ApiResponse(responseCode = "429", description = "Too many login attempts - rate limit exceeded")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         loginRequest.getUsername(),
-                        loginRequest.getPassword()
-                )
-        );
+                        loginRequest.getPassword()));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String accessToken = jwtTokenProvider.generateToken(authentication);
@@ -101,8 +99,7 @@ public class AuthController {
                 userRoles,
                 user.getEmail(),
                 user.getCreatedAt(),
-                user.getUpdatedAt()
-        ));
+                user.getUpdatedAt()));
     }
 
     /**
@@ -131,7 +128,8 @@ public class AuthController {
     }
 
     /**
-     * Logs out current user by invalidating their refresh tokens and clearing the security context.
+     * Logs out current user by invalidating their refresh tokens and clearing the
+     * security context.
      *
      * @param authentication Current authentication context
      * @return HTTP 200 OK
@@ -142,7 +140,7 @@ public class AuthController {
     public ResponseEntity<Void> logout(Authentication authentication) {
         if (authentication != null) {
             userService.getUserByUsername(authentication.getName())
-                .ifPresent(refreshTokenService::deleteByUser);
+                    .ifPresent(refreshTokenService::deleteByUser);
         }
         SecurityContextHolder.clearContext();
         return ResponseEntity.ok().build();
