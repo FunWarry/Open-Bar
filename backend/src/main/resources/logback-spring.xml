@@ -64,6 +64,7 @@
 
         <root level="${LOG_LEVEL_ROOT}">
             <appender-ref ref="ASYNC_CONSOLE"/>
+            <appender-ref ref="ASYNC_FILE"/>
         </root>
     </springProfile>
 

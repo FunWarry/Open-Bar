@@ -13,13 +13,9 @@ import java.nio.file.Files;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Integration test validating Logback file logging and Spring Boot context startup in production profile.
+ * Integration test validating Logback file logging and Spring Boot context startup.
  */
-@ActiveProfiles({"test", "prod"})
 @TestPropertySource(properties = {
-        "spring.datasource.url=jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/${DB_NAME:gestion_cocktail_test}?sslmode=disable",
-        "spring.datasource.username=postgres",
-        "spring.datasource.password=${TEST_DB_PASSWORD:${POSTGRES_PASSWORD:${DB_PASSWORD:KZiXrsAw/asRtE8YJuxA8LkWtDXK5rPBmiriAHAu+7Q=}}}",
         "logging.file.path=target/test-logs"
 })
 class LoggingIntegrationTest extends BaseIntegrationTest {
