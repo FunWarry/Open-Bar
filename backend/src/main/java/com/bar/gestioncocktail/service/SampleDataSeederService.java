@@ -685,7 +685,7 @@ public class SampleDataSeederService {
 
     private void seedSingleCocktailSteps(JsonNode cocktailNode, Map<String, RecipeStepTemplate> templatesMap) {
         String cocktailName = cocktailNode.get("cocktailName").asText();
-        Cocktail cocktail = cocktailRepository.findByNomIgnoreCase(cocktailName).orElse(null);
+        Cocktail cocktail = cocktailRepository.findByNomIgnoreCaseWithRecipeSteps(cocktailName).orElse(null);
         if (cocktail == null) return;
 
         JsonNode stepsNode = cocktailNode.get("steps");
@@ -697,7 +697,12 @@ public class SampleDataSeederService {
         for (JsonNode stepNode : stepsNode) {
             steps.add(buildSingleRecipeStep(cocktail, stepNode, templatesMap));
         }
-        cocktail.setRecipeSteps(steps);
+        if (cocktail.getRecipeSteps() != null) {
+            cocktail.getRecipeSteps().clear();
+            cocktail.getRecipeSteps().addAll(steps);
+        } else {
+            cocktail.setRecipeSteps(steps);
+        }
         cocktailRepository.save(cocktail);
     }
 

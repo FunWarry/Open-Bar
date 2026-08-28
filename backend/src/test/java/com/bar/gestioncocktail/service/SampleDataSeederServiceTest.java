@@ -97,6 +97,7 @@ class SampleDataSeederServiceTest {
         mockMojito.setNom("Mojito");
         mockMojito.setRecipeSteps(new ArrayList<>());
         lenient().when(cocktailRepository.findByNomIgnoreCase(any())).thenReturn(Optional.of(mockMojito));
+        lenient().when(cocktailRepository.findByNomIgnoreCaseWithRecipeSteps(any())).thenReturn(Optional.of(mockMojito));
         lenient().when(cocktailRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
     }
 
