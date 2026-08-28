@@ -319,7 +319,8 @@
                               type="button"
                               class="cadence-card"
                               (click)="applyCadencePreset(preset)"
-                              data-testid="btn-cadence-preset">
+                              data-testid="btn-cadence-preset"
+                              [attr.data-testid]="preset.warning === 2 ? 'preset-btn-fast' : (preset.warning === 5 ? 'preset-btn-lounge' : 'btn-reset-defaults')">
                               <span class="cadence-name">{{ preset.nameKey | transloco }}</span>
                               <span class="cadence-tags">{{ preset.warning }}m / {{ preset.urgent }}m / {{ preset.critical }}m</span>
                             </button>
@@ -335,9 +336,9 @@
                             <div class="threshold-header">
                               <span class="threshold-title">{{ 'SETTINGS.WARNING_TITLE' | transloco }}</span>
                               <div class="stepper-controls">
-                                <button type="button" class="stepper-btn" (click)="adjustThreshold('tempsAlerteWarningMinutes', -1)">-</button>
-                                <span class="stepper-val">{{ appSettingsForm.get('tempsAlerteWarningMinutes')?.value }} min</span>
-                                <button type="button" class="stepper-btn" (click)="adjustThreshold('tempsAlerteWarningMinutes', 1)">+</button>
+                                <button type="button" class="stepper-btn" (click)="adjustThreshold('tempsAlerteWarningMinutes', -1)" data-testid="warning-btn-minus">-</button>
+                                <span class="stepper-val" data-testid="warning-value-display">{{ appSettingsForm.get('tempsAlerteWarningMinutes')?.value }} min</span>
+                                <button type="button" class="stepper-btn" (click)="adjustThreshold('tempsAlerteWarningMinutes', 1)" data-testid="warning-btn-plus">+</button>
                               </div>
                             </div>
                             <p class="threshold-desc">{{ 'SETTINGS.WARNING_DESC' | transloco }}</p>
@@ -361,9 +362,9 @@
                             <div class="threshold-header">
                               <span class="threshold-title">{{ 'SETTINGS.URGENT_TITLE' | transloco }}</span>
                               <div class="stepper-controls">
-                                <button type="button" class="stepper-btn" (click)="adjustThreshold('tempsAlerteCommandeMinutes', -1)">-</button>
-                                <span class="stepper-val">{{ appSettingsForm.get('tempsAlerteCommandeMinutes')?.value }} min</span>
-                                <button type="button" class="stepper-btn" (click)="adjustThreshold('tempsAlerteCommandeMinutes', 1)">+</button>
+                                <button type="button" class="stepper-btn" (click)="adjustThreshold('tempsAlerteCommandeMinutes', -1)" data-testid="urgent-btn-minus">-</button>
+                                <span class="stepper-val" data-testid="urgent-value-display">{{ appSettingsForm.get('tempsAlerteCommandeMinutes')?.value }} min</span>
+                                <button type="button" class="stepper-btn" (click)="adjustThreshold('tempsAlerteCommandeMinutes', 1)" data-testid="urgent-btn-plus">+</button>
                               </div>
                             </div>
                             <p class="threshold-desc">{{ 'SETTINGS.URGENT_DESC' | transloco }}</p>
@@ -387,9 +388,9 @@
                             <div class="threshold-header">
                               <span class="threshold-title">{{ 'SETTINGS.CRITICAL_TITLE' | transloco }}</span>
                               <div class="stepper-controls">
-                                <button type="button" class="stepper-btn" (click)="adjustThreshold('tempsAlerteCritiqueCommandeMinutes', -1)">-</button>
-                                <span class="stepper-val">{{ appSettingsForm.get('tempsAlerteCritiqueCommandeMinutes')?.value }} min</span>
-                                <button type="button" class="stepper-btn" (click)="adjustThreshold('tempsAlerteCritiqueCommandeMinutes', 1)">+</button>
+                                <button type="button" class="stepper-btn" (click)="adjustThreshold('tempsAlerteCritiqueCommandeMinutes', -1)" data-testid="critical-btn-minus">-</button>
+                                <span class="stepper-val" data-testid="critical-value-display">{{ appSettingsForm.get('tempsAlerteCritiqueCommandeMinutes')?.value }} min</span>
+                                <button type="button" class="stepper-btn" (click)="adjustThreshold('tempsAlerteCritiqueCommandeMinutes', 1)" data-testid="critical-btn-plus">+</button>
                               </div>
                             </div>
                             <p class="threshold-desc">{{ 'SETTINGS.CRITICAL_DESC' | transloco }}</p>
@@ -505,7 +506,7 @@
                               class="currency-chip"
                               [class.active]="appSettingsForm.get('currencyCode')?.value === p.code"
                               (click)="applyCurrencyPreset(p)"
-                              [attr.data-testid]="'preset-curr-' + p.code">
+                              [attr.data-testid]="'currency-preset-btn-' + p.code">
                               {{ p.code }} ({{ p.symbol }})
                             </button>
                           }
@@ -526,14 +527,14 @@
                           formControlName="currencyCode"
                           [label]="'SETTINGS.CURRENCY_CODE' | transloco"
                           placeholder="EUR"
-                          testId="input-curr-code">
+                          testId="currency-code-input">
                         </app-input-field>
 
                         <app-input-field
                           formControlName="currencySymbol"
                           [label]="'SETTINGS.CURRENCY_SYMBOL' | transloco"
                           placeholder="€"
-                          testId="input-curr-symbol">
+                          testId="currency-symbol-input">
                         </app-input-field>
                       </div>
 
@@ -546,7 +547,7 @@
                             class="pos-btn"
                             [class.active]="appSettingsForm.get('currencyPosition')?.value === 'AFTER'"
                             (click)="setCurrencyPosition('AFTER')"
-                            data-testid="btn-pos-after">
+                            data-testid="currency-pos-after-btn">
                             {{ 'SETTINGS.CURRENCY_POS_AFTER' | transloco }}
                           </button>
                           <button
@@ -554,7 +555,7 @@
                             class="pos-btn"
                             [class.active]="appSettingsForm.get('currencyPosition')?.value === 'BEFORE'"
                             (click)="setCurrencyPosition('BEFORE')"
-                            data-testid="btn-pos-before">
+                            data-testid="currency-pos-before-btn">
                             {{ 'SETTINGS.CURRENCY_POS_BEFORE' | transloco }}
                           </button>
                         </div>
@@ -576,7 +577,7 @@
                       <div class="price-previews-list">
                         <div class="preview-price-item">
                           <span>Cocktail Signature :</span>
-                          <strong class="price-val">{{ formatSamplePrice(12.5) }}</strong>
+                          <strong class="price-val" data-testid="preview-cocktail-price-1">{{ formatSamplePrice(12.5) }}</strong>
                         </div>
                         <div class="preview-price-item">
                           <span>Bouteille Prestige :</span>
@@ -584,7 +585,7 @@
                         </div>
                         <div class="preview-price-item">
                           <span>Total Addition Table :</span>
-                          <strong class="price-val total-val">{{ formatSamplePrice(147.8) }}</strong>
+                          <strong class="price-val total-val" data-testid="preview-cocktail-total">{{ formatSamplePrice(147.8) }}</strong>
                         </div>
                       </div>
                     </ion-card-content>

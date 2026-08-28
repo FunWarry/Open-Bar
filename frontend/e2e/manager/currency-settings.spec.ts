@@ -14,23 +14,23 @@ test.describe('Manager Currency Settings E2E', () => {
   });
 
   test('should display currency configuration section with default presets', async ({ page }) => {
-    await page.goto('/manager/timers');
-    await expect(page.locator('app-order-timers-settings')).toBeVisible();
+    await page.goto('/admin/settings?tab=currency');
+    await expect(page.locator('[data-testid="unified-app-settings-page"], app-settings-page')).toBeVisible();
 
     await expect(page.locator('[data-testid="currency-preset-btn-EUR"]')).toBeVisible();
     await expect(page.locator('[data-testid="currency-preset-btn-USD"]')).toBeVisible();
-    await expect(page.locator('[data-testid="currency-code-input"]')).toHaveValue('EUR');
-    await expect(page.locator('[data-testid="currency-symbol-input"]')).toHaveValue('€');
+    await expect(page.locator('input[data-testid="currency-code-input"], [data-testid="currency-code-input"] input')).toHaveValue('EUR');
+    await expect(page.locator('input[data-testid="currency-symbol-input"], [data-testid="currency-symbol-input"] input')).toHaveValue('€');
   });
 
   test('should apply currency preset and update live price preview', async ({ page }) => {
-    await page.goto('/manager/timers');
-    await expect(page.locator('app-order-timers-settings')).toBeVisible();
+    await page.goto('/admin/settings?tab=currency');
+    await expect(page.locator('[data-testid="unified-app-settings-page"], app-settings-page')).toBeVisible();
 
     // Click USD preset
     await page.click('[data-testid="currency-preset-btn-USD"]');
-    await expect(page.locator('[data-testid="currency-code-input"]')).toHaveValue('USD');
-    await expect(page.locator('[data-testid="currency-symbol-input"]')).toHaveValue('$');
+    await expect(page.locator('input[data-testid="currency-code-input"], [data-testid="currency-code-input"] input')).toHaveValue('USD');
+    await expect(page.locator('input[data-testid="currency-symbol-input"], [data-testid="currency-symbol-input"] input')).toHaveValue('$');
 
     // Live preview prices should now show dollar symbol before amounts
     await expect(page.locator('[data-testid="preview-cocktail-price-1"]')).toContainText('$');
@@ -38,8 +38,8 @@ test.describe('Manager Currency Settings E2E', () => {
   });
 
   test('should toggle symbol position between BEFORE and AFTER', async ({ page }) => {
-    await page.goto('/manager/timers');
-    await expect(page.locator('app-order-timers-settings')).toBeVisible();
+    await page.goto('/admin/settings?tab=currency');
+    await expect(page.locator('[data-testid="unified-app-settings-page"], app-settings-page')).toBeVisible();
 
     // Select USD then toggle AFTER position
     await page.click('[data-testid="currency-preset-btn-USD"]');
@@ -54,13 +54,13 @@ test.describe('Manager Currency Settings E2E', () => {
   });
 
   test('should save updated currency settings', async ({ page }) => {
-    await page.goto('/manager/timers');
-    await expect(page.locator('app-order-timers-settings')).toBeVisible();
+    await page.goto('/admin/settings?tab=currency');
+    await expect(page.locator('[data-testid="unified-app-settings-page"], app-settings-page')).toBeVisible();
 
     await page.click('[data-testid="currency-preset-btn-USD"]');
-    await page.click('[data-testid="btn-save-timers"]');
+    await page.click('[data-testid="btn-save-all-settings"]');
 
     // Save button should remain visible and active
-    await expect(page.locator('[data-testid="btn-save-timers"]')).toBeVisible();
+    await expect(page.locator('[data-testid="btn-save-all-settings"]')).toBeVisible();
   });
 });
