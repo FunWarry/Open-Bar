@@ -44,26 +44,22 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final JwtAuthorizationFilter jwtAuthorizationFilter;
-    private final Environment environment;
-    private final List<String> allowedOriginPatterns;
+    private final CorsOriginResolver corsOriginResolver;
 
     /**
-     * Constructs SecurityConfig with required filters, Spring Environment, and configured CORS origin patterns.
+     * Constructs SecurityConfig with required filters and CORS origin resolver.
      *
      * @param jwtAuthenticationFilter JWT authentication filter
      * @param jwtAuthorizationFilter JWT authorization filter
-     * @param environment Spring environment to inspect active profiles
-     * @param allowedOriginPatterns List of allowed CORS origin patterns
+     * @param corsOriginResolver Resolver for CORS allowed origins
      */
     public SecurityConfig(
             JwtAuthenticationFilter jwtAuthenticationFilter,
             JwtAuthorizationFilter jwtAuthorizationFilter,
-            Environment environment,
-            @org.springframework.beans.factory.annotation.Value("${openbar.cors.allowed-origin-patterns:${OPENBAR_CORS_ALLOWED_ORIGINS:*}}") List<String> allowedOriginPatterns) {
+            CorsOriginResolver corsOriginResolver) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.jwtAuthorizationFilter = jwtAuthorizationFilter;
-        this.environment = environment;
-        this.allowedOriginPatterns = allowedOriginPatterns;
+        this.corsOriginResolver = corsOriginResolver;
     }
 
     @Bean
@@ -137,7 +133,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(resolveEffectiveOrigins());
+        configuration.setAllowedOriginPatterns(corsOriginResolver.resolveEffectiveOrigins());
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
@@ -145,34 +141,5 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
-    }
-
-    private List<String> resolveEffectiveOrigins() {
-        if (isProdProfile()) {
-            List<String> filtered = (allowedOriginPatterns != null)
-                    ? allowedOriginPatterns.stream()
-                            .filter(p -> p != null && !p.trim().equals("*") && !p.trim().isEmpty())
-                            .toList()
-                    : List.of();
-            if (filtered.isEmpty()) {
-                log.warn("Wildcard '*' or empty CORS origin is disallowed in production. Falling back to default authorized local/PWA origins.");
-                return List.of(
-                        "http://localhost:[*]",
-                        "http://127.0.0.1:[*]",
-                        "https://open-bar.freeboxos.fr",
-                        "http://192.168.*:[*]",
-                        "http://10.*:[*]",
-                        "http://172.16.*:[*]"
-                );
-            }
-            return filtered;
-        }
-        return (allowedOriginPatterns != null && !allowedOriginPatterns.isEmpty())
-                ? allowedOriginPatterns
-                : List.of("*");
-    }
-
-    private boolean isProdProfile() {
-        return environment != null && environment.acceptsProfiles(Profiles.of("prod"));
     }
 }

@@ -23,7 +23,8 @@ class WebSocketConfigTest {
     @DisplayName("configureMessageBroker - configures simple broker and app prefixes")
     void configureMessageBroker_configuresRegistry() {
         WebSocketAuthInterceptor interceptor = mock(WebSocketAuthInterceptor.class);
-        WebSocketConfig config = new WebSocketConfig(interceptor, new MockEnvironment(), List.of("*"));
+        CorsOriginResolver resolver = new CorsOriginResolver(new MockEnvironment(), List.of("*"));
+        WebSocketConfig config = new WebSocketConfig(interceptor, resolver);
         MessageBrokerRegistry registry = mock(MessageBrokerRegistry.class);
 
         assertThatNoException().isThrownBy(() -> config.configureMessageBroker(registry));
@@ -32,42 +33,11 @@ class WebSocketConfigTest {
     }
 
     @Test
-    @DisplayName("registerStompEndpoints - registers STOMP endpoint with SockJS in dev mode")
+    @DisplayName("registerStompEndpoints - registers STOMP endpoint with SockJS and allowed origins")
     void registerStompEndpoints_configuresEndpoints() {
         WebSocketAuthInterceptor interceptor = mock(WebSocketAuthInterceptor.class);
-        WebSocketConfig config = new WebSocketConfig(interceptor, new MockEnvironment(), List.of("*"));
-        StompEndpointRegistry registry = mock(StompEndpointRegistry.class);
-        StompWebSocketEndpointRegistration registration = mock(StompWebSocketEndpointRegistration.class, RETURNS_DEEP_STUBS);
-
-        when(registry.addEndpoint("/ws", "/api/ws")).thenReturn(registration);
-
-        assertThatNoException().isThrownBy(() -> config.registerStompEndpoints(registry));
-    }
-
-    @Test
-    @DisplayName("registerStompEndpoints - registers STOMP endpoint with hardened origins in prod mode")
-    void registerStompEndpoints_prodMode_configuresEndpoints() {
-        WebSocketAuthInterceptor interceptor = mock(WebSocketAuthInterceptor.class);
-        MockEnvironment prodEnv = new MockEnvironment();
-        prodEnv.setActiveProfiles("prod");
-
-        WebSocketConfig config = new WebSocketConfig(interceptor, prodEnv, List.of("*", "https://open-bar.freeboxos.fr"));
-        StompEndpointRegistry registry = mock(StompEndpointRegistry.class);
-        StompWebSocketEndpointRegistration registration = mock(StompWebSocketEndpointRegistration.class, RETURNS_DEEP_STUBS);
-
-        when(registry.addEndpoint("/ws", "/api/ws")).thenReturn(registration);
-
-        assertThatNoException().isThrownBy(() -> config.registerStompEndpoints(registry));
-    }
-
-    @Test
-    @DisplayName("registerStompEndpoints - prod mode falls back to safe origins when wildcard is provided")
-    void registerStompEndpoints_prodMode_wildcardFallback() {
-        WebSocketAuthInterceptor interceptor = mock(WebSocketAuthInterceptor.class);
-        MockEnvironment prodEnv = new MockEnvironment();
-        prodEnv.setActiveProfiles("prod");
-
-        WebSocketConfig config = new WebSocketConfig(interceptor, prodEnv, List.of("*"));
+        CorsOriginResolver resolver = new CorsOriginResolver(new MockEnvironment(), List.of("http://localhost:4200"));
+        WebSocketConfig config = new WebSocketConfig(interceptor, resolver);
         StompEndpointRegistry registry = mock(StompEndpointRegistry.class);
         StompWebSocketEndpointRegistration registration = mock(StompWebSocketEndpointRegistration.class, RETURNS_DEEP_STUBS);
 
@@ -80,7 +50,8 @@ class WebSocketConfigTest {
     @DisplayName("configureClientInboundChannel - registers interceptor")
     void configureClientInboundChannel_addsInterceptor() {
         WebSocketAuthInterceptor interceptor = mock(WebSocketAuthInterceptor.class);
-        WebSocketConfig config = new WebSocketConfig(interceptor, new MockEnvironment(), List.of("*"));
+        CorsOriginResolver resolver = new CorsOriginResolver(new MockEnvironment(), List.of("*"));
+        WebSocketConfig config = new WebSocketConfig(interceptor, resolver);
         ChannelRegistration registration = mock(ChannelRegistration.class);
 
         assertThatNoException().isThrownBy(() -> config.configureClientInboundChannel(registration));
