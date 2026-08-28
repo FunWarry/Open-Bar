@@ -4,6 +4,7 @@ import com.bar.gestioncocktail.model.Commande;
 import com.bar.gestioncocktail.model.TableEntity;
 import com.bar.gestioncocktail.model.User;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
 
@@ -16,11 +17,14 @@ import java.math.BigDecimal;
  * @param pourboire Optional tip amount
  */
 public record CommandeRequestDTO(
-    @NotNull(message = "La table est obligatoire")
+    @NotNull(message = "Table is required")
     Long tableId,
 
     Long serveurId,
+
+    @Size(max = 2000, message = "Notes cannot exceed 2000 characters")
     String notes,
+
     BigDecimal pourboire
 ) {
     /**

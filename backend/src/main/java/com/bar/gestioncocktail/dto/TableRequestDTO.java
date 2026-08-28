@@ -16,16 +16,16 @@ import jakarta.validation.constraints.NotNull;
  * @param planForme   Optional shape of the table (CARRE or ROND)
  */
 public record TableRequestDTO(
-    @NotNull(message = "Le numéro de table est obligatoire")
-    @Min(value = 1, message = "Le numéro de table doit être supérieur ou égal à 1")
+    @NotNull(message = "Table number is required")
+    @Min(value = 1, message = "Table number must be greater than or equal to 1")
     Integer numero,
 
-    @NotNull(message = "La capacité est obligatoire")
-    @Min(value = 1, message = "La capacité doit être d'au moins 1 personne")
+    @NotNull(message = "Capacity is required")
+    @Min(value = 1, message = "Capacity must be at least 1 person")
     Integer capacite,
 
-    @jakarta.validation.constraints.NotBlank(message = "La zone est obligatoire")
-    @jakarta.validation.constraints.Size(max = 50, message = "La zone ne peut pas dépasser 50 caractères")
+    @jakarta.validation.constraints.NotBlank(message = "Zone is required")
+    @jakarta.validation.constraints.Size(max = 50, message = "Zone cannot exceed 50 characters")
     String zone,
 
     Double planX,

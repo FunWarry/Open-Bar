@@ -91,4 +91,25 @@ class NonRegressionIntegrationTest extends BaseIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + getServeurToken()))
                 .andExpect(status().isForbidden());
     }
+
+    @Test
+    @DisplayName("nonRegression_xssInputSanitization_stripsMaliciousPayloads")
+    void nonRegression_xssInputSanitization_stripsMaliciousPayloads() throws Exception {
+        var tableDto = new com.bar.gestioncocktail.dto.TableRequestDTO(
+                999,
+                2,
+                "<script>alert('XSS')</script>Bar Counter",
+                50.0,
+                50.0,
+                0.0,
+                "CARRE"
+        );
+
+        mockMvc.perform(post("/api/tables")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + getAdminToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(tableDto)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.zone").value("Bar Counter"));
+    }
 }

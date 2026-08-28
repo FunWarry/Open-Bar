@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -37,6 +38,7 @@ public class PublicCommandeRequestDTO {
     /**
      * Customer notes (e.g. "No ice").
      */
+    @Size(max = 2000, message = "Customer notes cannot exceed 2000 characters")
     @Schema(description = "Customer preparation notes", example = "No ice")
     private String notes;
 }

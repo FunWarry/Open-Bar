@@ -23,26 +23,34 @@ import java.time.LocalDateTime;
  * @param notes          Optional notes
  */
 public record IngredientRequestDTO(
-    @NotBlank(message = "Le nom de l'ingrédient est obligatoire")
-    @Size(max = 255, message = "Le nom ne peut pas dépasser 255 caractères")
+    @NotBlank(message = "Ingredient name is required")
+    @Size(max = 100, message = "Name cannot exceed 100 characters")
     String nom,
 
-    @NotBlank(message = "L'unité de mesure est obligatoire")
-    @Size(max = 50, message = "L'unité de mesure ne peut pas dépasser 50 caractères")
+    @NotBlank(message = "Unit of measurement is required")
+    @Size(max = 20, message = "Unit of measurement cannot exceed 20 characters")
     String uniteMesure,
 
-    @NotNull(message = "La quantité en stock est obligatoire")
-    @DecimalMin(value = "0.0", message = "La quantité en stock ne peut pas être négative")
+    @NotNull(message = "Stock quantity is required")
+    @DecimalMin(value = "0.0", message = "Stock quantity cannot be negative")
     BigDecimal quantiteStock,
 
-    @NotNull(message = "Le seuil d'alerte est obligatoire")
-    @DecimalMin(value = "0.0", message = "Le seuil d'alerte ne peut pas être négatif")
+    @NotNull(message = "Alert threshold is required")
+    @DecimalMin(value = "0.0", message = "Alert threshold cannot be negative")
     BigDecimal seuilAlerte,
 
+    @Size(max = 100, message = "Lot number cannot exceed 100 characters")
     String numeroLot,
+
     LocalDateTime datePeremption,
+
+    @DecimalMin(value = "0.0", message = "Unit price cannot be negative")
     BigDecimal prixUnitaire,
+
+    @Size(max = 100, message = "Supplier name cannot exceed 100 characters")
     String fournisseur,
+
+    @Size(max = 2000, message = "Notes cannot exceed 2000 characters")
     String notes
 ) {
     /**
