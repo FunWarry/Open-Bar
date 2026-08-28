@@ -15,7 +15,8 @@ test.describe('Manager Order Timers & Alerts Settings E2E', () => {
 
   test('should display order timers configuration page with current values', async ({ page }) => {
     await page.goto('/manager/timers');
-    await expect(page.locator('[data-testid="unified-app-settings-page"], app-settings-page, app-order-timers-settings')).toBeVisible();
+    await expect(page.locator('[data-testid="unified-app-settings-page"]').first()).toBeVisible();
+    await page.click('[data-testid="tab-timers"]');
 
     await expect(page.locator('[data-testid="warning-value-display"]')).toContainText('3 min');
     await expect(page.locator('[data-testid="urgent-value-display"]')).toContainText('5 min');
@@ -24,7 +25,8 @@ test.describe('Manager Order Timers & Alerts Settings E2E', () => {
 
   test('should adjust threshold values using stepper buttons', async ({ page }) => {
     await page.goto('/manager/timers');
-    await expect(page.locator('[data-testid="unified-app-settings-page"], app-settings-page, app-order-timers-settings')).toBeVisible();
+    await expect(page.locator('[data-testid="unified-app-settings-page"]').first()).toBeVisible();
+    await page.click('[data-testid="tab-timers"]');
 
     await page.click('[data-testid="warning-btn-plus"]');
     await expect(page.locator('[data-testid="warning-value-display"]')).toContainText('4 min');
@@ -35,7 +37,8 @@ test.describe('Manager Order Timers & Alerts Settings E2E', () => {
 
   test('should apply pace preset on button click', async ({ page }) => {
     await page.goto('/manager/timers');
-    await expect(page.locator('[data-testid="unified-app-settings-page"], app-settings-page, app-order-timers-settings')).toBeVisible();
+    await expect(page.locator('[data-testid="unified-app-settings-page"]').first()).toBeVisible();
+    await page.click('[data-testid="tab-timers"]');
 
     await page.click('[data-testid="preset-btn-fast"]');
     await expect(page.locator('[data-testid="warning-value-display"]')).toContainText('2 min');
@@ -45,7 +48,8 @@ test.describe('Manager Order Timers & Alerts Settings E2E', () => {
 
   test('should reset to default thresholds (3 / 5 / 10 min)', async ({ page }) => {
     await page.goto('/manager/timers');
-    await expect(page.locator('[data-testid="unified-app-settings-page"], app-settings-page, app-order-timers-settings')).toBeVisible();
+    await expect(page.locator('[data-testid="unified-app-settings-page"]').first()).toBeVisible();
+    await page.click('[data-testid="tab-timers"]');
 
     await page.click('[data-testid="preset-btn-lounge"]');
     await expect(page.locator('[data-testid="warning-value-display"]')).toContainText('5 min');
@@ -58,7 +62,8 @@ test.describe('Manager Order Timers & Alerts Settings E2E', () => {
 
   test('should save updated alert thresholds', async ({ page }) => {
     await page.goto('/manager/timers');
-    await expect(page.locator('[data-testid="unified-app-settings-page"], app-settings-page, app-order-timers-settings')).toBeVisible();
+    await expect(page.locator('[data-testid="unified-app-settings-page"]').first()).toBeVisible();
+    await page.click('[data-testid="tab-timers"]');
 
     await page.click('[data-testid="preset-btn-fast"]');
     await page.click('[data-testid="btn-save-all-settings"]');
