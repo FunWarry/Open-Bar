@@ -2,7 +2,6 @@ package com.bar.gestioncocktail.config;
 
 import com.bar.gestioncocktail.security.JwtAuthenticationFilter;
 import com.bar.gestioncocktail.security.JwtAuthorizationFilter;
-import com.bar.gestioncocktail.security.LoginRateLimitingFilter;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,14 +28,11 @@ class SecurityConfigTest {
     @Mock
     private JwtAuthorizationFilter jwtAuthorizationFilter;
 
-    @Mock
-    private LoginRateLimitingFilter loginRateLimitingFilter;
-
     @Test
     @DisplayName("corsConfigurationSource - validates allowed origins, methods, and credentials")
     void corsConfigurationSource_validConfig() {
         List<String> origins = List.of("http://localhost:[*]", "https://*.local:[*]", "https://example.com");
-        SecurityConfig config = new SecurityConfig(jwtAuthenticationFilter, jwtAuthorizationFilter, loginRateLimitingFilter, origins);
+        SecurityConfig config = new SecurityConfig(jwtAuthenticationFilter, jwtAuthorizationFilter, origins);
         CorsConfigurationSource source = config.corsConfigurationSource();
 
         MockHttpServletRequest request = new MockHttpServletRequest();
@@ -53,7 +49,7 @@ class SecurityConfigTest {
     @Test
     @DisplayName("authenticationManager - delegates to AuthenticationConfiguration")
     void authenticationManager_delegates() {
-        SecurityConfig config = new SecurityConfig(jwtAuthenticationFilter, jwtAuthorizationFilter, loginRateLimitingFilter, List.of("*"));
+        SecurityConfig config = new SecurityConfig(jwtAuthenticationFilter, jwtAuthorizationFilter, List.of("*"));
         AuthenticationConfiguration authConfig = mock(AuthenticationConfiguration.class);
         AuthenticationManager authManager = mock(AuthenticationManager.class);
 

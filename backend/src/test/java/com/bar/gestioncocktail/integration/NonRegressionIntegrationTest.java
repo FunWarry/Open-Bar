@@ -23,7 +23,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Non-regression full-stack integration tests covering historical fixes, calculations, and security guards.
+ * Non-regression full-stack integration tests covering historical fixes,
+ * calculations, and security guards.
  */
 class NonRegressionIntegrationTest extends BaseIntegrationTest {
 
@@ -74,9 +75,9 @@ class NonRegressionIntegrationTest extends BaseIntegrationTest {
 
         SplitEgalRequest request = new SplitEgalRequest(3);
         mockMvc.perform(post("/api/factures/" + factureId + "/split/egal")
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + getServeurToken())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + getServeurToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(3));
     }
@@ -86,32 +87,8 @@ class NonRegressionIntegrationTest extends BaseIntegrationTest {
     void nonRegression_roleAuthorization_serverCannotModifyStock() throws Exception {
         // SERVER role cannot update ingredient stocks (only BARMAN, MANAGER, ADMIN)
         mockMvc.perform(put("/api/ingredients/1/stock")
-                        .param("quantite", "10.0")
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + getServeurToken()))
+                .param("quantite", "10.0")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + getServeurToken()))
                 .andExpect(status().isForbidden());
-    }
-
-    @Test
-    @DisplayName("nonRegression_loginRateLimiting_blocksExcessiveAttempts")
-    void nonRegression_loginRateLimiting_blocksExcessiveAttempts() throws Exception {
-        String testIp = "198.51.100.99";
-        var badLogin = new com.bar.gestioncocktail.dto.LoginRequest();
-        badLogin.setUsername("admin");
-        badLogin.setPassword("wrong");
-
-        for (int i = 0; i < 5; i++) {
-            mockMvc.perform(post("/api/auth/login")
-                            .header("X-Forwarded-For", testIp)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(badLogin)))
-                    .andExpect(status().isUnauthorized());
-        }
-
-        mockMvc.perform(post("/api/auth/login")
-                        .header("X-Forwarded-For", testIp)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(badLogin)))
-                .andExpect(status().isTooManyRequests())
-                .andExpect(status().is(429));
     }
 }

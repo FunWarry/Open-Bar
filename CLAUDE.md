@@ -324,7 +324,6 @@ Pour les fichiers scopés par feature (ex : `fr/commandes.json`), déclarer le s
 
 | Feature | Backend | Frontend | Tests |
 |---------|---------|----------|-------|
-| Rate Limiting IP sur Login Auth (#332) | ✅ | — | ✅ |
 | Auth JWT | ✅ | ✅ | ✅ |
 | Configuration initiale (/setup admin) | ✅ | ✅ | ✅ |
 | Bibliothèque composants UI Figma | — | ✅ | ✅ |
