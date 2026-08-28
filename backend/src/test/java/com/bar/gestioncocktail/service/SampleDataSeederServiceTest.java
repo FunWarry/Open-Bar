@@ -67,6 +67,9 @@ class SampleDataSeederServiceTest {
     @Mock
     private TimeService timeService;
 
+    @Mock
+    private org.springframework.transaction.PlatformTransactionManager transactionManager;
+
     @Spy
     private ObjectMapper objectMapper = new ObjectMapper();
 
