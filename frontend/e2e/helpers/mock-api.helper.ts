@@ -456,23 +456,19 @@ export async function setupMockApi(page: Page): Promise<void> {
     });
   });
 
-  await page.route('**/api/settings**', async (route) => {
+  await page.route('**/api/shift-presets**', async (route) => {
     if (route.request().method() === 'PUT') {
       const data = route.request().postDataJSON();
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({
+        body: JSON.stringify(data || {
           id: 1,
-          primaryColor: data?.primaryColor || '#6c7fe8',
-          primaryColorStrong: data?.primaryColorStrong || '#5a68d6',
-          logoUrl: data?.logoUrl || null,
-          establishmentName: data?.establishmentName || 'OpenBar',
-          defaultTheme: data?.defaultTheme || 'DARK',
-          tempsAlerteWarningMinutes: data?.tempsAlerteWarningMinutes ?? 3,
-          tempsAlerteCommandeMinutes: data?.tempsAlerteCommandeMinutes ?? 5,
-          tempsAlerteCritiqueCommandeMinutes: data?.tempsAlerteCritiqueCommandeMinutes ?? 10,
-          updatedAt: new Date().toISOString(),
+          typeShift: 'MATIN',
+          nom: 'Service Matin',
+          heureDebut: '08:00',
+          heureFin: '16:00',
+          dureePauseMinutes: 30,
         }),
       });
       return;
@@ -480,18 +476,32 @@ export async function setupMockApi(page: Page): Promise<void> {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify({
-        id: 1,
-        primaryColor: '#6c7fe8',
-        primaryColorStrong: '#5a68d6',
-        logoUrl: null,
-        establishmentName: 'OpenBar',
-        defaultTheme: 'DARK',
-        tempsAlerteWarningMinutes: 3,
-        tempsAlerteCommandeMinutes: 5,
-        tempsAlerteCritiqueCommandeMinutes: 10,
-        updatedAt: new Date().toISOString(),
-      }),
+      body: JSON.stringify([
+        { id: 1, typeShift: 'MATIN', nom: 'Service Matin', heureDebut: '08:00', heureFin: '16:00', dureePauseMinutes: 30 },
+        { id: 2, typeShift: 'SOIR', nom: 'Service Soir', heureDebut: '16:00', heureFin: '00:00', dureePauseMinutes: 30 },
+        { id: 3, typeShift: 'COUPURE', nom: 'Service Coupure', heureDebut: '11:00', heureFin: '22:00', dureePauseMinutes: 120 },
+        { id: 4, typeShift: 'NUIT', nom: 'Service Nuit', heureDebut: '22:00', heureFin: '06:00', dureePauseMinutes: 30 },
+        { id: 5, typeShift: 'CONGE', nom: 'Congé / Absence', heureDebut: '00:00', heureFin: '00:00', dureePauseMinutes: 0 },
+      ]),
+    });
+  });
+
+  await page.route('**/api/closures**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([
+        { id: 1, type: 'WEEKLY_RECURRING', dayOfWeek: 'SUNDAY', reason: 'Fermeture hebdomadaire' },
+      ]),
+    });
+  });
+
+  await page.route('**/api/schedule/publications**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([]),
     });
   });
 }
+

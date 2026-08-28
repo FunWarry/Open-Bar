@@ -48,6 +48,7 @@ public class CocktailService {
     private final GlasswareRepository glasswareRepository;
     private final TimeService timeService;
     private final FileUploadService fileUploadService;
+    private final NotificationService notificationService;
 
     /**
      * Constructs the service injecting required dependencies.
@@ -59,6 +60,7 @@ public class CocktailService {
      * @param glasswareRepository JPA repository for glassware
      * @param timeService Time service provider
      * @param fileUploadService File upload management service
+     * @param notificationService Notification service for WebSocket broadcasts
      */
     public CocktailService(
         CocktailRepository cocktailRepository,
@@ -67,7 +69,8 @@ public class CocktailService {
         RecipeStepTemplateRepository templateRepository,
         GlasswareRepository glasswareRepository,
         TimeService timeService,
-        FileUploadService fileUploadService
+        FileUploadService fileUploadService,
+        NotificationService notificationService
     ) {
         this.cocktailRepository = cocktailRepository;
         this.commandeItemRepository = commandeItemRepository;
@@ -76,6 +79,7 @@ public class CocktailService {
         this.glasswareRepository = glasswareRepository;
         this.timeService = timeService;
         this.fileUploadService = fileUploadService;
+        this.notificationService = notificationService;
     }
 
     /**
@@ -97,7 +101,9 @@ public class CocktailService {
     public Cocktail createCocktail(Cocktail cocktail) {
         cocktail.setCreatedAt(timeService.now());
         cocktail.setUpdatedAt(timeService.now());
-        return cocktailRepository.save(cocktail);
+        Cocktail saved = cocktailRepository.save(cocktail);
+        notificationService.notifierCocktailMisAJour(saved);
+        return saved;
     }
 
     /**
@@ -128,6 +134,7 @@ public class CocktailService {
         }
 
         Cocktail saved = cocktailRepository.save(cocktail);
+        notificationService.notifierCocktailMisAJour(saved);
         return CocktailResponseDTO.from(saved);
     }
 
@@ -139,7 +146,9 @@ public class CocktailService {
      */
     public Cocktail updateCocktail(Cocktail cocktail) {
         cocktail.setUpdatedAt(timeService.now());
-        return cocktailRepository.save(cocktail);
+        Cocktail saved = cocktailRepository.save(cocktail);
+        notificationService.notifierCocktailMisAJour(saved);
+        return saved;
     }
 
     /**
@@ -196,6 +205,7 @@ public class CocktailService {
         }
 
         Cocktail saved = cocktailRepository.save(cocktail);
+        notificationService.notifierCocktailMisAJour(saved);
         return CocktailResponseDTO.from(saved);
     }
 
@@ -486,6 +496,7 @@ public class CocktailService {
      */
     public void deleteCocktail(Long id) {
         cocktailRepository.deleteById(id);
+        notificationService.notifierCocktailSupprime(id);
     }
 
     /**
@@ -556,7 +567,8 @@ public class CocktailService {
     public void toggleDisponibilite(Cocktail cocktail) {
         cocktail.setDisponible(!cocktail.isDisponible());
         cocktail.setUpdatedAt(timeService.now());
-        cocktailRepository.save(cocktail);
+        Cocktail saved = cocktailRepository.save(cocktail);
+        notificationService.notifierCocktailMisAJour(saved);
     }
 
     /**
@@ -571,7 +583,8 @@ public class CocktailService {
         cocktail.setDateDebutSaison(dateDebut);
         cocktail.setDateFinSaison(dateFin);
         cocktail.setUpdatedAt(timeService.now());
-        cocktailRepository.save(cocktail);
+        Cocktail saved = cocktailRepository.save(cocktail);
+        notificationService.notifierCocktailMisAJour(saved);
     }
 
     /**
@@ -589,7 +602,10 @@ public class CocktailService {
         cocktail.setMoisDebut(moisDebut);
         cocktail.setMoisFin(moisFin);
         cocktail.setSaisonnier(moisDebut != null && moisFin != null);
-        return cocktailRepository.save(cocktail);
+        cocktail.setUpdatedAt(timeService.now());
+        Cocktail saved = cocktailRepository.save(cocktail);
+        notificationService.notifierCocktailMisAJour(saved);
+        return saved;
     }
 
     /**
@@ -607,6 +623,8 @@ public class CocktailService {
         String photoUrl = fileUploadService.storeCocktailPhoto(id, file);
         cocktail.setImageUrl(photoUrl);
         cocktail.setUpdatedAt(timeService.now());
-        return cocktailRepository.save(cocktail);
+        Cocktail saved = cocktailRepository.save(cocktail);
+        notificationService.notifierCocktailMisAJour(saved);
+        return saved;
     }
 }

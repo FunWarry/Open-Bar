@@ -1,87 +1,177 @@
-<ion-header class="ion-no-border">
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-button (click)="onCancel()" (keydown.enter)="onCancel()" data-testid="table-back-btn">
-        <ion-icon slot="icon-only" name="arrow-back-outline"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-    <ion-title>{{ (isEditMode ? 'TABLES.EDIT' : 'TABLES.ADD') | transloco }}</ion-title>
-    <ion-buttons slot="end">
-      <ion-button (click)="onCancel()" (keydown.enter)="onCancel()" data-testid="table-close-btn">
-        <ion-icon slot="icon-only" name="close-outline"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>
+<div class="table-modal-wrapper" data-testid="table-form-modal">
+  <!-- ========================================================================= -->
+  <!-- --- HEADER --- -->
+  <!-- ========================================================================= -->
+  <div class="modal-header">
+    <div class="header-main-group">
+      <div class="table-avatar-badge" [class.edit]="isEditMode">
+        @if (isEditMode) {
+          <ion-icon name="restaurant-outline"></ion-icon>
+        } @else {
+          <ion-icon name="grid-outline"></ion-icon>
+        }
+      </div>
+      <div class="header-text">
+        <h2 class="modal-title" data-testid="table-form-title">
+          {{ (isEditMode ? 'TABLES.MODAL_EDIT_TITLE' : 'TABLES.MODAL_CREATE_TITLE') | transloco:{ number: tableForm.get('numero')?.value || '' } }}
+        </h2>
+        <div class="modal-meta-tags">
+          <span class="meta-tag mode-tag">
+            @if (isEditMode) {
+              <ion-icon name="create-outline"></ion-icon>
+              <span>{{ 'TABLES.EDIT' | transloco }}</span>
+            } @else {
+              <ion-icon name="add-circle-outline"></ion-icon>
+              <span>{{ 'TABLES.ADD' | transloco }}</span>
+            }
+          </span>
+        </div>
+      </div>
+    </div>
 
-<ion-content class="modal-content-container">
-  <form [formGroup]="tableForm" (ngSubmit)="onSubmit()" data-testid="table-form" class="table-form">
+    <button
+      type="button"
+      class="close-icon-btn"
+      (click)="onCancel()"
+      (keyup.enter)="onCancel()"
+      [attr.aria-label]="'COMMON.CLOSE' | transloco"
+      data-testid="table-form-close-btn">
+      <ion-icon name="close-outline"></ion-icon>
+    </button>
+  </div>
 
-    <app-input-field
-      formControlName="numero"
-      type="number"
-      label="Numéro de Table"
-      placeholder="ex: 12"
-      icon="grid-outline"
-      [required]="true"
-      [errorMessage]="tableForm.get('numero')?.hasError('required') && tableForm.get('numero')?.touched ? 'Le numéro de table est requis' : ''"
-      testId="table-number-input">
-    </app-input-field>
-
-    <div class="zone-field-container">
-      <div class="zone-select-label">
-        <ion-icon name="location-outline"></ion-icon>
-        <span>{{ 'TABLES.ZONE' | transloco }} <span class="required-star">*</span></span>
+  <!-- ========================================================================= -->
+  <!-- --- BODY --- -->
+  <!-- ========================================================================= -->
+  <div class="modal-body">
+    <form [formGroup]="tableForm" (ngSubmit)="onSubmit()" class="table-form-container">
+      
+      <!-- Table Number Field -->
+      <div class="form-field-group">
+        <label class="field-label" for="table-numero-input">
+          <ion-icon name="restaurant-outline"></ion-icon>
+          <span>{{ 'TABLES.NUMBER' | transloco }} *</span>
+        </label>
+        <app-input-field
+          id="table-numero-input"
+          type="number"
+          formControlName="numero"
+          [placeholder]="'TABLES.NUMBER' | transloco"
+          [required]="true"
+          testId="table-numero-input">
+        </app-input-field>
+        @if (tableForm.get('numero')?.invalid && tableForm.get('numero')?.touched) {
+          <span class="field-error-text">
+            <ion-icon name="warning-outline"></ion-icon>
+            {{ 'COMMON.REQUIRED' | transloco }}
+          </span>
+        }
       </div>
 
-      @if (zonesLoading) {
-        <div class="zone-loading" data-testid="zone-loading">
-          <ion-spinner name="crescent" color="primary"></ion-spinner>
-          <span>{{ 'TABLES.LOADING_ZONES' | transloco }}</span>
-        </div>
-      } @else if (zones.length === 0) {
-        <div class="zone-empty" data-testid="zone-empty">
-          <ion-icon name="warning-outline" color="warning"></ion-icon>
-          <span>{{ 'TABLES.NO_ZONES_CONFIGURED' | transloco }}</span>
-        </div>
-      } @else {
-        <ion-select
-          formControlName="zone"
-          interface="popover"
-          [placeholder]="'TABLES.SELECT_ZONE' | transloco"
-          data-testid="table-zone-select"
-          class="zone-select"
-          [class.invalid]="tableForm.get('zone')?.invalid && tableForm.get('zone')?.touched">
-          @for (zone of zones; track zone.id) {
-            <ion-select-option [value]="zone.nom">{{ zone.nom }}</ion-select-option>
-          }
-        </ion-select>
-        @if (tableForm.get('zone')?.hasError('required') && tableForm.get('zone')?.touched) {
-          <p class="zone-error" data-testid="zone-error">{{ 'TABLES.ZONE_REQUIRED' | transloco }}</p>
+      <!-- Zone Dropdown Field -->
+      <div class="form-field-group">
+        <span class="field-label" id="table-zone-label">
+          <ion-icon name="location-outline"></ion-icon>
+          <span>{{ 'TABLES.ZONE' | transloco }} *</span>
+        </span>
+
+        @if (zonesLoading) {
+          <div class="field-loading-box">
+            <ion-spinner name="crescent" color="primary"></ion-spinner>
+            <span>{{ 'TABLES.LOADING_ZONES' | transloco }}</span>
+          </div>
+        } @else if (zones.length === 0) {
+          <div class="no-zones-alert">
+            <ion-icon name="warning-outline"></ion-icon>
+            <p>{{ 'TABLES.NO_ZONES_CONFIGURED' | transloco }}</p>
+          </div>
+        } @else {
+          <app-searchable-select
+            [options]="zoneOptions"
+            [label]="'TABLES.ZONE' | transloco"
+            [placeholder]="'TABLES.SELECT_ZONE' | transloco"
+            formControlName="zone"
+            (selectionChange)="onZoneSelected($event)"
+            [enableSearch]="true"
+            testId="table-zone-select">
+          </app-searchable-select>
         }
+        @if (tableForm.get('zone')?.invalid && tableForm.get('zone')?.touched) {
+          <span class="field-error-text">
+            <ion-icon name="warning-outline"></ion-icon>
+            {{ 'TABLES.ZONE_REQUIRED' | transloco }}
+          </span>
+        }
+      </div>
+
+      <!-- Capacity Field -->
+      <div class="form-field-group">
+        <label class="field-label" for="table-capacite-input">
+          <ion-icon name="people-outline"></ion-icon>
+          <span>{{ 'TABLES.CAPACITY' | transloco }} ({{ 'TABLES.STATS.SEATS' | transloco }}) *</span>
+        </label>
+        <app-input-field
+          id="table-capacite-input"
+          type="number"
+          formControlName="capacite"
+          [placeholder]="'TABLES.CAPACITY' | transloco"
+          [required]="true"
+          testId="table-capacite-input">
+        </app-input-field>
+        @if (tableForm.get('capacite')?.invalid && tableForm.get('capacite')?.touched) {
+          <span class="field-error-text">
+            <ion-icon name="warning-outline"></ion-icon>
+            {{ 'COMMON.REQUIRED' | transloco }}
+          </span>
+        }
+      </div>
+
+    </form>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- --- FOOTER --- -->
+  <!-- ========================================================================= -->
+  <div class="modal-footer">
+    <div class="footer-left">
+      @if (isEditMode) {
+        <button
+          type="button"
+          class="btn-action btn-danger"
+          [disabled]="isSubmitting"
+          (click)="onDelete()"
+          (keyup.enter)="onDelete()"
+          data-testid="table-form-delete-btn">
+          <ion-icon name="trash-outline"></ion-icon>
+          <span>{{ 'TABLES.DELETE_BTN' | transloco }}</span>
+        </button>
       }
     </div>
 
-    <app-input-field
-      formControlName="capacite"
-      type="number"
-      label="Capacité"
-      placeholder="ex: 4"
-      icon="people-outline"
-      [required]="true"
-      [errorMessage]="tableForm.get('capacite')?.hasError('required') && tableForm.get('capacite')?.touched ? 'La capacité est requise' : (tableForm.get('capacite')?.hasError('min') && tableForm.get('capacite')?.touched ? 'La capacité doit être d\'au moins 1 personne' : '')"
-      testId="table-capacity-input">
-    </app-input-field>
+    <div class="footer-right">
+      <button
+        type="button"
+        class="btn-action btn-secondary"
+        (click)="onCancel()"
+        (keyup.enter)="onCancel()"
+        data-testid="table-form-cancel-btn">
+        <span>{{ 'COMMON.CANCEL' | transloco }}</span>
+      </button>
 
-    <div class="form-actions">
-      <ion-button fill="outline" color="medium" type="button" (click)="onCancel()" (keydown.enter)="onCancel()" data-testid="table-cancel-btn">
-        {{ 'COMMON.CANCEL' | transloco }}
-      </ion-button>
-      <ion-button color="primary" type="submit" [disabled]="tableForm.invalid" data-testid="table-submit-btn">
-        <ion-icon slot="start" name="checkmark-circle"></ion-icon>
-        {{ (isEditMode ? 'COMMON.SAVE' : 'ZONE_MANAGER.CREATE') | transloco }}
-      </ion-button>
+      <button
+        type="button"
+        class="btn-action btn-primary"
+        [disabled]="tableForm.invalid || isSubmitting"
+        (click)="onSubmit()"
+        (keyup.enter)="onSubmit()"
+        data-testid="table-form-submit-btn">
+        @if (isSubmitting) {
+          <ion-spinner name="crescent"></ion-spinner>
+        } @else {
+          <ion-icon name="checkmark-circle-outline"></ion-icon>
+        }
+        <span>{{ (isEditMode ? 'COMMON.SAVE' : 'TABLES.NEW_TABLE') | transloco }}</span>
+      </button>
     </div>
-
-  </form>
-</ion-content>
+  </div>
+</div>

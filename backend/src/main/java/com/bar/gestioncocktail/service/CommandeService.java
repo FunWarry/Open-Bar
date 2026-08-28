@@ -152,7 +152,9 @@ public class CommandeService {
         commande.setStatut(CommandeStatut.ANNULEE);
         notifyOrderUpdated(commande);
         commandeRepository.delete(commande);
-        updateTableOccupancyIfNoActiveOrders(table);
+        if (table != null) {
+            notifyTableUpdated(table);
+        }
     }
 
     @Transactional
@@ -236,8 +238,8 @@ public class CommandeService {
         }
 
         Commande saved = commandeRepository.save(commande);
-        if (nouveauStatut == CommandeStatut.REGLEE || nouveauStatut == CommandeStatut.ANNULEE) {
-            updateTableOccupancyIfNoActiveOrders(saved.getTable());
+        if (saved.getTable() != null) {
+            notifyTableUpdated(saved.getTable());
         }
         notifyOrderUpdated(saved);
         return saved;
@@ -251,7 +253,9 @@ public class CommandeService {
         commande.setStatut(CommandeStatut.ANNULEE);
         commande.setUpdatedAt(timeService.now());
         Commande saved = commandeRepository.save(commande);
-        updateTableOccupancyIfNoActiveOrders(saved.getTable());
+        if (saved.getTable() != null) {
+            notifyTableUpdated(saved.getTable());
+        }
         notifyOrderUpdated(saved);
     }
 
@@ -568,21 +572,6 @@ public class CommandeService {
                 notifyTableUpdated(savedTable);
             }
         });
-    }
-
-    private void updateTableOccupancyIfNoActiveOrders(TableEntity table) {
-        if (table == null || table.getId() == null) {
-            return;
-        }
-        boolean hasActive = commandeRepository.existsByTableAndStatutIn(
-                table, List.of(CommandeStatut.EN_ATTENTE, CommandeStatut.EN_PREPARATION, CommandeStatut.PRET));
-        if (!hasActive && table.isOccupee()) {
-            table.setOccupee(false);
-            table.setServeurId(null);
-            table.setDateLiberation(timeService.now());
-            TableEntity savedTable = tableRepository.save(table);
-            notifyTableUpdated(savedTable);
-        }
     }
 
     private void notifyTableUpdated(TableEntity table) {

@@ -1,23 +1,3 @@
-<ion-header class="ion-no-border serveur-dashboard-header">
-  <ion-toolbar>
-    <div class="header-content">
-      <div class="header-title-group">
-        <h1 class="page-title">
-          {{ activeTab === 'suivi' ? ('SERVEUR.ORDER_TRACKING' | transloco) : ('SERVEUR.ORDER_TAKING' | transloco) }} — {{ 'SERVEUR.TITLE' | transloco }}
-        </h1>
-        <span class="count-pill" *ngIf="activeTab !== 'suivi'">{{ filteredTables.length }} / {{ tables.length }}</span>
-      </div>
-
-      <div class="header-actions">
-        <button class="kanban-action-btn" [class.active]="activeTab === 'suivi'" (click)="onTabSelected(activeTab === 'suivi' ? 'tables' : 'suivi')" [title]="'SERVEUR.ORDER_TRACKING' | transloco">
-          <ion-icon name="list-outline"></ion-icon>
-          <span class="btn-label">{{ activeTab === 'suivi' ? ('SERVEUR.RETURN_TO_TABLES' | transloco) : ('SERVEUR.ORDER_TRACKING' | transloco) }}</span>
-        </button>
-      </div>
-    </div>
-  </ion-toolbar>
-</ion-header>
-
 @if (activeTab !== 'suivi') {
   <ion-content class="dashboard-serveur-content ion-padding">
     <ion-refresher slot="fixed" [disabled]="displayMode === 'PLAN'" (ionRefresh)="onRefresh($event)">
@@ -30,15 +10,35 @@
     <div class="controls-card">
       <!-- LIGNE SUPERIEURE : SEARCHBAR & PILLULES STATUT -->
       <div class="controls-row-top">
-        <ion-searchbar
-          class="custom-searchbar"
-          [placeholder]="'SERVEUR.SEARCH_TABLE_PLACEHOLDER' | transloco"
-          [value]="searchTerm"
-          (ionInput)="onSearchChange($event)"
-          [debounce]="200"
-        ></ion-searchbar>
+        <div class="search-input-box">
+          <ion-icon name="search-outline" class="search-icon" aria-hidden="true"></ion-icon>
+          <label for="serveur-table-search-input" class="visually-hidden">{{ 'SERVEUR.SEARCH_TABLE_PLACEHOLDER' | transloco }}</label>
+          <input
+            id="serveur-table-search-input"
+            type="text"
+            class="custom-search-field"
+            [placeholder]="'SERVEUR.SEARCH_TABLE_PLACEHOLDER' | transloco"
+            [value]="searchTerm"
+            (input)="onSearchChange($event)"
+            data-testid="serveur-table-searchbar" />
+          @if (searchTerm) {
+            <button
+              type="button"
+              class="clear-search-btn"
+              (click)="clearSearch()"
+              aria-label="Effacer"
+              title="Effacer">
+              <ion-icon name="close-circle-outline"></ion-icon>
+            </button>
+          }
+        </div>
 
         <div class="status-segment-wrapper">
+          <span class="count-pill" [title]="'SERVEUR.TABLES_COUNT' | transloco">
+            <ion-icon name="restaurant-outline"></ion-icon>
+            {{ filteredTables.length }} / {{ tables.length }}
+          </span>
+
           <button
             type="button"
             class="filter-pill-btn"
@@ -70,54 +70,41 @@
         <div class="filter-dropdowns">
           <!-- Dropdown Étage -->
           <div class="filter-select-box">
-            <label class="filter-label" for="serveur-etage-select-input">
-              <ion-icon name="business-outline"></ion-icon>
-              {{ 'SERVEUR.FLOOR_LABEL' | transloco }}
-            </label>
-            <select
-              id="serveur-etage-select-input"
-              class="custom-select"
-              [value]="selectedEtage"
-              (change)="onEtageSelectChange($event)">
-              <option value="ALL">{{ 'SERVEUR.ALL_FLOORS' | transloco }}</option>
-              <option *ngFor="let etage of etagesList" [value]="etage.code">{{ etage.nom }}</option>
-            </select>
+            <app-searchable-select
+              [label]="'SERVEUR.FLOOR_LABEL' | transloco"
+              [options]="etageOptions"
+              [(ngModel)]="selectedEtage"
+              (selectionChange)="onEtageOptionChange($event)"
+              [enableSearch]="true"
+              [placeholder]="'SERVEUR.ALL_FLOORS' | transloco"
+              testId="serveur-etage-select">
+            </app-searchable-select>
           </div>
 
           <!-- Dropdown Zone -->
           <div class="filter-select-box">
-            <label class="filter-label" for="serveur-zone-select-input">
-              <ion-icon name="layers-outline"></ion-icon>
-              {{ 'SERVEUR.ZONE_LABEL' | transloco }}
-            </label>
-            <select
-              id="serveur-zone-select-input"
-              class="custom-select"
-              [value]="selectedZone"
-              (change)="onZoneSelectChange($event)">
-              <option value="ALL">{{ 'SERVEUR.ALL_ZONES' | transloco }}</option>
-              <option *ngFor="let z of availableZonesForFilter" [value]="z.nom">{{ z.nom }}</option>
-            </select>
+            <app-searchable-select
+              [label]="'SERVEUR.ZONE_LABEL' | transloco"
+              [options]="zoneOptions"
+              [(ngModel)]="selectedZone"
+              (selectionChange)="onZoneOptionChange($event)"
+              [enableSearch]="true"
+              [placeholder]="'SERVEUR.ALL_ZONES' | transloco"
+              testId="serveur-zone-select">
+            </app-searchable-select>
           </div>
 
           <!-- Dropdown Trier Par -->
           <div class="filter-select-box">
-            <label class="filter-label" for="serveur-sort-select-input">
-              <ion-icon name="swap-vertical-outline"></ion-icon>
-              {{ 'SERVEUR.SORT_LABEL' | transloco }}
-            </label>
-            <select
-              id="serveur-sort-select-input"
-              class="custom-select"
-              [value]="sortOption"
-              (change)="onSortSelectChange($event)">
-              <option value="NUMBER_ASC">{{ 'SERVEUR.SORT_NUMBER_ASC' | transloco }}</option>
-              <option value="NUMBER_DESC">{{ 'SERVEUR.SORT_NUMBER_DESC' | transloco }}</option>
-              <option value="CAPACITY_ASC">{{ 'SERVEUR.SORT_CAPACITY_ASC' | transloco }}</option>
-              <option value="CAPACITY_DESC">{{ 'SERVEUR.SORT_CAPACITY_DESC' | transloco }}</option>
-              <option value="STATUS_OCCUPIED">{{ 'SERVEUR.SORT_STATUS_OCCUPIED' | transloco }}</option>
-              <option value="STATUS_FREE">{{ 'SERVEUR.SORT_STATUS_FREE' | transloco }}</option>
-            </select>
+            <app-searchable-select
+              [label]="'SERVEUR.SORT_LABEL' | transloco"
+              [options]="sortOptions"
+              [(ngModel)]="sortOption"
+              (selectionChange)="onSortOptionChange($event)"
+              [enableSearch]="false"
+              [placeholder]="'SERVEUR.SORT_LABEL' | transloco"
+              testId="serveur-sort-select">
+            </app-searchable-select>
           </div>
         </div>
 
@@ -190,7 +177,9 @@
             [activeTotal]="table.activeTotal || 0"
             [pendingOrdersCount]="table.commandesActives.length || 0"
             (tableSelect)="onSelectionner($event)"
-            (newOrder)="onNewOrderForTable($event)">
+            (newOrder)="onNewOrderForTable($event)"
+            (occupyTable)="onOccupyTable($event)"
+            (freeTable)="onFreeTable($event)">
           </app-mobile-table-card>
         </div>
       </div>
@@ -219,7 +208,9 @@
             [activeTotal]="table.activeTotal || 0"
             [pendingOrdersCount]="table.commandesActives.length || 0"
             (tableSelect)="onSelectionner($event)"
-            (newOrder)="onNewOrderForTable($event)">
+            (newOrder)="onNewOrderForTable($event)"
+            (occupyTable)="onOccupyTable($event)"
+            (freeTable)="onFreeTable($event)">
           </app-mobile-table-card>
         </div>
       </div>
@@ -234,7 +225,9 @@
         [activeTotal]="table.activeTotal || 0"
         [pendingOrdersCount]="table.commandesActives.length || 0"
         (tableSelect)="onSelectionner($event)"
-        (newOrder)="onNewOrderForTable($event)">
+        (newOrder)="onNewOrderForTable($event)"
+        (occupyTable)="onOccupyTable($event)"
+        (freeTable)="onFreeTable($event)">
       </app-mobile-table-card>
     </div>
 
@@ -345,12 +338,27 @@
         <!-- Barre de filtres Cocktails (style page Cocktail) -->
         <div class="cocktail-filters-card">
           <!-- Searchbar -->
-          <ion-searchbar
-            [(ngModel)]="productSearchQuery"
-            [placeholder]="'SERVEUR.SEARCH_COCKTAIL_PLACEHOLDER' | transloco"
-            class="cocktail-searchbar"
-            data-testid="product-searchbar">
-          </ion-searchbar>
+          <div class="search-input-box">
+            <ion-icon name="search-outline" class="search-icon" aria-hidden="true"></ion-icon>
+            <label for="serveur-product-search-input" class="visually-hidden">{{ 'SERVEUR.SEARCH_COCKTAIL_PLACEHOLDER' | transloco }}</label>
+            <input
+              id="serveur-product-search-input"
+              type="text"
+              class="custom-search-field"
+              [(ngModel)]="productSearchQuery"
+              [placeholder]="'SERVEUR.SEARCH_COCKTAIL_PLACEHOLDER' | transloco"
+              data-testid="product-searchbar" />
+            @if (productSearchQuery) {
+              <button
+                type="button"
+                class="clear-search-btn"
+                (click)="productSearchQuery = ''"
+                aria-label="Effacer"
+                title="Effacer">
+                <ion-icon name="close-circle-outline"></ion-icon>
+              </button>
+            }
+          </div>
 
           <!-- Category Dot Filter Pills -->
           <div class="category-pills-row">

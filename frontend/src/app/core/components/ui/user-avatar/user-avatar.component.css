@@ -63,8 +63,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #ffffff;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
   z-index: 2;
 }
 
@@ -96,6 +95,27 @@
 }
 
 .avatar-role-badge ion-icon {
-  color: #ffffff !important;
   display: block;
+  color: var(--primary, #6c7fe8);
 }
+
+.avatar-role-badge[data-role='ADMIN'] ion-icon,
+.avatar-role-badge[data-role='admin'] ion-icon {
+  color: var(--role-admin, #9b8af2) !important;
+}
+
+.avatar-role-badge[data-role='MANAGER'] ion-icon,
+.avatar-role-badge[data-role='manager'] ion-icon {
+  color: var(--role-manager, #f0a33b) !important;
+}
+
+.avatar-role-badge[data-role='BARMAN'] ion-icon,
+.avatar-role-badge[data-role='barman'] ion-icon {
+  color: var(--role-barman, #4fc3f7) !important;
+}
+
+.avatar-role-badge[data-role='SERVEUR'] ion-icon,
+.avatar-role-badge[data-role='serveur'] ion-icon {
+  color: var(--role-serveur, #34c77b) !important;
+}
+

@@ -37,6 +37,12 @@ public record EstablishmentConfigUpdateRequest(
     @Size(max = 500, message = "Address cannot exceed 500 characters")
     String address,
 
+    @Size(max = 100, message = "Country cannot exceed 100 characters")
+    String country,
+
+    @Size(max = 10, message = "Language cannot exceed 10 characters")
+    String language,
+
     @Size(max = 50, message = "Phone number cannot exceed 50 characters")
     String phone,
 

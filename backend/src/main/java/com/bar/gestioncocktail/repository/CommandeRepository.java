@@ -37,4 +37,8 @@ public interface CommandeRepository extends JpaRepository<Commande, Long> {
            "GROUP BY ci.cocktail.id, ci.cocktail.nom " +
            "ORDER BY COUNT(ci) DESC")
     List<TopCocktailDTO> findTopCocktails(Pageable pageable);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @Query("UPDATE Commande c SET c.table = null WHERE c.table.id = :tableId")
+    void detachTableFromCommandes(@Param("tableId") Long tableId);
 }

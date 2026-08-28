@@ -39,7 +39,7 @@ public class EstablishmentConfig {
 
     @Pattern(regexp = "^\\d{14}$", message = "SIRET must consist of exactly 14 digits")
     @Column(name = "siret", length = 14)
-    private String siret = "12345678900010";
+    private String siret = "73282932000074";
 
     @Size(max = 100, message = "RCS city cannot exceed 100 characters")
     @Column(name = "rcs_city")
@@ -63,6 +63,14 @@ public class EstablishmentConfig {
     @Size(max = 500, message = "Address cannot exceed 500 characters")
     @Column(name = "address")
     private String address = "12 Rue du Bar, 75001 Paris";
+
+    @Size(max = 100, message = "Country cannot exceed 100 characters")
+    @Column(name = "country", length = 100)
+    private String country = "France";
+
+    @Size(max = 10, message = "Language cannot exceed 10 characters")
+    @Column(name = "language", length = 10)
+    private String language = "fr";
 
     @Size(max = 50, message = "Phone number cannot exceed 50 characters")
     @Column(name = "phone")

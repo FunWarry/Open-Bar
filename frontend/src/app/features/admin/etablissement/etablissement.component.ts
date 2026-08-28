@@ -88,6 +88,8 @@ export class EtablissementComponent implements OnInit, OnDestroy {
       codeApe: ['5630Z', [Validators.pattern(/^\d{4}[A-Z]$/)]],
       capitalSocial: [10000.00, [Validators.min(0)]],
       address: ['', [Validators.required, Validators.maxLength(500)]],
+      country: ['France', [Validators.maxLength(100)]],
+      language: ['fr', [Validators.required]],
       phone: ['', [Validators.maxLength(50)]],
       email: ['', [Validators.email, Validators.maxLength(100)]],
       paymentTerms: ['Paiement immédiat à réception', [Validators.maxLength(255)]],

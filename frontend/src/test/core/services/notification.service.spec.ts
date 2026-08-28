@@ -41,7 +41,11 @@ describe('NotificationService', () => {
 
   beforeEach(() => {
     wsStub = new WebSocketServiceStub();
-    soundSpy = jasmine.createSpyObj<SoundService>('SoundService', ['playNewOrderSound', 'playOrderReadySound']);
+    soundSpy = jasmine.createSpyObj<SoundService>('SoundService', [
+      'playNewOrderSound',
+      'playOrderReadySound',
+      'playUrgentAlertSound',
+    ]);
 
     TestBed.configureTestingModule({
       providers: [
@@ -405,5 +409,46 @@ describe('NotificationService', () => {
     tick();
 
     expect(received[0].message).toContain('Fallback42');
+  }));
+
+  // -------------------------------------------------------------------------
+  // /topic/cocktails availability notifications
+  // -------------------------------------------------------------------------
+
+  it('emits notification and sound when a cocktail is made unavailable', fakeAsync(() => {
+    const notifs: AppNotification[] = [];
+    service.onNotification().subscribe(n => notifs.push(n));
+
+    // First broadcast establishes baseline (available)
+    wsStub.emit('/topic/cocktails', { id: 10, nom: 'Mojito', disponible: true });
+    tick();
+    expect(notifs).toHaveSize(0);
+
+    // Second broadcast toggles to unavailable
+    wsStub.emit('/topic/cocktails', { id: 10, nom: 'Mojito', disponible: false });
+    tick();
+
+    expect(notifs).toHaveSize(1);
+    expect(notifs[0].message).toContain('Mojito');
+    expect(notifs[0].severity).toBe('danger');
+    expect(soundSpy.playUrgentAlertSound).toHaveBeenCalled();
+  }));
+
+  it('emits success notification when a cocktail becomes available again', fakeAsync(() => {
+    const notifs: AppNotification[] = [];
+    service.onNotification().subscribe(n => notifs.push(n));
+
+    // First broadcast establishes baseline (unavailable)
+    wsStub.emit('/topic/cocktails', { id: 20, nom: 'Daiquiri', disponible: false });
+    tick();
+    expect(notifs).toHaveSize(0);
+
+    // Second broadcast toggles back to available
+    wsStub.emit('/topic/cocktails', { id: 20, nom: 'Daiquiri', disponible: true });
+    tick();
+
+    expect(notifs).toHaveSize(1);
+    expect(notifs[0].message).toContain('Daiquiri');
+    expect(notifs[0].severity).toBe('success');
   }));
 });

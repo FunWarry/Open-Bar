@@ -43,6 +43,31 @@ describe('MobileTableCardComponent', () => {
     expect(component.tableSelect.emit).toHaveBeenCalledWith(mockTable);
   });
 
+  it('should emit occupyTable event when occupy button is triggered', () => {
+    spyOn(component.occupyTable, 'emit');
+    const freeTable: TableView = { ...mockTable, occupee: false };
+    fixture.componentRef.setInput('table', freeTable);
+    fixture.detectChanges();
+
+    const occupyBtn = fixture.nativeElement.querySelector('[data-testid="mobile-table-occupy-btn-5"]');
+    expect(occupyBtn).toBeTruthy();
+    occupyBtn.click();
+    expect(component.occupyTable.emit).toHaveBeenCalledWith(freeTable);
+  });
+
+  it('should emit freeTable event when free button is triggered', () => {
+    spyOn(component.freeTable, 'emit');
+    const occupiedEmptyTable: TableView = { ...mockTable, occupee: true, commandesActives: [] };
+    fixture.componentRef.setInput('table', occupiedEmptyTable);
+    fixture.componentRef.setInput('pendingOrdersCount', 0);
+    fixture.detectChanges();
+
+    const freeBtn = fixture.nativeElement.querySelector('[data-testid="mobile-table-free-btn-5"]');
+    expect(freeBtn).toBeTruthy();
+    freeBtn.click();
+    expect(component.freeTable.emit).toHaveBeenCalledWith(occupiedEmptyTable);
+  });
+
   it('should compute WaitTimeClass based on waitTimeMinutes', () => {
     component.waitTimeMinutes = 5;
     expect(component.WaitTimeClass).toBe('wait-normal');

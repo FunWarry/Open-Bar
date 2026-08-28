@@ -1,4 +1,4 @@
-<div class="ticket-wrapper" *transloco="let t">
+<div class="ticket-wrapper">
   <!-- Format Selection & Print Toolbar -->
   <div class="no-print ticket-control-bar">
     <div class="format-pill-group">
@@ -29,7 +29,7 @@
       (keydown.enter)="imprimerTicket()"
       data-testid="print-ticket-btn">
       <ion-icon name="print-outline"></ion-icon>
-      <span>{{ t('FACTURES.PRINT_TICKET') }} ({{ selectedFormat }})</span>
+      <span>{{ 'FACTURES.PRINT_TICKET' | transloco }} ({{ selectedFormat }})</span>
     </button>
   </div>
 
@@ -54,7 +54,7 @@
           <span *ngIf="cfg.capitalSocial"> - Cap. {{ cfg.capitalSocial | appCurrency:0:0 }}</span>
         </p>
         <p class="legal-address" *ngIf="cfg.address">{{ cfg.address }}</p>
-        <p class="legal-contact" *ngIf="cfg.phone">{{ t('ADMIN_SETUP.LEGAL_PHONE') || 'Tél' }}: {{ cfg.phone }}</p>
+        <p class="legal-contact" *ngIf="cfg.phone">{{ tr('PHONE_LABEL') }}: {{ cfg.phone }}</p>
         <div class="legal-tax-row">
           <span *ngIf="cfg.siret">SIRET: {{ cfg.siret }}</span>
           <span *ngIf="cfg.tvaNumber">N° TVA: {{ cfg.tvaNumber }}</span>
@@ -66,19 +66,19 @@
       <!-- Receipt Metadata Section -->
       <section class="receipt-metadata-box">
         <div class="metadata-row">
-          <span class="meta-label">{{ t('FACTURES.RECEIPT_NUM') }}:</span>
+          <span class="meta-label">{{ tr('RECEIPT_NUM') }} :</span>
           <strong class="meta-value">{{ reglement ? ('FAC-' + facture.numero + '-' + reglement.id) : ('FAC-' + facture.numero) }}</strong>
         </div>
         <div class="metadata-row">
-          <span class="meta-label">{{ t('FACTURES.DATE') }}:</span>
+          <span class="meta-label">{{ tr('DATE') }} :</span>
           <span class="meta-value">{{ (reglement?.dateReglement || facture.dateFacture) | date:'dd/MM/yyyy HH:mm' }}</span>
         </div>
         <div class="metadata-row" *ngIf="facture.tableNumero">
-          <span class="meta-label">{{ t('FACTURES.TABLE') }}:</span>
-          <span class="meta-value">{{ t('TABLES.TABLE') }} {{ facture.tableNumero }}</span>
+          <span class="meta-label">{{ tr('TABLE') }} :</span>
+          <span class="meta-value">{{ tr('TABLE') }} {{ facture.tableNumero }}</span>
         </div>
         <div class="metadata-row" *ngIf="reglement?.modePaiement || facture.modePaiement">
-          <span class="meta-label">{{ t('FACTURES.PAYMENT_MODE') }}:</span>
+          <span class="meta-label">{{ tr('PAYMENT_MODE') }} :</span>
           <span class="meta-value">{{ reglement?.modePaiement || facture.modePaiement }}</span>
         </div>
       </section>
@@ -86,11 +86,11 @@
       <div class="receipt-dashed-divider"></div>
 
       <!-- Articles Itemized List -->
-      <section class="receipt-items-section">
+      <section class="receipt-items-table">
         <div class="items-table-header">
-          <span class="col-item">{{ t('COMMANDES.ITEMS') | uppercase }}</span>
-          <span class="col-qty">{{ t('COMMANDES.QUANTITY') | uppercase }}</span>
-          <span class="col-total">{{ t('COMMON.TOTAL') | uppercase }}</span>
+          <span class="col-item">{{ tr('COL_ITEM') }}</span>
+          <span class="col-qty">{{ tr('COL_QTY') }}</span>
+          <span class="col-total">{{ tr('COL_TOTAL') }}</span>
         </div>
 
         <div class="items-table-body">
@@ -129,23 +129,23 @@
       <!-- Totals & Financial Breakdown -->
       <section class="receipt-totals-box">
         <div class="totals-line">
-          <span>{{ t('FACTURES.TOTAL_HT') }}</span>
-          <span>{{ totalHT | appCurrency }}</span>
+          <span>{{ tr('TOTAL_HT') }}</span>
+          <span class="amount-val">{{ totalHT | appCurrency }}</span>
         </div>
         <div class="totals-line">
-          <span>{{ t('FACTURES.TOTAL_VAT') }}</span>
-          <span>{{ totalVAT | appCurrency }}</span>
+          <span>{{ tr('TOTAL_VAT') }}</span>
+          <span class="amount-val">{{ totalVAT | appCurrency }}</span>
         </div>
         @if ((reglement ? reglement.pourboire : facture.pourboire); as tip) {
           @if (tip > 0) {
             <div class="totals-line">
-              <span>{{ t('FACTURES.TIP') }}</span>
+              <span>{{ tr('TIP') }}</span>
               <span>+{{ tip | appCurrency }}</span>
             </div>
           }
         }
         <div class="totals-line grand-total-line">
-          <strong>{{ reglement ? t('FACTURES.TOTAL_PART_PAID') : t('FACTURES.TOTAL_TTC') }}</strong>
+          <strong>{{ reglement ? tr('TOTAL_PART_PAID') : tr('TOTAL_TTC') }}</strong>
           <strong class="grand-total-amount">{{ totalTTC | appCurrency }}</strong>
         </div>
       </section>
@@ -155,9 +155,9 @@
       <!-- Footer & Payment Status -->
       <footer class="receipt-footer">
         <p class="status-banner" [class.settled]="reglement || facture.reglee">
-          *** {{ (reglement ? t('FACTURES.PART_SETTLED') : (facture.reglee ? t('FACTURES.SETTLED') : t('FACTURES.PENDING'))) | uppercase }} ***
+          *** {{ (reglement ? tr('PART_SETTLED') : (facture.reglee ? tr('SETTLED') : tr('PENDING'))) }} ***
         </p>
-        <p class="greeting-text">{{ t('FACTURES.THANK_YOU') }}</p>
+        <p class="greeting-text">{{ tr('THANK_YOU') }}</p>
 
         <!-- Simulated POS Barcode -->
         <div class="simulated-barcode">

@@ -121,6 +121,7 @@ describe('FactureListComponent', () => {
   }));
 
   it('computes totalCA, totalSettledCA, totalPendingCA, settledCount, pendingCount, settledRate, and settledRatio correctly', () => {
+    expect(component.periodTotalCount).toBe(3);
     expect(component.totalCA).toBe(75.5);
     expect(component.totalSettledCA).toBe(50.0);
     expect(component.totalPendingCA).toBe(25.5);
@@ -287,6 +288,84 @@ describe('FactureListComponent', () => {
     expect(stopPropagationSpy).toHaveBeenCalled();
     expect(preventDefaultSpy).toHaveBeenCalled();
     expect(openSpy).toHaveBeenCalledWith(jasmine.stringMatching(/\/factures\/42\/pdf/), '_blank');
+  });
+
+  it('getOperationalDayString shifts 00:00-04:59 to previous day', () => {
+    // 23rd August at 02:30 AM should be operational day 2026-08-22
+    const lateNightDate = new Date(2026, 7, 23, 2, 30, 0); // Month 7 is August
+    expect(component.periodMode).toBe('ALL_TIME');
+    
+    component.periodMode = 'OPERATIONAL_DAY';
+    component.selectedDay = '2026-08-22';
+
+    const fNight: Facture = {
+      id: 99, tableId: 1, tableNumero: 1, numero: 'FAC-NIGHT', total: 50, totalTTC: 50, items: [], reglee: true,
+      dateFacture: lateNightDate.toISOString(), createdAt: '', updatedAt: ''
+    };
+    expect(component.isInvoiceInActivePeriod(fNight)).toBeTrue();
+
+    // 23rd August at 06:00 AM belongs to operational day 2026-08-23
+    const morningDate = new Date(2026, 7, 23, 6, 0, 0);
+    const fMorning: Facture = {
+      id: 100, tableId: 1, tableNumero: 1, numero: 'FAC-MORN', total: 50, totalTTC: 50, items: [], reglee: true,
+      dateFacture: morningDate.toISOString(), createdAt: '', updatedAt: ''
+    };
+    expect(component.isInvoiceInActivePeriod(fMorning)).toBeFalse();
+  });
+
+  it('filters invoices by week and month operational periods', () => {
+    const f1: Facture = {
+      id: 101, tableId: 1, tableNumero: 1, numero: 'FAC-W1', total: 100, totalTTC: 100, items: [], reglee: true,
+      dateFacture: '2026-08-15T20:00:00', createdAt: '', updatedAt: ''
+    };
+    const f2: Facture = {
+      id: 102, tableId: 1, tableNumero: 1, numero: 'FAC-W2', total: 100, totalTTC: 100, items: [], reglee: true,
+      dateFacture: '2026-08-22T20:00:00', createdAt: '', updatedAt: ''
+    };
+    component.factures = [f1, f2];
+
+    component.periodMode = 'WEEK';
+    component.selectedWeek = '2026-W34'; // Week of Aug 22, 2026
+    expect(component.periodFilteredFactures.some(f => f.id === 102)).toBeTrue();
+
+    component.periodMode = 'MONTH';
+    component.selectedMonth = '2026-08';
+    expect(component.periodFilteredFactures).toHaveSize(2);
+
+    component.selectedMonth = '2026-09';
+    expect(component.periodFilteredFactures).toHaveSize(0);
+  });
+
+  it('sets presets for today, yesterday, week, month, and all time', () => {
+    component.setToday();
+    expect(component.periodMode).toBe('OPERATIONAL_DAY');
+    expect(component.selectedDay).toBeDefined();
+
+    component.setYesterday();
+    expect(component.periodMode).toBe('OPERATIONAL_DAY');
+
+    component.setThisWeek();
+    expect(component.periodMode).toBe('WEEK');
+    expect(component.selectedWeek).toContain('-W');
+
+    component.setLastWeek();
+    expect(component.periodMode).toBe('WEEK');
+
+    component.setThisMonth();
+    expect(component.periodMode).toBe('MONTH');
+    expect(component.selectedMonth).toHaveSize(7);
+
+    component.setLastMonth();
+    expect(component.periodMode).toBe('MONTH');
+
+    component.setAllTime();
+    expect(component.periodMode).toBe('ALL_TIME');
+  });
+
+  it('sortOptions returns searchable options and onSortSelected updates sortBy', () => {
+    expect(component.sortOptions).toHaveSize(5);
+    component.onSortSelected({ value: 'AMOUNT_DESC', label: 'Montant décroissant' });
+    expect(component.sortBy).toBe('AMOUNT_DESC');
   });
 
   it('trackById() returns invoice id', () => {

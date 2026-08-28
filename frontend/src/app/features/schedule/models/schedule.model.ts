@@ -27,6 +27,7 @@ export interface ShiftCell {
   startTime?: string;
   endTime?: string;
   rawShift?: EmployeeShift;
+  shiftIds?: number[];
   isClosed?: boolean;
   closureReason?: string;
 }

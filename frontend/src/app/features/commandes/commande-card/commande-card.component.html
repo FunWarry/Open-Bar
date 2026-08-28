@@ -35,7 +35,7 @@
   <div class="card-meta">
     <span class="time-meta">
       <ion-icon name="time-outline"></ion-icon>
-      {{ commande.dateCommande | date:'HH:mm' }} ({{ getDelayMinutes(commande.dateCommande) }}m)
+      {{ commande.dateCommande | date:'HH:mm' }}@if (commande.statut !== 'LIVREE' && commande.statut !== 'REGLEE' && commande.statut !== 'ANNULEE' && getDelayMinutes(commande.dateCommande) > 0) { ({{ getDelayMinutes(commande.dateCommande) }}m)}
     </span>
     @if (commande.serveurUsername) {
       <span class="server-meta">👤 {{ commande.serveurUsername }}</span>

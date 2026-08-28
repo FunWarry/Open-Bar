@@ -20,6 +20,7 @@ import { Commande, CommandeItem } from '../../../../core/models/commande.model';
 import { DashboardServeurService } from '../../services/dashboard-serveur.service';
 import { TransfertModalComponent } from '../transfert-modal/transfert-modal.component';
 import { EditCommandeModalComponent } from '../edit-commande-modal/edit-commande-modal.component';
+import { CancelOrderModalComponent } from '../../../../core/components/ui/cancel-order-modal/cancel-order-modal.component';
 import { fastModalEnterAnimation, fastModalLeaveAnimation } from '../../../../core/utils/modal-animation.utils';
 
 /**
@@ -163,24 +164,26 @@ export class TableDetailModalComponent implements OnInit {
   }
 
   async annuler(commandeId: number): Promise<void> {
-    const alert = await this.alertCtrl.create({
-      header: this.translocoService.translate('TABLE_MODAL.CONFIRM_CANCEL_TITLE', { id: commandeId }),
-      message: this.translocoService.translate('TABLE_MODAL.CONFIRM_CANCEL_MESSAGE'),
-      buttons: [
-        {
-          text: this.translocoService.translate('COMMON.CANCEL'),
-          role: 'cancel',
-        },
-        {
-          text: this.translocoService.translate('TABLE_MODAL.CONFIRM_CANCEL_BTN'),
-          role: 'destructive',
-          handler: () => {
-            this.executeAnnulation(commandeId);
-          },
-        },
-      ],
+    const targetCmd = this.commandes.find(c => c.id === commandeId);
+    const modal = await this.modalCtrl.create({
+      component: CancelOrderModalComponent,
+      componentProps: {
+        commande: targetCmd,
+        commandeId: commandeId,
+        tableNumero: this.table?.nom || this.table?.id,
+        items: targetCmd?.items,
+        total: targetCmd?.total,
+        serveurUsername: targetCmd?.serveurUsername
+      },
+      cssClass: 'cancel-order-modal-dialog',
     });
-    await alert.present();
+
+    await modal.present();
+    const { data, role } = await modal.onWillDismiss();
+
+    if (role === 'confirm' || data?.confirmed) {
+      this.executeAnnulation(commandeId);
+    }
   }
 
   private executeAnnulation(commandeId: number): void {

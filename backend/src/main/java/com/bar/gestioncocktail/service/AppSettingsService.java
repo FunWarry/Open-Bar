@@ -4,7 +4,6 @@ import com.bar.gestioncocktail.dto.AppSettingsResponseDTO;
 import com.bar.gestioncocktail.dto.AppSettingsUpdateRequest;
 import com.bar.gestioncocktail.exception.BusinessException;
 import com.bar.gestioncocktail.model.AppSettings;
-import com.bar.gestioncocktail.model.DefaultTheme;
 import com.bar.gestioncocktail.repository.AppSettingsRepository;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -50,16 +49,14 @@ public class AppSettingsService {
      * @throws BusinessException If a business rule is violated (e.g. unsupported theme or inconsistent thresholds)
      */
     public AppSettings updateSettings(AppSettingsUpdateRequest request) {
-        if (request.defaultTheme() == DefaultTheme.LIGHT) {
-            throw new BusinessException(
-                "Light theme is not yet available (Figma design in progress, cf. ticket #154)");
-        }
         AppSettings current = getSettings();
         current.setPrimaryColor(request.primaryColor());
         current.setPrimaryColorStrong(request.primaryColorStrong());
         current.setLogoUrl(request.logoUrl());
         current.setEstablishmentName(request.establishmentName());
-        current.setDefaultTheme(request.defaultTheme());
+        if (request.defaultTheme() != null) {
+            current.setDefaultTheme(request.defaultTheme());
+        }
 
         if (request.currencyCode() != null && !request.currencyCode().isBlank()) {
             current.setCurrencyCode(request.currencyCode().trim().toUpperCase());

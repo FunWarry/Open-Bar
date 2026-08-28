@@ -59,7 +59,7 @@ class EstablishmentConfigServiceTest {
         EstablishmentConfigUpdateRequest request = new EstablishmentConfigUpdateRequest(
             "Nouveau Nom SARL", "SAS", "73282932000074", "Paris", "B 123",
             "FR12732829320", "5630Z", new BigDecimal("15000"),
-            "10 rue Test", "0102030405", "email@test.fr",
+            "10 rue Test", "France", "fr", "0102030405", "email@test.fr",
             "Immediate", "No discount", new BigDecimal("0.12"),
             "Europe/Paris", "58mm"
         );
@@ -69,6 +69,8 @@ class EstablishmentConfigServiceTest {
         assertThat(dto).isNotNull();
         assertThat(dto.legalName()).isEqualTo("Nouveau Nom SARL");
         assertThat(dto.legalForm()).isEqualTo("SAS");
+        assertThat(dto.country()).isEqualTo("France");
+        assertThat(dto.language()).isEqualTo("fr");
         assertThat(dto.timeZone()).isEqualTo("Europe/Paris");
         assertThat(dto.ticketFormat()).isEqualTo("58mm");
         verify(repository).save(any(EstablishmentConfig.class));
@@ -82,7 +84,7 @@ class EstablishmentConfigServiceTest {
         EstablishmentConfigUpdateRequest request = new EstablishmentConfigUpdateRequest(
             "OpenBar SARL", "SARL", "73282932000074", "Paris", "B 123",
             "FR12732829320", "5630Z", new BigDecimal("10000"),
-            "12 Rue du Bar", "+33123456789", "contact@openbar.local",
+            "12 Rue du Bar", "France", "fr", "+33123456789", "contact@openbar.local",
             "Immediate payment", "None", new BigDecimal("0.12"),
             "SYSTEM", "80mm"
         );
@@ -99,12 +101,26 @@ class EstablishmentConfigServiceTest {
         EstablishmentConfigUpdateRequest request = new EstablishmentConfigUpdateRequest(
             "Nom", "SARL", "12345678900000", "Paris", "B 123",
             "FR12732829320", "5630Z", new BigDecimal("10000"),
-            "Adresse", "01", "a@b.fr", "Terms", "Policy", new BigDecimal("0.1"),
+            "Adresse", "France", "fr", "01", "a@b.fr", "Terms", "Policy", new BigDecimal("0.1"),
             "SYSTEM", "80mm"
         );
 
         assertThatThrownBy(() -> service.updateConfig(request))
             .isInstanceOf(BusinessException.class)
             .hasMessageContaining("SIRET number is invalid");
+    }
+
+    @Test
+    void getConfig_avecSiretInvalideEnBase_corrigeAutomatiquementSiret() {
+        EstablishmentConfig legacyConfig = new EstablishmentConfig();
+        legacyConfig.setId(1L);
+        legacyConfig.setSiret("12345678900010"); // Invalid Luhn
+        when(repository.findById(1L)).thenReturn(Optional.of(legacyConfig));
+        when(repository.save(any(EstablishmentConfig.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        EstablishmentConfig result = service.getConfig();
+
+        assertThat(result).isNotNull();
+        assertThat(result.getSiret()).isEqualTo("73282932000074");
     }
 }

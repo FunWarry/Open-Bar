@@ -51,7 +51,7 @@ export class TicketReceiptComponent implements OnInit {
           this.establishmentConfig = {
             legalName: 'OpenBar SARL',
             legalForm: 'SARL',
-            siret: '12345678900010',
+            siret: '73282932000074',
             rcsCity: 'Paris',
             rcsNumber: 'B 123 456 789',
             tvaNumber: 'FR12123456789',
@@ -120,6 +120,38 @@ export class TicketReceiptComponent implements OnInit {
     }
     if (this.facture?.totalVAT) return this.facture.totalVAT;
     return this.totalTTC - this.totalHT;
+  }
+
+  get isEnglish(): boolean {
+    return (this.establishmentConfig?.language || '').toLowerCase() === 'en';
+  }
+
+  tr(key: string): string {
+    const isEn = this.isEnglish;
+    const dict: Record<string, { fr: string; en: string }> = {
+      'PHONE_LABEL': { fr: 'Tél.', en: 'Tel.' },
+      'RECEIPT_NUM': { fr: 'Ticket N°', en: 'Receipt No.' },
+      'DATE': { fr: 'Date', en: 'Date' },
+      'TABLE': { fr: 'Table', en: 'Table' },
+      'PAYMENT_MODE': { fr: 'Paiement', en: 'Payment' },
+      'COL_ITEM': { fr: 'ARTICLE', en: 'ITEM' },
+      'COL_QTY': { fr: 'QTÉ', en: 'QTY' },
+      'COL_TOTAL': { fr: 'TOTAL', en: 'TOTAL' },
+      'TOTAL_HT': { fr: 'Total HT', en: 'Total Excl. VAT' },
+      'TOTAL_VAT': { fr: 'Total TVA', en: 'Total VAT' },
+      'TIP': { fr: 'Pourboire', en: 'Tip' },
+      'TOTAL_TTC': { fr: 'TOTAL TTC', en: 'TOTAL INCL. VAT' },
+      'TOTAL_PART_PAID': { fr: 'Total part réglé', en: 'Total Part Paid' },
+      'SETTLED': { fr: 'RÉGLÉ', en: 'SETTLED' },
+      'PART_SETTLED': { fr: 'PART RÉGLÉE', en: 'PART SETTLED' },
+      'PENDING': { fr: 'EN ATTENTE', en: 'PENDING' },
+      'THANK_YOU': { fr: 'Merci de votre visite !', en: 'Thank you for your visit!' },
+      'PRINT_TICKET': { fr: 'Imprimer le ticket', en: 'Print Receipt' },
+    };
+    if (dict[key]) {
+      return isEn ? dict[key].en : dict[key].fr;
+    }
+    return key;
   }
 
   trackById(_index: number, item: FactureItem): number {

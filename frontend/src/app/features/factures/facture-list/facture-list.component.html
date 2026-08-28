@@ -16,8 +16,8 @@
               <ion-icon name="card-outline"></ion-icon>
               {{ t('FACTURES.HERO_BADGE') | uppercase }}
             </span>
-            <span class="hero-count-pill" *ngIf="factures.length > 0">
-              {{ factures.length }} {{ factures.length > 1 ? t('FACTURES.STATS.TOTAL_COUNT') : t('FACTURES.NUMBER') }}
+            <span class="hero-count-pill" *ngIf="periodFilteredFactures.length > 0">
+              {{ periodFilteredFactures.length }} {{ periodFilteredFactures.length > 1 ? t('FACTURES.STATS.TOTAL_COUNT') : t('FACTURES.NUMBER') }}
             </span>
           </div>
           <h1 class="hero-title">{{ t('FACTURES.TITLE') }}</h1>
@@ -67,7 +67,7 @@
           <ion-icon name="document-text-outline"></ion-icon>
         </div>
         <div class="kpi-body">
-          <span class="kpi-number">{{ factures.length }}</span>
+          <span class="kpi-number">{{ periodFilteredFactures.length }}</span>
           <span class="kpi-title">{{ t('FACTURES.STATS.TOTAL_COUNT') }}</span>
           <div class="kpi-subtext">
             <span>{{ settledCount }} {{ t('FACTURES.FILTERS.SETTLED') | lowercase }} • {{ pendingCount }} {{ t('FACTURES.FILTERS.PENDING') | lowercase }}</span>
@@ -83,7 +83,7 @@
         <div class="kpi-body">
           <div class="rate-top">
             <span class="kpi-number">{{ settledRate }}%</span>
-            <span class="rate-fraction">({{ settledCount }}/{{ factures.length }})</span>
+            <span class="rate-fraction">({{ settledCount }}/{{ periodFilteredFactures.length }})</span>
           </div>
           <span class="kpi-title">{{ t('FACTURES.STATS.SETTLED_RATE') }}</span>
           <div class="rate-progress-box">
@@ -111,6 +111,124 @@
       </div>
     </section>
 
+    <!-- Operational Period Selector Bar -->
+    <section class="period-filter-card" data-testid="factures-period-card">
+      <div class="period-header-row">
+        <div class="period-title-group">
+          <div class="period-icon-pill">
+            <ion-icon name="calendar-outline"></ion-icon>
+          </div>
+          <div>
+            <h3 class="period-title">{{ t('FACTURES.PERIOD.LABEL') }}</h3>
+            <p class="period-hint">{{ t('FACTURES.PERIOD.OPERATIONAL_DAY_HINT') }}</p>
+          </div>
+        </div>
+
+        <!-- Mode selector buttons -->
+        <div class="period-mode-pills">
+          <button
+            type="button"
+            class="mode-pill-btn"
+            [class.active]="periodMode === 'ALL_TIME'"
+            (click)="setAllTime()"
+            data-testid="period-mode-all">
+            {{ t('FACTURES.PERIOD.ALL_TIME') }}
+          </button>
+          <button
+            type="button"
+            class="mode-pill-btn"
+            [class.active]="periodMode === 'OPERATIONAL_DAY'"
+            (click)="setToday()"
+            data-testid="period-mode-day">
+            <ion-icon name="time-outline"></ion-icon>
+            {{ t('FACTURES.PERIOD.OPERATIONAL_DAY') }}
+          </button>
+          <button
+            type="button"
+            class="mode-pill-btn"
+            [class.active]="periodMode === 'WEEK'"
+            (click)="setThisWeek()"
+            data-testid="period-mode-week">
+            {{ t('FACTURES.PERIOD.WEEK') }}
+          </button>
+          <button
+            type="button"
+            class="mode-pill-btn"
+            [class.active]="periodMode === 'MONTH'"
+            (click)="setThisMonth()"
+            data-testid="period-mode-month">
+            {{ t('FACTURES.PERIOD.MONTH') }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick presets and date selector controls -->
+      <div class="period-controls-row" *ngIf="periodMode !== 'ALL_TIME'">
+        <!-- Quick Presets -->
+        <div class="quick-presets-group">
+          <ng-container *ngIf="periodMode === 'OPERATIONAL_DAY'">
+            <button type="button" class="preset-btn" (click)="setToday()" data-testid="preset-today">
+              {{ t('FACTURES.PERIOD.TODAY') }}
+            </button>
+            <button type="button" class="preset-btn" (click)="setYesterday()" data-testid="preset-yesterday">
+              {{ t('FACTURES.PERIOD.YESTERDAY') }}
+            </button>
+          </ng-container>
+
+          <ng-container *ngIf="periodMode === 'WEEK'">
+            <button type="button" class="preset-btn" (click)="setThisWeek()" data-testid="preset-this-week">
+              {{ t('FACTURES.PERIOD.THIS_WEEK') }}
+            </button>
+            <button type="button" class="preset-btn" (click)="setLastWeek()" data-testid="preset-last-week">
+              {{ t('FACTURES.PERIOD.LAST_WEEK') }}
+            </button>
+          </ng-container>
+
+          <ng-container *ngIf="periodMode === 'MONTH'">
+            <button type="button" class="preset-btn" (click)="setThisMonth()" data-testid="preset-this-month">
+              {{ t('FACTURES.PERIOD.THIS_MONTH') }}
+            </button>
+            <button type="button" class="preset-btn" (click)="setLastMonth()" data-testid="preset-last-month">
+              {{ t('FACTURES.PERIOD.LAST_MONTH') }}
+            </button>
+          </ng-container>
+        </div>
+
+        <!-- HTML5 Native Date Pickers according to active mode -->
+        <div class="period-input-box">
+          <ng-container *ngIf="periodMode === 'OPERATIONAL_DAY'">
+            <label class="input-label" for="period-day-input">{{ t('FACTURES.PERIOD.SELECT_DAY') }}</label>
+            <input
+              id="period-day-input"
+              type="date"
+              class="period-date-input"
+              [(ngModel)]="selectedDay"
+              data-testid="period-date-day-picker" />
+          </ng-container>
+
+          <ng-container *ngIf="periodMode === 'WEEK'">
+            <label class="input-label" for="period-week-input">{{ t('FACTURES.PERIOD.SELECT_WEEK') }}</label>
+            <input
+              id="period-week-input"
+              type="week"
+              class="period-date-input"
+              [(ngModel)]="selectedWeek"
+              data-testid="period-date-week-picker" />
+          </ng-container>
+
+          <ng-container *ngIf="periodMode === 'MONTH'">
+            <label class="input-label" for="period-month-input">{{ t('FACTURES.PERIOD.SELECT_MONTH') }}</label>
+            <input
+              id="period-month-input"
+              type="month"
+              class="period-date-input"
+              [(ngModel)]="selectedMonth"
+              data-testid="period-date-month-picker" />
+          </ng-container>
+        </div>
+      </div>
+    </section>
+
     <!-- Search, Filter & View Controls Bar -->
     <section class="filter-controls-card" data-testid="factures-filter-bar">
       <!-- Search Input -->
@@ -133,7 +251,7 @@
           (click)="setFilter('ALL')"
           data-testid="filter-all">
           <span>{{ t('FACTURES.FILTERS.ALL') }}</span>
-          <span class="chip-count">{{ factures.length }}</span>
+          <span class="chip-count">{{ periodFilteredFactures.length }}</span>
         </button>
 
         <button
@@ -161,20 +279,17 @@
 
       <!-- Sorting & View Mode Switches -->
       <div class="controls-right-group">
-        <!-- Sort Selector -->
+        <!-- Sort Searchable Selector -->
         <div class="sort-selector-box">
-          <ion-icon name="swap-vertical-outline" class="sort-icon"></ion-icon>
-          <select
-            class="custom-sort-select"
+          <app-searchable-select
+            [label]="t('FACTURES.SORT.LABEL')"
+            [options]="sortOptions"
             [(ngModel)]="sortBy"
-            [attr.aria-label]="t('FACTURES.SORT.LABEL')"
-            data-testid="factures-sort-select">
-            <option value="DATE_DESC">{{ t('FACTURES.SORT.DATE_DESC') }}</option>
-            <option value="DATE_ASC">{{ t('FACTURES.SORT.DATE_ASC') }}</option>
-            <option value="AMOUNT_DESC">{{ t('FACTURES.SORT.AMOUNT_DESC') }}</option>
-            <option value="AMOUNT_ASC">{{ t('FACTURES.SORT.AMOUNT_ASC') }}</option>
-            <option value="NUMBER">{{ t('FACTURES.SORT.NUMBER') }}</option>
-          </select>
+            (selectionChange)="onSortSelected($event)"
+            [enableSearch]="false"
+            [placeholder]="t('FACTURES.SORT.LABEL')"
+            testId="factures-sort-select">
+          </app-searchable-select>
         </div>
 
         <!-- View Mode Segment Toggle -->

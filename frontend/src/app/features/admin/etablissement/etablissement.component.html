@@ -17,7 +17,7 @@
             } @else {
               <form [formGroup]="configForm" (ngSubmit)="onSave()" data-testid="etablissement-form" class="etab-form">
                 
-                <div class="form-section-title">Informations Générales</div>
+                <div class="form-section-title">{{ 'ETABLISSEMENT.SECTION_GENERAL' | transloco }}</div>
                 
                 <ion-input
                   label="{{ 'ETABLISSEMENT.LEGAL_NAME' | transloco }} *"
@@ -51,14 +51,14 @@
                   </ion-input>
                 </div>
 
-                <div class="form-section-title">Identifiants Légaux & Fiscaux</div>
+                <div class="form-section-title">{{ 'ETABLISSEMENT.SECTION_LEGAL_IDS' | transloco }}</div>
 
                 <ion-input
                   label="{{ 'ETABLISSEMENT.SIRET' | transloco }} * (14 chiffres)"
                   labelPlacement="stacked"
                   fill="outline"
                   formControlName="siret"
-                  placeholder="12345678900010"
+                  placeholder="73282932000074"
                   data-testid="siret-input"
                   class="form-field"
                   [errorText]="configForm.get('siret')?.touched && configForm.get('siret')?.invalid ? ('ETABLISSEMENT.SIRET_INVALID' | transloco) : ''">
@@ -107,7 +107,7 @@
                   class="form-field">
                 </ion-input>
 
-                <div class="form-section-title">Coordonnées & Contact</div>
+                <div class="form-section-title">{{ 'ETABLISSEMENT.SECTION_CONTACT' | transloco }}</div>
 
                 <ion-input
                   label="{{ 'ETABLISSEMENT.ADDRESS' | transloco }} *"
@@ -118,6 +118,30 @@
                   data-testid="address-input"
                   class="form-field">
                 </ion-input>
+
+                <div class="form-row-2">
+                  <ion-input
+                    label="{{ 'ETABLISSEMENT.COUNTRY' | transloco }}"
+                    labelPlacement="stacked"
+                    fill="outline"
+                    formControlName="country"
+                    placeholder="France"
+                    data-testid="country-input"
+                    class="form-field">
+                  </ion-input>
+
+                  <ion-select
+                    label="{{ 'ETABLISSEMENT.LANGUAGE' | transloco }}"
+                    labelPlacement="stacked"
+                    fill="outline"
+                    formControlName="language"
+                    interface="popover"
+                    data-testid="language-select"
+                    class="form-field">
+                    <ion-select-option value="fr">{{ 'ETABLISSEMENT.LANG_FR' | transloco }}</ion-select-option>
+                    <ion-select-option value="en">{{ 'ETABLISSEMENT.LANG_EN' | transloco }}</ion-select-option>
+                  </ion-select>
+                </div>
 
                 <div class="form-row-2">
                   <ion-input
@@ -141,7 +165,7 @@
                   </ion-input>
                 </div>
 
-                <div class="form-section-title">Facturation & Système</div>
+                <div class="form-section-title">{{ 'ETABLISSEMENT.SECTION_BILLING_SYSTEM' | transloco }}</div>
 
                 <ion-input
                   label="{{ 'ETABLISSEMENT.PAYMENT_TERMS' | transloco }}"
@@ -232,7 +256,7 @@
               <div>Capital : {{ configForm.get('capitalSocial')?.value | currency:'EUR':'symbol':'1.2-2' }}</div>
               <div>{{ configForm.get('address')?.value || '12 Rue du Bar, 75001 Paris' }}</div>
               <div>Tél : {{ configForm.get('phone')?.value || '+33123456789' }}</div>
-              <div>SIRET : {{ configForm.get('siret')?.value || '12345678900010' }}</div>
+              <div>SIRET : {{ configForm.get('siret')?.value || '73282932000074' }}</div>
               <div>TVA : {{ configForm.get('tvaNumber')?.value || 'FR12123456789' }}</div>
               <div>RCS {{ configForm.get('rcsCity')?.value }} {{ configForm.get('rcsNumber')?.value }} — APE : {{ configForm.get('codeApe')?.value }}</div>
               <hr />

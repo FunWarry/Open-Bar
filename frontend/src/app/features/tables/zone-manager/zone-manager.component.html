@@ -1,80 +1,150 @@
-<ion-header class="ion-no-border">
+<ion-header class="ion-no-border modal-custom-header">
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-button (click)="onClose()" (onKeyUp)="onClose()" (keydown.enter)="onClose()" data-testid="zone-close-btn">
+      <ion-button class="modal-close-icon-btn" (click)="onClose()" (onKeyUp)="onClose()" (keydown.enter)="onClose()" data-testid="zone-close-btn">
         <ion-icon slot="icon-only" name="close-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
-    <ion-title>{{ 'ZONE_MANAGER.TITLE' | transloco }}</ion-title>
+
+    <div class="modal-header-titles">
+      <h2 class="modal-main-title">{{ 'ZONE_MANAGER.TITLE' | transloco }}</h2>
+      <p class="modal-sub-title">{{ 'ZONE_MANAGER.SUBTITLE' | transloco }}</p>
+    </div>
+
     <ion-buttons slot="end">
       @if (activeTab === 'zones') {
-        <ion-button class="modal-header-btn" fill="solid" (click)="toggleAddForm()" (onKeyUp)="toggleAddForm()" (keydown.enter)="toggleAddForm()" data-testid="zone-add-btn">
+        <ion-button
+          class="modal-action-cta-btn"
+          [class.is-active]="showAddForm"
+          fill="solid"
+          (click)="toggleAddForm()"
+          (onKeyUp)="toggleAddForm()"
+          (keydown.enter)="toggleAddForm()"
+          data-testid="zone-add-btn">
           <ion-icon slot="start" [name]="showAddForm ? 'close' : 'add'"></ion-icon>
-          {{ showAddForm ? ('ZONE_MANAGER.CLOSE' | transloco) : ('ZONE_MANAGER.NEW_ZONE' | transloco) }}
+          <span>{{ showAddForm ? ('ZONE_MANAGER.CLOSE' | transloco) : ('ZONE_MANAGER.NEW_ZONE' | transloco) }}</span>
         </ion-button>
       } @else {
-        <ion-button class="modal-header-btn" fill="solid" (click)="toggleAddEtageForm()" (onKeyUp)="toggleAddEtageForm()" (keydown.enter)="toggleAddEtageForm()" data-testid="etage-add-btn">
+        <ion-button
+          class="modal-action-cta-btn"
+          [class.is-active]="showAddEtageForm"
+          fill="solid"
+          (click)="toggleAddEtageForm()"
+          (onKeyUp)="toggleAddEtageForm()"
+          (keydown.enter)="toggleAddEtageForm()"
+          data-testid="etage-add-btn">
           <ion-icon slot="start" [name]="showAddEtageForm ? 'close' : 'add'"></ion-icon>
-          {{ showAddEtageForm ? ('ZONE_MANAGER.CLOSE' | transloco) : ('ZONE_MANAGER.NEW_ETAGE' | transloco) }}
+          <span>{{ showAddEtageForm ? ('ZONE_MANAGER.CLOSE' | transloco) : ('ZONE_MANAGER.NEW_ETAGE' | transloco) }}</span>
         </ion-button>
       }
     </ion-buttons>
   </ion-toolbar>
-  <div class="segment-toolbar">
+
+  <!-- Segment Tab Navigation -->
+  <div class="modal-segment-nav">
     <ion-segment [value]="activeTab" (ionChange)="onTabChange($event)" data-testid="zone-manager-segment">
       <ion-segment-button value="zones" data-testid="tab-zones">
         <ion-icon name="location-outline"></ion-icon>
         <ion-label>{{ 'ZONE_MANAGER.TABS.ZONES' | transloco }}</ion-label>
+        <span class="tab-count-pill">{{ zones.length }}</span>
       </ion-segment-button>
       <ion-segment-button value="etages" data-testid="tab-etages">
         <ion-icon name="business-outline"></ion-icon>
         <ion-label>{{ 'ZONE_MANAGER.TABS.ETAGES' | transloco }}</ion-label>
+        <span class="tab-count-pill">{{ etages.length }}</span>
       </ion-segment-button>
     </ion-segment>
   </div>
 </ion-header>
 
-<ion-content class="modal-content-container">
-  <div class="zone-manager-container">
+<ion-content class="modal-content-body">
+  <div class="zone-manager-body">
 
+    <!-- ── Search & Filter Bar ─────────────────────────────────────────── -->
+    <div class="search-and-filters-panel">
+      <div class="search-input-box">
+        <label for="zone-search-input" class="visually-hidden">
+          {{ (activeTab === 'zones' ? 'ZONE_MANAGER.SEARCH_ZONES' : 'ZONE_MANAGER.SEARCH_ETAGES') | transloco }}
+        </label>
+        <ion-icon name="search-outline" class="search-icon"></ion-icon>
+        <input
+          id="zone-search-input"
+          type="text"
+          class="custom-search-field"
+          [(ngModel)]="searchQuery"
+          [placeholder]="(activeTab === 'zones' ? 'ZONE_MANAGER.SEARCH_ZONES' : 'ZONE_MANAGER.SEARCH_ETAGES') | transloco"
+          data-testid="zone-search-input" />
+        <button *ngIf="searchQuery" class="clear-search-btn" (click)="searchQuery = ''" type="button">
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
+      </div>
+
+      <!-- Quick floor chips filter when in Zones tab -->
+      <div *ngIf="activeTab === 'zones' && etages.length > 0" class="floor-filter-chips">
+        <button
+          type="button"
+          class="floor-chip"
+          [class.active]="selectedFloorFilter === 'ALL'"
+          (click)="setFloorFilter('ALL')">
+          {{ 'ZONE_MANAGER.ALL_FLOORS' | transloco }}
+        </button>
+        <button
+          *ngFor="let etage of etages"
+          type="button"
+          class="floor-chip"
+          [class.active]="selectedFloorFilter === etage.code"
+          (click)="setFloorFilter(etage.code)">
+          <ion-icon name="business-outline"></ion-icon>
+          <span>{{ etage.nom }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- ZONES TAB                                                           -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
     @if (activeTab === 'zones') {
-      <!-- ZONES TAB -->
-      @if (showAddForm || editingZoneId !== null) {
-        <div class="zone-form-card">
-          <h4 class="form-title">{{ editingZoneId !== null ? ('ZONE_MANAGER.EDIT_ZONE' | transloco) : ('ZONE_MANAGER.ADD_ZONE' | transloco) }}</h4>
-          <form [formGroup]="zoneForm" (ngSubmit)="onSave()" class="zone-form">
-            <app-input-field
-              formControlName="nom"
-              [label]="'ZONE_MANAGER.ZONE_NAME' | transloco"
-              [placeholder]="'ZONE_MANAGER.ZONE_NAME_PLACEHOLDER' | transloco"
-              icon="location-outline"
-              [required]="true"
-              testId="zone-nom-input">
-            </app-input-field>
+      <!-- Zone Form Card (Create / Edit) -->
+      @if (showAddForm) {
+        <div class="manager-form-drawer" data-testid="zone-form-drawer">
+          <div class="form-drawer-header">
+            <div class="drawer-icon-box">
+              <ion-icon [name]="editingZoneId !== null ? 'create-outline' : 'sparkles-outline'"></ion-icon>
+            </div>
+            <div class="drawer-title-box">
+              <h4 class="form-title">
+                {{ editingZoneId !== null ? ('ZONE_MANAGER.EDIT_ZONE' | transloco) : ('ZONE_MANAGER.ADD_ZONE' | transloco) }}
+              </h4>
+              <p class="form-subtitle">Renseignez le nom de la zone et sélectionnez son niveau d'étage</p>
+            </div>
+          </div>
 
-            <div class="select-field-group">
-              <span class="field-label">{{ 'ZONE_MANAGER.CATEGORY_ETAGE' | transloco }} <span class="required-star">*</span></span>
-              <div class="select-input-wrapper">
-                <ion-icon name="layers-outline" class="select-icon"></ion-icon>
-                <ion-select
-                  formControlName="etage"
-                  [placeholder]="'ZONE_MANAGER.CHOOSE_ETAGE' | transloco"
-                  [cancelText]="'ZONE_MANAGER.CANCEL' | transloco"
-                  [okText]="'ZONE_MANAGER.VALIDATE' | transloco"
-                  [interfaceOptions]="{ header: ('ZONE_MANAGER.CATEGORY_ETAGE' | transloco) }"
-                  data-testid="zone-etage-select">
-                  @for (etage of etages; track etage.id) {
-                    <ion-select-option [value]="etage.code">{{ etage.nom }}</ion-select-option>
-                  }
-                </ion-select>
-              </div>
+          <form [formGroup]="zoneForm" (ngSubmit)="onSave()" class="drawer-form-content">
+            <div class="form-grid">
+              <app-input-field
+                formControlName="nom"
+                [label]="'ZONE_MANAGER.ZONE_NAME' | transloco"
+                [placeholder]="'ZONE_MANAGER.ZONE_NAME_PLACEHOLDER' | transloco"
+                icon="location-outline"
+                [required]="true"
+                testId="zone-nom-input">
+              </app-input-field>
+
+              <app-searchable-select
+                formControlName="etage"
+                [label]="'ZONE_MANAGER.CATEGORY_ETAGE' | transloco"
+                [placeholder]="'ZONE_MANAGER.CHOOSE_ETAGE' | transloco"
+                [options]="etageOptions"
+                [required]="true"
+                data-testid="zone-etage-select">
+              </app-searchable-select>
             </div>
 
-            <div class="form-actions">
-              <ion-button fill="outline" color="medium" type="button" (click)="resetForm()" (onKeyUp)="resetForm()" (keydown.enter)="resetForm()">
+            <div class="form-drawer-actions">
+              <ion-button fill="outline" class="btn-cancel" type="button" (click)="resetForm()" (onKeyUp)="resetForm()" (keydown.enter)="resetForm()">
                 {{ 'ZONE_MANAGER.CANCEL' | transloco }}
               </ion-button>
-              <ion-button color="primary" type="submit" [disabled]="zoneForm.invalid" data-testid="zone-submit-btn">
+              <ion-button class="btn-submit" type="submit" [disabled]="zoneForm.invalid" data-testid="zone-submit-btn">
                 <ion-icon slot="start" name="checkmark-circle"></ion-icon>
                 {{ editingZoneId !== null ? ('ZONE_MANAGER.SAVE' | transloco) : ('ZONE_MANAGER.CREATE' | transloco) }}
               </ion-button>
@@ -83,76 +153,120 @@
         </div>
       }
 
-      <div class="zone-list-section">
+      <!-- Zones List Section -->
+      <div class="list-section">
         @if (isLoading) {
-          <div class="loading-spinner">
+          <div class="loading-state-box">
             <ion-spinner name="crescent"></ion-spinner>
           </div>
-        } @else if (zones.length === 0) {
-          <div class="empty-state">
-            <ion-icon name="layers-outline" class="empty-icon"></ion-icon>
-            <p>{{ 'ZONE_MANAGER.NO_ZONES' | transloco }}</p>
+        } @else if (filteredZones.length === 0) {
+          <div class="empty-state-card">
+            <div class="empty-state-icon">
+              <ion-icon name="location-outline"></ion-icon>
+            </div>
+            <h4 class="empty-state-title">{{ 'ZONE_MANAGER.NO_ZONES' | transloco }}</h4>
+            <ion-button class="empty-cta-btn" fill="solid" (click)="toggleAddForm()" (onKeyUp)="toggleAddForm()" (keydown.enter)="toggleAddForm()">
+              <ion-icon slot="start" name="add"></ion-icon>
+              {{ 'ZONE_MANAGER.NEW_ZONE' | transloco }}
+            </ion-button>
           </div>
         } @else {
-          <div class="zone-items-list">
-            @for (zone of zones; track zone.id) {
-              <div class="zone-item-card" data-testid="zone-item">
-                <div class="zone-info">
-                  <span class="zone-name">{{ zone.nom }}</span>
-                  <span class="etage-badge">{{ getEtageLabel(zone.etage) }}</span>
+          <div class="cards-grid">
+            @for (zone of filteredZones; track zone.id) {
+              <div class="item-card zone-card" data-testid="zone-item">
+                <div class="card-left-section">
+                  <div class="card-icon-avatar">
+                    <ion-icon name="location-outline"></ion-icon>
+                  </div>
+                  <div class="card-details">
+                    <span class="card-name">{{ zone.nom }}</span>
+                    <span class="card-badge floor-badge">
+                      <ion-icon name="business-outline"></ion-icon>
+                      <span>{{ getEtageLabel(zone.etage) }}</span>
+                    </span>
+                  </div>
                 </div>
-                <div class="zone-actions">
-                  <ion-button fill="clear" color="primary" (click)="onEdit(zone)" (onKeyUp)="onEdit(zone)" (keydown.enter)="onEdit(zone)" data-testid="btn-edit-zone">
-                    <ion-icon slot="icon-only" name="create-outline"></ion-icon>
-                  </ion-button>
-                  <ion-button fill="clear" color="danger" (click)="onDelete(zone)" (onKeyUp)="onDelete(zone)" (keydown.enter)="onDelete(zone)" data-testid="btn-delete-zone">
-                    <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
-                  </ion-button>
+
+                <div class="card-actions">
+                  <button
+                    type="button"
+                    class="action-btn edit-action"
+                    (click)="onEdit(zone)"
+                    title="{{ 'ZONE_MANAGER.EDIT_ZONE' | transloco }}"
+                    data-testid="btn-edit-zone">
+                    <ion-icon name="create-outline"></ion-icon>
+                  </button>
+                  <button
+                    type="button"
+                    class="action-btn delete-action"
+                    (click)="onDelete(zone)"
+                    title="{{ 'ZONE_MANAGER.CONFIRM_DELETE_ZONE_BTN' | transloco }}"
+                    data-testid="btn-delete-zone">
+                    <ion-icon name="trash-outline"></ion-icon>
+                  </button>
                 </div>
               </div>
             }
           </div>
         }
       </div>
-    } @else {
-      <!-- ETAGES TAB -->
-      @if (showAddEtageForm || editingEtageId !== null) {
-        <div class="zone-form-card">
-          <h4 class="form-title">{{ editingEtageId !== null ? ('ZONE_MANAGER.EDIT_ETAGE' | transloco) : ('ZONE_MANAGER.ADD_ETAGE' | transloco) }}</h4>
-          <form [formGroup]="etageForm" (ngSubmit)="onSaveEtage()" class="zone-form">
-            <app-input-field
-              formControlName="nom"
-              [label]="'ZONE_MANAGER.ETAGE_NAME' | transloco"
-              [placeholder]="'ZONE_MANAGER.ETAGE_NAME_PLACEHOLDER' | transloco"
-              icon="business-outline"
-              [required]="true"
-              testId="etage-nom-input">
-            </app-input-field>
+    }
 
-            <app-input-field
-              formControlName="code"
-              [label]="'ZONE_MANAGER.ETAGE_CODE' | transloco"
-              [placeholder]="'ZONE_MANAGER.ETAGE_CODE_PLACEHOLDER' | transloco"
-              icon="layers-outline"
-              [required]="true"
-              testId="etage-code-input">
-            </app-input-field>
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- ETAGES TAB                                                          -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    @if (activeTab === 'etages') {
+      <!-- Etage Form Card (Create / Edit) -->
+      @if (showAddEtageForm) {
+        <div class="manager-form-drawer" data-testid="etage-form-drawer">
+          <div class="form-drawer-header">
+            <div class="drawer-icon-box">
+              <ion-icon [name]="editingEtageId !== null ? 'create-outline' : 'sparkles-outline'"></ion-icon>
+            </div>
+            <div class="drawer-title-box">
+              <h4 class="form-title">
+                {{ editingEtageId !== null ? ('ZONE_MANAGER.EDIT_ETAGE' | transloco) : ('ZONE_MANAGER.ADD_ETAGE' | transloco) }}
+              </h4>
+              <p class="form-subtitle">Configurez le nom, le code identifiant et l'ordre d'affichage du niveau</p>
+            </div>
+          </div>
 
-            <app-input-field
-              formControlName="ordre"
-              type="number"
-              [label]="'ZONE_MANAGER.ETAGE_ORDER' | transloco"
-              placeholder="1, 2, 3..."
-              icon="layers-outline"
-              [required]="true"
-              testId="etage-ordre-input">
-            </app-input-field>
+          <form [formGroup]="etageForm" (ngSubmit)="onSaveEtage()" class="drawer-form-content">
+            <div class="form-grid">
+              <app-input-field
+                formControlName="nom"
+                [label]="'ZONE_MANAGER.ETAGE_NAME' | transloco"
+                [placeholder]="'ZONE_MANAGER.ETAGE_NAME_PLACEHOLDER' | transloco"
+                icon="business-outline"
+                [required]="true"
+                testId="etage-nom-input">
+              </app-input-field>
 
-            <div class="form-actions">
-              <ion-button fill="outline" color="medium" type="button" (click)="resetEtageForm()" (onKeyUp)="resetEtageForm()" (keydown.enter)="resetEtageForm()">
+              <app-input-field
+                formControlName="code"
+                [label]="'ZONE_MANAGER.ETAGE_CODE' | transloco"
+                [placeholder]="'ZONE_MANAGER.ETAGE_CODE_PLACEHOLDER' | transloco"
+                icon="barcode-outline"
+                [required]="true"
+                testId="etage-code-input">
+              </app-input-field>
+
+              <app-input-field
+                formControlName="ordre"
+                type="number"
+                [label]="'ZONE_MANAGER.ETAGE_ORDER' | transloco"
+                placeholder="1, 2, 3..."
+                icon="reorder-two-outline"
+                [required]="true"
+                testId="etage-ordre-input">
+              </app-input-field>
+            </div>
+
+            <div class="form-drawer-actions">
+              <ion-button fill="outline" class="btn-cancel" type="button" (click)="resetEtageForm()" (onKeyUp)="resetEtageForm()" (keydown.enter)="resetEtageForm()">
                 {{ 'ZONE_MANAGER.CANCEL' | transloco }}
               </ion-button>
-              <ion-button color="primary" type="submit" [disabled]="etageForm.invalid" data-testid="etage-submit-btn">
+              <ion-button class="btn-submit" type="submit" [disabled]="etageForm.invalid" data-testid="etage-submit-btn">
                 <ion-icon slot="start" name="checkmark-circle"></ion-icon>
                 {{ editingEtageId !== null ? ('ZONE_MANAGER.SAVE' | transloco) : ('ZONE_MANAGER.CREATE' | transloco) }}
               </ion-button>
@@ -161,32 +275,73 @@
         </div>
       }
 
-      <div class="zone-list-section">
+      <!-- Etages List Section -->
+      <div class="list-section">
         @if (isLoading) {
-          <div class="loading-spinner">
+          <div class="loading-state-box">
             <ion-spinner name="crescent"></ion-spinner>
           </div>
-        } @else if (etages.length === 0) {
-          <div class="empty-state">
-            <ion-icon name="business-outline" class="empty-icon"></ion-icon>
-            <p>{{ 'ZONE_MANAGER.NO_ETAGES' | transloco }}</p>
+        } @else if (filteredEtages.length === 0) {
+          <div class="empty-state-card">
+            <div class="empty-state-icon">
+              <ion-icon name="business-outline"></ion-icon>
+            </div>
+            <h4 class="empty-state-title">{{ 'ZONE_MANAGER.NO_ETAGES' | transloco }}</h4>
+            <ion-button class="empty-cta-btn" fill="solid" (click)="toggleAddEtageForm()" (onKeyUp)="toggleAddEtageForm()" (keydown.enter)="toggleAddEtageForm()">
+              <ion-icon slot="start" name="add"></ion-icon>
+              {{ 'ZONE_MANAGER.NEW_ETAGE' | transloco }}
+            </ion-button>
           </div>
         } @else {
-          <div class="zone-items-list">
-            @for (etage of etages; track etage.id) {
-              <div class="zone-item-card" data-testid="etage-item">
-                <div class="zone-info">
-                  <span class="zone-name">{{ etage.nom }}</span>
-                  <span class="etage-badge code-badge">{{ etage.code }}</span>
-                  <span class="ordre-badge">#{{ etage.ordre }}</span>
+          <div class="cards-grid">
+            @for (etage of filteredEtages; track etage.id) {
+              <div class="item-card etage-card" data-testid="etage-item">
+                <div class="card-left-section">
+                  <div class="card-order-badge">
+                    <span>#{{ etage.ordre ?? 0 }}</span>
+                  </div>
+                  <div class="card-details">
+                    <div class="name-and-code-row">
+                      <span class="card-name">{{ etage.nom }}</span>
+                      <span class="card-badge code-badge">
+                        <ion-icon name="barcode-outline"></ion-icon>
+                        <span>{{ etage.code }}</span>
+                      </span>
+                    </div>
+
+                    <!-- Associated zones summary -->
+                    <div class="associated-zones-row">
+                      <ion-icon name="location-outline" class="associated-icon"></ion-icon>
+                      <span *ngIf="getZonesForEtage(etage.code).length > 0" class="associated-zones-text">
+                        <span class="zones-count-highlight">{{ getZonesForEtage(etage.code).length }} {{ 'ZONE_MANAGER.TABS.ZONES' | transloco }} : </span>
+                        <span *ngFor="let z of getZonesForEtage(etage.code); let isLast = last" class="zone-pill-mini">
+                          {{ z.nom }}{{ isLast ? '' : ', ' }}
+                        </span>
+                      </span>
+                      <span *ngIf="getZonesForEtage(etage.code).length === 0" class="no-zones-text">
+                        {{ 'ZONE_MANAGER.NO_ASSOCIATED_ZONES' | transloco }}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <div class="zone-actions">
-                  <ion-button fill="clear" color="primary" (click)="onEditEtage(etage)" (onKeyUp)="onEditEtage(etage)" (keydown.enter)="onEditEtage(etage)" data-testid="btn-edit-etage">
-                    <ion-icon slot="icon-only" name="create-outline"></ion-icon>
-                  </ion-button>
-                  <ion-button fill="clear" color="danger" (click)="onDeleteEtage(etage)" (onKeyUp)="onDeleteEtage(etage)" (keydown.enter)="onDeleteEtage(etage)" data-testid="btn-delete-etage">
-                    <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
-                  </ion-button>
+
+                <div class="card-actions">
+                  <button
+                    type="button"
+                    class="action-btn edit-action"
+                    (click)="onEditEtage(etage)"
+                    title="{{ 'ZONE_MANAGER.EDIT_ETAGE' | transloco }}"
+                    data-testid="btn-edit-etage">
+                    <ion-icon name="create-outline"></ion-icon>
+                  </button>
+                  <button
+                    type="button"
+                    class="action-btn delete-action"
+                    (click)="onDeleteEtage(etage)"
+                    title="{{ 'ZONE_MANAGER.CONFIRM_DELETE_ETAGE_BTN' | transloco }}"
+                    data-testid="btn-delete-etage">
+                    <ion-icon name="trash-outline"></ion-icon>
+                  </button>
                 </div>
               </div>
             }

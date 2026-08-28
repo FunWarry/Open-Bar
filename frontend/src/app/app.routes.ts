@@ -2,6 +2,7 @@ import {Routes} from '@angular/router';
 import {AuthGuard} from './core/guards/auth.guard';
 import {RoleGuard} from './core/guards/role.guard';
 import {SetupGuard} from './core/guards/setup.guard';
+import {PendingChangesGuard} from './core/guards/pending-changes.guard';
 
 export const routes: Routes = [
   {
@@ -29,6 +30,7 @@ export const routes: Routes = [
     canActivate: [AuthGuard, RoleGuard],
     data: {roles: ['ADMIN']}
   },
+
   // Ingredients management — accessible to ADMIN, MANAGER, BARMAN
   {
     path: 'ingredients',
@@ -54,6 +56,8 @@ export const routes: Routes = [
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['ADMIN', 'MANAGER', 'BARMAN'] }
   },
+
+  // Cocktails
   {
     path: 'cocktails',
     loadComponent: () => import('./features/cocktails/cocktail-list/cocktail-list.component').then(m => m.CocktailListComponent),
@@ -72,6 +76,22 @@ export const routes: Routes = [
     data: {roles: ['ADMIN']}
   },
 
+  // Orders (English routes + legacy /commandes redirects)
+  {
+    path: 'orders',
+    loadComponent: () => import('./features/commandes/commande-list/commande-list.component').then(m => m.CommandeListComponent),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'orders/new',
+    loadComponent: () => import('./features/commandes/commande-form/commande-form.component').then(m => m.CommandeFormComponent),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'orders/:id',
+    loadComponent: () => import('./features/commandes/commande-detail/commande-detail.component').then(m => m.CommandeDetailComponent),
+    canActivate: [AuthGuard]
+  },
   {
     path: 'commandes',
     loadComponent: () => import('./features/commandes/commande-list/commande-list.component').then(m => m.CommandeListComponent),
@@ -79,14 +99,21 @@ export const routes: Routes = [
   },
   {
     path: 'commandes/new',
-    loadComponent: () => import('./features/commandes/commande-form/commande-form.component').then(m => m.CommandeFormComponent),
-    canActivate: [AuthGuard]
+    redirectTo: '/orders/new',
+    pathMatch: 'full'
+  },
+  {
+    path: 'commandes/nouvelle',
+    redirectTo: '/orders/new',
+    pathMatch: 'full'
   },
   {
     path: 'commandes/:id',
     loadComponent: () => import('./features/commandes/commande-detail/commande-detail.component').then(m => m.CommandeDetailComponent),
     canActivate: [AuthGuard]
   },
+
+  // Tables
   {
     path: 'tables',
     loadComponent: () => import('./features/tables/table-list/table-list.component').then(m => m.TableListComponent),
@@ -107,6 +134,8 @@ export const routes: Routes = [
     loadComponent: () => import('./features/tables/table-form/table-form.component').then(m => m.TableFormComponent),
     canActivate: [AuthGuard]
   },
+
+  // Profile & Admin
   {
     path: 'profile',
     loadComponent: () => import('./features/profile/profile.component').then(m => m.ProfileComponent),
@@ -125,10 +154,36 @@ export const routes: Routes = [
     data: {roles: ['ADMIN']}
   },
   {
-    path: 'admin/personnalisation',
-    loadComponent: () => import('./features/admin/personnalisation/personnalisation.component').then(m => m.PersonnalisationComponent),
+    path: 'admin/settings',
+    loadComponent: () => import('./features/admin/settings/app-settings-page.component').then(m => m.AppSettingsPageComponent),
     canActivate: [AuthGuard, RoleGuard],
-    data: {roles: ['ADMIN']}
+    canDeactivate: [PendingChangesGuard],
+    data: { roles: ['ADMIN', 'MANAGER'] }
+  },
+  {
+    path: 'settings',
+    redirectTo: '/admin/settings',
+    pathMatch: 'full'
+  },
+  {
+    path: 'admin/customization',
+    redirectTo: '/admin/settings?tab=theme',
+    pathMatch: 'full'
+  },
+  {
+    path: 'admin/personnalisation',
+    redirectTo: '/admin/settings?tab=theme',
+    pathMatch: 'full'
+  },
+  {
+    path: 'admin/establishment',
+    redirectTo: '/admin/settings?tab=legal',
+    pathMatch: 'full'
+  },
+  {
+    path: 'admin/etablissement',
+    redirectTo: '/admin/settings?tab=legal',
+    pathMatch: 'full'
   },
   {
     path: 'admin/audit-logs',
@@ -136,11 +191,41 @@ export const routes: Routes = [
     canActivate: [AuthGuard, RoleGuard],
     data: {roles: ['ADMIN']}
   },
+
+  // Bartender (English route + /barman)
+  {
+    path: 'bartender',
+    loadComponent: () => import('./features/dashboard-barman/dashboard-barman.component').then(m => m.DashboardBarmanComponent),
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['BARMAN', 'ADMIN', 'MANAGER'] }
+  },
   {
     path: 'barman',
     loadComponent: () => import('./features/dashboard-barman/dashboard-barman.component').then(m => m.DashboardBarmanComponent),
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['BARMAN', 'ADMIN', 'MANAGER'] }
+  },
+
+  // Waiter / Server Dashboard (English route + /serveur)
+  {
+    path: 'waiter',
+    loadComponent: () => import('./features/dashboard-serveur/dashboard-serveur.component').then(m => m.DashboardServeurComponent),
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['SERVEUR', 'MANAGER', 'ADMIN'] }
+  },
+  {
+    path: 'waiter/new-order',
+    redirectTo: '/waiter',
+    pathMatch: 'full',
+  },
+  {
+    path: 'waiter/new-order/:tableId',
+    redirectTo: route => `/waiter?tableId=${route.params['tableId']}`,
+  },
+  {
+    path: 'waiter/order-tracking',
+    redirectTo: '/waiter?tab=suivi',
+    pathMatch: 'full',
   },
   {
     path: 'serveur',
@@ -162,12 +247,22 @@ export const routes: Routes = [
     redirectTo: '/serveur?tab=suivi',
     pathMatch: 'full',
   },
+
+  // Floor Plan (English route + /plan-salle)
+  {
+    path: 'floor-plan',
+    loadComponent: () => import('./features/plan-salle/plan-salle.component').then(m => m.PlanSalleComponent),
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['MANAGER', 'ADMIN'] }
+  },
   {
     path: 'plan-salle',
     loadComponent: () => import('./features/plan-salle/plan-salle.component').then(m => m.PlanSalleComponent),
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['MANAGER', 'ADMIN'] }
   },
+
+  // Manager
   {
     path: 'manager',
     loadComponent: () => import('./features/dashboard-manager/dashboard-manager.component').then(m => m.DashboardManagerComponent),
@@ -194,14 +289,39 @@ export const routes: Routes = [
   },
   {
     path: 'manager/timers',
-    loadComponent: () => import('./features/dashboard-manager/components/order-timers-settings/order-timers-settings.component').then(m => m.OrderTimersSettingsComponent),
+    redirectTo: '/admin/settings?tab=timers',
+    pathMatch: 'full'
+  },
+  {
+    path: 'admin/timers',
+    redirectTo: '/admin/settings?tab=timers',
+    pathMatch: 'full'
+  },
+
+  // Invoices (English route + /factures)
+  {
+    path: 'invoices',
+    loadComponent: () => import('./features/factures/facture-list/facture-list.component').then(m => m.FactureListComponent),
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['MANAGER', 'ADMIN', 'SERVEUR'] }
+  },
+  {
+    path: 'invoices/recap',
+    loadComponent: () => import('./features/factures/facture-recap-journee/facture-recap-journee.component').then(m => m.FactureRecapJourneeComponent),
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['MANAGER', 'ADMIN'] }
   },
   {
-    path: 'admin/timers',
-    redirectTo: 'manager/timers',
-    pathMatch: 'full'
+    path: 'invoices/:id/split',
+    loadComponent: () => import('./features/factures/facture-split/facture-split.component').then(m => m.FactureSplitComponent),
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['MANAGER', 'ADMIN', 'SERVEUR'] }
+  },
+  {
+    path: 'invoices/:id',
+    loadComponent: () => import('./features/factures/facture-detail/facture-detail.component').then(m => m.FactureDetailComponent),
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['MANAGER', 'ADMIN', 'SERVEUR'] }
   },
   {
     path: 'factures',
@@ -227,24 +347,36 @@ export const routes: Routes = [
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['MANAGER', 'ADMIN', 'SERVEUR'] }
   },
-  {
-    path: 'admin/etablissement',
-    loadComponent: () => import('./features/admin/etablissement/etablissement.component').then(m => m.EtablissementComponent),
-    canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['ADMIN'] }
-  },
+
+  // Client QR & Ordering
   {
     path: 'client/scanner',
     loadComponent: () => import('./features/client/client-qr-scanner/client-qr-scanner.component').then(m => m.ClientQrScannerComponent)
+  },
+  {
+    path: 'client/scan',
+    redirectTo: '/client/scanner',
+    pathMatch: 'full'
   },
   {
     path: 'client/commande',
     loadComponent: () => import('./features/client/client-commande/client-commande.component').then(m => m.ClientCommandeComponent)
   },
   {
+    path: 'client/order',
+    redirectTo: '/client/commande',
+    pathMatch: 'full'
+  },
+  {
     path: 'client/suivi/:id',
     loadComponent: () => import('./features/client/client-suivi/client-suivi.component').then(m => m.ClientSuiviComponent)
   },
+  {
+    path: 'client/tracking/:id',
+    redirectTo: route => `/client/suivi/${route.params['id']}`
+  },
+
+  // Onboarding & Fallback
   {
     path: 'onboarding',
     loadComponent: () => import('./features/onboarding/onboarding.component').then(m => m.OnboardingComponent),

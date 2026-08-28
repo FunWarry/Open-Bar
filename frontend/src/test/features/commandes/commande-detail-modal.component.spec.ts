@@ -37,7 +37,7 @@ describe('CommandeDetailModalComponent', () => {
 
   beforeEach(async () => {
     commandeServiceSpy = jasmine.createSpyObj('CommandeService', ['getById', 'changerStatut', 'annuler']);
-    modalCtrlSpy = jasmine.createSpyObj('ModalController', ['dismiss']);
+    modalCtrlSpy = jasmine.createSpyObj('ModalController', ['dismiss', 'create']);
     alertCtrlSpy = jasmine.createSpyObj('AlertController', ['create']);
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
     toastCtrlSpy.create.and.returnValue(Promise.resolve(mockToast as any));
@@ -99,9 +99,15 @@ describe('CommandeDetailModalComponent', () => {
     });
   }));
 
-  it('onAnnuler presents confirmation alert', async () => {
+  it('onAnnuler presents confirmation modal and cancels when confirmed', async () => {
+    modalCtrlSpy.create.and.returnValue(Promise.resolve({
+      present: () => Promise.resolve(),
+      onWillDismiss: () => Promise.resolve({ role: 'confirm', data: { confirmed: true } })
+    } as any));
+
     await component.onAnnuler();
-    expect(alertCtrlSpy.create).toHaveBeenCalled();
-    expect(alertSpy.present).toHaveBeenCalled();
+
+    expect(modalCtrlSpy.create).toHaveBeenCalled();
+    expect(commandeServiceSpy.annuler).toHaveBeenCalledWith(9);
   });
 });

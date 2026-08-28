@@ -1,0 +1,110 @@
+<div class="confirm-delete-modal-wrapper" data-testid="confirm-delete-modal">
+  <!-- Header -->
+  <div class="modal-header">
+    <div class="header-main-group">
+      <div class="danger-icon-badge">
+        <span class="icon-pulse-ring"></span>
+        <ion-icon name="trash-outline"></ion-icon>
+      </div>
+      <div class="header-text">
+        <h2 class="modal-title" data-testid="confirm-delete-title">
+          {{ title }}
+        </h2>
+        @if (metaTags && metaTags.length > 0) {
+          <div class="modal-meta-tags">
+            @for (tag of metaTags; track tag.text) {
+              <span class="meta-tag">
+                @if (tag.icon) {
+                  <ion-icon [name]="tag.icon"></ion-icon>
+                }
+                <span>{{ tag.text }}</span>
+              </span>
+            }
+          </div>
+        }
+      </div>
+    </div>
+
+    <button
+      type="button"
+      class="close-icon-btn"
+      (click)="onCancel()"
+      (keyup.enter)="onCancel()"
+      [attr.aria-label]="'COMMON.CLOSE' | transloco"
+      data-testid="confirm-delete-close-btn">
+      <ion-icon name="close-outline"></ion-icon>
+    </button>
+  </div>
+
+  <!-- Body -->
+  <div class="modal-body">
+    <!-- Block Reason Alert (if deletion is not allowed) -->
+    @if (cannotDeleteReason) {
+      <div class="blocked-callout" data-testid="delete-blocked-banner">
+        <div class="blocked-icon-box">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+        </div>
+        <div class="blocked-text">
+          <h4 class="blocked-heading">{{ 'CONFIRM_DELETE_MODAL.DELETION_BLOCKED' | transloco }}</h4>
+          <p class="blocked-desc">{{ cannotDeleteReason }}</p>
+        </div>
+      </div>
+    } @else {
+      <!-- Warning Callout Banner -->
+      <div class="warning-callout">
+        <div class="warning-icon-box">
+          <ion-icon name="warning-outline"></ion-icon>
+        </div>
+        <div class="warning-text-content">
+          <h4 class="warning-heading">{{ 'CONFIRM_DELETE_MODAL.IRREVERSIBLE_ACTION' | transloco }}</h4>
+          <p class="warning-desc">{{ warningMessage || ('TABLES.DELETE_CONFIRM_MSG' | transloco:{ number: itemName }) }}</p>
+        </div>
+      </div>
+    }
+
+    <!-- Details Recap Card -->
+    @if (detailsSummary && detailsSummary.length > 0) {
+      <div class="recap-card">
+        <div class="recap-header">
+          <ion-icon name="cube-outline"></ion-icon>
+          <span>{{ 'CONFIRM_DELETE_MODAL.TARGET_ELEMENT' | transloco }}</span>
+        </div>
+        <div class="recap-grid">
+          @for (item of detailsSummary; track item.label) {
+            <div class="recap-row">
+              <span class="recap-label">{{ item.label }}</span>
+              <span class="recap-value">{{ item.value }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Footer -->
+  <div class="modal-footer">
+    <button
+      type="button"
+      class="btn-cancel"
+      (click)="onCancel()"
+      (keyup.enter)="onCancel()"
+      data-testid="confirm-delete-cancel-btn">
+      {{ 'COMMON.CANCEL' | transloco }}
+    </button>
+
+    <button
+      type="button"
+      class="btn-confirm-delete"
+      [disabled]="!!cannotDeleteReason || isDeleting"
+      (click)="onConfirm()"
+      (keyup.enter)="onConfirm()"
+      data-testid="confirm-delete-submit-btn">
+      @if (isDeleting) {
+        <ion-spinner name="crescent"></ion-spinner>
+      } @else {
+        <ion-icon name="trash-outline"></ion-icon>
+      }
+      <span>{{ confirmBtnText || ('COMMON.DELETE' | transloco) }}</span>
+    </button>
+  </div>
+</div>

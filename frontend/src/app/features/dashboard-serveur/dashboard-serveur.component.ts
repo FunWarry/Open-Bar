@@ -9,9 +9,9 @@ import { Subject, forkJoin, of } from 'rxjs';
 import { catchError, finalize, map, switchMap, takeUntil } from 'rxjs/operators';
 import Konva from 'konva';
 import {
-  IonContent, IonHeader, IonToolbar,
+  IonContent,
   IonRefresher, IonRefresherContent,
-  IonSearchbar, IonIcon,
+  IonIcon,
   ToastController, ModalController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -28,6 +28,7 @@ import { ZoneService, ZoneBar } from '../../core/services/zone.service';
 import { TableDetailModalComponent } from './components/table-detail-modal/table-detail-modal.component';
 import { EncaissementModalComponent } from './components/encaissement-modal/encaissement-modal.component';
 import { NotificationService } from '../../core/services/notification.service';
+import { WebSocketService } from '../../core/services/websocket.service';
 import { DashboardServeurService, EtageItem, ZoneItem } from './services/dashboard-serveur.service';
 import { safeCompleteRefresher } from '../../core/utils/refresher-utils';
 import { fastModalEnterAnimation, fastModalLeaveAnimation } from '../../core/utils/modal-animation.utils';
@@ -70,10 +71,12 @@ export interface GroupedTables {
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { CommandeListComponent } from '../commandes/commande-list/commande-list.component';
 
+import { SearchableSelectComponent, SearchableOption } from '../../core/components/ui/searchable-select/searchable-select.component';
+
 /**
  * Main dashboard component for waiters providing table list supervision,
  * grouped view modes (By Zone, By Floor, Grid, Interactive 2D Plan),
- * dropdown filters (Floor, Zone, Sort), rapid order entry, and STOMP notifications.
+ * searchable dropdown filters (Floor, Zone, Sort), rapid order entry, and STOMP notifications.
  */
 @Component({
   selector: 'app-dashboard-serveur',
@@ -82,14 +85,15 @@ import { CommandeListComponent } from '../commandes/commande-list/commande-list.
     CommonModule,
     FormsModule,
     TranslocoModule,
-    IonContent, IonHeader, IonToolbar,
+    IonContent,
     IonRefresher, IonRefresherContent,
-    IonSearchbar, IonIcon,
+    IonIcon,
     MobileTableCardComponent,
     BottomNavigationComponent,
     ProductCardComponent,
     CartDrawerComponent,
     CommandeListComponent,
+    SearchableSelectComponent,
   ],
   templateUrl: './dashboard-serveur.component.html',
   styleUrls: ['./dashboard-serveur.component.scss'],
@@ -185,6 +189,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
     private readonly router: Router,
     private readonly route: ActivatedRoute,
     private readonly notificationService: NotificationService,
+    private readonly webSocketService: WebSocketService,
     private readonly translocoService: TranslocoService,
     private readonly ngZone: NgZone,
     private readonly cdr: ChangeDetectorRef,
@@ -235,6 +240,44 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
       .subscribe(notif => {
         if (notif.type === 'table' || notif.type === 'commande') {
           this.chargerTables();
+        }
+      });
+
+    this.webSocketService.watch('/topic/tables')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.chargerTables();
+      });
+
+    this.webSocketService.watch('/topic/commandes')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.chargerTables();
+      });
+
+    this.webSocketService.watch('/topic/barman/commandes')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.chargerTables();
+      });
+
+    this.webSocketService.watch('/topic/cocktails')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(msg => {
+        try {
+          const cocktail = JSON.parse(msg.body);
+          if (cocktail?.id) {
+            const product = this.products.find(p => p.id === cocktail.id);
+            if (product) {
+              product.disponible = cocktail.disponible !== false;
+              product.stockStatus = (cocktail.disponible !== false) ? 'NORMAL' : 'CRITIQUE';
+              product.nom = cocktail.nom;
+              product.prix = cocktail.prix;
+              this.cdr.detectChanges();
+            }
+          }
+        } catch {
+          // ignore
         }
       });
   }
@@ -346,13 +389,19 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
       const defaultX = PLAN_MARGIN + (idx % PLAN_COLS) * (PLAN_TABLE_SIZE + PLAN_GAP);
       const defaultY = PLAN_MARGIN + Math.floor(idx / PLAN_COLS) * (PLAN_TABLE_SIZE + PLAN_GAP);
 
-      const tableOrders = (commandes || []).filter(
+      // All unpaid active orders for this table (including delivered orders waiting for payment)
+      const allUnpaidOrders = (commandes || []).filter(
         c => (c.tableId === t.id || c.tableNumero === t.id || (c as any).table?.id === t.id) &&
-             c.statut !== 'REGLEE' && c.statut !== 'ANNULEE' && c.statut !== 'LIVREE'
+             c.statut !== 'REGLEE' && c.statut !== 'ANNULEE'
+      );
+
+      // Pending orders awaiting preparation or service
+      const pendingOrders = allUnpaidOrders.filter(
+        c => c.statut === 'EN_ATTENTE' || c.statut === 'EN_PREPARATION' || c.statut === 'PRET'
       );
 
       let maxWait = 0;
-      for (const cmd of tableOrders) {
+      for (const cmd of pendingOrders) {
         if (cmd.dateCommande) {
           const orderTime = new Date(cmd.dateCommande).getTime();
           if (!Number.isNaN(orderTime)) {
@@ -364,15 +413,8 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
         }
       }
 
-      if (tableOrders.length === 0 && t.occupee && t.dateOccupation) {
-        const occTime = new Date(t.dateOccupation).getTime();
-        if (!Number.isNaN(occTime)) {
-          maxWait = Math.max(0, Math.floor((now - occTime) / 60000));
-        }
-      }
-
-      const activeTotal = tableOrders.reduce((sum, c) => sum + (c.total || 0), 0);
-      const commandesActives = tableOrders.map(c => ({
+      const activeTotal = allUnpaidOrders.reduce((sum, c) => sum + (c.total || 0), 0);
+      const commandesActives = allUnpaidOrders.map(c => ({
         id: c.id,
         statut: c.statut,
         itemCount: c.items?.length || 0,
@@ -382,7 +424,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
 
       return {
         ...t,
-        occupee: t.occupee || tableOrders.length > 0,
+        occupee: t.occupee || allUnpaidOrders.length > 0,
         etage: t.etage || zoneObj?.etage || 'RDC',
         planX: pos?.x ?? defaultX,
         planY: pos?.y ?? defaultY,
@@ -580,14 +622,80 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
     return 0;
   }
 
-  onSearchChange(event: { detail?: { value?: string | null } }) {
-    this.searchTerm = event.detail?.value || '';
+  onSearchChange(event: Event | { detail?: { value?: string | null } } | string) {
+    if (typeof event === 'string') {
+      this.searchTerm = event;
+    } else if (event && 'detail' in event && event.detail?.value !== undefined) {
+      this.searchTerm = event.detail.value || '';
+    } else if (event && 'target' in event && event.target) {
+      this.searchTerm = (event.target as HTMLInputElement).value || '';
+    }
+    this.filtrer();
+  }
+
+  clearSearch() {
+    this.searchTerm = '';
     this.filtrer();
   }
 
   setStatusFilter(status: 'ALL' | 'FREE' | 'OCCUPIED') {
     this.selectedStatus = status;
     this.filtrer();
+  }
+
+  /**
+   * Options for Floor searchable select dropdown.
+   */
+  get etageOptions(): SearchableOption<string>[] {
+    return [
+      { value: 'ALL', label: this.translocoService.translate('SERVEUR.ALL_FLOORS'), icon: 'business-outline' },
+      ...this.etagesList.map(e => ({ value: e.code, label: e.nom }))
+    ];
+  }
+
+  /**
+   * Options for Zone searchable select dropdown.
+   */
+  get zoneOptions(): SearchableOption<string>[] {
+    return [
+      { value: 'ALL', label: this.translocoService.translate('SERVEUR.ALL_ZONES'), icon: 'layers-outline' },
+      ...this.availableZonesForFilter.map(z => ({ value: z.nom, label: z.nom }))
+    ];
+  }
+
+  /**
+   * Options for Sort searchable select dropdown.
+   */
+  get sortOptions(): SearchableOption<DashboardSortOption>[] {
+    return [
+      { value: 'NUMBER_ASC', label: this.translocoService.translate('SERVEUR.SORT_NUMBER_ASC'), icon: 'swap-vertical-outline' },
+      { value: 'NUMBER_DESC', label: this.translocoService.translate('SERVEUR.SORT_NUMBER_DESC'), icon: 'swap-vertical-outline' },
+      { value: 'CAPACITY_ASC', label: this.translocoService.translate('SERVEUR.SORT_CAPACITY_ASC'), icon: 'people-outline' },
+      { value: 'CAPACITY_DESC', label: this.translocoService.translate('SERVEUR.SORT_CAPACITY_DESC'), icon: 'people-outline' },
+      { value: 'STATUS_OCCUPIED', label: this.translocoService.translate('SERVEUR.SORT_STATUS_OCCUPIED'), icon: 'close-circle-outline' },
+      { value: 'STATUS_FREE', label: this.translocoService.translate('SERVEUR.SORT_STATUS_FREE'), icon: 'checkmark-circle-outline' },
+    ];
+  }
+
+  onEtageOptionChange(option: SearchableOption<string> | null): void {
+    this.selectedEtage = option?.value || 'ALL';
+    this.selectedZone = 'ALL';
+    this.selectedZones = [];
+    this.filtrer();
+  }
+
+  onZoneOptionChange(option: SearchableOption<string> | null): void {
+    const val = option?.value || 'ALL';
+    this.selectedZone = val;
+    this.selectedZones = val === 'ALL' ? [] : [val];
+    this.filtrer();
+  }
+
+  onSortOptionChange(option: SearchableOption<DashboardSortOption> | null): void {
+    if (option?.value) {
+      this.sortOption = option.value;
+      this.filtrer();
+    }
   }
 
   onEtageSelectChange(event: Event) {
@@ -1231,6 +1339,69 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
             color: 'danger',
           });
           toast.present();
+        },
+      });
+  }
+
+  /**
+   * Directly marks a free table as occupied from its card.
+   * @param table Target table
+   */
+  async onOccupyTable(table: TableView): Promise<void> {
+    this.service.occuperTable(table.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: async () => {
+          table.occupee = true;
+          table.dateOccupation = new Date().toISOString();
+          this.filtrer();
+          const toast = await this.toastCtrl.create({
+            message: this.translocoService.translate('SERVEUR_MOBILE.TOAST.TABLE_OCCUPIED', { name: table.nom }),
+            duration: 2000,
+            color: 'success',
+          });
+          await toast.present();
+        },
+        error: async () => {
+          const toast = await this.toastCtrl.create({
+            message: this.translocoService.translate('SERVEUR_MOBILE.TOAST.OCCUPY_ERROR'),
+            duration: 2500,
+            color: 'danger',
+          });
+          await toast.present();
+        },
+      });
+  }
+
+  /**
+   * Directly frees an occupied table with no active orders from its card.
+   * @param table Target table
+   */
+  async onFreeTable(table: TableView): Promise<void> {
+    this.service.libererTable(table.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: async () => {
+          table.occupee = false;
+          table.dateOccupation = undefined;
+          table.commandesActives = [];
+          table.activeTotal = 0;
+          table.waitTimeMinutes = 0;
+          this.filtrer();
+          const toast = await this.toastCtrl.create({
+            message: this.translocoService.translate('SERVEUR_MOBILE.TOAST.TABLE_FREED', { name: table.nom }),
+            duration: 2000,
+            color: 'success',
+          });
+          await toast.present();
+        },
+        error: async () => {
+          const toast = await this.toastCtrl.create({
+            message: this.translocoService.translate('SERVEUR_MOBILE.TOAST.FREE_ERROR'),
+            duration: 2500,
+            color: 'danger',
+          });
+          await toast.present();
         },
       });
   }

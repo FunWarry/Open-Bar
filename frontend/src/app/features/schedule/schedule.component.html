@@ -287,8 +287,8 @@
         [class.today-col]="isToday(i)"
         [class.is-closed-cell]="shift.isClosed"
         [class.is-drag-target]="!isDeleteMode && !isReplayMode && isCellDragTarget(emp.employeeId, i)"
-        [class.is-staged-delete]="isShiftSelected(shift.rawShift?.id)"
-        [class.delete-target-cell]="isDeleteMode && shift.rawShift?.id"
+        [class.is-staged-delete]="isShiftSelected(shift)"
+        [class.delete-target-cell]="isDeleteMode && (shift.rawShift?.id || (shift.shiftIds && shift.shiftIds.length > 0))"
         [class.diff-added]="(isComparisonMode || (isReplayMode && isReplayComparisonMode)) && getCellDiff(emp.employeeId, shift.date)?.status === 'ADDED'"
         [class.diff-modified]="(isComparisonMode || (isReplayMode && isReplayComparisonMode)) && getCellDiff(emp.employeeId, shift.date)?.status === 'MODIFIED'"
         [class.diff-deleted]="(isComparisonMode || (isReplayMode && isReplayComparisonMode)) && getCellDiff(emp.employeeId, shift.date)?.status === 'DELETED'"
@@ -308,7 +308,7 @@
         <div *ngIf="!shift.isClosed && shift.startTime" class="cell-shift-content">
           <span class="shift-time">{{ shift.startTime }} - {{ shift.endTime }}</span>
           <span class="shift-type-tag" *ngIf="shift.typeShift">{{ shift.typeShift }}</span>
-          <span class="delete-staged-badge" *ngIf="isShiftSelected(shift.rawShift?.id)">🗑️</span>
+          <span class="delete-staged-badge" *ngIf="isShiftSelected(shift)">🗑️</span>
 
           <!-- Comparison Mode Diff Badges -->
           <div *ngIf="(isComparisonMode || (isReplayMode && isReplayComparisonMode)) && getCellDiff(emp.employeeId, shift.date) as diff" class="cell-diff-indicator">

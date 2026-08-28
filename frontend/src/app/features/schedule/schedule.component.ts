@@ -45,6 +45,7 @@ import { EmployeeShiftModalComponent } from '../employees/employee-shift-modal/e
 import { ClosureConfigModalComponent } from './closure-config-modal/closure-config-modal.component';
 import { DayClosureModalComponent } from './day-closure-modal/day-closure-modal.component';
 import { ScheduleHistoryModalComponent } from './schedule-history-modal/schedule-history-modal.component';
+import { ConfirmDeleteModalComponent } from '../../core/components/ui/confirm-delete-modal/confirm-delete-modal.component';
 import { EmployeeShift, EmployeeShiftRequest, TypePoste } from '../../core/models/shift.model';
 
 import { FormsModule } from '@angular/forms';
@@ -487,7 +488,8 @@ export class ScheduleComponent implements OnInit, OnDestroy {
       component: ScheduleHistoryModalComponent,
       componentProps: {
         weekISO: weekStartISO
-      }
+      },
+      cssClass: 'schedule-history-modal-container'
     });
     await modal.present();
     const { data } = await modal.onWillDismiss();
@@ -715,15 +717,18 @@ export class ScheduleComponent implements OnInit, OnDestroy {
   get weekLabel(): string {
     const endDate = new Date(this.currentWeekStart);
     endDate.setDate(endDate.getDate() + 6);
+    const lang = this.translocoService.getActiveLang();
+    const locale = lang === 'fr' ? 'fr-FR' : 'en-US';
     const opts: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'long' };
-    const start = this.currentWeekStart.toLocaleDateString('fr-FR', opts);
-    const end = endDate.toLocaleDateString('fr-FR', { ...opts, year: 'numeric' });
-    return `Semaine du ${start} — ${end}`;
+    const start = this.currentWeekStart.toLocaleDateString(locale, opts);
+    const end = endDate.toLocaleDateString(locale, { ...opts, year: 'numeric' });
+    return this.translocoService.translate('SHIFTS.WEEK_LABEL', { start, end });
   }
 
   getDayHeaders(): DayHeaderInfo[] {
-    const daysName = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    return daysName.map((day, i) => {
+    const lang = this.translocoService.getActiveLang();
+    const locale = lang === 'fr' ? 'fr-FR' : 'en-US';
+    return Array.from({ length: 7 }, (_, i) => {
       const d = new Date(this.currentWeekStart);
       d.setDate(d.getDate() + i);
 
@@ -732,9 +737,13 @@ export class ScheduleComponent implements OnInit, OnDestroy {
       const dateNum = String(d.getDate()).padStart(2, '0');
       const dateISO = `${year}-${month}-${dateNum}`;
 
+      // Localized short day name (e.g. "lun." -> "LUN" in FR, "Mon" -> "MON" in EN)
+      let dayName = d.toLocaleDateString(locale, { weekday: 'short' });
+      dayName = dayName.replace('.', '').toUpperCase();
+
       const closureReason = this.displaySchedule?.closedDays?.[dateISO];
       return {
-        day,
+        day: dayName,
         date: String(d.getDate()),
         dateISO,
         isClosed: Boolean(closureReason),
@@ -895,21 +904,27 @@ export class ScheduleComponent implements OnInit, OnDestroy {
     this.dragTargets = [this.dragSource];
   }
 
-  onCellMouseEnter(emp: EmployeeScheduleRow, shift: ShiftCell, dayIndex: number): void {
-    this.hoveredCell = { emp, shift };
+  private extractCellShiftIds(cell?: ShiftCell): number[] {
+    if (!cell) return [];
+    if (cell.shiftIds && cell.shiftIds.length > 0) {
+      return cell.shiftIds;
+    }
+    if (cell.rawShift?.id != null) {
+      return [cell.rawShift.id];
+    }
+    return [];
+  }
 
-    if (!this.isDragging || !this.dragSource || !this.schedule) return;
+  private computeDragSelectionTargets(emp: EmployeeScheduleRow, dayIndex: number): { emp: EmployeeScheduleRow; dayIndex: number; shift: ShiftCell }[] {
+    if (!this.dragSource || !this.schedule) return [];
 
     const sourceEmpIndex = this.schedule.employees.findIndex((e) => e.employeeId === this.dragSource!.emp.employeeId);
     const currentEmpIndex = this.schedule.employees.findIndex((e) => e.employeeId === emp.employeeId);
 
-    const sourceDay = this.dragSource.dayIndex;
-    const currentDay = dayIndex;
-
     const minEmp = Math.min(sourceEmpIndex, currentEmpIndex);
     const maxEmp = Math.max(sourceEmpIndex, currentEmpIndex);
-    const minDay = Math.min(sourceDay, currentDay);
-    const maxDay = Math.max(sourceDay, currentDay);
+    const minDay = Math.min(this.dragSource.dayIndex, dayIndex);
+    const maxDay = Math.max(this.dragSource.dayIndex, dayIndex);
 
     const targets: { emp: EmployeeScheduleRow; dayIndex: number; shift: ShiftCell }[] = [];
 
@@ -919,10 +934,23 @@ export class ScheduleComponent implements OnInit, OnDestroy {
         const cell = row.shifts[c];
         if (!cell.isClosed) {
           targets.push({ emp: row, dayIndex: c, shift: cell });
-          if (this.isDeleteMode && cell.rawShift?.id) {
-            this.selectedShiftIds.add(cell.rawShift.id);
-          }
         }
+      }
+    }
+    return targets;
+  }
+
+  onCellMouseEnter(emp: EmployeeScheduleRow, shift: ShiftCell, dayIndex: number): void {
+    this.hoveredCell = { emp, shift };
+
+    if (!this.isDragging || !this.dragSource || !this.schedule) return;
+
+    const targets = this.computeDragSelectionTargets(emp, dayIndex);
+
+    if (this.isDeleteMode) {
+      for (const target of targets) {
+        const ids = this.extractCellShiftIds(target.shift);
+        ids.forEach((id) => this.selectedShiftIds.add(id));
       }
     }
 
@@ -1029,6 +1057,9 @@ export class ScheduleComponent implements OnInit, OnDestroy {
         heuresPrevues: sourceShift.heuresPrevues || 7.5,
         notes: `Dupliqué par glisser-déposer`
       };
+      if (t.shift.rawShift?.id) {
+        return this.shiftService.updateShift(t.shift.rawShift.id, req);
+      }
       return this.shiftService.createShift(req);
     });
 
@@ -1068,21 +1099,30 @@ export class ScheduleComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Toggles shift ID in the deletion selection.
+   * Toggles shift ID(s) in the deletion selection.
    */
-  toggleShiftSelection(shiftId: number): void {
-    if (this.selectedShiftIds.has(shiftId)) {
-      this.selectedShiftIds.delete(shiftId);
+  toggleShiftSelection(shiftOrId: ShiftCell | number): void {
+    const ids = typeof shiftOrId === 'number' ? [shiftOrId] : this.extractCellShiftIds(shiftOrId);
+    if (ids.length === 0) return;
+
+    const anySelected = ids.some((id) => this.selectedShiftIds.has(id));
+    if (anySelected) {
+      ids.forEach((id) => this.selectedShiftIds.delete(id));
     } else {
-      this.selectedShiftIds.add(shiftId);
+      ids.forEach((id) => this.selectedShiftIds.add(id));
     }
   }
 
   /**
    * Checks whether a shift is marked for bulk deletion.
    */
-  isShiftSelected(shiftId?: number): boolean {
-    return shiftId != null && this.selectedShiftIds.has(shiftId);
+  isShiftSelected(shiftOrId?: ShiftCell | number): boolean {
+    if (!shiftOrId) return false;
+    if (typeof shiftOrId === 'number') {
+      return this.selectedShiftIds.has(shiftOrId);
+    }
+    const ids = this.extractCellShiftIds(shiftOrId);
+    return ids.some((id) => this.selectedShiftIds.has(id));
   }
 
   /**
@@ -1114,9 +1154,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
         this.wasDraggingMultiple = false;
         return;
       }
-      if (shift.rawShift?.id) {
-        this.toggleShiftSelection(shift.rawShift.id);
-      }
+      this.toggleShiftSelection(shift);
       return;
     }
 
@@ -1165,7 +1203,8 @@ export class ScheduleComponent implements OnInit, OnDestroy {
         employee: userObj,
         initialDate: dateISO,
         openInCreateMode: true
-      }
+      },
+      cssClass: 'employee-shift-modal-container'
     });
     await modal.present();
     await modal.onWillDismiss();
@@ -1173,35 +1212,36 @@ export class ScheduleComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Opens the single confirmation alert for all staged shifts before performing bulk deletion.
+   * Opens the single confirmation modal for all staged shifts before performing bulk deletion.
    */
   async confirmBulkDelete(): Promise<void> {
     if (this.selectedShiftIds.size === 0) return;
 
     const ids = Array.from(this.selectedShiftIds);
     const count = ids.length;
-    const title = this.translocoService.translate('SHIFTS.BULK_DELETE.CONFIRM_TITLE') || 'Confirmer la suppression groupée ?';
-    const message = this.translocoService.translate('SHIFTS.BULK_DELETE.CONFIRM_MESSAGE', { count }) || `Voulez-vous vraiment supprimer définitivement ces ${count} créneaux de travail ?`;
-    const deleteBtn = this.translocoService.translate('COMMON.DELETE') || 'Supprimer';
-    const cancelBtn = this.translocoService.translate('COMMON.CANCEL') || 'Annuler';
 
-    const alert = await this.alertCtrl.create({
-      header: title,
-      message: message,
-      cssClass: 'openbar-alert',
-      buttons: [
-        { text: cancelBtn, role: 'cancel', cssClass: 'alert-button-cancel' },
-        {
-          text: `${deleteBtn} (${count})`,
-          role: 'destructive',
-          cssClass: 'alert-button-destructive',
-          handler: () => {
-            this.executeBulkDelete(ids);
-          }
-        }
-      ]
+    const modal = await this.modalCtrl.create({
+      component: ConfirmDeleteModalComponent,
+      cssClass: 'auto-height-modal confirm-delete-dialog',
+      componentProps: {
+        title: this.translocoService.translate('SHIFTS.BULK_DELETE.CONFIRM_TITLE'),
+        itemName: `${count} créneaux`,
+        warningMessage: this.translocoService.translate('SHIFTS.BULK_DELETE.CONFIRM_MESSAGE', { count }),
+        metaTags: [
+          { icon: 'trash-outline', text: `${count} créneaux` }
+        ],
+        detailsSummary: [
+          { label: this.translocoService.translate('SHIFTS.BULK_DELETE.SELECTED_COUNT', { count }), value: String(count) }
+        ],
+        confirmBtnText: this.translocoService.translate('SHIFTS.BULK_DELETE.CONFIRM_BUTTON', { count })
+      }
     });
-    await alert.present();
+
+    await modal.present();
+    const { data } = await modal.onDidDismiss();
+    if (data?.confirmed) {
+      this.executeBulkDelete(ids);
+    }
   }
 
   private executeBulkDelete(ids: number[]): void {
@@ -1384,7 +1424,11 @@ export class ScheduleComponent implements OnInit, OnDestroy {
       notes: `Collé depuis le presse-papier`
     };
 
-    this.shiftService.createShift(req).subscribe({
+    const action$ = targetCell.rawShift?.id
+      ? this.shiftService.updateShift(targetCell.rawShift.id, req)
+      : this.shiftService.createShift(req);
+
+    action$.subscribe({
       next: async () => {
         this.loadSchedule();
         const toast = await this.toastCtrl.create({
@@ -1456,41 +1500,55 @@ export class ScheduleComponent implements OnInit, OnDestroy {
   }
 
   async confirmDeleteShift(shiftId: number): Promise<void> {
-    const alert = await this.alertCtrl.create({
-      header: 'Supprimer ce créneau ?',
-      message: 'Voulez-vous vraiment supprimer définitivement ce créneau horaire ?',
-      cssClass: 'openbar-alert',
-      buttons: [
-        { text: 'Annuler', role: 'cancel', cssClass: 'alert-button-cancel' },
-        {
-          text: 'Supprimer',
-          role: 'destructive',
-          cssClass: 'alert-button-destructive',
-          handler: () => {
-            this.shiftService.deleteShift(shiftId).subscribe({
-              next: async () => {
-                this.loadSchedule();
-                const toast = await this.toastCtrl.create({
-                  message: 'Créneau supprimé avec succès',
-                  duration: 2500,
-                  color: 'success'
-                });
-                await toast.present();
-              },
-              error: async () => {
-                const toast = await this.toastCtrl.create({
-                  message: 'Erreur lors de la suppression',
-                  duration: 3000,
-                  color: 'danger'
-                });
-                await toast.present();
-              }
-            });
-          }
-        }
-      ]
+    const shift = await firstValueFrom(this.shiftService.getShiftById(shiftId).pipe(catchError(() => of(null))));
+    const dateStr = shift?.dateShift || '';
+    const horaire = shift ? `${shift.heureDebut} - ${shift.heureFin}` : '';
+    const empName = shift?.userName || (shift?.userNom ? `${shift.userPrenom || ''} ${shift.userNom || ''}`.trim() : '');
+
+    const modal = await this.modalCtrl.create({
+      component: ConfirmDeleteModalComponent,
+      cssClass: 'auto-height-modal confirm-delete-dialog',
+      componentProps: {
+        title: this.translocoService.translate('SHIFTS.DELETE_SHIFT_TITLE'),
+        itemName: dateStr ? `${dateStr} (${horaire})` : `Créneau #${shiftId}`,
+        warningMessage: this.translocoService.translate('SHIFTS.CONFIRM_DELETE'),
+        metaTags: [
+          ...(dateStr ? [{ icon: 'calendar-outline', text: dateStr }] : []),
+          ...(horaire ? [{ icon: 'time-outline', text: horaire }] : []),
+          ...(empName ? [{ icon: 'person-outline', text: empName }] : [])
+        ],
+        detailsSummary: [
+          ...(empName ? [{ label: this.translocoService.translate('SHIFTS.EMPLOYEE_LABEL'), value: empName }] : []),
+          ...(dateStr ? [{ label: this.translocoService.translate('SHIFTS.DATE_LABEL'), value: dateStr }] : []),
+          ...(horaire ? [{ label: this.translocoService.translate('SHIFTS.HOURS_LABEL'), value: horaire }] : [])
+        ],
+        confirmBtnText: this.translocoService.translate('COMMON.DELETE')
+      }
     });
-    await alert.present();
+
+    await modal.present();
+    const { data } = await modal.onDidDismiss();
+    if (data?.confirmed) {
+      this.shiftService.deleteShift(shiftId).subscribe({
+        next: async () => {
+          this.loadSchedule();
+          const toast = await this.toastCtrl.create({
+            message: this.translocoService.translate('SHIFTS.DELETE_SUCCESS'),
+            duration: 2500,
+            color: 'success'
+          });
+          await toast.present();
+        },
+        error: async () => {
+          const toast = await this.toastCtrl.create({
+            message: this.translocoService.translate('COMMON.ERROR'),
+            duration: 3000,
+            color: 'danger'
+          });
+          await toast.present();
+        }
+      });
+    }
   }
 
   async openEmployeeModalForUser(userId: number): Promise<void> {
@@ -1501,7 +1559,8 @@ export class ScheduleComponent implements OnInit, OnDestroy {
       component: EmployeeShiftModalComponent,
       componentProps: {
         employee: userObj
-      }
+      },
+      cssClass: 'employee-shift-modal-container'
     });
     await modal.present();
     await modal.onWillDismiss();

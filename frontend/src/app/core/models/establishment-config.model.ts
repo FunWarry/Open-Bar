@@ -9,6 +9,8 @@ export interface EstablishmentConfig {
   codeApe: string;
   capitalSocial: number;
   address: string;
+  country?: string;
+  language?: string;
   phone: string;
   email: string;
   paymentTerms: string;

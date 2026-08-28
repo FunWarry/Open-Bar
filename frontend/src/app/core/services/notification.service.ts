@@ -32,6 +32,7 @@ export class NotificationService implements OnDestroy {
   private readonly notificationHistory: AppNotification[] = [];
   private readonly orderStatusMap = new Map<number | string, string>();
   private readonly tableStatusMap = new Map<string, boolean>();
+  private readonly cocktailStatusMap = new Map<number, boolean>();
   private notifSequence = 0;
 
   constructor(
@@ -83,25 +84,19 @@ export class NotificationService implements OnDestroy {
       .subscribe(msg => {
         try {
           const data = typeof msg.body === 'string' ? JSON.parse(msg.body) : msg.body;
-          const nom = data.nom || data.nomIngredient || data.ingredientNom || 'Ingredient';
-          const qty = data.quantiteActuelle ?? data.quantiteRestante ?? data.quantiteStock ?? data.stock ?? 0;
-          const unite = data.uniteMesure || data.unite || '';
-          const isCritical = Number(qty) <= 0;
-          const labelPrefix = isCritical ? 'Out of Stock' : 'Low Stock';
-          const unitStr = unite ? ` ${unite}` : '';
-          const notif: AppNotification = {
-            id: `stock-${Date.now()}-${++this.notifSequence}`,
-            type: 'stock',
-            message: `⚠ ${labelPrefix}: ${nom} (${qty}${unitStr} remaining)`,
-            severity: isCritical ? 'danger' : 'warning',
-            data,
-            timestamp: new Date(),
-            lue: false,
-          };
-          this.notificationHistory.unshift(notif);
-          this.updateUnreadCount();
-          this.stockAlerts$.next(notif);
-          this.notifications$.next(notif);
+          this.handleStockAlerteNotification(data);
+        } catch {
+          // malformed message — ignore
+        }
+      });
+
+    // Cocktail availability updates on /topic/cocktails
+    this.ws.watch('/topic/cocktails')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(msg => {
+        try {
+          const data = typeof msg.body === 'string' ? JSON.parse(msg.body) : msg.body;
+          this.handleCocktailNotification(data);
         } catch {
           // malformed message — ignore
         }
@@ -113,23 +108,82 @@ export class NotificationService implements OnDestroy {
       .subscribe(msg => {
         try {
           const data = typeof msg.body === 'string' ? JSON.parse(msg.body) : msg.body;
-          const tableKey = String(data.nom ?? (data.id ? `id-${data.id}` : 'unknown'));
-          const isOccupee = Boolean(data.occupee);
-          if (this.tableStatusMap.has(tableKey) && this.tableStatusMap.get(tableKey) === isOccupee) {
-            return; // Suppress duplicate table occupancy notification
-          }
-          this.tableStatusMap.set(tableKey, isOccupee);
-          const tableDisplay = this.formatTableDisplay(tableKey);
-          this.emit({
-            type: 'table',
-            message: `${tableDisplay} — ${isOccupee ? 'Occupied' : 'Available'}`,
-            severity: 'success',
-            data,
-          });
+          this.handleTableNotification(data);
         } catch {
           // malformed message — ignore
         }
       });
+  }
+
+  private handleStockAlerteNotification(data: any): void {
+    if (!data) return;
+    const nom = data.nom || data.nomIngredient || data.ingredientNom || 'Ingredient';
+    const qty = data.quantiteActuelle ?? data.quantiteRestante ?? data.quantiteStock ?? data.stock ?? 0;
+    const unite = data.uniteMesure || data.unite || '';
+    const isCritical = Number(qty) <= 0;
+    const labelPrefix = isCritical ? 'Out of Stock' : 'Low Stock';
+    const unitStr = unite ? ` ${unite}` : '';
+    const notif: AppNotification = {
+      id: `stock-${Date.now()}-${++this.notifSequence}`,
+      type: 'stock',
+      message: `⚠ ${labelPrefix}: ${nom} (${qty}${unitStr} remaining)`,
+      severity: isCritical ? 'danger' : 'warning',
+      data,
+      timestamp: new Date(),
+      lue: false,
+    };
+    this.notificationHistory.unshift(notif);
+    this.updateUnreadCount();
+    this.stockAlerts$.next(notif);
+    this.notifications$.next(notif);
+  }
+
+  private handleCocktailNotification(data: any): void {
+    if (data?.id == null) return;
+    const isDispo = Boolean(data.disponible);
+    const nom = data.nom || 'Cocktail';
+    if (this.cocktailStatusMap.has(data.id)) {
+      const previousDispo = this.cocktailStatusMap.get(data.id);
+      if (previousDispo !== isDispo) {
+        this.cocktailStatusMap.set(data.id, isDispo);
+        const notif: AppNotification = {
+          id: `cocktail-${Date.now()}-${++this.notifSequence}`,
+          type: 'stock',
+          message: isDispo
+            ? `🍸 Cocktail disponible : ${nom}`
+            : `⚠️ Cocktail indisponible : ${nom}`,
+          severity: isDispo ? 'success' : 'danger',
+          data,
+          timestamp: new Date(),
+          lue: false,
+        };
+        this.notificationHistory.unshift(notif);
+        this.updateUnreadCount();
+        this.notifications$.next(notif);
+        if (!isDispo) {
+          this.soundService.playUrgentAlertSound();
+        }
+      }
+    } else {
+      this.cocktailStatusMap.set(data.id, isDispo);
+    }
+  }
+
+  private handleTableNotification(data: any): void {
+    if (!data) return;
+    const tableKey = String(data.nom ?? (data.id ? `id-${data.id}` : 'unknown'));
+    const isOccupee = Boolean(data.occupee);
+    if (this.tableStatusMap.has(tableKey) && this.tableStatusMap.get(tableKey) === isOccupee) {
+      return; // Suppress duplicate table occupancy notification
+    }
+    this.tableStatusMap.set(tableKey, isOccupee);
+    const tableDisplay = this.formatTableDisplay(tableKey);
+    this.emit({
+      type: 'table',
+      message: `${tableDisplay} — ${isOccupee ? 'Occupied' : 'Available'}`,
+      severity: 'success',
+      data,
+    });
   }
 
   /**

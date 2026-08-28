@@ -15,6 +15,7 @@ import {
 import { DashboardServeurComponent } from '../../../app/features/dashboard-serveur/dashboard-serveur.component';
 import { DashboardServeurService } from '../../../app/features/dashboard-serveur/services/dashboard-serveur.service';
 import { NotificationService, AppNotification } from '../../../app/core/services/notification.service';
+import { WebSocketService } from '../../../app/core/services/websocket.service';
 import { TableCardComponent } from '../../../app/features/dashboard-serveur/components/table-card/table-card.component';
 import { TableView } from '../../../app/features/dashboard-serveur/models/table-view.model';
 import { ZoneService } from '../../../app/core/services/zone.service';
@@ -31,6 +32,7 @@ describe('DashboardServeurComponent', () => {
   let fixture: ComponentFixture<DashboardServeurComponent>;
   let dashboardServiceSpy: jasmine.SpyObj<DashboardServeurService>;
   let notificationServiceSpy: jasmine.SpyObj<NotificationService>;
+  let wsSpy: jasmine.SpyObj<WebSocketService>;
   let zoneServiceSpy: jasmine.SpyObj<ZoneService>;
   let cocktailServiceSpy: jasmine.SpyObj<CocktailService>;
   let planSalleServiceSpy: jasmine.SpyObj<PlanSalleService>;
@@ -54,6 +56,7 @@ describe('DashboardServeurComponent', () => {
       'getAllTables',
       'getAllCommandes',
       'libererTable',
+      'occuperTable',
       'getEtages',
       'getZones',
       'getPlanSallePositions',
@@ -63,6 +66,7 @@ describe('DashboardServeurComponent', () => {
     dashboardServiceSpy.getAllTables.and.returnValue(of(mockTables));
     dashboardServiceSpy.getAllCommandes.and.returnValue(of([]));
     dashboardServiceSpy.libererTable.and.returnValue(of({} as any));
+    dashboardServiceSpy.occuperTable.and.returnValue(of({} as any));
     dashboardServiceSpy.getEtages.and.returnValue(of([]));
     dashboardServiceSpy.getZones.and.returnValue(of([]));
     dashboardServiceSpy.getPlanSallePositions.and.returnValue(of([]));
@@ -89,6 +93,9 @@ describe('DashboardServeurComponent', () => {
     modalCtrlSpy = jasmine.createSpyObj('ModalController', ['create']);
     modalCtrlSpy.create.and.returnValue(Promise.resolve(mockModal as any));
 
+    wsSpy = jasmine.createSpyObj('WebSocketService', ['watch']);
+    wsSpy.watch.and.returnValue(EMPTY);
+
     await TestBed.configureTestingModule({
       imports: [
         DashboardServeurComponent,
@@ -110,6 +117,7 @@ describe('DashboardServeurComponent', () => {
         { provide: CocktailService, useValue: cocktailServiceSpy },
         { provide: PlanSalleService, useValue: planSalleServiceSpy },
         { provide: NotificationService, useValue: notificationServiceSpy },
+        { provide: WebSocketService, useValue: wsSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
         { provide: ModalController, useValue: modalCtrlSpy },
       ],
@@ -917,6 +925,100 @@ describe('DashboardServeurComponent', () => {
 
       component.onZoneSelectChange({ target: { value: 'Terrasse' } } as any);
       expect(component.selectedZone).toBe('Terrasse');
+    });
+
+    it('returns SearchableOption arrays for etages, zones and sort and handles onOptionChange', () => {
+      component.etagesList = [{ id: 1, code: 'RDC', nom: 'Rez-de-chaussée', ordre: 1 }];
+      component.zonesList = [{ id: 1, nom: 'Terrasse', etage: 'RDC' }];
+
+      expect(component.etageOptions).toHaveSize(2);
+      expect(component.zoneOptions).toHaveSize(2);
+      expect(component.sortOptions).toHaveSize(6);
+
+      component.onEtageOptionChange({ value: 'RDC', label: 'Rez-de-chaussée' });
+      expect(component.selectedEtage).toBe('RDC');
+
+      component.onZoneOptionChange({ value: 'Terrasse', label: 'Terrasse' });
+      expect(component.selectedZone).toBe('Terrasse');
+
+      component.onSortOptionChange({ value: 'CAPACITY_DESC', label: 'Capacité décroissante' });
+      expect(component.sortOption).toBe('CAPACITY_DESC');
+    });
+
+    it('updates product availability in-place upon /topic/cocktails WebSocket message', fakeAsync(() => {
+      const cocktailWsTopic$ = new Subject<any>();
+      wsSpy.watch.and.returnValue(cocktailWsTopic$.asObservable() as any);
+
+      const localFixture = TestBed.createComponent(DashboardServeurComponent);
+      const localComp = localFixture.componentInstance;
+      localFixture.detectChanges();
+
+      localComp.products = [
+        { id: 10, nom: 'Mojito', prix: 8, categorie: 'ALCOOLISE', disponible: true, stockStatus: 'NORMAL' },
+      ];
+
+      cocktailWsTopic$.next({
+        body: JSON.stringify({ id: 10, nom: 'Mojito Super', prix: 9, disponible: false }),
+      });
+      tick();
+
+      expect(localComp.products[0].disponible).toBeFalse();
+      expect(localComp.products[0].stockStatus).toBe('CRITIQUE');
+      expect(localComp.products[0].nom).toBe('Mojito Super');
+      expect(localComp.products[0].prix).toBe(9);
+
+      localComp.ngOnDestroy();
+    }));
+
+    it('occupies table directly when onOccupyTable is called', fakeAsync(() => {
+      const freeTable: TableView = { id: 2, nom: 'Table 2', zone: 'Salle', capacite: 2, occupee: false, commandesActives: [] };
+      dashboardServiceSpy.occuperTable.and.returnValue(of({} as any));
+
+      component.onOccupyTable(freeTable);
+      tick();
+
+      expect(dashboardServiceSpy.occuperTable).toHaveBeenCalledWith(2);
+      expect(freeTable.occupee).toBeTrue();
+      expect(toastCtrlSpy.create).toHaveBeenCalled();
+    }));
+
+    it('frees table directly when onFreeTable is called', fakeAsync(() => {
+      const occupiedTable: TableView = { id: 1, nom: 'Table 1', zone: 'Terrasse', capacite: 4, occupee: true, waitTimeMinutes: 15, commandesActives: [] };
+      dashboardServiceSpy.libererTable.and.returnValue(of({} as any));
+
+      component.onFreeTable(occupiedTable);
+      tick();
+
+      expect(dashboardServiceSpy.libererTable).toHaveBeenCalledWith(1);
+      expect(occupiedTable.occupee).toBeFalse();
+      expect(occupiedTable.waitTimeMinutes).toBe(0);
+      expect(toastCtrlSpy.create).toHaveBeenCalled();
+    }));
+
+    it('computes waitTimeMinutes from oldest pending order and ignores delivered orders', () => {
+      const tables: TableView[] = [{ id: 11, nom: 'Table 11', zone: 'Terrasse', capacite: 4, occupee: true, commandesActives: [] }];
+      const tenMinAgo = new Date(Date.now() - 10 * 60000).toISOString();
+      const twentyMinAgo = new Date(Date.now() - 20 * 60000).toISOString();
+
+      // Table 11 has only a delivered order (LIVREE) -> wait time should be 0
+      const deliveredOnly: Commande[] = [
+        { id: 101, tableId: 11, statut: 'LIVREE', dateCommande: twentyMinAgo, total: 15 } as any,
+      ];
+      const enrichedDelivered = (component as any).enrichTablesWithOrders(tables, deliveredOnly);
+      expect(enrichedDelivered[0].waitTimeMinutes).toBe(0);
+      expect(enrichedDelivered[0].activeTotal).toBe(15);
+      expect(enrichedDelivered[0].commandesActives).toHaveSize(1);
+
+      // Table 11 has a delivered order (20 min ago) and a pending order (10 min ago) -> wait time should be 10 min
+      const mixedOrders: Commande[] = [
+        { id: 101, tableId: 11, statut: 'LIVREE', dateCommande: twentyMinAgo, total: 15 } as any,
+        { id: 102, tableId: 11, statut: 'EN_ATTENTE', dateCommande: tenMinAgo, total: 20 } as any,
+      ];
+      const enrichedMixed = (component as any).enrichTablesWithOrders(tables, mixedOrders);
+      expect(enrichedMixed[0].waitTimeMinutes).toBeGreaterThanOrEqual(9);
+      expect(enrichedMixed[0].waitTimeMinutes).toBeLessThanOrEqual(11);
+      expect(enrichedMixed[0].activeTotal).toBe(35);
+      expect(enrichedMixed[0].commandesActives).toHaveSize(2);
     });
   });
 });

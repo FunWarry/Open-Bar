@@ -5,9 +5,10 @@ import { Router } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
 import { ToastController } from '@ionic/angular/standalone';
 import { Store } from '@ngrx/store';
-import { of, throwError } from 'rxjs';
+import { Subject, of, throwError } from 'rxjs';
 import { CocktailListComponent } from '../../../app/features/cocktails/cocktail-list/cocktail-list.component';
 import { CocktailService } from '../../../app/core/services/cocktail.service';
+import { WebSocketService } from '../../../app/core/services/websocket.service';
 import { Cocktail, CocktailCategorie } from '../../../app/core/models/cocktail.model';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 
@@ -39,17 +40,31 @@ describe('CocktailListComponent', () => {
   let component: CocktailListComponent;
   let fixture: ComponentFixture<CocktailListComponent>;
   let serviceSpy: jasmine.SpyObj<CocktailService>;
+  let wsSpy: jasmine.SpyObj<WebSocketService>;
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
   let storeSpy: jasmine.SpyObj<Store>;
   let router: Router;
+  let wsCocktailSubject: Subject<any>;
+  let wsCocktailDeleteSubject: Subject<any>;
 
   const mockToast = { present: jasmine.createSpy('present') };
 
   beforeEach(async () => {
+    wsCocktailSubject = new Subject<any>();
+    wsCocktailDeleteSubject = new Subject<any>();
+
     serviceSpy = jasmine.createSpyObj('CocktailService', ['getAll', 'toggleDisponibilite', 'delete']);
     serviceSpy.getAll.and.returnValue(of(mockCocktails));
     serviceSpy.toggleDisponibilite.and.returnValue(of({ ...mockCocktails[0], disponible: false } as any));
     serviceSpy.delete.and.returnValue(of(undefined as any));
+
+    wsSpy = jasmine.createSpyObj('WebSocketService', ['watch']);
+    wsSpy.watch.and.callFake((destination: string) => {
+      if (destination === '/topic/cocktails/supprime') {
+        return wsCocktailDeleteSubject.asObservable();
+      }
+      return wsCocktailSubject.asObservable();
+    });
 
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
     toastCtrlSpy.create.and.returnValue(Promise.resolve(mockToast as any));
@@ -62,6 +77,7 @@ describe('CocktailListComponent', () => {
       providers: [
         { provide: Store, useValue: storeSpy },
         { provide: CocktailService, useValue: serviceSpy },
+        { provide: WebSocketService, useValue: wsSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
       ],
     }).compileComponents();
@@ -295,5 +311,39 @@ describe('CocktailListComponent', () => {
 
     const externalUrl = component.getCocktailImage({ ...mockCocktails[0], imageUrl: 'https://example.com/mojito.png' });
     expect(externalUrl).toBe('https://example.com/mojito.png');
+  });
+
+  // --- WebSocket Real-Time Synchronization ---
+
+  it('updates an existing cocktail in-place when message is received on /topic/cocktails', () => {
+    serviceSpy.getAll.calls.reset();
+    const updated = { ...mockCocktails[0], disponible: false, nom: 'Mojito Royal' };
+    wsCocktailSubject.next({ body: JSON.stringify(updated) });
+
+    expect(component.cocktails.find(c => c.id === 1)?.disponible).toBeFalse();
+    expect(component.cocktails.find(c => c.id === 1)?.nom).toBe('Mojito Royal');
+    // Ensure full charger() wasn't triggered
+    expect(serviceSpy.getAll).not.toHaveBeenCalled();
+  });
+
+  it('prepends a newly created cocktail when received on /topic/cocktails', () => {
+    const newCocktail = makeC(99, 'Pina Colada', true);
+    wsCocktailSubject.next({ body: JSON.stringify(newCocktail) });
+
+    expect(component.cocktails.find(c => c.id === 99)).toBeDefined();
+    expect(component.cocktails[0].nom).toBe('Pina Colada');
+  });
+
+  it('removes deleted cocktail when message is received on /topic/cocktails/supprime', () => {
+    wsCocktailDeleteSubject.next({ body: JSON.stringify({ id: 1, deleted: true }) });
+    expect(component.cocktails.find(c => c.id === 1)).toBeUndefined();
+    expect(component.cocktails).toHaveSize(1);
+  });
+
+  it('ignores malformed messages on /topic/cocktails gracefully', () => {
+    expect(() => {
+      wsCocktailSubject.next({ body: 'NOT_VALID_JSON' });
+    }).not.toThrow();
+    expect(component.cocktails).toHaveSize(2);
   });
 });

@@ -59,6 +59,9 @@ class CocktailServiceTest {
     @Mock
     FileUploadService fileUploadService;
 
+    @Mock
+    NotificationService notificationService;
+
     @InjectMocks
     CocktailService cocktailService;
 

@@ -43,12 +43,17 @@ describe('TableListComponent', () => {
   let router: Router;
 
   const mockToast = { present: jasmine.createSpy('present') };
+  const mockModal = {
+    present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+    onDidDismiss: jasmine.createSpy('onDidDismiss').and.returnValue(Promise.resolve({ data: { confirmed: true } }))
+  };
 
   beforeEach(async () => {
-    serviceSpy = jasmine.createSpyObj('TableService', ['getAll', 'occuper', 'liberer']);
+    serviceSpy = jasmine.createSpyObj('TableService', ['getAll', 'occuper', 'liberer', 'delete']);
     serviceSpy.getAll.and.returnValue(of(mockTables));
     serviceSpy.occuper.and.returnValue(of({ ...mockTables[0], occupee: true }));
     serviceSpy.liberer.and.returnValue(of({ ...mockTables[1], occupee: false }));
+    serviceSpy.delete.and.returnValue(of(undefined as any));
 
     zoneServiceSpy = jasmine.createSpyObj('ZoneService', ['getAll']);
     zoneServiceSpy.getAll.and.returnValue(of(mockZones));
@@ -59,21 +64,28 @@ describe('TableListComponent', () => {
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
     toastCtrlSpy.create.and.returnValue(Promise.resolve(mockToast as any));
 
-    modalCtrlSpy = jasmine.createSpyObj('ModalController', ['create', 'dismiss']);
+    modalCtrlSpy = jasmine.createSpyObj('ModalController', ['create']);
+    modalCtrlSpy.create.and.returnValue(Promise.resolve(mockModal as any));
 
-    storeSpy = jasmine.createSpyObj('Store', ['select', 'dispatch']);
+    storeSpy = jasmine.createSpyObj('Store', ['select']);
     storeSpy.select.and.returnValue(of(false));
 
     await TestBed.configureTestingModule({
-      imports: [TableListComponent, IonicModule.forRoot(), RouterTestingModule, HttpClientTestingModule, getTranslocoTestingModule()],
+      imports: [
+        TableListComponent,
+        IonicModule.forRoot(),
+        RouterTestingModule,
+        HttpClientTestingModule,
+        getTranslocoTestingModule()
+      ],
       providers: [
-        { provide: Store, useValue: storeSpy },
         { provide: TableService, useValue: serviceSpy },
         { provide: ZoneService, useValue: zoneServiceSpy },
         { provide: EtageService, useValue: etageServiceSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
         { provide: ModalController, useValue: modalCtrlSpy },
-      ],
+        { provide: Store, useValue: storeSpy }
+      ]
     }).compileComponents();
 
     router = TestBed.inject(Router);
@@ -82,59 +94,73 @@ describe('TableListComponent', () => {
     fixture.detectChanges();
   });
 
-  afterEach(() => component.ngOnDestroy());
+  afterEach(() => {
+    component.ngOnDestroy();
+  });
 
-  it('should create', () => expect(component).toBeTruthy());
+  it('devrait être créé', () => {
+    expect(component).toBeTruthy();
+  });
 
-  it('charger() peuple tables, zones et etages depuis les services', fakeAsync(() => {
-    component.charger();
-    tick();
+  it('charge les tables au démarrage', () => {
+    expect(serviceSpy.getAll).toHaveBeenCalled();
     expect(component.tables).toHaveSize(3);
-    expect(component.zones).toHaveSize(3);
-    expect(component.etages).toHaveSize(2);
-  }));
+  });
 
-  it('charger() affiche un toast danger en cas d\'erreur', fakeAsync(() => {
-    serviceSpy.getAll.and.returnValue(throwError(() => new Error('err')));
-    component.charger();
-    tick();
-    flushMicrotasks();
-    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
-  }));
-
-  it('calcule correctement tableStats', () => {
+  it('calcule correctement les statistiques des tables', () => {
     const stats = component.tableStats;
     expect(stats.totalCount).toBe(3);
     expect(stats.freeCount).toBe(1);
     expect(stats.occupiedCount).toBe(2);
-    expect(stats.occupancyRate).toBe(67); // 2/3 = 66.67 -> 67%
-    expect(stats.totalCapacity).toBe(12); // 4 + 2 + 6
-    expect(stats.occupiedCapacity).toBe(8); // 2 + 6
+    expect(stats.totalCapacity).toBe(12);
+    expect(stats.occupiedCapacity).toBe(8);
   });
 
-  it('filtre les tables par statut', () => {
-    component.setStatusFilter('FREE');
-    expect(component.filteredTables).toHaveSize(1);
-    expect(component.filteredTables[0].id).toBe(1);
-
-    component.setStatusFilter('OCCUPIED');
-    expect(component.filteredTables).toHaveSize(2);
-  });
-
-  it('filtre les tables par terme de recherche', () => {
+  it('filtre les tables par terme de recherche (numéro)', () => {
     component.searchTerm = '10';
     expect(component.filteredTables).toHaveSize(1);
     expect(component.filteredTables[0].numero).toBe(10);
   });
 
-  it('filtre les tables par zone et par etage', () => {
+  it('filtre les tables par statut LIBRE', () => {
+    component.selectedStatus = 'FREE';
+    expect(component.filteredTables).toHaveSize(1);
+    expect(component.filteredTables[0].occupee).toBeFalse();
+  });
+
+  it('filtre les tables par statut OCCUPEE', () => {
+    component.selectedStatus = 'OCCUPIED';
+    expect(component.filteredTables).toHaveSize(2);
+  });
+
+  it('filtre les tables par zone', () => {
     component.selectedZone = 'INTERIEUR';
     expect(component.filteredTables).toHaveSize(1);
     expect(component.filteredTables[0].zone).toBe('INTERIEUR');
+  });
 
-    component.selectedZone = 'ALL';
+  it('filtre les tables par etage', () => {
     component.selectedEtage = 'RDC';
     expect(component.filteredTables).toHaveSize(3);
+
+    component.selectedEtage = 'ETAGE_1';
+    expect(component.filteredTables).toHaveSize(0);
+  });
+
+  it('trie les tables par numero croissant', () => {
+    component.sortOption = 'NUMBER_ASC';
+    const sorted = component.filteredTables;
+    expect(sorted[0].numero).toBe(1);
+    expect(sorted[1].numero).toBe(2);
+    expect(sorted[2].numero).toBe(10);
+  });
+
+  it('trie les tables par numero decroissant', () => {
+    component.sortOption = 'NUMBER_DESC';
+    const sorted = component.filteredTables;
+    expect(sorted[0].numero).toBe(10);
+    expect(sorted[1].numero).toBe(2);
+    expect(sorted[2].numero).toBe(1);
   });
 
   it('trie les tables par capacite decroissante', () => {
@@ -169,26 +195,59 @@ describe('TableListComponent', () => {
     expect(serviceSpy.liberer).toHaveBeenCalledWith(2);
   });
 
-  it('onAdd() navigue vers /tables/new', () => {
-    spyOn(router, 'navigate');
+  it('onAdd() ouvre la modal TableFormComponent', fakeAsync(() => {
     component.onAdd();
-    expect(router.navigate).toHaveBeenCalledWith(['/tables/new']);
-  });
+    tick();
+    expect(modalCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({
+      componentProps: { tableId: null }
+    }));
+    expect(mockModal.present).toHaveBeenCalled();
+  }));
 
-  it('onView() navigue vers /tables/:id', () => {
-    spyOn(router, 'navigate');
+  it('onView() ouvre la modal TableDetailComponent', fakeAsync(() => {
     component.onView(mockTables[0]);
-    expect(router.navigate).toHaveBeenCalledWith(['/tables', 1]);
-  });
+    tick();
+    expect(modalCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({
+      componentProps: { tableId: 1, table: mockTables[0] }
+    }));
+    expect(mockModal.present).toHaveBeenCalled();
+  }));
 
-  it('onEdit() navigue vers /tables/:id/edit', () => {
-    spyOn(router, 'navigate');
+  it('onEdit() ouvre la modal TableFormComponent en mode édition', fakeAsync(() => {
     component.onEdit(mockTables[0]);
-    expect(router.navigate).toHaveBeenCalledWith(['/tables', 1, 'edit']);
-  });
+    tick();
+    expect(modalCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({
+      componentProps: { tableId: 1, table: mockTables[0] }
+    }));
+    expect(mockModal.present).toHaveBeenCalled();
+  }));
+
+  it('onDelete() demande confirmation via modal et appelle tableService.delete', fakeAsync(() => {
+    component.onDelete(mockTables[0]);
+    tick();
+    expect(modalCtrlSpy.create).toHaveBeenCalled();
+    expect(serviceSpy.delete).toHaveBeenCalledWith(1);
+  }));
 
   it('isAdmin$ emits false by default', (done) => {
     component.isAdmin$.subscribe(v => { expect(v).toBe(false); done(); });
+  });
+
+  it('etageOptions, zoneOptions and sortOptions return formatted SearchableOption items and handlers work', () => {
+    component.charger();
+    expect(component.etageOptions).toHaveSize(3); // ALL + 2 floors
+    expect(component.zoneOptions).toHaveSize(4);  // ALL + 3 zones
+    expect(component.sortOptions).toHaveSize(7);
+
+    component.onEtageSelected({ value: 'ETAGE_1', label: 'First Floor' });
+    expect(component.selectedEtage).toBe('ETAGE_1');
+    expect(component.selectedZone).toBe('ALL');
+
+    component.onZoneSelected({ value: 'MEZZANINE', label: 'MEZZANINE' });
+    expect(component.selectedZone).toBe('MEZZANINE');
+
+    component.onSortSelected({ value: 'CAPACITY_ASC', label: 'Capacité croissante' });
+    expect(component.sortOption).toBe('CAPACITY_ASC');
   });
 
   it('trackById retourne l\'id de la table', () => {

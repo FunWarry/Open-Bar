@@ -30,8 +30,8 @@ describe('ScheduleComponent', () => {
   beforeEach(async () => {
     wsSubject = new Subject<any>();
     mockScheduleService = jasmine.createSpyObj('ScheduleService', ['getWeekSchedule', 'getWeekScheduleAt', 'getMonday']);
-    mockShiftService = jasmine.createSpyObj('ShiftService', ['createShift', 'deleteShift']);
-    mockUserService = jasmine.createSpyObj('UserService', ['getUsers']);
+    mockShiftService = jasmine.createSpyObj('ShiftService', ['createShift', 'deleteShift', 'getShiftById']);
+    mockUserService = jasmine.createSpyObj('UserService', ['getUsers', 'getUserById']);
     mockClosureService = jasmine.createSpyObj('ClosureService', ['getClosures', 'createClosure', 'deleteClosure']);
     mockPublicationService = jasmine.createSpyObj('PublicationService', ['publishWeek', 'getPublication']);
     mockWebSocketService = jasmine.createSpyObj('WebSocketService', ['watch']);
@@ -214,6 +214,27 @@ describe('ScheduleComponent', () => {
       expect(component.isShiftSelected(101)).toBeFalse();
     });
 
+    it('toggleShiftSelection() with a ShiftCell containing duplicate shiftIds should stage all IDs', () => {
+      const cell = {
+        day: 'Fri',
+        date: '2026-08-28',
+        userId: 2,
+        type: 'MANAGER',
+        shiftIds: [101, 102],
+        rawShift: { id: 101 }
+      } as any;
+
+      component.toggleShiftSelection(cell);
+      expect(component.isShiftSelected(101)).toBeTrue();
+      expect(component.isShiftSelected(102)).toBeTrue();
+      expect(component.isShiftSelected(cell)).toBeTrue();
+
+      component.toggleShiftSelection(cell);
+      expect(component.isShiftSelected(101)).toBeFalse();
+      expect(component.isShiftSelected(102)).toBeFalse();
+      expect(component.isShiftSelected(cell)).toBeFalse();
+    });
+
     it('clearDeleteSelection() should empty the selection set', () => {
       component.selectedShiftIds.add(1);
       component.selectedShiftIds.add(2);
@@ -234,35 +255,64 @@ describe('ScheduleComponent', () => {
       expect(component.openEmployeeModalForUser).not.toHaveBeenCalled();
     });
 
-    it('confirmBulkDelete() should open alert and batch delete all selected shifts on confirmation', fakeAsync(() => {
+    it('confirmBulkDelete() should open ConfirmDeleteModalComponent and batch delete all selected shifts on confirmation', fakeAsync(() => {
       component.selectedShiftIds.add(10);
       component.selectedShiftIds.add(20);
 
-      let alertButtons: any[] = [];
-      mockAlertCtrl.create.and.callFake((opts: any) => {
-        alertButtons = opts.buttons;
-        return Promise.resolve({
-          present: jasmine.createSpy('present').and.returnValue(Promise.resolve())
-        } as any);
-      });
+      const mockModal = {
+        present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+        onDidDismiss: jasmine.createSpy('onDidDismiss').and.returnValue(Promise.resolve({ data: { confirmed: true } }))
+      };
+      mockModalCtrl.create.and.returnValue(Promise.resolve(mockModal as any));
+      mockShiftService.deleteShift.and.returnValue(of(void 0));
 
       component.confirmBulkDelete();
       tick();
 
-      expect(mockAlertCtrl.create).toHaveBeenCalled();
-      const deleteBtn = alertButtons.find((b: any) => b.role === 'destructive');
-      expect(deleteBtn).toBeTruthy();
-
-      mockShiftService.deleteShift.and.returnValue(of(void 0));
-      deleteBtn.handler();
-      tick();
-
+      expect(mockModalCtrl.create).toHaveBeenCalled();
+      expect(mockModal.present).toHaveBeenCalled();
       expect(mockShiftService.deleteShift).toHaveBeenCalledWith(10);
       expect(mockShiftService.deleteShift).toHaveBeenCalledWith(20);
       expect(component.isDeleteMode).toBeFalse();
       expect(component.selectedShiftIds.size).toBe(0);
       expect(mockToastCtrl.create).toHaveBeenCalled();
     }));
+
+    it('confirmDeleteShift() should open ConfirmDeleteModalComponent and delete shift on confirmation', fakeAsync(() => {
+      mockShiftService.getShiftById.and.returnValue(of({
+        id: 99,
+        userId: 1,
+        dateShift: '2026-08-28',
+        heureDebut: '08:00',
+        heureFin: '16:00',
+        userPrenom: 'Lucas',
+        userNom: 'Bernard'
+      } as any));
+
+      const mockModal = {
+        present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+        onDidDismiss: jasmine.createSpy('onDidDismiss').and.returnValue(Promise.resolve({ data: { confirmed: true } }))
+      };
+      mockModalCtrl.create.and.returnValue(Promise.resolve(mockModal as any));
+      mockShiftService.deleteShift.and.returnValue(of(void 0));
+
+      component.confirmDeleteShift(99);
+      tick();
+
+      expect(mockModalCtrl.create).toHaveBeenCalled();
+      expect(mockModal.present).toHaveBeenCalled();
+      expect(mockShiftService.deleteShift).toHaveBeenCalledWith(99);
+      expect(mockToastCtrl.create).toHaveBeenCalled();
+    }));
+
+    it('getDayHeaders() should return localized day names in active language', () => {
+      component.currentWeekStart = new Date('2026-08-24T00:00:00');
+      const headers = component.getDayHeaders();
+      expect(headers).toHaveSize(7);
+      // In default lang 'fr', first day (Monday) should be formatted as 'LUN'
+      expect(headers[0].day).toBe('LUN');
+      expect(headers[0].date).toBe('24');
+    });
 
     it('pressing Escape in delete mode should exit delete mode', () => {
       component.isDeleteMode = true;
@@ -473,23 +523,21 @@ describe('ScheduleComponent', () => {
       expect(component.selectedShiftIds.has(202)).toBeTrue();
     });
 
-    it('confirmBulkDelete() should prompt alert and execute bulk deletion on destructive button click', async () => {
+    it('confirmBulkDelete() should open ConfirmDeleteModalComponent and execute bulk deletion on confirmation', async () => {
       component.selectedShiftIds.add(201);
       component.selectedShiftIds.add(202);
 
-      let confirmHandler: () => void = () => {};
-      mockAlertCtrl.create.and.callFake((options: any) => {
-        const delBtn = options.buttons.find((b: any) => b.role === 'destructive');
-        if (delBtn && delBtn.handler) confirmHandler = delBtn.handler;
-        return Promise.resolve({ present: () => Promise.resolve() } as any);
-      });
+      const mockModal = {
+        present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+        onDidDismiss: jasmine.createSpy('onDidDismiss').and.returnValue(Promise.resolve({ data: { confirmed: true } }))
+      };
+      mockModalCtrl.create.and.returnValue(Promise.resolve(mockModal as any));
       mockShiftService.deleteShift.and.returnValue(of(undefined as any));
 
       await component.confirmBulkDelete();
 
-      expect(mockAlertCtrl.create).toHaveBeenCalled();
-      confirmHandler();
-
+      expect(mockModalCtrl.create).toHaveBeenCalled();
+      expect(mockModal.present).toHaveBeenCalled();
       expect(mockShiftService.deleteShift).toHaveBeenCalledWith(201);
       expect(mockShiftService.deleteShift).toHaveBeenCalledWith(202);
       expect(component.selectedShiftIds.size).toBe(0);

@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { EmployeeShiftModalComponent } from '../../../app/features/employees/employee-shift-modal/employee-shift-modal.component';
 import { ShiftService } from '../../../app/core/services/shift.service';
-import { ModalController, AlertController } from '@ionic/angular/standalone';
+import { ModalController, AlertController, ToastController } from '@ionic/angular/standalone';
 import { TranslocoTestingModule } from '@jsverse/transloco';
 import { provideMockStore } from '@ngrx/store/testing';
 import { of } from 'rxjs';
@@ -14,6 +14,7 @@ describe('EmployeeShiftModalComponent', () => {
   let mockShiftService: jasmine.SpyObj<ShiftService>;
   let mockModalCtrl: jasmine.SpyObj<ModalController>;
   let mockAlertCtrl: jasmine.SpyObj<AlertController>;
+  let mockToastCtrl: jasmine.SpyObj<ToastController>;
 
   const sampleUser: User = {
     id: 1,
@@ -62,6 +63,10 @@ describe('EmployeeShiftModalComponent', () => {
     ]);
     mockModalCtrl = jasmine.createSpyObj('ModalController', ['dismiss', 'create']);
     mockAlertCtrl = jasmine.createSpyObj('AlertController', ['create']);
+    mockToastCtrl = jasmine.createSpyObj('ToastController', ['create']);
+    mockToastCtrl.create.and.returnValue(Promise.resolve({
+      present: () => Promise.resolve()
+    } as any));
 
     mockShiftService.getShiftsForWeek.and.returnValue(of([sampleShift]));
     mockShiftService.getPresets.and.returnValue(of([samplePreset]));
@@ -107,7 +112,8 @@ describe('EmployeeShiftModalComponent', () => {
         }),
         { provide: ShiftService, useValue: mockShiftService },
         { provide: ModalController, useValue: mockModalCtrl },
-        { provide: AlertController, useValue: mockAlertCtrl }
+        { provide: AlertController, useValue: mockAlertCtrl },
+        { provide: ToastController, useValue: mockToastCtrl }
       ]
     }).compileComponents();
 
@@ -168,23 +174,18 @@ describe('EmployeeShiftModalComponent', () => {
     expect(component.showForm).toBeFalse();
   });
 
-  it('confirmDelete() should prompt alert and execute deleteShift on handler', async () => {
-    let confirmHandler: () => void = () => {};
-    mockAlertCtrl.create.and.callFake((options: any) => {
-      const deleteBtn = options.buttons.find((b: any) => b.role === 'destructive');
-      if (deleteBtn && deleteBtn.handler) {
-        confirmHandler = deleteBtn.handler;
-      }
-      return Promise.resolve({
-        present: () => Promise.resolve()
-      } as any);
-    });
+  it('confirmDeleteShift() should open ConfirmDeleteModalComponent and delete shift on confirmation', async () => {
+    const mockModal = {
+      present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+      onDidDismiss: jasmine.createSpy('onDidDismiss').and.returnValue(Promise.resolve({ data: { confirmed: true } }))
+    };
+    mockModalCtrl.create.and.returnValue(Promise.resolve(mockModal as any));
     mockShiftService.deleteShift.and.returnValue(of(undefined as any));
 
     await component.confirmDeleteShift(sampleShift);
-    expect(mockAlertCtrl.create).toHaveBeenCalled();
 
-    confirmHandler();
+    expect(mockModalCtrl.create).toHaveBeenCalled();
+    expect(mockModal.present).toHaveBeenCalled();
     expect(mockShiftService.deleteShift).toHaveBeenCalledWith(10);
   });
 

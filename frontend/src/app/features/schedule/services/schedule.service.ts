@@ -94,12 +94,14 @@ export class ScheduleService {
     }
 
     // Map shifts by userId + dateShift
-    const shiftsMap = new Map<string, EmployeeShift>();
+    const shiftsMap = new Map<string, EmployeeShift[]>();
     let totalCalculatedHours = 0;
 
     shifts.forEach((s) => {
       const key = `${s.userId}_${s.dateShift}`;
-      shiftsMap.set(key, s);
+      const existing = shiftsMap.get(key) || [];
+      existing.push(s);
+      shiftsMap.set(key, existing);
 
       if (s.heuresPrevues) {
         totalCalculatedHours += Number(s.heuresPrevues);
@@ -120,10 +122,12 @@ export class ScheduleService {
         const closureReason = closedDaysMap[dateIso];
 
         const key = `${user.id}_${dateIso}`;
-        const shiftObj = shiftsMap.get(key);
+        const userShiftsForDay = shiftsMap.get(key);
 
-        if (shiftObj) {
+        if (userShiftsForDay && userShiftsForDay.length > 0) {
           activeUserSet.add(user.id);
+          const shiftObj = userShiftsForDay[0];
+          const shiftIds = userShiftsForDay.map((s) => s.id).filter((id): id is number => id != null);
           return {
             day: dayName,
             date: dateIso,
@@ -134,6 +138,7 @@ export class ScheduleService {
             startTime: shiftObj.heureDebut,
             endTime: shiftObj.heureFin,
             rawShift: shiftObj,
+            shiftIds,
             isClosed,
             closureReason
           };

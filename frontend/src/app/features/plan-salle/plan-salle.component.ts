@@ -420,7 +420,7 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
   async ouvrirGestionZonesEtages() {
     const modal = await this.modalCtrl.create({
       component: ZoneManagerComponent,
-      cssClass: 'zone-manager-modal-class',
+      cssClass: 'zone-manager-modal-container',
     });
     await modal.present();
 

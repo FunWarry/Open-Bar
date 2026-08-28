@@ -4,54 +4,93 @@
   </ion-refresher>
 
   <div class="cocktail-container">
-    <!-- Header Controls Card (Figma Style) -->
-    <ion-card class="cocktail-header-card">
-      <ion-card-header>
-        <div class="header-main-row">
-          <div class="title-with-count">
-            <ion-card-title>{{ 'COCKTAILS.TITLE' | transloco }} ({{ filteredCocktails.length }})</ion-card-title>
+    <!-- Header Controls Card (Modern Sleek OpenBar Design System) -->
+    <div class="cocktail-header-card" data-testid="cocktail-header-card">
+      <div class="header-main-row">
+        <div class="title-with-count">
+          <div class="title-icon-badge">
+            <ion-icon name="wine-outline"></ion-icon>
           </div>
-
-          <div class="header-actions">
-            <!-- Pictures Toggle Button (Sleek Figma Pill Design) -->
-            <button
-              class="figma-filter-pill pictures-toggle-pill"
-              [class.active]="showPictures"
-              (click)="togglePictures()"
-              (keydown.enter)="togglePictures()"
-              data-testid="pictures-toggle">
-              <ion-icon [name]="showPictures ? 'image' : 'image-outline'"></ion-icon>
-              {{ 'COCKTAILS.SHOW_PICTURES' | transloco }}
-            </button>
-
-            <!-- View Mode Toggle (Grid/List) -->
-            <ion-segment [(ngModel)]="viewMode" class="view-mode-segment" data-testid="cocktail-view-mode-toggle">
-              <ion-segment-button value="grid" data-testid="view-grid-btn">
-                <ion-icon name="grid-outline"></ion-icon>
-              </ion-segment-button>
-              <ion-segment-button value="list" data-testid="view-list-btn">
-                <ion-icon name="list-outline"></ion-icon>
-              </ion-segment-button>
-            </ion-segment>
-
-            @if (isAdmin$ | async) {
-              <ion-button color="primary" (click)="onAdd()" (keydown.enter)="onAdd()" data-testid="cocktail-add-btn">
-                <ion-icon slot="start" name="add"></ion-icon>
-                {{ 'COCKTAILS.ADD' | transloco }}
-              </ion-button>
-            }
+          <div class="title-text-group">
+            <h1 class="page-title">{{ 'COCKTAILS.TITLE' | transloco }}</h1>
+            <span class="count-badge" data-testid="cocktails-count-badge">
+              {{ filteredCocktails.length }} {{ filteredCocktails.length > 1 ? ('COCKTAILS.TITLE' | transloco | lowercase) : ('COCKTAILS.TITLE' | transloco | lowercase) }}
+            </span>
           </div>
         </div>
-      </ion-card-header>
 
-      <ion-card-content class="filter-section">
+        <div class="header-actions">
+          <!-- Pictures Toggle Button (Sleek Pill) -->
+          <button
+            type="button"
+            class="pictures-toggle-pill"
+            [class.active]="showPictures"
+            (click)="togglePictures()"
+            (keydown.enter)="togglePictures()"
+            data-testid="pictures-toggle"
+            [title]="'COCKTAILS.SHOW_PICTURES' | transloco">
+            <ion-icon [name]="showPictures ? 'image' : 'image-outline'"></ion-icon>
+            <span>{{ 'COCKTAILS.SHOW_PICTURES' | transloco }}</span>
+            <span class="toggle-indicator-dot" [class.on]="showPictures"></span>
+          </button>
+
+          <!-- View Mode Toggle Pill Group (Exact match to reference) -->
+          <div class="view-mode-pill-group" data-testid="cocktail-view-mode-toggle">
+            <button
+              type="button"
+              class="view-pill-btn"
+              [class.active]="viewMode === 'grid'"
+              (click)="viewMode = 'grid'"
+              (keydown.enter)="viewMode = 'grid'"
+              data-testid="view-grid-btn">
+              <ion-icon name="grid-outline"></ion-icon>
+              <span>{{ 'COCKTAILS.VIEW_GRID' | transloco }}</span>
+            </button>
+
+            <button
+              type="button"
+              class="view-pill-btn"
+              [class.active]="viewMode === 'list'"
+              (click)="viewMode = 'list'"
+              (keydown.enter)="viewMode = 'list'"
+              data-testid="view-list-btn">
+              <ion-icon name="list-outline"></ion-icon>
+              <span>{{ 'COCKTAILS.VIEW_LIST' | transloco }}</span>
+            </button>
+          </div>
+
+          @if (isAdmin$ | async) {
+            <button
+              type="button"
+              class="btn-add-cocktail"
+              (click)="onAdd()"
+              (keydown.enter)="onAdd()"
+              data-testid="cocktail-add-btn">
+              <ion-icon name="add"></ion-icon>
+              <span>{{ 'COCKTAILS.ADD' | transloco | uppercase }}</span>
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="filter-section">
         <!-- Searchbar -->
-        <ion-searchbar
-          [(ngModel)]="searchQuery"
-          [placeholder]="'COCKTAILS.SEARCH_PLACEHOLDER' | transloco"
-          class="cocktail-searchbar"
-          data-testid="cocktail-searchbar">
-        </ion-searchbar>
+        <div class="search-input-wrapper">
+          <ion-icon name="search" class="search-icon"></ion-icon>
+          <input
+            id="cocktail-search-input"
+            type="text"
+            class="cocktail-search-input"
+            [(ngModel)]="searchQuery"
+            [placeholder]="'COCKTAILS.SEARCH_PLACEHOLDER' | transloco"
+            [attr.aria-label]="'COCKTAILS.SEARCH_PLACEHOLDER' | transloco"
+            data-testid="cocktail-searchbar" />
+          @if (searchQuery) {
+            <button type="button" class="search-clear-btn" (click)="searchQuery = ''" aria-label="Effacer la recherche">
+              <ion-icon name="close-circle-outline"></ion-icon>
+            </button>
+          }
+        </div>
 
         <!-- Figma Category Dot Filter Pills -->
         <div class="category-pills-row">
@@ -147,8 +186,8 @@
             </button>
           }
         </div>
-      </ion-card-content>
-    </ion-card>
+      </div>
+    </div>
 
     @if (isLoading) {
       <div class="loading-container">
@@ -161,7 +200,11 @@
           <ion-row>
             @for (cocktail of filteredCocktails; track cocktail.id) {
               <ion-col size="12" size-sm="6" size-md="4" size-lg="4">
-                <div class="figma-cocktail-card" [class.no-picture]="!showPictures" [attr.data-testid]="'cocktail-card-' + cocktail.id">
+                <div
+                  class="figma-cocktail-card"
+                  [class.no-picture]="!showPictures"
+                  [class.unavailable]="!cocktail.disponible"
+                  [attr.data-testid]="'cocktail-card-' + cocktail.id">
                   @if (showPictures) {
                     <div class="figma-card-image-area">
                       <img
@@ -210,10 +253,24 @@
 
                     <div class="figma-card-bottom-row">
                       <div class="bottom-actions">
-                        <ion-button fill="clear" size="small" [color]="cocktail.disponible ? 'success' : 'medium'" [attr.data-testid]="'toggle-dispo-btn-' + cocktail.id" (click)="onToggleDisponibilite(cocktail)" (keydown.enter)="onToggleDisponibilite(cocktail)">
-                          <ion-icon slot="start" [name]="cocktail.disponible ? 'toggle' : 'toggle-outline'"></ion-icon>
-                          {{ cocktail.disponible ? ('COCKTAILS.AVAILABLE' | transloco) : ('COCKTAILS.UNAVAILABLE' | transloco) }}
-                        </ion-button>
+                        <!-- Modern Interactive Availability Slider Switch -->
+                        <button
+                          type="button"
+                          class="availability-slider-btn"
+                          [class.active]="cocktail.disponible"
+                          [attr.data-testid]="'toggle-dispo-btn-' + cocktail.id"
+                          (click)="onToggleDisponibilite(cocktail)"
+                          (keydown.enter)="onToggleDisponibilite(cocktail)"
+                          [attr.aria-pressed]="cocktail.disponible"
+                          [attr.aria-label]="cocktail.disponible ? ('COCKTAILS.AVAILABLE' | transloco) : ('COCKTAILS.UNAVAILABLE' | transloco)">
+                          <span class="slider-track">
+                            <span class="slider-knob"></span>
+                          </span>
+                          <span class="slider-label">
+                            {{ cocktail.disponible ? ('COCKTAILS.AVAILABLE' | transloco) : ('COCKTAILS.UNAVAILABLE' | transloco) }}
+                          </span>
+                        </button>
+
                         @if (isAdmin$ | async) {
                           <ion-button fill="clear" color="danger" size="small" [attr.data-testid]="'delete-cocktail-btn-' + cocktail.id" (click)="onDelete(cocktail)" (keydown.enter)="onDelete(cocktail)">
                             <ion-icon slot="icon-only" name="trash"></ion-icon>
@@ -240,7 +297,10 @@
           <ion-card-content>
             <ion-list>
               @for (cocktail of filteredCocktails; track cocktail.id) {
-                <ion-item [attr.data-testid]="'cocktail-item-' + cocktail.id" class="cocktail-list-item">
+                <ion-item
+                  [attr.data-testid]="'cocktail-item-' + cocktail.id"
+                  class="cocktail-list-item"
+                  [class.unavailable]="!cocktail.disponible">
                   <ion-thumbnail slot="start" *ngIf="showPictures">
                     <img [src]="cocktail.imageUrl || 'assets/images/verres/verre_tumbler.png'" [alt]="cocktail.nom" />
                   </ion-thumbnail>
@@ -260,14 +320,26 @@
                   @if (isHorsSaison(cocktail)) {
                     <ion-badge slot="end" color="warning">Hors saison</ion-badge>
                   }
-                  <ion-badge slot="end" [color]="cocktail.disponible ? 'success' : 'medium'">
-                    {{ cocktail.disponible ? ('COCKTAILS.AVAILABLE' | transloco) : ('COCKTAILS.UNAVAILABLE' | transloco) }}
-                  </ion-badge>
+                  <div slot="end" class="list-availability-wrapper">
+                    <button
+                      type="button"
+                      class="availability-slider-btn list-mode"
+                      [class.active]="cocktail.disponible"
+                      [attr.data-testid]="'toggle-dispo-btn-' + cocktail.id"
+                      (click)="onToggleDisponibilite(cocktail)"
+                      (keydown.enter)="onToggleDisponibilite(cocktail)"
+                      [attr.aria-pressed]="cocktail.disponible"
+                      [attr.aria-label]="cocktail.disponible ? ('COCKTAILS.AVAILABLE' | transloco) : ('COCKTAILS.UNAVAILABLE' | transloco)">
+                      <span class="slider-track">
+                        <span class="slider-knob"></span>
+                      </span>
+                      <span class="slider-label">
+                        {{ cocktail.disponible ? ('COCKTAILS.AVAILABLE' | transloco) : ('COCKTAILS.UNAVAILABLE' | transloco) }}
+                      </span>
+                    </button>
+                  </div>
                   <ion-badge slot="end" color="primary">{{ cocktail.prix | currency:'EUR' }}</ion-badge>
                   <ion-buttons slot="end">
-                    <ion-button fill="clear" color="warning" [attr.data-testid]="'toggle-dispo-btn-' + cocktail.id" (click)="onToggleDisponibilite(cocktail)" (keydown.enter)="onToggleDisponibilite(cocktail)">
-                      <ion-icon slot="icon-only" [name]="cocktail.disponible ? 'toggle' : 'toggle-outline'"></ion-icon>
-                    </ion-button>
                     @if (isAdmin$ | async) {
                       <ion-button fill="clear" color="tertiary" [attr.data-testid]="'edit-cocktail-btn-' + cocktail.id" (click)="onEdit(cocktail)" (keydown.enter)="onEdit(cocktail)">
                         <ion-icon slot="icon-only" name="create"></ion-icon>

@@ -19,6 +19,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.when;
 
 /**
  * Tests unitaires pour PdfService.
@@ -46,7 +47,7 @@ class PdfServiceTest {
     void setUp() {
         EstablishmentConfig config = new EstablishmentConfig();
         config.setLegalName("OpenBar SARL");
-        config.setSiret("12345678900010");
+        config.setSiret("73282932000074");
         lenient().when(establishmentConfigService.getConfig()).thenReturn(config);
 
         com.bar.gestioncocktail.model.AppSettings defaultSettings = new com.bar.gestioncocktail.model.AppSettings();
@@ -474,6 +475,23 @@ class PdfServiceTest {
         );
 
         byte[] pdf = fallbackPdfService.generateDailyRecapPdf(recap);
+
+        assertThat(pdf).isNotNull().isNotEmpty();
+        String header = new String(pdf, 0, Math.min(5, pdf.length));
+        assertThat(header).startsWith("%PDF");
+    }
+
+    @Test
+    void generateFacturePdf_withEnglishLanguageConfig_generatesValidPdf() {
+        EstablishmentConfig englishConfig = new EstablishmentConfig();
+        englishConfig.setLegalName("London Bar Ltd");
+        englishConfig.setCountry("United Kingdom");
+        englishConfig.setLanguage("en");
+        englishConfig.setSiret("73282932000074");
+        englishConfig.setCapitalSocial(new BigDecimal("50000.00"));
+        when(establishmentConfigService.getConfig()).thenReturn(englishConfig);
+
+        byte[] pdf = pdfService.generateFacturePdf(factureComplete);
 
         assertThat(pdf).isNotNull().isNotEmpty();
         String header = new String(pdf, 0, Math.min(5, pdf.length));

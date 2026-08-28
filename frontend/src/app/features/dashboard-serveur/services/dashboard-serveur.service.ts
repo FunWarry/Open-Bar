@@ -142,8 +142,8 @@ export class DashboardServeurService {
     );
   }
 
-  occuperTable(tableId: number, serveurId: number): Observable<TableBar> {
-    return this.http.patch<TableBar>(`${this.tablesUrl}/${tableId}/occuper`, { serveurId });
+  occuperTable(tableId: number, serveurId?: number): Observable<TableBar> {
+    return this.http.patch<TableBar>(`${this.tablesUrl}/${tableId}/occuper`, serveurId !== undefined ? { serveurId } : {});
   }
 
   libererTable(tableId: number): Observable<TableBar> {

@@ -152,4 +152,37 @@ describe('SearchableSelectComponent', () => {
     const resolved = component.resolveImageUrl('/uploads/glassware/glassware_10.png');
     expect(resolved).toContain('/uploads/glassware/glassware_10.png');
   });
+
+  it('should support dropdownPosition top and bottom overrides', () => {
+    component.dropdownPosition = 'top';
+    component.openDropdown();
+    expect(component.openUpwards()).toBeTrue();
+
+    component.closeDropdown();
+    component.dropdownPosition = 'bottom';
+    component.openDropdown();
+    expect(component.openUpwards()).toBeFalse();
+  });
+
+  it('should automatically calculate dropup direction when near bottom of viewport', () => {
+    component.dropdownPosition = 'auto';
+
+    // Mock trigger element getBoundingClientRect near bottom of viewport
+    if (component.triggerButtonElement?.nativeElement) {
+      spyOn(component.triggerButtonElement.nativeElement, 'getBoundingClientRect').and.returnValue({
+        top: 800,
+        bottom: 844,
+        left: 50,
+        right: 350,
+        width: 300,
+        height: 44,
+        x: 50,
+        y: 800,
+        toJSON: () => {},
+      });
+    }
+
+    component.openDropdown();
+    expect(component.openUpwards()).toBeTrue();
+  });
 });

@@ -173,7 +173,8 @@ export class EmployeesComponent implements OnInit {
   async openEmployeeShiftsModal(employee: User): Promise<void> {
     const modal = await this.modalCtrl.create({
       component: EmployeeShiftModalComponent,
-      componentProps: { employee }
+      componentProps: { employee },
+      cssClass: 'employee-shift-modal-container'
     });
 
     await modal.present();

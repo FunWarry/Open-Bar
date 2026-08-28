@@ -97,32 +97,60 @@ export class CommandeListComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.charger();
+    this.initWebSocketSubscription();
+  }
 
-    this.notificationService
-      .onNotification()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(notif => {
-        if (notif.type === 'commande' || notif.type === 'statut') {
-          this.charger();
-        }
-      });
-
+  /**
+   * Subscribes to live WebSocket topics for real-time order synchronization
+   * across multiple connected users without destroying component state or reloading.
+   */
+  private initWebSocketSubscription(): void {
     this.wsService
       .watch('/topic/barman/commandes')
       .pipe(takeUntil(this.destroy$))
       .subscribe(msg => {
         try {
           const commande = JSON.parse(msg.body);
-          if (commande.statut === 'ANNULEE') {
-            this.commandes = this.commandes.filter(c => c.id !== commande.id);
-            this.appliquerFiltre();
-          } else {
-            this.charger();
+          if (commande?.id) {
+            this.handleLiveCommandeUpdate(commande);
           }
         } catch {
-          this.charger();
+          // ignore malformed message
         }
       });
+
+    this.wsService
+      .watch('/topic/commandes')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(msg => {
+        try {
+          const commande = JSON.parse(msg.body);
+          if (commande?.id) {
+            this.handleLiveCommandeUpdate(commande);
+          }
+        } catch {
+          // ignore malformed message
+        }
+      });
+  }
+
+  /**
+   * Updates an order in-place without triggering a destructive full page reload or spinner.
+   * @param commande Updated or newly created order model
+   */
+  private handleLiveCommandeUpdate(commande: Commande): void {
+    if (commande.statut === 'ANNULEE') {
+      this.commandes = this.commandes.filter(c => c.id !== commande.id);
+    } else {
+      const idx = this.commandes.findIndex(c => c.id === commande.id);
+      if (idx !== -1) {
+        this.commandes[idx] = commande;
+        this.commandes = [...this.commandes];
+      } else {
+        this.commandes = [commande, ...this.commandes];
+      }
+    }
+    this.appliquerFiltre();
   }
 
   ngOnDestroy(): void {

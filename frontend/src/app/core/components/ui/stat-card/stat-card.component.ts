@@ -1,6 +1,20 @@
 import { Component, Input } from '@angular/core';
 import { NgClass } from '@angular/common';
-import { IonCard, IonCardContent, IonIcon } from '@ionic/angular/standalone';
+import { IonIcon } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import {
+  trendingUpOutline,
+  trendingDownOutline,
+  removeOutline,
+  cashOutline,
+  receiptOutline,
+  restaurantOutline,
+  checkmarkCircleOutline,
+  wineOutline,
+  statsChartOutline,
+  timeOutline,
+  peopleOutline
+} from 'ionicons/icons';
 
 export type TrendDirection = 'up' | 'down' | 'neutral';
 
@@ -12,7 +26,7 @@ export type TrendDirection = 'up' | 'down' | 'neutral';
 @Component({
   selector: 'app-stat-card',
   standalone: true,
-  imports: [IonCard, IonCardContent, IonIcon, NgClass],
+  imports: [IonIcon, NgClass],
   templateUrl: './stat-card.component.html',
   styleUrls: ['./stat-card.component.css']
 })
@@ -40,6 +54,22 @@ export class StatCardComponent {
 
   /** Custom data-testid attribute for End-to-End testing. */
   @Input() testId = 'stat-card';
+
+  constructor() {
+    addIcons({
+      trendingUpOutline,
+      trendingDownOutline,
+      removeOutline,
+      cashOutline,
+      receiptOutline,
+      restaurantOutline,
+      checkmarkCircleOutline,
+      wineOutline,
+      statsChartOutline,
+      timeOutline,
+      peopleOutline
+    });
+  }
 
   /** Resolved title display string. */
   get displayTitle(): string {

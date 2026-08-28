@@ -1,6 +1,6 @@
 import { TestBed, ComponentFixture, fakeAsync, tick } from '@angular/core/testing';
 import { IonicModule } from '@ionic/angular';
-import { AlertController } from '@ionic/angular/standalone';
+import { ModalController } from '@ionic/angular/standalone';
 import { CommandeCardComponent } from '../../../app/features/commandes/commande-card/commande-card.component';
 import { Commande } from '../../../app/core/models/commande.model';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
@@ -31,6 +31,9 @@ describe('CommandeCardComponent', () => {
         IonicModule.forRoot(),
         getTranslocoTestingModule(),
       ],
+      providers: [
+        ModalController,
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(CommandeCardComponent);
@@ -59,19 +62,17 @@ describe('CommandeCardComponent', () => {
     expect(component.view.emit).toHaveBeenCalledWith(mockCmd);
   });
 
-  it('onAnnuler() presents confirmation alert or emits annuler event', fakeAsync(() => {
+  it('onAnnuler() presents confirmation modal and emits annuler event', fakeAsync(() => {
     spyOn(component.annuler, 'emit');
-    const alertCtrl = TestBed.inject(AlertController);
-    let handlerFn: (() => void) | undefined;
-    spyOn(alertCtrl, 'create').and.callFake((options: any) => {
-      handlerFn = options.buttons.find((b: any) => b.handler)?.handler;
-      return Promise.resolve({ present: () => Promise.resolve() } as any);
-    });
+    const modalCtrl = TestBed.inject(ModalController);
+    spyOn(modalCtrl, 'create').and.returnValue(Promise.resolve({
+      present: () => Promise.resolve(),
+      onWillDismiss: () => Promise.resolve({ role: 'confirm', data: { confirmed: true } }),
+    } as any));
 
     component.onAnnuler();
     tick();
-    expect(alertCtrl.create).toHaveBeenCalled();
-    if (handlerFn) handlerFn();
+    expect(modalCtrl.create).toHaveBeenCalled();
     expect(component.annuler.emit).toHaveBeenCalledWith(mockCmd);
   }));
 

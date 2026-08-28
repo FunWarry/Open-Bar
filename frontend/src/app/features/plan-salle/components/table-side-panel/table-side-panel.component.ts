@@ -1,23 +1,24 @@
 import { Component, Input, Output, EventEmitter, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonButton, IonIcon, IonBadge } from '@ionic/angular/standalone';
+import { IonIcon, ModalController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
   closeOutline, saveOutline, gitMergeOutline, trashOutline,
   refreshOutline, shapesOutline, resizeOutline, optionsOutline,
   colorPaletteOutline, layersOutline, addOutline, removeOutline,
   squareOutline, ellipseOutline, chevronDownOutline, chevronUpOutline,
-  checkmarkOutline,
+  checkmarkOutline, restaurantOutline, peopleOutline, locationOutline,
+  pencilOutline, checkmarkCircleOutline
 } from 'ionicons/icons';
 
 import { TableBar } from '../../../../core/models/table.model';
 import { TablePosition, ZoneArea, ZoneShapeType } from '../../models/table-position.model';
 import { ZoneBar } from '../../../../core/services/zone.service';
 import { EtageBar } from '../../../../core/services/etage.service';
-import { ActionButtonComponent } from '../../../../core/components/ui/action-button/action-button.component';
+import { ConfirmDeleteModalComponent } from '../../../../core/components/ui/confirm-delete-modal/confirm-delete-modal.component';
 
-import { TranslocoModule } from '@jsverse/transloco';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 
 /**
  * Side panel component for inspecting and editing Table and Zone Area properties
@@ -27,9 +28,10 @@ import { TranslocoModule } from '@jsverse/transloco';
   selector: 'app-table-side-panel',
   standalone: true,
   imports: [
-    CommonModule, FormsModule, TranslocoModule,
-    IonButton, IonIcon, IonBadge,
-    ActionButtonComponent,
+    CommonModule,
+    FormsModule,
+    TranslocoModule,
+    IonIcon,
   ],
   templateUrl: './table-side-panel.component.html',
   styleUrls: ['./table-side-panel.component.scss'],
@@ -64,13 +66,40 @@ export class TableSidePanelComponent {
 
   isZoneDropdownOpen = false;
 
+  private readonly cdr = inject(ChangeDetectorRef);
+  private readonly modalCtrl = inject(ModalController);
+  private readonly transloco = inject(TranslocoService);
+
   constructor() {
     addIcons({
+      'close-outline': closeOutline,
+      'save-outline': saveOutline,
+      'git-merge-outline': gitMergeOutline,
+      'trash-outline': trashOutline,
+      'refresh-outline': refreshOutline,
+      'shapes-outline': shapesOutline,
+      'resize-outline': resizeOutline,
+      'options-outline': optionsOutline,
+      'color-palette-outline': colorPaletteOutline,
+      'layers-outline': layersOutline,
+      'add-outline': addOutline,
+      'remove-outline': removeOutline,
+      'square-outline': squareOutline,
+      'ellipse-outline': ellipseOutline,
+      'chevron-down-outline': chevronDownOutline,
+      'chevron-up-outline': chevronUpOutline,
+      'checkmark-outline': checkmarkOutline,
+      'restaurant-outline': restaurantOutline,
+      'people-outline': peopleOutline,
+      'location-outline': locationOutline,
+      'pencil-outline': pencilOutline,
+      'checkmark-circle-outline': checkmarkCircleOutline,
       closeOutline, saveOutline, gitMergeOutline, trashOutline,
       refreshOutline, shapesOutline, resizeOutline, optionsOutline,
       colorPaletteOutline, layersOutline, addOutline, removeOutline,
       squareOutline, ellipseOutline, chevronDownOutline, chevronUpOutline,
-      checkmarkOutline,
+      checkmarkOutline, restaurantOutline, peopleOutline, locationOutline,
+      pencilOutline, checkmarkCircleOutline
     });
   }
 
@@ -136,7 +165,6 @@ export class TableSidePanelComponent {
     }
   }
 
-  private readonly cdr = inject(ChangeDetectorRef);
   private _selectedZoneArea: ZoneArea | null = null;
   cornerRadii: [number, number, number, number] = [16, 16, 16, 16];
   polygonVertices: { x: number; y: number }[] = [];
@@ -263,15 +291,67 @@ export class TableSidePanelComponent {
     }
   }
 
-  onDeleteTable() {
-    if (this.table && confirm(`Voulez-vous vraiment supprimer la Table #${this.table.numero} ?`)) {
+  async onDeleteTable() {
+    if (!this.table) return;
+
+    const isOccupied = this.table.occupee;
+    const modal = await this.modalCtrl.create({
+      component: ConfirmDeleteModalComponent,
+      cssClass: 'auto-height-modal confirm-delete-dialog',
+      componentProps: {
+        title: this.transloco.translate('TABLES.DELETE_CONFIRM_TITLE', { number: this.table.numero }),
+        itemName: `Table #${this.table.numero}`,
+        warningMessage: this.transloco.translate('TABLES.DELETE_CONFIRM_MSG', { number: this.table.numero }),
+        metaTags: [
+          { icon: 'restaurant-outline', text: `Table #${this.table.numero}` },
+          { icon: 'location-outline', text: this.table.zone || '-' },
+          { icon: 'people-outline', text: this.transloco.translate('TABLE_SIDE_PANEL.SEATS_FORMAT', { count: this.table.capacite }) },
+          { text: isOccupied ? this.transloco.translate('TABLES.OCCUPIED') : this.transloco.translate('TABLES.FREE') }
+        ],
+        detailsSummary: [
+          { label: this.transloco.translate('TABLES.NUMBER'), value: `#${this.table.numero}` },
+          { label: this.transloco.translate('TABLES.ZONE'), value: this.table.zone || '-' },
+          { label: this.transloco.translate('TABLES.CAPACITY'), value: this.transloco.translate('TABLE_SIDE_PANEL.SEATS_FORMAT', { count: this.table.capacite }) },
+          { label: this.transloco.translate('TABLES.STATUS'), value: isOccupied ? this.transloco.translate('TABLES.OCCUPIED') : this.transloco.translate('TABLES.FREE') }
+        ],
+        cannotDeleteReason: isOccupied ? this.transloco.translate('TABLES.DELETE_ACTIVE_ORDERS_ERROR') : null,
+        confirmBtnText: this.transloco.translate('TABLES.DELETE_BTN')
+      }
+    });
+
+    await modal.present();
+    const { data } = await modal.onDidDismiss();
+    if (data?.confirmed) {
       this.deleteTable.emit(this.table.id);
       this.onClose();
     }
   }
 
-  onDeleteZoneArea() {
-    if (this.selectedZoneArea && confirm(`Voulez-vous supprimer la zone "${this.selectedZoneArea.nom}" ?`)) {
+  async onDeleteZoneArea() {
+    if (!this.selectedZoneArea) return;
+
+    const modal = await this.modalCtrl.create({
+      component: ConfirmDeleteModalComponent,
+      cssClass: 'auto-height-modal confirm-delete-dialog',
+      componentProps: {
+        title: this.transloco.translate('TABLE_SIDE_PANEL.DELETE_ZONE_TITLE'),
+        itemName: `Zone "${this.selectedZoneArea.nom}"`,
+        warningMessage: this.transloco.translate('TABLE_SIDE_PANEL.DELETE_ZONE_WARNING'),
+        metaTags: [
+          { icon: 'layers-outline', text: this.selectedZoneArea.nom },
+          { text: this.selectedZoneArea.shapeType === 'polygon' ? this.transloco.translate('TABLE_SIDE_PANEL.SHAPE_POLYGON') : this.transloco.translate('TABLE_SIDE_PANEL.SHAPE_RECT') }
+        ],
+        detailsSummary: [
+          { label: this.transloco.translate('TABLE_SIDE_PANEL.ZONE_NAME_LABEL'), value: this.selectedZoneArea.nom },
+          { label: this.transloco.translate('TABLES.FILTERS.FLOOR_LABEL'), value: this.selectedZoneArea.etage || 'RDC' }
+        ],
+        confirmBtnText: this.transloco.translate('TABLE_SIDE_PANEL.DELETE_ZONE_BTN')
+      }
+    });
+
+    await modal.present();
+    const { data } = await modal.onDidDismiss();
+    if (data?.confirmed) {
       this.deleteZoneArea.emit(this.selectedZoneArea.id);
       this.onClose();
     }

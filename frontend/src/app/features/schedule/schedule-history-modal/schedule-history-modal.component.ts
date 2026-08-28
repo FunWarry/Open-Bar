@@ -4,15 +4,10 @@ import { FormsModule } from '@angular/forms';
 import {
   IonHeader,
   IonToolbar,
-  IonTitle,
   IonButtons,
-  IonButton,
   IonIcon,
   IonContent,
-  IonBadge,
   IonSpinner,
-  IonSelect,
-  IonSelectOption,
   IonSearchbar,
   ModalController
 } from '@ionic/angular/standalone';
@@ -23,6 +18,7 @@ import {
   playOutline,
   filterOutline,
   personOutline,
+  peopleOutline,
   calendarOutline,
   createOutline,
   trashOutline,
@@ -32,11 +28,12 @@ import {
   chevronForwardOutline,
   arrowForwardOutline
 } from 'ionicons/icons';
-import { TranslocoModule } from '@jsverse/transloco';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { ShiftService } from '../../../core/services/shift.service';
 import { EmployeeShift, ShiftAuditAction, ShiftAuditLog } from '../../../core/models/shift.model';
 import { User } from '../../../core/models/user.model';
 import { UserService } from '../../../core/services/user.service';
+import { SearchableSelectComponent, SearchableOption } from '../../../core/components/ui/searchable-select/searchable-select.component';
 
 /**
  * Modal displaying the weekly immutable audit log of employee shift modifications.
@@ -50,17 +47,13 @@ import { UserService } from '../../../core/services/user.service';
     CommonModule,
     FormsModule,
     TranslocoModule,
+    SearchableSelectComponent,
     IonHeader,
     IonToolbar,
-    IonTitle,
     IonButtons,
-    IonButton,
     IonIcon,
     IonContent,
-    IonBadge,
     IonSpinner,
-    IonSelect,
-    IonSelectOption,
     IonSearchbar
   ],
   templateUrl: './schedule-history-modal.component.html',
@@ -70,6 +63,7 @@ export class ScheduleHistoryModalComponent implements OnInit {
   private readonly modalCtrl = inject(ModalController);
   private readonly shiftService = inject(ShiftService);
   private readonly userService = inject(UserService);
+  private readonly transloco = inject(TranslocoService);
 
   /** Start of the target week in YYYY-MM-DD format */
   @Input() weekISO!: string;
@@ -84,6 +78,51 @@ export class ScheduleHistoryModalComponent implements OnInit {
 
   expandedLogIds = new Set<number>();
 
+  get employeeOptions(): SearchableOption[] {
+    const allOption: SearchableOption = {
+      value: 'ALL',
+      label: this.transloco.translate('SHIFTS.AUDIT.ALL_EMPLOYEES'),
+      icon: 'people-outline'
+    };
+    const userOptions: SearchableOption[] = (this.users || []).map((u) => ({
+      value: u.id,
+      label: `${u.prenom || ''} ${u.nom ? u.nom.charAt(0) + '.' : ''}`.trim() || u.username,
+      icon: 'person-outline'
+    }));
+    return [allOption, ...userOptions];
+  }
+
+  get actionOptions(): SearchableOption[] {
+    return [
+      {
+        value: 'ALL',
+        label: this.transloco.translate('SHIFTS.AUDIT.ALL_ACTIONS'),
+        icon: 'filter-outline'
+      },
+      {
+        value: 'CREATED',
+        label: this.transloco.translate('SHIFTS.AUDIT.ACTION_CREATED'),
+        icon: 'add-circle-outline',
+        badge: this.transloco.translate('SHIFTS.AUDIT.ACTION_CREATED'),
+        badgeType: 'success'
+      },
+      {
+        value: 'UPDATED',
+        label: this.transloco.translate('SHIFTS.AUDIT.ACTION_UPDATED'),
+        icon: 'create-outline',
+        badge: this.transloco.translate('SHIFTS.AUDIT.ACTION_UPDATED'),
+        badgeType: 'warning'
+      },
+      {
+        value: 'DELETED',
+        label: this.transloco.translate('SHIFTS.AUDIT.ACTION_DELETED'),
+        icon: 'trash-outline',
+        badge: this.transloco.translate('SHIFTS.AUDIT.ACTION_DELETED'),
+        badgeType: 'danger'
+      }
+    ];
+  }
+
   constructor() {
     addIcons({
       closeOutline,
@@ -91,6 +130,7 @@ export class ScheduleHistoryModalComponent implements OnInit {
       playOutline,
       filterOutline,
       personOutline,
+      peopleOutline,
       calendarOutline,
       createOutline,
       trashOutline,

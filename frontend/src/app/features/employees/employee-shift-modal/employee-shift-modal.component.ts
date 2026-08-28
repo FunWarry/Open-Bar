@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import {
   IonHeader,
   IonToolbar,
-  IonTitle,
   IonButtons,
   IonButton,
   IonIcon,
@@ -13,16 +12,13 @@ import {
   IonCardHeader,
   IonCardTitle,
   IonCardContent,
-  IonList,
-  IonItem,
   IonBadge,
   IonSpinner,
-  IonSelect,
-  IonSelectOption,
   IonInput,
   IonTextarea,
   ModalController,
-  AlertController
+  AlertController,
+  ToastController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -33,7 +29,12 @@ import {
   trashOutline,
   timeOutline,
   lockClosedOutline,
-  informationCircleOutline
+  informationCircleOutline,
+  calendarOutline,
+  personOutline,
+  fingerPrintOutline,
+  documentTextOutline,
+  briefcaseOutline
 } from 'ionicons/icons';
 import { Subject, takeUntil } from 'rxjs';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
@@ -43,6 +44,8 @@ import { EmployeeShift, EmployeeShiftRequest, ShiftPreset, TypePoste, TypeShift 
 import { ShiftService } from '../../../core/services/shift.service';
 import { selectCurrentUser } from '../../../core/store/auth.selectors';
 import { ShiftHistoryModalComponent } from '../../schedule/shift-history-modal/shift-history-modal.component';
+import { ConfirmDeleteModalComponent } from '../../../core/components/ui/confirm-delete-modal/confirm-delete-modal.component';
+import { SearchableSelectComponent, SearchableOption } from '../../../core/components/ui/searchable-select/searchable-select.component';
 
 /**
  * Modal component for viewing and managing work shifts of a specific employee.
@@ -60,9 +63,9 @@ import { ShiftHistoryModalComponent } from '../../schedule/shift-history-modal/s
     CommonModule,
     FormsModule,
     TranslocoModule,
+    SearchableSelectComponent,
     IonHeader,
     IonToolbar,
-    IonTitle,
     IonButtons,
     IonButton,
     IonIcon,
@@ -71,12 +74,8 @@ import { ShiftHistoryModalComponent } from '../../schedule/shift-history-modal/s
     IonCardHeader,
     IonCardTitle,
     IonCardContent,
-    IonList,
-    IonItem,
     IonBadge,
     IonSpinner,
-    IonSelect,
-    IonSelectOption,
     IonInput,
     IonTextarea
   ]
@@ -100,6 +99,7 @@ export class EmployeeShiftModalComponent implements OnInit, OnDestroy {
 
   private readonly modalCtrl = inject(ModalController);
   private readonly alertCtrl = inject(AlertController);
+  private readonly toastCtrl = inject(ToastController);
   private readonly shiftService = inject(ShiftService);
   private readonly store = inject(Store);
   private readonly transloco = inject(TranslocoService);
@@ -187,6 +187,22 @@ export class EmployeeShiftModalComponent implements OnInit, OnDestroy {
   availableShiftTypes: TypeShift[] = ['MATIN', 'SOIR', 'COUPURE', 'NUIT', 'CONGE'];
   availablePosteTypes: TypePoste[] = ['SERVEUR', 'BARMAN', 'CAISSE', 'MANAGER'];
 
+  get shiftTypeOptions(): SearchableOption[] {
+    return this.availableShiftTypes.map((t) => ({
+      value: t,
+      label: this.transloco.translate('SHIFTS.SHIFT_TYPES.' + t),
+      icon: 'time-outline'
+    }));
+  }
+
+  get posteTypeOptions(): SearchableOption[] {
+    return this.availablePosteTypes.map((p) => ({
+      value: p,
+      label: this.transloco.translate('SHIFTS.POSTE_TYPES.' + p),
+      icon: 'briefcase-outline'
+    }));
+  }
+
   constructor() {
     addIcons({
       closeOutline,
@@ -196,7 +212,12 @@ export class EmployeeShiftModalComponent implements OnInit, OnDestroy {
       trashOutline,
       timeOutline,
       lockClosedOutline,
-      informationCircleOutline
+      informationCircleOutline,
+      calendarOutline,
+      personOutline,
+      fingerPrintOutline,
+      documentTextOutline,
+      briefcaseOutline
     });
   }
 
@@ -483,23 +504,53 @@ export class EmployeeShiftModalComponent implements OnInit, OnDestroy {
 
   async confirmDeleteShift(shift: EmployeeShift): Promise<void> {
     if (!shift.id) return;
-    const alert = await this.alertCtrl.create({
-      header: String(this.transloco.translate('COMMON.DELETE')),
-      message: String(this.transloco.translate('SHIFTS.CONFIRM_DELETE')),
-      buttons: [
-        { text: String(this.transloco.translate('COMMON.CANCEL')), role: 'cancel' },
-        {
-          text: String(this.transloco.translate('COMMON.DELETE')),
-          role: 'destructive',
-          handler: () => {
-            if (shift.id) {
-              this.shiftService.deleteShift(shift.id).subscribe(() => this.loadShifts());
-            }
-          }
-        }
-      ]
+    const employeeFullName = `${this.employee?.prenom || ''} ${this.employee?.nom || ''}`.trim() || 'Employé';
+    const horaire = `${shift.heureDebut || ''} - ${shift.heureFin || ''}`;
+    const modal = await this.modalCtrl.create({
+      component: ConfirmDeleteModalComponent,
+      cssClass: 'auto-height-modal confirm-delete-dialog',
+      componentProps: {
+        title: this.transloco.translate('SHIFTS.DELETE_SHIFT_TITLE'),
+        itemName: `${shift.dateShift} (${horaire})`,
+        warningMessage: this.transloco.translate('SHIFTS.CONFIRM_DELETE'),
+        metaTags: [
+          { icon: 'calendar-outline', text: shift.dateShift },
+          { icon: 'time-outline', text: horaire },
+          { icon: 'person-outline', text: employeeFullName },
+          { text: shift.typePoste || shift.typeShift }
+        ],
+        detailsSummary: [
+          { label: this.transloco.translate('SHIFTS.EMPLOYEE_LABEL'), value: employeeFullName },
+          { label: this.transloco.translate('SHIFTS.FIELDS.DATE'), value: shift.dateShift },
+          { label: this.transloco.translate('SHIFTS.HOURS_LABEL'), value: horaire },
+          { label: this.transloco.translate('SHIFTS.FIELDS.TYPE_SHIFT'), value: shift.typeShift || '-' },
+          { label: this.transloco.translate('SHIFTS.FIELDS.TYPE_POSTE'), value: shift.typePoste || '-' }
+        ],
+        confirmBtnText: this.transloco.translate('COMMON.DELETE')
+      }
     });
-    await alert.present();
+
+    await modal.present();
+    const { data } = await modal.onDidDismiss();
+    if (data?.confirmed) {
+      this.shiftService.deleteShift(shift.id).subscribe({
+        next: () => {
+          this.loadShifts();
+          this.toastCtrl.create({
+            message: this.transloco.translate('SHIFTS.DELETE_SUCCESS'),
+            duration: 2000,
+            color: 'success'
+          }).then(t => t.present());
+        },
+        error: () => {
+          this.toastCtrl.create({
+            message: this.transloco.translate('COMMON.ERROR'),
+            duration: 3000,
+            color: 'danger'
+          }).then(t => t.present());
+        }
+      });
+    }
   }
 
   async openShiftHistoryModal(): Promise<void> {

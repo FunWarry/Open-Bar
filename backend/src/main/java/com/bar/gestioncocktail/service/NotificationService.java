@@ -1,5 +1,7 @@
 package com.bar.gestioncocktail.service;
 
+import com.bar.gestioncocktail.dto.CocktailResponseDTO;
+import com.bar.gestioncocktail.model.Cocktail;
 import com.bar.gestioncocktail.model.Commande;
 import com.bar.gestioncocktail.model.CommandeStatut;
 import com.bar.gestioncocktail.model.TableEntity;
@@ -7,16 +9,38 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
+
 @Service
 public class NotificationService {
     private static final String TOPIC_TABLES = "/topic/tables";
     private static final String TOPIC_STOCK_ALERTE = "/topic/stock/alerte";
+    private static final String TOPIC_COCKTAILS = "/topic/cocktails";
+    private static final String TOPIC_COCKTAILS_SUPPRIME = "/topic/cocktails/supprime";
 
     private final SimpMessagingTemplate messagingTemplate;
 
     @Autowired
     public NotificationService(SimpMessagingTemplate messagingTemplate) {
         this.messagingTemplate = messagingTemplate;
+    }
+
+    /**
+     * Broadcasts updated or newly created cocktail over WebSocket topic /topic/cocktails.
+     *
+     * @param cocktail Updated cocktail entity
+     */
+    public void notifierCocktailMisAJour(Cocktail cocktail) {
+        messagingTemplate.convertAndSend(TOPIC_COCKTAILS, CocktailResponseDTO.from(cocktail));
+    }
+
+    /**
+     * Broadcasts deleted cocktail ID over WebSocket topic /topic/cocktails/supprime.
+     *
+     * @param cocktailId Deleted cocktail identifier
+     */
+    public void notifierCocktailSupprime(Long cocktailId) {
+        messagingTemplate.convertAndSend(TOPIC_COCKTAILS_SUPPRIME, (Object) Map.of("id", cocktailId, "deleted", true));
     }
 
     public void notifierNouvelleCommande(Commande commande) {
