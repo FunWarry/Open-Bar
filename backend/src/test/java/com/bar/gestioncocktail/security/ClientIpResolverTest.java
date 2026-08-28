@@ -3,6 +3,8 @@ package com.bar.gestioncocktail.security;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.mock.web.MockHttpServletRequest;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -19,26 +21,19 @@ class ClientIpResolverTest {
         clientIpResolver = new ClientIpResolver();
     }
 
-    @Test
-    @DisplayName("resolveClientIp - extracts first IP from X-Forwarded-For when multiple IPs present")
-    void resolveClientIp_withMultipleXForwardedFor_returnsFirstIp() {
+    @ParameterizedTest
+    @CsvSource({
+            "'203.0.113.195, 70.41.3.18, 150.172.238.178', 203.0.113.195",
+            "'198.51.100.42', 198.51.100.42"
+    })
+    @DisplayName("resolveClientIp - extracts first valid IP from X-Forwarded-For header")
+    void resolveClientIp_withXForwardedFor_extractsExpectedIp(String headerValue, String expectedIp) {
         MockHttpServletRequest request = new MockHttpServletRequest();
-        request.addHeader("X-Forwarded-For", "203.0.113.195, 70.41.3.18, 150.172.238.178");
+        request.addHeader("X-Forwarded-For", headerValue);
         request.setRemoteAddr("10.0.0.1");
 
         String ip = clientIpResolver.resolveClientIp(request);
-        assertThat(ip).isEqualTo("203.0.113.195");
-    }
-
-    @Test
-    @DisplayName("resolveClientIp - extracts single IP from X-Forwarded-For")
-    void resolveClientIp_withSingleXForwardedFor_returnsIp() {
-        MockHttpServletRequest request = new MockHttpServletRequest();
-        request.addHeader("X-Forwarded-For", "198.51.100.42");
-        request.setRemoteAddr("10.0.0.1");
-
-        String ip = clientIpResolver.resolveClientIp(request);
-        assertThat(ip).isEqualTo("198.51.100.42");
+        assertThat(ip).isEqualTo(expectedIp);
     }
 
     @Test
@@ -62,17 +57,17 @@ class ClientIpResolverTest {
         assertThat(ip).isEqualTo("192.168.1.100");
     }
 
-    @Test
+    @ParameterizedTest
+    @CsvSource({
+            "0:0:0:0:0:0:0:1, 127.0.0.1",
+            "::1, 127.0.0.1"
+    })
     @DisplayName("resolveClientIp - normalizes IPv6 localhost to 127.0.0.1")
-    void resolveClientIp_withLocalIpv6_normalizesToIpv4() {
-        MockHttpServletRequest request1 = new MockHttpServletRequest();
-        request1.setRemoteAddr("0:0:0:0:0:0:0:1");
+    void resolveClientIp_withLocalIpv6_normalizesToIpv4(String rawIp, String expectedIp) {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setRemoteAddr(rawIp);
 
-        MockHttpServletRequest request2 = new MockHttpServletRequest();
-        request2.setRemoteAddr("::1");
-
-        assertThat(clientIpResolver.resolveClientIp(request1)).isEqualTo("127.0.0.1");
-        assertThat(clientIpResolver.resolveClientIp(request2)).isEqualTo("127.0.0.1");
+        assertThat(clientIpResolver.resolveClientIp(request)).isEqualTo(expectedIp);
     }
 
     @Test

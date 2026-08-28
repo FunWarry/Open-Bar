@@ -39,7 +39,7 @@ class RateLimiterServiceTest {
         assertThat(res2.remainingTokens()).isEqualTo(1);
 
         assertThat(res3.allowed()).isTrue();
-        assertThat(res3.remainingTokens()).isEqualTo(0);
+        assertThat(res3.remainingTokens()).isZero();
     }
 
     @Test

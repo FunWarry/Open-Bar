@@ -36,7 +36,7 @@ class RateLimitPropertiesTest {
     void defaultValues_asExpected() {
         RateLimitProperties properties = new RateLimitProperties();
         assertThat(properties.getLogin().isEnabled()).isTrue();
-        assertThat(properties.getLogin().getPath()).isEqualTo("/api/auth/login");
+        assertThat(properties.getLogin().getPath()).isNull();
         assertThat(properties.getLogin().getCapacity()).isEqualTo(5);
         assertThat(properties.getLogin().getRefillTokens()).isEqualTo(1);
         assertThat(properties.getLogin().getRefillDurationSeconds()).isEqualTo(12);

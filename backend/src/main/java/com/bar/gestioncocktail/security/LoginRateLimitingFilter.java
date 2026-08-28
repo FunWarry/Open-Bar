@@ -87,8 +87,13 @@ public class LoginRateLimitingFilter extends OncePerRequestFilter {
     }
 
     private boolean isLoginRequest(HttpServletRequest request) {
+        if (!HttpMethod.POST.matches(request.getMethod())) {
+            return false;
+        }
         String configuredPath = rateLimitProperties.getLogin().getPath();
-        return HttpMethod.POST.matches(request.getMethod())
-                && (configuredPath != null && configuredPath.equals(request.getRequestURI()));
+        if (configuredPath != null && !configuredPath.isBlank()) {
+            return configuredPath.equals(request.getRequestURI());
+        }
+        return request.getRequestURI() != null && request.getRequestURI().endsWith("/auth/login");
     }
 }

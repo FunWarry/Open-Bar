@@ -35,7 +35,7 @@ public class RateLimitProperties {
      */
     public static class Login {
         private boolean enabled = true;
-        private String path = "/api/auth/login";
+        private String path;
         private int capacity = 5;
         private int refillTokens = 1;
         private int refillDurationSeconds = 12;

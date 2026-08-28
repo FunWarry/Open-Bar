@@ -1,7 +1,6 @@
 package com.bar.gestioncocktail.security;
 
 import com.bar.gestioncocktail.config.RateLimitProperties;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import org.junit.jupiter.api.BeforeEach;

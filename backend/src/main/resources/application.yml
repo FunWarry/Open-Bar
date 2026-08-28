@@ -24,6 +24,7 @@ openbar:
     rate-limit:
       login:
         enabled: ${OPENBAR_RATE_LIMIT_LOGIN_ENABLED:true}
+        path: ${OPENBAR_RATE_LIMIT_LOGIN_PATH:/api/auth/login}
         capacity: ${OPENBAR_RATE_LIMIT_LOGIN_CAPACITY:5}
         refill-tokens: ${OPENBAR_RATE_LIMIT_LOGIN_REFILL_TOKENS:1}
         refill-duration-seconds: ${OPENBAR_RATE_LIMIT_LOGIN_REFILL_DURATION:12}
