@@ -14,6 +14,7 @@ Application de gestion de bar en temps réel : prise de commandes (serveurs), pr
 | BDD        | PostgreSQL                   | —           |
 | ORM        | JPA / Hibernate + Lombok     | 1.18.34     |
 | Sécurité   | Spring Security + JWT custom | JJWT 0.12.6 |
+| Sanitisation| Jsoup (HTML / XSS clean)     | 1.18.3      |
 | Temps réel | WebSocket STOMP              | via Spring  |
 | PDF        | OpenPDF                      | 2.0.3       |
 | Frontend   | Angular                      | 20          |
