@@ -90,4 +90,28 @@ class NonRegressionIntegrationTest extends BaseIntegrationTest {
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + getServeurToken()))
                 .andExpect(status().isForbidden());
     }
+
+    @Test
+    @DisplayName("nonRegression_loginRateLimiting_blocksExcessiveAttempts")
+    void nonRegression_loginRateLimiting_blocksExcessiveAttempts() throws Exception {
+        String testIp = "198.51.100.99";
+        var badLogin = new com.bar.gestioncocktail.dto.LoginRequest();
+        badLogin.setUsername("admin");
+        badLogin.setPassword("wrong");
+
+        for (int i = 0; i < 5; i++) {
+            mockMvc.perform(post("/api/auth/login")
+                            .header("X-Forwarded-For", testIp)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(badLogin)))
+                    .andExpect(status().isUnauthorized());
+        }
+
+        mockMvc.perform(post("/api/auth/login")
+                        .header("X-Forwarded-For", testIp)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(badLogin)))
+                .andExpect(status().isTooManyRequests())
+                .andExpect(status().is(429));
+    }
 }
