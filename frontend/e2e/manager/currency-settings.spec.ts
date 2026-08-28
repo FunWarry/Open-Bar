@@ -14,8 +14,8 @@ test.describe('Manager Currency Settings E2E', () => {
   });
 
   test('should display currency configuration section with default presets', async ({ page }) => {
-    await page.goto('/admin/settings?tab=currency');
-    await expect(page.locator('[data-testid="unified-app-settings-page"], app-settings-page')).toBeVisible();
+    await page.goto('/manager/currency');
+    await expect(page.locator('[data-testid="unified-app-settings-page"], app-settings-page, app-order-timers-settings')).toBeVisible();
 
     await expect(page.locator('[data-testid="currency-preset-btn-EUR"]')).toBeVisible();
     await expect(page.locator('[data-testid="currency-preset-btn-USD"]')).toBeVisible();
@@ -24,8 +24,8 @@ test.describe('Manager Currency Settings E2E', () => {
   });
 
   test('should apply currency preset and update live price preview', async ({ page }) => {
-    await page.goto('/admin/settings?tab=currency');
-    await expect(page.locator('[data-testid="unified-app-settings-page"], app-settings-page')).toBeVisible();
+    await page.goto('/manager/currency');
+    await expect(page.locator('[data-testid="unified-app-settings-page"], app-settings-page, app-order-timers-settings')).toBeVisible();
 
     // Click USD preset
     await page.click('[data-testid="currency-preset-btn-USD"]');
@@ -38,8 +38,8 @@ test.describe('Manager Currency Settings E2E', () => {
   });
 
   test('should toggle symbol position between BEFORE and AFTER', async ({ page }) => {
-    await page.goto('/admin/settings?tab=currency');
-    await expect(page.locator('[data-testid="unified-app-settings-page"], app-settings-page')).toBeVisible();
+    await page.goto('/manager/currency');
+    await expect(page.locator('[data-testid="unified-app-settings-page"], app-settings-page, app-order-timers-settings')).toBeVisible();
 
     // Select USD then toggle AFTER position
     await page.click('[data-testid="currency-preset-btn-USD"]');
@@ -54,8 +54,8 @@ test.describe('Manager Currency Settings E2E', () => {
   });
 
   test('should save updated currency settings', async ({ page }) => {
-    await page.goto('/admin/settings?tab=currency');
-    await expect(page.locator('[data-testid="unified-app-settings-page"], app-settings-page')).toBeVisible();
+    await page.goto('/manager/currency');
+    await expect(page.locator('[data-testid="unified-app-settings-page"], app-settings-page, app-order-timers-settings')).toBeVisible();
 
     await page.click('[data-testid="currency-preset-btn-USD"]');
     await page.click('[data-testid="btn-save-all-settings"]');

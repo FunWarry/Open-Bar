@@ -132,7 +132,7 @@ interface CurrencyPreset {
  * operational alert timers, currency formatting, and rich visual theme customization with real-time feedback.
  */
 @Component({
-  selector: 'app-settings-page',
+  selector: 'app-settings-page, app-order-timers-settings',
   templateUrl: './app-settings-page.component.html',
   styleUrls: ['./app-settings-page.component.scss'],
   standalone: true,
@@ -354,6 +354,12 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
     this.activeTheme = this.themeService.currentTheme;
     this.initialThemeMode = this.activeTheme;
     this.initialColors = { ...this.themeService.currentCustomColors };
+
+    this.route.data.pipe(takeUntil(this.destroy$)).subscribe(data => {
+      if (data?.['defaultTab'] && ['legal', 'timers', 'currency', 'theme'].includes(data['defaultTab'])) {
+        this.activeTab = data['defaultTab'] as SettingsTab;
+      }
+    });
 
     this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
       if (params['tab'] && ['legal', 'timers', 'currency', 'theme'].includes(params['tab'])) {

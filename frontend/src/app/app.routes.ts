@@ -289,13 +289,24 @@ export const routes: Routes = [
   },
   {
     path: 'manager/timers',
-    redirectTo: '/admin/settings',
-    pathMatch: 'full'
+    loadComponent: () => import('./features/admin/settings/app-settings-page.component').then(m => m.AppSettingsPageComponent),
+    canActivate: [AuthGuard, RoleGuard],
+    canDeactivate: [PendingChangesGuard],
+    data: { roles: ['MANAGER', 'ADMIN'], defaultTab: 'timers' }
   },
   {
     path: 'admin/timers',
-    redirectTo: '/admin/settings',
-    pathMatch: 'full'
+    loadComponent: () => import('./features/admin/settings/app-settings-page.component').then(m => m.AppSettingsPageComponent),
+    canActivate: [AuthGuard, RoleGuard],
+    canDeactivate: [PendingChangesGuard],
+    data: { roles: ['MANAGER', 'ADMIN'], defaultTab: 'timers' }
+  },
+  {
+    path: 'manager/currency',
+    loadComponent: () => import('./features/admin/settings/app-settings-page.component').then(m => m.AppSettingsPageComponent),
+    canActivate: [AuthGuard, RoleGuard],
+    canDeactivate: [PendingChangesGuard],
+    data: { roles: ['MANAGER', 'ADMIN'], defaultTab: 'currency' }
   },
 
   // Invoices (English route + /factures)
