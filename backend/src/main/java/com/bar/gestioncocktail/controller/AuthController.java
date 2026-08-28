@@ -70,6 +70,7 @@ public class AuthController {
     @Operation(summary = "Authenticate user", description = "Validates user credentials and returns JWT access token along with refresh token.")
     @ApiResponse(responseCode = "200", description = "Authentication successful")
     @ApiResponse(responseCode = "401", description = "Invalid credentials")
+    @ApiResponse(responseCode = "429", description = "Too many login attempts - rate limit exceeded")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(

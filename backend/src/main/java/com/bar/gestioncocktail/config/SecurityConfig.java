@@ -2,6 +2,7 @@ package com.bar.gestioncocktail.config;
 
 import com.bar.gestioncocktail.security.JwtAuthenticationFilter;
 import com.bar.gestioncocktail.security.JwtAuthorizationFilter;
+import com.bar.gestioncocktail.security.LoginRateLimitingFilter;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -32,18 +33,21 @@ import java.util.List;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-@EnableConfigurationProperties(JwtProperties.class)
+@EnableConfigurationProperties({JwtProperties.class, RateLimitProperties.class})
 public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final JwtAuthorizationFilter jwtAuthorizationFilter;
+    private final LoginRateLimitingFilter loginRateLimitingFilter;
     private final List<String> allowedOriginPatterns;
 
     public SecurityConfig(
             JwtAuthenticationFilter jwtAuthenticationFilter,
             JwtAuthorizationFilter jwtAuthorizationFilter,
+            LoginRateLimitingFilter loginRateLimitingFilter,
             @org.springframework.beans.factory.annotation.Value("${openbar.cors.allowed-origin-patterns:*}") List<String> allowedOriginPatterns) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.jwtAuthorizationFilter = jwtAuthorizationFilter;
+        this.loginRateLimitingFilter = loginRateLimitingFilter;
         this.allowedOriginPatterns = allowedOriginPatterns;
     }
 
@@ -79,6 +83,7 @@ public class SecurityConfig {
                                     "/actuator/info")
                             .permitAll()
                             .anyRequest().authenticated())
+                    .addFilterBefore(loginRateLimitingFilter, UsernamePasswordAuthenticationFilter.class)
                     .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                     .addFilterAfter(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class)
                     .exceptionHandling(ex -> ex
