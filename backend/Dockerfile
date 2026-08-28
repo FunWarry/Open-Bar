@@ -14,9 +14,12 @@ RUN mvn package -DskipTests --no-transfer-progress
 FROM eclipse-temurin:22-jre-alpine
 WORKDIR /app
 
-RUN addgroup -S spring && adduser -S spring -G spring
+RUN addgroup -S spring && adduser -S spring -G spring \
+    && mkdir -p /var/log/openbar/backend \
+    && chown -R spring:spring /var/log/openbar /app
 
 COPY --from=build /app/target/*.jar app.jar
+RUN chown spring:spring /app/app.jar
 
 USER spring:spring
 

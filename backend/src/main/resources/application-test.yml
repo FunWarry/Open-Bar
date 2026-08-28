@@ -6,6 +6,8 @@ spring:
     password: ${TEST_DB_PASSWORD:${POSTGRES_PASSWORD:${DB_PASSWORD:KZiXrsAw/asRtE8YJuxA8LkWtDXK5rPBmiriAHAu+7Q=}}}
 
 logging:
+  file:
+    path: ${LOG_PATH:target/logs}
   level:
     org.springframework.security: INFO
     com.bar.gestioncocktail: INFO

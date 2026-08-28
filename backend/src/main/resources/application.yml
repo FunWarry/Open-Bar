@@ -36,3 +36,8 @@ springdoc:
     path: /swagger-ui.html
     tags-sorter: alpha
     operations-sorter: alpha
+
+logging:
+  file:
+    path: ${LOG_PATH:target/logs}
+

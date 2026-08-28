@@ -12,7 +12,9 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.io.InputStream;
 import java.math.BigDecimal;
@@ -57,6 +59,7 @@ public class SampleDataSeederService {
     private final EstablishmentClosureRepository establishmentClosureRepository;
     private final PasswordEncoder passwordEncoder;
     private final TimeService timeService;
+    private final PlatformTransactionManager transactionManager;
     private final ObjectMapper objectMapper;
 
     public SampleDataSeederService(
@@ -72,7 +75,8 @@ public class SampleDataSeederService {
             EmployeeShiftRepository employeeShiftRepository,
             EstablishmentClosureRepository establishmentClosureRepository,
             PasswordEncoder passwordEncoder,
-            TimeService timeService) {
+            TimeService timeService,
+            PlatformTransactionManager transactionManager) {
         this.userRepository = userRepository;
         this.tableRepository = tableRepository;
         this.zoneRepository = zoneRepository;
@@ -86,19 +90,22 @@ public class SampleDataSeederService {
         this.establishmentClosureRepository = establishmentClosureRepository;
         this.passwordEncoder = passwordEncoder;
         this.timeService = timeService;
+        this.transactionManager = transactionManager;
         this.objectMapper = new ObjectMapper();
     }
 
     @PostConstruct
     public void seedDemoDataIfEmpty() {
-        if (commandeRepository.count() > 0) {
-            log.info("Database already contains orders, skipping demo dataset seeding.");
-            return;
-        }
+        new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
+            if (commandeRepository.count() > 0) {
+                log.info("Database already contains orders, skipping demo dataset seeding.");
+                return;
+            }
 
-        log.info("Starting complete demo dataset seeding from JSON asset '{}'...", DATASET_PATH);
-        seedAllDemoData();
-        log.info("Demo dataset seeding successfully finished.");
+            log.info("Starting complete demo dataset seeding from JSON asset '{}'...", DATASET_PATH);
+            seedAllDemoData();
+            log.info("Demo dataset seeding successfully finished.");
+        });
     }
 
     public void seedAllDemoData() {
@@ -678,7 +685,7 @@ public class SampleDataSeederService {
 
     private void seedSingleCocktailSteps(JsonNode cocktailNode, Map<String, RecipeStepTemplate> templatesMap) {
         String cocktailName = cocktailNode.get("cocktailName").asText();
-        Cocktail cocktail = cocktailRepository.findByNomIgnoreCase(cocktailName).orElse(null);
+        Cocktail cocktail = cocktailRepository.findByNomIgnoreCaseWithRecipeSteps(cocktailName).orElse(null);
         if (cocktail == null) return;
 
         JsonNode stepsNode = cocktailNode.get("steps");
