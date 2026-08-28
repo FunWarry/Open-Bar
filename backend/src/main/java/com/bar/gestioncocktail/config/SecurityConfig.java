@@ -28,23 +28,32 @@ import java.util.List;
  * Spring Security configuration for OpenBar.
  * Configures stateless JWT authentication, CORS, CSRF, and role-based endpoint
  * permissions.
+ * Enforces strict CORS origin patterns in production to prevent technical information leakage and unauthorized cross-origin requests.
  */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 @EnableConfigurationProperties(JwtProperties.class)
 public class SecurityConfig {
+
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final JwtAuthorizationFilter jwtAuthorizationFilter;
-    private final List<String> allowedOriginPatterns;
+    private final CorsOriginResolver corsOriginResolver;
 
+    /**
+     * Constructs SecurityConfig with required filters and CORS origin resolver.
+     *
+     * @param jwtAuthenticationFilter JWT authentication filter
+     * @param jwtAuthorizationFilter JWT authorization filter
+     * @param corsOriginResolver Resolver for CORS allowed origins
+     */
     public SecurityConfig(
             JwtAuthenticationFilter jwtAuthenticationFilter,
             JwtAuthorizationFilter jwtAuthorizationFilter,
-            @org.springframework.beans.factory.annotation.Value("${openbar.cors.allowed-origin-patterns:*}") List<String> allowedOriginPatterns) {
+            CorsOriginResolver corsOriginResolver) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.jwtAuthorizationFilter = jwtAuthorizationFilter;
-        this.allowedOriginPatterns = allowedOriginPatterns;
+        this.corsOriginResolver = corsOriginResolver;
     }
 
     @Bean
@@ -118,7 +127,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(this.allowedOriginPatterns);
+        configuration.setAllowedOriginPatterns(corsOriginResolver.resolveEffectiveOrigins());
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);

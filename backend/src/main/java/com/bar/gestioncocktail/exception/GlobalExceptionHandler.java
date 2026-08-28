@@ -18,6 +18,18 @@ import java.util.stream.Collectors;
 public class GlobalExceptionHandler {
 
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GlobalExceptionHandler.class);
+    private static final String GENERIC_PROD_ERROR_MESSAGE = "An internal server error occurred";
+
+    private final org.springframework.core.env.Environment environment;
+
+    /**
+     * Constructs a GlobalExceptionHandler with Spring Environment for profile-aware error handling.
+     *
+     * @param environment Spring environment to inspect active profiles
+     */
+    public GlobalExceptionHandler(org.springframework.core.env.Environment environment) {
+        this.environment = environment;
+    }
 
     /**
      * Handles resource not found exceptions (HTTP 404).
@@ -107,18 +119,32 @@ public class GlobalExceptionHandler {
 
     /**
      * Handles uncaught generic exceptions (HTTP 500).
+     * In production profile, internal technical error details are obfuscated to avoid information leakage,
+     * while logging full diagnostic stack traces server-side for auditing.
      *
      * @param ex Generic exception
      * @return HTTP 500 response
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
-        log.error("Unhandled exception: " + ex.getMessage(), ex);
+        log.error("Unhandled internal server exception: {}", ex.getMessage(), ex);
+
+        String message;
+        if (isProdProfile()) {
+            message = GENERIC_PROD_ERROR_MESSAGE;
+        } else {
+            message = ex.getMessage() != null ? ex.getMessage() : "An unexpected error occurred";
+        }
+
         ErrorResponse body = ErrorResponse.builder(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 "Internal Server Error",
-                ex.getMessage() != null ? ex.getMessage() : "An unexpected error occurred"
+                message
         ).build();
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
+    }
+
+    private boolean isProdProfile() {
+        return environment != null && environment.acceptsProfiles(org.springframework.core.env.Profiles.of("prod"));
     }
 }

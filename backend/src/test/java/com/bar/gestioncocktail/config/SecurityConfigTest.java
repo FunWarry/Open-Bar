@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.env.MockEnvironment;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -29,10 +30,11 @@ class SecurityConfigTest {
     private JwtAuthorizationFilter jwtAuthorizationFilter;
 
     @Test
-    @DisplayName("corsConfigurationSource - validates allowed origins, methods, and credentials")
+    @DisplayName("corsConfigurationSource - configures origins from CorsOriginResolver, methods, and credentials")
     void corsConfigurationSource_validConfig() {
-        List<String> origins = List.of("http://localhost:[*]", "https://*.local:[*]", "https://example.com");
-        SecurityConfig config = new SecurityConfig(jwtAuthenticationFilter, jwtAuthorizationFilter, origins);
+        List<String> origins = List.of("http://localhost:[*]", "https://open-bar.freeboxos.fr");
+        CorsOriginResolver resolver = new CorsOriginResolver(new MockEnvironment(), origins);
+        SecurityConfig config = new SecurityConfig(jwtAuthenticationFilter, jwtAuthorizationFilter, resolver);
         CorsConfigurationSource source = config.corsConfigurationSource();
 
         MockHttpServletRequest request = new MockHttpServletRequest();
@@ -49,7 +51,8 @@ class SecurityConfigTest {
     @Test
     @DisplayName("authenticationManager - delegates to AuthenticationConfiguration")
     void authenticationManager_delegates() {
-        SecurityConfig config = new SecurityConfig(jwtAuthenticationFilter, jwtAuthorizationFilter, List.of("*"));
+        CorsOriginResolver resolver = new CorsOriginResolver(new MockEnvironment(), List.of("*"));
+        SecurityConfig config = new SecurityConfig(jwtAuthenticationFilter, jwtAuthorizationFilter, resolver);
         AuthenticationConfiguration authConfig = mock(AuthenticationConfiguration.class);
         AuthenticationManager authManager = mock(AuthenticationManager.class);
 

@@ -19,8 +19,15 @@ spring:
       secret: "${JWT_SECRET:test_openbar_default_secret_key_minimum_32_chars_long}"
       expiration: 86400000 # 24h
 
+openbar:
+  cors:
+    allowed-origin-patterns: ${OPENBAR_CORS_ALLOWED_ORIGINS:*}
+
 server:
   port: 8080
+  error:
+    include-stacktrace: never
+    include-message: never
 
 springdoc:
   api-docs:
