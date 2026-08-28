@@ -52,6 +52,69 @@ export async function setupMockApi(page: Page): Promise<void> {
     });
   });
 
+  await page.route('**/api/admin/establishment/timezones**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(['Europe/Paris', 'UTC', 'America/New_York', 'Asia/Tokyo']),
+    });
+  });
+
+  await page.route('**/api/admin/establishment**', async (route) => {
+    if (route.request().method() === 'PUT') {
+      const body = route.request().postDataJSON() || {};
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 1,
+          nom: body.nom || 'OpenBar SAS',
+          siret: body.siret || '73282932000074',
+          numeroTva: body.numeroTva || 'FR12345678901',
+          formeJuridique: body.formeJuridique || 'SAS',
+          capitalSocial: body.capitalSocial || '10000',
+          adresse: body.adresse || '10 Rue de la Paix',
+          codePostal: body.codePostal || '75001',
+          ville: body.ville || 'Paris',
+          telephone: body.telephone || '0123456789',
+          email: body.email || 'contact@openbar.fr',
+          siteWeb: body.siteWeb || 'https://openbar.fr',
+          mentionLegaleTicket: body.mentionLegaleTicket || 'Merci de votre visite',
+          tauxTvaDefaut: body.tauxTvaDefaut || 20.0,
+          ticketFormat: body.ticketFormat || 'STANDARD',
+          timeZone: body.timeZone || 'Europe/Paris',
+          country: body.country || 'France',
+          language: body.language || 'fr',
+        }),
+      });
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        id: 1,
+        nom: 'OpenBar SAS',
+        siret: '73282932000074',
+        numeroTva: 'FR12345678901',
+        formeJuridique: 'SAS',
+        capitalSocial: '10000',
+        adresse: '10 Rue de la Paix',
+        codePostal: '75001',
+        ville: 'Paris',
+        telephone: '0123456789',
+        email: 'contact@openbar.fr',
+        siteWeb: 'https://openbar.fr',
+        mentionLegaleTicket: 'Merci de votre visite',
+        tauxTvaDefaut: 20.0,
+        ticketFormat: 'STANDARD',
+        timeZone: 'Europe/Paris',
+        country: 'France',
+        language: 'fr',
+      }),
+    });
+  });
+
   await page.route('**/api/setup/status', async (route) => {
     await route.fulfill({
       status: 200,
