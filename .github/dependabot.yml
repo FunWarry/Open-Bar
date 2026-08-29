@@ -1,0 +1,74 @@
+# GitHub Dependabot configuration
+# Configures automated dependency updates for Maven (backend), npm (frontend), and GitHub Actions
+
+version: 2
+updates:
+  # Backend: Maven dependencies and plugins
+  - package-ecosystem: "maven"
+    directory: "/backend"
+    target-branch: "dev"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Europe/Paris"
+    commit-message:
+      prefix: "chore(deps)"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "backend"
+    ignore:
+      # Pinned to 1.18.34: Lombok is incompatible with JDK 23+ in current setup
+      - dependency-name: "org.projectlombok:lombok"
+    groups:
+      spring-dependencies:
+        patterns:
+          - "org.springframework*"
+      testcontainers-dependencies:
+        patterns:
+          - "org.testcontainers*"
+
+  # Frontend: npm dependencies
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    target-branch: "dev"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Europe/Paris"
+    commit-message:
+      prefix: "chore(deps)"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "frontend"
+    groups:
+      angular-dependencies:
+        patterns:
+          - "@angular*"
+          - "@ngrx*"
+      ionic-dependencies:
+        patterns:
+          - "@ionic*"
+
+  # CI / GitHub Actions workflows
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    target-branch: "dev"
+    schedule:
+      interval: "monthly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Europe/Paris"
+    commit-message:
+      prefix: "chore(deps)"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "ci"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
