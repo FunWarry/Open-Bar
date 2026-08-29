@@ -321,10 +321,11 @@ Pour les fichiers scopés par feature (ex : `fr/commandes.json`), déclarer le s
 
 ## Features implémentées vs. manquantes
 
-> Dernière mise à jour : 15 août 2026 — PR #297 (#291) : Alignement visuel et fonctionnel du plan 2D serveur (/serveur) avec /plan-salle, modes magnétisme bord-à-bord & snap-to-grid 50cm, timer d'attente centré, sélection multi-zones, isolation gestes tactiles/pull-to-refresh mobile, 100% CI passée (469 backend / 1212 frontend tests)
+> Dernière mise à jour : 29 août 2026 — PR #347 (#336) : Configuration GitHub Dependabot (.github/dependabot.yml) pour les mises à jour automatisées des dépendances Maven, npm et GitHub Actions ciblant dev avec validation CI SonarCloud, 100% tests au vert
 
 | Feature | Backend | Frontend | Tests |
 |---------|---------|----------|-------|
+| Configuration Dependabot (Maven, npm, GitHub Actions) (#336) | ✅ | ✅ | ✅ |
 | Auth JWT | ✅ | ✅ | ✅ |
 | Configuration initiale (/setup admin) | ✅ | ✅ | ✅ |
 | Bibliothèque composants UI Figma | — | ✅ | ✅ |
