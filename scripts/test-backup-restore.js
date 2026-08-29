@@ -4,7 +4,7 @@
  * and compression round-trip.
  */
 
-const { execSync } = require('node:child_process');
+const { execFileSync, execSync } = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
 const zlib = require('node:zlib');
@@ -50,7 +50,7 @@ runTest('Validate docker-compose.prod.yml syntax & backup service definition', (
   }
 
   // Execute docker compose config check
-  execSync('docker compose -f docker-compose.prod.yml config', {
+  execFileSync('docker', ['compose', '-f', 'docker-compose.prod.yml', 'config'], {
     cwd: ROOT_DIR,
     stdio: 'pipe',
     env: { ...process.env, POSTGRES_PASSWORD: 'testpassword123', JWT_SECRET: 'a'.repeat(32) }
