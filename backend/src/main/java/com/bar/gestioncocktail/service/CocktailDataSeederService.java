@@ -51,6 +51,7 @@ public class CocktailDataSeederService {
     private static final String KEY_ACTION = "action";
     private static final String KEY_INGREDIENT = "ingredient";
     private static final String KEY_CHAMPAGNE = "champagne";
+    private static final String KEY_DISPONIBLE = "disponible";
 
     private static final Set<String> ALCOHOL_KEYWORDS = Set.of(
             "rhum", "vodka", "gin", "tequila", "whisky", "whiskey", "calvados", "cognac", "armagnac",
@@ -166,29 +167,11 @@ public class CocktailDataSeederService {
                 return false;
             }
 
-            Cocktail cocktail = new Cocktail();
-            cocktail.setNom(nom);
-            cocktail.setPrix(extractPrice(node));
-            cocktail.setDescription(buildDescription(node));
-            cocktail.setInstructions(buildInstructions(node));
-            cocktail.setDisponible(true);
-
-            if (node.has(KEY_MEDIA) && node.get(KEY_MEDIA).has("photo_url")) {
-                String photoUrl = node.get(KEY_MEDIA).get("photo_url").asText();
-                if (photoUrl != null && !photoUrl.isBlank()) {
-                    cocktail.setImageUrl(photoUrl);
-                }
-            }
+            Cocktail cocktail = buildBaseCocktail(node, nom, allGlassware);
+            Cocktail savedCocktail = cocktailRepository.save(cocktail);
 
             JsonNode ingredientsNode = node.get("ingredients");
-            boolean containsAlcohol = detectAlcohol(ingredientsNode, nom);
-            cocktail.setCategorie(detectCategory(node, containsAlcohol));
-            cocktail.setVatRate(resolveVatRate(nom, containsAlcohol));
-            cocktail.setGlassware(resolveGlassware(node, allGlassware));
-
-            Cocktail savedCocktail = cocktailRepository.save(cocktail);
             List<CocktailIngredient> ingredientsList = importIngredients(savedCocktail, ingredientsNode);
-
             savedCocktail.setIngredients(ingredientsList);
 
             List<CocktailRecipeStep> steps = importRecipeSteps(savedCocktail, node);
@@ -197,12 +180,51 @@ public class CocktailDataSeederService {
             }
 
             cocktailRepository.save(savedCocktail);
-
             importVariantes(savedCocktail, node.get("variantes"));
             return true;
         } catch (Exception e) {
             log.error("Error importing cocktail node: {}", node, e);
             return false;
+        }
+    }
+
+    private Cocktail buildBaseCocktail(JsonNode node, String nom, List<Glassware> allGlassware) {
+        Cocktail cocktail = new Cocktail();
+        cocktail.setNom(nom);
+        cocktail.setPrix(extractPrice(node));
+        cocktail.setDescription(buildDescription(node));
+        cocktail.setInstructions(buildInstructions(node));
+        cocktail.setDisponible(!node.has(KEY_DISPONIBLE) || node.get(KEY_DISPONIBLE).asBoolean());
+
+        applySeasonality(cocktail, node);
+        applyMedia(cocktail, node);
+
+        JsonNode ingredientsNode = node.get("ingredients");
+        boolean containsAlcohol = detectAlcohol(ingredientsNode, nom);
+        cocktail.setCategorie(detectCategory(node, containsAlcohol));
+        cocktail.setVatRate(resolveVatRate(nom, containsAlcohol));
+        cocktail.setGlassware(resolveGlassware(node, allGlassware));
+        return cocktail;
+    }
+
+    private void applySeasonality(Cocktail cocktail, JsonNode node) {
+        if (node.has("saisonnier") && node.get("saisonnier").asBoolean()) {
+            cocktail.setSaisonnier(true);
+            if (node.has("mois_debut")) {
+                cocktail.setMoisDebut(node.get("mois_debut").asInt());
+            }
+            if (node.has("mois_fin")) {
+                cocktail.setMoisFin(node.get("mois_fin").asInt());
+            }
+        }
+    }
+
+    private void applyMedia(Cocktail cocktail, JsonNode node) {
+        if (node.has(KEY_MEDIA) && node.get(KEY_MEDIA).has("photo_url")) {
+            String photoUrl = node.get(KEY_MEDIA).get("photo_url").asText();
+            if (photoUrl != null && !photoUrl.isBlank()) {
+                cocktail.setImageUrl(photoUrl);
+            }
         }
     }
 
@@ -359,7 +381,7 @@ public class CocktailDataSeederService {
         v.setDescription(vNode.hasNonNull(KEY_DESCRIPTION) ? vNode.get(KEY_DESCRIPTION).asText() : null);
         v.setPrixSupplement(extractBigDecimal(vNode, "prix_supplement", BigDecimal.ZERO));
         v.setMultiplicateurIngredient(extractBigDecimal(vNode, "multiplicateur_ingredient", BigDecimal.ONE));
-        v.setDisponible(!vNode.hasNonNull("disponible") || vNode.get("disponible").asBoolean());
+        v.setDisponible(!vNode.hasNonNull(KEY_DISPONIBLE) || vNode.get(KEY_DISPONIBLE).asBoolean());
         v.setInstructions(vNode.hasNonNull("instructions") ? vNode.get("instructions").asText() : null);
         return v;
     }

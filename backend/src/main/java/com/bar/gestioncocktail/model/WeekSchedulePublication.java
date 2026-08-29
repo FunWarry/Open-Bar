@@ -49,6 +49,16 @@ public class WeekSchedulePublication {
     @Column(name = "snapshot_json", columnDefinition = "TEXT")
     private String snapshotJson;
 
+    public WeekSchedulePublication() {
+    }
+
+    public WeekSchedulePublication(LocalDate weekStart, LocalDateTime publishedAt, String publishedBy, String snapshotJson) {
+        this.weekStart = weekStart;
+        this.publishedAt = publishedAt;
+        this.publishedBy = publishedBy;
+        this.snapshotJson = snapshotJson;
+    }
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 

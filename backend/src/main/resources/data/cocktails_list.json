@@ -560,7 +560,10 @@
           "disponible": true,
           "instructions": "Utiliser la liqueur de fleur de sureau"
         }
-      ]
+      ],
+      "saisonnier": true,
+      "mois_debut": 5,
+      "mois_fin": 9
     },
     {
       "id": 6,
@@ -1704,28 +1707,11 @@
       ],
       "variantes": [
         {
-          "nom": "Caïpiroska (Vodka)",
-          "description": "Version à la Vodka premium",
-          "prix_supplement": 0,
+          "nom": "Purée Fruit de la Passion (+1.50€)",
+          "description": "Ajout de purée de maracuja fraîche",
+          "prix_supplement": 1.5,
           "multiplicateur_ingredient": 1,
-          "disponible": true,
-          "instructions": "Remplacer la Cachaça par la Vodka"
-        },
-        {
-          "nom": "Caïpirissima (Rhum)",
-          "description": "Version au Rhum blanc agricole",
-          "prix_supplement": 0,
-          "multiplicateur_ingredient": 1,
-          "disponible": true,
-          "instructions": "Remplacer la Cachaça par le Rhum"
-        },
-        {
-          "nom": "Maracuja Passion",
-          "description": "Fruit de la passion frais",
-          "prix_supplement": 1,
-          "multiplicateur_ingredient": 1,
-          "disponible": true,
-          "instructions": "Ajouter la pulpe d'un demi fruit de la passion"
+          "disponible": true
         }
       ]
     },
@@ -2259,7 +2245,22 @@
         "Shaké",
         "Glacé"
       ],
-      "variantes": []
+      "variantes": [
+        {
+          "nom": "Double Espresso Serré (+1.50€)",
+          "description": "Double dose de café torréfié",
+          "prix_supplement": 1.5,
+          "multiplicateur_ingredient": 1.2,
+          "disponible": true
+        },
+        {
+          "nom": "Sirop Vanille Madagascar (+0.50€)",
+          "description": "Note gourmande vanillée",
+          "prix_supplement": 0.5,
+          "multiplicateur_ingredient": 1,
+          "disponible": true
+        }
+      ]
     },
     {
       "id": 22,
@@ -2835,7 +2836,10 @@
       "tags": [
         "Alcoolisé"
       ],
-      "variantes": []
+      "variantes": [],
+      "saisonnier": true,
+      "mois_debut": 5,
+      "mois_fin": 9
     },
     {
       "id": 27,
@@ -2937,28 +2941,18 @@
       ],
       "variantes": [
         {
-          "nom": "Concombre & Baies Roses",
-          "description": "Fines lamelles de concombre et baies roses",
+          "nom": "Tonic Hibiscus Floral (+1.00€)",
+          "description": "Remplacer par un tonic artisanal aromatisé hibiscus",
           "prix_supplement": 1,
           "multiplicateur_ingredient": 1,
-          "disponible": true,
-          "instructions": "Décorer de lamelles de concombre"
+          "disponible": true
         },
         {
-          "nom": "Hendrick's Premium",
-          "description": "Gin écossais infusé au concombre et pétales de rose",
-          "prix_supplement": 2.5,
+          "nom": "Extra Concombre & Baies (+0.50€)",
+          "description": "Garniture généreuse en baies et concombre",
+          "prix_supplement": 0.5,
           "multiplicateur_ingredient": 1,
-          "disponible": true,
-          "instructions": "Utiliser le Gin Hendrick's"
-        },
-        {
-          "nom": "Tonic Hibiscus",
-          "description": "Tonic floral premium à la fleur d'hibiscus",
-          "prix_supplement": 1,
-          "multiplicateur_ingredient": 1,
-          "disponible": true,
-          "instructions": "Allonger au tonic rose hibiscus"
+          "disponible": true
         }
       ]
     },
@@ -3443,7 +3437,10 @@
         "Alcoolisé",
         "Shaké"
       ],
-      "variantes": []
+      "variantes": [],
+      "saisonnier": true,
+      "mois_debut": 11,
+      "mois_fin": 2
     },
     {
       "id": 33,
@@ -3626,7 +3623,10 @@
         "Alcoolisé",
         "Shaké"
       ],
-      "variantes": []
+      "variantes": [],
+      "saisonnier": true,
+      "mois_debut": 11,
+      "mois_fin": 2
     },
     {
       "id": 35,
@@ -3855,7 +3855,10 @@
       "tags": [
         "Alcoolisé"
       ],
-      "variantes": []
+      "variantes": [],
+      "saisonnier": true,
+      "mois_debut": 11,
+      "mois_fin": 2
     },
     {
       "id": 37,
@@ -3979,7 +3982,10 @@
         "Alcoolisé",
         "Shaké"
       ],
-      "variantes": []
+      "variantes": [],
+      "saisonnier": true,
+      "mois_debut": 11,
+      "mois_fin": 2
     },
     {
       "id": 38,
@@ -4409,36 +4415,18 @@
       ],
       "variantes": [
         {
-          "nom": "Fraise Fraîche",
-          "description": "Ajout de purée de fraises fraîches du marché",
-          "prix_supplement": 1,
-          "multiplicateur_ingredient": 1,
-          "disponible": true,
-          "instructions": "Écraser 3 fraises fraîches avec le citron vert"
+          "nom": "Double Shot (+3.00€)",
+          "description": "Dose double de rhum blanc agricole",
+          "prix_supplement": 3,
+          "multiplicateur_ingredient": 1.5,
+          "disponible": true
         },
         {
-          "nom": "Fruit de la Passion",
-          "description": "Purée de maracuja et graines fraîches",
-          "prix_supplement": 1,
+          "nom": "Virgin Sans Alcool (-1.50€)",
+          "description": "Sans rhum, allongé à la limonade artisanale",
+          "prix_supplement": -1.5,
           "multiplicateur_ingredient": 1,
-          "disponible": true,
-          "instructions": "Incorporer 2cl de purée de fruit de la passion"
-        },
-        {
-          "nom": "Virgin (Sans Alcool)",
-          "description": "Version sans rhum avec limonade artisanale",
-          "prix_supplement": -2,
-          "multiplicateur_ingredient": 1,
-          "disponible": true,
-          "instructions": "Remplacer le rhum par de la limonade"
-        },
-        {
-          "nom": "Format XL Double",
-          "description": "Double dose de rhum et menthe en grand verre",
-          "prix_supplement": 4.5,
-          "multiplicateur_ingredient": 2,
-          "disponible": true,
-          "instructions": "Doubler toutes les proportions"
+          "disponible": true
         }
       ]
     },
@@ -5549,7 +5537,22 @@
       "tags": [
         "Alcoolisé"
       ],
-      "variantes": []
+      "variantes": [
+        {
+          "nom": "Bourbon Réserve Rare (+4.00€)",
+          "description": "Bourbon haut de gamme vieilli en fût de chêne",
+          "prix_supplement": 4,
+          "multiplicateur_ingredient": 1,
+          "disponible": true
+        },
+        {
+          "nom": "Sirop d'Érable Artisanal (+1.00€)",
+          "description": "Au sirop d'érable pur canadien",
+          "prix_supplement": 1,
+          "multiplicateur_ingredient": 1,
+          "disponible": true
+        }
+      ]
     },
     {
       "id": 51,
@@ -6059,20 +6062,11 @@
       ],
       "variantes": [
         {
-          "nom": "Coco Grillé & Rhum Vieux",
-          "description": "Rhum ambré vieilli et copeaux de coco torréfiés",
-          "prix_supplement": 1.5,
-          "multiplicateur_ingredient": 1,
-          "disponible": true,
-          "instructions": "Utiliser du rhum ambré"
-        },
-        {
-          "nom": "Virgin Piña",
-          "description": "Version sans alcool onctueuse",
-          "prix_supplement": -2,
-          "multiplicateur_ingredient": 1,
-          "disponible": true,
-          "instructions": "Sans rhum"
+          "nom": "Extra Crème de Coco (+0.50€)",
+          "description": "Texture veloutée et onctueuse renforcée",
+          "prix_supplement": 0.5,
+          "multiplicateur_ingredient": 1.2,
+          "disponible": true
         }
       ]
     },
@@ -8300,7 +8294,10 @@
       "tags": [
         "Alcoolisé"
       ],
-      "variantes": []
+      "variantes": [],
+      "saisonnier": true,
+      "mois_debut": 5,
+      "mois_fin": 9
     },
     {
       "id": 74,
@@ -10402,7 +10399,10 @@
         "Café",
         "Gourmand"
       ],
-      "variantes": []
+      "variantes": [],
+      "saisonnier": true,
+      "mois_debut": 11,
+      "mois_fin": 2
     }
   ]
 }

@@ -25,6 +25,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+/**
+ * Unit tests for {@link SampleDataSeederService}.
+ */
 @ExtendWith(MockitoExtension.class)
 class SampleDataSeederServiceTest {
 
@@ -56,10 +59,22 @@ class SampleDataSeederServiceTest {
     private FactureRepository factureRepository;
 
     @Mock
+    private FactureReglementRepository factureReglementRepository;
+
+    @Mock
+    private AvoirCreditRepository avoirCreditRepository;
+
+    @Mock
+    private ShiftPresetRepository shiftPresetRepository;
+
+    @Mock
     private EmployeeShiftRepository employeeShiftRepository;
 
     @Mock
     private EstablishmentClosureRepository establishmentClosureRepository;
+
+    @Mock
+    private WeekSchedulePublicationRepository weekSchedulePublicationRepository;
 
     @Mock
     private PasswordEncoder passwordEncoder;
@@ -83,22 +98,78 @@ class SampleDataSeederServiceTest {
         lenient().when(recipeStepTemplateRepository.findByName(any())).thenReturn(Optional.empty());
         lenient().when(recipeStepTemplateRepository.save(any())).thenAnswer(invocation -> {
             RecipeStepTemplate t = invocation.getArgument(0);
-            if (t.getId() == null) t.setId(1L);
+            if (t != null && t.getId() == null) t.setId(1L);
             return t;
         });
 
         Ingredient mockIng = new Ingredient();
         mockIng.setId(1L);
         mockIng.setNom("Rhum Blanc");
+        mockIng.setQuantiteStock(new BigDecimal("10.0"));
+        mockIng.setSeuilAlerte(new BigDecimal("5.0"));
         lenient().when(ingredientRepository.findByNomIgnoreCase(any())).thenReturn(Optional.of(mockIng));
 
         Cocktail mockMojito = new Cocktail();
         mockMojito.setId(1L);
         mockMojito.setNom("Mojito");
+        mockMojito.setPrix(new BigDecimal("9.50"));
         mockMojito.setRecipeSteps(new ArrayList<>());
         lenient().when(cocktailRepository.findByNomIgnoreCase(any())).thenReturn(Optional.of(mockMojito));
         lenient().when(cocktailRepository.findByNomIgnoreCaseWithRecipeSteps(any())).thenReturn(Optional.of(mockMojito));
         lenient().when(cocktailRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        lenient().when(cocktailRepository.findAll()).thenReturn(List.of(mockMojito));
+
+        lenient().when(userRepository.findByUsername(any())).thenReturn(Optional.empty());
+        lenient().when(userRepository.save(any())).thenAnswer(invocation -> {
+            User u = invocation.getArgument(0);
+            if (u != null && u.getId() == null) u.setId(1L);
+            return u;
+        });
+
+        lenient().when(tableRepository.findByNumero(anyInt())).thenAnswer(invocation -> {
+            TableEntity t = new TableEntity();
+            t.setNumero(invocation.getArgument(0));
+            t.setId(1L);
+            return Optional.of(t);
+        });
+        lenient().when(tableRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        lenient().when(factureRepository.save(any())).thenAnswer(invocation -> {
+            Facture f = invocation.getArgument(0);
+            if (f != null && f.getId() == null) f.setId(1L);
+            return f;
+        });
+
+        lenient().when(commandeRepository.save(any())).thenAnswer(invocation -> {
+            Commande c = invocation.getArgument(0);
+            if (c != null && c.getId() == null) c.setId(1L);
+            return c;
+        });
+        lenient().when(factureReglementRepository.save(any())).thenAnswer(invocation -> {
+            FactureReglement fr = invocation.getArgument(0);
+            if (fr != null && fr.getId() == null) fr.setId(1L);
+            return fr;
+        });
+        lenient().when(avoirCreditRepository.save(any())).thenAnswer(invocation -> {
+            AvoirCredit ac = invocation.getArgument(0);
+            if (ac != null && ac.getId() == null) ac.setId(1L);
+            return ac;
+        });
+        lenient().when(employeeShiftRepository.save(any())).thenAnswer(invocation -> {
+            EmployeeShift es = invocation.getArgument(0);
+            if (es != null && es.getId() == null) es.setId(1L);
+            return es;
+        });
+        lenient().when(establishmentClosureRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        lenient().when(weekSchedulePublicationRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        lenient().when(shiftPresetRepository.count()).thenReturn(0L);
+        lenient().when(shiftPresetRepository.findByTypeShift(any())).thenReturn(Optional.empty());
+        lenient().when(establishmentClosureRepository.count()).thenReturn(0L);
+        lenient().when(weekSchedulePublicationRepository.count()).thenReturn(0L);
+        lenient().when(weekSchedulePublicationRepository.findByWeekStart(any())).thenReturn(Optional.empty());
+        lenient().when(employeeShiftRepository.findByUserId(anyLong())).thenReturn(List.of());
+        lenient().when(avoirCreditRepository.findByNumero(anyString())).thenReturn(Optional.empty());
     }
 
     @Test
@@ -113,31 +184,9 @@ class SampleDataSeederServiceTest {
     }
 
     @Test
-    @DisplayName("seedDemoDataIfEmpty - executes dataset seeding and seeds recipe steps")
+    @DisplayName("seedDemoDataIfEmpty - executes dataset seeding and seeds all demo data")
     void seedDemoDataIfEmpty_executesSeedingWhenEmpty() {
         when(commandeRepository.count()).thenReturn(0L);
-        when(userRepository.findByUsername(any())).thenReturn(Optional.empty());
-        when(userRepository.save(any())).thenAnswer(invocation -> {
-            User u = invocation.getArgument(0);
-            if (u.getId() == null) u.setId(1L);
-            return u;
-        });
-
-        lenient().when(etageRepository.existsByCode(any())).thenReturn(false);
-        lenient().when(zoneRepository.existsByNom(any())).thenReturn(false);
-        lenient().when(establishmentClosureRepository.count()).thenReturn(0L);
-
-        TableEntity mockTable = new TableEntity();
-        mockTable.setNumero(1);
-        mockTable.setId(1L);
-        when(tableRepository.findByNumero(anyInt())).thenReturn(Optional.of(mockTable));
-        when(tableRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
-
-        Cocktail mockCocktail = new Cocktail();
-        mockCocktail.setId(1L);
-        mockCocktail.setNom("Mojito");
-        mockCocktail.setPrix(new BigDecimal("9.50"));
-        when(cocktailRepository.findAll()).thenReturn(List.of(mockCocktail));
 
         sampleDataSeederService.seedDemoDataIfEmpty();
 
@@ -145,6 +194,8 @@ class SampleDataSeederServiceTest {
         verify(tableRepository, atLeastOnce()).save(any());
         verify(employeeShiftRepository, atLeastOnce()).save(any());
         verify(establishmentClosureRepository, atLeastOnce()).save(any());
+        verify(shiftPresetRepository, atLeastOnce()).save(any());
+        verify(weekSchedulePublicationRepository, atLeastOnce()).save(any());
         verify(commandeRepository, atLeastOnce()).save(any());
         verify(factureRepository, atLeastOnce()).save(any());
         verify(recipeStepTemplateRepository, atLeastOnce()).save(any());
@@ -154,17 +205,6 @@ class SampleDataSeederServiceTest {
     @Test
     @DisplayName("seedAllDemoData - skips closures when closures already exist")
     void seedAllDemoData_skipsClosuresWhenAlreadyExist() {
-        when(userRepository.findByUsername(any())).thenReturn(Optional.empty());
-        when(userRepository.save(any())).thenAnswer(invocation -> {
-            User u = invocation.getArgument(0);
-            if (u.getId() == null) u.setId(1L);
-            return u;
-        });
-        TableEntity mockTable = new TableEntity();
-        mockTable.setNumero(1);
-        mockTable.setId(1L);
-        when(tableRepository.findByNumero(anyInt())).thenReturn(Optional.of(mockTable));
-        when(tableRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
         when(establishmentClosureRepository.count()).thenReturn(3L);
         when(commandeRepository.count()).thenReturn(1L);
 
@@ -176,18 +216,6 @@ class SampleDataSeederServiceTest {
     @Test
     @DisplayName("seedAllDemoData - does not duplicate shifts when shift already exists for user and date")
     void seedAllDemoData_skipsDuplicateShifts() {
-        when(userRepository.findByUsername(any())).thenReturn(Optional.empty());
-        when(userRepository.save(any())).thenAnswer(invocation -> {
-            User u = invocation.getArgument(0);
-            if (u.getId() == null) u.setId(1L);
-            return u;
-        });
-        TableEntity mockTable = new TableEntity();
-        mockTable.setNumero(1);
-        mockTable.setId(1L);
-        when(tableRepository.findByNumero(anyInt())).thenReturn(Optional.of(mockTable));
-        when(tableRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
-        when(establishmentClosureRepository.count()).thenReturn(3L);
         when(commandeRepository.count()).thenReturn(1L);
 
         EmployeeShift existingShift = new EmployeeShift();
@@ -205,25 +233,7 @@ class SampleDataSeederServiceTest {
     @Test
     @DisplayName("seedAllDemoData - correctly seeds invoices with VAT rate and HT calculation")
     void seedAllDemoData_correctlyCalculatesVatAndInvoiceTotals() {
-        when(userRepository.findByUsername(any())).thenReturn(Optional.empty());
-        when(userRepository.save(any())).thenAnswer(invocation -> {
-            User u = invocation.getArgument(0);
-            if (u.getId() == null) u.setId(1L);
-            return u;
-        });
-        TableEntity mockTable = new TableEntity();
-        mockTable.setNumero(1);
-        mockTable.setId(1L);
-        when(tableRepository.findByNumero(anyInt())).thenReturn(Optional.of(mockTable));
-        when(tableRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
-        when(establishmentClosureRepository.count()).thenReturn(0L);
         when(commandeRepository.count()).thenReturn(0L);
-
-        Cocktail mockCocktail = new Cocktail();
-        mockCocktail.setId(1L);
-        mockCocktail.setNom("Mojito");
-        mockCocktail.setPrix(new BigDecimal("9.50"));
-        when(cocktailRepository.findAll()).thenReturn(List.of(mockCocktail));
 
         sampleDataSeederService.seedAllDemoData();
 
@@ -241,51 +251,31 @@ class SampleDataSeederServiceTest {
     }
 
     @Test
-    @DisplayName("seedAllDemoData - links facture items to matching commande items when orders exist on table")
-    void seedAllDemoData_linksFactureItemsToCommandeItems() {
-        when(userRepository.findByUsername(any())).thenReturn(Optional.empty());
-        when(userRepository.save(any())).thenAnswer(invocation -> {
-            User u = invocation.getArgument(0);
-            if (u.getId() == null) u.setId(1L);
-            return u;
-        });
-        TableEntity mockTable = new TableEntity();
-        mockTable.setNumero(1);
-        mockTable.setId(1L);
-        when(tableRepository.findByNumero(anyInt())).thenReturn(Optional.of(mockTable));
-        when(tableRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
-        when(establishmentClosureRepository.count()).thenReturn(0L);
+    @DisplayName("seedAllDemoData - seeds split payments (FactureReglement) on invoices")
+    void seedAllDemoData_seedsSplitPaymentsOnInvoices() {
         when(commandeRepository.count()).thenReturn(0L);
-
-        Cocktail mockMojito = new Cocktail();
-        mockMojito.setId(1L);
-        mockMojito.setNom("Mojito");
-        mockMojito.setPrix(new BigDecimal("9.50"));
-
-        CommandeItem mockCi = new CommandeItem();
-        mockCi.setId(10L);
-        mockCi.setCocktail(mockMojito);
-        mockCi.setQuantite(2);
-        mockCi.setPrixUnitaire(new BigDecimal("9.50"));
-
-        Commande mockCmd = new Commande();
-        mockCmd.setId(5L);
-        mockCmd.setTable(mockTable);
-        mockCmd.setItems(List.of(mockCi));
-
-        when(commandeRepository.findByTable(any())).thenReturn(List.of(mockCmd));
-        when(cocktailRepository.findAll()).thenReturn(List.of(mockMojito));
 
         sampleDataSeederService.seedAllDemoData();
 
-        ArgumentCaptor<Facture> factureCaptor = ArgumentCaptor.forClass(Facture.class);
-        verify(factureRepository, atLeastOnce()).save(factureCaptor.capture());
+        verify(factureReglementRepository, atLeastOnce()).save(any(FactureReglement.class));
+    }
 
-        List<Facture> factures = factureCaptor.getAllValues();
-        Optional<Facture> matched = factures.stream()
-                .filter(f -> f.getItems().stream().anyMatch(i -> i.getCommandeItem() != null))
-                .findFirst();
+    @Test
+    @DisplayName("seedAllDemoData - seeds credit notes (AvoirCredit) when present")
+    void seedAllDemoData_seedsCreditNotes() {
+        when(commandeRepository.count()).thenReturn(0L);
 
-        assertThat(matched).isPresent();
+        Facture mockFacture = new Facture();
+        mockFacture.setId(5L);
+        mockFacture.setNumero("FACT-2026-0005");
+        mockFacture.setTotalHT(new BigDecimal("15.83"));
+        mockFacture.setTotalVAT(new BigDecimal("3.17"));
+        mockFacture.setTotalTTC(new BigDecimal("19.00"));
+
+        when(factureRepository.findByNumero("FACT-2026-0005")).thenReturn(Optional.of(mockFacture));
+
+        sampleDataSeederService.seedAllDemoData();
+
+        verify(avoirCreditRepository, atLeastOnce()).save(any(AvoirCredit.class));
     }
 }

@@ -27,7 +27,8 @@ import java.util.*;
 
 /**
  * Service responsible for automatically seeding a rich, complete demonstration dataset
- * (Users, Zones, Tables, Shifts, Active Orders, Overdue Orders, Paid & Pending Invoices)
+ * (Users, Zones, Tables, Shifts, Shift Presets, Active Orders, Overdue Orders, Paid & Pending Invoices,
+ * Split Settlements, Credit Notes, Stock Adjustments, and Schedule Publications)
  * from the JSON dataset file 'data/demo_dataset.json' on application startup in 'dev' and 'test' profiles.
  */
 @Service
@@ -45,6 +46,15 @@ public class SampleDataSeederService {
     private static final String KEY_QUANTITE = "quantite";
     private static final String KEY_DAY_OF_WEEK = "dayOfWeek";
     private static final String KEY_DESCRIPTION = "description";
+    private static final String PLAN_X = "planX";
+    private static final String PLAN_Y = "planY";
+    private static final String PLAN_WIDTH = "planWidth";
+    private static final String PLAN_HEIGHT = "planHeight";
+    private static final String KEY_NUMERO = "numero";
+    private static final String KEY_DUREE_PAUSE_MINUTES = "dureePauseMinutes";
+    private static final String KEY_MODE_PAIEMENT = "modePaiement";
+    private static final String KEY_POURBOIRE = "pourboire";
+    private static final String KEY_REGLEMENTS = "reglements";
 
     private final UserRepository userRepository;
     private final TableRepository tableRepository;
@@ -55,8 +65,12 @@ public class SampleDataSeederService {
     private final RecipeStepTemplateRepository recipeStepTemplateRepository;
     private final CommandeRepository commandeRepository;
     private final FactureRepository factureRepository;
+    private final FactureReglementRepository factureReglementRepository;
+    private final AvoirCreditRepository avoirCreditRepository;
+    private final ShiftPresetRepository shiftPresetRepository;
     private final EmployeeShiftRepository employeeShiftRepository;
     private final EstablishmentClosureRepository establishmentClosureRepository;
+    private final WeekSchedulePublicationRepository weekSchedulePublicationRepository;
     private final PasswordEncoder passwordEncoder;
     private final TimeService timeService;
     private final PlatformTransactionManager transactionManager;
@@ -72,8 +86,12 @@ public class SampleDataSeederService {
             RecipeStepTemplateRepository recipeStepTemplateRepository,
             CommandeRepository commandeRepository,
             FactureRepository factureRepository,
+            FactureReglementRepository factureReglementRepository,
+            AvoirCreditRepository avoirCreditRepository,
+            ShiftPresetRepository shiftPresetRepository,
             EmployeeShiftRepository employeeShiftRepository,
             EstablishmentClosureRepository establishmentClosureRepository,
+            WeekSchedulePublicationRepository weekSchedulePublicationRepository,
             PasswordEncoder passwordEncoder,
             TimeService timeService,
             PlatformTransactionManager transactionManager) {
@@ -86,8 +104,12 @@ public class SampleDataSeederService {
         this.recipeStepTemplateRepository = recipeStepTemplateRepository;
         this.commandeRepository = commandeRepository;
         this.factureRepository = factureRepository;
+        this.factureReglementRepository = factureReglementRepository;
+        this.avoirCreditRepository = avoirCreditRepository;
+        this.shiftPresetRepository = shiftPresetRepository;
         this.employeeShiftRepository = employeeShiftRepository;
         this.establishmentClosureRepository = establishmentClosureRepository;
+        this.weekSchedulePublicationRepository = weekSchedulePublicationRepository;
         this.passwordEncoder = passwordEncoder;
         this.timeService = timeService;
         this.transactionManager = transactionManager;
@@ -122,17 +144,21 @@ public class SampleDataSeederService {
             seedEtagesFromJson(root.get("etages"));
             seedZonesFromJson(root.get("zones"));
             Map<Integer, TableEntity> tablesMap = seedTablesFromJson(root.get("tables"), usersMap);
+            seedShiftPresetsFromJson(root.get("shift_presets"));
             seedShiftsFromJson(root.get("shifts"), usersMap);
             seedClosuresFromJson(root.get("closures"));
+            seedWeekPublicationsFromJson(root.get("week_publications"));
 
             Map<String, RecipeStepTemplate> templatesMap = seedRecipeStepTemplatesFromJson(root.get("recipe_step_templates"));
             seedCocktailRecipeStepsFromJson(root.get("cocktail_recipe_steps"), templatesMap);
+            seedStockAdjustmentsFromJson(root.get("stock_adjustments"));
 
             if (commandeRepository.count() == 0) {
                 List<Cocktail> cocktails = cocktailRepository.findAll();
                 if (!cocktails.isEmpty()) {
                     seedOrdersFromJson(root.get("orders"), usersMap, tablesMap, cocktails);
                     seedInvoicesFromJson(root.get("invoices"), tablesMap);
+                    seedAvoirsCreditFromJson(root.get("avoirs_credit"));
                 }
             }
 
@@ -239,11 +265,6 @@ public class SampleDataSeederService {
         }
     }
 
-    private static final String PLAN_X = "planX";
-    private static final String PLAN_Y = "planY";
-    private static final String PLAN_WIDTH = "planWidth";
-    private static final String PLAN_HEIGHT = "planHeight";
-
     private void seedZonesFromJson(JsonNode zonesNode) {
         if (zonesNode == null || !zonesNode.isArray()) return;
 
@@ -284,7 +305,7 @@ public class SampleDataSeederService {
     }
 
     private TableEntity createOrUpdateTableFromNode(JsonNode tNode, Map<String, User> usersMap) {
-        int numero = tNode.get("numero").asInt();
+        int numero = tNode.get(KEY_NUMERO).asInt();
         String zone = tNode.get("zone").asText();
         int capacite = tNode.get("capacite").asInt();
         boolean occupee = tNode.get("occupee").asBoolean();
@@ -326,23 +347,37 @@ public class SampleDataSeederService {
         return tableRepository.save(t);
     }
 
+    private void seedShiftPresetsFromJson(JsonNode presetsNode) {
+        if (presetsNode == null || !presetsNode.isArray() || shiftPresetRepository.count() > 0) return;
+
+        for (JsonNode pNode : presetsNode) {
+            TypeShift type = TypeShift.valueOf(pNode.get("typeShift").asText());
+            String nom = pNode.get("nom").asText();
+            String debut = pNode.get("heureDebut").asText();
+            String fin = pNode.get("heureFin").asText();
+            int pause = pNode.has(KEY_DUREE_PAUSE_MINUTES) ? pNode.get(KEY_DUREE_PAUSE_MINUTES).asInt() : 30;
+
+            if (shiftPresetRepository.findByTypeShift(type).isEmpty()) {
+                ShiftPreset preset = new ShiftPreset(type, nom, debut, fin, pause);
+                shiftPresetRepository.save(preset);
+                log.trace("Shift preset seeded: {}", nom);
+            }
+        }
+    }
+
     private record ShiftSeedDetail(
             LocalDate date,
             TypeShift shiftType,
             TypePoste poste,
-            String debut,
-            String fin,
-            String pauseDebut,
-            int pauseMin,
-            BigDecimal prevues
+            String heureDebut,
+            String heureFin,
+            String heurePauseDebut,
+            int dureePause,
+            BigDecimal heuresPrevues,
+            BigDecimal heuresEffectuees,
+            BigDecimal heuresSup
     ) {}
 
-    /**
-     * Seeds shifts dynamically from the provided JSON node.
-     *
-     * @param shiftsNode JSON array node containing shifts
-     * @param usersMap map of usernames to persisted User entities
-     */
     private void seedShiftsFromJson(JsonNode shiftsNode, Map<String, User> usersMap) {
         if (shiftsNode == null || !shiftsNode.isArray()) return;
 
@@ -365,15 +400,17 @@ public class SampleDataSeederService {
         String heureDebut = sNode.get("heureDebut").asText();
         String heureFin = sNode.get("heureFin").asText();
         String heurePauseDebut = sNode.hasNonNull("heurePauseDebut") ? sNode.get("heurePauseDebut").asText() : "13:00";
-        int dureePause = sNode.hasNonNull("dureePauseMinutes") ? sNode.get("dureePauseMinutes").asInt() : 30;
-        BigDecimal heuresPrevues = sNode.hasNonNull("heuresPrevues") ? new BigDecimal(sNode.get("heuresPrevues").asText()) : new BigDecimal("7.50");
+        int dureePause = sNode.hasNonNull(KEY_DUREE_PAUSE_MINUTES) ? sNode.get(KEY_DUREE_PAUSE_MINUTES).asInt() : 30;
+        BigDecimal heuresPrevues = new BigDecimal(sNode.hasNonNull("heuresPrevues") ? sNode.get("heuresPrevues").asText() : "7.50");
+        BigDecimal heuresEffectuees = new BigDecimal(sNode.hasNonNull("heuresEffectuees") ? sNode.get("heuresEffectuees").asText() : heuresPrevues.toString());
+        BigDecimal heuresSup = new BigDecimal(sNode.hasNonNull("heuresSup") ? sNode.get("heuresSup").asText() : "0.00");
         String notes = sNode.hasNonNull(KEY_NOTES) ? sNode.get(KEY_NOTES).asText() : "Planning hebdo démo";
 
         boolean exists = employeeShiftRepository.findByUserId(user.getId()).stream()
                 .anyMatch(s -> s.getDateShift().equals(shiftDate) && s.getTypeShift() == shiftType);
 
         if (!exists) {
-            createAndSaveShift(user, new ShiftSeedDetail(shiftDate, shiftType, poste, heureDebut, heureFin, heurePauseDebut, dureePause, heuresPrevues), notes);
+            createAndSaveShift(user, new ShiftSeedDetail(shiftDate, shiftType, poste, heureDebut, heureFin, heurePauseDebut, dureePause, heuresPrevues, heuresEffectuees, heuresSup), notes);
         }
     }
 
@@ -384,32 +421,40 @@ public class SampleDataSeederService {
         return today;
     }
 
-    /**
-     * Seeds establishment closures from the provided JSON node.
-     *
-     * @param closuresNode JSON array node containing closure definitions
-     */
     private void seedClosuresFromJson(JsonNode closuresNode) {
         if (closuresNode == null || !closuresNode.isArray() || establishmentClosureRepository.count() > 0) return;
 
         for (JsonNode cNode : closuresNode) {
-            EstablishmentClosure closure = new EstablishmentClosure();
             ClosureType type = ClosureType.valueOf(cNode.get("type").asText());
-            closure.setType(type);
+            DayOfWeek day = cNode.hasNonNull(KEY_DAY_OF_WEEK) ? DayOfWeek.valueOf(cNode.get(KEY_DAY_OF_WEEK).asText()) : null;
+            LocalDate closureDate = cNode.hasNonNull("closureDate") ? LocalDate.parse(cNode.get("closureDate").asText()) : null;
+            LocalDate endDate = cNode.hasNonNull("endDate") ? LocalDate.parse(cNode.get("endDate").asText()) : null;
+            boolean isAnnual = cNode.hasNonNull("isAnnualRecurring") && cNode.get("isAnnualRecurring").asBoolean();
+            String reason = cNode.hasNonNull("reason") ? cNode.get("reason").asText() : "Fermeture planifiée";
 
-            if (cNode.hasNonNull(KEY_DAY_OF_WEEK)) {
-                closure.setDayOfWeek(DayOfWeek.valueOf(cNode.get(KEY_DAY_OF_WEEK).asText()));
-            }
-            if (cNode.hasNonNull("closureDate")) {
-                closure.setClosureDate(LocalDate.parse(cNode.get("closureDate").asText()));
-            }
-            if (cNode.has("isAnnualRecurring")) {
-                closure.setIsAnnualRecurring(cNode.get("isAnnualRecurring").asBoolean());
-            }
-            closure.setReason(cNode.get("reason").asText());
-
+            EstablishmentClosure closure = new EstablishmentClosure(type, day, closureDate, endDate, isAnnual, reason);
             establishmentClosureRepository.save(closure);
-            log.trace("Establishment closure seeded: {}", closure.getReason());
+            log.trace("Closure seeded: {} ({})", reason, type);
+        }
+    }
+
+    private void seedWeekPublicationsFromJson(JsonNode pubsNode) {
+        if (pubsNode == null || !pubsNode.isArray() || weekSchedulePublicationRepository.count() > 0) return;
+
+        LocalDate today = LocalDate.now(ZoneId.systemDefault());
+        LocalDate monday = today.minusDays((long) today.getDayOfWeek().getValue() - 1);
+
+        for (JsonNode pNode : pubsNode) {
+            long weekOffset = pNode.has("weekOffset") ? pNode.get("weekOffset").asLong() : 0L;
+            LocalDate weekStart = monday.plusWeeks(weekOffset);
+            String publishedBy = pNode.hasNonNull("publishedBy") ? pNode.get("publishedBy").asText() : "Directeur Démo";
+            String snapshotJson = pNode.hasNonNull("snapshotJson") ? pNode.get("snapshotJson").asText() : "{}";
+
+            if (weekSchedulePublicationRepository.findByWeekStart(weekStart).isEmpty()) {
+                WeekSchedulePublication pub = new WeekSchedulePublication(weekStart, timeService.now(), publishedBy, snapshotJson);
+                weekSchedulePublicationRepository.save(pub);
+                log.trace("Week publication seeded for week: {}", weekStart);
+            }
         }
     }
 
@@ -419,18 +464,39 @@ public class SampleDataSeederService {
         shift.setDateShift(detail.date());
         shift.setTypeShift(detail.shiftType());
         shift.setTypePoste(detail.poste());
-        shift.setHeureDebut(detail.debut());
-        shift.setHeureFin(detail.fin());
-        shift.setHeurePauseDebut(detail.pauseDebut());
-        shift.setDureePauseMinutes(detail.pauseMin());
-        shift.setHeuresPrevues(detail.prevues());
-        shift.setHeuresEffectuees(detail.prevues());
+        shift.setHeureDebut(detail.heureDebut());
+        shift.setHeureFin(detail.heureFin());
+        shift.setHeurePauseDebut(detail.heurePauseDebut());
+        shift.setDureePauseMinutes(detail.dureePause());
+        shift.setHeuresPrevues(detail.heuresPrevues());
+        shift.setHeuresEffectuees(detail.heuresEffectuees());
+        shift.setHeuresSup(detail.heuresSup());
         shift.setNotes(notes);
+
         employeeShiftRepository.save(shift);
+        log.trace("Shift seeded for user {} on {}", user.getUsername(), detail.date());
+    }
+
+    private void seedStockAdjustmentsFromJson(JsonNode adjustmentsNode) {
+        if (adjustmentsNode == null || !adjustmentsNode.isArray()) return;
+
+        for (JsonNode aNode : adjustmentsNode) {
+            String ingName = aNode.get("nom").asText();
+            BigDecimal stock = new BigDecimal(aNode.get("quantiteStock").asText());
+            BigDecimal seuil = new BigDecimal(aNode.get("seuilAlerte").asText());
+
+            ingredientRepository.findByNomIgnoreCase(ingName).ifPresent(ing -> {
+                ing.setQuantiteStock(stock);
+                ing.setSeuilAlerte(seuil);
+                ingredientRepository.save(ing);
+                log.trace("Stock adjustment applied: {} -> {} (seuil: {})", ingName, stock, seuil);
+            });
+        }
     }
 
     private void seedOrdersFromJson(JsonNode ordersNode, Map<String, User> usersMap, Map<Integer, TableEntity> tablesMap, List<Cocktail> cocktails) {
         if (ordersNode == null || !ordersNode.isArray()) return;
+
         for (JsonNode oNode : ordersNode) {
             createSingleOrderFromJson(oNode, usersMap, tablesMap, cocktails);
         }
@@ -438,127 +504,103 @@ public class SampleDataSeederService {
 
     private void createSingleOrderFromJson(JsonNode oNode, Map<String, User> usersMap, Map<Integer, TableEntity> tablesMap, List<Cocktail> cocktails) {
         int tableNumero = oNode.get("tableNumero").asInt();
-        String serveurUsername = oNode.get(KEY_SERVEUR_USERNAME).asText();
+        String serveurUsername = oNode.hasNonNull(KEY_SERVEUR_USERNAME) ? oNode.get(KEY_SERVEUR_USERNAME).asText() : null;
         CommandeStatut statut = CommandeStatut.valueOf(oNode.get("statut").asText());
         int minutesAgo = oNode.get("minutesAgo").asInt();
+        String trackingToken = oNode.hasNonNull("trackingToken") ? oNode.get("trackingToken").asText() : null;
         String notes = oNode.hasNonNull(KEY_NOTES) ? oNode.get(KEY_NOTES).asText() : null;
 
         TableEntity table = tablesMap.get(tableNumero);
-        User serveur = usersMap.get(serveurUsername);
+        User serveur = serveurUsername != null ? usersMap.get(serveurUsername) : null;
         LocalDateTime orderTime = timeService.now().minusMinutes(minutesAgo);
 
-        Commande cmd = new Commande();
-        cmd.setTable(table);
-        cmd.setServeur(serveur);
-        cmd.setStatut(statut);
-        cmd.setDateCommande(orderTime);
-        cmd.setTrackingToken("TRK-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
-        cmd.setNotes(notes);
+        Commande commande = new Commande();
+        commande.setTable(table);
+        commande.setServeur(serveur);
+        commande.setStatut(statut);
+        commande.setDateCommande(orderTime);
+        commande.setTrackingToken(trackingToken);
+        commande.setNotes(notes);
 
-        List<CommandeItem> items = buildOrderItems(cmd, oNode.get(KEY_ITEMS), cocktails);
-        BigDecimal total = BigDecimal.ZERO;
-        for (CommandeItem it : items) {
-            total = total.add(it.getPrixUnitaire().multiply(BigDecimal.valueOf(it.getQuantite())));
+        if (statut == CommandeStatut.PRET || statut == CommandeStatut.LIVREE || statut == CommandeStatut.REGLEE) {
+            commande.setDatePreparation(orderTime.plusMinutes(4));
+        }
+        if (statut == CommandeStatut.LIVREE || statut == CommandeStatut.REGLEE) {
+            commande.setDateLivraison(orderTime.plusMinutes(6));
+        }
+        if (statut == CommandeStatut.REGLEE) {
+            commande.setDateReglement(orderTime.plusMinutes(35));
+        }
+        if (statut == CommandeStatut.ANNULEE) {
+            commande.setDateModification(orderTime.plusMinutes(2));
         }
 
-        cmd.setItems(items);
-        cmd.setTotal(total);
-
-        updateOrderTimestampsByStatus(cmd, statut, orderTime);
-        commandeRepository.save(cmd);
-
-        if (table != null && (statut == CommandeStatut.EN_ATTENTE || statut == CommandeStatut.EN_PREPARATION || statut == CommandeStatut.PRET)) {
-            table.setOccupee(true);
-            if (serveur != null) {
-                table.setServeurId(serveur.getId());
-            }
-            table.setDateOccupation(orderTime);
-            tableRepository.save(table);
-        }
+        Commande savedOrder = commandeRepository.save(commande);
+        Commande targetOrder = savedOrder != null ? savedOrder : commande;
+        List<CommandeItem> items = parseOrderItems(targetOrder, oNode.get(KEY_ITEMS), cocktails);
+        targetOrder.setItems(items);
+        commandeRepository.save(targetOrder);
     }
 
-    private List<CommandeItem> buildOrderItems(Commande cmd, JsonNode itemsNode, List<Cocktail> cocktails) {
+    private List<CommandeItem> parseOrderItems(Commande order, JsonNode itemsNode, List<Cocktail> cocktails) {
         List<CommandeItem> items = new ArrayList<>();
-        if (itemsNode == null || !itemsNode.isArray()) {
-            return items;
-        }
+        if (itemsNode == null || !itemsNode.isArray()) return items;
 
         for (JsonNode itemNode : itemsNode) {
-            CommandeItem item = buildSingleCommandeItem(cmd, itemNode, cocktails);
-            if (item != null) {
-                items.add(item);
+            String cocktailName = itemNode.get("cocktailName").asText();
+            int quantite = itemNode.get(KEY_QUANTITE).asInt();
+            boolean prioritaire = itemNode.hasNonNull("prioritaire") && itemNode.get("prioritaire").asBoolean();
+            String itemNotes = itemNode.hasNonNull("itemNotes") ? itemNode.get("itemNotes").asText() : null;
+
+            Cocktail cocktail = findCocktailByName(cocktails, cocktailName);
+            if (cocktail != null) {
+                CommandeItem ci = new CommandeItem();
+                ci.setCommande(order);
+                ci.setCocktail(cocktail);
+                ci.setQuantite(quantite);
+                ci.setPrioritaire(prioritaire);
+                ci.setNotes(itemNotes);
+                ci.setPrixUnitaire(cocktail.getPrix());
+                items.add(ci);
             }
         }
         return items;
     }
 
-    private CommandeItem buildSingleCommandeItem(Commande cmd, JsonNode itemNode, List<Cocktail> cocktails) {
-        String cocktailName = itemNode.get("cocktailName").asText();
-        Cocktail c = findCocktailByName(cocktails, cocktailName);
-        if (c == null) {
-            return null;
-        }
-
-        int quantite = itemNode.has(KEY_QUANTITE) ? itemNode.get(KEY_QUANTITE).asInt() : 1;
-        BigDecimal unitPrice = c.getPrix() != null ? c.getPrix() : new BigDecimal("9.50");
-
-        CommandeItem item = new CommandeItem();
-        item.setCommande(cmd);
-        item.setCocktail(c);
-        item.setQuantite(quantite);
-
-        if (itemNode.hasNonNull("varianteName") && c.getVariantes() != null) {
-            String vNom = itemNode.get("varianteName").asText();
-            c.getVariantes().stream()
-                    .filter(v -> v.getNom().equalsIgnoreCase(vNom))
-                    .findFirst()
-                    .ifPresent(v -> {
-                        item.setVariante(v);
-                        if (v.getPrixSupplement() != null) {
-                            item.setPrixUnitaire(unitPrice.add(v.getPrixSupplement()));
-                        }
-                    });
-        }
-        if (item.getPrixUnitaire() == null) {
-            item.setPrixUnitaire(unitPrice);
-        }
-        return item;
-    }
-
-    private void updateOrderTimestampsByStatus(Commande cmd, CommandeStatut statut, LocalDateTime orderTime) {
-        if (statut == CommandeStatut.EN_PREPARATION) {
-            cmd.setDatePreparation(orderTime.plusMinutes(2));
-        } else if (statut == CommandeStatut.PRET) {
-            cmd.setDatePreparation(orderTime.plusMinutes(2));
-        } else if (statut == CommandeStatut.LIVREE) {
-            cmd.setDatePreparation(orderTime.plusMinutes(2));
-            cmd.setDateLivraison(orderTime.plusMinutes(7));
-        } else if (statut == CommandeStatut.REGLEE) {
-            cmd.setDatePreparation(orderTime.plusMinutes(2));
-            cmd.setDateLivraison(orderTime.plusMinutes(7));
-            cmd.setDateReglement(orderTime.plusMinutes(35));
-        }
-    }
-
     private void seedInvoicesFromJson(JsonNode invoicesNode, Map<Integer, TableEntity> tablesMap) {
         if (invoicesNode == null || !invoicesNode.isArray()) return;
+
         for (JsonNode invNode : invoicesNode) {
             createSingleInvoiceFromJson(invNode, tablesMap);
         }
     }
 
     private void createSingleInvoiceFromJson(JsonNode invNode, Map<Integer, TableEntity> tablesMap) {
-        String numero = invNode.get("numero").asText();
+        String numero = invNode.get(KEY_NUMERO).asText();
         int tableNumero = invNode.get("tableNumero").asInt();
         boolean reglee = invNode.get("reglee").asBoolean();
-        String modePaiement = invNode.hasNonNull("modePaiement") ? invNode.get("modePaiement").asText() : null;
-        BigDecimal pourboire = invNode.has("pourboire") ? new BigDecimal(invNode.get("pourboire").asText()) : BigDecimal.ZERO;
+        String modePaiement = invNode.hasNonNull(KEY_MODE_PAIEMENT) ? invNode.get(KEY_MODE_PAIEMENT).asText() : null;
+        BigDecimal pourboire = invNode.has(KEY_POURBOIRE) ? new BigDecimal(invNode.get(KEY_POURBOIRE).asText()) : BigDecimal.ZERO;
         int minutesAgo = invNode.get("minutesAgo").asInt();
         String notes = invNode.hasNonNull(KEY_NOTES) ? invNode.get(KEY_NOTES).asText() : null;
 
         TableEntity table = tablesMap.get(tableNumero);
         LocalDateTime invoiceTime = timeService.now().minusMinutes(minutesAgo);
 
+        Facture f = buildInvoiceEntity(table, numero, reglee, modePaiement, pourboire, invoiceTime, notes);
+        List<Commande> tableOrders = table != null ? commandeRepository.findByTable(table) : List.of();
+        Commande latestOrder = !tableOrders.isEmpty() ? tableOrders.get(tableOrders.size() - 1) : null;
+
+        BigDecimal total = parseInvoiceItems(f, invNode.get(KEY_ITEMS), latestOrder);
+        f.setTotal(total);
+        Facture savedFacture = factureRepository.save(f);
+
+        if (invNode.has(KEY_REGLEMENTS) && invNode.get(KEY_REGLEMENTS).isArray()) {
+            seedInvoiceReglements(savedFacture, invNode.get(KEY_REGLEMENTS), invoiceTime);
+        }
+    }
+
+    private Facture buildInvoiceEntity(TableEntity table, String numero, boolean reglee, String modePaiement, BigDecimal pourboire, LocalDateTime invoiceTime, String notes) {
         Facture f = new Facture();
         f.setTable(table);
         f.setNumero(numero);
@@ -572,14 +614,56 @@ public class SampleDataSeederService {
             f.setDateReglement(invoiceTime.plusMinutes(35));
             f.setFinalized(true);
             f.setFinalizedAt(invoiceTime.plusMinutes(35));
+            f.setRetentionUntil(invoiceTime.plusYears(10));
         }
+        return f;
+    }
 
-        List<Commande> tableOrders = table != null ? commandeRepository.findByTable(table) : List.of();
-        Commande latestOrder = !tableOrders.isEmpty() ? tableOrders.get(tableOrders.size() - 1) : null;
+    private void seedInvoiceReglements(Facture savedFacture, JsonNode reglementsNode, LocalDateTime invoiceTime) {
+        List<FactureReglement> reglementsList = new ArrayList<>();
+        for (JsonNode rNode : reglementsNode) {
+            FactureReglement fr = new FactureReglement();
+            fr.setFacture(savedFacture);
+            fr.setNomConvive(rNode.get("nomConvive").asText());
+            fr.setPartIndex(rNode.get("partIndex").asInt());
+            fr.setTotalParts(rNode.has("totalParts") ? rNode.get("totalParts").asInt() : null);
+            BigDecimal partMontant = new BigDecimal(rNode.get("montant").asText());
+            BigDecimal partPourboire = rNode.has(KEY_POURBOIRE) ? new BigDecimal(rNode.get(KEY_POURBOIRE).asText()) : BigDecimal.ZERO;
+            fr.setMontant(partMontant);
+            fr.setPourboire(partPourboire);
+            fr.setTotalRegle(partMontant.add(partPourboire));
+            fr.setModePaiement(rNode.get(KEY_MODE_PAIEMENT).asText());
+            fr.setTypeSplit(rNode.has("typeSplit") ? rNode.get("typeSplit").asText() : "EGAL");
+            if (rNode.hasNonNull("itemsJson")) {
+                fr.setItemsJson(rNode.get("itemsJson").asText());
+            }
+            fr.setDateReglement(invoiceTime.plusMinutes(35));
+            factureReglementRepository.save(fr);
+            reglementsList.add(fr);
+        }
+        savedFacture.setReglements(reglementsList);
+    }
 
-        BigDecimal total = parseInvoiceItems(f, invNode.get(KEY_ITEMS), latestOrder);
-        f.setTotal(total);
-        factureRepository.save(f);
+    private void seedAvoirsCreditFromJson(JsonNode avoirsNode) {
+        if (avoirsNode == null || !avoirsNode.isArray()) return;
+
+        for (JsonNode aNode : avoirsNode) {
+            String invoiceNumber = aNode.get("factureNumero").asText();
+            factureRepository.findByNumero(invoiceNumber).ifPresent(facture -> {
+                String avoirNumero = aNode.get(KEY_NUMERO).asText();
+                if (avoirCreditRepository.findByNumero(avoirNumero).isEmpty()) {
+                    AvoirCredit avoir = new AvoirCredit();
+                    avoir.setNumero(avoirNumero);
+                    avoir.setFacture(facture);
+                    avoir.setTotalHT(facture.getTotalHT());
+                    avoir.setTotalVAT(facture.getTotalVAT());
+                    avoir.setTotalTTC(facture.getTotalTTC());
+                    avoir.setMotif(aNode.get("motif").asText());
+                    avoirCreditRepository.save(avoir);
+                    log.trace("Avoir de credit seeded: {}", avoirNumero);
+                }
+            });
+        }
     }
 
     private BigDecimal parseInvoiceItems(Facture f, JsonNode itemsNode, Commande latestOrder) {
