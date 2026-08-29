@@ -1,4 +1,5 @@
-const fs = require('fs');
+const fs = require('node:fs');
+const path = require('node:path');
 
 const frPath = 'frontend/src/assets/i18n/fr.json';
 const enPath = 'frontend/src/assets/i18n/en.json';
