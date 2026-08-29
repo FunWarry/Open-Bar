@@ -43,6 +43,18 @@ public class EstablishmentClosure {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
+    public EstablishmentClosure() {
+    }
+
+    public EstablishmentClosure(ClosureType type, DayOfWeek dayOfWeek, LocalDate closureDate, LocalDate endDate, Boolean isAnnualRecurring, String reason) {
+        this.type = type;
+        this.dayOfWeek = dayOfWeek;
+        this.closureDate = closureDate;
+        this.endDate = endDate;
+        this.isAnnualRecurring = isAnnualRecurring;
+        this.reason = reason;
+    }
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now(ZoneId.systemDefault());
