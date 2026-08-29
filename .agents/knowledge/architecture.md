@@ -32,6 +32,7 @@
 | Frontend tests | Karma + Jasmine | — | Headless browser unit tests |
 | E2E tests | Playwright | 1.50+ | End-to-end browser tests (Chromium headless) |
 | Database Backups | Automated Docker cron + rotation | — | `prodrigestivill/postgres-backup-local:15-alpine` (7d/4w/6m retention) |
+| Reverse Proxy & TLS | Nginx | — | Port 443 HTTPS, TLS 1.2/1.3, HTTP 80 redirect, camera header, SAN certs |
 | CI | GitHub Actions | 1 workflow (`ci.yml`) | Backend, Frontend, E2E, SonarCloud |
 | Quality | SonarCloud + Qodana | — | Quality Gate enforcement |
 
@@ -196,6 +197,18 @@ OpenBar provides automated backups, configurable retention, and manual CLI utili
 - **Persistent Volume**: `openbar_backups` mounted to `/backups`.
 - **Manual Backup Script**: `scripts/backup-db.sh` (or `scripts/backup-db.ps1`) for on-demand snapshots.
 - **Disaster Recovery Restore Script**: `scripts/restore-db.sh` (or `scripts/restore-db.ps1`) with archive integrity verification, automated pre-restore safety snapshot, connection draining, and post-restore sanity checks.
+
+---
+
+## Local HTTPS / TLS & PWA Reverse Proxy
+
+Mobile browsers (iOS Safari, Android Chrome) enforce a secure context for `navigator.mediaDevices.getUserMedia` (QR code camera scanning) and Service Worker offline registration:
+
+- **Nginx Reverse Proxy**: Port 443 with TLS 1.2/1.3, strong ciphers, and session cache (`docker-compose.prod.yml`).
+- **HTTP Redirection**: Port 80 permanent 301 redirect to HTTPS.
+- **Permissions Header**: `Permissions-Policy: camera=(self), microphone=(), geolocation=()` enabling camera feed.
+- **Local Certificate Generation**: `scripts/generate-local-certs.sh` and `scripts/generate-local-certs.ps1` with Subject Alternative Names (SAN: `localhost`, `openbar.lan`, `*.openbar.lan`, `openbar.local`, `127.0.0.1`, LAN IP).
+- **Zero-Config Fallback**: `frontend/entrypoint.sh` automatically generates fallback self-signed certificates if none are mounted.
 
 ---
 

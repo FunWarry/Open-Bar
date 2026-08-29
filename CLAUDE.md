@@ -40,7 +40,9 @@ L'app tourne sur le **réseau WiFi du bar** (serveur local — Raspberry Pi 5 ou
                                          ├── PostgreSQL :5432
                                          ├── Backup Cron & Rotation (openbar_backups)
                                          ├── Centralized Logrotate (/var/log/openbar)
-                                         └── Nginx → Angular PWA :80
+                                         └── Nginx Reverse Proxy (HTTPS :443 + HTTP :80 301 redirect)
+                                               ├── Proxy /api & /ws → Spring Boot
+                                               └── Static PWA Angular App
 ```
 
 | Couche               | Techno cible                          |
@@ -50,6 +52,7 @@ L'app tourne sur le **réseau WiFi du bar** (serveur local — Raspberry Pi 5 ou
 | Build natif          | ~~Capacitor~~ — **abandonné**         |
 | Canvas plan de salle | Konva.js                              |
 | i18n                 | Transloco (`@jsverse/transloco`)      |
+| Reverse Proxy & TLS  | Nginx (HTTPS :443, SAN certs, HTTP :80 redirect, camera header) |
 | Sauvegardes BDD      | Scheduled Docker container + rotation |
 | Déploiement prod     | Docker Compose sur mini-PC local (réseau bar) |
 
