@@ -83,6 +83,35 @@ Le conteneur `backup` (`docker-compose.prod.yml`) gère automatiquement les snap
 
 ---
 
+## Déploiement Réseau Local & HTTPS / TLS
+
+Les navigateurs mobiles modernes (iOS Safari, Android Chrome) exigent un **contexte sécurisé (HTTPS)** pour autoriser :
+1. **L'accès caméra** : scan des QR codes de table (`ClientQrScannerComponent`).
+2. **L'enregistrement du Service Worker PWA** : fonctionnement hors-ligne et cache local sur le Wi-Fi du bar (`https://192.168.1.x` ou `https://openbar.lan`).
+
+### 1. Reverse Proxy Nginx & Redirection Automatique
+Dans `docker-compose.prod.yml`, le conteneur `frontend` assure la terminaison TLS sur le port **443** et redirige automatiquement les requêtes HTTP du port **80** vers HTTPS (301 permanent) :
+- Support TLS 1.2 & TLS 1.3 avec ciphers sécurisés et session cache
+- En-tête `Permissions-Policy: camera=(self)` pour l'accès caméra QR scanner
+- Proxy transparent `/api` et `/ws` (WebSocket STOMP avec Upgrade) vers `backend:8080`
+- Démarrage autonome avec certificat auto-signé de secours si aucun certificat n'est monté
+
+### 2. Génération de Certificats TLS Réseau Local
+```bash
+# Générer un certificat TLS avec Subject Alternative Names (localhost, openbar.lan, IP locale)
+./scripts/generate-local-certs.sh
+
+# Sous Windows PowerShell :
+.\scripts\generate-local-certs.ps1
+```
+
+Pour installer le certificat sur tablette / smartphone client :
+1. Transférer `certs/openbar.crt` vers le terminal mobile (AirDrop, Email ou USB).
+2. Installer le certificat dans les Réglages comme Autorité Racine de Confiance.
+3. Se connecter sur `https://openbar.lan` ou `https://<IP_SERVEUR>` : PWA et scanneur QR sont 100% opérationnels !
+
+---
+
 ## Documentation du code & API
 
 Toute modification du codebase doit respecter les règles de documentation suivantes :
@@ -171,6 +200,7 @@ EN_ATTENTE → EN_PREPARATION → PRET → LIVREE → REGLEE
 | Documentation OpenAPI / Swagger UI | ✅ | — | ✅ |
 | JavaDoc & TSDoc (100% en anglais) | ✅ | ✅ | ✅ |
 | Sauvegardes PostgreSQL & Rétention Auto (#337) | ✅ | — | ✅ |
+| Reverse Proxy HTTPS Local & Certificats TLS (#338) | — | ✅ | ✅ |
 
 ### 🎯 Roadmap des Tickets Restants (Audit Figma 8 pages)
 
