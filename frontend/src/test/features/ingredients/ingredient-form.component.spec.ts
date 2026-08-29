@@ -75,11 +75,11 @@ describe('IngredientFormComponent', () => {
       expect(component).toBeTruthy();
     });
 
-    it('isEditMode est false quand aucun id dans la route', () => {
+    it('isEditMode is false when no id in route', () => {
       expect(component.isEditMode).toBeFalse();
     });
 
-    it('ingredientId est null quand aucun id dans la route', () => {
+    it('ingredientId is null when no id in route', () => {
       expect(component.ingredientId).toBeNull();
     });
 
@@ -91,13 +91,13 @@ describe('IngredientFormComponent', () => {
       expect(form.get('seuilAlerte')?.value).toBe(5);
     });
 
-    it('form should be invalid quand les champs requis sont vides', () => {
+    it('form should be invalid when required fields are empty', () => {
       component.ingredientForm.get('nom')?.setValue('');
       component.ingredientForm.get('uniteMesure')?.setValue('');
       expect(component.ingredientForm.invalid).toBeTrue();
     });
 
-    it('form should be valid quand tous les champs requis sont remplis', () => {
+    it('form should be valid when all required fields are filled', () => {
       component.ingredientForm.setValue({
         nom: 'Citron',
         uniteMesure: 'kg',
@@ -112,7 +112,7 @@ describe('IngredientFormComponent', () => {
       expect(component.ingredientForm.get('quantiteStock')?.invalid).toBeTrue();
     });
 
-    it('onSubmit() ne navigue pas si le formulaire est invalide', () => {
+    it('onSubmit() does not navigate if form is invalid', () => {
       component.ingredientForm.get('nom')?.setValue('');
       component.ingredientForm.get('uniteMesure')?.setValue('');
       component.onSubmit();
@@ -207,7 +207,7 @@ describe('IngredientFormComponent', () => {
       expect(component.formTitleKey).toBe('INGREDIENTS.DETAILS_TITLE');
     });
 
-    it('onSubmit() avec modal dismiss avec role saved', () => {
+    it('onSubmit() with modal dismiss and role saved', () => {
       component.ingredientForm.setValue({
         nom: 'Vodka',
         uniteMesure: 'cl',

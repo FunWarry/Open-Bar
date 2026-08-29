@@ -8,7 +8,7 @@
         </div>
         <ion-button routerLink="/manager/shift-presets" color="secondary" fill="outline" size="small" data-testid="employees-btn-presets">
           <ion-icon name="settings-outline" slot="start"></ion-icon>
-          Modèles & Presets
+          {{ 'EMPLOYEES.PRESETS_BTN' | transloco }}
         </ion-button>
       </div>
 
@@ -32,7 +32,7 @@
             (ionChange)="onRoleChange()"
             interface="popover"
             fill="outline"
-            aria-label="Filtrer par rôle"
+            [attr.aria-label]="'EMPLOYEES.FILTER_BY_ROLE' | transloco"
             data-testid="employee-role-select">
             <ion-select-option *ngFor="let r of availableRoles" [value]="r.value">
               {{ r.label }}

@@ -223,15 +223,15 @@
                           {{ ('COCKTAILS.CATEGORIES.' + cocktail.categorie) | transloco }}
                         </span>
                         @if (!cocktail.disponible) {
-                          <span class="figma-alert-pill critical">⚠️ Indispo</span>
+                          <span class="figma-alert-pill critical">⚠️ {{ 'COCKTAILS.UNAVAILABLE' | transloco }}</span>
                         }
                         @if (isHorsSaison(cocktail)) {
-                          <span class="figma-alert-pill low">⚠️ Hors saison</span>
+                          <span class="figma-alert-pill low">⚠️ {{ 'COCKTAILS.OFF_SEASON' | transloco }}</span>
                         }
                       </div>
 
                       @if (isAdmin$ | async) {
-                        <button class="figma-edit-btn" [attr.data-testid]="'edit-cocktail-btn-' + cocktail.id" (click)="onEdit(cocktail)" (keydown.enter)="onEdit(cocktail)" aria-label="Modifier cocktail">
+                        <button class="figma-edit-btn" [attr.data-testid]="'edit-cocktail-btn-' + cocktail.id" (click)="onEdit(cocktail)" (keydown.enter)="onEdit(cocktail)" [attr.aria-label]="'COCKTAILS.EDIT_COCKTAIL_LABEL' | transloco">
                           <ion-icon name="create"></ion-icon>
                         </button>
                       }
@@ -309,7 +309,7 @@
                     <p><strong>{{ ('COCKTAILS.CATEGORIES.' + cocktail.categorie) | transloco }}</strong> — {{ getIngredientsText(cocktail) }}</p>
                     @if (getCocktailAllergens(cocktail).length > 0) {
                       <p class="list-allergens-text">
-                        <small class="allergen-warning-text">⚠️ <strong>Allergènes :</strong>
+                        <small class="allergen-warning-text">⚠️ <strong>{{ 'COCKTAILS.ALLERGENS_WARNING_LABEL' | transloco }}</strong>
                           @for (allergenKey of getCocktailAllergens(cocktail); track allergenKey; let last = $last) {
                             {{ ('COCKTAILS.ALLERGENS.' + allergenKey) | transloco }}{{ last ? '' : ', ' }}
                           }

@@ -255,18 +255,18 @@
               <div class="header-bold">{{ configForm.get('legalName')?.value || 'OPEN BAR SARL' }} {{ configForm.get('legalForm')?.value }}</div>
               <div>Capital : {{ configForm.get('capitalSocial')?.value | currency:'EUR':'symbol':'1.2-2' }}</div>
               <div>{{ configForm.get('address')?.value || '12 Rue du Bar, 75001 Paris' }}</div>
-              <div>Tél : {{ configForm.get('phone')?.value || '+33123456789' }}</div>
+              <div>{{ 'ETABLISSEMENT.PHONE' | transloco }} : {{ configForm.get('phone')?.value || '+33123456789' }}</div>
               <div>SIRET : {{ configForm.get('siret')?.value || '73282932000074' }}</div>
               <div>TVA : {{ configForm.get('tvaNumber')?.value || 'FR12123456789' }}</div>
               <div>RCS {{ configForm.get('rcsCity')?.value }} {{ configForm.get('rcsNumber')?.value }} — APE : {{ configForm.get('codeApe')?.value }}</div>
               <hr />
-              <div class="header-bold">TICKET DE CAISSE DE DÉMONSTRATION</div>
+              <div class="header-bold">{{ 'ETABLISSEMENT.DEMO_RECEIPT_TITLE' | transloco }}</div>
               <div>1x Mojito (TVA 20%) — 9,50 €</div>
               <div>1x Planche Tapas (TVA 10%) — 14,00 €</div>
               <hr />
-              <div>Total HT : 20,08 €</div>
+              <div>{{ 'FACTURES.TOTAL_HT' | transloco }} : 20,08 €</div>
               <div>TVA (10%) : 1,27 € | TVA (20%) : 1,58 €</div>
-              <div class="header-bold">TOTAL TTC : 23,50 €</div>
+              <div class="header-bold">{{ 'FACTURES.TOTAL_TTC' | transloco }} : 23,50 €</div>
               <hr />
               <div style="font-size:10px">{{ configForm.get('paymentTerms')?.value }}</div>
               <div style="font-size:10px">{{ configForm.get('discountPolicy')?.value }}</div>

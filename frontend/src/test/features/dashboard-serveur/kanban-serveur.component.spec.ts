@@ -112,7 +112,7 @@ describe('KanbanServeurComponent', () => {
     expect(serviceSpy.getCommandesParStatut).toHaveBeenCalledWith('LIVREE');
   }));
 
-  it('charger() affiche un toast danger en cas d\'erreur', fakeAsync(() => {
+  it('charger() displays a toast danger en cas d\'erreur', fakeAsync(() => {
     serviceSpy.getCommandesParStatut.and.returnValue(throwError(() => new Error('err')));
     component.charger();
     tick();
@@ -132,7 +132,7 @@ describe('KanbanServeurComponent', () => {
     expect(pret.commandes).toHaveSize(1); // cmd(3) est sur table 2
   }));
 
-  it('onFiltreChange(null) affiche toutes les commandes', fakeAsync(() => {
+  it('onFiltreChange(null) displays all orders', fakeAsync(() => {
     component.charger();
     tick();
     component.onFiltreChange(2);
@@ -143,7 +143,7 @@ describe('KanbanServeurComponent', () => {
 
   // --- marquerLivree ---
 
-  it('marquerLivree() appelle changerStatutCommande avec LIVREE et recharge', fakeAsync(() => {
+  it('marquerLivree() calls changerStatutCommande with LIVREE and reloads', fakeAsync(() => {
     component.marquerLivree(3);
     tick();
     flushMicrotasks();
@@ -151,7 +151,7 @@ describe('KanbanServeurComponent', () => {
     expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'success' }));
   }));
 
-  it('marquerLivree() affiche un toast danger en cas d\'erreur', fakeAsync(() => {
+  it('marquerLivree() displays a toast danger en cas d\'erreur', fakeAsync(() => {
     serviceSpy.changerStatutCommande.and.returnValue(throwError(() => new Error('err')));
     component.marquerLivree(3);
     tick();
@@ -169,7 +169,7 @@ describe('KanbanServeurComponent', () => {
     expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'medium' }));
   }));
 
-  it('annuler() affiche un toast danger en cas d\'erreur', fakeAsync(() => {
+  it('annuler() displays a toast danger en cas d\'erreur', fakeAsync(() => {
     serviceSpy.annulerCommande.and.returnValue(throwError(() => new Error('err')));
     component.annuler(1);
     tick();

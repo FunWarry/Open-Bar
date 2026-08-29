@@ -30,7 +30,7 @@ public class Commande {
     @OneToMany(mappedBy = "commande", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<CommandeItem> items = new ArrayList<>();
 
-    @NotNull(message = "Le statut est obligatoire")
+    @NotNull(message = "Status is required")
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private CommandeStatut statut;

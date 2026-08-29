@@ -86,7 +86,7 @@ describe('IngredientListComponent', () => {
     expect(component.ingredients).toHaveSize(3);
   }));
 
-  it('charger() affiche un toast danger en cas d\'erreur', fakeAsync(() => {
+  it('charger() displays a toast danger en cas d\'erreur', fakeAsync(() => {
     serviceSpy.getAll.and.returnValue(throwError(() => new Error('err')));
     component.charger();
     tick();
@@ -145,12 +145,12 @@ describe('IngredientListComponent', () => {
     expect(component.ingredients.find(i => i.id === 1)).toBeUndefined();
   }));
 
-  it('isEnAlerte() retourne true si stock <= seuilAlerte', () => {
+  it('isEnAlerte() returns true if stock <= seuilAlerte', () => {
     const item = makeI(1, 'Citron', 3, 5);
     expect(component.isEnAlerte(item)).toBeTrue();
   });
 
-  it('getStockColor() retourne danger si stock <= 0, warning si stock <= seuil, success sinon', () => {
+  it('getStockColor() returns danger if stock <= 0, warning if stock <= seuil, success otherwise', () => {
     expect(component.getStockColor(makeI(1, 'Zero', 0, 5))).toBe('danger');
     expect(component.getStockColor(makeI(2, 'Alerte', 3, 5))).toBe('warning');
     expect(component.getStockColor(makeI(3, 'Normal', 20, 5))).toBe('success');

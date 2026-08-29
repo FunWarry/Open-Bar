@@ -133,7 +133,7 @@ describe('UserListComponent', () => {
     expect(userServiceSpy.getUsersPaged).toHaveBeenCalledWith(0, 20, '', 'ALL');
   });
 
-  it('nextPage() ne fait rien si isLast = true', () => {
+  it('nextPage() does nothing if isLast = true', () => {
     component.isLast = true;
     component.currentPage = 2;
     component.nextPage();
@@ -141,7 +141,7 @@ describe('UserListComponent', () => {
     expect(component.currentPage).toBe(2);
   });
 
-  it('prevPage() ne fait rien si isFirst = true', () => {
+  it('prevPage() does nothing if isFirst = true', () => {
     component.isFirst = true;
     component.currentPage = 0;
     component.prevPage();

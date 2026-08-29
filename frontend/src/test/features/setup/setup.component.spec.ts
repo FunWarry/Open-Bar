@@ -47,7 +47,7 @@ describe('SetupComponent', () => {
     expect(component.setupForm.valid).toBeFalse();
   });
 
-  it('validates the form si les champs requis sont corrects', () => {
+  it('validates the form when required fields are valid', () => {
     component.setupForm.setValue({
       username: 'admin',
       email: 'admin@test.com',

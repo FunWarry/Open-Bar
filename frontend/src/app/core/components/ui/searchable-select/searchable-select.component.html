@@ -62,8 +62,8 @@
           class="clear-btn"
           (click)="clearSelection($event)"
           [attr.data-testid]="testId + '-clear-btn'"
-          aria-label="Effacer la sélection"
-          title="Effacer">
+          [attr.aria-label]="clearLabel"
+          [title]="clearTitle">
           <ion-icon name="close-circle-outline"></ion-icon>
         </button>
       }

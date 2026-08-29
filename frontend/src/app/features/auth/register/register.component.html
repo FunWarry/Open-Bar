@@ -5,7 +5,7 @@
   <div class="register-card">
     <div class="register-header">
       <h1 class="register-title">{{ 'AUTH.REGISTER_TITLE' | transloco }}</h1>
-      <p class="register-subtitle">Accès administrateur requis pour ajouter des utilisateurs</p>
+      <p class="register-subtitle">{{ 'AUTH.REGISTER.ADMIN_REQUIRED' | transloco }}</p>
     </div>
 
     <div class="divider"></div>
@@ -15,7 +15,7 @@
         <app-input-field
           formControlName="nom"
           [label]="'SETUP.LASTNAME' | transloco"
-          placeholder="Nom"
+          [placeholder]="'AUTH.REGISTER.LAST_NAME_PLACEHOLDER' | transloco"
           icon="person-outline"
           [required]="true"
           [errorMessage]="registerForm.get('nom')?.touched && registerForm.get('nom')?.hasError('required') ? ('ERRORS.FORM_INVALID' | transloco) : undefined">
@@ -24,7 +24,7 @@
         <app-input-field
           formControlName="prenom"
           [label]="'SETUP.FIRSTNAME' | transloco"
-          placeholder="Prénom"
+          [placeholder]="'AUTH.REGISTER.FIRST_NAME_PLACEHOLDER' | transloco"
           icon="person-outline"
           [required]="true"
           [errorMessage]="registerForm.get('prenom')?.touched && registerForm.get('prenom')?.hasError('required') ? ('ERRORS.FORM_INVALID' | transloco) : undefined">
@@ -45,7 +45,7 @@
       <app-input-field
         formControlName="username"
         [label]="'AUTH.USERNAME' | transloco"
-        placeholder="Identifiant de connexion"
+        [placeholder]="'AUTH.REGISTER.USERNAME_PLACEHOLDER' | transloco"
         icon="at-outline"
         [required]="true"
         autocomplete="username"
@@ -55,26 +55,26 @@
       <app-password-input
         formControlName="password"
         [label]="'AUTH.PASSWORD' | transloco"
-        placeholder="Au moins 6 caractères"
+        [placeholder]="'AUTH.REGISTER.PASSWORD_PLACEHOLDER' | transloco"
         [required]="true"
         autocomplete="new-password"
         [errorMessage]="registerForm.get('password')?.touched && registerForm.get('password')?.hasError('required') ? ('AUTH.REQUIRED_PASS' | transloco) : (registerForm.get('password')?.touched && registerForm.get('password')?.hasError('minlength') ? ('ERRORS.FORM_INVALID' | transloco) : undefined)">
       </app-password-input>
 
       <div class="field">
-        <label for="role-select">Rôle</label>
+        <label for="role-select">{{ 'AUTH.REGISTER.ROLE_LABEL' | transloco }}</label>
         <ion-item class="role-select-item" lines="none">
-          <ion-select id="role-select" formControlName="role" required interface="popover" placeholder="Sélectionnez un rôle">
+          <ion-select id="role-select" formControlName="role" required interface="popover" [placeholder]="'AUTH.REGISTER.ROLE_PLACEHOLDER' | transloco">
             @for (role of roles; track role) {
               <ion-select-option [value]="role">
-                {{ role }}
+                {{ 'SHIFTS.FILTERS.' + role | transloco }}
               </ion-select-option>
             }
           </ion-select>
         </ion-item>
         @if (registerForm.get('role')?.touched && registerForm.get('role')?.hasError('required')) {
           <div class="field-error">
-            Le rôle est requis
+            {{ 'AUTH.REGISTER.ROLE_REQUIRED' | transloco }}
           </div>
         }
       </div>

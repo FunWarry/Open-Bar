@@ -91,7 +91,7 @@
           (change)="onReplayTimestampChange()"
           class="replay-input"
           data-testid="replay-datetime-input" />
-        <button type="button" class="btn-refresh-replay" (click)="loadReplaySchedule()" data-testid="btn-refresh-replay" title="Rafraîchir le replay">
+        <button type="button" class="btn-refresh-replay" (click)="loadReplaySchedule()" data-testid="btn-refresh-replay" [title]="'SHIFTS.REPLAY.REFRESH' | transloco">
           <ion-icon name="refresh-outline"></ion-icon>
         </button>
       </div>
@@ -250,7 +250,7 @@
         [class.is-closed]="h.isClosed"
         (click)="!isReplayMode && onHeaderDayClick(h)"
         [disabled]="isReplayMode"
-        [title]="h.isClosed ? (h.closureReason + ' — Cliquer pour rouvrir') : 'Cliquer pour définir comme jour fermé / férié'">
+        [title]="h.isClosed ? (h.closureReason + ' — ' + ('SHIFTS.CLOSURES.CLICK_TO_REOPEN' | transloco)) : ('SHIFTS.CLOSURES.CLICK_TO_CLOSE' | transloco)">
         <span class="day-name">{{ h.day }}</span>
         <span class="day-num">{{ h.date }}</span>
         <span class="closed-header-badge" *ngIf="h.isClosed">{{ 'SHIFTS.CLOSURES.CLOSED_BADGE' | transloco }}</span>
@@ -298,7 +298,7 @@
         (click)="onCellClick(emp, shift)"
         (contextmenu)="onContextMenu($event, emp, shift)"
         (keyup.enter)="onCellClick(emp, shift)"
-        [title]="shift.isClosed ? 'Établissement fermé (' + shift.closureReason + ')' : (isReplayMode ? 'Lecture seule (Mode Replay)' : (isDeleteMode ? 'Cliquer pour marquer / démarquer pour suppression' : ''))"
+        [title]="shift.isClosed ? (('SHIFTS.CLOSURES.CLOSED_STATUS' | transloco) + ' (' + shift.closureReason + ')') : (isReplayMode ? ('SHIFTS.REPLAY.READONLY_HINT' | transloco) : (isDeleteMode ? ('SHIFTS.DELETE_MODE_HINT' | transloco) : ''))"
         [attr.data-testid]="'cell-' + emp.employeeId + '-' + shift.day">
         
         <div *ngIf="shift.isClosed" class="cell-closed-content">
@@ -312,16 +312,16 @@
 
           <!-- Comparison Mode Diff Badges -->
           <div *ngIf="(isComparisonMode || (isReplayMode && isReplayComparisonMode)) && getCellDiff(emp.employeeId, shift.date) as diff" class="cell-diff-indicator">
-            <span class="diff-badge-added" *ngIf="diff.status === 'ADDED'">+ Nouveau</span>
+            <span class="diff-badge-added" *ngIf="diff.status === 'ADDED'">+ {{ 'SHIFTS.DIFF.NEW' | transloco }}</span>
             <span class="diff-badge-modified" *ngIf="diff.status === 'MODIFIED'">
-              Était {{ diff.publishedShift?.heureDebut }}-{{ diff.publishedShift?.heureFin }}
+              {{ 'SHIFTS.DIFF.WAS' | transloco: { start: diff.publishedShift?.heureDebut, end: diff.publishedShift?.heureFin } }}
             </span>
           </div>
         </div>
 
         <!-- Ghost Deleted Shift in Comparison Mode -->
         <div *ngIf="(isComparisonMode || (isReplayMode && isReplayComparisonMode)) && getCellDiff(emp.employeeId, shift.date)?.status === 'DELETED'" class="cell-deleted-ghost">
-          <span class="ghost-label">🗑️ Supprimé</span>
+          <span class="ghost-label">🗑️ {{ 'SHIFTS.DIFF.DELETED' | transloco }}</span>
           <span class="ghost-time">{{ getCellDiff(emp.employeeId, shift.date)?.publishedShift?.heureDebut }} - {{ getCellDiff(emp.employeeId, shift.date)?.publishedShift?.heureFin }}</span>
           <span class="ghost-type" *ngIf="getCellDiff(emp.employeeId, shift.date)?.publishedShift?.typeShift">{{ getCellDiff(emp.employeeId, shift.date)?.publishedShift?.typeShift }}</span>
         </div>
@@ -349,14 +349,14 @@
   <!-- Legend + summary -->
   <div class="schedule-bottom">
     <div class="legend">
-      <span class="legend-item"><span class="legend-dot dot--manager"></span> Manager</span>
-      <span class="legend-item"><span class="legend-dot dot--waiter"></span> Serveur</span>
-      <span class="legend-item"><span class="legend-dot dot--bartender"></span> Barman</span>
-      <span class="legend-item"><span class="legend-dot dot--dayoff"></span> Congé</span>
-      <span class="legend-item"><span class="legend-dot dot--closed"></span> Établissement Fermé</span>
+      <span class="legend-item"><span class="legend-dot dot--manager"></span> {{ 'SHIFTS.FILTERS.MANAGER' | transloco }}</span>
+      <span class="legend-item"><span class="legend-dot dot--waiter"></span> {{ 'SHIFTS.FILTERS.SERVEUR' | transloco }}</span>
+      <span class="legend-item"><span class="legend-dot dot--bartender"></span> {{ 'SHIFTS.FILTERS.BARMAN' | transloco }}</span>
+      <span class="legend-item"><span class="legend-dot dot--dayoff"></span> {{ 'SHIFTS.LEGEND.DAYOFF' | transloco }}</span>
+      <span class="legend-item"><span class="legend-dot dot--closed"></span> {{ 'SHIFTS.CLOSURES.CLOSED_STATUS' | transloco }}</span>
     </div>
     <span class="summary">
-      Total semaine : <strong>{{ displaySchedule.totalHours }}h</strong> · {{ displaySchedule.totalEmployees }} employés · {{ displaySchedule.activeEmployees }} actifs
+      {{ 'SHIFTS.LEGEND.WEEK_TOTAL' | transloco: { totalHours: displaySchedule.totalHours, totalEmployees: displaySchedule.totalEmployees, activeEmployees: displaySchedule.activeEmployees } }}
     </span>
   </div>
 </div>

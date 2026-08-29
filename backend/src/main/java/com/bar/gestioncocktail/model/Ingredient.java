@@ -17,23 +17,23 @@ public class Ingredient {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "Le nom de l'ingrédient est obligatoire")
-    @Size(max = 255, message = "Le nom ne peut pas dépasser 255 caractères")
+    @NotBlank(message = "Ingredient name is required")
+    @Size(max = 255, message = "Name cannot exceed 255 characters")
     @Column(nullable = false)
     private String nom;
 
-    @NotBlank(message = "L'unité de mesure est obligatoire")
-    @Size(max = 50, message = "L'unité de mesure ne peut pas dépasser 50 caractères")
+    @NotBlank(message = "Unit of measure is required")
+    @Size(max = 50, message = "Unit of measure cannot exceed 50 characters")
     @Column(nullable = false)
     private String uniteMesure;
 
-    @NotNull(message = "La quantité en stock est obligatoire")
-    @DecimalMin(value = "0.0", message = "La quantité en stock ne peut pas être négative")
+    @NotNull(message = "Stock quantity is required")
+    @DecimalMin(value = "0.0", message = "Stock quantity cannot be negative")
     @Column(nullable = false)
     private BigDecimal quantiteStock;
 
-    @NotNull(message = "Le seuil d'alerte est obligatoire")
-    @DecimalMin(value = "0.0", message = "Le seuil d'alerte ne peut pas être négatif")
+    @NotNull(message = "Alert threshold is required")
+    @DecimalMin(value = "0.0", message = "Alert threshold cannot be negative")
     @Column(nullable = false)
     private BigDecimal seuilAlerte;
 

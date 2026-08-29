@@ -1,7 +1,7 @@
 <ion-header class="ion-no-border">
   <ion-toolbar class="presets-toolbar">
     <ion-buttons slot="start">
-      <ion-button routerLink="/manager/schedule" data-testid="back-to-schedule-btn" aria-label="Retour au planning">
+      <ion-button routerLink="/manager/schedule" data-testid="back-to-schedule-btn" [attr.aria-label]="'SHIFTS.CONFIG.BACK_TO_SCHEDULE' | transloco">
         <ion-icon name="arrow-back-outline" slot="icon-only"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -34,7 +34,7 @@
       <div class="hero-main">
         <div class="hero-badge">
           <span class="pulse-dot"></span>
-          <span>PLANNING & HORAIRES MAÎTRES</span>
+          <span>{{ 'SHIFTS.CONFIG.HERO_BADGE' | transloco }}</span>
         </div>
         <h1 class="hero-title">{{ 'SHIFTS.CONFIG.TITLE' | transloco }}</h1>
         <p class="hero-subtitle">{{ 'SHIFTS.CONFIG.SUBTITLE' | transloco }}</p>

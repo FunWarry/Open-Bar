@@ -20,7 +20,7 @@ describe('IngredientService', () => {
 
   afterEach(() => httpMock.verify());
 
-  it('getAll() appelle GET /api/ingredients', () => {
+  it('getAll() calls GET /api/ingredients', () => {
     service.getAll().subscribe();
     const req = httpMock.expectOne(baseUrl);
     expect(req.request.method).toBe('GET');
@@ -40,7 +40,7 @@ describe('IngredientService', () => {
     req.flush(mockIngredients);
   });
 
-  it('getById() appelle GET /api/ingredients/:id', () => {
+  it('getById() calls GET /api/ingredients/:id', () => {
     service.getById(42).subscribe();
     const req = httpMock.expectOne(`${baseUrl}/42`);
     expect(req.request.method).toBe('GET');
@@ -70,7 +70,7 @@ describe('IngredientService', () => {
     expect(errorReceived).toBeTrue();
   });
 
-  it('create() appelle POST /api/ingredients avec le bon body', () => {
+  it('create() calls POST /api/ingredients avec le bon body', () => {
     const payload = { nom: 'Sucre', quantiteStock: 20, seuilAlerte: 5 };
     service.create(payload).subscribe();
     const req = httpMock.expectOne(baseUrl);
@@ -103,7 +103,7 @@ describe('IngredientService', () => {
     expect(errorReceived).toBeTrue();
   });
 
-  it('update() appelle PUT /api/ingredients/:id avec le bon body', () => {
+  it('update() calls PUT /api/ingredients/:id avec le bon body', () => {
     const payload = { nom: 'Fresh mint', quantiteStock: 8 };
     service.update(3, payload).subscribe();
     const req = httpMock.expectOne(`${baseUrl}/3`);
@@ -122,7 +122,7 @@ describe('IngredientService', () => {
     req.flush(mockResponse);
   });
 
-  it('delete() appelle DELETE /api/ingredients/:id', () => {
+  it('delete() calls DELETE /api/ingredients/:id', () => {
     service.delete(1).subscribe();
     const req = httpMock.expectOne(`${baseUrl}/1`);
     expect(req.request.method).toBe('DELETE');
@@ -202,7 +202,7 @@ describe('IngredientService', () => {
     req.flush([]);
   });
 
-  it('getEnAlerte() appelle GET /api/ingredients/alerte', () => {
+  it('getEnAlerte() calls GET /api/ingredients/alerte', () => {
     service.getEnAlerte().subscribe();
     const req = httpMock.expectOne(`${baseUrl}/alerte`);
     expect(req.request.method).toBe('GET');

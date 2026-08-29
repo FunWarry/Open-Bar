@@ -94,7 +94,7 @@ public class DashboardService {
             );
             return ca != null ? ca : BigDecimal.ZERO;
         } catch (Exception e) {
-            log.warn("Erreur lors du calcul du chiffre d affaires depuis {}: {}", depuis, e.getMessage());
+            log.warn("Error calculating revenue since {}: {}", depuis, e.getMessage());
             return BigDecimal.ZERO;
         }
     }

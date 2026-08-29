@@ -78,18 +78,18 @@ describe('TableFormComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('initializes the form avec les champs numero, zone et capacite', () => {
+  it('initializes the form with fields numero, zone, and capacite', () => {
     expect(component.tableForm.contains('numero')).toBeTrue();
     expect(component.tableForm.contains('zone')).toBeTrue();
     expect(component.tableForm.contains('capacite')).toBeTrue();
   });
 
-  it('form should be invalid quand les champs sont vides', () => {
+  it('form should be invalid when fields are empty', () => {
     component.tableForm.setValue({ numero: '', zone: '', capacite: '' });
     expect(component.tableForm.valid).toBeFalse();
   });
 
-  it('form should be valid quand tous les champs sont remplis correctement', () => {
+  it('form should be valid when all fields are filled correctly', () => {
     component.tableForm.setValue({ numero: 12, zone: 'Terrasse', capacite: 4 });
     expect(component.tableForm.valid).toBeTrue();
   });

@@ -41,7 +41,7 @@ describe('AuthService', () => {
 
   // --- login() ---
 
-  it('login() appelle POST /api/auth/login avec les credentials', () => {
+  it('login() calls POST /api/auth/login avec les credentials', () => {
     service.login('testuser', 'password123').subscribe();
     const req = httpMock.expectOne(`${baseUrl}/login`);
     expect(req.request.method).toBe('POST');

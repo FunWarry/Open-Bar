@@ -20,7 +20,7 @@ public class CommandeItem {
     @JoinColumn(name = "commande_id", nullable = false)
     private Commande commande;
 
-    @NotNull(message = "Le cocktail est obligatoire")
+    @NotNull(message = "Cocktail is required")
     @ManyToOne
     @JoinColumn(name = "cocktail_id", nullable = false)
     private Cocktail cocktail;
@@ -29,12 +29,12 @@ public class CommandeItem {
     @JoinColumn(name = "cocktail_variante_id")
     private CocktailVariante variante;
 
-    @Min(value = 1, message = "La quantité doit être d'au moins 1")
+    @Min(value = 1, message = "Quantity must be at least 1")
     @Column(nullable = false)
     private int quantite;
 
-    @NotNull(message = "Le prix unitaire est obligatoire")
-    @DecimalMin(value = "0.0", inclusive = false, message = "Le prix unitaire doit être supérieur à 0")
+    @NotNull(message = "Unit price is required")
+    @DecimalMin(value = "0.0", inclusive = false, message = "Unit price must be greater than 0")
     @Column(nullable = false)
     private BigDecimal prixUnitaire;
 

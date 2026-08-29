@@ -58,7 +58,7 @@ describe('HomeComponent', () => {
     });
   });
 
-  it('navigateTo() devrait appeler router.navigate avec le bon chemin', () => {
+  it('navigateTo() should call router.navigate with the correct path', () => {
     component.navigateTo('/serveur');
     expect(router.navigate).toHaveBeenCalledWith(['/serveur']);
   });

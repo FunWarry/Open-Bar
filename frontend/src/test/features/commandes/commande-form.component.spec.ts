@@ -92,7 +92,7 @@ describe('CommandeFormComponent', () => {
     expect(comp.commandeId).toBe(5);
   });
 
-  it('onSubmit() ne navigue pas si le formulaire est invalide', () => {
+  it('onSubmit() does not navigate if form is invalid', () => {
     component.commandeForm.get('tableId')?.setValue('');
     component.onSubmit();
     expect(routerSpy.navigate).not.toHaveBeenCalled();

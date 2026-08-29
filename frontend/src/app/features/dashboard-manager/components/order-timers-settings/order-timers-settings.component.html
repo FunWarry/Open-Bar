@@ -417,35 +417,35 @@
                 *ngIf="simulatedSeverity === 'normal'"
                 class="severity-badge normal-badge"
                 data-testid="preview-severity-normal">
-                ✓ Normal (&lt; {{ warningThreshold }} min)
+                ✓ {{ t('ORDER_TIMERS.PREVIEW_NORMAL', { min: warningThreshold }) }}
               </span>
 
               <span
                 *ngIf="simulatedSeverity === 'warning'"
                 class="severity-badge warning-badge"
                 data-testid="preview-severity-warning">
-                ⚡ Avertissement (≥ {{ warningThreshold }} min)
+                ⚡ {{ t('ORDER_TIMERS.PREVIEW_WARNING', { min: warningThreshold, urgent: urgentThreshold }) }}
               </span>
 
               <span
                 *ngIf="simulatedSeverity === 'urgent'"
                 class="severity-badge urgent-badge"
                 data-testid="preview-severity-urgent">
-                🔥 Urgent (≥ {{ urgentThreshold }} min)
+                🔥 {{ t('ORDER_TIMERS.PREVIEW_URGENT', { min: urgentThreshold, crit: criticalThreshold }) }}
               </span>
 
               <span
                 *ngIf="simulatedSeverity === 'critical'"
                 class="severity-badge critical-badge pulse-animation"
                 data-testid="preview-severity-critical">
-                🚨 CRITIQUE (≥ {{ criticalThreshold }} min)
+                🚨 {{ t('ORDER_TIMERS.PREVIEW_CRITICAL', { min: criticalThreshold }) }}
               </span>
             </div>
           </div>
 
           <!-- Threshold Hierarchy Legend -->
           <div class="hierarchy-legend-box">
-            <h3 class="legend-title">Seuils Actifs Configurés</h3>
+            <h3 class="legend-title">{{ t('ORDER_TIMERS.ACTIVE_THRESHOLDS_TITLE') }}</h3>
             <div class="legend-items">
               <div class="legend-item">
                 <span class="legend-dot normal-dot"></span>

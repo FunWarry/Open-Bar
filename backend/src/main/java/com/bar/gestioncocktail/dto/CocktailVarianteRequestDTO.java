@@ -27,7 +27,7 @@ public record CocktailVarianteRequestDTO(
     String description,
     BigDecimal prixSupplement,
 
-    @DecimalMin(value = "0.0", inclusive = false, message = "Le multiplicateur doit être positif")
+    @DecimalMin(value = "0.0", inclusive = false, message = "Multiplier must be positive")
     BigDecimal multiplicateurIngredient,
 
     Boolean disponible,

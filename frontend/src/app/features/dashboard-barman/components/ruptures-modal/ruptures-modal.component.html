@@ -123,7 +123,7 @@
                 fill="outline"
                 size="small"
                 color="danger"
-                title="Mettre en rupture immédiate (0)"
+                [title]="'BARMAN_DASHBOARD.RUPTURES_SET_ZERO_TOOLTIP' | transloco"
                 (click)="updateStock(ingredient, 0)"
                 (keyup.enter)="updateStock(ingredient, 0)"
                 data-testid="btn-rupture-zero">

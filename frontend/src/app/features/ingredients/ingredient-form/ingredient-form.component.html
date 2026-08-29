@@ -20,7 +20,7 @@
     <app-input-field
       formControlName="nom"
       [label]="'INGREDIENTS.NAME' | transloco"
-      placeholder="ex: Citron"
+      [placeholder]="'INGREDIENTS.NAME_PLACEHOLDER' | transloco"
       icon="cube-outline"
       [required]="canEdit"
       [errorMessage]="ingredientForm.get('nom')?.hasError('required') && ingredientForm.get('nom')?.touched ? ('INGREDIENTS.NAME_REQUIRED' | transloco) : ''"
@@ -33,9 +33,9 @@
         <ion-icon name="scale-outline" class="select-icon"></ion-icon>
         <ion-select
           formControlName="uniteMesure"
-          placeholder="Sélectionner une unité"
-          cancelText="Annuler"
-          okText="Valider"
+          [placeholder]="'INGREDIENTS.SELECT_UNIT' | transloco"
+          [cancelText]="'COMMON.CANCEL' | transloco"
+          [okText]="'COMMON.CONFIRM' | transloco"
           [interfaceOptions]="{ header: ('INGREDIENTS.UNIT' | transloco) }"
           aria-labelledby="unit-select-label"
           data-testid="ingredient-unit-select">

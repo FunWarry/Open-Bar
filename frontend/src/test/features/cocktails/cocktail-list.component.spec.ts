@@ -101,7 +101,7 @@ describe('CocktailListComponent', () => {
     expect(component.filteredCocktails).toHaveSize(2);
   }));
 
-  it('charger() affiche un toast danger en cas d\'erreur', fakeAsync(() => {
+  it('charger() displays a toast danger en cas d\'erreur', fakeAsync(() => {
     serviceSpy.getAll.and.returnValue(throwError(() => new Error('err')));
     component.charger();
     tick();
@@ -228,7 +228,7 @@ describe('CocktailListComponent', () => {
     expect(serviceSpy.toggleDisponibilite).toHaveBeenCalledWith(1);
   }));
 
-  it('onToggleDisponibilite() affiche un toast danger en cas d\'erreur', fakeAsync(() => {
+  it('onToggleDisponibilite() displays a toast danger en cas d\'erreur', fakeAsync(() => {
     serviceSpy.toggleDisponibilite.and.returnValue(throwError(() => new Error('err')));
     component.onToggleDisponibilite(mockCocktails[0]);
     tick();
@@ -247,7 +247,7 @@ describe('CocktailListComponent', () => {
     expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'success' }));
   }));
 
-  it('onDelete() affiche un toast danger en cas d\'erreur', fakeAsync(() => {
+  it('onDelete() displays a toast danger en cas d\'erreur', fakeAsync(() => {
     serviceSpy.delete.and.returnValue(throwError(() => new Error('err')));
     component.onDelete(mockCocktails[0]);
     tick();

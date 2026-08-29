@@ -109,20 +109,20 @@ describe('PlanSalleComponent', () => {
 
   // --- charger() ---
 
-  it('charger() appelle TableService.getAll et PlanSalleService.getPositions', fakeAsync(() => {
+  it('charger() calls TableService.getAll and PlanSalleService.getPositions', fakeAsync(() => {
     component.charger();
     tick();
     expect(tableServiceSpy.getAll).toHaveBeenCalled();
     expect(planSalleServiceSpy.getPositions).toHaveBeenCalled();
   }));
 
-  it('charger() peuple tables et positions', fakeAsync(() => {
+  it('charger() populates tables and positions', fakeAsync(() => {
     component.charger();
     tick();
     expect(component.tables).toHaveSize(2);
   }));
 
-  it('charger() affiche un toast danger en cas d\'erreur', fakeAsync(() => {
+  it('charger() displays a toast danger en cas d\'erreur', fakeAsync(() => {
     tableServiceSpy.getAll.and.returnValue(throwError(() => new Error('err')));
     component.charger();
     tick();
@@ -145,7 +145,7 @@ describe('PlanSalleComponent', () => {
     expect(component.isEditMode).toBeFalse();
   });
 
-  it('toggleEditMode() bascule isEditMode si admin', () => {
+  it('toggleEditMode() toggles isEditMode if admin', () => {
     component.isAdmin = true;
     component.toggleEditMode();
     expect(component.isEditMode).toBeTrue();
@@ -155,7 +155,7 @@ describe('PlanSalleComponent', () => {
 
   // --- sauvegarder ---
 
-  it('sauvegarder() appelle planSalleService.sauvegarderPositions', fakeAsync(() => {
+  it('sauvegarder() calls planSalleService.sauvegarderPositions', fakeAsync(() => {
     component.sauvegarder();
     tick();
     flushMicrotasks();
@@ -198,7 +198,7 @@ describe('PlanSalleComponent', () => {
 
   // --- Fusion de tables ---
 
-  it('onStartFusion() active le mode fusion et affiche un toast', fakeAsync(() => {
+  it('onStartFusion() active le mode fusion et displays a toast', fakeAsync(() => {
     component.onStartFusion(mockTables[0]);
     tick();
     expect(component.isFusionMode).toBeTrue();
@@ -282,7 +282,7 @@ describe('PlanSalleComponent', () => {
     expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'success' }));
   }));
 
-  it('onSaveTable() ne fait rien si selectedTable est null', () => {
+  it('onSaveTable() does nothing if selectedTable is null', () => {
     component.selectedTable = null;
     component.hasUnsavedChanges = false;
     component.onSaveTable({ capacite: 8 });
@@ -357,7 +357,7 @@ describe('PlanSalleComponent', () => {
     expect((component as any).positions.get(2).shape).toBe('rect');
   });
 
-  it('toggleForme() ne fait rien si la position est inconnue', () => {
+  it('toggleForme() does nothing if position is unknown', () => {
     component.hasUnsavedChanges = false;
     component.toggleForme(999);
     expect(component.hasUnsavedChanges).toBeFalse();
@@ -407,7 +407,7 @@ describe('PlanSalleComponent', () => {
     expect(component.hasUnsavedChanges).toBeTrue();
   }));
 
-  it('onDeleteTable() supprime la table du plan et persiste la suppression', fakeAsync(() => {
+  it('onDeleteTable() deletes table from plan and persists deletion', fakeAsync(() => {
     component.charger();
     tick();
     const countBefore = component.tables.length;

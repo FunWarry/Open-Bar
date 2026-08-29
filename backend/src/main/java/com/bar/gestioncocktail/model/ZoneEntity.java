@@ -18,8 +18,8 @@ public class ZoneEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "Le nom de la zone est obligatoire")
-    @Size(max = 50, message = "Le nom ne peut pas dépasser 50 caractères")
+    @NotBlank(message = "Zone name is required")
+    @Size(max = 50, message = "Name cannot exceed 50 characters")
     @Column(nullable = false, unique = true, length = 50)
     private String nom;
 

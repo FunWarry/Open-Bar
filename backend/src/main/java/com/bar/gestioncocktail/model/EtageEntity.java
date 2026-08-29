@@ -18,13 +18,13 @@ public class EtageEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "Le code de l'étage est obligatoire")
-    @Size(max = 50, message = "Le code ne peut pas dépasser 50 caractères")
+    @NotBlank(message = "Floor code is required")
+    @Size(max = 50, message = "Code cannot exceed 50 characters")
     @Column(nullable = false, unique = true, length = 50)
     private String code;
 
-    @NotBlank(message = "Le nom de l'étage est obligatoire")
-    @Size(max = 100, message = "Le nom ne peut pas dépasser 100 caractères")
+    @NotBlank(message = "Floor name is required")
+    @Size(max = 100, message = "Name cannot exceed 100 characters")
     @Column(nullable = false, length = 100)
     private String nom;
 

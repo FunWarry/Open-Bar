@@ -1,81 +1,84 @@
-<div class="customizer-container" data-testid="theme-customizer-studio">
-  <div class="ellipse-bg-primary"></div>
-  <div class="ellipse-bg-tertiary"></div>
-
-  <!-- En-tête -->
-  <header class="customizer-header">
-    <div class="header-title-box">
-      <div class="header-icon-badge">
-        <ion-icon name="color-palette-outline"></ion-icon>
+<div class="personnalisation-container ion-padding">
+  <!-- En-tête de la vue -->
+  <header class="settings-header">
+    <div class="header-titles">
+      <div class="title-with-badge">
+        <h1 class="main-title">{{ 'THEME_CUSTOMIZER.TITLE' | transloco }}</h1>
+        <span class="theme-version-badge">Design Tokens v2</span>
       </div>
-      <div>
-        <h1 class="page-title">{{ 'THEME_CUSTOMIZER.TITLE' | transloco }}</h1>
-        <p class="page-subtitle">{{ 'THEME_CUSTOMIZER.SUBTITLE' | transloco }}</p>
-      </div>
+      <p class="subtitle">{{ 'THEME_CUSTOMIZER.SUBTITLE' | transloco }}</p>
     </div>
   </header>
 
-  <div class="customizer-grid">
-    <!-- Colonne Gauche : Formulaire & Controls -->
+  <!-- Layout Principal : Grille 2 Colonnes -->
+  <div class="studio-layout">
+    
+    <!-- Colonne Gauche : Panneau de Configuration -->
     <div class="controls-panel">
-      <!-- Mode de Thème (Dark / Light / System) -->
-      <section class="panel-section">
-        <h3 class="section-title">Mode d'affichage</h3>
-        <div class="mode-selector">
+
+      <!-- Sélecteur de Mode Clair / Sombre / Système -->
+      <section class="studio-section mode-selector-section">
+        <h3 class="section-title">{{ 'THEME_CUSTOMIZER.MODE_TITLE' | transloco }}</h3>
+        <div class="mode-options-grid">
           <button
             type="button"
-            class="mode-btn"
+            class="mode-card"
             [class.active]="activeTheme === 'dark'"
             (click)="onSetThemeMode('dark')"
-            data-testid="theme-mode-dark">
+            (keyup.enter)="onSetThemeMode('dark')"
+            data-testid="mode-dark-btn">
             <ion-icon name="moon-outline"></ion-icon>
-            Sombre
+            <span>{{ 'THEME_CUSTOMIZER.MODE_DARK' | transloco }}</span>
           </button>
+
           <button
             type="button"
-            class="mode-btn"
+            class="mode-card"
             [class.active]="activeTheme === 'light'"
             (click)="onSetThemeMode('light')"
-            data-testid="theme-mode-light">
+            (keyup.enter)="onSetThemeMode('light')"
+            data-testid="mode-light-btn">
             <ion-icon name="sunny-outline"></ion-icon>
-            Clair
+            <span>{{ 'THEME_CUSTOMIZER.MODE_LIGHT' | transloco }}</span>
           </button>
+
           <button
             type="button"
-            class="mode-btn"
+            class="mode-card"
             [class.active]="activeTheme === 'system'"
             (click)="onSetThemeMode('system')"
-            data-testid="theme-mode-system">
+            (keyup.enter)="onSetThemeMode('system')"
+            data-testid="mode-system-btn">
             <ion-icon name="desktop-outline"></ion-icon>
-            Système
+            <span>{{ 'THEME_CUSTOMIZER.MODE_SYSTEM' | transloco }}</span>
           </button>
         </div>
       </section>
 
-      <!-- Presets de thèmes -->
-      <section class="panel-section">
+      <!-- Préréglages Rapides (Presets) -->
+      <section class="studio-section presets-section">
         <h3 class="section-title">{{ 'THEME_CUSTOMIZER.PRESETS' | transloco }}</h3>
         <div class="presets-grid">
-          @for (preset of presets; track preset.key) {
-            <button
-              type="button"
-              class="preset-chip"
-              [class.active]="isPresetActive(preset.key)"
-              (click)="onApplyPreset(preset.key)"
-              [attr.data-testid]="'preset-' + preset.key">
-              <span class="preset-dot" [style.background-color]="preset.colors.primary"></span>
-              <span class="preset-name">{{ preset.name }}</span>
-            </button>
-          }
+          <button
+            type="button"
+            *ngFor="let preset of presets"
+            class="preset-card"
+            [class.active]="isPresetActive(preset.key)"
+            (click)="onApplyPreset(preset.key)"
+            (keyup.enter)="onApplyPreset(preset.key)"
+            [attr.data-testid]="'preset-' + preset.key">
+            <div class="preset-color-dot" [style.background-color]="preset.colors.primary"></div>
+            <span class="preset-name">{{ preset.name }}</span>
+          </button>
         </div>
       </section>
 
-      <!-- Auto Generator Action -->
-      <section class="panel-section">
+      <!-- Auto-Générateur de palette HSL -->
+      <section class="studio-section autogen-section">
         <div class="auto-gen-box">
           <div class="gen-info">
-            <h4>Générateur Automatique HSL</h4>
-            <p>Calcul automatique de toutes les nuances et couleurs de rôles depuis votre couleur primaire.</p>
+            <h4>{{ 'THEME_CUSTOMIZER.AUTO_GEN_TITLE' | transloco }}</h4>
+            <p>{{ 'THEME_CUSTOMIZER.AUTO_GEN_DESC' | transloco }}</p>
           </div>
           <app-action-button
             variant="secondary"
@@ -92,21 +95,21 @@
         <!-- Section Couleur Primaire -->
         <h3 class="section-title">{{ 'THEME_CUSTOMIZER.PRIMARY_ACCENT' | transloco }}</h3>
         <div class="color-picker-row">
-          <label for="input-primary" class="color-label">Primaire d'accentuation</label>
+          <label for="input-primary" class="color-label">{{ 'THEME_CUSTOMIZER.PRIMARY_ACCENT_LABEL' | transloco }}</label>
           <div class="color-input-wrapper">
             <input type="color" id="input-primary" formControlName="primary" class="color-picker-input" data-testid="picker-primary" />
-            <input type="text" id="text-primary" aria-label="Code hexadécimal primaire" formControlName="primary" class="hex-text-input" />
+            <input type="text" id="text-primary" [attr.aria-label]="'THEME_CUSTOMIZER.HEX_PRIMARY' | transloco" formControlName="primary" class="hex-text-input" />
           </div>
         </div>
 
         <!-- Section Backgrounds Dark & Light -->
-        <h3 class="section-title">Arrière-plans et Surfaces (Dark & Light)</h3>
+        <h3 class="section-title">{{ 'THEME_CUSTOMIZER.BACKGROUNDS_SURFACES_TITLE' | transloco }}</h3>
         <div class="color-pickers-grid">
           <div class="color-picker-item">
             <label for="input-bgDark" class="color-label">{{ 'THEME_CUSTOMIZER.BACKGROUND_DARK' | transloco }}</label>
             <div class="color-input-wrapper">
               <input type="color" id="input-bgDark" formControlName="bgDark" class="color-picker-input" data-testid="picker-bgDark" />
-              <input type="text" id="text-bgDark" aria-label="Code hexadécimal arrière-plan sombre" formControlName="bgDark" class="hex-text-input" />
+              <input type="text" id="text-bgDark" [attr.aria-label]="'THEME_CUSTOMIZER.HEX_BG_DARK' | transloco" formControlName="bgDark" class="hex-text-input" />
             </div>
           </div>
 
@@ -114,7 +117,7 @@
             <label for="input-surfaceDark" class="color-label">{{ 'THEME_CUSTOMIZER.SURFACE_DARK' | transloco }}</label>
             <div class="color-input-wrapper">
               <input type="color" id="input-surfaceDark" formControlName="surfaceDark" class="color-picker-input" data-testid="picker-surfaceDark" />
-              <input type="text" id="text-surfaceDark" aria-label="Code hexadécimal surface sombre" formControlName="surfaceDark" class="hex-text-input" />
+              <input type="text" id="text-surfaceDark" [attr.aria-label]="'THEME_CUSTOMIZER.HEX_SURFACE_DARK' | transloco" formControlName="surfaceDark" class="hex-text-input" />
             </div>
           </div>
 
@@ -122,7 +125,7 @@
             <label for="input-bgLight" class="color-label">{{ 'THEME_CUSTOMIZER.BACKGROUND_LIGHT' | transloco }}</label>
             <div class="color-input-wrapper">
               <input type="color" id="input-bgLight" formControlName="bgLight" class="color-picker-input" data-testid="picker-bgLight" />
-              <input type="text" id="text-bgLight" aria-label="Code hexadécimal arrière-plan clair" formControlName="bgLight" class="hex-text-input" />
+              <input type="text" id="text-bgLight" [attr.aria-label]="'THEME_CUSTOMIZER.HEX_BG_LIGHT' | transloco" formControlName="bgLight" class="hex-text-input" />
             </div>
           </div>
 
@@ -130,19 +133,19 @@
             <label for="input-surfaceLight" class="color-label">{{ 'THEME_CUSTOMIZER.SURFACE_LIGHT' | transloco }}</label>
             <div class="color-input-wrapper">
               <input type="color" id="input-surfaceLight" formControlName="surfaceLight" class="color-picker-input" data-testid="picker-surfaceLight" />
-              <input type="text" id="text-surfaceLight" aria-label="Code hexadécimal surface claire" formControlName="surfaceLight" class="hex-text-input" />
+              <input type="text" id="text-surfaceLight" [attr.aria-label]="'THEME_CUSTOMIZER.HEX_SURFACE_LIGHT' | transloco" formControlName="surfaceLight" class="hex-text-input" />
             </div>
           </div>
         </div>
 
         <!-- Section Couleurs des Rôles -->
-        <h3 class="section-title">Couleurs des Rôles Utilisateurs</h3>
+        <h3 class="section-title">{{ 'THEME_CUSTOMIZER.ROLE_COLORS_TITLE' | transloco }}</h3>
         <div class="color-pickers-grid">
           <div class="color-picker-item">
             <label for="input-roleAdmin" class="color-label">{{ 'THEME_CUSTOMIZER.ROLE_ADMIN' | transloco }}</label>
             <div class="color-input-wrapper">
               <input type="color" id="input-roleAdmin" formControlName="roleAdmin" class="color-picker-input" data-testid="picker-roleAdmin" />
-              <input type="text" id="text-roleAdmin" aria-label="Code hexadécimal rôle admin" formControlName="roleAdmin" class="hex-text-input" />
+              <input type="text" id="text-roleAdmin" [attr.aria-label]="'THEME_CUSTOMIZER.HEX_ROLE_ADMIN' | transloco" formControlName="roleAdmin" class="hex-text-input" />
             </div>
           </div>
 
@@ -150,7 +153,7 @@
             <label for="input-roleManager" class="color-label">{{ 'THEME_CUSTOMIZER.ROLE_MANAGER' | transloco }}</label>
             <div class="color-input-wrapper">
               <input type="color" id="input-roleManager" formControlName="roleManager" class="color-picker-input" data-testid="picker-roleManager" />
-              <input type="text" id="text-roleManager" aria-label="Code hexadécimal rôle manager" formControlName="roleManager" class="hex-text-input" />
+              <input type="text" id="text-roleManager" [attr.aria-label]="'THEME_CUSTOMIZER.HEX_ROLE_MANAGER' | transloco" formControlName="roleManager" class="hex-text-input" />
             </div>
           </div>
 
@@ -158,7 +161,7 @@
             <label for="input-roleServeur" class="color-label">{{ 'THEME_CUSTOMIZER.ROLE_SERVEUR' | transloco }}</label>
             <div class="color-input-wrapper">
               <input type="color" id="input-roleServeur" formControlName="roleServeur" class="color-picker-input" data-testid="picker-roleServeur" />
-              <input type="text" id="text-roleServeur" aria-label="Code hexadécimal rôle serveur" formControlName="roleServeur" class="hex-text-input" />
+              <input type="text" id="text-roleServeur" [attr.aria-label]="'THEME_CUSTOMIZER.HEX_ROLE_SERVEUR' | transloco" formControlName="roleServeur" class="hex-text-input" />
             </div>
           </div>
 
@@ -166,7 +169,7 @@
             <label for="input-roleBarman" class="color-label">{{ 'THEME_CUSTOMIZER.ROLE_BARMAN' | transloco }}</label>
             <div class="color-input-wrapper">
               <input type="color" id="input-roleBarman" formControlName="roleBarman" class="color-picker-input" data-testid="picker-roleBarman" />
-              <input type="text" id="text-roleBarman" aria-label="Code hexadécimal rôle barman" formControlName="roleBarman" class="hex-text-input" />
+              <input type="text" id="text-roleBarman" [attr.aria-label]="'THEME_CUSTOMIZER.HEX_ROLE_BARMAN' | transloco" formControlName="roleBarman" class="hex-text-input" />
             </div>
           </div>
         </div>
@@ -199,11 +202,11 @@
       <div class="preview-card" data-testid="live-preview-card">
         <div class="preview-card-header">
           <h3 class="preview-title">{{ 'THEME_CUSTOMIZER.LIVE_PREVIEW' | transloco }}</h3>
-          <span class="live-badge">Rendu Réel</span>
+          <span class="live-badge">{{ 'THEME_CUSTOMIZER.LIVE_RENDER_BADGE' | transloco }}</span>
         </div>
 
         <div class="preview-section">
-          <h4>Badges de Rôles</h4>
+          <h4>{{ 'THEME_CUSTOMIZER.ROLE_BADGES_PREVIEW' | transloco }}</h4>
           <div class="roles-preview-row">
             <app-role-badge [role]="'ADMIN'"></app-role-badge>
             <app-role-badge [role]="'MANAGER'"></app-role-badge>
@@ -213,16 +216,16 @@
         </div>
 
         <div class="preview-section">
-          <h4>Boutons d'Action & Variantes</h4>
+          <h4>{{ 'THEME_CUSTOMIZER.ACTION_BUTTONS_PREVIEW' | transloco }}</h4>
           <div class="buttons-preview-row">
-            <app-action-button variant="primary">Bouton Principal</app-action-button>
-            <app-action-button variant="secondary">Secondaire</app-action-button>
-            <app-action-button variant="ghost">Fantôme</app-action-button>
+            <app-action-button variant="primary">{{ 'THEME_CUSTOMIZER.PRIMARY_BTN' | transloco }}</app-action-button>
+            <app-action-button variant="secondary">{{ 'THEME_CUSTOMIZER.SECONDARY_BTN' | transloco }}</app-action-button>
+            <app-action-button variant="ghost">{{ 'THEME_CUSTOMIZER.GHOST_BTN' | transloco }}</app-action-button>
           </div>
         </div>
 
         <div class="preview-section">
-          <h4>Badges de Statuts de Commandes</h4>
+          <h4>{{ 'THEME_CUSTOMIZER.ORDER_STATUS_PREVIEW' | transloco }}</h4>
           <div class="status-preview-row">
             <app-status-badge status="EN_ATTENTE"></app-status-badge>
             <app-status-badge status="EN_PREPARATION"></app-status-badge>

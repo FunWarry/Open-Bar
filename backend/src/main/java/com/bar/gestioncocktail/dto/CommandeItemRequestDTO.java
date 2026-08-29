@@ -20,16 +20,16 @@ import java.math.BigDecimal;
  * @param prioritaire   Whether this item should be prepared first
  */
 public record CommandeItemRequestDTO(
-    @NotNull(message = "Le cocktail est obligatoire")
+    @NotNull(message = "Cocktail is required")
     Long cocktailId,
 
     Long varianteId,
 
-    @Min(value = 1, message = "La quantité doit être d'au moins 1")
+    @Min(value = 1, message = "Quantity must be at least 1")
     int quantite,
 
-    @NotNull(message = "Le prix unitaire est obligatoire")
-    @DecimalMin(value = "0.0", inclusive = false, message = "Le prix unitaire doit être supérieur à 0")
+    @NotNull(message = "Unit price is required")
+    @DecimalMin(value = "0.0", inclusive = false, message = "Unit price must be greater than 0")
     BigDecimal prixUnitaire,
 
     String notes,

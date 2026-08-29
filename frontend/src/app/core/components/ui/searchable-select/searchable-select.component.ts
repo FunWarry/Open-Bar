@@ -108,6 +108,12 @@ export class SearchableSelectComponent extends BaseControlValueAccessor<any> imp
   /** Whether the field is clearable with an (X) button. */
   @Input() clearable = true;
 
+  /** Accessibility aria-label for clear button. */
+  @Input() clearLabel = 'Effacer la sélection';
+
+  /** Title tooltip for clear button. */
+  @Input() clearTitle = 'Effacer';
+
   /** Whether the dropdown search bar is enabled. */
   @Input() enableSearch = true;
 

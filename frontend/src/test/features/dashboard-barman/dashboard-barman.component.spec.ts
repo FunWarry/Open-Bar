@@ -179,7 +179,7 @@ describe('DashboardBarmanComponent', () => {
     expect(soundServiceSpy.playNewOrderSound).toHaveBeenCalled();
   }));
 
-  it('chargerCommandes() affiche un toast danger en cas d erreur', fakeAsync(() => {
+  it('chargerCommandes() displays a toast danger en cas d erreur', fakeAsync(() => {
     dashboardServiceSpy.getCommandesEnAttente.and.returnValue(throwError(() => new Error('Network error')));
 
     component.chargerCommandes();
@@ -199,7 +199,7 @@ describe('DashboardBarmanComponent', () => {
     expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'success' }));
   }));
 
-  it('onChangerStatut() affiche un toast danger en cas d erreur', fakeAsync(() => {
+  it('onChangerStatut() displays a toast danger en cas d erreur', fakeAsync(() => {
     dashboardServiceSpy.changerStatut.and.returnValue(throwError(() => new Error('API error')));
 
     component.onChangerStatut({ id: 1, statut: 'PRET' });
@@ -221,7 +221,7 @@ describe('DashboardBarmanComponent', () => {
     expect(mockModal.present).toHaveBeenCalled();
   });
 
-  it('onPrintTicket() ouvre la modale d impression thermique 80mm', async () => {
+  it('onPrintTicket() opens 80mm thermal print modal', async () => {
     await component.onPrintTicket(mockCommandes[0]);
     expect(modalCtrlSpy.create).toHaveBeenCalled();
     expect(mockModal.present).toHaveBeenCalled();

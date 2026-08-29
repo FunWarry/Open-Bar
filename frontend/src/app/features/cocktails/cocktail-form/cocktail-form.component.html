@@ -85,7 +85,7 @@
                 type="file"
                 #fileInput
                 id="cocktail-form-photo-input"
-                aria-label="Sélectionner une photo de cocktail"
+                [attr.aria-label]="'COCKTAILS.SELECT_PHOTO_LABEL' | transloco"
                 accept="image/*"
                 capture="environment"
                 style="display:none"
@@ -370,7 +370,7 @@
                             [id]="'tpl-note-' + i"
                             formControlName="customText"
                             class="native-input"
-                            placeholder="ex: Shaker vigoureusement jusqu'à formation de buée"
+                            [placeholder]="'COCKTAILS.PLACEHOLDERS.STEP_ACTION' | transloco"
                             [attr.data-testid]="'input-template-note-' + i">
                         </div>
                       </div>
@@ -409,7 +409,7 @@
                             formControlName="customText"
                             rows="2"
                             class="native-textarea"
-                            placeholder="Décrivez les gestes techniques ou le dressage spécifique..."
+                            [placeholder]="'COCKTAILS.PLACEHOLDERS.PREP_TECHNIQUE' | transloco"
                             [attr.data-testid]="'textarea-custom-desc-' + i"></textarea>
                         </div>
                       </div>
@@ -428,7 +428,7 @@
           <div class="wizard-step-content" data-testid="wizard-step-3-content">
             <div class="step-intro">
               <h3>{{ 'COCKTAILS.VARIANTS' | transloco }}</h3>
-              <p>Personnalisez les variantes de service et les recommandations de verrerie.</p>
+              <p>{{ 'COCKTAILS.STEP3_SUBTITLE' | transloco }}</p>
             </div>
 
             <!-- Instructions générales (fallback texte) -->
@@ -441,7 +441,7 @@
                 formControlName="instructions"
                 rows="3"
                 class="native-textarea"
-                placeholder="Conseils de service généraux, accords mets & cocktails..."
+                [placeholder]="'COCKTAILS.PLACEHOLDERS.PAIRING_ADVICE' | transloco"
                 data-testid="cocktail-form-instructions-input"></textarea>
             </div>
 
@@ -667,7 +667,7 @@
                             <div class="step-header-line">
                               <div class="step-title-with-icon">
                                 <ion-icon name="create-outline" class="step-type-icon icon-custom"></ion-icon>
-                                <span class="step-main-title">{{ stepGroup.get('actionTitle')?.value || 'Étape Spécifique' }}</span>
+                                <span class="step-main-title">{{ stepGroup.get('actionTitle')?.value || ('COCKTAILS.STEP_SPECIFIC_DEFAULT' | transloco) }}</span>
                               </div>
                               @if (stepGroup.get('durationSeconds')?.value) {
                                 <div class="duration-pill">
@@ -826,7 +826,7 @@
               [(ngModel)]="newTemplateDescription"
               rows="3"
               class="native-textarea"
-              placeholder="Description par défaut de cette action technique..."
+              [placeholder]="'COCKTAILS.PLACEHOLDERS.ACTION_DESC' | transloco"
               data-testid="modal-template-desc-textarea"></textarea>
           </div>
         </div>
@@ -965,7 +965,7 @@
               [(ngModel)]="newGlasswareDescription"
               rows="2"
               class="native-textarea"
-              placeholder="Idéal pour long drinks, cocktails servis on the rocks..."
+              [placeholder]="'COCKTAILS.PLACEHOLDERS.GLASS_DESC' | transloco"
               data-testid="modal-glass-desc-textarea"></textarea>
           </div>
         </div>

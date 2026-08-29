@@ -20,28 +20,28 @@ describe('CocktailService', () => {
 
   afterEach(() => httpMock.verify());
 
-  it('getAll() appelle GET /api/cocktails', () => {
+  it('getAll() calls GET /api/cocktails', () => {
     service.getAll().subscribe();
     const req = httpMock.expectOne(baseUrl);
     expect(req.request.method).toBe('GET');
     req.flush([]);
   });
 
-  it('getById() appelle GET /api/cocktails/:id', () => {
+  it('getById() calls GET /api/cocktails/:id', () => {
     service.getById(42).subscribe();
     const req = httpMock.expectOne(`${baseUrl}/42`);
     expect(req.request.method).toBe('GET');
     req.flush({});
   });
 
-  it('getDisponibles() appelle GET /api/cocktails/disponibles', () => {
+  it('getDisponibles() calls GET /api/cocktails/disponibles', () => {
     service.getDisponibles().subscribe();
     const req = httpMock.expectOne(`${baseUrl}/disponibles`);
     expect(req.request.method).toBe('GET');
     req.flush([]);
   });
 
-  it('create() appelle POST /api/cocktails', () => {
+  it('create() calls POST /api/cocktails', () => {
     const payload = { nom: 'Mojito', prix: 8.5 };
     service.create(payload).subscribe();
     const req = httpMock.expectOne(baseUrl);
@@ -50,7 +50,7 @@ describe('CocktailService', () => {
     req.flush({});
   });
 
-  it('delete() appelle DELETE /api/cocktails/:id', () => {
+  it('delete() calls DELETE /api/cocktails/:id', () => {
     service.delete(1).subscribe();
     const req = httpMock.expectOne(`${baseUrl}/1`);
     expect(req.request.method).toBe('DELETE');

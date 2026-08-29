@@ -59,7 +59,7 @@
         <app-password-input
           formControlName="newPassword"
           [label]="'PROFILE.NEW_PASSWORD' | transloco"
-          placeholder="Laissez vide pour ne pas modifier"
+          [placeholder]="'PROFILE.LEAVE_BLANK_HINT' | transloco"
           autocomplete="new-password"
           data-testid="profile-new-password-input"
           [errorMessage]="

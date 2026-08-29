@@ -70,7 +70,7 @@
             <button
               type="button"
               class="recipe-toggle-btn"
-              title="Voir la fiche recette détaillée & dosages"
+              [title]="'BARMAN_DASHBOARD.SIDE_PANEL_RECIPE_TITLE' | transloco"
               (click)="onOpenRecipe(item, $event)"
               (keyup.enter)="onOpenRecipe(item, $event)"
               data-testid="toggle-recipe-btn">
@@ -98,7 +98,7 @@
           variant="primary"
           icon="arrow-forward-circle-outline"
           expand="block"
-          title="Démarrer la préparation de la commande"
+          [title]="'COMMANDES.ACTIONS.MARK_IN_PROGRESS_TOOLTIP' | transloco"
           (btnClick)="onPrendreEnCharge($event)"
           data-testid="start-prep-btn">
           {{ 'BARMAN_DASHBOARD.START_PREPARATION' | transloco }}
@@ -110,7 +110,7 @@
           variant="primary"
           icon="checkmark-circle-outline"
           expand="block"
-          title="Marquer la commande comme prête"
+          [title]="'COMMANDES.ACTIONS.MARK_READY_TOOLTIP' | transloco"
           (btnClick)="onMarquerPret($event)"
           data-testid="mark-ready-btn">
           {{ 'BARMAN_DASHBOARD.MARK_READY' | transloco }}

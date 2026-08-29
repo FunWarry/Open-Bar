@@ -32,7 +32,7 @@ describe('CommandeService', () => {
 
   // --- getAll ---
 
-  it('getAll() appelle GET /api/commandes', () => {
+  it('getAll() calls GET /api/commandes', () => {
     service.getAll().subscribe((result) => {
       expect(result).toEqual([mockCommande]);
     });
@@ -51,7 +51,7 @@ describe('CommandeService', () => {
 
   // --- getById ---
 
-  it('getById() appelle GET /api/commandes/:id', () => {
+  it('getById() calls GET /api/commandes/:id', () => {
     service.getById(1).subscribe((result) => {
       expect(result).toEqual(mockCommande);
     });
@@ -76,7 +76,7 @@ describe('CommandeService', () => {
 
   // --- getByStatut ---
 
-  it('getByStatut() appelle GET /api/commandes/statut/:statut', () => {
+  it('getByStatut() calls GET /api/commandes/statut/:statut', () => {
     service.getByStatut('EN_ATTENTE').subscribe((result) => {
       expect(result).toEqual([mockCommande]);
     });
@@ -95,7 +95,7 @@ describe('CommandeService', () => {
 
   // --- getByTable ---
 
-  it('getByTable() appelle GET /api/commandes/table/:tableId', () => {
+  it('getByTable() calls GET /api/commandes/table/:tableId', () => {
     service.getByTable(5).subscribe((result) => {
       expect(result).toEqual([mockCommande]);
     });
@@ -106,7 +106,7 @@ describe('CommandeService', () => {
 
   // --- create ---
 
-  it('create() appelle POST /api/commandes avec le payload', () => {
+  it('create() calls POST /api/commandes avec le payload', () => {
     const payload: CreateCommandeRequest = { tableId: 3, items: [] } as CreateCommandeRequest;
     service.create(payload).subscribe((result) => {
       expect(result).toEqual(mockCommande);
@@ -134,7 +134,7 @@ describe('CommandeService', () => {
 
   // --- ajouterItem ---
 
-  it('ajouterItem() appelle POST /api/commandes/:id/items avec le payload', () => {
+  it('ajouterItem() calls POST /api/commandes/:id/items avec le payload', () => {
     const item: AjouterItemRequest = { cocktailId: 7, quantite: 2 } as AjouterItemRequest;
     service.ajouterItem(1, item).subscribe((result) => {
       expect(result).toEqual(mockCommande);
@@ -147,7 +147,7 @@ describe('CommandeService', () => {
 
   // --- retirerItem ---
 
-  it('retirerItem() appelle DELETE /api/commandes/:id/items/:itemId', () => {
+  it('retirerItem() calls DELETE /api/commandes/:id/items/:itemId', () => {
     service.retirerItem(1, 10).subscribe((result) => {
       expect(result).toEqual(mockCommande);
     });

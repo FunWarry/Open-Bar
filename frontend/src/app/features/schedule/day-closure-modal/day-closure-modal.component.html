@@ -24,10 +24,10 @@
         <span class="date-iso-sub">{{ dateISO }}</span>
       </div>
       <p class="status-desc" *ngIf="isClosed">
-        Le bar est actuellement marqué comme fermé ce jour-là : <strong>« {{ closureReason || 'Fermeture' }} »</strong>.
+        {{ 'SHIFTS.CLOSURES.DAY_CLOSED_DESC' | transloco: { reason: closureReason || ('SHIFTS.CLOSURES.CLOSED_BADGE' | transloco) } }}
       </p>
       <p class="status-desc" *ngIf="!isClosed">
-        Cette journée est actuellement ouverte aux créneaux. Vous pouvez la définir comme jour fermé ou période de congés ci-dessous.
+        {{ 'SHIFTS.CLOSURES.DAY_OPEN_DESC' | transloco }}
       </p>
     </div>
 
