@@ -81,9 +81,15 @@ try {
     # Resolve target mode
     $targetMode = $Mode
     if ($targetMode -eq "auto") {
-        if ((Test-Path $ComposeFile) -and (docker compose -f $ComposeFile ps postgres 2>$null | Select-String "postgres")) {
+        $hasComposePg = $false
+        if (Test-Path $ComposeFile) {
+            $hasComposePg = (docker compose -f $ComposeFile ps postgres 2>&1 | Select-String "postgres")
+        }
+        $hasRunningPg = (docker ps --format '{{.Names}}' 2>&1 | Select-String -Pattern "openbar.*postgres|gestion_cocktail_db|postgres")
+
+        if ($hasComposePg) {
             $targetMode = "docker-compose"
-        } elseif (docker ps --format '{{.Names}}' 2>$null | Select-String -Pattern "openbar.*postgres|gestion_cocktail_db|postgres") {
+        } elseif ($hasRunningPg) {
             $targetMode = "docker-exec"
         } elseif (Get-Command pg_dump -ErrorAction SilentlyContinue) {
             $targetMode = "direct"

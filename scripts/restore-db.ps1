@@ -122,9 +122,15 @@ try {
     # Resolve target mode
     $targetMode = $Mode
     if ($targetMode -eq "auto") {
-        if ((Test-Path $ComposeFile) -and (docker compose -f $ComposeFile ps postgres 2>$null | Select-String "postgres")) {
+        $hasComposePg = $false
+        if (Test-Path $ComposeFile) {
+            $hasComposePg = (docker compose -f $ComposeFile ps postgres 2>&1 | Select-String "postgres")
+        }
+        $hasRunningPg = (docker ps --format '{{.Names}}' 2>&1 | Select-String -Pattern "openbar.*postgres|gestion_cocktail_db|postgres")
+
+        if ($hasComposePg) {
             $targetMode = "docker-compose"
-        } elseif (docker ps --format '{{.Names}}' 2>$null | Select-String -Pattern "openbar.*postgres|gestion_cocktail_db|postgres") {
+        } elseif ($hasRunningPg) {
             $targetMode = "docker-exec"
         } elseif (Get-Command psql -ErrorAction SilentlyContinue) {
             $targetMode = "direct"
@@ -139,7 +145,7 @@ try {
         "docker-compose" {
             $pgPassword = $env:POSTGRES_PASSWORD
             docker compose -f $ComposeFile exec -T -e PGPASSWORD=$pgPassword postgres `
-                psql -U $User -d postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '$Database' AND pid <> pg_backend_pid();" 2>$null
+                psql -U $User -d postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '$Database' AND pid != pg_backend_pid();" 2>&1 | Out-Null
             
             Get-Content $tempSqlFile -Raw | docker compose -f $ComposeFile exec -T -e PGPASSWORD=$pgPassword postgres `
                 psql -U $User -d $Database -v ON_ERROR_STOP=1
@@ -155,14 +161,14 @@ try {
             Write-Host "Using PostgreSQL container: $targetContainer"
             $pgPassword = $env:POSTGRES_PASSWORD
             docker exec -i -e PGPASSWORD=$pgPassword $targetContainer `
-                psql -U $User -d postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '$Database' AND pid <> pg_backend_pid();" 2>$null
+                psql -U $User -d postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '$Database' AND pid != pg_backend_pid();" 2>&1 | Out-Null
             
             Get-Content $tempSqlFile -Raw | docker exec -i -e PGPASSWORD=$pgPassword $targetContainer `
                 psql -U $User -d $Database -v ON_ERROR_STOP=1
         }
         "direct" {
             $env:PGPASSWORD = $env:POSTGRES_PASSWORD
-            psql -h $HostName -p $Port -U $User -d postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '$Database' AND pid <> pg_backend_pid();" 2>$null
+            psql -h $HostName -p $Port -U $User -d postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '$Database' AND pid != pg_backend_pid();" 2>&1 | Out-Null
             psql -h $HostName -p $Port -U $User -d $Database -v ON_ERROR_STOP=1 -f $tempSqlFile
         }
     }

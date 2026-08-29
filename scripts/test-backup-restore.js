@@ -4,10 +4,10 @@
  * and compression round-trip.
  */
 
-const { execSync } = require('child_process');
-const fs = require('fs');
-const path = require('path');
-const zlib = require('zlib');
+const { execSync } = require('node:child_process');
+const fs = require('node:fs');
+const path = require('node:path');
+const zlib = require('node:zlib');
 
 const ROOT_DIR = path.resolve(__dirname, '..');
 const SCRIPTS_DIR = path.join(ROOT_DIR, 'scripts');
@@ -91,8 +91,8 @@ runTest('Verify bash scripts syntax (bash -n)', () => {
 // 4. Test PowerShell script syntax
 runTest('Verify PowerShell scripts syntax', () => {
   if (process.platform === 'win32') {
-    const psBackup = path.join(SCRIPTS_DIR, 'backup-db.ps1').replace(/\\/g, '\\\\');
-    const psRestore = path.join(SCRIPTS_DIR, 'restore-db.ps1').replace(/\\/g, '\\\\');
+    const psBackup = path.join(SCRIPTS_DIR, 'backup-db.ps1').replaceAll('\\', '\\\\');
+    const psRestore = path.join(SCRIPTS_DIR, 'restore-db.ps1').replaceAll('\\', '\\\\');
     
     execSync(`powershell -Command "[System.Management.Automation.Language.Parser]::ParseFile('${psBackup}', [ref]$null, [ref]$null)"`, { stdio: 'pipe' });
     execSync(`powershell -Command "[System.Management.Automation.Language.Parser]::ParseFile('${psRestore}', [ref]$null, [ref]$null)"`, { stdio: 'pipe' });
