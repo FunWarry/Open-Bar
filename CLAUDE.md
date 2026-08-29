@@ -38,6 +38,8 @@ L'app tourne sur le **réseau WiFi du bar** (serveur local — Raspberry Pi 5 ou
 [Tablette barman]  ──┤── WiFi bar ──── [Mini-PC / Raspberry Pi 5]
 [PC manager]       ──┘                  ├── Spring Boot :8080
                                          ├── PostgreSQL :5432
+                                         ├── Backup Cron & Rotation (openbar_backups)
+                                         ├── Centralized Logrotate (/var/log/openbar)
                                          └── Nginx → Angular PWA :80
 ```
 
@@ -48,7 +50,8 @@ L'app tourne sur le **réseau WiFi du bar** (serveur local — Raspberry Pi 5 ou
 | Build natif          | ~~Capacitor~~ — **abandonné**         |
 | Canvas plan de salle | Konva.js                              |
 | i18n                 | Transloco (`@jsverse/transloco`)      |
-| Déploiement prod     | Nginx sur mini-PC local (réseau bar)  |
+| Sauvegardes BDD      | Scheduled Docker container + rotation |
+| Déploiement prod     | Docker Compose sur mini-PC local (réseau bar) |
 
 #### Service Worker — stratégies de cache
 
