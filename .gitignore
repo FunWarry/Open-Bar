@@ -63,3 +63,7 @@ frontend/test-results/
 .gemini/
 /backups/
 *.sql.gz
+/certs/
+*.crt
+*.key
+*.pem

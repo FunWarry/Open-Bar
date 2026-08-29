@@ -50,8 +50,10 @@ services:
     build: ./frontend
     volumes:
       - openbar_logs:/var/log/openbar
+      - ./certs:/etc/nginx/certs:ro
     ports:
       - "80:80"
+      - "443:443"
     depends_on:
       - backend
     restart: unless-stopped
