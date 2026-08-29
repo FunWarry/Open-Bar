@@ -328,14 +328,9 @@
                       [attr.data-testid]="'toggle-dispo-btn-' + cocktail.id"
                       (click)="onToggleDisponibilite(cocktail)"
                       (keydown.enter)="onToggleDisponibilite(cocktail)"
-                      [attr.aria-pressed]="cocktail.disponible"
-                      [attr.aria-label]="cocktail.disponible ? ('COCKTAILS.AVAILABLE' | transloco) : ('COCKTAILS.UNAVAILABLE' | transloco)">
-                      <span class="slider-track">
-                        <span class="slider-knob"></span>
-                      </span>
-                      <span class="slider-label">
-                        {{ cocktail.disponible ? ('COCKTAILS.AVAILABLE' | transloco) : ('COCKTAILS.UNAVAILABLE' | transloco) }}
-                      </span>
+                      [attr.aria-label]="(cocktail.disponible ? 'COCKTAILS.AVAILABLE' : 'COCKTAILS.UNAVAILABLE') | transloco">
+                      <span class="slider-track"><span class="slider-knob"></span></span>
+                      <span class="slider-label">{{ (cocktail.disponible ? 'COCKTAILS.AVAILABLE' : 'COCKTAILS.UNAVAILABLE') | transloco }}</span>
                     </button>
                   </div>
                   <ion-badge slot="end" color="primary">{{ cocktail.prix | currency:'EUR' }}</ion-badge>

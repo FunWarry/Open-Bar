@@ -185,41 +185,41 @@
       </form>
     </div>
 
-    <!-- Live Preview Panel -->
+    <!-- Live Theme Preview Showcase -->
     <aside class="preview-panel">
       <div class="preview-card" data-testid="live-preview-card">
-        <div class="preview-card-header">
+        <header class="preview-card-header">
           <h3 class="preview-title">{{ 'THEME_CUSTOMIZER.LIVE_PREVIEW' | transloco }}</h3>
           <span class="live-badge">{{ 'THEME_CUSTOMIZER.LIVE_RENDER_BADGE' | transloco }}</span>
-        </div>
+        </header>
 
-        <div class="preview-section">
-          <h4>{{ 'THEME_CUSTOMIZER.ROLE_BADGES_PREVIEW' | transloco }}</h4>
-          <div class="roles-preview-row">
-            <app-role-badge [role]="'ADMIN'"></app-role-badge>
-            <app-role-badge [role]="'MANAGER'"></app-role-badge>
-            <app-role-badge [role]="'SERVEUR'"></app-role-badge>
-            <app-role-badge [role]="'BARMAN'"></app-role-badge>
+        <section class="preview-group">
+          <h4 class="group-title">{{ 'THEME_CUSTOMIZER.ROLE_BADGES_PREVIEW' | transloco }}</h4>
+          <div class="badges-flex">
+            <app-role-badge role="ADMIN"></app-role-badge>
+            <app-role-badge role="MANAGER"></app-role-badge>
+            <app-role-badge role="SERVEUR"></app-role-badge>
+            <app-role-badge role="BARMAN"></app-role-badge>
           </div>
-        </div>
+        </section>
 
-        <div class="preview-section">
-          <h4>{{ 'THEME_CUSTOMIZER.ACTION_BUTTONS_PREVIEW' | transloco }}</h4>
-          <div class="buttons-preview-row">
+        <section class="preview-group">
+          <h4 class="group-title">{{ 'THEME_CUSTOMIZER.ACTION_BUTTONS_PREVIEW' | transloco }}</h4>
+          <div class="actions-flex">
             <app-action-button variant="primary">{{ 'THEME_CUSTOMIZER.PRIMARY_BTN' | transloco }}</app-action-button>
             <app-action-button variant="secondary">{{ 'THEME_CUSTOMIZER.SECONDARY_BTN' | transloco }}</app-action-button>
             <app-action-button variant="ghost">{{ 'THEME_CUSTOMIZER.GHOST_BTN' | transloco }}</app-action-button>
           </div>
-        </div>
+        </section>
 
-        <div class="preview-section">
-          <h4>{{ 'THEME_CUSTOMIZER.ORDER_STATUS_PREVIEW' | transloco }}</h4>
-          <div class="status-preview-row">
+        <section class="preview-group">
+          <h4 class="group-title">{{ 'THEME_CUSTOMIZER.ORDER_STATUS_PREVIEW' | transloco }}</h4>
+          <div class="statuses-flex">
             <app-status-badge status="EN_ATTENTE"></app-status-badge>
             <app-status-badge status="EN_PREPARATION"></app-status-badge>
             <app-status-badge status="PRET"></app-status-badge>
           </div>
-        </div>
+        </section>
 
         <div class="preview-sample-box">
           <div class="sample-title">{{ 'THEME_CUSTOMIZER.CARD_PREVIEW' | transloco }}</div>
