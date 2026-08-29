@@ -52,6 +52,37 @@ ng serve
 
 ---
 
+## Sauvegardes & Restauration de la Base de Données
+
+Pour protéger les données métier (commandes, stocks, catalogue, factures, logs d'audit) sur machine locale ou serveur embarqué (Raspberry Pi 5 / mini-PC) :
+
+### 1. Sauvegarde Automatique & Rétention (Docker Compose Production)
+Le conteneur `backup` (`docker-compose.prod.yml`) gère automatiquement les snapshots de la base de données :
+- **Fréquence** : Quotidienne à 03:00 (cron `0 3 * * *`, configurable via `BACKUP_SCHEDULE`)
+- **Format** : Archive compressée gzip (`.sql.gz`)
+- **Politique de rétention** : 7 jours glissants, 4 sauvegardes hebdomadaires, 6 sauvegardes mensuelles
+- **Stockage** : Volume Docker persistant `openbar_backups`
+
+### 2. Sauvegarde Manuelle à la Demande
+```bash
+# Générer un snapshot instantané (.sql.gz)
+./scripts/backup-db.sh
+
+# Sous Windows PowerShell :
+.\scripts\backup-db.ps1
+```
+
+### 3. Restauration / Disaster Recovery
+```bash
+# Restaurer un snapshot avec vérifications préalables et backup de sécurité automatique
+./scripts/restore-db.sh -f ./backups/openbar_backup_YYYY-MM-DD_HHMMSS.sql.gz
+
+# Sous Windows PowerShell :
+.\scripts\restore-db.ps1 -File .\backups\openbar_backup_YYYY-MM-DD_HHMMSS.sql.gz
+```
+
+---
+
 ## Documentation du code & API
 
 Toute modification du codebase doit respecter les règles de documentation suivantes :
@@ -139,6 +170,7 @@ EN_ATTENTE → EN_PREPARATION → PRET → LIVREE → REGLEE
 | Personnalisation Thème & Palettes HSL (#217) | — | ✅ | ✅ |
 | Documentation OpenAPI / Swagger UI | ✅ | — | ✅ |
 | JavaDoc & TSDoc (100% en anglais) | ✅ | ✅ | ✅ |
+| Sauvegardes PostgreSQL & Rétention Auto (#337) | ✅ | — | ✅ |
 
 ### 🎯 Roadmap des Tickets Restants (Audit Figma 8 pages)
 

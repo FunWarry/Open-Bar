@@ -31,6 +31,7 @@
 | Backend tests | JUnit 5 + Mockito + Testcontainers | — | Unit + Spring Boot integration tests with isolated PostgreSQL |
 | Frontend tests | Karma + Jasmine | — | Headless browser unit tests |
 | E2E tests | Playwright | 1.50+ | End-to-end browser tests (Chromium headless) |
+| Database Backups | Automated Docker cron + rotation | — | `prodrigestivill/postgres-backup-local:15-alpine` (7d/4w/6m retention) |
 | CI | GitHub Actions | 1 workflow (`ci.yml`) | Backend, Frontend, E2E, SonarCloud |
 | Quality | SonarCloud + Qodana | — | Quality Gate enforcement |
 
@@ -179,6 +180,22 @@ cd frontend && npm install && ng serve   # → http://localhost:4200
 ```
 
 > ⚠️ **JDK 22 (pinned)** required — Lombok 1.18.34 is incompatible with JDK 23+ compiler internals.
+
+---
+
+## Database Backup & Disaster Recovery
+
+OpenBar provides automated backups, configurable retention, and manual CLI utilities:
+
+- **Automated Service**: `prodrigestivill/postgres-backup-local:15-alpine` container in `docker-compose.prod.yml`.
+- **Scheduled Snapshot**: Cron `0 3 * * *` (03:00 daily), compressed with gzip (`.sql.gz`).
+- **Retention Strategy**:
+  - `BACKUP_KEEP_DAYS: 7` (daily backups kept for 7 days)
+  - `BACKUP_KEEP_WEEKS: 4` (weekly backups kept for 4 weeks)
+  - `BACKUP_KEEP_MONTHS: 6` (monthly backups kept for 6 months)
+- **Persistent Volume**: `openbar_backups` mounted to `/backups`.
+- **Manual Backup Script**: `scripts/backup-db.sh` (or `scripts/backup-db.ps1`) for on-demand snapshots.
+- **Disaster Recovery Restore Script**: `scripts/restore-db.sh` (or `scripts/restore-db.ps1`) with archive integrity verification, automated pre-restore safety snapshot, connection draining, and post-restore sanity checks.
 
 ---
 
