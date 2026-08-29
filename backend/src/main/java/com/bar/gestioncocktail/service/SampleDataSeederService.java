@@ -536,10 +536,9 @@ public class SampleDataSeederService {
         }
 
         Commande savedOrder = commandeRepository.save(commande);
-        Commande targetOrder = savedOrder != null ? savedOrder : commande;
-        List<CommandeItem> items = parseOrderItems(targetOrder, oNode.get(KEY_ITEMS), cocktails);
-        targetOrder.setItems(items);
-        commandeRepository.save(targetOrder);
+        List<CommandeItem> items = parseOrderItems(savedOrder, oNode.get(KEY_ITEMS), cocktails);
+        savedOrder.setItems(items);
+        commandeRepository.save(savedOrder);
     }
 
     private List<CommandeItem> parseOrderItems(Commande order, JsonNode itemsNode, List<Cocktail> cocktails) {
