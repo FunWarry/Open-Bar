@@ -14,18 +14,18 @@ public class TableEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull(message = "Le numéro de table est obligatoire")
-    @Min(value = 1, message = "Le numéro de table doit être supérieur ou égal à 1")
+    @NotNull(message = "Table number is required")
+    @Min(value = 1, message = "Table number must be greater than or equal to 1")
     @Column(nullable = false)
     private Integer numero;
 
-    @NotNull(message = "La capacité est obligatoire")
-    @Min(value = 1, message = "La capacité doit être d'au moins 1 personne")
+    @NotNull(message = "Capacity is required")
+    @Min(value = 1, message = "Capacity must be at least 1 person")
     @Column(nullable = false)
     private Integer capacite;
 
-    @jakarta.validation.constraints.NotBlank(message = "La zone est obligatoire")
-    @jakarta.validation.constraints.Size(max = 50, message = "La zone ne peut pas dépasser 50 caractères")
+    @jakarta.validation.constraints.NotBlank(message = "Zone is required")
+    @jakarta.validation.constraints.Size(max = 50, message = "Zone cannot exceed 50 characters")
     @Column(nullable = false, length = 50)
     private String zone;
 
@@ -47,7 +47,7 @@ public class TableEntity {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    // Position sur le plan de salle
+    // Position on floor plan
     @Column(name = "plan_x")
     private Double planX;
 
@@ -58,7 +58,7 @@ public class TableEntity {
     private Double planRotation = 0.0;
 
     @Column(name = "plan_forme", length = 20)
-    private String planForme = "CARRE"; // CARRE ou ROND
+    private String planForme = "CARRE"; // SQUARE or ROUND
 
     @Column(name = "plan_width")
     private Double planWidth;

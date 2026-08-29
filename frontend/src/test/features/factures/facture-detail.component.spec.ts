@@ -90,17 +90,17 @@ describe('FactureDetailComponent', () => {
     expect(component.facture).toEqual(mockFacture);
   });
 
-  it('montantAffiche retourne totalTTC quand disponible', () => {
+  it('montantAffiche returns totalTTC when available', () => {
     component.facture = mockFacture;
     expect(component.montantAffiche).toBe(30.0);
   });
 
-  it('montantAffiche retourne total quand totalTTC est absent', () => {
+  it('montantAffiche returns total when totalTTC is absent', () => {
     component.facture = { ...mockFacture, totalTTC: undefined };
     expect(component.montantAffiche).toBe(25.0);
   });
 
-  it('montantAffiche retourne 0 quand facture est null', () => {
+  it('montantAffiche returns 0 when invoice is null', () => {
     component.facture = null;
     expect(component.montantAffiche).toBe(0);
   });
@@ -136,7 +136,7 @@ describe('FactureDetailComponent', () => {
     );
   });
 
-  it('telechargerPdf ne fait rien quand la facture est null', () => {
+  it('telechargerPdf does nothing when invoice is null', () => {
     component.facture = null;
     spyOn(window, 'open');
     component.telechargerPdf();

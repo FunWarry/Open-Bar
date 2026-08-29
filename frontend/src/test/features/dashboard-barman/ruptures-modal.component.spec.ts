@@ -129,7 +129,7 @@ describe('RupturesModalComponent', () => {
     expect(component.filteredIngredients[0].nom).toBe('Fresh Mint');
   });
 
-  it('toggleCocktail() bascule la disponibilite et affiche un toast', () => {
+  it('toggleCocktail() bascule la disponibilite et displays a toast', () => {
     const cocktail = component.cocktails[0];
     component.toggleCocktail(cocktail);
 
@@ -149,7 +149,7 @@ describe('RupturesModalComponent', () => {
     expect(toastCtrlSpy.create).toHaveBeenCalled();
   });
 
-  it('updateStock() met a jour le stock et affiche un toast', () => {
+  it('updateStock() met a jour le stock et displays a toast', () => {
     const ingredient = component.ingredients[0];
     component.updateStock(ingredient, 0);
 

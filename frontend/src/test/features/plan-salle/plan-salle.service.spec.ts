@@ -33,7 +33,7 @@ describe('PlanSalleService', () => {
 
   // --- getPositions ---
 
-  it('getPositions() appelle GET /api/tables/positions et mappe le format backend', () => {
+  it('getPositions() calls GET /api/tables/positions and maps backend format', () => {
     const backendDto = [
       { id: 1, planX: 100, planY: 100, planRotation: 0, planForme: 'RECTANGLE', etage: 'RDC', zone: 'TERRASSE' },
       { id: 2, planX: 200, planY: 150, planRotation: 90, planForme: 'RONDE', etage: 'First Floor', zone: 'INTERIEUR' },
@@ -69,7 +69,7 @@ describe('PlanSalleService', () => {
 
   // --- sauvegarderPositions ---
 
-  it('sauvegarderPositions() appelle PUT /api/tables/positions avec le payload DTO', () => {
+  it('sauvegarderPositions() calls PUT /api/tables/positions with DTO payload', () => {
     service.sauvegarderPositions(mockPositions).subscribe(result => {
       expect(result).toEqual(mockPositions);
     });
@@ -82,7 +82,7 @@ describe('PlanSalleService', () => {
     req.flush(mockPositions);
   });
 
-  it('sauvegarderPositions() persiste en localStorage', () => {
+  it('sauvegarderPositions() persists in localStorage', () => {
     service.sauvegarderPositions(mockPositions).subscribe();
     http.expectOne(`${environment.apiUrl}/tables/positions`).flush(mockPositions);
     const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]');

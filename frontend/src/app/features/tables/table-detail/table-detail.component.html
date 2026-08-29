@@ -87,8 +87,8 @@
             <ion-icon name="time-outline"></ion-icon>
           </div>
           <div class="banner-text">
-            <span class="banner-title">Table occupée</span>
-            <span class="banner-time">Depuis {{ table.dateOccupation | date:'dd/MM à HH:mm' }}</span>
+            <span class="banner-title">{{ 'TABLE_MODAL.STATUS_OCCUPIED' | transloco }}</span>
+            <span class="banner-time">{{ 'TABLES.OCCUPIED_SINCE' | transloco: { date: (table.dateOccupation | date:'dd/MM HH:mm') } }}</span>
           </div>
         </div>
       }

@@ -177,7 +177,35 @@
     "TITLE": "User Management",
     "DELETE_CONFIRM": "Confirm Deletion",
     "DELETE_PROMPT": "Are you sure you want to delete user {{ username }}?",
-    "DELETE_WARNING": "This action cannot be undone and will permanently delete all associated data."
+    "DELETE_WARNING": "This action cannot be undone and will permanently delete all associated data.",
+    "EDIT_TITLE": "Edit User",
+    "NEW_TITLE": "New User",
+    "ASSIGNED_ROLES": "Assigned Roles",
+    "ROLE_REQUIRED": "At least one role must be selected",
+    "SEARCH_PLACEHOLDER": "Search by name, email or username...",
+    "FILTER_ROLE": "Filter by role",
+    "NO_USERS": "No users found.",
+    "FIRST_NAME": "First Name",
+    "LAST_NAME": "Last Name",
+    "EMAIL": "Email",
+    "PASSWORD": "Password",
+    "USERNAME_LABEL": "Username",
+    "USERNAME_REQUIRED": "Username is required",
+    "FIRST_NAME_LABEL": "First Name",
+    "LAST_NAME_LABEL": "Last Name",
+    "EMAIL_LABEL": "Email",
+    "EMAIL_REQUIRED": "Email is required",
+    "EMAIL_INVALID": "Invalid email format",
+    "PASSWORD_LABEL": "Password",
+    "NEW_PASSWORD_OPTIONAL": "New password (optional)",
+    "PASSWORD_MIN_LENGTH": "Minimum 6 characters",
+    "CONFIRM_PASSWORD_LABEL": "Confirm password",
+    "PASSWORD_MISMATCH": "Passwords do not match",
+    "SUBMIT_CREATE": "Create user",
+    "SUBMIT_EDIT": "Save Changes",
+    "NEW_EMPLOYEE_BTN": "New Employee",
+    "PAGE_INFO": "Showing page {{ page }} of {{ totalPages }} ({{ total }} total)",
+    "PAGE_SIZE_LABEL": "Show per page:"
   },
   "CLIENT": {
     "ORDER_TITLE": "Order #{{ id }}",
@@ -199,7 +227,20 @@
     "NEW_ORDER": "+ Place another order",
     "NOT_FOUND_TITLE": "Order Not Found",
     "NOT_FOUND_DESC": "No order found matching this identifier.",
-    "ORDER_NOW": "Place an order"
+    "ORDER_NOW": "Place an order",
+    "SELECT_ITEMS": "Select your items",
+    "NO_COCKTAILS_CATEGORY": "No cocktails available in this category.",
+    "VIEW_RECAP": "View summary →",
+    "RECAP_TITLE": "Summary — Table {{ table }}",
+    "TOTAL_DUE": "Total due",
+    "SUBTITLE": "Order directly from your table",
+    "TABLE_NUMBER_LABEL": "Your table number",
+    "TABLE_NUMBER_PLACEHOLDER": "E.g.: 4",
+    "ACCESS_MENU_BTN": "View Menu →",
+    "MENU_TITLE": "Menu — Table {{ table }}",
+    "ITEMS_COUNT": "{{ count }} item(s)",
+    "BACK_TO_MENU": "← Back to menu",
+    "SUBMIT_ORDER_BTN": "Send order to bar"
   },
   "HOME": {
     "WELCOME": "Welcome, {{ username }}",
@@ -382,7 +423,8 @@
     "PREVIEW_TITLE": "Receipt Live Preview",
     "SAVE_BTN": "Save Legal Information",
     "SAVE_SUCCESS": "Establishment information saved successfully!",
-    "SAVE_ERROR": "Failed to save establishment information"
+    "SAVE_ERROR": "Failed to save establishment information",
+    "DEMO_RECEIPT_TITLE": "DEMO SALES RECEIPT"
   },
   "AUTH": {
     "LOGIN_TITLE": "Sign in to your workspace",
@@ -401,7 +443,17 @@
     "ALREADY_ACCOUNT": "Already have an account?",
     "LOGIN_LINK": "Sign In",
     "LOGIN_ERROR": "Invalid credentials",
-    "SESSION_EXPIRED": "Session expired, please sign in again"
+    "SESSION_EXPIRED": "Session expired, please sign in again",
+    "REGISTER": {
+      "ADMIN_REQUIRED": "Administrator access required to add users",
+      "FIRST_NAME_PLACEHOLDER": "First name",
+      "LAST_NAME_PLACEHOLDER": "Last name",
+      "PASSWORD_PLACEHOLDER": "At least 6 characters",
+      "ROLE_LABEL": "Role",
+      "ROLE_PLACEHOLDER": "Select a role",
+      "ROLE_REQUIRED": "Role is required",
+      "USERNAME_PLACEHOLDER": "Login username"
+    }
   },
   "PROFILE": {
     "TITLE": "My Profile",
@@ -426,7 +478,8 @@
     "PREF_LANGUAGE_DESC": "Choose application display language",
     "PREF_ONBOARDING_LABEL": "Welcome Tutorial",
     "PREF_ONBOARDING_DESC": "Re-watch the guided tour and features tailored to your role",
-    "RESTART_ONBOARDING_BTN": "Re-watch Tutorial"
+    "RESTART_ONBOARDING_BTN": "Re-watch Tutorial",
+    "LEAVE_BLANK_HINT": "Leave blank to keep unchanged"
   },
   "ONBOARDING": {
     "SKIP": "Skip",
@@ -739,7 +792,20 @@
       "SULFITES": "Sulfites",
       "SOJA": "Soy",
       "SANS_PREFIX": "Free from"
-    }
+    },
+    "SELECT_PHOTO_LABEL": "Select cocktail photo",
+    "EDIT_COCKTAIL_LABEL": "Edit cocktail",
+    "ALLERGENS_WARNING_LABEL": "Allergens:",
+    "STEP_SPECIFIC_DEFAULT": "Specific Step",
+    "PLACEHOLDERS": {
+      "STEP_ACTION": "e.g.: Shake vigorously until frosted",
+      "PREP_TECHNIQUE": "Describe technique steps or specific garnish...",
+      "PAIRING_ADVICE": "General serving advice, food & cocktail pairings...",
+      "ACTION_DESC": "Default description for this technical action...",
+      "GLASS_DESC": "Ideal for long drinks, cocktails served on the rocks..."
+    },
+    "STEP3_SUBTITLE": "Customize serving variants and glassware recommendations.",
+    "OFF_SEASON": "Off-season"
   },
   "INGREDIENTS": {
     "TITLE": "Ingredient Management",
@@ -768,7 +834,9 @@
     "CREATED_SUCCESS": "Ingredient created successfully",
     "UPDATED_SUCCESS": "Ingredient updated successfully",
     "DELETE_SUCCESS": "Ingredient deleted",
-    "DELETE_ERROR": "Unable to delete this ingredient"
+    "DELETE_ERROR": "Unable to delete this ingredient",
+    "SELECT_UNIT": "Select a unit",
+    "NAME_PLACEHOLDER": "e.g.: Lemon"
   },
   "TABLES": {
     "TABLE": "Table",
@@ -864,7 +932,11 @@
     "EMPTY_SUB": "No tables match your search or filter criteria.",
     "NO_TABLES": "No tables registered in the establishment.",
     "BY_ZONE": "By Zone",
-    "BY_FLOOR": "By Floor"
+    "BY_FLOOR": "By Floor",
+    "STATS_TABLES": "tables",
+    "STATS_FREE": "free",
+    "STATS_OCCUPIED": "occupied",
+    "OCCUPIED_SINCE": "Since {{ date }}"
   },
   "COMMANDES": {
     "TITLE": "Order Tracking",
@@ -1089,6 +1161,7 @@
     "CUSTOM_TIP_LABEL": "Tip amount (€)",
     "AMOUNT_RECEIVED": "Amount received (€)",
     "CHANGE_TO_RETURN": "Change to return: ",
+    "INSUFFICIENT_AMOUNT": "Insufficient amount received (missing {{ missing }})",
     "CARD_DESC": "Contactless / PIN",
     "CASH_DESC": "Banknotes & Coins",
     "MEAL_VOUCHER_DESC": "Pass / Card / Ticket",
@@ -1114,7 +1187,9 @@
       "ESPECES": "Cash",
       "CARTE": "Credit Card",
       "CHEQUE": "Check"
-    }
+    },
+    "CONDITIONS_REGLEMENT_PLACEHOLDER": "Immediate payment upon receipt",
+    "ESCOMPTE_PLACEHOLDER": "No discount for early payment"
   },
   "SERVEUR": {
     "TITLE": "Server View",
@@ -1203,7 +1278,9 @@
       "APERITIF": "Aperitif",
       "DIGESTIF": "Digestif",
       "SPECIAL": "Special"
-    }
+    },
+    "TRANSFER_MODAL_SUBTITLE": "Select the destination table for order #{{ id }}:",
+    "TRANSFER_ORDER_TITLE": "Transfer order #{{ id }}"
   },
   "DASHBOARD": {
     "SERVEUR_TITLE": "Server Area",
@@ -1362,7 +1439,28 @@
     "LIVE_PREVIEW": "Live Interactive Preview",
     "PREVIEW_TITLE": "Interactive Component Preview",
     "CARD_PREVIEW": "Product Card Preview",
-    "SAMPLE_PRODUCT": "Mojito Cocktail — €10.50"
+    "SAMPLE_PRODUCT": "Mojito Cocktail — €10.50",
+    "ROLE_BADGES_PREVIEW": "Role Badges",
+    "ACTION_BUTTONS_PREVIEW": "Action Buttons & Variants",
+    "ORDER_STATUS_PREVIEW": "Order Status Badges",
+    "PRIMARY_BTN": "Primary Button",
+    "SECONDARY_BTN": "Secondary",
+    "GHOST_BTN": "Ghost",
+    "LIVE_RENDER_BADGE": "Live Render",
+    "HEX_ROLE_ADMIN": "Admin role hex code",
+    "HEX_ROLE_MANAGER": "Manager role hex code",
+    "HEX_ROLE_SERVEUR": "Server role hex code",
+    "HEX_ROLE_BARMAN": "Bartender role hex code",
+    "AUTO_GEN_TITLE": "Automatic HSL Generator",
+    "AUTO_GEN_DESC": "Automatic calculation of all shades and role colors from your primary color.",
+    "PRIMARY_ACCENT_LABEL": "Primary Accent",
+    "HEX_PRIMARY": "Primary hex code",
+    "BACKGROUNDS_SURFACES_TITLE": "Backgrounds and Surfaces (Dark & Light)",
+    "HEX_BG_DARK": "Dark background hex code",
+    "HEX_SURFACE_DARK": "Dark surface hex code",
+    "HEX_BG_LIGHT": "Light background hex code",
+    "HEX_SURFACE_LIGHT": "Light surface hex code",
+    "ROLE_COLORS_TITLE": "User Role Colors"
   },
   "ZONE_MANAGER": {
     "TITLE": "Manage Zones & Floors",
@@ -1410,7 +1508,8 @@
     "ZONE_DELETED": "Zone deleted successfully",
     "ETAGE_SAVED": "Floor saved successfully",
     "ETAGE_CREATED": "Floor created successfully",
-    "ETAGE_DELETED": "Floor deleted successfully"
+    "ETAGE_DELETED": "Floor deleted successfully",
+    "FORM_SUBTITLE": "Enter the zone name and select its floor level"
   },
   "STOCK": {
     "GLOBAL_TITLE": "Global Stock View",
@@ -1475,7 +1574,8 @@
     "NO_DATA": "No VAT data available",
     "ERROR_FETCH": "Error loading daily summary",
     "EXPORT_SUCCESS": "PDF file downloaded successfully",
-    "EXPORT_ERROR": "Error generating PDF"
+    "EXPORT_ERROR": "Error generating PDF",
+    "DATE_LABEL": "Summary date"
   },
   "SERVEUR_MOBILE": {
     "NAV": {
@@ -1553,7 +1653,9 @@
     "SHIFTS_THIS_WEEK": "shift(s)",
     "MANAGE_SHIFTS": "Manage shifts",
     "NO_EMPLOYEES": "No employees found",
-    "EMPTY_SUBTEXT": "Try adjusting your search criteria."
+    "EMPTY_SUBTEXT": "Try adjusting your search criteria.",
+    "PRESETS_BTN": "Templates & Presets",
+    "FILTER_BY_ROLE": "Filter by role"
   },
   "SHIFTS": {
     "TITLE": "Work Shifts",
@@ -1641,7 +1743,9 @@
       "START_TIME_LABEL": "Start time",
       "END_TIME_LABEL": "End time",
       "BREAK_DURATION_LABEL": "Break (minutes)",
-      "SAVE_PRESET_BTN": "Save template"
+      "SAVE_PRESET_BTN": "Save template",
+      "HERO_BADGE": "SCHEDULE & MASTER TEMPLATES",
+      "BACK_TO_SCHEDULE": "Back to schedule"
     },
     "SHIFT_TYPES": {
       "MATIN": "Morning",
@@ -1676,7 +1780,12 @@
       "ANNUAL_SUBTITLE": "Recurring holidays or fixed vacations (e.g. July 14, Fixed summer leave)",
       "SAVE_CLOSURE": "Save closure",
       "REOPEN_BAR": "Re-open bar for this day",
-      "NO_CLOSURES": "No exceptional closures configured."
+      "NO_CLOSURES": "No exceptional closures configured.",
+      "ANNUAL_BADGE": "Annual recurrence",
+      "DAY_CLOSED_DESC": "The bar is currently marked as closed on this day: “{{ reason }}”.",
+      "DAY_OPEN_DESC": "This day is currently open for shifts. You can set it as a closed day or leave period below.",
+      "CLICK_TO_REOPEN": "Click to reopen",
+      "CLICK_TO_CLOSE": "Click to set as closed day / public holiday"
     },
     "SHORTCUTS": {
       "LEGEND_TITLE": "Shortcuts & Interactions:",
@@ -1714,7 +1823,10 @@
       "NO_DIFF": "The current schedule is identical to the published version.",
       "TOOLTIP_ADDED": "New shift (unpublished)",
       "TOOLTIP_MODIFIED": "Modified: was {{oldTime}}",
-      "TOOLTIP_DELETED": "Deleted shift (was {{oldTime}})"
+      "TOOLTIP_DELETED": "Deleted shift (was {{oldTime}})",
+      "NEW": "New",
+      "WAS": "Was {{start}}-{{end}}",
+      "DELETED": "Deleted"
     },
     "EMPLOYEE_HEADER": "Employee",
     "EMPLOYEE_HEADER_CLICK_HINT": "Click to view this employee's shift list",
@@ -1762,7 +1874,9 @@
       "NOTES": "Notes",
       "REPLAY_BUTTON": "Replay at this instant",
       "SHIFT_HISTORY_TITLE": "Shift History",
-      "SHIFT_HISTORY_BTN": "Modification History"
+      "SHIFT_HISTORY_BTN": "Modification History",
+      "EXPAND": "Expand",
+      "COLLAPSE": "Collapse"
     },
     "REPLAY": {
       "BANNER_TITLE": "Time-Travel Replay Mode (Instant T)",
@@ -1775,7 +1889,14 @@
       "DIFF_BANNER_TITLE": "Differences between Historical Instant T vs Current",
       "ADDED_SINCE": "Added since",
       "MODIFIED_SINCE": "Modified since",
-      "DELETED_SINCE": "Deleted since"
+      "DELETED_SINCE": "Deleted since",
+      "REFRESH": "Refresh replay",
+      "READONLY_HINT": "Read-only (Replay Mode)"
+    },
+    "DELETE_MODE_HINT": "Click to mark / unmark for deletion",
+    "LEGEND": {
+      "DAYOFF": "Leave / Day off",
+      "WEEK_TOTAL": "Week total: {{ totalHours }}h · {{ totalEmployees }} employees · {{ activeEmployees }} active"
     }
   },
   "TABLE_SIDE_PANEL": {
@@ -1868,7 +1989,7 @@
     "STATUS_UPDATED_SUCCESS": "Status updated successfully",
     "STATUS_UPDATE_ERROR": "Failed to update status",
     "LOAD_ORDERS_ERROR": "Error loading orders",
-    "SIDE_PANEL_RECIPE_TITLE": "Recipe & Preparation Details",
+    "SIDE_PANEL_RECIPE_TITLE": "View detailed recipe card & measurements",
     "ORDER_CONTEXT": "Order Context",
     "SPECIAL_INSTRUCTIONS": "Special Instructions",
     "VARIANT_SELECTED": "Selected variant",
@@ -1891,7 +2012,7 @@
     "STEP_PROGRESS": "Step {{current}} / {{total}}",
     "STEP_COMPLETED": "Completed",
     "STEP_CLICK_TO_TOGGLE": "Click to mark step as completed",
-    "PRIORITY_ORDER": "Priority Order",
+    "PRIORITY_ORDER": "PRIORITY ORDER",
     "DURATION_SECONDS": "{{seconds}}s",
     "NO_INGREDIENTS_SPECIFIED": "No specific ingredients specified",
     "DEFAULT_PREP_INSTRUCTIONS": "Standard preparation instructions",
@@ -1909,7 +2030,19 @@
     "TECHNIQUE_BADGE": "Technique",
     "INGREDIENT_BADGE": "Ingredient",
     "CUSTOM_STEP_BADGE": "Instruction",
-    "COMPACT_MODE_DESC": "Compact view optimized for rush hour — steps hidden"
+    "COMPACT_MODE_DESC": "Compact view optimized for rush hour — steps hidden",
+    "DEFAULT_STEP_1": "Prepare and chill the serving glass with ice.",
+    "DEFAULT_STEP_2": "Pour and assemble ingredients according to specified dosages.",
+    "DEFAULT_STEP_3": "Stir or shake vigorously, then strain and serve immediately.",
+    "REFRESH_ORDERS_TOOLTIP": "Refresh orders",
+    "RUPTURES_SET_ZERO_TOOLTIP": "Set to immediate out-of-stock (0)",
+    "PREPARATION_TICKET_HEADER": "*** BAR PREPARATION ORDER ***",
+    "PRINTED_AT": "Printed on {{ date }}",
+    "VARIANT_LABEL": "Variant",
+    "NOTE_LABEL": "Note",
+    "INSTRUCTIONS_LABEL": "INSTRUCTIONS:",
+    "TOTAL_ITEMS_LABEL": "TOTAL ITEMS:",
+    "SERVICE_COUNTER_BAR": "BAR COUNTER SERVICE"
   },
   "MANAGER_DASHBOARD": {
     "TITLE": "Manager Dashboard",
@@ -1957,7 +2090,8 @@
     "LAST_UPDATE": "Last updated at {{time}}",
     "LOADING_STATS": "Loading metrics...",
     "ERROR_STATS": "Unable to load manager dashboard statistics",
-    "RETRY": "Retry"
+    "RETRY": "Retry",
+    "TIMERS_ACTIVE_THRESHOLDS": "Configured Active Thresholds"
   },
   "FACTURE": {
     "MODE_CARTE": "Credit card",
@@ -2061,7 +2195,8 @@
     "ESTIMATED_PACE": "Estimated pace",
     "PACE_FAST": "Express / Fast Pace",
     "PACE_STANDARD": "Standard Service",
-    "PACE_LOUNGE": "Lounge / Craft Cocktails"
+    "PACE_LOUNGE": "Lounge / Craft Cocktails",
+    "ACTIVE_THRESHOLDS_TITLE": "Configured Active Thresholds"
   },
   "NOTIFICATIONS": {
     "TITLE": "Notifications",
@@ -2124,8 +2259,16 @@
     "DELETION_BLOCKED": "Deletion not allowed",
     "IRREVERSIBLE_ACTION": "Irreversible action",
     "TARGET_ELEMENT": "Target element"
+  },
+  "ADMIN": {
+    "SETTINGS": {
+      "HEX_ROLE_ADMIN": "Admin role hex color code",
+      "HEX_ROLE_MANAGER": "Manager role hex color code",
+      "HEX_ROLE_SERVEUR": "Waiter role hex color code",
+      "HEX_ROLE_BARMAN": "Bartender role hex color code",
+      "LIVE_RENDER": "Live Preview",
+      "ROLE_BADGES": "Role Badges",
+      "GHOST_BUTTON": "Ghost"
+    }
   }
 }
-
-
-

@@ -9,6 +9,7 @@ import { addIcons } from 'ionicons';
 import { closeOutline, swapHorizontalOutline, gridOutline } from 'ionicons/icons';
 import { TableBar } from '../../../../core/models/table.model';
 import { TableService } from '../../../../core/services/table.service';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 /**
  * Modal dialog component for selecting a destination table when transferring an order.
@@ -20,6 +21,7 @@ import { TableService } from '../../../../core/services/table.service';
     CommonModule,
     IonHeader, IonToolbar, IonTitle, IonButtons, IonButton,
     IonContent, IonList, IonItem, IonLabel, IonBadge, IonIcon, IonSpinner,
+    TranslocoPipe,
   ],
   templateUrl: './transfert-modal.component.html',
   styleUrls: ['./transfert-modal.component.scss'],

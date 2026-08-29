@@ -2,10 +2,10 @@
   <ion-card class="user-card">
     <ion-card-header class="card-header">
       <div class="header-main">
-        <ion-card-title>Gestion des Utilisateurs & Employés</ion-card-title>
+        <ion-card-title>{{ 'USERS.TITLE' | transloco }}</ion-card-title>
         <ion-button color="primary" (click)="openCreateDialog()" (keydown.enter)="openCreateDialog()" data-testid="create-user-btn">
           <ion-icon name="person-add" slot="start"></ion-icon>
-          Nouvel employé
+          {{ 'USERS.NEW_EMPLOYEE_BTN' | transloco }}
         </ion-button>
       </div>
 
@@ -15,7 +15,7 @@
           <ion-input
             [(ngModel)]="searchQuery"
             (ionInput)="onSearchChange()"
-            placeholder="Rechercher par nom, email ou username..."
+            [placeholder]="'USERS.SEARCH_PLACEHOLDER' | transloco"
             fill="outline"
             class="search-input"
             data-testid="user-search-input">
@@ -29,7 +29,7 @@
             (ionChange)="onRoleChange()"
             interface="popover"
             fill="outline"
-            aria-label="Filtrer par rôle"
+            [attr.aria-label]="'USERS.FILTER_ROLE' | transloco"
             data-testid="user-role-select">
             <ion-select-option *ngFor="let r of availableRoles" [value]="r.value">
               {{ r.label }}
@@ -46,7 +46,7 @@
 
       <ng-container *ngIf="!loading">
         <div *ngIf="users.length === 0" class="empty-state ion-text-center ion-padding" data-testid="empty-users-state">
-          <p>Aucun utilisateur trouvé.</p>
+          <p>{{ 'USERS.NO_USERS' | transloco }}</p>
         </div>
 
         <ion-list *ngIf="users.length > 0" data-testid="user-list">
@@ -58,7 +58,7 @@
             (click)="openEditDialog(user)"
             (keydown.enter)="openEditDialog(user)"
             tabindex="0"
-            [attr.aria-label]="'Modifier ' + user.username">
+            [attr.aria-label]="'USERS.EDIT_TITLE' | transloco">
             <div class="user-row">
               <div class="user-info">
                 <h3 class="user-username">
@@ -68,7 +68,7 @@
                 <p class="user-email">{{ user.email }}</p>
                 <div class="roles-container">
                   <ion-badge *ngFor="let role of user.roles" [color]="getRoleColor(role)" class="role-badge">
-                    {{ role }}
+                    {{ 'SHIFTS.FILTERS.' + role | transloco }}
                   </ion-badge>
                 </div>
               </div>
@@ -80,7 +80,7 @@
                   (click)="openDeleteDialog(user); $event.stopPropagation()"
                   (keydown.enter)="openDeleteDialog(user); $event.stopPropagation()"
                   [attr.data-testid]="'delete-user-btn-' + user.id"
-                  [attr.aria-label]="'Supprimer ' + user.username">
+                  [attr.aria-label]="'COMMON.DELETE' | transloco">
                   <ion-icon name="trash" slot="icon-only"></ion-icon>
                 </ion-button>
               </div>
@@ -91,12 +91,12 @@
         <!-- Pagination Controls Footer -->
         <div class="pagination-footer ion-margin-top" *ngIf="totalElements > 0">
           <div class="pagination-info">
-            <span>Affichage page {{ currentPage + 1 }} sur {{ totalPages }} ({{ totalElements }} au total)</span>
+            <span>{{ 'USERS.PAGE_INFO' | transloco: { page: currentPage + 1, totalPages: totalPages, total: totalElements } }}</span>
           </div>
 
           <div class="pagination-controls">
             <div class="page-size-selector">
-              <label for="page-size-select">Afficher par :</label>
+              <label for="page-size-select">{{ 'USERS.PAGE_SIZE_LABEL' | transloco }}</label>
               <select id="page-size-select" [ngModel]="pageSize" (ngModelChange)="changePageSize($event)" data-testid="page-size-select">
                 <option *ngFor="let size of pageSizeOptions" [value]="size">{{ size }}</option>
               </select>
@@ -105,11 +105,11 @@
             <div class="page-nav-buttons">
               <ion-button fill="outline" size="small" (click)="prevPage()" (keydown.enter)="prevPage()" [disabled]="isFirst" data-testid="prev-page-btn">
                 <ion-icon name="chevron-back-outline"></ion-icon>
-                Précédent
+                {{ 'COMMON.PREV' | transloco }}
               </ion-button>
 
               <ion-button fill="outline" size="small" (click)="nextPage()" (keydown.enter)="nextPage()" [disabled]="isLast" data-testid="next-page-btn">
-                Suivant
+                {{ 'COMMON.NEXT' | transloco }}
                 <ion-icon name="chevron-forward-outline"></ion-icon>
               </ion-button>
             </div>

@@ -24,6 +24,7 @@ import {
   personAdd
 } from 'ionicons/icons';
 import { InputFieldComponent } from '../../../../core/components/ui/input-field/input-field.component';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-user-dialog',
@@ -39,7 +40,8 @@ import { InputFieldComponent } from '../../../../core/components/ui/input-field/
     IonContent,
     IonIcon,
     InputFieldComponent,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    TranslocoPipe
   ]
 })
 export class UserDialogComponent implements OnInit {

@@ -132,7 +132,7 @@
             (ionInput)="recalculatePlannedHours()"
             fill="outline"
             data-testid="shift-start-input"
-            aria-label="Heure de début">
+            [attr.aria-label]="'SHIFTS.FIELDS.START_TIME' | transloco">
           </ion-input>
         </div>
 
@@ -148,7 +148,7 @@
             (ionInput)="recalculatePlannedHours()"
             fill="outline"
             data-testid="shift-end-input"
-            aria-label="Heure de fin">
+            [attr.aria-label]="'SHIFTS.FIELDS.END_TIME' | transloco">
           </ion-input>
         </div>
 
@@ -163,7 +163,7 @@
             [disabled]="!canEditPlanningFields"
             fill="outline"
             data-testid="shift-break-start-input"
-            aria-label="Début de pause">
+            [attr.aria-label]="'SHIFTS.FIELDS.BREAK_START' | transloco">
           </ion-input>
         </div>
 
@@ -178,7 +178,7 @@
             (ionInput)="recalculatePlannedHours()"
             fill="outline"
             data-testid="shift-break-duration-input"
-            aria-label="Durée de la pause en minutes">
+            [attr.aria-label]="'SHIFTS.FIELDS.BREAK_DURATION' | transloco">
           </ion-input>
         </div>
 
@@ -204,7 +204,7 @@
                 [disabled]="!canEditRealHours"
                 fill="outline"
                 data-testid="shift-real-start-input"
-                aria-label="Heure de début réelle">
+                [attr.aria-label]="'SHIFTS.FIELDS.REAL_START' | transloco">
               </ion-input>
             </div>
 
@@ -218,7 +218,7 @@
                 [disabled]="!canEditRealHours"
                 fill="outline"
                 data-testid="shift-real-end-input"
-                aria-label="Heure de fin réelle">
+                [attr.aria-label]="'SHIFTS.FIELDS.REAL_END' | transloco">
               </ion-input>
             </div>
 
@@ -232,7 +232,7 @@
                 [disabled]="!canEditRealHours"
                 fill="outline"
                 data-testid="shift-overtime-input"
-                aria-label="Heures supplémentaires">
+                [attr.aria-label]="'SHIFTS.FIELDS.OVERTIME' | transloco">
               </ion-input>
             </div>
 
@@ -245,7 +245,7 @@
                 [disabled]="!canEditRealHours"
                 fill="outline"
                 data-testid="shift-hours-input"
-                aria-label="Heures effectuées au total">
+                [attr.aria-label]="'SHIFTS.FIELDS.HOURS' | transloco">
               </ion-input>
             </div>
           </div>
@@ -261,7 +261,7 @@
             [disabled]="!canEditRealHours"
             fill="outline"
             data-testid="shift-notes-input"
-            aria-label="Remarques ou notes">
+            [attr.aria-label]="'SHIFTS.FIELDS.NOTES' | transloco">
           </ion-textarea>
         </div>
       </div>

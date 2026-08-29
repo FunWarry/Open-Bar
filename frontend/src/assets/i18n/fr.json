@@ -177,7 +177,35 @@
     "TITLE": "Gestion des Utilisateurs",
     "DELETE_CONFIRM": "Confirmer la suppression",
     "DELETE_PROMPT": "Êtes-vous sûr de vouloir supprimer l'utilisateur {{ username }} ?",
-    "DELETE_WARNING": "Cette action est irréversible et supprimera définitivement toutes les données associées à cet utilisateur."
+    "DELETE_WARNING": "Cette action est irréversible et supprimera définitivement toutes les données associées à cet utilisateur.",
+    "EDIT_TITLE": "Modifier l'utilisateur",
+    "NEW_TITLE": "Nouvel utilisateur",
+    "ASSIGNED_ROLES": "Rôles attribués",
+    "ROLE_REQUIRED": "Au moins un rôle doit être sélectionné",
+    "SEARCH_PLACEHOLDER": "Rechercher par nom, email ou username...",
+    "FILTER_ROLE": "Filtrer par rôle",
+    "NO_USERS": "Aucun utilisateur trouvé.",
+    "FIRST_NAME": "Prénom",
+    "LAST_NAME": "Nom",
+    "EMAIL": "Email",
+    "PASSWORD": "Mot de passe",
+    "USERNAME_LABEL": "Nom d'utilisateur",
+    "USERNAME_REQUIRED": "Le nom d'utilisateur est requis",
+    "FIRST_NAME_LABEL": "Prénom",
+    "LAST_NAME_LABEL": "Nom",
+    "EMAIL_LABEL": "Email",
+    "EMAIL_REQUIRED": "L'email est requis",
+    "EMAIL_INVALID": "Format d'email invalide",
+    "PASSWORD_LABEL": "Mot de passe",
+    "NEW_PASSWORD_OPTIONAL": "Nouveau mot de passe (optionnel)",
+    "PASSWORD_MIN_LENGTH": "Minimum 6 caractères",
+    "CONFIRM_PASSWORD_LABEL": "Confirmer le mot de passe",
+    "PASSWORD_MISMATCH": "Les mots de passe ne correspondent pas",
+    "SUBMIT_CREATE": "Créer l'utilisateur",
+    "SUBMIT_EDIT": "Modifier",
+    "NEW_EMPLOYEE_BTN": "Nouvel employé",
+    "PAGE_INFO": "Affichage page {{ page }} sur {{ totalPages }} ({{ total }} au total)",
+    "PAGE_SIZE_LABEL": "Afficher par :"
   },
   "CLIENT": {
     "ORDER_TITLE": "Commande #{{ id }}",
@@ -199,7 +227,20 @@
     "NEW_ORDER": "+ Passer une nouvelle commande",
     "NOT_FOUND_TITLE": "Commande introuvable",
     "NOT_FOUND_DESC": "Aucune commande ne correspond à cet identifiant.",
-    "ORDER_NOW": "Passer une commande"
+    "ORDER_NOW": "Passer une commande",
+    "SELECT_ITEMS": "Sélectionnez vos consommations",
+    "NO_COCKTAILS_CATEGORY": "Aucun cocktail disponible dans cette catégorie.",
+    "VIEW_RECAP": "Voir le récap →",
+    "RECAP_TITLE": "Récapitulatif — Table {{ table }}",
+    "TOTAL_DUE": "Total à payer",
+    "SUBTITLE": "Commandez directement depuis votre table",
+    "TABLE_NUMBER_LABEL": "Numéro de votre table",
+    "TABLE_NUMBER_PLACEHOLDER": "Ex: 4",
+    "ACCESS_MENU_BTN": "Accéder au Menu →",
+    "MENU_TITLE": "Menu — Table {{ table }}",
+    "ITEMS_COUNT": "{{ count }} article(s)",
+    "BACK_TO_MENU": "← Retour menu",
+    "SUBMIT_ORDER_BTN": "Envoyer la commande au bar"
   },
   "HOME": {
     "WELCOME": "Bienvenue, {{ username }}",
@@ -382,7 +423,8 @@
     "PREVIEW_TITLE": "Aperçu du ticket de caisse",
     "SAVE_BTN": "Enregistrer les informations légales",
     "SAVE_SUCCESS": "Informations de l'établissement enregistrées avec succès !",
-    "SAVE_ERROR": "Erreur lors de l'enregistrement des informations de l'établissement"
+    "SAVE_ERROR": "Erreur lors de l'enregistrement des informations de l'établissement",
+    "DEMO_RECEIPT_TITLE": "TICKET DE CAISSE DE DÉMONSTRATION"
   },
   "AUTH": {
     "LOGIN_TITLE": "Connexion à votre espace bar",
@@ -401,7 +443,17 @@
     "NO_ACCOUNT": "Pas encore de compte ?",
     "LOGIN_LINK": "Se connecter",
     "LOGIN_ERROR": "Identifiants incorrects",
-    "SESSION_EXPIRED": "Session expirée, veuillez vous reconnecter"
+    "SESSION_EXPIRED": "Session expirée, veuillez vous reconnecter",
+    "REGISTER": {
+      "ADMIN_REQUIRED": "Accès administrateur requis pour ajouter des utilisateurs",
+      "FIRST_NAME_PLACEHOLDER": "Prénom",
+      "LAST_NAME_PLACEHOLDER": "Nom",
+      "PASSWORD_PLACEHOLDER": "Au moins 6 caractères",
+      "ROLE_LABEL": "Rôle",
+      "ROLE_PLACEHOLDER": "Sélectionnez un rôle",
+      "ROLE_REQUIRED": "Le rôle est requis",
+      "USERNAME_PLACEHOLDER": "Identifiant de connexion"
+    }
   },
   "PROFILE": {
     "TITLE": "Mon Profil",
@@ -426,7 +478,8 @@
     "PREF_LANGUAGE_DESC": "Choisir la langue d'affichage de l'application",
     "PREF_ONBOARDING_LABEL": "Tutoriel d'accueil",
     "PREF_ONBOARDING_DESC": "Revoir la présentation guidée et les fonctionnalités selon votre rôle",
-    "RESTART_ONBOARDING_BTN": "Revoir le tutoriel"
+    "RESTART_ONBOARDING_BTN": "Revoir le tutoriel",
+    "LEAVE_BLANK_HINT": "Laissez vide pour ne pas modifier"
   },
   "ONBOARDING": {
     "SKIP": "Passer",
@@ -739,7 +792,20 @@
       "SULFITES": "Sulfites",
       "SOJA": "Soja",
       "SANS_PREFIX": "Sans"
-    }
+    },
+    "SELECT_PHOTO_LABEL": "Sélectionner une photo de cocktail",
+    "EDIT_COCKTAIL_LABEL": "Modifier cocktail",
+    "ALLERGENS_WARNING_LABEL": "Allergènes :",
+    "STEP_SPECIFIC_DEFAULT": "Étape Spécifique",
+    "PLACEHOLDERS": {
+      "STEP_ACTION": "ex: Shaker vigoureusement jusqu'à formation de buée",
+      "PREP_TECHNIQUE": "Décrivez les gestes techniques ou le dressage spécifique...",
+      "PAIRING_ADVICE": "Conseils de service généraux, accords mets & cocktails...",
+      "ACTION_DESC": "Description par défaut de cette action technique...",
+      "GLASS_DESC": "Idéal pour long drinks, cocktails servis on the rocks..."
+    },
+    "STEP3_SUBTITLE": "Personnalisez les variantes de service et les recommandations de verrerie.",
+    "OFF_SEASON": "Hors saison"
   },
   "INGREDIENTS": {
     "TITLE": "Gestion des Ingrédients",
@@ -768,7 +834,9 @@
     "CREATED_SUCCESS": "Ingrédient créé avec succès",
     "UPDATED_SUCCESS": "Ingrédient modifié avec succès",
     "DELETE_SUCCESS": "Ingrédient supprimé",
-    "DELETE_ERROR": "Impossible de supprimer cet ingrédient"
+    "DELETE_ERROR": "Impossible de supprimer cet ingrédient",
+    "SELECT_UNIT": "Sélectionner une unité",
+    "NAME_PLACEHOLDER": "ex: Citron"
   },
   "TABLES": {
     "TABLE": "Table",
@@ -864,7 +932,11 @@
     "EMPTY_SUB": "Aucune table ne correspond à vos critères de recherche ou de filtrage.",
     "NO_TABLES": "Aucune table enregistrée dans l'établissement.",
     "BY_ZONE": "Par zone",
-    "BY_FLOOR": "Par étage"
+    "BY_FLOOR": "Par étage",
+    "STATS_TABLES": "tables",
+    "STATS_FREE": "libres",
+    "STATS_OCCUPIED": "occupées",
+    "OCCUPIED_SINCE": "Depuis {{ date }}"
   },
   "COMMANDES": {
     "TITLE": "Suivi des Commandes",
@@ -1115,7 +1187,9 @@
       "ESPECES": "Espèces",
       "CARTE": "Carte bancaire",
       "CHEQUE": "Chèque"
-    }
+    },
+    "CONDITIONS_REGLEMENT_PLACEHOLDER": "Paiement immédiat à réception",
+    "ESCOMPTE_PLACEHOLDER": "Aucun escompte pour paiement anticipé"
   },
   "SERVEUR": {
     "TITLE": "Espace Serveur",
@@ -1204,7 +1278,9 @@
       "APERITIF": "Apéritif",
       "DIGESTIF": "Digestif",
       "SPECIAL": "Spécial"
-    }
+    },
+    "TRANSFER_MODAL_SUBTITLE": "Sélectionnez la table de destination pour la commande #{{ id }} :",
+    "TRANSFER_ORDER_TITLE": "Transférer la commande #{{ id }}"
   },
   "DASHBOARD": {
     "SERVEUR_TITLE": "Espace Serveur",
@@ -1363,7 +1439,28 @@
     "LIVE_PREVIEW": "Aperçu interactif en direct",
     "PREVIEW_TITLE": "Aperçu interactif des composants",
     "CARD_PREVIEW": "Aperçu Carte Produit",
-    "SAMPLE_PRODUCT": "Cocktail Mojito — 10.50 €"
+    "SAMPLE_PRODUCT": "Cocktail Mojito — 10.50 €",
+    "ROLE_BADGES_PREVIEW": "Badges de Rôles",
+    "ACTION_BUTTONS_PREVIEW": "Boutons d'Action & Variantes",
+    "ORDER_STATUS_PREVIEW": "Badges de Statuts de Commandes",
+    "PRIMARY_BTN": "Bouton Principal",
+    "SECONDARY_BTN": "Secondaire",
+    "GHOST_BTN": "Fantôme",
+    "LIVE_RENDER_BADGE": "Rendu Réel",
+    "HEX_ROLE_ADMIN": "Code hexadécimal rôle admin",
+    "HEX_ROLE_MANAGER": "Code hexadécimal rôle manager",
+    "HEX_ROLE_SERVEUR": "Code hexadécimal rôle serveur",
+    "HEX_ROLE_BARMAN": "Code hexadécimal rôle barman",
+    "AUTO_GEN_TITLE": "Générateur Automatique HSL",
+    "AUTO_GEN_DESC": "Calcul automatique de toutes les nuances et couleurs de rôles depuis votre couleur primaire.",
+    "PRIMARY_ACCENT_LABEL": "Primaire d'accentuation",
+    "HEX_PRIMARY": "Code hexadécimal primaire",
+    "BACKGROUNDS_SURFACES_TITLE": "Arrière-plans et Surfaces (Dark & Light)",
+    "HEX_BG_DARK": "Code hexadécimal arrière-plan sombre",
+    "HEX_SURFACE_DARK": "Code hexadécimal surface sombre",
+    "HEX_BG_LIGHT": "Code hexadécimal arrière-plan clair",
+    "HEX_SURFACE_LIGHT": "Code hexadécimal surface claire",
+    "ROLE_COLORS_TITLE": "Couleurs des Rôles Utilisateurs"
   },
   "ZONE_MANAGER": {
     "TITLE": "Gestion des Zones & Étages",
@@ -1411,7 +1508,8 @@
     "ZONE_DELETED": "Zone supprimée avec succès",
     "ETAGE_SAVED": "Étage enregistré avec succès",
     "ETAGE_CREATED": "Étage créé avec succès",
-    "ETAGE_DELETED": "Étage supprimé avec succès"
+    "ETAGE_DELETED": "Étage supprimé avec succès",
+    "FORM_SUBTITLE": "Renseignez le nom de la zone et sélectionnez son niveau d'étage"
   },
   "STOCK": {
     "GLOBAL_TITLE": "Vue Globale des Stocks",
@@ -1476,7 +1574,8 @@
     "NO_DATA": "Aucune donnée de TVA disponible",
     "ERROR_FETCH": "Erreur lors du chargement du récapitulatif",
     "EXPORT_SUCCESS": "Fichier PDF téléchargé avec succès",
-    "EXPORT_ERROR": "Erreur lors de la génération du PDF"
+    "EXPORT_ERROR": "Erreur lors de la génération du PDF",
+    "DATE_LABEL": "Date du récapitulatif"
   },
   "SERVEUR_MOBILE": {
     "NAV": {
@@ -1554,7 +1653,9 @@
     "SHIFTS_THIS_WEEK": "shift(s)",
     "MANAGE_SHIFTS": "Gérer les créneaux",
     "NO_EMPLOYEES": "Aucun employé trouvé",
-    "EMPTY_SUBTEXT": "Essayez de modifier vos critères de recherche."
+    "EMPTY_SUBTEXT": "Essayez de modifier vos critères de recherche.",
+    "PRESETS_BTN": "Modèles & Presets",
+    "FILTER_BY_ROLE": "Filtrer par rôle"
   },
   "SHIFTS": {
     "TITLE": "Créneaux de travail",
@@ -1642,7 +1743,9 @@
       "START_TIME_LABEL": "Heure de début",
       "END_TIME_LABEL": "Heure de fin",
       "BREAK_DURATION_LABEL": "Pause (minutes)",
-      "SAVE_PRESET_BTN": "Enregistrer le modèle"
+      "SAVE_PRESET_BTN": "Enregistrer le modèle",
+      "HERO_BADGE": "PLANNING & HORAIRES MAÎTRES",
+      "BACK_TO_SCHEDULE": "Retour au planning"
     },
     "SHIFT_TYPES": {
       "MATIN": "Matin",
@@ -1677,7 +1780,12 @@
       "ANNUAL_SUBTITLE": "Congés ou fériés récurrents (ex: 14 Juillet, Congés d'été fixes)",
       "SAVE_CLOSURE": "Enregistrer la fermeture",
       "REOPEN_BAR": "Rouvrir le bar pour cette journée",
-      "NO_CLOSURES": "Aucune fermeture exceptionnelle configurée."
+      "NO_CLOSURES": "Aucune fermeture exceptionnelle configurée.",
+      "ANNUAL_BADGE": "Récurrent annuel",
+      "DAY_CLOSED_DESC": "Le bar est actuellement marqué comme fermé ce jour-là : « {{ reason }} ».",
+      "DAY_OPEN_DESC": "Cette journée est actuellement ouverte aux créneaux. Vous pouvez la définir comme jour fermé ou période de congés ci-dessous.",
+      "CLICK_TO_REOPEN": "Cliquer pour rouvrir",
+      "CLICK_TO_CLOSE": "Cliquer pour définir comme jour fermé / férié"
     },
     "SHORTCUTS": {
       "LEGEND_TITLE": "Raccourcis & Interactions :",
@@ -1715,7 +1823,10 @@
       "NO_DIFF": "L'EDT actuel est parfaitement conforme à la version publiée.",
       "TOOLTIP_ADDED": "Nouveau créneau (non publié)",
       "TOOLTIP_MODIFIED": "Modifié : était {{oldTime}}",
-      "TOOLTIP_DELETED": "Créneau supprimé (était {{oldTime}})"
+      "TOOLTIP_DELETED": "Créneau supprimé (était {{oldTime}})",
+      "NEW": "Nouveau",
+      "WAS": "Était {{start}}-{{end}}",
+      "DELETED": "Supprimé"
     },
     "EMPLOYEE_HEADER": "Employé",
     "EMPLOYEE_HEADER_CLICK_HINT": "Cliquer pour voir la liste des créneaux de cet employé",
@@ -1763,7 +1874,9 @@
       "NOTES": "Notes",
       "REPLAY_BUTTON": "Rejouer à cet instant",
       "SHIFT_HISTORY_TITLE": "Historique du créneau",
-      "SHIFT_HISTORY_BTN": "Historique des modifications"
+      "SHIFT_HISTORY_BTN": "Historique des modifications",
+      "EXPAND": "Déplier",
+      "COLLAPSE": "Replier"
     },
     "REPLAY": {
       "BANNER_TITLE": "Mode Historique Replay (Instant T)",
@@ -1776,7 +1889,14 @@
       "DIFF_BANNER_TITLE": "Écarts Historique Instant T vs Actuel",
       "ADDED_SINCE": "Ajouté depuis",
       "MODIFIED_SINCE": "Modifié depuis",
-      "DELETED_SINCE": "Supprimé depuis"
+      "DELETED_SINCE": "Supprimé depuis",
+      "REFRESH": "Rafraîchir le replay",
+      "READONLY_HINT": "Lecture seule (Mode Replay)"
+    },
+    "DELETE_MODE_HINT": "Cliquer pour marquer / démarquer pour suppression",
+    "LEGEND": {
+      "DAYOFF": "Congé",
+      "WEEK_TOTAL": "Total semaine : {{ totalHours }}h · {{ totalEmployees }} employés · {{ activeEmployees }} actifs"
     }
   },
   "TABLE_SIDE_PANEL": {
@@ -1869,7 +1989,7 @@
     "STATUS_UPDATED_SUCCESS": "Statut mis à jour avec succès",
     "STATUS_UPDATE_ERROR": "Impossible de mettre à jour le statut",
     "LOAD_ORDERS_ERROR": "Erreur lors du chargement des commandes",
-    "SIDE_PANEL_RECIPE_TITLE": "Fiche Recette & Préparation",
+    "SIDE_PANEL_RECIPE_TITLE": "Voir la fiche recette détaillée & dosages",
     "ORDER_CONTEXT": "Contexte de la Commande",
     "SPECIAL_INSTRUCTIONS": "Consignes Spéciales",
     "VARIANT_SELECTED": "Variante sélectionnée",
@@ -1892,7 +2012,7 @@
     "STEP_PROGRESS": "Étape {{current}} / {{total}}",
     "STEP_COMPLETED": "Terminée",
     "STEP_CLICK_TO_TOGGLE": "Cliquer pour marquer l'étape terminée",
-    "PRIORITY_ORDER": "Commande Prioritaire",
+    "PRIORITY_ORDER": "COMMANDE PRIORITAIRE",
     "DURATION_SECONDS": "{{seconds}}s",
     "NO_INGREDIENTS_SPECIFIED": "Aucun ingrédient spécifique renseigné",
     "DEFAULT_PREP_INSTRUCTIONS": "Consignes de préparation standard",
@@ -1910,7 +2030,19 @@
     "TECHNIQUE_BADGE": "Technique",
     "INGREDIENT_BADGE": "Ingrédient",
     "CUSTOM_STEP_BADGE": "Consigne",
-    "COMPACT_MODE_DESC": "Vue rapide condensée pour le coup de feu — étapes masquées"
+    "COMPACT_MODE_DESC": "Vue rapide condensée pour le coup de feu — étapes masquées",
+    "DEFAULT_STEP_1": "Préparer et rafraîchir le verre de service avec des glaçons.",
+    "DEFAULT_STEP_2": "Verser et assembler les ingrédients selon les dosages indiqués.",
+    "DEFAULT_STEP_3": "Mélanger ou shaker vigoureusement, puis filtrer et servir immédiatement.",
+    "REFRESH_ORDERS_TOOLTIP": "Rafraîchir les commandes",
+    "RUPTURES_SET_ZERO_TOOLTIP": "Mettre en rupture immédiate (0)",
+    "PREPARATION_TICKET_HEADER": "*** BON DE PRÉPARATION BAR ***",
+    "PRINTED_AT": "Imprimé le {{ date }}",
+    "VARIANT_LABEL": "Variante",
+    "NOTE_LABEL": "Note",
+    "INSTRUCTIONS_LABEL": "INSTRUCTIONS :",
+    "TOTAL_ITEMS_LABEL": "TOTAL ARTICLES :",
+    "SERVICE_COUNTER_BAR": "SERVICE COMPTOIR BAR"
   },
   "MANAGER_DASHBOARD": {
     "TITLE": "Tableau de Bord Manager",
@@ -1958,7 +2090,8 @@
     "LAST_UPDATE": "Dernière mise à jour à {{time}}",
     "LOADING_STATS": "Chargement des métriques...",
     "ERROR_STATS": "Impossible de charger les statistiques du tableau de bord",
-    "RETRY": "Réessayer"
+    "RETRY": "Réessayer",
+    "TIMERS_ACTIVE_THRESHOLDS": "Seuils Actifs Configurés"
   },
   "FACTURE": {
     "MODE_CARTE": "Carte bancaire",
@@ -2062,7 +2195,8 @@
     "ESTIMATED_PACE": "Cadence estimée",
     "PACE_FAST": "Établissement Express / Rapide",
     "PACE_STANDARD": "Service Standard",
-    "PACE_LOUNGE": "Bar Lounge / Cocktails complexes"
+    "PACE_LOUNGE": "Bar Lounge / Cocktails complexes",
+    "ACTIVE_THRESHOLDS_TITLE": "Seuils Actifs Configurés"
   },
   "NOTIFICATIONS": {
     "TITLE": "Notifications",
@@ -2125,8 +2259,16 @@
     "DELETION_BLOCKED": "Suppression impossible",
     "IRREVERSIBLE_ACTION": "Action irréversible",
     "TARGET_ELEMENT": "Élément ciblé"
+  },
+  "ADMIN": {
+    "SETTINGS": {
+      "HEX_ROLE_ADMIN": "Code hexadécimal rôle admin",
+      "HEX_ROLE_MANAGER": "Code hexadécimal rôle manager",
+      "HEX_ROLE_SERVEUR": "Code hexadécimal rôle serveur",
+      "HEX_ROLE_BARMAN": "Code hexadécimal rôle barman",
+      "LIVE_RENDER": "Rendu Réel",
+      "ROLE_BADGES": "Badges de Rôles",
+      "GHOST_BUTTON": "Fantôme"
+    }
   }
 }
-
-
-

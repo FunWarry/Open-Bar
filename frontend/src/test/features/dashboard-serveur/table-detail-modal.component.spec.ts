@@ -87,7 +87,7 @@ describe('TableDetailModalComponent', () => {
     expect(component.isLoading).toBeFalse();
   });
 
-  it('chargerCommandes() affiche un toast en cas d\'erreur', () => {
+  it('chargerCommandes() displays a toast en cas d\'erreur', () => {
     dashboardServiceSpy.getCommandesByTable.and.returnValue(throwError(() => new Error('Error')));
 
     component.chargerCommandes();
@@ -237,13 +237,13 @@ describe('TableDetailModalComponent', () => {
     expect(routerSpy.navigate).toHaveBeenCalledWith(['/serveur'], { queryParams: { tableId: 1 } });
   });
 
-  it('encaisser() ferme le modal avec l\'action encaisser', () => {
+  it('encaisser() closes modal with l\'action encaisser', () => {
     component.encaisser();
 
     expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith({ action: 'encaisser', table: mockTable });
   });
 
-  it('liberer() ferme le modal avec l\'action liberer', () => {
+  it('liberer() closes modal with l\'action liberer', () => {
     component.liberer();
 
     expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith({ action: 'liberer', tableId: 1 });

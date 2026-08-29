@@ -24,17 +24,17 @@ describe('StatCardComponent', () => {
   });
 
   describe('trendSymbol getter', () => {
-    it('retourne ▲ quand trend est "up"', () => {
+    it('retourne ▲ when trend is "up"', () => {
       component.trend = 'up';
       expect(component.trendSymbol).toBe('▲');
     });
 
-    it('retourne ▼ quand trend est "down"', () => {
+    it('retourne ▼ when trend is "down"', () => {
       component.trend = 'down';
       expect(component.trendSymbol).toBe('▼');
     });
 
-    it('retourne ■ quand trend est "neutral"', () => {
+    it('retourne ■ when trend is "neutral"', () => {
       component.trend = 'neutral';
       expect(component.trendSymbol).toBe('■');
     });

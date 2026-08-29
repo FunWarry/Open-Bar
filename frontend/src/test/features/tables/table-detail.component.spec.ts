@@ -108,14 +108,14 @@ describe('TableDetailComponent', () => {
     expect(modalCtrlSpy.dismiss).toHaveBeenCalled();
   }));
 
-  it('onEdit() ferme la modale avec signal edit', fakeAsync(() => {
+  it('onEdit() closes modal with signal edit', fakeAsync(() => {
     component.ngOnInit(); tick();
     component.onEdit();
     tick();
     expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith(jasmine.objectContaining({ action: 'edit' }));
   }));
 
-  it('onDelete() ouvre ConfirmDeleteModalComponent et supprime la table si confirmée', fakeAsync(() => {
+  it('onDelete() opens ConfirmDeleteModalComponent and deletes table if confirmed', fakeAsync(() => {
     component.commandes = [];
     component.table = mockTable;
 

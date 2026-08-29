@@ -2,7 +2,7 @@
   <ion-toolbar class="ticket-modal-toolbar">
     <ion-title>{{ 'BARMAN_DASHBOARD.BAR_TICKET_PREVIEW' | transloco }}</ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="dismiss()" (keyup.enter)="dismiss()" aria-label="Close">
+      <ion-button (click)="dismiss()" (keyup.enter)="dismiss()" [attr.aria-label]="'COMMON.CLOSE' | transloco">
         <ion-icon slot="icon-only" name="close-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -15,7 +15,7 @@
       <!-- En-tête du ticket -->
       <div class="receipt-header">
         <h2 class="establishment-title">{{ establishmentName }}</h2>
-        <div class="ticket-type">*** BON DE PRÉPARATION BAR ***</div>
+        <div class="ticket-type">{{ 'BARMAN_DASHBOARD.PREPARATION_TICKET_HEADER' | transloco }}</div>
       </div>
 
       <div class="receipt-divider"></div>
@@ -39,7 +39,7 @@
         </div>
         @if (commande.prioritaire) {
           <div class="priority-banner">
-            ⚡ COMMANDE PRIORITAIRE ⚡
+            ⚡ {{ 'BARMAN_DASHBOARD.PRIORITY_ORDER' | transloco }} ⚡
           </div>
         }
       </div>
@@ -56,12 +56,12 @@
             </div>
             @if (item.varianteNom) {
               <div class="item-sub">
-                ↳ Variante : {{ item.varianteNom }}
+                ↳ {{ 'BARMAN_DASHBOARD.VARIANT_LABEL' | transloco }} : {{ item.varianteNom }}
               </div>
             }
             @if (item.notes) {
               <div class="item-note">
-                ↳ Note : {{ item.notes }}
+                ↳ {{ 'BARMAN_DASHBOARD.NOTE_LABEL' | transloco }} : {{ item.notes }}
               </div>
             }
           </div>
@@ -73,7 +73,7 @@
       <!-- Consignes globales de la commande -->
       @if (commande.notes) {
         <div class="receipt-notes">
-          <div class="notes-header">INSTRUCTIONS :</div>
+          <div class="notes-header">{{ 'BARMAN_DASHBOARD.INSTRUCTIONS_LABEL' | transloco }}</div>
           <div class="notes-body">{{ commande.notes }}</div>
         </div>
         <div class="receipt-divider"></div>
@@ -82,7 +82,7 @@
       <!-- Récapitulatif -->
       <div class="receipt-summary">
         <div class="summary-row">
-          <span>TOTAL ARTICLES :</span>
+          <span>{{ 'BARMAN_DASHBOARD.TOTAL_ITEMS_LABEL' | transloco }}</span>
           <strong>{{ totalItemsCount }}</strong>
         </div>
       </div>
@@ -91,8 +91,8 @@
 
       <!-- Bas de ticket -->
       <div class="receipt-footer">
-        <div class="service-tag">SERVICE COMPTOIR BAR</div>
-        <div class="print-timestamp">Imprimé le {{ now | date:'dd/MM/yyyy HH:mm:ss' }}</div>
+        <div class="service-tag">{{ 'BARMAN_DASHBOARD.SERVICE_COUNTER_BAR' | transloco }}</div>
+        <div class="print-timestamp">{{ 'BARMAN_DASHBOARD.PRINTED_AT' | transloco: { date: (now | date:'dd/MM/yyyy HH:mm:ss') } }}</div>
       </div>
     </div>
   </div>
@@ -108,7 +108,7 @@
     <ion-buttons slot="end">
       <ion-button color="primary" fill="solid" (click)="printTicket()" (keyup.enter)="printTicket()" data-testid="confirm-print-btn">
         <ion-icon slot="start" name="print-outline"></ion-icon>
-        {{ 'BARMAN_DASHBOARD.PRINT_TICKET' | transloco }}
+        {{ 'BARMAN_DASHBOARD.PRINT_BUTTON' | transloco }}
       </ion-button>
     </ion-buttons>
   </ion-toolbar>

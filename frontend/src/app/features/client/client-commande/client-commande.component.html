@@ -8,15 +8,15 @@
       <div class="card-header-section">
         <span class="brand-emoji">📱</span>
         <h1 class="card-title">OpenBar</h1>
-        <p class="card-subtitle">Commandez directement depuis votre table</p>
+        <p class="card-subtitle">{{ 'CLIENT.SUBTITLE' | transloco }}</p>
       </div>
 
       <form [formGroup]="tableForm" (ngSubmit)="onSelectTable()" class="table-form">
         <app-input-field
           formControlName="tableNumber"
           type="number"
-          label="Numéro de votre table"
-          placeholder="Ex: 4"
+          [label]="'CLIENT.TABLE_NUMBER_LABEL' | transloco"
+          [placeholder]="'CLIENT.TABLE_NUMBER_PLACEHOLDER' | transloco"
           icon="restaurant-outline"
           [required]="true">
         </app-input-field>
@@ -27,7 +27,7 @@
           size="large"
           expand="block"
           [disabled]="tableForm.invalid">
-          Accéder au Menu →
+          {{ 'CLIENT.ACCESS_MENU_BTN' | transloco }}
         </app-action-button>
       </form>
     </div>
@@ -38,26 +38,26 @@
     <div class="menu-view">
       <header class="menu-header">
         <div class="header-info">
-          <h1 class="menu-title">Menu — Table {{ tableNumero }}</h1>
-          <p class="menu-subtitle">Sélectionnez vos consommations</p>
+          <h1 class="menu-title">{{ 'CLIENT.MENU_TITLE' | transloco: { table: tableNumero } }}</h1>
+          <p class="menu-subtitle">{{ 'CLIENT.SELECT_ITEMS' | transloco }}</p>
         </div>
       </header>
 
       <div class="filter-chips">
         <app-filter-chip
-          label="Tous"
+          [label]="'COMMON.ALL' | transloco"
           [active]="selectedCategory === 'TOUS'"
           (chipClick)="filterCategory('TOUS')"
           testId="filter-tous">
         </app-filter-chip>
         <app-filter-chip
-          label="Alcoolisés"
+          [label]="'COCKTAILS.CATEGORIES.ALCOOLISE' | transloco"
           [active]="selectedCategory === 'ALCOOLISE'"
           (chipClick)="filterCategory('ALCOOLISE')"
           testId="filter-alcoolise">
         </app-filter-chip>
         <app-filter-chip
-          label="Sans Alcool"
+          [label]="'COCKTAILS.CATEGORIES.SANS_ALCOOL' | transloco"
           [active]="selectedCategory === 'SANS_ALCOOL'"
           (chipClick)="filterCategory('SANS_ALCOOL')"
           testId="filter-sans-alcool">
@@ -84,7 +84,7 @@
             </app-product-card>
           } @empty {
             <div class="empty-box">
-              <p>Aucun cocktail disponible dans cette catégorie.</p>
+              <p>{{ 'CLIENT.NO_COCKTAILS_CATEGORY' | transloco }}</p>
             </div>
           }
         </div>
@@ -95,11 +95,11 @@
         <div class="floating-cart-bar">
           <div class="cart-summary">
             <span class="cart-icon">🛒</span>
-            <span class="cart-count">{{ totalItemsCount }} article(s)</span>
+            <span class="cart-count">{{ 'CLIENT.ITEMS_COUNT' | transloco: { count: totalItemsCount } }}</span>
           </div>
           <div class="cart-action">
             <span class="cart-total">{{ totalPrice | appCurrency }}</span>
-            <button class="recap-btn" (click)="goToRecap()">Voir le récap →</button>
+            <button class="recap-btn" (click)="goToRecap()">{{ 'CLIENT.VIEW_RECAP' | transloco }}</button>
           </div>
         </div>
       }
@@ -110,8 +110,8 @@
   @if (step === 'recap') {
     <div class="step-card recap-card">
       <div class="recap-header">
-        <button class="back-btn" (click)="backToMenu()">← Retour menu</button>
-        <h1 class="card-title">Récapitulatif — Table {{ tableNumero }}</h1>
+        <button class="back-btn" (click)="backToMenu()">{{ 'CLIENT.BACK_TO_MENU' | transloco }}</button>
+        <h1 class="card-title">{{ 'CLIENT.RECAP_TITLE' | transloco: { table: tableNumero } }}</h1>
       </div>
 
       <div class="cart-items-list">
@@ -132,7 +132,7 @@
       </div>
 
       <div class="recap-summary-row">
-        <span class="summary-label">Total à payer</span>
+        <span class="summary-label">{{ 'CLIENT.TOTAL_DUE' | transloco }}</span>
         <span class="summary-price">{{ totalPrice | appCurrency }}</span>
       </div>
 
@@ -145,7 +145,7 @@
           [loading]="isSubmitting"
           (click)="submitOrder()"
           (keydown.enter)="submitOrder()">
-          Envoyer la commande au bar
+          {{ 'CLIENT.SUBMIT_ORDER_BTN' | transloco }}
         </app-action-button>
       </div>
     </div>

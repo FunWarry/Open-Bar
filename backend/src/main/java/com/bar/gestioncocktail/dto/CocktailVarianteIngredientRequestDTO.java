@@ -12,10 +12,10 @@ import java.math.BigDecimal;
  * @param notes        Optional preparation or substitution notes
  */
 public record CocktailVarianteIngredientRequestDTO(
-    @NotNull(message = "L'ingrédient est obligatoire")
+    @NotNull(message = "Ingredient is required")
     Long ingredientId,
 
-    @NotNull(message = "La quantité est obligatoire")
+    @NotNull(message = "Quantity is required")
     BigDecimal quantite,
 
     String unite,

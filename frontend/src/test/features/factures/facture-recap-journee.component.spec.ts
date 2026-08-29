@@ -67,7 +67,7 @@ describe('FactureRecapJourneeComponent', () => {
     expect(factureServiceSpy.getDailyRecap).toHaveBeenCalled();
   }));
 
-  it('charger() affiche un toast danger en cas d\'erreur API', fakeAsync(() => {
+  it('charger() displays a toast danger en cas d\'erreur API', fakeAsync(() => {
     factureServiceSpy.getDailyRecap.and.returnValue(throwError(() => new Error('err')));
     component.charger();
     tick();

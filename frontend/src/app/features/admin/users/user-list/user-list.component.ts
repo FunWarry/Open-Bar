@@ -28,6 +28,8 @@ import { UserService } from '../../../../core/services/user.service';
 import { UserDialogComponent } from '../user-dialog/user-dialog.component';
 import { DeleteUserDialogComponent } from '../delete-user-dialog/delete-user-dialog.component';
 
+import { TranslocoPipe } from '@jsverse/transloco';
+
 /**
  * Component managing the administrator/manager view for paginated user listing, search, filtering, and CRUD operations.
  */
@@ -51,7 +53,8 @@ import { DeleteUserDialogComponent } from '../delete-user-dialog/delete-user-dia
     IonSpinner,
     IonSelect,
     IonSelectOption,
-    IonInput
+    IonInput,
+    TranslocoPipe
   ]
 })
 export class UserListComponent implements OnInit {

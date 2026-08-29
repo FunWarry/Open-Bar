@@ -149,7 +149,7 @@ describe('DashboardManagerComponent', () => {
     expect(component.getBarWidth(mockStats.topCocktails[1])).toBe(60);
   });
 
-  it('getBarWidth() retourne 0 si pas de stats ou liste vide', () => {
+  it('getBarWidth() retourne 0 if no stats or empty list', () => {
     component.stats = null;
     expect(component.getBarWidth({ cocktailId: 1, nom: 'Mojito', nombreCommandes: 5 })).toBe(0);
 
@@ -186,7 +186,7 @@ describe('DashboardManagerComponent', () => {
     expect(component.totalCocktailsSold).toBe(0);
   });
 
-  it('onExportCsv() appelle dashboardService.exportStatsCsv et affiche un toast', async () => {
+  it('onExportCsv() appelle dashboardService.exportStatsCsv et displays a toast', async () => {
     component.stats = mockStats;
     await component.onExportCsv();
 

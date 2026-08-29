@@ -12,14 +12,14 @@ import jakarta.validation.constraints.Size;
  * @param ordre sorting order index
  */
 public record EtageRequestDTO(
-    @NotBlank(message = "Le code de l'étage est obligatoire")
-    @Size(max = 50, message = "Le code ne peut pas dépasser 50 caractères")
+    @NotBlank(message = "Floor code is required")
+    @Size(max = 50, message = "Code cannot exceed 50 characters")
     String code,
 
-    @NotBlank(message = "Le nom de l'étage est obligatoire")
-    @Size(max = 100, message = "Le nom ne peut pas dépasser 100 caractères")
+    @NotBlank(message = "Floor name is required")
+    @Size(max = 100, message = "Name cannot exceed 100 characters")
     String nom,
 
-    @Min(value = 0, message = "L'ordre d'affichage doit être supérieur ou égal à 0")
+    @Min(value = 0, message = "Display order must be greater than or equal to 0")
     Integer ordre
 ) {}

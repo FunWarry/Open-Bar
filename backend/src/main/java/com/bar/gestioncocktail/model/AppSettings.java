@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 
 /**
- * Singleton — une seule ligne (id=1), pas d'architecture multi-tenant (cf. CDC §11).
+ * Application settings singleton entity (single row with id=1, single-tenant architecture).
  */
 @Data
 @Entity
@@ -29,22 +29,22 @@ public class AppSettings {
     @Id
     private Long id = SINGLETON_ID;
 
-    @NotBlank(message = "La couleur primaire est obligatoire")
-    @Pattern(regexp = "^#[0-9A-Fa-f]{6}$", message = "La couleur primaire doit être un code hexadécimal (#RRGGBB)")
+    @NotBlank(message = "Primary color is required")
+    @Pattern(regexp = "^#[0-9A-Fa-f]{6}$", message = "Primary color must be a valid hex code (#RRGGBB)")
     @Column(nullable = false)
     private String primaryColor = "#6c7fe8";
 
-    @NotBlank(message = "La couleur primaire forte est obligatoire")
-    @Pattern(regexp = "^#[0-9A-Fa-f]{6}$", message = "La couleur primaire forte doit être un code hexadécimal (#RRGGBB)")
+    @NotBlank(message = "Primary strong color is required")
+    @Pattern(regexp = "^#[0-9A-Fa-f]{6}$", message = "Primary strong color must be a valid hex code (#RRGGBB)")
     @Column(nullable = false)
     private String primaryColorStrong = "#5a68d6";
 
-    @Pattern(regexp = "^https?://.+", message = "Le logo doit être une URL http(s) valide")
-    @Size(max = 2048, message = "L'URL du logo ne peut pas dépasser 2048 caractères")
+    @Pattern(regexp = "^https?://.+", message = "Logo must be a valid http(s) URL")
+    @Size(max = 2048, message = "Logo URL cannot exceed 2048 characters")
     private String logoUrl;
 
-    @NotBlank(message = "Le nom de l'établissement est obligatoire")
-    @Size(max = 100, message = "Le nom de l'établissement ne peut pas dépasser 100 caractères")
+    @NotBlank(message = "Establishment name is required")
+    @Size(max = 100, message = "Establishment name cannot exceed 100 characters")
     @Column(nullable = false)
     private String establishmentName = "OpenBar";
 
@@ -52,13 +52,13 @@ public class AppSettings {
     @Column(nullable = false)
     private DefaultTheme defaultTheme = DefaultTheme.DARK;
 
-    @NotBlank(message = "Le code de devise est obligatoire")
-    @Size(min = 3, max = 3, message = "Le code de devise doit comporter 3 lettres (ISO 4217)")
+    @NotBlank(message = "Currency code is required")
+    @Size(min = 3, max = 3, message = "Currency code must consist of 3 letters (ISO 4217)")
     @Column(name = "currency_code", nullable = false, length = 3)
     private String currencyCode = "EUR";
 
-    @NotBlank(message = "Le symbole de devise est obligatoire")
-    @Size(max = 10, message = "Le symbole de devise ne peut pas dépasser 10 caractères")
+    @NotBlank(message = "Currency symbol is required")
+    @Size(max = 10, message = "Currency symbol cannot exceed 10 characters")
     @Column(name = "currency_symbol", nullable = false, length = 10)
     private String currencySymbol = "€";
 
@@ -66,21 +66,21 @@ public class AppSettings {
     @Column(name = "currency_position", nullable = false, length = 10)
     private CurrencyPosition currencyPosition = CurrencyPosition.AFTER;
 
-    @jakarta.validation.constraints.NotNull(message = "Le temps d'alerte avertissement des commandes est obligatoire")
-    @jakarta.validation.constraints.Min(value = 1, message = "Le temps d'alerte avertissement doit être d'au moins 1 minute")
-    @jakarta.validation.constraints.Max(value = 120, message = "Le temps d'alerte avertissement ne peut pas dépasser 120 minutes")
+    @jakarta.validation.constraints.NotNull(message = "Order warning alert time is required")
+    @jakarta.validation.constraints.Min(value = 1, message = "Warning alert time must be at least 1 minute")
+    @jakarta.validation.constraints.Max(value = 120, message = "Warning alert time cannot exceed 120 minutes")
     @Column(nullable = false)
     private Integer tempsAlerteWarningMinutes = 3;
 
-    @jakarta.validation.constraints.NotNull(message = "Le temps d'alerte des commandes est obligatoire")
-    @jakarta.validation.constraints.Min(value = 1, message = "Le temps d'alerte doit être d'au moins 1 minute")
-    @jakarta.validation.constraints.Max(value = 120, message = "Le temps d'alerte ne peut pas dépasser 120 minutes")
+    @jakarta.validation.constraints.NotNull(message = "Order alert time is required")
+    @jakarta.validation.constraints.Min(value = 1, message = "Alert time must be at least 1 minute")
+    @jakarta.validation.constraints.Max(value = 120, message = "Alert time cannot exceed 120 minutes")
     @Column(nullable = false)
     private Integer tempsAlerteCommandeMinutes = 5;
 
-    @jakarta.validation.constraints.NotNull(message = "Le temps d'alerte critique des commandes est obligatoire")
-    @jakarta.validation.constraints.Min(value = 1, message = "Le temps d'alerte critique doit être d'au moins 1 minute")
-    @jakarta.validation.constraints.Max(value = 120, message = "Le temps d'alerte critique ne peut pas dépasser 120 minutes")
+    @jakarta.validation.constraints.NotNull(message = "Order critical alert time is required")
+    @jakarta.validation.constraints.Min(value = 1, message = "Critical alert time must be at least 1 minute")
+    @jakarta.validation.constraints.Max(value = 120, message = "Critical alert time cannot exceed 120 minutes")
     @Column(nullable = false)
     private Integer tempsAlerteCritiqueCommandeMinutes = 10;
 

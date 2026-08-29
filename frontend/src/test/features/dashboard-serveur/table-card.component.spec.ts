@@ -123,7 +123,7 @@ describe('TableCardComponent', () => {
     expect(component.commandesEnCours).toBe(1);
   });
 
-  it('commandesEnCours retourne 0 quand aucune commande EN_PREPARATION', () => {
+  it('commandesEnCours retourne 0 when no order is EN_PREPARATION', () => {
     component.table = tableOccupee;
     expect(component.commandesEnCours).toBe(0);
   });

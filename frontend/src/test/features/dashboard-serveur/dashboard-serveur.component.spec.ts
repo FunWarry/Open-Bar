@@ -333,7 +333,7 @@ describe('DashboardServeurComponent', () => {
     expect(component.displayMode).toBe('GRID');
   });
 
-  it('sauvegarderFiltres() persiste la configuration des filtres dans localStorage', () => {
+  it('sauvegarderFiltres() persists filter configuration in localStorage', () => {
     component.setStatusFilter('OCCUPIED');
     component.setDisplayMode('GRID');
     const saved = localStorage.getItem('openbar_serveur_dashboard_filters');
@@ -391,7 +391,7 @@ describe('DashboardServeurComponent', () => {
 
   // --- ngOnDestroy ---
 
-  it('onSelectionner avec action encaisser ouvre le modal d\'encaissement', fakeAsync(() => {
+  it('onSelectionner with pay action ouvre le modal d\'encaissement', fakeAsync(() => {
     const table: TableView = { id: 1, nom: 'Table 1', zone: 'Terrasse', capacite: 4, occupee: true, commandesActives: [] };
     const modalMock = {
       present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),

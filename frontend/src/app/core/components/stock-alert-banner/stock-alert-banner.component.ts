@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { NotificationService, AppNotification } from '../../services/notification.service';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-stock-alert-banner',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslocoPipe],
   templateUrl: './stock-alert-banner.component.html',
   styleUrls: ['./stock-alert-banner.component.scss'],
 })

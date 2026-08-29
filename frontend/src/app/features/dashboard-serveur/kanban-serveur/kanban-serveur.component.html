@@ -5,7 +5,7 @@
       <div class="filter-title-group">
         <h3 class="kanban-section-title">{{ 'COMMANDES.TITLE' | transloco }}</h3>
         <span class="active-badge" *ngIf="!isLoading">
-          {{ totalActif }} active(s)
+          {{ totalActif }} {{ (totalActif > 1 ? 'TABLE_CARD.ACTIVE_ORDERS_PLURAL' : 'TABLE_CARD.ACTIVE_ORDERS') | transloco: { count: totalActif } }}
         </span>
       </div>
 
@@ -79,7 +79,7 @@
                 </span>
               </div>
               <span class="card-table" *ngIf="cmd.tableNumero">
-                Table {{ cmd.tableNumero }}
+                {{ 'COMMANDES.TABLE' | transloco }} {{ cmd.tableNumero }}
               </span>
             </div>
 
@@ -102,7 +102,7 @@
                   <span class="item-name">{{ item.cocktailNom }}</span>
                 </div>
                 <div *ngIf="grouped.length === 0" class="item-line item-empty">
-                  Aucun article
+                  {{ 'EDIT_COMMANDE.NO_ITEMS' | transloco }}
                 </div>
               </ng-container>
             </div>
@@ -120,7 +120,7 @@
                   (keyup.enter)="marquerLivree(cmd.id)"
                   [attr.data-testid]="'btn-livrer-' + cmd.id">
                   <ion-icon name="checkmark-outline"></ion-icon>
-                  Marquer livrée
+                  {{ 'COMMANDES.ACTIONS.MARK_DELIVERED' | transloco }}
                 </button>
 
                 <button
@@ -131,7 +131,7 @@
                   (keyup.enter)="ouvrirEncaissementParTableId(cmd.tableId)"
                   [attr.data-testid]="'btn-encaisser-kanban-' + cmd.id">
                   <ion-icon name="card-outline"></ion-icon>
-                  Encaisser
+                  {{ 'TABLE_MODAL.PAY_BILL' | transloco }}
                 </button>
 
                 <button
@@ -142,7 +142,7 @@
                   (keyup.enter)="annuler(cmd.id)"
                   [attr.data-testid]="'btn-annuler-' + cmd.id">
                   <ion-icon name="ban-outline"></ion-icon>
-                  Annuler
+                  {{ 'COMMON.CANCEL' | transloco }}
                 </button>
               </div>
             </div>

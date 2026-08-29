@@ -45,7 +45,7 @@ describe('TableService', () => {
 
   // --- getAll ---
 
-  it('getAll() appelle GET /api/tables', () => {
+  it('getAll() calls GET /api/tables', () => {
     service.getAll().subscribe();
     const req = httpMock.expectOne(baseUrl);
     expect(req.request.method).toBe('GET');
@@ -63,7 +63,7 @@ describe('TableService', () => {
 
   // --- getById ---
 
-  it('getById() appelle GET /api/tables/:id', () => {
+  it('getById() calls GET /api/tables/:id', () => {
     service.getById(1).subscribe();
     const req = httpMock.expectOne(`${baseUrl}/1`);
     expect(req.request.method).toBe('GET');
@@ -90,7 +90,7 @@ describe('TableService', () => {
 
   // --- create ---
 
-  it('create() appelle POST /api/tables', () => {
+  it('create() calls POST /api/tables', () => {
     const payload: Partial<TableBar> = { numero: 3, capacite: 6, zone: 'ETAGE', occupee: false };
     service.create(payload).subscribe();
     const req = httpMock.expectOne(baseUrl);
@@ -109,7 +109,7 @@ describe('TableService', () => {
 
   // --- update ---
 
-  it('update() appelle PUT /api/tables/:id', () => {
+  it('update() calls PUT /api/tables/:id', () => {
     const payload: Partial<TableBar> = { capacite: 8 };
     service.update(1, payload).subscribe();
     const req = httpMock.expectOne(`${baseUrl}/1`);
@@ -129,7 +129,7 @@ describe('TableService', () => {
 
   // --- delete ---
 
-  it('delete() appelle DELETE /api/tables/:id', () => {
+  it('delete() calls DELETE /api/tables/:id', () => {
     service.delete(1).subscribe();
     const req = httpMock.expectOne(`${baseUrl}/1`);
     expect(req.request.method).toBe('DELETE');
@@ -190,7 +190,7 @@ describe('TableService', () => {
 
   // --- getLibres ---
 
-  it('getLibres() appelle GET /api/tables/libres', () => {
+  it('getLibres() calls GET /api/tables/libres', () => {
     service.getLibres().subscribe();
     const req = httpMock.expectOne(`${baseUrl}/libres`);
     expect(req.request.method).toBe('GET');
@@ -207,7 +207,7 @@ describe('TableService', () => {
 
   // --- getOccupees ---
 
-  it('getOccupees() appelle GET /api/tables/occupees', () => {
+  it('getOccupees() calls GET /api/tables/occupees', () => {
     service.getOccupees().subscribe();
     const req = httpMock.expectOne(`${baseUrl}/occupees`);
     expect(req.request.method).toBe('GET');

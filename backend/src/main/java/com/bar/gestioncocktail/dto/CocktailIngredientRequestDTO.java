@@ -16,13 +16,13 @@ import java.math.BigDecimal;
  * @param notes        Optional preparation notes
  */
 public record CocktailIngredientRequestDTO(
-    @NotNull(message = "Le cocktail est obligatoire")
+    @NotNull(message = "Cocktail is required")
     Long cocktailId,
 
-    @NotNull(message = "L'ingrédient est obligatoire")
+    @NotNull(message = "Ingredient is required")
     Long ingredientId,
 
-    @NotNull(message = "La quantité est obligatoire")
+    @NotNull(message = "Quantity is required")
     BigDecimal quantite,
 
     String notes

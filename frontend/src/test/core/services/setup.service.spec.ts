@@ -20,7 +20,7 @@ describe('SetupService', () => {
 
   afterEach(() => httpMock.verify());
 
-  it('getStatus() appelle GET /api/setup/status', () => {
+  it('getStatus() calls GET /api/setup/status', () => {
     const mockStatus: SetupStatus = { initialized: false, userCount: 0 };
     service.getStatus().subscribe(res => expect(res).toEqual(mockStatus));
 
@@ -29,7 +29,7 @@ describe('SetupService', () => {
     req.flush(mockStatus);
   });
 
-  it('createAdmin() appelle POST /api/setup/admin avec le body', () => {
+  it('createAdmin() calls POST /api/setup/admin avec le body', () => {
     const request: CreateAdminRequest = {
       username: 'admin',
       email: 'admin@bar.com',

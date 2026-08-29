@@ -41,7 +41,7 @@ describe('FactureService', () => {
   });
 
   // getAllFactures
-  it('getAllFactures() appelle GET /api/factures', () => {
+  it('getAllFactures() calls GET /api/factures', () => {
     service.getAllFactures().subscribe(factures => {
       expect(factures).toEqual([mockFacture]);
     });
@@ -51,7 +51,7 @@ describe('FactureService', () => {
   });
 
   // getFactureById
-  it('getFactureById() appelle GET /api/factures/:id', () => {
+  it('getFactureById() calls GET /api/factures/:id', () => {
     service.getFactureById(1).subscribe(facture => {
       expect(facture).toEqual(mockFacture);
     });
@@ -61,7 +61,7 @@ describe('FactureService', () => {
   });
 
   // getFacturesByTable
-  it('getFacturesByTable() appelle GET /api/factures/table/:tableId', () => {
+  it('getFacturesByTable() calls GET /api/factures/table/:tableId', () => {
     service.getFacturesByTable(10).subscribe(factures => {
       expect(factures).toEqual([mockFacture]);
     });
@@ -71,7 +71,7 @@ describe('FactureService', () => {
   });
 
   // getFacturesByDate
-  it('getFacturesByDate() appelle GET /api/factures/date avec params debut et fin', () => {
+  it('getFacturesByDate() calls GET /api/factures/date with start and end params', () => {
     const debut = '2024-01-01';
     const fin = '2024-01-31';
     service.getFacturesByDate(debut, fin).subscribe(factures => {
@@ -87,7 +87,7 @@ describe('FactureService', () => {
   });
 
   // reglerFacture
-  it('reglerFacture() appelle POST /api/factures/:id/regler avec modePaiement', () => {
+  it('reglerFacture() calls POST /api/factures/:id/regler with paymentMethod', () => {
     service.reglerFacture(1, 'CARTE').subscribe(facture => {
       expect(facture).toEqual(mockFacture);
     });
@@ -101,7 +101,7 @@ describe('FactureService', () => {
   });
 
   // splitEgal
-  it('splitEgal() appelle POST /api/factures/:id/split/egal avec nombreConvives', () => {
+  it('splitEgal() calls POST /api/factures/:id/split/egal with numberOfGuests', () => {
     service.splitEgal(1, 3).subscribe(results => {
       expect(results).toEqual([mockSplitResult]);
     });
@@ -112,7 +112,7 @@ describe('FactureService', () => {
   });
 
   // splitParSelection
-  it('splitParSelection() appelle POST /api/factures/:id/split/selection avec parts', () => {
+  it('splitParSelection() calls POST /api/factures/:id/split/selection with shares', () => {
     const parts: SplitPartRequest[] = [
       { nomConvive: 'Alice', itemIds: [1, 2] },
       { nomConvive: 'Bob', itemIds: [3] }

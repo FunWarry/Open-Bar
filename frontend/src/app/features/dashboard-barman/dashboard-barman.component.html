@@ -15,7 +15,7 @@
         class="header-action-btn btn-ruptures"
         (click)="openRupturesModal()"
         (keyup.enter)="openRupturesModal()"
-        title="Gestion rapide des ruptures de stock pendant le service"
+        [title]="'BARMAN_DASHBOARD.QUICK_STOCK_TOGGLES' | transloco"
         data-testid="open-ruptures-btn">
         <ion-icon slot="start" name="flame-outline"></ion-icon>
         <span class="btn-text">{{ 'BARMAN_DASHBOARD.QUICK_STOCK_TOGGLES' | transloco }}</span>
@@ -26,7 +26,7 @@
         class="header-action-btn"
         (click)="chargerCommandes()"
         (keyup.enter)="chargerCommandes()"
-        title="Rafraîchir les commandes"
+        [title]="'BARMAN_DASHBOARD.REFRESH_ORDERS_TOOLTIP' | transloco"
         data-testid="refresh-orders-btn">
         <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
       </ion-button>

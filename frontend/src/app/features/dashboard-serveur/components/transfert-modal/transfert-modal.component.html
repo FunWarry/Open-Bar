@@ -1,10 +1,10 @@
 <ion-header>
   <ion-toolbar class="modal-toolbar">
     <ion-title>
-      Transférer la Commande #{{ commandeId }}
+      {{ 'SERVEUR.TRANSFER_ORDER_TITLE' | transloco: { id: commandeId } }}
     </ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="fermer()" (keydown.enter)="fermer()" fill="clear" data-testid="btn-close-transfert-modal">
+      <ion-button (click)="fermer()" (keydown.enter)="fermer()" fill="clear" data-testid="btn-close-transfert-modal" [attr.aria-label]="'COMMON.CLOSE' | transloco">
         <ion-icon name="close-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -12,7 +12,7 @@
 </ion-header>
 
 <ion-content class="modal-content">
-  <p class="subtitle">Sélectionnez la table de destination pour la commande #{{ commandeId }} :</p>
+  <p class="subtitle">{{ 'SERVEUR.TRANSFER_MODAL_SUBTITLE' | transloco: { id: commandeId } }}</p>
 
   @if (isLoading) {
     <div class="loading-state">
@@ -24,8 +24,8 @@
         <ion-item button (click)="selectionnerTable(t)" (keydown.enter)="selectionnerTable(t)" class="table-select-item" data-testid="select-target-table">
           <ion-icon name="grid-outline" slot="start" color="primary"></ion-icon>
           <ion-label>
-            <h3>Table {{ t.numero }}</h3>
-            <p>Zone: {{ t.zone }} — Capacite: {{ t.capacite }} pers.</p>
+            <h3>{{ 'COMMANDES.TABLE' | transloco }} {{ t.numero }}</h3>
+            <p>{{ 'TABLES.ZONE' | transloco }}: {{ t.zone }} — {{ 'TABLES.CAPACITY' | transloco }}: {{ t.capacite }}</p>
           </ion-label>
           <div slot="end">
             <ion-badge [color]="t.occupee ? 'warning' : 'success'">

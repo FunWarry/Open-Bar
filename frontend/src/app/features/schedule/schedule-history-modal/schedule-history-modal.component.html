@@ -135,7 +135,7 @@
             <button
               type="button"
               class="btn-expand-toggle"
-              [attr.aria-label]="isExpanded(item.id) ? 'Replier' : 'Déplier'">
+              [attr.aria-label]="isExpanded(item.id) ? ('SHIFTS.AUDIT.COLLAPSE' | transloco) : ('SHIFTS.AUDIT.EXPAND' | transloco)">
               <ion-icon [name]="isExpanded(item.id) ? 'chevron-down-outline' : 'chevron-forward-outline'"></ion-icon>
             </button>
           </div>

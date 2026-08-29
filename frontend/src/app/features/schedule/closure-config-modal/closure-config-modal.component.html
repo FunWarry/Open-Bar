@@ -62,7 +62,7 @@
               fill="outline"
               class="custom-input"
               data-testid="input-closure-reason"
-              aria-label="Intitulé de la fermeture">
+              [attr.aria-label]="'SHIFTS.CLOSURES.REASON_LABEL' | transloco">
             </ion-input>
           </div>
 
@@ -100,7 +100,7 @@
               fill="outline"
               class="custom-input"
               data-testid="input-closure-date"
-              aria-label="Date de la fermeture">
+              [attr.aria-label]="'SHIFTS.CLOSURES.START_DATE' | transloco">
             </ion-input>
           </div>
 
@@ -160,7 +160,7 @@
               <span class="closure-reason">{{ c.reason }}</span>
               <span class="closure-date-badge">
                 📅 {{ c.closureDate }}<span *ngIf="c.endDate"> ➔ {{ c.endDate }}</span>
-                <ion-badge color="tertiary" *ngIf="c.isAnnualRecurring" class="annual-badge">Récurrent annuel</ion-badge>
+                <ion-badge color="tertiary" *ngIf="c.isAnnualRecurring" class="annual-badge">{{ 'SHIFTS.CLOSURES.ANNUAL_BADGE' | transloco }}</ion-badge>
               </span>
             </div>
             <ion-button fill="clear" color="danger" size="small" class="delete-btn" (click)="deleteClosure(c.id)" (keydown.enter)="deleteClosure(c.id)" [attr.data-testid]="'delete-closure-btn-' + c.id">

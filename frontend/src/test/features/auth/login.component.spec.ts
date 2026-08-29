@@ -68,7 +68,7 @@ describe('LoginComponent', () => {
 
   // ─── Formulaire ──────────────────────────────────────────────────────────────
 
-  it('loginForm est invalide quand les champs sont vides', () => {
+  it('loginForm est invalide when fields are empty', () => {
     expect(component.loginForm.valid).toBeFalse();
   });
 

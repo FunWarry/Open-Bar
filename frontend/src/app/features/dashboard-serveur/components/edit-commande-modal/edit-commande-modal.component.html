@@ -79,7 +79,7 @@
                 class="delete-item-btn"
                 (click)="removeItem(i)"
                 [attr.data-testid]="'btn-delete-item-' + i"
-                title="Supprimer">
+                [title]="'COMMON.DELETE' | transloco">
                 <ion-icon name="trash-outline"></ion-icon>
               </button>
             </div>

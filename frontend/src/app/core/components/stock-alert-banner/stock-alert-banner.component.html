@@ -5,6 +5,6 @@
     [class.alert--critical]="isCritical(alert)"
     [class.alert--warning]="!isCritical(alert)">
     <span class="alert-message">{{ alert.message }}</span>
-    <button class="alert-dismiss" (click)="dismissAlert(alert.id)" aria-label="Fermer">×</button>
+    <button class="alert-dismiss" (click)="dismissAlert(alert.id)" [attr.aria-label]="'COMMON.CLOSE' | transloco">×</button>
   </div>
 </div>
