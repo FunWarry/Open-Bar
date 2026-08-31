@@ -1,0 +1,131 @@
+<div class="qr-modal-container" data-testid="table-qr-modal">
+  <!-- Header -->
+  <header class="qr-modal-header">
+    <div class="header-titles">
+      <div class="header-badge">
+        <ion-icon name="qr-code-outline" aria-hidden="true"></ion-icon>
+        <span>{{ 'TABLES.QR_CODE_TITLE' | transloco }}</span>
+      </div>
+      <h2 class="table-title">
+        {{ 'TABLES.TABLE_NUM' | transloco: { numero: table.numero } }}
+        <span *ngIf="table.zone" class="zone-pill">{{ table.zone }}</span>
+      </h2>
+    </div>
+    <button
+      type="button"
+      class="close-btn"
+      data-testid="close-qr-modal-btn"
+      (click)="dismiss()"
+      [attr.aria-label]="'COMMON.CLOSE' | transloco">
+      <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+    </button>
+  </header>
+
+  <!-- Body -->
+  <div class="qr-modal-body">
+    <!-- QR Preview Area -->
+    <div class="qr-preview-wrapper">
+      <div class="qr-card">
+        <div class="qr-frame">
+          <img
+            [src]="qrUrl"
+            [alt]="'TABLES.QR_ALT' | transloco: { numero: table.numero }"
+            class="qr-image"
+            data-testid="table-qr-image" />
+        </div>
+        <p class="qr-instruction">{{ 'TABLES.QR_SCAN_INSTRUCTION' | transloco }}</p>
+      </div>
+
+      <!-- Format selector -->
+      <div class="format-toggle" aria-label="QR Code Format">
+        <button
+          type="button"
+          class="format-btn"
+          [class.active]="qrFormat === 'PNG'"
+          data-testid="qr-format-png-btn"
+          (click)="setFormat('PNG')">
+          PNG (Raster)
+        </button>
+        <button
+          type="button"
+          class="format-btn"
+          [class.active]="qrFormat === 'SVG'"
+          data-testid="qr-format-svg-btn"
+          (click)="setFormat('SVG')">
+          SVG (Vector)
+        </button>
+      </div>
+    </div>
+
+    <!-- Direct URL Link Box -->
+    <div class="url-box">
+      <label class="url-label" for="table-order-url-input">
+        <ion-icon name="link-outline" aria-hidden="true"></ion-icon>
+        <span>{{ 'TABLES.QR_DIRECT_URL_LABEL' | transloco }}</span>
+      </label>
+      <div class="url-input-group">
+        <input
+          id="table-order-url-input"
+          type="text"
+          class="url-input"
+          [value]="orderUrl"
+          readonly
+          data-testid="table-order-url-input" />
+        <button
+          type="button"
+          class="copy-btn"
+          data-testid="copy-order-url-btn"
+          (click)="copyOrderUrl()">
+          <ion-icon [name]="copied ? 'checkmark-outline' : 'copy-outline'" aria-hidden="true"></ion-icon>
+          <span>{{ (copied ? 'TABLES.QR_COPIED' : 'COMMON.COPY') | transloco }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Wi-Fi information card if configured -->
+    <div *ngIf="settings && settings.wifiEnabled && settings.wifiSsid" class="wifi-info-card" data-testid="qr-wifi-badge">
+      <div class="wifi-icon-badge">
+        <ion-icon name="wifi-outline" aria-hidden="true"></ion-icon>
+      </div>
+      <div class="wifi-details">
+        <span class="wifi-title">{{ 'SETTINGS.QR_WIFI_ENABLED_LABEL' | transloco }}</span>
+        <span class="wifi-ssid">SSID : <strong>{{ settings.wifiSsid }}</strong></span>
+        <span *ngIf="settings.wifiPassword" class="wifi-pass">
+          {{ 'SETTINGS.QR_WIFI_PASSWORD' | transloco }} : <code>{{ settings.wifiPassword }}</code>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer Actions -->
+  <footer class="qr-modal-footer">
+    <button
+      type="button"
+      class="action-btn secondary"
+      data-testid="download-qr-png-btn"
+      [disabled]="isDownloading"
+      (click)="downloadImage('PNG')">
+      <ion-icon name="download-outline" aria-hidden="true"></ion-icon>
+      <span>{{ 'TABLES.QR_DOWNLOAD_PNG' | transloco }}</span>
+    </button>
+    <button
+      type="button"
+      class="action-btn secondary"
+      data-testid="download-qr-svg-btn"
+      [disabled]="isDownloading"
+      (click)="downloadImage('SVG')">
+      <ion-icon name="download-outline" aria-hidden="true"></ion-icon>
+      <span>{{ 'TABLES.QR_DOWNLOAD_SVG' | transloco }}</span>
+    </button>
+    <button
+      type="button"
+      class="action-btn primary"
+      data-testid="print-stand-pdf-btn"
+      [disabled]="isDownloading"
+      (click)="printStandPdf()">
+      <ion-spinner *ngIf="isDownloading" name="crescent"></ion-spinner>
+      <ion-icon *ngIf="!isDownloading" name="print-outline" aria-hidden="true"></ion-icon>
+      <span>{{ 'TABLES.QR_PRINT_STAND' | transloco }}</span>
+    </button>
+  </footer>
+</div>

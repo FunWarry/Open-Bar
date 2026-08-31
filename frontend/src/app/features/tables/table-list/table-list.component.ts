@@ -14,7 +14,8 @@ import {
   add, eye, create, people, checkmarkCircle, closeCircle, layersOutline,
   businessOutline, swapVerticalOutline, gridOutline, restaurantOutline,
   refreshOutline, checkmarkCircleOutline, closeCircleOutline,
-  locationOutline, peopleOutline, eyeOutline, createOutline, trashOutline
+  locationOutline, peopleOutline, eyeOutline, createOutline, trashOutline,
+  qrCodeOutline, printOutline
 } from 'ionicons/icons';
 import { AsyncPipe, NgTemplateOutlet, CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -26,6 +27,8 @@ import { TableBar } from '../../../core/models/table.model';
 import { ZoneManagerComponent } from '../zone-manager/zone-manager.component';
 import { TableDetailComponent } from '../table-detail/table-detail.component';
 import { TableFormComponent } from '../table-form/table-form.component';
+import { TableQrModalComponent } from '../components/table-qr-modal/table-qr-modal.component';
+import { TableQrBatchPrintModalComponent } from '../components/table-qr-batch-print-modal/table-qr-batch-print-modal.component';
 import { ConfirmDeleteModalComponent } from '../../../core/components/ui/confirm-delete-modal/confirm-delete-modal.component';
 import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
 import { SearchableSelectComponent, SearchableOption } from '../../../core/components/ui/searchable-select/searchable-select.component';
@@ -99,7 +102,8 @@ export class TableListComponent implements OnInit, OnDestroy {
       add, eye, create, people, checkmarkCircle, closeCircle, layersOutline,
       businessOutline, swapVerticalOutline, gridOutline, restaurantOutline,
       refreshOutline, checkmarkCircleOutline, closeCircleOutline,
-      locationOutline, peopleOutline, eyeOutline, createOutline, trashOutline
+      locationOutline, peopleOutline, eyeOutline, createOutline, trashOutline,
+      qrCodeOutline, printOutline
     });
   }
 
@@ -567,6 +571,28 @@ export class TableListComponent implements OnInit, OnDestroy {
           toast.present();
         }
       });
+  }
+
+  async onPrintQrBatch(selectedTables?: TableBar[]): Promise<void> {
+    const modal = await this.modalCtrl.create({
+      component: TableQrBatchPrintModalComponent,
+      componentProps: {
+        tables: this.tables,
+        selectedTableIds: selectedTables ? selectedTables.map(t => t.id) : []
+      },
+      cssClass: 'table-qr-batch-modal-dialog'
+    });
+    await modal.present();
+  }
+
+  async onOpenQrModal(table: TableBar, event?: Event): Promise<void> {
+    if (event) event.stopPropagation();
+    const modal = await this.modalCtrl.create({
+      component: TableQrModalComponent,
+      componentProps: { table },
+      cssClass: 'table-qr-modal-dialog'
+    });
+    await modal.present();
   }
 
   onRefresh(event: any): void { this.charger(event); }

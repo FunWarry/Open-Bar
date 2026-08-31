@@ -390,6 +390,11 @@
           </button>
         </div>
 
+        <button type="button" class="btn-action btn-secondary" (click)="onOpenQrModal()" data-testid="btn-panel-qr">
+          <ion-icon name="qr-code-outline"></ion-icon>
+          <span>{{ 'TABLES.QR_CODE_TITLE' | transloco }}</span>
+        </button>
+
         <button *ngIf="isEditMode" type="button" class="btn-action btn-danger" (click)="onDeleteTable()" data-testid="btn-panel-delete">
           <ion-icon name="trash-outline"></ion-icon>
           <span>{{ 'TABLE_SIDE_PANEL.DELETE_TABLE_BTN' | transloco }}</span>

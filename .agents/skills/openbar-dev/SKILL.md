@@ -20,6 +20,7 @@ Génère du code pour le projet OpenBar en respectant les conventions existantes
 - **Documentation OBLIGATOIRE sur TOUT code créé ou modifié**
 - **TOUTE la documentation (JavaDoc, TSDoc, Swagger/OpenAPI) DOIT ÊTRE RÉDIGÉE EXCLUSIVEMENT EN ANGLAIS**.
 - **INTERDICTION d'utiliser `@SuppressWarnings`** : toujours corriger les vrais problèmes sous-jacents (DTOs, types, configuration).
+- **Mise à jour Onboarding & Configuration OBLIGATOIRE** : Pour chaque mise à jour ou ajout de feature, si nécessaire, mettre systématiquement à jour le processus d'onboarding (`/setup`, `OnboardingComponent`, `SetupComponent`, setup wizard) et les écrans de configuration (`AppSettingsPageComponent`, establishment settings, seeders) pour gérer et configurer la nouvelle feature.
 - Backend : JavaDoc sur chaque service, controller, DTO (record), security, exception + annotations OpenAPI (`@Tag`, `@Operation`, `@ApiResponse`).
 - Frontend : TSDoc sur chaque service Angular, guard, interceptor et store NgRx.
 

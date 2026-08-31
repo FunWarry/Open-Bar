@@ -1,5 +1,6 @@
 export type DefaultTheme = 'DARK' | 'LIGHT';
 export type CurrencyPosition = 'BEFORE' | 'AFTER';
+export type WifiSecurityType = 'WPA' | 'WEP' | 'nopass';
 
 export interface AppSettings {
   id: number;
@@ -14,8 +15,14 @@ export interface AppSettings {
   tempsAlerteWarningMinutes?: number;
   tempsAlerteCommandeMinutes?: number;
   tempsAlerteCritiqueCommandeMinutes?: number;
+  clientBaseUrl?: string;
+  wifiSsid?: string;
+  wifiPassword?: string;
+  wifiSecurity?: WifiSecurityType;
+  wifiEnabled?: boolean;
   updatedAt: string | null;
 }
 
 export type AppSettingsUpdateRequest = Omit<AppSettings, 'id' | 'updatedAt'>;
+
 

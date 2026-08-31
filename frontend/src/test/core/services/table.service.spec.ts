@@ -221,4 +221,48 @@ describe('TableService', () => {
     req.flush([mockTableOccupee]);
     expect(result.every(t => t.occupee)).toBeTrue();
   });
+
+  // --- QR Code and PDF exports ---
+
+  it('getTableQrCodeUrl() builds correct url with format and size', () => {
+    const url = service.getTableQrCodeUrl(1, 'SVG', 400);
+    expect(url).toBe(`${baseUrl}/1/qrcode?format=SVG&size=400`);
+  });
+
+  it('downloadTableQrCode() calls GET /api/tables/:id/qrcode with blob response', () => {
+    const mockBlob = new Blob(['mock-qr-bytes'], { type: 'image/png' });
+    let resultBlob: Blob | undefined;
+
+    service.downloadTableQrCode(1, 'PNG', 300).subscribe(blob => (resultBlob = blob));
+
+    const req = httpMock.expectOne(request =>
+      request.url === `${baseUrl}/1/qrcode` &&
+      request.params.get('format') === 'PNG' &&
+      request.params.get('size') === '300'
+    );
+    expect(req.request.method).toBe('GET');
+    expect(req.request.responseType).toBe('blob');
+    req.flush(mockBlob);
+
+    expect(resultBlob).toBeDefined();
+  });
+
+  it('downloadQrCodesPdf() calls GET /api/tables/qrcodes/pdf with layout and params', () => {
+    const mockPdfBlob = new Blob(['mock-pdf-bytes'], { type: 'application/pdf' });
+    let resultBlob: Blob | undefined;
+
+    service.downloadQrCodesPdf('CARD', [1, 2], true).subscribe(blob => (resultBlob = blob));
+
+    const req = httpMock.expectOne(request =>
+      request.url === `${baseUrl}/qrcodes/pdf` &&
+      request.params.get('layout') === 'CARD' &&
+      request.params.getAll('tableIds')?.length === 2 &&
+      request.params.get('includeWifi') === 'true'
+    );
+    expect(req.request.method).toBe('GET');
+    expect(req.request.responseType).toBe('blob');
+    req.flush(mockPdfBlob);
+
+    expect(resultBlob).toBeDefined();
+  });
 });

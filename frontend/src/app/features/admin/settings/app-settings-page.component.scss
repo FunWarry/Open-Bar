@@ -1059,3 +1059,162 @@ ion-col {
   50% { transform: scale(1.2); opacity: 1; }
   100% { transform: scale(0.95); opacity: 0.7; }
 }
+
+/* ========================================== */
+/* TAB 5: QR Codes & Wi-Fi Client Styling    */
+/* ========================================== */
+.form-section-subtitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary, #ffffff);
+  margin: 16px 0 12px;
+
+  ion-icon {
+    color: var(--primary, #6c7fe8);
+    font-size: 1.2rem;
+  }
+}
+
+.toggle-row-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: var(--background-surface-2, #1e2238);
+  border: 1px solid var(--border-medium, rgba(255, 255, 255, 0.08));
+  border-radius: 10px;
+  margin-bottom: 16px;
+
+  .toggle-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    .toggle-title {
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--text-primary, #ffffff);
+    }
+
+    .toggle-desc {
+      font-size: 0.8rem;
+      color: var(--text-muted, #7e87a8);
+    }
+  }
+
+  .switch-input {
+    width: 22px;
+    height: 22px;
+    accent-color: var(--primary, #6c7fe8);
+    cursor: pointer;
+  }
+}
+
+.wifi-fields-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  background: var(--background-surface-2, #1e2238);
+  border-radius: 10px;
+  border: 1px dashed var(--border-medium, rgba(255, 255, 255, 0.12));
+}
+
+.stand-preview-mockup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  color: #1a1a2e;
+  text-align: center;
+  border-top: 5px solid var(--primary, #6c7fe8);
+
+  .mockup-stand-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 16px;
+
+    .mockup-establishment-name {
+      font-size: 1rem;
+      font-weight: 800;
+      color: #1a1a2e;
+      letter-spacing: 0.03em;
+    }
+
+    .mockup-table-pill {
+      background: #1a1a2e;
+      color: #ffffff;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+  }
+
+  .mockup-qr-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 16px;
+    border: 2px dashed #d1d5db;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    width: 180px;
+
+    .mockup-qr-icon {
+      font-size: 5rem;
+      color: #1a1a2e;
+    }
+
+    .mockup-scan-text {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #4b5563;
+    }
+  }
+
+  .mockup-url-text {
+    font-size: 0.72rem;
+    font-family: monospace;
+    color: #6b7280;
+    word-break: break-all;
+    margin-bottom: 12px;
+  }
+
+  .mockup-wifi-badge {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: #f3f4f6;
+    border-radius: 8px;
+    width: 100%;
+    text-align: left;
+    font-size: 0.78rem;
+
+    ion-icon {
+      font-size: 1.4rem;
+      color: var(--primary, #6c7fe8);
+    }
+
+    .mockup-wifi-text {
+      display: flex;
+      flex-direction: column;
+      color: #1f2937;
+
+      strong {
+        font-weight: 700;
+      }
+    }
+  }
+}
+

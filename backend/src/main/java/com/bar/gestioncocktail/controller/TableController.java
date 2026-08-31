@@ -10,6 +10,8 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -261,5 +263,60 @@ public class TableController {
         @Parameter(description = "Source table ID") @PathVariable Long sourceId,
         @Parameter(description = "Destination table ID") @PathVariable Long targetId) {
         return ResponseEntity.ok(TableResponseDTO.from(tableService.transfererCommandes(sourceId, targetId)));
+    }
+
+    /**
+     * Generates a digital ordering QR code image for a table.
+     *
+     * @param id Table identifier
+     * @param format Image format (PNG or SVG)
+     * @param size Dimension in pixels
+     * @return Generated image binary content
+     */
+    @GetMapping("/{id:\\d+}/qrcode")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Generate digital ordering QR code for a table (PNG or SVG)")
+    @ApiResponse(responseCode = "200", description = "QR code generated successfully")
+    @ApiResponse(responseCode = "404", description = "Table not found")
+    public ResponseEntity<byte[]> getTableQrCode(
+        @Parameter(description = "Table ID") @PathVariable Long id,
+        @Parameter(description = "Format: PNG or SVG") @RequestParam(defaultValue = "PNG") String format,
+        @Parameter(description = "Image size in pixels") @RequestParam(defaultValue = "300") int size) {
+        byte[] qrBytes = tableService.generateTableQrCode(id, format, size);
+        String cleanFormat = format != null ? format.toLowerCase() : "png";
+        MediaType mediaType = "svg".equalsIgnoreCase(cleanFormat)
+            ? MediaType.valueOf("image/svg+xml")
+            : MediaType.IMAGE_PNG;
+
+        return ResponseEntity.ok()
+            .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"table-" + id + "-qrcode." + cleanFormat + "\"")
+            .contentType(mediaType)
+            .body(qrBytes);
+    }
+
+    /**
+     * Generates a printable A4 PDF containing table QR codes, physical table stands (chevalets),
+     * cards, or adhesive stickers.
+     *
+     * @param layout Export layout format (STAND, CARD, STICKER)
+     * @param tableIds Optional list of table IDs (all tables if omitted)
+     * @param includeWifi Whether to include establishment Wi-Fi connection QR code
+     * @return Generated PDF binary content
+     */
+    @GetMapping("/qrcodes/pdf")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('SERVEUR')")
+    @Operation(summary = "Export printable A4 PDF with table QR codes / table stands (STAND, CARD, STICKER)")
+    @ApiResponse(responseCode = "200", description = "PDF generated successfully")
+    public ResponseEntity<byte[]> getTableQrCodesPdf(
+        @Parameter(description = "Layout: STAND, CARD, STICKER") @RequestParam(defaultValue = "STAND") String layout,
+        @Parameter(description = "Optional table IDs list") @RequestParam(required = false) List<Long> tableIds,
+        @Parameter(description = "Include Wi-Fi pairing QR code") @RequestParam(required = false) Boolean includeWifi) {
+        byte[] pdfBytes = tableService.generateTablesQrCodePdf(tableIds, layout, includeWifi);
+        String filename = "openbar-tables-qrcodes-" + (layout != null ? layout.toLowerCase() : "stand") + ".pdf";
+
+        return ResponseEntity.ok()
+            .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + filename + "\"")
+            .contentType(MediaType.APPLICATION_PDF)
+            .body(pdfBytes);
     }
 }

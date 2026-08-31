@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
@@ -36,6 +37,9 @@ class PdfServiceTest {
 
     @Mock
     private AppSettingsService appSettingsService;
+
+    @org.mockito.Spy
+    private QrCodeService qrCodeService = new QrCodeService();
 
     @InjectMocks
     private PdfService pdfService;
@@ -451,7 +455,7 @@ class PdfServiceTest {
 
     @Test
     void generateFacturePdf_withNullConfigAndSettings_usesDefaults() {
-        PdfService fallbackPdfService = new PdfService(null, null);
+        PdfService fallbackPdfService = new PdfService(null, null, null);
         byte[] pdf = fallbackPdfService.generateFacturePdf(factureComplete);
 
         assertThat(pdf).isNotNull().isNotEmpty();
@@ -461,7 +465,7 @@ class PdfServiceTest {
 
     @Test
     void generateDailyRecapPdf_withNullConfigAndSettings_usesDefaults() {
-        PdfService fallbackPdfService = new PdfService(null, null);
+        PdfService fallbackPdfService = new PdfService(null, null, null);
         com.bar.gestioncocktail.dto.DailyRecapDTO recap = new com.bar.gestioncocktail.dto.DailyRecapDTO(
             java.time.LocalDate.now(),
             new BigDecimal("100.00"),
@@ -496,5 +500,87 @@ class PdfServiceTest {
         assertThat(pdf).isNotNull().isNotEmpty();
         String header = new String(pdf, 0, Math.min(5, pdf.length));
         assertThat(header).startsWith("%PDF");
+    }
+
+    @Test
+    void generateTableQrCodesPdf_standsLayout_generatesValidPdf() {
+        TableEntity t1 = new TableEntity();
+        t1.setId(1L);
+        t1.setNumero(1);
+        t1.setCapacite(2);
+        t1.setZone("TERRASSE");
+
+        TableEntity t2 = new TableEntity();
+        t2.setId(2L);
+        t2.setNumero(2);
+        t2.setCapacite(4);
+        t2.setZone("INTERIEUR");
+
+        byte[] pdf = pdfService.generateTableQrCodesPdf(List.of(t1, t2), "STAND", false);
+
+        assertThat(pdf).isNotNull().isNotEmpty();
+        String header = new String(pdf, 0, Math.min(5, pdf.length));
+        assertThat(header).startsWith("%PDF");
+    }
+
+    @Test
+    void generateTableQrCodesPdf_cardsLayout_generatesValidPdf() {
+        TableEntity t1 = new TableEntity();
+        t1.setId(1L);
+        t1.setNumero(1);
+        t1.setCapacite(4);
+        t1.setZone("INTERIEUR");
+
+        byte[] pdf = pdfService.generateTableQrCodesPdf(List.of(t1), "CARD", false);
+
+        assertThat(pdf).isNotNull().isNotEmpty();
+        String header = new String(pdf, 0, Math.min(5, pdf.length));
+        assertThat(header).startsWith("%PDF");
+    }
+
+    @Test
+    void generateTableQrCodesPdf_stickersLayout_generatesValidPdf() {
+        TableEntity t1 = new TableEntity();
+        t1.setId(1L);
+        t1.setNumero(1);
+        t1.setCapacite(6);
+        t1.setZone("ETAGE");
+
+        byte[] pdf = pdfService.generateTableQrCodesPdf(List.of(t1), "STICKER", false);
+
+        assertThat(pdf).isNotNull().isNotEmpty();
+        String header = new String(pdf, 0, Math.min(5, pdf.length));
+        assertThat(header).startsWith("%PDF");
+    }
+
+    @Test
+    void generateTableQrCodesPdf_withWifiEnabled_generatesValidPdf() {
+        com.bar.gestioncocktail.model.AppSettings wifiSettings = new com.bar.gestioncocktail.model.AppSettings();
+        wifiSettings.setWifiEnabled(true);
+        wifiSettings.setWifiSsid("OpenBar-Guest");
+        wifiSettings.setWifiPassword("Secret123");
+        wifiSettings.setWifiSecurity("WPA");
+        when(appSettingsService.getSettings()).thenReturn(wifiSettings);
+
+        TableEntity t1 = new TableEntity();
+        t1.setId(1L);
+        t1.setNumero(10);
+        t1.setCapacite(4);
+        t1.setZone("VIP");
+
+        byte[] pdf = pdfService.generateTableQrCodesPdf(List.of(t1), "STAND", true);
+
+        assertThat(pdf).isNotNull().isNotEmpty();
+        String header = new String(pdf, 0, Math.min(5, pdf.length));
+        assertThat(header).startsWith("%PDF");
+    }
+
+    @Test
+    void generateTableQrCodesPdf_emptyTables_throwsIllegalArgumentException() {
+        assertThatThrownBy(() -> pdfService.generateTableQrCodesPdf(List.of(), "STAND", false))
+            .isInstanceOf(IllegalArgumentException.class);
+
+        assertThatThrownBy(() -> pdfService.generateTableQrCodesPdf(null, "STAND", false))
+            .isInstanceOf(IllegalArgumentException.class);
     }
 }

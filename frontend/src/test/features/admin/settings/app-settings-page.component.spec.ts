@@ -392,4 +392,36 @@ describe('AppSettingsPageComponent', () => {
     expect(component.timeZoneOptions.some((o) => o.value === 'SYSTEM')).toBeTrue();
     expect(component.timeZoneOptions.some((o) => o.value === 'Europe/Paris')).toBeTrue();
   });
+
+  it('should expose searchable select options for Wi-Fi security and allow selecting QR tab', () => {
+    expect(component.wifiSecurityOptions.length).toBeGreaterThanOrEqual(3);
+    expect(component.wifiSecurityOptions.some((o) => o.value === 'WPA')).toBeTrue();
+
+    component.selectTab('qr');
+    expect(component.activeTab).toBe('qr');
+    expect(routerSpy.navigate).toHaveBeenCalledWith([], jasmine.objectContaining({
+      queryParams: { tab: 'qr' }
+    }));
+  });
+
+  it('should patch and save QR and Wi-Fi settings in saveAll()', fakeAsync(() => {
+    component.appSettingsForm.patchValue({
+      clientBaseUrl: 'https://bar.lan',
+      wifiSsid: 'Bar-Guest',
+      wifiPassword: 'guestpassword',
+      wifiSecurity: 'WPA',
+      wifiEnabled: true
+    });
+
+    component.saveAll();
+    tick();
+
+    expect(appSettingsServiceSpy.updateSettings).toHaveBeenCalledWith(jasmine.objectContaining({
+      clientBaseUrl: 'https://bar.lan',
+      wifiSsid: 'Bar-Guest',
+      wifiPassword: 'guestpassword',
+      wifiSecurity: 'WPA',
+      wifiEnabled: true
+    }));
+  }));
 });

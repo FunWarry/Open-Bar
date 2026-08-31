@@ -136,4 +136,14 @@ describe('TableDetailComponent', () => {
   it('isAdmin$ emits false by default', (done) => {
     component.isAdmin$.subscribe(v => { expect(v).toBe(false); done(); });
   });
+
+  it('onOpenQrModal() creates and presents TableQrModalComponent', fakeAsync(() => {
+    component.table = mockTable;
+    component.onOpenQrModal();
+    tick();
+    expect(modalCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({
+      componentProps: { table: mockTable }
+    }));
+    expect(mockChildModal.present).toHaveBeenCalled();
+  }));
 });

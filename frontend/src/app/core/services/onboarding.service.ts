@@ -39,6 +39,15 @@ export class OnboardingService {
         routeAction: '/admin/users'
       },
       {
+        id: 'admin_table_qr',
+        titleKey: 'ONBOARDING.ADMIN_TABLE_QR_TITLE',
+        descriptionKey: 'ONBOARDING.ADMIN_TABLE_QR_DESC',
+        illustrationEmoji: '📱',
+        roleTarget: 'ADMIN',
+        featureHighlightsKeys: ['ONBOARDING.ADMIN_TABLE_QR_FEAT_1', 'ONBOARDING.ADMIN_TABLE_QR_FEAT_2'],
+        routeAction: '/tables'
+      },
+      {
         id: 'admin_setup',
         titleKey: 'ONBOARDING.ADMIN_SETUP_TITLE',
         descriptionKey: 'ONBOARDING.ADMIN_SETUP_DESC',

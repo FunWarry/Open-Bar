@@ -12,7 +12,8 @@ import { addIcons } from 'ionicons';
 import {
   arrowBack, create, eye, trashOutline, closeOutline,
   restaurantOutline, peopleOutline, locationOutline,
-  timeOutline, receiptOutline, layersOutline, checkmarkCircleOutline
+  timeOutline, receiptOutline, layersOutline, checkmarkCircleOutline,
+  qrCodeOutline
 } from 'ionicons/icons';
 import { AsyncPipe, DatePipe, CommonModule } from '@angular/common';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
@@ -22,6 +23,7 @@ import { CommandeService } from '../../../core/services/commande.service';
 import { TableBar } from '../../../core/models/table.model';
 import { Commande } from '../../../core/models/commande.model';
 import { ConfirmDeleteModalComponent } from '../../../core/components/ui/confirm-delete-modal/confirm-delete-modal.component';
+import { TableQrModalComponent } from '../components/table-qr-modal/table-qr-modal.component';
 
 /**
  * Modal component for viewing detailed information about a table in OpenBar,
@@ -68,7 +70,8 @@ export class TableDetailComponent implements OnInit, OnDestroy {
     addIcons({
       arrowBack, create, eye, trashOutline, closeOutline,
       restaurantOutline, peopleOutline, locationOutline,
-      timeOutline, receiptOutline, layersOutline, checkmarkCircleOutline
+      timeOutline, receiptOutline, layersOutline, checkmarkCircleOutline,
+      qrCodeOutline
     });
   }
 
@@ -238,6 +241,18 @@ export class TableDetailComponent implements OnInit, OnDestroy {
     this.onClose().then(() => {
       this.router.navigate(['/commandes', c.id]);
     });
+  }
+
+  async onOpenQrModal(): Promise<void> {
+    if (!this.table) return;
+    const modal = await this.modalCtrl.create({
+      component: TableQrModalComponent,
+      cssClass: 'table-qr-modal-dialog',
+      componentProps: {
+        table: this.table
+      }
+    });
+    await modal.present();
   }
 
   trackById(_: number, item: any): any {

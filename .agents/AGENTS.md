@@ -62,6 +62,7 @@ Deployed as a PWA on a local WiFi network (Raspberry Pi 5 / mini-PC). No interne
 5. **i18n Parity MANDATORY for every frontend change** — any text addition or modification MUST update **both** `fr.json` AND `en.json` in the **same commit** as the component. A missing key in `en.json` is treated as a regression.
 6. **TSDoc MANDATORY (in English)** on all Angular services (`core/services/` + feature services), guards, interceptors, and NgRx store
 7. **Adaptive Theme & No Hardcoded Colors** — The application uses an adaptive theme system (Light/Dark). NEVER hardcode hex (`#1a1a2e`), RGB (`rgb(...)`), or named colors in CSS/SCSS or TS templates. Always use CSS variables from `frontend/src/theme/variables.css` (`var(--background-bg-0)`, `var(--background-surface-1)`, `var(--background-surface-2)`, `var(--text-primary)`, `var(--text-secondary)`, `var(--text-muted)`, `var(--border-medium)`, `var(--primary)`, `var(--semantic-success)`, `var(--semantic-danger)`, `var(--semantic-warning)`, `var(--semantic-info)`, etc.).
+8. **Onboarding & Configuration Update MANDATORY** — For every new feature or feature update, if applicable, systematically update the entire onboarding workflow (`/setup`, `OnboardingComponent`, `SetupComponent`, setup wizard) and configuration interfaces (`AppSettingsPageComponent`, establishment settings, seeders) to ensure the new capability is fully configurable and supported during initial establishment setup.
 
 ### Testing & Quality Assurance (Mandatory for ALL code written)
 1. **Full Test Pyramid MANDATORY for every feature / change**:

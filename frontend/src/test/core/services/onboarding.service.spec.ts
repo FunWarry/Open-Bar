@@ -59,6 +59,7 @@ describe('OnboardingService', () => {
     expect(steps.length).toBeGreaterThanOrEqual(3);
     expect(steps[0].id).toBe('welcome');
     expect(steps[1].roleTarget).toBe('ADMIN');
+    expect(steps.some(s => s.id === 'admin_table_qr')).toBeTrue();
   });
 
   it('getStepsForRole should return MANAGER tailored tutorial steps', () => {

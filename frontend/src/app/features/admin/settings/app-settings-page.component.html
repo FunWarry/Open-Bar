@@ -52,6 +52,16 @@
       <ion-icon name="color-palette-outline"></ion-icon>
       <span>{{ 'SETTINGS.TAB_THEME' | transloco }}</span>
     </button>
+
+    <button
+      type="button"
+      class="tab-btn"
+      [class.active]="activeTab === 'qr'"
+      (click)="selectTab('qr')"
+      data-testid="tab-qr">
+      <ion-icon name="qr-code-outline"></ion-icon>
+      <span>{{ 'SETTINGS.TAB_QR' | transloco }}</span>
+    </button>
   </nav>
 
   @if (isLoading) {
@@ -844,6 +854,140 @@
               </ion-col>
             </ion-row>
           </ion-grid>
+        </section>
+      }
+
+      <!-- ========================================== -->
+      <!-- TAB 5: QR Codes & Wi-Fi Client            -->
+      <!-- ========================================== -->
+      @if (activeTab === 'qr') {
+        <section class="tab-panel" data-testid="panel-qr">
+          <form [formGroup]="appSettingsForm" class="settings-form">
+            <ion-grid>
+              <ion-row>
+                <!-- Column 1: Client Ordering Base URL & Wi-Fi Parameters -->
+                <ion-col size="12" size-lg="7">
+                  <ion-card class="settings-card">
+                    <ion-card-header>
+                      <ion-card-title>
+                        <ion-icon name="qr-code-outline" class="card-title-icon"></ion-icon>
+                        {{ 'SETTINGS.QR_SECTION_TITLE' | transloco }}
+                      </ion-card-title>
+                    </ion-card-header>
+                    <ion-card-content>
+                      <p class="section-intro-text">
+                        {{ 'SETTINGS.QR_SECTION_DESC' | transloco }}
+                      </p>
+
+                      <!-- Base URL Input -->
+                      <div class="form-group-block">
+                        <app-input-field
+                          formControlName="clientBaseUrl"
+                          [label]="'SETTINGS.QR_CLIENT_BASE_URL' | transloco"
+                          [helperText]="'SETTINGS.QR_CLIENT_BASE_URL_HINT' | transloco"
+                          placeholder="https://openbar.lan"
+                          testId="input-client-base-url">
+                        </app-input-field>
+                      </div>
+
+                      <div class="divider-line"></div>
+
+                      <!-- Wi-Fi Network Setup -->
+                      <div class="form-section-subtitle">
+                        <ion-icon name="wifi-outline"></ion-icon>
+                        <span>{{ 'SETTINGS.QR_WIFI_CONFIG_TITLE' | transloco }}</span>
+                      </div>
+
+                      <!-- Enable Wi-Fi Toggle -->
+                      <div class="toggle-row-box">
+                        <div class="toggle-info">
+                          <label class="toggle-title" for="wifi-enabled-toggle">{{ 'SETTINGS.QR_WIFI_ENABLED_LABEL' | transloco }}</label>
+                          <span class="toggle-desc">{{ 'SETTINGS.QR_WIFI_ENABLED_HINT' | transloco }}</span>
+                        </div>
+                        <input
+                          id="wifi-enabled-toggle"
+                          type="checkbox"
+                          formControlName="wifiEnabled"
+                          class="switch-input"
+                          data-testid="toggle-wifi-enabled" />
+                      </div>
+
+                      @if (appSettingsForm.get('wifiEnabled')?.value) {
+                        <div class="wifi-fields-container">
+                          <!-- Wi-Fi SSID -->
+                          <app-input-field
+                            formControlName="wifiSsid"
+                            [label]="'SETTINGS.QR_WIFI_SSID' | transloco"
+                            [helperText]="'SETTINGS.QR_WIFI_SSID_HINT' | transloco"
+                            placeholder="OpenBar-Guest"
+                            testId="input-wifi-ssid">
+                          </app-input-field>
+
+                          <!-- Wi-Fi Password -->
+                          <app-input-field
+                            formControlName="wifiPassword"
+                            [label]="'SETTINGS.QR_WIFI_PASSWORD' | transloco"
+                            [helperText]="'SETTINGS.QR_WIFI_PASSWORD_HINT' | transloco"
+                            placeholder="secretpass123"
+                            testId="input-wifi-password">
+                          </app-input-field>
+
+                          <!-- Wi-Fi Security Dropdown -->
+                          <div class="dropdown-wrapper">
+                            <app-searchable-select
+                              formControlName="wifiSecurity"
+                              [label]="'SETTINGS.QR_WIFI_SECURITY' | transloco"
+                              [options]="wifiSecurityOptions"
+                              [clearable]="false"
+                              [enableSearch]="false"
+                              testId="select-wifi-security">
+                            </app-searchable-select>
+                          </div>
+                        </div>
+                      }
+                    </ion-card-content>
+                  </ion-card>
+                </ion-col>
+
+                <!-- Column 2: Live QR Stand & Wi-Fi Preview Card -->
+                <ion-col size="12" size-lg="5">
+                  <ion-card class="settings-card sticky-preview-card">
+                    <ion-card-header>
+                      <ion-card-title>
+                        <ion-icon name="sparkles-outline" class="card-title-icon"></ion-icon>
+                        {{ 'SETTINGS.QR_PREVIEW_TITLE' | transloco }}
+                      </ion-card-title>
+                    </ion-card-header>
+                    <ion-card-content>
+                      <div class="stand-preview-mockup">
+                        <div class="mockup-stand-header">
+                          <span class="mockup-establishment-name">{{ appSettingsForm.get('establishmentName')?.value || 'OpenBar' }}</span>
+                          <span class="mockup-table-pill">Table 4</span>
+                        </div>
+                        <div class="mockup-qr-box">
+                          <ion-icon name="qr-code-outline" class="mockup-qr-icon"></ion-icon>
+                          <span class="mockup-scan-text">{{ 'TABLES.QR_SCAN_INSTRUCTION' | transloco }}</span>
+                        </div>
+                        <div class="mockup-url-text">
+                          {{ (appSettingsForm.get('clientBaseUrl')?.value || 'https://openbar.lan') }}/client/commande?table=4
+                        </div>
+
+                        @if (appSettingsForm.get('wifiEnabled')?.value && appSettingsForm.get('wifiSsid')?.value) {
+                          <div class="mockup-wifi-badge">
+                            <ion-icon name="wifi-outline"></ion-icon>
+                            <div class="mockup-wifi-text">
+                              <strong data-testid="preview-stand-ssid">Wi-Fi : {{ appSettingsForm.get('wifiSsid')?.value }}</strong>
+                              <span *ngIf="appSettingsForm.get('wifiPassword')?.value">Pass : {{ appSettingsForm.get('wifiPassword')?.value }}</span>
+                            </div>
+                          </div>
+                        }
+                      </div>
+                    </ion-card-content>
+                  </ion-card>
+                </ion-col>
+              </ion-row>
+            </ion-grid>
+          </form>
         </section>
       }
     </main>

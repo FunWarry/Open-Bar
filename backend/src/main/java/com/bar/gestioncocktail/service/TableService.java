@@ -28,19 +28,28 @@ public class TableService {
     private final AuditLogService auditLogService;
     private final TimeService timeService;
     private final SimpMessagingTemplate messagingTemplate;
+    private final AppSettingsService appSettingsService;
+    private final QrCodeService qrCodeService;
+    private final PdfService pdfService;
 
     public TableService(TableRepository tableRepository,
                         CommandeRepository commandeRepository,
                         com.bar.gestioncocktail.repository.FactureRepository factureRepository,
                         AuditLogService auditLogService,
                         TimeService timeService,
-                        SimpMessagingTemplate messagingTemplate) {
+                        SimpMessagingTemplate messagingTemplate,
+                        AppSettingsService appSettingsService,
+                        QrCodeService qrCodeService,
+                        PdfService pdfService) {
         this.tableRepository = tableRepository;
         this.commandeRepository = commandeRepository;
         this.factureRepository = factureRepository;
         this.auditLogService = auditLogService;
         this.timeService = timeService;
         this.messagingTemplate = messagingTemplate;
+        this.appSettingsService = appSettingsService;
+        this.qrCodeService = qrCodeService;
+        this.pdfService = pdfService;
     }
 
     @Transactional
@@ -328,5 +337,67 @@ public class TableService {
                 // Safe handling of WebSocket delivery
             }
         }
+    }
+
+    /**
+     * Generates a QR code image for a specific table in PNG or SVG format.
+     *
+     * @param id Table identifier
+     * @param format Output format (PNG or SVG)
+     * @param size Dimension in pixels / points
+     * @return Generated image bytes (PNG bytes or SVG UTF-8 bytes)
+     */
+    @Transactional(readOnly = true)
+    public byte[] generateTableQrCode(Long id, String format, int size) {
+        TableEntity table = tableRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException(TABLE_NOT_FOUND_MSG + id));
+
+        String clientBaseUrl = "https://openbar.lan";
+        if (appSettingsService != null) {
+            com.bar.gestioncocktail.model.AppSettings settings = appSettingsService.getSettings();
+            if (settings != null && settings.getClientBaseUrl() != null && !settings.getClientBaseUrl().isBlank()) {
+                clientBaseUrl = settings.getClientBaseUrl();
+            }
+        }
+
+        String tableUrl = qrCodeService != null
+            ? qrCodeService.buildTableOrderUrl(clientBaseUrl, table.getNumero())
+            : clientBaseUrl + "/client/commande?table=" + table.getNumero();
+
+        int dimension = size > 0 ? size : 300;
+        if ("SVG".equalsIgnoreCase(format)) {
+            String svg = qrCodeService != null ? qrCodeService.generateSvg(tableUrl, dimension) : "<svg></svg>";
+            return svg.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        }
+        return qrCodeService != null ? qrCodeService.generatePng(tableUrl, dimension, dimension) : new byte[0];
+    }
+
+    /**
+     * Generates a printable A4 PDF containing table QR codes, stands, cards, or stickers.
+     *
+     * @param tableIds Optional list of table IDs (if empty, all tables are included)
+     * @param layout Layout type (STAND, CARD, STICKER)
+     * @param includeWifi Whether to include Wi-Fi info
+     * @return Generated PDF byte array
+     */
+    @Transactional(readOnly = true)
+    public byte[] generateTablesQrCodePdf(List<Long> tableIds, String layout, Boolean includeWifi) {
+        List<TableEntity> tables;
+        if (tableIds != null && !tableIds.isEmpty()) {
+            tables = tableRepository.findAllById(tableIds).stream()
+                .sorted(java.util.Comparator.comparingInt(t -> t.getNumero() != null ? t.getNumero() : 0))
+                .toList();
+        } else {
+            tables = tableRepository.findAll().stream()
+                .sorted(java.util.Comparator.comparingInt(t -> t.getNumero() != null ? t.getNumero() : 0))
+                .toList();
+        }
+        if (tables.isEmpty()) {
+            throw new BusinessException("No tables found to generate QR codes");
+        }
+        if (pdfService == null) {
+            throw new IllegalStateException("PdfService is not configured");
+        }
+        return pdfService.generateTableQrCodesPdf(tables, layout, includeWifi);
     }
 }

@@ -36,6 +36,12 @@ class TableServiceTest {
     AuditLogService auditLogService;
     @Mock
     org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
+    @Mock
+    AppSettingsService appSettingsService;
+    @Mock
+    QrCodeService qrCodeService;
+    @Mock
+    PdfService pdfService;
     @Spy
     TimeService timeService = new TimeService(null);
 
@@ -329,5 +335,73 @@ class TableServiceTest {
         assertThat(updated.getPlanHeight()).isEqualTo(120.0);
         assertThat(updated.getPlanRotation()).isEqualTo(180.0);
         assertThat(updated.getPlanForme()).isEqualTo("ROND");
+    }
+
+    @Test
+    void generateTableQrCode_pngFormat_returnsPngBytes() {
+        when(tableRepository.findById(1L)).thenReturn(Optional.of(table));
+        com.bar.gestioncocktail.model.AppSettings settings = new com.bar.gestioncocktail.model.AppSettings();
+        settings.setClientBaseUrl("https://openbar.lan");
+        when(appSettingsService.getSettings()).thenReturn(settings);
+        when(qrCodeService.buildTableOrderUrl("https://openbar.lan", 5)).thenReturn("https://openbar.lan/client/commande?table=5");
+        when(qrCodeService.generatePng("https://openbar.lan/client/commande?table=5", 300, 300)).thenReturn(new byte[]{1, 2, 3});
+
+        byte[] result = tableService.generateTableQrCode(1L, "PNG", 300);
+
+        assertThat(result).isEqualTo(new byte[]{1, 2, 3});
+    }
+
+    @Test
+    void generateTableQrCode_svgFormat_returnsSvgBytes() {
+        when(tableRepository.findById(1L)).thenReturn(Optional.of(table));
+        com.bar.gestioncocktail.model.AppSettings settings = new com.bar.gestioncocktail.model.AppSettings();
+        settings.setClientBaseUrl("https://openbar.lan");
+        when(appSettingsService.getSettings()).thenReturn(settings);
+        when(qrCodeService.buildTableOrderUrl("https://openbar.lan", 5)).thenReturn("https://openbar.lan/client/commande?table=5");
+        when(qrCodeService.generateSvg("https://openbar.lan/client/commande?table=5", 250)).thenReturn("<svg></svg>");
+
+        byte[] result = tableService.generateTableQrCode(1L, "SVG", 250);
+
+        assertThat(new String(result)).isEqualTo("<svg></svg>");
+    }
+
+    @Test
+    void generateTableQrCode_tableNotFound_throwsResourceNotFoundException() {
+        when(tableRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> tableService.generateTableQrCode(99L, "PNG", 300))
+            .isInstanceOf(com.bar.gestioncocktail.exception.ResourceNotFoundException.class)
+            .hasMessageContaining("Table not found with id: 99");
+    }
+
+    @Test
+    void generateTablesQrCodePdf_allTables_callsPdfService() {
+        when(tableRepository.findAll()).thenReturn(List.of(table));
+        when(pdfService.generateTableQrCodesPdf(anyList(), eq("STAND"), eq(true))).thenReturn(new byte[]{37, 80, 68, 70});
+
+        byte[] pdf = tableService.generateTablesQrCodePdf(null, "STAND", true);
+
+        assertThat(pdf).isEqualTo(new byte[]{37, 80, 68, 70});
+        verify(pdfService).generateTableQrCodesPdf(List.of(table), "STAND", true);
+    }
+
+    @Test
+    void generateTablesQrCodePdf_specificTableIds_callsPdfService() {
+        when(tableRepository.findAllById(List.of(1L))).thenReturn(List.of(table));
+        when(pdfService.generateTableQrCodesPdf(anyList(), eq("CARD"), eq(false))).thenReturn(new byte[]{37, 80, 68, 70});
+
+        byte[] pdf = tableService.generateTablesQrCodePdf(List.of(1L), "CARD", false);
+
+        assertThat(pdf).isEqualTo(new byte[]{37, 80, 68, 70});
+        verify(pdfService).generateTableQrCodesPdf(List.of(table), "CARD", false);
+    }
+
+    @Test
+    void generateTablesQrCodePdf_noTablesFound_throwsBusinessException() {
+        when(tableRepository.findAll()).thenReturn(List.of());
+
+        assertThatThrownBy(() -> tableService.generateTablesQrCodePdf(null, "STAND", false))
+            .isInstanceOf(BusinessException.class)
+            .hasMessageContaining("No tables found to generate QR codes");
     }
 }
