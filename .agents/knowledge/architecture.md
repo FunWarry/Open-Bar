@@ -113,6 +113,7 @@ cocktails >── glassware                 ← Service glass definition & capac
 tables ──< factures ──< facture_items
                     └──< facture_reglements       ← Persistent split settlement shares & receipt breakdown
 tables ──< table_sessions              ← Client QR code temporary session
+tables ──< table_appels                ← Patron assistance & bill request alerts
 zones ──< tables                       ← Floor plan polygon coordinates
 establishment_closures                 ← Exceptional closures & recurring holidays
 shift_presets                          ← Predefined shift templates
@@ -129,7 +130,7 @@ app_settings                           ← Global admin customization singleton
 |------|-------------|-----------------|
 | `ADMIN` | Technical maintenance & setup | User CRUD, full system access, app settings |
 | `MANAGER` | Bar supervision (primary business role) | Analytics, order cancellation, stock toggle, shift & schedule management |
-| `SERVEUR` | Order intake & table service | Create/cancel orders, table tracking, personal shift view, table billing/encaissement |
+| `SERVEUR` | Order intake & table service | Create/cancel orders, table tracking, personal shift view, table billing/encaissement, table call acknowledgement |
 | `BARMAN` | Drink preparation & stock | Order status progression, cocktail/ingredient recipe view, stock outage toggles |
 
 **NgRx Selectors**: `selectIsAdmin`, `selectIsManager`, `selectIsBarman`, `selectIsAuthenticated`, `selectCurrentUser`
@@ -154,6 +155,8 @@ EN_ATTENTE → EN_PREPARATION → PRET → LIVREE → REGLEE
 | `/topic/tables` | Table occupied / liberated / updated |
 | `/topic/stock/alerte` | Low stock alert triggered |
 | `/topic/schedule-publications` | Team schedule published |
+| `/topic/serveur/appels` | Table assistance / bill request alert triggered |
+| `/topic/table/{tableId}/appels` | Table alert acknowledgement / resolution update |
 
 ---
 
