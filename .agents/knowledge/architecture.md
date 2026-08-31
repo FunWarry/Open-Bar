@@ -27,7 +27,8 @@
 | HTTP | RxJS / HttpClient | 7.8 | |
 | i18n | Transloco (`@jsverse/transloco`) | — | All user-visible text must use `{{ 'KEY' | transloco }}` |
 | Canvas | Konva.js | — | Interactive 2D floor plan |
-| PDF | OpenPDF | 2.0.3 | Legal invoices and receipts |
+| PDF | OpenPDF | 2.0.3 | Legal invoices, receipts, and table stand sheets |
+| QR Codes | ZXing | 3.5.3 | High-contrast QR matrix generation (PNG, SVG, Wi-Fi standard schema) |
 | Backend tests | JUnit 5 + Mockito + Testcontainers | — | Unit + Spring Boot integration tests with isolated PostgreSQL |
 | Frontend tests | Karma + Jasmine | — | Headless browser unit tests |
 | E2E tests | Playwright | 1.50+ | End-to-end browser tests (Chromium headless) |
