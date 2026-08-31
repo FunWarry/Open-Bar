@@ -40,6 +40,7 @@ public class Commande {
     private BigDecimal pourboire;
     private LocalDateTime dateCommande;
     private LocalDateTime datePreparation;
+    private LocalDateTime datePret;
     private LocalDateTime dateLivraison;
     private LocalDateTime dateReglement;
     private LocalDateTime createdAt;

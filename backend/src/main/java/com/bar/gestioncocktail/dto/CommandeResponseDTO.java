@@ -24,7 +24,8 @@ import java.util.List;
  * @param pourboire Tip amount
  * @param dateCommande Order placement timestamp
  * @param datePreparation Preparation start timestamp (Bartender)
- * @param dateLivraison Delivery timestamp
+ * @param datePret Order ready for delivery timestamp (Bartender ready)
+ * @param dateLivraison Delivery timestamp (Server served to table)
  * @param dateReglement Settlement timestamp
  * @param createdAt Database creation timestamp
  * @param updatedAt Last modification timestamp
@@ -43,6 +44,7 @@ public record CommandeResponseDTO(
     BigDecimal pourboire,
     LocalDateTime dateCommande,
     LocalDateTime datePreparation,
+    LocalDateTime datePret,
     LocalDateTime dateLivraison,
     LocalDateTime dateReglement,
     LocalDateTime createdAt,
@@ -99,6 +101,7 @@ public record CommandeResponseDTO(
             c.getPourboire(),
             c.getDateCommande(),
             c.getDatePreparation(),
+            c.getDatePret(),
             c.getDateLivraison(),
             c.getDateReglement(),
             c.getCreatedAt(),

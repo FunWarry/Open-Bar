@@ -196,6 +196,7 @@ CREATE TABLE IF NOT EXISTS commandes (
     pourboire DECIMAL(10,2),
     date_commande TIMESTAMP NOT NULL,
     date_preparation TIMESTAMP,
+    date_pret TIMESTAMP,
     date_livraison TIMESTAMP,
     date_reglement TIMESTAMP,
     date_modification TIMESTAMP,

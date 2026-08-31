@@ -227,6 +227,9 @@ public class CommandeService {
                     destockerIngredients(commande);
                 }
                 break;
+            case PRET:
+                commande.setDatePret(timeService.now());
+                break;
             case LIVREE:
                 commande.setDateLivraison(timeService.now());
                 break;

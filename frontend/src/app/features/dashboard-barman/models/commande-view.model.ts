@@ -14,6 +14,7 @@ export interface CommandeView {
   notes?: string;
   dateCommande: Date | string;
   datePreparation?: Date | string;
+  datePret?: Date | string;
   dateLivraison?: Date | string;
   prioritaire: boolean;
   total?: number;
