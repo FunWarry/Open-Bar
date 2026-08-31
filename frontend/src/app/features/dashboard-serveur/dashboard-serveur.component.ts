@@ -30,6 +30,8 @@ import { EncaissementModalComponent } from './components/encaissement-modal/enca
 import { NotificationService } from '../../core/services/notification.service';
 import { WebSocketService } from '../../core/services/websocket.service';
 import { DashboardServeurService, EtageItem, ZoneItem } from './services/dashboard-serveur.service';
+import { TableAppelService } from '../../core/services/table-appel.service';
+import { TableAppel } from '../../core/models/table-appel.model';
 import { safeCompleteRefresher } from '../../core/utils/refresher-utils';
 import { fastModalEnterAnimation, fastModalLeaveAnimation } from '../../core/utils/modal-animation.utils';
 import { TableView } from './models/table-view.model';
@@ -180,6 +182,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
 
   constructor(
     private readonly service: DashboardServeurService,
+    public readonly tableAppelService: TableAppelService,
     private readonly planSalleService: PlanSalleService,
     private readonly zoneService: ZoneService,
     private readonly cocktailService: CocktailService,
@@ -209,6 +212,12 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
   ngOnInit() {
     this.chargerFiltresSauvegardes();
     this.chargerDonnees();
+
+    this.tableAppelService.appelEvents$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.chargerTables();
+      });
 
     this.route.queryParams
       .pipe(takeUntil(this.destroy$))
@@ -299,6 +308,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
     forkJoin({
       tables:    this.service.getAllTables(),
       commandes: this.service.getAllCommandes(),
+      appels:    this.tableAppelService.getAppelsActifs().pipe(catchError(() => of([]))),
       etages:    this.service.getEtages(),
       zones:     this.zoneService.getAll().pipe(catchError(() => this.service.getZones())),
       positions: this.planSalleService.getPositions(),
@@ -312,7 +322,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
       }),
     )
     .subscribe({
-      next: ({ tables, commandes, etages, zones, positions, cocktails }) => {
+      next: ({ tables, commandes, appels, etages, zones, positions, cocktails }) => {
         this.etagesList = etages;
         const rawZones = (zones || []) as ZoneBar[];
         this.zonesList = rawZones.map(z => ({ id: z.id ?? 0, nom: z.nom, etage: z.etage }));
@@ -342,7 +352,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
         this.positionsMap.clear();
         positions.forEach(p => this.positionsMap.set(p.tableId, p));
 
-        this.tables = this.enrichTablesWithOrders(tables, commandes);
+        this.tables = this.enrichTablesWithOrders(tables, commandes, appels || []);
         this.filtrer();
       },
       error: () => {
@@ -359,6 +369,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
     forkJoin({
       tables: this.service.getAllTables(),
       commandes: this.service.getAllCommandes(),
+      appels: this.tableAppelService.getAppelsActifs().pipe(catchError(() => of([]))),
     })
       .pipe(
         takeUntil(this.destroy$),
@@ -367,8 +378,8 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
         }),
       )
       .subscribe({
-        next: ({ tables, commandes }) => {
-          this.tables = this.enrichTablesWithOrders(tables, commandes);
+        next: ({ tables, commandes, appels }) => {
+          this.tables = this.enrichTablesWithOrders(tables, commandes, appels || []);
           this.filtrer();
         },
         error: () => {
@@ -381,13 +392,63 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
       });
   }
 
-  private enrichTablesWithOrders(tables: TableView[], commandes: Commande[]): TableView[] {
+  /**
+   * Acknowledges a specific table call alert.
+   *
+   * @param appel Target table call alert
+   * @param event Optional DOM event to stop propagation
+   */
+  acquitterAppel(appel: TableAppel, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.tableAppelService.acquitterAppel(appel.tableId, appel.id).subscribe({
+      next: async () => {
+        const toast = await this.toastCtrl.create({
+          message: this.translocoService.translate('SERVEUR.ALERTS.ACKNOWLEDGE_SUCCESS'),
+          duration: 2500,
+          color: 'success',
+        });
+        await toast.present();
+        this.chargerTables();
+      },
+    });
+  }
+
+  /**
+   * Acknowledges all active alerts for a given table.
+   *
+   * @param tableId Target table identifier
+   * @param event Optional DOM event to stop propagation
+   */
+  acquitterTousAppels(tableId: number, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.tableAppelService.acquitterTousAppels(tableId).subscribe({
+      next: async () => {
+        const toast = await this.toastCtrl.create({
+          message: this.translocoService.translate('SERVEUR.ALERTS.ACKNOWLEDGE_SUCCESS'),
+          duration: 2500,
+          color: 'success',
+        });
+        await toast.present();
+        this.chargerTables();
+      },
+    });
+  }
+
+  private enrichTablesWithOrders(tables: TableView[], commandes: Commande[], appels: TableAppel[] = []): TableView[] {
     const now = Date.now();
     return tables.map((t, idx) => {
       const pos = this.positionsMap.get(t.id);
       const zoneObj = this.zonesList.find(z => z.nom.toLowerCase() === (t.zone || '').toLowerCase());
       const defaultX = PLAN_MARGIN + (idx % PLAN_COLS) * (PLAN_TABLE_SIZE + PLAN_GAP);
       const defaultY = PLAN_MARGIN + Math.floor(idx / PLAN_COLS) * (PLAN_TABLE_SIZE + PLAN_GAP);
+
+      // All active alerts for this table
+      const activeAppels = (appels || []).filter(a => a.tableId === t.id && a.statut === 'EN_ATTENTE');
+      const activeAppelType = activeAppels.length > 0 ? activeAppels[0].type : null;
 
       // All unpaid active orders for this table (including delivered orders waiting for payment)
       const allUnpaidOrders = (commandes || []).filter(
@@ -431,6 +492,8 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
         planForme: pos?.shape === 'circle' ? 'ROND' : 'CARRE',
         planRotation: pos?.rotation ?? 0,
         commandesActives,
+        activeAppels,
+        activeAppelType,
         activeTotal,
         waitTimeMinutes: maxWait,
       };
@@ -1192,6 +1255,60 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
       const labelGroup = this.createTableLabelGroup(table, W, rotation, waitTime, mainColor);
 
       group.add(shapeNode, labelGroup);
+
+      // Render pulsing alert ring & badge if there is an active table call or bill request
+      if (table.activeAppels && table.activeAppels.length > 0) {
+        const isBill = table.activeAppelType === 'ADDITION';
+        const alertColor = isBill ? '#f0a33b' : '#e5604f';
+
+        let alertRing: Konva.Shape;
+        if (shapeType === 'circle') {
+          alertRing = new Konva.Ellipse({
+            radiusX: (W / 2) + 6,
+            radiusY: (H / 2) + 6,
+            stroke: alertColor,
+            strokeWidth: 3,
+            dash: [6, 4],
+            name: 'alert-ring',
+          });
+        } else {
+          alertRing = new Konva.Rect({
+            width: W + 12,
+            height: H + 12,
+            offsetX: (W + 12) / 2,
+            offsetY: (H + 12) / 2,
+            cornerRadius: 12,
+            stroke: alertColor,
+            strokeWidth: 3,
+            dash: [6, 4],
+            name: 'alert-ring',
+          });
+        }
+
+        const alertBadgeGroup = new Konva.Group({
+          x: (W / 2) - 4,
+          y: (-H / 2) + 4,
+          name: 'alert-badge',
+        });
+        const badgeCircle = new Konva.Circle({
+          radius: 12,
+          fill: alertColor,
+          shadowColor: alertColor,
+          shadowBlur: 8,
+          shadowOpacity: 0.6,
+        });
+        const badgeIcon = new Konva.Text({
+          text: isBill ? '💳' : '🔔',
+          fontSize: 12,
+          align: 'center',
+          verticalAlign: 'middle',
+          offsetX: 6,
+          offsetY: 6,
+        });
+        alertBadgeGroup.add(badgeCircle, badgeIcon);
+
+        group.add(alertRing, alertBadgeGroup);
+      }
 
       group.on('mouseenter', () => {
         const el = this.konvaContainerRef?.nativeElement;

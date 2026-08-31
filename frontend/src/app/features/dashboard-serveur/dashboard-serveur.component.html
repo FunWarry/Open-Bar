@@ -6,6 +6,37 @@
 
   <!-- ONGLET 1 : TABLES SERVEUR -->
   <ng-container *ngIf="activeTab === 'tables'">
+    <!-- Top Active Table Calls & Assistance Banner -->
+    @if (tableAppelService.activeAppels().length > 0) {
+      <div class="active-calls-banner" data-testid="active-calls-banner">
+        <div class="banner-header">
+          <div class="banner-title-group">
+            <span class="banner-icon pulse">🔔</span>
+            <span class="banner-title">{{ 'SERVEUR.ALERTS.ACTIVE_CALLS_TITLE' | transloco: { count: tableAppelService.activeAppels().length } }}</span>
+          </div>
+        </div>
+        <div class="banner-calls-list">
+          @for (appel of tableAppelService.activeAppels(); track appel.id) {
+            <div class="call-item-pill" [class.bill-call]="appel.type === 'ADDITION'" [attr.data-testid]="'call-pill-' + appel.id">
+              <span class="call-type-icon">{{ appel.type === 'ADDITION' ? '💳' : '🔔' }}</span>
+              <span class="call-table-text">Table {{ appel.tableNumero || appel.tableId }}</span>
+              <span class="call-type-text">{{ (appel.type === 'ADDITION' ? 'SERVEUR.ALERTS.BILL_REQUEST' : 'SERVEUR.ALERTS.ASSISTANCE_REQUEST') | transloco }}</span>
+              @if (appel.commentaire) {
+                <span class="call-comment-text">"{{ appel.commentaire }}"</span>
+              }
+              <button
+                type="button"
+                class="ack-call-btn"
+                [attr.data-testid]="'btn-ack-call-' + appel.id"
+                (click)="acquitterAppel(appel, $event)">
+                ✓ {{ 'SERVEUR.ALERTS.ACKNOWLEDGE_BTN' | transloco }}
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
     <!-- CONTROLS CARD (COMPARAISON AVEC LA PAGE TABLES) -->
     <div class="controls-card">
       <!-- LIGNE SUPERIEURE : SEARCHBAR & PILLULES STATUT -->
@@ -179,7 +210,8 @@
             (tableSelect)="onSelectionner($event)"
             (newOrder)="onNewOrderForTable($event)"
             (occupyTable)="onOccupyTable($event)"
-            (freeTable)="onFreeTable($event)">
+            (freeTable)="onFreeTable($event)"
+            (ackAppel)="acquitterAppel($event)">
           </app-mobile-table-card>
         </div>
       </div>
@@ -210,7 +242,8 @@
             (tableSelect)="onSelectionner($event)"
             (newOrder)="onNewOrderForTable($event)"
             (occupyTable)="onOccupyTable($event)"
-            (freeTable)="onFreeTable($event)">
+            (freeTable)="onFreeTable($event)"
+            (ackAppel)="acquitterAppel($event)">
           </app-mobile-table-card>
         </div>
       </div>
@@ -227,7 +260,8 @@
         (tableSelect)="onSelectionner($event)"
         (newOrder)="onNewOrderForTable($event)"
         (occupyTable)="onOccupyTable($event)"
-        (freeTable)="onFreeTable($event)">
+        (freeTable)="onFreeTable($event)"
+        (ackAppel)="acquitterAppel($event)">
       </app-mobile-table-card>
     </div>
 

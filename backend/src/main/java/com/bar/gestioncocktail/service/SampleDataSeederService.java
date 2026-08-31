@@ -51,6 +51,8 @@ public class SampleDataSeederService {
     private static final String PLAN_WIDTH = "planWidth";
     private static final String PLAN_HEIGHT = "planHeight";
     private static final String KEY_NUMERO = "numero";
+    private static final String KEY_TABLE_NUMERO = "tableNumero";
+    private static final String KEY_MINUTES_AGO = "minutesAgo";
     private static final String KEY_DUREE_PAUSE_MINUTES = "dureePauseMinutes";
     private static final String KEY_MODE_PAIEMENT = "modePaiement";
     private static final String KEY_POURBOIRE = "pourboire";
@@ -71,6 +73,7 @@ public class SampleDataSeederService {
     private final EmployeeShiftRepository employeeShiftRepository;
     private final EstablishmentClosureRepository establishmentClosureRepository;
     private final WeekSchedulePublicationRepository weekSchedulePublicationRepository;
+    private final TableAppelRepository tableAppelRepository;
     private final PasswordEncoder passwordEncoder;
     private final TimeService timeService;
     private final PlatformTransactionManager transactionManager;
@@ -92,6 +95,7 @@ public class SampleDataSeederService {
             EmployeeShiftRepository employeeShiftRepository,
             EstablishmentClosureRepository establishmentClosureRepository,
             WeekSchedulePublicationRepository weekSchedulePublicationRepository,
+            TableAppelRepository tableAppelRepository,
             PasswordEncoder passwordEncoder,
             TimeService timeService,
             PlatformTransactionManager transactionManager) {
@@ -110,6 +114,7 @@ public class SampleDataSeederService {
         this.employeeShiftRepository = employeeShiftRepository;
         this.establishmentClosureRepository = establishmentClosureRepository;
         this.weekSchedulePublicationRepository = weekSchedulePublicationRepository;
+        this.tableAppelRepository = tableAppelRepository;
         this.passwordEncoder = passwordEncoder;
         this.timeService = timeService;
         this.transactionManager = transactionManager;
@@ -152,6 +157,7 @@ public class SampleDataSeederService {
             Map<String, RecipeStepTemplate> templatesMap = seedRecipeStepTemplatesFromJson(root.get("recipe_step_templates"));
             seedCocktailRecipeStepsFromJson(root.get("cocktail_recipe_steps"), templatesMap);
             seedStockAdjustmentsFromJson(root.get("stock_adjustments"));
+            seedTableAppelsFromJson(root.get("table_appels"), tablesMap);
 
             if (commandeRepository.count() == 0) {
                 List<Cocktail> cocktails = cocktailRepository.findAll();
@@ -503,10 +509,10 @@ public class SampleDataSeederService {
     }
 
     private void createSingleOrderFromJson(JsonNode oNode, Map<String, User> usersMap, Map<Integer, TableEntity> tablesMap, List<Cocktail> cocktails) {
-        int tableNumero = oNode.get("tableNumero").asInt();
+        int tableNumero = oNode.get(KEY_TABLE_NUMERO).asInt();
         String serveurUsername = oNode.hasNonNull(KEY_SERVEUR_USERNAME) ? oNode.get(KEY_SERVEUR_USERNAME).asText() : null;
         CommandeStatut statut = CommandeStatut.valueOf(oNode.get("statut").asText());
-        int minutesAgo = oNode.get("minutesAgo").asInt();
+        int minutesAgo = oNode.get(KEY_MINUTES_AGO).asInt();
         String trackingToken = oNode.hasNonNull("trackingToken") ? oNode.get("trackingToken").asText() : null;
         String notes = oNode.hasNonNull(KEY_NOTES) ? oNode.get(KEY_NOTES).asText() : null;
 
@@ -579,11 +585,11 @@ public class SampleDataSeederService {
 
     private void createSingleInvoiceFromJson(JsonNode invNode, Map<Integer, TableEntity> tablesMap) {
         String numero = invNode.get(KEY_NUMERO).asText();
-        int tableNumero = invNode.get("tableNumero").asInt();
+        int tableNumero = invNode.get(KEY_TABLE_NUMERO).asInt();
         boolean reglee = invNode.get("reglee").asBoolean();
         String modePaiement = invNode.hasNonNull(KEY_MODE_PAIEMENT) ? invNode.get(KEY_MODE_PAIEMENT).asText() : null;
         BigDecimal pourboire = invNode.has(KEY_POURBOIRE) ? new BigDecimal(invNode.get(KEY_POURBOIRE).asText()) : BigDecimal.ZERO;
-        int minutesAgo = invNode.get("minutesAgo").asInt();
+        int minutesAgo = invNode.get(KEY_MINUTES_AGO).asInt();
         String notes = invNode.hasNonNull(KEY_NOTES) ? invNode.get(KEY_NOTES).asText() : null;
 
         TableEntity table = tablesMap.get(tableNumero);
@@ -825,5 +831,45 @@ public class SampleDataSeederService {
         step.setCreatedAt(timeService.now());
         step.setUpdatedAt(timeService.now());
         return step;
+    }
+
+    private void seedTableAppelsFromJson(JsonNode appelsNode, Map<Integer, TableEntity> tablesMap) {
+        if (appelsNode == null || !appelsNode.isArray() || tableAppelRepository.count() > 0) {
+            return;
+        }
+
+        LocalDateTime now = timeService.now();
+
+        for (JsonNode appelNode : appelsNode) {
+            int tableNumero = appelNode.path(KEY_TABLE_NUMERO).asInt(1);
+            TableEntity table = tablesMap.get(tableNumero);
+            if (table == null) {
+                table = tableRepository.findByNumero(tableNumero).orElse(null);
+            }
+            if (table == null) {
+                continue;
+            }
+
+            TableAppelType type = TableAppelType.valueOf(appelNode.path("type").asText("ASSISTANCE"));
+            TableAppelStatut statut = TableAppelStatut.valueOf(appelNode.path("statut").asText("EN_ATTENTE"));
+            String commentaire = appelNode.hasNonNull("commentaire") ? appelNode.path("commentaire").asText() : null;
+            int minutesAgo = appelNode.path(KEY_MINUTES_AGO).asInt(2);
+
+            TableAppel appel = new TableAppel();
+            appel.setTable(table);
+            appel.setType(type);
+            appel.setStatut(statut);
+            appel.setCommentaire(commentaire);
+            appel.setCreatedAt(now.minusMinutes(minutesAgo));
+            appel.setUpdatedAt(now.minusMinutes(minutesAgo));
+
+            if (statut == TableAppelStatut.ACQUITTE) {
+                appel.setAcquittePar(appelNode.path("acquittePar").asText("serveur1"));
+                appel.setAcquitteAt(now.minusMinutes(Math.max(0, minutesAgo - 1)));
+            }
+
+            tableAppelRepository.save(appel);
+        }
+        log.info("Seeded table call alerts from demo dataset.");
     }
 }

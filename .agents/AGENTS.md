@@ -73,6 +73,7 @@ Deployed as a PWA on a local WiFi network (Raspberry Pi 5 / mini-PC). No interne
 2. **`data-testid`** on all interactive elements in frontend templates.
 3. Frontend tests go in `frontend/src/test/` (mirror of `src/app/`) — never co-located.
 4. All test descriptions, test method names, assertions, and mock data MUST be in English.
+5. **Platform Demo & Test Data Seeding MANDATORY** — In addition to automated tests, systematically add/update realistic demo and test data in `backend/src/main/resources/data/demo_dataset.json` and `SampleDataSeederService.java` (or dedicated seeder services) for every feature, so developers and QA can immediately test and interact with the feature on the live running platform in test/dev mode.
 
 ### Git / Workflow
 1. Every task must be linked to a GitHub issue — see [Kanban](https://github.com/users/FunWarry/projects/3/views/1)

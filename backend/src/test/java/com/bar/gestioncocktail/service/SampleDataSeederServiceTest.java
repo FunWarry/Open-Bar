@@ -77,6 +77,9 @@ class SampleDataSeederServiceTest {
     private WeekSchedulePublicationRepository weekSchedulePublicationRepository;
 
     @Mock
+    private TableAppelRepository tableAppelRepository;
+
+    @Mock
     private PasswordEncoder passwordEncoder;
 
     @Mock
@@ -206,7 +209,7 @@ class SampleDataSeederServiceTest {
     @DisplayName("seedAllDemoData - skips closures when closures already exist")
     void seedAllDemoData_skipsClosuresWhenAlreadyExist() {
         when(establishmentClosureRepository.count()).thenReturn(3L);
-        when(commandeRepository.count()).thenReturn(1L);
+        lenient().when(commandeRepository.count()).thenReturn(1L);
 
         sampleDataSeederService.seedAllDemoData();
 
@@ -216,7 +219,7 @@ class SampleDataSeederServiceTest {
     @Test
     @DisplayName("seedAllDemoData - does not duplicate shifts when shift already exists for user and date")
     void seedAllDemoData_skipsDuplicateShifts() {
-        when(commandeRepository.count()).thenReturn(1L);
+        lenient().when(commandeRepository.count()).thenReturn(1L);
 
         EmployeeShift existingShift = new EmployeeShift();
         LocalDate today = LocalDate.now(ZoneId.systemDefault());
@@ -307,5 +310,15 @@ class SampleDataSeederServiceTest {
                 assertThat(livreeOrder.getDatePret()).isNotNull();
                 assertThat(livreeOrder.getDateLivraison()).isNotNull();
             });
+    }
+
+    @Test
+    @DisplayName("seedAllDemoData - seeds table call alerts (TableAppel) when present in demo dataset")
+    void seedAllDemoData_seedsTableAppels() {
+        when(commandeRepository.count()).thenReturn(0L);
+
+        sampleDataSeederService.seedAllDemoData();
+
+        verify(tableAppelRepository, atLeastOnce()).save(any(TableAppel.class));
     }
 }

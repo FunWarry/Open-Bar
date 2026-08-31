@@ -17,6 +17,8 @@ public class NotificationService {
     private static final String TOPIC_STOCK_ALERTE = "/topic/stock/alerte";
     private static final String TOPIC_COCKTAILS = "/topic/cocktails";
     private static final String TOPIC_COCKTAILS_SUPPRIME = "/topic/cocktails/supprime";
+    private static final String TOPIC_SERVEUR_APPELS = "/topic/serveur/appels";
+    private static final String TOPIC_SERVEUR_APPELS_ACQUITTE = "/topic/serveur/appels/acquitte";
 
     private final SimpMessagingTemplate messagingTemplate;
 
@@ -97,6 +99,26 @@ public class NotificationService {
     public void notifierParametresMisAJour(Object settings) {
         messagingTemplate.convertAndSend("/topic/app-settings", settings);
         messagingTemplate.convertAndSend("/topic/settings", settings);
+    }
+
+    /**
+     * Broadcasts a new table call alert to servers and table listeners.
+     *
+     * @param payload Table call alert payload
+     */
+    public void notifierNouvelAppel(Object payload) {
+        messagingTemplate.convertAndSend(TOPIC_SERVEUR_APPELS, payload);
+        messagingTemplate.convertAndSend(TOPIC_TABLES, payload);
+    }
+
+    /**
+     * Broadcasts table call alert acknowledgement / dismissal.
+     *
+     * @param payload Table call alert payload
+     */
+    public void notifierAppelAcquitte(Object payload) {
+        messagingTemplate.convertAndSend(TOPIC_SERVEUR_APPELS, payload);
+        messagingTemplate.convertAndSend(TOPIC_SERVEUR_APPELS_ACQUITTE, payload);
     }
 
     public static class CommandeStatutNotification {

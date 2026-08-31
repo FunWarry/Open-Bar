@@ -16,6 +16,8 @@ import {
 } from 'ionicons/icons';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { TableView } from '../../models/table-view.model';
+import { TableAppel } from '../../../../core/models/table-appel.model';
+import { TableAppelService } from '../../../../core/services/table-appel.service';
 import { Commande, CommandeItem } from '../../../../core/models/commande.model';
 import { DashboardServeurService } from '../../services/dashboard-serveur.service';
 import { TransfertModalComponent } from '../transfert-modal/transfert-modal.component';
@@ -42,11 +44,13 @@ import { fastModalEnterAnimation, fastModalLeaveAnimation } from '../../../../co
 export class TableDetailModalComponent implements OnInit {
   @Input() table!: TableView;
   commandes: Commande[] = [];
+  activeAppels: TableAppel[] = [];
   isLoading = false;
 
   private readonly modalCtrl = inject(ModalController);
   private readonly router = inject(Router);
   private readonly service = inject(DashboardServeurService);
+  private readonly tableAppelService = inject(TableAppelService);
   private readonly toastCtrl = inject(ToastController);
   private readonly alertCtrl = inject(AlertController);
   private readonly translocoService = inject(TranslocoService);
@@ -71,6 +75,29 @@ export class TableDetailModalComponent implements OnInit {
 
   ngOnInit(): void {
     this.chargerCommandes();
+    this.chargerAppels();
+  }
+
+  chargerAppels(): void {
+    this.tableAppelService.getAppelsActifsPourTable(this.table.id).subscribe({
+      next: (appels) => {
+        this.activeAppels = (appels ?? []).filter(a => a.statut === 'EN_ATTENTE');
+      }
+    });
+  }
+
+  acquitterAppel(appelId: number): void {
+    this.tableAppelService.acquitterAppel(this.table.id, appelId).subscribe({
+      next: async () => {
+        this.activeAppels = this.activeAppels.filter(a => a.id !== appelId);
+        const toast = await this.toastCtrl.create({
+          message: this.translocoService.translate('SERVEUR.ALERTS.ACKNOWLEDGE_SUCCESS'),
+          duration: 2500,
+          color: 'success',
+        });
+        await toast.present();
+      },
+    });
   }
 
   chargerCommandes(): void {

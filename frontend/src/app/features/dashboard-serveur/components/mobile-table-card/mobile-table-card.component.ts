@@ -4,11 +4,13 @@ import { IonIcon } from '@ionic/angular/standalone';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { AppCurrencyPipe } from '../../../../core/pipes/app-currency.pipe';
 import { TableView } from '../../models/table-view.model';
+import { TableAppel } from '../../../../core/models/table-appel.model';
 
 import { addIcons } from 'ionicons';
 import {
   restaurantOutline, peopleOutline, locationOutline,
   timeOutline, addCircleOutline, personAddOutline, checkmarkDoneOutline,
+  notificationsOutline, cardOutline,
 } from 'ionicons/icons';
 
 /**
@@ -41,11 +43,14 @@ export class MobileTableCardComponent {
   @Output() occupyTable = new EventEmitter<TableView>();
   /** Emits when free button is clicked */
   @Output() freeTable = new EventEmitter<TableView>();
+  /** Emits when table alert acknowledge button is clicked */
+  @Output() ackAppel = new EventEmitter<TableAppel>();
 
   constructor(private readonly translocoService: TranslocoService) {
     addIcons({
       restaurantOutline, peopleOutline, locationOutline,
       timeOutline, addCircleOutline, personAddOutline, checkmarkDoneOutline,
+      notificationsOutline, cardOutline,
     });
   }
 

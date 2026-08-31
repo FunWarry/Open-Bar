@@ -1,4 +1,4 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterTestingModule } from '@angular/router/testing';
 import { ToastController } from '@ionic/angular/standalone';
@@ -6,14 +6,17 @@ import { of } from 'rxjs';
 import { ClientCommandeComponent } from '../../../app/features/client/client-commande/client-commande.component';
 import { CocktailService } from '../../../app/core/services/cocktail.service';
 import { CommandeService } from '../../../app/core/services/commande.service';
+import { TableAppelService } from '../../../app/core/services/table-appel.service';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { Cocktail } from '../../../app/core/models/cocktail.model';
+import { TableAppel } from '../../../app/core/models/table-appel.model';
 
 describe('ClientCommandeComponent', () => {
   let component: ClientCommandeComponent;
   let fixture: ComponentFixture<ClientCommandeComponent>;
   let cocktailServiceSpy: jasmine.SpyObj<CocktailService>;
   let commandeServiceSpy: jasmine.SpyObj<CommandeService>;
+  let tableAppelServiceSpy: jasmine.SpyObj<TableAppelService>;
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
 
   const mockCocktail: Cocktail = {
@@ -30,12 +33,28 @@ describe('ClientCommandeComponent', () => {
     updatedAt: '2026-01-01'
   };
 
+  const mockAppel: TableAppel = {
+    id: 10,
+    tableId: 4,
+    tableNumero: 4,
+    type: 'ASSISTANCE',
+    statut: 'EN_ATTENTE',
+    createdAt: '2026-08-31T19:00:00',
+    updatedAt: '2026-08-31T19:00:00'
+  };
+
   beforeEach(async () => {
     cocktailServiceSpy = jasmine.createSpyObj('CocktailService', ['getAll']);
     commandeServiceSpy = jasmine.createSpyObj('CommandeService', ['create']);
+    tableAppelServiceSpy = jasmine.createSpyObj('TableAppelService', [
+      'appelerServeur',
+      'getAppelsActifsPourTable'
+    ]);
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
 
     cocktailServiceSpy.getAll.and.returnValue(of([mockCocktail]));
+    tableAppelServiceSpy.appelerServeur.and.returnValue(of(mockAppel));
+    tableAppelServiceSpy.getAppelsActifsPourTable.and.returnValue(of([]));
     toastCtrlSpy.create.and.returnValue(Promise.resolve({ present: () => Promise.resolve() } as any));
 
     await TestBed.configureTestingModule({
@@ -48,6 +67,7 @@ describe('ClientCommandeComponent', () => {
       providers: [
         { provide: CocktailService, useValue: cocktailServiceSpy },
         { provide: CommandeService, useValue: commandeServiceSpy },
+        { provide: TableAppelService, useValue: tableAppelServiceSpy },
         { provide: ToastController, useValue: toastCtrlSpy }
       ]
     }).compileComponents();
@@ -80,5 +100,30 @@ describe('ClientCommandeComponent', () => {
 
     component.removeFromCart(1);
     expect(component.getItemQuantity(1)).toBe(0);
+  });
+
+  it('appelerServeur() should call service, start cooldown timer and present toast', fakeAsync(() => {
+    component.tableNumero = 4;
+    component.appelerServeur('ASSISTANCE');
+
+    expect(tableAppelServiceSpy.appelerServeur).toHaveBeenCalledWith(4, 'ASSISTANCE');
+    expect(component.cooldownSeconds).toBe(60);
+    expect(component.activeCallType).toBe('ASSISTANCE');
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
+
+    tick(1000);
+    expect(component.cooldownSeconds).toBe(59);
+
+    tick(60000);
+    expect(component.cooldownSeconds).toBe(0);
+  }));
+
+  it('appelerServeur("ADDITION") should call service with addition type and start cooldown', () => {
+    component.tableNumero = 4;
+    component.appelerServeur('ADDITION');
+
+    expect(tableAppelServiceSpy.appelerServeur).toHaveBeenCalledWith(4, 'ADDITION');
+    expect(component.cooldownSeconds).toBe(60);
+    expect(component.activeCallType).toBe('ADDITION');
   });
 });

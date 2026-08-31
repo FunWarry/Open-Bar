@@ -149,6 +149,71 @@
   }
 }
 
+.table-alerts-modal-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+
+  .table-alert-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    background: rgba(229, 96, 79, 0.15);
+    border: 1px solid var(--semantic-danger, #e5604f);
+    color: var(--text-primary, #ffffff);
+    animation: fadeIn 0.3s ease;
+
+    &.bill-item {
+      background: rgba(240, 163, 59, 0.15);
+      border-color: var(--semantic-warning, #f4a52a);
+    }
+
+    .alert-icon {
+      font-size: 1.2rem;
+      &.pulse {
+        animation: pulse-icon 1.2s infinite ease-in-out;
+      }
+    }
+
+    .alert-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+
+      .alert-title {
+        font-weight: 700;
+        font-size: 0.9rem;
+      }
+
+      .alert-comment {
+        font-size: 0.8rem;
+        color: var(--text-secondary, #a4add0);
+        font-style: italic;
+      }
+    }
+
+    .ack-modal-alert-btn {
+      padding: 6px 12px;
+      border-radius: 8px;
+      background: var(--semantic-success, #2dd36f);
+      color: #000000;
+      border: none;
+      font-weight: 700;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: transform 0.15s ease;
+
+      &:hover {
+        transform: scale(1.04);
+      }
+    }
+  }
+}
+
 /* Orders Section */
 .orders-section {
   display: flex;

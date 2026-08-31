@@ -49,6 +49,30 @@
       </div>
     </div>
 
+    <!-- Active Table Alerts Section -->
+    @if (activeAppels.length > 0) {
+      <div class="table-alerts-modal-section" data-testid="table-modal-alerts">
+        @for (appel of activeAppels; track appel.id) {
+          <div class="table-alert-item" [class.bill-item]="appel.type === 'ADDITION'">
+            <span class="alert-icon pulse">{{ appel.type === 'ADDITION' ? '💳' : '🔔' }}</span>
+            <div class="alert-info">
+              <span class="alert-title">{{ (appel.type === 'ADDITION' ? 'SERVEUR.ALERTS.BILL_REQUEST' : 'SERVEUR.ALERTS.ASSISTANCE_REQUEST') | transloco }}</span>
+              @if (appel.commentaire) {
+                <span class="alert-comment">"{{ appel.commentaire }}"</span>
+              }
+            </div>
+            <button
+              type="button"
+              class="ack-modal-alert-btn"
+              [attr.data-testid]="'btn-modal-ack-call-' + appel.id"
+              (click)="acquitterAppel(appel.id)">
+              ✓ {{ 'SERVEUR.ALERTS.ACKNOWLEDGE_BTN' | transloco }}
+            </button>
+          </div>
+        }
+      </div>
+    }
+
     <!-- Active Orders Section -->
     <div class="orders-section">
       <div class="section-header">

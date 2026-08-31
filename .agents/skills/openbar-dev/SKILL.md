@@ -21,6 +21,7 @@ Génère du code pour le projet OpenBar en respectant les conventions existantes
 - **TOUTE la documentation (JavaDoc, TSDoc, Swagger/OpenAPI) DOIT ÊTRE RÉDIGÉE EXCLUSIVEMENT EN ANGLAIS**.
 - **INTERDICTION d'utiliser `@SuppressWarnings`** : toujours corriger les vrais problèmes sous-jacents (DTOs, types, configuration).
 - **Mise à jour Onboarding & Configuration OBLIGATOIRE** : Pour chaque mise à jour ou ajout de feature, si nécessaire, mettre systématiquement à jour le processus d'onboarding (`/setup`, `OnboardingComponent`, `SetupComponent`, setup wizard) et les écrans de configuration (`AppSettingsPageComponent`, establishment settings, seeders) pour gérer et configurer la nouvelle feature.
+- **Seeding Données de Test & Démonstration Plateforme OBLIGATOIRE** : Systématiquement ajouter/mettre à jour les jeux de données de démonstration (`data/demo_dataset.json`, `SampleDataSeederService.java`, seeders) pour toute nouvelle entité ou feature, afin de permettre le test et la validation immédiate sur la plateforme en mode dev/test avec des données réalistes.
 - Backend : JavaDoc sur chaque service, controller, DTO (record), security, exception + annotations OpenAPI (`@Tag`, `@Operation`, `@ApiResponse`).
 - Frontend : TSDoc sur chaque service Angular, guard, interceptor et store NgRx.
 
@@ -359,4 +360,5 @@ Topics existants : `/topic/commandes`, `/topic/commandes/{id}`, `/topic/tables`,
 - [ ] **Tests de non-régression** si bugfix / refactor
 - [ ] **Tests d'intégration backend (Testcontainers)** si nouvelle logique d'API ou flux complexe
 - [ ] **Tests E2E Playwright** pour toute nouvelle vue ou flow utilisateur
+- [ ] **Données de démo et test plateforme ajoutées/mises à jour** (`demo_dataset.json`, `SampleDataSeederService.java`)
 - [ ] Lien navbar si pertinent

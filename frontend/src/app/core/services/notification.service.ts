@@ -113,6 +113,38 @@ export class NotificationService implements OnDestroy {
           // malformed message — ignore
         }
       });
+
+    // Waiter assistance and bill calls on /topic/serveur/appels
+    this.ws.watch('/topic/serveur/appels')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(msg => {
+        try {
+          const data = typeof msg.body === 'string' ? JSON.parse(msg.body) : msg.body;
+          this.handleAppelNotification(data);
+        } catch {
+          // malformed message — ignore
+        }
+      });
+  }
+
+  private handleAppelNotification(data: any): void {
+    if (data?.statut !== 'EN_ATTENTE') return;
+    const tableDisplay = this.formatTableDisplay(data.tableNumero || data.tableId || 'Table');
+    const isAddition = data.type === 'ADDITION';
+    const typeLabel = isAddition ? 'Addition / Bill Request' : 'Assistance Request';
+    const notif: AppNotification = {
+      id: `appel-${Date.now()}-${++this.notifSequence}`,
+      type: 'table',
+      message: `🔔 ${tableDisplay} — ${typeLabel}`,
+      severity: isAddition ? 'warning' : 'danger',
+      data,
+      timestamp: new Date(),
+      lue: false,
+    };
+    this.notificationHistory.unshift(notif);
+    this.updateUnreadCount();
+    this.notifications$.next(notif);
+    this.soundService.playUrgentAlertSound();
   }
 
   private handleStockAlerteNotification(data: any): void {

@@ -60,6 +60,7 @@ frontend/coverage
 /backend/uploads/
 frontend/playwright-report/
 frontend/test-results/
+frontend/reports/
 .gemini/
 /backups/
 *.sql.gz

@@ -21,6 +21,7 @@ module.exports = function karma (config) {
       require('karma-chrome-launcher'),
       require('karma-jasmine-html-reporter'),
       require('karma-coverage'),
+      require('karma-junit-reporter'),
       require('@angular-devkit/build-angular/plugins/karma'),
     ],
     client: {
@@ -31,6 +32,11 @@ module.exports = function karma (config) {
     },
     jasmineHtmlReporter: {
       suppressAll: true,
+    },
+    junitReporter: {
+      outputDir: 'reports',
+      outputFile: 'test-results.xml',
+      useBrowserName: false,
     },
     coverageReporter: {
       dir: require('node:path').join(__dirname, './coverage/gestion-cocktail-frontend'),
@@ -45,7 +51,7 @@ module.exports = function karma (config) {
         },
       },
     },
-    reporters: ['progress', 'kjhtml', 'coverage'],
+    reporters: ['progress', 'kjhtml', 'coverage', 'junit'],
     port: 9876,
     colors: true,
     logLevel: config.LOG_INFO,
@@ -64,15 +70,4 @@ module.exports = function karma (config) {
       }
     }
   });
-
-  // En CI (GitHub Actions), ajouter le reporter JUnit pour publier les résultats en annotations PR
-  if (process.env['CI']) {
-    config.plugins.push(require('karma-junit-reporter'));
-    config.reporters.push('junit');
-    config.junitReporter = {
-      outputDir: 'reports',
-      outputFile: 'test-results.xml',
-      useBrowserName: false,
-    };
-  }
 };

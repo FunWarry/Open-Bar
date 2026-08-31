@@ -91,6 +91,57 @@
     }
   }
 
+  .call-alert-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: rgba(229, 96, 79, 0.18);
+    border: 1px solid var(--semantic-danger, #e5604f);
+    color: var(--semantic-danger, #fca5a5);
+    font-size: 0.8rem;
+    font-weight: 700;
+    animation: fadeIn 0.3s ease;
+
+    &.bill-alert {
+      background: rgba(240, 163, 59, 0.18);
+      border-color: var(--semantic-warning, #f4a52a);
+      color: var(--semantic-warning, #fde68a);
+    }
+
+    .call-icon {
+      font-size: 1rem;
+      &.pulse {
+        animation: pulse-icon 1.2s infinite ease-in-out;
+      }
+    }
+
+    .call-text {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .call-ack-btn {
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: var(--semantic-success, #2dd36f);
+      color: #000000;
+      border: none;
+      font-weight: 800;
+      font-size: 0.78rem;
+      cursor: pointer;
+      transition: transform 0.15s ease;
+
+      &:hover {
+        transform: scale(1.05);
+      }
+    }
+  }
+
   .tile-body {
     display: flex;
     flex-direction: column;

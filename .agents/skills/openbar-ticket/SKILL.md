@@ -101,10 +101,14 @@ rtk git commit -m "feat(#X): description courte"
 - Pour toute modification d'écran, formulaire ou workflow utilisateur.
 - Utiliser les attributs `data-testid`.
 
-**Commit des tests :**
+#### 5. Données de Test & Démonstration Plateforme (Seeding — `data/demo_dataset.json`)
+- **OBLIGATOIRE** pour toute nouvelle entité ou feature : mettre à jour le fichier `backend/src/main/resources/data/demo_dataset.json` et le service `SampleDataSeederService.java` (ou seeders dédiés).
+- Fournir des données réalistes, des états initiaux variés (actif, archivé, en attente, réglé, etc.) afin que les développeurs et testeurs puissent directement tester la feature sur la plateforme en mode dev/test sans configuration manuelle préalable.
+
+**Commit des tests & données de démo :**
 ```bash
-git add frontend/src/test/... backend/src/test/... frontend/e2e/...
-git commit -m "test(#X): unit, non-regression, integration and e2e tests"
+git add frontend/src/test/... backend/src/test/... frontend/e2e/... backend/src/main/resources/data/demo_dataset.json backend/src/main/java/.../SampleDataSeederService.java
+git commit -m "test(#X): unit, non-regression, integration, e2e tests and platform demo dataset"
 ```
 
 ---
@@ -362,6 +366,7 @@ Déclencher le skill `openbar-ki-update` pour synchroniser les KIs avec l'état 
 - [ ] **KIs mis à jour** (`openbar-ki-update`) — features-state.md, architecture.md si nécessaire
 - [ ] **`fr.json` + `en.json` mis à jour** si le ticket touché le frontend (même commit que le composant)
 - [ ] **Onboarding & Configuration mis à jour** si la feature nécessite d'être configurée ou initialisée (`/setup`, `OnboardingComponent`, `AppSettingsPageComponent`)
+- [ ] **Données de test et démo plateforme mises à jour** (`demo_dataset.json`, `SampleDataSeederService.java`) pour tester immédiatement en mode dev/test avec les bonnes données
 
 
 ---

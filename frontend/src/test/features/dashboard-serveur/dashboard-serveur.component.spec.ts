@@ -27,11 +27,16 @@ import { provideIonicAngular } from '@ionic/angular/standalone';
 import { Commande } from '../../../app/core/models/commande.model';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 
+import { TableAppelService } from '../../../app/core/services/table-appel.service';
+import { TableAppel } from '../../../app/core/models/table-appel.model';
+import { signal } from '@angular/core';
+
 describe('DashboardServeurComponent', () => {
   let component: DashboardServeurComponent;
   let fixture: ComponentFixture<DashboardServeurComponent>;
   let dashboardServiceSpy: jasmine.SpyObj<DashboardServeurService>;
   let notificationServiceSpy: jasmine.SpyObj<NotificationService>;
+  let tableAppelServiceSpy: jasmine.SpyObj<TableAppelService>;
   let wsSpy: jasmine.SpyObj<WebSocketService>;
   let zoneServiceSpy: jasmine.SpyObj<ZoneService>;
   let cocktailServiceSpy: jasmine.SpyObj<CocktailService>;
@@ -73,6 +78,20 @@ describe('DashboardServeurComponent', () => {
     dashboardServiceSpy.createCommande.and.returnValue(of({ id: 10, tableId: 1 } as any));
     dashboardServiceSpy.ajouterItem.and.returnValue(of({ id: 10 } as any));
 
+    tableAppelServiceSpy = jasmine.createSpyObj('TableAppelService', [
+      'getAppelsActifs',
+      'getAppelsActifsPourTable',
+      'acquitterAppel',
+      'acquitterTousAppels'
+    ], {
+      activeAppels: signal<TableAppel[]>([]),
+      appelEvents$: new Subject<TableAppel>()
+    });
+    tableAppelServiceSpy.getAppelsActifs.and.returnValue(of([]));
+    tableAppelServiceSpy.getAppelsActifsPourTable.and.returnValue(of([]));
+    tableAppelServiceSpy.acquitterAppel.and.returnValue(of({} as any));
+    tableAppelServiceSpy.acquitterTousAppels.and.returnValue(of([]));
+
     zoneServiceSpy = jasmine.createSpyObj('ZoneService', ['getAll']);
     zoneServiceSpy.getAll.and.returnValue(of([]));
 
@@ -113,6 +132,7 @@ describe('DashboardServeurComponent', () => {
         provideIonicAngular(),
         provideMockStore({ initialState: { auth: { user: null } } }),
         { provide: DashboardServeurService, useValue: dashboardServiceSpy },
+        { provide: TableAppelService, useValue: tableAppelServiceSpy },
         { provide: ZoneService, useValue: zoneServiceSpy },
         { provide: CocktailService, useValue: cocktailServiceSpy },
         { provide: PlanSalleService, useValue: planSalleServiceSpy },
@@ -1019,6 +1039,25 @@ describe('DashboardServeurComponent', () => {
       expect(enrichedMixed[0].waitTimeMinutes).toBeLessThanOrEqual(11);
       expect(enrichedMixed[0].activeTotal).toBe(35);
       expect(enrichedMixed[0].commandesActives).toHaveSize(2);
+    });
+
+    it('acquitterAppel() acknowledges alert via service and displays toast', () => {
+      const mockEvent = new MouseEvent('click');
+      spyOn(mockEvent, 'stopPropagation');
+      const mockAppel: TableAppel = { id: 10, tableId: 1, type: 'ASSISTANCE', statut: 'EN_ATTENTE', createdAt: '', updatedAt: '' };
+
+      component.acquitterAppel(mockAppel, mockEvent);
+
+      expect(mockEvent.stopPropagation).toHaveBeenCalled();
+      expect(tableAppelServiceSpy.acquitterAppel).toHaveBeenCalledWith(1, 10);
+      expect(toastCtrlSpy.create).toHaveBeenCalled();
+    });
+
+    it('acquitterTousAppels() acknowledges all alerts for table and displays toast', () => {
+      component.acquitterTousAppels(1);
+
+      expect(tableAppelServiceSpy.acquitterTousAppels).toHaveBeenCalledWith(1);
+      expect(toastCtrlSpy.create).toHaveBeenCalled();
     });
   });
 });
