@@ -50,6 +50,17 @@ public class AppSettingsService {
      */
     public AppSettings updateSettings(AppSettingsUpdateRequest request) {
         AppSettings current = getSettings();
+        applyBranding(current, request);
+        applyCurrency(current, request);
+        applyAlertThresholds(current, request);
+        applyWifiAndQr(current, request);
+
+        AppSettings saved = appSettingsRepository.save(current);
+        notificationService.notifierParametresMisAJour(AppSettingsResponseDTO.from(saved));
+        return saved;
+    }
+
+    private void applyBranding(AppSettings current, AppSettingsUpdateRequest request) {
         current.setPrimaryColor(request.primaryColor());
         current.setPrimaryColorStrong(request.primaryColorStrong());
         current.setLogoUrl(request.logoUrl());
@@ -57,7 +68,9 @@ public class AppSettingsService {
         if (request.defaultTheme() != null) {
             current.setDefaultTheme(request.defaultTheme());
         }
+    }
 
+    private void applyCurrency(AppSettings current, AppSettingsUpdateRequest request) {
         if (request.currencyCode() != null && !request.currencyCode().isBlank()) {
             current.setCurrencyCode(request.currencyCode().trim().toUpperCase());
         }
@@ -67,7 +80,9 @@ public class AppSettingsService {
         if (request.currencyPosition() != null) {
             current.setCurrencyPosition(request.currencyPosition());
         }
+    }
 
+    private void applyAlertThresholds(AppSettings current, AppSettingsUpdateRequest request) {
         int warning = request.tempsAlerteWarningMinutes() != null ? request.tempsAlerteWarningMinutes() : current.getTempsAlerteWarningMinutes();
         int urgent = request.tempsAlerteCommandeMinutes() != null ? request.tempsAlerteCommandeMinutes() : current.getTempsAlerteCommandeMinutes();
         int critical = request.tempsAlerteCritiqueCommandeMinutes() != null ? request.tempsAlerteCritiqueCommandeMinutes() : current.getTempsAlerteCritiqueCommandeMinutes();
@@ -81,10 +96,24 @@ public class AppSettingsService {
         current.setTempsAlerteWarningMinutes(warning);
         current.setTempsAlerteCommandeMinutes(urgent);
         current.setTempsAlerteCritiqueCommandeMinutes(critical);
+    }
 
-        AppSettings saved = appSettingsRepository.save(current);
-        notificationService.notifierParametresMisAJour(AppSettingsResponseDTO.from(saved));
-        return saved;
+    private void applyWifiAndQr(AppSettings current, AppSettingsUpdateRequest request) {
+        if (request.clientBaseUrl() != null && !request.clientBaseUrl().isBlank()) {
+            current.setClientBaseUrl(request.clientBaseUrl().trim());
+        }
+        if (request.wifiSsid() != null) {
+            current.setWifiSsid(request.wifiSsid().trim());
+        }
+        if (request.wifiPassword() != null) {
+            current.setWifiPassword(request.wifiPassword());
+        }
+        if (request.wifiSecurity() != null && !request.wifiSecurity().isBlank()) {
+            current.setWifiSecurity(request.wifiSecurity().trim());
+        }
+        if (request.wifiEnabled() != null) {
+            current.setWifiEnabled(request.wifiEnabled());
+        }
     }
 
     /**

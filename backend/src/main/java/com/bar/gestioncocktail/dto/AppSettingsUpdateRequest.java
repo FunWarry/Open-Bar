@@ -22,6 +22,11 @@ import jakarta.validation.constraints.Size;
  * @param tempsAlerteWarningMinutes Order warning alert threshold in minutes
  * @param tempsAlerteCommandeMinutes Order urgent alert threshold in minutes
  * @param tempsAlerteCritiqueCommandeMinutes Order critical alert threshold in minutes
+ * @param clientBaseUrl Base URL for customer digital ordering QR codes
+ * @param wifiSsid Establishment customer Wi-Fi network SSID
+ * @param wifiPassword Establishment customer Wi-Fi network password
+ * @param wifiSecurity Establishment customer Wi-Fi encryption type (WPA, WEP, nopass)
+ * @param wifiEnabled Flag indicating whether customer Wi-Fi QR codes are enabled on table stands
  */
 @Schema(description = "Request payload for updating establishment configuration")
 public record AppSettingsUpdateRequest(
@@ -62,7 +67,22 @@ public record AppSettingsUpdateRequest(
 
     @jakarta.validation.constraints.Min(value = 1, message = "Critical alert time must be at least 1 minute")
     @jakarta.validation.constraints.Max(value = 120, message = "Critical alert time cannot exceed 120 minutes")
-    Integer tempsAlerteCritiqueCommandeMinutes
+    Integer tempsAlerteCritiqueCommandeMinutes,
+
+    @Pattern(regexp = "^https?://.+", message = "Client base URL must be a valid http(s) URL")
+    @Size(max = 500, message = "Client base URL cannot exceed 500 characters")
+    String clientBaseUrl,
+
+    @Size(max = 100, message = "Wi-Fi SSID cannot exceed 100 characters")
+    String wifiSsid,
+
+    @Size(max = 100, message = "Wi-Fi password cannot exceed 100 characters")
+    String wifiPassword,
+
+    @Size(max = 20, message = "Wi-Fi security cannot exceed 20 characters")
+    String wifiSecurity,
+
+    Boolean wifiEnabled
 ) {
 }
 

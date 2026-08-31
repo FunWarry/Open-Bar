@@ -9,7 +9,7 @@ import {
   colorPaletteOutline, layersOutline, addOutline, removeOutline,
   squareOutline, ellipseOutline, chevronDownOutline, chevronUpOutline,
   checkmarkOutline, restaurantOutline, peopleOutline, locationOutline,
-  pencilOutline, checkmarkCircleOutline
+  pencilOutline, checkmarkCircleOutline, qrCodeOutline
 } from 'ionicons/icons';
 
 import { TableBar } from '../../../../core/models/table.model';
@@ -17,6 +17,7 @@ import { TablePosition, ZoneArea, ZoneShapeType } from '../../models/table-posit
 import { ZoneBar } from '../../../../core/services/zone.service';
 import { EtageBar } from '../../../../core/services/etage.service';
 import { ConfirmDeleteModalComponent } from '../../../../core/components/ui/confirm-delete-modal/confirm-delete-modal.component';
+import { TableQrModalComponent } from '../../../tables/components/table-qr-modal/table-qr-modal.component';
 
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 
@@ -94,12 +95,13 @@ export class TableSidePanelComponent {
       'location-outline': locationOutline,
       'pencil-outline': pencilOutline,
       'checkmark-circle-outline': checkmarkCircleOutline,
+      'qr-code-outline': qrCodeOutline,
       closeOutline, saveOutline, gitMergeOutline, trashOutline,
       refreshOutline, shapesOutline, resizeOutline, optionsOutline,
       colorPaletteOutline, layersOutline, addOutline, removeOutline,
       squareOutline, ellipseOutline, chevronDownOutline, chevronUpOutline,
       checkmarkOutline, restaurantOutline, peopleOutline, locationOutline,
-      pencilOutline, checkmarkCircleOutline
+      pencilOutline, checkmarkCircleOutline, qrCodeOutline
     });
   }
 
@@ -118,6 +120,16 @@ export class TableSidePanelComponent {
 
   onClose() {
     this.closePanel.emit();
+  }
+
+  async onOpenQrModal() {
+    if (!this.table) return;
+    const modal = await this.modalCtrl.create({
+      component: TableQrModalComponent,
+      componentProps: { table: this.table },
+      cssClass: 'table-qr-modal-dialog'
+    });
+    await modal.present();
   }
 
   onStartFusion() {

@@ -312,6 +312,11 @@ CREATE TABLE IF NOT EXISTS app_settings (
     temps_alerte_warning_minutes INTEGER NOT NULL DEFAULT 3,
     temps_alerte_commande_minutes INTEGER NOT NULL DEFAULT 5,
     temps_alerte_critique_commande_minutes INTEGER NOT NULL DEFAULT 10,
+    client_base_url VARCHAR(500) DEFAULT 'https://openbar.lan',
+    wifi_ssid VARCHAR(100),
+    wifi_password VARCHAR(100),
+    wifi_security VARCHAR(20) DEFAULT 'WPA',
+    wifi_enabled BOOLEAN DEFAULT false,
     updated_at TIMESTAMP
 );
 
@@ -438,3 +443,10 @@ VALUES (
     CURRENT_TIMESTAMP
 )
 ON CONFLICT (id) DO NOTHING;
+
+-- Schema migration columns
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS client_base_url VARCHAR(500) DEFAULT 'https://openbar.lan';
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS wifi_ssid VARCHAR(100);
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS wifi_password VARCHAR(100);
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS wifi_security VARCHAR(20) DEFAULT 'WPA';
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS wifi_enabled BOOLEAN DEFAULT false;

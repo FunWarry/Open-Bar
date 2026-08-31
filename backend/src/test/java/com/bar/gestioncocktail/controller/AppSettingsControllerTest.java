@@ -67,7 +67,8 @@ class AppSettingsControllerTest {
         AppSettingsUpdateRequest request = new AppSettingsUpdateRequest(
             "#ff0000", "#cc0000", "https://example.com/new-logo.png", "The Test Bar", DefaultTheme.DARK,
             "USD", "$", com.bar.gestioncocktail.model.CurrencyPosition.BEFORE,
-            2, 6, 12
+            2, 6, 12,
+            "https://openbar.lan", "OpenBar-Guest", "secret123", "WPA", true
         );
         AppSettings updated = new AppSettings();
         updated.setId(AppSettings.SINGLETON_ID);
@@ -82,6 +83,11 @@ class AppSettingsControllerTest {
         updated.setTempsAlerteWarningMinutes(2);
         updated.setTempsAlerteCommandeMinutes(6);
         updated.setTempsAlerteCritiqueCommandeMinutes(12);
+        updated.setClientBaseUrl("https://openbar.lan");
+        updated.setWifiSsid("OpenBar-Guest");
+        updated.setWifiPassword("secret123");
+        updated.setWifiSecurity("WPA");
+        updated.setWifiEnabled(true);
         when(appSettingsService.updateSettings(request)).thenReturn(updated);
 
         ResponseEntity<AppSettingsResponseDTO> response = appSettingsController.updateSettings(request);
@@ -97,5 +103,10 @@ class AppSettingsControllerTest {
         assertThat(body.currencyCode()).isEqualTo("USD");
         assertThat(body.currencySymbol()).isEqualTo("$");
         assertThat(body.currencyPosition()).isEqualTo(com.bar.gestioncocktail.model.CurrencyPosition.BEFORE);
+        assertThat(body.clientBaseUrl()).isEqualTo("https://openbar.lan");
+        assertThat(body.wifiSsid()).isEqualTo("OpenBar-Guest");
+        assertThat(body.wifiPassword()).isEqualTo("secret123");
+        assertThat(body.wifiSecurity()).isEqualTo("WPA");
+        assertThat(body.wifiEnabled()).isTrue();
     }
 }

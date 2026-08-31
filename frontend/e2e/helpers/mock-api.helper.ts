@@ -19,6 +19,11 @@ export async function setupMockApi(page: Page): Promise<void> {
           primaryColorStrong: '#5a68d6',
           logoUrl: null,
           establishmentName: 'OpenBar',
+          clientBaseUrl: body.clientBaseUrl || 'https://openbar.local',
+          wifiSsid: body.wifiSsid || 'OpenBar-Guests',
+          wifiPassword: body.wifiPassword || 'secretpass123',
+          wifiSecurity: body.wifiSecurity || 'WPA',
+          wifiEnabled: body.wifiEnabled !== undefined ? body.wifiEnabled : true,
           defaultTheme: 'DARK',
           currencyCode: body.currencyCode || 'EUR',
           currencySymbol: body.currencySymbol || '€',
@@ -40,6 +45,11 @@ export async function setupMockApi(page: Page): Promise<void> {
         primaryColorStrong: '#5a68d6',
         logoUrl: null,
         establishmentName: 'OpenBar',
+        clientBaseUrl: 'https://openbar.local',
+        wifiSsid: 'OpenBar-Guests',
+        wifiPassword: 'secretpass123',
+        wifiSecurity: 'WPA',
+        wifiEnabled: true,
         defaultTheme: 'DARK',
         currencyCode: 'EUR',
         currencySymbol: '€',
@@ -50,6 +60,48 @@ export async function setupMockApi(page: Page): Promise<void> {
         updatedAt: new Date().toISOString(),
       }),
     });
+  });
+
+  await page.route('**/api/tables/qrcodes/pdf**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/pdf',
+      body: Buffer.from('%PDF-1.4 mock pdf content'),
+    });
+  });
+
+  await page.route('**/api/tables/*/qrcode**', async (route) => {
+    const svgMock = '<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300"><rect width="300" height="300" fill="#fff"/><text x="20" y="150">QR Code Mock</text></svg>';
+    await route.fulfill({
+      status: 200,
+      contentType: 'image/svg+xml',
+      body: svgMock,
+    });
+  });
+
+  await page.route('**/api/tables/**', async (route) => {
+    const url = route.request().url();
+    if (url.endsWith('/api/tables') || url.includes('/api/tables?')) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify([
+          { id: 1, numero: 1, capacite: 4, zone: 'INTERIEUR', occupee: false, createdAt: '2026-01-01T00:00:00', updatedAt: '2026-01-01T00:00:00' },
+          { id: 2, numero: 2, capacite: 2, zone: 'TERRASSE', occupee: true, createdAt: '2026-01-01T00:00:00', updatedAt: '2026-01-01T00:00:00' },
+          { id: 3, numero: 3, capacite: 6, zone: 'ETAGE', occupee: false, createdAt: '2026-01-01T00:00:00', updatedAt: '2026-01-01T00:00:00' }
+        ]),
+      });
+      return;
+    }
+    if (/\/api\/tables\/\d+$/.test(url)) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ id: 1, numero: 1, capacite: 4, zone: 'INTERIEUR', occupee: false, createdAt: '2026-01-01T00:00:00', updatedAt: '2026-01-01T00:00:00' }),
+      });
+      return;
+    }
+    await route.continue();
   });
 
   await page.route('**/api/admin/establishment/timezones**', async (route) => {

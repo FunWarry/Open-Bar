@@ -361,6 +361,8 @@ Déclencher le skill `openbar-ki-update` pour synchroniser les KIs avec l'état 
 - [ ] `CLAUDE.md` mis à jour (tableau features)
 - [ ] **KIs mis à jour** (`openbar-ki-update`) — features-state.md, architecture.md si nécessaire
 - [ ] **`fr.json` + `en.json` mis à jour** si le ticket touché le frontend (même commit que le composant)
+- [ ] **Onboarding & Configuration mis à jour** si la feature nécessite d'être configurée ou initialisée (`/setup`, `OnboardingComponent`, `AppSettingsPageComponent`)
+
 
 ---
 

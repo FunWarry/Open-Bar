@@ -1,27 +1,41 @@
 package com.bar.gestioncocktail.service;
 
-import com.lowagie.text.*;
+import com.lowagie.text.Chunk;
+import com.lowagie.text.Document;
+import com.lowagie.text.DocumentException;
+import com.lowagie.text.Element;
 import com.lowagie.text.Font;
-import com.lowagie.text.pdf.*;
+import com.lowagie.text.Image;
+import com.lowagie.text.PageSize;
+import com.lowagie.text.Paragraph;
+import com.lowagie.text.Phrase;
+import com.lowagie.text.Rectangle;
+import com.lowagie.text.pdf.PdfPCell;
+import com.lowagie.text.pdf.PdfPTable;
+import com.lowagie.text.pdf.PdfWriter;
 import com.bar.gestioncocktail.model.AppSettings;
 import com.bar.gestioncocktail.model.CurrencyPosition;
 import com.bar.gestioncocktail.model.EstablishmentConfig;
 import com.bar.gestioncocktail.model.Facture;
 import com.bar.gestioncocktail.model.FactureItem;
 import com.bar.gestioncocktail.model.VatRate;
+import com.bar.gestioncocktail.model.TableEntity;
 import org.springframework.stereotype.Service;
 
-import com.lowagie.text.DocumentException;
 import java.awt.Color;
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 /**
- * Service for generating legal A4 invoice PDF documents using OpenPDF with dynamic establishment currency formatting.
+ * Service for generating legal A4 invoice PDF documents and printable table QR stands/cards using OpenPDF.
  */
 @Service
 public class PdfService {
@@ -32,21 +46,30 @@ public class PdfService {
     private static final Color TEXT    = new Color(236, 238, 251);  // #eceefb
     private static final Color MUTED   = new Color(126, 135, 168); // #7e87a8
     private static final Color DARK_TEXT = new Color(30, 30, 45);
+    private static final Color LIGHT_BG = new Color(248, 249, 254);
+    private static final Color BORDER_COLOR = new Color(218, 222, 240);
     private static final String TOTAL_TTC_HEADER = "Total TTC";
     private static final String BASE_HT_HEADER = "Base HT";
+    private static final String DEFAULT_TABLE_URL_PREFIX = "https://openbar.lan/client/commande?table=";
+    private static final String TABLE_PREFIX = "TABLE ";
 
     private final EstablishmentConfigService establishmentConfigService;
     private final AppSettingsService appSettingsService;
+    private final QrCodeService qrCodeService;
 
     /**
      * Constructs the PDF generation service.
      *
      * @param establishmentConfigService Legal configuration service
      * @param appSettingsService Application settings service for currency customization
+     * @param qrCodeService Service for QR code generation and Wi-Fi encoding
      */
-    public PdfService(EstablishmentConfigService establishmentConfigService, AppSettingsService appSettingsService) {
+    public PdfService(EstablishmentConfigService establishmentConfigService,
+                      AppSettingsService appSettingsService,
+                      QrCodeService qrCodeService) {
         this.establishmentConfigService = establishmentConfigService;
         this.appSettingsService = appSettingsService;
+        this.qrCodeService = qrCodeService;
     }
 
     /**
@@ -535,4 +558,384 @@ public class PdfService {
             // Ignore
         }
     }
+
+    /**
+     * Generates a printable A4 PDF containing table QR codes, physical table stands (chevalets),
+     * cards, or adhesive stickers for the provided list of tables.
+     *
+     * @param tables List of table entities
+     * @param layout Export layout format (STAND, CARD, STICKER)
+     * @param includeWifi Whether to include establishment Wi-Fi connection QR code
+     * @return Generated PDF byte array
+     */
+    public byte[] generateTableQrCodesPdf(List<TableEntity> tables, String layout, Boolean includeWifi) {
+        if (tables == null || tables.isEmpty()) {
+            throw new IllegalArgumentException("Tables list cannot be null or empty");
+        }
+
+        EstablishmentConfig config = establishmentConfigService != null ? establishmentConfigService.getConfig() : new EstablishmentConfig();
+        if (config == null) config = new EstablishmentConfig();
+
+        AppSettings settings = appSettingsService != null ? appSettingsService.getSettings() : new AppSettings();
+        if (settings == null) settings = new AppSettings();
+
+        String normalizedLayout = (layout != null && !layout.isBlank()) ? layout.trim().toUpperCase() : "STAND";
+        boolean wifiEnabled = Boolean.TRUE.equals(includeWifi) || (includeWifi == null && Boolean.TRUE.equals(settings.getWifiEnabled()) && settings.getWifiSsid() != null && !settings.getWifiSsid().isBlank());
+
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            Document doc = new Document(PageSize.A4, 20, 20, 20, 20);
+            PdfWriter writer = PdfWriter.getInstance(doc, out);
+            writer.setPdfVersion(PdfWriter.PDF_VERSION_1_7);
+            doc.open();
+
+            switch (normalizedLayout) {
+                case "CARD" -> renderCardsLayout(doc, tables, settings, config, wifiEnabled);
+                case "STICKER" -> renderStickersLayout(doc, tables, settings, config);
+                default -> renderStandsLayout(doc, tables, settings, config, wifiEnabled);
+            }
+
+            doc.close();
+            return out.toByteArray();
+        } catch (DocumentException | IOException e) {
+            throw new IllegalStateException("Error generating table QR codes PDF", e);
+        }
+    }
+
+    private String resolveTableUrl(AppSettings settings, int tableNumero) {
+        return (qrCodeService != null)
+            ? qrCodeService.buildTableOrderUrl(settings.getClientBaseUrl(), tableNumero)
+            : DEFAULT_TABLE_URL_PREFIX + tableNumero;
+    }
+
+    private void renderStandsLayout(Document doc, List<TableEntity> tables, AppSettings settings, EstablishmentConfig config, boolean wifiEnabled) throws DocumentException {
+        StandFonts fonts = new StandFonts(
+            new Font(Font.HELVETICA, 16, Font.BOLD, PRIMARY),
+            new Font(Font.HELVETICA, 22, Font.BOLD, PRIMARY),
+            new Font(Font.HELVETICA, 10, Font.BOLD, DARK_TEXT),
+            new Font(Font.HELVETICA, 8, Font.NORMAL, MUTED)
+        );
+        Font foldFont = new Font(Font.HELVETICA, 8, Font.ITALIC, MUTED);
+
+        for (int i = 0; i < tables.size(); i++) {
+            if (i > 0) {
+                doc.newPage();
+            }
+            TableEntity table = tables.get(i);
+            String tableUrl = resolveTableUrl(settings, table.getNumero());
+
+            PdfPTable pageContainer = new PdfPTable(1);
+            pageContainer.setWidthPercentage(100);
+
+            // Side 1 (Top half)
+            PdfPCell topCell = buildStandSideCell(table, tableUrl, settings, config, wifiEnabled, fonts);
+            pageContainer.addCell(topCell);
+
+            // Middle fold indicator
+            PdfPCell foldCell = new PdfPCell(new Phrase("✂  - - - - - - - - - - - - - - - - - - - -  PLIER ICI / FOLD HERE  - - - - - - - - - - - - - - - - - - - -  ✂", foldFont));
+            foldCell.setBorder(Rectangle.NO_BORDER);
+            foldCell.setHorizontalAlignment(Element.ALIGN_CENTER);
+            foldCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+            foldCell.setPaddingTop(12);
+            foldCell.setPaddingBottom(12);
+            pageContainer.addCell(foldCell);
+
+            // Side 2 (Bottom half)
+            PdfPCell bottomCell = buildStandSideCell(table, tableUrl, settings, config, wifiEnabled, fonts);
+            pageContainer.addCell(bottomCell);
+
+            doc.add(pageContainer);
+        }
+    }
+
+    private PdfPCell buildStandSideCell(TableEntity table, String tableUrl, AppSettings settings,
+                                        EstablishmentConfig config, boolean wifiEnabled, StandFonts fonts) {
+        PdfPCell container = new PdfPCell();
+        container.setBorder(Rectangle.BOX);
+        container.setBorderColor(BORDER_COLOR);
+        container.setBorderWidth(1.5f);
+        container.setBackgroundColor(LIGHT_BG);
+        container.setPadding(16);
+
+        PdfPTable inner = new PdfPTable(1);
+        inner.setWidthPercentage(100);
+
+        String estName = (settings.getEstablishmentName() != null && !settings.getEstablishmentName().isBlank())
+            ? settings.getEstablishmentName()
+            : config.getLegalName();
+        Paragraph pTitle = new Paragraph(estName.toUpperCase(), fonts.titleFont());
+        pTitle.setAlignment(Element.ALIGN_CENTER);
+        inner.addCell(createNoBorderCell(pTitle, Element.ALIGN_CENTER, 2));
+
+        String zoneName = table.getZone() != null ? table.getZone() : "Standard";
+        Paragraph pTable = new Paragraph(TABLE_PREFIX + table.getNumero(), fonts.tableNumFont());
+        pTable.setAlignment(Element.ALIGN_CENTER);
+        inner.addCell(createNoBorderCell(pTable, Element.ALIGN_CENTER, 4));
+
+        Paragraph pZone = new Paragraph("Zone : " + zoneName + " • " + table.getCapacite() + " places", fonts.descFont());
+        pZone.setAlignment(Element.ALIGN_CENTER);
+        inner.addCell(createNoBorderCell(pZone, Element.ALIGN_CENTER, 8));
+
+        addStandQrSection(inner, tableUrl, settings, wifiEnabled, fonts);
+
+        Paragraph pUrl = new Paragraph(tableUrl, fonts.descFont());
+        pUrl.setAlignment(Element.ALIGN_CENTER);
+        inner.addCell(createNoBorderCell(pUrl, Element.ALIGN_CENTER, 4));
+
+        container.addElement(inner);
+        return container;
+    }
+
+    private void addStandQrSection(PdfPTable inner, String tableUrl, AppSettings settings, boolean wifiEnabled, StandFonts fonts) {
+        if (wifiEnabled && settings.getWifiSsid() != null && !settings.getWifiSsid().isBlank()) {
+            PdfPTable qrsTable = new PdfPTable(2);
+            qrsTable.setWidthPercentage(95);
+            applyTableWidths(qrsTable, new float[]{1.2f, 1f});
+
+            // Order QR
+            PdfPCell orderQrCell = new PdfPCell();
+            orderQrCell.setBorder(Rectangle.NO_BORDER);
+            orderQrCell.setHorizontalAlignment(Element.ALIGN_CENTER);
+            Image orderImg = createQrImage(tableUrl, 110, 110);
+            if (orderImg != null) {
+                orderImg.setAlignment(Element.ALIGN_CENTER);
+                orderQrCell.addElement(orderImg);
+            }
+            Paragraph pOrder = new Paragraph("📱 Scannez pour commander", fonts.subFont());
+            pOrder.setAlignment(Element.ALIGN_CENTER);
+            orderQrCell.addElement(pOrder);
+            qrsTable.addCell(orderQrCell);
+
+            // Wi-Fi QR
+            String wifiPayload = qrCodeService != null
+                ? qrCodeService.formatWifiPayload(settings.getWifiSsid(), settings.getWifiPassword(), settings.getWifiSecurity())
+                : "";
+            PdfPCell wifiQrCell = new PdfPCell();
+            wifiQrCell.setBorder(Rectangle.NO_BORDER);
+            wifiQrCell.setHorizontalAlignment(Element.ALIGN_CENTER);
+            Image wifiImg = createQrImage(wifiPayload, 80, 80);
+            if (wifiImg != null) {
+                wifiImg.setAlignment(Element.ALIGN_CENTER);
+                wifiQrCell.addElement(wifiImg);
+            }
+            Paragraph pWifi = new Paragraph("📶 Wi-Fi : " + settings.getWifiSsid(), fonts.subFont());
+            pWifi.setAlignment(Element.ALIGN_CENTER);
+            wifiQrCell.addElement(pWifi);
+            if (settings.getWifiPassword() != null && !settings.getWifiPassword().isBlank()) {
+                Paragraph pPass = new Paragraph("Code : " + settings.getWifiPassword(), fonts.descFont());
+                pPass.setAlignment(Element.ALIGN_CENTER);
+                wifiQrCell.addElement(pPass);
+            }
+            qrsTable.addCell(wifiQrCell);
+
+            inner.addCell(createNoBorderCell(qrsTable));
+        } else {
+            PdfPCell qrCell = new PdfPCell();
+            qrCell.setBorder(Rectangle.NO_BORDER);
+            qrCell.setHorizontalAlignment(Element.ALIGN_CENTER);
+            Image orderImg = createQrImage(tableUrl, 130, 130);
+            if (orderImg != null) {
+                orderImg.setAlignment(Element.ALIGN_CENTER);
+                qrCell.addElement(orderImg);
+            }
+            Paragraph pOrder = new Paragraph("📱 Scannez avec votre appareil photo pour commander", fonts.subFont());
+            pOrder.setAlignment(Element.ALIGN_CENTER);
+            qrCell.addElement(pOrder);
+            Paragraph pInfo = new Paragraph("Menu digital instantané • Sans téléchargement d'application", fonts.descFont());
+            pInfo.setAlignment(Element.ALIGN_CENTER);
+            qrCell.addElement(pInfo);
+            inner.addCell(qrCell);
+        }
+    }
+
+    private void renderCardsLayout(Document doc, List<TableEntity> tables, AppSettings settings,
+                                   EstablishmentConfig config, boolean wifiEnabled) throws DocumentException {
+        Font cardTitleFont = new Font(Font.HELVETICA, 10, Font.BOLD, PRIMARY);
+        Font tableNumFont = new Font(Font.HELVETICA, 16, Font.BOLD, DARK_TEXT);
+        Font subFont = new Font(Font.HELVETICA, 8, Font.BOLD, DARK_TEXT);
+        Font descFont = new Font(Font.HELVETICA, 7, Font.NORMAL, MUTED);
+
+        String estName = (settings.getEstablishmentName() != null && !settings.getEstablishmentName().isBlank())
+            ? settings.getEstablishmentName()
+            : config.getLegalName();
+
+        PdfPTable grid = createTwoColumnGrid();
+
+        for (int i = 0; i < tables.size(); i++) {
+            if (i > 0 && i % 6 == 0) {
+                doc.add(grid);
+                doc.newPage();
+                grid = createTwoColumnGrid();
+            }
+
+            TableEntity table = tables.get(i);
+            String tableUrl = resolveTableUrl(settings, table.getNumero());
+
+            PdfPCell cardCell = new PdfPCell();
+            cardCell.setBorder(Rectangle.BOX);
+            cardCell.setBorderColor(BORDER_COLOR);
+            cardCell.setBorderWidth(1f);
+            cardCell.setBackgroundColor(LIGHT_BG);
+            cardCell.setPadding(10);
+
+            PdfPTable inner = new PdfPTable(1);
+            inner.setWidthPercentage(100);
+
+            Paragraph pEst = new Paragraph(estName, cardTitleFont);
+            pEst.setAlignment(Element.ALIGN_CENTER);
+            inner.addCell(createNoBorderCell(pEst, Element.ALIGN_CENTER, 2));
+
+            String zone = table.getZone() != null ? table.getZone() : "Standard";
+            Paragraph pNum = new Paragraph(TABLE_PREFIX + table.getNumero() + " (" + zone + ")", tableNumFont);
+            pNum.setAlignment(Element.ALIGN_CENTER);
+            inner.addCell(createNoBorderCell(pNum, Element.ALIGN_CENTER, 4));
+
+            Image qrImg = createQrImage(tableUrl, 95, 95);
+            if (qrImg != null) {
+                qrImg.setAlignment(Element.ALIGN_CENTER);
+                PdfPCell imgCell = new PdfPCell();
+                imgCell.setBorder(Rectangle.NO_BORDER);
+                imgCell.addElement(qrImg);
+                imgCell.setHorizontalAlignment(Element.ALIGN_CENTER);
+                inner.addCell(imgCell);
+            }
+
+            Paragraph pScan = new Paragraph("Scannez pour commander", subFont);
+            pScan.setAlignment(Element.ALIGN_CENTER);
+            inner.addCell(createNoBorderCell(pScan, Element.ALIGN_CENTER, 2));
+
+            if (wifiEnabled && settings.getWifiSsid() != null && !settings.getWifiSsid().isBlank()) {
+                Paragraph pWifi = new Paragraph("Wi-Fi : " + settings.getWifiSsid(), descFont);
+                pWifi.setAlignment(Element.ALIGN_CENTER);
+                inner.addCell(createNoBorderCell(pWifi, Element.ALIGN_CENTER, 1));
+            }
+
+            cardCell.addElement(inner);
+            grid.addCell(cardCell);
+        }
+
+        int remainder = tables.size() % 2;
+        if (remainder != 0) {
+            PdfPCell empty = new PdfPCell();
+            empty.setBorder(Rectangle.NO_BORDER);
+            grid.addCell(empty);
+        }
+
+        doc.add(grid);
+    }
+
+    private PdfPTable createTwoColumnGrid() {
+        PdfPTable grid = new PdfPTable(2);
+        grid.setWidthPercentage(100);
+        applyTableWidths(grid, new float[]{1f, 1f});
+        return grid;
+    }
+
+    private PdfPTable createThreeColumnGrid() {
+        PdfPTable grid = new PdfPTable(3);
+        grid.setWidthPercentage(100);
+        applyTableWidths(grid, new float[]{1f, 1f, 1f});
+        return grid;
+    }
+
+    private void renderStickersLayout(Document doc, List<TableEntity> tables, AppSettings settings,
+                                     EstablishmentConfig config) throws DocumentException {
+        Font tableNumFont = new Font(Font.HELVETICA, 12, Font.BOLD, PRIMARY);
+        Font descFont = new Font(Font.HELVETICA, 7, Font.NORMAL, DARK_TEXT);
+        Font estFont = new Font(Font.HELVETICA, 6, Font.NORMAL, MUTED);
+
+        String estName = (settings.getEstablishmentName() != null && !settings.getEstablishmentName().isBlank())
+            ? settings.getEstablishmentName()
+            : config.getLegalName();
+
+        PdfPTable grid = createThreeColumnGrid();
+
+        for (int i = 0; i < tables.size(); i++) {
+            if (i > 0 && i % 12 == 0) {
+                doc.add(grid);
+                doc.newPage();
+                grid = createThreeColumnGrid();
+            }
+
+            TableEntity table = tables.get(i);
+            String tableUrl = resolveTableUrl(settings, table.getNumero());
+
+            PdfPCell stickerCell = new PdfPCell();
+            stickerCell.setBorder(Rectangle.BOX);
+            stickerCell.setBorderColor(BORDER_COLOR);
+            stickerCell.setBorderWidth(0.8f);
+            stickerCell.setBackgroundColor(Color.WHITE);
+            stickerCell.setPadding(6);
+
+            PdfPTable inner = new PdfPTable(1);
+            inner.setWidthPercentage(100);
+
+            Paragraph pNum = new Paragraph(TABLE_PREFIX + table.getNumero(), tableNumFont);
+            pNum.setAlignment(Element.ALIGN_CENTER);
+            inner.addCell(createNoBorderCell(pNum, Element.ALIGN_CENTER, 2));
+
+            Image qrImg = createQrImage(tableUrl, 75, 75);
+            if (qrImg != null) {
+                qrImg.setAlignment(Element.ALIGN_CENTER);
+                PdfPCell imgCell = new PdfPCell();
+                imgCell.setBorder(Rectangle.NO_BORDER);
+                imgCell.addElement(qrImg);
+                imgCell.setHorizontalAlignment(Element.ALIGN_CENTER);
+                inner.addCell(imgCell);
+            }
+
+            Paragraph pScan = new Paragraph("Scannez pour commander", descFont);
+            pScan.setAlignment(Element.ALIGN_CENTER);
+            inner.addCell(createNoBorderCell(pScan, Element.ALIGN_CENTER, 1));
+
+            Paragraph pEst = new Paragraph(estName, estFont);
+            pEst.setAlignment(Element.ALIGN_CENTER);
+            inner.addCell(createNoBorderCell(pEst, Element.ALIGN_CENTER, 1));
+
+            stickerCell.addElement(inner);
+            grid.addCell(stickerCell);
+        }
+
+        int remainder = tables.size() % 3;
+        if (remainder != 0) {
+            for (int r = 0; r < (3 - remainder); r++) {
+                PdfPCell empty = new PdfPCell();
+                empty.setBorder(Rectangle.NO_BORDER);
+                grid.addCell(empty);
+            }
+        }
+
+        doc.add(grid);
+    }
+
+    private Image createQrImage(String content, float width, float height) {
+        if (qrCodeService == null || content == null || content.isBlank()) {
+            return null;
+        }
+        try {
+            BufferedImage bi = qrCodeService.generateBufferedImage(content, (int) width * 2, (int) height * 2);
+            Image img = Image.getInstance(bi, null);
+            img.scaleToFit(width, height);
+            return img;
+        } catch (Exception _) {
+            return null;
+        }
+    }
+
+    private PdfPCell createNoBorderCell(Element element) {
+        PdfPCell cell = new PdfPCell();
+        cell.setBorder(Rectangle.NO_BORDER);
+        cell.addElement(element);
+        return cell;
+    }
+
+    private PdfPCell createNoBorderCell(Element element, int alignment, int paddingBottom) {
+        PdfPCell cell = new PdfPCell();
+        cell.setBorder(Rectangle.NO_BORDER);
+        cell.setHorizontalAlignment(alignment);
+        cell.setPaddingBottom(paddingBottom);
+        cell.addElement(element);
+        return cell;
+    }
+
+    private record StandFonts(Font titleFont, Font tableNumFont, Font subFont, Font descFont) {}
 }

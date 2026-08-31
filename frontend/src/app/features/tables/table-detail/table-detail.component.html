@@ -156,6 +156,15 @@
       <button
         type="button"
         class="btn-action btn-secondary"
+        (click)="onOpenQrModal()"
+        data-testid="table-detail-qr-btn">
+        <ion-icon name="qr-code-outline"></ion-icon>
+        <span>{{ 'TABLES.QR_CODE_TITLE' | transloco }}</span>
+      </button>
+
+      <button
+        type="button"
+        class="btn-action btn-secondary"
         (click)="onClose()"
         (keyup.enter)="onClose()"
         data-testid="table-detail-back-btn">

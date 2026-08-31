@@ -79,7 +79,7 @@ class PublicCommandeDTOsTest {
     @Test
     @DisplayName("AppSettingsUpdateRequest - record fields")
     void appSettingsUpdateRequest() {
-        AppSettingsUpdateRequest dto = new AppSettingsUpdateRequest("#3880ff", "#3171e0", "https://bar.com/logo.png", "OpenBar", DefaultTheme.DARK, "EUR", "€", com.bar.gestioncocktail.model.CurrencyPosition.AFTER, 3, 5, 10);
+        AppSettingsUpdateRequest dto = new AppSettingsUpdateRequest("#3880ff", "#3171e0", "https://bar.com/logo.png", "OpenBar", DefaultTheme.DARK, "EUR", "€", com.bar.gestioncocktail.model.CurrencyPosition.AFTER, 3, 5, 10, "https://openbar.lan", "OpenBar-WiFi", "secret", "WPA", true);
         assertThat(dto.establishmentName()).isEqualTo("OpenBar");
         assertThat(dto.primaryColor()).isEqualTo("#3880ff");
         assertThat(dto.currencyCode()).isEqualTo("EUR");
@@ -88,6 +88,11 @@ class PublicCommandeDTOsTest {
         assertThat(dto.tempsAlerteWarningMinutes()).isEqualTo(3);
         assertThat(dto.tempsAlerteCommandeMinutes()).isEqualTo(5);
         assertThat(dto.tempsAlerteCritiqueCommandeMinutes()).isEqualTo(10);
+        assertThat(dto.clientBaseUrl()).isEqualTo("https://openbar.lan");
+        assertThat(dto.wifiSsid()).isEqualTo("OpenBar-WiFi");
+        assertThat(dto.wifiPassword()).isEqualTo("secret");
+        assertThat(dto.wifiSecurity()).isEqualTo("WPA");
+        assertThat(dto.wifiEnabled()).isTrue();
     }
 
     @Test

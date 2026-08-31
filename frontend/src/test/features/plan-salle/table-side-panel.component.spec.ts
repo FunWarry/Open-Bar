@@ -172,4 +172,17 @@ describe('TableSidePanelComponent', () => {
     component.setCornerRadius(0, 25);
     expect(component.cornerRadii[0]).toBe(25);
   });
+
+  it('should open TableQrModalComponent when onOpenQrModal() is called', fakeAsync(() => {
+    const mockTable: TableBar = { id: 1, numero: 5, capacite: 4, occupee: false, zone: 'INTERIEUR', createdAt: '', updatedAt: '' };
+    component.table = mockTable;
+
+    component.onOpenQrModal();
+    tick();
+
+    expect(modalCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({
+      componentProps: { table: mockTable }
+    }));
+    expect(mockModal.present).toHaveBeenCalled();
+  }));
 });

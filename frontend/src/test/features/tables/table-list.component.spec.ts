@@ -253,4 +253,25 @@ describe('TableListComponent', () => {
   it('trackById retourne l\'id de la table', () => {
     expect(component.trackById(0, mockTables[0])).toBe(1);
   });
+
+  it('onPrintQrBatch() opens TableQrBatchPrintModalComponent with all tables', fakeAsync(() => {
+    component.onPrintQrBatch();
+    tick();
+    expect(modalCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({
+      componentProps: {
+        tables: component.tables,
+        selectedTableIds: []
+      }
+    }));
+    expect(mockModal.present).toHaveBeenCalled();
+  }));
+
+  it('onOpenQrModal() opens TableQrModalComponent for specific table', fakeAsync(() => {
+    component.onOpenQrModal(mockTables[0]);
+    tick();
+    expect(modalCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({
+      componentProps: { table: mockTables[0] }
+    }));
+    expect(mockModal.present).toHaveBeenCalled();
+  }));
 });

@@ -48,6 +48,10 @@ import {
   alertCircleOutline,
   shieldCheckmarkOutline,
   chevronDownOutline,
+  qrCodeOutline,
+  wifiOutline,
+  globeOutline,
+  lockClosedOutline,
 } from 'ionicons/icons';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { Subject, forkJoin, of } from 'rxjs';
@@ -72,7 +76,7 @@ import { SearchableSelectComponent, SearchableOption } from '../../../core/compo
 import { TicketReceiptComponent } from '../../factures/ticket-receipt/ticket-receipt.component';
 import { Facture } from '../../factures/models/facture.model';
 
-export type SettingsTab = 'legal' | 'timers' | 'currency' | 'theme';
+export type SettingsTab = 'legal' | 'timers' | 'currency' | 'theme' | 'qr';
 
 const HEX_COLOR_PATTERN = /^#[0-9A-Fa-f]{6}$/;
 
@@ -296,6 +300,12 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
     { code: 'AUD', symbol: '$', position: 'BEFORE' },
   ];
 
+  readonly wifiSecurityOptions: SearchableOption<string>[] = [
+    { value: 'WPA', label: 'WPA / WPA2 / WPA3 (Standard)', subLabel: 'Recommandé pour la majorité des réseaux Wi-Fi', badge: 'WPA', badgeType: 'primary' },
+    { value: 'WEP', label: 'WEP (Ancien protocole)', subLabel: 'Réseaux Wi-Fi historiques', badge: 'WEP', badgeType: 'warning' },
+    { value: 'nopass', label: 'Réseau Ouvert (Sans mot de passe)', subLabel: 'Aucun mot de passe requis', badge: 'Open', badgeType: 'neutral' },
+  ];
+
   constructor() {
     addIcons({
       businessOutline,
@@ -315,6 +325,10 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       alertCircleOutline,
       shieldCheckmarkOutline,
       chevronDownOutline,
+      qrCodeOutline,
+      wifiOutline,
+      globeOutline,
+      lockClosedOutline,
     });
     this.initForms();
   }
@@ -357,7 +371,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
 
     if (this.route?.data) {
       this.route.data.pipe(takeUntil(this.destroy$)).subscribe(data => {
-        if (data?.['defaultTab'] && ['legal', 'timers', 'currency', 'theme'].includes(data['defaultTab'])) {
+        if (data?.['defaultTab'] && ['legal', 'timers', 'currency', 'theme', 'qr'].includes(data['defaultTab'])) {
           this.activeTab = data['defaultTab'] as SettingsTab;
         }
       });
@@ -365,7 +379,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
 
     if (this.route?.queryParams) {
       this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
-        if (params?.['tab'] && ['legal', 'timers', 'currency', 'theme'].includes(params['tab'])) {
+        if (params?.['tab'] && ['legal', 'timers', 'currency', 'theme', 'qr'].includes(params['tab'])) {
           this.activeTab = params['tab'] as SettingsTab;
         }
       });
@@ -444,6 +458,11 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       defaultTheme: ['DARK', [Validators.required]],
       primaryColor: ['#6c7fe8', [Validators.required]],
       primaryColorStrong: ['#5a68d6'],
+      clientBaseUrl: [''],
+      wifiSsid: ['', [Validators.maxLength(100)]],
+      wifiPassword: ['', [Validators.maxLength(100)]],
+      wifiSecurity: ['WPA', [Validators.required]],
+      wifiEnabled: [false],
     }, { validators: thresholdPriorityValidator });
 
     const currentColors = this.themeService.currentCustomColors;

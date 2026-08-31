@@ -100,7 +100,8 @@ class AppSettingsServiceTest {
         AppSettingsUpdateRequest request = new AppSettingsUpdateRequest(
             "#ff0000", "#cc0000", "https://example.com/logo.png", "The Test Bar", DefaultTheme.DARK,
             "USD", "$", com.bar.gestioncocktail.model.CurrencyPosition.BEFORE,
-            2, 6, 12
+            2, 6, 12,
+            "https://openbar.lan", "OpenBar-Guest", "SecretPass", "WPA", true
         );
 
         AppSettings result = appSettingsService.updateSettings(request);
@@ -121,6 +122,11 @@ class AppSettingsServiceTest {
         assertThat(result.getTempsAlerteWarningMinutes()).isEqualTo(2);
         assertThat(result.getTempsAlerteCommandeMinutes()).isEqualTo(6);
         assertThat(result.getTempsAlerteCritiqueCommandeMinutes()).isEqualTo(12);
+        assertThat(result.getClientBaseUrl()).isEqualTo("https://openbar.lan");
+        assertThat(result.getWifiSsid()).isEqualTo("OpenBar-Guest");
+        assertThat(result.getWifiPassword()).isEqualTo("SecretPass");
+        assertThat(result.getWifiSecurity()).isEqualTo("WPA");
+        assertThat(result.getWifiEnabled()).isTrue();
     }
 
     @Test
@@ -132,7 +138,8 @@ class AppSettingsServiceTest {
         AppSettingsUpdateRequest request = new AppSettingsUpdateRequest(
             "#6c7fe8", "#5a68d6", null, "OpenBar", DefaultTheme.DARK,
             "GBP", "£", com.bar.gestioncocktail.model.CurrencyPosition.BEFORE,
-            3, 5, 10
+            3, 5, 10,
+            null, null, null, null, null
         );
 
         AppSettings result = appSettingsService.updateSettings(request);
@@ -151,7 +158,8 @@ class AppSettingsServiceTest {
         AppSettingsUpdateRequest request = new AppSettingsUpdateRequest(
             "#6c7fe8", "#5a68d6", null, "OpenBar", DefaultTheme.DARK,
             null, null, null,
-            4, 8, 15
+            4, 8, 15,
+            null, null, null, null, null
         );
 
         AppSettings result = appSettingsService.updateSettings(request);
@@ -169,7 +177,8 @@ class AppSettingsServiceTest {
         AppSettingsUpdateRequest request = new AppSettingsUpdateRequest(
             "#6c7fe8", "#5a68d6", null, "OpenBar", DefaultTheme.DARK,
             null, null, null,
-            5, 5, 10
+            5, 5, 10,
+            null, null, null, null, null
         );
 
         assertThatThrownBy(() -> appSettingsService.updateSettings(request))
@@ -185,7 +194,8 @@ class AppSettingsServiceTest {
         AppSettingsUpdateRequest request = new AppSettingsUpdateRequest(
             "#6c7fe8", "#5a68d6", null, "OpenBar", DefaultTheme.DARK,
             null, null, null,
-            3, 10, 10
+            3, 10, 10,
+            null, null, null, null, null
         );
 
         assertThatThrownBy(() -> appSettingsService.updateSettings(request))
@@ -202,7 +212,8 @@ class AppSettingsServiceTest {
         AppSettingsUpdateRequest request = new AppSettingsUpdateRequest(
             "#6c7fe8", "#5a68d6", null, "OpenBar", DefaultTheme.DARK,
             null, null, null,
-            3, 5, 10
+            3, 5, 10,
+            null, null, null, null, null
         );
 
         AppSettings result = appSettingsService.updateSettings(request);
@@ -221,7 +232,8 @@ class AppSettingsServiceTest {
         AppSettingsUpdateRequest request = new AppSettingsUpdateRequest(
             "#6c7fe8", "#5a68d6", null, "OpenBar", DefaultTheme.LIGHT,
             null, null, null,
-            3, 5, 10
+            3, 5, 10,
+            null, null, null, null, null
         );
 
         AppSettings updated = appSettingsService.updateSettings(request);

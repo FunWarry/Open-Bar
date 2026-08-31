@@ -46,7 +46,12 @@ class AppSettingsIntegrationTest extends BaseIntegrationTest {
                 com.bar.gestioncocktail.model.CurrencyPosition.BEFORE,
                 2,
                 4,
-                8
+                8,
+                "https://openbar.lan",
+                "OpenBar-WiFi",
+                "secret123",
+                "WPA",
+                true
         );
 
         mockMvc.perform(put("/api/settings")
@@ -61,7 +66,11 @@ class AppSettingsIntegrationTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.currencyPosition").value("BEFORE"))
                 .andExpect(jsonPath("$.tempsAlerteWarningMinutes").value(2))
                 .andExpect(jsonPath("$.tempsAlerteCommandeMinutes").value(4))
-                .andExpect(jsonPath("$.tempsAlerteCritiqueCommandeMinutes").value(8));
+                .andExpect(jsonPath("$.tempsAlerteCritiqueCommandeMinutes").value(8))
+                .andExpect(jsonPath("$.clientBaseUrl").value("https://openbar.lan"))
+                .andExpect(jsonPath("$.wifiSsid").value("OpenBar-WiFi"))
+                .andExpect(jsonPath("$.wifiSecurity").value("WPA"))
+                .andExpect(jsonPath("$.wifiEnabled").value(true));
     }
 
     @Test
@@ -78,7 +87,12 @@ class AppSettingsIntegrationTest extends BaseIntegrationTest {
                 com.bar.gestioncocktail.model.CurrencyPosition.BEFORE,
                 3,
                 6,
-                12
+                12,
+                null,
+                null,
+                null,
+                null,
+                null
         );
 
         mockMvc.perform(put("/api/settings")
@@ -109,7 +123,12 @@ class AppSettingsIntegrationTest extends BaseIntegrationTest {
                 null,
                 3,
                 5,
-                10
+                10,
+                null,
+                null,
+                null,
+                null,
+                null
         );
 
         mockMvc.perform(put("/api/settings")
@@ -133,7 +152,12 @@ class AppSettingsIntegrationTest extends BaseIntegrationTest {
                 null,
                 3,
                 5,
-                10
+                10,
+                null,
+                null,
+                null,
+                null,
+                null
         );
 
         mockMvc.perform(put("/api/settings")
@@ -157,7 +181,12 @@ class AppSettingsIntegrationTest extends BaseIntegrationTest {
                 null,
                 3,
                 5,
-                10
+                10,
+                null,
+                null,
+                null,
+                null,
+                null
         );
 
         mockMvc.perform(put("/api/settings")
@@ -180,7 +209,12 @@ class AppSettingsIntegrationTest extends BaseIntegrationTest {
                 null,
                 6,
                 5,
-                10
+                10,
+                null,
+                null,
+                null,
+                null,
+                null
         );
 
         mockMvc.perform(put("/api/settings")

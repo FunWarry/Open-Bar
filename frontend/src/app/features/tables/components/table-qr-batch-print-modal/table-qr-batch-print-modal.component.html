@@ -1,0 +1,159 @@
+<div class="batch-modal-container" data-testid="table-qr-batch-modal">
+  <!-- Header -->
+  <header class="batch-modal-header">
+    <div class="header-titles">
+      <div class="header-badge">
+        <ion-icon name="print-outline" aria-hidden="true"></ion-icon>
+        <span>{{ 'TABLES.QR_BATCH_TITLE' | transloco }}</span>
+      </div>
+      <h2 class="modal-title">{{ 'TABLES.QR_BATCH_SUBTITLE' | transloco }}</h2>
+    </div>
+    <button
+      type="button"
+      class="close-btn"
+      data-testid="close-batch-modal-btn"
+      (click)="dismiss()"
+      [attr.aria-label]="'COMMON.CLOSE' | transloco">
+      <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+    </button>
+  </header>
+
+  <!-- Body -->
+  <div class="batch-modal-body">
+    <!-- Step 1: Layout Selection -->
+    <section class="section-card">
+      <h3 class="section-title">
+        <ion-icon name="layers-outline" aria-hidden="true"></ion-icon>
+        <span>{{ 'TABLES.QR_LAYOUT_LABEL' | transloco }}</span>
+      </h3>
+      <div class="layout-grid">
+        <!-- STAND Layout -->
+        <button
+          type="button"
+          class="layout-card"
+          [class.selected]="selectedLayout === 'STAND'"
+          data-testid="layout-stand-btn"
+          (click)="setLayout('STAND')">
+          <div class="layout-icon">
+            <ion-icon name="document-text-outline" aria-hidden="true"></ion-icon>
+          </div>
+          <div class="layout-info">
+            <h4 class="layout-name">{{ 'TABLES.QR_LAYOUT_STAND_TITLE' | transloco }}</h4>
+            <p class="layout-desc">{{ 'TABLES.QR_LAYOUT_STAND_DESC' | transloco }}</p>
+          </div>
+          <div class="layout-radio">
+            <ion-icon [name]="selectedLayout === 'STAND' ? 'checkmark-circle' : 'ellipse-outline'" aria-hidden="true"></ion-icon>
+          </div>
+        </button>
+
+        <!-- CARD Layout -->
+        <button
+          type="button"
+          class="layout-card"
+          [class.selected]="selectedLayout === 'CARD'"
+          data-testid="layout-card-btn"
+          (click)="setLayout('CARD')">
+          <div class="layout-icon">
+            <ion-icon name="grid-outline" aria-hidden="true"></ion-icon>
+          </div>
+          <div class="layout-info">
+            <h4 class="layout-name">{{ 'TABLES.QR_LAYOUT_CARD_TITLE' | transloco }}</h4>
+            <p class="layout-desc">{{ 'TABLES.QR_LAYOUT_CARD_DESC' | transloco }}</p>
+          </div>
+          <div class="layout-radio">
+            <ion-icon [name]="selectedLayout === 'CARD' ? 'checkmark-circle' : 'ellipse-outline'" aria-hidden="true"></ion-icon>
+          </div>
+        </button>
+
+        <!-- STICKER Layout -->
+        <button
+          type="button"
+          class="layout-card"
+          [class.selected]="selectedLayout === 'STICKER'"
+          data-testid="layout-sticker-btn"
+          (click)="setLayout('STICKER')">
+          <div class="layout-icon">
+            <ion-icon name="copy-outline" aria-hidden="true"></ion-icon>
+          </div>
+          <div class="layout-info">
+            <h4 class="layout-name">{{ 'TABLES.QR_LAYOUT_STICKER_TITLE' | transloco }}</h4>
+            <p class="layout-desc">{{ 'TABLES.QR_LAYOUT_STICKER_DESC' | transloco }}</p>
+          </div>
+          <div class="layout-radio">
+            <ion-icon [name]="selectedLayout === 'STICKER' ? 'checkmark-circle' : 'ellipse-outline'" aria-hidden="true"></ion-icon>
+          </div>
+        </button>
+      </div>
+    </section>
+
+    <!-- Step 2: Wi-Fi Option -->
+    <section *ngIf="settings && settings.wifiEnabled && settings.wifiSsid" class="section-card wifi-toggle-section">
+      <label class="toggle-container" for="include-wifi-checkbox">
+        <div class="toggle-icon">
+          <ion-icon name="wifi-outline" aria-hidden="true"></ion-icon>
+        </div>
+        <div class="toggle-text">
+          <span class="toggle-label">{{ 'TABLES.QR_INCLUDE_WIFI_LABEL' | transloco }}</span>
+          <span class="toggle-sub">{{ 'TABLES.QR_INCLUDE_WIFI_SUB' | transloco: { ssid: settings.wifiSsid } }}</span>
+        </div>
+        <input
+          id="include-wifi-checkbox"
+          type="checkbox"
+          [(ngModel)]="includeWifi"
+          class="toggle-checkbox"
+          data-testid="include-wifi-checkbox" />
+      </label>
+    </section>
+
+    <!-- Step 3: Table Selection -->
+    <section class="section-card">
+      <div class="section-header-row">
+        <h3 class="section-title">
+          <ion-icon name="options-outline" aria-hidden="true"></ion-icon>
+          <span>{{ 'TABLES.QR_TABLES_SELECTION' | transloco: { count: selectedIdsSet.size, total: tables.length } }}</span>
+        </h3>
+        <button
+          type="button"
+          class="select-all-btn"
+          data-testid="toggle-select-all-btn"
+          (click)="toggleSelectAll()">
+          {{ (selectAll ? 'TABLES.QR_DESELECT_ALL' : 'TABLES.QR_SELECT_ALL') | transloco }}
+        </button>
+      </div>
+
+      <div class="tables-chips-grid">
+        <button
+          *ngFor="let table of tables"
+          type="button"
+          class="table-chip"
+          [class.active]="isTableSelected(table.id)"
+          [attr.data-testid]="'select-table-chip-' + table.id"
+          (click)="toggleTableSelection(table.id)">
+          <span class="table-num">T{{ table.numero }}</span>
+          <span *ngIf="table.zone" class="chip-zone">{{ table.zone }}</span>
+        </button>
+      </div>
+    </section>
+  </div>
+
+  <!-- Footer Actions -->
+  <footer class="batch-modal-footer">
+    <button
+      type="button"
+      class="cancel-btn"
+      data-testid="cancel-batch-btn"
+      (click)="dismiss()">
+      {{ 'COMMON.CANCEL' | transloco }}
+    </button>
+    <button
+      type="button"
+      class="generate-btn"
+      data-testid="generate-batch-pdf-btn"
+      [disabled]="isGenerating || selectedIdsSet.size === 0"
+      (click)="generatePdf()">
+      <ion-spinner *ngIf="isGenerating" name="crescent"></ion-spinner>
+      <ion-icon *ngIf="!isGenerating" name="download-outline" aria-hidden="true"></ion-icon>
+      <span>{{ 'TABLES.QR_DOWNLOAD_PDF_ACTION' | transloco: { count: selectedIdsSet.size } }}</span>
+    </button>
+  </footer>
+</div>

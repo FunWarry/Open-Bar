@@ -84,6 +84,26 @@ public class AppSettings {
     @Column(nullable = false)
     private Integer tempsAlerteCritiqueCommandeMinutes = 10;
 
+    @Pattern(regexp = "^https?://.+", message = "Client base URL must be a valid http(s) URL")
+    @Size(max = 500, message = "Client base URL cannot exceed 500 characters")
+    @Column(name = "client_base_url", length = 500)
+    private String clientBaseUrl = "https://openbar.lan";
+
+    @Size(max = 100, message = "Wi-Fi SSID cannot exceed 100 characters")
+    @Column(name = "wifi_ssid", length = 100)
+    private String wifiSsid;
+
+    @Size(max = 100, message = "Wi-Fi password cannot exceed 100 characters")
+    @Column(name = "wifi_password", length = 100)
+    private String wifiPassword;
+
+    @Size(max = 20, message = "Wi-Fi security cannot exceed 20 characters")
+    @Column(name = "wifi_security", length = 20)
+    private String wifiSecurity = "WPA";
+
+    @Column(name = "wifi_enabled")
+    private Boolean wifiEnabled = false;
+
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 

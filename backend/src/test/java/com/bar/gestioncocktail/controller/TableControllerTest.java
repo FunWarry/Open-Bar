@@ -165,4 +165,43 @@ class TableControllerTest {
         assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         verify(tableService).transfererCommandes(1L, 2L);
     }
+
+    @Test
+    @DisplayName("getTableQrCode - returns PNG image bytes with proper content type")
+    void getTableQrCode_png_returnsImageBytes() {
+        when(tableService.generateTableQrCode(1L, "PNG", 300)).thenReturn(new byte[]{1, 2, 3});
+
+        ResponseEntity<byte[]> response = tableController.getTableQrCode(1L, "PNG", 300);
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getHeaders().getContentType()).isEqualTo(org.springframework.http.MediaType.IMAGE_PNG);
+        assertThat(response.getHeaders().getFirst(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION)).contains("table-1-qrcode.png");
+        assertThat(response.getBody()).isEqualTo(new byte[]{1, 2, 3});
+    }
+
+    @Test
+    @DisplayName("getTableQrCode - returns SVG vector bytes with proper content type")
+    void getTableQrCode_svg_returnsSvgBytes() {
+        when(tableService.generateTableQrCode(1L, "SVG", 250)).thenReturn("<svg></svg>".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+
+        ResponseEntity<byte[]> response = tableController.getTableQrCode(1L, "SVG", 250);
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getHeaders().getContentType()).isEqualTo(org.springframework.http.MediaType.valueOf("image/svg+xml"));
+        assertThat(response.getHeaders().getFirst(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION)).contains("table-1-qrcode.svg");
+        assertThat(new String(response.getBody())).isEqualTo("<svg></svg>");
+    }
+
+    @Test
+    @DisplayName("getTableQrCodesPdf - returns PDF bytes with application/pdf content type")
+    void getTableQrCodesPdf_nominal_returnsPdf() {
+        when(tableService.generateTablesQrCodePdf(List.of(1L, 2L), "STAND", true)).thenReturn(new byte[]{37, 80, 68, 70});
+
+        ResponseEntity<byte[]> response = tableController.getTableQrCodesPdf("STAND", List.of(1L, 2L), true);
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getHeaders().getContentType()).isEqualTo(org.springframework.http.MediaType.APPLICATION_PDF);
+        assertThat(response.getHeaders().getFirst(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION)).contains("openbar-tables-qrcodes-stand.pdf");
+        assertThat(response.getBody()).isEqualTo(new byte[]{37, 80, 68, 70});
+    }
 }

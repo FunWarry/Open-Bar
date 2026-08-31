@@ -22,9 +22,14 @@ import java.time.LocalDateTime;
  * @param tempsAlerteWarningMinutes Order warning alert threshold in minutes
  * @param tempsAlerteCommandeMinutes Order urgent alert threshold in minutes
  * @param tempsAlerteCritiqueCommandeMinutes Order critical alert threshold in minutes
+ * @param clientBaseUrl Base URL for customer digital ordering QR codes (e.g. https://openbar.lan)
+ * @param wifiSsid Establishment customer Wi-Fi network SSID
+ * @param wifiPassword Establishment customer Wi-Fi network password
+ * @param wifiSecurity Establishment customer Wi-Fi encryption type (WPA, WEP, nopass)
+ * @param wifiEnabled Flag indicating whether customer Wi-Fi QR codes are enabled on table stands
  * @param updatedAt Last modification timestamp
  */
-@Schema(description = "Visual, operational, and currency configuration data of the establishment")
+@Schema(description = "Visual, operational, currency, and QR/Wi-Fi configuration data of the establishment")
 public record AppSettingsResponseDTO(
     Long id,
     String primaryColor,
@@ -38,6 +43,11 @@ public record AppSettingsResponseDTO(
     Integer tempsAlerteWarningMinutes,
     Integer tempsAlerteCommandeMinutes,
     Integer tempsAlerteCritiqueCommandeMinutes,
+    String clientBaseUrl,
+    String wifiSsid,
+    String wifiPassword,
+    String wifiSecurity,
+    Boolean wifiEnabled,
     LocalDateTime updatedAt
 ) {
     /**
@@ -53,8 +63,14 @@ public record AppSettingsResponseDTO(
             s.getCurrencyCode(), s.getCurrencySymbol(), s.getCurrencyPosition(),
             s.getTempsAlerteWarningMinutes(),
             s.getTempsAlerteCommandeMinutes(), s.getTempsAlerteCritiqueCommandeMinutes(),
+            s.getClientBaseUrl(),
+            s.getWifiSsid(),
+            s.getWifiPassword(),
+            s.getWifiSecurity(),
+            s.getWifiEnabled(),
             s.getUpdatedAt()
         );
     }
 }
+
 
