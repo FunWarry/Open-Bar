@@ -33,6 +33,7 @@ export interface Commande {
   pourboire?: number;
   dateCommande: string;
   datePreparation?: string;
+  datePret?: string;
   dateLivraison?: string;
   dateReglement?: string;
   trackingToken?: string;

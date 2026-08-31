@@ -114,6 +114,12 @@ class EntityToDtoMappersTest {
         commande.setTrackingToken("TOKEN-999");
         commande.setItems(List.of());
 
+        LocalDateTime now = LocalDateTime.now();
+        commande.setDateCommande(now.minusMinutes(10));
+        commande.setDatePreparation(now.minusMinutes(7));
+        commande.setDatePret(now.minusMinutes(4));
+        commande.setDateLivraison(now.minusMinutes(1));
+
         CommandeResponseDTO dto = CommandeResponseDTO.from(commande);
 
         assertThat(dto).isNotNull();
@@ -122,6 +128,8 @@ class EntityToDtoMappersTest {
         assertThat(dto.tableNumero()).isEqualTo(15);
         assertThat(dto.statut()).isEqualTo(CommandeStatut.EN_ATTENTE);
         assertThat(dto.notes()).isEqualTo("No ice cubes");
+        assertThat(dto.datePret()).isEqualTo(now.minusMinutes(4));
+        assertThat(dto.dateLivraison()).isEqualTo(now.minusMinutes(1));
     }
 
     @Test

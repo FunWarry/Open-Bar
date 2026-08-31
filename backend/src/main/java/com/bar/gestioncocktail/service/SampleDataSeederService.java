@@ -525,8 +525,11 @@ public class SampleDataSeederService {
         if (statut == CommandeStatut.PRET || statut == CommandeStatut.LIVREE || statut == CommandeStatut.REGLEE) {
             commande.setDatePreparation(orderTime.plusMinutes(4));
         }
+        if (statut == CommandeStatut.PRET || statut == CommandeStatut.LIVREE || statut == CommandeStatut.REGLEE) {
+            commande.setDatePret(orderTime.plusMinutes(8));
+        }
         if (statut == CommandeStatut.LIVREE || statut == CommandeStatut.REGLEE) {
-            commande.setDateLivraison(orderTime.plusMinutes(6));
+            commande.setDateLivraison(orderTime.plusMinutes(10));
         }
         if (statut == CommandeStatut.REGLEE) {
             commande.setDateReglement(orderTime.plusMinutes(35));

@@ -68,6 +68,7 @@ export const MOCK_COMMANDE_PRETE: Commande = {
   total: 22.0,
   dateCommande: '2026-08-20T01:00:00Z',
   datePreparation: '2026-08-20T01:04:00Z',
+  datePret: '2026-08-20T01:07:00Z',
   items: [
     {
       id: 4,
@@ -91,6 +92,7 @@ export const MOCK_COMMANDE_LIVREE: Commande = {
   total: 19.0,
   dateCommande: '2026-08-20T00:50:00Z',
   datePreparation: '2026-08-20T00:54:00Z',
+  datePret: '2026-08-20T00:56:00Z',
   dateLivraison: '2026-08-20T00:58:00Z',
   items: [
     {

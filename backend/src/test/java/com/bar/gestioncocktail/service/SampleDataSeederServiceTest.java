@@ -278,4 +278,34 @@ class SampleDataSeederServiceTest {
 
         verify(avoirCreditRepository, atLeastOnce()).save(any(AvoirCredit.class));
     }
+
+    @Test
+    @DisplayName("seedAllDemoData - correctly seeds orders with proper lifecycle timestamps (datePret and dateLivraison)")
+    void seedAllDemoData_seedsOrdersWithProperLifecycleTimestamps() {
+        when(commandeRepository.count()).thenReturn(0L);
+
+        sampleDataSeederService.seedAllDemoData();
+
+        ArgumentCaptor<Commande> commandeCaptor = ArgumentCaptor.forClass(Commande.class);
+        verify(commandeRepository, atLeastOnce()).save(commandeCaptor.capture());
+
+        List<Commande> savedOrders = commandeCaptor.getAllValues();
+        assertThat(savedOrders).isNotEmpty();
+
+        // Check PRET orders have datePret but NO dateLivraison
+        savedOrders.stream()
+            .filter(c -> c.getStatut() == CommandeStatut.PRET)
+            .forEach(pretOrder -> {
+                assertThat(pretOrder.getDatePret()).isNotNull();
+                assertThat(pretOrder.getDateLivraison()).isNull();
+            });
+
+        // Check LIVREE orders have both datePret and dateLivraison
+        savedOrders.stream()
+            .filter(c -> c.getStatut() == CommandeStatut.LIVREE)
+            .forEach(livreeOrder -> {
+                assertThat(livreeOrder.getDatePret()).isNotNull();
+                assertThat(livreeOrder.getDateLivraison()).isNotNull();
+            });
+    }
 }

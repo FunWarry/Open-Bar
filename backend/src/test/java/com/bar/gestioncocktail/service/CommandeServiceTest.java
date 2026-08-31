@@ -102,16 +102,39 @@ class CommandeServiceTest {
 
         assertThat(result.getStatut()).isEqualTo(CommandeStatut.EN_PREPARATION);
         assertThat(result.getDatePreparation()).isNotNull();
+        assertThat(result.getDatePret()).isNull();
+        assertThat(result.getDateLivraison()).isNull();
     }
 
     @Test
+    @DisplayName("Non-regression #362: changerStatut to PRET sets datePret and DOES NOT set dateLivraison")
+    void changerStatut_pret_setsDatePretAndDoesNotSetDateLivraison() {
+        commande.setStatut(CommandeStatut.EN_PREPARATION);
+        commande.setDatePreparation(LocalDateTime.now());
+        when(commandeRepository.findById(1L)).thenReturn(Optional.of(commande));
+
+        Commande result = commandeService.changerStatut(1L, CommandeStatut.PRET);
+
+        assertThat(result.getStatut()).isEqualTo(CommandeStatut.PRET);
+        assertThat(result.getDatePret()).isNotNull();
+        assertThat(result.getDateLivraison()).isNull();
+    }
+
+    @Test
+    @DisplayName("Non-regression #362: changerStatut to LIVREE sets dateLivraison and preserves datePret")
     void changerStatut_livree_setsDateLivraison() {
+        LocalDateTime preparationTime = LocalDateTime.now().minusMinutes(5);
+        LocalDateTime readyTime = LocalDateTime.now().minusMinutes(2);
         commande.setStatut(CommandeStatut.PRET);
+        commande.setDatePreparation(preparationTime);
+        commande.setDatePret(readyTime);
         when(commandeRepository.findById(1L)).thenReturn(Optional.of(commande));
 
         Commande result = commandeService.changerStatut(1L, CommandeStatut.LIVREE);
 
         assertThat(result.getStatut()).isEqualTo(CommandeStatut.LIVREE);
+        assertThat(result.getDatePreparation()).isEqualTo(preparationTime);
+        assertThat(result.getDatePret()).isEqualTo(readyTime);
         assertThat(result.getDateLivraison()).isNotNull();
     }
 
