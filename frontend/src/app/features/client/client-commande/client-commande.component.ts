@@ -9,12 +9,11 @@ import { AppCurrencyPipe } from '../../../core/pipes/app-currency.pipe';
 import { CocktailService } from '../../../core/services/cocktail.service';
 import { CommandeService } from '../../../core/services/commande.service';
 import { Cocktail } from '../../../core/models/cocktail.model';
-import { TableAppelService } from '../../../core/services/table-appel.service';
-import { TableAppelType } from '../../../core/models/table-appel.model';
 import { InputFieldComponent } from '../../../core/components/ui/input-field/input-field.component';
 import { ActionButtonComponent } from '../../../core/components/ui/action-button/action-button.component';
 import { FilterChipComponent } from '../../../core/components/ui/filter-chip/filter-chip.component';
 import { ProductCardComponent } from '../../../core/components/ui/product-card/product-card.component';
+import { TableAssistanceBarComponent } from '../components/table-assistance-bar/table-assistance-bar.component';
 
 export interface CartItem {
   cocktail: Cocktail;
@@ -38,7 +37,8 @@ export interface CartItem {
     InputFieldComponent,
     ActionButtonComponent,
     FilterChipComponent,
-    ProductCardComponent
+    ProductCardComponent,
+    TableAssistanceBarComponent
   ]
 })
 export class ClientCommandeComponent implements OnInit, OnDestroy {
@@ -47,7 +47,6 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly cocktailService = inject(CocktailService);
   private readonly commandeService = inject(CommandeService);
-  private readonly tableAppelService = inject(TableAppelService);
   private readonly toastCtrl = inject(ToastController);
   private readonly translocoService = inject(TranslocoService);
   private readonly destroy$ = new Subject<void>();
@@ -62,12 +61,6 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
   cart: Map<number, CartItem> = new Map();
   isLoading = false;
   isSubmitting = false;
-
-  // Table Call & Bill Alert State
-  isCallingServer = false;
-  cooldownSeconds = 0;
-  activeCallType: TableAppelType | null = null;
-  private cooldownTimer: any = null;
 
   ngOnInit(): void {
     this.tableForm = this.fb.group({
@@ -89,68 +82,6 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-    if (this.cooldownTimer) {
-      clearInterval(this.cooldownTimer);
-    }
-  }
-
-  /**
-   * Triggers a waiter assistance call or bill request alert for the current table.
-   *
-   * @param type - Alert type ('ASSISTANCE' or 'ADDITION')
-   */
-  appelerServeur(type: TableAppelType = 'ASSISTANCE'): void {
-    if (!this.tableNumero || this.isCallingServer || this.cooldownSeconds > 0) return;
-
-    this.isCallingServer = true;
-    this.tableAppelService
-      .appelerServeur(this.tableNumero, type)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: async () => {
-          this.isCallingServer = false;
-          this.activeCallType = type;
-          this.startCooldown(60);
-
-          const msgKey = type === 'ADDITION'
-            ? 'CLIENT.ALERTS.BILL_REQUEST_SENT'
-            : 'CLIENT.ALERTS.WAITER_CALLED';
-          const toast = await this.toastCtrl.create({
-            message: this.translocoService.translate(msgKey),
-            duration: 4000,
-            color: 'success',
-            position: 'top'
-          });
-          await toast.present();
-        },
-        error: async (err) => {
-          this.isCallingServer = false;
-          const errMsg = err?.error?.message || this.translocoService.translate('CLIENT.ALERTS.CALL_FAILED');
-          const toast = await this.toastCtrl.create({
-            message: errMsg,
-            duration: 4000,
-            color: 'danger',
-            position: 'top'
-          });
-          await toast.present();
-        }
-      });
-  }
-
-  private startCooldown(seconds: number): void {
-    this.cooldownSeconds = seconds;
-    if (this.cooldownTimer) {
-      clearInterval(this.cooldownTimer);
-    }
-    this.cooldownTimer = setInterval(() => {
-      if (this.cooldownSeconds > 1) {
-        this.cooldownSeconds -= 1;
-      } else {
-        this.cooldownSeconds = 0;
-        clearInterval(this.cooldownTimer);
-        this.cooldownTimer = null;
-      }
-    }, 1000);
   }
 
   onSelectTable(): void {

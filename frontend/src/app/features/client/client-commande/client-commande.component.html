@@ -43,48 +43,7 @@
         </div>
 
         <!-- Quick Table Service & Bill Actions Bar -->
-        <div class="table-assistance-bar">
-          <button
-            class="assistance-btn call-waiter-btn"
-            type="button"
-            data-testid="btn-call-waiter"
-            [disabled]="isCallingServer || cooldownSeconds > 0"
-            (click)="appelerServeur('ASSISTANCE')">
-            <span class="btn-icon">🔔</span>
-            <span class="btn-text">
-              @if (cooldownSeconds > 0 && activeCallType === 'ASSISTANCE') {
-                {{ 'CLIENT.ALERTS.COOLDOWN' | transloco: { seconds: cooldownSeconds } }}
-              } @else {
-                {{ 'CLIENT.ALERTS.CALL_WAITER_BTN' | transloco }}
-              }
-            </span>
-          </button>
-
-          <button
-            class="assistance-btn request-bill-btn"
-            type="button"
-            data-testid="btn-request-bill"
-            [disabled]="isCallingServer || cooldownSeconds > 0"
-            (click)="appelerServeur('ADDITION')">
-            <span class="btn-icon">💳</span>
-            <span class="btn-text">
-              @if (cooldownSeconds > 0 && activeCallType === 'ADDITION') {
-                {{ 'CLIENT.ALERTS.COOLDOWN' | transloco: { seconds: cooldownSeconds } }}
-              } @else {
-                {{ 'CLIENT.ALERTS.REQUEST_BILL_BTN' | transloco }}
-              }
-            </span>
-          </button>
-        </div>
-
-        @if (cooldownSeconds > 0 && activeCallType) {
-          <div class="active-call-badge" data-testid="call-status-badge">
-            <span class="pulse-dot"></span>
-            <span>
-              {{ (activeCallType === 'ADDITION' ? 'CLIENT.ALERTS.STATUS_BILL_REQUESTED' : 'CLIENT.ALERTS.STATUS_WAITER_CALLED') | transloco }}
-            </span>
-          </div>
-        }
+        <app-table-assistance-bar [tableNumero]="tableNumero!"></app-table-assistance-bar>
       </header>
 
       <div class="filter-chips">

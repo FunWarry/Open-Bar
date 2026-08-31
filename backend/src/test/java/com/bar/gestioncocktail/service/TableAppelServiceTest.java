@@ -203,4 +203,54 @@ class TableAppelServiceTest {
         assertTrue(results.stream().allMatch(r -> r.statut() == TableAppelStatut.ACQUITTE));
         verify(notificationService, times(2)).notifierAppelAcquitte(any(TableAppelResponseDTO.class));
     }
+
+    @Test
+    @DisplayName("Should return existing call when identical alert is already pending")
+    void creerAppel_alreadyPending_returnsExisting() {
+        when(tableRepository.findById(1L)).thenReturn(Optional.of(table));
+        when(tableAppelRepository.existsByTableIdAndTypeAndStatut(1L, TableAppelType.ASSISTANCE, TableAppelStatut.EN_ATTENTE))
+                .thenReturn(true);
+        when(tableAppelRepository.findTopByTableIdAndStatutOrderByCreatedAtDesc(1L, TableAppelStatut.EN_ATTENTE))
+                .thenReturn(Optional.of(appelAssistance));
+
+        TableAppelResponseDTO result = tableAppelService.creerAppel(1L, new TableAppelRequestDTO(TableAppelType.ASSISTANCE, null));
+
+        assertNotNull(result);
+        assertEquals(10L, result.id());
+        verify(tableAppelRepository, never()).save(any(TableAppel.class));
+    }
+
+    @Test
+    @DisplayName("Should return directly when alert is already acknowledged")
+    void acquitterAppel_alreadyAcquitte_returnsDirectly() {
+        appelAssistance.setStatut(TableAppelStatut.ACQUITTE);
+        when(tableAppelRepository.findById(10L)).thenReturn(Optional.of(appelAssistance));
+
+        TableAppelResponseDTO result = tableAppelService.acquitterAppel(1L, 10L, "Jean");
+
+        assertNotNull(result);
+        assertEquals(TableAppelStatut.ACQUITTE, result.statut());
+        verify(tableAppelRepository, never()).save(any(TableAppel.class));
+    }
+
+    @Test
+    @DisplayName("Should throw ResourceNotFoundException when acknowledging non-existent alert")
+    void acquitterAppel_notFound_throwsException() {
+        when(tableAppelRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class,
+                () -> tableAppelService.acquitterAppel(1L, 999L, "Staff"));
+    }
+
+    @Test
+    @DisplayName("Should default to Staff when staffUsername is null or blank")
+    void acquitterAppel_defaultStaffUsername() {
+        when(tableAppelRepository.findById(10L)).thenReturn(Optional.of(appelAssistance));
+        when(tableAppelRepository.save(any(TableAppel.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        TableAppelResponseDTO result = tableAppelService.acquitterAppel(1L, 10L, "   ");
+
+        assertNotNull(result);
+        assertEquals("Staff", result.acquittePar());
+    }
 }

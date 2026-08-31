@@ -292,4 +292,30 @@ describe('TableDetailModalComponent', () => {
 
     expect(modalCtrlSpy.dismiss).toHaveBeenCalled();
   });
+
+  it('chargerAppels() loads active calls for table', () => {
+    tableAppelServiceSpy.getAppelsActifsPourTable.and.returnValue(of([
+      { id: 1, tableId: 1, type: 'ASSISTANCE', statut: 'EN_ATTENTE', createdAt: '', updatedAt: '' }
+    ]));
+
+    component.chargerAppels();
+
+    expect(tableAppelServiceSpy.getAppelsActifsPourTable).toHaveBeenCalledWith(1);
+    expect(component.activeAppels).toHaveSize(1);
+  });
+
+  it('acquitterAppel() acknowledges call, removes it from list and presents toast', fakeAsync(() => {
+    component.activeAppels = [
+      { id: 10, tableId: 1, type: 'ASSISTANCE', statut: 'EN_ATTENTE', createdAt: '', updatedAt: '' },
+      { id: 11, tableId: 1, type: 'ADDITION', statut: 'EN_ATTENTE', createdAt: '', updatedAt: '' }
+    ];
+
+    component.acquitterAppel(10);
+    tick();
+
+    expect(tableAppelServiceSpy.acquitterAppel).toHaveBeenCalledWith(1, 10);
+    expect(component.activeAppels).toHaveSize(1);
+    expect(component.activeAppels[0].id).toBe(11);
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
+  }));
 });

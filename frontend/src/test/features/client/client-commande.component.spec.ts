@@ -11,9 +11,12 @@ import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { Cocktail } from '../../../app/core/models/cocktail.model';
 import { TableAppel } from '../../../app/core/models/table-appel.model';
 
+import { Router } from '@angular/router';
+
 describe('ClientCommandeComponent', () => {
   let component: ClientCommandeComponent;
   let fixture: ComponentFixture<ClientCommandeComponent>;
+  let router: Router;
   let cocktailServiceSpy: jasmine.SpyObj<CocktailService>;
   let commandeServiceSpy: jasmine.SpyObj<CommandeService>;
   let tableAppelServiceSpy: jasmine.SpyObj<TableAppelService>;
@@ -72,6 +75,9 @@ describe('ClientCommandeComponent', () => {
       ]
     }).compileComponents();
 
+    router = TestBed.inject(Router);
+    spyOn(router, 'navigate').and.returnValue(Promise.resolve(true));
+
     fixture = TestBed.createComponent(ClientCommandeComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
@@ -97,33 +103,38 @@ describe('ClientCommandeComponent', () => {
     component.addToCart(mockCocktail);
     expect(component.getItemQuantity(1)).toBe(1);
     expect(component.totalPrice).toBe(8.5);
+    expect(component.totalItemsCount).toBe(1);
 
     component.removeFromCart(1);
     expect(component.getItemQuantity(1)).toBe(0);
+    expect(component.totalItemsCount).toBe(0);
   });
 
-  it('appelerServeur() should call service, start cooldown timer and present toast', fakeAsync(() => {
+  it('should handle category filtering and cart navigation', () => {
+    component.cocktails = [mockCocktail];
+    component.filterCategory('ALCOOLISE');
+    expect(component.selectedCategory).toBe('ALCOOLISE');
+    expect(component.filteredCocktails).toHaveSize(1);
+
+    component.addToCart(mockCocktail);
+    component.goToRecap();
+    expect(component.step).toBe('recap');
+
+    component.backToMenu();
+    expect(component.step).toBe('menu');
+  });
+
+  it('should submit order and navigate to tracking view', fakeAsync(() => {
+    commandeServiceSpy.create.and.returnValue(of({ id: 99, tableNumero: 4, items: [], statut: 'EN_ATTENTE', total: 8.5 } as any));
     component.tableNumero = 4;
-    component.appelerServeur('ASSISTANCE');
+    component.addToCart(mockCocktail);
 
-    expect(tableAppelServiceSpy.appelerServeur).toHaveBeenCalledWith(4, 'ASSISTANCE');
-    expect(component.cooldownSeconds).toBe(60);
-    expect(component.activeCallType).toBe('ASSISTANCE');
-    expect(toastCtrlSpy.create).toHaveBeenCalled();
+    component.submitOrder();
+    tick();
 
-    tick(1000);
-    expect(component.cooldownSeconds).toBe(59);
-
-    tick(60000);
-    expect(component.cooldownSeconds).toBe(0);
+    expect(commandeServiceSpy.create).toHaveBeenCalled();
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({
+      color: 'success'
+    }));
   }));
-
-  it('appelerServeur("ADDITION") should call service with addition type and start cooldown', () => {
-    component.tableNumero = 4;
-    component.appelerServeur('ADDITION');
-
-    expect(tableAppelServiceSpy.appelerServeur).toHaveBeenCalledWith(4, 'ADDITION');
-    expect(component.cooldownSeconds).toBe(60);
-    expect(component.activeCallType).toBe('ADDITION');
-  });
 });

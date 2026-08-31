@@ -122,24 +122,4 @@ describe('ClientSuiviComponent', () => {
     expect(component.statusStep).toBe(1);
     expect(component.statusLabelKey).toBe('CLIENT.STATUS_RECEIVED');
   });
-
-  it('appelerServeur("ASSISTANCE") in suivi component triggers service and cooldown', fakeAsync(() => {
-    component.appelerServeur('ASSISTANCE');
-
-    expect(tableAppelServiceSpy.appelerServeur).toHaveBeenCalledWith(4, 'ASSISTANCE');
-    expect(component.cooldownSeconds).toBe(60);
-    expect(component.activeCallType).toBe('ASSISTANCE');
-    expect(toastCtrlSpy.create).toHaveBeenCalled();
-
-    tick(60000);
-    expect(component.cooldownSeconds).toBe(0);
-  }));
-
-  it('appelerServeur("ADDITION") in suivi component triggers service and cooldown', () => {
-    component.appelerServeur('ADDITION');
-
-    expect(tableAppelServiceSpy.appelerServeur).toHaveBeenCalledWith(4, 'ADDITION');
-    expect(component.cooldownSeconds).toBe(60);
-    expect(component.activeCallType).toBe('ADDITION');
-  });
 });
