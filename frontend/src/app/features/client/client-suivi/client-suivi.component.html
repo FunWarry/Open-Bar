@@ -72,6 +72,9 @@
         </div>
       </div>
 
+      <!-- Quick Table Service & Bill Actions Bar -->
+      <app-table-assistance-bar [tableNumero]="commande.tableNumero || commande.tableId"></app-table-assistance-bar>
+
       <div class="actions-row">
         <app-action-button
           variant="secondary"

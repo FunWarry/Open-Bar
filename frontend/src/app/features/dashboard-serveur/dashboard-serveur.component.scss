@@ -39,6 +39,99 @@ ion-content.dashboard-serveur-content {
   }
 }
 
+// ── Active Table Alerts Banner ──────────────────────────────────
+.active-calls-banner {
+  background: rgba(229, 96, 79, 0.12);
+  border: 1px solid var(--semantic-danger, #e5604f);
+  border-radius: 14px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: fadeIn 0.3s ease;
+
+  .banner-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    .banner-title-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      .banner-icon {
+        font-size: 1.2rem;
+        &.pulse {
+          animation: pulse-icon 1.2s infinite ease-in-out;
+        }
+      }
+
+      .banner-title {
+        font-weight: 700;
+        font-size: 0.95rem;
+        color: var(--semantic-danger, #fca5a5);
+      }
+    }
+  }
+
+  .banner-calls-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+
+    .call-item-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      background: var(--background-surface-1, #16192b);
+      border: 1px solid var(--semantic-danger, #e5604f);
+      border-radius: 20px;
+      font-size: 0.85rem;
+      color: var(--text-primary, #ffffff);
+
+      &.bill-call {
+        border-color: var(--semantic-warning, #f4a52a);
+      }
+
+      .call-type-icon {
+        font-size: 1rem;
+      }
+
+      .call-table-text {
+        font-weight: 700;
+      }
+
+      .call-type-text {
+        color: var(--text-secondary, #a4add0);
+      }
+
+      .call-comment-text {
+        font-style: italic;
+        color: var(--text-muted, #717baa);
+      }
+
+      .ack-call-btn {
+        padding: 3px 8px;
+        background: var(--semantic-success, #2dd36f);
+        color: #000000;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: transform 0.15s ease;
+
+        &:hover {
+          transform: scale(1.06);
+        }
+      }
+    }
+  }
+}
+
 // ── Controls & Filter Bar (Style identique à la page Tables) ────────
 .controls-card {
   background: var(--background-surface-1, #16192b);

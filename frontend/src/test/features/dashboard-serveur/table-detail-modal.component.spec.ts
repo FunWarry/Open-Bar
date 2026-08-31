@@ -8,11 +8,14 @@ import { DashboardServeurService } from '../../../app/features/dashboard-serveur
 import { Commande } from '../../../app/core/models/commande.model';
 import { TableView } from '../../../app/features/dashboard-serveur/models/table-view.model';
 
+import { TableAppelService } from '../../../app/core/services/table-appel.service';
+
 describe('TableDetailModalComponent', () => {
   let component: TableDetailModalComponent;
   let modalCtrlSpy: jasmine.SpyObj<ModalController>;
   let routerSpy: jasmine.SpyObj<Router>;
   let dashboardServiceSpy: jasmine.SpyObj<DashboardServeurService>;
+  let tableAppelServiceSpy: jasmine.SpyObj<TableAppelService>;
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
   let alertCtrlSpy: jasmine.SpyObj<AlertController>;
   let toastSpy: { present: jasmine.Spy };
@@ -52,6 +55,15 @@ describe('TableDetailModalComponent', () => {
     ]);
     dashboardServiceSpy.getCommandesByTable.and.returnValue(of(mockCommandes));
 
+    tableAppelServiceSpy = jasmine.createSpyObj('TableAppelService', [
+      'getAppelsActifsPourTable',
+      'acquitterAppel',
+      'acquitterTousAppels'
+    ]);
+    tableAppelServiceSpy.getAppelsActifsPourTable.and.returnValue(of([]));
+    tableAppelServiceSpy.acquitterAppel.and.returnValue(of({} as any));
+    tableAppelServiceSpy.acquitterTousAppels.and.returnValue(of([]));
+
     toastSpy = { present: jasmine.createSpy('present').and.returnValue(Promise.resolve()) };
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
     toastCtrlSpy.create.and.returnValue(Promise.resolve(toastSpy as any));
@@ -66,6 +78,7 @@ describe('TableDetailModalComponent', () => {
         { provide: ModalController, useValue: modalCtrlSpy },
         { provide: Router, useValue: routerSpy },
         { provide: DashboardServeurService, useValue: dashboardServiceSpy },
+        { provide: TableAppelService, useValue: tableAppelServiceSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
         { provide: AlertController, useValue: alertCtrlSpy },
       ],
@@ -279,4 +292,30 @@ describe('TableDetailModalComponent', () => {
 
     expect(modalCtrlSpy.dismiss).toHaveBeenCalled();
   });
+
+  it('chargerAppels() loads active calls for table', () => {
+    tableAppelServiceSpy.getAppelsActifsPourTable.and.returnValue(of([
+      { id: 1, tableId: 1, type: 'ASSISTANCE', statut: 'EN_ATTENTE', createdAt: '', updatedAt: '' }
+    ]));
+
+    component.chargerAppels();
+
+    expect(tableAppelServiceSpy.getAppelsActifsPourTable).toHaveBeenCalledWith(1);
+    expect(component.activeAppels).toHaveSize(1);
+  });
+
+  it('acquitterAppel() acknowledges call, removes it from list and presents toast', fakeAsync(() => {
+    component.activeAppels = [
+      { id: 10, tableId: 1, type: 'ASSISTANCE', statut: 'EN_ATTENTE', createdAt: '', updatedAt: '' },
+      { id: 11, tableId: 1, type: 'ADDITION', statut: 'EN_ATTENTE', createdAt: '', updatedAt: '' }
+    ];
+
+    component.acquitterAppel(10);
+    tick();
+
+    expect(tableAppelServiceSpy.acquitterAppel).toHaveBeenCalledWith(1, 10);
+    expect(component.activeAppels).toHaveSize(1);
+    expect(component.activeAppels[0].id).toBe(11);
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
+  }));
 });

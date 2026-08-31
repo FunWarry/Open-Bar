@@ -13,6 +13,7 @@ import { InputFieldComponent } from '../../../core/components/ui/input-field/inp
 import { ActionButtonComponent } from '../../../core/components/ui/action-button/action-button.component';
 import { FilterChipComponent } from '../../../core/components/ui/filter-chip/filter-chip.component';
 import { ProductCardComponent } from '../../../core/components/ui/product-card/product-card.component';
+import { TableAssistanceBarComponent } from '../components/table-assistance-bar/table-assistance-bar.component';
 
 export interface CartItem {
   cocktail: Cocktail;
@@ -21,7 +22,7 @@ export interface CartItem {
 
 /**
  * Client Commande Component allowing public customers to select a table, browse the menu,
- * select cocktails with quantity, and submit an order via QR code.
+ * select cocktails with quantity, call the waiter, request the bill, and submit an order via QR code.
  * Aligned with Figma Vue Client QR Code specs (`636:988`, `636:1002`, `636:1058`).
  */
 @Component({
@@ -36,7 +37,8 @@ export interface CartItem {
     InputFieldComponent,
     ActionButtonComponent,
     FilterChipComponent,
-    ProductCardComponent
+    ProductCardComponent,
+    TableAssistanceBarComponent
   ]
 })
 export class ClientCommandeComponent implements OnInit, OnDestroy {
@@ -186,7 +188,7 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
         next: async (commandeCreated) => {
           this.isSubmitting = false;
           const toast = await this.toastCtrl.create({
-            message: 'Commande transmise avec succès au bar !',
+            message: this.translocoService.translate('CLIENT.ORDER_SUBMIT_SUCCESS'),
             duration: 3000,
             color: 'success'
           });
@@ -196,7 +198,7 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
         error: async (err: { error?: { message?: string } }) => {
           this.isSubmitting = false;
           const toast = await this.toastCtrl.create({
-            message: err?.error?.message || 'Erreur lors du passage de la commande.',
+            message: err?.error?.message || this.translocoService.translate('CLIENT.ORDER_SUBMIT_ERROR'),
             duration: 4000,
             color: 'danger'
           });

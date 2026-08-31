@@ -2404,5 +2404,29 @@
       "factureNumero": "FACT-2026-0005",
       "motif": "Erreur de saisie de table serveur et remboursement CB immédiat"
     }
+  ],
+  "table_appels": [
+    {
+      "tableNumero": 3,
+      "type": "ASSISTANCE",
+      "statut": "EN_ATTENTE",
+      "commentaire": "Besoin de verres d'eau et de serviettes",
+      "minutesAgo": 3
+    },
+    {
+      "tableNumero": 5,
+      "type": "ADDITION",
+      "statut": "EN_ATTENTE",
+      "commentaire": "Demande d'addition par carte bancaire",
+      "minutesAgo": 1
+    },
+    {
+      "tableNumero": 1,
+      "type": "ASSISTANCE",
+      "statut": "ACQUITTE",
+      "commentaire": "Question sur les allergènes",
+      "acquittePar": "serveur1",
+      "minutesAgo": 25
+    }
   ]
 }

@@ -79,12 +79,24 @@ describe('MobileTableCardComponent', () => {
     expect(component.WaitTimeClass).toBe('wait-danger');
   });
 
-  it('should render wait time badge when waitTimeMinutes > 0', () => {
-    fixture.componentRef.setInput('waitTimeMinutes', 15);
+  it('should render active call banner and emit ackAppel event', () => {
+    spyOn(component.ackAppel, 'emit');
+    const tableWithCall: TableView = {
+      ...mockTable,
+      activeAppels: [{ id: 10, tableId: 5, type: 'ASSISTANCE', statut: 'EN_ATTENTE', createdAt: '', updatedAt: '' }],
+      activeAppelType: 'ASSISTANCE'
+    };
+    fixture.componentRef.setInput('table', tableWithCall);
     fixture.detectChanges();
 
     const compiled = fixture.nativeElement as HTMLElement;
-    const waitBadge = compiled.querySelector('.wait-timer');
-    expect(waitBadge).toBeTruthy();
+    const banner = compiled.querySelector('[data-testid="mobile-card-call-alert-5"]');
+    expect(banner).toBeTruthy();
+
+    const ackBtn = compiled.querySelector('[data-testid="btn-card-ack-call-5"]') as HTMLButtonElement;
+    expect(ackBtn).toBeTruthy();
+    ackBtn.click();
+
+    expect(component.ackAppel.emit).toHaveBeenCalledWith(tableWithCall.activeAppels![0]);
   });
 });

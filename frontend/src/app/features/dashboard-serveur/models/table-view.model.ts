@@ -1,3 +1,5 @@
+import { TableAppel, TableAppelType } from '../../../core/models/table-appel.model';
+
 export type TableStatut = 'Libre' | 'Occupée' | 'EnCours' | 'Réservée' | 'EnPaiement';
 
 export interface TableView {
@@ -12,6 +14,8 @@ export interface TableView {
   waitTimeMinutes?: number;
   activeTotal?: number;
   commandesActives: CommandeResume[];
+  activeAppels?: TableAppel[];
+  activeAppelType?: TableAppelType | null;
   planX?: number;
   planY?: number;
   planForme?: string;

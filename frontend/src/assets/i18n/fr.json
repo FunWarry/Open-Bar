@@ -240,7 +240,19 @@
     "MENU_TITLE": "Menu — Table {{ table }}",
     "ITEMS_COUNT": "{{ count }} article(s)",
     "BACK_TO_MENU": "← Retour menu",
-    "SUBMIT_ORDER_BTN": "Envoyer la commande au bar"
+    "SUBMIT_ORDER_BTN": "Envoyer la commande au bar",
+    "ORDER_SUBMIT_SUCCESS": "Commande transmise avec succès au bar !",
+    "ORDER_SUBMIT_ERROR": "Erreur lors du passage de la commande.",
+    "ALERTS": {
+      "CALL_WAITER_BTN": "Appel Serveur",
+      "REQUEST_BILL_BTN": "Demander l'addition",
+      "COOLDOWN": "Attente ({{ seconds }}s)",
+      "STATUS_WAITER_CALLED": "Appel serveur envoyé",
+      "STATUS_BILL_REQUESTED": "Demande d'addition envoyée",
+      "WAITER_CALLED": "Votre serveur a été prévenu et arrive bientôt.",
+      "BILL_REQUEST_SENT": "Votre demande d'addition a été transmise au serveur.",
+      "CALL_FAILED": "Impossible d'envoyer la demande. Veuillez réessayer."
+    }
   },
   "HOME": {
     "WELCOME": "Bienvenue, {{ username }}",
@@ -1310,7 +1322,14 @@
       "SPECIAL": "Spécial"
     },
     "TRANSFER_MODAL_SUBTITLE": "Sélectionnez la table de destination pour la commande #{{ id }} :",
-    "TRANSFER_ORDER_TITLE": "Transférer la commande #{{ id }}"
+    "TRANSFER_ORDER_TITLE": "Transférer la commande #{{ id }}",
+    "ALERTS": {
+      "ACTIVE_CALLS_TITLE": "Appels tables en attente ({{ count }})",
+      "ASSISTANCE_REQUEST": "Besoin d'aide",
+      "BILL_REQUEST": "Demande d'addition",
+      "ACKNOWLEDGE_BTN": "Acquitter",
+      "ACKNOWLEDGE_SUCCESS": "Appel table acquitté avec succès"
+    }
   },
   "DASHBOARD": {
     "SERVEUR_TITLE": "Espace Serveur",

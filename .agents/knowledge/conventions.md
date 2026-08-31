@@ -114,6 +114,11 @@ test('should create order and track status', async ({ page }) => {
 });
 ```
 
+### Platform Demo & Test Data Seeding (MANDATORY)
+- **`backend/src/main/resources/data/demo_dataset.json`** & **`SampleDataSeederService.java`**
+- For every feature and entity, systematically maintain and seed realistic platform demonstration and testing data.
+- Ensures that developers, QA, and staging/test runs can immediately interact with active, pending, and completed entities without tedious manual setup.
+
 ---
 
 ## Git Workflow (Conventional Commits)

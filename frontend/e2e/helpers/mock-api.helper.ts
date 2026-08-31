@@ -618,5 +618,56 @@ export async function setupMockApi(page: Page): Promise<void> {
       body: JSON.stringify([]),
     });
   });
+
+  await page.route('**/api/public/tables/*/appel**', async (route) => {
+    const data = route.request().postDataJSON() || {};
+    await route.fulfill({
+      status: 201,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        id: 99,
+        tableId: 1,
+        tableNumero: 1,
+        type: data.type || 'ASSISTANCE',
+        statut: 'EN_ATTENTE',
+        commentaire: data.commentaire || null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      }),
+    });
+  });
+
+  await page.route('**/api/public/tables/*/appels/actifs**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([]),
+    });
+  });
+
+  await page.route('**/api/tables/appels/actifs**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([]),
+    });
+  });
+
+  await page.route('**/api/tables/*/appels/*/acquitter**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        id: 99,
+        tableId: 1,
+        tableNumero: 1,
+        type: 'ASSISTANCE',
+        statut: 'ACQUITTE',
+        acquittePar: 'serveur1',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      }),
+    });
+  });
 }
 

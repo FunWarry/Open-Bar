@@ -451,4 +451,61 @@ describe('NotificationService', () => {
     expect(notifs[0].message).toContain('Daiquiri');
     expect(notifs[0].severity).toBe('success');
   }));
+
+  // -------------------------------------------------------------------------
+  // /topic/serveur/appels assistance and bill request notifications
+  // -------------------------------------------------------------------------
+
+  it('emits danger alert and plays urgent sound when /topic/serveur/appels receives ASSISTANCE request', fakeAsync(() => {
+    const notifs: AppNotification[] = [];
+    service.onNotification().subscribe(n => notifs.push(n));
+
+    wsStub.emit('/topic/serveur/appels', {
+      id: 1,
+      tableNumero: 3,
+      type: 'ASSISTANCE',
+      statut: 'EN_ATTENTE'
+    });
+    tick();
+
+    expect(notifs).toHaveSize(1);
+    expect(notifs[0].severity).toBe('danger');
+    expect(notifs[0].message).toContain('Table 3');
+    expect(notifs[0].message).toContain('Assistance Request');
+    expect(soundSpy.playUrgentAlertSound).toHaveBeenCalled();
+  }));
+
+  it('emits warning alert when /topic/serveur/appels receives ADDITION request', fakeAsync(() => {
+    const notifs: AppNotification[] = [];
+    service.onNotification().subscribe(n => notifs.push(n));
+
+    wsStub.emit('/topic/serveur/appels', {
+      id: 2,
+      tableNumero: 4,
+      type: 'ADDITION',
+      statut: 'EN_ATTENTE'
+    });
+    tick();
+
+    expect(notifs).toHaveSize(1);
+    expect(notifs[0].severity).toBe('warning');
+    expect(notifs[0].message).toContain('Table 4');
+    expect(notifs[0].message).toContain('Addition / Bill Request');
+    expect(soundSpy.playUrgentAlertSound).toHaveBeenCalled();
+  }));
+
+  it('ignores /topic/serveur/appels messages when statut is not EN_ATTENTE', fakeAsync(() => {
+    const notifs: AppNotification[] = [];
+    service.onNotification().subscribe(n => notifs.push(n));
+
+    wsStub.emit('/topic/serveur/appels', {
+      id: 3,
+      tableNumero: 5,
+      type: 'ASSISTANCE',
+      statut: 'ACQUITTE'
+    });
+    tick();
+
+    expect(notifs).toHaveSize(0);
+  }));
 });

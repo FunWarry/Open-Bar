@@ -240,7 +240,19 @@
     "MENU_TITLE": "Menu — Table {{ table }}",
     "ITEMS_COUNT": "{{ count }} item(s)",
     "BACK_TO_MENU": "← Back to menu",
-    "SUBMIT_ORDER_BTN": "Send order to bar"
+    "SUBMIT_ORDER_BTN": "Send order to bar",
+    "ORDER_SUBMIT_SUCCESS": "Order successfully submitted to the bar!",
+    "ORDER_SUBMIT_ERROR": "Error while placing the order.",
+    "ALERTS": {
+      "CALL_WAITER_BTN": "Call Waiter",
+      "REQUEST_BILL_BTN": "Request Bill",
+      "COOLDOWN": "Wait ({{ seconds }}s)",
+      "STATUS_WAITER_CALLED": "Waiter call sent",
+      "STATUS_BILL_REQUESTED": "Bill request sent",
+      "WAITER_CALLED": "Your waiter has been notified and will arrive shortly.",
+      "BILL_REQUEST_SENT": "Your bill request has been sent to the waiter.",
+      "CALL_FAILED": "Unable to send request. Please try again."
+    }
   },
   "HOME": {
     "WELCOME": "Welcome, {{ username }}",
@@ -1310,7 +1322,14 @@
       "SPECIAL": "Special"
     },
     "TRANSFER_MODAL_SUBTITLE": "Select the destination table for order #{{ id }}:",
-    "TRANSFER_ORDER_TITLE": "Transfer order #{{ id }}"
+    "TRANSFER_ORDER_TITLE": "Transfer order #{{ id }}",
+    "ALERTS": {
+      "ACTIVE_CALLS_TITLE": "Pending table calls ({{ count }})",
+      "ASSISTANCE_REQUEST": "Assistance needed",
+      "BILL_REQUEST": "Bill requested",
+      "ACKNOWLEDGE_BTN": "Acknowledge",
+      "ACKNOWLEDGE_SUCCESS": "Table call acknowledged successfully"
+    }
   },
   "DASHBOARD": {
     "SERVEUR_TITLE": "Server Area",

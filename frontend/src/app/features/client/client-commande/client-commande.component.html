@@ -41,6 +41,9 @@
           <h1 class="menu-title">{{ 'CLIENT.MENU_TITLE' | transloco: { table: tableNumero } }}</h1>
           <p class="menu-subtitle">{{ 'CLIENT.SELECT_ITEMS' | transloco }}</p>
         </div>
+
+        <!-- Quick Table Service & Bill Actions Bar -->
+        <app-table-assistance-bar [tableNumero]="tableNumero!"></app-table-assistance-bar>
       </header>
 
       <div class="filter-chips">

@@ -8,9 +8,11 @@ import { CommandeService } from '../../../core/services/commande.service';
 import { WebSocketService } from '../../../core/services/websocket.service';
 import { Commande } from '../../../core/models/commande.model';
 import { ActionButtonComponent } from '../../../core/components/ui/action-button/action-button.component';
+import { TableAssistanceBarComponent } from '../components/table-assistance-bar/table-assistance-bar.component';
 
 /**
- * Client Suivi Component for real-time tracking of a customer order via STOMP WebSocket.
+ * Client Suivi Component for real-time tracking of a customer order via STOMP WebSocket,
+ * with quick assistance call and bill request actions.
  * Aligned with Figma Vue Client QR Code specs (`636:1083`).
  */
 @Component({
@@ -22,7 +24,8 @@ import { ActionButtonComponent } from '../../../core/components/ui/action-button
     RouterLink,
     AppCurrencyPipe,
     TranslocoModule,
-    ActionButtonComponent
+    ActionButtonComponent,
+    TableAssistanceBarComponent
   ]
 })
 export class ClientSuiviComponent implements OnInit, OnDestroy {

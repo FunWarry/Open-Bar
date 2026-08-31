@@ -68,11 +68,11 @@
 
 .table-badge {
   background: var(--primary, #9b8af2);
-  color: #ffffff;
+  color: var(--text-on-primary, #0c0d12);
   padding: 4px 12px;
   border-radius: var(--radius-full, 9999px);
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .hero-status {
@@ -145,14 +145,16 @@
 .step-item.active .step-circle {
   background: var(--primary, #9b8af2);
   border-color: var(--primary, #9b8af2);
-  color: #ffffff;
+  color: var(--text-on-primary, #0c0d12);
+  font-weight: 800;
   box-shadow: 0 0 12px rgba(155, 138, 242, 0.4);
 }
 
 .step-item.completed .step-circle {
   background: var(--status-success, #34c77b);
   border-color: var(--status-success, #34c77b);
-  color: #ffffff;
+  color: #000000;
+  font-weight: 800;
 }
 
 .step-text {
