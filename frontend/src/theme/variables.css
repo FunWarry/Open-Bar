@@ -112,14 +112,31 @@
   --radius-pill: 999px;
 
   /* Box Shadows / Elevation & Glow Tokens */
+  --shadow-none: none;
+  --shadow-xs: 0 1px 3px rgba(0, 0, 0, 0.2);
   --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.25);
   --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.35);
   --shadow-lg: 0 10px 28px rgba(0, 0, 0, 0.45);
-  --shadow-glow-primary: 0 0 14px rgba(108, 127, 232, 0.45);
-  --shadow-glow-success: 0 0 14px rgba(47, 191, 107, 0.45);
-  --shadow-glow-warning: 0 0 14px rgba(244, 165, 42, 0.45);
-  --shadow-glow-danger: 0 0 14px rgba(229, 96, 79, 0.45);
-  --shadow-glow-info: 0 0 14px rgba(43, 168, 232, 0.45);
+  --shadow-xl: 0 16px 40px rgba(0, 0, 0, 0.55);
+  --shadow-2xl: 0 24px 60px rgba(0, 0, 0, 0.7);
+  --shadow-modal: 0 24px 64px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  --shadow-popover: 0 12px 32px rgba(0, 0, 0, 0.6);
+  --shadow-drawer: -4px 0 24px rgba(0, 0, 0, 0.5);
+  --shadow-card: var(--shadow-sm);
+  --shadow-card-hover: var(--shadow-md);
+  --shadow-card-active: var(--shadow-lg);
+  --shadow-btn: var(--shadow-xs);
+  --shadow-btn-hover: var(--shadow-sm);
+  --shadow-btn-primary: 0 4px 14px rgba(108, 127, 232, 0.35);
+  --shadow-btn-danger: 0 4px 14px rgba(229, 96, 79, 0.35);
+  --shadow-btn-warning: 0 4px 14px rgba(244, 165, 42, 0.35);
+  --shadow-btn-success: 0 4px 14px rgba(47, 191, 107, 0.35);
+
+  --shadow-glow-primary: 0 0 16px rgba(108, 127, 232, 0.45);
+  --shadow-glow-success: 0 0 16px rgba(47, 191, 107, 0.45);
+  --shadow-glow-warning: 0 0 16px rgba(244, 165, 42, 0.45);
+  --shadow-glow-danger: 0 0 16px rgba(229, 96, 79, 0.45);
+  --shadow-glow-info: 0 0 16px rgba(43, 168, 232, 0.45);
 
   --elev-1: var(--shadow-sm);
   --elev-2: var(--shadow-md);
@@ -188,9 +205,26 @@ body.light-theme,
   --border-selected: #4f46e5;
 
   /* Box Shadows / Elevation & Glow Tokens en mode clair */
+  --shadow-none: none;
+  --shadow-xs: 0 1px 3px rgba(0, 0, 0, 0.04);
   --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 28px rgba(0, 0, 0, 0.15);
+  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 10px 28px rgba(0, 0, 0, 0.12);
+  --shadow-xl: 0 16px 40px rgba(0, 0, 0, 0.14);
+  --shadow-2xl: 0 24px 60px rgba(0, 0, 0, 0.18);
+  --shadow-modal: 0 20px 48px rgba(0, 0, 0, 0.16), 0 0 0 1px rgba(0, 0, 0, 0.06);
+  --shadow-popover: 0 12px 32px rgba(0, 0, 0, 0.12);
+  --shadow-drawer: -4px 0 24px rgba(0, 0, 0, 0.08);
+  --shadow-card: var(--shadow-sm);
+  --shadow-card-hover: var(--shadow-md);
+  --shadow-card-active: var(--shadow-lg);
+  --shadow-btn: var(--shadow-xs);
+  --shadow-btn-hover: var(--shadow-sm);
+  --shadow-btn-primary: 0 4px 14px rgba(79, 70, 229, 0.25);
+  --shadow-btn-danger: 0 4px 14px rgba(229, 96, 79, 0.25);
+  --shadow-btn-warning: 0 4px 14px rgba(244, 165, 42, 0.25);
+  --shadow-btn-success: 0 4px 14px rgba(47, 191, 107, 0.25);
+
   --shadow-glow-primary: 0 0 14px rgba(79, 70, 229, 0.25);
   --shadow-glow-success: 0 0 14px rgba(47, 191, 107, 0.3);
   --shadow-glow-warning: 0 0 14px rgba(244, 165, 42, 0.3);
@@ -204,7 +238,7 @@ body.light-theme,
   /* Card & Input Surface Tokens en mode clair */
   --card-item-bg: #ffffff;
   --card-item-border: #e2e8f0;
-  --card-item-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+  --card-item-shadow: var(--shadow-sm);
   --card-header-border: #f1f5f9;
   --input-bg: var(--surface-2);
   --input-border: #cbd5e1;

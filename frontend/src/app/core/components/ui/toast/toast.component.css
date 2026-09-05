@@ -14,7 +14,7 @@
   background-color: var(--surface-2, #21263f);
   border: 1px solid var(--border-medium, #2e3450);
   color: var(--text-primary, #eceefb);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+  box-shadow: var(--shadow-md);
   font-family: var(--font, 'Inter', sans-serif);
 }
 

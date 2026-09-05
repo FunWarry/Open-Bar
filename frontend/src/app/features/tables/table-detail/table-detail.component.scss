@@ -14,7 +14,7 @@
   background: var(--modal-bg);
   border-radius: var(--radius-xl, 20px);
   border: 1px solid var(--modal-border);
-  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  box-shadow: var(--shadow-modal);
   display: flex;
   flex-direction: column;
   max-width: 620px;
@@ -459,7 +459,7 @@
     &:hover:not(:disabled) {
       background: #dc2626;
       color: #ffffff;
-      box-shadow: 0 4px 14px rgba(220, 38, 38, 0.4);
+      box-shadow: var(--shadow-btn-danger);
     }
   }
 
@@ -476,12 +476,12 @@
   }
 
   .btn-primary {
-    background: #4f46e5;
+    background: var(--primary, #4f46e5);
     color: #ffffff;
-    box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
+    box-shadow: var(--shadow-btn-primary);
 
-    &:hover {
-      background: #4338ca;
+    &:hover:not(:disabled) {
+      background: var(--primary-strong, #4338ca);
       box-shadow: 0 6px 20px rgba(67, 56, 202, 0.45);
       transform: translateY(-1px);
     }
