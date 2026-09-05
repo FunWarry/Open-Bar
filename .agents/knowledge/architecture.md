@@ -45,14 +45,18 @@ Strict layered pattern: **Controller → Service → Repository** (no layer skip
 
 ```
 src/main/java/com/bar/gestioncocktail/
-├── config/     # SecurityConfig, WebSocketConfig, JwtProperties, OpenApiConfig
+├── config/     # SecurityConfig, WebSocketConfig, JwtProperties, OpenApiConfig, AsyncConfig
 ├── controller/ # REST endpoints (@PreAuthorize mandatory on write endpoints)
-├── service/    # Business domain logic (@Transactional on write methods)
-├── repository/ # Spring Data JPA (extends JpaRepository<Entity, Long>)
-├── model/      # JPA entities (@Data Lombok, @PrePersist/@PreUpdate)
 ├── dto/        # Java records with static XxxDTO from(Entity e)
-└── security/   # JwtAuthenticationFilter, JwtAuthorizationFilter, JwtTokenProvider
+├── event/      # Domain events (OrderCreatedEvent, InvoiceSettledEvent, TableUpdatedEvent, etc.)
+├── listener/   # Asynchronous event listeners (StompBroadcastEventListener, TableEventListener)
+├── model/      # JPA entities (@Data Lombok, @PrePersist/@PreUpdate)
+├── repository/ # Spring Data JPA (extends JpaRepository<Entity, Long>)
+├── security/   # JwtAuthenticationFilter, JwtAuthorizationFilter, JwtTokenProvider
+└── service/    # Business domain logic (@Transactional on write methods, ApplicationEventPublisher)
 ```
+
+**Circular References**: Strictly disabled via `spring.main.allow-circular-references: false`. Services communicate asynchronously via Spring ApplicationEvents and dedicated listeners.
 
 **Secrets**: `JWT_SECRET` is required (≥ 256 bits) — defined in `.env` / environment variables, validated on startup via `JwtProperties.validate()`.
 

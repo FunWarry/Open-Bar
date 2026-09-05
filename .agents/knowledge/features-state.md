@@ -101,18 +101,19 @@
 | **Real-Time Order Urgency & Priority Management (#375)** | ✅ | ✅ | ✅ | `prioritaire` boolean, `setUrgent()` priority toggling, server/barman kanban badges, SonarCloud 92.5% |
 | **Universal Theme-Adaptive ConfirmModal & Shadow Tokens (#377)** | — | ✅ | ✅ | `ConfirmModalComponent`, `PendingChangesGuard` adaptive confirmation, `--shadow-*` design tokens, SonarCloud 92.7% |
 | **Setup Route Protection & Onboarding Flow Navigation (#379)** | — | ✅ | ✅ | `AuthGuard` setup detection, `LoginComponent` onboarding redirection, `AppSettingsPageComponent` restart onboarding, floor plan zone sync, SonarCloud 100% |
+| **Event-Driven Decoupling & Circular Reference Removal (#363)** | ✅ | — | ✅ | Complete domain events decoupling, async listeners (`StompBroadcastEventListener`, `TableEventListener`), `allow-circular-references: false`, SonarCloud Quality Gate PASSED |
 
 ## Active Technical Debt
 
 | # | Description | Status |
 |---|-------------|--------|
-| 1 | Spring `allow-circular-references: true` | ⚠️ To be refactored (#363) |
-| 2 | 13 devDeps CVEs in Angular (esbuild, babel, vite) | ⚠️ Angular 22 required |
+| 1 | 13 devDeps CVEs in Angular (esbuild, babel, vite) | ⚠️ Angular 22 required |
 
 ## Resolution History
 
 | PR / Issue | Description |
 |------------|-------------|
+| #381 (#363) | Spring circular reference elimination & event-driven decoupling: Enforced `spring.main.allow-circular-references: false` in `application.yml`; created domain events in `com.bar.gestioncocktail.event` (`OrderCreatedEvent`, `OrderStatusChangedEvent`, `OrderUpdatedEvent`, `OrderCancelledEvent`, `OrderDeletedEvent`, `InvoiceSettledEvent`, `TableUpdatedEvent`, `TableLiberatedEvent`, `TableDeletedEvent`, `StockAlertEvent`); implemented asynchronous listeners `StompBroadcastEventListener` and `TableEventListener` (`@Async("openbarAsyncExecutor")`); decoupled `CommandeService`, `FactureService`, `TableService`, `PublicCommandeService`, and `IngredientService`; added integration test `CircularReferenceAndDomainEventsIntegrationTest` and full listener unit tests; 100% CI green, SonarCloud Quality Gate PASSED. |
 | #380 (#379) | Setup route protection, onboarding navigation flow, and floor plan zone sync: Hardened \`AuthGuard\` and \`LoginComponent\` to detect uninitialized establishment states and redirect to \`/setup\` and \`/onboarding\` as appropriate with fallback resilience; added onboarding reset and navigation to \`AppSettingsPageComponent\` with complete unit tests; reconciled backend floor plan zone synchronization in \`PlanSalleComponent\` with backend IDs and names; cleaned up table card UI and applied design system shadow tokens across onboarding, setup, and table views; 100% Transloco i18n parity. SonarCloud Quality Gate PASSED (100.0% coverage on new code, 0 defects). |
 | #378 (#377) | Universal theme-adaptive \`ConfirmModalComponent\` and design system shadow tokens: Replaced generic browser and alert dialogs in \`PendingChangesGuard\` with a rich, theme-adaptive modal component featuring tone badges, meta tags, and keyboard navigation; defined comprehensive shadow tokens (\`--shadow-sm\` through \`--shadow-xl\` and \`--shadow-glow-*\`) across light and dark modes in \`variables.css\` and applied them cleanly to cards and modals across core and feature styles; 100% Karma unit test coverage across all branches (nominal, edge, fallback) with Transloco i18n support. SonarCloud Quality Gate PASSED (92.7% coverage, 0 defects). |
 | #376 (#375) | Urgent priority order tagging UI & total calculation fallback: Added explicit urgency priority toggle in \`CommandeService\` (\`setUrgent\`, \`setPriorite\`), urgency indicators and styles in server and bartender kanban cards (\`commande-card.component.scss\`, \`kanban-serveur.component.scss\`), dynamic total calculation fallback ensuring consistency when line totals are absent; comprehensive unit and integration tests across \`CommandeServiceTest\`, \`CommandeDetailModalComponent\`, \`TableDetailModalComponent\`, and \`KanbanServeurComponent\`. SonarCloud Quality Gate PASSED (92.5% coverage). |
