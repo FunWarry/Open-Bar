@@ -28,6 +28,11 @@ import java.util.Optional;
 @Tag(name = "Setup", description = "System initialization, initial admin account creation, and demo data seeding")
 public class SetupController {
 
+    private static final String STATUS_KEY = "status";
+    private static final String MESSAGE_KEY = "message";
+    private static final String SUCCESS_VAL = "success";
+    private static final String SKIPPED_VAL = "skipped";
+
     private final SetupService setupService;
     private final Optional<SampleDataSeederService> sampleDataSeederService;
 
@@ -80,13 +85,36 @@ public class SetupController {
         if (sampleDataSeederService.isPresent()) {
             sampleDataSeederService.get().seedAllDemoData();
             return ResponseEntity.ok(Map.of(
-                    "status", "success",
-                    "message", "Demo dataset (floors, zones, tables, staff, shifts, orders, invoices) generated successfully."
+                    STATUS_KEY, SUCCESS_VAL,
+                    MESSAGE_KEY, "Demo dataset (floors, zones, tables, staff, shifts, orders, invoices) generated successfully."
             ));
         } else {
             return ResponseEntity.ok(Map.of(
-                    "status", "skipped",
-                    "message", "Demo data seeder is disabled in production environment."
+                    STATUS_KEY, SKIPPED_VAL,
+                    MESSAGE_KEY, "Demo data seeder is disabled in production environment."
+            ));
+        }
+    }
+
+    /**
+     * Purges leftover mock or XSS test records mistakenly persisted in development database.
+     *
+     * @return Confirmation message of test data cleanup
+     */
+    @PostMapping("/clean-test-data")
+    @Operation(summary = "Purge test data artifacts", description = "Removes dummy test records and leftover XSS test tables.")
+    @ApiResponse(responseCode = "200", description = "Test data cleaned successfully")
+    public ResponseEntity<Map<String, String>> cleanTestData() {
+        if (sampleDataSeederService.isPresent()) {
+            sampleDataSeederService.get().cleanPollutedTestData();
+            return ResponseEntity.ok(Map.of(
+                    STATUS_KEY, SUCCESS_VAL,
+                    MESSAGE_KEY, "Polluted test records and dummy tables purged successfully."
+            ));
+        } else {
+            return ResponseEntity.ok(Map.of(
+                    STATUS_KEY, SKIPPED_VAL,
+                    MESSAGE_KEY, "Demo data seeder is disabled in production environment."
             ));
         }
     }

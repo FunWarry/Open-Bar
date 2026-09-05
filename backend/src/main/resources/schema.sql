@@ -152,7 +152,7 @@ CREATE TABLE IF NOT EXISTS etages (
 CREATE TABLE IF NOT EXISTS zones (
     id BIGSERIAL PRIMARY KEY,
     nom VARCHAR(50) NOT NULL UNIQUE,
-    etage VARCHAR(50) DEFAULT 'RDC',
+    etage VARCHAR(50),
     plan_x DOUBLE PRECISION,
     plan_y DOUBLE PRECISION,
     plan_width DOUBLE PRECISION,
@@ -215,6 +215,7 @@ CREATE TABLE IF NOT EXISTS commandes (
     date_livraison TIMESTAMP,
     date_reglement TIMESTAMP,
     date_modification TIMESTAMP,
+    prioritaire BOOLEAN DEFAULT false,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -316,45 +317,45 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 -- 8. Global Settings & Legal Establishment Configuration
 CREATE TABLE IF NOT EXISTS app_settings (
     id BIGINT PRIMARY KEY,
-    primary_color VARCHAR(7) NOT NULL DEFAULT '#6c7fe8',
-    primary_color_strong VARCHAR(7) NOT NULL DEFAULT '#5a68d6',
+    primary_color VARCHAR(7) NOT NULL,
+    primary_color_strong VARCHAR(7) NOT NULL,
     logo_url VARCHAR(2048),
-    establishment_name VARCHAR(100) NOT NULL DEFAULT 'OpenBar',
-    default_theme VARCHAR(20) NOT NULL DEFAULT 'DARK',
-    currency_code VARCHAR(3) NOT NULL DEFAULT 'EUR',
-    currency_symbol VARCHAR(10) NOT NULL DEFAULT '€',
-    currency_position VARCHAR(10) NOT NULL DEFAULT 'AFTER',
-    temps_alerte_warning_minutes INTEGER NOT NULL DEFAULT 3,
-    temps_alerte_commande_minutes INTEGER NOT NULL DEFAULT 5,
-    temps_alerte_critique_commande_minutes INTEGER NOT NULL DEFAULT 10,
-    client_base_url VARCHAR(500) DEFAULT 'https://openbar.lan',
+    establishment_name VARCHAR(100) NOT NULL,
+    default_theme VARCHAR(20) NOT NULL,
+    currency_code VARCHAR(3) NOT NULL,
+    currency_symbol VARCHAR(10) NOT NULL,
+    currency_position VARCHAR(10) NOT NULL,
+    temps_alerte_warning_minutes INTEGER NOT NULL,
+    temps_alerte_commande_minutes INTEGER NOT NULL,
+    temps_alerte_critique_commande_minutes INTEGER NOT NULL,
+    client_base_url VARCHAR(500),
     wifi_ssid VARCHAR(100),
     wifi_password VARCHAR(100),
-    wifi_security VARCHAR(20) DEFAULT 'WPA',
+    wifi_security VARCHAR(20),
     wifi_enabled BOOLEAN DEFAULT false,
     updated_at TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS establishment_config (
     id BIGINT PRIMARY KEY,
-    legal_name VARCHAR(255) NOT NULL DEFAULT 'OpenBar SARL',
-    legal_form VARCHAR(50) DEFAULT 'SARL',
-    siret VARCHAR(14) DEFAULT '73282932000074',
-    rcs_city VARCHAR(100) DEFAULT 'Paris',
-    rcs_number VARCHAR(50) DEFAULT 'B 123 456 789',
-    tva_number VARCHAR(20) DEFAULT 'FR12123456789',
-    code_ape VARCHAR(10) DEFAULT '5630Z',
-    capital_social DECIMAL(12,2) DEFAULT 10000.00,
-    address VARCHAR(500) DEFAULT '12 Rue du Bar, 75001 Paris',
-    country VARCHAR(100) DEFAULT 'France',
-    language VARCHAR(10) DEFAULT 'fr',
-    phone VARCHAR(50) DEFAULT '+33123456789',
-    email VARCHAR(100) DEFAULT 'contact@openbar.local',
-    payment_terms VARCHAR(255) DEFAULT 'Paiement immédiat à réception',
-    discount_policy VARCHAR(255) DEFAULT 'Aucun escompte pour paiement anticipé',
-    late_payment_rate DECIMAL(5,4) DEFAULT 0.1200,
-    time_zone VARCHAR(50) DEFAULT 'SYSTEM',
-    ticket_format VARCHAR(10) DEFAULT '80mm',
+    legal_name VARCHAR(255) NOT NULL,
+    legal_form VARCHAR(50),
+    siret VARCHAR(14),
+    rcs_city VARCHAR(100),
+    rcs_number VARCHAR(50),
+    tva_number VARCHAR(20),
+    code_ape VARCHAR(10),
+    capital_social DECIMAL(12,2),
+    address VARCHAR(500),
+    country VARCHAR(100),
+    language VARCHAR(10),
+    phone VARCHAR(50),
+    email VARCHAR(100),
+    payment_terms VARCHAR(255),
+    discount_policy VARCHAR(255),
+    late_payment_rate DECIMAL(5,4),
+    time_zone VARCHAR(50),
+    ticket_format VARCHAR(10),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -422,39 +423,3 @@ CREATE TABLE IF NOT EXISTS shift_audit_log (
     previous_snapshot TEXT,
     new_snapshot TEXT
 );
-
--- 10. Schema Migrations & Initial Singleton Seeds
-
-INSERT INTO app_settings (
-    id,
-    primary_color,
-    primary_color_strong,
-    establishment_name,
-    default_theme,
-    temps_alerte_warning_minutes,
-    temps_alerte_commande_minutes,
-    temps_alerte_critique_commande_minutes
-)
-VALUES (
-    1,
-    '#6c7fe8',
-    '#5a68d6',
-    'OpenBar',
-    'DARK',
-    3,
-    5,
-    10
-)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO establishment_config (
-    id,
-    created_at,
-    updated_at
-)
-VALUES (
-    1,
-    CURRENT_TIMESTAMP,
-    CURRENT_TIMESTAMP
-)
-ON CONFLICT (id) DO NOTHING;

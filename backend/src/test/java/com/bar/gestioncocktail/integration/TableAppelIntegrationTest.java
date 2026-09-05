@@ -37,6 +37,10 @@ class TableAppelIntegrationTest extends BaseIntegrationTest {
     @BeforeEach
     void setUpTable() {
         tableAppelRepository.deleteAll();
+        tableRepository.findByNumero(88).ifPresent(t -> {
+            tableAppelRepository.deleteByTableId(t.getId());
+            tableRepository.delete(t);
+        });
 
         TableEntity table = new TableEntity();
         table.setNumero(88);

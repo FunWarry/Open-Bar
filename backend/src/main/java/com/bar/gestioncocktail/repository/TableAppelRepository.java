@@ -73,4 +73,13 @@ public interface TableAppelRepository extends JpaRepository<TableAppel, Long> {
      * @return Optional latest alert
      */
     Optional<TableAppel> findTopByTableIdAndStatutOrderByCreatedAtDesc(Long tableId, TableAppelStatut statut);
+
+    /**
+     * Deletes all alerts associated with a given table ID.
+     *
+     * @param tableId Table identifier
+     */
+    @org.springframework.data.jpa.repository.Modifying
+    @Query("DELETE FROM TableAppel a WHERE a.table.id = :tableId")
+    void deleteByTableId(@Param("tableId") Long tableId);
 }

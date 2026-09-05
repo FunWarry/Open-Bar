@@ -535,4 +535,29 @@ class CommandeServiceTest {
 
         org.junit.jupiter.api.Assertions.assertDoesNotThrow(() -> commandeService.annulerCommande(commande));
     }
+
+    @Test
+    @DisplayName("toggleUrgent - toggles order priority flag and updates items")
+    void toggleUrgent_success() {
+        commande.setPrioritaire(false);
+        when(commandeRepository.findById(1L)).thenReturn(Optional.of(commande));
+        when(commandeRepository.save(any(Commande.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Commande result = commandeService.toggleUrgent(1L);
+
+        assertThat(result.isPrioritaire()).isTrue();
+        verify(messagingTemplate).convertAndSend(eq("/topic/commandes"), any(com.bar.gestioncocktail.dto.CommandeResponseDTO.class));
+    }
+
+    @Test
+    @DisplayName("setUrgent - sets order priority flag explicitly")
+    void setUrgent_success() {
+        commande.setPrioritaire(false);
+        when(commandeRepository.findById(1L)).thenReturn(Optional.of(commande));
+        when(commandeRepository.save(any(Commande.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Commande result = commandeService.setUrgent(1L, true);
+
+        assertThat(result.isPrioritaire()).isTrue();
+    }
 }

@@ -21,11 +21,14 @@ import java.util.Set;
 
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 
+import org.springframework.transaction.annotation.Transactional;
+
 /**
  * Shared base class for Spring Boot full-stack integration tests backed by Testcontainers PostgreSQL.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
+@Transactional
 public abstract class BaseIntegrationTest {
 
     protected static final PostgreSQLContainer<?> postgres = createPostgresContainer();
@@ -92,7 +95,7 @@ public abstract class BaseIntegrationTest {
         ensureTestUsersExist();
     }
 
-    private void ensureTestUsersExist() {
+    protected void ensureTestUsersExist() {
         createTestUserIfNotExists("admin", UserRole.ADMIN, UserRole.MANAGER);
         createTestUserIfNotExists("manager", UserRole.MANAGER);
         createTestUserIfNotExists("serveur1", UserRole.SERVEUR);

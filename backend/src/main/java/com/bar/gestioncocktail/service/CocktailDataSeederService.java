@@ -64,32 +64,68 @@ public class CocktailDataSeederService {
     private final CocktailIngredientRepository cocktailIngredientRepository;
     private final CocktailVarianteRepository cocktailVarianteRepository;
     private final GlasswareRepository glasswareRepository;
+    private final org.springframework.core.env.Environment environment;
     private final ObjectMapper objectMapper;
 
+    /**
+     * Constructs the cocktail data seeder service with repository and environment dependencies.
+     *
+     * @param cocktailRepository JPA cocktail repository
+     * @param ingredientRepository JPA ingredient repository
+     * @param cocktailIngredientRepository JPA cocktail-ingredient relation repository
+     * @param cocktailVarianteRepository JPA cocktail variation repository
+     * @param glasswareRepository JPA glassware repository
+     * @param environment Spring environment to inspect active profiles
+     */
     public CocktailDataSeederService(
             CocktailRepository cocktailRepository,
             IngredientRepository ingredientRepository,
             CocktailIngredientRepository cocktailIngredientRepository,
             CocktailVarianteRepository cocktailVarianteRepository,
-            GlasswareRepository glasswareRepository) {
+            GlasswareRepository glasswareRepository,
+            org.springframework.core.env.Environment environment) {
         this.cocktailRepository = cocktailRepository;
         this.ingredientRepository = ingredientRepository;
         this.cocktailIngredientRepository = cocktailIngredientRepository;
         this.cocktailVarianteRepository = cocktailVarianteRepository;
         this.glasswareRepository = glasswareRepository;
+        this.environment = environment;
         this.objectMapper = JsonMapper.builder()
                 .enable(JsonReadFeature.ALLOW_NON_NUMERIC_NUMBERS)
                 .build();
     }
 
     /**
-     * Executes automatic dataset seeding if no cocktails are present in the
-     * repository.
+     * Executes automatic dataset seeding on startup ONLY when running with the 'test' profile.
+     * In 'dev' and 'prod' profiles, automatic startup seeding is skipped to maintain a clean blank database.
      */
     @PostConstruct
     @Transactional
     public void seedCocktailsIfEmpty() {
         fixLegacyImageUrls();
+        if (!isTestProfileActive()) {
+            log.info("Skipping automatic cocktail startup seeding (active profile is not 'test'). Database remains clean.");
+            return;
+        }
+        seedCocktailsInternal();
+    }
+
+    /**
+     * Programmatically seeds cocktail dataset into the database if empty, or forces re-seeding.
+     *
+     * @param force When true, proceeds even if cocktails are already present
+     */
+    @Transactional
+    public void seedCocktails(boolean force) {
+        fixLegacyImageUrls();
+        if (!force && cocktailRepository.count() > 0) {
+            log.info("Database already contains cocktails, skipping seeding.");
+            return;
+        }
+        seedCocktailsInternal();
+    }
+
+    private void seedCocktailsInternal() {
         if (cocktailRepository.count() > 0) {
             log.info("Database already contains cocktails, skipping test dataset seeding.");
             return;
@@ -120,6 +156,13 @@ public class CocktailDataSeederService {
         } catch (Exception e) {
             log.error("Failed to seed cocktail test dataset", e);
         }
+    }
+
+    private boolean isTestProfileActive() {
+        if (environment == null) {
+            return false;
+        }
+        return java.util.Arrays.asList(environment.getActiveProfiles()).contains("test");
     }
 
     private void fixLegacyImageUrls() {

@@ -198,4 +198,26 @@ class CommandeControllerTest {
         assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         verify(commandeService).modifierCommande(10L, request);
     }
+
+    @Test
+    @DisplayName("toggleUrgent - toggles order urgent status")
+    void toggleUrgent_success() {
+        when(commandeService.toggleUrgent(10L)).thenReturn(commande);
+
+        ResponseEntity<CommandeResponseDTO> response = commandeController.toggleUrgent(10L);
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        verify(commandeService).toggleUrgent(10L);
+    }
+
+    @Test
+    @DisplayName("setUrgent - sets order urgent status explicitly")
+    void setUrgent_success() {
+        when(commandeService.setUrgent(10L, true)).thenReturn(commande);
+
+        ResponseEntity<CommandeResponseDTO> response = commandeController.setUrgent(10L, true);
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        verify(commandeService).setUrgent(10L, true);
+    }
 }

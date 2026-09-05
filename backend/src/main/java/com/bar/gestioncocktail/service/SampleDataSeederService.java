@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -57,6 +58,8 @@ public class SampleDataSeederService {
     private static final String KEY_MODE_PAIEMENT = "modePaiement";
     private static final String KEY_POURBOIRE = "pourboire";
     private static final String KEY_REGLEMENTS = "reglements";
+    private static final String SCRIPT_TAG = "<script>";
+    private static final String KEY_TEST = "Test";
 
     private final UserRepository userRepository;
     private final TableRepository tableRepository;
@@ -74,11 +77,19 @@ public class SampleDataSeederService {
     private final EstablishmentClosureRepository establishmentClosureRepository;
     private final WeekSchedulePublicationRepository weekSchedulePublicationRepository;
     private final TableAppelRepository tableAppelRepository;
+    private final AppSettingsRepository appSettingsRepository;
+    private final EstablishmentConfigRepository establishmentConfigRepository;
+    private final JdbcTemplate jdbcTemplate;
     private final PasswordEncoder passwordEncoder;
     private final TimeService timeService;
     private final PlatformTransactionManager transactionManager;
+    private final CocktailDataSeederService cocktailDataSeederService;
+    private final org.springframework.core.env.Environment environment;
     private final ObjectMapper objectMapper;
 
+    /**
+     * Constructs the sample data seeder service with required repositories, services, and environment dependencies.
+     */
     public SampleDataSeederService(
             UserRepository userRepository,
             TableRepository tableRepository,
@@ -96,9 +107,14 @@ public class SampleDataSeederService {
             EstablishmentClosureRepository establishmentClosureRepository,
             WeekSchedulePublicationRepository weekSchedulePublicationRepository,
             TableAppelRepository tableAppelRepository,
+            AppSettingsRepository appSettingsRepository,
+            EstablishmentConfigRepository establishmentConfigRepository,
+            JdbcTemplate jdbcTemplate,
             PasswordEncoder passwordEncoder,
             TimeService timeService,
-            PlatformTransactionManager transactionManager) {
+            PlatformTransactionManager transactionManager,
+            CocktailDataSeederService cocktailDataSeederService,
+            org.springframework.core.env.Environment environment) {
         this.userRepository = userRepository;
         this.tableRepository = tableRepository;
         this.zoneRepository = zoneRepository;
@@ -115,27 +131,221 @@ public class SampleDataSeederService {
         this.establishmentClosureRepository = establishmentClosureRepository;
         this.weekSchedulePublicationRepository = weekSchedulePublicationRepository;
         this.tableAppelRepository = tableAppelRepository;
+        this.appSettingsRepository = appSettingsRepository;
+        this.establishmentConfigRepository = establishmentConfigRepository;
+        this.jdbcTemplate = jdbcTemplate;
         this.passwordEncoder = passwordEncoder;
         this.timeService = timeService;
         this.transactionManager = transactionManager;
+        this.cocktailDataSeederService = cocktailDataSeederService;
+        this.environment = environment;
         this.objectMapper = new ObjectMapper();
     }
 
+    /**
+     * Automatically executes demo dataset seeding on startup ONLY when running with the 'test' profile.
+     * In 'dev' and 'prod' profiles, automatic startup seeding is skipped to maintain a clean blank database.
+     */
     @PostConstruct
     public void seedDemoDataIfEmpty() {
-        new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
-            if (commandeRepository.count() > 0) {
-                log.info("Database already contains orders, skipping demo dataset seeding.");
-                return;
+        migrateLegacySchemas();
+        cleanPollutedTestData();
+
+        if (!isTestProfileActive()) {
+            log.info("Skipping automatic demo dataset startup seeding (active profile is not 'test'). Database remains clean.");
+            return;
+        }
+
+        log.info("Starting complete demo dataset seeding from JSON asset '{}'...", DATASET_PATH);
+        seedAllDemoData();
+        log.info("Demo dataset seeding successfully finished.");
+    }
+
+    private void migrateLegacySchemas() {
+        if (jdbcTemplate != null) {
+            safelyInTransaction(() -> {
+                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS primary_color VARCHAR(7) DEFAULT '#6c7fe8'");
+                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS primary_color_strong VARCHAR(7) DEFAULT '#5a68d6'");
+                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS logo_url VARCHAR(2048)");
+                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS establishment_name VARCHAR(100) DEFAULT 'OpenBar'");
+                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS default_theme VARCHAR(20) DEFAULT 'DARK'");
+                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS currency_code VARCHAR(3) DEFAULT 'EUR'");
+                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS currency_symbol VARCHAR(10) DEFAULT '€'");
+                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS currency_position VARCHAR(10) DEFAULT 'AFTER'");
+                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS temps_alerte_warning_minutes INTEGER DEFAULT 3");
+                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS temps_alerte_commande_minutes INTEGER DEFAULT 5");
+                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS temps_alerte_critique_commande_minutes INTEGER DEFAULT 10");
+                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS client_base_url VARCHAR(500) DEFAULT 'https://openbar.lan'");
+                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS wifi_ssid VARCHAR(100) DEFAULT 'OpenBar-WiFi'");
+                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS wifi_password VARCHAR(100) DEFAULT 'OpenBar2026!'");
+                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS wifi_security VARCHAR(20) DEFAULT 'WPA2'");
+                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS wifi_enabled BOOLEAN DEFAULT false");
+                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP");
+                jdbcTemplate.execute("ALTER TABLE establishment_config ADD COLUMN IF NOT EXISTS ticket_format VARCHAR(10) DEFAULT '80mm'");
+            }, "migrateLegacySchemas");
+        }
+    }
+
+    /**
+     * Purges leftover mock or XSS test records mistakenly persisted during local integration test runs.
+     */
+    public void cleanPollutedTestData() {
+        safelyInTransaction(this::cleanPollutedOrders, "cleanPollutedOrders");
+        safelyInTransaction(this::cleanPollutedTables, "cleanPollutedTables");
+        safelyInTransaction(this::cleanPollutedZones, "cleanPollutedZones");
+        safelyInTransaction(this::cleanPollutedCocktails, "cleanPollutedCocktails");
+        safelyInTransaction(this::cleanPollutedIngredients, "cleanPollutedIngredients");
+    }
+
+    private void safelyInTransaction(Runnable action, String description) {
+        try {
+            new TransactionTemplate(transactionManager).executeWithoutResult(_ -> action.run());
+        } catch (Exception e) {
+            log.debug("Cleanup step '{}' encountered exception: {}", description, e.getMessage());
+        }
+    }
+
+    private void cleanPollutedTables() {
+        try {
+            List<TableEntity> testTables = tableRepository.findAll().stream()
+                    .filter(t -> t.getNumero() != null && (t.getNumero() == 999 || t.getNumero() == 99 || t.getNumero() == 88 || t.getNumero() >= 80 || (t.getZone() != null && (t.getZone().contains(SCRIPT_TAG) || t.getZone().contains(KEY_TEST)))))
+                    .toList();
+            if (!testTables.isEmpty()) {
+                log.info("Cleaning up {} polluted test tables from development database...", testTables.size());
+                for (TableEntity testTable : testTables) {
+                    detachTableDependencies(testTable.getId());
+                }
+                factureRepository.flush();
+                commandeRepository.flush();
+                tableAppelRepository.flush();
+                tableRepository.deleteAll(testTables);
+                tableRepository.flush();
             }
 
-            log.info("Starting complete demo dataset seeding from JSON asset '{}'...", DATASET_PATH);
-            seedAllDemoData();
-            log.info("Demo dataset seeding successfully finished.");
-        });
+            deduplicateTables();
+        } catch (Exception e) {
+            log.warn("Failed to clean polluted tables: {}", e.getMessage());
+        }
+    }
+
+    private void deduplicateTables() {
+        try {
+            List<TableEntity> currentTables = tableRepository.findAll();
+            Map<Integer, List<TableEntity>> groupedByNumero = new HashMap<>();
+            for (TableEntity t : currentTables) {
+                if (t.getNumero() != null) {
+                    groupedByNumero.computeIfAbsent(t.getNumero(), _ -> new ArrayList<>()).add(t);
+                }
+            }
+
+            List<TableEntity> duplicatesToDelete = new ArrayList<>();
+            for (Map.Entry<Integer, List<TableEntity>> entry : groupedByNumero.entrySet()) {
+                List<TableEntity> tablesWithSameNumero = entry.getValue();
+                if (tablesWithSameNumero.size() > 1) {
+                    for (int i = 1; i < tablesWithSameNumero.size(); i++) {
+                        TableEntity dup = tablesWithSameNumero.get(i);
+                        detachTableDependencies(dup.getId());
+                        duplicatesToDelete.add(dup);
+                    }
+                }
+            }
+
+            if (!duplicatesToDelete.isEmpty()) {
+                log.info("Cleaning up {} duplicate table records from development database...", duplicatesToDelete.size());
+                factureRepository.flush();
+                commandeRepository.flush();
+                tableAppelRepository.flush();
+                tableRepository.deleteAll(duplicatesToDelete);
+                tableRepository.flush();
+            }
+        } catch (Exception e) {
+            log.warn("Failed to deduplicate tables: {}", e.getMessage());
+        }
+    }
+
+    private void detachTableDependencies(Long tableId) {
+        if (tableId == null) {
+            return;
+        }
+        safelyExecute(() -> factureRepository.detachTableFromFactures(tableId), "detach factures for table " + tableId);
+        safelyExecute(() -> commandeRepository.detachTableFromCommandes(tableId), "detach commandes for table " + tableId);
+        safelyExecute(() -> tableAppelRepository.deleteByTableId(tableId), "delete appels for table " + tableId);
+    }
+
+    private void safelyExecute(Runnable action, String description) {
+        try {
+            action.run();
+        } catch (Exception ex) {
+            log.debug("Could not {}: {}", description, ex.getMessage());
+        }
+    }
+
+    private void cleanPollutedZones() {
+        try {
+            List<ZoneEntity> testZones = zoneRepository.findAll().stream()
+                    .filter(z -> z.getNom() != null && (z.getNom().contains(SCRIPT_TAG) || z.getNom().contains(KEY_TEST)))
+                    .toList();
+            if (!testZones.isEmpty()) {
+                log.info("Cleaning up {} polluted test zones from development database...", testZones.size());
+                zoneRepository.deleteAll(testZones);
+                zoneRepository.flush();
+            }
+        } catch (Exception e) {
+            log.warn("Failed to clean polluted zones: {}", e.getMessage());
+        }
+    }
+
+    private void cleanPollutedCocktails() {
+        try {
+            List<Cocktail> testCocktails = cocktailRepository.findAll().stream()
+                    .filter(c -> c.getNom() != null && (c.getNom().contains(SCRIPT_TAG) || c.getNom().equals("Spicy Mezcal")))
+                    .toList();
+            if (!testCocktails.isEmpty()) {
+                log.info("Cleaning up {} polluted test cocktails from development database...", testCocktails.size());
+                cocktailRepository.deleteAll(testCocktails);
+            }
+        } catch (Exception e) {
+            log.warn("Failed to clean polluted cocktails: {}", e.getMessage());
+        }
+    }
+
+    private void cleanPollutedIngredients() {
+        try {
+            List<Ingredient> testIngredients = ingredientRepository.findAll().stream()
+                    .filter(i -> i.getNom() != null && i.getNom().contains(SCRIPT_TAG))
+                    .toList();
+            if (!testIngredients.isEmpty()) {
+                log.info("Cleaning up {} polluted test ingredients from development database...", testIngredients.size());
+                ingredientRepository.deleteAll(testIngredients);
+            }
+        } catch (Exception e) {
+            log.warn("Failed to clean polluted ingredients: {}", e.getMessage());
+        }
+    }
+
+    private void cleanPollutedOrders() {
+        try {
+            List<Commande> emptyOrders = commandeRepository.findAll().stream()
+                    .filter(c -> c.getItems() == null || c.getItems().isEmpty())
+                    .toList();
+            if (!emptyOrders.isEmpty()) {
+                log.info("Cleaning up {} empty test orders without items from development database...", emptyOrders.size());
+                commandeRepository.deleteAll(emptyOrders);
+                commandeRepository.flush();
+            }
+        } catch (Exception e) {
+            log.warn("Failed to clean empty test orders: {}", e.getMessage());
+        }
     }
 
     public void seedAllDemoData() {
+        migrateLegacySchemas();
+
+        if (cocktailDataSeederService != null && cocktailRepository.count() == 0) {
+            log.info("Seeding cocktails prerequisite for demo dataset...");
+            cocktailDataSeederService.seedCocktails(false);
+        }
+
         InputStream is = loadResourceStream();
         if (is == null) {
             log.warn("Demo dataset JSON file '{}' not found in classpath.", DATASET_PATH);
@@ -145,32 +355,43 @@ public class SampleDataSeederService {
         try (InputStream stream = is) {
             JsonNode root = objectMapper.readTree(stream);
 
-            Map<String, User> usersMap = seedUsersFromJson(root.get("users"));
-            seedEtagesFromJson(root.get("etages"));
-            seedZonesFromJson(root.get("zones"));
-            Map<Integer, TableEntity> tablesMap = seedTablesFromJson(root.get("tables"), usersMap);
-            seedShiftPresetsFromJson(root.get("shift_presets"));
-            seedShiftsFromJson(root.get("shifts"), usersMap);
-            seedClosuresFromJson(root.get("closures"));
-            seedWeekPublicationsFromJson(root.get("week_publications"));
+            final Map<String, User> usersMap = new HashMap<>();
+            safelyInTransaction(() -> usersMap.putAll(seedUsersFromJson(root.get("users"))), "seedUsers");
+            safelyInTransaction(() -> seedEtagesFromJson(root.get("etages")), "seedEtages");
+            safelyInTransaction(() -> seedZonesFromJson(root.get("zones")), "seedZones");
 
-            Map<String, RecipeStepTemplate> templatesMap = seedRecipeStepTemplatesFromJson(root.get("recipe_step_templates"));
-            seedCocktailRecipeStepsFromJson(root.get("cocktail_recipe_steps"), templatesMap);
-            seedStockAdjustmentsFromJson(root.get("stock_adjustments"));
-            seedTableAppelsFromJson(root.get("table_appels"), tablesMap);
+            final Map<Integer, TableEntity> tablesMap = new HashMap<>();
+            safelyInTransaction(() -> tablesMap.putAll(seedTablesFromJson(root.get("tables"), usersMap)), "seedTables");
 
-            if (commandeRepository.count() == 0) {
-                List<Cocktail> cocktails = cocktailRepository.findAll();
-                if (!cocktails.isEmpty()) {
-                    seedOrdersFromJson(root.get("orders"), usersMap, tablesMap, cocktails);
-                    seedInvoicesFromJson(root.get("invoices"), tablesMap);
-                    seedAvoirsCreditFromJson(root.get("avoirs_credit"));
-                }
+            safelyInTransaction(() -> seedShiftPresetsFromJson(root.get("shift_presets")), "seedShiftPresets");
+            safelyInTransaction(() -> seedShiftsFromJson(root.get("shifts"), usersMap), "seedShifts");
+            safelyInTransaction(() -> seedClosuresFromJson(root.get("closures")), "seedClosures");
+            safelyInTransaction(() -> seedWeekPublicationsFromJson(root.get("week_publications")), "seedWeekPublications");
+
+            final Map<String, RecipeStepTemplate> templatesMap = new HashMap<>();
+            safelyInTransaction(() -> templatesMap.putAll(seedRecipeStepTemplatesFromJson(root.get("recipe_step_templates"))), "seedRecipeStepTemplates");
+            safelyInTransaction(() -> seedCocktailRecipeStepsFromJson(root.get("cocktail_recipe_steps"), templatesMap), "seedCocktailRecipeSteps");
+            safelyInTransaction(() -> seedStockAdjustmentsFromJson(root.get("stock_adjustments")), "seedStockAdjustments");
+            safelyInTransaction(() -> seedTableAppelsFromJson(root.get("table_appels"), tablesMap), "seedTableAppels");
+            safelyInTransaction(this::seedSettingsAndConfig, "seedSettingsAndConfig");
+
+            List<Cocktail> cocktails = cocktailRepository.findAll();
+            if (!cocktails.isEmpty()) {
+                safelyInTransaction(() -> seedOrdersFromJson(root.get("orders"), usersMap, tablesMap, cocktails), "seedOrders");
             }
+            safelyInTransaction(() -> seedInvoicesFromJson(root.get("invoices"), tablesMap), "seedInvoices");
+            safelyInTransaction(() -> seedAvoirsCreditFromJson(root.get("avoirs_credit")), "seedAvoirsCredit");
 
         } catch (Exception e) {
             log.error("Failed to seed demo dataset from JSON file '{}'", DATASET_PATH, e);
         }
+    }
+
+    private boolean isTestProfileActive() {
+        if (environment == null) {
+            return false;
+        }
+        return java.util.Arrays.asList(environment.getActiveProfiles()).contains("test");
     }
 
     private InputStream loadResourceStream() {
@@ -213,26 +434,29 @@ public class SampleDataSeederService {
                 }
             }
 
-            User user = userRepository.findByUsername(username).map(existing -> {
-                existing.setPassword(passwordEncoder.encode(password));
-                existing.setEmail(email);
-                existing.setNom(nom);
-                existing.setPrenom(prenom);
-                existing.setRoles(roles);
-                existing.setUpdatedAt(timeService.now());
-                return userRepository.save(existing);
-            }).orElseGet(() -> {
-                User u = new User();
-                u.setUsername(username);
-                u.setEmail(email);
-                u.setPassword(passwordEncoder.encode(password));
-                u.setNom(nom);
-                u.setPrenom(prenom);
-                u.setRoles(roles);
-                u.setCreatedAt(timeService.now());
-                u.setUpdatedAt(timeService.now());
-                return userRepository.save(u);
-            });
+            User user = userRepository.findByUsername(username)
+                    .or(() -> userRepository.findByEmail(email))
+                    .map(existing -> {
+                        existing.setUsername(username);
+                        existing.setPassword(passwordEncoder.encode(password));
+                        existing.setEmail(email);
+                        existing.setNom(nom);
+                        existing.setPrenom(prenom);
+                        existing.setRoles(roles);
+                        existing.setUpdatedAt(timeService.now());
+                        return userRepository.save(existing);
+                    }).orElseGet(() -> {
+                        User u = new User();
+                        u.setUsername(username);
+                        u.setEmail(email);
+                        u.setPassword(passwordEncoder.encode(password));
+                        u.setNom(nom);
+                        u.setPrenom(prenom);
+                        u.setRoles(roles);
+                        u.setCreatedAt(timeService.now());
+                        u.setUpdatedAt(timeService.now());
+                        return userRepository.save(u);
+                    });
 
             usersMap.put(username, user);
         }
@@ -520,7 +744,8 @@ public class SampleDataSeederService {
         User serveur = serveurUsername != null ? usersMap.get(serveurUsername) : null;
         LocalDateTime orderTime = timeService.now().minusMinutes(minutesAgo);
 
-        Commande commande = new Commande();
+        Commande commande = (trackingToken != null ? commandeRepository.findByTrackingToken(trackingToken) : Optional.<Commande>empty())
+                .orElseGet(Commande::new);
         commande.setTable(table);
         commande.setServeur(serveur);
         commande.setStatut(statut);
@@ -528,10 +753,31 @@ public class SampleDataSeederService {
         commande.setTrackingToken(trackingToken);
         commande.setNotes(notes);
 
+        applyOrderTimestamps(commande, statut, orderTime);
+
+        Commande savedOrder = commandeRepository.save(commande);
+        List<CommandeItem> items = parseOrderItems(savedOrder, oNode.get(KEY_ITEMS), cocktails);
+        savedOrder.setItems(items);
+        BigDecimal totalOrder = BigDecimal.ZERO;
+        boolean hasPrioritaireItem = false;
+        for (CommandeItem item : items) {
+            if (item != null && item.getPrixUnitaire() != null) {
+                totalOrder = totalOrder.add(item.getPrixUnitaire().multiply(BigDecimal.valueOf(item.getQuantite())));
+            }
+            if (item != null && item.isPrioritaire()) {
+                hasPrioritaireItem = true;
+            }
+        }
+        savedOrder.setTotal(totalOrder);
+        if (hasPrioritaireItem) {
+            savedOrder.setPrioritaire(true);
+        }
+        commandeRepository.save(savedOrder);
+    }
+
+    private void applyOrderTimestamps(Commande commande, CommandeStatut statut, LocalDateTime orderTime) {
         if (statut == CommandeStatut.PRET || statut == CommandeStatut.LIVREE || statut == CommandeStatut.REGLEE) {
             commande.setDatePreparation(orderTime.plusMinutes(4));
-        }
-        if (statut == CommandeStatut.PRET || statut == CommandeStatut.LIVREE || statut == CommandeStatut.REGLEE) {
             commande.setDatePret(orderTime.plusMinutes(8));
         }
         if (statut == CommandeStatut.LIVREE || statut == CommandeStatut.REGLEE) {
@@ -543,11 +789,6 @@ public class SampleDataSeederService {
         if (statut == CommandeStatut.ANNULEE) {
             commande.setDateModification(orderTime.plusMinutes(2));
         }
-
-        Commande savedOrder = commandeRepository.save(commande);
-        List<CommandeItem> items = parseOrderItems(savedOrder, oNode.get(KEY_ITEMS), cocktails);
-        savedOrder.setItems(items);
-        commandeRepository.save(savedOrder);
     }
 
     private List<CommandeItem> parseOrderItems(Commande order, JsonNode itemsNode, List<Cocktail> cocktails) {
@@ -595,15 +836,31 @@ public class SampleDataSeederService {
         TableEntity table = tablesMap.get(tableNumero);
         LocalDateTime invoiceTime = timeService.now().minusMinutes(minutesAgo);
 
-        Facture f = buildInvoiceEntity(table, numero, reglee, modePaiement, pourboire, invoiceTime, notes);
+        Facture f = factureRepository.findByNumero(numero)
+                .orElseGet(() -> buildInvoiceEntity(table, numero, reglee, modePaiement, pourboire, invoiceTime, notes));
+        f.setTable(table);
+        f.setReglee(reglee);
+        f.setModePaiement(modePaiement);
+        f.setPourboire(pourboire);
+        f.setDateFacture(invoiceTime);
+        f.setNotes(notes);
+
+        if (reglee) {
+            f.setDateReglement(invoiceTime.plusMinutes(35));
+            f.setFinalized(true);
+            f.setFinalizedAt(invoiceTime.plusMinutes(35));
+            f.setRetentionUntil(invoiceTime.plusYears(10));
+        }
+
         List<Commande> tableOrders = table != null ? commandeRepository.findByTable(table) : List.of();
         Commande latestOrder = !tableOrders.isEmpty() ? tableOrders.get(tableOrders.size() - 1) : null;
 
         BigDecimal total = parseInvoiceItems(f, invNode.get(KEY_ITEMS), latestOrder);
         f.setTotal(total);
+        f.setTotalTTC(total);
         Facture savedFacture = factureRepository.save(f);
 
-        if (invNode.has(KEY_REGLEMENTS) && invNode.get(KEY_REGLEMENTS).isArray()) {
+        if (invNode.has(KEY_REGLEMENTS) && invNode.get(KEY_REGLEMENTS).isArray() && savedFacture.getReglements().isEmpty()) {
             seedInvoiceReglements(savedFacture, invNode.get(KEY_REGLEMENTS), invoiceTime);
         }
     }
@@ -615,6 +872,10 @@ public class SampleDataSeederService {
         f.setReglee(reglee);
         f.setModePaiement(modePaiement);
         f.setPourboire(pourboire);
+        f.setTotal(BigDecimal.ZERO);
+        f.setTotalHT(BigDecimal.ZERO);
+        f.setTotalVAT(BigDecimal.ZERO);
+        f.setTotalTTC(BigDecimal.ZERO);
         f.setDateFacture(invoiceTime);
         f.setNotes(notes);
 
@@ -871,5 +1132,18 @@ public class SampleDataSeederService {
             tableAppelRepository.save(appel);
         }
         log.info("Seeded table call alerts from demo dataset.");
+    }
+
+    private void seedSettingsAndConfig() {
+        if (!appSettingsRepository.existsById(AppSettings.SINGLETON_ID)) {
+            appSettingsRepository.save(new AppSettings());
+            log.info("Seeded default AppSettings singleton.");
+        }
+        if (!establishmentConfigRepository.existsById(EstablishmentConfig.SINGLETON_ID)) {
+            EstablishmentConfig config = new EstablishmentConfig();
+            config.setId(EstablishmentConfig.SINGLETON_ID);
+            establishmentConfigRepository.save(config);
+            log.info("Seeded default EstablishmentConfig singleton.");
+        }
     }
 }

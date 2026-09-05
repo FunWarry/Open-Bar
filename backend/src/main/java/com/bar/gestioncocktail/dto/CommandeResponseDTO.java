@@ -22,6 +22,7 @@ import java.util.List;
  * @param notes Special preparation notes
  * @param total Total order amount
  * @param pourboire Tip amount
+ * @param prioritaire Priority/urgent status flag
  * @param dateCommande Order placement timestamp
  * @param datePreparation Preparation start timestamp (Bartender)
  * @param datePret Order ready for delivery timestamp (Bartender ready)
@@ -42,6 +43,7 @@ public record CommandeResponseDTO(
     String notes,
     BigDecimal total,
     BigDecimal pourboire,
+    boolean prioritaire,
     LocalDateTime dateCommande,
     LocalDateTime datePreparation,
     LocalDateTime datePret,
@@ -57,14 +59,7 @@ public record CommandeResponseDTO(
      * @return Corresponding response DTO
      */
     public static CommandeResponseDTO from(Commande c) {
-        List<CommandeItemResponseDTO> items = Collections.emptyList();
-        try {
-            if (c.getItems() != null) {
-                items = c.getItems().stream().map(CommandeItemResponseDTO::from).toList();
-            }
-        } catch (Exception _) {
-            // Lazy load fallback
-        }
+        List<CommandeItemResponseDTO> items = extractItems(c);
 
         Long tableId = null;
         Integer tableNumero = null;
@@ -88,6 +83,9 @@ public record CommandeResponseDTO(
             // Lazy load fallback
         }
 
+        BigDecimal total = computeTotalFallback(c.getTotal(), items);
+        boolean isPrioritaire = computeIsPrioritaire(c.isPrioritaire(), items);
+
         return new CommandeResponseDTO(
             c.getId(),
             tableId,
@@ -97,8 +95,9 @@ public record CommandeResponseDTO(
             items,
             c.getStatut(),
             c.getNotes(),
-            c.getTotal(),
+            total != null ? total : BigDecimal.ZERO,
             c.getPourboire(),
+            isPrioritaire,
             c.getDateCommande(),
             c.getDatePreparation(),
             c.getDatePret(),
@@ -107,5 +106,40 @@ public record CommandeResponseDTO(
             c.getCreatedAt(),
             c.getUpdatedAt()
         );
+    }
+
+    private static List<CommandeItemResponseDTO> extractItems(Commande c) {
+        try {
+            if (c.getItems() != null) {
+                return c.getItems().stream().map(CommandeItemResponseDTO::from).toList();
+            }
+        } catch (Exception _) {
+            // Lazy load fallback
+        }
+        return Collections.emptyList();
+    }
+
+    private static BigDecimal computeTotalFallback(BigDecimal total, List<CommandeItemResponseDTO> items) {
+        if ((total == null || total.compareTo(BigDecimal.ZERO) == 0) && items != null && !items.isEmpty()) {
+            BigDecimal computedTotal = BigDecimal.ZERO;
+            for (CommandeItemResponseDTO item : items) {
+                if (item != null && item.prixUnitaire() != null) {
+                    computedTotal = computedTotal.add(item.prixUnitaire().multiply(BigDecimal.valueOf(item.quantite())));
+                }
+            }
+            return computedTotal;
+        }
+        return total;
+    }
+
+    private static boolean computeIsPrioritaire(boolean isPrioritaire, List<CommandeItemResponseDTO> items) {
+        if (!isPrioritaire && items != null) {
+            for (CommandeItemResponseDTO item : items) {
+                if (item != null && item.prioritaire()) {
+                    return true;
+                }
+            }
+        }
+        return isPrioritaire;
     }
 }

@@ -49,6 +49,9 @@ public class Commande {
     @Column(name = "date_modification")
     private LocalDateTime dateModification;
 
+    @Column(name = "prioritaire", nullable = false)
+    private boolean prioritaire = false;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now(java.time.ZoneId.systemDefault());
