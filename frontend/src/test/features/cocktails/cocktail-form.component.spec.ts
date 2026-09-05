@@ -778,5 +778,43 @@ describe('CocktailFormComponent', () => {
 
       expect(cocktailServiceSpy.create).not.toHaveBeenCalled();
     });
+
+    it('should toggle flavor profiles and update selectedFlavors signal', () => {
+      expect(component.isFlavorSelected('FRUITY')).toBeFalse();
+      component.toggleFlavorProfile('FRUITY');
+      expect(component.isFlavorSelected('FRUITY')).toBeTrue();
+      expect(component.selectedFlavors()).toContain('FRUITY');
+
+      component.toggleFlavorProfile('FRUITY');
+      expect(component.isFlavorSelected('FRUITY')).toBeFalse();
+      expect(component.selectedFlavors()).not.toContain('FRUITY');
+    });
+
+    it('should include flavor profiles and dietary flags in submit payload', async () => {
+      component.cocktailForm.patchValue({
+        name: 'Fruity Vegan Mocktail',
+        price: 7.5,
+        category: 'SANS_ALCOOL',
+        alcoholLevel: 0,
+        isMocktail: true,
+        isVegan: true,
+        isGlutenFree: true,
+      });
+      component.selectedFlavors.set(['FRUITY', 'SWEET']);
+
+      component.onSubmit();
+      await Promise.resolve();
+
+      expect(cocktailServiceSpy.create).toHaveBeenCalledWith(
+        jasmine.objectContaining({
+          nom: 'Fruity Vegan Mocktail',
+          flavorProfiles: ['FRUITY', 'SWEET'],
+          alcoholLevel: 0,
+          isMocktail: true,
+          isVegan: true,
+          isGlutenFree: true,
+        })
+      );
+    });
   });
 });

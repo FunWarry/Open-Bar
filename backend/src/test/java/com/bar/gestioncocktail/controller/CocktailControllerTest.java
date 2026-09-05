@@ -1,10 +1,12 @@
 package com.bar.gestioncocktail.controller;
 
+import com.bar.gestioncocktail.dto.CocktailFacetsDTO;
 import com.bar.gestioncocktail.dto.CocktailRequestDTO;
 import com.bar.gestioncocktail.dto.CocktailResponseDTO;
 import com.bar.gestioncocktail.dto.SaisonnaliteRequest;
 import com.bar.gestioncocktail.model.Cocktail;
 import com.bar.gestioncocktail.model.CocktailCategorie;
+import com.bar.gestioncocktail.model.FlavorProfile;
 import com.bar.gestioncocktail.service.CocktailService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -19,6 +21,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -164,5 +167,37 @@ class CocktailControllerTest {
         assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().imageUrl()).isEqualTo("/uploads/cocktails/cocktail_1_xyz.jpg");
+    }
+
+    @Test
+    @DisplayName("getFacets - returns facets summary")
+    void getFacets_success() {
+        CocktailFacetsDTO mockFacets = new CocktailFacetsDTO(
+            Map.of(FlavorProfile.FRUITY, 5L), 3L, 4L, 2L, 1L, BigDecimal.ZERO, new BigDecimal("25.0"), 10L
+        );
+        when(cocktailService.getFacets()).thenReturn(mockFacets);
+
+        ResponseEntity<CocktailFacetsDTO> response = cocktailController.getFacets();
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().totalAvailable()).isEqualTo(10L);
+        assertThat(response.getBody().flavorCounts()).containsEntry(FlavorProfile.FRUITY, 5L);
+    }
+
+    @Test
+    @DisplayName("matchCocktails - delegates parameters to service and returns matching DTO list")
+    void matchCocktails_success() {
+        when(cocktailService.filterAndMatchCocktails(
+            List.of(FlavorProfile.FRUITY), false, true, true, false, new BigDecimal("15.0")
+        )).thenReturn(List.of(cocktail));
+
+        ResponseEntity<List<CocktailResponseDTO>> response = cocktailController.matchCocktails(
+            List.of(FlavorProfile.FRUITY), false, true, true, false, new BigDecimal("15.0")
+        );
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getBody()).hasSize(1);
+        assertThat(response.getBody().get(0).nom()).isEqualTo("Mojito");
     }
 }

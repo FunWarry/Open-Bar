@@ -591,7 +591,19 @@
     "SESSION_INVALID_TITLE": "Session de table invalide",
     "SESSION_INVALID_DESC": "Le jeton de session est invalide ou ne correspond pas à cette table. Veuillez rescanner le QR Code officiel de votre table.",
     "SESSION_REFRESH_BTN": "Actualiser la session",
-    "SESSION_VALIDATING": "Vérification de la session en cours..."
+    "SESSION_VALIDATING": "Vérification de la session en cours...",
+    "MATCHER_TITLE": "Trouvez votre cocktail idéal",
+    "MATCHER_SUBTITLE": "Sélectionnez vos profils de saveurs et préférences alimentaires",
+    "MATCHER_FLAVORS": "Profils de saveurs",
+    "MATCHER_DIETARY": "Préférences alimentaires",
+    "MATCHER_MOCKTAIL": "Sans alcool (Mocktail)",
+    "MATCHER_VEGAN": "Végane",
+    "MATCHER_GLUTEN_FREE": "Sans gluten",
+    "MATCHER_LOW_ABV": "Faible en alcool",
+    "MATCHER_RESET": "Réinitialiser",
+    "MATCHER_RESULTS_COUNT": "{{count}} cocktail trouvé",
+    "MATCHER_RESULTS_COUNT_PLURAL": "{{count}} cocktails trouvés",
+    "MATCHER_NO_RESULTS": "Aucun cocktail ne correspond à tous les critères sélectionnés"
   },
   "COCKTAILS": {
     "TITLE": "Cocktails",
@@ -856,7 +868,20 @@
       "GLASS_DESC": "Idéal pour long drinks, cocktails servis on the rocks..."
     },
     "STEP3_SUBTITLE": "Personnalisez les variantes de service et les recommandations de verrerie.",
-    "OFF_SEASON": "Hors saison"
+    "OFF_SEASON": "Hors saison",
+    "FLAVOR_FRUITY": "Fruité",
+    "FLAVOR_SMOKY": "Fumé",
+    "FLAVOR_SWEET": "Sucré",
+    "FLAVOR_SOUR": "Acidulé",
+    "FLAVOR_BITTER": "Amer",
+    "FLAVOR_SPICY": "Épicé",
+    "FLAVOR_HERBAL": "Herbacé",
+    "FLAVORS": "Profils de saveurs",
+    "DIETARY": "Régimes alimentaires",
+    "MOCKTAIL": "Sans alcool (Mocktails)",
+    "VEGAN": "Végane",
+    "GLUTEN_FREE": "Sans gluten",
+    "LOW_ABV": "Faible en alcool"
   },
   "INGREDIENTS": {
     "TITLE": "Gestion des Ingrédients",
@@ -2388,5 +2413,21 @@
       "ROLE_BADGES": "Badges de Rôles",
       "GHOST_BUTTON": "Fantôme"
     }
+  },
+  "COCKTAIL": {
+    "FLAVOR_FRUITY": "Fruité",
+    "FLAVOR_SMOKY": "Fumé",
+    "FLAVOR_SWEET": "Sucré",
+    "FLAVOR_SOUR": "Acidulé",
+    "FLAVOR_BITTER": "Amer",
+    "FLAVOR_SPICY": "Épicé",
+    "FLAVOR_HERBAL": "Herbacé",
+    "FLAVOR_PROFILES_LABEL": "Profils aromatiques",
+    "DIETARY_FILTERS_LABEL": "Régimes & Préférences",
+    "MOCKTAIL_LABEL": "Sans alcool (Mocktail)",
+    "VEGAN_LABEL": "Végane",
+    "GLUTEN_FREE_LABEL": "Sans gluten",
+    "LOW_ABV_LABEL": "Faible en alcool (Low-ABV)",
+    "ALCOHOL_LEVEL_LABEL": "Degré d'alcool (% ABV)"
   }
 }

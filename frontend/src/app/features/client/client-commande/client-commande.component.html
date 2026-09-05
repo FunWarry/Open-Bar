@@ -141,6 +141,18 @@
         </app-filter-chip>
       </div>
 
+      <!-- Interactive Cocktail Matcher Filter Bar -->
+      <app-cocktail-matcher-bar
+        [facets]="catalogFacets"
+        [activeFlavors]="selectedFlavors"
+        [mocktail]="filterMocktail"
+        [vegan]="filterVegan"
+        [glutenFree]="filterGlutenFree"
+        [lowAbv]="filterLowAbv"
+        (filtersChange)="onMatcherFiltersChange($event)"
+        (resetFilters)="onResetMatcherFilters()">
+      </app-cocktail-matcher-bar>
+
       @if (isLoading) {
         <div class="loading-box">
           <span class="spinner-icon">🍹</span>
@@ -154,6 +166,12 @@
               [description]="cocktail.description || cocktail.categorie"
               [price]="cocktail.prix"
               [category]="cocktail.categorie"
+              [imageUrl]="cocktail.imageUrl"
+              [flavorProfiles]="cocktail.flavorProfiles || []"
+              [alcoholLevel]="cocktail.alcoholLevel"
+              [isMocktail]="cocktail.isMocktail || cocktail.categorie === 'SANS_ALCOOL'"
+              [isVegan]="cocktail.isVegan ?? true"
+              [isGlutenFree]="cocktail.isGlutenFree ?? true"
               [quantity]="getItemQuantity(cocktail.id)"
               (addClick)="addToCart(cocktail)"
               (removeClick)="removeFromCart(cocktail.id)"

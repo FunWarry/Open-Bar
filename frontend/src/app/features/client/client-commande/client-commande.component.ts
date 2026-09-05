@@ -9,13 +9,14 @@ import { AppCurrencyPipe } from '../../../core/pipes/app-currency.pipe';
 import { CocktailService } from '../../../core/services/cocktail.service';
 import { TableSessionService } from '../../../core/services/table-session.service';
 import { TableSessionStatus } from '../../../core/models/table-session.model';
-import { Cocktail } from '../../../core/models/cocktail.model';
+import { Cocktail, CocktailFacets, FlavorProfile } from '../../../core/models/cocktail.model';
 import { TableCartService } from '../../../core/services/table-cart.service';
 import { TableCartItem } from '../../../core/models/table-cart.model';
 import { InputFieldComponent } from '../../../core/components/ui/input-field/input-field.component';
 import { ActionButtonComponent } from '../../../core/components/ui/action-button/action-button.component';
 import { FilterChipComponent } from '../../../core/components/ui/filter-chip/filter-chip.component';
 import { ProductCardComponent } from '../../../core/components/ui/product-card/product-card.component';
+import { CocktailMatcherBarComponent, CocktailMatcherFilters } from '../../../core/components/ui/cocktail-matcher-bar/cocktail-matcher-bar.component';
 import { TableAssistanceBarComponent } from '../components/table-assistance-bar/table-assistance-bar.component';
 
 /**
@@ -38,6 +39,7 @@ import { TableAssistanceBarComponent } from '../components/table-assistance-bar/
     ActionButtonComponent,
     FilterChipComponent,
     ProductCardComponent,
+    CocktailMatcherBarComponent,
     TableAssistanceBarComponent
   ]
 })
@@ -65,6 +67,12 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
   cocktails: Cocktail[] = [];
   filteredCocktails: Cocktail[] = [];
   selectedCategory = 'TOUS';
+  catalogFacets: CocktailFacets | null = null;
+  selectedFlavors: FlavorProfile[] = [];
+  filterMocktail = false;
+  filterVegan = false;
+  filterGlutenFree = false;
+  filterLowAbv = false;
   isLoading = false;
   isSubmitting = false;
 
@@ -221,22 +229,71 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (data: Cocktail[]) => {
           this.cocktails = data.filter((c: Cocktail) => c.disponible);
-          this.filterCategory(this.selectedCategory);
+          this.applyCombinedFilters();
           this.isLoading = false;
         },
         error: () => {
           this.isLoading = false;
         }
       });
+
+    this.cocktailService
+      .getFacets()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (facets) => {
+          this.catalogFacets = facets;
+        }
+      });
   }
 
   filterCategory(cat: string): void {
     this.selectedCategory = cat;
-    if (cat === 'TOUS') {
-      this.filteredCocktails = [...this.cocktails];
-    } else {
-      this.filteredCocktails = this.cocktails.filter((c: Cocktail) => c.categorie === cat);
+    this.applyCombinedFilters();
+  }
+
+  onMatcherFiltersChange(filters: CocktailMatcherFilters): void {
+    this.selectedFlavors = filters.flavors;
+    this.filterMocktail = filters.mocktail;
+    this.filterVegan = filters.vegan;
+    this.filterGlutenFree = filters.glutenFree;
+    this.filterLowAbv = filters.lowAbv;
+    this.applyCombinedFilters();
+  }
+
+  onResetMatcherFilters(): void {
+    this.selectedFlavors = [];
+    this.filterMocktail = false;
+    this.filterVegan = false;
+    this.filterGlutenFree = false;
+    this.filterLowAbv = false;
+    this.applyCombinedFilters();
+  }
+
+  applyCombinedFilters(): void {
+    let result = this.selectedCategory === 'TOUS'
+      ? [...this.cocktails]
+      : this.cocktails.filter((c: Cocktail) => c.categorie === this.selectedCategory);
+
+    if (this.filterMocktail) {
+      result = result.filter((c) => c.isMocktail || c.categorie === 'SANS_ALCOOL');
     }
+    if (this.filterVegan) {
+      result = result.filter((c) => c.isVegan);
+    }
+    if (this.filterGlutenFree) {
+      result = result.filter((c) => c.isGlutenFree);
+    }
+    if (this.filterLowAbv) {
+      result = result.filter((c) => (c.alcoholLevel ?? 0) > 0 && (c.alcoholLevel ?? 0) <= 10.0);
+    }
+    if (this.selectedFlavors.length > 0) {
+      result = result.filter((c) =>
+        c.flavorProfiles && this.selectedFlavors.some((f) => c.flavorProfiles!.includes(f))
+      );
+    }
+
+    this.filteredCocktails = result;
   }
 
   addToCart(cocktail: Cocktail): void {

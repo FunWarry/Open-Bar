@@ -9,6 +9,26 @@ export type CocktailCategorie =
   | 'DIGESTIF'
   | 'SPECIAL';
 
+export type FlavorProfile =
+  | 'FRUITY'
+  | 'SMOKY'
+  | 'SWEET'
+  | 'SOUR'
+  | 'BITTER'
+  | 'SPICY'
+  | 'HERBAL';
+
+export interface CocktailFacets {
+  flavorCounts: Record<FlavorProfile, number>;
+  mocktailsCount: number;
+  veganCount: number;
+  glutenFreeCount: number;
+  lowAbvCount: number;
+  minAlcoholLevel: number;
+  maxAlcoholLevel: number;
+  totalAvailable: number;
+}
+
 export interface CocktailIngredientItem {
   id: number;
   ingredientId: number;
@@ -67,6 +87,11 @@ type CocktailBase = {
   glasswareId?: number;
   instructions?: string;
   imageUrl?: string;
+  flavorProfiles?: FlavorProfile[];
+  alcoholLevel?: number;
+  isMocktail?: boolean;
+  isVegan?: boolean;
+  isGlutenFree?: boolean;
   createdAt: string;
   updatedAt: string;
 };

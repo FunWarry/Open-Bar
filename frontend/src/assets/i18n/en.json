@@ -591,7 +591,19 @@
     "SESSION_INVALID_TITLE": "Invalid table session",
     "SESSION_INVALID_DESC": "The session token is invalid or does not match this table. Please rescan the official table QR Code.",
     "SESSION_REFRESH_BTN": "Refresh session",
-    "SESSION_VALIDATING": "Validating table session..."
+    "SESSION_VALIDATING": "Validating table session...",
+    "MATCHER_TITLE": "Find your ideal cocktail",
+    "MATCHER_SUBTITLE": "Select your flavor profiles and dietary preferences",
+    "MATCHER_FLAVORS": "Flavor profiles",
+    "MATCHER_DIETARY": "Dietary preferences",
+    "MATCHER_MOCKTAIL": "Non-alcoholic (Mocktail)",
+    "MATCHER_VEGAN": "Vegan",
+    "MATCHER_GLUTEN_FREE": "Gluten-free",
+    "MATCHER_LOW_ABV": "Low-ABV",
+    "MATCHER_RESET": "Reset",
+    "MATCHER_RESULTS_COUNT": "{{count}} cocktail found",
+    "MATCHER_RESULTS_COUNT_PLURAL": "{{count}} cocktails found",
+    "MATCHER_NO_RESULTS": "No cocktails match all selected criteria"
   },
   "COCKTAILS": {
     "TITLE": "Cocktails",
@@ -856,7 +868,20 @@
       "GLASS_DESC": "Ideal for long drinks, cocktails served on the rocks..."
     },
     "STEP3_SUBTITLE": "Customize serving variants and glassware recommendations.",
-    "OFF_SEASON": "Off-season"
+    "OFF_SEASON": "Off-season",
+    "FLAVOR_FRUITY": "Fruity",
+    "FLAVOR_SMOKY": "Smoky",
+    "FLAVOR_SWEET": "Sweet",
+    "FLAVOR_SOUR": "Sour",
+    "FLAVOR_BITTER": "Bitter",
+    "FLAVOR_SPICY": "Spicy",
+    "FLAVOR_HERBAL": "Herbal",
+    "FLAVORS": "Flavor profiles",
+    "DIETARY": "Dietary preferences",
+    "MOCKTAIL": "Mocktails",
+    "VEGAN": "Vegan",
+    "GLUTEN_FREE": "Gluten-free",
+    "LOW_ABV": "Low-ABV"
   },
   "INGREDIENTS": {
     "TITLE": "Ingredient Management",
@@ -2388,5 +2413,21 @@
       "ROLE_BADGES": "Role Badges",
       "GHOST_BUTTON": "Ghost"
     }
+  },
+  "COCKTAIL": {
+    "FLAVOR_FRUITY": "Fruity",
+    "FLAVOR_SMOKY": "Smoky",
+    "FLAVOR_SWEET": "Sweet",
+    "FLAVOR_SOUR": "Sour",
+    "FLAVOR_BITTER": "Bitter",
+    "FLAVOR_SPICY": "Spicy",
+    "FLAVOR_HERBAL": "Herbal",
+    "FLAVOR_PROFILES_LABEL": "Flavor Profiles",
+    "DIETARY_FILTERS_LABEL": "Dietary & Preferences",
+    "MOCKTAIL_LABEL": "Non-alcoholic (Mocktail)",
+    "VEGAN_LABEL": "Vegan",
+    "GLUTEN_FREE_LABEL": "Gluten-free",
+    "LOW_ABV_LABEL": "Low-alcohol (Low-ABV)",
+    "ALCOHOL_LEVEL_LABEL": "Alcohol by volume (% ABV)"
   }
 }

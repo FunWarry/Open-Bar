@@ -1,5 +1,6 @@
 package com.bar.gestioncocktail.service;
 
+import com.bar.gestioncocktail.dto.CocktailFacetsDTO;
 import com.bar.gestioncocktail.dto.CocktailRecipeStepRequestDTO;
 import com.bar.gestioncocktail.dto.CocktailRequestDTO;
 import com.bar.gestioncocktail.dto.CocktailResponseDTO;
@@ -29,6 +30,7 @@ import java.time.Month;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -894,6 +896,138 @@ class CocktailServiceTest {
         assertThat(variantResp.recipeSteps()).hasSize(2);
         assertThat(variantResp.recipeSteps().get(0).ingredientName()).isNull();
         assertThat(variantResp.recipeSteps().get(1).template()).isNull();
+    }
+
+    @Test
+    @DisplayName("getFacets - computes flavor counts and dietary counts accurately")
+    void getFacets_computesAccurateCounts() {
+        Cocktail c1 = new Cocktail();
+        c1.setId(10L);
+        c1.setNom("Fruity Mojito");
+        c1.setDisponible(true);
+        c1.setFlavorProfiles(Set.of(FlavorProfile.FRUITY, FlavorProfile.SWEET));
+        c1.setAlcoholLevel(new BigDecimal("12.0"));
+        c1.setMocktail(false);
+        c1.setVegan(true);
+        c1.setGlutenFree(true);
+
+        Cocktail c2 = new Cocktail();
+        c2.setId(11L);
+        c2.setNom("Virgin Fruity");
+        c2.setDisponible(true);
+        c2.setFlavorProfiles(Set.of(FlavorProfile.FRUITY, FlavorProfile.SOUR));
+        c2.setAlcoholLevel(BigDecimal.ZERO);
+        c2.setMocktail(true);
+        c2.setVegan(true);
+        c2.setGlutenFree(false);
+
+        Cocktail c3 = new Cocktail();
+        c3.setId(12L);
+        c3.setNom("Smoky Mezcal");
+        c3.setDisponible(false); // unavailable
+        c3.setFlavorProfiles(Set.of(FlavorProfile.SMOKY));
+        c3.setAlcoholLevel(new BigDecimal("22.0"));
+        c3.setMocktail(false);
+        c3.setVegan(false);
+        c3.setGlutenFree(true);
+
+        when(cocktailRepository.findAll()).thenReturn(List.of(c1, c2, c3));
+
+        CocktailFacetsDTO facets = cocktailService.getFacets();
+
+        assertThat(facets).isNotNull();
+        assertThat(facets.totalAvailable()).isEqualTo(2);
+        assertThat(facets.flavorCounts())
+            .containsEntry(FlavorProfile.FRUITY, 2L)
+            .containsEntry(FlavorProfile.SWEET, 1L)
+            .containsEntry(FlavorProfile.SOUR, 1L);
+        assertThat(facets.flavorCounts().get(FlavorProfile.SMOKY)).isZero();
+        assertThat(facets.mocktailsCount()).isEqualTo(1);
+        assertThat(facets.veganCount()).isEqualTo(2);
+        assertThat(facets.glutenFreeCount()).isEqualTo(1);
+        assertThat(facets.minAlcoholLevel()).isEqualTo(BigDecimal.ZERO);
+        assertThat(facets.maxAlcoholLevel()).isEqualTo(new BigDecimal("12.0"));
+    }
+
+    @Test
+    @DisplayName("filterAndMatchCocktails - matches by flavors, max ABV and dietary flags")
+    void filterAndMatchCocktails_filtersCorrectly() {
+        Cocktail c1 = new Cocktail();
+        c1.setId(10L);
+        c1.setNom("Fruity Mojito");
+        c1.setDisponible(true);
+        c1.setFlavorProfiles(Set.of(FlavorProfile.FRUITY, FlavorProfile.SWEET));
+        c1.setAlcoholLevel(new BigDecimal("12.0"));
+        c1.setMocktail(false);
+        c1.setVegan(true);
+        c1.setGlutenFree(true);
+
+        Cocktail c2 = new Cocktail();
+        c2.setId(11L);
+        c2.setNom("Virgin Herb");
+        c2.setDisponible(true);
+        c2.setFlavorProfiles(Set.of(FlavorProfile.HERBAL));
+        c2.setAlcoholLevel(BigDecimal.ZERO);
+        c2.setMocktail(true);
+        c2.setVegan(true);
+        c2.setGlutenFree(false);
+
+        when(cocktailRepository.findAll()).thenReturn(List.of(c1, c2));
+
+        // 1. Filter by flavor FRUITY
+        List<Cocktail> res1 = cocktailService.filterAndMatchCocktails(
+            List.of(FlavorProfile.FRUITY), null, null, null, null, null
+        );
+        assertThat(res1).hasSize(1);
+        assertThat(res1.get(0).getNom()).isEqualTo("Fruity Mojito");
+
+        // 2. Filter by mocktail = true
+        List<Cocktail> res2 = cocktailService.filterAndMatchCocktails(
+            null, true, null, null, null, null
+        );
+        assertThat(res2).hasSize(1);
+        assertThat(res2.get(0).getNom()).isEqualTo("Virgin Herb");
+
+        // 3. Filter by max alcohol level 5%
+        List<Cocktail> res3 = cocktailService.filterAndMatchCocktails(
+            null, null, null, null, null, new BigDecimal("5.0")
+        );
+        assertThat(res3).hasSize(1);
+        assertThat(res3.get(0).getNom()).isEqualTo("Virgin Herb");
+
+        // 4. Filter by gluten free = true
+        List<Cocktail> res4 = cocktailService.filterAndMatchCocktails(
+            null, null, null, true, null, null
+        );
+        assertThat(res4).hasSize(1);
+        assertThat(res4.get(0).getNom()).isEqualTo("Fruity Mojito");
+    }
+
+    @Test
+    @DisplayName("updateCocktailFromRequest - correctly updates flavor profiles and dietary flags")
+    void updateCocktailFromRequest_updatesFlavorAndDietary() {
+        when(cocktailRepository.findById(1L)).thenReturn(Optional.of(cocktail));
+        when(cocktailRepository.save(any(Cocktail.class))).thenAnswer(i -> i.getArgument(0));
+
+        CocktailRequestDTO request = new CocktailRequestDTO(
+            "Updated Mojito", "Cool drink", new BigDecimal("9.00"), CocktailCategorie.ALCOOLISE,
+            true, false, null, null, null, null, null, null,
+            null, null, List.of(),
+            Set.of(FlavorProfile.HERBAL, FlavorProfile.SWEET),
+            new BigDecimal("11.5"),
+            false,
+            true,
+            true
+        );
+
+        CocktailResponseDTO response = cocktailService.updateCocktailFromRequest(1L, request);
+
+        assertThat(response).isNotNull();
+        assertThat(cocktail.getFlavorProfiles()).containsExactlyInAnyOrder(FlavorProfile.HERBAL, FlavorProfile.SWEET);
+        assertThat(cocktail.getAlcoholLevel()).isEqualTo(new BigDecimal("11.5"));
+        assertThat(cocktail.isVegan()).isTrue();
+        assertThat(cocktail.isGlutenFree()).isTrue();
+        assertThat(cocktail.isMocktail()).isFalse();
     }
 }
 

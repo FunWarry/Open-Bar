@@ -157,6 +157,64 @@
               ></app-input-field>
             </div>
 
+            <!-- Dietary & Alcohol Preferences Section -->
+            <div class="section-dietary-flavors" data-testid="cocktail-form-dietary-section">
+              <div class="sub-section-header">
+                <ion-icon name="nutrition-outline"></ion-icon>
+                <h4>{{ 'COCKTAIL.DIETARY_FILTERS_LABEL' | transloco }}</h4>
+              </div>
+
+              <div class="dietary-controls-grid">
+                <app-input-field
+                  formControlName="alcoholLevel"
+                  type="number"
+                  [label]="'COCKTAIL.ALCOHOL_LEVEL_LABEL' | transloco"
+                  placeholder="0.0"
+                  testId="cocktail-form-alcohol-level-input">
+                </app-input-field>
+
+                <div class="dietary-checkboxes-group">
+                  <label class="dietary-check-item" data-testid="toggle-mocktail-label">
+                    <input type="checkbox" formControlName="isMocktail" data-testid="toggle-mocktail-checkbox" />
+                    <span>{{ 'COCKTAIL.MOCKTAIL_LABEL' | transloco }}</span>
+                  </label>
+
+                  <label class="dietary-check-item" data-testid="toggle-vegan-label">
+                    <input type="checkbox" formControlName="isVegan" data-testid="toggle-vegan-checkbox" />
+                    <span>🌱 {{ 'COCKTAIL.VEGAN_LABEL' | transloco }}</span>
+                  </label>
+
+                  <label class="dietary-check-item" data-testid="toggle-gluten-free-label">
+                    <input type="checkbox" formControlName="isGlutenFree" data-testid="toggle-gluten-free-checkbox" />
+                    <span>🌾 {{ 'COCKTAIL.GLUTEN_FREE_LABEL' | transloco }}</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Flavor Profiles Chip Selection Section -->
+            <div class="section-flavor-profiles" data-testid="cocktail-form-flavors-section">
+              <div class="sub-section-header">
+                <ion-icon name="sparkles-outline"></ion-icon>
+                <h4>{{ 'COCKTAIL.FLAVOR_PROFILES_LABEL' | transloco }}</h4>
+              </div>
+              <p class="flavor-section-hint">{{ 'COCKTAILS.FLAVORS' | transloco }}</p>
+
+              <div class="flavor-chips-container">
+                @for (flavor of availableFlavors; track flavor.key) {
+                  <button
+                    type="button"
+                    class="flavor-chip-button"
+                    [class.selected]="isFlavorSelected(flavor.key)"
+                    [attr.data-testid]="'flavor-chip-' + flavor.key.toLowerCase()"
+                    (click)="toggleFlavorProfile(flavor.key)">
+                    <ion-icon [name]="flavor.icon"></ion-icon>
+                    <span>{{ flavor.labelKey | transloco }}</span>
+                  </button>
+                }
+              </div>
+            </div>
+
             <!-- Seasonal Availability Section (Create & Edit Mode) -->
             <div class="section-saisonnalite" data-testid="cocktail-form-seasonality-section">
               <div class="saisonnalite-header">

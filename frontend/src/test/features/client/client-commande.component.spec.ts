@@ -69,7 +69,7 @@ describe('ClientCommandeComponent', () => {
   };
 
   beforeEach(async () => {
-    cocktailServiceSpy = jasmine.createSpyObj('CocktailService', ['getAll']);
+    cocktailServiceSpy = jasmine.createSpyObj('CocktailService', ['getAll', 'getFacets', 'matchCocktails']);
     tableSessionServiceSpy = jasmine.createSpyObj('TableSessionService', [
       'validateSession',
       'refreshSession'
@@ -109,6 +109,17 @@ describe('ClientCommandeComponent', () => {
     };
 
     cocktailServiceSpy.getAll.and.returnValue(of([mockCocktail]));
+    cocktailServiceSpy.getFacets.and.returnValue(of({
+      flavorCounts: { FRUITY: 1, SWEET: 0, SOUR: 0, BITTER: 0, SPICY: 0, SMOKY: 0, HERBAL: 0 },
+      mocktailsCount: 0,
+      veganCount: 1,
+      glutenFreeCount: 1,
+      lowAbvCount: 0,
+      minAlcoholLevel: 14.5,
+      maxAlcoholLevel: 14.5,
+      totalAvailable: 1
+    }));
+    cocktailServiceSpy.matchCocktails.and.returnValue(of([mockCocktail]));
     tableSessionServiceSpy.validateSession.and.returnValue(of(mockActiveSessionResponse));
     tableSessionServiceSpy.refreshSession.and.returnValue(of(mockActiveSessionResponse));
     toastCtrlSpy.create.and.returnValue(Promise.resolve({ present: () => Promise.resolve() } as any));

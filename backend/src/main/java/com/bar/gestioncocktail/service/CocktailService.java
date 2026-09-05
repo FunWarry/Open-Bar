@@ -21,7 +21,9 @@ import com.bar.gestioncocktail.repository.GlasswareRepository;
 import com.bar.gestioncocktail.repository.IngredientRepository;
 import com.bar.gestioncocktail.repository.RecipeStepTemplateRepository;
 import com.bar.gestioncocktail.dto.RecipeStepTemplateResponseDTO;
+import com.bar.gestioncocktail.dto.CocktailFacetsDTO;
 import com.bar.gestioncocktail.dto.CocktailRecipeStepResponseDTO;
+import com.bar.gestioncocktail.model.FlavorProfile;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,7 +32,10 @@ import org.springframework.web.multipart.MultipartFile;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -204,9 +209,189 @@ public class CocktailService {
             syncVariantes(cocktail, request.variantes());
         }
 
+        if (request.flavorProfiles() != null) {
+            cocktail.setFlavorProfiles(new HashSet<>(request.flavorProfiles()));
+        }
+        if (request.alcoholLevel() != null) {
+            cocktail.setAlcoholLevel(request.alcoholLevel());
+        }
+        if (request.isMocktail() != null) {
+            cocktail.setMocktail(request.isMocktail());
+        }
+        if (request.isVegan() != null) {
+            cocktail.setVegan(request.isVegan());
+        }
+        if (request.isGlutenFree() != null) {
+            cocktail.setGlutenFree(request.isGlutenFree());
+        }
+
         Cocktail saved = cocktailRepository.save(cocktail);
         notificationService.notifierCocktailMisAJour(saved);
         return CocktailResponseDTO.from(saved);
+    }
+
+    /**
+     * Calculates facet aggregates for all currently available cocktails in the catalog.
+     *
+     * @return DTO containing counts per flavor profile, dietary attributes, and alcohol ranges
+     */
+    @Transactional(readOnly = true)
+    public CocktailFacetsDTO getFacets() {
+        List<Cocktail> cocktails = cocktailRepository.findAll().stream()
+            .filter(c -> c.isDisponible())
+            .toList();
+
+        FacetMetricsAccumulator accumulator = new FacetMetricsAccumulator();
+        for (Cocktail c : cocktails) {
+            accumulator.accumulate(c);
+        }
+        return accumulator.toDto(cocktails.size());
+    }
+
+    /**
+     * Filters available cocktails by dietary constraints and ranks them by flavor profile matching score.
+     *
+     * @param requestedFlavors List of desired flavor profiles to match against
+     * @param mocktail True to restrict to non-alcoholic mocktails
+     * @param vegan True to restrict to vegan-friendly drinks
+     * @param glutenFree True to restrict to gluten-free drinks
+     * @param lowAbv True to restrict to low-alcohol drinks (ABV &gt; 0 and &le; 10%)
+     * @param maxAlcohol Maximum alcohol level threshold
+     * @return Filtered and ranked cocktails list
+     */
+    @Transactional(readOnly = true)
+    public List<Cocktail> filterAndMatchCocktails(
+        List<FlavorProfile> requestedFlavors,
+        Boolean mocktail,
+        Boolean vegan,
+        Boolean glutenFree,
+        Boolean lowAbv,
+        BigDecimal maxAlcohol
+    ) {
+        List<Cocktail> list = cocktailRepository.findAll().stream()
+            .filter(c -> c.isDisponible())
+            .filter(c -> matchesDietaryConstraints(c, mocktail, vegan, glutenFree, lowAbv, maxAlcohol))
+            .toList();
+
+        if (requestedFlavors == null || requestedFlavors.isEmpty()) {
+            return list;
+        }
+
+        return list.stream()
+            .filter(c -> countFlavorMatches(c, requestedFlavors) > 0)
+            .sorted((c1, c2) -> Long.compare(countFlavorMatches(c2, requestedFlavors), countFlavorMatches(c1, requestedFlavors)))
+            .toList();
+    }
+
+    private static class FacetMetricsAccumulator {
+        private final Map<FlavorProfile, Long> flavorCounts = new EnumMap<>(FlavorProfile.class);
+        private long mocktailsCount;
+        private long veganCount;
+        private long glutenFreeCount;
+        private long lowAbvCount;
+        private BigDecimal minAlcohol;
+        private BigDecimal maxAlcohol;
+
+        FacetMetricsAccumulator() {
+            for (FlavorProfile fp : FlavorProfile.values()) {
+                flavorCounts.put(fp, 0L);
+            }
+        }
+
+        void accumulate(Cocktail c) {
+            accumulateFlavors(c);
+            accumulateDietary(c);
+            accumulateAlcohol(c);
+        }
+
+        private void accumulateFlavors(Cocktail c) {
+            if (c.getFlavorProfiles() != null) {
+                for (FlavorProfile fp : c.getFlavorProfiles()) {
+                    flavorCounts.put(fp, flavorCounts.getOrDefault(fp, 0L) + 1L);
+                }
+            }
+        }
+
+        private void accumulateDietary(Cocktail c) {
+            if (c.isMocktail() || c.getCategorie() == CocktailCategorie.SANS_ALCOOL) {
+                mocktailsCount++;
+            }
+            if (c.isVegan()) {
+                veganCount++;
+            }
+            if (c.isGlutenFree()) {
+                glutenFreeCount++;
+            }
+        }
+
+        private void accumulateAlcohol(Cocktail c) {
+            BigDecimal alc = c.getAlcoholLevel() != null ? c.getAlcoholLevel() : BigDecimal.ZERO;
+            if (isLowAbv(alc)) {
+                lowAbvCount++;
+            }
+            if (minAlcohol == null || alc.compareTo(minAlcohol) < 0) {
+                minAlcohol = alc;
+            }
+            if (maxAlcohol == null || alc.compareTo(maxAlcohol) > 0) {
+                maxAlcohol = alc;
+            }
+        }
+
+        private static boolean isLowAbv(BigDecimal alc) {
+            return alc.compareTo(BigDecimal.ZERO) > 0 && alc.compareTo(BigDecimal.valueOf(10.0)) <= 0;
+        }
+
+        CocktailFacetsDTO toDto(int totalAvailable) {
+            return new CocktailFacetsDTO(
+                flavorCounts,
+                mocktailsCount,
+                veganCount,
+                glutenFreeCount,
+                lowAbvCount,
+                minAlcohol != null ? minAlcohol : BigDecimal.ZERO,
+                maxAlcohol != null ? maxAlcohol : BigDecimal.ZERO,
+                totalAvailable
+            );
+        }
+    }
+
+    private boolean isCocktailMocktail(Cocktail c) {
+        return c.isMocktail() || c.getCategorie() == CocktailCategorie.SANS_ALCOOL;
+    }
+
+    private boolean isLowAbv(BigDecimal alc) {
+        return alc.compareTo(BigDecimal.ZERO) > 0 && alc.compareTo(BigDecimal.valueOf(10.0)) <= 0;
+    }
+
+    private boolean matchesDietaryConstraints(
+        Cocktail c,
+        Boolean mocktail,
+        Boolean vegan,
+        Boolean glutenFree,
+        Boolean lowAbv,
+        BigDecimal maxAlcohol
+    ) {
+        if (Boolean.TRUE.equals(mocktail) && !isCocktailMocktail(c)) {
+            return false;
+        }
+        if (Boolean.TRUE.equals(vegan) && !c.isVegan()) {
+            return false;
+        }
+        if (Boolean.TRUE.equals(glutenFree) && !c.isGlutenFree()) {
+            return false;
+        }
+        BigDecimal alc = c.getAlcoholLevel() != null ? c.getAlcoholLevel() : BigDecimal.ZERO;
+        if (Boolean.TRUE.equals(lowAbv) && !isLowAbv(alc)) {
+            return false;
+        }
+        return maxAlcohol == null || alc.compareTo(maxAlcohol) <= 0;
+    }
+
+    private long countFlavorMatches(Cocktail c, List<FlavorProfile> requestedFlavors) {
+        if (c.getFlavorProfiles() == null || requestedFlavors == null) {
+            return 0;
+        }
+        return requestedFlavors.stream().filter(c.getFlavorProfiles()::contains).count();
     }
 
     private void syncVariantes(Cocktail cocktail, List<CocktailVarianteRequestDTO> varianteDtos) {

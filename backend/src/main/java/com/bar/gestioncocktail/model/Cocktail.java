@@ -75,6 +75,24 @@ public class Cocktail {
     @JoinColumn(name = "glassware_id")
     private Glassware glassware;
 
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "cocktail_flavor_profiles", joinColumns = @JoinColumn(name = "cocktail_id"))
+    @Enumerated(EnumType.STRING)
+    @Column(name = "flavor_profile", length = 30)
+    private java.util.Set<FlavorProfile> flavorProfiles = new java.util.HashSet<>();
+
+    @Column(name = "alcohol_level", precision = 4, scale = 1)
+    private BigDecimal alcoholLevel = BigDecimal.ZERO;
+
+    @Column(name = "is_mocktail")
+    private boolean isMocktail = false;
+
+    @Column(name = "is_vegan")
+    private boolean isVegan = true;
+
+    @Column(name = "is_gluten_free")
+    private boolean isGlutenFree = true;
+
     private String instructions;
     private String imageUrl;
     private LocalDateTime createdAt;
@@ -89,6 +107,46 @@ public class Cocktail {
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now(java.time.ZoneId.systemDefault());
+    }
+
+    public java.util.Set<FlavorProfile> getFlavorProfiles() {
+        return flavorProfiles;
+    }
+
+    public void setFlavorProfiles(java.util.Set<FlavorProfile> flavorProfiles) {
+        this.flavorProfiles = flavorProfiles != null ? flavorProfiles : new java.util.HashSet<>();
+    }
+
+    public BigDecimal getAlcoholLevel() {
+        return alcoholLevel;
+    }
+
+    public void setAlcoholLevel(BigDecimal alcoholLevel) {
+        this.alcoholLevel = alcoholLevel;
+    }
+
+    public boolean isMocktail() {
+        return isMocktail;
+    }
+
+    public void setMocktail(boolean mocktail) {
+        this.isMocktail = mocktail;
+    }
+
+    public boolean isVegan() {
+        return isVegan;
+    }
+
+    public void setVegan(boolean vegan) {
+        this.isVegan = vegan;
+    }
+
+    public boolean isGlutenFree() {
+        return isGlutenFree;
+    }
+
+    public void setGlutenFree(boolean glutenFree) {
+        this.isGlutenFree = glutenFree;
     }
 
     public LocalDateTime getCreatedAt() {
@@ -106,4 +164,4 @@ public class Cocktail {
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
-} 
+}

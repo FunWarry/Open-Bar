@@ -493,7 +493,7 @@ describe('Shared UI Components (Figma Design System)', () => {
     let fixture: ComponentFixture<ProductCardComponent>;
 
     beforeEach(async () => {
-      await TestBed.configureTestingModule({ imports: [ProductCardComponent] }).compileComponents();
+      await TestBed.configureTestingModule({ imports: [ProductCardComponent, getTranslocoTestingModule()] }).compileComponents();
       fixture = TestBed.createComponent(ProductCardComponent);
       component = fixture.componentInstance;
       component.title = 'Mojito';
@@ -520,6 +520,20 @@ describe('Shared UI Components (Figma Design System)', () => {
       expect(component.resolveImageUrl(undefined)).toBe('');
       expect(component.resolveImageUrl('https://images.unsplash.com/photo')).toBe('https://images.unsplash.com/photo');
       expect(component.resolveImageUrl('/uploads/cocktails/mojito.png')).toContain('/uploads/cocktails/mojito.png');
+    });
+
+    it('should display flavor profiles and dietary flags when provided', () => {
+      component.flavorProfiles = ['FRUITY', 'SWEET'];
+      component.isMocktail = false;
+      component.alcoholLevel = 12;
+      component.isVegan = true;
+      component.isGlutenFree = true;
+      fixture.detectChanges();
+
+      expect(component.flavorProfiles).toEqual(['FRUITY', 'SWEET']);
+      expect(component.isVegan).toBeTrue();
+      expect(component.isGlutenFree).toBeTrue();
+      expect(component.alcoholLevel).toBe(12);
     });
   });
 });
