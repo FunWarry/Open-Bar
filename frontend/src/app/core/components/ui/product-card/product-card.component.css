@@ -132,7 +132,58 @@
 .quantity-badge {
   font-size: 15px;
   font-weight: 700;
-  color: var(--text-primary, #eceefb);
+  color: var(--text-primary);
   min-width: 20px;
   text-align: center;
+}
+
+.product-flavors-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.product-flavor-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 7px;
+  border-radius: 12px;
+  background: var(--background-surface-2);
+  color: var(--primary-light);
+  border: 1px solid var(--border-medium);
+}
+
+.product-dietary-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.product-dietary-tag {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  padding: 1px 6px;
+  border-radius: 10px;
+  background: var(--background-surface-2);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-medium);
+}
+
+.product-dietary-tag.vegan-tag {
+  color: var(--semantic-success);
+}
+
+.product-dietary-tag.mocktail-tag {
+  color: var(--semantic-info);
+}
+
+.product-dietary-tag.gluten-free-tag {
+  color: var(--semantic-warning);
+}
+
+.product-dietary-tag.abv-tag {
+  color: var(--primary-light);
 }

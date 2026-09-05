@@ -801,3 +801,67 @@
 .allergen-warning-text {
   color: var(--semantic-warning);
 }
+
+.card-flavors-row,
+.list-flavors-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.figma-flavor-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+}
+
+.card-dietary-row,
+.list-dietary-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 5px;
+}
+
+.dietary-badge {
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: var(--radius-pill, 999px);
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+
+  &.mocktail {
+    background: var(--background-surface-2);
+    color: var(--semantic-info);
+    border: 1px solid var(--semantic-info);
+  }
+
+  &.vegan {
+    background: var(--background-surface-2);
+    color: var(--semantic-success);
+    border: 1px solid var(--semantic-success);
+  }
+
+  &.gluten-free {
+    background: var(--background-surface-2);
+    color: var(--semantic-warning);
+    border: 1px solid var(--semantic-warning);
+  }
+
+  &.abv {
+    background: var(--background-surface-2);
+    color: var(--primary);
+    border: 1px solid var(--primary);
+  }
+}

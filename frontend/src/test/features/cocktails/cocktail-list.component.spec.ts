@@ -53,10 +53,11 @@ describe('CocktailListComponent', () => {
     wsCocktailSubject = new Subject<any>();
     wsCocktailDeleteSubject = new Subject<any>();
 
-    serviceSpy = jasmine.createSpyObj('CocktailService', ['getAll', 'toggleDisponibilite', 'delete']);
+    serviceSpy = jasmine.createSpyObj('CocktailService', ['getAll', 'toggleDisponibilite', 'delete', 'getFacets']);
     serviceSpy.getAll.and.returnValue(of(mockCocktails));
     serviceSpy.toggleDisponibilite.and.returnValue(of({ ...mockCocktails[0], disponible: false } as any));
     serviceSpy.delete.and.returnValue(of(undefined as any));
+    serviceSpy.getFacets.and.returnValue(of(null as any));
 
     wsSpy = jasmine.createSpyObj('WebSocketService', ['watch']);
     wsSpy.watch.and.callFake((destination: string) => {
@@ -345,5 +346,51 @@ describe('CocktailListComponent', () => {
       wsCocktailSubject.next({ body: 'NOT_VALID_JSON' });
     }).not.toThrow();
     expect(component.cocktails).toHaveSize(2);
+  });
+
+  // --- Matcher Filtering & Facets ---
+
+  it('filters cocktails by flavor profile and dietary flags in filteredCocktails', () => {
+    const cFruity: Cocktail = {
+      ...mockCocktails[0],
+      flavorProfiles: ['FRUITY', 'SWEET'],
+      isVegan: true,
+      isGlutenFree: true,
+      isMocktail: false,
+      alcoholLevel: 12,
+    };
+    const cMocktail: Cocktail = {
+      ...mockCocktails[1],
+      flavorProfiles: ['HERBAL'],
+      isVegan: true,
+      isGlutenFree: false,
+      isMocktail: true,
+      alcoholLevel: 0,
+    };
+    component.cocktails = [cFruity, cMocktail];
+
+    // Filter by flavor FRUITY
+    component.onMatcherFiltersChange({
+      flavors: ['FRUITY'],
+      mocktail: false,
+      vegan: false,
+      glutenFree: false,
+      lowAbv: false,
+    });
+    expect(component.filteredCocktails).toEqual([cFruity]);
+
+    // Filter by mocktail
+    component.onMatcherFiltersChange({
+      flavors: [],
+      mocktail: true,
+      vegan: false,
+      glutenFree: false,
+      lowAbv: false,
+    });
+    expect(component.filteredCocktails).toEqual([cMocktail]);
+
+    // Reset filters
+    component.onResetMatcherFilters();
+    expect(component.filteredCocktails).toHaveSize(2);
   });
 });

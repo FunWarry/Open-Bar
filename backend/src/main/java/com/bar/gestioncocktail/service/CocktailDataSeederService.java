@@ -24,6 +24,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -52,11 +53,16 @@ public class CocktailDataSeederService {
     private static final String KEY_INGREDIENT = "ingredient";
     private static final String KEY_CHAMPAGNE = "champagne";
     private static final String KEY_DISPONIBLE = "disponible";
+    private static final String KEY_WHISKY = "whisky";
+    private static final String KEY_APEROL = "aperol";
+    private static final String KEY_BIERE = "bière";
+    private static final String KEY_BAILEYS = "baileys";
+    private static final String KEY_FLAVOR_PROFILES = "flavor_profiles";
 
     private static final Set<String> ALCOHOL_KEYWORDS = Set.of(
-            "rhum", "vodka", "gin", "tequila", "whisky", "whiskey", "calvados", "cognac", "armagnac",
-            "liqueur", "cointreau", "triple sec", "martini", "campari", "aperol", "bière", "vin",
-            "prosecco", KEY_CHAMPAGNE, "kahlua", "baileys", "get", "manzana", "pastis", "ricard",
+            "rhum", "vodka", "gin", "tequila", KEY_WHISKY, "whiskey", "calvados", "cognac", "armagnac",
+            "liqueur", "cointreau", "triple sec", "martini", "campari", KEY_APEROL, KEY_BIERE, "vin",
+            "prosecco", KEY_CHAMPAGNE, "kahlua", KEY_BAILEYS, "get", "manzana", "pastis", "ricard",
             "angostura", "bourbon", "absinthe", "amaretto", "malibu", "chartreuse", "suze");
 
     private final CocktailRepository cocktailRepository;
@@ -247,6 +253,11 @@ public class CocktailDataSeederService {
         cocktail.setCategorie(detectCategory(node, containsAlcohol));
         cocktail.setVatRate(resolveVatRate(nom, containsAlcohol));
         cocktail.setGlassware(resolveGlassware(node, allGlassware));
+        cocktail.setMocktail(resolveMocktail(node, containsAlcohol, cocktail.getCategorie()));
+        cocktail.setAlcoholLevel(resolveAlcoholLevel(node, nom, containsAlcohol, cocktail.getCategorie()));
+        cocktail.setVegan(resolveVegan(node, ingredientsNode, nom));
+        cocktail.setGlutenFree(resolveGlutenFree(node, ingredientsNode, nom));
+        cocktail.setFlavorProfiles(resolveFlavorProfiles(node, ingredientsNode, nom));
         return cocktail;
     }
 
@@ -329,7 +340,7 @@ public class CocktailDataSeederService {
     }
 
     private boolean isRocksGlass(String verre, String nom) {
-        return verre.contains("old fashioned") || verre.contains("rocks") || verre.contains("whisky") || nom.contains("negroni") || nom.contains("old fashioned") || nom.contains("caïpirinha");
+        return verre.contains("old fashioned") || verre.contains("rocks") || verre.contains(KEY_WHISKY) || nom.contains("negroni") || nom.contains("old fashioned") || nom.contains("caïpirinha");
     }
 
     private boolean isTikiGlass(String verre, String nom) {
@@ -569,4 +580,154 @@ public class CocktailDataSeederService {
         }
         return false;
     }
+
+    private BigDecimal resolveAlcoholLevel(String nom, boolean containsAlcohol, CocktailCategorie cat) {
+        if (!containsAlcohol || cat == CocktailCategorie.SANS_ALCOOL) {
+            return BigDecimal.ZERO;
+        }
+        String lower = nom.toLowerCase();
+        if (lower.contains(KEY_BIERE) || lower.contains("biere") || lower.contains("cidre")) {
+            return BigDecimal.valueOf(5.0);
+        }
+        if (lower.contains("spritz") || lower.contains(KEY_APEROL) || lower.contains("mimosa") || lower.contains("bellini")) {
+            return BigDecimal.valueOf(8.5);
+        }
+        if (cat == CocktailCategorie.SHOT) {
+            return BigDecimal.valueOf(35.0);
+        }
+        if (cat == CocktailCategorie.DIGESTIF) {
+            return BigDecimal.valueOf(30.0);
+        }
+        if (cat == CocktailCategorie.APERITIF) {
+            return BigDecimal.valueOf(12.0);
+        }
+        return BigDecimal.valueOf(14.5);
+    }
+
+    private boolean resolveMocktail(JsonNode node, boolean containsAlcohol, CocktailCategorie cat) {
+        if (node.hasNonNull("mocktail")) {
+            return node.get("mocktail").asBoolean();
+        }
+        return !containsAlcohol || cat == CocktailCategorie.SANS_ALCOOL;
+    }
+
+    private BigDecimal resolveAlcoholLevel(JsonNode node, String nom, boolean containsAlcohol, CocktailCategorie cat) {
+        if (node.hasNonNull("alcohol_level")) {
+            return BigDecimal.valueOf(node.get("alcohol_level").asDouble());
+        }
+        if (node.hasNonNull("alcoholLevel")) {
+            return BigDecimal.valueOf(node.get("alcoholLevel").asDouble());
+        }
+        return resolveAlcoholLevel(nom, containsAlcohol, cat);
+    }
+
+    private boolean resolveVegan(JsonNode node, JsonNode ingredientsNode, String nom) {
+        if (node.hasNonNull("vegan")) {
+            return node.get("vegan").asBoolean();
+        }
+        return detectVegan(ingredientsNode, nom);
+    }
+
+    private boolean resolveGlutenFree(JsonNode node, JsonNode ingredientsNode, String nom) {
+        if (node.hasNonNull("gluten_free")) {
+            return node.get("gluten_free").asBoolean();
+        }
+        if (node.hasNonNull("glutenFree")) {
+            return node.get("glutenFree").asBoolean();
+        }
+        return detectGlutenFree(ingredientsNode, nom);
+    }
+
+    private Set<FlavorProfile> resolveFlavorProfiles(JsonNode node, JsonNode ingredientsNode, String nom) {
+        if (node.hasNonNull(KEY_FLAVOR_PROFILES) && node.get(KEY_FLAVOR_PROFILES).isArray()) {
+            Set<FlavorProfile> profiles = new HashSet<>();
+            for (JsonNode fpNode : node.get(KEY_FLAVOR_PROFILES)) {
+                try {
+                    profiles.add(FlavorProfile.valueOf(fpNode.asText().trim().toUpperCase()));
+                } catch (IllegalArgumentException _) {
+                    // Ignored invalid enum
+                }
+            }
+            if (!profiles.isEmpty()) {
+                return profiles;
+            }
+        }
+        return detectFlavorProfiles(ingredientsNode, nom);
+    }
+
+    private boolean detectVegan(JsonNode ingredientsNode, String cocktailName) {
+        String combined = collectAllText(ingredientsNode, cocktailName).toLowerCase();
+        String[] nonVeganWords = {"lait", "creme", "crème", "cream", "beurre", "oeuf", "œuf", "egg", "miel", "honey", KEY_BAILEYS};
+        for (String word : nonVeganWords) {
+            if (combined.contains(word)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean detectGlutenFree(JsonNode ingredientsNode, String cocktailName) {
+        String combined = collectAllText(ingredientsNode, cocktailName).toLowerCase();
+        String[] glutenWords = {KEY_BIERE, "biere", "beer", "orge", "seigle", "blé", "ble", KEY_WHISKY, "whiskey"};
+        for (String word : glutenWords) {
+            if (combined.contains(word)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private Set<FlavorProfile> detectFlavorProfiles(JsonNode ingredientsNode, String cocktailName) {
+        Set<FlavorProfile> profiles = new HashSet<>();
+        String text = collectAllText(ingredientsNode, cocktailName).toLowerCase();
+
+        if (containsAny(text, "jus", "fruit", "citron", "lime", "orange", "fraise", "framboise", "ananas", "passion", "raisin", "pomme", "cranberry", "mangue", "pêche", "peche", "abricot", "mûre", "cerise", "grenadine", "curaçao")) {
+            profiles.add(FlavorProfile.FRUITY);
+        }
+        if (containsAny(text, "citron", "lime", "sour", "acid", "pamplemousse", "cranberry", "vinaigre")) {
+            profiles.add(FlavorProfile.SOUR);
+        }
+        if (containsAny(text, "sirop", "sucre", "sugar", "sweet", "miel", "honey", "liqueur", "grenadine", "vanille", "caramel", "chocolat", KEY_BAILEYS, "cacao")) {
+            profiles.add(FlavorProfile.SWEET);
+        }
+        if (containsAny(text, "angostura", "bitter", "campari", KEY_APEROL, "suze", "tonic", "amaro", "vermouth", "gentiane")) {
+            profiles.add(FlavorProfile.BITTER);
+        }
+        if (containsAny(text, "canelle", "cannelle", "gingembre", "ginger", "piment", "chili", "tabasco", "poivre", "epice", "épicé", "muscade", "clou")) {
+            profiles.add(FlavorProfile.SPICY);
+        }
+        if (containsAny(text, "fumé", "fume", "smoke", "smoky", "mezcal", "scotch", "tourbe", "islay", "bois")) {
+            profiles.add(FlavorProfile.SMOKY);
+        }
+        if (containsAny(text, "menthe", "mint", "basilic", "romarin", "thym", "herbe", "herbal", "concombre", "chartreuse", "genièvre", "gin", "estragon", "sauges")) {
+            profiles.add(FlavorProfile.HERBAL);
+        }
+
+        if (profiles.isEmpty()) {
+            profiles.add(FlavorProfile.FRUITY);
+        }
+        return profiles;
+    }
+
+    private String collectAllText(JsonNode ingredientsNode, String cocktailName) {
+        StringBuilder sb = new StringBuilder(cocktailName != null ? cocktailName : "");
+        if (ingredientsNode != null && ingredientsNode.isArray()) {
+            for (JsonNode ing : ingredientsNode) {
+                if (ing.has("nom")) {
+                    sb.append(" ").append(ing.get("nom").asText());
+                }
+            }
+        }
+        return sb.toString();
+    }
+
+    private boolean containsAny(String text, String... keywords) {
+        for (String kw : keywords) {
+            if (text.contains(kw)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
+

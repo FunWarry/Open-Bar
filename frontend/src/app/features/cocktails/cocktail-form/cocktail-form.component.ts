@@ -52,6 +52,8 @@ import {
   helpCircleOutline,
   closeOutline,
   informationCircleOutline,
+  cloudOutline,
+  nutritionOutline,
 } from 'ionicons/icons';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { of } from 'rxjs';
@@ -63,6 +65,7 @@ import { GlasswareService } from '../../../core/services/glassware.service';
 import {
   Cocktail,
   CocktailIngredientItem,
+  FlavorProfile,
 } from '../../../core/models/cocktail.model';
 import { Ingredient } from '../../../core/models/ingredient.model';
 import { Glassware } from '../../../core/models/glassware.model';
@@ -255,6 +258,20 @@ export class CocktailFormComponent implements OnInit {
   recipeVersion = signal<number>(0);
   selectedGlasswareId = signal<number | null>(null);
 
+  /** Active selected flavor profile tags. */
+  selectedFlavors = signal<FlavorProfile[]>([]);
+
+  /** Available flavor profiles with labels and icons. */
+  readonly availableFlavors: { key: FlavorProfile; labelKey: string; icon: string }[] = [
+    { key: 'FRUITY', labelKey: 'COCKTAIL.FLAVOR_FRUITY', icon: 'water-outline' },
+    { key: 'SMOKY', labelKey: 'COCKTAIL.FLAVOR_SMOKY', icon: 'cloud-outline' },
+    { key: 'SWEET', labelKey: 'COCKTAIL.FLAVOR_SWEET', icon: 'sparkles-outline' },
+    { key: 'SOUR', labelKey: 'COCKTAIL.FLAVOR_SOUR', icon: 'water-outline' },
+    { key: 'BITTER', labelKey: 'COCKTAIL.FLAVOR_BITTER', icon: 'wine-outline' },
+    { key: 'SPICY', labelKey: 'COCKTAIL.FLAVOR_SPICY', icon: 'flame-outline' },
+    { key: 'HERBAL', labelKey: 'COCKTAIL.FLAVOR_HERBAL', icon: 'leaf-outline' },
+  ];
+
   cocktailForm: FormGroup = this.fb.group({
     name: ['', Validators.required],
     description: [''],
@@ -262,6 +279,10 @@ export class CocktailFormComponent implements OnInit {
     category: ['', Validators.required],
     glasswareId: [null],
     instructions: [''],
+    alcoholLevel: [null],
+    isMocktail: [false],
+    isVegan: [false],
+    isGlutenFree: [false],
     recipeSteps: this.fb.array([]),
     variantes: this.fb.array([]),
   });
@@ -392,7 +413,31 @@ export class CocktailFormComponent implements OnInit {
       helpCircleOutline,
       closeOutline,
       informationCircleOutline,
+      cloudOutline,
+      nutritionOutline,
     });
+  }
+
+  /**
+   * Toggles selection state of a flavor profile chip.
+   * @param flavor Target flavor profile
+   */
+  toggleFlavorProfile(flavor: FlavorProfile): void {
+    const current = this.selectedFlavors();
+    if (current.includes(flavor)) {
+      this.selectedFlavors.set(current.filter((f) => f !== flavor));
+    } else {
+      this.selectedFlavors.set([...current, flavor]);
+    }
+  }
+
+  /**
+   * Checks if a flavor profile chip is selected.
+   * @param flavor Target flavor profile
+   * @returns True if active
+   */
+  isFlavorSelected(flavor: FlavorProfile): boolean {
+    return this.selectedFlavors().includes(flavor);
   }
 
   get recipeStepsArray(): FormArray {
@@ -425,6 +470,9 @@ export class CocktailFormComponent implements OnInit {
         next: (cocktail) => {
           this.cocktailData = cocktail;
           this.imagePreview = cocktail.imageUrl || null;
+          if (cocktail.flavorProfiles) {
+            this.selectedFlavors.set([...cocktail.flavorProfiles]);
+          }
           this.cocktailForm.patchValue({
             name: cocktail.nom,
             description: cocktail.description || '',
@@ -432,6 +480,10 @@ export class CocktailFormComponent implements OnInit {
             category: cocktail.categorie,
             glasswareId: cocktail.glassware?.id ?? cocktail.glasswareId ?? null,
             instructions: cocktail.instructions || '',
+            alcoholLevel: cocktail.alcoholLevel ?? null,
+            isMocktail: cocktail.isMocktail ?? false,
+            isVegan: cocktail.isVegan ?? false,
+            isGlutenFree: cocktail.isGlutenFree ?? false,
           });
 
           this.saisonnaliteState = {
@@ -1136,6 +1188,11 @@ export class CocktailFormComponent implements OnInit {
       categorie: formVal.category,
       glasswareId: formVal.glasswareId ? +formVal.glasswareId : null,
       instructions: formVal.instructions || null,
+      flavorProfiles: this.selectedFlavors(),
+      alcoholLevel: formVal.alcoholLevel !== null && formVal.alcoholLevel !== '' ? +formVal.alcoholLevel : null,
+      isMocktail: formVal.isMocktail ?? false,
+      isVegan: formVal.isVegan ?? false,
+      isGlutenFree: formVal.isGlutenFree ?? false,
       disponible: this.cocktailData ? this.cocktailData.disponible : true,
       saisonnier: this.saisonnaliteState.saisonnier,
       dateDebutSaison: this.cocktailData?.dateDebutSaison || null,

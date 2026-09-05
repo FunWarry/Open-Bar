@@ -55,9 +55,24 @@ CREATE TABLE IF NOT EXISTS cocktails (
     instructions TEXT,
     image_url VARCHAR(500),
     glassware_id BIGINT REFERENCES glassware(id) ON DELETE SET NULL,
+    alcohol_level DECIMAL(4,1) DEFAULT 0.0,
+    is_mocktail BOOLEAN DEFAULT false,
+    is_vegan BOOLEAN DEFAULT true,
+    is_gluten_free BOOLEAN DEFAULT true,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS cocktail_flavor_profiles (
+    cocktail_id BIGINT NOT NULL REFERENCES cocktails(id) ON DELETE CASCADE,
+    flavor_profile VARCHAR(30) NOT NULL CHECK (flavor_profile IN ('FRUITY', 'SMOKY', 'SWEET', 'SOUR', 'BITTER', 'SPICY', 'HERBAL')),
+    PRIMARY KEY (cocktail_id, flavor_profile)
+);
+
+ALTER TABLE cocktails ADD COLUMN IF NOT EXISTS alcohol_level DECIMAL(4,1) DEFAULT 0.0;
+ALTER TABLE cocktails ADD COLUMN IF NOT EXISTS is_mocktail BOOLEAN DEFAULT false;
+ALTER TABLE cocktails ADD COLUMN IF NOT EXISTS is_vegan BOOLEAN DEFAULT true;
+ALTER TABLE cocktails ADD COLUMN IF NOT EXISTS is_gluten_free BOOLEAN DEFAULT true;
 
 CREATE TABLE IF NOT EXISTS ingredients (
     id BIGSERIAL PRIMARY KEY,
