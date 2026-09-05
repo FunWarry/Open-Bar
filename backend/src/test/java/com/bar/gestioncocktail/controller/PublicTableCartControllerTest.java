@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -31,7 +32,7 @@ class PublicTableCartControllerTest {
     @InjectMocks
     private PublicTableCartController controller;
 
-    private final LocalDateTime fixedNow = LocalDateTime.of(2026, 9, 5, 19, 0, 0);
+    private final LocalDateTime fixedNow = LocalDateTime.of(2026, Month.SEPTEMBER, 5, 19, 0, 0);
 
     @Test
     @DisplayName("getCart: returns 200 with current cart state")

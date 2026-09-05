@@ -25,6 +25,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 import java.util.Optional;
 
@@ -64,7 +65,7 @@ class TableCartServiceTest {
     @InjectMocks
     private TableCartService tableCartService;
 
-    private final LocalDateTime fixedNow = LocalDateTime.of(2026, 9, 5, 19, 0, 0);
+    private final LocalDateTime fixedNow = LocalDateTime.of(2026, Month.SEPTEMBER, 5, 19, 0, 0);
     private TableEntity mockTable;
     private Cocktail mockCocktail;
     private CocktailVariante mockVariante;
