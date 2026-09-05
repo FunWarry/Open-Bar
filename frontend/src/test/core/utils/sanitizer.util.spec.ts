@@ -18,6 +18,11 @@ describe('SanitizerUtil', () => {
       expect(sanitizePlainText(input)).toBe('Mojito');
     });
 
+    it('should strip nested or re-emerging script tags recursively', () => {
+      const input = '<scr<script>alert("nested")</script>ipt>Mojito';
+      expect(sanitizePlainText(input)).toBe('Mojito');
+    });
+
     it('should strip img tags with onerror handlers', () => {
       const input = '<img src="invalid" onerror="alert(1)">Old Fashioned';
       expect(sanitizePlainText(input)).toBe('Old Fashioned');
