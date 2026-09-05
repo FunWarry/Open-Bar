@@ -118,6 +118,7 @@ tables ──< factures ──< facture_items
                     └──< facture_reglements       ← Persistent split settlement shares & receipt breakdown
 tables ──< table_sessions              ← Client QR code temporary session
 tables ──< table_appels                ← Patron assistance & bill request alerts
+tables ──< table_cart_items            ← Ephemeral collaborative table cart items per guest
 zones ──< tables                       ← Floor plan polygon coordinates
 establishment_closures                 ← Exceptional closures & recurring holidays
 shift_presets                          ← Predefined shift templates
@@ -161,6 +162,7 @@ EN_ATTENTE → EN_PREPARATION → PRET → LIVREE → REGLEE
 | `/topic/schedule-publications` | Team schedule published |
 | `/topic/serveur/appels` | Table assistance / bill request alert triggered |
 | `/topic/table/{tableId}/appels` | Table alert acknowledgement / resolution update |
+| `/topic/tables/{tableId}/cart` | Collaborative table cart state synchronization |
 
 ---
 
@@ -190,6 +192,28 @@ To prevent stale or fraudulent remote orders via public QR code links, OpenBar s
 |--------|-----|-------|-------------|
 | `GET` | `/api/public/tables/{tableId}/session` | Public | Check or initialize an active ephemeral table session |
 | `POST` | `/api/public/tables/{tableId}/session/refresh` | Public | Refresh / renew an active session token |
+
+---
+
+## Collaborative Table Cart for Multi-Guest QR Ordering
+
+OpenBar allows guests seated at the same physical table to collaboratively construct their order in real time from individual smartphones:
+
+- **Entity & Table**: `TableCartItem` mapped to `table_cart_items` (`id`, `table_id`, `guest_session_id`, `guest_name`, `cocktail_id`, `cocktail_variante_id`, `quantite`, `notes`, `created_at`, `updated_at`).
+- **WebSocket STOMP Topic**: `/topic/tables/{tableId}/cart` broadcasts consolidated `TableCartResponseDTO` whenever any guest adds, modifies, or removes items, or checks out the cart.
+- **Guest Authentication**: `WebSocketAuthInterceptor` allows anonymous patrons to subscribe exclusively to their table's cart (`/topic/tables/{tableId}/cart`) and alerts topic using `X-Guest-Session`, `X-Session-Token`, or `Authorization: Guest <id>` with `ROLE_ANONYMOUS`, strictly preventing unauthorized access to staff topics (`/topic/commandes`, `/topic/serveur/appels`).
+- **Automatic Lifecycle & Cleanup**: Cleaned up automatically upon table liberation or bill settlement via `TableLiberatedEvent` (`tableCartItemRepository.deleteByTableId(tableId)`).
+- **Consolidated Submission**: Any guest can submit the consolidated cart via `POST /api/public/tables/{tableId}/cart/submit`. The server creates a single grouped `Commande`, sets cart status to `SUBMITTED`, notifies other guests via STOMP, and cleans up the ephemeral cart items.
+- **Endpoints**:
+
+| Method | URL | Roles | Description |
+|--------|-----|-------|-------------|
+| `GET` | `/api/public/tables/{tableId}/cart` | Public | Retrieve current collaborative table cart |
+| `POST` | `/api/public/tables/{tableId}/cart/items` | Public | Add item to collaborative table cart |
+| `PUT` | `/api/public/tables/{tableId}/cart/items/{itemId}` | Public | Update item quantity or notes |
+| `DELETE` | `/api/public/tables/{tableId}/cart/items/{itemId}` | Public | Remove item from collaborative table cart |
+| `DELETE` | `/api/public/tables/{tableId}/cart` | Public | Clear all items from collaborative table cart |
+| `POST` | `/api/public/tables/{tableId}/cart/submit` | Public | Submit consolidated collaborative order to the bar |
 
 ---
 
