@@ -227,4 +227,36 @@ describe('WebSocketService', () => {
 
     expect(mockRxStomp.deactivate).not.toHaveBeenCalled();
   });
+
+  // ─── connectAsGuest() ───────────────────────────────────────────────────────
+
+  it('connectAsGuest() sets X-Guest-Session and X-Session-Token headers and activates connection', () => {
+    (mockRxStomp as any).active = false;
+    (mockRxStomp as any).stompClient = { connectHeaders: {} };
+
+    let capturedConfig: any;
+    mockRxStomp.configure.calls.reset();
+    mockRxStomp.activate.calls.reset();
+    mockRxStomp.configure.and.callFake((cfg: any) => {
+      capturedConfig = cfg;
+    });
+
+    service.connectAsGuest('guest-uuid-123', 'table-session-abc');
+
+    expect(mockRxStomp.configure).toHaveBeenCalledOnceWith(
+      jasmine.objectContaining({
+        connectHeaders: {
+          'X-Guest-Session': 'guest-uuid-123',
+          'X-Session-Token': 'table-session-abc',
+        },
+      })
+    );
+    expect(mockRxStomp.activate).toHaveBeenCalledTimes(1);
+
+    capturedConfig.beforeConnect();
+    expect((mockRxStomp as any).stompClient.connectHeaders).toEqual({
+      'X-Guest-Session': 'guest-uuid-123',
+      'X-Session-Token': 'table-session-abc',
+    });
+  });
 });

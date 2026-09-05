@@ -83,6 +83,9 @@ class SampleDataSeederServiceTest {
     private TableSessionRepository tableSessionRepository;
 
     @Mock
+    private TableCartItemRepository tableCartItemRepository;
+
+    @Mock
     private AppSettingsRepository appSettingsRepository;
 
     @Mock
@@ -128,6 +131,7 @@ class SampleDataSeederServiceTest {
         lenient().when(tableRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
         lenient().when(avoirCreditRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
         lenient().when(tableSessionRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        lenient().when(tableCartItemRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         Ingredient mockIng = new Ingredient();
         mockIng.setId(1L);

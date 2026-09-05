@@ -65,6 +65,20 @@ public class DatabaseSchemaMigrationService implements ApplicationRunner {
             jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP");
             jdbcTemplate.execute("ALTER TABLE establishment_config ADD COLUMN IF NOT EXISTS ticket_format VARCHAR(10) DEFAULT '80mm'");
             jdbcTemplate.execute("ALTER TABLE commandes ADD COLUMN IF NOT EXISTS prioritaire BOOLEAN DEFAULT false");
+            jdbcTemplate.execute("""
+                CREATE TABLE IF NOT EXISTS table_cart_items (
+                    id BIGSERIAL PRIMARY KEY,
+                    table_id BIGINT NOT NULL REFERENCES tables(id) ON DELETE CASCADE,
+                    guest_session_id VARCHAR(64) NOT NULL,
+                    guest_name VARCHAR(100) NOT NULL,
+                    cocktail_id BIGINT NOT NULL REFERENCES cocktails(id) ON DELETE CASCADE,
+                    cocktail_variante_id BIGINT REFERENCES cocktail_variantes(id) ON DELETE SET NULL,
+                    quantite INTEGER NOT NULL DEFAULT 1 CHECK (quantite > 0),
+                    notes VARCHAR(500),
+                    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+                )
+            """);
             log.info("Schema column migrations completed successfully.");
         } catch (Exception e) {
             log.warn("Schema migration notice: {}", e.getMessage());

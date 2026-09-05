@@ -2451,5 +2451,25 @@
       "minutesAgo": 5,
       "expiresInMinutes": 115
     }
+  ],
+  "table_cart_items": [
+    {
+      "tableNumero": 1,
+      "guestSessionId": "guest-alex-table1",
+      "guestName": "Alex",
+      "cocktailNom": "Mojito",
+      "quantite": 1,
+      "notes": "Sans sucre ajouté",
+      "minutesAgo": 8
+    },
+    {
+      "tableNumero": 1,
+      "guestSessionId": "guest-sam-table1",
+      "guestName": "Sam",
+      "cocktailNom": "Old Fashioned",
+      "quantite": 2,
+      "notes": "Zeste d'orange bien frais",
+      "minutesAgo": 5
+    }
   ]
 }

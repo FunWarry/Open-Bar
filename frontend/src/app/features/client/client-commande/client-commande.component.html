@@ -18,7 +18,8 @@
           [label]="'CLIENT.TABLE_NUMBER_LABEL' | transloco"
           [placeholder]="'CLIENT.TABLE_NUMBER_PLACEHOLDER' | transloco"
           icon="restaurant-outline"
-          [required]="true">
+          [required]="true"
+          testId="input-table-number">
         </app-input-field>
 
         <app-action-button
@@ -26,10 +27,47 @@
           variant="primary"
           size="large"
           expand="block"
-          [disabled]="tableForm.invalid">
+          [disabled]="tableForm.invalid"
+          testId="btn-access-menu">
           {{ 'CLIENT.ACCESS_MENU_BTN' | transloco }}
         </app-action-button>
       </form>
+    </div>
+  }
+
+  <!-- Modale Saisie Prénom Invité -->
+  @if (isSessionValid && showNicknamePrompt() && step !== 'table') {
+    <div class="nickname-modal-backdrop" data-testid="nickname-modal">
+
+      <div class="step-card nickname-card">
+        <div class="card-header-section">
+          <span class="brand-emoji">🏷️</span>
+          <h2 class="card-title">{{ 'CLIENT.GUEST_NAME_PROMPT_TITLE' | transloco }}</h2>
+          <p class="card-subtitle">{{ 'CLIENT.GUEST_NAME_PROMPT_DESC' | transloco }}</p>
+        </div>
+
+        <form [formGroup]="nicknameForm" (ngSubmit)="saveNickname()" class="table-form">
+          <app-input-field
+            formControlName="nickname"
+            type="text"
+            [label]="'CLIENT.GUEST_NAME_PROMPT_TITLE' | transloco"
+            [placeholder]="'CLIENT.GUEST_NAME_PLACEHOLDER' | transloco"
+            icon="person-outline"
+            [required]="true"
+            testId="input-guest-nickname">
+          </app-input-field>
+
+          <app-action-button
+            type="submit"
+            variant="primary"
+            size="large"
+            expand="block"
+            [disabled]="nicknameForm.invalid"
+            testId="btn-save-guest-nickname">
+            {{ 'CLIENT.GUEST_NAME_SAVE_BTN' | transloco }}
+          </app-action-button>
+        </form>
+      </div>
     </div>
   }
 
@@ -68,6 +106,14 @@
         <div class="header-info">
           <h1 class="menu-title">{{ 'CLIENT.MENU_TITLE' | transloco: { table: tableNumero } }}</h1>
           <p class="menu-subtitle">{{ 'CLIENT.SELECT_ITEMS' | transloco }}</p>
+          
+          @if (tableCartService.currentGuestName()) {
+            <button class="guest-badge-btn" (click)="openNicknamePrompt()" data-testid="badge-guest-name">
+              <span class="guest-badge-icon">👤</span>
+              <span class="guest-badge-name">{{ tableCartService.currentGuestName() }}</span>
+              <span class="guest-badge-edit">✏️</span>
+            </button>
+          }
         </div>
 
         <!-- Quick Table Service & Bill Actions Bar -->
@@ -121,50 +167,116 @@
         </div>
       }
 
-      <!-- Barre flottante Panier -->
+      <!-- Barre flottante Panier Partagé -->
       @if (totalItemsCount > 0) {
-        <div class="floating-cart-bar">
+        <div class="floating-cart-bar" data-testid="floating-cart-bar">
           <div class="cart-summary">
             <span class="cart-icon">🛒</span>
-            <span class="cart-count">{{ 'CLIENT.ITEMS_COUNT' | transloco: { count: totalItemsCount } }}</span>
+            <span class="cart-count">{{ 'CLIENT.SHARED_CART_TABLE_TOTAL' | transloco: { count: totalItemsCount } }}</span>
+            @if (tableCartService.guestGroups().length > 1) {
+              <span class="convives-pill" data-testid="pill-convives-count">
+                {{ 'CLIENT.SHARED_CART_CONVIVES_COUNT' | transloco: { count: tableCartService.guestGroups().length } }}
+              </span>
+            }
           </div>
           <div class="cart-action">
             <span class="cart-total">{{ totalPrice | appCurrency }}</span>
-            <button class="recap-btn" (click)="goToRecap()">{{ 'CLIENT.VIEW_RECAP' | transloco }}</button>
+            <button class="recap-btn" (click)="goToRecap()" data-testid="btn-view-recap">{{ 'CLIENT.VIEW_RECAP' | transloco }}</button>
           </div>
         </div>
       }
     </div>
   }
 
-  <!-- Étape 3 : Récapitulatif -->
+  <!-- Étape 3 : Récapitulatif Panier Partagé Collaboratif -->
   @if (isSessionValid && step === 'recap') {
-    <div class="step-card recap-card">
+    <div class="step-card recap-card" data-testid="shared-cart-recap">
       <div class="recap-header">
-        <button class="back-btn" (click)="backToMenu()">{{ 'CLIENT.BACK_TO_MENU' | transloco }}</button>
-        <h1 class="card-title">{{ 'CLIENT.RECAP_TITLE' | transloco: { table: tableNumero } }}</h1>
+        <button class="back-btn" (click)="backToMenu()" data-testid="btn-back-to-menu">{{ 'CLIENT.BACK_TO_MENU' | transloco }}</button>
+        <h1 class="card-title">{{ 'CLIENT.SHARED_CART_TITLE' | transloco: { table: tableNumero } }}</h1>
+        <p class="card-subtitle">{{ 'CLIENT.SHARED_CART_SUBTITLE' | transloco }}</p>
       </div>
 
-      <div class="cart-items-list">
-        @for (item of cartItemsList; track item.cocktail.id) {
-          <div class="recap-item">
-            <div class="item-details">
-              <span class="item-name">{{ item.cocktail.nom }}</span>
-              <span class="item-unit-price">{{ item.cocktail.prix | appCurrency }}</span>
+      @if (tableCartService.guestGroups().length === 0) {
+        <div class="empty-box">
+          <p>{{ 'CLIENT.SHARED_CART_EMPTY' | transloco }}</p>
+        </div>
+      } @else {
+        <div class="guest-groups-container">
+          @for (group of tableCartService.guestGroups(); track group.guestSessionId) {
+            <div class="guest-cart-group" [class.current-guest-group]="group.isCurrentGuest" [attr.data-testid]="'guest-group-' + group.guestSessionId">
+              <div class="group-header">
+                <div class="group-title-row">
+                  <span class="group-icon">👤</span>
+                  <span class="group-guest-name">
+                    @if (group.isCurrentGuest) {
+                      {{ 'CLIENT.SHARED_CART_GUEST_ME' | transloco: { name: group.guestName } }}
+                    } @else {
+                      {{ 'CLIENT.SHARED_CART_GUEST_OTHER' | transloco: { name: group.guestName } }}
+                    }
+                  </span>
+                  @if (group.isCurrentGuest) {
+                    <span class="me-tag">Moi</span>
+                  }
+                </div>
+                <span class="group-items-badge">{{ group.totalItems }}</span>
+              </div>
+
+              <div class="cart-items-list">
+                @for (item of group.items; track item.id) {
+                  <div class="recap-item" [attr.data-testid]="'cart-item-' + item.id">
+                    <div class="item-details">
+                      <span class="item-name">{{ item.cocktailNom }}</span>
+                      @if (item.varianteNom) {
+                        <span class="item-variant">{{ item.varianteNom }}</span>
+                      }
+                      <span class="item-unit-price">{{ item.prixUnitaire | appCurrency }}</span>
+                      @if (item.notes) {
+                        <span class="item-notes">📝 {{ item.notes }}</span>
+                      }
+                    </div>
+
+                    <div class="quantity-section">
+                      @if (group.isCurrentGuest) {
+                        <div class="quantity-controls">
+                          <button class="qty-btn" (click)="decrementCartItem(item)" [attr.data-testid]="'btn-qty-minus-' + item.id">-</button>
+                          <span class="qty-count">{{ item.quantite }}</span>
+                          <button class="qty-btn add-btn" (click)="incrementCartItem(item)" [attr.data-testid]="'btn-qty-plus-' + item.id">+</button>
+                          <button class="delete-item-btn" (click)="removeCartItem(item)" [attr.data-testid]="'btn-delete-' + item.id">🗑️</button>
+                        </div>
+                      } @else {
+                        <span class="peer-quantity">× {{ item.quantite }}</span>
+                      }
+                      <span class="item-total-price">{{ item.totalLigne | appCurrency }}</span>
+                    </div>
+                  </div>
+                }
+              </div>
+
+              <div class="group-subtotal-row">
+                <span class="group-subtotal-label">
+                  {{ 'CLIENT.SHARED_CART_SUBTOTAL' | transloco: { amount: (group.totalPrice | appCurrency) } }}
+                </span>
+              </div>
             </div>
-            <div class="quantity-controls">
-              <button class="qty-btn" (click)="removeFromCart(item.cocktail.id)">-</button>
-              <span class="qty-count">{{ item.quantite }}</span>
-              <button class="qty-btn add-btn" (click)="addToCart(item.cocktail)">+</button>
-            </div>
-            <span class="item-total-price">{{ (item.cocktail.prix * item.quantite) | appCurrency }}</span>
-          </div>
-        }
+          }
+        </div>
+      }
+
+      <div class="notes-container">
+        <label for="shared-order-notes" class="notes-label">{{ 'CLIENT.SHARED_CART_NOTES_LABEL' | transloco }}</label>
+        <textarea
+          id="shared-order-notes"
+          class="notes-textarea"
+          [(ngModel)]="orderNotes"
+          [placeholder]="'CLIENT.SHARED_CART_NOTES_PLACEHOLDER' | transloco"
+          data-testid="textarea-order-notes">
+        </textarea>
       </div>
 
       <div class="recap-summary-row">
-        <span class="summary-label">{{ 'CLIENT.TOTAL_DUE' | transloco }}</span>
-        <span class="summary-price">{{ totalPrice | appCurrency }}</span>
+        <span class="summary-label">{{ 'CLIENT.SHARED_CART_TABLE_TOTAL' | transloco: { count: totalItemsCount } }}</span>
+        <span class="summary-price" data-testid="cart-grand-total">{{ totalPrice | appCurrency }}</span>
       </div>
 
       <div class="actions-row">
@@ -172,11 +284,11 @@
           variant="primary"
           size="large"
           expand="block"
-          [disabled]="isSubmitting"
+          [disabled]="isSubmitting || totalItemsCount === 0"
           [loading]="isSubmitting"
-          (click)="submitOrder()"
-          (keydown.enter)="submitOrder()">
-          {{ 'CLIENT.SUBMIT_ORDER_BTN' | transloco }}
+          (btnClick)="submitOrder()"
+          testId="btn-submit-shared-order">
+          {{ 'CLIENT.SHARED_CART_SUBMIT_BTN' | transloco }}
         </app-action-button>
       </div>
     </div>

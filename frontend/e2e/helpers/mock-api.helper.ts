@@ -728,5 +728,115 @@ export async function setupMockApi(page: Page): Promise<void> {
       }),
     });
   });
+
+  await page.route('**/api/public/tables/*/cart**', async (route) => {
+    const method = route.request().method();
+    const url = route.request().url();
+
+    if (url.includes('/submit')) {
+      await route.fulfill({
+        status: 201,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 501,
+          commandeId: 501,
+          tableId: 1,
+          tableNumero: 1,
+          statut: 'EN_ATTENTE',
+          items: [
+            { id: 1, cocktailId: 1, cocktailNom: 'Mojito', quantite: 1, prixUnitaire: 8.5 }
+          ],
+          total: 8.5,
+          createdAt: new Date().toISOString(),
+        }),
+
+      });
+      return;
+    }
+
+    if (url.includes('/items') && method === 'POST') {
+      const data = route.request().postDataJSON() || {};
+      await route.fulfill({
+        status: 201,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 101,
+          tableId: 1,
+          guestSessionId: data.guestSessionId || 'guest-1',
+          guestName: data.guestName || 'Guest',
+          cocktailId: data.cocktailId || 1,
+          cocktailNom: 'Mojito',
+          cocktailPhotoUrl: null,
+          varianteNom: null,
+          quantite: data.quantite || 1,
+          notes: data.notes || null,
+          prixUnitaire: 8.5,
+          totalLigne: (data.quantite || 1) * 8.5,
+          createdAt: new Date().toISOString(),
+        }),
+      });
+      return;
+    }
+
+    if (url.includes('/items/') && method === 'PUT') {
+      const data = route.request().postDataJSON() || {};
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 101,
+          tableId: 1,
+          guestSessionId: data.guestSessionId || 'guest-1',
+          guestName: 'Guest',
+          cocktailId: 1,
+          cocktailNom: 'Mojito',
+          cocktailPhotoUrl: null,
+          varianteNom: null,
+          quantite: data.quantite || 2,
+          notes: data.notes || null,
+          prixUnitaire: 8.5,
+          totalLigne: (data.quantite || 2) * 8.5,
+          createdAt: new Date().toISOString(),
+        }),
+      });
+      return;
+    }
+
+    if ((url.includes('/items/') && method === 'DELETE') || method === 'DELETE') {
+      await route.fulfill({ status: 204 });
+      return;
+    }
+
+    // Default GET cart
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        tableId: 1,
+        items: [],
+        tableTotal: 0.0,
+        totalItems: 0,
+      }),
+    });
+  });
+
+  await page.route('**/api/public/commandes/**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        id: 501,
+        tableId: 1,
+        tableNumero: 1,
+        statut: 'EN_ATTENTE',
+        items: [{ id: 1, cocktailId: 1, cocktailNom: 'Mojito', quantite: 1, prixUnitaire: 8.5, totalLigne: 8.5 }],
+        total: 8.5,
+        dateCommande: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
+      }),
+    });
+  });
 }
+
+
 

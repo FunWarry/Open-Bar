@@ -214,6 +214,22 @@ CREATE TABLE IF NOT EXISTS table_sessions (
 CREATE INDEX IF NOT EXISTS idx_table_sessions_token ON table_sessions(session_token);
 CREATE INDEX IF NOT EXISTS idx_table_sessions_table_status ON table_sessions(table_id, status);
 
+CREATE TABLE IF NOT EXISTS table_cart_items (
+    id BIGSERIAL PRIMARY KEY,
+    table_id BIGINT NOT NULL REFERENCES tables(id) ON DELETE CASCADE,
+    guest_session_id VARCHAR(64) NOT NULL,
+    guest_name VARCHAR(100) NOT NULL,
+    cocktail_id BIGINT NOT NULL REFERENCES cocktails(id) ON DELETE CASCADE,
+    cocktail_variante_id BIGINT REFERENCES cocktail_variantes(id) ON DELETE SET NULL,
+    quantite INTEGER NOT NULL DEFAULT 1 CHECK (quantite > 0),
+    notes VARCHAR(500),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_table_cart_items_table_id ON table_cart_items(table_id);
+CREATE INDEX IF NOT EXISTS idx_table_cart_items_guest ON table_cart_items(table_id, guest_session_id);
+
 -- 5. Orders & Items
 CREATE TABLE IF NOT EXISTS commandes (
     id BIGSERIAL PRIMARY KEY,

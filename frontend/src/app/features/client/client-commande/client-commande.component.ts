@@ -1,30 +1,27 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, effect } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { ToastController } from '@ionic/angular/standalone';
 import { AppCurrencyPipe } from '../../../core/pipes/app-currency.pipe';
 import { CocktailService } from '../../../core/services/cocktail.service';
-import { CommandeService } from '../../../core/services/commande.service';
 import { TableSessionService } from '../../../core/services/table-session.service';
 import { TableSessionStatus } from '../../../core/models/table-session.model';
 import { Cocktail } from '../../../core/models/cocktail.model';
+import { TableCartService } from '../../../core/services/table-cart.service';
+import { TableCartItem } from '../../../core/models/table-cart.model';
 import { InputFieldComponent } from '../../../core/components/ui/input-field/input-field.component';
 import { ActionButtonComponent } from '../../../core/components/ui/action-button/action-button.component';
 import { FilterChipComponent } from '../../../core/components/ui/filter-chip/filter-chip.component';
 import { ProductCardComponent } from '../../../core/components/ui/product-card/product-card.component';
 import { TableAssistanceBarComponent } from '../components/table-assistance-bar/table-assistance-bar.component';
 
-export interface CartItem {
-  cocktail: Cocktail;
-  quantite: number;
-}
-
 /**
  * Client Commande Component allowing public customers to select a table, browse the menu,
- * select cocktails with quantity, call the waiter, request the bill, and submit an order via QR code.
+ * select cocktails in a real-time collaborative table cart shared with table companions,
+ * call the waiter, request the bill, and submit consolidated orders via QR code.
  * Aligned with Figma Vue Client QR Code specs (`636:988`, `636:1002`, `636:1058`).
  */
 @Component({
@@ -33,6 +30,7 @@ export interface CartItem {
   styleUrls: ['./client-commande.component.css'],
   standalone: true,
   imports: [
+    FormsModule,
     ReactiveFormsModule,
     AppCurrencyPipe,
     TranslocoModule,
@@ -48,8 +46,8 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
   private readonly cocktailService = inject(CocktailService);
-  private readonly commandeService = inject(CommandeService);
   private readonly tableSessionService = inject(TableSessionService);
+  readonly tableCartService = inject(TableCartService);
   private readonly toastCtrl = inject(ToastController);
   private readonly translocoService = inject(TranslocoService);
   private readonly destroy$ = new Subject<void>();
@@ -57,6 +55,7 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
   tableNumero: number | null = null;
   step: 'table' | 'menu' | 'recap' = 'table';
   tableForm!: FormGroup;
+  nicknameForm!: FormGroup;
 
   sessionToken: string | null = null;
   isSessionValid = true;
@@ -66,13 +65,36 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
   cocktails: Cocktail[] = [];
   filteredCocktails: Cocktail[] = [];
   selectedCategory = 'TOUS';
-  cart: Map<number, CartItem> = new Map();
   isLoading = false;
   isSubmitting = false;
+
+  readonly showNicknamePrompt = signal<boolean>(false);
+  orderNotes = '';
+
+  private previousSubmittedOrderId: number | null = null;
+
+  constructor() {
+    effect(() => {
+      const cart = this.tableCartService.cart();
+      if (
+        cart?.status === 'SUBMITTED' &&
+        cart.submittedOrderId &&
+        cart.submittedOrderId !== this.previousSubmittedOrderId &&
+        !this.isSubmitting
+      ) {
+        this.previousSubmittedOrderId = cart.submittedOrderId;
+        this.notifyOrderSubmittedByPeer(cart.submittedBy, cart.submittedOrderId);
+      }
+    });
+  }
 
   ngOnInit(): void {
     this.tableForm = this.fb.group({
       tableNumber: ['', [Validators.required, Validators.min(1)]]
+    });
+
+    this.nicknameForm = this.fb.group({
+      nickname: [this.tableCartService.getGuestName() || '', [Validators.required, Validators.minLength(2)]]
     });
 
     this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe((params) => {
@@ -85,6 +107,7 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
           this.tableNumero = tNum;
           this.step = 'menu';
           this.checkSession(this.tableNumero, this.sessionToken);
+          this.initTableCart();
           this.loadCocktails();
         }
       }
@@ -92,6 +115,7 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.tableCartService.reset();
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -101,7 +125,39 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
     this.tableNumero = Number.parseInt(this.tableForm.value.tableNumber, 10);
     this.step = 'menu';
     this.checkSession(this.tableNumero, this.sessionToken);
+    this.initTableCart();
     this.loadCocktails();
+  }
+
+  private initTableCart(): void {
+    if (!this.tableNumero) return;
+
+    if (!this.tableCartService.hasGuestName()) {
+      this.showNicknamePrompt.set(true);
+    }
+
+    this.tableCartService
+      .initCart(this.tableNumero, this.sessionToken || undefined)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        error: (err) => console.warn('Failed to initialize shared table cart', err)
+      });
+  }
+
+  saveNickname(): void {
+    if (this.nicknameForm.invalid) return;
+    const name = String(this.nicknameForm.value.nickname).trim();
+    if (name.length > 0) {
+      this.tableCartService.setGuestName(name);
+      this.showNicknamePrompt.set(false);
+    }
+  }
+
+  openNicknamePrompt(): void {
+    this.nicknameForm.patchValue({
+      nickname: this.tableCartService.getGuestName() || ''
+    });
+    this.showNicknamePrompt.set(true);
   }
 
   checkSession(tableId: number, token: string | null): void {
@@ -184,46 +240,115 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
   }
 
   addToCart(cocktail: Cocktail): void {
-    const existing = this.cart.get(cocktail.id);
-    if (existing) {
-      existing.quantite += 1;
-    } else {
-      this.cart.set(cocktail.id, { cocktail, quantite: 1 });
+    if (!this.tableNumero) return;
+
+    if (!this.tableCartService.hasGuestName()) {
+      this.openNicknamePrompt();
+      return;
     }
+
+    const guestSessionId = this.tableCartService.getOrCreateGuestSessionId();
+    const guestName = this.tableCartService.getGuestName() || 'Guest';
+
+    this.tableCartService
+      .addItem(this.tableNumero, {
+        guestSessionId,
+        guestName,
+        cocktailId: cocktail.id,
+        quantite: 1
+      })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        error: async (err: { error?: { message?: string } }) => {
+          const toast = await this.toastCtrl.create({
+            message: err?.error?.message || 'Error adding item to shared cart',
+            duration: 3000,
+            color: 'danger'
+          });
+          await toast.present();
+        }
+      });
   }
 
   removeFromCart(cocktailId: number): void {
-    const existing = this.cart.get(cocktailId);
-    if (!existing) return;
-    if (existing.quantite > 1) {
-      existing.quantite -= 1;
+    if (!this.tableNumero) return;
+
+    const guestSessionId = this.tableCartService.getOrCreateGuestSessionId();
+    const cart = this.tableCartService.cart();
+    if (!cart?.items) return;
+
+    const item = cart.items.find(
+      (i) => i.cocktailId === cocktailId && i.guestSessionId === guestSessionId
+    );
+
+    if (!item) return;
+
+    if (item.quantite > 1) {
+      this.tableCartService
+        .updateItem(this.tableNumero, item.id, {
+          guestSessionId,
+          quantite: item.quantite - 1
+        })
+        .pipe(takeUntil(this.destroy$))
+        .subscribe();
     } else {
-      this.cart.delete(cocktailId);
+      this.tableCartService
+        .removeItem(this.tableNumero, item.id)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe();
+    }
+  }
+
+  removeCartItem(item: TableCartItem): void {
+    if (!this.tableNumero) return;
+    this.tableCartService
+      .removeItem(this.tableNumero, item.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe();
+  }
+
+  incrementCartItem(item: TableCartItem): void {
+    if (!this.tableNumero) return;
+    this.tableCartService
+      .updateItem(this.tableNumero, item.id, {
+        guestSessionId: item.guestSessionId,
+        quantite: item.quantite + 1
+      })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe();
+  }
+
+  decrementCartItem(item: TableCartItem): void {
+    if (!this.tableNumero) return;
+    if (item.quantite > 1) {
+      this.tableCartService
+        .updateItem(this.tableNumero, item.id, {
+          guestSessionId: item.guestSessionId,
+          quantite: item.quantite - 1
+        })
+        .pipe(takeUntil(this.destroy$))
+        .subscribe();
+    } else {
+      this.removeCartItem(item);
     }
   }
 
   getItemQuantity(cocktailId: number): number {
-    return this.cart.get(cocktailId)?.quantite || 0;
-  }
-
-  get cartItemsList(): CartItem[] {
-    return Array.from(this.cart.values());
+    const guestSessionId = this.tableCartService.getOrCreateGuestSessionId();
+    const cart = this.tableCartService.cart();
+    if (!cart?.items) return 0;
+    const item = cart.items.find(
+      (i) => i.cocktailId === cocktailId && i.guestSessionId === guestSessionId
+    );
+    return item ? item.quantite : 0;
   }
 
   get totalItemsCount(): number {
-    let total = 0;
-    for (const item of this.cart.values()) {
-      total += item.quantite;
-    }
-    return total;
+    return this.tableCartService.totalItems();
   }
 
   get totalPrice(): number {
-    let total = 0;
-    for (const item of this.cart.values()) {
-      total += item.cocktail.prix * item.quantite;
-    }
-    return total;
+    return this.tableCartService.totalPrice();
   }
 
   goToRecap(): void {
@@ -239,41 +364,65 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
     if (this.totalItemsCount === 0 || !this.tableNumero || this.isSubmitting) return;
 
     this.isSubmitting = true;
-    const commandeData = {
-      tableId: this.tableNumero,
-      sessionToken: this.sessionToken,
-      items: this.cartItemsList.map((item) => ({
-        cocktailId: item.cocktail.id,
-        quantite: item.quantite
-      }))
+    const submitReq = {
+      guestSessionId: this.tableCartService.getOrCreateGuestSessionId(),
+      guestName: this.tableCartService.getGuestName() || 'Guest',
+      sessionToken: this.sessionToken || undefined,
+      notes: this.orderNotes?.trim() || undefined
     };
 
-    this.commandeService
-      .create(commandeData)
+    this.tableCartService
+      .submitCart(this.tableNumero, submitReq)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: async (commandeCreated) => {
+        next: async (res) => {
           this.isSubmitting = false;
           const toast = await this.toastCtrl.create({
-            message: this.translocoService.translate('CLIENT.ORDER_SUBMIT_SUCCESS'),
+            message: this.translocoService.translate('CLIENT.SHARED_CART_SUBMIT_SUCCESS'),
             duration: 3000,
             color: 'success'
           });
           await toast.present();
-          this.router.navigate(['/client/suivi', commandeCreated.id]);
+          const orderId = res.commandeId || (res as any).id;
+          this.router.navigate(['/client/suivi', orderId]);
         },
+
         error: async (err: { status?: number; error?: { message?: string } }) => {
           this.isSubmitting = false;
           if (err?.status === 403) {
             this.isSessionValid = false;
           }
           const toast = await this.toastCtrl.create({
-            message: err?.error?.message || this.translocoService.translate('CLIENT.ORDER_SUBMIT_ERROR'),
+            message: err?.error?.message || this.translocoService.translate('CLIENT.SHARED_CART_SUBMIT_ERROR'),
             duration: 4000,
             color: 'danger'
           });
           await toast.present();
         }
       });
+  }
+
+  private async notifyOrderSubmittedByPeer(submittedBy?: string | null, orderId?: number | null): Promise<void> {
+    const toast = await this.toastCtrl.create({
+      message: this.translocoService.translate('CLIENT.SHARED_CART_OTHER_SUBMITTED', {
+        name: submittedBy || 'Un convive'
+      }),
+      duration: 5000,
+      color: 'primary',
+      buttons: orderId
+        ? [
+            {
+              text: this.translocoService.translate('CLIENT.ORDER_NOW'),
+              handler: () => {
+                this.router.navigate(['/client/suivi', orderId]);
+              }
+            }
+          ]
+        : undefined
+    });
+    await toast.present();
+    if (orderId && this.step === 'recap') {
+      this.router.navigate(['/client/suivi', orderId]);
+    }
   }
 }
