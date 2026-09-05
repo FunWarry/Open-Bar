@@ -78,6 +78,7 @@ public class SampleDataSeederService {
     private final WeekSchedulePublicationRepository weekSchedulePublicationRepository;
     private final TableAppelRepository tableAppelRepository;
     private final TableSessionRepository tableSessionRepository;
+    private final TableCartItemRepository tableCartItemRepository;
     private final AppSettingsRepository appSettingsRepository;
     private final EstablishmentConfigRepository establishmentConfigRepository;
     private final JdbcTemplate jdbcTemplate;
@@ -109,6 +110,7 @@ public class SampleDataSeederService {
             WeekSchedulePublicationRepository weekSchedulePublicationRepository,
             TableAppelRepository tableAppelRepository,
             TableSessionRepository tableSessionRepository,
+            TableCartItemRepository tableCartItemRepository,
             AppSettingsRepository appSettingsRepository,
             EstablishmentConfigRepository establishmentConfigRepository,
             JdbcTemplate jdbcTemplate,
@@ -134,6 +136,7 @@ public class SampleDataSeederService {
         this.weekSchedulePublicationRepository = weekSchedulePublicationRepository;
         this.tableAppelRepository = tableAppelRepository;
         this.tableSessionRepository = tableSessionRepository;
+        this.tableCartItemRepository = tableCartItemRepository;
         this.appSettingsRepository = appSettingsRepository;
         this.establishmentConfigRepository = establishmentConfigRepository;
         this.jdbcTemplate = jdbcTemplate;
@@ -386,6 +389,7 @@ public class SampleDataSeederService {
             List<Cocktail> cocktails = cocktailRepository.findAll();
             if (!cocktails.isEmpty()) {
                 safelyInTransaction(() -> seedOrdersFromJson(root.get("orders"), usersMap, tablesMap, cocktails), "seedOrders");
+                safelyInTransaction(() -> seedTableCartItemsFromJson(root.get("table_cart_items"), tablesMap, cocktails), "seedTableCartItems");
             }
             safelyInTransaction(() -> seedInvoicesFromJson(root.get("invoices"), tablesMap), "seedInvoices");
             safelyInTransaction(() -> seedAvoirsCreditFromJson(root.get("avoirs_credit")), "seedAvoirsCredit");
@@ -1174,6 +1178,40 @@ public class SampleDataSeederService {
             tableSessionRepository.save(session);
         }
         log.info("Seeded ephemeral table sessions from demo dataset.");
+    }
+
+    private void seedTableCartItemsFromJson(JsonNode cartItemsNode, Map<Integer, TableEntity> tablesMap, List<Cocktail> cocktails) {
+        if (cartItemsNode == null || !cartItemsNode.isArray() || tableCartItemRepository.count() > 0) {
+            return;
+        }
+
+        LocalDateTime now = timeService.now();
+        for (JsonNode itemNode : cartItemsNode) {
+            int tableNumero = itemNode.path(KEY_TABLE_NUMERO).asInt(1);
+            TableEntity table = tablesMap.get(tableNumero);
+            if (table == null) {
+                table = tableRepository.findByNumero(tableNumero).orElse(null);
+            }
+
+            String cocktailNom = itemNode.path("cocktailNom").asText("Mojito");
+            Cocktail cocktail = findCocktailByName(cocktails, cocktailNom);
+
+            if (table != null && cocktail != null) {
+                int minutesAgo = itemNode.path(KEY_MINUTES_AGO).asInt(5);
+
+                TableCartItem item = new TableCartItem();
+                item.setTableId(table.getId());
+                item.setGuestSessionId(itemNode.path("guestSessionId").asText(UUID.randomUUID().toString()));
+                item.setGuestName(itemNode.path("guestName").asText("Invité"));
+                item.setCocktailId(cocktail.getId());
+                item.setQuantite(itemNode.path(KEY_QUANTITE).asInt(1));
+                item.setNotes(itemNode.has(KEY_NOTES) ? itemNode.get(KEY_NOTES).asText() : null);
+                item.setCreatedAt(now.minusMinutes(minutesAgo));
+
+                tableCartItemRepository.save(item);
+            }
+        }
+        log.info("Seeded collaborative table cart items from demo dataset.");
     }
 
     private void seedSettingsAndConfig() {

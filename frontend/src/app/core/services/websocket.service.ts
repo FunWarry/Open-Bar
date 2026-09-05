@@ -63,6 +63,35 @@ export class WebSocketService {
   }
 
   /**
+   * Connects to WebSocket using guest credentials (session UUID and optional table session token).
+   *
+   * @param guestSessionId Unique client guest UUID
+   * @param sessionToken Optional table session token for QR fraud validation
+   */
+  connectAsGuest(guestSessionId: string, sessionToken?: string): void {
+    if (this.rxStomp.active) return;
+
+    const headers: Record<string, string> = {
+      'X-Guest-Session': guestSessionId,
+    };
+    if (sessionToken) {
+      headers['X-Session-Token'] = sessionToken;
+    }
+
+    this.rxStomp.configure({
+      brokerURL: environment.wsUrl,
+      connectHeaders: headers,
+      beforeConnect: () => {
+        this.rxStomp.stompClient.connectHeaders = headers;
+      },
+      reconnectDelay: 5000,
+      heartbeatIncoming: 4000,
+      heartbeatOutgoing: 4000,
+    });
+    this.rxStomp.activate();
+  }
+
+  /**
    * Disconnects the STOMP WebSocket connection.
    */
   disconnect(): void {

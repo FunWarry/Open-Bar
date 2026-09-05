@@ -3,16 +3,15 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { RouterTestingModule } from '@angular/router/testing';
 import { ToastController } from '@ionic/angular/standalone';
 import { of, throwError } from 'rxjs';
+import { signal, computed } from '@angular/core';
 import { ClientCommandeComponent } from '../../../app/features/client/client-commande/client-commande.component';
 import { CocktailService } from '../../../app/core/services/cocktail.service';
-import { CommandeService } from '../../../app/core/services/commande.service';
-import { TableAppelService } from '../../../app/core/services/table-appel.service';
 import { TableSessionService } from '../../../app/core/services/table-session.service';
+import { TableCartService } from '../../../app/core/services/table-cart.service';
 import { TableSessionResponse } from '../../../app/core/models/table-session.model';
+import { TableCart, TableCartItem } from '../../../app/core/models/table-cart.model';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { Cocktail } from '../../../app/core/models/cocktail.model';
-import { TableAppel } from '../../../app/core/models/table-appel.model';
-
 import { Router } from '@angular/router';
 
 describe('ClientCommandeComponent', () => {
@@ -20,10 +19,9 @@ describe('ClientCommandeComponent', () => {
   let fixture: ComponentFixture<ClientCommandeComponent>;
   let router: Router;
   let cocktailServiceSpy: jasmine.SpyObj<CocktailService>;
-  let commandeServiceSpy: jasmine.SpyObj<CommandeService>;
-  let tableAppelServiceSpy: jasmine.SpyObj<TableAppelService>;
   let tableSessionServiceSpy: jasmine.SpyObj<TableSessionService>;
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
+  let tableCartServiceMock: any;
 
   const mockActiveSessionResponse: TableSessionResponse = {
     id: 1,
@@ -51,32 +49,66 @@ describe('ClientCommandeComponent', () => {
     updatedAt: '2026-01-01'
   };
 
-  const mockAppel: TableAppel = {
-    id: 10,
+  const mockCartItem: TableCartItem = {
+    id: 101,
+    guestSessionId: 'guest-me',
+    guestName: 'Alex',
+    cocktailId: 1,
+    cocktailNom: 'Mojito',
+    quantite: 1,
+    prixUnitaire: 8.5,
+    totalLigne: 8.5
+  };
+
+  const mockCart: TableCart = {
     tableId: 4,
-    tableNumero: 4,
-    type: 'ASSISTANCE',
-    statut: 'EN_ATTENTE',
-    createdAt: '2026-08-31T19:00:00',
-    updatedAt: '2026-08-31T19:00:00'
+    status: 'OPEN',
+    items: [mockCartItem],
+    totalItems: 1,
+    totalPrice: 8.5
   };
 
   beforeEach(async () => {
     cocktailServiceSpy = jasmine.createSpyObj('CocktailService', ['getAll']);
-    commandeServiceSpy = jasmine.createSpyObj('CommandeService', ['create']);
-    tableAppelServiceSpy = jasmine.createSpyObj('TableAppelService', [
-      'appelerServeur',
-      'getAppelsActifsPourTable'
-    ]);
     tableSessionServiceSpy = jasmine.createSpyObj('TableSessionService', [
       'validateSession',
       'refreshSession'
     ]);
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
 
+    const cartSignal = signal<TableCart | null>(mockCart);
+    const guestNameSignal = signal<string>('Alex');
+
+    tableCartServiceMock = {
+      cart: cartSignal,
+      currentGuestName: guestNameSignal,
+      guestGroups: signal([
+        {
+          guestSessionId: 'guest-me',
+          guestName: 'Alex',
+          isCurrentGuest: true,
+          items: [mockCartItem],
+          totalItems: 1,
+          totalPrice: 8.5
+        }
+      ]),
+      totalItems: computed(() => cartSignal()?.totalItems ?? 0),
+      totalPrice: computed(() => cartSignal()?.totalPrice ?? 0),
+      hasGuestName: jasmine.createSpy('hasGuestName').and.returnValue(true),
+      getGuestName: jasmine.createSpy('getGuestName').and.returnValue('Alex'),
+      setGuestName: jasmine.createSpy('setGuestName').and.callFake((name: string) => {
+        guestNameSignal.set(name);
+      }),
+      getOrCreateGuestSessionId: jasmine.createSpy('getOrCreateGuestSessionId').and.returnValue('guest-me'),
+      initCart: jasmine.createSpy('initCart').and.returnValue(of(mockCart)),
+      addItem: jasmine.createSpy('addItem').and.returnValue(of(mockCart)),
+      updateItem: jasmine.createSpy('updateItem').and.returnValue(of(mockCart)),
+      removeItem: jasmine.createSpy('removeItem').and.returnValue(of(mockCart)),
+      submitCart: jasmine.createSpy('submitCart').and.returnValue(of({ commandeId: 99, trackingToken: 'trk-99' })),
+      reset: jasmine.createSpy('reset')
+    };
+
     cocktailServiceSpy.getAll.and.returnValue(of([mockCocktail]));
-    tableAppelServiceSpy.appelerServeur.and.returnValue(of(mockAppel));
-    tableAppelServiceSpy.getAppelsActifsPourTable.and.returnValue(of([]));
     tableSessionServiceSpy.validateSession.and.returnValue(of(mockActiveSessionResponse));
     tableSessionServiceSpy.refreshSession.and.returnValue(of(mockActiveSessionResponse));
     toastCtrlSpy.create.and.returnValue(Promise.resolve({ present: () => Promise.resolve() } as any));
@@ -90,9 +122,8 @@ describe('ClientCommandeComponent', () => {
       ],
       providers: [
         { provide: CocktailService, useValue: cocktailServiceSpy },
-        { provide: CommandeService, useValue: commandeServiceSpy },
-        { provide: TableAppelService, useValue: tableAppelServiceSpy },
         { provide: TableSessionService, useValue: tableSessionServiceSpy },
+        { provide: TableCartService, useValue: tableCartServiceMock },
         { provide: ToastController, useValue: toastCtrlSpy }
       ]
     }).compileComponents();
@@ -113,32 +144,45 @@ describe('ClientCommandeComponent', () => {
     expect(component.step).toBe('table');
   });
 
-  it('should advance to menu step when valid table number is submitted', () => {
+  it('should advance to menu step and initialize collaborative cart', () => {
     component.tableForm.setValue({ tableNumber: 4 });
     component.onSelectTable();
     expect(component.tableNumero).toBe(4);
     expect(component.step).toBe('menu');
     expect(cocktailServiceSpy.getAll).toHaveBeenCalled();
+    expect(tableCartServiceMock.initCart).toHaveBeenCalledWith(4, 'valid-token-123');
   });
 
-  it('should add and remove items from cart', () => {
+
+  it('should prompt for nickname if none exists and save it', () => {
+    tableCartServiceMock.hasGuestName.and.returnValue(false);
+    component.tableForm.setValue({ tableNumber: 4 });
+    component.onSelectTable();
+    expect(component.showNicknamePrompt()).toBeTrue();
+
+    component.nicknameForm.setValue({ nickname: 'Sam' });
+    component.saveNickname();
+
+    expect(tableCartServiceMock.setGuestName).toHaveBeenCalledWith('Sam');
+    expect(component.showNicknamePrompt()).toBeFalse();
+  });
+
+  it('should delegate adding and removing items to tableCartService', () => {
+    component.tableNumero = 4;
     component.addToCart(mockCocktail);
-    expect(component.getItemQuantity(1)).toBe(1);
-    expect(component.totalPrice).toBe(8.5);
-    expect(component.totalItemsCount).toBe(1);
+
+    expect(tableCartServiceMock.addItem).toHaveBeenCalledWith(4, jasmine.objectContaining({
+      guestSessionId: 'guest-me',
+      guestName: 'Alex',
+      cocktailId: 1,
+      quantite: 1
+    }));
 
     component.removeFromCart(1);
-    expect(component.getItemQuantity(1)).toBe(0);
-    expect(component.totalItemsCount).toBe(0);
+    expect(tableCartServiceMock.removeItem).toHaveBeenCalledWith(4, 101);
   });
 
-  it('should handle category filtering and cart navigation', () => {
-    component.cocktails = [mockCocktail];
-    component.filterCategory('ALCOOLISE');
-    expect(component.selectedCategory).toBe('ALCOOLISE');
-    expect(component.filteredCocktails).toHaveSize(1);
-
-    component.addToCart(mockCocktail);
+  it('should navigate between menu and recap steps', () => {
     component.goToRecap();
     expect(component.step).toBe('recap');
 
@@ -146,18 +190,23 @@ describe('ClientCommandeComponent', () => {
     expect(component.step).toBe('menu');
   });
 
-  it('should submit order and navigate to tracking view', fakeAsync(() => {
-    commandeServiceSpy.create.and.returnValue(of({ id: 99, tableNumero: 4, items: [], statut: 'EN_ATTENTE', total: 8.5 } as any));
+  it('should submit order via tableCartService and navigate to tracking view', fakeAsync(() => {
     component.tableNumero = 4;
-    component.addToCart(mockCocktail);
+    component.orderNotes = 'Serve immediately';
 
     component.submitOrder();
     tick();
 
-    expect(commandeServiceSpy.create).toHaveBeenCalled();
+    expect(tableCartServiceMock.submitCart).toHaveBeenCalledWith(4, jasmine.objectContaining({
+      guestSessionId: 'guest-me',
+      guestName: 'Alex',
+      notes: 'Serve immediately'
+    }));
+
     expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({
       color: 'success'
     }));
+    expect(router.navigate).toHaveBeenCalledWith(['/client/suivi', 99]);
   }));
 
   it('should validate table session on checkSession', () => {
@@ -199,9 +248,8 @@ describe('ClientCommandeComponent', () => {
   }));
 
   it('should mark session invalid when order submission fails with 403 Forbidden', fakeAsync(() => {
-    commandeServiceSpy.create.and.returnValue(throwError(() => ({ status: 403, error: { message: 'Session expired' } })));
+    tableCartServiceMock.submitCart.and.returnValue(throwError(() => ({ status: 403, error: { message: 'Session expired' } })));
     component.tableNumero = 4;
-    component.addToCart(mockCocktail);
 
     component.submitOrder();
     tick();
