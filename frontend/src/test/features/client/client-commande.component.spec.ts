@@ -259,4 +259,124 @@ describe('ClientCommandeComponent', () => {
       color: 'danger'
     }));
   }));
+
+  it('should remove item via removeCartItem', () => {
+    component.tableNumero = 4;
+    component.removeCartItem(mockCartItem);
+    expect(tableCartServiceMock.removeItem).toHaveBeenCalledWith(4, 101);
+  });
+
+  it('should increment item via incrementCartItem', () => {
+    component.tableNumero = 4;
+    component.incrementCartItem(mockCartItem);
+    expect(tableCartServiceMock.updateItem).toHaveBeenCalledWith(4, 101, {
+      guestSessionId: 'guest-me',
+      quantite: 2
+    });
+  });
+
+  it('should decrement item when quantite > 1 via decrementCartItem', () => {
+    component.tableNumero = 4;
+    const itemWithTwo: TableCartItem = { ...mockCartItem, quantite: 2 };
+    component.decrementCartItem(itemWithTwo);
+    expect(tableCartServiceMock.updateItem).toHaveBeenCalledWith(4, 101, {
+      guestSessionId: 'guest-me',
+      quantite: 1
+    });
+  });
+
+  it('should remove item when decrementing item with quantite 1 via decrementCartItem', () => {
+    component.tableNumero = 4;
+    component.decrementCartItem(mockCartItem);
+    expect(tableCartServiceMock.removeItem).toHaveBeenCalledWith(4, 101);
+  });
+
+  it('should decrement item quantity when removing from cart with quantite > 1', () => {
+    component.tableNumero = 4;
+    const cartWithMultiple: TableCart = {
+      ...mockCart,
+      items: [{ ...mockCartItem, quantite: 3 }]
+    };
+    tableCartServiceMock.cart.set(cartWithMultiple);
+    component.removeFromCart(1);
+    expect(tableCartServiceMock.updateItem).toHaveBeenCalledWith(4, 101, {
+      guestSessionId: 'guest-me',
+      quantite: 2
+    });
+  });
+
+  it('should open nickname prompt when adding to cart if guest name is not set', () => {
+    component.tableNumero = 4;
+    tableCartServiceMock.hasGuestName.and.returnValue(false);
+    tableCartServiceMock.getGuestName.and.returnValue('');
+    component.addToCart(mockCocktail);
+    expect(component.showNicknamePrompt()).toBeTrue();
+  });
+
+  it('should display error toast when adding item fails', fakeAsync(() => {
+    component.tableNumero = 4;
+    tableCartServiceMock.addItem.and.returnValue(throwError(() => ({ error: { message: 'Stock depleted' } })));
+    component.addToCart(mockCocktail);
+    tick();
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({
+      message: 'Stock depleted',
+      color: 'danger'
+    }));
+  }));
+
+  it('should return correct quantity from getItemQuantity', () => {
+    expect(component.getItemQuantity(1)).toBe(1);
+    expect(component.getItemQuantity(999)).toBe(0);
+  });
+
+  it('should prefill and open nickname prompt via openNicknamePrompt', () => {
+    tableCartServiceMock.getGuestName.and.returnValue('Charlie');
+    component.openNicknamePrompt();
+    expect(component.nicknameForm.value.nickname).toBe('Charlie');
+    expect(component.showNicknamePrompt()).toBeTrue();
+  });
+
+  it('should ignore saving empty nickname in saveNickname', () => {
+    component.nicknameForm.setValue({ nickname: '   ' });
+    component.saveNickname();
+    expect(tableCartServiceMock.setGuestName).not.toHaveBeenCalledWith('   ');
+  });
+
+  it('should not go to recap when cart is empty', () => {
+    tableCartServiceMock.cart.set({ ...mockCart, items: [], totalItems: 0, totalPrice: 0 });
+    component.step = 'menu';
+    component.goToRecap();
+    expect(component.step).toBe('menu');
+  });
+
+  it('should show notification toast and navigate when peer submits the order', fakeAsync(() => {
+    component.tableNumero = 4;
+    component.step = 'recap';
+    tableCartServiceMock.cart.set({
+      ...mockCart,
+      status: 'SUBMITTED',
+      submittedOrderId: 88,
+      submittedBy: 'Bob'
+    });
+    fixture.detectChanges();
+    tick();
+
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({
+      color: 'primary'
+    }));
+    expect(router.navigate).toHaveBeenCalledWith(['/client/suivi', 88]);
+  }));
+
+  it('should display error toast when order submission fails with generic error', fakeAsync(() => {
+    tableCartServiceMock.submitCart.and.returnValue(throwError(() => ({ status: 500, error: { message: 'Internal error' } })));
+    component.tableNumero = 4;
+    component.submitOrder();
+    tick();
+
+    expect(component.isSubmitting).toBeFalse();
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({
+      message: 'Internal error',
+      color: 'danger'
+    }));
+  }));
 });

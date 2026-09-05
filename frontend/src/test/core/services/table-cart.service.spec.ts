@@ -240,6 +240,147 @@ describe('TableCartService', () => {
     req.flush(mockOrderResponse);
   });
 
+  it('submitCart should reset submitting flag on error', () => {
+    const submitReq = {
+      guestSessionId: 'guest-me',
+      guestName: 'Alex'
+    };
+
+    service.submitCart(5, submitReq).subscribe({
+      error: () => {
+        expect(service.submitting()).toBeFalse();
+      }
+    });
+
+    expect(service.submitting()).toBeTrue();
+    const req = httpMock.expectOne(`${baseUrl}/5/cart/submit`);
+    req.flush({ message: 'Submission failed' }, { status: 500, statusText: 'Server Error' });
+  });
+
+  it('hasGuestName should return false when guest name is missing or empty', () => {
+    localStorage.removeItem('openbar_guest_name');
+    expect(service.hasGuestName()).toBeFalse();
+    service.setGuestName('   ');
+    expect(service.hasGuestName()).toBeFalse();
+  });
+
+  it('initCart should handle invalid JSON payload from STOMP gracefully', () => {
+    service.initCart(5).subscribe();
+    httpMock.expectOne(`${baseUrl}/5/cart`).flush(sampleCart);
+
+    // Send malformed message
+    stompMessages$.next({ body: 'invalid-json' } as IMessage);
+    // Should retain previous cart without crashing
+    expect(service.cart()).toEqual(sampleCart);
+  });
+
+  it('initCart should handle HTTP failure and reset loading flag', () => {
+    service.initCart(5).subscribe({
+      error: () => {
+        expect(service.loading()).toBeFalse();
+      }
+    });
+
+    expect(service.loading()).toBeTrue();
+    const req = httpMock.expectOne(`${baseUrl}/5/cart`);
+    req.flush('Error', { status: 404, statusText: 'Not Found' });
+  });
+
+  it('addItem should initialize cart if current cart is null', () => {
+    (service as any).cart.set(null);
+    const newItem: TableCartItem = {
+      id: 3,
+      guestSessionId: 'guest-me',
+      guestName: 'Alex',
+      cocktailId: 12,
+      cocktailNom: 'Cosmopolitan',
+      quantite: 1,
+      prixUnitaire: 10.0,
+      totalLigne: 10.0
+    };
+
+    service.addItem(5, {
+      guestSessionId: 'guest-me',
+      guestName: 'Alex',
+      cocktailId: 12,
+      quantite: 1
+    }).subscribe((res) => {
+      expect(res).toEqual(newItem);
+      expect(service.cart()?.items.length).toBe(1);
+      expect(service.totalPrice()).toBe(10.0);
+    });
+
+    const req = httpMock.expectOne(`${baseUrl}/5/cart/items`);
+    req.flush(newItem);
+  });
+
+  it('updateItem and removeItem should handle null cart safely', () => {
+    (service as any).cart.set(null);
+    service.updateItem(5, 99, { guestSessionId: 'guest-me', quantite: 2 }).subscribe();
+    const reqUpdate = httpMock.expectOne(`${baseUrl}/5/cart/items/99`);
+    reqUpdate.flush({ id: 99, quantite: 2 });
+    expect(service.cart()).toBeNull();
+
+    service.removeItem(5, 99).subscribe();
+    const reqRemove = httpMock.expectOne((r) => r.url === `${baseUrl}/5/cart/items/99`);
+    reqRemove.flush(null);
+    expect(service.cart()).toBeNull();
+
+    service.clearCart(5).subscribe();
+    const reqClear = httpMock.expectOne(`${baseUrl}/5/cart`);
+    reqClear.flush(null);
+    expect(service.cart()).toBeNull();
+  });
+
+  it('guestGroups should sort current guest first, then other guests alphabetically', () => {
+    const multiGuestCart: TableCart = {
+      tableId: 5,
+      status: 'OPEN',
+      items: [
+        {
+          id: 1,
+          guestSessionId: 'guest-z',
+          guestName: 'Zoe',
+          cocktailId: 1,
+          cocktailNom: 'Drink 1',
+          quantite: 1,
+          prixUnitaire: 5.0,
+          totalLigne: 5.0
+        },
+        {
+          id: 2,
+          guestSessionId: 'guest-me',
+          guestName: 'Alex',
+          cocktailId: 2,
+          cocktailNom: 'Drink 2',
+          quantite: 2,
+          prixUnitaire: 5.0,
+          totalLigne: 10.0
+        },
+        {
+          id: 3,
+          guestSessionId: 'guest-b',
+          guestName: 'Ben',
+          cocktailId: 3,
+          cocktailNom: 'Drink 3',
+          quantite: 1,
+          prixUnitaire: 7.0,
+          totalLigne: 7.0
+        }
+      ],
+      totalItems: 4,
+      totalPrice: 22.0
+    };
+
+    (service as any).cart.set(multiGuestCart);
+    const groups = service.guestGroups();
+    expect(groups).toHaveSize(3);
+    expect(groups[0].guestSessionId).toBe('guest-me');
+    expect(groups[0].isCurrentGuest).toBeTrue();
+    expect(groups[1].guestName).toBe('Ben');
+    expect(groups[2].guestName).toBe('Zoe');
+  });
+
   it('reset should clear state and tear down subscriptions', () => {
     service.initCart(5).subscribe();
     httpMock.expectOne(`${baseUrl}/5/cart`).flush(sampleCart);
