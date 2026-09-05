@@ -346,4 +346,38 @@ public class CommandeController {
         @Parameter(description = "New Table ID") @PathVariable Long newTableId) {
         return ResponseEntity.ok(CommandeResponseDTO.from(commandeService.transfererCommande(id, newTableId)));
     }
+
+    /**
+     * Toggles the urgent / priority status of an order.
+     *
+     * @param id Order ID
+     * @return DTO of the updated order
+     */
+    @PostMapping("/{id}/toggle-urgent")
+    @PreAuthorize("hasRole('SERVEUR') or hasRole('BARMAN') or hasRole('MANAGER') or hasRole('ADMIN')")
+    @Operation(summary = "Toggle urgent priority on an order", description = "Toggles priority state of the order and its items.")
+    @ApiResponse(responseCode = "200", description = "Urgent state toggled successfully")
+    @ApiResponse(responseCode = "404", description = "Order not found")
+    public ResponseEntity<CommandeResponseDTO> toggleUrgent(
+        @Parameter(description = "Order ID") @PathVariable Long id) {
+        return ResponseEntity.ok(CommandeResponseDTO.from(commandeService.toggleUrgent(id)));
+    }
+
+    /**
+     * Sets the urgent / priority status of an order.
+     *
+     * @param id Order ID
+     * @param urgent Urgent status flag
+     * @return DTO of the updated order
+     */
+    @PatchMapping("/{id}/urgent")
+    @PreAuthorize("hasRole('SERVEUR') or hasRole('BARMAN') or hasRole('MANAGER') or hasRole('ADMIN')")
+    @Operation(summary = "Set urgent priority on an order", description = "Sets priority state of the order and its items.")
+    @ApiResponse(responseCode = "200", description = "Urgent state updated successfully")
+    @ApiResponse(responseCode = "404", description = "Order not found")
+    public ResponseEntity<CommandeResponseDTO> setUrgent(
+        @Parameter(description = "Order ID") @PathVariable Long id,
+        @Parameter(description = "Urgent status flag") @RequestParam(defaultValue = "true") boolean urgent) {
+        return ResponseEntity.ok(CommandeResponseDTO.from(commandeService.setUrgent(id, urgent)));
+    }
 }

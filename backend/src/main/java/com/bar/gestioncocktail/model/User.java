@@ -114,4 +114,17 @@ public class User {
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
-} 
+
+    @jakarta.persistence.PrePersist
+    protected void onCreate() {
+        if (this.createdAt == null) {
+            this.createdAt = LocalDateTime.now(java.time.ZoneId.systemDefault());
+        }
+        this.updatedAt = LocalDateTime.now(java.time.ZoneId.systemDefault());
+    }
+
+    @jakarta.persistence.PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now(java.time.ZoneId.systemDefault());
+    }
+}

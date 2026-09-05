@@ -81,4 +81,27 @@ class SetupControllerTest {
         assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         assertThat(response.getBody()).containsEntry("status", "skipped");
     }
+
+    @Test
+    @DisplayName("cleanTestData - purges test data when seeder service is present")
+    void cleanTestData_present_success() {
+        SetupController controller = new SetupController(setupService, Optional.of(sampleDataSeederService));
+
+        ResponseEntity<Map<String, String>> response = controller.cleanTestData();
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getBody()).containsEntry("status", "success");
+        verify(sampleDataSeederService).cleanPollutedTestData();
+    }
+
+    @Test
+    @DisplayName("cleanTestData - skips when seeder service is absent")
+    void cleanTestData_absent_skipped() {
+        SetupController controller = new SetupController(setupService, Optional.empty());
+
+        ResponseEntity<Map<String, String>> response = controller.cleanTestData();
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getBody()).containsEntry("status", "skipped");
+    }
 }

@@ -80,6 +80,15 @@ class SampleDataSeederServiceTest {
     private TableAppelRepository tableAppelRepository;
 
     @Mock
+    private AppSettingsRepository appSettingsRepository;
+
+    @Mock
+    private EstablishmentConfigRepository establishmentConfigRepository;
+
+    @Mock
+    private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
+
+    @Mock
     private PasswordEncoder passwordEncoder;
 
     @Mock
@@ -87,6 +96,12 @@ class SampleDataSeederServiceTest {
 
     @Mock
     private org.springframework.transaction.PlatformTransactionManager transactionManager;
+
+    @Mock
+    private CocktailDataSeederService cocktailDataSeederService;
+
+    @Mock
+    private org.springframework.core.env.Environment environment;
 
     @Spy
     private ObjectMapper objectMapper = new ObjectMapper();
@@ -104,6 +119,11 @@ class SampleDataSeederServiceTest {
             if (t != null && t.getId() == null) t.setId(1L);
             return t;
         });
+        lenient().when(factureRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        lenient().when(commandeRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        lenient().when(userRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        lenient().when(tableRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        lenient().when(avoirCreditRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         Ingredient mockIng = new Ingredient();
         mockIng.setId(1L);
@@ -176,20 +196,20 @@ class SampleDataSeederServiceTest {
     }
 
     @Test
-    @DisplayName("seedDemoDataIfEmpty - skips seeding when orders already exist")
-    void seedDemoDataIfEmpty_skipsWhenOrdersExist() {
-        when(commandeRepository.count()).thenReturn(5L);
+    @DisplayName("seedDemoDataIfEmpty - skips startup auto-seeding in dev profile to keep database blank")
+    void seedDemoDataIfEmpty_skipsWhenNotTestProfile() {
+        when(environment.getActiveProfiles()).thenReturn(new String[]{"dev"});
 
         sampleDataSeederService.seedDemoDataIfEmpty();
 
-        verify(commandeRepository, times(1)).count();
         verify(userRepository, never()).save(any());
+        verify(tableRepository, never()).save(any());
     }
 
     @Test
-    @DisplayName("seedDemoDataIfEmpty - executes dataset seeding and seeds all demo data")
-    void seedDemoDataIfEmpty_executesSeedingWhenEmpty() {
-        when(commandeRepository.count()).thenReturn(0L);
+    @DisplayName("seedDemoDataIfEmpty - executes dataset seeding in test profile and seeds all demo data")
+    void seedDemoDataIfEmpty_executesSeedingWhenTestProfile() {
+        when(environment.getActiveProfiles()).thenReturn(new String[]{"test"});
 
         sampleDataSeederService.seedDemoDataIfEmpty();
 
@@ -219,8 +239,6 @@ class SampleDataSeederServiceTest {
     @Test
     @DisplayName("seedAllDemoData - does not duplicate shifts when shift already exists for user and date")
     void seedAllDemoData_skipsDuplicateShifts() {
-        lenient().when(commandeRepository.count()).thenReturn(1L);
-
         EmployeeShift existingShift = new EmployeeShift();
         LocalDate today = LocalDate.now(ZoneId.systemDefault());
         LocalDate monday = today.minusDays((long) today.getDayOfWeek().getValue() - 1);
@@ -236,8 +254,6 @@ class SampleDataSeederServiceTest {
     @Test
     @DisplayName("seedAllDemoData - correctly seeds invoices with VAT rate and HT calculation")
     void seedAllDemoData_correctlyCalculatesVatAndInvoiceTotals() {
-        when(commandeRepository.count()).thenReturn(0L);
-
         sampleDataSeederService.seedAllDemoData();
 
         ArgumentCaptor<Facture> factureCaptor = ArgumentCaptor.forClass(Facture.class);
@@ -256,8 +272,6 @@ class SampleDataSeederServiceTest {
     @Test
     @DisplayName("seedAllDemoData - seeds split payments (FactureReglement) on invoices")
     void seedAllDemoData_seedsSplitPaymentsOnInvoices() {
-        when(commandeRepository.count()).thenReturn(0L);
-
         sampleDataSeederService.seedAllDemoData();
 
         verify(factureReglementRepository, atLeastOnce()).save(any(FactureReglement.class));
@@ -266,8 +280,6 @@ class SampleDataSeederServiceTest {
     @Test
     @DisplayName("seedAllDemoData - seeds credit notes (AvoirCredit) when present")
     void seedAllDemoData_seedsCreditNotes() {
-        when(commandeRepository.count()).thenReturn(0L);
-
         Facture mockFacture = new Facture();
         mockFacture.setId(5L);
         mockFacture.setNumero("FACT-2026-0005");
@@ -275,7 +287,7 @@ class SampleDataSeederServiceTest {
         mockFacture.setTotalVAT(new BigDecimal("3.17"));
         mockFacture.setTotalTTC(new BigDecimal("19.00"));
 
-        when(factureRepository.findByNumero("FACT-2026-0005")).thenReturn(Optional.of(mockFacture));
+        lenient().when(factureRepository.findByNumero("FACT-2026-0005")).thenReturn(Optional.of(mockFacture));
 
         sampleDataSeederService.seedAllDemoData();
 
@@ -285,8 +297,6 @@ class SampleDataSeederServiceTest {
     @Test
     @DisplayName("seedAllDemoData - correctly seeds orders with proper lifecycle timestamps (datePret and dateLivraison)")
     void seedAllDemoData_seedsOrdersWithProperLifecycleTimestamps() {
-        when(commandeRepository.count()).thenReturn(0L);
-
         sampleDataSeederService.seedAllDemoData();
 
         ArgumentCaptor<Commande> commandeCaptor = ArgumentCaptor.forClass(Commande.class);
@@ -315,10 +325,66 @@ class SampleDataSeederServiceTest {
     @Test
     @DisplayName("seedAllDemoData - seeds table call alerts (TableAppel) when present in demo dataset")
     void seedAllDemoData_seedsTableAppels() {
-        when(commandeRepository.count()).thenReturn(0L);
-
         sampleDataSeederService.seedAllDemoData();
 
         verify(tableAppelRepository, atLeastOnce()).save(any(TableAppel.class));
+    }
+
+    @Test
+    @DisplayName("cleanPollutedTestData - purges test tables, duplicates, zones, cocktails, ingredients, and empty orders")
+    void cleanPollutedTestData_success() {
+        TableEntity pollutedTable = new TableEntity();
+        pollutedTable.setId(99L);
+        pollutedTable.setNumero(999);
+
+        TableEntity dupTable1 = new TableEntity();
+        dupTable1.setId(10L);
+        dupTable1.setNumero(1);
+
+        TableEntity dupTable2 = new TableEntity();
+        dupTable2.setId(11L);
+        dupTable2.setNumero(1);
+
+        when(tableRepository.findAll()).thenReturn(List.of(pollutedTable, dupTable1, dupTable2));
+
+        ZoneEntity pollutedZone = new ZoneEntity();
+        pollutedZone.setId(99L);
+        pollutedZone.setNom("<script>alert('xss')</script>");
+        when(zoneRepository.findAll()).thenReturn(List.of(pollutedZone));
+
+        Cocktail pollutedCocktail = new Cocktail();
+        pollutedCocktail.setId(99L);
+        pollutedCocktail.setNom("<script>alert('xss')</script>");
+        when(cocktailRepository.findAll()).thenReturn(List.of(pollutedCocktail));
+
+        Ingredient pollutedIngredient = new Ingredient();
+        pollutedIngredient.setId(99L);
+        pollutedIngredient.setNom("<script>alert('xss')</script>");
+        when(ingredientRepository.findAll()).thenReturn(List.of(pollutedIngredient));
+
+        Commande emptyOrder = new Commande();
+        emptyOrder.setId(99L);
+        emptyOrder.setItems(List.of());
+        when(commandeRepository.findAll()).thenReturn(List.of(emptyOrder));
+
+        sampleDataSeederService.cleanPollutedTestData();
+
+        verify(tableRepository, atLeastOnce()).deleteAll(any());
+        verify(zoneRepository).deleteAll(any());
+        verify(cocktailRepository).deleteAll(any());
+        verify(ingredientRepository).deleteAll(any());
+        verify(commandeRepository).deleteAll(any());
+    }
+
+    @Test
+    @DisplayName("cleanPollutedTestData - handles exceptions gracefully without failing")
+    void cleanPollutedTestData_handlesExceptions() {
+        when(tableRepository.findAll()).thenThrow(new RuntimeException("Database error"));
+        when(zoneRepository.findAll()).thenThrow(new RuntimeException("Database error"));
+        when(cocktailRepository.findAll()).thenThrow(new RuntimeException("Database error"));
+        when(ingredientRepository.findAll()).thenThrow(new RuntimeException("Database error"));
+        when(commandeRepository.findAll()).thenThrow(new RuntimeException("Database error"));
+
+        org.junit.jupiter.api.Assertions.assertDoesNotThrow(() -> sampleDataSeederService.cleanPollutedTestData());
     }
 }

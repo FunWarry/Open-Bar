@@ -45,6 +45,9 @@ class CocktailDataSeederServiceTest {
     @Mock
     private GlasswareRepository glasswareRepository;
 
+    @Mock
+    private org.springframework.core.env.Environment environment;
+
     private CocktailDataSeederService seederService;
 
     @BeforeEach
@@ -54,13 +57,25 @@ class CocktailDataSeederServiceTest {
             ingredientRepository,
             cocktailIngredientRepository,
             cocktailVarianteRepository,
-            glasswareRepository
+            glasswareRepository,
+            environment
         );
     }
 
     @Test
-    @DisplayName("seedCocktailsIfEmpty - imports cocktails with glassware and recipe steps when DB is empty")
+    @DisplayName("seedCocktailsIfEmpty - skips startup auto-seeding in dev profile to keep database blank")
+    void seedCocktailsIfEmpty_skipsSeedingWhenNotTestProfile() {
+        when(environment.getActiveProfiles()).thenReturn(new String[]{"dev"});
+
+        seederService.seedCocktailsIfEmpty();
+
+        verify(cocktailRepository, never()).save(any(Cocktail.class));
+    }
+
+    @Test
+    @DisplayName("seedCocktailsIfEmpty - imports cocktails with glassware and recipe steps when DB is empty and profile is test")
     void seedCocktailsIfEmpty_importsCocktailsWhenDbIsEmpty() {
+        when(environment.getActiveProfiles()).thenReturn(new String[]{"test"});
         Glassware mockGlassware = new Glassware();
         mockGlassware.setId(1L);
         mockGlassware.setNom("Tasse en cuivre");
@@ -112,6 +127,7 @@ class CocktailDataSeederServiceTest {
         Glassware g8 = new Glassware(); g8.setId(8L); g8.setNom("Verre à Shot / Chupito");
         Glassware g9 = new Glassware(); g9.setId(9L); g9.setNom("Verre Tumbler / Highball");
 
+        when(environment.getActiveProfiles()).thenReturn(new String[]{"test"});
         when(glasswareRepository.findAll()).thenReturn(List.of(g1, g2, g3, g4, g5, g6, g7, g8, g9));
         when(cocktailRepository.count()).thenReturn(0L);
         when(cocktailRepository.findByNomIgnoreCase(anyString())).thenReturn(Optional.empty());
@@ -137,9 +153,33 @@ class CocktailDataSeederServiceTest {
     @Test
     @DisplayName("seedCocktailsIfEmpty - skips import when DB already contains cocktails")
     void seedCocktailsIfEmpty_skipsImportWhenDbIsNotEmpty() {
+        when(environment.getActiveProfiles()).thenReturn(new String[]{"test"});
         when(cocktailRepository.count()).thenReturn(10L);
 
         seederService.seedCocktailsIfEmpty();
+
+        verify(cocktailRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("seedCocktails - force=true imports cocktails even when DB already contains cocktails")
+    void seedCocktails_forceTrue_importsCocktails() {
+        lenient().when(glasswareRepository.findAll()).thenReturn(List.of());
+        when(cocktailRepository.findByNomIgnoreCase(anyString())).thenReturn(Optional.empty());
+        when(ingredientRepository.findByNomIgnoreCase(anyString())).thenReturn(Optional.empty());
+        when(cocktailRepository.save(any(Cocktail.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        seederService.seedCocktails(true);
+
+        verify(cocktailRepository, atLeastOnce()).save(any(Cocktail.class));
+    }
+
+    @Test
+    @DisplayName("seedCocktails - force=false skips import when DB already contains cocktails")
+    void seedCocktails_forceFalse_skipsWhenCountGreaterThanZero() {
+        when(cocktailRepository.count()).thenReturn(5L);
+
+        seederService.seedCocktails(false);
 
         verify(cocktailRepository, never()).save(any());
     }

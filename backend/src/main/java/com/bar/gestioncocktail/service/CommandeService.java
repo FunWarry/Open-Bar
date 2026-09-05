@@ -203,6 +203,7 @@ public class CommandeService {
         if (commande.getItems().isEmpty()) {
             commande.setStatut(CommandeStatut.ANNULEE);
         }
+        recalculateTotal(commande);
         commande.setDateModification(timeService.now());
 
         Commande saved = commandeRepository.save(commande);
@@ -265,6 +266,66 @@ public class CommandeService {
     public void definirPriorite(CommandeItem item, boolean prioritaire) {
         item.setPrioritaire(prioritaire);
         commandeItemRepository.save(item);
+    }
+
+    /**
+     * Toggles priority / urgent state of an order.
+     *
+     * @param commandeId Order identifier
+     * @return Updated Commande entity
+     */
+    @Transactional
+    public Commande toggleUrgent(Long commandeId) {
+        Commande commande = commandeRepository.findById(commandeId)
+                .orElseThrow(() -> new ResourceNotFoundException(COMMANDE_NOT_FOUND + commandeId));
+        return applyUrgentStatus(commande, !commande.isPrioritaire());
+    }
+
+    /**
+     * Sets explicit priority / urgent state of an order.
+     *
+     * @param commandeId Order identifier
+     * @param prioritaire Urgent status flag
+     * @return Updated Commande entity
+     */
+    @Transactional
+    public Commande setUrgent(Long commandeId, boolean prioritaire) {
+        Commande commande = commandeRepository.findById(commandeId)
+                .orElseThrow(() -> new ResourceNotFoundException(COMMANDE_NOT_FOUND + commandeId));
+        return applyUrgentStatus(commande, prioritaire);
+    }
+
+    private Commande applyUrgentStatus(Commande commande, boolean prioritaire) {
+        commande.setPrioritaire(prioritaire);
+        if (commande.getItems() != null) {
+            for (CommandeItem item : commande.getItems()) {
+                item.setPrioritaire(prioritaire);
+            }
+        }
+        commande.setUpdatedAt(timeService.now());
+        Commande saved = commandeRepository.save(commande);
+        notifyOrderUpdated(saved);
+        return saved;
+    }
+
+    /**
+     * Recalculates total price for an order based on its current item list.
+     *
+     * @param commande Order entity
+     */
+    public void recalculateTotal(Commande commande) {
+        if (commande == null) return;
+        BigDecimal total = BigDecimal.ZERO;
+        if (commande.getItems() != null) {
+            for (CommandeItem item : commande.getItems()) {
+                if (item.getPrixUnitaire() != null) {
+                    BigDecimal itemTotal = item.getPrixUnitaire()
+                            .multiply(BigDecimal.valueOf(item.getQuantite()));
+                    total = total.add(itemTotal);
+                }
+            }
+        }
+        commande.setTotal(total);
     }
 
     private void destockerIngredients(Commande commande) {

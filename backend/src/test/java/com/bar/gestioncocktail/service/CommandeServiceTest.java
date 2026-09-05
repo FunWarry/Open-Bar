@@ -535,4 +535,58 @@ class CommandeServiceTest {
 
         org.junit.jupiter.api.Assertions.assertDoesNotThrow(() -> commandeService.annulerCommande(commande));
     }
+
+    @Test
+    @DisplayName("toggleUrgent - toggles order priority flag and updates items")
+    void toggleUrgent_success() {
+        commande.setPrioritaire(false);
+        when(commandeRepository.findById(1L)).thenReturn(Optional.of(commande));
+        when(commandeRepository.save(any(Commande.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Commande result = commandeService.toggleUrgent(1L);
+
+        assertThat(result.isPrioritaire()).isTrue();
+        verify(messagingTemplate).convertAndSend(eq("/topic/commandes"), any(com.bar.gestioncocktail.dto.CommandeResponseDTO.class));
+    }
+
+    @Test
+    @DisplayName("setUrgent - sets order priority flag explicitly")
+    void setUrgent_success() {
+        commande.setPrioritaire(false);
+        when(commandeRepository.findById(1L)).thenReturn(Optional.of(commande));
+        when(commandeRepository.save(any(Commande.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Commande result = commandeService.setUrgent(1L, true);
+
+        assertThat(result.isPrioritaire()).isTrue();
+    }
+
+    @Test
+    @DisplayName("recalculateTotal - computes total from item unit prices and quantities")
+    void recalculateTotal_computesCorrectTotal() {
+        Commande cmd = new Commande();
+        CommandeItem item1 = new CommandeItem();
+        item1.setPrixUnitaire(new BigDecimal("12.50"));
+        item1.setQuantite(2);
+
+        CommandeItem item2 = new CommandeItem();
+        item2.setPrixUnitaire(new BigDecimal("8.00"));
+        item2.setQuantite(1);
+
+        CommandeItem itemNullPrice = new CommandeItem();
+        itemNullPrice.setPrixUnitaire(null);
+        itemNullPrice.setQuantite(3);
+
+        cmd.setItems(List.of(item1, item2, itemNullPrice));
+
+        commandeService.recalculateTotal(cmd);
+
+        assertThat(cmd.getTotal()).isEqualByComparingTo(new BigDecimal("33.00"));
+    }
+
+    @Test
+    @DisplayName("recalculateTotal - handles null commande safely")
+    void recalculateTotal_nullCommande_safe() {
+        org.junit.jupiter.api.Assertions.assertDoesNotThrow(() -> commandeService.recalculateTotal(null));
+    }
 }

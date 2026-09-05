@@ -5,7 +5,6 @@ spring:
     init:
       mode: always
   jpa:
-    defer-datasource-initialization: false
     open-in-view: false
     hibernate:
       ddl-auto: update

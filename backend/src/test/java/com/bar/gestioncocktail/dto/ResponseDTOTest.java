@@ -96,17 +96,30 @@ class ResponseDTOTest {
         table.setId(1L);
         table.setNumero(5);
 
+        Cocktail c = new Cocktail();
+        c.setNom("Mojito");
+        c.setPrix(new BigDecimal("9.50"));
+
+        CommandeItem item = new CommandeItem();
+        item.setId(1L);
+        item.setCocktail(c);
+        item.setQuantite(2);
+        item.setPrixUnitaire(new BigDecimal("9.50"));
+        item.setPrioritaire(true);
+
         Commande commande = new Commande();
         commande.setId(10L);
         commande.setTable(table);
         commande.setStatut(CommandeStatut.EN_ATTENTE);
-        commande.setItems(List.of());
+        commande.setItems(List.of(item));
 
         CommandeResponseDTO dto = CommandeResponseDTO.from(commande);
 
         assertThat(dto).isNotNull();
         assertThat(dto.id()).isEqualTo(10L);
         assertThat(dto.statut()).isEqualTo(CommandeStatut.EN_ATTENTE);
+        assertThat(dto.total()).isEqualByComparingTo(new BigDecimal("19.00"));
+        assertThat(dto.prioritaire()).isTrue();
     }
 
     @Test
