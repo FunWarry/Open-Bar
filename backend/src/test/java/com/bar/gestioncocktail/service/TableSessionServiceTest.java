@@ -17,6 +17,7 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -206,9 +207,18 @@ class TableSessionServiceTest {
     @Test
     @DisplayName("invalidateSessionForTable: updates active sessions to CLOSED")
     void invalidateSessionForTable_callsRepository() {
+        TableSession session = new TableSession();
+        session.setId(10L);
+        session.setTableId(5L);
+        session.setStatus(TableSessionStatus.ACTIVE);
+
+        when(tableSessionRepository.findByTableIdAndStatus(5L, TableSessionStatus.ACTIVE))
+                .thenReturn(List.of(session));
+
         tableSessionService.invalidateSessionForTable(5L);
 
-        verify(tableSessionRepository).updateStatusByTableIdAndStatus(5L, TableSessionStatus.ACTIVE, TableSessionStatus.CLOSED);
+        assertThat(session.getStatus()).isEqualTo(TableSessionStatus.CLOSED);
+        verify(tableSessionRepository).saveAllAndFlush(List.of(session));
     }
 
     @Test
@@ -218,9 +228,18 @@ class TableSessionServiceTest {
         table.setId(12L);
         TableLiberatedEvent event = new TableLiberatedEvent(table);
 
+        TableSession session = new TableSession();
+        session.setId(22L);
+        session.setTableId(12L);
+        session.setStatus(TableSessionStatus.ACTIVE);
+
+        when(tableSessionRepository.findByTableIdAndStatus(12L, TableSessionStatus.ACTIVE))
+                .thenReturn(List.of(session));
+
         tableSessionService.handleTableLiberated(event);
 
-        verify(tableSessionRepository).updateStatusByTableIdAndStatus(12L, TableSessionStatus.ACTIVE, TableSessionStatus.CLOSED);
+        assertThat(session.getStatus()).isEqualTo(TableSessionStatus.CLOSED);
+        verify(tableSessionRepository).saveAllAndFlush(List.of(session));
     }
 
     @Test

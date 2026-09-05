@@ -65,7 +65,7 @@ public interface TableSessionRepository extends JpaRepository<TableSession, Long
      * @param currentStatus Current status to match
      * @param newStatus New status to set
      */
-    @Modifying(clearAutomatically = true)
+    @Modifying
     @Query("UPDATE TableSession s SET s.status = :newStatus WHERE s.tableId = :tableId AND s.status = :currentStatus")
     void updateStatusByTableIdAndStatus(
             @Param("tableId") Long tableId,

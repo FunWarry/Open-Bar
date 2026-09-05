@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -165,8 +166,13 @@ public class TableSessionService {
         if (tableId == null) {
             return;
         }
-        tableSessionRepository.updateStatusByTableIdAndStatus(
-                tableId, TableSessionStatus.ACTIVE, TableSessionStatus.CLOSED);
+        List<TableSession> activeSessions = tableSessionRepository.findByTableIdAndStatus(tableId, TableSessionStatus.ACTIVE);
+        if (!activeSessions.isEmpty()) {
+            for (TableSession session : activeSessions) {
+                session.setStatus(TableSessionStatus.CLOSED);
+            }
+            tableSessionRepository.saveAllAndFlush(activeSessions);
+        }
         log.info("Invalidated all active sessions for table {}", tableId);
     }
 
