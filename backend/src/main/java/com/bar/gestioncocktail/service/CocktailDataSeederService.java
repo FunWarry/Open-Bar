@@ -107,11 +107,11 @@ public class CocktailDataSeederService {
             log.info("Skipping automatic cocktail startup seeding (active profile is not 'test'). Database remains clean.");
             return;
         }
-        seedCocktailsInternal();
+        seedCocktailsInternal(false);
     }
 
     /**
-     * Programmatically seeds cocktail dataset into the database if empty, or forces re-seeding.
+     * Seeds or refreshes cocktail catalog data.
      *
      * @param force When true, proceeds even if cocktails are already present
      */
@@ -122,11 +122,11 @@ public class CocktailDataSeederService {
             log.info("Database already contains cocktails, skipping seeding.");
             return;
         }
-        seedCocktailsInternal();
+        seedCocktailsInternal(force);
     }
 
-    private void seedCocktailsInternal() {
-        if (cocktailRepository.count() > 0) {
+    private void seedCocktailsInternal(boolean force) {
+        if (!force && cocktailRepository.count() > 0) {
             log.info("Database already contains cocktails, skipping test dataset seeding.");
             return;
         }

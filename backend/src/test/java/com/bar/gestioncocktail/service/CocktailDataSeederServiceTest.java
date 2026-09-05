@@ -160,5 +160,28 @@ class CocktailDataSeederServiceTest {
 
         verify(cocktailRepository, never()).save(any());
     }
+
+    @Test
+    @DisplayName("seedCocktails - force=true imports cocktails even when DB already contains cocktails")
+    void seedCocktails_forceTrue_importsCocktails() {
+        lenient().when(glasswareRepository.findAll()).thenReturn(List.of());
+        when(cocktailRepository.findByNomIgnoreCase(anyString())).thenReturn(Optional.empty());
+        when(ingredientRepository.findByNomIgnoreCase(anyString())).thenReturn(Optional.empty());
+        when(cocktailRepository.save(any(Cocktail.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        seederService.seedCocktails(true);
+
+        verify(cocktailRepository, atLeastOnce()).save(any(Cocktail.class));
+    }
+
+    @Test
+    @DisplayName("seedCocktails - force=false skips import when DB already contains cocktails")
+    void seedCocktails_forceFalse_skipsWhenCountGreaterThanZero() {
+        when(cocktailRepository.count()).thenReturn(5L);
+
+        seederService.seedCocktails(false);
+
+        verify(cocktailRepository, never()).save(any());
+    }
 }
 

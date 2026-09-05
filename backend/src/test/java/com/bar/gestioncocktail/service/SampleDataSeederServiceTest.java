@@ -329,4 +329,62 @@ class SampleDataSeederServiceTest {
 
         verify(tableAppelRepository, atLeastOnce()).save(any(TableAppel.class));
     }
+
+    @Test
+    @DisplayName("cleanPollutedTestData - purges test tables, duplicates, zones, cocktails, ingredients, and empty orders")
+    void cleanPollutedTestData_success() {
+        TableEntity pollutedTable = new TableEntity();
+        pollutedTable.setId(99L);
+        pollutedTable.setNumero(999);
+
+        TableEntity dupTable1 = new TableEntity();
+        dupTable1.setId(10L);
+        dupTable1.setNumero(1);
+
+        TableEntity dupTable2 = new TableEntity();
+        dupTable2.setId(11L);
+        dupTable2.setNumero(1);
+
+        when(tableRepository.findAll()).thenReturn(List.of(pollutedTable, dupTable1, dupTable2));
+
+        ZoneEntity pollutedZone = new ZoneEntity();
+        pollutedZone.setId(99L);
+        pollutedZone.setNom("<script>alert('xss')</script>");
+        when(zoneRepository.findAll()).thenReturn(List.of(pollutedZone));
+
+        Cocktail pollutedCocktail = new Cocktail();
+        pollutedCocktail.setId(99L);
+        pollutedCocktail.setNom("<script>alert('xss')</script>");
+        when(cocktailRepository.findAll()).thenReturn(List.of(pollutedCocktail));
+
+        Ingredient pollutedIngredient = new Ingredient();
+        pollutedIngredient.setId(99L);
+        pollutedIngredient.setNom("<script>alert('xss')</script>");
+        when(ingredientRepository.findAll()).thenReturn(List.of(pollutedIngredient));
+
+        Commande emptyOrder = new Commande();
+        emptyOrder.setId(99L);
+        emptyOrder.setItems(List.of());
+        when(commandeRepository.findAll()).thenReturn(List.of(emptyOrder));
+
+        sampleDataSeederService.cleanPollutedTestData();
+
+        verify(tableRepository, atLeastOnce()).deleteAll(any());
+        verify(zoneRepository).deleteAll(any());
+        verify(cocktailRepository).deleteAll(any());
+        verify(ingredientRepository).deleteAll(any());
+        verify(commandeRepository).deleteAll(any());
+    }
+
+    @Test
+    @DisplayName("cleanPollutedTestData - handles exceptions gracefully without failing")
+    void cleanPollutedTestData_handlesExceptions() {
+        when(tableRepository.findAll()).thenThrow(new RuntimeException("Database error"));
+        when(zoneRepository.findAll()).thenThrow(new RuntimeException("Database error"));
+        when(cocktailRepository.findAll()).thenThrow(new RuntimeException("Database error"));
+        when(ingredientRepository.findAll()).thenThrow(new RuntimeException("Database error"));
+        when(commandeRepository.findAll()).thenThrow(new RuntimeException("Database error"));
+
+        org.junit.jupiter.api.Assertions.assertDoesNotThrow(() -> sampleDataSeederService.cleanPollutedTestData());
+    }
 }
