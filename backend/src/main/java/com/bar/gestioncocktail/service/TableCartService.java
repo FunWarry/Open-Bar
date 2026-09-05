@@ -110,9 +110,10 @@ public class TableCartService {
 
         TableCartResponseDTO updatedCart = fetchCart(tableId);
         broadcastCart(tableId, updatedCart);
-        log.info("Guest '{}' added {}x cocktail {} to table {} cart",
-                dto.getGuestName(), dto.getQuantite(), dto.getCocktailId(), tableId);
+        log.info("Added {}x cocktail {} to table {} cart",
+                dto.getQuantite(), dto.getCocktailId(), tableId);
         return updatedCart;
+
     }
 
     private void saveOrIncrementItem(Long tableId, TableCartItemRequestDTO dto) {
@@ -269,8 +270,9 @@ public class TableCartService {
         );
         broadcastCart(tableId, submittedNotification);
 
-        log.info("Guest '{}' successfully submitted collaborative order #{} for table {}",
-                dto.getGuestName(), createdOrder.getCommandeId(), tableId);
+        log.info("Successfully submitted collaborative order #{} for table {}",
+                createdOrder.getCommandeId(), tableId);
+
 
         return createdOrder;
     }
