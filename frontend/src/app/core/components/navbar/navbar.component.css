@@ -1,25 +1,180 @@
-.logo {
+/* === TopBar / Navbar — OpenBar Design System === */
+
+ion-toolbar {
+  --min-height: 56px;
+  height: 56px;
+  --background: var(--surface-1, #1a1a2e);
+  --color: var(--text-primary, #eceefb);
+  --border-color: var(--border-medium, #2e3450);
+  border-bottom: 1px solid var(--border-medium, #2e3450);
+  padding: 0 var(--space-2, 8px);
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+/* Logo / app name — clickable */
+.topbar-logo {
+  font-family: var(--font, 'Inter', sans-serif);
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--primary);
+  letter-spacing: -0.01em;
   cursor: pointer;
-  font-size: 1.5rem;
+  flex-shrink: 0;
+  min-width: fit-content;
+}
+
+/* Dynamic page title — 100% centered horizontally and vertically on large screens */
+.topbar-page-title {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font, 'Inter', sans-serif);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: calc(100vw - 780px);
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* End-slot buttons */
+ion-button {
+  --color: var(--text-secondary);
+  font-weight: 600;
+  font-family: var(--font, 'Inter', sans-serif);
+}
+
+ion-button:hover {
+  --color: var(--text-primary);
+}
+
+/* Local time display */
+.topbar-time {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
   font-weight: 500;
+  color: var(--text-muted);
+  font-family: var(--font, 'Inter', sans-serif);
+  padding: 0 8px;
+  white-space: nowrap;
+  user-select: none;
 }
 
-.spacer {
-  flex: 1 1 auto;
+.time-icon {
+  font-size: 14px;
+  color: var(--text-muted);
 }
 
-mat-toolbar {
+/* Notification badge */
+.notif-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  font-size: 9px;
+  padding: 2px 4px;
+  min-width: 16px;
+}
+
+/* Role badge chip shown next to the username */
+.role-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--font, 'Inter', sans-serif);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-on-accent, #ffffff);
+  background-color: var(--primary);
+  border-radius: 999px;
+  padding: 2px 8px;
+  margin-right: 6px;
+  white-space: nowrap;
+  line-height: 1.4;
+  vertical-align: middle;
+}
+
+/* User popover dropdown menu styling */
+ion-popover {
+  --background: var(--surface-1, #1a1a2e);
+  --color: var(--text-primary, #eceefb);
+  --border-color: var(--border-subtle, #23233a);
+}
+
+ion-popover ion-list {
+  background: var(--surface-1, #1a1a2e);
+  color: var(--text-primary, #eceefb);
+  padding: 4px;
+}
+
+ion-popover ion-item {
+  --background: var(--surface-1, #1a1a2e);
+  --color: var(--text-primary, #eceefb);
+  --background-hover: var(--surface-2, #21263f);
+  --border-color: transparent;
+  --border-radius: var(--radius-md, 8px);
+  --padding-start: 12px;
+  --padding-end: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  margin: 2px 0;
+}
+
+ion-popover ion-item ion-icon {
+  color: var(--text-secondary, #a4add0);
+  margin-right: 8px;
+  font-size: 18px;
+}
+
+ion-popover ion-item:hover ion-icon {
+  color: var(--primary, #6c7fe8);
+}
+
+/* Non-modal sliding side notification drawer */
+.notif-drawer-wrapper {
   position: fixed;
-  top: 0;
-  left: 0;
+  top: 52px;
   right: 0;
-  z-index: 1000;
+  bottom: 0;
+  z-index: 999;
+  transform: translateX(100%);
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: auto;
 }
 
-button {
-  margin: 0 8px;
+.notif-drawer-wrapper.open {
+  transform: translateX(0);
 }
 
-mat-icon {
-  margin-right: 4px;
+/* ── Responsive adjustments ─────────────────────────────── */
+@media (max-width: 1199px) {
+  .topbar-page-title {
+    display: none !important;
+  }
+}
+
+@media (max-width: 991px) {
+  .topbar-time {
+    display: none !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .role-badge {
+    display: none !important;
+  }
 }

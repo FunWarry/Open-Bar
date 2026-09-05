@@ -1,0 +1,151 @@
+<div class="cancel-modal-wrapper" data-testid="cancel-order-modal">
+  <!-- ========================================================================= -->
+  <!-- --- MODAL HEADER --- -->
+  <!-- ========================================================================= -->
+  <div class="modal-header">
+    <div class="header-main-group">
+      <div class="danger-icon-badge">
+        <span class="icon-pulse-ring"></span>
+        <ion-icon name="alert-circle-outline"></ion-icon>
+      </div>
+      <div class="header-text">
+        <h2 class="modal-title" data-testid="cancel-modal-title">
+          {{ 'COMMANDES.CONFIRM_CANCEL_TITLE' | transloco }}
+        </h2>
+        <div class="modal-meta-tags">
+          <span class="order-id-tag">#{{ resolvedId() }}</span>
+          <span class="table-tag">
+            <ion-icon name="restaurant-outline"></ion-icon>
+            <span>Table {{ resolvedTable() }}</span>
+          </span>
+          @if (resolvedServer()) {
+            <span class="server-tag">
+              <ion-icon name="person-outline"></ion-icon>
+              <span>{{ resolvedServer() }}</span>
+            </span>
+          }
+        </div>
+      </div>
+    </div>
+
+    <button
+      type="button"
+      class="close-icon-btn"
+      (click)="dismissCancel()"
+      [attr.aria-label]="'COMMON.CLOSE' | transloco"
+      data-testid="cancel-modal-close-btn">
+      <ion-icon name="close-outline"></ion-icon>
+    </button>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- --- MODAL BODY --- -->
+  <!-- ========================================================================= -->
+  <div class="modal-body">
+    <!-- Irreversible Warning Banner -->
+    <div class="warning-callout">
+      <div class="warning-icon-box">
+        <ion-icon name="warning-outline"></ion-icon>
+      </div>
+      <div class="warning-text-content">
+        <h4 class="warning-heading">{{ 'COMMANDES.CONFIRM_CANCEL_SUBTITLE' | transloco }}</h4>
+        <p class="warning-desc">{{ 'COMMANDES.CONFIRM_CANCEL_WARNING' | transloco }}</p>
+      </div>
+    </div>
+
+    <!-- Order Items Recap Card -->
+    @if (groupedItems().length > 0) {
+      <div class="order-recap-card">
+        <div class="recap-header">
+          <div class="recap-title-row">
+            <ion-icon name="cube-outline"></ion-icon>
+            <span class="recap-title">{{ 'COMMANDES.CONFIRM_CANCEL_ORDER_RECAP' | transloco }}</span>
+          </div>
+          <span class="recap-count-badge">
+            {{ 'COMMANDES.CONFIRM_CANCEL_ITEMS_COUNT' | transloco:{ count: resolvedItems().length } }}
+          </span>
+        </div>
+
+        <div class="recap-items-list">
+          @for (item of groupedItems(); track item.cocktailNom + '_' + (item.varianteNom || '')) {
+            <div class="recap-item-row">
+              <div class="item-left">
+                <span class="item-qty-badge">×{{ item.quantite }}</span>
+                <span class="item-name">{{ item.cocktailNom }}</span>
+                @if (item.varianteNom) {
+                  <span class="item-variant">({{ item.varianteNom }})</span>
+                }
+              </div>
+              <span class="item-price">{{ item.prixTotal | appCurrency }}</span>
+            </div>
+          }
+        </div>
+
+        @if (resolvedNotes()) {
+          <div class="recap-notes-row">
+            <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
+            <span class="notes-text">{{ resolvedNotes() }}</span>
+          </div>
+        }
+
+        <div class="recap-total-row">
+          <span class="total-label">Total :</span>
+          <span class="total-value" data-testid="cancel-order-total">{{ resolvedTotal() | appCurrency }}</span>
+        </div>
+      </div>
+    }
+
+    <!-- Reason Selection Section -->
+    <div class="reason-section">
+      <label class="reason-label" for="cancel-custom-reason">
+        {{ 'COMMANDES.CONFIRM_CANCEL_REASON_LABEL' | transloco }}
+      </label>
+
+      <div class="reason-chips-grid">
+        @for (opt of reasonOptions; track opt.key) {
+          <button
+            type="button"
+            class="reason-chip"
+            [class.active]="selectedReasonKey() === opt.key"
+            (click)="setReason(opt.key)"
+            [attr.data-testid]="'chip-reason-' + opt.key">
+            {{ opt.labelKey | transloco }}
+          </button>
+        }
+      </div>
+
+      <input
+        id="cancel-custom-reason"
+        type="text"
+        class="custom-reason-input"
+        [placeholder]="'COMMANDES.CONFIRM_CANCEL_REASON_PLACEHOLDER' | transloco"
+        [ngModel]="customReason()"
+        (ngModelChange)="customReason.set($event)"
+        data-testid="cancel-reason-input"
+        autocomplete="off" />
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- --- MODAL FOOTER ACTIONS --- -->
+  <!-- ========================================================================= -->
+  <div class="modal-footer">
+    <button
+      type="button"
+      class="btn-action btn-keep"
+      (click)="dismissCancel()"
+      data-testid="cancel-modal-keep-btn">
+      <ion-icon name="checkmark-circle-outline"></ion-icon>
+      <span>{{ 'COMMANDES.CONFIRM_CANCEL_KEEP' | transloco }}</span>
+    </button>
+
+    <button
+      type="button"
+      class="btn-action btn-destructive"
+      (click)="confirmCancel()"
+      data-testid="cancel-modal-confirm-btn">
+      <ion-icon name="trash-outline"></ion-icon>
+      <span>{{ 'COMMANDES.CONFIRM_CANCEL_OK' | transloco }}</span>
+    </button>
+  </div>
+</div>

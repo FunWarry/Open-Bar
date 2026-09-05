@@ -1,0 +1,24 @@
+<button
+  [type]="type"
+  [disabled]="disabled || loading"
+  [class.btn-block]="expand === 'block' || expand === 'full'"
+  [ngClass]="[
+    'btn',
+    'btn--' + variant,
+    size === 'small' ? 'btn-sm' : size === 'large' ? 'btn-lg' : '',
+    iconSlot === 'icon-only' ? 'btn-icon-only' : ''
+  ]"
+  [attr.data-testid]="testId"
+  (click)="onClick($event)">
+  @if (loading) {
+    <ion-spinner name="crescent" class="btn-spinner"></ion-spinner>
+  }
+  @if (icon && !loading && iconSlot !== 'end') {
+    <ion-icon [name]="icon" class="btn-icon"></ion-icon>
+  }
+  <ng-content></ng-content>
+  @if (icon && !loading && iconSlot === 'end') {
+    <ion-icon [name]="icon" class="btn-icon"></ion-icon>
+  }
+</button>
+

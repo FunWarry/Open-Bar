@@ -1,0 +1,362 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="modal-toolbar">
+    <div class="modal-header-content">
+      <div class="employee-avatar-badge">
+        <span>{{ (employee.prenom ? employee.prenom.charAt(0) : employee.username.charAt(0)) + (employee.nom ? employee.nom.charAt(0) : '') }}</span>
+      </div>
+      <div class="header-text">
+        <h2 class="modal-title">{{ 'SHIFTS.TITLE' | transloco }}</h2>
+        <p class="modal-subtitle">{{ employee.prenom || employee.username }} {{ employee.nom }} <span class="role-tag" *ngIf="employee.roles && employee.roles.length">({{ employee.roles[0] }})</span></p>
+      </div>
+    </div>
+    <ion-buttons slot="end">
+      <button type="button" class="btn-close-modal" (click)="dismiss()" (keydown.enter)="dismiss()" data-testid="close-shift-modal-btn" [attr.aria-label]="'COMMON.CLOSE' | transloco">
+        <ion-icon name="close-outline"></ion-icon>
+      </button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="modal-content">
+  <div class="shift-modal-body">
+    <!-- Week navigator toolbar -->
+    <div class="week-nav-bar">
+      <div class="nav-buttons">
+        <button type="button" class="nav-chevron-btn" (click)="prevWeek()" (keydown.enter)="prevWeek()" data-testid="prev-week-btn" [attr.aria-label]="'SHIFTS.PREV_WEEK' | transloco">
+          <ion-icon name="chevron-back-outline"></ion-icon>
+        </button>
+        <span class="week-range-label" data-testid="week-range-label">
+          {{ formatDateShort(currentWeekStart) }} — {{ formatDateShort(currentWeekEnd) }}
+        </span>
+        <button type="button" class="nav-chevron-btn" (click)="nextWeek()" (keydown.enter)="nextWeek()" data-testid="next-week-btn" [attr.aria-label]="'SHIFTS.NEXT_WEEK' | transloco">
+          <ion-icon name="chevron-forward-outline"></ion-icon>
+        </button>
+      </div>
+
+      <div class="week-summary">
+        <button type="button" class="btn-current-week" (click)="resetToCurrentWeek()" (keydown.enter)="resetToCurrentWeek()" data-testid="current-week-btn">
+          {{ 'SHIFTS.CURRENT_WEEK' | transloco }}
+        </button>
+        <span class="summary-pill planned" data-testid="total-planned-hours">
+          {{ 'SHIFTS.SUMMARY.PLANNED' | transloco:{ hours: totalPlannedWeekHours } }}
+        </span>
+        <span class="summary-pill total" data-testid="total-week-hours">
+          <strong>{{ totalWeekHours }}h</strong> / {{ 'SHIFTS.PER_WEEK' | transloco }}
+        </span>
+        <span class="summary-pill overtime" *ngIf="totalOvertimeWeekHours > 0" data-testid="total-overtime-hours">
+          {{ 'SHIFTS.SUMMARY.OVERTIME' | transloco:{ hours: totalOvertimeWeekHours } }}
+        </span>
+
+        <button type="button" class="btn-add-shift" (click)="openNewShiftForm()" (keydown.enter)="openNewShiftForm()" *ngIf="canCreateShift && !showForm" data-testid="add-shift-btn">
+          <ion-icon name="add-outline"></ion-icon>
+          <span>{{ 'SHIFTS.ADD_SHIFT' | transloco }}</span>
+        </button>
+      </div>
+    </div>
+
+  <!-- Form card for creating/editing shift -->
+  <ion-card *ngIf="showForm" class="shift-form-card ion-margin-bottom" data-testid="shift-form-card">
+    <ion-card-header>
+      <ion-card-title>
+        {{ (editingShiftId ? 'SHIFTS.EDIT_SHIFT' : 'SHIFTS.ADD_SHIFT') | transloco }}
+      </ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <!-- Read-Only Banner for other employees -->
+      <div class="read-only-banner" *ngIf="!canEditShift" data-testid="read-only-banner">
+        <ion-icon name="lock-closed-outline"></ion-icon>
+        <span>{{ 'SHIFTS.READ_ONLY_NOTICE' | transloco }}</span>
+      </div>
+
+      <!-- Self Clocking Notice for the employee themselves -->
+      <div class="self-clocking-banner" *ngIf="isSelf && !isManagerOrAdmin" data-testid="self-clocking-banner">
+        <ion-icon name="information-circle-outline"></ion-icon>
+        <span>{{ 'SHIFTS.SELF_CLOCKING_NOTICE' | transloco }}</span>
+      </div>
+
+      <div class="form-grid">
+        <!-- Date -->
+        <div class="field">
+          <span class="field-label">{{ 'SHIFTS.FIELDS.DATE' | transloco }}</span>
+          <ion-input
+            id="shift-date-input-field"
+            type="date"
+            [(ngModel)]="formDate"
+            [disabled]="!canEditPlanningFields"
+            fill="outline"
+            data-testid="shift-date-input"
+            aria-label="Date du shift">
+          </ion-input>
+        </div>
+
+        <!-- Shift Type (Triggers Preset auto-fill) -->
+        <div class="field">
+          <app-searchable-select
+            [options]="shiftTypeOptions"
+            [(ngModel)]="formTypeShift"
+            (ngModelChange)="onShiftTypeChange($event)"
+            [disabled]="!canEditPlanningFields"
+            [label]="'SHIFTS.FIELDS.TYPE_SHIFT' | transloco"
+            [placeholder]="'SHIFTS.FIELDS.TYPE_SHIFT' | transloco"
+            [enableSearch]="false"
+            [clearable]="false"
+            dropdownPosition="auto"
+            testId="shift-type-select">
+          </app-searchable-select>
+        </div>
+
+        <!-- Poste -->
+        <div class="field">
+          <app-searchable-select
+            [options]="posteTypeOptions"
+            [(ngModel)]="formTypePoste"
+            [disabled]="!canEditPlanningFields"
+            [label]="'SHIFTS.FIELDS.TYPE_POSTE' | transloco"
+            [placeholder]="'SHIFTS.FIELDS.TYPE_POSTE' | transloco"
+            [enableSearch]="false"
+            [clearable]="false"
+            dropdownPosition="auto"
+            testId="shift-poste-select">
+          </app-searchable-select>
+        </div>
+
+        <!-- Start Time (Editable by Manager) -->
+        <div class="field">
+          <span class="field-label">{{ 'SHIFTS.FIELDS.START_TIME' | transloco }}</span>
+          <ion-input
+            id="shift-start-input-field"
+            type="text"
+            placeholder="08:00"
+            [(ngModel)]="formHeureDebut"
+            [disabled]="!canEditPlanningFields"
+            (ionInput)="recalculatePlannedHours()"
+            fill="outline"
+            data-testid="shift-start-input"
+            [attr.aria-label]="'SHIFTS.FIELDS.START_TIME' | transloco">
+          </ion-input>
+        </div>
+
+        <!-- End Time (Editable by Manager) -->
+        <div class="field">
+          <span class="field-label">{{ 'SHIFTS.FIELDS.END_TIME' | transloco }}</span>
+          <ion-input
+            id="shift-end-input-field"
+            type="text"
+            placeholder="16:00"
+            [(ngModel)]="formHeureFin"
+            [disabled]="!canEditPlanningFields"
+            (ionInput)="recalculatePlannedHours()"
+            fill="outline"
+            data-testid="shift-end-input"
+            [attr.aria-label]="'SHIFTS.FIELDS.END_TIME' | transloco">
+          </ion-input>
+        </div>
+
+        <!-- Break Duration & Start -->
+        <div class="field">
+          <span class="field-label">{{ 'SHIFTS.FIELDS.BREAK_START' | transloco }}</span>
+          <ion-input
+            id="shift-break-start-input-field"
+            type="text"
+            placeholder="12:00"
+            [(ngModel)]="formHeurePauseDebut"
+            [disabled]="!canEditPlanningFields"
+            fill="outline"
+            data-testid="shift-break-start-input"
+            [attr.aria-label]="'SHIFTS.FIELDS.BREAK_START' | transloco">
+          </ion-input>
+        </div>
+
+        <div class="field">
+          <span class="field-label">{{ 'SHIFTS.FIELDS.BREAK_DURATION' | transloco }}</span>
+          <ion-input
+            id="shift-break-duration-input-field"
+            type="number"
+            placeholder="30"
+            [(ngModel)]="formDureePauseMinutes"
+            [disabled]="!canEditPlanningFields"
+            (ionInput)="recalculatePlannedHours()"
+            fill="outline"
+            data-testid="shift-break-duration-input"
+            [attr.aria-label]="'SHIFTS.FIELDS.BREAK_DURATION' | transloco">
+          </ion-input>
+        </div>
+
+        <!-- Live Planned Duration Display Badge -->
+        <div class="field">
+          <span class="field-label">{{ 'SHIFTS.FIELDS.PLANNED_HOURS' | transloco }}</span>
+          <div class="planned-hours-display" data-testid="planned-hours-display">
+            <ion-badge color="tertiary" class="planned-badge">{{ 'SHIFTS.SUMMARY.PLANNED' | transloco:{ hours: formHeuresPrevues } }}</ion-badge>
+          </div>
+        </div>
+
+        <!-- Section Pointage / Horaires Réels & Heures Sup -->
+        <div class="field full-width clocking-section">
+          <h3>⏱️ {{ 'SHIFTS.REAL_TRACKING_TITLE' | transloco }}</h3>
+          <div class="clocking-grid">
+            <div class="field">
+              <span class="field-label">{{ 'SHIFTS.FIELDS.REAL_START' | transloco }}</span>
+              <ion-input
+                id="shift-real-start-input-field"
+                type="text"
+                placeholder="08:00"
+                [(ngModel)]="formHeureDebutReelle"
+                [disabled]="!canEditRealHours"
+                fill="outline"
+                data-testid="shift-real-start-input"
+                [attr.aria-label]="'SHIFTS.FIELDS.REAL_START' | transloco">
+              </ion-input>
+            </div>
+
+            <div class="field">
+              <span class="field-label">{{ 'SHIFTS.FIELDS.REAL_END' | transloco }}</span>
+              <ion-input
+                id="shift-real-end-input-field"
+                type="text"
+                placeholder="16:00"
+                [(ngModel)]="formHeureFinReelle"
+                [disabled]="!canEditRealHours"
+                fill="outline"
+                data-testid="shift-real-end-input"
+                [attr.aria-label]="'SHIFTS.FIELDS.REAL_END' | transloco">
+              </ion-input>
+            </div>
+
+            <div class="field">
+              <span class="field-label">{{ 'SHIFTS.FIELDS.OVERTIME' | transloco }}</span>
+              <ion-input
+                id="shift-overtime-input-field"
+                type="number"
+                placeholder="0"
+                [(ngModel)]="formHeuresSup"
+                [disabled]="!canEditRealHours"
+                fill="outline"
+                data-testid="shift-overtime-input"
+                [attr.aria-label]="'SHIFTS.FIELDS.OVERTIME' | transloco">
+              </ion-input>
+            </div>
+
+            <div class="field">
+              <span class="field-label">{{ 'SHIFTS.FIELDS.HOURS' | transloco }}</span>
+              <ion-input
+                id="shift-hours-input-field"
+                type="number"
+                [(ngModel)]="formHeuresEffectuees"
+                [disabled]="!canEditRealHours"
+                fill="outline"
+                data-testid="shift-hours-input"
+                [attr.aria-label]="'SHIFTS.FIELDS.HOURS' | transloco">
+              </ion-input>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="field full-width">
+          <span class="field-label">{{ 'SHIFTS.FIELDS.NOTES' | transloco }}</span>
+          <ion-textarea
+            id="shift-notes-input-field"
+            rows="2"
+            [(ngModel)]="formNotes"
+            [disabled]="!canEditRealHours"
+            fill="outline"
+            data-testid="shift-notes-input"
+            [attr.aria-label]="'SHIFTS.FIELDS.NOTES' | transloco">
+          </ion-textarea>
+        </div>
+      </div>
+
+      <div class="form-actions ion-margin-top">
+        <ion-button fill="clear" color="medium" (click)="closeForm()" (keydown.enter)="closeForm()" data-testid="cancel-shift-btn">
+          {{ 'SHIFTS.CANCEL_FORM' | transloco }}
+        </ion-button>
+        <ion-button fill="outline" color="secondary" (click)="openShiftHistoryModal()" (keydown.enter)="openShiftHistoryModal()" *ngIf="editingShiftId && isManagerOrAdmin" data-testid="shift-history-btn">
+          <ion-icon name="time-outline" slot="start"></ion-icon>
+          {{ 'SHIFTS.AUDIT.SHIFT_HISTORY_BTN' | transloco }}
+        </ion-button>
+        <ion-button color="primary" (click)="saveShift()" (keydown.enter)="saveShift()" *ngIf="canEditShift" [disabled]="saving" data-testid="save-shift-btn">
+          <ion-spinner name="crescent" *ngIf="saving"></ion-spinner>
+          <span *ngIf="!saving">{{ 'SHIFTS.SAVE_SHIFT' | transloco }}</span>
+        </ion-button>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+    <!-- Loading state -->
+    <div *ngIf="loading" class="spinner-container ion-text-center ion-padding" data-testid="shifts-loading">
+      <ion-spinner name="crescent" color="primary"></ion-spinner>
+    </div>
+
+    <!-- Empty state -->
+    <div *ngIf="!loading && shifts.length === 0" class="empty-shifts-box" data-testid="empty-shifts-state">
+      <div class="empty-shifts-icon">
+        <ion-icon name="calendar-outline"></ion-icon>
+      </div>
+      <p class="empty-shifts-title">{{ 'SHIFTS.NO_SHIFTS' | transloco }}</p>
+      <p class="empty-shifts-desc">{{ 'SHIFTS.NO_SHIFTS_DESC' | transloco }}</p>
+    </div>
+
+    <!-- Shift List -->
+    <div *ngIf="!loading && shifts.length > 0" class="shift-cards-container" data-testid="shift-list">
+      <div
+        *ngFor="let shift of shifts"
+        class="shift-card-item"
+        [class]="'shift-type-' + (shift.typeShift || 'MATIN').toLowerCase()"
+        [attr.data-testid]="'shift-item-' + shift.id"
+        (click)="openEditShiftForm(shift)"
+        (keydown.enter)="openEditShiftForm(shift)">
+        <div class="shift-card-main">
+          <div class="shift-card-top">
+            <span class="shift-date-label">
+              <ion-icon name="calendar-outline"></ion-icon>
+              {{ shift.dateShift }}
+            </span>
+            <span class="shift-pill-type" [class]="'pill-type-' + (shift.typeShift || 'MATIN').toLowerCase()">
+              {{ 'SHIFTS.SHIFT_TYPES.' + shift.typeShift | transloco }}
+            </span>
+            <span class="shift-pill-poste">
+              {{ 'SHIFTS.POSTE_TYPES.' + shift.typePoste | transloco }}
+            </span>
+            <span class="shift-pill-planned" *ngIf="shift.heuresPrevues">
+              {{ 'SHIFTS.SUMMARY.PLANNED' | transloco:{ hours: shift.heuresPrevues } }}
+            </span>
+            <span class="shift-pill-overtime" *ngIf="shift.heuresSup && shift.heuresSup > 0">
+              {{ 'SHIFTS.SUMMARY.OVERTIME' | transloco:{ hours: shift.heuresSup } }}
+            </span>
+          </div>
+
+          <div class="shift-card-details">
+            <div class="shift-time-info">
+              <ion-icon name="time-outline"></ion-icon>
+              <span class="time-range">{{ shift.heureDebut }} - {{ shift.heureFin }}</span>
+              <span class="break-tag" *ngIf="shift.dureePauseMinutes">(Pause {{ shift.dureePauseMinutes }}m)</span>
+              <span class="done-hours">— <strong>{{ 'SHIFTS.HOURS_DONE' | transloco:{ hours: (shift.heuresEffectuees || shift.heuresPrevues || 0) } }}</strong></span>
+            </div>
+            <div *ngIf="shift.heureDebutReelle || shift.heureFinReelle" class="shift-real-clocking">
+              <ion-icon name="finger-print-outline"></ion-icon>
+              <span>{{ 'SHIFTS.POINTAGE' | transloco }}: {{ shift.heureDebutReelle || '--:--' }} - {{ shift.heureFinReelle || '--:--' }}</span>
+            </div>
+            <p *ngIf="shift.notes" class="shift-notes-text">
+              <ion-icon name="document-text-outline"></ion-icon>
+              <span>{{ shift.notes }}</span>
+            </p>
+          </div>
+        </div>
+
+        <div class="shift-card-actions">
+          <button
+            type="button"
+            class="btn-delete-shift-card"
+            (click)="$event.stopPropagation(); confirmDeleteShift(shift)"
+            (keydown.enter)="$event.stopPropagation(); confirmDeleteShift(shift)"
+            *ngIf="isManagerOrAdmin"
+            [attr.data-testid]="'delete-shift-btn-' + shift.id"
+            [attr.aria-label]="'SHIFTS.DELETE_SHIFT' | transloco">
+            <ion-icon name="trash-outline"></ion-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>
+

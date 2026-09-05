@@ -1,0 +1,163 @@
+// Design tokens Figma — OpenBar Dark
+// Free:      #27ae60 | bg: rgba(39,174,96,0.15)  | border: rgba(39,174,96,0.5)
+// Occupied:  #e67e22 | bg: rgba(230,126,34,0.15) | border: rgba(230,126,34,0.5)
+// InProgress:#3498db | bg: rgba(52,152,219,0.15) | border: rgba(52,152,219,0.5)
+
+.table-card {
+  --background: #21263f;
+  border-radius: 12px;
+  margin: 6px 0;
+  border: 1px solid #2e3450;
+  border-left-width: 4px;
+
+  // Statuts Figma
+  &.table-free {
+    border-left-color: #27ae60;
+    --background: rgba(39, 174, 96, 0.05);
+  }
+
+  &.table-occupied {
+    border-left-color: #e67e22;
+    --background: rgba(230, 126, 34, 0.05);
+  }
+
+  &.table-inprogress {
+    border-left-color: #3498db;
+    --background: rgba(52, 152, 219, 0.05);
+  }
+}
+
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.table-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #eceefb;
+  font-family: 'Inter', sans-serif;
+}
+
+// Badges statut — fidèles au design Figma
+.statut-badge {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.66px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid;
+
+  &.badge-table-free {
+    color: #27ae60;
+    background: rgba(39, 174, 96, 0.15);
+    border-color: rgba(39, 174, 96, 0.5);
+  }
+
+  &.badge-table-occupied {
+    color: #e67e22;
+    background: rgba(230, 126, 34, 0.15);
+    border-color: rgba(230, 126, 34, 0.5);
+  }
+
+  &.badge-table-inprogress {
+    color: #3498db;
+    background: rgba(52, 152, 219, 0.15);
+    border-color: rgba(52, 152, 219, 0.5);
+  }
+}
+
+.table-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 10px;
+  color: #7e87a8;
+  font-family: 'Inter', sans-serif;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  ion-icon {
+    font-size: 12px;
+  }
+}
+
+.meta-zone {
+  font-style: italic;
+  opacity: 0.8;
+}
+
+.serveur-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #7e87a8;
+  margin-bottom: 6px;
+  font-family: 'Inter', sans-serif;
+
+  ion-icon { font-size: 13px; }
+}
+
+.commandes-summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #7e87a8;
+  margin-bottom: 8px;
+  font-family: 'Inter', sans-serif;
+
+  ion-icon { font-size: 12px; }
+}
+
+.en-cours-badge {
+  font-size: 10px;
+  font-weight: 600;
+  color: #3498db;
+  background: rgba(52, 152, 219, 0.15);
+  border: 1px solid rgba(52, 152, 219, 0.5);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+
+.ready-badge-pulse {
+  font-size: 10px;
+  font-weight: 700;
+  color: #2fbf6b;
+  background: rgba(47, 191, 107, 0.15);
+  border: 1px solid rgba(47, 191, 107, 0.6);
+  border-radius: 4px;
+  padding: 1px 5px;
+  animation: pulse-ready 1.5s infinite;
+}
+
+@keyframes pulse-ready {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.06); opacity: 0.85; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.card-actions {
+  display: flex;
+  gap: 8px;
+
+  ion-button {
+    flex: 1;
+    font-size: 12px;
+    font-weight: 600;
+    --border-radius: 10px;
+  }
+
+  .btn-voir {
+    --color: #6c7fe8;
+    --border-color: #6c7fe8;
+  }
+}

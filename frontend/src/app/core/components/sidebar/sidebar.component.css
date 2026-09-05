@@ -1,0 +1,258 @@
+/* === Sidebar Component — Figma NavBar (ID 62:59) & NavItem (ID 120:16) === */
+
+:host {
+  display: block;
+  height: 100%;
+}
+
+.sidebar {
+  width: 220px;
+  min-width: 220px;
+  height: 100%;
+  background-color: var(--background-surface-1);
+  border-right: 1px solid var(--border-medium);
+  display: flex;
+  flex-direction: column;
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+  overflow: hidden;
+}
+
+/* Collapsed state (64px) */
+.sidebar.collapsed {
+  width: 64px;
+  min-width: 64px;
+}
+
+/* Header section with toggle button */
+.sidebar-header {
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--border-medium);
+}
+
+button.sidebar-brand,
+.sidebar-brand {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font-family: inherit;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--primary, #6c7fe8);
+  letter-spacing: -0.5px;
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.sidebar.collapsed .sidebar-header {
+  justify-content: center;
+  padding: 0;
+}
+
+.collapse-toggle-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.collapse-toggle-btn:hover {
+  background-color: var(--background-surface-2);
+  color: var(--text-primary);
+}
+
+.toggle-icon {
+  font-size: 18px;
+}
+
+/* Navigation List */
+.sidebar-nav {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 12px 8px;
+
+  /* Subtle scrollbar styling */
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-medium) transparent;
+}
+
+.nav-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+
+.section-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  padding: 8px 12px 4px 12px;
+}
+
+.section-divider {
+  height: 1px;
+  background-color: var(--border-medium);
+  margin: 8px 4px;
+}
+
+/* NavItem (Figma ID 120:16) */
+.nav-item {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 8px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: var(--font, 'Inter', sans-serif);
+  transition: background-color 0.15s ease, color 0.15s ease;
+  position: relative;
+  white-space: nowrap;
+}
+
+.sidebar.collapsed .nav-item {
+  justify-content: center;
+  padding: 0;
+}
+
+.nav-item:hover {
+  background-color: var(--background-surface-2);
+  color: var(--text-primary);
+}
+
+/* Active NavItem state */
+.nav-item.active {
+  background-color: var(--primary-tint-weak, rgba(108, 127, 232, 0.12));
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 6px;
+  bottom: 6px;
+  width: 3px;
+  background-color: var(--primary);
+  border-radius: 0 4px 4px 0;
+}
+
+.nav-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.sidebar.collapsed .nav-icon {
+  font-size: 22px;
+}
+
+.nav-label {
+  margin-left: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Footer Section with User Avatar (Figma ID 120:8) */
+.sidebar-footer {
+  height: 60px;
+  padding: 0 12px;
+  border-top: 1px solid var(--border-medium);
+  background-color: var(--background-surface-1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sidebar.collapsed .sidebar-footer {
+  padding: 0;
+  justify-content: center;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  overflow: hidden;
+}
+
+/* Avatar circle (Figma ID 120:8) */
+.user-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-on-accent, #ffffff);
+  flex-shrink: 0;
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.username {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.role-name {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.logout-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  flex-shrink: 0;
+}
+
+.sidebar.collapsed .logout-btn {
+  display: none;
+}
+
+.logout-btn:hover {
+  background-color: color-mix(in srgb, var(--semantic-danger) 15%, transparent);
+  color: var(--semantic-danger);
+}
+
+.logout-icon {
+  font-size: 18px;
+}

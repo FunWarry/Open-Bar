@@ -1,0 +1,235 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="modal-toolbar">
+    <ion-title class="modal-title">
+      @if (commande) {
+        {{ 'COMMANDES.DETAILS.TITLE' | transloco:{ id: commande.id } }}
+      } @else {
+        {{ 'COMMANDES.TITLE' | transloco }}
+      }
+    </ion-title>
+
+    <ion-buttons slot="end">
+      <ion-button
+        (click)="dismiss()"
+        (keydown.enter)="dismiss()"
+        [attr.title]="'COMMON.CLOSE' | transloco"
+        data-testid="btn-modal-close"
+      >
+        <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<div class="modal-scroll-body ion-padding">
+  @if (isLoading) {
+    <div class="loading-state">
+      <ion-spinner name="crescent" color="primary"></ion-spinner>
+    </div>
+  }
+
+  @if (commande) {
+    <div class="detail-modal-card">
+
+      <!-- Header Title & Subtitle Banner -->
+      <div class="card-header-banner">
+        <div class="header-title-group">
+          <div class="title-with-badge">
+            <h2>Table {{ commande.tableNumero }}</h2>
+            <ion-badge [color]="getStatutColor(commande.statut)" class="status-badge">
+              {{ ('COMMANDES.STATUTS.' + commande.statut) | transloco }}
+            </ion-badge>
+            @if (commande.prioritaire) {
+              <ion-badge color="danger" class="urgent-badge" data-testid="badge-modal-urgent">
+                ⚡ {{ 'COMMANDES.PRIORITE' | transloco }}
+              </ion-badge>
+            }
+          </div>
+          <p class="header-subtitle">
+            <ion-icon name="time-outline"></ion-icon>
+            {{ commande.dateCommande | date:'dd/MM/yyyy HH:mm' }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Metrics Cards Grid -->
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-icon-box icon-table">
+            <ion-icon name="grid-outline"></ion-icon>
+          </div>
+          <div class="metric-info">
+            <span class="metric-label">{{ 'COMMANDES.DETAILS.TABLE' | transloco }}</span>
+            <span class="metric-value">Table {{ commande.tableNumero }}</span>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon-box icon-server">
+            <ion-icon name="person-outline"></ion-icon>
+          </div>
+          <div class="metric-info">
+            <span class="metric-label">{{ 'COMMANDES.SERVER' | transloco }}</span>
+            <span class="metric-value">{{ commande.serveurUsername || '—' }}</span>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon-box icon-status">
+            <ion-icon name="stats-chart-outline"></ion-icon>
+          </div>
+          <div class="metric-info">
+            <span class="metric-label">{{ 'COMMANDES.DETAILS.STATUS' | transloco }}</span>
+            <span class="metric-value highlight-status">
+              {{ ('COMMANDES.STATUTS.' + commande.statut) | transloco }}
+            </span>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon-box icon-total">
+            <ion-icon name="cash-outline"></ion-icon>
+          </div>
+          <div class="metric-info">
+            <span class="metric-label">{{ 'COMMANDES.DETAILS.TOTAL' | transloco }}</span>
+            <span class="metric-value price-green">{{ getTotalCommande(commande) | currency:'EUR' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notes Alert Box -->
+      @if (commande.notes) {
+        <div class="notes-banner">
+          <ion-icon name="chatbubble-ellipses-outline" class="notes-icon"></ion-icon>
+          <div class="notes-content">
+            <strong>Notes de la commande :</strong> {{ commande.notes }}
+          </div>
+        </div>
+      }
+
+      <!-- Order Items Breakdown Table Card -->
+      <div class="items-card">
+        <div class="items-card-header">
+          <h3>{{ 'COMMANDES.DETAILS.ITEMS_HEADER' | transloco }}</h3>
+        </div>
+
+        <div class="table-responsive">
+          <div class="items-table-header">
+            <div class="th-name">{{ 'COMMANDES.DETAILS.ITEM_NAME' | transloco }}</div>
+            <div class="th-unit-price">{{ 'COMMANDES.DETAILS.UNIT_PRICE' | transloco }}</div>
+            <div class="th-qty">{{ 'COMMANDES.DETAILS.QUANTITY' | transloco }}</div>
+            <div class="th-price">{{ 'COMMANDES.DETAILS.PRICE' | transloco }}</div>
+          </div>
+
+          <div class="items-table-body">
+            @for (item of groupedItems; track item.id) {
+              <div class="items-table-row">
+                <div class="td-name">
+                  <span class="item-name">{{ item.cocktailNom }}</span>
+                  @if (item.varianteNom) {
+                    <span class="item-variant-chip">{{ item.varianteNom }}</span>
+                  }
+                  @if (item.notes) {
+                    <span class="item-line-note">📝 {{ item.notes }}</span>
+                  }
+                </div>
+                <div class="td-unit-price">
+                  {{ (item.prixUnitaire || 0) | currency:'EUR' }}
+                </div>
+                <div class="td-qty">
+                  <span class="qty-pill">× {{ item.quantite }}</span>
+                </div>
+                <div class="td-price">{{ getItemLineTotal(item) | currency:'EUR' }}</div>
+              </div>
+            }
+          </div>
+
+          <!-- Table Footer Total -->
+          <div class="table-footer">
+            <span class="footer-label">{{ 'COMMON.TOTAL' | transloco }}</span>
+            <span class="footer-amount">{{ getTotalCommande(commande) | currency:'EUR' }}</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  }
+</div>
+
+@if (commande) {
+  <ion-footer class="modal-footer ion-no-border">
+    <div class="modal-actions-bar">
+      <ion-button
+        fill="outline"
+        [color]="commande.prioritaire ? 'danger' : 'warning'"
+        class="btn-action-urgent"
+        (click)="onToggleUrgent()"
+        (keydown.enter)="onToggleUrgent()"
+        data-testid="btn-modal-urgent"
+      >
+        <ion-icon name="flash-outline" slot="start"></ion-icon>
+        {{ (commande.prioritaire ? 'COMMANDES.ACTIONS.UNMARK_URGENT' : 'COMMANDES.ACTIONS.MARK_URGENT') | transloco }}
+      </ion-button>
+
+      @if (peutAnnuler()) {
+        <ion-button
+          fill="outline"
+          color="danger"
+          class="btn-action-cancel"
+          (click)="onAnnuler()"
+          (keydown.enter)="onAnnuler()"
+          [attr.title]="'COMMANDES.ACTIONS.CANCEL_TOOLTIP' | transloco"
+          data-testid="btn-modal-annuler"
+        >
+          <ion-icon name="ban-outline" slot="start"></ion-icon>
+          {{ 'COMMANDES.ACTIONS.CANCEL' | transloco }}
+        </ion-button>
+      }
+
+      @if (commande.statut === 'EN_ATTENTE') {
+        <ion-button
+          fill="solid"
+          color="primary"
+          class="btn-action-next"
+          (click)="onUpdateStatus('EN_PREPARATION')"
+          (keydown.enter)="onUpdateStatus('EN_PREPARATION')"
+          [attr.title]="'COMMANDES.ACTIONS.MARK_IN_PROGRESS_TOOLTIP' | transloco"
+          data-testid="btn-modal-mark-in-progress"
+        >
+          <ion-icon name="play-outline" slot="start"></ion-icon>
+          {{ 'COMMANDES.ACTIONS.MARK_IN_PROGRESS' | transloco }}
+        </ion-button>
+      }
+
+      @if (commande.statut === 'EN_PREPARATION') {
+        <ion-button
+          fill="solid"
+          color="primary"
+          class="btn-action-next"
+          (click)="onUpdateStatus('PRET')"
+          (keydown.enter)="onUpdateStatus('PRET')"
+          [attr.title]="'COMMANDES.ACTIONS.MARK_READY_TOOLTIP' | transloco"
+          data-testid="btn-modal-mark-ready"
+        >
+          <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+          {{ 'COMMANDES.ACTIONS.MARK_READY' | transloco }}
+        </ion-button>
+      }
+
+      @if (commande.statut === 'PRET') {
+        <ion-button
+          fill="solid"
+          color="primary"
+          class="btn-action-next"
+          (click)="onUpdateStatus('LIVREE')"
+          (keydown.enter)="onUpdateStatus('LIVREE')"
+          [attr.title]="'COMMANDES.ACTIONS.MARK_DELIVERED_TOOLTIP' | transloco"
+          data-testid="btn-modal-mark-delivered"
+        >
+          <ion-icon name="checkmark-done-outline" slot="start"></ion-icon>
+          {{ 'COMMANDES.ACTIONS.MARK_DELIVERED' | transloco }}
+        </ion-button>
+      }
+    </div>
+  </ion-footer>
+}

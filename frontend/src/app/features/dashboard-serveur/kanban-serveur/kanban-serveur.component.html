@@ -1,0 +1,155 @@
+<div class="kanban-tab-container">
+  <!-- Filtre par table + Total active count -->
+  <div class="filter-toolbar">
+    <div class="filter-row">
+      <div class="filter-title-group">
+        <h3 class="kanban-section-title">{{ 'COMMANDES.TITLE' | transloco }}</h3>
+        <span class="active-badge" *ngIf="!isLoading">
+          {{ totalActif }} {{ (totalActif > 1 ? 'TABLE_CARD.ACTIVE_ORDERS_PLURAL' : 'TABLE_CARD.ACTIVE_ORDERS') | transloco: { count: totalActif } }}
+        </span>
+      </div>
+
+      <div class="filter-select-box">
+        <label for="kanban-table-select" class="sr-only">{{ 'COMMANDES.TABLE' | transloco }}</label>
+        <select
+          id="kanban-table-select"
+          class="table-native-select"
+          [value]="filtreTableId ?? ''"
+          (change)="onFiltreChange($any($event.target).value ? +$any($event.target).value : null)"
+          data-testid="kanban-filtre-table">
+          <option value="">{{ 'BARMAN_DASHBOARD.TABLE_FILTER_ALL' | transloco }}</option>
+          <option *ngFor="let t of tables" [value]="t.id">{{ t.nom }}</option>
+        </select>
+      </div>
+
+      <div class="filter-info" *ngIf="filtreTableId">
+        <ion-icon name="funnel-outline"></ion-icon>
+        <span>{{ 'SERVEUR.ALLERGEN_FILTER' | transloco }}: {{ getTableNom(filtreTableId) }}</span>
+        <button class="clear-filter-btn" (click)="onFiltreChange(null)" data-testid="kanban-clear-filter">✕</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="loading-state">
+    <ion-spinner name="crescent" color="primary"></ion-spinner>
+    <p>{{ 'COMMON.LOADING' | transloco }}</p>
+  </div>
+
+  <!-- Kanban board — horizontal scroll container -->
+  <div *ngIf="!isLoading" class="kanban-scroll-wrapper">
+    <div class="kanban-board">
+
+      <div
+        *ngFor="let col of colonnes"
+        class="kanban-col"
+        [class]="'kanban-col col-' + col.statusClass"
+        [attr.data-testid]="'kanban-col-' + col.statusClass">
+
+        <!-- Column header -->
+        <div class="col-header">
+          <div class="col-header-left">
+            <span class="col-status-dot" [class]="'dot-' + col.statusClass"></span>
+            <span class="col-title">{{ col.labelKey | transloco }}</span>
+          </div>
+          <span class="col-count">{{ col.commandes.length }}</span>
+        </div>
+
+        <!-- Empty state -->
+        <div *ngIf="col.commandes.length === 0" class="col-empty">
+          <ion-icon name="checkmark-circle-outline"></ion-icon>
+          <span>{{ 'COMMANDES.MESSAGES.EMPTY_COLUMN' | transloco }}</span>
+        </div>
+
+        <!-- Command cards -->
+        <div class="cards-list">
+          <div
+            *ngFor="let cmd of col.commandes; trackBy: trackById"
+            class="commande-card"
+            [class]="'card-' + col.statusClass"
+            [class.card-late]="col.statut === 'EN_ATTENTE' && isLate(cmd)"
+            [attr.data-testid]="'commande-card-' + cmd.id">
+
+            <!-- Card header -->
+            <div class="card-header">
+              <div class="card-id-group">
+                <span class="card-id">#{{ cmd.id }}</span>
+                <span class="card-late-badge" *ngIf="col.statut === 'EN_ATTENTE' && isLate(cmd)">
+                  <ion-icon name="flame-outline"></ion-icon>
+                </span>
+              </div>
+              <span class="card-table" *ngIf="cmd.tableNumero">
+                {{ 'COMMANDES.TABLE' | transloco }} {{ cmd.tableNumero }}
+              </span>
+            </div>
+
+            <!-- Meta -->
+            <div class="card-meta">
+              <span class="waiter-name">
+                <ion-icon name="time-outline"></ion-icon>
+                {{ cmd.serveurUsername }} · {{ cmd.dateCommande | date:'HH:mm' }}
+              </span>
+              <span class="wait-time" *ngIf="col.statut !== 'LIVREE'" [class.late]="isLate(cmd)">
+                {{ formatWaitTime(cmd) }}
+              </span>
+            </div>
+
+            <!-- Items list -->
+            <div class="card-items">
+              <ng-container *ngIf="groupItems(cmd.items) as grouped">
+                <div *ngFor="let item of grouped" class="item-line">
+                  <span class="item-qty">{{ item.quantite }}×</span>
+                  <span class="item-name">{{ item.cocktailNom }}</span>
+                </div>
+                <div *ngIf="grouped.length === 0" class="item-line item-empty">
+                  {{ 'EDIT_COMMANDE.NO_ITEMS' | transloco }}
+                </div>
+              </ng-container>
+            </div>
+
+            <!-- Total & Actions -->
+            <div class="card-footer">
+              <span class="card-total">{{ getCommandeTotal(cmd) | appCurrency }}</span>
+
+              <div class="card-actions">
+                <button
+                  *ngIf="col.statut === 'PRET'"
+                  type="button"
+                  class="action-btn deliver-btn"
+                  (click)="marquerLivree(cmd.id)"
+                  (keyup.enter)="marquerLivree(cmd.id)"
+                  [attr.data-testid]="'btn-livrer-' + cmd.id">
+                  <ion-icon name="checkmark-outline"></ion-icon>
+                  {{ 'COMMANDES.ACTIONS.MARK_DELIVERED' | transloco }}
+                </button>
+
+                <button
+                  *ngIf="col.statut === 'LIVREE' && cmd.tableId"
+                  type="button"
+                  class="action-btn pay-btn"
+                  (click)="ouvrirEncaissementParTableId(cmd.tableId)"
+                  (keyup.enter)="ouvrirEncaissementParTableId(cmd.tableId)"
+                  [attr.data-testid]="'btn-encaisser-kanban-' + cmd.id">
+                  <ion-icon name="card-outline"></ion-icon>
+                  {{ 'TABLE_MODAL.PAY_BILL' | transloco }}
+                </button>
+
+                <button
+                  *ngIf="col.statut !== 'LIVREE'"
+                  type="button"
+                  class="action-btn cancel-btn"
+                  (click)="annuler(cmd.id)"
+                  (keyup.enter)="annuler(cmd.id)"
+                  [attr.data-testid]="'btn-annuler-' + cmd.id">
+                  <ion-icon name="ban-outline"></ion-icon>
+                  {{ 'COMMON.CANCEL' | transloco }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

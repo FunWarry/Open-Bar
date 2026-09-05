@@ -1,0 +1,108 @@
+<div
+  class="table-tile"
+  [class.is-occupied]="table.occupee"
+  [class.wait-border-normal]="table.occupee && waitTimeMinutes > 0 && waitTimeMinutes < 10"
+  [class.wait-border-warning]="table.occupee && waitTimeMinutes >= 10 && waitTimeMinutes < 20"
+  [class.wait-border-danger]="table.occupee && waitTimeMinutes >= 20"
+  [attr.data-testid]="'mobile-table-card-' + table.id"
+  (click)="tableSelect.emit(table)"
+  (keyup.enter)="tableSelect.emit(table)"
+  (keydown.enter)="tableSelect.emit(table)">
+
+  <div class="tile-header">
+    <div class="table-identity">
+      <div class="icon-box">
+        <ion-icon name="restaurant-outline"></ion-icon>
+      </div>
+      <span class="table-name">{{ table.nom || 'Table #' + table.id }}</span>
+    </div>
+    <span class="status-pill" [class.occupied]="table.occupee" [class.free]="!table.occupee">
+      {{ table.occupee ? ('SERVEUR_MOBILE.CARD.STATUS_OCCUPIED' | transloco) : ('SERVEUR_MOBILE.CARD.STATUS_FREE' | transloco) }}
+    </span>
+  </div>
+
+  <!-- Active Table Call Alert Banner -->
+  @if (table.activeAppels && table.activeAppels.length > 0) {
+    <div
+      class="call-alert-banner"
+      [class.bill-alert]="table.activeAppelType === 'ADDITION'"
+      [attr.data-testid]="'mobile-card-call-alert-' + table.id">
+      <span class="call-icon pulse">{{ table.activeAppelType === 'ADDITION' ? '💳' : '🔔' }}</span>
+      <span class="call-text">{{ (table.activeAppelType === 'ADDITION' ? 'SERVEUR.ALERTS.BILL_REQUEST' : 'SERVEUR.ALERTS.ASSISTANCE_REQUEST') | transloco }}</span>
+      <button
+        type="button"
+        class="call-ack-btn"
+        [attr.data-testid]="'btn-card-ack-call-' + table.id"
+        (click)="$event.stopPropagation(); ackAppel.emit(table.activeAppels[0])"
+        (keyup.enter)="$event.stopPropagation(); ackAppel.emit(table.activeAppels[0])">
+        ✓ {{ 'SERVEUR.ALERTS.ACKNOWLEDGE_BTN' | transloco }}
+      </button>
+    </div>
+  }
+
+  <div class="tile-body">
+    <div class="meta-row">
+      <span class="meta-item">
+        <ion-icon name="people-outline"></ion-icon>
+        {{ table.capacite }} {{ 'SERVEUR_MOBILE.CARD.COVER' | transloco }}
+      </span>
+      <span class="meta-item zone-chip">
+        <ion-icon name="location-outline"></ion-icon>
+        {{ table.zone }}
+      </span>
+    </div>
+
+    <div
+      class="wait-time-banner wait-timer"
+      [class]="WaitTimeClass"
+      *ngIf="waitTimeMinutes > 0"
+      [attr.data-testid]="'mobile-table-wait-time-' + table.id">
+      <ion-icon name="time-outline"></ion-icon>
+      <span>{{ 'SERVEUR_MOBILE.CARD.WAIT_TIME' | transloco: { min: waitTimeMinutes } }}</span>
+    </div>
+  </div>
+
+  <div class="tile-footer">
+    <div class="total-badge" *ngIf="activeTotal > 0">
+      <span class="label">{{ 'SERVEUR_MOBILE.CARD.TOTAL' | transloco }}</span>
+      <span class="amount">{{ activeTotal | appCurrency }}</span>
+    </div>
+    
+    <div class="card-action-buttons">
+      <!-- Direct Occupy button if free -->
+      <button
+        *ngIf="!table.occupee"
+        type="button"
+        class="occupy-btn"
+        [attr.data-testid]="'mobile-table-occupy-btn-' + table.id"
+        (click)="$event.stopPropagation(); occupyTable.emit(table)"
+        (keyup.enter)="$event.stopPropagation(); occupyTable.emit(table)">
+        <ion-icon name="person-add-outline"></ion-icon>
+        <span>{{ 'SERVEUR_MOBILE.CARD.OCCUPY_CTA' | transloco }}</span>
+      </button>
+
+      <!-- Direct Free button if occupied without active orders -->
+      <button
+        *ngIf="table.occupee && pendingOrdersCount === 0"
+        type="button"
+        class="free-btn"
+        [attr.data-testid]="'mobile-table-free-btn-' + table.id"
+        (click)="$event.stopPropagation(); freeTable.emit(table)"
+        (keyup.enter)="$event.stopPropagation(); freeTable.emit(table)">
+        <ion-icon name="checkmark-done-outline"></ion-icon>
+        <span>{{ 'SERVEUR_MOBILE.CARD.FREE_CTA' | transloco }}</span>
+      </button>
+
+      <!-- Order / New Order button -->
+      <button
+        type="button"
+        class="order-btn"
+        [attr.data-testid]="'mobile-table-order-btn-' + table.id"
+        (click)="$event.stopPropagation(); newOrder.emit(table)"
+        (keyup.enter)="$event.stopPropagation(); newOrder.emit(table)">
+        <ion-icon name="add-circle-outline"></ion-icon>
+        <span>{{ 'SERVEUR_MOBILE.CARD.ORDER_CTA' | transloco }}</span>
+      </button>
+    </div>
+  </div>
+</div>

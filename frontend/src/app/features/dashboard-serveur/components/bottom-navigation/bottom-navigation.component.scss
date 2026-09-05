@@ -1,0 +1,137 @@
+// Bottom Navigation Bar — Waiter Dashboard
+// Adaptive Theme colors using CSS variables (Rule #9)
+// Positioned in relative flex flow so it never overlaps content or scrollbars.
+
+:host {
+  display: block;
+  flex-shrink: 0;
+  width: 100%;
+  z-index: 10;
+}
+
+.bottom-nav {
+  position: relative;
+  width: 100%;
+  height: 56px;
+  background: var(--background-surface-1, #16192b);
+  border-top: 1px solid var(--border-medium, #2a2e4d);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3, 12px);
+  padding: 4px var(--space-4, 16px);
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.2);
+
+  .nav-tab {
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--radius-pill, 999px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 6px 16px;
+    height: 40px;
+    max-width: 220px;
+    flex: 1;
+    color: var(--text-secondary, #a4add0);
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+
+    ion-icon {
+      font-size: 20px;
+      transition: transform 0.18s ease, color 0.18s ease;
+    }
+
+    .icon-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      .badge {
+        position: absolute;
+        top: -6px;
+        right: -10px;
+        background: #4338ca;
+        color: #ffffff;
+        font-size: 0.7rem;
+        font-weight: 800;
+        min-width: 17px;
+        height: 17px;
+        padding: 0 4px;
+        border-radius: var(--radius-pill, 999px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid var(--background-surface-1, #16192b);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+
+        &.warning {
+          background: var(--semantic-warning, #f4a52a);
+          color: #0f172a;
+          font-weight: 800;
+        }
+      }
+    }
+
+    &:hover:not(.active) {
+      background: var(--background-surface-2, #21263f);
+      color: var(--text-primary, #eceefb);
+      border-color: var(--border-medium, #2a2e4d);
+
+      ion-icon {
+        transform: translateY(-1px);
+        color: var(--text-primary, #eceefb);
+      }
+    }
+
+    &.active {
+      background: color-mix(in srgb, var(--primary, #6c7fe8) 16%, transparent);
+      color: var(--primary, #6c7fe8);
+      border-color: color-mix(in srgb, var(--primary, #6c7fe8) 40%, transparent);
+      font-weight: 700;
+      box-shadow: 0 2px 10px rgba(108, 127, 232, 0.15);
+
+      ion-icon {
+        color: var(--primary, #6c7fe8);
+        transform: scale(1.08);
+      }
+    }
+  }
+}
+
+// Light theme overrides
+:host-context(body.light-theme) {
+  .bottom-nav {
+    background: #ffffff;
+    border-color: #e2e8f0;
+
+    .nav-tab {
+      color: #64748b;
+
+      &:hover:not(.active) {
+        background: #f1f5f9;
+        color: #0f172a;
+        border-color: #cbd5e1;
+      }
+
+      &.active {
+        background: #e0e7ff;
+        color: #3730a3;
+        border-color: #6366f1;
+        font-weight: 800;
+
+        ion-icon {
+          color: #3730a3;
+        }
+      }
+
+      .icon-wrap .badge {
+        border-color: #ffffff;
+      }
+    }
+  }
+}

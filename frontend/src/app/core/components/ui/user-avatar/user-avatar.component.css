@@ -1,0 +1,121 @@
+:host {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-container {
+  position: relative;
+  display: inline-block;
+  line-height: 1;
+}
+
+.avatar-container.avatar-small {
+  width: 32px;
+  height: 32px;
+}
+
+.avatar-container.avatar-small ion-avatar {
+  width: 32px;
+  height: 32px;
+}
+
+.avatar-container.avatar-medium {
+  width: 44px;
+  height: 44px;
+}
+
+.avatar-container.avatar-medium ion-avatar {
+  width: 44px;
+  height: 44px;
+}
+
+.avatar-container.avatar-large {
+  width: 64px;
+  height: 64px;
+}
+
+.avatar-container.avatar-large ion-avatar {
+  width: 64px;
+  height: 64px;
+}
+
+.avatar-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--primary, #6c7fe8);
+  color: #ffffff;
+  font-weight: 700;
+  border-radius: 50%;
+  font-size: 0.9em;
+}
+
+.avatar-role-badge {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  background: var(--background-surface-1, #1e1e2d);
+  border: 1.5px solid var(--background-bg-0, #0f0f1a);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  z-index: 2;
+}
+
+.avatar-small .avatar-role-badge {
+  width: 15px;
+  height: 15px;
+}
+
+.avatar-small .avatar-role-badge ion-icon {
+  font-size: 10px;
+}
+
+.avatar-medium .avatar-role-badge {
+  width: 19px;
+  height: 19px;
+}
+
+.avatar-medium .avatar-role-badge ion-icon {
+  font-size: 12px;
+}
+
+.avatar-large .avatar-role-badge {
+  width: 25px;
+  height: 25px;
+}
+
+.avatar-large .avatar-role-badge ion-icon {
+  font-size: 15px;
+}
+
+.avatar-role-badge ion-icon {
+  display: block;
+  color: var(--primary, #6c7fe8);
+}
+
+.avatar-role-badge[data-role='ADMIN'] ion-icon,
+.avatar-role-badge[data-role='admin'] ion-icon {
+  color: var(--role-admin, #9b8af2) !important;
+}
+
+.avatar-role-badge[data-role='MANAGER'] ion-icon,
+.avatar-role-badge[data-role='manager'] ion-icon {
+  color: var(--role-manager, #f0a33b) !important;
+}
+
+.avatar-role-badge[data-role='BARMAN'] ion-icon,
+.avatar-role-badge[data-role='barman'] ion-icon {
+  color: var(--role-barman, #4fc3f7) !important;
+}
+
+.avatar-role-badge[data-role='SERVEUR'] ion-icon,
+.avatar-role-badge[data-role='serveur'] ion-icon {
+  color: var(--role-serveur, #34c77b) !important;
+}
+

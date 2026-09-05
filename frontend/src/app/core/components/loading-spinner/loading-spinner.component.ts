@@ -1,11 +1,13 @@
 import {Component} from '@angular/core';
-import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
+import {IonSpinner} from '@ionic/angular/standalone';
+import {NgIf} from '@angular/common';
+
 @Component({
   selector: 'app-loading-spinner',
   templateUrl: './loading-spinner.component.html',
-  styleUrls: ['./loading-spinner.component.scss'],
+  styleUrls: ['./loading-spinner.component.css'],
   standalone: true,
-  imports: [MatProgressSpinnerModule]
+  imports: [IonSpinner, NgIf]
 })
 export class LoadingSpinnerComponent {
   isLoading = false;

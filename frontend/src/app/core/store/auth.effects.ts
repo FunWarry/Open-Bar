@@ -6,16 +6,21 @@ import {AuthService} from '../services/auth.service';
 import * as AuthActions from './auth.actions';
 import {NavigationService} from '../services/navigation.service';
 
+/**
+ * NgRx Effects managing authentication side-effects (HTTP login calls, local storage persistence, and logout redirection).
+ */
 @Injectable()
 export class AuthEffects {
 
+  /**
+   * Effect handling {@link AuthActions.login}. Calls the REST authentication API.
+   */
   login$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AuthActions.login),
       exhaustMap(({email, password}) =>
         this.authService.login(email, password).pipe(
           map(response => {
-            console.log('Login réussi');
             const user = {
               id: response.id,
               email: response.email,
@@ -33,14 +38,15 @@ export class AuthEffects {
     )
   );
 
+  /**
+   * Effect handling {@link AuthActions.logout}. Clears storage and navigates to login.
+   */
   logout$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AuthActions.logout),
       tap(() => {
-        console.log('Effet logout déclenché');
         this.authService.logout();
 
-        // Navigation après délai pour permettre la mise à jour du state
         setTimeout(() => {
           this.navigationService.navigateToLogin();
         }, 300);
@@ -49,11 +55,13 @@ export class AuthEffects {
     )
   );
 
-  constructor(
-    private actions$: Actions,
-    private authService: AuthService,
-    private navigationService: NavigationService
-  ) {
+  /**
+   * Constructs the effects class injecting NgRx actions stream, auth service, and navigation service.
+   *
+   * @param actions$ NgRx actions stream
+   * @param authService Authentication service
+   * @param navigationService Navigation service
+   */
+  constructor(private readonly actions$: Actions, private readonly authService: AuthService, private readonly navigationService: NavigationService) {
   }
 }
-

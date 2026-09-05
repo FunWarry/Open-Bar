@@ -1,35 +1,48 @@
-import {Component, OnInit, OnDestroy} from '@angular/core';
-import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
-import {Router} from '@angular/router';
-import {MatCardModule} from '@angular/material/card';
-import {MatCardHeader, MatCardTitle, MatCardContent} from '@angular/material/card';
-import {MatFormFieldModule} from '@angular/material/form-field';
-import {MatInputModule} from '@angular/material/input';
-import {MatButtonModule} from '@angular/material/button';
-import {MatError} from '@angular/material/form-field';
-import {NgIf} from '@angular/common';
-import {Store} from '@ngrx/store';
-import {login} from "../../../core/store/auth.actions";
-import {selectAuthError, selectIsAuthenticated} from '../../../core/store/auth.selectors';
-import {filter, take, Subscription} from 'rxjs';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
+import { Store } from '@ngrx/store';
+import { login } from '../../../core/store/auth.actions';
+import { selectAuthError, selectCurrentUser, selectIsAuthenticated } from '../../../core/store/auth.selectors';
+import { filter, take, Subscription } from 'rxjs';
+import { SetupService } from '../../../core/services/setup.service';
+import { AuthService } from '../../../core/services/auth.service';
+import { OnboardingService } from '../../../core/services/onboarding.service';
+import { InputFieldComponent } from '../../../core/components/ui/input-field/input-field.component';
+import { PasswordInputComponent } from '../../../core/components/ui/password-input/password-input.component';
+import { ActionButtonComponent } from '../../../core/components/ui/action-button/action-button.component';
 
-// login.component.ts - Version simplifiée
+/**
+ * Login Component allowing users to sign in to their OpenBar workspace.
+ * Conforms to Figma Common system view Login card specs (`538:906`).
+ */
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css'],
   standalone: true,
-  imports: [MatCardModule, MatCardHeader, MatCardTitle, MatCardContent, MatFormFieldModule, MatInputModule, MatButtonModule, MatError, NgIf, ReactiveFormsModule]
+  imports: [
+    ReactiveFormsModule,
+    TranslocoModule,
+    InputFieldComponent,
+    PasswordInputComponent,
+    ActionButtonComponent
+  ]
 })
 export class LoginComponent implements OnInit, OnDestroy {
   loginForm: FormGroup;
   errorMessage: string | null = null;
-  private subscriptions: Subscription[] = [];
+  private readonly subscriptions: Subscription[] = [];
+  private readonly setupService = inject(SetupService);
+  private readonly authService = inject(AuthService);
+  private readonly onboardingService = inject(OnboardingService);
 
   constructor(
-    private fb: FormBuilder,
-    private router: Router,
-    private store: Store
+    private readonly fb: FormBuilder,
+    private readonly router: Router,
+    private readonly store: Store,
+    private readonly translocoService: TranslocoService
   ) {
     this.loginForm = this.fb.group({
       username: ['', Validators.required],
@@ -38,52 +51,84 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    // Vérifier si l'utilisateur est déjà authentifié et rediriger si nécessaire
-    const authSub = this.store.select(selectIsAuthenticated)
+    const setupSub = this.setupService.getStatus().subscribe({
+      next: (status) => {
+        if (!status.initialized) {
+          this.authService.logout();
+          this.router.navigate(['/setup']);
+          return;
+        }
+        this.checkExistingAuth();
+      },
+      error: () => {
+        this.checkExistingAuth();
+      }
+    });
+    this.subscriptions.push(setupSub);
+  }
+
+  private checkExistingAuth(): void {
+    const authSub = this.store
+      .select(selectIsAuthenticated)
       .pipe(
         take(1),
-        filter(isAuth => isAuth)
+        filter((isAuth) => isAuth)
       )
       .subscribe(() => {
-        this.router.navigate(['/app-home']);
+        this.navigateAfterLogin();
       });
 
     this.subscriptions.push(authSub);
   }
 
+  private navigateAfterLogin(): void {
+    const userSub = this.store
+      .select(selectCurrentUser)
+      .pipe(take(1))
+      .subscribe((user) => {
+        const userKey = user?.id ? String(user.id) : (user?.roles?.[0] || 'CLIENT');
+        if (!this.onboardingService.isCompleted(userKey)) {
+          this.router.navigate(['/onboarding']);
+        } else {
+          this.router.navigate(['/app-home']);
+        }
+      });
+
+    this.subscriptions.push(userSub);
+  }
+
   ngOnDestroy(): void {
-    this.subscriptions.forEach(sub => sub.unsubscribe());
+    this.subscriptions.forEach((sub) => sub.unsubscribe());
   }
 
   onSubmit(): void {
     this.errorMessage = null;
 
     if (this.loginForm.valid) {
-      const {username, password} = this.loginForm.value;
+      const { username, password } = this.loginForm.value;
 
-      // Dispatch de l'action login
-      this.store.dispatch(login({email: username, password}));
+      this.store.dispatch(login({ email: username, password }));
 
-      // Observer les erreurs
-      const errorSub = this.store.select(selectAuthError)
+      const errorSub = this.store
+        .select(selectAuthError)
         .pipe(
-          filter(error => error !== null),
+          filter((error) => error !== null),
           take(1)
         )
         .subscribe(() => {
-          this.errorMessage = "Nom d'utilisateur ou mot de passe incorrect.";
+          this.errorMessage = this.translocoService.translate('AUTH.INVALID_CREDENTIALS');
         });
 
       this.subscriptions.push(errorSub);
 
-      // Observer le succès
-      const authSub = this.store.select(selectIsAuthenticated)
+      const authSub = this.store
+        .select(selectIsAuthenticated)
         .pipe(
-          filter(isAuth => isAuth),
+          filter((isAuth) => isAuth),
           take(1)
         )
         .subscribe(() => {
-          this.router.navigate(['/app-home']);
+          this.navigateAfterLogin();
         });
 
       this.subscriptions.push(authSub);

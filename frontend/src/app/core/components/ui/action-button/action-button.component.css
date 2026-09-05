@@ -1,0 +1,21 @@
+:host {
+  display: inline-block;
+}
+
+:host([expand="block"]), :host([expand="full"]) {
+  display: block;
+  width: 100%;
+}
+
+.btn-block {
+  width: 100%;
+}
+
+.btn-icon {
+  font-size: 18px;
+}
+
+.btn-spinner {
+  width: 18px;
+  height: 18px;
+}

@@ -1,41 +1,118 @@
-<mat-toolbar color="primary">
-  <span class="logo" (click)="navigationService.navigateToHome()">Gestion Cocktail</span>
+@if (shouldShowNavbar$ | async) {
+  <ion-header>
+    <ion-toolbar>
+      <!-- App logo / home link (Displayed only when sidebar is collapsed) -->
+      @if (navigationService.isSidebarCollapsed()) {
+        <ion-title
+          (click)="navigationService.navigateToHome()"
+          (keyup.enter)="navigationService.navigateToHome()"
+          class="topbar-logo"
+          data-testid="topbar-logo">
+          OpenBar
+        </ion-title>
+      }
 
-  <span class="spacer"></span>
+      <!-- Dynamic page title (center) -->
+      <div class="topbar-page-title" data-testid="topbar-page-title">
+        {{ (pageTitleKey$ | async)! | transloco }}
+      </div>
 
-  <ng-container *ngIf="isAuthenticated$ | async">
-    <button mat-button (click)="navigationService.navigateToHome()">
-      <mat-icon>home</mat-icon>
-      Accueil
-    </button>
+      <ion-buttons slot="end">
 
-    <ng-container *ngIf="isAdmin$ | async">
-      <button mat-button (click)="navigationService.navigateToAdmin()">
-        <mat-icon>admin_panel_settings</mat-icon>
-        Administration
-      </button>
-    </ng-container>
+        <!-- Local establishment time -->
+        <div class="topbar-time" data-testid="topbar-local-time">
+          <ion-icon name="time-outline" class="time-icon"></ion-icon>
+          {{ localTime() }}
+        </div>
 
-    <button mat-button [matMenuTriggerFor]="userMenu">
-      <mat-icon>account_circle</mat-icon>
-      {{ (currentUser$ | async)?.username }}
-    </button>
-    <mat-menu #userMenu="matMenu">
-      <button mat-menu-item (click)="navigationService.navigateToUserProfile()">
-        <mat-icon>person</mat-icon>
-        <span>Mon profil</span>
-      </button>
-      <button mat-menu-item (click)="onLogout()">
-        <mat-icon>exit_to_app</mat-icon>
-        <span>Déconnexion</span>
-      </button>
-    </mat-menu>
-  </ng-container>
+        <!-- Language toggle button -->
+        <ion-button
+          (click)="languageService.toggleLanguage()"
+          (keydown.enter)="languageService.toggleLanguage()"
+          data-testid="topbar-language-toggle"
+          [title]="'THEME.TOGGLE' | transloco">
+          <ion-icon slot="start" name="globe-outline"></ion-icon>
+          {{ (languageService.currentLang$ | async) | uppercase }}
+        </ion-button>
 
-  <ng-container *ngIf="!(isAuthenticated$ | async)">
-    <button mat-button (click)="navigationService.navigateToLogin()">
-      <mat-icon>account_circle</mat-icon>
-      Connexion
-    </button>
-  </ng-container>
-</mat-toolbar>
+        <!-- Sound toggle button -->
+        <ion-button
+          (click)="toggleSound()"
+          (keydown.enter)="toggleSound()"
+          data-testid="topbar-sound-toggle"
+          [title]="soundService.isSoundEnabled() ? ('NAV.SOUND_DISABLE' | transloco) : ('NAV.SOUND_ENABLE' | transloco)">
+          <ion-icon slot="icon-only"
+            [name]="soundService.isSoundEnabled() ? 'volume-high-outline' : 'volume-mute-outline'">
+          </ion-icon>
+        </ion-button>
+
+        <!-- Notification bell -->
+        <ion-button
+          (click)="toggleNotifPanel()"
+          (keyup.enter)="toggleNotifPanel()"
+          style="position:relative"
+          data-testid="topbar-notifications-btn">
+          <ion-icon slot="icon-only" name="notifications-outline"></ion-icon>
+          @if (unreadCount() > 0) {
+            <ion-badge
+              color="danger"
+              class="notif-badge"
+              data-testid="topbar-notif-badge">
+              {{ unreadCount() > 9 ? '9+' : unreadCount() }}
+            </ion-badge>
+          }
+        </ion-button>
+
+        <!-- User menu -->
+        @if (currentUser$ | async; as user) {
+          <ion-button id="topbar-user-trigger" data-testid="topbar-user-btn">
+            <!-- Role badge chip -->
+            <span
+              class="role-badge"
+              [style.background-color]="getRoleBadgeColor(getPrimaryRole(user))"
+              data-testid="topbar-role-badge">
+              {{ 'NAV.TOPBAR.ROLE_LABELS.' + getPrimaryRole(user) | transloco }}
+            </span>
+            <ion-icon slot="start" name="person-circle"></ion-icon>
+            {{ user.username }}
+            <ion-icon slot="end" name="chevron-down"></ion-icon>
+          </ion-button>
+
+          <ion-popover trigger="topbar-user-trigger" triggerAction="click" [dismissOnSelect]="true">
+            <ng-template>
+              <ion-list lines="none">
+                <ion-item
+                  button
+                  (click)="navigationService.navigateToUserProfile()"
+                  (keyup.enter)="navigationService.navigateToUserProfile()"
+                  data-testid="topbar-profile-link">
+                  <ion-icon slot="start" name="person"></ion-icon>
+                  <ion-label>{{ 'NAV.PROFILE' | transloco }}</ion-label>
+                </ion-item>
+                @if (isAdmin$ | async) {
+                  <ion-item
+                    button
+                    (click)="navigationService.navigateToAdmin()"
+                    (keyup.enter)="navigationService.navigateToAdmin()"
+                    data-testid="topbar-admin-link">
+                    <ion-icon slot="start" name="settings"></ion-icon>
+                    <ion-label>{{ 'NAV.ADMIN' | transloco }}</ion-label>
+                  </ion-item>
+                }
+                <ion-item
+                  button
+                  (click)="onLogout()"
+                  (keyup.enter)="onLogout()"
+                  data-testid="topbar-logout-btn">
+                  <ion-icon slot="start" name="log-out"></ion-icon>
+                  <ion-label>{{ 'NAV.LOGOUT' | transloco }}</ion-label>
+                </ion-item>
+              </ion-list>
+            </ng-template>
+          </ion-popover>
+        }
+
+      </ion-buttons>
+    </ion-toolbar>
+  </ion-header>
+}

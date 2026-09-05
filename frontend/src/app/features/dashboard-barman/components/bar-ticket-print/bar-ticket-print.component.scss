@@ -1,0 +1,255 @@
+.ticket-modal-toolbar {
+  --background: var(--background-surface-1);
+  --color: var(--text-primary);
+  --border-color: var(--border-medium);
+}
+
+.ticket-modal-content {
+  --background: var(--background-bg-0);
+}
+
+.ticket-modal-footer {
+  ion-toolbar {
+    --background: var(--background-surface-1);
+    --border-color: var(--border-medium);
+  }
+}
+
+.ticket-preview-wrapper {
+  display: flex;
+  justify-content: center;
+  padding: 24px 16px;
+}
+
+/* Format ticket thermique 80mm réaliste */
+.thermal-receipt {
+  width: 330px;
+  max-width: 100%;
+  background: #fdfdfd;
+  color: #111827;
+  border-radius: var(--radius-md, 8px);
+  padding: 20px 18px;
+  font-family: 'Courier Prime', 'Courier New', Courier, monospace;
+  font-size: 13px;
+  line-height: 1.45;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.receipt-header {
+  text-align: center;
+  margin-bottom: 6px;
+
+  .establishment-title {
+    font-size: 18px;
+    font-weight: 800;
+    margin: 0 0 4px;
+    color: #111827;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .ticket-type {
+    font-size: 11px;
+    font-weight: 700;
+    color: #4b5563;
+    letter-spacing: 0.5px;
+  }
+}
+
+.ticket-meta {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 12px;
+
+  .meta-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .meta-label {
+      color: #6b7280;
+    }
+
+    strong {
+      color: #111827;
+    }
+
+    &.highlight-table {
+      font-size: 16px;
+      margin: 4px 0;
+      padding: 4px 0;
+
+      .table-val {
+        font-weight: 900;
+        color: #111827;
+        font-size: 17px;
+      }
+    }
+  }
+
+  .priority-banner {
+    margin-top: 6px;
+    text-align: center;
+    font-weight: 800;
+    font-size: 12px;
+    color: #b91c1c;
+    background: #fee2e2;
+    padding: 5px 8px;
+    border-radius: 4px;
+    border: 1px dashed #ef4444;
+  }
+}
+
+.receipt-divider {
+  border-bottom: 1px dashed #9ca3af;
+  margin: 10px 0;
+  width: 100%;
+}
+
+.receipt-items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  .receipt-item-row {
+    display: flex;
+    flex-direction: column;
+
+    .item-main {
+      display: flex;
+      gap: 8px;
+      font-weight: 700;
+      font-size: 14px;
+      color: #111827;
+
+      .item-qty {
+        color: #1e40af;
+        min-width: 24px;
+      }
+
+      .item-name {
+        flex: 1;
+      }
+    }
+
+    .item-sub {
+      font-size: 12px;
+      color: #4b5563;
+      padding-left: 32px;
+      font-weight: 600;
+    }
+
+    .item-note {
+      font-size: 11px;
+      font-style: italic;
+      color: #b45309;
+      padding-left: 32px;
+    }
+  }
+}
+
+.receipt-notes {
+  background: #fef3c7;
+  border-left: 3px solid #d97706;
+  padding: 6px 10px;
+  border-radius: 4px;
+
+  .notes-header {
+    font-size: 10px;
+    font-weight: 800;
+    color: #92400e;
+  }
+
+  .notes-body {
+    font-size: 12px;
+    margin-top: 2px;
+    color: #78350f;
+  }
+}
+
+.receipt-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    font-weight: 800;
+    font-size: 14px;
+    color: #111827;
+  }
+}
+
+.receipt-footer {
+  text-align: center;
+  font-size: 11px;
+  color: #6b7280;
+  margin-top: 4px;
+
+  .service-tag {
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: #374151;
+  }
+
+  .print-timestamp {
+    margin-top: 2px;
+    font-size: 10px;
+  }
+}
+
+/* @media print styles for pure black on white thermal printing */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .thermal-receipt, .thermal-receipt * {
+    visibility: visible;
+  }
+
+  .thermal-receipt {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 80mm;
+    background: #ffffff !important;
+    color: #000000 !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .receipt-header .establishment-title,
+  .receipt-header .ticket-type,
+  .meta-row strong,
+  .meta-row.highlight-table,
+  .receipt-item-row .item-main,
+  .receipt-summary strong {
+    color: #000000 !important;
+  }
+
+  .ticket-meta .priority-banner {
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+    background: none !important;
+  }
+
+  .receipt-divider {
+    color: #000000 !important;
+  }
+
+  .receipt-item-row .item-sub,
+  .receipt-item-row .item-note,
+  .receipt-notes,
+  .receipt-footer {
+    color: #000000 !important;
+    background: none !important;
+    border-color: #000000 !important;
+  }
+}

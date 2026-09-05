@@ -1,0 +1,221 @@
+<ion-content class="ion-padding recap-content">
+  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="recap-container">
+    <!-- Header Card -->
+    <ion-card class="recap-header-card">
+      <ion-card-header>
+        <div class="header-row">
+          <div class="header-title-block">
+            <ion-card-title class="recap-main-title">
+              <ion-icon name="receipt-outline" class="title-icon"></ion-icon>
+              {{ 'RECAP.TITLE' | transloco }}
+            </ion-card-title>
+            <p class="recap-subtitle">{{ 'RECAP.SUBTITLE' | transloco }}</p>
+          </div>
+
+          <div class="header-actions">
+            <!-- Date Picker -->
+            <div class="date-picker-box">
+              <ion-icon name="calendar-outline"></ion-icon>
+              <label for="recap-date-input" class="sr-only">{{ 'RECAP.DATE_LABEL' | transloco }}</label>
+              <input
+                id="recap-date-input"
+                type="date"
+                [value]="selectedDate"
+                (change)="onDateChange($event)"
+                class="recap-date-input"
+                data-testid="recap-date-picker">
+            </div>
+
+            <!-- Refresh Button -->
+            <ion-button fill="outline" color="light" (click)="charger()" (keydown.enter)="charger()" data-testid="recap-refresh-btn">
+              <ion-icon name="refresh-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+
+            <!-- Export PDF Button -->
+            <ion-button color="success" (click)="exportPdf()" (keydown.enter)="exportPdf()" [disabled]="isExporting || !recap" data-testid="print-recap-btn">
+              <ion-icon name="download-outline" slot="start"></ion-icon>
+              {{ 'RECAP.EXPORT_PDF' | transloco }}
+            </ion-button>
+          </div>
+        </div>
+      </ion-card-header>
+    </ion-card>
+
+    @if (isLoading) {
+      <div class="loading-spinner-box">
+        <ion-spinner name="crescent"></ion-spinner>
+      </div>
+    } @else if (recap) {
+      <!-- KPI Cards Row (Figma 628:1096) -->
+      <ion-grid class="kpi-grid" data-testid="recap-kpi-grid">
+        <ion-row>
+          <!-- CA Total TTC -->
+          <ion-col size="12" size-sm="6" size-md="3">
+            <ion-card class="kpi-card ca-card" data-testid="recap-kpi-ca">
+              <ion-card-content>
+                <div class="kpi-header">
+                  <span class="kpi-label">{{ 'RECAP.TOTAL_CA_TTC' | transloco }}</span>
+                  <div class="kpi-icon-box ca-icon">
+                    <ion-icon name="trending-up-outline"></ion-icon>
+                  </div>
+                </div>
+                <h2 class="kpi-value primary-value">{{ recap.totalCaTtc | appCurrency }}</h2>
+                <div class="kpi-subtext">
+                  <span>{{ 'RECAP.HT' | transloco }}: {{ recap.totalCaHt | appCurrency }}</span>
+                </div>
+              </ion-card-content>
+            </ion-card>
+          </ion-col>
+
+          <!-- TVA Total -->
+          <ion-col size="12" size-sm="6" size-md="3">
+            <ion-card class="kpi-card vat-card" data-testid="recap-kpi-vat">
+              <ion-card-content>
+                <div class="kpi-header">
+                  <span class="kpi-label">{{ 'RECAP.TOTAL_TVA' | transloco }}</span>
+                  <div class="kpi-icon-box vat-icon">
+                    <ion-icon name="cash-outline"></ion-icon>
+                  </div>
+                </div>
+                <h2 class="kpi-value">{{ recap.totalTva | appCurrency }}</h2>
+                <div class="kpi-subtext">
+                  <span>{{ 'RECAP.NET_HT' | transloco }}: {{ recap.totalCaHt | appCurrency }}</span>
+                </div>
+              </ion-card-content>
+            </ion-card>
+          </ion-col>
+
+          <!-- Factures & Panier Moyen -->
+          <ion-col size="12" size-sm="6" size-md="3">
+            <ion-card class="kpi-card avg-card" data-testid="recap-kpi-avg">
+              <ion-card-content>
+                <div class="kpi-header">
+                  <span class="kpi-label">{{ 'RECAP.PANIER_MOYEN' | transloco }}</span>
+                  <div class="kpi-icon-box avg-icon">
+                    <ion-icon name="card-outline"></ion-icon>
+                  </div>
+                </div>
+                <h2 class="kpi-value">{{ recap.panierMoyen | appCurrency }}</h2>
+                <div class="kpi-subtext">
+                  <span>{{ recap.nombreFacturesReglees }} {{ 'RECAP.FACTURES_SETTLED' | transloco }}</span>
+                </div>
+              </ion-card-content>
+            </ion-card>
+          </ion-col>
+
+          <!-- Couverts / Clients -->
+          <ion-col size="12" size-sm="6" size-md="3">
+            <ion-card class="kpi-card guests-card" data-testid="recap-kpi-guests">
+              <ion-card-content>
+                <div class="kpi-header">
+                  <span class="kpi-label">{{ 'RECAP.TOTAL_CLIENTS' | transloco }}</span>
+                  <div class="kpi-icon-box guests-icon">
+                    <ion-icon name="people-outline"></ion-icon>
+                  </div>
+                </div>
+                <h2 class="kpi-value">{{ recap.nombreClients }}</h2>
+                <div class="kpi-subtext">
+                  <span>{{ 'RECAP.GUESTS_SERVED' | transloco }}</span>
+                </div>
+              </ion-card-content>
+            </ion-card>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+
+      <!-- Section Ventilation par Mode de Règlement -->
+      <ion-card class="section-card" data-testid="recap-payment-modes-table">
+        <ion-card-header>
+          <ion-card-title class="section-title">
+            <ion-icon name="card-outline"></ion-icon>
+            {{ 'RECAP.PAYMENT_MODES_TITLE' | transloco }}
+          </ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <div class="table-responsive">
+            <table class="recap-table">
+              <thead>
+                <tr>
+                  <th>{{ 'RECAP.MODE' | transloco }}</th>
+                  <th class="text-center">{{ 'RECAP.COUNT' | transloco }}</th>
+                  <th class="text-right">{{ 'RECAP.TOTAL_TTC' | transloco }}</th>
+                  <th class="text-right">{{ 'RECAP.SHARE' | transloco }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (pm of recap.ventilationModePaiement; track pm.modePaiement) {
+                  <tr>
+                    <td>
+                      <ion-badge [color]="getPaymentModeColor(pm.modePaiement)" class="mode-badge">
+                        {{ pm.modePaiement }}
+                      </ion-badge>
+                    </td>
+                    <td class="text-center">{{ pm.count }}</td>
+                    <td class="text-right font-bold">{{ pm.totalTtc | appCurrency }}</td>
+                    <td class="text-right">
+                      <span class="share-badge">{{ getPaymentModePercentage(pm) }} %</span>
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="4" class="text-center text-muted">{{ 'RECAP.NO_PAYMENTS' | transloco }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- Section Ventilation TVA (Conformité CA3) -->
+      <ion-card class="section-card" data-testid="recap-vat-table">
+        <ion-card-header>
+          <ion-card-title class="section-title">
+            <ion-icon name="cash-outline"></ion-icon>
+            {{ 'RECAP.VAT_BREAKDOWN_TITLE' | transloco }}
+          </ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <div class="table-responsive">
+            <table class="recap-table">
+              <thead>
+                <tr>
+                  <th>{{ 'RECAP.VAT_RATE' | transloco }}</th>
+                  <th class="text-right">{{ 'RECAP.BASE_HT' | transloco }}</th>
+                  <th class="text-right">{{ 'RECAP.VAT_AMOUNT' | transloco }}</th>
+                  <th class="text-right">{{ 'RECAP.TOTAL_TTC' | transloco }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (vat of recap.ventilationTva; track vat.tauxLabel) {
+                  <tr>
+                    <td class="font-bold">{{ vat.tauxLabel }}</td>
+                    <td class="text-right">{{ vat.baseHt | appCurrency }}</td>
+                    <td class="text-right text-warning">{{ vat.montantTva | appCurrency }}</td>
+                    <td class="text-right font-bold text-success">{{ vat.totalTtc | appCurrency }}</td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="4" class="text-center text-muted">{{ 'RECAP.NO_DATA' | transloco }}</td>
+                  </tr>
+                }
+              </tbody>
+              <tfoot>
+                <tr class="total-row">
+                  <td class="font-bold">{{ 'COMMON.TOTAL' | transloco }}</td>
+                  <td class="text-right font-bold">{{ recap.totalCaHt | appCurrency }}</td>
+                  <td class="text-right font-bold text-warning">{{ recap.totalTva | appCurrency }}</td>
+                  <td class="text-right font-bold text-success">{{ recap.totalCaTtc | appCurrency }}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </ion-card-content>
+      </ion-card>
+    }
+  </div>
+</ion-content>

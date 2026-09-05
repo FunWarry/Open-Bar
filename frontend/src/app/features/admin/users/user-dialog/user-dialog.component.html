@@ -1,64 +1,107 @@
-<h2 mat-dialog-title>{{ data ? 'Modifier l\'utilisateur' : 'Nouvel utilisateur' }}</h2>
-<form [formGroup]="userForm" (ngSubmit)="onSubmit()">
-  <mat-dialog-content>
-    <div class="form-row">
-      <mat-form-field appearance="outline">
-        <mat-label>Nom d'utilisateur</mat-label>
-        <input matInput formControlName="username" required>
-        <mat-error *ngIf="userForm.get('username')?.hasError('required')">
-          Le nom d'utilisateur est requis
-        </mat-error>
-      </mat-form-field>
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title>{{ (data ? 'USERS.EDIT_TITLE' : 'USERS.NEW_TITLE') | transloco }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="onCancel()" (keydown.enter)="onCancel()" data-testid="btn-close-dialog" [attr.aria-label]="'COMMON.CLOSE' | transloco">
+        <ion-icon slot="icon-only" name="close"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
 
-      <mat-form-field appearance="outline">
-        <mat-label>Email</mat-label>
-        <input matInput formControlName="email" type="email" required>
-        <mat-error *ngIf="userForm.get('email')?.hasError('required')">
-          L'email est requis
-        </mat-error>
-        <mat-error *ngIf="userForm.get('email')?.hasError('email')">
-          Format d'email invalide
-        </mat-error>
-      </mat-form-field>
+<ion-content class="modal-content-container">
+  <form [formGroup]="userForm" (ngSubmit)="onSubmit()" class="user-dialog-form">
+    
+    <app-input-field
+      formControlName="username"
+      [label]="'USERS.USERNAME_LABEL' | transloco"
+      placeholder="ex: jdoe"
+      icon="person-outline"
+      [required]="true"
+      [errorMessage]="userForm.get('username')?.hasError('required') && userForm.get('username')?.touched ? ('USERS.USERNAME_REQUIRED' | transloco) : ''"
+      testId="input-username">
+    </app-input-field>
+
+    <div class="name-fields-row">
+      <app-input-field
+        formControlName="prenom"
+        [label]="'USERS.FIRST_NAME_LABEL' | transloco"
+        placeholder="ex: John"
+        icon="person-outline"
+        testId="input-prenom">
+      </app-input-field>
+
+      <app-input-field
+        formControlName="nom"
+        [label]="'USERS.LAST_NAME_LABEL' | transloco"
+        placeholder="ex: Doe"
+        icon="person-outline"
+        testId="input-nom">
+      </app-input-field>
     </div>
 
-    <div class="form-row">
-      <mat-form-field appearance="outline">
-        <mat-label>Mot de passe</mat-label>
-        <input matInput formControlName="password" type="password" [required]="!data">
-        <mat-error *ngIf="userForm.get('password')?.hasError('required')">
-          Le mot de passe est requis
-        </mat-error>
-        <mat-error *ngIf="userForm.get('password')?.hasError('minlength')">
-          Le mot de passe doit contenir au moins 6 caractères
-        </mat-error>
-      </mat-form-field>
+    <app-input-field
+      formControlName="email"
+      type="email"
+      [label]="'USERS.EMAIL_LABEL' | transloco"
+      placeholder="ex: john.doe@openbar.local"
+      icon="mail-outline"
+      [required]="true"
+      [errorMessage]="userForm.get('email')?.hasError('required') && userForm.get('email')?.touched ? ('USERS.EMAIL_REQUIRED' | transloco) : (userForm.get('email')?.hasError('email') && userForm.get('email')?.touched ? ('USERS.EMAIL_INVALID' | transloco) : '')"
+      testId="input-email">
+    </app-input-field>
 
-      <mat-form-field appearance="outline">
-        <mat-label>Confirmer le mot de passe</mat-label>
-        <input matInput formControlName="confirmPassword" type="password" [required]="!data">
-        <mat-error *ngIf="userForm.hasError('passwordMismatch')">
-          Les mots de passe ne correspondent pas
-        </mat-error>
-      </mat-form-field>
+    <app-input-field
+      formControlName="password"
+      type="password"
+      [label]="(data ? 'USERS.NEW_PASSWORD_OPTIONAL' : 'USERS.PASSWORD_LABEL') | transloco"
+      placeholder="••••••••"
+      icon="lock-closed-outline"
+      [required]="!data"
+      [errorMessage]="userForm.get('password')?.hasError('minlength') && userForm.get('password')?.touched ? ('USERS.PASSWORD_MIN_LENGTH' | transloco) : ''"
+      testId="input-password">
+    </app-input-field>
+
+    <app-input-field
+      formControlName="confirmPassword"
+      type="password"
+      [label]="'USERS.CONFIRM_PASSWORD_LABEL' | transloco"
+      placeholder="••••••••"
+      icon="shield-checkmark-outline"
+      [required]="!data"
+      [errorMessage]="userForm.hasError('passwordMismatch') && userForm.get('confirmPassword')?.touched ? ('USERS.PASSWORD_MISMATCH' | transloco) : ''"
+      testId="input-confirm-password">
+    </app-input-field>
+
+    <fieldset class="roles-field-group">
+      <legend class="field-label">{{ 'USERS.ASSIGNED_ROLES' | transloco }} <span class="required-star">*</span></legend>
+      <div class="roles-chips-grid">
+        @for (roleObj of availableRoles; track roleObj.value) {
+          <button
+            type="button"
+            class="role-chip-btn"
+            [class.selected]="isRoleSelected(roleObj.value)"
+            (click)="toggleRole(roleObj.value)"
+            [attr.data-testid]="'role-chip-' + roleObj.value">
+            <ion-icon [name]="isRoleSelected(roleObj.value) ? 'checkbox' : 'square-outline'"></ion-icon>
+            <span>{{ 'SHIFTS.FILTERS.' + roleObj.value | transloco }}</span>
+          </button>
+        }
+      </div>
+      @if (userForm.get('roles')?.touched && userForm.get('roles')?.hasError('required')) {
+        <p class="error-hint">{{ 'USERS.ROLE_REQUIRED' | transloco }}</p>
+      }
+    </fieldset>
+
+    <div class="modal-actions-row">
+      <ion-button fill="outline" color="medium" (click)="onCancel()" (keydown.enter)="onCancel()" data-testid="btn-cancel-user">
+        {{ 'COMMON.CANCEL' | transloco }}
+      </ion-button>
+      <ion-button color="primary" type="submit" [disabled]="userForm.invalid" data-testid="btn-submit-user">
+        <ion-icon slot="start" [name]="data ? 'checkmark-circle' : 'person-add'"></ion-icon>
+        {{ (data ? 'USERS.SUBMIT_EDIT' : 'USERS.SUBMIT_CREATE') | transloco }}
+      </ion-button>
     </div>
 
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Rôles</mat-label>
-      <mat-select formControlName="roles" multiple required>
-        <mat-option value="USER">Utilisateur</mat-option>
-        <mat-option value="ADMIN">Administrateur</mat-option>
-      </mat-select>
-      <mat-error *ngIf="userForm.get('roles')?.hasError('required')">
-        Au moins un rôle est requis
-      </mat-error>
-    </mat-form-field>
-  </mat-dialog-content>
-
-  <mat-dialog-actions align="end">
-    <button mat-button type="button" (click)="onCancel()">Annuler</button>
-    <button mat-raised-button color="primary" type="submit" [disabled]="userForm.invalid">
-      {{ data ? 'Modifier' : 'Créer' }}
-    </button>
-  </mat-dialog-actions>
-</form>
+  </form>
+</ion-content>

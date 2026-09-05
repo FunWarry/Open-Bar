@@ -1,13 +1,14 @@
 package com.bar.gestioncocktail.service;
 
+import com.bar.gestioncocktail.event.StockAlertEvent;
+import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.model.Ingredient;
 import com.bar.gestioncocktail.repository.IngredientRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,21 +16,45 @@ import java.util.Optional;
 @Transactional
 public class IngredientService {
     private final IngredientRepository ingredientRepository;
+    private final ApplicationEventPublisher eventPublisher;
+    private final TimeService timeService;
 
-    @Autowired
-    public IngredientService(IngredientRepository ingredientRepository) {
+    public IngredientService(IngredientRepository ingredientRepository, ApplicationEventPublisher eventPublisher, TimeService timeService) {
         this.ingredientRepository = ingredientRepository;
+        this.eventPublisher = eventPublisher;
+        this.timeService = timeService;
+    }
+
+    /**
+     * Retrieves all ingredients ordered by name.
+     *
+     * @return list of all ingredients
+     */
+    @Transactional(readOnly = true)
+    public List<Ingredient> getAllIngredients() {
+        return ingredientRepository.findAll();
     }
 
     public Ingredient createIngredient(Ingredient ingredient) {
-        ingredient.setCreatedAt(LocalDateTime.now());
-        ingredient.setUpdatedAt(LocalDateTime.now());
+        ingredient.setCreatedAt(timeService.now());
+        ingredient.setUpdatedAt(timeService.now());
         return ingredientRepository.save(ingredient);
     }
 
-    public Ingredient updateIngredient(Ingredient ingredient) {
-        ingredient.setUpdatedAt(LocalDateTime.now());
-        return ingredientRepository.save(ingredient);
+    public Ingredient updateIngredient(Long id, Ingredient updatedData) {
+        Ingredient existing = ingredientRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Ingredient not found with ID: " + id));
+        existing.setNom(updatedData.getNom());
+        existing.setUniteMesure(updatedData.getUniteMesure());
+        existing.setQuantiteStock(updatedData.getQuantiteStock());
+        existing.setSeuilAlerte(updatedData.getSeuilAlerte());
+        existing.setNumeroLot(updatedData.getNumeroLot());
+        existing.setDatePeremption(updatedData.getDatePeremption());
+        existing.setPrixUnitaire(updatedData.getPrixUnitaire());
+        existing.setFournisseur(updatedData.getFournisseur());
+        existing.setNotes(updatedData.getNotes());
+        existing.setUpdatedAt(timeService.now());
+        return ingredientRepository.save(existing);
     }
 
     public void deleteIngredient(Long id) {
@@ -39,6 +64,7 @@ public class IngredientService {
     public Optional<Ingredient> getIngredientById(Long id) {
         return ingredientRepository.findById(id);
     }
+
 
     public List<Ingredient> getIngredientsBySeuilAlerte() {
         return ingredientRepository.findByQuantiteStockLessThanEqual(BigDecimal.ZERO);
@@ -58,13 +84,17 @@ public class IngredientService {
 
     public void updateStock(Ingredient ingredient, BigDecimal quantite) {
         ingredient.setQuantiteStock(quantite);
-        ingredient.setUpdatedAt(LocalDateTime.now());
+        ingredient.setUpdatedAt(timeService.now());
         ingredientRepository.save(ingredient);
+        if (ingredient.getSeuilAlerte() != null && quantite.compareTo(ingredient.getSeuilAlerte()) <= 0 && eventPublisher != null) {
+            eventPublisher.publishEvent(new StockAlertEvent(ingredient.getId(), ingredient.getNom(), quantite.doubleValue()));
+        }
     }
 
     public void definirSeuilAlerte(Ingredient ingredient, BigDecimal seuil) {
         ingredient.setSeuilAlerte(seuil);
-        ingredient.setUpdatedAt(LocalDateTime.now());
+        ingredient.setUpdatedAt(timeService.now());
         ingredientRepository.save(ingredient);
     }
-} 
+}
+ 

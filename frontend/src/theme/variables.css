@@ -1,0 +1,324 @@
+/* Design System OpenBar — Figma XSVwFk64kgtqgUN9n5qoMw (node-id=0:1)
+ * Source de vérité : Variables Figma (collections Thème, Rôles, OpenBar DS, Space, Radius).
+ * Le mode Light de la collection "Thème" est un placeholder non designé côté Figma
+ * (toutes les valeurs y sont #000000) — voir ticket #154. Seul le mode Dark est implémenté.
+ */
+:root {
+  /* Thème — Background */
+  --bg-0: #0f0f1a;
+  --bg-1: #15151f;
+  --surface-1: #1a1a2e;
+  --surface-2: #21263f;
+  --surface-3: #2a3050;
+
+  --background-bg-0: var(--bg-0);
+  --background-bg-1: var(--bg-1);
+  --background-surface-1: var(--surface-1);
+  --background-surface-2: var(--surface-2);
+  --background-surface-3: var(--surface-3);
+
+  /* Thème — Primary */
+  --primary: #6c7fe8;
+  --primary-strong: #5a68d6;
+  --primary-press: #4d5ac4;
+  --primary-light: #aab4f3;
+
+  /* Thème — Text */
+  --text-primary: #eceefb;
+  --text-secondary: #a4add0;
+  --text-muted: #7e87a8;
+
+  /* Thème — Border */
+  --border-medium: #2e3450;
+  --border-strong: #232142;
+  --border-light: #3a4682;
+  --border-selected: #7c3aed;
+
+  /* Rôles — couleur d'accent par rôle utilisateur */
+  --role-admin: #9b8af2;
+  --role-manager: #f0a33b;
+  --role-serveur: #34c77b;
+  --role-barman: #4fc3f7;
+  --role-admin-15: #9b8af226;
+  --role-manager-15: #f0a33b26;
+  --role-serveur-15: #34c77b26;
+  --role-barman-15: #4fc3f726;
+
+  /* OpenBar DS — Statut commande */
+  --status-waiting: #f4a52a;
+  --status-inprogress: #2ba8e8;
+  --status-ready: #2fbf6b;
+  --status-served: #6e7aa8;
+  --status-canceled: #e5604f;
+  --status-prioritary: #ffd700;
+  --status-waiting-15: #f4a52a26;
+  --status-inprogress-15: #2ba8e826;
+  --status-ready-15: #2fbf6b26;
+  --status-served-15: #6e7aa826;
+  --status-canceled-15: #e5604f26;
+  --status-prioritary-15: #ffd70026;
+
+  /* OpenBar DS — Statut table */
+  --table-free: #26ae60;
+  --table-occupied: #e67e22;
+  --table-reserved: #00ffff;
+  --table-inprogress: #3498db;
+  --table-awaiting-payment: #9b59b4;
+
+  /* OpenBar DS — Niveau stock */
+  --stock-normal: #2fbf6b;
+  --stock-low: #f4a52a;
+  --stock-critical: #e5604f;
+  --stock-normal-15: #2fbf6b26;
+  --stock-low-15: #f4a52a26;
+  --stock-critical-15: #e5604f26;
+
+  /* OpenBar DS — Sémantique */
+  --semantic-success: #2fbf6b;
+  --semantic-warning: #f4a52a;
+  --semantic-danger: #e5604f;
+  --semantic-info: #2ba8e8;
+
+  /* OpenBar DS — Types boissons/plats */
+  --types-snacks: #0051ff;
+  --types-food: #b300ff;
+  --types-alcoholic: #00ff90;
+  --types-nonalcoholic: #00aaff;
+  --types-shot: #d9ff00;
+  --types-cocktail: #ff8800;
+  --types-mocktail: #ff0000;
+  --types-beer: #ffd900;
+
+  /* OpenBar DS — Saisonnalité */
+  --season-inseason: #2eac48;
+  --season-offseason: #ff9500;
+  --season-soon: #00bbff;
+
+  /* Space */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 32px;
+  --space-8: 40px;
+
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-pill: 999px;
+
+  /* Box Shadows / Elevation & Glow Tokens */
+  --shadow-none: none;
+  --shadow-xs: 0 1px 3px rgba(0, 0, 0, 0.2);
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.25);
+  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 10px 28px rgba(0, 0, 0, 0.45);
+  --shadow-xl: 0 16px 40px rgba(0, 0, 0, 0.55);
+  --shadow-2xl: 0 24px 60px rgba(0, 0, 0, 0.7);
+  --shadow-modal: 0 24px 64px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  --shadow-popover: 0 12px 32px rgba(0, 0, 0, 0.6);
+  --shadow-drawer: -4px 0 24px rgba(0, 0, 0, 0.5);
+  --shadow-card: var(--shadow-sm);
+  --shadow-card-hover: var(--shadow-md);
+  --shadow-card-active: var(--shadow-lg);
+  --shadow-btn: var(--shadow-xs);
+  --shadow-btn-hover: var(--shadow-sm);
+  --shadow-btn-primary: 0 4px 14px rgba(108, 127, 232, 0.35);
+  --shadow-btn-danger: 0 4px 14px rgba(229, 96, 79, 0.35);
+  --shadow-btn-warning: 0 4px 14px rgba(244, 165, 42, 0.35);
+  --shadow-btn-success: 0 4px 14px rgba(47, 191, 107, 0.35);
+
+  --shadow-glow-primary: 0 0 16px rgba(108, 127, 232, 0.45);
+  --shadow-glow-success: 0 0 16px rgba(47, 191, 107, 0.45);
+  --shadow-glow-warning: 0 0 16px rgba(244, 165, 42, 0.45);
+  --shadow-glow-danger: 0 0 16px rgba(229, 96, 79, 0.45);
+  --shadow-glow-info: 0 0 16px rgba(43, 168, 232, 0.45);
+
+  --elev-1: var(--shadow-sm);
+  --elev-2: var(--shadow-md);
+  --elev-3: var(--shadow-lg);
+
+  /* Card & Input Surface Tokens */
+  --card-item-bg: var(--surface-1);
+  --card-item-border: var(--border-medium);
+  --card-item-shadow: var(--shadow-sm);
+  --card-header-border: var(--border-medium);
+  --input-bg: var(--surface-2);
+  --input-border: var(--border-medium);
+  --badge-num-bg: var(--surface-3);
+  --badge-num-color: var(--text-primary);
+  --action-btn-bg: var(--surface-3);
+  --action-btn-border: var(--border-medium);
+  --action-btn-color: var(--text-secondary);
+
+  /* State Tokens — Unavailable / Disabled Items & Cards */
+  --state-unavailable-opacity: 0.48;
+  --state-unavailable-bg: var(--background-bg-0);
+  --state-unavailable-border: var(--border-medium);
+  --state-unavailable-filter: grayscale(1) brightness(0.8);
+  --state-unavailable-text: var(--text-muted);
+  --state-unavailable-badge-bg: rgba(229, 96, 79, 0.15);
+  --state-unavailable-badge-color: var(--semantic-danger);
+}
+
+/* Thème Clair (.light-theme) — conçu pour conformité WCAG AA (ticket #154) */
+body.light-theme,
+.light-theme {
+  /* Thème — Background (base tokens + aliases) */
+  --bg-0: #f4f6fb;
+  --bg-1: #ffffff;
+  --surface-1: #ffffff;
+  --surface-2: #f8fafc;
+  --surface-3: #eef2f6;
+
+  --background-bg-0: var(--bg-0);
+  --background-bg-1: var(--bg-1);
+  --background-surface-1: var(--surface-1);
+  --background-surface-2: var(--surface-2);
+  --background-surface-3: var(--surface-3);
+
+  /* Thème — Primary */
+  --primary: #4f46e5;
+  --primary-strong: #4338ca;
+  --primary-press: #3730a3;
+  --primary-light: #6366f1;
+  --primary-border: #6366f1;
+  --primary-tint: #e0e7ff;
+  --primary-tint-weak: rgba(79, 70, 229, 0.08);
+
+  /* Thème — Text */
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
+  --text-on-accent: #ffffff;
+
+  /* Thème — Border */
+  --border-default: #cbd5e1;
+  --border-subtle: #e2e8f0;
+  --border-medium: #cbd5e1;
+  --border-strong: #94a3b8;
+  --border-light: #e2e8f0;
+  --border-selected: #4f46e5;
+
+  /* Box Shadows / Elevation & Glow Tokens en mode clair */
+  --shadow-none: none;
+  --shadow-xs: 0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 10px 28px rgba(0, 0, 0, 0.12);
+  --shadow-xl: 0 16px 40px rgba(0, 0, 0, 0.14);
+  --shadow-2xl: 0 24px 60px rgba(0, 0, 0, 0.18);
+  --shadow-modal: 0 20px 48px rgba(0, 0, 0, 0.16), 0 0 0 1px rgba(0, 0, 0, 0.06);
+  --shadow-popover: 0 12px 32px rgba(0, 0, 0, 0.12);
+  --shadow-drawer: -4px 0 24px rgba(0, 0, 0, 0.08);
+  --shadow-card: var(--shadow-sm);
+  --shadow-card-hover: var(--shadow-md);
+  --shadow-card-active: var(--shadow-lg);
+  --shadow-btn: var(--shadow-xs);
+  --shadow-btn-hover: var(--shadow-sm);
+  --shadow-btn-primary: 0 4px 14px rgba(79, 70, 229, 0.25);
+  --shadow-btn-danger: 0 4px 14px rgba(229, 96, 79, 0.25);
+  --shadow-btn-warning: 0 4px 14px rgba(244, 165, 42, 0.25);
+  --shadow-btn-success: 0 4px 14px rgba(47, 191, 107, 0.25);
+
+  --shadow-glow-primary: 0 0 14px rgba(79, 70, 229, 0.25);
+  --shadow-glow-success: 0 0 14px rgba(47, 191, 107, 0.3);
+  --shadow-glow-warning: 0 0 14px rgba(244, 165, 42, 0.3);
+  --shadow-glow-danger: 0 0 14px rgba(229, 96, 79, 0.3);
+  --shadow-glow-info: 0 0 14px rgba(43, 168, 232, 0.3);
+
+  --elev-1: var(--shadow-sm);
+  --elev-2: var(--shadow-md);
+  --elev-3: var(--shadow-lg);
+
+  /* Card & Input Surface Tokens en mode clair */
+  --card-item-bg: #ffffff;
+  --card-item-border: #e2e8f0;
+  --card-item-shadow: var(--shadow-sm);
+  --card-header-border: #f1f5f9;
+  --input-bg: var(--surface-2);
+  --input-border: #cbd5e1;
+  --badge-num-bg: #e0e7ff;
+  --badge-num-color: #4338ca;
+  --action-btn-bg: #f8fafc;
+  --action-btn-border: #cbd5e1;
+  --action-btn-color: #475569;
+
+  /* State Tokens — Unavailable / Disabled Items & Cards */
+  --state-unavailable-opacity: 0.52;
+  --state-unavailable-bg: var(--background-surface-3);
+  --state-unavailable-border: var(--border-strong);
+  --state-unavailable-filter: grayscale(1) contrast(0.85);
+  --state-unavailable-text: var(--text-muted);
+  --state-unavailable-badge-bg: rgba(229, 96, 79, 0.12);
+  --state-unavailable-badge-color: var(--semantic-danger);
+}
+
+/* Mapping vers les variables Ionic — Dark (défaut) */
+.ios body,
+.md body {
+  --ion-background-color: var(--background-bg-0);
+  --ion-text-color: var(--text-primary);
+
+  --ion-color-primary: var(--primary);
+  --ion-color-primary-rgb: 108, 127, 232;
+  --ion-color-primary-contrast: var(--text-primary);
+  --ion-color-primary-contrast-rgb: 236, 238, 251;
+  --ion-color-primary-shade: var(--primary-strong);
+  --ion-color-primary-tint: var(--primary-light);
+
+  /* Tertiary = statut EN_PREPARATION (bleu info) */
+  --ion-color-tertiary: var(--semantic-info);
+  --ion-color-tertiary-rgb: 43, 168, 232;
+  --ion-color-tertiary-contrast: #ffffff;
+  --ion-color-tertiary-contrast-rgb: 255, 255, 255;
+  --ion-color-tertiary-shade: #2494cc;
+  --ion-color-tertiary-tint: #40b4e8;
+
+  --ion-color-danger: var(--semantic-danger);
+  --ion-color-success: var(--semantic-success);
+  --ion-color-warning: var(--semantic-warning);
+  --ion-color-info: var(--semantic-info);
+
+  --ion-item-background: var(--background-surface-1);
+  --ion-toolbar-background: var(--background-surface-1);
+  --ion-card-background: var(--background-surface-1);
+  --ion-border-color: var(--border-medium);
+}
+
+/* Mapping vers les variables Ionic — Light Mode */
+.ios body.light-theme,
+.md body.light-theme {
+  --ion-background-color: var(--background-bg-0);
+  --ion-text-color: var(--text-primary);
+
+  --ion-color-primary: var(--primary);
+  --ion-color-primary-rgb: 79, 70, 229;
+  --ion-color-primary-contrast: var(--text-on-accent, #ffffff);
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: var(--primary-strong);
+  --ion-color-primary-tint: var(--primary-light);
+
+  /* Tertiary = statut EN_PREPARATION (bleu info) */
+  --ion-color-tertiary: var(--semantic-info);
+  --ion-color-tertiary-rgb: 43, 168, 232;
+  --ion-color-tertiary-contrast: #ffffff;
+  --ion-color-tertiary-contrast-rgb: 255, 255, 255;
+  --ion-color-tertiary-shade: #2494cc;
+  --ion-color-tertiary-tint: #40b4e8;
+
+  --ion-color-danger: var(--semantic-danger);
+  --ion-color-success: var(--semantic-success);
+  --ion-color-warning: var(--semantic-warning);
+  --ion-color-info: var(--semantic-info);
+
+  --ion-item-background: var(--background-surface-1);
+  --ion-toolbar-background: var(--background-surface-1);
+  --ion-card-background: var(--background-surface-1);
+  --ion-border-color: var(--border-medium);
+}
+

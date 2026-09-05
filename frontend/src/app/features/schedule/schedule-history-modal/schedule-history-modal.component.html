@@ -1,0 +1,206 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="modal-toolbar">
+    <div class="modal-header-content">
+      <div class="header-icon-box">
+        <ion-icon name="time-outline"></ion-icon>
+      </div>
+      <div class="header-text">
+        <h2 class="modal-title">{{ 'SHIFTS.AUDIT.MODAL_TITLE' | transloco }}</h2>
+        <p class="modal-subtitle">{{ 'SHIFTS.AUDIT.MODAL_SUBTITLE' | transloco }}</p>
+      </div>
+    </div>
+    <ion-buttons slot="end">
+      <button type="button" class="btn-close-modal" (click)="dismiss()" (keydown.enter)="dismiss()" data-testid="btn-close-audit-modal" [attr.aria-label]="'COMMON.CLOSE' | transloco">
+        <ion-icon name="close-outline"></ion-icon>
+      </button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="modal-content">
+  <div class="audit-modal-container">
+    <!-- Filters Header -->
+    <div class="filters-card" data-testid="audit-filters-bar">
+      <div class="filter-field">
+        <app-searchable-select
+          [options]="employeeOptions"
+          [(ngModel)]="selectedUserId"
+          (ngModelChange)="onFilterChange()"
+          [label]="'SHIFTS.AUDIT.EMPLOYEE_FILTER' | transloco"
+          [placeholder]="'SHIFTS.AUDIT.ALL_EMPLOYEES' | transloco"
+          [searchPlaceholder]="'COMMON.SEARCH' | transloco"
+          [enableSearch]="true"
+          [clearable]="false"
+          dropdownPosition="auto"
+          testId="audit-employee-select">
+        </app-searchable-select>
+      </div>
+
+      <div class="filter-field">
+        <app-searchable-select
+          [options]="actionOptions"
+          [(ngModel)]="selectedAction"
+          (ngModelChange)="onFilterChange()"
+          [label]="'SHIFTS.AUDIT.ACTION_FILTER' | transloco"
+          [placeholder]="'SHIFTS.AUDIT.ALL_ACTIONS' | transloco"
+          [searchPlaceholder]="'COMMON.SEARCH' | transloco"
+          [enableSearch]="false"
+          [clearable]="false"
+          dropdownPosition="auto"
+          testId="audit-action-select">
+        </app-searchable-select>
+      </div>
+
+      <div class="search-field">
+        <ion-searchbar
+          [(ngModel)]="searchQuery"
+          [placeholder]="'SHIFTS.AUDIT.SEARCH_PLACEHOLDER' | transloco"
+          class="custom-searchbar"
+          data-testid="audit-searchbar">
+        </ion-searchbar>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading-container" *ngIf="loading">
+      <ion-spinner name="crescent" color="primary"></ion-spinner>
+      <span>{{ 'COMMON.LOADING' | transloco }}</span>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="!loading && filteredLogs.length === 0" data-testid="audit-empty-state">
+      <div class="empty-icon-wrap">
+        <ion-icon name="information-circle-outline"></ion-icon>
+      </div>
+      <h3>{{ 'SHIFTS.AUDIT.NO_LOGS_FOUND' | transloco }}</h3>
+      <p>{{ 'SHIFTS.AUDIT.NO_LOGS_DESC' | transloco }}</p>
+    </div>
+
+    <!-- Audit Log Timeline List -->
+    <div class="timeline-list" *ngIf="!loading && filteredLogs.length > 0">
+      <div
+        class="timeline-card"
+        *ngFor="let item of filteredLogs"
+        [class.is-expanded]="isExpanded(item.id)"
+        [class.card-created]="item.action === 'CREATED'"
+        [class.card-updated]="item.action === 'UPDATED'"
+        [class.card-deleted]="item.action === 'DELETED'"
+        [attr.data-testid]="'audit-log-item-' + item.id">
+        
+        <div
+          class="timeline-header"
+          (click)="toggleExpand(item.id)"
+          (keydown.enter)="toggleExpand(item.id)"
+          [attr.aria-expanded]="isExpanded(item.id)">
+          <div class="header-left">
+            <span class="action-pill" [class]="'pill-' + item.action.toLowerCase()">
+              <ion-icon [name]="getActionIcon(item.action)"></ion-icon>
+              {{ ('SHIFTS.AUDIT.ACTION_' + item.action) | transloco }}
+            </span>
+
+            <div class="employee-meta" *ngIf="item.userPrenom || item.userName">
+              <span class="employee-name">
+                {{ item.userPrenom }} {{ item.userNom }}
+              </span>
+              <span class="shift-date-badge">
+                <ion-icon name="calendar-outline"></ion-icon>
+                {{ item.dateShift }}
+              </span>
+            </div>
+          </div>
+
+          <div class="header-right">
+            <div class="meta-tag-group">
+              <span class="meta-author">
+                <ion-icon name="person-outline"></ion-icon>
+                {{ item.changedBy }}
+              </span>
+              <span class="meta-time">
+                <ion-icon name="time-outline"></ion-icon>
+                {{ item.changedAt | date:'dd/MM/yyyy HH:mm:ss' }}
+              </span>
+            </div>
+
+            <button
+              type="button"
+              class="btn-replay-instant"
+              (click)="$event.stopPropagation(); replayAtInstant(item.changedAt)"
+              (keydown.enter)="$event.stopPropagation(); replayAtInstant(item.changedAt)"
+              [attr.data-testid]="'btn-replay-instant-' + item.id"
+              [attr.aria-label]="'SHIFTS.AUDIT.REPLAY_BUTTON' | transloco">
+              <ion-icon name="play-outline"></ion-icon>
+              <span>{{ 'SHIFTS.AUDIT.REPLAY_BUTTON' | transloco }}</span>
+            </button>
+
+            <button
+              type="button"
+              class="btn-expand-toggle"
+              [attr.aria-label]="isExpanded(item.id) ? ('SHIFTS.AUDIT.COLLAPSE' | transloco) : ('SHIFTS.AUDIT.EXPAND' | transloco)">
+              <ion-icon [name]="isExpanded(item.id) ? 'chevron-down-outline' : 'chevron-forward-outline'"></ion-icon>
+            </button>
+          </div>
+        </div>
+
+        <!-- Expanded Snapshot Details View -->
+        <div class="snapshot-details" *ngIf="isExpanded(item.id)">
+          <!-- PREVIOUS SNAPSHOT -->
+          <div class="snapshot-box previous-box" *ngIf="item.previousSnapshot">
+            <div class="snapshot-header">
+              <span class="snapshot-indicator danger"></span>
+              <span class="snapshot-label">{{ 'SHIFTS.AUDIT.BEFORE' | transloco }}</span>
+            </div>
+            <div class="snapshot-body" *ngIf="parseSnapshot(item.previousSnapshot) as prev">
+              <div class="prop-row">
+                <span class="prop-label">{{ 'SHIFTS.AUDIT.HOURS' | transloco }}</span>
+                <span class="prop-val mono">{{ prev.heureDebut }} - {{ prev.heureFin }}</span>
+              </div>
+              <div class="prop-row">
+                <span class="prop-label">{{ 'SHIFTS.AUDIT.TYPE' | transloco }}</span>
+                <span class="prop-val">{{ prev.typeShift }} ({{ prev.typePoste }})</span>
+              </div>
+              <div class="prop-row" *ngIf="prev.heureDebutReelle">
+                <span class="prop-label">{{ 'SHIFTS.AUDIT.REAL_HOURS' | transloco }}</span>
+                <span class="prop-val mono">{{ prev.heureDebutReelle }} - {{ prev.heureFinReelle }}</span>
+              </div>
+              <div class="prop-row" *ngIf="prev.notes">
+                <span class="prop-label">{{ 'SHIFTS.AUDIT.NOTES' | transloco }}</span>
+                <span class="prop-val">{{ prev.notes }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="diff-arrow" *ngIf="item.previousSnapshot && item.newSnapshot">
+            <ion-icon name="arrow-forward-outline"></ion-icon>
+          </div>
+
+          <!-- NEW SNAPSHOT -->
+          <div class="snapshot-box new-box" *ngIf="item.newSnapshot">
+            <div class="snapshot-header">
+              <span class="snapshot-indicator success"></span>
+              <span class="snapshot-label">{{ 'SHIFTS.AUDIT.AFTER' | transloco }}</span>
+            </div>
+            <div class="snapshot-body" *ngIf="parseSnapshot(item.newSnapshot) as current">
+              <div class="prop-row">
+                <span class="prop-label">{{ 'SHIFTS.AUDIT.HOURS' | transloco }}</span>
+                <span class="prop-val mono highlight">{{ current.heureDebut }} - {{ current.heureFin }}</span>
+              </div>
+              <div class="prop-row">
+                <span class="prop-label">{{ 'SHIFTS.AUDIT.TYPE' | transloco }}</span>
+                <span class="prop-val">{{ current.typeShift }} ({{ current.typePoste }})</span>
+              </div>
+              <div class="prop-row" *ngIf="current.heureDebutReelle">
+                <span class="prop-label">{{ 'SHIFTS.AUDIT.REAL_HOURS' | transloco }}</span>
+                <span class="prop-val mono highlight">{{ current.heureDebutReelle }} - {{ current.heureFinReelle }}</span>
+              </div>
+              <div class="prop-row" *ngIf="current.notes">
+                <span class="prop-label">{{ 'SHIFTS.AUDIT.NOTES' | transloco }}</span>
+                <span class="prop-val">{{ current.notes }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>
+

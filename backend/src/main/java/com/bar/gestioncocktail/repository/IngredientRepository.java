@@ -2,6 +2,7 @@ package com.bar.gestioncocktail.repository;
 
 import com.bar.gestioncocktail.model.Ingredient;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
@@ -11,6 +12,10 @@ import java.util.List;
 public interface IngredientRepository extends JpaRepository<Ingredient, Long> {
     List<Ingredient> findByQuantiteStockLessThanEqual(BigDecimal seuilAlerte);
     List<Ingredient> findByNomContainingIgnoreCase(String nom);
+    java.util.Optional<Ingredient> findByNomIgnoreCase(String nom);
     List<Ingredient> findByFournisseur(String fournisseur);
     List<Ingredient> findByUniteMesure(String uniteMesure);
-} 
+
+    @Query("SELECT COUNT(i) FROM Ingredient i WHERE i.quantiteStock <= i.seuilAlerte")
+    long countIngredientsSousSeuil();
+}

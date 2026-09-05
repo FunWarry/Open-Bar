@@ -1,0 +1,6 @@
+<ion-badge [color]="badgeColor" class="role-badge" [attr.data-testid]="testId">
+  <ion-icon [name]="icon" slot="start"></ion-icon>
+  @if (!folded) {
+    <span>{{ label }}</span>
+  }
+</ion-badge>

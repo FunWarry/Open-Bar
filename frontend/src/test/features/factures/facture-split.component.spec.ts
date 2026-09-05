@@ -1,0 +1,477 @@
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
+import { TestBed } from '@angular/core/testing';
+import { ComponentFixture } from '@angular/core/testing';
+import { ActivatedRoute } from '@angular/router';
+import { RouterTestingModule } from '@angular/router/testing';
+import { IonicModule } from '@ionic/angular';
+import { ModalController, ToastController } from '@ionic/angular/standalone';
+import { of, throwError } from 'rxjs';
+import { FactureSplitComponent } from '../../../app/features/factures/facture-split/facture-split.component';
+import { FactureService, SplitResultDTO } from '../../../app/features/factures/services/facture.service';
+import { Facture } from '../../../app/features/factures/models/facture.model';
+
+const mockFacture: Facture = {
+  id: 42, tableId: 1, tableNumero: 3, numero: 'F-001',
+  total: 21, reglee: false, dateFacture: '2026-06-22T12:00:00Z',
+  createdAt: '2026-06-22T12:00:00Z', updatedAt: '2026-06-22T12:00:00Z',
+  items: [
+    { id: 10, factureId: 42, commandeItemId: 1, description: 'Mojito', quantite: 1, prixUnitaire: 8, total: 8 },
+    { id: 11, factureId: 42, commandeItemId: 2, description: 'Daiquiri', quantite: 2, prixUnitaire: 9, total: 18 },
+  ],
+};
+
+const mockSplitResults: SplitResultDTO[] = [
+  { factureId: 42, nomConvive: 'Convive 1', items: [], sousTotal: 10.5, totalAvecPourboire: 10.5 },
+  { factureId: 42, nomConvive: 'Convive 2', items: [], sousTotal: 10.5, totalAvecPourboire: 10.5 },
+];
+
+describe('FactureSplitComponent', () => {
+  let component: FactureSplitComponent;
+  let fixture: ComponentFixture<FactureSplitComponent>;
+  let factureServiceSpy: jasmine.SpyObj<FactureService>;
+
+  let modalCtrlSpy: jasmine.SpyObj<ModalController>;
+  let toastCtrlSpy: jasmine.SpyObj<ToastController>;
+  let toastSpy: jasmine.SpyObj<HTMLIonToastElement>;
+
+  beforeEach(async () => {
+    factureServiceSpy = jasmine.createSpyObj<FactureService>('FactureService', [
+      'splitEgal', 'splitParSelection', 'getFactureById', 'reglerFacture', 'encaisserPart', 'getReglements'
+    ]);
+    factureServiceSpy.splitEgal.and.returnValue(of(mockSplitResults));
+    factureServiceSpy.splitParSelection.and.returnValue(of(mockSplitResults));
+    factureServiceSpy.getFactureById.and.returnValue(of(mockFacture));
+    factureServiceSpy.reglerFacture.and.returnValue(of(mockFacture));
+    factureServiceSpy.encaisserPart.and.returnValue(of({
+      factureId: 42, nomConvive: 'Convive 1', partIndex: 1, montant: 10.5, totalRegle: 10.5, modePaiement: 'CARTE', typeSplit: 'EGAL'
+    }));
+    factureServiceSpy.getReglements.and.returnValue(of([]));
+
+    toastSpy = jasmine.createSpyObj('HTMLIonToastElement', ['present']);
+    toastSpy.present.and.returnValue(Promise.resolve());
+    toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
+    toastCtrlSpy.create.and.returnValue(Promise.resolve(toastSpy));
+
+    modalCtrlSpy = jasmine.createSpyObj('ModalController', ['create', 'dismiss']);
+    modalCtrlSpy.dismiss.and.returnValue(Promise.resolve(true));
+
+    await TestBed.configureTestingModule({
+      imports: [FactureSplitComponent, IonicModule.forRoot(), RouterTestingModule, getTranslocoTestingModule()],
+      providers: [
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { paramMap: { get: (_: string) => '42' } } },
+        },
+        { provide: FactureService, useValue: factureServiceSpy },
+        { provide: ModalController, useValue: modalCtrlSpy },
+        { provide: ToastController, useValue: toastCtrlSpy },
+      ],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(FactureSplitComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create and initialize factureId from route param', () => {
+    expect(component).toBeTruthy();
+    expect(component.factureId).toBe(42);
+  });
+
+  it('should initialize with default values', () => {
+    expect(component.mode).toBe('equal');
+    expect(component.nombreConvives).toBe(2);
+    expect(component.results).toEqual([]);
+    expect(component.loading).toBeFalse();
+    expect(component.errorMessage).toBeNull();
+    expect(component.convives).toHaveSize(2);
+  });
+
+  // ── onModeChange ─────────────────────────────────────────────────────────────
+
+  describe('onModeChange()', () => {
+    it('should reset results and errorMessage', () => {
+      component.results = mockSplitResults;
+      component.errorMessage = 'Une erreur';
+      component.onModeChange();
+      expect(component.results).toEqual([]);
+      expect(component.errorMessage).toBeNull();
+    });
+
+    it('should load facture when switching to selection mode', () => {
+      component.mode = 'selection';
+      component.onModeChange();
+      expect(factureServiceSpy.getFactureById).toHaveBeenCalledWith(42);
+      expect(component.facture).toEqual(mockFacture);
+    });
+
+    it('should not reload facture if already loaded', () => {
+      component.facture = mockFacture;
+      component.mode = 'selection';
+      component.onModeChange();
+      expect(factureServiceSpy.getFactureById).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  // ── Equal mode ─────────────────────────────────────────────────────────────────
+
+  describe('ajusterConvives()', () => {
+    it('should increase nombreConvives by delta', () => {
+      component.nombreConvives = 3;
+      component.ajusterConvives(1);
+      expect(component.nombreConvives).toBe(4);
+    });
+
+    it('should decrease nombreConvives by delta', () => {
+      component.nombreConvives = 5;
+      component.ajusterConvives(-1);
+      expect(component.nombreConvives).toBe(4);
+    });
+
+    it('should not go below 2', () => {
+      component.nombreConvives = 2;
+      component.ajusterConvives(-1);
+      expect(component.nombreConvives).toBe(2);
+    });
+
+    it('should not exceed 20', () => {
+      component.nombreConvives = 20;
+      component.ajusterConvives(1);
+      expect(component.nombreConvives).toBe(20);
+    });
+  });
+
+  describe('calculerSplitEgal()', () => {
+    it('should call splitEgal and populate results on success', () => {
+      component.calculerSplitEgal();
+      expect(factureServiceSpy.splitEgal).toHaveBeenCalledWith(42, 2);
+      expect(component.results).toEqual(mockSplitResults);
+      expect(component.loading).toBeFalse();
+    });
+
+    it('should set errorMessage on service error', () => {
+      factureServiceSpy.splitEgal.and.returnValue(throwError(() => ({ error: { message: 'Facture introuvable' } })));
+      component.calculerSplitEgal();
+      expect(component.errorMessage).toBe('Facture introuvable');
+      expect(component.loading).toBeFalse();
+    });
+
+    it('should use fallback error message when none provided', () => {
+      factureServiceSpy.splitEgal.and.returnValue(throwError(() => ({})));
+      component.calculerSplitEgal();
+      expect(component.errorMessage).toBe('Erreur lors du calcul');
+    });
+  });
+
+  // ── Mode par article ──────────────────────────────────────────────────────────
+
+  describe('addConvive()', () => {
+    it('should add a new empty convive', () => {
+      component.addConvive();
+      expect(component.convives).toHaveSize(3);
+      expect(component.convives[2].nom).toBe('');
+    });
+
+    it('should not add more than 20 convives', () => {
+      component.convives = Array.from({ length: 20 }, () => ({ nom: '' }));
+      component.addConvive();
+      expect(component.convives).toHaveSize(20);
+    });
+  });
+
+  describe('removeConvive()', () => {
+    it('should remove convive at given index', () => {
+      component.convives = [{ nom: 'Alice' }, { nom: 'Bob' }, { nom: 'Charlie' }];
+      component.removeConvive(1);
+      expect(component.convives).toHaveSize(2);
+      expect(component.convives[1].nom).toBe('Charlie');
+    });
+
+    it('should unassign items belonging to the removed convive', () => {
+      component.convives = [{ nom: 'Alice' }, { nom: 'Bob' }, { nom: 'Charlie' }];
+      component.itemAssignments = { 10: 1, 11: 2 };
+      component.removeConvive(1); // supprime Bob
+      expect(component.itemAssignments[10]).toBeUndefined();
+      expect(component.itemAssignments[11]).toBe(1); // Charlie shifted from 2->1
+    });
+  });
+
+  describe('conviveNom()', () => {
+    it('should return trimmed name when set', () => {
+      component.convives = [{ nom: '  Alice  ' }, { nom: '' }];
+      expect(component.conviveNom(0)).toBe('Alice');
+    });
+
+    it('should return fallback "Convive N" when name is empty', () => {
+      component.convives = [{ nom: '' }, { nom: '' }];
+      expect(component.conviveNom(1)).toBe('Convive 2');
+    });
+  });
+
+  describe('tousItemsAssignes getter', () => {
+    beforeEach(() => { component.facture = mockFacture; });
+
+    it('should return false when no items are assigned', () => {
+      component.itemAssignments = {};
+      expect(component.tousItemsAssignes).toBeFalse();
+    });
+
+    it('should return false when only some items are assigned', () => {
+      component.itemAssignments = { 10: 0 }; // item 11 not assigned
+      expect(component.tousItemsAssignes).toBeFalse();
+    });
+
+    it('should return true when all items are assigned', () => {
+      component.itemAssignments = { 10: 0, 11: 1 };
+      expect(component.tousItemsAssignes).toBeTrue();
+    });
+
+    it('should return false when facture has no items', () => {
+      component.facture = { ...mockFacture, items: [] };
+      expect(component.tousItemsAssignes).toBeFalse();
+    });
+  });
+
+  describe('calculerSplitSelection()', () => {
+    beforeEach(() => {
+      component.facture = mockFacture;
+      component.convives = [{ nom: 'Alice' }, { nom: 'Bob' }];
+      component.itemAssignments = { 10: 0, 11: 1 };
+    });
+
+    it('should call splitParSelection with correct parts', () => {
+      component.calculerSplitSelection();
+      expect(factureServiceSpy.splitParSelection).toHaveBeenCalledWith(42, [
+        { nomConvive: 'Alice', itemIds: [10], items: [{ itemId: 10, quantite: 1 }] },
+        { nomConvive: 'Bob', itemIds: [11], items: [{ itemId: 11, quantite: 2 }] },
+      ]);
+      expect(component.results).toEqual(mockSplitResults);
+    });
+
+    it('should correctly split multi-quantity item blocks between different guests', () => {
+      component.facture = {
+        id: 42,
+        tableId: 1,
+        tableNumero: 3,
+        numero: 'FAC-2026-0001',
+        total: 45,
+        totalTTC: 45,
+        totalHT: 37.5,
+        totalVAT: 7.5,
+        reglee: false,
+        dateFacture: '2026-06-22T12:00:00Z',
+        createdAt: '2026-06-22T12:00:00Z',
+        updatedAt: '2026-06-22T12:00:00Z',
+        items: [
+          { id: 101, factureId: 42, commandeItemId: 1001, description: 'Cosmopolitan', quantite: 3, prixUnitaire: 15, total: 45 },
+        ],
+      };
+      component.convives = [{ nom: 'Alice' }, { nom: 'Bob' }];
+      // 1 cocktail to Alice (unit 0), 2 cocktails to Bob (units 1 and 2)
+      component.unitAssignments['101_0'] = 0;
+      component.unitAssignments['101_1'] = 1;
+      component.unitAssignments['101_2'] = 1;
+
+      expect(component.allItemsAssigned).toBeTrue();
+      component.calculerSplitSelection();
+
+      const callArgs = factureServiceSpy.splitParSelection.calls.mostRecent().args[1];
+      expect(callArgs).toEqual([
+        { nomConvive: 'Alice', itemIds: [101], items: [{ itemId: 101, quantite: 1 }] },
+        { nomConvive: 'Bob', itemIds: [101], items: [{ itemId: 101, quantite: 2 }] },
+      ]);
+    });
+
+    it('should exclude convives with no items', () => {
+      component.convives = [{ nom: 'Alice' }, { nom: 'Bob' }, { nom: 'Charlie' }];
+      component.itemAssignments = { 10: 0, 11: 0 }; // all to Alice, Bob and Charlie without items
+      component.calculerSplitSelection();
+      const call = factureServiceSpy.splitParSelection.calls.mostRecent().args[1];
+      expect(call.find(p => p.nomConvive === 'Bob')).toBeUndefined();
+      expect(call.find(p => p.nomConvive === 'Charlie')).toBeUndefined();
+    });
+
+    it('should use fallback name for convive with empty nom', () => {
+      component.convives = [{ nom: '' }, { nom: 'Bob' }];
+      component.calculerSplitSelection();
+      const call = factureServiceSpy.splitParSelection.calls.mostRecent().args[1];
+      expect(call[0].nomConvive).toBe('Convive 1');
+    });
+
+    it('should set errorMessage on service error', () => {
+      factureServiceSpy.splitParSelection.and.returnValue(throwError(() => ({ error: { message: 'Erreur serveur' } })));
+      component.calculerSplitSelection();
+      expect(component.errorMessage).toBe('Erreur serveur');
+      expect(component.loading).toBeFalse();
+    });
+
+    it('should do nothing if facture is null', () => {
+      component.facture = null;
+      component.calculerSplitSelection();
+      expect(factureServiceSpy.splitParSelection).not.toHaveBeenCalled();
+    });
+  });
+
+  // ── totalSplit ────────────────────────────────────────────────────────────────
+
+  describe('totalSplit getter', () => {
+    it('should return 0 when results is empty', () => {
+      component.results = [];
+      expect(component.totalSplit).toBe(0);
+    });
+
+    it('should sum all sousTotal values', () => {
+      component.results = mockSplitResults;
+      expect(component.totalSplit).toBe(21);
+    });
+  });
+
+  // ── Post-Split Settlement ───────────────────────────────────────────────────
+
+  describe('reglerPart() and balance getters', () => {
+    beforeEach(() => {
+      component.results = mockSplitResults;
+      component.facture = mockFacture;
+    });
+
+    it('calculates balance metrics correctly when no parts are paid', () => {
+      expect(component.montantTotalAddition).toBe(21);
+      expect(component.montantRegle).toBe(0);
+      expect(component.soldeRestant).toBe(21);
+      expect(component.ratioRegle).toBe(0);
+      expect(component.toutesPartsReglees).toBeFalse();
+    });
+
+    it('reglerPart() updates partStates and balance metrics when paid', async () => {
+      const modalSpy = jasmine.createSpyObj('HTMLIonModalElement', ['present', 'onWillDismiss']);
+      modalSpy.present.and.returnValue(Promise.resolve());
+      modalSpy.onWillDismiss.and.returnValue(Promise.resolve({
+        data: { modePaiement: 'CARTE', pourboire: 1.0, totalTotal: 11.5 }
+      }));
+      modalCtrlSpy.create.and.returnValue(Promise.resolve(modalSpy));
+
+      await component.reglerPart(0, mockSplitResults[0]);
+
+      expect(modalCtrlSpy.create).toHaveBeenCalled();
+      expect(component.partStates[0].reglee).toBeTrue();
+      expect(component.partStates[0].modePaiement).toBe('CARTE');
+      expect(component.montantRegle).toBe(10.5);
+      expect(component.soldeRestant).toBe(10.5);
+    });
+
+    it('finalizes main invoice automatically when all parts are paid', async () => {
+      const modalSpy = jasmine.createSpyObj('HTMLIonModalElement', ['present', 'onWillDismiss']);
+      modalSpy.present.and.returnValue(Promise.resolve());
+      modalSpy.onWillDismiss.and.returnValue(Promise.resolve({
+        data: { modePaiement: 'ESPECES', pourboire: 0, totalTotal: 10.5 }
+      }));
+      modalCtrlSpy.create.and.returnValue(Promise.resolve(modalSpy));
+
+      // Pay part 0
+      await component.reglerPart(0, mockSplitResults[0]);
+      expect(factureServiceSpy.reglerFacture).not.toHaveBeenCalled();
+
+      // Pay part 1 (last part)
+      await component.reglerPart(1, mockSplitResults[1]);
+      expect(component.toutesPartsReglees).toBeTrue();
+      expect(factureServiceSpy.reglerFacture).toHaveBeenCalledWith(42, 'MIXTE_SPLIT', 0);
+    });
+
+    it('closeModal() calls modalCtrl.dismiss with settlement status', () => {
+      component.closeModal(true);
+      expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith({ settled: true });
+    });
+
+    it('settleGuestPart() calls service.encaisserPart and updates partStates', async () => {
+      const modalSpy = jasmine.createSpyObj('HTMLIonModalElement', ['present', 'onWillDismiss']);
+      modalSpy.present.and.returnValue(Promise.resolve());
+      modalSpy.onWillDismiss.and.returnValue(Promise.resolve({
+        data: { modePaiement: 'CARTE', pourboire: 2.0, totalTotal: 12.5 }
+      }));
+      modalCtrlSpy.create.and.returnValue(Promise.resolve(modalSpy));
+
+      await component.settleGuestPart(0, mockSplitResults[0]);
+
+      expect(factureServiceSpy.encaisserPart).toHaveBeenCalled();
+      expect(component.partStates[0].settled).toBeTrue();
+      expect(component.partStates[0].paymentMethod).toBe('CARTE');
+      expect(component.partStates[0].tip).toBe(2.0);
+    });
+
+    it('printPartReceipt opens TicketReceiptComponent modal for a settled guest', async () => {
+      const modalSpy = jasmine.createSpyObj('HTMLIonModalElement', ['present']);
+      modalSpy.present.and.returnValue(Promise.resolve());
+      modalCtrlSpy.create.and.returnValue(Promise.resolve(modalSpy));
+
+      component.partStates[0] = {
+        settled: true,
+        paymentMethod: 'CARTE',
+        tip: 2.0,
+        totalPaid: 12.5,
+      };
+
+      await component.printPartReceipt(0, mockSplitResults[0]);
+
+      expect(modalCtrlSpy.create).toHaveBeenCalled();
+      expect(modalSpy.present).toHaveBeenCalled();
+    });
+
+    it('assignOneUnitToGuest and unassignOneUnitFromGuest modify item allocations accurately', () => {
+      const item = mockFacture.items[0];
+
+      component.assignOneUnitToGuest(0, item.id);
+      expect(component.getGuestTotal(0)).toBe(8);
+
+      component.unassignOneUnitFromGuest(0, item.id);
+      expect(component.getGuestTotal(0)).toBe(0);
+    });
+
+    it('handles removeAllUnitsOfItemFromGuest and assignEntireItemToGuest', () => {
+      const item = mockFacture.items[1]; // Daiquiri, quantite: 2
+
+      component.assignEntireItemToGuest(item.id, 0);
+      expect(component.getGuestTotal(0)).toBe(18);
+
+      component.removeAllUnitsOfItemFromGuest(0, item.id);
+      expect(component.getGuestTotal(0)).toBe(0);
+    });
+
+    it('computes totalSplit, totalBillAmount, paidAmount, remainingBalance, and paidRatio', () => {
+      component.results = mockSplitResults;
+      component.partStates = {
+        0: { settled: true, totalPaid: 10.5 },
+        1: { settled: false }
+      };
+
+      expect(component.totalSplit).toBe(21);
+      expect(component.totalBillAmount).toBe(21);
+      expect(component.paidAmount).toBe(10.5);
+      expect(component.remainingBalance).toBe(10.5);
+      expect(component.paidRatio).toBe(0.5);
+      expect(component.allPartsSettled).toBeFalse();
+    });
+
+    it('handles error in calculateEqualSplit and calculateItemizedSplit', () => {
+      factureServiceSpy.splitEgal.and.returnValue(throwError(() => ({ error: { message: 'Failed split' } })));
+      component.calculateEqualSplit();
+      expect(component.errorMessage).toBe('Failed split');
+      expect(component.loading).toBeFalse();
+
+      factureServiceSpy.splitParSelection.and.returnValue(throwError(() => ({ error: { message: 'Selection failed' } })));
+      component.unitAssignments = { '10_0': 0 };
+      component.calculateItemizedSplit();
+      expect(component.errorMessage).toBe('Selection failed');
+    });
+
+    it('handles quick assign select event and guest count adjustment', () => {
+      const selectTarget = { value: null };
+      const event = { detail: { value: '10' }, target: selectTarget } as any;
+
+      component.onQuickAssignSelect(0, event);
+      expect(component.getGuestTotal(0)).toBe(8);
+
+      component.ajusterConvives(1);
+      expect(component.nombreConvives).toBe(3);
+    });
+  });
+});

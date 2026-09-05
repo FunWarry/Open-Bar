@@ -1,61 +1,133 @@
-import {Component, OnInit} from '@angular/core';
-import {ActivatedRoute, Router} from '@angular/router';
-import {MatSnackBar} from '@angular/material/snack-bar';
-import {MatCardModule} from '@angular/material/card';
-import {MatCardHeader, MatCardTitle, MatCardContent} from '@angular/material/card';
-import {MatIconModule} from '@angular/material/icon';
-import {MatButtonModule} from '@angular/material/button';
-import {MatSnackBarModule} from '@angular/material/snack-bar';
-import { CurrencyPipe, NgIf } from '@angular/common';
-import {MatChip, MatChipsModule} from '@angular/material/chips';
-import { MatTableModule } from '@angular/material/table';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Subject } from 'rxjs';
+import { takeUntil, finalize } from 'rxjs/operators';
+import {
+  ToastController, IonContent, IonBadge, IonButton,
+  IonIcon, IonSpinner,
+} from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import {
+  arrowBack, banOutline, timeOutline, personOutline,
+  statsChartOutline, receiptOutline, gridOutline,
+  cashOutline, checkmarkCircleOutline, chatbubbleEllipsesOutline,
+} from 'ionicons/icons';
+import { CurrencyPipe, DatePipe } from '@angular/common';
+import { TranslocoPipe } from '@jsverse/transloco';
+import { CommandeService } from '../../../core/services/commande.service';
+import { Commande, CommandeItem } from '../../../core/models/commande.model';
+import { groupCommandeItems } from '../../../core/utils/order-item-grouper';
+
+/**
+ * Component handling detailed order view (/commandes/:id).
+ * Provides order summary metrics, item breakdown with grouping, and cancellation actions.
+ */
 @Component({
-    selector: 'app-commande-detail',
-    templateUrl: './commande-detail.component.html',
-    styleUrls: ['./commande-detail.component.scss'],
-    standalone: true,
-    imports: [MatCardModule, MatCardHeader, MatCardTitle, MatCardContent, MatIconModule, MatButtonModule, MatSnackBarModule, NgIf, MatChip, MatChipsModule, CurrencyPipe, MatTableModule]
+  selector: 'app-commande-detail',
+  templateUrl: './commande-detail.component.html',
+  styleUrls: ['./commande-detail.component.scss'],
+  standalone: true,
+  imports: [
+    IonContent, IonBadge, IonButton, IonIcon, IonSpinner,
+    CurrencyPipe, DatePipe, TranslocoPipe,
+  ],
 })
-export class CommandeDetailComponent implements OnInit {
-  commandeId: number;
-  commande: any; // TODO: Remplacer par le type approprié
+export class CommandeDetailComponent implements OnInit, OnDestroy {
+  commande: Commande | null = null;
+  isLoading = false;
+
+  private readonly commandeId: number;
+  private readonly destroy$ = new Subject<void>();
 
   constructor(
-    private route: ActivatedRoute,
-    public router: Router,
-    private snackBar: MatSnackBar
+    private readonly route: ActivatedRoute,
+    public readonly router: Router,
+    private readonly commandeService: CommandeService,
+    private readonly toastCtrl: ToastController,
   ) {
     this.commandeId = +this.route.snapshot.paramMap.get('id')!;
+    addIcons({
+      arrowBack, banOutline, timeOutline, personOutline, gridOutline,
+      statsChartOutline, receiptOutline, cashOutline, checkmarkCircleOutline, chatbubbleEllipsesOutline,
+    });
   }
 
   ngOnInit(): void {
-    // TODO: Charger les détails de la commande
+    this.isLoading = true;
+    this.commandeService.getById(this.commandeId)
+      .pipe(takeUntil(this.destroy$), finalize(() => (this.isLoading = false)))
+      .subscribe({
+        next: commande => (this.commande = commande),
+        error: async () => {
+          const toast = await this.toastCtrl.create({
+            message: 'Commande introuvable',
+            duration: 3000,
+            color: 'danger',
+          });
+          toast.present();
+          this.onBack();
+        },
+      });
   }
 
-  getStatusColor(status: string): string {
-    switch (status) {
-      case 'EN_ATTENTE':
-        return 'warn';
-      case 'EN_PREPARATION':
-        return 'accent';
-      case 'PRETE':
-        return 'primary';
-      case 'SERVIE':
-        return 'primary';
-      default:
-        return 'primary';
-    }
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
-  onEdit(): void {
-    this.router.navigate(['/commandes', this.commandeId, 'edit']);
+  /**
+   * Groups identical items (same cocktail name, variante, and notes) and sums quantities.
+   */
+  get groupedItems(): CommandeItem[] {
+    return groupCommandeItems(this.commande?.items) as CommandeItem[];
   }
 
-  onDelete(): void {
-    // TODO: Implémenter la logique de suppression
-    this.snackBar.open('Commande supprimée avec succès', 'Fermer', {
-      duration: 3000
-    });
+  getItemLineTotal(item: CommandeItem): number {
+    return (item.prixUnitaire || 0) * (item.quantite || 1);
+  }
+
+  getStatutColor(statut: string): string {
+    const map: Record<string, string> = {
+      EN_ATTENTE: 'warning',
+      EN_PREPARATION: 'tertiary',
+      PRET: 'success',
+      LIVREE: 'medium',
+      REGLEE: 'dark',
+      ANNULEE: 'danger',
+    };
+    return map[statut] ?? 'primary';
+  }
+
+  peutAnnuler(): boolean {
+    return !!this.commande && !['LIVREE', 'REGLEE', 'ANNULEE'].includes(this.commande.statut);
+  }
+
+  onAnnuler(): void {
+    if (!this.commande) return;
+    this.commandeService.annuler(this.commande.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: async updated => {
+          this.commande = updated;
+          const toast = await this.toastCtrl.create({
+            message: 'Commande annulée avec succès',
+            duration: 3000,
+            color: 'warning',
+          });
+          toast.present();
+        },
+        error: async () => {
+          const toast = await this.toastCtrl.create({
+            message: 'Impossible d\'annuler cette commande',
+            duration: 3000,
+            color: 'danger',
+          });
+          toast.present();
+        },
+      });
+  }
+
+  onBack(): void {
     this.router.navigate(['/commandes']);
   }
 }

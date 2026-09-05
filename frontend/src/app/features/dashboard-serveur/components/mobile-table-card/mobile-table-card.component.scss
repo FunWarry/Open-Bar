@@ -1,0 +1,355 @@
+// Modern Table Tile Component Styling
+// Adaptive Theme colors using CSS variables from variables.css (Rule #9)
+
+.table-tile {
+  background: var(--background-surface-1, #16192b);
+  border: 1px solid var(--border-medium, #2a2e4d);
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  cursor: pointer;
+  position: relative;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+  box-shadow: var(--shadow-sm, 0 2px 6px rgba(0, 0, 0, 0.15));
+
+  &:hover,
+  &:focus-visible {
+    border-color: var(--primary, #6c7fe8);
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md, 0 4px 14px rgba(0, 0, 0, 0.25));
+    outline: none;
+  }
+
+  &.is-occupied {
+    border-left: 4px solid var(--semantic-warning, #f4a52a);
+
+    &.wait-border-normal {
+      border-left: 4px solid #10b981;
+    }
+
+    &.wait-border-warning {
+      border-left: 4px solid #f59e0b;
+    }
+
+    &.wait-border-danger {
+      border-left: 4px solid #ef4444;
+    }
+  }
+
+  .tile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .table-identity {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+
+      .icon-box {
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        background: var(--background-surface-2, #21263f);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        ion-icon {
+          color: var(--primary, #6c7fe8);
+          font-size: 1.15rem;
+        }
+      }
+
+      .table-name {
+        font-weight: 700;
+        font-size: 1.05rem;
+        color: var(--text-primary, #eceefb);
+      }
+    }
+
+    .status-pill {
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+
+      &.free {
+        background: rgba(38, 174, 96, 0.15);
+        color: var(--table-free, #26ae60);
+        border: 1px solid rgba(38, 174, 96, 0.3);
+      }
+
+      &.occupied {
+        background: rgba(230, 126, 34, 0.15);
+        color: var(--table-occupied, #e67e22);
+        border: 1px solid rgba(230, 126, 34, 0.3);
+      }
+    }
+  }
+
+  .call-alert-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: rgba(229, 96, 79, 0.18);
+    border: 1px solid var(--semantic-danger, #e5604f);
+    color: var(--semantic-danger, #fca5a5);
+    font-size: 0.8rem;
+    font-weight: 700;
+    animation: fadeIn 0.3s ease;
+
+    &.bill-alert {
+      background: rgba(240, 163, 59, 0.18);
+      border-color: var(--semantic-warning, #f4a52a);
+      color: var(--semantic-warning, #fde68a);
+    }
+
+    .call-icon {
+      font-size: 1rem;
+      &.pulse {
+        animation: pulse-icon 1.2s infinite ease-in-out;
+      }
+    }
+
+    .call-text {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .call-ack-btn {
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: var(--semantic-success, #2dd36f);
+      color: #000000;
+      border: none;
+      font-weight: 800;
+      font-size: 0.78rem;
+      cursor: pointer;
+      transition: transform 0.15s ease;
+
+      &:hover {
+        transform: scale(1.05);
+      }
+    }
+  }
+
+  .tile-body {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    .meta-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.85rem;
+      color: var(--text-secondary, #a4add0);
+
+      .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+
+        ion-icon {
+          font-size: 1rem;
+          color: var(--text-muted, #717baa);
+        }
+
+        &.zone-chip {
+          background: var(--background-surface-2, #21263f);
+          padding: 2px 8px;
+          border-radius: 6px;
+          color: var(--text-secondary, #a4add0);
+        }
+      }
+    }
+
+    .wait-time-banner {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+
+      &.wait-normal {
+        background: #064e3b;
+        color: #a7f3d0;
+        border: 1px solid #10b981;
+      }
+
+      &.wait-warning {
+        background: #78350f;
+        color: #fde68a;
+        border: 1px solid #f59e0b;
+      }
+
+      &.wait-danger {
+        background: #7f1d1d;
+        color: #fca5a5;
+        border: 1px solid #ef4444;
+      }
+    }
+  }
+
+  .tile-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 4px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border-medium, #2a2e4d);
+
+    .total-badge {
+      display: flex;
+      flex-direction: column;
+
+      .label {
+        font-size: 0.72rem;
+        color: var(--text-muted, #717baa);
+        text-transform: uppercase;
+      }
+
+      .amount {
+        font-size: 1.05rem;
+        font-weight: 800;
+        color: var(--semantic-success, #2dd36f);
+      }
+    }
+
+    .card-action-buttons {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      .occupy-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        background: rgba(230, 126, 34, 0.15);
+        color: var(--table-occupied, #f39c12);
+        border: 1px solid rgba(230, 126, 34, 0.35);
+        border-radius: 8px;
+        padding: 6px 11px;
+        font-size: 0.82rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s ease;
+
+        ion-icon {
+          font-size: 0.95rem;
+          color: var(--table-occupied, #f39c12);
+        }
+
+        &:hover {
+          background: rgba(230, 126, 34, 0.3);
+          border-color: var(--table-occupied, #f39c12);
+        }
+      }
+
+      .free-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        background: rgba(38, 174, 96, 0.15);
+        color: var(--table-free, #27ae60);
+        border: 1px solid rgba(38, 174, 96, 0.35);
+        border-radius: 8px;
+        padding: 6px 11px;
+        font-size: 0.82rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s ease;
+
+        ion-icon {
+          font-size: 0.95rem;
+          color: var(--table-free, #27ae60);
+        }
+
+        &:hover {
+          background: rgba(38, 174, 96, 0.3);
+          border-color: var(--table-free, #27ae60);
+        }
+      }
+
+      .order-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--background-surface-2, #21263f);
+        color: var(--text-primary, #eceefb);
+        border: 1px solid var(--border-medium, #2a2e4d);
+        border-radius: 8px;
+        padding: 6px 12px;
+        font-size: 0.84rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+
+        ion-icon {
+          color: var(--primary, #6c7fe8);
+          font-size: 0.95rem;
+        }
+
+        &:hover {
+          background-color: var(--primary, #6c7fe8);
+          color: #ffffff;
+          border-color: var(--primary, #6c7fe8);
+
+          ion-icon {
+            color: #ffffff;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Light theme specific overrides for perfect contrast in Light Mode
+:host-context(body.light-theme) .table-tile,
+body.light-theme .table-tile {
+  .status-pill {
+    &.free {
+      background: #dcfce7;
+      color: #15803d;
+      border-color: #86efac;
+    }
+
+    &.occupied {
+      background: #fef3c7;
+      color: #b45309;
+      border-color: #fde68a;
+    }
+  }
+
+  .wait-time-banner {
+    &.wait-normal {
+      background: #dcfce7;
+      color: #15803d;
+      border-color: #86efac;
+    }
+
+    &.wait-warning {
+      background: #fef3c7;
+      color: #b45309;
+      border-color: #fde68a;
+    }
+
+    &.wait-danger {
+      background: #fee2e2;
+      color: #b91c1c;
+      border-color: #fca5a5;
+    }
+  }
+}

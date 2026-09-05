@@ -16,4 +16,8 @@ public interface CocktailRepository extends JpaRepository<Cocktail, Long> {
     List<Cocktail> findBySaisonnierAndDateDebutSaisonBeforeAndDateFinSaisonAfter(
         boolean saisonnier, LocalDateTime date, LocalDateTime date2);
     List<Cocktail> findByNomContainingIgnoreCase(String nom);
+    java.util.Optional<Cocktail> findByNomIgnoreCase(String nom);
+
+    @org.springframework.data.jpa.repository.Query("SELECT DISTINCT c FROM Cocktail c LEFT JOIN FETCH c.recipeSteps WHERE LOWER(c.nom) = LOWER(:nom)")
+    java.util.Optional<Cocktail> findByNomIgnoreCaseWithRecipeSteps(@org.springframework.data.repository.query.Param("nom") String nom);
 } 

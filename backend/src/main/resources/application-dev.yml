@@ -1,0 +1,12 @@
+# Profile DEV — Base de données développement (Vierge de données de test)
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/${DB_NAME:gestion_cocktail_dev}?sslmode=disable
+    username: ${DB_USER:postgres}
+    password: ${DEV_DB_PASSWORD:${POSTGRES_PASSWORD:${DB_PASSWORD:KZiXrsAw/asRtE8YJuxA8LkWtDXK5rPBmiriAHAu+7Q=}}}
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+    com.bar.gestioncocktail: DEBUG
+    org.hibernate.SQL: off

@@ -1,0 +1,234 @@
+<ion-header>
+  <ion-toolbar class="serveur-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/serveur" data-testid="back-btn"></ion-back-button>
+    </ion-buttons>
+    <ion-title data-testid="order-page-title">
+      {{ 'SERVEUR.NEW_ORDER' | transloco }}
+      <span *ngIf="table" class="table-badge" data-testid="table-badge">{{ 'SERVEUR.TABLE_LABEL' | transloco:{ nom: table.nom } }}</span>
+    </ion-title>
+    <ion-buttons slot="end" *ngIf="nbArticles > 0">
+      <ion-badge color="primary" class="cart-count-badge" data-testid="cart-badge">
+        {{ nbArticles }}
+      </ion-badge>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="serveur-content">
+  <!-- Loading state -->
+  <div *ngIf="isLoading" class="loading-state" data-testid="loading-state">
+    <ion-spinner name="crescent" color="primary"></ion-spinner>
+    <p>{{ 'COMMON.LOADING' | transloco }}</p>
+  </div>
+
+  <ng-container *ngIf="!isLoading">
+    <!-- Search & Filter Controls -->
+    <div class="search-filter-section" data-testid="search-filter-section">
+      <ion-searchbar
+        [(ngModel)]="searchQuery"
+        [placeholder]="'SERVEUR.SEARCH_PLACEHOLDER' | transloco"
+        class="custom-searchbar"
+        data-testid="cocktail-searchbar">
+      </ion-searchbar>
+
+      <!-- Category Filter Chips -->
+      <div class="category-chips-scroll" data-testid="category-chips-scroll">
+        <button
+          *ngFor="let cat of categories"
+          class="figma-filter-pill"
+          [class.active]="selectedCategory === cat"
+          [ngStyle]="getCategoryPillStyle(cat, selectedCategory === cat)"
+          (click)="selectCategory(cat)"
+          [attr.data-testid]="'cat-chip-' + cat">
+          <span class="dot-indicator" [style.background-color]="getCategoryDotColor(cat)"></span>
+          {{ 'SERVEUR.CATEGORIES.' + cat | transloco }}
+        </button>
+      </div>
+
+      <!-- Allergen Exclusion Filter -->
+      <div class="allergen-filter-row">
+        <ion-icon name="options-outline" class="filter-icon"></ion-icon>
+        <span class="allergen-label">{{ 'SERVEUR.ALLERGEN_FILTER' | transloco }} :</span>
+        <ion-select
+          [(ngModel)]="selectedAllergen"
+          interface="popover"
+          class="allergen-select"
+          data-testid="allergen-select">
+          <ion-select-option value="NONE">{{ 'COMMON.NONE' | transloco }}</ion-select-option>
+          <ion-select-option value="LACTOSE">{{ 'COCKTAILS.ALLERGENS.LACTOSE' | transloco }}</ion-select-option>
+          <ion-select-option value="GLUTEN">{{ 'COCKTAILS.ALLERGENS.GLUTEN' | transloco }}</ion-select-option>
+          <ion-select-option value="ARACHIDE">{{ 'COCKTAILS.ALLERGENS.ARACHIDE' | transloco }}</ion-select-option>
+          <ion-select-option value="FRUITS_A_COQUE">{{ 'COCKTAILS.ALLERGENS.FRUITS_A_COQUE' | transloco }}</ion-select-option>
+        </ion-select>
+        <ion-button
+          *ngIf="searchQuery || selectedCategory !== 'ALL' || selectedAllergen !== 'NONE'"
+          fill="clear"
+          size="small"
+          color="medium"
+          (click)="clearFilters()"
+          (keyup.enter)="clearFilters()"
+          data-testid="clear-filters-btn"
+          class="clear-filters-btn">
+          <ion-icon name="close-circle-outline" slot="start"></ion-icon>
+          {{ 'SERVEUR.CLEAR_FILTERS' | transloco }}
+        </ion-button>
+      </div>
+    </div>
+
+    <!-- Cocktails grid -->
+    <div class="section-header">
+      <h2 class="section-title">{{ 'SERVEUR.PRODUCTS' | transloco }}</h2>
+      <span class="products-count" *ngIf="filteredCocktails.length > 0">{{ filteredCocktails.length }} {{ 'SERVEUR.VARIANTE_DISPO' | transloco }}</span>
+    </div>
+
+    <!-- Empty Filter Results -->
+    <div *ngIf="filteredCocktails.length === 0" class="empty-products-state" data-testid="empty-products-state">
+      <ion-icon name="alert-circle-outline" class="empty-icon"></ion-icon>
+      <p>{{ 'SERVEUR.NO_PRODUCTS' | transloco }}</p>
+      <ion-button fill="outline" color="primary" size="small" (click)="clearFilters()" (keyup.enter)="clearFilters()" data-testid="reset-filters-btn">
+        <ion-icon name="refresh-outline" slot="start"></ion-icon>
+        {{ 'SERVEUR.CLEAR_FILTERS' | transloco }}
+      </ion-button>
+    </div>
+
+    <ion-grid class="cocktails-grid" *ngIf="filteredCocktails.length > 0">
+      <ion-row>
+        <ion-col
+          size="12"
+          size-sm="6"
+          size-md="4"
+          size-lg="3"
+          *ngFor="let cocktail of filteredCocktails; trackBy: trackById">
+          <ion-card
+            class="cocktail-card"
+            [class.in-cart]="quantiteDans(cocktail.id) > 0"
+            (click)="ouvrirModal(cocktail)"
+            (keyup.enter)="ouvrirModal(cocktail)"
+            tabindex="0"
+            [attr.data-testid]="'cocktail-card-' + cocktail.id">
+            <ion-card-content>
+              <div class="card-top-row">
+                <div class="cocktail-nom">{{ cocktail.nom }}</div>
+                <div class="cocktail-prix">{{ cocktail.prix | currency:'EUR':'symbol':'1.2-2':'fr' }}</div>
+              </div>
+
+              <div class="card-badge-row">
+                <ion-chip class="categorie-tag" outline>
+                  {{ 'SERVEUR.CATEGORIES.' + cocktail.categorie | transloco }}
+                </ion-chip>
+
+                <!-- Variant availability badge -->
+                <div
+                  *ngIf="cocktail.variantes && cocktail.variantes.length > 0"
+                  class="variantes-badge"
+                  [attr.data-testid]="'variantes-badge-' + cocktail.id">
+                  <ion-icon name="color-wand-outline" class="variantes-icon"></ion-icon>
+                  {{ cocktail.variantes.length }} {{ 'SERVEUR.VARIANTE_DISPO' | transloco }}
+                </div>
+              </div>
+
+              <!-- Quantity in cart indicator -->
+              <div *ngIf="quantiteDans(cocktail.id) > 0" class="qty-indicator" [attr.data-testid]="'qty-indicator-' + cocktail.id">
+                {{ quantiteDans(cocktail.id) }}
+              </div>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+
+    <!-- Order Cart Section -->
+    <div *ngIf="cart.length > 0" class="panier-section" data-testid="panier-section">
+      <div class="panier-header">
+        <h3 class="panier-title">{{ 'SERVEUR.CART' | transloco }}</h3>
+        <span class="panier-count-label">{{ 'SERVEUR.ITEMS_COUNT' | transloco:{ count: nbArticles } }}</span>
+      </div>
+
+      <div class="panier-list">
+        <div *ngFor="let item of cart; trackBy: trackByKey" class="panier-item" [attr.data-testid]="'cart-item-' + item.cartItemKey">
+          <div class="panier-info">
+            <div class="panier-item-header">
+              <span class="panier-qty-tag">{{ item.quantite }}×</span>
+              <span class="panier-nom">{{ item.cocktailNom }}</span>
+            </div>
+            <div *ngIf="item.varianteNom" class="panier-variante">
+              <ion-icon name="color-wand-outline"></ion-icon> {{ item.varianteNom }}
+            </div>
+            <div *ngIf="item.notes" class="panier-notes">
+              <em>"{{ item.notes }}"</em>
+            </div>
+          </div>
+
+          <div class="panier-actions">
+            <span class="panier-prix">{{ item.prixUnitaire * item.quantite | currency:'EUR':'symbol':'1.2-2':'fr' }}</span>
+            <div class="stepper-controls">
+              <ion-button
+                fill="clear"
+                size="small"
+                class="step-btn"
+                (click)="retirer(item.cartItemKey)"
+                (keyup.enter)="retirer(item.cartItemKey)"
+                [attr.data-testid]="'btn-retirer-' + item.cartItemKey">
+                <ion-icon name="remove-outline"></ion-icon>
+              </ion-button>
+              <span class="qty-value">{{ item.quantite }}</span>
+              <ion-button
+                fill="clear"
+                size="small"
+                class="step-btn"
+                (click)="incrementer(item.cartItemKey)"
+                (keyup.enter)="incrementer(item.cartItemKey)"
+                [attr.data-testid]="'btn-ajouter-' + item.cartItemKey">
+                <ion-icon name="add-outline"></ion-icon>
+              </ion-button>
+              <ion-button
+                fill="clear"
+                color="danger"
+                size="small"
+                class="delete-btn"
+                (click)="supprimer(item.cartItemKey)"
+                (keyup.enter)="supprimer(item.cartItemKey)"
+                [attr.data-testid]="'btn-supprimer-' + item.cartItemKey">
+                <ion-icon name="trash-outline"></ion-icon>
+              </ion-button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Order VAT Breakdown -->
+        <div class="panier-breakdown">
+          <div class="breakdown-row">
+            <span>{{ 'SERVEUR.BREAKDOWN.SUBTOTAL_HT' | transloco }}</span>
+            <span>{{ totalHT | currency:'EUR':'symbol':'1.2-2':'fr' }}</span>
+          </div>
+          <div class="breakdown-row">
+            <span>{{ 'SERVEUR.BREAKDOWN.TVA' | transloco }} (20%)</span>
+            <span>{{ totalTVA | currency:'EUR':'symbol':'1.2-2':'fr' }}</span>
+          </div>
+          <div class="breakdown-row total-row">
+            <span>{{ 'SERVEUR.BREAKDOWN.TOTAL_TTC' | transloco }}</span>
+            <span class="total-amount" data-testid="total-panier">{{ totalPanier | currency:'EUR':'symbol':'1.2-2':'fr' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+</ion-content>
+
+<!-- Sticky Order Submission Footer -->
+<ion-footer *ngIf="cart.length > 0">
+  <ion-toolbar class="footer-toolbar">
+    <ion-button
+      expand="block"
+      class="btn-valider"
+      [disabled]="isSubmitting"
+      (click)="valider()"
+      (keyup.enter)="valider()"
+      data-testid="btn-valider">
+      <ion-icon name="checkmark-outline" slot="start" *ngIf="!isSubmitting"></ion-icon>
+      <ion-spinner *ngIf="isSubmitting" name="crescent" slot="start"></ion-spinner>
+      {{ 'SERVEUR.SEND_PREPARATION' | transloco }} — {{ totalPanier | currency:'EUR':'symbol':'1.2-2':'fr' }}
+    </ion-button>
+  </ion-toolbar>
+</ion-footer>

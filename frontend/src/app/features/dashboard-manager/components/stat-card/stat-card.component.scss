@@ -1,0 +1,51 @@
+// StatCard — fidèle au design Figma 199:189
+// Fond: --background/surface-2 (#21263f), valeur 32px bold, libellé 11px uppercase
+
+.stat-card {
+  --background: var(--ion-card-background, var(--background-surface-2, #21263f));
+  border-radius: 10px;
+  margin: 0;
+
+  ion-card-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 14px 16px;
+  }
+}
+
+.stat-value {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 48px;
+  letter-spacing: -0.5px;
+  margin: 0;
+
+  &--primary { color: var(--text-primary, #eceefb); }
+  &--success { color: var(--semantic-success, #2fbf6b); }
+  &--warning { color: var(--manager, #f0a33b); }
+  &--danger  { color: var(--semantic-danger, #e5604f); }
+}
+
+.stat-label {
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: 0.66px;
+  text-transform: uppercase;
+  color: var(--text-muted, #7e87a8);
+  margin: 0;
+}
+
+.stat-trend {
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: 0.66px;
+  text-transform: uppercase;
+  padding: 4px 0;
+
+  &--up      { color: var(--semantic-success, #2fbf6b); }
+  &--down    { color: var(--semantic-danger, #e5604f); }
+  &--neutral { color: var(--text-primary, #eceefb); }
+}

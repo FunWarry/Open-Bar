@@ -1,0 +1,18 @@
+<div
+  class="toggle-container"
+  [class.disabled]="disabled"
+  (click)="toggle()"
+  (keyup.enter)="toggle()"
+  (keyup.space)="toggle()"
+  tabindex="0"
+  role="switch"
+  [attr.aria-checked]="checked"
+  [attr.aria-disabled]="disabled"
+  [attr.data-testid]="testId">
+  <div class="toggle-track" [class.checked]="checked">
+    <div class="toggle-thumb" [class.checked]="checked"></div>
+  </div>
+  @if (label) {
+    <span class="toggle-label">{{ label }}</span>
+  }
+</div>

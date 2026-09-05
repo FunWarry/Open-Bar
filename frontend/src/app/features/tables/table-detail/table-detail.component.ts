@@ -1,197 +1,261 @@
-import {Component, OnInit} from '@angular/core';
-import {ActivatedRoute, Router} from '@angular/router';
-import {Store} from '@ngrx/store';
-import {Observable} from 'rxjs';
-import {selectIsAdmin} from '../../../core/store/auth.selectors';
-import {MatCardModule} from '@angular/material/card';
-import {MatCardHeader, MatCardTitle, MatCardContent} from '@angular/material/card';
-import {MatIconModule} from '@angular/material/icon';
-import {MatButtonModule} from '@angular/material/button';
-import {MatChip, MatChipsModule} from '@angular/material/chips';
-import { NgIf, DatePipe, CurrencyPipe, AsyncPipe } from '@angular/common';
-import { MatTableModule } from '@angular/material/table';
+import { Component, OnInit, OnDestroy, Input } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Store } from '@ngrx/store';
+import { Observable, Subject, forkJoin, of } from 'rxjs';
+import { takeUntil, finalize, catchError } from 'rxjs/operators';
+import { selectIsAdmin } from '../../../core/store/auth.selectors';
+import {
+  IonBadge, IonIcon, IonSpinner,
+  ToastController, ModalController
+} from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import {
+  arrowBack, create, eye, trashOutline, closeOutline,
+  restaurantOutline, peopleOutline, locationOutline,
+  timeOutline, receiptOutline, layersOutline, checkmarkCircleOutline,
+  qrCodeOutline
+} from 'ionicons/icons';
+import { AsyncPipe, DatePipe, CommonModule } from '@angular/common';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { AppCurrencyPipe } from '../../../core/pipes/app-currency.pipe';
+import { TableService } from '../../../core/services/table.service';
+import { CommandeService } from '../../../core/services/commande.service';
+import { TableBar } from '../../../core/models/table.model';
+import { Commande } from '../../../core/models/commande.model';
+import { ConfirmDeleteModalComponent } from '../../../core/components/ui/confirm-delete-modal/confirm-delete-modal.component';
+import { TableQrModalComponent } from '../components/table-qr-modal/table-qr-modal.component';
+
+/**
+ * Modal component for viewing detailed information about a table in OpenBar,
+ * including table metadata, live occupancy state, active pending orders,
+ * and fast actions (Edit, Delete with unified confirmation modal).
+ */
 @Component({
-    selector: 'app-table-detail',
-    template: `
-    <div class="table-detail-container">
-      <mat-card>
-        <mat-card-header>
-          <mat-card-title>Table {{table?.number}}</mat-card-title>
-          <div class="header-actions">
-            <button mat-button color="primary" (click)="onBack()">
-              <mat-icon>arrow_back</mat-icon>
-              Retour
-            </button>
-            <button *ngIf="isAdmin$ | async" mat-raised-button color="accent" (click)="onEdit()">
-              <mat-icon>edit</mat-icon>
-              Modifier
-            </button>
-          </div>
-        </mat-card-header>
-        <mat-card-content>
-          <div class="detail-section">
-            <h3>Informations</h3>
-            <div class="detail-grid">
-              <div class="detail-item">
-                <span class="label">Zone:</span>
-                <span class="value">{{table?.zone}}</span>
-              </div>
-              <div class="detail-item">
-                <span class="label">Capacité:</span>
-                <span class="value">{{table?.capacity}} personnes</span>
-              </div>
-              <div class="detail-item">
-                <span class="label">Statut:</span>
-                <mat-chip [color]="table?.occupied ? 'warn' : 'primary'" selected>
-                  {{table?.occupied ? 'Occupée' : 'Libre'}}
-                </mat-chip>
-              </div>
-            </div>
-          </div>
-
-          <div class="detail-section" *ngIf="table?.currentCommande">
-            <h3>Commande en cours</h3>
-            <mat-card>
-              <mat-card-content>
-                <div class="commande-info">
-                  <p><strong>Numéro:</strong> {{table.currentCommande.id}}</p>
-                  <p><strong>Statut:</strong> {{table.currentCommande.status}}</p>
-                  <p><strong>Total:</strong> {{table.currentCommande.total | currency:'EUR'}}</p>
-                </div>
-                <div class="commande-actions">
-                  <button mat-button color="primary" (click)="onViewCommande()">
-                    <mat-icon>visibility</mat-icon>
-                    Voir la commande
-                  </button>
-                </div>
-              </mat-card-content>
-            </mat-card>
-          </div>
-
-          <div class="detail-section">
-            <h3>Historique des commandes</h3>
-            <table mat-table [dataSource]="commandesDataSource" class="full-width">
-              <ng-container matColumnDef="id">
-                <th mat-header-cell *matHeaderCellDef>Numéro</th>
-                <td mat-cell *matCellDef="let commande">{{commande.id}}</td>
-              </ng-container>
-
-              <ng-container matColumnDef="date">
-                <th mat-header-cell *matHeaderCellDef>Date</th>
-                <td mat-cell *matCellDef="let commande">{{commande.date | date:'short'}}</td>
-              </ng-container>
-
-              <ng-container matColumnDef="total">
-                <th mat-header-cell *matHeaderCellDef>Total</th>
-                <td mat-cell *matCellDef="let commande">{{commande.total | currency:'EUR'}}</td>
-              </ng-container>
-
-              <ng-container matColumnDef="status">
-                <th mat-header-cell *matHeaderCellDef>Statut</th>
-                <td mat-cell *matCellDef="let commande">
-                  <mat-chip [color]="getStatusColor(commande.status)" selected>
-                    {{commande.status}}
-                  </mat-chip>
-                </td>
-              </ng-container>
-
-              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-              <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-            </table>
-          </div>
-        </mat-card-content>
-      </mat-card>
-    </div>
-  `,
-    styles: [`
-    .table-detail-container {
-      padding: 20px;
-    }
-    .header-actions {
-      display: flex;
-      gap: 16px;
-      margin-left: auto;
-    }
-    .detail-section {
-      margin-bottom: 24px;
-    }
-    .detail-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
-      margin-top: 16px;
-    }
-    .detail-item {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-    .label {
-      color: rgba(0, 0, 0, 0.6);
-      font-size: 14px;
-    }
-    .value {
-      font-size: 16px;
-    }
-    .commande-info {
-      margin-bottom: 16px;
-    }
-    .commande-actions {
-      display: flex;
-      justify-content: flex-end;
-    }
-    .full-width {
-      width: 100%;
-    }
-  `],
-    standalone: true,
-    imports: [MatCardModule, MatCardHeader, MatCardTitle, MatCardContent, MatIconModule, MatButtonModule, MatChipsModule, NgIf, MatChip, MatTableModule, DatePipe, CurrencyPipe, AsyncPipe]
+  selector: 'app-table-detail',
+  templateUrl: './table-detail.component.html',
+  styleUrls: ['./table-detail.component.scss'],
+  standalone: true,
+  imports: [
+    CommonModule,
+    IonBadge, IonIcon, IonSpinner,
+    AsyncPipe, DatePipe, AppCurrencyPipe,
+    TranslocoPipe
+  ]
 })
-export class TableDetailComponent implements OnInit {
-  table: any; // TODO: Remplacer par le type Table
+export class TableDetailComponent implements OnInit, OnDestroy {
+  /** Optional table identifier passed via modal componentProps. */
+  @Input() tableId?: number;
+
+  /** Optional pre-loaded table object passed via modal componentProps. */
+  @Input() table: TableBar | null = null;
+
+  commandes: Commande[] = [];
+  isLoading = false;
+  isDeleting = false;
   isAdmin$: Observable<boolean>;
-  commandesDataSource: any[] = []; // TODO: Remplacer par le type Commande[]
-  displayedColumns: string[] = ['id', 'date', 'total', 'status'];
+
+  private readonly destroy$ = new Subject<void>();
 
   constructor(
-    private store: Store,
-    private router: Router,
-    private route: ActivatedRoute
+    private readonly store: Store,
+    private readonly router: Router,
+    private readonly route: ActivatedRoute,
+    private readonly tableService: TableService,
+    private readonly commandeService: CommandeService,
+    private readonly toastCtrl: ToastController,
+    private readonly modalCtrl: ModalController,
+    private readonly transloco: TranslocoService
   ) {
     this.isAdmin$ = this.store.select(selectIsAdmin);
+    addIcons({
+      arrowBack, create, eye, trashOutline, closeOutline,
+      restaurantOutline, peopleOutline, locationOutline,
+      timeOutline, receiptOutline, layersOutline, checkmarkCircleOutline,
+      qrCodeOutline
+    });
   }
 
   ngOnInit(): void {
-    const tableId = this.route.snapshot.params['id'];
-    // TODO: Charger les données de la table depuis le store
+    const idParam = this.route?.snapshot?.paramMap?.get('id');
+    const targetId = this.tableId ?? (idParam ? +idParam : (this.table?.id ?? null));
+
+    if (!targetId) return;
+
+    this.loadTableData(targetId);
   }
 
-  getStatusColor(status: string): string {
-    switch (status) {
-      case 'EN_ATTENTE':
-        return 'warn';
-      case 'EN_PREPARATION':
-        return 'accent';
-      case 'PRETE':
-        return 'primary';
-      case 'SERVIE':
-        return 'primary';
-      default:
-        return 'primary';
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  loadTableData(id: number): void {
+    this.isLoading = true;
+    forkJoin({
+      table: this.table ? of(this.table) : this.tableService.getById(id),
+      commandes: this.commandeService.getByTable(id).pipe(
+        catchError(() => of([] as Commande[]))
+      )
+    })
+      .pipe(takeUntil(this.destroy$), finalize(() => (this.isLoading = false)))
+      .subscribe({
+        next: ({ table, commandes }) => {
+          this.table = table;
+          this.commandes = (commandes || []).filter(
+            c => c.statut !== 'REGLEE' && c.statut !== 'ANNULEE'
+          );
+        },
+        error: async () => {
+          const toast = await this.toastCtrl.create({
+            message: String(this.transloco.translate('ERRORS.SERVER') || 'Erreur lors du chargement'),
+            duration: 3000,
+            color: 'danger'
+          });
+          toast.present();
+          this.onClose();
+        }
+      });
+  }
+
+  getStatutColor(statut: string): string {
+    const map: Record<string, string> = {
+      EN_ATTENTE: 'warning',
+      EN_PREPARATION: 'tertiary',
+      PRET: 'success',
+      LIVREE: 'medium',
+      ANNULEE: 'danger'
+    };
+    return map[statut] ?? 'primary';
+  }
+
+  /** Closes the modal or navigates back if routed. */
+  async onClose(): Promise<void> {
+    try {
+      const topModal = await this.modalCtrl.getTop();
+      if (topModal) {
+        await this.modalCtrl.dismiss();
+        return;
+      }
+    } catch {
+      // Fallback to router
     }
-  }
-
-  onBack(): void {
     this.router.navigate(['/tables']);
   }
 
-  onEdit(): void {
-    this.router.navigate(['/tables', this.table.id, 'edit']);
+  /** Dismisses modal with an edit signal to trigger the edit modal. */
+  async onEdit(): Promise<void> {
+    try {
+      const topModal = await this.modalCtrl.getTop();
+      if (topModal) {
+        await this.modalCtrl.dismiss({ action: 'edit', table: this.table });
+        return;
+      }
+    } catch {
+      // Fallback
+    }
+    this.router.navigate(['/tables', this.table?.id, 'edit']);
   }
 
-  onViewCommande(): void {
-    if (this.table?.currentCommande) {
-      this.router.navigate(['/commandes', this.table.currentCommande.id]);
+  /**
+   * Opens the unified ConfirmDeleteModalComponent with table context.
+   */
+  async onDelete(): Promise<void> {
+    if (!this.table) return;
+
+    const tableNumero = this.table.numero;
+    const tableId = this.table.id;
+
+    const modal = await this.modalCtrl.create({
+      component: ConfirmDeleteModalComponent,
+      cssClass: 'confirm-delete-modal-dialog',
+      componentProps: {
+        title: this.transloco.translate('TABLES.DELETE_CONFIRM_TITLE', { number: tableNumero }),
+        itemName: `Table ${tableNumero}`,
+        warningMessage: this.transloco.translate('TABLES.DELETE_CONFIRM_MSG', { number: tableNumero }),
+        metaTags: [
+          { icon: 'restaurant-outline', text: `Table ${tableNumero}` },
+          { icon: 'location-outline', text: this.table.zone || '-' },
+          { icon: 'people-outline', text: `${this.table.capacite} places` }
+        ],
+        detailsSummary: [
+          { label: this.transloco.translate('TABLES.NUMBER'), value: `#${tableNumero}` },
+          { label: this.transloco.translate('TABLES.ZONE'), value: this.table.zone || '-' },
+          { label: this.transloco.translate('TABLES.CAPACITY'), value: `${this.table.capacite} personnes` },
+          {
+            label: this.transloco.translate('TABLES.STATUS'),
+            value: this.table.occupee
+              ? this.transloco.translate('TABLES.OCCUPIED')
+              : this.transloco.translate('TABLES.FREE')
+          }
+        ],
+        cannotDeleteReason: this.commandes.length > 0
+          ? this.transloco.translate('TABLES.DELETE_ACTIVE_ORDERS_ERROR')
+          : null,
+        confirmBtnText: this.transloco.translate('TABLES.DELETE_BTN')
+      }
+    });
+
+    await modal.present();
+    const { data } = await modal.onDidDismiss();
+    if (data?.confirmed) {
+      this.executeDeletion(tableId);
     }
+  }
+
+  private executeDeletion(tableId: number): void {
+    this.isDeleting = true;
+    this.tableService.delete(tableId)
+      .pipe(takeUntil(this.destroy$), finalize(() => (this.isDeleting = false)))
+      .subscribe({
+        next: async () => {
+          const toast = await this.toastCtrl.create({
+            message: this.transloco.translate('TABLES.DELETE_SUCCESS'),
+            duration: 2500,
+            color: 'success'
+          });
+          toast.present();
+          try {
+            const topModal = await this.modalCtrl.getTop();
+            if (topModal) {
+              await this.modalCtrl.dismiss({ action: 'deleted', tableId });
+              return;
+            }
+          } catch {
+            // Fallback
+          }
+          this.router.navigate(['/tables']);
+        },
+        error: async (err) => {
+          const errMsg = err?.error?.message || this.transloco.translate('TABLES.DELETE_ERROR');
+          const toast = await this.toastCtrl.create({
+            message: errMsg,
+            duration: 3500,
+            color: 'danger'
+          });
+          toast.present();
+        }
+      });
+  }
+
+  onViewCommande(c: Commande): void {
+    this.onClose().then(() => {
+      this.router.navigate(['/commandes', c.id]);
+    });
+  }
+
+  async onOpenQrModal(): Promise<void> {
+    if (!this.table) return;
+    const modal = await this.modalCtrl.create({
+      component: TableQrModalComponent,
+      cssClass: 'table-qr-modal-dialog',
+      componentProps: {
+        table: this.table
+      }
+    });
+    await modal.present();
+  }
+
+  trackById(_: number, item: any): any {
+    return item.id ?? _;
   }
 }

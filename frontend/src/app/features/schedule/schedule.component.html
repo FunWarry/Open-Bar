@@ -1,0 +1,367 @@
+<div class="schedule-container" *ngIf="displaySchedule && !loading">
+  <!-- Top bar: week label + buttons -->
+  <div class="schedule-top">
+    <div class="schedule-title-area">
+      <div class="title-with-badge">
+        <h1 class="page-title">{{ 'SHIFTS.TITLE' | transloco }}</h1>
+        <span class="week-label">{{ weekLabel }}</span>
+        <span class="replay-badge" *ngIf="isReplayMode" data-testid="active-replay-badge">
+          ⏱️ {{ 'SHIFTS.REPLAY.BANNER_TITLE' | transloco }} ({{ replayTimestamp | date:'dd/MM/yyyy HH:mm' }})
+        </span>
+      </div>
+    </div>
+
+    <div class="top-actions">
+      <app-action-button
+        variant="secondary"
+        icon="time-outline"
+        (btnClick)="openScheduleHistoryModal()"
+        data-testid="btn-schedule-history">
+        {{ 'SHIFTS.AUDIT.HISTORY_BUTTON' | transloco }}
+      </app-action-button>
+      <app-action-button
+        *ngIf="!isReplayMode"
+        [variant]="isDeleteMode ? 'danger' : 'secondary'"
+        icon="trash-outline"
+        (btnClick)="toggleDeleteMode()"
+        data-testid="btn-delete-mode">
+        {{ (isDeleteMode ? 'SHIFTS.BULK_DELETE.EXIT_TOOL' : 'SHIFTS.BULK_DELETE.TOOL_BUTTON') | transloco }}
+      </app-action-button>
+      <app-action-button *ngIf="!isReplayMode" variant="secondary" icon="settings-outline" (btnClick)="openClosureConfigModal()" data-testid="btn-closure-config">
+        {{ 'SHIFTS.CLOSURES.TITLE' | transloco }}
+      </app-action-button>
+      <app-action-button variant="secondary" icon="today-outline" (btnClick)="goToCurrentWeek()" data-testid="btn-current-week">
+        {{ 'SHIFTS.SCHEDULE.THIS_WEEK' | transloco }}
+      </app-action-button>
+      <div class="publish-wrapper" *ngIf="!isReplayMode">
+        <div class="publish-btn-group">
+          <app-action-button
+            [variant]="(!isPublished || hasUnpublishedChanges) ? 'primary' : 'secondary'"
+            [icon]="(!isPublished || hasUnpublishedChanges) ? 'sparkles-outline' : 'checkmark-circle-outline'"
+            (btnClick)="publishSchedule()"
+            data-testid="btn-publish-schedule">
+            <ng-container *ngIf="!isPublished">
+              {{ 'SHIFTS.SCHEDULE.PUBLISH' | transloco }}
+            </ng-container>
+            <ng-container *ngIf="isPublished && hasUnpublishedChanges">
+              {{ 'SHIFTS.SCHEDULE.REPUBLISH' | transloco }} ({{ totalDiffCount }})
+            </ng-container>
+            <ng-container *ngIf="isPublished && !hasUnpublishedChanges">
+              {{ 'SHIFTS.SCHEDULE.ALREADY_PUBLISHED' | transloco }}
+            </ng-container>
+          </app-action-button>
+          <app-action-button
+            *ngIf="isPublished"
+            [variant]="isComparisonMode ? 'primary' : 'secondary'"
+            icon="git-compare-outline"
+            (btnClick)="toggleComparisonMode()"
+            data-testid="btn-toggle-comparison">
+            {{ (isComparisonMode ? 'SHIFTS.DIFF.EXIT_COMPARE_BTN' : 'SHIFTS.DIFF.COMPARE_BTN') | transloco }}
+          </app-action-button>
+        </div>
+        <span class="publish-badge" [class.has-pending]="hasUnpublishedChanges" *ngIf="isPublished && publication" data-testid="publish-badge">
+          <ng-container *ngIf="!hasUnpublishedChanges">
+            📅 {{ 'SHIFTS.SCHEDULE.PUBLISHED_BY' | transloco : { date: (publication.publishedAt | date:'dd/MM HH:mm'), user: publication.publishedBy } }}
+          </ng-container>
+          <ng-container *ngIf="hasUnpublishedChanges">
+            {{ 'SHIFTS.SCHEDULE.MODIFIED_SINCE_PUBLISHED' | transloco : { date: (publication.publishedAt | date:'dd/MM HH:mm'), user: publication.publishedBy } }}
+          </ng-container>
+        </span>
+      </div>
+      <div class="nav-buttons">
+        <app-action-button variant="secondary" (btnClick)="prevWeek()" data-testid="btn-prev-week">← {{ 'COMMON.PREV' | transloco }}</app-action-button>
+        <app-action-button variant="secondary" (btnClick)="nextWeek()" data-testid="btn-next-week">{{ 'COMMON.NEXT' | transloco }} →</app-action-button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Historical Replay Mode Banner -->
+  <div class="replay-mode-banner" *ngIf="isReplayMode" data-testid="replay-mode-banner">
+    <div class="banner-info">
+      <div class="banner-header-line">
+        <span class="banner-title">⏱️ {{ 'SHIFTS.REPLAY.BANNER_TITLE' | transloco }}</span>
+        <span class="banner-desc">{{ 'SHIFTS.REPLAY.BANNER_DESC' | transloco }}</span>
+      </div>
+      <div class="replay-datetime-picker">
+        <label for="replay-datetime-input">{{ 'SHIFTS.REPLAY.AT_LABEL' | transloco }}:</label>
+        <input
+          id="replay-datetime-input"
+          type="datetime-local"
+          [(ngModel)]="replayTimestamp"
+          (change)="onReplayTimestampChange()"
+          class="replay-input"
+          data-testid="replay-datetime-input" />
+        <button type="button" class="btn-refresh-replay" (click)="loadReplaySchedule()" data-testid="btn-refresh-replay" [title]="'SHIFTS.REPLAY.REFRESH' | transloco">
+          <ion-icon name="refresh-outline"></ion-icon>
+        </button>
+      </div>
+    </div>
+    <div class="banner-actions">
+      <app-action-button
+        [variant]="isReplayComparisonMode ? 'primary' : 'secondary'"
+        icon="git-compare-outline"
+        (btnClick)="toggleReplayComparison()"
+        data-testid="btn-toggle-replay-compare">
+        {{ (isReplayComparisonMode ? 'SHIFTS.REPLAY.EXIT_COMPARE' : 'SHIFTS.REPLAY.COMPARE_CURRENT') | transloco }}
+      </app-action-button>
+      <app-action-button variant="danger" (btnClick)="exitReplayMode()" data-testid="btn-exit-replay">
+        {{ 'SHIFTS.REPLAY.EXIT_REPLAY' | transloco }}
+      </app-action-button>
+    </div>
+  </div>
+
+  <!-- Replay Comparison Diff Banner -->
+  <div class="comparison-mode-banner replay-comparison" *ngIf="isReplayMode && isReplayComparisonMode" data-testid="replay-comparison-banner">
+    <div class="banner-info">
+      <span class="banner-title">📊 {{ 'SHIFTS.REPLAY.DIFF_BANNER_TITLE' | transloco }}</span>
+    </div>
+    <div class="banner-stats">
+      <span class="diff-tag diff-added" *ngIf="replayDiffAddedCount > 0">
+        + {{ 'SHIFTS.REPLAY.ADDED_SINCE' | transloco }} ({{ replayDiffAddedCount }})
+      </span>
+      <span class="diff-tag diff-modified" *ngIf="replayDiffModifiedCount > 0">
+        ~ {{ 'SHIFTS.REPLAY.MODIFIED_SINCE' | transloco }} ({{ replayDiffModifiedCount }})
+      </span>
+      <span class="diff-tag diff-deleted" *ngIf="replayDiffDeletedCount > 0">
+        - {{ 'SHIFTS.REPLAY.DELETED_SINCE' | transloco }} ({{ replayDiffDeletedCount }})
+      </span>
+      <span class="diff-tag diff-nodiff" *ngIf="totalReplayDiffCount === 0">
+        ✓ {{ 'SHIFTS.DIFF.NO_DIFF' | transloco }}
+      </span>
+    </div>
+  </div>
+
+  <!-- Comparison Mode Diff Banner (Publication vs Current) -->
+  <div class="comparison-mode-banner" *ngIf="!isReplayMode && isComparisonMode" data-testid="comparison-mode-banner">
+    <div class="banner-info">
+      <span class="banner-title">📊 {{ 'SHIFTS.DIFF.BANNER_TITLE' | transloco }}</span>
+      <span class="banner-desc">{{ 'SHIFTS.DIFF.BANNER_DESC' | transloco : { date: (publication?.publishedAt | date:'dd/MM HH:mm'), user: publication?.publishedBy } }}</span>
+    </div>
+    <div class="banner-stats">
+      <span class="diff-tag diff-added" *ngIf="diffAddedCount > 0">
+        + {{ 'SHIFTS.DIFF.ADDED_COUNT' | transloco : { count: diffAddedCount } }}
+      </span>
+      <span class="diff-tag diff-modified" *ngIf="diffModifiedCount > 0">
+        ~ {{ 'SHIFTS.DIFF.MODIFIED_COUNT' | transloco : { count: diffModifiedCount } }}
+      </span>
+      <span class="diff-tag diff-deleted" *ngIf="diffDeletedCount > 0">
+        - {{ 'SHIFTS.DIFF.DELETED_COUNT' | transloco : { count: diffDeletedCount } }}
+      </span>
+      <span class="diff-tag diff-nodiff" *ngIf="totalDiffCount === 0">
+        ✓ {{ 'SHIFTS.DIFF.NO_DIFF' | transloco }}
+      </span>
+      <app-action-button variant="secondary" size="small" (btnClick)="toggleComparisonMode()" data-testid="btn-exit-comparison">
+        {{ 'COMMON.CLOSE' | transloco }}
+      </app-action-button>
+    </div>
+  </div>
+
+  <!-- Delete / Eraser Mode Staging Banner -->
+  <div class="delete-mode-banner" *ngIf="!isReplayMode && isDeleteMode" data-testid="delete-mode-banner">
+    <div class="banner-info">
+      <span class="banner-title">🧹 {{ 'SHIFTS.BULK_DELETE.ACTIVE_BANNER' | transloco }}</span>
+      <span class="selection-tag" *ngIf="selectedShiftIds.size > 0">
+        {{ 'SHIFTS.BULK_DELETE.SELECTED_COUNT' | transloco : { count: selectedShiftIds.size } }}
+      </span>
+    </div>
+    <div class="banner-actions">
+      <app-action-button *ngIf="selectedShiftIds.size > 0" variant="secondary" (btnClick)="clearDeleteSelection()" data-testid="btn-clear-delete-selection">
+        {{ 'SHIFTS.BULK_DELETE.CLEAR_ALL_SELECTION' | transloco }}
+      </app-action-button>
+      <app-action-button
+        *ngIf="selectedShiftIds.size > 0"
+        variant="danger"
+        icon="trash-outline"
+        (btnClick)="confirmBulkDelete()"
+        data-testid="btn-confirm-bulk-delete">
+        {{ 'SHIFTS.BULK_DELETE.CONFIRM_BUTTON' | transloco : { count: selectedShiftIds.size } }}
+      </app-action-button>
+      <app-action-button variant="secondary" (btnClick)="toggleDeleteMode()" data-testid="btn-exit-delete-mode">
+        {{ 'COMMON.CLOSE' | transloco }}
+      </app-action-button>
+    </div>
+  </div>
+
+  <!-- Filters Bar -->
+  <div class="schedule-filters" data-testid="schedule-filters-bar">
+    <div class="filter-roles">
+      <span class="filter-label">{{ 'SHIFTS.FILTERS.ROLE_LABEL' | transloco }}:</span>
+      <button
+        type="button"
+        class="filter-chip"
+        [class.active]="selectedRoleFilter === 'ALL'"
+        (click)="setRoleFilter('ALL')"
+        data-testid="filter-role-all">
+        {{ 'SHIFTS.FILTERS.ALL_ROLES' | transloco }}
+      </button>
+      <button
+        type="button"
+        class="filter-chip"
+        [class.active]="selectedRoleFilter === 'BARMAN'"
+        (click)="setRoleFilter('BARMAN')"
+        data-testid="filter-role-barman">
+        {{ 'SHIFTS.FILTERS.BARMAN' | transloco }}
+      </button>
+      <button
+        type="button"
+        class="filter-chip"
+        [class.active]="selectedRoleFilter === 'SERVEUR'"
+        (click)="setRoleFilter('SERVEUR')"
+        data-testid="filter-role-serveur">
+        {{ 'SHIFTS.FILTERS.SERVEUR' | transloco }}
+      </button>
+      <button
+        type="button"
+        class="filter-chip"
+        [class.active]="selectedRoleFilter === 'MANAGER'"
+        (click)="setRoleFilter('MANAGER')"
+        data-testid="filter-role-manager">
+        {{ 'SHIFTS.FILTERS.MANAGER' | transloco }}
+      </button>
+    </div>
+
+    <div class="filter-toggles">
+      <button
+        type="button"
+        class="filter-chip filter-toggle"
+        [class.active]="hideEmptyEmployees"
+        (click)="toggleHideEmptyEmployees()"
+        data-testid="filter-toggle-empty">
+        <ion-icon [name]="hideEmptyEmployees ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+        {{ 'SHIFTS.FILTERS.HIDE_EMPTY' | transloco }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Grid -->
+  <div
+    class="schedule-grid"
+    [class.in-delete-mode]="isDeleteMode"
+    [class.in-comparison-mode]="isComparisonMode || (isReplayMode && isReplayComparisonMode)"
+    [class.in-replay-mode]="isReplayMode">
+    <!-- Header row -->
+    <div class="grid-header">
+      <span class="grid-header__employee">{{ 'SHIFTS.EMPLOYEE_HEADER' | transloco | uppercase }}</span>
+      <button
+        type="button"
+        class="grid-header__day"
+        *ngFor="let h of getDayHeaders(); let i = index; trackBy: trackByDay"
+        [class.today]="isToday(i)"
+        [class.is-closed]="h.isClosed"
+        (click)="!isReplayMode && onHeaderDayClick(h)"
+        [disabled]="isReplayMode"
+        [title]="h.isClosed ? (h.closureReason + ' — ' + ('SHIFTS.CLOSURES.CLICK_TO_REOPEN' | transloco)) : ('SHIFTS.CLOSURES.CLICK_TO_CLOSE' | transloco)">
+        <span class="day-name">{{ h.day }}</span>
+        <span class="day-num">{{ h.date }}</span>
+        <span class="closed-header-badge" *ngIf="h.isClosed">{{ 'SHIFTS.CLOSURES.CLOSED_BADGE' | transloco }}</span>
+      </button>
+    </div>
+
+    <!-- Empty filter state -->
+    <div class="empty-filtered-state" *ngIf="filteredEmployees.length === 0" data-testid="empty-filtered-notice">
+      <span>{{ 'SHIFTS.FILTERS.NO_MATCHING_EMPLOYEES' | transloco }}</span>
+    </div>
+
+    <!-- Employee rows -->
+    <div class="grid-row" *ngFor="let emp of filteredEmployees; trackBy: trackByEmployee">
+      <button
+           type="button"
+           class="grid-row__employee"
+           (click)="onEmployeeHeaderClick(emp)"
+           [title]="'SHIFTS.EMPLOYEE_HEADER_CLICK_HINT' | transloco"
+           [attr.data-testid]="'employee-header-' + emp.employeeId">
+        <app-user-avatar [name]="emp.name" [role]="emp.role" size="small"></app-user-avatar>
+        <div class="emp-info">
+          <span class="emp-role">{{ emp.role | titlecase }}</span>
+          <span class="emp-name">{{ emp.name }}</span>
+          <span class="emp-hours" [attr.data-testid]="'employee-hours-' + emp.employeeId">
+            {{ getEmployeeTotalHours(emp) }}{{ 'SHIFTS.HOURS_SUFFIX' | transloco }}
+          </span>
+        </div>
+      </button>
+      <button
+        type="button"
+        class="grid-row__cell interactive-cell"
+        *ngFor="let shift of emp.shifts; let i = index"
+        [class]="getShiftColorClass(shift)"
+        [class.today-col]="isToday(i)"
+        [class.is-closed-cell]="shift.isClosed"
+        [class.is-drag-target]="!isDeleteMode && !isReplayMode && isCellDragTarget(emp.employeeId, i)"
+        [class.is-staged-delete]="isShiftSelected(shift)"
+        [class.delete-target-cell]="isDeleteMode && (shift.rawShift?.id || (shift.shiftIds && shift.shiftIds.length > 0))"
+        [class.diff-added]="(isComparisonMode || (isReplayMode && isReplayComparisonMode)) && getCellDiff(emp.employeeId, shift.date)?.status === 'ADDED'"
+        [class.diff-modified]="(isComparisonMode || (isReplayMode && isReplayComparisonMode)) && getCellDiff(emp.employeeId, shift.date)?.status === 'MODIFIED'"
+        [class.diff-deleted]="(isComparisonMode || (isReplayMode && isReplayComparisonMode)) && getCellDiff(emp.employeeId, shift.date)?.status === 'DELETED'"
+        [class.diff-dimmed]="(isComparisonMode || (isReplayMode && isReplayComparisonMode)) && getCellDiff(emp.employeeId, shift.date)?.status === 'UNCHANGED'"
+        (mousedown)="onCellMouseDown(emp, shift, i, $event)"
+        (mouseenter)="onCellMouseEnter(emp, shift, i)"
+        (click)="onCellClick(emp, shift)"
+        (contextmenu)="onContextMenu($event, emp, shift)"
+        (keyup.enter)="onCellClick(emp, shift)"
+        [title]="shift.isClosed ? (('SHIFTS.CLOSURES.CLOSED_STATUS' | transloco) + ' (' + shift.closureReason + ')') : (isReplayMode ? ('SHIFTS.REPLAY.READONLY_HINT' | transloco) : (isDeleteMode ? ('SHIFTS.DELETE_MODE_HINT' | transloco) : ''))"
+        [attr.data-testid]="'cell-' + emp.employeeId + '-' + shift.day">
+        
+        <div *ngIf="shift.isClosed" class="cell-closed-content">
+          <span class="closed-tag">{{ 'SHIFTS.CLOSURES.CLOSED_BADGE' | transloco }}</span>
+        </div>
+
+        <div *ngIf="!shift.isClosed && shift.startTime" class="cell-shift-content">
+          <span class="shift-time">{{ shift.startTime }} - {{ shift.endTime }}</span>
+          <span class="shift-type-tag" *ngIf="shift.typeShift">{{ shift.typeShift }}</span>
+          <span class="delete-staged-badge" *ngIf="isShiftSelected(shift)">🗑️</span>
+
+          <!-- Comparison Mode Diff Badges -->
+          <div *ngIf="(isComparisonMode || (isReplayMode && isReplayComparisonMode)) && getCellDiff(emp.employeeId, shift.date) as diff" class="cell-diff-indicator">
+            <span class="diff-badge-added" *ngIf="diff.status === 'ADDED'">+ {{ 'SHIFTS.DIFF.NEW' | transloco }}</span>
+            <span class="diff-badge-modified" *ngIf="diff.status === 'MODIFIED'">
+              {{ 'SHIFTS.DIFF.WAS' | transloco: { start: diff.publishedShift?.heureDebut, end: diff.publishedShift?.heureFin } }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Ghost Deleted Shift in Comparison Mode -->
+        <div *ngIf="(isComparisonMode || (isReplayMode && isReplayComparisonMode)) && getCellDiff(emp.employeeId, shift.date)?.status === 'DELETED'" class="cell-deleted-ghost">
+          <span class="ghost-label">🗑️ {{ 'SHIFTS.DIFF.DELETED' | transloco }}</span>
+          <span class="ghost-time">{{ getCellDiff(emp.employeeId, shift.date)?.publishedShift?.heureDebut }} - {{ getCellDiff(emp.employeeId, shift.date)?.publishedShift?.heureFin }}</span>
+          <span class="ghost-type" *ngIf="getCellDiff(emp.employeeId, shift.date)?.publishedShift?.typeShift">{{ getCellDiff(emp.employeeId, shift.date)?.publishedShift?.typeShift }}</span>
+        </div>
+
+        <div *ngIf="!shift.isClosed && !shift.startTime && (!isComparisonMode && (!isReplayMode || !isReplayComparisonMode) || getCellDiff(emp.employeeId, shift.date)?.status !== 'DELETED')" class="cell-empty-content">
+          <span class="add-icon" *ngIf="!isReplayMode">+</span>
+        </div>
+      </button>
+    </div>
+  </div>
+
+  <!-- Shortcuts Legend Bar -->
+  <div class="shortcuts-bar" *ngIf="!isReplayMode">
+    <span class="shortcuts-title">💡 {{ 'SHIFTS.SHORTCUTS.LEGEND_TITLE' | transloco }}</span>
+    <div class="shortcuts-list">
+      <span class="shortcut-chip"><kbd>{{ 'SHIFTS.SHORTCUTS.LEFT_CLICK' | transloco }}</kbd> {{ 'SHIFTS.SHORTCUTS.LEFT_CLICK_DESC' | transloco }}</span>
+      <span class="shortcut-chip"><kbd>{{ 'SHIFTS.SHORTCUTS.DRAG_DROP' | transloco }}</kbd> {{ 'SHIFTS.SHORTCUTS.DRAG_DROP_DESC' | transloco }}</span>
+      <span class="shortcut-chip"><kbd>{{ 'SHIFTS.SHORTCUTS.RIGHT_CLICK' | transloco }}</kbd> {{ 'SHIFTS.SHORTCUTS.RIGHT_CLICK_DESC' | transloco }}</span>
+      <span class="shortcut-chip"><kbd>{{ 'SHIFTS.SHORTCUTS.COPY_PASTE' | transloco }}</kbd> {{ 'SHIFTS.SHORTCUTS.COPY_PASTE_DESC' | transloco }}</span>
+      <span class="shortcut-chip"><kbd>{{ 'SHIFTS.SHORTCUTS.DELETE' | transloco }}</kbd> {{ 'SHIFTS.SHORTCUTS.DELETE_DESC' | transloco }}</span>
+      <span class="shortcut-chip"><kbd>{{ 'SHIFTS.SHORTCUTS.SHIFT_RIGHT_CLICK' | transloco }}</kbd> {{ 'SHIFTS.SHORTCUTS.SHIFT_RIGHT_CLICK_DESC' | transloco }}</span>
+    </div>
+  </div>
+
+  <!-- Legend + summary -->
+  <div class="schedule-bottom">
+    <div class="legend">
+      <span class="legend-item"><span class="legend-dot dot--manager"></span> {{ 'SHIFTS.FILTERS.MANAGER' | transloco }}</span>
+      <span class="legend-item"><span class="legend-dot dot--waiter"></span> {{ 'SHIFTS.FILTERS.SERVEUR' | transloco }}</span>
+      <span class="legend-item"><span class="legend-dot dot--bartender"></span> {{ 'SHIFTS.FILTERS.BARMAN' | transloco }}</span>
+      <span class="legend-item"><span class="legend-dot dot--dayoff"></span> {{ 'SHIFTS.LEGEND.DAYOFF' | transloco }}</span>
+      <span class="legend-item"><span class="legend-dot dot--closed"></span> {{ 'SHIFTS.CLOSURES.CLOSED_STATUS' | transloco }}</span>
+    </div>
+    <span class="summary">
+      {{ 'SHIFTS.LEGEND.WEEK_TOTAL' | transloco: { totalHours: displaySchedule.totalHours, totalEmployees: displaySchedule.totalEmployees, activeEmployees: displaySchedule.activeEmployees } }}
+    </span>
+  </div>
+</div>
+
+<div class="loading-state" *ngIf="loading">
+  <ion-spinner name="crescent"></ion-spinner>
+  <span>{{ 'COMMON.LOADING' | transloco }}</span>
+</div>

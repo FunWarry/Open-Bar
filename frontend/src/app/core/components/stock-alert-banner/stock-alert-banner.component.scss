@@ -1,0 +1,64 @@
+// Tokens Figma — StockAlertBanner (132:119)
+// Warning  : border #f4a52a (--semantic/warning-50 = rgba(244,165,42,.5)), bg rgba(244,165,42,.15), text #f4a52a
+// Critical : border #e5604f (--semantic/danger-50  = rgba(229,96,79,.5)),  bg rgba(229,96,79,.15),  text #e5604f
+
+.alerts-container {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 16px 0;
+}
+
+.stock-alert-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 1px solid;
+  font-size: 12px;
+  font-family: 'Inter', sans-serif;
+
+  &.alert--warning {
+    background: rgba(244, 165, 42, 0.15);
+    border-color: rgba(244, 165, 42, 0.5);
+    color: #f4a52a;
+  }
+
+  &.alert--critical {
+    background: rgba(229, 96, 79, 0.15);
+    border-color: rgba(229, 96, 79, 0.5);
+    color: #e5604f;
+  }
+
+  .alert-message {
+    flex: 1;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .alert-dismiss {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    margin-left: 8px;
+    background: none;
+    border: 1px solid rgba(58, 70, 130, 0.6);
+    border-radius: 6px;
+    color: #7e87a8;
+    font-size: 16px;
+    font-weight: bold;
+    line-height: 1;
+    cursor: pointer;
+
+    &:hover {
+      border-color: currentColor;
+    }
+  }
+}

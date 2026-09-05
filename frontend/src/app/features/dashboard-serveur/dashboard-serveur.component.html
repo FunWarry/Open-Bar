@@ -1,0 +1,536 @@
+@if (activeTab !== 'suivi') {
+  <ion-content class="dashboard-serveur-content ion-padding">
+    <ion-refresher slot="fixed" [disabled]="displayMode === 'PLAN'" (ionRefresh)="onRefresh($event)">
+      <ion-refresher-content></ion-refresher-content>
+    </ion-refresher>
+
+  <!-- ONGLET 1 : TABLES SERVEUR -->
+  <ng-container *ngIf="activeTab === 'tables'">
+    <!-- Top Active Table Calls & Assistance Banner -->
+    @if (tableAppelService.activeAppels().length > 0) {
+      <div class="active-calls-banner" data-testid="active-calls-banner">
+        <div class="banner-header">
+          <div class="banner-title-group">
+            <span class="banner-icon pulse">🔔</span>
+            <span class="banner-title">{{ 'SERVEUR.ALERTS.ACTIVE_CALLS_TITLE' | transloco: { count: tableAppelService.activeAppels().length } }}</span>
+          </div>
+        </div>
+        <div class="banner-calls-list">
+          @for (appel of tableAppelService.activeAppels(); track appel.id) {
+            <div class="call-item-pill" [class.bill-call]="appel.type === 'ADDITION'" [attr.data-testid]="'call-pill-' + appel.id">
+              <span class="call-type-icon">{{ appel.type === 'ADDITION' ? '💳' : '🔔' }}</span>
+              <span class="call-table-text">Table {{ appel.tableNumero || appel.tableId }}</span>
+              <span class="call-type-text">{{ (appel.type === 'ADDITION' ? 'SERVEUR.ALERTS.BILL_REQUEST' : 'SERVEUR.ALERTS.ASSISTANCE_REQUEST') | transloco }}</span>
+              @if (appel.commentaire) {
+                <span class="call-comment-text">"{{ appel.commentaire }}"</span>
+              }
+              <button
+                type="button"
+                class="ack-call-btn"
+                [attr.data-testid]="'btn-ack-call-' + appel.id"
+                (click)="acquitterAppel(appel, $event)">
+                ✓ {{ 'SERVEUR.ALERTS.ACKNOWLEDGE_BTN' | transloco }}
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- CONTROLS CARD (COMPARAISON AVEC LA PAGE TABLES) -->
+    <div class="controls-card">
+      <!-- LIGNE SUPERIEURE : SEARCHBAR & PILLULES STATUT -->
+      <div class="controls-row-top">
+        <div class="search-input-box">
+          <ion-icon name="search-outline" class="search-icon" aria-hidden="true"></ion-icon>
+          <label for="serveur-table-search-input" class="visually-hidden">{{ 'SERVEUR.SEARCH_TABLE_PLACEHOLDER' | transloco }}</label>
+          <input
+            id="serveur-table-search-input"
+            type="text"
+            class="custom-search-field"
+            [placeholder]="'SERVEUR.SEARCH_TABLE_PLACEHOLDER' | transloco"
+            [value]="searchTerm"
+            (input)="onSearchChange($event)"
+            data-testid="serveur-table-searchbar" />
+          @if (searchTerm) {
+            <button
+              type="button"
+              class="clear-search-btn"
+              (click)="clearSearch()"
+              aria-label="Effacer"
+              title="Effacer">
+              <ion-icon name="close-circle-outline"></ion-icon>
+            </button>
+          }
+        </div>
+
+        <div class="status-segment-wrapper">
+          <span class="count-pill" [title]="'SERVEUR.TABLES_COUNT' | transloco">
+            <ion-icon name="restaurant-outline"></ion-icon>
+            {{ filteredTables.length }} / {{ tables.length }}
+          </span>
+
+          <button
+            type="button"
+            class="filter-pill-btn"
+            [class.active]="selectedStatus === 'ALL'"
+            (click)="setStatusFilter('ALL')">
+            {{ 'SERVEUR.ALL_TABLES' | transloco }} ({{ tables.length }})
+          </button>
+          <button
+            type="button"
+            class="filter-pill-btn free"
+            [class.active]="selectedStatus === 'FREE'"
+            (click)="setStatusFilter('FREE')">
+            <span class="status-dot free"></span>
+            {{ 'SERVEUR.FREE_TABLES' | transloco }} ({{ countLibres }})
+          </button>
+          <button
+            type="button"
+            class="filter-pill-btn occupied"
+            [class.active]="selectedStatus === 'OCCUPIED'"
+            (click)="setStatusFilter('OCCUPIED')">
+            <span class="status-dot occupied"></span>
+            {{ 'SERVEUR.OCCUPIED_TABLES' | transloco }} ({{ countOccupees }})
+          </button>
+        </div>
+      </div>
+
+      <!-- LIGNE INFERIEURE : DROPDOWNS SELECTION & BOUTONS MODE D'AFFICHAGE -->
+      <div class="controls-row-bottom">
+        <div class="filter-dropdowns">
+          <!-- Dropdown Étage -->
+          <div class="filter-select-box">
+            <app-searchable-select
+              [label]="'SERVEUR.FLOOR_LABEL' | transloco"
+              [options]="etageOptions"
+              [(ngModel)]="selectedEtage"
+              (selectionChange)="onEtageOptionChange($event)"
+              [enableSearch]="true"
+              [placeholder]="'SERVEUR.ALL_FLOORS' | transloco"
+              testId="serveur-etage-select">
+            </app-searchable-select>
+          </div>
+
+          <!-- Dropdown Zone -->
+          <div class="filter-select-box">
+            <app-searchable-select
+              [label]="'SERVEUR.ZONE_LABEL' | transloco"
+              [options]="zoneOptions"
+              [(ngModel)]="selectedZone"
+              (selectionChange)="onZoneOptionChange($event)"
+              [enableSearch]="true"
+              [placeholder]="'SERVEUR.ALL_ZONES' | transloco"
+              testId="serveur-zone-select">
+            </app-searchable-select>
+          </div>
+
+          <!-- Dropdown Trier Par -->
+          <div class="filter-select-box">
+            <app-searchable-select
+              [label]="'SERVEUR.SORT_LABEL' | transloco"
+              [options]="sortOptions"
+              [(ngModel)]="sortOption"
+              (selectionChange)="onSortOptionChange($event)"
+              [enableSearch]="false"
+              [placeholder]="'SERVEUR.SORT_LABEL' | transloco"
+              testId="serveur-sort-select">
+            </app-searchable-select>
+          </div>
+        </div>
+
+        <!-- Boutons de Mode d'Affichage (Par Zone, Par Étage, Grille, Plan 2D) -->
+        <div class="view-mode-group">
+          <button
+            type="button"
+            class="view-toggle-btn"
+            [class.active]="displayMode === 'BY_ZONE'"
+            (click)="setDisplayMode('BY_ZONE')"
+            [title]="'SERVEUR.VIEW_BY_ZONE' | transloco">
+            <ion-icon name="layers-outline"></ion-icon>
+            <span>{{ 'SERVEUR.BY_ZONE' | transloco }}</span>
+          </button>
+
+          <button
+            type="button"
+            class="view-toggle-btn"
+            [class.active]="displayMode === 'BY_FLOOR'"
+            (click)="setDisplayMode('BY_FLOOR')"
+            [title]="'SERVEUR.VIEW_BY_FLOOR' | transloco">
+            <ion-icon name="business-outline"></ion-icon>
+            <span>{{ 'SERVEUR.BY_FLOOR' | transloco }}</span>
+          </button>
+
+          <button
+            type="button"
+            class="view-toggle-btn"
+            [class.active]="displayMode === 'GRID'"
+            (click)="setDisplayMode('GRID')"
+            [title]="'SERVEUR.VIEW_GRID' | transloco">
+            <ion-icon name="grid-outline"></ion-icon>
+            <span>{{ 'SERVEUR.GRID' | transloco }}</span>
+          </button>
+
+          <button
+            type="button"
+            class="view-toggle-btn"
+            [class.active]="displayMode === 'PLAN'"
+            (click)="setDisplayMode('PLAN')"
+            [title]="'SERVEUR.VIEW_PLAN' | transloco">
+            <ion-icon name="map-outline"></ion-icon>
+            <span>{{ 'SERVEUR.PLAN_2D' | transloco }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODE 1 : GROUPÉ PAR ZONE (BY_ZONE) -->
+    <ng-container *ngIf="displayMode === 'BY_ZONE'">
+      <div class="zone-section-group" *ngFor="let group of groupedTables">
+        <div class="zone-section-header">
+          <div class="section-title-group">
+            <ion-icon name="layers-outline"></ion-icon>
+            <h2 class="section-title">{{ group.title }}</h2>
+            <span class="floor-chip" *ngIf="group.subTitle">{{ group.subTitle }}</span>
+          </div>
+          <div class="section-metrics">
+            <span class="metric-chip">{{ 'SERVEUR.TABLES_COUNT' | transloco:{ count: group.tables.length } }}</span>
+            <span class="metric-chip free">{{ 'SERVEUR.FREE_COUNT' | transloco:{ count: group.freeCount } }}</span>
+            <span class="metric-chip occupied">{{ 'SERVEUR.OCCUPIED_COUNT' | transloco:{ count: group.occupiedCount } }}</span>
+          </div>
+        </div>
+
+        <div class="mobile-tables-grid">
+          <app-mobile-table-card
+            *ngFor="let table of group.tables; trackBy: trackById"
+            [table]="table"
+            [waitTimeMinutes]="getWaitTimeMinutes(table)"
+            [activeTotal]="table.activeTotal || 0"
+            [pendingOrdersCount]="table.commandesActives.length || 0"
+            (tableSelect)="onSelectionner($event)"
+            (newOrder)="onNewOrderForTable($event)"
+            (occupyTable)="onOccupyTable($event)"
+            (freeTable)="onFreeTable($event)"
+            (ackAppel)="acquitterAppel($event)">
+          </app-mobile-table-card>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- MODE 2 : GROUPÉ PAR ÉTAGE (BY_FLOOR) -->
+    <ng-container *ngIf="displayMode === 'BY_FLOOR'">
+      <div class="zone-section-group" *ngFor="let group of groupedTables">
+        <div class="zone-section-header">
+          <div class="section-title-group">
+            <ion-icon name="business-outline"></ion-icon>
+            <h2 class="section-title">{{ group.title }}</h2>
+          </div>
+          <div class="section-metrics">
+            <span class="metric-chip">{{ 'SERVEUR.TABLES_COUNT' | transloco:{ count: group.tables.length } }}</span>
+            <span class="metric-chip free">{{ 'SERVEUR.FREE_COUNT' | transloco:{ count: group.freeCount } }}</span>
+            <span class="metric-chip occupied">{{ 'SERVEUR.OCCUPIED_COUNT' | transloco:{ count: group.occupiedCount } }}</span>
+          </div>
+        </div>
+
+        <div class="mobile-tables-grid">
+          <app-mobile-table-card
+            *ngFor="let table of group.tables; trackBy: trackById"
+            [table]="table"
+            [waitTimeMinutes]="getWaitTimeMinutes(table)"
+            [activeTotal]="table.activeTotal || 0"
+            [pendingOrdersCount]="table.commandesActives.length || 0"
+            (tableSelect)="onSelectionner($event)"
+            (newOrder)="onNewOrderForTable($event)"
+            (occupyTable)="onOccupyTable($event)"
+            (freeTable)="onFreeTable($event)"
+            (ackAppel)="acquitterAppel($event)">
+          </app-mobile-table-card>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- MODE 3 : GRILLE SIMPLE (GRID) -->
+    <div class="mobile-tables-grid" *ngIf="displayMode === 'GRID'">
+      <app-mobile-table-card
+        *ngFor="let table of filteredTables; trackBy: trackById"
+        [table]="table"
+        [waitTimeMinutes]="getWaitTimeMinutes(table)"
+        [activeTotal]="table.activeTotal || 0"
+        [pendingOrdersCount]="table.commandesActives.length || 0"
+        (tableSelect)="onSelectionner($event)"
+        (newOrder)="onNewOrderForTable($event)"
+        (occupyTable)="onOccupyTable($event)"
+        (freeTable)="onFreeTable($event)"
+        (ackAppel)="acquitterAppel($event)">
+      </app-mobile-table-card>
+    </div>
+
+    <!-- MODE 4 : PLAN DE SALLE 2D (PLAN) -->
+    <div class="plan-salle-interactive-wrapper" *ngIf="displayMode === 'PLAN'">
+      <!-- Floor & Zone Filter Control Bar & Status Legend -->
+      <div class="plan-control-bar">
+        <div class="filters-column">
+          <!-- Floor Level Tabs -->
+          <div class="filter-chips-group floor-group">
+            <span class="filter-label">{{ 'PLAN_SALLE_PAGE.FLOOR_LABEL' | transloco }}</span>
+            <button
+              type="button"
+              class="floor-chip"
+              [class.active]="selectedEtage === 'ALL' || selectedEtage === 'RDC'"
+              (click)="onEtageSelectChangeDirect('RDC')"
+              data-testid="plan-pill-etage-rdc">
+              {{ 'SERVEUR.RDC_LABEL' | transloco }}
+            </button>
+            <button
+              *ngFor="let etage of etagesList"
+              [hidden]="etage.code === 'RDC'"
+              type="button"
+              class="floor-chip"
+              [class.active]="selectedEtage === etage.code"
+              (click)="onEtageSelectChangeDirect(etage.code)"
+              [attr.data-testid]="'plan-pill-etage-' + etage.code">
+              {{ etage.nom }}
+            </button>
+          </div>
+
+          <!-- Sub-zone Filter Chips -->
+          <div *ngIf="availableZonesForFilter.length > 0" class="filter-chips-group zone-group">
+            <span class="filter-label">{{ 'PLAN_SALLE_PAGE.ZONE_LABEL' | transloco }}</span>
+            <button
+              type="button"
+              class="zone-chip"
+              [class.active]="selectedZones.length === 0"
+              (click)="clearZoneFilter()"
+              data-testid="plan-pill-zone-all">
+              {{ 'PLAN_SALLE_PAGE.ALL_ZONES' | transloco }}
+            </button>
+            <button
+              *ngFor="let z of availableZonesForFilter"
+              type="button"
+              class="zone-chip"
+              [class.active]="isZoneSelected(z.nom)"
+              (click)="toggleZone(z.nom)"
+              [attr.data-testid]="'plan-pill-zone-' + z.id">
+              {{ z.nom }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Status Legend -->
+        <div class="legend-bar">
+          <div class="legend-item"><span class="dot dot-libre"></span><span>{{ 'SERVEUR.LEGEND_FREE' | transloco }}</span></div>
+          <div class="legend-item"><span class="dot dot-occupee"></span><span>{{ 'SERVEUR.LEGEND_OCCUPIED' | transloco }}</span></div>
+          <div class="legend-item"><span class="dot dot-retard"></span><span>{{ 'SERVEUR.LEGEND_WAITING' | transloco }}</span></div>
+          <div class="legend-item"><span class="dot dot-reservee"></span><span>{{ 'SERVEUR.LEGEND_RESERVED' | transloco }}</span></div>
+        </div>
+      </div>
+
+      <!-- Interactive Konva Canvas Container -->
+      <div class="canvas-wrapper">
+        <div
+          #konvaFloorPlanContainer
+          class="konva-container"
+          data-testid="konva-canvas">
+        </div>
+
+        <!-- Floating Zoom & Navigation Controls Widget -->
+        <div class="zoom-controls-floating" data-testid="zoom-controls">
+          <button
+            type="button"
+            class="zoom-btn"
+            (click)="zoomerIn()"
+            [title]="'SERVEUR.ZOOM_IN' | transloco"
+            data-testid="btn-zoom-in">
+            <ion-icon name="add-outline"></ion-icon>
+          </button>
+          <button
+            type="button"
+            class="zoom-btn"
+            (click)="zoomerOut()"
+            [title]="'SERVEUR.ZOOM_OUT' | transloco"
+            data-testid="btn-zoom-out">
+            <ion-icon name="remove-outline"></ion-icon>
+          </button>
+          <button
+            type="button"
+            class="zoom-btn"
+            (click)="reinitialiserVue()"
+            [title]="'SERVEUR.RESET_VIEW' | transloco"
+            data-testid="btn-reset-view">
+            <ion-icon name="locate-outline"></ion-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- ONGLET 2 : PRISE DE COMMANDE RAPIDE & MENU PRODUITS -->
+  <ng-container *ngIf="activeTab === 'commande'">
+    <div class="order-taking-layout">
+      <!-- Zone Produits & Filtres (Gauche) -->
+      <div class="products-section">
+        <!-- Barre de filtres Cocktails (style page Cocktail) -->
+        <div class="cocktail-filters-card">
+          <!-- Searchbar -->
+          <div class="search-input-box">
+            <ion-icon name="search-outline" class="search-icon" aria-hidden="true"></ion-icon>
+            <label for="serveur-product-search-input" class="visually-hidden">{{ 'SERVEUR.SEARCH_COCKTAIL_PLACEHOLDER' | transloco }}</label>
+            <input
+              id="serveur-product-search-input"
+              type="text"
+              class="custom-search-field"
+              [(ngModel)]="productSearchQuery"
+              [placeholder]="'SERVEUR.SEARCH_COCKTAIL_PLACEHOLDER' | transloco"
+              data-testid="product-searchbar" />
+            @if (productSearchQuery) {
+              <button
+                type="button"
+                class="clear-search-btn"
+                (click)="productSearchQuery = ''"
+                aria-label="Effacer"
+                title="Effacer">
+                <ion-icon name="close-circle-outline"></ion-icon>
+              </button>
+            }
+          </div>
+
+          <!-- Category Dot Filter Pills -->
+          <div class="category-pills-row">
+            <button
+              class="figma-filter-pill"
+              [class.active]="selectedCategory === 'ALL'"
+              [ngStyle]="getCategoryPillStyle('ALL', selectedCategory === 'ALL')"
+              (click)="onCategorySelect('ALL')"
+              data-testid="category-all-btn">
+              <span class="dot-indicator" style="background-color: #6366f1;"></span>
+              {{ 'SERVEUR.CATEGORIES.ALL' | transloco }}
+            </button>
+            <button
+              class="figma-filter-pill"
+              [class.active]="selectedCategory === 'ALCOOLISE'"
+              [ngStyle]="getCategoryPillStyle('ALCOOLISE', selectedCategory === 'ALCOOLISE')"
+              (click)="onCategorySelect('ALCOOLISE')"
+              data-testid="category-alcoolise-btn">
+              <span class="dot-indicator" style="background-color: #10b981;"></span>
+              {{ 'SERVEUR.CATEGORIES.ALCOOLISE' | transloco }}
+            </button>
+            <button
+              class="figma-filter-pill"
+              [class.active]="selectedCategory === 'SANS_ALCOOL'"
+              [ngStyle]="getCategoryPillStyle('SANS_ALCOOL', selectedCategory === 'SANS_ALCOOL')"
+              (click)="onCategorySelect('SANS_ALCOOL')"
+              data-testid="category-sans-alcool-btn">
+              <span class="dot-indicator" style="background-color: #06b6d4;"></span>
+              {{ 'SERVEUR.CATEGORIES.SANS_ALCOOL' | transloco }}
+            </button>
+            <button
+              class="figma-filter-pill"
+              [class.active]="selectedCategory === 'SHOT'"
+              [ngStyle]="getCategoryPillStyle('SHOT', selectedCategory === 'SHOT')"
+              (click)="onCategorySelect('SHOT')"
+              data-testid="category-shot-btn">
+              <span class="dot-indicator" style="background-color: #84cc16;"></span>
+              {{ 'SERVEUR.CATEGORIES.SHOT' | transloco }}
+            </button>
+            <button
+              class="figma-filter-pill"
+              [class.active]="selectedCategory === 'APERITIF'"
+              [ngStyle]="getCategoryPillStyle('APERITIF', selectedCategory === 'APERITIF')"
+              (click)="onCategorySelect('APERITIF')"
+              data-testid="category-aperitif-btn">
+              <span class="dot-indicator" style="background-color: #f97316;"></span>
+              {{ 'SERVEUR.CATEGORIES.APERITIF' | transloco }}
+            </button>
+            <button
+              class="figma-filter-pill"
+              [class.active]="selectedCategory === 'DIGESTIF'"
+              [ngStyle]="getCategoryPillStyle('DIGESTIF', selectedCategory === 'DIGESTIF')"
+              (click)="onCategorySelect('DIGESTIF')"
+              data-testid="category-digestif-btn">
+              <span class="dot-indicator" style="background-color: #ef4444;"></span>
+              {{ 'SERVEUR.CATEGORIES.DIGESTIF' | transloco }}
+            </button>
+            <button
+              class="figma-filter-pill"
+              [class.active]="selectedCategory === 'SPECIAL'"
+              [ngStyle]="getCategoryPillStyle('SPECIAL', selectedCategory === 'SPECIAL')"
+              (click)="onCategorySelect('SPECIAL')"
+              data-testid="category-special-btn">
+              <span class="dot-indicator" style="background-color: #eab308;"></span>
+              {{ 'SERVEUR.CATEGORIES.SPECIAL' | transloco }}
+            </button>
+          </div>
+
+          <!-- Allergen Filter Pills Row -->
+          <div class="allergen-pills-row" data-testid="allergen-filter-section">
+            <span class="allergen-filter-label">
+              <ion-icon name="funnel-outline"></ion-icon>
+              {{ 'SERVEUR.ALLERGEN_FILTER' | transloco }} :
+            </span>
+            <button
+              *ngFor="let allergen of availableAllergens"
+              class="figma-allergen-pill"
+              [class.excluded]="selectedAllergens.includes(allergen.key)"
+              (click)="toggleAllergenFilter(allergen.key)"
+              [attr.data-testid]="'allergen-filter-' + allergen.key.toLowerCase()">
+              <ion-icon [name]="allergen.icon"></ion-icon>
+              {{ allergen.label }}
+              <span class="allergen-close-icon" *ngIf="selectedAllergens.includes(allergen.key)">✕</span>
+            </button>
+            <button
+              *ngIf="selectedAllergens.length > 0"
+              class="figma-clear-allergens-btn"
+              (click)="clearAllergenFilters()">
+              <ion-icon name="close-circle-outline"></ion-icon>
+              {{ 'COMMON.RESET' | transloco }}
+            </button>
+          </div>
+        </div>
+
+        <div class="products-grid">
+          <app-product-card
+            *ngFor="let p of filteredProducts; trackBy: trackById"
+            [product]="p"
+            [canSeeLowStock]="canSeeLowStock"
+            (add)="onAddToCart($event)"
+            (customize)="onCustomizeProduct($event)">
+          </app-product-card>
+          <div *ngIf="filteredProducts.length === 0" class="empty-products-msg">
+            {{ 'SERVEUR.NO_PRODUCTS' | transloco }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Zone Tiroir Panier (Droite) -->
+      <div class="cart-section">
+        <app-cart-drawer
+          [cart]="cart"
+          [tables]="tables"
+          [isSubmitting]="isSubmitting"
+          (quantityChange)="onCartQuantityChanged($event)"
+          (removeItem)="onCartItemRemoved($event)"
+          (tableSelect)="onTableSelectForOrder($event)"
+          (submitOrder)="onSubmitCart()"
+          (clearCart)="onClearCart()"
+          (editCustomization)="onEditCartItemCustomization($event)">
+        </app-cart-drawer>
+      </div>
+    </div>
+  </ng-container>
+
+  </ion-content>
+}
+
+<!-- ONGLET 3 : SUIVI DES COMMANDES EN TEMPS REEL (possède son propre ion-content) -->
+@if (activeTab === 'suivi') {
+  <div class="suivi-tab-wrapper">
+    <app-commande-list></app-commande-list>
+  </div>
+}
+
+<!-- BOTTOM NAVIGATION MOBILE / TABLETTE -->
+<app-bottom-navigation
+  [activeTab]="activeTab"
+  [cartBadgeCount]="cartTotalCount"
+  (tabSelect)="onTabSelected($event)">
+</app-bottom-navigation>

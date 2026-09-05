@@ -1,0 +1,176 @@
+<div class="ticket-wrapper">
+  <!-- Format Selection & Print Toolbar -->
+  <div class="no-print ticket-control-bar">
+    <div class="format-pill-group">
+      <button
+        type="button"
+        class="format-btn"
+        [class.active]="selectedFormat === '80mm'"
+        (click)="setFormat('80mm')"
+        data-testid="format-80mm-btn">
+        <ion-icon name="receipt-outline"></ion-icon>
+        <span>80mm (Standard)</span>
+      </button>
+      <button
+        type="button"
+        class="format-btn"
+        [class.active]="selectedFormat === '58mm'"
+        (click)="setFormat('58mm')"
+        data-testid="format-58mm-btn">
+        <ion-icon name="receipt-outline"></ion-icon>
+        <span>58mm (Compact)</span>
+      </button>
+    </div>
+
+    <button
+      type="button"
+      class="btn-print-ticket"
+      (click)="imprimerTicket()"
+      (keydown.enter)="imprimerTicket()"
+      data-testid="print-ticket-btn">
+      <ion-icon name="print-outline"></ion-icon>
+      <span>{{ 'FACTURES.PRINT_TICKET' | transloco }} ({{ selectedFormat }})</span>
+    </button>
+  </div>
+
+  <!-- Simulated Thermal Receipt Container -->
+  <div class="paper-receipt-container">
+    <!-- Top Perforated Paper Tear Edge -->
+    <div class="paper-tear paper-tear-top"></div>
+
+    <article
+      class="thermal-receipt"
+      [class.format-58mm]="selectedFormat === '58mm'"
+      [class.format-80mm]="selectedFormat === '80mm'"
+      data-testid="thermal-receipt">
+      
+      <!-- Establishment Branding & Legal Header -->
+      <header class="receipt-header" *ngIf="establishmentConfig as cfg">
+        <div class="receipt-logo-title">
+          <span class="bar-title">{{ cfg.legalName || 'OpenBar' }}</span>
+        </div>
+        <p class="legal-form" *ngIf="cfg.legalForm">
+          {{ cfg.legalForm }}
+          <span *ngIf="cfg.capitalSocial"> - Cap. {{ cfg.capitalSocial | appCurrency:0:0 }}</span>
+        </p>
+        <p class="legal-address" *ngIf="cfg.address">{{ cfg.address }}</p>
+        <p class="legal-contact" *ngIf="cfg.phone">{{ tr('PHONE_LABEL') }}: {{ cfg.phone }}</p>
+        <div class="legal-tax-row">
+          <span *ngIf="cfg.siret">SIRET: {{ cfg.siret }}</span>
+          <span *ngIf="cfg.tvaNumber">N° TVA: {{ cfg.tvaNumber }}</span>
+        </div>
+      </header>
+
+      <div class="receipt-dashed-divider"></div>
+
+      <!-- Receipt Metadata Section -->
+      <section class="receipt-metadata-box">
+        <div class="metadata-row">
+          <span class="meta-label">{{ tr('RECEIPT_NUM') }} :</span>
+          <strong class="meta-value">{{ reglement ? ('FAC-' + facture.numero + '-' + reglement.id) : ('FAC-' + facture.numero) }}</strong>
+        </div>
+        <div class="metadata-row">
+          <span class="meta-label">{{ tr('DATE') }} :</span>
+          <span class="meta-value">{{ (reglement?.dateReglement || facture.dateFacture) | date:'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+        <div class="metadata-row" *ngIf="facture.tableNumero">
+          <span class="meta-label">{{ tr('TABLE') }} :</span>
+          <span class="meta-value">{{ tr('TABLE') }} {{ facture.tableNumero }}</span>
+        </div>
+        <div class="metadata-row" *ngIf="reglement?.modePaiement || facture.modePaiement">
+          <span class="meta-label">{{ tr('PAYMENT_MODE') }} :</span>
+          <span class="meta-value">{{ reglement?.modePaiement || facture.modePaiement }}</span>
+        </div>
+      </section>
+
+      <div class="receipt-dashed-divider"></div>
+
+      <!-- Articles Itemized List -->
+      <section class="receipt-items-table">
+        <div class="items-table-header">
+          <span class="col-item">{{ tr('COL_ITEM') }}</span>
+          <span class="col-qty">{{ tr('COL_QTY') }}</span>
+          <span class="col-total">{{ tr('COL_TOTAL') }}</span>
+        </div>
+
+        <div class="items-table-body">
+          @if (reglement) {
+            @for (item of splitPartItems; track $index) {
+              <div class="item-entry">
+                <div class="entry-primary">
+                  <span class="col-item item-name">{{ item.description }}</span>
+                  <span class="col-qty item-count">{{ item.quantite }}x</span>
+                  <span class="col-total item-price">{{ item.total | appCurrency }}</span>
+                </div>
+                <div class="entry-secondary" *ngIf="item.quantite > 1">
+                  <span>{{ item.quantite }} × {{ item.prixUnitaire | appCurrency }}</span>
+                </div>
+              </div>
+            }
+          } @else {
+            @for (item of facture.items; track trackById($index, item)) {
+              <div class="item-entry">
+                <div class="entry-primary">
+                  <span class="col-item item-name">{{ item.description }}</span>
+                  <span class="col-qty item-count">{{ item.quantite }}x</span>
+                  <span class="col-total item-price">{{ item.total | appCurrency }}</span>
+                </div>
+                <div class="entry-secondary" *ngIf="item.quantite > 1 || item.vatRate">
+                  <span>{{ item.quantite }} × {{ item.prixUnitaire | appCurrency }} (TVA {{ item.vatRate || '20%' }})</span>
+                </div>
+              </div>
+            }
+          }
+        </div>
+      </section>
+
+      <div class="receipt-dashed-divider"></div>
+
+      <!-- Totals & Financial Breakdown -->
+      <section class="receipt-totals-box">
+        <div class="totals-line">
+          <span>{{ tr('TOTAL_HT') }}</span>
+          <span class="amount-val">{{ totalHT | appCurrency }}</span>
+        </div>
+        <div class="totals-line">
+          <span>{{ tr('TOTAL_VAT') }}</span>
+          <span class="amount-val">{{ totalVAT | appCurrency }}</span>
+        </div>
+        @if ((reglement ? reglement.pourboire : facture.pourboire); as tip) {
+          @if (tip > 0) {
+            <div class="totals-line">
+              <span>{{ tr('TIP') }}</span>
+              <span>+{{ tip | appCurrency }}</span>
+            </div>
+          }
+        }
+        <div class="totals-line grand-total-line">
+          <strong>{{ reglement ? tr('TOTAL_PART_PAID') : tr('TOTAL_TTC') }}</strong>
+          <strong class="grand-total-amount">{{ totalTTC | appCurrency }}</strong>
+        </div>
+      </section>
+
+      <div class="receipt-dashed-divider"></div>
+
+      <!-- Footer & Payment Status -->
+      <footer class="receipt-footer">
+        <p class="status-banner" [class.settled]="reglement || facture.reglee">
+          *** {{ (reglement ? tr('PART_SETTLED') : (facture.reglee ? tr('SETTLED') : tr('PENDING'))) }} ***
+        </p>
+        <p class="greeting-text">{{ tr('THANK_YOU') }}</p>
+
+        <!-- Simulated POS Barcode -->
+        <div class="simulated-barcode">
+          <div class="barcode-lines"></div>
+          <span class="barcode-number">{{ reglement ? (facture.numero + '-P' + reglement.partIndex) : facture.numero }}</span>
+        </div>
+
+        <p class="footer-subtext">OpenBar POS — Thermal {{ selectedFormat }}</p>
+      </footer>
+    </article>
+
+    <!-- Bottom Perforated Paper Tear Edge -->
+    <div class="paper-tear paper-tear-bottom"></div>
+  </div>
+</div>
+

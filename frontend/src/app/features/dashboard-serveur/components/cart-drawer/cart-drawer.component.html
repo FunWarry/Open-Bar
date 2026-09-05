@@ -1,0 +1,86 @@
+<div class="cart-drawer-container">
+  <div class="cart-header">
+    <h3>
+      <ion-icon name="cart-outline"></ion-icon>
+      {{ 'SERVEUR.CURRENT_ORDER' | transloco }}
+    </h3>
+    <button class="clear-btn" *ngIf="cart.items.length > 0" (click)="clearCart.emit()" (keyup.enter)="clearCart.emit()" data-testid="btn-clear-cart">
+      {{ 'SERVEUR.CLEAR' | transloco }}
+    </button>
+  </div>
+
+  <!-- Table Selector -->
+  <div class="table-selector-wrap">
+    <label for="table-select-cart">{{ 'SERVEUR.ASSIGNED_TABLE' | transloco }} :</label>
+    <ion-select
+      id="table-select-cart"
+      [attr.aria-label]="'SERVEUR.ASSIGNED_TABLE' | transloco"
+      [value]="cart.tableId"
+      [placeholder]="'SERVEUR.SELECT_TABLE' | transloco"
+      interface="popover"
+      data-testid="select-cart-table"
+      (ionChange)="onTableChanged($event)">
+      <ion-select-option *ngFor="let t of tables" [value]="t.id">
+        {{ t.nom || 'Table #' + t.id }} ({{ t.zone }})
+      </ion-select-option>
+    </ion-select>
+  </div>
+
+  <!-- Cart Items List -->
+  <div class="cart-body">
+    <app-empty-state
+      *ngIf="cart.items.length === 0"
+      icon="basket-outline"
+      [title]="'SERVEUR.EMPTY_CART_TITLE' | transloco"
+      [subtitle]="'SERVEUR.EMPTY_CART_DESC' | transloco">
+    </app-empty-state>
+
+    <div class="cart-item-row" *ngFor="let item of cart.items; let i = index" [attr.data-testid]="'cart-item-' + i">
+      <button type="button" class="item-info-btn" (click)="onEditItem(item)">
+        <div class="item-name-row">
+          <span class="item-name">{{ item.nom }}</span>
+          <span *ngIf="item.varianteNom" class="item-variant">({{ item.varianteNom }})</span>
+          <span class="edit-custom-icon" [title]="'COMMON.EDIT' | transloco">
+            <ion-icon name="create-outline"></ion-icon>
+          </span>
+        </div>
+        <span class="item-unit-price">{{ item.prix | appCurrency }} / u</span>
+
+        <!-- Exclusions & Commentaire attachés à l'élément -->
+        <div *ngIf="(item.exclusions && item.exclusions.length > 0) || item.commentaire" class="item-customizations">
+          <span *ngFor="let ex of item.exclusions" class="custom-badge exclusion-badge">Sans {{ ex }}</span>
+          <span *ngIf="item.commentaire" class="custom-badge comment-badge">💬 {{ item.commentaire }}</span>
+        </div>
+      </button>
+
+      <div class="item-controls">
+        <app-quantity-stepper
+          [value]="item.quantite"
+          [min]="0"
+          [max]="99"
+          (valueChange)="onQuantityChanged(item, $event)">
+        </app-quantity-stepper>
+        <span class="item-total">{{ (item.prix * item.quantite) | appCurrency }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cart Footer -->
+  <div class="cart-footer" *ngIf="cart.items.length > 0">
+    <div class="cart-total-row">
+      <span>{{ 'SERVEUR.BREAKDOWN.TOTAL_TTC' | transloco }}</span>
+      <span class="total-amount">{{ totalTTC | appCurrency }}</span>
+    </div>
+
+    <app-action-button
+      variant="primary"
+      size="medium"
+      iconLeft="paper-plane-outline"
+      testId="btn-submit-cart"
+      [disabled]="!cart.tableId || isSubmitting"
+      (click)="onSubmit()"
+      (keyup.enter)="onSubmit()">
+      {{ 'SERVEUR.SEND_PREPARATION' | transloco }}
+    </app-action-button>
+  </div>
+</div>

@@ -1,0 +1,364 @@
+---
+name: openbar-dev
+description: |
+  Génère du code pour le projet OpenBar en respectant les conventions existantes (Spring Boot 4 backend, Angular 20 + Ionic 8 frontend).
+
+  Quand utiliser ce skill:
+  - "Ajoute une feature X au projet"
+  - "Crée le CRUD pour [entité]"
+  - "Génère le composant Angular pour [feature]"
+  - "Ajoute l'endpoint [action]"
+  - "Implémente [feature] côté backend/frontend"
+---
+
+# Skill : openbar-dev
+
+Génère du code pour le projet OpenBar en respectant les conventions existantes.
+
+## Règle Absolue : Documentation Code Obligatoire & En Anglais 🇬🇧
+
+- **Documentation OBLIGATOIRE sur TOUT code créé ou modifié**
+- **TOUTE la documentation (JavaDoc, TSDoc, Swagger/OpenAPI) DOIT ÊTRE RÉDIGÉE EXCLUSIVEMENT EN ANGLAIS**.
+- **INTERDICTION d'utiliser `@SuppressWarnings`** : toujours corriger les vrais problèmes sous-jacents (DTOs, types, configuration).
+- **Mise à jour Onboarding & Configuration OBLIGATOIRE** : Pour chaque mise à jour ou ajout de feature, si nécessaire, mettre systématiquement à jour le processus d'onboarding (`/setup`, `OnboardingComponent`, `SetupComponent`, setup wizard) et les écrans de configuration (`AppSettingsPageComponent`, establishment settings, seeders) pour gérer et configurer la nouvelle feature.
+- **Seeding Données de Test & Démonstration Plateforme OBLIGATOIRE** : Systématiquement ajouter/mettre à jour les jeux de données de démonstration (`data/demo_dataset.json`, `SampleDataSeederService.java`, seeders) pour toute nouvelle entité ou feature, afin de permettre le test et la validation immédiate sur la plateforme en mode dev/test avec des données réalistes.
+- Backend : JavaDoc sur chaque service, controller, DTO (record), security, exception + annotations OpenAPI (`@Tag`, `@Operation`, `@ApiResponse`).
+- Frontend : TSDoc sur chaque service Angular, guard, interceptor et store NgRx.
+
+---
+
+## Stack réelle (ne pas se fier aux anciens fichiers)
+
+- **Backend** : Spring Boot **4.0.6** + Java **22** (épinglé) + JJWT **0.12.6** + Springdoc OpenAPI **2.8.9**
+- **Frontend** : Angular **20** + Ionic **8.8.11** + NgRx **20** (auth uniquement)
+- **Tests backend** : JUnit 5 + Mockito dans `src/test/java/`
+- **Tests frontend** : Karma + Jasmine dans `frontend/src/test/` (miroir de `src/app/`)
+
+---
+
+## Avant de générer du code
+
+1. Identifier le périmètre : Backend seul / Frontend seul / Full-stack
+2. Vérifier les KIs OpenBar pour les patterns existants (architecture, conventions, modèle de données)
+3. Nouvelle entité ou extension d'une entité existante ?
+
+---
+
+## Conventions Backend (Spring Boot 4)
+
+### Modèle JPA
+```java
+@Data
+@Entity
+@Table(name = "ma_table")
+public class MonEntite {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    // champs métier
+
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() { createdAt = updatedAt = LocalDateTime.now(); }
+
+    @PreUpdate
+    protected void onUpdate() { updatedAt = LocalDateTime.now(); }
+}
+```
+
+### Repository
+```java
+public interface MonEntiteRepository extends JpaRepository<MonEntite, Long> {
+    // méthodes dérivées Spring Data si besoin
+}
+```
+
+### Service
+```java
+@Service
+@Transactional
+public class MonEntiteService {
+    private final MonEntiteRepository repo;
+
+    // INJECTION PAR CONSTRUCTEUR — jamais @Autowired sur champ
+    public MonEntiteService(MonEntiteRepository repo) {
+        this.repo = repo;
+    }
+
+    public List<MonEntiteDTO> getAll() {
+        return repo.findAll().stream().map(MonEntiteDTO::from).toList();
+    }
+
+    public MonEntiteDTO getById(Long id) {
+        return MonEntiteDTO.from(
+            repo.findById(id).orElseThrow(() -> new ResourceNotFoundException("MonEntite", id))
+        );
+    }
+
+    @Transactional
+    public MonEntiteDTO create(MonEntite entity) { return MonEntiteDTO.from(repo.save(entity)); }
+
+    @Transactional
+    public MonEntiteDTO update(Long id, MonEntite details) {
+        MonEntite existing = repo.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("MonEntite", id));
+        // copier les champs
+        return MonEntiteDTO.from(repo.save(existing));
+    }
+
+    @Transactional
+    public void delete(Long id) { repo.deleteById(id); }
+}
+```
+
+### DTO de sortie (Java record — obligatoire)
+```java
+public record MonEntiteDTO(Long id, String nom, LocalDateTime createdAt) {
+    public static MonEntiteDTO from(MonEntite e) {
+        return new MonEntiteDTO(e.getId(), e.getNom(), e.getCreatedAt());
+    }
+}
+```
+
+### Controller
+```java
+@RestController
+@RequestMapping("/api/mon-entite")
+@Tag(name = "MonEntite", description = "Gestion des mon-entites")
+public class MonEntiteController {
+    private final MonEntiteService service;
+
+    public MonEntiteController(MonEntiteService service) { this.service = service; }
+
+    @GetMapping
+    @Operation(summary = "Lister toutes les entités")
+    public ResponseEntity<List<MonEntiteDTO>> getAll() {
+        return ResponseEntity.ok(service.getAll());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<MonEntiteDTO> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(service.getById(id));
+    }
+
+    @PostMapping
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
+    public ResponseEntity<MonEntiteDTO> create(@Valid @RequestBody MonEntite entity) {
+        return ResponseEntity.ok(service.create(entity));
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
+    public ResponseEntity<MonEntiteDTO> update(@PathVariable Long id, @Valid @RequestBody MonEntite entity) {
+        return ResponseEntity.ok(service.update(id, entity));
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        service.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+}
+```
+
+**Règles absolues backend :**
+- ❌ Jamais `@Autowired` sur un champ — toujours injection par constructeur
+- ❌ Jamais d'entité JPA en réponse directe — toujours un DTO (Java record)
+- ✅ `@PreAuthorize` sur chaque endpoint en écriture
+- ✅ `ResourceNotFoundException` (404) et `BusinessException` (400) — gérées par `GlobalExceptionHandler`
+- ✅ Schéma SQL dans `backend/src/main/resources/schema.sql`
+
+---
+
+## Conventions Frontend (Angular 20 + Ionic 8)
+
+### Structure par feature
+```
+features/<nom>/
+├── <nom>-list/    # Liste (IonList, IonCard)
+├── <nom>-form/    # Création/édition (reactive forms + IonInput)
+└── <nom>-detail/  # Vue détail (optionnel)
+```
+
+### Service HTTP
+```typescript
+@Injectable({ providedIn: 'root' })
+export class MonEntiteService {
+  private readonly API = '/api/mon-entite';  // relatif — proxy Angular en dev
+
+  constructor(private http: HttpClient) {}
+
+  getAll(): Observable<MonEntite[]> {
+    return this.http.get<MonEntite[]>(this.API);
+  }
+
+  getById(id: number): Observable<MonEntite> {
+    return this.http.get<MonEntite>(`${this.API}/${id}`);
+  }
+
+  create(entity: Partial<MonEntite>): Observable<MonEntite> {
+    return this.http.post<MonEntite>(this.API, entity);
+  }
+
+  update(id: number, entity: Partial<MonEntite>): Observable<MonEntite> {
+    return this.http.put<MonEntite>(`${this.API}/${id}`, entity);
+  }
+
+  delete(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.API}/${id}`);
+  }
+}
+```
+
+### Composant liste (Ionic — standalone)
+```typescript
+@Component({
+  selector: 'app-mon-entite-list',
+  standalone: true,
+  imports: [
+    CommonModule,
+    RouterModule,
+    IonContent, IonHeader, IonToolbar, IonTitle,
+    IonList, IonItem, IonLabel, IonButton, IonIcon,
+    IonFab, IonFabButton,
+    TranslocoModule,
+  ],
+  providers: [provideTranslocoScope('mon-entite')],
+  template: `...`,
+})
+export class MonEntiteListComponent implements OnInit {
+  items = signal<MonEntite[]>([]);
+
+  constructor(private service: MonEntiteService) {}
+
+  ngOnInit() {
+    this.service.getAll().subscribe(data => this.items.set(data));
+  }
+}
+```
+
+**Règles absolues frontend :**
+- ❌ Jamais Angular Material — uniquement composants Ionic
+- ❌ Jamais `NgModule` — uniquement standalone components
+- ❌ Jamais de texte hardcodé FR dans les templates — `{{ 'CLE' | transloco }}`
+- ❌ **Jamais de modification frontend sans mettre à jour `fr.json` ET `en.json`** — toujours les deux en même commit
+- ✅ Signals (`signal()`) pour l'état local des composants
+- ✅ NgRx uniquement pour l'auth — tout le reste en services directs
+- ✅ `data-testid` sur tous les éléments interactifs clés
+
+### Route lazy-loadée dans `app.routes.ts`
+```typescript
+{
+  path: 'mon-entite',
+  loadComponent: () => import('./features/mon-entite/mon-entite-list/mon-entite-list.component')
+    .then(m => m.MonEntiteListComponent),
+  canActivate: [AuthGuard, RoleGuard],
+  data: { roles: ['ADMIN', 'MANAGER'] }
+}
+```
+
+### Traductions — Règle absolue 🌍
+
+**Toute modification frontend qui ajoute ou change du texte visible DOIT mettre à jour les deux fichiers :**
+
+```
+frontend/src/assets/i18n/
+├── fr.json      ← clés en français (langue de référence)
+└── en.json      ← même clés en anglais (traduction obligatoire)
+```
+
+> ⚠️ **Jamais `fr.json` sans `en.json`** — une clé manquante en anglais est considérée comme une régression.
+> Les deux fichiers doivent être mis à jour dans le **même commit** que le composant qui les utilise.
+
+Exemple de structure de clé à ajouter dans les deux fichiers :
+```json
+// fr.json
+"MA_FEATURE": {
+  "TITRE": "Mon titre",
+  "ACTION": "Valider"
+}
+
+// en.json
+"MA_FEATURE": {
+  "TITRE": "My title",
+  "ACTION": "Confirm"
+}
+```
+
+---
+
+## Rôles et sécurité
+
+| Rôle | Backend `@PreAuthorize` | Frontend `data: { roles: [...] }` |
+|------|------------------------|------------------------------------|
+| `ADMIN` | `hasRole('ADMIN')` | `['ADMIN']` |
+| `MANAGER` | `hasRole('MANAGER')` | `['MANAGER']` |
+| `SERVEUR` | `hasRole('SERVEUR')` | `['SERVEUR']` |
+| `BARMAN` | `hasRole('BARMAN')` | `['BARMAN']` |
+
+---
+
+## WebSocket — Notifier après une action métier
+
+Si la feature nécessite des notifications temps réel :
+
+```java
+// Dans le service métier — injecter NotificationService
+@Autowired  // ← exception acceptée pour NotificationService (évite la circulaire)
+private NotificationService notificationService;
+
+// Après la mutation :
+messagingTemplate.convertAndSend("/topic/mon-topic", payload);
+```
+
+Topics existants : `/topic/commandes`, `/topic/commandes/{id}`, `/topic/tables`, `/topic/stock/alerte`
+
+---
+
+## Tests à écrire (OBLIGATOIRES lors de chaque développement)
+
+### 1. Tests Unitaires (Backend JUnit 5 + Mockito / Frontend Karma + Jasmine)
+- Un test par méthode métier, couvrant les cas nominaux, erreurs et cas limites.
+- Documentation et assertions 100% en anglais.
+- Localisation Backend : `backend/src/test/java/.../service/XxxServiceTest.java`
+- Localisation Frontend : `frontend/src/test/features/.../xxx.spec.ts`
+
+### 2. Tests de Non-Régression
+- Tout correctif de bug ou refactoring DOIT s'accompagner d'un test unitaire ou d'intégration dédié reproduisant et verrouillant le comportement attendu.
+
+### 3. Tests d'Intégration Backend (Spring Boot + Testcontainers)
+- Valident le flux applicatif complet (sécurité, MockMvc, transactions, base PostgreSQL).
+- Localisation : `backend/src/test/java/.../integration/XxxIntegrationTest.java`
+
+### 4. Tests E2E Frontend (Playwright)
+- Obligatoires pour toute feature modifiant l'interface utilisateur, les formulaires, la navigation ou les interactions utilisateur.
+- Utilisation stricte des sélecteurs `data-testid`.
+- Localisation : `frontend/e2e/<domaine>/<feature>.spec.ts`
+- Exécution : `npm run test:e2e`
+
+---
+
+## Checklist avant de livrer le code
+
+- [ ] Modèle JPA avec `@PrePersist`/`@PreUpdate`
+- [ ] Table dans `schema.sql`
+- [ ] Repository extends `JpaRepository`
+- [ ] Service avec injection constructeur + `@Transactional`
+- [ ] DTO Java record avec `from(entity)`
+- [ ] Controller avec `@PreAuthorize` sur les endpoints écriture
+- [ ] Composant Angular standalone (Ionic uniquement)
+- [ ] Service Angular avec `HttpClient`
+- [ ] Route lazy-loadée dans `app.routes.ts`
+- [ ] **`fr.json` mis à jour** — aucun texte visible hardcodé
+- [ ] **`en.json` mis à jour** — même clés qu'en français, dans le même commit ✅
+- [ ] `data-testid` sur tous les éléments interactifs
+- [ ] **Tests unitaires backend & frontend** : cas nominal + cas erreur + cas limites
+- [ ] **Tests de non-régression** si bugfix / refactor
+- [ ] **Tests d'intégration backend (Testcontainers)** si nouvelle logique d'API ou flux complexe
+- [ ] **Tests E2E Playwright** pour toute nouvelle vue ou flow utilisateur
+- [ ] **Données de démo et test plateforme ajoutées/mises à jour** (`demo_dataset.json`, `SampleDataSeederService.java`)
+- [ ] Lien navbar si pertinent

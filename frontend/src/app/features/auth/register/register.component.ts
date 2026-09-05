@@ -1,42 +1,39 @@
-import {Component, OnInit} from '@angular/core';
-import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
-import {Store} from '@ngrx/store';
+import { Component } from '@angular/core';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Store } from '@ngrx/store';
+import { TranslocoModule } from '@jsverse/transloco';
 import * as AuthActions from '../../../core/store/auth.actions';
-import {MatCardContent, MatCardHeader, MatCardModule, MatCardTitle} from '@angular/material/card';
-import {MatError, MatFormFieldModule} from '@angular/material/form-field';
-import {MatInputModule} from '@angular/material/input';
-import {MatButtonModule} from '@angular/material/button';
-import {MatSelectModule} from '@angular/material/select';
-import {NgFor, NgIf} from '@angular/common';
+import { IonItem, IonSelect, IonSelectOption } from '@ionic/angular/standalone';
 
+import { InputFieldComponent } from '../../../core/components/ui/input-field/input-field.component';
+import { PasswordInputComponent } from '../../../core/components/ui/password-input/password-input.component';
+import { ActionButtonComponent } from '../../../core/components/ui/action-button/action-button.component';
+
+/**
+ * Register Component allowing Admin users to create new accounts for personnel.
+ * Conforms to Figma Common system view Register specs (`538:936`).
+ */
 @Component({
   selector: 'app-register',
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.css'],
   standalone: true,
   imports: [
-    MatCardModule,
-    MatCardHeader,
-    MatCardTitle,
-    MatCardContent,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatError,
-    MatSelectModule,
+    IonItem,
+    IonSelect,
+    IonSelectOption,
     ReactiveFormsModule,
-    NgIf,
-    NgFor
+    TranslocoModule,
+    InputFieldComponent,
+    PasswordInputComponent,
+    ActionButtonComponent
   ]
 })
-export class RegisterComponent implements OnInit {
+export class RegisterComponent {
   registerForm: FormGroup;
-  roles = ['ADMIN', 'SERVEUR', 'BARMEN'];
+  roles = ['ADMIN', 'MANAGER', 'SERVEUR', 'BARMAN'];
 
-  constructor(
-    private fb: FormBuilder,
-    private store: Store
-  ) {
+  constructor(private readonly fb: FormBuilder, private readonly store: Store) {
     this.registerForm = this.fb.group({
       nom: ['', Validators.required],
       prenom: ['', Validators.required],
@@ -47,12 +44,9 @@ export class RegisterComponent implements OnInit {
     });
   }
 
-  ngOnInit(): void {
-  }
-
   onSubmit(): void {
     if (this.registerForm.valid) {
-      this.store.dispatch(AuthActions.register({userData: this.registerForm.value}));
+      this.store.dispatch(AuthActions.register({ userData: this.registerForm.value }));
     }
   }
 }

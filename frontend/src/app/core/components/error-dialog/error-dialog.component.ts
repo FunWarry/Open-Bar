@@ -1,23 +1,20 @@
-import {Component, Inject} from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
-import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
-import {MatDialogModule} from '@angular/material/dialog';
+import {Component, Input} from '@angular/core';
+import { ModalController, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonContent } from '@ionic/angular/standalone';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-error-dialog',
   templateUrl: './error-dialog.component.html',
-  styleUrls: ['./error-dialog.component.scss'],
+  styleUrls: ['./error-dialog.component.css'],
   standalone: true,
-  imports: [MatDialogModule, MatButtonModule]
+  imports: [IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonContent, TranslocoPipe],
 })
 export class ErrorDialogComponent {
-  constructor(
-    public dialogRef: MatDialogRef<ErrorDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: { message: string }
-  ) {
-  }
+  @Input() data!: {message: string};
+
+  constructor(private readonly modalCtrl: ModalController) {}
 
   onClose(): void {
-    this.dialogRef.close();
+    this.modalCtrl.dismiss();
   }
 }

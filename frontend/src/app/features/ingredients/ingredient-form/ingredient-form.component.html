@@ -1,64 +1,87 @@
-<div class="ingredient-form-container">
-  <mat-card>
-    <mat-card-header>
-      <mat-card-title>{{ isEditMode ? 'Modifier l\'Ingrédient' : 'Nouvel Ingrédient' }}</mat-card-title>
-    </mat-card-header>
-    <mat-card-content>
-      <form [formGroup]="ingredientForm" (ngSubmit)="onSubmit()">
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Nom</mat-label>
-          <input matInput formControlName="name" required>
-          <mat-error *ngIf="ingredientForm.get('name')?.hasError('required')">
-            Le nom est requis
-          </mat-error>
-        </mat-form-field>
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="onCancel()" (keydown.enter)="onCancel()" data-testid="ingredient-back-btn">
+        <ion-icon slot="icon-only" name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>{{ formTitleKey | transloco }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="onCancel()" (keydown.enter)="onCancel()" data-testid="ingredient-close-btn">
+        <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
 
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Catégorie</mat-label>
-          <mat-select formControlName="category" required>
-            <mat-option value="ALCOOL">Alcool</mat-option>
-            <mat-option value="SODA">Soda</mat-option>
-            <mat-option value="JUS">Jus</mat-option>
-            <mat-option value="FRUIT">Fruit</mat-option>
-            <mat-option value="AUTRE">Autre</mat-option>
-          </mat-select>
-          <mat-error *ngIf="ingredientForm.get('category')?.hasError('required')">
-            La catégorie est requise
-          </mat-error>
-        </mat-form-field>
+<ion-content class="modal-content-container">
+  <form [formGroup]="ingredientForm" (ngSubmit)="onSubmit()" data-testid="ingredient-form" class="ingredient-form">
 
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Stock</mat-label>
-          <input matInput formControlName="stock" type="number" required>
-          <mat-error *ngIf="ingredientForm.get('stock')?.hasError('required')">
-            Le stock est requis
-          </mat-error>
-          <mat-error *ngIf="ingredientForm.get('stock')?.hasError('min')">
-            Le stock ne peut pas être négatif
-          </mat-error>
-        </mat-form-field>
+    <app-input-field
+      formControlName="nom"
+      [label]="'INGREDIENTS.NAME' | transloco"
+      [placeholder]="'INGREDIENTS.NAME_PLACEHOLDER' | transloco"
+      icon="cube-outline"
+      [required]="canEdit"
+      [errorMessage]="ingredientForm.get('nom')?.hasError('required') && ingredientForm.get('nom')?.touched ? ('INGREDIENTS.NAME_REQUIRED' | transloco) : ''"
+      testId="ingredient-name-input">
+    </app-input-field>
 
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Unité</mat-label>
-          <mat-select formControlName="unit" required>
-            <mat-option value="CL">Centilitres (cl)</mat-option>
-            <mat-option value="ML">Millilitres (ml)</mat-option>
-            <mat-option value="G">Grammes (g)</mat-option>
-            <mat-option value="KG">Kilogrammes (kg)</mat-option>
-            <mat-option value="UNITE">Unité</mat-option>
-          </mat-select>
-          <mat-error *ngIf="ingredientForm.get('unit')?.hasError('required')">
-            L'unité est requise
-          </mat-error>
-        </mat-form-field>
+    <div class="select-field-group">
+      <span class="field-label" id="unit-select-label">{{ 'INGREDIENTS.UNIT' | transloco }} @if (canEdit) { <span class="required-star">*</span> }</span>
+      <div class="select-input-wrapper">
+        <ion-icon name="scale-outline" class="select-icon"></ion-icon>
+        <ion-select
+          formControlName="uniteMesure"
+          [placeholder]="'INGREDIENTS.SELECT_UNIT' | transloco"
+          [cancelText]="'COMMON.CANCEL' | transloco"
+          [okText]="'COMMON.CONFIRM' | transloco"
+          [interfaceOptions]="{ header: ('INGREDIENTS.UNIT' | transloco) }"
+          aria-labelledby="unit-select-label"
+          data-testid="ingredient-unit-select">
+          @for (unit of unitOptions; track unit.value) {
+            <ion-select-option [value]="unit.value">{{ unit.label }}</ion-select-option>
+          }
+        </ion-select>
+      </div>
+      @if (ingredientForm.get('uniteMesure')?.hasError('required') && ingredientForm.get('uniteMesure')?.touched) {
+        <p class="error-hint">{{ 'INGREDIENTS.UNIT_REQUIRED' | transloco }}</p>
+      }
+    </div>
 
-        <div class="form-actions">
-          <button mat-button type="button" (click)="onCancel()">Annuler</button>
-          <button mat-raised-button color="primary" type="submit" [disabled]="ingredientForm.invalid">
-            {{ isEditMode ? 'Modifier' : 'Créer' }}
-          </button>
-        </div>
-      </form>
-    </mat-card-content>
-  </mat-card>
-</div>
+    <app-input-field
+      formControlName="quantiteStock"
+      type="number"
+      [label]="'INGREDIENTS.STOCK_QTY' | transloco"
+      placeholder="0"
+      icon="layers-outline"
+      [required]="canEdit"
+      [errorMessage]="ingredientForm.get('quantiteStock')?.hasError('min') && ingredientForm.get('quantiteStock')?.touched ? ('INGREDIENTS.STOCK_MIN_ERROR' | transloco) : ''"
+      testId="ingredient-stock-input">
+    </app-input-field>
+
+    <app-input-field
+      formControlName="seuilAlerte"
+      type="number"
+      [label]="'INGREDIENTS.SEUIL_ALERTE' | transloco"
+      placeholder="5"
+      icon="warning-outline"
+      [required]="canEdit"
+      [errorMessage]="ingredientForm.get('seuilAlerte')?.hasError('min') && ingredientForm.get('seuilAlerte')?.touched ? ('INGREDIENTS.SEUIL_MIN_ERROR' | transloco) : ''"
+      testId="ingredient-threshold-input">
+    </app-input-field>
+
+    <div class="form-actions">
+      <ion-button fill="outline" color="medium" type="button" (click)="onCancel()" (keydown.enter)="onCancel()" data-testid="ingredient-cancel-btn">
+        {{ (canEdit ? 'COMMON.CANCEL' : 'COMMON.CLOSE') | transloco }}
+      </ion-button>
+      @if (canEdit) {
+        <ion-button color="primary" type="submit" [disabled]="ingredientForm.invalid" data-testid="ingredient-submit-btn">
+          <ion-icon slot="start" name="checkmark-circle"></ion-icon>
+          {{ (isEditMode ? 'COMMON.EDIT' : 'COMMON.ADD') | transloco }}
+        </ion-button>
+      }
+    </div>
+
+  </form>
+</ion-content>

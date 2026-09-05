@@ -1,5 +1,7 @@
 package com.bar.gestioncocktail.service;
 
+import com.bar.gestioncocktail.dto.CocktailResponseDTO;
+import com.bar.gestioncocktail.model.Cocktail;
 import com.bar.gestioncocktail.model.Commande;
 import com.bar.gestioncocktail.model.CommandeStatut;
 import com.bar.gestioncocktail.model.TableEntity;
@@ -7,13 +9,40 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
+
 @Service
 public class NotificationService {
+    private static final String TOPIC_TABLES = "/topic/tables";
+    private static final String TOPIC_STOCK_ALERTE = "/topic/stock/alerte";
+    private static final String TOPIC_COCKTAILS = "/topic/cocktails";
+    private static final String TOPIC_COCKTAILS_SUPPRIME = "/topic/cocktails/supprime";
+    private static final String TOPIC_SERVEUR_APPELS = "/topic/serveur/appels";
+    private static final String TOPIC_SERVEUR_APPELS_ACQUITTE = "/topic/serveur/appels/acquitte";
+
     private final SimpMessagingTemplate messagingTemplate;
 
     @Autowired
     public NotificationService(SimpMessagingTemplate messagingTemplate) {
         this.messagingTemplate = messagingTemplate;
+    }
+
+    /**
+     * Broadcasts updated or newly created cocktail over WebSocket topic /topic/cocktails.
+     *
+     * @param cocktail Updated cocktail entity
+     */
+    public void notifierCocktailMisAJour(Cocktail cocktail) {
+        messagingTemplate.convertAndSend(TOPIC_COCKTAILS, CocktailResponseDTO.from(cocktail));
+    }
+
+    /**
+     * Broadcasts deleted cocktail ID over WebSocket topic /topic/cocktails/supprime.
+     *
+     * @param cocktailId Deleted cocktail identifier
+     */
+    public void notifierCocktailSupprime(Long cocktailId) {
+        messagingTemplate.convertAndSend(TOPIC_COCKTAILS_SUPPRIME, (Object) Map.of("id", cocktailId, "deleted", true));
     }
 
     public void notifierNouvelleCommande(Commande commande) {
@@ -25,21 +54,74 @@ public class NotificationService {
     }
 
     public void notifierOccupationTable(TableEntity table) {
-        messagingTemplate.convertAndSend("/topic/tables", table);
+        messagingTemplate.convertAndSend(TOPIC_TABLES, table);
     }
 
     public void notifierLiberationTable(TableEntity table) {
-        messagingTemplate.convertAndSend("/topic/tables", table);
+        messagingTemplate.convertAndSend(TOPIC_TABLES, table);
     }
 
     public void notifierStockFaible(Long ingredientId, String nomIngredient, double quantiteRestante) {
         messagingTemplate.convertAndSend(
-            "/topic/stock/alerte",
+            TOPIC_STOCK_ALERTE,
             new StockAlerteNotification(ingredientId, nomIngredient, quantiteRestante)
         );
     }
 
-    private static class CommandeStatutNotification {
+    public void notifierBarmanCommandes(Object payload) {
+        messagingTemplate.convertAndSend("/topic/barman/commandes", payload);
+    }
+
+    public void notifierTrackingClient(String trackingToken, Object payload) {
+        messagingTemplate.convertAndSend("/topic/commandes/" + trackingToken, payload);
+    }
+
+    public void notifierChangementTable(TableEntity table) {
+        messagingTemplate.convertAndSend(TOPIC_TABLES, table);
+    }
+
+    public void notifierChangementStatutCommande(Long commandeId, CommandeStatut ancienStatut, CommandeStatut nouveauStatut) {
+        messagingTemplate.convertAndSend(
+            "/topic/commandes/statut",
+            new CommandeStatutNotification(commandeId, ancienStatut, nouveauStatut)
+        );
+    }
+
+    public void notifierAlerteStockEvent(Object payload) {
+        messagingTemplate.convertAndSend(TOPIC_STOCK_ALERTE, payload);
+    }
+
+    /**
+     * Broadcasts updated application settings over STOMP WebSocket topics.
+     *
+     * @param settings Updated application settings DTO or payload
+     */
+    public void notifierParametresMisAJour(Object settings) {
+        messagingTemplate.convertAndSend("/topic/app-settings", settings);
+        messagingTemplate.convertAndSend("/topic/settings", settings);
+    }
+
+    /**
+     * Broadcasts a new table call alert to servers and table listeners.
+     *
+     * @param payload Table call alert payload
+     */
+    public void notifierNouvelAppel(Object payload) {
+        messagingTemplate.convertAndSend(TOPIC_SERVEUR_APPELS, payload);
+        messagingTemplate.convertAndSend(TOPIC_TABLES, payload);
+    }
+
+    /**
+     * Broadcasts table call alert acknowledgement / dismissal.
+     *
+     * @param payload Table call alert payload
+     */
+    public void notifierAppelAcquitte(Object payload) {
+        messagingTemplate.convertAndSend(TOPIC_SERVEUR_APPELS, payload);
+        messagingTemplate.convertAndSend(TOPIC_SERVEUR_APPELS_ACQUITTE, payload);
+    }
+
+    public static class CommandeStatutNotification {
         private final Long commandeId;
         private final CommandeStatut ancienStatut;
         private final CommandeStatut nouveauStatut;
@@ -63,7 +145,7 @@ public class NotificationService {
         }
     }
 
-    private static class StockAlerteNotification {
+    public static class StockAlerteNotification {
         private final Long ingredientId;
         private final String nomIngredient;
         private final double quantiteRestante;
@@ -82,8 +164,16 @@ public class NotificationService {
             return nomIngredient;
         }
 
+        public String getNom() {
+            return getNomIngredient();
+        }
+
         public double getQuantiteRestante() {
             return quantiteRestante;
         }
+
+        public double getQuantiteActuelle() {
+            return getQuantiteRestante();
+        }
     }
-} 
+}

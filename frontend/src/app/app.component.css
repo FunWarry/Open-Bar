@@ -1,5 +1,167 @@
-.content {
-  padding-top: 64px; /* Hauteur de la barre de navigation */
-  min-height: calc(100vh - 64px);
-  background-color: #f5f5f5;
+.app-layout {
+  display: flex;
+  flex-direction: row;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
 }
+
+.app-main-wrapper {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  height: 100vh;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+app-navbar {
+  display: block;
+  width: 100%;
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+.app-content-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.main-content {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: 100%;
+  width: 100%;
+  position: relative;
+  background-color: var(--bg-0, #0f0f1a);
+  color: var(--text-primary, #eceefb);
+}
+
+.main-content > *:not(router-outlet) {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  position: relative;
+}
+
+/* Sliding notification drawer panel — floating overlay on < 1400px, responsive layout */
+.notif-backdrop {
+  display: none;
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(2px);
+  border: none;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 999;
+  cursor: pointer;
+  animation: fadeInBackdrop 0.2s ease;
+}
+
+@keyframes fadeInBackdrop {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.notif-drawer-wrapper {
+  width: 0;
+  min-width: 0;
+  height: 100%;
+  overflow: hidden;
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.notif-drawer-wrapper.open {
+  width: 360px;
+  min-width: 360px;
+}
+
+/* Floating overlay on narrow & medium viewports (< 1400px) so main content is never squeezed */
+@media (max-width: 1399px) {
+  .notif-backdrop {
+    display: block;
+  }
+
+  .notif-drawer-wrapper {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+    width: 360px;
+    max-width: 90vw;
+    min-width: 0;
+    transform: translateX(100%);
+    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.4);
+    pointer-events: none;
+  }
+
+  .notif-drawer-wrapper.open {
+    transform: translateX(0);
+    width: 360px;
+    max-width: 90vw;
+    min-width: 0;
+    pointer-events: auto;
+  }
+}
+
+.auth-content {
+  min-height: 100vh;
+  background-color: var(--bg-0, #0f0f1a);
+  color: var(--text-primary, #eceefb);
+  position: relative;
+}
+
+/* Floating language toggle button for unauthenticated views & client views */
+.global-unauth-lang-btn {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 9999;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface-2, rgba(30, 36, 56, 0.85));
+  color: var(--text-primary, #eceefb);
+  border: 1px solid var(--border-medium, rgba(255, 255, 255, 0.15));
+  backdrop-filter: blur(12px);
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+
+  ion-icon {
+    font-size: 1.1rem;
+    color: var(--primary, #6366f1);
+  }
+
+  &:hover {
+    background: var(--primary, #4f46e5);
+    color: #ffffff;
+    border-color: var(--primary, #4f46e5);
+    box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+
+    ion-icon {
+      color: #ffffff;
+    }
+  }
+}
+

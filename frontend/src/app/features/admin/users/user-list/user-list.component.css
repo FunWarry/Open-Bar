@@ -1,28 +1,209 @@
-.user-list-container {
-  padding: 20px;
-}
-
-.table-actions {
-  margin-bottom: 20px;
-}
-
-table {
+:host {
+  display: block;
+  height: 100%;
   width: 100%;
+  overflow-y: auto;
 }
 
-.mat-column-actions {
-  width: 120px;
-  text-align: center;
+/* ── Conteneur principal ──────────────────────────────── */
+.user-list-container {
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-.mat-column-createdAt {
-  width: 180px;
+.card-header {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
-.mat-column-roles {
-  width: 200px;
+.header-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
-mat-chip {
-  margin: 2px;
+/* ── Barre de filtres ─────────────────────────────────── */
+.filter-toolbar {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+
+  .search-box {
+    flex: 1;
+    min-width: 260px;
+
+    ion-input {
+      --border-color: var(--border-medium);
+      --border-radius: var(--radius-md, 10px);
+      --background: var(--background-surface-2);
+      --color: var(--text-primary);
+      --placeholder-color: var(--text-muted);
+    }
+  }
+
+  .role-filter {
+    min-width: 180px;
+
+    ion-select {
+      --border-color: var(--border-medium);
+      --border-radius: var(--radius-md, 10px);
+      --background: var(--background-surface-2);
+      --color: var(--text-primary);
+      --padding-start: 12px;
+      --padding-end: 12px;
+      min-height: 42px;
+    }
+  }
+}
+
+/* ── Ligne utilisateur cliquable ──────────────────────── */
+.user-item-clickable {
+  --padding-start: 0;
+  --inner-padding-end: 0;
+  --background: transparent;
+  --border-color: var(--border-medium);
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &:hover,
+  &:focus {
+    --background: var(--background-surface-2);
+    outline: none;
+  }
+
+  &:active {
+    --background: var(--background-surface-1);
+  }
+}
+
+/* ── Ligne utilisateur (layout interne) ───────────────── */
+.user-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  /* Padding vertical généreux pour bien séparer les lignes */
+  padding: 20px 12px;
+  gap: 16px;
+  min-height: 80px;
+}
+
+/* ── Bloc infos ───────────────────────────────────────── */
+.user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
+}
+
+.user-username {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+.user-fullname {
+  color: var(--text-secondary);
+  font-weight: 400;
+  font-size: 0.875rem;
+}
+
+.user-email {
+  color: var(--text-secondary);
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+/* ── Badges rôles ─────────────────────────────────────── */
+.roles-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.role-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* ── Bouton suppression ───────────────────────────────── */
+.action-buttons {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+/* ── Indication clic sur la ligne ─────────────────────── */
+.user-item-clickable::after {
+  content: '';
+}
+
+/* ── Pagination ───────────────────────────────────────── */
+.pagination-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-medium);
+
+  .pagination-info {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+  }
+
+  .pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+
+    .page-size-selector {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+
+      select {
+        appearance: none !important;
+        -webkit-appearance: none !important;
+        -moz-appearance: none !important;
+        padding: 4px 26px 4px 10px !important;
+        border-radius: 8px;
+        background-color: var(--background-surface-2) !important;
+        color: var(--text-primary) !important;
+        border: 1px solid var(--border-medium) !important;
+        background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6' fill='none'%3e%3cpath d='M1 1L5 5L9 1' stroke='%237E87A8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right 8px center;
+        background-size: 8px 5px;
+        font-size: 0.875rem;
+        cursor: pointer;
+        outline: none;
+        transition: border-color 0.15s ease;
+
+        &:focus {
+          border-color: var(--primary) !important;
+          box-shadow: 0 0 0 2px rgba(108, 127, 232, 0.2) !important;
+        }
+      }
+    }
+
+    .page-nav-buttons {
+      display: flex;
+      gap: 8px;
+    }
+  }
 }

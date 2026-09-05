@@ -1,0 +1,48 @@
+<button
+  type="button"
+  class="product-card"
+  [class.unavailable]="isUnavailable"
+  [style.--category-accent]="CategoryColor"
+  [disabled]="isUnavailable"
+  (click)="onCardClick()"
+  (contextmenu)="onRightClick($event)"
+  (touchstart)="onTouchStart($event)"
+  (touchend)="onTouchEnd($event)"
+  (touchmove)="onTouchMove($event)">
+  <div class="product-header">
+    <div class="product-icon-wrap">
+      <ion-icon [name]="CategoryIcon"></ion-icon>
+    </div>
+
+    <!-- Badge Indisponible / Rupture (Visible pour tous en cas de rupture) -->
+    <span *ngIf="isUnavailable" class="badge-indisponible" data-testid="badge-indisponible">
+      Indisponible
+    </span>
+
+    <!-- Badge Stock Faible (Visible uniquement pour Barman / Manager) -->
+    <app-stock-severity-badge
+      *ngIf="!isUnavailable && isStockLow"
+      severity="FAIBLE"
+      data-testid="badge-stock-faible">
+    </app-stock-severity-badge>
+  </div>
+
+  <div class="product-body">
+    <h4 class="product-title">{{ product.nom }}</h4>
+    <p class="product-description" *ngIf="product.description">{{ product.description }}</p>
+
+    <!-- Badges d'allergènes détectés sur la boisson -->
+    <div *ngIf="detectedAllergens.length > 0" class="allergens-badges-row">
+      <span *ngFor="let alg of detectedAllergens" class="card-allergen-badge" [title]="'Contient : ' + alg.label">
+        <span class="alg-symbol">{{ alg.symbol }}</span> {{ alg.label }}
+      </span>
+    </div>
+
+    <div class="product-footer-row">
+      <span class="product-price">{{ product.prix | appCurrency }}</span>
+      <span *ngIf="product.variantes && product.variantes.length > 0" class="variants-badge">
+        {{ product.variantes.length }} formats
+      </span>
+    </div>
+  </div>
+</button>

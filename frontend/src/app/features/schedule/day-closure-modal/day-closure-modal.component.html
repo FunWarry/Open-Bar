@@ -1,0 +1,125 @@
+<ion-header class="modal-header">
+  <ion-toolbar class="modal-toolbar">
+    <ion-title class="modal-title">
+      <ion-icon name="calendar-outline" class="header-icon"></ion-icon>
+      {{ formattedDate }}
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="dismiss()" (keydown.enter)="dismiss()" class="close-btn" [attr.aria-label]="'COMMON.CLOSE' | transloco">
+        <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="modal-content">
+  <div class="modal-body">
+    <!-- Status Card -->
+    <div class="status-card" [class.is-closed]="isClosed">
+      <div class="status-card__header">
+        <ion-badge [color]="isClosed ? 'danger' : 'success'" class="status-badge">
+          <ion-icon [name]="isClosed ? 'lock-closed-outline' : 'lock-open-outline'"></ion-icon>
+          {{ (isClosed ? 'SHIFTS.CLOSURES.CLOSED_STATUS' : 'SHIFTS.CLOSURES.OPEN_STATUS') | transloco }}
+        </ion-badge>
+        <span class="date-iso-sub">{{ dateISO }}</span>
+      </div>
+      <p class="status-desc" *ngIf="isClosed">
+        {{ 'SHIFTS.CLOSURES.DAY_CLOSED_DESC' | transloco: { reason: closureReason || ('SHIFTS.CLOSURES.CLOSED_BADGE' | transloco) } }}
+      </p>
+      <p class="status-desc" *ngIf="!isClosed">
+        {{ 'SHIFTS.CLOSURES.DAY_OPEN_DESC' | transloco }}
+      </p>
+    </div>
+
+    <!-- Reopen Action (If closed) -->
+    <div class="reopen-section" *ngIf="isClosed">
+      <ion-button expand="block" color="success" class="action-btn reopen-btn" (click)="reopenDay()" (keydown.enter)="reopenDay()">
+        <ion-icon name="lock-open-outline" slot="start"></ion-icon>
+        {{ 'SHIFTS.CLOSURES.REOPEN_BAR' | transloco }}
+      </ion-button>
+    </div>
+
+    <!-- Closure Form Section (If open or modifying closure) -->
+    <div class="form-section" *ngIf="!isClosed">
+      <div class="field">
+        <span class="field-label">{{ 'SHIFTS.CLOSURES.REASON_LABEL' | transloco }}</span>
+        <ion-input
+          id="closure-reason-input"
+          type="text"
+          [(ngModel)]="reason"
+          [placeholder]="'SHIFTS.CLOSURES.REASON_PLACEHOLDER' | transloco"
+          fill="outline"
+          class="custom-input">
+        </ion-input>
+      </div>
+
+      <!-- Quick Preset Suggestions -->
+      <div class="presets-wrapper">
+        <span class="presets-label">{{ 'SHIFTS.CLOSURES.QUICK_SUGGESTIONS' | transloco }}</span>
+        <div class="presets-chips">
+          <button
+            type="button"
+            *ngFor="let p of presetReasons"
+            class="preset-chip"
+            [class.active]="reason === p"
+            (click)="selectPreset(p)">
+            {{ p }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Date Range Toggle -->
+      <div class="toggle-field">
+        <div class="toggle-label">
+          <span class="toggle-title">{{ 'SHIFTS.CLOSURES.RANGE_TOGGLE' | transloco }}</span>
+          <span class="toggle-sub">{{ 'SHIFTS.CLOSURES.RANGE_SUBTITLE' | transloco }}</span>
+        </div>
+        <ion-toggle [(ngModel)]="isDateRange" color="primary"></ion-toggle>
+      </div>
+
+      <!-- Range Inputs (When enabled) -->
+      <div class="range-inputs-grid" *ngIf="isDateRange">
+        <div class="field">
+          <span class="field-label">{{ 'SHIFTS.CLOSURES.START_DATE' | transloco }}</span>
+          <ion-input
+            id="start-date-input"
+            type="date"
+            [(ngModel)]="startDate"
+            fill="outline"
+            class="custom-input">
+          </ion-input>
+        </div>
+
+        <div class="field">
+          <span class="field-label">{{ 'SHIFTS.CLOSURES.END_DATE' | transloco }}</span>
+          <ion-input
+            id="end-date-input"
+            type="date"
+            [(ngModel)]="endDate"
+            fill="outline"
+            class="custom-input">
+          </ion-input>
+        </div>
+      </div>
+
+      <!-- Annual Recurrence Toggle -->
+      <div class="toggle-field">
+        <div class="toggle-label">
+          <span class="toggle-title">{{ 'SHIFTS.CLOSURES.ANNUAL_TOGGLE' | transloco }}</span>
+          <span class="toggle-sub">{{ 'SHIFTS.CLOSURES.ANNUAL_SUBTITLE' | transloco }}</span>
+        </div>
+        <ion-toggle [(ngModel)]="isAnnualRecurring" color="primary"></ion-toggle>
+      </div>
+
+      <div class="modal-actions">
+        <ion-button expand="block" color="warning" class="action-btn save-btn" (click)="saveClosure()" (keydown.enter)="saveClosure()">
+          <ion-icon name="lock-closed-outline" slot="start"></ion-icon>
+          {{ 'SHIFTS.CLOSURES.SAVE_CLOSURE' | transloco }}
+        </ion-button>
+        <ion-button expand="block" fill="clear" color="medium" class="cancel-btn" (click)="dismiss()" (keydown.enter)="dismiss()">
+          {{ 'COMMON.CANCEL' | transloco }}
+        </ion-button>
+      </div>
+    </div>
+  </div>
+</ion-content>

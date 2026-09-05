@@ -1,46 +1,361 @@
-<div class="cocktail-list-container">
-  <mat-card>
-    <mat-card-header>
-      <mat-card-title>Liste des Cocktails</mat-card-title>
-      <button *ngIf="isAdmin$ | async" mat-raised-button color="primary" (click)="onAdd()">
-        <mat-icon>add</mat-icon>
-        Nouveau Cocktail
-      </button>
-    </mat-card-header>
-    <mat-card-content>
-      <table mat-table [dataSource]="dataSource" matSort>
-        <ng-container matColumnDef="name">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Nom</th>
-          <td mat-cell *matCellDef="let cocktail">{{ cocktail.name }}</td>
-        </ng-container>
+<ion-content class="ion-padding cocktail-content">
+  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
 
-        <ng-container matColumnDef="category">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Catégorie</th>
-          <td mat-cell *matCellDef="let cocktail">{{ cocktail.category }}</td>
-        </ng-container>
+  <div class="cocktail-container">
+    <!-- Header Controls Card (Modern Sleek OpenBar Design System) -->
+    <div class="cocktail-header-card" data-testid="cocktail-header-card">
+      <div class="header-main-row">
+        <div class="title-with-count">
+          <div class="title-icon-badge">
+            <ion-icon name="wine-outline"></ion-icon>
+          </div>
+          <div class="title-text-group">
+            <h1 class="page-title">{{ 'COCKTAILS.TITLE' | transloco }}</h1>
+            <span class="count-badge" data-testid="cocktails-count-badge">
+              {{ filteredCocktails.length }} {{ filteredCocktails.length > 1 ? ('COCKTAILS.TITLE' | transloco | lowercase) : ('COCKTAILS.TITLE' | transloco | lowercase) }}
+            </span>
+          </div>
+        </div>
 
-        <ng-container matColumnDef="price">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Prix</th>
-          <td mat-cell *matCellDef="let cocktail">{{ cocktail.price | currency:'EUR' }}</td>
-        </ng-container>
+        <div class="header-actions">
+          <!-- Pictures Toggle Button (Sleek Pill) -->
+          <button
+            type="button"
+            class="pictures-toggle-pill"
+            [class.active]="showPictures"
+            (click)="togglePictures()"
+            (keydown.enter)="togglePictures()"
+            data-testid="pictures-toggle"
+            [title]="'COCKTAILS.SHOW_PICTURES' | transloco">
+            <ion-icon [name]="showPictures ? 'image' : 'image-outline'"></ion-icon>
+            <span>{{ 'COCKTAILS.SHOW_PICTURES' | transloco }}</span>
+            <span class="toggle-indicator-dot" [class.on]="showPictures"></span>
+          </button>
 
-        <ng-container matColumnDef="actions">
-          <th mat-header-cell *matHeaderCellDef>Actions</th>
-          <td mat-cell *matCellDef="let cocktail">
-            <button mat-icon-button color="primary" (click)="onEdit(cocktail)">
-              <mat-icon>edit</mat-icon>
+          <!-- View Mode Toggle Pill Group (Exact match to reference) -->
+          <div class="view-mode-pill-group" data-testid="cocktail-view-mode-toggle">
+            <button
+              type="button"
+              class="view-pill-btn"
+              [class.active]="viewMode === 'grid'"
+              (click)="viewMode = 'grid'"
+              (keydown.enter)="viewMode = 'grid'"
+              data-testid="view-grid-btn">
+              <ion-icon name="grid-outline"></ion-icon>
+              <span>{{ 'COCKTAILS.VIEW_GRID' | transloco }}</span>
             </button>
-            <button mat-icon-button color="warn" (click)="onDelete(cocktail)">
-              <mat-icon>delete</mat-icon>
+
+            <button
+              type="button"
+              class="view-pill-btn"
+              [class.active]="viewMode === 'list'"
+              (click)="viewMode = 'list'"
+              (keydown.enter)="viewMode = 'list'"
+              data-testid="view-list-btn">
+              <ion-icon name="list-outline"></ion-icon>
+              <span>{{ 'COCKTAILS.VIEW_LIST' | transloco }}</span>
             </button>
-          </td>
-        </ng-container>
+          </div>
 
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-      </table>
+          @if (isAdmin$ | async) {
+            <button
+              type="button"
+              class="btn-add-cocktail"
+              (click)="onAdd()"
+              (keydown.enter)="onAdd()"
+              data-testid="cocktail-add-btn">
+              <ion-icon name="add"></ion-icon>
+              <span>{{ 'COCKTAILS.ADD' | transloco | uppercase }}</span>
+            </button>
+          }
+        </div>
+      </div>
 
-      <mat-paginator [pageSizeOptions]="[5, 10, 25, 100]" aria-label="Select page of cocktails"></mat-paginator>
-    </mat-card-content>
-  </mat-card>
-</div>
+      <div class="filter-section">
+        <!-- Searchbar -->
+        <div class="search-input-wrapper">
+          <ion-icon name="search" class="search-icon"></ion-icon>
+          <input
+            id="cocktail-search-input"
+            type="text"
+            class="cocktail-search-input"
+            [(ngModel)]="searchQuery"
+            [placeholder]="'COCKTAILS.SEARCH_PLACEHOLDER' | transloco"
+            [attr.aria-label]="'COCKTAILS.SEARCH_PLACEHOLDER' | transloco"
+            data-testid="cocktail-searchbar" />
+          @if (searchQuery) {
+            <button type="button" class="search-clear-btn" (click)="searchQuery = ''" aria-label="Effacer la recherche">
+              <ion-icon name="close-circle-outline"></ion-icon>
+            </button>
+          }
+        </div>
+
+        <!-- Figma Category Dot Filter Pills -->
+        <div class="category-pills-row">
+          <button
+            class="figma-filter-pill"
+            [class.active]="selectedCategory === 'ALL'"
+            [ngStyle]="getCategoryPillStyle('ALL', selectedCategory === 'ALL')"
+            (click)="selectedCategory = 'ALL'"
+            data-testid="category-all-btn">
+            <span class="dot-indicator" style="background-color: #6366f1;"></span>
+            {{ 'COCKTAILS.CATEGORIES.ALL' | transloco }}
+          </button>
+          <button
+            class="figma-filter-pill"
+            [class.active]="selectedCategory === 'ALCOOLISE'"
+            [ngStyle]="getCategoryPillStyle('ALCOOLISE', selectedCategory === 'ALCOOLISE')"
+            (click)="selectedCategory = 'ALCOOLISE'"
+            data-testid="category-alcoolise-btn">
+            <span class="dot-indicator" style="background-color: #10b981;"></span>
+            {{ 'COCKTAILS.CATEGORIES.ALCOOLISE' | transloco }}
+          </button>
+          <button
+            class="figma-filter-pill"
+            [class.active]="selectedCategory === 'SANS_ALCOOL'"
+            [ngStyle]="getCategoryPillStyle('SANS_ALCOOL', selectedCategory === 'SANS_ALCOOL')"
+            (click)="selectedCategory = 'SANS_ALCOOL'"
+            data-testid="category-sans-alcool-btn">
+            <span class="dot-indicator" style="background-color: #06b6d4;"></span>
+            {{ 'COCKTAILS.CATEGORIES.SANS_ALCOOL' | transloco }}
+          </button>
+          <button
+            class="figma-filter-pill"
+            [class.active]="selectedCategory === 'SHOT'"
+            [ngStyle]="getCategoryPillStyle('SHOT', selectedCategory === 'SHOT')"
+            (click)="selectedCategory = 'SHOT'"
+            data-testid="category-shot-btn">
+            <span class="dot-indicator" style="background-color: #84cc16;"></span>
+            {{ 'COCKTAILS.CATEGORIES.SHOT' | transloco }}
+          </button>
+          <button
+            class="figma-filter-pill"
+            [class.active]="selectedCategory === 'APERITIF'"
+            [ngStyle]="getCategoryPillStyle('APERITIF', selectedCategory === 'APERITIF')"
+            (click)="selectedCategory = 'APERITIF'"
+            data-testid="category-aperitif-btn">
+            <span class="dot-indicator" style="background-color: #f97316;"></span>
+            {{ 'COCKTAILS.CATEGORIES.APERITIF' | transloco }}
+          </button>
+          <button
+            class="figma-filter-pill"
+            [class.active]="selectedCategory === 'DIGESTIF'"
+            [ngStyle]="getCategoryPillStyle('DIGESTIF', selectedCategory === 'DIGESTIF')"
+            (click)="selectedCategory = 'DIGESTIF'"
+            data-testid="category-digestif-btn">
+            <span class="dot-indicator" style="background-color: #ef4444;"></span>
+            {{ 'COCKTAILS.CATEGORIES.DIGESTIF' | transloco }}
+          </button>
+          <button
+            class="figma-filter-pill"
+            [class.active]="selectedCategory === 'SPECIAL'"
+            [ngStyle]="getCategoryPillStyle('SPECIAL', selectedCategory === 'SPECIAL')"
+            (click)="selectedCategory = 'SPECIAL'"
+            data-testid="category-special-btn">
+            <span class="dot-indicator" style="background-color: #eab308;"></span>
+            {{ 'COCKTAILS.CATEGORIES.SPECIAL' | transloco }}
+          </button>
+        </div>
+
+        <!-- Allergen Filter Pills Row -->
+        <div class="allergen-pills-row" data-testid="allergen-filter-section">
+          <span class="allergen-filter-label">
+            <ion-icon name="funnel-outline"></ion-icon>
+            {{ 'COCKTAILS.ALLERGENS.EXCLUDE_LABEL' | transloco }}
+          </span>
+          @for (allergen of availableAllergens; track allergen.key) {
+            <button
+              class="figma-allergen-pill"
+              [class.excluded]="selectedAllergens.includes(allergen.key)"
+              (click)="toggleAllergenFilter(allergen.key)"
+              [attr.data-testid]="'allergen-filter-' + allergen.key.toLowerCase()">
+              <ion-icon [name]="allergen.icon"></ion-icon>
+              {{ 'COCKTAILS.ALLERGENS.SANS_PREFIX' | transloco }} {{ allergen.labelKey | transloco }}
+              <span class="allergen-close-icon" *ngIf="selectedAllergens.includes(allergen.key)">✕</span>
+            </button>
+          }
+          @if (selectedAllergens.length > 0) {
+            <button
+              class="figma-clear-allergens-btn"
+              (click)="clearAllergenFilters()"
+              data-testid="clear-allergen-filters-btn">
+              <ion-icon name="close-circle-outline"></ion-icon>
+              {{ 'COCKTAILS.ALLERGENS.CLEAR_ALL' | transloco }}
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+
+    @if (isLoading) {
+      <div class="loading-container">
+        <ion-spinner name="crescent"></ion-spinner>
+      </div>
+    } @else {
+      <!-- Mode Grille de Cartes (Figma Exact Specs) -->
+      @if (viewMode === 'grid') {
+        <ion-grid class="cocktail-grid">
+          <ion-row>
+            @for (cocktail of filteredCocktails; track cocktail.id) {
+              <ion-col size="12" size-sm="6" size-md="4" size-lg="4">
+                <div
+                  class="figma-cocktail-card"
+                  [class.no-picture]="!showPictures"
+                  [class.unavailable]="!cocktail.disponible"
+                  [attr.data-testid]="'cocktail-card-' + cocktail.id">
+                  @if (showPictures) {
+                    <div class="figma-card-image-area">
+                      <img
+                        [src]="getCocktailImage(cocktail)"
+                        [alt]="cocktail.nom"
+                        (error)="$any($event.target).src = 'assets/images/verres/verre_tumbler.png'" />
+                    </div>
+                  }
+
+                  <!-- Card Text Body -->
+                  <div class="figma-card-body">
+                    <div class="figma-card-top-row">
+                      <div class="badges-group">
+                        <span class="figma-category-pill" [ngStyle]="getCategoryPillStyle(cocktail.categorie, false)">
+                          <span class="dot-indicator" [style.background-color]="getCategoryDotColor(cocktail.categorie)"></span>
+                          {{ ('COCKTAILS.CATEGORIES.' + cocktail.categorie) | transloco }}
+                        </span>
+                        @if (!cocktail.disponible) {
+                          <span class="figma-alert-pill critical">⚠️ {{ 'COCKTAILS.UNAVAILABLE' | transloco }}</span>
+                        }
+                        @if (isHorsSaison(cocktail)) {
+                          <span class="figma-alert-pill low">⚠️ {{ 'COCKTAILS.OFF_SEASON' | transloco }}</span>
+                        }
+                      </div>
+
+                      @if (isAdmin$ | async) {
+                        <button class="figma-edit-btn" [attr.data-testid]="'edit-cocktail-btn-' + cocktail.id" (click)="onEdit(cocktail)" (keydown.enter)="onEdit(cocktail)" [attr.aria-label]="'COCKTAILS.EDIT_COCKTAIL_LABEL' | transloco">
+                          <ion-icon name="create"></ion-icon>
+                        </button>
+                      }
+                    </div>
+
+                    <div class="figma-card-main-info">
+                      <h3 class="figma-cocktail-name">{{ cocktail.nom }}</h3>
+                      <p class="figma-ingredients-sub">{{ getIngredientsText(cocktail) }}</p>
+                      @if (getCocktailAllergens(cocktail).length > 0) {
+                        <div class="card-allergens-row" [attr.data-testid]="'cocktail-allergens-' + cocktail.id">
+                          @for (allergenKey of getCocktailAllergens(cocktail); track allergenKey) {
+                            <span class="figma-allergen-badge">
+                              <span class="allergen-icon">⚠️</span>{{ ('COCKTAILS.ALLERGENS.' + allergenKey) | transloco }}
+                            </span>
+                          }
+                        </div>
+                      }
+                    </div>
+
+                    <div class="figma-card-bottom-row">
+                      <div class="bottom-actions">
+                        <!-- Modern Interactive Availability Slider Switch -->
+                        <button
+                          type="button"
+                          class="availability-slider-btn"
+                          [class.active]="cocktail.disponible"
+                          [attr.data-testid]="'toggle-dispo-btn-' + cocktail.id"
+                          (click)="onToggleDisponibilite(cocktail)"
+                          (keydown.enter)="onToggleDisponibilite(cocktail)"
+                          [attr.aria-pressed]="cocktail.disponible"
+                          [attr.aria-label]="cocktail.disponible ? ('COCKTAILS.AVAILABLE' | transloco) : ('COCKTAILS.UNAVAILABLE' | transloco)">
+                          <span class="slider-track">
+                            <span class="slider-knob"></span>
+                          </span>
+                          <span class="slider-label">
+                            {{ cocktail.disponible ? ('COCKTAILS.AVAILABLE' | transloco) : ('COCKTAILS.UNAVAILABLE' | transloco) }}
+                          </span>
+                        </button>
+
+                        @if (isAdmin$ | async) {
+                          <ion-button fill="clear" color="danger" size="small" [attr.data-testid]="'delete-cocktail-btn-' + cocktail.id" (click)="onDelete(cocktail)" (keydown.enter)="onDelete(cocktail)">
+                            <ion-icon slot="icon-only" name="trash"></ion-icon>
+                          </ion-button>
+                        }
+                      </div>
+                      <span class="figma-cocktail-price">{{ cocktail.prix | currency:'EUR' }}</span>
+                    </div>
+                  </div>
+                </div>
+              </ion-col>
+            } @empty {
+              <ion-col size="12">
+                <div class="empty-cocktail-message">
+                  <ion-label color="medium">{{ 'COCKTAILS.EMPTY' | transloco }}</ion-label>
+                </div>
+              </ion-col>
+            }
+          </ion-row>
+        </ion-grid>
+      } @else {
+        <!-- Mode Liste -->
+        <ion-card class="cocktail-list-card">
+          <ion-card-content>
+            <ion-list>
+              @for (cocktail of filteredCocktails; track cocktail.id) {
+                <ion-item
+                  [attr.data-testid]="'cocktail-item-' + cocktail.id"
+                  class="cocktail-list-item"
+                  [class.unavailable]="!cocktail.disponible">
+                  <ion-thumbnail slot="start" *ngIf="showPictures">
+                    <img [src]="cocktail.imageUrl || 'assets/images/verres/verre_tumbler.png'" [alt]="cocktail.nom" />
+                  </ion-thumbnail>
+                  <ion-label>
+                    <h3>{{ cocktail.nom }}</h3>
+                    <p><strong>{{ ('COCKTAILS.CATEGORIES.' + cocktail.categorie) | transloco }}</strong> — {{ getIngredientsText(cocktail) }}</p>
+                    @if (getCocktailAllergens(cocktail).length > 0) {
+                      <p class="list-allergens-text">
+                        <small class="allergen-warning-text">⚠️ <strong>{{ 'COCKTAILS.ALLERGENS_WARNING_LABEL' | transloco }}</strong>
+                          @for (allergenKey of getCocktailAllergens(cocktail); track allergenKey; let last = $last) {
+                            {{ ('COCKTAILS.ALLERGENS.' + allergenKey) | transloco }}{{ last ? '' : ', ' }}
+                          }
+                        </small>
+                      </p>
+                    }
+                  </ion-label>
+                  @if (isHorsSaison(cocktail)) {
+                    <ion-badge slot="end" color="warning">Hors saison</ion-badge>
+                  }
+                  <div slot="end" class="list-availability-wrapper">
+                    <button
+                      type="button"
+                      class="availability-slider-btn list-mode"
+                      [class.active]="cocktail.disponible"
+                      [attr.data-testid]="'toggle-dispo-btn-' + cocktail.id"
+                      (click)="onToggleDisponibilite(cocktail)"
+                      (keydown.enter)="onToggleDisponibilite(cocktail)"
+                      [attr.aria-label]="(cocktail.disponible ? 'COCKTAILS.AVAILABLE' : 'COCKTAILS.UNAVAILABLE') | transloco">
+                      <span class="slider-track"><span class="slider-knob"></span></span>
+                      <span class="slider-label">{{ (cocktail.disponible ? 'COCKTAILS.AVAILABLE' : 'COCKTAILS.UNAVAILABLE') | transloco }}</span>
+                    </button>
+                  </div>
+                  <ion-badge slot="end" color="primary">{{ cocktail.prix | currency:'EUR' }}</ion-badge>
+                  <ion-buttons slot="end">
+                    @if (isAdmin$ | async) {
+                      <ion-button fill="clear" color="tertiary" [attr.data-testid]="'edit-cocktail-btn-' + cocktail.id" (click)="onEdit(cocktail)" (keydown.enter)="onEdit(cocktail)">
+                        <ion-icon slot="icon-only" name="create"></ion-icon>
+                      </ion-button>
+                      <ion-button fill="clear" color="danger" [attr.data-testid]="'delete-cocktail-btn-' + cocktail.id" (click)="onDelete(cocktail)" (keydown.enter)="onDelete(cocktail)">
+                        <ion-icon slot="icon-only" name="trash"></ion-icon>
+                      </ion-button>
+                    }
+                  </ion-buttons>
+                </ion-item>
+              } @empty {
+                <ion-item>
+                  <ion-label color="medium">{{ 'COCKTAILS.EMPTY' | transloco }}</ion-label>
+                </ion-item>
+              }
+            </ion-list>
+          </ion-card-content>
+        </ion-card>
+      }
+    }
+  </div>
+</ion-content>
+
+

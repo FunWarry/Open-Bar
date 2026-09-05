@@ -1,53 +1,247 @@
-<div class="commande-list-container">
-  <mat-card>
-    <mat-card-header>
-      <mat-card-title>Liste des Commandes</mat-card-title>
-      <button mat-raised-button color="primary" (click)="onAdd()">
-        <mat-icon>add</mat-icon>
-        Nouvelle Commande
-      </button>
-    </mat-card-header>
-    <mat-card-content>
-      <table mat-table [dataSource]="dataSource" matSort>
-        <ng-container matColumnDef="table">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Table</th>
-          <td mat-cell *matCellDef="let commande">{{ commande.table }}</td>
-        </ng-container>
+<ion-content class="commandes-page-content">
+  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
 
-        <ng-container matColumnDef="status">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Statut</th>
-          <td mat-cell *matCellDef="let commande">
-            <mat-chip [color]="getStatusColor(commande.status)" selected>
-              {{ commande.status }}
-            </mat-chip>
-          </td>
-        </ng-container>
+  <div class="commandes-wrapper">
 
-        <ng-container matColumnDef="total">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Total</th>
-          <td mat-cell *matCellDef="let commande">{{ commande.total | currency:'EUR' }}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="actions">
-          <th mat-header-cell *matHeaderCellDef>Actions</th>
-          <td mat-cell *matCellDef="let commande">
-            <button mat-icon-button color="primary" (click)="onView(commande)">
-              <mat-icon>visibility</mat-icon>
+    <!-- Top Control Bar: Title, Search, View Mode Toggle & Show Served Switch -->
+    <div class="control-banner">
+      <div class="banner-header">
+        <div class="title-group">
+          <h1>{{ 'COMMANDES.TITLE' | transloco }}</h1>
+          <p class="subtitle">{{ 'COMMANDES.SUBTITLE' | transloco }}</p>
+        </div>
+        <div class="banner-actions">
+          <div class="view-switch">
+            <button
+              type="button"
+              class="view-btn"
+              [class.active]="viewMode === 'kanban'"
+              (click)="setViewMode('kanban')"
+              data-testid="btn-view-kanban">
+              <ion-icon name="grid-outline"></ion-icon>
+              <span>{{ 'COMMANDES.VIEW_MODE.KANBAN' | transloco }}</span>
             </button>
-            <button mat-icon-button color="accent" (click)="onEdit(commande)">
-              <mat-icon>edit</mat-icon>
+            <button
+              type="button"
+              class="view-btn"
+              [class.active]="viewMode === 'list'"
+              (click)="setViewMode('list')"
+              data-testid="btn-view-list">
+              <ion-icon name="list-outline"></ion-icon>
+              <span>{{ 'COMMANDES.VIEW_MODE.LIST' | transloco }}</span>
             </button>
-            <button mat-icon-button color="warn" (click)="onDelete(commande)">
-              <mat-icon>delete</mat-icon>
-            </button>
-          </td>
-        </ng-container>
+          </div>
 
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-      </table>
+          <ion-button color="primary" routerLink="/commandes/nouvelle" data-testid="btn-new-commande">
+            + {{ 'COMMANDES.NEW' | transloco }}
+          </ion-button>
+        </div>
+      </div>
 
-      <mat-paginator [pageSizeOptions]="[5, 10, 25, 100]" aria-label="Select page of commandes"></mat-paginator>
-    </mat-card-content>
-  </mat-card>
-</div>
+      <div class="search-filter-row">
+        <ion-searchbar
+          [placeholder]="'COMMANDES.SEARCH_PLACEHOLDER' | transloco"
+          [value]="searchQuery"
+          (ionInput)="onSearchChange($event)"
+          debounce="200"
+          data-testid="input-search-commandes">
+        </ion-searchbar>
+
+        <div class="toggle-served-container">
+          <ion-toggle
+            [checked]="showServed"
+            (ionChange)="onToggleShowServed($event)"
+            data-testid="toggle-show-served">
+          </ion-toggle>
+          <span class="toggle-label">{{ 'COMMANDES.SHOW_SERVED_TOGGLE' | transloco }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Spinner Loading State -->
+    @if (isLoading) {
+      <div class="spinner-container">
+        <ion-spinner name="crescent" color="primary"></ion-spinner>
+      </div>
+    }
+
+    @if (!isLoading) {
+
+      <!-- KANBAN BOARD VIEW -->
+      @if (viewMode === 'kanban') {
+        <div class="kanban-board">
+
+          <!-- COLUMN 1: EN ATTENTE (PENDING) -->
+          <div class="kanban-column column-pending">
+            <div class="column-header">
+              <div class="column-title">
+                <span class="status-dot dot-pending"></span>
+                <h2>{{ 'COMMANDES.COLUMNS.PENDING' | transloco }}</h2>
+              </div>
+              <span class="count-badge badge-pending" data-testid="count-pending">{{ pendingOrders.length }}</span>
+            </div>
+
+            <div class="column-body">
+              @for (c of pendingOrders; track c.id) {
+                <app-commande-card
+                  [commande]="c"
+                  (updateStatus)="onCardStatusUpdate($event)"
+                  (annuler)="onAnnuler($event)"
+                  (view)="onView($event)"
+                ></app-commande-card>
+              }
+
+              @if (pendingOrders.length === 0) {
+                <div class="empty-column-msg">{{ 'COMMANDES.MESSAGES.EMPTY_COLUMN' | transloco }}</div>
+              }
+            </div>
+          </div>
+
+          <!-- COLUMN 2: EN PREPARATION (IN PROGRESS) -->
+          <div class="kanban-column column-progress">
+            <div class="column-header">
+              <div class="column-title">
+                <span class="status-dot dot-progress"></span>
+                <h2>{{ 'COMMANDES.COLUMNS.IN_PROGRESS' | transloco }}</h2>
+              </div>
+              <span class="count-badge badge-progress" data-testid="count-progress">{{ inProgressOrders.length }}</span>
+            </div>
+
+            <div class="column-body">
+              @for (c of inProgressOrders; track c.id) {
+                <app-commande-card
+                  [commande]="c"
+                  (updateStatus)="onCardStatusUpdate($event)"
+                  (annuler)="onAnnuler($event)"
+                  (view)="onView($event)"
+                ></app-commande-card>
+              }
+
+              @if (inProgressOrders.length === 0) {
+                <div class="empty-column-msg">{{ 'COMMANDES.MESSAGES.EMPTY_COLUMN' | transloco }}</div>
+              }
+            </div>
+          </div>
+
+          <!-- COLUMN 3: PRET A SERVIR (READY TO SERVE) -->
+          <div class="kanban-column column-ready">
+            <div class="column-header">
+              <div class="column-title">
+                <span class="status-dot dot-ready"></span>
+                <h2>{{ 'COMMANDES.COLUMNS.READY_TO_SERVE' | transloco }}</h2>
+              </div>
+              <span class="count-badge badge-ready" data-testid="count-ready">{{ readyOrders.length }}</span>
+            </div>
+
+            <div class="column-body">
+              @for (c of readyOrders; track c.id) {
+                <app-commande-card
+                  [commande]="c"
+                  (updateStatus)="onCardStatusUpdate($event)"
+                  (annuler)="onAnnuler($event)"
+                  (view)="onView($event)"
+                ></app-commande-card>
+              }
+
+              @if (readyOrders.length === 0) {
+                <div class="empty-column-msg">{{ 'COMMANDES.MESSAGES.EMPTY_COLUMN' | transloco }}</div>
+              }
+            </div>
+          </div>
+
+          <!-- COLUMN 4: LIVREE / REGLEE (SERVED & SETTLED) -->
+          @if (showServed) {
+            <div class="kanban-column column-served">
+              <div class="column-header">
+                <div class="column-title">
+                  <span class="status-dot dot-served"></span>
+                  <h2>{{ 'COMMANDES.COLUMNS.SERVED' | transloco }}</h2>
+                </div>
+                <span class="count-badge badge-served" data-testid="count-served">{{ servedOrders.length }}</span>
+              </div>
+
+              <div class="column-body">
+                @for (c of servedOrders; track c.id) {
+                  <app-commande-card
+                    [commande]="c"
+                    [showActions]="true"
+                    (updateStatus)="onCardStatusUpdate($event)"
+                    (annuler)="onAnnuler($event)"
+                    (view)="onView($event)"
+                  ></app-commande-card>
+                }
+
+                @if (servedOrders.length === 0) {
+                  <div class="empty-column-msg">{{ 'COMMANDES.MESSAGES.EMPTY_COLUMN' | transloco }}</div>
+                }
+              </div>
+            </div>
+          }
+
+        </div>
+      }
+
+      <!-- TABLE LIST VIEW -->
+      @if (viewMode === 'list') {
+        <ion-card class="list-card">
+          <ion-card-header>
+            <ion-segment [value]="filtre" (ionChange)="onFiltreChange($event)" scrollable>
+              @for (s of statuts; track s.value) {
+                <ion-segment-button [value]="s.value">
+                  <ion-label>{{ s.labelKey | transloco }}</ion-label>
+                </ion-segment-button>
+              }
+            </ion-segment>
+          </ion-card-header>
+
+          <ion-card-content>
+            <ion-list class="table-list">
+              @for (commande of filteredCommandes; track commande.id) {
+                <ion-item class="commande-table-row">
+                  <div class="row-main">
+                    <div class="row-left">
+                      <h3>Table {{ commande.tableNumero }} <span class="badge-token">#{{ commande.id }}</span></h3>
+                      <p>{{ commande.serveurUsername }} · {{ commande.dateCommande | date:'dd/MM HH:mm' }}</p>
+                      @if (commande.items && commande.items.length > 0) {
+                        <div class="item-chips">
+                          @for (i of commande.items; track i.id) {
+                            <ion-chip outline color="tertiary">×{{ i.quantite }} {{ i.cocktailNom }}</ion-chip>
+                          }
+                        </div>
+                      }
+                    </div>
+
+                    <div class="row-right">
+                      <ion-badge [color]="getStatutColor(commande.statut)">{{ commande.statut }}</ion-badge>
+                      <span class="total-price">{{ commande.total | currency:'EUR' }}</span>
+
+                      <ion-buttons>
+                        <ion-button fill="clear" color="primary" (click)="onView(commande)" (keydown.enter)="onView(commande)" data-testid="btn-view-commande">
+                          <ion-icon slot="icon-only" name="eye"></ion-icon>
+                        </ion-button>
+                        @if (peutAnnuler(commande.statut)) {
+                          <ion-button fill="clear" color="danger" (click)="onAnnuler(commande)" (keydown.enter)="onAnnuler(commande)" data-testid="btn-annuler-commande">
+                            <ion-icon slot="icon-only" name="ban-outline"></ion-icon>
+                          </ion-button>
+                        }
+                      </ion-buttons>
+                    </div>
+                  </div>
+                </ion-item>
+              }
+
+              @if (filteredCommandes.length === 0) {
+                <ion-item class="empty-row">
+                  <ion-label color="medium">{{ 'COMMANDES.MESSAGES.EMPTY_LIST' | transloco }}</ion-label>
+                </ion-item>
+              }
+            </ion-list>
+          </ion-card-content>
+        </ion-card>
+      }
+
+    }
+  </div>
+</ion-content>

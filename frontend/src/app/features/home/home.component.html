@@ -1,58 +1,90 @@
 <div class="home-container">
-  <mat-card class="welcome-card">
-    <mat-card-header>
-      <mat-card-title>Bienvenue sur Gestion Cocktail</mat-card-title>
-      <mat-card-subtitle *ngIf="currentUser$ | async as user">
-        Connecté en tant que {{ user.username }}
-      </mat-card-subtitle>
-    </mat-card-header>
-    <mat-card-content>
-      <p>
-        Cette application vous permet de gérer vos cocktails, ingrédients et recettes.
-        Commencez par explorer les différentes fonctionnalités disponibles.
-      </p>
-    </mat-card-content>
-  </mat-card>
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
 
-  <div class="features-grid">
-    <mat-card class="feature-card">
-      <mat-card-header>
-        <mat-icon mat-card-avatar>local_bar</mat-icon>
-        <mat-card-title>Cocktails</mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <p>Gérez votre collection de cocktails et leurs recettes.</p>
-      </mat-card-content>
-    </mat-card>
+  <div class="welcome-header" *ngIf="currentUser$ | async as user">
+    <div class="user-info">
+      <h1 class="welcome-title">{{ 'HOME.WELCOME' | transloco:{ username: user.username } }}</h1>
+      <p class="welcome-subtitle">{{ 'HOME.SUBTITLE' | transloco }}</p>
+    </div>
+    <div class="roles-badges">
+      <app-role-badge *ngFor="let role of user.roles" [role]="role"></app-role-badge>
+    </div>
+  </div>
 
-    <mat-card class="feature-card">
-      <mat-card-header>
-        <mat-icon mat-card-avatar>inventory_2</mat-icon>
-        <mat-card-title>Ingrédients</mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <p>Suivez vos stocks d'ingrédients et leurs quantités.</p>
-      </mat-card-content>
-    </mat-card>
+  <div class="navigation-grid">
+    <!-- Vue Barman -->
+    <div class="nav-card barman-card" *ngIf="(isBarman$ | async) || (isAdmin$ | async)">
+      <div class="card-badge" data-role="barman">BARMAN</div>
+      <div class="card-icon">🍹</div>
+      <h2 class="card-title">{{ 'HOME.BARMAN_TITLE' | transloco }}</h2>
+      <p class="card-desc">{{ 'HOME.BARMAN_DESC' | transloco }}</p>
+      <app-action-button variant="primary" (btnClick)="navigateTo('/barman')">
+        {{ 'HOME.ACCESS_BAR' | transloco }}
+      </app-action-button>
+    </div>
 
-    <mat-card class="feature-card">
-      <mat-card-header>
-        <mat-icon mat-card-avatar>restaurant_menu</mat-icon>
-        <mat-card-title>Recettes</mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <p>Créez et partagez vos recettes de cocktails.</p>
-      </mat-card-content>
-    </mat-card>
+    <!-- Vue Serveur -->
+    <div class="nav-card serveur-card" *ngIf="(isServeur$ | async) || (isAdmin$ | async)">
+      <div class="card-badge" data-role="serveur">SERVEUR</div>
+      <div class="card-icon">👋</div>
+      <h2 class="card-title">{{ 'HOME.SERVEUR_TITLE' | transloco }}</h2>
+      <p class="card-desc">{{ 'HOME.SERVEUR_DESC' | transloco }}</p>
+      <app-action-button variant="primary" (btnClick)="navigateTo('/serveur')">
+        {{ 'HOME.ACCESS_SERVICE' | transloco }}
+      </app-action-button>
+    </div>
 
-    <mat-card class="feature-card">
-      <mat-card-header>
-        <mat-icon mat-card-avatar>event</mat-icon>
-        <mat-card-title>Événements</mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <p>Planifiez vos événements et gérez les cocktails servis.</p>
-      </mat-card-content>
-    </mat-card>
+    <!-- Vue Manager -->
+    <div class="nav-card manager-card" *ngIf="(isManager$ | async) || (isAdmin$ | async)">
+      <div class="card-badge" data-role="manager">MANAGER</div>
+      <div class="card-icon">🗺️</div>
+      <h2 class="card-title">{{ 'HOME.MANAGER_TITLE' | transloco }}</h2>
+      <p class="card-desc">{{ 'HOME.MANAGER_DESC' | transloco }}</p>
+      <div class="card-actions">
+        <app-action-button variant="primary" (btnClick)="navigateTo('/manager')">
+          {{ 'HOME.DASHBOARD_MANAGER' | transloco }}
+        </app-action-button>
+        <app-action-button variant="secondary" (btnClick)="navigateTo('/plan-salle')">
+          {{ 'HOME.FLOOR_PLAN' | transloco }}
+        </app-action-button>
+      </div>
+    </div>
+
+    <!-- Administration -->
+    <div class="nav-card admin-card" *ngIf="isAdmin$ | async">
+      <div class="card-badge" data-role="admin">ADMIN</div>
+      <div class="card-icon">⚙️</div>
+      <h2 class="card-title">{{ 'HOME.ADMIN_TITLE' | transloco }}</h2>
+      <p class="card-desc">{{ 'HOME.ADMIN_DESC' | transloco }}</p>
+      <div class="card-actions">
+        <app-action-button variant="primary" (btnClick)="navigateTo('/admin')">
+          {{ 'HOME.ACCESS_ADMIN' | transloco }}
+        </app-action-button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section Accès rapide commun -->
+  <div class="quick-access-section">
+    <h3 class="section-title">{{ 'HOME.QUICK_ACCESS' | transloco }}</h3>
+    <div class="quick-links">
+      <a routerLink="/cocktails" class="quick-link-btn">
+        <span class="icon">🍸</span>
+        <span>{{ 'HOME.COCKTAILS_CATALOG' | transloco }}</span>
+      </a>
+      <a routerLink="/tables" class="quick-link-btn">
+        <span class="icon">🪑</span>
+        <span>{{ 'HOME.TABLES_LIST' | transloco }}</span>
+      </a>
+      <a routerLink="/commandes" class="quick-link-btn">
+        <span class="icon">📋</span>
+        <span>{{ 'HOME.ORDERS_HISTORY' | transloco }}</span>
+      </a>
+      <a routerLink="/factures" class="quick-link-btn">
+        <span class="icon">💰</span>
+        <span>{{ 'HOME.FACTURES' | transloco }}</span>
+      </a>
+    </div>
   </div>
 </div>

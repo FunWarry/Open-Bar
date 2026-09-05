@@ -1,0 +1,57 @@
+<ion-card class="table-card" [ngClass]="statutClass" [attr.data-testid]="'table-card-' + table.id">
+  <ion-card-header>
+    <div class="table-header">
+      <ion-card-title class="table-name">{{ table.nom }}</ion-card-title>
+      <span class="statut-badge" [ngClass]="'badge-' + statutClass">{{ statutKey | transloco }}</span>
+    </div>
+    <div class="table-meta">
+      <span class="meta-item">
+        <ion-icon name="people-outline"></ion-icon>
+        {{ table.capacite }} {{ 'TABLE_CARD.GUESTS' | transloco }}
+      </span>
+      <span class="meta-zone">{{ table.zone }}</span>
+    </div>
+  </ion-card-header>
+
+  <ion-card-content>
+    <div *ngIf="table.serveurNom" class="serveur-info">
+      <ion-icon name="restaurant-outline"></ion-icon>
+      {{ table.serveurNom }}
+    </div>
+
+    <div *ngIf="totalCommandes > 0" class="commandes-summary">
+      <ion-icon name="time-outline"></ion-icon>
+      {{ (totalCommandes > 1 ? 'TABLE_CARD.ACTIVE_ORDERS_PLURAL' : 'TABLE_CARD.ACTIVE_ORDERS') | transloco:{ count: totalCommandes } }}
+      <span *ngIf="commandesEnCours > 0" class="en-cours-badge">
+        {{ 'TABLE_CARD.IN_PREP' | transloco:{ count: commandesEnCours } }}
+      </span>
+      <span *ngIf="hasCommandePrete" class="ready-badge-pulse" data-testid="table-ready-badge">
+        {{ (commandesPretes > 1 ? 'TABLE_CARD.READY_PLURAL' : 'TABLE_CARD.READY') | transloco:{ count: commandesPretes } }}
+      </span>
+    </div>
+
+    <div class="card-actions">
+      <ion-button
+        (click)="selectionner.emit(table)"
+        (keyup.enter)="selectionner.emit(table)"
+        expand="block"
+        fill="outline"
+        size="small"
+        class="btn-voir"
+        [attr.data-testid]="'table-btn-voir-' + table.id">
+        {{ 'TABLE_CARD.VIEW_ORDERS' | transloco }}
+      </ion-button>
+      <ion-button
+        *ngIf="table.occupee"
+        (click)="liberer.emit(table.id)"
+        (keyup.enter)="liberer.emit(table.id)"
+        expand="block"
+        fill="outline"
+        size="small"
+        color="danger"
+        class="btn-liberer">
+        {{ 'TABLE_CARD.FREE_TABLE' | transloco }}
+      </ion-button>
+    </div>
+  </ion-card-content>
+</ion-card>

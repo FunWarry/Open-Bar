@@ -1,0 +1,35 @@
+<div class="field-container">
+  @if (label) {
+    <label [for]="inputId" class="field-label">
+      {{ label }} @if (required) { <span class="required-star">*</span> }
+    </label>
+  }
+  <div class="input-wrapper" [class.has-error]="errorMessage" [class.is-disabled]="disabled">
+    @if (icon) {
+      <ion-icon [name]="icon" class="field-icon"></ion-icon>
+    }
+    <input
+      [id]="inputId"
+      [type]="type"
+      [value]="value"
+      [placeholder]="placeholder"
+      [disabled]="disabled"
+      [required]="required"
+      [autocomplete]="autocomplete"
+      [attr.data-testid]="testId"
+      (input)="onInput($event)"
+      (blur)="onBlur()"
+      class="native-input"
+    />
+  </div>
+  @if (errorMessage) {
+    <div class="field-error">
+      ⚠ {{ errorMessage }}
+    </div>
+  }
+  @if (helperText && !errorMessage) {
+    <div class="field-helper">
+      {{ helperText }}
+    </div>
+  }
+</div>

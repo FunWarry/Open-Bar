@@ -1,0 +1,46 @@
+:host {
+  display: inline-block;
+}
+
+.filter-chip {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.82rem;
+  border-radius: 20px;
+  margin: 2px 4px 2px 0;
+  transition: all 0.2s ease-in-out;
+}
+
+/* Inactive styling */
+ion-chip.filter-chip[outline="true"] {
+  --background: var(--background-surface-2, #21263f);
+  --color: var(--text-secondary, #a4add0);
+  border: 1px solid var(--border-medium, #2a2e4d);
+}
+
+ion-chip.filter-chip[outline="true"]:hover {
+  --background: var(--background-surface-3, #2a3050);
+  --color: var(--text-primary, #eceefb);
+  border-color: var(--primary, #6c7fe8);
+}
+
+/* Active styling */
+ion-chip.filter-chip:not([outline="true"]) {
+  --background: var(--primary, #6c7fe8);
+  --color: #ffffff;
+  box-shadow: 0 2px 8px rgba(108, 127, 232, 0.35);
+}
+
+/* Light Theme Overrides */
+:host-context(body.light-theme) ion-chip.filter-chip[outline="true"],
+body.light-theme ion-chip.filter-chip[outline="true"] {
+  --background: #f1f5f9;
+  --color: #475569;
+  border-color: #cbd5e1;
+}
+
+:host-context(body.light-theme) ion-chip.filter-chip:not([outline="true"]),
+body.light-theme ion-chip.filter-chip:not([outline="true"]) {
+  --background: #4f46e5;
+  --color: #ffffff;
+}

@@ -1,6 +1,7 @@
 package com.bar.gestioncocktail.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -16,16 +17,20 @@ public class Commande {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "table_id", nullable = false)
+    @JoinColumn(name = "table_id", nullable = true)
     private TableEntity table;
 
     @ManyToOne
-    @JoinColumn(name = "serveur_id", nullable = false)
+    @JoinColumn(name = "serveur_id", nullable = true)
     private User serveur;
 
-    @OneToMany(mappedBy = "commande", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Column(name = "tracking_token", unique = true)
+    private String trackingToken;
+
+    @OneToMany(mappedBy = "commande", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<CommandeItem> items = new ArrayList<>();
 
+    @NotNull(message = "Status is required")
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private CommandeStatut statut;
@@ -35,6 +40,7 @@ public class Commande {
     private BigDecimal pourboire;
     private LocalDateTime dateCommande;
     private LocalDateTime datePreparation;
+    private LocalDateTime datePret;
     private LocalDateTime dateLivraison;
     private LocalDateTime dateReglement;
     private LocalDateTime createdAt;
@@ -43,15 +49,20 @@ public class Commande {
     @Column(name = "date_modification")
     private LocalDateTime dateModification;
 
+    @Column(name = "prioritaire", nullable = false)
+    private boolean prioritaire = false;
+
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-        dateCommande = LocalDateTime.now();
+        createdAt = LocalDateTime.now(java.time.ZoneId.systemDefault());
+        updatedAt = LocalDateTime.now(java.time.ZoneId.systemDefault());
+        if (dateCommande == null) {
+            dateCommande = LocalDateTime.now(java.time.ZoneId.systemDefault());
+        }
     }
 
     @PreUpdate
     protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now(java.time.ZoneId.systemDefault());
     }
 } 

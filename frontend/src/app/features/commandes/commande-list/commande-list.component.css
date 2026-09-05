@@ -1,23 +1,295 @@
-.commande-list-container {
-  padding: 20px;
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  min-height: 0;
+  overflow: hidden;
 }
 
-mat-card {
+.commandes-page-content {
+  --background: var(--background-bg-0);
+  color: var(--text-primary);
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+}
+
+.commandes-wrapper {
+  padding: 16px;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+/* Control Banner Header */
+.control-banner {
+  background: var(--background-surface-1);
+  border: 1px solid var(--border-medium);
+  border-radius: 14px;
+  padding: 18px 20px;
   margin-bottom: 20px;
+  box-shadow: var(--elev-1);
 }
 
-mat-card-header {
+.banner-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 16px;
 }
 
-table {
+.title-group h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.5px;
+}
+
+.subtitle {
+  margin: 4px 0 0 0;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.banner-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* View Mode Buttons Switch */
+.view-switch {
+  display: flex;
+  background: var(--background-surface-2);
+  padding: 4px;
+  border-radius: 10px;
+  border: 1px solid var(--border-medium);
+}
+
+.view-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.view-btn ion-icon {
+  font-size: 1.1rem;
+}
+
+.view-btn:hover {
+  color: var(--text-primary);
+}
+
+.view-btn.active {
+  background: var(--primary);
+  color: var(--text-on-accent, #ffffff);
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(108, 127, 232, 0.35);
+}
+
+.search-filter-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+ion-searchbar {
+  --background: var(--background-surface-2);
+  --color: var(--text-primary);
+  --placeholder-color: var(--text-muted);
+  --icon-color: var(--text-muted);
+  --border-radius: 10px;
+  padding: 0;
+  flex: 1;
+  min-width: 280px;
+  border: 1px solid var(--border-medium);
+  border-radius: 10px;
+}
+
+.toggle-served-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--background-surface-2);
+  padding: 6px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border-medium);
+}
+
+.toggle-label {
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+/* Spinner Loading */
+.spinner-container {
+  display: flex;
+  justify-content: center;
+  padding: 40px;
+}
+
+/* KANBAN BOARD GRID */
+.kanban-board {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+  gap: 18px;
+  align-items: start;
+}
+
+.kanban-column {
+  background: var(--background-surface-1);
+  border: 1px solid var(--border-medium);
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  min-height: 500px;
+  overflow: hidden;
+  box-shadow: var(--elev-1);
+}
+
+.column-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-medium);
+  background: var(--background-surface-2);
+}
+
+.column-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.column-title h2 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.dot-pending { background: var(--semantic-warning); box-shadow: 0 0 8px var(--status-waiting-25, rgba(244, 165, 42, 0.4)); }
+.dot-progress { background: var(--semantic-info); box-shadow: 0 0 8px var(--status-inprogress-25, rgba(43, 168, 232, 0.4)); }
+.dot-ready { background: var(--semantic-success); box-shadow: 0 0 8px var(--status-ready-25, rgba(47, 191, 107, 0.4)); }
+.dot-served { background: var(--text-muted); }
+
+.count-badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.badge-pending { background: var(--status-waiting-15, rgba(244, 165, 42, 0.18)); color: var(--semantic-warning); }
+.badge-progress { background: var(--status-inprogress-15, rgba(43, 168, 232, 0.18)); color: var(--semantic-info); }
+.badge-ready { background: var(--status-ready-15, rgba(47, 191, 107, 0.18)); color: var(--semantic-success); }
+.badge-served { background: var(--background-surface-3); color: var(--text-secondary); }
+
+.column-body {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+}
+
+.empty-column-msg {
+  text-align: center;
+  padding: 30px 10px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* LIST / TABLE VIEW STYLING */
+.list-card {
+  background: var(--background-surface-1);
+  border: 1px solid var(--border-medium);
+  border-radius: 14px;
+  box-shadow: var(--elev-1);
+}
+
+.commande-table-row {
+  --background: transparent;
+  --border-color: var(--border-medium);
+}
+
+.row-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   width: 100%;
+  padding: 8px 0;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
-.mat-column-actions {
-  width: 120px;
+.row-left h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.badge-token {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-left: 6px;
+}
+
+.row-left p {
+  margin: 4px 0 0 0;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.item-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.item-chips ion-chip {
+  height: 22px;
+  font-size: 0.75rem;
+}
+
+.row-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.total-price {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--semantic-success);
+}
+
+.empty-row {
+  --background: transparent;
   text-align: center;
 }

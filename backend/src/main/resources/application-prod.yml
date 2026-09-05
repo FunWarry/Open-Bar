@@ -1,0 +1,24 @@
+# Profile PROD — Base de données production (Strictement Vierge, zéro jeu de test)
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:openbar}
+    username: ${DB_USER:postgres}
+    password: ${POSTGRES_PASSWORD:postgres}
+
+openbar:
+  cors:
+    allowed-origin-patterns: ${OPENBAR_CORS_ALLOWED_ORIGINS:http://localhost:*,http://127.0.0.1:*,https://open-bar.freeboxos.fr,http://192.168.*:*,http://10.*:*,http://172.16.*:*}
+
+server:
+  error:
+    include-stacktrace: never
+    include-message: never
+
+logging:
+  file:
+    path: ${LOG_PATH:/var/log/openbar/backend}
+  level:
+    org.springframework.security: WARN
+    com.bar.gestioncocktail: INFO
+    org.hibernate.SQL: off
+

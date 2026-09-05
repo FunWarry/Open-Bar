@@ -1,0 +1,252 @@
+<ion-header class="modal-header">
+  <ion-toolbar class="modal-toolbar">
+    <div class="header-content" slot="start">
+      <div class="header-icon-badge">
+        <ion-icon name="restaurant-outline"></ion-icon>
+      </div>
+      <div class="header-titles">
+        <ion-title class="modal-title">
+          {{ table.nom }}
+        </ion-title>
+        <span class="zone-badge" *ngIf="table.zone">{{ table.zone }}</span>
+      </div>
+    </div>
+    <ion-buttons slot="end">
+      <ion-button
+        (click)="fermer()"
+        (keydown.enter)="fermer()"
+        fill="clear"
+        class="btn-close"
+        data-testid="btn-close-modal">
+        <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="modal-content">
+  <div class="modal-body-container">
+    <!-- Table Status and Metadata Strip -->
+    <div class="table-meta-strip">
+      <div class="meta-pill status-pill" [class.occupied]="table.occupee" [class.free]="!table.occupee">
+        <span class="status-dot"></span>
+        <span>{{ (table.occupee ? 'TABLE_MODAL.STATUS_OCCUPIED' : 'TABLE_MODAL.STATUS_FREE') | transloco }}</span>
+      </div>
+
+      <div class="meta-pill capacity-pill">
+        <ion-icon name="people-outline"></ion-icon>
+        <span>{{ (table.capacite === 1 ? 'TABLE_MODAL.CAPACITY_SINGLE' : 'TABLE_MODAL.CAPACITY') | transloco:{ count: table.capacite } }}</span>
+      </div>
+
+      <div class="meta-pill waiter-pill" *ngIf="table.serveurNom">
+        <ion-icon name="person-outline"></ion-icon>
+        <span>{{ 'TABLE_MODAL.WAITER' | transloco:{ name: table.serveurNom } }}</span>
+      </div>
+
+      <div class="meta-pill total-pill" *ngIf="commandes.length > 0">
+        <ion-icon name="receipt-outline"></ion-icon>
+        <span>{{ 'TABLE_MODAL.ACTIVE_TOTAL' | transloco }}: <strong>{{ calculerTotalActif() | currency:'EUR':'symbol':'1.2-2' }}</strong></span>
+      </div>
+    </div>
+
+    <!-- Active Table Alerts Section -->
+    @if (activeAppels.length > 0) {
+      <div class="table-alerts-modal-section" data-testid="table-modal-alerts">
+        @for (appel of activeAppels; track appel.id) {
+          <div class="table-alert-item" [class.bill-item]="appel.type === 'ADDITION'">
+            <span class="alert-icon pulse">{{ appel.type === 'ADDITION' ? '💳' : '🔔' }}</span>
+            <div class="alert-info">
+              <span class="alert-title">{{ (appel.type === 'ADDITION' ? 'SERVEUR.ALERTS.BILL_REQUEST' : 'SERVEUR.ALERTS.ASSISTANCE_REQUEST') | transloco }}</span>
+              @if (appel.commentaire) {
+                <span class="alert-comment">"{{ appel.commentaire }}"</span>
+              }
+            </div>
+            <button
+              type="button"
+              class="ack-modal-alert-btn"
+              [attr.data-testid]="'btn-modal-ack-call-' + appel.id"
+              (click)="acquitterAppel(appel.id)">
+              ✓ {{ 'SERVEUR.ALERTS.ACKNOWLEDGE_BTN' | transloco }}
+            </button>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Active Orders Section -->
+    <div class="orders-section">
+      <div class="section-header">
+        <div class="section-title-wrapper">
+          <ion-icon name="flame-outline" class="title-icon"></ion-icon>
+          <span class="section-title">{{ 'TABLE_MODAL.ACTIVE_ORDERS' | transloco }}</span>
+        </div>
+        <ion-badge color="primary" class="orders-count-badge">{{ commandes.length }}</ion-badge>
+      </div>
+
+      <!-- Loading State -->
+      <div *ngIf="isLoading" class="loading-state">
+        <ion-spinner name="crescent" color="primary"></ion-spinner>
+        <p>{{ 'TABLE_MODAL.LOADING' | transloco }}</p>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="!isLoading && commandes.length === 0" class="empty-commandes-card">
+        <div class="empty-icon-circle">
+          <ion-icon name="time-outline"></ion-icon>
+        </div>
+        <h4 class="empty-title">{{ 'TABLE_MODAL.EMPTY_TITLE' | transloco }}</h4>
+        <p class="empty-subtitle">{{ 'TABLE_MODAL.EMPTY_SUBTITLE' | transloco }}</p>
+      </div>
+
+      <!-- Orders List -->
+      <div *ngIf="!isLoading && commandes.length > 0" class="commandes-cards-list">
+        <div
+          *ngFor="let cmd of commandes; let i = index"
+          class="order-card"
+          [attr.data-testid]="'order-card-' + cmd.id">
+
+          <!-- Order Card Header -->
+          <div class="order-card-header">
+            <div class="order-id-badge">
+              <span class="id-hash">#</span>{{ cmd.id }}
+            </div>
+            <div class="order-status-badge">
+              <ion-badge [color]="statutColor(cmd.statut)">
+                {{ statutTranslocoKey(cmd.statut) | transloco }}
+              </ion-badge>
+              @if (cmd.prioritaire) {
+                <ion-badge color="danger" class="urgent-badge" [attr.data-testid]="'badge-urgent-' + cmd.id">
+                  ⚡ {{ 'COMMANDES.PRIORITE' | transloco }}
+                </ion-badge>
+              }
+            </div>
+            <div class="order-header-total">
+              {{ getCommandeTotal(cmd) | currency:'EUR':'symbol':'1.2-2' }}
+            </div>
+          </div>
+
+          <!-- Items Subtitle -->
+          <div class="order-items-summary">
+            <span class="items-count-text">
+              {{ (getArticlesTotalCount(cmd.items) === 1 ? 'TABLE_MODAL.ARTICLES_COUNT' : 'TABLE_MODAL.ARTICLES_COUNT_PLURAL') | transloco:{ count: getArticlesTotalCount(cmd.items) } }}
+            </span>
+          </div>
+
+          <!-- Order Items List -->
+          <div class="order-items-lines">
+            <div *ngFor="let item of getGroupedItems(cmd.items)" class="item-row">
+              <div class="item-qty-tag">{{ item.quantite }}×</div>
+              <div class="item-name-group">
+                <span class="item-cocktail-name">{{ item.cocktailNom }}</span>
+                <span *ngIf="item.varianteNom" class="item-variant-chip">{{ item.varianteNom }}</span>
+                <div *ngIf="item.notes" class="item-notes-text">
+                  <em>« {{ item.notes }} »</em>
+                </div>
+              </div>
+              <div class="item-row-price" *ngIf="item.prixUnitaire">
+                {{ (item.prixUnitaire * item.quantite) | currency:'EUR':'symbol':'1.2-2' }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Order Global Notes -->
+          <div *ngIf="cmd.notes" class="order-global-notes">
+            <span class="notes-label">{{ 'COMMON.NOTES' | transloco }}:</span>
+            <span class="notes-content">{{ cmd.notes }}</span>
+          </div>
+
+          <!-- Order Actions Toolbar -->
+          <div class="order-actions-toolbar">
+            <ion-button
+              fill="outline"
+              size="small"
+              [color]="cmd.prioritaire ? 'danger' : 'warning'"
+              (click)="toggleUrgent(cmd)"
+              (keydown.enter)="toggleUrgent(cmd)"
+              class="btn-order-action btn-urgent"
+              [attr.data-testid]="'btn-toggle-urgent-' + cmd.id">
+              <ion-icon name="flash-outline" slot="start"></ion-icon>
+              {{ (cmd.prioritaire ? 'COMMANDES.ACTIONS.UNMARK_URGENT' : 'COMMANDES.ACTIONS.MARK_URGENT') | transloco }}
+            </ion-button>
+
+            <ion-button
+              *ngIf="peutModifier(cmd.statut)"
+              fill="outline"
+              size="small"
+              color="primary"
+              (click)="modifierCommande(cmd)"
+              (keydown.enter)="modifierCommande(cmd)"
+              class="btn-order-action btn-edit"
+              [attr.data-testid]="'btn-modifier-commande-' + cmd.id">
+              <ion-icon name="pencil-outline" slot="start"></ion-icon>
+              {{ 'TABLE_MODAL.BTN_EDIT_ORDER' | transloco }}
+            </ion-button>
+
+            <ion-button
+              fill="outline"
+              size="small"
+              color="tertiary"
+              (click)="transferer(cmd.id)"
+              (keydown.enter)="transferer(cmd.id)"
+              class="btn-order-action btn-transfer"
+              [attr.data-testid]="'btn-transferer-modal-' + cmd.id">
+              <ion-icon name="swap-horizontal-outline" slot="start"></ion-icon>
+              {{ 'TABLE_MODAL.BTN_TRANSFER_ORDER' | transloco }}
+            </ion-button>
+
+            <ion-button
+              *ngIf="peutAnnuler(cmd.statut)"
+              fill="outline"
+              size="small"
+              color="danger"
+              (click)="annuler(cmd.id)"
+              (keydown.enter)="annuler(cmd.id)"
+              class="btn-order-action btn-cancel"
+              [attr.data-testid]="'btn-annuler-modal-' + cmd.id">
+              <ion-icon name="ban-outline" slot="start"></ion-icon>
+              {{ 'TABLE_MODAL.BTN_CANCEL_ORDER' | transloco }}
+            </ion-button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>
+
+<!-- Modal Footer Actions -->
+<ion-footer class="modal-footer">
+  <ion-button
+    *ngIf="table.occupee || commandes.length > 0"
+    expand="block"
+    color="success"
+    (click)="encaisser()"
+    (keydown.enter)="encaisser()"
+    class="btn-footer btn-encaisser"
+    data-testid="btn-encaisser-modal">
+    <ion-icon name="card-outline" slot="start"></ion-icon>
+    {{ 'TABLE_MODAL.PAY_BILL' | transloco }}
+  </ion-button>
+
+  <ion-button
+    expand="block"
+    color="primary"
+    (click)="nouvelleCommande()"
+    (keydown.enter)="nouvelleCommande()"
+    class="btn-footer btn-nouvelle"
+    data-testid="btn-nouvelle-commande">
+    <ion-icon name="add-circle-outline" slot="start"></ion-icon>
+    {{ 'TABLE_MODAL.NEW_ORDER' | transloco }}
+  </ion-button>
+
+  <ion-button
+    *ngIf="table.occupee"
+    expand="block"
+    fill="outline"
+    color="danger"
+    (click)="liberer()"
+    (keydown.enter)="liberer()"
+    class="btn-footer btn-liberer"
+    data-testid="btn-liberer-table">
+    {{ 'TABLE_MODAL.FREE_TABLE' | transloco }}
+  </ion-button>
+</ion-footer>

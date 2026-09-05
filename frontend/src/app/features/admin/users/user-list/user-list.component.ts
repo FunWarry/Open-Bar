@@ -1,113 +1,239 @@
-import {Component, OnInit, ViewChild} from '@angular/core';
-import {MatPaginator} from '@angular/material/paginator';
-import {MatSort} from '@angular/material/sort';
-import {MatTableDataSource} from '@angular/material/table';
-import {MatDialog} from '@angular/material/dialog';
-import {Store} from '@ngrx/store';
-import {Observable} from 'rxjs';
-import {User} from '../../../../core/models/user.model';
-import {UserDialogComponent} from '../user-dialog/user-dialog.component';
-import {DeleteUserDialogComponent} from '../delete-user-dialog/delete-user-dialog.component';
-import {MatCardModule} from '@angular/material/card';
-import {MatPaginatorModule} from '@angular/material/paginator';
-import {MatTableModule} from '@angular/material/table';
-import {MatSortModule} from '@angular/material/sort';
-import {MatIconModule} from '@angular/material/icon';
-import {MatButtonModule} from '@angular/material/button';
-import {MatChipsModule} from '@angular/material/chips';
-import { DatePipe } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import {
+  ModalController,
+  ToastController,
+  IonCard,
+  IonCardHeader,
+  IonCardTitle,
+  IonCardContent,
+  IonList,
+  IonItem,
+  IonBadge,
+  IonIcon,
+  IonButton,
+  IonSpinner,
+  IonSelect,
+  IonSelectOption,
+  IonInput
+} from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import {
+  personAdd, create, trash,
+  chevronBackOutline, chevronForwardOutline, searchOutline, filterOutline, calendarOutline
+} from 'ionicons/icons';
+import { User } from '../../../../core/models/user.model';
+import { UserService } from '../../../../core/services/user.service';
+import { UserDialogComponent } from '../user-dialog/user-dialog.component';
+import { DeleteUserDialogComponent } from '../delete-user-dialog/delete-user-dialog.component';
+
+import { TranslocoPipe } from '@jsverse/transloco';
+
+/**
+ * Component managing the administrator/manager view for paginated user listing, search, filtering, and CRUD operations.
+ */
 @Component({
   selector: 'app-user-list',
-  templateUrl: `./user-list.component.html`,
-  styleUrl: `./user-list.component.css`,
+  templateUrl: './user-list.component.html',
+  styleUrl: './user-list.component.css',
   standalone: true,
   imports: [
-    MatCardModule,
-    MatPaginatorModule,
-    MatTableModule,
-    MatSortModule,
-    MatIconModule,
-    MatButtonModule,
-    MatChipsModule,
-    DatePipe
+    CommonModule,
+    FormsModule,
+    IonCard,
+    IonCardHeader,
+    IonCardTitle,
+    IonCardContent,
+    IonList,
+    IonItem,
+    IonBadge,
+    IonIcon,
+    IonButton,
+    IonSpinner,
+    IonSelect,
+    IonSelectOption,
+    IonInput,
+    TranslocoPipe
   ]
 })
 export class UserListComponent implements OnInit {
-  displayedColumns: string[] = ['username', 'email', 'roles', 'createdAt', 'actions'];
-  dataSource: MatTableDataSource<User>;
-  users$: Observable<User[]>;
+  users: User[] = [];
+  loading = false;
 
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
-  @ViewChild(MatSort) sort!: MatSort;
+  // Pagination & Filter state
+  currentPage = 0;
+  pageSize = 10;
+  totalElements = 0;
+  totalPages = 0;
+  isFirst = true;
+  isLast = true;
+
+  searchQuery = '';
+  selectedRole = 'ALL';
+
+  readonly pageSizeOptions = [5, 10, 20];
+  readonly availableRoles = [
+    { value: 'ALL', label: 'Tous les rôles' },
+    { value: 'ADMIN', label: 'Administrateur' },
+    { value: 'MANAGER', label: 'Manager' },
+    { value: 'SERVEUR', label: 'Serveur' },
+    { value: 'BARMAN', label: 'Barman' }
+  ];
 
   constructor(
-    private store: Store,
-    private dialog: MatDialog
+    private readonly userService: UserService,
+    private readonly modalCtrl: ModalController,
+    private readonly toastCtrl: ToastController
   ) {
-    this.dataSource = new MatTableDataSource();
-    // TODO: Remplacer par le sélecteur des utilisateurs
-    this.users$ = this.store.select(state => []);
+    addIcons({
+      personAdd, create, trash,
+      chevronBackOutline, chevronForwardOutline, searchOutline, filterOutline, calendarOutline
+    });
   }
 
   ngOnInit(): void {
-    this.users$.subscribe(users => {
-      this.dataSource.data = users;
+    this.loadUsers();
+  }
+
+  /**
+   * Loads the paginated list of users from the backend API based on current page, size, search query, and role filter.
+   */
+  loadUsers(): void {
+    this.loading = true;
+    this.userService.getUsersPaged(this.currentPage, this.pageSize, this.searchQuery, this.selectedRole).subscribe({
+      next: (page) => {
+        this.users = page.content;
+        this.currentPage = page.pageNumber;
+        this.pageSize = page.pageSize;
+        this.totalElements = page.totalElements;
+        this.totalPages = page.totalPages;
+        this.isFirst = page.isFirst;
+        this.isLast = page.isLast;
+        this.loading = false;
+      },
+      error: () => {
+        this.loading = false;
+        this.showToast('Erreur lors du chargement des utilisateurs', 'danger');
+      }
     });
   }
 
-  ngAfterViewInit() {
-    this.dataSource.paginator = this.paginator;
-    this.dataSource.sort = this.sort;
+  onSearchChange(): void {
+    this.currentPage = 0;
+    this.loadUsers();
   }
 
-  applyFilter(event: Event) {
-    const filterValue = (event.target as HTMLInputElement).value;
-    this.dataSource.filter = filterValue.trim().toLowerCase();
+  onRoleChange(): void {
+    this.currentPage = 0;
+    this.loadUsers();
+  }
 
-    if (this.dataSource.paginator) {
-      this.dataSource.paginator.firstPage();
+  prevPage(): void {
+    if (!this.isFirst && this.currentPage > 0) {
+      this.currentPage--;
+      this.loadUsers();
     }
   }
 
-  openCreateDialog(): void {
-    const dialogRef = this.dialog.open(UserDialogComponent, {
-      width: '600px',
-      data: null
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        // TODO: Dispatch l'action de création d'utilisateur
-        console.log('Création utilisateur:', result);
-      }
-    });
+  nextPage(): void {
+    if (!this.isLast && this.currentPage < this.totalPages - 1) {
+      this.currentPage++;
+      this.loadUsers();
+    }
   }
 
-  openEditDialog(user: User): void {
-    const dialogRef = this.dialog.open(UserDialogComponent, {
-      width: '600px',
-      data: user
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        // TODO: Dispatch l'action de modification d'utilisateur
-        console.log('Modification utilisateur:', result);
-      }
-    });
+  changePageSize(newSize: number): void {
+    this.pageSize = newSize;
+    this.currentPage = 0;
+    this.loadUsers();
   }
 
-  openDeleteDialog(user: User): void {
-    const dialogRef = this.dialog.open(DeleteUserDialogComponent, {
-      width: '400px',
-      data: user
-    });
+  trackById(index: number, user: User): number {
+    return user.id ?? index;
+  }
 
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        // TODO: Dispatch l'action de suppression d'utilisateur
-        console.log('Suppression utilisateur:', user.id);
-      }
+  getRoleColor(role: string): string {
+    switch (role) {
+      case 'ADMIN': return 'tertiary';
+      case 'MANAGER': return 'secondary';
+      case 'SERVEUR': return 'primary';
+      case 'BARMAN': return 'warning';
+      default: return 'medium';
+    }
+  }
+
+  async openCreateDialog(): Promise<void> {
+    const modal = await this.modalCtrl.create({
+      component: UserDialogComponent,
+      componentProps: { data: null }
     });
+    await modal.present();
+    const { data } = await modal.onWillDismiss();
+    if (data) {
+      this.userService.createUser(data).subscribe({
+        next: () => {
+          this.showToast('Utilisateur créé avec succès', 'success');
+          this.loadUsers();
+        },
+        error: (err) => {
+          const msg = err?.error?.message || 'Erreur lors de la création de l\'utilisateur';
+          this.showToast(msg, 'danger');
+        }
+      });
+    }
+  }
+
+  async openEditDialog(user: User): Promise<void> {
+    const modal = await this.modalCtrl.create({
+      component: UserDialogComponent,
+      componentProps: { data: user }
+    });
+    await modal.present();
+    const { data } = await modal.onWillDismiss();
+    if (data) {
+      this.userService.updateUser(user.id, data).subscribe({
+        next: () => {
+          this.showToast('Utilisateur modifié avec succès', 'success');
+          this.loadUsers();
+        },
+        error: (err) => {
+          const msg = err?.error?.message || 'Erreur lors de la modification de l\'utilisateur';
+          this.showToast(msg, 'danger');
+        }
+      });
+    }
+  }
+
+  async openDeleteDialog(user: User): Promise<void> {
+    const modal = await this.modalCtrl.create({
+      component: DeleteUserDialogComponent,
+      componentProps: { data: user },
+      cssClass: 'delete-modal'
+    });
+    await modal.present();
+    const { data } = await modal.onWillDismiss();
+    if (data) {
+      this.userService.deleteUser(user.id).subscribe({
+        next: () => {
+          this.showToast('Utilisateur supprimé avec succès', 'success');
+          this.loadUsers();
+        },
+        error: (err) => {
+          const msg = err?.error?.message || 'Erreur lors de la suppression de l\'utilisateur';
+          this.showToast(msg, 'danger');
+        }
+      });
+    }
+  }
+
+  private async showToast(message: string, color: 'success' | 'danger' | 'warning'): Promise<void> {
+    const toast = await this.toastCtrl.create({
+      message,
+      duration: 3000,
+      color,
+      position: 'bottom'
+    });
+    await toast.present();
   }
 }

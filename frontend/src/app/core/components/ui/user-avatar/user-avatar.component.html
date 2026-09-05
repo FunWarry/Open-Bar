@@ -1,0 +1,17 @@
+<div [class]="'avatar-container avatar-' + size" [attr.data-testid]="testId">
+  <ion-avatar>
+    @if (avatarUrl) {
+      <img [src]="avatarUrl" [alt]="name || 'User Avatar'" />
+    } @else {
+      <div class="avatar-fallback" [style.backgroundColor]="roleColor">
+        <span>{{ initials }}</span>
+      </div>
+    }
+  </ion-avatar>
+  @if (role) {
+    <div class="avatar-role-badge" [attr.data-role]="role">
+      <ion-icon [name]="roleIcon"></ion-icon>
+    </div>
+  }
+</div>
+

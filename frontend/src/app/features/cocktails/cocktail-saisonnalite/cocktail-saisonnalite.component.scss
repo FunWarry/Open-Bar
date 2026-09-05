@@ -1,0 +1,101 @@
+.saisonnalite-container {
+  padding: 4px 0;
+}
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.25rem 0.75rem;
+
+  .toggle-label {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+}
+
+.saison-fields-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.saison-field-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.saison-preview {
+  padding: 0.5rem 0 1rem;
+}
+
+.preview-title {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.mois-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.mois-cell {
+  padding: 12px 6px;
+  text-align: center;
+  border-radius: var(--radius-md, 10px);
+  font-size: 0.88rem;
+  font-weight: 600;
+  background: var(--background-surface-1);
+  color: var(--text-primary);
+  border: 1.5px solid var(--border-medium);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+
+  &:hover {
+    border-color: var(--primary);
+    transform: translateY(-1px);
+  }
+}
+
+.mois-cell.actif {
+  background: var(--primary) !important;
+  color: #ffffff !important;
+  border-color: var(--primary-strong, var(--primary)) !important;
+  font-weight: 700;
+  box-shadow: 0 4px 14px rgba(var(--primary-rgb, 79, 70, 229), 0.4) !important;
+}
+
+.mois-cell.courant:not(.actif) {
+  border-color: var(--primary);
+  border-width: 2px;
+  background: rgba(var(--primary-rgb, 79, 70, 229), 0.08);
+  color: var(--primary);
+  font-weight: 700;
+  box-shadow: 0 0 0 2px rgba(var(--primary-rgb, 79, 70, 229), 0.2);
+}
+
+.mois-cell.courant.actif {
+  outline: 2px solid var(--text-on-accent, #ffffff);
+  outline-offset: -3px;
+}
+
+.disponibilite-badge {
+  padding: 4px 0 8px;
+}
+
+.saison-action-row {
+  margin-top: 0.75rem;
+  width: 100%;
+}

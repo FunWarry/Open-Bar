@@ -1,0 +1,156 @@
+<div class="client-container">
+  <div class="ellipse-bg-primary"></div>
+  <div class="ellipse-bg-tertiary"></div>
+
+  <!-- Étape 1 : Choix de la table -->
+  @if (step === 'table') {
+    <div class="step-card">
+      <div class="card-header-section">
+        <span class="brand-emoji">📱</span>
+        <h1 class="card-title">OpenBar</h1>
+        <p class="card-subtitle">{{ 'CLIENT.SUBTITLE' | transloco }}</p>
+      </div>
+
+      <form [formGroup]="tableForm" (ngSubmit)="onSelectTable()" class="table-form">
+        <app-input-field
+          formControlName="tableNumber"
+          type="number"
+          [label]="'CLIENT.TABLE_NUMBER_LABEL' | transloco"
+          [placeholder]="'CLIENT.TABLE_NUMBER_PLACEHOLDER' | transloco"
+          icon="restaurant-outline"
+          [required]="true">
+        </app-input-field>
+
+        <app-action-button
+          type="submit"
+          variant="primary"
+          size="large"
+          expand="block"
+          [disabled]="tableForm.invalid">
+          {{ 'CLIENT.ACCESS_MENU_BTN' | transloco }}
+        </app-action-button>
+      </form>
+    </div>
+  }
+
+  <!-- Étape 2 : Menu & Sélection de cocktails -->
+  @if (step === 'menu') {
+    <div class="menu-view">
+      <header class="menu-header">
+        <div class="header-info">
+          <h1 class="menu-title">{{ 'CLIENT.MENU_TITLE' | transloco: { table: tableNumero } }}</h1>
+          <p class="menu-subtitle">{{ 'CLIENT.SELECT_ITEMS' | transloco }}</p>
+        </div>
+
+        <!-- Quick Table Service & Bill Actions Bar -->
+        <app-table-assistance-bar [tableNumero]="tableNumero!"></app-table-assistance-bar>
+      </header>
+
+      <div class="filter-chips">
+        <app-filter-chip
+          [label]="'COMMON.ALL' | transloco"
+          [active]="selectedCategory === 'TOUS'"
+          (chipClick)="filterCategory('TOUS')"
+          testId="filter-tous">
+        </app-filter-chip>
+        <app-filter-chip
+          [label]="'COCKTAILS.CATEGORIES.ALCOOLISE' | transloco"
+          [active]="selectedCategory === 'ALCOOLISE'"
+          (chipClick)="filterCategory('ALCOOLISE')"
+          testId="filter-alcoolise">
+        </app-filter-chip>
+        <app-filter-chip
+          [label]="'COCKTAILS.CATEGORIES.SANS_ALCOOL' | transloco"
+          [active]="selectedCategory === 'SANS_ALCOOL'"
+          (chipClick)="filterCategory('SANS_ALCOOL')"
+          testId="filter-sans-alcool">
+        </app-filter-chip>
+      </div>
+
+      @if (isLoading) {
+        <div class="loading-box">
+          <span class="spinner-icon">🍹</span>
+          <p>{{ 'COMMON.LOADING' | transloco }}</p>
+        </div>
+      } @else {
+        <div class="cocktails-grid">
+          @for (cocktail of filteredCocktails; track cocktail.id) {
+            <app-product-card
+              [title]="cocktail.nom"
+              [description]="cocktail.description || cocktail.categorie"
+              [price]="cocktail.prix"
+              [category]="cocktail.categorie"
+              [quantity]="getItemQuantity(cocktail.id)"
+              (addClick)="addToCart(cocktail)"
+              (removeClick)="removeFromCart(cocktail.id)"
+              [testId]="'product-card-' + cocktail.id">
+            </app-product-card>
+          } @empty {
+            <div class="empty-box">
+              <p>{{ 'CLIENT.NO_COCKTAILS_CATEGORY' | transloco }}</p>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Barre flottante Panier -->
+      @if (totalItemsCount > 0) {
+        <div class="floating-cart-bar">
+          <div class="cart-summary">
+            <span class="cart-icon">🛒</span>
+            <span class="cart-count">{{ 'CLIENT.ITEMS_COUNT' | transloco: { count: totalItemsCount } }}</span>
+          </div>
+          <div class="cart-action">
+            <span class="cart-total">{{ totalPrice | appCurrency }}</span>
+            <button class="recap-btn" (click)="goToRecap()">{{ 'CLIENT.VIEW_RECAP' | transloco }}</button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Étape 3 : Récapitulatif -->
+  @if (step === 'recap') {
+    <div class="step-card recap-card">
+      <div class="recap-header">
+        <button class="back-btn" (click)="backToMenu()">{{ 'CLIENT.BACK_TO_MENU' | transloco }}</button>
+        <h1 class="card-title">{{ 'CLIENT.RECAP_TITLE' | transloco: { table: tableNumero } }}</h1>
+      </div>
+
+      <div class="cart-items-list">
+        @for (item of cartItemsList; track item.cocktail.id) {
+          <div class="recap-item">
+            <div class="item-details">
+              <span class="item-name">{{ item.cocktail.nom }}</span>
+              <span class="item-unit-price">{{ item.cocktail.prix | appCurrency }}</span>
+            </div>
+            <div class="quantity-controls">
+              <button class="qty-btn" (click)="removeFromCart(item.cocktail.id)">-</button>
+              <span class="qty-count">{{ item.quantite }}</span>
+              <button class="qty-btn add-btn" (click)="addToCart(item.cocktail)">+</button>
+            </div>
+            <span class="item-total-price">{{ (item.cocktail.prix * item.quantite) | appCurrency }}</span>
+          </div>
+        }
+      </div>
+
+      <div class="recap-summary-row">
+        <span class="summary-label">{{ 'CLIENT.TOTAL_DUE' | transloco }}</span>
+        <span class="summary-price">{{ totalPrice | appCurrency }}</span>
+      </div>
+
+      <div class="actions-row">
+        <app-action-button
+          variant="primary"
+          size="large"
+          expand="block"
+          [disabled]="isSubmitting"
+          [loading]="isSubmitting"
+          (click)="submitOrder()"
+          (keydown.enter)="submitOrder()">
+          {{ 'CLIENT.SUBMIT_ORDER_BTN' | transloco }}
+        </app-action-button>
+      </div>
+    </div>
+  }
+</div>

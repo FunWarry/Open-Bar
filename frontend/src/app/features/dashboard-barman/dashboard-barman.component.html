@@ -1,0 +1,202 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="barman-toolbar">
+    <ion-title>
+      <div class="toolbar-title-container">
+        <span class="toolbar-brand">{{ 'BARMAN_DASHBOARD.TITLE' | transloco }}</span>
+        <span class="active-orders-counter" title="Commandes en cours de traitement">
+          {{ totalActiveOrdersCount }} {{ 'BARMAN_DASHBOARD.PENDING_ORDERS' | transloco }}
+        </span>
+      </div>
+    </ion-title>
+
+    <ion-buttons slot="end" class="toolbar-actions">
+      <!-- Ruptures à chaud -->
+      <ion-button
+        class="header-action-btn btn-ruptures"
+        (click)="openRupturesModal()"
+        (keyup.enter)="openRupturesModal()"
+        [title]="'BARMAN_DASHBOARD.QUICK_STOCK_TOGGLES' | transloco"
+        data-testid="open-ruptures-btn">
+        <ion-icon slot="start" name="flame-outline"></ion-icon>
+        <span class="btn-text">{{ 'BARMAN_DASHBOARD.QUICK_STOCK_TOGGLES' | transloco }}</span>
+      </ion-button>
+
+      <!-- Refresh manuel -->
+      <ion-button
+        class="header-action-btn"
+        (click)="chargerCommandes()"
+        (keyup.enter)="chargerCommandes()"
+        [title]="'BARMAN_DASHBOARD.REFRESH_ORDERS_TOOLTIP' | transloco"
+        data-testid="refresh-orders-btn">
+        <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+
+  <!-- Barre de filtres et recherche -->
+  <div class="barman-filter-bar">
+    <div class="search-wrapper">
+      <ion-searchbar
+        [(ngModel)]="searchQuery"
+        [placeholder]="'BARMAN_DASHBOARD.SEARCH_PLACEHOLDER' | transloco"
+        mode="ios"
+        [debounce]="150"
+        data-testid="barman-searchbar">
+      </ion-searchbar>
+    </div>
+
+    <div class="chips-wrapper">
+      <ion-chip
+        tabindex="0"
+        [class.chip--active]="!urgentOnly"
+        (click)="urgentOnly = false"
+        (keyup.enter)="urgentOnly = false"
+        data-testid="chip-filter-all">
+        <ion-label>{{ 'BARMAN_DASHBOARD.FILTER_ALL' | transloco }}</ion-label>
+      </ion-chip>
+
+      <ion-chip
+        tabindex="0"
+        [class.chip--active]="urgentOnly"
+        [class.chip--urgent]="urgentOrdersCount > 0"
+        (click)="urgentOnly = !urgentOnly"
+        (keyup.enter)="urgentOnly = !urgentOnly"
+        data-testid="chip-filter-urgent">
+        <ion-icon name="flash-outline"></ion-icon>
+        <ion-label>{{ 'BARMAN_DASHBOARD.FILTER_URGENT_ONLY' | transloco }}</ion-label>
+        @if (urgentOrdersCount > 0) {
+          <ion-badge color="danger">{{ urgentOrdersCount }}</ion-badge>
+        }
+      </ion-chip>
+    </div>
+  </div>
+</ion-header>
+
+<ion-content class="barman-content">
+  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <ion-grid class="kanban-grid">
+    <ion-row class="kanban-row">
+
+      <!-- Colonne EN_ATTENTE -->
+      <ion-col size="12" size-md="4" class="kanban-col-wrapper">
+        <div class="kanban-col kanban-col--pending">
+          <div class="kanban-header kanban-header--pending">
+            <div class="header-status">
+              <span class="status-dot dot--pending"></span>
+              <span class="header-label">{{ 'BARMAN_DASHBOARD.PENDING_ORDERS' | transloco }}</span>
+              @if (hasUrgentOrders) {
+                <span class="urgent-badge" data-testid="urgent-orders-badge">
+                  ⚡ &gt; {{ tempsAlerteCommandeMinutes }} min ({{ urgentOrdersCount }})
+                </span>
+              }
+            </div>
+            <span class="header-count count--pending" data-testid="pending-count">
+              {{ filteredCommandesEnAttente.length }}
+            </span>
+          </div>
+
+          <div class="cards-container">
+            @for (cmd of filteredCommandesEnAttente; track cmd.id) {
+              <app-commande-card
+                [commande]="cmd"
+                [tempsAlerteWarningMinutes]="tempsAlerteWarningMinutes"
+                [tempsAlerteCommandeMinutes]="tempsAlerteCommandeMinutes"
+                [tempsAlerteCritiqueCommandeMinutes]="tempsAlerteCritiqueCommandeMinutes"
+                (changerStatut)="onChangerStatut($event)"
+                (printTicket)="onPrintTicket($event)"
+                (showRecipe)="onShowRecipe($event)">
+              </app-commande-card>
+            } @empty {
+              <app-empty-state
+                [title]="'BARMAN_DASHBOARD.NO_PENDING' | transloco"
+                icon="time-outline">
+              </app-empty-state>
+            }
+          </div>
+        </div>
+      </ion-col>
+
+      <!-- Colonne EN_PREPARATION -->
+      <ion-col size="12" size-md="4" class="kanban-col-wrapper">
+        <div class="kanban-col kanban-col--inprogress">
+          <div class="kanban-header kanban-header--inprogress">
+            <div class="header-status">
+              <span class="status-dot dot--inprogress"></span>
+              <span class="header-label">{{ 'BARMAN_DASHBOARD.IN_PROGRESS_ORDERS' | transloco }}</span>
+            </div>
+            <span class="header-count count--inprogress" data-testid="inprogress-count">
+              {{ filteredCommandesEnPreparation.length }}
+            </span>
+          </div>
+
+          <div class="cards-container">
+            @for (cmd of filteredCommandesEnPreparation; track cmd.id) {
+              <app-commande-card
+                [commande]="cmd"
+                [tempsAlerteWarningMinutes]="tempsAlerteWarningMinutes"
+                [tempsAlerteCommandeMinutes]="tempsAlerteCommandeMinutes"
+                [tempsAlerteCritiqueCommandeMinutes]="tempsAlerteCritiqueCommandeMinutes"
+                (changerStatut)="onChangerStatut($event)"
+                (printTicket)="onPrintTicket($event)"
+                (showRecipe)="onShowRecipe($event)">
+              </app-commande-card>
+            } @empty {
+              <app-empty-state
+                [title]="'BARMAN_DASHBOARD.NO_IN_PROGRESS' | transloco"
+                icon="wine-outline">
+              </app-empty-state>
+            }
+          </div>
+        </div>
+      </ion-col>
+
+      <!-- Colonne PRET -->
+      <ion-col size="12" size-md="4" class="kanban-col-wrapper">
+        <div class="kanban-col kanban-col--ready">
+          <div class="kanban-header kanban-header--ready">
+            <div class="header-status">
+              <span class="status-dot dot--ready"></span>
+              <span class="header-label">{{ 'BARMAN_DASHBOARD.READY_ORDERS' | transloco }}</span>
+            </div>
+            <span class="header-count count--ready" data-testid="ready-count">
+              {{ filteredCommandesPret.length }}
+            </span>
+          </div>
+
+          <div class="cards-container">
+            @for (cmd of filteredCommandesPret; track cmd.id) {
+              <app-commande-card
+                [commande]="cmd"
+                [tempsAlerteWarningMinutes]="tempsAlerteWarningMinutes"
+                [tempsAlerteCommandeMinutes]="tempsAlerteCommandeMinutes"
+                [tempsAlerteCritiqueCommandeMinutes]="tempsAlerteCritiqueCommandeMinutes"
+                (changerStatut)="onChangerStatut($event)"
+                (printTicket)="onPrintTicket($event)"
+                (showRecipe)="onShowRecipe($event)">
+              </app-commande-card>
+            } @empty {
+              <app-empty-state
+                [title]="'BARMAN_DASHBOARD.NO_READY' | transloco"
+                icon="checkmark-done-outline">
+              </app-empty-state>
+            }
+          </div>
+        </div>
+      </ion-col>
+
+    </ion-row>
+  </ion-grid>
+</ion-content>
+
+<!-- Panneau latéral détaillé Fiche Recette & Préparation -->
+<app-recipe-side-panel
+  [isOpen]="isRecipePanelOpen"
+  [item]="activeRecipeItem"
+  [commande]="activeRecipeOrder"
+  [cocktail]="activeRecipeCocktail"
+  [isLoading]="isRecipeLoading"
+  (closePanel)="onCloseRecipePanel()">
+</app-recipe-side-panel>

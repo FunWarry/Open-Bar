@@ -1,0 +1,404 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="manager-toolbar">
+    <div class="toolbar-wrapper">
+      <div class="toolbar-brand">
+        <div class="brand-icon">
+          <ion-icon name="stats-chart-outline"></ion-icon>
+        </div>
+        <div class="brand-titles">
+          <h1 class="main-title">{{ 'MANAGER_DASHBOARD.TITLE' | transloco }}</h1>
+          <p class="subtitle">{{ 'MANAGER_DASHBOARD.SUBTITLE' | transloco }}</p>
+        </div>
+        <app-role-badge [role]="'MANAGER'"></app-role-badge>
+      </div>
+
+      <div class="toolbar-actions">
+        <span class="last-sync-badge" *ngIf="stats">
+          <span class="sync-dot"></span>
+          <ion-icon name="time-outline"></ion-icon>
+          <span>{{ 'MANAGER_DASHBOARD.LAST_UPDATE' | transloco: { time: formattedLastUpdated } }}</span>
+        </span>
+
+        <ion-button
+          fill="outline"
+          size="small"
+          class="btn-manager-refresh"
+          (click)="onRefresh()"
+          (keyup.enter)="onRefresh()"
+          [title]="'MANAGER_DASHBOARD.REFRESH_TOOLTIP' | transloco"
+          data-testid="manager-btn-refresh">
+          <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
+        </ion-button>
+
+        <ion-button
+          fill="solid"
+          size="small"
+          class="btn-manager-export"
+          (click)="onExportCsv()"
+          (keyup.enter)="onExportCsv()"
+          data-testid="manager-btn-export-csv">
+          <ion-icon slot="start" name="download-outline"></ion-icon>
+          {{ 'MANAGER_DASHBOARD.ACTION_EXPORT_CSV' | transloco }}
+        </ion-button>
+      </div>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<!-- État chargé -->
+<ion-content *ngIf="stats && !loading" class="manager-content">
+  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="dashboard-body">
+    <!-- Operational Alerts Summary Banner (Top Priority Position) -->
+    <section class="alerts-container" *ngIf="stats.stockIngredientsCritiques > 0 || stats.commandesEnAttente >= 5" aria-label="Alertes prioritaires">
+      <div class="alert-banner warning" *ngIf="stats.commandesEnAttente >= 5" data-testid="alert-pending-orders">
+        <div class="alert-icon-wrapper">
+          <span class="alert-beacon"></span>
+          <ion-icon name="time-outline"></ion-icon>
+        </div>
+        <div class="alert-body">
+          <div class="alert-header-row">
+            <span class="alert-title">{{ 'MANAGER_DASHBOARD.ALERT_PENDING_ORDERS_TITLE' | transloco }}</span>
+            <span class="alert-count-pill">{{ stats.commandesEnAttente }}</span>
+          </div>
+          <span class="alert-text">{{ 'MANAGER_DASHBOARD.ALERT_PENDING_ORDERS_MSG' | transloco: { count: stats.commandesEnAttente } }}</span>
+        </div>
+        <ion-button size="small" fill="outline" class="btn-alert-cta warning" routerLink="/barman" data-testid="alert-btn-view-barman">
+          <span>{{ 'MANAGER_DASHBOARD.ALERT_ACTION_BARMAN' | transloco }}</span>
+          <ion-icon slot="end" name="arrow-forward-outline"></ion-icon>
+        </ion-button>
+      </div>
+
+      <div class="alert-banner critical" *ngIf="stats.stockIngredientsCritiques > 0" data-testid="alert-critical-stock">
+        <div class="alert-icon-wrapper">
+          <span class="alert-beacon"></span>
+          <ion-icon name="alert-circle-outline"></ion-icon>
+        </div>
+        <div class="alert-body">
+          <div class="alert-header-row">
+            <span class="alert-title">{{ 'MANAGER_DASHBOARD.ALERT_CRITICAL_STOCK_TITLE' | transloco }}</span>
+            <span class="alert-count-pill">{{ stats.stockIngredientsCritiques }}</span>
+          </div>
+          <span class="alert-text">{{ 'MANAGER_DASHBOARD.ALERT_CRITICAL_STOCK_MSG' | transloco: { count: stats.stockIngredientsCritiques } }}</span>
+        </div>
+        <ion-button size="small" fill="outline" class="btn-alert-cta critical" routerLink="/barman" data-testid="alert-btn-view-stock">
+          <span>{{ 'MANAGER_DASHBOARD.ALERT_ACTION_STOCK' | transloco }}</span>
+          <ion-icon slot="end" name="arrow-forward-outline"></ion-icon>
+        </ion-button>
+      </div>
+    </section>
+
+    <!-- Quick Access Actions Bar (Modern Action Tiles) -->
+    <section class="quick-actions-bar" aria-label="Actions rapides manager">
+      <div class="quick-actions-scroll">
+        <ion-button routerLink="/manager/schedule" fill="clear" class="qa-action-tile qa-tile-schedule" data-testid="manager-btn-schedule">
+          <div class="qa-tile-inner">
+            <div class="qa-icon-wrapper schedule">
+              <ion-icon name="calendar-outline"></ion-icon>
+            </div>
+            <span class="qa-label">{{ 'MANAGER_DASHBOARD.ACTION_SCHEDULE' | transloco }}</span>
+          </div>
+        </ion-button>
+
+        <ion-button routerLink="/manager/employees" fill="clear" class="qa-action-tile qa-tile-employees" data-testid="manager-btn-employees">
+          <div class="qa-tile-inner">
+            <div class="qa-icon-wrapper employees">
+              <ion-icon name="people-outline"></ion-icon>
+            </div>
+            <span class="qa-label">{{ 'MANAGER_DASHBOARD.ACTION_EMPLOYEES' | transloco }}</span>
+          </div>
+        </ion-button>
+
+        <ion-button routerLink="/manager/shift-presets" fill="clear" class="qa-action-tile qa-tile-presets" data-testid="manager-btn-presets">
+          <div class="qa-tile-inner">
+            <div class="qa-icon-wrapper presets">
+              <ion-icon name="settings-outline"></ion-icon>
+            </div>
+            <span class="qa-label">{{ 'MANAGER_DASHBOARD.ACTION_PRESETS' | transloco }}</span>
+          </div>
+        </ion-button>
+
+        <ion-button routerLink="/manager/timers" fill="clear" class="qa-action-tile qa-tile-timers" data-testid="manager-btn-timers">
+          <div class="qa-tile-inner">
+            <div class="qa-icon-wrapper timers">
+              <ion-icon name="timer-outline"></ion-icon>
+            </div>
+            <span class="qa-label">{{ 'MANAGER_DASHBOARD.ACTION_ORDER_TIMERS' | transloco }}</span>
+          </div>
+        </ion-button>
+
+        <ion-button routerLink="/plan-salle" fill="clear" class="qa-action-tile qa-tile-floor" data-testid="manager-btn-floor-plan">
+          <div class="qa-tile-inner">
+            <div class="qa-icon-wrapper floor">
+              <ion-icon name="map-outline"></ion-icon>
+            </div>
+            <span class="qa-label">{{ 'MANAGER_DASHBOARD.ACTION_FLOOR_PLAN' | transloco }}</span>
+          </div>
+        </ion-button>
+
+        <ion-button routerLink="/barman" fill="clear" class="qa-action-tile qa-tile-bar" data-testid="manager-btn-bar-stock">
+          <div class="qa-tile-inner">
+            <div class="qa-icon-wrapper bar">
+              <ion-icon name="wine-outline"></ion-icon>
+            </div>
+            <span class="qa-label">{{ 'MANAGER_DASHBOARD.ACTION_BAR_STOCK' | transloco }}</span>
+          </div>
+        </ion-button>
+      </div>
+    </section>
+
+    <!-- Enriched 6 KPI Stat Cards Grid -->
+    <ion-grid class="stats-grid ion-no-padding">
+      <ion-row>
+        <!-- CA du Jour -->
+        <ion-col size="12" size-sm="6" size-md="4" size-lg="2">
+          <app-stat-card
+            [title]="'MANAGER_DASHBOARD.KPI_REVENUE_TODAY' | transloco"
+            [value]="formatCurrency(stats.chiffreAffairesJour)"
+            icon="cash-outline"
+            color="success"
+            trend="+8%"
+            trendDirection="up"
+            testId="stat-card-revenue">
+          </app-stat-card>
+        </ion-col>
+
+        <!-- CA du Mois -->
+        <ion-col size="12" size-sm="6" size-md="4" size-lg="2">
+          <app-stat-card
+            [title]="'MANAGER_DASHBOARD.KPI_REVENUE_MONTH' | transloco"
+            [value]="formatCurrency(stats.chiffreAffairesMois)"
+            icon="cash-outline"
+            color="success"
+            trendDirection="neutral"
+            testId="stat-card-revenue-month">
+          </app-stat-card>
+        </ion-col>
+
+        <!-- Commandes Actives -->
+        <ion-col size="12" size-sm="6" size-md="4" size-lg="2">
+          <app-stat-card
+            [title]="'MANAGER_DASHBOARD.KPI_ACTIVE_ORDERS' | transloco"
+            [value]="activeOrdersCount"
+            icon="receipt-outline"
+            color="primary"
+            [trend]="stats.commandesTotales + ' au total'"
+            trendDirection="neutral"
+            testId="stat-card-orders">
+          </app-stat-card>
+        </ion-col>
+
+        <!-- Panier Moyen -->
+        <ion-col size="12" size-sm="6" size-md="4" size-lg="2">
+          <app-stat-card
+            [title]="'MANAGER_DASHBOARD.KPI_AVERAGE_BASKET' | transloco"
+            [value]="formatCurrency(averageTicket)"
+            icon="trending-up-outline"
+            color="secondary"
+            trendDirection="neutral"
+            testId="stat-card-basket">
+          </app-stat-card>
+        </ion-col>
+
+        <!-- Taux d'Occupation -->
+        <ion-col size="12" size-sm="6" size-md="4" size-lg="2">
+          <app-stat-card
+            [title]="'MANAGER_DASHBOARD.KPI_OCCUPANCY_RATE' | transloco"
+            [value]="occupancyRate + '%'"
+            icon="restaurant-outline"
+            color="warning"
+            [trend]="stats.tablesOccupees + ' / ' + stats.tablesTotales + ' tables'"
+            trendDirection="neutral"
+            testId="stat-card-occupancy">
+          </app-stat-card>
+        </ion-col>
+
+        <!-- Taux de Service / Livraison -->
+        <ion-col size="12" size-sm="6" size-md="4" size-lg="2">
+          <app-stat-card
+            [title]="'MANAGER_DASHBOARD.KPI_DELIVERY_RATE' | transloco"
+            [value]="deliveryRate + '%'"
+            icon="checkmark-circle-outline"
+            color="tertiary"
+            [trend]="stats.commandesLivrees + ' livrée(s)'"
+            trendDirection="up"
+            testId="stat-card-delivery-rate">
+          </app-stat-card>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+
+    <!-- Two-Column Operations & Analytics Grid -->
+    <div class="analytics-grid">
+      <!-- Top Cocktails du Jour -->
+      <ion-card class="analytics-card" data-testid="card-top-cocktails">
+        <ion-card-header>
+          <div class="card-title-row">
+            <div class="title-with-icon">
+              <div class="analytics-icon-badge">
+                <ion-icon name="wine-outline"></ion-icon>
+              </div>
+              <ion-card-title>{{ 'MANAGER_DASHBOARD.TOP_COCKTAILS_TITLE' | transloco }}</ion-card-title>
+            </div>
+            <span class="analytics-count-badge">{{ stats.topCocktails.length }} cocktail(s)</span>
+          </div>
+        </ion-card-header>
+        <ion-card-content>
+          <div *ngIf="stats.topCocktails && stats.topCocktails.length > 0; else emptyTopCocktails" class="top-cocktails-list">
+            <div
+              class="top-cocktail-item"
+              *ngFor="let cocktail of stats.topCocktails; let i = index; trackBy: trackByCocktailId">
+              <span class="rank-badge" [class.rank-gold]="i === 0" [class.rank-silver]="i === 1" [class.rank-bronze]="i === 2">
+                {{ getRankLabel(i) }}
+              </span>
+              <div class="cocktail-info">
+                <div class="cocktail-name-row">
+                  <span class="cocktail-name">{{ cocktail.nom }}</span>
+                  <span class="sold-badge">{{ 'MANAGER_DASHBOARD.SOLD_COUNT' | transloco: { count: cocktail.nombreCommandes } }}</span>
+                </div>
+                <div class="progress-bar-track">
+                  <div class="progress-bar-fill" [style.width.%]="getBarWidth(cocktail)"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <ng-template #emptyTopCocktails>
+            <div class="empty-substate">
+              <p>{{ 'MANAGER_DASHBOARD.TOP_COCKTAILS_EMPTY' | transloco }}</p>
+            </div>
+          </ng-template>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- Workflow Distribution Card -->
+      <ion-card class="analytics-card" data-testid="card-workflow-overview">
+        <ion-card-header>
+          <div class="card-title-row">
+            <div class="title-with-icon">
+              <div class="analytics-icon-badge workflow">
+                <ion-icon name="stats-chart-outline"></ion-icon>
+              </div>
+              <ion-card-title>{{ 'MANAGER_DASHBOARD.WORKFLOW_OVERVIEW_TITLE' | transloco }}</ion-card-title>
+            </div>
+          </div>
+        </ion-card-header>
+        <ion-card-content>
+          <div class="workflow-rows">
+            <!-- En Attente -->
+            <div class="workflow-row">
+              <div class="wf-header">
+                <span class="wf-status status-pending">
+                  <span class="dot"></span>
+                  {{ 'MANAGER_DASHBOARD.STATUS_PENDING' | transloco }}
+                </span>
+                <strong class="wf-count">{{ stats.commandesEnAttente }}</strong>
+              </div>
+              <div class="wf-track">
+                <div class="wf-fill pending-fill" [style.width.%]="stats.commandesTotales ? (stats.commandesEnAttente / stats.commandesTotales * 100) : 0"></div>
+              </div>
+            </div>
+
+            <!-- En Préparation -->
+            <div class="workflow-row">
+              <div class="wf-header">
+                <span class="wf-status status-prep">
+                  <span class="dot"></span>
+                  {{ 'MANAGER_DASHBOARD.STATUS_IN_PROGRESS' | transloco }}
+                </span>
+                <strong class="wf-count">{{ stats.commandesEnPreparation }}</strong>
+              </div>
+              <div class="wf-track">
+                <div class="wf-fill prep-fill" [style.width.%]="stats.commandesTotales ? (stats.commandesEnPreparation / stats.commandesTotales * 100) : 0"></div>
+              </div>
+            </div>
+
+            <!-- Prêtes -->
+            <div class="workflow-row">
+              <div class="wf-header">
+                <span class="wf-status status-ready">
+                  <span class="dot"></span>
+                  {{ 'MANAGER_DASHBOARD.STATUS_READY' | transloco }}
+                </span>
+                <strong class="wf-count">{{ stats.commandesPret }}</strong>
+              </div>
+              <div class="wf-track">
+                <div class="wf-fill ready-fill" [style.width.%]="stats.commandesTotales ? (stats.commandesPret / stats.commandesTotales * 100) : 0"></div>
+              </div>
+            </div>
+
+            <!-- Livrées / Clôturées -->
+            <div class="workflow-row">
+              <div class="wf-header">
+                <span class="wf-status status-delivered">
+                  <span class="dot"></span>
+                  {{ 'MANAGER_DASHBOARD.STATUS_DELIVERED' | transloco }}
+                </span>
+                <strong class="wf-count">{{ stats.commandesLivrees }}</strong>
+              </div>
+              <div class="wf-track">
+                <div class="wf-fill delivered-fill" [style.width.%]="stats.commandesTotales ? (stats.commandesLivrees / stats.commandesTotales * 100) : 0"></div>
+              </div>
+            </div>
+          </div>
+        </ion-card-content>
+      </ion-card>
+    </div>
+
+    <!-- Ongoing Orders — Kanban Section -->
+    <ion-card class="kanban-section-card" data-testid="manager-kanban-section">
+      <ion-card-header>
+        <div class="card-title-row">
+          <div class="title-with-icon">
+            <div class="analytics-icon-badge kanban">
+              <ion-icon name="receipt-outline"></ion-icon>
+            </div>
+            <ion-card-title>{{ 'MANAGER_DASHBOARD.ONGOING_ORDERS_TITLE' | transloco }}</ion-card-title>
+          </div>
+          <div class="header-right-actions">
+            <ion-button
+              size="small"
+              [fill]="showDelivered ? 'solid' : 'outline'"
+              class="btn-toggle-delivered"
+              [class.active]="showDelivered"
+              (click)="toggleShowDelivered()"
+              (keyup.enter)="toggleShowDelivered()"
+              data-testid="btn-toggle-delivered">
+              <ion-icon slot="start" [name]="showDelivered ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+              {{ (showDelivered ? 'MANAGER_DASHBOARD.HIDE_DELIVERED' : 'MANAGER_DASHBOARD.SHOW_DELIVERED') | transloco }}
+            </ion-button>
+            <span class="kanban-active-count-pill">{{ ongoingOrders.length }} active(s)</span>
+          </div>
+        </div>
+      </ion-card-header>
+      <ion-card-content>
+        <app-kanban-board [orders]="ongoingOrders" [showDelivered]="showDelivered"></app-kanban-board>
+      </ion-card-content>
+    </ion-card>
+  </div>
+</ion-content>
+
+<!-- État chargement -->
+<ion-content *ngIf="loading" class="manager-content">
+  <div class="loading-state-wrapper">
+    <ion-spinner name="crescent" color="primary"></ion-spinner>
+    <p>{{ 'MANAGER_DASHBOARD.LOADING_STATS' | transloco }}</p>
+  </div>
+</ion-content>
+
+<!-- État erreur -->
+<ion-content *ngIf="!stats && !loading" class="manager-content">
+  <div class="error-state-wrapper">
+    <app-empty-state
+      [title]="'MANAGER_DASHBOARD.ERROR_STATS' | transloco"
+      icon="warning-outline">
+    </app-empty-state>
+    <ion-button class="btn-retry-modern" fill="solid" (click)="chargerStats()" (keyup.enter)="chargerStats()" data-testid="manager-btn-retry">
+      <ion-icon slot="start" name="refresh-outline"></ion-icon>
+      {{ 'MANAGER_DASHBOARD.RETRY' | transloco }}
+    </ion-button>
+  </div>
+</ion-content>
+

@@ -1,0 +1,165 @@
+button.product-card,
+.product-card {
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+  margin: 0;
+  outline: none;
+  background: var(--background-surface-1, #1a1a2e);
+  border: 1px solid var(--border-medium, #2e3450);
+  border-radius: var(--radius-md, 10px);
+  padding: var(--space-3, 12px);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-2, 8px);
+  box-shadow: var(--shadow-card);
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+
+  &:hover:not(.unavailable) {
+    transform: translateY(-2px);
+    border-color: var(--category-accent, var(--primary, #6c7fe8));
+    box-shadow: var(--shadow-card-hover);
+  }
+
+  &:active:not(.unavailable) {
+    transform: scale(0.98);
+  }
+
+  &.unavailable {
+    opacity: 0.55;
+    filter: grayscale(0.85);
+    background: var(--background-surface-2, #151828);
+    border-color: var(--border-medium, #2e3450) !important;
+    cursor: not-allowed;
+
+    &::before {
+      background: var(--semantic-danger, #e5604f);
+    }
+
+    .product-title {
+      text-decoration: line-through;
+      color: var(--text-muted, #7e87a8);
+    }
+
+    .product-price {
+      color: var(--text-muted, #7e87a8);
+    }
+  }
+
+  .badge-indisponible {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: var(--radius-pill, 999px);
+    background: rgba(229, 96, 79, 0.2);
+    color: var(--semantic-danger, #e5604f);
+    border: 1px solid var(--semantic-danger, #e5604f);
+    font-size: 0.7rem;
+    font-weight: 700;
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--category-accent, var(--primary, #6c7fe8));
+  }
+
+  .product-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 4px;
+
+    .product-icon-wrap {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-sm, 6px);
+      background: rgba(255, 255, 255, 0.05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--category-accent, var(--text-primary, #eceefb));
+
+      ion-icon {
+        font-size: 20px;
+      }
+    }
+  }
+
+  .product-body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    .product-title {
+      margin: var(--space-1, 4px) 0 2px 0;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-primary, #eceefb);
+    }
+
+    .product-description {
+      margin: 0;
+      font-size: 0.8rem;
+      color: var(--text-muted, #7e87a8);
+      line-height: 1.2;
+    }
+
+    .allergens-badges-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 4px;
+
+      .card-allergen-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        padding: 1px 6px;
+        border-radius: var(--radius-pill, 999px);
+        background: rgba(244, 165, 42, 0.12);
+        color: var(--semantic-warning, #f4a52a);
+        border: 1px solid rgba(244, 165, 42, 0.25);
+
+        .alg-symbol {
+          font-size: 0.75rem;
+        }
+      }
+    }
+
+    .product-footer-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 8px;
+
+      .product-price {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--primary-light, #aab4f3);
+      }
+
+      .variants-badge {
+        font-size: 0.75rem;
+        font-weight: 600;
+        background: rgba(108, 127, 232, 0.15);
+        color: var(--primary-light, #aab4f3);
+        border: 1px solid rgba(108, 127, 232, 0.3);
+        padding: 2px 8px;
+        border-radius: var(--radius-pill, 999px);
+      }
+    }
+  }
+}

@@ -1,4 +1,38 @@
-<app-navbar></app-navbar>
-<div class="content">
-  <router-outlet></router-outlet>
-</div>
+@if (showNavbar$ | async) {
+  <div class="app-layout">
+    <app-sidebar></app-sidebar>
+    <div class="app-main-wrapper">
+      <app-navbar></app-navbar>
+      <div class="app-content-body">
+        <main class="main-content" id="main-content">
+          <router-outlet></router-outlet>
+        </main>
+        @if (notifService.isNotifPanelOpen()) {
+          <button
+            type="button"
+            class="notif-backdrop"
+            (click)="notifService.closeNotifPanel()"
+            data-testid="notif-backdrop"
+            [attr.aria-label]="'COMMON.CLOSE' | transloco">
+          </button>
+        }
+        <div class="notif-drawer-wrapper" [class.open]="notifService.isNotifPanelOpen()" data-testid="side-notif-drawer">
+          <app-notification-panel (closePanel)="notifService.closeNotifPanel()"></app-notification-panel>
+        </div>
+      </div>
+    </div>
+  </div>
+} @else {
+  <div class="auth-content">
+    <button
+      class="global-unauth-lang-btn"
+      (click)="languageService.toggleLanguage()"
+      (keydown.enter)="languageService.toggleLanguage()"
+      data-testid="unauth-language-toggle"
+      [title]="'THEME.TOGGLE' | transloco">
+      <ion-icon name="globe-outline"></ion-icon>
+      <span class="lang-text">{{ (languageService.currentLang$ | async) | uppercase }}</span>
+    </button>
+    <router-outlet id="main-content"></router-outlet>
+  </div>
+}

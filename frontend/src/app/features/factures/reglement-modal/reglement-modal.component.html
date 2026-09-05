@@ -1,0 +1,312 @@
+<ion-header class="ion-no-border payment-modal-header">
+  <ion-toolbar class="payment-toolbar">
+    <div class="toolbar-content-wrapper">
+      <div class="modal-title-group">
+        <div class="icon-avatar">
+          <ion-icon name="receipt-outline"></ion-icon>
+        </div>
+        <div class="title-text-wrap">
+          <h1 class="modal-main-title" data-testid="reglement-modal-title">
+            {{ 'FACTURES.PAYMENT_MODAL_TITLE' | transloco }}
+          </h1>
+          <div class="modal-subtitle-badges">
+            <span *ngIf="invoiceNumber" class="meta-tag invoice-tag">#{{ invoiceNumber }}</span>
+            <span *ngIf="tableNumber" class="meta-tag table-tag">Table {{ tableNumber }}</span>
+            <span *ngIf="shareName" class="meta-tag share-tag">{{ shareName }}</span>
+          </div>
+        </div>
+      </div>
+      <ion-buttons slot="end">
+        <ion-button
+          class="btn-close-modal"
+          (click)="cancel()"
+          (keydown.enter)="cancel()"
+          data-testid="reglement-close-btn"
+          [attr.aria-label]="'FACTURES.CANCEL' | transloco">
+          <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="payment-modal-content">
+  <div class="modal-body-container">
+
+    <!-- ── 1. Hero Amount Card ──────────────────────────────────────── -->
+    <div class="hero-amount-card" data-testid="reglement-hero-card">
+      <span class="hero-label">{{ 'FACTURES.DUE_TOTAL' | transloco }}</span>
+      <div class="hero-price-display">
+        <span class="main-amount" data-testid="reglement-grand-total">
+          {{ totalWithTip | appCurrency }}
+        </span>
+      </div>
+
+      <div class="hero-details-row">
+        <div class="detail-pill" data-testid="reglement-initial-total">
+          <span class="pill-label">{{ 'FACTURES.INITIAL_TOTAL' | transloco }} :</span>
+          <strong class="pill-value">{{ initialTotal | appCurrency }}</strong>
+        </div>
+        <div *ngIf="tip > 0" class="detail-pill tip-pill" data-testid="reglement-tip-badge">
+          <ion-icon name="heart-outline"></ion-icon>
+          <span class="pill-label">{{ 'FACTURES.TIP' | transloco }} :</span>
+          <strong class="pill-value">+{{ tip | appCurrency }}</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 2. Payment Method Selector ──────────────────────────────── -->
+    <div class="section-container">
+      <div class="section-header">
+        <ion-icon name="card-outline" class="section-icon"></ion-icon>
+        <h2 class="section-heading">{{ 'FACTURES.PAYMENT_METHOD' | transloco }}</h2>
+      </div>
+
+      <div class="payment-methods-grid" data-testid="reglement-method-segment">
+        <!-- CB -->
+        <button
+          type="button"
+          class="method-tile"
+          [class.active]="paymentMethod === 'CARTE'"
+          (click)="selectPaymentMethod('CARTE')"
+          data-testid="reglement-method-cb">
+          <div class="tile-icon-box card-icon">
+            <ion-icon name="card-outline"></ion-icon>
+          </div>
+          <div class="tile-label-box">
+            <span class="method-name">{{ 'FACTURES.CARD' | transloco }}</span>
+            <span class="method-desc">{{ 'FACTURES.CARD_DESC' | transloco }}</span>
+          </div>
+          <div class="tile-check-indicator" *ngIf="paymentMethod === 'CARTE'">
+            <ion-icon name="checkmark-circle-outline"></ion-icon>
+          </div>
+        </button>
+
+        <!-- Espèces -->
+        <button
+          type="button"
+          class="method-tile"
+          [class.active]="paymentMethod === 'ESPECES'"
+          (click)="selectPaymentMethod('ESPECES')"
+          data-testid="reglement-method-cash">
+          <div class="tile-icon-box cash-icon">
+            <ion-icon name="cash-outline"></ion-icon>
+          </div>
+          <div class="tile-label-box">
+            <span class="method-name">{{ 'FACTURES.CASH' | transloco }}</span>
+            <span class="method-desc">{{ 'FACTURES.CASH_DESC' | transloco }}</span>
+          </div>
+          <div class="tile-check-indicator" *ngIf="paymentMethod === 'ESPECES'">
+            <ion-icon name="checkmark-circle-outline"></ion-icon>
+          </div>
+        </button>
+
+        <!-- Titres Resto -->
+        <button
+          type="button"
+          class="method-tile"
+          [class.active]="paymentMethod === 'TICKETS_RESTO'"
+          (click)="selectPaymentMethod('TICKETS_RESTO')"
+          data-testid="reglement-method-ticket">
+          <div class="tile-icon-box ticket-icon">
+            <ion-icon name="wallet-outline"></ion-icon>
+          </div>
+          <div class="tile-label-box">
+            <span class="method-name">{{ 'FACTURES.MEAL_VOUCHER' | transloco }}</span>
+            <span class="method-desc">{{ 'FACTURES.MEAL_VOUCHER_DESC' | transloco }}</span>
+          </div>
+          <div class="tile-check-indicator" *ngIf="paymentMethod === 'TICKETS_RESTO'">
+            <ion-icon name="checkmark-circle-outline"></ion-icon>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <!-- ── 3. Tip Selection ────────────────────────────────────────── -->
+    <div class="section-container">
+      <div class="section-header">
+        <ion-icon name="heart-outline" class="section-icon heart-icon-color"></ion-icon>
+        <h2 class="section-heading">{{ 'FACTURES.ADD_TIP' | transloco }}</h2>
+        <span class="section-badge-optional">{{ 'FACTURES.OPTIONAL' | transloco }}</span>
+      </div>
+
+      <div class="tip-options-grid">
+        <!-- 0% (Pas de pourboire) -->
+        <button
+          type="button"
+          class="tip-chip"
+          [class.active]="tipMode === 'none'"
+          (click)="setTipMode('none')"
+          data-testid="tip-btn-none">
+          <span class="tip-pct">{{ 'FACTURES.NO_TIP' | transloco }}</span>
+          <span class="tip-eur">{{ 0 | appCurrency }}</span>
+        </button>
+
+        <!-- +5% -->
+        <button
+          type="button"
+          class="tip-chip"
+          [class.active]="tipMode === '5pct'"
+          (click)="setTipMode('5pct')"
+          data-testid="tip-btn-5pct">
+          <span class="tip-pct">+5%</span>
+          <span class="tip-eur">+{{ getTipAmount(5) | appCurrency }}</span>
+        </button>
+
+        <!-- +10% -->
+        <button
+          type="button"
+          class="tip-chip"
+          [class.active]="tipMode === '10pct'"
+          (click)="setTipMode('10pct')"
+          data-testid="tip-btn-10pct">
+          <span class="tip-pct">+10%</span>
+          <span class="tip-eur">+{{ getTipAmount(10) | appCurrency }}</span>
+        </button>
+
+        <!-- +15% -->
+        <button
+          type="button"
+          class="tip-chip"
+          [class.active]="tipMode === '15pct'"
+          (click)="setTipMode('15pct')"
+          data-testid="tip-btn-15pct">
+          <span class="tip-pct">+15%</span>
+          <span class="tip-eur">+{{ getTipAmount(15) | appCurrency }}</span>
+        </button>
+
+        <!-- Montant libre -->
+        <button
+          type="button"
+          class="tip-chip custom-chip"
+          [class.active]="tipMode === 'custom'"
+          (click)="setTipMode('custom')"
+          data-testid="tip-btn-custom">
+          <span class="tip-pct">{{ 'FACTURES.CUSTOM_TIP' | transloco }}</span>
+          <span class="tip-eur">{{ (customTip > 0 ? ('+' + (customTip | appCurrency)) : ('FACTURES.FREE_AMOUNT' | transloco)) }}</span>
+        </button>
+      </div>
+
+      <!-- Custom Tip Input -->
+      <div *ngIf="tipMode === 'custom'" class="custom-tip-box" data-testid="custom-tip-container">
+        <div class="custom-tip-stepper">
+          <button type="button" class="btn-step" (click)="adjustCustomTip(-1)" [attr.aria-label]="'FACTURES.DECREASE_TIP' | transloco">
+            <ion-icon name="remove-outline"></ion-icon>
+          </button>
+          <div class="input-with-currency">
+            <label for="custom-tip-field" class="sr-only">{{ 'FACTURES.CUSTOM_TIP_LABEL' | transloco }}</label>
+            <input
+              type="number"
+              id="custom-tip-field"
+              min="0"
+              step="0.50"
+              [(ngModel)]="customTip"
+              placeholder="0.00"
+              [attr.aria-label]="'FACTURES.CUSTOM_TIP_LABEL' | transloco"
+              class="custom-tip-input"
+              data-testid="custom-tip-input" />
+            <span class="unit">{{ currencySymbol }}</span>
+          </div>
+          <button type="button" class="btn-step" (click)="adjustCustomTip(1)" [attr.aria-label]="'FACTURES.INCREASE_TIP' | transloco">
+            <ion-icon name="add-outline"></ion-icon>
+          </button>
+        </div>
+
+        <div class="quick-step-pills">
+          <button type="button" class="quick-pill" (click)="adjustCustomTip(1)">+{{ 1 | appCurrency }}</button>
+          <button type="button" class="quick-pill" (click)="adjustCustomTip(2)">+{{ 2 | appCurrency }}</button>
+          <button type="button" class="quick-pill" (click)="adjustCustomTip(5)">+{{ 5 | appCurrency }}</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 4. Cash Calculator (Espèces only) ───────────────────────── -->
+    <div class="section-container cash-calculator-section" *ngIf="paymentMethod === 'ESPECES'">
+      <div class="section-header">
+        <ion-icon name="cash-outline" class="section-icon cash-icon-color"></ion-icon>
+        <h2 class="section-heading">{{ 'FACTURES.CASH_CHANGE_CALCULATOR' | transloco }}</h2>
+      </div>
+
+      <div class="cash-input-wrap">
+        <label for="cash-received-field" class="input-sublabel">{{ 'FACTURES.AMOUNT_RECEIVED' | transloco }}</label>
+        <div class="banknotes-quick-bar">
+          <button
+            type="button"
+            class="banknote-btn exact-btn"
+            (click)="setExactCash()"
+            data-testid="cash-exact-btn">
+            {{ 'FACTURES.EXACT_CASH' | transloco }}
+          </button>
+          <button
+            type="button"
+            *ngFor="let note of cashPresets"
+            class="banknote-btn"
+            [class.selected]="receivedAmount === note"
+            (click)="setCashAmount(note)"
+            [attr.data-testid]="'cash-preset-' + note">
+            {{ note | appCurrency:0:0 }}
+          </button>
+        </div>
+
+        <div class="custom-received-input-row">
+          <input
+            type="number"
+            id="cash-received-field"
+            min="0"
+            step="1.00"
+            [(ngModel)]="receivedAmount"
+            [placeholder]="'FACTURES.CASH_RECEIVED_PLACEHOLDER' | transloco"
+            [attr.aria-label]="'FACTURES.AMOUNT_RECEIVED' | transloco"
+            class="cash-received-field"
+            data-testid="cash-received-input" />
+          <span class="field-unit">{{ currencySymbol }}</span>
+        </div>
+      </div>
+
+      <!-- Change Return Display -->
+      <div
+        class="change-result-card"
+        [class.is-success]="changeToReturn > 0"
+        [class.is-insufficient]="!isReceivedAmountSufficient"
+        [class.is-exact]="isReceivedAmountSufficient && changeToReturn === 0">
+
+        <div *ngIf="!isReceivedAmountSufficient" class="change-alert alert-insufficient" data-testid="cash-insufficient-warning">
+          <ion-icon name="close-outline"></ion-icon>
+          <span>
+            {{ 'FACTURES.INSUFFICIENT_AMOUNT' | transloco:{ missing: ((totalWithTip - (receivedAmount || 0)) | appCurrency) } }}
+          </span>
+        </div>
+
+        <div *ngIf="isReceivedAmountSufficient && changeToReturn > 0" class="change-alert alert-return" data-testid="cash-change-amount">
+          <div class="return-text">
+            <span class="return-label">{{ 'FACTURES.CHANGE_TO_RETURN' | transloco }}</span>
+            <strong class="return-val">{{ changeToReturn | appCurrency }}</strong>
+          </div>
+          <div class="return-icon-box">
+            <ion-icon name="checkmark-circle-outline"></ion-icon>
+          </div>
+        </div>
+
+        <div *ngIf="isReceivedAmountSufficient && changeToReturn === 0 && receivedAmount !== null" class="change-alert alert-exact">
+          <ion-icon name="checkmark-circle-outline"></ion-icon>
+          <span>{{ 'FACTURES.EXACT_AMOUNT_RECEIVED' | transloco }}</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</ion-content>
+
+<!-- ── 5. Modal Footer Action ───────────────────────────────────── -->
+<ion-footer class="ion-no-border payment-modal-footer">
+  <ion-button
+    expand="block"
+    class="btn-confirm-payment"
+    [disabled]="!isReceivedAmountSufficient"
+    (click)="confirmPayment()"
+    (keydown.enter)="confirmPayment()"
+    data-testid="confirm-payment-btn">
+    <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+    <span>{{ 'FACTURES.CONFIRM_PAYMENT' | transloco:{ amount: (totalWithTip | appCurrency) } }}</span>
+  </ion-button>
+</ion-footer>

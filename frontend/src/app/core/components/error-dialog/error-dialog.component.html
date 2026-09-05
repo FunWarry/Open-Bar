@@ -1,7 +1,15 @@
-<h2 mat-dialog-title>Erreur</h2>
-<mat-dialog-content>
+<ion-header>
+  <ion-toolbar color="danger">
+    <ion-title>{{ 'COMMON.ERROR' | transloco }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="onClose()" (keyup.enter)="onClose()">{{ 'COMMON.CLOSE' | transloco }}</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
   <p>{{ data.message }}</p>
-</mat-dialog-content>
-<mat-dialog-actions align="end">
-  <button mat-button (click)="onClose()">Fermer</button>
-</mat-dialog-actions>
+  <div class="form-actions ion-padding-top">
+    <ion-button expand="block" (click)="onClose()" (keyup.enter)="onClose()">{{ 'COMMON.CLOSE' | transloco }}</ion-button>
+  </div>
+</ion-content>

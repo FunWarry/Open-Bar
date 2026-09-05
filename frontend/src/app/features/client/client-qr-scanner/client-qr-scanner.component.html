@@ -1,0 +1,109 @@
+<div class="scanner-container" data-testid="qr-scanner-container">
+  <div class="ellipse-bg-primary"></div>
+  <div class="ellipse-bg-tertiary"></div>
+
+  <div class="scanner-header">
+    <span class="brand-emoji">🍹</span>
+    <h1 class="scanner-title">{{ 'CLIENT_QR.TITLE' | transloco }}</h1>
+    <p class="scanner-subtitle">{{ 'CLIENT_QR.SUBTITLE' | transloco }}</p>
+  </div>
+
+  <!-- Mode Selector Tabs -->
+  <div class="mode-tabs" data-testid="qr-mode-tabs">
+    <button
+      type="button"
+      class="tab-btn"
+      [class.active]="mode() === 'scan'"
+      (click)="setMode('scan')"
+      data-testid="tab-btn-scan">
+      📷 {{ 'CLIENT_QR.TAB_SCAN' | transloco }}
+    </button>
+    <button
+      type="button"
+      class="tab-btn"
+      [class.active]="mode() === 'manual'"
+      (click)="setMode('manual')"
+      data-testid="tab-btn-manual">
+      ⌨️ {{ 'CLIENT_QR.TAB_MANUAL' | transloco }}
+    </button>
+  </div>
+
+  <!-- Mode 1: Live Camera Scan Viewfinder — Figma 636:995 -->
+  @if (mode() === 'scan') {
+    <div class="viewfinder-section" data-testid="qr-viewfinder-section">
+      <div class="camera-viewport">
+        <video #videoElement playsinline muted class="camera-video" data-testid="qr-camera-video"></video>
+        
+        <!-- Framing overlay with corner brackets — Figma 636:996 -->
+        <div class="framing-overlay" [class.active]="isCameraActive()" data-testid="qr-framing-overlay">
+          <div class="corner corner-tl"></div>
+          <div class="corner corner-tr"></div>
+          <div class="corner corner-bl"></div>
+          <div class="corner corner-br"></div>
+          <div class="laser-line"></div>
+        </div>
+
+        @if (!isCameraActive() && !cameraError()) {
+          <div class="camera-placeholder" data-testid="qr-camera-placeholder">
+            <span class="camera-icon">📷</span>
+            <p>{{ 'CLIENT_QR.INITIALIZING_CAMERA' | transloco }}</p>
+          </div>
+        }
+
+        @if (cameraError()) {
+          <div class="camera-error-box" data-testid="qr-camera-error">
+            <span class="error-icon">⚠️</span>
+            <p>{{ cameraError()! | transloco }}</p>
+            <app-action-button
+              variant="ghost"
+              size="small"
+              (click)="startCamera()"
+              (keyup.enter)="startCamera()"
+              data-testid="btn-retry-camera">
+              {{ 'COMMON.REFRESH' | transloco }}
+            </app-action-button>
+          </div>
+        }
+      </div>
+
+      <p class="guidance-text">{{ 'CLIENT_QR.GUIDANCE' | transloco }}</p>
+
+      <!-- Simulation fallback button for testing/headless environments -->
+      <div class="simulation-box">
+        <span class="sim-label">{{ 'CLIENT_QR.SIMULATION_LABEL' | transloco }}</span>
+        <div class="sim-buttons">
+          <button type="button" class="sim-btn" (click)="simulateScan(1)" data-testid="btn-sim-table-1">{{ 'CLIENT.TABLE' | transloco:{ num: 1 } }}</button>
+          <button type="button" class="sim-btn" (click)="simulateScan(4)" data-testid="btn-sim-table-4">{{ 'CLIENT.TABLE' | transloco:{ num: 4 } }}</button>
+          <button type="button" class="sim-btn" (click)="simulateScan(12)" data-testid="btn-sim-table-12">{{ 'CLIENT.TABLE' | transloco:{ num: 12 } }}</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Mode 2: Fallback Manual Entry Form — Figma 636:998 -->
+  @if (mode() === 'manual') {
+    <div class="manual-section" data-testid="qr-manual-section">
+      <form [formGroup]="manualForm" (ngSubmit)="onManualSubmit()" class="manual-form" data-testid="qr-manual-form">
+        <app-input-field
+          formControlName="tableNumber"
+          type="number"
+          [label]="'CLIENT_QR.TABLE_NUMBER_LABEL' | transloco"
+          [placeholder]="'CLIENT_QR.TABLE_NUMBER_PLACEHOLDER' | transloco"
+          icon="restaurant-outline"
+          [required]="true"
+          data-testid="input-manual-table">
+        </app-input-field>
+
+        <app-action-button
+          type="submit"
+          variant="primary"
+          size="large"
+          expand="block"
+          [disabled]="manualForm.invalid"
+          data-testid="btn-submit-manual-table">
+          {{ 'CLIENT_QR.ACCESS_MENU' | transloco }} →
+        </app-action-button>
+      </form>
+    </div>
+  }
+</div>

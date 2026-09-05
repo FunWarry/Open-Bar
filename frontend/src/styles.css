@@ -1,1 +1,1559 @@
-/* You can add global styles to this file, and also import other style files */
+/* Google Fonts: Inter & Outfit */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap');
+
+/* Ionic Core & Utility Styles */
+@import '@ionic/angular/css/core.css';
+@import '@ionic/angular/css/normalize.css';
+@import '@ionic/angular/css/structure.css';
+@import '@ionic/angular/css/typography.css';
+@import '@ionic/angular/css/display.css';
+@import '@ionic/angular/css/padding.css';
+@import '@ionic/angular/css/float-elements.css';
+@import '@ionic/angular/css/text-alignment.css';
+@import '@ionic/angular/css/text-transformation.css';
+@import '@ionic/angular/css/flex-utils.css';
+
+/* Import variables.css */
+@import './theme/variables.css';
+
+/* OpenBar Design System Tokens & Global Alias Mapping */
+:root {
+  --bg-0: var(--background-bg-0, #0f0f1a);
+  --bg-1: var(--background-bg-1, #15151f);
+  --surface-1: var(--background-surface-1, #1a1a2e);
+  --surface-2: var(--background-surface-2, #21263f);
+  --surface-3: var(--background-surface-3, #2a3050);
+
+  --border-subtle: #23233a;
+  --border-default: var(--border-medium, #2e3450);
+  --border-strong: #3a4166;
+
+  --text-primary: #ECEEFB;
+  --text-secondary: #A4ADD0;
+  --text-muted: #7E87A8;
+  --text-on-accent: #FFFFFF;
+
+  --primary: #6C7FE8;
+  --primary-strong: #5A68D6;
+  --primary-press: #4D5AC4;
+  --primary-light: #AAB4F3;
+  --primary-tint: #6c7fe833;
+  --primary-tint-weak: #6c7fe81f;
+  --primary-border: #6c7fe873;
+
+  --role-manager: #F0A33B;
+  --role-serveur: #34C77B;
+  --role-barman: #4FC3F7;
+  --role-admin: #9B8AF2;
+
+  --st-attente: #F4A52A;
+  --st-prepa: #2BA8E8;
+  --st-prete: #2FBF6B;
+  --st-servie: #6E7AA8;
+  --st-annulee: #E5604F;
+  --st-prio: #6C7FE8;
+
+  --tb-libre: #34C77B;
+  --tb-occupee: #2BA8E8;
+  --tb-reservee: #9B8AF2;
+  --tb-prepa: #F4A52A;
+  --tb-paiement: #F0A33B;
+  --tb-annulee: #6E7AA8;
+
+  --stock-normal: #2FBF6B;
+  --stock-faible: #F4A52A;
+  --stock-critique: #E5604F;
+
+  --success: #2FBF6B;
+  --warning: #F4A52A;
+  --danger: #E5604F;
+  --info: #2BA8E8;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 32px;
+  --space-8: 40px;
+  --space-9: 48px;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-pill: 999px;
+
+  --elev-1: 0 1px 2px rgba(0, 0, 0, .35);
+  --elev-2: 0 4px 12px rgba(0, 0, 0, .45);
+  --elev-3: 0 12px 32px rgba(0, 0, 0, .55);
+  --ring-focus: 0 0 0 3px #6c7fe859;
+
+  --font: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Outfit", "Inter", system-ui, sans-serif;
+  --fs-display: 32px;
+  --lh-display: 1.1;
+  --fw-display: 700;
+  --fs-h1: 24px;
+  --lh-h1: 1.2;
+  --fw-h1: 700;
+  --fs-h2: 20px;
+  --lh-h2: 1.25;
+  --fw-h2: 600;
+  --fs-h3: 16px;
+  --lh-h3: 1.3;
+  --fw-h3: 600;
+  --fs-body: 14px;
+  --lh-body: 1.5;
+  --fw-body: 400;
+  --fs-sm: 13px;
+  --lh-sm: 1.45;
+  --fs-xs: 12px;
+  --lh-xs: 1.4;
+  --fs-label: 11px;
+  --lh-label: 1.2;
+  --fw-label: 600;
+
+  --tap-min: 44px;
+}
+
+/* Global Reset & Base Theme */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-medium, #2e3450) transparent;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  background-color: var(--bg-0);
+  color: var(--text-primary);
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* ── Global Scrollbar — Webkit (Chrome, Edge, Safari) ─────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-medium, #2e3450);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-light, #3a4682);
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* ── Ionic ion-content Scrollbars (Shadow DOM) ────────────────────────────── */
+ion-content::part(scroll) {
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary, #6c7fe8) var(--background-surface-2, #21263f);
+}
+
+ion-content::part(scroll)::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+  display: block;
+}
+
+ion-content::part(scroll)::-webkit-scrollbar-track {
+  background: var(--background-surface-1, #1a1a2e);
+  border-radius: 4px;
+}
+
+ion-content::part(scroll)::-webkit-scrollbar-thumb {
+  background: var(--primary, #6c7fe8);
+  border-radius: 4px;
+}
+
+ion-content::part(scroll)::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-strong, #5a68d6);
+}
+
+
+app-root {
+  display: block;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+/* Default Ionic component styling overrides to match OpenBar DS */
+ion-app {
+  background-color: var(--bg-0);
+  color: var(--text-primary);
+}
+
+ion-content {
+  --background: var(--bg-0);
+  --color: var(--text-primary);
+  background-color: var(--bg-0);
+  display: block;
+  position: relative;
+  flex: 1;
+  height: 100%;
+  width: 100%;
+  min-height: 0;
+}
+
+ion-header,
+ion-toolbar {
+  --background: var(--surface-1);
+  --color: var(--text-primary);
+  --border-color: var(--border-medium, #2e3450);
+}
+
+ion-card {
+  --background: var(--surface-1);
+  background: var(--surface-1);
+  --color: var(--text-primary);
+  border: 1px solid var(--border-medium, #2e3450);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--elev-1);
+}
+
+ion-card-title {
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-weight: 600;
+}
+
+ion-card-subtitle {
+  color: var(--text-secondary);
+}
+
+ion-item {
+  --background: var(--surface-1);
+  background: var(--surface-1);
+  --color: var(--text-primary);
+  --border-color: var(--border-medium, #2e3450);
+}
+
+ion-list {
+  --background: var(--surface-1);
+  background: var(--surface-1);
+  color: var(--text-primary);
+}
+
+/* Inside a card, list items inherit the card surface transparently */
+ion-card-content ion-item,
+ion-card-content ion-list {
+  --background: transparent;
+  background: transparent;
+}
+
+ion-popover {
+  --background: var(--surface-1);
+  --color: var(--text-primary);
+}
+
+ion-popover::part(content) {
+  background: var(--surface-1);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  box-shadow: var(--elev-2);
+}
+
+ion-button {
+  --border-radius: var(--radius-md);
+}
+
+/* OpenBar Component Classes */
+.ob {
+  font-family: var(--font);
+}
+
+.t-display {
+  font-size: var(--fs-display);
+  line-height: var(--lh-display);
+  font-weight: var(--fw-display);
+  color: var(--text-primary);
+  letter-spacing: -.02em;
+}
+
+.t-h1 {
+  font-size: var(--fs-h1);
+  line-height: var(--lh-h1);
+  font-weight: var(--fw-h1);
+  color: var(--text-primary);
+  letter-spacing: -.01em;
+}
+
+.t-h2 {
+  font-size: var(--fs-h2);
+  line-height: var(--lh-h2);
+  font-weight: var(--fw-h2);
+  color: var(--text-primary);
+}
+
+.t-h3 {
+  font-size: var(--fs-h3);
+  line-height: var(--lh-h3);
+  font-weight: var(--fw-h3);
+  color: var(--text-primary);
+}
+
+.t-body {
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  color: var(--text-secondary);
+}
+
+.t-sm {
+  font-size: var(--fs-sm);
+  line-height: var(--lh-sm);
+  color: var(--text-secondary);
+}
+
+.t-xs {
+  font-size: var(--fs-xs);
+  line-height: var(--lh-xs);
+  color: var(--text-muted);
+}
+
+.t-label {
+  font-size: var(--fs-label);
+  line-height: var(--lh-label);
+  font-weight: var(--fw-label);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: .07em;
+}
+
+.btn {
+  font-family: var(--font);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--tap-min);
+  padding: 0 var(--space-5);
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  font-size: var(--fs-body);
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  transition: background .15s, border-color .15s, transform .05s, box-shadow .15s;
+}
+
+.btn:focus-visible {
+  outline: none;
+  box-shadow: var(--ring-focus);
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn-sm {
+  min-height: 36px;
+  padding: 0 var(--space-3);
+  font-size: var(--fs-sm);
+}
+
+.btn-lg {
+  min-height: 52px;
+  padding: 0 var(--space-6);
+  font-size: var(--fs-h3);
+}
+
+.btn-icon-only {
+  padding: 0 var(--space-3);
+  width: var(--tap-min);
+}
+
+.btn-sm.btn-icon-only {
+  width: 36px;
+  padding: 0;
+}
+
+.btn-lg.btn-icon-only {
+  width: 52px;
+  padding: 0;
+}
+
+.btn--primary {
+  background: var(--primary-strong);
+  color: var(--text-on-accent);
+}
+
+.btn--primary:hover {
+  background: var(--primary);
+}
+
+.btn--primary:active {
+  background: var(--primary-press);
+}
+
+.btn--secondary {
+  background: var(--surface-2);
+  color: var(--text-primary);
+  border-color: var(--border-default);
+}
+
+.btn--secondary:hover {
+  background: var(--surface-3);
+  border-color: var(--border-strong);
+}
+
+.btn--ghost {
+  background: transparent;
+  color: var(--primary);
+  border-color: var(--primary-border);
+}
+
+.btn--ghost:hover {
+  background: var(--primary-tint-weak);
+}
+
+.btn--danger {
+  background: color-mix(in srgb, var(--danger) 16%, transparent);
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 45%, transparent);
+}
+
+.btn--danger:hover {
+  background: color-mix(in srgb, var(--danger) 26%, transparent);
+}
+
+.btn--edit {
+  background: color-mix(in srgb, var(--role-manager) 16%, transparent);
+  color: var(--role-manager);
+  border-color: color-mix(in srgb, var(--role-manager) 45%, transparent);
+}
+
+.btn--edit:hover {
+  background: color-mix(in srgb, var(--role-manager) 26%, transparent);
+}
+
+.btn--mark {
+  background: var(--success);
+  color: var(--text-on-accent);
+}
+
+.btn--mark:hover {
+  filter: brightness(1.1);
+}
+
+
+.btn:disabled,
+.btn[aria-disabled="true"] {
+  opacity: .4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: 26px;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.badge .dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  flex: none;
+}
+
+.badge[data-status="attente"] {
+  color: var(--st-attente);
+  background: color-mix(in srgb, var(--st-attente) 15%, transparent);
+}
+
+.badge[data-status="prepa"] {
+  color: var(--st-prepa);
+  background: color-mix(in srgb, var(--st-prepa) 15%, transparent);
+}
+
+.badge[data-status="prete"] {
+  color: var(--st-prete);
+  background: color-mix(in srgb, var(--st-prete) 15%, transparent);
+}
+
+.badge[data-status="servie"] {
+  color: var(--st-servie);
+  background: color-mix(in srgb, var(--st-servie) 18%, transparent);
+}
+
+.badge[data-status="annulee"] {
+  color: var(--st-annulee);
+  background: color-mix(in srgb, var(--st-annulee) 15%, transparent);
+}
+
+.badge[data-status="prio"] {
+  color: var(--primary);
+  background: var(--primary-tint);
+}
+
+.role-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: 28px;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+}
+
+.role-chip .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.role-chip[data-role="manager"] {
+  color: var(--role-manager);
+  background: color-mix(in srgb, var(--role-manager) 16%, transparent);
+}
+
+.role-chip[data-role="serveur"] {
+  color: var(--role-serveur);
+  background: color-mix(in srgb, var(--role-serveur) 16%, transparent);
+}
+
+.role-chip[data-role="barman"] {
+  color: var(--role-barman);
+  background: color-mix(in srgb, var(--role-barman) 16%, transparent);
+}
+
+.role-chip[data-role="admin"] {
+  color: var(--role-admin);
+  background: color-mix(in srgb, var(--role-admin) 16%, transparent);
+}
+
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 36px;
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-pill);
+  background: var(--surface-1);
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s, border-color .15s, color .15s;
+}
+
+.filter-chip .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-muted);
+}
+
+.filter-chip:hover {
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+}
+
+.filter-chip[aria-pressed="true"] {
+  background: var(--primary-tint);
+  border-color: var(--primary-border);
+  color: var(--primary);
+}
+
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  font-size: var(--fs-body);
+  font-weight: 700;
+  color: #fff;
+  flex: none;
+}
+
+.avatar[data-role="manager"] {
+  background: var(--role-manager);
+}
+
+.avatar[data-role="serveur"] {
+  background: var(--role-serveur);
+}
+
+.avatar[data-role="barman"] {
+  background: var(--role-barman);
+}
+
+.avatar[data-role="admin"] {
+  background: var(--role-admin);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: 100%;
+}
+
+.field>label {
+  font-size: var(--fs-label);
+  font-weight: var(--fw-label);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--text-secondary);
+}
+
+.input,
+.textarea,
+.select {
+  font-family: var(--font);
+  width: 100%;
+  min-height: var(--tap-min);
+  padding: 0 var(--space-3);
+  background: var(--surface-2);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: var(--fs-body);
+  transition: border-color .15s, box-shadow .15s;
+}
+
+.textarea {
+  min-height: 96px;
+  padding: var(--space-3);
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  color: var(--text-muted);
+}
+
+.input:focus,
+.textarea:focus,
+.select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: var(--ring-focus);
+}
+
+.card {
+  background: var(--surface-1);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--elev-1);
+}
+
+/* Glassmorphism & Elevation Utilities (Figma Design System 0:1) */
+.glass-card {
+  background: color-mix(in srgb, var(--background-surface-2) 80%, transparent);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--elev-2);
+}
+
+.glass-modal {
+  background: color-mix(in srgb, var(--background-surface-1) 88%, transparent);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--elev-3);
+}
+
+.elev-hover {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.elev-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--elev-3);
+}
+
+.ellipse-bg-primary {
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  top: -100px;
+  left: -100px;
+  background: radial-gradient(circle, rgba(155, 138, 242, 0.15) 0%, rgba(0, 0, 0, 0) 70%);
+  pointer-events: none;
+}
+
+.ellipse-bg-tertiary {
+  position: absolute;
+  width: 400px;
+  height: 400px;
+  bottom: -100px;
+  right: -100px;
+  background: radial-gradient(circle, rgba(240, 163, 59, 0.12) 0%, rgba(0, 0, 0, 0) 70%);
+  pointer-events: none;
+}
+
+/* ── Ionic Modal Global System & Styling (OpenBar DS) ─────────────────────── */
+ion-modal {
+  --border-radius: var(--radius-lg, 16px);
+  --background: var(--background-surface-1);
+  --box-shadow: var(--shadow-modal);
+  --width: min(680px, 94vw);
+  --height: min(640px, 80vh);
+  --max-height: 80vh;
+  contain: layout style;
+}
+
+@media (min-width: 900px) {
+  ion-modal {
+    --width: min(760px, 92vw);
+    --height: min(660px, 80vh);
+    --max-height: 80vh;
+  }
+}
+
+/* Modal sizing variants for all modals across OpenBar */
+ion-modal.modal-sm,
+ion-modal.openbar-modal-sm,
+ion-modal.confirm-modal-dialog,
+ion-modal.confirm-delete-modal-dialog,
+ion-modal.ruptures-modal-container,
+ion-modal.delete-modal,
+ion-modal.transfert-modal-container {
+  --width: min(460px, 92vw);
+  --height: auto;
+  --max-height: 80vh;
+}
+
+ion-modal.bar-ticket-modal-container {
+  --width: min(440px, 92vw);
+  --height: min(540px, 80vh);
+  --max-height: 80vh;
+}
+
+ion-modal.modal-md,
+ion-modal.openbar-modal-md,
+ion-modal.table-detail-modal-container,
+ion-modal.variante-modal-container,
+ion-modal.variante-modal,
+ion-modal.zone-manager-modal-class {
+  --width: min(640px, 92vw);
+  --height: min(600px, 80vh);
+  --max-height: 80vh;
+}
+
+ion-modal.modal-lg,
+ion-modal.openbar-modal-lg,
+ion-modal.openbar-modal-split,
+ion-modal.openbar-modal-payment,
+ion-modal.commande-detail-modal-container,
+ion-modal.encaissement-modal-container {
+  --width: min(840px, 95vw);
+  --height: min(720px, 80vh);
+  --max-height: 80vh;
+}
+
+ion-modal::part(backdrop) {
+  background-color: rgba(10, 10, 20, 0.82);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  will-change: opacity;
+}
+
+ion-modal::part(content) {
+  border-radius: var(--radius-lg, 16px);
+  border: 1px solid var(--border-medium);
+  overflow: hidden;
+  box-shadow: var(--shadow-modal);
+  background: var(--background-surface-1);
+  display: flex;
+  flex-direction: column;
+  height: var(--height, min(640px, 80vh));
+  max-height: var(--max-height, 80vh);
+  width: var(--width, min(680px, 94vw));
+  max-width: var(--max-width, 94vw);
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+ion-modal ion-header,
+ion-modal ion-footer {
+  flex-shrink: 0;
+}
+
+ion-modal ion-content {
+  --background: var(--background-surface-1);
+  flex: 1 1 auto;
+  height: 100%;
+  min-height: 0;
+}
+
+ion-modal ion-content::part(scroll) {
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-medium, #2e3450) transparent;
+}
+
+ion-modal ion-content::part(scroll)::-webkit-scrollbar {
+  width: 6px;
+}
+
+ion-modal ion-content::part(scroll)::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+ion-modal ion-content::part(scroll)::-webkit-scrollbar-thumb {
+  background: var(--border-medium, #2e3450);
+  border-radius: 4px;
+}
+
+ion-modal ion-content::part(scroll)::-webkit-scrollbar-thumb:hover {
+  background: var(--primary, #6c7fe8);
+}
+
+/* Ionic Alert & Popover Theme Overrides (Figma Design System) */
+.alert-wrapper,
+.popover-content,
+ion-popover::part(content) {
+  --background: var(--background-surface-1) !important;
+  background: var(--background-surface-1) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-medium) !important;
+  border-radius: var(--radius-lg, 12px) !important;
+  box-shadow: var(--shadow-popover) !important;
+}
+
+.alert-head {
+  border-bottom: 1px solid var(--border-medium, #2e3450) !important;
+  padding: 16px 20px 12px 20px !important;
+}
+
+.alert-title {
+  color: var(--text-primary, #eceefb) !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+}
+
+.alert-sub-title {
+  color: var(--text-secondary, #a0aec0) !important;
+}
+
+.alert-radio-group,
+.alert-checkbox-group {
+  border-top: 1px solid var(--border-medium, #2e3450) !important;
+  border-bottom: 1px solid var(--border-medium, #2e3450) !important;
+}
+
+.alert-radio-label,
+.popover-viewport,
+ion-select-popover ion-item,
+ion-select-popover ion-label,
+ion-popover ion-item,
+ion-popover ion-label {
+  --background: transparent !important;
+  --color: var(--text-primary, #eceefb) !important;
+  color: var(--text-primary, #eceefb) !important;
+  font-weight: 400 !important;
+}
+
+.alert-button-group {
+  border-top: 1px solid var(--border-medium, #2e3450) !important;
+  padding: 8px 16px !important;
+}
+
+.alert-button,
+.alert-button-inner,
+.alert-button .button-inner {
+  --color: var(--primary, #6c7fe8) !important;
+  color: var(--primary, #6c7fe8) !important;
+  font-weight: 500 !important;
+  font-size: 14px !important;
+}
+
+.alert-radio-icon {
+  border-color: var(--border-medium, #3a4682) !important;
+}
+
+.alert-radio-inner {
+  background-color: var(--primary, #6c7fe8) !important;
+}
+
+[aria-checked="true"] .alert-radio-icon {
+  border-color: var(--primary, #6c7fe8) !important;
+}
+
+/* Ionic Segment & Segment Button Global Styling (Figma Dark System) */
+ion-segment {
+  --background: transparent;
+  background: transparent;
+  border-bottom: 1px solid var(--border-medium, #2e3450);
+}
+
+ion-segment-button {
+  --background: transparent;
+  --background-checked: transparent;
+  --color: var(--text-secondary, #a0aec0) !important;
+  --color-checked: var(--primary, #6c7fe8) !important;
+  --color-hover: var(--text-primary, #ffffff);
+  --color-focused: var(--primary, #6c7fe8);
+  --indicator-color: var(--primary, #6c7fe8) !important;
+  --indicator-height: 2px;
+  --padding-top: 10px;
+  --padding-bottom: 10px;
+  --padding-start: 12px;
+  --padding-end: 12px;
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  opacity: 1 !important;
+}
+
+ion-segment-button ion-label {
+  color: var(--text-secondary, #a0aec0) !important;
+  font-weight: 600 !important;
+  transition: color 0.2s ease-in-out;
+}
+
+ion-segment-button.segment-button-checked ion-label,
+ion-segment-button[aria-selected="true"] ion-label {
+  color: var(--primary, #6c7fe8) !important;
+  font-weight: 700 !important;
+}
+
+/* Commande Detail Modal Sizing (Responsive Desktop / Tablet) */
+ion-modal.commande-detail-modal-container {
+  --width: 850px;
+  --max-width: 92vw;
+  --height: auto;
+  --max-height: 80vh;
+  --border-radius: 16px;
+  --box-shadow: var(--shadow-modal);
+  --backdrop-opacity: 0.25;
+}
+
+/* Table Detail Modal Sizing */
+ion-modal.table-detail-modal-container {
+  --width: 600px;
+  --max-width: 92vw;
+  --height: min(680px, 85vh);
+  --max-height: 85vh;
+  --border-radius: 16px;
+  --box-shadow: var(--shadow-modal);
+  --backdrop-opacity: 0.25;
+}
+
+/* Variante Selection Modal */
+ion-modal.variante-modal-container,
+ion-modal.variante-modal {
+  --width: 520px;
+  --max-width: 92vw;
+  --height: auto;
+  --max-height: 80vh;
+  --border-radius: 16px;
+  --box-shadow: var(--shadow-modal);
+  --backdrop-opacity: 0.25;
+}
+
+/* Transfert Order Modal */
+ion-modal.transfert-modal-container {
+  --width: 520px;
+  --max-width: 92vw;
+  --height: auto;
+  --max-height: 80vh;
+  --border-radius: 16px;
+  --box-shadow: var(--shadow-modal);
+  --backdrop-opacity: 0.25;
+}
+
+/* Universal Confirm Delete Modal Dialog */
+ion-modal.confirm-delete-dialog {
+  --width: 520px;
+  --max-width: 94vw;
+  --height: auto;
+  --max-height: 85vh;
+  --border-radius: 16px;
+  --box-shadow: var(--shadow-modal);
+  --backdrop-opacity: 0.65;
+}
+
+ion-modal.confirm-delete-dialog::part(content) {
+  background: var(--background-surface-1);
+  border: 1px solid var(--border-medium);
+  border-radius: 16px;
+  box-shadow: var(--shadow-modal);
+  overflow: hidden;
+}
+
+/* Employee Shift Modal Container */
+ion-modal.employee-shift-modal-container {
+  --width: 760px;
+  --max-width: 94vw;
+  --height: min(780px, 88vh);
+  --max-height: 88vh;
+  --border-radius: 16px;
+  --box-shadow: var(--shadow-modal);
+  --backdrop-opacity: 0.35;
+}
+
+/* Schedule History Audit Modal Container */
+ion-modal.schedule-history-modal-container {
+  --width: 880px;
+  --max-width: 95vw;
+  --height: min(800px, 90vh);
+  --max-height: 90vh;
+  --border-radius: 16px;
+  --box-shadow: var(--shadow-modal);
+  --backdrop-opacity: 0.35;
+}
+
+/* Zone & Floor Manager Modal Container */
+ion-modal.zone-manager-modal-container {
+  --width: 720px;
+  --max-width: 95vw;
+  --height: min(800px, 90vh);
+  --max-height: 90vh;
+  --border-radius: 18px;
+  --box-shadow: var(--shadow-modal);
+  --backdrop-opacity: 0.4;
+}
+
+ion-modal.zone-manager-modal-container::part(content) {
+  background: var(--background-surface-1);
+  border: 1px solid var(--border-medium);
+  border-radius: 18px;
+  box-shadow: var(--elev-3);
+  overflow: hidden;
+}
+
+@media (max-width: 600px) {
+  ion-modal.table-detail-modal-container,
+  ion-modal.variante-modal-container,
+  ion-modal.variante-modal,
+  ion-modal.transfert-modal-container {
+    --width: 100vw;
+    --max-width: 100vw;
+    --height: auto;
+    --max-height: 80vh;
+    --border-radius: 16px 16px 0 0;
+  }
+}
+
+@media (min-width: 1200px) {
+  ion-modal.commande-detail-modal-container {
+    --width: 900px;
+    --max-width: 85vw;
+  }
+}
+
+/*
+ * Blur the background page when a commande-detail modal is open.
+ * body.modal-open is added/removed programmatically from modal open/dismiss handlers.
+ * Ion modals are injected at body level, so blurring .app-layout targets all page
+ * content (navbar + sidebar + main) without affecting the modal itself.
+ */
+body.modal-open .app-layout {
+  filter: blur(6px) brightness(0.6);
+  transition: filter 0.3s ease;
+  pointer-events: none;
+}
+
+body:not(.modal-open) .app-layout {
+  filter: none;
+  transition: filter 0.3s ease;
+}
+
+/* ── Universal Dropdown & Select Reset (OpenBar Design System) ────── */
+select,
+.native-select,
+.custom-select,
+.form-select {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background-color: transparent !important;
+  color: var(--text-primary) !important;
+  font-family: var(--font, 'Inter', sans-serif) !important;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+}
+
+select::-ms-expand {
+  display: none !important;
+}
+
+select:focus,
+select:focus-visible {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+select option {
+  background-color: var(--background-surface-1) !important;
+  color: var(--text-primary) !important;
+  font-family: var(--font, 'Inter', sans-serif);
+  padding: 8px 12px;
+}
+
+select option:disabled {
+  color: var(--text-muted) !important;
+}
+
+/* Global styling for ion-select */
+ion-select {
+  --highlight-color-focused: transparent;
+  --border-width: 0;
+  --inner-border-width: 0;
+  --color: var(--text-primary);
+  --placeholder-color: var(--text-muted);
+  --placeholder-opacity: 1;
+  font-family: var(--font, 'Inter', sans-serif);
+}
+
+ion-select[fill="outline"] {
+  --border-color: var(--border-medium);
+  --border-radius: var(--radius-md, 10px);
+  --border-width: 1px;
+  --background: var(--background-surface-2);
+  --highlight-color-focused: var(--primary);
+}
+
+ion-select::part(container) {
+  border: none;
+  outline: none;
+}
+
+ion-select::part(icon) {
+  color: var(--text-secondary);
+  opacity: 0.8;
+  font-size: 16px;
+}
+
+/* ── OpenBar Design System — Global ActionSheet & Context Menu Styling ── */
+ion-action-sheet {
+  --background: var(--background-surface-2, #21263f);
+  --color: var(--text-primary, #eceefb);
+  --button-background: var(--background-surface-2, #21263f);
+  --button-background-selected: var(--background-surface-3, #2a3050);
+  --button-color: var(--text-primary, #eceefb);
+  --button-color-selected: var(--primary, #6c7fe8);
+  --backdrop-opacity: 0.55;
+}
+
+ion-action-sheet .action-sheet-wrapper {
+  border-radius: var(--radius-lg, 14px) var(--radius-lg, 14px) 0 0;
+  background: var(--background-surface-2, #21263f);
+  border-top: 1px solid var(--border-medium, #2e3450);
+  box-shadow: var(--shadow-xl);
+}
+
+@media (min-width: 768px) {
+  ion-action-sheet .action-sheet-wrapper {
+    max-width: 440px;
+    margin: 0 auto;
+    border-radius: var(--radius-lg, 14px);
+    border: 1px solid var(--border-medium, #2e3450);
+    box-shadow: var(--shadow-popover);
+  }
+}
+
+ion-action-sheet .action-sheet-group {
+  background: var(--background-surface-2, #21263f) !important;
+  border-radius: var(--radius-lg, 14px) !important;
+  overflow: hidden;
+}
+
+ion-action-sheet .action-sheet-title {
+  color: var(--text-primary, #eceefb) !important;
+  font-weight: 700 !important;
+  font-size: 15px !important;
+  font-family: var(--font, 'Inter', sans-serif);
+  padding-bottom: 4px;
+}
+
+ion-action-sheet .action-sheet-sub-title {
+  color: var(--text-muted, #7e87a8) !important;
+  font-size: 13px !important;
+  font-family: var(--font, 'Inter', sans-serif);
+}
+
+ion-action-sheet .action-sheet-button {
+  color: var(--text-primary, #eceefb) !important;
+  font-family: var(--font, 'Inter', sans-serif);
+  font-size: 14px;
+  font-weight: 500;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+ion-action-sheet .action-sheet-button:hover,
+ion-action-sheet .action-sheet-button.activated {
+  background: var(--background-surface-3, #2a3050) !important;
+  color: #ffffff !important;
+}
+
+ion-action-sheet .action-sheet-button.action-sheet-destructive {
+  color: var(--semantic-danger, #e5604f) !important;
+}
+
+ion-action-sheet .action-sheet-button.action-sheet-cancel {
+  color: var(--text-muted, #7e87a8) !important;
+  font-weight: 600;
+}
+
+ion-action-sheet .action-sheet-icon {
+  color: var(--primary, #6c7fe8) !important;
+  margin-right: 12px;
+  font-size: 18px;
+}
+
+/* === Custom OpenBar Ionic Alert Styling === */
+ion-alert,
+ion-alert.openbar-alert,
+ion-alert.md,
+ion-alert.ios {
+  --background: var(--background-surface-1, #1a1a2e) !important;
+  --color: var(--text-primary, #eceefb) !important;
+  --backdrop-opacity: 0.75 !important;
+  --border-radius: var(--radius-lg, 16px) !important;
+  --min-width: 320px;
+  --max-width: 440px;
+  --width: 90%;
+}
+
+ion-alert .alert-wrapper {
+  background: var(--background-surface-1, #1a1a2e) !important;
+  background-color: var(--background-surface-1, #1a1a2e) !important;
+  border: 1px solid var(--border-medium, #2e3450) !important;
+  border-radius: var(--radius-lg, 16px) !important;
+  box-shadow: var(--shadow-modal) !important;
+  padding: 16px !important;
+}
+
+ion-alert .alert-head {
+  padding: 8px 8px 12px 8px !important;
+  text-align: left !important;
+}
+
+ion-alert .alert-title {
+  font-family: var(--font-display, var(--font, 'Outfit', 'Inter', sans-serif)) !important;
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
+  color: var(--text-primary, #ffffff) !important;
+}
+
+ion-alert .alert-sub-title {
+  color: var(--text-secondary, #a4add0) !important;
+  font-size: 0.9rem !important;
+}
+
+ion-alert .alert-message {
+  padding: 0 8px 18px 8px !important;
+  font-family: var(--font, 'Inter', sans-serif) !important;
+  font-size: 0.95rem !important;
+  color: var(--text-secondary, #a4add0) !important;
+  line-height: 1.5 !important;
+  text-align: left !important;
+}
+
+ion-alert .alert-button-group {
+  padding: 14px 8px 4px 8px !important;
+  gap: 12px !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+  border-top: 1px solid var(--border-medium, #2e3450) !important;
+}
+
+ion-alert button.alert-button {
+  border-radius: var(--radius-md, 10px) !important;
+  font-weight: 600 !important;
+  font-family: var(--font, 'Inter', sans-serif) !important;
+  padding: 10px 20px !important;
+  font-size: 0.9rem !important;
+  text-transform: none !important;
+  transition: all 0.2s ease !important;
+  margin: 0 !important;
+  height: auto !important;
+  min-height: 40px !important;
+  cursor: pointer !important;
+}
+
+ion-alert button.alert-button.role-cancel,
+ion-alert button.alert-button.alert-button-cancel,
+ion-alert button.alert-button[aria-label="Annuler"] {
+  background: var(--background-surface-2, #21263f) !important;
+  background-color: var(--background-surface-2, #21263f) !important;
+  color: var(--text-secondary, #a4add0) !important;
+  border: 1px solid var(--border-medium, #2e3450) !important;
+
+  .alert-button-inner {
+    color: var(--text-secondary, #a4add0) !important;
+  }
+
+  &:hover {
+    background: var(--background-surface-3, #2a3050) !important;
+    background-color: var(--background-surface-3, #2a3050) !important;
+    color: var(--text-primary, #ffffff) !important;
+
+    .alert-button-inner {
+      color: var(--text-primary, #ffffff) !important;
+    }
+  }
+}
+
+ion-alert button.alert-button.role-destructive,
+ion-alert button.alert-button.alert-button-destructive,
+ion-alert button.alert-button[aria-label="Supprimer"] {
+  background: var(--semantic-danger, #e5604f) !important;
+  background-color: var(--semantic-danger, #e5604f) !important;
+  color: #ffffff !important;
+  border: 1px solid transparent !important;
+
+  .alert-button-inner {
+    color: #ffffff !important;
+  }
+
+  &:hover {
+    background: #d44d3c !important;
+    background-color: #d44d3c !important;
+    box-shadow: var(--shadow-btn-danger) !important;
+
+    .alert-button-inner {
+      color: #ffffff !important;
+    }
+  }
+}
+
+/* Customization & Variant Modals Auto-Shrink Sizing */
+.item-customization-modal-container {
+  --height: auto;
+  --max-height: 80vh;
+  --width: auto;
+  --max-width: 580px;
+  --min-width: 340px;
+  --border-radius: 14px;
+}
+.item-customization-modal-container::part(content) {
+  height: auto;
+  max-height: 80vh;
+  width: auto;
+  max-width: 580px;
+  min-width: 340px;
+  border-radius: 14px;
+  border: 1px solid var(--border-medium, #2e3450);
+  background: var(--background-surface-1, #16192b);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+/* Zone Manager & Floor Modals Styling */
+.zone-manager-modal-class {
+  --height: auto;
+  --max-height: 80vh;
+  --width: 640px;
+  --max-width: 90vw;
+  --border-radius: 16px;
+}
+.zone-manager-modal-class::part(content) {
+  height: auto;
+  max-height: 80vh;
+  width: 640px;
+  max-width: 90vw;
+  border-radius: 16px;
+  border: 1px solid var(--border-medium, #2e3450);
+  background: var(--background-surface-1, #1a1a2e);
+  box-shadow: var(--shadow-modal);
+}
+
+/* Order Cancellation Modal Container */
+.cancel-order-modal-dialog {
+  --height: auto;
+  --max-height: 90vh;
+  --width: 520px;
+  --max-width: 94vw;
+  --border-radius: var(--radius-xl, 20px);
+  --backdrop-opacity: 0.75;
+}
+.cancel-order-modal-dialog::part(content) {
+  height: auto;
+  max-height: 90vh;
+  width: 520px;
+  max-width: 94vw;
+  border-radius: var(--radius-xl, 20px);
+  border: 1px solid var(--border-medium, #2e3450);
+  background: var(--background-surface-1, #1a1a2e);
+  box-shadow: var(--shadow-modal);
+  overflow: hidden;
+}
+
+/* Table Detail Modal Container */
+.table-detail-modal-dialog {
+  --height: auto;
+  --max-height: 88vh;
+  --width: 620px;
+  --max-width: 94vw;
+  --border-radius: var(--radius-xl, 20px);
+  --backdrop-opacity: 0.75;
+}
+.table-detail-modal-dialog::part(content) {
+  height: auto;
+  max-height: 88vh;
+  width: 620px;
+  max-width: 94vw;
+  border-radius: var(--radius-xl, 20px);
+  border: 1px solid var(--border-medium, #2e3450);
+  background: var(--background-surface-1, #1a1a2e);
+  box-shadow: var(--shadow-modal);
+  overflow: hidden;
+}
+
+/* Table Form Modal Container */
+.table-form-modal-dialog {
+  --height: auto;
+  --max-height: 88vh;
+  --width: 540px;
+  --max-width: 94vw;
+  --border-radius: var(--radius-xl, 20px);
+  --backdrop-opacity: 0.75;
+}
+.table-form-modal-dialog::part(content) {
+  height: auto;
+  max-height: 88vh;
+  width: 540px;
+  max-width: 94vw;
+  border-radius: var(--radius-xl, 20px);
+  border: 1px solid var(--border-medium, #2e3450);
+  background: var(--background-surface-1, #1a1a2e);
+  box-shadow: var(--shadow-modal);
+  overflow: hidden;
+}
+
+/* Universal Confirm Modal & Confirm Delete Modal Containers */
+.confirm-modal-dialog,
+.confirm-delete-modal-dialog {
+  --height: auto;
+  --max-height: 88vh;
+  --width: 460px;
+  --max-width: 92vw;
+  --border-radius: var(--radius-xl, 20px);
+  --backdrop-opacity: 0.75;
+}
+.confirm-modal-dialog::part(content),
+.confirm-delete-modal-dialog::part(content) {
+  height: auto;
+  max-height: 88vh;
+  width: 480px;
+  max-width: 94vw;
+  border-radius: var(--radius-xl, 20px);
+  border: 1px solid var(--border-medium, #2e3450);
+  background: var(--background-surface-1, #1a1a2e);
+  box-shadow: var(--shadow-modal);
+  overflow: hidden;
+}
+
+/* Table QR Modal Container */
+.table-qr-modal-dialog {
+  --height: auto;
+  --max-height: 88vh;
+  --width: 600px;
+  --max-width: 94vw;
+  --border-radius: var(--radius-xl, 20px);
+  --backdrop-opacity: 0.75;
+}
+.table-qr-modal-dialog::part(content) {
+  height: auto;
+  max-height: 88vh;
+  width: 600px;
+  max-width: 94vw;
+  border-radius: var(--radius-xl, 20px);
+  border: 1px solid var(--border-medium, #2e3450);
+  background: var(--background-surface-1, #1a1a2e);
+  box-shadow: var(--shadow-modal);
+  overflow: hidden;
+}
+
+/* Table QR Batch Modal Container */
+.table-qr-batch-modal-dialog {
+  --height: auto;
+  --max-height: 88vh;
+  --width: 640px;
+  --max-width: 94vw;
+  --border-radius: var(--radius-xl, 20px);
+  --backdrop-opacity: 0.75;
+}
+.table-qr-batch-modal-dialog::part(content) {
+  height: auto;
+  max-height: 88vh;
+  width: 640px;
+  max-width: 94vw;
+  border-radius: var(--radius-xl, 20px);
+  border: 1px solid var(--border-medium, #2e3450);
+  background: var(--background-surface-1, #1a1a2e);
+  box-shadow: var(--shadow-modal);
+  overflow: hidden;
+}
+
+/* Zone Manager Modal Container */
+.zone-manager-modal-container {
+  --height: auto;
+  --max-height: 88vh;
+  --width: 640px;
+  --max-width: 94vw;
+  --border-radius: var(--radius-xl, 20px);
+  --backdrop-opacity: 0.75;
+}
+.zone-manager-modal-container::part(content) {
+  height: auto;
+  max-height: 88vh;
+  width: 640px;
+  max-width: 94vw;
+  border-radius: var(--radius-xl, 20px);
+  border: 1px solid var(--border-medium, #2e3450);
+  background: var(--background-surface-1, #1a1a2e);
+  box-shadow: var(--shadow-modal);
+  overflow: hidden;
+}

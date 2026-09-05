@@ -1,153 +1,672 @@
 package com.bar.gestioncocktail.service;
 
+import com.bar.gestioncocktail.dto.ModifierCommandeItemDTO;
+import com.bar.gestioncocktail.dto.ModifierCommandeRequestDTO;
+import com.bar.gestioncocktail.exception.BusinessException;
+import com.bar.gestioncocktail.exception.ResourceNotFoundException;
+import com.bar.gestioncocktail.model.Cocktail;
+import com.bar.gestioncocktail.model.CocktailIngredient;
+import com.bar.gestioncocktail.model.CocktailVariante;
+import com.bar.gestioncocktail.model.CocktailVarianteIngredient;
 import com.bar.gestioncocktail.model.Commande;
 import com.bar.gestioncocktail.model.CommandeItem;
 import com.bar.gestioncocktail.model.CommandeStatut;
+import com.bar.gestioncocktail.model.Ingredient;
 import com.bar.gestioncocktail.model.TableEntity;
 import com.bar.gestioncocktail.model.User;
-import com.bar.gestioncocktail.repository.CommandeRepository;
+import com.bar.gestioncocktail.repository.CocktailIngredientRepository;
+import com.bar.gestioncocktail.repository.CocktailRepository;
+import com.bar.gestioncocktail.repository.CocktailVarianteRepository;
 import com.bar.gestioncocktail.repository.CommandeItemRepository;
+import com.bar.gestioncocktail.repository.CommandeRepository;
+import com.bar.gestioncocktail.repository.IngredientRepository;
 import com.bar.gestioncocktail.repository.TableRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.bar.gestioncocktail.event.OrderCancelledEvent;
+import com.bar.gestioncocktail.event.OrderCreatedEvent;
+import com.bar.gestioncocktail.event.OrderDeletedEvent;
+import com.bar.gestioncocktail.event.OrderStatusChangedEvent;
+import com.bar.gestioncocktail.event.OrderUpdatedEvent;
+import com.bar.gestioncocktail.event.StockAlertEvent;
+import com.bar.gestioncocktail.event.TableUpdatedEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
+/**
+ * Service managing order lifecycle, status transitions, item manipulation, and
+ * automated stock deductions.
+ */
 @Service
-@Transactional
 public class CommandeService {
+
+    private static final Logger log = LoggerFactory.getLogger(CommandeService.class);
+    private static final String COMMANDE_NOT_FOUND = "Order not found with id: ";
+
     private final CommandeRepository commandeRepository;
     private final CommandeItemRepository commandeItemRepository;
+    private final IngredientRepository ingredientRepository;
     private final TableRepository tableRepository;
+    private final CocktailRepository cocktailRepository;
+    private final CocktailVarianteRepository cocktailVarianteRepository;
+    private final CocktailIngredientRepository cocktailIngredientRepository;
+    private final ApplicationEventPublisher eventPublisher;
+    private final TimeService timeService;
 
-    @Autowired
-    public CommandeService(CommandeRepository commandeRepository, CommandeItemRepository commandeItemRepository, TableRepository tableRepository) {
+    public CommandeService(
+            CommandeRepository commandeRepository,
+            CommandeItemRepository commandeItemRepository,
+            IngredientRepository ingredientRepository,
+            TableRepository tableRepository,
+            CocktailRepository cocktailRepository,
+            CocktailVarianteRepository cocktailVarianteRepository,
+            CocktailIngredientRepository cocktailIngredientRepository,
+            ApplicationEventPublisher eventPublisher,
+            TimeService timeService) {
         this.commandeRepository = commandeRepository;
         this.commandeItemRepository = commandeItemRepository;
+        this.ingredientRepository = ingredientRepository;
         this.tableRepository = tableRepository;
+        this.cocktailRepository = cocktailRepository;
+        this.cocktailVarianteRepository = cocktailVarianteRepository;
+        this.cocktailIngredientRepository = cocktailIngredientRepository;
+        this.eventPublisher = eventPublisher;
+        this.timeService = timeService;
     }
 
+    @Transactional(readOnly = true)
     public List<Commande> getAllCommandes() {
         return commandeRepository.findAll();
     }
 
+    @Transactional(readOnly = true)
     public Optional<Commande> getCommandeById(Long id) {
         return commandeRepository.findById(id);
     }
 
+    @Transactional(readOnly = true)
     public List<Commande> getCommandesByTable(TableEntity table) {
         return commandeRepository.findByTable(table);
     }
 
+    @Transactional(readOnly = true)
     public List<Commande> getCommandesByServeur(User serveur) {
         return commandeRepository.findByServeur(serveur);
     }
 
+    @Transactional(readOnly = true)
     public List<Commande> getCommandesByStatut(CommandeStatut statut) {
         return commandeRepository.findByStatut(statut);
     }
 
+    @Transactional(readOnly = true)
     public List<Commande> getCommandesByTableAndStatut(TableEntity table, CommandeStatut statut) {
         return commandeRepository.findByTableAndStatut(table, statut);
     }
 
+    @Transactional(readOnly = true)
     public List<Commande> getCommandesByDate(LocalDateTime debut, LocalDateTime fin) {
         return commandeRepository.findByDateCommandeBetween(debut, fin);
     }
 
     @Transactional
     public Commande createCommande(Commande commande) {
-        commande.setCreatedAt(LocalDateTime.now());
-        commande.setUpdatedAt(LocalDateTime.now());
-        commande.setDateCommande(LocalDateTime.now());
+        commande.setCreatedAt(timeService.now());
+        commande.setUpdatedAt(timeService.now());
+        commande.setDateCommande(timeService.now());
         commande.setStatut(CommandeStatut.EN_ATTENTE);
-        return commandeRepository.save(commande);
+        Commande saved = commandeRepository.save(commande);
+        updateTableOccupancyOnOrderCreation(saved);
+        if (eventPublisher != null) {
+            eventPublisher.publishEvent(new OrderCreatedEvent(saved));
+        }
+        notifyOrderUpdated(saved);
+        return saved;
     }
 
     @Transactional
     public Commande updateCommande(Long id, Commande commandeDetails) {
         Commande commande = commandeRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Commande non trouvée avec l'id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(COMMANDE_NOT_FOUND + id));
 
-        commande.setTable(commandeDetails.getTable());
-        commande.setItems(commandeDetails.getItems());
-        commande.setStatut(commandeDetails.getStatut());
         commande.setNotes(commandeDetails.getNotes());
-        commande.setUpdatedAt(LocalDateTime.now());
+        commande.setPourboire(commandeDetails.getPourboire());
+        commande.setUpdatedAt(timeService.now());
 
-        return commandeRepository.save(commande);
+        if (commandeDetails.getTable() != null) {
+            commande.setTable(commandeDetails.getTable());
+        }
+        if (commandeDetails.getServeur() != null) {
+            commande.setServeur(commandeDetails.getServeur());
+        }
+
+        Commande saved = commandeRepository.save(commande);
+        notifyOrderUpdated(saved);
+        return saved;
     }
 
     @Transactional
     public void deleteCommande(Long id) {
-        commandeRepository.deleteById(id);
+        Commande commande = commandeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(COMMANDE_NOT_FOUND + id));
+        TableEntity table = commande.getTable();
+        commande.setStatut(CommandeStatut.ANNULEE);
+        if (eventPublisher != null) {
+            eventPublisher.publishEvent(new OrderCancelledEvent(commande));
+        }
+        notifyOrderUpdated(commande);
+        commandeRepository.delete(commande);
+        if (eventPublisher != null) {
+            eventPublisher.publishEvent(new OrderDeletedEvent(id));
+        }
+        if (table != null) {
+            notifyTableUpdated(table);
+        }
     }
 
     @Transactional
     public Commande ajouterItem(Long commandeId, CommandeItem item) {
         Commande commande = commandeRepository.findById(commandeId)
-                .orElseThrow(() -> new RuntimeException("Commande non trouvée avec l'id: " + commandeId));
+                .orElseThrow(() -> new ResourceNotFoundException(COMMANDE_NOT_FOUND + commandeId));
+
+        if (item.getCocktail() != null && item.getCocktail().getId() != null) {
+            cocktailRepository.findById(item.getCocktail().getId()).ifPresent(item::setCocktail);
+        }
 
         item.setCommande(commande);
         commandeItemRepository.save(item);
-        
-        // Mise à jour du total de la commande
-        BigDecimal total = commande.getItems().stream()
-            .map(commandeItem -> commandeItem.getPrixUnitaire().multiply(new BigDecimal(commandeItem.getQuantite())))
-            .reduce(BigDecimal.ZERO, BigDecimal::add);
-        
-        commande.setTotal(total);
-        commande.setDateModification(LocalDateTime.now());
+        if (commande.getItems() == null) {
+            commande.setItems(new java.util.ArrayList<>());
+        }
+        if (!commande.getItems().contains(item)) {
+            commande.getItems().add(item);
+        }
 
-        return commandeRepository.save(commande);
+        BigDecimal total = BigDecimal.ZERO;
+        if (commande.getItems() != null) {
+            for (CommandeItem commandeItem : commande.getItems()) {
+                if (commandeItem.getPrixUnitaire() != null) {
+                    BigDecimal itemTotal = commandeItem.getPrixUnitaire()
+                            .multiply(BigDecimal.valueOf(commandeItem.getQuantite()));
+                    total = total.add(itemTotal);
+                }
+            }
+        }
+
+        commande.setTotal(total);
+        commande.setDateModification(timeService.now());
+
+        Commande saved = commandeRepository.save(commande);
+        notifyOrderUpdated(saved);
+        return saved;
     }
 
     @Transactional
     public Commande retirerItem(Long commandeId, Long itemId) {
         Commande commande = commandeRepository.findById(commandeId)
-                .orElseThrow(() -> new RuntimeException("Commande non trouvée avec l'id: " + commandeId));
+                .orElseThrow(() -> new ResourceNotFoundException(COMMANDE_NOT_FOUND + commandeId));
 
         commande.getItems().removeIf(item -> item.getId().equals(itemId));
-        commande.setDateModification(LocalDateTime.now());
+        if (commande.getItems().isEmpty()) {
+            commande.setStatut(CommandeStatut.ANNULEE);
+        }
+        recalculateTotal(commande);
+        commande.setDateModification(timeService.now());
 
-        return commandeRepository.save(commande);
+        Commande saved = commandeRepository.save(commande);
+        notifyOrderUpdated(saved);
+        return saved;
     }
 
     @Transactional
     public Commande changerStatut(Long id, CommandeStatut nouveauStatut) {
         Commande commande = commandeRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Commande non trouvée avec l'id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(COMMANDE_NOT_FOUND + id));
 
+        CommandeStatut oldStatut = commande.getStatut();
         commande.setStatut(nouveauStatut);
-        commande.setUpdatedAt(LocalDateTime.now());
-        
+        commande.setUpdatedAt(timeService.now());
+
         switch (nouveauStatut) {
             case EN_PREPARATION:
-                commande.setDatePreparation(LocalDateTime.now());
+                // Idempotence: only deduct stock once, even on retry or reactivation from
+                // ANNULEE
+                if (commande.getDatePreparation() == null) {
+                    commande.setDatePreparation(timeService.now());
+                    destockerIngredients(commande);
+                }
                 break;
             case PRET:
-                commande.setDateLivraison(LocalDateTime.now());
+                commande.setDatePret(timeService.now());
+                break;
+            case LIVREE:
+                commande.setDateLivraison(timeService.now());
                 break;
             case REGLEE:
-                commande.setDateReglement(LocalDateTime.now());
+                commande.setDateReglement(timeService.now());
+                break;
+            default:
                 break;
         }
-        
-        return commandeRepository.save(commande);
+
+        Commande saved = commandeRepository.save(commande);
+        if (saved.getTable() != null) {
+            notifyTableUpdated(saved.getTable());
+        }
+        if (eventPublisher != null) {
+            eventPublisher.publishEvent(new OrderStatusChangedEvent(saved.getId(), oldStatut, nouveauStatut, saved));
+        }
+        notifyOrderUpdated(saved);
+        return saved;
     }
 
+    @Transactional
     public void annulerCommande(Commande commande) {
+        if (commande.getStatut() != CommandeStatut.ANNULEE && commande.getDatePreparation() != null) {
+            reincrementerStockIngredients(commande);
+        }
         commande.setStatut(CommandeStatut.ANNULEE);
-        commande.setUpdatedAt(LocalDateTime.now());
-        commandeRepository.save(commande);
+        commande.setUpdatedAt(timeService.now());
+        Commande saved = commandeRepository.save(commande);
+        if (saved.getTable() != null) {
+            notifyTableUpdated(saved.getTable());
+        }
+        if (eventPublisher != null) {
+            eventPublisher.publishEvent(new OrderCancelledEvent(saved));
+        }
+        notifyOrderUpdated(saved);
     }
 
     public void definirPriorite(CommandeItem item, boolean prioritaire) {
         item.setPrioritaire(prioritaire);
         commandeItemRepository.save(item);
     }
-} 
+
+    /**
+     * Toggles priority / urgent state of an order.
+     *
+     * @param commandeId Order identifier
+     * @return Updated Commande entity
+     */
+    @Transactional
+    public Commande toggleUrgent(Long commandeId) {
+        Commande commande = commandeRepository.findById(commandeId)
+                .orElseThrow(() -> new ResourceNotFoundException(COMMANDE_NOT_FOUND + commandeId));
+        return applyUrgentStatus(commande, !commande.isPrioritaire());
+    }
+
+    /**
+     * Sets explicit priority / urgent state of an order.
+     *
+     * @param commandeId Order identifier
+     * @param prioritaire Urgent status flag
+     * @return Updated Commande entity
+     */
+    @Transactional
+    public Commande setUrgent(Long commandeId, boolean prioritaire) {
+        Commande commande = commandeRepository.findById(commandeId)
+                .orElseThrow(() -> new ResourceNotFoundException(COMMANDE_NOT_FOUND + commandeId));
+        return applyUrgentStatus(commande, prioritaire);
+    }
+
+    private Commande applyUrgentStatus(Commande commande, boolean prioritaire) {
+        commande.setPrioritaire(prioritaire);
+        if (commande.getItems() != null) {
+            for (CommandeItem item : commande.getItems()) {
+                item.setPrioritaire(prioritaire);
+            }
+        }
+        commande.setUpdatedAt(timeService.now());
+        Commande saved = commandeRepository.save(commande);
+        notifyOrderUpdated(saved);
+        return saved;
+    }
+
+    /**
+     * Recalculates total price for an order based on its current item list.
+     *
+     * @param commande Order entity
+     */
+    public void recalculateTotal(Commande commande) {
+        if (commande == null) return;
+        BigDecimal total = BigDecimal.ZERO;
+        if (commande.getItems() != null) {
+            for (CommandeItem item : commande.getItems()) {
+                if (item.getPrixUnitaire() != null) {
+                    BigDecimal itemTotal = item.getPrixUnitaire()
+                            .multiply(BigDecimal.valueOf(item.getQuantite()));
+                    total = total.add(itemTotal);
+                }
+            }
+        }
+        commande.setTotal(total);
+    }
+
+    private void destockerIngredients(Commande commande) {
+        Map<Long, BigDecimal> quantitesParIngredient = calculerQuantitesIngredients(commande);
+        Map<Long, Ingredient> ingredientsMap = mepIngredients(commande);
+
+        for (Map.Entry<Long, BigDecimal> entry : quantitesParIngredient.entrySet()) {
+            Ingredient ingredient = ingredientsMap.get(entry.getKey());
+            if (ingredient == null) {
+                ingredient = ingredientRepository.findById(entry.getKey()).orElse(null);
+            }
+            if (ingredient == null) {
+                continue;
+            }
+            BigDecimal currentStock = ingredient.getQuantiteStock() != null ? ingredient.getQuantiteStock()
+                    : BigDecimal.ZERO;
+            BigDecimal rawNouveauStock = currentStock.subtract(entry.getValue());
+            boolean stockNegatif = rawNouveauStock.compareTo(BigDecimal.ZERO) < 0;
+            BigDecimal nouveauStock = rawNouveauStock.max(BigDecimal.ZERO);
+            ingredient.setQuantiteStock(nouveauStock);
+            ingredient.setUpdatedAt(timeService.now());
+            ingredientRepository.save(ingredient);
+            if (ingredient.getSeuilAlerte() != null
+                    && (nouveauStock.compareTo(ingredient.getSeuilAlerte()) <= 0 || stockNegatif)
+                    && eventPublisher != null) {
+                try {
+                    eventPublisher.publishEvent(new StockAlertEvent(
+                            ingredient.getId(),
+                            ingredient.getNom(),
+                            nouveauStock.doubleValue()));
+                } catch (Exception ex) {
+                    log.warn("Failed to publish StockAlertEvent: {}", ex.getMessage());
+                }
+            }
+        }
+    }
+
+    private void reincrementerStockIngredients(Commande commande) {
+        Map<Long, BigDecimal> quantitesParIngredient = calculerQuantitesIngredients(commande);
+        Map<Long, Ingredient> ingredientsMap = mepIngredients(commande);
+
+        for (Map.Entry<Long, BigDecimal> entry : quantitesParIngredient.entrySet()) {
+            Ingredient ingredient = ingredientsMap.get(entry.getKey());
+            if (ingredient == null) {
+                ingredient = ingredientRepository.findById(entry.getKey()).orElse(null);
+            }
+            if (ingredient == null) {
+                continue;
+            }
+            BigDecimal currentStock = ingredient.getQuantiteStock() != null ? ingredient.getQuantiteStock()
+                    : BigDecimal.ZERO;
+            BigDecimal nouveauStock = currentStock.add(entry.getValue());
+            ingredient.setQuantiteStock(nouveauStock);
+            ingredient.setUpdatedAt(timeService.now());
+            ingredientRepository.save(ingredient);
+        }
+    }
+
+    private Map<Long, BigDecimal> calculerQuantitesIngredients(Commande commande) {
+        Map<Long, BigDecimal> quantites = new HashMap<>();
+        if (commande.getItems() == null) {
+            return quantites;
+        }
+        for (CommandeItem item : commande.getItems()) {
+            traiterQuantitesItem(quantites, item);
+        }
+        return quantites;
+    }
+
+    private void traiterQuantitesItem(Map<Long, BigDecimal> quantites, CommandeItem item) {
+        if (item.getCocktail() == null || item.getCocktail().getId() == null) {
+            return;
+        }
+        if (traiterQuantitesVariante(quantites, item)) {
+            return;
+        }
+        traiterQuantitesBaseCocktail(quantites, item);
+    }
+
+    private boolean traiterQuantitesVariante(Map<Long, BigDecimal> quantites, CommandeItem item) {
+        if (item.getVariante() == null || item.getVariante().getIngredients() == null || item.getVariante().getIngredients().isEmpty()) {
+            return false;
+        }
+        for (CocktailVarianteIngredient cvi : item.getVariante().getIngredients()) {
+            Ingredient ingredient = cvi.getIngredient();
+            if (ingredient != null && ingredient.getId() != null && cvi.getQuantite() != null) {
+                BigDecimal qte = cvi.getQuantite().multiply(BigDecimal.valueOf(item.getQuantite()));
+                BigDecimal existent = quantites.get(ingredient.getId());
+                quantites.put(ingredient.getId(), existent != null ? existent.add(qte) : qte);
+            }
+        }
+        return true;
+    }
+
+    private void traiterQuantitesBaseCocktail(Map<Long, BigDecimal> quantites, CommandeItem item) {
+        List<CocktailIngredient> ingredientsList = resolveCocktailIngredients(item.getCocktail());
+        if (ingredientsList == null || ingredientsList.isEmpty()) {
+            return;
+        }
+        BigDecimal mult = (item.getVariante() != null && item.getVariante().getMultiplicateurIngredient() != null)
+                ? item.getVariante().getMultiplicateurIngredient()
+                : BigDecimal.ONE;
+
+        for (CocktailIngredient ci : ingredientsList) {
+            traiterQuantiteIngredient(quantites, item, ci, mult);
+        }
+    }
+
+    private List<CocktailIngredient> resolveCocktailIngredients(Cocktail cocktail) {
+        List<CocktailIngredient> ingredientsList = null;
+        if (cocktailIngredientRepository != null) {
+            try {
+                ingredientsList = cocktailIngredientRepository.findByCocktail(cocktail);
+            } catch (Exception _) {
+                // Fallback to navigation
+            }
+        }
+        if (ingredientsList == null || ingredientsList.isEmpty()) {
+            ingredientsList = cocktail.getIngredients();
+        }
+        return ingredientsList;
+    }
+
+    private void traiterQuantiteIngredient(Map<Long, BigDecimal> quantites, CommandeItem item, CocktailIngredient ci,
+            BigDecimal mult) {
+        Ingredient ingredient = ci.getIngredient();
+        if (ingredient != null && ingredient.getId() != null && ci.getQuantite() != null) {
+            BigDecimal qte = ci.getQuantite()
+                    .multiply(BigDecimal.valueOf(item.getQuantite()))
+                    .multiply(mult);
+            BigDecimal existent = quantites.get(ingredient.getId());
+            quantites.put(ingredient.getId(), existent != null ? existent.add(qte) : qte);
+        }
+    }
+
+    private Map<Long, Ingredient> mepIngredients(Commande commande) {
+        Map<Long, Ingredient> map = new HashMap<>();
+        if (commande.getItems() == null) {
+            return map;
+        }
+        for (CommandeItem item : commande.getItems()) {
+            extraireIngredientsItem(map, item);
+        }
+        return map;
+    }
+
+    private void extraireIngredientsItem(Map<Long, Ingredient> map, CommandeItem item) {
+        if (extraireIngredientsVariante(map, item)) {
+            return;
+        }
+        extraireIngredientsBaseCocktail(map, item);
+    }
+
+    private boolean extraireIngredientsVariante(Map<Long, Ingredient> map, CommandeItem item) {
+        if (item.getVariante() == null || item.getVariante().getIngredients() == null || item.getVariante().getIngredients().isEmpty()) {
+            return false;
+        }
+        for (CocktailVarianteIngredient cvi : item.getVariante().getIngredients()) {
+            if (cvi.getIngredient() != null && cvi.getIngredient().getId() != null) {
+                map.put(cvi.getIngredient().getId(), cvi.getIngredient());
+            }
+        }
+        return true;
+    }
+
+    private void extraireIngredientsBaseCocktail(Map<Long, Ingredient> map, CommandeItem item) {
+        if (item.getCocktail() == null || item.getCocktail().getId() == null) {
+            return;
+        }
+        List<CocktailIngredient> ingredientsList = resolveCocktailIngredients(item.getCocktail());
+        if (ingredientsList != null) {
+            for (CocktailIngredient ci : ingredientsList) {
+                if (ci.getIngredient() != null && ci.getIngredient().getId() != null) {
+                    map.put(ci.getIngredient().getId(), ci.getIngredient());
+                }
+            }
+        }
+    }
+
+    /**
+     * Transfers an existing order to a new target table.
+     *
+     * @param id         Identifier of the order to transfer
+     * @param newTableId Identifier of the target table
+     * @return Updated order entity
+     */
+    @Transactional
+    public Commande transfererCommande(Long id, Long newTableId) {
+        Commande commande = commandeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(COMMANDE_NOT_FOUND + id));
+        TableEntity targetTable = tableRepository.findById(newTableId)
+                .orElseThrow(() -> new ResourceNotFoundException("Table not found with id: " + newTableId));
+
+        commande.setTable(targetTable);
+        commande.setUpdatedAt(timeService.now());
+        Commande saved = commandeRepository.save(commande);
+
+        if (eventPublisher != null) {
+            eventPublisher.publishEvent(new OrderUpdatedEvent(saved));
+        }
+        return saved;
+    }
+
+    /**
+     * Modifies an active order's cocktail items, quantities, notes and recalculates
+     * order total.
+     *
+     * @param id      Identifier of the order to modify
+     * @param request Update request payload
+     * @return Updated order entity
+     */
+    @Transactional
+    public Commande modifierCommande(Long id, ModifierCommandeRequestDTO request) {
+        Commande commande = commandeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(COMMANDE_NOT_FOUND + id));
+
+        validateOrderModifiable(commande);
+
+        if (commande.getStatut() == CommandeStatut.EN_PREPARATION && commande.getDatePreparation() != null) {
+            reincrementerStockIngredients(commande);
+        }
+
+        resetCommandeItems(commande);
+
+        BigDecimal total = BigDecimal.ZERO;
+        for (ModifierCommandeItemDTO itemDto : request.items()) {
+            CommandeItem item = createCommandeItemFromDto(commande, itemDto);
+            commande.getItems().add(item);
+            BigDecimal lineTotal = item.getPrixUnitaire().multiply(BigDecimal.valueOf(itemDto.quantite()));
+            total = total.add(lineTotal);
+        }
+
+        commande.setTotal(total);
+        if (request.notes() != null) {
+            commande.setNotes(request.notes());
+        }
+        if (request.pourboire() != null) {
+            commande.setPourboire(request.pourboire());
+        }
+        commande.setDateModification(timeService.now());
+        commande.setUpdatedAt(timeService.now());
+
+        if (commande.getStatut() == CommandeStatut.EN_PREPARATION && commande.getDatePreparation() != null) {
+            destockerIngredients(commande);
+        }
+
+        Commande saved = commandeRepository.save(commande);
+        notifyOrderUpdated(saved);
+        return saved;
+    }
+
+    private void validateOrderModifiable(Commande commande) {
+        if (commande.getStatut() == CommandeStatut.LIVREE
+                || commande.getStatut() == CommandeStatut.REGLEE
+                || commande.getStatut() == CommandeStatut.ANNULEE) {
+            throw new BusinessException("Cannot modify order with status: " + commande.getStatut());
+        }
+    }
+
+    private void resetCommandeItems(Commande commande) {
+        if (commande.getItems() == null) {
+            commande.setItems(new ArrayList<>());
+        } else {
+            commande.getItems().clear();
+        }
+    }
+
+    private CommandeItem createCommandeItemFromDto(Commande commande, ModifierCommandeItemDTO itemDto) {
+        Cocktail cocktail = cocktailRepository.findById(itemDto.cocktailId())
+                .orElseThrow(
+                        () -> new ResourceNotFoundException("Cocktail not found with id: " + itemDto.cocktailId()));
+
+        BigDecimal unitPrice = cocktail.getPrix();
+        CocktailVariante variante = null;
+        if (itemDto.varianteId() != null) {
+            variante = cocktailVarianteRepository.findById(itemDto.varianteId()).orElse(null);
+            if (variante != null && variante.getPrixSupplement() != null) {
+                unitPrice = unitPrice.add(variante.getPrixSupplement());
+            }
+        }
+
+        CommandeItem item = new CommandeItem();
+        item.setCommande(commande);
+        item.setCocktail(cocktail);
+        item.setVariante(variante);
+        item.setQuantite(itemDto.quantite());
+        item.setPrixUnitaire(unitPrice);
+        item.setNotes(itemDto.notes());
+        item.setPrioritaire(Boolean.TRUE.equals(itemDto.prioritaire()));
+        return item;
+    }
+
+    private void updateTableOccupancyOnOrderCreation(Commande commande) {
+        if (commande == null || commande.getTable() == null || commande.getTable().getId() == null) {
+            return;
+        }
+        tableRepository.findById(commande.getTable().getId()).ifPresent(table -> {
+            if (!table.isOccupee()) {
+                table.setOccupee(true);
+                if (commande.getServeur() != null) {
+                    table.setServeurId(commande.getServeur().getId());
+                }
+                table.setDateOccupation(timeService.now());
+                TableEntity savedTable = tableRepository.save(table);
+                notifyTableUpdated(savedTable);
+            }
+        });
+    }
+
+    private void notifyTableUpdated(TableEntity table) {
+        if (eventPublisher != null && table != null) {
+            eventPublisher.publishEvent(new TableUpdatedEvent(table));
+        }
+    }
+
+    private void notifyOrderUpdated(Commande saved) {
+        if (eventPublisher != null && saved != null) {
+            eventPublisher.publishEvent(new OrderUpdatedEvent(saved));
+        }
+    }
+}

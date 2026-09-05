@@ -1,54 +1,989 @@
-<mat-card>
-  <mat-card-header>
-    <mat-card-title>{{ isEditMode ? 'Modifier le Cocktail' : 'Nouveau Cocktail' }}</mat-card-title>
-  </mat-card-header>
-  <mat-card-content>
-    <form (ngSubmit)="onSubmit()" [formGroup]="cocktailForm">
-      <mat-form-field appearance="fill" class="full-width">
-        <mat-label>Nom</mat-label>
-        <input formControlName="name" matInput required>
-        <mat-error *ngIf="cocktailForm.get('name')?.hasError('required')">
-          Le nom est requis
-        </mat-error>
-      </mat-form-field>
+<div class="cocktail-form-container" data-testid="cocktail-wizard-container">
+  <!-- Top Stepper Navigation -->
+  <div class="wizard-stepper-header" data-testid="wizard-stepper">
+    <button
+      type="button"
+      class="step-tab"
+      [class.active]="currentStep() === 1"
+      [class.completed]="currentStep() > 1"
+      (click)="goToStep(1)"
+      data-testid="wizard-step-1-tab">
+      <span class="step-badge">1</span>
+      <span class="step-title">{{ 'COCKTAILS.WIZARD.STEP_GENERAL' | transloco }}</span>
+    </button>
 
-      <mat-form-field appearance="fill" class="full-width">
-        <mat-label>Description</mat-label>
-        <textarea formControlName="description" matInput required></textarea>
-        <mat-error *ngIf="cocktailForm.get('description')?.hasError('required')">
-          La description est requise
-        </mat-error>
-      </mat-form-field>
+    <div class="step-divider" [class.completed]="currentStep() > 1"></div>
 
-      <mat-form-field appearance="fill" class="full-width">
-        <mat-label>Prix</mat-label>
-        <input formControlName="price" matInput required type="number">
-        <mat-error *ngIf="cocktailForm.get('price')?.hasError('required')">
-          Le prix est requis
-        </mat-error>
-        <mat-error *ngIf="cocktailForm.get('price')?.hasError('min')">
-          Le prix doit être positif
-        </mat-error>
-      </mat-form-field>
+    <button
+      type="button"
+      class="step-tab"
+      [class.active]="currentStep() === 2"
+      [class.completed]="currentStep() > 2"
+      [class.disabled]="!canGoToStep(2)"
+      (click)="goToStep(2)"
+      data-testid="wizard-step-2-tab">
+      <span class="step-badge">2</span>
+      <span class="step-title">{{ 'COCKTAILS.WIZARD.STEP_RECIPE_BUILDER' | transloco }}</span>
+    </button>
 
-      <mat-form-field appearance="fill" class="full-width">
-        <mat-label>Catégorie</mat-label>
-        <mat-select formControlName="category" required>
-          <mat-option value="cocktail">Cocktail</mat-option>
-          <mat-option value="mocktail">Mocktail</mat-option>
-          <mat-option value="shot">Shot</mat-option>
-        </mat-select>
-        <mat-error *ngIf="cocktailForm.get('category')?.hasError('required')">
-          La catégorie est requise
-        </mat-error>
-      </mat-form-field>
+    <div class="step-divider" [class.completed]="currentStep() > 2"></div>
 
-      <div class="button-row">
-        <button (click)="router.navigate(['/cocktails'])" mat-button type="button">Annuler</button>
-        <button [disabled]="!cocktailForm.valid" color="primary" mat-raised-button type="submit">
-          {{ isEditMode ? 'Modifier' : 'Créer' }}
-        </button>
+    <button
+      type="button"
+      class="step-tab"
+      [class.active]="currentStep() === 3"
+      [class.completed]="currentStep() > 3"
+      [class.disabled]="!canGoToStep(3)"
+      (click)="goToStep(3)"
+      data-testid="wizard-step-3-tab">
+      <span class="step-badge">3</span>
+      <span class="step-title">{{ 'COCKTAILS.WIZARD.STEP_VARIANTS' | transloco }}</span>
+    </button>
+
+    <div class="step-divider" [class.completed]="currentStep() > 3"></div>
+
+    <button
+      type="button"
+      class="step-tab"
+      [class.active]="currentStep() === 4"
+      [class.disabled]="!canGoToStep(4)"
+      (click)="goToStep(4)"
+      data-testid="wizard-step-4-tab">
+      <span class="step-badge">4</span>
+      <span class="step-title">{{ 'COCKTAILS.WIZARD.STEP_PREVIEW' | transloco }}</span>
+    </button>
+  </div>
+
+  <ion-card class="form-card">
+    <ion-card-header>
+      <ion-card-title>
+        {{ (isEditMode ? 'COCKTAILS.EDIT' : 'COCKTAILS.ADD') | transloco }}
+        <span class="step-subtitle-badge">
+          {{ 'COCKTAILS.WIZARD.STEP_N_OF_TOTAL' | transloco: { current: currentStep(), total: totalSteps } }}
+        </span>
+      </ion-card-title>
+    </ion-card-header>
+
+    <ion-card-content>
+      <form [formGroup]="cocktailForm" (ngSubmit)="onSubmit()" class="cocktail-form">
+
+        <!-- ========================================== -->
+        <!-- STEP 1: INFORMATIONS GÉNÉRALES             -->
+        <!-- ========================================== -->
+        @if (currentStep() === 1) {
+          <div class="wizard-step-content" data-testid="wizard-step-1-content">
+            <!-- Photo Upload Section -->
+            <div class="photo-upload-section">
+              <div class="photo-preview-box">
+                <img [src]="imagePreview || 'assets/images/verres/verre_tumbler.png'" alt="Aperçu cocktail" />
+              </div>
+              <div class="photo-details">
+                <h3>{{ 'COCKTAILS.PHOTO' | transloco }}</h3>
+                <p>{{ 'COCKTAILS.PHOTO_HINT' | transloco }}</p>
+              </div>
+              <input
+                type="file"
+                #fileInput
+                id="cocktail-form-photo-input"
+                [attr.aria-label]="'COCKTAILS.SELECT_PHOTO_LABEL' | transloco"
+                accept="image/*"
+                capture="environment"
+                style="display:none"
+                (change)="onFileSelected($event)">
+              <app-action-button
+                variant="secondary"
+                icon="camera-outline"
+                testId="cocktail-form-photo-btn"
+                (btnClick)="triggerFileInput(fileInput)">
+                {{ (imagePreview ? 'COCKTAILS.CHANGE_PHOTO' : 'COCKTAILS.SELECT_PHOTO') | transloco }}
+              </app-action-button>
+            </div>
+
+            <!-- Main Info Fields -->
+            <div class="form-fields-grid">
+              <app-input-field
+                formControlName="name"
+                [label]="'COCKTAILS.NAME' | transloco"
+                [placeholder]="'COCKTAILS.NAME' | transloco"
+                [required]="true"
+                testId="cocktail-form-name-input"
+                [errorMessage]="(cocktailForm.get('name')?.touched && cocktailForm.get('name')?.hasError('required')) ? ('COMMON.ERROR' | transloco) : undefined"
+              ></app-input-field>
+
+              <app-input-field
+                formControlName="price"
+                type="number"
+                [label]="('COCKTAILS.PRICE' | transloco) + ' (' + currencySymbol + ')'"
+                placeholder="0.00"
+                [required]="true"
+                testId="cocktail-form-price-input"
+                [errorMessage]="(cocktailForm.get('price')?.touched && (cocktailForm.get('price')?.hasError('required') || cocktailForm.get('price')?.hasError('min'))) ? ('COMMON.ERROR' | transloco) : undefined"
+              ></app-input-field>
+
+              <!-- Category Select Field -->
+              <div class="field-container">
+                <app-searchable-select
+                  formControlName="category"
+                  [label]="'COCKTAILS.CATEGORY' | transloco"
+                  [placeholder]="'COMMON.SELECT' | transloco"
+                  [searchPlaceholder]="'Rechercher une catégorie...'"
+                  [required]="true"
+                  [options]="categoryOptions()"
+                  testId="cocktail-form-category-select">
+                </app-searchable-select>
+              </div>
+
+              <!-- Glassware Select Field with + New Glass button -->
+              <div class="field-container">
+                <app-searchable-select
+                  formControlName="glasswareId"
+                  [label]="'COCKTAILS.GLASSWARE.LABEL' | transloco"
+                  [placeholder]="'COCKTAILS.GLASSWARE.PLACEHOLDER' | transloco"
+                  [searchPlaceholder]="'COCKTAILS.GLASSWARE.PLACEHOLDER' | transloco"
+                  [options]="glasswareOptions()"
+                  actionButtonIcon="add-outline"
+                  [actionButtonLabel]="'COCKTAILS.GLASSWARE.ADD_NEW' | transloco"
+                  (actionClick)="openCreateGlasswareModal()"
+                  testId="cocktail-form-glassware-select">
+                </app-searchable-select>
+              </div>
+
+              <app-input-field
+                formControlName="description"
+                [label]="'COCKTAILS.DESCRIPTION' | transloco"
+                [placeholder]="'COCKTAILS.DESCRIPTION' | transloco"
+                [required]="false"
+                testId="cocktail-form-description-input"
+              ></app-input-field>
+            </div>
+
+            <!-- Seasonal Availability Section (Create & Edit Mode) -->
+            <div class="section-saisonnalite" data-testid="cocktail-form-seasonality-section">
+              <div class="saisonnalite-header">
+                <ion-icon name="calendar-outline"></ion-icon>
+                <h4>{{ 'COCKTAILS.SEASONAL' | transloco }}</h4>
+              </div>
+              <app-cocktail-saisonnalite
+                [cocktail]="cocktailData"
+                [showSaveButton]="isEditMode"
+                [initialMoisDebut]="saisonnaliteState.moisDebut"
+                [initialMoisFin]="saisonnaliteState.moisFin"
+                (seasonalityChange)="onSeasonalityChange($event)"
+                (updated)="onSaisonnaliteUpdated($event)">
+              </app-cocktail-saisonnalite>
+            </div>
+          </div>
+        }
+
+        <!-- ========================================== -->
+        <!-- STEP 2: CONSTRUCTEUR DE RECETTE PAR BLOCS  -->
+        <!-- ========================================== -->
+        @if (currentStep() === 2) {
+          <div class="wizard-step-content" data-testid="wizard-step-2-content">
+            <div class="builder-intro">
+              <div class="builder-intro-text">
+                <h3>{{ 'COCKTAILS.BUILDER.SECTION_TITLE' | transloco }}</h3>
+                <p>{{ 'COCKTAILS.BUILDER.SECTION_SUBTITLE' | transloco }}</p>
+              </div>
+
+              <!-- Quick Add Block Buttons Toolbar -->
+              <div class="add-block-actions" data-testid="builder-add-buttons">
+                <button
+                  type="button"
+                  class="add-btn btn-ingredient"
+                  (click)="addIngredientBlock()"
+                  data-testid="btn-add-ingredient-block">
+                  <ion-icon name="leaf-outline"></ion-icon>
+                  <span>+ {{ 'COCKTAILS.BUILDER.ADD_INGREDIENT' | transloco }}</span>
+                </button>
+
+                <button
+                  type="button"
+                  class="add-btn btn-template"
+                  (click)="addActionTemplateBlock()"
+                  data-testid="btn-add-template-block">
+                  <ion-icon name="sparkles-outline"></ion-icon>
+                  <span>+ {{ 'COCKTAILS.BUILDER.ADD_ACTION_TEMPLATE' | transloco }}</span>
+                </button>
+
+                <button
+                  type="button"
+                  class="add-btn btn-custom"
+                  (click)="addCustomTextBlock()"
+                  data-testid="btn-add-custom-block">
+                  <ion-icon name="create-outline"></ion-icon>
+                  <span>+ {{ 'COCKTAILS.BUILDER.ADD_CUSTOM_TEXT' | transloco }}</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Blocks FormArray List -->
+            <div class="blocks-list" formArrayName="recipeSteps" data-testid="recipe-blocks-list">
+              @if (recipeStepsArray.controls.length === 0) {
+                <div class="empty-blocks-state" data-testid="empty-blocks-state">
+                  <ion-icon name="sparkles-outline"></ion-icon>
+                  <p>{{ 'COCKTAILS.BUILDER.NO_STEPS_YET' | transloco }}</p>
+                </div>
+              }
+
+              @for (stepGroup of recipeStepsArray.controls; track $index; let i = $index) {
+                <div
+                  class="recipe-block-card"
+                  [ngClass]="'block-' + stepGroup.get('stepType')?.value?.toLowerCase()"
+                  [formGroupName]="i"
+                  [attr.data-testid]="'recipe-block-' + i">
+
+                  <!-- Block Header & Controls -->
+                  <div class="block-card-header">
+                    <div class="block-header-left">
+                      <span class="step-num-pill">{{ i + 1 }}</span>
+                      <ion-icon [name]="getActionIcon(stepGroup.get('actionType')?.value)"></ion-icon>
+                      <strong class="block-type-label">
+                        @switch (stepGroup.get('stepType')?.value) {
+                          @case ('INGREDIENT') { {{ 'COCKTAILS.BUILDER.BLOCK_TYPE_INGREDIENT' | transloco }} }
+                          @case ('ACTION_TEMPLATE') { {{ 'COCKTAILS.BUILDER.BLOCK_TYPE_ACTION_TEMPLATE' | transloco }} }
+                          @default { {{ 'COCKTAILS.BUILDER.BLOCK_TYPE_CUSTOM_TEXT' | transloco }} }
+                        }
+                      </strong>
+                    </div>
+
+                    <div class="block-header-actions">
+                      <button
+                        type="button"
+                        class="icon-action-btn"
+                        [disabled]="i === 0"
+                        (click)="moveStepUp(i)"
+                        [title]="'COCKTAILS.BUILDER.MOVE_UP' | transloco"
+                        [attr.data-testid]="'btn-move-up-' + i">
+                        <ion-icon name="arrow-up-outline"></ion-icon>
+                      </button>
+
+                      <button
+                        type="button"
+                        class="icon-action-btn"
+                        [disabled]="i === recipeStepsArray.controls.length - 1"
+                        (click)="moveStepDown(i)"
+                        [title]="'COCKTAILS.BUILDER.MOVE_DOWN' | transloco"
+                        [attr.data-testid]="'btn-move-down-' + i">
+                        <ion-icon name="arrow-down-outline"></ion-icon>
+                      </button>
+
+                      <button
+                        type="button"
+                        class="icon-action-btn btn-delete"
+                        (click)="removeStep(i)"
+                        [title]="'COCKTAILS.BUILDER.REMOVE_BLOCK' | transloco"
+                        [attr.data-testid]="'btn-remove-step-' + i">
+                        <ion-icon name="trash-outline"></ion-icon>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Block Body per Type -->
+                  <div class="block-card-body">
+                    <!-- TYPE: INGREDIENT -->
+                    @if (stepGroup.get('stepType')?.value === 'INGREDIENT') {
+                      <div class="ingredient-block-inputs">
+                        <div class="field-item ingredient-select-col">
+                          <app-searchable-select
+                            [label]="'COCKTAILS.BUILDER.SELECT_INGREDIENT' | transloco"
+                            [placeholder]="'COCKTAILS.BUILDER.SELECT_INGREDIENT' | transloco"
+                            [searchPlaceholder]="'Rechercher un ingrédient...'"
+                            [options]="ingredientOptions()"
+                            [value]="stepGroup.get('ingredientId')?.value"
+                            [testId]="'select-ingredient-' + i"
+                            (selectionChange)="onIngredientOptionSelected(i, $event)">
+                          </app-searchable-select>
+                        </div>
+
+                        <div class="field-item qty-col">
+                          <label [for]="'ing-qty-' + i">{{ 'COCKTAILS.BUILDER.QUANTITY' | transloco }}</label>
+                          <input
+                            type="number"
+                            step="0.1"
+                            min="0"
+                            [id]="'ing-qty-' + i"
+                            formControlName="quantite"
+                            class="native-input"
+                            placeholder="ex: 4"
+                            [attr.data-testid]="'input-ingredient-qty-' + i">
+                        </div>
+
+                        <div class="field-item unit-col">
+                          <label [for]="'ing-unit-' + i">{{ 'COCKTAILS.BUILDER.UNIT' | transloco }}</label>
+                          <input
+                            type="text"
+                            [id]="'ing-unit-' + i"
+                            formControlName="unite"
+                            class="native-input"
+                            placeholder="cl, ml, trait..."
+                            [attr.data-testid]="'input-ingredient-unit-' + i">
+                        </div>
+
+                        <div class="field-item full-width-col">
+                          <label [for]="'ing-note-' + i">{{ 'COCKTAILS.BUILDER.STEP_INSTRUCTION' | transloco }}</label>
+                          <input
+                            type="text"
+                            [id]="'ing-note-' + i"
+                            formControlName="customText"
+                            class="native-input"
+                            placeholder="ex: Couper en quartiers au fond du verre"
+                            [attr.data-testid]="'input-ingredient-note-' + i">
+                        </div>
+                      </div>
+                    }
+
+                    <!-- TYPE: ACTION_TEMPLATE -->
+                    @if (stepGroup.get('stepType')?.value === 'ACTION_TEMPLATE') {
+                      <div class="template-block-inputs">
+                        <div class="field-item template-select-col">
+                          <app-searchable-select
+                            [label]="'COCKTAILS.BUILDER.SELECT_TEMPLATE' | transloco"
+                            [placeholder]="'COCKTAILS.BUILDER.SELECT_TEMPLATE' | transloco"
+                            [searchPlaceholder]="'Rechercher une action ou modèle...'"
+                            [options]="templateOptions()"
+                            [value]="stepGroup.get('templateId')?.value"
+                            [testId]="'select-template-' + i"
+                            actionButtonIcon="add-outline"
+                            [actionButtonLabel]="'+ ' + ('COCKTAILS.BUILDER.SAVE_AS_NEW_TEMPLATE' | transloco)"
+                            (actionClick)="openCreateTemplateModal()"
+                            (selectionChange)="onTemplateOptionSelected(i, $event)">
+                          </app-searchable-select>
+                        </div>
+
+                        <div class="field-item duration-col">
+                          <label [for]="'tpl-duration-' + i">{{ 'COCKTAILS.BUILDER.DURATION_SECONDS' | transloco }}</label>
+                          <input
+                            type="number"
+                            min="0"
+                            [id]="'tpl-duration-' + i"
+                            formControlName="durationSeconds"
+                            class="native-input"
+                            placeholder="15"
+                            [attr.data-testid]="'input-template-duration-' + i">
+                        </div>
+
+                        <div class="field-item full-width-col">
+                          <label [for]="'tpl-note-' + i">{{ 'COCKTAILS.BUILDER.STEP_INSTRUCTION' | transloco }}</label>
+                          <input
+                            type="text"
+                            [id]="'tpl-note-' + i"
+                            formControlName="customText"
+                            class="native-input"
+                            [placeholder]="'COCKTAILS.PLACEHOLDERS.STEP_ACTION' | transloco"
+                            [attr.data-testid]="'input-template-note-' + i">
+                        </div>
+                      </div>
+                    }
+
+                    <!-- TYPE: CUSTOM_TEXT -->
+                    @if (stepGroup.get('stepType')?.value === 'CUSTOM_TEXT') {
+                      <div class="custom-block-inputs">
+                        <div class="field-item title-col">
+                          <label [for]="'custom-title-' + i">{{ 'COCKTAILS.BUILDER.ACTION_TITLE' | transloco }}</label>
+                          <input
+                            type="text"
+                            [id]="'custom-title-' + i"
+                            formControlName="actionTitle"
+                            class="native-input"
+                            placeholder="ex: Givrage au sel & citron"
+                            [attr.data-testid]="'input-custom-title-' + i">
+                        </div>
+
+                        <div class="field-item duration-col">
+                          <label [for]="'custom-duration-' + i">{{ 'COCKTAILS.BUILDER.DURATION_SECONDS' | transloco }}</label>
+                          <input
+                            type="number"
+                            min="0"
+                            [id]="'custom-duration-' + i"
+                            formControlName="durationSeconds"
+                            class="native-input"
+                            placeholder="15"
+                            [attr.data-testid]="'input-custom-duration-' + i">
+                        </div>
+
+                        <div class="field-item full-width-col">
+                          <label [for]="'custom-desc-' + i">{{ 'COCKTAILS.BUILDER.STEP_INSTRUCTION' | transloco }}</label>
+                          <textarea
+                            [id]="'custom-desc-' + i"
+                            formControlName="customText"
+                            rows="2"
+                            class="native-textarea"
+                            [placeholder]="'COCKTAILS.PLACEHOLDERS.PREP_TECHNIQUE' | transloco"
+                            [attr.data-testid]="'textarea-custom-desc-' + i"></textarea>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- ========================================== -->
+        <!-- STEP 3: VARIANTES & SERVICE               -->
+        <!-- ========================================== -->
+        @if (currentStep() === 3) {
+          <div class="wizard-step-content" data-testid="wizard-step-3-content">
+            <div class="step-intro">
+              <h3>{{ 'COCKTAILS.VARIANTS' | transloco }}</h3>
+              <p>{{ 'COCKTAILS.STEP3_SUBTITLE' | transloco }}</p>
+            </div>
+
+            <!-- Instructions générales (fallback texte) -->
+            <div class="field-container full-width">
+              <label class="field-label" for="instructions-input">
+                {{ 'COCKTAILS.INSTRUCTIONS' | transloco }} (Optionnel)
+              </label>
+              <textarea
+                id="instructions-input"
+                formControlName="instructions"
+                rows="3"
+                class="native-textarea"
+                [placeholder]="'COCKTAILS.PLACEHOLDERS.PAIRING_ADVICE' | transloco"
+                data-testid="cocktail-form-instructions-input"></textarea>
+            </div>
+
+            <!-- Variantes FormArray -->
+            <div class="variantes-section" formArrayName="variantes">
+              <div class="variantes-header">
+                <h4>{{ 'COCKTAILS.VARIANTS_SECTION.TITLE' | transloco }}</h4>
+                <button
+                  type="button"
+                  class="btn-add-variant"
+                  (click)="addVariant()"
+                  data-testid="btn-add-variant">
+                  <ion-icon name="add-outline"></ion-icon>
+                  <span>{{ 'COCKTAILS.VARIANTS_SECTION.ADD_VARIANT' | transloco }}</span>
+                </button>
+              </div>
+
+              @if (variantesArray.controls.length === 0) {
+                <div class="empty-variantes-hint">
+                  {{ 'COCKTAILS.VARIANTS_SECTION.EMPTY' | transloco }}
+                </div>
+              }
+
+              @for (vGroup of variantesArray.controls; track $index; let vIdx = $index) {
+                <div class="variant-item-card" [formGroupName]="vIdx" [attr.data-testid]="'variant-card-' + vIdx">
+                  <div class="variant-card-header">
+                    <div class="variant-title-group">
+                      <h5 class="variant-name">{{ vGroup.get('nom')?.value || ('COCKTAILS.VARIANTS' | transloco) }}</h5>
+                      <div class="variant-badges">
+                        @if (vGroup.get('disponible')?.value !== false) {
+                          <span class="badge-status active">{{ 'COCKTAILS.AVAILABLE' | transloco }}</span>
+                        } @else {
+                          <span class="badge-status inactive">{{ 'COCKTAILS.UNAVAILABLE' | transloco }}</span>
+                        }
+
+                        <span class="badge-price">
+                          @if ((vGroup.get('prixSupplement')?.value || 0) > 0) {
+                            +{{ vGroup.get('prixSupplement')?.value | appCurrency }}
+                          } @else {
+                            {{ 0 | appCurrency }}
+                          }
+                        </span>
+
+                        @if (hasCustomVariantRecipe(vGroup)) {
+                          <span class="badge-custom-recipe">
+                            <ion-icon name="sparkles-outline"></ion-icon>
+                            {{ 'COCKTAILS.VARIANTS_SECTION.CUSTOM_RECIPE_BADGE' | transloco: { count: getCustomStepsCount(vGroup) } }}
+                          </span>
+                        } @else {
+                          <span class="badge-standard-recipe">
+                            {{ 'COCKTAILS.VARIANTS_SECTION.NO_CUSTOM_RECIPE' | transloco }}
+                          </span>
+                        }
+                      </div>
+                    </div>
+
+                    <div class="variant-actions">
+                      <button
+                        type="button"
+                        class="btn-edit-recipe"
+                        (click)="openVariantRecipeModal(vIdx)"
+                        [attr.data-testid]="'btn-edit-variant-recipe-' + vIdx">
+                        <ion-icon name="create-outline"></ion-icon>
+                        <span>{{ 'COCKTAILS.VARIANTS_SECTION.EDIT_RECIPE' | transloco }}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        class="icon-action-btn btn-delete"
+                        (click)="removeVariant(vIdx)"
+                        [title]="'COCKTAILS.VARIANTS_SECTION.REMOVE' | transloco"
+                        [attr.data-testid]="'btn-remove-variant-' + vIdx">
+                        <ion-icon name="trash-outline"></ion-icon>
+                      </button>
+                    </div>
+                  </div>
+
+                  @if (vGroup.get('description')?.value) {
+                    <p class="variant-description-text">{{ vGroup.get('description')?.value }}</p>
+                  }
+
+                  @if (vGroup.get('instructions')?.value) {
+                    <div class="variant-instructions-preview">
+                      <ion-icon name="document-text-outline"></ion-icon>
+                      <span>{{ vGroup.get('instructions')?.value }}</span>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- ========================================== -->
+        <!-- STEP 4: APERÇU & DOSAGES MULTI-PORTIONS   -->
+        <!-- ========================================== -->
+        @if (currentStep() === 4) {
+          <div class="wizard-step-content" data-testid="wizard-step-4-content">
+            <div class="preview-header-card">
+              <div class="preview-cocktail-meta">
+                <div class="preview-img-wrapper">
+                  <img [src]="imagePreview || 'assets/images/verres/verre_tumbler.png'" alt="Cocktail" />
+                </div>
+                <div class="preview-meta-text">
+                  <div class="preview-badge-row">
+                    <span class="category-tag">{{ cocktailForm.get('category')?.value || 'COCKTAIL' }}</span>
+                    <span class="price-tag">{{ cocktailForm.get('price')?.value || 0 }} €</span>
+                  </div>
+                  <h2 class="preview-name">{{ cocktailForm.get('name')?.value || 'Nouveau Cocktail' }}</h2>
+                  <p class="preview-desc">{{ cocktailForm.get('description')?.value }}</p>
+                </div>
+              </div>
+
+              <!-- Portion Scaler Counter Widget -->
+              <div class="portion-scaler-widget" data-testid="portion-scaler-widget">
+                <div class="scaler-label-block">
+                  <span class="scaler-title">{{ 'COCKTAILS.PREVIEW.PORTIONS' | transloco }}</span>
+                  <span class="scaler-subtitle">{{ 'COCKTAILS.PREVIEW.PORTIONS_HINT' | transloco }}</span>
+                </div>
+                <div class="scaler-controls">
+                  <button
+                    type="button"
+                    class="btn-stepper"
+                    (click)="decrementPortions()"
+                    [disabled]="previewPortions() <= 1"
+                    data-testid="btn-decrement-portions">
+                    <ion-icon name="remove-outline"></ion-icon>
+                  </button>
+                  <span class="portion-count-badge" data-testid="preview-portions-count">
+                    {{ previewPortions() }} {{ previewPortions() > 1 ? 'verres' : 'verre' }}
+                  </span>
+                  <button
+                    type="button"
+                    class="btn-stepper"
+                    (click)="incrementPortions()"
+                    data-testid="btn-increment-portions">
+                    <ion-icon name="add-outline"></ion-icon>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Dynamic Recipe Steps Timeline -->
+            <div class="preview-recipe-section">
+              <div class="preview-section-title">
+                <ion-icon name="sparkles-outline"></ion-icon>
+                <h3>{{ 'COCKTAILS.PREVIEW.RECIPE_PREVIEW_TITLE' | transloco }}</h3>
+                @if (previewPortions() > 1) {
+                  <span class="scaling-indicator-tag" data-testid="scaling-indicator">
+                    ⚡ {{ 'COCKTAILS.PREVIEW.SCALED_DOSAGE_HINT' | transloco: { count: previewPortions() } }}
+                  </span>
+                }
+              </div>
+
+              @if (recipeStepsArray.controls.length === 0) {
+                <div class="empty-preview-steps">
+                  <p>{{ 'COCKTAILS.PREVIEW.NO_RECIPE_STEPS' | transloco }}</p>
+                </div>
+              } @else {
+                <div class="recipe-timeline" data-testid="recipe-preview-timeline">
+                  @for (stepGroup of recipeStepsArray.controls; track $index; let sIdx = $index) {
+                    <div
+                      class="timeline-step-row"
+                      [class.type-ingredient]="stepGroup.get('stepType')?.value === 'INGREDIENT'"
+                      [class.type-action]="stepGroup.get('stepType')?.value === 'ACTION_TEMPLATE'"
+                      [class.type-custom]="stepGroup.get('stepType')?.value === 'CUSTOM_TEXT'"
+                      [attr.data-testid]="'preview-step-' + sIdx">
+
+                      <div class="step-badge-col">
+                        <span class="timeline-num">{{ sIdx + 1 }}</span>
+                      </div>
+
+                      <div class="step-card-content">
+                        <!-- Step 1: Ingredient block -->
+                        @if (stepGroup.get('stepType')?.value === 'INGREDIENT') {
+                          <div class="timeline-block-body">
+                            <div class="step-header-line">
+                              <div class="step-title-with-icon">
+                                <ion-icon name="leaf-outline" class="step-type-icon icon-ingredient"></ion-icon>
+                                <span class="step-main-title">
+                                  {{ stepGroup.get('ingredientNom')?.value || ('COCKTAILS.BUILDER.ADD_INGREDIENT' | transloco) }}
+                                </span>
+                              </div>
+                              @if (stepGroup.get('quantite')?.value != null) {
+                                <div class="dosage-pill" data-testid="ing-dosage-badge">
+                                  <strong class="dosage-value">{{ getScaledQuantity(stepGroup.get('quantite')?.value) }} {{ stepGroup.get('unite')?.value }}</strong>
+                                  @if (previewPortions() > 1) {
+                                    <small class="unit-ref">({{ stepGroup.get('quantite')?.value }} {{ stepGroup.get('unite')?.value }} / verre)</small>
+                                  }
+                                </div>
+                              }
+                            </div>
+                            @if (stepGroup.get('customText')?.value) {
+                              <p class="step-notes">{{ stepGroup.get('customText')?.value }}</p>
+                            }
+                          </div>
+                        }
+
+                        <!-- Step 2: Action Template block -->
+                        @if (stepGroup.get('stepType')?.value === 'ACTION_TEMPLATE') {
+                          <div class="timeline-block-body">
+                            <div class="step-header-line">
+                              <div class="step-title-with-icon">
+                                <ion-icon [name]="getActionIcon(stepGroup.get('actionType')?.value)" class="step-type-icon icon-action"></ion-icon>
+                                <span class="step-main-title">{{ stepGroup.get('templateName')?.value || 'Action Mixologie' }}</span>
+                              </div>
+                              @if (stepGroup.get('durationSeconds')?.value) {
+                                <div class="duration-pill">
+                                  <ion-icon name="time-outline"></ion-icon>
+                                  <span>{{ stepGroup.get('durationSeconds')?.value }} {{ 'COCKTAILS.PREVIEW.SECONDS' | transloco }}</span>
+                                </div>
+                              }
+                            </div>
+                            @if (stepGroup.get('customText')?.value) {
+                              <p class="step-notes">{{ stepGroup.get('customText')?.value }}</p>
+                            }
+                          </div>
+                        }
+
+                        <!-- Step 3: Custom Text block -->
+                        @if (stepGroup.get('stepType')?.value === 'CUSTOM_TEXT') {
+                          <div class="timeline-block-body">
+                            <div class="step-header-line">
+                              <div class="step-title-with-icon">
+                                <ion-icon name="create-outline" class="step-type-icon icon-custom"></ion-icon>
+                                <span class="step-main-title">{{ stepGroup.get('actionTitle')?.value || ('COCKTAILS.STEP_SPECIFIC_DEFAULT' | transloco) }}</span>
+                              </div>
+                              @if (stepGroup.get('durationSeconds')?.value) {
+                                <div class="duration-pill">
+                                  <ion-icon name="time-outline"></ion-icon>
+                                  <span>{{ stepGroup.get('durationSeconds')?.value }} {{ 'COCKTAILS.PREVIEW.SECONDS' | transloco }}</span>
+                                </div>
+                              }
+                            </div>
+                            @if (stepGroup.get('customText')?.value) {
+                              <p class="step-notes">{{ stepGroup.get('customText')?.value }}</p>
+                            }
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+
+            <!-- Deduced Bar Equipment & Tools Section -->
+            <div class="equipment-deduction-section" data-testid="equipment-deduction-section">
+              <div class="preview-section-title">
+                <ion-icon name="hammer-outline"></ion-icon>
+                <div class="section-title-group">
+                  <h3>{{ 'COCKTAILS.EQUIPMENT.TITLE' | transloco }}</h3>
+                  <span class="section-subtitle">{{ 'COCKTAILS.EQUIPMENT.SUBTITLE' | transloco }}</span>
+                </div>
+              </div>
+
+              @if (deducedBarEquipment().length === 0) {
+                <div class="empty-equipment" data-testid="empty-equipment">
+                  <p>{{ 'COCKTAILS.EQUIPMENT.EMPTY' | transloco }}</p>
+                </div>
+              } @else {
+                <div class="equipment-grid" data-testid="equipment-grid">
+                  @for (eq of deducedBarEquipment(); track eq.name) {
+                    <div class="equipment-card" [class]="'cat-' + eq.category.toLowerCase()" data-testid="equipment-card">
+                      <div class="eq-icon-wrapper">
+                        <ion-icon [name]="eq.icon"></ion-icon>
+                      </div>
+                      <div class="eq-info">
+                        <span class="eq-name">{{ eq.name }}</span>
+                        <span class="eq-reason">{{ eq.reason }}</span>
+                      </div>
+                      <span class="eq-category-badge">{{ ('COCKTAILS.EQUIPMENT.CATEGORY_' + eq.category) | transloco }}</span>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- ========================================== -->
+        <!-- WIZARD FOOTER NAVIGATION BUTTONS           -->
+        <!-- ========================================== -->
+        <div class="wizard-footer-actions">
+          <div class="footer-left">
+            @if (currentStep() > 1) {
+              <app-action-button
+                variant="secondary"
+                icon="chevron-back-outline"
+                testId="wizard-btn-prev"
+                (btnClick)="prevStep()">
+                {{ 'COCKTAILS.WIZARD.PREV_STEP' | transloco }}
+              </app-action-button>
+            } @else {
+              <app-action-button
+                variant="secondary"
+                (btnClick)="router.navigate(['/cocktails'])"
+                testId="cocktail-form-cancel-btn">
+                {{ 'COMMON.CANCEL' | transloco }}
+              </app-action-button>
+            }
+          </div>
+
+          <div class="footer-right">
+            @if (currentStep() < totalSteps) {
+              <app-action-button
+                variant="primary"
+                icon="chevron-forward-outline"
+                testId="wizard-btn-next"
+                [disabled]="!canProceedFromCurrentStep()"
+                (btnClick)="nextStep()">
+                {{ 'COCKTAILS.WIZARD.NEXT_STEP' | transloco }}
+              </app-action-button>
+            } @else {
+              <app-action-button
+                variant="primary"
+                type="submit"
+                icon="checkmark-circle-outline"
+                [disabled]="!isFormValid()"
+                testId="cocktail-form-submit-btn">
+                {{ (isEditMode ? 'COMMON.SAVE' : 'COCKTAILS.WIZARD.SAVE_COCKTAIL') | transloco }}
+              </app-action-button>
+            }
+          </div>
+        </div>
+
+      </form>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Reusable Action Template Inline Modal Backdrop / Dialog -->
+  @if (isNewTemplateModalOpen()) {
+    <div class="custom-modal-backdrop" data-testid="new-template-modal">
+      <div class="modal-card">
+        <header class="modal-header">
+          <h3>{{ 'COCKTAILS.BUILDER.NEW_TEMPLATE_TITLE' | transloco }}</h3>
+          <button type="button" class="btn-close-modal" (click)="closeCreateTemplateModal()">
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        </header>
+
+        <div class="modal-body">
+          <div class="field-item">
+            <label for="modal-tpl-name-input">{{ 'COCKTAILS.BUILDER.TEMPLATE_NAME' | transloco }} *</label>
+            <input
+              type="text"
+              id="modal-tpl-name-input"
+              [(ngModel)]="newTemplateName"
+              class="native-input"
+              placeholder="ex: Shaker vigoureusement"
+              data-testid="modal-template-name-input">
+          </div>
+
+          <div class="field-item">
+            <app-searchable-select
+              [label]="'COCKTAILS.BUILDER.TEMPLATE_ACTION_TYPE' | transloco"
+              [placeholder]="'Sélectionner une action'"
+              [searchPlaceholder]="'Rechercher un type d\'action...'"
+              [options]="actionTypeOptions()"
+              [value]="newTemplateActionType"
+              testId="modal-template-type-select"
+              (selectionChange)="onModalActionTypeSelected($event)">
+            </app-searchable-select>
+          </div>
+
+          <div class="field-item">
+            <label for="modal-tpl-duration-input">{{ 'COCKTAILS.BUILDER.TEMPLATE_DURATION' | transloco }}</label>
+            <input
+              type="number"
+              min="0"
+              id="modal-tpl-duration-input"
+              [(ngModel)]="newTemplateDuration"
+              class="native-input"
+              placeholder="15"
+              data-testid="modal-template-duration-input">
+          </div>
+
+          <div class="field-item">
+            <label for="modal-tpl-desc-textarea">{{ 'COCKTAILS.BUILDER.STEP_INSTRUCTION' | transloco }}</label>
+            <textarea
+              id="modal-tpl-desc-textarea"
+              [(ngModel)]="newTemplateDescription"
+              rows="3"
+              class="native-textarea"
+              [placeholder]="'COCKTAILS.PLACEHOLDERS.ACTION_DESC' | transloco"
+              data-testid="modal-template-desc-textarea"></textarea>
+          </div>
+        </div>
+
+        <footer class="modal-footer">
+          <button type="button" class="btn-cancel" (click)="closeCreateTemplateModal()">
+            {{ 'COMMON.CANCEL' | transloco }}
+          </button>
+          <button
+            type="button"
+            class="btn-save"
+            [disabled]="!newTemplateName.trim()"
+            (click)="saveNewTemplate()"
+            data-testid="modal-btn-save-template">
+            {{ 'COMMON.SAVE' | transloco }}
+          </button>
+        </footer>
       </div>
-    </form>
-  </mat-card-content>
-</mat-card>
+    </div>
+  }
+
+  <!-- New Glassware Modal Backdrop / Dialog -->
+  @if (isNewGlasswareModalOpen()) {
+    <div class="custom-modal-backdrop" data-testid="new-glassware-modal">
+      <div class="modal-card">
+        <header class="modal-header">
+          <h3>{{ 'COCKTAILS.GLASSWARE.MODAL_TITLE' | transloco }}</h3>
+          <button type="button" class="btn-close-modal" (click)="closeCreateGlasswareModal()">
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        </header>
+
+        <div class="modal-body">
+          <div class="field-item">
+            <label for="modal-glass-name-input">{{ 'COCKTAILS.GLASSWARE.NAME_LABEL' | transloco }} *</label>
+            <input
+              type="text"
+              id="modal-glass-name-input"
+              [(ngModel)]="newGlasswareNom"
+              class="native-input"
+              [placeholder]="'COCKTAILS.GLASSWARE.NAME_PLACEHOLDER' | transloco"
+              data-testid="modal-glass-name-input">
+          </div>
+
+          <div class="field-item">
+            <label for="modal-glass-capacity-input">{{ 'COCKTAILS.GLASSWARE.CAPACITY_LABEL' | transloco }} *</label>
+            <input
+              type="number"
+              min="0.1"
+              step="0.5"
+              id="modal-glass-capacity-input"
+              [(ngModel)]="newGlasswareContenanceCl"
+              class="native-input"
+              placeholder="30"
+              data-testid="modal-glass-capacity-input">
+          </div>
+
+          <div class="field-item">
+            <div class="illustration-header">
+              <span class="field-label-text">{{ 'COCKTAILS.GLASSWARE.IMAGE_LABEL' | transloco }}</span>
+              <div class="illustration-tabs">
+                <button
+                  type="button"
+                  class="tab-btn"
+                  [class.active]="newGlasswareSourceType() === 'PRESET'"
+                  (click)="setGlasswareSourceType('PRESET')"
+                  data-testid="modal-glass-tab-preset">
+                  <ion-icon name="grid-outline"></ion-icon>
+                  <span>{{ 'COCKTAILS.GLASSWARE.TAB_PRESETS' | transloco }}</span>
+                </button>
+                <button
+                  type="button"
+                  class="tab-btn"
+                  [class.active]="newGlasswareSourceType() === 'CUSTOM'"
+                  (click)="setGlasswareSourceType('CUSTOM')"
+                  data-testid="modal-glass-tab-custom">
+                  <ion-icon name="cloud-upload-outline"></ion-icon>
+                  <span>{{ 'COCKTAILS.GLASSWARE.TAB_CUSTOM' | transloco }}</span>
+                </button>
+              </div>
+            </div>
+
+            @if (newGlasswareSourceType() === 'PRESET') {
+              <div class="glassware-image-selector">
+                @for (imgChoice of glasswareImageChoices; track imgChoice.value) {
+                  <button
+                    type="button"
+                    class="glass-choice-card"
+                    [class.selected]="newGlasswareImageUrl === imgChoice.value"
+                    (click)="newGlasswareImageUrl = imgChoice.value"
+                    [title]="imgChoice.label">
+                    <img [src]="imgChoice.value" [alt]="imgChoice.label" />
+                    <span>{{ imgChoice.label }}</span>
+                  </button>
+                }
+              </div>
+            } @else {
+              <div class="custom-illustration-container">
+                @if (customGlasswarePreview()) {
+                  <div class="custom-preview-card">
+                    <img [src]="customGlasswarePreview()" alt="Custom Glass Illustration" class="custom-preview-img" />
+                    <div class="custom-preview-info">
+                      <span class="custom-badge">{{ 'COCKTAILS.GLASSWARE.CUSTOM_IMAGE_BADGE' | transloco }}</span>
+                      <p class="custom-filename">{{ customGlasswareFile?.name }}</p>
+                    </div>
+                    <button
+                      type="button"
+                      class="btn-remove-custom"
+                      (click)="removeCustomGlasswareFile()"
+                      [title]="'COCKTAILS.GLASSWARE.REMOVE_CUSTOM_IMAGE' | transloco"
+                      data-testid="modal-glass-btn-remove-custom">
+                      <ion-icon name="trash-outline"></ion-icon>
+                    </button>
+                  </div>
+                } @else {
+                  <label class="custom-dropzone" for="custom-glass-file-input">
+                    <ion-icon name="image-outline" class="dropzone-icon"></ion-icon>
+                    <span class="dropzone-text">{{ 'COCKTAILS.GLASSWARE.UPLOAD_CUSTOM_HINT' | transloco }}</span>
+                    <input
+                      type="file"
+                      id="custom-glass-file-input"
+                      accept="image/png, image/jpeg, image/webp, image/gif"
+                      (change)="onCustomGlasswareFileSelected($event)"
+                      class="hidden-file-input"
+                      data-testid="modal-glass-file-input" />
+                  </label>
+                }
+              </div>
+            }
+          </div>
+
+          <div class="field-item">
+            <label for="modal-glass-desc-textarea">{{ 'COCKTAILS.GLASSWARE.DESCRIPTION_LABEL' | transloco }}</label>
+            <textarea
+              id="modal-glass-desc-textarea"
+              [(ngModel)]="newGlasswareDescription"
+              rows="2"
+              class="native-textarea"
+              [placeholder]="'COCKTAILS.PLACEHOLDERS.GLASS_DESC' | transloco"
+              data-testid="modal-glass-desc-textarea"></textarea>
+          </div>
+        </div>
+
+        <footer class="modal-footer">
+          <button type="button" class="btn-cancel" (click)="closeCreateGlasswareModal()">
+            {{ 'COMMON.CANCEL' | transloco }}
+          </button>
+          <button
+            type="button"
+            class="btn-save"
+            [disabled]="!newGlasswareNom.trim() || !newGlasswareContenanceCl || newGlasswareContenanceCl <= 0"
+            (click)="saveNewGlassware()"
+            data-testid="modal-btn-save-glassware">
+            {{ 'COMMON.SAVE' | transloco }}
+          </button>
+        </footer>
+      </div>
+    </div>
+  }
+</div>

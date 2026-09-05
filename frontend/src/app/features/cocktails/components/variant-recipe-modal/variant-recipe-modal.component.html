@@ -1,0 +1,471 @@
+<ion-header class="modal-header">
+  <ion-toolbar>
+    <ion-title>
+      <div class="header-title-wrap">
+        <ion-icon name="sparkles-outline"></ion-icon>
+        <span>{{ 'COCKTAILS.VARIANT_MODAL.TITLE' | transloco }}</span>
+        @if (baseCocktailName) {
+          <span class="base-badge">({{ baseCocktailName }})</span>
+        }
+      </div>
+    </ion-title>
+    <ion-buttons slot="end">
+      <button
+        type="button"
+        class="header-reset-btn"
+        (click)="resetToBaseRecipe()"
+        [title]="'COCKTAILS.VARIANT_MODAL.RESET_BASE' | transloco"
+        data-testid="variant-modal-reset-btn"
+      >
+        <ion-icon name="refresh-outline"></ion-icon>
+        <span>{{ 'COCKTAILS.VARIANT_MODAL.RESET_BASE' | transloco }}</span>
+      </button>
+
+      <ion-button
+        (click)="cancel()"
+        (keyup.enter)="cancel()"
+        data-testid="variant-modal-close-btn"
+        aria-label="Close"
+      >
+        <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="modal-content">
+  <div class="modal-body-container">
+    <!-- General Variant Information Card -->
+    <div class="section-card variant-info-card">
+      <div class="section-title">
+        <ion-icon name="pricetag-outline"></ion-icon>
+        <h4>{{ 'COCKTAILS.VARIANTS_SECTION.GENERAL_INFO' | transloco }}</h4>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group span-2">
+          <label for="variant-name-input">
+            {{ 'COCKTAILS.VARIANTS_SECTION.NAME' | transloco }} <span class="req">*</span>
+          </label>
+          <input
+            id="variant-name-input"
+            type="text"
+            [(ngModel)]="nom"
+            class="native-input"
+            [placeholder]="'COCKTAILS.VARIANT_MODAL.NAME_PLACEHOLDER' | transloco"
+            data-testid="variant-modal-nom-input"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="variant-price-input">
+            {{ 'COCKTAILS.VARIANTS_SECTION.PRICE_SUPPLEMENT' | transloco }} ({{ currencySymbol }})
+          </label>
+          <input
+            id="variant-price-input"
+            type="number"
+            step="0.5"
+            min="0"
+            [(ngModel)]="prixSupplement"
+            class="native-input"
+            placeholder="0.00"
+            data-testid="variant-modal-price-input"
+          />
+        </div>
+
+        <div class="form-group toggle-group">
+          <label for="variant-modal-dispo-toggle">{{ 'COCKTAILS.VARIANTS_SECTION.STATUS' | transloco }}</label>
+          <div class="toggle-wrap">
+            <ion-toggle
+              id="variant-modal-dispo-toggle"
+              [(ngModel)]="disponible"
+              color="success"
+              data-testid="variant-modal-dispo-toggle"
+              [attr.aria-label]="'COCKTAILS.VARIANTS_SECTION.STATUS' | transloco"
+            >
+              <span class="toggle-status-text">
+                {{ (disponible ? 'COCKTAILS.VARIANTS_SECTION.ACTIVE' : 'COCKTAILS.VARIANTS_SECTION.INACTIVE') | transloco }}
+              </span>
+            </ion-toggle>
+          </div>
+        </div>
+
+        <div class="form-group span-3">
+          <label for="variant-desc-input">
+            {{ 'COCKTAILS.VARIANTS_SECTION.DESCRIPTION' | transloco }}
+          </label>
+          <input
+            id="variant-desc-input"
+            type="text"
+            [(ngModel)]="description"
+            class="native-input"
+            [placeholder]="'COCKTAILS.VARIANT_MODAL.DESCRIPTION_PLACEHOLDER' | transloco"
+            data-testid="variant-modal-desc-input"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Sequential Recipe Steps Customizer Card -->
+    <div class="section-card recipe-steps-card">
+      <div class="recipe-card-header">
+        <div class="header-left">
+          <div class="section-title">
+            <ion-icon name="layers-outline"></ion-icon>
+            <h4>{{ 'COCKTAILS.BUILDER.TITLE' | transloco }} ({{ recipeSteps.length }} {{ 'COCKTAILS.BUILDER.STEPS' | transloco }})</h4>
+          </div>
+          <p class="section-subtitle">
+            {{ 'COCKTAILS.VARIANT_MODAL.SUBTITLE_STEPS' | transloco }}
+          </p>
+        </div>
+
+        <!-- Multiplier Presets & Add Actions -->
+        <div class="multiplier-toolbar">
+          <span class="toolbar-label">{{ 'COCKTAILS.VARIANT_MODAL.PRESET_MULTIPLIER' | transloco }} :</span>
+          <div class="multiplier-pills">
+            <button
+              type="button"
+              class="pill-btn"
+              [class.active]="multiplicateurIngredient === 1.0"
+              (click)="applyMultiplier(1.0)"
+            >
+              {{ 'COCKTAILS.VARIANT_MODAL.MULTIPLIER_NORMAL' | transloco }}
+            </button>
+            <button
+              type="button"
+              class="pill-btn"
+              [class.active]="multiplicateurIngredient === 2.0"
+              (click)="applyMultiplier(2.0)"
+            >
+              {{ 'COCKTAILS.VARIANT_MODAL.MULTIPLIER_DOUBLE' | transloco }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Add Block Actions Bar -->
+      <div class="add-steps-bar">
+        <button
+          type="button"
+          class="add-step-btn btn-ingredient"
+          (click)="addIngredientStep()"
+          data-testid="variant-btn-add-ingredient"
+        >
+          <ion-icon name="add-outline"></ion-icon>
+          <span>+ {{ 'COCKTAILS.BUILDER.ADD_INGREDIENT' | transloco }}</span>
+        </button>
+
+        <button
+          type="button"
+          class="add-step-btn btn-template"
+          (click)="addActionTemplateStep()"
+          data-testid="variant-btn-add-template"
+        >
+          <ion-icon name="sparkles-outline"></ion-icon>
+          <span>+ {{ 'COCKTAILS.BUILDER.ADD_ACTION_TEMPLATE' | transloco }}</span>
+        </button>
+
+        <button
+          type="button"
+          class="add-step-btn btn-custom"
+          (click)="addCustomTextStep()"
+          data-testid="variant-btn-add-custom"
+        >
+          <ion-icon name="create-outline"></ion-icon>
+          <span>+ {{ 'COCKTAILS.BUILDER.ADD_CUSTOM_TEXT' | transloco }}</span>
+        </button>
+      </div>
+
+      <!-- Steps List -->
+      <div class="steps-list" data-testid="variant-recipe-steps-list">
+        @if (recipeSteps.length === 0) {
+          <div class="empty-steps-state" data-testid="variant-empty-steps">
+            <ion-icon name="sparkles-outline"></ion-icon>
+            <p>{{ 'COCKTAILS.BUILDER.NO_STEPS_YET' | transloco }}</p>
+            <button type="button" class="btn-restore-base" (click)="resetToBaseRecipe()">
+              <ion-icon name="refresh-outline"></ion-icon>
+              <span>{{ 'COCKTAILS.VARIANT_MODAL.RESET_BASE' | transloco }}</span>
+            </button>
+          </div>
+        }
+
+        @for (step of recipeSteps; track $index; let i = $index) {
+          <div
+            class="step-block-card"
+            [ngClass]="'block-' + step.stepType.toLowerCase()"
+            [attr.data-testid]="'variant-step-card-' + i"
+          >
+            <!-- Step Header -->
+            <div class="step-card-header">
+              <div class="step-header-left">
+                <span class="step-badge">{{ i + 1 }}</span>
+                <ion-icon [name]="getActionIcon(step.actionType)"></ion-icon>
+                <strong class="step-type-name">
+                  @switch (step.stepType) {
+                    @case ('INGREDIENT') { {{ 'COCKTAILS.BUILDER.BLOCK_TYPE_INGREDIENT' | transloco }} }
+                    @case ('ACTION_TEMPLATE') { {{ 'COCKTAILS.BUILDER.BLOCK_TYPE_ACTION_TEMPLATE' | transloco }} }
+                    @default { {{ 'COCKTAILS.BUILDER.BLOCK_TYPE_CUSTOM_TEXT' | transloco }} }
+                  }
+                </strong>
+              </div>
+
+              <div class="step-header-actions">
+                <button
+                  type="button"
+                  class="step-action-btn"
+                  [disabled]="i === 0"
+                  (click)="moveStepUp(i)"
+                  [title]="'COCKTAILS.BUILDER.MOVE_UP' | transloco"
+                  [attr.data-testid]="'variant-btn-up-' + i"
+                >
+                  <ion-icon name="arrow-up-outline"></ion-icon>
+                </button>
+
+                <button
+                  type="button"
+                  class="step-action-btn"
+                  [disabled]="i === recipeSteps.length - 1"
+                  (click)="moveStepDown(i)"
+                  [title]="'COCKTAILS.BUILDER.MOVE_DOWN' | transloco"
+                  [attr.data-testid]="'variant-btn-down-' + i"
+                >
+                  <ion-icon name="arrow-down-outline"></ion-icon>
+                </button>
+
+                <button
+                  type="button"
+                  class="step-action-btn btn-delete"
+                  (click)="removeStep(i)"
+                  [title]="'COCKTAILS.BUILDER.REMOVE_BLOCK' | transloco"
+                  [attr.data-testid]="'variant-btn-remove-' + i"
+                >
+                  <ion-icon name="trash-outline"></ion-icon>
+                </button>
+              </div>
+            </div>
+
+            <!-- Step Body per Type -->
+            <div class="step-card-body">
+              <!-- TYPE 1: INGREDIENT -->
+              @if (step.stepType === 'INGREDIENT') {
+                <div class="grid-ingredient-inputs">
+                  <div class="input-col col-select">
+                    <app-searchable-select
+                      [label]="'COCKTAILS.BUILDER.SELECT_INGREDIENT' | transloco"
+                      [placeholder]="'COCKTAILS.BUILDER.SELECT_INGREDIENT' | transloco"
+                      [searchPlaceholder]="'COCKTAILS.BUILDER.SEARCH_INGREDIENT' | transloco"
+                      [options]="ingredientOptions()"
+                      [value]="step.ingredientId"
+                      [testId]="'variant-select-ing-' + i"
+                      (selectionChange)="onIngredientSelected(i, $event)"
+                    >
+                    </app-searchable-select>
+                  </div>
+
+                  <div class="input-col col-qty">
+                    <label [for]="'v-qty-' + i">{{ 'COCKTAILS.BUILDER.QUANTITY' | transloco }}</label>
+                    <input
+                      [id]="'v-qty-' + i"
+                      type="number"
+                      step="0.5"
+                      min="0"
+                      [(ngModel)]="step.quantite"
+                      class="native-input"
+                      placeholder="4"
+                      [attr.data-testid]="'variant-input-qty-' + i"
+                    />
+                  </div>
+
+                  <div class="input-col col-unit">
+                    <label [for]="'v-unit-' + i">{{ 'COCKTAILS.BUILDER.UNIT' | transloco }}</label>
+                    <input
+                      [id]="'v-unit-' + i"
+                      type="text"
+                      [(ngModel)]="step.unite"
+                      class="native-input"
+                      placeholder="cl"
+                      [attr.data-testid]="'variant-input-unit-' + i"
+                    />
+                  </div>
+
+                  <div class="input-col col-full">
+                    <label [for]="'v-note-' + i">{{ 'COCKTAILS.BUILDER.STEP_INSTRUCTION' | transloco }}</label>
+                    <input
+                      [id]="'v-note-' + i"
+                      type="text"
+                      [(ngModel)]="step.customText"
+                      class="native-input"
+                      [placeholder]="'COCKTAILS.VARIANT_MODAL.NOTES_PLACEHOLDER' | transloco"
+                      [attr.data-testid]="'variant-input-note-' + i"
+                    />
+                  </div>
+                </div>
+              }
+
+              <!-- TYPE 2: ACTION_TEMPLATE -->
+              @if (step.stepType === 'ACTION_TEMPLATE') {
+                <div class="grid-template-inputs">
+                  <div class="input-col col-template">
+                    <app-searchable-select
+                      [label]="'COCKTAILS.BUILDER.SELECT_TEMPLATE' | transloco"
+                      [placeholder]="'COCKTAILS.BUILDER.SELECT_TEMPLATE' | transloco"
+                      [searchPlaceholder]="'COCKTAILS.BUILDER.SEARCH_TEMPLATE' | transloco"
+                      [options]="templateOptions()"
+                      [value]="step.templateId"
+                      [testId]="'variant-select-tpl-' + i"
+                      (selectionChange)="onTemplateSelected(i, $event)"
+                    >
+                    </app-searchable-select>
+                  </div>
+
+                  <div class="input-col col-duration">
+                    <label [for]="'v-duration-' + i">{{ 'COCKTAILS.BUILDER.DURATION_SECONDS' | transloco }}</label>
+                    <input
+                      [id]="'v-duration-' + i"
+                      type="number"
+                      min="0"
+                      [(ngModel)]="step.durationSeconds"
+                      class="native-input"
+                      placeholder="15"
+                      [attr.data-testid]="'variant-input-duration-' + i"
+                    />
+                  </div>
+
+                  <div class="input-col col-full">
+                    <label [for]="'v-tpl-note-' + i">{{ 'COCKTAILS.BUILDER.STEP_INSTRUCTION' | transloco }}</label>
+                    <input
+                      [id]="'v-tpl-note-' + i"
+                      type="text"
+                      [(ngModel)]="step.customText"
+                      class="native-input"
+                      [placeholder]="'COCKTAILS.VARIANT_MODAL.INSTRUCTIONS_PLACEHOLDER' | transloco"
+                      [attr.data-testid]="'variant-input-tpl-note-' + i"
+                    />
+                  </div>
+                </div>
+              }
+
+              <!-- TYPE 3: CUSTOM_TEXT -->
+              @if (step.stepType === 'CUSTOM_TEXT') {
+                <div class="grid-custom-inputs">
+                  <div class="input-col col-title">
+                    <label [for]="'v-title-' + i">{{ 'COCKTAILS.BUILDER.ACTION_TITLE' | transloco }}</label>
+                    <input
+                      [id]="'v-title-' + i"
+                      type="text"
+                      [(ngModel)]="step.actionTitle"
+                      class="native-input"
+                      [placeholder]="'COCKTAILS.BUILDER.ACTION_TITLE' | transloco"
+                      [attr.data-testid]="'variant-input-custom-title-' + i"
+                    />
+                  </div>
+
+                  <div class="input-col col-duration">
+                    <label [for]="'v-cduration-' + i">{{ 'COCKTAILS.BUILDER.DURATION_SECONDS' | transloco }}</label>
+                    <input
+                      [id]="'v-cduration-' + i"
+                      type="number"
+                      min="0"
+                      [(ngModel)]="step.durationSeconds"
+                      class="native-input"
+                      placeholder="15"
+                      [attr.data-testid]="'variant-input-custom-duration-' + i"
+                    />
+                  </div>
+
+                  <div class="input-col col-full">
+                    <label [for]="'v-cdesc-' + i">{{ 'COCKTAILS.BUILDER.STEP_INSTRUCTION' | transloco }}</label>
+                    <textarea
+                      [id]="'v-cdesc-' + i"
+                      [(ngModel)]="step.customText"
+                      rows="2"
+                      class="native-textarea"
+                      [placeholder]="'COCKTAILS.VARIANT_MODAL.INSTRUCTIONS_PLACEHOLDER' | transloco"
+                      [attr.data-testid]="'variant-textarea-custom-desc-' + i"
+                    ></textarea>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Specific Mixology Instructions / Notes Card -->
+    <div class="section-card instructions-card">
+      <div class="section-title">
+        <ion-icon name="document-text-outline"></ion-icon>
+        <h4>{{ 'COCKTAILS.VARIANTS_SECTION.SPECIFIC_INSTRUCTIONS' | transloco }}</h4>
+      </div>
+      <div class="form-group">
+        <label for="variant-instructions-input" class="field-accessible-label">
+          {{ 'COCKTAILS.VARIANT_MODAL.INSTRUCTIONS_LABEL' | transloco }}
+        </label>
+        <textarea
+          id="variant-instructions-input"
+          [(ngModel)]="instructions"
+          rows="3"
+          class="native-textarea"
+          [placeholder]="'COCKTAILS.VARIANT_MODAL.INSTRUCTIONS_PLACEHOLDER' | transloco"
+          data-testid="variant-modal-instructions-input"
+        ></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- Live Summary Bar -->
+  <div class="live-summary-bar">
+    <div class="summary-item">
+      <span class="summary-label">{{ 'COCKTAILS.BUILDER.STEPS' | transloco }}</span>
+      <span class="summary-value" data-testid="variant-modal-step-count">{{ recipeSteps.length }}</span>
+    </div>
+    <div class="summary-divider"></div>
+    <div class="summary-item">
+      <span class="summary-label">{{ 'COCKTAILS.INGREDIENTS' | transloco }}</span>
+      <span class="summary-value" data-testid="variant-modal-ing-count">{{ ingredientCount }}</span>
+    </div>
+    <div class="summary-divider"></div>
+    <div class="summary-item">
+      <span class="summary-label">{{ 'COCKTAILS.VARIANT_MODAL.TOTAL_VOLUME' | transloco }}</span>
+      <span class="summary-value" data-testid="variant-modal-volume">{{ totalVolume | number: '1.0-1' }} cl</span>
+    </div>
+    <div class="summary-divider"></div>
+    <div class="summary-item">
+      <span class="summary-label">{{ 'COCKTAILS.VARIANT_MODAL.FINAL_PRICE' | transloco }}</span>
+      <span class="summary-value price-val" data-testid="variant-modal-effective-price">
+        {{ effectivePrice | appCurrency }}
+        @if (prixSupplement > 0) {
+          <small class="supplement-tag">(+{{ prixSupplement | appCurrency }})</small>
+        }
+      </span>
+    </div>
+  </div>
+</ion-content>
+
+<ion-footer class="modal-footer">
+  <ion-toolbar>
+    <div class="footer-actions">
+      <ion-button
+        fill="outline"
+        color="medium"
+        (click)="cancel()"
+        (keyup.enter)="cancel()"
+        data-testid="variant-modal-cancel-btn"
+      >
+        {{ 'COCKTAILS.VARIANT_MODAL.CANCEL' | transloco }}
+      </ion-button>
+
+      <ion-button
+        color="primary"
+        [disabled]="!nom.trim()"
+        (click)="save()"
+        (keyup.enter)="save()"
+        data-testid="variant-modal-save-btn"
+      >
+        <ion-icon name="save-outline" slot="start"></ion-icon>
+        <span>{{ 'COCKTAILS.VARIANT_MODAL.SAVE' | transloco }}</span>
+      </ion-button>
+    </div>
+  </ion-toolbar>
+</ion-footer>

@@ -1,0 +1,100 @@
+<div class="suivi-container">
+  <div class="ellipse-bg-primary"></div>
+  <div class="ellipse-bg-tertiary"></div>
+
+  @if (isLoading) {
+    <div class="loading-card">
+      <span class="spinner-icon">🍹</span>
+      <p>{{ 'CLIENT.LOADING' | transloco }}</p>
+    </div>
+  } @else if (commande) {
+    <div class="suivi-card">
+      <div class="suivi-header">
+        <h1 class="order-id">{{ 'CLIENT.ORDER_TITLE' | transloco:{ id: commande.id } }}</h1>
+        <span class="table-badge">{{ 'CLIENT.TABLE' | transloco:{ num: commande.tableNumero } }}</span>
+      </div>
+
+      <div class="hero-status">
+        <div class="status-icon-wrapper">
+          @if (statusStep === 1) {
+            <span class="status-emoji">⏳</span>
+          } @else if (statusStep === 2) {
+            <span class="status-emoji">🍹</span>
+          } @else {
+            <span class="status-emoji">✅</span>
+          }
+        </div>
+        <h2 class="status-title">{{ statusLabelKey | transloco }}</h2>
+        <p class="status-subtitle">
+          @if (statusStep === 1) {
+            {{ 'CLIENT.STATUS_RECEIVED_DESC' | transloco }}
+          } @else if (statusStep === 2) {
+            {{ 'CLIENT.STATUS_PREPARING_DESC' | transloco }}
+          } @else {
+            {{ 'CLIENT.STATUS_READY_DESC' | transloco }}
+          }
+        </p>
+      </div>
+
+      <!-- Stepper de progression -->
+      <div class="stepper">
+        <div class="step-item" [class.active]="statusStep >= 1" [class.completed]="statusStep > 1">
+          <div class="step-circle">1</div>
+          <span class="step-text">{{ 'CLIENT.STEP_RECEIVED' | transloco }}</span>
+        </div>
+        <div class="step-line" [class.active]="statusStep >= 2"></div>
+        <div class="step-item" [class.active]="statusStep >= 2" [class.completed]="statusStep > 2">
+          <div class="step-circle">2</div>
+          <span class="step-text">{{ 'CLIENT.STEP_PREPARING' | transloco }}</span>
+        </div>
+        <div class="step-line" [class.active]="statusStep >= 3"></div>
+        <div class="step-item" [class.active]="statusStep >= 3" [class.completed]="statusStep === 3">
+          <div class="step-circle">3</div>
+          <span class="step-text">{{ 'CLIENT.STEP_READY' | transloco }}</span>
+        </div>
+      </div>
+
+      <!-- Détail des articles -->
+      <div class="order-items-box">
+        <h3 class="box-title">{{ 'CLIENT.DETAILS_TITLE' | transloco }}</h3>
+        <div class="items-list">
+          @for (item of commande.items; track item.id) {
+            <div class="item-row">
+              <span class="item-qty">x{{ item.quantite }}</span>
+              <span class="item-name">{{ item.cocktailNom }}</span>
+              <span class="item-price">{{ (item.prixUnitaire * item.quantite) | appCurrency }}</span>
+            </div>
+          }
+        </div>
+        <div class="total-row">
+          <span>{{ 'CLIENT.TOTAL_TTC' | transloco }}</span>
+          <span class="total-price">{{ commande.total | appCurrency }}</span>
+        </div>
+      </div>
+
+      <!-- Quick Table Service & Bill Actions Bar -->
+      <app-table-assistance-bar [tableNumero]="commande.tableNumero || commande.tableId"></app-table-assistance-bar>
+
+      <div class="actions-row">
+        <app-action-button
+          variant="secondary"
+          size="medium"
+          expand="block"
+          [routerLink]="['/client/commande']"
+          [queryParams]="{ table: commande.tableNumero }">
+          {{ 'CLIENT.NEW_ORDER' | transloco }}
+        </app-action-button>
+      </div>
+    </div>
+  } @else {
+    <div class="suivi-card">
+      <h2 class="card-title">{{ 'CLIENT.NOT_FOUND_TITLE' | transloco }}</h2>
+      <p class="card-subtitle">{{ 'CLIENT.NOT_FOUND_DESC' | transloco }}</p>
+      <app-action-button
+        variant="primary"
+        routerLink="/client/commande">
+        {{ 'CLIENT.ORDER_NOW' | transloco }}
+      </app-action-button>
+    </div>
+  }
+</div>

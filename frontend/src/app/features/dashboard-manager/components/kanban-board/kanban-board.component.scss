@@ -1,0 +1,79 @@
+// Kanban Board — Modern Operations Kanban
+.kanban {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px;
+  padding: 4px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+
+  &__column {
+    display: flex;
+    flex-direction: column;
+    min-height: 240px;
+    min-width: 270px;
+    background: var(--background-bg-1, #151521);
+    border: 1px solid var(--border-medium, #2e3450);
+    border-radius: var(--radius-md, 8px);
+    padding: 10px;
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 4px 10px;
+    border-bottom: 1px solid var(--border-medium, #2e3450);
+    margin-bottom: 10px;
+  }
+
+  &__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  &__label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-primary, #eceefb);
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__count {
+    font-size: 0.75rem;
+    font-weight: 700;
+    min-width: 20px;
+    text-align: center;
+    border-radius: 10px;
+  }
+
+  &__cards {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    flex: 1;
+    overflow: visible;
+  }
+
+  &__empty {
+    font-size: 0.8rem;
+    color: var(--text-muted, #7e87a8);
+    text-align: center;
+    padding: 36px 8px;
+    font-style: italic;
+  }
+}
+
+// Responsive: stack columns on very small screens
+@media (max-width: 580px) {
+  .kanban {
+    grid-template-columns: 1fr;
+  }
+}
+
+

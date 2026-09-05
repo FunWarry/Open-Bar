@@ -1,0 +1,1023 @@
+import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { CommonModule } from '@angular/common';
+import { ScheduleComponent } from '../../../app/features/schedule/schedule.component';
+import { ScheduleService } from '../../../app/features/schedule/services/schedule.service';
+import { EmployeeScheduleRow } from '../../../app/features/schedule/models/schedule.model';
+import { ShiftService } from '../../../app/core/services/shift.service';
+import { UserService } from '../../../app/core/services/user.service';
+import { ClosureService } from '../../../app/core/services/closure.service';
+import { PublicationService, WeekSchedulePublicationDTO } from '../../../app/core/services/publication.service';
+import { WebSocketService } from '../../../app/core/services/websocket.service';
+import { ModalController, ActionSheetController, ToastController, AlertController } from '@ionic/angular/standalone';
+import { of, Subject, throwError } from 'rxjs';
+import { getTranslocoTestingModule } from '../../transloco-testing.module';
+
+describe('ScheduleComponent', () => {
+  let component: ScheduleComponent;
+  let fixture: ComponentFixture<ScheduleComponent>;
+  let mockScheduleService: jasmine.SpyObj<ScheduleService>;
+  let mockShiftService: jasmine.SpyObj<ShiftService>;
+  let mockUserService: jasmine.SpyObj<UserService>;
+  let mockClosureService: jasmine.SpyObj<ClosureService>;
+  let mockPublicationService: jasmine.SpyObj<PublicationService>;
+  let mockWebSocketService: jasmine.SpyObj<WebSocketService>;
+  let mockModalCtrl: jasmine.SpyObj<ModalController>;
+  let mockActionSheetCtrl: jasmine.SpyObj<ActionSheetController>;
+  let mockToastCtrl: jasmine.SpyObj<ToastController>;
+  let mockAlertCtrl: jasmine.SpyObj<AlertController>;
+  let wsSubject: Subject<any>;
+
+  beforeEach(async () => {
+    wsSubject = new Subject<any>();
+    mockScheduleService = jasmine.createSpyObj('ScheduleService', ['getWeekSchedule', 'getWeekScheduleAt', 'getMonday']);
+    mockShiftService = jasmine.createSpyObj('ShiftService', ['createShift', 'deleteShift', 'getShiftById']);
+    mockUserService = jasmine.createSpyObj('UserService', ['getUsers', 'getUserById']);
+    mockClosureService = jasmine.createSpyObj('ClosureService', ['getClosures', 'createClosure', 'deleteClosure']);
+    mockPublicationService = jasmine.createSpyObj('PublicationService', ['publishWeek', 'getPublication']);
+    mockWebSocketService = jasmine.createSpyObj('WebSocketService', ['watch']);
+    mockModalCtrl = jasmine.createSpyObj('ModalController', ['create']);
+    mockActionSheetCtrl = jasmine.createSpyObj('ActionSheetController', ['create']);
+    mockToastCtrl = jasmine.createSpyObj('ToastController', ['create']);
+    mockAlertCtrl = jasmine.createSpyObj('AlertController', ['create']);
+
+    const mockMonday = new Date('2026-08-10');
+    mockScheduleService.getMonday.and.returnValue(mockMonday);
+    mockScheduleService.getWeekSchedule.and.returnValue(
+      of({
+        weekStart: '2026-08-10',
+        weekEnd: '2026-08-16',
+        employees: [],
+        totalHours: 40,
+        totalEmployees: 5,
+        activeEmployees: 3
+      })
+    );
+    mockScheduleService.getWeekScheduleAt.and.returnValue(
+      of({
+        weekStart: '2026-08-10',
+        weekEnd: '2026-08-16',
+        employees: [],
+        totalHours: 35,
+        totalEmployees: 5,
+        activeEmployees: 3
+      })
+    );
+    mockClosureService.getClosures.and.returnValue(of([]));
+    mockPublicationService.getPublication.and.returnValue(of(null));
+    mockWebSocketService.watch.and.returnValue(wsSubject.asObservable());
+
+    const dummyToast = { present: jasmine.createSpy('present').and.returnValue(Promise.resolve()) };
+    mockToastCtrl.create.and.returnValue(Promise.resolve(dummyToast as any));
+
+    await TestBed.configureTestingModule({
+      imports: [ScheduleComponent, CommonModule, getTranslocoTestingModule()],
+      providers: [
+        { provide: ScheduleService, useValue: mockScheduleService },
+        { provide: ShiftService, useValue: mockShiftService },
+        { provide: UserService, useValue: mockUserService },
+        { provide: ClosureService, useValue: mockClosureService },
+        { provide: PublicationService, useValue: mockPublicationService },
+        { provide: WebSocketService, useValue: mockWebSocketService },
+        { provide: ModalController, useValue: mockModalCtrl },
+        { provide: ActionSheetController, useValue: mockActionSheetCtrl },
+        { provide: ToastController, useValue: mockToastCtrl },
+        { provide: AlertController, useValue: mockAlertCtrl }
+      ]
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(ScheduleComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create the component', () => {
+    expect(component).toBeTruthy();
+    expect(component.isPublished).toBeFalse();
+  });
+
+  it('should navigate to previous and next weeks', () => {
+    const initialMonday = new Date(component.currentWeekStart);
+
+    component.nextWeek();
+    expect(component.currentWeekStart.getDate()).toBe(initialMonday.getDate() + 7);
+
+    component.prevWeek();
+    expect(component.currentWeekStart.getDate()).toBe(initialMonday.getDate());
+  });
+
+  it('should correctly format weekLabel', () => {
+    component.currentWeekStart = new Date('2026-08-10');
+    expect(component.weekLabel).toContain('10');
+    expect(component.weekLabel).toContain('16');
+    expect(component.weekLabel).toContain('2026');
+  });
+
+  it('should return correct CSS classes for shift types', () => {
+    expect(component.getShiftColorClass({ type: 'MANAGER' } as any)).toBe('shift--manager');
+    expect(component.getShiftColorClass({ type: 'WAITER' } as any)).toBe('shift--waiter');
+    expect(component.getShiftColorClass({ type: 'BARTENDER' } as any)).toBe('shift--bartender');
+    expect(component.getShiftColorClass({ type: 'DAY_OFF' } as any)).toBe('shift--dayoff');
+    expect(component.getShiftColorClass({ type: 'EMPTY' } as any)).toBe('shift--empty');
+    expect(component.getShiftColorClass({ isClosed: true } as any)).toBe('shift--closed');
+  });
+
+  it('publishSchedule() should call PublicationService.publishWeek and show toast', fakeAsync(() => {
+    const mockPub: WeekSchedulePublicationDTO = {
+      id: 1,
+      weekStart: '2026-08-10',
+      publishedAt: '2026-08-10T14:30:00',
+      publishedBy: 'manager1'
+    };
+    mockPublicationService.publishWeek.and.returnValue(of(mockPub));
+
+    component.publishSchedule();
+    tick();
+
+    expect(mockPublicationService.publishWeek).toHaveBeenCalledWith('2026-08-10');
+    expect(component.isPublished).toBeTrue();
+    expect(component.publication).toEqual(mockPub);
+    expect(mockToastCtrl.create).toHaveBeenCalled();
+  }));
+
+  it('should update publication state when STOMP /topic/schedule/published event arrives for current week', () => {
+    const pubEvent: WeekSchedulePublicationDTO = {
+      id: 2,
+      weekStart: '2026-08-10',
+      publishedAt: '2026-08-10T15:00:00',
+      publishedBy: 'admin'
+    };
+
+    wsSubject.next({ body: JSON.stringify(pubEvent) });
+
+    expect(component.isPublished).toBeTrue();
+    expect(component.publication).toEqual(pubEvent);
+  });
+
+  it('should trigger confirmDeleteShift on Delete key when hoveredCell has a shift', () => {
+    spyOn(component, 'confirmDeleteShift');
+
+    component.hoveredCell = {
+      emp: { employeeId: 1, name: 'Alice', role: 'SERVEUR', shifts: [] },
+      shift: { day: 'Mon', date: '2026-08-10', isClosed: false, rawShift: { id: 42 } } as any
+    };
+
+    const event = new KeyboardEvent('keydown', { key: 'Delete' });
+    component.onWindowKeyDown(event);
+
+    expect(component.confirmDeleteShift).toHaveBeenCalledWith(42);
+  });
+
+  it('should trigger confirmDeleteShift on Backspace key when hoveredCell has a shift', () => {
+    spyOn(component, 'confirmDeleteShift');
+
+    component.hoveredCell = {
+      emp: { employeeId: 1, name: 'Alice', role: 'SERVEUR', shifts: [] },
+      shift: { day: 'Mon', date: '2026-08-10', isClosed: false, rawShift: { id: 99 } } as any
+    };
+
+    const event = new KeyboardEvent('keydown', { key: 'Backspace' });
+    component.onWindowKeyDown(event);
+
+    expect(component.confirmDeleteShift).toHaveBeenCalledWith(99);
+  });
+
+  it('should NOT trigger confirmDeleteShift on Delete key when hoveredCell has no shift', () => {
+    spyOn(component, 'confirmDeleteShift');
+
+    component.hoveredCell = {
+      emp: { employeeId: 1, name: 'Alice', role: 'SERVEUR', shifts: [] },
+      shift: { day: 'Mon', date: '2026-08-10', isClosed: false } as any
+    };
+
+    expect(component.confirmDeleteShift).not.toHaveBeenCalled();
+  });
+
+  describe('Bulk Delete / Eraser Tool', () => {
+    it('toggleDeleteMode() should toggle isDeleteMode and clear selection on exit', () => {
+      expect(component.isDeleteMode).toBeFalse();
+      component.selectedShiftIds.add(10);
+
+      component.toggleDeleteMode();
+      expect(component.isDeleteMode).toBeTrue();
+
+      component.toggleDeleteMode();
+      expect(component.isDeleteMode).toBeFalse();
+      expect(component.selectedShiftIds.size).toBe(0);
+    });
+
+    it('toggleShiftSelection() should add and remove shift IDs from selection set', () => {
+      component.toggleShiftSelection(101);
+      expect(component.isShiftSelected(101)).toBeTrue();
+      expect(component.isShiftSelected(102)).toBeFalse();
+
+      component.toggleShiftSelection(101);
+      expect(component.isShiftSelected(101)).toBeFalse();
+    });
+
+    it('toggleShiftSelection() with a ShiftCell containing duplicate shiftIds should stage all IDs', () => {
+      const cell = {
+        day: 'Fri',
+        date: '2026-08-28',
+        userId: 2,
+        type: 'MANAGER',
+        shiftIds: [101, 102],
+        rawShift: { id: 101 }
+      } as any;
+
+      component.toggleShiftSelection(cell);
+      expect(component.isShiftSelected(101)).toBeTrue();
+      expect(component.isShiftSelected(102)).toBeTrue();
+      expect(component.isShiftSelected(cell)).toBeTrue();
+
+      component.toggleShiftSelection(cell);
+      expect(component.isShiftSelected(101)).toBeFalse();
+      expect(component.isShiftSelected(102)).toBeFalse();
+      expect(component.isShiftSelected(cell)).toBeFalse();
+    });
+
+    it('clearDeleteSelection() should empty the selection set', () => {
+      component.selectedShiftIds.add(1);
+      component.selectedShiftIds.add(2);
+      component.clearDeleteSelection();
+      expect(component.selectedShiftIds.size).toBe(0);
+    });
+
+    it('onCellClick in delete mode should stage shift for deletion instead of opening modal', () => {
+      component.isDeleteMode = true;
+      spyOn(component, 'openEmployeeModalForUser');
+
+      const emp: EmployeeScheduleRow = { employeeId: 1, name: 'Bob', role: 'SERVEUR', shifts: [] };
+      const shift = { day: 'Mon', date: '2026-08-10', isClosed: false, rawShift: { id: 77 } } as any;
+
+      component.onCellClick(emp, shift);
+
+      expect(component.isShiftSelected(77)).toBeTrue();
+      expect(component.openEmployeeModalForUser).not.toHaveBeenCalled();
+    });
+
+    it('confirmBulkDelete() should open ConfirmDeleteModalComponent and batch delete all selected shifts on confirmation', fakeAsync(() => {
+      component.selectedShiftIds.add(10);
+      component.selectedShiftIds.add(20);
+
+      const mockModal = {
+        present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+        onDidDismiss: jasmine.createSpy('onDidDismiss').and.returnValue(Promise.resolve({ data: { confirmed: true } }))
+      };
+      mockModalCtrl.create.and.returnValue(Promise.resolve(mockModal as any));
+      mockShiftService.deleteShift.and.returnValue(of(void 0));
+
+      component.confirmBulkDelete();
+      tick();
+
+      expect(mockModalCtrl.create).toHaveBeenCalled();
+      expect(mockModal.present).toHaveBeenCalled();
+      expect(mockShiftService.deleteShift).toHaveBeenCalledWith(10);
+      expect(mockShiftService.deleteShift).toHaveBeenCalledWith(20);
+      expect(component.isDeleteMode).toBeFalse();
+      expect(component.selectedShiftIds.size).toBe(0);
+      expect(mockToastCtrl.create).toHaveBeenCalled();
+    }));
+
+    it('confirmDeleteShift() should open ConfirmDeleteModalComponent and delete shift on confirmation', fakeAsync(() => {
+      mockShiftService.getShiftById.and.returnValue(of({
+        id: 99,
+        userId: 1,
+        dateShift: '2026-08-28',
+        heureDebut: '08:00',
+        heureFin: '16:00',
+        userPrenom: 'Lucas',
+        userNom: 'Bernard'
+      } as any));
+
+      const mockModal = {
+        present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+        onDidDismiss: jasmine.createSpy('onDidDismiss').and.returnValue(Promise.resolve({ data: { confirmed: true } }))
+      };
+      mockModalCtrl.create.and.returnValue(Promise.resolve(mockModal as any));
+      mockShiftService.deleteShift.and.returnValue(of(void 0));
+
+      component.confirmDeleteShift(99);
+      tick();
+
+      expect(mockModalCtrl.create).toHaveBeenCalled();
+      expect(mockModal.present).toHaveBeenCalled();
+      expect(mockShiftService.deleteShift).toHaveBeenCalledWith(99);
+      expect(mockToastCtrl.create).toHaveBeenCalled();
+    }));
+
+    it('getDayHeaders() should return localized day names in active language', () => {
+      component.currentWeekStart = new Date('2026-08-24T00:00:00');
+      const headers = component.getDayHeaders();
+      expect(headers).toHaveSize(7);
+      // In default lang 'fr', first day (Monday) should be formatted as 'LUN'
+      expect(headers[0].day).toBe('LUN');
+      expect(headers[0].date).toBe('24');
+    });
+
+    it('pressing Escape in delete mode should exit delete mode', () => {
+      component.isDeleteMode = true;
+      const event = new KeyboardEvent('keydown', { key: 'Escape' });
+      component.onWindowKeyDown(event);
+      expect(component.isDeleteMode).toBeFalse();
+    });
+
+    it('dragging in delete mode should stage all traversed shifts for deletion without duplicating', () => {
+      component.isDeleteMode = true;
+      component.schedule = {
+        weekStart: '2026-08-10',
+        weekEnd: '2026-08-16',
+        totalHours: 15,
+        totalEmployees: 1,
+        activeEmployees: 1,
+        employees: [
+          {
+            employeeId: 1,
+            name: 'Bob',
+            role: 'SERVEUR',
+            shifts: [
+              { day: 'Mon', date: '2026-08-10', isClosed: false, rawShift: { id: 101 } as any } as any,
+              { day: 'Tue', date: '2026-08-11', isClosed: false, rawShift: { id: 102 } as any } as any,
+              { day: 'Wed', date: '2026-08-12', isClosed: false, rawShift: { id: 103 } as any } as any
+            ]
+          }
+        ]
+      };
+
+      // Mouse down on Monday
+      const emp = component.schedule.employees[0];
+      component.onCellMouseDown(emp, emp.shifts[0], 0, new MouseEvent('mousedown', { button: 0 }));
+      expect(component.isDragging).toBeTrue();
+
+      // Mouse enter on Wednesday (dragging from Mon to Wed)
+      component.onCellMouseEnter(emp, emp.shifts[2], 2);
+
+      // Mon, Tue, Wed should all be staged for deletion
+      expect(component.isShiftSelected(101)).toBeTrue();
+      expect(component.isShiftSelected(102)).toBeTrue();
+      expect(component.isShiftSelected(103)).toBeTrue();
+      expect(component.selectedShiftIds.size).toBe(3);
+
+      // Mouse up should NOT duplicate
+      component.onWindowMouseUp();
+      expect(component.isDragging).toBeFalse();
+      expect(mockShiftService.createShift).not.toHaveBeenCalled();
+    });
+
+    it('calculateScheduleDifferences() should detect ADDED, MODIFIED and DELETED shifts compared to snapshot', () => {
+      component.publication = {
+        id: 1,
+        weekStart: '2026-08-10',
+        publishedAt: '2026-08-10T10:00:00',
+        publishedBy: 'admin',
+        snapshotJson: JSON.stringify([
+          { userId: 1, dateShift: '2026-08-10', typeShift: 'MATIN', heureDebut: '08:00', heureFin: '16:00' },
+          { userId: 1, dateShift: '2026-08-11', typeShift: 'MATIN', heureDebut: '08:00', heureFin: '16:00' }
+        ])
+      };
+
+      component.schedule = {
+        weekStart: '2026-08-10',
+        weekEnd: '2026-08-16',
+        totalHours: 15,
+        totalEmployees: 1,
+        activeEmployees: 1,
+        employees: [
+          {
+            employeeId: 1,
+            name: 'Bob',
+            role: 'SERVEUR',
+            shifts: [
+              // Shift 1: Modified hours (09:00 - 17:00 instead of 08:00 - 16:00)
+              { day: 'Mon', date: '2026-08-10', isClosed: false, startTime: '09:00', endTime: '17:00', typeShift: 'MATIN', rawShift: { id: 101 } as any } as any,
+              // Shift 2: Deleted (empty now)
+              { day: 'Tue', date: '2026-08-11', isClosed: false } as any,
+              // Shift 3: Added (new shift)
+              { day: 'Wed', date: '2026-08-12', isClosed: false, startTime: '11:00', endTime: '22:00', typeShift: 'COUPURE', rawShift: { id: 103 } as any } as any
+            ]
+          }
+        ]
+      };
+
+      component.calculateScheduleDifferences();
+
+      expect(component.hasUnpublishedChanges).toBeTrue();
+      expect(component.diffModifiedCount).toBe(1);
+      expect(component.diffDeletedCount).toBe(1);
+      expect(component.diffAddedCount).toBe(1);
+      expect(component.totalDiffCount).toBe(3);
+
+      expect(component.getCellDiff(1, '2026-08-10')?.status).toBe('MODIFIED');
+      expect(component.getCellDiff(1, '2026-08-11')?.status).toBe('DELETED');
+      expect(component.getCellDiff(1, '2026-08-12')?.status).toBe('ADDED');
+    });
+
+    it('executeDragDuplication() should call createShift for target cells on mouseup', fakeAsync(() => {
+      mockShiftService.createShift.and.returnValue(of({} as any));
+
+      component.schedule = {
+        weekStart: '2026-08-10',
+        weekEnd: '2026-08-16',
+        totalHours: 8,
+        totalEmployees: 1,
+        activeEmployees: 1,
+        employees: [
+          {
+            employeeId: 1,
+            name: 'Bob',
+            role: 'SERVEUR',
+            shifts: [
+              { day: 'Mon', date: '2026-08-10', isClosed: false, rawShift: { id: 10, typeShift: 'MATIN', heureDebut: '08:00', heureFin: '16:00' } as any } as any,
+              { day: 'Tue', date: '2026-08-11', isClosed: false } as any
+            ]
+          }
+        ]
+      };
+
+      const emp = component.schedule.employees[0];
+      component.onCellMouseDown(emp, emp.shifts[0], 0, new MouseEvent('mousedown', { button: 0 }));
+      component.onCellMouseEnter(emp, emp.shifts[1], 1);
+      component.onWindowMouseUp();
+      tick();
+
+      expect(mockShiftService.createShift).toHaveBeenCalledWith(jasmine.objectContaining({
+        userId: 1,
+        dateShift: '2026-08-11',
+        typeShift: 'MATIN'
+      }));
+    }));
+
+    it('keyboard shortcuts Ctrl+C, Ctrl+V, Delete, and Escape should trigger clipboard, delete, or mode toggle', () => {
+      const mockShiftCell: any = {
+        date: '2026-08-10',
+        rawShift: { id: 99, typeShift: 'MATIN' }
+      };
+      const mockEmpRow: any = { employeeId: 1, name: 'Bob' };
+      component.hoveredCell = { emp: mockEmpRow, shift: mockShiftCell };
+
+      spyOn(component, 'copyShift');
+      spyOn(component, 'pasteShift');
+      spyOn(component, 'confirmDeleteShift');
+
+      // Ctrl + C
+      component.onWindowKeyDown(new KeyboardEvent('keydown', { key: 'c', ctrlKey: true }));
+      expect(component.copyShift).toHaveBeenCalledWith(mockShiftCell);
+
+      // Ctrl + V
+      component.onWindowKeyDown(new KeyboardEvent('keydown', { key: 'v', ctrlKey: true }));
+      expect(component.pasteShift).toHaveBeenCalledWith(mockEmpRow, mockShiftCell);
+
+      // Delete key
+      component.onWindowKeyDown(new KeyboardEvent('keydown', { key: 'Delete' }));
+      expect(component.confirmDeleteShift).toHaveBeenCalledWith(99);
+
+      // Escape in delete mode
+      component.isDeleteMode = true;
+      component.onWindowKeyDown(new KeyboardEvent('keydown', { key: 'Escape' }));
+      expect(component.isDeleteMode).toBeFalse();
+    });
+
+    it('WebSocket messages on /topic/schedule-publications should refresh schedule', () => {
+      wsSubject.next({ action: 'PUBLISHED' });
+      expect(mockScheduleService.getWeekSchedule).toHaveBeenCalled();
+    });
+
+    it('openClosureConfigModal() should open ClosureConfigModalComponent and reload schedule on dismiss', async () => {
+      const mockModal = {
+        present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+        onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({ data: true }))
+      };
+      mockModalCtrl.create.and.returnValue(Promise.resolve(mockModal as any));
+
+      await component.openClosureConfigModal();
+
+      expect(mockModalCtrl.create).toHaveBeenCalled();
+      expect(mockScheduleService.getWeekSchedule).toHaveBeenCalled();
+    });
+
+    it('onCellClick() should toggle selection in delete mode or open user modal in normal mode', async () => {
+      const emp: any = { employeeId: 5, name: 'Charlie' };
+      const filledShift: any = { isClosed: false, startTime: '08:00', date: '2026-08-11', rawShift: { id: 202 } };
+
+      const mockModal = {
+        present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+        onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({ data: null }))
+      };
+      mockModalCtrl.create.and.returnValue(Promise.resolve(mockModal as any));
+      mockUserService.getUserById = jasmine.createSpy('getUserById').and.returnValue(of({ id: 5 } as any));
+      mockScheduleService.getWeekSchedule.and.returnValue(of({
+        weekStart: '2026-08-10', weekEnd: '2026-08-16',
+        employees: [], totalHours: 0, totalEmployees: 0, activeEmployees: 0
+      }));
+      mockPublicationService.getPublication.and.returnValue(of(null));
+
+      // Normal mode click on filled cell → opens employee shift modal
+      component.isDeleteMode = false;
+      await component.onCellClick(emp, filledShift);
+      expect(mockUserService.getUserById).toHaveBeenCalledWith(5);
+      expect(mockModalCtrl.create).toHaveBeenCalled();
+
+      // Delete mode click → toggles selection
+      mockModalCtrl.create.calls.reset();
+      component.isDeleteMode = true;
+      component.onCellClick(emp, filledShift);
+      expect(component.selectedShiftIds.has(202)).toBeTrue();
+    });
+
+    it('confirmBulkDelete() should open ConfirmDeleteModalComponent and execute bulk deletion on confirmation', async () => {
+      component.selectedShiftIds.add(201);
+      component.selectedShiftIds.add(202);
+
+      const mockModal = {
+        present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+        onDidDismiss: jasmine.createSpy('onDidDismiss').and.returnValue(Promise.resolve({ data: { confirmed: true } }))
+      };
+      mockModalCtrl.create.and.returnValue(Promise.resolve(mockModal as any));
+      mockShiftService.deleteShift.and.returnValue(of(undefined as any));
+
+      await component.confirmBulkDelete();
+
+      expect(mockModalCtrl.create).toHaveBeenCalled();
+      expect(mockModal.present).toHaveBeenCalled();
+      expect(mockShiftService.deleteShift).toHaveBeenCalledWith(201);
+      expect(mockShiftService.deleteShift).toHaveBeenCalledWith(202);
+      expect(component.selectedShiftIds.size).toBe(0);
+      expect(component.isDeleteMode).toBeFalse();
+    });
+
+    it('duplicateShiftToNextDay() should send createShift request for the following day', () => {
+      mockShiftService.createShift.and.returnValue(of({} as any));
+
+      const sourceShift: any = {
+        date: '2026-08-10',
+        rawShift: {
+          userId: 1,
+          typeShift: 'MATIN',
+          typePoste: 'SERVEUR',
+          heureDebut: '08:00',
+          heureFin: '16:00',
+          dureePauseMinutes: 30,
+          heuresPrevues: 7.5
+        }
+      };
+
+      component.duplicateShiftToNextDay(sourceShift);
+
+      expect(mockShiftService.createShift).toHaveBeenCalledWith(jasmine.objectContaining({
+        userId: 1,
+        dateShift: '2026-08-11',
+        typeShift: 'MATIN'
+      }));
+    });
+
+    it('onContextMenu() should open action sheet when Shift key is not pressed', () => {
+      spyOn(component, 'openActionSheet');
+      const mockEvent = new MouseEvent('contextmenu');
+      spyOn(mockEvent, 'preventDefault');
+
+      component.onContextMenu(mockEvent, { employeeId: 1 } as any, { date: '2026-08-10' } as any);
+
+      expect(mockEvent.preventDefault).toHaveBeenCalled();
+      expect(component.openActionSheet).toHaveBeenCalled();
+    });
+
+    it('clearDeleteSelection() should clear selected shift IDs', () => {
+      component.selectedShiftIds.add(100);
+      component.clearDeleteSelection();
+      expect(component.selectedShiftIds.size).toBe(0);
+    });
+
+    it('toggleDeleteMode() and toggleShiftSelection() should manage selection set', () => {
+      component.toggleDeleteMode();
+      expect(component.isDeleteMode).toBeTrue();
+
+      component.toggleShiftSelection(101);
+      expect(component.selectedShiftIds.has(101)).toBeTrue();
+
+      component.toggleShiftSelection(101);
+      expect(component.selectedShiftIds.has(101)).toBeFalse();
+
+      component.toggleDeleteMode();
+      expect(component.isDeleteMode).toBeFalse();
+      expect(component.selectedShiftIds.size).toBe(0);
+    });
+
+    it('toggleComparisonMode() should toggle isComparisonMode flag', () => {
+      expect(component.isComparisonMode).toBeFalse();
+      component.toggleComparisonMode();
+      expect(component.isComparisonMode).toBeTrue();
+      component.toggleComparisonMode();
+      expect(component.isComparisonMode).toBeFalse();
+    });
+
+    it('publishSchedule() should call publicationService.publishWeek and show toast', async () => {
+      const mockPub: WeekSchedulePublicationDTO = {
+        id: 10,
+        weekStart: '2026-08-10',
+        publishedAt: '2026-08-10T12:00:00',
+        publishedBy: 'manager',
+        snapshotJson: '[]'
+      };
+      mockPublicationService.publishWeek.and.returnValue(of(mockPub));
+
+      await component.publishSchedule();
+
+      expect(mockPublicationService.publishWeek).toHaveBeenCalledWith('2026-08-10');
+      expect(component.isPublished).toBeTrue();
+      expect(component.publication).toEqual(mockPub);
+      expect(mockToastCtrl.create).toHaveBeenCalled();
+    });
+
+    it('copyShift() and pasteShift() should store shift and trigger createShift on paste', async () => {
+      const sourceShift: any = {
+        date: '2026-08-10',
+        startTime: '08:00',
+        endTime: '16:00',
+        rawShift: {
+          id: 1,
+          userId: 10,
+          dateShift: '2026-08-10',
+          typeShift: 'MATIN',
+          typePoste: 'SERVEUR',
+          heureDebut: '08:00',
+          heureFin: '16:00',
+          dureePauseMinutes: 30,
+          heuresPrevues: 7.5
+        }
+      };
+
+      await component.copyShift(sourceShift);
+      expect(component.copiedShift).toEqual(sourceShift.rawShift);
+
+      const targetEmp: any = { employeeId: 10, name: 'Alice' };
+      const targetCell: any = { date: '2026-08-11', isClosed: false };
+
+      mockShiftService.createShift.and.returnValue(of({} as any));
+
+      await component.pasteShift(targetEmp, targetCell);
+      expect(mockShiftService.createShift).toHaveBeenCalledWith(jasmine.objectContaining({
+        userId: 10,
+        dateShift: '2026-08-11',
+        typeShift: 'MATIN'
+      }));
+    });
+
+    it('onHeaderDayClick() should open DayClosureModalComponent and execute action', async () => {
+      const mockModal = {
+        present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+        onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({
+          data: { action: 'close', startDate: '2026-08-10', reason: 'National Holiday' }
+        }))
+      };
+      mockModalCtrl.create.and.returnValue(Promise.resolve(mockModal as any));
+      mockClosureService.createClosure.and.returnValue(of({} as any));
+
+      await component.onHeaderDayClick({
+        day: 'Mon',
+        date: '10',
+        dateISO: '2026-08-10',
+        isClosed: false
+      });
+
+      expect(mockModalCtrl.create).toHaveBeenCalled();
+      expect(mockClosureService.createClosure).toHaveBeenCalledWith(jasmine.objectContaining({
+        closureDate: '2026-08-10',
+        reason: 'National Holiday'
+      }));
+    });
+
+    it('getShiftColorClass() should return proper CSS classes according to shift type', () => {
+      expect(component.getShiftColorClass({ isClosed: true } as any)).toBe('shift--closed');
+      expect(component.getShiftColorClass({ type: 'MANAGER' } as any)).toBe('shift--manager');
+      expect(component.getShiftColorClass({ type: 'WAITER' } as any)).toBe('shift--waiter');
+      expect(component.getShiftColorClass({ type: 'BARTENDER' } as any)).toBe('shift--bartender');
+      expect(component.getShiftColorClass({ type: 'DAY_OFF' } as any)).toBe('shift--dayoff');
+      expect(component.getShiftColorClass({ type: 'EMPTY' } as any)).toBe('shift--empty');
+    });
+
+    it('goToCurrentWeek() should reset to current Monday', () => {
+      component.goToCurrentWeek();
+      expect(mockScheduleService.getMonday).toHaveBeenCalled();
+      expect(mockScheduleService.getWeekSchedule).toHaveBeenCalled();
+    });
+  });
+
+  // ─── Bug #283 — Race condition + UX ─────────────────────────────────────────
+  describe('#283 — loadSchedule forkJoin + cell click UX', () => {
+    it('loadSchedule() should set isPublished=true when publication exists (forkJoin sync)', fakeAsync(() => {
+      const pub: WeekSchedulePublicationDTO = {
+        id: 1,
+        weekStart: '2026-08-10',
+        publishedAt: '2026-08-10T10:00:00',
+        publishedBy: 'manager',
+        snapshotJson: '[]'
+      };
+      mockPublicationService.getPublication.and.returnValue(of(pub));
+      mockScheduleService.getWeekSchedule.and.returnValue(of({
+        weekStart: '2026-08-10', weekEnd: '2026-08-16',
+        employees: [], totalHours: 0, totalEmployees: 0, activeEmployees: 0
+      }));
+
+      component.loadSchedule();
+      tick();
+
+      expect(component.isPublished).toBeTrue();
+      expect(component.publication).toEqual(pub);
+    }));
+
+    it('loadSchedule() should set isPublished=false when no publication', fakeAsync(() => {
+      mockPublicationService.getPublication.and.returnValue(of(null));
+      mockScheduleService.getWeekSchedule.and.returnValue(of({
+        weekStart: '2026-08-10', weekEnd: '2026-08-16',
+        employees: [], totalHours: 0, totalEmployees: 0, activeEmployees: 0
+      }));
+
+      component.loadSchedule();
+      tick();
+
+      expect(component.isPublished).toBeFalse();
+      expect(component.publication).toBeNull();
+    }));
+
+    it('onCellClick() on empty cell should call openCreateShiftModal, not openEmployeeModalForUser', async () => {
+      const emp: any = { employeeId: 5, name: 'Lucas B.', role: 'SERVEUR', shifts: [] };
+      const emptyShift: any = { date: '2026-08-11', isClosed: false, startTime: null, rawShift: null };
+
+      const mockModal = {
+        present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+        onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({ data: null }))
+      };
+      mockModalCtrl.create.and.returnValue(Promise.resolve(mockModal as any));
+      mockUserService.getUserById = jasmine.createSpy('getUserById').and.returnValue(of({ id: 5 } as any));
+      mockScheduleService.getWeekSchedule.and.returnValue(of({
+        weekStart: '2026-08-10', weekEnd: '2026-08-16',
+        employees: [], totalHours: 0, totalEmployees: 0, activeEmployees: 0
+      }));
+      mockPublicationService.getPublication.and.returnValue(of(null));
+
+      await component.onCellClick(emp, emptyShift);
+
+      expect(mockModalCtrl.create).toHaveBeenCalledWith(jasmine.objectContaining({
+        componentProps: jasmine.objectContaining({
+          initialDate: '2026-08-11',
+          openInCreateMode: true
+        })
+      }));
+    });
+
+    it('onCellClick() on filled cell should open employee modal without openInCreateMode', async () => {
+      const emp: any = { employeeId: 5, name: 'Lucas B.', role: 'SERVEUR', shifts: [] };
+      const filledShift: any = { date: '2026-08-11', isClosed: false, startTime: '08:00', rawShift: { id: 42 } };
+
+      const mockModal = {
+        present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+        onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({ data: null }))
+      };
+      mockModalCtrl.create.and.returnValue(Promise.resolve(mockModal as any));
+      mockUserService.getUserById = jasmine.createSpy('getUserById').and.returnValue(of({ id: 5 } as any));
+      mockScheduleService.getWeekSchedule.and.returnValue(of({
+        weekStart: '2026-08-10', weekEnd: '2026-08-16',
+        employees: [], totalHours: 0, totalEmployees: 0, activeEmployees: 0
+      }));
+      mockPublicationService.getPublication.and.returnValue(of(null));
+
+      await component.onCellClick(emp, filledShift);
+
+      const callArgs = mockModalCtrl.create.calls.mostRecent().args[0];
+      expect(callArgs['componentProps']?.['openInCreateMode']).toBeFalsy();
+    });
+
+    it('onEmployeeHeaderClick() should open shift list modal for the employee', async () => {
+      const emp: any = { employeeId: 7, name: 'Emma L.', role: 'BARMAN', shifts: [] };
+      const mockModal = {
+        present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+        onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({ data: null }))
+      };
+      mockModalCtrl.create.and.returnValue(Promise.resolve(mockModal as any));
+      mockUserService.getUserById = jasmine.createSpy('getUserById').and.returnValue(of({ id: 7 } as any));
+      mockScheduleService.getWeekSchedule.and.returnValue(of({
+        weekStart: '2026-08-10', weekEnd: '2026-08-16',
+        employees: [], totalHours: 0, totalEmployees: 0, activeEmployees: 0
+      }));
+      mockPublicationService.getPublication.and.returnValue(of(null));
+
+      await component.onEmployeeHeaderClick(emp);
+
+      expect(mockUserService.getUserById).toHaveBeenCalledWith(7);
+      expect(mockModalCtrl.create).toHaveBeenCalledWith(jasmine.objectContaining({
+        componentProps: jasmine.objectContaining({ employee: { id: 7 } })
+      }));
+    });
+
+    it('loadSchedule() should set loading=false on error', fakeAsync(() => {
+      mockPublicationService.getPublication.and.returnValue(of(null));
+      mockScheduleService.getWeekSchedule.and.returnValue(throwError(() => new Error('Network error')));
+
+      component.loadSchedule();
+      tick();
+
+      expect(component.loading).toBeFalse();
+    }));
+
+    it('openCreateShiftModal() should return early if user is not found', async () => {
+      mockModalCtrl.create.calls.reset();
+      mockUserService.getUserById = jasmine.createSpy('getUserById').and.returnValue(of(null as any));
+
+      await component.openCreateShiftModal({ employeeId: 999 } as any, '2026-08-15');
+
+      expect(mockModalCtrl.create).not.toHaveBeenCalled();
+    });
+
+    it('onCellClick() should abort when wasDraggingMultiple is true in normal or delete mode', () => {
+      const emp: any = { employeeId: 5, name: 'Lucas' };
+      const shift: any = { date: '2026-08-11', startTime: '08:00', rawShift: { id: 10 } };
+      spyOn(component, 'openEmployeeModalForUser');
+
+      // Normal mode with wasDraggingMultiple
+      component.isDeleteMode = false;
+      component.wasDraggingMultiple = true;
+      component.onCellClick(emp, shift);
+      expect(component.wasDraggingMultiple).toBeFalse();
+      expect(component.openEmployeeModalForUser).not.toHaveBeenCalled();
+
+      // Normal mode with dragTargets.length > 1
+      component.dragTargets = [
+        { emp: emp, dayIndex: 0, shift: shift } as any,
+        { emp: emp, dayIndex: 1, shift: shift } as any
+      ];
+      component.onCellClick(emp, shift);
+      expect(component.openEmployeeModalForUser).not.toHaveBeenCalled();
+
+      // Delete mode with wasDraggingMultiple
+      component.isDeleteMode = true;
+      component.wasDraggingMultiple = true;
+      component.selectedShiftIds.clear();
+      component.onCellClick(emp, shift);
+      expect(component.wasDraggingMultiple).toBeFalse();
+      expect(component.selectedShiftIds.size).toBe(0);
+    });
+  });
+
+  // ─── Ticket #276 — Role Filters, Inactive Employee Toggle & Weekly Hours ────
+  describe('#276 — Role Filters, Inactive Employee Toggle & Hours Calculation', () => {
+    const empWaiterWithShifts: any = {
+      employeeId: 1,
+      name: 'Lucas Bernard',
+      role: 'SERVEUR',
+      shifts: [
+        { date: '2026-08-10', isClosed: false, startTime: '08:00', endTime: '16:00', rawShift: { heuresPrevues: 7.5 } },
+        { date: '2026-08-11', isClosed: false, startTime: '08:00', endTime: '16:00', rawShift: { heuresEffectuees: 8 } },
+        { date: '2026-08-12', isClosed: false, startTime: '18:00', endTime: '23:30', rawShift: null },
+        { date: '2026-08-13', isClosed: true, startTime: null, rawShift: null }
+      ]
+    };
+
+    const empBartenderEmpty: any = {
+      employeeId: 2,
+      name: 'Sophie Martin',
+      role: 'BARMAN',
+      shifts: [
+        { date: '2026-08-10', isClosed: false, startTime: null, rawShift: null },
+        { date: '2026-08-11', isClosed: false, startTime: null, rawShift: null }
+      ]
+    };
+
+    const empManagerWithShifts: any = {
+      employeeId: 3,
+      name: 'Antoine Dupont',
+      role: 'MANAGER',
+      shifts: [
+        { date: '2026-08-10', isClosed: false, startTime: '09:00', endTime: '17:00', rawShift: { heuresPrevues: 8 } }
+      ]
+    };
+
+    beforeEach(() => {
+      component.schedule = {
+        weekStart: '2026-08-10',
+        weekEnd: '2026-08-16',
+        employees: [empWaiterWithShifts, empBartenderEmpty, empManagerWithShifts],
+        totalHours: 29,
+        totalEmployees: 3,
+        activeEmployees: 2
+      };
+      component.selectedRoleFilter = 'ALL';
+      component.hideEmptyEmployees = false;
+    });
+
+    it('getEmployeeTotalHours() should compute total planned hours from heuresPrevues, heuresEffectuees and fallback times', () => {
+      // 7.5 (heuresPrevues) + 8 (heuresEffectuees) + 5.5 (18:00-23:30 fallback) = 21h
+      const total = component.getEmployeeTotalHours(empWaiterWithShifts);
+      expect(total).toBe(21);
+    });
+
+    it('getEmployeeTotalHours() should return 0 for employee with no shifts or closed days only', () => {
+      expect(component.getEmployeeTotalHours(empBartenderEmpty)).toBe(0);
+      expect(component.getEmployeeTotalHours({ employeeId: 99, name: 'Empty', role: 'SERVEUR', shifts: [] } as any)).toBe(0);
+      expect(component.getEmployeeTotalHours(null as any)).toBe(0);
+    });
+
+    it('filteredEmployees should return all employees when selectedRoleFilter is ALL and hideEmptyEmployees is false', () => {
+      expect(component.filteredEmployees).toHaveSize(3);
+    });
+
+    it('filteredEmployees should filter by role correctly', () => {
+      component.setRoleFilter('BARMAN');
+      expect(component.filteredEmployees).toHaveSize(1);
+      expect(component.filteredEmployees[0].name).toBe('Sophie Martin');
+
+      component.setRoleFilter('SERVEUR');
+      expect(component.filteredEmployees).toHaveSize(1);
+      expect(component.filteredEmployees[0].name).toBe('Lucas Bernard');
+
+      component.setRoleFilter('MANAGER');
+      expect(component.filteredEmployees).toHaveSize(1);
+      expect(component.filteredEmployees[0].name).toBe('Antoine Dupont');
+    });
+
+    it('filteredEmployees should hide inactive employees with 0 hours when hideEmptyEmployees is true', () => {
+      component.toggleHideEmptyEmployees();
+      expect(component.hideEmptyEmployees).toBeTrue();
+
+      // Only Waiter and Manager have scheduled hours
+      expect(component.filteredEmployees).toHaveSize(2);
+      expect(component.filteredEmployees.some(e => e.name === 'Sophie Martin')).toBeFalse();
+    });
+
+    it('filteredEmployees should combine role filter and hideEmptyEmployees toggle', () => {
+      component.setRoleFilter('BARMAN');
+      component.hideEmptyEmployees = true;
+
+      // Sophie Martin is BARMAN but has 0 hours
+      expect(component.filteredEmployees).toHaveSize(0);
+    });
+
+    it('filteredEmployees should return empty array if schedule is null', () => {
+      component.schedule = null;
+      expect(component.filteredEmployees).toEqual([]);
+    });
+  });
+
+  describe('Audit Log and Time-Travel Replay', () => {
+    it('openScheduleHistoryModal should open modal and trigger replay if requested', async () => {
+      const dummyModal = {
+        present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+        onWillDismiss: jasmine.createSpy('onWillDismiss').and.returnValue(Promise.resolve({
+          data: { action: 'replay', timestamp: '2026-08-10T12:00:00' }
+        }))
+      };
+      mockModalCtrl.create.and.returnValue(Promise.resolve(dummyModal as any));
+
+      await component.openScheduleHistoryModal();
+
+      expect(mockModalCtrl.create).toHaveBeenCalled();
+      expect(component.isReplayMode).toBeTrue();
+      expect(component.replayTimestamp).toBe('2026-08-10T12:00');
+    });
+
+    it('startReplay and exitReplayMode should toggle replay state', () => {
+      component.startReplay('2026-08-10T14:00:00');
+      expect(component.isReplayMode).toBeTrue();
+      expect(component.replayTimestamp).toBe('2026-08-10T14:00');
+      expect(mockScheduleService.getWeekScheduleAt).toHaveBeenCalled();
+
+      component.exitReplayMode();
+      expect(component.isReplayMode).toBeFalse();
+      expect(component.replaySchedule).toBeNull();
+      expect(component.isReplayComparisonMode).toBeFalse();
+    });
+
+    it('toggleReplayComparison should toggle diff calculation against active schedule', () => {
+      component.startReplay('2026-08-10T14:00:00');
+      expect(component.isReplayComparisonMode).toBeFalse();
+
+      component.toggleReplayComparison();
+      expect(component.isReplayComparisonMode).toBeTrue();
+
+      component.toggleReplayComparison();
+      expect(component.isReplayComparisonMode).toBeFalse();
+    });
+
+    it('onCellClick in replay mode should show read-only toast and prevent opening edit modals', () => {
+      component.isReplayMode = true;
+      const dummyEmp: EmployeeScheduleRow = {
+        employeeId: 1,
+        name: 'Jean',
+        role: 'SERVEUR',
+        shifts: []
+      };
+      const dummyCell = {
+        userId: 1,
+        day: 'Mon',
+        date: '2026-08-10',
+        isClosed: false,
+        startTime: '08:00',
+        endTime: '16:00',
+        type: 'WAITER' as const
+      };
+
+      component.onCellClick(dummyEmp, dummyCell);
+
+      expect(mockToastCtrl.create).toHaveBeenCalled();
+    });
+  });
+});
+

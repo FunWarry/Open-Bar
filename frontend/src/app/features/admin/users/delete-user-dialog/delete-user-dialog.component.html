@@ -1,16 +1,27 @@
-<h2 mat-dialog-title>Confirmer la suppression</h2>
-<mat-dialog-content>
+<ion-header>
+  <ion-toolbar>
+    <ion-title>{{ 'USERS.DELETE_CONFIRM' | transloco }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="onCancel()" (keydown.enter)="onCancel()" data-testid="btn-cancel-delete">{{ 'COMMON.CANCEL' | transloco }}</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
   <p>
-    Êtes-vous sûr de vouloir supprimer l'utilisateur <strong>{{ data.username }}</strong> ?
+    {{ 'USERS.DELETE_PROMPT' | transloco:{ username: data.username } }}
   </p>
   <p class="warning">
-    Cette action est irréversible et supprimera définitivement toutes les données associées à cet utilisateur.
+    {{ 'USERS.DELETE_WARNING' | transloco }}
   </p>
-</mat-dialog-content>
-<mat-dialog-actions align="end">
-  <button mat-button (click)="onCancel()">Annuler</button>
-  <button mat-raised-button color="warn" (click)="onConfirm()">
-    <mat-icon>delete</mat-icon>
-    Supprimer
-  </button>
-</mat-dialog-actions>
+
+  <div class="form-actions ion-padding-top">
+    <ion-button expand="block" color="danger" (click)="onConfirm()" (keydown.enter)="onConfirm()" data-testid="btn-confirm-delete">
+      <ion-icon slot="start" name="trash"></ion-icon>
+      {{ 'COMMON.DELETE' | transloco }}
+    </ion-button>
+    <ion-button expand="block" fill="outline" (click)="onCancel()" (keydown.enter)="onCancel()" data-testid="btn-cancel-delete-2">
+      {{ 'COMMON.CANCEL' | transloco }}
+    </ion-button>
+  </div>
+</ion-content>

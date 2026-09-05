@@ -1,0 +1,478 @@
+.ticket-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  padding-bottom: 30px;
+}
+
+// ----------------------------------------------------------------------------
+// 1. Format Control Bar
+// ----------------------------------------------------------------------------
+.ticket-control-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.format-pill-group {
+  display: inline-flex;
+  align-items: center;
+  background: var(--background-surface-1, #1a1a2e);
+  border: 1px solid var(--border-medium, #2e3450);
+  border-radius: var(--radius-pill, 999px);
+  padding: 4px;
+  gap: 4px;
+  box-shadow: var(--shadow-sm, 0 4px 12px rgba(0, 0, 0, 0.15));
+
+  .format-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 18px;
+    border-radius: var(--radius-pill, 999px);
+    background: transparent;
+    border: none;
+    color: var(--text-secondary, #a4add0);
+    font-size: 0.84rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    ion-icon {
+      font-size: 1.05rem;
+    }
+
+    &:hover {
+      color: var(--text-primary, #eceefb);
+    }
+
+    &.active {
+      background: var(--primary, #6c7fe8);
+      color: var(--text-primary, #eceefb);
+      box-shadow: 0 2px 8px rgba(108, 127, 232, 0.4);
+    }
+  }
+}
+
+.btn-print-ticket {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  border-radius: var(--radius-pill, 999px);
+  background: linear-gradient(135deg, var(--primary-strong, #5a68d6) 0%, var(--primary, #6c7fe8) 100%);
+  color: var(--text-primary, #eceefb);
+  border: none;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(108, 127, 232, 0.35);
+  transition: all 0.2s ease;
+
+  ion-icon {
+    font-size: 1.15rem;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(108, 127, 232, 0.45);
+  }
+}
+
+// ----------------------------------------------------------------------------
+// 2. Paper Receipt Container & Realistic Tear Edges
+// ----------------------------------------------------------------------------
+.paper-receipt-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 100%;
+  filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.45));
+}
+
+.paper-tear {
+  width: 100%;
+  height: 12px;
+  background-repeat: repeat-x;
+  background-size: 16px 12px;
+
+  &.paper-tear-top {
+    background-image: radial-gradient(circle at 8px 12px, transparent 6px, #ffffff 7px);
+  }
+
+  &.paper-tear-bottom {
+    background-image: radial-gradient(circle at 8px 0px, transparent 6px, #ffffff 7px);
+  }
+}
+
+// ----------------------------------------------------------------------------
+// 3. Thermal Receipt Paper (80mm & 58mm)
+// ----------------------------------------------------------------------------
+.thermal-receipt {
+  background: #ffffff;
+  color: #111111;
+  font-family: 'Consolas', 'Courier New', 'Inconsolata', 'Liberation Mono', monospace;
+  font-size: 12.5px;
+  line-height: 1.4;
+  padding: 20px 16px;
+  transition: all 0.2s ease-in-out;
+  box-sizing: border-box;
+
+  &.format-80mm {
+    width: 330px;
+    max-width: 80mm;
+  }
+
+  &.format-58mm {
+    width: 260px;
+    max-width: 58mm;
+    font-size: 11px;
+    padding: 14px 10px;
+
+    .receipt-header .bar-title {
+      font-size: 14px;
+    }
+
+    .receipt-items-table {
+      .items-table-header {
+        font-size: 10px;
+        .col-qty {
+          width: 34px;
+        }
+        .col-total {
+          width: 65px;
+        }
+      }
+      .item-entry {
+        .item-name {
+          font-size: 11px;
+        }
+        .item-count {
+          width: 34px;
+          font-size: 10.5px;
+        }
+        .item-price {
+          width: 65px;
+          font-size: 11px;
+        }
+        .entry-secondary {
+          font-size: 9.5px;
+        }
+      }
+    }
+
+    .receipt-totals-box .totals-line {
+      font-size: 11px;
+
+      &.grand-total-line {
+        font-size: 13px;
+        .grand-total-amount {
+          font-size: 14.5px;
+        }
+      }
+    }
+  }
+}
+
+// Header
+.receipt-header {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  .receipt-logo-title {
+    margin-bottom: 4px;
+
+    .bar-title {
+      font-size: 17px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #000000;
+    }
+  }
+
+  p {
+    margin: 1.5px 0;
+    font-size: 11px;
+    color: #333333;
+  }
+
+  .legal-tax-row {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    font-size: 10px;
+    color: #444444;
+    flex-wrap: wrap;
+    margin-top: 2px;
+  }
+}
+
+.receipt-dashed-divider {
+  border-top: 1px dashed #333333;
+  margin: 10px 0;
+  width: 100%;
+}
+
+// Metadata Section
+.receipt-metadata-box {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  .metadata-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 11.5px;
+    line-height: 1.4;
+
+    .meta-label {
+      color: #333333;
+      font-weight: 500;
+    }
+
+    .meta-value {
+      font-weight: 700;
+      color: #000000;
+      text-align: right;
+    }
+  }
+}
+
+// Items Table
+.receipt-items-table {
+  display: flex;
+  flex-direction: column;
+
+  .items-table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 900;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    border-bottom: 1.5px solid #111111;
+    padding-bottom: 4px;
+    margin-bottom: 6px;
+    color: #000000;
+
+    .col-item {
+      flex: 1;
+      text-align: left;
+    }
+
+    .col-qty {
+      width: 44px;
+      text-align: center;
+    }
+
+    .col-total {
+      width: 80px;
+      text-align: right;
+    }
+  }
+
+  .items-table-body {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .item-entry {
+    display: flex;
+    flex-direction: column;
+
+    .entry-primary {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+
+    .item-name {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      text-align: left;
+      font-weight: 600;
+      font-size: 12px;
+      color: #111111;
+      padding-right: 6px;
+    }
+
+    .item-count {
+      width: 44px;
+      text-align: center;
+      font-weight: 700;
+      font-size: 11.5px;
+      color: #333333;
+    }
+
+    .item-price {
+      width: 80px;
+      text-align: right;
+      font-weight: 700;
+      font-size: 12.5px;
+      color: #000000;
+    }
+
+    .entry-secondary {
+      font-size: 10px;
+      color: #666666;
+      padding-left: 2px;
+      margin-top: 1px;
+      text-align: left;
+    }
+  }
+}
+
+// Totals
+.receipt-totals-box {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  .totals-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 12px;
+    color: #222222;
+
+    .amount-val {
+      font-weight: 600;
+      text-align: right;
+    }
+
+    &.grand-total-line {
+      font-size: 14px;
+      font-weight: 900;
+      border-top: 1.5px solid #000000;
+      border-bottom: 1.5px solid #000000;
+      padding: 6px 0;
+      margin-top: 4px;
+      color: #000000;
+
+      .grand-total-amount {
+        font-size: 16px;
+        font-weight: 900;
+        text-align: right;
+      }
+    }
+  }
+}
+
+// Footer
+.receipt-footer {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+
+  .status-banner {
+    margin: 3px 0;
+    font-weight: 900;
+    font-size: 12px;
+    letter-spacing: 0.8px;
+    color: #d97706;
+
+    &.settled {
+      color: #059669;
+    }
+  }
+
+  .greeting-text {
+    font-style: italic;
+    font-size: 11.5px;
+    margin: 2px 0 4px;
+    color: #333333;
+  }
+
+  .simulated-barcode {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    margin: 6px 0 4px;
+
+    .barcode-lines {
+      width: 140px;
+      height: 28px;
+      background: repeating-linear-gradient(
+        90deg,
+        #111111 0px,
+        #111111 2px,
+        #ffffff 2px,
+        #ffffff 4px,
+        #111111 4px,
+        #111111 7px,
+        #ffffff 7px,
+        #ffffff 9px,
+        #111111 9px,
+        #111111 10px,
+        #ffffff 10px,
+        #ffffff 13px
+      );
+    }
+
+    .barcode-number {
+      font-size: 9px;
+      letter-spacing: 1px;
+      color: #444444;
+    }
+  }
+
+  .footer-subtext {
+    font-size: 9px;
+    color: #777777;
+    margin: 0;
+  }
+}
+
+// ----------------------------------------------------------------------------
+// 4. Print Optimization
+// ----------------------------------------------------------------------------
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+
+  .thermal-receipt,
+  .thermal-receipt * {
+    visibility: visible !important;
+  }
+
+  .thermal-receipt {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+
+    &.format-80mm {
+      width: 80mm !important;
+    }
+
+    &.format-58mm {
+      width: 58mm !important;
+    }
+  }
+
+  .paper-tear,
+  .no-print {
+    display: none !important;
+  }
+}
+

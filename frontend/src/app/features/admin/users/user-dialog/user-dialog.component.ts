@@ -1,75 +1,146 @@
-import {Component, Inject, OnInit} from '@angular/core';
-import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
-import {MAT_DIALOG_DATA, MatDialogModule, MatDialogRef} from '@angular/material/dialog';
-import {User} from '../../../../core/models/user.model';
-import {MatButtonModule} from '@angular/material/button';
-import {MatIconModule} from '@angular/material/icon';
-import {MatFormFieldModule} from '@angular/material/form-field';
-import {MatInputModule} from '@angular/material/input';
-import {MatSelectModule} from '@angular/material/select';
-import {MatError} from '@angular/material/form-field';
-import { NgIf } from '@angular/common';
+import { Component, Input, OnInit } from '@angular/core';
+import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
+import { User } from '../../../../core/models/user.model';
+import {
+  ModalController,
+  IonHeader,
+  IonToolbar,
+  IonTitle,
+  IonButtons,
+  IonButton,
+  IonContent,
+  IonIcon
+} from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import {
+  close,
+  personOutline,
+  mailOutline,
+  lockClosedOutline,
+  shieldCheckmarkOutline,
+  checkbox,
+  squareOutline,
+  checkmarkCircle,
+  personAdd
+} from 'ionicons/icons';
+import { InputFieldComponent } from '../../../../core/components/ui/input-field/input-field.component';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-user-dialog',
   templateUrl: './user-dialog.component.html',
   styleUrls: ['./user-dialog.component.css'],
   standalone: true,
-  imports: [MatDialogModule, MatButtonModule, MatIconModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatError, ReactiveFormsModule, NgIf]
+  imports: [
+    IonHeader,
+    IonToolbar,
+    IonTitle,
+    IonButtons,
+    IonButton,
+    IonContent,
+    IonIcon,
+    InputFieldComponent,
+    ReactiveFormsModule,
+    TranslocoPipe
+  ]
 })
 export class UserDialogComponent implements OnInit {
+  @Input() data: User | null = null;
+
   userForm: FormGroup;
 
+  readonly availableRoles = [
+    { value: 'ADMIN', label: 'Administrateur' },
+    { value: 'MANAGER', label: 'Manager' },
+    { value: 'SERVEUR', label: 'Serveur' },
+    { value: 'BARMAN', label: 'Barman' }
+  ];
+
   constructor(
-    private fb: FormBuilder,
-    public dialogRef: MatDialogRef<UserDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: User | null
+    private readonly fb: FormBuilder,
+    private readonly modalCtrl: ModalController
   ) {
-    this.userForm = this.fb.group({
-      username: ['', Validators.required],
-      email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.minLength(6)]],
-      confirmPassword: [''],
-      roles: [[], Validators.required]
-    }, {validator: this.passwordMatchValidator});
+    addIcons({
+      close,
+      personOutline,
+      mailOutline,
+      lockClosedOutline,
+      shieldCheckmarkOutline,
+      checkbox,
+      squareOutline,
+      checkmarkCircle,
+      personAdd
+    });
+
+    this.userForm = this.fb.group(
+      {
+        username: ['', Validators.required],
+        nom: [''],
+        prenom: [''],
+        email: ['', [Validators.required, Validators.email]],
+        password: ['', [Validators.minLength(6)]],
+        confirmPassword: [''],
+        roles: [[], [Validators.required, Validators.minLength(1)]]
+      },
+      { validators: [this.passwordMatchValidator] }
+    );
   }
 
   ngOnInit(): void {
     if (this.data) {
       this.userForm.patchValue({
         username: this.data.username,
+        nom: this.data.nom || '',
+        prenom: this.data.prenom || '',
         email: this.data.email,
-        roles: this.data.roles
+        roles: this.data.roles || []
       });
-      // Le mot de passe n'est pas requis pour l'édition
       this.userForm.get('password')?.clearValidators();
       this.userForm.get('confirmPassword')?.clearValidators();
+    } else {
+      this.userForm.get('password')?.setValidators([Validators.required, Validators.minLength(6)]);
+      this.userForm.get('confirmPassword')?.setValidators([Validators.required]);
     }
   }
 
-  passwordMatchValidator(g: FormGroup) {
-    const password = g.get('password')?.value;
-    const confirmPassword = g.get('confirmPassword')?.value;
+  passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
+    const password = control.get('password')?.value;
+    const confirmPassword = control.get('confirmPassword')?.value;
+    if (!password && !confirmPassword) return null;
+    return password === confirmPassword ? null : { passwordMismatch: true };
+  }
 
-    if (!password || !confirmPassword) {
-      return null;
+  isRoleSelected(role: string): boolean {
+    const currentRoles: string[] = this.userForm.get('roles')?.value || [];
+    return currentRoles.includes(role);
+  }
+
+  toggleRole(role: string): void {
+    const currentRoles: string[] = [...(this.userForm.get('roles')?.value || [])];
+    const index = currentRoles.indexOf(role);
+    if (index >= 0) {
+      currentRoles.splice(index, 1);
+    } else {
+      currentRoles.push(role);
     }
-
-    return password === confirmPassword ? null : {passwordMismatch: true};
+    this.userForm.get('roles')?.setValue(currentRoles);
+    this.userForm.get('roles')?.markAsTouched();
   }
 
   onSubmit(): void {
     if (this.userForm.valid) {
-      const formValue = this.userForm.value;
+      const formValue = { ...this.userForm.value };
       if (!formValue.password) {
         delete formValue.password;
         delete formValue.confirmPassword;
+      } else {
+        delete formValue.confirmPassword;
       }
-      this.dialogRef.close(formValue);
+      this.modalCtrl.dismiss(formValue);
     }
   }
 
   onCancel(): void {
-    this.dialogRef.close();
+    this.modalCtrl.dismiss(null);
   }
 }

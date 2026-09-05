@@ -1,9 +1,11 @@
 package com.bar.gestioncocktail.service;
 
+import com.bar.gestioncocktail.dto.PageResponseDTO;
+import com.bar.gestioncocktail.dto.UserResponseDTO;
+import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.model.User;
 import com.bar.gestioncocktail.model.UserRole;
 import com.bar.gestioncocktail.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -12,22 +14,20 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional
 public class UserService implements UserDetailsService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final TimeService timeService;
 
-    @Autowired
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, TimeService timeService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.timeService = timeService;
     }
 
     @Override
@@ -38,21 +38,42 @@ public class UserService implements UserDetailsService {
                 user.getPassword(),
                 user.getRoles().stream()
                     .map(role -> new SimpleGrantedAuthority("ROLE_" + role.name()))
-                    .collect(Collectors.toList())
+                    .toList()
             ))
-            .orElseThrow(() -> new UsernameNotFoundException("Utilisateur non trouvé: " + username));
+            .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
     }
 
     public User createUser(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setCreatedAt(LocalDateTime.now());
-        user.setUpdatedAt(LocalDateTime.now());
+        user.setCreatedAt(timeService.now());
+        user.setUpdatedAt(timeService.now());
         return userRepository.save(user);
     }
 
-    public User updateUser(User user) {
-        user.setUpdatedAt(LocalDateTime.now());
-        return userRepository.save(user);
+    public User updateUser(Long id, User updatedData) {
+        User existing = userRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + id));
+
+        if (updatedData.getUsername() != null && !updatedData.getUsername().isBlank()) {
+            existing.setUsername(updatedData.getUsername());
+        }
+        if (updatedData.getEmail() != null && !updatedData.getEmail().isBlank()) {
+            existing.setEmail(updatedData.getEmail());
+        }
+        if (updatedData.getNom() != null) {
+            existing.setNom(updatedData.getNom());
+        }
+        if (updatedData.getPrenom() != null) {
+            existing.setPrenom(updatedData.getPrenom());
+        }
+        if (updatedData.getRoles() != null && !updatedData.getRoles().isEmpty()) {
+            existing.setRoles(updatedData.getRoles());
+        }
+        if (updatedData.getPassword() != null && !updatedData.getPassword().isBlank()) {
+            existing.setPassword(passwordEncoder.encode(updatedData.getPassword()));
+        }
+        existing.setUpdatedAt(timeService.now());
+        return userRepository.save(existing);
     }
 
     public void deleteUser(Long id) {
@@ -81,21 +102,59 @@ public class UserService implements UserDetailsService {
 
     public void changePassword(User user, String newPassword) {
         user.setPassword(passwordEncoder.encode(newPassword));
-        user.setUpdatedAt(LocalDateTime.now());
+        user.setUpdatedAt(timeService.now());
         userRepository.save(user);
     }
-    
-    public void createAdminUser() {
-        if (!userRepository.existsByUsername("admin")) {
-            User admin = new User();
-            admin.setUsername("admin");
-            admin.setPassword(passwordEncoder.encode("admin"));
-            admin.setEmail("admin@cocktail.com");
-            admin.setRoles(Set.of(UserRole.ADMIN));
-            admin.setCreatedAt(LocalDateTime.now());
-            admin.setUpdatedAt(LocalDateTime.now());
-            userRepository.save(admin);
-        }
+
+    /**
+     * Retrieves all user accounts.
+     *
+     * @return List of all users
+     */
+    @Transactional(readOnly = true)
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
     }
-    
-} 
+
+    /**
+     * Returns a paginated list of users filtered by optional search query and role.
+     *
+     * @param page     Zero-based page index
+     * @param size     Number of items per page
+     * @param search   Optional search string matched against username, email, nom, prenom
+     * @param roleStr  Optional role filter (e.g. "ADMIN", "SERVEUR"). Use "ALL" or blank to disable.
+     * @return Paginated response containing {@link UserResponseDTO} items
+     */
+    @Transactional(readOnly = true)
+    public PageResponseDTO<UserResponseDTO> getUsersPaged(int page, int size, String search, String roleStr) {
+        List<User> allUsers = userRepository.findAll();
+
+        if (roleStr != null && !roleStr.isBlank() && !"ALL".equalsIgnoreCase(roleStr)) {
+            try {
+                UserRole role = UserRole.valueOf(roleStr.toUpperCase());
+                allUsers = allUsers.stream().filter(u -> u.getRoles().contains(role)).toList();
+            } catch (IllegalArgumentException _) {
+                // Invalid role value parameter passed, ignore filtering
+            }
+        }
+
+        if (search != null && !search.isBlank()) {
+            String query = search.toLowerCase().trim();
+            allUsers = allUsers.stream().filter(u ->
+                (u.getUsername() != null && u.getUsername().toLowerCase().contains(query)) ||
+                (u.getEmail() != null && u.getEmail().toLowerCase().contains(query)) ||
+                (u.getNom() != null && u.getNom().toLowerCase().contains(query)) ||
+                (u.getPrenom() != null && u.getPrenom().toLowerCase().contains(query))
+            ).toList();
+        }
+
+        int totalElements = allUsers.size();
+        int fromIndex = Math.min(page * size, totalElements);
+        int toIndex = Math.min(fromIndex + size, totalElements);
+        List<UserResponseDTO> pagedList = allUsers.subList(fromIndex, toIndex).stream()
+            .map(UserResponseDTO::from)
+            .toList();
+
+        return PageResponseDTO.of(pagedList, page, size, totalElements);
+    }
+}

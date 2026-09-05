@@ -1,0 +1,22 @@
+<div class="stat-card" [ngClass]="color ? 'color-' + color : ''" [attr.data-testid]="testId">
+  <div class="stat-accent-bar"></div>
+  <div class="stat-card-inner">
+    <div class="stat-header">
+      <span class="stat-title">{{ displayTitle }}</span>
+      @if (icon) {
+        <div class="stat-icon-wrapper">
+          <ion-icon [name]="icon" class="stat-icon"></ion-icon>
+        </div>
+      }
+    </div>
+    <div class="stat-value">{{ value }}</div>
+    @if (trend) {
+      <div class="stat-footer">
+        <div class="stat-trend-badge" [ngClass]="'trend-' + trendDirection">
+          <ion-icon [name]="trendDirection === 'up' ? 'trending-up-outline' : (trendDirection === 'down' ? 'trending-down-outline' : 'remove-outline')"></ion-icon>
+          <span>{{ trend }}</span>
+        </div>
+      </div>
+    }
+  </div>
+</div>

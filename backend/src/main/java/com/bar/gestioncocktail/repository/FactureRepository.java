@@ -3,10 +3,14 @@ package com.bar.gestioncocktail.repository;
 import com.bar.gestioncocktail.model.Facture;
 import com.bar.gestioncocktail.model.TableEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface FactureRepository extends JpaRepository<Facture, Long> {
@@ -17,4 +21,9 @@ public interface FactureRepository extends JpaRepository<Facture, Long> {
     List<Facture> findByTableAndReglee(TableEntity table, boolean reglee);
     List<Facture> findByDateFactureBetween(LocalDateTime debut, LocalDateTime fin);
     List<Facture> findByTableAndDateFactureBetween(TableEntity table, LocalDateTime debut, LocalDateTime fin);
-} 
+    Optional<Facture> findByNumero(String numero);
+
+    @Modifying
+    @Query("UPDATE Facture f SET f.table = null WHERE f.table.id = :tableId")
+    void detachTableFromFactures(@Param("tableId") Long tableId);
+}

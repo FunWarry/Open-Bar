@@ -1,12 +1,19 @@
-<h1>Error 404</h1>
+<div class="error-404-container">
+  <div class="ellipse-bg-primary"></div>
+  <div class="ellipse-bg-tertiary"></div>
 
-<p>Page not found.</p>
-<p>Sorry, the page you are looking for does not exist.</p>
-<p>It might have been removed, had its name changed, or is temporarily unavailable.</p>
-<p>Please try the following:</p>
-<ul>
-  <li>Check the URL for typos.</li>
-  <li>Return to the <a href="/">home page</a>.</li>
-  <li>Contact support if you believe this is an error.</li>
-</ul>
-<p>Thank you for your understanding.</p>
+  <div class="error-404-card">
+    <h1 class="hero-code">{{ 'ERROR_404.CODE' | transloco }}</h1>
+    <h2 class="error-title">{{ 'ERROR_404.TITLE' | transloco }}</h2>
+    <p class="error-description">{{ 'ERROR_404.DESCRIPTION' | transloco }}</p>
+
+    <div class="actions-row">
+      <app-action-button
+        variant="primary"
+        size="large"
+        routerLink="/app-home">
+        {{ 'ERROR_404.BACK_HOME' | transloco }}
+      </app-action-button>
+    </div>
+  </div>
+</div>

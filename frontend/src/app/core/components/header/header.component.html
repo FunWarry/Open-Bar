@@ -1,47 +1,71 @@
-<mat-toolbar color="primary">
-  <button mat-icon-button (click)="sidenav.toggle()">
-    <mat-icon>menu</mat-icon>
-  </button>
-  <span>Gestion Cocktail</span>
-  <span class="spacer"></span>
-  <ng-container *ngIf="currentUser$ | async as user">
-    <button mat-button [matMenuTriggerFor]="userMenu">
-      {{ user.username }}
-      <mat-icon>arrow_drop_down</mat-icon>
-    </button>
-    <mat-menu #userMenu="matMenu">
-      <button mat-menu-item (click)="onLogout()">
-        <mat-icon>exit_to_app</mat-icon>
-        <span>Déconnexion</span>
-      </button>
-    </mat-menu>
-  </ng-container>
-</mat-toolbar>
-<mat-sidenav-container>
-  <mat-sidenav #sidenav mode="side">
-    <mat-nav-list>
-      <a mat-list-item routerLink="/cocktails" routerLinkActive="active">
-        <mat-icon>local_bar</mat-icon>
-        <span>Cocktails</span>
-      </a>
-      <a mat-list-item routerLink="/commandes" routerLinkActive="active">
-        <mat-icon>receipt</mat-icon>
-        <span>Commandes</span>
-      </a>
-      <a mat-list-item routerLink="/tables" routerLinkActive="active">
-        <mat-icon>table_bar</mat-icon>
-        <span>Tables</span>
-      </a>
-      <ng-container *ngIf="(currentUser$ | async)?.roles?.includes('ADMIN')">
-        <a mat-list-item routerLink="/ingredients" routerLinkActive="active">
-          <mat-icon>inventory</mat-icon>
-          <span>Ingrédients</span>
-        </a>
-        <a mat-list-item routerLink="/admin" routerLinkActive="active">
-          <mat-icon>admin_panel_settings</mat-icon>
-          <span>Administration</span>
-        </a>
-      </ng-container>
-    </mat-nav-list>
-  </mat-sidenav>
-</mat-sidenav-container>
+<ion-menu contentId="main-content">
+  <ion-header>
+    <ion-toolbar color="primary">
+      <ion-title>OpenBar</ion-title>
+    </ion-toolbar>
+  </ion-header>
+  <ion-content>
+    <ion-list lines="none">
+      <ion-item button routerLink="/cocktails" routerLinkActive="active-item" detail="false">
+        <ion-icon slot="start" name="local-bar"></ion-icon>
+        <ion-label>{{ 'NAV.COCKTAILS' | transloco }}</ion-label>
+      </ion-item>
+      <ion-item button routerLink="/commandes" routerLinkActive="active-item" detail="false">
+        <ion-icon slot="start" name="receipt"></ion-icon>
+        <ion-label>{{ 'NAV.COMMANDES' | transloco }}</ion-label>
+      </ion-item>
+      <ion-item button routerLink="/tables" routerLinkActive="active-item" detail="false">
+        <ion-icon slot="start" name="table-restaurant"></ion-icon>
+        <ion-label>{{ 'NAV.TABLES' | transloco }}</ion-label>
+      </ion-item>
+      @if ((currentUser$ | async)?.roles?.includes('MANAGER') || (currentUser$ | async)?.roles?.includes('ADMIN')) {
+        <ion-item button routerLink="/manager/employees" routerLinkActive="active-item" detail="false" data-testid="header-nav-employees">
+          <ion-icon slot="start" name="people"></ion-icon>
+          <ion-label>{{ 'EMPLOYEES.TITLE' | transloco }}</ion-label>
+        </ion-item>
+        <ion-item button routerLink="/manager/schedule" routerLinkActive="active-item" detail="false" data-testid="header-nav-schedule">
+          <ion-icon slot="start" name="calendar"></ion-icon>
+          <ion-label>{{ 'SCHEDULE.TITLE' | transloco }}</ion-label>
+        </ion-item>
+      }
+      @if ((currentUser$ | async)?.roles?.includes('ADMIN')) {
+        <ion-item button routerLink="/ingredients" routerLinkActive="active-item" detail="false">
+          <ion-icon slot="start" name="nutrition"></ion-icon>
+          <ion-label>{{ 'NAV.INGREDIENTS' | transloco }}</ion-label>
+        </ion-item>
+        <ion-item button routerLink="/admin" routerLinkActive="active-item" detail="false">
+          <ion-icon slot="start" name="shield-checkmark"></ion-icon>
+          <ion-label>{{ 'NAV.ADMIN' | transloco }}</ion-label>
+        </ion-item>
+      }
+    </ion-list>
+  </ion-content>
+</ion-menu>
+
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>OpenBar</ion-title>
+    <ion-buttons slot="end">
+      @if (currentUser$ | async; as user) {
+        <ion-button id="header-user-trigger" data-testid="header-user-btn">
+          {{ user.username }}
+          <ion-icon slot="end" name="chevron-down"></ion-icon>
+        </ion-button>
+        <ion-popover trigger="header-user-trigger" triggerAction="click" [dismissOnSelect]="true">
+          <ng-template>
+            <ion-list lines="none">
+              <ion-item button (click)="onLogout()" (keyup.enter)="onLogout()" data-testid="header-logout-btn">
+                <ion-icon slot="start" name="log-out"></ion-icon>
+                <ion-label>{{ 'AUTH.LOGOUT' | transloco }}</ion-label>
+              </ion-item>
+            </ion-list>
+          </ng-template>
+        </ion-popover>
+      }
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+

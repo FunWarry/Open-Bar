@@ -1,0 +1,2432 @@
+{
+  "users": [
+    {
+      "username": "admin",
+      "email": "admin@openbar.fr",
+      "authSecret": "admin123",
+      "nom": "Dupont",
+      "prenom": "Alexandre",
+      "roles": [
+        "ADMIN",
+        "MANAGER"
+      ]
+    },
+    {
+      "username": "manager",
+      "email": "manager@openbar.fr",
+      "authSecret": "manager123",
+      "nom": "Martin",
+      "prenom": "Sophie",
+      "roles": [
+        "MANAGER"
+      ]
+    },
+    {
+      "username": "serveur1",
+      "email": "lucas@openbar.fr",
+      "authSecret": "serveur123",
+      "nom": "Bernard",
+      "prenom": "Lucas",
+      "roles": [
+        "SERVEUR"
+      ]
+    },
+    {
+      "username": "serveur2",
+      "email": "camille@openbar.fr",
+      "authSecret": "serveur123",
+      "nom": "Dubois",
+      "prenom": "Camille",
+      "roles": [
+        "SERVEUR"
+      ]
+    },
+    {
+      "username": "serveur3",
+      "email": "thomas@openbar.fr",
+      "authSecret": "serveur123",
+      "nom": "Robert",
+      "prenom": "Thomas",
+      "roles": [
+        "SERVEUR"
+      ]
+    },
+    {
+      "username": "barman1",
+      "email": "antoine@openbar.fr",
+      "authSecret": "barman123",
+      "nom": "Moreau",
+      "prenom": "Antoine",
+      "roles": [
+        "BARMAN"
+      ]
+    },
+    {
+      "username": "barman2",
+      "email": "emma@openbar.fr",
+      "authSecret": "barman123",
+      "nom": "Laurent",
+      "prenom": "Emma",
+      "roles": [
+        "BARMAN"
+      ]
+    },
+    {
+      "username": "runner1",
+      "email": "maxime@openbar.fr",
+      "authSecret": "runner123",
+      "nom": "Petit",
+      "prenom": "Maxime",
+      "roles": [
+        "SERVEUR"
+      ]
+    },
+    {
+      "username": "extra1",
+      "email": "lea@openbar.fr",
+      "authSecret": "extra123",
+      "nom": "Fontaine",
+      "prenom": "Léa",
+      "roles": [
+        "SERVEUR"
+      ]
+    }
+  ],
+  "etages": [
+    {
+      "code": "RDC",
+      "nom": "Rez-de-chaussée (RDC)",
+      "ordre": 1
+    },
+    {
+      "code": "ETAGE_1",
+      "nom": "1er Étage / Mezzanine & Salon Lounge",
+      "ordre": 2
+    },
+    {
+      "code": "ETAGE_2",
+      "nom": "2ème Étage / Rooftop Panoramique",
+      "ordre": 3
+    }
+  ],
+  "zones": [
+    {
+      "nom": "Salle Principale",
+      "etage": "RDC",
+      "planX": 50,
+      "planY": 50,
+      "planWidth": 850,
+      "planHeight": 500,
+      "shapeType": "rect",
+      "cornerRadii": [
+        24,
+        24,
+        24,
+        24
+      ],
+      "couleur": "#6c7fe8"
+    },
+    {
+      "nom": "Terrasse",
+      "etage": "RDC",
+      "planX": 950,
+      "planY": 50,
+      "planWidth": 750,
+      "planHeight": 500,
+      "shapeType": "polygon",
+      "points": [
+        0,
+        0,
+        750,
+        0,
+        750,
+        220,
+        480,
+        220,
+        480,
+        500,
+        0,
+        500
+      ],
+      "cornerRadii": [
+        20,
+        20,
+        12,
+        20
+      ],
+      "couleur": "#f0a33b"
+    },
+    {
+      "nom": "Bar Counter",
+      "etage": "RDC",
+      "planX": 50,
+      "planY": 600,
+      "planWidth": 850,
+      "planHeight": 220,
+      "shapeType": "polygon",
+      "points": [
+        0,
+        0,
+        850,
+        0,
+        850,
+        220,
+        0,
+        220
+      ],
+      "cornerRadii": [
+        16,
+        16,
+        16,
+        16
+      ],
+      "couleur": "#10b981"
+    },
+    {
+      "nom": "Mezzanine VIP",
+      "etage": "ETAGE_1",
+      "planX": 50,
+      "planY": 50,
+      "planWidth": 800,
+      "planHeight": 450,
+      "shapeType": "rect",
+      "cornerRadii": [
+        24,
+        24,
+        24,
+        24
+      ],
+      "couleur": "#eab308"
+    },
+    {
+      "nom": "Salon Lounge",
+      "etage": "ETAGE_1",
+      "planX": 900,
+      "planY": 50,
+      "planWidth": 700,
+      "planHeight": 450,
+      "shapeType": "polygon",
+      "points": [
+        0,
+        0,
+        700,
+        0,
+        700,
+        450,
+        0,
+        450
+      ],
+      "cornerRadii": [
+        20,
+        20,
+        20,
+        20
+      ],
+      "couleur": "#ec4899"
+    },
+    {
+      "nom": "Rooftop Panoramique",
+      "etage": "ETAGE_2",
+      "planX": 50,
+      "planY": 50,
+      "planWidth": 850,
+      "planHeight": 500,
+      "shapeType": "rect",
+      "cornerRadii": [
+        24,
+        24,
+        24,
+        24
+      ],
+      "couleur": "#8b5cf6"
+    },
+    {
+      "nom": "Balcon Rooftop",
+      "etage": "ETAGE_2",
+      "planX": 950,
+      "planY": 50,
+      "planWidth": 650,
+      "planHeight": 500,
+      "shapeType": "rect",
+      "cornerRadii": [
+        20,
+        20,
+        20,
+        20
+      ],
+      "couleur": "#0ea5e9"
+    }
+  ],
+  "tables": [
+    {
+      "numero": 1,
+      "zone": "Salle Principale",
+      "capacite": 4,
+      "occupee": true,
+      "serveurUsername": "serveur1",
+      "minutesOccupation": 2,
+      "planX": 100,
+      "planY": 100,
+      "planForme": "CARRE",
+      "planWidth": 90,
+      "planHeight": 90,
+      "planRotation": 0
+    },
+    {
+      "numero": 2,
+      "zone": "Salle Principale",
+      "capacite": 4,
+      "occupee": true,
+      "serveurUsername": "serveur2",
+      "minutesOccupation": 5,
+      "planX": 250,
+      "planY": 100,
+      "planForme": "CARRE",
+      "planWidth": 90,
+      "planHeight": 90,
+      "planRotation": 0
+    },
+    {
+      "numero": 3,
+      "zone": "Salle Principale",
+      "capacite": 8,
+      "occupee": true,
+      "serveurUsername": "serveur1",
+      "minutesOccupation": 15,
+      "planX": 420,
+      "planY": 90,
+      "planForme": "RECTANGLE",
+      "planWidth": 160,
+      "planHeight": 90,
+      "planRotation": 0
+    },
+    {
+      "numero": 4,
+      "zone": "Salle Principale",
+      "capacite": 4,
+      "occupee": true,
+      "serveurUsername": "serveur2",
+      "minutesOccupation": 8,
+      "planX": 640,
+      "planY": 100,
+      "planForme": "ROND",
+      "planWidth": 90,
+      "planHeight": 90,
+      "planRotation": 0
+    },
+    {
+      "numero": 5,
+      "zone": "Salle Principale",
+      "capacite": 2,
+      "occupee": true,
+      "serveurUsername": "serveur1",
+      "minutesOccupation": 10,
+      "planX": 100,
+      "planY": 250,
+      "planForme": "CARRE",
+      "planWidth": 80,
+      "planHeight": 80,
+      "planRotation": 0
+    },
+    {
+      "numero": 6,
+      "zone": "Salle Principale",
+      "capacite": 6,
+      "occupee": true,
+      "serveurUsername": "serveur3",
+      "minutesOccupation": 30,
+      "planX": 250,
+      "planY": 240,
+      "planForme": "RECTANGLE",
+      "planWidth": 140,
+      "planHeight": 90,
+      "planRotation": 0
+    },
+    {
+      "numero": 7,
+      "zone": "Salle Principale",
+      "capacite": 4,
+      "occupee": true,
+      "serveurUsername": "serveur1",
+      "minutesOccupation": 40,
+      "planX": 450,
+      "planY": 250,
+      "planForme": "CARRE",
+      "planWidth": 90,
+      "planHeight": 90,
+      "planRotation": 45
+    },
+    {
+      "numero": 8,
+      "zone": "Salle Principale",
+      "capacite": 4,
+      "occupee": true,
+      "serveurUsername": "serveur2",
+      "minutesOccupation": 50,
+      "planX": 640,
+      "planY": 250,
+      "planForme": "ROND",
+      "planWidth": 90,
+      "planHeight": 90,
+      "planRotation": 0
+    },
+    {
+      "numero": 9,
+      "zone": "Salle Principale",
+      "capacite": 2,
+      "occupee": false,
+      "serveurUsername": null,
+      "planX": 100,
+      "planY": 400,
+      "planForme": "CARRE",
+      "planWidth": 80,
+      "planHeight": 80,
+      "planRotation": 0
+    },
+    {
+      "numero": 10,
+      "zone": "Salle Principale",
+      "capacite": 4,
+      "occupee": false,
+      "serveurUsername": null,
+      "planX": 250,
+      "planY": 400,
+      "planForme": "CARRE",
+      "planWidth": 90,
+      "planHeight": 90,
+      "planRotation": 0
+    },
+    {
+      "numero": 11,
+      "zone": "Bar Counter",
+      "capacite": 2,
+      "occupee": true,
+      "serveurUsername": "serveur1",
+      "minutesOccupation": 3,
+      "planX": 100,
+      "planY": 650,
+      "planForme": "ROND",
+      "planWidth": 60,
+      "planHeight": 60,
+      "planRotation": 0
+    },
+    {
+      "numero": 12,
+      "zone": "Bar Counter",
+      "capacite": 2,
+      "occupee": false,
+      "serveurUsername": null,
+      "planX": 220,
+      "planY": 650,
+      "planForme": "ROND",
+      "planWidth": 60,
+      "planHeight": 60,
+      "planRotation": 0
+    },
+    {
+      "numero": 13,
+      "zone": "Bar Counter",
+      "capacite": 2,
+      "occupee": true,
+      "serveurUsername": "serveur1",
+      "minutesOccupation": 12,
+      "planX": 340,
+      "planY": 650,
+      "planForme": "ROND",
+      "planWidth": 60,
+      "planHeight": 60,
+      "planRotation": 0
+    },
+    {
+      "numero": 14,
+      "zone": "Bar Counter",
+      "capacite": 2,
+      "occupee": false,
+      "serveurUsername": null,
+      "planX": 460,
+      "planY": 650,
+      "planForme": "ROND",
+      "planWidth": 60,
+      "planHeight": 60,
+      "planRotation": 0
+    },
+    {
+      "numero": 15,
+      "zone": "Bar Counter",
+      "capacite": 2,
+      "occupee": false,
+      "serveurUsername": null,
+      "planX": 580,
+      "planY": 650,
+      "planForme": "ROND",
+      "planWidth": 60,
+      "planHeight": 60,
+      "planRotation": 0
+    },
+    {
+      "numero": 21,
+      "zone": "Terrasse",
+      "capacite": 4,
+      "occupee": true,
+      "serveurUsername": "serveur2",
+      "minutesOccupation": 4,
+      "planX": 1020,
+      "planY": 100,
+      "planForme": "CARRE",
+      "planWidth": 90,
+      "planHeight": 90,
+      "planRotation": 0
+    },
+    {
+      "numero": 22,
+      "zone": "Terrasse",
+      "capacite": 4,
+      "occupee": true,
+      "serveurUsername": "serveur2",
+      "minutesOccupation": 14,
+      "planX": 1180,
+      "planY": 100,
+      "planForme": "ROND",
+      "planWidth": 90,
+      "planHeight": 90,
+      "planRotation": 0
+    },
+    {
+      "numero": 23,
+      "zone": "Terrasse",
+      "capacite": 6,
+      "occupee": true,
+      "serveurUsername": "serveur2",
+      "minutesOccupation": 20,
+      "planX": 1360,
+      "planY": 90,
+      "planForme": "RECTANGLE",
+      "planWidth": 140,
+      "planHeight": 90,
+      "planRotation": 0
+    },
+    {
+      "numero": 24,
+      "zone": "Terrasse",
+      "capacite": 2,
+      "occupee": true,
+      "serveurUsername": "serveur2",
+      "minutesOccupation": 35,
+      "planX": 1020,
+      "planY": 260,
+      "planForme": "CARRE",
+      "planWidth": 80,
+      "planHeight": 80,
+      "planRotation": 0
+    },
+    {
+      "numero": 25,
+      "zone": "Terrasse",
+      "capacite": 4,
+      "occupee": false,
+      "serveurUsername": null,
+      "planX": 1180,
+      "planY": 260,
+      "planForme": "CARRE",
+      "planWidth": 90,
+      "planHeight": 90,
+      "planRotation": 0
+    },
+    {
+      "numero": 31,
+      "zone": "Mezzanine VIP",
+      "capacite": 6,
+      "occupee": true,
+      "serveurUsername": "serveur3",
+      "minutesOccupation": 10,
+      "planX": 100,
+      "planY": 100,
+      "planForme": "RECTANGLE",
+      "planWidth": 150,
+      "planHeight": 90,
+      "planRotation": 0
+    },
+    {
+      "numero": 32,
+      "zone": "Mezzanine VIP",
+      "capacite": 8,
+      "occupee": true,
+      "serveurUsername": "serveur2",
+      "minutesOccupation": 55,
+      "planX": 320,
+      "planY": 100,
+      "planForme": "RECTANGLE",
+      "planWidth": 180,
+      "planHeight": 90,
+      "planRotation": 0
+    },
+    {
+      "numero": 33,
+      "zone": "Salon Lounge",
+      "capacite": 10,
+      "occupee": true,
+      "serveurUsername": "serveur3",
+      "minutesOccupation": 45,
+      "planX": 960,
+      "planY": 100,
+      "planForme": "RECTANGLE",
+      "planWidth": 220,
+      "planHeight": 100,
+      "planRotation": 0
+    },
+    {
+      "numero": 34,
+      "zone": "Salon Lounge",
+      "capacite": 4,
+      "occupee": false,
+      "serveurUsername": null,
+      "planX": 1240,
+      "planY": 100,
+      "planForme": "ROND",
+      "planWidth": 90,
+      "planHeight": 90,
+      "planRotation": 0
+    },
+    {
+      "numero": 41,
+      "zone": "Rooftop Panoramique",
+      "capacite": 6,
+      "occupee": true,
+      "serveurUsername": "serveur3",
+      "minutesOccupation": 12,
+      "planX": 100,
+      "planY": 100,
+      "planForme": "ROND",
+      "planWidth": 110,
+      "planHeight": 110,
+      "planRotation": 0
+    },
+    {
+      "numero": 42,
+      "zone": "Rooftop Panoramique",
+      "capacite": 4,
+      "occupee": true,
+      "serveurUsername": "serveur3",
+      "minutesOccupation": 4,
+      "planX": 280,
+      "planY": 100,
+      "planForme": "CARRE",
+      "planWidth": 90,
+      "planHeight": 90,
+      "planRotation": 0
+    },
+    {
+      "numero": 43,
+      "zone": "Balcon Rooftop",
+      "capacite": 4,
+      "occupee": true,
+      "serveurUsername": "serveur3",
+      "minutesOccupation": 25,
+      "planX": 1020,
+      "planY": 100,
+      "planForme": "CARRE",
+      "planWidth": 90,
+      "planHeight": 90,
+      "planRotation": 0
+    },
+    {
+      "numero": 44,
+      "zone": "Balcon Rooftop",
+      "capacite": 2,
+      "occupee": false,
+      "serveurUsername": null,
+      "planX": 1180,
+      "planY": 100,
+      "planForme": "ROND",
+      "planWidth": 80,
+      "planHeight": 80,
+      "planRotation": 0
+    }
+  ],
+  "shift_presets": [
+    {
+      "typeShift": "MATIN",
+      "nom": "Service Matin / Mise en place",
+      "heureDebut": "08:30",
+      "heureFin": "15:30",
+      "dureePauseMinutes": 30
+    },
+    {
+      "typeShift": "SOIR",
+      "nom": "Service Soirée / Rush Bar",
+      "heureDebut": "17:30",
+      "heureFin": "01:30",
+      "dureePauseMinutes": 30
+    },
+    {
+      "typeShift": "COUPURE",
+      "nom": "Service Coupure Déjeuner + Dîner",
+      "heureDebut": "10:30",
+      "heureFin": "23:30",
+      "dureePauseMinutes": 180
+    },
+    {
+      "typeShift": "NUIT",
+      "nom": "Service Nuit / Clôture & Nettoyage",
+      "heureDebut": "20:00",
+      "heureFin": "04:00",
+      "dureePauseMinutes": 30
+    },
+    {
+      "typeShift": "CONGE",
+      "nom": "Jour de Repos / Congé Payé",
+      "heureDebut": "00:00",
+      "heureFin": "00:00",
+      "dureePauseMinutes": 0
+    }
+  ],
+  "shifts": [
+    {
+      "username": "manager",
+      "dayOffset": 0,
+      "shiftType": "MATIN",
+      "poste": "MANAGER",
+      "heureDebut": "09:00",
+      "heureFin": "18:00",
+      "heurePauseDebut": "13:00",
+      "dureePauseMinutes": 60,
+      "heuresPrevues": "8.00",
+      "heuresEffectuees": "8.00",
+      "heuresSup": "0.00",
+      "notes": "Direction & Gestion stocks"
+    },
+    {
+      "username": "manager",
+      "dayOffset": 1,
+      "shiftType": "MATIN",
+      "poste": "MANAGER",
+      "heureDebut": "09:00",
+      "heureFin": "18:00",
+      "heurePauseDebut": "13:00",
+      "dureePauseMinutes": 60,
+      "heuresPrevues": "8.00",
+      "heuresEffectuees": "8.00",
+      "heuresSup": "0.00",
+      "notes": "Supervision étage et inventaire"
+    },
+    {
+      "username": "manager",
+      "dayOffset": 2,
+      "shiftType": "MATIN",
+      "poste": "MANAGER",
+      "heureDebut": "09:00",
+      "heureFin": "18:00",
+      "heurePauseDebut": "13:00",
+      "dureePauseMinutes": 60,
+      "heuresPrevues": "8.00",
+      "heuresEffectuees": "8.00",
+      "heuresSup": "0.00",
+      "notes": "Commandes fournisseurs"
+    },
+    {
+      "username": "manager",
+      "dayOffset": 3,
+      "shiftType": "SOIR",
+      "poste": "MANAGER",
+      "heureDebut": "17:30",
+      "heureFin": "01:30",
+      "heurePauseDebut": "21:00",
+      "dureePauseMinutes": 30,
+      "heuresPrevues": "7.50",
+      "heuresEffectuees": "8.00",
+      "heuresSup": "0.50",
+      "notes": "Supervision rush jeudi soir"
+    },
+    {
+      "username": "manager",
+      "dayOffset": 4,
+      "shiftType": "SOIR",
+      "poste": "MANAGER",
+      "heureDebut": "17:30",
+      "heureFin": "02:00",
+      "heurePauseDebut": "21:30",
+      "dureePauseMinutes": 30,
+      "heuresPrevues": "8.00",
+      "heuresEffectuees": "8.50",
+      "heuresSup": "0.50",
+      "notes": "Supervision soirée vendredi"
+    },
+    {
+      "username": "barman1",
+      "dayOffset": 1,
+      "shiftType": "SOIR",
+      "poste": "BARMAN",
+      "heureDebut": "17:30",
+      "heureFin": "01:30",
+      "heurePauseDebut": "21:00",
+      "dureePauseMinutes": 30,
+      "heuresPrevues": "7.50",
+      "heuresEffectuees": "7.50",
+      "heuresSup": "0.00",
+      "notes": "Chef de poste bar principal"
+    },
+    {
+      "username": "barman1",
+      "dayOffset": 2,
+      "shiftType": "SOIR",
+      "poste": "BARMAN",
+      "heureDebut": "17:30",
+      "heureFin": "01:30",
+      "heurePauseDebut": "21:00",
+      "dureePauseMinutes": 30,
+      "heuresPrevues": "7.50",
+      "heuresEffectuees": "7.50",
+      "heuresSup": "0.00",
+      "notes": "Mixologie et création cocktails"
+    },
+    {
+      "username": "barman1",
+      "dayOffset": 3,
+      "shiftType": "SOIR",
+      "poste": "BARMAN",
+      "heureDebut": "17:30",
+      "heureFin": "01:30",
+      "heurePauseDebut": "21:00",
+      "dureePauseMinutes": 30,
+      "heuresPrevues": "7.50",
+      "heuresEffectuees": "8.00",
+      "heuresSup": "0.50",
+      "notes": "Rush bar cocktail"
+    },
+    {
+      "username": "barman1",
+      "dayOffset": 4,
+      "shiftType": "NUIT",
+      "poste": "BARMAN",
+      "heureDebut": "20:00",
+      "heureFin": "04:00",
+      "heurePauseDebut": "00:30",
+      "dureePauseMinutes": 30,
+      "heuresPrevues": "7.50",
+      "heuresEffectuees": "8.00",
+      "heuresSup": "0.50",
+      "notes": "Service nuit et inventaire bouteilles"
+    },
+    {
+      "username": "barman1",
+      "dayOffset": 5,
+      "shiftType": "NUIT",
+      "poste": "BARMAN",
+      "heureDebut": "20:00",
+      "heureFin": "04:00",
+      "heurePauseDebut": "00:30",
+      "dureePauseMinutes": 30,
+      "heuresPrevues": "7.50",
+      "heuresEffectuees": "8.00",
+      "heuresSup": "0.50",
+      "notes": "Grand rush samedi soir"
+    },
+    {
+      "username": "barman2",
+      "dayOffset": 2,
+      "shiftType": "MATIN",
+      "poste": "BARMAN",
+      "heureDebut": "10:00",
+      "heureFin": "17:30",
+      "heurePauseDebut": "13:30",
+      "dureePauseMinutes": 30,
+      "heuresPrevues": "7.00",
+      "heuresEffectuees": "7.00",
+      "heuresSup": "0.00",
+      "notes": "Mise en place bar et sirops"
+    },
+    {
+      "username": "barman2",
+      "dayOffset": 3,
+      "shiftType": "SOIR",
+      "poste": "BARMAN",
+      "heureDebut": "17:30",
+      "heureFin": "01:30",
+      "heurePauseDebut": "21:00",
+      "dureePauseMinutes": 30,
+      "heuresPrevues": "7.50",
+      "heuresEffectuees": "7.50",
+      "heuresSup": "0.00",
+      "notes": "Service cocktails et bières"
+    },
+    {
+      "username": "barman2",
+      "dayOffset": 4,
+      "shiftType": "SOIR",
+      "poste": "BARMAN",
+      "heureDebut": "17:30",
+      "heureFin": "02:00",
+      "heurePauseDebut": "21:00",
+      "dureePauseMinutes": 30,
+      "heuresPrevues": "8.00",
+      "heuresEffectuees": "8.50",
+      "heuresSup": "0.50",
+      "notes": "Binôme bar principal vendredi"
+    },
+    {
+      "username": "barman2",
+      "dayOffset": 5,
+      "shiftType": "SOIR",
+      "poste": "BARMAN",
+      "heureDebut": "17:30",
+      "heureFin": "02:00",
+      "heurePauseDebut": "21:00",
+      "dureePauseMinutes": 30,
+      "heuresPrevues": "8.00",
+      "heuresEffectuees": "8.50",
+      "heuresSup": "0.50",
+      "notes": "Bar cocktail rooftop samedi"
+    },
+    {
+      "username": "barman2",
+      "dayOffset": 6,
+      "shiftType": "COUPURE",
+      "poste": "BARMAN",
+      "heureDebut": "11:00",
+      "heureFin": "22:00",
+      "heurePauseDebut": "15:00",
+      "dureePauseMinutes": 180,
+      "heuresPrevues": "8.00",
+      "heuresEffectuees": "8.00",
+      "heuresSup": "0.00",
+      "notes": "Dimanche après-midi terrasse"
+    },
+    {
+      "username": "serveur1",
+      "dayOffset": 0,
+      "shiftType": "MATIN",
+      "poste": "SERVEUR",
+      "heureDebut": "08:30",
+      "heureFin": "15:30",
+      "heurePauseDebut": "12:00",
+      "dureePauseMinutes": 30,
+      "heuresPrevues": "6.50",
+      "heuresEffectuees": "6.50",
+      "heuresSup": "0.00",
+      "notes": "Mise en place salle & service midi"
+    },
+    {
+      "username": "serveur1",
+      "dayOffset": 1,
+      "shiftType": "MATIN",
+      "poste": "SERVEUR",
+      "heureDebut": "08:30",
+      "heureFin": "15:30",
+      "heurePauseDebut": "12:00",
+      "dureePauseMinutes": 30,
+      "heuresPrevues": "6.50",
+      "heuresEffectuees": "6.50",
+      "heuresSup": "0.00",
+      "notes": "Service salle RDC"
+    },
+    {
+      "username": "serveur1",
+      "dayOffset": 2,
+      "shiftType": "SOIR",
+      "poste": "SERVEUR",
+      "heureDebut": "17:30",
+      "heureFin": "01:30",
+      "heurePauseDebut": "21:00",
+      "dureePauseMinutes": 30,
+      "heuresPrevues": "7.50",
+      "heuresEffectuees": "7.50",
+      "heuresSup": "0.00",
+      "notes": "Responsable rang Salle Principale"
+    },
+    {
+      "username": "serveur1",
+      "dayOffset": 3,
+      "shiftType": "SOIR",
+      "poste": "SERVEUR",
+      "heureDebut": "17:30",
+      "heureFin": "01:30",
+      "heurePauseDebut": "21:00",
+      "dureePauseMinutes": 30,
+      "heuresPrevues": "7.50",
+      "heuresEffectuees": "8.00",
+      "heuresSup": "0.50",
+      "notes": "Service rush jeudi"
+    },
+    {
+      "username": "serveur1",
+      "dayOffset": 4,
+      "shiftType": "SOIR",
+      "poste": "SERVEUR",
+      "heureDebut": "17:30",
+      "heureFin": "02:00",
+      "heurePauseDebut": "21:00",
+      "dureePauseMinutes": 30,
+      "heuresPrevues": "8.00",
+      "heuresEffectuees": "8.50",
+      "heuresSup": "0.50",
+      "notes": "Service vendredi soir"
+    },
+    {
+      "username": "serveur2",
+      "dayOffset": 1,
+      "shiftType": "SOIR",
+      "poste": "SERVEUR",
+      "heureDebut": "17:30",
+      "heureFin": "01:30",
+      "heurePauseDebut": "21:00",
+      "dureePauseMinutes": 30,
+      "heuresPrevues": "7.50",
+      "heuresEffectuees": "7.50",
+      "heuresSup": "0.00",
+      "notes": "Responsable rang Terrasse"
+    },
+    {
+      "username": "serveur2",
+      "dayOffset": 2,
+      "shiftType": "SOIR",
+      "poste": "SERVEUR",
+      "heureDebut": "17:30",
+      "heureFin": "01:30",
+      "heurePauseDebut": "21:00",
+      "dureePauseMinutes": 30,
+      "heuresPrevues": "7.50",
+      "heuresEffectuees": "7.50",
+      "heuresSup": "0.00",
+      "notes": "Service terrasse et lounge"
+    },
+    {
+      "username": "serveur2",
+      "dayOffset": 3,
+      "shiftType": "SOIR",
+      "poste": "SERVEUR",
+      "heureDebut": "17:30",
+      "heureFin": "01:30",
+      "heurePauseDebut": "21:00",
+      "dureePauseMinutes": 30,
+      "heuresPrevues": "7.50",
+      "heuresEffectuees": "8.00",
+      "heuresSup": "0.50",
+      "notes": "Service terrasse soirée"
+    },
+    {
+      "username": "serveur2",
+      "dayOffset": 4,
+      "shiftType": "NUIT",
+      "poste": "SERVEUR",
+      "heureDebut": "20:00",
+      "heureFin": "04:00",
+      "heurePauseDebut": "00:30",
+      "dureePauseMinutes": 30,
+      "heuresPrevues": "7.50",
+      "heuresEffectuees": "8.00",
+      "heuresSup": "0.50",
+      "notes": "Fermeture & caisse"
+    },
+    {
+      "username": "serveur2",
+      "dayOffset": 5,
+      "shiftType": "NUIT",
+      "poste": "SERVEUR",
+      "heureDebut": "20:00",
+      "heureFin": "04:00",
+      "heurePauseDebut": "00:30",
+      "dureePauseMinutes": 30,
+      "heuresPrevues": "7.50",
+      "heuresEffectuees": "8.00",
+      "heuresSup": "0.50",
+      "notes": "Clôture samedi soir"
+    },
+    {
+      "username": "serveur3",
+      "dayOffset": 3,
+      "shiftType": "COUPURE",
+      "poste": "SERVEUR",
+      "heureDebut": "10:30",
+      "heureFin": "23:30",
+      "heurePauseDebut": "15:00",
+      "dureePauseMinutes": 180,
+      "heuresPrevues": "10.00",
+      "heuresEffectuees": "10.00",
+      "heuresSup": "0.00",
+      "notes": "Service coupure Rooftop & VIP"
+    },
+    {
+      "username": "serveur3",
+      "dayOffset": 4,
+      "shiftType": "SOIR",
+      "poste": "SERVEUR",
+      "heureDebut": "17:30",
+      "heureFin": "02:00",
+      "heurePauseDebut": "21:00",
+      "dureePauseMinutes": 30,
+      "heuresPrevues": "8.00",
+      "heuresEffectuees": "8.50",
+      "heuresSup": "0.50",
+      "notes": "Responsable Rooftop vendredi"
+    },
+    {
+      "username": "serveur3",
+      "dayOffset": 5,
+      "shiftType": "SOIR",
+      "poste": "SERVEUR",
+      "heureDebut": "17:30",
+      "heureFin": "02:00",
+      "heurePauseDebut": "21:00",
+      "dureePauseMinutes": 30,
+      "heuresPrevues": "8.00",
+      "heuresEffectuees": "8.50",
+      "heuresSup": "0.50",
+      "notes": "Responsable Rooftop samedi"
+    },
+    {
+      "username": "serveur3",
+      "dayOffset": 6,
+      "shiftType": "MATIN",
+      "poste": "SERVEUR",
+      "heureDebut": "10:00",
+      "heureFin": "18:00",
+      "heurePauseDebut": "14:00",
+      "dureePauseMinutes": 30,
+      "heuresPrevues": "7.50",
+      "heuresEffectuees": "7.50",
+      "heuresSup": "0.00",
+      "notes": "Service dimanche après-midi & soir"
+    },
+    {
+      "username": "runner1",
+      "dayOffset": 4,
+      "shiftType": "SOIR",
+      "poste": "SERVEUR",
+      "heureDebut": "19:00",
+      "heureFin": "02:00",
+      "heurePauseDebut": "22:30",
+      "dureePauseMinutes": 30,
+      "heuresPrevues": "6.50",
+      "heuresEffectuees": "6.50",
+      "heuresSup": "0.00",
+      "notes": "Runner envoi plateau & débarrassage vendredi"
+    },
+    {
+      "username": "runner1",
+      "dayOffset": 5,
+      "shiftType": "SOIR",
+      "poste": "SERVEUR",
+      "heureDebut": "19:00",
+      "heureFin": "02:00",
+      "heurePauseDebut": "22:30",
+      "dureePauseMinutes": 30,
+      "heuresPrevues": "6.50",
+      "heuresEffectuees": "6.50",
+      "heuresSup": "0.00",
+      "notes": "Runner envoi plateau samedi"
+    },
+    {
+      "username": "extra1",
+      "dayOffset": 5,
+      "shiftType": "SOIR",
+      "poste": "SERVEUR",
+      "heureDebut": "19:00",
+      "heureFin": "02:00",
+      "heurePauseDebut": "22:30",
+      "dureePauseMinutes": 30,
+      "heuresPrevues": "6.50",
+      "heuresEffectuees": "6.50",
+      "heuresSup": "0.00",
+      "notes": "Renfort extra samedi soir"
+    }
+  ],
+  "closures": [
+    {
+      "type": "WEEKLY_RECURRING",
+      "dayOfWeek": "MONDAY",
+      "reason": "Fermeture hebdomadaire du lundi"
+    },
+    {
+      "type": "EXCEPTIONAL",
+      "closureDate": "2026-09-15",
+      "endDate": "2026-09-15",
+      "isAnnualRecurring": false,
+      "reason": "Privatisation complète - Soirée Gala d'Entreprise"
+    },
+    {
+      "type": "EXCEPTIONAL",
+      "closureDate": "2026-12-25",
+      "isAnnualRecurring": true,
+      "reason": "Jour de Noël - Fermeture annuelle"
+    },
+    {
+      "type": "EXCEPTIONAL",
+      "closureDate": "2027-01-01",
+      "isAnnualRecurring": true,
+      "reason": "Jour de l'An - Fermeture annuelle"
+    }
+  ],
+  "week_publications": [
+    {
+      "weekOffset": 0,
+      "publishedBy": "Sophie Martin",
+      "snapshotJson": "{\"status\": \"PUBLISHED\", \"version\": 1, \"notes\": \"Planning hebdomadaire validé par la direction\"}"
+    }
+  ],
+  "stock_adjustments": [
+    {
+      "nom": "Rhum Blanc",
+      "quantiteStock": 45.0,
+      "seuilAlerte": 10.0
+    },
+    {
+      "nom": "Vodka",
+      "quantiteStock": 35.0,
+      "seuilAlerte": 5.0
+    },
+    {
+      "nom": "Gin",
+      "quantiteStock": 25.0,
+      "seuilAlerte": 5.0
+    },
+    {
+      "nom": "Tequila",
+      "quantiteStock": 20.0,
+      "seuilAlerte": 4.0
+    },
+    {
+      "nom": "Aperol",
+      "quantiteStock": 18.0,
+      "seuilAlerte": 5.0
+    },
+    {
+      "nom": "Prosecco",
+      "quantiteStock": 30.0,
+      "seuilAlerte": 6.0
+    },
+    {
+      "nom": "Champagne",
+      "quantiteStock": 15.0,
+      "seuilAlerte": 4.0
+    },
+    {
+      "nom": "Rhum Ambré",
+      "quantiteStock": 3.5,
+      "seuilAlerte": 8.0
+    },
+    {
+      "nom": "Menthe fraîche",
+      "quantiteStock": 0.4,
+      "seuilAlerte": 1.5
+    },
+    {
+      "nom": "Purée de fruit de la passion",
+      "quantiteStock": 0.8,
+      "seuilAlerte": 2.0
+    },
+    {
+      "nom": "Liqueur de café (Kahlúa)",
+      "quantiteStock": 1.2,
+      "seuilAlerte": 3.0
+    },
+    {
+      "nom": "Liqueur de framboise (Chambord)",
+      "quantiteStock": 0.0,
+      "seuilAlerte": 2.0
+    }
+  ],
+  "recipe_step_templates": [
+    {
+      "name": "Ajouter des glaçons (Add Ice)",
+      "actionType": "ADD_ICE",
+      "defaultDurationSeconds": 5,
+      "icon": "cube-outline",
+      "description": "Remplir le verre ou le shaker de glaçons cubes ou glace pilée",
+      "isPredefined": true
+    },
+    {
+      "name": "Shaker vigoureusement (Shake)",
+      "actionType": "SHAKE",
+      "defaultDurationSeconds": 15,
+      "icon": "refresh-outline",
+      "description": "Refermer hermétiquement le shaker et agiter énergiquement pendant 10 à 15 secondes pour refroidir, diluer et émulsionner",
+      "isPredefined": true
+    },
+    {
+      "name": "Remuer au verre à mélange (Stir)",
+      "actionType": "STIR",
+      "defaultDurationSeconds": 20,
+      "icon": "sync-outline",
+      "description": "Remuer délicatement à la cuillère de bar pour mélanger sans émulsionner ni troubler la texture",
+      "isPredefined": true
+    },
+    {
+      "name": "Piler (Muddle)",
+      "actionType": "MUDDLE",
+      "defaultDurationSeconds": 15,
+      "icon": "hammer-outline",
+      "description": "Écraser au pilon les fruits, herbes aromatiques ou sucres au fond du récipient pour en libérer les huiles essentielles et sucs",
+      "isPredefined": true
+    },
+    {
+      "name": "Filtrer au passe-thé (Double Strain)",
+      "actionType": "STRAIN",
+      "defaultDurationSeconds": 10,
+      "icon": "funnel-outline",
+      "description": "Passer le liquide à travers la passoire Hawthorne et la passoire fine pour retenir tous les éclats de glace et résidus",
+      "isPredefined": true
+    },
+    {
+      "name": "Étager sur cuillère (Layer)",
+      "actionType": "POUR",
+      "defaultDurationSeconds": 15,
+      "icon": "layers-outline",
+      "description": "Faire couler doucement l'ingrédient sur le dos d'une cuillère de bar pour créer une superposition nette par densité",
+      "isPredefined": true
+    },
+    {
+      "name": "Flamber / Exprimer les zestes (Flame / Zest)",
+      "actionType": "FLAME",
+      "defaultDurationSeconds": 10,
+      "icon": "flame-outline",
+      "description": "Pincer un zeste d'agrume au-dessus du verre ou flamber la surface avec un spiritueux haut degré",
+      "isPredefined": true
+    },
+    {
+      "name": "Compléter / Top up (Top Up)",
+      "actionType": "TOP_UP",
+      "defaultDurationSeconds": 10,
+      "icon": "water-outline",
+      "description": "Allonger avec un soda, eau gazeuse, bière au gingembre, tonic ou champagne",
+      "isPredefined": true
+    },
+    {
+      "name": "Garnir & Dresser (Garnish)",
+      "actionType": "GARNISH",
+      "defaultDurationSeconds": 10,
+      "icon": "sparkles-outline",
+      "description": "Déposer la garniture finale (tête de menthe, rondelle d'agrume, zeste, cerise amarena, paille)",
+      "isPredefined": true
+    },
+    {
+      "name": "Givrer le bord du verre (Rim / Crust)",
+      "actionType": "OTHER",
+      "defaultDurationSeconds": 15,
+      "icon": "color-wand-outline",
+      "description": "Humecter le rebord du verre au quartier de citron et le rouler dans le sel fin, sel pimenté ou sucre",
+      "isPredefined": true
+    },
+    {
+      "name": "Mixer au Blender (Blend)",
+      "actionType": "BLEND",
+      "defaultDurationSeconds": 25,
+      "icon": "speedometer-outline",
+      "description": "Mixer l'ensemble des ingrédients avec de la glace à haute vitesse jusqu'à consistance onctueuse et givrée",
+      "isPredefined": true
+    },
+    {
+      "name": "Construire au verre (Build)",
+      "actionType": "POUR",
+      "defaultDurationSeconds": 10,
+      "icon": "add-circle-outline",
+      "description": "Verser directement les ingrédients dans le verre de service préalablement rempli de glaçons",
+      "isPredefined": true
+    }
+  ],
+  "cocktail_recipe_steps": [
+    {
+      "cocktailName": "Mojito",
+      "steps": [
+        {
+          "stepOrder": 1,
+          "stepType": "INGREDIENT",
+          "ingredientName": "Citron vert",
+          "quantite": 0.5,
+          "unite": "pièce",
+          "customText": "Couper un demi citron vert en 4 quartiers dans le verre highball"
+        },
+        {
+          "stepOrder": 2,
+          "stepType": "INGREDIENT",
+          "ingredientName": "Sucre de canne blanc",
+          "quantite": 2,
+          "unite": "cuillère",
+          "customText": "Ajouter 2 cuillères de sucre de canne blanc"
+        },
+        {
+          "stepOrder": 3,
+          "stepType": "ACTION_TEMPLATE",
+          "templateName": "Piler (Muddle)",
+          "durationSeconds": 15,
+          "customText": "Piler délicatement le citron pour extraire le jus sans écraser le zeste amer"
+        },
+        {
+          "stepOrder": 4,
+          "stepType": "INGREDIENT",
+          "ingredientName": "Menthe fraîche",
+          "quantite": 8,
+          "unite": "feuille",
+          "customText": "Claquer 8 à 10 feuilles de menthe fraîche entre les paumes et les déposer dans le verre"
+        },
+        {
+          "stepOrder": 5,
+          "stepType": "INGREDIENT",
+          "ingredientName": "Rhum Blanc",
+          "quantite": 6,
+          "unite": "cl"
+        },
+        {
+          "stepOrder": 6,
+          "stepType": "ACTION_TEMPLATE",
+          "templateName": "Ajouter des glaçons (Add Ice)",
+          "durationSeconds": 5,
+          "customText": "Remplir le verre aux 3/4 de glace pilée compacte"
+        },
+        {
+          "stepOrder": 7,
+          "stepType": "ACTION_TEMPLATE",
+          "templateName": "Compléter / Top up (Top Up)",
+          "durationSeconds": 5,
+          "customText": "Allonger d'un trait d'eau gazeuse fraîche (environ 4 cl)"
+        },
+        {
+          "stepOrder": 8,
+          "stepType": "ACTION_TEMPLATE",
+          "templateName": "Remuer au verre à mélange (Stir)",
+          "durationSeconds": 10,
+          "customText": "Remuer de bas en haut avec la cuillère de bar pour faire remonter le sucre et la menthe"
+        },
+        {
+          "stepOrder": 9,
+          "stepType": "ACTION_TEMPLATE",
+          "templateName": "Garnir & Dresser (Garnish)",
+          "durationSeconds": 10,
+          "customText": "Garnir d'un beau bouquet de menthe fraîche et d'une rondelle de citron vert"
+        }
+      ]
+    },
+    {
+      "cocktailName": "Piña Colada",
+      "steps": [
+        {
+          "stepOrder": 1,
+          "stepType": "INGREDIENT",
+          "ingredientName": "Rhum Blanc",
+          "quantite": 4,
+          "unite": "cl"
+        },
+        {
+          "stepOrder": 2,
+          "stepType": "INGREDIENT",
+          "ingredientName": "Rhum Ambré",
+          "quantite": 2,
+          "unite": "cl"
+        },
+        {
+          "stepOrder": 3,
+          "stepType": "INGREDIENT",
+          "ingredientName": "Lait / Crème de coco",
+          "quantite": 4,
+          "unite": "cl"
+        },
+        {
+          "stepOrder": 4,
+          "stepType": "INGREDIENT",
+          "ingredientName": "Jus d'ananas pur",
+          "quantite": 12,
+          "unite": "cl"
+        },
+        {
+          "stepOrder": 5,
+          "stepType": "ACTION_TEMPLATE",
+          "templateName": "Shaker vigoureusement (Shake)",
+          "durationSeconds": 20,
+          "customText": "Shaker énergiquement avec 5 gros glaçons pour émulsionner la crème de coco"
+        },
+        {
+          "stepOrder": 6,
+          "stepType": "ACTION_TEMPLATE",
+          "templateName": "Garnir & Dresser (Garnish)",
+          "durationSeconds": 10,
+          "customText": "Verser dans un grand verre Tiki ou Tumbler, garnir d'un triangle d'ananas et d'une cerise confite"
+        }
+      ]
+    },
+    {
+      "cocktailName": "Espresso Martini",
+      "steps": [
+        {
+          "stepOrder": 1,
+          "stepType": "INGREDIENT",
+          "ingredientName": "Vodka",
+          "quantite": 5,
+          "unite": "cl"
+        },
+        {
+          "stepOrder": 2,
+          "stepType": "INGREDIENT",
+          "ingredientName": "Liqueur de café (Kahlúa)",
+          "quantite": 2.5,
+          "unite": "cl"
+        },
+        {
+          "stepOrder": 3,
+          "stepType": "INGREDIENT",
+          "ingredientName": "Café espresso chaud",
+          "quantite": 3,
+          "unite": "cl",
+          "customText": "Faire couler un espresso court frais"
+        },
+        {
+          "stepOrder": 4,
+          "stepType": "INGREDIENT",
+          "ingredientName": "Sirop de sucre de canne",
+          "quantite": 1,
+          "unite": "cl"
+        },
+        {
+          "stepOrder": 5,
+          "stepType": "ACTION_TEMPLATE",
+          "templateName": "Shaker vigoureusement (Shake)",
+          "durationSeconds": 20,
+          "customText": "Shaker avec une très grande intensité pour générer une mousse onctueuse et crémeuse"
+        },
+        {
+          "stepOrder": 6,
+          "stepType": "ACTION_TEMPLATE",
+          "templateName": "Filtrer au passe-thé (Double Strain)",
+          "durationSeconds": 10,
+          "customText": "Double filtrer dans une coupe Martini bien givrée"
+        },
+        {
+          "stepOrder": 7,
+          "stepType": "ACTION_TEMPLATE",
+          "templateName": "Garnir & Dresser (Garnish)",
+          "durationSeconds": 5,
+          "customText": "Déposer 3 grains de café torréfiés en triangle sur la mousse"
+        }
+      ]
+    },
+    {
+      "cocktailName": "Cosmopolitan",
+      "steps": [
+        {
+          "stepOrder": 1,
+          "stepType": "INGREDIENT",
+          "ingredientName": "Vodka citron",
+          "quantite": 4.5,
+          "unite": "cl"
+        },
+        {
+          "stepOrder": 2,
+          "stepType": "INGREDIENT",
+          "ingredientName": "Triple Sec / Cointreau",
+          "quantite": 2,
+          "unite": "cl"
+        },
+        {
+          "stepOrder": 3,
+          "stepType": "INGREDIENT",
+          "ingredientName": "Jus de cranberry",
+          "quantite": 3,
+          "unite": "cl"
+        },
+        {
+          "stepOrder": 4,
+          "stepType": "INGREDIENT",
+          "ingredientName": "Jus de citron vert frais",
+          "quantite": 1.5,
+          "unite": "cl"
+        },
+        {
+          "stepOrder": 5,
+          "stepType": "ACTION_TEMPLATE",
+          "templateName": "Shaker vigoureusement (Shake)",
+          "durationSeconds": 15,
+          "customText": "Shaker avec beaucoup de glace pour un refroidissement parfait"
+        },
+        {
+          "stepOrder": 6,
+          "stepType": "ACTION_TEMPLATE",
+          "templateName": "Filtrer au passe-thé (Double Strain)",
+          "durationSeconds": 10,
+          "customText": "Double-filtrer dans une coupette à cocktail rafraîchie"
+        },
+        {
+          "stepOrder": 7,
+          "stepType": "ACTION_TEMPLATE",
+          "templateName": "Flamber / Exprimer les zestes (Flame / Zest)",
+          "durationSeconds": 10,
+          "customText": "Flamber et exprimer un disque de zeste d'orange au-dessus du verre"
+        }
+      ]
+    },
+    {
+      "cocktailName": "Negroni",
+      "steps": [
+        {
+          "stepOrder": 1,
+          "stepType": "ACTION_TEMPLATE",
+          "templateName": "Ajouter des glaçons (Add Ice)",
+          "durationSeconds": 5,
+          "customText": "Remplir le verre rocks d'un gros bloc de glace claire"
+        },
+        {
+          "stepOrder": 2,
+          "stepType": "INGREDIENT",
+          "ingredientName": "Gin",
+          "quantite": 3,
+          "unite": "cl"
+        },
+        {
+          "stepOrder": 3,
+          "stepType": "INGREDIENT",
+          "ingredientName": "Campari",
+          "quantite": 3,
+          "unite": "cl"
+        },
+        {
+          "stepOrder": 4,
+          "stepType": "INGREDIENT",
+          "ingredientName": "Vermouth Rouge Doux",
+          "quantite": 3,
+          "unite": "cl"
+        },
+        {
+          "stepOrder": 5,
+          "stepType": "ACTION_TEMPLATE",
+          "templateName": "Remuer au verre à mélange (Stir)",
+          "durationSeconds": 25,
+          "customText": "Remuer 25 à 30 secondes pour une dilution maîtrisée et une brillance soyeuse"
+        },
+        {
+          "stepOrder": 6,
+          "stepType": "ACTION_TEMPLATE",
+          "templateName": "Garnir & Dresser (Garnish)",
+          "durationSeconds": 5,
+          "customText": "Exprimer et glisser un large zeste d'orange fraîche le long de la glace"
+        }
+      ]
+    },
+    {
+      "cocktailName": "Aperol Spritz",
+      "steps": [
+        {
+          "stepOrder": 1,
+          "stepType": "ACTION_TEMPLATE",
+          "templateName": "Ajouter des glaçons (Add Ice)",
+          "durationSeconds": 5,
+          "customText": "Remplir un grand verre ballon Copa de glaçons généreux"
+        },
+        {
+          "stepOrder": 2,
+          "stepType": "INGREDIENT",
+          "ingredientName": "Prosecco",
+          "quantite": 9,
+          "unite": "cl"
+        },
+        {
+          "stepOrder": 3,
+          "stepType": "INGREDIENT",
+          "ingredientName": "Aperol",
+          "quantite": 6,
+          "unite": "cl"
+        },
+        {
+          "stepOrder": 4,
+          "stepType": "ACTION_TEMPLATE",
+          "templateName": "Compléter / Top up (Top Up)",
+          "durationSeconds": 5,
+          "customText": "Compléter d'un trait d'eau gazeuse (3 cl)"
+        },
+        {
+          "stepOrder": 5,
+          "stepType": "ACTION_TEMPLATE",
+          "templateName": "Remuer au verre à mélange (Stir)",
+          "durationSeconds": 5,
+          "customText": "Effectuer un léger mouvement de cuillère pour mélanger sans dégazer"
+        },
+        {
+          "stepOrder": 6,
+          "stepType": "ACTION_TEMPLATE",
+          "templateName": "Garnir & Dresser (Garnish)",
+          "durationSeconds": 5,
+          "customText": "Glisser une belle demi-tranche d'orange fraîche"
+        }
+      ]
+    },
+    {
+      "cocktailName": "Caïpirinha",
+      "steps": [
+        {
+          "stepOrder": 1,
+          "stepType": "INGREDIENT",
+          "ingredientName": "Citron vert",
+          "quantite": 1,
+          "unite": "pièce",
+          "customText": "Couper un citron vert entier en 8 dés dans un verre rocks"
+        },
+        {
+          "stepOrder": 2,
+          "stepType": "INGREDIENT",
+          "ingredientName": "Sucre de canne blanc",
+          "quantite": 2,
+          "unite": "cuillère"
+        },
+        {
+          "stepOrder": 3,
+          "stepType": "ACTION_TEMPLATE",
+          "templateName": "Piler (Muddle)",
+          "durationSeconds": 15,
+          "customText": "Piler énergiquement pour extraire le jus et dissoudre le sucre"
+        },
+        {
+          "stepOrder": 4,
+          "stepType": "ACTION_TEMPLATE",
+          "templateName": "Ajouter des glaçons (Add Ice)",
+          "durationSeconds": 5,
+          "customText": "Remplir entièrement de glace pilée"
+        },
+        {
+          "stepOrder": 5,
+          "stepType": "INGREDIENT",
+          "ingredientName": "Cachaça",
+          "quantite": 6,
+          "unite": "cl"
+        },
+        {
+          "stepOrder": 6,
+          "stepType": "ACTION_TEMPLATE",
+          "templateName": "Remuer au verre à mélange (Stir)",
+          "durationSeconds": 10,
+          "customText": "Mélanger vivement pour équilibrer l'acidité et la douceur"
+        }
+      ]
+    },
+    {
+      "cocktailName": "Moscow Mule Artisanal",
+      "steps": [
+        {
+          "stepOrder": 1,
+          "stepType": "INGREDIENT",
+          "ingredientName": "Vodka",
+          "quantite": 5,
+          "unite": "cl"
+        },
+        {
+          "stepOrder": 2,
+          "stepType": "INGREDIENT",
+          "ingredientName": "Jus de citron vert",
+          "quantite": 2,
+          "unite": "cl"
+        },
+        {
+          "stepOrder": 3,
+          "stepType": "ACTION_TEMPLATE",
+          "templateName": "Ajouter des glaçons (Add Ice)",
+          "durationSeconds": 5,
+          "customText": "Remplir la tasse en cuivre de glace cube et pilée"
+        },
+        {
+          "stepOrder": 4,
+          "stepType": "ACTION_TEMPLATE",
+          "templateName": "Compléter / Top up (Top Up)",
+          "durationSeconds": 10,
+          "customText": "Allonger avec 12 cl de Ginger Beer épicée fraîche"
+        },
+        {
+          "stepOrder": 5,
+          "stepType": "ACTION_TEMPLATE",
+          "templateName": "Garnir & Dresser (Garnish)",
+          "durationSeconds": 10,
+          "customText": "Garnir d'un quartier de citron vert et d'un brin de menthe"
+        }
+      ]
+    },
+    {
+      "cocktailName": "Old Fashioned",
+      "steps": [
+        {
+          "stepOrder": 1,
+          "stepType": "INGREDIENT",
+          "ingredientName": "Sucre de canne",
+          "quantite": 1,
+          "unite": "morceau",
+          "customText": "Placer 1 morceau de sucre au fond du verre Old Fashioned"
+        },
+        {
+          "stepOrder": 2,
+          "stepType": "INGREDIENT",
+          "ingredientName": "Angostura Bitters",
+          "quantite": 3,
+          "unite": "dash",
+          "customText": "Imbiber le sucre de 3 traits d'Angostura"
+        },
+        {
+          "stepOrder": 3,
+          "stepType": "ACTION_TEMPLATE",
+          "templateName": "Piler (Muddle)",
+          "durationSeconds": 10,
+          "customText": "Écraser le sucre avec un filet d'eau pour former un sirop épais"
+        },
+        {
+          "stepOrder": 4,
+          "stepType": "ACTION_TEMPLATE",
+          "templateName": "Ajouter des glaçons (Add Ice)",
+          "durationSeconds": 5,
+          "customText": "Ajouter un gros cube de glace claire"
+        },
+        {
+          "stepOrder": 5,
+          "stepType": "INGREDIENT",
+          "ingredientName": "Bourbon / Rye Whisky",
+          "quantite": 6,
+          "unite": "cl"
+        },
+        {
+          "stepOrder": 6,
+          "stepType": "ACTION_TEMPLATE",
+          "templateName": "Remuer au verre à mélange (Stir)",
+          "durationSeconds": 25,
+          "customText": "Remuer lentement pour refroidir et intégrer le whisky"
+        },
+        {
+          "stepOrder": 7,
+          "stepType": "ACTION_TEMPLATE",
+          "templateName": "Flamber / Exprimer les zestes (Flame / Zest)",
+          "durationSeconds": 10,
+          "customText": "Exprimer le zeste d'orange au-dessus du verre"
+        }
+      ]
+    },
+    {
+      "cocktailName": "B-52 Flambé",
+      "steps": [
+        {
+          "stepOrder": 1,
+          "stepType": "INGREDIENT",
+          "ingredientName": "Liqueur de café (Kahlúa)",
+          "quantite": 2,
+          "unite": "cl",
+          "customText": "Verser au fond du shooter"
+        },
+        {
+          "stepOrder": 2,
+          "stepType": "CUSTOM_TEXT",
+          "actionTitle": "Étage Baileys",
+          "customText": "Faire couler délicatement 2 cl de Baileys Irish Cream sur le dos d'une cuillère de bar",
+          "durationSeconds": 15
+        },
+        {
+          "stepOrder": 3,
+          "stepType": "CUSTOM_TEXT",
+          "actionTitle": "Étage Grand Marnier / Cointreau",
+          "customText": "Faire couler 2 cl de Grand Marnier ou Triple Sec sur le dessus",
+          "durationSeconds": 15
+        },
+        {
+          "stepOrder": 4,
+          "stepType": "ACTION_TEMPLATE",
+          "templateName": "Flamber / Exprimer les zestes (Flame / Zest)",
+          "durationSeconds": 10,
+          "customText": "Flamber la surface à l'aide d'un briquet et servir avec une paille"
+        }
+      ]
+    },
+    {
+      "cocktailName": "Gin Tonic",
+      "steps": [
+        {
+          "stepOrder": 1,
+          "stepType": "ACTION_TEMPLATE",
+          "templateName": "Ajouter des glaçons (Add Ice)",
+          "durationSeconds": 5,
+          "customText": "Remplir le verre ballon de gros glaçons limpides"
+        },
+        {
+          "stepOrder": 2,
+          "stepType": "INGREDIENT",
+          "ingredientName": "Gin",
+          "quantite": 5,
+          "unite": "cl"
+        },
+        {
+          "stepOrder": 3,
+          "stepType": "ACTION_TEMPLATE",
+          "templateName": "Compléter / Top up (Top Up)",
+          "durationSeconds": 10,
+          "customText": "Verser délicatement 15 cl de Tonic premium le long de la cuillère de bar"
+        },
+        {
+          "stepOrder": 4,
+          "stepType": "ACTION_TEMPLATE",
+          "templateName": "Garnir & Dresser (Garnish)",
+          "durationSeconds": 10,
+          "customText": "Garnir d'une fine lamelle de concombre frais et de baies de genièvre"
+        }
+      ]
+    },
+    {
+      "cocktailName": "Bellini",
+      "steps": [
+        {
+          "stepOrder": 1,
+          "stepType": "INGREDIENT",
+          "ingredientName": "Purée de pêche blanche",
+          "quantite": 4,
+          "unite": "cl",
+          "customText": "Déposer au fond de la flûte à champagne"
+        },
+        {
+          "stepOrder": 2,
+          "stepType": "ACTION_TEMPLATE",
+          "templateName": "Compléter / Top up (Top Up)",
+          "durationSeconds": 10,
+          "customText": "Verser 10 cl de Prosecco bien frais en remuant doucement"
+        },
+        {
+          "stepOrder": 3,
+          "stepType": "ACTION_TEMPLATE",
+          "templateName": "Garnir & Dresser (Garnish)",
+          "durationSeconds": 5,
+          "customText": "Garnir d'un quartier de pêche fraîche sur le bord du verre"
+        }
+      ]
+    },
+    {
+      "cocktailName": "Planche Mixte Charcuteries & Fromages",
+      "steps": [
+        {
+          "stepOrder": 1,
+          "stepType": "CUSTOM_TEXT",
+          "actionTitle": "Découpe charcuterie",
+          "customText": "Trancher finement jambon cru d'Aoste, saucisson artisanal et coppa",
+          "durationSeconds": 30
+        },
+        {
+          "stepOrder": 2,
+          "stepType": "CUSTOM_TEXT",
+          "actionTitle": "Disposition fromages",
+          "customText": "Disposer portions de Comté AOP 18 mois, chèvre affiné et brie crémeux",
+          "durationSeconds": 20
+        },
+        {
+          "stepOrder": 3,
+          "stepType": "CUSTOM_TEXT",
+          "actionTitle": "Garniture & Accompagnements",
+          "customText": "Ajouter cornichons croquants, noix, ramequin de confiture de figues et tranches de pain de campagne chaud",
+          "durationSeconds": 20
+        }
+      ]
+    },
+    {
+      "cocktailName": "Nachos & Guacamole Maison",
+      "steps": [
+        {
+          "stepOrder": 1,
+          "stepType": "CUSTOM_TEXT",
+          "actionTitle": "Dressage Nachos",
+          "customText": "Disposer les chips de maïs croustillantes dans un panier chaud",
+          "durationSeconds": 10
+        },
+        {
+          "stepOrder": 2,
+          "stepType": "CUSTOM_TEXT",
+          "actionTitle": "Guacamole et Salsa",
+          "customText": "Servir avec un bol de guacamole frais maison (avocat, citron vert, coriandre, piment) et salsa mexicaine",
+          "durationSeconds": 15
+        }
+      ]
+    },
+    {
+      "cocktailName": "Frites Maison & Sauces Barman",
+      "steps": [
+        {
+          "stepOrder": 1,
+          "stepType": "CUSTOM_TEXT",
+          "actionTitle": "Cuisson frites",
+          "customText": "Cuisson en double bain pour un croustillant optimal et salage au sel de Guérande",
+          "durationSeconds": 30
+        },
+        {
+          "stepOrder": 2,
+          "stepType": "CUSTOM_TEXT",
+          "actionTitle": "Sauces signature",
+          "customText": "Accompagner de mayonnaise maison aux herbes fraîches et sauce barbecue fumée",
+          "durationSeconds": 10
+        }
+      ]
+    }
+  ],
+  "orders": [
+    {
+      "tableNumero": 1,
+      "serveurUsername": "serveur1",
+      "statut": "EN_ATTENTE",
+      "minutesAgo": 1,
+      "trackingToken": "TRK-ORD0001",
+      "notes": "Table VIP - Accueil soigné et glaçons transparents",
+      "items": [
+        {
+          "cocktailName": "Mojito",
+          "quantite": 2,
+          "varianteName": "Double Shot (+3.00€)",
+          "prioritaire": true
+        },
+        {
+          "cocktailName": "Aperol Spritz",
+          "quantite": 1,
+          "prioritaire": false
+        },
+        {
+          "cocktailName": "Planche Mixte Charcuteries & Fromages",
+          "quantite": 1,
+          "prioritaire": false
+        }
+      ]
+    },
+    {
+      "tableNumero": 2,
+      "serveurUsername": "serveur2",
+      "statut": "EN_ATTENTE",
+      "minutesAgo": 4,
+      "trackingToken": "TRK-ORD0002",
+      "notes": "Sans glaçons pour le Spritz - Alerte jaune (>3min)",
+      "items": [
+        {
+          "cocktailName": "Aperol Spritz",
+          "quantite": 2,
+          "prioritaire": false
+        },
+        {
+          "cocktailName": "Frites Maison & Sauces Barman",
+          "quantite": 1,
+          "prioritaire": false
+        }
+      ]
+    },
+    {
+      "tableNumero": 3,
+      "serveurUsername": "serveur1",
+      "statut": "EN_ATTENTE",
+      "minutesAgo": 12,
+      "trackingToken": "TRK-ORD0003",
+      "notes": "URGENT - Client pressé, alerte rouge critique (>10min)",
+      "items": [
+        {
+          "cocktailName": "Cosmopolitan",
+          "quantite": 3,
+          "prioritaire": true
+        },
+        {
+          "cocktailName": "Espresso Martini",
+          "quantite": 2,
+          "prioritaire": true
+        },
+        {
+          "cocktailName": "Nachos & Guacamole Maison",
+          "quantite": 2,
+          "prioritaire": false
+        }
+      ]
+    },
+    {
+      "tableNumero": 4,
+      "serveurUsername": "serveur2",
+      "statut": "EN_PREPARATION",
+      "minutesAgo": 6,
+      "trackingToken": "TRK-ORD0004",
+      "notes": "En cours de mixologie par barman1",
+      "items": [
+        {
+          "cocktailName": "Negroni",
+          "quantite": 2,
+          "prioritaire": false
+        },
+        {
+          "cocktailName": "Moscow Mule Artisanal",
+          "quantite": 1,
+          "prioritaire": false
+        }
+      ]
+    },
+    {
+      "tableNumero": 5,
+      "serveurUsername": "serveur1",
+      "statut": "PRET",
+      "minutesAgo": 8,
+      "trackingToken": "TRK-ORD0005",
+      "notes": "Prêt au passe - À servir au plateau",
+      "items": [
+        {
+          "cocktailName": "Piña Colada",
+          "quantite": 2,
+          "prioritaire": false
+        }
+      ]
+    },
+    {
+      "tableNumero": 6,
+      "serveurUsername": "serveur3",
+      "statut": "LIVREE",
+      "minutesAgo": 25,
+      "trackingToken": "TRK-ORD0006",
+      "notes": "Servi et consommé en salle",
+      "items": [
+        {
+          "cocktailName": "Mojito",
+          "quantite": 3,
+          "prioritaire": false
+        },
+        {
+          "cocktailName": "Caïpirinha",
+          "quantite": 2,
+          "prioritaire": false
+        },
+        {
+          "cocktailName": "Planche Mixte Charcuteries & Fromages",
+          "quantite": 1,
+          "prioritaire": false
+        }
+      ]
+    },
+    {
+      "tableNumero": 7,
+      "serveurUsername": "serveur1",
+      "statut": "LIVREE",
+      "minutesAgo": 35,
+      "trackingToken": "TRK-ORD0007",
+      "notes": "Premier round de cocktails servis",
+      "items": [
+        {
+          "cocktailName": "Aperol Spritz",
+          "quantite": 2,
+          "prioritaire": false
+        },
+        {
+          "cocktailName": "Gin Tonic",
+          "quantite": 2,
+          "prioritaire": false
+        }
+      ]
+    },
+    {
+      "tableNumero": 7,
+      "serveurUsername": "serveur1",
+      "statut": "EN_PREPARATION",
+      "minutesAgo": 3,
+      "trackingToken": "TRK-ORD0008",
+      "notes": "Deuxième round commandé à table",
+      "items": [
+        {
+          "cocktailName": "Espresso Martini",
+          "quantite": 2,
+          "prioritaire": false
+        },
+        {
+          "cocktailName": "Nachos & Guacamole Maison",
+          "quantite": 1,
+          "prioritaire": false
+        }
+      ]
+    },
+    {
+      "tableNumero": 8,
+      "serveurUsername": "serveur2",
+      "statut": "LIVREE",
+      "minutesAgo": 45,
+      "trackingToken": "TRK-ORD0009",
+      "notes": "Facture demandée par les convives",
+      "items": [
+        {
+          "cocktailName": "Old Fashioned",
+          "quantite": 2,
+          "prioritaire": false
+        },
+        {
+          "cocktailName": "Virgin Mojito",
+          "quantite": 1,
+          "prioritaire": false
+        },
+        {
+          "cocktailName": "Planche Mixte Charcuteries & Fromages",
+          "quantite": 1,
+          "prioritaire": false
+        }
+      ]
+    },
+    {
+      "tableNumero": 11,
+      "serveurUsername": "serveur1",
+      "statut": "EN_ATTENTE",
+      "minutesAgo": 2,
+      "trackingToken": "TRK-ORD0010",
+      "notes": "Commande directe au comptoir bar",
+      "items": [
+        {
+          "cocktailName": "B-52 Flambé",
+          "quantite": 2,
+          "prioritaire": true
+        }
+      ]
+    },
+    {
+      "tableNumero": 21,
+      "serveurUsername": "serveur2",
+      "statut": "EN_ATTENTE",
+      "minutesAgo": 2,
+      "trackingToken": "TRK-ORD0011",
+      "notes": "Terrasse ombragée",
+      "items": [
+        {
+          "cocktailName": "Aperol Spritz",
+          "quantite": 2,
+          "prioritaire": false
+        },
+        {
+          "cocktailName": "Frites Maison & Sauces Barman",
+          "quantite": 1,
+          "prioritaire": false
+        }
+      ]
+    },
+    {
+      "tableNumero": 31,
+      "serveurUsername": "serveur3",
+      "statut": "EN_PREPARATION",
+      "minutesAgo": 5,
+      "trackingToken": "TRK-ORD0012",
+      "notes": "Salon Mezzanine VIP - Service d'exception",
+      "items": [
+        {
+          "cocktailName": "Coupe de Champagne Brut",
+          "quantite": 4,
+          "prioritaire": true
+        },
+        {
+          "cocktailName": "Bellini",
+          "quantite": 2,
+          "prioritaire": false
+        }
+      ]
+    },
+    {
+      "tableNumero": 32,
+      "serveurUsername": "serveur2",
+      "statut": "LIVREE",
+      "minutesAgo": 55,
+      "trackingToken": "TRK-ORD0013",
+      "notes": "Grande table VIP - Règlement partagé demandé",
+      "items": [
+        {
+          "cocktailName": "Cosmopolitan",
+          "quantite": 4,
+          "prioritaire": false
+        },
+        {
+          "cocktailName": "Old Fashioned",
+          "quantite": 4,
+          "prioritaire": false
+        },
+        {
+          "cocktailName": "Planche Mixte Charcuteries & Fromages",
+          "quantite": 2,
+          "prioritaire": false
+        }
+      ]
+    },
+    {
+      "tableNumero": 41,
+      "serveurUsername": "serveur3",
+      "statut": "PRET",
+      "minutesAgo": 7,
+      "trackingToken": "TRK-ORD0014",
+      "notes": "Rooftop - Vue panoramique",
+      "items": [
+        {
+          "cocktailName": "Gin Tonic",
+          "quantite": 3,
+          "prioritaire": false
+        },
+        {
+          "cocktailName": "Nachos & Guacamole Maison",
+          "quantite": 1,
+          "prioritaire": false
+        }
+      ]
+    },
+    {
+      "tableNumero": 2,
+      "serveurUsername": "serveur2",
+      "statut": "ANNULEE",
+      "minutesAgo": 60,
+      "trackingToken": "TRK-ORD0015",
+      "notes": "Annulée par le serveur : erreur de saisie table",
+      "items": [
+        {
+          "cocktailName": "Mojito",
+          "quantite": 1,
+          "prioritaire": false
+        }
+      ]
+    }
+  ],
+  "invoices": [
+    {
+      "numero": "FACT-2026-0001",
+      "tableNumero": 8,
+      "reglee": false,
+      "minutesAgo": 40,
+      "notes": "Facture en attente de paiement à la table 8 (Mixte TVA 20%, 10%, 5.5%)",
+      "items": [
+        {
+          "description": "Old Fashioned",
+          "quantite": 2,
+          "prixUnitaire": "12.00"
+        },
+        {
+          "description": "Virgin Mojito",
+          "quantite": 1,
+          "prixUnitaire": "7.50"
+        },
+        {
+          "description": "Planche Mixte Charcuteries & Fromages",
+          "quantite": 1,
+          "prixUnitaire": "18.50"
+        }
+      ]
+    },
+    {
+      "numero": "FACT-2026-0002",
+      "tableNumero": 32,
+      "reglee": false,
+      "minutesAgo": 50,
+      "notes": "Facture VIP en cours de division",
+      "items": [
+        {
+          "description": "Cosmopolitan",
+          "quantite": 4,
+          "prixUnitaire": "11.00"
+        },
+        {
+          "description": "Old Fashioned",
+          "quantite": 4,
+          "prixUnitaire": "12.00"
+        },
+        {
+          "description": "Planche Mixte Charcuteries & Fromages",
+          "quantite": 2,
+          "prixUnitaire": "18.50"
+        }
+      ]
+    },
+    {
+      "numero": "FACT-2026-0003",
+      "tableNumero": 6,
+      "reglee": true,
+      "modePaiement": "MIXTE",
+      "pourboire": "6.00",
+      "minutesAgo": 20,
+      "notes": "Règlement partagé équitablement entre 3 convives",
+      "items": [
+        {
+          "description": "Mojito",
+          "quantite": 3,
+          "prixUnitaire": "9.50"
+        },
+        {
+          "description": "Caïpirinha",
+          "quantite": 2,
+          "prixUnitaire": "9.00"
+        },
+        {
+          "description": "Planche Mixte Charcuteries & Fromages",
+          "quantite": 1,
+          "prixUnitaire": "18.50"
+        }
+      ],
+      "reglements": [
+        {
+          "nomConvive": "Lucas",
+          "partIndex": 1,
+          "totalParts": 3,
+          "montant": "21.67",
+          "pourboire": "2.00",
+          "modePaiement": "CB",
+          "typeSplit": "EGAL"
+        },
+        {
+          "nomConvive": "Sarah",
+          "partIndex": 2,
+          "totalParts": 3,
+          "montant": "21.67",
+          "pourboire": "2.00",
+          "modePaiement": "CB",
+          "typeSplit": "EGAL"
+        },
+        {
+          "nomConvive": "Marc",
+          "partIndex": 3,
+          "totalParts": 3,
+          "montant": "21.66",
+          "pourboire": "2.00",
+          "modePaiement": "ESPECES",
+          "typeSplit": "EGAL"
+        }
+      ]
+    },
+    {
+      "numero": "FACT-2026-0004",
+      "tableNumero": 5,
+      "reglee": true,
+      "modePaiement": "APPLE_PAY",
+      "pourboire": "2.00",
+      "minutesAgo": 10,
+      "notes": "Paiement sans contact Apple Pay",
+      "items": [
+        {
+          "description": "Piña Colada",
+          "quantite": 2,
+          "prixUnitaire": "10.50"
+        }
+      ]
+    },
+    {
+      "numero": "FACT-2026-0005",
+      "tableNumero": 2,
+      "reglee": true,
+      "modePaiement": "CB",
+      "pourboire": "0.00",
+      "minutesAgo": 70,
+      "notes": "Facture initiale ayant fait l'objet d'un avoir suite à rectification",
+      "items": [
+        {
+          "description": "Mojito",
+          "quantite": 2,
+          "prixUnitaire": "9.50"
+        }
+      ]
+    }
+  ],
+  "avoirs_credit": [
+    {
+      "numero": "AVOIR-2026-0001",
+      "factureNumero": "FACT-2026-0005",
+      "motif": "Erreur de saisie de table serveur et remboursement CB immédiat"
+    }
+  ],
+  "table_appels": [
+    {
+      "tableNumero": 3,
+      "type": "ASSISTANCE",
+      "statut": "EN_ATTENTE",
+      "commentaire": "Besoin de verres d'eau et de serviettes",
+      "minutesAgo": 3
+    },
+    {
+      "tableNumero": 5,
+      "type": "ADDITION",
+      "statut": "EN_ATTENTE",
+      "commentaire": "Demande d'addition par carte bancaire",
+      "minutesAgo": 1
+    },
+    {
+      "tableNumero": 1,
+      "type": "ASSISTANCE",
+      "statut": "ACQUITTE",
+      "commentaire": "Question sur les allergènes",
+      "acquittePar": "serveur1",
+      "minutesAgo": 25
+    }
+  ]
+}

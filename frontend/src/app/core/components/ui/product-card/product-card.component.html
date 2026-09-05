@@ -1,0 +1,46 @@
+<div class="product-card-container" [attr.data-testid]="testId">
+  @if (imageUrl) {
+    <div class="product-image-wrapper">
+      <img
+        [src]="resolveImageUrl(imageUrl)"
+        [alt]="title"
+        class="product-img"
+        (error)="$any($event.target).src = 'assets/images/verres/verre_tumbler.png'" />
+    </div>
+  }
+  <div class="product-details">
+    <div class="product-header">
+      <h3 class="product-title">{{ title }}</h3>
+      @if (category) {
+        <span class="product-category-chip">{{ category }}</span>
+      }
+    </div>
+    @if (description) {
+      <p class="product-desc">{{ description }}</p>
+    }
+    <div class="product-footer">
+      <span class="product-price">{{ price | currency:'EUR' }}</span>
+      <div class="quantity-stepper-mini">
+        @if (quantity > 0) {
+          <button
+            type="button"
+            class="stepper-btn btn-minus"
+            (click)="onRemove()"
+            aria-label="Decrease quantity"
+            data-testid="product-card-minus">
+            <ion-icon name="remove-outline"></ion-icon>
+          </button>
+          <span class="quantity-badge" data-testid="product-card-qty">{{ quantity }}</span>
+        }
+        <button
+          type="button"
+          class="stepper-btn btn-plus"
+          (click)="onAdd()"
+          aria-label="Increase quantity"
+          data-testid="product-card-plus">
+          <ion-icon name="add-outline"></ion-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

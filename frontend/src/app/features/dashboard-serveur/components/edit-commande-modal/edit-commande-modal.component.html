@@ -1,0 +1,261 @@
+<ion-header class="modal-header">
+  <ion-toolbar class="modal-toolbar">
+    <div class="header-content" slot="start">
+      <div class="header-icon-badge">
+        <ion-icon name="wine-outline"></ion-icon>
+      </div>
+      <div class="header-titles">
+        <ion-title class="modal-title">
+          {{ 'EDIT_COMMANDE.TITLE' | transloco:{ id: commande.id } }}
+        </ion-title>
+        <span class="table-chip" *ngIf="tableNumero">
+          {{ 'EDIT_COMMANDE.TABLE_LABEL' | transloco:{ numero: tableNumero } }}
+        </span>
+      </div>
+    </div>
+    <ion-buttons slot="end">
+      <ion-button
+        (click)="dismiss()"
+        (keydown.enter)="dismiss()"
+        fill="clear"
+        class="btn-close"
+        data-testid="btn-close-edit-modal">
+        <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="modal-content">
+  <div class="modal-body-container">
+    <!-- Existing Items List -->
+    <div class="section-card">
+      <div class="section-header">
+        <span class="section-title">{{ 'EDIT_COMMANDE.ITEMS_TITLE' | transloco }}</span>
+        <ion-badge color="primary">{{ items.length }}</ion-badge>
+      </div>
+
+      <div *ngIf="items.length === 0" class="empty-items-state">
+        <p>{{ 'EDIT_COMMANDE.NO_ITEMS' | transloco }}</p>
+      </div>
+
+      <div class="items-list" *ngIf="items.length > 0">
+        <div *ngFor="let item of items; let i = index" class="order-item-card" [attr.data-testid]="'order-item-' + i">
+          <div class="item-primary-row">
+            <div class="item-info">
+              <span class="item-name">{{ item.cocktailNom }}</span>
+              <span *ngIf="item.varianteNom" class="item-variant-pill">
+                {{ item.varianteNom }}
+              </span>
+              <span class="item-price">
+                {{ (item.prixUnitaire * item.quantite) | currency:'EUR':'symbol':'1.2-2' }}
+                <span class="unit-rate">({{ item.prixUnitaire | currency:'EUR':'symbol':'1.2-2' }}/u)</span>
+              </span>
+            </div>
+
+            <div class="item-actions">
+              <!-- Stepper Controls -->
+              <div class="stepper-container">
+                <button
+                  type="button"
+                  class="stepper-btn minus"
+                  (click)="decrementItem(i)"
+                  [attr.data-testid]="'btn-decrement-' + i">
+                  <ion-icon name="remove-outline"></ion-icon>
+                </button>
+                <span class="stepper-value" [attr.data-testid]="'stepper-qty-' + i">{{ item.quantite }}</span>
+                <button
+                  type="button"
+                  class="stepper-btn plus"
+                  (click)="incrementItem(i)"
+                  [attr.data-testid]="'btn-increment-' + i">
+                  <ion-icon name="add-outline"></ion-icon>
+                </button>
+              </div>
+
+              <!-- Delete Button -->
+              <button
+                type="button"
+                class="delete-item-btn"
+                (click)="removeItem(i)"
+                [attr.data-testid]="'btn-delete-item-' + i"
+                [title]="'COMMON.DELETE' | transloco">
+                <ion-icon name="trash-outline"></ion-icon>
+              </button>
+            </div>
+          </div>
+
+          <!-- Item Notes Input -->
+          <div class="item-notes-row">
+            <label [for]="'item-notes-input-' + i" class="sr-only">{{ 'EDIT_COMMANDE.NOTES_LABEL' | transloco }}</label>
+            <input
+              [id]="'item-notes-input-' + i"
+              type="text"
+              [(ngModel)]="item.notes"
+              [placeholder]="'EDIT_COMMANDE.NOTES_PLACEHOLDER' | transloco"
+              class="item-notes-input"
+              [attr.data-testid]="'input-item-notes-' + i" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add Cocktail Section -->
+    <div class="section-card add-item-section">
+      <div class="section-header">
+        <span class="section-title">
+          <ion-icon name="add-circle-outline" class="title-icon"></ion-icon>
+          {{ 'EDIT_COMMANDE.ADD_ITEM_TITLE' | transloco }}
+        </span>
+      </div>
+
+      <div class="add-item-form">
+        <div class="form-row">
+          <div class="cocktail-select-wrapper">
+            <app-searchable-select
+              [options]="cocktailOptions"
+              [placeholder]="'EDIT_COMMANDE.SELECT_COCKTAIL' | transloco"
+              [ngModel]="selectedCocktailId"
+              (ngModelChange)="onCocktailSelected($event)"
+              data-testid="select-cocktail-to-add">
+            </app-searchable-select>
+          </div>
+        </div>
+
+        <!-- Variants selector if available -->
+        <div class="form-row" *ngIf="selectedCocktailVariants.length > 0">
+          <span class="input-sublabel">{{ 'EDIT_COMMANDE.SELECT_VARIANT' | transloco }}</span>
+          <div class="variants-pills">
+            <button
+              type="button"
+              class="variant-pill"
+              [class.active]="selectedVarianteId === null"
+              (click)="selectedVarianteId = null">
+              {{ 'EDIT_COMMANDE.NO_VARIANT' | transloco }}
+            </button>
+            <button
+              type="button"
+              *ngFor="let variant of selectedCocktailVariants"
+              class="variant-pill"
+              [class.active]="selectedVarianteId === variant.id"
+              (click)="selectedVarianteId = variant.id ?? null">
+              {{ variant.nom }}
+              <span *ngIf="variant.prixSupplement">+{{ variant.prixSupplement | currency:'EUR':'symbol':'1.2-2' }}</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Quantity & Notes for new item -->
+        <div class="form-row additions-row" *ngIf="selectedCocktailId">
+          <div class="qty-field">
+            <span class="input-sublabel">{{ 'EDIT_COMMANDE.QUANTITY' | transloco }}</span>
+            <div class="stepper-container">
+              <button
+                type="button"
+                class="stepper-btn minus"
+                (click)="selectedQuantity = (selectedQuantity > 1 ? selectedQuantity - 1 : 1)">
+                <ion-icon name="remove-outline"></ion-icon>
+              </button>
+              <span class="stepper-value">{{ selectedQuantity }}</span>
+              <button
+                type="button"
+                class="stepper-btn plus"
+                (click)="selectedQuantity = selectedQuantity + 1">
+                <ion-icon name="add-outline"></ion-icon>
+              </button>
+            </div>
+          </div>
+
+          <div class="new-notes-field">
+            <label for="new-item-notes-input" class="input-sublabel">{{ 'EDIT_COMMANDE.NOTES_LABEL' | transloco }}</label>
+            <input
+              id="new-item-notes-input"
+              type="text"
+              [(ngModel)]="selectedItemNotes"
+              [placeholder]="'EDIT_COMMANDE.NOTES_PLACEHOLDER' | transloco"
+              class="item-notes-input"
+              data-testid="input-new-item-notes" />
+          </div>
+        </div>
+
+        <div class="add-action-row" *ngIf="selectedCocktailId">
+          <ion-button
+            expand="block"
+            color="primary"
+            size="small"
+            (click)="addNewItem()"
+            (keydown.enter)="addNewItem()"
+            data-testid="btn-add-item-to-order"
+            class="btn-add-line">
+            <ion-icon name="add-outline" slot="start"></ion-icon>
+            {{ 'EDIT_COMMANDE.BTN_ADD_ITEM' | transloco }}
+          </ion-button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Order Notes & Tip Section -->
+    <div class="section-card">
+      <div class="section-header">
+        <label for="global-order-notes-textarea" class="section-title">{{ 'EDIT_COMMANDE.GLOBAL_NOTES' | transloco }}</label>
+      </div>
+
+      <div class="form-group">
+        <textarea
+          id="global-order-notes-textarea"
+          [(ngModel)]="orderNotes"
+          [placeholder]="'EDIT_COMMANDE.GLOBAL_NOTES_PLACEHOLDER' | transloco"
+          rows="2"
+          class="global-notes-textarea"
+          data-testid="input-global-order-notes"></textarea>
+      </div>
+
+      <div class="tip-row">
+        <label for="order-tip-input" class="tip-label">{{ 'EDIT_COMMANDE.TIP_LABEL' | transloco }}</label>
+        <input
+          id="order-tip-input"
+          type="number"
+          step="0.50"
+          min="0"
+          [(ngModel)]="pourboire"
+          placeholder="0.00"
+          class="tip-input"
+          data-testid="input-order-tip" />
+      </div>
+    </div>
+  </div>
+</ion-content>
+
+<!-- Modal Footer with Live Recalculated Total -->
+<ion-footer class="modal-footer">
+  <div class="total-summary-bar">
+    <span class="total-label">{{ 'EDIT_COMMANDE.TOTAL_LABEL' | transloco }}</span>
+    <span class="total-value" data-testid="live-total-value">
+      {{ calculateTotal() | currency:'EUR':'symbol':'1.2-2' }}
+    </span>
+  </div>
+
+  <div class="footer-actions">
+    <ion-button
+      fill="outline"
+      color="medium"
+      (click)="dismiss()"
+      (keydown.enter)="dismiss()"
+      class="btn-cancel"
+      data-testid="btn-cancel-edit-modal">
+      {{ 'COMMON.CANCEL' | transloco }}
+    </ion-button>
+
+    <ion-button
+      color="primary"
+      (click)="onSubmit()"
+      (keydown.enter)="onSubmit()"
+      [disabled]="isSubmitting || items.length === 0"
+      class="btn-save"
+      data-testid="btn-save-order-modifications">
+      <ion-spinner *ngIf="isSubmitting" name="crescent" slot="start"></ion-spinner>
+      <ion-icon *ngIf="!isSubmitting" name="save-outline" slot="start"></ion-icon>
+      {{ (isSubmitting ? 'EDIT_COMMANDE.SAVING' : 'EDIT_COMMANDE.BTN_SAVE') | transloco }}
+    </ion-button>
+  </div>
+</ion-footer>

@@ -1,6 +1,8 @@
 package com.bar.gestioncocktail.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import java.time.LocalDateTime;
 
@@ -12,15 +14,20 @@ public class TableEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotNull(message = "Table number is required")
+    @Min(value = 1, message = "Table number must be greater than or equal to 1")
     @Column(nullable = false)
     private Integer numero;
 
+    @NotNull(message = "Capacity is required")
+    @Min(value = 1, message = "Capacity must be at least 1 person")
     @Column(nullable = false)
     private Integer capacite;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private TableZone zone;
+    @jakarta.validation.constraints.NotBlank(message = "Zone is required")
+    @jakarta.validation.constraints.Size(max = 50, message = "Zone cannot exceed 50 characters")
+    @Column(nullable = false, length = 50)
+    private String zone;
 
     @Column(nullable = false)
     private boolean occupee = false;
@@ -40,15 +47,34 @@ public class TableEntity {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    // Position on floor plan
+    @Column(name = "plan_x")
+    private Double planX;
+
+    @Column(name = "plan_y")
+    private Double planY;
+
+    @Column(name = "plan_rotation", columnDefinition = "DOUBLE PRECISION DEFAULT 0")
+    private Double planRotation = 0.0;
+
+    @Column(name = "plan_forme", length = 20)
+    private String planForme = "CARRE"; // SQUARE or ROUND
+
+    @Column(name = "plan_width")
+    private Double planWidth;
+
+    @Column(name = "plan_height")
+    private Double planHeight;
+
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
+        createdAt = LocalDateTime.now(java.time.ZoneId.systemDefault());
+        updatedAt = LocalDateTime.now(java.time.ZoneId.systemDefault());
     }
 
     @PreUpdate
     protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now(java.time.ZoneId.systemDefault());
     }
 
     public Long getId() {
@@ -75,11 +101,11 @@ public class TableEntity {
         this.capacite = capacite;
     }
 
-    public TableZone getZone() {
+    public String getZone() {
         return zone;
     }
 
-    public void setZone(TableZone zone) {
+    public void setZone(String zone) {
         this.zone = zone;
     }
 
@@ -114,4 +140,60 @@ public class TableEntity {
     public void setDateLiberation(LocalDateTime dateLiberation) {
         this.dateLiberation = dateLiberation;
     }
-} 
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public Double getPlanX() {
+        return planX;
+    }
+
+    public void setPlanX(Double planX) {
+        this.planX = planX;
+    }
+
+    public Double getPlanY() {
+        return planY;
+    }
+
+    public void setPlanY(Double planY) {
+        this.planY = planY;
+    }
+
+    public Double getPlanRotation() {
+        return planRotation;
+    }
+
+    public void setPlanRotation(Double planRotation) {
+        this.planRotation = planRotation;
+    }
+
+    public String getPlanForme() {
+        return planForme;
+    }
+
+    public void setPlanForme(String planForme) {
+        this.planForme = planForme;
+    }
+
+    public Double getPlanWidth() {
+        return planWidth;
+    }
+
+    public void setPlanWidth(Double planWidth) {
+        this.planWidth = planWidth;
+    }
+
+    public Double getPlanHeight() {
+        return planHeight;
+    }
+
+    public void setPlanHeight(Double planHeight) {
+        this.planHeight = planHeight;
+    }
+}

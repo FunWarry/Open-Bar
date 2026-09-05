@@ -4,9 +4,12 @@
 /dist
 /tmp
 /out-tsc
+out-tsc/
+/frontend/out-tsc/
 /bazel-out
 /target
 backend/target
+
 
 # Node
 /node_modules
@@ -46,3 +49,22 @@ Thumbs.db
 *.iml
 
 /frontend/node_modules
+/frontend/.angular/
+/frontend/dist/
+frontend/coverage
+.env
+/.sonarlint/
+.vscode/
+/qodana.sarif.json
+/uploads/
+/backend/uploads/
+frontend/playwright-report/
+frontend/test-results/
+frontend/reports/
+.gemini/
+/backups/
+*.sql.gz
+/certs/
+*.crt
+*.key
+*.pem

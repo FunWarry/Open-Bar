@@ -1,81 +1,201 @@
 <div class="profile-container">
-  <mat-card>
-    <mat-card-header>
-      <mat-card-title>Mon Profil</mat-card-title>
-    </mat-card-header>
-    <mat-card-content>
-      <form [formGroup]="profileForm" (ngSubmit)="onSubmit()">
-        <div class="form-row">
-          <mat-form-field appearance="outline">
-            <mat-label>Nom d'utilisateur</mat-label>
-            <input matInput formControlName="username" required autocomplete="username">
-            <mat-error *ngIf="profileForm.get('username')?.hasError('required')">
-              Le nom d'utilisateur est requis
-            </mat-error>
-          </mat-form-field>
+  <ion-card class="profile-card">
+    <ion-card-header class="profile-header">
+      <div class="avatar-wrapper">
+        <app-user-avatar
+          [name]="currentUser?.username"
+          [role]="$any(currentUser?.roles?.[0])"
+          size="large">
+        </app-user-avatar>
+      </div>
+      <ion-card-title>{{ 'PROFILE.TITLE' | transloco }}</ion-card-title>
+    </ion-card-header>
 
-          <mat-form-field appearance="outline">
-            <mat-label>Email</mat-label>
-            <input matInput formControlName="email" type="email" required autocomplete="email">
-            <mat-error *ngIf="profileForm.get('email')?.hasError('required')">
-              L'email est requis
-            </mat-error>
-            <mat-error *ngIf="profileForm.get('email')?.hasError('email')">
-              Format d'email invalide
-            </mat-error>
-          </mat-form-field>
+    <ion-card-content>
+      <div class="section-separator">
+        <span class="section-label">{{ 'PROFILE.SECTION_PERSONAL' | transloco }}</span>
+        <div class="separator-line"></div>
+      </div>
+
+      <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" data-testid="profile-form">
+        <app-input-field
+          formControlName="username"
+          [label]="'AUTH.USERNAME' | transloco"
+          placeholder="Identifiant"
+          icon="person-outline"
+          [required]="true"
+          autocomplete="username"
+          data-testid="profile-username-input"
+          [errorMessage]="
+            profileForm.get('username')?.touched && profileForm.get('username')?.hasError('required')
+              ? ('AUTH.REQUIRED_USER' | transloco)
+              : undefined
+          ">
+        </app-input-field>
+
+        <app-input-field
+          formControlName="email"
+          [label]="'AUTH.EMAIL' | transloco"
+          type="email"
+          placeholder="Adresse email"
+          icon="mail-outline"
+          [required]="true"
+          autocomplete="email"
+          data-testid="profile-email-input"
+          [errorMessage]="
+            profileForm.get('email')?.touched && profileForm.get('email')?.hasError('required')
+              ? ('AUTH.REQUIRED_USER' | transloco)
+              : profileForm.get('email')?.touched && profileForm.get('email')?.hasError('email')
+              ? ('ERRORS.FORM_INVALID' | transloco)
+              : undefined
+          ">
+        </app-input-field>
+
+        <div class="section-separator" style="margin-top: 8px;">
+          <span class="section-label">{{ 'PROFILE.SECTION_SECURITY' | transloco }}</span>
+          <div class="separator-line"></div>
         </div>
 
-        <div class="form-row">
-          <mat-form-field appearance="outline">
-            <mat-label>Nouveau mot de passe</mat-label>
-            <input matInput formControlName="newPassword" type="password" autocomplete="new-password">
-            <mat-error *ngIf="profileForm.get('newPassword')?.hasError('minlength')">
-              Le mot de passe doit contenir au moins 6 caractères
-            </mat-error>
-          </mat-form-field>
+        <app-password-input
+          formControlName="newPassword"
+          [label]="'PROFILE.NEW_PASSWORD' | transloco"
+          [placeholder]="'PROFILE.LEAVE_BLANK_HINT' | transloco"
+          autocomplete="new-password"
+          data-testid="profile-new-password-input"
+          [errorMessage]="
+            profileForm.get('newPassword')?.touched && profileForm.get('newPassword')?.hasError('minlength')
+              ? ('ERRORS.FORM_INVALID' | transloco)
+              : undefined
+          ">
+        </app-password-input>
 
-          <mat-form-field appearance="outline">
-            <mat-label>Confirmer le mot de passe</mat-label>
-            <input matInput formControlName="confirmPassword" type="password" autocomplete="new-password">
-            <mat-error *ngIf="profileForm.hasError('passwordMismatch')">
-              Les mots de passe ne correspondent pas
-            </mat-error>
-          </mat-form-field>
-        </div>
+        <app-password-input
+          formControlName="confirmPassword"
+          [label]="'AUTH.CONFIRM_PASSWORD' | transloco"
+          placeholder="Confirmez le nouveau mot de passe"
+          autocomplete="new-password"
+          data-testid="profile-confirm-password-input"
+          [errorMessage]="
+            profileForm.get('confirmPassword')?.touched && profileForm.hasError('passwordMismatch')
+              ? ('ERRORS.FORM_INVALID' | transloco)
+              : undefined
+          ">
+        </app-password-input>
 
         <div class="form-actions">
-          <button mat-raised-button color="primary" type="submit" [disabled]="profileForm.invalid">
-            Enregistrer les modifications
-          </button>
+          <app-action-button
+            type="submit"
+            variant="primary"
+            expand="block"
+            [disabled]="profileForm.invalid || isSaving"
+            data-testid="profile-save-btn">
+            {{ 'PROFILE.SAVE_BTN' | transloco }}
+          </app-action-button>
         </div>
       </form>
-    </mat-card-content>
-  </mat-card>
+    </ion-card-content>
+  </ion-card>
 
-  <mat-card class="info-card">
-    <mat-card-header>
-      <mat-card-title>Informations du compte</mat-card-title>
-    </mat-card-header>
-    <mat-card-content>
+  <!-- PREFERENCES section — Figma 540:1022 -->
+  <ion-card class="preferences-card">
+    <ion-card-header>
+      <ion-card-title>{{ 'PROFILE.PREFERENCES_TITLE' | transloco }}</ion-card-title>
+    </ion-card-header>
+
+    <ion-card-content>
+      <div class="section-separator">
+        <span class="section-label">{{ 'PROFILE.SECTION_NOTIFICATIONS' | transloco }}</span>
+        <div class="separator-line"></div>
+      </div>
+
+      <!-- Sound notifications toggle — Figma 540:1025 -->
+      <div class="pref-row" data-testid="pref-row-sound">
+        <div class="pref-info">
+          <span class="pref-label">{{ 'PROFILE.PREF_SOUND_LABEL' | transloco }}</span>
+          <span class="pref-description">{{ 'PROFILE.PREF_SOUND_DESC' | transloco }}</span>
+        </div>
+        <app-toggle-switch
+          [value]="soundEnabled"
+          (checkedChange)="onSoundToggle($event)"
+          testId="pref-toggle-sound">
+        </app-toggle-switch>
+      </div>
+
+      <!-- Visual notifications toggle -->
+      <div class="pref-row" data-testid="pref-row-visual">
+        <div class="pref-info">
+          <span class="pref-label">{{ 'PROFILE.PREF_VISUAL_LABEL' | transloco }}</span>
+          <span class="pref-description">{{ 'PROFILE.PREF_VISUAL_DESC' | transloco }}</span>
+        </div>
+        <app-toggle-switch
+          [value]="visualNotifEnabled"
+          (checkedChange)="onVisualNotifToggle($event)"
+          testId="pref-toggle-visual">
+        </app-toggle-switch>
+      </div>
+
+      <div class="section-separator" style="margin-top: 8px;">
+        <span class="section-label">{{ 'PROFILE.SECTION_LANGUAGE' | transloco }}</span>
+        <div class="separator-line"></div>
+      </div>
+
+      <!-- Language selector -->
+      <div class="pref-row pref-row--lang" data-testid="pref-row-language">
+        <div class="pref-info">
+          <span class="pref-label">{{ 'PROFILE.PREF_LANGUAGE_LABEL' | transloco }}</span>
+          <span class="pref-description">{{ 'PROFILE.PREF_LANGUAGE_DESC' | transloco }}</span>
+        </div>
+        <ion-select
+          class="lang-select"
+          [value]="selectedLanguage"
+          interface="popover"
+          (ionChange)="onLanguageChange($any($event.detail.value))"
+          data-testid="pref-select-language">
+          <ion-select-option value="fr">🇫🇷 Français</ion-select-option>
+          <ion-select-option value="en">🇬🇧 English</ion-select-option>
+        </ion-select>
+      </div>
+
+      <!-- Onboarding tutorial restart row -->
+      <div class="pref-row pref-row--onboarding" data-testid="pref-row-onboarding">
+        <div class="pref-info">
+          <span class="pref-label">{{ 'PROFILE.PREF_ONBOARDING_LABEL' | transloco }}</span>
+          <span class="pref-description">{{ 'PROFILE.PREF_ONBOARDING_DESC' | transloco }}</span>
+        </div>
+        <app-action-button
+          variant="secondary"
+          size="small"
+          (click)="onRestartOnboarding()"
+          (keyup.enter)="onRestartOnboarding()"
+          data-testid="btn-restart-onboarding">
+          🚀 {{ 'PROFILE.RESTART_ONBOARDING_BTN' | transloco }}
+        </app-action-button>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Account info card -->
+  <ion-card class="info-card">
+    <ion-card-header>
+      <ion-card-title>{{ 'PROFILE.INFO_TITLE' | transloco }}</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
       <div class="info-item">
-        <span class="label">Rôles :</span>
-        <span class="value">
-          <mat-chip-set>
-            <mat-chip *ngFor="let role of (currentUser$ | async)?.roles">
-              {{ role }}
-            </mat-chip>
-          </mat-chip-set>
+        <span class="label">{{ 'PROFILE.ROLES' | transloco }}</span>
+        <span class="value roles-list">
+          @for (role of currentUser?.roles; track role) {
+            <app-role-badge [role]="$any(role)"></app-role-badge>
+          }
         </span>
       </div>
       <div class="info-item">
-        <span class="label">Compte créé le :</span>
-        <span class="value">{{ (currentUser$ | async)?.createdAt | date:'dd/MM/yyyy' }}</span>
+        <span class="label">{{ 'PROFILE.CREATED_AT' | transloco }}</span>
+        <span class="value">{{ currentUser?.createdAt | date:'dd/MM/yyyy' }}</span>
       </div>
       <div class="info-item">
-        <span class="label">Dernière modification :</span>
-        <span class="value">{{ (currentUser$ | async)?.updatedAt | date:'dd/MM/yyyy' }}</span>
+        <span class="label">{{ 'PROFILE.UPDATED_AT' | transloco }}</span>
+        <span class="value">{{ currentUser?.updatedAt | date:'dd/MM/yyyy' }}</span>
       </div>
-    </mat-card-content>
-  </mat-card>
+    </ion-card-content>
+  </ion-card>
 </div>

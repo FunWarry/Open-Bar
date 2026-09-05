@@ -1,0 +1,1055 @@
+<div class="settings-page" data-testid="unified-app-settings-page">
+  <!-- Page Header -->
+  <header class="settings-hero">
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span class="pulse-dot"></span>
+        <span>CONFIGURATION GLOBALE</span>
+      </div>
+      <h1 class="hero-title">{{ 'SETTINGS.PAGE_TITLE' | transloco }}</h1>
+      <p class="hero-subtitle">{{ 'SETTINGS.PAGE_SUBTITLE' | transloco }}</p>
+    </div>
+    <div class="hero-extra-actions">
+      <button
+        type="button"
+        class="onboarding-restart-hero-btn"
+        (click)="restartOnboarding()"
+        [attr.title]="'SETTINGS.RESTART_ONBOARDING_DESC' | transloco"
+        data-testid="btn-restart-onboarding">
+        <ion-icon name="rocket-outline"></ion-icon>
+        <span>{{ 'SETTINGS.RESTART_ONBOARDING_BTN' | transloco }}</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <nav class="settings-tabs-nav" data-testid="settings-tabs">
+    <button
+      type="button"
+      class="tab-btn"
+      [class.active]="activeTab === 'legal'"
+      (click)="selectTab('legal')"
+      data-testid="tab-legal">
+      <ion-icon name="business-outline"></ion-icon>
+      <span>{{ 'SETTINGS.TAB_LEGAL' | transloco }}</span>
+    </button>
+
+    <button
+      type="button"
+      class="tab-btn"
+      [class.active]="activeTab === 'timers'"
+      (click)="selectTab('timers')"
+      data-testid="tab-timers">
+      <ion-icon name="time-outline"></ion-icon>
+      <span>{{ 'SETTINGS.TAB_TIMERS' | transloco }}</span>
+    </button>
+
+    <button
+      type="button"
+      class="tab-btn"
+      [class.active]="activeTab === 'currency'"
+      (click)="selectTab('currency')"
+      data-testid="tab-currency">
+      <ion-icon name="cash-outline"></ion-icon>
+      <span>{{ 'SETTINGS.TAB_CURRENCY' | transloco }}</span>
+    </button>
+
+    <button
+      type="button"
+      class="tab-btn"
+      [class.active]="activeTab === 'theme'"
+      (click)="selectTab('theme')"
+      data-testid="tab-theme">
+      <ion-icon name="color-palette-outline"></ion-icon>
+      <span>{{ 'SETTINGS.TAB_THEME' | transloco }}</span>
+    </button>
+
+    <button
+      type="button"
+      class="tab-btn"
+      [class.active]="activeTab === 'qr'"
+      (click)="selectTab('qr')"
+      data-testid="tab-qr">
+      <ion-icon name="qr-code-outline"></ion-icon>
+      <span>{{ 'SETTINGS.TAB_QR' | transloco }}</span>
+    </button>
+  </nav>
+
+  @if (isLoading) {
+    <div class="loading-container">
+      <ion-spinner name="crescent" color="primary"></ion-spinner>
+    </div>
+  } @else {
+    <!-- Main Content Area -->
+    <main class="settings-content">
+      <!-- ========================================== -->
+      <!-- TAB 1: Établissement & Mentions Légales   -->
+      <!-- ========================================== -->
+      @if (activeTab === 'legal') {
+        <section class="tab-panel" data-testid="panel-legal">
+          <form [formGroup]="etabForm" class="settings-form">
+            <ion-grid>
+              <ion-row>
+                <!-- Colonne Gauche : Infos Légales -->
+                <ion-col size="12" sizeLg="7">
+                  <ion-card class="settings-card">
+                    <ion-card-header>
+                      <ion-card-title class="card-title">
+                        <ion-icon name="business-outline" class="title-icon"></ion-icon>
+                        {{ 'ETABLISSEMENT.TITLE' | transloco }}
+                      </ion-card-title>
+                    </ion-card-header>
+                    <ion-card-content>
+                      <div class="form-section-title">{{ 'ETABLISSEMENT.SECTION_GENERAL' | transloco }}</div>
+
+                      <div class="field-item">
+                        <app-input-field
+                          formControlName="legalName"
+                          [label]="'ETABLISSEMENT.LEGAL_NAME' | transloco"
+                          placeholder="OpenBar SARL"
+                          [required]="true"
+                          testId="input-legal-name"
+                          [errorMessage]="(etabForm.get('legalName')?.touched && etabForm.get('legalName')?.hasError('required')) ? ('COMMON.ERROR' | transloco) : undefined">
+                        </app-input-field>
+                      </div>
+
+                      <div class="form-row-2">
+                        <app-input-field
+                          formControlName="legalForm"
+                          [label]="'ETABLISSEMENT.LEGAL_FORM' | transloco"
+                          placeholder="SARL"
+                          testId="input-legal-form">
+                        </app-input-field>
+
+                        <app-input-field
+                          formControlName="capitalSocial"
+                          type="number"
+                          [label]="('ETABLISSEMENT.CAPITAL' | transloco) + ' (€)'"
+                          placeholder="10000"
+                          testId="input-capital">
+                        </app-input-field>
+                      </div>
+
+                      <div class="form-section-title">{{ 'ETABLISSEMENT.SECTION_LEGAL_IDS' | transloco }}</div>
+
+                      <div class="field-item">
+                        <app-input-field
+                          formControlName="siret"
+                          [label]="('ETABLISSEMENT.SIRET' | transloco) + ' (14 chiffres)'"
+                          placeholder="73282932000074"
+                          [required]="true"
+                          testId="input-siret"
+                          [errorMessage]="(etabForm.get('siret')?.touched && etabForm.get('siret')?.invalid) ? ('ETABLISSEMENT.SIRET_INVALID' | transloco) : undefined">
+                        </app-input-field>
+                      </div>
+
+                      <div class="field-item">
+                        <app-input-field
+                          formControlName="tvaNumber"
+                          [label]="('ETABLISSEMENT.TVA_NUMBER' | transloco) + ' (FRxx...)'"
+                          placeholder="FR12123456789"
+                          [required]="true"
+                          testId="input-tva"
+                          [errorMessage]="(etabForm.get('tvaNumber')?.touched && etabForm.get('tvaNumber')?.invalid) ? ('ETABLISSEMENT.TVA_INVALID' | transloco) : undefined">
+                        </app-input-field>
+                      </div>
+
+                      <div class="form-row-2">
+                        <app-input-field
+                          formControlName="rcsCity"
+                          [label]="'ETABLISSEMENT.RCS_CITY' | transloco"
+                          placeholder="Paris"
+                          testId="input-rcs-city">
+                        </app-input-field>
+
+                        <app-input-field
+                          formControlName="rcsNumber"
+                          [label]="'ETABLISSEMENT.RCS_NUMBER' | transloco"
+                          placeholder="B 123 456 789"
+                          testId="input-rcs-num">
+                        </app-input-field>
+                      </div>
+
+                      <div class="field-item">
+                        <app-input-field
+                          formControlName="codeApe"
+                          [label]="'ETABLISSEMENT.APE_CODE' | transloco"
+                          placeholder="5630Z"
+                          testId="input-ape">
+                        </app-input-field>
+                      </div>
+
+                      <div class="form-section-title">{{ 'ETABLISSEMENT.SECTION_CONTACT' | transloco }}</div>
+
+                      <div class="field-item">
+                        <app-input-field
+                          formControlName="address"
+                          [label]="'ETABLISSEMENT.ADDRESS' | transloco"
+                          placeholder="12 Rue du Bar, 75001 Paris"
+                          [required]="true"
+                          testId="input-address"
+                          [errorMessage]="(etabForm.get('address')?.touched && etabForm.get('address')?.hasError('required')) ? ('COMMON.ERROR' | transloco) : undefined">
+                        </app-input-field>
+                      </div>
+
+                      <div class="form-row-2">
+                        <app-input-field
+                          formControlName="country"
+                          [label]="'ETABLISSEMENT.COUNTRY' | transloco"
+                          placeholder="France"
+                          testId="input-country">
+                        </app-input-field>
+
+                        <app-searchable-select
+                          formControlName="language"
+                          [label]="'ETABLISSEMENT.LANGUAGE' | transloco"
+                          [placeholder]="'ETABLISSEMENT.LANGUAGE' | transloco"
+                          [searchPlaceholder]="'COMMON.SEARCH' | transloco"
+                          [options]="languageOptions"
+                          [clearable]="false"
+                          [enableSearch]="true"
+                          testId="select-language">
+                        </app-searchable-select>
+                      </div>
+
+                      <div class="form-row-2">
+                        <app-input-field
+                          formControlName="phone"
+                          [label]="'ETABLISSEMENT.PHONE' | transloco"
+                          placeholder="+33123456789"
+                          testId="input-phone">
+                        </app-input-field>
+
+                        <app-input-field
+                          formControlName="email"
+                          type="email"
+                          [label]="'ETABLISSEMENT.EMAIL' | transloco"
+                          placeholder="contact@openbar.local"
+                          testId="input-email"
+                          [errorMessage]="(etabForm.get('email')?.touched && etabForm.get('email')?.invalid) ? ('ETABLISSEMENT.EMAIL_INVALID' | transloco) : undefined">
+                        </app-input-field>
+                      </div>
+
+                      <div class="form-section-title">{{ 'ETABLISSEMENT.SECTION_BILLING_SYSTEM' | transloco }}</div>
+
+                      <div class="field-item">
+                        <app-input-field
+                          formControlName="paymentTerms"
+                          [label]="'ETABLISSEMENT.PAYMENT_TERMS' | transloco"
+                          [placeholder]="'FACTURES.CONDITIONS_REGLEMENT_PLACEHOLDER' | transloco"
+                          testId="input-payment-terms">
+                        </app-input-field>
+                      </div>
+
+                      <div class="field-item">
+                        <app-input-field
+                          formControlName="discountPolicy"
+                          [label]="'ETABLISSEMENT.DISCOUNT_POLICY' | transloco"
+                          [placeholder]="'FACTURES.ESCOMPTE_PLACEHOLDER' | transloco"
+                          testId="input-discount-policy">
+                        </app-input-field>
+                      </div>
+
+                      <div class="form-row-2">
+                        <app-input-field
+                          formControlName="latePaymentRate"
+                          type="number"
+                          [label]="'ETABLISSEMENT.LATE_RATE' | transloco"
+                          placeholder="0.12"
+                          testId="input-late-rate">
+                        </app-input-field>
+
+                        <app-searchable-select
+                          formControlName="ticketFormat"
+                          [label]="'FACTURES.TICKET_FORMAT' | transloco"
+                          [placeholder]="'FACTURES.TICKET_FORMAT' | transloco"
+                          [searchPlaceholder]="'COMMON.SEARCH' | transloco"
+                          [options]="ticketFormatOptions"
+                          [clearable]="false"
+                          [enableSearch]="true"
+                          testId="select-ticket-format">
+                        </app-searchable-select>
+                      </div>
+
+                      <div class="field-item">
+                        <app-searchable-select
+                          formControlName="timeZone"
+                          [label]="'ETABLISSEMENT.TIMEZONE' | transloco"
+                          [placeholder]="'ETABLISSEMENT.TIMEZONE' | transloco"
+                          [searchPlaceholder]="'COMMON.SEARCH' | transloco"
+                          [options]="timeZoneOptions"
+                          [clearable]="false"
+                          [enableSearch]="true"
+                          testId="select-timezone">
+                        </app-searchable-select>
+                      </div>
+                    </ion-card-content>
+                  </ion-card>
+                </ion-col>
+
+                <!-- Colonne Droite : Aperçu Ticket de Caisse Conforme Facturation -->
+                <ion-col size="12" sizeLg="5">
+                  <ion-card class="settings-card preview-card">
+                    <ion-card-header>
+                      <ion-card-title class="card-title">
+                        <ion-icon name="receipt-outline" class="title-icon"></ion-icon>
+                        {{ 'ETABLISSEMENT.PREVIEW_TITLE' | transloco }}
+                      </ion-card-title>
+                    </ion-card-header>
+                    <ion-card-content class="receipt-preview-wrapper" data-testid="receipt-preview-box">
+                      <app-ticket-receipt
+                        [facture]="demoFacture"
+                        [establishmentConfig]="currentEtabConfig"
+                        [ticketFormat]="etabForm.get('ticketFormat')?.value">
+                      </app-ticket-receipt>
+                    </ion-card-content>
+                  </ion-card>
+                </ion-col>
+              </ion-row>
+            </ion-grid>
+          </form>
+        </section>
+      }
+
+      <!-- ========================================== -->
+      <!-- TAB 2: Délais, Cadences & Alertes         -->
+      <!-- ========================================== -->
+      @if (activeTab === 'timers') {
+        <section class="tab-panel" data-testid="panel-timers">
+          <form [formGroup]="appSettingsForm" class="settings-form">
+            <ion-grid>
+              <ion-row>
+                <!-- Colonne Gauche : Cadences & Seuils -->
+                <ion-col size="12" sizeLg="7">
+                  <ion-card class="settings-card">
+                    <ion-card-header>
+                      <ion-card-title class="card-title">
+                        <ion-icon name="speedometer-outline" class="title-icon"></ion-icon>
+                        {{ 'SETTINGS.TIMERS_TITLE' | transloco }}
+                      </ion-card-title>
+                    </ion-card-header>
+                    <ion-card-content>
+                      <!-- Cadence Presets -->
+                      <div class="section-block">
+                        <h3 class="block-title">{{ 'SETTINGS.CADENCE_TITLE' | transloco }}</h3>
+                        <p class="block-desc">{{ 'SETTINGS.CADENCE_SUBTITLE' | transloco }}</p>
+
+                        <div class="cadence-presets-grid">
+                          @for (preset of cadencePresets; track preset.nameKey) {
+                            <button
+                              type="button"
+                              class="cadence-card"
+                              (click)="applyCadencePreset(preset)"
+                              data-testid="btn-cadence-preset"
+                              [attr.data-testid]="preset.warning === 2 ? 'preset-btn-fast' : (preset.warning === 5 ? 'preset-btn-lounge' : 'btn-reset-defaults')">
+                              <span class="cadence-name">{{ preset.nameKey | transloco }}</span>
+                              <span class="cadence-tags">{{ preset.warning }}m / {{ preset.urgent }}m / {{ preset.critical }}m</span>
+                            </button>
+                          }
+                        </div>
+                      </div>
+
+                      <!-- Thresholds Sliders & Controls -->
+                      <div class="thresholds-container">
+                        <!-- Warning Threshold -->
+                        <div class="threshold-row warning-border">
+                          <div class="threshold-info">
+                            <div class="threshold-header">
+                              <span class="threshold-title">{{ 'SETTINGS.WARNING_TITLE' | transloco }}</span>
+                              <div class="stepper-controls">
+                                <button type="button" class="stepper-btn" (click)="adjustThreshold('tempsAlerteWarningMinutes', -1)" data-testid="warning-btn-minus">-</button>
+                                <span class="stepper-val" data-testid="warning-value-display">{{ appSettingsForm.get('tempsAlerteWarningMinutes')?.value }} min</span>
+                                <button type="button" class="stepper-btn" (click)="adjustThreshold('tempsAlerteWarningMinutes', 1)" data-testid="warning-btn-plus">+</button>
+                              </div>
+                            </div>
+                            <p class="threshold-desc">{{ 'SETTINGS.WARNING_DESC' | transloco }}</p>
+                            <input
+                              id="input-slider-warning"
+                              aria-label="Seuil avertissement"
+                              type="range"
+                              min="1"
+                              max="30"
+                              [value]="appSettingsForm.get('tempsAlerteWarningMinutes')?.value"
+                              (input)="onThresholdChange('warning', $any($event.target).value)"
+                              [style.background]="getSliderTrackBackground('warning', appSettingsForm.get('tempsAlerteWarningMinutes')?.value, 1, 30)"
+                              class="range-slider warning-slider"
+                              data-testid="slider-warning" />
+                          </div>
+                        </div>
+
+                        <!-- Urgent Threshold -->
+                        <div class="threshold-row urgent-border">
+                          <div class="threshold-info">
+                            <div class="threshold-header">
+                              <span class="threshold-title">{{ 'SETTINGS.URGENT_TITLE' | transloco }}</span>
+                              <div class="stepper-controls">
+                                <button type="button" class="stepper-btn" (click)="adjustThreshold('tempsAlerteCommandeMinutes', -1)" data-testid="urgent-btn-minus">-</button>
+                                <span class="stepper-val" data-testid="urgent-value-display">{{ appSettingsForm.get('tempsAlerteCommandeMinutes')?.value }} min</span>
+                                <button type="button" class="stepper-btn" (click)="adjustThreshold('tempsAlerteCommandeMinutes', 1)" data-testid="urgent-btn-plus">+</button>
+                              </div>
+                            </div>
+                            <p class="threshold-desc">{{ 'SETTINGS.URGENT_DESC' | transloco }}</p>
+                            <input
+                              id="input-slider-urgent"
+                              aria-label="Seuil urgence"
+                              type="range"
+                              min="2"
+                              max="45"
+                              [value]="appSettingsForm.get('tempsAlerteCommandeMinutes')?.value"
+                              (input)="onThresholdChange('urgent', $any($event.target).value)"
+                              [style.background]="getSliderTrackBackground('urgent', appSettingsForm.get('tempsAlerteCommandeMinutes')?.value, 2, 45)"
+                              class="range-slider urgent-slider"
+                              data-testid="slider-urgent" />
+                          </div>
+                        </div>
+
+                        <!-- Critical Threshold -->
+                        <div class="threshold-row critical-border">
+                          <div class="threshold-info">
+                            <div class="threshold-header">
+                              <span class="threshold-title">{{ 'SETTINGS.CRITICAL_TITLE' | transloco }}</span>
+                              <div class="stepper-controls">
+                                <button type="button" class="stepper-btn" (click)="adjustThreshold('tempsAlerteCritiqueCommandeMinutes', -1)" data-testid="critical-btn-minus">-</button>
+                                <span class="stepper-val" data-testid="critical-value-display">{{ appSettingsForm.get('tempsAlerteCritiqueCommandeMinutes')?.value }} min</span>
+                                <button type="button" class="stepper-btn" (click)="adjustThreshold('tempsAlerteCritiqueCommandeMinutes', 1)" data-testid="critical-btn-plus">+</button>
+                              </div>
+                            </div>
+                            <p class="threshold-desc">{{ 'SETTINGS.CRITICAL_DESC' | transloco }}</p>
+                            <input
+                              id="input-slider-critical"
+                              aria-label="Seuil critique"
+                              type="range"
+                              min="3"
+                              max="60"
+                              [value]="appSettingsForm.get('tempsAlerteCritiqueCommandeMinutes')?.value"
+                              (input)="onThresholdChange('critical', $any($event.target).value)"
+                              [style.background]="getSliderTrackBackground('critical', appSettingsForm.get('tempsAlerteCritiqueCommandeMinutes')?.value, 3, 60)"
+                              class="range-slider critical-slider"
+                              data-testid="slider-critical" />
+                          </div>
+                        </div>
+                      </div>
+                    </ion-card-content>
+                  </ion-card>
+                </ion-col>
+
+                <!-- Colonne Droite : Aperçu interactif du Ticket -->
+                <ion-col size="12" sizeLg="5">
+                  <ion-card class="settings-card preview-card">
+                    <ion-card-header>
+                      <ion-card-title class="card-title">
+                        <ion-icon name="sparkles-outline" class="title-icon"></ion-icon>
+                        {{ 'SETTINGS.TICKET_PREVIEW_TITLE' | transloco }}
+                      </ion-card-title>
+                    </ion-card-header>
+                    <ion-card-content>
+                      <p class="preview-instructions">{{ 'SETTINGS.TICKET_PREVIEW_DESC' | transloco }}</p>
+
+                      <div class="simulation-slider-box">
+                        <div class="sim-header">
+                          <span>{{ 'SETTINGS.SIMULATE_WAIT' | transloco }}</span>
+                          <span class="sim-val">⏱️ {{ simulatedWaitMinutes }} min</span>
+                        </div>
+                        <input
+                          id="input-slider-simulation"
+                          aria-label="Simuler un temps d'attente"
+                          type="range"
+                          min="0"
+                          max="20"
+                          [(ngModel)]="simulatedWaitMinutes"
+                          [ngModelOptions]="{standalone: true}"
+                          [style.background]="getSliderTrackBackground('simulation', simulatedWaitMinutes, 0, 20)"
+                          class="range-slider sim-slider"
+                          data-testid="slider-simulation" />
+                      </div>
+
+                      <!-- Ticket Mockup -->
+                      <div class="ticket-mockup" [class]="simulatedStatus.colorClass" data-testid="ticket-simulation-mockup">
+                        <div class="ticket-top">
+                          <div>
+                            <h4 class="ticket-table">Table 4</h4>
+                            <span class="ticket-server">👤 Serveur : Alex</span>
+                          </div>
+                          <span class="ticket-timer">⏱️ {{ simulatedWaitMinutes }}:00</span>
+                        </div>
+
+                        <div class="ticket-items">
+                          <div class="t-row"><span>2× Mojito Royal</span><span>{{ formatSamplePrice(17) }}</span></div>
+                          <div class="t-row"><span>1× Old Fashioned</span><span>{{ formatSamplePrice(9) }}</span></div>
+                        </div>
+
+                        <div class="ticket-footer">
+                          <span class="ticket-total-label">Total :</span>
+                          <span class="ticket-total-val">{{ formatSamplePrice(26) }}</span>
+                        </div>
+
+                        <div class="ticket-badge-row">
+                          <span class="pill-badge" [class]="simulatedStatus.badgeClass">
+                            {{ simulatedStatus.label }}
+                          </span>
+                        </div>
+                      </div>
+                    </ion-card-content>
+                  </ion-card>
+                </ion-col>
+              </ion-row>
+            </ion-grid>
+          </form>
+        </section>
+      }
+
+      <!-- ========================================== -->
+      <!-- TAB 3: Devise & Format Monétaire          -->
+      <!-- ========================================== -->
+      @if (activeTab === 'currency') {
+        <section class="tab-panel" data-testid="panel-currency">
+          <form [formGroup]="appSettingsForm" class="settings-form">
+            <ion-grid>
+              <ion-row>
+                <ion-col size="12" sizeLg="7">
+                  <ion-card class="settings-card">
+                    <ion-card-header>
+                      <ion-card-title class="card-title">
+                        <ion-icon name="cash-outline" class="title-icon"></ion-icon>
+                        {{ 'SETTINGS.CURRENCY_TITLE' | transloco }}
+                      </ion-card-title>
+                    </ion-card-header>
+                    <ion-card-content>
+                      <p class="block-desc">{{ 'SETTINGS.CURRENCY_SUBTITLE' | transloco }}</p>
+
+                      <!-- Quick currency presets -->
+                      <div class="currency-presets-box">
+                        <span class="presets-title">{{ 'SETTINGS.CURRENCY_PRESETS' | transloco }}</span>
+                        <div class="currency-chips">
+                          @for (p of currencyPresets; track p.code) {
+                            <button
+                              type="button"
+                              class="currency-chip"
+                              [class.active]="appSettingsForm.get('currencyCode')?.value === p.code"
+                              (click)="applyCurrencyPreset(p)"
+                              [attr.data-testid]="'currency-preset-btn-' + p.code">
+                              {{ p.code }} ({{ p.symbol }})
+                            </button>
+                          }
+                        </div>
+                      </div>
+
+                      <div class="field-item">
+                        <app-input-field
+                          formControlName="establishmentName"
+                          [label]="'SETTINGS.ESTABLISHMENT_NAME' | transloco"
+                          placeholder="OpenBar"
+                          testId="input-establishment-name">
+                        </app-input-field>
+                      </div>
+
+                      <div class="form-row-2">
+                        <app-input-field
+                          formControlName="currencyCode"
+                          [label]="'SETTINGS.CURRENCY_CODE' | transloco"
+                          placeholder="EUR"
+                          testId="currency-code-input">
+                        </app-input-field>
+
+                        <app-input-field
+                          formControlName="currencySymbol"
+                          [label]="'SETTINGS.CURRENCY_SYMBOL' | transloco"
+                          placeholder="€"
+                          testId="currency-symbol-input">
+                        </app-input-field>
+                      </div>
+
+                      <!-- Symbol Position Selector -->
+                      <div class="position-selector-box">
+                        <span class="position-label">{{ 'SETTINGS.CURRENCY_POSITION' | transloco }}</span>
+                        <div class="position-buttons">
+                          <button
+                            type="button"
+                            class="pos-btn"
+                            [class.active]="appSettingsForm.get('currencyPosition')?.value === 'AFTER'"
+                            (click)="setCurrencyPosition('AFTER')"
+                            data-testid="currency-pos-after-btn">
+                            {{ 'SETTINGS.CURRENCY_POS_AFTER' | transloco }}
+                          </button>
+                          <button
+                            type="button"
+                            class="pos-btn"
+                            [class.active]="appSettingsForm.get('currencyPosition')?.value === 'BEFORE'"
+                            (click)="setCurrencyPosition('BEFORE')"
+                            data-testid="currency-pos-before-btn">
+                            {{ 'SETTINGS.CURRENCY_POS_BEFORE' | transloco }}
+                          </button>
+                        </div>
+                      </div>
+                    </ion-card-content>
+                  </ion-card>
+                </ion-col>
+
+                <!-- Live Price Preview -->
+                <ion-col size="12" sizeLg="5">
+                  <ion-card class="settings-card">
+                    <ion-card-header>
+                      <ion-card-title class="card-title">
+                        <ion-icon name="sparkles-outline" class="title-icon"></ion-icon>
+                        {{ 'SETTINGS.CURRENCY_PREVIEW_TITLE' | transloco }}
+                      </ion-card-title>
+                    </ion-card-header>
+                    <ion-card-content>
+                      <div class="price-previews-list">
+                        <div class="preview-price-item">
+                          <span>Cocktail Signature :</span>
+                          <strong class="price-val" data-testid="preview-cocktail-price-1">{{ formatSamplePrice(12.5) }}</strong>
+                        </div>
+                        <div class="preview-price-item">
+                          <span>Bouteille Prestige :</span>
+                          <strong class="price-val">{{ formatSamplePrice(85) }}</strong>
+                        </div>
+                        <div class="preview-price-item">
+                          <span>Total Addition Table :</span>
+                          <strong class="price-val total-val" data-testid="preview-cocktail-total">{{ formatSamplePrice(147.8) }}</strong>
+                        </div>
+                      </div>
+                    </ion-card-content>
+                  </ion-card>
+                </ion-col>
+              </ion-row>
+            </ion-grid>
+          </form>
+        </section>
+      }
+
+      <!-- ========================================== -->
+      <!-- TAB 4: Apparence & Thème Studio           -->
+      <!-- ========================================== -->
+      @if (activeTab === 'theme') {
+        <section class="tab-panel" data-testid="panel-theme">
+          <ion-grid>
+            <ion-row>
+              <!-- Colonne Gauche : Formulaire & Controls -->
+              <ion-col size="12" sizeLg="7">
+                <ion-card class="settings-card">
+                  <ion-card-header>
+                    <ion-card-title class="card-title">
+                      <ion-icon name="color-palette-outline" class="title-icon"></ion-icon>
+                      {{ 'THEME_CUSTOMIZER.TITLE' | transloco }}
+                    </ion-card-title>
+                  </ion-card-header>
+                  <ion-card-content>
+                    <!-- Mode Selector -->
+                    <div class="theme-mode-section">
+                      <h4 class="sub-title">{{ 'THEME_CUSTOMIZER.MODE_TITLE' | transloco }}</h4>
+                      <div class="mode-buttons-row">
+                        <button
+                          type="button"
+                          class="theme-mode-btn"
+                          [class.active]="activeTheme === 'dark'"
+                          (click)="onSetThemeMode('dark')"
+                          data-testid="theme-mode-dark">
+                          <ion-icon name="moon-outline"></ion-icon>
+                          {{ 'THEME_CUSTOMIZER.MODE_DARK' | transloco }}
+                        </button>
+                        <button
+                          type="button"
+                          class="theme-mode-btn"
+                          [class.active]="activeTheme === 'light'"
+                          (click)="onSetThemeMode('light')"
+                          data-testid="theme-mode-light">
+                          <ion-icon name="sunny-outline"></ion-icon>
+                          {{ 'THEME_CUSTOMIZER.MODE_LIGHT' | transloco }}
+                        </button>
+                        <button
+                          type="button"
+                          class="theme-mode-btn"
+                          [class.active]="activeTheme === 'system'"
+                          (click)="onSetThemeMode('system')"
+                          data-testid="theme-mode-system">
+                          <ion-icon name="desktop-outline"></ion-icon>
+                          {{ 'THEME_CUSTOMIZER.MODE_SYSTEM' | transloco }}
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- Presets -->
+                    <div class="theme-presets-section">
+                      <h4 class="sub-title">{{ 'THEME_CUSTOMIZER.PRESETS' | transloco }}</h4>
+                      <div class="theme-presets-grid">
+                        @for (preset of presets; track preset.key) {
+                          <button
+                            type="button"
+                            class="theme-preset-chip"
+                            [class.active]="isPresetActive(preset.key)"
+                            (click)="onApplyPreset(preset.key)"
+                            [attr.data-testid]="'preset-theme-' + preset.key">
+                            <span class="preset-color-dot" [style.background-color]="preset.colors.primary"></span>
+                            <span>{{ preset.name }}</span>
+                          </button>
+                        }
+                      </div>
+                    </div>
+
+                    <!-- HSL Auto-Generator Box -->
+                    <div class="auto-gen-box">
+                      <div class="gen-info">
+                        <h4>{{ 'THEME_CUSTOMIZER.AUTO_GEN_TITLE' | transloco }}</h4>
+                        <p>{{ 'THEME_CUSTOMIZER.AUTO_GEN_DESC' | transloco }}</p>
+                      </div>
+                      <app-action-button
+                        type="button"
+                        variant="secondary"
+                        icon="sparkles-outline"
+                        (btnClick)="onAutoGeneratePalette()"
+                        testId="btn-auto-gen-hsl">
+                        {{ 'THEME_CUSTOMIZER.AUTO_GENERATE' | transloco }}
+                      </app-action-button>
+                    </div>
+
+                    <!-- Formulaire Détaillé des Couleurs -->
+                    <form [formGroup]="colorForm" class="color-form">
+                      <!-- Primary Color -->
+                      <h4 class="sub-title" style="margin-top: 16px;">{{ 'THEME_CUSTOMIZER.PRIMARY_ACCENT' | transloco }}</h4>
+                      <div class="color-picker-row">
+                        <label for="input-primary" class="color-label">{{ 'THEME_CUSTOMIZER.PRIMARY_ACCENT_LABEL' | transloco }}</label>
+                        <div class="color-input-wrapper">
+                          <input
+                            type="color"
+                            id="input-primary"
+                            formControlName="primary"
+                            class="color-picker-input"
+                            data-testid="picker-primary" />
+                          <input
+                            type="text"
+                            id="text-primary"
+                            [attr.aria-label]="'THEME_CUSTOMIZER.HEX_PRIMARY' | transloco"
+                            formControlName="primary"
+                            class="hex-text-input" />
+                        </div>
+                      </div>
+
+                      <!-- Backgrounds Dark & Light -->
+                      <h4 class="sub-title" style="margin-top: 16px;">{{ 'THEME_CUSTOMIZER.BACKGROUNDS_SURFACES_TITLE' | transloco }}</h4>
+                      <div class="color-pickers-grid">
+                        <div class="color-picker-item">
+                          <label for="input-bgDark" class="color-label">{{ 'THEME_CUSTOMIZER.BACKGROUND_DARK' | transloco }}</label>
+                          <div class="color-input-wrapper">
+                            <input type="color" id="input-bgDark" formControlName="bgDark" class="color-picker-input" data-testid="picker-bgDark" />
+                            <input type="text" id="text-bgDark" [attr.aria-label]="'THEME_CUSTOMIZER.HEX_BG_DARK' | transloco" formControlName="bgDark" class="hex-text-input" />
+                          </div>
+                        </div>
+
+                        <div class="color-picker-item">
+                          <label for="input-surfaceDark" class="color-label">{{ 'THEME_CUSTOMIZER.SURFACE_DARK' | transloco }}</label>
+                          <div class="color-input-wrapper">
+                            <input type="color" id="input-surfaceDark" formControlName="surfaceDark" class="color-picker-input" data-testid="picker-surfaceDark" />
+                            <input type="text" id="text-surfaceDark" [attr.aria-label]="'THEME_CUSTOMIZER.HEX_SURFACE_DARK' | transloco" formControlName="surfaceDark" class="hex-text-input" />
+                          </div>
+                        </div>
+
+                        <div class="color-picker-item">
+                          <label for="input-bgLight" class="color-label">{{ 'THEME_CUSTOMIZER.BACKGROUND_LIGHT' | transloco }}</label>
+                          <div class="color-input-wrapper">
+                            <input type="color" id="input-bgLight" formControlName="bgLight" class="color-picker-input" data-testid="picker-bgLight" />
+                            <input type="text" id="text-bgLight" [attr.aria-label]="'THEME_CUSTOMIZER.HEX_BG_LIGHT' | transloco" formControlName="bgLight" class="hex-text-input" />
+                          </div>
+                        </div>
+
+                        <div class="color-picker-item">
+                          <label for="input-surfaceLight" class="color-label">{{ 'THEME_CUSTOMIZER.SURFACE_LIGHT' | transloco }}</label>
+                          <div class="color-input-wrapper">
+                            <input type="color" id="input-surfaceLight" formControlName="surfaceLight" class="color-picker-input" data-testid="picker-surfaceLight" />
+                            <input type="text" id="text-surfaceLight" [attr.aria-label]="'THEME_CUSTOMIZER.HEX_SURFACE_LIGHT' | transloco" formControlName="surfaceLight" class="hex-text-input" />
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Couleurs des Rôles -->
+                      <h4 class="sub-title" style="margin-top: 16px;">{{ 'THEME_CUSTOMIZER.ROLE_COLORS_TITLE' | transloco }}</h4>
+                      <div class="color-pickers-grid">
+                        <div class="color-picker-item">
+                          <label for="input-roleAdmin" class="color-label">{{ 'THEME_CUSTOMIZER.ROLE_ADMIN' | transloco }}</label>
+                          <div class="color-input-wrapper">
+                            <input type="color" id="input-roleAdmin" formControlName="roleAdmin" class="color-picker-input" data-testid="picker-roleAdmin" />
+                            <input type="text" id="text-roleAdmin" [attr.aria-label]="'THEME_CUSTOMIZER.HEX_ROLE_ADMIN' | transloco" formControlName="roleAdmin" class="hex-text-input" />
+                          </div>
+                        </div>
+
+                        <div class="color-picker-item">
+                          <label for="input-roleManager" class="color-label">{{ 'THEME_CUSTOMIZER.ROLE_MANAGER' | transloco }}</label>
+                          <div class="color-input-wrapper">
+                            <input type="color" id="input-roleManager" formControlName="roleManager" class="color-picker-input" data-testid="picker-roleManager" />
+                            <input type="text" id="text-roleManager" [attr.aria-label]="'THEME_CUSTOMIZER.HEX_ROLE_MANAGER' | transloco" formControlName="roleManager" class="hex-text-input" />
+                          </div>
+                        </div>
+
+                        <div class="color-picker-item">
+                          <label for="input-roleServeur" class="color-label">{{ 'THEME_CUSTOMIZER.ROLE_SERVEUR' | transloco }}</label>
+                          <div class="color-input-wrapper">
+                            <input type="color" id="input-roleServeur" formControlName="roleServeur" class="color-picker-input" data-testid="picker-roleServeur" />
+                            <input type="text" id="text-roleServeur" [attr.aria-label]="'THEME_CUSTOMIZER.HEX_ROLE_SERVEUR' | transloco" formControlName="roleServeur" class="hex-text-input" />
+                          </div>
+                        </div>
+
+                        <div class="color-picker-item">
+                          <label for="input-roleBarman" class="color-label">{{ 'THEME_CUSTOMIZER.ROLE_BARMAN' | transloco }}</label>
+                          <div class="color-input-wrapper">
+                            <input type="color" id="input-roleBarman" formControlName="roleBarman" class="color-picker-input" data-testid="picker-roleBarman" />
+                            <input type="text" id="text-roleBarman" [attr.aria-label]="'THEME_CUSTOMIZER.HEX_ROLE_BARMAN' | transloco" formControlName="roleBarman" class="hex-text-input" />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="theme-reset-row">
+                        <app-action-button
+                          type="button"
+                          variant="ghost"
+                          icon="refresh-outline"
+                          (btnClick)="onResetToDefaultTheme()"
+                          testId="btn-reset-default-theme">
+                          {{ 'THEME_CUSTOMIZER.RESET_DEFAULT' | transloco }}
+                        </app-action-button>
+                      </div>
+                    </form>
+                  </ion-card-content>
+                </ion-card>
+              </ion-col>
+
+              <!-- Colonne Droite : Preview Panel Réel en Direct -->
+              <ion-col size="12" sizeLg="5">
+                <ion-card class="settings-card preview-panel-card" data-testid="live-preview-card">
+                  <ion-card-header>
+                    <ion-card-title class="card-title">
+                      <ion-icon name="sparkles-outline" class="title-icon"></ion-icon>
+                      {{ 'THEME_CUSTOMIZER.LIVE_PREVIEW' | transloco }}
+                      <span class="live-badge">{{ 'THEME_CUSTOMIZER.LIVE_RENDER_BADGE' | transloco }}</span>
+                    </ion-card-title>
+                  </ion-card-header>
+                  <ion-card-content>
+                    <!-- Badges de rôles -->
+                    <div class="preview-section">
+                      <h4>{{ 'THEME_CUSTOMIZER.ROLE_BADGES_PREVIEW' | transloco }}</h4>
+                      <div class="roles-preview-row">
+                        <app-role-badge [role]="'ADMIN'"></app-role-badge>
+                        <app-role-badge [role]="'MANAGER'"></app-role-badge>
+                        <app-role-badge [role]="'SERVEUR'"></app-role-badge>
+                        <app-role-badge [role]="'BARMAN'"></app-role-badge>
+                      </div>
+                    </div>
+
+                    <!-- Boutons d'actions et variantes -->
+                    <div class="preview-section">
+                      <h4>{{ 'THEME_CUSTOMIZER.ACTION_BUTTONS_PREVIEW' | transloco }}</h4>
+                      <div class="buttons-preview-row">
+                        <app-action-button variant="primary">{{ 'THEME_CUSTOMIZER.PRIMARY_BTN' | transloco }}</app-action-button>
+                        <app-action-button variant="secondary">{{ 'THEME_CUSTOMIZER.SECONDARY_BTN' | transloco }}</app-action-button>
+                        <app-action-button variant="ghost">{{ 'THEME_CUSTOMIZER.GHOST_BTN' | transloco }}</app-action-button>
+                      </div>
+                    </div>
+
+                    <!-- Badges de statut de commandes -->
+                    <div class="preview-section">
+                      <h4>{{ 'THEME_CUSTOMIZER.ORDER_STATUS_PREVIEW' | transloco }}</h4>
+                      <div class="status-preview-row">
+                        <app-status-badge status="EN_ATTENTE"></app-status-badge>
+                        <app-status-badge status="EN_PREPARATION"></app-status-badge>
+                        <app-status-badge status="PRET"></app-status-badge>
+                      </div>
+                    </div>
+
+                    <!-- Échantillon interactif Carte Produit -->
+                    <div class="preview-sample-box">
+                      <div class="sample-title">{{ 'THEME_CUSTOMIZER.CARD_PREVIEW' | transloco }}</div>
+                      <div class="sample-desc">{{ 'THEME_CUSTOMIZER.SAMPLE_PRODUCT' | transloco }}</div>
+                      <div class="sample-bar"></div>
+                    </div>
+                  </ion-card-content>
+                </ion-card>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+        </section>
+      }
+
+      <!-- ========================================== -->
+      <!-- TAB 5: QR Codes & Wi-Fi Client            -->
+      <!-- ========================================== -->
+      @if (activeTab === 'qr') {
+        <section class="tab-panel" data-testid="panel-qr">
+          <form [formGroup]="appSettingsForm" class="settings-form">
+            <ion-grid>
+              <ion-row>
+                <!-- Column 1: Client Ordering Base URL & Wi-Fi Parameters -->
+                <ion-col size="12" size-lg="7">
+                  <ion-card class="settings-card">
+                    <ion-card-header>
+                      <ion-card-title>
+                        <ion-icon name="qr-code-outline" class="card-title-icon"></ion-icon>
+                        {{ 'SETTINGS.QR_SECTION_TITLE' | transloco }}
+                      </ion-card-title>
+                    </ion-card-header>
+                    <ion-card-content>
+                      <p class="section-intro-text">
+                        {{ 'SETTINGS.QR_SECTION_DESC' | transloco }}
+                      </p>
+
+                      <!-- Base URL Input -->
+                      <div class="form-group-block">
+                        <app-input-field
+                          formControlName="clientBaseUrl"
+                          [label]="'SETTINGS.QR_CLIENT_BASE_URL' | transloco"
+                          [helperText]="'SETTINGS.QR_CLIENT_BASE_URL_HINT' | transloco"
+                          placeholder="https://openbar.lan"
+                          testId="input-client-base-url">
+                        </app-input-field>
+                      </div>
+
+                      <div class="divider-line"></div>
+
+                      <!-- Wi-Fi Network Setup -->
+                      <div class="form-section-subtitle">
+                        <ion-icon name="wifi-outline"></ion-icon>
+                        <span>{{ 'SETTINGS.QR_WIFI_CONFIG_TITLE' | transloco }}</span>
+                      </div>
+
+                      <!-- Enable Wi-Fi Toggle -->
+                      <div class="toggle-row-box">
+                        <div class="toggle-info">
+                          <label class="toggle-title" for="wifi-enabled-toggle">{{ 'SETTINGS.QR_WIFI_ENABLED_LABEL' | transloco }}</label>
+                          <span class="toggle-desc">{{ 'SETTINGS.QR_WIFI_ENABLED_HINT' | transloco }}</span>
+                        </div>
+                        <input
+                          id="wifi-enabled-toggle"
+                          type="checkbox"
+                          formControlName="wifiEnabled"
+                          class="switch-input"
+                          data-testid="toggle-wifi-enabled" />
+                      </div>
+
+                      @if (appSettingsForm.get('wifiEnabled')?.value) {
+                        <div class="wifi-fields-container">
+                          <!-- Wi-Fi SSID -->
+                          <app-input-field
+                            formControlName="wifiSsid"
+                            [label]="'SETTINGS.QR_WIFI_SSID' | transloco"
+                            [helperText]="'SETTINGS.QR_WIFI_SSID_HINT' | transloco"
+                            placeholder="OpenBar-Guest"
+                            testId="input-wifi-ssid">
+                          </app-input-field>
+
+                          <!-- Wi-Fi Password -->
+                          <app-input-field
+                            formControlName="wifiPassword"
+                            [label]="'SETTINGS.QR_WIFI_PASSWORD' | transloco"
+                            [helperText]="'SETTINGS.QR_WIFI_PASSWORD_HINT' | transloco"
+                            placeholder="secretpass123"
+                            testId="input-wifi-password">
+                          </app-input-field>
+
+                          <!-- Wi-Fi Security Dropdown -->
+                          <div class="dropdown-wrapper">
+                            <app-searchable-select
+                              formControlName="wifiSecurity"
+                              [label]="'SETTINGS.QR_WIFI_SECURITY' | transloco"
+                              [options]="wifiSecurityOptions"
+                              [clearable]="false"
+                              [enableSearch]="false"
+                              testId="select-wifi-security">
+                            </app-searchable-select>
+                          </div>
+                        </div>
+                      }
+                    </ion-card-content>
+                  </ion-card>
+                </ion-col>
+
+                <!-- Column 2: Live QR Stand & Wi-Fi Preview Card -->
+                <ion-col size="12" size-lg="5">
+                  <ion-card class="settings-card sticky-preview-card">
+                    <ion-card-header>
+                      <ion-card-title>
+                        <ion-icon name="sparkles-outline" class="card-title-icon"></ion-icon>
+                        {{ 'SETTINGS.QR_PREVIEW_TITLE' | transloco }}
+                      </ion-card-title>
+                    </ion-card-header>
+                    <ion-card-content>
+                      <div class="stand-preview-mockup">
+                        <div class="mockup-stand-header">
+                          <span class="mockup-establishment-name">{{ appSettingsForm.get('establishmentName')?.value || 'OpenBar' }}</span>
+                          <span class="mockup-table-pill">Table 4</span>
+                        </div>
+                        <div class="mockup-qr-box">
+                          <ion-icon name="qr-code-outline" class="mockup-qr-icon"></ion-icon>
+                          <span class="mockup-scan-text">{{ 'TABLES.QR_SCAN_INSTRUCTION' | transloco }}</span>
+                        </div>
+                        <div class="mockup-url-text">
+                          {{ (appSettingsForm.get('clientBaseUrl')?.value || 'https://openbar.lan') }}/client/commande?table=4
+                        </div>
+
+                        @if (appSettingsForm.get('wifiEnabled')?.value && appSettingsForm.get('wifiSsid')?.value) {
+                          <div class="mockup-wifi-badge">
+                            <ion-icon name="wifi-outline"></ion-icon>
+                            <div class="mockup-wifi-text">
+                              <strong data-testid="preview-stand-ssid">Wi-Fi : {{ appSettingsForm.get('wifiSsid')?.value }}</strong>
+                              <span *ngIf="appSettingsForm.get('wifiPassword')?.value">Pass : {{ appSettingsForm.get('wifiPassword')?.value }}</span>
+                            </div>
+                          </div>
+                        }
+                      </div>
+                    </ion-card-content>
+                  </ion-card>
+                </ion-col>
+              </ion-row>
+            </ion-grid>
+          </form>
+        </section>
+      }
+    </main>
+
+    <!-- ============================================================== -->
+    <!-- STICKY BOTTOM SAVE BAR (TOUJOURS VISIBLE EN BAS DE L'ÉCRAN)    -->
+    <!-- ============================================================== -->
+    <footer class="sticky-save-bar" data-testid="sticky-save-bar">
+      <div class="bar-inner">
+        <div class="status-indicator">
+          @if (hasUnsavedChanges()) {
+            <span class="status-pill dirty" data-testid="status-dirty">
+              <span class="pulsing-amber-dot"></span>
+              {{ 'SETTINGS.STATUS_DIRTY' | transloco }}
+            </span>
+          } @else {
+            <span class="status-pill clean" data-testid="status-clean">
+              <span class="solid-green-dot"></span>
+              {{ 'SETTINGS.STATUS_CLEAN' | transloco }}
+            </span>
+          }
+        </div>
+
+        <div class="actions-group">
+          <button
+            type="button"
+            class="discard-btn"
+            [disabled]="!hasUnsavedChanges() || isSaving"
+            (click)="discardChanges()"
+            data-testid="btn-discard-changes">
+            <ion-icon name="refresh-outline"></ion-icon>
+            {{ 'SETTINGS.RESET_BTN' | transloco }}
+          </button>
+
+          <button
+            type="button"
+            class="save-btn"
+            [disabled]="!hasUnsavedChanges() || isSaving"
+            [class.active-dirty]="hasUnsavedChanges()"
+            (click)="saveAll()"
+            data-testid="btn-save-all-settings">
+            @if (isSaving) {
+              <ion-spinner name="crescent"></ion-spinner>
+              <span>{{ 'SETTINGS.SAVING' | transloco }}</span>
+            } @else {
+              <ion-icon name="save-outline"></ion-icon>
+              <span>{{ 'SETTINGS.SAVE_ALL_BTN' | transloco }}</span>
+            }
+          </button>
+        </div>
+      </div>
+    </footer>
+  }
+</div>

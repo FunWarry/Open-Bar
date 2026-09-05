@@ -1,0 +1,86 @@
+/* Toast Notification Banner — Figma ID 536:928 */
+
+:host {
+  display: block;
+  width: 100%;
+}
+
+.toast-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background-color: var(--surface-2, #21263f);
+  border: 1px solid var(--border-medium, #2e3450);
+  color: var(--text-primary, #eceefb);
+  box-shadow: var(--shadow-md);
+  font-family: var(--font, 'Inter', sans-serif);
+}
+
+.toast-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.toast-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.toast-message {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.toast-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary, #a4add0);
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.toast-close-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary, #eceefb);
+}
+
+/* Severities */
+.severity-success {
+  border-left: 4px solid var(--success, #2fbf6b);
+}
+.severity-success .toast-icon {
+  color: var(--success, #2fbf6b);
+}
+
+.severity-warning {
+  border-left: 4px solid var(--warning, #f4a52a);
+}
+.severity-warning .toast-icon {
+  color: var(--warning, #f4a52a);
+}
+
+.severity-danger {
+  border-left: 4px solid var(--danger, #e5604f);
+}
+.severity-danger .toast-icon {
+  color: var(--danger, #e5604f);
+}
+
+.severity-info {
+  border-left: 4px solid var(--primary, #6c7fe8);
+}
+.severity-info .toast-icon {
+  color: var(--primary, #6c7fe8);
+}

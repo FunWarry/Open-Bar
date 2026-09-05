@@ -1,0 +1,115 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="ticket-modal-toolbar">
+    <ion-title>{{ 'BARMAN_DASHBOARD.BAR_TICKET_PREVIEW' | transloco }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="dismiss()" (keyup.enter)="dismiss()" [attr.aria-label]="'COMMON.CLOSE' | transloco">
+        <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ticket-modal-content">
+  <div class="ticket-preview-wrapper">
+    <div class="thermal-receipt" data-testid="thermal-receipt-80mm">
+      <!-- En-tête du ticket -->
+      <div class="receipt-header">
+        <h2 class="establishment-title">{{ establishmentName }}</h2>
+        <div class="ticket-type">{{ 'BARMAN_DASHBOARD.PREPARATION_TICKET_HEADER' | transloco }}</div>
+      </div>
+
+      <div class="receipt-divider"></div>
+
+      <div class="ticket-meta">
+        <div class="meta-row highlight-table">
+          <span class="meta-label">{{ 'BARMAN_DASHBOARD.TABLE' | transloco }} :</span>
+          <strong class="table-val">{{ commande.tableNom || ('Table ' + commande.tableNumero) }}</strong>
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">{{ 'BARMAN_DASHBOARD.ORDER_NUM' | transloco }} :</span>
+          <strong>#{{ commande.id }}</strong>
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">{{ 'BARMAN_DASHBOARD.SERVER' | transloco }} :</span>
+          <span>{{ commande.serveurNom || commande.serveurUsername || '-' }}</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">{{ 'BARMAN_DASHBOARD.TIME' | transloco }} :</span>
+          <span>{{ commande.dateCommande | date:'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+        @if (commande.prioritaire) {
+          <div class="priority-banner">
+            ⚡ {{ 'BARMAN_DASHBOARD.PRIORITY_ORDER' | transloco }} ⚡
+          </div>
+        }
+      </div>
+
+      <div class="receipt-divider"></div>
+
+      <!-- Articles commandés -->
+      <div class="receipt-items">
+        @for (item of groupedItems; track item.id) {
+          <div class="receipt-item-row">
+            <div class="item-main">
+              <span class="item-qty">{{ item.quantite }}x</span>
+              <span class="item-name">{{ item.cocktailNom }}</span>
+            </div>
+            @if (item.varianteNom) {
+              <div class="item-sub">
+                ↳ {{ 'BARMAN_DASHBOARD.VARIANT_LABEL' | transloco }} : {{ item.varianteNom }}
+              </div>
+            }
+            @if (item.notes) {
+              <div class="item-note">
+                ↳ {{ 'BARMAN_DASHBOARD.NOTE_LABEL' | transloco }} : {{ item.notes }}
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="receipt-divider"></div>
+
+      <!-- Consignes globales de la commande -->
+      @if (commande.notes) {
+        <div class="receipt-notes">
+          <div class="notes-header">{{ 'BARMAN_DASHBOARD.INSTRUCTIONS_LABEL' | transloco }}</div>
+          <div class="notes-body">{{ commande.notes }}</div>
+        </div>
+        <div class="receipt-divider"></div>
+      }
+
+      <!-- Récapitulatif -->
+      <div class="receipt-summary">
+        <div class="summary-row">
+          <span>{{ 'BARMAN_DASHBOARD.TOTAL_ITEMS_LABEL' | transloco }}</span>
+          <strong>{{ totalItemsCount }}</strong>
+        </div>
+      </div>
+
+      <div class="receipt-divider"></div>
+
+      <!-- Bas de ticket -->
+      <div class="receipt-footer">
+        <div class="service-tag">{{ 'BARMAN_DASHBOARD.SERVICE_COUNTER_BAR' | transloco }}</div>
+        <div class="print-timestamp">{{ 'BARMAN_DASHBOARD.PRINTED_AT' | transloco: { date: (now | date:'dd/MM/yyyy HH:mm:ss') } }}</div>
+      </div>
+    </div>
+  </div>
+</ion-content>
+
+<ion-footer class="ticket-modal-footer">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button color="medium" (click)="dismiss()" (keyup.enter)="dismiss()">
+        {{ 'COMMON.CANCEL' | transloco }}
+      </ion-button>
+    </ion-buttons>
+    <ion-buttons slot="end">
+      <ion-button color="primary" fill="solid" (click)="printTicket()" (keyup.enter)="printTicket()" data-testid="confirm-print-btn">
+        <ion-icon slot="start" name="print-outline"></ion-icon>
+        {{ 'BARMAN_DASHBOARD.PRINT_BUTTON' | transloco }}
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>

@@ -1,0 +1,117 @@
+<aside
+  class="sidebar"
+  [class.collapsed]="isCollapsed()"
+  data-testid="sidebar-container"
+  aria-label="Sidebar Navigation">
+
+  <!-- Header: Brand Name + Collapse / Expand toggle button -->
+  <div class="sidebar-header">
+    @if (!isCollapsed()) {
+      <button
+        type="button"
+        class="sidebar-brand"
+        (click)="navigationService.navigateToHome()"
+        (keyup.enter)="navigationService.navigateToHome()"
+        data-testid="sidebar-brand">
+        OpenBar
+      </button>
+    }
+    <button
+      type="button"
+      class="collapse-toggle-btn"
+      (click)="toggleCollapse()"
+      (keyup.enter)="toggleCollapse()"
+      [title]="isCollapsed() ? ('NAV.SIDEBAR.EXPAND' | transloco) : ('NAV.SIDEBAR.COLLAPSE' | transloco)"
+      data-testid="sidebar-toggle-btn">
+      <ion-icon
+        [name]="isCollapsed() ? 'chevron-forward-outline' : 'chevron-back-outline'"
+        class="toggle-icon">
+      </ion-icon>
+    </button>
+  </div>
+
+  @if (currentUser$ | async; as user) {
+    <!-- Main Navigation List -->
+    <nav class="sidebar-nav" aria-label="Main Navigation">
+
+      <!-- Section: Main links -->
+      <div class="nav-section">
+        @if (!isCollapsed()) {
+          <div class="section-title">{{ 'NAV.SIDEBAR.NAVIGATION' | transloco }}</div>
+        }
+        @for (item of getNavItemsForUser(user, 'main'); track item.id) {
+          <a
+            [routerLink]="item.route"
+            routerLinkActive="active"
+            class="nav-item"
+            [title]="isCollapsed() ? (item.labelKey | transloco) : ''"
+            [attr.data-testid]="item.id">
+            <ion-icon [name]="item.icon" class="nav-icon"></ion-icon>
+            @if (!isCollapsed()) {
+              <span class="nav-label">{{ item.labelKey | transloco }}</span>
+            }
+          </a>
+        }
+      </div>
+
+      <!-- Section: Admin & Management links -->
+      @if (getNavItemsForUser(user, 'admin').length > 0) {
+        <div class="nav-section">
+          @if (!isCollapsed()) {
+            <div class="section-title">{{ 'NAV.SIDEBAR.MANAGEMENT' | transloco }}</div>
+          } @else {
+            <div class="section-divider"></div>
+          }
+          @for (item of getNavItemsForUser(user, 'admin'); track item.id) {
+            <a
+              [routerLink]="item.route"
+              routerLinkActive="active"
+              class="nav-item"
+              [title]="isCollapsed() ? (item.labelKey | transloco) : ''"
+              [attr.data-testid]="item.id">
+              <ion-icon [name]="item.icon" class="nav-icon"></ion-icon>
+              @if (!isCollapsed()) {
+                <span class="nav-label">{{ item.labelKey | transloco }}</span>
+              }
+            </a>
+          }
+        </div>
+      }
+
+    </nav>
+
+    <!-- Footer: User Avatar & Logout (Figma ID 120:8) -->
+    <div class="sidebar-footer" data-testid="sidebar-footer">
+      <div class="user-info">
+        <!-- Avatar circle with role color background -->
+        <div
+          class="user-avatar"
+          [style.background-color]="getRoleColor(user)"
+          [title]="user.username + ' (' + getPrimaryRole(user) + ')'"
+          data-testid="sidebar-avatar">
+          {{ getUserInitial(user) }}
+        </div>
+
+        @if (!isCollapsed()) {
+          <div class="user-details">
+            <span class="username" data-testid="sidebar-username">{{ user.username }}</span>
+            <span class="role-name" data-testid="sidebar-rolename">
+              {{ 'NAV.TOPBAR.ROLE_LABELS.' + getPrimaryRole(user) | transloco }}
+            </span>
+          </div>
+        }
+      </div>
+
+      <!-- Quick Logout Button -->
+      <button
+        type="button"
+        class="logout-btn"
+        (click)="onLogout()"
+        (keyup.enter)="onLogout()"
+        [title]="'NAV.LOGOUT' | transloco"
+        data-testid="sidebar-logout-btn">
+        <ion-icon name="log-out-outline" class="logout-icon"></ion-icon>
+      </button>
+    </div>
+  }
+</aside>

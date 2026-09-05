@@ -1,0 +1,487 @@
+<div class="order-timers-page" *transloco="let t">
+  <!-- Page Header -->
+  <div class="timers-header">
+    <div class="header-icon-box">
+      <ion-icon name="timer-outline"></ion-icon>
+    </div>
+    <div class="header-text">
+      <h1 class="page-title">{{ t('ORDER_TIMERS.TITLE') }}</h1>
+      <p class="page-subtitle">{{ t('ORDER_TIMERS.SUBTITLE') }}</p>
+    </div>
+  </div>
+
+  <div *ngIf="isLoading" class="loading-state">
+    <ion-spinner name="crescent" color="primary"></ion-spinner>
+    <p>{{ t('COMMON.LOADING') }}</p>
+  </div>
+
+  <div *ngIf="!isLoading" class="timers-content-grid">
+    <!-- Left Column: Settings Form & Presets -->
+    <div class="settings-column">
+      <!-- Presets Card -->
+      <ion-card class="section-card presets-card">
+        <ion-card-header>
+          <div class="card-header-flex">
+            <ion-icon name="speedometer-outline" class="card-header-icon"></ion-icon>
+            <div>
+              <ion-card-title class="card-title">{{ t('ORDER_TIMERS.ESTIMATED_PACE') }}</ion-card-title>
+              <ion-card-subtitle>{{ t('ORDER_TIMERS.SUBTITLE') }}</ion-card-subtitle>
+            </div>
+          </div>
+        </ion-card-header>
+        <ion-card-content>
+          <div class="presets-buttons-row">
+            <button
+              *ngFor="let p of presets"
+              type="button"
+              class="preset-chip-btn"
+              [attr.data-testid]="'preset-btn-' + p.id"
+              (click)="applyPreset(p)"
+              (keyup.enter)="applyPreset(p)">
+              <span class="preset-name">{{ t(p.labelKey) }}</span>
+              <span class="preset-timing">{{ p.warning }}m / {{ p.urgent }}m / {{ p.critical }}m</span>
+            </button>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- Currency Configuration Card -->
+      <ion-card class="section-card currency-card" data-testid="card-currency-settings">
+        <ion-card-header>
+          <div class="card-header-flex">
+            <ion-icon name="cash-outline" class="card-header-icon highlight-icon"></ion-icon>
+            <div>
+              <ion-card-title class="card-title">{{ t('SETTINGS.CURRENCY_TITLE') }}</ion-card-title>
+              <ion-card-subtitle>{{ t('SETTINGS.CURRENCY_SUBTITLE') }}</ion-card-subtitle>
+            </div>
+          </div>
+        </ion-card-header>
+        <ion-card-content>
+          <!-- Currency Quick Presets -->
+          <div class="currency-presets-section">
+            <span class="presets-label">{{ t('SETTINGS.CURRENCY_PRESETS') }}</span>
+            <div class="currency-presets-row">
+              <button
+                *ngFor="let cp of currencyPresets"
+                type="button"
+                class="currency-preset-btn"
+                [class.active-preset]="currentCurrencyCode === cp.code && currentCurrencySymbol === cp.symbol"
+                [attr.data-testid]="'currency-preset-btn-' + cp.code"
+                (click)="applyCurrencyPreset(cp)"
+                (keyup.enter)="applyCurrencyPreset(cp)">
+                {{ cp.label }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Currency Form Inputs -->
+          <form [formGroup]="timersForm">
+            <div class="currency-inputs-grid">
+              <!-- Currency Code -->
+              <div class="currency-input-group">
+                <label for="currency-code-input" class="input-label">
+                  <ion-icon name="globe-outline"></ion-icon>
+                  {{ t('SETTINGS.CURRENCY_CODE') }}
+                </label>
+                <input
+                  id="currency-code-input"
+                  type="text"
+                  class="custom-text-input"
+                  maxlength="3"
+                  formControlName="currencyCode"
+                  data-testid="currency-code-input"
+                  placeholder="EUR" />
+              </div>
+
+              <!-- Currency Symbol -->
+              <div class="currency-input-group">
+                <label for="currency-symbol-input" class="input-label">
+                  <ion-icon name="pricetag-outline"></ion-icon>
+                  {{ t('SETTINGS.CURRENCY_SYMBOL') }}
+                </label>
+                <input
+                  id="currency-symbol-input"
+                  type="text"
+                  class="custom-text-input"
+                  maxlength="10"
+                  formControlName="currencySymbol"
+                  data-testid="currency-symbol-input"
+                  placeholder="€" />
+              </div>
+            </div>
+
+            <!-- Currency Position Radio Selector -->
+            <div class="currency-position-group">
+              <span class="input-label">{{ t('SETTINGS.CURRENCY_POSITION') }}</span>
+              <div class="position-toggle-row">
+                <button
+                  type="button"
+                  class="pos-toggle-btn"
+                  [class.pos-active]="currentCurrencyPosition === 'AFTER'"
+                  data-testid="currency-pos-after-btn"
+                  (click)="timersForm.get('currencyPosition')?.setValue('AFTER'); timersForm.markAsDirty()"
+                  (keyup.enter)="timersForm.get('currencyPosition')?.setValue('AFTER'); timersForm.markAsDirty()">
+                  <span>{{ t('SETTINGS.CURRENCY_POS_AFTER') }}</span>
+                </button>
+                <button
+                  type="button"
+                  class="pos-toggle-btn"
+                  [class.pos-active]="currentCurrencyPosition === 'BEFORE'"
+                  data-testid="currency-pos-before-btn"
+                  (click)="timersForm.get('currencyPosition')?.setValue('BEFORE'); timersForm.markAsDirty()"
+                  (keyup.enter)="timersForm.get('currencyPosition')?.setValue('BEFORE'); timersForm.markAsDirty()">
+                  <span>{{ t('SETTINGS.CURRENCY_POS_BEFORE') }}</span>
+                </button>
+              </div>
+            </div>
+          </form>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- Form Controls Card -->
+      <ion-card class="section-card form-card">
+        <ion-card-content>
+          <form [formGroup]="timersForm" (ngSubmit)="onSubmit()">
+            <!-- Warning Threshold -->
+            <div class="threshold-group warning-group" data-testid="threshold-warning-group">
+              <div class="threshold-header">
+                <div class="threshold-title-box">
+                  <span class="indicator-dot warning-dot"></span>
+                  <strong class="threshold-title">{{ t('ORDER_TIMERS.WARNING_TITLE') }}</strong>
+                </div>
+                <div class="stepper-box">
+                  <button
+                    type="button"
+                    class="step-btn"
+                    data-testid="warning-btn-minus"
+                    (click)="adjustValue('tempsAlerteWarningMinutes', -1)">-</button>
+                  <span class="step-value" data-testid="warning-value-display">
+                    {{ timersForm.get('tempsAlerteWarningMinutes')?.value }} {{ t('ORDER_TIMERS.MINUTES_UNIT') }}
+                  </span>
+                  <button
+                    type="button"
+                    class="step-btn"
+                    data-testid="warning-btn-plus"
+                    (click)="adjustValue('tempsAlerteWarningMinutes', 1)">+</button>
+                </div>
+              </div>
+              <p class="threshold-desc">{{ t('ORDER_TIMERS.WARNING_DESC') }}</p>
+              <ion-range
+                formControlName="tempsAlerteWarningMinutes"
+                [min]="1"
+                [max]="60"
+                [step]="1"
+                [pin]="true"
+                color="warning"
+                class="threshold-range"
+                data-testid="warning-range-slider">
+              </ion-range>
+            </div>
+
+            <!-- Urgent Threshold -->
+            <div class="threshold-group urgent-group" data-testid="threshold-urgent-group">
+              <div class="threshold-header">
+                <div class="threshold-title-box">
+                  <span class="indicator-dot urgent-dot"></span>
+                  <strong class="threshold-title">{{ t('ORDER_TIMERS.URGENT_TITLE') }}</strong>
+                </div>
+                <div class="stepper-box">
+                  <button
+                    type="button"
+                    class="step-btn"
+                    data-testid="urgent-btn-minus"
+                    (click)="adjustValue('tempsAlerteCommandeMinutes', -1)">-</button>
+                  <span class="step-value" data-testid="urgent-value-display">
+                    {{ timersForm.get('tempsAlerteCommandeMinutes')?.value }} {{ t('ORDER_TIMERS.MINUTES_UNIT') }}
+                  </span>
+                  <button
+                    type="button"
+                    class="step-btn"
+                    data-testid="urgent-btn-plus"
+                    (click)="adjustValue('tempsAlerteCommandeMinutes', 1)">+</button>
+                </div>
+              </div>
+              <p class="threshold-desc">{{ t('ORDER_TIMERS.URGENT_DESC') }}</p>
+              <ion-range
+                formControlName="tempsAlerteCommandeMinutes"
+                [min]="1"
+                [max]="90"
+                [step]="1"
+                [pin]="true"
+                color="danger"
+                class="threshold-range"
+                data-testid="urgent-range-slider">
+              </ion-range>
+            </div>
+
+            <!-- Critical Threshold -->
+            <div class="threshold-group critical-group" data-testid="threshold-critical-group">
+              <div class="threshold-header">
+                <div class="threshold-title-box">
+                  <span class="indicator-dot critical-dot"></span>
+                  <strong class="threshold-title">{{ t('ORDER_TIMERS.CRITICAL_TITLE') }}</strong>
+                </div>
+                <div class="stepper-box">
+                  <button
+                    type="button"
+                    class="step-btn"
+                    data-testid="critical-btn-minus"
+                    (click)="adjustValue('tempsAlerteCritiqueCommandeMinutes', -1)">-</button>
+                  <span class="step-value" data-testid="critical-value-display">
+                    {{ timersForm.get('tempsAlerteCritiqueCommandeMinutes')?.value }} {{ t('ORDER_TIMERS.MINUTES_UNIT') }}
+                  </span>
+                  <button
+                    type="button"
+                    class="step-btn"
+                    data-testid="critical-btn-plus"
+                    (click)="adjustValue('tempsAlerteCritiqueCommandeMinutes', 1)">+</button>
+                </div>
+              </div>
+              <p class="threshold-desc">{{ t('ORDER_TIMERS.CRITICAL_DESC') }}</p>
+              <ion-range
+                formControlName="tempsAlerteCritiqueCommandeMinutes"
+                [min]="1"
+                [max]="120"
+                [step]="1"
+                [pin]="true"
+                color="danger"
+                class="threshold-range"
+                data-testid="critical-range-slider">
+              </ion-range>
+            </div>
+
+            <!-- Validation Error Alert -->
+            <div
+              *ngIf="timersForm.errors?.['invalidThresholdHierarchy']"
+              class="validation-error-banner"
+              data-testid="validation-hierarchy-error">
+              <ion-icon name="alert-circle-outline"></ion-icon>
+              <span>{{ t('ORDER_TIMERS.INVALID_ORDER_ERROR') }}</span>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="form-actions-row">
+              <button
+                type="button"
+                class="btn-secondary-action"
+                (click)="resetToDefaults()"
+                (keyup.enter)="resetToDefaults()"
+                data-testid="btn-reset-defaults">
+                <ion-icon name="refresh-outline"></ion-icon>
+                <span>{{ t('ORDER_TIMERS.RESET_DEFAULTS') }}</span>
+              </button>
+
+              <button
+                type="submit"
+                class="btn-primary-save"
+                [disabled]="timersForm.invalid || isSaving"
+                data-testid="btn-save-timers">
+                <ion-spinner *ngIf="isSaving" name="crescent"></ion-spinner>
+                <ion-icon *ngIf="!isSaving" name="save-outline"></ion-icon>
+                <span>{{ (isSaving ? 'ORDER_TIMERS.SAVING' : 'ORDER_TIMERS.SAVE_BUTTON') | transloco }}</span>
+              </button>
+            </div>
+          </form>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- Audio Alert Test Card -->
+      <ion-card class="section-card audio-test-card">
+        <ion-card-header>
+          <div class="card-header-flex">
+            <ion-icon name="volume-high-outline" class="card-header-icon"></ion-icon>
+            <div>
+              <ion-card-title class="card-title">{{ t('ORDER_TIMERS.SOUND_TEST_TITLE') }}</ion-card-title>
+              <ion-card-subtitle>{{ t('ORDER_TIMERS.SOUND_TEST_DESC') }}</ion-card-subtitle>
+            </div>
+          </div>
+        </ion-card-header>
+        <ion-card-content>
+          <div class="sound-buttons-grid">
+            <button
+              type="button"
+              class="sound-btn"
+              data-testid="sound-test-new-order"
+              (click)="testNewOrderSound()">
+              <span>🔔 {{ t('ORDER_TIMERS.SOUND_NEW_ORDER') }}</span>
+            </button>
+
+            <button
+              type="button"
+              class="sound-btn"
+              data-testid="sound-test-order-ready"
+              (click)="testOrderReadySound()">
+              <span>🍹 {{ t('ORDER_TIMERS.SOUND_ORDER_READY') }}</span>
+            </button>
+
+            <button
+              type="button"
+              class="sound-btn urgent-sound-btn"
+              data-testid="sound-test-urgent"
+              (click)="testUrgentAlertSound()">
+              <span>⚠️ {{ t('ORDER_TIMERS.SOUND_URGENT') }}</span>
+            </button>
+          </div>
+        </ion-card-content>
+      </ion-card>
+    </div>
+
+    <!-- Right Column: Live Simulation & Preview -->
+    <div class="preview-column">
+      <ion-card class="section-card preview-card" data-testid="live-preview-card">
+        <ion-card-header>
+          <div class="card-header-flex">
+            <ion-icon name="flash-outline" class="card-header-icon highlight-icon"></ion-icon>
+            <div>
+              <ion-card-title class="card-title">{{ t('ORDER_TIMERS.PREVIEW_TITLE') }}</ion-card-title>
+              <ion-card-subtitle>{{ t('ORDER_TIMERS.PREVIEW_SUBTITLE') }}</ion-card-subtitle>
+            </div>
+          </div>
+        </ion-card-header>
+        <ion-card-content>
+          <!-- Time Simulator Slider -->
+          <div class="simulator-slider-box">
+            <div class="sim-header">
+              <span class="sim-label">{{ t('ORDER_TIMERS.SIMULATION_LABEL') }}</span>
+              <strong class="sim-value" data-testid="simulated-time-display">
+                ⏱️ {{ simulatedMinutes() }} {{ t('ORDER_TIMERS.MINUTES_UNIT') }}
+              </strong>
+            </div>
+            <ion-range
+              [min]="0"
+              [max]="25"
+              [step]="1"
+              [pin]="true"
+              [value]="simulatedMinutes()"
+              (ionChange)="simulatedMinutes.set($any($event).detail.value)"
+              color="primary"
+              data-testid="simulation-range-slider">
+            </ion-range>
+          </div>
+
+          <!-- Mock Order Card Render -->
+          <div
+            class="mock-ticket-card"
+            [class.severity-normal]="simulatedSeverity === 'normal'"
+            [class.severity-warning]="simulatedSeverity === 'warning'"
+            [class.severity-urgent]="simulatedSeverity === 'urgent'"
+            [class.severity-critical]="simulatedSeverity === 'critical'"
+            [style.border-left-color]="simulatedBorderColor"
+            data-testid="mock-ticket-display">
+            <!-- Ticket Header -->
+            <div class="ticket-header">
+              <div class="ticket-table-info">
+                <span class="table-name">Table 4</span>
+                <span class="server-badge">Serveur : Alex</span>
+              </div>
+              <div class="ticket-time-box">
+                <span class="ticket-elapsed-badge" [class.pulse-danger]="simulatedSeverity === 'critical'">
+                  ⏱️ {{ simulatedMinutes() }}:00
+                </span>
+              </div>
+            </div>
+
+            <!-- Ticket Items -->
+            <div class="ticket-items">
+              <div class="ticket-item">
+                <div class="ticket-item-left">
+                  <span class="qty">2×</span>
+                  <span class="item-name">Mojito Royal</span>
+                </div>
+                <span class="item-price" data-testid="preview-cocktail-price-1">{{ formatPreviewPrice(17.00) }}</span>
+              </div>
+              <div class="ticket-item">
+                <div class="ticket-item-left">
+                  <span class="qty">1×</span>
+                  <span class="item-name">Old Fashioned</span>
+                </div>
+                <span class="item-price" data-testid="preview-cocktail-price-2">{{ formatPreviewPrice(9.00) }}</span>
+              </div>
+            </div>
+
+            <!-- Ticket Total Row -->
+            <div class="ticket-total-preview-row">
+              <span class="total-label">Total :</span>
+              <strong class="total-price" data-testid="preview-cocktail-total">{{ formatPreviewPrice(26.00) }}</strong>
+            </div>
+
+            <!-- Ticket Footer -->
+            <div class="ticket-footer">
+              <span class="status-indicator">
+                <span class="status-dot"></span>
+                En attente
+              </span>
+
+              <!-- Dynamic Urgency Badge -->
+              <span
+                *ngIf="simulatedSeverity === 'normal'"
+                class="severity-badge normal-badge"
+                data-testid="preview-severity-normal">
+                ✓ {{ t('ORDER_TIMERS.PREVIEW_NORMAL', { min: warningThreshold }) }}
+              </span>
+
+              <span
+                *ngIf="simulatedSeverity === 'warning'"
+                class="severity-badge warning-badge"
+                data-testid="preview-severity-warning">
+                ⚡ {{ t('ORDER_TIMERS.PREVIEW_WARNING', { min: warningThreshold, urgent: urgentThreshold }) }}
+              </span>
+
+              <span
+                *ngIf="simulatedSeverity === 'urgent'"
+                class="severity-badge urgent-badge"
+                data-testid="preview-severity-urgent">
+                🔥 {{ t('ORDER_TIMERS.PREVIEW_URGENT', { min: urgentThreshold, crit: criticalThreshold }) }}
+              </span>
+
+              <span
+                *ngIf="simulatedSeverity === 'critical'"
+                class="severity-badge critical-badge pulse-animation"
+                data-testid="preview-severity-critical">
+                🚨 {{ t('ORDER_TIMERS.PREVIEW_CRITICAL', { min: criticalThreshold }) }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Threshold Hierarchy Legend -->
+          <div class="hierarchy-legend-box">
+            <h3 class="legend-title">{{ t('ORDER_TIMERS.ACTIVE_THRESHOLDS_TITLE') }}</h3>
+            <div class="legend-items">
+              <div class="legend-item">
+                <span class="legend-dot normal-dot"></span>
+                <div class="legend-desc">
+                  <strong>{{ t('ORDER_TIMERS.PREVIEW_NORMAL', { min: warningThreshold }) }}</strong>
+                  <p>{{ t('ORDER_TIMERS.PREVIEW_NORMAL_DESC') }}</p>
+                </div>
+              </div>
+
+              <div class="legend-item">
+                <span class="legend-dot warning-dot"></span>
+                <div class="legend-desc">
+                  <strong>{{ t('ORDER_TIMERS.PREVIEW_WARNING', { min: warningThreshold, urgent: urgentThreshold }) }}</strong>
+                  <p>{{ t('ORDER_TIMERS.PREVIEW_WARNING_DESC') }}</p>
+                </div>
+              </div>
+
+              <div class="legend-item">
+                <span class="legend-dot urgent-dot"></span>
+                <div class="legend-desc">
+                  <strong>{{ t('ORDER_TIMERS.PREVIEW_URGENT', { min: urgentThreshold, crit: criticalThreshold }) }}</strong>
+                  <p>{{ t('ORDER_TIMERS.PREVIEW_URGENT_DESC') }}</p>
+                </div>
+              </div>
+
+              <div class="legend-item">
+                <span class="legend-dot critical-dot"></span>
+                <div class="legend-desc">
+                  <strong>{{ t('ORDER_TIMERS.PREVIEW_CRITICAL', { min: criticalThreshold }) }}</strong>
+                  <p>{{ t('ORDER_TIMERS.PREVIEW_CRITICAL_DESC') }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </ion-card-content>
+      </ion-card>
+    </div>
+  </div>
+</div>
