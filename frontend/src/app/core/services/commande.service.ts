@@ -53,16 +53,37 @@ export class CommandeService {
     return this.http.patch<Commande>(`${this.api}/${commandeId}/annuler`, {});
   }
 
-  setPriorite(commandeId: number, priorite: boolean): Observable<Commande> {
-    return this.http.patch<Commande>(`${this.api}/${commandeId}/urgent?urgent=${priorite}`, {});
-  }
-
-  toggleUrgent(commandeId: number): Observable<Commande> {
-    return this.http.post<Commande>(`${this.api}/${commandeId}/toggle-urgent`, {});
-  }
-
+  /**
+   * Sets the urgent priority status of an order.
+   *
+   * @param commandeId Unique identifier of the order.
+   * @param urgent Priority flag.
+   * @returns Observable emitting the updated {@link Commande}.
+   */
   setUrgent(commandeId: number, urgent: boolean): Observable<Commande> {
     return this.http.patch<Commande>(`${this.api}/${commandeId}/urgent?urgent=${urgent}`, {});
+  }
+
+  /**
+   * Sets the priority status of an order.
+   *
+   * @deprecated Use {@link setUrgent} instead.
+   * @param commandeId Unique identifier of the order.
+   * @param priorite Priority flag.
+   * @returns Observable emitting the updated {@link Commande}.
+   */
+  setPriorite(commandeId: number, priorite: boolean): Observable<Commande> {
+    return this.setUrgent(commandeId, priorite);
+  }
+
+  /**
+   * Toggles the urgent priority status of an order.
+   *
+   * @param commandeId Unique identifier of the order.
+   * @returns Observable emitting the updated {@link Commande}.
+   */
+  toggleUrgent(commandeId: number): Observable<Commande> {
+    return this.http.post<Commande>(`${this.api}/${commandeId}/toggle-urgent`, {});
   }
 
   /**
