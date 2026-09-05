@@ -390,4 +390,46 @@ describe('ClientCommandeComponent', () => {
       color: 'danger'
     }));
   }));
+
+  it('should apply matcher filters and update filtered cocktails list', () => {
+    component.cocktails = [
+      { id: 1, nom: 'Virgin Mojito', categorie: 'SANS_ALCOOL', prix: 6, disponible: true, isMocktail: true, isVegan: true, isGlutenFree: true, alcoholLevel: 0, flavorProfiles: ['FRUITY', 'HERBAL'] } as any,
+      { id: 2, nom: 'Smoky Mezcal', categorie: 'ALCOOLISE', prix: 12, disponible: true, isMocktail: false, isVegan: false, isGlutenFree: true, alcoholLevel: 25, flavorProfiles: ['SMOKY'] } as any
+    ];
+
+    component.onMatcherFiltersChange({
+      flavors: ['FRUITY'],
+      mocktail: true,
+      vegan: true,
+      glutenFree: true,
+      lowAbv: false
+    });
+
+    expect(component.selectedFlavors).toEqual(['FRUITY']);
+    expect(component.filterMocktail).toBeTrue();
+    expect(component.filteredCocktails).toHaveSize(1);
+    expect(component.filteredCocktails[0].nom).toBe('Virgin Mojito');
+  });
+
+  it('should reset matcher filters and restore filtered cocktails', () => {
+    component.cocktails = [
+      { id: 1, nom: 'Virgin Mojito', categorie: 'SANS_ALCOOL', prix: 6, disponible: true, isMocktail: true, isVegan: true, isGlutenFree: true, alcoholLevel: 0, flavorProfiles: ['FRUITY'] } as any,
+      { id: 2, nom: 'Smoky Mezcal', categorie: 'ALCOOLISE', prix: 12, disponible: true, isMocktail: false, isVegan: false, isGlutenFree: true, alcoholLevel: 25, flavorProfiles: ['SMOKY'] } as any
+    ];
+    component.selectedCategory = 'TOUS';
+    component.onMatcherFiltersChange({
+      flavors: ['SMOKY'],
+      mocktail: false,
+      vegan: false,
+      glutenFree: false,
+      lowAbv: false
+    });
+    expect(component.filteredCocktails).toHaveSize(1);
+
+    component.onResetMatcherFilters();
+
+    expect(component.selectedFlavors).toEqual([]);
+    expect(component.filterMocktail).toBeFalse();
+    expect(component.filteredCocktails).toHaveSize(2);
+  });
 });
