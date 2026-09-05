@@ -38,12 +38,22 @@ test.describe('Table QR Code Generator and Export E2E', () => {
     await expect(page.locator('[data-testid="table-qr-batch-modal"]')).not.toBeVisible();
   });
 
-  test('should open individual QR modal from table card and copy URL', async ({ page }) => {
+  test('should open individual QR modal from table details and copy URL', async ({ page }) => {
     await page.goto('/tables');
-    const tableQrBtn = page.locator('[data-testid="table-card-qr-btn-1"]').first();
-    await expect(tableQrBtn).toBeVisible();
+    // Ensure QR button does NOT appear on table cards
+    await expect(page.locator('[data-testid="table-card-qr-btn-1"]')).toHaveCount(0);
 
-    await tableQrBtn.click();
+    // Open table details modal
+    const viewBtn = page.locator('[data-testid="table-view-btn"]').first();
+    await expect(viewBtn).toBeVisible();
+    await viewBtn.click();
+    await expect(page.locator('[data-testid="table-detail-modal"]')).toBeVisible();
+
+    // Open QR modal from table details
+    const tableDetailQrBtn = page.locator('[data-testid="table-detail-qr-btn"]');
+    await expect(tableDetailQrBtn).toBeVisible();
+    await tableDetailQrBtn.click();
+
     await expect(page.locator('[data-testid="table-qr-modal"]')).toBeVisible();
     await expect(page.locator('[data-testid="table-qr-image"]')).toBeVisible();
     await expect(page.locator('[data-testid="table-order-url-input"]')).toBeVisible();
@@ -52,9 +62,13 @@ test.describe('Table QR Code Generator and Export E2E', () => {
     await page.click('[data-testid="qr-format-svg-btn"]');
     await expect(page.locator('[data-testid="qr-format-svg-btn"]')).toHaveClass(/active/);
 
-    // Close modal
+    // Close QR modal
     await page.click('[data-testid="close-qr-modal-btn"]');
     await expect(page.locator('[data-testid="table-qr-modal"]')).not.toBeVisible();
+
+    // Close table detail modal
+    await page.click('[data-testid="table-detail-close-btn"]');
+    await expect(page.locator('[data-testid="table-detail-modal"]')).not.toBeVisible();
   });
 
   test('should configure QR client base URL and Wi-Fi credentials in app settings', async ({ page }) => {

@@ -109,4 +109,28 @@ class AppSettingsControllerTest {
         assertThat(body.wifiSecurity()).isEqualTo("WPA");
         assertThat(body.wifiEnabled()).isTrue();
     }
+
+    @Test
+    void getWifiQrCode_png_returnsImageBytes() {
+        when(appSettingsService.generateWifiQrCode("PNG", 300)).thenReturn(new byte[]{10, 20, 30});
+
+        ResponseEntity<byte[]> response = appSettingsController.getWifiQrCode("PNG", 300);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getHeaders().getContentType()).isEqualTo(org.springframework.http.MediaType.IMAGE_PNG);
+        assertThat(response.getHeaders().getFirst(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION)).contains("wifi-qrcode.png");
+        assertThat(response.getBody()).isEqualTo(new byte[]{10, 20, 30});
+    }
+
+    @Test
+    void getWifiQrCode_svg_returnsSvgBytes() {
+        when(appSettingsService.generateWifiQrCode("SVG", 250)).thenReturn("<svg></svg>".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+
+        ResponseEntity<byte[]> response = appSettingsController.getWifiQrCode("SVG", 250);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getHeaders().getContentType()).isEqualTo(org.springframework.http.MediaType.valueOf("image/svg+xml"));
+        assertThat(response.getHeaders().getFirst(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION)).contains("wifi-qrcode.svg");
+        assertThat(new String(java.util.Objects.requireNonNull(response.getBody()))).isEqualTo("<svg></svg>");
+    }
 }

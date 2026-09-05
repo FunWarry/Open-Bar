@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { BehaviorSubject, Observable, of, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AppSettings, AppSettingsUpdateRequest } from '../models/app-settings.model';
@@ -159,6 +159,35 @@ export class AppSettingsService {
         this.applyTokens(settings);
       })
     );
+  }
+
+  /**
+   * Returns the direct API URL for establishment Wi-Fi pairing QR code (PNG or SVG).
+   *
+   * @param format Output format ('PNG' | 'SVG')
+   * @param size Pixel resolution/size
+   */
+  getWifiQrCodeUrl(format: 'PNG' | 'SVG' = 'PNG', size: number = 300): string {
+    return `${this.api}/wifi/qrcode?format=${format}&size=${size}`;
+  }
+
+  /**
+   * Downloads the establishment Wi-Fi pairing QR code as a raw Blob.
+   *
+   * @param format Output format ('PNG' | 'SVG')
+   * @param size Pixel resolution/size
+   */
+  downloadWifiQrCode(format: 'PNG' | 'SVG' = 'PNG', size: number = 300): Observable<Blob> {
+    if (!this.http) {
+      return of(new Blob([], { type: format === 'SVG' ? 'image/svg+xml' : 'image/png' }));
+    }
+    const params = new HttpParams()
+      .set('format', format)
+      .set('size', size.toString());
+    return this.http.get(`${this.api}/wifi/qrcode`, {
+      params,
+      responseType: 'blob'
+    });
   }
 
   /**

@@ -1,39 +1,89 @@
-<div class="qr-modal-container" data-testid="table-qr-modal">
+<div class="table-modal-wrapper" data-testid="table-qr-modal">
   <!-- Header -->
-  <header class="qr-modal-header">
-    <div class="header-titles">
-      <div class="header-badge">
-        <ion-icon name="qr-code-outline" aria-hidden="true"></ion-icon>
-        <span>{{ 'TABLES.QR_CODE_TITLE' | transloco }}</span>
+  <div class="modal-header">
+    <div class="header-main-group">
+      <div class="table-avatar-badge" [class.wifi-badge-theme]="activeMode === 'WIFI'">
+        <ion-icon [name]="activeMode === 'WIFI' ? 'wifi-outline' : 'qr-code-outline'"></ion-icon>
       </div>
-      <h2 class="table-title">
-        {{ 'TABLES.TABLE_NUM' | transloco: { numero: table.numero } }}
-        <span *ngIf="table.zone" class="zone-pill">{{ table.zone }}</span>
-      </h2>
+      <div class="header-text">
+        <h2 class="modal-title" data-testid="table-qr-title">
+          {{ (activeMode === 'WIFI' ? 'TABLES.QR_TAB_WIFI' : 'TABLES.QR_CODE_TITLE') | transloco: { ssid: settings?.wifiSsid } }}
+        </h2>
+        <div class="modal-meta-tags">
+          <span class="meta-tag table-tag">
+            <ion-icon name="restaurant-outline"></ion-icon>
+            <span>{{ 'TABLES.TABLE_NUM' | transloco: { numero: table.numero } }}</span>
+          </span>
+          @if (table.zone) {
+            <span class="meta-tag zone-tag">
+              <ion-icon name="location-outline"></ion-icon>
+              <span>{{ table.zone }}</span>
+            </span>
+          }
+          @if (table.capacite) {
+            <span class="meta-tag capacity-tag">
+              <ion-icon name="people-outline"></ion-icon>
+              <span>{{ 'TABLES.CARD.CAPACITY' | transloco: { count: table.capacite } }}</span>
+            </span>
+          }
+        </div>
+      </div>
     </div>
+
     <button
       type="button"
-      class="close-btn"
-      data-testid="close-qr-modal-btn"
+      class="close-icon-btn"
       (click)="dismiss()"
-      [attr.aria-label]="'COMMON.CLOSE' | transloco">
-      <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+      (keyup.enter)="dismiss()"
+      [attr.aria-label]="'COMMON.CLOSE' | transloco"
+      data-testid="close-qr-modal-btn">
+      <ion-icon name="close-outline"></ion-icon>
     </button>
-  </header>
+  </div>
 
   <!-- Body -->
-  <div class="qr-modal-body">
+  <div class="modal-body">
+    <!-- Mode Tabs (when Wi-Fi is enabled in settings) -->
+    @if (settings && settings.wifiEnabled && settings.wifiSsid) {
+      <div class="mode-tabs-container">
+        <button
+          type="button"
+          class="mode-tab-btn"
+          [class.active]="activeMode === 'ORDER'"
+          data-testid="qr-mode-order-btn"
+          (click)="setMode('ORDER')">
+          <ion-icon name="qr-code-outline"></ion-icon>
+          <span>{{ 'TABLES.QR_TAB_ORDER' | transloco: { numero: table.numero } }}</span>
+        </button>
+        <button
+          type="button"
+          class="mode-tab-btn"
+          [class.active]="activeMode === 'WIFI'"
+          data-testid="qr-mode-wifi-btn"
+          (click)="setMode('WIFI')">
+          <ion-icon name="wifi-outline"></ion-icon>
+          <span>{{ 'TABLES.QR_TAB_WIFI' | transloco: { ssid: settings.wifiSsid } }}</span>
+        </button>
+      </div>
+    }
+
     <!-- QR Preview Area -->
     <div class="qr-preview-wrapper">
       <div class="qr-card">
         <div class="qr-frame">
-          <img
-            [src]="qrUrl"
-            [alt]="'TABLES.QR_ALT' | transloco: { numero: table.numero }"
-            class="qr-image"
-            data-testid="table-qr-image" />
+          @if (isLoadingPreview) {
+            <ion-spinner name="crescent" class="qr-spinner"></ion-spinner>
+          } @else if (previewUrl) {
+            <img
+              [src]="previewUrl"
+              [alt]="activeMode === 'WIFI' ? ('TABLES.QR_WIFI_ALT' | transloco: { ssid: settings?.wifiSsid }) : ('TABLES.QR_ALT' | transloco: { numero: table.numero })"
+              class="qr-image"
+              data-testid="table-qr-image" />
+          }
         </div>
-        <p class="qr-instruction">{{ 'TABLES.QR_SCAN_INSTRUCTION' | transloco }}</p>
+        <p class="qr-instruction">
+          {{ (activeMode === 'WIFI' ? 'TABLES.QR_WIFI_SCAN_INSTRUCTION' : 'TABLES.QR_SCAN_INSTRUCTION') | transloco }}
+        </p>
       </div>
 
       <!-- Format selector -->
@@ -57,75 +107,141 @@
       </div>
     </div>
 
-    <!-- Direct URL Link Box -->
-    <div class="url-box">
-      <label class="url-label" for="table-order-url-input">
-        <ion-icon name="link-outline" aria-hidden="true"></ion-icon>
-        <span>{{ 'TABLES.QR_DIRECT_URL_LABEL' | transloco }}</span>
-      </label>
-      <div class="url-input-group">
-        <input
-          id="table-order-url-input"
-          type="text"
-          class="url-input"
-          [value]="orderUrl"
-          readonly
-          data-testid="table-order-url-input" />
-        <button
-          type="button"
-          class="copy-btn"
-          data-testid="copy-order-url-btn"
-          (click)="copyOrderUrl()">
-          <ion-icon [name]="copied ? 'checkmark-outline' : 'copy-outline'" aria-hidden="true"></ion-icon>
-          <span>{{ (copied ? 'TABLES.QR_COPIED' : 'COMMON.COPY') | transloco }}</span>
-        </button>
+    <!-- Conditional Mode Content -->
+    @if (activeMode === 'ORDER') {
+      <!-- Direct URL Link Box -->
+      <div class="url-box">
+        <label class="url-label" for="table-order-url-input">
+          <ion-icon name="link-outline"></ion-icon>
+          <span>{{ 'TABLES.QR_DIRECT_URL_LABEL' | transloco }}</span>
+        </label>
+        <div class="url-input-group">
+          <input
+            id="table-order-url-input"
+            type="text"
+            class="url-input"
+            [value]="orderUrl"
+            readonly
+            data-testid="table-order-url-input" />
+          <button
+            type="button"
+            class="copy-btn"
+            data-testid="copy-order-url-btn"
+            (click)="copyOrderUrl()">
+            <ion-icon [name]="copiedUrl ? 'checkmark-outline' : 'copy-outline'"></ion-icon>
+            <span>{{ (copiedUrl ? 'TABLES.QR_COPIED' : 'COMMON.COPY') | transloco }}</span>
+          </button>
+        </div>
       </div>
-    </div>
 
-    <!-- Wi-Fi information card if configured -->
-    <div *ngIf="settings && settings.wifiEnabled && settings.wifiSsid" class="wifi-info-card" data-testid="qr-wifi-badge">
-      <div class="wifi-icon-badge">
-        <ion-icon name="wifi-outline" aria-hidden="true"></ion-icon>
-      </div>
-      <div class="wifi-details">
-        <span class="wifi-title">{{ 'SETTINGS.QR_WIFI_ENABLED_LABEL' | transloco }}</span>
-        <span class="wifi-ssid">SSID : <strong>{{ settings.wifiSsid }}</strong></span>
-        <span *ngIf="settings.wifiPassword" class="wifi-pass">
-          {{ 'SETTINGS.QR_WIFI_PASSWORD' | transloco }} : <code>{{ settings.wifiPassword }}</code>
-        </span>
-      </div>
-    </div>
+      <!-- Wi-Fi information banner on order view -->
+      @if (settings && settings.wifiEnabled && settings.wifiSsid) {
+        <div class="wifi-info-card" data-testid="qr-wifi-badge">
+          <div class="wifi-icon-badge">
+            <ion-icon name="wifi-outline"></ion-icon>
+          </div>
+          <div class="wifi-details">
+            <span class="wifi-title">{{ 'SETTINGS.QR_WIFI_ENABLED_LABEL' | transloco }}</span>
+            <span class="wifi-ssid">SSID : <strong>{{ settings.wifiSsid }}</strong></span>
+            @if (settings.wifiPassword) {
+              <span class="wifi-pass">
+                {{ 'SETTINGS.QR_WIFI_PASSWORD' | transloco }} : <code>{{ settings.wifiPassword }}</code>
+              </span>
+            }
+          </div>
+          <button
+            type="button"
+            class="btn-switch-wifi"
+            data-testid="switch-to-wifi-qr-btn"
+            (click)="setMode('WIFI')">
+            <ion-icon name="qr-code-outline"></ion-icon>
+            <span>{{ 'TABLES.QR_VIEW_WIFI_QR' | transloco }}</span>
+          </button>
+        </div>
+      }
+    } @else {
+      <!-- Wi-Fi Configuration Details Card -->
+      @if (settings && settings.wifiSsid) {
+        <div class="wifi-details-box" data-testid="wifi-details-box">
+          <div class="wifi-detail-row">
+            <span class="detail-label">
+              <ion-icon name="wifi-outline"></ion-icon>
+              <span>{{ 'TABLES.QR_WIFI_SSID_LABEL' | transloco }}</span>
+            </span>
+            <span class="detail-val"><strong>{{ settings.wifiSsid }}</strong></span>
+          </div>
+
+          @if (settings.wifiSecurity) {
+            <div class="wifi-detail-row">
+              <span class="detail-label">
+                <ion-icon name="lock-closed-outline"></ion-icon>
+                <span>{{ 'TABLES.QR_WIFI_SECURITY_LABEL' | transloco }}</span>
+              </span>
+              <span class="detail-val">{{ settings.wifiSecurity }}</span>
+            </div>
+          }
+
+          @if (settings.wifiPassword) {
+            <div class="wifi-detail-row">
+              <span class="detail-label">
+                <ion-icon name="key-outline"></ion-icon>
+                <span>{{ 'TABLES.QR_WIFI_PASS_LABEL' | transloco }}</span>
+              </span>
+              <div class="pass-copy-group">
+                <code class="pass-code">{{ settings.wifiPassword }}</code>
+                <button
+                  type="button"
+                  class="copy-pass-btn"
+                  data-testid="copy-wifi-pass-btn"
+                  (click)="copyWifiPassword()">
+                  <ion-icon [name]="copiedPass ? 'checkmark-outline' : 'copy-outline'"></ion-icon>
+                  <span>{{ (copiedPass ? 'TABLES.QR_WIFI_PASS_COPIED' : 'TABLES.QR_WIFI_COPY_PASS') | transloco }}</span>
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    }
   </div>
 
   <!-- Footer Actions -->
-  <footer class="qr-modal-footer">
-    <button
-      type="button"
-      class="action-btn secondary"
-      data-testid="download-qr-png-btn"
-      [disabled]="isDownloading"
-      (click)="downloadImage('PNG')">
-      <ion-icon name="download-outline" aria-hidden="true"></ion-icon>
-      <span>{{ 'TABLES.QR_DOWNLOAD_PNG' | transloco }}</span>
-    </button>
-    <button
-      type="button"
-      class="action-btn secondary"
-      data-testid="download-qr-svg-btn"
-      [disabled]="isDownloading"
-      (click)="downloadImage('SVG')">
-      <ion-icon name="download-outline" aria-hidden="true"></ion-icon>
-      <span>{{ 'TABLES.QR_DOWNLOAD_SVG' | transloco }}</span>
-    </button>
-    <button
-      type="button"
-      class="action-btn primary"
-      data-testid="print-stand-pdf-btn"
-      [disabled]="isDownloading"
-      (click)="printStandPdf()">
-      <ion-spinner *ngIf="isDownloading" name="crescent"></ion-spinner>
-      <ion-icon *ngIf="!isDownloading" name="print-outline" aria-hidden="true"></ion-icon>
-      <span>{{ 'TABLES.QR_PRINT_STAND' | transloco }}</span>
-    </button>
-  </footer>
+  <div class="modal-footer">
+    <div class="footer-left">
+      <button
+        type="button"
+        class="btn-action btn-secondary"
+        data-testid="download-qr-png-btn"
+        [disabled]="isDownloading"
+        (click)="downloadImage('PNG')">
+        <ion-icon name="download-outline"></ion-icon>
+        <span>{{ 'TABLES.QR_DOWNLOAD_PNG' | transloco }}</span>
+      </button>
+      <button
+        type="button"
+        class="btn-action btn-secondary"
+        data-testid="download-qr-svg-btn"
+        [disabled]="isDownloading"
+        (click)="downloadImage('SVG')">
+        <ion-icon name="download-outline"></ion-icon>
+        <span>{{ 'TABLES.QR_DOWNLOAD_SVG' | transloco }}</span>
+      </button>
+    </div>
+
+    <div class="footer-right">
+      <button
+        type="button"
+        class="btn-action btn-primary"
+        data-testid="print-stand-pdf-btn"
+        [disabled]="isDownloading"
+        (click)="printStandPdf()">
+        @if (isDownloading) {
+          <ion-spinner name="crescent"></ion-spinner>
+        } @else {
+          <ion-icon name="print-outline"></ion-icon>
+        }
+        <span>{{ 'TABLES.QR_PRINT_STAND' | transloco }}</span>
+      </button>
+    </div>
+  </div>
 </div>

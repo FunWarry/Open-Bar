@@ -33,6 +33,9 @@ class AppSettingsServiceTest {
     @Mock
     NotificationService notificationService;
 
+    @Mock
+    QrCodeService qrCodeService;
+
     @InjectMocks
     AppSettingsService appSettingsService;
 
@@ -240,5 +243,46 @@ class AppSettingsServiceTest {
 
         assertThat(updated.getDefaultTheme()).isEqualTo(DefaultTheme.LIGHT);
         verify(appSettingsRepository).save(any(AppSettings.class));
+    }
+
+    @Test
+    @DisplayName("generateWifiQrCode generates PNG bytes when SSID is configured")
+    void generateWifiQrCode_png_success() {
+        existing.setWifiSsid("OpenBar-WiFi");
+        existing.setWifiPassword("secret123");
+        existing.setWifiSecurity("WPA");
+        when(appSettingsRepository.findById(AppSettings.SINGLETON_ID)).thenReturn(Optional.of(existing));
+        when(qrCodeService.formatWifiPayload("OpenBar-WiFi", "secret123", "WPA")).thenReturn("WIFI:S:OpenBar-WiFi;T:WPA;P:secret123;;");
+        when(qrCodeService.generatePng("WIFI:S:OpenBar-WiFi;T:WPA;P:secret123;;", 300, 300)).thenReturn(new byte[]{1, 2, 3});
+
+        byte[] result = appSettingsService.generateWifiQrCode("PNG", 300);
+
+        assertThat(result).isEqualTo(new byte[]{1, 2, 3});
+    }
+
+    @Test
+    @DisplayName("generateWifiQrCode generates SVG bytes when requested")
+    void generateWifiQrCode_svg_success() {
+        existing.setWifiSsid("OpenBar-WiFi");
+        existing.setWifiPassword("secret123");
+        existing.setWifiSecurity("WPA");
+        when(appSettingsRepository.findById(AppSettings.SINGLETON_ID)).thenReturn(Optional.of(existing));
+        when(qrCodeService.formatWifiPayload("OpenBar-WiFi", "secret123", "WPA")).thenReturn("WIFI:S:OpenBar-WiFi;T:WPA;P:secret123;;");
+        when(qrCodeService.generateSvg("WIFI:S:OpenBar-WiFi;T:WPA;P:secret123;;", 250)).thenReturn("<svg></svg>");
+
+        byte[] result = appSettingsService.generateWifiQrCode("SVG", 250);
+
+        assertThat(new String(result)).isEqualTo("<svg></svg>");
+    }
+
+    @Test
+    @DisplayName("generateWifiQrCode throws BusinessException when SSID is empty")
+    void generateWifiQrCode_noSsid_throwsBusinessException() {
+        existing.setWifiSsid(null);
+        when(appSettingsRepository.findById(AppSettings.SINGLETON_ID)).thenReturn(Optional.of(existing));
+
+        assertThatThrownBy(() -> appSettingsService.generateWifiQrCode("PNG", 300))
+            .isInstanceOf(BusinessException.class)
+            .hasMessageContaining("Wi-Fi SSID is not configured");
     }
 }

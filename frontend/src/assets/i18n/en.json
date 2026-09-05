@@ -7,6 +7,7 @@
     "ADD": "Add",
     "CONFIRM": "Confirm",
     "CLOSE": "Close",
+    "COPY": "Copy",
     "BACK": "Back",
     "SEARCH": "Search",
     "LOADING": "Loading...",
@@ -978,7 +979,18 @@
     "QR_TABLES_SELECTION": "2. Table Selection ({{ count }} / {{ total }}):",
     "QR_SELECT_ALL": "Select All",
     "QR_DESELECT_ALL": "Deselect All",
-    "QR_DOWNLOAD_PDF_ACTION": "Generate A4 PDF ({{ count }} tables)"
+    "QR_DOWNLOAD_PDF_ACTION": "Generate A4 PDF ({{ count }} tables)",
+    "QR_TAB_ORDER": "Order Table {{ numero }}",
+    "QR_TAB_WIFI": "Wi-Fi ({{ ssid }})",
+    "QR_WIFI_ALT": "Wi-Fi connection QR Code {{ ssid }}",
+    "QR_WIFI_SCAN_INSTRUCTION": "Scan to connect to the Wi-Fi network",
+    "QR_WIFI_SSID_LABEL": "Network Name (SSID):",
+    "QR_WIFI_PASS_LABEL": "Password:",
+    "QR_WIFI_SECURITY_LABEL": "Security:",
+    "QR_WIFI_COPY_PASS": "Copy password",
+    "QR_WIFI_PASS_COPIED": "Wi-Fi password copied!",
+    "QR_VIEW_WIFI_QR": "Show Wi-Fi QR",
+    "QR_VIEW_ORDER_QR": "Show Order QR"
   },
   "COMMANDES": {
     "TITLE": "Order Tracking",
