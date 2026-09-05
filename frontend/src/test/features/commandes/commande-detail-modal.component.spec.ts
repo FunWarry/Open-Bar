@@ -1,7 +1,7 @@
 import { TestBed, ComponentFixture, fakeAsync, tick, flushMicrotasks } from '@angular/core/testing';
 import { IonicModule } from '@ionic/angular';
 import { ModalController, AlertController, ToastController } from '@ionic/angular/standalone';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { CommandeDetailModalComponent } from '../../../app/features/commandes/commande-detail-modal/commande-detail-modal.component';
 import { CommandeService } from '../../../app/core/services/commande.service';
 import { Commande } from '../../../app/core/models/commande.model';
@@ -122,6 +122,9 @@ describe('CommandeDetailModalComponent', () => {
       ]
     } as any;
     expect(component.getTotalCommande(cmdWithZero)).toBe(18.0);
+    expect(component.getTotalCommande(null)).toBe(0);
+    expect(component.getTotalCommande({ id: 2, total: 42.0 } as any)).toBe(42.0);
+    expect(component.getTotalCommande({ id: 3, total: 0, items: [] } as any)).toBe(0);
   });
 
   it('onToggleUrgent toggles order priority and presents toast', fakeAsync(() => {
@@ -129,6 +132,27 @@ describe('CommandeDetailModalComponent', () => {
     tick();
     expect(commandeServiceSpy.toggleUrgent).toHaveBeenCalledWith(9);
     expect(component.commande?.prioritaire).toBeTrue();
-    expect(toastCtrlSpy.create).toHaveBeenCalled();
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'warning' }));
+  }));
+
+  it('onToggleUrgent presents medium toast when order is unmarked as urgent', fakeAsync(() => {
+    commandeServiceSpy.toggleUrgent.and.returnValue(of({ id: 9, prioritaire: false } as Commande));
+    component.onToggleUrgent();
+    tick();
+    expect(component.commande?.prioritaire).toBeFalse();
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'medium' }));
+  }));
+
+  it('onToggleUrgent does nothing when commande is null', () => {
+    component.commande = null as any;
+    component.onToggleUrgent();
+    expect(commandeServiceSpy.toggleUrgent).not.toHaveBeenCalled();
+  });
+
+  it('onToggleUrgent displays danger toast on error', fakeAsync(() => {
+    commandeServiceSpy.toggleUrgent.and.returnValue(throwError(() => new Error('Service error')));
+    component.onToggleUrgent();
+    tick();
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
   }));
 });

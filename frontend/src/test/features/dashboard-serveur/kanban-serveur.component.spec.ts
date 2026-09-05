@@ -225,5 +225,8 @@ describe('KanbanServeurComponent', () => {
       ]
     } as any;
     expect(component.getCommandeTotal(testCmd)).toBe(20.0);
+    expect(component.getCommandeTotal(null)).toBe(0);
+    expect(component.getCommandeTotal({ id: 98, total: 45.0 } as any)).toBe(45.0);
+    expect(component.getCommandeTotal({ id: 97, total: 0, items: [] } as any)).toBe(0);
   });
 });
