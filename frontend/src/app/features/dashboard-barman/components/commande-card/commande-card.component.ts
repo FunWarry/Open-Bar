@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, Optional } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, Optional, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonIcon, ModalController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -22,6 +22,7 @@ import { ActionButtonComponent } from '../../../../core/components/ui/action-but
 import { TableDetailModalComponent } from '../../../dashboard-serveur/components/table-detail-modal/table-detail-modal.component';
 import { TableView } from '../../../dashboard-serveur/models/table-view.model';
 import { fastModalEnterAnimation, fastModalLeaveAnimation } from '../../../../core/utils/modal-animation.utils';
+import { CommandeService } from '../../../../core/services/commande.service';
 
 /**
  * Kanban order ticket card component for the bar counter preparation dashboard.
@@ -57,6 +58,7 @@ export class CommandeCardComponent implements OnInit, OnDestroy {
   isWarning = false;
 
   private timerSub?: Subscription;
+  private readonly commandeService = inject(CommandeService);
 
   get groupedItems(): CommandeItemView[] {
     return groupCommandeItems(this.commande?.items) as CommandeItemView[];
@@ -213,6 +215,19 @@ export class CommandeCardComponent implements OnInit, OnDestroy {
   onMarquerPret(event?: Event): void {
     if (event) event.stopPropagation();
     this.changerStatut.emit({ id: this.commande.id, statut: 'PRET' });
+  }
+
+  /**
+   * Toggles urgent / priority state for this order.
+   */
+  onToggleUrgent(event?: Event): void {
+    if (event) event.stopPropagation();
+    this.commandeService.toggleUrgent(this.commande.id).subscribe({
+      next: (updated) => {
+        this.commande.prioritaire = updated.prioritaire ?? false;
+        this.updateTimer();
+      }
+    });
   }
 }
 

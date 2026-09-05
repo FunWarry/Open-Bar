@@ -9,6 +9,7 @@ import { Commande } from '../../../app/core/models/commande.model';
 import { TableView } from '../../../app/features/dashboard-serveur/models/table-view.model';
 
 import { TableAppelService } from '../../../app/core/services/table-appel.service';
+import { CommandeService } from '../../../app/core/services/commande.service';
 
 describe('TableDetailModalComponent', () => {
   let component: TableDetailModalComponent;
@@ -20,6 +21,7 @@ describe('TableDetailModalComponent', () => {
   let alertCtrlSpy: jasmine.SpyObj<AlertController>;
   let toastSpy: { present: jasmine.Spy };
   let alertSpy: { present: jasmine.Spy };
+  let commandeServiceSpy: jasmine.SpyObj<CommandeService>;
 
   const mockTable: TableView = {
     id: 1,
@@ -72,12 +74,16 @@ describe('TableDetailModalComponent', () => {
     alertCtrlSpy = jasmine.createSpyObj('AlertController', ['create']);
     alertCtrlSpy.create.and.returnValue(Promise.resolve(alertSpy as any));
 
+    commandeServiceSpy = jasmine.createSpyObj('CommandeService', ['toggleUrgent', 'setUrgent']);
+    commandeServiceSpy.toggleUrgent.and.returnValue(of({ id: 10, prioritaire: true } as Commande));
+
     TestBed.configureTestingModule({
       imports: [TableDetailModalComponent, getTranslocoTestingModule()],
       providers: [
         { provide: ModalController, useValue: modalCtrlSpy },
         { provide: Router, useValue: routerSpy },
         { provide: DashboardServeurService, useValue: dashboardServiceSpy },
+        { provide: CommandeService, useValue: commandeServiceSpy },
         { provide: TableAppelService, useValue: tableAppelServiceSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
         { provide: AlertController, useValue: alertCtrlSpy },
@@ -93,6 +99,26 @@ describe('TableDetailModalComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('calculates order line totals fallback when total is 0', () => {
+    const cmdWithZeroTotal: Commande = {
+      id: 99,
+      total: 0,
+      items: [
+        { id: 1, quantite: 2, prixUnitaire: 6.5, cocktailNom: 'Spritz' },
+        { id: 2, quantite: 1, prixUnitaire: 5.0, cocktailNom: 'Bière' }
+      ]
+    } as any;
+    expect(component.getCommandeTotal(cmdWithZeroTotal)).toBe(18.0);
+  });
+
+  it('toggles urgent status on commande', fakeAsync(() => {
+    const cmd = { id: 10, prioritaire: false } as Commande;
+    component.toggleUrgent(cmd);
+    tick();
+    expect(cmd.prioritaire).toBeTrue();
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
+  }));
 
   it('chargerCommandes() charge les commandes actives et filtre les terminées', () => {
     expect(dashboardServiceSpy.getCommandesByTable).toHaveBeenCalledWith(1);
@@ -318,4 +344,58 @@ describe('TableDetailModalComponent', () => {
     expect(component.activeAppels[0].id).toBe(11);
     expect(toastCtrlSpy.create).toHaveBeenCalled();
   }));
+
+  it('toggleUrgent() toggles order priority and shows warning toast when urgent', fakeAsync(() => {
+    const testCmd = { id: 10, prioritaire: false } as Commande;
+    component.toggleUrgent(testCmd);
+    tick();
+
+    expect(commandeServiceSpy.toggleUrgent).toHaveBeenCalledWith(10);
+    expect(testCmd.prioritaire).toBeTrue();
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'warning' }));
+  }));
+
+  it('toggleUrgent() shows medium toast when unmarking urgent', fakeAsync(() => {
+    commandeServiceSpy.toggleUrgent.and.returnValue(of({ id: 10, prioritaire: false } as Commande));
+    const testCmd = { id: 10, prioritaire: true } as Commande;
+    component.toggleUrgent(testCmd);
+    tick();
+
+    expect(testCmd.prioritaire).toBeFalse();
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'medium' }));
+  }));
+
+  it('toggleUrgent() displays danger toast on error', fakeAsync(() => {
+    commandeServiceSpy.toggleUrgent.and.returnValue(throwError(() => new Error('Service error')));
+    const testCmd = { id: 10, prioritaire: false } as Commande;
+    component.toggleUrgent(testCmd);
+    tick();
+
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
+  }));
+
+  it('getCommandeTotal() returns correct totals for all edge cases', () => {
+    expect(component.getCommandeTotal(null)).toBe(0);
+    expect(component.getCommandeTotal(undefined)).toBe(0);
+    expect(component.getCommandeTotal({ id: 1, total: 30.0 } as any)).toBe(30.0);
+    const cmdFallback = {
+      id: 2,
+      total: 0,
+      items: [
+        { id: 1, quantite: 2, prixUnitaire: 8.0 },
+        { id: 2, quantite: 1, prixUnitaire: 4.5 }
+      ]
+    } as any;
+    expect(component.getCommandeTotal(cmdFallback)).toBe(20.5);
+    expect(component.getCommandeTotal({ id: 3, total: 0, items: [] } as any)).toBe(0);
+  });
+
+  it('calculerTotalActif() sums active non-cancelled orders with fallback', () => {
+    component.commandes = [
+      { id: 1, statut: 'EN_ATTENTE', total: 10.0 } as Commande,
+      { id: 2, statut: 'EN_PREPARATION', total: 0, items: [{ quantite: 2, prixUnitaire: 6.0 }] } as any,
+      { id: 3, statut: 'ANNULEE', total: 50.0 } as Commande
+    ];
+    expect(component.calculerTotalActif()).toBe(22.0);
+  });
 });

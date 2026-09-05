@@ -11,7 +11,7 @@ import {
   closeOutline, banOutline, playOutline, checkmarkCircleOutline,
   checkmarkDoneOutline, timeOutline, personOutline,
   statsChartOutline, receiptOutline, gridOutline,
-  cashOutline, chatbubbleEllipsesOutline,
+  cashOutline, chatbubbleEllipsesOutline, flashOutline,
 } from 'ionicons/icons';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
@@ -55,6 +55,7 @@ export class CommandeDetailModalComponent implements OnInit, OnDestroy {
       closeOutline, banOutline, playOutline, checkmarkCircleOutline,
       checkmarkDoneOutline, timeOutline, personOutline, gridOutline,
       statsChartOutline, receiptOutline, cashOutline, chatbubbleEllipsesOutline,
+      flashOutline,
     });
   }
 
@@ -98,6 +99,41 @@ export class CommandeDetailModalComponent implements OnInit, OnDestroy {
 
   getItemLineTotal(item: CommandeItem): number {
     return (item.prixUnitaire || 0) * (item.quantite || 1);
+  }
+
+  getTotalCommande(cmd: Commande | null): number {
+    if (!cmd) return 0;
+    if (cmd.total && cmd.total > 0) return cmd.total;
+    if (cmd.items && cmd.items.length > 0) {
+      return cmd.items.reduce((sum, item) => sum + ((item.prixUnitaire || 0) * (item.quantite || 1)), 0);
+    }
+    return 0;
+  }
+
+  onToggleUrgent(): void {
+    if (!this.commande) return;
+    this.commandeService.toggleUrgent(this.commande.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: async (updated) => {
+          this.commande = updated;
+          const msgKey = updated.prioritaire ? 'COMMANDES.MESSAGES.MARKED_URGENT' : 'COMMANDES.MESSAGES.UNMARKED_URGENT';
+          const toast = await this.toastCtrl.create({
+            message: this.translocoService.translate(msgKey),
+            duration: 2500,
+            color: updated.prioritaire ? 'warning' : 'medium',
+          });
+          await toast.present();
+        },
+        error: async () => {
+          const toast = await this.toastCtrl.create({
+            message: this.translocoService.translate('COMMON.ERROR'),
+            duration: 2500,
+            color: 'danger',
+          });
+          await toast.present();
+        }
+      });
   }
 
   getStatutColor(statut: string): string {

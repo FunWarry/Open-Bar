@@ -42,6 +42,16 @@
       <div class="card-header-actions">
         <button
           type="button"
+          class="icon-btn-urgent"
+          [class.active-urgent]="commande.prioritaire"
+          [title]="(commande.prioritaire ? 'COMMANDES.ACTIONS.UNMARK_URGENT' : 'COMMANDES.ACTIONS.MARK_URGENT') | transloco"
+          (click)="onToggleUrgent($event)"
+          (keyup.enter)="onToggleUrgent($event)"
+          [attr.data-testid]="'btn-card-urgent-' + commande.id">
+          <ion-icon name="flash-outline"></ion-icon>
+        </button>
+        <button
+          type="button"
           class="icon-btn-print"
           title="Imprimer le bon de bar (80mm)"
           (click)="onPrintTicket($event)"

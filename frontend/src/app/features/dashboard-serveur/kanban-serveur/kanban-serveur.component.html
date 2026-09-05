@@ -109,7 +109,7 @@
 
             <!-- Total & Actions -->
             <div class="card-footer">
-              <span class="card-total">{{ cmd.total | appCurrency }}</span>
+              <span class="card-total">{{ getCommandeTotal(cmd) | appCurrency }}</span>
 
               <div class="card-actions">
                 <button

@@ -210,23 +210,41 @@ describe('CommandeService', () => {
 
   // --- setPriorite ---
 
-  it('setPriorite() appelle PATCH /api/commandes/:id/priorite avec priorite=true', () => {
+  it('setPriorite() appelle PATCH /api/commandes/:id/urgent avec urgent=true', () => {
     service.setPriorite(1, true).subscribe((result) => {
       expect(result).toEqual(mockCommande);
     });
-    const req = httpMock.expectOne(`${baseUrl}/1/priorite`);
+    const req = httpMock.expectOne(`${baseUrl}/1/urgent?urgent=true`);
     expect(req.request.method).toBe('PATCH');
-    expect(req.request.body).toEqual({ priorite: true });
     req.flush(mockCommande);
   });
 
-  it('setPriorite() appelle PATCH /api/commandes/:id/priorite avec priorite=false', () => {
+  it('setPriorite() appelle PATCH /api/commandes/:id/urgent avec urgent=false', () => {
     service.setPriorite(1, false).subscribe((result) => {
       expect(result).toEqual(mockCommande);
     });
-    const req = httpMock.expectOne(`${baseUrl}/1/priorite`);
+    const req = httpMock.expectOne(`${baseUrl}/1/urgent?urgent=false`);
     expect(req.request.method).toBe('PATCH');
-    expect(req.request.body).toEqual({ priorite: false });
+    req.flush(mockCommande);
+  });
+
+  // --- toggleUrgent & setUrgent ---
+
+  it('toggleUrgent() appelle POST /api/commandes/:id/toggle-urgent', () => {
+    service.toggleUrgent(1).subscribe((result) => {
+      expect(result).toEqual(mockCommande);
+    });
+    const req = httpMock.expectOne(`${baseUrl}/1/toggle-urgent`);
+    expect(req.request.method).toBe('POST');
+    req.flush(mockCommande);
+  });
+
+  it('setUrgent() appelle PATCH /api/commandes/:id/urgent?urgent=true', () => {
+    service.setUrgent(1, true).subscribe((result) => {
+      expect(result).toEqual(mockCommande);
+    });
+    const req = httpMock.expectOne(`${baseUrl}/1/urgent?urgent=true`);
+    expect(req.request.method).toBe('PATCH');
     req.flush(mockCommande);
   });
 });

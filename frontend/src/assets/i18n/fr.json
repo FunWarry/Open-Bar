@@ -1062,6 +1062,8 @@
       "PRICE": "Prix Total"
     },
     "ACTIONS": {
+      "MARK_URGENT": "Marquer Urgent",
+      "UNMARK_URGENT": "Retirer Urgent",
       "MARK_IN_PROGRESS": "Démarrer préparation",
       "MARK_IN_PROGRESS_TOOLTIP": "Démarrer la préparation de la commande",
       "MARK_READY": "Marquer prête",
@@ -1076,6 +1078,8 @@
       "VIEW_DETAILS": "Détails"
     },
     "MESSAGES": {
+      "MARKED_URGENT": "Commande marquée comme urgente",
+      "UNMARKED_URGENT": "Statut urgent retiré de la commande",
       "STATUS_UPDATED": "Statut de la commande mis à jour",
       "CANCELLED_SUCCESS": "Commande annulée avec succès",
       "CANCELLED_ERROR": "Impossible d'annuler cette commande",

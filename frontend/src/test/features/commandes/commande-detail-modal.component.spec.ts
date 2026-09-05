@@ -1,7 +1,7 @@
 import { TestBed, ComponentFixture, fakeAsync, tick, flushMicrotasks } from '@angular/core/testing';
 import { IonicModule } from '@ionic/angular';
 import { ModalController, AlertController, ToastController } from '@ionic/angular/standalone';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { CommandeDetailModalComponent } from '../../../app/features/commandes/commande-detail-modal/commande-detail-modal.component';
 import { CommandeService } from '../../../app/core/services/commande.service';
 import { Commande } from '../../../app/core/models/commande.model';
@@ -36,7 +36,7 @@ describe('CommandeDetailModalComponent', () => {
   const mockToast = { present: jasmine.createSpy('present') };
 
   beforeEach(async () => {
-    commandeServiceSpy = jasmine.createSpyObj('CommandeService', ['getById', 'changerStatut', 'annuler']);
+    commandeServiceSpy = jasmine.createSpyObj('CommandeService', ['getById', 'changerStatut', 'annuler', 'toggleUrgent']);
     modalCtrlSpy = jasmine.createSpyObj('ModalController', ['dismiss', 'create']);
     alertCtrlSpy = jasmine.createSpyObj('AlertController', ['create']);
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
@@ -48,6 +48,7 @@ describe('CommandeDetailModalComponent', () => {
     commandeServiceSpy.getById.and.returnValue(of(mockCommande));
     commandeServiceSpy.changerStatut.and.returnValue(of({ ...mockCommande, statut: 'EN_PREPARATION' }));
     commandeServiceSpy.annuler.and.returnValue(of({ ...mockCommande, statut: 'ANNULEE' }));
+    commandeServiceSpy.toggleUrgent.and.returnValue(of({ ...mockCommande, prioritaire: true }));
 
     await TestBed.configureTestingModule({
       imports: [
@@ -110,4 +111,48 @@ describe('CommandeDetailModalComponent', () => {
     expect(modalCtrlSpy.create).toHaveBeenCalled();
     expect(commandeServiceSpy.annuler).toHaveBeenCalledWith(9);
   });
+
+  it('getTotalCommande calculates fallback item sum when total is 0', () => {
+    const cmdWithZero = {
+      id: 1,
+      total: 0,
+      items: [
+        { id: 1, quantite: 2, prixUnitaire: 5.0, cocktailNom: 'Mojito' },
+        { id: 2, quantite: 1, prixUnitaire: 8.0, cocktailNom: 'Gin Tonic' }
+      ]
+    } as any;
+    expect(component.getTotalCommande(cmdWithZero)).toBe(18.0);
+    expect(component.getTotalCommande(null)).toBe(0);
+    expect(component.getTotalCommande({ id: 2, total: 42.0 } as any)).toBe(42.0);
+    expect(component.getTotalCommande({ id: 3, total: 0, items: [] } as any)).toBe(0);
+  });
+
+  it('onToggleUrgent toggles order priority and presents toast', fakeAsync(() => {
+    component.onToggleUrgent();
+    tick();
+    expect(commandeServiceSpy.toggleUrgent).toHaveBeenCalledWith(9);
+    expect(component.commande?.prioritaire).toBeTrue();
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'warning' }));
+  }));
+
+  it('onToggleUrgent presents medium toast when order is unmarked as urgent', fakeAsync(() => {
+    commandeServiceSpy.toggleUrgent.and.returnValue(of({ id: 9, prioritaire: false } as Commande));
+    component.onToggleUrgent();
+    tick();
+    expect(component.commande?.prioritaire).toBeFalse();
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'medium' }));
+  }));
+
+  it('onToggleUrgent does nothing when commande is null', () => {
+    component.commande = null as any;
+    component.onToggleUrgent();
+    expect(commandeServiceSpy.toggleUrgent).not.toHaveBeenCalled();
+  });
+
+  it('onToggleUrgent displays danger toast on error', fakeAsync(() => {
+    commandeServiceSpy.toggleUrgent.and.returnValue(throwError(() => new Error('Service error')));
+    component.onToggleUrgent();
+    tick();
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
+  }));
 });

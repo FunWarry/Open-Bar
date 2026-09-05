@@ -1062,6 +1062,8 @@
       "PRICE": "Total Price"
     },
     "ACTIONS": {
+      "MARK_URGENT": "Mark Urgent",
+      "UNMARK_URGENT": "Unmark Urgent",
       "MARK_IN_PROGRESS": "Start Preparation",
       "MARK_IN_PROGRESS_TOOLTIP": "Start order preparation",
       "MARK_READY": "Mark Ready",
@@ -1076,6 +1078,8 @@
       "VIEW_DETAILS": "Details"
     },
     "MESSAGES": {
+      "MARKED_URGENT": "Order marked as urgent",
+      "UNMARKED_URGENT": "Urgent status removed from order",
       "STATUS_UPDATED": "Order status updated",
       "CANCELLED_SUCCESS": "Order cancelled successfully",
       "CANCELLED_ERROR": "Unable to cancel order",

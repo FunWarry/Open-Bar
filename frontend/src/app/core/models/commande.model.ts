@@ -28,6 +28,7 @@ export interface Commande {
   items: CommandeItem[];
   statut: CommandeStatut;
   notes?: string;
+  prioritaire?: boolean;
   /** Mapped from Java BigDecimal — display only, not for direct JS financial math */
   total: number;
   pourboire?: number;

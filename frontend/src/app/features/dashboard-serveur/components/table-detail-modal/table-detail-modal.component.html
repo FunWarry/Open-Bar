@@ -114,9 +114,14 @@
               <ion-badge [color]="statutColor(cmd.statut)">
                 {{ statutTranslocoKey(cmd.statut) | transloco }}
               </ion-badge>
+              @if (cmd.prioritaire) {
+                <ion-badge color="danger" class="urgent-badge" [attr.data-testid]="'badge-urgent-' + cmd.id">
+                  ⚡ {{ 'COMMANDES.PRIORITE' | transloco }}
+                </ion-badge>
+              }
             </div>
             <div class="order-header-total">
-              {{ cmd.total | currency:'EUR':'symbol':'1.2-2' }}
+              {{ getCommandeTotal(cmd) | currency:'EUR':'symbol':'1.2-2' }}
             </div>
           </div>
 
@@ -152,6 +157,18 @@
 
           <!-- Order Actions Toolbar -->
           <div class="order-actions-toolbar">
+            <ion-button
+              fill="outline"
+              size="small"
+              [color]="cmd.prioritaire ? 'danger' : 'warning'"
+              (click)="toggleUrgent(cmd)"
+              (keydown.enter)="toggleUrgent(cmd)"
+              class="btn-order-action btn-urgent"
+              [attr.data-testid]="'btn-toggle-urgent-' + cmd.id">
+              <ion-icon name="flash-outline" slot="start"></ion-icon>
+              {{ (cmd.prioritaire ? 'COMMANDES.ACTIONS.UNMARK_URGENT' : 'COMMANDES.ACTIONS.MARK_URGENT') | transloco }}
+            </ion-button>
+
             <ion-button
               *ngIf="peutModifier(cmd.statut)"
               fill="outline"

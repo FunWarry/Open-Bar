@@ -10,6 +10,7 @@ import { CommandeView } from '../../../app/features/dashboard-barman/models/comm
 import { AppSettingsService } from '../../../app/core/services/app-settings.service';
 import { SoundService } from '../../../app/core/services/sound.service';
 import { WebSocketService } from '../../../app/core/services/websocket.service';
+import { CommandeService } from '../../../app/core/services/commande.service';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 
 describe('DashboardBarmanComponent', () => {
@@ -21,6 +22,7 @@ describe('DashboardBarmanComponent', () => {
   let modalCtrlSpy: jasmine.SpyObj<ModalController>;
   let settingsServiceSpy: jasmine.SpyObj<AppSettingsService>;
   let soundServiceSpy: jasmine.SpyObj<SoundService>;
+  let commandeServiceSpy: jasmine.SpyObj<CommandeService>;
   let notification$: Subject<AppNotification>;
   let wsTopic$: Subject<{ body: string }>;
 
@@ -117,6 +119,10 @@ describe('DashboardBarmanComponent', () => {
     wsServiceSpy = jasmine.createSpyObj('WebSocketService', ['watch']);
     wsServiceSpy.watch.and.returnValue(wsTopic$.asObservable() as any);
 
+    commandeServiceSpy = jasmine.createSpyObj('CommandeService', ['toggleUrgent', 'setUrgent', 'changerStatut', 'getById']);
+    commandeServiceSpy.toggleUrgent.and.returnValue(of({ id: 1, prioritaire: true } as any));
+    commandeServiceSpy.setUrgent.and.returnValue(of({ id: 1, prioritaire: true } as any));
+
     await TestBed.configureTestingModule({
       imports: [
         DashboardBarmanComponent,
@@ -131,7 +137,8 @@ describe('DashboardBarmanComponent', () => {
         { provide: ToastController, useValue: toastCtrlSpy },
         { provide: ModalController, useValue: modalCtrlSpy },
         { provide: AppSettingsService, useValue: settingsServiceSpy },
-        { provide: SoundService, useValue: soundServiceSpy }
+        { provide: SoundService, useValue: soundServiceSpy },
+        { provide: CommandeService, useValue: commandeServiceSpy }
       ]
     }).compileComponents();
 
