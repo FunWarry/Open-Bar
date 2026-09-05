@@ -120,6 +120,9 @@ public class AppSettingsService {
         if (request.wifiEnabled() != null) {
             current.setWifiEnabled(request.wifiEnabled());
         }
+        if (request.tableSessionValidationEnabled() != null) {
+            current.setTableSessionValidationEnabled(request.tableSessionValidationEnabled());
+        }
     }
 
     /**

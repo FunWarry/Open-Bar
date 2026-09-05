@@ -41,4 +41,25 @@ public class PublicCommandeRequestDTO {
     @Size(max = 2000, message = "Customer notes cannot exceed 2000 characters")
     @Schema(description = "Customer preparation notes", example = "No ice")
     private String notes;
+
+    /**
+     * Ephemeral table session token for anti-fraud validation.
+     */
+    @Size(max = 64, message = "Session token cannot exceed 64 characters")
+    @Schema(description = "Ephemeral table session token", example = "4e389d44-0b1e-451e-b83b-9e236ceb348d")
+    private String sessionToken;
+
+    /**
+     * Backwards-compatible convenience constructor without session token.
+     *
+     * @param tableId Table identifier
+     * @param items Ordered items list
+     * @param notes Optional preparation notes
+     */
+    public PublicCommandeRequestDTO(Long tableId, List<PublicCommandeItemRequestDTO> items, String notes) {
+        this.tableId = tableId;
+        this.items = items;
+        this.notes = notes;
+        this.sessionToken = null;
+    }
 }

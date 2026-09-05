@@ -8,6 +8,8 @@ import { ToastController } from '@ionic/angular/standalone';
 import { AppCurrencyPipe } from '../../../core/pipes/app-currency.pipe';
 import { CocktailService } from '../../../core/services/cocktail.service';
 import { CommandeService } from '../../../core/services/commande.service';
+import { TableSessionService } from '../../../core/services/table-session.service';
+import { TableSessionStatus } from '../../../core/models/table-session.model';
 import { Cocktail } from '../../../core/models/cocktail.model';
 import { InputFieldComponent } from '../../../core/components/ui/input-field/input-field.component';
 import { ActionButtonComponent } from '../../../core/components/ui/action-button/action-button.component';
@@ -47,6 +49,7 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly cocktailService = inject(CocktailService);
   private readonly commandeService = inject(CommandeService);
+  private readonly tableSessionService = inject(TableSessionService);
   private readonly toastCtrl = inject(ToastController);
   private readonly translocoService = inject(TranslocoService);
   private readonly destroy$ = new Subject<void>();
@@ -54,6 +57,11 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
   tableNumero: number | null = null;
   step: 'table' | 'menu' | 'recap' = 'table';
   tableForm!: FormGroup;
+
+  sessionToken: string | null = null;
+  isSessionValid = true;
+  isSessionChecking = false;
+  sessionStatus: TableSessionStatus | null = null;
 
   cocktails: Cocktail[] = [];
   filteredCocktails: Cocktail[] = [];
@@ -68,11 +76,15 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
     });
 
     this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe((params) => {
+      if (params['token']) {
+        this.sessionToken = String(params['token']).trim();
+      }
       if (params['table']) {
         const tNum = Number.parseInt(params['table'], 10);
         if (!Number.isNaN(tNum) && tNum > 0) {
           this.tableNumero = tNum;
           this.step = 'menu';
+          this.checkSession(this.tableNumero, this.sessionToken);
           this.loadCocktails();
         }
       }
@@ -88,7 +100,61 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
     if (this.tableForm.invalid) return;
     this.tableNumero = Number.parseInt(this.tableForm.value.tableNumber, 10);
     this.step = 'menu';
+    this.checkSession(this.tableNumero, this.sessionToken);
     this.loadCocktails();
+  }
+
+  checkSession(tableId: number, token: string | null): void {
+    this.isSessionChecking = true;
+    this.tableSessionService
+      .validateSession(tableId, token)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          this.isSessionChecking = false;
+          this.isSessionValid = res.valid;
+          this.sessionStatus = res.status ?? null;
+          if (res.sessionToken) {
+            this.sessionToken = res.sessionToken;
+          }
+        },
+        error: () => {
+          this.isSessionChecking = false;
+        }
+      });
+  }
+
+  refreshSession(): void {
+    if (!this.tableNumero) return;
+    this.isSessionChecking = true;
+    this.tableSessionService
+      .refreshSession(this.tableNumero)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: async (res) => {
+          this.isSessionChecking = false;
+          this.isSessionValid = res.valid;
+          this.sessionStatus = res.status ?? null;
+          if (res.sessionToken) {
+            this.sessionToken = res.sessionToken;
+          }
+          const toast = await this.toastCtrl.create({
+            message: this.translocoService.translate('CLIENT.SESSION_REFRESH_SUCCESS'),
+            duration: 3000,
+            color: 'success'
+          });
+          await toast.present();
+        },
+        error: async () => {
+          this.isSessionChecking = false;
+          const toast = await this.toastCtrl.create({
+            message: this.translocoService.translate('CLIENT.SESSION_REFRESH_ERROR'),
+            duration: 4000,
+            color: 'danger'
+          });
+          await toast.present();
+        }
+      });
   }
 
   loadCocktails(): void {
@@ -175,6 +241,7 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
     this.isSubmitting = true;
     const commandeData = {
       tableId: this.tableNumero,
+      sessionToken: this.sessionToken,
       items: this.cartItemsList.map((item) => ({
         cocktailId: item.cocktail.id,
         quantite: item.quantite
@@ -195,8 +262,11 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
           await toast.present();
           this.router.navigate(['/client/suivi', commandeCreated.id]);
         },
-        error: async (err: { error?: { message?: string } }) => {
+        error: async (err: { status?: number; error?: { message?: string } }) => {
           this.isSubmitting = false;
+          if (err?.status === 403) {
+            this.isSessionValid = false;
+          }
           const toast = await this.toastCtrl.create({
             message: err?.error?.message || this.translocoService.translate('CLIENT.ORDER_SUBMIT_ERROR'),
             duration: 4000,

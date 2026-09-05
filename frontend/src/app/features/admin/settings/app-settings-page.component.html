@@ -956,6 +956,27 @@
                           </div>
                         </div>
                       }
+
+                      <div class="divider-line"></div>
+
+                      <!-- Ephemeral Table Session Validation Setup -->
+                      <div class="form-section-subtitle">
+                        <ion-icon name="shield-checkmark-outline"></ion-icon>
+                        <span>{{ 'SETTINGS.QR_SESSION_VALIDATION_TITLE' | transloco }}</span>
+                      </div>
+
+                      <div class="toggle-row-box">
+                        <div class="toggle-info">
+                          <label class="toggle-title" for="table-session-validation-toggle">{{ 'SETTINGS.QR_SESSION_VALIDATION_LABEL' | transloco }}</label>
+                          <span class="toggle-desc">{{ 'SETTINGS.QR_SESSION_VALIDATION_HINT' | transloco }}</span>
+                        </div>
+                        <input
+                          id="table-session-validation-toggle"
+                          type="checkbox"
+                          formControlName="tableSessionValidationEnabled"
+                          class="switch-input"
+                          data-testid="toggle-table-session-validation" />
+                      </div>
                     </ion-card-content>
                   </ion-card>
                 </ion-col>

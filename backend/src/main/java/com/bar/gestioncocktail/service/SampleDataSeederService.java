@@ -77,6 +77,7 @@ public class SampleDataSeederService {
     private final EstablishmentClosureRepository establishmentClosureRepository;
     private final WeekSchedulePublicationRepository weekSchedulePublicationRepository;
     private final TableAppelRepository tableAppelRepository;
+    private final TableSessionRepository tableSessionRepository;
     private final AppSettingsRepository appSettingsRepository;
     private final EstablishmentConfigRepository establishmentConfigRepository;
     private final JdbcTemplate jdbcTemplate;
@@ -107,6 +108,7 @@ public class SampleDataSeederService {
             EstablishmentClosureRepository establishmentClosureRepository,
             WeekSchedulePublicationRepository weekSchedulePublicationRepository,
             TableAppelRepository tableAppelRepository,
+            TableSessionRepository tableSessionRepository,
             AppSettingsRepository appSettingsRepository,
             EstablishmentConfigRepository establishmentConfigRepository,
             JdbcTemplate jdbcTemplate,
@@ -131,6 +133,7 @@ public class SampleDataSeederService {
         this.establishmentClosureRepository = establishmentClosureRepository;
         this.weekSchedulePublicationRepository = weekSchedulePublicationRepository;
         this.tableAppelRepository = tableAppelRepository;
+        this.tableSessionRepository = tableSessionRepository;
         this.appSettingsRepository = appSettingsRepository;
         this.establishmentConfigRepository = establishmentConfigRepository;
         this.jdbcTemplate = jdbcTemplate;
@@ -180,6 +183,7 @@ public class SampleDataSeederService {
                 jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS wifi_password VARCHAR(100)");
                 jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS wifi_security VARCHAR(20) DEFAULT 'WPA'");
                 jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS wifi_enabled BOOLEAN DEFAULT false");
+                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS table_session_validation_enabled BOOLEAN DEFAULT false");
                 jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP");
                 jdbcTemplate.execute("ALTER TABLE establishment_config ADD COLUMN IF NOT EXISTS ticket_format VARCHAR(10) DEFAULT '80mm'");
             }, "migrateLegacySchemas");
@@ -218,6 +222,7 @@ public class SampleDataSeederService {
                 factureRepository.flush();
                 commandeRepository.flush();
                 tableAppelRepository.flush();
+                tableSessionRepository.flush();
                 tableRepository.deleteAll(testTables);
                 tableRepository.flush();
             }
@@ -255,6 +260,7 @@ public class SampleDataSeederService {
                 factureRepository.flush();
                 commandeRepository.flush();
                 tableAppelRepository.flush();
+                tableSessionRepository.flush();
                 tableRepository.deleteAll(duplicatesToDelete);
                 tableRepository.flush();
             }
@@ -270,6 +276,7 @@ public class SampleDataSeederService {
         safelyExecute(() -> factureRepository.detachTableFromFactures(tableId), "detach factures for table " + tableId);
         safelyExecute(() -> commandeRepository.detachTableFromCommandes(tableId), "detach commandes for table " + tableId);
         safelyExecute(() -> tableAppelRepository.deleteByTableId(tableId), "delete appels for table " + tableId);
+        safelyExecute(() -> tableSessionRepository.deleteByTableId(tableId), "delete sessions for table " + tableId);
     }
 
     private void safelyExecute(Runnable action, String description) {
@@ -373,6 +380,7 @@ public class SampleDataSeederService {
             safelyInTransaction(() -> seedCocktailRecipeStepsFromJson(root.get("cocktail_recipe_steps"), templatesMap), "seedCocktailRecipeSteps");
             safelyInTransaction(() -> seedStockAdjustmentsFromJson(root.get("stock_adjustments")), "seedStockAdjustments");
             safelyInTransaction(() -> seedTableAppelsFromJson(root.get("table_appels"), tablesMap), "seedTableAppels");
+            safelyInTransaction(() -> seedTableSessionsFromJson(root.get("table_sessions"), tablesMap), "seedTableSessions");
             safelyInTransaction(this::seedSettingsAndConfig, "seedSettingsAndConfig");
 
             List<Cocktail> cocktails = cocktailRepository.findAll();
@@ -1132,6 +1140,40 @@ public class SampleDataSeederService {
             tableAppelRepository.save(appel);
         }
         log.info("Seeded table call alerts from demo dataset.");
+    }
+
+    private void seedTableSessionsFromJson(JsonNode sessionsNode, Map<Integer, TableEntity> tablesMap) {
+        if (sessionsNode == null || !sessionsNode.isArray() || tableSessionRepository.count() > 0) {
+            return;
+        }
+
+        LocalDateTime now = timeService.now();
+        for (JsonNode sNode : sessionsNode) {
+            int tableNumero = sNode.path(KEY_TABLE_NUMERO).asInt(1);
+            TableEntity table = tablesMap.get(tableNumero);
+            if (table == null) {
+                table = tableRepository.findByNumero(tableNumero).orElse(null);
+            }
+            if (table == null) {
+                continue;
+            }
+
+            String token = sNode.path("sessionToken").asText(UUID.randomUUID().toString());
+            TableSessionStatus status = TableSessionStatus.valueOf(sNode.path("status").asText("ACTIVE"));
+            int minutesAgo = sNode.path(KEY_MINUTES_AGO).asInt(15);
+            int expiresInMinutes = sNode.path("expiresInMinutes").asInt(105);
+
+            TableSession session = new TableSession();
+            session.setTableId(table.getId());
+            session.setSessionToken(token);
+            session.setStatus(status);
+            session.setOpenedAt(now.minusMinutes(minutesAgo));
+            session.setLastActivityAt(now.minusMinutes(Math.max(0, minutesAgo - 5)));
+            session.setExpiresAt(now.plusMinutes(expiresInMinutes));
+
+            tableSessionRepository.save(session);
+        }
+        log.info("Seeded ephemeral table sessions from demo dataset.");
     }
 
     private void seedSettingsAndConfig() {

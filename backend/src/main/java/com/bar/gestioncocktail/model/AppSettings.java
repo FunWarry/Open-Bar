@@ -104,6 +104,9 @@ public class AppSettings {
     @Column(name = "wifi_enabled")
     private Boolean wifiEnabled = false;
 
+    @Column(name = "table_session_validation_enabled")
+    private Boolean tableSessionValidationEnabled = false;
+
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 

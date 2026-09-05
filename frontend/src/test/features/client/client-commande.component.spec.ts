@@ -2,11 +2,13 @@ import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testin
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterTestingModule } from '@angular/router/testing';
 import { ToastController } from '@ionic/angular/standalone';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { ClientCommandeComponent } from '../../../app/features/client/client-commande/client-commande.component';
 import { CocktailService } from '../../../app/core/services/cocktail.service';
 import { CommandeService } from '../../../app/core/services/commande.service';
 import { TableAppelService } from '../../../app/core/services/table-appel.service';
+import { TableSessionService } from '../../../app/core/services/table-session.service';
+import { TableSessionResponse } from '../../../app/core/models/table-session.model';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { Cocktail } from '../../../app/core/models/cocktail.model';
 import { TableAppel } from '../../../app/core/models/table-appel.model';
@@ -20,7 +22,20 @@ describe('ClientCommandeComponent', () => {
   let cocktailServiceSpy: jasmine.SpyObj<CocktailService>;
   let commandeServiceSpy: jasmine.SpyObj<CommandeService>;
   let tableAppelServiceSpy: jasmine.SpyObj<TableAppelService>;
+  let tableSessionServiceSpy: jasmine.SpyObj<TableSessionService>;
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
+
+  const mockActiveSessionResponse: TableSessionResponse = {
+    id: 1,
+    tableId: 4,
+    sessionToken: 'valid-token-123',
+    status: 'ACTIVE',
+    openedAt: '2026-09-05T18:00:00',
+    lastActivityAt: '2026-09-05T18:10:00',
+    expiresAt: '2026-09-05T20:00:00',
+    valid: true,
+    message: 'Active'
+  };
 
   const mockCocktail: Cocktail = {
     id: 1,
@@ -53,11 +68,17 @@ describe('ClientCommandeComponent', () => {
       'appelerServeur',
       'getAppelsActifsPourTable'
     ]);
+    tableSessionServiceSpy = jasmine.createSpyObj('TableSessionService', [
+      'validateSession',
+      'refreshSession'
+    ]);
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
 
     cocktailServiceSpy.getAll.and.returnValue(of([mockCocktail]));
     tableAppelServiceSpy.appelerServeur.and.returnValue(of(mockAppel));
     tableAppelServiceSpy.getAppelsActifsPourTable.and.returnValue(of([]));
+    tableSessionServiceSpy.validateSession.and.returnValue(of(mockActiveSessionResponse));
+    tableSessionServiceSpy.refreshSession.and.returnValue(of(mockActiveSessionResponse));
     toastCtrlSpy.create.and.returnValue(Promise.resolve({ present: () => Promise.resolve() } as any));
 
     await TestBed.configureTestingModule({
@@ -71,6 +92,7 @@ describe('ClientCommandeComponent', () => {
         { provide: CocktailService, useValue: cocktailServiceSpy },
         { provide: CommandeService, useValue: commandeServiceSpy },
         { provide: TableAppelService, useValue: tableAppelServiceSpy },
+        { provide: TableSessionService, useValue: tableSessionServiceSpy },
         { provide: ToastController, useValue: toastCtrlSpy }
       ]
     }).compileComponents();
@@ -135,6 +157,58 @@ describe('ClientCommandeComponent', () => {
     expect(commandeServiceSpy.create).toHaveBeenCalled();
     expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({
       color: 'success'
+    }));
+  }));
+
+  it('should validate table session on checkSession', () => {
+    component.checkSession(4, 'valid-token-123');
+    expect(tableSessionServiceSpy.validateSession).toHaveBeenCalledWith(4, 'valid-token-123');
+    expect(component.isSessionValid).toBeTrue();
+    expect(component.sessionStatus).toBe('ACTIVE');
+    expect(component.sessionToken).toBe('valid-token-123');
+  });
+
+  it('should mark session invalid when validation returns expired', () => {
+    tableSessionServiceSpy.validateSession.and.returnValue(of({
+      id: 2,
+      tableId: 4,
+      sessionToken: 'expired-token',
+      status: 'EXPIRED',
+      openedAt: '2026-09-05T12:00:00',
+      lastActivityAt: '2026-09-05T12:30:00',
+      expiresAt: '2026-09-05T14:00:00',
+      valid: false,
+      message: 'Expired'
+    }));
+
+    component.checkSession(4, 'expired-token');
+    expect(component.isSessionValid).toBeFalse();
+    expect(component.sessionStatus).toBe('EXPIRED');
+  });
+
+  it('should refresh session when refreshSession is called', fakeAsync(() => {
+    component.tableNumero = 4;
+    component.refreshSession();
+    tick();
+
+    expect(tableSessionServiceSpy.refreshSession).toHaveBeenCalledWith(4);
+    expect(component.isSessionValid).toBeTrue();
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({
+      color: 'success'
+    }));
+  }));
+
+  it('should mark session invalid when order submission fails with 403 Forbidden', fakeAsync(() => {
+    commandeServiceSpy.create.and.returnValue(throwError(() => ({ status: 403, error: { message: 'Session expired' } })));
+    component.tableNumero = 4;
+    component.addToCart(mockCocktail);
+
+    component.submitOrder();
+    tick();
+
+    expect(component.isSessionValid).toBeFalse();
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({
+      color: 'danger'
     }));
   }));
 });

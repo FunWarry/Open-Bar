@@ -2428,5 +2428,28 @@
       "acquittePar": "serveur1",
       "minutesAgo": 25
     }
+  ],
+  "table_sessions": [
+    {
+      "tableNumero": 1,
+      "sessionToken": "session-table-1-active-demo",
+      "status": "ACTIVE",
+      "minutesAgo": 15,
+      "expiresInMinutes": 105
+    },
+    {
+      "tableNumero": 2,
+      "sessionToken": "session-table-2-expired-demo",
+      "status": "EXPIRED",
+      "minutesAgo": 180,
+      "expiresInMinutes": -60
+    },
+    {
+      "tableNumero": 3,
+      "sessionToken": "session-table-3-active-demo",
+      "status": "ACTIVE",
+      "minutesAgo": 5,
+      "expiresInMinutes": 115
+    }
   ]
 }

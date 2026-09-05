@@ -45,6 +45,8 @@ export interface Commande {
 export interface CreateCommandeRequest {
   tableId: number;
   notes?: string;
+  items?: Array<{ cocktailId: number; quantite: number; varianteId?: number; notes?: string }>;
+  sessionToken?: string | null;
 }
 
 export interface AjouterItemRequest {

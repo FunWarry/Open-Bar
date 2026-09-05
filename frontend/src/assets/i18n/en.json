@@ -244,6 +244,12 @@
     "SUBMIT_ORDER_BTN": "Send order to bar",
     "ORDER_SUBMIT_SUCCESS": "Order successfully submitted to the bar!",
     "ORDER_SUBMIT_ERROR": "Error while placing the order.",
+    "SESSION_EXPIRED_TITLE": "Table session expired",
+    "SESSION_EXPIRED_DESC": "Your ordering session at this table has closed or expired.",
+    "SESSION_CONTACT_SERVER": "Please contact your waiter to renew your session.",
+    "SESSION_REFRESH_BTN": "Refresh my session",
+    "SESSION_REFRESH_SUCCESS": "Table session successfully refreshed!",
+    "SESSION_REFRESH_ERROR": "Unable to refresh session. Please contact your waiter.",
     "ALERTS": {
       "CALL_WAITER_BTN": "Call Waiter",
       "REQUEST_BILL_BTN": "Request Bill",
@@ -557,7 +563,13 @@
     "TABLE_NUMBER_LABEL": "Your Table Number",
     "TABLE_NUMBER_PLACEHOLDER": "e.g. 4",
     "ACCESS_MENU": "View Menu",
-    "SIMULATION_LABEL": "Demo / Test mode without camera:"
+    "SIMULATION_LABEL": "Demo / Test mode without camera:",
+    "SESSION_EXPIRED_TITLE": "Table session expired",
+    "SESSION_EXPIRED_DESC": "Your ordering session has expired or the table was liberated by the staff. Please contact your waiter to reactivate your table session.",
+    "SESSION_INVALID_TITLE": "Invalid table session",
+    "SESSION_INVALID_DESC": "The session token is invalid or does not match this table. Please rescan the official table QR Code.",
+    "SESSION_REFRESH_BTN": "Refresh session",
+    "SESSION_VALIDATING": "Validating table session..."
   },
   "COCKTAILS": {
     "TITLE": "Cocktails",
@@ -2334,7 +2346,10 @@
     "QR_WIFI_PASSWORD": "Wi-Fi Password",
     "QR_WIFI_PASSWORD_HINT": "Security key (leave empty for open networks)",
     "QR_WIFI_SECURITY": "Wi-Fi Security Type",
-    "QR_PREVIEW_TITLE": "Live Table Stand Preview"
+    "QR_PREVIEW_TITLE": "Live Table Stand Preview",
+    "QR_SESSION_VALIDATION_TITLE": "Security & Ephemeral Session Validation",
+    "QR_SESSION_VALIDATION_LABEL": "Require ephemeral session tokens for QR orders",
+    "QR_SESSION_VALIDATION_HINT": "Rejects fraudulent or expired orders if the table is free or the session token is inactive."
   },
   "CONFIRM_DELETE_MODAL": {
     "DELETION_BLOCKED": "Deletion not allowed",

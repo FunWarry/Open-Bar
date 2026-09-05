@@ -82,7 +82,24 @@ public record AppSettingsUpdateRequest(
     @Size(max = 20, message = "Wi-Fi security cannot exceed 20 characters")
     String wifiSecurity,
 
-    Boolean wifiEnabled
+    Boolean wifiEnabled,
+
+    Boolean tableSessionValidationEnabled
 ) {
+    /**
+     * Backwards-compatible 16-parameter constructor defaulting tableSessionValidationEnabled to false.
+     */
+    public AppSettingsUpdateRequest(
+            String primaryColor, String primaryColorStrong, String logoUrl,
+            String establishmentName, DefaultTheme defaultTheme, String currencyCode,
+            String currencySymbol, CurrencyPosition currencyPosition,
+            Integer tempsAlerteWarningMinutes, Integer tempsAlerteCommandeMinutes,
+            Integer tempsAlerteCritiqueCommandeMinutes, String clientBaseUrl,
+            String wifiSsid, String wifiPassword, String wifiSecurity, Boolean wifiEnabled) {
+        this(primaryColor, primaryColorStrong, logoUrl, establishmentName, defaultTheme,
+                currencyCode, currencySymbol, currencyPosition, tempsAlerteWarningMinutes,
+                tempsAlerteCommandeMinutes, tempsAlerteCritiqueCommandeMinutes, clientBaseUrl,
+                wifiSsid, wifiPassword, wifiSecurity, wifiEnabled, false);
+    }
 }
 

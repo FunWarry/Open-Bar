@@ -33,6 +33,30 @@ public class TableService {
     private final AppSettingsService appSettingsService;
     private final QrCodeService qrCodeService;
     private final PdfService pdfService;
+    private final TableSessionService tableSessionService;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public TableService(TableRepository tableRepository,
+                        CommandeRepository commandeRepository,
+                        com.bar.gestioncocktail.repository.FactureRepository factureRepository,
+                        AuditLogService auditLogService,
+                        TimeService timeService,
+                        ApplicationEventPublisher eventPublisher,
+                        AppSettingsService appSettingsService,
+                        QrCodeService qrCodeService,
+                        PdfService pdfService,
+                        TableSessionService tableSessionService) {
+        this.tableRepository = tableRepository;
+        this.commandeRepository = commandeRepository;
+        this.factureRepository = factureRepository;
+        this.auditLogService = auditLogService;
+        this.timeService = timeService;
+        this.eventPublisher = eventPublisher;
+        this.appSettingsService = appSettingsService;
+        this.qrCodeService = qrCodeService;
+        this.pdfService = pdfService;
+        this.tableSessionService = tableSessionService;
+    }
 
     public TableService(TableRepository tableRepository,
                         CommandeRepository commandeRepository,
@@ -43,15 +67,8 @@ public class TableService {
                         AppSettingsService appSettingsService,
                         QrCodeService qrCodeService,
                         PdfService pdfService) {
-        this.tableRepository = tableRepository;
-        this.commandeRepository = commandeRepository;
-        this.factureRepository = factureRepository;
-        this.auditLogService = auditLogService;
-        this.timeService = timeService;
-        this.eventPublisher = eventPublisher;
-        this.appSettingsService = appSettingsService;
-        this.qrCodeService = qrCodeService;
-        this.pdfService = pdfService;
+        this(tableRepository, commandeRepository, factureRepository, auditLogService,
+                timeService, eventPublisher, appSettingsService, qrCodeService, pdfService, null);
     }
 
     @Transactional
@@ -210,6 +227,9 @@ public class TableService {
         table.setDateLiberation(null);
 
         TableEntity saved = tableRepository.save(table);
+        if (tableSessionService != null) {
+            tableSessionService.createOrGetActiveSession(saved.getId());
+        }
         notifyTableUpdated(saved);
         return saved;
     }
@@ -229,6 +249,9 @@ public class TableService {
         table.setDateLiberation(LocalDateTime.now(timeService.getZoneId()));
 
         TableEntity saved = tableRepository.save(table);
+        if (tableSessionService != null) {
+            tableSessionService.invalidateSessionForTable(saved.getId());
+        }
         if (eventPublisher != null) {
             eventPublisher.publishEvent(new TableLiberatedEvent(saved));
         }
