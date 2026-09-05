@@ -96,6 +96,22 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Handles invalid or expired table session token attempts (HTTP 403).
+     *
+     * @param ex Intercepted invalid session exception
+     * @return HTTP 403 response
+     */
+    @ExceptionHandler(InvalidTableSessionException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidTableSession(InvalidTableSessionException ex) {
+        ErrorResponse body = ErrorResponse.builder(
+                HttpStatus.FORBIDDEN.value(),
+                "Forbidden",
+                ex.getMessage()
+        ).build();
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
+    }
+
+    /**
      * Handles Bean validation errors (HTTP 400 with field details).
      *
      * @param ex Validation exception

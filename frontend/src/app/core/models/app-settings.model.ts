@@ -20,6 +20,7 @@ export interface AppSettings {
   wifiPassword?: string;
   wifiSecurity?: WifiSecurityType;
   wifiEnabled?: boolean;
+  tableSessionValidationEnabled?: boolean;
   updatedAt: string | null;
 }
 

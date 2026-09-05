@@ -470,6 +470,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       wifiPassword: ['', [Validators.maxLength(100)]],
       wifiSecurity: ['WPA', [Validators.required]],
       wifiEnabled: [false],
+      tableSessionValidationEnabled: [false],
     }, { validators: thresholdPriorityValidator });
 
     const currentColors = this.themeService.currentCustomColors;

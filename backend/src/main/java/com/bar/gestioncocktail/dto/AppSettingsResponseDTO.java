@@ -48,6 +48,7 @@ public record AppSettingsResponseDTO(
     String wifiPassword,
     String wifiSecurity,
     Boolean wifiEnabled,
+    Boolean tableSessionValidationEnabled,
     LocalDateTime updatedAt
 ) {
     /**
@@ -68,6 +69,7 @@ public record AppSettingsResponseDTO(
             s.getWifiPassword(),
             s.getWifiSecurity(),
             s.getWifiEnabled(),
+            s.getTableSessionValidationEnabled(),
             s.getUpdatedAt()
         );
     }

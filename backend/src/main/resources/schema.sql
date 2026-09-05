@@ -199,6 +199,21 @@ CREATE TABLE IF NOT EXISTS table_appels (
 CREATE INDEX IF NOT EXISTS idx_table_appels_table_statut ON table_appels(table_id, statut);
 CREATE INDEX IF NOT EXISTS idx_table_appels_statut ON table_appels(statut);
 
+CREATE TABLE IF NOT EXISTS table_sessions (
+    id BIGSERIAL PRIMARY KEY,
+    table_id BIGINT NOT NULL REFERENCES tables(id) ON DELETE CASCADE,
+    session_token VARCHAR(64) NOT NULL UNIQUE,
+    status VARCHAR(20) NOT NULL,
+    opened_at TIMESTAMP NOT NULL,
+    last_activity_at TIMESTAMP NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_table_sessions_token ON table_sessions(session_token);
+CREATE INDEX IF NOT EXISTS idx_table_sessions_table_status ON table_sessions(table_id, status);
+
 -- 5. Orders & Items
 CREATE TABLE IF NOT EXISTS commandes (
     id BIGSERIAL PRIMARY KEY,
@@ -333,6 +348,7 @@ CREATE TABLE IF NOT EXISTS app_settings (
     wifi_password VARCHAR(100),
     wifi_security VARCHAR(20),
     wifi_enabled BOOLEAN DEFAULT false,
+    table_session_validation_enabled BOOLEAN DEFAULT false,
     updated_at TIMESTAMP
 );
 

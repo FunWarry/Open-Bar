@@ -24,6 +24,7 @@ export async function setupMockApi(page: Page): Promise<void> {
           wifiPassword: body.wifiPassword || 'secretpass123',
           wifiSecurity: body.wifiSecurity || 'WPA',
           wifiEnabled: body.wifiEnabled !== undefined ? body.wifiEnabled : true,
+          tableSessionValidationEnabled: body.tableSessionValidationEnabled !== undefined ? body.tableSessionValidationEnabled : false,
           defaultTheme: 'DARK',
           currencyCode: body.currencyCode || 'EUR',
           currencySymbol: body.currencySymbol || '€',
@@ -50,6 +51,7 @@ export async function setupMockApi(page: Page): Promise<void> {
         wifiPassword: 'secretpass123',
         wifiSecurity: 'WPA',
         wifiEnabled: true,
+        tableSessionValidationEnabled: false,
         defaultTheme: 'DARK',
         currencyCode: 'EUR',
         currencySymbol: '€',
@@ -58,6 +60,63 @@ export async function setupMockApi(page: Page): Promise<void> {
         tempsAlerteCommandeMinutes: 5,
         tempsAlerteCritiqueCommandeMinutes: 10,
         updatedAt: new Date().toISOString(),
+      }),
+    });
+  });
+
+  await page.route('**/api/public/tables/*/session**', async (route) => {
+    const url = route.request().url();
+    if (url.includes('/refresh')) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 1,
+          tableId: 1,
+          sessionToken: 'refreshed-mock-session-token',
+          status: 'ACTIVE',
+          openedAt: new Date().toISOString(),
+          lastActivityAt: new Date().toISOString(),
+          expiresAt: new Date(Date.now() + 7200000).toISOString(),
+          valid: true,
+          message: 'Table session refreshed'
+        }),
+      });
+      return;
+    }
+
+    if (url.includes('expired')) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 1,
+          tableId: 1,
+          sessionToken: 'expired-token',
+          status: 'EXPIRED',
+          openedAt: '2026-09-05T12:00:00',
+          lastActivityAt: '2026-09-05T12:30:00',
+          expiresAt: '2026-09-05T14:00:00',
+          valid: false,
+          message: 'Table session has expired'
+        }),
+      });
+      return;
+    }
+
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        id: 1,
+        tableId: 1,
+        sessionToken: 'active-mock-session-token',
+        status: 'ACTIVE',
+        openedAt: new Date().toISOString(),
+        lastActivityAt: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + 7200000).toISOString(),
+        valid: true,
+        message: 'Table session is active and valid'
       }),
     });
   });

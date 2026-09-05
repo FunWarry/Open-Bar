@@ -1,6 +1,7 @@
 package com.bar.gestioncocktail.service;
 
 import com.bar.gestioncocktail.dto.*;
+import com.bar.gestioncocktail.exception.InvalidTableSessionException;
 import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.exception.StockInsuffisantException;
 import com.bar.gestioncocktail.model.*;
@@ -28,6 +29,25 @@ public class PublicCommandeService {
     private final CocktailVarianteRepository varianteRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final TimeService timeService;
+    private final TableSessionService tableSessionService;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public PublicCommandeService(
+            CommandeRepository commandeRepository,
+            TableRepository tableRepository,
+            CocktailRepository cocktailRepository,
+            CocktailVarianteRepository varianteRepository,
+            ApplicationEventPublisher eventPublisher,
+            TimeService timeService,
+            TableSessionService tableSessionService) {
+        this.commandeRepository = commandeRepository;
+        this.tableRepository = tableRepository;
+        this.cocktailRepository = cocktailRepository;
+        this.varianteRepository = varianteRepository;
+        this.eventPublisher = eventPublisher;
+        this.timeService = timeService;
+        this.tableSessionService = tableSessionService;
+    }
 
     public PublicCommandeService(
             CommandeRepository commandeRepository,
@@ -36,15 +56,15 @@ public class PublicCommandeService {
             CocktailVarianteRepository varianteRepository,
             ApplicationEventPublisher eventPublisher,
             TimeService timeService) {
-        this.commandeRepository = commandeRepository;
-        this.tableRepository = tableRepository;
-        this.cocktailRepository = cocktailRepository;
-        this.varianteRepository = varianteRepository;
-        this.eventPublisher = eventPublisher;
-        this.timeService = timeService;
+        this(commandeRepository, tableRepository, cocktailRepository, varianteRepository,
+                eventPublisher, timeService, null);
     }
 
     public PublicCommandeResponseDTO creerCommandePublique(PublicCommandeRequestDTO dto) {
+        if (tableSessionService != null && !tableSessionService.isSessionValidForOrder(dto.getTableId(), dto.getSessionToken())) {
+            throw new InvalidTableSessionException("Invalid or expired table session token for table " + dto.getTableId());
+        }
+
         TableEntity table = tableRepository.findById(dto.getTableId())
                 .orElseThrow(() -> new ResourceNotFoundException("Table not found with id: " + dto.getTableId()));
 

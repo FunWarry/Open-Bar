@@ -244,6 +244,12 @@
     "SUBMIT_ORDER_BTN": "Envoyer la commande au bar",
     "ORDER_SUBMIT_SUCCESS": "Commande transmise avec succès au bar !",
     "ORDER_SUBMIT_ERROR": "Erreur lors du passage de la commande.",
+    "SESSION_EXPIRED_TITLE": "Session de table expirée",
+    "SESSION_EXPIRED_DESC": "Votre session de commande sur cette table est clôturée ou a expiré.",
+    "SESSION_CONTACT_SERVER": "Veuillez vous adresser à votre serveur pour renouveler votre session.",
+    "SESSION_REFRESH_BTN": "Actualiser ma session",
+    "SESSION_REFRESH_SUCCESS": "Session de table actualisée avec succès !",
+    "SESSION_REFRESH_ERROR": "Impossible d'actualiser la session. Veuillez contacter votre serveur.",
     "ALERTS": {
       "CALL_WAITER_BTN": "Appel Serveur",
       "REQUEST_BILL_BTN": "Demander l'addition",
@@ -557,7 +563,13 @@
     "TABLE_NUMBER_LABEL": "Numéro de votre table",
     "TABLE_NUMBER_PLACEHOLDER": "Ex: 4",
     "ACCESS_MENU": "Accéder au Menu",
-    "SIMULATION_LABEL": "Mode Démo / Test sans caméra :"
+    "SIMULATION_LABEL": "Mode Démo / Test sans caméra :",
+    "SESSION_EXPIRED_TITLE": "Session de table expirée",
+    "SESSION_EXPIRED_DESC": "Votre session de commande à table a expiré ou la table a été libérée par le service. Veuillez contacter votre serveur pour réactiver la table.",
+    "SESSION_INVALID_TITLE": "Session de table invalide",
+    "SESSION_INVALID_DESC": "Le jeton de session est invalide ou ne correspond pas à cette table. Veuillez rescanner le QR Code officiel de votre table.",
+    "SESSION_REFRESH_BTN": "Actualiser la session",
+    "SESSION_VALIDATING": "Vérification de la session en cours..."
   },
   "COCKTAILS": {
     "TITLE": "Cocktails",
@@ -2334,7 +2346,10 @@
     "QR_WIFI_PASSWORD": "Mot de passe Wi-Fi",
     "QR_WIFI_PASSWORD_HINT": "Clé de sécurité (laisser vide si réseau ouvert)",
     "QR_WIFI_SECURITY": "Type de sécurité Wi-Fi",
-    "QR_PREVIEW_TITLE": "Aperçu en Direct du Chevalet de Table"
+    "QR_PREVIEW_TITLE": "Aperçu en Direct du Chevalet de Table",
+    "QR_SESSION_VALIDATION_TITLE": "Sécurité & Validation des Sessions Éphémères",
+    "QR_SESSION_VALIDATION_LABEL": "Exiger un jeton de session éphémère pour les commandes QR",
+    "QR_SESSION_VALIDATION_HINT": "Rejette les commandes frauduleuses ou périmées si la table est libre ou si le jeton n'est pas actif."
   },
   "CONFIRM_DELETE_MODAL": {
     "DELETION_BLOCKED": "Suppression impossible",

@@ -33,8 +33,36 @@
     </div>
   }
 
+  <!-- Écran Session Expirée / Invalide -->
+  @if (!isSessionValid && step !== 'table') {
+    <div class="step-card session-expired-card" data-testid="session-expired-card">
+      <div class="card-header-section">
+        <span class="brand-emoji">⚠️</span>
+        <h2 class="card-title">{{ 'CLIENT.SESSION_EXPIRED_TITLE' | transloco }}</h2>
+        <p class="card-subtitle">{{ 'CLIENT.SESSION_EXPIRED_DESC' | transloco }}</p>
+      </div>
+
+      <p class="contact-server-text" data-testid="session-expired-contact-server">
+        {{ 'CLIENT.SESSION_CONTACT_SERVER' | transloco }}
+      </p>
+
+      <div class="actions-row">
+        <app-action-button
+          variant="primary"
+          size="large"
+          expand="block"
+          [loading]="isSessionChecking"
+          [disabled]="isSessionChecking"
+          (btnClick)="refreshSession()"
+          testId="btn-refresh-session">
+          {{ 'CLIENT.SESSION_REFRESH_BTN' | transloco }}
+        </app-action-button>
+      </div>
+    </div>
+  }
+
   <!-- Étape 2 : Menu & Sélection de cocktails -->
-  @if (step === 'menu') {
+  @if (isSessionValid && step === 'menu') {
     <div class="menu-view">
       <header class="menu-header">
         <div class="header-info">
@@ -110,7 +138,7 @@
   }
 
   <!-- Étape 3 : Récapitulatif -->
-  @if (step === 'recap') {
+  @if (isSessionValid && step === 'recap') {
     <div class="step-card recap-card">
       <div class="recap-header">
         <button class="back-btn" (click)="backToMenu()">{{ 'CLIENT.BACK_TO_MENU' | transloco }}</button>
