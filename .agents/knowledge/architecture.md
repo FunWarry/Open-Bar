@@ -15,11 +15,11 @@
 
 | Layer | Technology | Version | Notes |
 |-------|------------|---------|-------|
-| Backend | Spring Boot | 4.0.6 | |
+| Backend | Spring Boot | 4.1.1 | |
 | Runtime | Java | 22 (pinned) | Lombok 1.18.34 incompatible with JDK 23+ compiler internals |
 | Database | PostgreSQL | — | Managed via Docker Compose |
 | ORM | JPA/Hibernate + Lombok `@Data` | via Spring | |
-| Security | Spring Security + custom JWT | JJWT 0.12.6 | Requires `JWT_SECRET` (≥ 32 characters) |
+| Security | Spring Security + custom JWT | JJWT 0.13.0 | Requires `JWT_SECRET` (≥ 32 characters) |
 | Real-time | WebSocket STOMP | via Spring | 5 active topics |
 | Frontend | Angular | 20 | |
 | UI | Ionic | 8.8.11 | Angular Material abandoned |
@@ -28,8 +28,8 @@
 | i18n | Transloco (`@jsverse/transloco`) | — | All user-visible text must use `{{ 'KEY' | transloco }}` |
 | Canvas | Konva.js | — | Interactive 2D floor plan |
 | PDF | OpenPDF | 2.0.3 | Legal invoices, receipts, and table stand sheets |
-| QR Codes | ZXing | 3.5.3 | High-contrast QR matrix generation (PNG, SVG, Wi-Fi standard schema) |
-| Backend tests | JUnit 5 + Mockito + Testcontainers | — | Unit + Spring Boot integration tests with isolated PostgreSQL |
+| QR Codes | ZXing | 3.5.4 | High-contrast QR matrix generation (PNG, SVG, Wi-Fi standard schema) |
+| Backend tests | JUnit 5 + Mockito + Testcontainers | 1.21.4 | Unit + Spring Boot integration tests with isolated PostgreSQL |
 | Frontend tests | Karma + Jasmine | — | Headless browser unit tests |
 | E2E tests | Playwright | 1.50+ | End-to-end browser tests (Chromium headless) |
 | Database Backups | Automated Docker cron + rotation | — | `prodrigestivill/postgres-backup-local:15-alpine` (7d/4w/6m retention) |
