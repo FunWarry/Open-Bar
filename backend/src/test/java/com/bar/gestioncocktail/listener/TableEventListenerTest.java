@@ -156,8 +156,35 @@ class TableEventListenerTest {
     void onInvoiceSettled_nullSafe() {
         listener.onInvoiceSettled(null);
         listener.onInvoiceSettled(new InvoiceSettledEvent(null, null, List.of(), true));
+        TableEntity tableWithoutId = new TableEntity();
+        listener.onInvoiceSettled(new InvoiceSettledEvent(null, tableWithoutId, List.of(), true));
 
         verifyNoInteractions(tableRepository);
         verifyNoInteractions(eventPublisher);
+    }
+
+    @Test
+    @DisplayName("onOrderCreated - handles table without id safely")
+    void onOrderCreated_nullTableId_skipsProcessing() {
+        TableEntity tableWithoutId = new TableEntity();
+        Commande cmd = new Commande();
+        cmd.setTable(tableWithoutId);
+
+        listener.onOrderCreated(new OrderCreatedEvent(cmd));
+
+        verifyNoInteractions(tableRepository);
+        verifyNoInteractions(eventPublisher);
+    }
+
+    @Test
+    @DisplayName("onInvoiceSettled - handles null facture without throwing NPE")
+    void onInvoiceSettled_nullFacture_logsAndLiberatesSuccessfully() {
+        when(tableRepository.findById(10L)).thenReturn(Optional.of(table));
+
+        InvoiceSettledEvent event = new InvoiceSettledEvent(null, table, List.of(), true);
+        listener.onInvoiceSettled(event);
+
+        verify(tableRepository).save(table);
+        verify(eventPublisher).publishEvent(any(TableLiberatedEvent.class));
     }
 }

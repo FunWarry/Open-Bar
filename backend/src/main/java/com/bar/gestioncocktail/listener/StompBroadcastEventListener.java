@@ -13,6 +13,7 @@ import com.bar.gestioncocktail.event.TableDeletedEvent;
 import com.bar.gestioncocktail.event.TableLiberatedEvent;
 import com.bar.gestioncocktail.event.TableUpdatedEvent;
 import com.bar.gestioncocktail.model.Commande;
+import com.bar.gestioncocktail.model.TableEntity;
 import com.bar.gestioncocktail.service.NotificationService.CommandeStatutNotification;
 import com.bar.gestioncocktail.service.NotificationService.StockAlerteNotification;
 import org.slf4j.Logger;
@@ -59,10 +60,7 @@ public class StompBroadcastEventListener {
         }
         try {
             Commande commande = event.commande();
-            CommandeResponseDTO dto = CommandeResponseDTO.from(commande);
-            messagingTemplate.convertAndSend(TOPIC_COMMANDES, dto);
-            messagingTemplate.convertAndSend(TOPIC_COMMANDES_STATUT, dto);
-            messagingTemplate.convertAndSend(TOPIC_BARMAN_COMMANDES, dto);
+            broadcastOrder(commande);
 
             if (commande.getTrackingToken() != null && !commande.getTrackingToken().isBlank()) {
                 messagingTemplate.convertAndSend(TOPIC_COMMANDES_PREFIX + commande.getTrackingToken(),
@@ -110,10 +108,7 @@ public class StompBroadcastEventListener {
             return;
         }
         try {
-            CommandeResponseDTO dto = CommandeResponseDTO.from(event.commande());
-            messagingTemplate.convertAndSend(TOPIC_COMMANDES, dto);
-            messagingTemplate.convertAndSend(TOPIC_COMMANDES_STATUT, dto);
-            messagingTemplate.convertAndSend(TOPIC_BARMAN_COMMANDES, dto);
+            broadcastOrder(event.commande());
         } catch (Exception ex) {
             log.warn("Failed to broadcast OrderUpdatedEvent over WebSocket: {}", ex.getMessage());
         }
@@ -131,10 +126,7 @@ public class StompBroadcastEventListener {
             return;
         }
         try {
-            CommandeResponseDTO dto = CommandeResponseDTO.from(event.commande());
-            messagingTemplate.convertAndSend(TOPIC_COMMANDES, dto);
-            messagingTemplate.convertAndSend(TOPIC_COMMANDES_STATUT, dto);
-            messagingTemplate.convertAndSend(TOPIC_BARMAN_COMMANDES, dto);
+            broadcastOrder(event.commande());
         } catch (Exception ex) {
             log.warn("Failed to broadcast OrderCancelledEvent over WebSocket: {}", ex.getMessage());
         }
@@ -152,7 +144,7 @@ public class StompBroadcastEventListener {
             return;
         }
         try {
-            messagingTemplate.convertAndSend(TOPIC_TABLES, TableResponseDTO.from(event.table()));
+            broadcastTable(event.table());
         } catch (Exception ex) {
             log.warn("Failed to broadcast TableUpdatedEvent over WebSocket: {}", ex.getMessage());
         }
@@ -170,7 +162,7 @@ public class StompBroadcastEventListener {
             return;
         }
         try {
-            messagingTemplate.convertAndSend(TOPIC_TABLES, TableResponseDTO.from(event.table()));
+            broadcastTable(event.table());
         } catch (Exception ex) {
             log.warn("Failed to broadcast TableLiberatedEvent over WebSocket: {}", ex.getMessage());
         }
@@ -227,7 +219,7 @@ public class StompBroadcastEventListener {
         }
         try {
             if (event.tableLiberated() && event.table() != null) {
-                messagingTemplate.convertAndSend(TOPIC_TABLES, TableResponseDTO.from(event.table()));
+                broadcastTable(event.table());
             }
             if (event.settledOrders() != null) {
                 for (Commande cmd : event.settledOrders()) {
@@ -239,5 +231,16 @@ public class StompBroadcastEventListener {
         } catch (Exception ex) {
             log.warn("Failed to broadcast InvoiceSettledEvent over WebSocket: {}", ex.getMessage());
         }
+    }
+
+    private void broadcastOrder(Commande commande) {
+        CommandeResponseDTO dto = CommandeResponseDTO.from(commande);
+        messagingTemplate.convertAndSend(TOPIC_COMMANDES, dto);
+        messagingTemplate.convertAndSend(TOPIC_COMMANDES_STATUT, dto);
+        messagingTemplate.convertAndSend(TOPIC_BARMAN_COMMANDES, dto);
+    }
+
+    private void broadcastTable(TableEntity table) {
+        messagingTemplate.convertAndSend(TOPIC_TABLES, TableResponseDTO.from(table));
     }
 }

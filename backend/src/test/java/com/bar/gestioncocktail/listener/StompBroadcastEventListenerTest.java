@@ -30,7 +30,10 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
@@ -185,5 +188,114 @@ class StompBroadcastEventListenerTest {
         OrderCreatedEvent event = new OrderCreatedEvent(commande);
 
         org.junit.jupiter.api.Assertions.assertDoesNotThrow(() -> listener.handleOrderCreated(event));
+    }
+
+    @Test
+    @DisplayName("handleOrderCreated - skips tracking topic when tracking token is null or blank")
+    void handleOrderCreated_blankTrackingToken_skipsTrackingTopic() {
+        commande.setTrackingToken("   ");
+        listener.handleOrderCreated(new OrderCreatedEvent(commande));
+
+        verify(messagingTemplate, times(1)).convertAndSend(eq("/topic/commandes"), any(CommandeResponseDTO.class));
+        verify(messagingTemplate, never()).convertAndSend(startsWith("/topic/commandes/   "), any(Object.class));
+    }
+
+    @Test
+    @DisplayName("handleOrderStatusChanged - safely handles null event and exception")
+    void handleOrderStatusChanged_nullAndExceptionSafely() {
+        listener.handleOrderStatusChanged(null);
+        verifyNoInteractions(messagingTemplate);
+
+        doThrow(new RuntimeException("STOMP error")).when(messagingTemplate).convertAndSend(anyString(), any(Object.class));
+        OrderStatusChangedEvent event = new OrderStatusChangedEvent(100L, CommandeStatut.EN_ATTENTE, CommandeStatut.PRET, commande);
+        org.junit.jupiter.api.Assertions.assertDoesNotThrow(() -> listener.handleOrderStatusChanged(event));
+    }
+
+    @Test
+    @DisplayName("handleOrderStatusChanged - handles event with null commande")
+    void handleOrderStatusChanged_nullCommande() {
+        OrderStatusChangedEvent event = new OrderStatusChangedEvent(100L, CommandeStatut.EN_ATTENTE, CommandeStatut.PRET, null);
+        listener.handleOrderStatusChanged(event);
+
+        verify(messagingTemplate, never()).convertAndSend(eq("/topic/commandes"), any(CommandeResponseDTO.class));
+        verify(messagingTemplate).convertAndSend(eq("/topic/commandes/statut"), (Object) any(com.bar.gestioncocktail.service.NotificationService.CommandeStatutNotification.class));
+    }
+
+    @Test
+    @DisplayName("handleOrderUpdated - handles null event and catches exception safely")
+    void handleOrderUpdated_nullAndExceptionSafely() {
+        listener.handleOrderUpdated(null);
+        listener.handleOrderUpdated(new OrderUpdatedEvent(null));
+
+        doThrow(new RuntimeException("STOMP error")).when(messagingTemplate).convertAndSend(anyString(), any(Object.class));
+        org.junit.jupiter.api.Assertions.assertDoesNotThrow(() -> listener.handleOrderUpdated(new OrderUpdatedEvent(commande)));
+    }
+
+    @Test
+    @DisplayName("handleOrderCancelled - handles null event and catches exception safely")
+    void handleOrderCancelled_nullAndExceptionSafely() {
+        listener.handleOrderCancelled(null);
+        listener.handleOrderCancelled(new OrderCancelledEvent(null));
+
+        doThrow(new RuntimeException("STOMP error")).when(messagingTemplate).convertAndSend(anyString(), any(Object.class));
+        org.junit.jupiter.api.Assertions.assertDoesNotThrow(() -> listener.handleOrderCancelled(new OrderCancelledEvent(commande)));
+    }
+
+    @Test
+    @DisplayName("handleTableUpdated - handles null event and catches exception safely")
+    void handleTableUpdated_nullAndExceptionSafely() {
+        listener.handleTableUpdated(null);
+        listener.handleTableUpdated(new TableUpdatedEvent(null));
+
+        doThrow(new RuntimeException("STOMP error")).when(messagingTemplate).convertAndSend(anyString(), any(Object.class));
+        org.junit.jupiter.api.Assertions.assertDoesNotThrow(() -> listener.handleTableUpdated(new TableUpdatedEvent(table)));
+    }
+
+    @Test
+    @DisplayName("handleTableLiberated - handles null event and catches exception safely")
+    void handleTableLiberated_nullAndExceptionSafely() {
+        listener.handleTableLiberated(null);
+        listener.handleTableLiberated(new TableLiberatedEvent(null));
+
+        doThrow(new RuntimeException("STOMP error")).when(messagingTemplate).convertAndSend(anyString(), any(Object.class));
+        org.junit.jupiter.api.Assertions.assertDoesNotThrow(() -> listener.handleTableLiberated(new TableLiberatedEvent(table)));
+    }
+
+    @Test
+    @DisplayName("handleTableDeleted - handles null event and catches exception safely")
+    void handleTableDeleted_nullAndExceptionSafely() {
+        listener.handleTableDeleted(null);
+        listener.handleTableDeleted(new TableDeletedEvent(null));
+
+        doThrow(new RuntimeException("STOMP error")).when(messagingTemplate).convertAndSend(anyString(), any(Object.class));
+        org.junit.jupiter.api.Assertions.assertDoesNotThrow(() -> listener.handleTableDeleted(new TableDeletedEvent(10L)));
+    }
+
+    @Test
+    @DisplayName("handleStockAlert - handles null event and catches exception safely")
+    void handleStockAlert_nullAndExceptionSafely() {
+        listener.handleStockAlert(null);
+
+        doThrow(new RuntimeException("STOMP error")).when(messagingTemplate).convertAndSend(anyString(), any(Object.class));
+        org.junit.jupiter.api.Assertions.assertDoesNotThrow(() -> listener.handleStockAlert(new StockAlertEvent(1L, "Gin", 2.0)));
+    }
+
+    @Test
+    @DisplayName("handleInvoiceSettled - handles null event and catches exception safely")
+    void handleInvoiceSettled_nullAndExceptionSafely() {
+        listener.handleInvoiceSettled(null);
+
+        doThrow(new RuntimeException("STOMP error")).when(messagingTemplate).convertAndSend(anyString(), any(Object.class));
+        InvoiceSettledEvent event = new InvoiceSettledEvent(new Facture(), table, List.of(commande), true);
+        org.junit.jupiter.api.Assertions.assertDoesNotThrow(() -> listener.handleInvoiceSettled(event));
+    }
+
+    @Test
+    @DisplayName("handleInvoiceSettled - skips table broadcast when not liberated or null table")
+    void handleInvoiceSettled_skipsTableWhenNotLiberated() {
+        InvoiceSettledEvent event = new InvoiceSettledEvent(new Facture(), null, null, false);
+        listener.handleInvoiceSettled(event);
+
+        verifyNoInteractions(messagingTemplate);
     }
 }
