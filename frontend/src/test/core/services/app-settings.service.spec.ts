@@ -226,6 +226,14 @@ describe('AppSettingsService', () => {
       });
     });
 
+    it('should return fallback blob on downloadWifiQrCode() when HttpClient is missing', (done) => {
+      unprovidedService.downloadWifiQrCode('SVG', 200).subscribe(blob => {
+        expect(blob).toBeTruthy();
+        expect(blob.type).toBe('image/svg+xml');
+        done();
+      });
+    });
+
     it('should return updated fallback settings on updateSettings() when HttpClient is missing', (done) => {
       unprovidedService.updateSettings({
         establishmentName: 'Custom Bar',
