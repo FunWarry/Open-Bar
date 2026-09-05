@@ -35,7 +35,7 @@ class TableServiceTest {
     @Mock
     AuditLogService auditLogService;
     @Mock
-    org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
+    org.springframework.context.ApplicationEventPublisher eventPublisher;
     @Mock
     AppSettingsService appSettingsService;
     @Mock
@@ -403,5 +403,37 @@ class TableServiceTest {
         assertThatThrownBy(() -> tableService.generateTablesQrCodePdf(null, "STAND", false))
             .isInstanceOf(BusinessException.class)
             .hasMessageContaining("No tables found to generate QR codes");
+    }
+
+    @Test
+    void createTable_publishesTableUpdatedEvent() {
+        TableEntity t = new TableEntity();
+        t.setId(10L);
+        when(tableRepository.save(any(TableEntity.class))).thenReturn(t);
+
+        tableService.createTable(t);
+
+        verify(eventPublisher).publishEvent(any(com.bar.gestioncocktail.event.TableUpdatedEvent.class));
+    }
+
+    @Test
+    void libererTable_publishesTableLiberatedEvent() {
+        table.setOccupee(true);
+        when(tableRepository.findById(1L)).thenReturn(Optional.of(table));
+        when(tableRepository.save(any(TableEntity.class))).thenReturn(table);
+
+        tableService.libererTable(1L);
+
+        verify(eventPublisher).publishEvent(any(com.bar.gestioncocktail.event.TableLiberatedEvent.class));
+    }
+
+    @Test
+    void deleteTable_publishesTableDeletedEvent() {
+        when(tableRepository.findById(1L)).thenReturn(Optional.of(table));
+        when(commandeRepository.existsByTableAndStatutIn(any(), anyList())).thenReturn(false);
+
+        tableService.deleteTable(1L);
+
+        verify(eventPublisher).publishEvent(any(com.bar.gestioncocktail.event.TableDeletedEvent.class));
     }
 }

@@ -1,7 +1,6 @@
 package com.bar.gestioncocktail.service;
 
 import com.bar.gestioncocktail.dto.TablePositionDTO;
-import com.bar.gestioncocktail.dto.TableResponseDTO;
 import com.bar.gestioncocktail.exception.BusinessException;
 import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.model.TableEntity;
@@ -9,7 +8,10 @@ import com.bar.gestioncocktail.repository.TableRepository;
 import com.bar.gestioncocktail.model.Commande;
 import com.bar.gestioncocktail.model.CommandeStatut;
 import com.bar.gestioncocktail.repository.CommandeRepository;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
+import com.bar.gestioncocktail.event.TableDeletedEvent;
+import com.bar.gestioncocktail.event.TableLiberatedEvent;
+import com.bar.gestioncocktail.event.TableUpdatedEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,7 +29,7 @@ public class TableService {
     private final com.bar.gestioncocktail.repository.FactureRepository factureRepository;
     private final AuditLogService auditLogService;
     private final TimeService timeService;
-    private final SimpMessagingTemplate messagingTemplate;
+    private final ApplicationEventPublisher eventPublisher;
     private final AppSettingsService appSettingsService;
     private final QrCodeService qrCodeService;
     private final PdfService pdfService;
@@ -37,7 +39,7 @@ public class TableService {
                         com.bar.gestioncocktail.repository.FactureRepository factureRepository,
                         AuditLogService auditLogService,
                         TimeService timeService,
-                        SimpMessagingTemplate messagingTemplate,
+                        ApplicationEventPublisher eventPublisher,
                         AppSettingsService appSettingsService,
                         QrCodeService qrCodeService,
                         PdfService pdfService) {
@@ -46,7 +48,7 @@ public class TableService {
         this.factureRepository = factureRepository;
         this.auditLogService = auditLogService;
         this.timeService = timeService;
-        this.messagingTemplate = messagingTemplate;
+        this.eventPublisher = eventPublisher;
         this.appSettingsService = appSettingsService;
         this.qrCodeService = qrCodeService;
         this.pdfService = pdfService;
@@ -227,6 +229,9 @@ public class TableService {
         table.setDateLiberation(LocalDateTime.now(timeService.getZoneId()));
 
         TableEntity saved = tableRepository.save(table);
+        if (eventPublisher != null) {
+            eventPublisher.publishEvent(new TableLiberatedEvent(saved));
+        }
         notifyTableUpdated(saved);
         return saved;
     }
@@ -320,22 +325,14 @@ public class TableService {
     }
 
     private void notifyTableUpdated(TableEntity table) {
-        if (messagingTemplate != null && table != null) {
-            try {
-                messagingTemplate.convertAndSend("/topic/tables", TableResponseDTO.from(table));
-            } catch (Exception _) {
-                // Safe handling of WebSocket delivery
-            }
+        if (eventPublisher != null && table != null) {
+            eventPublisher.publishEvent(new TableUpdatedEvent(table));
         }
     }
 
     private void notifyTableDeleted(Long id) {
-        if (messagingTemplate != null && id != null) {
-            try {
-                messagingTemplate.convertAndSend("/topic/tables/supprime", id);
-            } catch (Exception _) {
-                // Safe handling of WebSocket delivery
-            }
+        if (eventPublisher != null && id != null) {
+            eventPublisher.publishEvent(new TableDeletedEvent(id));
         }
     }
 

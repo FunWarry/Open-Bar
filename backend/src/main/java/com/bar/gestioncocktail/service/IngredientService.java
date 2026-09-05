@@ -1,8 +1,10 @@
 package com.bar.gestioncocktail.service;
 
+import com.bar.gestioncocktail.event.StockAlertEvent;
 import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.model.Ingredient;
 import com.bar.gestioncocktail.repository.IngredientRepository;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,12 +16,12 @@ import java.util.Optional;
 @Transactional
 public class IngredientService {
     private final IngredientRepository ingredientRepository;
-    private final NotificationService notificationService;
+    private final ApplicationEventPublisher eventPublisher;
     private final TimeService timeService;
 
-    public IngredientService(IngredientRepository ingredientRepository, NotificationService notificationService, TimeService timeService) {
+    public IngredientService(IngredientRepository ingredientRepository, ApplicationEventPublisher eventPublisher, TimeService timeService) {
         this.ingredientRepository = ingredientRepository;
-        this.notificationService = notificationService;
+        this.eventPublisher = eventPublisher;
         this.timeService = timeService;
     }
 
@@ -84,8 +86,8 @@ public class IngredientService {
         ingredient.setQuantiteStock(quantite);
         ingredient.setUpdatedAt(timeService.now());
         ingredientRepository.save(ingredient);
-        if (ingredient.getSeuilAlerte() != null && quantite.compareTo(ingredient.getSeuilAlerte()) <= 0) {
-            notificationService.notifierStockFaible(ingredient.getId(), ingredient.getNom(), quantite.doubleValue());
+        if (ingredient.getSeuilAlerte() != null && quantite.compareTo(ingredient.getSeuilAlerte()) <= 0 && eventPublisher != null) {
+            eventPublisher.publishEvent(new StockAlertEvent(ingredient.getId(), ingredient.getNom(), quantite.doubleValue()));
         }
     }
 

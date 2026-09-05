@@ -8,8 +8,8 @@ import com.bar.gestioncocktail.repository.CocktailRepository;
 import com.bar.gestioncocktail.repository.CocktailVarianteRepository;
 import com.bar.gestioncocktail.repository.CommandeRepository;
 import com.bar.gestioncocktail.repository.TableRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
+import com.bar.gestioncocktail.event.OrderCreatedEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,22 +26,21 @@ public class PublicCommandeService {
     private final TableRepository tableRepository;
     private final CocktailRepository cocktailRepository;
     private final CocktailVarianteRepository varianteRepository;
-    private final SimpMessagingTemplate messagingTemplate;
+    private final ApplicationEventPublisher eventPublisher;
     private final TimeService timeService;
 
-    @Autowired
     public PublicCommandeService(
             CommandeRepository commandeRepository,
             TableRepository tableRepository,
             CocktailRepository cocktailRepository,
             CocktailVarianteRepository varianteRepository,
-            SimpMessagingTemplate messagingTemplate,
+            ApplicationEventPublisher eventPublisher,
             TimeService timeService) {
         this.commandeRepository = commandeRepository;
         this.tableRepository = tableRepository;
         this.cocktailRepository = cocktailRepository;
         this.varianteRepository = varianteRepository;
-        this.messagingTemplate = messagingTemplate;
+        this.eventPublisher = eventPublisher;
         this.timeService = timeService;
     }
 
@@ -71,7 +70,9 @@ public class PublicCommandeService {
 
         Commande savedCommande = commandeRepository.save(commande);
         occuperTableSiLibre(table);
-        notifierNouvelleCommande(savedCommande);
+        if (eventPublisher != null) {
+            eventPublisher.publishEvent(new OrderCreatedEvent(savedCommande));
+        }
 
         long pendingCount = commandeRepository.countByStatut(CommandeStatut.EN_ATTENTE);
         int tempsEstime = (int) (5 + (pendingCount * 3));
@@ -128,11 +129,6 @@ public class PublicCommandeService {
             table.setDateOccupation(timeService.now());
             tableRepository.save(table);
         }
-    }
-
-    private void notifierNouvelleCommande(Commande commande) {
-        messagingTemplate.convertAndSend("/topic/barman/commandes", CommandeResponseDTO.from(commande));
-        messagingTemplate.convertAndSend("/topic/commandes/" + commande.getTrackingToken(), PublicCommandeResponseDTO.from(commande, 10));
     }
 
     @Transactional(readOnly = true)

@@ -11,7 +11,11 @@ import com.bar.gestioncocktail.model.TableEntity;
 import com.bar.gestioncocktail.repository.FactureRepository;
 import com.bar.gestioncocktail.repository.FactureReglementRepository;
 import com.bar.gestioncocktail.repository.TableRepository;
+import com.bar.gestioncocktail.event.InvoiceSettledEvent;
+import com.bar.gestioncocktail.event.OrderStatusChangedEvent;
+import com.bar.gestioncocktail.event.TableLiberatedEvent;
 import jakarta.persistence.EntityManager;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -60,7 +64,7 @@ public class FactureService {
     private final FactureRepository factureRepository;
     private final TableRepository tableRepository;
     private final CommandeRepository commandeRepository;
-    private final NotificationService notificationService;
+    private final ApplicationEventPublisher eventPublisher;
     private final UserRepository userRepository;
     private final EntityManager entityManager;
     private final AuditLogService auditLogService;
@@ -69,14 +73,14 @@ public class FactureService {
     private final FactureReglementRepository factureReglementRepository;
 
     public FactureService(FactureRepository factureRepository, TableRepository tableRepository,
-            CommandeRepository commandeRepository, NotificationService notificationService,
+            CommandeRepository commandeRepository, ApplicationEventPublisher eventPublisher,
             UserRepository userRepository, EntityManager entityManager, AuditLogService auditLogService,
             AvoirCreditRepository avoirCreditRepository, TimeService timeService,
             FactureReglementRepository factureReglementRepository) {
         this.factureRepository = factureRepository;
         this.tableRepository = tableRepository;
         this.commandeRepository = commandeRepository;
-        this.notificationService = notificationService;
+        this.eventPublisher = eventPublisher;
         this.userRepository = userRepository;
         this.entityManager = entityManager;
         this.auditLogService = auditLogService;
@@ -230,7 +234,9 @@ public class FactureService {
             table.setServeurId(null);
             table.setDateLiberation(LocalDateTime.now(timeService.getZoneId()));
             tableRepository.save(table);
-            notificationService.notifierLiberationTable(table);
+            if (eventPublisher != null) {
+                eventPublisher.publishEvent(new TableLiberatedEvent(table));
+            }
         }
 
         Facture saved = factureRepository.save(facture);
@@ -341,6 +347,10 @@ public class FactureService {
         markOrdersAsSettled(activeCommandes);
         releaseTableIfRequested(table, request.shouldLibererTable());
 
+        if (eventPublisher != null) {
+            eventPublisher.publishEvent(new InvoiceSettledEvent(savedFacture, table, activeCommandes, request.shouldLibererTable()));
+        }
+
         auditLogService.logAction(null, "ENCAISSEMENT_TABLE", ENTITY_FACTURE, savedFacture.getId(),
                 "Encaissement table " + table.getNumero() + " (" + request.modePaiement() + " - " + netTTC + " €)", null);
 
@@ -430,18 +440,21 @@ public class FactureService {
             cmd.setUpdatedAt(timeService.now());
             commandeRepository.save(cmd);
 
-            notificationService.notifierChangementStatutCommande(cmd.getId(), oldStatut, CommandeStatut.REGLEE);
-            notificationService.notifierStatutCommande(cmd);
+            if (eventPublisher != null) {
+                eventPublisher.publishEvent(new OrderStatusChangedEvent(cmd.getId(), oldStatut, CommandeStatut.REGLEE, cmd));
+            }
         }
     }
 
     private void releaseTableIfRequested(TableEntity table, boolean shouldLiberer) {
-        if (shouldLiberer) {
+        if (shouldLiberer && table != null) {
             table.setOccupee(false);
             table.setServeurId(null);
             table.setDateLiberation(LocalDateTime.now(timeService.getZoneId()));
             tableRepository.save(table);
-            notificationService.notifierLiberationTable(table);
+            if (eventPublisher != null) {
+                eventPublisher.publishEvent(new TableLiberatedEvent(table));
+            }
         }
     }
 
@@ -790,7 +803,9 @@ public class FactureService {
                 table.setServeurId(null);
                 table.setDateLiberation(LocalDateTime.now(timeService.getZoneId()));
                 tableRepository.save(table);
-                notificationService.notifierLiberationTable(table);
+                if (eventPublisher != null) {
+                    eventPublisher.publishEvent(new TableLiberatedEvent(table));
+                }
             }
             auditLogService.logAction(null, "FACTURE_SETTLED_SPLIT", ENTITY_FACTURE, factureId,
                     "Invoice " + facture.getNumero() + " settled via split parts (" + allReglements.size() + " parts)", null);

@@ -1,4 +1,6 @@
 spring:
+  main:
+    allow-circular-references: false
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:dev}
   sql:

@@ -14,7 +14,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
+import com.bar.gestioncocktail.event.OrderCreatedEvent;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -42,7 +43,7 @@ class PublicCommandeServiceTest {
     private CocktailVarianteRepository varianteRepository;
 
     @Mock
-    private SimpMessagingTemplate messagingTemplate;
+    private ApplicationEventPublisher eventPublisher;
 
     @Spy
     private TimeService timeService = new TimeService(null);
@@ -101,7 +102,7 @@ class PublicCommandeServiceTest {
         assertEquals(BigDecimal.valueOf(17.00), response.getTotal());
         assertTrue(table.isOccupee());
 
-        verify(messagingTemplate, times(2)).convertAndSend(anyString(), any(Object.class));
+        verify(eventPublisher, atLeastOnce()).publishEvent(any(OrderCreatedEvent.class));
     }
 
     @Test
@@ -142,5 +143,24 @@ class PublicCommandeServiceTest {
         assertNotNull(response);
         assertEquals("token-uuid-123", response.getTrackingToken());
         assertEquals(11, response.getTempsEstimeMinutes()); // 5 + (2 * 3)
+    }
+
+    @Test
+    void creerCommandePublique_publishesOrderCreatedEvent() {
+        PublicCommandeItemRequestDTO itemDTO = new PublicCommandeItemRequestDTO(100L, null, 1, null);
+        PublicCommandeRequestDTO requestDTO = new PublicCommandeRequestDTO(1L, List.of(itemDTO), null);
+
+        when(tableRepository.findById(1L)).thenReturn(Optional.of(table));
+        when(cocktailRepository.findById(100L)).thenReturn(Optional.of(cocktail));
+        when(commandeRepository.save(any(Commande.class))).thenAnswer(inv -> {
+            Commande c = inv.getArgument(0);
+            c.setId(42L);
+            return c;
+        });
+
+        PublicCommandeResponseDTO response = publicCommandeService.creerCommandePublique(requestDTO);
+
+        assertNotNull(response);
+        verify(eventPublisher).publishEvent(any(OrderCreatedEvent.class));
     }
 }
