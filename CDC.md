@@ -138,32 +138,43 @@ NgRx selectors : `selectIsAdmin`, `selectIsManager`, `selectIsBarman`, `selectIs
 ## 4. Modèle de données
 
 ```mermaid
-erDiagram
-    USERS ||--o{ USER_ROLES : "has"
-    USERS ||--o{ TABLES : "assigned_serveur"
-    USERS ||--o{ AUDIT_LOGS : "generates"
+flowchart TD
+    subgraph UsersDomain ["👥 Utilisateurs & Équipe"]
+        USERS["users"] -->|"1:N"| USER_ROLES["user_roles"]
+        USERS -->|"1:N"| AUDIT_LOGS["audit_logs"]
+    end
 
-    ZONES ||--o{ TABLES : "contains"
-    TABLES ||--o{ COMMANDES : "places"
-    TABLES ||--o{ FACTURES : "bills"
-    TABLES ||--o{ TABLE_SESSIONS : "opens"
-    TABLES ||--o{ TABLE_APPELS : "triggers"
-    TABLES ||--o{ TABLE_CART_ITEMS : "holds"
+    subgraph SalleDomain ["🪑 Salle & Tables"]
+        ZONES["zones"] -->|"1:N"| TABLES["tables"]
+        USERS -.->|"serveur_id"| TABLES
+        TABLES -->|"1:N"| TABLE_SESSIONS["table_sessions (QR client)"]
+        TABLES -->|"1:N"| TABLE_APPELS["table_appels (Appels serveur)"]
+        TABLES -->|"1:N"| TABLE_CART_ITEMS["table_cart_items (Panier table)"]
+    end
 
-    COMMANDES ||--o{ COMMANDE_ITEMS : "contains"
-    COCKTAILS ||--o{ COMMANDE_ITEMS : "ordered_as"
-    COCKTAILS ||--o{ COCKTAIL_VARIANTES : "has"
-    COCKTAILS ||--o{ COCKTAIL_INGREDIENTS : "requires"
+    subgraph CommandesDomain ["🍸 Commandes & Service"]
+        TABLES -->|"1:N"| COMMANDES["commandes"]
+        COMMANDES -->|"1:N"| COMMANDE_ITEMS["commande_items"]
+        TABLE_CART_ITEMS -.->|"checkout"| COMMANDES
+    end
 
-    COCKTAILS }o--|| GLASSWARE : "served_in"
-    COCKTAIL_VARIANTES ||--o{ COCKTAIL_VARIANTE_INGREDIENTS : "customizes"
-    COCKTAIL_VARIANTE_INGREDIENTS }o--|| INGREDIENTS : "uses"
-    COCKTAIL_INGREDIENTS }o--|| INGREDIENTS : "uses"
+    subgraph MixologieDomain ["🍹 Catalogue & Mixologie"]
+        COCKTAILS["cocktails"] -->|"1:N"| COMMANDE_ITEMS
+        COCKTAILS -->|"1:N"| COCKTAIL_VARIANTES["cocktail_variantes"]
+        COCKTAILS -->|"1:N"| COCKTAIL_INGREDIENTS["cocktail_ingredients"]
+        COCKTAILS -->|"N:1"| GLASSWARE["glassware"]
+        
+        COCKTAIL_VARIANTES -->|"1:N"| COCKTAIL_VARIANTE_INGREDIENTS["cocktail_variante_ingredients"]
+        COCKTAIL_VARIANTE_INGREDIENTS -->|"N:1"| INGREDIENTS["ingredients"]
+        COCKTAIL_INGREDIENTS -->|"N:1"| INGREDIENTS
+        COMMANDE_ITEMS -.->|"variante"| COCKTAIL_VARIANTES
+    end
 
-    FACTURES ||--o{ FACTURE_ITEMS : "includes"
-    FACTURES ||--o{ FACTURE_REGLEMENTS : "settled_by"
-    COMMANDE_ITEMS }o--o| COCKTAIL_VARIANTES : "specifies"
-    TABLE_CART_ITEMS }o--|| COCKTAILS : "targets"
+    subgraph FacturationDomain ["💳 Facturation & Règlements"]
+        TABLES -->|"1:N"| FACTURES["factures"]
+        FACTURES -->|"1:N"| FACTURE_ITEMS["facture_items"]
+        FACTURES -->|"1:N"| FACTURE_REGLEMENTS["facture_reglements (Splits)"]
+    end
 ```
 
 *Configuration singleton* : `app_settings` (personnalisation admin, devises, anti-fraude, pas de relation directe).

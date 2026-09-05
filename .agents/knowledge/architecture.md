@@ -103,39 +103,50 @@ frontend/src/
 ## Data Model
 
 ```mermaid
-erDiagram
-    USERS ||--o{ USER_ROLES : "has"
-    USERS ||--o{ EMPLOYEE_SHIFTS : "assigned"
-    EMPLOYEE_SHIFTS ||--o{ SHIFT_AUDIT_LOG : "tracks"
-    USERS ||--o{ TABLES : "assigned_serveur"
-    USERS ||--o{ AUDIT_LOGS : "generates"
+flowchart TD
+    subgraph UsersDomain ["👥 Users & Staff Shifts"]
+        USERS["users"] -->|"1:N"| USER_ROLES["user_roles"]
+        USERS -->|"1:N"| EMPLOYEE_SHIFTS["employee_shifts"]
+        EMPLOYEE_SHIFTS -->|"1:N"| SHIFT_AUDIT_LOG["shift_audit_log"]
+        USERS -->|"1:N"| AUDIT_LOGS["audit_logs"]
+    end
 
-    ZONES ||--o{ TABLES : "contains"
-    TABLES ||--o{ COMMANDES : "places"
-    TABLES ||--o{ FACTURES : "bills"
-    TABLES ||--o{ TABLE_SESSIONS : "opens"
-    TABLES ||--o{ TABLE_APPELS : "triggers"
-    TABLES ||--o{ TABLE_CART_ITEMS : "holds"
+    subgraph SalleDomain ["🪑 Floor Plan & Tables"]
+        ZONES["zones"] -->|"1:N"| TABLES["tables"]
+        USERS -.->|"assigned_serveur"| TABLES
+        TABLES -->|"1:N"| TABLE_SESSIONS["table_sessions (QR client)"]
+        TABLES -->|"1:N"| TABLE_APPELS["table_appels (Server calls)"]
+        TABLES -->|"1:N"| TABLE_CART_ITEMS["table_cart_items (Table cart)"]
+    end
 
-    COMMANDES ||--o{ COMMANDE_ITEMS : "contains"
-    COCKTAILS ||--o{ COMMANDE_ITEMS : "ordered_as"
-    COCKTAILS ||--o{ COCKTAIL_VARIANTES : "has"
-    COCKTAILS ||--o{ COCKTAIL_INGREDIENTS : "requires"
-    COCKTAILS ||--o{ COCKTAIL_RECIPE_STEPS : "composed_of"
-    COCKTAILS }o--|| GLASSWARE : "served_in"
+    subgraph CommandesDomain ["🍸 Orders & Preparation"]
+        TABLES -->|"1:N"| COMMANDES["commandes"]
+        COMMANDES -->|"1:N"| COMMANDE_ITEMS["commande_items"]
+        TABLE_CART_ITEMS -.->|"checkout"| COMMANDES
+    end
 
-    COCKTAIL_VARIANTES ||--o{ COCKTAIL_VARIANTE_INGREDIENTS : "customizes"
-    COCKTAIL_VARIANTE_INGREDIENTS }o--|| INGREDIENTS : "uses"
-    COCKTAIL_INGREDIENTS }o--|| INGREDIENTS : "uses"
-    COCKTAIL_RECIPE_STEPS }o--|| RECIPE_STEP_TEMPLATES : "applies"
-    COCKTAIL_RECIPE_STEPS }o--o| INGREDIENTS : "consumes"
+    subgraph MixologieDomain ["🍹 Cocktails & Mixology"]
+        COCKTAILS["cocktails"] -->|"1:N"| COMMANDE_ITEMS
+        COCKTAILS -->|"1:N"| COCKTAIL_VARIANTES["cocktail_variantes"]
+        COCKTAILS -->|"1:N"| COCKTAIL_INGREDIENTS["cocktail_ingredients"]
+        COCKTAILS -->|"1:N"| COCKTAIL_RECIPE_STEPS["cocktail_recipe_steps"]
+        COCKTAILS -->|"N:1"| GLASSWARE["glassware"]
+        
+        COCKTAIL_VARIANTES -->|"1:N"| COCKTAIL_VARIANTE_INGREDIENTS["cocktail_variante_ingredients"]
+        COCKTAIL_VARIANTE_INGREDIENTS -->|"N:1"| INGREDIENTS["ingredients"]
+        COCKTAIL_INGREDIENTS -->|"N:1"| INGREDIENTS
+        COCKTAIL_RECIPE_STEPS -->|"N:1"| RECIPE_STEP_TEMPLATES["recipe_step_templates"]
+        COCKTAIL_RECIPE_STEPS -.->|"consumes"| INGREDIENTS
+        COMMANDE_ITEMS -.->|"variant"| COCKTAIL_VARIANTES
+        TABLE_CART_ITEMS -->|"N:1"| COCKTAILS
+        TABLE_CART_ITEMS -.->|"variant"| COCKTAIL_VARIANTES
+    end
 
-    FACTURES ||--o{ FACTURE_ITEMS : "includes"
-    FACTURES ||--o{ FACTURE_REGLEMENTS : "settled_by"
-
-    COMMANDE_ITEMS }o--o| COCKTAIL_VARIANTES : "specifies"
-    TABLE_CART_ITEMS }o--|| COCKTAILS : "targets"
-    TABLE_CART_ITEMS }o--o| COCKTAIL_VARIANTES : "specifies"
+    subgraph FacturationDomain ["💳 Billing & Settlement"]
+        TABLES -->|"1:N"| FACTURES["factures"]
+        FACTURES -->|"1:N"| FACTURE_ITEMS["facture_items"]
+        FACTURES -->|"1:N"| FACTURE_REGLEMENTS["facture_reglements (Splits)"]
+    end
 ```
 
 *Standalone configuration & logging tables*:
