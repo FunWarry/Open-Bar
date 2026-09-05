@@ -81,9 +81,8 @@ export class TableQrModalComponent implements OnInit, OnDestroy {
       .subscribe((settings: AppSettings | null) => {
         this.settings = settings;
         this.updateOrderUrl();
+        this.loadQrPreview();
       });
-    this.updateOrderUrl();
-    this.loadQrPreview();
   }
 
   ngOnDestroy(): void {

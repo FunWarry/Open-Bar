@@ -135,15 +135,13 @@ public class AppSettingsService {
         if (settings.getWifiSsid() == null || settings.getWifiSsid().isBlank()) {
             throw new BusinessException("Wi-Fi SSID is not configured");
         }
-        String payload = qrCodeService != null
-            ? qrCodeService.formatWifiPayload(settings.getWifiSsid(), settings.getWifiPassword(), settings.getWifiSecurity())
-            : "";
-        int dimension = size > 0 ? size : 300;
+        String payload = qrCodeService.formatWifiPayload(settings.getWifiSsid(), settings.getWifiPassword(), settings.getWifiSecurity());
+        int dimension = Math.clamp(size > 0 ? size : 300, 100, 2000);
         if ("SVG".equalsIgnoreCase(format)) {
-            String svg = qrCodeService != null ? qrCodeService.generateSvg(payload, dimension) : "<svg></svg>";
+            String svg = qrCodeService.generateSvg(payload, dimension);
             return svg.getBytes(java.nio.charset.StandardCharsets.UTF_8);
         }
-        return qrCodeService != null ? qrCodeService.generatePng(payload, dimension, dimension) : new byte[0];
+        return qrCodeService.generatePng(payload, dimension, dimension);
     }
 
     /**

@@ -3,7 +3,7 @@
   <div class="modal-header">
     <div class="header-main-group">
       <div class="table-avatar-badge" [class.wifi-badge-theme]="activeMode === 'WIFI'">
-        <ion-icon [name]="activeMode === 'WIFI' ? 'wifi-outline' : 'qr-code-outline'"></ion-icon>
+        <ion-icon [name]="activeMode === 'WIFI' ? 'wifi-outline' : 'qr-code-outline'" aria-hidden="true"></ion-icon>
       </div>
       <div class="header-text">
         <h2 class="modal-title" data-testid="table-qr-title">
@@ -11,18 +11,18 @@
         </h2>
         <div class="modal-meta-tags">
           <span class="meta-tag table-tag">
-            <ion-icon name="restaurant-outline"></ion-icon>
+            <ion-icon name="restaurant-outline" aria-hidden="true"></ion-icon>
             <span>{{ 'TABLES.TABLE_NUM' | transloco: { numero: table.numero } }}</span>
           </span>
           @if (table.zone) {
             <span class="meta-tag zone-tag">
-              <ion-icon name="location-outline"></ion-icon>
+              <ion-icon name="location-outline" aria-hidden="true"></ion-icon>
               <span>{{ table.zone }}</span>
             </span>
           }
           @if (table.capacite) {
             <span class="meta-tag capacity-tag">
-              <ion-icon name="people-outline"></ion-icon>
+              <ion-icon name="people-outline" aria-hidden="true"></ion-icon>
               <span>{{ 'TABLES.CARD.CAPACITY' | transloco: { count: table.capacite } }}</span>
             </span>
           }
@@ -37,7 +37,7 @@
       (keyup.enter)="dismiss()"
       [attr.aria-label]="'COMMON.CLOSE' | transloco"
       data-testid="close-qr-modal-btn">
-      <ion-icon name="close-outline"></ion-icon>
+      <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
     </button>
   </div>
 
@@ -52,7 +52,7 @@
           [class.active]="activeMode === 'ORDER'"
           data-testid="qr-mode-order-btn"
           (click)="setMode('ORDER')">
-          <ion-icon name="qr-code-outline"></ion-icon>
+          <ion-icon name="qr-code-outline" aria-hidden="true"></ion-icon>
           <span>{{ 'TABLES.QR_TAB_ORDER' | transloco: { numero: table.numero } }}</span>
         </button>
         <button
@@ -61,7 +61,7 @@
           [class.active]="activeMode === 'WIFI'"
           data-testid="qr-mode-wifi-btn"
           (click)="setMode('WIFI')">
-          <ion-icon name="wifi-outline"></ion-icon>
+          <ion-icon name="wifi-outline" aria-hidden="true"></ion-icon>
           <span>{{ 'TABLES.QR_TAB_WIFI' | transloco: { ssid: settings.wifiSsid } }}</span>
         </button>
       </div>
@@ -112,7 +112,7 @@
       <!-- Direct URL Link Box -->
       <div class="url-box">
         <label class="url-label" for="table-order-url-input">
-          <ion-icon name="link-outline"></ion-icon>
+          <ion-icon name="link-outline" aria-hidden="true"></ion-icon>
           <span>{{ 'TABLES.QR_DIRECT_URL_LABEL' | transloco }}</span>
         </label>
         <div class="url-input-group">
@@ -128,7 +128,7 @@
             class="copy-btn"
             data-testid="copy-order-url-btn"
             (click)="copyOrderUrl()">
-            <ion-icon [name]="copiedUrl ? 'checkmark-outline' : 'copy-outline'"></ion-icon>
+            <ion-icon [name]="copiedUrl ? 'checkmark-outline' : 'copy-outline'" aria-hidden="true"></ion-icon>
             <span>{{ (copiedUrl ? 'TABLES.QR_COPIED' : 'COMMON.COPY') | transloco }}</span>
           </button>
         </div>
@@ -138,7 +138,7 @@
       @if (settings && settings.wifiEnabled && settings.wifiSsid) {
         <div class="wifi-info-card" data-testid="qr-wifi-badge">
           <div class="wifi-icon-badge">
-            <ion-icon name="wifi-outline"></ion-icon>
+            <ion-icon name="wifi-outline" aria-hidden="true"></ion-icon>
           </div>
           <div class="wifi-details">
             <span class="wifi-title">{{ 'SETTINGS.QR_WIFI_ENABLED_LABEL' | transloco }}</span>
@@ -154,7 +154,7 @@
             class="btn-switch-wifi"
             data-testid="switch-to-wifi-qr-btn"
             (click)="setMode('WIFI')">
-            <ion-icon name="qr-code-outline"></ion-icon>
+            <ion-icon name="qr-code-outline" aria-hidden="true"></ion-icon>
             <span>{{ 'TABLES.QR_VIEW_WIFI_QR' | transloco }}</span>
           </button>
         </div>
@@ -165,7 +165,7 @@
         <div class="wifi-details-box" data-testid="wifi-details-box">
           <div class="wifi-detail-row">
             <span class="detail-label">
-              <ion-icon name="wifi-outline"></ion-icon>
+              <ion-icon name="wifi-outline" aria-hidden="true"></ion-icon>
               <span>{{ 'TABLES.QR_WIFI_SSID_LABEL' | transloco }}</span>
             </span>
             <span class="detail-val"><strong>{{ settings.wifiSsid }}</strong></span>
@@ -174,7 +174,7 @@
           @if (settings.wifiSecurity) {
             <div class="wifi-detail-row">
               <span class="detail-label">
-                <ion-icon name="lock-closed-outline"></ion-icon>
+                <ion-icon name="lock-closed-outline" aria-hidden="true"></ion-icon>
                 <span>{{ 'TABLES.QR_WIFI_SECURITY_LABEL' | transloco }}</span>
               </span>
               <span class="detail-val">{{ settings.wifiSecurity }}</span>
@@ -184,7 +184,7 @@
           @if (settings.wifiPassword) {
             <div class="wifi-detail-row">
               <span class="detail-label">
-                <ion-icon name="key-outline"></ion-icon>
+                <ion-icon name="key-outline" aria-hidden="true"></ion-icon>
                 <span>{{ 'TABLES.QR_WIFI_PASS_LABEL' | transloco }}</span>
               </span>
               <div class="pass-copy-group">
@@ -194,7 +194,7 @@
                   class="copy-pass-btn"
                   data-testid="copy-wifi-pass-btn"
                   (click)="copyWifiPassword()">
-                  <ion-icon [name]="copiedPass ? 'checkmark-outline' : 'copy-outline'"></ion-icon>
+                  <ion-icon [name]="copiedPass ? 'checkmark-outline' : 'copy-outline'" aria-hidden="true"></ion-icon>
                   <span>{{ (copiedPass ? 'TABLES.QR_WIFI_PASS_COPIED' : 'TABLES.QR_WIFI_COPY_PASS') | transloco }}</span>
                 </button>
               </div>
@@ -214,7 +214,7 @@
         data-testid="download-qr-png-btn"
         [disabled]="isDownloading"
         (click)="downloadImage('PNG')">
-        <ion-icon name="download-outline"></ion-icon>
+        <ion-icon name="download-outline" aria-hidden="true"></ion-icon>
         <span>{{ 'TABLES.QR_DOWNLOAD_PNG' | transloco }}</span>
       </button>
       <button
@@ -223,7 +223,7 @@
         data-testid="download-qr-svg-btn"
         [disabled]="isDownloading"
         (click)="downloadImage('SVG')">
-        <ion-icon name="download-outline"></ion-icon>
+        <ion-icon name="download-outline" aria-hidden="true"></ion-icon>
         <span>{{ 'TABLES.QR_DOWNLOAD_SVG' | transloco }}</span>
       </button>
     </div>
@@ -238,7 +238,7 @@
         @if (isDownloading) {
           <ion-spinner name="crescent"></ion-spinner>
         } @else {
-          <ion-icon name="print-outline"></ion-icon>
+          <ion-icon name="print-outline" aria-hidden="true"></ion-icon>
         }
         <span>{{ 'TABLES.QR_PRINT_STAND' | transloco }}</span>
       </button>
