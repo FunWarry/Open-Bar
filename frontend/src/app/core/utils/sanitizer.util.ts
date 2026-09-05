@@ -2,7 +2,7 @@
  * Utility functions for client-side text sanitization and XSS prevention.
  */
 
-const DANGEROUS_BLOCK_TAGS = /<\s*(?:script|style|iframe|object|embed|svg)[^>]*>[\s\S]*?<\s*\/\s*(?:script|style|iframe|object|embed|svg)\s*>/gi;
+const DANGEROUS_BLOCK_TAGS = /<\s*(?:script|style|iframe|object|embed|svg)[^>]*>[\s\S]*?<\s*\/\s*(?:script|style|iframe|object|embed|svg)[^>]*>/gi;
 const DANGEROUS_SELF_CLOSING = /<\s*(?:script|style|iframe|object|embed|svg|link|meta|frame|base)[^>]*\/?>/gi;
 const HTML_TAG_REGEX = /<\/?[a-z][a-z0-9]*[^<>]*>|<!--.*?-->/gi;
 const EVENT_HANDLER_REGEX = /\s+on[a-z]+\s*=\s*(?:'[^']*'|"[^"]*"|[^\s>]+)/gi;
