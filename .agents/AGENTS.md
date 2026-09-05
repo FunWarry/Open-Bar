@@ -21,9 +21,9 @@ Deployed as a PWA on a local WiFi network (Raspberry Pi 5 / mini-PC). No interne
 
 | Layer | Technology | Version | Critical note |
 |-------|------------|---------|---------------|
-| Backend | Spring Boot | **4.0.6** | |
+| Backend | Spring Boot | **4.1.1** | |
 | Runtime | Java | **22 (pinned)** | ⚠️ Lombok 1.18.34 breaks on JDK 23+ — no getters/setters generated |
-| Security | Spring Security + JWT | JJWT 0.12.6 | `JWT_SECRET` env var required (≥ 32 chars) |
+| Security | Spring Security + JWT | JJWT 0.13.0 | `JWT_SECRET` env var required (≥ 32 chars) |
 | PDF | OpenPDF | 2.0.3 | |
 | WebSocket | STOMP | via Spring | 4 active topics |
 | Frontend | Angular | **20** | |
