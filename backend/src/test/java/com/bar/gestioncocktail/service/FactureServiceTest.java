@@ -1,5 +1,7 @@
 package com.bar.gestioncocktail.service;
 
+import com.bar.gestioncocktail.event.InvoiceSettledEvent;
+import com.bar.gestioncocktail.event.TableLiberatedEvent;
 import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.exception.BusinessException;
 import com.bar.gestioncocktail.dto.MergeFacturesRequestDTO;
@@ -63,7 +65,7 @@ class FactureServiceTest {
     CommandeRepository commandeRepository;
 
     @Mock
-    NotificationService notificationService;
+    org.springframework.context.ApplicationEventPublisher eventPublisher;
 
     @Mock
     UserRepository userRepository;
@@ -595,8 +597,7 @@ class FactureServiceTest {
         assertThat(cmd.getStatut()).isEqualTo(CommandeStatut.REGLEE);
         assertThat(table.isOccupee()).isFalse();
 
-        verify(notificationService).notifierLiberationTable(table);
-        verify(notificationService).notifierChangementStatutCommande(201L, CommandeStatut.LIVREE, CommandeStatut.REGLEE);
+        verify(eventPublisher).publishEvent(any(InvoiceSettledEvent.class));
     }
 
     @Test
@@ -1054,7 +1055,7 @@ class FactureServiceTest {
         assertThat(f.getModePaiement()).isEqualTo("MIXTE_SPLIT");
         verify(factureRepository).save(f);
         verify(tableRepository).save(table);
-        verify(notificationService).notifierLiberationTable(table);
+        verify(eventPublisher).publishEvent(any(TableLiberatedEvent.class));
     }
 
     @Test
@@ -1309,5 +1310,36 @@ class FactureServiceTest {
         assertThat(avoir.getNumero()).startsWith("AV-");
         assertThat(facture.getNotes()).contains("Client refund");
         verify(factureRepository).save(facture);
+    }
+
+    @Test
+    void encaisserTable_publishesInvoiceSettledEvent() {
+        TableEntity table = new TableEntity();
+        table.setId(1L);
+        table.setNumero(5);
+
+        Commande commande = new Commande();
+        commande.setId(10L);
+        commande.setTable(table);
+        commande.setStatut(CommandeStatut.EN_ATTENTE);
+
+        when(tableRepository.findById(1L)).thenReturn(Optional.of(table));
+        when(factureRepository.findByTable(table)).thenReturn(List.of());
+        when(commandeRepository.findByTable(table)).thenReturn(List.of(commande));
+        when(factureRepository.count()).thenReturn(0L);
+        when(factureRepository.save(any(Facture.class))).thenAnswer(inv -> {
+            Facture f = inv.getArgument(0);
+            f.setId(101L);
+            return f;
+        });
+
+        EncaissementRequestDTO req = new EncaissementRequestDTO(
+                "CARTE",
+                null, null, null, null, null, true, List.of(10L)
+        );
+
+        factureService.encaisserTable(1L, req);
+
+        verify(eventPublisher, org.mockito.Mockito.atLeastOnce()).publishEvent(any(com.bar.gestioncocktail.event.InvoiceSettledEvent.class));
     }
 }

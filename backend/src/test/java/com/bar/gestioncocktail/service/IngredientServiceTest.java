@@ -26,7 +26,7 @@ class IngredientServiceTest {
     IngredientRepository ingredientRepository;
 
     @Mock
-    NotificationService notificationService;
+    org.springframework.context.ApplicationEventPublisher eventPublisher;
 
     @Spy
     TimeService timeService = new TimeService(null);
@@ -138,5 +138,16 @@ class IngredientServiceTest {
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getNom()).isEqualTo("Menthe");
         verify(ingredientRepository).findByQuantiteStockLessThanEqual(BigDecimal.ZERO);
+    }
+
+    @Test
+    void updateStock_belowThreshold_publishesStockAlertEvent() {
+        ingredient.setQuantiteStock(new BigDecimal("50.00"));
+        ingredient.setSeuilAlerte(new BigDecimal("20.00"));
+        when(ingredientRepository.save(any(Ingredient.class))).thenReturn(ingredient);
+
+        ingredientService.updateStock(ingredient, new BigDecimal("15.00"));
+
+        verify(eventPublisher).publishEvent(any(com.bar.gestioncocktail.event.StockAlertEvent.class));
     }
 }

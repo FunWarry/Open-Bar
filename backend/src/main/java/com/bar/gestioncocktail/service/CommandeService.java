@@ -1,10 +1,7 @@
 package com.bar.gestioncocktail.service;
 
-import com.bar.gestioncocktail.dto.CommandeResponseDTO;
 import com.bar.gestioncocktail.dto.ModifierCommandeItemDTO;
 import com.bar.gestioncocktail.dto.ModifierCommandeRequestDTO;
-import com.bar.gestioncocktail.dto.StockAlerteEvent;
-import com.bar.gestioncocktail.dto.TableResponseDTO;
 import com.bar.gestioncocktail.exception.BusinessException;
 import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.model.Cocktail;
@@ -24,7 +21,16 @@ import com.bar.gestioncocktail.repository.CommandeItemRepository;
 import com.bar.gestioncocktail.repository.CommandeRepository;
 import com.bar.gestioncocktail.repository.IngredientRepository;
 import com.bar.gestioncocktail.repository.TableRepository;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
+import com.bar.gestioncocktail.event.OrderCancelledEvent;
+import com.bar.gestioncocktail.event.OrderCreatedEvent;
+import com.bar.gestioncocktail.event.OrderDeletedEvent;
+import com.bar.gestioncocktail.event.OrderStatusChangedEvent;
+import com.bar.gestioncocktail.event.OrderUpdatedEvent;
+import com.bar.gestioncocktail.event.StockAlertEvent;
+import com.bar.gestioncocktail.event.TableUpdatedEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,6 +49,7 @@ import java.util.Optional;
 @Service
 public class CommandeService {
 
+    private static final Logger log = LoggerFactory.getLogger(CommandeService.class);
     private static final String COMMANDE_NOT_FOUND = "Order not found with id: ";
 
     private final CommandeRepository commandeRepository;
@@ -52,7 +59,7 @@ public class CommandeService {
     private final CocktailRepository cocktailRepository;
     private final CocktailVarianteRepository cocktailVarianteRepository;
     private final CocktailIngredientRepository cocktailIngredientRepository;
-    private final SimpMessagingTemplate messagingTemplate;
+    private final ApplicationEventPublisher eventPublisher;
     private final TimeService timeService;
 
     public CommandeService(
@@ -63,7 +70,7 @@ public class CommandeService {
             CocktailRepository cocktailRepository,
             CocktailVarianteRepository cocktailVarianteRepository,
             CocktailIngredientRepository cocktailIngredientRepository,
-            SimpMessagingTemplate messagingTemplate,
+            ApplicationEventPublisher eventPublisher,
             TimeService timeService) {
         this.commandeRepository = commandeRepository;
         this.commandeItemRepository = commandeItemRepository;
@@ -72,7 +79,7 @@ public class CommandeService {
         this.cocktailRepository = cocktailRepository;
         this.cocktailVarianteRepository = cocktailVarianteRepository;
         this.cocktailIngredientRepository = cocktailIngredientRepository;
-        this.messagingTemplate = messagingTemplate;
+        this.eventPublisher = eventPublisher;
         this.timeService = timeService;
     }
 
@@ -119,6 +126,9 @@ public class CommandeService {
         commande.setStatut(CommandeStatut.EN_ATTENTE);
         Commande saved = commandeRepository.save(commande);
         updateTableOccupancyOnOrderCreation(saved);
+        if (eventPublisher != null) {
+            eventPublisher.publishEvent(new OrderCreatedEvent(saved));
+        }
         notifyOrderUpdated(saved);
         return saved;
     }
@@ -150,8 +160,14 @@ public class CommandeService {
                 .orElseThrow(() -> new ResourceNotFoundException(COMMANDE_NOT_FOUND + id));
         TableEntity table = commande.getTable();
         commande.setStatut(CommandeStatut.ANNULEE);
+        if (eventPublisher != null) {
+            eventPublisher.publishEvent(new OrderCancelledEvent(commande));
+        }
         notifyOrderUpdated(commande);
         commandeRepository.delete(commande);
+        if (eventPublisher != null) {
+            eventPublisher.publishEvent(new OrderDeletedEvent(id));
+        }
         if (table != null) {
             notifyTableUpdated(table);
         }
@@ -216,6 +232,7 @@ public class CommandeService {
         Commande commande = commandeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(COMMANDE_NOT_FOUND + id));
 
+        CommandeStatut oldStatut = commande.getStatut();
         commande.setStatut(nouveauStatut);
         commande.setUpdatedAt(timeService.now());
 
@@ -245,6 +262,9 @@ public class CommandeService {
         if (saved.getTable() != null) {
             notifyTableUpdated(saved.getTable());
         }
+        if (eventPublisher != null) {
+            eventPublisher.publishEvent(new OrderStatusChangedEvent(saved.getId(), oldStatut, nouveauStatut, saved));
+        }
         notifyOrderUpdated(saved);
         return saved;
     }
@@ -259,6 +279,9 @@ public class CommandeService {
         Commande saved = commandeRepository.save(commande);
         if (saved.getTable() != null) {
             notifyTableUpdated(saved.getTable());
+        }
+        if (eventPublisher != null) {
+            eventPublisher.publishEvent(new OrderCancelledEvent(saved));
         }
         notifyOrderUpdated(saved);
     }
@@ -350,18 +373,14 @@ public class CommandeService {
             ingredientRepository.save(ingredient);
             if (ingredient.getSeuilAlerte() != null
                     && (nouveauStock.compareTo(ingredient.getSeuilAlerte()) <= 0 || stockNegatif)
-                    && messagingTemplate != null) {
+                    && eventPublisher != null) {
                 try {
-                    messagingTemplate.convertAndSend("/topic/stock/alerte",
-                            new StockAlerteEvent(
-                                    ingredient.getId(),
-                                    ingredient.getNom(),
-                                    ingredient.getUniteMesure(),
-                                    nouveauStock,
-                                    ingredient.getSeuilAlerte(),
-                                    stockNegatif));
-                } catch (Exception _) {
-                    // Safe handling of WebSocket delivery
+                    eventPublisher.publishEvent(new StockAlertEvent(
+                            ingredient.getId(),
+                            ingredient.getNom(),
+                            nouveauStock.doubleValue()));
+                } catch (Exception ex) {
+                    log.warn("Failed to publish StockAlertEvent: {}", ex.getMessage());
                 }
             }
         }
@@ -527,8 +546,9 @@ public class CommandeService {
         commande.setUpdatedAt(timeService.now());
         Commande saved = commandeRepository.save(commande);
 
-        messagingTemplate.convertAndSend("/topic/commandes", saved);
-        messagingTemplate.convertAndSend("/topic/commandes/statut", saved);
+        if (eventPublisher != null) {
+            eventPublisher.publishEvent(new OrderUpdatedEvent(saved));
+        }
         return saved;
     }
 
@@ -639,25 +659,14 @@ public class CommandeService {
     }
 
     private void notifyTableUpdated(TableEntity table) {
-        if (messagingTemplate != null && table != null) {
-            try {
-                messagingTemplate.convertAndSend("/topic/tables", TableResponseDTO.from(table));
-            } catch (Exception _) {
-                // Safe handling of WebSocket delivery
-            }
+        if (eventPublisher != null && table != null) {
+            eventPublisher.publishEvent(new TableUpdatedEvent(table));
         }
     }
 
     private void notifyOrderUpdated(Commande saved) {
-        if (messagingTemplate != null && saved != null) {
-            try {
-                CommandeResponseDTO dto = CommandeResponseDTO.from(saved);
-                messagingTemplate.convertAndSend("/topic/commandes", dto);
-                messagingTemplate.convertAndSend("/topic/commandes/statut", dto);
-                messagingTemplate.convertAndSend("/topic/barman/commandes", dto);
-            } catch (Exception _) {
-                // Safe handling of WebSocket delivery
-            }
+        if (eventPublisher != null && saved != null) {
+            eventPublisher.publishEvent(new OrderUpdatedEvent(saved));
         }
     }
 }

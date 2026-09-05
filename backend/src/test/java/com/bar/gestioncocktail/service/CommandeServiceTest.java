@@ -1,6 +1,5 @@
 package com.bar.gestioncocktail.service;
 
-import com.bar.gestioncocktail.dto.StockAlerteEvent;
 import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.model.*;
 import com.bar.gestioncocktail.repository.CocktailIngredientRepository;
@@ -19,7 +18,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
+import com.bar.gestioncocktail.event.OrderCancelledEvent;
+import com.bar.gestioncocktail.event.OrderCreatedEvent;
+import com.bar.gestioncocktail.event.OrderStatusChangedEvent;
+import com.bar.gestioncocktail.event.OrderUpdatedEvent;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -50,7 +53,7 @@ class CommandeServiceTest {
     @Mock
     TableRepository tableRepository;
     @Mock
-    SimpMessagingTemplate messagingTemplate;
+    ApplicationEventPublisher eventPublisher;
     @Spy
     TimeService timeService = new TimeService(null);
 
@@ -168,7 +171,7 @@ class CommandeServiceTest {
 
         commandeService.changerStatut(1L, CommandeStatut.EN_PREPARATION);
 
-        verify(messagingTemplate).convertAndSend(eq("/topic/stock/alerte"), any(StockAlerteEvent.class));
+        verify(eventPublisher, atLeastOnce()).publishEvent(any(com.bar.gestioncocktail.event.StockAlertEvent.class));
     }
 
     @Test
@@ -178,7 +181,7 @@ class CommandeServiceTest {
 
         commandeService.changerStatut(1L, CommandeStatut.EN_PREPARATION);
 
-        verify(messagingTemplate, never()).convertAndSend(anyString(), any(StockAlerteEvent.class));
+        verify(eventPublisher, never()).publishEvent(any(com.bar.gestioncocktail.event.StockAlertEvent.class));
     }
 
     @Test
@@ -192,10 +195,9 @@ class CommandeServiceTest {
         verify(ingredientRepository).save(captor.capture());
         assertThat(captor.getValue().getQuantiteStock()).isEqualByComparingTo(BigDecimal.ZERO);
 
-        ArgumentCaptor<StockAlerteEvent> alertCaptor = ArgumentCaptor.forClass(StockAlerteEvent.class);
-        verify(messagingTemplate).convertAndSend(eq("/topic/stock/alerte"), alertCaptor.capture());
-        assertThat(alertCaptor.getValue().stockNegatif()).isTrue();
-        assertThat(alertCaptor.getValue().quantiteActuelle()).isEqualByComparingTo(BigDecimal.ZERO);
+        ArgumentCaptor<com.bar.gestioncocktail.event.StockAlertEvent> alertCaptor = ArgumentCaptor.forClass(com.bar.gestioncocktail.event.StockAlertEvent.class);
+        verify(eventPublisher, atLeastOnce()).publishEvent(alertCaptor.capture());
+        assertThat(alertCaptor.getValue().quantiteRestante()).isEqualTo(0.0);
     }
 
     @Test
@@ -216,15 +218,14 @@ class CommandeServiceTest {
 
         org.junit.jupiter.api.Assertions.assertDoesNotThrow(
                 () -> commandeService.changerStatut(1L, CommandeStatut.EN_PREPARATION));
-        verify(messagingTemplate, never()).convertAndSend(anyString(), any(StockAlerteEvent.class));
+        verify(eventPublisher, never()).publishEvent(any(com.bar.gestioncocktail.event.StockAlertEvent.class));
     }
 
     @Test
-    void destockage_messagingTemplateException_handledSafely() {
+    void destockage_eventPublisherException_handledSafely() {
         ingredient.setQuantiteStock(new BigDecimal("25.00"));
         when(commandeRepository.findById(1L)).thenReturn(Optional.of(commande));
-        doThrow(new RuntimeException("WebSocket down")).when(messagingTemplate).convertAndSend(anyString(),
-                any(StockAlerteEvent.class));
+        doThrow(new RuntimeException("Event failed")).when(eventPublisher).publishEvent(any(com.bar.gestioncocktail.event.StockAlertEvent.class));
 
         org.junit.jupiter.api.Assertions.assertDoesNotThrow(
                 () -> commandeService.changerStatut(1L, CommandeStatut.EN_PREPARATION));
@@ -349,7 +350,7 @@ class CommandeServiceTest {
         Commande result = commandeService.transfererCommande(1L, 2L);
 
         assertThat(result.getTable().getId()).isEqualTo(2L);
-        verify(messagingTemplate, times(2)).convertAndSend(anyString(), any(Commande.class));
+        verify(eventPublisher, atLeastOnce()).publishEvent(any(OrderUpdatedEvent.class));
     }
 
     @Test
@@ -492,12 +493,7 @@ class CommandeServiceTest {
         assertThat(updated.getNotes()).isEqualTo("Table VIP");
         assertThat(updated.getPourboire()).isEqualByComparingTo(new BigDecimal("3.00"));
 
-        verify(messagingTemplate).convertAndSend(eq("/topic/commandes"),
-                any(com.bar.gestioncocktail.dto.CommandeResponseDTO.class));
-        verify(messagingTemplate).convertAndSend(eq("/topic/commandes/statut"),
-                any(com.bar.gestioncocktail.dto.CommandeResponseDTO.class));
-        verify(messagingTemplate).convertAndSend(eq("/topic/barman/commandes"),
-                any(com.bar.gestioncocktail.dto.CommandeResponseDTO.class));
+        verify(eventPublisher, atLeastOnce()).publishEvent(any(OrderUpdatedEvent.class));
     }
 
     @Test
@@ -527,10 +523,10 @@ class CommandeServiceTest {
     }
 
     @Test
-    @DisplayName("notifyOrderUpdated - handles WebSocket exception gracefully without failing business operation")
+    @DisplayName("notifyOrderUpdated - handles exception gracefully without failing business operation")
     void notifyOrderUpdated_exception_handledSafely() {
-        org.mockito.Mockito.lenient().doThrow(new RuntimeException("WebSocket down"))
-                .when(messagingTemplate).convertAndSend(anyString(), any(Object.class));
+        org.mockito.Mockito.lenient().doThrow(new RuntimeException("Event publishing error"))
+                .when(eventPublisher).publishEvent(any());
         when(commandeRepository.save(any(Commande.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         org.junit.jupiter.api.Assertions.assertDoesNotThrow(() -> commandeService.annulerCommande(commande));
@@ -546,7 +542,7 @@ class CommandeServiceTest {
         Commande result = commandeService.toggleUrgent(1L);
 
         assertThat(result.isPrioritaire()).isTrue();
-        verify(messagingTemplate).convertAndSend(eq("/topic/commandes"), any(com.bar.gestioncocktail.dto.CommandeResponseDTO.class));
+        verify(eventPublisher, atLeastOnce()).publishEvent(any(OrderUpdatedEvent.class));
     }
 
     @Test
@@ -588,5 +584,36 @@ class CommandeServiceTest {
     @DisplayName("recalculateTotal - handles null commande safely")
     void recalculateTotal_nullCommande_safe() {
         org.junit.jupiter.api.Assertions.assertDoesNotThrow(() -> commandeService.recalculateTotal(null));
+    }
+
+    @Test
+    @DisplayName("createCommande - publishes OrderCreatedEvent")
+    void createCommande_publishesOrderCreatedEvent() {
+        Commande newCmd = new Commande();
+        newCmd.setId(99L);
+        when(commandeRepository.save(any(Commande.class))).thenReturn(newCmd);
+
+        Commande result = commandeService.createCommande(newCmd);
+
+        assertThat(result).isNotNull();
+        verify(eventPublisher, atLeastOnce()).publishEvent(any(OrderCreatedEvent.class));
+    }
+
+    @Test
+    @DisplayName("changerStatut - publishes OrderStatusChangedEvent")
+    void changerStatut_publishesOrderStatusChangedEvent() {
+        when(commandeRepository.findById(1L)).thenReturn(Optional.of(commande));
+
+        commandeService.changerStatut(1L, CommandeStatut.PRET);
+
+        verify(eventPublisher).publishEvent(any(OrderStatusChangedEvent.class));
+    }
+
+    @Test
+    @DisplayName("annulerCommande - publishes OrderCancelledEvent")
+    void annulerCommande_publishesOrderCancelledEvent() {
+        commandeService.annulerCommande(commande);
+
+        verify(eventPublisher).publishEvent(any(OrderCancelledEvent.class));
     }
 }

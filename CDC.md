@@ -485,7 +485,7 @@ try {
 | # | Problème | Localisation | Risque | Statut |
 |---|----------|-------------|--------|--------|
 | 1 | Secret JWT hardcodé | `application.yml` | Sécurité critique | 🔴 Ouvert |
-| 2 | `allow-circular-references: true` | `application.yml` | Smell design circulaire | 🟡 Ouvert |
+| 2 | `allow-circular-references: true` | `application.yml` | Smell design circulaire | ✅ Résolu (#363) |
 | 3 | Bug `dateLivraison` set sur `PRET` | `CommandeService.changerStatut()` | Données incorrectes | 🟡 Ouvert |
 | 4 | Couverture de tests insuffisante | Front + back | Régressions silencieuses | ✅ Résolu (PR #103) |
 | 5 | Pas de DTOs de sortie | Tous les controllers | Fuite données + boucles JSON | ✅ Résolu (PR #83) |
