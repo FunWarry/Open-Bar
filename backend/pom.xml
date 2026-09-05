@@ -27,7 +27,7 @@
         <assertj.version>3.27.7</assertj.version>
         <sonar.coverage.exclusions>**/dto/**,**/model/**,**/GestionCocktailApplication.java,**/DockerDbInitializer.java</sonar.coverage.exclusions>
         <logback.version>1.5.34</logback.version>
-        <testcontainers.version>1.20.4</testcontainers.version>
+        <testcontainers.version>1.21.4</testcontainers.version>
         <jsoup.version>1.23.2</jsoup.version>
         <zxing.version>3.5.3</zxing.version>
     </properties>
