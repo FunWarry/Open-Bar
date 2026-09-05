@@ -40,7 +40,7 @@
   border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
   border-radius: var(--radius-xl, 16px);
   padding: var(--space-8, 32px);
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--shadow-xl);
 }
 
 .card-header-section {
@@ -64,6 +64,7 @@
   font-weight: 700;
   background: linear-gradient(135deg, var(--primary, #9b8af2) 0%, var(--tertiary, #f0a33b) 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 

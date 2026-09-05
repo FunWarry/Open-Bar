@@ -430,16 +430,6 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // ─── Konva Rendering & Interactive Controls Engine ──────────────────────────
 
-  @HostListener('window:resize')
-  onResizeWindow() {
-    if (!this.stage || !this.containerRef?.nativeElement) return;
-    const el = this.containerRef.nativeElement;
-    const newW = Math.max(el.offsetWidth || 1920, window.innerWidth || 1920, 2560);
-    const newH = Math.max(el.offsetHeight || 1080, window.innerHeight || 1080, 1600);
-    this.stage.width(newW);
-    this.stage.height(newH);
-  }
-
   private initKonva() {
     const el = this.containerRef?.nativeElement;
     if (!el) return;
@@ -555,8 +545,15 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private synchroniserZonesAvecBackend() {
+    if (!this.zones || this.zones.length === 0) {
+      this.zoneAreas = [];
+      try {
+        localStorage.removeItem('openbar_zone_areas');
+      } catch {}
+      this.sauvegarderZonesLocales();
+      return;
+    }
     this.chargerZonesLocales();
-    if (!this.zones || this.zones.length === 0) return;
 
     this.zones.forEach((backendZone, idx) => {
       const existingArea = this.zoneAreas.find(za => za.nom.toLowerCase() === backendZone.nom.toLowerCase() || za.id === `za-${backendZone.id}`);
@@ -580,7 +577,8 @@ export class PlanSalleComponent implements OnInit, AfterViewInit, OnDestroy {
     });
 
     const backendNames = new Set(this.zones.map(z => z.nom.toLowerCase()));
-    this.zoneAreas = this.zoneAreas.filter(za => backendNames.has(za.nom.toLowerCase()));
+    const backendIds = new Set(this.zones.map(z => `za-${z.id}`));
+    this.zoneAreas = this.zoneAreas.filter(za => backendNames.has(za.nom.toLowerCase()) || backendIds.has(za.id));
     this.sauvegarderZonesLocales();
   }
 

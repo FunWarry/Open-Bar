@@ -336,17 +336,6 @@
           <span>{{ 'TABLES.CARD.DETAILS' | transloco }}</span>
         </button>
 
-        <button
-          type="button"
-          class="action-btn btn-qr"
-          (click)="onOpenQrModal(table, $event)"
-          (keyup.enter)="onOpenQrModal(table, $event)"
-          [attr.data-testid]="'table-card-qr-btn-' + table.id"
-          title="{{ 'TABLES.QR_CODE_TITLE' | transloco }}">
-          <ion-icon name="qr-code-outline"></ion-icon>
-          <span>{{ 'TABLES.QR_CODE_TITLE' | transloco }}</span>
-        </button>
-
         @if (isAdmin$ | async) {
           <button
             type="button"

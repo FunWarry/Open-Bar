@@ -52,6 +52,7 @@ import {
   wifiOutline,
   globeOutline,
   lockClosedOutline,
+  rocketOutline,
 } from 'ionicons/icons';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { Subject, forkJoin, of } from 'rxjs';
@@ -68,6 +69,8 @@ import {
   AppTheme,
   DEFAULT_FIGMA_PALETTE,
 } from '../../../core/services/theme.service';
+import { AuthService } from '../../../core/services/auth.service';
+import { OnboardingService } from '../../../core/services/onboarding.service';
 import { ActionButtonComponent } from '../../../core/components/ui/action-button/action-button.component';
 import { RoleBadgeComponent } from '../../../core/components/ui/role-badge/role-badge.component';
 import { StatusBadgeComponent } from '../../../core/components/ui/status-badge/status-badge.component';
@@ -118,25 +121,26 @@ export function thresholdPriorityValidator(group: AbstractControl): ValidationEr
   return null;
 }
 
-interface CadencePreset {
+export interface CadencePreset {
   nameKey: string;
   warning: number;
   urgent: number;
   critical: number;
 }
 
-interface CurrencyPreset {
+export interface CurrencyPreset {
   code: string;
   symbol: string;
   position: CurrencyPosition;
 }
 
 /**
- * Unified application settings page centralizing establishment legal mentions,
- * operational alert timers, currency formatting, and rich visual theme customization with real-time feedback.
+ * Unified application settings management component covering legal establishment info,
+ * preparation cadences and alerts, currency symbols and formats, adaptive theming,
+ * and Wi-Fi / QR code customer onboarding settings.
  */
 @Component({
-  selector: 'app-settings-page, app-order-timers-settings',
+  selector: 'app-settings-page',
   templateUrl: './app-settings-page.component.html',
   styleUrls: ['./app-settings-page.component.scss'],
   standalone: true,
@@ -169,6 +173,8 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
   private readonly etablissementService = inject(EtablissementService);
   private readonly appSettingsService = inject(AppSettingsService);
   private readonly themeService = inject(ThemeService);
+  private readonly authService = inject(AuthService);
+  private readonly onboardingService = inject(OnboardingService);
   private readonly toastCtrl = inject(ToastController);
   private readonly alertCtrl = inject(AlertController);
   private readonly translocoService = inject(TranslocoService);
@@ -329,6 +335,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       wifiOutline,
       globeOutline,
       lockClosedOutline,
+      rocketOutline,
     });
     this.initForms();
   }
@@ -855,6 +862,16 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
           this.showToast(this.translocoService.translate('SETTINGS.SAVE_ERROR'), 'danger');
         },
       });
+  }
+
+  /**
+   * Resets the onboarding progression flag for the current authenticated user and redirects to /onboarding.
+   */
+  restartOnboarding(): void {
+    const user = this.authService.getStoredUser();
+    const userKey = user?.id ? String(user.id) : (user?.roles?.[0] || 'ADMIN');
+    this.onboardingService.resetOnboarding(userKey);
+    this.router.navigate(['/onboarding']);
   }
 
   private async showToast(message: string, color: 'success' | 'danger' | 'warning' | 'info'): Promise<void> {

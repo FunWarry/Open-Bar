@@ -8,10 +8,13 @@
   flex-direction: column;
   height: 100%;
   width: 100%;
+  overflow: hidden;
 }
 
 // ─── Header ────────────────────────────────────────────────────────────────────
 .plan-salle-header {
+  flex-shrink: 0;
+
   ion-toolbar {
     --background: var(--background-surface-1, #1a1a2e);
     --color: var(--text-primary, #eceefb);
@@ -118,10 +121,20 @@
 // ─── Content & Controls ────────────────────────────────────────────────────────
 .plan-content {
   --background: var(--background-bg-0, #0f0f1a);
+  --overflow: hidden;
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 65px);
+  flex: 1;
+  height: 100%;
+  min-height: 0;
   overflow: hidden;
+
+  &::part(scroll) {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+  }
 }
 
 .plan-control-bar {
@@ -217,8 +230,9 @@
 .canvas-wrapper {
   position: relative;
   flex: 1;
+  min-height: 0;
   width: 100%;
-  height: calc(100vh - 150px);
+  height: 100%;
   background-color: var(--background-bg-0, #0f0f1a);
   background-image:
     linear-gradient(to right, rgba(255, 255, 255, 0.035) 1px, transparent 1px),

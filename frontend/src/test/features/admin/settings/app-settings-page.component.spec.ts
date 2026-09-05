@@ -10,12 +10,17 @@ import { AppSettingsService } from '../../../../app/core/services/app-settings.s
 import { AppSettings } from '../../../../app/core/models/app-settings.model';
 import { ThemeService, DEFAULT_FIGMA_PALETTE, THEME_PRESETS } from '../../../../app/core/services/theme.service';
 
+import { AuthService } from '../../../../app/core/services/auth.service';
+import { OnboardingService } from '../../../../app/core/services/onboarding.service';
+
 describe('AppSettingsPageComponent', () => {
   let component: AppSettingsPageComponent;
   let fixture: ComponentFixture<AppSettingsPageComponent>;
   let etabServiceSpy: jasmine.SpyObj<EtablissementService>;
   let appSettingsServiceSpy: jasmine.SpyObj<AppSettingsService>;
   let themeServiceSpy: jasmine.SpyObj<ThemeService>;
+  let authServiceSpy: jasmine.SpyObj<AuthService>;
+  let onboardingServiceSpy: jasmine.SpyObj<OnboardingService>;
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
   let alertCtrlSpy: jasmine.SpyObj<AlertController>;
   let routerSpy: jasmine.SpyObj<Router>;
@@ -87,6 +92,11 @@ describe('AppSettingsPageComponent', () => {
     alertCtrlSpy = jasmine.createSpyObj('AlertController', ['create']);
     routerSpy = jasmine.createSpyObj('Router', ['navigate']);
 
+    authServiceSpy = jasmine.createSpyObj('AuthService', ['getStoredUser']);
+    authServiceSpy.getStoredUser.and.returnValue({ id: 1, roles: ['ROLE_ADMIN'] } as any);
+
+    onboardingServiceSpy = jasmine.createSpyObj('OnboardingService', ['resetOnboarding']);
+
     await TestBed.configureTestingModule({
       imports: [
         AppSettingsPageComponent,
@@ -105,6 +115,8 @@ describe('AppSettingsPageComponent', () => {
         { provide: EtablissementService, useValue: etabServiceSpy },
         { provide: AppSettingsService, useValue: appSettingsServiceSpy },
         { provide: ThemeService, useValue: themeServiceSpy },
+        { provide: AuthService, useValue: authServiceSpy },
+        { provide: OnboardingService, useValue: onboardingServiceSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
         { provide: AlertController, useValue: alertCtrlSpy },
         { provide: Router, useValue: routerSpy },
@@ -424,4 +436,24 @@ describe('AppSettingsPageComponent', () => {
       wifiEnabled: true
     }));
   }));
+
+  it('should reset onboarding and navigate to /onboarding', () => {
+    component.restartOnboarding();
+    expect(onboardingServiceSpy.resetOnboarding).toHaveBeenCalledWith('1');
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/onboarding']);
+  });
+
+  it('should reset onboarding using user role when user id is absent', () => {
+    authServiceSpy.getStoredUser.and.returnValue({ roles: ['ROLE_MANAGER'] } as any);
+    component.restartOnboarding();
+    expect(onboardingServiceSpy.resetOnboarding).toHaveBeenCalledWith('ROLE_MANAGER');
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/onboarding']);
+  });
+
+  it('should reset onboarding with ADMIN fallback when stored user is null', () => {
+    authServiceSpy.getStoredUser.and.returnValue(null);
+    component.restartOnboarding();
+    expect(onboardingServiceSpy.resetOnboarding).toHaveBeenCalledWith('ADMIN');
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/onboarding']);
+  });
 });
