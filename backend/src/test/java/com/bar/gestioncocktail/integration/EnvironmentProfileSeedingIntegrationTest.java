@@ -59,4 +59,22 @@ class EnvironmentProfileSeedingIntegrationTest extends BaseIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("success"));
     }
+
+    @Test
+    @DisplayName("POST /api/setup/clean-test-data with ADMIN token purges test data successfully")
+    void cleanTestData_withAdminToken_executesSuccessfully() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/setup/clean-test-data")
+                        .header("Authorization", "Bearer " + getAdminToken())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("success"));
+    }
+
+    @Test
+    @DisplayName("POST /api/setup/clean-test-data without token returns forbidden")
+    void cleanTestData_withoutAuth_isRejected() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/setup/clean-test-data")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden());
+    }
 }

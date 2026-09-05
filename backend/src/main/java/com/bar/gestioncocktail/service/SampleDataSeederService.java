@@ -176,9 +176,9 @@ public class SampleDataSeederService {
                 jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS temps_alerte_commande_minutes INTEGER DEFAULT 5");
                 jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS temps_alerte_critique_commande_minutes INTEGER DEFAULT 10");
                 jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS client_base_url VARCHAR(500) DEFAULT 'https://openbar.lan'");
-                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS wifi_ssid VARCHAR(100) DEFAULT 'OpenBar-WiFi'");
-                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS wifi_password VARCHAR(100) DEFAULT 'OpenBar2026!'");
-                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS wifi_security VARCHAR(20) DEFAULT 'WPA2'");
+                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS wifi_ssid VARCHAR(100)");
+                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS wifi_password VARCHAR(100)");
+                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS wifi_security VARCHAR(20) DEFAULT 'WPA'");
                 jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS wifi_enabled BOOLEAN DEFAULT false");
                 jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP");
                 jdbcTemplate.execute("ALTER TABLE establishment_config ADD COLUMN IF NOT EXISTS ticket_format VARCHAR(10) DEFAULT '80mm'");
@@ -199,7 +199,7 @@ public class SampleDataSeederService {
 
     private void safelyInTransaction(Runnable action, String description) {
         try {
-            new TransactionTemplate(transactionManager).executeWithoutResult(_ -> action.run());
+            new TransactionTemplate(transactionManager).executeWithoutResult(status -> action.run());
         } catch (Exception e) {
             log.debug("Cleanup step '{}' encountered exception: {}", description, e.getMessage());
         }

@@ -80,6 +80,7 @@ public interface TableAppelRepository extends JpaRepository<TableAppel, Long> {
      * @param tableId Table identifier
      */
     @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.transaction.annotation.Transactional
     @Query("DELETE FROM TableAppel a WHERE a.table.id = :tableId")
     void deleteByTableId(@Param("tableId") Long tableId);
 }

@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -102,6 +103,7 @@ public class SetupController {
      * @return Confirmation message of test data cleanup
      */
     @PostMapping("/clean-test-data")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Purge test data artifacts", description = "Removes dummy test records and leftover XSS test tables.")
     @ApiResponse(responseCode = "200", description = "Test data cleaned successfully")
     public ResponseEntity<Map<String, String>> cleanTestData() {
