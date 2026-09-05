@@ -1,8 +1,9 @@
 import { Injectable, inject } from '@angular/core';
 import { CanDeactivate } from '@angular/router';
 import { Observable, firstValueFrom, isObservable } from 'rxjs';
-import { AlertController } from '@ionic/angular/standalone';
+import { ModalController, AlertController } from '@ionic/angular/standalone';
 import { TranslocoService } from '@jsverse/transloco';
+import { ConfirmModalComponent, ConfirmModalResult } from '../components/ui/confirm-modal/confirm-modal.component';
 
 /**
  * Interface that components must implement to allow {@link PendingChangesGuard}
@@ -19,12 +20,13 @@ export interface HasPendingChanges {
 
 /**
  * Route guard preventing navigation if a component has unsaved modifications.
- * Prompts the user with an Ionic confirmation dialog before proceeding.
+ * Prompts the user with a theme-adaptive OpenBar confirmation dialog before proceeding.
  */
 @Injectable({
   providedIn: 'root',
 })
 export class PendingChangesGuard implements CanDeactivate<HasPendingChanges> {
+  private readonly modalCtrl = inject(ModalController, { optional: true });
   private readonly alertCtrl = inject(AlertController, { optional: true });
   private readonly translocoService = inject(TranslocoService, { optional: true });
 
@@ -54,33 +56,48 @@ export class PendingChangesGuard implements CanDeactivate<HasPendingChanges> {
       return true;
     }
 
-    if (!this.alertCtrl) {
-      // Fallback in environments without AlertController (e.g. non-browser unit test runs)
-      return true;
+    const header = this.translocoService?.translate('SETTINGS.UNSAVED_CHANGES_TITLE') ?? 'Modifications non enregistrées';
+    const message = this.translocoService?.translate('SETTINGS.UNSAVED_CHANGES_MSG') ?? 'Vous avez des modifications en cours qui n\'ont pas été enregistrées. Voulez-vous vraiment quitter cette page sans sauvegarder ?';
+    const stayText = this.translocoService?.translate('SETTINGS.STAY') ?? 'Rester sur la page';
+    const leaveText = this.translocoService?.translate('SETTINGS.LEAVE') ?? 'Quitter sans enregistrer';
+
+    if (this.modalCtrl) {
+      const modal = await this.modalCtrl.create({
+        component: ConfirmModalComponent,
+        cssClass: 'confirm-modal-dialog',
+        backdropDismiss: false,
+        componentProps: {
+          title: header,
+          message,
+          icon: 'alert-outline',
+          tone: 'danger',
+          cancelBtnText: stayText,
+          confirmBtnText: leaveText,
+        },
+      });
+
+      await modal.present();
+      const { data } = await modal.onDidDismiss<ConfirmModalResult>();
+      return data?.confirmed === true;
     }
 
-    const header = this.translocoService?.translate('SETTINGS.UNSAVED_CHANGES_TITLE') ?? 'Modifications non enregistrées';
-    const message = this.translocoService?.translate('SETTINGS.UNSAVED_CHANGES_MSG') ?? 'Vous avez des modifications non enregistrées. Voulez-vous vraiment quitter sans sauvegarder ?';
-    const stayText = this.translocoService?.translate('SETTINGS.STAY') ?? 'Rester';
-    const leaveText = this.translocoService?.translate('SETTINGS.LEAVE') ?? 'Quitter';
+    if (this.alertCtrl) {
+      const alert = await this.alertCtrl.create({
+        header,
+        message,
+        backdropDismiss: false,
+        cssClass: 'openbar-alert',
+        buttons: [
+          { text: stayText, role: 'cancel' },
+          { text: leaveText, role: 'destructive' },
+        ],
+      });
+      await alert.present();
+      const { role } = await alert.onDidDismiss();
+      return role === 'destructive';
+    }
 
-    const alert = await this.alertCtrl.create({
-      header,
-      message,
-      backdropDismiss: false,
-      buttons: [
-        {
-          text: stayText,
-          role: 'cancel',
-        },
-        {
-          text: leaveText,
-          role: 'destructive',
-        },
-      ],
-    });
-    await alert.present();
-    const { role } = await alert.onDidDismiss();
-    return role === 'destructive';
+    return true;
   }
 }
+

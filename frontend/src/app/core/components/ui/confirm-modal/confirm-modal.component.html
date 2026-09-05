@@ -1,0 +1,83 @@
+<div class="confirm-modal-wrapper" [attr.data-tone]="tone" data-testid="confirm-dialog-modal">
+  <!-- Header -->
+  <div class="modal-header">
+    <div class="header-main-group">
+      <div
+        class="icon-badge"
+        [class.warning-badge]="tone === 'warning'"
+        [class.danger-badge]="tone === 'danger'"
+        [class.info-badge]="tone === 'info'">
+        <span class="icon-pulse-ring"></span>
+        <ion-icon [name]="badgeIconName" class="badge-icon" aria-hidden="true"></ion-icon>
+      </div>
+      <div class="header-text">
+        <h2 class="modal-title" data-testid="confirm-modal-title">
+          {{ title }}
+        </h2>
+        @if (metaTags && metaTags.length > 0) {
+          <div class="modal-meta-tags">
+            @for (tag of metaTags; track tag.text) {
+              <span class="meta-tag">
+                @if (tag.icon) {
+                  <ion-icon [name]="tag.icon" aria-hidden="true"></ion-icon>
+                }
+                <span>{{ tag.text }}</span>
+              </span>
+            }
+          </div>
+        }
+      </div>
+    </div>
+
+    <button
+      type="button"
+      class="close-icon-btn"
+      (click)="onCancel()"
+      (keyup.enter)="onCancel()"
+      [attr.aria-label]="'COMMON.CLOSE' | transloco"
+      data-testid="confirm-modal-close-btn">
+      <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+    </button>
+  </div>
+
+  <!-- Body -->
+  <div class="modal-body">
+    <div
+      class="callout-banner"
+      [class.warning-callout]="tone === 'warning'"
+      [class.danger-callout]="tone === 'danger'"
+      [class.info-callout]="tone === 'info'">
+      <div class="callout-icon-box">
+        <ion-icon [name]="badgeIconName" aria-hidden="true"></ion-icon>
+      </div>
+      <div class="callout-text-content">
+        <p class="callout-desc" data-testid="confirm-modal-message">{{ message }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="modal-footer">
+    <button
+      type="button"
+      class="btn-cancel"
+      (click)="onCancel()"
+      (keyup.enter)="onCancel()"
+      data-testid="confirm-modal-stay-btn">
+      {{ cancelBtnText || ('SETTINGS.STAY' | transloco) }}
+    </button>
+
+    <button
+      type="button"
+      class="btn-confirm"
+      [class.btn-warning]="tone === 'warning'"
+      [class.btn-danger]="tone === 'danger'"
+      [class.btn-info]="tone === 'info'"
+      (click)="onConfirm()"
+      (keyup.enter)="onConfirm()"
+      data-testid="confirm-modal-leave-btn">
+      <ion-icon [name]="actionIconName" aria-hidden="true"></ion-icon>
+      <span>{{ confirmBtnText || ('SETTINGS.LEAVE' | transloco) }}</span>
+    </button>
+  </div>
+</div>

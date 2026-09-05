@@ -58,7 +58,7 @@
   color: var(--danger-color);
   font-size: 26px;
   flex-shrink: 0;
-  box-shadow: 0 0 20px rgba(229, 96, 79, 0.25);
+  box-shadow: var(--shadow-glow-danger);
 
   .icon-pulse-ring {
     position: absolute;
@@ -313,11 +313,11 @@
   .btn-confirm-delete {
     background: #dc2626;
     color: #ffffff;
-    box-shadow: 0 4px 14px rgba(220, 38, 38, 0.4);
+    box-shadow: var(--shadow-btn-danger);
 
     &:hover:not(:disabled) {
       background: #b91c1c;
-      box-shadow: 0 6px 20px rgba(185, 28, 28, 0.5);
+      box-shadow: 0 6px 20px rgba(220, 38, 38, 0.5);
       transform: translateY(-1px);
     }
 

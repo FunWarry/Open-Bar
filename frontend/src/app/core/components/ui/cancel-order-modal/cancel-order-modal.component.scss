@@ -15,7 +15,7 @@
   background: var(--modal-bg);
   border-radius: var(--radius-xl, 20px);
   border: 1px solid var(--modal-border);
-  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  box-shadow: var(--shadow-modal);
   display: flex;
   flex-direction: column;
   max-width: 540px;
@@ -58,7 +58,7 @@
   color: var(--danger-color);
   font-size: 26px;
   flex-shrink: 0;
-  box-shadow: 0 0 20px rgba(229, 96, 79, 0.25);
+  box-shadow: var(--shadow-glow-danger);
 
   .icon-pulse-ring {
     position: absolute;
@@ -459,7 +459,7 @@
 .btn-destructive {
   background: var(--semantic-danger, #e5604f);
   color: var(--text-on-accent, #ffffff);
-  box-shadow: 0 4px 16px rgba(229, 96, 79, 0.4);
+  box-shadow: var(--shadow-btn-danger);
 
   &:hover {
     background: #d44d3c;
@@ -469,7 +469,7 @@
 
   &:active {
     transform: translateY(0);
-    box-shadow: 0 2px 8px rgba(229, 96, 79, 0.4);
+    box-shadow: var(--shadow-btn-danger);
   }
 }
 
