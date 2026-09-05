@@ -231,21 +231,21 @@
     background: var(--primary);
     color: #ffffff;
     border-color: var(--primary);
-    box-shadow: 0 4px 12px rgba(108, 127, 232, 0.3);
+    box-shadow: var(--shadow-btn-primary);
   }
 
   &.active.free {
     background: var(--semantic-success);
     color: #ffffff;
     border-color: var(--semantic-success);
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    box-shadow: var(--shadow-btn-success);
   }
 
   &.active.occupied {
     background: var(--table-occupied, #f59e0b);
     color: #0f172a;
     border-color: var(--table-occupied, #f59e0b);
-    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+    box-shadow: var(--shadow-btn-warning);
   }
 }
 
@@ -449,7 +449,7 @@
   gap: 14px;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  box-shadow: var(--shadow-card);
   backdrop-filter: blur(12px);
   transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1),
               border-color 0.22s cubic-bezier(0.4, 0, 0.2, 1),
@@ -468,7 +468,7 @@
 
   &:hover {
     transform: translateY(-3px);
-    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
+    box-shadow: var(--shadow-card-hover);
     border-color: rgba(108, 127, 232, 0.5);
   }
 
@@ -482,7 +482,7 @@
 
     &:hover {
       border-color: rgba(52, 199, 123, 0.55);
-      box-shadow: 0 10px 24px rgba(52, 199, 123, 0.12), 0 4px 12px rgba(0, 0, 0, 0.35);
+      box-shadow: var(--shadow-card-hover);
     }
   }
 
@@ -496,7 +496,7 @@
 
     &:hover {
       border-color: rgba(240, 163, 59, 0.6);
-      box-shadow: 0 10px 24px rgba(240, 163, 59, 0.12), 0 4px 12px rgba(0, 0, 0, 0.35);
+      box-shadow: var(--shadow-card-hover);
     }
   }
 }
@@ -701,7 +701,7 @@
         background: var(--primary);
         color: #ffffff;
         border-color: var(--primary);
-        box-shadow: 0 4px 14px rgba(108, 127, 232, 0.35);
+        box-shadow: var(--shadow-btn-primary);
       }
     }
 
@@ -727,7 +727,7 @@
         background: #dc2626;
         color: #ffffff;
         border-color: #dc2626;
-        box-shadow: 0 4px 14px rgba(220, 38, 38, 0.4);
+        box-shadow: var(--shadow-btn-danger);
       }
     }
   }

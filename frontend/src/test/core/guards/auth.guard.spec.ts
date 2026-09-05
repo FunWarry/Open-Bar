@@ -1,23 +1,35 @@
 import {TestBed} from '@angular/core/testing';
 import {Router, UrlTree} from '@angular/router';
 import {provideMockStore, MockStore} from '@ngrx/store/testing';
+import {of, throwError} from 'rxjs';
 import {AuthGuard} from '../../../app/core/guards/auth.guard';
 import {selectIsAuthenticated} from '../../../app/core/store/auth.selectors';
+import {SetupService, SetupStatus} from '../../../app/core/services/setup.service';
+import {AuthService} from '../../../app/core/services/auth.service';
 
 describe('AuthGuard', () => {
   let guard: AuthGuard;
   let store: MockStore;
   let router: jasmine.SpyObj<Router>;
+  let setupServiceSpy: jasmine.SpyObj<SetupService>;
+  let authServiceSpy: jasmine.SpyObj<AuthService>;
 
   beforeEach(() => {
     router = jasmine.createSpyObj('Router', ['createUrlTree', 'navigate']);
     router.createUrlTree.and.callFake((commands: unknown[]) => ({} as UrlTree));
+
+    setupServiceSpy = jasmine.createSpyObj('SetupService', ['getStatus']);
+    setupServiceSpy.getStatus.and.returnValue(of({ initialized: true, userCount: 1 }));
+
+    authServiceSpy = jasmine.createSpyObj('AuthService', ['logout']);
 
     TestBed.configureTestingModule({
       providers: [
         AuthGuard,
         provideMockStore(),
         {provide: Router, useValue: router},
+        {provide: SetupService, useValue: setupServiceSpy},
+        {provide: AuthService, useValue: authServiceSpy},
       ]
     });
     guard = TestBed.inject(AuthGuard);
@@ -75,6 +87,34 @@ describe('AuthGuard', () => {
   });
 
   it('returns true when token changes from absent to present', (done) => {
+    store.overrideSelector(selectIsAuthenticated, true);
+    store.refreshState();
+
+    guard.canActivate().subscribe(result => {
+      expect(result).toBeTrue();
+      done();
+    });
+  });
+
+  it('redirects to /setup and logs out when system is not initialized', (done) => {
+    setupServiceSpy.getStatus.and.returnValue(of({ initialized: false, userCount: 0 }));
+    const setupUrlTree = { toString: () => '/setup' } as unknown as UrlTree;
+    router.createUrlTree.and.callFake((commands: unknown[]) => {
+      if (Array.isArray(commands) && commands[0] === '/setup') {
+        return setupUrlTree;
+      }
+      return {} as UrlTree;
+    });
+
+    guard.canActivate().subscribe(result => {
+      expect(authServiceSpy.logout).toHaveBeenCalled();
+      expect(result).toBe(setupUrlTree);
+      done();
+    });
+  });
+
+  it('falls back to auth check when setup check fails with error', (done) => {
+    setupServiceSpy.getStatus.and.returnValue(throwError(() => new Error('Network error')));
     store.overrideSelector(selectIsAuthenticated, true);
     store.refreshState();
 

@@ -7,9 +7,13 @@ import { Store } from '@ngrx/store';
 import { of, BehaviorSubject } from 'rxjs';
 import { LoginComponent } from '../../../app/features/auth/login/login.component';
 import { login } from '../../../app/core/store/auth.actions';
-import { selectAuthError, selectIsAuthenticated } from '../../../app/core/store/auth.selectors';
+import { selectAuthError, selectIsAuthenticated, selectCurrentUser } from '../../../app/core/store/auth.selectors';
 import { SetupService } from '../../../app/core/services/setup.service';
+import { OnboardingService } from '../../../app/core/services/onboarding.service';
 
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { addIcons } from 'ionicons';
+import { lockClosed, mailOutline } from 'ionicons/icons';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 
 describe('LoginComponent', () => {
@@ -17,17 +21,20 @@ describe('LoginComponent', () => {
   let mockStore: jasmine.SpyObj<Store>;
   let mockRouter: jasmine.SpyObj<Router>;
   let mockSetupService: jasmine.SpyObj<SetupService>;
+  let mockOnboardingService: jasmine.SpyObj<OnboardingService>;
 
   let isAuthenticatedSubject: BehaviorSubject<boolean>;
   let authErrorSubject: BehaviorSubject<string | null>;
 
   beforeEach(async () => {
+    addIcons({ lockClosed, mailOutline });
     isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
     authErrorSubject = new BehaviorSubject<string | null>(null);
 
     mockStore = jasmine.createSpyObj('Store', ['dispatch', 'select']);
     mockStore.select.and.callFake((selector: unknown) => {
       if (selector === selectAuthError) return authErrorSubject.asObservable();
+      if (selector === selectCurrentUser) return of({ id: 1, roles: ['ROLE_ADMIN'] } as any);
       return isAuthenticatedSubject.asObservable();
     });
 
@@ -36,18 +43,23 @@ describe('LoginComponent', () => {
     mockSetupService = jasmine.createSpyObj('SetupService', ['getStatus']);
     mockSetupService.getStatus.and.returnValue(of({ initialized: true, userCount: 1 }));
 
+    mockOnboardingService = jasmine.createSpyObj('OnboardingService', ['isCompleted', 'resetOnboarding']);
+    mockOnboardingService.isCompleted.and.returnValue(true);
+
     await TestBed.configureTestingModule({
       imports: [
         LoginComponent,
         IonicModule.forRoot(),
         RouterTestingModule,
         ReactiveFormsModule,
+        HttpClientTestingModule,
         getTranslocoTestingModule(),
       ],
       providers: [
         { provide: Store, useValue: mockStore },
         { provide: Router, useValue: mockRouter },
         { provide: SetupService, useValue: mockSetupService },
+        { provide: OnboardingService, useValue: mockOnboardingService },
       ],
     }).compileComponents();
 
@@ -57,7 +69,9 @@ describe('LoginComponent', () => {
   });
 
   afterEach(() => {
-    component.ngOnDestroy();
+    if (component) {
+      component.ngOnDestroy();
+    }
   });
 
   // ─── Creation ────────────────────────────────────────────────────────────────
@@ -81,8 +95,6 @@ describe('LoginComponent', () => {
     expect(component.errorMessage).toBeNull();
   });
 
-  // ─── ngOnInit: redirection if already authenticated ──────────────────────────────
-
   it('ngOnInit redirects to /app-home if user is already authenticated', fakeAsync(() => {
     isAuthenticatedSubject.next(true);
     component.ngOnInit();
@@ -90,7 +102,15 @@ describe('LoginComponent', () => {
     expect(mockRouter.navigate).toHaveBeenCalledWith(['/app-home']);
   }));
 
-  it('ngOnInit does not redirect if user is not authenticated', fakeAsync(() => {
+  it('ngOnInit redirects to /setup if application is not yet initialized', fakeAsync(() => {
+    mockSetupService.getStatus.and.returnValue(of({ initialized: false, userCount: 0 }));
+    component.ngOnInit();
+    tick();
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['/setup']);
+  }));
+
+  it('ngOnInit does not redirect if user is not authenticated and app is initialized', fakeAsync(() => {
+    mockSetupService.getStatus.and.returnValue(of({ initialized: true, userCount: 1 }));
     isAuthenticatedSubject.next(false);
     component.ngOnInit();
     tick();
@@ -143,6 +163,7 @@ describe('LoginComponent', () => {
   it('onSubmit redirects to /app-home when authentication succeeds', fakeAsync(() => {
     mockStore.select.and.callFake((selector: unknown) => {
       if (selector === selectAuthError) return of(null);
+      if (selector === selectCurrentUser) return of({ id: 1, roles: ['ROLE_ADMIN'] } as any);
       return of(true);
     });
 
@@ -151,6 +172,38 @@ describe('LoginComponent', () => {
     tick();
 
     expect(mockRouter.navigate).toHaveBeenCalledWith(['/app-home']);
+  }));
+
+  it('onSubmit redirects to /onboarding when user onboarding is not completed', fakeAsync(() => {
+    mockStore.select.and.callFake((selector: unknown) => {
+      if (selector === selectAuthError) return of(null);
+      if (selector === selectCurrentUser) return of({ id: 2, roles: ['ROLE_SERVEUR'] } as any);
+      return of(true);
+    });
+    mockOnboardingService.isCompleted.and.returnValue(false);
+
+    component.loginForm.setValue({ username: 'serveur', password: 'secret' });
+    component.onSubmit();
+    tick();
+
+    expect(mockOnboardingService.isCompleted).toHaveBeenCalledWith('2');
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['/onboarding']);
+  }));
+
+  it('navigateAfterLogin handles user without id falling back to first role or CLIENT', fakeAsync(() => {
+    mockStore.select.and.callFake((selector: unknown) => {
+      if (selector === selectAuthError) return of(null);
+      if (selector === selectCurrentUser) return of({ roles: ['BARMAN'] } as any);
+      return of(true);
+    });
+    mockOnboardingService.isCompleted.and.returnValue(false);
+
+    component.loginForm.setValue({ username: 'barman', password: 'secret' });
+    component.onSubmit();
+    tick();
+
+    expect(mockOnboardingService.isCompleted).toHaveBeenCalledWith('BARMAN');
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['/onboarding']);
   }));
 
   // ─── ngOnDestroy ─────────────────────────────────────────────────────────────

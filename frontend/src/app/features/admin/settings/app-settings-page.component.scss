@@ -15,9 +15,19 @@
 
 /* --- Hero Header --- */
 .settings-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
   padding: 24px 28px 16px;
   background: linear-gradient(180deg, rgba(108, 127, 232, 0.08) 0%, rgba(10, 11, 20, 0) 100%);
   border-bottom: 1px solid var(--border-medium, rgba(255, 255, 255, 0.08));
+
+  .hero-content {
+    flex: 1;
+    min-width: 260px;
+  }
 
   .hero-badge {
     display: inline-flex;
@@ -53,6 +63,43 @@
     font-size: 0.9rem;
     color: var(--text-secondary, #94a3b8);
     margin: 0;
+  }
+
+  .hero-extra-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .onboarding-restart-hero-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 16px;
+    border-radius: var(--radius-md, 8px);
+    background: var(--background-surface-1);
+    border: 1px solid var(--border-medium);
+    color: var(--text-primary);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    ion-icon {
+      font-size: 1.1rem;
+      color: var(--primary);
+      transition: transform 0.2s ease;
+    }
+
+    &:hover {
+      background: rgba(108, 127, 232, 0.12);
+      border-color: var(--primary);
+      color: var(--primary);
+
+      ion-icon {
+        transform: translateY(-2px) scale(1.1);
+      }
+    }
   }
 }
 
@@ -122,7 +169,7 @@ ion-col {
   background-color: var(--background-surface-1, #121422);
   border: 1px solid var(--border-medium, rgba(255, 255, 255, 0.08));
   border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-card);
   margin-bottom: 16px;
   overflow: visible !important;
   contain: none !important;
@@ -849,7 +896,7 @@ ion-col {
 /* Colonne Droite : Preview Panel Réel */
 .preview-panel-card {
   border: 1px solid rgba(108, 127, 232, 0.45);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  box-shadow: var(--shadow-lg);
 
   .live-badge {
     font-size: 10px;
@@ -931,7 +978,7 @@ ion-col {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-top: 1px solid var(--border-medium, rgba(255, 255, 255, 0.12));
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.25);
+  box-shadow: var(--shadow-xl);
 
   .bar-inner {
     max-width: 1400px;
@@ -1130,7 +1177,7 @@ ion-col {
   background: #ffffff;
   border-radius: 14px;
   padding: 20px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-md);
   color: #1a1a2e;
   text-align: center;
   border-top: 5px solid var(--primary, #6c7fe8);

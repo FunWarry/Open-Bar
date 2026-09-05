@@ -2278,6 +2278,8 @@
   "SETTINGS": {
     "PAGE_TITLE": "Paramètres de l'Application",
     "PAGE_SUBTITLE": "Centralisez et ajustez l'ensemble des configurations juridiques, temporelles, monétaires et visuelles d'OpenBar.",
+    "RESTART_ONBOARDING_BTN": "Relancer l'onboarding",
+    "RESTART_ONBOARDING_DESC": "Réinitialiser et relancer le guide de démarrage de l'application",
     "TAB_LEGAL": "Établissement & Légal",
     "TAB_TIMERS": "Délais & Alertes",
     "TAB_CURRENCY": "Devise & Format",

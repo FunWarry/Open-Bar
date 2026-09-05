@@ -9,6 +9,17 @@
       <h1 class="hero-title">{{ 'SETTINGS.PAGE_TITLE' | transloco }}</h1>
       <p class="hero-subtitle">{{ 'SETTINGS.PAGE_SUBTITLE' | transloco }}</p>
     </div>
+    <div class="hero-extra-actions">
+      <button
+        type="button"
+        class="onboarding-restart-hero-btn"
+        (click)="restartOnboarding()"
+        [attr.title]="'SETTINGS.RESTART_ONBOARDING_DESC' | transloco"
+        data-testid="btn-restart-onboarding">
+        <ion-icon name="rocket-outline"></ion-icon>
+        <span>{{ 'SETTINGS.RESTART_ONBOARDING_BTN' | transloco }}</span>
+      </button>
+    </div>
   </header>
 
   <!-- Navigation Tabs -->

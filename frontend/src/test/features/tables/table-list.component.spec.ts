@@ -266,12 +266,10 @@ describe('TableListComponent', () => {
     expect(mockModal.present).toHaveBeenCalled();
   }));
 
-  it('onOpenQrModal() opens TableQrModalComponent for specific table', fakeAsync(() => {
-    component.onOpenQrModal(mockTables[0]);
-    tick();
-    expect(modalCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({
-      componentProps: { table: mockTables[0] }
-    }));
-    expect(mockModal.present).toHaveBeenCalled();
-  }));
+  it('should not display individual QR button on table cards (non-regression fix)', () => {
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const qrButtons = compiled.querySelectorAll('[data-testid^="table-card-qr-btn"]');
+    expect(qrButtons).toHaveSize(0);
+  });
 });
