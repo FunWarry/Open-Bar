@@ -63,4 +63,30 @@ public class AppSettingsController {
     public ResponseEntity<AppSettingsResponseDTO> updateSettings(@Valid @RequestBody AppSettingsUpdateRequest request) {
         return ResponseEntity.ok(AppSettingsResponseDTO.from(appSettingsService.updateSettings(request)));
     }
+
+    /**
+     * Generates establishment Wi-Fi network configuration pairing QR code (PNG or SVG).
+     *
+     * @param format Output format (PNG or SVG)
+     * @param size Dimension in pixels
+     * @return Generated image binary content
+     */
+    @GetMapping("/wifi/qrcode")
+    @Operation(summary = "Generate Wi-Fi connection pairing QR code (PNG or SVG)")
+    @ApiResponse(responseCode = "200", description = "Wi-Fi QR code generated successfully")
+    @ApiResponse(responseCode = "400", description = "Wi-Fi SSID is not configured")
+    public ResponseEntity<byte[]> getWifiQrCode(
+        @io.swagger.v3.oas.annotations.Parameter(description = "Format: PNG or SVG") @org.springframework.web.bind.annotation.RequestParam(defaultValue = "PNG") String format,
+        @io.swagger.v3.oas.annotations.Parameter(description = "Image size in pixels") @org.springframework.web.bind.annotation.RequestParam(defaultValue = "300") int size) {
+        byte[] qrBytes = appSettingsService.generateWifiQrCode(format, size);
+        String cleanFormat = format != null ? format.toLowerCase() : "png";
+        org.springframework.http.MediaType mediaType = "svg".equalsIgnoreCase(cleanFormat)
+            ? org.springframework.http.MediaType.valueOf("image/svg+xml")
+            : org.springframework.http.MediaType.IMAGE_PNG;
+
+        return ResponseEntity.ok()
+            .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"wifi-qrcode." + cleanFormat + "\"")
+            .contentType(mediaType)
+            .body(qrBytes);
+    }
 }

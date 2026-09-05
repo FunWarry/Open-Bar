@@ -1,25 +1,36 @@
-<div class="batch-modal-container" data-testid="table-qr-batch-modal">
+<div class="table-modal-wrapper" data-testid="table-qr-batch-modal">
   <!-- Header -->
-  <header class="batch-modal-header">
-    <div class="header-titles">
-      <div class="header-badge">
-        <ion-icon name="print-outline" aria-hidden="true"></ion-icon>
-        <span>{{ 'TABLES.QR_BATCH_TITLE' | transloco }}</span>
+  <div class="modal-header">
+    <div class="header-main-group">
+      <div class="table-avatar-badge batch">
+        <ion-icon name="print-outline"></ion-icon>
       </div>
-      <h2 class="modal-title">{{ 'TABLES.QR_BATCH_SUBTITLE' | transloco }}</h2>
+      <div class="header-text">
+        <h2 class="modal-title" data-testid="batch-modal-title">
+          {{ 'TABLES.QR_BATCH_TITLE' | transloco }}
+        </h2>
+        <div class="modal-meta-tags">
+          <span class="meta-tag">
+            <ion-icon name="layers-outline"></ion-icon>
+            <span>{{ 'TABLES.QR_BATCH_SUBTITLE' | transloco }}</span>
+          </span>
+        </div>
+      </div>
     </div>
+
     <button
       type="button"
-      class="close-btn"
-      data-testid="close-batch-modal-btn"
+      class="close-icon-btn"
       (click)="dismiss()"
-      [attr.aria-label]="'COMMON.CLOSE' | transloco">
-      <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+      (keyup.enter)="dismiss()"
+      [attr.aria-label]="'COMMON.CLOSE' | transloco"
+      data-testid="close-batch-modal-btn">
+      <ion-icon name="close-outline"></ion-icon>
     </button>
-  </header>
+  </div>
 
   <!-- Body -->
-  <div class="batch-modal-body">
+  <div class="modal-body">
     <!-- Step 1: Layout Selection -->
     <section class="section-card">
       <h3 class="section-title">
@@ -87,23 +98,25 @@
     </section>
 
     <!-- Step 2: Wi-Fi Option -->
-    <section *ngIf="settings && settings.wifiEnabled && settings.wifiSsid" class="section-card wifi-toggle-section">
-      <label class="toggle-container" for="include-wifi-checkbox">
-        <div class="toggle-icon">
-          <ion-icon name="wifi-outline" aria-hidden="true"></ion-icon>
-        </div>
-        <div class="toggle-text">
-          <span class="toggle-label">{{ 'TABLES.QR_INCLUDE_WIFI_LABEL' | transloco }}</span>
-          <span class="toggle-sub">{{ 'TABLES.QR_INCLUDE_WIFI_SUB' | transloco: { ssid: settings.wifiSsid } }}</span>
-        </div>
-        <input
-          id="include-wifi-checkbox"
-          type="checkbox"
-          [(ngModel)]="includeWifi"
-          class="toggle-checkbox"
-          data-testid="include-wifi-checkbox" />
-      </label>
-    </section>
+    @if (settings && settings.wifiEnabled && settings.wifiSsid) {
+      <section class="section-card wifi-toggle-section">
+        <label class="toggle-container" for="include-wifi-checkbox">
+          <div class="toggle-icon">
+            <ion-icon name="wifi-outline" aria-hidden="true"></ion-icon>
+          </div>
+          <div class="toggle-text">
+            <span class="toggle-label">{{ 'TABLES.QR_INCLUDE_WIFI_LABEL' | transloco }}</span>
+            <span class="toggle-sub">{{ 'TABLES.QR_INCLUDE_WIFI_SUB' | transloco: { ssid: settings.wifiSsid } }}</span>
+          </div>
+          <input
+            id="include-wifi-checkbox"
+            type="checkbox"
+            [(ngModel)]="includeWifi"
+            class="toggle-checkbox"
+            data-testid="include-wifi-checkbox" />
+        </label>
+      </section>
+    }
 
     <!-- Step 3: Table Selection -->
     <section class="section-card">
@@ -122,38 +135,47 @@
       </div>
 
       <div class="tables-chips-grid">
-        <button
-          *ngFor="let table of tables"
-          type="button"
-          class="table-chip"
-          [class.active]="isTableSelected(table.id)"
-          [attr.data-testid]="'select-table-chip-' + table.id"
-          (click)="toggleTableSelection(table.id)">
-          <span class="table-num">T{{ table.numero }}</span>
-          <span *ngIf="table.zone" class="chip-zone">{{ table.zone }}</span>
-        </button>
+        @for (table of tables; track table.id) {
+          <button
+            type="button"
+            class="table-chip"
+            [class.active]="isTableSelected(table.id)"
+            [attr.data-testid]="'select-table-chip-' + table.id"
+            (click)="toggleTableSelection(table.id)">
+            <span class="table-num">T{{ table.numero }}</span>
+            @if (table.zone) {
+              <span class="chip-zone">{{ table.zone }}</span>
+            }
+          </button>
+        }
       </div>
     </section>
   </div>
 
   <!-- Footer Actions -->
-  <footer class="batch-modal-footer">
-    <button
-      type="button"
-      class="cancel-btn"
-      data-testid="cancel-batch-btn"
-      (click)="dismiss()">
-      {{ 'COMMON.CANCEL' | transloco }}
-    </button>
-    <button
-      type="button"
-      class="generate-btn"
-      data-testid="generate-batch-pdf-btn"
-      [disabled]="isGenerating || selectedIdsSet.size === 0"
-      (click)="generatePdf()">
-      <ion-spinner *ngIf="isGenerating" name="crescent"></ion-spinner>
-      <ion-icon *ngIf="!isGenerating" name="download-outline" aria-hidden="true"></ion-icon>
-      <span>{{ 'TABLES.QR_DOWNLOAD_PDF_ACTION' | transloco: { count: selectedIdsSet.size } }}</span>
-    </button>
-  </footer>
+  <div class="modal-footer">
+    <div class="footer-left"></div>
+    <div class="footer-right">
+      <button
+        type="button"
+        class="btn-action btn-secondary"
+        data-testid="cancel-batch-btn"
+        (click)="dismiss()">
+        <span>{{ 'COMMON.CANCEL' | transloco }}</span>
+      </button>
+      <button
+        type="button"
+        class="btn-action btn-primary"
+        data-testid="generate-batch-pdf-btn"
+        [disabled]="isGenerating || selectedIdsSet.size === 0"
+        (click)="generatePdf()">
+        @if (isGenerating) {
+          <ion-spinner name="crescent"></ion-spinner>
+        } @else {
+          <ion-icon name="download-outline" aria-hidden="true"></ion-icon>
+        }
+        <span>{{ 'TABLES.QR_DOWNLOAD_PDF_ACTION' | transloco: { count: selectedIdsSet.size } }}</span>
+      </button>
+    </div>
+  </div>
 </div>

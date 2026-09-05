@@ -274,7 +274,6 @@ public class TableController {
      * @return Generated image binary content
      */
     @GetMapping("/{id:\\d+}/qrcode")
-    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Generate digital ordering QR code for a table (PNG or SVG)")
     @ApiResponse(responseCode = "200", description = "QR code generated successfully")
     @ApiResponse(responseCode = "404", description = "Table not found")

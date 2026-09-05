@@ -12,6 +12,7 @@ describe('TableQrModalComponent', () => {
   let component: TableQrModalComponent;
   let fixture: ComponentFixture<TableQrModalComponent>;
   let tableServiceSpy: jasmine.SpyObj<TableService>;
+  let appSettingsServiceSpy: jasmine.SpyObj<AppSettingsService>;
   let modalCtrlSpy: jasmine.SpyObj<ModalController>;
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
   let mockToast: jasmine.SpyObj<HTMLIonToastElement>;
@@ -51,6 +52,9 @@ describe('TableQrModalComponent', () => {
   beforeEach(async () => {
     settingsSubject = new BehaviorSubject<AppSettings | null>(mockSettings);
     tableServiceSpy = jasmine.createSpyObj('TableService', ['getTableQrCodeUrl', 'downloadTableQrCode', 'downloadQrCodesPdf']);
+    appSettingsServiceSpy = jasmine.createSpyObj('AppSettingsService', ['getWifiQrCodeUrl', 'downloadWifiQrCode'], {
+      settings$: settingsSubject.asObservable()
+    });
     modalCtrlSpy = jasmine.createSpyObj('ModalController', ['dismiss']);
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
 
@@ -61,6 +65,18 @@ describe('TableQrModalComponent', () => {
     tableServiceSpy.downloadTableQrCode.and.returnValue(of(new Blob(['qr-bytes'], { type: 'image/png' })));
     tableServiceSpy.downloadQrCodesPdf.and.returnValue(of(new Blob(['pdf-bytes'], { type: 'application/pdf' })));
 
+    appSettingsServiceSpy.getWifiQrCodeUrl.and.returnValue('http://localhost:8080/api/settings/wifi/qrcode?format=PNG&size=320');
+    appSettingsServiceSpy.downloadWifiQrCode.and.returnValue(of(new Blob(['wifi-qr-bytes'], { type: 'image/png' })));
+
+    if (!jasmine.isSpy(window.URL.createObjectURL)) {
+      spyOn(window.URL, 'createObjectURL').and.returnValue('blob:test-preview');
+    } else {
+      (window.URL.createObjectURL as jasmine.Spy).and.returnValue('blob:test-preview');
+    }
+    if (!jasmine.isSpy(window.URL.revokeObjectURL)) {
+      spyOn(window.URL, 'revokeObjectURL');
+    }
+
     await TestBed.configureTestingModule({
       imports: [
         TableQrModalComponent,
@@ -68,13 +84,7 @@ describe('TableQrModalComponent', () => {
       ],
       providers: [
         { provide: TableService, useValue: tableServiceSpy },
-        {
-          provide: AppSettingsService,
-          useValue: {
-            settings$: settingsSubject.asObservable(),
-            getSettings: () => of(mockSettings)
-          }
-        },
+        { provide: AppSettingsService, useValue: appSettingsServiceSpy },
         { provide: ModalController, useValue: modalCtrlSpy },
         { provide: ToastController, useValue: toastCtrlSpy }
       ]
@@ -86,16 +96,23 @@ describe('TableQrModalComponent', () => {
     fixture.detectChanges();
   });
 
-  it('should create component and initialize order URL and QR image URL', () => {
+  it('should create component and initialize order URL and QR image preview', () => {
     expect(component).toBeTruthy();
     expect(component.orderUrl).toBe('https://openbar.local/client/commande?table=4');
-    expect(component.qrUrl).toContain('/api/tables/1/qrcode');
+    expect(tableServiceSpy.downloadTableQrCode).toHaveBeenCalledWith(1, 'PNG', 320);
+    expect(component.previewUrl).toBeDefined();
   });
 
-  it('setFormat should update format and refresh QR URL', () => {
+  it('setMode should switch to WIFI mode and load Wi-Fi QR preview', () => {
+    component.setMode('WIFI');
+    expect(component.activeMode).toBe('WIFI');
+    expect(appSettingsServiceSpy.downloadWifiQrCode).toHaveBeenCalledWith('PNG', 320);
+  });
+
+  it('setFormat should update format and refresh QR preview', () => {
     component.setFormat('SVG');
     expect(component.qrFormat).toBe('SVG');
-    expect(tableServiceSpy.getTableQrCodeUrl).toHaveBeenCalledWith(1, 'SVG', 320);
+    expect(tableServiceSpy.downloadTableQrCode).toHaveBeenCalledWith(1, 'SVG', 320);
   });
 
   it('copyOrderUrl should write text to clipboard and show toast', async () => {
@@ -106,23 +123,34 @@ describe('TableQrModalComponent', () => {
     }
     await component.copyOrderUrl();
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith(component.orderUrl);
-    expect(component.copied).toBeTrue();
+    expect(component.copiedUrl).toBeTrue();
     expect(toastCtrlSpy.create).toHaveBeenCalled();
     expect(mockToast.present).toHaveBeenCalled();
   });
 
-  it('downloadImage should trigger download with generated blob', () => {
-    if (!jasmine.isSpy(window.URL.createObjectURL)) {
-      spyOn(window.URL, 'createObjectURL').and.returnValue('blob:test');
+  it('copyWifiPassword should copy Wi-Fi password to clipboard and show toast', async () => {
+    if (!jasmine.isSpy(navigator.clipboard.writeText)) {
+      spyOn(navigator.clipboard, 'writeText').and.returnValue(Promise.resolve());
     } else {
-      (window.URL.createObjectURL as jasmine.Spy).and.returnValue('blob:test');
+      (navigator.clipboard.writeText as jasmine.Spy).and.returnValue(Promise.resolve());
     }
-    if (!jasmine.isSpy(window.URL.revokeObjectURL)) {
-      spyOn(window.URL, 'revokeObjectURL');
-    }
+    await component.copyWifiPassword();
+    expect(navigator.clipboard.writeText).toHaveBeenCalledWith('supersecretpass');
+    expect(component.copiedPass).toBeTrue();
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
+    expect(mockToast.present).toHaveBeenCalled();
+  });
 
+  it('downloadImage should trigger table QR download in ORDER mode', () => {
     component.downloadImage('PNG');
     expect(tableServiceSpy.downloadTableQrCode).toHaveBeenCalledWith(1, 'PNG', 600);
+    expect(window.URL.createObjectURL).toHaveBeenCalled();
+  });
+
+  it('downloadImage should trigger wifi QR download in WIFI mode', () => {
+    component.setMode('WIFI');
+    component.downloadImage('PNG');
+    expect(appSettingsServiceSpy.downloadWifiQrCode).toHaveBeenCalledWith('PNG', 600);
     expect(window.URL.createObjectURL).toHaveBeenCalled();
   });
 
@@ -134,15 +162,6 @@ describe('TableQrModalComponent', () => {
   });
 
   it('printStandPdf should download stand PDF for this table', () => {
-    if (!jasmine.isSpy(window.URL.createObjectURL)) {
-      spyOn(window.URL, 'createObjectURL').and.returnValue('blob:test-pdf');
-    } else {
-      (window.URL.createObjectURL as jasmine.Spy).and.returnValue('blob:test-pdf');
-    }
-    if (!jasmine.isSpy(window.URL.revokeObjectURL)) {
-      spyOn(window.URL, 'revokeObjectURL');
-    }
-
     component.printStandPdf();
     expect(tableServiceSpy.downloadQrCodesPdf).toHaveBeenCalledWith('STAND', [1], true);
     expect(window.URL.createObjectURL).toHaveBeenCalled();
@@ -153,6 +172,87 @@ describe('TableQrModalComponent', () => {
     component.printStandPdf();
     expect(component.isDownloading).toBeFalse();
     expect(toastCtrlSpy.create).toHaveBeenCalled();
+  });
+
+  it('downloadImage in WIFI mode should show error toast on failure', () => {
+    component.setMode('WIFI');
+    appSettingsServiceSpy.downloadWifiQrCode.and.returnValue(throwError(() => new Error('Wifi download failed')));
+    component.downloadImage('PNG');
+    expect(component.isDownloading).toBeFalse();
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
+  });
+
+  it('loadQrPreview in ORDER mode should fallback to direct URL on download error', () => {
+    tableServiceSpy.downloadTableQrCode.and.returnValue(throwError(() => new Error('Order QR preview failed')));
+    tableServiceSpy.getTableQrCodeUrl.and.returnValue('http://localhost:8080/api/tables/1/qrcode?format=PNG&size=320');
+    component.loadQrPreview();
+    expect(component.isLoadingPreview).toBeFalse();
+    expect(component.previewUrl).toContain('/api/tables/1/qrcode');
+  });
+
+  it('loadQrPreview in WIFI mode should fallback to direct URL on download error', () => {
+    component.setMode('WIFI');
+    appSettingsServiceSpy.downloadWifiQrCode.and.returnValue(throwError(() => new Error('Wifi QR preview failed')));
+    appSettingsServiceSpy.getWifiQrCodeUrl.and.returnValue('http://localhost:8080/api/settings/wifi/qrcode?format=PNG&size=320');
+    component.loadQrPreview();
+    expect(component.isLoadingPreview).toBeFalse();
+    expect(component.previewUrl).toContain('/api/settings/wifi/qrcode');
+  });
+
+  it('copyOrderUrl should show error toast when clipboard fails', async () => {
+    if (!navigator.clipboard) {
+      (navigator as any).clipboard = { writeText: () => Promise.resolve() };
+    }
+    if (!jasmine.isSpy(navigator.clipboard.writeText)) {
+      spyOn(navigator.clipboard, 'writeText').and.returnValue(Promise.reject(new Error('Clipboard denied')));
+    } else {
+      (navigator.clipboard.writeText as jasmine.Spy).and.returnValue(Promise.reject(new Error('Clipboard denied')));
+    }
+    await component.copyOrderUrl();
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
+  });
+
+  it('copyWifiPassword should show error toast when clipboard fails', async () => {
+    if (!navigator.clipboard) {
+      (navigator as any).clipboard = { writeText: () => Promise.resolve() };
+    }
+    if (!jasmine.isSpy(navigator.clipboard.writeText)) {
+      spyOn(navigator.clipboard, 'writeText').and.returnValue(Promise.reject(new Error('Clipboard denied')));
+    } else {
+      (navigator.clipboard.writeText as jasmine.Spy).and.returnValue(Promise.reject(new Error('Clipboard denied')));
+    }
+    await component.copyWifiPassword();
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
+  });
+
+  it('copyWifiPassword should do nothing when wifiPassword is not set', async () => {
+    component.settings = { ...mockSettings, wifiPassword: '' } as any;
+    await component.copyWifiPassword();
+    expect(component.copiedPass).toBeFalse();
+  });
+
+  it('setMode with same mode should return early', () => {
+    spyOn(component, 'loadQrPreview');
+    component.setMode('ORDER');
+    expect(component.loadQrPreview).not.toHaveBeenCalled();
+  });
+
+  it('setFormat with same format should return early', () => {
+    spyOn(component, 'loadQrPreview');
+    component.setFormat('PNG');
+    expect(component.loadQrPreview).not.toHaveBeenCalled();
+  });
+
+  it('loadQrPreview with missing table id should return early', () => {
+    component.table = null as any;
+    component.loadQrPreview();
+    expect(component.isLoadingPreview).toBeFalse();
+  });
+
+  it('ngOnDestroy should revoke blob URL if present', () => {
+    (component as any).currentRawBlobUrl = 'blob:test-preview';
+    component.ngOnDestroy();
+    expect(window.URL.revokeObjectURL).toHaveBeenCalledWith('blob:test-preview');
   });
 
   it('dismiss should call modalCtrl.dismiss', () => {

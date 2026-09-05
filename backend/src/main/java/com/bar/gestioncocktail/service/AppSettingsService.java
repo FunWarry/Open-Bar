@@ -18,16 +18,22 @@ public class AppSettingsService {
 
     private final AppSettingsRepository appSettingsRepository;
     private final NotificationService notificationService;
+    private final QrCodeService qrCodeService;
 
     /**
-     * Constructs the service with settings repository and notification service dependencies.
+     * Constructs the service with settings repository, notification service, and QR code service dependencies.
      *
      * @param appSettingsRepository JPA settings repository
      * @param notificationService Notification service for STOMP broadcasting
+     * @param qrCodeService QR code generation service
      */
-    public AppSettingsService(AppSettingsRepository appSettingsRepository, NotificationService notificationService) {
+    public AppSettingsService(
+            AppSettingsRepository appSettingsRepository,
+            NotificationService notificationService,
+            QrCodeService qrCodeService) {
         this.appSettingsRepository = appSettingsRepository;
         this.notificationService = notificationService;
+        this.qrCodeService = qrCodeService;
     }
 
     /**
@@ -114,6 +120,28 @@ public class AppSettingsService {
         if (request.wifiEnabled() != null) {
             current.setWifiEnabled(request.wifiEnabled());
         }
+    }
+
+    /**
+     * Generates a Wi-Fi configuration pairing QR code (PNG or SVG).
+     *
+     * @param format Output format (PNG or SVG)
+     * @param size Dimension in pixels
+     * @return Generated image binary content
+     */
+    @Transactional(readOnly = true)
+    public byte[] generateWifiQrCode(String format, int size) {
+        AppSettings settings = getSettings();
+        if (settings.getWifiSsid() == null || settings.getWifiSsid().isBlank()) {
+            throw new BusinessException("Wi-Fi SSID is not configured");
+        }
+        String payload = qrCodeService.formatWifiPayload(settings.getWifiSsid(), settings.getWifiPassword(), settings.getWifiSecurity());
+        int dimension = Math.clamp(size > 0 ? size : 300, 100, 2000);
+        if ("SVG".equalsIgnoreCase(format)) {
+            String svg = qrCodeService.generateSvg(payload, dimension);
+            return svg.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        }
+        return qrCodeService.generatePng(payload, dimension, dimension);
     }
 
     /**

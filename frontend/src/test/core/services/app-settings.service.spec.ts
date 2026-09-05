@@ -189,6 +189,23 @@ describe('AppSettingsService', () => {
     });
   });
 
+  describe('Wi-Fi QR Code Generation', () => {
+    it('getWifiQrCodeUrl should return formatted URL', () => {
+      const url = service.getWifiQrCodeUrl('SVG', 250);
+      expect(url).toBe(`${baseUrl}/wifi/qrcode?format=SVG&size=250`);
+    });
+
+    it('downloadWifiQrCode should call GET /api/settings/wifi/qrcode with params', () => {
+      service.downloadWifiQrCode('PNG', 320).subscribe(blob => {
+        expect(blob).toBeTruthy();
+      });
+
+      const req = httpMock.expectOne(req => req.url === `${baseUrl}/wifi/qrcode` && req.params.get('format') === 'PNG' && req.params.get('size') === '320');
+      expect(req.request.method).toBe('GET');
+      req.flush(new Blob(['qr-bytes'], { type: 'image/png' }));
+    });
+  });
+
   describe('Fallback behavior when HttpClient is not provided', () => {
     let unprovidedService: AppSettingsService;
 
@@ -205,6 +222,14 @@ describe('AppSettingsService', () => {
         expect(settings).toBeTruthy();
         expect(settings.establishmentName).toBe('OpenBar');
         expect(settings.currencyCode).toBe('EUR');
+        done();
+      });
+    });
+
+    it('should return fallback blob on downloadWifiQrCode() when HttpClient is missing', (done) => {
+      unprovidedService.downloadWifiQrCode('SVG', 200).subscribe(blob => {
+        expect(blob).toBeTruthy();
+        expect(blob.type).toBe('image/svg+xml');
         done();
       });
     });
