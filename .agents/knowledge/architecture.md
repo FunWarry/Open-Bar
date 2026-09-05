@@ -174,6 +174,25 @@ EN_ATTENTE → EN_PREPARATION → PRET → LIVREE → REGLEE
 
 ---
 
+## Ephemeral Table Sessions & Anti-Fraud QR Code Validation
+
+To prevent stale or fraudulent remote orders via public QR code links, OpenBar supports an ephemeral session lifecycle linked to table occupation and bill settlement:
+
+- **Entity & Table**: `TableSession` mapped to `table_sessions` (`id`, `table_id`, `session_token`, `status`, `opened_at`, `last_activity_at`, `expires_at`).
+- **Statuses**: `ACTIVE`, `EXPIRED`, `CLOSED`.
+- **Lifecycle & Invalidation**:
+  - Automatically invalidated (transitioned to `CLOSED`) when a table is liberated or its bill is settled via `TableLiberatedEvent`.
+  - Invalidation operates directly on managed entities (`findByTableIdAndStatus` + `saveAllAndFlush`) to avoid Hibernate L1 cache eviction hazards.
+- **Strict Anti-Fraud Mode**: Configurable via manager settings (`AppSettings.tableSessionValidationEnabled`). When enabled, `POST /api/public/commandes` validates the `sessionToken` payload; invalid or expired tokens result in `403 Forbidden` (`InvalidTableSessionException`).
+- **Endpoints**:
+
+| Method | URL | Roles | Description |
+|--------|-----|-------|-------------|
+| `GET` | `/api/public/tables/{tableId}/session` | Public | Check or initialize an active ephemeral table session |
+| `POST` | `/api/public/tables/{tableId}/session/refresh` | Public | Refresh / renew an active session token |
+
+---
+
 ## Running Locally
 
 ```bash
