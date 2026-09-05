@@ -102,30 +102,47 @@ frontend/src/
 
 ## Data Model
 
+```mermaid
+erDiagram
+    USERS ||--o{ USER_ROLES : "has"
+    USERS ||--o{ EMPLOYEE_SHIFTS : "assigned"
+    EMPLOYEE_SHIFTS ||--o{ SHIFT_AUDIT_LOG : "tracks"
+    USERS ||--o{ TABLES : "assigned_serveur"
+    USERS ||--o{ AUDIT_LOGS : "generates"
+
+    ZONES ||--o{ TABLES : "contains"
+    TABLES ||--o{ COMMANDES : "places"
+    TABLES ||--o{ FACTURES : "bills"
+    TABLES ||--o{ TABLE_SESSIONS : "opens"
+    TABLES ||--o{ TABLE_APPELS : "triggers"
+    TABLES ||--o{ TABLE_CART_ITEMS : "holds"
+
+    COMMANDES ||--o{ COMMANDE_ITEMS : "contains"
+    COCKTAILS ||--o{ COMMANDE_ITEMS : "ordered_as"
+    COCKTAILS ||--o{ COCKTAIL_VARIANTES : "has"
+    COCKTAILS ||--o{ COCKTAIL_INGREDIENTS : "requires"
+    COCKTAILS ||--o{ COCKTAIL_RECIPE_STEPS : "composed_of"
+    COCKTAILS }o--|| GLASSWARE : "served_in"
+
+    COCKTAIL_VARIANTES ||--o{ COCKTAIL_VARIANTE_INGREDIENTS : "customizes"
+    COCKTAIL_VARIANTE_INGREDIENTS }o--|| INGREDIENTS : "uses"
+    COCKTAIL_INGREDIENTS }o--|| INGREDIENTS : "uses"
+    COCKTAIL_RECIPE_STEPS }o--|| RECIPE_STEP_TEMPLATES : "applies"
+    COCKTAIL_RECIPE_STEPS }o--o| INGREDIENTS : "consumes"
+
+    FACTURES ||--o{ FACTURE_ITEMS : "includes"
+    FACTURES ||--o{ FACTURE_REGLEMENTS : "settled_by"
+
+    COMMANDE_ITEMS }o--o| COCKTAIL_VARIANTES : "specifies"
+    TABLE_CART_ITEMS }o--|| COCKTAILS : "targets"
+    TABLE_CART_ITEMS }o--o| COCKTAIL_VARIANTES : "specifies"
 ```
-users ──< user_roles
-users ──< employee_shifts              ← Staff shifts and schedules
-employee_shifts ──< shift_audit_log    ← Immutable audit log (CREATED/UPDATED/DELETED)
-users ──< tables (serveur_id)
-tables ──< commandes ──< commande_items ──< cocktails
-                                         └──< cocktail_variantes ──< cocktail_variante_ingredients ──< ingredients
-                                                                 └── recipe_steps_json (mixology steps)
-cocktails ──< cocktail_ingredients ──< ingredients
-cocktails ──< cocktail_recipe_steps ──< recipe_step_templates
-                                    └──< ingredients
-cocktails >── glassware                 ← Service glass definition & capacity
-tables ──< factures ──< facture_items
-                    └──< facture_reglements       ← Persistent split settlement shares & receipt breakdown
-tables ──< table_sessions              ← Client QR code temporary session
-tables ──< table_appels                ← Patron assistance & bill request alerts
-tables ──< table_cart_items            ← Ephemeral collaborative table cart items per guest
-zones ──< tables                       ← Floor plan polygon coordinates
-establishment_closures                 ← Exceptional closures & recurring holidays
-shift_presets                          ← Predefined shift templates
-week_schedule_publications             ← Weekly schedule publication log
-users ──< audit_logs
-app_settings                           ← Global admin customization singleton
-```
+
+*Standalone configuration & logging tables*:
+- `establishment_closures` : Exceptional closures and recurring holidays
+- `shift_presets` : Predefined shift templates (duration, breaks)
+- `week_schedule_publications` : Publication log of employee schedules
+- `app_settings` : Global establishment settings singleton (currency, anti-fraud toggles, legal data)
 
 ---
 
@@ -144,9 +161,17 @@ app_settings                           ← Global admin customization singleton
 
 ## Order Lifecycle
 
-```
-EN_ATTENTE → EN_PREPARATION → PRET → LIVREE → REGLEE
-                                            ↘ ANNULEE (any state)
+```mermaid
+flowchart LR
+    A([EN_ATTENTE]) -->|Start prep| B([EN_PREPARATION])
+    B -->|Ready datePret| C([PRET])
+    C -->|Delivered dateLivraison| D([LIVREE])
+    D -->|Settled dateReglement| E([REGLEE])
+    
+    A -.->|Cancel| X([ANNULEE])
+    B -.->|Cancel| X
+    C -.->|Cancel| X
+    D -.->|Cancel| X
 ```
 
 ---

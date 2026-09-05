@@ -137,18 +137,36 @@ NgRx selectors : `selectIsAdmin`, `selectIsManager`, `selectIsBarman`, `selectIs
 
 ## 4. Modèle de données
 
+```mermaid
+erDiagram
+    USERS ||--o{ USER_ROLES : "has"
+    USERS ||--o{ TABLES : "assigned_serveur"
+    USERS ||--o{ AUDIT_LOGS : "generates"
+
+    ZONES ||--o{ TABLES : "contains"
+    TABLES ||--o{ COMMANDES : "places"
+    TABLES ||--o{ FACTURES : "bills"
+    TABLES ||--o{ TABLE_SESSIONS : "opens"
+    TABLES ||--o{ TABLE_APPELS : "triggers"
+    TABLES ||--o{ TABLE_CART_ITEMS : "holds"
+
+    COMMANDES ||--o{ COMMANDE_ITEMS : "contains"
+    COCKTAILS ||--o{ COMMANDE_ITEMS : "ordered_as"
+    COCKTAILS ||--o{ COCKTAIL_VARIANTES : "has"
+    COCKTAILS ||--o{ COCKTAIL_INGREDIENTS : "requires"
+
+    COCKTAILS }o--|| GLASSWARE : "served_in"
+    COCKTAIL_VARIANTES ||--o{ COCKTAIL_VARIANTE_INGREDIENTS : "customizes"
+    COCKTAIL_VARIANTE_INGREDIENTS }o--|| INGREDIENTS : "uses"
+    COCKTAIL_INGREDIENTS }o--|| INGREDIENTS : "uses"
+
+    FACTURES ||--o{ FACTURE_ITEMS : "includes"
+    FACTURES ||--o{ FACTURE_REGLEMENTS : "settled_by"
+    COMMANDE_ITEMS }o--o| COCKTAIL_VARIANTES : "specifies"
+    TABLE_CART_ITEMS }o--|| COCKTAILS : "targets"
 ```
-users ──< user_roles
-users ──< tables (serveur_id)
-tables ──< commandes ──< commande_items ──< cocktails
-                                         └──< cocktail_variantes
-cocktails ──< cocktail_ingredients ──< ingredients
-tables ──< factures ──< facture_items
-tables ──< table_sessions              ← QR code client (token temporaire par scan)
-zones ──< tables                       ← Zones du plan de salle (polygones libres JSON)
-users ──< audit_logs
-app_settings                           ← Singleton — personnalisation admin (#153), pas de relation
-```
+
+*Configuration singleton* : `app_settings` (personnalisation admin, devises, anti-fraude, pas de relation directe).
 
 > **Plan de salle** : les zones sont des polygones libres (coordonnées JSON), pas des rectangles. Les tables ont des formes rondes ou carrées, librement repositionnables et redimensionnables via Konva.js.
 >
@@ -156,9 +174,17 @@ app_settings                           ← Singleton — personnalisation admin 
 
 ### Cycle de vie d'une commande
 
-```
-EN_ATTENTE → EN_PREPARATION → PRET → LIVREE → REGLEE
-                                            ↘ ANNULEE (depuis n'importe quel état)
+```mermaid
+flowchart LR
+    A([EN_ATTENTE]) -->|Start prep| B([EN_PREPARATION])
+    B -->|Ready datePret| C([PRET])
+    C -->|Delivered dateLivraison| D([LIVREE])
+    D -->|Settled dateReglement| E([REGLEE])
+    
+    A -.->|Cancel| X([ANNULEE])
+    B -.->|Cancel| X
+    C -.->|Cancel| X
+    D -.->|Cancel| X
 ```
 
 | Statut | Timestamp auto | Acteur | Transition depuis |

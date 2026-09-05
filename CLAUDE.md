@@ -33,16 +33,31 @@ L'app tourne sur le **réseau WiFi du bar** (serveur local — Raspberry Pi 5 ou
 
 #### Architecture déploiement cible
 
-```
-[Tablette serveur] ──┐
-[Tablette barman]  ──┤── WiFi bar ──── [Mini-PC / Raspberry Pi 5]
-[PC manager]       ──┘                  ├── Spring Boot :8080
-                                         ├── PostgreSQL :5432
-                                         ├── Backup Cron & Rotation (openbar_backups)
-                                         ├── Centralized Logrotate (/var/log/openbar)
-                                         └── Nginx Reverse Proxy (HTTPS :443 + HTTP :80 301 redirect)
-                                               ├── Proxy /api & /ws → Spring Boot
-                                               └── Static PWA Angular App
+```mermaid
+flowchart LR
+    subgraph Clients ["Terminaux PWA (Réseau Local)"]
+        T1["📱 Tablette Serveur"]
+        T2["🍸 Tablette Barman"]
+        T3["💻 PC Manager"]
+        T4["📱 Smartphone Client (QR Code)"]
+    end
+
+    subgraph Server ["Serveur Local (Raspberry Pi 5 / Mini-PC)"]
+        Nginx["🌐 Nginx Reverse Proxy\n(HTTPS :443 + 301 :80)"]
+        PWA["📦 Angular PWA App (Static)"]
+        Backend["☕ Spring Boot API & STOMP\n(:8080)"]
+        Postgres[("🐘 PostgreSQL\n(:5432)")]
+        Backup["💾 Backup Cron & Rotation\n(openbar_backups)"]
+        Logrotate["📋 Logrotate\n(/var/log/openbar)"]
+    end
+
+    Clients -->|"Wi-Fi Bar (LAN)"| Nginx
+    Nginx -->|"Fichiers statiques"| PWA
+    Nginx -->|"/api & /ws"| Backend
+    Backend --> Postgres
+    Postgres -.-> Backup
+    Backend -.-> Logrotate
+    Nginx -.-> Logrotate
 ```
 
 | Couche               | Techno cible                          |
@@ -121,14 +136,33 @@ src/main/java/com/bar/gestioncocktail/
 
 ## Modèle de données (schéma principal)
 
-```
-users ──< user_roles
-users ──< tables (serveur_id)
-tables ──< commandes ──< commande_items ──< cocktails
-                                         └──< cocktail_variantes
-cocktails ──< cocktail_ingredients ──< ingredients
-tables ──< factures ──< facture_items
-users ──< audit_logs
+```mermaid
+erDiagram
+    USERS ||--o{ USER_ROLES : "has"
+    USERS ||--o{ TABLES : "assigned_serveur"
+    USERS ||--o{ AUDIT_LOGS : "generates"
+
+    ZONES ||--o{ TABLES : "contains"
+    TABLES ||--o{ COMMANDES : "places"
+    TABLES ||--o{ FACTURES : "bills"
+    TABLES ||--o{ TABLE_SESSIONS : "opens"
+    TABLES ||--o{ TABLE_APPELS : "triggers"
+    TABLES ||--o{ TABLE_CART_ITEMS : "holds"
+
+    COMMANDES ||--o{ COMMANDE_ITEMS : "contains"
+    COCKTAILS ||--o{ COMMANDE_ITEMS : "ordered_as"
+    COCKTAILS ||--o{ COCKTAIL_VARIANTES : "has"
+    COCKTAILS ||--o{ COCKTAIL_INGREDIENTS : "requires"
+
+    COCKTAILS }o--|| GLASSWARE : "served_in"
+    COCKTAIL_VARIANTES ||--o{ COCKTAIL_VARIANTE_INGREDIENTS : "customizes"
+    COCKTAIL_VARIANTE_INGREDIENTS }o--|| INGREDIENTS : "uses"
+    COCKTAIL_INGREDIENTS }o--|| INGREDIENTS : "uses"
+
+    FACTURES ||--o{ FACTURE_ITEMS : "includes"
+    FACTURES ||--o{ FACTURE_REGLEMENTS : "settled_by"
+    COMMANDE_ITEMS }o--o| COCKTAIL_VARIANTES : "specifies"
+    TABLE_CART_ITEMS }o--|| COCKTAILS : "targets"
 ```
 
 ## Rôles utilisateurs
@@ -136,7 +170,7 @@ users ──< audit_logs
 `UserRole` enum : **ADMIN**, **MANAGER**, **SERVEUR**, **BARMAN**
 
 | Rôle | Nature | Permissions clés |
-|------|--------|-----------------|
+|------|-------------|-----------------|
 | `ADMIN` | Maintenance technique uniquement — pas un rôle métier bar | CRUD users, tout |
 | `MANAGER` | Supervision bar (rôle métier principal) | Lire commandes/tables/factures, annuler commandes, toggler disponibilité cocktails |
 | `SERVEUR` | Prise de commande, suivi tables | Créer/annuler commandes, définir priorité items |
@@ -147,9 +181,17 @@ NgRx selectors : `selectIsAdmin`, `selectIsManager`, `selectIsBarman`.
 
 ## Cycle de vie d'une commande
 
-```
-EN_ATTENTE → EN_PREPARATION → PRET → LIVREE → REGLEE
-                                            ↘ ANNULEE (depuis n'importe quel état)
+```mermaid
+flowchart LR
+    A([EN_ATTENTE]) -->|Start prep| B([EN_PREPARATION])
+    B -->|Ready datePret| C([PRET])
+    C -->|Delivered dateLivraison| D([LIVREE])
+    D -->|Settled dateReglement| E([REGLEE])
+    
+    A -.->|Cancel| X([ANNULEE])
+    B -.->|Cancel| X
+    C -.->|Cancel| X
+    D -.->|Cancel| X
 ```
 
 Timestamps auto-remplis dans `CommandeService.changerStatut()` :
