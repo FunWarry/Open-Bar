@@ -19,7 +19,7 @@
     
     <properties>
         <java.version>22</java.version>
-        <jjwt.version>0.12.6</jjwt.version>
+        <jjwt.version>0.13.0</jjwt.version>
         <spring-security.version>7.0.5</spring-security.version>
         <spring-framework.version>7.0.7</spring-framework.version>
         <tomcat.version>10.1.54</tomcat.version>
