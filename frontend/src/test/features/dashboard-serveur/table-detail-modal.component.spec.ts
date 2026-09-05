@@ -9,6 +9,7 @@ import { Commande } from '../../../app/core/models/commande.model';
 import { TableView } from '../../../app/features/dashboard-serveur/models/table-view.model';
 
 import { TableAppelService } from '../../../app/core/services/table-appel.service';
+import { CommandeService } from '../../../app/core/services/commande.service';
 
 describe('TableDetailModalComponent', () => {
   let component: TableDetailModalComponent;
@@ -72,12 +73,16 @@ describe('TableDetailModalComponent', () => {
     alertCtrlSpy = jasmine.createSpyObj('AlertController', ['create']);
     alertCtrlSpy.create.and.returnValue(Promise.resolve(alertSpy as any));
 
+    const commandeServiceSpy = jasmine.createSpyObj('CommandeService', ['toggleUrgent', 'setUrgent']);
+    commandeServiceSpy.toggleUrgent.and.returnValue(of({ id: 10, prioritaire: true } as Commande));
+
     TestBed.configureTestingModule({
       imports: [TableDetailModalComponent, getTranslocoTestingModule()],
       providers: [
         { provide: ModalController, useValue: modalCtrlSpy },
         { provide: Router, useValue: routerSpy },
         { provide: DashboardServeurService, useValue: dashboardServiceSpy },
+        { provide: CommandeService, useValue: commandeServiceSpy },
         { provide: TableAppelService, useValue: tableAppelServiceSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
         { provide: AlertController, useValue: alertCtrlSpy },
@@ -93,6 +98,26 @@ describe('TableDetailModalComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('calculates order line totals fallback when total is 0', () => {
+    const cmdWithZeroTotal: Commande = {
+      id: 99,
+      total: 0,
+      items: [
+        { id: 1, quantite: 2, prixUnitaire: 6.5, cocktailNom: 'Spritz' },
+        { id: 2, quantite: 1, prixUnitaire: 5.0, cocktailNom: 'Bière' }
+      ]
+    } as any;
+    expect(component.getCommandeTotal(cmdWithZeroTotal)).toBe(18.0);
+  });
+
+  it('toggles urgent status on commande', fakeAsync(() => {
+    const cmd = { id: 10, prioritaire: false } as Commande;
+    component.toggleUrgent(cmd);
+    tick();
+    expect(cmd.prioritaire).toBeTrue();
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
+  }));
 
   it('chargerCommandes() charge les commandes actives et filtre les terminées', () => {
     expect(dashboardServiceSpy.getCommandesByTable).toHaveBeenCalledWith(1);

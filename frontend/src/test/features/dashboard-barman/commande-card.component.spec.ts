@@ -8,6 +8,8 @@ import { DashboardBarmanService } from '../../../app/features/dashboard-barman/s
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { Cocktail } from '../../../app/core/models/cocktail.model';
 
+import { CommandeService } from '../../../app/core/services/commande.service';
+
 const makeCommande = (overrides: Partial<CommandeView> = {}): CommandeView => ({
   id: 1,
   tableNom: 'Table 1',
@@ -36,6 +38,7 @@ describe('CommandeCardComponent', () => {
   let fixture: ComponentFixture<CommandeCardComponent>;
   let modalCtrlSpy: jasmine.SpyObj<ModalController>;
   let dashboardServiceSpy: jasmine.SpyObj<DashboardBarmanService>;
+  let commandeServiceSpy: jasmine.SpyObj<CommandeService>;
 
   const mockModal = {
     present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
@@ -65,11 +68,15 @@ describe('CommandeCardComponent', () => {
     dashboardServiceSpy = jasmine.createSpyObj('DashboardBarmanService', ['getCocktailById']);
     dashboardServiceSpy.getCocktailById.and.returnValue(of(mockCocktail));
 
+    commandeServiceSpy = jasmine.createSpyObj('CommandeService', ['toggleUrgent']);
+    commandeServiceSpy.toggleUrgent.and.returnValue(of({ id: 1, prioritaire: true } as any));
+
     await TestBed.configureTestingModule({
       imports: [CommandeCardComponent, CommonModule, getTranslocoTestingModule()],
       providers: [
         { provide: ModalController, useValue: modalCtrlSpy },
-        { provide: DashboardBarmanService, useValue: dashboardServiceSpy }
+        { provide: DashboardBarmanService, useValue: dashboardServiceSpy },
+        { provide: CommandeService, useValue: commandeServiceSpy },
       ]
     }).compileComponents();
 
@@ -238,7 +245,19 @@ describe('CommandeCardComponent', () => {
 
     expect(serverEl).toBeTruthy();
     expect(serverEl.textContent).toContain('Benoit Chef Barman');
+    expect(tableEl).toBeTruthy();
     expect(tableEl.textContent).toContain('Terrasse 14');
     expect(printBtnEl).toBeTruthy();
   });
+
+  it('onToggleUrgent toggles priority state', fakeAsync(() => {
+    const mockEvent = jasmine.createSpyObj('Event', ['stopPropagation']);
+    component.commande = makeCommande({ prioritaire: false });
+    component.onToggleUrgent(mockEvent);
+    tick();
+
+    expect(mockEvent.stopPropagation).toHaveBeenCalled();
+    expect(commandeServiceSpy.toggleUrgent).toHaveBeenCalledWith(1);
+    expect(component.commande.prioritaire).toBeTrue();
+  }));
 });

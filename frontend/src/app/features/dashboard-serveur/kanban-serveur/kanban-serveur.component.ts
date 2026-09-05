@@ -82,27 +82,41 @@ export class KanbanServeurComponent implements OnInit, OnDestroy {
 
     this.wsService.watch('/topic/barman/commandes')
       .pipe(takeUntil(this.destroy$))
-      .subscribe(msg => {
-        try {
-          const commande = JSON.parse(msg.body);
-          if (commande?.id) {
-            this.handleLiveCommandeUpdate(commande);
+      .subscribe({
+        next: (msg) => {
+          try {
+            if (msg?.body) {
+              const commande = JSON.parse(msg.body);
+              if (commande?.id) {
+                this.handleLiveCommandeUpdate(commande);
+              }
+            }
+          } catch {
+            // ignore malformed message
           }
-        } catch {
-          // ignore malformed message
+        },
+        error: () => {
+          // ignore stream errors
         }
       });
 
     this.wsService.watch('/topic/commandes')
       .pipe(takeUntil(this.destroy$))
-      .subscribe(msg => {
-        try {
-          const commande = JSON.parse(msg.body);
-          if (commande?.id) {
-            this.handleLiveCommandeUpdate(commande);
+      .subscribe({
+        next: (msg) => {
+          try {
+            if (msg?.body) {
+              const commande = JSON.parse(msg.body);
+              if (commande?.id) {
+                this.handleLiveCommandeUpdate(commande);
+              }
+            }
+          } catch {
+            // ignore malformed message
           }
-        } catch {
-          // ignore malformed message
+        },
+        error: () => {
+          // ignore stream errors
         }
       });
   }
@@ -297,6 +311,18 @@ export class KanbanServeurComponent implements OnInit, OnDestroy {
   onRefresh(event: any) { this.loadOrders(event); }
 
   trackById(_: number, cmd: Commande): number { return cmd.id; }
+
+  /**
+   * Calculates total price for a command with fallback to summing items.
+   */
+  getCommandeTotal(cmd: Commande | null): number {
+    if (!cmd) return 0;
+    if (cmd.total && cmd.total > 0) return cmd.total;
+    if (cmd.items && cmd.items.length > 0) {
+      return cmd.items.reduce((sum, item) => sum + ((item.prixUnitaire || 0) * (item.quantite || 1)), 0);
+    }
+    return 0;
+  }
 
   /**
    * Groups and returns the items of a command for display.

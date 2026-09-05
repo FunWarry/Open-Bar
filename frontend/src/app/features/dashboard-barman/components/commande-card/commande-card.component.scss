@@ -11,7 +11,7 @@
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    box-shadow: var(--shadow-card-hover, 0 4px 12px rgba(0, 0, 0, 0.25));
     border-color: var(--primary);
   }
 
@@ -19,9 +19,10 @@
     outline: 2px solid var(--primary);
   }
 
+  /* Statut critique : alerte visuelle pulsante */
   &.card-critical {
     border-color: var(--semantic-danger);
-    box-shadow: 0 0 10px rgba(235, 68, 90, 0.35);
+    box-shadow: var(--shadow-glow-danger, 0 0 10px rgba(235, 68, 90, 0.35));
     animation: pulse-critical-card 1.5s infinite;
   }
 
@@ -188,7 +189,8 @@
   flex-shrink: 0;
 }
 
-.icon-btn-print {
+.icon-btn-print,
+.icon-btn-urgent {
   background: var(--background-surface-2);
   border: 1px solid var(--border-medium);
   color: var(--text-secondary);
@@ -207,6 +209,13 @@
     background: var(--primary);
     color: var(--text-primary);
     border-color: var(--primary);
+  }
+
+  &.active-urgent {
+    background: rgba(229, 96, 79, 0.2);
+    color: var(--semantic-danger);
+    border-color: var(--semantic-danger);
+    animation: pulse-badge 1.5s infinite;
   }
 }
 

@@ -54,7 +54,15 @@ export class CommandeService {
   }
 
   setPriorite(commandeId: number, priorite: boolean): Observable<Commande> {
-    return this.http.patch<Commande>(`${this.api}/${commandeId}/priorite`, { priorite });
+    return this.http.patch<Commande>(`${this.api}/${commandeId}/urgent?urgent=${priorite}`, {});
+  }
+
+  toggleUrgent(commandeId: number): Observable<Commande> {
+    return this.http.post<Commande>(`${this.api}/${commandeId}/toggle-urgent`, {});
+  }
+
+  setUrgent(commandeId: number, urgent: boolean): Observable<Commande> {
+    return this.http.patch<Commande>(`${this.api}/${commandeId}/urgent?urgent=${urgent}`, {});
   }
 
   /**

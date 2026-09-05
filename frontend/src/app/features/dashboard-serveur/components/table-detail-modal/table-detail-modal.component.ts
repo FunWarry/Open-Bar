@@ -12,7 +12,7 @@ import {
   closeOutline, addCircleOutline, banOutline,
   timeOutline, checkmarkCircleOutline, swapHorizontalOutline,
   cardOutline, pencilOutline, peopleOutline, personOutline,
-  restaurantOutline, receiptOutline, flameOutline,
+  restaurantOutline, receiptOutline, flameOutline, flashOutline,
 } from 'ionicons/icons';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { TableView } from '../../models/table-view.model';
@@ -20,6 +20,7 @@ import { TableAppel } from '../../../../core/models/table-appel.model';
 import { TableAppelService } from '../../../../core/services/table-appel.service';
 import { Commande, CommandeItem } from '../../../../core/models/commande.model';
 import { DashboardServeurService } from '../../services/dashboard-serveur.service';
+import { CommandeService } from '../../../../core/services/commande.service';
 import { TransfertModalComponent } from '../transfert-modal/transfert-modal.component';
 import { EditCommandeModalComponent } from '../edit-commande-modal/edit-commande-modal.component';
 import { CancelOrderModalComponent } from '../../../../core/components/ui/cancel-order-modal/cancel-order-modal.component';
@@ -50,6 +51,7 @@ export class TableDetailModalComponent implements OnInit {
   private readonly modalCtrl = inject(ModalController);
   private readonly router = inject(Router);
   private readonly service = inject(DashboardServeurService);
+  private readonly commandeService = inject(CommandeService);
   private readonly tableAppelService = inject(TableAppelService);
   private readonly toastCtrl = inject(ToastController);
   private readonly alertCtrl = inject(AlertController);
@@ -70,6 +72,7 @@ export class TableDetailModalComponent implements OnInit {
       restaurantOutline,
       receiptOutline,
       flameOutline,
+      flashOutline,
     });
   }
 
@@ -252,8 +255,42 @@ export class TableDetailModalComponent implements OnInit {
     this.modalCtrl.dismiss();
   }
 
+  getCommandeTotal(cmd: Commande | null | undefined): number {
+    if (!cmd) return 0;
+    if (cmd.total && cmd.total > 0) return cmd.total;
+    if (cmd.items && cmd.items.length > 0) {
+      return cmd.items.reduce((sum, it) => sum + ((it.prixUnitaire || 0) * (it.quantite || 1)), 0);
+    }
+    return 0;
+  }
+
   calculerTotalActif(): number {
-    return this.commandes.reduce((sum, c) => sum + (c.total ?? 0), 0);
+    return this.commandes
+      .filter((c) => c.statut !== 'ANNULEE')
+      .reduce((sum, c) => sum + this.getCommandeTotal(c), 0);
+  }
+
+  toggleUrgent(cmd: Commande): void {
+    this.commandeService.toggleUrgent(cmd.id).subscribe({
+      next: async (updated) => {
+        cmd.prioritaire = updated.prioritaire;
+        const msgKey = cmd.prioritaire ? 'COMMANDES.MESSAGES.MARKED_URGENT' : 'COMMANDES.MESSAGES.UNMARKED_URGENT';
+        const toast = await this.toastCtrl.create({
+          message: this.translocoService.translate(msgKey),
+          duration: 2500,
+          color: cmd.prioritaire ? 'warning' : 'medium',
+        });
+        await toast.present();
+      },
+      error: async () => {
+        const toast = await this.toastCtrl.create({
+          message: this.translocoService.translate('COMMON.ERROR'),
+          duration: 2500,
+          color: 'danger',
+        });
+        await toast.present();
+      }
+    });
   }
 
   statutColor(statut: string): string {

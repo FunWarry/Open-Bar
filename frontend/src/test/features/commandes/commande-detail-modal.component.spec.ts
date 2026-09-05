@@ -36,7 +36,7 @@ describe('CommandeDetailModalComponent', () => {
   const mockToast = { present: jasmine.createSpy('present') };
 
   beforeEach(async () => {
-    commandeServiceSpy = jasmine.createSpyObj('CommandeService', ['getById', 'changerStatut', 'annuler']);
+    commandeServiceSpy = jasmine.createSpyObj('CommandeService', ['getById', 'changerStatut', 'annuler', 'toggleUrgent']);
     modalCtrlSpy = jasmine.createSpyObj('ModalController', ['dismiss', 'create']);
     alertCtrlSpy = jasmine.createSpyObj('AlertController', ['create']);
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
@@ -48,6 +48,7 @@ describe('CommandeDetailModalComponent', () => {
     commandeServiceSpy.getById.and.returnValue(of(mockCommande));
     commandeServiceSpy.changerStatut.and.returnValue(of({ ...mockCommande, statut: 'EN_PREPARATION' }));
     commandeServiceSpy.annuler.and.returnValue(of({ ...mockCommande, statut: 'ANNULEE' }));
+    commandeServiceSpy.toggleUrgent.and.returnValue(of({ ...mockCommande, prioritaire: true }));
 
     await TestBed.configureTestingModule({
       imports: [
@@ -110,4 +111,24 @@ describe('CommandeDetailModalComponent', () => {
     expect(modalCtrlSpy.create).toHaveBeenCalled();
     expect(commandeServiceSpy.annuler).toHaveBeenCalledWith(9);
   });
+
+  it('getTotalCommande calculates fallback item sum when total is 0', () => {
+    const cmdWithZero = {
+      id: 1,
+      total: 0,
+      items: [
+        { id: 1, quantite: 2, prixUnitaire: 5.0, cocktailNom: 'Mojito' },
+        { id: 2, quantite: 1, prixUnitaire: 8.0, cocktailNom: 'Gin Tonic' }
+      ]
+    } as any;
+    expect(component.getTotalCommande(cmdWithZero)).toBe(18.0);
+  });
+
+  it('onToggleUrgent toggles order priority and presents toast', fakeAsync(() => {
+    component.onToggleUrgent();
+    tick();
+    expect(commandeServiceSpy.toggleUrgent).toHaveBeenCalledWith(9);
+    expect(component.commande?.prioritaire).toBeTrue();
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
+  }));
 });

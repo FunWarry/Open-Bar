@@ -209,10 +209,21 @@ describe('KanbanServeurComponent', () => {
     expect(serviceSpy.getCommandesParStatut).not.toHaveBeenCalled();
   }));
 
-  it('ignores malformed messages on /topic/barman/commandes gracefully without throwing', fakeAsync(() => {
+  it('ignores malformed messages on /topic/barman/commandes gracefully without throwing', () => {
     expect(() => {
       wsTopic$.next({ body: 'malformed' });
-      tick();
     }).not.toThrow();
-  }));
+  });
+
+  it('getCommandeTotal calculates fallback total when commande total is 0', () => {
+    const testCmd: Commande = {
+      id: 99,
+      total: 0,
+      items: [
+        { id: 1, quantite: 2, prixUnitaire: 7.5, cocktailNom: 'Mojito' },
+        { id: 2, quantite: 1, prixUnitaire: 5.0, cocktailNom: 'Bière' }
+      ]
+    } as any;
+    expect(component.getCommandeTotal(testCmd)).toBe(20.0);
+  });
 });
