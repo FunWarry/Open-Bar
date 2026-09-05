@@ -123,4 +123,23 @@ describe('AuthGuard', () => {
       done();
     });
   });
+
+  it('falls back to auth check and redirects to login when setup check fails and user is unauthenticated', (done) => {
+    setupServiceSpy.getStatus.and.returnValue(throwError(() => new Error('Network error')));
+    store.overrideSelector(selectIsAuthenticated, false);
+    store.refreshState();
+
+    const loginUrlTree = { toString: () => '/auth/login' } as unknown as UrlTree;
+    router.createUrlTree.and.callFake((commands: unknown[]) => {
+      if (Array.isArray(commands) && commands[0] === '/auth/login') {
+        return loginUrlTree;
+      }
+      return {} as UrlTree;
+    });
+
+    guard.canActivate().subscribe(result => {
+      expect(result).toBe(loginUrlTree);
+      done();
+    });
+  });
 });

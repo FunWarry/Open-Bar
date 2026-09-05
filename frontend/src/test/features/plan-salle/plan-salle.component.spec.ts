@@ -432,4 +432,26 @@ describe('PlanSalleComponent', () => {
     expect(component.isMagnetSnapEnabled).toBe(!init);
     expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'info' }));
   });
+
+  it('synchroniserZonesAvecBackend() clears zoneAreas and local storage when zones is empty', () => {
+    component.zones = [];
+    component.zoneAreas = [{ id: 'za-1', nom: 'Terrasse', x: 0, y: 0, width: 100, height: 100 } as any];
+    (component as any).synchroniserZonesAvecBackend();
+    expect(component.zoneAreas).toEqual([]);
+  });
+
+  it('synchroniserZonesAvecBackend() synchronizes backend zones and preserves ids', () => {
+    localStorage.setItem('openbar_zone_areas', JSON.stringify([
+      { id: 'za-10', nom: 'terrasse', x: 10, y: 10, width: 200, height: 200 },
+      { id: 'za-99', nom: 'Old Zone', x: 0, y: 0, width: 100, height: 100 }
+    ]));
+    component.zones = [
+      { id: 10, nom: 'Terrasse', etage: 'RDC', pointsJson: '[10,20]', cornerRadiiJson: '[5,5,5,5]' } as any,
+      { id: 20, nom: 'VIP', etage: 'ETAGE_1' } as any
+    ];
+    (component as any).synchroniserZonesAvecBackend();
+    expect(component.zoneAreas.some(za => za.id === 'za-10')).toBeTrue();
+    expect(component.zoneAreas.some(za => za.id === 'za-20')).toBeTrue();
+    expect(component.zoneAreas.some(za => za.id === 'za-99')).toBeFalse();
+  });
 });

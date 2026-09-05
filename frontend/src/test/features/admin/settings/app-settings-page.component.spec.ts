@@ -442,4 +442,18 @@ describe('AppSettingsPageComponent', () => {
     expect(onboardingServiceSpy.resetOnboarding).toHaveBeenCalledWith('1');
     expect(routerSpy.navigate).toHaveBeenCalledWith(['/onboarding']);
   });
+
+  it('should reset onboarding using user role when user id is absent', () => {
+    authServiceSpy.getStoredUser.and.returnValue({ roles: ['ROLE_MANAGER'] } as any);
+    component.restartOnboarding();
+    expect(onboardingServiceSpy.resetOnboarding).toHaveBeenCalledWith('ROLE_MANAGER');
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/onboarding']);
+  });
+
+  it('should reset onboarding with ADMIN fallback when stored user is null', () => {
+    authServiceSpy.getStoredUser.and.returnValue(null);
+    component.restartOnboarding();
+    expect(onboardingServiceSpy.resetOnboarding).toHaveBeenCalledWith('ADMIN');
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/onboarding']);
+  });
 });

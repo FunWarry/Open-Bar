@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { IonicModule } from '@ionic/angular';
 import { Store } from '@ngrx/store';
-import { of, BehaviorSubject } from 'rxjs';
+import { of, BehaviorSubject, throwError } from 'rxjs';
 import { LoginComponent } from '../../../app/features/auth/login/login.component';
 import { login } from '../../../app/core/store/auth.actions';
 import { selectAuthError, selectIsAuthenticated, selectCurrentUser } from '../../../app/core/store/auth.selectors';
@@ -204,6 +204,32 @@ describe('LoginComponent', () => {
 
     expect(mockOnboardingService.isCompleted).toHaveBeenCalledWith('BARMAN');
     expect(mockRouter.navigate).toHaveBeenCalledWith(['/onboarding']);
+  }));
+
+  it('navigateAfterLogin falls back to CLIENT when user has no roles', fakeAsync(() => {
+    mockStore.select.and.callFake((selector: unknown) => {
+      if (selector === selectAuthError) return of(null);
+      if (selector === selectCurrentUser) return of({ roles: [] } as any);
+      return of(true);
+    });
+    mockOnboardingService.isCompleted.and.returnValue(false);
+
+    component.loginForm.setValue({ username: 'client', password: 'secret' });
+    component.onSubmit();
+    tick();
+
+    expect(mockOnboardingService.isCompleted).toHaveBeenCalledWith('CLIENT');
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['/onboarding']);
+  }));
+
+  it('ngOnInit falls back to checkExistingAuth when setup check throws error', fakeAsync(() => {
+    mockSetupService.getStatus.and.returnValue(throwError(() => new Error('Server down')));
+    isAuthenticatedSubject.next(true);
+
+    component.ngOnInit();
+    tick();
+
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['/app-home']);
   }));
 
   // ─── ngOnDestroy ─────────────────────────────────────────────────────────────
