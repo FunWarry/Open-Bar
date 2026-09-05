@@ -13,6 +13,11 @@ describe('SanitizerUtil', () => {
       expect(sanitizePlainText(input)).toBe('Mojito');
     });
 
+    it('should strip script tags with trailing attributes or whitespace in closing tag', () => {
+      const input = '<script>alert("xss")</script attr="val">Mojito';
+      expect(sanitizePlainText(input)).toBe('Mojito');
+    });
+
     it('should strip img tags with onerror handlers', () => {
       const input = '<img src="invalid" onerror="alert(1)">Old Fashioned';
       expect(sanitizePlainText(input)).toBe('Old Fashioned');
