@@ -27,6 +27,10 @@ public class FileUploadService {
         "image/jpeg", "image/png", "image/webp", "image/gif"
     );
 
+    private static final Set<String> ALLOWED_EXTENSIONS = Set.of(
+        ".jpg", ".jpeg", ".png", ".webp", ".gif"
+    );
+
     /**
      * Saves an uploaded cocktail photo to local file storage.
      *
@@ -49,15 +53,17 @@ public class FileUploadService {
         }
 
         try {
-            Path uploadPath = Paths.get(UPLOAD_DIR);
+            Path uploadPath = Paths.get(UPLOAD_DIR).toAbsolutePath().normalize();
             if (!Files.exists(uploadPath)) {
                 Files.createDirectories(uploadPath);
             }
 
-            String originalFilename = file.getOriginalFilename();
-            String extension = getFileExtension(originalFilename);
+            String extension = getFileExtension(file.getOriginalFilename());
             String newFilename = "cocktail_" + cocktailId + "_" + UUID.randomUUID().toString().substring(0, 8) + extension;
-            Path filePath = uploadPath.resolve(newFilename);
+            Path filePath = uploadPath.resolve(newFilename).normalize();
+            if (!filePath.startsWith(uploadPath)) {
+                throw new BusinessException("Invalid file path traversal");
+            }
 
             try (InputStream inputStream = file.getInputStream()) {
                 Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
@@ -95,15 +101,17 @@ public class FileUploadService {
         }
 
         try {
-            Path uploadPath = Paths.get(GLASSWARE_UPLOAD_DIR);
+            Path uploadPath = Paths.get(GLASSWARE_UPLOAD_DIR).toAbsolutePath().normalize();
             if (!Files.exists(uploadPath)) {
                 Files.createDirectories(uploadPath);
             }
 
-            String originalFilename = file.getOriginalFilename();
-            String extension = getFileExtension(originalFilename);
+            String extension = getFileExtension(file.getOriginalFilename());
             String newFilename = "glassware_" + glasswareId + "_" + UUID.randomUUID().toString().substring(0, 8) + extension;
-            Path filePath = uploadPath.resolve(newFilename);
+            Path filePath = uploadPath.resolve(newFilename).normalize();
+            if (!filePath.startsWith(uploadPath)) {
+                throw new BusinessException("Invalid file path traversal");
+            }
 
             try (InputStream inputStream = file.getInputStream()) {
                 Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
@@ -121,6 +129,7 @@ public class FileUploadService {
         if (filename == null || !filename.contains(".")) {
             return ".jpg";
         }
-        return filename.substring(filename.lastIndexOf(".")).toLowerCase();
+        String ext = filename.substring(filename.lastIndexOf(".")).toLowerCase();
+        return ALLOWED_EXTENSIONS.contains(ext) ? ext : ".jpg";
     }
 }
