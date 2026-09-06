@@ -129,6 +129,26 @@ public class AppSettings {
     @Column(name = "warning_gross_margin_percentage", nullable = false)
     private BigDecimal warningGrossMarginPercentage = new BigDecimal("50.00");
 
+    @Size(max = 100, message = "Bar printer IP cannot exceed 100 characters")
+    @Column(name = "bar_printer_ip", length = 100)
+    private String barPrinterIp;
+
+    @Size(max = 100, message = "Kitchen printer IP cannot exceed 100 characters")
+    @Column(name = "kitchen_printer_ip", length = 100)
+    private String kitchenPrinterIp;
+
+    @Size(max = 100, message = "Cash desk printer IP cannot exceed 100 characters")
+    @Column(name = "cash_desk_printer_ip", length = 100)
+    private String cashDeskPrinterIp;
+
+    @jakarta.validation.constraints.Min(value = 1, message = "Printer port must be at least 1")
+    @jakarta.validation.constraints.Max(value = 65535, message = "Printer port cannot exceed 65535")
+    @Column(name = "printer_port")
+    private Integer printerPort = 9100;
+
+    @Column(name = "direct_printing_enabled")
+    private Boolean directPrintingEnabled = false;
+
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 

@@ -9,6 +9,7 @@ import { EstablishmentConfig } from '../../../../app/core/models/establishment-c
 import { AppSettingsService } from '../../../../app/core/services/app-settings.service';
 import { AppSettings } from '../../../../app/core/models/app-settings.model';
 import { ThemeService, DEFAULT_FIGMA_PALETTE, THEME_PRESETS } from '../../../../app/core/services/theme.service';
+import { PrinterService } from '../../../../app/core/services/printer.service';
 
 import { AuthService } from '../../../../app/core/services/auth.service';
 import { OnboardingService } from '../../../../app/core/services/onboarding.service';
@@ -19,6 +20,7 @@ describe('AppSettingsPageComponent', () => {
   let etabServiceSpy: jasmine.SpyObj<EtablissementService>;
   let appSettingsServiceSpy: jasmine.SpyObj<AppSettingsService>;
   let themeServiceSpy: jasmine.SpyObj<ThemeService>;
+  let printerServiceSpy: jasmine.SpyObj<PrinterService>;
   let authServiceSpy: jasmine.SpyObj<AuthService>;
   let onboardingServiceSpy: jasmine.SpyObj<OnboardingService>;
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
@@ -58,6 +60,11 @@ describe('AppSettingsPageComponent', () => {
     tempsAlerteWarningMinutes: 3,
     tempsAlerteCommandeMinutes: 5,
     tempsAlerteCritiqueCommandeMinutes: 10,
+    directPrintingEnabled: true,
+    printerPort: 9100,
+    barPrinterIp: '192.168.1.101',
+    kitchenPrinterIp: '192.168.1.102',
+    cashDeskPrinterIp: '192.168.1.103',
     updatedAt: null,
   };
 
@@ -70,6 +77,29 @@ describe('AppSettingsPageComponent', () => {
     appSettingsServiceSpy = jasmine.createSpyObj('AppSettingsService', ['getSettings', 'updateSettings', 'applyTokens']);
     appSettingsServiceSpy.getSettings.and.returnValue(of(mockAppSettings));
     appSettingsServiceSpy.updateSettings.and.returnValue(of(mockAppSettings));
+
+    printerServiceSpy = jasmine.createSpyObj('PrinterService', [
+      'getStatus',
+      'testPrintRole',
+      'testConnection',
+      'openCashDrawer',
+    ]);
+    printerServiceSpy.testPrintRole.and.returnValue(of({
+      role: 'BAR',
+      ip: '192.168.1.101',
+      port: 9100,
+      success: true,
+      message: 'OK',
+      durationMs: 15,
+    }));
+    printerServiceSpy.openCashDrawer.and.returnValue(of({
+      role: 'CASH_DESK',
+      ip: '192.168.1.103',
+      port: 9100,
+      success: true,
+      message: 'Cash drawer opened',
+      durationMs: 10,
+    }));
 
     themeServiceSpy = jasmine.createSpyObj('ThemeService', [
       'setTheme',
@@ -114,6 +144,7 @@ describe('AppSettingsPageComponent', () => {
       providers: [
         { provide: EtablissementService, useValue: etabServiceSpy },
         { provide: AppSettingsService, useValue: appSettingsServiceSpy },
+        { provide: PrinterService, useValue: printerServiceSpy },
         { provide: ThemeService, useValue: themeServiceSpy },
         { provide: AuthService, useValue: authServiceSpy },
         { provide: OnboardingService, useValue: onboardingServiceSpy },
@@ -500,4 +531,87 @@ describe('AppSettingsPageComponent', () => {
     });
     expect(component.appSettingsForm.errors?.['marginPriorityInvalid']).toBeUndefined();
   });
+
+  it('should initialize printer form controls with settings values', () => {
+    expect(component.appSettingsForm.get('directPrintingEnabled')?.value).toBeTrue();
+    expect(component.appSettingsForm.get('printerPort')?.value).toBe(9100);
+    expect(component.appSettingsForm.get('barPrinterIp')?.value).toBe('192.168.1.101');
+    expect(component.appSettingsForm.get('kitchenPrinterIp')?.value).toBe('192.168.1.102');
+    expect(component.appSettingsForm.get('cashDeskPrinterIp')?.value).toBe('192.168.1.103');
+  });
+
+  it('should switch active tab to printers', () => {
+    component.activeTab = 'printers';
+    expect(component.activeTab).toBe('printers');
+  });
+
+  it('should call printerService.testPrintRole and show success toast when testing a printer', fakeAsync(() => {
+    component.testPrint('BAR');
+    tick();
+    expect(printerServiceSpy.testPrintRole).toHaveBeenCalledWith('BAR');
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
+  }));
+
+  it('should call printerService.openCashDrawer and show toast when testing cash drawer', fakeAsync(() => {
+    component.testCashDrawer();
+    tick();
+    expect(printerServiceSpy.openCashDrawer).toHaveBeenCalled();
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
+  }));
+
+  it('should handle error gracefully when test print fails', fakeAsync(() => {
+    printerServiceSpy.testPrintRole.and.returnValue(throwError(() => new Error('Socket timeout')));
+    component.testPrint('KITCHEN');
+    tick();
+    expect(printerServiceSpy.testPrintRole).toHaveBeenCalledWith('KITCHEN');
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
+  }));
+
+  it('should show warning toast when test print returns success false', fakeAsync(() => {
+    printerServiceSpy.testPrintRole.and.returnValue(of({
+      role: 'BAR',
+      ip: '192.168.1.101',
+      port: 9100,
+      success: false,
+      message: 'Unreachable',
+      durationMs: 15,
+    }));
+    component.testPrint('BAR');
+    tick();
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
+  }));
+
+  it('should not call printerService.testPrintRole if IP is empty', () => {
+    component.appSettingsForm.patchValue({ barPrinterIp: '' });
+    component.testPrint('BAR');
+    expect(printerServiceSpy.testPrintRole).not.toHaveBeenCalled();
+  });
+
+  it('should show warning toast when cash drawer returns success false', fakeAsync(() => {
+    printerServiceSpy.openCashDrawer.and.returnValue(of({
+      role: 'CASH_DESK',
+      ip: '192.168.1.103',
+      port: 9100,
+      success: false,
+      message: 'Failed',
+      durationMs: 15,
+    }));
+    component.testCashDrawer();
+    tick();
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
+  }));
+
+  it('should handle error when cash drawer throws exception', fakeAsync(() => {
+    printerServiceSpy.openCashDrawer.and.returnValue(throwError(() => new Error('Connection refused')));
+    component.testCashDrawer();
+    tick();
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
+  }));
+
+  it('should not call openCashDrawer if cashDeskPrinterIp is empty', () => {
+    component.appSettingsForm.patchValue({ cashDeskPrinterIp: '' });
+    component.testCashDrawer();
+    expect(printerServiceSpy.openCashDrawer).not.toHaveBeenCalled();
+  });
 });
+

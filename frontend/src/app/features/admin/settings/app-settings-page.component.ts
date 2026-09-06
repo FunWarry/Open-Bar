@@ -54,6 +54,8 @@ import {
   lockClosedOutline,
   rocketOutline,
   pricetagOutline,
+  printOutline,
+  hardwareChipOutline,
 } from 'ionicons/icons';
 import { HappyHourConfigComponent } from './components/happy-hour-config/happy-hour-config.component';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
@@ -80,8 +82,10 @@ import { InputFieldComponent } from '../../../core/components/ui/input-field/inp
 import { SearchableSelectComponent, SearchableOption } from '../../../core/components/ui/searchable-select/searchable-select.component';
 import { TicketReceiptComponent } from '../../factures/ticket-receipt/ticket-receipt.component';
 import { Facture } from '../../factures/models/facture.model';
+import { PrinterService } from '../../../core/services/printer.service';
+import { PrinterRole } from '../../../core/models/printer.model';
 
-export type SettingsTab = 'legal' | 'timers' | 'currency' | 'theme' | 'qr' | 'pricing';
+export type SettingsTab = 'legal' | 'timers' | 'currency' | 'theme' | 'qr' | 'pricing' | 'printers';
 
 const HEX_COLOR_PATTERN = /^#[0-9A-Fa-f]{6}$/;
 
@@ -200,7 +204,10 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
   private readonly toastCtrl = inject(ToastController);
   private readonly alertCtrl = inject(AlertController);
   private readonly translocoService = inject(TranslocoService);
+  private readonly printerService = inject(PrinterService);
   private readonly destroy$ = new Subject<void>();
+
+  isTestingPrinter: Record<string, boolean> = {};
 
   /** Demonstration invoice used to preview realistic thermal receipt in real time. */
   readonly demoFacture: Facture = {
@@ -367,6 +374,8 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       lockClosedOutline,
       rocketOutline,
       pricetagOutline,
+      printOutline,
+      hardwareChipOutline,
     });
     this.initForms();
   }
@@ -409,7 +418,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
 
     if (this.route?.data) {
       this.route.data.pipe(takeUntil(this.destroy$)).subscribe(data => {
-        if (data?.['defaultTab'] && ['legal', 'timers', 'currency', 'theme', 'qr', 'pricing'].includes(data['defaultTab'])) {
+        if (data?.['defaultTab'] && ['legal', 'timers', 'currency', 'theme', 'qr', 'pricing', 'printers'].includes(data['defaultTab'])) {
           this.activeTab = data['defaultTab'] as SettingsTab;
         }
       });
@@ -417,7 +426,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
 
     if (this.route?.queryParams) {
       this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
-        if (params?.['tab'] && ['legal', 'timers', 'currency', 'theme', 'qr', 'pricing'].includes(params['tab'])) {
+        if (params?.['tab'] && ['legal', 'timers', 'currency', 'theme', 'qr', 'pricing', 'printers'].includes(params['tab'])) {
           this.activeTab = params['tab'] as SettingsTab;
         }
       });
@@ -505,6 +514,11 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       wifiSecurity: ['WPA', [Validators.required]],
       wifiEnabled: [false],
       tableSessionValidationEnabled: [false],
+      barPrinterIp: ['', [Validators.pattern(/^(\d{1,3}\.){3}\d{1,3}$/)]],
+      kitchenPrinterIp: ['', [Validators.pattern(/^(\d{1,3}\.){3}\d{1,3}$/)]],
+      cashDeskPrinterIp: ['', [Validators.pattern(/^(\d{1,3}\.){3}\d{1,3}$/)]],
+      printerPort: [9100, [Validators.min(1), Validators.max(65535)]],
+      directPrintingEnabled: [false],
     }, { validators: [thresholdPriorityValidator, marginThresholdPriorityValidator] });
 
     const currentColors = this.themeService.currentCustomColors;
@@ -934,6 +948,81 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
         error: () => {
           this.isSaving = false;
           this.showToast(this.translocoService.translate('SETTINGS.SAVE_ERROR'), 'danger');
+        },
+      });
+  }
+
+  /**
+   * Dispatches a diagnostic test print to the configured printer for the given role.
+   *
+   * @param role Printer role (BAR, KITCHEN, CASH_DESK)
+   */
+  testPrint(role: PrinterRole): void {
+    const controlMap: Record<PrinterRole, string> = {
+      BAR: 'barPrinterIp',
+      KITCHEN: 'kitchenPrinterIp',
+      CASH_DESK: 'cashDeskPrinterIp',
+    };
+    const ipControlName = controlMap[role];
+    if (!this.appSettingsForm.get(ipControlName)?.value) {
+      return;
+    }
+    this.isTestingPrinter[role] = true;
+    this.printerService.testPrintRole(role)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          this.isTestingPrinter[role] = false;
+          if (res.success) {
+            this.showToast(
+              this.translocoService.translate('SETTINGS.PRINTER_TEST_SUCCESS', { role: res.role, ip: res.ip || '' }),
+              'success'
+            );
+          } else {
+            this.showToast(
+              this.translocoService.translate('SETTINGS.PRINTER_TEST_FAILED', { role: res.role, error: res.message }),
+              'danger'
+            );
+          }
+        },
+        error: (err) => {
+          this.isTestingPrinter[role] = false;
+          this.showToast(
+            this.translocoService.translate('SETTINGS.PRINTER_TEST_FAILED', { role, error: err?.message || 'Error' }),
+            'danger'
+          );
+        },
+      });
+  }
+
+  /**
+   * Pulses the cash drawer kick command to test the cash drawer latch release.
+   */
+  testCashDrawer(): void {
+    if (!this.appSettingsForm.get('cashDeskPrinterIp')?.value) {
+      return;
+    }
+    this.isTestingPrinter['drawer'] = true;
+    this.printerService.openCashDrawer()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          this.isTestingPrinter['drawer'] = false;
+          if (res.success) {
+            this.showToast(this.translocoService.translate('SETTINGS.DRAWER_TEST_SUCCESS'), 'success');
+          } else {
+            this.showToast(
+              this.translocoService.translate('SETTINGS.DRAWER_TEST_FAILED', { error: res.message }),
+              'danger'
+            );
+          }
+        },
+        error: (err) => {
+          this.isTestingPrinter['drawer'] = false;
+          this.showToast(
+            this.translocoService.translate('SETTINGS.DRAWER_TEST_FAILED', { error: err?.message || 'Error' }),
+            'danger'
+          );
         },
       });
   }

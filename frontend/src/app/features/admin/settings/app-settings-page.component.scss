@@ -1307,3 +1307,27 @@ ion-col {
   }
 }
 
+/* --- Printers Tab Styles --- */
+.printer-row-flex {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+
+  .printer-input-grow {
+    flex: 1;
+    min-width: 220px;
+  }
+
+  .printer-action-btn-wrap {
+    margin-bottom: 2px;
+  }
+}
+
+.drawer-test-box {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+}
+
