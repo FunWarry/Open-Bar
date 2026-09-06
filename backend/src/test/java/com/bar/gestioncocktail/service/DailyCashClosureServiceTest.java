@@ -2,6 +2,8 @@ package com.bar.gestioncocktail.service;
 
 import com.bar.gestioncocktail.dto.ClotureCaisseRequestDTO;
 import com.bar.gestioncocktail.dto.DailyRecapDTO;
+import com.bar.gestioncocktail.dto.PaymentModeSummaryDTO;
+import com.bar.gestioncocktail.dto.VatSummaryDTO;
 import com.bar.gestioncocktail.exception.BusinessException;
 import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.model.DailyCashClosure;

@@ -87,14 +87,14 @@ class DailyCashClosureIntegrationTest extends BaseIntegrationTest {
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + getManagerToken()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_PDF))
-                .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION, org.hamcrest.Matchers.containsString("attachment; filename=\"z-report-")));
+                .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION, containsString("attachment; filename=\"z-report-")));
 
         // 4. Download FEC accounting export
         mockMvc.perform(get("/api/factures/clotures/" + closureId + "/export/fec")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + getManagerToken()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_PLAIN))
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("JournalCode\tJournalLib")));
+                .andExpect(content().string(containsString("JournalCode\tJournalLib")));
 
         // 5. Attempting to settle a bill on the closed date must be blocked by sales lock
         TableEntity table = tableRepository.findAll().stream().findFirst().orElseGet(() -> {
