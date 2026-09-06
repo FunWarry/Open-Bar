@@ -21,6 +21,7 @@ import { TableView } from '../../../app/features/dashboard-serveur/models/table-
 import { ZoneService } from '../../../app/core/services/zone.service';
 import { CocktailService } from '../../../app/core/services/cocktail.service';
 import { PlanSalleService } from '../../../app/features/plan-salle/services/plan-salle.service';
+import { HappyHourService } from '../../../app/core/services/happy-hour.service';
 import { provideMockStore } from '@ngrx/store/testing';
 
 import { provideIonicAngular } from '@ionic/angular/standalone';
@@ -43,6 +44,7 @@ describe('DashboardServeurComponent', () => {
   let planSalleServiceSpy: jasmine.SpyObj<PlanSalleService>;
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
   let modalCtrlSpy: jasmine.SpyObj<ModalController>;
+  let happyHourServiceSpy: jasmine.SpyObj<HappyHourService>;
   let notification$: Subject<AppNotification>;
 
   const mockTables: TableView[] = [
@@ -115,6 +117,15 @@ describe('DashboardServeurComponent', () => {
     wsSpy = jasmine.createSpyObj('WebSocketService', ['watch']);
     wsSpy.watch.and.returnValue(EMPTY);
 
+    happyHourServiceSpy = jasmine.createSpyObj('HappyHourService', ['loadRules', 'resolvePrice']);
+    happyHourServiceSpy.loadRules.and.returnValue(of([]));
+    happyHourServiceSpy.resolvePrice.and.callFake((price: number) => ({
+      effectivePrice: price,
+      isHappyHour: false,
+      appliedRule: null,
+      savings: 0
+    }));
+
     await TestBed.configureTestingModule({
       imports: [
         DashboardServeurComponent,
@@ -140,6 +151,7 @@ describe('DashboardServeurComponent', () => {
         { provide: WebSocketService, useValue: wsSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
         { provide: ModalController, useValue: modalCtrlSpy },
+        { provide: HappyHourService, useValue: happyHourServiceSpy },
       ],
     }).compileComponents();
 

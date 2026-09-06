@@ -92,6 +92,9 @@ class SampleDataSeederServiceTest {
     private EstablishmentConfigRepository establishmentConfigRepository;
 
     @Mock
+    private HappyHourRuleRepository happyHourRuleRepository;
+
+    @Mock
     private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
 
     @Mock

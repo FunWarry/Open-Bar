@@ -2471,5 +2471,40 @@
       "notes": "Zeste d'orange bien frais",
       "minutesAgo": 5
     }
+  ],
+  "happy_hour_rules": [
+    {
+      "name": "Afterwork Cheers",
+      "startTime": "17:00",
+      "endTime": "20:00",
+      "daysOfWeek": ["TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"],
+      "discountType": "PERCENTAGE",
+      "discountValue": 25.00,
+      "active": true,
+      "categories": ["ALCOOLISE", "APERITIF"],
+      "cocktailNoms": ["Mojito", "Margarita"]
+    },
+    {
+      "name": "Friday Fiesta",
+      "startTime": "21:00",
+      "endTime": "23:59",
+      "daysOfWeek": ["FRIDAY", "SATURDAY"],
+      "discountType": "FIXED_DISCOUNT",
+      "discountValue": 2.50,
+      "active": true,
+      "categories": ["SHOT"],
+      "cocktailNoms": []
+    },
+    {
+      "name": "Sunday Mocktail Craze",
+      "startTime": "14:00",
+      "endTime": "19:00",
+      "daysOfWeek": ["SUNDAY"],
+      "discountType": "FIXED_PRICE",
+      "discountValue": 4.50,
+      "active": false,
+      "categories": ["SANS_ALCOOL"],
+      "cocktailNoms": ["Virgin Mojito"]
+    }
   ]
 }
