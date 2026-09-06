@@ -26,6 +26,8 @@ import {
   IonCardContent,
   IonSpinner,
   IonIcon,
+  IonBadge,
+  IonButton,
   ToastController,
   AlertController,
 } from '@ionic/angular/standalone';
@@ -38,6 +40,7 @@ import {
   saveOutline,
   refreshOutline,
   sparklesOutline,
+  cloudDownloadOutline,
   moonOutline,
   sunnyOutline,
   desktopOutline,
@@ -83,6 +86,7 @@ import { SearchableSelectComponent, SearchableOption } from '../../../core/compo
 import { TicketReceiptComponent } from '../../factures/ticket-receipt/ticket-receipt.component';
 import { Facture } from '../../factures/models/facture.model';
 import { PrinterService } from '../../../core/services/printer.service';
+import { AppUpdateService } from '../../../core/services/app-update.service';
 import { PrinterRole } from '../../../core/models/printer.model';
 
 export type SettingsTab = 'legal' | 'timers' | 'currency' | 'theme' | 'qr' | 'pricing' | 'printers';
@@ -182,6 +186,8 @@ export interface VatPreset {
     IonCardContent,
     IonSpinner,
     IonIcon,
+    IonBadge,
+    IonButton,
     TranslocoPipe,
     ActionButtonComponent,
     RoleBadgeComponent,
@@ -205,7 +211,13 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
   private readonly alertCtrl = inject(AlertController);
   private readonly translocoService = inject(TranslocoService);
   private readonly printerService = inject(PrinterService);
+  private readonly appUpdateService = inject(AppUpdateService);
   private readonly destroy$ = new Subject<void>();
+
+  currentAppVersion = this.appUpdateService.currentVersion;
+  isCheckingUpdates = false;
+  updateCheckMessage: string | null = null;
+  updateCheckSuccess = true;
 
   isTestingPrinter: Record<string, boolean> = {};
 
@@ -376,6 +388,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       pricetagOutline,
       printOutline,
       hardwareChipOutline,
+      cloudDownloadOutline,
     });
     this.initForms();
   }
@@ -1025,6 +1038,38 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
           );
         },
       });
+  }
+
+  /**
+   * Manually checks for newer official releases and displays the update dialog if found.
+   */
+  async checkForUpdates(): Promise<void> {
+    if (this.isCheckingUpdates) {
+      return;
+    }
+    this.isCheckingUpdates = true;
+    this.updateCheckMessage = null;
+
+    try {
+      const result = await this.appUpdateService.checkNewerRelease();
+      if (result.hasUpdate && result.latestRelease) {
+        this.updateCheckSuccess = true;
+        this.updateCheckMessage = this.translocoService.translate('APP_SETTINGS_UPDATES.UPDATE_AVAILABLE', {
+          version: result.latestRelease.version,
+        });
+        await this.appUpdateService.presentUpdateModal(result.latestRelease);
+      } else {
+        this.updateCheckSuccess = true;
+        this.updateCheckMessage = this.translocoService.translate('APP_SETTINGS_UPDATES.UP_TO_DATE', {
+          version: this.currentAppVersion,
+        });
+      }
+    } catch {
+      this.updateCheckSuccess = false;
+      this.updateCheckMessage = this.translocoService.translate('APP_SETTINGS_UPDATES.CHECK_FAILED');
+    } finally {
+      this.isCheckingUpdates = false;
+    }
   }
 
   /**

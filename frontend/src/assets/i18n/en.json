@@ -2724,5 +2724,31 @@
     "SYNC_SUCCESS": "{{count}} offline order synchronized successfully!",
     "SYNC_SUCCESS_PLURAL": "{{count}} offline orders synchronized successfully!",
     "SYNC_ERROR": "Failed to synchronize some offline orders"
+  },
+  "UPDATE_MODAL": {
+    "TITLE": "OpenBar Update Available",
+    "SUBTITLE": "New official release",
+    "NEW_VERSION_AVAILABLE": "A new stable release is ready!",
+    "HERO_DESC": "An official OpenBar update was detected. Benefit from the latest improvements, capabilities, and fixes.",
+    "CURRENT_VERSION": "Current version",
+    "LATEST_VERSION": "New version",
+    "RELEASE_DETAILS": "Release details",
+    "RELEASE_NOTES": "Release notes (Changelog)",
+    "NO_RELEASE_NOTES": "No release notes provided for this update.",
+    "POSTPONE": "Later (24h)",
+    "UPGRADE_NOW": "Update now",
+    "UPGRADING": "Updating...",
+    "UPGRADE_INITIATED": "Upgrade initiated for OpenBar v{{version}}!"
+  },
+  "APP_SETTINGS_UPDATES": {
+    "CARD_TITLE": "System Updates",
+    "CARD_DESC": "Automatic detection of new official releases on startup.",
+    "CURRENT_VERSION": "Current system version:",
+    "CHECK_UPDATES_BTN": "Check for updates",
+    "CHECKING": "Checking...",
+    "UP_TO_DATE": "Your OpenBar system is up to date (v{{version}}).",
+    "UPDATE_AVAILABLE": "An official update (v{{version}}) is available!",
+    "CHECK_FAILED": "Unable to contact update servers (offline or isolated local network)."
   }
 }
+

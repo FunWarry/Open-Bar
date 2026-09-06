@@ -2724,5 +2724,31 @@
     "SYNC_SUCCESS": "{{count}} commande hors-ligne synchronisée avec succès !",
     "SYNC_SUCCESS_PLURAL": "{{count}} commandes hors-ligne synchronisées avec succès !",
     "SYNC_ERROR": "Échec de synchronisation pour certaines commandes hors-ligne"
+  },
+  "UPDATE_MODAL": {
+    "TITLE": "Mise à jour OpenBar disponible",
+    "SUBTITLE": "Nouvelle version officielle",
+    "NEW_VERSION_AVAILABLE": "Une nouvelle version stable est prête !",
+    "HERO_DESC": "Une mise à jour officielle d'OpenBar a été détectée. Profitez des dernières améliorations, fonctionnalités et correctifs.",
+    "CURRENT_VERSION": "Version actuelle",
+    "LATEST_VERSION": "Nouvelle version",
+    "RELEASE_DETAILS": "Détails de la release",
+    "RELEASE_NOTES": "Notes de version (Changelog)",
+    "NO_RELEASE_NOTES": "Aucune note de version fournie pour cette mise à jour.",
+    "POSTPONE": "Plus tard (24h)",
+    "UPGRADE_NOW": "Mettre à jour maintenant",
+    "UPGRADING": "Mise à jour...",
+    "UPGRADE_INITIATED": "Mise à jour initiée pour OpenBar v{{version}} !"
+  },
+  "APP_SETTINGS_UPDATES": {
+    "CARD_TITLE": "Mises à jour système",
+    "CARD_DESC": "Détection automatique des nouvelles versions officielles au démarrage.",
+    "CURRENT_VERSION": "Version actuelle du système :",
+    "CHECK_UPDATES_BTN": "Vérifier les mises à jour",
+    "CHECKING": "Recherche en cours...",
+    "UP_TO_DATE": "Votre système OpenBar est parfaitement à jour (v{{version}}).",
+    "UPDATE_AVAILABLE": "Une mise à jour officielle (v{{version}}) est disponible !",
+    "CHECK_FAILED": "Impossible de contacter les serveurs de mise à jour (hors-ligne ou réseau local isolé)."
   }
 }
+

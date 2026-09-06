@@ -10,6 +10,7 @@ import { AppSettingsService } from '../../../../app/core/services/app-settings.s
 import { AppSettings } from '../../../../app/core/models/app-settings.model';
 import { ThemeService, DEFAULT_FIGMA_PALETTE, THEME_PRESETS } from '../../../../app/core/services/theme.service';
 import { PrinterService } from '../../../../app/core/services/printer.service';
+import { AppUpdateService } from '../../../../app/core/services/app-update.service';
 
 import { AuthService } from '../../../../app/core/services/auth.service';
 import { OnboardingService } from '../../../../app/core/services/onboarding.service';
@@ -21,6 +22,7 @@ describe('AppSettingsPageComponent', () => {
   let appSettingsServiceSpy: jasmine.SpyObj<AppSettingsService>;
   let themeServiceSpy: jasmine.SpyObj<ThemeService>;
   let printerServiceSpy: jasmine.SpyObj<PrinterService>;
+  let appUpdateServiceSpy: jasmine.SpyObj<AppUpdateService>;
   let authServiceSpy: jasmine.SpyObj<AuthService>;
   let onboardingServiceSpy: jasmine.SpyObj<OnboardingService>;
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
@@ -101,6 +103,16 @@ describe('AppSettingsPageComponent', () => {
       durationMs: 10,
     }));
 
+    appUpdateServiceSpy = jasmine.createSpyObj('AppUpdateService', ['checkNewerRelease', 'presentUpdateModal'], {
+      currentVersion: '1.0.0',
+    });
+    appUpdateServiceSpy.checkNewerRelease.and.resolveTo({
+      hasUpdate: false,
+      currentVersion: '1.0.0',
+      latestRelease: null,
+    });
+    appUpdateServiceSpy.presentUpdateModal.and.resolveTo(null);
+
     themeServiceSpy = jasmine.createSpyObj('ThemeService', [
       'setTheme',
       'setCustomColors',
@@ -120,6 +132,8 @@ describe('AppSettingsPageComponent', () => {
     toastCtrlSpy.create.and.returnValue(Promise.resolve({ present: () => Promise.resolve() } as any));
 
     alertCtrlSpy = jasmine.createSpyObj('AlertController', ['create']);
+    alertCtrlSpy.create.and.returnValue(Promise.resolve({ present: () => Promise.resolve() } as any));
+    
     routerSpy = jasmine.createSpyObj('Router', ['navigate']);
 
     authServiceSpy = jasmine.createSpyObj('AuthService', ['getStoredUser']);
@@ -145,6 +159,7 @@ describe('AppSettingsPageComponent', () => {
         { provide: EtablissementService, useValue: etabServiceSpy },
         { provide: AppSettingsService, useValue: appSettingsServiceSpy },
         { provide: PrinterService, useValue: printerServiceSpy },
+        { provide: AppUpdateService, useValue: appUpdateServiceSpy },
         { provide: ThemeService, useValue: themeServiceSpy },
         { provide: AuthService, useValue: authServiceSpy },
         { provide: OnboardingService, useValue: onboardingServiceSpy },
@@ -613,5 +628,55 @@ describe('AppSettingsPageComponent', () => {
     component.testCashDrawer();
     expect(printerServiceSpy.openCashDrawer).not.toHaveBeenCalled();
   });
+
+  describe('System Updates', () => {
+    it('should check for updates and report system is up to date', async () => {
+      appUpdateServiceSpy.checkNewerRelease.and.resolveTo({
+        hasUpdate: false,
+        currentVersion: '1.0.0',
+        latestRelease: null,
+      });
+
+      await component.checkForUpdates();
+
+      expect(appUpdateServiceSpy.checkNewerRelease).toHaveBeenCalled();
+      expect(component.updateCheckSuccess).toBeTrue();
+      expect(component.updateCheckMessage).toBeTruthy();
+      expect(appUpdateServiceSpy.presentUpdateModal).not.toHaveBeenCalled();
+    });
+
+    it('should display update available message and open modal when update is found', async () => {
+      const mockRelease = {
+        version: '1.2.0',
+        tagName: 'v1.2.0',
+        title: 'v1.2.0',
+        releaseNotes: 'Changelog',
+        publishedAt: '2026-09-06T10:00:00Z',
+        htmlUrl: 'https://github.com/FunWarry/Open-Bar',
+      };
+
+      appUpdateServiceSpy.checkNewerRelease.and.resolveTo({
+        hasUpdate: true,
+        currentVersion: '1.0.0',
+        latestRelease: mockRelease,
+      });
+
+      await component.checkForUpdates();
+
+      expect(appUpdateServiceSpy.checkNewerRelease).toHaveBeenCalled();
+      expect(component.updateCheckSuccess).toBeTrue();
+      expect(appUpdateServiceSpy.presentUpdateModal).toHaveBeenCalledWith(mockRelease);
+    });
+
+    it('should handle check update failures gracefully', async () => {
+      appUpdateServiceSpy.checkNewerRelease.and.rejectWith(new Error('Network error'));
+
+      await component.checkForUpdates();
+
+      expect(component.updateCheckSuccess).toBeFalse();
+      expect(component.updateCheckMessage).toBeTruthy();
+    });
+  });
 });
+
 

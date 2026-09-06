@@ -1,0 +1,111 @@
+<ion-header class="ion-no-border" *transloco="let t">
+  <ion-toolbar class="update-toolbar">
+    <ion-title class="update-title" data-testid="update-modal-header-title">
+      <ion-icon name="cloud-download-outline" class="title-icon"></ion-icon>
+      <span>{{ t('UPDATE_MODAL.TITLE') }}</span>
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button
+        (click)="close()"
+        (keyup.enter)="close()"
+        aria-label="Close modal"
+        data-testid="update-modal-close"
+        class="close-btn"
+      >
+        <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="update-content ion-padding" *transloco="let t">
+  <div class="update-modal-wrapper" data-testid="update-modal">
+    <!-- Hero Announcement -->
+    <div class="update-hero">
+      <div class="update-hero-icon-wrap">
+        <ion-icon name="sparkles-outline" class="hero-sparkle-icon"></ion-icon>
+      </div>
+      <h2 class="hero-heading">{{ t('UPDATE_MODAL.NEW_VERSION_AVAILABLE') }}</h2>
+      <p class="hero-description">{{ t('UPDATE_MODAL.HERO_DESC') }}</p>
+    </div>
+
+    <!-- Version Comparison Card -->
+    <div class="version-comparison-card" data-testid="update-version-comparison">
+      <div class="version-box current-version-box">
+        <span class="version-label">{{ t('UPDATE_MODAL.CURRENT_VERSION') }}</span>
+        <ion-badge color="medium" class="version-badge" data-testid="current-version-badge">
+          v{{ currentVersion }}
+        </ion-badge>
+      </div>
+
+      <div class="version-arrow">
+        <ion-icon name="arrow-forward-outline"></ion-icon>
+      </div>
+
+      <div class="version-box latest-version-box">
+        <span class="version-label">{{ t('UPDATE_MODAL.LATEST_VERSION') }}</span>
+        <ion-badge color="success" class="version-badge highlight" data-testid="latest-version-badge">
+          v{{ latestRelease.version }}
+        </ion-badge>
+      </div>
+    </div>
+
+    <!-- Release Info & Changelog -->
+    <div class="release-info-section">
+      <div class="section-header">
+        <div class="title-group">
+          <h3 class="section-title" data-testid="release-title">{{ latestRelease.title || ('UPDATE_MODAL.RELEASE_DETAILS' | transloco) }}</h3>
+          @if (latestRelease.publishedAt) {
+            <span class="release-date" data-testid="release-date">
+              <ion-icon name="time-outline"></ion-icon>
+              {{ latestRelease.publishedAt | date:'dd/MM/yyyy' }}
+            </span>
+          }
+        </div>
+      </div>
+
+      <div class="changelog-container">
+        <div class="changelog-label">
+          <ion-icon name="information-circle-outline"></ion-icon>
+          <span>{{ t('UPDATE_MODAL.RELEASE_NOTES') }}</span>
+        </div>
+        <div class="changelog-body" data-testid="release-notes-content">
+          @if (latestRelease.releaseNotes) {
+            <pre class="notes-text">{{ latestRelease.releaseNotes }}</pre>
+          } @else {
+            <p class="no-notes">{{ t('UPDATE_MODAL.NO_RELEASE_NOTES') }}</p>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>
+
+<ion-footer class="update-footer ion-no-border" *transloco="let t">
+  <div class="footer-actions">
+    <ion-button
+      fill="outline"
+      color="medium"
+      class="action-btn snooze-btn"
+      (click)="snooze()"
+      (keyup.enter)="snooze()"
+      data-testid="update-modal-snooze-btn"
+    >
+      <ion-icon name="time-outline" slot="start"></ion-icon>
+      <span>{{ t('UPDATE_MODAL.POSTPONE') }}</span>
+    </ion-button>
+
+    <ion-button
+      fill="solid"
+      color="primary"
+      class="action-btn upgrade-btn"
+      (click)="upgrade()"
+      (keyup.enter)="upgrade()"
+      [disabled]="isUpgrading"
+      data-testid="update-modal-upgrade-btn"
+    >
+      <ion-icon name="cloud-download-outline" slot="start"></ion-icon>
+      <span>{{ isUpgrading ? t('UPDATE_MODAL.UPGRADING') : t('UPDATE_MODAL.UPGRADE_NOW') }}</span>
+    </ion-button>
+  </div>
+</ion-footer>
