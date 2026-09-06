@@ -147,6 +147,11 @@ flowchart TD
         FACTURES -->|"1:N"| FACTURE_ITEMS["facture_items"]
         FACTURES -->|"1:N"| FACTURE_REGLEMENTS["facture_reglements (Splits)"]
     end
+
+    subgraph StockDomain ["📦 Stock & Waste Tracking"]
+        INGREDIENTS -->|"1:N"| STOCK_MOVEMENTS["stock_movements (Waste / Loss / Shrinkage)"]
+        USERS -.->|"reported_by"| STOCK_MOVEMENTS
+    end
 ```
 
 *Standalone configuration & logging tables*:
@@ -155,6 +160,7 @@ flowchart TD
 - `week_schedule_publications` : Publication log of employee schedules
 - `app_settings` : Global establishment settings singleton (currency, anti-fraud toggles, legal data, margin alert thresholds target/warning, default VAT rate)
 - `happy_hour_rules`, `happy_hour_days`, `happy_hour_categories`, `happy_hour_cocktails` : Promotional Happy Hour & dynamic schedule-based pricing rule engine
+- `stock_movements` : Audit log of stock losses, breakages, expired ingredients, spills, staff tastings, and shrinkage (`ingredient_id`, `quantity`, `unit`, `reason`, `reported_by`, `cost`, `notes`, `recorded_at`)
 
 ---
 
@@ -311,6 +317,24 @@ Mobile browsers (iOS Safari, Android Chrome) enforce a secure context for `navig
 - **Permissions Header**: `Permissions-Policy: camera=(self), microphone=(), geolocation=()` enabling camera feed.
 - **Local Certificate Generation**: `scripts/generate-local-certs.sh` and `scripts/generate-local-certs.ps1` with Subject Alternative Names (SAN: `localhost`, `openbar.lan`, `*.openbar.lan`, `openbar.local`, `127.0.0.1`, LAN IP).
 - **Zero-Config Fallback**: `frontend/entrypoint.sh` automatically generates fallback self-signed certificates if none are mounted.
+
+---
+
+## Stock Loss & Shrinkage Tracking
+
+OpenBar provides full lifecycle audit logging and real-time inventory deduction for stock loss, breakage, and waste:
+
+- **Entity & Table**: `StockMovement` mapped to `stock_movements` (`id`, `ingredient_id`, `quantity`, `unit`, `reason`, `reported_by`, `notes`, `cost`, `recorded_at`).
+- **Reasons (`StockWasteReason`)**: `BROKEN_BOTTLE`, `EXPIRED`, `SPILL`, `STAFF_TASTING`, `COMPLIMENTARY_DRINK`.
+- **Automatic Inventory Deduction**: When waste/loss is recorded via `POST /api/stock/waste`, the ingredient stock is automatically decremented (with non-negative guard).
+- **Financial Cost Computation**: Cost is calculated as `quantity * ingredient.prixUnitaire` (or explicitly provided) and recorded immutably.
+- **Endpoints**:
+
+| Method | URL | Roles | Description |
+|--------|-----|-------|-------------|
+| `POST` | `/api/stock/waste` | BARMAN, MANAGER, ADMIN | Record stock waste, loss, or tasting with auto deduction |
+| `GET` | `/api/stock/movements?ingredientId=` | BARMAN, MANAGER, ADMIN | Retrieve audit log of stock movements (optional ingredient filter) |
+| `GET` | `/api/stock/waste/summary` | MANAGER, ADMIN | Retrieve manager summary with financial loss breakdown by reason |
 
 ---
 
