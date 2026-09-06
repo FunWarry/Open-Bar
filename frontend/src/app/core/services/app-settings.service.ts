@@ -40,6 +40,21 @@ export class AppSettingsService {
     return this.currentSettings?.currencyPosition || 'AFTER';
   }
 
+  /** Current default VAT rate in percentage (default: 20.0). */
+  get defaultVatRate(): number {
+    return this.currentSettings?.defaultVatRate ?? 20.0;
+  }
+
+  /** Current target gross profit margin percentage (default: 70.0). */
+  get targetGrossMarginPercentage(): number {
+    return this.currentSettings?.targetGrossMarginPercentage ?? 70.0;
+  }
+
+  /** Current warning gross profit margin threshold percentage (default: 50.0). */
+  get warningGrossMarginPercentage(): number {
+    return this.currentSettings?.warningGrossMarginPercentage ?? 50.0;
+  }
+
   /**
    * Formats a monetary amount using configured establishment currency symbol and position.
    *
@@ -111,6 +126,9 @@ export class AppSettingsService {
         currencyCode: 'EUR',
         currencySymbol: '€',
         currencyPosition: 'AFTER',
+        defaultVatRate: 20.0,
+        targetGrossMarginPercentage: 70.0,
+        warningGrossMarginPercentage: 50.0,
         tempsAlerteWarningMinutes: 3,
         tempsAlerteCommandeMinutes: 5,
         tempsAlerteCritiqueCommandeMinutes: 10,

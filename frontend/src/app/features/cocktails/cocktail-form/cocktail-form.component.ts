@@ -52,6 +52,14 @@ import {
   helpCircleOutline,
   closeOutline,
   informationCircleOutline,
+  cloudOutline,
+  nutritionOutline,
+  trendingUpOutline,
+  cashOutline,
+  calculatorOutline,
+  statsChartOutline,
+  beerOutline,
+  pizzaOutline,
 } from 'ionicons/icons';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { of } from 'rxjs';
@@ -61,8 +69,14 @@ import { IngredientService } from '../../../core/services/ingredient.service';
 import { RecipeStepTemplateService } from '../../../core/services/recipe-step-template.service';
 import { GlasswareService } from '../../../core/services/glassware.service';
 import {
+  calculateIngredientCost,
+  calculateGrossMargin,
+  getMarginBadgeClass,
+} from '../../../core/utils/margin-calculation.util';
+import {
   Cocktail,
   CocktailIngredientItem,
+  FlavorProfile,
 } from '../../../core/models/cocktail.model';
 import { Ingredient } from '../../../core/models/ingredient.model';
 import { Glassware } from '../../../core/models/glassware.model';
@@ -164,6 +178,13 @@ export class CocktailFormComponent implements OnInit {
     { value: 'SPECIAL', label: this.transloco.translate('COCKTAILS.CATEGORIES.SPECIAL'), icon: 'sparkles-outline' },
   ]);
 
+  // Workstation routing options for searchable combobox
+  stationOptions = computed<SearchableOption[]>(() => [
+    { value: 'BAR', label: this.transloco.translate('STATIONS.BAR'), icon: 'beer-outline' },
+    { value: 'KITCHEN', label: this.transloco.translate('STATIONS.KITCHEN'), icon: 'restaurant-outline' },
+    { value: 'SNACK', label: this.transloco.translate('STATIONS.SNACK'), icon: 'pizza-outline' },
+  ]);
+
   // Glassware options with live search, capacity badges and illustrations
   glasswareOptions = computed<SearchableOption[]>(() => {
     return this.glasswareList().map((g) => ({
@@ -255,6 +276,20 @@ export class CocktailFormComponent implements OnInit {
   recipeVersion = signal<number>(0);
   selectedGlasswareId = signal<number | null>(null);
 
+  /** Active selected flavor profile tags. */
+  selectedFlavors = signal<FlavorProfile[]>([]);
+
+  /** Available flavor profiles with labels and icons. */
+  readonly availableFlavors: { key: FlavorProfile; labelKey: string; icon: string }[] = [
+    { key: 'FRUITY', labelKey: 'COCKTAIL.FLAVOR_FRUITY', icon: 'water-outline' },
+    { key: 'SMOKY', labelKey: 'COCKTAIL.FLAVOR_SMOKY', icon: 'cloud-outline' },
+    { key: 'SWEET', labelKey: 'COCKTAIL.FLAVOR_SWEET', icon: 'sparkles-outline' },
+    { key: 'SOUR', labelKey: 'COCKTAIL.FLAVOR_SOUR', icon: 'water-outline' },
+    { key: 'BITTER', labelKey: 'COCKTAIL.FLAVOR_BITTER', icon: 'wine-outline' },
+    { key: 'SPICY', labelKey: 'COCKTAIL.FLAVOR_SPICY', icon: 'flame-outline' },
+    { key: 'HERBAL', labelKey: 'COCKTAIL.FLAVOR_HERBAL', icon: 'leaf-outline' },
+  ];
+
   cocktailForm: FormGroup = this.fb.group({
     name: ['', Validators.required],
     description: [''],
@@ -262,6 +297,11 @@ export class CocktailFormComponent implements OnInit {
     category: ['', Validators.required],
     glasswareId: [null],
     instructions: [''],
+    alcoholLevel: [null],
+    isMocktail: [false],
+    isVegan: [false],
+    isGlutenFree: [false],
+    station: ['BAR', Validators.required],
     recipeSteps: this.fb.array([]),
     variantes: this.fb.array([]),
   });
@@ -392,7 +432,122 @@ export class CocktailFormComponent implements OnInit {
       helpCircleOutline,
       closeOutline,
       informationCircleOutline,
+      cloudOutline,
+      nutritionOutline,
+      trendingUpOutline,
+      cashOutline,
+      calculatorOutline,
+      statsChartOutline,
+      beerOutline,
+      pizzaOutline,
     });
+  }
+
+  /** Computed recipe unit cost based on selected ingredients and inventory purchase costs. */
+  recipeCost = computed<number>(() => {
+    this.recipeVersion();
+    const steps = this.recipeStepsArray.controls;
+    const ingredients = this.ingredientsList();
+    let total = 0;
+
+    for (const ctrl of steps) {
+      if (ctrl.get('stepType')?.value === 'INGREDIENT') {
+        const ingId = ctrl.get('ingredientId')?.value;
+        const qty = Number(ctrl.get('quantite')?.value) || 0;
+        const unite = ctrl.get('unite')?.value;
+        if (ingId && qty > 0) {
+          const ing = ingredients.find((i) => i.id === +ingId);
+          if (ing) {
+            const unitCost = ing.prixUnitaire ?? (ing as any).unitCost ?? 0;
+            const cost = calculateIngredientCost(qty, unite, unitCost, ing.uniteMesure);
+            total += cost;
+          }
+        }
+      }
+    }
+    return Math.round(total * 100) / 100;
+  });
+
+  /** Computed VAT-exclusive selling price. */
+  sellingPriceHT = computed<number>(() => {
+    this.recipeVersion();
+    const price = Number(this.cocktailForm.get('price')?.value) || 0;
+    const vatRate = (this.appSettingsService?.defaultVatRate ?? 20) / 100;
+    return calculateGrossMargin(price, this.recipeCost(), vatRate).sellingPriceHT;
+  });
+
+  /** Computed gross margin amount in currency. */
+  grossMargin = computed<number>(() => {
+    this.recipeVersion();
+    const price = Number(this.cocktailForm.get('price')?.value) || 0;
+    const vatRate = (this.appSettingsService?.defaultVatRate ?? 20) / 100;
+    return calculateGrossMargin(price, this.recipeCost(), vatRate).grossMargin;
+  });
+
+  /** Computed gross margin percentage. */
+  grossMarginPercentage = computed<number>(() => {
+    this.recipeVersion();
+    const price = Number(this.cocktailForm.get('price')?.value) || 0;
+    const vatRate = (this.appSettingsService?.defaultVatRate ?? 20) / 100;
+    return calculateGrossMargin(price, this.recipeCost(), vatRate).grossMarginPercentage;
+  });
+
+  /** Badge semantic style for margin percentage ('success' | 'warning' | 'danger'). */
+  marginBadgeClass = computed<'success' | 'warning' | 'danger'>(() => {
+    const target = this.appSettingsService?.targetGrossMarginPercentage ?? 70;
+    const warning = this.appSettingsService?.warningGrossMarginPercentage ?? 50;
+    return getMarginBadgeClass(this.grossMarginPercentage(), target, warning);
+  });
+
+  /** Breakdown list of ingredient costs for preview. */
+  ingredientCostBreakdown = computed<Array<{ nom: string; quantite: number; unite: string; lineCost: number }>>(() => {
+    this.recipeVersion();
+    const steps = this.recipeStepsArray.controls;
+    const ingredients = this.ingredientsList();
+    const items: Array<{ nom: string; quantite: number; unite: string; lineCost: number }> = [];
+
+    for (const ctrl of steps) {
+      if (ctrl.get('stepType')?.value === 'INGREDIENT') {
+        const ingId = ctrl.get('ingredientId')?.value;
+        const qty = Number(ctrl.get('quantite')?.value) || 0;
+        const unite = ctrl.get('unite')?.value || '';
+        if (ingId && qty > 0) {
+          const ing = ingredients.find((i) => i.id === +ingId);
+          const nom = ing ? ing.nom : ctrl.get('ingredientNom')?.value || 'Ingrédient';
+          const unitCost = ing?.prixUnitaire ?? (ing as any)?.unitCost ?? 0;
+          const lineCost = calculateIngredientCost(qty, unite, unitCost, ing?.uniteMesure);
+          items.push({
+            nom,
+            quantite: qty,
+            unite,
+            lineCost,
+          });
+        }
+      }
+    }
+    return items;
+  });
+
+  /**
+   * Toggles selection state of a flavor profile chip.
+   * @param flavor Target flavor profile
+   */
+  toggleFlavorProfile(flavor: FlavorProfile): void {
+    const current = this.selectedFlavors();
+    if (current.includes(flavor)) {
+      this.selectedFlavors.set(current.filter((f) => f !== flavor));
+    } else {
+      this.selectedFlavors.set([...current, flavor]);
+    }
+  }
+
+  /**
+   * Checks if a flavor profile chip is selected.
+   * @param flavor Target flavor profile
+   * @returns True if active
+   */
+  isFlavorSelected(flavor: FlavorProfile): boolean {
+    return this.selectedFlavors().includes(flavor);
   }
 
   get recipeStepsArray(): FormArray {
@@ -425,6 +580,9 @@ export class CocktailFormComponent implements OnInit {
         next: (cocktail) => {
           this.cocktailData = cocktail;
           this.imagePreview = cocktail.imageUrl || null;
+          if (cocktail.flavorProfiles) {
+            this.selectedFlavors.set([...cocktail.flavorProfiles]);
+          }
           this.cocktailForm.patchValue({
             name: cocktail.nom,
             description: cocktail.description || '',
@@ -432,6 +590,11 @@ export class CocktailFormComponent implements OnInit {
             category: cocktail.categorie,
             glasswareId: cocktail.glassware?.id ?? cocktail.glasswareId ?? null,
             instructions: cocktail.instructions || '',
+            alcoholLevel: cocktail.alcoholLevel ?? null,
+            isMocktail: cocktail.isMocktail ?? false,
+            isVegan: cocktail.isVegan ?? false,
+            isGlutenFree: cocktail.isGlutenFree ?? false,
+            station: cocktail.station || 'BAR',
           });
 
           this.saisonnaliteState = {
@@ -1136,6 +1299,12 @@ export class CocktailFormComponent implements OnInit {
       categorie: formVal.category,
       glasswareId: formVal.glasswareId ? +formVal.glasswareId : null,
       instructions: formVal.instructions || null,
+      station: formVal.station || 'BAR',
+      flavorProfiles: this.selectedFlavors(),
+      alcoholLevel: formVal.alcoholLevel !== null && formVal.alcoholLevel !== '' ? +formVal.alcoholLevel : null,
+      isMocktail: formVal.isMocktail ?? false,
+      isVegan: formVal.isVegan ?? false,
+      isGlutenFree: formVal.isGlutenFree ?? false,
       disponible: this.cocktailData ? this.cocktailData.disponible : true,
       saisonnier: this.saisonnaliteState.saisonnier,
       dateDebutSaison: this.cocktailData?.dateDebutSaison || null,

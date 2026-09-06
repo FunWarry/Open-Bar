@@ -143,9 +143,17 @@ Après login, redirection directe vers la vue du rôle — pas d'écran intermé
 
 ## Cycle d'une commande
 
-```
-EN_ATTENTE → EN_PREPARATION → PRET → LIVREE → REGLEE
-                                           ↘ ANNULEE
+```mermaid
+flowchart LR
+    A([EN_ATTENTE]) -->|Start prep| B([EN_PREPARATION])
+    B -->|Ready datePret| C([PRET])
+    C -->|Delivered dateLivraison| D([LIVREE])
+    D -->|Settled dateReglement| E([REGLEE])
+    
+    A -.->|Cancel| X([ANNULEE])
+    B -.->|Cancel| X
+    C -.->|Cancel| X
+    D -.->|Cancel| X
 ```
 
 ---

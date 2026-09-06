@@ -1,5 +1,6 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TranslocoModule } from '@jsverse/transloco';
 import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { addOutline, removeOutline } from 'ionicons/icons';
@@ -8,12 +9,13 @@ import { environment } from '../../../../../environments/environment';
 /**
  * Atomic Product Card component conforming to Figma Design System ProductCard (ID 129:95).
  *
- * Displays a cocktail/menu item card with title, description, price badge, and quantity controls.
+ * Displays a cocktail/menu item card with title, description, price badge, quantity controls,
+ * visual flavor profile badges, and dietary indicators.
  */
 @Component({
   selector: 'app-product-card',
   standalone: true,
-  imports: [CommonModule, IonIcon],
+  imports: [CommonModule, TranslocoModule, IonIcon],
   templateUrl: './product-card.component.html',
   styleUrls: ['./product-card.component.css']
 })
@@ -27,6 +29,12 @@ export class ProductCardComponent {
   /** Price in EUR. */
   @Input() price!: number;
 
+  /** Whether the product currently has an active promotional Happy Hour discount. */
+  @Input() isHappyHour = false;
+
+  /** Non-discounted original catalog price in EUR. */
+  @Input() originalPrice?: number | null;
+
   /** Category badge text (e.g. Alcoholic, Non-Alcoholic). */
   @Input() category?: string;
 
@@ -38,6 +46,21 @@ export class ProductCardComponent {
 
   /** Custom data-testid attribute for E2E testing. */
   @Input() testId = 'product-card';
+
+  /** Flavor profile tags (FRUITY, SMOKY, etc.). */
+  @Input() flavorProfiles?: string[] = [];
+
+  /** Alcohol by volume percentage. */
+  @Input() alcoholLevel?: number | null;
+
+  /** Whether the cocktail is non-alcoholic mocktail. */
+  @Input() isMocktail = false;
+
+  /** Whether the cocktail is vegan friendly. */
+  @Input() isVegan = false;
+
+  /** Whether the cocktail is gluten-free. */
+  @Input() isGlutenFree = false;
 
   /** Event emitted when the add/increment button is clicked. */
   @Output() addClick = new EventEmitter<void>();

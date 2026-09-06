@@ -133,6 +133,19 @@
                 </app-searchable-select>
               </div>
 
+              <!-- Workstation Select Field -->
+              <div class="field-container">
+                <app-searchable-select
+                  formControlName="station"
+                  [label]="'STATIONS.WORKSTATION' | transloco"
+                  [placeholder]="'COMMON.SELECT' | transloco"
+                  [searchPlaceholder]="'STATIONS.SEARCH_WORKSTATION' | transloco"
+                  [required]="true"
+                  [options]="stationOptions()"
+                  testId="cocktail-form-station-select">
+                </app-searchable-select>
+              </div>
+
               <!-- Glassware Select Field with + New Glass button -->
               <div class="field-container">
                 <app-searchable-select
@@ -155,6 +168,64 @@
                 [required]="false"
                 testId="cocktail-form-description-input"
               ></app-input-field>
+            </div>
+
+            <!-- Dietary & Alcohol Preferences Section -->
+            <div class="section-dietary-flavors" data-testid="cocktail-form-dietary-section">
+              <div class="sub-section-header">
+                <ion-icon name="nutrition-outline"></ion-icon>
+                <h4>{{ 'COCKTAIL.DIETARY_FILTERS_LABEL' | transloco }}</h4>
+              </div>
+
+              <div class="dietary-controls-grid">
+                <app-input-field
+                  formControlName="alcoholLevel"
+                  type="number"
+                  [label]="'COCKTAIL.ALCOHOL_LEVEL_LABEL' | transloco"
+                  placeholder="0.0"
+                  testId="cocktail-form-alcohol-level-input">
+                </app-input-field>
+
+                <div class="dietary-checkboxes-group">
+                  <label class="dietary-check-item" data-testid="toggle-mocktail-label">
+                    <input type="checkbox" formControlName="isMocktail" data-testid="toggle-mocktail-checkbox" />
+                    <span>{{ 'COCKTAIL.MOCKTAIL_LABEL' | transloco }}</span>
+                  </label>
+
+                  <label class="dietary-check-item" data-testid="toggle-vegan-label">
+                    <input type="checkbox" formControlName="isVegan" data-testid="toggle-vegan-checkbox" />
+                    <span>🌱 {{ 'COCKTAIL.VEGAN_LABEL' | transloco }}</span>
+                  </label>
+
+                  <label class="dietary-check-item" data-testid="toggle-gluten-free-label">
+                    <input type="checkbox" formControlName="isGlutenFree" data-testid="toggle-gluten-free-checkbox" />
+                    <span>🌾 {{ 'COCKTAIL.GLUTEN_FREE_LABEL' | transloco }}</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Flavor Profiles Chip Selection Section -->
+            <div class="section-flavor-profiles" data-testid="cocktail-form-flavors-section">
+              <div class="sub-section-header">
+                <ion-icon name="sparkles-outline"></ion-icon>
+                <h4>{{ 'COCKTAIL.FLAVOR_PROFILES_LABEL' | transloco }}</h4>
+              </div>
+              <p class="flavor-section-hint">{{ 'COCKTAILS.FLAVORS' | transloco }}</p>
+
+              <div class="flavor-chips-container">
+                @for (flavor of availableFlavors; track flavor.key) {
+                  <button
+                    type="button"
+                    class="flavor-chip-button"
+                    [class.selected]="isFlavorSelected(flavor.key)"
+                    [attr.data-testid]="'flavor-chip-' + flavor.key.toLowerCase()"
+                    (click)="toggleFlavorProfile(flavor.key)">
+                    <ion-icon [name]="flavor.icon"></ion-icon>
+                    <span>{{ flavor.labelKey | transloco }}</span>
+                  </button>
+                }
+              </div>
             </div>
 
             <!-- Seasonal Availability Section (Create & Edit Mode) -->
@@ -214,6 +285,30 @@
                   <ion-icon name="create-outline"></ion-icon>
                   <span>+ {{ 'COCKTAILS.BUILDER.ADD_CUSTOM_TEXT' | transloco }}</span>
                 </button>
+              </div>
+            </div>
+
+            <!-- Live Recipe Cost & Margin Bar in Step 2 -->
+            <div class="live-recipe-cost-bar" data-testid="live-recipe-cost-bar">
+              <div class="cost-item">
+                <ion-icon name="calculator-outline"></ion-icon>
+                <span class="label">{{ 'COCKTAIL.COST_RECIPE' | transloco }}:</span>
+                <strong class="value" data-testid="live-recipe-cost-val">{{ recipeCost() | appCurrency }}</strong>
+              </div>
+              <div class="cost-divider"></div>
+              <div class="cost-item">
+                <ion-icon name="cash-outline"></ion-icon>
+                <span class="label">{{ 'ANALYTICS.MARGIN_SELLING_PRICE_HT' | transloco }}:</span>
+                <strong class="value">{{ sellingPriceHT() | appCurrency }}</strong>
+              </div>
+              <div class="cost-divider"></div>
+              <div class="cost-item">
+                <ion-icon name="trending-up-outline"></ion-icon>
+                <span class="label">{{ 'ANALYTICS.MARGIN_GROSS_MARGIN' | transloco }}:</span>
+                <strong class="value">{{ grossMargin() | appCurrency }}</strong>
+                <span class="margin-pill" [class]="'badge-' + marginBadgeClass()" data-testid="live-margin-pill">
+                  {{ grossMarginPercentage() }}%
+                </span>
               </div>
             </div>
 
@@ -582,6 +677,76 @@
                   </button>
                 </div>
               </div>
+            </div>
+
+            <!-- Financial Health & Gross Margin Card -->
+            <div class="preview-financial-card" data-testid="preview-financial-card">
+              <div class="preview-section-title">
+                <ion-icon name="stats-chart-outline"></ion-icon>
+                <div class="section-title-group">
+                  <h3>{{ 'ANALYTICS.MARGIN_FINANCIAL_HEALTH' | transloco }}</h3>
+                  <span class="section-subtitle">{{ 'ANALYTICS.MARGIN_FINANCIAL_HEALTH_HINT' | transloco }}</span>
+                </div>
+              </div>
+
+              <div class="financial-kpi-grid">
+                <!-- Recipe Cost (COGS) -->
+                <div class="financial-kpi-card" data-testid="preview-recipe-cost-card">
+                  <div class="kpi-icon-wrapper cost-icon">
+                    <ion-icon name="calculator-outline"></ion-icon>
+                  </div>
+                  <div class="kpi-content">
+                    <span class="kpi-label">{{ 'COCKTAIL.COST_RECIPE' | transloco }}</span>
+                    <strong class="kpi-value" data-testid="preview-recipe-cost">{{ recipeCost() | appCurrency }}</strong>
+                    <span class="kpi-hint">{{ 'COCKTAIL.COST_RECIPE_HINT' | transloco }}</span>
+                  </div>
+                </div>
+
+                <!-- Selling Price HT -->
+                <div class="financial-kpi-card" data-testid="preview-selling-ht-card">
+                  <div class="kpi-icon-wrapper price-icon">
+                    <ion-icon name="cash-outline"></ion-icon>
+                  </div>
+                  <div class="kpi-content">
+                    <span class="kpi-label">{{ 'ANALYTICS.MARGIN_SELLING_PRICE_HT' | transloco }}</span>
+                    <strong class="kpi-value" data-testid="preview-selling-price-ht">{{ sellingPriceHT() | appCurrency }}</strong>
+                    <span class="kpi-hint">TTC: {{ (cocktailForm.get('price')?.value || 0) | appCurrency }}</span>
+                  </div>
+                </div>
+
+                <!-- Gross Margin Amount & Percentage -->
+                <div class="financial-kpi-card" [class]="'margin-' + marginBadgeClass()" data-testid="preview-gross-margin-card">
+                  <div class="kpi-icon-wrapper margin-icon">
+                    <ion-icon name="trending-up-outline"></ion-icon>
+                  </div>
+                  <div class="kpi-content">
+                    <div class="kpi-header-row">
+                      <span class="kpi-label">{{ 'ANALYTICS.MARGIN_GROSS_MARGIN' | transloco }}</span>
+                      <span class="margin-badge" [class]="'badge-' + marginBadgeClass()" data-testid="preview-margin-badge">
+                        {{ grossMarginPercentage() }}%
+                      </span>
+                    </div>
+                    <strong class="kpi-value" data-testid="preview-gross-margin-amount">{{ grossMargin() | appCurrency }}</strong>
+                    <span class="kpi-hint">{{ 'ANALYTICS.MARGIN_RATE' | transloco }}: {{ grossMarginPercentage() }}%</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Ingredients Cost Breakdown Table -->
+              @if (ingredientCostBreakdown().length > 0) {
+                <div class="ingredient-cost-breakdown" data-testid="preview-ingredient-breakdown">
+                  <span class="breakdown-title">{{ 'COCKTAILS.BUILDER.INGREDIENTS_LIST' | transloco }} &amp; {{ 'COCKTAIL.COST_RECIPE' | transloco }}</span>
+                  <div class="breakdown-chips-list">
+                    @for (item of ingredientCostBreakdown(); track $index) {
+                      <div class="breakdown-chip" data-testid="preview-breakdown-chip">
+                        <span class="chip-ing-name">{{ item.nom }}</span>
+                        <span class="chip-ing-qty">{{ item.quantite }} {{ item.unite }}</span>
+                        <span class="chip-ing-cost">{{ item.lineCost | appCurrency }}</span>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
             </div>
 
             <!-- Dynamic Recipe Steps Timeline -->

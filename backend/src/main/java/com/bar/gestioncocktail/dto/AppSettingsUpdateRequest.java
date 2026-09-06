@@ -82,7 +82,90 @@ public record AppSettingsUpdateRequest(
     @Size(max = 20, message = "Wi-Fi security cannot exceed 20 characters")
     String wifiSecurity,
 
-    Boolean wifiEnabled
+    Boolean wifiEnabled,
+
+    Boolean tableSessionValidationEnabled,
+
+    @jakarta.validation.constraints.DecimalMin(value = "0.0", message = "Default VAT rate cannot be negative")
+    @jakarta.validation.constraints.DecimalMax(value = "100.0", message = "Default VAT rate cannot exceed 100%")
+    java.math.BigDecimal defaultVatRate,
+
+    @jakarta.validation.constraints.DecimalMin(value = "1.0", message = "Target margin must be at least 1%")
+    @jakarta.validation.constraints.DecimalMax(value = "100.0", message = "Target margin cannot exceed 100%")
+    java.math.BigDecimal targetGrossMarginPercentage,
+
+    @jakarta.validation.constraints.DecimalMin(value = "0.0", message = "Warning margin cannot be negative")
+    @jakarta.validation.constraints.DecimalMax(value = "100.0", message = "Warning margin cannot exceed 100%")
+    java.math.BigDecimal warningGrossMarginPercentage,
+
+    @Size(max = 100, message = "Bar printer IP cannot exceed 100 characters")
+    String barPrinterIp,
+
+    @Size(max = 100, message = "Kitchen printer IP cannot exceed 100 characters")
+    String kitchenPrinterIp,
+
+    @Size(max = 100, message = "Cash desk printer IP cannot exceed 100 characters")
+    String cashDeskPrinterIp,
+
+    @jakarta.validation.constraints.Min(value = 1, message = "Printer port must be at least 1")
+    @jakarta.validation.constraints.Max(value = 65535, message = "Printer port cannot exceed 65535")
+    Integer printerPort,
+
+    Boolean directPrintingEnabled
 ) {
+    /**
+     * Backwards-compatible 20-parameter constructor defaulting printer fields to null/9100/false.
+     */
+    public AppSettingsUpdateRequest(
+            String primaryColor, String primaryColorStrong, String logoUrl,
+            String establishmentName, DefaultTheme defaultTheme, String currencyCode,
+            String currencySymbol, CurrencyPosition currencyPosition,
+            Integer tempsAlerteWarningMinutes, Integer tempsAlerteCommandeMinutes,
+            Integer tempsAlerteCritiqueCommandeMinutes, String clientBaseUrl,
+            String wifiSsid, String wifiPassword, String wifiSecurity, Boolean wifiEnabled,
+            Boolean tableSessionValidationEnabled, java.math.BigDecimal defaultVatRate,
+            java.math.BigDecimal targetGrossMarginPercentage, java.math.BigDecimal warningGrossMarginPercentage) {
+        this(primaryColor, primaryColorStrong, logoUrl, establishmentName, defaultTheme,
+                currencyCode, currencySymbol, currencyPosition, tempsAlerteWarningMinutes,
+                tempsAlerteCommandeMinutes, tempsAlerteCritiqueCommandeMinutes, clientBaseUrl,
+                wifiSsid, wifiPassword, wifiSecurity, wifiEnabled, tableSessionValidationEnabled,
+                defaultVatRate, targetGrossMarginPercentage, warningGrossMarginPercentage,
+                null, null, null, 9100, false);
+    }
+
+    /**
+     * Backwards-compatible 17-parameter constructor defaulting financial margin fields to null and printer fields to null/9100/false.
+     */
+    public AppSettingsUpdateRequest(
+            String primaryColor, String primaryColorStrong, String logoUrl,
+            String establishmentName, DefaultTheme defaultTheme, String currencyCode,
+            String currencySymbol, CurrencyPosition currencyPosition,
+            Integer tempsAlerteWarningMinutes, Integer tempsAlerteCommandeMinutes,
+            Integer tempsAlerteCritiqueCommandeMinutes, String clientBaseUrl,
+            String wifiSsid, String wifiPassword, String wifiSecurity, Boolean wifiEnabled,
+            Boolean tableSessionValidationEnabled) {
+        this(primaryColor, primaryColorStrong, logoUrl, establishmentName, defaultTheme,
+                currencyCode, currencySymbol, currencyPosition, tempsAlerteWarningMinutes,
+                tempsAlerteCommandeMinutes, tempsAlerteCritiqueCommandeMinutes, clientBaseUrl,
+                wifiSsid, wifiPassword, wifiSecurity, wifiEnabled, tableSessionValidationEnabled,
+                null, null, null, null, null, null, 9100, false);
+    }
+
+    /**
+     * Backwards-compatible 16-parameter constructor defaulting tableSessionValidationEnabled to false, margins to null, and printers to null/9100/false.
+     */
+    public AppSettingsUpdateRequest(
+            String primaryColor, String primaryColorStrong, String logoUrl,
+            String establishmentName, DefaultTheme defaultTheme, String currencyCode,
+            String currencySymbol, CurrencyPosition currencyPosition,
+            Integer tempsAlerteWarningMinutes, Integer tempsAlerteCommandeMinutes,
+            Integer tempsAlerteCritiqueCommandeMinutes, String clientBaseUrl,
+            String wifiSsid, String wifiPassword, String wifiSecurity, Boolean wifiEnabled) {
+        this(primaryColor, primaryColorStrong, logoUrl, establishmentName, defaultTheme,
+                currencyCode, currencySymbol, currencyPosition, tempsAlerteWarningMinutes,
+                tempsAlerteCommandeMinutes, tempsAlerteCritiqueCommandeMinutes, clientBaseUrl,
+                wifiSsid, wifiPassword, wifiSecurity, wifiEnabled, false, null, null, null,
+                null, null, null, 9100, false);
+    }
 }
 

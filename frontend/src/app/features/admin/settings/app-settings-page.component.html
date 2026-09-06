@@ -73,6 +73,26 @@
       <ion-icon name="qr-code-outline"></ion-icon>
       <span>{{ 'SETTINGS.TAB_QR' | transloco }}</span>
     </button>
+
+    <button
+      type="button"
+      class="tab-btn"
+      [class.active]="activeTab === 'pricing'"
+      (click)="selectTab('pricing')"
+      data-testid="tab-pricing">
+      <ion-icon name="pricetag-outline"></ion-icon>
+      <span>{{ 'SETTINGS.TAB_PRICING' | transloco }}</span>
+    </button>
+
+    <button
+      type="button"
+      class="tab-btn"
+      [class.active]="activeTab === 'printers'"
+      (click)="selectTab('printers')"
+      data-testid="tab-printers">
+      <ion-icon name="print-outline"></ion-icon>
+      <span>{{ 'SETTINGS.TAB_PRINTERS' | transloco }}</span>
+    </button>
   </nav>
 
   @if (isLoading) {
@@ -283,6 +303,41 @@
                           testId="select-timezone">
                         </app-searchable-select>
                       </div>
+                    </ion-card-content>
+                  </ion-card>
+
+                  <!-- Carte Mises à Jour Système -->
+                  <ion-card class="settings-card updates-card" data-testid="settings-updates-card">
+                    <ion-card-header>
+                      <ion-card-title class="card-title">
+                        <ion-icon name="cloud-download-outline" class="title-icon"></ion-icon>
+                        {{ 'APP_SETTINGS_UPDATES.CARD_TITLE' | transloco }}
+                      </ion-card-title>
+                    </ion-card-header>
+                    <ion-card-content>
+                      <p class="settings-desc">{{ 'APP_SETTINGS_UPDATES.CARD_DESC' | transloco }}</p>
+                      <div class="system-version-info" style="display: flex; align-items: center; gap: 8px; margin: 12px 0;">
+                        <span class="version-label">{{ 'APP_SETTINGS_UPDATES.CURRENT_VERSION' | transloco }}</span>
+                        <ion-badge color="primary" data-testid="settings-system-version">v{{ currentAppVersion }}</ion-badge>
+                      </div>
+                      <div class="updates-action-row" style="margin-top: 12px;">
+                        <ion-button
+                          size="small"
+                          fill="outline"
+                          (click)="checkForUpdates()"
+                          (keyup.enter)="checkForUpdates()"
+                          [disabled]="isCheckingUpdates"
+                          data-testid="check-updates-btn"
+                        >
+                          <ion-icon name="refresh-outline" slot="start"></ion-icon>
+                          <span>{{ isCheckingUpdates ? ('APP_SETTINGS_UPDATES.CHECKING' | transloco) : ('APP_SETTINGS_UPDATES.CHECK_UPDATES_BTN' | transloco) }}</span>
+                        </ion-button>
+                      </div>
+                      @if (updateCheckMessage) {
+                        <p class="update-status-msg" [class.success]="updateCheckSuccess" [class.warning]="!updateCheckSuccess" data-testid="update-status-msg" style="margin-top: 10px; font-size: 0.85rem;">
+                          {{ updateCheckMessage }}
+                        </p>
+                      }
                     </ion-card-content>
                   </ion-card>
                 </ion-col>
@@ -607,6 +662,138 @@
                         <div class="preview-price-item">
                           <span>Total Addition Table :</span>
                           <strong class="price-val total-val" data-testid="preview-cocktail-total">{{ formatSamplePrice(147.8) }}</strong>
+                        </div>
+                      </div>
+                    </ion-card-content>
+                  </ion-card>
+                </ion-col>
+              </ion-row>
+
+              <!-- Row 2: Santé Financière, Marges & TVA -->
+              <ion-row>
+                <ion-col size="12" sizeLg="7">
+                  <ion-card class="settings-card" data-testid="card-margins-vat-settings">
+                    <ion-card-header>
+                      <ion-card-title class="card-title">
+                        <ion-icon name="speedometer-outline" class="title-icon"></ion-icon>
+                        {{ 'SETTINGS.MARGINS_VAT_TITLE' | transloco }}
+                      </ion-card-title>
+                    </ion-card-header>
+                    <ion-card-content>
+                      <p class="block-desc">{{ 'SETTINGS.MARGINS_VAT_SUBTITLE' | transloco }}</p>
+
+                      <!-- Quick VAT Presets -->
+                      <div class="currency-presets-box">
+                        <span class="presets-title">{{ 'SETTINGS.VAT_PRESETS' | transloco }}</span>
+                        <div class="currency-chips">
+                          @for (vp of vatPresets; track vp.country) {
+                            <button
+                              type="button"
+                              class="currency-chip"
+                              [class.active]="appSettingsForm.get('defaultVatRate')?.value === vp.rate"
+                              (click)="applyVatPreset(vp.rate)"
+                              [attr.data-testid]="'vat-preset-btn-' + vp.country">
+                              {{ vp.label }}
+                            </button>
+                          }
+                        </div>
+                      </div>
+
+                      <!-- Default VAT Rate -->
+                      <div class="field-item">
+                        <app-input-field
+                          type="number"
+                          formControlName="defaultVatRate"
+                          [label]="'SETTINGS.DEFAULT_VAT_RATE' | transloco"
+                          placeholder="20"
+                          testId="input-default-vat-rate">
+                        </app-input-field>
+                      </div>
+
+                      <div class="form-row-2">
+                        <app-input-field
+                          type="number"
+                          formControlName="targetGrossMarginPercentage"
+                          [label]="'SETTINGS.TARGET_GROSS_MARGIN' | transloco"
+                          [helperText]="'SETTINGS.TARGET_GROSS_MARGIN_HINT' | transloco"
+                          placeholder="70"
+                          testId="input-target-gross-margin">
+                        </app-input-field>
+
+                        <app-input-field
+                          type="number"
+                          formControlName="warningGrossMarginPercentage"
+                          [label]="'SETTINGS.WARNING_GROSS_MARGIN' | transloco"
+                          [helperText]="'SETTINGS.WARNING_GROSS_MARGIN_HINT' | transloco"
+                          placeholder="50"
+                          testId="input-warning-gross-margin">
+                        </app-input-field>
+                      </div>
+
+                      @if (appSettingsForm.errors?.['marginPriorityInvalid']) {
+                        <div class="hierarchy-error" data-testid="margin-priority-error">
+                          <ion-icon name="alert-circle-outline"></ion-icon>
+                          <span>{{ 'SETTINGS.MARGIN_THRESHOLD_ERROR' | transloco }}</span>
+                        </div>
+                      }
+                    </ion-card-content>
+                  </ion-card>
+                </ion-col>
+
+                <!-- Live Margin Thresholds Simulation -->
+                <ion-col size="12" sizeLg="5">
+                  <ion-card class="settings-card preview-card" data-testid="card-margins-preview">
+                    <ion-card-header>
+                      <ion-card-title class="card-title">
+                        <ion-icon name="sparkles-outline" class="title-icon"></ion-icon>
+                        {{ 'SETTINGS.MARGINS_PREVIEW_TITLE' | transloco }}
+                      </ion-card-title>
+                    </ion-card-header>
+                    <ion-card-content>
+                      <p class="preview-instructions">{{ 'SETTINGS.MARGINS_PREVIEW_DESC' | transloco }}</p>
+
+                      <!-- Sample 1: Excellent margin -->
+                      @let s1 = simulateMargin(12.00, 2.00);
+                      <div class="margin-preview-item" data-testid="margin-preview-excellent">
+                        <div class="margin-item-header">
+                          <span class="margin-item-title">{{ 'SETTINGS.SAMPLE_EXCELLENT_MARGIN' | transloco }}</span>
+                          <span class="pill-badge" [class]="getMarginBadgeClass(s1.margePct)">
+                            {{ s1.margePct }}%
+                          </span>
+                        </div>
+                        <div class="margin-item-details">
+                          <span>Prix: {{ formatSamplePrice(12.00) }} • Coût: {{ formatSamplePrice(2.00) }}</span>
+                          <span class="margin-gain">+{{ formatSamplePrice(s1.margeBrute) }}</span>
+                        </div>
+                      </div>
+
+                      <!-- Sample 2: Warning margin -->
+                      @let s2 = simulateMargin(10.00, 3.80);
+                      <div class="margin-preview-item" data-testid="margin-preview-warning">
+                        <div class="margin-item-header">
+                          <span class="margin-item-title">{{ 'SETTINGS.SAMPLE_WARNING_MARGIN' | transloco }}</span>
+                          <span class="pill-badge" [class]="getMarginBadgeClass(s2.margePct)">
+                            {{ s2.margePct }}%
+                          </span>
+                        </div>
+                        <div class="margin-item-details">
+                          <span>Prix: {{ formatSamplePrice(10.00) }} • Coût: {{ formatSamplePrice(3.80) }}</span>
+                          <span class="margin-gain">+{{ formatSamplePrice(s2.margeBrute) }}</span>
+                        </div>
+                      </div>
+
+                      <!-- Sample 3: Critical margin -->
+                      @let s3 = simulateMargin(8.00, 4.50);
+                      <div class="margin-preview-item" data-testid="margin-preview-critical">
+                        <div class="margin-item-header">
+                          <span class="margin-item-title">{{ 'SETTINGS.SAMPLE_CRITICAL_MARGIN' | transloco }}</span>
+                          <span class="pill-badge" [class]="getMarginBadgeClass(s3.margePct)">
+                            {{ s3.margePct }}%
+                          </span>
+                        </div>
+                        <div class="margin-item-details">
+                          <span>Prix: {{ formatSamplePrice(8.00) }} • Coût: {{ formatSamplePrice(4.50) }}</span>
+                          <span class="margin-gain">+{{ formatSamplePrice(s3.margeBrute) }}</span>
                         </div>
                       </div>
                     </ion-card-content>
@@ -956,6 +1143,27 @@
                           </div>
                         </div>
                       }
+
+                      <div class="divider-line"></div>
+
+                      <!-- Ephemeral Table Session Validation Setup -->
+                      <div class="form-section-subtitle">
+                        <ion-icon name="shield-checkmark-outline"></ion-icon>
+                        <span>{{ 'SETTINGS.QR_SESSION_VALIDATION_TITLE' | transloco }}</span>
+                      </div>
+
+                      <div class="toggle-row-box">
+                        <div class="toggle-info">
+                          <label class="toggle-title" for="table-session-validation-toggle">{{ 'SETTINGS.QR_SESSION_VALIDATION_LABEL' | transloco }}</label>
+                          <span class="toggle-desc">{{ 'SETTINGS.QR_SESSION_VALIDATION_HINT' | transloco }}</span>
+                        </div>
+                        <input
+                          id="table-session-validation-toggle"
+                          type="checkbox"
+                          formControlName="tableSessionValidationEnabled"
+                          class="switch-input"
+                          data-testid="toggle-table-session-validation" />
+                      </div>
                     </ion-card-content>
                   </ion-card>
                 </ion-col>
@@ -992,6 +1200,178 @@
                             </div>
                           </div>
                         }
+                      </div>
+                    </ion-card-content>
+                  </ion-card>
+                </ion-col>
+              </ion-row>
+            </ion-grid>
+          </form>
+        </section>
+      }
+
+      <!-- ========================================== -->
+      <!-- TAB 6: Happy Hour & Tarifs Dynamiques      -->
+      <!-- ========================================== -->
+      @if (activeTab === 'pricing') {
+        <section class="tab-panel" data-testid="panel-pricing">
+          <app-happy-hour-config></app-happy-hour-config>
+        </section>
+      }
+
+      <!-- ========================================== -->
+      <!-- TAB 7: Imprimantes Réseau ESC/POS         -->
+      <!-- ========================================== -->
+      @if (activeTab === 'printers') {
+        <section class="tab-panel" data-testid="panel-printers">
+          <form [formGroup]="appSettingsForm" class="settings-form">
+            <ion-grid>
+              <ion-row>
+                <!-- Colonne Gauche: Activation & Ports & Postes -->
+                <ion-col size="12" sizeLg="7">
+                  <ion-card class="settings-card">
+                    <ion-card-header>
+                      <ion-card-title class="card-title">
+                        <ion-icon name="print-outline" class="title-icon"></ion-icon>
+                        {{ 'SETTINGS.PRINTERS_TITLE' | transloco }}
+                      </ion-card-title>
+                    </ion-card-header>
+                    <ion-card-content>
+                      <p class="section-lead">{{ 'SETTINGS.PRINTERS_SUBTITLE' | transloco }}</p>
+
+                      <!-- Activation Globale -->
+                      <div class="field-item checkbox-field">
+                        <label class="checkbox-label" for="directPrintingEnabled">
+                          <input
+                            type="checkbox"
+                            id="directPrintingEnabled"
+                            formControlName="directPrintingEnabled"
+                            data-testid="toggle-direct-printing" />
+                          <span class="checkbox-custom"></span>
+                          <div class="checkbox-text">
+                            <strong>{{ 'SETTINGS.DIRECT_PRINTING_ENABLE' | transloco }}</strong>
+                            <p class="field-hint">{{ 'SETTINGS.DIRECT_PRINTING_DESC' | transloco }}</p>
+                          </div>
+                        </label>
+                      </div>
+
+                      <!-- Port TCP Standard -->
+                      <div class="field-item">
+                        <app-input-field
+                          formControlName="printerPort"
+                          type="number"
+                          [label]="'SETTINGS.PRINTER_PORT' | transloco"
+                          [helperText]="'SETTINGS.PRINTER_PORT_HINT' | transloco"
+                          placeholder="9100"
+                          [required]="true"
+                          data-testid="input-printer-port">
+                        </app-input-field>
+                      </div>
+
+                      <div class="form-section-title">{{ 'SETTINGS.BAR_PRINTER_TITLE' | transloco }}</div>
+                      <div class="printer-row-flex">
+                        <div class="printer-input-grow">
+                          <app-input-field
+                            formControlName="barPrinterIp"
+                            [label]="'SETTINGS.BAR_PRINTER_IP' | transloco"
+                            [helperText]="'SETTINGS.BAR_PRINTER_HINT' | transloco"
+                            placeholder="192.168.1.101"
+                            data-testid="input-bar-printer-ip">
+                          </app-input-field>
+                        </div>
+                        <div class="printer-action-btn-wrap">
+                          <app-action-button
+                            type="button"
+                            variant="secondary"
+                            [loading]="isTestingPrinter['BAR']"
+                            [disabled]="!appSettingsForm.get('barPrinterIp')?.value || isTestingPrinter['BAR']"
+                            (btnClick)="testPrint('BAR')"
+                            data-testid="btn-test-bar-printer">
+                            <ion-icon name="print-outline" slot="start"></ion-icon>
+                            {{ 'SETTINGS.TEST_PRINT_BTN' | transloco }}
+                          </app-action-button>
+                        </div>
+                      </div>
+
+                      <div class="form-section-title">{{ 'SETTINGS.KITCHEN_PRINTER_TITLE' | transloco }}</div>
+                      <div class="printer-row-flex">
+                        <div class="printer-input-grow">
+                          <app-input-field
+                            formControlName="kitchenPrinterIp"
+                            [label]="'SETTINGS.KITCHEN_PRINTER_IP' | transloco"
+                            [helperText]="'SETTINGS.KITCHEN_PRINTER_HINT' | transloco"
+                            placeholder="192.168.1.102"
+                            data-testid="input-kitchen-printer-ip">
+                          </app-input-field>
+                        </div>
+                        <div class="printer-action-btn-wrap">
+                          <app-action-button
+                            type="button"
+                            variant="secondary"
+                            [loading]="isTestingPrinter['KITCHEN']"
+                            [disabled]="!appSettingsForm.get('kitchenPrinterIp')?.value || isTestingPrinter['KITCHEN']"
+                            (btnClick)="testPrint('KITCHEN')"
+                            data-testid="btn-test-kitchen-printer">
+                            <ion-icon name="print-outline" slot="start"></ion-icon>
+                            {{ 'SETTINGS.TEST_PRINT_BTN' | transloco }}
+                          </app-action-button>
+                        </div>
+                      </div>
+
+                      <div class="form-section-title">{{ 'SETTINGS.CASH_DESK_PRINTER_TITLE' | transloco }}</div>
+                      <div class="printer-row-flex">
+                        <div class="printer-input-grow">
+                          <app-input-field
+                            formControlName="cashDeskPrinterIp"
+                            [label]="'SETTINGS.CASH_DESK_PRINTER_IP' | transloco"
+                            [helperText]="'SETTINGS.CASH_DESK_PRINTER_HINT' | transloco"
+                            placeholder="192.168.1.103"
+                            data-testid="input-cash-desk-printer-ip">
+                          </app-input-field>
+                        </div>
+                        <div class="printer-action-btn-wrap">
+                          <app-action-button
+                            type="button"
+                            variant="secondary"
+                            [loading]="isTestingPrinter['CASH_DESK']"
+                            [disabled]="!appSettingsForm.get('cashDeskPrinterIp')?.value || isTestingPrinter['CASH_DESK']"
+                            (btnClick)="testPrint('CASH_DESK')"
+                            data-testid="btn-test-cash-desk-printer">
+                            <ion-icon name="print-outline" slot="start"></ion-icon>
+                            {{ 'SETTINGS.TEST_PRINT_BTN' | transloco }}
+                          </app-action-button>
+                        </div>
+                      </div>
+
+                    </ion-card-content>
+                  </ion-card>
+                </ion-col>
+
+                <!-- Colonne Droite: Tiroir-caisse & Diagnostic / Aide -->
+                <ion-col size="12" sizeLg="5">
+                  <ion-card class="settings-card">
+                    <ion-card-header>
+                      <ion-card-title class="card-title">
+                        <ion-icon name="hardware-chip-outline" class="title-icon"></ion-icon>
+                        {{ 'SETTINGS.TEST_DRAWER_TITLE' | transloco }}
+                      </ion-card-title>
+                    </ion-card-header>
+                    <ion-card-content>
+                      <p class="field-hint">
+                        {{ 'SETTINGS.PRINTER_ONLINE_HINT' | transloco }}
+                      </p>
+
+                      <div class="drawer-test-box">
+                        <app-action-button
+                          type="button"
+                          variant="primary"
+                          [loading]="isTestingPrinter['drawer']"
+                          [disabled]="!appSettingsForm.get('cashDeskPrinterIp')?.value || isTestingPrinter['drawer']"
+                          (btnClick)="testCashDrawer()"
+                          data-testid="btn-test-cash-drawer">
+                          <ion-icon name="hardware-chip-outline" slot="start"></ion-icon>
+                          {{ 'SETTINGS.TEST_DRAWER_BTN' | transloco }}
+                        </app-action-button>
                       </div>
                     </ion-card-content>
                   </ion-card>

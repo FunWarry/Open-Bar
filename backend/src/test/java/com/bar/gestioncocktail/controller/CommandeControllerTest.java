@@ -1,5 +1,6 @@
 package com.bar.gestioncocktail.controller;
 
+import com.bar.gestioncocktail.dto.BatchTransitionRequestDTO;
 import com.bar.gestioncocktail.dto.CommandeItemRequestDTO;
 import com.bar.gestioncocktail.dto.CommandeRequestDTO;
 import com.bar.gestioncocktail.dto.CommandeResponseDTO;
@@ -219,5 +220,111 @@ class CommandeControllerTest {
 
         assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         verify(commandeService).setUrgent(10L, true);
+    }
+
+    @Test
+    @DisplayName("updateItemStatut - updates item status and returns updated DTO")
+    void updateItemStatut_success() {
+        CommandeItem item = new CommandeItem();
+        item.setId(99L);
+        item.setStation(com.bar.gestioncocktail.model.PreparationStation.KITCHEN);
+        item.setStatut(CommandeStatut.PRET);
+        item.setQuantite(2);
+        item.setCommande(commande);
+        commande.setItems(List.of(item));
+
+        when(commandeService.updateItemStatut(10L, 99L, CommandeStatut.PRET)).thenReturn(commande);
+
+        ResponseEntity<CommandeResponseDTO> response =
+                commandeController.updateItemStatut(10L, 99L, Map.of("statut", (Object) "PRET"), null);
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getBody()).isNotNull();
+        verify(commandeService).updateItemStatut(10L, 99L, CommandeStatut.PRET);
+    }
+
+    @Test
+    @DisplayName("getCommandesByStation - retrieves orders for given preparation station")
+    void getCommandesByStation_success() {
+        when(commandeService.getCommandesByStation(com.bar.gestioncocktail.model.PreparationStation.KITCHEN)).thenReturn(List.of(commande));
+
+        ResponseEntity<List<CommandeResponseDTO>> response =
+                commandeController.getCommandesByStation(com.bar.gestioncocktail.model.PreparationStation.KITCHEN);
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getBody()).hasSize(1);
+        verify(commandeService).getCommandesByStation(com.bar.gestioncocktail.model.PreparationStation.KITCHEN);
+    }
+
+    @Test
+    @DisplayName("updateItemStatutDirect - updates status using query parameter")
+    void updateItemStatutDirect_param_success() {
+        when(commandeService.updateItemStatut(99L, CommandeStatut.PRET)).thenReturn(commande);
+
+        ResponseEntity<CommandeResponseDTO> response =
+                commandeController.updateItemStatutDirect(99L, null, CommandeStatut.PRET);
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        verify(commandeService).updateItemStatut(99L, CommandeStatut.PRET);
+    }
+
+    @Test
+    @DisplayName("updateItemStatutDirect - updates status using body map")
+    void updateItemStatutDirect_body_success() {
+        when(commandeService.updateItemStatut(99L, CommandeStatut.EN_PREPARATION)).thenReturn(commande);
+
+        ResponseEntity<CommandeResponseDTO> response =
+                commandeController.updateItemStatutDirect(99L, Map.of("statut", "EN_PREPARATION"), null);
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        verify(commandeService).updateItemStatut(99L, CommandeStatut.EN_PREPARATION);
+    }
+
+    @Test
+    @DisplayName("updateItemStatut - throws BusinessException when status missing")
+    void updateItemStatut_missingStatus_throwsBusinessException() {
+        assertThatThrownBy(() -> commandeController.updateItemStatut(10L, 99L, null, null))
+                .isInstanceOf(com.bar.gestioncocktail.exception.BusinessException.class);
+    }
+
+    @Test
+    @DisplayName("updateItemStatutDirect - throws BusinessException when status missing")
+    void updateItemStatutDirect_missingStatus_throwsBusinessException() {
+        assertThatThrownBy(() -> commandeController.updateItemStatutDirect(99L, null, null))
+                .isInstanceOf(com.bar.gestioncocktail.exception.BusinessException.class);
+    }
+
+    @Test
+    @DisplayName("transitionBatch - with itemIds transitions multiple items and returns DTO list")
+    void transitionBatch_withItemIds_success() {
+        when(commandeService.transitionBatch(List.of(101L, 102L), null, CommandeStatut.EN_PREPARATION))
+                .thenReturn(List.of(commande));
+
+        BatchTransitionRequestDTO request = new BatchTransitionRequestDTO(
+                List.of(101L, 102L), null, CommandeStatut.EN_PREPARATION
+        );
+
+        ResponseEntity<List<CommandeResponseDTO>> response = commandeController.transitionBatch(request);
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getBody()).hasSize(1);
+        verify(commandeService).transitionBatch(List.of(101L, 102L), null, CommandeStatut.EN_PREPARATION);
+    }
+
+    @Test
+    @DisplayName("transitionBatch - with cocktailId transitions matching items")
+    void transitionBatch_withCocktailId_success() {
+        when(commandeService.transitionBatch(null, 50L, CommandeStatut.PRET))
+                .thenReturn(List.of(commande));
+
+        BatchTransitionRequestDTO request = new BatchTransitionRequestDTO(
+                null, 50L, CommandeStatut.PRET
+        );
+
+        ResponseEntity<List<CommandeResponseDTO>> response = commandeController.transitionBatch(request);
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getBody()).hasSize(1);
+        verify(commandeService).transitionBatch(null, 50L, CommandeStatut.PRET);
     }
 }

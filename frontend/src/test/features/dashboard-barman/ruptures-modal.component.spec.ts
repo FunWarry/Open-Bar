@@ -65,7 +65,14 @@ describe('RupturesModalComponent', () => {
   const mockToast = { present: jasmine.createSpy('present').and.returnValue(Promise.resolve()) };
 
   beforeEach(async () => {
-    modalCtrlSpy = jasmine.createSpyObj('ModalController', ['dismiss']);
+    const childModalSpy = {
+      present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+      onDidDismiss: jasmine.createSpy('onDidDismiss').and.returnValue(
+        Promise.resolve({ role: 'saved', data: { movement: { quantity: 10 } } })
+      )
+    };
+    modalCtrlSpy = jasmine.createSpyObj('ModalController', ['dismiss', 'create']);
+    modalCtrlSpy.create.and.returnValue(Promise.resolve(childModalSpy as any));
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
     toastCtrlSpy.create.and.returnValue(Promise.resolve(mockToast as any));
 
@@ -160,5 +167,13 @@ describe('RupturesModalComponent', () => {
   it('dismiss() ferme la modale', () => {
     component.dismiss();
     expect(modalCtrlSpy.dismiss).toHaveBeenCalled();
+  });
+
+  it('openWasteModal() opens StockWasteModalComponent and deducts quantity from ingredient', async () => {
+    const ingredient = { ...mockIngredients[0], quantiteStock: 50 };
+    await component.openWasteModal(ingredient);
+    expect(modalCtrlSpy.create).toHaveBeenCalled();
+    // 50 - 10 = 40
+    expect(ingredient.quantiteStock).toBe(40);
   });
 });

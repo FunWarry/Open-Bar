@@ -1,0 +1,195 @@
+.matcher-bar-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: var(--background-surface-1);
+  border: 1px solid var(--border-medium);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.matcher-bar-container.compact {
+  padding: 10px 12px;
+  gap: 8px;
+  background: var(--background-surface-2);
+  border-radius: 8px;
+}
+
+.matcher-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.matcher-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.matcher-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.matcher-subtitle {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.matcher-reset-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-medium);
+  border-radius: 20px;
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.matcher-reset-btn:hover {
+  color: var(--semantic-danger);
+  border-color: var(--semantic-danger);
+}
+
+.matcher-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.section-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+}
+
+.chips-scroll-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: thin;
+}
+
+.chips-scroll-wrapper::-webkit-scrollbar {
+  height: 4px;
+}
+
+.chips-scroll-wrapper::-webkit-scrollbar-thumb {
+  background: var(--border-medium);
+  border-radius: 4px;
+}
+
+/* Flavor Chips */
+.flavor-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--background-surface-2);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-medium);
+  border-radius: 20px;
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.flavor-chip .chip-icon {
+  font-size: 1rem;
+}
+
+.flavor-chip:hover {
+  color: var(--text-primary);
+  border-color: var(--primary);
+  transform: translateY(-1px);
+}
+
+.flavor-chip.active {
+  background: var(--primary);
+  color: var(--background-bg-0);
+  border-color: var(--primary-strong);
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(108, 127, 232, 0.35);
+}
+
+.count-badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  background: var(--background-surface-3);
+  color: var(--text-primary);
+  border-radius: 10px;
+  padding: 1px 6px;
+  margin-left: 2px;
+}
+
+.flavor-chip.active .count-badge {
+  background: var(--background-bg-0);
+  color: var(--text-primary);
+}
+
+/* Dietary Chips */
+.dietary-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--background-surface-2);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-medium);
+  border-radius: 20px;
+  padding: 5px 11px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.dietary-chip .dietary-icon {
+  font-size: 0.95rem;
+}
+
+.dietary-chip:hover {
+  color: var(--text-primary);
+  border-color: var(--semantic-success);
+}
+
+.dietary-chip.active {
+  background: var(--semantic-success);
+  color: var(--background-bg-0);
+  border-color: var(--semantic-success);
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(47, 191, 107, 0.3);
+}
+
+.dietary-chip.active .count-badge {
+  background: var(--background-bg-0);
+  color: var(--text-primary);
+}
+
+.reset-chip {
+  color: var(--semantic-danger);
+  border-color: var(--semantic-danger);
+}
+
+.reset-chip:hover {
+  background: var(--semantic-danger);
+  color: var(--background-bg-0);
+}

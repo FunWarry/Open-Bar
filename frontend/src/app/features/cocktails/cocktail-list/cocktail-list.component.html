@@ -187,6 +187,18 @@
           }
         </div>
       </div>
+
+      <!-- Interactive Cocktail Matcher Filter Bar -->
+      <app-cocktail-matcher-bar
+        [facets]="catalogFacets"
+        [activeFlavors]="selectedFlavors"
+        [mocktail]="matcherMocktail"
+        [vegan]="matcherVegan"
+        [glutenFree]="matcherGlutenFree"
+        [lowAbv]="matcherLowAbv"
+        (filtersChange)="onMatcherFiltersChange($event)"
+        (resetFilters)="onResetMatcherFilters()">
+      </app-cocktail-matcher-bar>
     </div>
 
     @if (isLoading) {
@@ -249,6 +261,35 @@
                           }
                         </div>
                       }
+
+                      <!-- Flavor Profile Badges -->
+                      @if (cocktail.flavorProfiles && cocktail.flavorProfiles.length > 0) {
+                        <div class="card-flavors-row" [attr.data-testid]="'cocktail-flavors-' + cocktail.id">
+                          @for (flavor of cocktail.flavorProfiles; track flavor) {
+                            <span class="figma-flavor-badge" [attr.data-flavor]="flavor">
+                              {{ ('COCKTAIL.FLAVOR_' + flavor) | transloco }}
+                            </span>
+                          }
+                        </div>
+                      }
+
+                      <!-- Dietary Tags -->
+                      @if (cocktail.isMocktail || cocktail.isVegan || cocktail.isGlutenFree || (cocktail.alcoholLevel !== null && cocktail.alcoholLevel !== undefined && cocktail.alcoholLevel > 0)) {
+                        <div class="card-dietary-row" [attr.data-testid]="'cocktail-dietary-' + cocktail.id">
+                          @if (cocktail.isMocktail) {
+                            <span class="dietary-badge mocktail">{{ 'CLIENT_QR.MATCHER_MOCKTAIL' | transloco }}</span>
+                          }
+                          @if (cocktail.isVegan) {
+                            <span class="dietary-badge vegan">🌱 {{ 'CLIENT_QR.MATCHER_VEGAN' | transloco }}</span>
+                          }
+                          @if (cocktail.isGlutenFree) {
+                            <span class="dietary-badge gluten-free">🌾 {{ 'CLIENT_QR.MATCHER_GLUTEN_FREE' | transloco }}</span>
+                          }
+                          @if (cocktail.alcoholLevel !== null && cocktail.alcoholLevel !== undefined && cocktail.alcoholLevel > 0) {
+                            <span class="dietary-badge abv">{{ cocktail.alcoholLevel }}% ABV</span>
+                          }
+                        </div>
+                      }
                     </div>
 
                     <div class="figma-card-bottom-row">
@@ -277,7 +318,19 @@
                           </ion-button>
                         }
                       </div>
-                      <span class="figma-cocktail-price">{{ cocktail.prix | currency:'EUR' }}</span>
+                      <div class="price-and-margin-col">
+                        <span class="figma-cocktail-price">{{ cocktail.prix | currency:'EUR' }}</span>
+                        @if (cocktail.recipeCost != null && cocktail.recipeCost > 0) {
+                          <div class="card-margin-meta" [attr.data-testid]="'cocktail-margin-info-' + cocktail.id">
+                            <span class="cost-sublabel">{{ 'COCKTAIL.COST_RECIPE' | transloco }}: {{ cocktail.recipeCost | currency:'EUR' }}</span>
+                            @if (cocktail.grossMarginPercentage != null) {
+                              <span class="margin-rate-tag" [class]="'badge-' + getMarginBadgeClass(cocktail.grossMarginPercentage)" [title]="'ANALYTICS.MARGIN_RATE' | transloco">
+                                {{ cocktail.grossMarginPercentage }}%
+                              </span>
+                            }
+                          </div>
+                        }
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -316,9 +369,34 @@
                         </small>
                       </p>
                     }
+                    @if (cocktail.flavorProfiles && cocktail.flavorProfiles.length > 0) {
+                      <div class="list-flavors-row" [attr.data-testid]="'cocktail-flavors-list-' + cocktail.id">
+                        @for (flavor of cocktail.flavorProfiles; track flavor) {
+                          <span class="figma-flavor-badge" [attr.data-flavor]="flavor">
+                            {{ ('COCKTAIL.FLAVOR_' + flavor) | transloco }}
+                          </span>
+                        }
+                      </div>
+                    }
+                    @if (cocktail.isMocktail || cocktail.isVegan || cocktail.isGlutenFree || (cocktail.alcoholLevel !== null && cocktail.alcoholLevel !== undefined && cocktail.alcoholLevel > 0)) {
+                      <div class="list-dietary-row" [attr.data-testid]="'cocktail-dietary-list-' + cocktail.id">
+                        @if (cocktail.isMocktail) {
+                          <span class="dietary-badge mocktail">{{ 'CLIENT_QR.MATCHER_MOCKTAIL' | transloco }}</span>
+                        }
+                        @if (cocktail.isVegan) {
+                          <span class="dietary-badge vegan">🌱 {{ 'CLIENT_QR.MATCHER_VEGAN' | transloco }}</span>
+                        }
+                        @if (cocktail.isGlutenFree) {
+                          <span class="dietary-badge gluten-free">🌾 {{ 'CLIENT_QR.MATCHER_GLUTEN_FREE' | transloco }}</span>
+                        }
+                        @if (cocktail.alcoholLevel !== null && cocktail.alcoholLevel !== undefined && cocktail.alcoholLevel > 0) {
+                          <span class="dietary-badge abv">{{ cocktail.alcoholLevel }}% ABV</span>
+                        }
+                      </div>
+                    }
                   </ion-label>
                   @if (isHorsSaison(cocktail)) {
-                    <ion-badge slot="end" color="warning">Hors saison</ion-badge>
+                    <ion-badge slot="end" color="warning">{{ 'COCKTAILS.OFF_SEASON' | transloco }}</ion-badge>
                   }
                   <div slot="end" class="list-availability-wrapper">
                     <button
@@ -333,6 +411,16 @@
                       <span class="slider-label">{{ (cocktail.disponible ? 'COCKTAILS.AVAILABLE' : 'COCKTAILS.UNAVAILABLE') | transloco }}</span>
                     </button>
                   </div>
+                  @if (cocktail.recipeCost != null && cocktail.recipeCost > 0) {
+                    <div slot="end" class="list-margin-info" [attr.data-testid]="'cocktail-margin-list-' + cocktail.id">
+                      <small class="list-cost-label">{{ 'COCKTAIL.COST_RECIPE' | transloco }}: {{ cocktail.recipeCost | currency:'EUR' }}</small>
+                      @if (cocktail.grossMarginPercentage != null) {
+                        <span class="margin-rate-tag" [class]="'badge-' + getMarginBadgeClass(cocktail.grossMarginPercentage)">
+                          {{ cocktail.grossMarginPercentage }}%
+                        </span>
+                      }
+                    </div>
+                  }
                   <ion-badge slot="end" color="primary">{{ cocktail.prix | currency:'EUR' }}</ion-badge>
                   <ion-buttons slot="end">
                     @if (isAdmin$ | async) {

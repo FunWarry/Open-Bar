@@ -26,6 +26,8 @@ import {
   IonCardContent,
   IonSpinner,
   IonIcon,
+  IonBadge,
+  IonButton,
   ToastController,
   AlertController,
 } from '@ionic/angular/standalone';
@@ -38,6 +40,7 @@ import {
   saveOutline,
   refreshOutline,
   sparklesOutline,
+  cloudDownloadOutline,
   moonOutline,
   sunnyOutline,
   desktopOutline,
@@ -53,7 +56,11 @@ import {
   globeOutline,
   lockClosedOutline,
   rocketOutline,
+  pricetagOutline,
+  printOutline,
+  hardwareChipOutline,
 } from 'ionicons/icons';
+import { HappyHourConfigComponent } from './components/happy-hour-config/happy-hour-config.component';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { Subject, forkJoin, of } from 'rxjs';
 import { takeUntil, catchError } from 'rxjs/operators';
@@ -78,8 +85,11 @@ import { InputFieldComponent } from '../../../core/components/ui/input-field/inp
 import { SearchableSelectComponent, SearchableOption } from '../../../core/components/ui/searchable-select/searchable-select.component';
 import { TicketReceiptComponent } from '../../factures/ticket-receipt/ticket-receipt.component';
 import { Facture } from '../../factures/models/facture.model';
+import { PrinterService } from '../../../core/services/printer.service';
+import { AppUpdateService } from '../../../core/services/app-update.service';
+import { PrinterRole } from '../../../core/models/printer.model';
 
-export type SettingsTab = 'legal' | 'timers' | 'currency' | 'theme' | 'qr';
+export type SettingsTab = 'legal' | 'timers' | 'currency' | 'theme' | 'qr' | 'pricing' | 'printers';
 
 const HEX_COLOR_PATTERN = /^#[0-9A-Fa-f]{6}$/;
 
@@ -121,6 +131,19 @@ export function thresholdPriorityValidator(group: AbstractControl): ValidationEr
   return null;
 }
 
+/**
+ * Cross-field validator ensuring Warning Gross Margin < Target Gross Margin.
+ */
+export function marginThresholdPriorityValidator(group: AbstractControl): ValidationErrors | null {
+  const warning = Number(group.get('warningGrossMarginPercentage')?.value);
+  const target = Number(group.get('targetGrossMarginPercentage')?.value);
+
+  if (!Number.isNaN(warning) && !Number.isNaN(target) && warning >= target) {
+    return { marginPriorityInvalid: true };
+  }
+  return null;
+}
+
 export interface CadencePreset {
   nameKey: string;
   warning: number;
@@ -132,6 +155,12 @@ export interface CurrencyPreset {
   code: string;
   symbol: string;
   position: CurrencyPosition;
+}
+
+export interface VatPreset {
+  country: string;
+  rate: number;
+  label: string;
 }
 
 /**
@@ -157,6 +186,8 @@ export interface CurrencyPreset {
     IonCardContent,
     IonSpinner,
     IonIcon,
+    IonBadge,
+    IonButton,
     TranslocoPipe,
     ActionButtonComponent,
     RoleBadgeComponent,
@@ -164,6 +195,7 @@ export interface CurrencyPreset {
     InputFieldComponent,
     SearchableSelectComponent,
     TicketReceiptComponent,
+    HappyHourConfigComponent,
   ],
 })
 export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingChanges {
@@ -178,7 +210,16 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
   private readonly toastCtrl = inject(ToastController);
   private readonly alertCtrl = inject(AlertController);
   private readonly translocoService = inject(TranslocoService);
+  private readonly printerService = inject(PrinterService);
+  private readonly appUpdateService = inject(AppUpdateService);
   private readonly destroy$ = new Subject<void>();
+
+  currentAppVersion = this.appUpdateService.currentVersion;
+  isCheckingUpdates = false;
+  updateCheckMessage: string | null = null;
+  updateCheckSuccess = true;
+
+  isTestingPrinter: Record<string, boolean> = {};
 
   /** Demonstration invoice used to preview realistic thermal receipt in real time. */
   readonly demoFacture: Facture = {
@@ -306,6 +347,14 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
     { code: 'AUD', symbol: '$', position: 'BEFORE' },
   ];
 
+  readonly vatPresets: VatPreset[] = [
+    { country: 'FR', rate: 20.0, label: 'France (20%)' },
+    { country: 'BE/ES', rate: 21.0, label: 'Belgique / Espagne (21%)' },
+    { country: 'DE', rate: 19.0, label: 'Allemagne (19%)' },
+    { country: 'CH', rate: 8.1, label: 'Suisse (8.1%)' },
+    { country: 'US', rate: 0.0, label: 'Exempt / Hors-TVA (0%)' },
+  ];
+
   readonly wifiSecurityOptions: SearchableOption<string>[] = [
     { value: 'WPA', label: 'WPA / WPA2 / WPA3 (Standard)', subLabel: 'Recommandé pour la majorité des réseaux Wi-Fi', badge: 'WPA', badgeType: 'primary' },
     { value: 'WEP', label: 'WEP (Ancien protocole)', subLabel: 'Réseaux Wi-Fi historiques', badge: 'WEP', badgeType: 'warning' },
@@ -336,6 +385,10 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       globeOutline,
       lockClosedOutline,
       rocketOutline,
+      pricetagOutline,
+      printOutline,
+      hardwareChipOutline,
+      cloudDownloadOutline,
     });
     this.initForms();
   }
@@ -378,7 +431,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
 
     if (this.route?.data) {
       this.route.data.pipe(takeUntil(this.destroy$)).subscribe(data => {
-        if (data?.['defaultTab'] && ['legal', 'timers', 'currency', 'theme', 'qr'].includes(data['defaultTab'])) {
+        if (data?.['defaultTab'] && ['legal', 'timers', 'currency', 'theme', 'qr', 'pricing', 'printers'].includes(data['defaultTab'])) {
           this.activeTab = data['defaultTab'] as SettingsTab;
         }
       });
@@ -386,7 +439,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
 
     if (this.route?.queryParams) {
       this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
-        if (params?.['tab'] && ['legal', 'timers', 'currency', 'theme', 'qr'].includes(params['tab'])) {
+        if (params?.['tab'] && ['legal', 'timers', 'currency', 'theme', 'qr', 'pricing', 'printers'].includes(params['tab'])) {
           this.activeTab = params['tab'] as SettingsTab;
         }
       });
@@ -462,6 +515,9 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       currencyCode: ['EUR', [Validators.required, Validators.minLength(3), Validators.maxLength(3)]],
       currencySymbol: ['€', [Validators.required]],
       currencyPosition: ['AFTER', [Validators.required]],
+      defaultVatRate: [20.0, [Validators.required, Validators.min(0), Validators.max(100)]],
+      targetGrossMarginPercentage: [70.0, [Validators.required, Validators.min(0), Validators.max(100)]],
+      warningGrossMarginPercentage: [50.0, [Validators.required, Validators.min(0), Validators.max(100)]],
       defaultTheme: ['DARK', [Validators.required]],
       primaryColor: ['#6c7fe8', [Validators.required]],
       primaryColorStrong: ['#5a68d6'],
@@ -470,7 +526,13 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       wifiPassword: ['', [Validators.maxLength(100)]],
       wifiSecurity: ['WPA', [Validators.required]],
       wifiEnabled: [false],
-    }, { validators: thresholdPriorityValidator });
+      tableSessionValidationEnabled: [false],
+      barPrinterIp: ['', [Validators.pattern(/^(\d{1,3}\.){3}\d{1,3}$/)]],
+      kitchenPrinterIp: ['', [Validators.pattern(/^(\d{1,3}\.){3}\d{1,3}$/)]],
+      cashDeskPrinterIp: ['', [Validators.pattern(/^(\d{1,3}\.){3}\d{1,3}$/)]],
+      printerPort: [9100, [Validators.min(1), Validators.max(65535)]],
+      directPrintingEnabled: [false],
+    }, { validators: [thresholdPriorityValidator, marginThresholdPriorityValidator] });
 
     const currentColors = this.themeService.currentCustomColors;
     this.colorForm = this.fb.group({
@@ -696,6 +758,45 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
     return pos === 'BEFORE' ? `${symbol} ${formatted}` : `${formatted} ${symbol}`;
   }
 
+  // --- VAT & Margin Helpers ---
+  applyVatPreset(rate: number): void {
+    this.appSettingsForm.patchValue({ defaultVatRate: rate });
+    this.appSettingsForm.markAsDirty();
+  }
+
+  get effectiveVatRate(): number {
+    const val = Number(this.appSettingsForm?.get('defaultVatRate')?.value);
+    return Number.isNaN(val) ? 20.0 : val;
+  }
+
+  get effectiveTargetMargin(): number {
+    const val = Number(this.appSettingsForm?.get('targetGrossMarginPercentage')?.value);
+    return Number.isNaN(val) ? 70.0 : val;
+  }
+
+  get effectiveWarningMargin(): number {
+    const val = Number(this.appSettingsForm?.get('warningGrossMarginPercentage')?.value);
+    return Number.isNaN(val) ? 50.0 : val;
+  }
+
+  getMarginBadgeClass(marginPercentage: number): string {
+    if (marginPercentage >= this.effectiveTargetMargin) {
+      return 'badge-optimal';
+    }
+    if (marginPercentage >= this.effectiveWarningMargin) {
+      return 'badge-warning';
+    }
+    return 'badge-critical';
+  }
+
+  simulateMargin(prixTTC: number, coutRevient: number): { prixHT: number; margeBrute: number; margePct: number } {
+    const vatFactor = 1 + (this.effectiveVatRate / 100);
+    const prixHT = Number((prixTTC / vatFactor).toFixed(2));
+    const margeBrute = Number((prixHT - coutRevient).toFixed(2));
+    const margePct = prixHT > 0 ? Number(((margeBrute / prixHT) * 100).toFixed(1)) : 0;
+    return { prixHT, margeBrute, margePct };
+  }
+
   // --- Theme Controls & Real-Time Studio ---
   onSetThemeMode(mode: AppTheme): void {
     this.activeTheme = mode;
@@ -862,6 +963,113 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
           this.showToast(this.translocoService.translate('SETTINGS.SAVE_ERROR'), 'danger');
         },
       });
+  }
+
+  /**
+   * Dispatches a diagnostic test print to the configured printer for the given role.
+   *
+   * @param role Printer role (BAR, KITCHEN, CASH_DESK)
+   */
+  testPrint(role: PrinterRole): void {
+    const controlMap: Record<PrinterRole, string> = {
+      BAR: 'barPrinterIp',
+      KITCHEN: 'kitchenPrinterIp',
+      CASH_DESK: 'cashDeskPrinterIp',
+    };
+    const ipControlName = controlMap[role];
+    if (!this.appSettingsForm.get(ipControlName)?.value) {
+      return;
+    }
+    this.isTestingPrinter[role] = true;
+    this.printerService.testPrintRole(role)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          this.isTestingPrinter[role] = false;
+          if (res.success) {
+            this.showToast(
+              this.translocoService.translate('SETTINGS.PRINTER_TEST_SUCCESS', { role: res.role, ip: res.ip || '' }),
+              'success'
+            );
+          } else {
+            this.showToast(
+              this.translocoService.translate('SETTINGS.PRINTER_TEST_FAILED', { role: res.role, error: res.message }),
+              'danger'
+            );
+          }
+        },
+        error: (err) => {
+          this.isTestingPrinter[role] = false;
+          this.showToast(
+            this.translocoService.translate('SETTINGS.PRINTER_TEST_FAILED', { role, error: err?.message || 'Error' }),
+            'danger'
+          );
+        },
+      });
+  }
+
+  /**
+   * Pulses the cash drawer kick command to test the cash drawer latch release.
+   */
+  testCashDrawer(): void {
+    if (!this.appSettingsForm.get('cashDeskPrinterIp')?.value) {
+      return;
+    }
+    this.isTestingPrinter['drawer'] = true;
+    this.printerService.openCashDrawer()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          this.isTestingPrinter['drawer'] = false;
+          if (res.success) {
+            this.showToast(this.translocoService.translate('SETTINGS.DRAWER_TEST_SUCCESS'), 'success');
+          } else {
+            this.showToast(
+              this.translocoService.translate('SETTINGS.DRAWER_TEST_FAILED', { error: res.message }),
+              'danger'
+            );
+          }
+        },
+        error: (err) => {
+          this.isTestingPrinter['drawer'] = false;
+          this.showToast(
+            this.translocoService.translate('SETTINGS.DRAWER_TEST_FAILED', { error: err?.message || 'Error' }),
+            'danger'
+          );
+        },
+      });
+  }
+
+  /**
+   * Manually checks for newer official releases and displays the update dialog if found.
+   */
+  async checkForUpdates(): Promise<void> {
+    if (this.isCheckingUpdates) {
+      return;
+    }
+    this.isCheckingUpdates = true;
+    this.updateCheckMessage = null;
+
+    try {
+      const result = await this.appUpdateService.checkNewerRelease();
+      if (result.hasUpdate && result.latestRelease) {
+        this.updateCheckSuccess = true;
+        this.updateCheckMessage = this.translocoService.translate('APP_SETTINGS_UPDATES.UPDATE_AVAILABLE', {
+          version: result.latestRelease.version,
+        });
+        await this.appUpdateService.presentUpdateModal(result.latestRelease);
+      } else {
+        this.updateCheckSuccess = true;
+        this.updateCheckMessage = this.translocoService.translate('APP_SETTINGS_UPDATES.UP_TO_DATE', {
+          version: this.currentAppVersion,
+        });
+      }
+    } catch {
+      this.updateCheckSuccess = false;
+      this.updateCheckMessage = this.translocoService.translate('APP_SETTINGS_UPDATES.CHECK_FAILED');
+    } finally {
+      this.isCheckingUpdates = false;
+    }
   }
 
   /**

@@ -23,6 +23,7 @@ import java.math.RoundingMode;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.*;
 
@@ -43,6 +44,7 @@ public class SampleDataSeederService {
     private static final String KEY_ROLES = "roles";
     private static final String KEY_SERVEUR_USERNAME = "serveurUsername";
     private static final String KEY_NOTES = "notes";
+    private static final String KEY_REASON = "reason";
     private static final String KEY_ITEMS = "items";
     private static final String KEY_QUANTITE = "quantite";
     private static final String KEY_DAY_OF_WEEK = "dayOfWeek";
@@ -60,6 +62,8 @@ public class SampleDataSeederService {
     private static final String KEY_REGLEMENTS = "reglements";
     private static final String SCRIPT_TAG = "<script>";
     private static final String KEY_TEST = "Test";
+    private static final String KEY_STATUT = "statut";
+    private static final String KEY_DISCREPANCY_REASON = "discrepancyReason";
 
     private final UserRepository userRepository;
     private final TableRepository tableRepository;
@@ -77,6 +81,8 @@ public class SampleDataSeederService {
     private final EstablishmentClosureRepository establishmentClosureRepository;
     private final WeekSchedulePublicationRepository weekSchedulePublicationRepository;
     private final TableAppelRepository tableAppelRepository;
+    private final TableSessionRepository tableSessionRepository;
+    private final TableCartItemRepository tableCartItemRepository;
     private final AppSettingsRepository appSettingsRepository;
     private final EstablishmentConfigRepository establishmentConfigRepository;
     private final JdbcTemplate jdbcTemplate;
@@ -85,11 +91,15 @@ public class SampleDataSeederService {
     private final PlatformTransactionManager transactionManager;
     private final CocktailDataSeederService cocktailDataSeederService;
     private final org.springframework.core.env.Environment environment;
+    private final HappyHourRuleRepository happyHourRuleRepository;
+    private final StockMovementRepository stockMovementRepository;
+    private final DailyCashClosureRepository dailyCashClosureRepository;
     private final ObjectMapper objectMapper;
 
     /**
      * Constructs the sample data seeder service with required repositories, services, and environment dependencies.
      */
+    @org.springframework.beans.factory.annotation.Autowired
     public SampleDataSeederService(
             UserRepository userRepository,
             TableRepository tableRepository,
@@ -107,6 +117,8 @@ public class SampleDataSeederService {
             EstablishmentClosureRepository establishmentClosureRepository,
             WeekSchedulePublicationRepository weekSchedulePublicationRepository,
             TableAppelRepository tableAppelRepository,
+            TableSessionRepository tableSessionRepository,
+            TableCartItemRepository tableCartItemRepository,
             AppSettingsRepository appSettingsRepository,
             EstablishmentConfigRepository establishmentConfigRepository,
             JdbcTemplate jdbcTemplate,
@@ -114,7 +126,10 @@ public class SampleDataSeederService {
             TimeService timeService,
             PlatformTransactionManager transactionManager,
             CocktailDataSeederService cocktailDataSeederService,
-            org.springframework.core.env.Environment environment) {
+            org.springframework.core.env.Environment environment,
+            HappyHourRuleRepository happyHourRuleRepository,
+            @org.springframework.beans.factory.annotation.Autowired(required = false) StockMovementRepository stockMovementRepository,
+            @org.springframework.beans.factory.annotation.Autowired(required = false) DailyCashClosureRepository dailyCashClosureRepository) {
         this.userRepository = userRepository;
         this.tableRepository = tableRepository;
         this.zoneRepository = zoneRepository;
@@ -131,6 +146,8 @@ public class SampleDataSeederService {
         this.establishmentClosureRepository = establishmentClosureRepository;
         this.weekSchedulePublicationRepository = weekSchedulePublicationRepository;
         this.tableAppelRepository = tableAppelRepository;
+        this.tableSessionRepository = tableSessionRepository;
+        this.tableCartItemRepository = tableCartItemRepository;
         this.appSettingsRepository = appSettingsRepository;
         this.establishmentConfigRepository = establishmentConfigRepository;
         this.jdbcTemplate = jdbcTemplate;
@@ -139,6 +156,9 @@ public class SampleDataSeederService {
         this.transactionManager = transactionManager;
         this.cocktailDataSeederService = cocktailDataSeederService;
         this.environment = environment;
+        this.happyHourRuleRepository = happyHourRuleRepository;
+        this.stockMovementRepository = stockMovementRepository;
+        this.dailyCashClosureRepository = dailyCashClosureRepository;
         this.objectMapper = new ObjectMapper();
     }
 
@@ -180,8 +200,13 @@ public class SampleDataSeederService {
                 jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS wifi_password VARCHAR(100)");
                 jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS wifi_security VARCHAR(20) DEFAULT 'WPA'");
                 jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS wifi_enabled BOOLEAN DEFAULT false");
+                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS table_session_validation_enabled BOOLEAN DEFAULT false");
+                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS default_vat_rate DECIMAL(5,2) DEFAULT 20.00");
+                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS target_gross_margin_percentage DECIMAL(5,2) DEFAULT 70.00");
+                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS warning_gross_margin_percentage DECIMAL(5,2) DEFAULT 50.00");
                 jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP");
                 jdbcTemplate.execute("ALTER TABLE establishment_config ADD COLUMN IF NOT EXISTS ticket_format VARCHAR(10) DEFAULT '80mm'");
+                jdbcTemplate.execute("ALTER TABLE commandes ADD COLUMN IF NOT EXISTS client_request_id VARCHAR(100) UNIQUE");
             }, "migrateLegacySchemas");
         }
     }
@@ -218,6 +243,7 @@ public class SampleDataSeederService {
                 factureRepository.flush();
                 commandeRepository.flush();
                 tableAppelRepository.flush();
+                tableSessionRepository.flush();
                 tableRepository.deleteAll(testTables);
                 tableRepository.flush();
             }
@@ -255,6 +281,7 @@ public class SampleDataSeederService {
                 factureRepository.flush();
                 commandeRepository.flush();
                 tableAppelRepository.flush();
+                tableSessionRepository.flush();
                 tableRepository.deleteAll(duplicatesToDelete);
                 tableRepository.flush();
             }
@@ -270,6 +297,7 @@ public class SampleDataSeederService {
         safelyExecute(() -> factureRepository.detachTableFromFactures(tableId), "detach factures for table " + tableId);
         safelyExecute(() -> commandeRepository.detachTableFromCommandes(tableId), "detach commandes for table " + tableId);
         safelyExecute(() -> tableAppelRepository.deleteByTableId(tableId), "delete appels for table " + tableId);
+        safelyExecute(() -> tableSessionRepository.deleteByTableId(tableId), "delete sessions for table " + tableId);
     }
 
     private void safelyExecute(Runnable action, String description) {
@@ -373,14 +401,19 @@ public class SampleDataSeederService {
             safelyInTransaction(() -> seedCocktailRecipeStepsFromJson(root.get("cocktail_recipe_steps"), templatesMap), "seedCocktailRecipeSteps");
             safelyInTransaction(() -> seedStockAdjustmentsFromJson(root.get("stock_adjustments")), "seedStockAdjustments");
             safelyInTransaction(() -> seedTableAppelsFromJson(root.get("table_appels"), tablesMap), "seedTableAppels");
+            safelyInTransaction(() -> seedTableSessionsFromJson(root.get("table_sessions"), tablesMap), "seedTableSessions");
             safelyInTransaction(this::seedSettingsAndConfig, "seedSettingsAndConfig");
 
             List<Cocktail> cocktails = cocktailRepository.findAll();
             if (!cocktails.isEmpty()) {
                 safelyInTransaction(() -> seedOrdersFromJson(root.get("orders"), usersMap, tablesMap, cocktails), "seedOrders");
+                safelyInTransaction(() -> seedTableCartItemsFromJson(root.get("table_cart_items"), tablesMap, cocktails), "seedTableCartItems");
             }
+            safelyInTransaction(() -> seedHappyHourRulesFromJson(root.get("happy_hour_rules"), cocktails), "seedHappyHourRules");
             safelyInTransaction(() -> seedInvoicesFromJson(root.get("invoices"), tablesMap), "seedInvoices");
             safelyInTransaction(() -> seedAvoirsCreditFromJson(root.get("avoirs_credit")), "seedAvoirsCredit");
+            safelyInTransaction(() -> seedStockMovementsFromJson(root.get("stock_movements"), usersMap), "seedStockMovements");
+            safelyInTransaction(() -> seedDailyCashClosuresFromJson(root.get("daily_cash_closures"), usersMap), "seedDailyCashClosures");
 
         } catch (Exception e) {
             log.error("Failed to seed demo dataset from JSON file '{}'", DATASET_PATH, e);
@@ -660,7 +693,7 @@ public class SampleDataSeederService {
             LocalDate closureDate = cNode.hasNonNull("closureDate") ? LocalDate.parse(cNode.get("closureDate").asText()) : null;
             LocalDate endDate = cNode.hasNonNull("endDate") ? LocalDate.parse(cNode.get("endDate").asText()) : null;
             boolean isAnnual = cNode.hasNonNull("isAnnualRecurring") && cNode.get("isAnnualRecurring").asBoolean();
-            String reason = cNode.hasNonNull("reason") ? cNode.get("reason").asText() : "Fermeture planifiée";
+            String reason = cNode.hasNonNull(KEY_REASON) ? cNode.get(KEY_REASON).asText() : "Fermeture planifiée";
 
             EstablishmentClosure closure = new EstablishmentClosure(type, day, closureDate, endDate, isAnnual, reason);
             establishmentClosureRepository.save(closure);
@@ -735,9 +768,10 @@ public class SampleDataSeederService {
     private void createSingleOrderFromJson(JsonNode oNode, Map<String, User> usersMap, Map<Integer, TableEntity> tablesMap, List<Cocktail> cocktails) {
         int tableNumero = oNode.get(KEY_TABLE_NUMERO).asInt();
         String serveurUsername = oNode.hasNonNull(KEY_SERVEUR_USERNAME) ? oNode.get(KEY_SERVEUR_USERNAME).asText() : null;
-        CommandeStatut statut = CommandeStatut.valueOf(oNode.get("statut").asText());
+        CommandeStatut statut = CommandeStatut.valueOf(oNode.get(KEY_STATUT).asText());
         int minutesAgo = oNode.get(KEY_MINUTES_AGO).asInt();
         String trackingToken = oNode.hasNonNull("trackingToken") ? oNode.get("trackingToken").asText() : null;
+        String clientRequestId = oNode.hasNonNull("clientRequestId") ? oNode.get("clientRequestId").asText() : null;
         String notes = oNode.hasNonNull(KEY_NOTES) ? oNode.get(KEY_NOTES).asText() : null;
 
         TableEntity table = tablesMap.get(tableNumero);
@@ -751,6 +785,7 @@ public class SampleDataSeederService {
         commande.setStatut(statut);
         commande.setDateCommande(orderTime);
         commande.setTrackingToken(trackingToken);
+        commande.setClientRequestId(clientRequestId);
         commande.setNotes(notes);
 
         applyOrderTimestamps(commande, statut, orderTime);
@@ -797,23 +832,47 @@ public class SampleDataSeederService {
 
         for (JsonNode itemNode : itemsNode) {
             String cocktailName = itemNode.get("cocktailName").asText();
-            int quantite = itemNode.get(KEY_QUANTITE).asInt();
-            boolean prioritaire = itemNode.hasNonNull("prioritaire") && itemNode.get("prioritaire").asBoolean();
-            String itemNotes = itemNode.hasNonNull("itemNotes") ? itemNode.get("itemNotes").asText() : null;
-
             Cocktail cocktail = findCocktailByName(cocktails, cocktailName);
             if (cocktail != null) {
-                CommandeItem ci = new CommandeItem();
-                ci.setCommande(order);
-                ci.setCocktail(cocktail);
-                ci.setQuantite(quantite);
-                ci.setPrioritaire(prioritaire);
-                ci.setNotes(itemNotes);
-                ci.setPrixUnitaire(cocktail.getPrix());
-                items.add(ci);
+                items.add(createSingleOrderItem(order, itemNode, cocktail));
             }
         }
         return items;
+    }
+
+    private CommandeItem createSingleOrderItem(Commande order, JsonNode itemNode, Cocktail cocktail) {
+        CommandeItem ci = new CommandeItem();
+        ci.setCommande(order);
+        ci.setCocktail(cocktail);
+        ci.setQuantite(itemNode.get(KEY_QUANTITE).asInt());
+        ci.setPrioritaire(itemNode.hasNonNull("prioritaire") && itemNode.get("prioritaire").asBoolean());
+        ci.setNotes(itemNode.hasNonNull("itemNotes") ? itemNode.get("itemNotes").asText() : null);
+        ci.setPrixUnitaire(cocktail.getPrix());
+        ci.setStation(resolveItemStation(itemNode, cocktail));
+        ci.setStatut(resolveItemStatut(itemNode, order.getStatut()));
+        return ci;
+    }
+
+    private PreparationStation resolveItemStation(JsonNode itemNode, Cocktail cocktail) {
+        if (itemNode.hasNonNull("station")) {
+            try {
+                return PreparationStation.valueOf(itemNode.get("station").asText().trim().toUpperCase());
+            } catch (Exception _) {
+                // fallback
+            }
+        }
+        return cocktail.getStation() != null ? cocktail.getStation() : PreparationStation.BAR;
+    }
+
+    private CommandeStatut resolveItemStatut(JsonNode itemNode, CommandeStatut orderStatut) {
+        if (itemNode.hasNonNull(KEY_STATUT)) {
+            try {
+                return CommandeStatut.valueOf(itemNode.get(KEY_STATUT).asText().trim().toUpperCase());
+            } catch (Exception _) {
+                // fallback
+            }
+        }
+        return orderStatut != null ? orderStatut : CommandeStatut.EN_ATTENTE;
     }
 
     private void seedInvoicesFromJson(JsonNode invoicesNode, Map<Integer, TableEntity> tablesMap) {
@@ -1112,7 +1171,7 @@ public class SampleDataSeederService {
             }
 
             TableAppelType type = TableAppelType.valueOf(appelNode.path("type").asText("ASSISTANCE"));
-            TableAppelStatut statut = TableAppelStatut.valueOf(appelNode.path("statut").asText("EN_ATTENTE"));
+            TableAppelStatut statut = TableAppelStatut.valueOf(appelNode.path(KEY_STATUT).asText("EN_ATTENTE"));
             String commentaire = appelNode.hasNonNull("commentaire") ? appelNode.path("commentaire").asText() : null;
             int minutesAgo = appelNode.path(KEY_MINUTES_AGO).asInt(2);
 
@@ -1134,6 +1193,74 @@ public class SampleDataSeederService {
         log.info("Seeded table call alerts from demo dataset.");
     }
 
+    private void seedTableSessionsFromJson(JsonNode sessionsNode, Map<Integer, TableEntity> tablesMap) {
+        if (sessionsNode == null || !sessionsNode.isArray() || tableSessionRepository.count() > 0) {
+            return;
+        }
+
+        LocalDateTime now = timeService.now();
+        for (JsonNode sNode : sessionsNode) {
+            int tableNumero = sNode.path(KEY_TABLE_NUMERO).asInt(1);
+            TableEntity table = tablesMap.get(tableNumero);
+            if (table == null) {
+                table = tableRepository.findByNumero(tableNumero).orElse(null);
+            }
+            if (table == null) {
+                continue;
+            }
+
+            String token = sNode.path("sessionToken").asText(UUID.randomUUID().toString());
+            TableSessionStatus status = TableSessionStatus.valueOf(sNode.path("status").asText("ACTIVE"));
+            int minutesAgo = sNode.path(KEY_MINUTES_AGO).asInt(15);
+            int expiresInMinutes = sNode.path("expiresInMinutes").asInt(105);
+
+            TableSession session = new TableSession();
+            session.setTableId(table.getId());
+            session.setSessionToken(token);
+            session.setStatus(status);
+            session.setOpenedAt(now.minusMinutes(minutesAgo));
+            session.setLastActivityAt(now.minusMinutes(Math.max(0, minutesAgo - 5)));
+            session.setExpiresAt(now.plusMinutes(expiresInMinutes));
+
+            tableSessionRepository.save(session);
+        }
+        log.info("Seeded ephemeral table sessions from demo dataset.");
+    }
+
+    private void seedTableCartItemsFromJson(JsonNode cartItemsNode, Map<Integer, TableEntity> tablesMap, List<Cocktail> cocktails) {
+        if (cartItemsNode == null || !cartItemsNode.isArray() || tableCartItemRepository.count() > 0) {
+            return;
+        }
+
+        LocalDateTime now = timeService.now();
+        for (JsonNode itemNode : cartItemsNode) {
+            int tableNumero = itemNode.path(KEY_TABLE_NUMERO).asInt(1);
+            TableEntity table = tablesMap.get(tableNumero);
+            if (table == null) {
+                table = tableRepository.findByNumero(tableNumero).orElse(null);
+            }
+
+            String cocktailNom = itemNode.path("cocktailNom").asText("Mojito");
+            Cocktail cocktail = findCocktailByName(cocktails, cocktailNom);
+
+            if (table != null && cocktail != null) {
+                int minutesAgo = itemNode.path(KEY_MINUTES_AGO).asInt(5);
+
+                TableCartItem item = new TableCartItem();
+                item.setTableId(table.getId());
+                item.setGuestSessionId(itemNode.path("guestSessionId").asText(UUID.randomUUID().toString()));
+                item.setGuestName(itemNode.path("guestName").asText("Invité"));
+                item.setCocktailId(cocktail.getId());
+                item.setQuantite(itemNode.path(KEY_QUANTITE).asInt(1));
+                item.setNotes(itemNode.has(KEY_NOTES) ? itemNode.get(KEY_NOTES).asText() : null);
+                item.setCreatedAt(now.minusMinutes(minutesAgo));
+
+                tableCartItemRepository.save(item);
+            }
+        }
+        log.info("Seeded collaborative table cart items from demo dataset.");
+    }
+
     private void seedSettingsAndConfig() {
         if (!appSettingsRepository.existsById(AppSettings.SINGLETON_ID)) {
             appSettingsRepository.save(new AppSettings());
@@ -1144,6 +1271,219 @@ public class SampleDataSeederService {
             config.setId(EstablishmentConfig.SINGLETON_ID);
             establishmentConfigRepository.save(config);
             log.info("Seeded default EstablishmentConfig singleton.");
+        }
+    }
+
+    private void seedHappyHourRulesFromJson(JsonNode rulesNode, List<Cocktail> cocktails) {
+        if (rulesNode == null || !rulesNode.isArray() || happyHourRuleRepository == null) {
+            return;
+        }
+
+        if (happyHourRuleRepository.count() > 0) {
+            log.info("Happy Hour rules already seeded (count={}), skipping seeding.", happyHourRuleRepository.count());
+            return;
+        }
+
+        Map<String, Cocktail> cocktailMap = buildCocktailMap(cocktails);
+        List<HappyHourRule> toSave = new ArrayList<>();
+        LocalDateTime now = timeService.now();
+        for (JsonNode ruleNode : rulesNode) {
+            toSave.add(parseHappyHourRule(ruleNode, cocktailMap, now));
+        }
+
+        happyHourRuleRepository.saveAll(toSave);
+        log.info("Successfully seeded {} Happy Hour promotional rules from demo dataset.", toSave.size());
+    }
+
+    private Map<String, Cocktail> buildCocktailMap(List<Cocktail> cocktails) {
+        Map<String, Cocktail> cocktailMap = new HashMap<>();
+        if (cocktails != null) {
+            for (Cocktail c : cocktails) {
+                if (c.getNom() != null) {
+                    cocktailMap.put(c.getNom().toLowerCase().trim(), c);
+                }
+            }
+        }
+        return cocktailMap;
+    }
+
+    private HappyHourRule parseHappyHourRule(JsonNode ruleNode, Map<String, Cocktail> cocktailMap, LocalDateTime now) {
+        HappyHourRule rule = new HappyHourRule();
+        rule.setName(ruleNode.path("name").asText("Happy Hour"));
+        rule.setStartTime(LocalTime.parse(ruleNode.path("startTime").asText("17:00")));
+        rule.setEndTime(LocalTime.parse(ruleNode.path("endTime").asText("20:00")));
+        rule.setDiscountType(DiscountType.valueOf(ruleNode.path("discountType").asText("PERCENTAGE")));
+        rule.setDiscountValue(BigDecimal.valueOf(ruleNode.path("discountValue").asDouble(20.0)));
+        rule.setActive(ruleNode.path("active").asBoolean(true));
+        rule.setDaysOfWeek(parseDaysOfWeek(ruleNode.path("daysOfWeek")));
+        rule.setCategories(parseCategories(ruleNode.path("categories")));
+        rule.setCocktailIds(parseCocktailIds(ruleNode.path("cocktailNoms"), cocktailMap));
+        rule.setCreatedAt(now);
+        rule.setUpdatedAt(now);
+        return rule;
+    }
+
+    private Set<DayOfWeek> parseDaysOfWeek(JsonNode daysNode) {
+        Set<DayOfWeek> days = new HashSet<>();
+        if (daysNode.isArray()) {
+            for (JsonNode d : daysNode) {
+                days.add(DayOfWeek.valueOf(d.asText()));
+            }
+        }
+        return days;
+    }
+
+    private Set<CocktailCategorie> parseCategories(JsonNode catNode) {
+        Set<CocktailCategorie> categories = new HashSet<>();
+        if (catNode.isArray()) {
+            for (JsonNode c : catNode) {
+                try {
+                    categories.add(CocktailCategorie.valueOf(c.asText()));
+                } catch (IllegalArgumentException _) {
+                    log.debug("Unknown cocktail category in seeding: {}", c.asText());
+                }
+            }
+        }
+        return categories;
+    }
+
+    private Set<Long> parseCocktailIds(JsonNode cocktailNomsNode, Map<String, Cocktail> cocktailMap) {
+        Set<Long> cocktailIds = new HashSet<>();
+        if (cocktailNomsNode.isArray()) {
+            for (JsonNode cn : cocktailNomsNode) {
+                Cocktail matched = cocktailMap.get(cn.asText().toLowerCase().trim());
+                if (matched != null && matched.getId() != null) {
+                    cocktailIds.add(matched.getId());
+                }
+            }
+        }
+        return cocktailIds;
+    }
+
+    private void seedStockMovementsFromJson(JsonNode movementsNode, Map<String, User> usersMap) {
+        if (movementsNode == null || !movementsNode.isArray() || stockMovementRepository == null || stockMovementRepository.count() > 0) {
+            return;
+        }
+
+        for (JsonNode mNode : movementsNode) {
+            buildStockMovementFromNode(mNode, usersMap).ifPresent(stockMovementRepository::save);
+        }
+        log.info("Seeded stock loss and shrinkage movements from demo dataset.");
+    }
+
+    private Optional<StockMovement> buildStockMovementFromNode(JsonNode mNode, Map<String, User> usersMap) {
+        String ingredientName = mNode.get("ingredientNom").asText();
+        Ingredient ing = ingredientRepository.findByNomIgnoreCase(ingredientName).orElse(null);
+        if (ing == null) {
+            return Optional.empty();
+        }
+
+        BigDecimal qty = new BigDecimal(mNode.get("quantity").asText());
+        String unit = mNode.has("unit") ? mNode.get("unit").asText() : ing.getUniteMesure();
+        StockWasteReason reason = StockWasteReason.valueOf(mNode.get(KEY_REASON).asText());
+        User reportedBy = mNode.has("reportedByUsername") ? usersMap.get(mNode.get("reportedByUsername").asText()) : null;
+        String notes = mNode.has(KEY_NOTES) ? mNode.get(KEY_NOTES).asText() : null;
+        LocalDateTime recordedAt = mNode.has(KEY_MINUTES_AGO)
+                ? timeService.now().minusMinutes(mNode.get(KEY_MINUTES_AGO).asLong())
+                : timeService.now();
+        BigDecimal cost = resolveMovementCost(mNode, qty, ing);
+
+        StockMovement movement = new StockMovement();
+        movement.setIngredient(ing);
+        movement.setQuantity(qty);
+        movement.setUnit(unit);
+        movement.setReason(reason);
+        movement.setReportedBy(reportedBy);
+        movement.setNotes(notes);
+        movement.setCost(cost);
+        movement.setRecordedAt(recordedAt);
+        return Optional.of(movement);
+    }
+
+    private BigDecimal resolveMovementCost(JsonNode mNode, BigDecimal qty, Ingredient ing) {
+        if (mNode.has("cost")) {
+            return new BigDecimal(mNode.get("cost").asText());
+        }
+        BigDecimal unitPrice = ing.getPrixUnitaire() != null ? ing.getPrixUnitaire() : BigDecimal.ZERO;
+        return qty.multiply(unitPrice).setScale(2, RoundingMode.HALF_UP);
+    }
+
+    private void seedDailyCashClosuresFromJson(JsonNode closuresNode, Map<String, User> usersMap) {
+        if (closuresNode == null || !closuresNode.isArray() || dailyCashClosureRepository == null || dailyCashClosureRepository.count() > 0) {
+            return;
+        }
+
+        for (JsonNode cNode : closuresNode) {
+            buildDailyCashClosureFromNode(cNode, usersMap).ifPresent(dailyCashClosureRepository::save);
+        }
+        log.info("Seeded daily cash closures from demo dataset.");
+    }
+
+    private Optional<DailyCashClosure> buildDailyCashClosureFromNode(JsonNode cNode, Map<String, User> usersMap) {
+        String closureNumber = cNode.get("closureNumber").asText();
+        int daysAgo = cNode.has("daysAgo") ? cNode.get("daysAgo").asInt() : 1;
+        LocalDate closureDate = LocalDate.now(timeService.getZoneId()).minusDays(daysAgo);
+
+        BigDecimal openingFloat = new BigDecimal(cNode.get("openingFloat").asText());
+        BigDecimal theoreticalCash = new BigDecimal(cNode.get("theoreticalCash").asText());
+        BigDecimal countedCash = new BigDecimal(cNode.get("countedCash").asText());
+        BigDecimal cashDiscrepancy = new BigDecimal(cNode.get("cashDiscrepancy").asText());
+        BigDecimal totalRevenueHT = new BigDecimal(cNode.get("totalRevenueHT").asText());
+        BigDecimal totalRevenueTTC = new BigDecimal(cNode.get("totalRevenueTTC").asText());
+
+        String closedByUsername = cNode.has("closedByUsername") ? cNode.get("closedByUsername").asText() : null;
+        User closedBy = closedByUsername != null ? usersMap.get(closedByUsername) : null;
+        String discrepancyReason = cNode.has(KEY_DISCREPANCY_REASON) && !cNode.get(KEY_DISCREPANCY_REASON).isNull()
+                ? cNode.get(KEY_DISCREPANCY_REASON).asText() : null;
+
+        String paymentMethodsJson = cNode.has("paymentMethods") ? cNode.get("paymentMethods").toString() : "[]";
+        String vatBreakdownJson = cNode.has("vatBreakdown") ? cNode.get("vatBreakdown").toString() : "[]";
+        String countingBreakdownJson = cNode.has("countingBreakdown") ? cNode.get("countingBreakdown").toString() : "{}";
+
+        DailyCashClosure closure = new DailyCashClosure();
+        closure.setClosureNumber(closureNumber);
+        closure.setClosureDate(closureDate);
+        closure.setOpeningFloat(openingFloat);
+        closure.setTheoreticalCash(theoreticalCash);
+        closure.setCountedCash(countedCash);
+        closure.setCashDiscrepancy(cashDiscrepancy);
+        closure.setTotalRevenueHT(totalRevenueHT);
+        closure.setTotalRevenueTTC(totalRevenueTTC);
+        closure.setClosedBy(closedBy);
+        closure.setDiscrepancyReason(discrepancyReason);
+        closure.setPaymentMethodsJson(paymentMethodsJson);
+        closure.setVatBreakdownJson(vatBreakdownJson);
+        closure.setCountingBreakdownJson(countingBreakdownJson);
+
+        String operator = closedBy != null ? closedBy.getUsername() : "SYSTEM";
+        closure.setSha256Hash(computeClosureSeal(closure, operator));
+        return Optional.of(closure);
+    }
+
+    private String computeClosureSeal(DailyCashClosure closure, String operator) {
+        String payload = String.format("%s|%s|%s|%s|%s|%s|%s|%s|%s",
+                closure.getClosureNumber(),
+                closure.getClosureDate(),
+                closure.getTotalRevenueTTC() != null ? closure.getTotalRevenueTTC().setScale(2) : "0.00",
+                closure.getTotalRevenueHT() != null ? closure.getTotalRevenueHT().setScale(2) : "0.00",
+                closure.getOpeningFloat() != null ? closure.getOpeningFloat().setScale(2) : "0.00",
+                closure.getTheoreticalCash() != null ? closure.getTheoreticalCash().setScale(2) : "0.00",
+                closure.getCountedCash() != null ? closure.getCountedCash().setScale(2) : "0.00",
+                closure.getCashDiscrepancy() != null ? closure.getCashDiscrepancy().setScale(2) : "0.00",
+                operator != null ? operator : "SYSTEM");
+
+        try {
+            java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
+            byte[] hashBytes = digest.digest(payload.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : hashBytes) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) hexString.append('0');
+                hexString.append(hex);
+            }
+            return hexString.toString();
+        } catch (Exception _) {
+            return "DEFAULT_SEAL_HASH";
         }
     }
 }

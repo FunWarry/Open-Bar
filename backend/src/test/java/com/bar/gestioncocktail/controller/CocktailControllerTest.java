@@ -1,10 +1,12 @@
 package com.bar.gestioncocktail.controller;
 
+import com.bar.gestioncocktail.dto.CocktailFacetsDTO;
 import com.bar.gestioncocktail.dto.CocktailRequestDTO;
 import com.bar.gestioncocktail.dto.CocktailResponseDTO;
 import com.bar.gestioncocktail.dto.SaisonnaliteRequest;
 import com.bar.gestioncocktail.model.Cocktail;
 import com.bar.gestioncocktail.model.CocktailCategorie;
+import com.bar.gestioncocktail.model.FlavorProfile;
 import com.bar.gestioncocktail.service.CocktailService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -19,6 +21,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -32,6 +35,9 @@ class CocktailControllerTest {
 
     @Mock
     private CocktailService cocktailService;
+
+    @Mock
+    private com.bar.gestioncocktail.service.MarginCalculationService marginCalculationService;
 
     @InjectMocks
     private CocktailController cocktailController;
@@ -165,4 +171,75 @@ class CocktailControllerTest {
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().imageUrl()).isEqualTo("/uploads/cocktails/cocktail_1_xyz.jpg");
     }
+
+    @Test
+    @DisplayName("getFacets - returns facets summary")
+    void getFacets_success() {
+        CocktailFacetsDTO mockFacets = new CocktailFacetsDTO(
+            Map.of(FlavorProfile.FRUITY, 5L), 3L, 4L, 2L, 1L, BigDecimal.ZERO, new BigDecimal("25.0"), 10L
+        );
+        when(cocktailService.getFacets()).thenReturn(mockFacets);
+
+        ResponseEntity<CocktailFacetsDTO> response = cocktailController.getFacets();
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().totalAvailable()).isEqualTo(10L);
+        assertThat(response.getBody().flavorCounts()).containsEntry(FlavorProfile.FRUITY, 5L);
+    }
+
+    @Test
+    @DisplayName("matchCocktails - delegates parameters to service and returns matching DTO list")
+    void matchCocktails_success() {
+        when(cocktailService.filterAndMatchCocktails(
+            List.of(FlavorProfile.FRUITY), false, true, true, false, new BigDecimal("15.0")
+        )).thenReturn(List.of(cocktail));
+
+        ResponseEntity<List<CocktailResponseDTO>> response = cocktailController.matchCocktails(
+            List.of(FlavorProfile.FRUITY), false, true, true, false, new BigDecimal("15.0")
+        );
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getBody()).hasSize(1);
+        assertThat(response.getBody().get(0).nom()).isEqualTo("Mojito");
+    }
+
+    @Test
+    @DisplayName("getCocktailMargin - returns calculated margin DTO for cocktail")
+    void getCocktailMargin_success() {
+        com.bar.gestioncocktail.dto.CocktailMarginDTO marginDTO = new com.bar.gestioncocktail.dto.CocktailMarginDTO(
+            1L, "Mojito", "ALCOOLISE", "20%",
+            new BigDecimal("8.50"), new BigDecimal("7.08"), new BigDecimal("1.50"),
+            new BigDecimal("5.58"), new BigDecimal("78.81"),
+            List.of(), List.of()
+        );
+        when(marginCalculationService.getCocktailMargin(1L)).thenReturn(marginDTO);
+
+        ResponseEntity<com.bar.gestioncocktail.dto.CocktailMarginDTO> response =
+            cocktailController.getCocktailMargin(1L);
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getBody().grossMarginPercentage()).isEqualByComparingTo(new BigDecimal("78.81"));
+        assertThat(response.getBody().recipeCost()).isEqualByComparingTo(new BigDecimal("1.50"));
+    }
+
+    @Test
+    @DisplayName("getMarginAnalytics - returns catalog margins list")
+    void getMarginAnalytics_success() {
+        com.bar.gestioncocktail.dto.CocktailMarginDTO marginDTO = new com.bar.gestioncocktail.dto.CocktailMarginDTO(
+            1L, "Mojito", "ALCOOLISE", "20%",
+            new BigDecimal("8.50"), new BigDecimal("7.08"), new BigDecimal("1.50"),
+            new BigDecimal("5.58"), new BigDecimal("78.81"),
+            List.of(), List.of()
+        );
+        when(marginCalculationService.getCatalogMarginAnalytics()).thenReturn(List.of(marginDTO));
+
+        ResponseEntity<List<com.bar.gestioncocktail.dto.CocktailMarginDTO>> response =
+            cocktailController.getCatalogMarginAnalytics();
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getBody()).hasSize(1);
+        assertThat(response.getBody().get(0).nom()).isEqualTo("Mojito");
+    }
 }
+

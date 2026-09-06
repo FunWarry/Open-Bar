@@ -33,16 +33,31 @@ L'app tourne sur le **réseau WiFi du bar** (serveur local — Raspberry Pi 5 ou
 
 #### Architecture déploiement cible
 
-```
-[Tablette serveur] ──┐
-[Tablette barman]  ──┤── WiFi bar ──── [Mini-PC / Raspberry Pi 5]
-[PC manager]       ──┘                  ├── Spring Boot :8080
-                                         ├── PostgreSQL :5432
-                                         ├── Backup Cron & Rotation (openbar_backups)
-                                         ├── Centralized Logrotate (/var/log/openbar)
-                                         └── Nginx Reverse Proxy (HTTPS :443 + HTTP :80 301 redirect)
-                                               ├── Proxy /api & /ws → Spring Boot
-                                               └── Static PWA Angular App
+```mermaid
+flowchart LR
+    subgraph Clients ["Terminaux PWA (Réseau Local)"]
+        T1["📱 Tablette Serveur"]
+        T2["🍸 Tablette Barman"]
+        T3["💻 PC Manager"]
+        T4["📱 Smartphone Client (QR Code)"]
+    end
+
+    subgraph Server ["Serveur Local (Raspberry Pi 5 / Mini-PC)"]
+        Nginx["🌐 Nginx Reverse Proxy\n(HTTPS :443 + 301 :80)"]
+        PWA["📦 Angular PWA App (Static)"]
+        Backend["☕ Spring Boot API & STOMP\n(:8080)"]
+        Postgres[("🐘 PostgreSQL\n(:5432)")]
+        Backup["💾 Backup Cron & Rotation\n(openbar_backups)"]
+        Logrotate["📋 Logrotate\n(/var/log/openbar)"]
+    end
+
+    Clients -->|"Wi-Fi Bar (LAN)"| Nginx
+    Nginx -->|"Fichiers statiques"| PWA
+    Nginx -->|"/api & /ws"| Backend
+    Backend --> Postgres
+    Postgres -.-> Backup
+    Backend -.-> Logrotate
+    Nginx -.-> Logrotate
 ```
 
 | Couche               | Techno cible                          |
@@ -52,6 +67,7 @@ L'app tourne sur le **réseau WiFi du bar** (serveur local — Raspberry Pi 5 ou
 | Build natif          | ~~Capacitor~~ — **abandonné**         |
 | Canvas plan de salle | Konva.js                              |
 | i18n                 | Transloco (`@jsverse/transloco`)      |
+| Impression tickets   | ESC/POS direct socket (LAN TCP :9100) |
 | Reverse Proxy & TLS  | Nginx (HTTPS :443, SAN certs, HTTP :80 redirect, camera header) |
 | Sauvegardes BDD      | Scheduled Docker container + rotation |
 | Déploiement prod     | Docker Compose sur mini-PC local (réseau bar) |
@@ -121,14 +137,44 @@ src/main/java/com/bar/gestioncocktail/
 
 ## Modèle de données (schéma principal)
 
-```
-users ──< user_roles
-users ──< tables (serveur_id)
-tables ──< commandes ──< commande_items ──< cocktails
-                                         └──< cocktail_variantes
-cocktails ──< cocktail_ingredients ──< ingredients
-tables ──< factures ──< facture_items
-users ──< audit_logs
+```mermaid
+flowchart TD
+    subgraph UsersDomain ["👥 Utilisateurs & Équipe"]
+        USERS["users"] -->|"1:N"| USER_ROLES["user_roles"]
+        USERS -->|"1:N"| AUDIT_LOGS["audit_logs"]
+    end
+
+    subgraph SalleDomain ["🪑 Salle & Tables"]
+        ZONES["zones"] -->|"1:N"| TABLES["tables"]
+        USERS -.->|"serveur_id"| TABLES
+        TABLES -->|"1:N"| TABLE_SESSIONS["table_sessions (QR client)"]
+        TABLES -->|"1:N"| TABLE_APPELS["table_appels (Appels serveur)"]
+        TABLES -->|"1:N"| TABLE_CART_ITEMS["table_cart_items (Panier table)"]
+    end
+
+    subgraph CommandesDomain ["🍸 Commandes & Service"]
+        TABLES -->|"1:N"| COMMANDES["commandes"]
+        COMMANDES -->|"1:N"| COMMANDE_ITEMS["commande_items"]
+        TABLE_CART_ITEMS -.->|"checkout"| COMMANDES
+    end
+
+    subgraph MixologieDomain ["🍹 Catalogue & Mixologie"]
+        COCKTAILS["cocktails"] -->|"1:N"| COMMANDE_ITEMS
+        COCKTAILS -->|"1:N"| COCKTAIL_VARIANTES["cocktail_variantes"]
+        COCKTAILS -->|"1:N"| COCKTAIL_INGREDIENTS["cocktail_ingredients"]
+        COCKTAILS -->|"N:1"| GLASSWARE["glassware"]
+        
+        COCKTAIL_VARIANTES -->|"1:N"| COCKTAIL_VARIANTE_INGREDIENTS["cocktail_variante_ingredients"]
+        COCKTAIL_VARIANTE_INGREDIENTS -->|"N:1"| INGREDIENTS["ingredients"]
+        COCKTAIL_INGREDIENTS -->|"N:1"| INGREDIENTS
+        COMMANDE_ITEMS -.->|"variante"| COCKTAIL_VARIANTES
+    end
+
+    subgraph FacturationDomain ["💳 Facturation & Règlements"]
+        TABLES -->|"1:N"| FACTURES["factures"]
+        FACTURES -->|"1:N"| FACTURE_ITEMS["facture_items"]
+        FACTURES -->|"1:N"| FACTURE_REGLEMENTS["facture_reglements (Splits)"]
+    end
 ```
 
 ## Rôles utilisateurs
@@ -136,7 +182,7 @@ users ──< audit_logs
 `UserRole` enum : **ADMIN**, **MANAGER**, **SERVEUR**, **BARMAN**
 
 | Rôle | Nature | Permissions clés |
-|------|--------|-----------------|
+|------|-------------|-----------------|
 | `ADMIN` | Maintenance technique uniquement — pas un rôle métier bar | CRUD users, tout |
 | `MANAGER` | Supervision bar (rôle métier principal) | Lire commandes/tables/factures, annuler commandes, toggler disponibilité cocktails |
 | `SERVEUR` | Prise de commande, suivi tables | Créer/annuler commandes, définir priorité items |
@@ -147,9 +193,17 @@ NgRx selectors : `selectIsAdmin`, `selectIsManager`, `selectIsBarman`.
 
 ## Cycle de vie d'une commande
 
-```
-EN_ATTENTE → EN_PREPARATION → PRET → LIVREE → REGLEE
-                                            ↘ ANNULEE (depuis n'importe quel état)
+```mermaid
+flowchart LR
+    A([EN_ATTENTE]) -->|Start prep| B([EN_PREPARATION])
+    B -->|Ready datePret| C([PRET])
+    C -->|Delivered dateLivraison| D([LIVREE])
+    D -->|Settled dateReglement| E([REGLEE])
+    
+    A -.->|Cancel| X([ANNULEE])
+    B -.->|Cancel| X
+    C -.->|Cancel| X
+    D -.->|Cancel| X
 ```
 
 Timestamps auto-remplis dans `CommandeService.changerStatut()` :

@@ -1,3 +1,7 @@
+import { PreparationStation } from '../../../core/models/commande.model';
+
+export type { PreparationStation };
+
 /**
  * View model representing a bar counter order displayed in the real-time Kanban board.
  */
@@ -27,6 +31,8 @@ export interface CommandeItemView {
   id: number;
   cocktailId?: number;
   cocktailNom: string;
+  station?: PreparationStation;
+  statut?: 'EN_ATTENTE' | 'EN_PREPARATION' | 'PRET' | 'LIVREE' | 'REGLEE' | 'ANNULEE';
   varianteId?: number;
   varianteNom?: string;
   quantite: number;
@@ -50,5 +56,6 @@ export interface BarmanFilterCriteria {
   searchTerm: string;
   tableFilter: string;
   urgentOnly: boolean;
+  stationFilter?: 'ALL' | 'BAR' | 'KITCHEN';
 }
 

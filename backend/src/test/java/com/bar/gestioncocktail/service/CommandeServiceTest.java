@@ -1,5 +1,6 @@
 package com.bar.gestioncocktail.service;
 
+import com.bar.gestioncocktail.exception.BusinessException;
 import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.model.*;
 import com.bar.gestioncocktail.repository.CocktailIngredientRepository;
@@ -616,4 +617,447 @@ class CommandeServiceTest {
 
         verify(eventPublisher).publishEvent(any(OrderCancelledEvent.class));
     }
+
+    @Test
+    @DisplayName("updateItemStatut - updates single item and transitions order to PRET when all items ready")
+    void updateItemStatut_allReady_transitionsOrderToPret() {
+        Commande cmd = new Commande();
+        cmd.setId(50L);
+        cmd.setStatut(CommandeStatut.EN_PREPARATION);
+
+        CommandeItem item1 = new CommandeItem();
+        item1.setId(101L);
+        item1.setCommande(cmd);
+        item1.setStation(PreparationStation.BAR);
+        item1.setStatut(CommandeStatut.EN_PREPARATION);
+
+        CommandeItem item2 = new CommandeItem();
+        item2.setId(102L);
+        item2.setCommande(cmd);
+        item2.setStation(PreparationStation.KITCHEN);
+        item2.setStatut(CommandeStatut.PRET);
+
+        cmd.setItems(new ArrayList<>(List.of(item1, item2)));
+
+        when(commandeRepository.findById(50L)).thenReturn(Optional.of(cmd));
+        when(commandeItemRepository.save(any(CommandeItem.class))).thenReturn(item1);
+        when(commandeRepository.save(any(Commande.class))).thenReturn(cmd);
+
+        Commande result = commandeService.updateItemStatut(50L, 101L, CommandeStatut.PRET);
+
+        assertThat(result.getStatut()).isEqualTo(CommandeStatut.PRET);
+        assertThat(cmd.getStatut()).isEqualTo(CommandeStatut.PRET);
+        verify(eventPublisher, atLeastOnce()).publishEvent(any(OrderStatusChangedEvent.class));
+    }
+
+    @Test
+    @DisplayName("updateItemStatut - transitions order to EN_PREPARATION when at least one item preparing")
+    void updateItemStatut_partialPrep_transitionsOrderToEnPreparation() {
+        Commande cmd = new Commande();
+        cmd.setId(51L);
+        cmd.setStatut(CommandeStatut.EN_ATTENTE);
+
+        CommandeItem item1 = new CommandeItem();
+        item1.setId(201L);
+        item1.setCommande(cmd);
+        item1.setStation(PreparationStation.KITCHEN);
+        item1.setStatut(CommandeStatut.EN_ATTENTE);
+
+        cmd.setItems(new ArrayList<>(List.of(item1)));
+
+        when(commandeRepository.findById(51L)).thenReturn(Optional.of(cmd));
+        when(commandeItemRepository.save(any(CommandeItem.class))).thenReturn(item1);
+        when(commandeRepository.save(any(Commande.class))).thenReturn(cmd);
+
+        Commande result = commandeService.updateItemStatut(51L, 201L, CommandeStatut.EN_PREPARATION);
+
+        assertThat(result.getStatut()).isEqualTo(CommandeStatut.EN_PREPARATION);
+        assertThat(cmd.getStatut()).isEqualTo(CommandeStatut.EN_PREPARATION);
+        verify(eventPublisher, atLeastOnce()).publishEvent(any(OrderStatusChangedEvent.class));
+    }
+
+    @Test
+    @DisplayName("updateItemStatut - direct item ID lookup resolves parent order and updates status")
+    void updateItemStatut_directItemId_resolvesParentOrder() {
+        Commande cmd = new Commande();
+        cmd.setId(52L);
+        cmd.setStatut(CommandeStatut.EN_ATTENTE);
+
+        CommandeItem item1 = new CommandeItem();
+        item1.setId(301L);
+        item1.setCommande(cmd);
+        item1.setStation(PreparationStation.SNACK);
+        item1.setStatut(CommandeStatut.EN_ATTENTE);
+
+        cmd.setItems(new ArrayList<>(List.of(item1)));
+
+        when(commandeItemRepository.findById(301L)).thenReturn(Optional.of(item1));
+        when(commandeRepository.findById(52L)).thenReturn(Optional.of(cmd));
+        when(commandeItemRepository.save(any(CommandeItem.class))).thenReturn(item1);
+        when(commandeRepository.save(any(Commande.class))).thenReturn(cmd);
+
+        Commande result = commandeService.updateItemStatut(301L, CommandeStatut.PRET);
+
+        assertThat(result.getStatut()).isEqualTo(CommandeStatut.PRET);
+        verify(eventPublisher, atLeastOnce()).publishEvent(any(OrderStatusChangedEvent.class));
+    }
+
+    @Test
+    @DisplayName("getCommandesByStation - filters orders containing station items")
+    void getCommandesByStation_filtersByStation() {
+        Commande cmdBar = new Commande();
+        cmdBar.setId(60L);
+        CommandeItem barItem = new CommandeItem();
+        barItem.setStation(PreparationStation.BAR);
+        cmdBar.setItems(List.of(barItem));
+
+        Commande cmdKitchen = new Commande();
+        cmdKitchen.setId(61L);
+        CommandeItem kitchenItem = new CommandeItem();
+        kitchenItem.setStation(PreparationStation.KITCHEN);
+        cmdKitchen.setItems(List.of(kitchenItem));
+
+        when(commandeRepository.findAll()).thenReturn(List.of(cmdBar, cmdKitchen));
+
+        List<Commande> resultKitchen = commandeService.getCommandesByStation(PreparationStation.KITCHEN);
+
+        assertThat(resultKitchen).containsExactly(cmdKitchen);
+    }
+
+    @Test
+    @DisplayName("changerStatut - cascades status transitions to items correctly")
+    void changerStatut_cascadesOrderStatusToItems() {
+        Commande cmd = new Commande();
+        cmd.setId(70L);
+        cmd.setStatut(CommandeStatut.EN_ATTENTE);
+
+        CommandeItem item1 = new CommandeItem();
+        item1.setId(701L);
+        item1.setStatut(CommandeStatut.EN_ATTENTE);
+
+        CommandeItem item2 = new CommandeItem();
+        item2.setId(702L);
+        item2.setStatut(CommandeStatut.EN_PREPARATION);
+
+        cmd.setItems(new ArrayList<>(List.of(item1, item2)));
+
+        when(commandeRepository.findById(70L)).thenReturn(Optional.of(cmd));
+        when(commandeRepository.save(any(Commande.class))).thenAnswer(i -> i.getArgument(0));
+
+        // Test cascade to EN_PREPARATION
+        commandeService.changerStatut(70L, CommandeStatut.EN_PREPARATION);
+        assertThat(item1.getStatut()).isEqualTo(CommandeStatut.EN_PREPARATION);
+
+        // Test cascade to PRET
+        commandeService.changerStatut(70L, CommandeStatut.PRET);
+        assertThat(item1.getStatut()).isEqualTo(CommandeStatut.PRET);
+        assertThat(item2.getStatut()).isEqualTo(CommandeStatut.PRET);
+
+        // Test cascade to LIVREE
+        commandeService.changerStatut(70L, CommandeStatut.LIVREE);
+        assertThat(item1.getStatut()).isEqualTo(CommandeStatut.LIVREE);
+
+        // Test cascade to ANNULEE
+        commandeService.changerStatut(70L, CommandeStatut.ANNULEE);
+        assertThat(item1.getStatut()).isEqualTo(CommandeStatut.ANNULEE);
+    }
+
+    @Test
+    @DisplayName("updateItemStatut - order already delivered/settled/cancelled does not transition")
+    void updateItemStatut_orderAlreadyFinished_doesNotChangeStatus() {
+        Commande cmd = new Commande();
+        cmd.setId(80L);
+        cmd.setStatut(CommandeStatut.LIVREE);
+
+        CommandeItem orderItem = new CommandeItem();
+        orderItem.setId(801L);
+        orderItem.setCommande(cmd);
+        orderItem.setStatut(CommandeStatut.EN_ATTENTE);
+
+        cmd.setItems(new ArrayList<>(List.of(orderItem)));
+
+        when(commandeRepository.findById(80L)).thenReturn(Optional.of(cmd));
+        when(commandeItemRepository.save(any(CommandeItem.class))).thenReturn(orderItem);
+        when(commandeRepository.save(any(Commande.class))).thenReturn(cmd);
+
+        Commande result = commandeService.updateItemStatut(80L, 801L, CommandeStatut.PRET);
+
+        assertThat(result.getStatut()).isEqualTo(CommandeStatut.LIVREE);
+    }
+
+    @Test
+    @DisplayName("updateItemStatut - item missing from parent order throws ResourceNotFoundException")
+    void updateItemStatut_itemNotInOrder_throwsResourceNotFound() {
+        Commande cmd = new Commande();
+        cmd.setId(81L);
+        cmd.setItems(new ArrayList<>());
+
+        when(commandeRepository.findById(81L)).thenReturn(Optional.of(cmd));
+
+        assertThatThrownBy(() -> commandeService.updateItemStatut(81L, 999L, CommandeStatut.PRET))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Order item not found with id: 999");
+    }
+
+    @Test
+    @DisplayName("updateItemStatut - item without parent order throws ResourceNotFoundException")
+    void updateItemStatut_itemMissingParentOrder_throwsResourceNotFound() {
+        CommandeItem orphanItem = new CommandeItem();
+        orphanItem.setId(802L);
+        orphanItem.setCommande(null);
+
+        when(commandeItemRepository.findById(802L)).thenReturn(Optional.of(orphanItem));
+
+        assertThatThrownBy(() -> commandeService.updateItemStatut(802L, CommandeStatut.PRET))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Parent order not found for item: 802");
+    }
+
+    @Test
+    @DisplayName("transitionBatch - with itemIds transitions multiple items and advances orders")
+    void transitionBatch_withItemIds_transitionsMultipleItems() {
+        Commande cmd1 = new Commande();
+        cmd1.setId(901L);
+        cmd1.setStatut(CommandeStatut.EN_ATTENTE);
+        cmd1.setItems(new ArrayList<>());
+
+        CommandeItem it1 = new CommandeItem();
+        it1.setId(1001L);
+        it1.setCommande(cmd1);
+        it1.setStatut(CommandeStatut.EN_ATTENTE);
+        cmd1.getItems().add(it1);
+
+        Commande cmd2 = new Commande();
+        cmd2.setId(902L);
+        cmd2.setStatut(CommandeStatut.EN_ATTENTE);
+        cmd2.setItems(new ArrayList<>());
+
+        CommandeItem it2 = new CommandeItem();
+        it2.setId(1002L);
+        it2.setCommande(cmd2);
+        it2.setStatut(CommandeStatut.EN_ATTENTE);
+        cmd2.getItems().add(it2);
+
+        when(commandeItemRepository.findAllById(List.of(1001L, 1002L))).thenReturn(List.of(it1, it2));
+        when(commandeRepository.save(any(Commande.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        List<Commande> results = commandeService.transitionBatch(List.of(1001L, 1002L), null, CommandeStatut.EN_PREPARATION);
+
+        assertThat(results).hasSize(2);
+        assertThat(it1.getStatut()).isEqualTo(CommandeStatut.EN_PREPARATION);
+        assertThat(it2.getStatut()).isEqualTo(CommandeStatut.EN_PREPARATION);
+        assertThat(cmd1.getStatut()).isEqualTo(CommandeStatut.EN_PREPARATION);
+        assertThat(cmd2.getStatut()).isEqualTo(CommandeStatut.EN_PREPARATION);
+
+        verify(commandeItemRepository).save(it1);
+        verify(commandeItemRepository).save(it2);
+        verify(eventPublisher, atLeastOnce()).publishEvent(any(OrderUpdatedEvent.class));
+    }
+
+    @Test
+    @DisplayName("transitionBatch - transitions all items to PRET and marks order PRET")
+    void transitionBatch_toPret_allReady_transitionsOrderToPret() {
+        Commande cmd = new Commande();
+        cmd.setId(903L);
+        cmd.setStatut(CommandeStatut.EN_PREPARATION);
+        cmd.setItems(new ArrayList<>());
+
+        CommandeItem it = new CommandeItem();
+        it.setId(1003L);
+        it.setCommande(cmd);
+        it.setStatut(CommandeStatut.EN_PREPARATION);
+        cmd.getItems().add(it);
+
+        when(commandeItemRepository.findAllById(List.of(1003L))).thenReturn(List.of(it));
+        when(commandeRepository.save(any(Commande.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        List<Commande> results = commandeService.transitionBatch(List.of(1003L), null, CommandeStatut.PRET);
+
+        assertThat(results).hasSize(1);
+        assertThat(it.getStatut()).isEqualTo(CommandeStatut.PRET);
+        assertThat(cmd.getStatut()).isEqualTo(CommandeStatut.PRET);
+        assertThat(cmd.getDatePret()).isNotNull();
+    }
+
+    @Test
+    @DisplayName("transitionBatch - by cocktailId finds and transitions active matching items")
+    void transitionBatch_byCocktailId_transitionsMatchingItems() {
+        Cocktail mojito = new Cocktail();
+        mojito.setId(55L);
+
+        Commande cmd = new Commande();
+        cmd.setId(904L);
+        cmd.setStatut(CommandeStatut.EN_ATTENTE);
+        cmd.setItems(new ArrayList<>());
+
+        CommandeItem it = new CommandeItem();
+        it.setId(1004L);
+        it.setCommande(cmd);
+        it.setCocktail(mojito);
+        it.setStatut(CommandeStatut.EN_ATTENTE);
+        cmd.getItems().add(it);
+
+        when(commandeRepository.findAll()).thenReturn(List.of(cmd));
+        when(commandeRepository.save(any(Commande.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        List<Commande> results = commandeService.transitionBatch(null, 55L, CommandeStatut.EN_PREPARATION);
+
+        assertThat(results).hasSize(1);
+        assertThat(it.getStatut()).isEqualTo(CommandeStatut.EN_PREPARATION);
+        assertThat(cmd.getStatut()).isEqualTo(CommandeStatut.EN_PREPARATION);
+    }
+
+    @Test
+    @DisplayName("transitionBatch - missing target status throws BusinessException")
+    void transitionBatch_missingStatus_throwsBusinessException() {
+        List<Long> itemIds = List.of(1001L);
+        assertThatThrownBy(() -> commandeService.transitionBatch(itemIds, null, null))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("Target status is required");
+    }
+
+    @Test
+    @DisplayName("transitionBatch - missing itemIds and cocktailId throws BusinessException")
+    void transitionBatch_missingItemIdsAndCocktailId_throwsBusinessException() {
+        assertThatThrownBy(() -> commandeService.transitionBatch(null, null, CommandeStatut.EN_PREPARATION))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("Either itemIds or cocktailId must be provided");
+    }
+
+    @Test
+    @DisplayName("transitionBatch - no matching target items returns empty list")
+    void transitionBatch_noMatchingItems_returnsEmptyList() {
+        when(commandeItemRepository.findAllById(List.of(9999L))).thenReturn(List.of());
+
+        List<Commande> results = commandeService.transitionBatch(List.of(9999L), null, CommandeStatut.EN_PREPARATION);
+
+        assertThat(results).isEmpty();
+        verify(commandeRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("transitionBatch - by cocktailId transitions matching items to PRET")
+    void transitionBatch_byCocktailId_toPret_transitionsMatchingItems() {
+        Cocktail mojito = new Cocktail();
+        mojito.setId(56L);
+
+        Commande cmd = new Commande();
+        cmd.setId(905L);
+        cmd.setStatut(CommandeStatut.EN_PREPARATION);
+        cmd.setItems(new ArrayList<>());
+
+        CommandeItem it = new CommandeItem();
+        it.setId(1005L);
+        it.setCommande(cmd);
+        it.setCocktail(mojito);
+        it.setStatut(CommandeStatut.EN_PREPARATION);
+        cmd.getItems().add(it);
+
+        when(commandeRepository.findAll()).thenReturn(List.of(cmd));
+        when(commandeRepository.save(any(Commande.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        List<Commande> results = commandeService.transitionBatch(null, 56L, CommandeStatut.PRET);
+
+        assertThat(results).hasSize(1);
+        assertThat(it.getStatut()).isEqualTo(CommandeStatut.PRET);
+        assertThat(cmd.getStatut()).isEqualTo(CommandeStatut.PRET);
+    }
+
+    @Test
+    @DisplayName("transitionBatch - by cocktailId with custom status transitions matching items")
+    void transitionBatch_byCocktailId_otherStatus_transitionsMatchingItems() {
+        Cocktail mojito = new Cocktail();
+        mojito.setId(57L);
+
+        Commande cmd = new Commande();
+        cmd.setId(906L);
+        cmd.setStatut(CommandeStatut.PRET);
+        cmd.setItems(new ArrayList<>());
+
+        CommandeItem it = new CommandeItem();
+        it.setId(1006L);
+        it.setCommande(cmd);
+        it.setCocktail(mojito);
+        it.setStatut(CommandeStatut.PRET);
+        cmd.getItems().add(it);
+
+        when(commandeRepository.findAll()).thenReturn(List.of(cmd));
+        when(commandeRepository.save(any(Commande.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        List<Commande> results = commandeService.transitionBatch(null, 57L, CommandeStatut.LIVREE);
+
+        assertThat(results).hasSize(1);
+        assertThat(it.getStatut()).isEqualTo(CommandeStatut.LIVREE);
+    }
+
+    // ─── createCommande with clientRequestId & embedded items (#361) ───────────
+
+    @Test
+    @DisplayName("createCommande - saves order with clientRequestId when not previously existing")
+    void createCommande_nominal_withClientRequestId_savesSuccessfully() {
+        Commande newCmd = new Commande();
+        newCmd.setClientRequestId("client-req-001");
+        when(commandeRepository.findByClientRequestId("client-req-001")).thenReturn(Optional.empty());
+
+        Commande saved = commandeService.createCommande(newCmd);
+
+        assertThat(saved).isNotNull();
+        assertThat(saved.getClientRequestId()).isEqualTo("client-req-001");
+        assertThat(saved.getStatut()).isEqualTo(CommandeStatut.EN_ATTENTE);
+        verify(commandeRepository).save(newCmd);
+    }
+
+    @Test
+    @DisplayName("createCommande - idempotency check returns existing order without creating duplicate")
+    void createCommande_idempotent_returnsExistingOrderWithoutDuplicate() {
+        Commande existing = new Commande();
+        existing.setId(42L);
+        existing.setClientRequestId("client-req-duplicate");
+        existing.setStatut(CommandeStatut.EN_PREPARATION);
+
+        when(commandeRepository.findByClientRequestId("client-req-duplicate")).thenReturn(Optional.of(existing));
+
+        Commande duplicateAttempt = new Commande();
+        duplicateAttempt.setClientRequestId("client-req-duplicate");
+
+        Commande result = commandeService.createCommande(duplicateAttempt);
+
+        assertThat(result).isSameAs(existing);
+        assertThat(result.getId()).isEqualTo(42L);
+        assertThat(result.getStatut()).isEqualTo(CommandeStatut.EN_PREPARATION);
+        verify(commandeRepository, never()).save(duplicateAttempt);
+    }
+
+    @Test
+    @DisplayName("createCommande - with embedded items sets up stations, links, and computes total")
+    void createCommande_withEmbeddedItems_initializesAndCalculatesTotal() {
+        Cocktail margarita = new Cocktail();
+        margarita.setId(10L);
+        margarita.setNom("Margarita");
+        margarita.setPrix(new BigDecimal("12.50"));
+        margarita.setStation(PreparationStation.BAR);
+        when(cocktailRepository.findById(10L)).thenReturn(Optional.of(margarita));
+
+        CommandeItem item1 = new CommandeItem();
+        item1.setCocktail(margarita);
+        item1.setQuantite(2);
+        item1.setPrixUnitaire(new BigDecimal("12.50"));
+
+        Commande cmdWithItems = new Commande();
+        cmdWithItems.setClientRequestId("client-req-items");
+        cmdWithItems.setItems(new ArrayList<>(List.of(item1)));
+
+        when(commandeRepository.findByClientRequestId("client-req-items")).thenReturn(Optional.empty());
+
+        Commande result = commandeService.createCommande(cmdWithItems);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getTotal()).isEqualByComparingTo(new BigDecimal("25.00"));
+        assertThat(result.getItems()).hasSize(1);
+        assertThat(result.getItems().get(0).getCommande()).isSameAs(result);
+        assertThat(result.getItems().get(0).getStation()).isEqualTo(PreparationStation.BAR);
+        assertThat(result.getItems().get(0).getStatut()).isEqualTo(CommandeStatut.EN_ATTENTE);
+        verify(commandeRepository).save(cmdWithItems);
+    }
 }
+

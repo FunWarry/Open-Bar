@@ -71,6 +71,16 @@
       testId="ingredient-threshold-input">
     </app-input-field>
 
+    <app-input-field
+      formControlName="prixUnitaire"
+      type="number"
+      [label]="('COCKTAIL.COST_UNIT' | transloco) + ' (€)'"
+      [placeholder]="'COCKTAIL.COST_UNIT_PRICE_HINT' | transloco"
+      icon="cash-outline"
+      [required]="false"
+      testId="ingredient-cost-input">
+    </app-input-field>
+
     <div class="form-actions">
       <ion-button fill="outline" color="medium" type="button" (click)="onCancel()" (keydown.enter)="onCancel()" data-testid="ingredient-cancel-btn">
         {{ (canEdit ? 'COMMON.CANCEL' : 'COMMON.CLOSE') | transloco }}

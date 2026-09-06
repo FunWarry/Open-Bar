@@ -110,6 +110,44 @@
   animation: pulse-badge 1.5s infinite;
 }
 
+.station-chip {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: var(--radius-sm, 4px);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
+  color: var(--text-secondary);
+
+  &.station-chip--kitchen {
+    color: var(--semantic-warning);
+    border-color: var(--semantic-warning);
+    background: rgba(230, 162, 60, 0.12);
+  }
+
+  &.station-chip--snack {
+    color: var(--semantic-info);
+    border-color: var(--semantic-info);
+    background: rgba(64, 158, 255, 0.12);
+  }
+}
+
+.item-ready-chip {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: var(--semantic-success);
+  background: rgba(103, 194, 58, 0.15);
+  border: 1px solid var(--semantic-success);
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 @keyframes pulse-badge {
   0% { transform: scale(1); }
   50% { transform: scale(1.05); }

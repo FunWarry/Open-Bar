@@ -525,6 +525,10 @@
             background: rgba(155, 138, 242, 0.18);
             color: var(--role-admin, #9b8af2);
           }
+          &.profitable {
+            background: rgba(47, 191, 107, 0.18);
+            color: var(--semantic-success);
+          }
         }
 
         ion-card-title {
@@ -644,6 +648,52 @@
       }
     }
   }
+
+  &.profitable-cocktail-item {
+    .profit-rate-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: var(--radius-pill);
+      font-size: 0.78rem;
+      font-weight: 700;
+
+      &.badge-success {
+        background: rgba(47, 191, 107, 0.15);
+        color: var(--semantic-success);
+        border: 1px solid rgba(47, 191, 107, 0.3);
+      }
+      &.badge-warning {
+        background: rgba(244, 165, 42, 0.15);
+        color: var(--semantic-warning);
+        border: 1px solid rgba(244, 165, 42, 0.3);
+      }
+      &.badge-danger {
+        background: rgba(229, 96, 79, 0.15);
+        color: var(--semantic-danger);
+        border: 1px solid rgba(229, 96, 79, 0.3);
+      }
+    }
+
+    .profit-details-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+
+      .profit-detail-item {
+        &.highlight {
+          color: var(--semantic-success);
+          font-weight: 700;
+        }
+      }
+    }
+  }
+}
+
+.financial-health-kpi-row {
+  margin-top: 14px;
 }
 
 // Workflow Distribution
@@ -884,5 +934,176 @@
   50% {
     transform: scale(1.4);
     opacity: 0.5;
+  }
+}
+
+// ----------------------------------------------------------------------------
+// Stock Waste & Shrinkage Audit Styles
+// ----------------------------------------------------------------------------
+.qa-tile-waste {
+  .qa-icon-wrapper.waste {
+    background: var(--semantic-danger-soft, rgba(239, 68, 68, 0.15));
+    color: var(--semantic-danger);
+  }
+}
+
+.waste-audit-card {
+  margin-top: 20px;
+  background: var(--background-surface-1);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-lg, 12px);
+
+  .analytics-icon-badge.waste {
+    background: var(--semantic-danger-soft, rgba(239, 68, 68, 0.15));
+    color: var(--semantic-danger);
+  }
+
+  .card-header-subtitle {
+    margin: 2px 0 0;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  .waste-metrics-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+    padding: 16px;
+    background: var(--background-surface-2);
+    border-radius: var(--radius-md, 8px);
+    border: 1px solid var(--border-light, var(--border-medium));
+
+    .waste-metric-box {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+
+      .metric-label {
+        font-size: 0.78rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+      }
+
+      .metric-value {
+        font-size: 1.3rem;
+        font-weight: 800;
+        color: var(--text-primary);
+
+        &.danger {
+          color: var(--semantic-danger);
+        }
+      }
+    }
+  }
+
+  .waste-audit-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .sub-section-title {
+    margin: 0 0 14px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .reason-breakdown-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    .reason-breakdown-item {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+
+      .reason-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        .reason-badge {
+          font-size: 0.75rem;
+          font-weight: 600;
+        }
+
+        .reason-amount {
+          font-size: 0.85rem;
+          font-weight: 700;
+          color: var(--text-primary);
+
+          small {
+            font-weight: normal;
+            color: var(--text-muted);
+            margin-left: 4px;
+          }
+        }
+      }
+    }
+  }
+
+  .recent-movements-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    .recent-movement-row {
+      padding: 10px 14px;
+      background: var(--background-surface-2);
+      border-radius: var(--radius-sm, 6px);
+      border: 1px solid var(--border-light, var(--border-medium));
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+
+      .movement-main {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        .movement-ing-name {
+          font-weight: 700;
+          font-size: 0.9rem;
+          color: var(--text-primary);
+        }
+
+        .movement-badge {
+          font-size: 0.7rem;
+        }
+      }
+
+      .movement-meta {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+
+        .movement-cost.danger {
+          color: var(--semantic-danger);
+          font-weight: 700;
+        }
+
+        .movement-staff {
+          color: var(--text-muted);
+          font-style: italic;
+        }
+      }
+
+      .movement-notes {
+        margin: 2px 0 0;
+        font-size: 0.78rem;
+        color: var(--text-muted);
+      }
+    }
   }
 }

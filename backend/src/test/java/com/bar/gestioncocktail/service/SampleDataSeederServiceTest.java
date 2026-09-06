@@ -80,10 +80,22 @@ class SampleDataSeederServiceTest {
     private TableAppelRepository tableAppelRepository;
 
     @Mock
+    private TableSessionRepository tableSessionRepository;
+
+    @Mock
+    private TableCartItemRepository tableCartItemRepository;
+
+    @Mock
     private AppSettingsRepository appSettingsRepository;
 
     @Mock
     private EstablishmentConfigRepository establishmentConfigRepository;
+
+    @Mock
+    private HappyHourRuleRepository happyHourRuleRepository;
+
+    @Mock
+    private StockMovementRepository stockMovementRepository;
 
     @Mock
     private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
@@ -124,6 +136,8 @@ class SampleDataSeederServiceTest {
         lenient().when(userRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
         lenient().when(tableRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
         lenient().when(avoirCreditRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        lenient().when(tableSessionRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        lenient().when(tableCartItemRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         Ingredient mockIng = new Ingredient();
         mockIng.setId(1L);
@@ -193,6 +207,8 @@ class SampleDataSeederServiceTest {
         lenient().when(weekSchedulePublicationRepository.findByWeekStart(any())).thenReturn(Optional.empty());
         lenient().when(employeeShiftRepository.findByUserId(anyLong())).thenReturn(List.of());
         lenient().when(avoirCreditRepository.findByNumero(anyString())).thenReturn(Optional.empty());
+        lenient().when(stockMovementRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        lenient().when(stockMovementRepository.count()).thenReturn(0L);
     }
 
     @Test
@@ -223,6 +239,7 @@ class SampleDataSeederServiceTest {
         verify(factureRepository, atLeastOnce()).save(any());
         verify(recipeStepTemplateRepository, atLeastOnce()).save(any());
         verify(cocktailRepository, atLeastOnce()).save(any());
+        verify(stockMovementRepository, atLeastOnce()).save(any());
     }
 
     @Test

@@ -11,6 +11,7 @@ import org.springframework.messaging.MessageDeliveryException;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -97,5 +98,63 @@ class WebSocketAuthInterceptorTest {
         Message<?> result = interceptor.preSend(message, messageChannel);
         assertEquals(message, result);
         verifyNoInteractions(jwtTokenProvider);
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.CsvSource({
+            "X-Guest-Session, guest-uuid-1234, guest:guest-uuid-1234",
+            "X-Session-Token, session-token-abcd, guest:session-token-abcd",
+            "Authorization, Guest guest-direct, guest:guest-direct"
+    })
+    void testPreSendConnectWithGuestHeaders(String headerName, String headerValue, String expectedPrincipalName) {
+        StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.CONNECT);
+        accessor.setNativeHeader(headerName, headerValue);
+        accessor.setLeaveMutable(true);
+        Message<?> message = MessageBuilder.createMessage(new byte[0], accessor.getMessageHeaders());
+
+        Message<?> result = interceptor.preSend(message, messageChannel);
+        assertNotNull(result);
+        StompHeaderAccessor resultAccessor = MessageHeaderAccessor.getAccessor(result, StompHeaderAccessor.class);
+        assertNotNull(resultAccessor);
+        assertNotNull(resultAccessor.getUser());
+        assertEquals(expectedPrincipalName, resultAccessor.getUser().getName());
+    }
+
+    @Test
+    void testPreSendSubscribePublicTopicAllowedForGuest() {
+        StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.SUBSCRIBE);
+        accessor.setDestination("/topic/tables/5/cart");
+        accessor.setUser(new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+                "guest:123", null, java.util.List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_ANONYMOUS"))));
+        accessor.setLeaveMutable(true);
+        Message<?> message = MessageBuilder.createMessage(new byte[0], accessor.getMessageHeaders());
+
+        Message<?> result = interceptor.preSend(message, messageChannel);
+        assertNotNull(result);
+    }
+
+    @Test
+    void testPreSendSubscribeProtectedTopicRejectedForGuest() {
+        StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.SUBSCRIBE);
+        accessor.setDestination("/topic/commandes");
+        accessor.setUser(new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+                "guest:123", null, java.util.List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_ANONYMOUS"))));
+        accessor.setLeaveMutable(true);
+        Message<?> message = MessageBuilder.createMessage(new byte[0], accessor.getMessageHeaders());
+
+        assertThrows(MessageDeliveryException.class, () -> interceptor.preSend(message, messageChannel));
+    }
+
+    @Test
+    void testPreSendSubscribeProtectedTopicAllowedForStaff() {
+        StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.SUBSCRIBE);
+        accessor.setDestination("/topic/commandes");
+        accessor.setUser(new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+                "admin", null, java.util.List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_ADMIN"))));
+        accessor.setLeaveMutable(true);
+        Message<?> message = MessageBuilder.createMessage(new byte[0], accessor.getMessageHeaders());
+
+        Message<?> result = interceptor.preSend(message, messageChannel);
+        assertNotNull(result);
     }
 }

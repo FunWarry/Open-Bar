@@ -103,6 +103,7 @@ describe('IngredientFormComponent', () => {
         uniteMesure: 'kg',
         quantiteStock: 10,
         seuilAlerte: 5,
+        prixUnitaire: 2.5,
       });
       expect(component.ingredientForm.valid).toBeTrue();
     });
@@ -179,6 +180,7 @@ describe('IngredientFormComponent', () => {
         uniteMesure: 'g',
         quantiteStock: 0,
         seuilAlerte: 5,
+        prixUnitaire: 0.1,
       });
       expect(component.ingredientForm.get('quantiteStock')?.valid).toBeTrue();
     });
@@ -213,6 +215,7 @@ describe('IngredientFormComponent', () => {
         uniteMesure: 'cl',
         quantiteStock: 20,
         seuilAlerte: 5,
+        prixUnitaire: 1.2,
       });
       component.onSubmit();
       const modalCtrl = TestBed.inject(ToastController); // injector lookup

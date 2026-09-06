@@ -8,7 +8,8 @@ import {
   IonRefresher, IonRefresherContent,
   IonGrid, IonRow, IonCol,
   IonCard, IonCardContent, IonCardHeader, IonCardTitle,
-  IonButton, IonIcon, IonSpinner, ToastController
+  IonButton, IonIcon, IonSpinner, ToastController, ModalController,
+  IonBadge
 } from '@ionic/angular/standalone';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { StatCardComponent } from '../../core/components/ui/stat-card/stat-card.component';
@@ -43,8 +44,17 @@ import {
   eyeOutline,
   eyeOffOutline,
   timerOutline,
-  arrowForwardOutline
+  arrowForwardOutline,
+  calculatorOutline,
+  trashOutline,
+  pricetagOutline
 } from 'ionicons/icons';
+import { getMarginBadgeClass } from '../../core/utils/margin-calculation.util';
+import { AppSettingsService } from '../../core/services/app-settings.service';
+import { StockWasteService } from '../../core/services/stock-waste.service';
+import { StockMovement, StockWasteSummary, StockWasteReason } from '../../core/models/stock-waste.model';
+import { StockWasteModalComponent } from '../ingredients/stock-waste-modal/stock-waste-modal.component';
+import { AppCurrencyPipe } from '../../core/pipes/app-currency.pipe';
 
 /**
  * Modernized Manager Dashboard Component.
@@ -69,11 +79,12 @@ import {
     IonRefresher, IonRefresherContent,
     IonGrid, IonRow, IonCol,
     IonCard, IonCardContent, IonCardHeader, IonCardTitle,
-    IonButton, IonIcon, IonSpinner,
+    IonButton, IonIcon, IonSpinner, IonBadge,
     StatCardComponent,
     RoleBadgeComponent,
     EmptyStateComponent,
     KanbanBoardComponent,
+    AppCurrencyPipe,
   ],
   templateUrl: './dashboard-manager.component.html',
   styleUrls: ['./dashboard-manager.component.scss'],
@@ -91,6 +102,15 @@ export class DashboardManagerComponent implements OnInit, OnDestroy {
   /** Whether the initial dashboard metrics are currently loading. */
   loading = true;
 
+  /** Consolidated stock shrinkage and loss metrics. */
+  wasteSummary: StockWasteSummary | null = null;
+
+  /** Recent stock waste movements. */
+  recentWasteMovements: StockMovement[] = [];
+
+  /** Loading state for waste summary data. */
+  loadingWaste = false;
+
   /** Timestamp of the latest metrics refresh. */
   lastUpdated: Date = new Date();
 
@@ -103,7 +123,10 @@ export class DashboardManagerComponent implements OnInit, OnDestroy {
     private readonly dashboardService: DashboardManagerService,
     private readonly notificationService: NotificationService,
     private readonly toastController: ToastController,
-    private readonly translocoService: TranslocoService
+    private readonly translocoService: TranslocoService,
+    private readonly appSettingsService: AppSettingsService,
+    private readonly stockWasteService: StockWasteService,
+    private readonly modalController: ModalController,
   ) {
     addIcons({
       peopleOutline,
@@ -126,8 +149,25 @@ export class DashboardManagerComponent implements OnInit, OnDestroy {
       eyeOutline,
       eyeOffOutline,
       timerOutline,
-      arrowForwardOutline
+      arrowForwardOutline,
+      calculatorOutline,
+      trashOutline,
+      pricetagOutline
     });
+  }
+
+  getMarginBadgeClass(percentage: number | null | undefined): string {
+    const target = this.appSettingsService?.targetGrossMarginPercentage ?? 70;
+    const warning = this.appSettingsService?.warningGrossMarginPercentage ?? 50;
+    return getMarginBadgeClass(percentage, target, warning);
+  }
+
+  get targetMargin(): number {
+    return this.appSettingsService?.targetGrossMarginPercentage ?? 70;
+  }
+
+  get warningMargin(): number {
+    return this.appSettingsService?.warningGrossMarginPercentage ?? 50;
   }
 
   /**
@@ -140,6 +180,7 @@ export class DashboardManagerComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.chargerStats();
     this.chargerOrders();
+    this.chargerWasteSummary();
     this.setupWebSocketListeners();
     this.setupPeriodicPolling();
   }
@@ -168,6 +209,7 @@ export class DashboardManagerComponent implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           this.chargerStatsSilent();
+          this.chargerWasteSummary();
         },
         error: () => {}
       });
@@ -267,6 +309,7 @@ export class DashboardManagerComponent implements OnInit, OnDestroy {
           this.stats = stats;
           this.lastUpdated = new Date();
           this.chargerOrders();
+          this.chargerWasteSummary();
           if (event) {
             safeCompleteRefresher(event);
           }
@@ -377,5 +420,132 @@ export class DashboardManagerComponent implements OnInit, OnDestroy {
 
   trackByCocktailId(_: number, item: TopCocktail): number {
     return item.cocktailId;
+  }
+
+  /**
+   * Loads consolidated stock waste figures and recent loss movements.
+   */
+  chargerWasteSummary(): void {
+    this.loadingWaste = true;
+    this.stockWasteService.getWasteSummary()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: summary => {
+          this.wasteSummary = summary;
+          this.loadingWaste = false;
+        },
+        error: () => {
+          this.loadingWaste = false;
+        }
+      });
+
+    this.stockWasteService.getMovements()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: movements => {
+          this.recentWasteMovements = movements.slice(0, 8);
+        },
+        error: () => {
+          this.recentWasteMovements = [];
+        }
+      });
+  }
+
+  /**
+   * Opens the stock waste declaration modal dialog.
+   */
+  async openStockWasteModal(): Promise<void> {
+    const modal = await this.modalController.create({
+      component: StockWasteModalComponent,
+    });
+    await modal.present();
+    const { role } = await modal.onDidDismiss();
+    if (role === 'saved') {
+      this.chargerStatsSilent();
+      this.chargerWasteSummary();
+    }
+  }
+
+  /**
+   * Opens the stock waste declaration modal (alias).
+   */
+  openWasteModal(): Promise<void> {
+    return this.openStockWasteModal();
+  }
+
+  /** All stock waste reasons to display in audit breakdown. */
+  readonly wasteReasons: StockWasteReason[] = [
+    'CASSE',
+    'PEREMPTION',
+    'OFFERT_PATRON',
+    'DEGUSTATION_STAFF',
+    'ERREUR_PREPARATION'
+  ];
+
+  /**
+   * Returns the monetary loss value for a specific waste reason.
+   *
+   * @param reason Declared shrinkage reason
+   * @returns Financial loss amount
+   */
+  getReasonLossValue(reason: StockWasteReason): number {
+    return this.wasteSummary?.lossValueByReason?.[reason] ?? 0;
+  }
+
+  /**
+   * Returns the count of waste declarations for a specific waste reason.
+   *
+   * @param reason Declared shrinkage reason
+   * @returns Count of declarations
+   */
+  getReasonCount(reason: StockWasteReason): number {
+    return this.wasteSummary?.countByReason?.[reason] ?? 0;
+  }
+
+  /**
+   * Calculates the percentage contribution of a specific waste reason to the total loss value.
+   *
+   * @param reason Target stock shrinkage reason
+   * @returns Percentage integer between 0 and 100
+   */
+  getWasteReasonPercent(reason: StockWasteReason): number {
+    if (!this.wasteSummary?.totalLossValue || this.wasteSummary.totalLossValue <= 0) {
+      return 0;
+    }
+    const val = this.wasteSummary.lossValueByReason?.[reason] ?? 0;
+    return Math.min(100, Math.round((val / this.wasteSummary.totalLossValue) * 100));
+  }
+
+  /**
+   * Resolves the badge color for a declared waste reason.
+   *
+   * @param reason Declared reason
+   * @returns Ionic color name
+   */
+  getWasteReasonBadgeColor(reason: StockWasteReason): string {
+    switch (reason) {
+      case 'CASSE':
+        return 'danger';
+      case 'PEREMPTION':
+        return 'warning';
+      case 'OFFERT_PATRON':
+        return 'tertiary';
+      case 'DEGUSTATION_STAFF':
+        return 'primary';
+      case 'ERREUR_PREPARATION':
+        return 'medium';
+      default:
+        return 'secondary';
+    }
+  }
+
+  /**
+   * Resolves Transloco translation key for a declared waste reason.
+   *
+   * @param reason Declared reason
+   * @returns Translation key string
+   */
+  getWasteReasonLabelKey(reason: StockWasteReason): string {
+    return `STOCK.WASTE_REASON_${reason}`;
   }
 }

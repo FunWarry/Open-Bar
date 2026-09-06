@@ -24,8 +24,11 @@ public interface CommandeRepository extends JpaRepository<Commande, Long> {
     List<Commande> findByTableAndStatut(TableEntity table, CommandeStatut statut);
     boolean existsByTableAndStatutIn(TableEntity table, List<CommandeStatut> statuts);
     List<Commande> findByDateCommandeBetween(LocalDateTime debut, LocalDateTime fin);
+    List<Commande> findByDateCommandeAfter(LocalDateTime date);
+    List<Commande> findByStatutInAndDateCommandeAfter(List<CommandeStatut> statuts, LocalDateTime date);
     List<Commande> findByStatutAndDateCommandeBefore(CommandeStatut statut, LocalDateTime date);
     Optional<Commande> findByTrackingToken(String trackingToken);
+    Optional<Commande> findByClientRequestId(String clientRequestId);
 
     long countByStatut(CommandeStatut statut);
 

@@ -41,6 +41,14 @@ public class CommandeItem {
     private String notes;
     private boolean prioritaire = false;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "station", length = 30)
+    private PreparationStation station;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "statut", length = 30, nullable = false)
+    private CommandeStatut statut = CommandeStatut.EN_ATTENTE;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -51,10 +59,29 @@ public class CommandeItem {
     protected void onCreate() {
         createdAt = LocalDateTime.now(java.time.ZoneId.systemDefault());
         updatedAt = LocalDateTime.now(java.time.ZoneId.systemDefault());
+        if (station == null) {
+            station = PreparationStation.BAR;
+        }
     }
 
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now(java.time.ZoneId.systemDefault());
+    }
+
+    public PreparationStation getStation() {
+        return station;
+    }
+
+    public void setStation(PreparationStation station) {
+        this.station = station;
+    }
+
+    public CommandeStatut getStatut() {
+        return statut != null ? statut : CommandeStatut.EN_ATTENTE;
+    }
+
+    public void setStatut(CommandeStatut statut) {
+        this.statut = statut != null ? statut : CommandeStatut.EN_ATTENTE;
     }
 }

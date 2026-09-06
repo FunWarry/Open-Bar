@@ -295,5 +295,12 @@ describe('IngredientListComponent', () => {
     component.onSortSelected({ value: 'STOCK_ASC', label: 'Stock croissant' });
     expect(component.sortOption).toBe('STOCK_ASC');
   });
+
+  it('openWasteModal opens StockWasteModalComponent and reloads data when saved', async () => {
+    spyOn(component, 'charger');
+    const targetIng = mockIngredients[0];
+    await component.openWasteModal(targetIng);
+    expect(component.charger).toHaveBeenCalled();
+  });
 });
 

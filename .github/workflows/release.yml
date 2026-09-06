@@ -27,7 +27,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -41,7 +41,9 @@ jobs:
           LAST_TAG=${LAST_TAG:-v0.0.0}
           echo "last_tag=$LAST_TAG" >> $GITHUB_OUTPUT
 
-          IFS='.' read -r MAJOR MINOR PATCH <<< "${LAST_TAG#v}"
+          CLEAN_TAG="${LAST_TAG#v}"
+          CLEAN_TAG="${CLEAN_TAG%%-*}"
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$CLEAN_TAG"
           MAJOR=${MAJOR:-0}; MINOR=${MINOR:-0}; PATCH=${PATCH:-0}
 
           COMMITS=$(git log "${LAST_TAG}..HEAD" --pretty=format:"%s" 2>/dev/null || git log --pretty=format:"%s")
@@ -107,21 +109,22 @@ jobs:
             -m "Release ${{ steps.version.outputs.new_tag }}"
           git push origin "${{ steps.version.outputs.new_tag }}"
 
-      - name: Update pom.xml version (stable only)
+      - name: Update pom.xml and package.json version (stable only)
         if: steps.version.outputs.is_prerelease == 'false'
         env:
           HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
         run: |
           VERSION="${{ steps.version.outputs.new_version }}"
           sed -i "s|<version>[0-9]*\.[0-9]*\.[0-9]*-SNAPSHOT</version>|<version>${VERSION}</version>|" backend/pom.xml
-          if ! git diff --quiet backend/pom.xml; then
-            git add backend/pom.xml
+          sed -i "s|\"version\": \"[^\"]*\"|\"version\": \"${VERSION}\"|" frontend/package.json
+          if ! git diff --quiet backend/pom.xml frontend/package.json; then
+            git add backend/pom.xml frontend/package.json
             git commit -m "chore: bump version to ${VERSION}"
             git push origin "$HEAD_BRANCH"
           fi
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v3
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
           tag_name: ${{ steps.version.outputs.new_tag }}
           name: "${{ steps.version.outputs.new_tag }}"

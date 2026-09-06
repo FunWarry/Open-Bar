@@ -21,6 +21,7 @@ import { TableView } from '../../../app/features/dashboard-serveur/models/table-
 import { ZoneService } from '../../../app/core/services/zone.service';
 import { CocktailService } from '../../../app/core/services/cocktail.service';
 import { PlanSalleService } from '../../../app/features/plan-salle/services/plan-salle.service';
+import { HappyHourService } from '../../../app/core/services/happy-hour.service';
 import { provideMockStore } from '@ngrx/store/testing';
 
 import { provideIonicAngular } from '@ionic/angular/standalone';
@@ -29,12 +30,15 @@ import { getTranslocoTestingModule } from '../../transloco-testing.module';
 
 import { TableAppelService } from '../../../app/core/services/table-appel.service';
 import { TableAppel } from '../../../app/core/models/table-appel.model';
-import { signal } from '@angular/core';
+import { OfflineOrderService } from '../../../app/core/services/offline-order.service';
+import { OfflineQueuedOrder } from '../../../app/core/models/commande.model';
+import { computed, signal } from '@angular/core';
 
 describe('DashboardServeurComponent', () => {
   let component: DashboardServeurComponent;
   let fixture: ComponentFixture<DashboardServeurComponent>;
   let dashboardServiceSpy: jasmine.SpyObj<DashboardServeurService>;
+  let offlineOrderServiceSpy: jasmine.SpyObj<OfflineOrderService>;
   let notificationServiceSpy: jasmine.SpyObj<NotificationService>;
   let tableAppelServiceSpy: jasmine.SpyObj<TableAppelService>;
   let wsSpy: jasmine.SpyObj<WebSocketService>;
@@ -43,6 +47,7 @@ describe('DashboardServeurComponent', () => {
   let planSalleServiceSpy: jasmine.SpyObj<PlanSalleService>;
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
   let modalCtrlSpy: jasmine.SpyObj<ModalController>;
+  let happyHourServiceSpy: jasmine.SpyObj<HappyHourService>;
   let notification$: Subject<AppNotification>;
 
   const mockTables: TableView[] = [
@@ -115,6 +120,30 @@ describe('DashboardServeurComponent', () => {
     wsSpy = jasmine.createSpyObj('WebSocketService', ['watch']);
     wsSpy.watch.and.returnValue(EMPTY);
 
+    happyHourServiceSpy = jasmine.createSpyObj('HappyHourService', ['loadRules', 'resolvePrice']);
+    happyHourServiceSpy.loadRules.and.returnValue(of([]));
+    happyHourServiceSpy.resolvePrice.and.callFake((price: number) => ({
+      effectivePrice: price,
+      isHappyHour: false,
+      appliedRule: null,
+      savings: 0
+    }));
+
+    const isOnlineSignal = signal(true);
+    const pendingOrdersSignal = signal<OfflineQueuedOrder[]>([]);
+    offlineOrderServiceSpy = jasmine.createSpyObj('OfflineOrderService', [
+      'queueOrder',
+      'syncPendingOrders',
+      'removeOrder',
+      'clearAll',
+    ], {
+      isOnline: isOnlineSignal,
+      pendingOrders: pendingOrdersSignal,
+      pendingCount: computed(() => pendingOrdersSignal().length),
+      isSyncing: signal(false),
+    });
+    offlineOrderServiceSpy.syncPendingOrders.and.returnValue(Promise.resolve({ synced: 1, failed: 0 }));
+
     await TestBed.configureTestingModule({
       imports: [
         DashboardServeurComponent,
@@ -132,6 +161,7 @@ describe('DashboardServeurComponent', () => {
         provideIonicAngular(),
         provideMockStore({ initialState: { auth: { user: null } } }),
         { provide: DashboardServeurService, useValue: dashboardServiceSpy },
+        { provide: OfflineOrderService, useValue: offlineOrderServiceSpy },
         { provide: TableAppelService, useValue: tableAppelServiceSpy },
         { provide: ZoneService, useValue: zoneServiceSpy },
         { provide: CocktailService, useValue: cocktailServiceSpy },
@@ -140,6 +170,7 @@ describe('DashboardServeurComponent', () => {
         { provide: WebSocketService, useValue: wsSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
         { provide: ModalController, useValue: modalCtrlSpy },
+        { provide: HappyHourService, useValue: happyHourServiceSpy },
       ],
     }).compileComponents();
 
@@ -480,14 +511,19 @@ describe('DashboardServeurComponent', () => {
       component.onSubmitCart();
       tick();
 
-      expect(dashboardServiceSpy.createCommande).toHaveBeenCalledWith({ tableId: 1, notes: undefined });
-      expect(dashboardServiceSpy.ajouterItem).toHaveBeenCalledWith(10, {
-        cocktailId: 10,
-        quantite: 2,
-        prixUnitaire: 8.5,
-        varianteId: undefined,
-        notes: 'Sans sucre | Sans: Gluten',
-      });
+      expect(dashboardServiceSpy.createCommande).toHaveBeenCalledWith(jasmine.objectContaining({
+        tableId: 1,
+        notes: undefined,
+        items: [
+          {
+            cocktailId: 10,
+            quantite: 2,
+            prixUnitaire: 8.5,
+            varianteId: undefined,
+            notes: 'Sans sucre | Sans: Gluten',
+          },
+        ],
+      }));
       expect(toastCtrlSpy.create).toHaveBeenCalled();
       expect(component.cart.items).toHaveSize(0);
       expect(component.cart.tableId).toBeNull();
@@ -585,14 +621,19 @@ describe('DashboardServeurComponent', () => {
       component.onSubmitCart();
       tick();
 
-      expect(dashboardServiceSpy.createCommande).toHaveBeenCalledWith({ tableId: 2, notes: 'Note table' });
-      expect(dashboardServiceSpy.ajouterItem).toHaveBeenCalledWith(12, {
-        cocktailId: 20,
-        quantite: 1,
-        prixUnitaire: 10.0,
-        varianteId: undefined,
-        notes: undefined,
-      });
+      expect(dashboardServiceSpy.createCommande).toHaveBeenCalledWith(jasmine.objectContaining({
+        tableId: 2,
+        notes: 'Note table',
+        items: [
+          {
+            cocktailId: 20,
+            quantite: 1,
+            prixUnitaire: 10.0,
+            varianteId: undefined,
+            notes: undefined,
+          },
+        ],
+      }));
       expect(component.cart.items).toHaveSize(0);
     }));
 
@@ -1058,6 +1099,61 @@ describe('DashboardServeurComponent', () => {
 
       expect(tableAppelServiceSpy.acquitterTousAppels).toHaveBeenCalledWith(1);
       expect(toastCtrlSpy.create).toHaveBeenCalled();
+    });
+
+    // ─── Offline Queueing & Background Synchronization (#361) ─────────────────
+
+    it('onManualSync() triggers syncPendingOrders and reloads tables', async () => {
+      await component.onManualSync();
+
+      expect(offlineOrderServiceSpy.syncPendingOrders).toHaveBeenCalled();
+      expect(dashboardServiceSpy.getAllTables).toHaveBeenCalled();
+    });
+
+    it('onSubmitCart() submits atomic order with items and clientRequestId', fakeAsync(() => {
+      component.cart = {
+        tableId: 5,
+        tableNumero: 10,
+        items: [
+          {
+            boissonId: 1,
+            nom: 'Mojito',
+            quantite: 2,
+            prix: 8.5,
+            varianteId: 1,
+            commentaire: 'Extra mint',
+          },
+        ],
+        noteGenerale: 'Order note',
+      };
+
+      component.onSubmitCart();
+      tick();
+
+      expect(dashboardServiceSpy.createCommande).toHaveBeenCalledWith(
+        jasmine.objectContaining({
+          tableId: 5,
+          notes: 'Order note',
+          clientRequestId: jasmine.any(String),
+          items: jasmine.arrayContaining([
+            jasmine.objectContaining({
+              cocktailId: 1,
+              quantite: 2,
+              prixUnitaire: 8.5,
+              notes: 'Extra mint',
+            }),
+          ]),
+        }),
+      );
+      expect(component.cart.items).toHaveSize(0);
+    }));
+
+    it('displays offline-indicator-bar when offline or when orders are pending', () => {
+      offlineOrderServiceSpy.isOnline.set(false);
+      fixture.detectChanges();
+
+      const banner = fixture.nativeElement.querySelector('[data-testid="offline-indicator-bar"]');
+      expect(banner).toBeTruthy();
     });
   });
 });

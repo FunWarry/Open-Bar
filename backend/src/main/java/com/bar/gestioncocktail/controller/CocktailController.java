@@ -1,11 +1,15 @@
 package com.bar.gestioncocktail.controller;
 
+import com.bar.gestioncocktail.dto.CocktailFacetsDTO;
+import com.bar.gestioncocktail.dto.CocktailMarginDTO;
 import com.bar.gestioncocktail.dto.CocktailRequestDTO;
 import com.bar.gestioncocktail.dto.CocktailResponseDTO;
 import com.bar.gestioncocktail.dto.SaisonnaliteRequest;
 import com.bar.gestioncocktail.model.Cocktail;
 import com.bar.gestioncocktail.model.CocktailCategorie;
+import com.bar.gestioncocktail.model.FlavorProfile;
 import com.bar.gestioncocktail.service.CocktailService;
+import com.bar.gestioncocktail.service.MarginCalculationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -17,6 +21,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -34,14 +39,17 @@ import org.springframework.transaction.annotation.Transactional;
 @Tag(name = "Cocktails", description = "Cocktail catalog management, pricing, availability, and seasonality")
 public class CocktailController {
     private final CocktailService cocktailService;
+    private final MarginCalculationService marginCalculationService;
 
     /**
-     * Constructs the controller with the cocktail service dependency.
+     * Constructs the controller with cocktail service and margin calculation service dependencies.
      *
-     * @param cocktailService service managing cocktail business logic
+     * @param cocktailService          service managing cocktail business logic
+     * @param marginCalculationService service managing recipe cost and margin analytics
      */
-    public CocktailController(CocktailService cocktailService) {
+    public CocktailController(CocktailService cocktailService, MarginCalculationService marginCalculationService) {
         this.cocktailService = cocktailService;
+        this.marginCalculationService = marginCalculationService;
     }
 
     /**
@@ -54,6 +62,45 @@ public class CocktailController {
     @ApiResponse(responseCode = "200", description = "Cocktail list retrieved")
     public ResponseEntity<List<CocktailResponseDTO>> getAllCocktails() {
         return ResponseEntity.ok(cocktailService.getAllCocktails().stream()
+            .map(CocktailResponseDTO::from)
+            .toList());
+    }
+
+    /**
+     * Retrieves catalog facet metadata (counts per flavor profile, dietary tags, alcohol ranges).
+     *
+     * @return Facets DTO
+     */
+    @GetMapping("/facets")
+    @Operation(summary = "Get cocktail catalog facets", description = "Retrieves aggregated counts of flavor profiles, dietary filters, and alcohol levels for available cocktails.")
+    @ApiResponse(responseCode = "200", description = "Facets retrieved successfully")
+    public ResponseEntity<CocktailFacetsDTO> getFacets() {
+        return ResponseEntity.ok(cocktailService.getFacets());
+    }
+
+    /**
+     * Finds and ranks available cocktails based on requested flavor profiles and dietary constraints.
+     *
+     * @param flavors Desired flavor profiles to match
+     * @param mocktail Non-alcoholic filter
+     * @param vegan Vegan filter
+     * @param glutenFree Gluten-free filter
+     * @param lowAbv Low-alcohol filter (ABV &gt; 0 and &le; 10%)
+     * @param maxAlcohol Maximum ABV threshold
+     * @return Ranked list of matching cocktails
+     */
+    @GetMapping("/matcher")
+    @Operation(summary = "Interactive cocktail matcher", description = "Matches and ranks cocktails by flavor profiles and dietary preferences.")
+    @ApiResponse(responseCode = "200", description = "Matched cocktails retrieved successfully")
+    public ResponseEntity<List<CocktailResponseDTO>> matchCocktails(
+        @Parameter(description = "Flavor profiles to match") @RequestParam(required = false) List<FlavorProfile> flavors,
+        @Parameter(description = "Filter for non-alcoholic mocktails") @RequestParam(required = false) Boolean mocktail,
+        @Parameter(description = "Filter for vegan drinks") @RequestParam(required = false) Boolean vegan,
+        @Parameter(description = "Filter for gluten-free drinks") @RequestParam(required = false) Boolean glutenFree,
+        @Parameter(description = "Filter for low-alcohol drinks (ABV > 0 and <= 10%)") @RequestParam(required = false) Boolean lowAbv,
+        @Parameter(description = "Maximum alcohol by volume percentage") @RequestParam(required = false) BigDecimal maxAlcohol
+    ) {
+        return ResponseEntity.ok(cocktailService.filterAndMatchCocktails(flavors, mocktail, vegan, glutenFree, lowAbv, maxAlcohol).stream()
             .map(CocktailResponseDTO::from)
             .toList());
     }
@@ -284,5 +331,35 @@ public class CocktailController {
         @RequestParam("file") MultipartFile file) {
         Cocktail updated = cocktailService.updateCocktailImage(id, file);
         return ResponseEntity.ok(CocktailResponseDTO.from(updated));
+    }
+
+    /**
+     * Retrieves detailed gross margin and recipe cost breakdown for a specific cocktail.
+     *
+     * @param id Cocktail identifier
+     * @return DTO containing price, recipe cost, gross margin amount, margin percentage, and ingredient breakdowns
+     */
+    @GetMapping("/{id}/margin")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('BARMAN')")
+    @Operation(summary = "Get cocktail gross margin breakdown", description = "Retrieves itemized recipe cost, gross margin, and variant breakdowns.")
+    @ApiResponse(responseCode = "200", description = "Cocktail margin retrieved")
+    @ApiResponse(responseCode = "404", description = "Cocktail not found")
+    public ResponseEntity<CocktailMarginDTO> getCocktailMargin(
+        @Parameter(description = "Cocktail ID") @PathVariable Long id
+    ) {
+        return ResponseEntity.ok(marginCalculationService.getCocktailMargin(id));
+    }
+
+    /**
+     * Retrieves catalog-wide gross margin and COGS analytics for all cocktails.
+     *
+     * @return List of all cocktails with recipe costs and gross margins sorted by profitability
+     */
+    @GetMapping("/margin-analytics")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('BARMAN')")
+    @Operation(summary = "Get catalog-wide gross margin analytics", description = "Retrieves all drinks with recipe costs and gross profit margins.")
+    @ApiResponse(responseCode = "200", description = "Catalog margin analytics retrieved")
+    public ResponseEntity<List<CocktailMarginDTO>> getCatalogMarginAnalytics() {
+        return ResponseEntity.ok(marginCalculationService.getCatalogMarginAnalytics());
     }
 }

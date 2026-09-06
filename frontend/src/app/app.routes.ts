@@ -206,6 +206,25 @@ export const routes: Routes = [
     data: { roles: ['BARMAN', 'ADMIN', 'MANAGER'] }
   },
 
+  // Kitchen Display Screen (KDS) (English route /kitchen + /cuisine + /kds)
+  {
+    path: 'kitchen',
+    loadComponent: () => import('./features/kds-kitchen/kds-kitchen.component').then(m => m.KdsKitchenComponent),
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['BARMAN', 'ADMIN', 'MANAGER', 'SERVEUR'] }
+  },
+  {
+    path: 'cuisine',
+    loadComponent: () => import('./features/kds-kitchen/kds-kitchen.component').then(m => m.KdsKitchenComponent),
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['BARMAN', 'ADMIN', 'MANAGER', 'SERVEUR'] }
+  },
+  {
+    path: 'kds',
+    redirectTo: '/kitchen',
+    pathMatch: 'full'
+  },
+
   // Waiter / Server Dashboard (English route + /serveur)
   {
     path: 'waiter',
@@ -307,6 +326,20 @@ export const routes: Routes = [
     canActivate: [AuthGuard, RoleGuard],
     canDeactivate: [PendingChangesGuard],
     data: { roles: ['MANAGER', 'ADMIN'], defaultTab: 'currency' }
+  },
+  {
+    path: 'manager/pricing',
+    loadComponent: () => import('./features/admin/settings/app-settings-page.component').then(m => m.AppSettingsPageComponent),
+    canActivate: [AuthGuard, RoleGuard],
+    canDeactivate: [PendingChangesGuard],
+    data: { roles: ['MANAGER', 'ADMIN'], defaultTab: 'pricing' }
+  },
+  {
+    path: 'admin/pricing',
+    loadComponent: () => import('./features/admin/settings/app-settings-page.component').then(m => m.AppSettingsPageComponent),
+    canActivate: [AuthGuard, RoleGuard],
+    canDeactivate: [PendingChangesGuard],
+    data: { roles: ['MANAGER', 'ADMIN'], defaultTab: 'pricing' }
   },
 
   // Invoices (English route + /factures)

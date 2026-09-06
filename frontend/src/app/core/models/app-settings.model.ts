@@ -20,9 +20,16 @@ export interface AppSettings {
   wifiPassword?: string;
   wifiSecurity?: WifiSecurityType;
   wifiEnabled?: boolean;
+  tableSessionValidationEnabled?: boolean;
+  defaultVatRate?: number;
+  targetGrossMarginPercentage?: number;
+  warningGrossMarginPercentage?: number;
+  barPrinterIp?: string;
+  kitchenPrinterIp?: string;
+  cashDeskPrinterIp?: string;
+  printerPort?: number;
+  directPrintingEnabled?: boolean;
   updatedAt: string | null;
 }
 
 export type AppSettingsUpdateRequest = Omit<AppSettings, 'id' | 'updatedAt'>;
-
-

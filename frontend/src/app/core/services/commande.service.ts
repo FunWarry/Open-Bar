@@ -54,6 +54,28 @@ export class CommandeService {
   }
 
   /**
+   * Updates preparation status for an individual order line item.
+   *
+   * @param commandeId Parent order ID
+   * @param itemId Item ID
+   * @param statut Target status string
+   * @returns Observable emitting the updated {@link Commande}
+   */
+  changerItemStatut(commandeId: number, itemId: number, statut: CommandeStatut): Observable<Commande> {
+    return this.http.patch<Commande>(`${this.api}/${commandeId}/items/${itemId}/statut`, { statut });
+  }
+
+  /**
+   * Fetches active orders filtered by preparation workstation station.
+   *
+   * @param station Target station (BAR, KITCHEN, SNACK)
+   * @returns Observable emitting array of active orders for station
+   */
+  getByStation(station: string): Observable<Commande[]> {
+    return this.http.get<Commande[]>(`${this.api}/station/${station}`);
+  }
+
+  /**
    * Sets the urgent priority status of an order.
    *
    * @param commandeId Unique identifier of the order.

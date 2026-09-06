@@ -6,5 +6,7 @@ export const environment = {
   production: false,
   environmentName: 'dev',
   apiUrl: '/api',
-  wsUrl: `${protocol === 'https:' ? 'wss' : 'ws'}://${host}/api/ws`
+  wsUrl: `${protocol === 'https:' ? 'wss' : 'ws'}://${host}/api/ws`,
+  appVersion: '1.0.0',
+  githubReleasesUrl: 'https://api.github.com/repos/FunWarry/Open-Bar/releases'
 };

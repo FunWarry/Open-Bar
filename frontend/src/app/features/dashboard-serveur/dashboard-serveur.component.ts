@@ -1,12 +1,12 @@
 import {
   Component, OnInit, OnDestroy, AfterViewInit,
-  ElementRef, ViewChild, NgZone, ChangeDetectorRef,
+  ElementRef, ViewChild, NgZone, ChangeDetectorRef, inject,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { Subject, forkJoin, of } from 'rxjs';
-import { catchError, finalize, map, switchMap, takeUntil } from 'rxjs/operators';
+import { catchError, finalize, takeUntil } from 'rxjs/operators';
 import Konva from 'konva';
 import {
   IonContent,
@@ -24,6 +24,7 @@ import {
   addOutline, removeOutline, locateOutline,
 } from 'ionicons/icons';
 import { CocktailService } from '../../core/services/cocktail.service';
+import { HappyHourService } from '../../core/services/happy-hour.service';
 import { ZoneService, ZoneBar } from '../../core/services/zone.service';
 import { TableDetailModalComponent } from './components/table-detail-modal/table-detail-modal.component';
 import { EncaissementModalComponent } from './components/encaissement-modal/encaissement-modal.component';
@@ -37,7 +38,8 @@ import { fastModalEnterAnimation, fastModalLeaveAnimation } from '../../core/uti
 import { TableView } from './models/table-view.model';
 import { TablePosition, ZoneArea } from '../plan-salle/models/table-position.model';
 import { PlanSalleService } from '../plan-salle/services/plan-salle.service';
-import { Commande, AjouterItemRequest } from '../../core/models/commande.model';
+import { Commande } from '../../core/models/commande.model';
+import { OfflineOrderService } from '../../core/services/offline-order.service';
 
 import { Store } from '@ngrx/store';
 import { selectCurrentUser } from '../../core/store/auth.selectors';
@@ -179,6 +181,8 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
   zoneAreas: ZoneArea[] = [];
   zoomScale = 1;
   private readonly destroy$ = new Subject<void>();
+  private readonly happyHourService = inject(HappyHourService, { optional: true });
+  readonly offlineService = inject(OfflineOrderService);
 
   constructor(
     private readonly service: DashboardServeurService,
@@ -212,6 +216,10 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
   ngOnInit() {
     this.chargerFiltresSauvegardes();
     this.chargerDonnees();
+
+    if (this.happyHourService) {
+      this.happyHourService.loadRules().pipe(takeUntil(this.destroy$)).subscribe();
+    }
 
     this.tableAppelService.appelEvents$
       .pipe(takeUntil(this.destroy$))
@@ -1525,21 +1533,42 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
 
   get filteredProducts(): ProductItem[] {
     const query = this.productSearchQuery.toLowerCase().trim();
-    return this.products.filter(p => {
-      const matchesSearch = !query ||
-        p.nom.toLowerCase().includes(query) ||
-        (p.description?.toLowerCase()?.includes(query) ?? false);
+    return this.products
+      .filter(p => {
+        const matchesSearch = !query ||
+          p.nom.toLowerCase().includes(query) ||
+          (p.description?.toLowerCase()?.includes(query) ?? false);
 
-      const matchesCategory = this.selectedCategory === 'ALL' || p.categorie === this.selectedCategory;
+        const matchesCategory = this.selectedCategory === 'ALL' || p.categorie === this.selectedCategory;
 
-      let matchesAllergens = true;
-      if (this.selectedAllergens.length > 0) {
-        const itemAllergens = this.getProductAllergens(p);
-        matchesAllergens = !this.selectedAllergens.some(a => itemAllergens.includes(a));
-      }
+        let matchesAllergens = true;
+        if (this.selectedAllergens.length > 0) {
+          const itemAllergens = this.getProductAllergens(p);
+          matchesAllergens = !this.selectedAllergens.some(a => itemAllergens.includes(a));
+        }
 
-      return matchesSearch && matchesCategory && matchesAllergens;
-    });
+        return matchesSearch && matchesCategory && matchesAllergens;
+      })
+      .map(p => {
+        if (!this.happyHourService) {
+          return p;
+        }
+        const pricing = this.happyHourService.resolvePrice(p.originalPrice ?? p.prix, p.id, p.categorie);
+        if (pricing.isHappyHour) {
+          return {
+            ...p,
+            prix: pricing.effectivePrice,
+            originalPrice: p.originalPrice ?? p.prix,
+            isHappyHour: true
+          };
+        }
+        return {
+          ...p,
+          prix: p.originalPrice ?? p.prix,
+          originalPrice: null,
+          isHappyHour: false
+        };
+      });
   }
 
   getProductAllergens(product: ProductItem): string[] {
@@ -1757,6 +1786,14 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
     this.activeTab = 'commande';
   }
 
+  /**
+   * Triggers manual synchronization of pending offline orders.
+   */
+  async onManualSync(): Promise<void> {
+    await this.offlineService.syncPendingOrders();
+    this.chargerTables();
+  }
+
   async onSubmitCart() {
     if (!this.cart.tableId || this.cart.items.length === 0 || this.isSubmitting) return;
 
@@ -1768,37 +1805,38 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
     const itemsToSubmit = [...this.cart.items];
     const generalNote = this.cart.noteGenerale;
 
-    this.service.createCommande({ tableId: targetTableId, notes: generalNote })
+    const mappedItems = itemsToSubmit.map(item => {
+      const notesArray: string[] = [];
+      if (item.commentaire?.trim()) {
+        notesArray.push(item.commentaire.trim());
+      }
+      if (item.exclusions && item.exclusions.length > 0) {
+        notesArray.push(`Sans: ${item.exclusions.join(', ')}`);
+      }
+      if (item.notes?.trim()) {
+        notesArray.push(item.notes.trim());
+      }
+      const fullNotes = notesArray.length > 0 ? notesArray.join(' | ') : undefined;
+
+      return {
+        cocktailId: item.boissonId,
+        quantite: item.quantite,
+        prixUnitaire: item.prix,
+        varianteId: item.varianteId,
+        notes: fullNotes,
+      };
+    });
+
+    const clientRequestId = crypto.randomUUID();
+
+    this.service.createCommande({
+      tableId: targetTableId,
+      notes: generalNote,
+      items: mappedItems,
+      clientRequestId,
+    })
       .pipe(
         takeUntil(this.destroy$),
-        switchMap(commande => {
-          const itemObservables = itemsToSubmit.map(item => {
-            const notesArray: string[] = [];
-            if (item.commentaire?.trim()) {
-              notesArray.push(item.commentaire.trim());
-            }
-            if (item.exclusions && item.exclusions.length > 0) {
-              notesArray.push(`Sans: ${item.exclusions.join(', ')}`);
-            }
-            if (item.notes?.trim()) {
-              notesArray.push(item.notes.trim());
-            }
-            const fullNotes = notesArray.length > 0 ? notesArray.join(' | ') : undefined;
-
-            const req: AjouterItemRequest = {
-              cocktailId: item.boissonId,
-              quantite: item.quantite,
-              prixUnitaire: item.prix,
-              varianteId: item.varianteId,
-              notes: fullNotes,
-            };
-            return this.service.ajouterItem(commande.id, req);
-          });
-
-          return (itemObservables.length > 0 ? forkJoin(itemObservables) : of([])).pipe(
-            map(() => commande),
-          );
-        }),
         finalize(() => {
           this.isSubmitting = false;
           this.cdr.detectChanges();

@@ -732,6 +732,61 @@
   transition: color 0.2s ease, opacity 0.2s ease;
 }
 
+.price-and-margin-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.card-margin-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.725rem;
+
+  .cost-sublabel {
+    color: var(--text-muted);
+  }
+}
+
+.margin-rate-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  border-radius: var(--radius-pill, 999px);
+  font-size: 0.7rem;
+  font-weight: 700;
+
+  &.badge-success {
+    background: rgba(47, 191, 107, 0.15);
+    color: var(--semantic-success);
+  }
+
+  &.badge-warning {
+    background: rgba(244, 165, 42, 0.15);
+    color: var(--semantic-warning);
+  }
+
+  &.badge-danger {
+    background: rgba(229, 96, 79, 0.15);
+    color: var(--semantic-danger);
+  }
+}
+
+.list-margin-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  margin-right: 8px;
+
+  .list-cost-label {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+  }
+}
+
 .cocktail-list-card {
   background: var(--background-surface-1);
   border: 1px solid var(--border-medium);
@@ -800,4 +855,68 @@
 
 .allergen-warning-text {
   color: var(--semantic-warning);
+}
+
+.card-flavors-row,
+.list-flavors-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.figma-flavor-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+}
+
+.card-dietary-row,
+.list-dietary-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 5px;
+}
+
+.dietary-badge {
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: var(--radius-pill, 999px);
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+
+  &.mocktail {
+    background: var(--background-surface-2);
+    color: var(--semantic-info);
+    border: 1px solid var(--semantic-info);
+  }
+
+  &.vegan {
+    background: var(--background-surface-2);
+    color: var(--semantic-success);
+    border: 1px solid var(--semantic-success);
+  }
+
+  &.gluten-free {
+    background: var(--background-surface-2);
+    color: var(--semantic-warning);
+    border: 1px solid var(--semantic-warning);
+  }
+
+  &.abv {
+    background: var(--background-surface-2);
+    color: var(--primary);
+    border: 1px solid var(--primary);
+  }
 }

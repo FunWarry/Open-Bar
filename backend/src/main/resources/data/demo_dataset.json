@@ -1166,43 +1166,43 @@
   "stock_adjustments": [
     {
       "nom": "Rhum Blanc",
-      "quantiteStock": 45.0,
-      "seuilAlerte": 10.0
+      "quantiteStock": 45,
+      "seuilAlerte": 10
     },
     {
       "nom": "Vodka",
-      "quantiteStock": 35.0,
-      "seuilAlerte": 5.0
+      "quantiteStock": 35,
+      "seuilAlerte": 5
     },
     {
       "nom": "Gin",
-      "quantiteStock": 25.0,
-      "seuilAlerte": 5.0
+      "quantiteStock": 25,
+      "seuilAlerte": 5
     },
     {
       "nom": "Tequila",
-      "quantiteStock": 20.0,
-      "seuilAlerte": 4.0
+      "quantiteStock": 20,
+      "seuilAlerte": 4
     },
     {
       "nom": "Aperol",
-      "quantiteStock": 18.0,
-      "seuilAlerte": 5.0
+      "quantiteStock": 18,
+      "seuilAlerte": 5
     },
     {
       "nom": "Prosecco",
-      "quantiteStock": 30.0,
-      "seuilAlerte": 6.0
+      "quantiteStock": 30,
+      "seuilAlerte": 6
     },
     {
       "nom": "Champagne",
-      "quantiteStock": 15.0,
-      "seuilAlerte": 4.0
+      "quantiteStock": 15,
+      "seuilAlerte": 4
     },
     {
       "nom": "Rhum Ambré",
       "quantiteStock": 3.5,
-      "seuilAlerte": 8.0
+      "seuilAlerte": 8
     },
     {
       "nom": "Menthe fraîche",
@@ -1212,17 +1212,17 @@
     {
       "nom": "Purée de fruit de la passion",
       "quantiteStock": 0.8,
-      "seuilAlerte": 2.0
+      "seuilAlerte": 2
     },
     {
       "nom": "Liqueur de café (Kahlúa)",
       "quantiteStock": 1.2,
-      "seuilAlerte": 3.0
+      "seuilAlerte": 3
     },
     {
       "nom": "Liqueur de framboise (Chambord)",
-      "quantiteStock": 0.0,
-      "seuilAlerte": 2.0
+      "quantiteStock": 0,
+      "seuilAlerte": 2
     }
   ],
   "recipe_step_templates": [
@@ -1971,7 +1971,9 @@
         {
           "cocktailName": "Planche Mixte Charcuteries & Fromages",
           "quantite": 1,
-          "prioritaire": false
+          "prioritaire": false,
+          "station": "SNACK",
+          "statut": "EN_ATTENTE"
         }
       ]
     },
@@ -1984,6 +1986,11 @@
       "notes": "Sans glaçons pour le Spritz - Alerte jaune (>3min)",
       "items": [
         {
+          "cocktailName": "Mojito",
+          "quantite": 3,
+          "prioritaire": false
+        },
+        {
           "cocktailName": "Aperol Spritz",
           "quantite": 2,
           "prioritaire": false
@@ -1991,7 +1998,9 @@
         {
           "cocktailName": "Frites Maison & Sauces Barman",
           "quantite": 1,
-          "prioritaire": false
+          "prioritaire": false,
+          "station": "KITCHEN",
+          "statut": "EN_PREPARATION"
         }
       ]
     },
@@ -2003,6 +2012,11 @@
       "trackingToken": "TRK-ORD0003",
       "notes": "URGENT - Client pressé, alerte rouge critique (>10min)",
       "items": [
+        {
+          "cocktailName": "Mojito",
+          "quantite": 3,
+          "prioritaire": true
+        },
         {
           "cocktailName": "Cosmopolitan",
           "quantite": 3,
@@ -2016,7 +2030,9 @@
         {
           "cocktailName": "Nachos & Guacamole Maison",
           "quantite": 2,
-          "prioritaire": false
+          "prioritaire": false,
+          "station": "SNACK",
+          "statut": "PRET"
         }
       ]
     },
@@ -2151,6 +2167,7 @@
       "statut": "EN_ATTENTE",
       "minutesAgo": 2,
       "trackingToken": "TRK-ORD0010",
+      "clientRequestId": "req-offline-demo-001",
       "notes": "Commande directe au comptoir bar",
       "items": [
         {
@@ -2427,6 +2444,190 @@
       "commentaire": "Question sur les allergènes",
       "acquittePar": "serveur1",
       "minutesAgo": 25
+    }
+  ],
+  "table_sessions": [
+    {
+      "tableNumero": 1,
+      "sessionToken": "session-table-1-active-demo",
+      "status": "ACTIVE",
+      "minutesAgo": 15,
+      "expiresInMinutes": 105
+    },
+    {
+      "tableNumero": 2,
+      "sessionToken": "session-table-2-expired-demo",
+      "status": "EXPIRED",
+      "minutesAgo": 180,
+      "expiresInMinutes": -60
+    },
+    {
+      "tableNumero": 3,
+      "sessionToken": "session-table-3-active-demo",
+      "status": "ACTIVE",
+      "minutesAgo": 5,
+      "expiresInMinutes": 115
+    }
+  ],
+  "table_cart_items": [
+    {
+      "tableNumero": 1,
+      "guestSessionId": "guest-alex-table1",
+      "guestName": "Alex",
+      "cocktailNom": "Mojito",
+      "quantite": 1,
+      "notes": "Sans sucre ajouté",
+      "minutesAgo": 8
+    },
+    {
+      "tableNumero": 1,
+      "guestSessionId": "guest-sam-table1",
+      "guestName": "Sam",
+      "cocktailNom": "Old Fashioned",
+      "quantite": 2,
+      "notes": "Zeste d'orange bien frais",
+      "minutesAgo": 5
+    }
+  ],
+  "happy_hour_rules": [
+    {
+      "name": "Afterwork Cheers",
+      "startTime": "17:00",
+      "endTime": "20:00",
+      "daysOfWeek": [
+        "TUESDAY",
+        "WEDNESDAY",
+        "THURSDAY",
+        "FRIDAY"
+      ],
+      "discountType": "PERCENTAGE",
+      "discountValue": 25,
+      "active": true,
+      "categories": [
+        "ALCOOLISE",
+        "APERITIF"
+      ],
+      "cocktailNoms": [
+        "Mojito",
+        "Margarita"
+      ]
+    },
+    {
+      "name": "Friday Fiesta",
+      "startTime": "21:00",
+      "endTime": "23:59",
+      "daysOfWeek": [
+        "FRIDAY",
+        "SATURDAY"
+      ],
+      "discountType": "FIXED_DISCOUNT",
+      "discountValue": 2.5,
+      "active": true,
+      "categories": [
+        "SHOT"
+      ],
+      "cocktailNoms": []
+    },
+    {
+      "name": "Sunday Mocktail Craze",
+      "startTime": "14:00",
+      "endTime": "19:00",
+      "daysOfWeek": [
+        "SUNDAY"
+      ],
+      "discountType": "FIXED_PRICE",
+      "discountValue": 4.5,
+      "active": false,
+      "categories": [
+        "SANS_ALCOOL"
+      ],
+      "cocktailNoms": [
+        "Virgin Mojito"
+      ]
+    }
+  ],
+  "stock_movements": [
+    {
+      "ingredientNom": "Rhum blanc",
+      "quantity": 1,
+      "unit": "bouteille",
+      "reason": "CASSE",
+      "reportedByUsername": "barman1",
+      "notes": "Bouteille tombée de l'étagère de service lors du rush",
+      "cost": 18.5,
+      "minutesAgo": 120
+    },
+    {
+      "ingredientNom": "Menthe",
+      "quantity": 0.5,
+      "unit": "kg",
+      "reason": "PEREMPTION",
+      "reportedByUsername": "manager",
+      "notes": "Feuilles noircies en chambre froide après le week-end",
+      "cost": 8,
+      "minutesAgo": 240
+    },
+    {
+      "ingredientNom": "Vodka",
+      "quantity": 0.2,
+      "unit": "L",
+      "reason": "OFFERT_PATRON",
+      "reportedByUsername": "manager",
+      "notes": "Tournée offerte pour l'anniversaire de la table 4",
+      "cost": 5.4,
+      "minutesAgo": 360
+    },
+    {
+      "ingredientNom": "Gin",
+      "quantity": 0.15,
+      "unit": "L",
+      "reason": "DEGUSTATION_STAFF",
+      "reportedByUsername": "barman1",
+      "notes": "Test de la nouvelle recette Gin Fizz avec l'équipe de salle",
+      "cost": 4.8,
+      "minutesAgo": 480
+    },
+    {
+      "ingredientNom": "Citron vert",
+      "quantity": 0.3,
+      "unit": "kg",
+      "reason": "ERREUR_PREPARATION",
+      "reportedByUsername": "barman1",
+      "notes": "Renversé lors du shake vigoureux sur commande pressée",
+      "cost": 1.95,
+      "minutesAgo": 720
+    }
+  ],
+  "daily_cash_closures": [
+    {
+      "closureNumber": "Z-2026-00001",
+      "daysAgo": 1,
+      "openingFloat": 150.00,
+      "theoreticalCash": 530.00,
+      "countedCash": 530.00,
+      "cashDiscrepancy": 0.00,
+      "totalRevenueHT": 1150.00,
+      "totalRevenueTTC": 1380.00,
+      "closedByUsername": "manager",
+      "discrepancyReason": null,
+      "paymentMethods": [
+        { "modePaiement": "ESPECES", "count": 18, "totalTtc": 380.00 },
+        { "modePaiement": "CARTE", "count": 42, "totalTtc": 880.00 },
+        { "modePaiement": "TICKETS_RESTO", "count": 6, "totalTtc": 120.00 }
+      ],
+      "vatBreakdown": [
+        { "rate": "TWENTY", "tauxLabel": "20.0%", "baseHt": 900.00, "montantTva": 180.00, "totalTtc": 1080.00 },
+        { "rate": "TEN", "tauxLabel": "10.0%", "baseHt": 250.00, "montantTva": 25.00, "totalTtc": 275.00 },
+        { "rate": "FIVE_FIVE", "tauxLabel": "5.5%", "baseHt": 23.70, "montantTva": 1.30, "totalTtc": 25.00 }
+      ],
+      "countingBreakdown": {
+        "50e": 6,
+        "20e": 8,
+        "10e": 5,
+        "5e": 4,
+        "2e": 5,
+        "1e": 10
+      }
     }
   ]
 }

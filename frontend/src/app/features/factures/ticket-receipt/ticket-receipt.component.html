@@ -31,6 +31,17 @@
       <ion-icon name="print-outline"></ion-icon>
       <span>{{ 'FACTURES.PRINT_TICKET' | transloco }} ({{ selectedFormat }})</span>
     </button>
+
+    <button
+      type="button"
+      class="btn-print-ticket btn-direct-escpos"
+      [disabled]="isDirectPrinting"
+      (click)="imprimerDirectEscPos()"
+      (keydown.enter)="imprimerDirectEscPos()"
+      data-testid="print-direct-escpos-btn">
+      <ion-icon name="hardware-chip-outline"></ion-icon>
+      <span>{{ 'FACTURES.PRINT_DIRECT_ESCPOS' | transloco }}</span>
+    </button>
   </div>
 
   <!-- Simulated Thermal Receipt Container -->

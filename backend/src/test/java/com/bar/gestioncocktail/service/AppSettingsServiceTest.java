@@ -285,4 +285,61 @@ class AppSettingsServiceTest {
             .isInstanceOf(BusinessException.class)
             .hasMessageContaining("Wi-Fi SSID is not configured");
     }
+
+    @Test
+    @DisplayName("updateSettings persists valid defaultVatRate, targetGrossMarginPercentage, and warningGrossMarginPercentage")
+    void updateSettings_validMarginsAndVat_success() {
+        when(appSettingsRepository.findById(AppSettings.SINGLETON_ID)).thenReturn(Optional.of(existing));
+        when(appSettingsRepository.save(any(AppSettings.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        AppSettingsUpdateRequest req = new AppSettingsUpdateRequest(
+            "#6c7fe8", "#5a68d6", null, "OpenBar", DefaultTheme.DARK,
+            "EUR", "€", null, 3, 5, 10, null, null, null, null, false, false,
+            new java.math.BigDecimal("21.00"), new java.math.BigDecimal("75.00"), new java.math.BigDecimal("45.00")
+        );
+
+        AppSettings updated = appSettingsService.updateSettings(req);
+
+        assertThat(updated.getDefaultVatRate()).isEqualByComparingTo(new java.math.BigDecimal("21.00"));
+        assertThat(updated.getTargetGrossMarginPercentage()).isEqualByComparingTo(new java.math.BigDecimal("75.00"));
+        assertThat(updated.getWarningGrossMarginPercentage()).isEqualByComparingTo(new java.math.BigDecimal("45.00"));
+    }
+
+    @Test
+    @DisplayName("updateSettings throws BusinessException when warning margin is >= target margin")
+    void updateSettings_invalidMarginThresholds_throwsBusinessException() {
+        when(appSettingsRepository.findById(AppSettings.SINGLETON_ID)).thenReturn(Optional.of(existing));
+
+        AppSettingsUpdateRequest req = new AppSettingsUpdateRequest(
+            "#6c7fe8", "#5a68d6", null, "OpenBar", DefaultTheme.DARK,
+            "EUR", "€", null, 3, 5, 10, null, null, null, null, false, false,
+            new java.math.BigDecimal("20.00"), new java.math.BigDecimal("50.00"), new java.math.BigDecimal("60.00")
+        );
+
+        assertThatThrownBy(() -> appSettingsService.updateSettings(req))
+            .isInstanceOf(BusinessException.class)
+            .hasMessageContaining("Warning margin threshold (60.00%) must be strictly less than target margin threshold (50.00%)");
+    }
+
+    @Test
+    @DisplayName("updateSettings persists valid printer network IPs and direct printing toggle")
+    void updateSettings_validPrinterConfig_success() {
+        when(appSettingsRepository.findById(AppSettings.SINGLETON_ID)).thenReturn(Optional.of(existing));
+        when(appSettingsRepository.save(any(AppSettings.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        AppSettingsUpdateRequest req = new AppSettingsUpdateRequest(
+            "#6c7fe8", "#5a68d6", null, "OpenBar", DefaultTheme.DARK,
+            "EUR", "€", null, 3, 5, 10, null, null, null, null, false, false,
+            null, null, null,
+            " 192.168.1.101 ", " 192.168.1.102 ", " 192.168.1.103 ", 9100, true
+        );
+
+        AppSettings updated = appSettingsService.updateSettings(req);
+
+        assertThat(updated.getBarPrinterIp()).isEqualTo("192.168.1.101");
+        assertThat(updated.getKitchenPrinterIp()).isEqualTo("192.168.1.102");
+        assertThat(updated.getCashDeskPrinterIp()).isEqualTo("192.168.1.103");
+        assertThat(updated.getPrinterPort()).isEqualTo(9100);
+        assertThat(updated.getDirectPrintingEnabled()).isTrue();
+    }
 }

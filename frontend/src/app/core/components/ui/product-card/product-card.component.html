@@ -18,8 +18,52 @@
     @if (description) {
       <p class="product-desc">{{ description }}</p>
     }
+    @if (flavorProfiles && flavorProfiles.length > 0) {
+      <div class="product-flavors-row">
+        @for (flavor of flavorProfiles; track flavor) {
+          <span class="product-flavor-tag" [attr.data-testid]="'card-flavor-' + flavor">
+            {{ ('COCKTAIL.FLAVOR_' + flavor) | transloco }}
+          </span>
+        }
+      </div>
+    }
+    <div class="product-dietary-row">
+      @if (isMocktail) {
+        <span class="product-dietary-tag mocktail-tag" data-testid="card-tag-mocktail">
+          🍹 {{ 'COCKTAILS.MOCKTAIL' | transloco }}
+        </span>
+      } @else if (alcoholLevel != null && alcoholLevel > 0) {
+        <span class="product-dietary-tag abv-tag" data-testid="card-tag-abv">
+          🍸 {{ alcoholLevel }}% ABV
+        </span>
+      }
+      @if (isVegan) {
+        <span class="product-dietary-tag vegan-tag" data-testid="card-tag-vegan">
+          🌱 {{ 'COCKTAILS.VEGAN' | transloco }}
+        </span>
+      }
+      @if (isGlutenFree) {
+        <span class="product-dietary-tag gluten-free-tag" data-testid="card-tag-gluten-free">
+          🌾 {{ 'COCKTAILS.GLUTEN_FREE' | transloco }}
+        </span>
+      }
+    </div>
     <div class="product-footer">
-      <span class="product-price">{{ price | currency:'EUR' }}</span>
+      <div class="product-price-stack">
+        @if (isHappyHour && originalPrice != null && originalPrice > price) {
+          <div class="hh-pill-row">
+            <span class="original-price-struck" data-testid="product-card-original-price">
+              {{ originalPrice | currency:'EUR' }}
+            </span>
+            <span class="happy-hour-badge" data-testid="product-card-hh-badge">
+              {{ 'PRICING.HAPPY_HOUR_BADGE' | transloco }}
+            </span>
+          </div>
+        }
+        <span class="product-price" [class.discounted]="isHappyHour" data-testid="product-card-price">
+          {{ price | currency:'EUR' }}
+        </span>
+      </div>
       <div class="quantity-stepper-mini">
         @if (quantity > 0) {
           <button

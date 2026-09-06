@@ -778,5 +778,115 @@ describe('CocktailFormComponent', () => {
 
       expect(cocktailServiceSpy.create).not.toHaveBeenCalled();
     });
+
+    it('should toggle flavor profiles and update selectedFlavors signal', () => {
+      expect(component.isFlavorSelected('FRUITY')).toBeFalse();
+      component.toggleFlavorProfile('FRUITY');
+      expect(component.isFlavorSelected('FRUITY')).toBeTrue();
+      expect(component.selectedFlavors()).toContain('FRUITY');
+
+      component.toggleFlavorProfile('FRUITY');
+      expect(component.isFlavorSelected('FRUITY')).toBeFalse();
+      expect(component.selectedFlavors()).not.toContain('FRUITY');
+    });
+
+    it('should include flavor profiles and dietary flags in submit payload', async () => {
+      component.cocktailForm.patchValue({
+        name: 'Fruity Vegan Mocktail',
+        price: 7.5,
+        category: 'SANS_ALCOOL',
+        alcoholLevel: 0,
+        isMocktail: true,
+        isVegan: true,
+        isGlutenFree: true,
+      });
+      component.selectedFlavors.set(['FRUITY', 'SWEET']);
+
+      component.onSubmit();
+      await Promise.resolve();
+
+      expect(cocktailServiceSpy.create).toHaveBeenCalledWith(
+        jasmine.objectContaining({
+          nom: 'Fruity Vegan Mocktail',
+          flavorProfiles: ['FRUITY', 'SWEET'],
+          alcoholLevel: 0,
+          isMocktail: true,
+          isVegan: true,
+          isGlutenFree: true,
+        })
+      );
+    });
+  });
+
+  describe('COGS & Live Margin Calculation', () => {
+    beforeEach(async () => {
+      await buildModule(null);
+    });
+
+    it('should compute recipeCost, sellingPriceHT, grossMargin and marginBadgeClass dynamically', () => {
+      component.ingredientsList.set([
+        {
+          id: 1,
+          nom: 'White Rum',
+          uniteMesure: 'l',
+          quantiteStock: 10,
+          seuilAlerte: 2,
+          prixUnitaire: 20.0,
+          createdAt: '',
+          updatedAt: '',
+        },
+        {
+          id: 2,
+          nom: 'Lime Juice',
+          uniteMesure: 'cl',
+          quantiteStock: 50,
+          seuilAlerte: 5,
+          prixUnitaire: 0.1,
+          createdAt: '',
+          updatedAt: '',
+        },
+      ]);
+
+      component.recipeStepsArray.push(
+        (component as any).fb.group({
+          stepOrder: [1],
+          stepType: ['INGREDIENT'],
+          ingredientId: [1],
+          ingredientNom: ['White Rum'],
+          quantite: [5],
+          unite: ['cl'],
+        })
+      );
+      component.recipeStepsArray.push(
+        (component as any).fb.group({
+          stepOrder: [2],
+          stepType: ['INGREDIENT'],
+          ingredientId: [2],
+          ingredientNom: ['Lime Juice'],
+          quantite: [3],
+          unite: ['cl'],
+        })
+      );
+
+      component.cocktailForm.get('price')?.setValue(12.0);
+      component.recipeVersion.update((v: number) => v + 1);
+
+      expect(component.recipeCost()).toBe(1.3);
+      expect(component.sellingPriceHT()).toBe(10.0);
+      expect(component.grossMargin()).toBe(8.7);
+      expect(component.grossMarginPercentage()).toBe(87);
+      expect(component.marginBadgeClass()).toBe('success');
+
+      const breakdown = component.ingredientCostBreakdown();
+      expect(breakdown).toHaveSize(2);
+      expect(breakdown[0].nom).toBe('White Rum');
+      expect(breakdown[0].lineCost).toBe(1.0);
+      expect(breakdown[1].nom).toBe('Lime Juice');
+      expect(breakdown[1].lineCost).toBe(0.3);
+
+      component.cocktailForm.get('price')?.setValue(3.0);
+      component.recipeVersion.update((v: number) => v + 1);
+      expect(component.marginBadgeClass()).toBe('danger');
+    });
   });
 });

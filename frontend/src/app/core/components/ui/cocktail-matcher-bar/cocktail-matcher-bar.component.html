@@ -1,0 +1,103 @@
+<div class="matcher-bar-container" [class.compact]="compact" data-testid="cocktail-matcher-bar">
+  <div class="matcher-header" *ngIf="!compact">
+    <div class="matcher-title-group">
+      <h3 class="matcher-title">{{ 'CLIENT_QR.MATCHER_TITLE' | transloco }}</h3>
+      <p class="matcher-subtitle">{{ 'CLIENT_QR.MATCHER_SUBTITLE' | transloco }}</p>
+    </div>
+    <button
+      *ngIf="hasActiveFilters()"
+      type="button"
+      class="matcher-reset-btn"
+      (click)="clearAll()"
+      data-testid="matcher-clear-btn">
+      <ion-icon name="close-circle-outline"></ion-icon>
+      <span>{{ 'CLIENT_QR.MATCHER_RESET' | transloco }}</span>
+    </button>
+  </div>
+
+  <!-- Flavor Profiles Row -->
+  <div class="matcher-section">
+    <span class="section-label" *ngIf="!compact">{{ 'CLIENT_QR.MATCHER_FLAVORS' | transloco }}</span>
+    <div class="chips-scroll-wrapper">
+      <button
+        *ngFor="let item of availableFlavors"
+        type="button"
+        class="flavor-chip"
+        [class.active]="isFlavorActive(item.key)"
+        [ngClass]="item.badgeClass"
+        (click)="toggleFlavor(item.key)"
+        [attr.data-testid]="'matcher-flavor-' + item.key">
+        <ion-icon [name]="item.icon" class="chip-icon"></ion-icon>
+        <span class="chip-text">{{ item.labelKey | transloco }}</span>
+        <span *ngIf="facets && getFlavorCount(item.key) !== null" class="count-badge">
+          {{ getFlavorCount(item.key) }}
+        </span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Dietary Filters Row -->
+  <div class="matcher-section dietary-section">
+    <span class="section-label" *ngIf="!compact">{{ 'CLIENT_QR.MATCHER_DIETARY' | transloco }}</span>
+    <div class="chips-scroll-wrapper">
+      <!-- Mocktail -->
+      <button
+        type="button"
+        class="dietary-chip"
+        [class.active]="mocktail"
+        (click)="toggleDietary('mocktail')"
+        data-testid="matcher-dietary-mocktail">
+        <span class="dietary-icon">🍹</span>
+        <span class="chip-text">{{ 'CLIENT_QR.MATCHER_MOCKTAIL' | transloco }}</span>
+        <span *ngIf="facets" class="count-badge">{{ facets.mocktailsCount }}</span>
+      </button>
+
+      <!-- Vegan -->
+      <button
+        type="button"
+        class="dietary-chip"
+        [class.active]="vegan"
+        (click)="toggleDietary('vegan')"
+        data-testid="matcher-dietary-vegan">
+        <span class="dietary-icon">🌱</span>
+        <span class="chip-text">{{ 'CLIENT_QR.MATCHER_VEGAN' | transloco }}</span>
+        <span *ngIf="facets" class="count-badge">{{ facets.veganCount }}</span>
+      </button>
+
+      <!-- Gluten-Free -->
+      <button
+        type="button"
+        class="dietary-chip"
+        [class.active]="glutenFree"
+        (click)="toggleDietary('glutenFree')"
+        data-testid="matcher-dietary-gluten-free">
+        <span class="dietary-icon">🌾</span>
+        <span class="chip-text">{{ 'CLIENT_QR.MATCHER_GLUTEN_FREE' | transloco }}</span>
+        <span *ngIf="facets" class="count-badge">{{ facets.glutenFreeCount }}</span>
+      </button>
+
+      <!-- Low-ABV -->
+      <button
+        type="button"
+        class="dietary-chip"
+        [class.active]="lowAbv"
+        (click)="toggleDietary('lowAbv')"
+        data-testid="matcher-dietary-low-abv">
+        <span class="dietary-icon">🍸</span>
+        <span class="chip-text">{{ 'CLIENT_QR.MATCHER_LOW_ABV' | transloco }}</span>
+        <span *ngIf="facets" class="count-badge">{{ facets.lowAbvCount }}</span>
+      </button>
+
+      <!-- Reset in compact mode -->
+      <button
+        *ngIf="compact && hasActiveFilters()"
+        type="button"
+        class="dietary-chip reset-chip"
+        (click)="clearAll()"
+        data-testid="matcher-clear-btn-compact">
+        <ion-icon name="close-circle-outline"></ion-icon>
+        <span class="chip-text">{{ 'CLIENT_QR.MATCHER_RESET' | transloco }}</span>
+      </button>
+    </div>
+  </div>
+</div>

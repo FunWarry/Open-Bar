@@ -1,16 +1,19 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ModalController } from '@ionic/angular/standalone';
-import { of } from 'rxjs';
+import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { ModalController, ToastController } from '@ionic/angular/standalone';
+import { of, throwError } from 'rxjs';
 import { BarTicketPrintComponent } from '../../../app/features/dashboard-barman/components/bar-ticket-print/bar-ticket-print.component';
 import { CommandeView } from '../../../app/features/dashboard-barman/models/commande-view.model';
 import { AppSettingsService } from '../../../app/core/services/app-settings.service';
+import { PrinterService } from '../../../app/core/services/printer.service';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 
 describe('BarTicketPrintComponent', () => {
   let component: BarTicketPrintComponent;
   let fixture: ComponentFixture<BarTicketPrintComponent>;
   let modalCtrlSpy: jasmine.SpyObj<ModalController>;
+  let toastCtrlSpy: jasmine.SpyObj<ToastController>;
   let settingsServiceSpy: jasmine.SpyObj<AppSettingsService>;
+  let printerServiceSpy: jasmine.SpyObj<PrinterService>;
 
   const mockCommande: CommandeView = {
     id: 123,
@@ -29,6 +32,18 @@ describe('BarTicketPrintComponent', () => {
 
   beforeEach(async () => {
     modalCtrlSpy = jasmine.createSpyObj('ModalController', ['dismiss']);
+    toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
+    toastCtrlSpy.create.and.returnValue(Promise.resolve({ present: () => Promise.resolve() } as any));
+    printerServiceSpy = jasmine.createSpyObj('PrinterService', ['dispatchOrder']);
+    printerServiceSpy.dispatchOrder.and.returnValue(of([{
+      role: 'BAR',
+      ip: '192.168.1.101',
+      port: 9100,
+      success: true,
+      message: 'OK',
+      durationMs: 15,
+    }]));
+
     settingsServiceSpy = jasmine.createSpyObj('AppSettingsService', ['getSettings']);
     settingsServiceSpy.getSettings.and.returnValue(
       of({
@@ -40,6 +55,9 @@ describe('BarTicketPrintComponent', () => {
         defaultTheme: 'DARK',
         tempsAlerteCommandeMinutes: 5,
         tempsAlerteCritiqueCommandeMinutes: 10,
+        directPrintingEnabled: true,
+        printerPort: 9100,
+        barPrinterIp: '192.168.1.101',
         updatedAt: null
       })
     );
@@ -48,7 +66,9 @@ describe('BarTicketPrintComponent', () => {
       imports: [BarTicketPrintComponent, getTranslocoTestingModule()],
       providers: [
         { provide: ModalController, useValue: modalCtrlSpy },
-        { provide: AppSettingsService, useValue: settingsServiceSpy }
+        { provide: ToastController, useValue: toastCtrlSpy },
+        { provide: AppSettingsService, useValue: settingsServiceSpy },
+        { provide: PrinterService, useValue: printerServiceSpy }
       ]
     }).compileComponents();
 
@@ -79,5 +99,40 @@ describe('BarTicketPrintComponent', () => {
   it('dismiss() ferme la modale', () => {
     component.dismiss();
     expect(modalCtrlSpy.dismiss).toHaveBeenCalled();
+  });
+
+  it('printDirectEscPos() dispatches order to ESC/POS printers and presents toast', fakeAsync(() => {
+    component.printDirectEscPos();
+    tick();
+    expect(printerServiceSpy.dispatchOrder).toHaveBeenCalledWith(123);
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
+    expect(component.isDirectPrinting).toBeFalse();
+  }));
+
+  it('printDirectEscPos() handles dispatch error gracefully', fakeAsync(() => {
+    printerServiceSpy.dispatchOrder.and.returnValue(throwError(() => new Error('Connection refused')));
+    component.printDirectEscPos();
+    tick();
+    expect(printerServiceSpy.dispatchOrder).toHaveBeenCalledWith(123);
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
+    expect(component.isDirectPrinting).toBeFalse();
+  }));
+
+  it('printDirectEscPos() shows warning toast when one of the printers fails', fakeAsync(() => {
+    printerServiceSpy.dispatchOrder.and.returnValue(of([
+      { role: 'BAR', ip: '192.168.1.101', port: 9100, success: true, message: 'OK', durationMs: 15 },
+      { role: 'KITCHEN', ip: '192.168.1.102', port: 9100, success: false, message: 'Offline', durationMs: 15 },
+    ]));
+    component.printDirectEscPos();
+    tick();
+    expect(printerServiceSpy.dispatchOrder).toHaveBeenCalledWith(123);
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
+    expect(component.isDirectPrinting).toBeFalse();
+  }));
+
+  it('printDirectEscPos() returns early if commande has no ID', () => {
+    component.commande = { ...mockCommande, id: 0 as any };
+    component.printDirectEscPos();
+    expect(printerServiceSpy.dispatchOrder).not.toHaveBeenCalled();
   });
 });

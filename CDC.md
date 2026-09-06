@@ -137,18 +137,47 @@ NgRx selectors : `selectIsAdmin`, `selectIsManager`, `selectIsBarman`, `selectIs
 
 ## 4. Modèle de données
 
+```mermaid
+flowchart TD
+    subgraph UsersDomain ["👥 Utilisateurs & Équipe"]
+        USERS["users"] -->|"1:N"| USER_ROLES["user_roles"]
+        USERS -->|"1:N"| AUDIT_LOGS["audit_logs"]
+    end
+
+    subgraph SalleDomain ["🪑 Salle & Tables"]
+        ZONES["zones"] -->|"1:N"| TABLES["tables"]
+        USERS -.->|"serveur_id"| TABLES
+        TABLES -->|"1:N"| TABLE_SESSIONS["table_sessions (QR client)"]
+        TABLES -->|"1:N"| TABLE_APPELS["table_appels (Appels serveur)"]
+        TABLES -->|"1:N"| TABLE_CART_ITEMS["table_cart_items (Panier table)"]
+    end
+
+    subgraph CommandesDomain ["🍸 Commandes & Service"]
+        TABLES -->|"1:N"| COMMANDES["commandes"]
+        COMMANDES -->|"1:N"| COMMANDE_ITEMS["commande_items"]
+        TABLE_CART_ITEMS -.->|"checkout"| COMMANDES
+    end
+
+    subgraph MixologieDomain ["🍹 Catalogue & Mixologie"]
+        COCKTAILS["cocktails"] -->|"1:N"| COMMANDE_ITEMS
+        COCKTAILS -->|"1:N"| COCKTAIL_VARIANTES["cocktail_variantes"]
+        COCKTAILS -->|"1:N"| COCKTAIL_INGREDIENTS["cocktail_ingredients"]
+        COCKTAILS -->|"N:1"| GLASSWARE["glassware"]
+        
+        COCKTAIL_VARIANTES -->|"1:N"| COCKTAIL_VARIANTE_INGREDIENTS["cocktail_variante_ingredients"]
+        COCKTAIL_VARIANTE_INGREDIENTS -->|"N:1"| INGREDIENTS["ingredients"]
+        COCKTAIL_INGREDIENTS -->|"N:1"| INGREDIENTS
+        COMMANDE_ITEMS -.->|"variante"| COCKTAIL_VARIANTES
+    end
+
+    subgraph FacturationDomain ["💳 Facturation & Règlements"]
+        TABLES -->|"1:N"| FACTURES["factures"]
+        FACTURES -->|"1:N"| FACTURE_ITEMS["facture_items"]
+        FACTURES -->|"1:N"| FACTURE_REGLEMENTS["facture_reglements (Splits)"]
+    end
 ```
-users ──< user_roles
-users ──< tables (serveur_id)
-tables ──< commandes ──< commande_items ──< cocktails
-                                         └──< cocktail_variantes
-cocktails ──< cocktail_ingredients ──< ingredients
-tables ──< factures ──< facture_items
-tables ──< table_sessions              ← QR code client (token temporaire par scan)
-zones ──< tables                       ← Zones du plan de salle (polygones libres JSON)
-users ──< audit_logs
-app_settings                           ← Singleton — personnalisation admin (#153), pas de relation
-```
+
+*Configuration singleton* : `app_settings` (personnalisation admin, devises, anti-fraude, pas de relation directe).
 
 > **Plan de salle** : les zones sont des polygones libres (coordonnées JSON), pas des rectangles. Les tables ont des formes rondes ou carrées, librement repositionnables et redimensionnables via Konva.js.
 >
@@ -156,9 +185,17 @@ app_settings                           ← Singleton — personnalisation admin 
 
 ### Cycle de vie d'une commande
 
-```
-EN_ATTENTE → EN_PREPARATION → PRET → LIVREE → REGLEE
-                                            ↘ ANNULEE (depuis n'importe quel état)
+```mermaid
+flowchart LR
+    A([EN_ATTENTE]) -->|Start prep| B([EN_PREPARATION])
+    B -->|Ready datePret| C([PRET])
+    C -->|Delivered dateLivraison| D([LIVREE])
+    D -->|Settled dateReglement| E([REGLEE])
+    
+    A -.->|Cancel| X([ANNULEE])
+    B -.->|Cancel| X
+    C -.->|Cancel| X
+    D -.->|Cancel| X
 ```
 
 | Statut | Timestamp auto | Acteur | Transition depuis |

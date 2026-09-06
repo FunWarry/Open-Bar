@@ -55,8 +55,19 @@ CREATE TABLE IF NOT EXISTS cocktails (
     instructions TEXT,
     image_url VARCHAR(500),
     glassware_id BIGINT REFERENCES glassware(id) ON DELETE SET NULL,
+    alcohol_level DECIMAL(4,1) DEFAULT 0.0,
+    is_mocktail BOOLEAN DEFAULT false,
+    is_vegan BOOLEAN DEFAULT true,
+    is_gluten_free BOOLEAN DEFAULT true,
+    station VARCHAR(30) DEFAULT 'BAR',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS cocktail_flavor_profiles (
+    cocktail_id BIGINT NOT NULL REFERENCES cocktails(id) ON DELETE CASCADE,
+    flavor_profile VARCHAR(30) NOT NULL CHECK (flavor_profile IN ('FRUITY', 'SMOKY', 'SWEET', 'SOUR', 'BITTER', 'SPICY', 'HERBAL')),
+    PRIMARY KEY (cocktail_id, flavor_profile)
 );
 
 CREATE TABLE IF NOT EXISTS ingredients (
@@ -80,6 +91,7 @@ CREATE TABLE IF NOT EXISTS cocktail_ingredients (
     cocktail_id BIGINT REFERENCES cocktails(id) ON DELETE CASCADE,
     ingredient_id BIGINT REFERENCES ingredients(id) ON DELETE CASCADE,
     quantite DECIMAL(10,2) NOT NULL,
+    unite VARCHAR(20),
     notes TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -199,6 +211,37 @@ CREATE TABLE IF NOT EXISTS table_appels (
 CREATE INDEX IF NOT EXISTS idx_table_appels_table_statut ON table_appels(table_id, statut);
 CREATE INDEX IF NOT EXISTS idx_table_appels_statut ON table_appels(statut);
 
+CREATE TABLE IF NOT EXISTS table_sessions (
+    id BIGSERIAL PRIMARY KEY,
+    table_id BIGINT NOT NULL REFERENCES tables(id) ON DELETE CASCADE,
+    session_token VARCHAR(64) NOT NULL UNIQUE,
+    status VARCHAR(20) NOT NULL,
+    opened_at TIMESTAMP NOT NULL,
+    last_activity_at TIMESTAMP NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_table_sessions_token ON table_sessions(session_token);
+CREATE INDEX IF NOT EXISTS idx_table_sessions_table_status ON table_sessions(table_id, status);
+
+CREATE TABLE IF NOT EXISTS table_cart_items (
+    id BIGSERIAL PRIMARY KEY,
+    table_id BIGINT NOT NULL REFERENCES tables(id) ON DELETE CASCADE,
+    guest_session_id VARCHAR(64) NOT NULL,
+    guest_name VARCHAR(100) NOT NULL,
+    cocktail_id BIGINT NOT NULL REFERENCES cocktails(id) ON DELETE CASCADE,
+    cocktail_variante_id BIGINT REFERENCES cocktail_variantes(id) ON DELETE SET NULL,
+    quantite INTEGER NOT NULL DEFAULT 1 CHECK (quantite > 0),
+    notes VARCHAR(500),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_table_cart_items_table_id ON table_cart_items(table_id);
+CREATE INDEX IF NOT EXISTS idx_table_cart_items_guest ON table_cart_items(table_id, guest_session_id);
+
 -- 5. Orders & Items
 CREATE TABLE IF NOT EXISTS commandes (
     id BIGSERIAL PRIMARY KEY,
@@ -216,9 +259,12 @@ CREATE TABLE IF NOT EXISTS commandes (
     date_reglement TIMESTAMP,
     date_modification TIMESTAMP,
     prioritaire BOOLEAN DEFAULT false,
+    client_request_id VARCHAR(100) UNIQUE,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE INDEX IF NOT EXISTS idx_commandes_client_request_id ON commandes(client_request_id);
 
 CREATE TABLE IF NOT EXISTS commande_items (
     id BIGSERIAL PRIMARY KEY,
@@ -227,7 +273,10 @@ CREATE TABLE IF NOT EXISTS commande_items (
     cocktail_variante_id BIGINT REFERENCES cocktail_variantes(id) ON DELETE SET NULL,
     quantite INTEGER NOT NULL,
     prix_unitaire DECIMAL(10,2) NOT NULL,
+    notes TEXT,
     prioritaire BOOLEAN DEFAULT false,
+    station VARCHAR(30) DEFAULT 'BAR',
+    statut VARCHAR(30) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -333,6 +382,15 @@ CREATE TABLE IF NOT EXISTS app_settings (
     wifi_password VARCHAR(100),
     wifi_security VARCHAR(20),
     wifi_enabled BOOLEAN DEFAULT false,
+    table_session_validation_enabled BOOLEAN DEFAULT false,
+    default_vat_rate DECIMAL(5,2) DEFAULT 20.00,
+    target_gross_margin_percentage DECIMAL(5,2) DEFAULT 70.00,
+    warning_gross_margin_percentage DECIMAL(5,2) DEFAULT 50.00,
+    bar_printer_ip VARCHAR(100),
+    kitchen_printer_ip VARCHAR(100),
+    cash_desk_printer_ip VARCHAR(100),
+    printer_port INTEGER DEFAULT 9100,
+    direct_printing_enabled BOOLEAN DEFAULT false,
     updated_at TIMESTAMP
 );
 
@@ -423,3 +481,89 @@ CREATE TABLE IF NOT EXISTS shift_audit_log (
     previous_snapshot TEXT,
     new_snapshot TEXT
 );
+
+-- 10. Happy Hour & Dynamic Pricing Rules
+CREATE TABLE IF NOT EXISTS happy_hour_rules (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    start_time TIME NOT NULL,
+    end_time TIME NOT NULL,
+    discount_type VARCHAR(30) NOT NULL,
+    discount_value DECIMAL(10,2) NOT NULL,
+    active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS happy_hour_days (
+    rule_id BIGINT NOT NULL REFERENCES happy_hour_rules(id) ON DELETE CASCADE,
+    day_of_week VARCHAR(20) NOT NULL,
+    PRIMARY KEY (rule_id, day_of_week)
+);
+
+CREATE TABLE IF NOT EXISTS happy_hour_categories (
+    rule_id BIGINT NOT NULL REFERENCES happy_hour_rules(id) ON DELETE CASCADE,
+    category VARCHAR(50) NOT NULL,
+    PRIMARY KEY (rule_id, category)
+);
+
+CREATE TABLE IF NOT EXISTS happy_hour_cocktails (
+    rule_id BIGINT NOT NULL REFERENCES happy_hour_rules(id) ON DELETE CASCADE,
+    cocktail_id BIGINT NOT NULL REFERENCES cocktails(id) ON DELETE CASCADE,
+    PRIMARY KEY (rule_id, cocktail_id)
+);
+
+-- 11. Stock Shrinkage, Breakage & Waste Tracking
+CREATE TABLE IF NOT EXISTS stock_movements (
+    id BIGSERIAL PRIMARY KEY,
+    ingredient_id BIGINT NOT NULL REFERENCES ingredients(id) ON DELETE CASCADE,
+    quantity DECIMAL(10,2) NOT NULL,
+    unit VARCHAR(50) NOT NULL,
+    reason VARCHAR(50) NOT NULL,
+    reported_by_id BIGINT REFERENCES users(id) ON DELETE SET NULL,
+    notes TEXT,
+    cost DECIMAL(10,2) DEFAULT 0,
+    recorded_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_stock_movements_ingredient ON stock_movements(ingredient_id);
+CREATE INDEX IF NOT EXISTS idx_stock_movements_recorded_at ON stock_movements(recorded_at);
+
+-- 12. KDS Workstation Routing & Item Status Tracking
+ALTER TABLE cocktails ADD COLUMN IF NOT EXISTS station VARCHAR(30) DEFAULT 'BAR';
+ALTER TABLE commande_items ADD COLUMN IF NOT EXISTS notes TEXT;
+ALTER TABLE commande_items ADD COLUMN IF NOT EXISTS station VARCHAR(30) DEFAULT 'BAR';
+ALTER TABLE commande_items ADD COLUMN IF NOT EXISTS statut VARCHAR(30);
+CREATE INDEX IF NOT EXISTS idx_commande_items_station ON commande_items(station);
+CREATE INDEX IF NOT EXISTS idx_commande_items_statut ON commande_items(statut);
+
+-- 13. Direct ESC/POS Network Socket Printing Configuration
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS bar_printer_ip VARCHAR(100);
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS kitchen_printer_ip VARCHAR(100);
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS cash_desk_printer_ip VARCHAR(100);
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS printer_port INTEGER DEFAULT 9100;
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS direct_printing_enabled BOOLEAN DEFAULT false;
+
+-- 14. Daily Cash Register Closure (Z-Report) & Reconciliation
+CREATE TABLE IF NOT EXISTS daily_cash_closures (
+    id BIGSERIAL PRIMARY KEY,
+    closure_number VARCHAR(50) NOT NULL UNIQUE,
+    closure_date DATE NOT NULL UNIQUE,
+    opening_float DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    theoretical_cash DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    counted_cash DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    cash_discrepancy DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    total_revenue_ht DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    total_revenue_ttc DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    vat_breakdown_json TEXT,
+    payment_methods_json TEXT,
+    counting_breakdown_json TEXT,
+    discrepancy_reason TEXT,
+    closed_by_id BIGINT REFERENCES users(id) ON DELETE SET NULL,
+    sha256_hash VARCHAR(64) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_daily_cash_closures_date ON daily_cash_closures(closure_date);
+CREATE INDEX IF NOT EXISTS idx_daily_cash_closures_number ON daily_cash_closures(closure_number);

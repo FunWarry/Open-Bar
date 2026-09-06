@@ -12,8 +12,14 @@ import com.bar.gestioncocktail.dto.TableAdditionResponseDTO;
 import com.bar.gestioncocktail.model.Facture;
 import com.bar.gestioncocktail.model.TableEntity;
 import com.bar.gestioncocktail.exception.ResourceNotFoundException;
+import com.bar.gestioncocktail.dto.ClotureCaisseRequestDTO;
+import com.bar.gestioncocktail.dto.DailyCashClosureResponseDTO;
+import com.bar.gestioncocktail.dto.PrintResultDTO;
+import com.bar.gestioncocktail.model.DailyCashClosure;
+import com.bar.gestioncocktail.service.DailyCashClosureService;
 import com.bar.gestioncocktail.service.FactureService;
 import com.bar.gestioncocktail.service.PdfService;
+import com.bar.gestioncocktail.service.printing.EscPosPrintingService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -26,6 +32,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -34,20 +41,32 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api/factures")
-@Tag(name = "Invoices", description = "Invoice management, payments, bill splitting (split), table checkout, and PDF generation")
+@Tag(name = "Invoices", description = "Invoice management, payments, bill splitting (split), table checkout, register closures, and PDF generation")
 public class FactureController {
+    private static final String ATTACHMENT_FILENAME_PREFIX = "attachment; filename=\"";
+
     private final FactureService factureService;
     private final PdfService pdfService;
+    private final DailyCashClosureService dailyCashClosureService;
+    private final EscPosPrintingService escPosPrintingService;
 
     /**
-     * Constructs the controller with invoice and PDF service dependencies.
+     * Constructs the controller with invoice, PDF, daily closure, and printing service dependencies.
      *
-     * @param factureService Invoice management service
-     * @param pdfService     PDF export and generation service
+     * @param factureService Invoicing management service
+     * @param pdfService PDF export and generation service
+     * @param dailyCashClosureService Daily register closure service
+     * @param escPosPrintingService ESC/POS thermal printing service
      */
-    public FactureController(FactureService factureService, PdfService pdfService) {
+    public FactureController(
+            FactureService factureService,
+            PdfService pdfService,
+            DailyCashClosureService dailyCashClosureService,
+            EscPosPrintingService escPosPrintingService) {
         this.factureService = factureService;
         this.pdfService = pdfService;
+        this.dailyCashClosureService = dailyCashClosureService;
+        this.escPosPrintingService = escPosPrintingService;
     }
 
     /**
@@ -271,7 +290,7 @@ public class FactureController {
         byte[] pdf = pdfService.generateFacturePdf(facture);
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_PDF_VALUE)
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"facture-" + id + ".pdf\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION, ATTACHMENT_FILENAME_PREFIX + "facture-" + id + ".pdf\"")
                 .body(pdf);
     }
 
@@ -366,7 +385,7 @@ public class FactureController {
         String csvContent = factureService.exportCSV(from, to);
 
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"export_factures.csv\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION, ATTACHMENT_FILENAME_PREFIX + "export_factures.csv\"")
                 .body(csvContent);
     }
 
@@ -419,7 +438,136 @@ public class FactureController {
         String fileName = "recap-caisse-" + recap.date() + ".pdf";
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_PDF_VALUE)
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION, ATTACHMENT_FILENAME_PREFIX + fileName + "\"")
                 .body(pdf);
     }
+
+    /**
+     * Executes the daily cash register closing workflow (Z-Report).
+     * Locks daily sales, reconciles cash drawer float and cash counts, calculates discrepancies,
+     * and signs the report with a cryptographic SHA-256 seal.
+     *
+     * @param request Closure payload including opening float, counted cash, breakdown, and notes
+     * @param principal Authenticated user security principal
+     * @return DTO of the registered and sealed daily cash closure
+     */
+    @PostMapping("/recap/cloturer")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @Operation(summary = "Perform daily cash register closure (Z-Report)", description = "Validates physical drawer cash, reconciles discrepancies, locks sales, and issues official Z-report.")
+    @ApiResponse(responseCode = "200", description = "Cash register closed and Z-report generated successfully")
+    @ApiResponse(responseCode = "400", description = "Register already closed for date or missing discrepancy justification note")
+    public ResponseEntity<DailyCashClosureResponseDTO> cloturerCaisse(
+            @Valid @RequestBody ClotureCaisseRequestDTO request,
+            java.security.Principal principal) {
+        String username = principal != null ? principal.getName() : null;
+        DailyCashClosure closure = dailyCashClosureService.cloturerCaisse(request, username);
+        return ResponseEntity.ok(DailyCashClosureResponseDTO.from(closure));
+    }
+
+    /**
+     * Lists all registered daily cash closures in descending date order.
+     *
+     * @return List of closure response DTOs
+     */
+    @GetMapping("/clotures")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @Operation(summary = "List all daily cash register closures", description = "Retrieves all certified Z-reports ordered by closure date descending.")
+    @ApiResponse(responseCode = "200", description = "List of closures returned successfully")
+    public ResponseEntity<List<DailyCashClosureResponseDTO>> getClotures() {
+        return ResponseEntity.ok(dailyCashClosureService.getAllClosures().stream()
+                .map(DailyCashClosureResponseDTO::from).toList());
+    }
+
+    /**
+     * Retrieves a single daily cash closure by its unique identifier.
+     *
+     * @param id Closure database identifier
+     * @return Closure response DTO
+     */
+    @GetMapping("/clotures/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @Operation(summary = "Get daily cash closure by ID", description = "Returns details of a specific certified Z-report.")
+    @ApiResponse(responseCode = "200", description = "Closure found")
+    @ApiResponse(responseCode = "404", description = "Closure not found")
+    public ResponseEntity<DailyCashClosureResponseDTO> getClotureById(
+            @Parameter(description = "Closure ID") @PathVariable Long id) {
+        return ResponseEntity.ok(DailyCashClosureResponseDTO.from(dailyCashClosureService.getClosureById(id)));
+    }
+
+    /**
+     * Checks and retrieves the daily cash closure for a specific business date.
+     *
+     * @param date Target date to query
+     * @return Closure response DTO if closed, or null if open
+     */
+    @GetMapping("/clotures/by-date")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @Operation(summary = "Get daily closure by date", description = "Checks whether a specific date has an active register closure.")
+    @ApiResponse(responseCode = "200", description = "Closure query completed")
+    public ResponseEntity<DailyCashClosureResponseDTO> getClotureByDate(
+            @RequestParam @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate date) {
+        return ResponseEntity.ok(dailyCashClosureService.getClosureByDate(date)
+                .map(DailyCashClosureResponseDTO::from)
+                .orElse(null));
+    }
+
+    /**
+     * Generates and downloads the certified A4 Z-Report PDF document for a register closure.
+     *
+     * @param id Closure identifier
+     * @return Binary PDF file as byte array
+     */
+    @GetMapping("/clotures/{id}/pdf")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @Operation(summary = "Download certified Z-Report PDF", description = "Generates official A4 PDF Z-report document complying with legal accounting standards.")
+    @ApiResponse(responseCode = "200", description = "Z-Report PDF generated successfully")
+    @ApiResponse(responseCode = "404", description = "Closure not found")
+    public ResponseEntity<byte[]> downloadZReportPdf(
+            @Parameter(description = "Closure ID") @PathVariable Long id) {
+        DailyCashClosure closure = dailyCashClosureService.getClosureById(id);
+        byte[] pdf = pdfService.generateZReportPdf(closure);
+        String fileName = "z-report-" + closure.getClosureNumber() + ".pdf";
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_PDF_VALUE)
+                .header(HttpHeaders.CONTENT_DISPOSITION, ATTACHMENT_FILENAME_PREFIX + fileName + "\"")
+                .body(pdf);
+    }
+
+    /**
+     * Generates and downloads the standardized French FEC accounting export for a register closure.
+     *
+     * @param id Closure identifier
+     * @return Tab-delimited FEC accounting journal content
+     */
+    @GetMapping(value = "/clotures/{id}/export/fec", produces = "text/plain;charset=UTF-8")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @Operation(summary = "Export closure to French FEC accounting format", description = "Exports balanced double-entry accounting journal entries in standard FEC format.")
+    @ApiResponse(responseCode = "200", description = "FEC export generated successfully")
+    @ApiResponse(responseCode = "404", description = "Closure not found")
+    public ResponseEntity<String> exportFec(
+            @Parameter(description = "Closure ID") @PathVariable Long id) {
+        DailyCashClosure closure = dailyCashClosureService.getClosureById(id);
+        String fecContent = dailyCashClosureService.generateFecExport(id);
+        String fileName = "FEC-" + closure.getClosureNumber() + ".txt";
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, ATTACHMENT_FILENAME_PREFIX + fileName + "\"")
+                .body(fecContent);
+    }
+
+    /**
+     * Dispatches an official 80mm thermal Z-Report ticket to the cash desk printer.
+     *
+     * @param id Closure identifier
+     * @return Execution result report
+     */
+    @PostMapping("/clotures/{id}/print")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @Operation(summary = "Print 80mm thermal Z-report ticket", description = "Formats and sends 80mm Z-ticket receipt to cash desk printer.")
+    @ApiResponse(responseCode = "200", description = "Print job dispatched")
+    @ApiResponse(responseCode = "404", description = "Closure not found")
+    public ResponseEntity<PrintResultDTO> printZReportTicket(
+            @Parameter(description = "Closure ID") @PathVariable Long id) {
+        return ResponseEntity.ok(escPosPrintingService.printZReportTicket(id));
+    }
 }
+

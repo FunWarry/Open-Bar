@@ -22,8 +22,11 @@ import { FormsModule } from '@angular/forms';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { CocktailService } from '../../../core/services/cocktail.service';
 import { WebSocketService } from '../../../core/services/websocket.service';
-import { Cocktail } from '../../../core/models/cocktail.model';
+import { AppSettingsService } from '../../../core/services/app-settings.service';
+import { Cocktail, CocktailFacets, FlavorProfile } from '../../../core/models/cocktail.model';
+import { CocktailMatcherBarComponent, CocktailMatcherFilters } from '../../../core/components/ui/cocktail-matcher-bar/cocktail-matcher-bar.component';
 import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
+import { getMarginBadgeClass } from '../../../core/utils/margin-calculation.util';
 import { environment } from '../../../../environments/environment';
 
 /**
@@ -39,7 +42,8 @@ export interface AllergenOption {
 /**
  * Global Cocktails Management component in OpenBar (Figma styled).
  * Features card grid with picture toggle, category pill badges, ingredient subtitles,
- * search query filters, allergen exclusion filtering, status filtering (Available/Unavailable), and CRUD actions.
+ * search query filters, allergen exclusion filtering, status filtering (Available/Unavailable),
+ * interactive flavor profile matcher, and CRUD actions.
  */
 @Component({
   selector: 'app-cocktail-list',
@@ -52,6 +56,7 @@ export interface AllergenOption {
     IonList, IonItem, IonLabel, IonBadge, IonIcon, IonButton, IonButtons,
     IonRefresher, IonRefresherContent,
     IonSpinner, IonThumbnail, IonGrid, IonRow, IonCol,
+    CocktailMatcherBarComponent,
   ],
 })
 export class CocktailListComponent implements OnInit, OnDestroy {
@@ -61,9 +66,21 @@ export class CocktailListComponent implements OnInit, OnDestroy {
   filtre: 'tous' | 'disponibles' | 'indisponibles' = 'tous';
   selectedCategory = 'ALL';
   selectedAllergens: string[] = [];
+  catalogFacets: CocktailFacets | null = null;
+  selectedFlavors: FlavorProfile[] = [];
+  matcherMocktail = false;
+  matcherVegan = false;
+  matcherGlutenFree = false;
+  matcherLowAbv = false;
   searchQuery = '';
   viewMode: 'grid' | 'list' = 'grid';
   showPictures = localStorage.getItem('openbar_show_pictures') !== 'false';
+
+  getMarginBadgeClass(percentage: number | null | undefined): string {
+    const target = this.appSettingsService?.targetGrossMarginPercentage ?? 70;
+    const warning = this.appSettingsService?.warningGrossMarginPercentage ?? 50;
+    return getMarginBadgeClass(percentage, target, warning);
+  }
 
   readonly availableAllergens: AllergenOption[] = [
     { key: 'LAIT', labelKey: 'COCKTAILS.ALLERGENS.LAIT', icon: 'nutrition-outline', keywords: ['lait', 'creme', 'crème', 'cream', 'beurre', 'lactose', 'baileys', 'yaourt', 'fromage'] },
@@ -87,6 +104,7 @@ export class CocktailListComponent implements OnInit, OnDestroy {
     private readonly webSocketService: WebSocketService,
     private readonly toastCtrl: ToastController,
     private readonly transloco: TranslocoService,
+    private readonly appSettingsService: AppSettingsService,
   ) {
     this.isAdmin$ = this.store.select(selectIsAdmin);
     addIcons({
@@ -195,6 +213,37 @@ export class CocktailListComponent implements OnInit, OnDestroy {
         },
         error: () => this.showToast('COMMON.ERROR', 'danger'),
       });
+
+    this.cocktailService.getFacets()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: facets => {
+          this.catalogFacets = facets;
+        },
+      });
+  }
+
+  /**
+   * Handles matcher filter changes from the interactive flavor matcher bar.
+   * @param filters Selected flavor profiles and dietary preferences
+   */
+  onMatcherFiltersChange(filters: CocktailMatcherFilters): void {
+    this.selectedFlavors = filters.flavors;
+    this.matcherMocktail = filters.mocktail;
+    this.matcherVegan = filters.vegan;
+    this.matcherGlutenFree = filters.glutenFree;
+    this.matcherLowAbv = filters.lowAbv;
+  }
+
+  /**
+   * Resets all matcher filter states.
+   */
+  onResetMatcherFilters(): void {
+    this.selectedFlavors = [];
+    this.matcherMocktail = false;
+    this.matcherVegan = false;
+    this.matcherGlutenFree = false;
+    this.matcherLowAbv = false;
   }
 
   /**
@@ -237,7 +286,7 @@ export class CocktailListComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Returns filtered cocktails array based on search query, category, allergen exclusion, and availability status filters.
+   * Returns filtered cocktails array based on search query, category, allergen exclusion, flavor profiles, and availability status filters.
    */
   get filteredCocktails(): Cocktail[] {
     const query = this.searchQuery.toLowerCase().trim();
@@ -258,7 +307,18 @@ export class CocktailListComponent implements OnInit, OnDestroy {
         matchesAllergens = !this.selectedAllergens.some(a => cocktailAllergens.includes(a));
       }
 
-      return matchesSearch && matchesCategory && matchesStatus && matchesAllergens;
+      let matchesDietary = true;
+      if (this.matcherMocktail && !c.isMocktail && c.categorie !== 'SANS_ALCOOL') matchesDietary = false;
+      if (this.matcherVegan && !c.isVegan) matchesDietary = false;
+      if (this.matcherGlutenFree && !c.isGlutenFree) matchesDietary = false;
+      if (this.matcherLowAbv && ((c.alcoholLevel ?? 0) <= 0 || (c.alcoholLevel ?? 0) > 10.0)) matchesDietary = false;
+
+      let matchesFlavors = true;
+      if (this.selectedFlavors.length > 0) {
+        matchesFlavors = !!(c.flavorProfiles && this.selectedFlavors.some(f => c.flavorProfiles!.includes(f)));
+      }
+
+      return matchesSearch && matchesCategory && matchesStatus && matchesAllergens && matchesDietary && matchesFlavors;
     });
   }
 

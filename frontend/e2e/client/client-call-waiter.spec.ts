@@ -5,7 +5,11 @@ test.describe('Client Call Waiter & Request Bill Alerts E2E', () => {
 
   test.beforeEach(async ({ page }) => {
     await setupMockApi(page);
+    await page.addInitScript(() => {
+      localStorage.setItem('openbar_guest_name', 'Client');
+    });
   });
+
 
   test('should display call waiter action buttons on client ordering view', async ({ page }) => {
     // Navigate with table parameter directly into menu

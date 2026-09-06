@@ -34,6 +34,8 @@ export interface TableAdditionItem {
   priceHT: number;
   vatAmount: number;
   vatRate: string;
+  isHappyHour?: boolean;
+  basePrice?: number;
 }
 
 export interface TableAdditionResponse {

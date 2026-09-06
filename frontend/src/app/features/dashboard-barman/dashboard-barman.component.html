@@ -9,6 +9,29 @@
       </div>
     </ion-title>
 
+    <!-- Toggle Vue Tickets / Mode Rush -->
+    <div class="header-center-segment">
+      <ion-segment
+        [(ngModel)]="activeViewMode"
+        mode="ios"
+        class="barman-view-segment"
+        data-testid="barman-view-mode-segment">
+        <ion-segment-button value="tickets" data-testid="segment-view-tickets">
+          <ion-icon name="list-outline"></ion-icon>
+          <ion-label>{{ 'BARMAN_DASHBOARD.VIEW_TICKETS' | transloco }}</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="batch" data-testid="segment-view-batch">
+          <ion-icon name="flash-outline"></ion-icon>
+          <ion-label>{{ 'BARMAN_DASHBOARD.VIEW_BATCH' | transloco }}</ion-label>
+          @if (totalBatchDrinksCount > 0) {
+            <ion-badge color="warning" class="segment-badge" data-testid="batch-count-badge">
+              {{ totalBatchDrinksCount }}
+            </ion-badge>
+          }
+        </ion-segment-button>
+      </ion-segment>
+    </div>
+
     <ion-buttons slot="end" class="toolbar-actions">
       <!-- Ruptures à chaud -->
       <ion-button
@@ -68,6 +91,38 @@
           <ion-badge color="danger">{{ urgentOrdersCount }}</ion-badge>
         }
       </ion-chip>
+
+      <span class="chip-divider"></span>
+
+      <!-- Station filter chips (All, Bar Only, Kitchen Only) -->
+      <ion-chip
+        tabindex="0"
+        [class.chip--active]="stationFilter === 'ALL'"
+        (click)="setStationFilter('ALL')"
+        (keyup.enter)="setStationFilter('ALL')"
+        data-testid="chip-station-all">
+        <ion-label>{{ 'STATIONS.ALL' | transloco }}</ion-label>
+      </ion-chip>
+
+      <ion-chip
+        tabindex="0"
+        [class.chip--active]="stationFilter === 'BAR'"
+        (click)="setStationFilter('BAR')"
+        (keyup.enter)="setStationFilter('BAR')"
+        data-testid="chip-station-bar">
+        <ion-icon name="wine-outline"></ion-icon>
+        <ion-label>{{ 'STATIONS.BAR' | transloco }}</ion-label>
+      </ion-chip>
+
+      <ion-chip
+        tabindex="0"
+        [class.chip--active]="stationFilter === 'KITCHEN'"
+        (click)="setStationFilter('KITCHEN')"
+        (keyup.enter)="setStationFilter('KITCHEN')"
+        data-testid="chip-station-kitchen">
+        <ion-icon name="restaurant-outline"></ion-icon>
+        <ion-label>{{ 'STATIONS.KITCHEN' | transloco }}</ion-label>
+      </ion-chip>
     </div>
   </div>
 </ion-header>
@@ -77,118 +132,355 @@
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
-  <ion-grid class="kanban-grid">
-    <ion-row class="kanban-row">
+  @if (activeViewMode === 'tickets') {
+    <ion-grid class="kanban-grid" data-testid="kanban-grid-tickets">
+      <ion-row class="kanban-row">
 
-      <!-- Colonne EN_ATTENTE -->
-      <ion-col size="12" size-md="4" class="kanban-col-wrapper">
-        <div class="kanban-col kanban-col--pending">
-          <div class="kanban-header kanban-header--pending">
-            <div class="header-status">
-              <span class="status-dot dot--pending"></span>
-              <span class="header-label">{{ 'BARMAN_DASHBOARD.PENDING_ORDERS' | transloco }}</span>
-              @if (hasUrgentOrders) {
-                <span class="urgent-badge" data-testid="urgent-orders-badge">
-                  ⚡ &gt; {{ tempsAlerteCommandeMinutes }} min ({{ urgentOrdersCount }})
-                </span>
+        <!-- Colonne EN_ATTENTE -->
+        <ion-col size="12" size-md="4" class="kanban-col-wrapper">
+          <div class="kanban-col kanban-col--pending">
+            <div class="kanban-header kanban-header--pending">
+              <div class="header-status">
+                <span class="status-dot dot--pending"></span>
+                <span class="header-label">{{ 'BARMAN_DASHBOARD.PENDING_ORDERS' | transloco }}</span>
+                @if (hasUrgentOrders) {
+                  <span class="urgent-badge" data-testid="urgent-orders-badge">
+                    ⚡ &gt; {{ tempsAlerteCommandeMinutes }} min ({{ urgentOrdersCount }})
+                  </span>
+                }
+              </div>
+              <span class="header-count count--pending" data-testid="pending-count">
+                {{ filteredCommandesEnAttente.length }}
+              </span>
+            </div>
+
+            <div class="cards-container">
+              @for (cmd of filteredCommandesEnAttente; track cmd.id) {
+                <app-commande-card
+                  [commande]="cmd"
+                  [tempsAlerteWarningMinutes]="tempsAlerteWarningMinutes"
+                  [tempsAlerteCommandeMinutes]="tempsAlerteCommandeMinutes"
+                  [tempsAlerteCritiqueCommandeMinutes]="tempsAlerteCritiqueCommandeMinutes"
+                  (changerStatut)="onChangerStatut($event)"
+                  (printTicket)="onPrintTicket($event)"
+                  (showRecipe)="onShowRecipe($event)">
+                </app-commande-card>
+              } @empty {
+                <app-empty-state
+                  [title]="'BARMAN_DASHBOARD.NO_PENDING' | transloco"
+                  icon="time-outline">
+                </app-empty-state>
               }
             </div>
-            <span class="header-count count--pending" data-testid="pending-count">
-              {{ filteredCommandesEnAttente.length }}
-            </span>
           </div>
+        </ion-col>
 
-          <div class="cards-container">
-            @for (cmd of filteredCommandesEnAttente; track cmd.id) {
-              <app-commande-card
-                [commande]="cmd"
-                [tempsAlerteWarningMinutes]="tempsAlerteWarningMinutes"
-                [tempsAlerteCommandeMinutes]="tempsAlerteCommandeMinutes"
-                [tempsAlerteCritiqueCommandeMinutes]="tempsAlerteCritiqueCommandeMinutes"
-                (changerStatut)="onChangerStatut($event)"
-                (printTicket)="onPrintTicket($event)"
-                (showRecipe)="onShowRecipe($event)">
-              </app-commande-card>
-            } @empty {
-              <app-empty-state
-                [title]="'BARMAN_DASHBOARD.NO_PENDING' | transloco"
-                icon="time-outline">
-              </app-empty-state>
-            }
-          </div>
-        </div>
-      </ion-col>
-
-      <!-- Colonne EN_PREPARATION -->
-      <ion-col size="12" size-md="4" class="kanban-col-wrapper">
-        <div class="kanban-col kanban-col--inprogress">
-          <div class="kanban-header kanban-header--inprogress">
-            <div class="header-status">
-              <span class="status-dot dot--inprogress"></span>
-              <span class="header-label">{{ 'BARMAN_DASHBOARD.IN_PROGRESS_ORDERS' | transloco }}</span>
+        <!-- Colonne EN_PREPARATION -->
+        <ion-col size="12" size-md="4" class="kanban-col-wrapper">
+          <div class="kanban-col kanban-col--inprogress">
+            <div class="kanban-header kanban-header--inprogress">
+              <div class="header-status">
+                <span class="status-dot dot--inprogress"></span>
+                <span class="header-label">{{ 'BARMAN_DASHBOARD.IN_PROGRESS_ORDERS' | transloco }}</span>
+              </div>
+              <span class="header-count count--inprogress" data-testid="inprogress-count">
+                {{ filteredCommandesEnPreparation.length }}
+              </span>
             </div>
-            <span class="header-count count--inprogress" data-testid="inprogress-count">
-              {{ filteredCommandesEnPreparation.length }}
-            </span>
-          </div>
 
-          <div class="cards-container">
-            @for (cmd of filteredCommandesEnPreparation; track cmd.id) {
-              <app-commande-card
-                [commande]="cmd"
-                [tempsAlerteWarningMinutes]="tempsAlerteWarningMinutes"
-                [tempsAlerteCommandeMinutes]="tempsAlerteCommandeMinutes"
-                [tempsAlerteCritiqueCommandeMinutes]="tempsAlerteCritiqueCommandeMinutes"
-                (changerStatut)="onChangerStatut($event)"
-                (printTicket)="onPrintTicket($event)"
-                (showRecipe)="onShowRecipe($event)">
-              </app-commande-card>
-            } @empty {
-              <app-empty-state
-                [title]="'BARMAN_DASHBOARD.NO_IN_PROGRESS' | transloco"
-                icon="wine-outline">
-              </app-empty-state>
-            }
-          </div>
-        </div>
-      </ion-col>
-
-      <!-- Colonne PRET -->
-      <ion-col size="12" size-md="4" class="kanban-col-wrapper">
-        <div class="kanban-col kanban-col--ready">
-          <div class="kanban-header kanban-header--ready">
-            <div class="header-status">
-              <span class="status-dot dot--ready"></span>
-              <span class="header-label">{{ 'BARMAN_DASHBOARD.READY_ORDERS' | transloco }}</span>
+            <div class="cards-container">
+              @for (cmd of filteredCommandesEnPreparation; track cmd.id) {
+                <app-commande-card
+                  [commande]="cmd"
+                  [tempsAlerteWarningMinutes]="tempsAlerteWarningMinutes"
+                  [tempsAlerteCommandeMinutes]="tempsAlerteCommandeMinutes"
+                  [tempsAlerteCritiqueCommandeMinutes]="tempsAlerteCritiqueCommandeMinutes"
+                  (changerStatut)="onChangerStatut($event)"
+                  (printTicket)="onPrintTicket($event)"
+                  (showRecipe)="onShowRecipe($event)">
+                </app-commande-card>
+              } @empty {
+                <app-empty-state
+                  [title]="'BARMAN_DASHBOARD.NO_IN_PROGRESS' | transloco"
+                  icon="wine-outline">
+                </app-empty-state>
+              }
             </div>
-            <span class="header-count count--ready" data-testid="ready-count">
-              {{ filteredCommandesPret.length }}
-            </span>
           </div>
+        </ion-col>
 
-          <div class="cards-container">
-            @for (cmd of filteredCommandesPret; track cmd.id) {
-              <app-commande-card
-                [commande]="cmd"
-                [tempsAlerteWarningMinutes]="tempsAlerteWarningMinutes"
-                [tempsAlerteCommandeMinutes]="tempsAlerteCommandeMinutes"
-                [tempsAlerteCritiqueCommandeMinutes]="tempsAlerteCritiqueCommandeMinutes"
-                (changerStatut)="onChangerStatut($event)"
-                (printTicket)="onPrintTicket($event)"
-                (showRecipe)="onShowRecipe($event)">
-              </app-commande-card>
-            } @empty {
-              <app-empty-state
-                [title]="'BARMAN_DASHBOARD.NO_READY' | transloco"
-                icon="checkmark-done-outline">
-              </app-empty-state>
-            }
+        <!-- Colonne PRET -->
+        <ion-col size="12" size-md="4" class="kanban-col-wrapper">
+          <div class="kanban-col kanban-col--ready">
+            <div class="kanban-header kanban-header--ready">
+              <div class="header-status">
+                <span class="status-dot dot--ready"></span>
+                <span class="header-label">{{ 'BARMAN_DASHBOARD.READY_ORDERS' | transloco }}</span>
+              </div>
+              <span class="header-count count--ready" data-testid="ready-count">
+                {{ filteredCommandesPret.length }}
+              </span>
+            </div>
+
+            <div class="cards-container">
+              @for (cmd of filteredCommandesPret; track cmd.id) {
+                <app-commande-card
+                  [commande]="cmd"
+                  [tempsAlerteWarningMinutes]="tempsAlerteWarningMinutes"
+                  [tempsAlerteCommandeMinutes]="tempsAlerteCommandeMinutes"
+                  [tempsAlerteCritiqueCommandeMinutes]="tempsAlerteCritiqueCommandeMinutes"
+                  (changerStatut)="onChangerStatut($event)"
+                  (printTicket)="onPrintTicket($event)"
+                  (showRecipe)="onShowRecipe($event)">
+                </app-commande-card>
+              } @empty {
+                <app-empty-state
+                  [title]="'BARMAN_DASHBOARD.NO_READY' | transloco"
+                  icon="checkmark-done-outline">
+                </app-empty-state>
+              }
+            </div>
+          </div>
+        </ion-col>
+
+      </ion-row>
+    </ion-grid>
+  } @else {
+    <!-- RUSH / BATCHING PREPARATION MODE -->
+    <div class="rush-mode-container" data-testid="rush-mode-container">
+      <!-- KPI Banner Rush Mode -->
+      <div class="rush-stats-banner" data-testid="rush-stats-banner">
+        <div class="rush-banner-main">
+          <div class="rush-icon-badge">
+            <ion-icon name="flash-outline"></ion-icon>
+          </div>
+          <div class="rush-banner-titles">
+            <h2 class="rush-title">{{ 'BARMAN_DASHBOARD.BATCH_MODE_TITLE' | transloco }}</h2>
+            <p class="rush-subtitle">{{ 'BARMAN_DASHBOARD.BATCH_MODE_SUBTITLE' | transloco }}</p>
           </div>
         </div>
-      </ion-col>
+        <div class="rush-kpis">
+          <div class="rush-kpi-pill">
+            <span class="rush-kpi-label">{{ 'BARMAN_DASHBOARD.BATCH_TOTAL_DRINKS' | transloco }}</span>
+            <strong class="rush-kpi-val" data-testid="rush-kpi-total-drinks">{{ totalBatchDrinksCount }}</strong>
+          </div>
+          <div class="rush-kpi-pill">
+            <span class="rush-kpi-label">{{ 'BARMAN_DASHBOARD.BATCH_DISTINCT_RECIPES' | transloco }}</span>
+            <strong class="rush-kpi-val" data-testid="rush-kpi-distinct-recipes">{{ distinctBatchRecipesCount }}</strong>
+          </div>
+          @if (urgentBatchesCount > 0) {
+            <div class="rush-kpi-pill rush-kpi-pill--urgent" data-testid="rush-kpi-urgent">
+              <span class="rush-kpi-label">{{ 'BARMAN_DASHBOARD.BATCH_URGENT_ALERT' | transloco }}</span>
+              <strong class="rush-kpi-val">⚡ {{ urgentBatchesCount }}</strong>
+            </div>
+          }
+        </div>
+      </div>
 
-    </ion-row>
-  </ion-grid>
+      <!-- Kanban 2 colonnes pour les Batches -->
+      <ion-grid class="batch-kanban-grid" data-testid="batch-kanban-grid">
+        <ion-row class="batch-kanban-row">
+
+          <!-- Colonne Batches en attente -->
+          <ion-col size="12" size-md="6" class="batch-col-wrapper">
+            <div class="batch-col batch-col--pending">
+              <div class="batch-header batch-header--pending">
+                <div class="header-status">
+                  <span class="status-dot dot--pending"></span>
+                  <span class="header-label">{{ 'BARMAN_DASHBOARD.BATCH_PENDING_COLUMN' | transloco }}</span>
+                </div>
+                <span class="header-count count--pending" data-testid="batch-pending-count">
+                  {{ pendingBatches.length }}
+                </span>
+              </div>
+
+              <div class="batch-cards-container">
+                @for (batch of pendingBatches; track batch.cocktailNom) {
+                  <div
+                    class="batch-card"
+                    [class.batch-card--urgent]="batch.isUrgent"
+                    [attr.data-testid]="'batch-card-' + batch.cocktailNom">
+
+                    <div class="batch-card-header">
+                      <div class="batch-card-title-group">
+                        <span class="batch-cocktail-name" data-testid="batch-cocktail-name">
+                          {{ batch.cocktailNom }}
+                        </span>
+                        @if (batch.isUrgent) {
+                          <span class="batch-urgent-pill" data-testid="batch-urgent-pill">
+                            ⚡ {{ 'BARMAN_DASHBOARD.FILTER_URGENT_ONLY' | transloco }}
+                          </span>
+                        }
+                      </div>
+                      <div class="batch-qty-badge" data-testid="batch-total-quantity">
+                        ⚡ x{{ batch.pendingQuantity }}
+                      </div>
+                    </div>
+
+                    <!-- Répartition par table -->
+                    <div class="batch-tables-distribution">
+                      <span class="batch-tables-title">{{ 'BARMAN_DASHBOARD.BATCH_TABLES_LABEL' | transloco }}</span>
+                      <div class="batch-table-chips">
+                        @for (summary of batch.tableSummaries; track summary) {
+                          <span class="batch-table-tag" data-testid="batch-table-tag">{{ summary }}</span>
+                        }
+                      </div>
+                    </div>
+
+                    <!-- Dosages groupés (scaled ingredients) -->
+                    @if (batch.ingredients && batch.ingredients.length > 0) {
+                      <div class="batch-ingredients-preview" data-testid="batch-ingredients-preview">
+                        <span class="batch-ing-preview-title">
+                          {{ 'BARMAN_DASHBOARD.BATCH_SCALED_DOSAGE_PREVIEW' | transloco: { qty: batch.pendingQuantity } }} :
+                        </span>
+                        <div class="batch-ing-pills">
+                          @for (ing of batch.ingredients; track ing.ingredientNom) {
+                            <span class="batch-ing-pill">
+                              <strong>{{ ing.ingredientNom }}</strong>: {{ ing.unitQuantite * batch.pendingQuantity }} {{ ing.uniteMesure }}
+                            </span>
+                          }
+                        </div>
+                      </div>
+                    }
+
+                    <!-- Actions du batch -->
+                    <div class="batch-card-actions">
+                      <ion-button
+                        size="small"
+                        class="btn-batch-recipe"
+                        fill="outline"
+                        (click)="onOpenBatchRecipe(batch)"
+                        (keyup.enter)="onOpenBatchRecipe(batch)"
+                        [title]="'BARMAN_DASHBOARD.BATCH_RECIPE_BUTTON' | transloco: { qty: batch.totalQuantity }"
+                        [attr.data-testid]="'batch-recipe-btn-' + batch.cocktailNom">
+                        <ion-icon slot="start" name="wine-outline"></ion-icon>
+                        {{ 'BARMAN_DASHBOARD.RECIPE_SHEET' | transloco }}
+                      </ion-button>
+
+                      <ion-button
+                        size="small"
+                        class="btn-batch-advance"
+                        color="primary"
+                        (click)="onStartBatch(batch)"
+                        (keyup.enter)="onStartBatch(batch)"
+                        [attr.data-testid]="'batch-start-btn-' + batch.cocktailNom">
+                        <ion-icon slot="start" name="flash-outline"></ion-icon>
+                        {{ 'BARMAN_DASHBOARD.BATCH_START_PREP' | transloco }} (x{{ batch.pendingQuantity }})
+                      </ion-button>
+                    </div>
+                  </div>
+                } @empty {
+                  <app-empty-state
+                    [title]="'BARMAN_DASHBOARD.BATCH_NO_PENDING' | transloco"
+                    icon="checkmark-done-outline">
+                  </app-empty-state>
+                }
+              </div>
+            </div>
+          </ion-col>
+
+          <!-- Colonne Batches en cours de mixage -->
+          <ion-col size="12" size-md="6" class="batch-col-wrapper">
+            <div class="batch-col batch-col--inprogress">
+              <div class="batch-header batch-header--inprogress">
+                <div class="header-status">
+                  <span class="status-dot dot--inprogress"></span>
+                  <span class="header-label">{{ 'BARMAN_DASHBOARD.BATCH_IN_PROGRESS_COLUMN' | transloco }}</span>
+                </div>
+                <span class="header-count count--inprogress" data-testid="batch-inprogress-count">
+                  {{ inProgressBatches.length }}
+                </span>
+              </div>
+
+              <div class="batch-cards-container">
+                @for (batch of inProgressBatches; track batch.cocktailNom) {
+                  <div
+                    class="batch-card batch-card--active"
+                    [class.batch-card--urgent]="batch.isUrgent"
+                    [attr.data-testid]="'batch-card-prep-' + batch.cocktailNom">
+
+                    <div class="batch-card-header">
+                      <div class="batch-card-title-group">
+                        <span class="batch-cocktail-name">
+                          {{ batch.cocktailNom }}
+                        </span>
+                        @if (batch.isUrgent) {
+                          <span class="batch-urgent-pill">
+                            ⚡ {{ 'BARMAN_DASHBOARD.FILTER_URGENT_ONLY' | transloco }}
+                          </span>
+                        }
+                      </div>
+                      <div class="batch-qty-badge badge--inprogress">
+                        🍹 x{{ batch.preparingQuantity }}
+                      </div>
+                    </div>
+
+                    <!-- Répartition par table -->
+                    <div class="batch-tables-distribution">
+                      <span class="batch-tables-title">{{ 'BARMAN_DASHBOARD.BATCH_TABLES_LABEL' | transloco }}</span>
+                      <div class="batch-table-chips">
+                        @for (summary of batch.tableSummaries; track summary) {
+                          <span class="batch-table-tag">{{ summary }}</span>
+                        }
+                      </div>
+                    </div>
+
+                    <!-- Dosages groupés (scaled ingredients) -->
+                    @if (batch.ingredients && batch.ingredients.length > 0) {
+                      <div class="batch-ingredients-preview">
+                        <span class="batch-ing-preview-title">
+                          {{ 'BARMAN_DASHBOARD.BATCH_SCALED_DOSAGE_PREVIEW' | transloco: { qty: batch.preparingQuantity } }} :
+                        </span>
+                        <div class="batch-ing-pills">
+                          @for (ing of batch.ingredients; track ing.ingredientNom) {
+                            <span class="batch-ing-pill">
+                              <strong>{{ ing.ingredientNom }}</strong>: {{ ing.unitQuantite * batch.preparingQuantity }} {{ ing.uniteMesure }}
+                            </span>
+                          }
+                        </div>
+                      </div>
+                    }
+
+                    <!-- Actions du batch -->
+                    <div class="batch-card-actions">
+                      <ion-button
+                        size="small"
+                        class="btn-batch-recipe"
+                        fill="outline"
+                        (click)="onOpenBatchRecipe(batch)"
+                        (keyup.enter)="onOpenBatchRecipe(batch)"
+                        [title]="'BARMAN_DASHBOARD.BATCH_RECIPE_BUTTON' | transloco: { qty: batch.totalQuantity }"
+                        [attr.data-testid]="'batch-recipe-btn-prep-' + batch.cocktailNom">
+                        <ion-icon slot="start" name="wine-outline"></ion-icon>
+                        {{ 'BARMAN_DASHBOARD.RECIPE_SHEET' | transloco }}
+                      </ion-button>
+
+                      <ion-button
+                        size="small"
+                        class="btn-batch-complete"
+                        color="success"
+                        (click)="onCompleteBatch(batch)"
+                        (keyup.enter)="onCompleteBatch(batch)"
+                        [attr.data-testid]="'batch-complete-btn-' + batch.cocktailNom">
+                        <ion-icon slot="start" name="checkmark-done-outline"></ion-icon>
+                        {{ 'BARMAN_DASHBOARD.BATCH_MARK_READY' | transloco }} (x{{ batch.preparingQuantity }})
+                      </ion-button>
+                    </div>
+                  </div>
+                } @empty {
+                  <app-empty-state
+                    [title]="'BARMAN_DASHBOARD.BATCH_NO_IN_PROGRESS' | transloco"
+                    icon="wine-outline">
+                  </app-empty-state>
+                }
+              </div>
+            </div>
+          </ion-col>
+
+        </ion-row>
+      </ion-grid>
+    </div>
+  }
 </ion-content>
 
 <!-- Panneau latéral détaillé Fiche Recette & Préparation -->

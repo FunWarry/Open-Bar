@@ -1,6 +1,8 @@
 package com.bar.gestioncocktail.dto;
 
 import com.bar.gestioncocktail.model.CommandeItem;
+import com.bar.gestioncocktail.model.CommandeStatut;
+import com.bar.gestioncocktail.model.PreparationStation;
 import java.math.BigDecimal;
 
 /**
@@ -16,6 +18,8 @@ import java.math.BigDecimal;
  * @param prixUnitaire Unit price at order time
  * @param notes Line-specific instructions
  * @param prioritaire Priority status flag
+ * @param station Workstation responsible for preparation (BAR, KITCHEN, SNACK)
+ * @param statut Item preparation status (EN_ATTENTE, EN_PREPARATION, PRET, etc.)
  */
 public record CommandeItemResponseDTO(
     Long id,
@@ -27,8 +31,28 @@ public record CommandeItemResponseDTO(
     int quantite,
     BigDecimal prixUnitaire,
     String notes,
-    boolean prioritaire
+    boolean prioritaire,
+    PreparationStation station,
+    CommandeStatut statut
 ) {
+    /**
+     * Backward-compatible 10-parameter constructor defaulting station to BAR and status to EN_ATTENTE.
+     */
+    public CommandeItemResponseDTO(
+        Long id,
+        Long commandeId,
+        Long cocktailId,
+        String cocktailNom,
+        Long varianteId,
+        String varianteNom,
+        int quantite,
+        BigDecimal prixUnitaire,
+        String notes,
+        boolean prioritaire
+    ) {
+        this(id, commandeId, cocktailId, cocktailNom, varianteId, varianteNom, quantite, prixUnitaire, notes, prioritaire, PreparationStation.BAR, CommandeStatut.EN_ATTENTE);
+    }
+
     /**
      * Converts a {@link CommandeItem} entity into a response DTO.
      *
@@ -47,10 +71,12 @@ public record CommandeItemResponseDTO(
 
         Long cocktailId = null;
         String cocktailNom = null;
+        PreparationStation cocktailStation = null;
         try {
             if (item.getCocktail() != null) {
                 cocktailId = item.getCocktail().getId();
                 cocktailNom = item.getCocktail().getNom();
+                cocktailStation = item.getCocktail().getStation();
             }
         } catch (Exception _) {
             // Lazy load fallback
@@ -67,6 +93,13 @@ public record CommandeItemResponseDTO(
             // Lazy load fallback
         }
 
+        PreparationStation station = item.getStation() != null ? item.getStation() : cocktailStation;
+        if (station == null) {
+            station = PreparationStation.BAR;
+        }
+
+        CommandeStatut statut = item.getStatut() != null ? item.getStatut() : CommandeStatut.EN_ATTENTE;
+
         return new CommandeItemResponseDTO(
             item.getId(),
             commandeId,
@@ -77,7 +110,9 @@ public record CommandeItemResponseDTO(
             item.getQuantite(),
             item.getPrixUnitaire(),
             item.getNotes(),
-            item.isPrioritaire()
+            item.isPrioritaire(),
+            station,
+            statut
         );
     }
 }

@@ -7,6 +7,7 @@ import { NavigationService } from '../app/core/services/navigation.service';
 import { NotificationService } from '../app/core/services/notification.service';
 import { WebSocketService } from '../app/core/services/websocket.service';
 import { AppSettingsService } from '../app/core/services/app-settings.service';
+import { AppUpdateService } from '../app/core/services/app-update.service';
 import { PopoverController } from '@ionic/angular/standalone';
 import { EMPTY, of, throwError } from 'rxjs';
 import { selectIsAuthenticated } from '../app/core/store/auth.selectors';
@@ -20,6 +21,7 @@ class DummyComponent {}
 describe('AppComponent', () => {
   const initialState = { auth: { token: 'valid-jwt', user: { username: 'admin' }, error: null } };
   let mockAppSettingsService: jasmine.SpyObj<AppSettingsService>;
+  let mockAppUpdateService: jasmine.SpyObj<AppUpdateService>;
   let router: Router;
 
   beforeEach(async () => {
@@ -56,6 +58,8 @@ describe('AppComponent', () => {
       updatedAt: null
     }));
 
+    mockAppUpdateService = jasmine.createSpyObj('AppUpdateService', ['initStartupCheck']);
+
     await TestBed.configureTestingModule({
       imports: [
         AppComponent,
@@ -78,6 +82,7 @@ describe('AppComponent', () => {
         { provide: WebSocketService, useValue: mockWebSocketService },
         { provide: PopoverController, useValue: mockPopoverCtrl },
         { provide: AppSettingsService, useValue: mockAppSettingsService },
+        { provide: AppUpdateService, useValue: mockAppUpdateService },
       ],
     }).compileComponents();
 
@@ -90,12 +95,13 @@ describe('AppComponent', () => {
     expect(app).toBeTruthy();
   });
 
-  it('ngOnInit calls getSettings() and handles success and errors', () => {
+  it('ngOnInit calls getSettings() and initStartupCheck()', () => {
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;
 
     app.ngOnInit();
     expect(mockAppSettingsService.getSettings).toHaveBeenCalled();
+    expect(mockAppUpdateService.initStartupCheck).toHaveBeenCalled();
   });
 
   it('ngOnInit handles getSettings() error gracefully', () => {

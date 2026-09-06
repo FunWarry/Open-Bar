@@ -11,6 +11,7 @@ import com.bar.gestioncocktail.model.TableEntity;
 import com.bar.gestioncocktail.repository.FactureRepository;
 import com.bar.gestioncocktail.repository.FactureReglementRepository;
 import com.bar.gestioncocktail.repository.TableRepository;
+import com.bar.gestioncocktail.repository.DailyCashClosureRepository;
 import com.bar.gestioncocktail.event.InvoiceSettledEvent;
 import com.bar.gestioncocktail.event.OrderStatusChangedEvent;
 import com.bar.gestioncocktail.event.TableLiberatedEvent;
@@ -71,12 +72,17 @@ public class FactureService {
     private final AvoirCreditRepository avoirCreditRepository;
     private final TimeService timeService;
     private final FactureReglementRepository factureReglementRepository;
+    private final HappyHourService happyHourService;
+    private final DailyCashClosureRepository dailyCashClosureRepository;
 
+    @org.springframework.beans.factory.annotation.Autowired
     public FactureService(FactureRepository factureRepository, TableRepository tableRepository,
             CommandeRepository commandeRepository, ApplicationEventPublisher eventPublisher,
             UserRepository userRepository, EntityManager entityManager, AuditLogService auditLogService,
             AvoirCreditRepository avoirCreditRepository, TimeService timeService,
-            FactureReglementRepository factureReglementRepository) {
+            FactureReglementRepository factureReglementRepository,
+            HappyHourService happyHourService,
+            DailyCashClosureRepository dailyCashClosureRepository) {
         this.factureRepository = factureRepository;
         this.tableRepository = tableRepository;
         this.commandeRepository = commandeRepository;
@@ -87,10 +93,18 @@ public class FactureService {
         this.avoirCreditRepository = avoirCreditRepository;
         this.timeService = timeService;
         this.factureReglementRepository = factureReglementRepository;
+        this.happyHourService = happyHourService;
+        this.dailyCashClosureRepository = dailyCashClosureRepository;
     }
 
     public List<Facture> getAllFactures() {
         return factureRepository.findAll();
+    }
+
+    private void checkDateNotClosed(java.time.LocalDate date) {
+        if (dailyCashClosureRepository != null && date != null && dailyCashClosureRepository.existsByClosureDate(date)) {
+            throw new BusinessException("Cannot create, settle or modify invoices for a date whose register is already closed: " + date);
+        }
     }
 
     @Transactional(readOnly = true)
@@ -114,6 +128,7 @@ public class FactureService {
     @Transactional
     public Facture createFacture(Facture facture) {
         facture.setDateFacture(LocalDateTime.now(timeService.getZoneId()));
+        checkDateNotClosed(facture.getDateFacture().toLocalDate());
         int currentYear = Year.now(timeService.getZoneId()).getValue();
 
         // Sequentially format FAC-YYYY-NNNNN
@@ -217,6 +232,10 @@ public class FactureService {
     private Facture executeReglerFacture(Long id, String modePaiement, BigDecimal pourboire) {
         Facture facture = factureRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(NOT_FOUND_ID_PREFIX + id));
+        if (facture.getDateFacture() != null) {
+            checkDateNotClosed(facture.getDateFacture().toLocalDate());
+        }
+        checkDateNotClosed(java.time.LocalDate.now(timeService.getZoneId()));
 
         if (pourboire != null && pourboire.compareTo(BigDecimal.ZERO) > 0) {
             facture.setPourboire(pourboire);
@@ -318,6 +337,7 @@ public class FactureService {
      */
     @Transactional
     public FactureResponseDTO encaisserTable(Long tableId, EncaissementRequestDTO request) {
+        checkDateNotClosed(java.time.LocalDate.now(timeService.getZoneId()));
         TableEntity table = tableRepository.findById(tableId)
                 .orElseThrow(() -> new ResourceNotFoundException("Table not found with id: " + tableId));
 
@@ -489,7 +509,13 @@ public class FactureService {
         }
         fi.setDescription(desc);
         fi.setQuantite(item.getQuantite());
-        BigDecimal unitPrice = item.getPrixUnitaire() != null ? item.getPrixUnitaire() : BigDecimal.ZERO;
+        BigDecimal unitPrice = item.getPrixUnitaire();
+        if (unitPrice == null && item.getCocktail() != null && happyHourService != null) {
+            unitPrice = happyHourService.resolveEffectivePrice(item.getCocktail(), item.getVariante(), facture.getDateFacture());
+        }
+        if (unitPrice == null) {
+            unitPrice = BigDecimal.ZERO;
+        }
         fi.setPrixUnitaire(unitPrice);
 
         BigDecimal lineTTC = unitPrice.multiply(BigDecimal.valueOf(item.getQuantite()));
@@ -503,7 +529,13 @@ public class FactureService {
 
     private TableAdditionItemDTO buildAdditionItemDTO(CommandeItem item, Long commandeId) {
         BigDecimal qty = BigDecimal.valueOf(item.getQuantite());
-        BigDecimal unitPrice = item.getPrixUnitaire() != null ? item.getPrixUnitaire() : BigDecimal.ZERO;
+        BigDecimal unitPrice = item.getPrixUnitaire();
+        if (unitPrice == null && item.getCocktail() != null && happyHourService != null) {
+            unitPrice = happyHourService.resolveEffectivePrice(item.getCocktail(), item.getVariante(), timeService.now());
+        }
+        if (unitPrice == null) {
+            unitPrice = BigDecimal.ZERO;
+        }
         BigDecimal lineTTC = unitPrice.multiply(qty);
         BigDecimal lineHT = lineTTC.divide(BigDecimal.valueOf(1.20), 2, RoundingMode.HALF_UP);
         BigDecimal lineVAT = lineTTC.subtract(lineHT);
@@ -736,6 +768,10 @@ public class FactureService {
     public com.bar.gestioncocktail.dto.FactureReglementDTO encaisserPart(Long factureId, com.bar.gestioncocktail.dto.EncaisserPartRequest request) {
         Facture facture = factureRepository.findById(factureId)
                 .orElseThrow(() -> new ResourceNotFoundException(NOT_FOUND_PREFIX + factureId));
+        if (facture.getDateFacture() != null) {
+            checkDateNotClosed(facture.getDateFacture().toLocalDate());
+        }
+        checkDateNotClosed(java.time.LocalDate.now(timeService.getZoneId()));
 
         com.bar.gestioncocktail.model.FactureReglement reglement = new com.bar.gestioncocktail.model.FactureReglement();
         reglement.setFacture(facture);

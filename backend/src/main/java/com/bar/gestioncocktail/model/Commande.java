@@ -27,6 +27,9 @@ public class Commande {
     @Column(name = "tracking_token", unique = true)
     private String trackingToken;
 
+    @Column(name = "client_request_id", unique = true)
+    private String clientRequestId;
+
     @OneToMany(mappedBy = "commande", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<CommandeItem> items = new ArrayList<>();
 
@@ -54,8 +57,12 @@ public class Commande {
 
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now(java.time.ZoneId.systemDefault());
-        updatedAt = LocalDateTime.now(java.time.ZoneId.systemDefault());
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now(java.time.ZoneId.systemDefault());
+        }
+        if (updatedAt == null) {
+            updatedAt = LocalDateTime.now(java.time.ZoneId.systemDefault());
+        }
         if (dateCommande == null) {
             dateCommande = LocalDateTime.now(java.time.ZoneId.systemDefault());
         }

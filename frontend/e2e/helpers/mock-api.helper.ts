@@ -24,6 +24,7 @@ export async function setupMockApi(page: Page): Promise<void> {
           wifiPassword: body.wifiPassword || 'secretpass123',
           wifiSecurity: body.wifiSecurity || 'WPA',
           wifiEnabled: body.wifiEnabled !== undefined ? body.wifiEnabled : true,
+          tableSessionValidationEnabled: body.tableSessionValidationEnabled !== undefined ? body.tableSessionValidationEnabled : false,
           defaultTheme: 'DARK',
           currencyCode: body.currencyCode || 'EUR',
           currencySymbol: body.currencySymbol || '€',
@@ -31,6 +32,9 @@ export async function setupMockApi(page: Page): Promise<void> {
           tempsAlerteWarningMinutes: body.tempsAlerteWarningMinutes ?? 3,
           tempsAlerteCommandeMinutes: body.tempsAlerteCommandeMinutes ?? 5,
           tempsAlerteCritiqueCommandeMinutes: body.tempsAlerteCritiqueCommandeMinutes ?? 10,
+          defaultVatRate: body.defaultVatRate ?? 20.0,
+          targetGrossMarginPercentage: body.targetGrossMarginPercentage ?? 70.0,
+          warningGrossMarginPercentage: body.warningGrossMarginPercentage ?? 50.0,
           updatedAt: new Date().toISOString(),
         }),
       });
@@ -50,6 +54,7 @@ export async function setupMockApi(page: Page): Promise<void> {
         wifiPassword: 'secretpass123',
         wifiSecurity: 'WPA',
         wifiEnabled: true,
+        tableSessionValidationEnabled: false,
         defaultTheme: 'DARK',
         currencyCode: 'EUR',
         currencySymbol: '€',
@@ -57,7 +62,67 @@ export async function setupMockApi(page: Page): Promise<void> {
         tempsAlerteWarningMinutes: 3,
         tempsAlerteCommandeMinutes: 5,
         tempsAlerteCritiqueCommandeMinutes: 10,
+        defaultVatRate: 20.0,
+        targetGrossMarginPercentage: 70.0,
+        warningGrossMarginPercentage: 50.0,
         updatedAt: new Date().toISOString(),
+      }),
+    });
+  });
+
+  await page.route('**/api/public/tables/*/session**', async (route) => {
+    const url = route.request().url();
+    if (url.includes('/refresh')) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 1,
+          tableId: 1,
+          sessionToken: 'refreshed-mock-session-token',
+          status: 'ACTIVE',
+          openedAt: new Date().toISOString(),
+          lastActivityAt: new Date().toISOString(),
+          expiresAt: new Date(Date.now() + 7200000).toISOString(),
+          valid: true,
+          message: 'Table session refreshed'
+        }),
+      });
+      return;
+    }
+
+    if (url.includes('expired')) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 1,
+          tableId: 1,
+          sessionToken: 'expired-token',
+          status: 'EXPIRED',
+          openedAt: '2026-09-05T12:00:00',
+          lastActivityAt: '2026-09-05T12:30:00',
+          expiresAt: '2026-09-05T14:00:00',
+          valid: false,
+          message: 'Table session has expired'
+        }),
+      });
+      return;
+    }
+
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        id: 1,
+        tableId: 1,
+        sessionToken: 'active-mock-session-token',
+        status: 'ACTIVE',
+        openedAt: new Date().toISOString(),
+        lastActivityAt: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + 7200000).toISOString(),
+        valid: true,
+        message: 'Table session is active and valid'
       }),
     });
   });
@@ -358,7 +423,8 @@ export async function setupMockApi(page: Page): Promise<void> {
           tableId: body?.tableId || 1,
           tableNumero: 1,
           statut: 'EN_ATTENTE',
-          items: [],
+          clientRequestId: body?.clientRequestId || null,
+          items: body?.items || [],
           total: 8.5,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
@@ -387,6 +453,31 @@ export async function setupMockApi(page: Page): Promise<void> {
     });
   });
 
+  await page.route('**/api/commandes/batch/transition', async (route) => {
+    if (route.request().method() === 'POST') {
+      const body = route.request().postDataJSON() || {};
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify([
+          {
+            id: 1,
+            tableId: 1,
+            tableNumero: 1,
+            statut: body.statut || 'EN_PREPARATION',
+            items: [
+              { id: 1, cocktailId: 1, cocktailNom: 'Mojito', quantite: 2, statut: body.statut || 'EN_PREPARATION' }
+            ],
+            total: 19.0,
+            dateCommande: new Date().toISOString(),
+          }
+        ]),
+      });
+      return;
+    }
+    await route.continue();
+  });
+
   await page.route('**/api/commandes/statut/*', async (route) => {
     await route.fulfill({
       status: 200,
@@ -401,7 +492,7 @@ export async function setupMockApi(page: Page): Promise<void> {
           serveurUsername: 'serveur1',
           total: 19.0,
           dateCommande: new Date().toISOString(),
-          items: [{ id: 1, cocktailNom: 'Mojito', quantite: 2, prixUnitaire: 9.5 }],
+          items: [{ id: 1, cocktailId: 1, cocktailNom: 'Mojito', quantite: 2, prixUnitaire: 9.5 }],
         }
       ]),
     });
@@ -669,5 +760,305 @@ export async function setupMockApi(page: Page): Promise<void> {
       }),
     });
   });
+
+  await page.route('**/api/public/tables/*/cart**', async (route) => {
+    const method = route.request().method();
+    const url = route.request().url();
+
+    if (url.includes('/submit')) {
+      await route.fulfill({
+        status: 201,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 501,
+          commandeId: 501,
+          tableId: 1,
+          tableNumero: 1,
+          statut: 'EN_ATTENTE',
+          items: [
+            { id: 1, cocktailId: 1, cocktailNom: 'Mojito', quantite: 1, prixUnitaire: 8.5 }
+          ],
+          total: 8.5,
+          createdAt: new Date().toISOString(),
+        }),
+
+      });
+      return;
+    }
+
+    if (url.includes('/items') && method === 'POST') {
+      const data = route.request().postDataJSON() || {};
+      await route.fulfill({
+        status: 201,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 101,
+          tableId: 1,
+          guestSessionId: data.guestSessionId || 'guest-1',
+          guestName: data.guestName || 'Guest',
+          cocktailId: data.cocktailId || 1,
+          cocktailNom: 'Mojito',
+          cocktailPhotoUrl: null,
+          varianteNom: null,
+          quantite: data.quantite || 1,
+          notes: data.notes || null,
+          prixUnitaire: 8.5,
+          totalLigne: (data.quantite || 1) * 8.5,
+          createdAt: new Date().toISOString(),
+        }),
+      });
+      return;
+    }
+
+    if (url.includes('/items/') && method === 'PUT') {
+      const data = route.request().postDataJSON() || {};
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 101,
+          tableId: 1,
+          guestSessionId: data.guestSessionId || 'guest-1',
+          guestName: 'Guest',
+          cocktailId: 1,
+          cocktailNom: 'Mojito',
+          cocktailPhotoUrl: null,
+          varianteNom: null,
+          quantite: data.quantite || 2,
+          notes: data.notes || null,
+          prixUnitaire: 8.5,
+          totalLigne: (data.quantite || 2) * 8.5,
+          createdAt: new Date().toISOString(),
+        }),
+      });
+      return;
+    }
+
+    if ((url.includes('/items/') && method === 'DELETE') || method === 'DELETE') {
+      await route.fulfill({ status: 204 });
+      return;
+    }
+
+    // Default GET cart
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        tableId: 1,
+        items: [],
+        tableTotal: 0.0,
+        totalItems: 0,
+      }),
+    });
+  });
+
+  await page.route('**/api/public/commandes/**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        id: 501,
+        tableId: 1,
+        tableNumero: 1,
+        statut: 'EN_ATTENTE',
+        items: [{ id: 1, cocktailId: 1, cocktailNom: 'Mojito', quantite: 1, prixUnitaire: 8.5, totalLigne: 8.5 }],
+        total: 8.5,
+        dateCommande: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
+      }),
+    });
+  });
+
+  await page.route('**/api/happy-hour**', async (route) => {
+    const method = route.request().method();
+    const url = route.request().url();
+
+    if (url.includes('/preview')) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          cocktailId: 1,
+          cocktailNom: 'Mojito',
+          basePrice: 8.5,
+          effectivePrice: 6.8,
+          isHappyHour: true,
+          appliedRuleName: 'Happy Hour Afterwork',
+          discountType: 'PERCENTAGE',
+          discountValue: 20,
+        }),
+      });
+      return;
+    }
+
+    if (url.includes('/simulate')) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify([
+          {
+            cocktailId: 1,
+            cocktailNom: 'Mojito',
+            basePrice: 8.5,
+            effectivePrice: 6.8,
+            isHappyHour: true,
+            discountType: 'PERCENTAGE',
+            discountValue: 20,
+          },
+        ]),
+      });
+      return;
+    }
+
+    if (url.includes('/toggle') && method === 'PATCH') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 1,
+          name: 'Happy Hour Afterwork',
+          startTime: '18:00',
+          endTime: '20:00',
+          daysOfWeek: ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'],
+          discountType: 'PERCENTAGE',
+          discountValue: 20,
+          active: false,
+          categories: ['COCKTAIL'],
+          cocktailIds: [],
+        }),
+      });
+      return;
+    }
+
+    if (method === 'DELETE') {
+      await route.fulfill({ status: 204 });
+      return;
+    }
+
+    if (method === 'PUT') {
+      const body = route.request().postDataJSON() || {};
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ id: 1, ...body }),
+      });
+      return;
+    }
+
+    if (method === 'POST') {
+      const body = route.request().postDataJSON() || {};
+      await route.fulfill({
+        status: 201,
+        contentType: 'application/json',
+        body: JSON.stringify({ id: 99, ...body }),
+      });
+      return;
+    }
+
+    // Default GET
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([
+        {
+          id: 1,
+          name: 'Happy Hour Afterwork',
+          startTime: '18:00',
+          endTime: '20:00',
+          daysOfWeek: ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'],
+          discountType: 'PERCENTAGE',
+          discountValue: 20,
+          active: true,
+          categories: ['COCKTAIL'],
+          cocktailIds: [],
+        },
+      ]),
+    });
+  });
+
+  // Stock shrinkage, waste & loss tracking routes
+  await page.route('**/api/stock/waste/summary**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        totalMovements: 5,
+        totalLossValue: 38.65,
+        totalQuantityLost: 2.15,
+        lossValueByReason: {
+          CASSE: 18.50,
+          PEREMPTION: 8.00,
+          OFFERT_PATRON: 5.40,
+          DEGUSTATION_STAFF: 4.80,
+          ERREUR_PREPARATION: 1.95,
+        },
+        countByReason: {
+          CASSE: 1,
+          PEREMPTION: 1,
+          OFFERT_PATRON: 1,
+          DEGUSTATION_STAFF: 1,
+          ERREUR_PREPARATION: 1,
+        },
+      }),
+    });
+  });
+
+  await page.route('**/api/stock/waste', async (route) => {
+    const body = route.request().postDataJSON() || {};
+    await route.fulfill({
+      status: 201,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        id: 101,
+        ingredientId: body.ingredientId || 1,
+        ingredientNom: 'Rhum blanc',
+        quantity: body.quantity || 1,
+        unit: 'bouteille',
+        reason: body.reason || 'CASSE',
+        reportedById: 1,
+        reportedByUsername: 'admin',
+        notes: body.notes || 'Incident bris de bouteille',
+        cost: 18.50,
+        recordedAt: new Date().toISOString(),
+      }),
+    });
+  });
+
+  await page.route('**/api/stock/movements**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([
+        {
+          id: 1,
+          ingredientId: 1,
+          ingredientNom: 'Rhum blanc',
+          quantity: 1,
+          unit: 'bouteille',
+          reason: 'CASSE',
+          reportedById: 1,
+          reportedByUsername: 'admin',
+          notes: 'Bouteille cassée en service',
+          cost: 18.50,
+          recordedAt: new Date().toISOString(),
+        },
+        {
+          id: 2,
+          ingredientId: 2,
+          ingredientNom: 'Menthe',
+          quantity: 0.5,
+          unit: 'kg',
+          reason: 'PEREMPTION',
+          reportedById: 1,
+          reportedByUsername: 'admin',
+          notes: 'Feuilles fanées',
+          cost: 8.00,
+          recordedAt: new Date(Date.now() - 3600000).toISOString(),
+        },
+      ]),
+    });
+  });
 }
+
+
 

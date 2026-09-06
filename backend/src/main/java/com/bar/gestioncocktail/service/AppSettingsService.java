@@ -60,6 +60,8 @@ public class AppSettingsService {
         applyCurrency(current, request);
         applyAlertThresholds(current, request);
         applyWifiAndQr(current, request);
+        applyVatAndMargins(current, request);
+        applyPrinters(current, request);
 
         AppSettings saved = appSettingsRepository.save(current);
         notificationService.notifierParametresMisAJour(AppSettingsResponseDTO.from(saved));
@@ -119,6 +121,51 @@ public class AppSettingsService {
         }
         if (request.wifiEnabled() != null) {
             current.setWifiEnabled(request.wifiEnabled());
+        }
+        if (request.tableSessionValidationEnabled() != null) {
+            current.setTableSessionValidationEnabled(request.tableSessionValidationEnabled());
+        }
+    }
+
+    private void applyVatAndMargins(AppSettings current, AppSettingsUpdateRequest request) {
+        if (request.defaultVatRate() != null) {
+            current.setDefaultVatRate(request.defaultVatRate());
+        }
+        java.math.BigDecimal target = request.targetGrossMarginPercentage() != null
+                ? request.targetGrossMarginPercentage()
+                : current.getTargetGrossMarginPercentage();
+        java.math.BigDecimal warning = request.warningGrossMarginPercentage() != null
+                ? request.warningGrossMarginPercentage()
+                : current.getWarningGrossMarginPercentage();
+
+        if (target != null && warning != null && warning.compareTo(target) >= 0) {
+            throw new BusinessException(
+                "Warning margin threshold (" + warning + "%) must be strictly less than target margin threshold (" + target + "%)");
+        }
+
+        if (request.targetGrossMarginPercentage() != null) {
+            current.setTargetGrossMarginPercentage(request.targetGrossMarginPercentage());
+        }
+        if (request.warningGrossMarginPercentage() != null) {
+            current.setWarningGrossMarginPercentage(request.warningGrossMarginPercentage());
+        }
+    }
+
+    private void applyPrinters(AppSettings current, AppSettingsUpdateRequest request) {
+        if (request.barPrinterIp() != null) {
+            current.setBarPrinterIp(request.barPrinterIp().trim());
+        }
+        if (request.kitchenPrinterIp() != null) {
+            current.setKitchenPrinterIp(request.kitchenPrinterIp().trim());
+        }
+        if (request.cashDeskPrinterIp() != null) {
+            current.setCashDeskPrinterIp(request.cashDeskPrinterIp().trim());
+        }
+        if (request.printerPort() != null) {
+            current.setPrinterPort(request.printerPort());
+        }
+        if (request.directPrintingEnabled() != null) {
+            current.setDirectPrintingEnabled(request.directPrintingEnabled());
         }
     }
 

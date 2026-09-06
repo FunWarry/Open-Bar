@@ -32,6 +32,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -297,5 +298,37 @@ class StompBroadcastEventListenerTest {
         listener.handleInvoiceSettled(event);
 
         verifyNoInteractions(messagingTemplate);
+    }
+
+    @Test
+    @DisplayName("broadcastOrder - routes order to dedicated station preparation topics")
+    void broadcastOrder_routesToPreparationStations() {
+        com.bar.gestioncocktail.model.CommandeItem barItem = new com.bar.gestioncocktail.model.CommandeItem();
+        barItem.setStation(com.bar.gestioncocktail.model.PreparationStation.BAR);
+        com.bar.gestioncocktail.model.CommandeItem kitchenItem = new com.bar.gestioncocktail.model.CommandeItem();
+        kitchenItem.setStation(com.bar.gestioncocktail.model.PreparationStation.KITCHEN);
+        com.bar.gestioncocktail.model.CommandeItem snackItem = new com.bar.gestioncocktail.model.CommandeItem();
+        snackItem.setStation(com.bar.gestioncocktail.model.PreparationStation.SNACK);
+
+        commande.setItems(List.of(barItem, kitchenItem, snackItem));
+
+        listener.handleOrderCreated(new OrderCreatedEvent(commande));
+
+        verify(messagingTemplate).convertAndSend(eq("/topic/preparation/bar"), any(CommandeResponseDTO.class));
+        verify(messagingTemplate).convertAndSend(eq("/topic/preparation/kitchen"), any(CommandeResponseDTO.class));
+        verify(messagingTemplate).convertAndSend(eq("/topic/preparation/snack"), any(CommandeResponseDTO.class));
+    }
+
+    @Test
+    @DisplayName("broadcastOrder - safely catches exception when station broadcast fails")
+    void broadcastOrder_stationBroadcastExceptionSafelyHandled() {
+        com.bar.gestioncocktail.model.CommandeItem snackItem = new com.bar.gestioncocktail.model.CommandeItem();
+        snackItem.setStation(com.bar.gestioncocktail.model.PreparationStation.SNACK);
+        commande.setItems(List.of(snackItem));
+
+        lenient().doThrow(new RuntimeException("STOMP station error"))
+                .when(messagingTemplate).convertAndSend(eq("/topic/preparation/snack"), any(CommandeResponseDTO.class));
+
+        org.junit.jupiter.api.Assertions.assertDoesNotThrow(() -> listener.handleOrderCreated(new OrderCreatedEvent(commande)));
     }
 }

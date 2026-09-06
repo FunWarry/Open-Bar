@@ -35,6 +35,19 @@
               <ion-icon name="refresh-outline" slot="icon-only"></ion-icon>
             </ion-button>
 
+            <!-- Clôturer Caisse CTA Button -->
+            @if (!currentClosure) {
+              <ion-button color="primary" (click)="openClotureModal()" (keydown.enter)="openClotureModal()" [disabled]="!recap" data-testid="open-cloture-modal-btn">
+                <ion-icon name="lock-closed-outline" slot="start"></ion-icon>
+                {{ 'CLOTURE.BTN_CLOTURER' | transloco }}
+              </ion-button>
+            } @else {
+              <ion-badge color="success" class="header-closed-badge" data-testid="header-closed-badge">
+                <ion-icon name="shield-checkmark-outline"></ion-icon>
+                {{ 'CLOTURE.DAY_CLOSED_STATUS' | transloco }}
+              </ion-badge>
+            }
+
             <!-- Export PDF Button -->
             <ion-button color="success" (click)="exportPdf()" (keydown.enter)="exportPdf()" [disabled]="isExporting || !recap" data-testid="print-recap-btn">
               <ion-icon name="download-outline" slot="start"></ion-icon>
@@ -44,6 +57,93 @@
         </div>
       </ion-card-header>
     </ion-card>
+
+    <!-- Certified Official Status Banner if Closed -->
+    @if (currentClosure) {
+      <ion-card class="certified-closure-card" data-testid="certified-closure-card">
+        <ion-card-content>
+          <div class="certified-banner-header">
+            <div class="banner-title-box">
+              <ion-icon name="shield-checkmark-outline" class="cert-shield-icon"></ion-icon>
+              <div>
+                <h3 class="cert-title">
+                  {{ 'CLOTURE.CERTIFIED_BANNER_TITLE' | transloco }} :
+                  <span class="cert-num">{{ currentClosure.closureNumber }}</span>
+                </h3>
+                <p class="cert-subtitle">
+                  {{ 'CLOTURE.CERTIFIED_AT' | transloco: { date: (currentClosure.createdAt | date:'short'), operator: (currentClosure.closedByUsername || 'Système') } }}
+                </p>
+              </div>
+            </div>
+
+            <div class="banner-actions">
+              <ion-button color="primary" fill="outline" size="small" (click)="printZReportTicket()" (keydown.enter)="printZReportTicket()" [disabled]="isPrintingZ" data-testid="banner-print-z-btn">
+                <ion-icon name="print-outline" slot="start"></ion-icon>
+                {{ 'CLOTURE.PRINT_TICKET_Z' | transloco }}
+              </ion-button>
+
+              <ion-button color="secondary" fill="outline" size="small" (click)="downloadZReportPdf()" (keydown.enter)="downloadZReportPdf()" [disabled]="isExporting" data-testid="banner-download-pdf-btn">
+                <ion-icon name="download-outline" slot="start"></ion-icon>
+                {{ 'CLOTURE.DOWNLOAD_PDF' | transloco }}
+              </ion-button>
+
+              <ion-button color="tertiary" fill="outline" size="small" (click)="downloadFecExport()" (keydown.enter)="downloadFecExport()" [disabled]="isExportingFec" data-testid="banner-download-fec-btn">
+                <ion-icon name="document-text-outline" slot="start"></ion-icon>
+                {{ 'CLOTURE.EXPORT_FEC' | transloco }}
+              </ion-button>
+            </div>
+          </div>
+
+          <!-- Discrepancy & Drawer Details -->
+          <div class="cert-drawer-details">
+            <div class="detail-item">
+              <span class="detail-label">{{ 'CLOTURE.INITIAL_FLOAT' | transloco }}</span>
+              <span class="detail-value">{{ currentClosure.openingFloat | appCurrency }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">{{ 'CLOTURE.THEORETICAL' | transloco }}</span>
+              <span class="detail-value">{{ currentClosure.theoreticalCash | appCurrency }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">{{ 'CLOTURE.COUNTED' | transloco }}</span>
+              <span class="detail-value font-bold">{{ currentClosure.countedCash | appCurrency }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">{{ 'CLOTURE.DISCREPANCY' | transloco }}</span>
+              <span
+                class="detail-value font-bold"
+                [class.text-success]="currentClosure.cashDiscrepancy === 0"
+                [class.text-warning]="currentClosure.cashDiscrepancy > 0"
+                [class.text-danger]="currentClosure.cashDiscrepancy < 0"
+              >
+                {{ currentClosure.cashDiscrepancy > 0 ? '+' : '' }}{{ currentClosure.cashDiscrepancy | appCurrency }}
+              </span>
+            </div>
+          </div>
+
+          @if (currentClosure.discrepancyReason) {
+            <div class="cert-discrepancy-reason">
+              <span class="reason-label">{{ 'CLOTURE.JUSTIFICATION_SUMMARY' | transloco }} :</span>
+              <span class="reason-text">{{ currentClosure.discrepancyReason }}</span>
+            </div>
+          }
+
+          <!-- Seal Hash Box -->
+          <div class="cert-seal-box">
+            <div class="seal-label-row">
+              <span class="seal-label">{{ 'CLOTURE.SHA256_SEAL' | transloco }}</span>
+              <button type="button" class="copy-seal-btn" (click)="copySealHash()" data-testid="banner-copy-hash-btn">
+                <ion-icon name="copy-outline"></ion-icon>
+                <span>{{ 'CLOTURE.COPY' | transloco }}</span>
+              </button>
+            </div>
+            <div class="seal-hash-value" data-testid="banner-seal-hash">
+              {{ currentClosure.sha256Hash }}
+            </div>
+          </div>
+        </ion-card-content>
+      </ion-card>
+    }
 
     @if (isLoading) {
       <div class="loading-spinner-box">

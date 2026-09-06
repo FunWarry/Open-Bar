@@ -6,10 +6,14 @@ export type CommandeStatut =
   | 'REGLEE'
   | 'ANNULEE';
 
+export type PreparationStation = 'BAR' | 'KITCHEN' | 'SNACK';
+
 export interface CommandeItem {
   id: number;
   cocktailId: number;
   cocktailNom: string;
+  station?: PreparationStation;
+  statut?: CommandeStatut;
   varianteId?: number;
   varianteNom?: string;
   quantite: number;
@@ -38,6 +42,7 @@ export interface Commande {
   dateLivraison?: string;
   dateReglement?: string;
   trackingToken?: string;
+  clientRequestId?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -45,6 +50,39 @@ export interface Commande {
 export interface CreateCommandeRequest {
   tableId: number;
   notes?: string;
+  items?: Array<{
+    cocktailId: number;
+    quantite: number;
+    prixUnitaire?: number;
+    varianteId?: number;
+    notes?: string;
+    prioritaire?: boolean;
+  }>;
+  sessionToken?: string | null;
+  clientRequestId?: string;
+}
+
+export interface OfflineQueuedOrderItem {
+  cocktailId: number;
+  cocktailNom?: string;
+  quantite: number;
+  prixUnitaire: number;
+  varianteId?: number;
+  varianteNom?: string;
+  notes?: string;
+  prioritaire?: boolean;
+}
+
+export interface OfflineQueuedOrder {
+  clientRequestId: string;
+  tableId: number;
+  tableNumero?: number;
+  notes?: string;
+  items: OfflineQueuedOrderItem[];
+  createdAt: string;
+  status: 'PENDING' | 'SYNCING' | 'FAILED';
+  retryCount: number;
+  lastError?: string;
 }
 
 export interface AjouterItemRequest {

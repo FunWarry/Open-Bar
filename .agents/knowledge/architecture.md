@@ -102,29 +102,65 @@ frontend/src/
 
 ## Data Model
 
+```mermaid
+flowchart TD
+    subgraph UsersDomain ["👥 Users & Staff Shifts"]
+        USERS["users"] -->|"1:N"| USER_ROLES["user_roles"]
+        USERS -->|"1:N"| EMPLOYEE_SHIFTS["employee_shifts"]
+        EMPLOYEE_SHIFTS -->|"1:N"| SHIFT_AUDIT_LOG["shift_audit_log"]
+        USERS -->|"1:N"| AUDIT_LOGS["audit_logs"]
+    end
+
+    subgraph SalleDomain ["🪑 Floor Plan & Tables"]
+        ZONES["zones"] -->|"1:N"| TABLES["tables"]
+        USERS -.->|"assigned_serveur"| TABLES
+        TABLES -->|"1:N"| TABLE_SESSIONS["table_sessions (QR client)"]
+        TABLES -->|"1:N"| TABLE_APPELS["table_appels (Server calls)"]
+        TABLES -->|"1:N"| TABLE_CART_ITEMS["table_cart_items (Table cart)"]
+    end
+
+    subgraph CommandesDomain ["🍸 Orders & Preparation"]
+        TABLES -->|"1:N"| COMMANDES["commandes"]
+        COMMANDES -->|"1:N"| COMMANDE_ITEMS["commande_items"]
+        TABLE_CART_ITEMS -.->|"checkout"| COMMANDES
+    end
+
+    subgraph MixologieDomain ["🍹 Cocktails & Mixology"]
+        COCKTAILS["cocktails"] -->|"1:N"| COMMANDE_ITEMS
+        COCKTAILS -->|"1:N"| COCKTAIL_VARIANTES["cocktail_variantes"]
+        COCKTAILS -->|"1:N"| COCKTAIL_INGREDIENTS["cocktail_ingredients"]
+        COCKTAILS -->|"1:N"| COCKTAIL_RECIPE_STEPS["cocktail_recipe_steps"]
+        COCKTAILS -->|"N:1"| GLASSWARE["glassware"]
+        
+        COCKTAIL_VARIANTES -->|"1:N"| COCKTAIL_VARIANTE_INGREDIENTS["cocktail_variante_ingredients"]
+        COCKTAIL_VARIANTE_INGREDIENTS -->|"N:1"| INGREDIENTS["ingredients"]
+        COCKTAIL_INGREDIENTS -->|"N:1"| INGREDIENTS
+        COCKTAIL_RECIPE_STEPS -->|"N:1"| RECIPE_STEP_TEMPLATES["recipe_step_templates"]
+        COCKTAIL_RECIPE_STEPS -.->|"consumes"| INGREDIENTS
+        COMMANDE_ITEMS -.->|"variant"| COCKTAIL_VARIANTES
+        TABLE_CART_ITEMS -->|"N:1"| COCKTAILS
+        TABLE_CART_ITEMS -.->|"variant"| COCKTAIL_VARIANTES
+    end
+
+    subgraph FacturationDomain ["💳 Billing & Settlement"]
+        TABLES -->|"1:N"| FACTURES["factures"]
+        FACTURES -->|"1:N"| FACTURE_ITEMS["facture_items"]
+        FACTURES -->|"1:N"| FACTURE_REGLEMENTS["facture_reglements (Splits)"]
+    end
+
+    subgraph StockDomain ["📦 Stock & Waste Tracking"]
+        INGREDIENTS -->|"1:N"| STOCK_MOVEMENTS["stock_movements (Waste / Loss / Shrinkage)"]
+        USERS -.->|"reported_by"| STOCK_MOVEMENTS
+    end
 ```
-users ──< user_roles
-users ──< employee_shifts              ← Staff shifts and schedules
-employee_shifts ──< shift_audit_log    ← Immutable audit log (CREATED/UPDATED/DELETED)
-users ──< tables (serveur_id)
-tables ──< commandes ──< commande_items ──< cocktails
-                                         └──< cocktail_variantes ──< cocktail_variante_ingredients ──< ingredients
-                                                                 └── recipe_steps_json (mixology steps)
-cocktails ──< cocktail_ingredients ──< ingredients
-cocktails ──< cocktail_recipe_steps ──< recipe_step_templates
-                                    └──< ingredients
-cocktails >── glassware                 ← Service glass definition & capacity
-tables ──< factures ──< facture_items
-                    └──< facture_reglements       ← Persistent split settlement shares & receipt breakdown
-tables ──< table_sessions              ← Client QR code temporary session
-tables ──< table_appels                ← Patron assistance & bill request alerts
-zones ──< tables                       ← Floor plan polygon coordinates
-establishment_closures                 ← Exceptional closures & recurring holidays
-shift_presets                          ← Predefined shift templates
-week_schedule_publications             ← Weekly schedule publication log
-users ──< audit_logs
-app_settings                           ← Global admin customization singleton
-```
+
+*Standalone configuration & logging tables*:
+- `establishment_closures` : Exceptional closures and recurring holidays
+- `shift_presets` : Predefined shift templates (duration, breaks)
+- `week_schedule_publications` : Publication log of employee schedules
+- `app_settings` : Global establishment settings singleton (currency, anti-fraud toggles, legal data, margin alert thresholds target/warning, default VAT rate, direct ESC/POS printer IPs for bar, kitchen, cash desk, port 9100, and toggle)
+- `happy_hour_rules`, `happy_hour_days`, `happy_hour_categories`, `happy_hour_cocktails` : Promotional Happy Hour & dynamic schedule-based pricing rule engine
+- `stock_movements` : Audit log of stock losses, breakages, expired ingredients, spills, staff tastings, and shrinkage (`ingredient_id`, `quantity`, `unit`, `reason`, `reported_by`, `cost`, `notes`, `recorded_at`)
 
 ---
 
@@ -143,9 +179,17 @@ app_settings                           ← Global admin customization singleton
 
 ## Order Lifecycle
 
-```
-EN_ATTENTE → EN_PREPARATION → PRET → LIVREE → REGLEE
-                                            ↘ ANNULEE (any state)
+```mermaid
+flowchart LR
+    A([EN_ATTENTE]) -->|Start prep| B([EN_PREPARATION])
+    B -->|Ready datePret| C([PRET])
+    C -->|Delivered dateLivraison| D([LIVREE])
+    D -->|Settled dateReglement| E([REGLEE])
+    
+    A -.->|Cancel| X([ANNULEE])
+    B -.->|Cancel| X
+    C -.->|Cancel| X
+    D -.->|Cancel| X
 ```
 
 ---
@@ -161,6 +205,10 @@ EN_ATTENTE → EN_PREPARATION → PRET → LIVREE → REGLEE
 | `/topic/schedule-publications` | Team schedule published |
 | `/topic/serveur/appels` | Table assistance / bill request alert triggered |
 | `/topic/table/{tableId}/appels` | Table alert acknowledgement / resolution update |
+| `/topic/tables/{tableId}/cart` | Collaborative table cart state synchronization |
+| `/topic/preparation/bar` | Order routed to bar workstation |
+| `/topic/preparation/kitchen` | Order routed to kitchen workstation |
+| `/topic/preparation/snack` | Order routed to snack workstation |
 
 ---
 
@@ -171,6 +219,73 @@ EN_ATTENTE → EN_PREPARATION → PRET → LIVREE → REGLEE
 | `GET` | `/api/shifts/{id}/history` | MANAGER, ADMIN | Immutable history of a single shift |
 | `GET` | `/api/schedule/audit-log?week=&userId=` | MANAGER, ADMIN | Weekly schedule audit log (optional staff filter) |
 | `GET` | `/api/schedule/at?week=&at=` | All authenticated | Time-travel replay reconstructing schedule at timestamp T |
+
+---
+
+## Ephemeral Table Sessions & Anti-Fraud QR Code Validation
+
+To prevent stale or fraudulent remote orders via public QR code links, OpenBar supports an ephemeral session lifecycle linked to table occupation and bill settlement:
+
+- **Entity & Table**: `TableSession` mapped to `table_sessions` (`id`, `table_id`, `session_token`, `status`, `opened_at`, `last_activity_at`, `expires_at`).
+- **Statuses**: `ACTIVE`, `EXPIRED`, `CLOSED`.
+- **Lifecycle & Invalidation**:
+  - Automatically invalidated (transitioned to `CLOSED`) when a table is liberated or its bill is settled via `TableLiberatedEvent`.
+  - Invalidation operates directly on managed entities (`findByTableIdAndStatus` + `saveAllAndFlush`) to avoid Hibernate L1 cache eviction hazards.
+- **Strict Anti-Fraud Mode**: Configurable via manager settings (`AppSettings.tableSessionValidationEnabled`). When enabled, `POST /api/public/commandes` validates the `sessionToken` payload; invalid or expired tokens result in `403 Forbidden` (`InvalidTableSessionException`).
+- **Endpoints**:
+
+| Method | URL | Roles | Description |
+|--------|-----|-------|-------------|
+| `GET` | `/api/public/tables/{tableId}/session` | Public | Check or initialize an active ephemeral table session |
+| `POST` | `/api/public/tables/{tableId}/session/refresh` | Public | Refresh / renew an active session token |
+
+---
+
+## Collaborative Table Cart for Multi-Guest QR Ordering
+
+OpenBar allows guests seated at the same physical table to collaboratively construct their order in real time from individual smartphones:
+
+- **Entity & Table**: `TableCartItem` mapped to `table_cart_items` (`id`, `table_id`, `guest_session_id`, `guest_name`, `cocktail_id`, `cocktail_variante_id`, `quantite`, `notes`, `created_at`, `updated_at`).
+- **WebSocket STOMP Topic**: `/topic/tables/{tableId}/cart` broadcasts consolidated `TableCartResponseDTO` whenever any guest adds, modifies, or removes items, or checks out the cart.
+- **Guest Authentication**: `WebSocketAuthInterceptor` allows anonymous patrons to subscribe exclusively to their table's cart (`/topic/tables/{tableId}/cart`) and alerts topic using `X-Guest-Session`, `X-Session-Token`, or `Authorization: Guest <id>` with `ROLE_ANONYMOUS`, strictly preventing unauthorized access to staff topics (`/topic/commandes`, `/topic/serveur/appels`).
+- **Automatic Lifecycle & Cleanup**: Cleaned up automatically upon table liberation or bill settlement via `TableLiberatedEvent` (`tableCartItemRepository.deleteByTableId(tableId)`).
+- **Consolidated Submission**: Any guest can submit the consolidated cart via `POST /api/public/tables/{tableId}/cart/submit`. The server creates a single grouped `Commande`, sets cart status to `SUBMITTED`, notifies other guests via STOMP, and cleans up the ephemeral cart items.
+- **Endpoints**:
+
+| Method | URL | Roles | Description |
+|--------|-----|-------|-------------|
+| `GET` | `/api/public/tables/{tableId}/cart` | Public | Retrieve current collaborative table cart |
+| `POST` | `/api/public/tables/{tableId}/cart/items` | Public | Add item to collaborative table cart |
+| `PUT` | `/api/public/tables/{tableId}/cart/items/{itemId}` | Public | Update item quantity or notes |
+| `DELETE` | `/api/public/tables/{tableId}/cart/items/{itemId}` | Public | Remove item from collaborative table cart |
+| `DELETE` | `/api/public/tables/{tableId}/cart` | Public | Clear all items from collaborative table cart |
+| `POST` | `/api/public/tables/{tableId}/cart/submit` | Public | Submit consolidated collaborative order to the bar |
+
+---
+
+## Offline-First Order Queueing & Background Synchronization
+
+To support seamless waitstaff operations in dead zones or during Wi-Fi drops, OpenBar incorporates an offline-first order intake and background synchronization engine:
+
+- **Frontend Storage**: IndexedDB via `idb` (`openbar-offline-db`, store `orders`, keyed by `clientRequestId`).
+- **Reactive Signals**: `OfflineOrderService` exposes `isOnline`, `pendingOrders`, `pendingCount`, and `isSyncing`.
+- **HTTP Interception**: `offlineSyncInterceptor` intercepts `POST /api/commandes` requests that fail due to offline status (`!navigator.onLine` or HTTP status `0`), persists the order to IndexedDB, and yields a synthetic HTTP `202 Accepted` response to prevent UI crashes.
+- **Automatic Background Flushing**: Listens for window `online` events, sends pending orders sequentially via `POST /api/commandes`, deletes synced entries, and triggers user toasts with `openbar:orders-synced` events.
+- **Backend Idempotency**: `Commande.clientRequestId` (column `client_request_id`, unique index) ensures that duplicated or replayed synchronization requests return the existing `Commande` without creating duplicate orders or modifying inventory twice.
+
+---
+
+## Gross Margin, COGS & Multi-Unit Conversion Engine
+
+OpenBar provides live tracking of recipe Cost of Goods Sold (COGS), gross margin amount, and gross margin percentage:
+
+- **Unit Conversion Engine**: `UnitConversionService` provides standardized conversion for volume units (`L`, `CL`, `ML`, `OZ`, `DASH`, `DROP`, `CUP`, `TSP`, `TBSP`) and mass units (`KG`, `G`, `MG`, `LB`).
+- **Margin Calculation Engine**: `MarginCalculationService` calculates recipe production cost, gross profit amount, and gross profit margin percentage across base recipes and custom variants (`CocktailVariante`), resolving ingredient unit costs dynamically and taking into account VAT.
+- **Configurable Settings & Alerts**:
+  - `default_vat_rate`: Establishment-wide default VAT percentage (configurable in App Settings with country presets).
+  - `target_gross_margin_percentage`: Target margin threshold (default 70%), triggering healthy status badges (`HEALTHY` / green).
+  - `warning_gross_margin_percentage`: Warning threshold (default 50%), triggering warning badges (`WARNING` / orange) or critical alerts (`CRITICAL` / red when below warning).
+- **Manager Dashboard & Catalog Integration**: Visual margin health badges (`MarginHealthBadgeComponent`), live COGS and gross profit KPI cards in `DashboardManagerComponent`, real-time margin computation during cocktail creation/edition (`CocktailFormComponent`).
 
 ---
 
@@ -220,9 +335,84 @@ Mobile browsers (iOS Safari, Android Chrome) enforce a secure context for `navig
 
 ---
 
+## Stock Loss & Shrinkage Tracking
+
+OpenBar provides full lifecycle audit logging and real-time inventory deduction for stock loss, breakage, and waste:
+
+- **Entity & Table**: `StockMovement` mapped to `stock_movements` (`id`, `ingredient_id`, `quantity`, `unit`, `reason`, `reported_by`, `notes`, `cost`, `recorded_at`).
+- **Reasons (`StockWasteReason`)**: `BROKEN_BOTTLE`, `EXPIRED`, `SPILL`, `STAFF_TASTING`, `COMPLIMENTARY_DRINK`.
+- **Automatic Inventory Deduction**: When waste/loss is recorded via `POST /api/stock/waste`, the ingredient stock is automatically decremented (with non-negative guard).
+- **Financial Cost Computation**: Cost is calculated as `quantity * ingredient.prixUnitaire` (or explicitly provided) and recorded immutably.
+- **Endpoints**:
+
+| Method | URL | Roles | Description |
+|--------|-----|-------|-------------|
+| `POST` | `/api/stock/waste` | BARMAN, MANAGER, ADMIN | Record stock waste, loss, or tasting with auto deduction |
+| `GET` | `/api/stock/movements?ingredientId=` | BARMAN, MANAGER, ADMIN | Retrieve audit log of stock movements (optional ingredient filter) |
+| `GET` | `/api/stock/waste/summary` | MANAGER, ADMIN | Retrieve manager summary with financial loss breakdown by reason |
+
+---
+
+## Direct ESC/POS Network Socket Printing (Raw TCP Port 9100)
+
+OpenBar integrates direct network thermal printing over local TCP sockets (default raw port 9100) without any OS spooler, CUPS, or cloud print dependency:
+
+- **Raw Socket Client**: `EscPosSocketClient` and `DefaultEscPosSocketClient` open direct TCP sockets (`java.net.Socket`) with configurable connection and read timeouts.
+- **ESC/POS Binary Formatter**: `EscPosFormatter` compiles binary command streams for thermal printers:
+  - `ESC @` initialization and reset.
+  - Double-height/double-width emphasis for order and ticket headers.
+  - Multi-column 42/48 character line wrapping with CP850 character encoding.
+  - `GS V 0` full paper cut command.
+  - `ESC p` cash drawer pulse command (`m=0, t1=2, t2=5`) triggered on receipt printing or manual test.
+- **Multi-Station Workstation Dispatch**:
+  - `EscPosPrintingService.dispatchOrder(orderId)` separates order items based on `PreparationStation`.
+  - Items for `BAR` are formatted and transmitted to `barPrinterIp`.
+  - Items for `KITCHEN` or `SNACK` are formatted and transmitted to `kitchenPrinterIp`.
+- **Domain Event Automation**: `EscPosOrderEventListener` asynchronously (`@Async("openbarAsyncExecutor")`) triggers automatic printing on:
+  - `OrderCreatedEvent`: Automatic dispatch of order tickets to bar/kitchen when `directPrintingEnabled` is active.
+  - `InvoiceSettledEvent`: Automatic receipt printing and cash drawer release on cash payments.
+- **Printer REST Endpoints**:
+
+| Method | URL | Roles | Description |
+|--------|-----|-------|-------------|
+| `POST` | `/api/printers/dispatch/{orderId}` | SERVEUR, BARMAN, MANAGER, ADMIN | Dispatch preparation tickets to workstations |
+| `POST` | `/api/printers/receipt/{invoiceId}?openCashDrawer=` | SERVEUR, MANAGER, ADMIN | Print thermal customer receipt with optional drawer kick |
+| `POST` | `/api/printers/test-role/{role}` | MANAGER, ADMIN | Diagnostic print to designated station printer (`BAR`, `KITCHEN`, `CASH_DESK`) |
+| `POST` | `/api/printers/test-connection` | MANAGER, ADMIN | Generic socket connection test to custom IP/port |
+| `POST` | `/api/printers/cash-drawer` | SERVEUR, MANAGER, ADMIN | Pulse cash drawer latch release on cash desk printer |
+| `GET` | `/api/printers/status` | Authenticated | Retrieve configured printer status and availability |
+
+---
+
+## Daily Cash Register Closure (Z-Report), Drawer Reconciliation & Compliance
+
+OpenBar supports end-of-day register closures (Z-Report), physical drawer reconciliation, sales locking, and official compliance exports:
+
+- **Entity & Table**: `DailyCashClosure` mapped to `daily_cash_closures` (`id`, `closure_number`, `closure_date`, `opening_float`, `theoretical_cash`, `counted_cash`, `cash_discrepancy`, `discrepancy_reason`, `counting_breakdown_json`, `total_revenue_ht`, `total_revenue_ttc`, `total_vat`, `invoices_count`, `guests_count`, `average_ticket`, `payment_methods_json`, `vat_breakdown_json`, `sha256_hash`, `closed_by_user_id`, `created_at`, `updated_at`).
+- **Sequential Numbering**: Formatted as `Z-YYYY-NNNNN` (e.g. `Z-2026-00001`), sequentially generated per calendar year.
+- **SHA-256 Digital Seal**: Immutable digital hash computed over closure metadata and JSON breakdowns ensuring compliance with French tax integrity regulations (CGI art. 286 / BOI-TVA-DECLA-30-10-30).
+- **Sales Lock**: Irreversible check (`DailyCashClosureService.isDateClosed(date)`) blocking creation, settlement, or modification of invoices on closed dates.
+- **French FEC Accounting Export**: Tab-delimited FEC export formatted according to standard French PCG accounts (530000 Caisse, 512000 Banque, 658000 Pertes sur écarts, 758000 Produits sur écarts, 706000 Ventes, 445710 TVA collectée).
+- **Certified PDF & Thermal Printing**: A4 summary PDF generated via OpenPDF and thermal 80mm Z-ticket printed over ESC/POS LAN raw socket.
+- **Endpoints**:
+
+| Method | URL | Roles | Description |
+|--------|-----|-------|-------------|
+| `POST` | `/api/factures/recap/cloturer` | MANAGER, ADMIN | Perform end-of-day cash register closure (Z-report) |
+| `GET` | `/api/factures/clotures` | MANAGER, ADMIN | Retrieve historical register closures list (sorted descending) |
+| `GET` | `/api/factures/clotures/{id}` | MANAGER, ADMIN | Retrieve specific closure details |
+| `GET` | `/api/factures/clotures/by-date?date=` | MANAGER, ADMIN | Retrieve closure for specific calendar date |
+| `GET` | `/api/factures/clotures/{id}/pdf` | MANAGER, ADMIN | Download certified A4 Z-report PDF |
+| `GET` | `/api/factures/clotures/{id}/export/fec` | MANAGER, ADMIN | Download French FEC tab-delimited accounting export |
+| `POST` | `/api/printers/z-report/{closureId}` | MANAGER, ADMIN | Print 80mm thermal Z-report on cash desk printer |
+
+---
+
 ## Quality & CI/CD Standards
 
 1. **Documentation is mandatory** in English on all services, DTOs, controllers, guards, and store files.
 2. **Never use `@SuppressWarnings`** — fix underlying code/lint warnings directly.
 3. **No hardcoded text** — always use Transloco `fr.json` and `en.json` with 100% key parity.
 4. **Adaptive theme** — use CSS variables for all styling (`var(--background-bg-0)`, `var(--primary)`, etc.).
+
+
