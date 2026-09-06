@@ -1,6 +1,10 @@
 package com.bar.gestioncocktail.service.printing;
 
+import com.bar.gestioncocktail.dto.PaymentModeSummaryDTO;
+import com.bar.gestioncocktail.dto.VatSummaryDTO;
 import com.bar.gestioncocktail.model.*;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayOutputStream;
@@ -257,6 +261,201 @@ public class EscPosFormatter {
             throw new IllegalStateException("Failed to generate ESC/POS invoice receipt byte stream", e);
         }
         return out.toByteArray();
+    }
+
+    /**
+     * Formats an official end-of-day register closure thermal ticket (Ticket Z) for 80mm printers.
+     *
+     * @param closure Daily cash closure entity
+     * @param legalConfig Legal establishment details
+     * @param appSettings Application visual settings and currency config
+     * @return ESC/POS raw binary byte stream
+     */
+    public byte[] formatZReportTicket(DailyCashClosure closure, EstablishmentConfig legalConfig, AppSettings appSettings) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try {
+            out.write(CMD_INIT);
+            out.write(CMD_CODEPAGE_CP850);
+
+            String currencySymbol = (appSettings != null && appSettings.getCurrencySymbol() != null)
+                    ? appSettings.getCurrencySymbol()
+                    : "€";
+
+            appendZReportHeader(out, closure, legalConfig, appSettings);
+            appendZReportMetadata(out, closure);
+            appendZReportRevenue(out, closure, currencySymbol);
+            appendZReportReconciliation(out, closure, currencySymbol);
+            appendZReportPayments(out, closure, currencySymbol);
+            appendZReportVat(out, closure, currencySymbol);
+            appendZReportSeal(out, closure);
+
+            feedAndCut(out, 4);
+        } catch (IOException e) {
+            throw new IllegalStateException("Failed to generate ESC/POS Z-report ticket byte stream", e);
+        }
+        return out.toByteArray();
+    }
+
+    private void appendZReportHeader(ByteArrayOutputStream out, DailyCashClosure closure,
+                                    EstablishmentConfig legalConfig, AppSettings appSettings) throws IOException {
+        out.write(CMD_ALIGN_CENTER);
+        out.write(CMD_BOLD_ON);
+        out.write(CMD_DOUBLE_HEIGHT_ON);
+
+        String tradeName = resolveTradeName(legalConfig, appSettings);
+        writeText(out, tradeName);
+        out.write(LF);
+        out.write(CMD_DOUBLE_SIZE_OFF);
+
+        if (legalConfig != null && legalConfig.getSiret() != null && !legalConfig.getSiret().isBlank()) {
+            writeText(out, "SIRET: " + legalConfig.getSiret());
+            out.write(LF);
+        }
+
+        out.write(LF);
+        out.write(CMD_DOUBLE_SIZE_ON);
+        writeText(out, "TICKET Z");
+        out.write(LF);
+        out.write(CMD_DOUBLE_SIZE_OFF);
+        writeText(out, "CLOTURE DE CAISSE DU " + closure.getClosureDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+        out.write(LF);
+        out.write(CMD_BOLD_OFF);
+    }
+
+    private void appendZReportMetadata(ByteArrayOutputStream out, DailyCashClosure closure) throws IOException {
+        out.write(CMD_ALIGN_LEFT);
+        writeText(out, repeat("-", LINE_WIDTH));
+        out.write(LF);
+        writeText(out, "N° Clôture : " + closure.getClosureNumber());
+        out.write(LF);
+        writeText(out, "Date/Heure : " + (closure.getCreatedAt() != null ? closure.getCreatedAt().format(DATE_FMT) : "N/A"));
+        out.write(LF);
+        String operator = (closure.getClosedBy() != null && closure.getClosedBy().getUsername() != null)
+                ? closure.getClosedBy().getUsername()
+                : "SYSTEM";
+        writeText(out, "Opérateur  : " + operator);
+        out.write(LF);
+    }
+
+    private void appendZReportRevenue(ByteArrayOutputStream out, DailyCashClosure closure, String currencySymbol) throws IOException {
+        writeText(out, repeat("-", LINE_WIDTH));
+        out.write(LF);
+        out.write(CMD_BOLD_ON);
+        writeText(out, "CHIFFRE D'AFFAIRES");
+        out.write(LF);
+        out.write(CMD_BOLD_OFF);
+
+        writeText(out, formatTwoColumns("CA TOTAL TTC", formatAmount(closure.getTotalRevenueTTC(), currencySymbol), LINE_WIDTH));
+        out.write(LF);
+        writeText(out, formatTwoColumns("CA TOTAL HT", formatAmount(closure.getTotalRevenueHT(), currencySymbol), LINE_WIDTH));
+        out.write(LF);
+        BigDecimal totalVat = closure.getTotalRevenueTTC().subtract(closure.getTotalRevenueHT());
+        writeText(out, formatTwoColumns("TOTAL TVA", formatAmount(totalVat, currencySymbol), LINE_WIDTH));
+        out.write(LF);
+    }
+
+    private void appendZReportReconciliation(ByteArrayOutputStream out, DailyCashClosure closure, String currencySymbol) throws IOException {
+        writeText(out, repeat("-", LINE_WIDTH));
+        out.write(LF);
+        out.write(CMD_BOLD_ON);
+        writeText(out, "RECONCILIATION TIROIR CAISSE");
+        out.write(LF);
+        out.write(CMD_BOLD_OFF);
+
+        writeText(out, formatTwoColumns("Fond initial", formatAmount(closure.getOpeningFloat(), currencySymbol), LINE_WIDTH));
+        out.write(LF);
+        writeText(out, formatTwoColumns("Espèces attendues", formatAmount(closure.getTheoreticalCash(), currencySymbol), LINE_WIDTH));
+        out.write(LF);
+        writeText(out, formatTwoColumns("Espèces comptées", formatAmount(closure.getCountedCash(), currencySymbol), LINE_WIDTH));
+        out.write(LF);
+        out.write(CMD_BOLD_ON);
+        writeText(out, formatTwoColumns("ECART DE CAISSE", formatAmount(closure.getCashDiscrepancy(), currencySymbol), LINE_WIDTH));
+        out.write(LF);
+        out.write(CMD_BOLD_OFF);
+
+        if (closure.getDiscrepancyReason() != null && !closure.getDiscrepancyReason().isBlank()) {
+            writeText(out, "Motif : " + closure.getDiscrepancyReason());
+            out.write(LF);
+        }
+    }
+
+    private void appendZReportPayments(ByteArrayOutputStream out, DailyCashClosure closure, String currencySymbol) throws IOException {
+        if (closure.getPaymentMethodsJson() == null || closure.getPaymentMethodsJson().isBlank()) {
+            return;
+        }
+        writeText(out, repeat("-", LINE_WIDTH));
+        out.write(LF);
+        out.write(CMD_BOLD_ON);
+        writeText(out, "VENTILATION PAIEMENTS");
+        out.write(LF);
+        out.write(CMD_BOLD_OFF);
+
+        List<PaymentModeSummaryDTO> modes = parsePaymentModesSafely(closure.getPaymentMethodsJson());
+        for (PaymentModeSummaryDTO pm : modes) {
+            String line = formatTwoColumns(pm.modePaiement() + " (" + pm.count() + ")", formatAmount(pm.totalTtc(), currencySymbol), LINE_WIDTH);
+            writeText(out, line);
+            out.write(LF);
+        }
+    }
+
+    private List<PaymentModeSummaryDTO> parsePaymentModesSafely(String json) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            return mapper.readValue(json, new TypeReference<>() {});
+        } catch (Exception _) {
+            return List.of();
+        }
+    }
+
+    private void appendZReportVat(ByteArrayOutputStream out, DailyCashClosure closure, String currencySymbol) throws IOException {
+        if (closure.getVatBreakdownJson() == null || closure.getVatBreakdownJson().isBlank()) {
+            return;
+        }
+        writeText(out, repeat("-", LINE_WIDTH));
+        out.write(LF);
+        out.write(CMD_BOLD_ON);
+        writeText(out, "VENTILATION TVA");
+        out.write(LF);
+        out.write(CMD_BOLD_OFF);
+
+        List<VatSummaryDTO> vatList = parseVatSummarySafely(closure.getVatBreakdownJson());
+        for (VatSummaryDTO vat : vatList) {
+            String vatLine = formatTwoColumns(vat.tauxLabel() + " (TVA " + formatAmount(vat.montantTva(), currencySymbol) + ")",
+                    formatAmount(vat.totalTtc(), currencySymbol), LINE_WIDTH);
+            writeText(out, vatLine);
+            out.write(LF);
+        }
+    }
+
+    private List<VatSummaryDTO> parseVatSummarySafely(String json) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            return mapper.readValue(json, new TypeReference<>() {});
+        } catch (Exception _) {
+            return List.of();
+        }
+    }
+
+    private void appendZReportSeal(ByteArrayOutputStream out, DailyCashClosure closure) throws IOException {
+        writeText(out, repeat("-", LINE_WIDTH));
+        out.write(LF);
+        out.write(CMD_ALIGN_CENTER);
+        writeText(out, "SCEAU NUMERIQUE DE SECURITE");
+        out.write(LF);
+        if (closure.getSha256Hash() != null) {
+            String hash = closure.getSha256Hash();
+            if (hash.length() > 32) {
+                writeText(out, hash.substring(0, 32));
+                out.write(LF);
+                writeText(out, hash.substring(32));
+                out.write(LF);
+            } else {
+                writeText(out, hash);
+                out.write(LF);
+            }
+        }
+        writeText(out, "Inalterabilite certifiee - CGI art. 286");
+        out.write(LF);
     }
 
     private void appendInvoiceHeader(ByteArrayOutputStream out, EstablishmentConfig legalConfig, AppSettings appSettings) throws IOException {

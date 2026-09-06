@@ -124,4 +124,20 @@ public class PrinterController {
     public ResponseEntity<PrintResultDTO> openCashDrawer() {
         return ResponseEntity.ok(printingService.openCashDrawer());
     }
+
+    /**
+     * Prints an official Z-report register closure receipt to the cash desk printer.
+     *
+     * @param closureId Identifier of the daily cash closure
+     * @return Execution result report
+     */
+    @PostMapping("/z-report/{closureId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @Operation(summary = "Print Z-report receipt to cash desk printer", description = "Formats and transmits 80mm Z-report closure ticket to cash desk printer")
+    @ApiResponse(responseCode = "200", description = "Z-report printed successfully")
+    @ApiResponse(responseCode = "404", description = "Daily cash closure not found")
+    public ResponseEntity<PrintResultDTO> printZReport(@PathVariable Long closureId) {
+        return ResponseEntity.ok(printingService.printZReportTicket(closureId));
+    }
 }
+

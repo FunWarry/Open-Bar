@@ -198,4 +198,106 @@ class EscPosFormatterTest {
                 .startsWith("2x  ")
                 .endsWith(" 16.00 €");
     }
+
+    @Test
+    @DisplayName("formatZReportTicket with complete data produces valid ESC/POS Z-report stream")
+    void formatZReportTicket_withCompleteData_generatesAllSectionsAndSeal() {
+        DailyCashClosure closure = new DailyCashClosure();
+        closure.setClosureNumber("Z-2026-00001");
+        closure.setClosureDate(java.time.LocalDate.of(2026, 9, 6));
+        closure.setCreatedAt(LocalDateTime.of(2026, 9, 6, 23, 45, 0));
+
+        User operator = new User();
+        operator.setUsername("alice");
+        closure.setClosedBy(operator);
+
+        closure.setOpeningFloat(new BigDecimal("150.00"));
+        closure.setTheoreticalCash(new BigDecimal("450.00"));
+        closure.setCountedCash(new BigDecimal("445.00"));
+        closure.setCashDiscrepancy(new BigDecimal("-5.00"));
+        closure.setDiscrepancyReason("Erreur rendu monnaie 5 EUR");
+        closure.setTotalRevenueHT(new BigDecimal("500.00"));
+        closure.setTotalRevenueTTC(new BigDecimal("600.00"));
+
+        closure.setPaymentMethodsJson("[{\"modePaiement\":\"ESPECES\",\"count\":15,\"totalTtc\":300.00},{\"modePaiement\":\"CARTE\",\"count\":12,\"totalTtc\":300.00}]");
+        closure.setVatBreakdownJson("[{\"tauxLabel\":\"20.0%\",\"baseHt\":500.00,\"montantTva\":100.00,\"totalTtc\":600.00}]");
+        closure.setSha256Hash("a1b2c3d4e5f60718293a4b5c6d7e8f901234567890abcdef1234567890abcdef");
+
+        EstablishmentConfig legalConfig = new EstablishmentConfig();
+        legalConfig.setLegalName("Le Comptoir Moderne");
+        legalConfig.setSiret("12345678901234");
+
+        AppSettings appSettings = new AppSettings();
+        appSettings.setCurrencySymbol("€");
+        appSettings.setEstablishmentName("Le Comptoir Moderne");
+
+        byte[] output = formatter.formatZReportTicket(closure, legalConfig, appSettings);
+
+        assertThat(output).isNotEmpty();
+        String text = new String(output, CP850);
+        assertThat(text).contains(
+                "Le Comptoir Moderne",
+                "SIRET: 12345678901234",
+                "TICKET Z",
+                "CLOTURE DE CAISSE DU 06/09/2026",
+                "N° Clôture : Z-2026-00001",
+                "Opérateur  : alice",
+                "CHIFFRE D'AFFAIRES",
+                "CA TOTAL TTC",
+                "CA TOTAL HT",
+                "TOTAL TVA",
+                "RECONCILIATION TIROIR CAISSE",
+                "Fond initial",
+                "Espèces attendues",
+                "Espèces comptées",
+                "ECART DE CAISSE",
+                "Motif : Erreur rendu monnaie 5 EUR",
+                "VENTILATION PAIEMENTS",
+                "ESPECES (15)",
+                "CARTE (12)",
+                "VENTILATION TVA",
+                "20.0%",
+                "SCEAU NUMERIQUE DE SECURITE",
+                "a1b2c3d4e5f60718293a4b5c6d7e8f90",
+                "1234567890abcdef1234567890abcdef",
+                "Inalterabilite certifiee - CGI art. 286"
+        );
+    }
+
+    @Test
+    @DisplayName("formatZReportTicket handles null fields and fallback defaults gracefully")
+    void formatZReportTicket_withMinimalDataAndNullFields_formatsGracefully() {
+        DailyCashClosure closure = new DailyCashClosure();
+        closure.setClosureNumber("Z-2026-00002");
+        closure.setClosureDate(java.time.LocalDate.of(2026, 9, 6));
+        closure.setCreatedAt(null);
+        closure.setClosedBy(null);
+        closure.setOpeningFloat(BigDecimal.ZERO);
+        closure.setTheoreticalCash(BigDecimal.ZERO);
+        closure.setCountedCash(BigDecimal.ZERO);
+        closure.setCashDiscrepancy(BigDecimal.ZERO);
+        closure.setTotalRevenueHT(BigDecimal.ZERO);
+        closure.setTotalRevenueTTC(BigDecimal.ZERO);
+        closure.setDiscrepancyReason(null);
+        closure.setPaymentMethodsJson(null);
+        closure.setVatBreakdownJson(null);
+        closure.setSha256Hash("short-hash");
+
+        byte[] output = formatter.formatZReportTicket(closure, null, null);
+
+        assertThat(output).isNotEmpty();
+        String text = new String(output, CP850);
+        assertThat(text).contains(
+                "TICKET Z",
+                "CLOTURE DE CAISSE DU 06/09/2026",
+                "N° Clôture : Z-2026-00002",
+                "Date/Heure : N/A",
+                "Opérateur  : SYSTEM",
+                "CHIFFRE D'AFFAIRES",
+                "RECONCILIATION TIROIR CAISSE",
+                "SCEAU NUMERIQUE DE SECURITE",
+                "short-hash",
+                "Inalterabilite certifiee - CGI art. 286"
+        );
+    }
 }

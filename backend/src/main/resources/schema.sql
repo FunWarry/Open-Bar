@@ -540,3 +540,27 @@ ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS kitchen_printer_ip VARCHAR(100
 ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS cash_desk_printer_ip VARCHAR(100);
 ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS printer_port INTEGER DEFAULT 9100;
 ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS direct_printing_enabled BOOLEAN DEFAULT false;
+
+-- 14. Daily Cash Register Closure (Z-Report) & Reconciliation
+CREATE TABLE IF NOT EXISTS daily_cash_closures (
+    id BIGSERIAL PRIMARY KEY,
+    closure_number VARCHAR(50) NOT NULL UNIQUE,
+    closure_date DATE NOT NULL UNIQUE,
+    opening_float DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    theoretical_cash DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    counted_cash DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    cash_discrepancy DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    total_revenue_ht DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    total_revenue_ttc DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    vat_breakdown_json TEXT,
+    payment_methods_json TEXT,
+    counting_breakdown_json TEXT,
+    discrepancy_reason TEXT,
+    closed_by_id BIGINT REFERENCES users(id) ON DELETE SET NULL,
+    sha256_hash VARCHAR(64) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_daily_cash_closures_date ON daily_cash_closures(closure_date);
+CREATE INDEX IF NOT EXISTS idx_daily_cash_closures_number ON daily_cash_closures(closure_number);

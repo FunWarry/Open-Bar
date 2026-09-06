@@ -2596,5 +2596,37 @@
       "cost": 1.95,
       "minutesAgo": 720
     }
+  ],
+  "daily_cash_closures": [
+    {
+      "closureNumber": "Z-2026-00001",
+      "daysAgo": 1,
+      "openingFloat": 150.00,
+      "theoreticalCash": 530.00,
+      "countedCash": 530.00,
+      "cashDiscrepancy": 0.00,
+      "totalRevenueHT": 1150.00,
+      "totalRevenueTTC": 1380.00,
+      "closedByUsername": "manager",
+      "discrepancyReason": null,
+      "paymentMethods": [
+        { "modePaiement": "ESPECES", "count": 18, "totalTtc": 380.00 },
+        { "modePaiement": "CARTE", "count": 42, "totalTtc": 880.00 },
+        { "modePaiement": "TICKETS_RESTO", "count": 6, "totalTtc": 120.00 }
+      ],
+      "vatBreakdown": [
+        { "rate": "TWENTY", "tauxLabel": "20.0%", "baseHt": 900.00, "montantTva": 180.00, "totalTtc": 1080.00 },
+        { "rate": "TEN", "tauxLabel": "10.0%", "baseHt": 250.00, "montantTva": 25.00, "totalTtc": 275.00 },
+        { "rate": "FIVE_FIVE", "tauxLabel": "5.5%", "baseHt": 23.70, "montantTva": 1.30, "totalTtc": 25.00 }
+      ],
+      "countingBreakdown": {
+        "50e": 6,
+        "20e": 8,
+        "10e": 5,
+        "5e": 4,
+        "2e": 5,
+        "1e": 10
+      }
+    }
   ]
 }
