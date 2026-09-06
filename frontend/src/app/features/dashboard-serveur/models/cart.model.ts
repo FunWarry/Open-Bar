@@ -1,3 +1,6 @@
+/**
+ * Item line stored in active ordering cart.
+ */
 export interface CartItemModel {
   boissonId: number;
   nom: string;

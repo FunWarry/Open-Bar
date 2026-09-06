@@ -1,3 +1,6 @@
+/**
+ * Employee profile model with shift scheduling.
+ */
 export interface Employee {
   id: number;
   name: string;

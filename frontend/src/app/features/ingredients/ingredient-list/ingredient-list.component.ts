@@ -30,6 +30,9 @@ import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
 import { IngredientFormComponent } from '../ingredient-form/ingredient-form.component';
 import { StockWasteModalComponent } from '../stock-waste-modal/stock-waste-modal.component';
 import { SearchableSelectComponent, SearchableOption } from '../../../core/components/ui/searchable-select/searchable-select.component';
+/**
+ * Sorting options for inventory ingredient list.
+ */
 
 export type StockSortOption =
   | 'NAME_ASC'

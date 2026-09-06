@@ -7,6 +7,9 @@ import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 import java.util.List;
+/**
+ * Spring Data JPA repository for inventory ingredient stocks and threshold queries.
+ */
 
 @Repository
 public interface IngredientRepository extends JpaRepository<Ingredient, Long> {

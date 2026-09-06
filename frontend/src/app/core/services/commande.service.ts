@@ -17,38 +17,85 @@ export class CommandeService {
   private readonly api = `${environment.apiUrl}/commandes`;
   private readonly http = inject(HttpClient);
 
+  /**
+   * Retrieves all orders in the system.
+   * @returns Observable emitting list of orders
+   */
   getAll(): Observable<Commande[]> {
     return this.http.get<Commande[]>(this.api);
   }
 
+  /**
+   * Retrieves an order by its identifier.
+   * @param id Order identifier
+   * @returns Observable emitting the order
+   */
   getById(id: number): Observable<Commande> {
     return this.http.get<Commande>(`${this.api}/${id}`);
   }
 
+  /**
+   * Retrieves orders filtered by status.
+   * @param statut Order status
+   * @returns Observable emitting matching orders
+   */
   getByStatut(statut: CommandeStatut): Observable<Commande[]> {
     return this.http.get<Commande[]>(`${this.api}/statut/${statut}`);
   }
 
+  /**
+   * Retrieves orders placed for a specific table.
+   * @param tableId Table identifier
+   * @returns Observable emitting table orders
+   */
   getByTable(tableId: number): Observable<Commande[]> {
     return this.http.get<Commande[]>(`${this.api}/table/${tableId}`);
   }
 
+  /**
+   * Creates a new order.
+   * @param commande Order creation payload
+   * @returns Observable emitting created order
+   */
   create(request: CreateCommandeRequest): Observable<Commande> {
     return this.http.post<Commande>(this.api, request);
   }
 
+  /**
+   * Adds an item line to an active order.
+   * @param commandeId Order identifier
+   * @param item Order line payload
+   * @returns Observable emitting updated order
+   */
   ajouterItem(commandeId: number, item: AjouterItemRequest): Observable<Commande> {
     return this.http.post<Commande>(`${this.api}/${commandeId}/items`, item);
   }
 
+  /**
+   * Removes an item line from an order.
+   * @param commandeId Order identifier
+   * @param itemId Item line identifier
+   * @returns Observable emitting updated order
+   */
   retirerItem(commandeId: number, itemId: number): Observable<Commande> {
     return this.http.delete<Commande>(`${this.api}/${commandeId}/items/${itemId}`);
   }
 
+  /**
+   * Advances or updates the lifecycle status of an order.
+   * @param id Order identifier
+   * @param statut Target status
+   * @returns Observable emitting updated order
+   */
   changerStatut(commandeId: number, statut: CommandeStatut): Observable<Commande> {
     return this.http.patch<Commande>(`${this.api}/${commandeId}/statut`, { statut });
   }
 
+  /**
+   * Cancels an order and restocks inventory.
+   * @param id Order identifier
+   * @returns Observable emitting cancelled order
+   */
   annuler(commandeId: number): Observable<Commande> {
     return this.http.patch<Commande>(`${this.api}/${commandeId}/annuler`, {});
   }

@@ -1,6 +1,9 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { IonButton, IonIcon } from '@ionic/angular/standalone';
 
+/**
+ * Interactive quantity stepper component with increment and decrement controls.
+ */
 @Component({
   selector: 'app-quantity-stepper',
   standalone: true,

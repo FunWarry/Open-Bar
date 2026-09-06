@@ -1,4 +1,7 @@
 import { TableAppel, TableAppelType } from '../../../core/models/table-appel.model';
+/**
+ * Table operational status code.
+ */
 
 export type TableStatut = 'Libre' | 'Occupée' | 'EnCours' | 'Réservée' | 'EnPaiement';
 

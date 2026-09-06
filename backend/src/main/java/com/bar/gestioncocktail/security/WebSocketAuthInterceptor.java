@@ -16,6 +16,9 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+/**
+ * STOMP ChannelInterceptor that validates JWT tokens on WebSocket CONNECT frames.
+ */
 
 @Component
 public class WebSocketAuthInterceptor implements ChannelInterceptor {

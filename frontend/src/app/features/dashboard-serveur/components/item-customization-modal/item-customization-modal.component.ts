@@ -8,6 +8,9 @@ import { addIcons } from 'ionicons';
 import { closeOutline, chatbubbleEllipsesOutline, checkmarkCircleOutline, removeCircleOutline, createOutline } from 'ionicons/icons';
 import { ProductItem } from '../product-card/product-card.component';
 
+/**
+ * Modal for customizing beverage recipes and adding notes.
+ */
 @Component({
   selector: 'app-item-customization-modal',
   standalone: true,

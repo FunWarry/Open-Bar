@@ -93,7 +93,7 @@ test.describe('Step-by-Step Modular Cocktail Builder & Live Scaling E2E', () => 
     await page.click('[data-testid="wizard-btn-next"]');
     await expect(page.locator('[data-testid="wizard-step-2-tab"]')).toHaveClass(/active/);
 
-    // Add a template block first to display inline "+ Nouveau modèle" button
+    // Add a template block first to display inline "+ New template" button
     await page.click('[data-testid="btn-add-template-block"]');
     await expect(page.locator('[data-testid="recipe-block-0"]')).toBeVisible();
 

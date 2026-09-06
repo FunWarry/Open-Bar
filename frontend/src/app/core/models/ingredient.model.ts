@@ -1,3 +1,6 @@
+/**
+ * Raw beverage ingredient or bottle inventory entity.
+ */
 export interface Ingredient {
   id: number;
   nom: string;

@@ -1,6 +1,9 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { hexToHsl, hslToHex, hexToRgbString } from '../utils/color-utils';
+/**
+ * Active UI color theme representation.
+ */
 
 export type AppTheme = 'dark' | 'light' | 'system';
 

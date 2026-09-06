@@ -6,6 +6,9 @@ import { CommandeView, CommandeItemView } from '../models/commande-view.model';
 import { CocktailBatchView } from '../models/batch-preparation.model';
 import { Cocktail } from '../../../core/models/cocktail.model';
 import { Ingredient } from '../../../core/models/ingredient.model';
+/**
+ * Workstation filter for bartender orders.
+ */
 
 export type DashboardStationFilter = 'ALL' | 'BAR' | 'KITCHEN';
 

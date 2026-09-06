@@ -88,41 +88,90 @@ public class CommandeService {
         this.timeService = timeService;
         this.happyHourService = happyHourService;
     }
+/**
+     * Retrieves all orders registered in the system.
+     *
+     * @return List of all orders
+     */
 
     @Transactional(readOnly = true)
     public List<Commande> getAllCommandes() {
         return commandeRepository.findAll();
     }
+/**
+     * Retrieves an order by its unique identifier.
+     *
+     * @param id Order identifier
+     * @return Optional containing the order if found
+     */
 
     @Transactional(readOnly = true)
     public Optional<Commande> getCommandeById(Long id) {
         return commandeRepository.findById(id);
     }
+/**
+     * Retrieves all orders associated with a specific table.
+     *
+     * @param table Table entity
+     * @return List of matching orders
+     */
 
     @Transactional(readOnly = true)
     public List<Commande> getCommandesByTable(TableEntity table) {
         return commandeRepository.findByTable(table);
     }
+/**
+     * Retrieves all orders taken by a specific waiter.
+     *
+     * @param serveur Waiter user entity
+     * @return List of matching orders
+     */
 
     @Transactional(readOnly = true)
     public List<Commande> getCommandesByServeur(User serveur) {
         return commandeRepository.findByServeur(serveur);
     }
+/**
+     * Retrieves orders filtered by current lifecycle status.
+     *
+     * @param statut Order status filter
+     * @return List of matching orders
+     */
 
     @Transactional(readOnly = true)
     public List<Commande> getCommandesByStatut(CommandeStatut statut) {
         return commandeRepository.findByStatut(statut);
     }
+/**
+     * Retrieves orders for a specific table filtered by status.
+     *
+     * @param table  Table entity
+     * @param statut Order status filter
+     * @return List of matching orders
+     */
 
     @Transactional(readOnly = true)
     public List<Commande> getCommandesByTableAndStatut(TableEntity table, CommandeStatut statut) {
         return commandeRepository.findByTableAndStatut(table, statut);
     }
+/**
+     * Retrieves orders placed within a given date range.
+     *
+     * @param debut Start timestamp
+     * @param fin   End timestamp
+     * @return List of matching orders
+     */
 
     @Transactional(readOnly = true)
     public List<Commande> getCommandesByDate(LocalDateTime debut, LocalDateTime fin) {
         return commandeRepository.findByDateCommandeBetween(debut, fin);
     }
+/**
+     * Creates and persists a new customer order with line items.
+     *
+     * @param commande Order entity to create
+     * @return Persisted order entity
+     */
 
     @Transactional
     public Commande createCommande(Commande commande) {
@@ -196,6 +245,13 @@ public class CommandeService {
         }
         item.setStation(station);
     }
+/**
+     * Updates the details of an existing order.
+     *
+     * @param id              Order identifier
+     * @param commandeDetails Updated order data
+     * @return Updated order entity
+     */
 
     @Transactional
     public Commande updateCommande(Long id, Commande commandeDetails) {
@@ -217,6 +273,11 @@ public class CommandeService {
         notifyOrderUpdated(saved);
         return saved;
     }
+/**
+     * Deletes an order by its identifier.
+     *
+     * @param id Order identifier
+     */
 
     @Transactional
     public void deleteCommande(Long id) {
@@ -236,6 +297,13 @@ public class CommandeService {
             notifyTableUpdated(table);
         }
     }
+/**
+     * Adds a new line item to an existing order.
+     *
+     * @param commandeId Order identifier
+     * @param item       Item line to add
+     * @return Updated order entity
+     */
 
     @Transactional
     public Commande ajouterItem(Long commandeId, CommandeItem item) {
@@ -311,6 +379,13 @@ public class CommandeService {
         }
         return total;
     }
+/**
+     * Removes a line item from an existing order.
+     *
+     * @param commandeId Order identifier
+     * @param itemId     Item identifier to remove
+     * @return Updated order entity
+     */
 
     @Transactional
     public Commande retirerItem(Long commandeId, Long itemId) {
@@ -328,6 +403,13 @@ public class CommandeService {
         notifyOrderUpdated(saved);
         return saved;
     }
+/**
+     * Advances or updates the lifecycle status of an order.
+     *
+     * @param id            Order identifier
+     * @param nouveauStatut New status to assign
+     * @return Updated order entity
+     */
 
     @Transactional
     public Commande changerStatut(Long id, CommandeStatut nouveauStatut) {
@@ -388,6 +470,12 @@ public class CommandeService {
             }
         }
     }
+/**
+     * Cancels an order, restocks deducted inventory, and marks it as ANNULEE.
+     *
+     * @param commande Order to cancel
+     * @return Cancelled order entity
+     */
 
     @Transactional
     public void annulerCommande(Commande commande) {
@@ -410,6 +498,13 @@ public class CommandeService {
         }
         notifyOrderUpdated(saved);
     }
+/**
+     * Sets or unsets priority flag on an individual order line item.
+     *
+     * @param item        Line item to update
+     * @param prioritaire Priority flag state
+     * @return Updated item entity
+     */
 
     public void definirPriorite(CommandeItem item, boolean prioritaire) {
         item.setPrioritaire(prioritaire);

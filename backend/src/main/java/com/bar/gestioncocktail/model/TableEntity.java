@@ -5,6 +5,9 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import java.time.LocalDateTime;
+/**
+ * JPA entity representing a physical table on the establishment floor plan with occupancy state.
+ */
 
 @Data
 @Entity

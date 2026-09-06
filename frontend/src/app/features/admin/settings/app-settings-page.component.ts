@@ -88,6 +88,9 @@ import { Facture } from '../../factures/models/facture.model';
 import { PrinterService } from '../../../core/services/printer.service';
 import { AppUpdateService } from '../../../core/services/app-update.service';
 import { PrinterRole } from '../../../core/models/printer.model';
+/**
+ * Active configuration tab on the admin settings page.
+ */
 
 export type SettingsTab = 'legal' | 'timers' | 'currency' | 'theme' | 'qr' | 'pricing' | 'printers';
 

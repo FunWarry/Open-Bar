@@ -31,6 +31,9 @@ import { TableQrBatchPrintModalComponent } from '../components/table-qr-batch-pr
 import { ConfirmDeleteModalComponent } from '../../../core/components/ui/confirm-delete-modal/confirm-delete-modal.component';
 import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
 import { SearchableSelectComponent, SearchableOption } from '../../../core/components/ui/searchable-select/searchable-select.component';
+/**
+ * Sorting options for table list overview.
+ */
 
 export type SortOption =
   | 'NUMBER_ASC'

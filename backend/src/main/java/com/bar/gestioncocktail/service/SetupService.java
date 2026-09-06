@@ -12,6 +12,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Set;
+/**
+ * Service managing initial establishment setup wizard and first administrator account creation.
+ */
 
 @Service
 @Transactional
@@ -26,6 +29,11 @@ public class SetupService {
         this.passwordEncoder = passwordEncoder;
         this.timeService = timeService;
     }
+/**
+     * Checks whether an administrator account is already registered.
+     *
+     * @return Status DTO indicating setup state
+     */
 
 
     @Transactional(readOnly = true)
@@ -33,6 +41,12 @@ public class SetupService {
         long count = userRepository.count();
         return new SetupStatusDTO(count > 0, count);
     }
+/**
+     * Provisions the initial administrative account during first-time establishment setup.
+     *
+     * @param request Administrator creation payload
+     * @return Created user response DTO
+     */
 
     @Transactional
     public UserResponseDTO createInitialAdmin(CreateAdminRequestDTO request) {

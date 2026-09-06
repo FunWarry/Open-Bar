@@ -210,7 +210,7 @@ class FactureServiceTest {
     void splitEqual_usesTotalTTCWhenAvailable() {
         // totalTTC takes precedence over total
         facture.setTotal(new BigDecimal("20.00"));
-        facture.setTotalTTC(new BigDecimal("24.00")); // avec pourboire
+        facture.setTotalTTC(new BigDecimal("24.00")); // with tip
         given(factureRepository.findById(10L)).willReturn(Optional.of(facture));
 
         List<SplitResultDTO> result = factureService.splitEgal(10L, 2);

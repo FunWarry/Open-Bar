@@ -13,6 +13,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+/**
+ * Spring Security filter that intercepts requests to authenticate users via JWT bearer tokens.
+ */
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {

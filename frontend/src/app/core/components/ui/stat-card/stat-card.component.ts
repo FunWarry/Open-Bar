@@ -15,6 +15,9 @@ import {
   timeOutline,
   peopleOutline
 } from 'ionicons/icons';
+/**
+ * Direction indicator for metric trends (up, down, neutral).
+ */
 
 export type TrendDirection = 'up' | 'down' | 'neutral';
 

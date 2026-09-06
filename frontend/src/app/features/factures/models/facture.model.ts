@@ -1,3 +1,6 @@
+/**
+ * Individual billed invoice line item.
+ */
 export interface FactureItem {
   id: number;
   factureId: number;

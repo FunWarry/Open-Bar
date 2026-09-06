@@ -9,6 +9,9 @@ import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+/**
+ * JPA entity representing a cocktail or beverage recipe in the establishment catalog.
+ */
 
 @Data
 @Entity

@@ -12,6 +12,9 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { Commande, CommandeStatut } from '../../../core/models/commande.model';
 import { CancelOrderModalComponent } from '../../../core/components/ui/cancel-order-modal/cancel-order-modal.component';
 import { groupCommandeItems } from '../../../core/utils/order-item-grouper';
+/**
+ * Grouped order item line for card display.
+ */
 
 export interface GroupedCommandeItem {
   id: number;

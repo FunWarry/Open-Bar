@@ -1,5 +1,8 @@
 import { Glassware } from './glassware.model';
 import { CocktailRecipeStep } from './recipe-step.model';
+/**
+ * Beverage catalog category classification.
+ */
 
 export type CocktailCategorie =
   | 'ALCOOLISE'

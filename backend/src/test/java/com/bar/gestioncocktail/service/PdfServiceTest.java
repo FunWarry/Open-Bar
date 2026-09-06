@@ -23,11 +23,10 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 /**
- * Tests unitaires pour PdfService.
+ * Unit tests for PdfService.
  *
- * PdfService has no injected dependency: it uses OpenPDF directly.
- * On l'instancie simplement avec @InjectMocks (ou new PdfService()) et on
- * Verifies that generateFacturePdf() returns a non-empty byte[] (valid PDF).
+ * Verifies that invoice, receipt, daily recap, and table QR code PDF generation with OpenPDF
+ * properly format headers, tables, totals, tips, and QR codes without null pointer exceptions.
  */
 @ExtendWith(MockitoExtension.class)
 class PdfServiceTest {
@@ -104,7 +103,7 @@ class PdfServiceTest {
 
     @Test
     void generateFacturePdf_factureComplete_retournePdfValide() {
-        // Un PDF valide commence toujours par la signature %PDF-
+        // A valid PDF always starts with the %PDF- magic signature
         byte[] pdf = pdfService.generateFacturePdf(factureComplete);
 
         String header = new String(pdf, 0, Math.min(5, pdf.length));
@@ -180,7 +179,7 @@ class PdfServiceTest {
 
     @Test
     void generateFacturePdf_sansTotalTTC_calculeTotalPlusPourboire() {
-        // totalTTC null → le service doit calculer total + pourboire sans NPE
+        // totalTTC null -> the service must calculate total + tip without NPE
         Facture facture = new Facture();
         facture.setId(6L);
         facture.setNumero("FAC-2024-006");
@@ -194,7 +193,7 @@ class PdfServiceTest {
         assertThat(pdf).isNotEmpty();
     }
 
-    // ─── liste items ───────────────────────────────────────────────────────────
+    // ─── Items list ───────────────────────────────────────────────────────────
 
     @Test
     void generateFacturePdf_itemsNull_neLeveAucuneException() {
@@ -364,7 +363,7 @@ class PdfServiceTest {
         assertThat(pdf).isNotEmpty();
     }
 
-    // ─── items multiples ──────────────────────────────────────────────────────
+    // ─── Multiple items ───────────────────────────────────────────────────────
 
     @Test
     void generateFacturePdf_multiplesItems_retournePdfNonVide() {

@@ -2,6 +2,9 @@ import {Component, Input} from '@angular/core';
 import { ModalController, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonContent } from '@ionic/angular/standalone';
 import { TranslocoPipe } from '@jsverse/transloco';
 
+/**
+ * Global error dialog component presenting user-friendly error messages and action triggers.
+ */
 @Component({
   selector: 'app-error-dialog',
   templateUrl: './error-dialog.component.html',

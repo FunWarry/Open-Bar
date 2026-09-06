@@ -7,6 +7,9 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+/**
+ * Spring Data JPA repository for cocktail and beverage catalog persistence.
+ */
 
 @Repository
 public interface CocktailRepository extends JpaRepository<Cocktail, Long> {

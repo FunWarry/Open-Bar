@@ -26,6 +26,9 @@ import {
 import { InputFieldComponent } from '../../../../core/components/ui/input-field/input-field.component';
 import { TranslocoPipe } from '@jsverse/transloco';
 
+/**
+ * Dialog modal for creating or updating a staff user account.
+ */
 @Component({
   selector: 'app-user-dialog',
   templateUrl: './user-dialog.component.html',

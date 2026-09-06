@@ -7,6 +7,9 @@ import { addIcons } from 'ionicons';
 import { closeOutline, optionsOutline, checkmarkCircleOutline } from 'ionicons/icons';
 import { ProductItem, ProductVariant } from '../product-card/product-card.component';
 
+/**
+ * Modal for selecting cocktail variant options.
+ */
 @Component({
   selector: 'app-variant-selection-modal',
   standalone: true,

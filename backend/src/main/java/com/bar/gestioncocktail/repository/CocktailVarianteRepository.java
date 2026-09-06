@@ -6,6 +6,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+/**
+ * Spring Data JPA repository for cocktail variants and custom recipe options.
+ */
 
 @Repository
 public interface CocktailVarianteRepository extends JpaRepository<CocktailVariante, Long> {

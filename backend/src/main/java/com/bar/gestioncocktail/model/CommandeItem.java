@@ -7,6 +7,9 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+/**
+ * JPA entity representing an individual beverage or cocktail line within an order.
+ */
 
 @Data
 @Entity

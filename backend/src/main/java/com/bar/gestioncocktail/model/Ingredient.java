@@ -8,6 +8,9 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+/**
+ * JPA entity representing an inventory ingredient, bottle, or raw consumable with stock thresholds.
+ */
 
 @Data
 @Entity

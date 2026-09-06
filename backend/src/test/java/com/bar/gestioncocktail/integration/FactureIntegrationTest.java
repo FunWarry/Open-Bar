@@ -5,6 +5,7 @@ import com.bar.gestioncocktail.model.Facture;
 import com.bar.gestioncocktail.model.FactureItem;
 import com.bar.gestioncocktail.model.TableEntity;
 import com.bar.gestioncocktail.model.VatRate;
+import com.bar.gestioncocktail.repository.DailyCashClosureRepository;
 import com.bar.gestioncocktail.repository.FactureRepository;
 import com.bar.gestioncocktail.repository.TableRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -14,6 +15,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -34,43 +36,44 @@ class FactureIntegrationTest extends BaseIntegrationTest {
     @Autowired
     private TableRepository tableRepository;
 
+    @Autowired
+    private DailyCashClosureRepository dailyCashClosureRepository;
+
     @Test
     @DisplayName("factureLifecycle_splitPdfAndSettlement_success")
     void factureLifecycle_splitPdfAndSettlement_success() throws Exception {
-        Facture facture = factureRepository.findAll().stream()
-                .filter(f -> !f.isReglee())
-                .findFirst()
-                .orElseGet(() -> {
-                    TableEntity table = tableRepository.findAll().stream().findFirst().orElseGet(() -> {
-                        TableEntity t = new TableEntity();
-                        t.setNumero(1);
-                        t.setZone("Terrasse");
-                        t.setCapacite(4);
-                        return tableRepository.save(t);
-                    });
-                    Facture newFacture = new Facture();
-                    newFacture.setNumero("FACT-TEST-" + System.currentTimeMillis());
-                    newFacture.setTable(table);
-                    newFacture.setTotal(new BigDecimal("30.00"));
-                    newFacture.setTotalHT(new BigDecimal("25.00"));
-                    newFacture.setTotalVAT(new BigDecimal("5.00"));
-                    newFacture.setTotalTTC(new BigDecimal("30.00"));
-                    newFacture.setDateFacture(LocalDateTime.now());
-                    newFacture.setReglee(false);
+        dailyCashClosureRepository.findByClosureDate(LocalDate.now())
+                .ifPresent(dailyCashClosureRepository::delete);
 
-                    FactureItem fi = new FactureItem();
-                    fi.setFacture(newFacture);
-                    fi.setDescription("Mojito");
-                    fi.setQuantite(2);
-                    fi.setPrixUnitaire(new BigDecimal("15.00"));
-                    fi.setTotal(new BigDecimal("30.00"));
-                    fi.setPriceHT(new BigDecimal("25.00"));
-                    fi.setVatAmount(new BigDecimal("5.00"));
-                    fi.setVatRate(VatRate.TWENTY);
-                    newFacture.setItems(List.of(fi));
+        TableEntity table = tableRepository.findAll().stream().findFirst().orElseGet(() -> {
+            TableEntity t = new TableEntity();
+            t.setNumero(1);
+            t.setZone("Terrasse");
+            t.setCapacite(4);
+            return tableRepository.save(t);
+        });
+        Facture newFacture = new Facture();
+        newFacture.setNumero("FACT-TEST-" + System.currentTimeMillis());
+        newFacture.setTable(table);
+        newFacture.setTotal(new BigDecimal("30.00"));
+        newFacture.setTotalHT(new BigDecimal("25.00"));
+        newFacture.setTotalVAT(new BigDecimal("5.00"));
+        newFacture.setTotalTTC(new BigDecimal("30.00"));
+        newFacture.setDateFacture(LocalDateTime.now());
+        newFacture.setReglee(false);
 
-                    return factureRepository.save(newFacture);
-                });
+        FactureItem fi = new FactureItem();
+        fi.setFacture(newFacture);
+        fi.setDescription("Mojito");
+        fi.setQuantite(2);
+        fi.setPrixUnitaire(new BigDecimal("15.00"));
+        fi.setTotal(new BigDecimal("30.00"));
+        fi.setPriceHT(new BigDecimal("25.00"));
+        fi.setVatAmount(new BigDecimal("5.00"));
+        fi.setVatRate(VatRate.TWENTY);
+        newFacture.setItems(List.of(fi));
+
+        Facture facture = factureRepository.save(newFacture);
         Long factureId = facture.getId();
 
         // 1. Equal bill split

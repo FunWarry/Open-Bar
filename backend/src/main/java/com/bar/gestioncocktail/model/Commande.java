@@ -7,6 +7,9 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+/**
+ * JPA entity representing a customer or table order with order lines and status progression.
+ */
 
 @Data
 @Entity

@@ -17,6 +17,11 @@ import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import * as allIcons from 'ionicons/icons';
 
+/**
+ * Root component of the OpenBar application.
+ * Manages responsive layout shells (Navbar, Sidebar, Notification Panel),
+ * icon registries, theme initialization, and PWA update checks.
+ */
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -45,8 +50,8 @@ export class AppComponent implements OnInit {
     const isInitialAuthRoute = initialUrl.includes('/login') || initialUrl.includes('/register') || initialUrl.includes('/setup') || initialUrl.includes('/qr-client');
 
     const isAuthRoute$ = this.router.events.pipe(
-      filter((event): event is NavigationEnd => event instanceof NavigationEnd),
-      map(event => {
+      filter(event => event instanceof NavigationEnd),
+      map((event: any) => {
         const url = event.urlAfterRedirects || event.url;
         return url.includes('/login') || url.includes('/register') || url.includes('/setup') || url.includes('/qr-client');
       }),
@@ -60,7 +65,7 @@ export class AppComponent implements OnInit {
 
   ngOnInit() {
     this.appSettingsService.getSettings().subscribe({
-      error: () => { /* Réglages par défaut du design system conservés si l'API est indisponible */ },
+      error: () => { /* Preserve default design system settings if the backend API is unreachable */ },
     });
     this.appUpdateService.initStartupCheck();
   }

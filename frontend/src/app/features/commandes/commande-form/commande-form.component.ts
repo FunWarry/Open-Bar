@@ -8,6 +8,9 @@ import { CommandeService } from '../../../core/services/commande.service';
 import { TableService } from '../../../core/services/table.service';
 import { TableBar } from '../../../core/models/table.model';
 
+/**
+ * Form component for creating or editing orders.
+ */
 @Component({
   selector: 'app-commande-form',
   templateUrl: './commande-form.component.html',

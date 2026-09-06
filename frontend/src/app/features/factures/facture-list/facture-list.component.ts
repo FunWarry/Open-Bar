@@ -26,6 +26,9 @@ import { Facture } from '../models/facture.model';
 import { environment } from '../../../../environments/environment';
 import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
 import { SearchableSelectComponent, SearchableOption } from '../../../core/components/ui/searchable-select/searchable-select.component';
+/**
+ * Filter options for invoice list queries.
+ */
 
 export type FactureFilterStatus = 'ALL' | 'SETTLED' | 'PENDING';
 export type FactureSortOption = 'DATE_DESC' | 'DATE_ASC' | 'AMOUNT_DESC' | 'AMOUNT_ASC' | 'NUMBER';

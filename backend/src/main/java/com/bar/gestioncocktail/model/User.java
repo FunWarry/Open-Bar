@@ -15,6 +15,9 @@ import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
+/**
+ * JPA entity representing an employee or system user account with authentication credentials and role.
+ */
 
 @Entity
 @Table(name = "users")

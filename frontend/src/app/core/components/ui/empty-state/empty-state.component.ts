@@ -2,6 +2,9 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { NgIf } from '@angular/common';
 import { IonIcon, IonButton } from '@ionic/angular/standalone';
 
+/**
+ * Reusable empty state component displaying an illustration, message, and call to action.
+ */
 @Component({
   selector: 'app-empty-state',
   standalone: true,

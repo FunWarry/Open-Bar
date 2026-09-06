@@ -1,6 +1,9 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { IonIcon, IonSpinner } from '@ionic/angular/standalone';
+/**
+ * Supported styling variants for action buttons.
+ */
 
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'edit' | 'mark';
 export type ButtonSize = 'small' | 'medium' | 'large';

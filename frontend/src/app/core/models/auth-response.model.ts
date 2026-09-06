@@ -1,3 +1,6 @@
+/**
+ * Authentication response payload containing JWT access token, refresh token, and user profile.
+ */
 export interface AuthResponse {
   id: number;
   email: string;

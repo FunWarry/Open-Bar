@@ -1,3 +1,6 @@
+/**
+ * Summary breakdown of daily revenue aggregated by payment method.
+ */
 export interface PaymentModeSummary {
   modePaiement: string;
   count: number;

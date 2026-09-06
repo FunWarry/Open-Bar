@@ -10,6 +10,9 @@ import {
 import { addIcons } from 'ionicons';
 import { peopleOutline, restaurantOutline, checkmarkOutline, timeOutline } from 'ionicons/icons';
 
+/**
+ * Card component representing a table status and occupancy on server view.
+ */
 @Component({
   selector: 'app-table-card',
   standalone: true,

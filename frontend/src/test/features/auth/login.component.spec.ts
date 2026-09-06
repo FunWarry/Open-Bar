@@ -142,10 +142,10 @@ describe('LoginComponent', () => {
     expect(component.errorMessage).toBeNull();
   });
 
-  // ─── Cas d'erreur : store retourne une erreur d'auth ─────────────────────────
+  // ─── Error case: store returns an authentication error ─────────────────────────
 
-  it('onSubmit affiche un message d\'erreur quand le store remonte une erreur', fakeAsync(() => {
-    // Simuler un retour d'erreur depuis le store pour selectAuthError
+  it('onSubmit displays an error message when store reports an error', fakeAsync(() => {
+    // Simulate error returned from store for selectAuthError
     mockStore.select.and.callFake((selector: unknown) => {
       if (selector === selectAuthError) return of('Unauthorized');
       return of(false);

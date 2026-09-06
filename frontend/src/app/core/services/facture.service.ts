@@ -5,40 +5,87 @@ import { environment } from '../../../environments/environment';
 import { Facture, ReglementRequest } from '../models/facture.model';
 import { DailyRecap } from '../models/daily-recap.model';
 import { ClotureCaisseRequest, DailyCashClosure } from '../models/daily-cash-closure.model';
+/**
+ * Angular service handling customer invoice retrieval, item settlement, payment closure, and bill splitting.
+ */
 
 @Injectable({ providedIn: 'root' })
 export class FactureService {
   private readonly api = `${environment.apiUrl}/factures`;
   private readonly http = inject(HttpClient);
 
+  /**
+   * Retrieves all invoices.
+   * @returns Observable emitting list of invoices
+   */
   getAll(): Observable<Facture[]> {
     return this.http.get<Facture[]>(this.api);
   }
 
+  /**
+   * Retrieves an invoice by its unique identifier.
+   * @param id Invoice identifier
+   * @returns Observable emitting the invoice
+   */
   getById(id: number): Observable<Facture> {
     return this.http.get<Facture>(`${this.api}/${id}`);
   }
 
+  /**
+   * Retrieves invoices attached to a table.
+   * @param tableId Table identifier
+   * @returns Observable emitting table invoices
+   */
   getByTable(tableId: number): Observable<Facture[]> {
     return this.http.get<Facture[]>(`${this.api}/table/${tableId}`);
   }
 
+  /**
+   * Creates a new invoice.
+   * @param facture Invoice payload
+   * @returns Observable emitting created invoice
+   */
   create(tableId: number): Observable<Facture> {
     return this.http.post<Facture>(this.api, { tableId });
   }
 
+  /**
+   * Adds an item line to an unpaid invoice.
+   * @param factureId Invoice identifier
+   * @param item Item line to add
+   * @returns Observable emitting updated invoice
+   */
   ajouterItem(factureId: number, item: { cocktailId: number; quantite: number }): Observable<Facture> {
     return this.http.post<Facture>(`${this.api}/${factureId}/items`, item);
   }
 
+  /**
+   * Removes an item line from an unpaid invoice.
+   * @param factureId Invoice identifier
+   * @param itemId Item line identifier
+   * @returns Observable emitting updated invoice
+   */
   retirerItem(factureId: number, itemId: number): Observable<Facture> {
     return this.http.delete<Facture>(`${this.api}/${factureId}/items/${itemId}`);
   }
 
+  /**
+   * Settles and marks an invoice as paid.
+   * @param id Invoice identifier
+   * @param modePaiement Payment method used
+   * @param pourboire Optional tip amount
+   * @returns Observable emitting settled invoice
+   */
   regler(factureId: number, reglement: ReglementRequest): Observable<Facture> {
     return this.http.patch<Facture>(`${this.api}/${factureId}/regler`, reglement);
   }
 
+  /**
+   * Adds a tip to an invoice.
+   * @param id Invoice identifier
+   * @param pourboire Tip amount
+   * @returns Observable emitting updated invoice
+   */
   ajouterPourboire(factureId: number, pourboire: number): Observable<Facture> {
     return this.http.patch<Facture>(`${this.api}/${factureId}/pourboire`, { pourboire });
   }
