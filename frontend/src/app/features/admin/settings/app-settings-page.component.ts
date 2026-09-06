@@ -958,6 +958,15 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
    * @param role Printer role (BAR, KITCHEN, CASH_DESK)
    */
   testPrint(role: PrinterRole): void {
+    const controlMap: Record<PrinterRole, string> = {
+      BAR: 'barPrinterIp',
+      KITCHEN: 'kitchenPrinterIp',
+      CASH_DESK: 'cashDeskPrinterIp',
+    };
+    const ipControlName = controlMap[role];
+    if (!this.appSettingsForm.get(ipControlName)?.value) {
+      return;
+    }
     this.isTestingPrinter[role] = true;
     this.printerService.testPrintRole(role)
       .pipe(takeUntil(this.destroy$))
@@ -990,6 +999,9 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
    * Pulses the cash drawer kick command to test the cash drawer latch release.
    */
   testCashDrawer(): void {
+    if (!this.appSettingsForm.get('cashDeskPrinterIp')?.value) {
+      return;
+    }
     this.isTestingPrinter['drawer'] = true;
     this.printerService.openCashDrawer()
       .pipe(takeUntil(this.destroy$))

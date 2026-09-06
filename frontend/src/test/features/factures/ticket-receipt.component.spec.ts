@@ -292,4 +292,26 @@ describe('TicketReceiptComponent', () => {
     expect(toastCtrlSpy.create).toHaveBeenCalled();
     expect(component.isDirectPrinting).toBeFalse();
   }));
+
+  it('imprimerDirectEscPos() shows warning toast when print returns success false', fakeAsync(() => {
+    printerServiceSpy.printInvoiceReceipt.and.returnValue(of({
+      role: 'CASH_DESK',
+      ip: '192.168.1.103',
+      port: 9100,
+      success: false,
+      message: 'Paper out',
+      durationMs: 15,
+    }));
+    component.imprimerDirectEscPos(false);
+    tick();
+    expect(printerServiceSpy.printInvoiceReceipt).toHaveBeenCalledWith(1, false);
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
+    expect(component.isDirectPrinting).toBeFalse();
+  }));
+
+  it('imprimerDirectEscPos() returns early if facture has no ID', () => {
+    component.facture = { ...mockFacture, id: 0 as any };
+    component.imprimerDirectEscPos(false);
+    expect(printerServiceSpy.printInvoiceReceipt).not.toHaveBeenCalled();
+  });
 });

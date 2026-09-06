@@ -117,4 +117,22 @@ describe('BarTicketPrintComponent', () => {
     expect(toastCtrlSpy.create).toHaveBeenCalled();
     expect(component.isDirectPrinting).toBeFalse();
   }));
+
+  it('printDirectEscPos() shows warning toast when one of the printers fails', fakeAsync(() => {
+    printerServiceSpy.dispatchOrder.and.returnValue(of([
+      { role: 'BAR', ip: '192.168.1.101', port: 9100, success: true, message: 'OK', durationMs: 15 },
+      { role: 'KITCHEN', ip: '192.168.1.102', port: 9100, success: false, message: 'Offline', durationMs: 15 },
+    ]));
+    component.printDirectEscPos();
+    tick();
+    expect(printerServiceSpy.dispatchOrder).toHaveBeenCalledWith(123);
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
+    expect(component.isDirectPrinting).toBeFalse();
+  }));
+
+  it('printDirectEscPos() returns early if commande has no ID', () => {
+    component.commande = { ...mockCommande, id: 0 as any };
+    component.printDirectEscPos();
+    expect(printerServiceSpy.dispatchOrder).not.toHaveBeenCalled();
+  });
 });

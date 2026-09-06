@@ -211,4 +211,97 @@ class EscPosPrintingServiceTest {
         assertThat(result.success()).isTrue();
         verify(socketClient).send("192.168.1.103", 9100, formatter.formatCashDrawerKick(), 2500);
     }
+
+    @Test
+    @DisplayName("printTestTicket returns error when IP is not configured")
+    void printTestTicket_unconfiguredIp_returnsError() {
+        settings.setBarPrinterIp(null);
+        when(appSettingsService.getSettings()).thenReturn(settings);
+
+        PrintResultDTO result = printingService.printTestTicket(PrinterRole.BAR);
+
+        assertThat(result.success()).isFalse();
+        assertThat(result.message()).contains("not configured");
+    }
+
+    @Test
+    @DisplayName("printTestTicket supports KITCHEN and CASH_DESK roles")
+    void printTestTicket_otherRoles_routesCorrectly() throws IOException {
+        when(appSettingsService.getSettings()).thenReturn(settings);
+        doNothing().when(socketClient).send(anyString(), anyInt(), any(byte[].class), anyInt());
+
+        PrintResultDTO kitchenResult = printingService.printTestTicket(PrinterRole.KITCHEN);
+        PrintResultDTO cashDeskResult = printingService.printTestTicket(PrinterRole.CASH_DESK);
+
+        assertThat(kitchenResult.success()).isTrue();
+        assertThat(kitchenResult.ip()).isEqualTo("192.168.1.102");
+        assertThat(cashDeskResult.success()).isTrue();
+        assertThat(cashDeskResult.ip()).isEqualTo("192.168.1.103");
+    }
+
+    @Test
+    @DisplayName("testConnection sends test payload to given IP and port")
+    void testConnection_sendsDiagnosticTicket() throws IOException {
+        when(appSettingsService.getSettings()).thenReturn(settings);
+        doNothing().when(socketClient).send(anyString(), anyInt(), any(byte[].class), anyInt());
+
+        PrintResultDTO result = printingService.testConnection("192.168.1.250", 9100, PrinterRole.BAR);
+
+        assertThat(result.success()).isTrue();
+        assertThat(result.ip()).isEqualTo("192.168.1.250");
+    }
+
+    @Test
+    @DisplayName("dispatchOrder routes SNACK station to KITCHEN and handles unconfigured printer IP")
+    void dispatchOrder_snackStationAndMissingIp_handledSafely() {
+        settings.setBarPrinterIp(null);
+        settings.setKitchenPrinterIp(null);
+        when(appSettingsService.getSettings()).thenReturn(settings);
+
+        Commande commande = new Commande();
+        commande.setId(20L);
+
+        CommandeItem itemBar = new CommandeItem();
+        itemBar.setStation(PreparationStation.BAR);
+
+        CommandeItem itemSnack = new CommandeItem();
+        itemSnack.setStation(PreparationStation.SNACK);
+
+        commande.setItems(List.of(itemBar, itemSnack));
+        when(commandeRepository.findById(20L)).thenReturn(Optional.of(commande));
+
+        List<PrintResultDTO> results = printingService.dispatchOrder(20L);
+
+        assertThat(results).hasSize(2);
+        assertThat(results.get(0).success()).isFalse();
+        assertThat(results.get(1).success()).isFalse();
+    }
+
+    @Test
+    @DisplayName("printInvoiceReceipt returns error when cash desk printer IP is not configured")
+    void printInvoiceReceipt_unconfiguredIp_returnsError() {
+        settings.setCashDeskPrinterIp(null);
+        when(appSettingsService.getSettings()).thenReturn(settings);
+
+        Facture facture = new Facture();
+        facture.setId(60L);
+        when(factureRepository.findById(60L)).thenReturn(Optional.of(facture));
+
+        PrintResultDTO result = printingService.printInvoiceReceipt(60L, false);
+
+        assertThat(result.success()).isFalse();
+        assertThat(result.message()).contains("not configured");
+    }
+
+    @Test
+    @DisplayName("openCashDrawer returns error when cash desk printer IP is not configured")
+    void openCashDrawer_unconfiguredIp_returnsError() {
+        settings.setCashDeskPrinterIp(null);
+        when(appSettingsService.getSettings()).thenReturn(settings);
+
+        PrintResultDTO result = printingService.openCashDrawer();
+
+        assertThat(result.success()).isFalse();
+        assertThat(result.message()).contains("not configured");
+    }
 }

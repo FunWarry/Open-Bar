@@ -566,5 +566,52 @@ describe('AppSettingsPageComponent', () => {
     expect(printerServiceSpy.testPrintRole).toHaveBeenCalledWith('KITCHEN');
     expect(toastCtrlSpy.create).toHaveBeenCalled();
   }));
+
+  it('should show warning toast when test print returns success false', fakeAsync(() => {
+    printerServiceSpy.testPrintRole.and.returnValue(of({
+      role: 'BAR',
+      ip: '192.168.1.101',
+      port: 9100,
+      success: false,
+      message: 'Unreachable',
+      durationMs: 15,
+    }));
+    component.testPrint('BAR');
+    tick();
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
+  }));
+
+  it('should not call printerService.testPrintRole if IP is empty', () => {
+    component.appSettingsForm.patchValue({ barPrinterIp: '' });
+    component.testPrint('BAR');
+    expect(printerServiceSpy.testPrintRole).not.toHaveBeenCalled();
+  });
+
+  it('should show warning toast when cash drawer returns success false', fakeAsync(() => {
+    printerServiceSpy.openCashDrawer.and.returnValue(of({
+      role: 'CASH_DESK',
+      ip: '192.168.1.103',
+      port: 9100,
+      success: false,
+      message: 'Failed',
+      durationMs: 15,
+    }));
+    component.testCashDrawer();
+    tick();
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
+  }));
+
+  it('should handle error when cash drawer throws exception', fakeAsync(() => {
+    printerServiceSpy.openCashDrawer.and.returnValue(throwError(() => new Error('Connection refused')));
+    component.testCashDrawer();
+    tick();
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
+  }));
+
+  it('should not call openCashDrawer if cashDeskPrinterIp is empty', () => {
+    component.appSettingsForm.patchValue({ cashDeskPrinterIp: '' });
+    component.testCashDrawer();
+    expect(printerServiceSpy.openCashDrawer).not.toHaveBeenCalled();
+  });
 });
 
