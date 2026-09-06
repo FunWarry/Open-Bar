@@ -154,6 +154,7 @@ flowchart TD
 - `shift_presets` : Predefined shift templates (duration, breaks)
 - `week_schedule_publications` : Publication log of employee schedules
 - `app_settings` : Global establishment settings singleton (currency, anti-fraud toggles, legal data)
+- `happy_hour_rules`, `happy_hour_days`, `happy_hour_categories`, `happy_hour_cocktails` : Promotional Happy Hour & dynamic schedule-based pricing rule engine
 
 ---
 
