@@ -372,10 +372,35 @@ OpenBar integrates direct network thermal printing over local TCP sockets (defau
 
 ---
 
+## Daily Cash Register Closure (Z-Report), Drawer Reconciliation & Compliance
+
+OpenBar supports end-of-day register closures (Z-Report), physical drawer reconciliation, sales locking, and official compliance exports:
+
+- **Entity & Table**: `DailyCashClosure` mapped to `daily_cash_closures` (`id`, `closure_number`, `closure_date`, `opening_float`, `theoretical_cash`, `counted_cash`, `cash_discrepancy`, `discrepancy_reason`, `counting_breakdown_json`, `total_revenue_ht`, `total_revenue_ttc`, `total_vat`, `invoices_count`, `guests_count`, `average_ticket`, `payment_methods_json`, `vat_breakdown_json`, `sha256_hash`, `closed_by_user_id`, `created_at`, `updated_at`).
+- **Sequential Numbering**: Formatted as `Z-YYYY-NNNNN` (e.g. `Z-2026-00001`), sequentially generated per calendar year.
+- **SHA-256 Digital Seal**: Immutable digital hash computed over closure metadata and JSON breakdowns ensuring compliance with French tax integrity regulations (CGI art. 286 / BOI-TVA-DECLA-30-10-30).
+- **Sales Lock**: Irreversible check (`DailyCashClosureService.isDateClosed(date)`) blocking creation, settlement, or modification of invoices on closed dates.
+- **French FEC Accounting Export**: Tab-delimited FEC export formatted according to standard French PCG accounts (530000 Caisse, 512000 Banque, 658000 Pertes sur écarts, 758000 Produits sur écarts, 706000 Ventes, 445710 TVA collectée).
+- **Certified PDF & Thermal Printing**: A4 summary PDF generated via OpenPDF and thermal 80mm Z-ticket printed over ESC/POS LAN raw socket.
+- **Endpoints**:
+
+| Method | URL | Roles | Description |
+|--------|-----|-------|-------------|
+| `POST` | `/api/factures/recap/cloturer` | MANAGER, ADMIN | Perform end-of-day cash register closure (Z-report) |
+| `GET` | `/api/factures/clotures` | MANAGER, ADMIN | Retrieve historical register closures list (sorted descending) |
+| `GET` | `/api/factures/clotures/{id}` | MANAGER, ADMIN | Retrieve specific closure details |
+| `GET` | `/api/factures/clotures/by-date?date=` | MANAGER, ADMIN | Retrieve closure for specific calendar date |
+| `GET` | `/api/factures/clotures/{id}/pdf` | MANAGER, ADMIN | Download certified A4 Z-report PDF |
+| `GET` | `/api/factures/clotures/{id}/export/fec` | MANAGER, ADMIN | Download French FEC tab-delimited accounting export |
+| `POST` | `/api/printers/z-report/{closureId}` | MANAGER, ADMIN | Print 80mm thermal Z-report on cash desk printer |
+
+---
+
 ## Quality & CI/CD Standards
 
 1. **Documentation is mandatory** in English on all services, DTOs, controllers, guards, and store files.
 2. **Never use `@SuppressWarnings`** — fix underlying code/lint warnings directly.
 3. **No hardcoded text** — always use Transloco `fr.json` and `en.json` with 100% key parity.
 4. **Adaptive theme** — use CSS variables for all styling (`var(--background-bg-0)`, `var(--primary)`, etc.).
+
 
