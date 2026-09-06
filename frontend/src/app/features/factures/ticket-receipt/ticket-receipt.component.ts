@@ -1,13 +1,14 @@
 import { Component, Input, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonIcon } from '@ionic/angular/standalone';
+import { IonIcon, ToastController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { printOutline, receiptOutline } from 'ionicons/icons';
-import { TranslocoModule } from '@jsverse/transloco';
+import { printOutline, receiptOutline, hardwareChipOutline } from 'ionicons/icons';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { AppCurrencyPipe } from '../../../core/pipes/app-currency.pipe';
 import { Facture, FactureItem, FactureReglement } from '../models/facture.model';
 import { EstablishmentConfig } from '../../../core/models/establishment-config.model';
 import { EtablissementService } from '../../../core/services/etablissement.service';
+import { PrinterService } from '../../../core/services/printer.service';
 
 /**
  * Thermal receipt component formatted for 80mm and 58mm thermal printers and web preview.
@@ -27,11 +28,15 @@ export class TicketReceiptComponent implements OnInit {
   @Input() ticketFormat?: '80mm' | '58mm';
 
   selectedFormat: '80mm' | '58mm' = '80mm';
+  isDirectPrinting = false;
 
   private readonly etablissementService = inject(EtablissementService);
+  private readonly printerService = inject(PrinterService, { optional: true });
+  private readonly toastCtrl = inject(ToastController, { optional: true });
+  private readonly translocoService = inject(TranslocoService);
 
   constructor() {
-    addIcons({ printOutline, receiptOutline });
+    addIcons({ printOutline, receiptOutline, hardwareChipOutline });
   }
 
   ngOnInit(): void {
@@ -160,5 +165,45 @@ export class TicketReceiptComponent implements OnInit {
 
   imprimerTicket(): void {
     window.print();
+  }
+
+  /**
+   * Directly prints the customer thermal receipt on the cash desk ESC/POS printer via TCP socket.
+   */
+  imprimerDirectEscPos(openCashDrawer = false): void {
+    if (!this.facture?.id || !this.printerService) return;
+    this.isDirectPrinting = true;
+    this.printerService.printInvoiceReceipt(this.facture.id, openCashDrawer).subscribe({
+      next: (result) => {
+        this.isDirectPrinting = false;
+        if (result.success) {
+          this.showToast(this.translocoService.translate('FACTURES.DIRECT_RECEIPT_SUCCESS'), 'success');
+        } else {
+          this.showToast(
+            this.translocoService.translate('FACTURES.DIRECT_RECEIPT_FAILED', { error: result.message }),
+            'warning'
+          );
+        }
+      },
+      error: (err) => {
+        this.isDirectPrinting = false;
+        this.showToast(
+          this.translocoService.translate('FACTURES.DIRECT_RECEIPT_FAILED', { error: err?.message || 'Error' }),
+          'danger'
+        );
+      },
+    });
+  }
+
+  private async showToast(message: string, color: 'success' | 'warning' | 'danger'): Promise<void> {
+    if (this.toastCtrl) {
+      const toast = await this.toastCtrl.create({
+        message,
+        duration: 3000,
+        color,
+        position: 'bottom',
+      });
+      await toast.present();
+    }
   }
 }

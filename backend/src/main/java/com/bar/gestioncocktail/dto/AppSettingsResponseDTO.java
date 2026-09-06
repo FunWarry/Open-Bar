@@ -56,8 +56,34 @@ public record AppSettingsResponseDTO(
     BigDecimal defaultVatRate,
     BigDecimal targetGrossMarginPercentage,
     BigDecimal warningGrossMarginPercentage,
+    String barPrinterIp,
+    String kitchenPrinterIp,
+    String cashDeskPrinterIp,
+    Integer printerPort,
+    Boolean directPrintingEnabled,
     LocalDateTime updatedAt
 ) {
+    /**
+     * Backwards-compatible 22-parameter constructor defaulting printer settings to null/false.
+     */
+    public AppSettingsResponseDTO(
+            Long id, String primaryColor, String primaryColorStrong, String logoUrl,
+            String establishmentName, DefaultTheme defaultTheme, String currencyCode,
+            String currencySymbol, CurrencyPosition currencyPosition,
+            Integer tempsAlerteWarningMinutes, Integer tempsAlerteCommandeMinutes,
+            Integer tempsAlerteCritiqueCommandeMinutes, String clientBaseUrl,
+            String wifiSsid, String wifiPassword, String wifiSecurity,
+            Boolean wifiEnabled, Boolean tableSessionValidationEnabled,
+            BigDecimal defaultVatRate, BigDecimal targetGrossMarginPercentage,
+            BigDecimal warningGrossMarginPercentage, LocalDateTime updatedAt) {
+        this(id, primaryColor, primaryColorStrong, logoUrl, establishmentName, defaultTheme,
+                currencyCode, currencySymbol, currencyPosition, tempsAlerteWarningMinutes,
+                tempsAlerteCommandeMinutes, tempsAlerteCritiqueCommandeMinutes, clientBaseUrl,
+                wifiSsid, wifiPassword, wifiSecurity, wifiEnabled, tableSessionValidationEnabled,
+                defaultVatRate, targetGrossMarginPercentage, warningGrossMarginPercentage,
+                null, null, null, 9100, false, updatedAt);
+    }
+
     /**
      * Converts an {@link AppSettings} entity into a response DTO.
      *
@@ -80,6 +106,11 @@ public record AppSettingsResponseDTO(
             s.getDefaultVatRate(),
             s.getTargetGrossMarginPercentage(),
             s.getWarningGrossMarginPercentage(),
+            s.getBarPrinterIp(),
+            s.getKitchenPrinterIp(),
+            s.getCashDeskPrinterIp(),
+            s.getPrinterPort() != null ? s.getPrinterPort() : 9100,
+            Boolean.TRUE.equals(s.getDirectPrintingEnabled()),
             s.getUpdatedAt()
         );
     }

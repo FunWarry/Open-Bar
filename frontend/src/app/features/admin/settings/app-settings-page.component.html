@@ -83,6 +83,16 @@
       <ion-icon name="pricetag-outline"></ion-icon>
       <span>{{ 'SETTINGS.TAB_PRICING' | transloco }}</span>
     </button>
+
+    <button
+      type="button"
+      class="tab-btn"
+      [class.active]="activeTab === 'printers'"
+      (click)="selectTab('printers')"
+      data-testid="tab-printers">
+      <ion-icon name="print-outline"></ion-icon>
+      <span>{{ 'SETTINGS.TAB_PRINTERS' | transloco }}</span>
+    </button>
   </nav>
 
   @if (isLoading) {
@@ -1171,6 +1181,169 @@
       @if (activeTab === 'pricing') {
         <section class="tab-panel" data-testid="panel-pricing">
           <app-happy-hour-config></app-happy-hour-config>
+        </section>
+      }
+
+      <!-- ========================================== -->
+      <!-- TAB 7: Imprimantes Réseau ESC/POS         -->
+      <!-- ========================================== -->
+      @if (activeTab === 'printers') {
+        <section class="tab-panel" data-testid="panel-printers">
+          <form [formGroup]="appSettingsForm" class="settings-form">
+            <ion-grid>
+              <ion-row>
+                <!-- Colonne Gauche: Activation & Ports & Postes -->
+                <ion-col size="12" sizeLg="7">
+                  <ion-card class="settings-card">
+                    <ion-card-header>
+                      <ion-card-title class="card-title">
+                        <ion-icon name="print-outline" class="title-icon"></ion-icon>
+                        {{ 'SETTINGS.PRINTERS_TITLE' | transloco }}
+                      </ion-card-title>
+                    </ion-card-header>
+                    <ion-card-content>
+                      <p class="section-lead">{{ 'SETTINGS.PRINTERS_SUBTITLE' | transloco }}</p>
+
+                      <!-- Activation Globale -->
+                      <div class="field-item checkbox-field">
+                        <label class="checkbox-label" for="directPrintingEnabled">
+                          <input
+                            type="checkbox"
+                            id="directPrintingEnabled"
+                            formControlName="directPrintingEnabled"
+                            data-testid="toggle-direct-printing" />
+                          <span class="checkbox-custom"></span>
+                          <div class="checkbox-text">
+                            <strong>{{ 'SETTINGS.DIRECT_PRINTING_ENABLE' | transloco }}</strong>
+                            <p class="field-hint">{{ 'SETTINGS.DIRECT_PRINTING_DESC' | transloco }}</p>
+                          </div>
+                        </label>
+                      </div>
+
+                      <!-- Port TCP Standard -->
+                      <div class="field-item">
+                        <app-input-field
+                          formControlName="printerPort"
+                          type="number"
+                          [label]="'SETTINGS.PRINTER_PORT' | transloco"
+                          [helperText]="'SETTINGS.PRINTER_PORT_HINT' | transloco"
+                          placeholder="9100"
+                          [required]="true"
+                          data-testid="input-printer-port">
+                        </app-input-field>
+                      </div>
+
+                      <div class="form-section-title">{{ 'SETTINGS.BAR_PRINTER_TITLE' | transloco }}</div>
+                      <div class="printer-row-flex">
+                        <div class="printer-input-grow">
+                          <app-input-field
+                            formControlName="barPrinterIp"
+                            [label]="'SETTINGS.BAR_PRINTER_IP' | transloco"
+                            [helperText]="'SETTINGS.BAR_PRINTER_HINT' | transloco"
+                            placeholder="192.168.1.101"
+                            data-testid="input-bar-printer-ip">
+                          </app-input-field>
+                        </div>
+                        <div class="printer-action-btn-wrap">
+                          <app-action-button
+                            type="button"
+                            variant="secondary"
+                            [loading]="isTestingPrinter['BAR']"
+                            [disabled]="!appSettingsForm.get('barPrinterIp')?.value || isTestingPrinter['BAR']"
+                            (btnClick)="testPrint('BAR')"
+                            data-testid="btn-test-bar-printer">
+                            <ion-icon name="print-outline" slot="start"></ion-icon>
+                            {{ 'SETTINGS.TEST_PRINT_BTN' | transloco }}
+                          </app-action-button>
+                        </div>
+                      </div>
+
+                      <div class="form-section-title">{{ 'SETTINGS.KITCHEN_PRINTER_TITLE' | transloco }}</div>
+                      <div class="printer-row-flex">
+                        <div class="printer-input-grow">
+                          <app-input-field
+                            formControlName="kitchenPrinterIp"
+                            [label]="'SETTINGS.KITCHEN_PRINTER_IP' | transloco"
+                            [helperText]="'SETTINGS.KITCHEN_PRINTER_HINT' | transloco"
+                            placeholder="192.168.1.102"
+                            data-testid="input-kitchen-printer-ip">
+                          </app-input-field>
+                        </div>
+                        <div class="printer-action-btn-wrap">
+                          <app-action-button
+                            type="button"
+                            variant="secondary"
+                            [loading]="isTestingPrinter['KITCHEN']"
+                            [disabled]="!appSettingsForm.get('kitchenPrinterIp')?.value || isTestingPrinter['KITCHEN']"
+                            (btnClick)="testPrint('KITCHEN')"
+                            data-testid="btn-test-kitchen-printer">
+                            <ion-icon name="print-outline" slot="start"></ion-icon>
+                            {{ 'SETTINGS.TEST_PRINT_BTN' | transloco }}
+                          </app-action-button>
+                        </div>
+                      </div>
+
+                      <div class="form-section-title">{{ 'SETTINGS.CASH_DESK_PRINTER_TITLE' | transloco }}</div>
+                      <div class="printer-row-flex">
+                        <div class="printer-input-grow">
+                          <app-input-field
+                            formControlName="cashDeskPrinterIp"
+                            [label]="'SETTINGS.CASH_DESK_PRINTER_IP' | transloco"
+                            [helperText]="'SETTINGS.CASH_DESK_PRINTER_HINT' | transloco"
+                            placeholder="192.168.1.103"
+                            data-testid="input-cash-desk-printer-ip">
+                          </app-input-field>
+                        </div>
+                        <div class="printer-action-btn-wrap">
+                          <app-action-button
+                            type="button"
+                            variant="secondary"
+                            [loading]="isTestingPrinter['CASH_DESK']"
+                            [disabled]="!appSettingsForm.get('cashDeskPrinterIp')?.value || isTestingPrinter['CASH_DESK']"
+                            (btnClick)="testPrint('CASH_DESK')"
+                            data-testid="btn-test-cash-desk-printer">
+                            <ion-icon name="print-outline" slot="start"></ion-icon>
+                            {{ 'SETTINGS.TEST_PRINT_BTN' | transloco }}
+                          </app-action-button>
+                        </div>
+                      </div>
+
+                    </ion-card-content>
+                  </ion-card>
+                </ion-col>
+
+                <!-- Colonne Droite: Tiroir-caisse & Diagnostic / Aide -->
+                <ion-col size="12" sizeLg="5">
+                  <ion-card class="settings-card">
+                    <ion-card-header>
+                      <ion-card-title class="card-title">
+                        <ion-icon name="hardware-chip-outline" class="title-icon"></ion-icon>
+                        {{ 'SETTINGS.TEST_DRAWER_TITLE' | transloco }}
+                      </ion-card-title>
+                    </ion-card-header>
+                    <ion-card-content>
+                      <p class="field-hint">
+                        {{ 'SETTINGS.PRINTER_ONLINE_HINT' | transloco }}
+                      </p>
+
+                      <div class="drawer-test-box">
+                        <app-action-button
+                          type="button"
+                          variant="primary"
+                          [loading]="isTestingPrinter['drawer']"
+                          [disabled]="!appSettingsForm.get('cashDeskPrinterIp')?.value || isTestingPrinter['drawer']"
+                          (btnClick)="testCashDrawer()"
+                          data-testid="btn-test-cash-drawer">
+                          <ion-icon name="hardware-chip-outline" slot="start"></ion-icon>
+                          {{ 'SETTINGS.TEST_DRAWER_BTN' | transloco }}
+                        </app-action-button>
+                      </div>
+                    </ion-card-content>
+                  </ion-card>
+                </ion-col>
+              </ion-row>
+            </ion-grid>
+          </form>
         </section>
       }
     </main>

@@ -106,6 +106,16 @@
       </ion-button>
     </ion-buttons>
     <ion-buttons slot="end">
+      <ion-button
+        color="tertiary"
+        fill="outline"
+        [disabled]="isDirectPrinting"
+        (click)="printDirectEscPos()"
+        (keyup.enter)="printDirectEscPos()"
+        data-testid="btn-direct-escpos-print">
+        <ion-icon slot="start" name="hardware-chip-outline"></ion-icon>
+        {{ 'BARMAN_DASHBOARD.DIRECT_ESCPOS_PRINT' | transloco }}
+      </ion-button>
       <ion-button color="primary" fill="solid" (click)="printTicket()" (keyup.enter)="printTicket()" data-testid="confirm-print-btn">
         <ion-icon slot="start" name="print-outline"></ion-icon>
         {{ 'BARMAN_DASHBOARD.PRINT_BUTTON' | transloco }}

@@ -9,14 +9,16 @@ import {
   IonContent,
   IonIcon,
   IonFooter,
-  ModalController
+  ModalController,
+  ToastController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { printOutline, closeOutline } from 'ionicons/icons';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { printOutline, closeOutline, hardwareChipOutline } from 'ionicons/icons';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { CommandeView, CommandeItemView } from '../../models/commande-view.model';
 import { groupCommandeItems } from '../../../../core/utils/order-item-grouper';
 import { AppSettingsService } from '../../../../core/services/app-settings.service';
+import { PrinterService } from '../../../../core/services/printer.service';
 
 /**
  * Bar preparation thermal receipt component formatted specifically for 80mm bar counter printers.
@@ -44,13 +46,17 @@ export class BarTicketPrintComponent implements OnInit {
   @Input({ required: true }) commande!: CommandeView;
 
   establishmentName = 'OpenBar';
+  isDirectPrinting = false;
   readonly now = new Date();
 
   private readonly modalCtrl = inject(ModalController, { optional: true });
   private readonly settingsService = inject(AppSettingsService, { optional: true });
+  private readonly printerService = inject(PrinterService, { optional: true });
+  private readonly toastCtrl = inject(ToastController, { optional: true });
+  private readonly translocoService = inject(TranslocoService);
 
   constructor() {
-    addIcons({ printOutline, closeOutline });
+    addIcons({ printOutline, closeOutline, hardwareChipOutline });
   }
 
   ngOnInit(): void {
@@ -149,6 +155,51 @@ export class BarTicketPrintComponent implements OnInit {
     };
 
     document.body.appendChild(printIframe);
+  }
+
+  /**
+   * Directly dispatches the order to the configured ESC/POS thermal printers via TCP socket.
+   */
+  printDirectEscPos(): void {
+    if (!this.commande?.id || !this.printerService) return;
+    this.isDirectPrinting = true;
+    this.printerService.dispatchOrder(this.commande.id).subscribe({
+      next: (results) => {
+        this.isDirectPrinting = false;
+        const allSuccess = results && results.length > 0 && results.every(r => r.success);
+        if (allSuccess) {
+          this.showToast(
+            this.translocoService.translate('BARMAN_DASHBOARD.DIRECT_PRINT_SUCCESS', { id: this.commande.id }),
+            'success'
+          );
+        } else {
+          const errors = (results || []).filter(r => !r.success).map(r => `${r.role}: ${r.message}`).join(', ');
+          this.showToast(
+            this.translocoService.translate('BARMAN_DASHBOARD.DIRECT_PRINT_FAILED', { error: errors || 'Erreur' }),
+            'warning'
+          );
+        }
+      },
+      error: (err) => {
+        this.isDirectPrinting = false;
+        this.showToast(
+          this.translocoService.translate('BARMAN_DASHBOARD.DIRECT_PRINT_FAILED', { error: err?.message || 'Error' }),
+          'danger'
+        );
+      },
+    });
+  }
+
+  private async showToast(message: string, color: 'success' | 'warning' | 'danger'): Promise<void> {
+    if (this.toastCtrl) {
+      const toast = await this.toastCtrl.create({
+        message,
+        duration: 3000,
+        color,
+        position: 'bottom',
+      });
+      await toast.present();
+    }
   }
 
   /**

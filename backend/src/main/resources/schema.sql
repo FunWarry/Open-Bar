@@ -383,6 +383,11 @@ CREATE TABLE IF NOT EXISTS app_settings (
     default_vat_rate DECIMAL(5,2) DEFAULT 20.00,
     target_gross_margin_percentage DECIMAL(5,2) DEFAULT 70.00,
     warning_gross_margin_percentage DECIMAL(5,2) DEFAULT 50.00,
+    bar_printer_ip VARCHAR(100),
+    kitchen_printer_ip VARCHAR(100),
+    cash_desk_printer_ip VARCHAR(100),
+    printer_port INTEGER DEFAULT 9100,
+    direct_printing_enabled BOOLEAN DEFAULT false,
     updated_at TIMESTAMP
 );
 
@@ -528,3 +533,10 @@ ALTER TABLE commande_items ADD COLUMN IF NOT EXISTS station VARCHAR(30) DEFAULT 
 ALTER TABLE commande_items ADD COLUMN IF NOT EXISTS statut VARCHAR(30);
 CREATE INDEX IF NOT EXISTS idx_commande_items_station ON commande_items(station);
 CREATE INDEX IF NOT EXISTS idx_commande_items_statut ON commande_items(statut);
+
+-- 13. Direct ESC/POS Network Socket Printing Configuration
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS bar_printer_ip VARCHAR(100);
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS kitchen_printer_ip VARCHAR(100);
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS cash_desk_printer_ip VARCHAR(100);
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS printer_port INTEGER DEFAULT 9100;
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS direct_printing_enabled BOOLEAN DEFAULT false;

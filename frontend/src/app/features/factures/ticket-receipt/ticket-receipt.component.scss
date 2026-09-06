@@ -81,6 +81,24 @@
     transform: translateY(-2px);
     box-shadow: 0 6px 18px rgba(108, 127, 232, 0.45);
   }
+
+  &.btn-direct-escpos {
+    background: var(--background-surface-1, #1a1a2e);
+    border: 1px solid var(--border-medium, #2e3450);
+    color: var(--text-primary, #eceefb);
+    box-shadow: none;
+
+    &:hover {
+      border-color: var(--primary, #6c7fe8);
+      background: var(--background-surface-2, #252840);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+  }
 }
 
 // ----------------------------------------------------------------------------

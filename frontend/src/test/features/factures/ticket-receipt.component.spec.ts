@@ -1,9 +1,12 @@
-import { TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { IonicModule } from '@ionic/angular';
+import { ToastController } from '@ionic/angular/standalone';
 
 import { TicketReceiptComponent } from '../../../app/features/factures/ticket-receipt/ticket-receipt.component';
 import { EtablissementService } from '../../../app/core/services/etablissement.service';
+import { AppSettingsService } from '../../../app/core/services/app-settings.service';
+import { PrinterService } from '../../../app/core/services/printer.service';
 import { Facture } from '../../../app/features/factures/models/facture.model';
 import { EstablishmentConfig } from '../../../app/core/models/establishment-config.model';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
@@ -58,10 +61,47 @@ const mockConfig: EstablishmentConfig = {
 describe('TicketReceiptComponent', () => {
   let component: TicketReceiptComponent;
   let etablissementServiceSpy: jasmine.SpyObj<EtablissementService>;
+  let appSettingsServiceSpy: jasmine.SpyObj<AppSettingsService>;
+  let printerServiceSpy: jasmine.SpyObj<PrinterService>;
+  let toastCtrlSpy: jasmine.SpyObj<ToastController>;
 
   beforeEach(async () => {
     etablissementServiceSpy = jasmine.createSpyObj('EtablissementService', ['getConfig']);
     etablissementServiceSpy.getConfig.and.returnValue(of(mockConfig));
+
+    appSettingsServiceSpy = jasmine.createSpyObj('AppSettingsService', ['getSettings', 'formatCurrency']);
+    appSettingsServiceSpy.formatCurrency.and.callFake((val: number) => `${val?.toFixed(2)} €`);
+    appSettingsServiceSpy.getSettings.and.returnValue(
+      of({
+        id: 1,
+        establishmentName: 'OpenBar SARL',
+        directPrintingEnabled: true,
+        printerPort: 9100,
+        cashDeskPrinterIp: '192.168.1.103',
+        defaultTheme: 'DARK',
+        tempsAlerteCommandeMinutes: 5,
+        tempsAlerteCritiqueCommandeMinutes: 10,
+        primaryColor: '#6c7fe8',
+        primaryColorStrong: '#5a68d6',
+        logoUrl: null,
+        updatedAt: null,
+      })
+    );
+
+    printerServiceSpy = jasmine.createSpyObj('PrinterService', ['printInvoiceReceipt']);
+    printerServiceSpy.printInvoiceReceipt.and.returnValue(
+      of({
+        role: 'CASH_DESK',
+        ip: '192.168.1.103',
+        port: 9100,
+        success: true,
+        message: 'Receipt printed',
+        durationMs: 25,
+      })
+    );
+
+    toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
+    toastCtrlSpy.create.and.returnValue(Promise.resolve({ present: () => Promise.resolve() } as any));
 
     await TestBed.configureTestingModule({
       imports: [
@@ -70,7 +110,10 @@ describe('TicketReceiptComponent', () => {
         getTranslocoTestingModule()
       ],
       providers: [
-        { provide: EtablissementService, useValue: etablissementServiceSpy }
+        { provide: EtablissementService, useValue: etablissementServiceSpy },
+        { provide: AppSettingsService, useValue: appSettingsServiceSpy },
+        { provide: PrinterService, useValue: printerServiceSpy },
+        { provide: ToastController, useValue: toastCtrlSpy }
       ]
     }).compileComponents();
 
@@ -232,4 +275,21 @@ describe('TicketReceiptComponent', () => {
     expect(component.tr('SETTLED')).toBe('SETTLED');
     expect(component.tr('THANK_YOU')).toBe('Thank you for your visit!');
   });
+
+  it('imprimerDirectEscPos() triggers printInvoiceReceipt and shows toast', fakeAsync(() => {
+    component.imprimerDirectEscPos(true);
+    tick();
+    expect(printerServiceSpy.printInvoiceReceipt).toHaveBeenCalledWith(1, true);
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
+    expect(component.isDirectPrinting).toBeFalse();
+  }));
+
+  it('imprimerDirectEscPos() handles print error gracefully', fakeAsync(() => {
+    printerServiceSpy.printInvoiceReceipt.and.returnValue(throwError(() => new Error('Printer offline')));
+    component.imprimerDirectEscPos(false);
+    tick();
+    expect(printerServiceSpy.printInvoiceReceipt).toHaveBeenCalledWith(1, false);
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
+    expect(component.isDirectPrinting).toBeFalse();
+  }));
 });

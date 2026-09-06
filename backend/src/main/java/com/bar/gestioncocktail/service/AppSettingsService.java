@@ -61,6 +61,7 @@ public class AppSettingsService {
         applyAlertThresholds(current, request);
         applyWifiAndQr(current, request);
         applyVatAndMargins(current, request);
+        applyPrinters(current, request);
 
         AppSettings saved = appSettingsRepository.save(current);
         notificationService.notifierParametresMisAJour(AppSettingsResponseDTO.from(saved));
@@ -147,6 +148,24 @@ public class AppSettingsService {
         }
         if (request.warningGrossMarginPercentage() != null) {
             current.setWarningGrossMarginPercentage(request.warningGrossMarginPercentage());
+        }
+    }
+
+    private void applyPrinters(AppSettings current, AppSettingsUpdateRequest request) {
+        if (request.barPrinterIp() != null) {
+            current.setBarPrinterIp(request.barPrinterIp().trim());
+        }
+        if (request.kitchenPrinterIp() != null) {
+            current.setKitchenPrinterIp(request.kitchenPrinterIp().trim());
+        }
+        if (request.cashDeskPrinterIp() != null) {
+            current.setCashDeskPrinterIp(request.cashDeskPrinterIp().trim());
+        }
+        if (request.printerPort() != null) {
+            current.setPrinterPort(request.printerPort());
+        }
+        if (request.directPrintingEnabled() != null) {
+            current.setDirectPrintingEnabled(request.directPrintingEnabled());
         }
     }
 
