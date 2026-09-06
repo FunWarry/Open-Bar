@@ -201,4 +201,17 @@ describe('StockWasteModalComponent', () => {
     expect(component.selectedIngredient?.id).toBe(20);
     expect(component.currentStock).toBe(15);
   });
+
+  it('should not call recordWaste when submit is invoked with invalid form', () => {
+    setupComponent({ ingredient: mockIngredient });
+    component.quantity = null;
+    component.submit();
+    expect(stockWasteServiceSpy.recordWaste).not.toHaveBeenCalled();
+  });
+
+  it('should set isLoadingIngredients to false when loadIngredients fails', () => {
+    ingredientServiceSpy.getAll.and.returnValue(throwError(() => new Error('Network error')));
+    setupComponent();
+    expect(component.isLoadingIngredients).toBeFalse();
+  });
 });

@@ -331,5 +331,18 @@ describe('DashboardManagerComponent', () => {
     expect(component.getWasteReasonLabelKey('CASSE')).toBe('STOCK.WASTE_REASON_CASSE');
     expect(component.getReasonLossValue('CASSE')).toBe(14.50);
     expect(component.getReasonCount('CASSE')).toBe(2);
+    expect(component.getWasteReasonBadgeColor('OTHER' as any)).toBe('secondary');
+  });
+
+  it('handles errors gracefully in chargerWasteSummary', () => {
+    component.wasteSummary = null;
+    stockWasteServiceSpy.getWasteSummary.and.returnValue(throwError(() => new Error('Failed summary')));
+    stockWasteServiceSpy.getMovements.and.returnValue(throwError(() => new Error('Failed movements')));
+
+    component.chargerWasteSummary();
+
+    expect(component.loadingWaste).toBeFalse();
+    expect(component.recentWasteMovements).toEqual([]);
+    expect(component.getReasonCount('CASSE')).toBe(0);
   });
 });

@@ -105,6 +105,16 @@ describe('StockWasteService', () => {
       expect(req.request.method).toBe('GET');
       req.flush(mockMovements);
     });
+
+    it('should call GET /api/stock/movements with ingredientId param when provided', () => {
+      service.getMovements(42).subscribe(res => {
+        expect(res).toBeDefined();
+      });
+
+      const req = httpMock.expectOne(`${baseUrl}/movements?ingredientId=42`);
+      expect(req.request.method).toBe('GET');
+      req.flush([]);
+    });
   });
 
   describe('getWasteSummary', () => {
