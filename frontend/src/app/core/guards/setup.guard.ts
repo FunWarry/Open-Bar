@@ -3,6 +3,9 @@ import { CanActivate, Router, UrlTree } from '@angular/router';
 import { Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { SetupService } from '../services/setup.service';
+/**
+ * Route guard redirecting to /setup if initial administrative setup is incomplete.
+ */
 
 @Injectable({ providedIn: 'root' })
 export class SetupGuard implements CanActivate {

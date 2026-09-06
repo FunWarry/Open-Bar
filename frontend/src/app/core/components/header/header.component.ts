@@ -18,6 +18,9 @@ import {AsyncPipe} from '@angular/common';
 import {TranslocoPipe} from '@jsverse/transloco';
 import * as AuthActions from '../../store/auth.actions';
 
+/**
+ * Application top header bar component presenting title branding and user quick actions.
+ */
 @Component({
   selector: 'app-header',
   templateUrl: './header.component.html',

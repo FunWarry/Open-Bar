@@ -18,6 +18,9 @@ import {
   pricetagOutline
 } from 'ionicons/icons';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+/**
+ * Metadata tag displayed within the deletion confirmation modal.
+ */
 
 export interface ConfirmDeleteMetaTag {
   icon?: string;

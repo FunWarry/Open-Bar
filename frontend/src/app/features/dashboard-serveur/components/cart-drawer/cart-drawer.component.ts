@@ -13,6 +13,9 @@ import { AppCurrencyPipe } from '../../../../core/pipes/app-currency.pipe';
 import { addIcons } from 'ionicons';
 import { cartOutline, basketOutline, paperPlaneOutline, chatbubbleEllipsesOutline, createOutline } from 'ionicons/icons';
 
+/**
+ * Drawer modal presenting current order cart lines during server order taking.
+ */
 @Component({
   selector: 'app-cart-drawer',
   standalone: true,

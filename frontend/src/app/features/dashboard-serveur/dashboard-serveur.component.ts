@@ -59,6 +59,9 @@ import { BottomNavigationComponent, ServeurTab } from './components/bottom-navig
 import { ProductCardComponent, ProductItem } from './components/product-card/product-card.component';
 import { CartDrawerComponent } from './components/cart-drawer/cart-drawer.component';
 import { CartModel, CartItemModel } from './models/cart.model';
+/**
+ * View mode for the server dashboard (grid, list, kanban).
+ */
 
 export type DashboardViewMode = 'BY_ZONE' | 'BY_FLOOR' | 'GRID' | 'PLAN';
 export type DashboardSortOption = 'NUMBER_ASC' | 'NUMBER_DESC' | 'CAPACITY_ASC' | 'CAPACITY_DESC' | 'STATUS_OCCUPIED' | 'STATUS_FREE';

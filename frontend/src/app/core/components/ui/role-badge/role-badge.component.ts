@@ -1,5 +1,8 @@
 import { Component, Input } from '@angular/core';
 import { IonBadge, IonIcon } from '@ionic/angular/standalone';
+/**
+ * User role type representation for styling badges.
+ */
 
 export type UserRoleType = 'ADMIN' | 'MANAGER' | 'SERVEUR' | 'BARMAN' | 'WAITER';
 

@@ -7,6 +7,9 @@ import { gitMergeOutline, closeOutline } from 'ionicons/icons';
 import { TableBar } from '../../../../core/models/table.model';
 import { ActionButtonComponent } from '../../../../core/components/ui/action-button/action-button.component';
 
+/**
+ * Modal component for merging adjacent floor plan tables.
+ */
 @Component({
   selector: 'app-fusion-modal',
   standalone: true,

@@ -3,6 +3,9 @@ import { Subject, Observable } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { WebSocketService } from './websocket.service';
 import { SoundService } from './sound.service';
+/**
+ * In-app notification event payload stored in user history.
+ */
 
 export interface AppNotification {
   id: string;

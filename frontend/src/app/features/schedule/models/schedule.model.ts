@@ -1,4 +1,7 @@
 import { EmployeeShift, TypeShift } from '../../../core/models/shift.model';
+/**
+ * Weekly shift schedule configuration for staff members.
+ */
 
 export interface WeekSchedule {
   weekStart: string; // ISO date 'YYYY-MM-DD'

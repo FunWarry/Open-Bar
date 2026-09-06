@@ -1,5 +1,8 @@
 import { Component, Input } from '@angular/core';
 import { IonBadge } from '@ionic/angular/standalone';
+/**
+ * Supported order status codes for status badge display.
+ */
 
 export type CommandeStatus = 'EN_ATTENTE' | 'EN_PREPARATION' | 'PRET' | 'LIVREE' | 'REGLEE' | 'ANNULEE' | 'PENDING' | 'IN_PROGRESS' | 'READY' | 'SERVED' | 'CANCELLED' | 'PRIORITAIRE';
 

@@ -8,6 +8,9 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { ActionButtonComponent } from '../../core/components/ui/action-button/action-button.component';
 import { RoleBadgeComponent } from '../../core/components/ui/role-badge/role-badge.component';
 
+/**
+ * Application home launcher component directing users to role workspaces.
+ */
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',

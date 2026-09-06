@@ -8,6 +8,9 @@ import { Commande, CommandeStatut, CreateCommandeRequest, AjouterItemRequest } f
 import { TableView } from '../models/table-view.model';
 import { TablePosition } from '../../plan-salle/models/table-position.model';
 import { Facture } from '../../factures/models/facture.model';
+/**
+ * Floor plan zone item with table lists.
+ */
 
 export interface ZoneItem {
   id: number;

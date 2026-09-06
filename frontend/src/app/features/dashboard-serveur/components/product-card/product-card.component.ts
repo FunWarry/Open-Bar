@@ -5,6 +5,9 @@ import { StockSeverityBadgeComponent } from '../../../../core/components/ui/stoc
 import { AppCurrencyPipe } from '../../../../core/pipes/app-currency.pipe';
 import { addIcons } from 'ionicons';
 import { wineOutline, beerOutline, waterOutline, flameOutline, fastFoodOutline } from 'ionicons/icons';
+/**
+ * Recipe variant option for beverage cards.
+ */
 
 export interface ProductVariant {
   id?: number;

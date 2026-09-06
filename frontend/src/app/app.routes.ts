@@ -3,6 +3,10 @@ import {AuthGuard} from './core/guards/auth.guard';
 import {RoleGuard} from './core/guards/role.guard';
 import {SetupGuard} from './core/guards/setup.guard';
 import {PendingChangesGuard} from './core/guards/pending-changes.guard';
+/**
+ * Application routing configuration for OpenBar.
+ * Defines lazy-loaded feature routes protected by authentication and role guards.
+ */
 
 export const routes: Routes = [
   {

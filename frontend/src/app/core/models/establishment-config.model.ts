@@ -1,3 +1,6 @@
+/**
+ * Legal establishment configuration including SIRET, legal notices, and VAT rates.
+ */
 export interface EstablishmentConfig {
   id?: number;
   legalName: string;

@@ -1,3 +1,6 @@
+/**
+ * Billed order line item attached to an invoice.
+ */
 export interface FactureItem {
   id: number;
   cocktailNom: string;

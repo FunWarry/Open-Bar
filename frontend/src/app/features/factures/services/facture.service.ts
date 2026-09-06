@@ -3,6 +3,9 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { Facture, FactureReglement, EncaisserPartRequest } from '../models/facture.model';
+/**
+ * Line item data transfer representation for bill splitting calculations.
+ */
 
 export interface SplitItemDTO {
   itemId: number;

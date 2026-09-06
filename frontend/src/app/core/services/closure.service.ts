@@ -2,6 +2,9 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
+/**
+ * Type of register cash closing (Z-report daily or X-report mid-day).
+ */
 
 export type ClosureType = 'WEEKLY_RECURRING' | 'EXCEPTIONAL';
 export type DayOfWeek = 'MONDAY' | 'TUESDAY' | 'WEDNESDAY' | 'THURSDAY' | 'FRIDAY' | 'SATURDAY' | 'SUNDAY';

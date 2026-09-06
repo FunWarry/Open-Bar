@@ -12,42 +12,93 @@ export class CocktailService {
   private readonly api = `${environment.apiUrl}/cocktails`;
   private readonly http = inject(HttpClient);
 
+  /**
+   * Retrieves all cocktail recipes from the catalog.
+   * @returns Observable emitting list of cocktails
+   */
   getAll(): Observable<Cocktail[]> {
     return this.http.get<Cocktail[]>(this.api);
   }
 
+  /**
+   * Retrieves a cocktail by its unique identifier.
+   * @param id Cocktail identifier
+   * @returns Observable emitting the cocktail
+   */
   getById(id: number): Observable<Cocktail> {
     return this.http.get<Cocktail>(`${this.api}/${id}`);
   }
 
+  /**
+   * Creates a new cocktail recipe in the catalog.
+   * @param cocktail Cocktail payload
+   * @returns Observable emitting created cocktail
+   */
   create(cocktail: Partial<Cocktail>): Observable<Cocktail> {
     return this.http.post<Cocktail>(this.api, cocktail);
   }
 
+  /**
+   * Updates an existing cocktail recipe.
+   * @param id Cocktail identifier
+   * @param cocktail Updated data
+   * @returns Observable emitting updated cocktail
+   */
   update(id: number, cocktail: Partial<Cocktail>): Observable<Cocktail> {
     return this.http.put<Cocktail>(`${this.api}/${id}`, cocktail);
   }
 
+  /**
+   * Deletes a cocktail recipe from the catalog.
+   * @param id Cocktail identifier
+   * @returns Observable completing when deleted
+   */
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.api}/${id}`);
   }
 
+  /**
+   * Toggles the availability status of a cocktail.
+   * @param id Cocktail identifier
+   * @returns Observable emitting updated cocktail
+   */
   toggleDisponibilite(id: number): Observable<Cocktail> {
     return this.http.put<Cocktail>(`${this.api}/${id}/disponibilite`, {});
   }
 
+  /**
+   * Searches cocktails by name query substring.
+   * @param query Search string
+   * @returns Observable emitting matching cocktails
+   */
   search(nom: string): Observable<Cocktail[]> {
     return this.http.get<Cocktail[]>(`${this.api}/search`, { params: { nom } });
   }
 
+  /**
+   * Retrieves all cocktails currently marked as available for order.
+   * @returns Observable emitting available cocktails
+   */
   getDisponibles(): Observable<Cocktail[]> {
     return this.http.get<Cocktail[]>(`${this.api}/disponibles`);
   }
 
+  /**
+   * Updates seasonal availability dates for a cocktail.
+   * @param id Cocktail identifier
+   * @param request Seasonality settings
+   * @returns Observable emitting updated cocktail
+   */
   updateSaisonnalite(id: number, moisDebut: number | null, moisFin: number | null): Observable<Cocktail> {
     return this.http.patch<Cocktail>(`${this.api}/${id}/saisonnalite`, { moisDebut, moisFin });
   }
 
+  /**
+   * Uploads an image asset for a cocktail.
+   * @param id Cocktail identifier
+   * @param file Image file to upload
+   * @returns Observable emitting upload result with image URL
+   */
   uploadImage(id: number, file: File): Observable<Cocktail> {
     const formData = new FormData();
     formData.append('file', file);

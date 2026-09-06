@@ -3,6 +3,9 @@ import { NG_VALUE_ACCESSOR } from '@angular/forms';
 import { IonIcon } from '@ionic/angular/standalone';
 import { BaseControlValueAccessor } from '../base-control-value-accessor';
 
+/**
+ * Theme-adaptive password input component with visibility toggle.
+ */
 @Component({
   selector: 'app-password-input',
   standalone: true,

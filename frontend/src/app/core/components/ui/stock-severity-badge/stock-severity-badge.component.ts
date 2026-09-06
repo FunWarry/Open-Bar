@@ -1,5 +1,8 @@
 import { Component, Input } from '@angular/core';
 import { IonBadge } from '@ionic/angular/standalone';
+/**
+ * Severity rating for inventory stock alerts (critical, warning, nominal).
+ */
 
 export type StockSeverity = 'CRITIQUE' | 'FAIBLE' | 'NORMAL' | 'critique' | 'faible' | 'normal';
 

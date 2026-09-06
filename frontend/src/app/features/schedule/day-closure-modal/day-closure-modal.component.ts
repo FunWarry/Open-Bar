@@ -18,6 +18,9 @@ import { addIcons } from 'ionicons';
 import { closeOutline, calendarOutline, lockClosedOutline, lockOpenOutline, checkmarkCircleOutline, alertCircleOutline } from 'ionicons/icons';
 import { TranslocoModule } from '@jsverse/transloco';
 
+/**
+ * Modal component for performing end-of-day register closure.
+ */
 @Component({
   selector: 'app-day-closure-modal',
   standalone: true,

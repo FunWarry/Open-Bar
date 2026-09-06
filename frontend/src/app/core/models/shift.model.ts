@@ -1,3 +1,6 @@
+/**
+ * Employee shift work schedule type (morning, afternoon, evening, night).
+ */
 export type TypeShift = 'MATIN' | 'SOIR' | 'COUPURE' | 'NUIT' | 'CONGE';
 export type TypePoste = 'SERVEUR' | 'BARMAN' | 'CAISSE' | 'MANAGER';
 export type ShiftAuditAction = 'CREATED' | 'UPDATED' | 'DELETED';

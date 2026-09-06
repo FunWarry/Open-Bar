@@ -17,6 +17,9 @@ import { Cocktail, CocktailVariante } from '../../../../core/models/cocktail.mod
 import { CocktailService } from '../../../../core/services/cocktail.service';
 import { DashboardServeurService, ModifierCommandeRequest } from '../../services/dashboard-serveur.service';
 import { SearchableSelectComponent, SearchableOption } from '../../../../core/components/ui/searchable-select/searchable-select.component';
+/**
+ * Editable representation of an order item in the modal.
+ */
 
 export interface EditableOrderItem {
   id?: number;

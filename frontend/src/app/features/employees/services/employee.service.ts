@@ -3,6 +3,9 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { Employee } from '../models/employee.model';
+/**
+ * Service managing employee accounts and work shifts.
+ */
 
 @Injectable({ providedIn: 'root' })
 export class EmployeeService {
