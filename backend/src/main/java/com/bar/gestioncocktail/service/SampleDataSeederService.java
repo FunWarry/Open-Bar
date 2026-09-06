@@ -28,15 +28,19 @@ import java.time.ZoneId;
 import java.util.*;
 
 /**
- * Service responsible for automatically seeding a rich, complete demonstration dataset
- * (Users, Zones, Tables, Shifts, Shift Presets, Active Orders, Overdue Orders, Paid & Pending Invoices,
- * Split Settlements, Credit Notes, Stock Adjustments, and Schedule Publications)
- * from the JSON dataset file 'data/demo_dataset.json' on application startup in 'dev' and 'test' profiles.
+ * Service responsible for automatically seeding a rich, complete demonstration
+ * dataset
+ * (Users, Zones, Tables, Shifts, Shift Presets, Active Orders, Overdue Orders,
+ * Paid & Pending Invoices,
+ * Split Settlements, Credit Notes, Stock Adjustments, and Schedule
+ * Publications)
+ * from the JSON dataset file 'data/demo_dataset.json' on application startup in
+ * 'dev' and 'test' profiles.
  */
 @Service
 @Transactional
-@DependsOn({"glasswareDataSeederService", "cocktailDataSeederService"})
-@Profile({"dev", "test"})
+@DependsOn({ "glasswareDataSeederService", "cocktailDataSeederService" })
+@Profile({ "dev", "test" })
 public class SampleDataSeederService {
 
     private static final Logger log = LoggerFactory.getLogger(SampleDataSeederService.class);
@@ -61,6 +65,8 @@ public class SampleDataSeederService {
     private static final String KEY_REGLEMENTS = "reglements";
     private static final String SCRIPT_TAG = "<script>";
     private static final String KEY_TEST = "Test";
+    private static final String KEY_REASON = "reason";
+    private static final String KEY_QUANTITY = "quantity";
 
     private final UserRepository userRepository;
     private final TableRepository tableRepository;
@@ -89,10 +95,12 @@ public class SampleDataSeederService {
     private final CocktailDataSeederService cocktailDataSeederService;
     private final org.springframework.core.env.Environment environment;
     private final HappyHourRuleRepository happyHourRuleRepository;
+    private final StockMovementRepository stockMovementRepository;
     private final ObjectMapper objectMapper;
 
     /**
-     * Constructs the sample data seeder service with required repositories, services, and environment dependencies.
+     * Constructs the sample data seeder service with required repositories,
+     * services, and environment dependencies.
      */
     @org.springframework.beans.factory.annotation.Autowired
     public SampleDataSeederService(
@@ -122,7 +130,8 @@ public class SampleDataSeederService {
             PlatformTransactionManager transactionManager,
             CocktailDataSeederService cocktailDataSeederService,
             org.springframework.core.env.Environment environment,
-            HappyHourRuleRepository happyHourRuleRepository) {
+            HappyHourRuleRepository happyHourRuleRepository,
+            @org.springframework.beans.factory.annotation.Autowired(required = false) StockMovementRepository stockMovementRepository) {
         this.userRepository = userRepository;
         this.tableRepository = tableRepository;
         this.zoneRepository = zoneRepository;
@@ -150,6 +159,7 @@ public class SampleDataSeederService {
         this.cocktailDataSeederService = cocktailDataSeederService;
         this.environment = environment;
         this.happyHourRuleRepository = happyHourRuleRepository;
+        this.stockMovementRepository = stockMovementRepository;
         this.objectMapper = new ObjectMapper();
     }
 
@@ -188,12 +198,14 @@ public class SampleDataSeederService {
                 tableAppelRepository, tableSessionRepository, tableCartItemRepository,
                 appSettingsRepository, establishmentConfigRepository, jdbcTemplate,
                 passwordEncoder, timeService, transactionManager, cocktailDataSeederService,
-                environment, null);
+                environment, null, null);
     }
 
     /**
-     * Automatically executes demo dataset seeding on startup ONLY when running with the 'test' profile.
-     * In 'dev' and 'prod' profiles, automatic startup seeding is skipped to maintain a clean blank database.
+     * Automatically executes demo dataset seeding on startup ONLY when running with
+     * the 'test' profile.
+     * In 'dev' and 'prod' profiles, automatic startup seeding is skipped to
+     * maintain a clean blank database.
      */
     @PostConstruct
     public void seedDemoDataIfEmpty() {
@@ -201,7 +213,8 @@ public class SampleDataSeederService {
         cleanPollutedTestData();
 
         if (!isTestProfileActive()) {
-            log.info("Skipping automatic demo dataset startup seeding (active profile is not 'test'). Database remains clean.");
+            log.info(
+                    "Skipping automatic demo dataset startup seeding (active profile is not 'test'). Database remains clean.");
             return;
         }
 
@@ -213,34 +226,13 @@ public class SampleDataSeederService {
     private void migrateLegacySchemas() {
         if (jdbcTemplate != null) {
             safelyInTransaction(() -> {
-                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS primary_color VARCHAR(7) DEFAULT '#6c7fe8'");
-                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS primary_color_strong VARCHAR(7) DEFAULT '#5a68d6'");
-                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS logo_url VARCHAR(2048)");
-                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS establishment_name VARCHAR(100) DEFAULT 'OpenBar'");
-                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS default_theme VARCHAR(20) DEFAULT 'DARK'");
-                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS currency_code VARCHAR(3) DEFAULT 'EUR'");
-                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS currency_symbol VARCHAR(10) DEFAULT '€'");
-                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS currency_position VARCHAR(10) DEFAULT 'AFTER'");
-                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS temps_alerte_warning_minutes INTEGER DEFAULT 3");
-                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS temps_alerte_commande_minutes INTEGER DEFAULT 5");
-                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS temps_alerte_critique_commande_minutes INTEGER DEFAULT 10");
-                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS client_base_url VARCHAR(500) DEFAULT 'https://openbar.lan'");
-                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS wifi_ssid VARCHAR(100)");
-                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS wifi_password VARCHAR(100)");
-                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS wifi_security VARCHAR(20) DEFAULT 'WPA'");
-                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS wifi_enabled BOOLEAN DEFAULT false");
-                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS table_session_validation_enabled BOOLEAN DEFAULT false");
-                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS default_vat_rate DECIMAL(5,2) DEFAULT 20.00");
-                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS target_gross_margin_percentage DECIMAL(5,2) DEFAULT 70.00");
-                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS warning_gross_margin_percentage DECIMAL(5,2) DEFAULT 50.00");
-                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP");
-                jdbcTemplate.execute("ALTER TABLE establishment_config ADD COLUMN IF NOT EXISTS ticket_format VARCHAR(10) DEFAULT '80mm'");
             }, "migrateLegacySchemas");
         }
     }
 
     /**
-     * Purges leftover mock or XSS test records mistakenly persisted during local integration test runs.
+     * Purges leftover mock or XSS test records mistakenly persisted during local
+     * integration test runs.
      */
     public void cleanPollutedTestData() {
         safelyInTransaction(this::cleanPollutedOrders, "cleanPollutedOrders");
@@ -261,7 +253,10 @@ public class SampleDataSeederService {
     private void cleanPollutedTables() {
         try {
             List<TableEntity> testTables = tableRepository.findAll().stream()
-                    .filter(t -> t.getNumero() != null && (t.getNumero() == 999 || t.getNumero() == 99 || t.getNumero() == 88 || t.getNumero() >= 80 || (t.getZone() != null && (t.getZone().contains(SCRIPT_TAG) || t.getZone().contains(KEY_TEST)))))
+                    .filter(t -> t.getNumero() != null && (t.getNumero() == 999 || t.getNumero() == 99
+                            || t.getNumero() == 88 || t.getNumero() >= 80
+                            || (t.getZone() != null
+                                    && (t.getZone().contains(SCRIPT_TAG) || t.getZone().contains(KEY_TEST)))))
                     .toList();
             if (!testTables.isEmpty()) {
                 log.info("Cleaning up {} polluted test tables from development database...", testTables.size());
@@ -305,7 +300,8 @@ public class SampleDataSeederService {
             }
 
             if (!duplicatesToDelete.isEmpty()) {
-                log.info("Cleaning up {} duplicate table records from development database...", duplicatesToDelete.size());
+                log.info("Cleaning up {} duplicate table records from development database...",
+                        duplicatesToDelete.size());
                 factureRepository.flush();
                 commandeRepository.flush();
                 tableAppelRepository.flush();
@@ -323,7 +319,8 @@ public class SampleDataSeederService {
             return;
         }
         safelyExecute(() -> factureRepository.detachTableFromFactures(tableId), "detach factures for table " + tableId);
-        safelyExecute(() -> commandeRepository.detachTableFromCommandes(tableId), "detach commandes for table " + tableId);
+        safelyExecute(() -> commandeRepository.detachTableFromCommandes(tableId),
+                "detach commandes for table " + tableId);
         safelyExecute(() -> tableAppelRepository.deleteByTableId(tableId), "delete appels for table " + tableId);
         safelyExecute(() -> tableSessionRepository.deleteByTableId(tableId), "delete sessions for table " + tableId);
     }
@@ -339,7 +336,8 @@ public class SampleDataSeederService {
     private void cleanPollutedZones() {
         try {
             List<ZoneEntity> testZones = zoneRepository.findAll().stream()
-                    .filter(z -> z.getNom() != null && (z.getNom().contains(SCRIPT_TAG) || z.getNom().contains(KEY_TEST)))
+                    .filter(z -> z.getNom() != null
+                            && (z.getNom().contains(SCRIPT_TAG) || z.getNom().contains(KEY_TEST)))
                     .toList();
             if (!testZones.isEmpty()) {
                 log.info("Cleaning up {} polluted test zones from development database...", testZones.size());
@@ -354,7 +352,8 @@ public class SampleDataSeederService {
     private void cleanPollutedCocktails() {
         try {
             List<Cocktail> testCocktails = cocktailRepository.findAll().stream()
-                    .filter(c -> c.getNom() != null && (c.getNom().contains(SCRIPT_TAG) || c.getNom().equals("Spicy Mezcal")))
+                    .filter(c -> c.getNom() != null
+                            && (c.getNom().contains(SCRIPT_TAG) || c.getNom().equals("Spicy Mezcal")))
                     .toList();
             if (!testCocktails.isEmpty()) {
                 log.info("Cleaning up {} polluted test cocktails from development database...", testCocktails.size());
@@ -371,7 +370,8 @@ public class SampleDataSeederService {
                     .filter(i -> i.getNom() != null && i.getNom().contains(SCRIPT_TAG))
                     .toList();
             if (!testIngredients.isEmpty()) {
-                log.info("Cleaning up {} polluted test ingredients from development database...", testIngredients.size());
+                log.info("Cleaning up {} polluted test ingredients from development database...",
+                        testIngredients.size());
                 ingredientRepository.deleteAll(testIngredients);
             }
         } catch (Exception e) {
@@ -385,7 +385,8 @@ public class SampleDataSeederService {
                     .filter(c -> c.getItems() == null || c.getItems().isEmpty())
                     .toList();
             if (!emptyOrders.isEmpty()) {
-                log.info("Cleaning up {} empty test orders without items from development database...", emptyOrders.size());
+                log.info("Cleaning up {} empty test orders without items from development database...",
+                        emptyOrders.size());
                 commandeRepository.deleteAll(emptyOrders);
                 commandeRepository.flush();
             }
@@ -422,22 +423,34 @@ public class SampleDataSeederService {
             safelyInTransaction(() -> seedShiftPresetsFromJson(root.get("shift_presets")), "seedShiftPresets");
             safelyInTransaction(() -> seedShiftsFromJson(root.get("shifts"), usersMap), "seedShifts");
             safelyInTransaction(() -> seedClosuresFromJson(root.get("closures")), "seedClosures");
-            safelyInTransaction(() -> seedWeekPublicationsFromJson(root.get("week_publications")), "seedWeekPublications");
+            safelyInTransaction(() -> seedWeekPublicationsFromJson(root.get("week_publications")),
+                    "seedWeekPublications");
 
             final Map<String, RecipeStepTemplate> templatesMap = new HashMap<>();
-            safelyInTransaction(() -> templatesMap.putAll(seedRecipeStepTemplatesFromJson(root.get("recipe_step_templates"))), "seedRecipeStepTemplates");
-            safelyInTransaction(() -> seedCocktailRecipeStepsFromJson(root.get("cocktail_recipe_steps"), templatesMap), "seedCocktailRecipeSteps");
-            safelyInTransaction(() -> seedStockAdjustmentsFromJson(root.get("stock_adjustments")), "seedStockAdjustments");
+            safelyInTransaction(
+                    () -> templatesMap.putAll(seedRecipeStepTemplatesFromJson(root.get("recipe_step_templates"))),
+                    "seedRecipeStepTemplates");
+            safelyInTransaction(() -> seedCocktailRecipeStepsFromJson(root.get("cocktail_recipe_steps"), templatesMap),
+                    "seedCocktailRecipeSteps");
+            safelyInTransaction(() -> seedStockAdjustmentsFromJson(root.get("stock_adjustments")),
+                    "seedStockAdjustments");
+            safelyInTransaction(() -> seedStockMovementsFromJson(root.get("stock_movements"), usersMap),
+                    "seedStockMovements");
             safelyInTransaction(() -> seedTableAppelsFromJson(root.get("table_appels"), tablesMap), "seedTableAppels");
-            safelyInTransaction(() -> seedTableSessionsFromJson(root.get("table_sessions"), tablesMap), "seedTableSessions");
+            safelyInTransaction(() -> seedTableSessionsFromJson(root.get("table_sessions"), tablesMap),
+                    "seedTableSessions");
             safelyInTransaction(this::seedSettingsAndConfig, "seedSettingsAndConfig");
 
             List<Cocktail> cocktails = cocktailRepository.findAll();
             if (!cocktails.isEmpty()) {
-                safelyInTransaction(() -> seedOrdersFromJson(root.get("orders"), usersMap, tablesMap, cocktails), "seedOrders");
-                safelyInTransaction(() -> seedTableCartItemsFromJson(root.get("table_cart_items"), tablesMap, cocktails), "seedTableCartItems");
+                safelyInTransaction(() -> seedOrdersFromJson(root.get("orders"), usersMap, tablesMap, cocktails),
+                        "seedOrders");
+                safelyInTransaction(
+                        () -> seedTableCartItemsFromJson(root.get("table_cart_items"), tablesMap, cocktails),
+                        "seedTableCartItems");
             }
-            safelyInTransaction(() -> seedHappyHourRulesFromJson(root.get("happy_hour_rules"), cocktails), "seedHappyHourRules");
+            safelyInTransaction(() -> seedHappyHourRulesFromJson(root.get("happy_hour_rules"), cocktails),
+                    "seedHappyHourRules");
             safelyInTransaction(() -> seedInvoicesFromJson(root.get("invoices"), tablesMap), "seedInvoices");
             safelyInTransaction(() -> seedAvoirsCreditFromJson(root.get("avoirs_credit")), "seedAvoirsCredit");
 
@@ -466,18 +479,21 @@ public class SampleDataSeederService {
         ClassLoader contextCL = Thread.currentThread().getContextClassLoader();
         if (contextCL != null) {
             InputStream is = contextCL.getResourceAsStream(DATASET_PATH);
-            if (is != null) return is;
+            if (is != null)
+                return is;
         }
 
         InputStream is = SampleDataSeederService.class.getClassLoader().getResourceAsStream(DATASET_PATH);
-        if (is != null) return is;
+        if (is != null)
+            return is;
 
         return SampleDataSeederService.class.getResourceAsStream("/" + DATASET_PATH);
     }
 
     private Map<String, User> seedUsersFromJson(JsonNode usersNode) {
         Map<String, User> usersMap = new HashMap<>();
-        if (usersNode == null || !usersNode.isArray()) return usersMap;
+        if (usersNode == null || !usersNode.isArray())
+            return usersMap;
 
         for (JsonNode uNode : usersNode) {
             String username = uNode.get("username").asText();
@@ -536,7 +552,8 @@ public class SampleDataSeederService {
     }
 
     private void seedEtagesFromJson(JsonNode etagesNode) {
-        if (etagesNode == null || !etagesNode.isArray()) return;
+        if (etagesNode == null || !etagesNode.isArray())
+            return;
 
         for (JsonNode eNode : etagesNode) {
             String code = eNode.get("code").asText();
@@ -555,7 +572,8 @@ public class SampleDataSeederService {
     }
 
     private void seedZonesFromJson(JsonNode zonesNode) {
-        if (zonesNode == null || !zonesNode.isArray()) return;
+        if (zonesNode == null || !zonesNode.isArray())
+            return;
 
         for (JsonNode zNode : zonesNode) {
             String nom = zNode.get("nom").asText();
@@ -584,7 +602,8 @@ public class SampleDataSeederService {
 
     private Map<Integer, TableEntity> seedTablesFromJson(JsonNode tablesNode, Map<String, User> usersMap) {
         Map<Integer, TableEntity> tablesMap = new HashMap<>();
-        if (tablesNode == null || !tablesNode.isArray()) return tablesMap;
+        if (tablesNode == null || !tablesNode.isArray())
+            return tablesMap;
 
         for (JsonNode tNode : tablesNode) {
             TableEntity table = createOrUpdateTableFromNode(tNode, usersMap);
@@ -598,7 +617,8 @@ public class SampleDataSeederService {
         String zone = tNode.get("zone").asText();
         int capacite = tNode.get("capacite").asInt();
         boolean occupee = tNode.get("occupee").asBoolean();
-        String serveurUsername = tNode.hasNonNull(KEY_SERVEUR_USERNAME) ? tNode.get(KEY_SERVEUR_USERNAME).asText() : null;
+        String serveurUsername = tNode.hasNonNull(KEY_SERVEUR_USERNAME) ? tNode.get(KEY_SERVEUR_USERNAME).asText()
+                : null;
         Double planX = tNode.get(PLAN_X).asDouble();
         Double planY = tNode.get(PLAN_Y).asDouble();
         String planForme = tNode.get("planForme").asText();
@@ -637,7 +657,8 @@ public class SampleDataSeederService {
     }
 
     private void seedShiftPresetsFromJson(JsonNode presetsNode) {
-        if (presetsNode == null || !presetsNode.isArray() || shiftPresetRepository.count() > 0) return;
+        if (presetsNode == null || !presetsNode.isArray() || shiftPresetRepository.count() > 0)
+            return;
 
         for (JsonNode pNode : presetsNode) {
             TypeShift type = TypeShift.valueOf(pNode.get("typeShift").asText());
@@ -664,11 +685,12 @@ public class SampleDataSeederService {
             int dureePause,
             BigDecimal heuresPrevues,
             BigDecimal heuresEffectuees,
-            BigDecimal heuresSup
-    ) {}
+            BigDecimal heuresSup) {
+    }
 
     private void seedShiftsFromJson(JsonNode shiftsNode, Map<String, User> usersMap) {
-        if (shiftsNode == null || !shiftsNode.isArray()) return;
+        if (shiftsNode == null || !shiftsNode.isArray())
+            return;
 
         LocalDate today = LocalDate.now(ZoneId.systemDefault());
         LocalDate monday = today.minusDays((long) today.getDayOfWeek().getValue() - 1);
@@ -678,10 +700,12 @@ public class SampleDataSeederService {
         }
     }
 
-    private void seedSingleShiftFromJson(JsonNode sNode, Map<String, User> usersMap, LocalDate monday, LocalDate today) {
+    private void seedSingleShiftFromJson(JsonNode sNode, Map<String, User> usersMap, LocalDate monday,
+            LocalDate today) {
         String username = sNode.get("username").asText();
         User user = usersMap.get(username);
-        if (user == null) return;
+        if (user == null)
+            return;
 
         LocalDate shiftDate = resolveShiftDate(sNode, monday, today);
         TypeShift shiftType = TypeShift.valueOf(sNode.get("shiftType").asText());
@@ -690,8 +714,11 @@ public class SampleDataSeederService {
         String heureFin = sNode.get("heureFin").asText();
         String heurePauseDebut = sNode.hasNonNull("heurePauseDebut") ? sNode.get("heurePauseDebut").asText() : "13:00";
         int dureePause = sNode.hasNonNull(KEY_DUREE_PAUSE_MINUTES) ? sNode.get(KEY_DUREE_PAUSE_MINUTES).asInt() : 30;
-        BigDecimal heuresPrevues = new BigDecimal(sNode.hasNonNull("heuresPrevues") ? sNode.get("heuresPrevues").asText() : "7.50");
-        BigDecimal heuresEffectuees = new BigDecimal(sNode.hasNonNull("heuresEffectuees") ? sNode.get("heuresEffectuees").asText() : heuresPrevues.toString());
+        BigDecimal heuresPrevues = new BigDecimal(
+                sNode.hasNonNull("heuresPrevues") ? sNode.get("heuresPrevues").asText() : "7.50");
+        BigDecimal heuresEffectuees = new BigDecimal(
+                sNode.hasNonNull("heuresEffectuees") ? sNode.get("heuresEffectuees").asText()
+                        : heuresPrevues.toString());
         BigDecimal heuresSup = new BigDecimal(sNode.hasNonNull("heuresSup") ? sNode.get("heuresSup").asText() : "0.00");
         String notes = sNode.hasNonNull(KEY_NOTES) ? sNode.get(KEY_NOTES).asText() : "Planning hebdo démo";
 
@@ -699,7 +726,8 @@ public class SampleDataSeederService {
                 .anyMatch(s -> s.getDateShift().equals(shiftDate) && s.getTypeShift() == shiftType);
 
         if (!exists) {
-            createAndSaveShift(user, new ShiftSeedDetail(shiftDate, shiftType, poste, heureDebut, heureFin, heurePauseDebut, dureePause, heuresPrevues, heuresEffectuees, heuresSup), notes);
+            createAndSaveShift(user, new ShiftSeedDetail(shiftDate, shiftType, poste, heureDebut, heureFin,
+                    heurePauseDebut, dureePause, heuresPrevues, heuresEffectuees, heuresSup), notes);
         }
     }
 
@@ -711,15 +739,18 @@ public class SampleDataSeederService {
     }
 
     private void seedClosuresFromJson(JsonNode closuresNode) {
-        if (closuresNode == null || !closuresNode.isArray() || establishmentClosureRepository.count() > 0) return;
+        if (closuresNode == null || !closuresNode.isArray() || establishmentClosureRepository.count() > 0)
+            return;
 
         for (JsonNode cNode : closuresNode) {
             ClosureType type = ClosureType.valueOf(cNode.get("type").asText());
-            DayOfWeek day = cNode.hasNonNull(KEY_DAY_OF_WEEK) ? DayOfWeek.valueOf(cNode.get(KEY_DAY_OF_WEEK).asText()) : null;
-            LocalDate closureDate = cNode.hasNonNull("closureDate") ? LocalDate.parse(cNode.get("closureDate").asText()) : null;
+            DayOfWeek day = cNode.hasNonNull(KEY_DAY_OF_WEEK) ? DayOfWeek.valueOf(cNode.get(KEY_DAY_OF_WEEK).asText())
+                    : null;
+            LocalDate closureDate = cNode.hasNonNull("closureDate") ? LocalDate.parse(cNode.get("closureDate").asText())
+                    : null;
             LocalDate endDate = cNode.hasNonNull("endDate") ? LocalDate.parse(cNode.get("endDate").asText()) : null;
             boolean isAnnual = cNode.hasNonNull("isAnnualRecurring") && cNode.get("isAnnualRecurring").asBoolean();
-            String reason = cNode.hasNonNull("reason") ? cNode.get("reason").asText() : "Fermeture planifiée";
+            String reason = cNode.hasNonNull(KEY_REASON) ? cNode.get(KEY_REASON).asText() : "Fermeture planifiée";
 
             EstablishmentClosure closure = new EstablishmentClosure(type, day, closureDate, endDate, isAnnual, reason);
             establishmentClosureRepository.save(closure);
@@ -728,7 +759,8 @@ public class SampleDataSeederService {
     }
 
     private void seedWeekPublicationsFromJson(JsonNode pubsNode) {
-        if (pubsNode == null || !pubsNode.isArray() || weekSchedulePublicationRepository.count() > 0) return;
+        if (pubsNode == null || !pubsNode.isArray() || weekSchedulePublicationRepository.count() > 0)
+            return;
 
         LocalDate today = LocalDate.now(ZoneId.systemDefault());
         LocalDate monday = today.minusDays((long) today.getDayOfWeek().getValue() - 1);
@@ -740,7 +772,8 @@ public class SampleDataSeederService {
             String snapshotJson = pNode.hasNonNull("snapshotJson") ? pNode.get("snapshotJson").asText() : "{}";
 
             if (weekSchedulePublicationRepository.findByWeekStart(weekStart).isEmpty()) {
-                WeekSchedulePublication pub = new WeekSchedulePublication(weekStart, timeService.now(), publishedBy, snapshotJson);
+                WeekSchedulePublication pub = new WeekSchedulePublication(weekStart, timeService.now(), publishedBy,
+                        snapshotJson);
                 weekSchedulePublicationRepository.save(pub);
                 log.trace("Week publication seeded for week: {}", weekStart);
             }
@@ -767,7 +800,8 @@ public class SampleDataSeederService {
     }
 
     private void seedStockAdjustmentsFromJson(JsonNode adjustmentsNode) {
-        if (adjustmentsNode == null || !adjustmentsNode.isArray()) return;
+        if (adjustmentsNode == null || !adjustmentsNode.isArray())
+            return;
 
         for (JsonNode aNode : adjustmentsNode) {
             String ingName = aNode.get("nom").asText();
@@ -783,17 +817,79 @@ public class SampleDataSeederService {
         }
     }
 
-    private void seedOrdersFromJson(JsonNode ordersNode, Map<String, User> usersMap, Map<Integer, TableEntity> tablesMap, List<Cocktail> cocktails) {
-        if (ordersNode == null || !ordersNode.isArray()) return;
+    private void seedStockMovementsFromJson(JsonNode movementsNode, Map<String, User> usersMap) {
+        if (movementsNode == null || !movementsNode.isArray() || stockMovementRepository == null || stockMovementRepository.count() > 0) {
+            return;
+        }
+
+        for (JsonNode mNode : movementsNode) {
+            buildStockMovementFromNode(mNode, usersMap).ifPresent(movement -> {
+                stockMovementRepository.save(movement);
+                log.trace("Stock waste movement seeded for ingredient {} ({})",
+                        movement.getIngredient().getNom(), movement.getReason());
+            });
+        }
+    }
+
+    private Optional<StockMovement> buildStockMovementFromNode(JsonNode mNode, Map<String, User> usersMap) {
+        if (!mNode.hasNonNull("ingredientNom")) {
+            return Optional.empty();
+        }
+
+        String ingNom = mNode.get("ingredientNom").asText();
+        Optional<Ingredient> ingOpt = ingredientRepository.findByNomIgnoreCase(ingNom);
+        if (ingOpt.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Ingredient ing = ingOpt.get();
+        BigDecimal qty = new BigDecimal(mNode.get(KEY_QUANTITY).asText());
+        String unit = mNode.hasNonNull("unit") ? mNode.get("unit").asText() : ing.getUniteMesure();
+        StockWasteReason reason = StockWasteReason.valueOf(mNode.get(KEY_REASON).asText());
+        String username = mNode.hasNonNull("reportedByUsername") ? mNode.get("reportedByUsername").asText() : null;
+        User reportedBy = username != null ? usersMap.get(username) : null;
+        String notes = mNode.hasNonNull(KEY_NOTES) ? mNode.get(KEY_NOTES).asText() : null;
+
+        BigDecimal cost = resolveMovementCost(mNode, qty, ing);
+        int minutesAgo = mNode.hasNonNull(KEY_MINUTES_AGO) ? mNode.get(KEY_MINUTES_AGO).asInt() : 60;
+        LocalDateTime recordedAt = timeService.now().minusMinutes(minutesAgo);
+
+        StockMovement movement = new StockMovement();
+        movement.setIngredient(ing);
+        movement.setQuantity(qty);
+        movement.setUnit(unit);
+        movement.setReason(reason);
+        movement.setReportedBy(reportedBy);
+        movement.setNotes(notes);
+        movement.setCost(cost);
+        movement.setRecordedAt(recordedAt);
+
+        return Optional.of(movement);
+    }
+
+    private BigDecimal resolveMovementCost(JsonNode mNode, BigDecimal qty, Ingredient ing) {
+        if (mNode.hasNonNull("cost")) {
+            return new BigDecimal(mNode.get("cost").asText());
+        }
+        BigDecimal unitPrice = ing.getPrixUnitaire() != null ? ing.getPrixUnitaire() : BigDecimal.ZERO;
+        return qty.multiply(unitPrice).setScale(2, RoundingMode.HALF_UP);
+    }
+
+    private void seedOrdersFromJson(JsonNode ordersNode, Map<String, User> usersMap,
+            Map<Integer, TableEntity> tablesMap, List<Cocktail> cocktails) {
+        if (ordersNode == null || !ordersNode.isArray())
+            return;
 
         for (JsonNode oNode : ordersNode) {
             createSingleOrderFromJson(oNode, usersMap, tablesMap, cocktails);
         }
     }
 
-    private void createSingleOrderFromJson(JsonNode oNode, Map<String, User> usersMap, Map<Integer, TableEntity> tablesMap, List<Cocktail> cocktails) {
+    private void createSingleOrderFromJson(JsonNode oNode, Map<String, User> usersMap,
+            Map<Integer, TableEntity> tablesMap, List<Cocktail> cocktails) {
         int tableNumero = oNode.get(KEY_TABLE_NUMERO).asInt();
-        String serveurUsername = oNode.hasNonNull(KEY_SERVEUR_USERNAME) ? oNode.get(KEY_SERVEUR_USERNAME).asText() : null;
+        String serveurUsername = oNode.hasNonNull(KEY_SERVEUR_USERNAME) ? oNode.get(KEY_SERVEUR_USERNAME).asText()
+                : null;
         CommandeStatut statut = CommandeStatut.valueOf(oNode.get("statut").asText());
         int minutesAgo = oNode.get(KEY_MINUTES_AGO).asInt();
         String trackingToken = oNode.hasNonNull("trackingToken") ? oNode.get("trackingToken").asText() : null;
@@ -803,7 +899,8 @@ public class SampleDataSeederService {
         User serveur = serveurUsername != null ? usersMap.get(serveurUsername) : null;
         LocalDateTime orderTime = timeService.now().minusMinutes(minutesAgo);
 
-        Commande commande = (trackingToken != null ? commandeRepository.findByTrackingToken(trackingToken) : Optional.<Commande>empty())
+        Commande commande = (trackingToken != null ? commandeRepository.findByTrackingToken(trackingToken)
+                : Optional.<Commande>empty())
                 .orElseGet(Commande::new);
         commande.setTable(table);
         commande.setServeur(serveur);
@@ -852,7 +949,8 @@ public class SampleDataSeederService {
 
     private List<CommandeItem> parseOrderItems(Commande order, JsonNode itemsNode, List<Cocktail> cocktails) {
         List<CommandeItem> items = new ArrayList<>();
-        if (itemsNode == null || !itemsNode.isArray()) return items;
+        if (itemsNode == null || !itemsNode.isArray())
+            return items;
 
         for (JsonNode itemNode : itemsNode) {
             String cocktailName = itemNode.get("cocktailName").asText();
@@ -876,7 +974,8 @@ public class SampleDataSeederService {
     }
 
     private void seedInvoicesFromJson(JsonNode invoicesNode, Map<Integer, TableEntity> tablesMap) {
-        if (invoicesNode == null || !invoicesNode.isArray()) return;
+        if (invoicesNode == null || !invoicesNode.isArray())
+            return;
 
         for (JsonNode invNode : invoicesNode) {
             createSingleInvoiceFromJson(invNode, tablesMap);
@@ -888,7 +987,8 @@ public class SampleDataSeederService {
         int tableNumero = invNode.get(KEY_TABLE_NUMERO).asInt();
         boolean reglee = invNode.get("reglee").asBoolean();
         String modePaiement = invNode.hasNonNull(KEY_MODE_PAIEMENT) ? invNode.get(KEY_MODE_PAIEMENT).asText() : null;
-        BigDecimal pourboire = invNode.has(KEY_POURBOIRE) ? new BigDecimal(invNode.get(KEY_POURBOIRE).asText()) : BigDecimal.ZERO;
+        BigDecimal pourboire = invNode.has(KEY_POURBOIRE) ? new BigDecimal(invNode.get(KEY_POURBOIRE).asText())
+                : BigDecimal.ZERO;
         int minutesAgo = invNode.get(KEY_MINUTES_AGO).asInt();
         String notes = invNode.hasNonNull(KEY_NOTES) ? invNode.get(KEY_NOTES).asText() : null;
 
@@ -896,7 +996,8 @@ public class SampleDataSeederService {
         LocalDateTime invoiceTime = timeService.now().minusMinutes(minutesAgo);
 
         Facture f = factureRepository.findByNumero(numero)
-                .orElseGet(() -> buildInvoiceEntity(table, numero, reglee, modePaiement, pourboire, invoiceTime, notes));
+                .orElseGet(
+                        () -> buildInvoiceEntity(table, numero, reglee, modePaiement, pourboire, invoiceTime, notes));
         f.setTable(table);
         f.setReglee(reglee);
         f.setModePaiement(modePaiement);
@@ -919,12 +1020,14 @@ public class SampleDataSeederService {
         f.setTotalTTC(total);
         Facture savedFacture = factureRepository.save(f);
 
-        if (invNode.has(KEY_REGLEMENTS) && invNode.get(KEY_REGLEMENTS).isArray() && savedFacture.getReglements().isEmpty()) {
+        if (invNode.has(KEY_REGLEMENTS) && invNode.get(KEY_REGLEMENTS).isArray()
+                && savedFacture.getReglements().isEmpty()) {
             seedInvoiceReglements(savedFacture, invNode.get(KEY_REGLEMENTS), invoiceTime);
         }
     }
 
-    private Facture buildInvoiceEntity(TableEntity table, String numero, boolean reglee, String modePaiement, BigDecimal pourboire, LocalDateTime invoiceTime, String notes) {
+    private Facture buildInvoiceEntity(TableEntity table, String numero, boolean reglee, String modePaiement,
+            BigDecimal pourboire, LocalDateTime invoiceTime, String notes) {
         Facture f = new Facture();
         f.setTable(table);
         f.setNumero(numero);
@@ -956,7 +1059,8 @@ public class SampleDataSeederService {
             fr.setPartIndex(rNode.get("partIndex").asInt());
             fr.setTotalParts(rNode.has("totalParts") ? rNode.get("totalParts").asInt() : null);
             BigDecimal partMontant = new BigDecimal(rNode.get("montant").asText());
-            BigDecimal partPourboire = rNode.has(KEY_POURBOIRE) ? new BigDecimal(rNode.get(KEY_POURBOIRE).asText()) : BigDecimal.ZERO;
+            BigDecimal partPourboire = rNode.has(KEY_POURBOIRE) ? new BigDecimal(rNode.get(KEY_POURBOIRE).asText())
+                    : BigDecimal.ZERO;
             fr.setMontant(partMontant);
             fr.setPourboire(partPourboire);
             fr.setTotalRegle(partMontant.add(partPourboire));
@@ -973,7 +1077,8 @@ public class SampleDataSeederService {
     }
 
     private void seedAvoirsCreditFromJson(JsonNode avoirsNode) {
-        if (avoirsNode == null || !avoirsNode.isArray()) return;
+        if (avoirsNode == null || !avoirsNode.isArray())
+            return;
 
         for (JsonNode aNode : avoirsNode) {
             String invoiceNumber = aNode.get("factureNumero").asText();
@@ -1024,7 +1129,8 @@ public class SampleDataSeederService {
 
                 if (latestOrder != null && latestOrder.getItems() != null) {
                     latestOrder.getItems().stream()
-                            .filter(ci -> ci.getCocktail() != null && ci.getCocktail().getNom().equalsIgnoreCase(description))
+                            .filter(ci -> ci.getCocktail() != null
+                                    && ci.getCocktail().getNom().equalsIgnoreCase(description))
                             .findFirst()
                             .ifPresent(fi::setCommandeItem);
                 }
@@ -1045,10 +1151,12 @@ public class SampleDataSeederService {
 
     private VatRate resolveInvoiceItemVatRate(String description) {
         String lower = description.toLowerCase();
-        if (lower.contains("planche") || lower.contains("nachos") || lower.contains("frites") || lower.contains("snack")) {
+        if (lower.contains("planche") || lower.contains("nachos") || lower.contains("frites")
+                || lower.contains("snack")) {
             return VatRate.FIVE_FIVE;
         }
-        if (lower.contains("virgin") || lower.contains("jus") || lower.contains("eau") || lower.contains("coca") || lower.contains("limonade")) {
+        if (lower.contains("virgin") || lower.contains("jus") || lower.contains("eau") || lower.contains("coca")
+                || lower.contains("limonade")) {
             return VatRate.TEN;
         }
         return VatRate.TWENTY;
@@ -1063,12 +1171,13 @@ public class SampleDataSeederService {
 
     private Map<String, RecipeStepTemplate> seedRecipeStepTemplatesFromJson(JsonNode templatesNode) {
         Map<String, RecipeStepTemplate> map = new HashMap<>();
-        if (templatesNode == null || !templatesNode.isArray()) return map;
+        if (templatesNode == null || !templatesNode.isArray())
+            return map;
 
         for (JsonNode node : templatesNode) {
             String name = node.get("name").asText();
             RecipeStepTemplate template = recipeStepTemplateRepository.findByName(name)
-                .orElseGet(() -> createTemplateFromNode(node, name));
+                    .orElseGet(() -> createTemplateFromNode(node, name));
             map.put(name, template);
         }
         return map;
@@ -1078,7 +1187,8 @@ public class SampleDataSeederService {
         RecipeStepTemplate t = new RecipeStepTemplate();
         t.setName(name);
         t.setActionType(RecipeStepActionType.valueOf(node.get("actionType").asText()));
-        t.setDefaultDurationSeconds(node.has("defaultDurationSeconds") ? node.get("defaultDurationSeconds").asInt() : 0);
+        t.setDefaultDurationSeconds(
+                node.has("defaultDurationSeconds") ? node.get("defaultDurationSeconds").asInt() : 0);
         t.setIcon(node.has("icon") ? node.get("icon").asText() : null);
         t.setDescription(node.has(KEY_DESCRIPTION) ? node.get(KEY_DESCRIPTION).asText() : null);
         t.setPredefined(node.has("isPredefined") && node.get("isPredefined").asBoolean());
@@ -1087,8 +1197,10 @@ public class SampleDataSeederService {
         return recipeStepTemplateRepository.save(t);
     }
 
-    private void seedCocktailRecipeStepsFromJson(JsonNode cocktailStepsNode, Map<String, RecipeStepTemplate> templatesMap) {
-        if (cocktailStepsNode == null || !cocktailStepsNode.isArray()) return;
+    private void seedCocktailRecipeStepsFromJson(JsonNode cocktailStepsNode,
+            Map<String, RecipeStepTemplate> templatesMap) {
+        if (cocktailStepsNode == null || !cocktailStepsNode.isArray())
+            return;
 
         for (JsonNode cocktailNode : cocktailStepsNode) {
             seedSingleCocktailSteps(cocktailNode, templatesMap);
@@ -1098,7 +1210,8 @@ public class SampleDataSeederService {
     private void seedSingleCocktailSteps(JsonNode cocktailNode, Map<String, RecipeStepTemplate> templatesMap) {
         String cocktailName = cocktailNode.get("cocktailName").asText();
         Cocktail cocktail = cocktailRepository.findByNomIgnoreCaseWithRecipeSteps(cocktailName).orElse(null);
-        if (cocktail == null) return;
+        if (cocktail == null)
+            return;
 
         JsonNode stepsNode = cocktailNode.get("steps");
         if (stepsNode == null || !stepsNode.isArray()) {
@@ -1118,7 +1231,8 @@ public class SampleDataSeederService {
         cocktailRepository.save(cocktail);
     }
 
-    private CocktailRecipeStep buildSingleRecipeStep(Cocktail cocktail, JsonNode stepNode, Map<String, RecipeStepTemplate> templatesMap) {
+    private CocktailRecipeStep buildSingleRecipeStep(Cocktail cocktail, JsonNode stepNode,
+            Map<String, RecipeStepTemplate> templatesMap) {
         CocktailRecipeStep step = new CocktailRecipeStep();
         step.setCocktail(cocktail);
         step.setStepOrder(stepNode.get("stepOrder").asInt());
@@ -1145,7 +1259,8 @@ public class SampleDataSeederService {
         }
         if (stepNode.has("templateName")) {
             String tplName = stepNode.get("templateName").asText();
-            RecipeStepTemplate tpl = templatesMap.getOrDefault(tplName, recipeStepTemplateRepository.findByName(tplName).orElse(null));
+            RecipeStepTemplate tpl = templatesMap.getOrDefault(tplName,
+                    recipeStepTemplateRepository.findByName(tplName).orElse(null));
             step.setTemplate(tpl);
         }
         step.setCreatedAt(timeService.now());
@@ -1227,7 +1342,8 @@ public class SampleDataSeederService {
         log.info("Seeded ephemeral table sessions from demo dataset.");
     }
 
-    private void seedTableCartItemsFromJson(JsonNode cartItemsNode, Map<Integer, TableEntity> tablesMap, List<Cocktail> cocktails) {
+    private void seedTableCartItemsFromJson(JsonNode cartItemsNode, Map<Integer, TableEntity> tablesMap,
+            List<Cocktail> cocktails) {
         if (cartItemsNode == null || !cartItemsNode.isArray() || tableCartItemRepository.count() > 0) {
             return;
         }

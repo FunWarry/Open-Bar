@@ -2,10 +2,11 @@ import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { ComponentFixture } from '@angular/core/testing';
 import { CommonModule } from '@angular/common';
 import { of, throwError, Subject, EMPTY } from 'rxjs';
-import { ToastController } from '@ionic/angular/standalone';
+import { ToastController, ModalController } from '@ionic/angular/standalone';
 import { provideRouter } from '@angular/router';
 import { DashboardManagerComponent } from '../../../app/features/dashboard-manager/dashboard-manager.component';
 import { DashboardManagerService } from '../../../app/features/dashboard-manager/services/dashboard-manager.service';
+import { StockWasteService } from '../../../app/core/services/stock-waste.service';
 import { DashboardStats, TopCocktail } from '../../../app/features/dashboard-manager/models/dashboard-stats.model';
 import { NotificationService } from '../../../app/core/services/notification.service';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
@@ -36,6 +37,8 @@ describe('DashboardManagerComponent', () => {
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
   let notificationSubject$: Subject<any>;
   let stockAlertSubject$: Subject<any>;
+  let stockWasteServiceSpy: jasmine.SpyObj<any>;
+  let modalCtrlSpy: jasmine.SpyObj<any>;
 
   beforeEach(async () => {
     notificationSubject$ = new Subject<any>();
@@ -56,6 +59,51 @@ describe('DashboardManagerComponent', () => {
     notificationServiceSpy.onNotification.and.returnValue(notificationSubject$.asObservable());
     notificationServiceSpy.onStockAlert.and.returnValue(stockAlertSubject$.asObservable());
 
+    stockWasteServiceSpy = jasmine.createSpyObj('StockWasteService', [
+      'getWasteSummary',
+      'getMovements',
+      'recordWaste'
+    ]);
+    stockWasteServiceSpy.getWasteSummary.and.returnValue(of({
+      totalMovements: 4,
+      totalLossValue: 24.50,
+      totalQuantityLost: 12,
+      lossValueByReason: {
+        CASSE: 14.50,
+        PEREMPTION: 10.00,
+        OFFERT_PATRON: 0,
+        DEGUSTATION_STAFF: 0,
+        ERREUR_PREPARATION: 0
+      },
+      countByReason: {
+        CASSE: 2,
+        PEREMPTION: 2,
+        OFFERT_PATRON: 0,
+        DEGUSTATION_STAFF: 0,
+        ERREUR_PREPARATION: 0
+      }
+    }));
+    stockWasteServiceSpy.getMovements.and.returnValue(of([
+      {
+        id: 1,
+        ingredientId: 10,
+        ingredientNom: 'Vodka',
+        quantity: 2,
+        unit: 'cl',
+        reason: 'CASSE',
+        reportedByUsername: 'barman1',
+        cost: 4.00,
+        recordedAt: '2026-09-06T15:00:00Z'
+      }
+    ]));
+
+    const modalSpyObj = {
+      present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+      onDidDismiss: jasmine.createSpy('onDidDismiss').and.returnValue(Promise.resolve({ role: 'saved' }))
+    };
+    modalCtrlSpy = jasmine.createSpyObj('ModalController', ['create', 'dismiss']);
+    modalCtrlSpy.create.and.returnValue(Promise.resolve(modalSpyObj));
+
     const toastSpyObj = jasmine.createSpyObj('HTMLIonToastElement', ['present']);
     toastSpyObj.present.and.returnValue(Promise.resolve());
     toastCtrlSpy = jasmine.createSpyObj<ToastController>('ToastController', ['create']);
@@ -71,9 +119,19 @@ describe('DashboardManagerComponent', () => {
         { provide: DashboardManagerService, useValue: dashboardServiceSpy },
         { provide: NotificationService, useValue: notificationServiceSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
+        { provide: StockWasteService, useValue: stockWasteServiceSpy },
+        { provide: ModalController, useValue: modalCtrlSpy },
         provideRouter([]),
       ],
-    }).compileComponents();
+    });
+
+    TestBed.overrideComponent(DashboardManagerComponent, {
+      set: {
+        providers: []
+      }
+    });
+
+    await TestBed.compileComponents();
 
     fixture = TestBed.createComponent(DashboardManagerComponent);
     component = fixture.componentInstance;
@@ -246,5 +304,32 @@ describe('DashboardManagerComponent', () => {
     expect(compiled.querySelector('[data-testid="manager-btn-timers"]')).toBeTruthy();
     expect(compiled.querySelector('[data-testid="manager-btn-floor-plan"]')).toBeTruthy();
     expect(compiled.querySelector('[data-testid="manager-btn-bar-stock"]')).toBeTruthy();
+    expect(compiled.querySelector('[data-testid="manager-btn-stock-waste"]')).toBeTruthy();
+  });
+
+  it('renders waste audit card with financial summary and movements', () => {
+    component.stats = mockStats;
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('[data-testid="waste-audit-card"]')).toBeTruthy();
+    expect(compiled.querySelector('[data-testid="waste-stat-total-loss"]')).toBeTruthy();
+    expect(compiled.querySelector('[data-testid="waste-stat-total-qty"]')).toBeTruthy();
+  });
+
+  it('openWasteModal() opens StockWasteModalComponent and refreshes data on save', async () => {
+    spyOn(component, 'chargerWasteSummary');
+    await component.openWasteModal();
+    expect(modalCtrlSpy.create).toHaveBeenCalled();
+    expect(component.chargerWasteSummary).toHaveBeenCalled();
+  });
+
+  it('calculates waste reason percentages and badge colors correctly', () => {
+    expect(component.getWasteReasonPercent('CASSE')).toBeGreaterThan(0);
+    expect(component.getWasteReasonBadgeColor('CASSE')).toBe('danger');
+    expect(component.getWasteReasonBadgeColor('PEREMPTION')).toBe('warning');
+    expect(component.getWasteReasonLabelKey('CASSE')).toBe('STOCK.WASTE_REASON_CASSE');
+    expect(component.getReasonLossValue('CASSE')).toBe(14.50);
+    expect(component.getReasonCount('CASSE')).toBe(2);
   });
 });

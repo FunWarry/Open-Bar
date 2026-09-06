@@ -2506,5 +2506,57 @@
       "categories": ["SANS_ALCOOL"],
       "cocktailNoms": ["Virgin Mojito"]
     }
+  ],
+  "stock_movements": [
+    {
+      "ingredientNom": "Rhum blanc",
+      "quantity": 1.00,
+      "unit": "bouteille",
+      "reason": "CASSE",
+      "reportedByUsername": "barman1",
+      "notes": "Bouteille tombée de l'étagère de service lors du rush",
+      "cost": 18.50,
+      "minutesAgo": 120
+    },
+    {
+      "ingredientNom": "Menthe",
+      "quantity": 0.50,
+      "unit": "kg",
+      "reason": "PEREMPTION",
+      "reportedByUsername": "manager",
+      "notes": "Feuilles noircies en chambre froide après le week-end",
+      "cost": 8.00,
+      "minutesAgo": 240
+    },
+    {
+      "ingredientNom": "Vodka",
+      "quantity": 0.20,
+      "unit": "L",
+      "reason": "OFFERT_PATRON",
+      "reportedByUsername": "manager",
+      "notes": "Tournée offerte pour l'anniversaire de la table 4",
+      "cost": 5.40,
+      "minutesAgo": 360
+    },
+    {
+      "ingredientNom": "Gin",
+      "quantity": 0.15,
+      "unit": "L",
+      "reason": "DEGUSTATION_STAFF",
+      "reportedByUsername": "barman1",
+      "notes": "Test de la nouvelle recette Gin Fizz avec l'équipe de salle",
+      "cost": 4.80,
+      "minutesAgo": 480
+    },
+    {
+      "ingredientNom": "Citron vert",
+      "quantity": 0.30,
+      "unit": "kg",
+      "reason": "ERREUR_PREPARATION",
+      "reportedByUsername": "barman1",
+      "notes": "Renversé lors du shake vigoureux sur commande pressée",
+      "cost": 1.95,
+      "minutesAgo": 720
+    }
   ]
 }
