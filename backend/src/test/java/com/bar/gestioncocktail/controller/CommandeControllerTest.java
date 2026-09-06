@@ -254,4 +254,42 @@ class CommandeControllerTest {
         assertThat(response.getBody()).hasSize(1);
         verify(commandeService).getCommandesByStation(com.bar.gestioncocktail.model.PreparationStation.KITCHEN);
     }
+
+    @Test
+    @DisplayName("updateItemStatutDirect - updates status using query parameter")
+    void updateItemStatutDirect_param_success() {
+        when(commandeService.updateItemStatut(99L, CommandeStatut.PRET)).thenReturn(commande);
+
+        ResponseEntity<CommandeResponseDTO> response =
+                commandeController.updateItemStatutDirect(99L, null, CommandeStatut.PRET);
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        verify(commandeService).updateItemStatut(99L, CommandeStatut.PRET);
+    }
+
+    @Test
+    @DisplayName("updateItemStatutDirect - updates status using body map")
+    void updateItemStatutDirect_body_success() {
+        when(commandeService.updateItemStatut(99L, CommandeStatut.EN_PREPARATION)).thenReturn(commande);
+
+        ResponseEntity<CommandeResponseDTO> response =
+                commandeController.updateItemStatutDirect(99L, Map.of("statut", "EN_PREPARATION"), null);
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        verify(commandeService).updateItemStatut(99L, CommandeStatut.EN_PREPARATION);
+    }
+
+    @Test
+    @DisplayName("updateItemStatut - throws BusinessException when status missing")
+    void updateItemStatut_missingStatus_throwsBusinessException() {
+        assertThatThrownBy(() -> commandeController.updateItemStatut(10L, 99L, null, null))
+                .isInstanceOf(com.bar.gestioncocktail.exception.BusinessException.class);
+    }
+
+    @Test
+    @DisplayName("updateItemStatutDirect - throws BusinessException when status missing")
+    void updateItemStatutDirect_missingStatus_throwsBusinessException() {
+        assertThatThrownBy(() -> commandeController.updateItemStatutDirect(99L, null, null))
+                .isInstanceOf(com.bar.gestioncocktail.exception.BusinessException.class);
+    }
 }

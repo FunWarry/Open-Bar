@@ -119,4 +119,25 @@ describe('DashboardBarmanService', () => {
     expect(req.request.body).toEqual({ quantite: 50 });
     req.flush({ id: 1, nom: 'Citron Vert', quantiteStock: 50 });
   });
+
+  it('changerItemStatut() sends a PATCH to /api/commandes/{id}/items/{itemId}/statut', () => {
+    service.changerItemStatut(10, 20, 'PRET').subscribe(res => {
+      expect(res.id).toBe(10);
+    });
+
+    const req = httpMock.expectOne(`${apiUrl}/commandes/10/items/20/statut`);
+    expect(req.request.method).toBe('PATCH');
+    expect(req.request.body).toEqual({ statut: 'PRET' });
+    req.flush({ id: 10, statut: 'PRET' });
+  });
+
+  it('getCommandesByStation() sends a GET to /api/commandes/station/{station}', () => {
+    service.getCommandesByStation('KITCHEN').subscribe(data => {
+      expect(data).toHaveSize(1);
+    });
+
+    const req = httpMock.expectOne(`${apiUrl}/commandes/station/KITCHEN`);
+    expect(req.request.method).toBe('GET');
+    req.flush([{ id: 11, statut: 'EN_ATTENTE' }]);
+  });
 });
