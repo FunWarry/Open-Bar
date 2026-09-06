@@ -158,7 +158,7 @@ flowchart TD
 - `establishment_closures` : Exceptional closures and recurring holidays
 - `shift_presets` : Predefined shift templates (duration, breaks)
 - `week_schedule_publications` : Publication log of employee schedules
-- `app_settings` : Global establishment settings singleton (currency, anti-fraud toggles, legal data, margin alert thresholds target/warning, default VAT rate)
+- `app_settings` : Global establishment settings singleton (currency, anti-fraud toggles, legal data, margin alert thresholds target/warning, default VAT rate, direct ESC/POS printer IPs for bar, kitchen, cash desk, port 9100, and toggle)
 - `happy_hour_rules`, `happy_hour_days`, `happy_hour_categories`, `happy_hour_cocktails` : Promotional Happy Hour & dynamic schedule-based pricing rule engine
 - `stock_movements` : Audit log of stock losses, breakages, expired ingredients, spills, staff tastings, and shrinkage (`ingredient_id`, `quantity`, `unit`, `reason`, `reported_by`, `cost`, `notes`, `recorded_at`)
 
@@ -341,9 +341,41 @@ OpenBar provides full lifecycle audit logging and real-time inventory deduction 
 
 ---
 
+## Direct ESC/POS Network Socket Printing (Raw TCP Port 9100)
+
+OpenBar integrates direct network thermal printing over local TCP sockets (default raw port 9100) without any OS spooler, CUPS, or cloud print dependency:
+
+- **Raw Socket Client**: `EscPosSocketClient` and `DefaultEscPosSocketClient` open direct TCP sockets (`java.net.Socket`) with configurable connection and read timeouts.
+- **ESC/POS Binary Formatter**: `EscPosFormatter` compiles binary command streams for thermal printers:
+  - `ESC @` initialization and reset.
+  - Double-height/double-width emphasis for order and ticket headers.
+  - Multi-column 42/48 character line wrapping with CP850 character encoding.
+  - `GS V 0` full paper cut command.
+  - `ESC p` cash drawer pulse command (`m=0, t1=2, t2=5`) triggered on receipt printing or manual test.
+- **Multi-Station Workstation Dispatch**:
+  - `EscPosPrintingService.dispatchOrder(orderId)` separates order items based on `PreparationStation`.
+  - Items for `BAR` are formatted and transmitted to `barPrinterIp`.
+  - Items for `KITCHEN` or `SNACK` are formatted and transmitted to `kitchenPrinterIp`.
+- **Domain Event Automation**: `EscPosOrderEventListener` asynchronously (`@Async("openbarAsyncExecutor")`) triggers automatic printing on:
+  - `OrderCreatedEvent`: Automatic dispatch of order tickets to bar/kitchen when `directPrintingEnabled` is active.
+  - `InvoiceSettledEvent`: Automatic receipt printing and cash drawer release on cash payments.
+- **Printer REST Endpoints**:
+
+| Method | URL | Roles | Description |
+|--------|-----|-------|-------------|
+| `POST` | `/api/printers/dispatch/{orderId}` | SERVEUR, BARMAN, MANAGER, ADMIN | Dispatch preparation tickets to workstations |
+| `POST` | `/api/printers/receipt/{invoiceId}?openCashDrawer=` | SERVEUR, MANAGER, ADMIN | Print thermal customer receipt with optional drawer kick |
+| `POST` | `/api/printers/test-role/{role}` | MANAGER, ADMIN | Diagnostic print to designated station printer (`BAR`, `KITCHEN`, `CASH_DESK`) |
+| `POST` | `/api/printers/test-connection` | MANAGER, ADMIN | Generic socket connection test to custom IP/port |
+| `POST` | `/api/printers/cash-drawer` | SERVEUR, MANAGER, ADMIN | Pulse cash drawer latch release on cash desk printer |
+| `GET` | `/api/printers/status` | Authenticated | Retrieve configured printer status and availability |
+
+---
+
 ## Quality & CI/CD Standards
 
 1. **Documentation is mandatory** in English on all services, DTOs, controllers, guards, and store files.
 2. **Never use `@SuppressWarnings`** — fix underlying code/lint warnings directly.
 3. **No hardcoded text** — always use Transloco `fr.json` and `en.json` with 100% key parity.
 4. **Adaptive theme** — use CSS variables for all styling (`var(--background-bg-0)`, `var(--primary)`, etc.).
+

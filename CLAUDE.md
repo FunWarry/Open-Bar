@@ -67,6 +67,7 @@ flowchart LR
 | Build natif          | ~~Capacitor~~ — **abandonné**         |
 | Canvas plan de salle | Konva.js                              |
 | i18n                 | Transloco (`@jsverse/transloco`)      |
+| Impression tickets   | ESC/POS direct socket (LAN TCP :9100) |
 | Reverse Proxy & TLS  | Nginx (HTTPS :443, SAN certs, HTTP :80 redirect, camera header) |
 | Sauvegardes BDD      | Scheduled Docker container + rotation |
 | Déploiement prod     | Docker Compose sur mini-PC local (réseau bar) |
