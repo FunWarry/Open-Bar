@@ -138,7 +138,9 @@ class DailyCashClosureIntegrationTest extends BaseIntegrationTest {
         );
 
         mockMvc.perform(MockMvcRequestBuilders.post("/api/factures/recap/cloturer")
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + getManagerToken()))
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + getManagerToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value(containsString("justification note is mandatory")));
     }

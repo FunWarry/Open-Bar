@@ -36,9 +36,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-/**
- * Comprehensive unit tests for DailyCashClosureService.
- */
+// Unit tests for DailyCashClosureService
 @ExtendWith(MockitoExtension.class)
 class DailyCashClosureServiceTest {
 
