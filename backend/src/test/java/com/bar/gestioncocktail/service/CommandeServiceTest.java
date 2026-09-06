@@ -768,15 +768,15 @@ class CommandeServiceTest {
         cmd.setId(80L);
         cmd.setStatut(CommandeStatut.LIVREE);
 
-        CommandeItem item = new CommandeItem();
-        item.setId(801L);
-        item.setCommande(cmd);
-        item.setStatut(CommandeStatut.EN_ATTENTE);
+        CommandeItem orderItem = new CommandeItem();
+        orderItem.setId(801L);
+        orderItem.setCommande(cmd);
+        orderItem.setStatut(CommandeStatut.EN_ATTENTE);
 
-        cmd.setItems(new ArrayList<>(List.of(item)));
+        cmd.setItems(new ArrayList<>(List.of(orderItem)));
 
         when(commandeRepository.findById(80L)).thenReturn(Optional.of(cmd));
-        when(commandeItemRepository.save(any(CommandeItem.class))).thenReturn(item);
+        when(commandeItemRepository.save(any(CommandeItem.class))).thenReturn(orderItem);
         when(commandeRepository.save(any(Commande.class))).thenReturn(cmd);
 
         Commande result = commandeService.updateItemStatut(80L, 801L, CommandeStatut.PRET);
