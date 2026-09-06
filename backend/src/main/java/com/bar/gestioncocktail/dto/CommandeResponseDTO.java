@@ -27,6 +27,7 @@ import java.util.List;
  * @param datePreparation Preparation start timestamp (Bartender)
  * @param datePret Order ready for delivery timestamp (Bartender ready)
  * @param dateLivraison Delivery timestamp (Server served to table)
+ * @param clientRequestId Client request ID for offline queue idempotency
  * @param dateReglement Settlement timestamp
  * @param createdAt Database creation timestamp
  * @param updatedAt Last modification timestamp
@@ -44,6 +45,7 @@ public record CommandeResponseDTO(
     BigDecimal total,
     BigDecimal pourboire,
     boolean prioritaire,
+    String clientRequestId,
     LocalDateTime dateCommande,
     LocalDateTime datePreparation,
     LocalDateTime datePret,
@@ -98,6 +100,7 @@ public record CommandeResponseDTO(
             total != null ? total : BigDecimal.ZERO,
             c.getPourboire(),
             isPrioritaire,
+            c.getClientRequestId(),
             c.getDateCommande(),
             c.getDatePreparation(),
             c.getDatePret(),

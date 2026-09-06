@@ -126,6 +126,15 @@ public class CommandeService {
 
     @Transactional
     public Commande createCommande(Commande commande) {
+        if (commande.getClientRequestId() != null && !commande.getClientRequestId().isBlank()) {
+            Optional<Commande> existing = commandeRepository.findByClientRequestId(commande.getClientRequestId());
+            if (existing.isPresent()) {
+                log.info("Idempotent order creation requested for clientRequestId={}. Returning existing order id={}",
+                        commande.getClientRequestId(), existing.get().getId());
+                return existing.get();
+            }
+        }
+
         LocalDateTime now = timeService.now();
         commande.setCreatedAt(now);
         commande.setUpdatedAt(now);
@@ -146,19 +155,47 @@ public class CommandeService {
     }
 
     private void initializeOrderItems(Commande commande) {
-        if (commande.getItems() == null) return;
-        for (CommandeItem item : commande.getItems()) {
-            if (item.getCommande() == null) {
-                item.setCommande(commande);
-            }
-            if (item.getStation() == null) {
-                item.setStation(item.getCocktail() != null && item.getCocktail().getStation() != null
-                        ? item.getCocktail().getStation() : PreparationStation.BAR);
-            }
-            if (item.getStatut() == null) {
-                item.setStatut(CommandeStatut.EN_ATTENTE);
-            }
+        if (commande.getItems() == null) {
+            return;
         }
+        for (CommandeItem item : commande.getItems()) {
+            initializeSingleOrderItem(commande, item);
+        }
+    }
+
+    private void initializeSingleOrderItem(Commande commande, CommandeItem item) {
+        if (item.getCommande() == null) {
+            item.setCommande(commande);
+        }
+        resolveCocktailForItem(item);
+        resolveItemPrice(item);
+        resolveItemStation(item);
+        if (item.getStatut() == null) {
+            item.setStatut(CommandeStatut.EN_ATTENTE);
+        }
+    }
+
+    private void resolveCocktailForItem(CommandeItem item) {
+        if (item.getCocktail() != null && item.getCocktail().getId() != null) {
+            cocktailRepository.findById(item.getCocktail().getId()).ifPresent(item::setCocktail);
+        }
+    }
+
+    private void resolveItemPrice(CommandeItem item) {
+        if (item.getPrixUnitaire() == null && item.getCocktail() != null && item.getCocktail().getPrix() != null) {
+            item.setPrixUnitaire(item.getCocktail().getPrix());
+        }
+    }
+
+    private void resolveItemStation(CommandeItem item) {
+        if (item.getStation() != null) {
+            return;
+        }
+        PreparationStation station = PreparationStation.BAR;
+        if (item.getCocktail() != null && item.getCocktail().getStation() != null) {
+            station = item.getCocktail().getStation();
+        }
+        item.setStation(station);
     }
 
     @Transactional
@@ -239,11 +276,13 @@ public class CommandeService {
     }
 
     private void applyDynamicPricingAndCalculateTotal(Commande commande, LocalDateTime now) {
-        if (commande.getItems() == null || happyHourService == null) {
+        if (commande.getItems() == null) {
             return;
         }
-        for (CommandeItem item : commande.getItems()) {
-            applyDynamicPricingToItem(item, now);
+        if (happyHourService != null) {
+            for (CommandeItem item : commande.getItems()) {
+                applyDynamicPricingToItem(item, now);
+            }
         }
         BigDecimal total = calculateOrderTotal(commande.getItems());
         if (total.compareTo(BigDecimal.ZERO) > 0) {

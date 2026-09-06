@@ -28,6 +28,7 @@ public interface CommandeRepository extends JpaRepository<Commande, Long> {
     List<Commande> findByStatutInAndDateCommandeAfter(List<CommandeStatut> statuts, LocalDateTime date);
     List<Commande> findByStatutAndDateCommandeBefore(CommandeStatut statut, LocalDateTime date);
     Optional<Commande> findByTrackingToken(String trackingToken);
+    Optional<Commande> findByClientRequestId(String clientRequestId);
 
     long countByStatut(CommandeStatut statut);
 

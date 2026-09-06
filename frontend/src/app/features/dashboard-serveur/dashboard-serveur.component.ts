@@ -6,7 +6,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { Subject, forkJoin, of } from 'rxjs';
-import { catchError, finalize, map, switchMap, takeUntil } from 'rxjs/operators';
+import { catchError, finalize, takeUntil } from 'rxjs/operators';
 import Konva from 'konva';
 import {
   IonContent,
@@ -38,7 +38,8 @@ import { fastModalEnterAnimation, fastModalLeaveAnimation } from '../../core/uti
 import { TableView } from './models/table-view.model';
 import { TablePosition, ZoneArea } from '../plan-salle/models/table-position.model';
 import { PlanSalleService } from '../plan-salle/services/plan-salle.service';
-import { Commande, AjouterItemRequest } from '../../core/models/commande.model';
+import { Commande } from '../../core/models/commande.model';
+import { OfflineOrderService } from '../../core/services/offline-order.service';
 
 import { Store } from '@ngrx/store';
 import { selectCurrentUser } from '../../core/store/auth.selectors';
@@ -181,6 +182,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
   zoomScale = 1;
   private readonly destroy$ = new Subject<void>();
   private readonly happyHourService = inject(HappyHourService, { optional: true });
+  readonly offlineService = inject(OfflineOrderService);
 
   constructor(
     private readonly service: DashboardServeurService,
@@ -1784,6 +1786,14 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
     this.activeTab = 'commande';
   }
 
+  /**
+   * Triggers manual synchronization of pending offline orders.
+   */
+  async onManualSync(): Promise<void> {
+    await this.offlineService.syncPendingOrders();
+    this.chargerTables();
+  }
+
   async onSubmitCart() {
     if (!this.cart.tableId || this.cart.items.length === 0 || this.isSubmitting) return;
 
@@ -1795,37 +1805,38 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
     const itemsToSubmit = [...this.cart.items];
     const generalNote = this.cart.noteGenerale;
 
-    this.service.createCommande({ tableId: targetTableId, notes: generalNote })
+    const mappedItems = itemsToSubmit.map(item => {
+      const notesArray: string[] = [];
+      if (item.commentaire?.trim()) {
+        notesArray.push(item.commentaire.trim());
+      }
+      if (item.exclusions && item.exclusions.length > 0) {
+        notesArray.push(`Sans: ${item.exclusions.join(', ')}`);
+      }
+      if (item.notes?.trim()) {
+        notesArray.push(item.notes.trim());
+      }
+      const fullNotes = notesArray.length > 0 ? notesArray.join(' | ') : undefined;
+
+      return {
+        cocktailId: item.boissonId,
+        quantite: item.quantite,
+        prixUnitaire: item.prix,
+        varianteId: item.varianteId,
+        notes: fullNotes,
+      };
+    });
+
+    const clientRequestId = crypto.randomUUID();
+
+    this.service.createCommande({
+      tableId: targetTableId,
+      notes: generalNote,
+      items: mappedItems,
+      clientRequestId,
+    })
       .pipe(
         takeUntil(this.destroy$),
-        switchMap(commande => {
-          const itemObservables = itemsToSubmit.map(item => {
-            const notesArray: string[] = [];
-            if (item.commentaire?.trim()) {
-              notesArray.push(item.commentaire.trim());
-            }
-            if (item.exclusions && item.exclusions.length > 0) {
-              notesArray.push(`Sans: ${item.exclusions.join(', ')}`);
-            }
-            if (item.notes?.trim()) {
-              notesArray.push(item.notes.trim());
-            }
-            const fullNotes = notesArray.length > 0 ? notesArray.join(' | ') : undefined;
-
-            const req: AjouterItemRequest = {
-              cocktailId: item.boissonId,
-              quantite: item.quantite,
-              prixUnitaire: item.prix,
-              varianteId: item.varianteId,
-              notes: fullNotes,
-            };
-            return this.service.ajouterItem(commande.id, req);
-          });
-
-          return (itemObservables.length > 0 ? forkJoin(itemObservables) : of([])).pipe(
-            map(() => commande),
-          );
-        }),
         finalize(() => {
           this.isSubmitting = false;
           this.cdr.detectChanges();
