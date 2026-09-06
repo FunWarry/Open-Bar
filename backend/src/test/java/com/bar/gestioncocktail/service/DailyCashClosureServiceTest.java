@@ -66,12 +66,11 @@ class DailyCashClosureServiceTest {
 
         List<PaymentModeSummaryDTO> paymentModes = List.of(
                 new PaymentModeSummaryDTO("ESPECES", 10, new BigDecimal("120.00")),
-                new PaymentModeSummaryDTO("CARTE", 25, new BigDecimal("450.00"))
-        );
+                new PaymentModeSummaryDTO("CARTE", 25, new BigDecimal("450.00")));
 
         List<VatSummaryDTO> vatList = List.of(
-                new VatSummaryDTO(VatRate.TWENTY, "20.0%", new BigDecimal("475.00"), new BigDecimal("95.00"), new BigDecimal("570.00"))
-        );
+                new VatSummaryDTO(VatRate.TWENTY, "20.0%", new BigDecimal("475.00"), new BigDecimal("95.00"),
+                        new BigDecimal("570.00")));
 
         testRecap = new DailyRecapDTO(
                 testDate,
@@ -82,8 +81,7 @@ class DailyCashClosureServiceTest {
                 new BigDecimal("16.29"),
                 42,
                 paymentModes,
-                vatList
-        );
+                vatList);
 
         testOperator = new User();
         testOperator.setId(1L);
@@ -101,8 +99,7 @@ class DailyCashClosureServiceTest {
                 new BigDecimal("50.00"),
                 new BigDecimal("170.00"), // opening 50 + cash 120 = 170
                 Map.of(),
-                null
-        );
+                null);
 
         when(closureRepository.existsByClosureDate(testDate)).thenReturn(false);
         when(factureService.getDailyRecap(testDate)).thenReturn(testRecap);
@@ -134,8 +131,7 @@ class DailyCashClosureServiceTest {
                 new BigDecimal("50.00"),
                 new BigDecimal("165.00"), // counted 165 vs theoretical 170 -> discrepancy -5.00
                 Map.of(),
-                "Coin drawer miscount during busy shift"
-        );
+                "Coin drawer miscount during busy shift");
 
         when(closureRepository.existsByClosureDate(testDate)).thenReturn(false);
         when(factureService.getDailyRecap(testDate)).thenReturn(testRecap);
@@ -179,8 +175,7 @@ class DailyCashClosureServiceTest {
                 new BigDecimal("50.00"),
                 new BigDecimal("170.00"),
                 Map.of(),
-                null
-        );
+                null);
 
         when(closureRepository.existsByClosureDate(testDate)).thenReturn(true);
 
@@ -209,8 +204,10 @@ class DailyCashClosureServiceTest {
         closure.setClosureNumber("Z-2026-00001");
         closure.setClosureDate(testDate);
         closure.setCashDiscrepancy(new BigDecimal("-5.00"));
-        closure.setPaymentMethodsJson("[{\"modePaiement\":\"ESPECES\",\"count\":10,\"totalTtc\":120.00},{\"modePaiement\":\"CARTE\",\"count\":25,\"totalTtc\":450.00}]");
-        closure.setVatBreakdownJson("[{\"tauxLabel\":\"20.0%\",\"baseHt\":475.00,\"montantTva\":95.00,\"totalTtc\":570.00}]");
+        closure.setPaymentMethodsJson(
+                "[{\"modePaiement\":\"ESPECES\",\"count\":10,\"totalTtc\":120.00},{\"modePaiement\":\"CARTE\",\"count\":25,\"totalTtc\":450.00}]");
+        closure.setVatBreakdownJson(
+                "[{\"tauxLabel\":\"20.0%\",\"baseHt\":475.00,\"montantTva\":95.00,\"totalTtc\":570.00}]");
 
         when(closureRepository.findById(10L)).thenReturn(Optional.of(closure));
 
@@ -234,7 +231,8 @@ class DailyCashClosureServiceTest {
         closure.setClosureNumber("Z-2026-00002");
         closure.setClosureDate(testDate);
         closure.setCashDiscrepancy(new BigDecimal("10.00"));
-        closure.setPaymentMethodsJson("[{\"modePaiement\":\"CHECK\",\"count\":1,\"totalTtc\":50.00},{\"modePaiement\":\"AVOIR\",\"count\":1,\"totalTtc\":20.00},{\"modePaiement\":\"AUTRE\",\"count\":1,\"totalTtc\":10.00}]");
+        closure.setPaymentMethodsJson(
+                "[{\"modePaiement\":\"CHECK\",\"count\":1,\"totalTtc\":50.00},{\"modePaiement\":\"AVOIR\",\"count\":1,\"totalTtc\":20.00},{\"modePaiement\":\"AUTRE\",\"count\":1,\"totalTtc\":10.00}]");
         closure.setVatBreakdownJson("[]");
 
         when(closureRepository.findById(11L)).thenReturn(Optional.of(closure));
