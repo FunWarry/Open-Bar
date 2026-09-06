@@ -6,6 +6,7 @@ import { of, throwError } from 'rxjs';
 import { signal, computed } from '@angular/core';
 import { ClientCommandeComponent } from '../../../app/features/client/client-commande/client-commande.component';
 import { CocktailService } from '../../../app/core/services/cocktail.service';
+import { HappyHourService } from '../../../app/core/services/happy-hour.service';
 import { TableSessionService } from '../../../app/core/services/table-session.service';
 import { TableCartService } from '../../../app/core/services/table-cart.service';
 import { TableSessionResponse } from '../../../app/core/models/table-session.model';
@@ -19,6 +20,7 @@ describe('ClientCommandeComponent', () => {
   let fixture: ComponentFixture<ClientCommandeComponent>;
   let router: Router;
   let cocktailServiceSpy: jasmine.SpyObj<CocktailService>;
+  let happyHourServiceSpy: jasmine.SpyObj<HappyHourService>;
   let tableSessionServiceSpy: jasmine.SpyObj<TableSessionService>;
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
   let tableCartServiceMock: any;
@@ -124,6 +126,15 @@ describe('ClientCommandeComponent', () => {
     tableSessionServiceSpy.refreshSession.and.returnValue(of(mockActiveSessionResponse));
     toastCtrlSpy.create.and.returnValue(Promise.resolve({ present: () => Promise.resolve() } as any));
 
+    happyHourServiceSpy = jasmine.createSpyObj('HappyHourService', ['loadRules', 'resolvePrice']);
+    happyHourServiceSpy.loadRules.and.returnValue(of([]));
+    happyHourServiceSpy.resolvePrice.and.callFake((price: number) => ({
+      effectivePrice: price,
+      isHappyHour: false,
+      appliedRule: null,
+      savings: 0
+    }));
+
     await TestBed.configureTestingModule({
       imports: [
         ClientCommandeComponent,
@@ -133,6 +144,7 @@ describe('ClientCommandeComponent', () => {
       ],
       providers: [
         { provide: CocktailService, useValue: cocktailServiceSpy },
+        { provide: HappyHourService, useValue: happyHourServiceSpy },
         { provide: TableSessionService, useValue: tableSessionServiceSpy },
         { provide: TableCartService, useValue: tableCartServiceMock },
         { provide: ToastController, useValue: toastCtrlSpy }

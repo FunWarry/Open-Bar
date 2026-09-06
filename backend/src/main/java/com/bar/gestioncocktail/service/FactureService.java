@@ -71,12 +71,15 @@ public class FactureService {
     private final AvoirCreditRepository avoirCreditRepository;
     private final TimeService timeService;
     private final FactureReglementRepository factureReglementRepository;
+    private final HappyHourService happyHourService;
 
+    @org.springframework.beans.factory.annotation.Autowired
     public FactureService(FactureRepository factureRepository, TableRepository tableRepository,
             CommandeRepository commandeRepository, ApplicationEventPublisher eventPublisher,
             UserRepository userRepository, EntityManager entityManager, AuditLogService auditLogService,
             AvoirCreditRepository avoirCreditRepository, TimeService timeService,
-            FactureReglementRepository factureReglementRepository) {
+            FactureReglementRepository factureReglementRepository,
+            HappyHourService happyHourService) {
         this.factureRepository = factureRepository;
         this.tableRepository = tableRepository;
         this.commandeRepository = commandeRepository;
@@ -87,6 +90,17 @@ public class FactureService {
         this.avoirCreditRepository = avoirCreditRepository;
         this.timeService = timeService;
         this.factureReglementRepository = factureReglementRepository;
+        this.happyHourService = happyHourService;
+    }
+
+    public FactureService(FactureRepository factureRepository, TableRepository tableRepository,
+            CommandeRepository commandeRepository, ApplicationEventPublisher eventPublisher,
+            UserRepository userRepository, EntityManager entityManager, AuditLogService auditLogService,
+            AvoirCreditRepository avoirCreditRepository, TimeService timeService,
+            FactureReglementRepository factureReglementRepository) {
+        this(factureRepository, tableRepository, commandeRepository, eventPublisher,
+                userRepository, entityManager, auditLogService, avoirCreditRepository,
+                timeService, factureReglementRepository, null);
     }
 
     public List<Facture> getAllFactures() {
@@ -489,7 +503,13 @@ public class FactureService {
         }
         fi.setDescription(desc);
         fi.setQuantite(item.getQuantite());
-        BigDecimal unitPrice = item.getPrixUnitaire() != null ? item.getPrixUnitaire() : BigDecimal.ZERO;
+        BigDecimal unitPrice = item.getPrixUnitaire();
+        if (unitPrice == null && item.getCocktail() != null && happyHourService != null) {
+            unitPrice = happyHourService.resolveEffectivePrice(item.getCocktail(), item.getVariante(), facture.getDateFacture());
+        }
+        if (unitPrice == null) {
+            unitPrice = BigDecimal.ZERO;
+        }
         fi.setPrixUnitaire(unitPrice);
 
         BigDecimal lineTTC = unitPrice.multiply(BigDecimal.valueOf(item.getQuantite()));
@@ -503,7 +523,13 @@ public class FactureService {
 
     private TableAdditionItemDTO buildAdditionItemDTO(CommandeItem item, Long commandeId) {
         BigDecimal qty = BigDecimal.valueOf(item.getQuantite());
-        BigDecimal unitPrice = item.getPrixUnitaire() != null ? item.getPrixUnitaire() : BigDecimal.ZERO;
+        BigDecimal unitPrice = item.getPrixUnitaire();
+        if (unitPrice == null && item.getCocktail() != null && happyHourService != null) {
+            unitPrice = happyHourService.resolveEffectivePrice(item.getCocktail(), item.getVariante(), timeService.now());
+        }
+        if (unitPrice == null) {
+            unitPrice = BigDecimal.ZERO;
+        }
         BigDecimal lineTTC = unitPrice.multiply(qty);
         BigDecimal lineHT = lineTTC.divide(BigDecimal.valueOf(1.20), 2, RoundingMode.HALF_UP);
         BigDecimal lineVAT = lineTTC.subtract(lineHT);

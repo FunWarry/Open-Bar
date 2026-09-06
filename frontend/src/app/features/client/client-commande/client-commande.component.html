@@ -164,7 +164,9 @@
             <app-product-card
               [title]="cocktail.nom"
               [description]="cocktail.description || cocktail.categorie"
-              [price]="cocktail.prix"
+              [price]="getEffectivePrice(cocktail)"
+              [originalPrice]="isHappyHour(cocktail) ? cocktail.prix : null"
+              [isHappyHour]="isHappyHour(cocktail)"
               [category]="cocktail.categorie"
               [imageUrl]="cocktail.imageUrl"
               [flavorProfiles]="cocktail.flavorProfiles || []"

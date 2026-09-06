@@ -85,13 +85,13 @@ public class Cocktail {
     private BigDecimal alcoholLevel = BigDecimal.ZERO;
 
     @Column(name = "is_mocktail")
-    private boolean isMocktail = false;
+    private Boolean isMocktail = false;
 
     @Column(name = "is_vegan")
-    private boolean isVegan = true;
+    private Boolean isVegan = true;
 
     @Column(name = "is_gluten_free")
-    private boolean isGlutenFree = true;
+    private Boolean isGlutenFree = true;
 
     private String instructions;
     private String imageUrl;
@@ -126,27 +126,27 @@ public class Cocktail {
     }
 
     public boolean isMocktail() {
-        return isMocktail;
+        return Boolean.TRUE.equals(isMocktail);
     }
 
-    public void setMocktail(boolean mocktail) {
-        this.isMocktail = mocktail;
+    public void setMocktail(Boolean mocktail) {
+        this.isMocktail = Boolean.TRUE.equals(mocktail);
     }
 
     public boolean isVegan() {
-        return isVegan;
+        return !Boolean.FALSE.equals(isVegan);
     }
 
-    public void setVegan(boolean vegan) {
-        this.isVegan = vegan;
+    public void setVegan(Boolean vegan) {
+        this.isVegan = !Boolean.FALSE.equals(vegan);
     }
 
     public boolean isGlutenFree() {
-        return isGlutenFree;
+        return !Boolean.FALSE.equals(isGlutenFree);
     }
 
-    public void setGlutenFree(boolean glutenFree) {
-        this.isGlutenFree = glutenFree;
+    public void setGlutenFree(Boolean glutenFree) {
+        this.isGlutenFree = !Boolean.FALSE.equals(glutenFree);
     }
 
     public LocalDateTime getCreatedAt() {

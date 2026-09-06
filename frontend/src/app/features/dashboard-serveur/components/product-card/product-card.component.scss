@@ -145,10 +145,37 @@ button.product-card,
       align-items: center;
       margin-top: 8px;
 
-      .product-price {
-        font-size: 1.1rem;
-        font-weight: 700;
-        color: var(--primary-light, #aab4f3);
+      .product-price-box {
+        display: flex;
+        align-items: baseline;
+        gap: 6px;
+
+        .original-price-struck {
+          font-size: 0.82rem;
+          text-decoration: line-through;
+          color: var(--text-muted, #7e87a8);
+        }
+
+        .product-price {
+          font-size: 1.1rem;
+          font-weight: 700;
+          color: var(--primary-light, #aab4f3);
+
+          &.discounted {
+            color: var(--semantic-success, #22c55e);
+          }
+        }
+
+        .hh-pill {
+          font-size: 0.65rem;
+          font-weight: 800;
+          padding: 1px 5px;
+          border-radius: var(--radius-pill, 999px);
+          background: color-mix(in srgb, var(--semantic-success) 20%, transparent);
+          color: var(--semantic-success, #22c55e);
+          border: 1px solid var(--semantic-success, #22c55e);
+          line-height: 1.2;
+        }
       }
 
       .variants-badge {

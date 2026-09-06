@@ -836,6 +836,113 @@ export async function setupMockApi(page: Page): Promise<void> {
       }),
     });
   });
+
+  await page.route('**/api/happy-hour**', async (route) => {
+    const method = route.request().method();
+    const url = route.request().url();
+
+    if (url.includes('/preview')) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          cocktailId: 1,
+          cocktailNom: 'Mojito',
+          basePrice: 8.5,
+          effectivePrice: 6.8,
+          isHappyHour: true,
+          appliedRuleName: 'Happy Hour Afterwork',
+          discountType: 'PERCENTAGE',
+          discountValue: 20,
+        }),
+      });
+      return;
+    }
+
+    if (url.includes('/simulate')) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify([
+          {
+            cocktailId: 1,
+            cocktailNom: 'Mojito',
+            basePrice: 8.5,
+            effectivePrice: 6.8,
+            isHappyHour: true,
+            discountType: 'PERCENTAGE',
+            discountValue: 20,
+          },
+        ]),
+      });
+      return;
+    }
+
+    if (url.includes('/toggle') && method === 'PATCH') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 1,
+          name: 'Happy Hour Afterwork',
+          startTime: '18:00',
+          endTime: '20:00',
+          daysOfWeek: ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'],
+          discountType: 'PERCENTAGE',
+          discountValue: 20,
+          active: false,
+          categories: ['COCKTAIL'],
+          cocktailIds: [],
+        }),
+      });
+      return;
+    }
+
+    if (method === 'DELETE') {
+      await route.fulfill({ status: 204 });
+      return;
+    }
+
+    if (method === 'PUT') {
+      const body = route.request().postDataJSON() || {};
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ id: 1, ...body }),
+      });
+      return;
+    }
+
+    if (method === 'POST') {
+      const body = route.request().postDataJSON() || {};
+      await route.fulfill({
+        status: 201,
+        contentType: 'application/json',
+        body: JSON.stringify({ id: 99, ...body }),
+      });
+      return;
+    }
+
+    // Default GET
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([
+        {
+          id: 1,
+          name: 'Happy Hour Afterwork',
+          startTime: '18:00',
+          endTime: '20:00',
+          daysOfWeek: ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'],
+          discountType: 'PERCENTAGE',
+          discountValue: 20,
+          active: true,
+          categories: ['COCKTAIL'],
+          cocktailIds: [],
+        },
+      ]),
+    });
+  });
 }
 
 

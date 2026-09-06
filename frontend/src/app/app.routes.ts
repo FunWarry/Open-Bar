@@ -308,6 +308,20 @@ export const routes: Routes = [
     canDeactivate: [PendingChangesGuard],
     data: { roles: ['MANAGER', 'ADMIN'], defaultTab: 'currency' }
   },
+  {
+    path: 'manager/pricing',
+    loadComponent: () => import('./features/admin/settings/app-settings-page.component').then(m => m.AppSettingsPageComponent),
+    canActivate: [AuthGuard, RoleGuard],
+    canDeactivate: [PendingChangesGuard],
+    data: { roles: ['MANAGER', 'ADMIN'], defaultTab: 'pricing' }
+  },
+  {
+    path: 'admin/pricing',
+    loadComponent: () => import('./features/admin/settings/app-settings-page.component').then(m => m.AppSettingsPageComponent),
+    canActivate: [AuthGuard, RoleGuard],
+    canDeactivate: [PendingChangesGuard],
+    data: { roles: ['MANAGER', 'ADMIN'], defaultTab: 'pricing' }
+  },
 
   // Invoices (English route + /factures)
   {

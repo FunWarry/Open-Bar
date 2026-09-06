@@ -1,6 +1,6 @@
 import {
   Component, OnInit, OnDestroy, AfterViewInit,
-  ElementRef, ViewChild, NgZone, ChangeDetectorRef,
+  ElementRef, ViewChild, NgZone, ChangeDetectorRef, inject,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -24,6 +24,7 @@ import {
   addOutline, removeOutline, locateOutline,
 } from 'ionicons/icons';
 import { CocktailService } from '../../core/services/cocktail.service';
+import { HappyHourService } from '../../core/services/happy-hour.service';
 import { ZoneService, ZoneBar } from '../../core/services/zone.service';
 import { TableDetailModalComponent } from './components/table-detail-modal/table-detail-modal.component';
 import { EncaissementModalComponent } from './components/encaissement-modal/encaissement-modal.component';
@@ -179,6 +180,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
   zoneAreas: ZoneArea[] = [];
   zoomScale = 1;
   private readonly destroy$ = new Subject<void>();
+  private readonly happyHourService = inject(HappyHourService, { optional: true });
 
   constructor(
     private readonly service: DashboardServeurService,
@@ -212,6 +214,10 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
   ngOnInit() {
     this.chargerFiltresSauvegardes();
     this.chargerDonnees();
+
+    if (this.happyHourService) {
+      this.happyHourService.loadRules().pipe(takeUntil(this.destroy$)).subscribe();
+    }
 
     this.tableAppelService.appelEvents$
       .pipe(takeUntil(this.destroy$))
@@ -1525,21 +1531,42 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
 
   get filteredProducts(): ProductItem[] {
     const query = this.productSearchQuery.toLowerCase().trim();
-    return this.products.filter(p => {
-      const matchesSearch = !query ||
-        p.nom.toLowerCase().includes(query) ||
-        (p.description?.toLowerCase()?.includes(query) ?? false);
+    return this.products
+      .filter(p => {
+        const matchesSearch = !query ||
+          p.nom.toLowerCase().includes(query) ||
+          (p.description?.toLowerCase()?.includes(query) ?? false);
 
-      const matchesCategory = this.selectedCategory === 'ALL' || p.categorie === this.selectedCategory;
+        const matchesCategory = this.selectedCategory === 'ALL' || p.categorie === this.selectedCategory;
 
-      let matchesAllergens = true;
-      if (this.selectedAllergens.length > 0) {
-        const itemAllergens = this.getProductAllergens(p);
-        matchesAllergens = !this.selectedAllergens.some(a => itemAllergens.includes(a));
-      }
+        let matchesAllergens = true;
+        if (this.selectedAllergens.length > 0) {
+          const itemAllergens = this.getProductAllergens(p);
+          matchesAllergens = !this.selectedAllergens.some(a => itemAllergens.includes(a));
+        }
 
-      return matchesSearch && matchesCategory && matchesAllergens;
-    });
+        return matchesSearch && matchesCategory && matchesAllergens;
+      })
+      .map(p => {
+        if (!this.happyHourService) {
+          return p;
+        }
+        const pricing = this.happyHourService.resolvePrice(p.originalPrice ?? p.prix, p.id, p.categorie);
+        if (pricing.isHappyHour) {
+          return {
+            ...p,
+            prix: pricing.effectivePrice,
+            originalPrice: p.originalPrice ?? p.prix,
+            isHappyHour: true
+          };
+        }
+        return {
+          ...p,
+          prix: p.originalPrice ?? p.prix,
+          originalPrice: null,
+          isHappyHour: false
+        };
+      });
   }
 
   getProductAllergens(product: ProductItem): string[] {

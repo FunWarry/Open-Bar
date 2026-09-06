@@ -61,6 +61,31 @@ public class CommandeService {
     private final CocktailIngredientRepository cocktailIngredientRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final TimeService timeService;
+    private final HappyHourService happyHourService;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public CommandeService(
+            CommandeRepository commandeRepository,
+            CommandeItemRepository commandeItemRepository,
+            IngredientRepository ingredientRepository,
+            TableRepository tableRepository,
+            CocktailRepository cocktailRepository,
+            CocktailVarianteRepository cocktailVarianteRepository,
+            CocktailIngredientRepository cocktailIngredientRepository,
+            ApplicationEventPublisher eventPublisher,
+            TimeService timeService,
+            HappyHourService happyHourService) {
+        this.commandeRepository = commandeRepository;
+        this.commandeItemRepository = commandeItemRepository;
+        this.ingredientRepository = ingredientRepository;
+        this.tableRepository = tableRepository;
+        this.cocktailRepository = cocktailRepository;
+        this.cocktailVarianteRepository = cocktailVarianteRepository;
+        this.cocktailIngredientRepository = cocktailIngredientRepository;
+        this.eventPublisher = eventPublisher;
+        this.timeService = timeService;
+        this.happyHourService = happyHourService;
+    }
 
     public CommandeService(
             CommandeRepository commandeRepository,
@@ -72,15 +97,9 @@ public class CommandeService {
             CocktailIngredientRepository cocktailIngredientRepository,
             ApplicationEventPublisher eventPublisher,
             TimeService timeService) {
-        this.commandeRepository = commandeRepository;
-        this.commandeItemRepository = commandeItemRepository;
-        this.ingredientRepository = ingredientRepository;
-        this.tableRepository = tableRepository;
-        this.cocktailRepository = cocktailRepository;
-        this.cocktailVarianteRepository = cocktailVarianteRepository;
-        this.cocktailIngredientRepository = cocktailIngredientRepository;
-        this.eventPublisher = eventPublisher;
-        this.timeService = timeService;
+        this(commandeRepository, commandeItemRepository, ingredientRepository, tableRepository,
+                cocktailRepository, cocktailVarianteRepository, cocktailIngredientRepository,
+                eventPublisher, timeService, null);
     }
 
     @Transactional(readOnly = true)
@@ -120,10 +139,14 @@ public class CommandeService {
 
     @Transactional
     public Commande createCommande(Commande commande) {
-        commande.setCreatedAt(timeService.now());
-        commande.setUpdatedAt(timeService.now());
-        commande.setDateCommande(timeService.now());
+        LocalDateTime now = timeService.now();
+        commande.setCreatedAt(now);
+        commande.setUpdatedAt(now);
+        commande.setDateCommande(now);
         commande.setStatut(CommandeStatut.EN_ATTENTE);
+
+        applyDynamicPricingAndCalculateTotal(commande, now);
+
         Commande saved = commandeRepository.save(commande);
         updateTableOccupancyOnOrderCreation(saved);
         if (eventPublisher != null) {
@@ -182,6 +205,9 @@ public class CommandeService {
             cocktailRepository.findById(item.getCocktail().getId()).ifPresent(item::setCocktail);
         }
 
+        LocalDateTime orderTime = commande.getDateCommande() != null ? commande.getDateCommande() : timeService.now();
+        applyDynamicPricingToItem(item, orderTime);
+
         item.setCommande(commande);
         commandeItemRepository.save(item);
         if (commande.getItems() == null) {
@@ -191,23 +217,48 @@ public class CommandeService {
             commande.getItems().add(item);
         }
 
-        BigDecimal total = BigDecimal.ZERO;
-        if (commande.getItems() != null) {
-            for (CommandeItem commandeItem : commande.getItems()) {
-                if (commandeItem.getPrixUnitaire() != null) {
-                    BigDecimal itemTotal = commandeItem.getPrixUnitaire()
-                            .multiply(BigDecimal.valueOf(commandeItem.getQuantite()));
-                    total = total.add(itemTotal);
-                }
-            }
-        }
-
-        commande.setTotal(total);
+        commande.setTotal(calculateOrderTotal(commande.getItems()));
         commande.setDateModification(timeService.now());
 
         Commande saved = commandeRepository.save(commande);
         notifyOrderUpdated(saved);
         return saved;
+    }
+
+    private void applyDynamicPricingAndCalculateTotal(Commande commande, LocalDateTime now) {
+        if (commande.getItems() == null || happyHourService == null) {
+            return;
+        }
+        for (CommandeItem item : commande.getItems()) {
+            applyDynamicPricingToItem(item, now);
+        }
+        BigDecimal total = calculateOrderTotal(commande.getItems());
+        if (total.compareTo(BigDecimal.ZERO) > 0) {
+            commande.setTotal(total);
+        }
+    }
+
+    private void applyDynamicPricingToItem(CommandeItem item, LocalDateTime orderTime) {
+        if (happyHourService != null && item.getCocktail() != null) {
+            BigDecimal dynamicPrice = happyHourService.resolveEffectivePrice(
+                    item.getCocktail(), item.getVariante(), orderTime);
+            if (item.getPrixUnitaire() == null || dynamicPrice.compareTo(item.getPrixUnitaire()) < 0) {
+                item.setPrixUnitaire(dynamicPrice);
+            }
+        }
+    }
+
+    private BigDecimal calculateOrderTotal(List<CommandeItem> items) {
+        if (items == null) {
+            return BigDecimal.ZERO;
+        }
+        BigDecimal total = BigDecimal.ZERO;
+        for (CommandeItem item : items) {
+            if (item.getPrixUnitaire() != null) {
+                total = total.add(item.getPrixUnitaire().multiply(BigDecimal.valueOf(item.getQuantite())));
+            }
+        }
+        return total;
     }
 
     @Transactional
@@ -628,6 +679,11 @@ public class CommandeService {
             if (variante != null && variante.getPrixSupplement() != null) {
                 unitPrice = unitPrice.add(variante.getPrixSupplement());
             }
+        }
+
+        if (happyHourService != null) {
+            LocalDateTime orderTime = commande.getDateCommande() != null ? commande.getDateCommande() : timeService.now();
+            unitPrice = happyHourService.resolveEffectivePrice(cocktail, variante, orderTime);
         }
 
         CommandeItem item = new CommandeItem();

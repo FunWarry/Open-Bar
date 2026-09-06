@@ -7,6 +7,7 @@ import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { ToastController } from '@ionic/angular/standalone';
 import { AppCurrencyPipe } from '../../../core/pipes/app-currency.pipe';
 import { CocktailService } from '../../../core/services/cocktail.service';
+import { HappyHourService } from '../../../core/services/happy-hour.service';
 import { TableSessionService } from '../../../core/services/table-session.service';
 import { TableSessionStatus } from '../../../core/models/table-session.model';
 import { Cocktail, CocktailFacets, FlavorProfile } from '../../../core/models/cocktail.model';
@@ -48,6 +49,7 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
   private readonly cocktailService = inject(CocktailService);
+  private readonly happyHourService = inject(HappyHourService, { optional: true });
   private readonly tableSessionService = inject(TableSessionService);
   readonly tableCartService = inject(TableCartService);
   private readonly toastCtrl = inject(ToastController);
@@ -120,6 +122,24 @@ export class ClientCommandeComponent implements OnInit, OnDestroy {
         }
       }
     });
+
+    if (this.happyHourService) {
+      this.happyHourService.loadRules().pipe(takeUntil(this.destroy$)).subscribe();
+    }
+  }
+
+  /**
+   * Checks whether a cocktail is currently under Happy Hour.
+   */
+  isHappyHour(cocktail: Cocktail): boolean {
+    return this.happyHourService?.resolvePrice(cocktail.prix, cocktail.id, cocktail.categorie).isHappyHour ?? false;
+  }
+
+  /**
+   * Resolves the current effective price for a cocktail.
+   */
+  getEffectivePrice(cocktail: Cocktail): number {
+    return this.happyHourService?.resolvePrice(cocktail.prix, cocktail.id, cocktail.categorie).effectivePrice ?? cocktail.prix;
   }
 
   ngOnDestroy(): void {

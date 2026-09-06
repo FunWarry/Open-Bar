@@ -91,11 +91,45 @@
   border-top: 1px solid var(--border-subtle, #23233a);
 }
 
+.product-price-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.hh-pill-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.original-price-struck {
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+.happy-hour-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--semantic-success) 20%, transparent);
+  color: var(--semantic-success);
+  border: 1px solid var(--semantic-success);
+  letter-spacing: 0.03em;
+}
+
 .product-price {
   font-size: 18px;
   font-weight: 700;
   color: var(--primary, #6c7fe8);
   font-family: var(--font-display, 'Outfit', sans-serif);
+}
+
+.product-price.discounted {
+  color: var(--semantic-success);
 }
 
 .quantity-stepper-mini {

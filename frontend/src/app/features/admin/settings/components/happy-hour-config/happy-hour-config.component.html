@@ -1,0 +1,427 @@
+<div class="happy-hour-container" data-testid="happy-hour-config-section">
+  <!-- Section Header -->
+  <div class="section-header">
+    <div class="header-titles">
+      <div class="badge-tag">
+        <ion-icon name="flash-outline"></ion-icon>
+        <span>{{ 'SETTINGS.TAB_PRICING' | transloco }}</span>
+      </div>
+      <h2 class="section-title">{{ 'SETTINGS.HAPPY_HOUR_TITLE' | transloco }}</h2>
+      <p class="section-subtitle">{{ 'SETTINGS.HAPPY_HOUR_SUBTITLE' | transloco }}</p>
+    </div>
+    <div class="header-actions">
+      <button
+        type="button"
+        class="create-rule-btn"
+        (click)="openCreateModal()"
+        data-testid="btn-add-happy-hour-rule">
+        <ion-icon name="add-outline"></ion-icon>
+        <span>{{ 'SETTINGS.HAPPY_HOUR_ADD_RULE' | transloco }}</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Grid: Rules List + Live Simulator -->
+  <div class="pricing-grid">
+    <!-- Left Column: Configured Rules List -->
+    <div class="rules-column">
+      <ion-card class="pricing-card">
+        <ion-card-header>
+          <ion-card-title class="card-title">
+            <ion-icon name="pricetag-outline" class="title-icon"></ion-icon>
+            <span>{{ 'SETTINGS.HAPPY_HOUR_TITLE' | transloco }}</span>
+            <span class="rules-count" data-testid="rules-count-badge">({{ rules().length }})</span>
+          </ion-card-title>
+        </ion-card-header>
+
+        <ion-card-content>
+          @if (isLoading()) {
+            <div class="loading-state">
+              <ion-spinner name="crescent" color="primary"></ion-spinner>
+              <span>{{ 'COMMON.LOADING' | transloco }}</span>
+            </div>
+          } @else if (rules().length === 0) {
+            <div class="empty-rules" data-testid="empty-rules-message">
+              <ion-icon name="calendar-outline" class="empty-icon"></ion-icon>
+              <p>{{ 'SETTINGS.HAPPY_HOUR_NO_RULES' | transloco }}</p>
+              <button
+                type="button"
+                class="empty-cta-btn"
+                (click)="openCreateModal()"
+                data-testid="btn-empty-create-rule">
+                {{ 'SETTINGS.HAPPY_HOUR_ADD_RULE' | transloco }}
+              </button>
+            </div>
+          } @else {
+            <div class="rules-list" data-testid="happy-hour-rules-list">
+              @for (rule of rules(); track rule.id) {
+                <div
+                  class="rule-row"
+                  [class.is-active-now]="isRuleActiveNow(rule)"
+                  [class.is-disabled]="!rule.active"
+                  [attr.data-testid]="'rule-item-' + rule.id">
+                  <div class="rule-main-info">
+                    <div class="rule-title-line">
+                      <h4 class="rule-name" [attr.data-testid]="'rule-name-' + rule.id">{{ rule.name }}</h4>
+                      @if (isRuleActiveNow(rule)) {
+                        <span class="badge-live-now" [attr.data-testid]="'rule-live-badge-' + rule.id">
+                          <span class="pulse-dot"></span>
+                          {{ 'SETTINGS.HAPPY_HOUR_STATUS_ACTIVE_NOW' | transloco }}
+                        </span>
+                      }
+                    </div>
+
+                    <div class="rule-meta-tags">
+                      <!-- Time Window -->
+                      <span class="meta-tag time-tag" [attr.data-testid]="'rule-time-' + rule.id">
+                        <ion-icon name="time-outline"></ion-icon>
+                        {{ rule.startTime.substring(0, 5) }} - {{ rule.endTime.substring(0, 5) }}
+                      </span>
+
+                      <!-- Discount Tag -->
+                      <span class="meta-tag discount-tag" [attr.data-testid]="'rule-discount-' + rule.id">
+                        <ion-icon name="pricetag-outline"></ion-icon>
+                        {{ formatDiscountDisplay(rule.discountType, rule.discountValue) }}
+                      </span>
+
+                      <!-- Days of Week Chips -->
+                      <div class="days-chips-preview">
+                        @for (day of daysList; track day) {
+                          <span
+                            class="day-chip-mini"
+                            [class.selected]="rule.daysOfWeek.includes(day)">
+                            {{ ('DAYS.' + day) | transloco | slice:0:2 }}
+                          </span>
+                        }
+                      </div>
+                    </div>
+
+                    <div class="rule-scope-desc">
+                      @if ((!rule.categories || rule.categories.length === 0) && (!rule.cocktailIds || rule.cocktailIds.length === 0)) {
+                        <span class="scope-text all">{{ 'SETTINGS.HAPPY_HOUR_SCOPE_ALL' | transloco }}</span>
+                      } @else {
+                        @if (rule.categories && rule.categories.length > 0) {
+                          <span class="scope-tag category-scope">
+                            {{ rule.categories.join(', ') }}
+                          </span>
+                        }
+                        @if (rule.cocktailIds && rule.cocktailIds.length > 0) {
+                          <span class="scope-tag drink-scope">
+                            {{ rule.cocktailIds.length }} {{ 'COMMON.ITEMS' | transloco }}
+                          </span>
+                        }
+                      }
+                    </div>
+                  </div>
+
+                  <!-- Actions -->
+                  <div class="rule-actions">
+                    <ion-toggle
+                      [checked]="rule.active"
+                      (ionChange)="toggleRuleActive(rule, $event)"
+                      [attr.aria-label]="'SETTINGS.HAPPY_HOUR_ACTIVE_STATUS' | transloco"
+                      [attr.data-testid]="'toggle-rule-active-' + rule.id">
+                    </ion-toggle>
+
+                    <button
+                      type="button"
+                      class="icon-action-btn edit-btn"
+                      (click)="openEditModal(rule)"
+                      [attr.title]="'COMMON.EDIT' | transloco"
+                      [attr.data-testid]="'btn-edit-rule-' + rule.id">
+                      <ion-icon name="create-outline"></ion-icon>
+                    </button>
+
+                    <button
+                      type="button"
+                      class="icon-action-btn delete-btn"
+                      (click)="confirmDelete(rule, $event)"
+                      [attr.title]="'COMMON.DELETE' | transloco"
+                      [attr.data-testid]="'btn-delete-rule-' + rule.id">
+                      <ion-icon name="trash-outline"></ion-icon>
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </ion-card-content>
+      </ion-card>
+    </div>
+
+    <!-- Right Column: Live Price Preview Simulator -->
+    <div class="simulator-column">
+      <ion-card class="pricing-card simulator-card" data-testid="happy-hour-simulator-card">
+        <ion-card-header>
+          <ion-card-title class="card-title">
+            <ion-icon name="calculator-outline" class="title-icon"></ion-icon>
+            <span>{{ 'SETTINGS.HAPPY_HOUR_SIMULATOR_TITLE' | transloco }}</span>
+          </ion-card-title>
+        </ion-card-header>
+
+        <ion-card-content>
+          <p class="simulator-desc">{{ 'SETTINGS.HAPPY_HOUR_SIMULATOR_SUBTITLE' | transloco }}</p>
+
+          <div class="simulator-form">
+            <!-- Simulated Drink Picker -->
+            <div class="sim-field">
+              <span class="field-label">{{ 'SETTINGS.HAPPY_HOUR_SIMULATOR_COCKTAIL' | transloco }}</span>
+              <app-searchable-select
+                [options]="cocktailOptions()"
+                [value]="simulationCocktailId()"
+                (selectionChange)="onSimulationCocktailSelect($event)"
+                [clearable]="false"
+                [searchable]="true"
+                testId="select-simulator-cocktail">
+              </app-searchable-select>
+            </div>
+
+            <!-- Simulated Time -->
+            <div class="sim-field">
+              <label class="field-label" for="input-simulator-time">{{ 'SETTINGS.HAPPY_HOUR_SIMULATOR_TIME' | transloco }}</label>
+              <input
+                id="input-simulator-time"
+                type="time"
+                class="sim-time-input"
+                [ngModel]="simulationTime()"
+                (ngModelChange)="onSimulationTimeChange($event)"
+                data-testid="input-simulator-time" />
+            </div>
+          </div>
+
+          <!-- Simulation Result Display -->
+          @if (simulationResult(); as res) {
+            <div
+              class="sim-result-box"
+              [class.has-discount]="res.isHappyHour"
+              data-testid="simulator-result-box">
+              <div class="sim-drink-name">{{ res.cocktailNom }}</div>
+
+              <div class="sim-price-row">
+                <div class="price-block">
+                  <span class="price-label">{{ 'SETTINGS.HAPPY_HOUR_SIMULATOR_BASE_PRICE' | transloco }}</span>
+                  <span class="base-price" [class.struck]="res.isHappyHour" data-testid="sim-base-price">
+                    {{ formatCurrency(res.basePrice) }}
+                  </span>
+                </div>
+
+                @if (res.isHappyHour) {
+                  <div class="arrow-indicator">➔</div>
+
+                  <div class="price-block discounted">
+                    <span class="price-label">{{ 'SETTINGS.HAPPY_HOUR_SIMULATOR_EFFECTIVE_PRICE' | transloco }}</span>
+                    <span class="effective-price" data-testid="sim-effective-price">
+                      {{ formatCurrency(res.effectivePrice) }}
+                    </span>
+                  </div>
+                }
+              </div>
+
+              @if (res.isHappyHour) {
+                <div class="sim-savings-tag" data-testid="sim-savings-badge">
+                  <ion-icon name="sparkles-outline"></ion-icon>
+                  <span>{{ 'SETTINGS.HAPPY_HOUR_SIMULATOR_SAVINGS' | transloco }}: {{ formatCurrency(res.discountAmount) }} (-{{ res.discountPercentage }}%)</span>
+                </div>
+
+                <div class="sim-rule-info" data-testid="sim-applied-rule">
+                  <span class="rule-label">{{ 'SETTINGS.HAPPY_HOUR_SIMULATOR_RULE_APPLIED' | transloco }}:</span>
+                  <span class="rule-badge">{{ res.appliedRuleName }}</span>
+                </div>
+              } @else {
+                <div class="no-discount-info" data-testid="sim-no-discount">
+                  <ion-icon name="time-outline"></ion-icon>
+                  <span>{{ 'SETTINGS.HAPPY_HOUR_SIMULATOR_NO_DISCOUNT' | transloco }}</span>
+                </div>
+              }
+            </div>
+          }
+        </ion-card-content>
+      </ion-card>
+    </div>
+  </div>
+
+  <!-- Modal / Overlay for Rule Creation and Editing -->
+  @if (showModal()) {
+    <div class="modal-backdrop" data-testid="modal-backdrop">
+      <button
+        type="button"
+        class="modal-backdrop-dismiss"
+        (click)="closeModal()"
+        [attr.aria-label]="'COMMON.CANCEL' | transloco"
+        data-testid="modal-backdrop-dismiss">
+      </button>
+      <div class="modal-content" data-testid="rule-config-modal">
+        <header class="modal-header">
+          <div class="modal-title-group">
+            <ion-icon name="pricetag-outline" class="modal-icon"></ion-icon>
+            <h3 class="modal-title">
+              {{ (isEditing() ? 'SETTINGS.HAPPY_HOUR_EDIT_RULE' : 'SETTINGS.HAPPY_HOUR_ADD_RULE') | transloco }}
+            </h3>
+          </div>
+          <button
+            type="button"
+            class="close-modal-btn"
+            (click)="closeModal()"
+            data-testid="btn-close-rule-modal">
+            ✕
+          </button>
+        </header>
+
+        <form [formGroup]="ruleForm" (ngSubmit)="saveRule()" class="modal-form">
+          <!-- Rule Name -->
+          <div class="form-group">
+            <label class="form-label" for="rule-name-input">{{ 'SETTINGS.HAPPY_HOUR_RULE_NAME' | transloco }} *</label>
+            <input
+              id="rule-name-input"
+              type="text"
+              class="form-input"
+              formControlName="name"
+              [placeholder]="'SETTINGS.HAPPY_HOUR_RULE_NAME_PLACEHOLDER' | transloco"
+              data-testid="input-rule-name" />
+          </div>
+
+          <!-- Time Window: Start and End Time (crossing midnight supported) -->
+          <div class="form-row times-row">
+            <div class="form-group">
+              <label class="form-label" for="rule-start-time">{{ 'SETTINGS.HAPPY_HOUR_START_TIME' | transloco }} *</label>
+              <input
+                id="rule-start-time"
+                type="time"
+                class="form-input"
+                formControlName="startTime"
+                data-testid="input-rule-start-time" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="rule-end-time">{{ 'SETTINGS.HAPPY_HOUR_END_TIME' | transloco }} *</label>
+              <input
+                id="rule-end-time"
+                type="time"
+                class="form-input"
+                formControlName="endTime"
+                data-testid="input-rule-end-time" />
+            </div>
+          </div>
+
+          <!-- Schedule Selector: Visual Day-of-Week Toggles (Mon-Sun) -->
+          <div class="form-group">
+            <span class="form-label">{{ 'SETTINGS.HAPPY_HOUR_DAYS' | transloco }}</span>
+            <div class="days-selector" data-testid="days-selector">
+              @for (day of daysList; track day) {
+                <button
+                  type="button"
+                  class="day-toggle-btn"
+                  [class.active]="isDaySelected(day)"
+                  (click)="toggleDay(day)"
+                  [attr.data-testid]="'btn-day-' + day">
+                  {{ ('DAYS.' + day) | transloco | slice:0:3 }}
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Discount Strategy and Value -->
+          <div class="form-row discount-row">
+            <div class="form-group">
+              <span class="form-label">{{ 'SETTINGS.HAPPY_HOUR_DISCOUNT_TYPE' | transloco }} *</span>
+              <app-searchable-select
+                formControlName="discountType"
+                [options]="discountTypeOptions()"
+                [clearable]="false"
+                [enableSearch]="false"
+                testId="select-rule-discount-type">
+              </app-searchable-select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="rule-discount-value">{{ 'SETTINGS.HAPPY_HOUR_DISCOUNT_VALUE' | transloco }} *</label>
+              <input
+                id="rule-discount-value"
+                type="number"
+                step="0.01"
+                min="0.01"
+                class="form-input"
+                formControlName="discountValue"
+                data-testid="input-rule-discount-value" />
+            </div>
+          </div>
+
+          <!-- Scoping: Categories multi-select -->
+          <div class="form-group">
+            <span class="form-label">{{ 'SETTINGS.HAPPY_HOUR_CATEGORIES' | transloco }}</span>
+            <p class="field-hint">{{ 'SETTINGS.HAPPY_HOUR_SCOPE_ALL' | transloco }}</p>
+            <app-searchable-select
+              [options]="categoryOptions()"
+              (selectionChange)="onAddCategoryOption($event)"
+              placeholder="Ajouter une catégorie..."
+              data-testid="select-rule-categories">
+            </app-searchable-select>
+            @if (selectedCategories().length > 0) {
+              <div class="selected-chips-wrap" data-testid="selected-categories-chips">
+                @for (cat of selectedCategories(); track cat) {
+                  <span class="selected-chip">
+                    {{ cat }}
+                    <button type="button" class="remove-chip-btn" (click)="removeCategory(cat)">✕</button>
+                  </span>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- Scoping: Cocktails multi-select -->
+          <div class="form-group">
+            <span class="form-label">{{ 'SETTINGS.HAPPY_HOUR_COCKTAILS' | transloco }}</span>
+            <app-searchable-select
+              [options]="cocktailOptions()"
+              (selectionChange)="onAddCocktailOption($event)"
+              placeholder="Ajouter une boisson..."
+              data-testid="select-rule-cocktails">
+            </app-searchable-select>
+            @if (selectedCocktailIds().length > 0) {
+              <div class="selected-chips-wrap" data-testid="selected-cocktails-chips">
+                @for (id of selectedCocktailIds(); track id) {
+                  <span class="selected-chip">
+                    {{ getCocktailName(id) }}
+                    <button type="button" class="remove-chip-btn" (click)="removeCocktail(id)">✕</button>
+                  </span>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- Active status toggle -->
+          <div class="form-row status-row">
+            <div class="toggle-label">
+              <span>{{ 'SETTINGS.HAPPY_HOUR_ACTIVE_STATUS' | transloco }}</span>
+              <ion-toggle formControlName="active" data-testid="toggle-modal-rule-active"></ion-toggle>
+            </div>
+          </div>
+
+          <!-- Modal Action Buttons -->
+          <footer class="modal-footer">
+            <button
+              type="button"
+              class="cancel-btn"
+              (click)="closeModal()"
+              data-testid="btn-cancel-rule">
+              {{ 'COMMON.CANCEL' | transloco }}
+            </button>
+
+            <button
+              type="submit"
+              class="submit-btn"
+              [disabled]="isSaving()"
+              data-testid="btn-save-rule">
+              @if (isSaving()) {
+                <ion-spinner name="crescent"></ion-spinner>
+              } @else {
+                <ion-icon name="checkmark-circle-outline"></ion-icon>
+              }
+              <span>{{ 'COMMON.SAVE' | transloco }}</span>
+            </button>
+          </footer>
+        </form>
+      </div>
+    </div>
+  }
+</div>

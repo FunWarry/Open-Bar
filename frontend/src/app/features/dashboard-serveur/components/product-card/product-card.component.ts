@@ -24,6 +24,8 @@ export interface ProductItem {
   image?: string;
   ingredients?: any[];
   variantes?: ProductVariant[];
+  isHappyHour?: boolean;
+  originalPrice?: number | null;
 }
 
 @Component({

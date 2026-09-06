@@ -30,6 +30,7 @@ public class PublicCommandeService {
     private final ApplicationEventPublisher eventPublisher;
     private final TimeService timeService;
     private final TableSessionService tableSessionService;
+    private final HappyHourService happyHourService;
 
     @org.springframework.beans.factory.annotation.Autowired
     public PublicCommandeService(
@@ -39,7 +40,8 @@ public class PublicCommandeService {
             CocktailVarianteRepository varianteRepository,
             ApplicationEventPublisher eventPublisher,
             TimeService timeService,
-            TableSessionService tableSessionService) {
+            TableSessionService tableSessionService,
+            HappyHourService happyHourService) {
         this.commandeRepository = commandeRepository;
         this.tableRepository = tableRepository;
         this.cocktailRepository = cocktailRepository;
@@ -47,6 +49,19 @@ public class PublicCommandeService {
         this.eventPublisher = eventPublisher;
         this.timeService = timeService;
         this.tableSessionService = tableSessionService;
+        this.happyHourService = happyHourService;
+    }
+
+    public PublicCommandeService(
+            CommandeRepository commandeRepository,
+            TableRepository tableRepository,
+            CocktailRepository cocktailRepository,
+            CocktailVarianteRepository varianteRepository,
+            ApplicationEventPublisher eventPublisher,
+            TimeService timeService,
+            TableSessionService tableSessionService) {
+        this(commandeRepository, tableRepository, cocktailRepository, varianteRepository,
+                eventPublisher, timeService, tableSessionService, null);
     }
 
     public PublicCommandeService(
@@ -57,7 +72,7 @@ public class PublicCommandeService {
             ApplicationEventPublisher eventPublisher,
             TimeService timeService) {
         this(commandeRepository, tableRepository, cocktailRepository, varianteRepository,
-                eventPublisher, timeService, null);
+                eventPublisher, timeService, null, null);
     }
 
     public PublicCommandeResponseDTO creerCommandePublique(PublicCommandeRequestDTO dto) {
@@ -113,6 +128,10 @@ public class PublicCommandeService {
         BigDecimal prixUnitaire = cocktail.getPrix();
         if (variante != null && variante.getPrixSupplement() != null) {
             prixUnitaire = prixUnitaire.add(variante.getPrixSupplement());
+        }
+
+        if (happyHourService != null) {
+            prixUnitaire = happyHourService.resolveEffectivePrice(cocktail, variante, timeService.now());
         }
 
         verifierDisponibiliteIngredients(cocktail, itemDto.getQuantite());

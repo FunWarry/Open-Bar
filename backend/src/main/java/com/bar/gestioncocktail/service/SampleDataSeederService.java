@@ -23,6 +23,7 @@ import java.math.RoundingMode;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.*;
 
@@ -87,11 +88,71 @@ public class SampleDataSeederService {
     private final PlatformTransactionManager transactionManager;
     private final CocktailDataSeederService cocktailDataSeederService;
     private final org.springframework.core.env.Environment environment;
+    private final HappyHourRuleRepository happyHourRuleRepository;
     private final ObjectMapper objectMapper;
 
     /**
      * Constructs the sample data seeder service with required repositories, services, and environment dependencies.
      */
+    @org.springframework.beans.factory.annotation.Autowired
+    public SampleDataSeederService(
+            UserRepository userRepository,
+            TableRepository tableRepository,
+            ZoneRepository zoneRepository,
+            EtageRepository etageRepository,
+            CocktailRepository cocktailRepository,
+            IngredientRepository ingredientRepository,
+            RecipeStepTemplateRepository recipeStepTemplateRepository,
+            CommandeRepository commandeRepository,
+            FactureRepository factureRepository,
+            FactureReglementRepository factureReglementRepository,
+            AvoirCreditRepository avoirCreditRepository,
+            ShiftPresetRepository shiftPresetRepository,
+            EmployeeShiftRepository employeeShiftRepository,
+            EstablishmentClosureRepository establishmentClosureRepository,
+            WeekSchedulePublicationRepository weekSchedulePublicationRepository,
+            TableAppelRepository tableAppelRepository,
+            TableSessionRepository tableSessionRepository,
+            TableCartItemRepository tableCartItemRepository,
+            AppSettingsRepository appSettingsRepository,
+            EstablishmentConfigRepository establishmentConfigRepository,
+            JdbcTemplate jdbcTemplate,
+            PasswordEncoder passwordEncoder,
+            TimeService timeService,
+            PlatformTransactionManager transactionManager,
+            CocktailDataSeederService cocktailDataSeederService,
+            org.springframework.core.env.Environment environment,
+            HappyHourRuleRepository happyHourRuleRepository) {
+        this.userRepository = userRepository;
+        this.tableRepository = tableRepository;
+        this.zoneRepository = zoneRepository;
+        this.etageRepository = etageRepository;
+        this.cocktailRepository = cocktailRepository;
+        this.ingredientRepository = ingredientRepository;
+        this.recipeStepTemplateRepository = recipeStepTemplateRepository;
+        this.commandeRepository = commandeRepository;
+        this.factureRepository = factureRepository;
+        this.factureReglementRepository = factureReglementRepository;
+        this.avoirCreditRepository = avoirCreditRepository;
+        this.shiftPresetRepository = shiftPresetRepository;
+        this.employeeShiftRepository = employeeShiftRepository;
+        this.establishmentClosureRepository = establishmentClosureRepository;
+        this.weekSchedulePublicationRepository = weekSchedulePublicationRepository;
+        this.tableAppelRepository = tableAppelRepository;
+        this.tableSessionRepository = tableSessionRepository;
+        this.tableCartItemRepository = tableCartItemRepository;
+        this.appSettingsRepository = appSettingsRepository;
+        this.establishmentConfigRepository = establishmentConfigRepository;
+        this.jdbcTemplate = jdbcTemplate;
+        this.passwordEncoder = passwordEncoder;
+        this.timeService = timeService;
+        this.transactionManager = transactionManager;
+        this.cocktailDataSeederService = cocktailDataSeederService;
+        this.environment = environment;
+        this.happyHourRuleRepository = happyHourRuleRepository;
+        this.objectMapper = new ObjectMapper();
+    }
+
     public SampleDataSeederService(
             UserRepository userRepository,
             TableRepository tableRepository,
@@ -119,33 +180,15 @@ public class SampleDataSeederService {
             PlatformTransactionManager transactionManager,
             CocktailDataSeederService cocktailDataSeederService,
             org.springframework.core.env.Environment environment) {
-        this.userRepository = userRepository;
-        this.tableRepository = tableRepository;
-        this.zoneRepository = zoneRepository;
-        this.etageRepository = etageRepository;
-        this.cocktailRepository = cocktailRepository;
-        this.ingredientRepository = ingredientRepository;
-        this.recipeStepTemplateRepository = recipeStepTemplateRepository;
-        this.commandeRepository = commandeRepository;
-        this.factureRepository = factureRepository;
-        this.factureReglementRepository = factureReglementRepository;
-        this.avoirCreditRepository = avoirCreditRepository;
-        this.shiftPresetRepository = shiftPresetRepository;
-        this.employeeShiftRepository = employeeShiftRepository;
-        this.establishmentClosureRepository = establishmentClosureRepository;
-        this.weekSchedulePublicationRepository = weekSchedulePublicationRepository;
-        this.tableAppelRepository = tableAppelRepository;
-        this.tableSessionRepository = tableSessionRepository;
-        this.tableCartItemRepository = tableCartItemRepository;
-        this.appSettingsRepository = appSettingsRepository;
-        this.establishmentConfigRepository = establishmentConfigRepository;
-        this.jdbcTemplate = jdbcTemplate;
-        this.passwordEncoder = passwordEncoder;
-        this.timeService = timeService;
-        this.transactionManager = transactionManager;
-        this.cocktailDataSeederService = cocktailDataSeederService;
-        this.environment = environment;
-        this.objectMapper = new ObjectMapper();
+        this(userRepository, tableRepository, zoneRepository, etageRepository,
+                cocktailRepository, ingredientRepository, recipeStepTemplateRepository,
+                commandeRepository, factureRepository, factureReglementRepository,
+                avoirCreditRepository, shiftPresetRepository, employeeShiftRepository,
+                establishmentClosureRepository, weekSchedulePublicationRepository,
+                tableAppelRepository, tableSessionRepository, tableCartItemRepository,
+                appSettingsRepository, establishmentConfigRepository, jdbcTemplate,
+                passwordEncoder, timeService, transactionManager, cocktailDataSeederService,
+                environment, null);
     }
 
     /**
@@ -391,6 +434,7 @@ public class SampleDataSeederService {
                 safelyInTransaction(() -> seedOrdersFromJson(root.get("orders"), usersMap, tablesMap, cocktails), "seedOrders");
                 safelyInTransaction(() -> seedTableCartItemsFromJson(root.get("table_cart_items"), tablesMap, cocktails), "seedTableCartItems");
             }
+            safelyInTransaction(() -> seedHappyHourRulesFromJson(root.get("happy_hour_rules"), cocktails), "seedHappyHourRules");
             safelyInTransaction(() -> seedInvoicesFromJson(root.get("invoices"), tablesMap), "seedInvoices");
             safelyInTransaction(() -> seedAvoirsCreditFromJson(root.get("avoirs_credit")), "seedAvoirsCredit");
 
@@ -1225,5 +1269,91 @@ public class SampleDataSeederService {
             establishmentConfigRepository.save(config);
             log.info("Seeded default EstablishmentConfig singleton.");
         }
+    }
+
+    private void seedHappyHourRulesFromJson(JsonNode rulesNode, List<Cocktail> cocktails) {
+        if (rulesNode == null || !rulesNode.isArray() || happyHourRuleRepository == null) {
+            return;
+        }
+
+        if (happyHourRuleRepository.count() > 0) {
+            log.info("Happy Hour rules already seeded (count={}), skipping seeding.", happyHourRuleRepository.count());
+            return;
+        }
+
+        Map<String, Cocktail> cocktailMap = buildCocktailMap(cocktails);
+        List<HappyHourRule> toSave = new ArrayList<>();
+        LocalDateTime now = timeService.now();
+        for (JsonNode ruleNode : rulesNode) {
+            toSave.add(parseHappyHourRule(ruleNode, cocktailMap, now));
+        }
+
+        happyHourRuleRepository.saveAll(toSave);
+        log.info("Successfully seeded {} Happy Hour promotional rules from demo dataset.", toSave.size());
+    }
+
+    private Map<String, Cocktail> buildCocktailMap(List<Cocktail> cocktails) {
+        Map<String, Cocktail> cocktailMap = new HashMap<>();
+        if (cocktails != null) {
+            for (Cocktail c : cocktails) {
+                if (c.getNom() != null) {
+                    cocktailMap.put(c.getNom().toLowerCase().trim(), c);
+                }
+            }
+        }
+        return cocktailMap;
+    }
+
+    private HappyHourRule parseHappyHourRule(JsonNode ruleNode, Map<String, Cocktail> cocktailMap, LocalDateTime now) {
+        HappyHourRule rule = new HappyHourRule();
+        rule.setName(ruleNode.path("name").asText("Happy Hour"));
+        rule.setStartTime(LocalTime.parse(ruleNode.path("startTime").asText("17:00")));
+        rule.setEndTime(LocalTime.parse(ruleNode.path("endTime").asText("20:00")));
+        rule.setDiscountType(DiscountType.valueOf(ruleNode.path("discountType").asText("PERCENTAGE")));
+        rule.setDiscountValue(BigDecimal.valueOf(ruleNode.path("discountValue").asDouble(20.0)));
+        rule.setActive(ruleNode.path("active").asBoolean(true));
+        rule.setDaysOfWeek(parseDaysOfWeek(ruleNode.path("daysOfWeek")));
+        rule.setCategories(parseCategories(ruleNode.path("categories")));
+        rule.setCocktailIds(parseCocktailIds(ruleNode.path("cocktailNoms"), cocktailMap));
+        rule.setCreatedAt(now);
+        rule.setUpdatedAt(now);
+        return rule;
+    }
+
+    private Set<DayOfWeek> parseDaysOfWeek(JsonNode daysNode) {
+        Set<DayOfWeek> days = new HashSet<>();
+        if (daysNode.isArray()) {
+            for (JsonNode d : daysNode) {
+                days.add(DayOfWeek.valueOf(d.asText()));
+            }
+        }
+        return days;
+    }
+
+    private Set<CocktailCategorie> parseCategories(JsonNode catNode) {
+        Set<CocktailCategorie> categories = new HashSet<>();
+        if (catNode.isArray()) {
+            for (JsonNode c : catNode) {
+                try {
+                    categories.add(CocktailCategorie.valueOf(c.asText()));
+                } catch (IllegalArgumentException _) {
+                    log.debug("Unknown cocktail category in seeding: {}", c.asText());
+                }
+            }
+        }
+        return categories;
+    }
+
+    private Set<Long> parseCocktailIds(JsonNode cocktailNomsNode, Map<String, Cocktail> cocktailMap) {
+        Set<Long> cocktailIds = new HashSet<>();
+        if (cocktailNomsNode.isArray()) {
+            for (JsonNode cn : cocktailNomsNode) {
+                Cocktail matched = cocktailMap.get(cn.asText().toLowerCase().trim());
+                if (matched != null && matched.getId() != null) {
+                    cocktailIds.add(matched.getId());
+                }
+            }
+        }
+        return cocktailIds;
     }
 }

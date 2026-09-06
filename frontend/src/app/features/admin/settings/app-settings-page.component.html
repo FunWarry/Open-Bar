@@ -73,6 +73,16 @@
       <ion-icon name="qr-code-outline"></ion-icon>
       <span>{{ 'SETTINGS.TAB_QR' | transloco }}</span>
     </button>
+
+    <button
+      type="button"
+      class="tab-btn"
+      [class.active]="activeTab === 'pricing'"
+      (click)="selectTab('pricing')"
+      data-testid="tab-pricing">
+      <ion-icon name="pricetag-outline"></ion-icon>
+      <span>{{ 'SETTINGS.TAB_PRICING' | transloco }}</span>
+    </button>
   </nav>
 
   @if (isLoading) {
@@ -1020,6 +1030,15 @@
               </ion-row>
             </ion-grid>
           </form>
+        </section>
+      }
+
+      <!-- ========================================== -->
+      <!-- TAB 6: Happy Hour & Tarifs Dynamiques      -->
+      <!-- ========================================== -->
+      @if (activeTab === 'pricing') {
+        <section class="tab-panel" data-testid="panel-pricing">
+          <app-happy-hour-config></app-happy-hour-config>
         </section>
       }
     </main>
