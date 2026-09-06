@@ -3,6 +3,9 @@ package com.bar.gestioncocktail.model;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
+/**
+ * JPA entity representing an audit log entry tracking administrative, security, and fiscal operations.
+ */
 
 @Data
 @Entity

@@ -18,6 +18,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+/**
+ * Service managing floor plan tables, spatial positioning, occupancy status, and order transfers.
+ */
 
 @Service
 public class TableService {
@@ -70,6 +73,11 @@ public class TableService {
         this(tableRepository, commandeRepository, factureRepository, auditLogService,
                 timeService, eventPublisher, appSettingsService, qrCodeService, pdfService, null);
     }
+/**
+     * Retrieves all tables defined on the floor plan.
+     *
+     * @return List of all tables
+     */
 
     @Transactional
     public List<TableEntity> getAllTables() {
@@ -79,6 +87,12 @@ public class TableService {
         }
         return tables;
     }
+/**
+     * Retrieves a table by its identifier.
+     *
+     * @param id Table identifier
+     * @return Optional containing table if found
+     */
 
     @Transactional
     public Optional<TableEntity> getTableById(Long id) {
@@ -86,6 +100,12 @@ public class TableService {
         opt.ifPresent(this::synchronizeTableOccupancy);
         return opt;
     }
+/**
+     * Retrieves tables located in a specific room or floor plan zone.
+     *
+     * @param zone Zone identifier
+     * @return List of matching tables
+     */
 
     @Transactional
     public List<TableEntity> getTablesByZone(String zone) {
@@ -95,10 +115,21 @@ public class TableService {
         }
         return tables;
     }
+/**
+     * Retrieves distinct zone names currently configured across tables.
+     *
+     * @return List of zone names
+     */
 
     public List<String> getAllZones() {
         return tableRepository.findDistinctZones();
     }
+/**
+     * Retrieves tables filtered by occupancy state.
+     *
+     * @param occupee {@code true} for occupied tables, {@code false} for vacant
+     * @return List of matching tables
+     */
 
     @Transactional
     public List<TableEntity> getTablesByOccupee(boolean occupee) {
@@ -108,6 +139,12 @@ public class TableService {
         }
         return tableRepository.findByOccupee(occupee);
     }
+/**
+     * Retrieves tables currently assigned to or served by a specific waiter.
+     *
+     * @param serveurId Waiter user identifier
+     * @return List of tables
+     */
 
     @Transactional
     public List<TableEntity> getTablesByServeurId(Long serveurId) {
@@ -132,6 +169,12 @@ public class TableService {
             tableRepository.save(table);
         }
     }
+/**
+     * Creates and persists a new table entity on the floor plan.
+     *
+     * @param table Table entity to persist
+     * @return Persisted table entity
+     */
 
     @Transactional
     public TableEntity createTable(TableEntity table) {
@@ -211,6 +254,13 @@ public class TableService {
                     "Delete table #" + table.getNumero(), null);
         }
     }
+/**
+     * Marks a table as occupied and assigns it to a waiter.
+     *
+     * @param id        Table identifier
+     * @param serveurId Waiter user identifier
+     * @return Updated table entity
+     */
 
     @Transactional
     public TableEntity occuperTable(Long id, Long serveurId) {
@@ -233,6 +283,12 @@ public class TableService {
         notifyTableUpdated(saved);
         return saved;
     }
+/**
+     * Releases a table, marking it vacant and unassigning staff.
+     *
+     * @param id Table identifier
+     * @return Updated table entity
+     */
 
     @Transactional
     public TableEntity libererTable(Long id) {
@@ -258,11 +314,26 @@ public class TableService {
         notifyTableUpdated(saved);
         return saved;
     }
+/**
+     * Retrieves all floor plan tables with their spatial canvas coordinates.
+     *
+     * @return List of tables with layout positions
+     */
 
     @Transactional(readOnly = true)
     public List<TableEntity> getAllTablesAvecPositions() {
         return tableRepository.findAll();
     }
+/**
+     * Updates the 2D spatial position, rotation, and shape of a table on the floor plan.
+     *
+     * @param id       Table identifier
+     * @param x        X coordinate
+     * @param y        Y coordinate
+     * @param rotation Rotation in degrees
+     * @param forme    Geometric shape (e.g. RECTANGLE, ROND)
+     * @return Updated table entity
+     */
 
     @Transactional
     public TableEntity updatePosition(Long id, Double x, Double y, Double rotation, String forme) {
@@ -278,6 +349,12 @@ public class TableService {
         notifyTableUpdated(saved);
         return saved;
     }
+/**
+     * Updates layout coordinates for multiple tables in a single batch transaction.
+     *
+     * @param positions List of table position DTOs
+     * @return List of updated table entities
+     */
 
     @Transactional
     public void updatePositionsBatch(List<TablePositionDTO> positions) {
@@ -299,6 +376,12 @@ public class TableService {
             notifyTableUpdated(saved);
         });
     }
+/**
+     * Transfers active orders from one table to another.
+     *
+     * @param sourceId Source table identifier
+     * @param targetId Target table identifier
+     */
 
     @Transactional
     public TableEntity transfererCommandes(Long sourceId, Long targetId) {

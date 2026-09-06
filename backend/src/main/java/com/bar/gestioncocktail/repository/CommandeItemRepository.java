@@ -12,6 +12,9 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
 import java.util.List;
+/**
+ * Spring Data JPA repository for order line item queries and status updates.
+ */
 
 @Repository
 public interface CommandeItemRepository extends JpaRepository<CommandeItem, Long> {

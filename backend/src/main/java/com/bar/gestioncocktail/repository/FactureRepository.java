@@ -11,6 +11,9 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+/**
+ * Spring Data JPA repository for customer billing and invoice persistence.
+ */
 
 @Repository
 public interface FactureRepository extends JpaRepository<Facture, Long> {

@@ -2,6 +2,9 @@ package com.bar.gestioncocktail.dto;
 
 import java.math.BigDecimal;
 import java.util.List;
+/**
+ * Response DTO representing an individual split share of an invoice.
+ */
 
 public record SplitResultDTO(
     Long factureId,

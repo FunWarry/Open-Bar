@@ -25,10 +25,21 @@ public class ZoneService {
         this.zoneRepository = zoneRepository;
         this.tableRepository = tableRepository;
     }
+/**
+     * Retrieves all floor plan zones.
+     *
+     * @return List of all zones
+     */
 
     public List<ZoneEntity> getAllZones() {
         return zoneRepository.findAll();
     }
+/**
+     * Retrieves a zone by its identifier.
+     *
+     * @param id Zone identifier
+     * @return Optional containing zone if found
+     */
 
     public ZoneEntity getZoneById(Long id) {
         if (id == null) {
@@ -37,6 +48,12 @@ public class ZoneService {
         return zoneRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(ZONE_NOT_FOUND_MSG + id));
     }
+/**
+     * Creates and persists a new floor plan zone.
+     *
+     * @param zone Zone entity to persist
+     * @return Persisted zone entity
+     */
 
     @Transactional
     public ZoneEntity createZone(ZoneEntity zone) {
@@ -45,6 +62,13 @@ public class ZoneService {
         }
         return zoneRepository.save(zone);
     }
+/**
+     * Updates an existing floor plan zone.
+     *
+     * @param id      Zone identifier
+     * @param updated Updated zone data
+     * @return Updated zone entity
+     */
 
     @Transactional
     public ZoneEntity updateZone(Long id, ZoneEntity updated) {
@@ -103,6 +127,11 @@ public class ZoneService {
 
         return saved;
     }
+/**
+     * Deletes a floor plan zone by its identifier.
+     *
+     * @param id Zone identifier
+     */
 
     @Transactional
     public void deleteZone(Long id) {

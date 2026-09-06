@@ -7,6 +7,9 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+/**
+ * Spring Data JPA repository for audit log persistence and chronological queries.
+ */
 
 @Repository
 public interface AuditLogRepository extends JpaRepository<AuditLog, Long> {

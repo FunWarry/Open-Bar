@@ -21,6 +21,9 @@ import java.time.ZoneId;
         @Index(name = "idx_table_sessions_token", columnList = "session_token"),
         @Index(name = "idx_table_sessions_table_status", columnList = "table_id, status")
 })
+/**
+ * JPA entity representing an ephemeral table session for patron QR code ordering.
+ */
 public class TableSession {
 
     @Id

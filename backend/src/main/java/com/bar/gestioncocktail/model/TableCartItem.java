@@ -22,6 +22,9 @@ import java.time.ZoneId;
         @Index(name = "idx_table_cart_items_table_id", columnList = "table_id"),
         @Index(name = "idx_table_cart_items_guest", columnList = "table_id, guest_session_id")
 })
+/**
+ * JPA entity representing a drink item placed into a collaborative table cart before order validation.
+ */
 public class TableCartItem {
 
     @Id

@@ -2,6 +2,9 @@ package com.bar.gestioncocktail.dto;
 
 import com.bar.gestioncocktail.model.FactureItem;
 import java.math.BigDecimal;
+/**
+ * Response DTO representing an individual billed item on an invoice.
+ */
 
 public record FactureItemResponseDTO(
     Long id,
