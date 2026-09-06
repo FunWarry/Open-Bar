@@ -153,7 +153,7 @@ flowchart TD
 - `establishment_closures` : Exceptional closures and recurring holidays
 - `shift_presets` : Predefined shift templates (duration, breaks)
 - `week_schedule_publications` : Publication log of employee schedules
-- `app_settings` : Global establishment settings singleton (currency, anti-fraud toggles, legal data)
+- `app_settings` : Global establishment settings singleton (currency, anti-fraud toggles, legal data, margin alert thresholds target/warning, default VAT rate)
 - `happy_hour_rules`, `happy_hour_days`, `happy_hour_categories`, `happy_hour_cocktails` : Promotional Happy Hour & dynamic schedule-based pricing rule engine
 
 ---
@@ -251,6 +251,20 @@ OpenBar allows guests seated at the same physical table to collaboratively const
 | `DELETE` | `/api/public/tables/{tableId}/cart/items/{itemId}` | Public | Remove item from collaborative table cart |
 | `DELETE` | `/api/public/tables/{tableId}/cart` | Public | Clear all items from collaborative table cart |
 | `POST` | `/api/public/tables/{tableId}/cart/submit` | Public | Submit consolidated collaborative order to the bar |
+
+---
+
+## Gross Margin, COGS & Multi-Unit Conversion Engine
+
+OpenBar provides live tracking of recipe Cost of Goods Sold (COGS), gross margin amount, and gross margin percentage:
+
+- **Unit Conversion Engine**: `UnitConversionService` provides standardized conversion for volume units (`L`, `CL`, `ML`, `OZ`, `DASH`, `DROP`, `CUP`, `TSP`, `TBSP`) and mass units (`KG`, `G`, `MG`, `LB`).
+- **Margin Calculation Engine**: `MarginCalculationService` calculates recipe production cost, gross profit amount, and gross profit margin percentage across base recipes and custom variants (`CocktailVariante`), resolving ingredient unit costs dynamically and taking into account VAT.
+- **Configurable Settings & Alerts**:
+  - `default_vat_rate`: Establishment-wide default VAT percentage (configurable in App Settings with country presets).
+  - `target_gross_margin_percentage`: Target margin threshold (default 70%), triggering healthy status badges (`HEALTHY` / green).
+  - `warning_gross_margin_percentage`: Warning threshold (default 50%), triggering warning badges (`WARNING` / orange) or critical alerts (`CRITICAL` / red when below warning).
+- **Manager Dashboard & Catalog Integration**: Visual margin health badges (`MarginHealthBadgeComponent`), live COGS and gross profit KPI cards in `DashboardManagerComponent`, real-time margin computation during cocktail creation/edition (`CocktailFormComponent`).
 
 ---
 
