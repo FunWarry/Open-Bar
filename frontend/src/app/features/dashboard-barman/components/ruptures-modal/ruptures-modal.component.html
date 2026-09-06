@@ -146,6 +146,16 @@
                 (keyup.enter)="updateStock(ingredient, (ingredient.quantiteStock || 0) + 5)">
                 <ion-icon slot="icon-only" name="add-circle-outline"></ion-icon>
               </ion-button>
+              <ion-button
+                fill="clear"
+                size="small"
+                color="warning"
+                [title]="'STOCK.WASTE_RECORD_BTN' | transloco"
+                (click)="openWasteModal(ingredient)"
+                (keyup.enter)="openWasteModal(ingredient)"
+                [attr.data-testid]="'btn-rupture-waste-' + ingredient.id">
+                <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+              </ion-button>
             </div>
           </ion-item>
         } @empty {

@@ -31,13 +31,15 @@ import {
   warningOutline,
   checkmarkCircleOutline,
   removeCircleOutline,
-  addCircleOutline
+  addCircleOutline,
+  trashOutline
 } from 'ionicons/icons';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { AppCurrencyPipe } from '../../../../core/pipes/app-currency.pipe';
 import { DashboardBarmanService } from '../../services/dashboard-barman.service';
 import { Cocktail } from '../../../../core/models/cocktail.model';
 import { Ingredient } from '../../../../core/models/ingredient.model';
+import { StockWasteModalComponent } from '../../../ingredients/stock-waste-modal/stock-waste-modal.component';
 
 /**
  * Modal component allowing barmen to instantly toggle cocktails and ingredients out of stock
@@ -93,7 +95,8 @@ export class RupturesModalComponent implements OnInit, OnDestroy {
       warningOutline,
       checkmarkCircleOutline,
       removeCircleOutline,
-      addCircleOutline
+      addCircleOutline,
+      trashOutline
     });
   }
 
@@ -234,6 +237,27 @@ export class RupturesModalComponent implements OnInit, OnDestroy {
       color
     });
     toast.present();
+  }
+
+  /**
+   * Opens the stock waste declaration modal for an ingredient.
+   *
+   * @param ingredient Target ingredient
+   */
+  async openWasteModal(ingredient: Ingredient): Promise<void> {
+    const modal = await this.modalCtrl.create({
+      component: StockWasteModalComponent,
+      componentProps: {
+        ingredient,
+        preselectedIngredientId: ingredient.id,
+      },
+    });
+
+    await modal.present();
+    const { role, data } = await modal.onDidDismiss();
+    if (role === 'saved' && data?.movement) {
+      ingredient.quantiteStock = Math.max(0, (ingredient.quantiteStock || 0) - (data.movement.quantity || 0));
+    }
   }
 
   dismiss(): void {

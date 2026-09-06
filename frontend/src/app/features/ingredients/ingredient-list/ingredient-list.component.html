@@ -17,6 +17,11 @@
         </div>
 
         <div class="header-buttons">
+          <ion-button fill="outline" color="warning" class="header-action-btn" (click)="openWasteModal()" (keyup.enter)="openWasteModal()"
+            data-testid="ingredient-btn-record-waste">
+            <ion-icon slot="start" name="alert-circle-outline"></ion-icon>
+            {{ 'STOCK.WASTE_RECORD_BTN' | transloco }}
+          </ion-button>
           @if (canEdit$ | async) {
           <ion-button color="primary" class="header-action-btn" (click)="onAdd()" (keyup.enter)="onAdd()"
             data-testid="ingredient-add-btn">
@@ -203,16 +208,24 @@
                         }
 
                         <!-- Footer Action Buttons -->
-                        @if (isAdmin$ | async) {
                         <div class="card-footer-actions">
+                          <ion-button fill="clear" color="warning" size="small" class="waste-btn"
+                            (click)="$event.stopPropagation(); openWasteModal(ingredient)"
+                            (keyup.enter)="$event.stopPropagation(); openWasteModal(ingredient)"
+                            [title]="'STOCK.WASTE_RECORD_BTN' | transloco"
+                            [attr.data-testid]="'ingredient-waste-btn-' + ingredient.id">
+                            <ion-icon slot="start" name="alert-circle-outline"></ion-icon>
+                            <span>{{ 'STOCK.WASTE_RECORD_BTN' | transloco }}</span>
+                          </ion-button>
+                          @if (isAdmin$ | async) {
                           <ion-button fill="clear" color="danger" size="small" class="delete-btn"
                             (click)="$event.stopPropagation(); onDelete(ingredient)"
                             (keyup.enter)="$event.stopPropagation(); onDelete(ingredient)" data-testid="ingredient-delete-btn">
                             <ion-icon slot="start" name="trash-outline"></ion-icon>
                             <span>{{ 'COMMON.DELETE' | transloco }}</span>
                           </ion-button>
+                          }
                         </div>
-                        }
                       </ion-card-content>
                     </ion-card>
                   </ion-col>
@@ -270,14 +283,21 @@
                       </div>
                       }
 
-                      @if (isAdmin$ | async) {
                       <ion-buttons slot="end">
+                        <ion-button fill="clear" color="warning"
+                          (click)="$event.stopPropagation(); openWasteModal(ingredient)"
+                          (keyup.enter)="$event.stopPropagation(); openWasteModal(ingredient)"
+                          [title]="'STOCK.WASTE_RECORD_BTN' | transloco"
+                          [attr.data-testid]="'stock-list-waste-btn-' + ingredient.id">
+                          <ion-icon slot="icon-only" name="alert-circle-outline"></ion-icon>
+                        </ion-button>
+                        @if (isAdmin$ | async) {
                         <ion-button fill="clear" color="danger" (click)="$event.stopPropagation(); onDelete(ingredient)"
                           (keyup.enter)="$event.stopPropagation(); onDelete(ingredient)" data-testid="ingredient-delete-btn">
                           <ion-icon slot="icon-only" name="trash"></ion-icon>
                         </ion-button>
+                        }
                       </ion-buttons>
-                      }
                     </ion-item>
                     }
                   </ion-list>

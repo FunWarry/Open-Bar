@@ -500,3 +500,19 @@ CREATE TABLE IF NOT EXISTS happy_hour_cocktails (
     cocktail_id BIGINT NOT NULL REFERENCES cocktails(id) ON DELETE CASCADE,
     PRIMARY KEY (rule_id, cocktail_id)
 );
+
+-- 11. Stock Shrinkage, Breakage & Waste Tracking
+CREATE TABLE IF NOT EXISTS stock_movements (
+    id BIGSERIAL PRIMARY KEY,
+    ingredient_id BIGINT NOT NULL REFERENCES ingredients(id) ON DELETE CASCADE,
+    quantity DECIMAL(10,2) NOT NULL,
+    unit VARCHAR(50) NOT NULL,
+    reason VARCHAR(50) NOT NULL,
+    reported_by_id BIGINT REFERENCES users(id) ON DELETE SET NULL,
+    notes TEXT,
+    cost DECIMAL(10,2) DEFAULT 0,
+    recorded_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_stock_movements_ingredient ON stock_movements(ingredient_id);
+CREATE INDEX IF NOT EXISTS idx_stock_movements_recorded_at ON stock_movements(recorded_at);
