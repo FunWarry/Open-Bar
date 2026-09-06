@@ -13,16 +13,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Collections;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.startsWith;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -49,16 +48,17 @@ class DailyCashClosureIntegrationTest extends BaseIntegrationTest {
         LocalDate targetDate = LocalDate.now().minusDays(15);
         closureRepository.findByClosureDate(targetDate).ifPresent(closureRepository::delete);
 
+        Map<String, Integer> breakdown = Map.of("50e", 2, "20e", 2, "10e", 1);
         ClotureCaisseRequestDTO request = new ClotureCaisseRequestDTO(
                 targetDate,
                 new BigDecimal("150.00"),
                 new BigDecimal("150.00"),
-                Map.of("50e", 2, "20e", 2, "10e", 1),
+                breakdown,
                 null
         );
 
         // 1. Manager performs cash register closure
-        mockMvc.perform(post("/api/factures/recap/cloturer")
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/factures/recap/cloturer")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + getManagerToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -75,7 +75,7 @@ class DailyCashClosureIntegrationTest extends BaseIntegrationTest {
         Long closureId = saved.getId();
 
         // 2. Query closure by date
-        mockMvc.perform(get("/api/factures/clotures/by-date")
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/factures/clotures/by-date")
                         .param("date", targetDate.toString())
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + getManagerToken()))
                 .andExpect(status().isOk())
@@ -83,14 +83,14 @@ class DailyCashClosureIntegrationTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.closureNumber").value(saved.getClosureNumber()));
 
         // 3. Download certified Z-report PDF
-        mockMvc.perform(get("/api/factures/clotures/" + closureId + "/pdf")
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/factures/clotures/" + closureId + "/pdf")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + getManagerToken()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_PDF))
                 .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION, containsString("attachment; filename=\"z-report-")));
 
         // 4. Download FEC accounting export
-        mockMvc.perform(get("/api/factures/clotures/" + closureId + "/export/fec")
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/factures/clotures/" + closureId + "/export/fec")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + getManagerToken()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_PLAIN))
@@ -116,11 +116,11 @@ class DailyCashClosureIntegrationTest extends BaseIntegrationTest {
         oldFacture.setReglee(false);
         Facture persistedFacture = factureRepository.save(oldFacture);
 
-        mockMvc.perform(post("/api/factures/" + persistedFacture.getId() + "/regler")
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/factures/" + persistedFacture.getId() + "/regler")
                         .param("modePaiement", "ESPECES")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + getManagerToken()))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("already closed")));
+                .andExpect(jsonPath("$.message").value(containsString("already closed")));
     }
 
     @Test
@@ -133,14 +133,12 @@ class DailyCashClosureIntegrationTest extends BaseIntegrationTest {
                 date,
                 new BigDecimal("100.00"),
                 new BigDecimal("80.00"), // 20€ discrepancy with null reason
-                Collections.emptyMap(),
+                Map.of(),
                 null
         );
 
-        mockMvc.perform(post("/api/factures/recap/cloturer")
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + getManagerToken())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/factures/recap/cloturer")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + getManagerToken()))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value(containsString("justification note is mandatory")));
     }
@@ -152,11 +150,11 @@ class DailyCashClosureIntegrationTest extends BaseIntegrationTest {
                 LocalDate.now().minusDays(25),
                 new BigDecimal("100.00"),
                 new BigDecimal("100.00"),
-                Collections.emptyMap(),
+                Map.of(),
                 null
         );
 
-        mockMvc.perform(post("/api/factures/recap/cloturer")
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/factures/recap/cloturer")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + getServeurToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
