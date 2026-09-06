@@ -878,7 +878,7 @@ describe('CocktailFormComponent', () => {
       expect(component.marginBadgeClass()).toBe('success');
 
       const breakdown = component.ingredientCostBreakdown();
-      expect(breakdown.length).toBe(2);
+      expect(breakdown).toHaveSize(2);
       expect(breakdown[0].nom).toBe('White Rum');
       expect(breakdown[0].lineCost).toBe(1.0);
       expect(breakdown[1].nom).toBe('Lime Juice');
