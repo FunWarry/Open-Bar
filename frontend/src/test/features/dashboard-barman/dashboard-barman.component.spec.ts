@@ -580,4 +580,108 @@ describe('DashboardBarmanComponent', () => {
       commande: dummyBatch.sampleCommande
     });
   });
+
+  it('distinctBatchRecipesCount and urgentBatchesCount return correct counts', () => {
+    const dummyBatches: CocktailBatchView[] = [
+      {
+        cocktailId: 101,
+        cocktailNom: 'Mojito',
+        totalQuantity: 3,
+        pendingQuantity: 3,
+        preparingQuantity: 0,
+        isUrgent: true,
+        earliestOrderDate: new Date(),
+        tableSummaries: [],
+        items: [],
+        ingredients: [],
+        sampleItem: { id: 1, cocktailId: 101, cocktailNom: 'Mojito', quantite: 3, prioritaire: true },
+        sampleCommande: mockCommandes[0]
+      },
+      {
+        cocktailId: 102,
+        cocktailNom: 'Spritz',
+        totalQuantity: 2,
+        pendingQuantity: 2,
+        preparingQuantity: 0,
+        isUrgent: false,
+        earliestOrderDate: new Date(),
+        tableSummaries: [],
+        items: [],
+        ingredients: [],
+        sampleItem: { id: 2, cocktailId: 102, cocktailNom: 'Spritz', quantite: 2, prioritaire: false },
+        sampleCommande: mockCommandes[0]
+      }
+    ];
+    dashboardServiceSpy.aggregateBatches.and.returnValue(dummyBatches);
+
+    expect(component.distinctBatchRecipesCount).toBe(2);
+    expect(component.urgentBatchesCount).toBe(1);
+    expect(component.totalBatchDrinksCount).toBe(5);
+    expect(component.trackByBatchCocktail(0, dummyBatches[0])).toBe('Mojito');
+  });
+
+  it('onStartBatch() returns early if batch items are empty and shows danger toast on error', fakeAsync(() => {
+    const dummyBatch: CocktailBatchView = {
+      cocktailId: 101,
+      cocktailNom: 'Mojito',
+      totalQuantity: 2,
+      pendingQuantity: 2,
+      preparingQuantity: 0,
+      isUrgent: false,
+      earliestOrderDate: new Date(),
+      tableSummaries: [],
+      items: [],
+      ingredients: [],
+      sampleItem: { id: 1, cocktailId: 101, cocktailNom: 'Mojito', quantite: 2, prioritaire: false },
+      sampleCommande: mockCommandes[0]
+    };
+
+    component.onStartBatch(dummyBatch);
+    expect(dashboardServiceSpy.transitionBatch).not.toHaveBeenCalled();
+
+    const batchWithError: CocktailBatchView = {
+      ...dummyBatch,
+      items: [{ commandeId: 1, tableNom: 'T1', itemId: 99, quantite: 1, prioritaire: false, statut: 'EN_ATTENTE' }]
+    };
+
+    dashboardServiceSpy.transitionBatch.and.returnValue(throwError(() => new Error('Server error')));
+    component.onStartBatch(batchWithError);
+    tick();
+    flushMicrotasks();
+
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
+  }));
+
+  it('onCompleteBatch() returns early if batch items are empty and shows danger toast on error', fakeAsync(() => {
+    const dummyBatch: CocktailBatchView = {
+      cocktailId: 101,
+      cocktailNom: 'Mojito',
+      totalQuantity: 2,
+      pendingQuantity: 0,
+      preparingQuantity: 2,
+      isUrgent: false,
+      earliestOrderDate: new Date(),
+      tableSummaries: [],
+      items: [],
+      ingredients: [],
+      sampleItem: { id: 1, cocktailId: 101, cocktailNom: 'Mojito', quantite: 2, prioritaire: false },
+      sampleCommande: mockCommandes[0]
+    };
+
+    component.onCompleteBatch(dummyBatch);
+    expect(dashboardServiceSpy.transitionBatch).not.toHaveBeenCalled();
+
+    const batchWithError: CocktailBatchView = {
+      ...dummyBatch,
+      items: [{ commandeId: 1, tableNom: 'T1', itemId: 99, quantite: 1, prioritaire: false, statut: 'EN_PREPARATION' }]
+    };
+
+    dashboardServiceSpy.transitionBatch.and.returnValue(throwError(() => new Error('Server error')));
+    component.onCompleteBatch(batchWithError);
+    tick();
+    flushMicrotasks();
+
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
+  }));
 });
+

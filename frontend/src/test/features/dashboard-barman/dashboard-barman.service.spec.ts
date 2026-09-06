@@ -232,4 +232,75 @@ describe('DashboardBarmanService', () => {
     expect(req.request.method).toBe('GET');
     req.flush([{ id: 11, statut: 'EN_ATTENTE' }]);
   });
+
+  it('aggregateBatches() filters by station KITCHEN and handles preparing status and search term', () => {
+    const orders: any[] = [
+      {
+        id: 10,
+        tableNom: 'Table 5',
+        tableNumero: 5,
+        statut: 'EN_ATTENTE',
+        dateCommande: new Date(Date.now() - 10000),
+        items: [
+          {
+            id: 101,
+            cocktailId: 201,
+            cocktailNom: 'Tapas Mix',
+            quantite: 2,
+            statut: 'EN_PREPARATION',
+            station: 'KITCHEN'
+          },
+          {
+            id: 102,
+            cocktailId: 202,
+            cocktailNom: 'Frites',
+            quantite: 1,
+            statut: 'EN_ATTENTE',
+            station: 'SNACK'
+          },
+          {
+            id: 103,
+            cocktailId: 101,
+            cocktailNom: 'Mojito',
+            quantite: 1,
+            statut: 'LIVREE', // terminal status ignored
+            station: 'BAR'
+          }
+        ]
+      },
+      {
+        id: 11,
+        tableNom: 'Table 6',
+        tableNumero: 6,
+        statut: 'EN_ATTENTE',
+        dateCommande: new Date(Date.now() - 20000), // earlier date
+        items: [
+          {
+            id: 104,
+            cocktailId: 201,
+            cocktailNom: 'Tapas Mix',
+            quantite: 1,
+            statut: 'EN_ATTENTE',
+            station: 'KITCHEN'
+          }
+        ]
+      }
+    ];
+
+    // Filter by KITCHEN (includes KITCHEN + SNACK)
+    const kitchenBatches = service.aggregateBatches(orders, [], { stationFilter: 'KITCHEN' });
+    expect(kitchenBatches).toHaveSize(2);
+
+    const tapasBatch = kitchenBatches.find(b => b.cocktailNom === 'Tapas Mix');
+    expect(tapasBatch).toBeDefined();
+    expect(tapasBatch?.totalQuantity).toBe(3);
+    expect(tapasBatch?.preparingQuantity).toBe(2);
+    expect(tapasBatch?.pendingQuantity).toBe(1);
+
+    // Search filter
+    const searchBatches = service.aggregateBatches(orders, [], { searchTerm: 'frit' });
+    expect(searchBatches).toHaveSize(1);
+    expect(searchBatches[0].cocktailNom).toBe('Frites');
+  });
 });
+

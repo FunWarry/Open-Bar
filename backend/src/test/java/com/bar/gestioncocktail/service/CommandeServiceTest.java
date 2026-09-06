@@ -934,5 +934,60 @@ class CommandeServiceTest {
         assertThat(results).isEmpty();
         verify(commandeRepository, never()).save(any());
     }
+
+    @Test
+    @DisplayName("transitionBatch - by cocktailId transitions matching items to PRET")
+    void transitionBatch_byCocktailId_toPret_transitionsMatchingItems() {
+        Cocktail mojito = new Cocktail();
+        mojito.setId(56L);
+
+        Commande cmd = new Commande();
+        cmd.setId(905L);
+        cmd.setStatut(CommandeStatut.EN_PREPARATION);
+        cmd.setItems(new ArrayList<>());
+
+        CommandeItem it = new CommandeItem();
+        it.setId(1005L);
+        it.setCommande(cmd);
+        it.setCocktail(mojito);
+        it.setStatut(CommandeStatut.EN_PREPARATION);
+        cmd.getItems().add(it);
+
+        when(commandeRepository.findAll()).thenReturn(List.of(cmd));
+        when(commandeRepository.save(any(Commande.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        List<Commande> results = commandeService.transitionBatch(null, 56L, CommandeStatut.PRET);
+
+        assertThat(results).hasSize(1);
+        assertThat(it.getStatut()).isEqualTo(CommandeStatut.PRET);
+        assertThat(cmd.getStatut()).isEqualTo(CommandeStatut.PRET);
+    }
+
+    @Test
+    @DisplayName("transitionBatch - by cocktailId with custom status transitions matching items")
+    void transitionBatch_byCocktailId_otherStatus_transitionsMatchingItems() {
+        Cocktail mojito = new Cocktail();
+        mojito.setId(57L);
+
+        Commande cmd = new Commande();
+        cmd.setId(906L);
+        cmd.setStatut(CommandeStatut.PRET);
+        cmd.setItems(new ArrayList<>());
+
+        CommandeItem it = new CommandeItem();
+        it.setId(1006L);
+        it.setCommande(cmd);
+        it.setCocktail(mojito);
+        it.setStatut(CommandeStatut.PRET);
+        cmd.getItems().add(it);
+
+        when(commandeRepository.findAll()).thenReturn(List.of(cmd));
+        when(commandeRepository.save(any(Commande.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        List<Commande> results = commandeService.transitionBatch(null, 57L, CommandeStatut.LIVREE);
+
+        assertThat(results).hasSize(1);
+        assertThat(it.getStatut()).isEqualTo(CommandeStatut.LIVREE);
+    }
 }
 
