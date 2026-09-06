@@ -84,10 +84,40 @@ public record AppSettingsUpdateRequest(
 
     Boolean wifiEnabled,
 
-    Boolean tableSessionValidationEnabled
+    Boolean tableSessionValidationEnabled,
+
+    @jakarta.validation.constraints.DecimalMin(value = "0.0", message = "Default VAT rate cannot be negative")
+    @jakarta.validation.constraints.DecimalMax(value = "100.0", message = "Default VAT rate cannot exceed 100%")
+    java.math.BigDecimal defaultVatRate,
+
+    @jakarta.validation.constraints.DecimalMin(value = "1.0", message = "Target margin must be at least 1%")
+    @jakarta.validation.constraints.DecimalMax(value = "100.0", message = "Target margin cannot exceed 100%")
+    java.math.BigDecimal targetGrossMarginPercentage,
+
+    @jakarta.validation.constraints.DecimalMin(value = "0.0", message = "Warning margin cannot be negative")
+    @jakarta.validation.constraints.DecimalMax(value = "100.0", message = "Warning margin cannot exceed 100%")
+    java.math.BigDecimal warningGrossMarginPercentage
 ) {
     /**
-     * Backwards-compatible 16-parameter constructor defaulting tableSessionValidationEnabled to false.
+     * Backwards-compatible 17-parameter constructor defaulting financial margin fields to null.
+     */
+    public AppSettingsUpdateRequest(
+            String primaryColor, String primaryColorStrong, String logoUrl,
+            String establishmentName, DefaultTheme defaultTheme, String currencyCode,
+            String currencySymbol, CurrencyPosition currencyPosition,
+            Integer tempsAlerteWarningMinutes, Integer tempsAlerteCommandeMinutes,
+            Integer tempsAlerteCritiqueCommandeMinutes, String clientBaseUrl,
+            String wifiSsid, String wifiPassword, String wifiSecurity, Boolean wifiEnabled,
+            Boolean tableSessionValidationEnabled) {
+        this(primaryColor, primaryColorStrong, logoUrl, establishmentName, defaultTheme,
+                currencyCode, currencySymbol, currencyPosition, tempsAlerteWarningMinutes,
+                tempsAlerteCommandeMinutes, tempsAlerteCritiqueCommandeMinutes, clientBaseUrl,
+                wifiSsid, wifiPassword, wifiSecurity, wifiEnabled, tableSessionValidationEnabled,
+                null, null, null);
+    }
+
+    /**
+     * Backwards-compatible 16-parameter constructor defaulting tableSessionValidationEnabled to false and margins to null.
      */
     public AppSettingsUpdateRequest(
             String primaryColor, String primaryColorStrong, String logoUrl,
@@ -99,7 +129,7 @@ public record AppSettingsUpdateRequest(
         this(primaryColor, primaryColorStrong, logoUrl, establishmentName, defaultTheme,
                 currencyCode, currencySymbol, currencyPosition, tempsAlerteWarningMinutes,
                 tempsAlerteCommandeMinutes, tempsAlerteCritiqueCommandeMinutes, clientBaseUrl,
-                wifiSsid, wifiPassword, wifiSecurity, wifiEnabled, false);
+                wifiSsid, wifiPassword, wifiSecurity, wifiEnabled, false, null, null, null);
     }
 }
 

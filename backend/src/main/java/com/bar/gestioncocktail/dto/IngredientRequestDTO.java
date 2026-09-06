@@ -19,6 +19,7 @@ import java.time.LocalDateTime;
  * @param numeroLot      Optional lot number
  * @param datePeremption Optional expiry date
  * @param prixUnitaire   Optional unit price
+ * @param unitCost       Optional unit cost alias
  * @param fournisseur    Optional supplier name
  * @param notes          Optional notes
  */
@@ -47,12 +48,32 @@ public record IngredientRequestDTO(
     @DecimalMin(value = "0.0", message = "Unit price cannot be negative")
     BigDecimal prixUnitaire,
 
+    @DecimalMin(value = "0.0", message = "Unit cost cannot be negative")
+    BigDecimal unitCost,
+
     @Size(max = 100, message = "Supplier name cannot exceed 100 characters")
     String fournisseur,
 
     @Size(max = 2000, message = "Notes cannot exceed 2000 characters")
     String notes
 ) {
+    /**
+     * Backward-compatible constructor without unitCost alias.
+     */
+    public IngredientRequestDTO(
+        String nom,
+        String uniteMesure,
+        BigDecimal quantiteStock,
+        BigDecimal seuilAlerte,
+        String numeroLot,
+        LocalDateTime datePeremption,
+        BigDecimal prixUnitaire,
+        String fournisseur,
+        String notes
+    ) {
+        this(nom, uniteMesure, quantiteStock, seuilAlerte, numeroLot, datePeremption, prixUnitaire, null, fournisseur, notes);
+    }
+
     /**
      * Converts this DTO into an {@link Ingredient} JPA entity.
      *
@@ -66,7 +87,8 @@ public record IngredientRequestDTO(
         ingredient.setSeuilAlerte(seuilAlerte);
         ingredient.setNumeroLot(numeroLot);
         ingredient.setDatePeremption(datePeremption);
-        ingredient.setPrixUnitaire(prixUnitaire);
+        BigDecimal effectiveCost = prixUnitaire != null ? prixUnitaire : unitCost;
+        ingredient.setPrixUnitaire(effectiveCost);
         ingredient.setFournisseur(fournisseur);
         ingredient.setNotes(notes);
         return ingredient;

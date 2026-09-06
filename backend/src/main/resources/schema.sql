@@ -90,6 +90,7 @@ CREATE TABLE IF NOT EXISTS cocktail_ingredients (
     cocktail_id BIGINT REFERENCES cocktails(id) ON DELETE CASCADE,
     ingredient_id BIGINT REFERENCES ingredients(id) ON DELETE CASCADE,
     quantite DECIMAL(10,2) NOT NULL,
+    unite VARCHAR(20),
     notes TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -375,6 +376,9 @@ CREATE TABLE IF NOT EXISTS app_settings (
     wifi_security VARCHAR(20),
     wifi_enabled BOOLEAN DEFAULT false,
     table_session_validation_enabled BOOLEAN DEFAULT false,
+    default_vat_rate DECIMAL(5,2) DEFAULT 20.00,
+    target_gross_margin_percentage DECIMAL(5,2) DEFAULT 70.00,
+    warning_gross_margin_percentage DECIMAL(5,2) DEFAULT 50.00,
     updated_at TIMESTAMP
 );
 

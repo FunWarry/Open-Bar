@@ -22,7 +22,8 @@ import {
   scaleOutline,
   checkmarkCircle,
   closeOutline,
-  arrowBackOutline
+  arrowBackOutline,
+  cashOutline
 } from 'ionicons/icons';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { IngredientService } from '../../../core/services/ingredient.service';
@@ -87,14 +88,16 @@ export class IngredientFormComponent implements OnInit {
       scaleOutline,
       checkmarkCircle,
       closeOutline,
-      arrowBackOutline
+      arrowBackOutline,
+      cashOutline
     });
 
     this.ingredientForm = this.fb.group({
       nom: ['', [Validators.required]],
       uniteMesure: ['', [Validators.required]],
       quantiteStock: [0, [Validators.required, Validators.min(0)]],
-      seuilAlerte: [5, [Validators.required, Validators.min(0)]]
+      seuilAlerte: [5, [Validators.required, Validators.min(0)]],
+      prixUnitaire: [0, [Validators.min(0)]]
     });
   }
 
@@ -106,7 +109,8 @@ export class IngredientFormComponent implements OnInit {
         nom: this.ingredient.nom,
         uniteMesure: this.ingredient.uniteMesure,
         quantiteStock: this.ingredient.quantiteStock,
-        seuilAlerte: this.ingredient.seuilAlerte
+        seuilAlerte: this.ingredient.seuilAlerte,
+        prixUnitaire: this.ingredient.prixUnitaire ?? this.ingredient.unitCost ?? 0
       });
       if (!this.canEdit) {
         this.ingredientForm.disable();
@@ -124,7 +128,8 @@ export class IngredientFormComponent implements OnInit {
             nom: ingredient.nom,
             uniteMesure: ingredient.uniteMesure,
             quantiteStock: ingredient.quantiteStock,
-            seuilAlerte: ingredient.seuilAlerte
+            seuilAlerte: ingredient.seuilAlerte,
+            prixUnitaire: ingredient.prixUnitaire ?? ingredient.unitCost ?? 0
           });
           if (!this.canEdit) {
             this.ingredientForm.disable();

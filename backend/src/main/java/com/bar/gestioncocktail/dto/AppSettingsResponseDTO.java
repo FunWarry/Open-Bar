@@ -5,6 +5,7 @@ import com.bar.gestioncocktail.model.CurrencyPosition;
 import com.bar.gestioncocktail.model.DefaultTheme;
 import io.swagger.v3.oas.annotations.media.Schema;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
@@ -27,6 +28,9 @@ import java.time.LocalDateTime;
  * @param wifiPassword Establishment customer Wi-Fi network password
  * @param wifiSecurity Establishment customer Wi-Fi encryption type (WPA, WEP, nopass)
  * @param wifiEnabled Flag indicating whether customer Wi-Fi QR codes are enabled on table stands
+ * @param defaultVatRate Default VAT rate percentage for menu prices
+ * @param targetGrossMarginPercentage Target high margin percentage threshold
+ * @param warningGrossMarginPercentage Warning low margin percentage threshold
  * @param updatedAt Last modification timestamp
  */
 @Schema(description = "Visual, operational, currency, and QR/Wi-Fi configuration data of the establishment")
@@ -49,6 +53,9 @@ public record AppSettingsResponseDTO(
     String wifiSecurity,
     Boolean wifiEnabled,
     Boolean tableSessionValidationEnabled,
+    BigDecimal defaultVatRate,
+    BigDecimal targetGrossMarginPercentage,
+    BigDecimal warningGrossMarginPercentage,
     LocalDateTime updatedAt
 ) {
     /**
@@ -70,6 +77,9 @@ public record AppSettingsResponseDTO(
             s.getWifiSecurity(),
             s.getWifiEnabled(),
             s.getTableSessionValidationEnabled(),
+            s.getDefaultVatRate(),
+            s.getTargetGrossMarginPercentage(),
+            s.getWarningGrossMarginPercentage(),
             s.getUpdatedAt()
         );
     }

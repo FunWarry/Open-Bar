@@ -8,11 +8,15 @@ import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
@@ -106,6 +110,24 @@ public class AppSettings {
 
     @Column(name = "table_session_validation_enabled")
     private Boolean tableSessionValidationEnabled = false;
+
+    @NotNull(message = "Default VAT rate is required")
+    @DecimalMin(value = "0.0", message = "VAT rate cannot be negative")
+    @DecimalMax(value = "100.0", message = "VAT rate cannot exceed 100%")
+    @Column(name = "default_vat_rate", nullable = false)
+    private BigDecimal defaultVatRate = new BigDecimal("20.00");
+
+    @NotNull(message = "Target gross margin percentage is required")
+    @DecimalMin(value = "1.0", message = "Target margin must be at least 1%")
+    @DecimalMax(value = "100.0", message = "Target margin cannot exceed 100%")
+    @Column(name = "target_gross_margin_percentage", nullable = false)
+    private BigDecimal targetGrossMarginPercentage = new BigDecimal("70.00");
+
+    @NotNull(message = "Warning gross margin percentage is required")
+    @DecimalMin(value = "0.0", message = "Warning margin cannot be negative")
+    @DecimalMax(value = "100.0", message = "Warning margin cannot exceed 100%")
+    @Column(name = "warning_gross_margin_percentage", nullable = false)
+    private BigDecimal warningGrossMarginPercentage = new BigDecimal("50.00");
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;

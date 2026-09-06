@@ -60,6 +60,7 @@ public class AppSettingsService {
         applyCurrency(current, request);
         applyAlertThresholds(current, request);
         applyWifiAndQr(current, request);
+        applyVatAndMargins(current, request);
 
         AppSettings saved = appSettingsRepository.save(current);
         notificationService.notifierParametresMisAJour(AppSettingsResponseDTO.from(saved));
@@ -122,6 +123,30 @@ public class AppSettingsService {
         }
         if (request.tableSessionValidationEnabled() != null) {
             current.setTableSessionValidationEnabled(request.tableSessionValidationEnabled());
+        }
+    }
+
+    private void applyVatAndMargins(AppSettings current, AppSettingsUpdateRequest request) {
+        if (request.defaultVatRate() != null) {
+            current.setDefaultVatRate(request.defaultVatRate());
+        }
+        java.math.BigDecimal target = request.targetGrossMarginPercentage() != null
+                ? request.targetGrossMarginPercentage()
+                : current.getTargetGrossMarginPercentage();
+        java.math.BigDecimal warning = request.warningGrossMarginPercentage() != null
+                ? request.warningGrossMarginPercentage()
+                : current.getWarningGrossMarginPercentage();
+
+        if (target != null && warning != null && warning.compareTo(target) >= 0) {
+            throw new BusinessException(
+                "Warning margin threshold (" + warning + "%) must be strictly less than target margin threshold (" + target + "%)");
+        }
+
+        if (request.targetGrossMarginPercentage() != null) {
+            current.setTargetGrossMarginPercentage(request.targetGrossMarginPercentage());
+        }
+        if (request.warningGrossMarginPercentage() != null) {
+            current.setWarningGrossMarginPercentage(request.warningGrossMarginPercentage());
         }
     }
 

@@ -24,14 +24,18 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 
 import org.mockito.Spy;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class DashboardServiceTest {
 
     @Mock CommandeRepository commandeRepository;
     @Mock FactureRepository factureRepository;
     @Mock TableRepository tableRepository;
     @Mock IngredientRepository ingredientRepository;
+    @Mock MarginCalculationService marginCalculationService;
     @Spy TimeService timeService = new TimeService(null);
 
     @InjectMocks DashboardService dashboardService;
@@ -47,6 +51,11 @@ class DashboardServiceTest {
         given(tableRepository.countByOccupeeTrue()).willReturn(0L);
         given(tableRepository.count()).willReturn(0L);
         given(ingredientRepository.countIngredientsSousSeuil()).willReturn(0L);
+        given(marginCalculationService.getDashboardMarginAnalytics()).willReturn(
+            new com.bar.gestioncocktail.dto.DashboardMarginAnalyticsDTO(
+                BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, List.of()
+            )
+        );
     }
 
     // ─── commandesTotales ─────────────────────────────────────────────────────
@@ -275,5 +284,44 @@ class DashboardServiceTest {
         assertThat(stats.tablesTotales()).isZero();
         assertThat(stats.topCocktails()).isEmpty();
         assertThat(stats.stockIngredientsCritiques()).isZero();
+    }
+
+    @Test
+    void getStats_withMarginAnalytics_populatesFinancialHealthKpis() {
+        com.bar.gestioncocktail.dto.DashboardMarginAnalyticsDTO marginAnalytics =
+            new com.bar.gestioncocktail.dto.DashboardMarginAnalyticsDTO(
+                new BigDecimal("600.00"),
+                new BigDecimal("500.00"),
+                new BigDecimal("100.00"),
+                new BigDecimal("400.00"),
+                new BigDecimal("80.00"),
+                List.of()
+            );
+        given(marginCalculationService.getDashboardMarginAnalytics()).willReturn(marginAnalytics);
+
+        DashboardStatsDTO stats = dashboardService.getStats();
+
+        assertThat(stats.totalCogsJour()).isEqualByComparingTo(new BigDecimal("100.00"));
+        assertThat(stats.margeBruteJour()).isEqualByComparingTo(new BigDecimal("400.00"));
+        assertThat(stats.tauxMargeBruteJour()).isEqualByComparingTo(new BigDecimal("80.00"));
+    }
+
+    @Test
+    void getMarginAnalytics_delegatesToMarginCalculationService() {
+        com.bar.gestioncocktail.dto.DashboardMarginAnalyticsDTO marginAnalytics =
+            new com.bar.gestioncocktail.dto.DashboardMarginAnalyticsDTO(
+                new BigDecimal("360.00"),
+                new BigDecimal("300.00"),
+                new BigDecimal("60.00"),
+                new BigDecimal("240.00"),
+                new BigDecimal("80.00"),
+                List.of()
+            );
+        given(marginCalculationService.getDashboardMarginAnalytics()).willReturn(marginAnalytics);
+
+        com.bar.gestioncocktail.dto.DashboardMarginAnalyticsDTO result = dashboardService.getMarginAnalytics();
+
+        assertThat(result.totalCogsJour()).isEqualByComparingTo(new BigDecimal("60.00"));
+        assertThat(result.margeBruteJour()).isEqualByComparingTo(new BigDecimal("240.00"));
     }
 }

@@ -22,9 +22,11 @@ import { FormsModule } from '@angular/forms';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { CocktailService } from '../../../core/services/cocktail.service';
 import { WebSocketService } from '../../../core/services/websocket.service';
+import { AppSettingsService } from '../../../core/services/app-settings.service';
 import { Cocktail, CocktailFacets, FlavorProfile } from '../../../core/models/cocktail.model';
 import { CocktailMatcherBarComponent, CocktailMatcherFilters } from '../../../core/components/ui/cocktail-matcher-bar/cocktail-matcher-bar.component';
 import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
+import { getMarginBadgeClass } from '../../../core/utils/margin-calculation.util';
 import { environment } from '../../../../environments/environment';
 
 /**
@@ -74,6 +76,12 @@ export class CocktailListComponent implements OnInit, OnDestroy {
   viewMode: 'grid' | 'list' = 'grid';
   showPictures = localStorage.getItem('openbar_show_pictures') !== 'false';
 
+  getMarginBadgeClass(percentage: number | null | undefined): string {
+    const target = this.appSettingsService?.targetGrossMarginPercentage ?? 70;
+    const warning = this.appSettingsService?.warningGrossMarginPercentage ?? 50;
+    return getMarginBadgeClass(percentage, target, warning);
+  }
+
   readonly availableAllergens: AllergenOption[] = [
     { key: 'LAIT', labelKey: 'COCKTAILS.ALLERGENS.LAIT', icon: 'nutrition-outline', keywords: ['lait', 'creme', 'crème', 'cream', 'beurre', 'lactose', 'baileys', 'yaourt', 'fromage'] },
     { key: 'GLUTEN', labelKey: 'COCKTAILS.ALLERGENS.GLUTEN', icon: 'leaf-outline', keywords: ['biere', 'bière', 'beer', 'whisky', 'whiskey', 'orge', 'seigle', 'ble', 'blé', 'gluten'] },
@@ -96,6 +104,7 @@ export class CocktailListComponent implements OnInit, OnDestroy {
     private readonly webSocketService: WebSocketService,
     private readonly toastCtrl: ToastController,
     private readonly transloco: TranslocoService,
+    private readonly appSettingsService: AppSettingsService,
   ) {
     this.isAdmin$ = this.store.select(selectIsAdmin);
     addIcons({

@@ -2,10 +2,10 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { Cocktail, CocktailFacets, FlavorProfile } from '../models/cocktail.model';
+import { Cocktail, CocktailFacets, CocktailMargin, FlavorProfile } from '../models/cocktail.model';
 
 /**
- * Service managing cocktail catalog, availability, photo uploads, recipe facets, and flavor matcher.
+ * Service managing cocktail catalog, availability, photo uploads, recipe facets, margins, and flavor matcher.
  */
 @Injectable({ providedIn: 'root' })
 export class CocktailService {
@@ -99,5 +99,23 @@ export class CocktailService {
 
     return this.http.get<Cocktail[]>(`${this.api}/matcher`, { params });
   }
-}
 
+  /**
+   * Retrieves detailed gross profit margin and recipe cost breakdown for a specific cocktail.
+   *
+   * @param id Cocktail identifier
+   * @returns Observable of CocktailMargin details
+   */
+  getCocktailMargin(id: number): Observable<CocktailMargin> {
+    return this.http.get<CocktailMargin>(`${this.api}/${id}/margin`);
+  }
+
+  /**
+   * Retrieves catalog-wide gross profit margin and COGS analytics for all cocktails.
+   *
+   * @returns Observable list of CocktailMargin entries
+   */
+  getCatalogMarginAnalytics(): Observable<CocktailMargin[]> {
+    return this.http.get<CocktailMargin[]>(`${this.api}/margin-analytics`);
+  }
+}

@@ -1,5 +1,6 @@
 package com.bar.gestioncocktail.controller;
 
+import com.bar.gestioncocktail.dto.DashboardMarginAnalyticsDTO;
 import com.bar.gestioncocktail.dto.DashboardStatsDTO;
 import com.bar.gestioncocktail.service.DashboardService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -12,11 +13,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * REST Controller managing the manager dashboard and live bar performance metrics.
+ * REST Controller managing the manager dashboard, live bar performance metrics, and financial margin analytics.
  */
 @RestController
 @RequestMapping("/api/dashboard")
-@Tag(name = "Dashboard", description = "Activity statistics, revenue analytics, and real-time operational metrics for managers")
+@Tag(name = "Dashboard", description = "Activity statistics, revenue analytics, COGS, and real-time operational metrics for managers")
 public class DashboardController {
 
     private final DashboardService dashboardService;
@@ -33,7 +34,7 @@ public class DashboardController {
     /**
      * Computes and returns the overall operations metrics and financial statistics of the establishment.
      *
-     * @return DTO containing revenues, active order counts, and top cocktail sales
+     * @return DTO containing revenues, active order counts, top cocktail sales, and financial health metrics
      */
     @GetMapping("/stats")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
@@ -42,5 +43,19 @@ public class DashboardController {
     @ApiResponse(responseCode = "403", description = "Access forbidden")
     public ResponseEntity<DashboardStatsDTO> getStats() {
         return ResponseEntity.ok(dashboardService.getStats());
+    }
+
+    /**
+     * Computes and returns standalone financial health, COGS, and gross margin analytics for managers.
+     *
+     * @return DTO containing COGS, gross margins, and top profitable cocktails
+     */
+    @GetMapping("/margin-analytics")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
+    @Operation(summary = "Get manager dashboard gross margin and COGS analytics (MANAGER/ADMIN)")
+    @ApiResponse(responseCode = "200", description = "Margin analytics computed successfully")
+    @ApiResponse(responseCode = "403", description = "Access forbidden")
+    public ResponseEntity<DashboardMarginAnalyticsDTO> getMarginAnalytics() {
+        return ResponseEntity.ok(dashboardService.getMarginAnalytics());
     }
 }

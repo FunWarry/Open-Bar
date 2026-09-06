@@ -54,6 +54,10 @@ import {
   informationCircleOutline,
   cloudOutline,
   nutritionOutline,
+  trendingUpOutline,
+  cashOutline,
+  calculatorOutline,
+  statsChartOutline,
 } from 'ionicons/icons';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { of } from 'rxjs';
@@ -62,6 +66,11 @@ import { CocktailService } from '../../../core/services/cocktail.service';
 import { IngredientService } from '../../../core/services/ingredient.service';
 import { RecipeStepTemplateService } from '../../../core/services/recipe-step-template.service';
 import { GlasswareService } from '../../../core/services/glassware.service';
+import {
+  calculateIngredientCost,
+  calculateGrossMargin,
+  getMarginBadgeClass,
+} from '../../../core/utils/margin-calculation.util';
 import {
   Cocktail,
   CocktailIngredientItem,
@@ -415,8 +424,97 @@ export class CocktailFormComponent implements OnInit {
       informationCircleOutline,
       cloudOutline,
       nutritionOutline,
+      trendingUpOutline,
+      cashOutline,
+      calculatorOutline,
+      statsChartOutline,
     });
   }
+
+  /** Computed recipe unit cost based on selected ingredients and inventory purchase costs. */
+  recipeCost = computed<number>(() => {
+    this.recipeVersion();
+    const steps = this.recipeStepsArray.controls;
+    const ingredients = this.ingredientsList();
+    let total = 0;
+
+    for (const ctrl of steps) {
+      if (ctrl.get('stepType')?.value === 'INGREDIENT') {
+        const ingId = ctrl.get('ingredientId')?.value;
+        const qty = Number(ctrl.get('quantite')?.value) || 0;
+        const unite = ctrl.get('unite')?.value;
+        if (ingId && qty > 0) {
+          const ing = ingredients.find((i) => i.id === +ingId);
+          if (ing) {
+            const unitCost = ing.prixUnitaire ?? (ing as any).unitCost ?? 0;
+            const cost = calculateIngredientCost(qty, unite, unitCost, ing.uniteMesure);
+            total += cost;
+          }
+        }
+      }
+    }
+    return Math.round(total * 100) / 100;
+  });
+
+  /** Computed VAT-exclusive selling price. */
+  sellingPriceHT = computed<number>(() => {
+    this.recipeVersion();
+    const price = Number(this.cocktailForm.get('price')?.value) || 0;
+    const vatRate = (this.appSettingsService?.defaultVatRate ?? 20) / 100;
+    return calculateGrossMargin(price, this.recipeCost(), vatRate).sellingPriceHT;
+  });
+
+  /** Computed gross margin amount in currency. */
+  grossMargin = computed<number>(() => {
+    this.recipeVersion();
+    const price = Number(this.cocktailForm.get('price')?.value) || 0;
+    const vatRate = (this.appSettingsService?.defaultVatRate ?? 20) / 100;
+    return calculateGrossMargin(price, this.recipeCost(), vatRate).grossMargin;
+  });
+
+  /** Computed gross margin percentage. */
+  grossMarginPercentage = computed<number>(() => {
+    this.recipeVersion();
+    const price = Number(this.cocktailForm.get('price')?.value) || 0;
+    const vatRate = (this.appSettingsService?.defaultVatRate ?? 20) / 100;
+    return calculateGrossMargin(price, this.recipeCost(), vatRate).grossMarginPercentage;
+  });
+
+  /** Badge semantic style for margin percentage ('success' | 'warning' | 'danger'). */
+  marginBadgeClass = computed<'success' | 'warning' | 'danger'>(() => {
+    const target = this.appSettingsService?.targetGrossMarginPercentage ?? 70;
+    const warning = this.appSettingsService?.warningGrossMarginPercentage ?? 50;
+    return getMarginBadgeClass(this.grossMarginPercentage(), target, warning);
+  });
+
+  /** Breakdown list of ingredient costs for preview. */
+  ingredientCostBreakdown = computed<Array<{ nom: string; quantite: number; unite: string; lineCost: number }>>(() => {
+    this.recipeVersion();
+    const steps = this.recipeStepsArray.controls;
+    const ingredients = this.ingredientsList();
+    const items: Array<{ nom: string; quantite: number; unite: string; lineCost: number }> = [];
+
+    for (const ctrl of steps) {
+      if (ctrl.get('stepType')?.value === 'INGREDIENT') {
+        const ingId = ctrl.get('ingredientId')?.value;
+        const qty = Number(ctrl.get('quantite')?.value) || 0;
+        const unite = ctrl.get('unite')?.value || '';
+        if (ingId && qty > 0) {
+          const ing = ingredients.find((i) => i.id === +ingId);
+          const nom = ing ? ing.nom : ctrl.get('ingredientNom')?.value || 'Ingrédient';
+          const unitCost = ing?.prixUnitaire ?? (ing as any)?.unitCost ?? 0;
+          const lineCost = calculateIngredientCost(qty, unite, unitCost, ing?.uniteMesure);
+          items.push({
+            nom,
+            quantite: qty,
+            unite,
+            lineCost,
+          });
+        }
+      }
+    }
+    return items;
+  });
 
   /**
    * Toggles selection state of a flavor profile chip.

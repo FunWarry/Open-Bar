@@ -495,6 +495,7 @@ public class CocktailDataSeederService {
         ci.setCocktail(savedCocktail);
         ci.setIngredient(ingredient);
         ci.setQuantite(BigDecimal.valueOf(qtyRaw).setScale(2, RoundingMode.HALF_UP));
+        ci.setUnite(unite.isEmpty() || unite.equalsIgnoreCase("nan") ? "cl" : unite);
         return cocktailIngredientRepository.save(ci);
     }
 

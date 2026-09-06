@@ -36,6 +36,9 @@ class CocktailControllerTest {
     @Mock
     private CocktailService cocktailService;
 
+    @Mock
+    private com.bar.gestioncocktail.service.MarginCalculationService marginCalculationService;
+
     @InjectMocks
     private CocktailController cocktailController;
 
@@ -200,4 +203,43 @@ class CocktailControllerTest {
         assertThat(response.getBody()).hasSize(1);
         assertThat(response.getBody().get(0).nom()).isEqualTo("Mojito");
     }
+
+    @Test
+    @DisplayName("getCocktailMargin - returns calculated margin DTO for cocktail")
+    void getCocktailMargin_success() {
+        com.bar.gestioncocktail.dto.CocktailMarginDTO marginDTO = new com.bar.gestioncocktail.dto.CocktailMarginDTO(
+            1L, "Mojito", "ALCOOLISE", "20%",
+            new BigDecimal("8.50"), new BigDecimal("7.08"), new BigDecimal("1.50"),
+            new BigDecimal("5.58"), new BigDecimal("78.81"),
+            List.of(), List.of()
+        );
+        when(marginCalculationService.getCocktailMargin(1L)).thenReturn(marginDTO);
+
+        ResponseEntity<com.bar.gestioncocktail.dto.CocktailMarginDTO> response =
+            cocktailController.getCocktailMargin(1L);
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getBody().grossMarginPercentage()).isEqualByComparingTo(new BigDecimal("78.81"));
+        assertThat(response.getBody().recipeCost()).isEqualByComparingTo(new BigDecimal("1.50"));
+    }
+
+    @Test
+    @DisplayName("getMarginAnalytics - returns catalog margins list")
+    void getMarginAnalytics_success() {
+        com.bar.gestioncocktail.dto.CocktailMarginDTO marginDTO = new com.bar.gestioncocktail.dto.CocktailMarginDTO(
+            1L, "Mojito", "ALCOOLISE", "20%",
+            new BigDecimal("8.50"), new BigDecimal("7.08"), new BigDecimal("1.50"),
+            new BigDecimal("5.58"), new BigDecimal("78.81"),
+            List.of(), List.of()
+        );
+        when(marginCalculationService.getCatalogMarginAnalytics()).thenReturn(List.of(marginDTO));
+
+        ResponseEntity<List<com.bar.gestioncocktail.dto.CocktailMarginDTO>> response =
+            cocktailController.getCatalogMarginAnalytics();
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getBody()).hasSize(1);
+        assertThat(response.getBody().get(0).nom()).isEqualTo("Mojito");
+    }
 }
+
