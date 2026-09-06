@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, forkJoin, map } from 'rxjs';
 import { environment } from '../../../../environments/environment';
-import { DashboardStats } from '../models/dashboard-stats.model';
+import { DashboardMarginAnalytics, DashboardStats } from '../models/dashboard-stats.model';
 import { OngoingOrder } from '../models/ongoing-order.model';
 
 /**
@@ -23,6 +23,15 @@ export class DashboardManagerService {
    */
   getStats(): Observable<DashboardStats> {
     return this.http.get<DashboardStats>(`${this.apiUrl}/stats`);
+  }
+
+  /**
+   * Retrieves live gross profit margin, COGS, and profitability analytics for the manager dashboard.
+   *
+   * @returns Observable emitting DashboardMarginAnalytics
+   */
+  getMarginAnalytics(): Observable<DashboardMarginAnalytics> {
+    return this.http.get<DashboardMarginAnalytics>(`${this.apiUrl}/margin-analytics`);
   }
 
   /**
@@ -81,6 +90,9 @@ export class DashboardManagerService {
       `Date,${dateStr}`,
       `Chiffre d'Affaires du Jour,${stats.chiffreAffairesJour} EUR`,
       `Chiffre d'Affaires du Mois,${stats.chiffreAffairesMois} EUR`,
+      `Coût des Marchandises Vendues (COGS),${stats.totalCogsJour ?? 0} EUR`,
+      `Marge Brute du Jour,${stats.margeBruteJour ?? 0} EUR`,
+      `Taux de Marge Brute,${stats.tauxMargeBruteJour ?? 0} %`,
       `Commandes Totales,${stats.commandesTotales}`,
       `Commandes En Attente,${stats.commandesEnAttente}`,
       `Commandes En Preparation,${stats.commandesEnPreparation}`,

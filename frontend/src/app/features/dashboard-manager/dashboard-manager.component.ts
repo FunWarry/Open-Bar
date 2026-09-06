@@ -43,8 +43,11 @@ import {
   eyeOutline,
   eyeOffOutline,
   timerOutline,
-  arrowForwardOutline
+  arrowForwardOutline,
+  calculatorOutline
 } from 'ionicons/icons';
+import { getMarginBadgeClass } from '../../core/utils/margin-calculation.util';
+import { AppSettingsService } from '../../core/services/app-settings.service';
 
 /**
  * Modernized Manager Dashboard Component.
@@ -103,7 +106,8 @@ export class DashboardManagerComponent implements OnInit, OnDestroy {
     private readonly dashboardService: DashboardManagerService,
     private readonly notificationService: NotificationService,
     private readonly toastController: ToastController,
-    private readonly translocoService: TranslocoService
+    private readonly translocoService: TranslocoService,
+    private readonly appSettingsService: AppSettingsService,
   ) {
     addIcons({
       peopleOutline,
@@ -126,8 +130,23 @@ export class DashboardManagerComponent implements OnInit, OnDestroy {
       eyeOutline,
       eyeOffOutline,
       timerOutline,
-      arrowForwardOutline
+      arrowForwardOutline,
+      calculatorOutline
     });
+  }
+
+  getMarginBadgeClass(percentage: number | null | undefined): string {
+    const target = this.appSettingsService?.targetGrossMarginPercentage ?? 70;
+    const warning = this.appSettingsService?.warningGrossMarginPercentage ?? 50;
+    return getMarginBadgeClass(percentage, target, warning);
+  }
+
+  get targetMargin(): number {
+    return this.appSettingsService?.targetGrossMarginPercentage ?? 70;
+  }
+
+  get warningMargin(): number {
+    return this.appSettingsService?.warningGrossMarginPercentage ?? 50;
   }
 
   /**

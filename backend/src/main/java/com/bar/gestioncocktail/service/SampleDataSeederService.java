@@ -230,6 +230,9 @@ public class SampleDataSeederService {
                 jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS wifi_security VARCHAR(20) DEFAULT 'WPA'");
                 jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS wifi_enabled BOOLEAN DEFAULT false");
                 jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS table_session_validation_enabled BOOLEAN DEFAULT false");
+                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS default_vat_rate DECIMAL(5,2) DEFAULT 20.00");
+                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS target_gross_margin_percentage DECIMAL(5,2) DEFAULT 70.00");
+                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS warning_gross_margin_percentage DECIMAL(5,2) DEFAULT 50.00");
                 jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP");
                 jdbcTemplate.execute("ALTER TABLE establishment_config ADD COLUMN IF NOT EXISTS ticket_format VARCHAR(10) DEFAULT '80mm'");
             }, "migrateLegacySchemas");

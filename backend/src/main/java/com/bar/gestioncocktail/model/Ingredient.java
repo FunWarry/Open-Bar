@@ -45,6 +45,24 @@ public class Ingredient {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    /**
+     * Gets the unit purchase cost of this ingredient (alias for prixUnitaire).
+     *
+     * @return the unit cost as a {@link BigDecimal}
+     */
+    public BigDecimal getUnitCost() {
+        return prixUnitaire;
+    }
+
+    /**
+     * Sets the unit purchase cost of this ingredient (alias for prixUnitaire).
+     *
+     * @param unitCost the unit cost to set
+     */
+    public void setUnitCost(BigDecimal unitCost) {
+        this.prixUnitaire = unitCost;
+    }
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now(java.time.ZoneId.systemDefault());

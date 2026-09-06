@@ -275,6 +275,30 @@
               </div>
             </div>
 
+            <!-- Live Recipe Cost & Margin Bar in Step 2 -->
+            <div class="live-recipe-cost-bar" data-testid="live-recipe-cost-bar">
+              <div class="cost-item">
+                <ion-icon name="calculator-outline"></ion-icon>
+                <span class="label">{{ 'COCKTAIL.COST_RECIPE' | transloco }}:</span>
+                <strong class="value" data-testid="live-recipe-cost-val">{{ recipeCost() | appCurrency }}</strong>
+              </div>
+              <div class="cost-divider"></div>
+              <div class="cost-item">
+                <ion-icon name="cash-outline"></ion-icon>
+                <span class="label">{{ 'ANALYTICS.MARGIN_SELLING_PRICE_HT' | transloco }}:</span>
+                <strong class="value">{{ sellingPriceHT() | appCurrency }}</strong>
+              </div>
+              <div class="cost-divider"></div>
+              <div class="cost-item">
+                <ion-icon name="trending-up-outline"></ion-icon>
+                <span class="label">{{ 'ANALYTICS.MARGIN_GROSS_MARGIN' | transloco }}:</span>
+                <strong class="value">{{ grossMargin() | appCurrency }}</strong>
+                <span class="margin-pill" [class]="'badge-' + marginBadgeClass()" data-testid="live-margin-pill">
+                  {{ grossMarginPercentage() }}%
+                </span>
+              </div>
+            </div>
+
             <!-- Blocks FormArray List -->
             <div class="blocks-list" formArrayName="recipeSteps" data-testid="recipe-blocks-list">
               @if (recipeStepsArray.controls.length === 0) {
@@ -640,6 +664,76 @@
                   </button>
                 </div>
               </div>
+            </div>
+
+            <!-- Financial Health & Gross Margin Card -->
+            <div class="preview-financial-card" data-testid="preview-financial-card">
+              <div class="preview-section-title">
+                <ion-icon name="stats-chart-outline"></ion-icon>
+                <div class="section-title-group">
+                  <h3>{{ 'ANALYTICS.MARGIN_FINANCIAL_HEALTH' | transloco }}</h3>
+                  <span class="section-subtitle">{{ 'ANALYTICS.MARGIN_FINANCIAL_HEALTH_HINT' | transloco }}</span>
+                </div>
+              </div>
+
+              <div class="financial-kpi-grid">
+                <!-- Recipe Cost (COGS) -->
+                <div class="financial-kpi-card" data-testid="preview-recipe-cost-card">
+                  <div class="kpi-icon-wrapper cost-icon">
+                    <ion-icon name="calculator-outline"></ion-icon>
+                  </div>
+                  <div class="kpi-content">
+                    <span class="kpi-label">{{ 'COCKTAIL.COST_RECIPE' | transloco }}</span>
+                    <strong class="kpi-value" data-testid="preview-recipe-cost">{{ recipeCost() | appCurrency }}</strong>
+                    <span class="kpi-hint">{{ 'COCKTAIL.COST_RECIPE_HINT' | transloco }}</span>
+                  </div>
+                </div>
+
+                <!-- Selling Price HT -->
+                <div class="financial-kpi-card" data-testid="preview-selling-ht-card">
+                  <div class="kpi-icon-wrapper price-icon">
+                    <ion-icon name="cash-outline"></ion-icon>
+                  </div>
+                  <div class="kpi-content">
+                    <span class="kpi-label">{{ 'ANALYTICS.MARGIN_SELLING_PRICE_HT' | transloco }}</span>
+                    <strong class="kpi-value" data-testid="preview-selling-price-ht">{{ sellingPriceHT() | appCurrency }}</strong>
+                    <span class="kpi-hint">TTC: {{ (cocktailForm.get('price')?.value || 0) | appCurrency }}</span>
+                  </div>
+                </div>
+
+                <!-- Gross Margin Amount & Percentage -->
+                <div class="financial-kpi-card" [class]="'margin-' + marginBadgeClass()" data-testid="preview-gross-margin-card">
+                  <div class="kpi-icon-wrapper margin-icon">
+                    <ion-icon name="trending-up-outline"></ion-icon>
+                  </div>
+                  <div class="kpi-content">
+                    <div class="kpi-header-row">
+                      <span class="kpi-label">{{ 'ANALYTICS.MARGIN_GROSS_MARGIN' | transloco }}</span>
+                      <span class="margin-badge" [class]="'badge-' + marginBadgeClass()" data-testid="preview-margin-badge">
+                        {{ grossMarginPercentage() }}%
+                      </span>
+                    </div>
+                    <strong class="kpi-value" data-testid="preview-gross-margin-amount">{{ grossMargin() | appCurrency }}</strong>
+                    <span class="kpi-hint">{{ 'ANALYTICS.MARGIN_RATE' | transloco }}: {{ grossMarginPercentage() }}%</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Ingredients Cost Breakdown Table -->
+              @if (ingredientCostBreakdown().length > 0) {
+                <div class="ingredient-cost-breakdown" data-testid="preview-ingredient-breakdown">
+                  <span class="breakdown-title">{{ 'COCKTAILS.BUILDER.INGREDIENTS_LIST' | transloco }} &amp; {{ 'COCKTAIL.COST_RECIPE' | transloco }}</span>
+                  <div class="breakdown-chips-list">
+                    @for (item of ingredientCostBreakdown(); track $index) {
+                      <div class="breakdown-chip" data-testid="preview-breakdown-chip">
+                        <span class="chip-ing-name">{{ item.nom }}</span>
+                        <span class="chip-ing-qty">{{ item.quantite }} {{ item.unite }}</span>
+                        <span class="chip-ing-cost">{{ item.lineCost | appCurrency }}</span>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
             </div>
 
             <!-- Dynamic Recipe Steps Timeline -->

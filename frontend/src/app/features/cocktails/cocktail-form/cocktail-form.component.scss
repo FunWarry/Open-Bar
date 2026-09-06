@@ -1861,3 +1861,284 @@
   }
 }
 
+/* ==========================================================================
+   Step 2: Live Recipe Cost & Margin Bar
+   ========================================================================== */
+.live-recipe-cost-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md, 10px);
+  padding: 0.75rem 1.25rem;
+  margin: 1rem 0;
+
+  .cost-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+
+    ion-icon {
+      font-size: 1.1rem;
+      color: var(--primary);
+    }
+
+    .label {
+      color: var(--text-muted);
+    }
+
+    .value {
+      color: var(--text-primary);
+      font-weight: 700;
+    }
+  }
+
+  .cost-divider {
+    width: 1px;
+    height: 1.25rem;
+    background: var(--border-medium);
+  }
+
+  .margin-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.55rem;
+    border-radius: var(--radius-pill, 999px);
+    font-size: 0.75rem;
+    font-weight: 700;
+
+    &.badge-success {
+      background: rgba(47, 191, 107, 0.15);
+      color: var(--semantic-success);
+      border: 1px solid rgba(47, 191, 107, 0.3);
+    }
+
+    &.badge-warning {
+      background: rgba(244, 165, 42, 0.15);
+      color: var(--semantic-warning);
+      border: 1px solid rgba(244, 165, 42, 0.3);
+    }
+
+    &.badge-danger {
+      background: rgba(229, 96, 79, 0.15);
+      color: var(--semantic-danger);
+      border: 1px solid rgba(229, 96, 79, 0.3);
+    }
+  }
+}
+
+/* ==========================================================================
+   Step 4: Financial Health & Gross Margin Card
+   ========================================================================== */
+.preview-financial-card {
+  background: var(--background-surface-1);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-lg, 14px);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--shadow-sm);
+
+  .preview-section-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+
+    ion-icon {
+      font-size: 1.35rem;
+      color: var(--primary);
+    }
+
+    .section-title-group {
+      display: flex;
+      flex-direction: column;
+
+      h3 {
+        margin: 0;
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--text-primary);
+      }
+
+      .section-subtitle {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+      }
+    }
+  }
+
+  .financial-kpi-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+
+    @media (min-width: 640px) {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  .financial-kpi-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    background: var(--background-surface-2);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-md, 10px);
+    padding: 1rem;
+    transition: transform 0.15s ease, border-color 0.15s ease;
+
+    &:hover {
+      border-color: var(--primary-light);
+    }
+
+    &.margin-success {
+      border-left: 3px solid var(--semantic-success);
+    }
+
+    &.margin-warning {
+      border-left: 3px solid var(--semantic-warning);
+    }
+
+    &.margin-danger {
+      border-left: 3px solid var(--semantic-danger);
+    }
+
+    .kpi-icon-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 2.25rem;
+      height: 2.25rem;
+      border-radius: 0.5rem;
+      flex-shrink: 0;
+
+      ion-icon {
+        font-size: 1.2rem;
+      }
+
+      &.cost-icon {
+        background: rgba(108, 127, 232, 0.15);
+        color: var(--primary);
+      }
+
+      &.price-icon {
+        background: rgba(43, 168, 232, 0.15);
+        color: var(--semantic-info);
+      }
+
+      &.margin-icon {
+        background: rgba(47, 191, 107, 0.15);
+        color: var(--semantic-success);
+      }
+    }
+
+    .kpi-content {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-width: 0;
+
+      .kpi-header-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+      }
+
+      .kpi-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-muted);
+      }
+
+      .kpi-value {
+        font-size: 1.2rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        margin: 0.2rem 0;
+      }
+
+      .kpi-hint {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+      }
+
+      .margin-badge {
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 0.15rem 0.45rem;
+        border-radius: var(--radius-pill, 999px);
+
+        &.badge-success {
+          background: rgba(47, 191, 107, 0.15);
+          color: var(--semantic-success);
+        }
+
+        &.badge-warning {
+          background: rgba(244, 165, 42, 0.15);
+          color: var(--semantic-warning);
+        }
+
+        &.badge-danger {
+          background: rgba(229, 96, 79, 0.15);
+          color: var(--semantic-danger);
+        }
+      }
+    }
+  }
+
+  .ingredient-cost-breakdown {
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-medium);
+
+    .breakdown-title {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .breakdown-chips-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .breakdown-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--background-surface-2);
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-pill, 999px);
+      padding: 0.35rem 0.85rem;
+      font-size: 0.8rem;
+
+      .chip-ing-name {
+        color: var(--text-primary);
+        font-weight: 600;
+      }
+
+      .chip-ing-qty {
+        color: var(--text-muted);
+      }
+
+      .chip-ing-cost {
+        color: var(--primary-light);
+        font-weight: 700;
+      }
+    }
+  }
+}
+
+

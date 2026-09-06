@@ -318,7 +318,19 @@
                           </ion-button>
                         }
                       </div>
-                      <span class="figma-cocktail-price">{{ cocktail.prix | currency:'EUR' }}</span>
+                      <div class="price-and-margin-col">
+                        <span class="figma-cocktail-price">{{ cocktail.prix | currency:'EUR' }}</span>
+                        @if (cocktail.recipeCost != null && cocktail.recipeCost > 0) {
+                          <div class="card-margin-meta" [attr.data-testid]="'cocktail-margin-info-' + cocktail.id">
+                            <span class="cost-sublabel">{{ 'COCKTAIL.COST_RECIPE' | transloco }}: {{ cocktail.recipeCost | currency:'EUR' }}</span>
+                            @if (cocktail.grossMarginPercentage != null) {
+                              <span class="margin-rate-tag" [class]="'badge-' + getMarginBadgeClass(cocktail.grossMarginPercentage)" [title]="'ANALYTICS.MARGIN_RATE' | transloco">
+                                {{ cocktail.grossMarginPercentage }}%
+                              </span>
+                            }
+                          </div>
+                        }
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -399,6 +411,16 @@
                       <span class="slider-label">{{ (cocktail.disponible ? 'COCKTAILS.AVAILABLE' : 'COCKTAILS.UNAVAILABLE') | transloco }}</span>
                     </button>
                   </div>
+                  @if (cocktail.recipeCost != null && cocktail.recipeCost > 0) {
+                    <div slot="end" class="list-margin-info" [attr.data-testid]="'cocktail-margin-list-' + cocktail.id">
+                      <small class="list-cost-label">{{ 'COCKTAIL.COST_RECIPE' | transloco }}: {{ cocktail.recipeCost | currency:'EUR' }}</small>
+                      @if (cocktail.grossMarginPercentage != null) {
+                        <span class="margin-rate-tag" [class]="'badge-' + getMarginBadgeClass(cocktail.grossMarginPercentage)">
+                          {{ cocktail.grossMarginPercentage }}%
+                        </span>
+                      }
+                    </div>
+                  }
                   <ion-badge slot="end" color="primary">{{ cocktail.prix | currency:'EUR' }}</ion-badge>
                   <ion-buttons slot="end">
                     @if (isAdmin$ | async) {

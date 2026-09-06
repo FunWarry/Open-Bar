@@ -525,6 +525,10 @@
             background: rgba(155, 138, 242, 0.18);
             color: var(--role-admin, #9b8af2);
           }
+          &.profitable {
+            background: rgba(47, 191, 107, 0.18);
+            color: var(--semantic-success);
+          }
         }
 
         ion-card-title {
@@ -644,6 +648,52 @@
       }
     }
   }
+
+  &.profitable-cocktail-item {
+    .profit-rate-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: var(--radius-pill);
+      font-size: 0.78rem;
+      font-weight: 700;
+
+      &.badge-success {
+        background: rgba(47, 191, 107, 0.15);
+        color: var(--semantic-success);
+        border: 1px solid rgba(47, 191, 107, 0.3);
+      }
+      &.badge-warning {
+        background: rgba(244, 165, 42, 0.15);
+        color: var(--semantic-warning);
+        border: 1px solid rgba(244, 165, 42, 0.3);
+      }
+      &.badge-danger {
+        background: rgba(229, 96, 79, 0.15);
+        color: var(--semantic-danger);
+        border: 1px solid rgba(229, 96, 79, 0.3);
+      }
+    }
+
+    .profit-details-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+
+      .profit-detail-item {
+        &.highlight {
+          color: var(--semantic-success);
+          font-weight: 700;
+        }
+      }
+    }
+  }
+}
+
+.financial-health-kpi-row {
+  margin-top: 14px;
 }
 
 // Workflow Distribution

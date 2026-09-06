@@ -229,6 +229,48 @@
           </app-stat-card>
         </ion-col>
       </ion-row>
+
+      <!-- Financial Health & Live COGS KPI Row -->
+      <ion-row class="financial-health-kpi-row">
+        <!-- COGS du Jour -->
+        <ion-col size="12" size-sm="6" size-md="4">
+          <app-stat-card
+            [title]="'ANALYTICS.MARGIN_COGS_TODAY' | transloco"
+            [value]="formatCurrency(stats.totalCogsJour || 0)"
+            icon="calculator-outline"
+            color="secondary"
+            [trend]="'ANALYTICS.MARGIN_COGS_HINT' | transloco"
+            trendDirection="neutral"
+            testId="stat-card-cogs">
+          </app-stat-card>
+        </ion-col>
+
+        <!-- Marge Brute du Jour -->
+        <ion-col size="12" size-sm="6" size-md="4">
+          <app-stat-card
+            [title]="'ANALYTICS.MARGIN_GROSS_MARGIN_TODAY' | transloco"
+            [value]="formatCurrency(stats.margeBruteJour || 0)"
+            icon="cash-outline"
+            color="success"
+            [trend]="'ANALYTICS.MARGIN_GROSS_MARGIN' | transloco"
+            trendDirection="up"
+            testId="stat-card-gross-margin">
+          </app-stat-card>
+        </ion-col>
+
+        <!-- Taux de Marge Brute -->
+        <ion-col size="12" size-sm="6" size-md="4">
+          <app-stat-card
+            [title]="'ANALYTICS.MARGIN_AVERAGE_MARGIN_RATE' | transloco"
+            [value]="(stats.tauxMargeBruteJour || 0) + '%'"
+            icon="trending-up-outline"
+            [color]="(stats.tauxMargeBruteJour || 0) >= targetMargin ? 'success' : ((stats.tauxMargeBruteJour || 0) >= warningMargin ? 'warning' : 'danger')"
+            [trend]="(stats.tauxMargeBruteJour || 0) >= targetMargin ? 'Optimal (>= ' + targetMargin + '%)' : ((stats.tauxMargeBruteJour || 0) >= warningMargin ? 'Moyen' : 'Critique')"
+            [trendDirection]="(stats.tauxMargeBruteJour || 0) >= targetMargin ? 'up' : 'down'"
+            testId="stat-card-margin-rate">
+          </app-stat-card>
+        </ion-col>
+      </ion-row>
     </ion-grid>
 
     <!-- Two-Column Operations & Analytics Grid -->
@@ -343,6 +385,51 @@
               </div>
             </div>
           </div>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- Most Profitable Cocktails Card -->
+      <ion-card class="analytics-card" data-testid="card-profitable-cocktails">
+        <ion-card-header>
+          <div class="card-title-row">
+            <div class="title-with-icon">
+              <div class="analytics-icon-badge profitable">
+                <ion-icon name="trending-up-outline"></ion-icon>
+              </div>
+              <ion-card-title>{{ 'ANALYTICS.MARGIN_MOST_PROFITABLE' | transloco }}</ion-card-title>
+            </div>
+            <span class="analytics-count-badge" *ngIf="stats.mostProfitableCocktails">{{ stats.mostProfitableCocktails.length }} cocktail(s)</span>
+          </div>
+        </ion-card-header>
+        <ion-card-content>
+          <div *ngIf="stats.mostProfitableCocktails && stats.mostProfitableCocktails.length > 0; else emptyProfitable" class="top-cocktails-list">
+            <div
+              class="top-cocktail-item profitable-cocktail-item"
+              *ngFor="let item of stats.mostProfitableCocktails; let i = index">
+              <span class="rank-badge" [class.rank-gold]="i === 0" [class.rank-silver]="i === 1" [class.rank-bronze]="i === 2">
+                {{ getRankLabel(i) }}
+              </span>
+              <div class="cocktail-info">
+                <div class="cocktail-name-row">
+                  <span class="cocktail-name">{{ item.nom }}</span>
+                  <span class="profit-rate-badge" [class]="'badge-' + getMarginBadgeClass(item.grossMarginPercentage)" [attr.data-testid]="'profitable-rate-' + item.cocktailId">
+                    {{ item.grossMarginPercentage }}%
+                  </span>
+                </div>
+                <div class="profit-details-row">
+                  <span class="profit-detail-item">{{ 'ANALYTICS.MARGIN_PRICE' | transloco }} {{ formatCurrency(item.prixTTC) }}</span>
+                  <span class="profit-detail-item">{{ 'ANALYTICS.MARGIN_COST' | transloco }} {{ formatCurrency(item.recipeCost) }}</span>
+                  <span class="profit-detail-item highlight">{{ 'ANALYTICS.MARGIN_MARGIN' | transloco }} {{ formatCurrency(item.grossMargin) }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <ng-template #emptyProfitable>
+            <div class="empty-top-cocktails">
+              <ion-icon name="trending-up-outline"></ion-icon>
+              <p>{{ 'ANALYTICS.MARGIN_EMPTY_PROFITABLE' | transloco }}</p>
+            </div>
+          </ng-template>
         </ion-card-content>
       </ion-card>
     </div>

@@ -13,6 +13,7 @@ import java.math.BigDecimal;
  * @param cocktailId   Identifier of the cocktail
  * @param ingredientId Identifier of the ingredient
  * @param quantite     Required quantity of the ingredient
+ * @param unite        Optional recipe unit of measure (e.g. cl, g, piece)
  * @param notes        Optional preparation notes
  */
 public record CocktailIngredientRequestDTO(
@@ -25,8 +26,17 @@ public record CocktailIngredientRequestDTO(
     @NotNull(message = "Quantity is required")
     BigDecimal quantite,
 
+    String unite,
+
     String notes
 ) {
+    /**
+     * Backward-compatible constructor without recipe unit.
+     */
+    public CocktailIngredientRequestDTO(Long cocktailId, Long ingredientId, BigDecimal quantite, String notes) {
+        this(cocktailId, ingredientId, quantite, null, notes);
+    }
+
     /**
      * Converts this DTO into a {@link CocktailIngredient} JPA entity.
      *
@@ -45,6 +55,7 @@ public record CocktailIngredientRequestDTO(
             ci.setIngredient(ingredient);
         }
         ci.setQuantite(quantite);
+        ci.setUnite(unite);
         ci.setNotes(notes);
         return ci;
     }

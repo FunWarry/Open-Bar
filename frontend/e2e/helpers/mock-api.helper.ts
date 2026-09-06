@@ -32,6 +32,9 @@ export async function setupMockApi(page: Page): Promise<void> {
           tempsAlerteWarningMinutes: body.tempsAlerteWarningMinutes ?? 3,
           tempsAlerteCommandeMinutes: body.tempsAlerteCommandeMinutes ?? 5,
           tempsAlerteCritiqueCommandeMinutes: body.tempsAlerteCritiqueCommandeMinutes ?? 10,
+          defaultVatRate: body.defaultVatRate ?? 20.0,
+          targetGrossMarginPercentage: body.targetGrossMarginPercentage ?? 70.0,
+          warningGrossMarginPercentage: body.warningGrossMarginPercentage ?? 50.0,
           updatedAt: new Date().toISOString(),
         }),
       });
@@ -59,6 +62,9 @@ export async function setupMockApi(page: Page): Promise<void> {
         tempsAlerteWarningMinutes: 3,
         tempsAlerteCommandeMinutes: 5,
         tempsAlerteCritiqueCommandeMinutes: 10,
+        defaultVatRate: 20.0,
+        targetGrossMarginPercentage: 70.0,
+        warningGrossMarginPercentage: 50.0,
         updatedAt: new Date().toISOString(),
       }),
     });

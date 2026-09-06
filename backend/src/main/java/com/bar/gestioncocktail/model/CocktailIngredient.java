@@ -24,6 +24,9 @@ public class CocktailIngredient {
     @Column(nullable = false)
     private BigDecimal quantite;
 
+    @Column(length = 20)
+    private String unite;
+
     private String notes;
 
     @Column(name = "created_at", nullable = false, updatable = false)

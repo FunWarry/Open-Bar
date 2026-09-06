@@ -123,6 +123,19 @@ export function thresholdPriorityValidator(group: AbstractControl): ValidationEr
   return null;
 }
 
+/**
+ * Cross-field validator ensuring Warning Gross Margin < Target Gross Margin.
+ */
+export function marginThresholdPriorityValidator(group: AbstractControl): ValidationErrors | null {
+  const warning = Number(group.get('warningGrossMarginPercentage')?.value);
+  const target = Number(group.get('targetGrossMarginPercentage')?.value);
+
+  if (!Number.isNaN(warning) && !Number.isNaN(target) && warning >= target) {
+    return { marginPriorityInvalid: true };
+  }
+  return null;
+}
+
 export interface CadencePreset {
   nameKey: string;
   warning: number;
@@ -134,6 +147,12 @@ export interface CurrencyPreset {
   code: string;
   symbol: string;
   position: CurrencyPosition;
+}
+
+export interface VatPreset {
+  country: string;
+  rate: number;
+  label: string;
 }
 
 /**
@@ -309,6 +328,14 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
     { code: 'AUD', symbol: '$', position: 'BEFORE' },
   ];
 
+  readonly vatPresets: VatPreset[] = [
+    { country: 'FR', rate: 20.0, label: 'France (20%)' },
+    { country: 'BE/ES', rate: 21.0, label: 'Belgique / Espagne (21%)' },
+    { country: 'DE', rate: 19.0, label: 'Allemagne (19%)' },
+    { country: 'CH', rate: 8.1, label: 'Suisse (8.1%)' },
+    { country: 'US', rate: 0.0, label: 'Exempt / Hors-TVA (0%)' },
+  ];
+
   readonly wifiSecurityOptions: SearchableOption<string>[] = [
     { value: 'WPA', label: 'WPA / WPA2 / WPA3 (Standard)', subLabel: 'Recommandé pour la majorité des réseaux Wi-Fi', badge: 'WPA', badgeType: 'primary' },
     { value: 'WEP', label: 'WEP (Ancien protocole)', subLabel: 'Réseaux Wi-Fi historiques', badge: 'WEP', badgeType: 'warning' },
@@ -466,6 +493,9 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       currencyCode: ['EUR', [Validators.required, Validators.minLength(3), Validators.maxLength(3)]],
       currencySymbol: ['€', [Validators.required]],
       currencyPosition: ['AFTER', [Validators.required]],
+      defaultVatRate: [20.0, [Validators.required, Validators.min(0), Validators.max(100)]],
+      targetGrossMarginPercentage: [70.0, [Validators.required, Validators.min(0), Validators.max(100)]],
+      warningGrossMarginPercentage: [50.0, [Validators.required, Validators.min(0), Validators.max(100)]],
       defaultTheme: ['DARK', [Validators.required]],
       primaryColor: ['#6c7fe8', [Validators.required]],
       primaryColorStrong: ['#5a68d6'],
@@ -475,7 +505,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       wifiSecurity: ['WPA', [Validators.required]],
       wifiEnabled: [false],
       tableSessionValidationEnabled: [false],
-    }, { validators: thresholdPriorityValidator });
+    }, { validators: [thresholdPriorityValidator, marginThresholdPriorityValidator] });
 
     const currentColors = this.themeService.currentCustomColors;
     this.colorForm = this.fb.group({
@@ -699,6 +729,45 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
     }).format(amount);
 
     return pos === 'BEFORE' ? `${symbol} ${formatted}` : `${formatted} ${symbol}`;
+  }
+
+  // --- VAT & Margin Helpers ---
+  applyVatPreset(rate: number): void {
+    this.appSettingsForm.patchValue({ defaultVatRate: rate });
+    this.appSettingsForm.markAsDirty();
+  }
+
+  get effectiveVatRate(): number {
+    const val = Number(this.appSettingsForm?.get('defaultVatRate')?.value);
+    return Number.isNaN(val) ? 20.0 : val;
+  }
+
+  get effectiveTargetMargin(): number {
+    const val = Number(this.appSettingsForm?.get('targetGrossMarginPercentage')?.value);
+    return Number.isNaN(val) ? 70.0 : val;
+  }
+
+  get effectiveWarningMargin(): number {
+    const val = Number(this.appSettingsForm?.get('warningGrossMarginPercentage')?.value);
+    return Number.isNaN(val) ? 50.0 : val;
+  }
+
+  getMarginBadgeClass(marginPercentage: number): string {
+    if (marginPercentage >= this.effectiveTargetMargin) {
+      return 'badge-optimal';
+    }
+    if (marginPercentage >= this.effectiveWarningMargin) {
+      return 'badge-warning';
+    }
+    return 'badge-critical';
+  }
+
+  simulateMargin(prixTTC: number, coutRevient: number): { prixHT: number; margeBrute: number; margePct: number } {
+    const vatFactor = 1 + (this.effectiveVatRate / 100);
+    const prixHT = Number((prixTTC / vatFactor).toFixed(2));
+    const margeBrute = Number((prixHT - coutRevient).toFixed(2));
+    const margePct = prixHT > 0 ? Number(((margeBrute / prixHT) * 100).toFixed(1)) : 0;
+    return { prixHT, margeBrute, margePct };
   }
 
   // --- Theme Controls & Real-Time Studio ---

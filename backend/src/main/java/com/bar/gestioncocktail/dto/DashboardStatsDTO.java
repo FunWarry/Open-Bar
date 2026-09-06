@@ -2,6 +2,7 @@ package com.bar.gestioncocktail.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -18,8 +19,12 @@ import java.util.List;
  * @param tablesTotales Total number of registered tables
  * @param topCocktails Top performing cocktails ranking
  * @param stockIngredientsCritiques Number of ingredients currently below safety stock threshold
+ * @param totalCogsJour Total daily Cost of Goods Sold (COGS) in euros
+ * @param margeBruteJour Total daily gross profit margin in euros
+ * @param tauxMargeBruteJour Daily gross profit margin percentage
+ * @param mostProfitableCocktails Most profitable cocktail items ranking
  */
-@Schema(description = "Consolidated dashboard KPIs and operations metrics for manager overview")
+@Schema(description = "Consolidated dashboard KPIs, operations metrics, and gross margin analytics for manager overview")
 public record DashboardStatsDTO(
     @Schema(description = "Total orders count", example = "42")
     long commandesTotales,
@@ -42,6 +47,48 @@ public record DashboardStatsDTO(
     @Schema(description = "Top selling cocktails of the day")
     List<TopCocktailDTO> topCocktails,
     @Schema(description = "Count of critical stock alert items", example = "0")
-    long stockIngredientsCritiques
-) {}
-
+    long stockIngredientsCritiques,
+    @Schema(description = "Total Cost of Goods Sold (COGS) today in EUR", example = "95.20")
+    BigDecimal totalCogsJour,
+    @Schema(description = "Total gross margin amount today in EUR", example = "388.55")
+    BigDecimal margeBruteJour,
+    @Schema(description = "Gross margin percentage today", example = "80.32")
+    BigDecimal tauxMargeBruteJour,
+    @Schema(description = "Most profitable cocktails ranking")
+    List<ProfitableCocktailDTO> mostProfitableCocktails
+) {
+    /**
+     * Backward-compatible constructor without margin analytics.
+     */
+    public DashboardStatsDTO(
+        long commandesTotales,
+        long commandesEnAttente,
+        long commandesEnPreparation,
+        long commandesPret,
+        long commandesLivrees,
+        BigDecimal chiffreAffairesJour,
+        BigDecimal chiffreAffairesMois,
+        long tablesOccupees,
+        long tablesTotales,
+        List<TopCocktailDTO> topCocktails,
+        long stockIngredientsCritiques
+    ) {
+        this(
+            commandesTotales,
+            commandesEnAttente,
+            commandesEnPreparation,
+            commandesPret,
+            commandesLivrees,
+            chiffreAffairesJour,
+            chiffreAffairesMois,
+            tablesOccupees,
+            tablesTotales,
+            topCocktails,
+            stockIngredientsCritiques,
+            BigDecimal.ZERO,
+            BigDecimal.ZERO,
+            BigDecimal.ZERO,
+            Collections.emptyList()
+        );
+    }
+}

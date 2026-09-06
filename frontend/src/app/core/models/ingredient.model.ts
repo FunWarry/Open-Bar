@@ -7,6 +7,7 @@ export interface Ingredient {
   numeroLot?: string;
   datePeremption?: string;
   prixUnitaire?: number;
+  unitCost?: number;
   fournisseur?: string;
   notes?: string;
   createdAt: string;

@@ -21,6 +21,9 @@ export interface AppSettings {
   wifiSecurity?: WifiSecurityType;
   wifiEnabled?: boolean;
   tableSessionValidationEnabled?: boolean;
+  defaultVatRate?: number;
+  targetGrossMarginPercentage?: number;
+  warningGrossMarginPercentage?: number;
   updatedAt: string | null;
 }
 

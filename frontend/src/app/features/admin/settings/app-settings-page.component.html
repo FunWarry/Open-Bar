@@ -623,6 +623,138 @@
                   </ion-card>
                 </ion-col>
               </ion-row>
+
+              <!-- Row 2: Santé Financière, Marges & TVA -->
+              <ion-row>
+                <ion-col size="12" sizeLg="7">
+                  <ion-card class="settings-card" data-testid="card-margins-vat-settings">
+                    <ion-card-header>
+                      <ion-card-title class="card-title">
+                        <ion-icon name="speedometer-outline" class="title-icon"></ion-icon>
+                        {{ 'SETTINGS.MARGINS_VAT_TITLE' | transloco }}
+                      </ion-card-title>
+                    </ion-card-header>
+                    <ion-card-content>
+                      <p class="block-desc">{{ 'SETTINGS.MARGINS_VAT_SUBTITLE' | transloco }}</p>
+
+                      <!-- Quick VAT Presets -->
+                      <div class="currency-presets-box">
+                        <span class="presets-title">{{ 'SETTINGS.VAT_PRESETS' | transloco }}</span>
+                        <div class="currency-chips">
+                          @for (vp of vatPresets; track vp.country) {
+                            <button
+                              type="button"
+                              class="currency-chip"
+                              [class.active]="appSettingsForm.get('defaultVatRate')?.value === vp.rate"
+                              (click)="applyVatPreset(vp.rate)"
+                              [attr.data-testid]="'vat-preset-btn-' + vp.country">
+                              {{ vp.label }}
+                            </button>
+                          }
+                        </div>
+                      </div>
+
+                      <!-- Default VAT Rate -->
+                      <div class="field-item">
+                        <app-input-field
+                          type="number"
+                          formControlName="defaultVatRate"
+                          [label]="'SETTINGS.DEFAULT_VAT_RATE' | transloco"
+                          placeholder="20"
+                          testId="input-default-vat-rate">
+                        </app-input-field>
+                      </div>
+
+                      <div class="form-row-2">
+                        <app-input-field
+                          type="number"
+                          formControlName="targetGrossMarginPercentage"
+                          [label]="'SETTINGS.TARGET_GROSS_MARGIN' | transloco"
+                          [helperText]="'SETTINGS.TARGET_GROSS_MARGIN_HINT' | transloco"
+                          placeholder="70"
+                          testId="input-target-gross-margin">
+                        </app-input-field>
+
+                        <app-input-field
+                          type="number"
+                          formControlName="warningGrossMarginPercentage"
+                          [label]="'SETTINGS.WARNING_GROSS_MARGIN' | transloco"
+                          [helperText]="'SETTINGS.WARNING_GROSS_MARGIN_HINT' | transloco"
+                          placeholder="50"
+                          testId="input-warning-gross-margin">
+                        </app-input-field>
+                      </div>
+
+                      @if (appSettingsForm.errors?.['marginPriorityInvalid']) {
+                        <div class="hierarchy-error" data-testid="margin-priority-error">
+                          <ion-icon name="alert-circle-outline"></ion-icon>
+                          <span>{{ 'SETTINGS.MARGIN_THRESHOLD_ERROR' | transloco }}</span>
+                        </div>
+                      }
+                    </ion-card-content>
+                  </ion-card>
+                </ion-col>
+
+                <!-- Live Margin Thresholds Simulation -->
+                <ion-col size="12" sizeLg="5">
+                  <ion-card class="settings-card preview-card" data-testid="card-margins-preview">
+                    <ion-card-header>
+                      <ion-card-title class="card-title">
+                        <ion-icon name="sparkles-outline" class="title-icon"></ion-icon>
+                        {{ 'SETTINGS.MARGINS_PREVIEW_TITLE' | transloco }}
+                      </ion-card-title>
+                    </ion-card-header>
+                    <ion-card-content>
+                      <p class="preview-instructions">{{ 'SETTINGS.MARGINS_PREVIEW_DESC' | transloco }}</p>
+
+                      <!-- Sample 1: Excellent margin -->
+                      @let s1 = simulateMargin(12.00, 2.00);
+                      <div class="margin-preview-item" data-testid="margin-preview-excellent">
+                        <div class="margin-item-header">
+                          <span class="margin-item-title">{{ 'SETTINGS.SAMPLE_EXCELLENT_MARGIN' | transloco }}</span>
+                          <span class="pill-badge" [class]="getMarginBadgeClass(s1.margePct)">
+                            {{ s1.margePct }}%
+                          </span>
+                        </div>
+                        <div class="margin-item-details">
+                          <span>Prix: {{ formatSamplePrice(12.00) }} • Coût: {{ formatSamplePrice(2.00) }}</span>
+                          <span class="margin-gain">+{{ formatSamplePrice(s1.margeBrute) }}</span>
+                        </div>
+                      </div>
+
+                      <!-- Sample 2: Warning margin -->
+                      @let s2 = simulateMargin(10.00, 3.80);
+                      <div class="margin-preview-item" data-testid="margin-preview-warning">
+                        <div class="margin-item-header">
+                          <span class="margin-item-title">{{ 'SETTINGS.SAMPLE_WARNING_MARGIN' | transloco }}</span>
+                          <span class="pill-badge" [class]="getMarginBadgeClass(s2.margePct)">
+                            {{ s2.margePct }}%
+                          </span>
+                        </div>
+                        <div class="margin-item-details">
+                          <span>Prix: {{ formatSamplePrice(10.00) }} • Coût: {{ formatSamplePrice(3.80) }}</span>
+                          <span class="margin-gain">+{{ formatSamplePrice(s2.margeBrute) }}</span>
+                        </div>
+                      </div>
+
+                      <!-- Sample 3: Critical margin -->
+                      @let s3 = simulateMargin(8.00, 4.50);
+                      <div class="margin-preview-item" data-testid="margin-preview-critical">
+                        <div class="margin-item-header">
+                          <span class="margin-item-title">{{ 'SETTINGS.SAMPLE_CRITICAL_MARGIN' | transloco }}</span>
+                          <span class="pill-badge" [class]="getMarginBadgeClass(s3.margePct)">
+                            {{ s3.margePct }}%
+                          </span>
+                        </div>
+                        <div class="margin-item-details">
+                          <span>Prix: {{ formatSamplePrice(8.00) }} • Coût: {{ formatSamplePrice(4.50) }}</span>
+                          <span class="margin-gain">+{{ formatSamplePrice(s3.margeBrute) }}</span>
+                        </div>
+                      </div>
+                    </ion-card-content>
+                  </ion-card>
+                </ion-col>
+              </ion-row>
             </ion-grid>
           </form>
         </section>
