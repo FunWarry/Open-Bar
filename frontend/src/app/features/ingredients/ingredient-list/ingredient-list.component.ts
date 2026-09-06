@@ -28,6 +28,7 @@ import { WebSocketService } from '../../../core/services/websocket.service';
 import { Ingredient } from '../../../core/models/ingredient.model';
 import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
 import { IngredientFormComponent } from '../ingredient-form/ingredient-form.component';
+import { StockWasteModalComponent } from '../stock-waste-modal/stock-waste-modal.component';
 import { SearchableSelectComponent, SearchableOption } from '../../../core/components/ui/searchable-select/searchable-select.component';
 
 export type StockSortOption =
@@ -477,6 +478,27 @@ export class IngredientListComponent implements OnInit, OnDestroy {
       componentProps: {
         ingredient: ingredient ?? null,
         canEdit,
+      },
+    });
+
+    await modal.present();
+    const { role } = await modal.onDidDismiss();
+    if (role === 'saved') {
+      this.charger();
+    }
+  }
+
+  /**
+   * Opens the stock waste declaration modal for a specific ingredient or general shrinkage.
+   *
+   * @param ingredient Optional target ingredient
+   */
+  async openWasteModal(ingredient?: Ingredient): Promise<void> {
+    const modal = await this.modalCtrl.create({
+      component: StockWasteModalComponent,
+      componentProps: {
+        ingredient: ingredient ?? null,
+        preselectedIngredientId: ingredient ? ingredient.id : null,
       },
     });
 

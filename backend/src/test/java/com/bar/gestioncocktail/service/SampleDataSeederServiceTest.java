@@ -95,6 +95,9 @@ class SampleDataSeederServiceTest {
     private HappyHourRuleRepository happyHourRuleRepository;
 
     @Mock
+    private StockMovementRepository stockMovementRepository;
+
+    @Mock
     private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
 
     @Mock
@@ -204,6 +207,8 @@ class SampleDataSeederServiceTest {
         lenient().when(weekSchedulePublicationRepository.findByWeekStart(any())).thenReturn(Optional.empty());
         lenient().when(employeeShiftRepository.findByUserId(anyLong())).thenReturn(List.of());
         lenient().when(avoirCreditRepository.findByNumero(anyString())).thenReturn(Optional.empty());
+        lenient().when(stockMovementRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        lenient().when(stockMovementRepository.count()).thenReturn(0L);
     }
 
     @Test
@@ -234,6 +239,7 @@ class SampleDataSeederServiceTest {
         verify(factureRepository, atLeastOnce()).save(any());
         verify(recipeStepTemplateRepository, atLeastOnce()).save(any());
         verify(cocktailRepository, atLeastOnce()).save(any());
+        verify(stockMovementRepository, atLeastOnce()).save(any());
     }
 
     @Test

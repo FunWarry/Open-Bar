@@ -1,0 +1,178 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="modal-toolbar">
+    <div class="toolbar-brand">
+      <div class="modal-icon-badge">
+        <ion-icon name="trash-outline"></ion-icon>
+      </div>
+      <ion-title class="modal-title">{{ 'STOCK.WASTE_MODAL_TITLE' | transloco }}</ion-title>
+    </div>
+    <ion-buttons slot="end">
+      <ion-button
+        fill="clear"
+        class="btn-close-modal"
+        (click)="dismiss()"
+        (keyup.enter)="dismiss()"
+        [title]="'STOCK.WASTE_CANCEL_BTN' | transloco"
+        data-testid="waste-modal-btn-close">
+        <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="waste-modal-content ion-padding">
+  <div class="modal-container">
+    <p class="modal-subtitle">{{ 'STOCK.WASTE_MODAL_SUBTITLE' | transloco }}</p>
+
+    <form (ngSubmit)="submit()" class="waste-form" #form="ngForm">
+      <!-- Ingredient Selection (or fixed view if passed) -->
+      <div class="form-group" *ngIf="!ingredient; else fixedIngredient">
+        <label class="form-label" for="ingredientSelect">
+          <ion-icon name="wine-outline"></ion-icon>
+          <span>{{ 'STOCK.WASTE_INGREDIENT_LABEL' | transloco }}</span>
+        </label>
+
+        <ion-item lines="none" class="custom-form-item">
+          <ion-select
+            id="ingredientSelect"
+            [(ngModel)]="selectedIngredientId"
+            name="selectedIngredientId"
+            (ionChange)="onIngredientChange($event)"
+            [placeholder]="'STOCK.WASTE_INGREDIENT_PLACEHOLDER' | transloco"
+            interface="popover"
+            class="custom-select"
+            data-testid="waste-select-ingredient">
+            <ion-select-option *ngFor="let ing of availableIngredients" [value]="ing.id">
+              {{ ing.nom }} ({{ ing.quantiteStock }} {{ ing.uniteMesure }})
+            </ion-select-option>
+          </ion-select>
+          <ion-spinner *ngIf="isLoadingIngredients" slot="end" name="dots"></ion-spinner>
+        </ion-item>
+      </div>
+
+      <!-- Preselected Ingredient Display -->
+      <ng-template #fixedIngredient>
+        <div class="fixed-ingredient-card" data-testid="waste-fixed-ingredient">
+          <div class="fixed-ingredient-info">
+            <span class="ingredient-badge-tag">{{ 'STOCK.WASTE_INGREDIENT_LABEL' | transloco }}</span>
+            <h3 class="ingredient-name">{{ selectedIngredient?.nom }}</h3>
+          </div>
+          <ion-badge color="primary" class="stock-badge">
+            {{ 'STOCK.WASTE_CURRENT_STOCK' | transloco: { stock: currentStock, unit: currentUnit } }}
+          </ion-badge>
+        </div>
+      </ng-template>
+
+      <!-- Current Stock Status Banner (when selected from dropdown) -->
+      <div class="current-stock-info" *ngIf="!ingredient && selectedIngredient" data-testid="waste-current-stock-banner">
+        <ion-icon name="alert-circle-outline"></ion-icon>
+        <span>{{ 'STOCK.WASTE_CURRENT_STOCK' | transloco: { stock: currentStock, unit: currentUnit } }}</span>
+      </div>
+
+      <!-- Quantity Field -->
+      <div class="form-group" *ngIf="selectedIngredient">
+        <label class="form-label" for="quantityInput">
+          <ion-icon name="warning-outline"></ion-icon>
+          <span>{{ 'STOCK.WASTE_QUANTITY_LABEL' | transloco }} ({{ currentUnit }})</span>
+        </label>
+
+        <ion-item lines="none" class="custom-form-item" [class.has-error]="isQuantityExceedingStock">
+          <ion-input
+            id="quantityInput"
+            type="number"
+            step="0.01"
+            min="0.01"
+            [max]="currentStock"
+            [(ngModel)]="quantity"
+            name="quantity"
+            placeholder="0.00"
+            class="custom-input"
+            required
+            data-testid="waste-input-quantity">
+          </ion-input>
+          <span slot="end" class="input-unit-suffix">{{ currentUnit }}</span>
+        </ion-item>
+
+        <div class="field-error-message" *ngIf="isQuantityExceedingStock" data-testid="waste-error-exceeds">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+          <span>{{ 'STOCK.WASTE_QUANTITY_EXCEEDS_STOCK' | transloco: { stock: currentStock, unit: currentUnit } }}</span>
+        </div>
+      </div>
+
+      <!-- Reason Field -->
+      <div class="form-group" *ngIf="selectedIngredient">
+        <label class="form-label" for="reasonSelect">
+          <ion-icon name="pricetagOutline"></ion-icon>
+          <span>{{ 'STOCK.WASTE_REASON_LABEL' | transloco }}</span>
+        </label>
+
+        <ion-item lines="none" class="custom-form-item">
+          <ion-select
+            id="reasonSelect"
+            [(ngModel)]="reason"
+            name="reason"
+            interface="popover"
+            class="custom-select"
+            data-testid="waste-select-reason">
+            <ion-select-option *ngFor="let r of reasons" [value]="r.value">
+              {{ r.labelKey | transloco }}
+            </ion-select-option>
+          </ion-select>
+        </ion-item>
+      </div>
+
+      <!-- Live Financial Loss Estimation Card -->
+      <div class="financial-loss-card" *ngIf="selectedIngredient && quantity && quantity > 0 && !isQuantityExceedingStock" data-testid="waste-estimated-loss">
+        <div class="loss-card-content">
+          <span class="loss-label">{{ 'STOCK.WASTE_ESTIMATED_VALUE' | transloco }}</span>
+          <span class="loss-amount">{{ estimatedCost | appCurrency }}</span>
+        </div>
+      </div>
+
+      <!-- Notes / Comments Field -->
+      <div class="form-group" *ngIf="selectedIngredient">
+        <label class="form-label" for="notesTextarea">
+          <ion-icon name="chatboxEllipsesOutline"></ion-icon>
+          <span>{{ 'STOCK.WASTE_NOTES_LABEL' | transloco }}</span>
+        </label>
+
+        <ion-item lines="none" class="custom-form-item textarea-item">
+          <ion-textarea
+            id="notesTextarea"
+            [(ngModel)]="notes"
+            name="notes"
+            rows="3"
+            [placeholder]="'STOCK.WASTE_NOTES_PLACEHOLDER' | transloco"
+            class="custom-textarea"
+            data-testid="waste-textarea-notes">
+          </ion-textarea>
+        </ion-item>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="form-actions">
+        <ion-button
+          type="button"
+          fill="outline"
+          class="btn-cancel"
+          (click)="dismiss()"
+          (keyup.enter)="dismiss()"
+          data-testid="waste-btn-cancel">
+          {{ 'STOCK.WASTE_CANCEL_BTN' | transloco }}
+        </ion-button>
+
+        <ion-button
+          type="submit"
+          fill="solid"
+          color="danger"
+          class="btn-submit"
+          [disabled]="!isValid"
+          data-testid="waste-btn-submit">
+          <ion-spinner *ngIf="isSubmitting" slot="start" name="crescent"></ion-spinner>
+          <ion-icon *ngIf="!isSubmitting" slot="start" name="trash-outline"></ion-icon>
+          <span>{{ 'STOCK.WASTE_SUBMIT_BTN' | transloco }}</span>
+        </ion-button>
+      </div>
+    </form>
+  </div>
+</ion-content>

@@ -44,6 +44,7 @@ public class SampleDataSeederService {
     private static final String KEY_ROLES = "roles";
     private static final String KEY_SERVEUR_USERNAME = "serveurUsername";
     private static final String KEY_NOTES = "notes";
+    private static final String KEY_REASON = "reason";
     private static final String KEY_ITEMS = "items";
     private static final String KEY_QUANTITE = "quantite";
     private static final String KEY_DAY_OF_WEEK = "dayOfWeek";
@@ -89,6 +90,7 @@ public class SampleDataSeederService {
     private final CocktailDataSeederService cocktailDataSeederService;
     private final org.springframework.core.env.Environment environment;
     private final HappyHourRuleRepository happyHourRuleRepository;
+    private final StockMovementRepository stockMovementRepository;
     private final ObjectMapper objectMapper;
 
     /**
@@ -122,7 +124,8 @@ public class SampleDataSeederService {
             PlatformTransactionManager transactionManager,
             CocktailDataSeederService cocktailDataSeederService,
             org.springframework.core.env.Environment environment,
-            HappyHourRuleRepository happyHourRuleRepository) {
+            HappyHourRuleRepository happyHourRuleRepository,
+            @org.springframework.beans.factory.annotation.Autowired(required = false) StockMovementRepository stockMovementRepository) {
         this.userRepository = userRepository;
         this.tableRepository = tableRepository;
         this.zoneRepository = zoneRepository;
@@ -150,6 +153,7 @@ public class SampleDataSeederService {
         this.cocktailDataSeederService = cocktailDataSeederService;
         this.environment = environment;
         this.happyHourRuleRepository = happyHourRuleRepository;
+        this.stockMovementRepository = stockMovementRepository;
         this.objectMapper = new ObjectMapper();
     }
 
@@ -188,7 +192,7 @@ public class SampleDataSeederService {
                 tableAppelRepository, tableSessionRepository, tableCartItemRepository,
                 appSettingsRepository, establishmentConfigRepository, jdbcTemplate,
                 passwordEncoder, timeService, transactionManager, cocktailDataSeederService,
-                environment, null);
+                environment, null, null);
     }
 
     /**
@@ -440,6 +444,7 @@ public class SampleDataSeederService {
             safelyInTransaction(() -> seedHappyHourRulesFromJson(root.get("happy_hour_rules"), cocktails), "seedHappyHourRules");
             safelyInTransaction(() -> seedInvoicesFromJson(root.get("invoices"), tablesMap), "seedInvoices");
             safelyInTransaction(() -> seedAvoirsCreditFromJson(root.get("avoirs_credit")), "seedAvoirsCredit");
+            safelyInTransaction(() -> seedStockMovementsFromJson(root.get("stock_movements"), usersMap), "seedStockMovements");
 
         } catch (Exception e) {
             log.error("Failed to seed demo dataset from JSON file '{}'", DATASET_PATH, e);
@@ -719,7 +724,7 @@ public class SampleDataSeederService {
             LocalDate closureDate = cNode.hasNonNull("closureDate") ? LocalDate.parse(cNode.get("closureDate").asText()) : null;
             LocalDate endDate = cNode.hasNonNull("endDate") ? LocalDate.parse(cNode.get("endDate").asText()) : null;
             boolean isAnnual = cNode.hasNonNull("isAnnualRecurring") && cNode.get("isAnnualRecurring").asBoolean();
-            String reason = cNode.hasNonNull("reason") ? cNode.get("reason").asText() : "Fermeture planifiée";
+            String reason = cNode.hasNonNull(KEY_REASON) ? cNode.get(KEY_REASON).asText() : "Fermeture planifiée";
 
             EstablishmentClosure closure = new EstablishmentClosure(type, day, closureDate, endDate, isAnnual, reason);
             establishmentClosureRepository.save(closure);
@@ -1358,5 +1363,53 @@ public class SampleDataSeederService {
             }
         }
         return cocktailIds;
+    }
+
+    private void seedStockMovementsFromJson(JsonNode movementsNode, Map<String, User> usersMap) {
+        if (movementsNode == null || !movementsNode.isArray() || stockMovementRepository == null || stockMovementRepository.count() > 0) {
+            return;
+        }
+
+        for (JsonNode mNode : movementsNode) {
+            buildStockMovementFromNode(mNode, usersMap).ifPresent(stockMovementRepository::save);
+        }
+        log.info("Seeded stock loss and shrinkage movements from demo dataset.");
+    }
+
+    private Optional<StockMovement> buildStockMovementFromNode(JsonNode mNode, Map<String, User> usersMap) {
+        String ingredientName = mNode.get("ingredientNom").asText();
+        Ingredient ing = ingredientRepository.findByNomIgnoreCase(ingredientName).orElse(null);
+        if (ing == null) {
+            return Optional.empty();
+        }
+
+        BigDecimal qty = new BigDecimal(mNode.get("quantity").asText());
+        String unit = mNode.has("unit") ? mNode.get("unit").asText() : ing.getUniteMesure();
+        StockWasteReason reason = StockWasteReason.valueOf(mNode.get(KEY_REASON).asText());
+        User reportedBy = mNode.has("reportedByUsername") ? usersMap.get(mNode.get("reportedByUsername").asText()) : null;
+        String notes = mNode.has(KEY_NOTES) ? mNode.get(KEY_NOTES).asText() : null;
+        LocalDateTime recordedAt = mNode.has(KEY_MINUTES_AGO)
+                ? timeService.now().minusMinutes(mNode.get(KEY_MINUTES_AGO).asLong())
+                : timeService.now();
+        BigDecimal cost = resolveMovementCost(mNode, qty, ing);
+
+        StockMovement movement = new StockMovement();
+        movement.setIngredient(ing);
+        movement.setQuantity(qty);
+        movement.setUnit(unit);
+        movement.setReason(reason);
+        movement.setReportedBy(reportedBy);
+        movement.setNotes(notes);
+        movement.setCost(cost);
+        movement.setRecordedAt(recordedAt);
+        return Optional.of(movement);
+    }
+
+    private BigDecimal resolveMovementCost(JsonNode mNode, BigDecimal qty, Ingredient ing) {
+        if (mNode.has("cost")) {
+            return new BigDecimal(mNode.get("cost").asText());
+        }
+        BigDecimal unitPrice = ing.getPrixUnitaire() != null ? ing.getPrixUnitaire() : BigDecimal.ZERO;
+        return qty.multiply(unitPrice).setScale(2, RoundingMode.HALF_UP);
     }
 }

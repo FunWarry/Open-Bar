@@ -949,6 +949,89 @@ export async function setupMockApi(page: Page): Promise<void> {
       ]),
     });
   });
+
+  // Stock shrinkage, waste & loss tracking routes
+  await page.route('**/api/stock/waste/summary**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        totalMovements: 5,
+        totalLossValue: 38.65,
+        totalQuantityLost: 2.15,
+        lossValueByReason: {
+          CASSE: 18.50,
+          PEREMPTION: 8.00,
+          OFFERT_PATRON: 5.40,
+          DEGUSTATION_STAFF: 4.80,
+          ERREUR_PREPARATION: 1.95,
+        },
+        countByReason: {
+          CASSE: 1,
+          PEREMPTION: 1,
+          OFFERT_PATRON: 1,
+          DEGUSTATION_STAFF: 1,
+          ERREUR_PREPARATION: 1,
+        },
+      }),
+    });
+  });
+
+  await page.route('**/api/stock/waste', async (route) => {
+    const body = route.request().postDataJSON() || {};
+    await route.fulfill({
+      status: 201,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        id: 101,
+        ingredientId: body.ingredientId || 1,
+        ingredientNom: 'Rhum blanc',
+        quantity: body.quantity || 1,
+        unit: 'bouteille',
+        reason: body.reason || 'CASSE',
+        reportedById: 1,
+        reportedByUsername: 'admin',
+        notes: body.notes || 'Incident bris de bouteille',
+        cost: 18.50,
+        recordedAt: new Date().toISOString(),
+      }),
+    });
+  });
+
+  await page.route('**/api/stock/movements**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([
+        {
+          id: 1,
+          ingredientId: 1,
+          ingredientNom: 'Rhum blanc',
+          quantity: 1,
+          unit: 'bouteille',
+          reason: 'CASSE',
+          reportedById: 1,
+          reportedByUsername: 'admin',
+          notes: 'Bouteille cassée en service',
+          cost: 18.50,
+          recordedAt: new Date().toISOString(),
+        },
+        {
+          id: 2,
+          ingredientId: 2,
+          ingredientNom: 'Menthe',
+          quantity: 0.5,
+          unit: 'kg',
+          reason: 'PEREMPTION',
+          reportedById: 1,
+          reportedByUsername: 'admin',
+          notes: 'Feuilles fanées',
+          cost: 8.00,
+          recordedAt: new Date(Date.now() - 3600000).toISOString(),
+        },
+      ]),
+    });
+  });
 }
 
 

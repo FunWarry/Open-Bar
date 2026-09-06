@@ -147,6 +147,15 @@
             <span class="qa-label">{{ 'MANAGER_DASHBOARD.ACTION_BAR_STOCK' | transloco }}</span>
           </div>
         </ion-button>
+
+        <ion-button fill="clear" class="qa-action-tile qa-tile-waste" (click)="openStockWasteModal()" (keyup.enter)="openStockWasteModal()" data-testid="manager-btn-stock-waste">
+          <div class="qa-tile-inner">
+            <div class="qa-icon-wrapper waste">
+              <ion-icon name="trash-outline"></ion-icon>
+            </div>
+            <span class="qa-label">{{ 'MANAGER_DASHBOARD.ACTION_STOCK_WASTE' | transloco }}</span>
+          </div>
+        </ion-button>
       </div>
     </section>
 
@@ -433,6 +442,103 @@
         </ion-card-content>
       </ion-card>
     </div>
+
+    <!-- Stock Shrinkage & Loss Audit Card -->
+    <ion-card class="analytics-card waste-audit-card" data-testid="waste-audit-card">
+      <ion-card-header>
+        <div class="card-title-row">
+          <div class="title-with-icon">
+            <div class="analytics-icon-badge waste">
+              <ion-icon name="trash-outline"></ion-icon>
+            </div>
+            <div>
+              <ion-card-title>{{ 'STOCK.WASTE_AUDIT_TITLE' | transloco }}</ion-card-title>
+              <p class="card-header-subtitle">{{ 'STOCK.WASTE_AUDIT_SUBTITLE' | transloco }}</p>
+            </div>
+          </div>
+          <ion-button
+            size="small"
+            fill="outline"
+            color="warning"
+            class="btn-declare-waste-header"
+            (click)="openStockWasteModal()"
+            (keyup.enter)="openStockWasteModal()"
+            data-testid="manager-btn-declare-waste">
+            <ion-icon slot="start" name="alert-circle-outline"></ion-icon>
+            {{ 'STOCK.WASTE_RECORD_BTN' | transloco }}
+          </ion-button>
+        </div>
+      </ion-card-header>
+      <ion-card-content>
+        <!-- Metrics summary strip -->
+        <div class="waste-metrics-strip">
+          <div class="waste-metric-box loss-box">
+            <span class="metric-label">{{ 'STOCK.WASTE_AUDIT_TOTAL_LOSS' | transloco }}</span>
+            <strong class="metric-value danger" data-testid="waste-stat-total-loss">{{ (wasteSummary?.totalLossValue || 0) | appCurrency }}</strong>
+          </div>
+          <div class="waste-metric-box">
+            <span class="metric-label">{{ 'STOCK.WASTE_AUDIT_TOTAL_COUNT' | transloco }}</span>
+            <strong class="metric-value">{{ wasteSummary?.totalMovements || 0 }}</strong>
+          </div>
+          <div class="waste-metric-box">
+            <span class="metric-label">{{ 'STOCK.WASTE_AUDIT_TOTAL_QTY' | transloco }}</span>
+            <strong class="metric-value" data-testid="waste-stat-total-qty">{{ wasteSummary?.totalQuantityLost || 0 }}</strong>
+          </div>
+        </div>
+
+        <!-- Breakdown by Reason & Recent Movements -->
+        <div class="waste-audit-grid">
+          <!-- Left column: Breakdown by reason -->
+          <div class="waste-breakdown-col">
+            <h4 class="sub-section-title">{{ 'STOCK.WASTE_AUDIT_BREAKDOWN' | transloco }}</h4>
+            <div class="reason-breakdown-list">
+              <div class="reason-breakdown-item" *ngFor="let r of wasteReasons">
+                <div class="reason-header">
+                  <span class="reason-title">
+                    <ion-badge [color]="getWasteReasonBadgeColor(r)" class="reason-badge">
+                      {{ getWasteReasonLabelKey(r) | transloco }}
+                    </ion-badge>
+                  </span>
+                  <span class="reason-amount">
+                    {{ getReasonLossValue(r) | appCurrency }}
+                    <small>({{ getReasonCount(r) }})</small>
+                  </span>
+                </div>
+                <div class="progress-bar-track">
+                  <div class="progress-bar-fill" [style.width.%]="getWasteReasonPercent(r)"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right column: Recent declarations -->
+          <div class="waste-recent-col">
+            <h4 class="sub-section-title">{{ 'STOCK.WASTE_AUDIT_RECENT' | transloco }}</h4>
+            <div *ngIf="recentWasteMovements.length > 0; else emptyWaste" class="recent-movements-list">
+              <div class="recent-movement-row" *ngFor="let m of recentWasteMovements" [attr.data-testid]="'waste-movement-' + m.id">
+                <div class="movement-main">
+                  <span class="movement-ing-name">{{ m.ingredientNom }}</span>
+                  <ion-badge [color]="getWasteReasonBadgeColor(m.reason)" class="movement-badge">
+                    {{ getWasteReasonLabelKey(m.reason) | transloco }}
+                  </ion-badge>
+                </div>
+                <div class="movement-meta">
+                  <span class="movement-qty">{{ m.quantity }} {{ m.unit }}</span>
+                  <span class="movement-cost danger">-{{ (m.cost || 0) | appCurrency }}</span>
+                  <span class="movement-staff" *ngIf="m.reportedByUsername">({{ m.reportedByUsername }})</span>
+                </div>
+                <p class="movement-notes" *ngIf="m.notes">{{ m.notes }}</p>
+              </div>
+            </div>
+            <ng-template #emptyWaste>
+              <div class="empty-substate">
+                <p>{{ 'STOCK.WASTE_AUDIT_EMPTY' | transloco }}</p>
+              </div>
+            </ng-template>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
 
     <!-- Ongoing Orders — Kanban Section -->
     <ion-card class="kanban-section-card" data-testid="manager-kanban-section">
