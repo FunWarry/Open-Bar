@@ -452,6 +452,31 @@ export async function setupMockApi(page: Page): Promise<void> {
     });
   });
 
+  await page.route('**/api/commandes/batch/transition', async (route) => {
+    if (route.request().method() === 'POST') {
+      const body = route.request().postDataJSON() || {};
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify([
+          {
+            id: 1,
+            tableId: 1,
+            tableNumero: 1,
+            statut: body.statut || 'EN_PREPARATION',
+            items: [
+              { id: 1, cocktailId: 1, cocktailNom: 'Mojito', quantite: 2, statut: body.statut || 'EN_PREPARATION' }
+            ],
+            total: 19.0,
+            dateCommande: new Date().toISOString(),
+          }
+        ]),
+      });
+      return;
+    }
+    await route.continue();
+  });
+
   await page.route('**/api/commandes/statut/*', async (route) => {
     await route.fulfill({
       status: 200,
@@ -466,7 +491,7 @@ export async function setupMockApi(page: Page): Promise<void> {
           serveurUsername: 'serveur1',
           total: 19.0,
           dateCommande: new Date().toISOString(),
-          items: [{ id: 1, cocktailNom: 'Mojito', quantite: 2, prixUnitaire: 9.5 }],
+          items: [{ id: 1, cocktailId: 1, cocktailNom: 'Mojito', quantite: 2, prixUnitaire: 9.5 }],
         }
       ]),
     });
