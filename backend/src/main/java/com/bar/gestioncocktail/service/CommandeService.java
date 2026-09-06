@@ -89,21 +89,6 @@ public class CommandeService {
         this.happyHourService = happyHourService;
     }
 
-    public CommandeService(
-            CommandeRepository commandeRepository,
-            CommandeItemRepository commandeItemRepository,
-            IngredientRepository ingredientRepository,
-            TableRepository tableRepository,
-            CocktailRepository cocktailRepository,
-            CocktailVarianteRepository cocktailVarianteRepository,
-            CocktailIngredientRepository cocktailIngredientRepository,
-            ApplicationEventPublisher eventPublisher,
-            TimeService timeService) {
-        this(commandeRepository, commandeItemRepository, ingredientRepository, tableRepository,
-                cocktailRepository, cocktailVarianteRepository, cocktailIngredientRepository,
-                eventPublisher, timeService, null);
-    }
-
     @Transactional(readOnly = true)
     public List<Commande> getAllCommandes() {
         return commandeRepository.findAll();
