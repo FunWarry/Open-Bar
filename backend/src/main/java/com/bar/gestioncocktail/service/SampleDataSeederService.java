@@ -62,6 +62,7 @@ public class SampleDataSeederService {
     private static final String KEY_REGLEMENTS = "reglements";
     private static final String SCRIPT_TAG = "<script>";
     private static final String KEY_TEST = "Test";
+    private static final String KEY_STATUT = "statut";
 
     private final UserRepository userRepository;
     private final TableRepository tableRepository;
@@ -761,7 +762,7 @@ public class SampleDataSeederService {
     private void createSingleOrderFromJson(JsonNode oNode, Map<String, User> usersMap, Map<Integer, TableEntity> tablesMap, List<Cocktail> cocktails) {
         int tableNumero = oNode.get(KEY_TABLE_NUMERO).asInt();
         String serveurUsername = oNode.hasNonNull(KEY_SERVEUR_USERNAME) ? oNode.get(KEY_SERVEUR_USERNAME).asText() : null;
-        CommandeStatut statut = CommandeStatut.valueOf(oNode.get("statut").asText());
+        CommandeStatut statut = CommandeStatut.valueOf(oNode.get(KEY_STATUT).asText());
         int minutesAgo = oNode.get(KEY_MINUTES_AGO).asInt();
         String trackingToken = oNode.hasNonNull("trackingToken") ? oNode.get("trackingToken").asText() : null;
         String notes = oNode.hasNonNull(KEY_NOTES) ? oNode.get(KEY_NOTES).asText() : null;
@@ -823,23 +824,47 @@ public class SampleDataSeederService {
 
         for (JsonNode itemNode : itemsNode) {
             String cocktailName = itemNode.get("cocktailName").asText();
-            int quantite = itemNode.get(KEY_QUANTITE).asInt();
-            boolean prioritaire = itemNode.hasNonNull("prioritaire") && itemNode.get("prioritaire").asBoolean();
-            String itemNotes = itemNode.hasNonNull("itemNotes") ? itemNode.get("itemNotes").asText() : null;
-
             Cocktail cocktail = findCocktailByName(cocktails, cocktailName);
             if (cocktail != null) {
-                CommandeItem ci = new CommandeItem();
-                ci.setCommande(order);
-                ci.setCocktail(cocktail);
-                ci.setQuantite(quantite);
-                ci.setPrioritaire(prioritaire);
-                ci.setNotes(itemNotes);
-                ci.setPrixUnitaire(cocktail.getPrix());
-                items.add(ci);
+                items.add(createSingleOrderItem(order, itemNode, cocktail));
             }
         }
         return items;
+    }
+
+    private CommandeItem createSingleOrderItem(Commande order, JsonNode itemNode, Cocktail cocktail) {
+        CommandeItem ci = new CommandeItem();
+        ci.setCommande(order);
+        ci.setCocktail(cocktail);
+        ci.setQuantite(itemNode.get(KEY_QUANTITE).asInt());
+        ci.setPrioritaire(itemNode.hasNonNull("prioritaire") && itemNode.get("prioritaire").asBoolean());
+        ci.setNotes(itemNode.hasNonNull("itemNotes") ? itemNode.get("itemNotes").asText() : null);
+        ci.setPrixUnitaire(cocktail.getPrix());
+        ci.setStation(resolveItemStation(itemNode, cocktail));
+        ci.setStatut(resolveItemStatut(itemNode, order.getStatut()));
+        return ci;
+    }
+
+    private PreparationStation resolveItemStation(JsonNode itemNode, Cocktail cocktail) {
+        if (itemNode.hasNonNull("station")) {
+            try {
+                return PreparationStation.valueOf(itemNode.get("station").asText().trim().toUpperCase());
+            } catch (Exception _) {
+                // fallback
+            }
+        }
+        return cocktail.getStation() != null ? cocktail.getStation() : PreparationStation.BAR;
+    }
+
+    private CommandeStatut resolveItemStatut(JsonNode itemNode, CommandeStatut orderStatut) {
+        if (itemNode.hasNonNull(KEY_STATUT)) {
+            try {
+                return CommandeStatut.valueOf(itemNode.get(KEY_STATUT).asText().trim().toUpperCase());
+            } catch (Exception _) {
+                // fallback
+            }
+        }
+        return orderStatut != null ? orderStatut : CommandeStatut.EN_ATTENTE;
     }
 
     private void seedInvoicesFromJson(JsonNode invoicesNode, Map<Integer, TableEntity> tablesMap) {
@@ -1138,7 +1163,7 @@ public class SampleDataSeederService {
             }
 
             TableAppelType type = TableAppelType.valueOf(appelNode.path("type").asText("ASSISTANCE"));
-            TableAppelStatut statut = TableAppelStatut.valueOf(appelNode.path("statut").asText("EN_ATTENTE"));
+            TableAppelStatut statut = TableAppelStatut.valueOf(appelNode.path(KEY_STATUT).asText("EN_ATTENTE"));
             String commentaire = appelNode.hasNonNull("commentaire") ? appelNode.path("commentaire").asText() : null;
             int minutesAgo = appelNode.path(KEY_MINUTES_AGO).asInt(2);
 

@@ -220,4 +220,38 @@ class CommandeControllerTest {
         assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         verify(commandeService).setUrgent(10L, true);
     }
+
+    @Test
+    @DisplayName("updateItemStatut - updates item status and returns updated DTO")
+    void updateItemStatut_success() {
+        CommandeItem item = new CommandeItem();
+        item.setId(99L);
+        item.setStation(com.bar.gestioncocktail.model.PreparationStation.KITCHEN);
+        item.setStatut(CommandeStatut.PRET);
+        item.setQuantite(2);
+        item.setCommande(commande);
+        commande.setItems(List.of(item));
+
+        when(commandeService.updateItemStatut(10L, 99L, CommandeStatut.PRET)).thenReturn(commande);
+
+        ResponseEntity<CommandeResponseDTO> response =
+                commandeController.updateItemStatut(10L, 99L, Map.of("statut", (Object) "PRET"), null);
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getBody()).isNotNull();
+        verify(commandeService).updateItemStatut(10L, 99L, CommandeStatut.PRET);
+    }
+
+    @Test
+    @DisplayName("getCommandesByStation - retrieves orders for given preparation station")
+    void getCommandesByStation_success() {
+        when(commandeService.getCommandesByStation(com.bar.gestioncocktail.model.PreparationStation.KITCHEN)).thenReturn(List.of(commande));
+
+        ResponseEntity<List<CommandeResponseDTO>> response =
+                commandeController.getCommandesByStation(com.bar.gestioncocktail.model.PreparationStation.KITCHEN);
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getBody()).hasSize(1);
+        verify(commandeService).getCommandesByStation(com.bar.gestioncocktail.model.PreparationStation.KITCHEN);
+    }
 }

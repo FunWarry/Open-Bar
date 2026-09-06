@@ -133,6 +133,19 @@
                 </app-searchable-select>
               </div>
 
+              <!-- Workstation Select Field -->
+              <div class="field-container">
+                <app-searchable-select
+                  formControlName="station"
+                  [label]="'STATIONS.WORKSTATION' | transloco"
+                  [placeholder]="'COMMON.SELECT' | transloco"
+                  [searchPlaceholder]="'STATIONS.SEARCH_WORKSTATION' | transloco"
+                  [required]="true"
+                  [options]="stationOptions()"
+                  testId="cocktail-form-station-select">
+                </app-searchable-select>
+              </div>
+
               <!-- Glassware Select Field with + New Glass button -->
               <div class="field-container">
                 <app-searchable-select

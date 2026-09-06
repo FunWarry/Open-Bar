@@ -127,6 +127,14 @@ ion-header {
     display: none;
   }
 
+  .chip-divider {
+    width: 1px;
+    height: 18px;
+    background: var(--border-medium);
+    margin: 0 4px;
+    flex-shrink: 0;
+  }
+
   ion-chip {
     --background: var(--background-surface-2);
     --color: var(--text-secondary);

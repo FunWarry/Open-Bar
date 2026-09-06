@@ -41,6 +41,10 @@ public class Cocktail {
     @Column(name = "vat_rate", nullable = false)
     private VatRate vatRate = VatRate.TWENTY;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "station", nullable = false)
+    private PreparationStation station = PreparationStation.BAR;
+
     private boolean disponible = true;
     private boolean saisonnier = false;
     private LocalDateTime dateDebutSaison;
@@ -163,5 +167,13 @@ public class Cocktail {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public PreparationStation getStation() {
+        return station != null ? station : PreparationStation.BAR;
+    }
+
+    public void setStation(PreparationStation station) {
+        this.station = station != null ? station : PreparationStation.BAR;
     }
 }

@@ -68,6 +68,38 @@
           <ion-badge color="danger">{{ urgentOrdersCount }}</ion-badge>
         }
       </ion-chip>
+
+      <span class="chip-divider"></span>
+
+      <!-- Station filter chips (All, Bar Only, Kitchen Only) -->
+      <ion-chip
+        tabindex="0"
+        [class.chip--active]="stationFilter === 'ALL'"
+        (click)="setStationFilter('ALL')"
+        (keyup.enter)="setStationFilter('ALL')"
+        data-testid="chip-station-all">
+        <ion-label>{{ 'STATIONS.ALL' | transloco }}</ion-label>
+      </ion-chip>
+
+      <ion-chip
+        tabindex="0"
+        [class.chip--active]="stationFilter === 'BAR'"
+        (click)="setStationFilter('BAR')"
+        (keyup.enter)="setStationFilter('BAR')"
+        data-testid="chip-station-bar">
+        <ion-icon name="wine-outline"></ion-icon>
+        <ion-label>{{ 'STATIONS.BAR' | transloco }}</ion-label>
+      </ion-chip>
+
+      <ion-chip
+        tabindex="0"
+        [class.chip--active]="stationFilter === 'KITCHEN'"
+        (click)="setStationFilter('KITCHEN')"
+        (keyup.enter)="setStationFilter('KITCHEN')"
+        data-testid="chip-station-kitchen">
+        <ion-icon name="restaurant-outline"></ion-icon>
+        <ion-label>{{ 'STATIONS.KITCHEN' | transloco }}</ion-label>
+      </ion-chip>
     </div>
   </div>
 </ion-header>

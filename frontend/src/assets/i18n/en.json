@@ -342,7 +342,8 @@
         "INGREDIENTS": "Ingredients",
         "PROFILE": "My Profile",
         "AUDIT_LOGS": "Audit Logs",
-        "UNKNOWN": "OpenBar"
+        "UNKNOWN": "OpenBar",
+        "KITCHEN": "Kitchen Display (KDS)"
       },
       "ROLE_LABELS": {
         "ADMIN": "Admin",
@@ -357,7 +358,8 @@
       "NAVIGATION": "Navigation",
       "MANAGEMENT": "Management & Admin",
       "USER_PROFILE": "User profile"
-    }
+    },
+    "KITCHEN": "Kitchen Screen"
   },
   "PLAN_SALLE_PAGE": {
     "TITLE": "Floor Plan",
@@ -2204,7 +2206,11 @@
     "NOTE_LABEL": "Note",
     "INSTRUCTIONS_LABEL": "INSTRUCTIONS:",
     "TOTAL_ITEMS_LABEL": "TOTAL ITEMS:",
-    "SERVICE_COUNTER_BAR": "BAR COUNTER SERVICE"
+    "SERVICE_COUNTER_BAR": "BAR COUNTER SERVICE",
+    "STATUS_EN_ATTENTE": "Pending",
+    "STATUS_EN_PREPARATION": "Preparing",
+    "STATUS_PRET": "Ready",
+    "STATUS_LIVREE": "Delivered"
   },
   "MANAGER_DASHBOARD": {
     "TITLE": "Manager Dashboard",
@@ -2564,5 +2570,34 @@
     "FRIDAY": "Friday",
     "SATURDAY": "Saturday",
     "SUNDAY": "Sunday"
+  },
+  "STATIONS": {
+    "WORKSTATION": "Preparation Station",
+    "SEARCH_WORKSTATION": "Search workstation...",
+    "BAR": "Bar (Beverages)",
+    "KITCHEN": "Kitchen (Hot Food)",
+    "SNACK": "Snack & Tapas",
+    "ALL": "All Stations",
+    "BAR_ONLY": "Bar Only",
+    "KITCHEN_ONLY": "Kitchen Only"
+  },
+  "KDS": {
+    "KITCHEN_TITLE": "Kitchen Display System (KDS)",
+    "ORDERS_ACTIVE": "active",
+    "ITEMS_TO_COOK": "items to cook",
+    "FILTER_ACTIVE": "Active",
+    "FILTER_READY": "Ready",
+    "FILTER_ALL": "All",
+    "NO_ORDERS_TITLE": "No kitchen orders",
+    "NO_ORDERS_MESSAGE": "Kitchen and snack preparation tickets will appear here live.",
+    "TABLE": "Table",
+    "SERVER": "Server",
+    "START_PREPARATION": "Start preparing this item",
+    "START": "Start",
+    "MARK_ITEM_READY": "Mark item as ready",
+    "READY": "Ready",
+    "COMPLETE_ORDER": "Complete kitchen ticket",
+    "LOAD_ERROR": "Error loading kitchen tickets",
+    "ITEM_STATUS_UPDATED": "Item status updated"
   }
 }

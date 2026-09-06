@@ -1,0 +1,199 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="kds-toolbar">
+    <ion-title>
+      <div class="kds-title-wrap">
+        <ion-icon name="restaurant-outline" class="title-icon"></ion-icon>
+        <span>{{ 'KDS.KITCHEN_TITLE' | transloco }}</span>
+        <ion-badge color="warning" class="header-count-badge" data-testid="kds-active-badge">
+          {{ activeKitchenOrdersCount }} {{ 'KDS.ORDERS_ACTIVE' | transloco }}
+        </ion-badge>
+        <ion-badge color="medium" class="header-items-badge" data-testid="kds-items-badge">
+          {{ pendingItemsCount }} {{ 'KDS.ITEMS_TO_COOK' | transloco }}
+        </ion-badge>
+      </div>
+    </ion-title>
+
+    <ion-buttons slot="end">
+      <ion-button
+        (click)="toggleSound()"
+        (keydown.enter)="toggleSound()"
+        (keydown.space)="toggleSound()"
+        [attr.aria-label]="'BARMAN_DASHBOARD.TOGGLE_SOUND' | transloco"
+        data-testid="kds-sound-toggle"
+      >
+        <ion-icon
+          slot="icon-only"
+          [name]="isSoundEnabled ? 'volume-high-outline' : 'volume-mute-outline'"
+          [color]="isSoundEnabled ? 'success' : 'medium'"
+        ></ion-icon>
+      </ion-button>
+      <ion-button
+        (click)="chargerCommandes()"
+        (keydown.enter)="chargerCommandes()"
+        (keydown.space)="chargerCommandes()"
+        [attr.aria-label]="'COMMON.REFRESH' | transloco"
+        data-testid="kds-refresh-btn"
+      >
+        <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+
+  <div class="kds-filter-bar">
+    <ion-chip
+      [color]="activeFilter === 'ACTIVE' ? 'primary' : 'medium'"
+      [class.chip-selected]="activeFilter === 'ACTIVE'"
+      (click)="activeFilter = 'ACTIVE'"
+      (keydown.enter)="activeFilter = 'ACTIVE'"
+      (keydown.space)="activeFilter = 'ACTIVE'"
+      tabindex="0"
+      role="button"
+      data-testid="kds-filter-active"
+    >
+      <ion-icon name="flash-outline"></ion-icon>
+      <ion-label>{{ 'KDS.FILTER_ACTIVE' | transloco }} ({{ activeKitchenOrdersCount }})</ion-label>
+    </ion-chip>
+    <ion-chip
+      [color]="activeFilter === 'READY' ? 'success' : 'medium'"
+      [class.chip-selected]="activeFilter === 'READY'"
+      (click)="activeFilter = 'READY'"
+      (keydown.enter)="activeFilter = 'READY'"
+      (keydown.space)="activeFilter = 'READY'"
+      tabindex="0"
+      role="button"
+      data-testid="kds-filter-ready"
+    >
+      <ion-icon name="checkmark-done-outline"></ion-icon>
+      <ion-label>{{ 'KDS.FILTER_READY' | transloco }}</ion-label>
+    </ion-chip>
+    <ion-chip
+      [color]="activeFilter === 'ALL' ? 'tertiary' : 'medium'"
+      [class.chip-selected]="activeFilter === 'ALL'"
+      (click)="activeFilter = 'ALL'"
+      (keydown.enter)="activeFilter = 'ALL'"
+      (keydown.space)="activeFilter = 'ALL'"
+      tabindex="0"
+      role="button"
+      data-testid="kds-filter-all"
+    >
+      <ion-icon name="time-outline"></ion-icon>
+      <ion-label>{{ 'KDS.FILTER_ALL' | transloco }}</ion-label>
+    </ion-chip>
+  </div>
+</ion-header>
+
+<ion-content class="kds-content">
+  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  @if (filteredCommandes.length === 0) {
+    <div class="empty-state-wrapper" data-testid="kds-empty-state">
+      <app-empty-state
+        icon="restaurant-outline"
+        [title]="'KDS.NO_ORDERS_TITLE' | transloco"
+        [subtitle]="'KDS.NO_ORDERS_MESSAGE' | transloco"
+      ></app-empty-state>
+    </div>
+  } @else {
+    <ion-grid class="kds-grid">
+      <ion-row>
+        @for (cmd of filteredCommandes; track cmd.id) {
+          <ion-col size="12" size-md="6" size-lg="4" size-xl="3">
+            <div class="kds-order-card" [class.is-ready]="cmd.statut === 'PRET'" data-testid="kds-order-card">
+              <!-- Card Header -->
+              <div class="card-header">
+                <div class="table-identifier">
+                  <span class="table-label">{{ 'KDS.TABLE' | transloco }}</span>
+                  <span class="table-number">{{ cmd.tableNumero || cmd.id }}</span>
+                </div>
+                <div class="order-meta">
+                  <div class="elapsed-timer" [class.timer-urgent]="cmd.statut === 'EN_ATTENTE'">
+                    <ion-icon name="time-outline"></ion-icon>
+                    <span>{{ formatElapsedTime(cmd.dateCommande) }}</span>
+                  </div>
+                  <ion-badge
+                    [color]="cmd.statut === 'PRET' ? 'success' : cmd.statut === 'EN_PREPARATION' ? 'warning' : 'medium'"
+                    class="status-badge"
+                  >
+                    {{ ('BARMAN_DASHBOARD.STATUS_' + cmd.statut) | transloco }}
+                  </ion-badge>
+                </div>
+              </div>
+
+              @if (cmd.serveurNom) {
+                <div class="server-info">
+                  <span class="server-label">{{ 'KDS.SERVER' | transloco }}:</span>
+                  <span class="server-name">{{ cmd.serveurNom }}</span>
+                </div>
+              }
+
+              <!-- Items List -->
+              <div class="card-items">
+                @for (item of getKitchenItems(cmd.items); track item.id) {
+                  <div class="kds-item-row" [class.item-ready]="item.statut === 'PRET'" data-testid="kds-item-row">
+                    <div class="item-left">
+                      <span class="item-qty">x{{ item.quantite }}</span>
+                      <div class="item-details">
+                        <span class="item-name">{{ item.cocktailNom }}</span>
+                        @if (item.station) {
+                          <span class="item-station-tag">{{ ('STATIONS.' + item.station) | transloco }}</span>
+                        }
+                      </div>
+                    </div>
+                    <div class="item-actions">
+                      @if (item.statut === 'EN_ATTENTE') {
+                        <button
+                          type="button"
+                          class="status-btn btn-prep"
+                          (click)="onAdvanceItemStatut(cmd, item, 'EN_PREPARATION')"
+                          [attr.aria-label]="'KDS.START_PREPARATION' | transloco"
+                          data-testid="kds-item-start-prep"
+                        >
+                          <ion-icon name="arrow-forward-circle-outline"></ion-icon>
+                          <span>{{ 'KDS.START' | transloco }}</span>
+                        </button>
+                      } @else if (item.statut === 'EN_PREPARATION') {
+                        <button
+                          type="button"
+                          class="status-btn btn-ready"
+                          (click)="onAdvanceItemStatut(cmd, item, 'PRET')"
+                          [attr.aria-label]="'KDS.MARK_ITEM_READY' | transloco"
+                          data-testid="kds-item-mark-ready"
+                        >
+                          <ion-icon name="checkmark-circle-outline"></ion-icon>
+                          <span>{{ 'KDS.READY' | transloco }}</span>
+                        </button>
+                      } @else {
+                        <span class="item-badge-ready">
+                          <ion-icon name="checkmark-done-outline"></ion-icon>
+                          <span>{{ 'KDS.READY' | transloco }}</span>
+                        </span>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+
+              <!-- Card Actions -->
+              @if (cmd.statut !== 'PRET') {
+                <div class="card-footer">
+                  <app-action-button
+                    variant="primary"
+                    size="small"
+                    class="full-width-btn"
+                    icon="checkmark-done-outline"
+                    testId="kds-order-mark-ready"
+                    (btnClick)="onMarkOrderReady(cmd)"
+                  >
+                    {{ 'KDS.COMPLETE_ORDER' | transloco }}
+                  </app-action-button>
+                </div>
+              }
+            </div>
+          </ion-col>
+        }
+      </ion-row>
+    </ion-grid>
+  }
+</ion-content>

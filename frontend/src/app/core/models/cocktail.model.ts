@@ -131,6 +131,7 @@ type CocktailBase = {
   isMocktail?: boolean;
   isVegan?: boolean;
   isGlutenFree?: boolean;
+  station?: 'BAR' | 'KITCHEN' | 'SNACK';
   recipeCost?: number;
   sellingPriceHT?: number;
   grossMargin?: number;

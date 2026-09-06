@@ -5,6 +5,7 @@ import com.bar.gestioncocktail.dto.CommandeRequestDTO;
 import com.bar.gestioncocktail.dto.CommandeResponseDTO;
 import com.bar.gestioncocktail.model.CommandeItem;
 import com.bar.gestioncocktail.model.CommandeStatut;
+import com.bar.gestioncocktail.model.PreparationStation;
 import com.bar.gestioncocktail.model.TableEntity;
 import com.bar.gestioncocktail.model.User;
 import com.bar.gestioncocktail.service.CommandeService;
@@ -31,6 +32,7 @@ import java.util.Map;
 @RequestMapping("/api/commandes")
 @Tag(name = "Commandes", description = "Order lifecycle management for bar and table service")
 public class CommandeController {
+    private static final String STATUT_KEY = "statut";
     private final CommandeService commandeService;
 
     /**
@@ -260,7 +262,7 @@ public class CommandeController {
         @RequestParam(required = false) CommandeStatut statut) {
         CommandeStatut targetStatut = statut;
         if (targetStatut == null && body != null) {
-            Object statutObj = body.get("statut");
+            Object statutObj = body.get(STATUT_KEY);
             if (statutObj != null) {
                 targetStatut = CommandeStatut.valueOf(statutObj.toString());
             }
@@ -379,5 +381,86 @@ public class CommandeController {
         @Parameter(description = "Order ID") @PathVariable Long id,
         @Parameter(description = "Urgent status flag") @RequestParam(defaultValue = "true") boolean urgent) {
         return ResponseEntity.ok(CommandeResponseDTO.from(commandeService.setUrgent(id, urgent)));
+    }
+
+    /**
+     * Updates an order item's preparation status and synchronizes overall order status.
+     *
+     * @param id Order identifier
+     * @param itemId Order item identifier
+     * @param body Optional JSON body containing target status
+     * @param statut Optional query param containing target status
+     * @return Updated order DTO
+     */
+    @RequestMapping(value = "/{id}/items/{itemId}/statut", method = {RequestMethod.PUT, RequestMethod.PATCH})
+    @PreAuthorize("hasRole('BARMAN') or hasRole('SERVEUR') or hasRole('MANAGER') or hasRole('ADMIN')")
+    @Operation(summary = "Update item preparation status (BARMAN/SERVEUR/MANAGER/ADMIN)",
+               description = "Updates item preparation status and synchronizes overall order status and workstation topics.")
+    @ApiResponse(responseCode = "200", description = "Item status updated")
+    @ApiResponse(responseCode = "404", description = "Order or item not found")
+    public ResponseEntity<CommandeResponseDTO> updateItemStatut(
+        @Parameter(description = "Order ID") @PathVariable Long id,
+        @Parameter(description = "Item ID") @PathVariable Long itemId,
+        @RequestBody(required = false) Map<String, Object> body,
+        @RequestParam(required = false) CommandeStatut statut) {
+        CommandeStatut targetStatut = statut;
+        if (targetStatut == null && body != null) {
+            Object statutObj = body.get(STATUT_KEY);
+            if (statutObj != null) {
+                targetStatut = CommandeStatut.valueOf(statutObj.toString());
+            }
+        }
+        if (targetStatut == null) {
+            throw new com.bar.gestioncocktail.exception.BusinessException("Item status is required");
+        }
+        return ResponseEntity.ok(CommandeResponseDTO.from(commandeService.updateItemStatut(id, itemId, targetStatut)));
+    }
+
+    /**
+     * Updates an order item's preparation status directly without specifying order ID in URL path.
+     *
+     * @param itemId Order item identifier
+     * @param body Optional JSON body containing target status
+     * @param statut Optional query param containing target status
+     * @return Updated order DTO
+     */
+    @RequestMapping(value = "/items/{itemId}/statut", method = {RequestMethod.PUT, RequestMethod.PATCH})
+    @PreAuthorize("hasRole('BARMAN') or hasRole('SERVEUR') or hasRole('MANAGER') or hasRole('ADMIN')")
+    @Operation(summary = "Update item preparation status directly by item ID")
+    @ApiResponse(responseCode = "200", description = "Item status updated")
+    @ApiResponse(responseCode = "404", description = "Item not found")
+    public ResponseEntity<CommandeResponseDTO> updateItemStatutDirect(
+        @Parameter(description = "Item ID") @PathVariable Long itemId,
+        @RequestBody(required = false) Map<String, Object> body,
+        @RequestParam(required = false) CommandeStatut statut) {
+        CommandeStatut targetStatut = statut;
+        if (targetStatut == null && body != null) {
+            Object statutObj = body.get(STATUT_KEY);
+            if (statutObj != null) {
+                targetStatut = CommandeStatut.valueOf(statutObj.toString());
+            }
+        }
+        if (targetStatut == null) {
+            throw new com.bar.gestioncocktail.exception.BusinessException("Item status is required");
+        }
+        return ResponseEntity.ok(CommandeResponseDTO.from(commandeService.updateItemStatut(itemId, targetStatut)));
+    }
+
+    /**
+     * Lists active orders for a specific workstation station.
+     *
+     * @param station Target workstation station (BAR, KITCHEN, SNACK)
+     * @return List of active orders
+     */
+    @GetMapping("/station/{station}")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "List active orders by workstation station",
+               description = "Retrieves active orders containing items targeted for the specified preparation station.")
+    @ApiResponse(responseCode = "200", description = "Station orders retrieved")
+    public ResponseEntity<List<CommandeResponseDTO>> getCommandesByStation(
+        @Parameter(description = "Workstation station") @PathVariable PreparationStation station) {
+        return ResponseEntity.ok(commandeService.getCommandesByStation(station).stream()
+            .map(CommandeResponseDTO::from)
+            .toList());
     }
 }

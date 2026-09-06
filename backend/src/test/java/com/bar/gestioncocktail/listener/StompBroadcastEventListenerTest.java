@@ -298,4 +298,20 @@ class StompBroadcastEventListenerTest {
 
         verifyNoInteractions(messagingTemplate);
     }
+
+    @Test
+    @DisplayName("broadcastOrder - routes order to dedicated station preparation topics")
+    void broadcastOrder_routesToPreparationStations() {
+        com.bar.gestioncocktail.model.CommandeItem barItem = new com.bar.gestioncocktail.model.CommandeItem();
+        barItem.setStation(com.bar.gestioncocktail.model.PreparationStation.BAR);
+        com.bar.gestioncocktail.model.CommandeItem kitchenItem = new com.bar.gestioncocktail.model.CommandeItem();
+        kitchenItem.setStation(com.bar.gestioncocktail.model.PreparationStation.KITCHEN);
+
+        commande.setItems(List.of(barItem, kitchenItem));
+
+        listener.handleOrderCreated(new OrderCreatedEvent(commande));
+
+        verify(messagingTemplate).convertAndSend(eq("/topic/preparation/bar"), any(CommandeResponseDTO.class));
+        verify(messagingTemplate).convertAndSend(eq("/topic/preparation/kitchen"), any(CommandeResponseDTO.class));
+    }
 }

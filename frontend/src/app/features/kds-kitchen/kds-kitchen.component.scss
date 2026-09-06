@@ -1,0 +1,283 @@
+.kds-toolbar {
+  --background: var(--background-surface-1);
+  --color: var(--text-primary);
+  border-bottom: 1px solid var(--border-medium);
+
+  .kds-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+
+    .title-icon {
+      font-size: 1.4rem;
+      color: var(--primary);
+    }
+
+    .header-count-badge,
+    .header-items-badge {
+      font-size: 0.75rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 9999px;
+    }
+  }
+}
+
+.kds-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--background-surface-1);
+  border-bottom: 1px solid var(--border-medium);
+  overflow-x: auto;
+
+  ion-chip {
+    cursor: pointer;
+    font-weight: 600;
+    transition: transform 0.15s ease;
+
+    &.chip-selected {
+      transform: scale(1.05);
+    }
+  }
+}
+
+.kds-content {
+  --background: var(--background-bg-0);
+}
+
+.empty-state-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  padding: 2rem;
+}
+
+.kds-grid {
+  padding: 1rem;
+}
+
+.kds-order-card {
+  background: var(--background-surface-1);
+  border: 1px solid var(--border-medium);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  min-height: 280px;
+
+  &:hover {
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+  }
+
+  &.is-ready {
+    border-color: var(--semantic-success);
+    opacity: 0.85;
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.85rem 1rem;
+    background: var(--background-surface-2);
+    border-bottom: 1px solid var(--border-medium);
+
+    .table-identifier {
+      display: flex;
+      align-items: baseline;
+      gap: 0.35rem;
+
+      .table-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        font-weight: 600;
+        letter-spacing: 0.05em;
+      }
+
+      .table-number {
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: var(--text-primary);
+      }
+    }
+
+    .order-meta {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+
+      .elapsed-timer {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        font-size: 0.85rem;
+        font-weight: 700;
+        padding: 0.2rem 0.55rem;
+        border-radius: 0.4rem;
+        background: var(--background-surface-1);
+        color: var(--text-secondary);
+
+        &.timer-urgent {
+          color: var(--semantic-warning);
+          background: rgba(var(--ion-color-warning-rgb, 255, 196, 9), 0.15);
+        }
+      }
+
+      .status-badge {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        font-weight: 700;
+      }
+    }
+  }
+
+  .server-info {
+    padding: 0.4rem 1rem;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    border-bottom: 1px dashed var(--border-medium);
+
+    .server-label {
+      margin-right: 0.3rem;
+    }
+
+    .server-name {
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+  }
+
+  .card-items {
+    flex: 1;
+    padding: 0.5rem 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .kds-item-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.6rem 0.75rem;
+    border-radius: 0.5rem;
+    background: var(--background-surface-2);
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+
+    &.item-ready {
+      border-color: var(--semantic-success);
+      background: rgba(var(--ion-color-success-rgb, 45, 211, 111), 0.08);
+
+      .item-name {
+        text-decoration: line-through;
+        color: var(--text-muted);
+      }
+    }
+
+    .item-left {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex: 1;
+      min-width: 0;
+
+      .item-qty {
+        font-size: 1.05rem;
+        font-weight: 800;
+        color: var(--primary);
+        min-width: 2rem;
+      }
+
+      .item-details {
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+        min-width: 0;
+
+        .item-name {
+          font-weight: 700;
+          font-size: 0.95rem;
+          color: var(--text-primary);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .item-station-tag {
+          font-size: 0.65rem;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          color: var(--text-muted);
+          background: var(--background-surface-1);
+          padding: 0.15rem 0.4rem;
+          border-radius: 0.25rem;
+          display: inline-block;
+          width: fit-content;
+        }
+      }
+    }
+
+    .item-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+
+      .status-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.4rem 0.7rem;
+        border-radius: 0.4rem;
+        font-size: 0.75rem;
+        font-weight: 700;
+        border: none;
+        cursor: pointer;
+        transition: transform 0.15s ease, opacity 0.15s ease;
+
+        &:active {
+          transform: scale(0.95);
+        }
+
+        &.btn-prep {
+          background: var(--primary);
+          color: #ffffff;
+        }
+
+        &.btn-ready {
+          background: var(--semantic-success);
+          color: #ffffff;
+        }
+      }
+
+      .item-badge-ready {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--semantic-success);
+      }
+    }
+  }
+
+  .card-footer {
+    padding: 0.75rem 1rem;
+    border-top: 1px solid var(--border-medium);
+    background: var(--background-surface-2);
+
+    .full-width-btn {
+      width: 100%;
+      display: block;
+    }
+  }
+}

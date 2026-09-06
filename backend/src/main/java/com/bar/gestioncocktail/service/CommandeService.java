@@ -12,6 +12,7 @@ import com.bar.gestioncocktail.model.Commande;
 import com.bar.gestioncocktail.model.CommandeItem;
 import com.bar.gestioncocktail.model.CommandeStatut;
 import com.bar.gestioncocktail.model.Ingredient;
+import com.bar.gestioncocktail.model.PreparationStation;
 import com.bar.gestioncocktail.model.TableEntity;
 import com.bar.gestioncocktail.model.User;
 import com.bar.gestioncocktail.repository.CocktailIngredientRepository;
@@ -145,6 +146,8 @@ public class CommandeService {
         commande.setDateCommande(now);
         commande.setStatut(CommandeStatut.EN_ATTENTE);
 
+        initializeOrderItems(commande);
+
         applyDynamicPricingAndCalculateTotal(commande, now);
 
         Commande saved = commandeRepository.save(commande);
@@ -154,6 +157,22 @@ public class CommandeService {
         }
         notifyOrderUpdated(saved);
         return saved;
+    }
+
+    private void initializeOrderItems(Commande commande) {
+        if (commande.getItems() == null) return;
+        for (CommandeItem item : commande.getItems()) {
+            if (item.getCommande() == null) {
+                item.setCommande(commande);
+            }
+            if (item.getStation() == null) {
+                item.setStation(item.getCocktail() != null && item.getCocktail().getStation() != null
+                        ? item.getCocktail().getStation() : PreparationStation.BAR);
+            }
+            if (item.getStatut() == null) {
+                item.setStatut(CommandeStatut.EN_ATTENTE);
+            }
+        }
     }
 
     @Transactional
@@ -207,6 +226,14 @@ public class CommandeService {
 
         LocalDateTime orderTime = commande.getDateCommande() != null ? commande.getDateCommande() : timeService.now();
         applyDynamicPricingToItem(item, orderTime);
+
+        if (item.getStation() == null) {
+            item.setStation(item.getCocktail() != null && item.getCocktail().getStation() != null
+                    ? item.getCocktail().getStation() : PreparationStation.BAR);
+        }
+        if (item.getStatut() == null) {
+            item.setStatut(CommandeStatut.EN_ATTENTE);
+        }
 
         item.setCommande(commande);
         commandeItemRepository.save(item);
@@ -287,10 +314,23 @@ public class CommandeService {
         commande.setStatut(nouveauStatut);
         commande.setUpdatedAt(timeService.now());
 
+        applyOrderTimestampsOnStatusChange(commande, nouveauStatut);
+        cascadeOrderStatusToItems(commande, nouveauStatut);
+
+        Commande saved = commandeRepository.save(commande);
+        if (saved.getTable() != null) {
+            notifyTableUpdated(saved.getTable());
+        }
+        if (eventPublisher != null) {
+            eventPublisher.publishEvent(new OrderStatusChangedEvent(saved.getId(), oldStatut, nouveauStatut, saved));
+        }
+        notifyOrderUpdated(saved);
+        return saved;
+    }
+
+    private void applyOrderTimestampsOnStatusChange(Commande commande, CommandeStatut nouveauStatut) {
         switch (nouveauStatut) {
             case EN_PREPARATION:
-                // Idempotence: only deduct stock once, even on retry or reactivation from
-                // ANNULEE
                 if (commande.getDatePreparation() == null) {
                     commande.setDatePreparation(timeService.now());
                     destockerIngredients(commande);
@@ -308,16 +348,21 @@ public class CommandeService {
             default:
                 break;
         }
+    }
 
-        Commande saved = commandeRepository.save(commande);
-        if (saved.getTable() != null) {
-            notifyTableUpdated(saved.getTable());
+    private void cascadeOrderStatusToItems(Commande commande, CommandeStatut nouveauStatut) {
+        if (commande.getItems() == null) return;
+        for (CommandeItem it : commande.getItems()) {
+            if (nouveauStatut == CommandeStatut.EN_PREPARATION && it.getStatut() == CommandeStatut.EN_ATTENTE) {
+                it.setStatut(CommandeStatut.EN_PREPARATION);
+            } else if (nouveauStatut == CommandeStatut.PRET && (it.getStatut() == CommandeStatut.EN_ATTENTE || it.getStatut() == CommandeStatut.EN_PREPARATION)) {
+                it.setStatut(CommandeStatut.PRET);
+            } else if (nouveauStatut == CommandeStatut.LIVREE) {
+                it.setStatut(CommandeStatut.LIVREE);
+            } else if (nouveauStatut == CommandeStatut.ANNULEE) {
+                it.setStatut(CommandeStatut.ANNULEE);
+            }
         }
-        if (eventPublisher != null) {
-            eventPublisher.publishEvent(new OrderStatusChangedEvent(saved.getId(), oldStatut, nouveauStatut, saved));
-        }
-        notifyOrderUpdated(saved);
-        return saved;
     }
 
     @Transactional
@@ -326,6 +371,11 @@ public class CommandeService {
             reincrementerStockIngredients(commande);
         }
         commande.setStatut(CommandeStatut.ANNULEE);
+        if (commande.getItems() != null) {
+            for (CommandeItem it : commande.getItems()) {
+                it.setStatut(CommandeStatut.ANNULEE);
+            }
+        }
         commande.setUpdatedAt(timeService.now());
         Commande saved = commandeRepository.save(commande);
         if (saved.getTable() != null) {
@@ -694,6 +744,8 @@ public class CommandeService {
         item.setPrixUnitaire(unitPrice);
         item.setNotes(itemDto.notes());
         item.setPrioritaire(Boolean.TRUE.equals(itemDto.prioritaire()));
+        item.setStation(cocktail.getStation() != null ? cocktail.getStation() : PreparationStation.BAR);
+        item.setStatut(CommandeStatut.EN_ATTENTE);
         return item;
     }
 
@@ -724,5 +776,129 @@ public class CommandeService {
         if (eventPublisher != null && saved != null) {
             eventPublisher.publishEvent(new OrderUpdatedEvent(saved));
         }
+    }
+
+    /**
+     * Updates an order item's preparation status and synchronizes the parent order's status.
+     *
+     * @param commandeId Order identifier
+     * @param itemId Item identifier
+     * @param nouveauStatut Target item preparation status
+     * @return Updated order entity
+     */
+    @Transactional
+    public Commande updateItemStatut(Long commandeId, Long itemId, CommandeStatut nouveauStatut) {
+        return executeUpdateItemStatut(commandeId, itemId, nouveauStatut);
+    }
+
+    /**
+     * Updates an order item's preparation status directly without specifying parent order ID.
+     *
+     * @param itemId Item identifier
+     * @param nouveauStatut Target item preparation status
+     * @return Updated order entity
+     */
+    @Transactional
+    public Commande updateItemStatut(Long itemId, CommandeStatut nouveauStatut) {
+        CommandeItem item = commandeItemRepository.findById(itemId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order item not found with id: " + itemId));
+        if (item.getCommande() == null || item.getCommande().getId() == null) {
+            throw new ResourceNotFoundException("Parent order not found for item: " + itemId);
+        }
+        return executeUpdateItemStatut(item.getCommande().getId(), itemId, nouveauStatut);
+    }
+
+    private Commande executeUpdateItemStatut(Long commandeId, Long itemId, CommandeStatut nouveauStatut) {
+        Commande commande = commandeRepository.findById(commandeId)
+                .orElseThrow(() -> new ResourceNotFoundException(COMMANDE_NOT_FOUND + commandeId));
+
+        CommandeItem item = commande.getItems().stream()
+                .filter(it -> it.getId().equals(itemId))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("Order item not found with id: " + itemId));
+
+        item.setStatut(nouveauStatut);
+        commandeItemRepository.save(item);
+
+        syncOrderStatusFromItems(commande, nouveauStatut);
+
+        commande.setUpdatedAt(timeService.now());
+        commande.setDateModification(timeService.now());
+        Commande saved = commandeRepository.save(commande);
+        notifyOrderUpdated(saved);
+        return saved;
+    }
+
+    private void syncOrderStatusFromItems(Commande commande, CommandeStatut itemNewStatut) {
+        if (commande.getStatut() == CommandeStatut.LIVREE
+                || commande.getStatut() == CommandeStatut.REGLEE
+                || commande.getStatut() == CommandeStatut.ANNULEE) {
+            return;
+        }
+
+        List<CommandeItem> items = commande.getItems();
+        if (items == null || items.isEmpty()) {
+            return;
+        }
+
+        if (checkAdvanceToPreparation(commande, itemNewStatut)) {
+            return;
+        }
+
+        checkAdvanceToReady(commande, items);
+    }
+
+    private boolean checkAdvanceToPreparation(Commande commande, CommandeStatut itemNewStatut) {
+        if (itemNewStatut == CommandeStatut.EN_PREPARATION && commande.getStatut() == CommandeStatut.EN_ATTENTE) {
+            CommandeStatut oldStatut = commande.getStatut();
+            commande.setStatut(CommandeStatut.EN_PREPARATION);
+            if (commande.getDatePreparation() == null) {
+                commande.setDatePreparation(timeService.now());
+                destockerIngredients(commande);
+            }
+            if (eventPublisher != null) {
+                eventPublisher.publishEvent(new OrderStatusChangedEvent(commande.getId(), oldStatut, CommandeStatut.EN_PREPARATION, commande));
+            }
+            return true;
+        }
+        return false;
+    }
+
+    private void checkAdvanceToReady(Commande commande, List<CommandeItem> items) {
+        boolean allReady = items.stream().allMatch(it ->
+                it.getStatut() == CommandeStatut.PRET
+                        || it.getStatut() == CommandeStatut.LIVREE
+                        || it.getStatut() == CommandeStatut.ANNULEE);
+
+        if (allReady && (commande.getStatut() == CommandeStatut.EN_ATTENTE || commande.getStatut() == CommandeStatut.EN_PREPARATION)) {
+            CommandeStatut oldStatut = commande.getStatut();
+            commande.setStatut(CommandeStatut.PRET);
+            commande.setDatePret(timeService.now());
+            if (eventPublisher != null) {
+                eventPublisher.publishEvent(new OrderStatusChangedEvent(commande.getId(), oldStatut, CommandeStatut.PRET, commande));
+            }
+        }
+    }
+
+    /**
+     * Lists active orders containing items intended for the specified workstation station.
+     *
+     * @param station Target preparation station (BAR, KITCHEN, SNACK)
+     * @return List of active orders
+     */
+    @Transactional(readOnly = true)
+    public List<Commande> getCommandesByStation(PreparationStation station) {
+        return commandeRepository.findAll().stream()
+                .filter(cmd -> cmd.getStatut() != CommandeStatut.LIVREE
+                        && cmd.getStatut() != CommandeStatut.REGLEE
+                        && cmd.getStatut() != CommandeStatut.ANNULEE)
+                .filter(cmd -> cmd.getItems() != null && cmd.getItems().stream().anyMatch(it -> {
+                    PreparationStation itemStation = it.getStation() != null ? it.getStation() : PreparationStation.BAR;
+                    if (station == PreparationStation.KITCHEN) {
+                        return itemStation == PreparationStation.KITCHEN || itemStation == PreparationStation.SNACK;
+                    }
+                    return itemStation == station;
+                }))
+                .toList();
     }
 }

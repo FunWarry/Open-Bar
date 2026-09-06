@@ -209,6 +209,14 @@ public class CocktailService {
             syncVariantes(cocktail, request.variantes());
         }
 
+        applyDietaryAndStationUpdates(cocktail, request);
+
+        Cocktail saved = cocktailRepository.save(cocktail);
+        notificationService.notifierCocktailMisAJour(saved);
+        return CocktailResponseDTO.from(saved);
+    }
+
+    private void applyDietaryAndStationUpdates(Cocktail cocktail, CocktailRequestDTO request) {
         if (request.flavorProfiles() != null) {
             cocktail.setFlavorProfiles(new HashSet<>(request.flavorProfiles()));
         }
@@ -224,10 +232,9 @@ public class CocktailService {
         if (request.isGlutenFree() != null) {
             cocktail.setGlutenFree(request.isGlutenFree());
         }
-
-        Cocktail saved = cocktailRepository.save(cocktail);
-        notificationService.notifierCocktailMisAJour(saved);
-        return CocktailResponseDTO.from(saved);
+        if (request.station() != null) {
+            cocktail.setStation(request.station());
+        }
     }
 
     /**

@@ -258,7 +258,30 @@ public class CocktailDataSeederService {
         cocktail.setVegan(resolveVegan(node, ingredientsNode, nom));
         cocktail.setGlutenFree(resolveGlutenFree(node, ingredientsNode, nom));
         cocktail.setFlavorProfiles(resolveFlavorProfiles(node, ingredientsNode, nom));
+        cocktail.setStation(resolveStation(node, nom));
         return cocktail;
+    }
+
+    private PreparationStation resolveStation(JsonNode node, String nom) {
+        if (node.has("station")) {
+            try {
+                return PreparationStation.valueOf(node.get("station").asText().trim().toUpperCase());
+            } catch (Exception _) {
+                // fallback
+            }
+        }
+        if (nom != null) {
+            String lower = nom.toLowerCase();
+            if (lower.contains("planche") || lower.contains("fromage") || lower.contains("charcuterie")
+                    || lower.contains("snack") || lower.contains("tapas") || lower.contains("nachos")) {
+                return PreparationStation.SNACK;
+            }
+            if (lower.contains("frites") || lower.contains("burger") || lower.contains("pizza")
+                    || lower.contains("plat") || lower.contains("chaud") || lower.contains("cuisine")) {
+                return PreparationStation.KITCHEN;
+            }
+        }
+        return PreparationStation.BAR;
     }
 
     private void applySeasonality(Cocktail cocktail, JsonNode node) {

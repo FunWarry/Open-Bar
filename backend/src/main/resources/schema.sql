@@ -59,6 +59,7 @@ CREATE TABLE IF NOT EXISTS cocktails (
     is_mocktail BOOLEAN DEFAULT false,
     is_vegan BOOLEAN DEFAULT true,
     is_gluten_free BOOLEAN DEFAULT true,
+    station VARCHAR(30) DEFAULT 'BAR',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -269,7 +270,10 @@ CREATE TABLE IF NOT EXISTS commande_items (
     cocktail_variante_id BIGINT REFERENCES cocktail_variantes(id) ON DELETE SET NULL,
     quantite INTEGER NOT NULL,
     prix_unitaire DECIMAL(10,2) NOT NULL,
+    notes TEXT,
     prioritaire BOOLEAN DEFAULT false,
+    station VARCHAR(30) DEFAULT 'BAR',
+    statut VARCHAR(30) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -516,3 +520,11 @@ CREATE TABLE IF NOT EXISTS stock_movements (
 
 CREATE INDEX IF NOT EXISTS idx_stock_movements_ingredient ON stock_movements(ingredient_id);
 CREATE INDEX IF NOT EXISTS idx_stock_movements_recorded_at ON stock_movements(recorded_at);
+
+-- 12. KDS Workstation Routing & Item Status Tracking
+ALTER TABLE cocktails ADD COLUMN IF NOT EXISTS station VARCHAR(30) DEFAULT 'BAR';
+ALTER TABLE commande_items ADD COLUMN IF NOT EXISTS notes TEXT;
+ALTER TABLE commande_items ADD COLUMN IF NOT EXISTS station VARCHAR(30) DEFAULT 'BAR';
+ALTER TABLE commande_items ADD COLUMN IF NOT EXISTS statut VARCHAR(30);
+CREATE INDEX IF NOT EXISTS idx_commande_items_station ON commande_items(station);
+CREATE INDEX IF NOT EXISTS idx_commande_items_statut ON commande_items(statut);

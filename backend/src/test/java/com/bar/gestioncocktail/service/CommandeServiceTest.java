@@ -616,4 +616,110 @@ class CommandeServiceTest {
 
         verify(eventPublisher).publishEvent(any(OrderCancelledEvent.class));
     }
+
+    @Test
+    @DisplayName("updateItemStatut - updates single item and transitions order to PRET when all items ready")
+    void updateItemStatut_allReady_transitionsOrderToPret() {
+        Commande cmd = new Commande();
+        cmd.setId(50L);
+        cmd.setStatut(CommandeStatut.EN_PREPARATION);
+
+        CommandeItem item1 = new CommandeItem();
+        item1.setId(101L);
+        item1.setCommande(cmd);
+        item1.setStation(PreparationStation.BAR);
+        item1.setStatut(CommandeStatut.EN_PREPARATION);
+
+        CommandeItem item2 = new CommandeItem();
+        item2.setId(102L);
+        item2.setCommande(cmd);
+        item2.setStation(PreparationStation.KITCHEN);
+        item2.setStatut(CommandeStatut.PRET);
+
+        cmd.setItems(new ArrayList<>(List.of(item1, item2)));
+
+        when(commandeRepository.findById(50L)).thenReturn(Optional.of(cmd));
+        when(commandeItemRepository.save(any(CommandeItem.class))).thenReturn(item1);
+        when(commandeRepository.save(any(Commande.class))).thenReturn(cmd);
+
+        Commande result = commandeService.updateItemStatut(50L, 101L, CommandeStatut.PRET);
+
+        assertThat(result.getStatut()).isEqualTo(CommandeStatut.PRET);
+        assertThat(cmd.getStatut()).isEqualTo(CommandeStatut.PRET);
+        verify(eventPublisher, atLeastOnce()).publishEvent(any(OrderStatusChangedEvent.class));
+    }
+
+    @Test
+    @DisplayName("updateItemStatut - transitions order to EN_PREPARATION when at least one item preparing")
+    void updateItemStatut_partialPrep_transitionsOrderToEnPreparation() {
+        Commande cmd = new Commande();
+        cmd.setId(51L);
+        cmd.setStatut(CommandeStatut.EN_ATTENTE);
+
+        CommandeItem item1 = new CommandeItem();
+        item1.setId(201L);
+        item1.setCommande(cmd);
+        item1.setStation(PreparationStation.KITCHEN);
+        item1.setStatut(CommandeStatut.EN_ATTENTE);
+
+        cmd.setItems(new ArrayList<>(List.of(item1)));
+
+        when(commandeRepository.findById(51L)).thenReturn(Optional.of(cmd));
+        when(commandeItemRepository.save(any(CommandeItem.class))).thenReturn(item1);
+        when(commandeRepository.save(any(Commande.class))).thenReturn(cmd);
+
+        Commande result = commandeService.updateItemStatut(51L, 201L, CommandeStatut.EN_PREPARATION);
+
+        assertThat(result.getStatut()).isEqualTo(CommandeStatut.EN_PREPARATION);
+        assertThat(cmd.getStatut()).isEqualTo(CommandeStatut.EN_PREPARATION);
+        verify(eventPublisher, atLeastOnce()).publishEvent(any(OrderStatusChangedEvent.class));
+    }
+
+    @Test
+    @DisplayName("updateItemStatut - direct item ID lookup resolves parent order and updates status")
+    void updateItemStatut_directItemId_resolvesParentOrder() {
+        Commande cmd = new Commande();
+        cmd.setId(52L);
+        cmd.setStatut(CommandeStatut.EN_ATTENTE);
+
+        CommandeItem item1 = new CommandeItem();
+        item1.setId(301L);
+        item1.setCommande(cmd);
+        item1.setStation(PreparationStation.SNACK);
+        item1.setStatut(CommandeStatut.EN_ATTENTE);
+
+        cmd.setItems(new ArrayList<>(List.of(item1)));
+
+        when(commandeItemRepository.findById(301L)).thenReturn(Optional.of(item1));
+        when(commandeRepository.findById(52L)).thenReturn(Optional.of(cmd));
+        when(commandeItemRepository.save(any(CommandeItem.class))).thenReturn(item1);
+        when(commandeRepository.save(any(Commande.class))).thenReturn(cmd);
+
+        Commande result = commandeService.updateItemStatut(301L, CommandeStatut.PRET);
+
+        assertThat(result.getStatut()).isEqualTo(CommandeStatut.PRET);
+        verify(eventPublisher, atLeastOnce()).publishEvent(any(OrderStatusChangedEvent.class));
+    }
+
+    @Test
+    @DisplayName("getCommandesByStation - filters orders containing station items")
+    void getCommandesByStation_filtersByStation() {
+        Commande cmdBar = new Commande();
+        cmdBar.setId(60L);
+        CommandeItem barItem = new CommandeItem();
+        barItem.setStation(PreparationStation.BAR);
+        cmdBar.setItems(List.of(barItem));
+
+        Commande cmdKitchen = new Commande();
+        cmdKitchen.setId(61L);
+        CommandeItem kitchenItem = new CommandeItem();
+        kitchenItem.setStation(PreparationStation.KITCHEN);
+        cmdKitchen.setItems(List.of(kitchenItem));
+
+        when(commandeRepository.findAll()).thenReturn(List.of(cmdBar, cmdKitchen));
+
+        List<Commande> resultKitchen = commandeService.getCommandesByStation(PreparationStation.KITCHEN);
+
+        assertThat(resultKitchen).containsExactly(cmdKitchen);
+    }
 }
