@@ -21,6 +21,8 @@ import {
   IonChip,
   IonLabel,
   IonBadge,
+  IonSegment,
+  IonSegmentButton,
   ModalController,
   ToastController
 } from '@ionic/angular/standalone';
@@ -36,13 +38,19 @@ import {
   filterOutline,
   flameOutline,
   printOutline,
-  restaurantOutline
+  restaurantOutline,
+  listOutline,
+  sparklesOutline,
+  layersOutline,
+  checkmarkCircleOutline,
+  eyeOutline
 } from 'ionicons/icons';
 import { CommandeCardComponent } from './components/commande-card/commande-card.component';
 import { NotificationService } from '../../core/services/notification.service';
 import { DashboardBarmanService } from './services/dashboard-barman.service';
 import { safeCompleteRefresher } from '../../core/utils/refresher-utils';
 import { CommandeView, CommandeItemView } from './models/commande-view.model';
+import { CocktailBatchView } from './models/batch-preparation.model';
 import { EmptyStateComponent } from '../../core/components/ui/empty-state/empty-state.component';
 import { AppSettingsService } from '../../core/services/app-settings.service';
 import { SoundService } from '../../core/services/sound.service';
@@ -56,7 +64,7 @@ import { WebSocketService } from '../../core/services/websocket.service';
  * Dashboard Barman Component managing the real-time preparation Kanban board.
  * Equipped with live STOMP WebSocket sync, audio chimes, urgency threshold alerts,
  * instant out-of-stock toggles ("Quick Out-of-Stock"), 80mm thermal bar ticket printing,
- * and an interactive preparation & recipe side panel.
+ * an interactive preparation & recipe side panel, and an aggregated rush batching mode.
  */
 @Component({
   selector: 'app-dashboard-barman',
@@ -81,6 +89,8 @@ import { WebSocketService } from '../../core/services/websocket.service';
     IonChip,
     IonLabel,
     IonBadge,
+    IonSegment,
+    IonSegmentButton,
     CommandeCardComponent,
     EmptyStateComponent,
     RecipeSidePanelComponent
@@ -118,6 +128,8 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly wsService = inject(WebSocketService);
 
+  activeViewMode: 'tickets' | 'batch' = 'tickets';
+
   constructor() {
     addIcons({
       wineOutline,
@@ -130,7 +142,12 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
       filterOutline,
       flameOutline,
       printOutline,
-      restaurantOutline
+      restaurantOutline,
+      listOutline,
+      sparklesOutline,
+      layersOutline,
+      checkmarkCircleOutline,
+      eyeOutline
     });
   }
 
@@ -188,6 +205,58 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
    */
   get filteredCommandesPret(): CommandeView[] {
     return this.applyFilters(this.commandesPret);
+  }
+
+  /**
+   * Aggregated cocktail batches across active pending and in-progress orders.
+   */
+  get cocktailBatches(): CocktailBatchView[] {
+    const alertThresholdMs = (this.tempsAlerteCommandeMinutes || 5) * 60 * 1000;
+    return this.dashboardService.aggregateBatches(
+      this.commandesEnAttente,
+      this.commandesEnPreparation,
+      {
+        searchTerm: this.searchQuery,
+        urgentOnly: this.urgentOnly,
+        stationFilter: this.stationFilter,
+        alertThresholdMs
+      }
+    );
+  }
+
+  /**
+   * Batches having pending drinks awaiting preparation.
+   */
+  get pendingBatches(): CocktailBatchView[] {
+    return this.cocktailBatches.filter(b => b.pendingQuantity > 0);
+  }
+
+  /**
+   * Batches currently in preparation.
+   */
+  get inProgressBatches(): CocktailBatchView[] {
+    return this.cocktailBatches.filter(b => b.preparingQuantity > 0);
+  }
+
+  /**
+   * Total number of individual drinks to prepare across all aggregated batches.
+   */
+  get totalBatchDrinksCount(): number {
+    return this.cocktailBatches.reduce((sum, b) => sum + b.totalQuantity, 0);
+  }
+
+  /**
+   * Number of distinct cocktail recipes currently active in Rush Mode.
+   */
+  get distinctBatchRecipesCount(): number {
+    return this.cocktailBatches.length;
+  }
+
+  /**
+   * Number of urgent batches.
+   */
+  get urgentBatchesCount(): number {
+    return this.cocktailBatches.filter(b => b.isUrgent).length;
   }
 
   ngOnInit(): void {
@@ -461,6 +530,81 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
 
   trackById(_: number, cmd: CommandeView): number {
     return cmd.id;
+  }
+
+  /**
+   * Tracks batch items by cocktail name.
+   */
+  trackByBatchCocktail(_: number, batch: CocktailBatchView): string {
+    return batch.cocktailNom;
+  }
+
+  /**
+   * Advances all pending drinks in an aggregated batch to preparation status.
+   *
+   * @param batch Selected cocktail batch
+   */
+  onStartBatch(batch: CocktailBatchView): void {
+    const pendingItems = batch.items.filter(it => it.statut !== 'EN_PREPARATION' && it.statut !== 'PRET');
+    const itemIds = pendingItems.map(it => it.itemId);
+    if (itemIds.length === 0) return;
+
+    this.dashboardService
+      .transitionBatch({ itemIds, statut: 'EN_PREPARATION' })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.chargerCommandes();
+          this.showToast(
+            this.transloco.translate('BARMAN_DASHBOARD.BATCH_STARTED_SUCCESS', { name: batch.cocktailNom }),
+            'primary'
+          );
+        },
+        error: () => {
+          this.showToast(this.transloco.translate('BARMAN_DASHBOARD.BATCH_ACTION_ERROR'), 'danger');
+        }
+      });
+  }
+
+  /**
+   * Completes an aggregated batch by marking all its drinks as ready to serve.
+   *
+   * @param batch Selected cocktail batch
+   */
+  onCompleteBatch(batch: CocktailBatchView): void {
+    const activeItems = batch.items.filter(it => it.statut !== 'PRET');
+    const itemIds = activeItems.map(it => it.itemId);
+    if (itemIds.length === 0) return;
+
+    this.dashboardService
+      .transitionBatch({ itemIds, statut: 'PRET' })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.chargerCommandes();
+          this.soundService.playOrderReadySound();
+          this.showToast(
+            this.transloco.translate('BARMAN_DASHBOARD.BATCH_COMPLETED_SUCCESS', { name: batch.cocktailNom }),
+            'success'
+          );
+        },
+        error: () => {
+          this.showToast(this.transloco.translate('BARMAN_DASHBOARD.BATCH_ACTION_ERROR'), 'danger');
+        }
+      });
+  }
+
+  /**
+   * Opens the recipe side panel scaled for the full aggregated batch quantity.
+   *
+   * @param batch Selected cocktail batch
+   */
+  onOpenBatchRecipe(batch: CocktailBatchView): void {
+    const batchItem: CommandeItemView = {
+      ...batch.sampleItem,
+      quantite: batch.totalQuantity
+    };
+    this.onShowRecipe({ item: batchItem, commande: batch.sampleCommande });
   }
 
   private applyThresholdSettings(settings: any): void {

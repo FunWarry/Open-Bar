@@ -66,7 +66,7 @@ ion-header {
   font-weight: 600;
 
   &.btn-ruptures {
-    --background: rgba(229, 96, 79, 0.15);
+    --background: var(--status-canceled-15);
     --color: var(--semantic-danger);
     --border-radius: var(--radius-pill, 999px);
     font-weight: 700;
@@ -75,7 +75,7 @@ ion-header {
     box-shadow: none;
 
     &:hover {
-      --background: rgba(229, 96, 79, 0.25);
+      --background: color-mix(in srgb, var(--status-canceled) 25%, transparent);
     }
 
     .btn-text {
@@ -239,15 +239,15 @@ ion-header {
   justify-content: center;
 }
 
-.count--pending    { background: rgba(244, 165, 42, 0.15);  color: var(--semantic-warning); }
-.count--inprogress { background: rgba(43, 168, 232, 0.15);  color: var(--semantic-info); }
-.count--ready      { background: rgba(47, 191, 107, 0.15); color: var(--semantic-success); }
+.count--pending    { background: var(--status-waiting-15);  color: var(--semantic-warning); }
+.count--inprogress { background: var(--status-inprogress-15);  color: var(--semantic-info); }
+.count--ready      { background: var(--status-ready-15); color: var(--semantic-success); }
 
 .urgent-badge {
   font-size: 0.7rem;
   font-weight: 800;
   color: var(--semantic-danger);
-  background: rgba(229, 96, 79, 0.18);
+  background: var(--status-canceled-15);
   padding: 2px 8px;
   border-radius: var(--radius-pill, 999px);
   animation: pulse-urgent 1.5s infinite;
@@ -264,4 +264,339 @@ ion-header {
   flex-direction: column;
   gap: 6px;
   flex: 1;
+}
+
+/* ── View Mode Segment in Toolbar ── */
+.header-center-segment {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+
+  .barman-view-segment {
+    --background: var(--background-surface-2);
+    min-width: 260px;
+    max-width: 340px;
+    border-radius: var(--radius-pill, 999px);
+    border: 1px solid var(--border-medium);
+    padding: 2px;
+
+    ion-segment-button {
+      --color: var(--text-secondary);
+      --color-checked: var(--text-primary);
+      --indicator-color: var(--primary);
+      --border-radius: var(--radius-pill, 999px);
+      font-size: 0.8rem;
+      font-weight: 700;
+      min-height: 32px;
+      letter-spacing: 0.3px;
+
+      ion-icon {
+        font-size: 1rem;
+        margin-right: 4px;
+      }
+
+      .segment-badge {
+        margin-left: 6px;
+        font-size: 0.7rem;
+        font-weight: 800;
+        border-radius: var(--radius-pill, 999px);
+        padding: 2px 6px;
+      }
+    }
+  }
+}
+
+/* ── Rush / Batching Preparation Mode ── */
+.rush-mode-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.rush-stats-banner {
+  background: var(--background-surface-1);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md, 10px);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+
+  .rush-banner-main {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .rush-icon-badge {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: var(--background-surface-2);
+    border: 1px solid var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary);
+    font-size: 1.4rem;
+  }
+
+  .rush-title {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+
+  .rush-subtitle {
+    margin: 2px 0 0;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+  }
+
+  .rush-kpis {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .rush-kpi-pill {
+    background: var(--background-surface-2);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-sm, 6px);
+    padding: 6px 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    .rush-kpi-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .rush-kpi-val {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--text-primary);
+    }
+
+    &--urgent {
+      border-color: var(--semantic-danger);
+      background: var(--background-surface-1);
+
+      .rush-kpi-val {
+        color: var(--semantic-danger);
+      }
+    }
+  }
+}
+
+.batch-kanban-grid {
+  padding: 0;
+}
+
+.batch-col-wrapper {
+  padding: 6px;
+}
+
+.batch-col {
+  background: var(--background-surface-1);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md, 10px);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 480px;
+
+  &--pending {
+    border-top: 3px solid var(--semantic-warning);
+  }
+
+  &--inprogress {
+    border-top: 3px solid var(--semantic-info);
+  }
+}
+
+.batch-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-medium);
+
+  &--pending .header-label {
+    color: var(--semantic-warning);
+  }
+
+  &--inprogress .header-label {
+    color: var(--semantic-info);
+  }
+}
+
+.batch-cards-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+}
+
+.batch-card {
+  background: var(--background-surface-2);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md, 10px);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+  }
+
+  &--urgent {
+    border-left: 4px solid var(--semantic-danger);
+  }
+
+  &--active {
+    border-left: 4px solid var(--semantic-info);
+  }
+
+  .batch-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .batch-card-title-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .batch-cocktail-name {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+
+  .batch-urgent-pill {
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: var(--semantic-danger);
+    background: var(--background-surface-1);
+    border: 1px solid var(--semantic-danger);
+    padding: 2px 6px;
+    border-radius: var(--radius-pill, 999px);
+  }
+
+  .batch-qty-badge {
+    background: var(--background-surface-1);
+    color: var(--semantic-warning);
+    border: 1px solid var(--semantic-warning);
+    font-size: 0.95rem;
+    font-weight: 900;
+    padding: 4px 10px;
+    border-radius: var(--radius-pill, 999px);
+
+    &.badge--inprogress {
+      color: var(--semantic-info);
+      border-color: var(--semantic-info);
+    }
+  }
+
+  .batch-tables-distribution {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    .batch-tables-title {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .batch-table-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .batch-table-tag {
+      font-size: 0.75rem;
+      font-weight: 700;
+      background: var(--background-surface-1);
+      border: 1px solid var(--border-medium);
+      color: var(--text-secondary);
+      padding: 2px 8px;
+      border-radius: var(--radius-sm, 6px);
+    }
+  }
+
+  .batch-ingredients-preview {
+    background: var(--background-surface-1);
+    border: 1px dashed var(--border-medium);
+    border-radius: var(--radius-sm, 6px);
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    .batch-ing-preview-title {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    .batch-ing-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .batch-ing-pill {
+      font-size: 0.75rem;
+      background: var(--background-surface-2);
+      border: 1px solid var(--border-medium);
+      padding: 2px 6px;
+      border-radius: var(--radius-sm, 4px);
+      color: var(--text-secondary);
+
+      strong {
+        color: var(--text-primary);
+      }
+    }
+  }
+
+  .batch-card-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 4px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border-medium);
+    flex-wrap: wrap;
+
+    ion-button {
+      --border-radius: var(--radius-sm, 6px);
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+  }
 }

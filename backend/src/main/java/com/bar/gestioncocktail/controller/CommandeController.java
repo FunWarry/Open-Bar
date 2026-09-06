@@ -1,5 +1,6 @@
 package com.bar.gestioncocktail.controller;
 
+import com.bar.gestioncocktail.dto.BatchTransitionRequestDTO;
 import com.bar.gestioncocktail.dto.CommandeItemRequestDTO;
 import com.bar.gestioncocktail.dto.CommandeRequestDTO;
 import com.bar.gestioncocktail.dto.CommandeResponseDTO;
@@ -462,5 +463,26 @@ public class CommandeController {
         return ResponseEntity.ok(commandeService.getCommandesByStation(station).stream()
             .map(CommandeResponseDTO::from)
             .toList());
+    }
+
+    /**
+     * Executes a batch status transition across multiple order line items.
+     *
+     * @param request Batch transition request payload
+     * @return List of updated order DTOs
+     */
+    @PostMapping("/batch/transition")
+    @PreAuthorize("hasRole('BARMAN') or hasRole('SERVEUR') or hasRole('ADMIN')")
+    @Operation(summary = "Batch preparation status transition (BARMAN/SERVEUR/ADMIN)",
+               description = "Advances multiple order line items to a target preparation status during rush hour batching.")
+    @ApiResponse(responseCode = "200", description = "Batch items transitioned successfully")
+    @ApiResponse(responseCode = "400", description = "Invalid request payload")
+    public ResponseEntity<List<CommandeResponseDTO>> transitionBatch(
+        @Valid @RequestBody BatchTransitionRequestDTO request) {
+        return ResponseEntity.ok(
+            commandeService.transitionBatch(request.itemIds(), request.cocktailId(), request.statut()).stream()
+                .map(CommandeResponseDTO::from)
+                .toList()
+        );
     }
 }

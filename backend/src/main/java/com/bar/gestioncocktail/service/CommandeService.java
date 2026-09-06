@@ -38,6 +38,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -872,12 +873,112 @@ public class CommandeService {
 
         if (allReady && (commande.getStatut() == CommandeStatut.EN_ATTENTE || commande.getStatut() == CommandeStatut.EN_PREPARATION)) {
             CommandeStatut oldStatut = commande.getStatut();
+            if (commande.getDatePreparation() == null) {
+                commande.setDatePreparation(timeService.now());
+                destockerIngredients(commande);
+            }
             commande.setStatut(CommandeStatut.PRET);
             commande.setDatePret(timeService.now());
             if (eventPublisher != null) {
                 eventPublisher.publishEvent(new OrderStatusChangedEvent(commande.getId(), oldStatut, CommandeStatut.PRET, commande));
             }
         }
+    }
+
+    /**
+     * Executes a batch preparation status transition across multiple order line items.
+     * Used in Rush / Batching Mode to advance identical drinks across different tables simultaneously.
+     *
+     * @param itemIds       Explicit list of order item identifiers to transition (optional if cocktailId is provided)
+     * @param cocktailId    Optional cocktail identifier to transition matching active drink items
+     * @param nouveauStatut Target status (e.g. EN_PREPARATION, PRET)
+     * @return List of distinct updated parent orders
+     */
+    @Transactional
+    public List<Commande> transitionBatch(List<Long> itemIds, Long cocktailId, CommandeStatut nouveauStatut) {
+        validateBatchTransitionParameters(itemIds, cocktailId, nouveauStatut);
+
+        List<CommandeItem> targetItems = collectTargetItems(itemIds, cocktailId, nouveauStatut);
+        if (targetItems.isEmpty()) {
+            return List.of();
+        }
+
+        Map<Long, Commande> affectedOrdersMap = updateBatchItems(targetItems, nouveauStatut);
+        return persistAndNotifyUpdatedOrders(affectedOrdersMap.values(), nouveauStatut);
+    }
+
+    private void validateBatchTransitionParameters(List<Long> itemIds, Long cocktailId, CommandeStatut nouveauStatut) {
+        if (nouveauStatut == null) {
+            throw new BusinessException("Target status is required for batch transition");
+        }
+        if ((itemIds == null || itemIds.isEmpty()) && cocktailId == null) {
+            throw new BusinessException("Either itemIds or cocktailId must be provided for batch transition");
+        }
+    }
+
+    private List<CommandeItem> collectTargetItems(List<Long> itemIds, Long cocktailId, CommandeStatut nouveauStatut) {
+        if (itemIds != null && !itemIds.isEmpty()) {
+            return new ArrayList<>(commandeItemRepository.findAllById(itemIds));
+        }
+        return findActiveItemsByCocktail(cocktailId, nouveauStatut);
+    }
+
+    private List<CommandeItem> findActiveItemsByCocktail(Long cocktailId, CommandeStatut nouveauStatut) {
+        List<Commande> activeOrders = commandeRepository.findAll().stream()
+                .filter(cmd -> cmd.getStatut() != CommandeStatut.LIVREE
+                        && cmd.getStatut() != CommandeStatut.REGLEE
+                        && cmd.getStatut() != CommandeStatut.ANNULEE)
+                .toList();
+
+        List<CommandeItem> matched = new ArrayList<>();
+        for (Commande cmd : activeOrders) {
+            if (cmd.getItems() != null) {
+                for (CommandeItem it : cmd.getItems()) {
+                    if (it.getCocktail() != null && cocktailId.equals(it.getCocktail().getId())
+                            && shouldTransitionBatchItem(it.getStatut(), nouveauStatut)) {
+                        matched.add(it);
+                    }
+                }
+            }
+        }
+        return matched;
+    }
+
+    private Map<Long, Commande> updateBatchItems(List<CommandeItem> targetItems, CommandeStatut nouveauStatut) {
+        Map<Long, Commande> affectedOrdersMap = new HashMap<>();
+        for (CommandeItem item : targetItems) {
+            item.setStatut(nouveauStatut);
+            commandeItemRepository.save(item);
+
+            Commande commande = item.getCommande();
+            if (commande != null && commande.getId() != null) {
+                affectedOrdersMap.putIfAbsent(commande.getId(), commande);
+            }
+        }
+        return affectedOrdersMap;
+    }
+
+    private List<Commande> persistAndNotifyUpdatedOrders(Collection<Commande> orders, CommandeStatut nouveauStatut) {
+        List<Commande> updatedCommandes = new ArrayList<>();
+        for (Commande commande : orders) {
+            syncOrderStatusFromItems(commande, nouveauStatut);
+            commande.setUpdatedAt(timeService.now());
+            commande.setDateModification(timeService.now());
+            Commande saved = commandeRepository.save(commande);
+            notifyOrderUpdated(saved);
+            updatedCommandes.add(saved);
+        }
+        return updatedCommandes;
+    }
+
+    private boolean shouldTransitionBatchItem(CommandeStatut currentStatut, CommandeStatut targetStatut) {
+        if (targetStatut == CommandeStatut.EN_PREPARATION) {
+            return currentStatut == null || currentStatut == CommandeStatut.EN_ATTENTE;
+        }
+        if (targetStatut == CommandeStatut.PRET) {
+            return currentStatut == null || currentStatut == CommandeStatut.EN_ATTENTE || currentStatut == CommandeStatut.EN_PREPARATION;
+        }
+        return currentStatut != targetStatut;
     }
 
     /**
