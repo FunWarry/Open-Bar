@@ -15,9 +15,12 @@ import org.springframework.http.MediaType;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.startsWith;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -50,7 +53,7 @@ class DailyCashClosureIntegrationTest extends BaseIntegrationTest {
                 targetDate,
                 new BigDecimal("150.00"),
                 new BigDecimal("150.00"),
-                java.util.Map.of("50e", 2, "20e", 2, "10e", 1),
+                Map.of("50e", 2, "20e", 2, "10e", 1),
                 null
         );
 
@@ -60,7 +63,7 @@ class DailyCashClosureIntegrationTest extends BaseIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.closureNumber").value(org.hamcrest.Matchers.startsWith("Z-")))
+                .andExpect(jsonPath("$.closureNumber").value(startsWith("Z-")))
                 .andExpect(jsonPath("$.closureDate").value(targetDate.toString()))
                 .andExpect(jsonPath("$.openingFloat").value(150.0))
                 .andExpect(jsonPath("$.countedCash").value(150.0))
@@ -130,7 +133,7 @@ class DailyCashClosureIntegrationTest extends BaseIntegrationTest {
                 date,
                 new BigDecimal("100.00"),
                 new BigDecimal("80.00"), // 20€ discrepancy with null reason
-                java.util.Map.of(),
+                Collections.emptyMap(),
                 null
         );
 
@@ -139,7 +142,7 @@ class DailyCashClosureIntegrationTest extends BaseIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("justification note is mandatory")));
+                .andExpect(jsonPath("$.message").value(containsString("justification note is mandatory")));
     }
 
     @Test
@@ -149,7 +152,7 @@ class DailyCashClosureIntegrationTest extends BaseIntegrationTest {
                 LocalDate.now().minusDays(25),
                 new BigDecimal("100.00"),
                 new BigDecimal("100.00"),
-                java.util.Map.of(),
+                Collections.emptyMap(),
                 null
         );
 

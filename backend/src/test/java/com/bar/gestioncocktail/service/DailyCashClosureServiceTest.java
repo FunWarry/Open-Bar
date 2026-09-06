@@ -1,11 +1,13 @@
 package com.bar.gestioncocktail.service;
 
-import com.bar.gestioncocktail.dto.*;
+import com.bar.gestioncocktail.dto.ClotureCaisseRequestDTO;
+import com.bar.gestioncocktail.dto.DailyRecapDTO;
 import com.bar.gestioncocktail.exception.BusinessException;
 import com.bar.gestioncocktail.exception.ResourceNotFoundException;
 import com.bar.gestioncocktail.model.DailyCashClosure;
-import com.bar.gestioncocktail.model.UserRole;
 import com.bar.gestioncocktail.model.User;
+import com.bar.gestioncocktail.model.UserRole;
+import com.bar.gestioncocktail.model.VatRate;
 import com.bar.gestioncocktail.repository.DailyCashClosureRepository;
 import com.bar.gestioncocktail.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,10 +18,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.bar.gestioncocktail.model.VatRate;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -34,7 +36,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Comprehensive unit tests for {@link DailyCashClosureService}.
+ * Comprehensive unit tests for DailyCashClosureService.
  */
 @ExtendWith(MockitoExtension.class)
 class DailyCashClosureServiceTest {
