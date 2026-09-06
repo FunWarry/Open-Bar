@@ -1479,7 +1479,7 @@ public class SampleDataSeederService {
                 hexString.append(hex);
             }
             return hexString.toString();
-        } catch (Exception e) {
+        } catch (Exception _) {
             return "DEFAULT_SEAL_HASH";
         }
     }

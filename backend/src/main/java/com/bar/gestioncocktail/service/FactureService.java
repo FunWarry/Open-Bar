@@ -11,6 +11,7 @@ import com.bar.gestioncocktail.model.TableEntity;
 import com.bar.gestioncocktail.repository.FactureRepository;
 import com.bar.gestioncocktail.repository.FactureReglementRepository;
 import com.bar.gestioncocktail.repository.TableRepository;
+import com.bar.gestioncocktail.repository.DailyCashClosureRepository;
 import com.bar.gestioncocktail.event.InvoiceSettledEvent;
 import com.bar.gestioncocktail.event.OrderStatusChangedEvent;
 import com.bar.gestioncocktail.event.TableLiberatedEvent;
@@ -72,7 +73,7 @@ public class FactureService {
     private final TimeService timeService;
     private final FactureReglementRepository factureReglementRepository;
     private final HappyHourService happyHourService;
-    private final com.bar.gestioncocktail.repository.DailyCashClosureRepository dailyCashClosureRepository;
+    private final DailyCashClosureRepository dailyCashClosureRepository;
 
     @org.springframework.beans.factory.annotation.Autowired
     public FactureService(FactureRepository factureRepository, TableRepository tableRepository,
@@ -81,7 +82,7 @@ public class FactureService {
             AvoirCreditRepository avoirCreditRepository, TimeService timeService,
             FactureReglementRepository factureReglementRepository,
             HappyHourService happyHourService,
-            com.bar.gestioncocktail.repository.DailyCashClosureRepository dailyCashClosureRepository) {
+            DailyCashClosureRepository dailyCashClosureRepository) {
         this.factureRepository = factureRepository;
         this.tableRepository = tableRepository;
         this.commandeRepository = commandeRepository;
@@ -94,27 +95,6 @@ public class FactureService {
         this.factureReglementRepository = factureReglementRepository;
         this.happyHourService = happyHourService;
         this.dailyCashClosureRepository = dailyCashClosureRepository;
-    }
-
-    public FactureService(FactureRepository factureRepository, TableRepository tableRepository,
-            CommandeRepository commandeRepository, ApplicationEventPublisher eventPublisher,
-            UserRepository userRepository, EntityManager entityManager, AuditLogService auditLogService,
-            AvoirCreditRepository avoirCreditRepository, TimeService timeService,
-            FactureReglementRepository factureReglementRepository,
-            HappyHourService happyHourService) {
-        this(factureRepository, tableRepository, commandeRepository, eventPublisher,
-                userRepository, entityManager, auditLogService, avoirCreditRepository,
-                timeService, factureReglementRepository, happyHourService, null);
-    }
-
-    public FactureService(FactureRepository factureRepository, TableRepository tableRepository,
-            CommandeRepository commandeRepository, ApplicationEventPublisher eventPublisher,
-            UserRepository userRepository, EntityManager entityManager, AuditLogService auditLogService,
-            AvoirCreditRepository avoirCreditRepository, TimeService timeService,
-            FactureReglementRepository factureReglementRepository) {
-        this(factureRepository, tableRepository, commandeRepository, eventPublisher,
-                userRepository, entityManager, auditLogService, avoirCreditRepository,
-                timeService, factureReglementRepository, null, null);
     }
 
     public List<Facture> getAllFactures() {
