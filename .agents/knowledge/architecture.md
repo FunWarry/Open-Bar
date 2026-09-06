@@ -206,6 +206,9 @@ flowchart LR
 | `/topic/serveur/appels` | Table assistance / bill request alert triggered |
 | `/topic/table/{tableId}/appels` | Table alert acknowledgement / resolution update |
 | `/topic/tables/{tableId}/cart` | Collaborative table cart state synchronization |
+| `/topic/preparation/bar` | Order routed to bar workstation |
+| `/topic/preparation/kitchen` | Order routed to kitchen workstation |
+| `/topic/preparation/snack` | Order routed to snack workstation |
 
 ---
 
