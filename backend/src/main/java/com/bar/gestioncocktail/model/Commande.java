@@ -57,8 +57,12 @@ public class Commande {
 
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now(java.time.ZoneId.systemDefault());
-        updatedAt = LocalDateTime.now(java.time.ZoneId.systemDefault());
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now(java.time.ZoneId.systemDefault());
+        }
+        if (updatedAt == null) {
+            updatedAt = LocalDateTime.now(java.time.ZoneId.systemDefault());
+        }
         if (dateCommande == null) {
             dateCommande = LocalDateTime.now(java.time.ZoneId.systemDefault());
         }

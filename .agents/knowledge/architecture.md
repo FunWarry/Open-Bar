@@ -263,6 +263,18 @@ OpenBar allows guests seated at the same physical table to collaboratively const
 
 ---
 
+## Offline-First Order Queueing & Background Synchronization
+
+To support seamless waitstaff operations in dead zones or during Wi-Fi drops, OpenBar incorporates an offline-first order intake and background synchronization engine:
+
+- **Frontend Storage**: IndexedDB via `idb` (`openbar-offline-db`, store `orders`, keyed by `clientRequestId`).
+- **Reactive Signals**: `OfflineOrderService` exposes `isOnline`, `pendingOrders`, `pendingCount`, and `isSyncing`.
+- **HTTP Interception**: `offlineSyncInterceptor` intercepts `POST /api/commandes` requests that fail due to offline status (`!navigator.onLine` or HTTP status `0`), persists the order to IndexedDB, and yields a synthetic HTTP `202 Accepted` response to prevent UI crashes.
+- **Automatic Background Flushing**: Listens for window `online` events, sends pending orders sequentially via `POST /api/commandes`, deletes synced entries, and triggers user toasts with `openbar:orders-synced` events.
+- **Backend Idempotency**: `Commande.clientRequestId` (column `client_request_id`, unique index) ensures that duplicated or replayed synchronization requests return the existing `Commande` without creating duplicate orders or modifying inventory twice.
+
+---
+
 ## Gross Margin, COGS & Multi-Unit Conversion Engine
 
 OpenBar provides live tracking of recipe Cost of Goods Sold (COGS), gross margin amount, and gross margin percentage:
