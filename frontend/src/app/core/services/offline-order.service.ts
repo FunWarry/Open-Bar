@@ -92,17 +92,15 @@ export class OfflineOrderService {
    * @returns Promise resolving to the IndexedDB database instance
    */
   private getDb(): Promise<IDBPDatabase<OfflineDB>> {
-    if (!this.dbPromise) {
-      this.dbPromise = openDB<OfflineDB>(DB_NAME, DB_VERSION, {
-        upgrade(db) {
-          if (!db.objectStoreNames.contains(STORE_NAME)) {
-            const store = db.createObjectStore(STORE_NAME, { keyPath: 'clientRequestId' });
-            store.createIndex('by-status', 'status');
-            store.createIndex('by-created', 'createdAt');
-          }
-        },
-      });
-    }
+    this.dbPromise ??= openDB<OfflineDB>(DB_NAME, DB_VERSION, {
+      upgrade(db) {
+        if (!db.objectStoreNames.contains(STORE_NAME)) {
+          const store = db.createObjectStore(STORE_NAME, { keyPath: 'clientRequestId' });
+          store.createIndex('by-status', 'status');
+          store.createIndex('by-created', 'createdAt');
+        }
+      },
+    });
     return this.dbPromise;
   }
 

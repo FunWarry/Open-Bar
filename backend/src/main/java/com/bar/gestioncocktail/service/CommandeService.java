@@ -129,8 +129,7 @@ public class CommandeService {
         if (commande.getClientRequestId() != null && !commande.getClientRequestId().isBlank()) {
             Optional<Commande> existing = commandeRepository.findByClientRequestId(commande.getClientRequestId());
             if (existing.isPresent()) {
-                log.info("Idempotent order creation requested for clientRequestId={}. Returning existing order id={}",
-                        commande.getClientRequestId(), existing.get().getId());
+                log.info("Idempotent order creation requested. Returning existing order id={}", existing.get().getId());
                 return existing.get();
             }
         }
