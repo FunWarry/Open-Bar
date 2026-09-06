@@ -167,4 +167,25 @@ describe('PrinterService', () => {
     expect(req.request.body).toEqual({});
     req.flush(mockResult);
   });
+
+  it('should print Z-report via POST /api/printers/z-report/:closureId', () => {
+    const closureId = 12;
+    const mockResult: PrintResult = {
+      role: 'CASH_DESK',
+      ip: '192.168.1.103',
+      port: 9100,
+      success: true,
+      message: 'Z-report printed successfully',
+      durationMs: 25,
+    };
+
+    service.printZReport(closureId).subscribe(res => {
+      expect(res).toEqual(mockResult);
+    });
+
+    const req = httpMock.expectOne(`${baseUrl}/z-report/${closureId}`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({});
+    req.flush(mockResult);
+  });
 });

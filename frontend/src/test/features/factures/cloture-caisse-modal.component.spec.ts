@@ -186,6 +186,30 @@ describe('ClotureCaisseModalComponent', () => {
     expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'success' }));
   }));
 
+  it('printZReport() should handle print failure or service error gracefully', fakeAsync(() => {
+    component.createdClosure = mockClosureResponse;
+    printerServiceSpy.printZReport.and.returnValue(of({
+      role: 'CASH_DESK',
+      ip: '192.168.1.103',
+      port: 9100,
+      success: false,
+      message: 'Printer unreachable',
+      durationMs: 100,
+    }));
+
+    component.printZReport();
+    tick();
+    flushMicrotasks();
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'warning' }));
+
+    // Service throws error
+    printerServiceSpy.printZReport.and.returnValue(throwError(() => new Error('Socket timeout')));
+    component.printZReport();
+    tick();
+    flushMicrotasks();
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
+  }));
+
   it('downloadPdf() and downloadFec() should trigger file downloads', fakeAsync(() => {
     component.createdClosure = mockClosureResponse;
 
@@ -199,6 +223,39 @@ describe('ClotureCaisseModalComponent', () => {
     flushMicrotasks();
     expect(factureServiceSpy.downloadFecExport).toHaveBeenCalledWith(42);
   }));
+
+  it('downloadPdf() and downloadFec() should handle errors gracefully', fakeAsync(() => {
+    component.createdClosure = mockClosureResponse;
+    factureServiceSpy.downloadZReportPdf.and.returnValue(throwError(() => new Error('PDF fail')));
+    component.downloadPdf();
+    tick();
+    flushMicrotasks();
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
+
+    factureServiceSpy.downloadFecExport.and.returnValue(throwError(() => new Error('FEC fail')));
+    component.downloadFec();
+    tick();
+    flushMicrotasks();
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
+  }));
+
+  it('copySealHash() should write hash to clipboard and show toast', fakeAsync(() => {
+    component.createdClosure = mockClosureResponse;
+    spyOn(navigator.clipboard, 'writeText').and.returnValue(Promise.resolve());
+
+    component.copySealHash();
+    tick();
+    flushMicrotasks();
+
+    expect(navigator.clipboard.writeText).toHaveBeenCalledWith(mockClosureResponse.sha256Hash);
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'success' }));
+  }));
+
+  it('goToPrevStep() should do nothing when on step 1', () => {
+    component.currentStep = 1;
+    component.goToPrevStep();
+    expect(component.currentStep).toBe(1);
+  });
 
   it('dismiss() should close modal with data', () => {
     component.createdClosure = mockClosureResponse;

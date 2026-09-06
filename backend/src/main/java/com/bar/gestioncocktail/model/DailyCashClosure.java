@@ -75,8 +75,8 @@ public class DailyCashClosure {
      */
     @PrePersist
     protected void onCreate() {
-        this.createdAt = LocalDateTime.now(java.time.ZoneOffset.UTC);
-        this.updatedAt = LocalDateTime.now(java.time.ZoneOffset.UTC);
+        this.createdAt = LocalDateTime.now(java.time.ZoneId.systemDefault());
+        this.updatedAt = LocalDateTime.now(java.time.ZoneId.systemDefault());
     }
 
     /**
@@ -84,6 +84,6 @@ public class DailyCashClosure {
      */
     @PreUpdate
     protected void onUpdate() {
-        this.updatedAt = LocalDateTime.now(java.time.ZoneOffset.UTC);
+        this.updatedAt = LocalDateTime.now(java.time.ZoneId.systemDefault());
     }
 }

@@ -126,4 +126,18 @@ class PrinterControllerTest {
         assertThat(response.getBody().success()).isTrue();
         verify(printingService).openCashDrawer();
     }
+
+    @Test
+    @DisplayName("printZReport delegates to service and returns PrintResultDTO")
+    void printZReport_delegatesToService() {
+        PrintResultDTO result = PrintResultDTO.success(PrinterRole.CASH_DESK, "192.168.1.12", 9100, "OK");
+        when(printingService.printZReportTicket(55L)).thenReturn(result);
+
+        ResponseEntity<PrintResultDTO> response = printerController.printZReport(55L);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().success()).isTrue();
+        verify(printingService).printZReportTicket(55L);
+    }
 }

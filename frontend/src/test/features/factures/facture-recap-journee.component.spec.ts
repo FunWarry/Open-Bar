@@ -165,6 +165,44 @@ describe('FactureRecapJourneeComponent', () => {
     expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'success' }));
   }));
 
+  it('printZReportTicket() handles failure status and service errors', fakeAsync(() => {
+    component.currentClosure = mockClosure;
+    printerServiceSpy.printZReport.and.returnValue(of({
+      role: 'CASH_DESK',
+      ip: '192.168.1.103',
+      port: 9100,
+      success: false,
+      message: 'Failed to connect',
+      durationMs: 50,
+    }));
+
+    component.printZReportTicket();
+    tick();
+    flushMicrotasks();
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'warning' }));
+
+    printerServiceSpy.printZReport.and.returnValue(throwError(() => new Error('Offline')));
+    component.printZReportTicket();
+    tick();
+    flushMicrotasks();
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
+  }));
+
+  it('exportPdf() and downloadFecExport() handle service errors', fakeAsync(() => {
+    component.currentClosure = mockClosure;
+    factureServiceSpy.downloadZReportPdf.and.returnValue(throwError(() => new Error('Error')));
+    component.exportPdf();
+    tick();
+    flushMicrotasks();
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
+
+    factureServiceSpy.downloadFecExport.and.returnValue(throwError(() => new Error('Error')));
+    component.downloadFecExport();
+    tick();
+    flushMicrotasks();
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
+  }));
+
   it('downloadFecExport() triggers FEC download', fakeAsync(() => {
     component.currentClosure = mockClosure;
     component.downloadFecExport();

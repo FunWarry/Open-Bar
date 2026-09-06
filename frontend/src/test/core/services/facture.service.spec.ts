@@ -178,4 +178,102 @@ describe('FactureService', () => {
     expect(req2.request.method).toBe('GET');
     req2.flush(mockBlob);
   });
+
+  it('should execute cloturerCaisse via POST /api/factures/recap/cloturer', () => {
+    const payload = {
+      date: '2026-09-06',
+      openingFloat: 150,
+      countedCash: 450,
+      discrepancyReason: 'RAS',
+      countingBreakdown: { bills: {}, coins: {} },
+    };
+    const mockClosure = {
+      id: 10,
+      closureNumber: 'Z-2026-00001',
+      closureDate: '2026-09-06',
+      openingFloat: 150,
+      theoreticalCash: 450,
+      countedCash: 450,
+      cashDiscrepancy: 0,
+      totalRevenueHT: 500,
+      totalRevenueTTC: 600,
+      sha256Hash: 'dummyhash',
+      createdAt: '2026-09-06T22:00:00',
+    };
+
+    service.cloturerCaisse(payload as any).subscribe((res) => {
+      expect(res).toEqual(mockClosure as any);
+    });
+
+    const req = httpMock.expectOne(`${apiUrl}/recap/cloturer`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual(payload);
+    req.flush(mockClosure);
+  });
+
+  it('should retrieve all closures via GET /api/factures/clotures', () => {
+    const mockClosures = [
+      { id: 10, closureNumber: 'Z-2026-00001', closureDate: '2026-09-06' },
+      { id: 9, closureNumber: 'Z-2026-00002', closureDate: '2026-09-05' },
+    ];
+
+    service.getClotures().subscribe((res) => {
+      expect(res).toEqual(mockClosures as any);
+      expect(res.length).toBe(2);
+    });
+
+    const req = httpMock.expectOne(`${apiUrl}/clotures`);
+    expect(req.request.method).toBe('GET');
+    req.flush(mockClosures);
+  });
+
+  it('should get closure by id via GET /api/factures/clotures/:id', () => {
+    const mockClosure = { id: 10, closureNumber: 'Z-2026-00001', closureDate: '2026-09-06' };
+
+    service.getClotureById(10).subscribe((res) => {
+      expect(res).toEqual(mockClosure as any);
+    });
+
+    const req = httpMock.expectOne(`${apiUrl}/clotures/10`);
+    expect(req.request.method).toBe('GET');
+    req.flush(mockClosure);
+  });
+
+  it('should get closure by date via GET /api/factures/clotures/by-date', () => {
+    const mockClosure = { id: 10, closureNumber: 'Z-2026-00001', closureDate: '2026-09-06' };
+
+    service.getClotureByDate('2026-09-06').subscribe((res) => {
+      expect(res).toEqual(mockClosure as any);
+    });
+
+    const req = httpMock.expectOne(`${apiUrl}/clotures/by-date?date=2026-09-06`);
+    expect(req.request.method).toBe('GET');
+    req.flush(mockClosure);
+  });
+
+  it('should download Z-report PDF via GET /api/factures/clotures/:id/pdf', () => {
+    const mockBlob = new Blob(['PDF_DATA'], { type: 'application/pdf' });
+
+    service.downloadZReportPdf(10).subscribe((res) => {
+      expect(res).toBeTruthy();
+    });
+
+    const req = httpMock.expectOne(`${apiUrl}/clotures/10/pdf`);
+    expect(req.request.method).toBe('GET');
+    expect(req.request.responseType).toBe('blob');
+    req.flush(mockBlob);
+  });
+
+  it('should download FEC export via GET /api/factures/clotures/:id/export/fec', () => {
+    const mockBlob = new Blob(['FEC_DATA'], { type: 'text/plain' });
+
+    service.downloadFecExport(10).subscribe((res) => {
+      expect(res).toBeTruthy();
+    });
+
+    const req = httpMock.expectOne(`${apiUrl}/clotures/10/export/fec`);
+    expect(req.request.method).toBe('GET');
+    expect(req.request.responseType).toBe('blob');
+    req.flush(mockBlob);
+  });
 });
