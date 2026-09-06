@@ -49,7 +49,21 @@
       }
     </div>
     <div class="product-footer">
-      <span class="product-price">{{ price | currency:'EUR' }}</span>
+      <div class="product-price-stack">
+        @if (isHappyHour && originalPrice != null && originalPrice > price) {
+          <div class="hh-pill-row">
+            <span class="original-price-struck" data-testid="product-card-original-price">
+              {{ originalPrice | currency:'EUR' }}
+            </span>
+            <span class="happy-hour-badge" data-testid="product-card-hh-badge">
+              {{ 'PRICING.HAPPY_HOUR_BADGE' | transloco }}
+            </span>
+          </div>
+        }
+        <span class="product-price" [class.discounted]="isHappyHour" data-testid="product-card-price">
+          {{ price | currency:'EUR' }}
+        </span>
+      </div>
       <div class="quantity-stepper-mini">
         @if (quantity > 0) {
           <button

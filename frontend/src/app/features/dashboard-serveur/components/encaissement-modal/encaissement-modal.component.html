@@ -81,6 +81,7 @@
             <span class="item-name">{{ item.cocktailNom }}</span>
             <span *ngIf="item.varianteNom" class="item-variant">({{ item.varianteNom }})</span>
             <span class="item-unit-price">{{ item.prixUnitaire | appCurrency }} / u</span>
+            <span *ngIf="item.isHappyHour" class="item-hh-badge" data-testid="addition-item-hh-badge">Happy Hour</span>
           </div>
           <div class="item-total-col">
             <span class="item-line-total">{{ item.total | appCurrency }}</span>

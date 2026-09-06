@@ -69,11 +69,6 @@ CREATE TABLE IF NOT EXISTS cocktail_flavor_profiles (
     PRIMARY KEY (cocktail_id, flavor_profile)
 );
 
-ALTER TABLE cocktails ADD COLUMN IF NOT EXISTS alcohol_level DECIMAL(4,1) DEFAULT 0.0;
-ALTER TABLE cocktails ADD COLUMN IF NOT EXISTS is_mocktail BOOLEAN DEFAULT false;
-ALTER TABLE cocktails ADD COLUMN IF NOT EXISTS is_vegan BOOLEAN DEFAULT true;
-ALTER TABLE cocktails ADD COLUMN IF NOT EXISTS is_gluten_free BOOLEAN DEFAULT true;
-
 CREATE TABLE IF NOT EXISTS ingredients (
     id BIGSERIAL PRIMARY KEY,
     nom VARCHAR(100) NOT NULL,
@@ -469,4 +464,35 @@ CREATE TABLE IF NOT EXISTS shift_audit_log (
     changed_at TIMESTAMP NOT NULL,
     previous_snapshot TEXT,
     new_snapshot TEXT
+);
+
+-- 10. Happy Hour & Dynamic Pricing Rules
+CREATE TABLE IF NOT EXISTS happy_hour_rules (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    start_time TIME NOT NULL,
+    end_time TIME NOT NULL,
+    discount_type VARCHAR(30) NOT NULL,
+    discount_value DECIMAL(10,2) NOT NULL,
+    active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS happy_hour_days (
+    rule_id BIGINT NOT NULL REFERENCES happy_hour_rules(id) ON DELETE CASCADE,
+    day_of_week VARCHAR(20) NOT NULL,
+    PRIMARY KEY (rule_id, day_of_week)
+);
+
+CREATE TABLE IF NOT EXISTS happy_hour_categories (
+    rule_id BIGINT NOT NULL REFERENCES happy_hour_rules(id) ON DELETE CASCADE,
+    category VARCHAR(50) NOT NULL,
+    PRIMARY KEY (rule_id, category)
+);
+
+CREATE TABLE IF NOT EXISTS happy_hour_cocktails (
+    rule_id BIGINT NOT NULL REFERENCES happy_hour_rules(id) ON DELETE CASCADE,
+    cocktail_id BIGINT NOT NULL REFERENCES cocktails(id) ON DELETE CASCADE,
+    PRIMARY KEY (rule_id, cocktail_id)
 );

@@ -53,7 +53,9 @@ import {
   globeOutline,
   lockClosedOutline,
   rocketOutline,
+  pricetagOutline,
 } from 'ionicons/icons';
+import { HappyHourConfigComponent } from './components/happy-hour-config/happy-hour-config.component';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { Subject, forkJoin, of } from 'rxjs';
 import { takeUntil, catchError } from 'rxjs/operators';
@@ -79,7 +81,7 @@ import { SearchableSelectComponent, SearchableOption } from '../../../core/compo
 import { TicketReceiptComponent } from '../../factures/ticket-receipt/ticket-receipt.component';
 import { Facture } from '../../factures/models/facture.model';
 
-export type SettingsTab = 'legal' | 'timers' | 'currency' | 'theme' | 'qr';
+export type SettingsTab = 'legal' | 'timers' | 'currency' | 'theme' | 'qr' | 'pricing';
 
 const HEX_COLOR_PATTERN = /^#[0-9A-Fa-f]{6}$/;
 
@@ -164,6 +166,7 @@ export interface CurrencyPreset {
     InputFieldComponent,
     SearchableSelectComponent,
     TicketReceiptComponent,
+    HappyHourConfigComponent,
   ],
 })
 export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingChanges {
@@ -336,6 +339,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       globeOutline,
       lockClosedOutline,
       rocketOutline,
+      pricetagOutline,
     });
     this.initForms();
   }
@@ -378,7 +382,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
 
     if (this.route?.data) {
       this.route.data.pipe(takeUntil(this.destroy$)).subscribe(data => {
-        if (data?.['defaultTab'] && ['legal', 'timers', 'currency', 'theme', 'qr'].includes(data['defaultTab'])) {
+        if (data?.['defaultTab'] && ['legal', 'timers', 'currency', 'theme', 'qr', 'pricing'].includes(data['defaultTab'])) {
           this.activeTab = data['defaultTab'] as SettingsTab;
         }
       });
@@ -386,7 +390,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
 
     if (this.route?.queryParams) {
       this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
-        if (params?.['tab'] && ['legal', 'timers', 'currency', 'theme', 'qr'].includes(params['tab'])) {
+        if (params?.['tab'] && ['legal', 'timers', 'currency', 'theme', 'qr', 'pricing'].includes(params['tab'])) {
           this.activeTab = params['tab'] as SettingsTab;
         }
       });

@@ -29,6 +29,12 @@ export class ProductCardComponent {
   /** Price in EUR. */
   @Input() price!: number;
 
+  /** Whether the product currently has an active promotional Happy Hour discount. */
+  @Input() isHappyHour = false;
+
+  /** Non-discounted original catalog price in EUR. */
+  @Input() originalPrice?: number | null;
+
   /** Category badge text (e.g. Alcoholic, Non-Alcoholic). */
   @Input() category?: string;
 
