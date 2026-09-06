@@ -7,7 +7,7 @@
       </div>
     </ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="dismiss(currentStep === 5)" data-testid="cloture-modal-close-btn">
+      <ion-button (click)="dismiss(currentStep === 5)" (keydown.enter)="dismiss(currentStep === 5)" data-testid="cloture-modal-close-btn">
         <ion-icon name="close-outline" slot="icon-only"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -145,6 +145,8 @@
                 <input
                   type="number"
                   min="0"
+                  [id]="'denom-input-' + d.key"
+                  [attr.aria-label]="d.label"
                   [value]="counting[d.key] || 0"
                   (input)="onCountChange(d.key, $any($event.target).value)"
                   class="denom-input"
@@ -315,6 +317,7 @@
           color="primary"
           expand="block"
           (click)="printZReport()"
+          (keydown.enter)="printZReport()"
           [disabled]="isPrinting"
           class="action-btn"
           data-testid="print-z-ticket-btn"
@@ -333,6 +336,7 @@
           expand="block"
           fill="outline"
           (click)="downloadPdf()"
+          (keydown.enter)="downloadPdf()"
           [disabled]="isDownloadingPdf"
           class="action-btn"
           data-testid="download-z-pdf-btn"
@@ -351,6 +355,7 @@
           expand="block"
           fill="outline"
           (click)="downloadFec()"
+          (keydown.enter)="downloadFec()"
           [disabled]="isExportingFec"
           class="action-btn"
           data-testid="download-fec-btn"
@@ -371,7 +376,7 @@
 <ion-footer class="ion-no-border modal-footer">
   <div class="footer-actions">
     @if (currentStep > 1 && currentStep <= 4) {
-      <ion-button fill="outline" color="medium" (click)="goToPrevStep()" data-testid="cloture-prev-btn">
+      <ion-button fill="outline" color="medium" (click)="goToPrevStep()" (keydown.enter)="goToPrevStep()" data-testid="cloture-prev-btn">
         <ion-icon name="arrow-back-outline" slot="start"></ion-icon>
         {{ 'COMMON.PREVIOUS' | transloco }}
       </ion-button>
@@ -380,7 +385,7 @@
     <div class="spacer"></div>
 
     @if (currentStep < 4) {
-      <ion-button color="primary" (click)="goToNextStep()" data-testid="cloture-next-btn">
+      <ion-button color="primary" (click)="goToNextStep()" (keydown.enter)="goToNextStep()" data-testid="cloture-next-btn">
         {{ 'COMMON.NEXT' | transloco }}
         <ion-icon name="arrow-forward-outline" slot="end"></ion-icon>
       </ion-button>
@@ -388,6 +393,7 @@
       <ion-button
         color="danger"
         (click)="confirmClosure()"
+        (keydown.enter)="confirmClosure()"
         [disabled]="isSubmitting"
         data-testid="cloture-confirm-btn"
       >
@@ -399,7 +405,7 @@
         {{ 'CLOTURE.CONFIRM_AND_LOCK' | transloco }}
       </ion-button>
     } @else if (currentStep === 5) {
-      <ion-button color="primary" expand="block" (click)="dismiss(true)" data-testid="cloture-finish-btn">
+      <ion-button color="primary" expand="block" (click)="dismiss(true)" (keydown.enter)="dismiss(true)" data-testid="cloture-finish-btn">
         {{ 'COMMON.FINISH' | transloco }}
       </ion-button>
     }

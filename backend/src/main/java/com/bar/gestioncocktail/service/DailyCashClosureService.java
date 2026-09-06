@@ -35,6 +35,8 @@ import java.util.Optional;
 public class DailyCashClosureService {
 
     private static final Logger log = LoggerFactory.getLogger(DailyCashClosureService.class);
+    private static final String PAYMENT_MODE_ESPECES = "ESPECES";
+    private static final String PAYMENT_MODE_CASH = "CASH";
 
     private final DailyCashClosureRepository closureRepository;
     private final FactureService factureService;
@@ -153,7 +155,7 @@ public class DailyCashClosureService {
         }
         BigDecimal sum = BigDecimal.ZERO;
         for (PaymentModeSummaryDTO pm : recap.ventilationModePaiement()) {
-            if ("ESPECES".equalsIgnoreCase(pm.modePaiement()) || "CASH".equalsIgnoreCase(pm.modePaiement())) {
+            if (PAYMENT_MODE_ESPECES.equalsIgnoreCase(pm.modePaiement()) || PAYMENT_MODE_CASH.equalsIgnoreCase(pm.modePaiement())) {
                 sum = sum.add(pm.totalTtc());
             }
         }
@@ -249,7 +251,7 @@ public class DailyCashClosureService {
 
     private String resolveAccountForPaymentMode(String mode) {
         return switch (mode) {
-            case "ESPECES", "CASH" -> "530000";
+            case PAYMENT_MODE_ESPECES, PAYMENT_MODE_CASH -> "530000";
             case "CARTE", "CB" -> "512000";
             case "CHECK", "CHEQUE" -> "511200";
             case "AVOIR" -> "419000";
@@ -259,7 +261,7 @@ public class DailyCashClosureService {
 
     private String resolveAccountLabelForPaymentMode(String mode) {
         return switch (mode) {
-            case "ESPECES", "CASH" -> "Caisse Espèces";
+            case PAYMENT_MODE_ESPECES, PAYMENT_MODE_CASH -> "Caisse Espèces";
             case "CARTE", "CB" -> "Banque Cartes Bancaires";
             case "CHECK", "CHEQUE" -> "Chèques à encaisser";
             case "AVOIR" -> "Clients - Avoirs et acomptes";

@@ -63,6 +63,7 @@ public class SampleDataSeederService {
     private static final String SCRIPT_TAG = "<script>";
     private static final String KEY_TEST = "Test";
     private static final String KEY_STATUT = "statut";
+    private static final String KEY_DISCREPANCY_REASON = "discrepancyReason";
 
     private final UserRepository userRepository;
     private final TableRepository tableRepository;
@@ -1429,8 +1430,8 @@ public class SampleDataSeederService {
 
         String closedByUsername = cNode.has("closedByUsername") ? cNode.get("closedByUsername").asText() : null;
         User closedBy = closedByUsername != null ? usersMap.get(closedByUsername) : null;
-        String discrepancyReason = cNode.has("discrepancyReason") && !cNode.get("discrepancyReason").isNull()
-                ? cNode.get("discrepancyReason").asText() : null;
+        String discrepancyReason = cNode.has(KEY_DISCREPANCY_REASON) && !cNode.get(KEY_DISCREPANCY_REASON).isNull()
+                ? cNode.get(KEY_DISCREPANCY_REASON).asText() : null;
 
         String paymentMethodsJson = cNode.has("paymentMethods") ? cNode.get("paymentMethods").toString() : "[]";
         String vatBreakdownJson = cNode.has("vatBreakdown") ? cNode.get("vatBreakdown").toString() : "[]";

@@ -85,6 +85,9 @@ class FactureServiceTest {
     @Mock
     com.bar.gestioncocktail.repository.AvoirCreditRepository avoirCreditRepository;
 
+    @Mock
+    com.bar.gestioncocktail.repository.DailyCashClosureRepository dailyCashClosureRepository;
+
     @Spy
     TimeService timeService = new TimeService(null);
 
@@ -1341,5 +1344,58 @@ class FactureServiceTest {
         factureService.encaisserTable(1L, req);
 
         verify(eventPublisher, org.mockito.Mockito.atLeastOnce()).publishEvent(any(com.bar.gestioncocktail.event.InvoiceSettledEvent.class));
+    }
+
+    @Test
+    void createFacture_whenDateClosed_throwsBusinessException() {
+        when(dailyCashClosureRepository.existsByClosureDate(any())).thenReturn(true);
+
+        Facture f = new Facture();
+        f.setTable(new TableEntity());
+
+        assertThatThrownBy(() -> factureService.createFacture(f))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("already closed");
+    }
+
+    @Test
+    void reglerFacture_whenDateClosed_throwsBusinessException() {
+        Facture f = new Facture();
+        f.setId(10L);
+        f.setDateFacture(LocalDateTime.now());
+        when(factureRepository.findById(10L)).thenReturn(Optional.of(f));
+        when(dailyCashClosureRepository.existsByClosureDate(any())).thenReturn(true);
+
+        assertThatThrownBy(() -> factureService.reglerFacture(10L, "CARTE", BigDecimal.ZERO))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("already closed");
+    }
+
+    @Test
+    void encaisserTable_whenDateClosed_throwsBusinessException() {
+        when(dailyCashClosureRepository.existsByClosureDate(any())).thenReturn(true);
+
+        EncaissementRequestDTO req = new EncaissementRequestDTO("CARTE", null, null, null, null, null, true, List.of());
+
+        assertThatThrownBy(() -> factureService.encaisserTable(1L, req))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("already closed");
+    }
+
+    @Test
+    void encaisserPart_whenDateClosed_throwsBusinessException() {
+        Facture f = new Facture();
+        f.setId(10L);
+        f.setDateFacture(LocalDateTime.now());
+        when(factureRepository.findById(10L)).thenReturn(Optional.of(f));
+        when(dailyCashClosureRepository.existsByClosureDate(any())).thenReturn(true);
+
+        com.bar.gestioncocktail.dto.EncaisserPartRequest req = new com.bar.gestioncocktail.dto.EncaisserPartRequest(
+                "Guest", 1, 1, new BigDecimal("10.00"), BigDecimal.ZERO, new BigDecimal("10.00"), "CARTE", "EGAL", List.of()
+        );
+
+        assertThatThrownBy(() -> factureService.encaisserPart(10L, req))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("already closed");
     }
 }

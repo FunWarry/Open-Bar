@@ -214,13 +214,59 @@ class DailyCashClosureServiceTest {
 
         String fec = service.generateFecExport(10L);
 
-        assertThat(fec).isNotNull();
-        assertThat(fec).contains("JournalCode\tJournalLib\tEcritureNum");
-        assertThat(fec).contains("530000\tCaisse Espèces");
-        assertThat(fec).contains("512000\tBanque Cartes Bancaires");
-        assertThat(fec).contains("658000\tPertes sur écarts de caisse");
-        assertThat(fec).contains("706000\tPrestations de services (20.0%)");
-        assertThat(fec).contains("445710\tTVA collectée (20.0%)");
+        assertThat(fec)
+                .isNotNull()
+                .contains("JournalCode\tJournalLib\tEcritureNum")
+                .contains("530000\tCaisse Espèces")
+                .contains("512000\tBanque Cartes Bancaires")
+                .contains("658000\tPertes sur écarts de caisse")
+                .contains("706000\tPrestations de services (20.0%)")
+                .contains("445710\tTVA collectée (20.0%)");
+    }
+
+    @Test
+    @DisplayName("generateFecExport with positive discrepancy records surplus account 758000")
+    void generateFecExport_surplusDiscrepancy_generatesSurplusEntry() {
+        DailyCashClosure closure = new DailyCashClosure();
+        closure.setId(11L);
+        closure.setClosureNumber("Z-2026-00002");
+        closure.setClosureDate(testDate);
+        closure.setCashDiscrepancy(new BigDecimal("10.00"));
+        closure.setPaymentMethodsJson("[{\"modePaiement\":\"CHECK\",\"count\":1,\"totalTtc\":50.00},{\"modePaiement\":\"AVOIR\",\"count\":1,\"totalTtc\":20.00},{\"modePaiement\":\"AUTRE\",\"count\":1,\"totalTtc\":10.00}]");
+        closure.setVatBreakdownJson("[]");
+
+        when(closureRepository.findById(11L)).thenReturn(Optional.of(closure));
+
+        String fec = service.generateFecExport(11L);
+
+        assertThat(fec)
+                .isNotNull()
+                .contains("758000\tProduits sur écarts de caisse")
+                .contains("511200\tChèques à encaisser")
+                .contains("419000\tClients - Avoirs et acomptes")
+                .contains("580000\tRèglements Divers (AUTRE)");
+    }
+
+    @Test
+    @DisplayName("getAllClosures returns list sorted by date descending")
+    void getAllClosures_returnsList() {
+        DailyCashClosure c1 = new DailyCashClosure();
+        c1.setId(1L);
+        when(closureRepository.findAllByOrderByClosureDateDesc()).thenReturn(List.of(c1));
+
+        List<DailyCashClosure> result = service.getAllClosures();
+        assertThat(result).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("getClosureByDate returns closure when found")
+    void getClosureByDate_found_returnsClosure() {
+        DailyCashClosure c1 = new DailyCashClosure();
+        c1.setId(1L);
+        when(closureRepository.findByClosureDate(testDate)).thenReturn(Optional.of(c1));
+
+        Optional<DailyCashClosure> result = service.getClosureByDate(testDate);
+        assertThat(result).isPresent();
     }
 
     @Test

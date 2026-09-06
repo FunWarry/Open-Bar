@@ -1,5 +1,3 @@
-import { PaymentModeSummary, VatSummary } from './daily-recap.model';
-
 /**
  * Breakdown of physically counted coin and bill quantities.
  */

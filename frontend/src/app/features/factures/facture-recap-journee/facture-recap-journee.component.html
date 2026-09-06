@@ -37,7 +37,7 @@
 
             <!-- Clôturer Caisse CTA Button -->
             @if (!currentClosure) {
-              <ion-button color="primary" (click)="openClotureModal()" [disabled]="!recap" data-testid="open-cloture-modal-btn">
+              <ion-button color="primary" (click)="openClotureModal()" (keydown.enter)="openClotureModal()" [disabled]="!recap" data-testid="open-cloture-modal-btn">
                 <ion-icon name="lock-closed-outline" slot="start"></ion-icon>
                 {{ 'CLOTURE.BTN_CLOTURER' | transloco }}
               </ion-button>
@@ -77,17 +77,17 @@
             </div>
 
             <div class="banner-actions">
-              <ion-button color="primary" fill="outline" size="small" (click)="printZReportTicket()" [disabled]="isPrintingZ" data-testid="banner-print-z-btn">
+              <ion-button color="primary" fill="outline" size="small" (click)="printZReportTicket()" (keydown.enter)="printZReportTicket()" [disabled]="isPrintingZ" data-testid="banner-print-z-btn">
                 <ion-icon name="print-outline" slot="start"></ion-icon>
                 {{ 'CLOTURE.PRINT_TICKET_Z' | transloco }}
               </ion-button>
 
-              <ion-button color="secondary" fill="outline" size="small" (click)="downloadZReportPdf()" [disabled]="isExporting" data-testid="banner-download-pdf-btn">
+              <ion-button color="secondary" fill="outline" size="small" (click)="downloadZReportPdf()" (keydown.enter)="downloadZReportPdf()" [disabled]="isExporting" data-testid="banner-download-pdf-btn">
                 <ion-icon name="download-outline" slot="start"></ion-icon>
                 {{ 'CLOTURE.DOWNLOAD_PDF' | transloco }}
               </ion-button>
 
-              <ion-button color="tertiary" fill="outline" size="small" (click)="downloadFecExport()" [disabled]="isExportingFec" data-testid="banner-download-fec-btn">
+              <ion-button color="tertiary" fill="outline" size="small" (click)="downloadFecExport()" (keydown.enter)="downloadFecExport()" [disabled]="isExportingFec" data-testid="banner-download-fec-btn">
                 <ion-icon name="document-text-outline" slot="start"></ion-icon>
                 {{ 'CLOTURE.EXPORT_FEC' | transloco }}
               </ion-button>

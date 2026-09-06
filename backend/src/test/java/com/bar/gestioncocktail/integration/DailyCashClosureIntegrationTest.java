@@ -56,7 +56,7 @@ class DailyCashClosureIntegrationTest extends BaseIntegrationTest {
         );
 
         // 1. Manager performs cash register closure
-        String responseContent = mockMvc.perform(post("/api/factures/recap/cloturer")
+        mockMvc.perform(post("/api/factures/recap/cloturer")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + getManagerToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -66,8 +66,7 @@ class DailyCashClosureIntegrationTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.openingFloat").value(150.0))
                 .andExpect(jsonPath("$.countedCash").value(150.0))
                 .andExpect(jsonPath("$.cashDiscrepancy").value(0.0))
-                .andExpect(jsonPath("$.sha256Hash").isString())
-                .andReturn().getResponse().getContentAsString();
+                .andExpect(jsonPath("$.sha256Hash").isString());
 
         DailyCashClosure saved = closureRepository.findByClosureDate(targetDate).orElseThrow();
         assertThat(saved.getSha256Hash()).hasSize(64);

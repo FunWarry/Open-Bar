@@ -188,8 +188,8 @@ export class ClotureCaisseModalComponent implements OnInit {
    * Updates count for a specific denomination safely.
    */
   onCountChange(key: string, value: any): void {
-    const parsed = parseInt(value, 10);
-    this.counting[key] = isNaN(parsed) || parsed < 0 ? 0 : parsed;
+    const parsed = Number.parseInt(value, 10);
+    this.counting[key] = Number.isNaN(parsed) || parsed < 0 ? 0 : parsed;
   }
 
   /**
