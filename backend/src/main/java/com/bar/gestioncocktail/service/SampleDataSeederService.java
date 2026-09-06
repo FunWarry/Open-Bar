@@ -157,44 +157,6 @@ public class SampleDataSeederService {
         this.objectMapper = new ObjectMapper();
     }
 
-    public SampleDataSeederService(
-            UserRepository userRepository,
-            TableRepository tableRepository,
-            ZoneRepository zoneRepository,
-            EtageRepository etageRepository,
-            CocktailRepository cocktailRepository,
-            IngredientRepository ingredientRepository,
-            RecipeStepTemplateRepository recipeStepTemplateRepository,
-            CommandeRepository commandeRepository,
-            FactureRepository factureRepository,
-            FactureReglementRepository factureReglementRepository,
-            AvoirCreditRepository avoirCreditRepository,
-            ShiftPresetRepository shiftPresetRepository,
-            EmployeeShiftRepository employeeShiftRepository,
-            EstablishmentClosureRepository establishmentClosureRepository,
-            WeekSchedulePublicationRepository weekSchedulePublicationRepository,
-            TableAppelRepository tableAppelRepository,
-            TableSessionRepository tableSessionRepository,
-            TableCartItemRepository tableCartItemRepository,
-            AppSettingsRepository appSettingsRepository,
-            EstablishmentConfigRepository establishmentConfigRepository,
-            JdbcTemplate jdbcTemplate,
-            PasswordEncoder passwordEncoder,
-            TimeService timeService,
-            PlatformTransactionManager transactionManager,
-            CocktailDataSeederService cocktailDataSeederService,
-            org.springframework.core.env.Environment environment) {
-        this(userRepository, tableRepository, zoneRepository, etageRepository,
-                cocktailRepository, ingredientRepository, recipeStepTemplateRepository,
-                commandeRepository, factureRepository, factureReglementRepository,
-                avoirCreditRepository, shiftPresetRepository, employeeShiftRepository,
-                establishmentClosureRepository, weekSchedulePublicationRepository,
-                tableAppelRepository, tableSessionRepository, tableCartItemRepository,
-                appSettingsRepository, establishmentConfigRepository, jdbcTemplate,
-                passwordEncoder, timeService, transactionManager, cocktailDataSeederService,
-                environment, null, null);
-    }
-
     /**
      * Automatically executes demo dataset seeding on startup ONLY when running with the 'test' profile.
      * In 'dev' and 'prod' profiles, automatic startup seeding is skipped to maintain a clean blank database.
