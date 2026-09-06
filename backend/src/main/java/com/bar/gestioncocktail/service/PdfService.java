@@ -13,13 +13,18 @@ import com.lowagie.text.Rectangle;
 import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
+import com.bar.gestioncocktail.dto.PaymentModeSummaryDTO;
+import com.bar.gestioncocktail.dto.VatSummaryDTO;
 import com.bar.gestioncocktail.model.AppSettings;
 import com.bar.gestioncocktail.model.CurrencyPosition;
+import com.bar.gestioncocktail.model.DailyCashClosure;
 import com.bar.gestioncocktail.model.EstablishmentConfig;
 import com.bar.gestioncocktail.model.Facture;
 import com.bar.gestioncocktail.model.FactureItem;
 import com.bar.gestioncocktail.model.VatRate;
 import com.bar.gestioncocktail.model.TableEntity;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 
 import java.awt.Color;
@@ -50,6 +55,7 @@ public class PdfService {
     private static final Color BORDER_COLOR = new Color(218, 222, 240);
     private static final String TOTAL_TTC_HEADER = "Total TTC";
     private static final String BASE_HT_HEADER = "Base HT";
+    private static final String TAUX_TVA_HEADER = "Taux TVA";
     private static final String DEFAULT_TABLE_URL_PREFIX = "https://openbar.lan/client/commande?table=";
     private static final String TABLE_PREFIX = "TABLE ";
 
@@ -232,7 +238,7 @@ public class PdfService {
 
         String[] headers = isEn
             ? new String[]{"Item", "Qty", "Unit Price HT", "VAT Rate", "Total HT", "Total Incl. VAT"}
-            : new String[]{"Article", "Qté", "P.U. HT", "Taux TVA", "Total HT", TOTAL_TTC_HEADER};
+            : new String[]{"Article", "Qté", "P.U. HT", TAUX_TVA_HEADER, "Total HT", TOTAL_TTC_HEADER};
 
         for (String header : headers) {
             PdfPCell cell = new PdfPCell(new Phrase(header, headerFont));
@@ -549,6 +555,212 @@ public class PdfService {
         } catch (DocumentException | IOException e) {
             throw new IllegalStateException("Error generating daily recap PDF for " + recap.date(), e);
         }
+    }
+
+    /**
+     * Generates an official, certified A4 PDF Z-Report for a daily register closure.
+     *
+     * @param closure Daily cash closure record
+     * @return PDF byte array
+     */
+    public byte[] generateZReportPdf(DailyCashClosure closure) {
+        if (closure == null) {
+            throw new IllegalArgumentException("Closure record cannot be null");
+        }
+
+        EstablishmentConfig config = (establishmentConfigService != null)
+                ? establishmentConfigService.getConfig()
+                : new EstablishmentConfig();
+        if (config == null) config = new EstablishmentConfig();
+
+        AppSettings settings = (appSettingsService != null)
+                ? appSettingsService.getSettings()
+                : new AppSettings();
+        if (settings == null) settings = new AppSettings();
+
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            Document doc = new Document(PageSize.A4, 36, 36, 40, 40);
+            PdfWriter writer = PdfWriter.getInstance(doc, out);
+            writer.setPdfVersion(PdfWriter.PDF_VERSION_1_7);
+            doc.open();
+
+            Font titleFont  = new Font(Font.HELVETICA, 16, Font.BOLD, PRIMARY);
+            Font headerFont = new Font(Font.HELVETICA, 10, Font.BOLD, TEXT);
+            Font normalFont = new Font(Font.HELVETICA, 9, Font.NORMAL, DARK_TEXT);
+            Font boldFont   = new Font(Font.HELVETICA, 9, Font.BOLD, DARK_TEXT);
+            Font mutedFont  = new Font(Font.HELVETICA, 8, Font.NORMAL, MUTED);
+            Font kpiFont    = new Font(Font.HELVETICA, 11, Font.BOLD, PRIMARY);
+            Font sealFont   = new Font(Font.COURIER, 8, Font.NORMAL, DARK_TEXT);
+
+            addZReportHeaderToDoc(doc, closure, config, titleFont, boldFont, mutedFont);
+            addKpiTableToDoc(doc, closure, kpiFont, settings);
+            addReconciliationTableToDoc(doc, closure, boldFont, normalFont, mutedFont, settings);
+            addPaymentModesTableToDoc(doc, closure, boldFont, headerFont, normalFont, settings);
+            addVatBreakdownTableToDoc(doc, closure, boldFont, headerFont, normalFont, settings);
+            addSealTableToDoc(doc, closure, boldFont, sealFont);
+            addLegalFooterSection(doc, config, mutedFont);
+
+            doc.close();
+            return out.toByteArray();
+        } catch (DocumentException | IOException e) {
+            throw new IllegalStateException("Error generating certified Z-report PDF for " + closure.getClosureNumber(), e);
+        }
+    }
+
+    private void addZReportHeaderToDoc(Document doc, DailyCashClosure closure, EstablishmentConfig config,
+                                       Font titleFont, Font boldFont, Font mutedFont) throws DocumentException {
+        String formattedDate = closure.getClosureDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+        Paragraph title = new Paragraph("TICKET Z — CLÔTURE DE CAISSE JOURNALIÈRE", titleFont);
+        title.setAlignment(Element.ALIGN_CENTER);
+        doc.add(title);
+
+        Paragraph subTitle = new Paragraph("Rapport Officiel Certifié N° " + closure.getClosureNumber() + " — Date : " + formattedDate, boldFont);
+        subTitle.setAlignment(Element.ALIGN_CENTER);
+        doc.add(subTitle);
+
+        String operator = resolveOperatorDisplayName(closure.getClosedBy());
+        String closedAt = closure.getCreatedAt() != null
+                ? closure.getCreatedAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy à HH:mm:ss"))
+                : "N/A";
+
+        doc.add(new Paragraph("Établissement : " + config.getLegalName() + " — SIRET : " + config.getSiret() + " — Opérateur : " + operator + " — Clôturé le : " + closedAt, mutedFont));
+        doc.add(Chunk.NEWLINE);
+    }
+
+    private String resolveOperatorDisplayName(com.bar.gestioncocktail.model.User user) {
+        if (user == null) {
+            return "Système";
+        }
+        String prenom = user.getPrenom() != null ? user.getPrenom() + " " : "";
+        String nom = user.getNom() != null ? user.getNom() : user.getUsername();
+        return prenom + nom;
+    }
+
+    private void addKpiTableToDoc(Document doc, DailyCashClosure closure, Font kpiFont, AppSettings settings) throws DocumentException {
+        PdfPTable kpiTable = new PdfPTable(4);
+        kpiTable.setWidthPercentage(100);
+        addCell(kpiTable, "CA Total TTC\n" + formatPrix(closure.getTotalRevenueTTC().doubleValue(), settings), kpiFont, Element.ALIGN_CENTER);
+        addCell(kpiTable, "CA Total HT\n" + formatPrix(closure.getTotalRevenueHT().doubleValue(), settings), kpiFont, Element.ALIGN_CENTER);
+        BigDecimal totalTva = closure.getTotalRevenueTTC().subtract(closure.getTotalRevenueHT());
+        addCell(kpiTable, "Total TVA\n" + formatPrix(totalTva.doubleValue(), settings), kpiFont, Element.ALIGN_CENTER);
+        addCell(kpiTable, "Écart de Caisse\n" + formatPrix(closure.getCashDiscrepancy().doubleValue(), settings), kpiFont, Element.ALIGN_CENTER);
+        doc.add(kpiTable);
+        doc.add(Chunk.NEWLINE);
+    }
+
+    private void addReconciliationTableToDoc(Document doc, DailyCashClosure closure, Font boldFont,
+                                             Font normalFont, Font mutedFont, AppSettings settings) throws DocumentException {
+        doc.add(new Paragraph("RÉCONCILIATION DU TIROIR-CAISSE (ESPÈCES)", boldFont));
+        PdfPTable reconTable = new PdfPTable(2);
+        reconTable.setWidthPercentage(100);
+        applyTableWidths(reconTable, new float[]{3f, 2f});
+
+        addCell(reconTable, "Fond de caisse initial (ouverture)", normalFont, Element.ALIGN_LEFT);
+        addCell(reconTable, formatPrix(closure.getOpeningFloat().doubleValue(), settings), boldFont, Element.ALIGN_RIGHT);
+
+        BigDecimal salesCash = closure.getTheoreticalCash().subtract(closure.getOpeningFloat());
+        addCell(reconTable, "Ventes encaissées en espèces (journée)", normalFont, Element.ALIGN_LEFT);
+        addCell(reconTable, formatPrix(salesCash.doubleValue(), settings), normalFont, Element.ALIGN_RIGHT);
+
+        addCell(reconTable, "Total théorique attendu en caisse", boldFont, Element.ALIGN_LEFT);
+        addCell(reconTable, formatPrix(closure.getTheoreticalCash().doubleValue(), settings), boldFont, Element.ALIGN_RIGHT);
+
+        addCell(reconTable, "Espèces physiques comptées (clôture)", boldFont, Element.ALIGN_LEFT);
+        addCell(reconTable, formatPrix(closure.getCountedCash().doubleValue(), settings), boldFont, Element.ALIGN_RIGHT);
+
+        addCell(reconTable, "Écart de réconciliation de caisse", boldFont, Element.ALIGN_LEFT);
+        addCell(reconTable, formatPrix(closure.getCashDiscrepancy().doubleValue(), settings), boldFont, Element.ALIGN_RIGHT);
+
+        if (closure.getDiscrepancyReason() != null && !closure.getDiscrepancyReason().isBlank()) {
+            addCell(reconTable, "Motif / Justification de l'écart :", mutedFont, Element.ALIGN_LEFT);
+            addCell(reconTable, closure.getDiscrepancyReason(), normalFont, Element.ALIGN_LEFT);
+        }
+        doc.add(reconTable);
+        doc.add(Chunk.NEWLINE);
+    }
+
+    private void addPaymentModesTableToDoc(Document doc, DailyCashClosure closure, Font boldFont,
+                                           Font headerFont, Font normalFont, AppSettings settings) throws DocumentException {
+        if (closure.getPaymentMethodsJson() == null || closure.getPaymentMethodsJson().isBlank()) {
+            return;
+        }
+        doc.add(new Paragraph("VENTILATION PAR MODE DE RÈGLEMENT", boldFont));
+        PdfPTable pmTable = new PdfPTable(3);
+        pmTable.setWidthPercentage(100);
+        applyTableWidths(pmTable, new float[]{2f, 1f, 1.5f});
+        for (String h : new String[]{"Mode de Règlement", "Nombre", TOTAL_TTC_HEADER}) {
+            PdfPCell c = new PdfPCell(new Phrase(h, headerFont));
+            c.setBackgroundColor(SURFACE);
+            c.setPadding(4);
+            pmTable.addCell(c);
+        }
+        List<PaymentModeSummaryDTO> modes = parsePaymentModesSafely(closure.getPaymentMethodsJson());
+        for (PaymentModeSummaryDTO pm : modes) {
+            addCell(pmTable, pm.modePaiement(), normalFont, Element.ALIGN_LEFT);
+            addCell(pmTable, String.valueOf(pm.count()), normalFont, Element.ALIGN_CENTER);
+            addCell(pmTable, formatPrix(pm.totalTtc().doubleValue(), settings), boldFont, Element.ALIGN_RIGHT);
+        }
+        doc.add(pmTable);
+        doc.add(Chunk.NEWLINE);
+    }
+
+    private List<PaymentModeSummaryDTO> parsePaymentModesSafely(String json) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            return mapper.readValue(json, new TypeReference<>() {});
+        } catch (Exception _) {
+            return List.of();
+        }
+    }
+
+    private void addVatBreakdownTableToDoc(Document doc, DailyCashClosure closure, Font boldFont,
+                                           Font headerFont, Font normalFont, AppSettings settings) throws DocumentException {
+        if (closure.getVatBreakdownJson() == null || closure.getVatBreakdownJson().isBlank()) {
+            return;
+        }
+        doc.add(new Paragraph("VENTILATION DE LA TVA (CONFORMITÉ CA3)", boldFont));
+        PdfPTable vatTable = new PdfPTable(4);
+        vatTable.setWidthPercentage(100);
+        applyTableWidths(vatTable, new float[]{1.2f, 1.5f, 1.5f, 1.5f});
+        for (String h : new String[]{TAUX_TVA_HEADER, BASE_HT_HEADER, "Montant TVA", TOTAL_TTC_HEADER}) {
+            PdfPCell c = new PdfPCell(new Phrase(h, headerFont));
+            c.setBackgroundColor(SURFACE);
+            c.setPadding(4);
+            vatTable.addCell(c);
+        }
+        List<VatSummaryDTO> vatList = parseVatBreakdownSafely(closure.getVatBreakdownJson());
+        for (VatSummaryDTO vat : vatList) {
+            addCell(vatTable, vat.tauxLabel(), normalFont, Element.ALIGN_LEFT);
+            addCell(vatTable, formatPrix(vat.baseHt().doubleValue(), settings), normalFont, Element.ALIGN_RIGHT);
+            addCell(vatTable, formatPrix(vat.montantTva().doubleValue(), settings), normalFont, Element.ALIGN_RIGHT);
+            addCell(vatTable, formatPrix(vat.totalTtc().doubleValue(), settings), boldFont, Element.ALIGN_RIGHT);
+        }
+        doc.add(vatTable);
+        doc.add(Chunk.NEWLINE);
+    }
+
+    private List<VatSummaryDTO> parseVatBreakdownSafely(String json) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            return mapper.readValue(json, new TypeReference<>() {});
+        } catch (Exception _) {
+            return List.of();
+        }
+    }
+
+    private void addSealTableToDoc(Document doc, DailyCashClosure closure, Font boldFont, Font sealFont) throws DocumentException {
+        doc.add(new Paragraph("CERTIFICATION ET SCEAU NUMÉRIQUE D'INTÉGRITÉ", boldFont));
+        PdfPTable sealTable = new PdfPTable(1);
+        sealTable.setWidthPercentage(100);
+        PdfPCell sealCell = new PdfPCell(new Phrase("Empreinte SHA-256 : " + closure.getSha256Hash() + "\n"
+                + "Document inaltérable scellé conformément à l'article 286, I-3° bis du Code Général des Impôts (CGI).\n"
+                + "Garantie d'inaltérabilité, de sécurisation, de conservation et d'archivage des données de règlement.", sealFont));
+        sealCell.setBackgroundColor(LIGHT_BG);
+        sealCell.setPadding(6);
+        sealCell.setBorderColor(BORDER_COLOR);
+        sealTable.addCell(sealCell);
+        doc.add(sealTable);
+        doc.add(Chunk.NEWLINE);
     }
 
     private void applyTableWidths(PdfPTable table, float[] widths) {

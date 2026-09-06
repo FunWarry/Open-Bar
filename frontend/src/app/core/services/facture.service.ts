@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Facture, ReglementRequest } from '../models/facture.model';
 import { DailyRecap } from '../models/daily-recap.model';
+import { ClotureCaisseRequest, DailyCashClosure } from '../models/daily-cash-closure.model';
 
 @Injectable({ providedIn: 'root' })
 export class FactureService {
@@ -66,5 +67,66 @@ export class FactureService {
       params = params.set('date', date);
     }
     return this.http.get(`${this.api}/daily-recap/pdf`, { params, responseType: 'blob' });
+  }
+
+  /**
+   * Closes the daily register, records drawer counting, calculates discrepancies,
+   * stamps a cryptographic SHA-256 seal, and locks subsequent billing actions.
+   *
+   * @param request Closure request data
+   * @returns Observable of created DailyCashClosure
+   */
+  cloturerCaisse(request: ClotureCaisseRequest): Observable<DailyCashClosure> {
+    return this.http.post<DailyCashClosure>(`${this.api}/recap/cloturer`, request);
+  }
+
+  /**
+   * Retrieves all historical cash register closures.
+   *
+   * @returns Observable of closures list
+   */
+  getClotures(): Observable<DailyCashClosure[]> {
+    return this.http.get<DailyCashClosure[]>(`${this.api}/clotures`);
+  }
+
+  /**
+   * Retrieves a cash register closure by its identifier.
+   *
+   * @param id Closure ID
+   * @returns Observable of DailyCashClosure
+   */
+  getClotureById(id: number): Observable<DailyCashClosure> {
+    return this.http.get<DailyCashClosure>(`${this.api}/clotures/${id}`);
+  }
+
+  /**
+   * Retrieves a cash register closure for a specific date if it exists.
+   *
+   * @param date ISO date string (YYYY-MM-DD)
+   * @returns Observable of DailyCashClosure or null if not closed
+   */
+  getClotureByDate(date: string): Observable<DailyCashClosure | null> {
+    const params = new HttpParams().set('date', date);
+    return this.http.get<DailyCashClosure | null>(`${this.api}/clotures/by-date`, { params });
+  }
+
+  /**
+   * Downloads the official certified Z-report PDF.
+   *
+   * @param id Closure ID
+   * @returns Observable of binary Blob
+   */
+  downloadZReportPdf(id: number): Observable<Blob> {
+    return this.http.get(`${this.api}/clotures/${id}/pdf`, { responseType: 'blob' });
+  }
+
+  /**
+   * Downloads the standard French FEC (Fichier des Écritures Comptables) accounting export.
+   *
+   * @param id Closure ID
+   * @returns Observable of text Blob
+   */
+  downloadFecExport(id: number): Observable<Blob> {
+    return this.http.get(`${this.api}/clotures/${id}/export/fec`, { responseType: 'blob' });
   }
 }

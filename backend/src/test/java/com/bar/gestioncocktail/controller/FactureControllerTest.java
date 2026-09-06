@@ -38,6 +38,12 @@ class FactureControllerTest {
     @Mock
     private PdfService pdfService;
 
+    @Mock
+    private com.bar.gestioncocktail.service.DailyCashClosureService dailyCashClosureService;
+
+    @Mock
+    private com.bar.gestioncocktail.service.printing.EscPosPrintingService escPosPrintingService;
+
     @InjectMocks
     private FactureController factureController;
 
@@ -229,5 +235,42 @@ class FactureControllerTest {
         assertThat(factureController.verifyIntegrity(10L).getStatusCode().is2xxSuccessful()).isTrue();
         assertThat(factureController.getDailyRecap(today).getStatusCode().is2xxSuccessful()).isTrue();
         assertThat(factureController.downloadDailyRecapPdf(today).getStatusCode().is2xxSuccessful()).isTrue();
+    }
+
+    @Test
+    @DisplayName("cloturerCaisse, getClotures, getClotureById, getClotureByDate, downloadZReportPdf, exportFec, printZReportTicket")
+    void dailyCashClosureEndpoints() {
+        LocalDate date = LocalDate.of(2026, 9, 6);
+        com.bar.gestioncocktail.model.DailyCashClosure closure = new com.bar.gestioncocktail.model.DailyCashClosure();
+        closure.setId(1L);
+        closure.setClosureNumber("Z-2026-00001");
+        closure.setClosureDate(date);
+        closure.setOpeningFloat(new BigDecimal("50.00"));
+        closure.setCountedCash(new BigDecimal("170.00"));
+        closure.setTheoreticalCash(new BigDecimal("170.00"));
+        closure.setCashDiscrepancy(BigDecimal.ZERO);
+        closure.setTotalRevenueHT(new BigDecimal("475.00"));
+        closure.setTotalRevenueTTC(new BigDecimal("570.00"));
+
+        com.bar.gestioncocktail.dto.ClotureCaisseRequestDTO req = new com.bar.gestioncocktail.dto.ClotureCaisseRequestDTO(
+                date, new BigDecimal("50.00"), new BigDecimal("170.00"), Map.of(), null);
+        java.security.Principal principal = () -> "manager";
+
+        when(dailyCashClosureService.cloturerCaisse(any(), eq("manager"))).thenReturn(closure);
+        when(dailyCashClosureService.getAllClosures()).thenReturn(List.of(closure));
+        when(dailyCashClosureService.getClosureById(1L)).thenReturn(closure);
+        when(dailyCashClosureService.getClosureByDate(date)).thenReturn(Optional.of(closure));
+        when(pdfService.generateZReportPdf(closure)).thenReturn(new byte[]{1, 2, 3});
+        when(dailyCashClosureService.generateFecExport(1L)).thenReturn("FEC-CONTENT");
+        when(escPosPrintingService.printZReportTicket(1L)).thenReturn(
+                new com.bar.gestioncocktail.dto.PrintResultDTO(true, "CASH_DESK", "192.168.1.103", 9100, "Printed", 50));
+
+        assertThat(factureController.cloturerCaisse(req, principal).getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(factureController.getClotures().getBody()).hasSize(1);
+        assertThat(factureController.getClotureById(1L).getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(factureController.getClotureByDate(date).getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(factureController.downloadZReportPdf(1L).getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(factureController.exportFec(1L).getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(factureController.printZReportTicket(1L).getStatusCode().is2xxSuccessful()).isTrue();
     }
 }

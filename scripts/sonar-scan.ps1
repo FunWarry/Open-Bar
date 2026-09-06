@@ -16,7 +16,7 @@ Set-Location "$PSScriptRoot/../frontend"
 if (-not $env:CHROME_BIN -and (Test-Path "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe")) {
     $env:CHROME_BIN = "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
 }
-npx ng test --watch=false --browsers=ChromeHeadless --code-coverage
+npx ng test --watch=false --browsers=ChromeHeadlessNoSandbox --code-coverage
 
 # 3. SonarScanner Local
 Write-Host "`n[3/3] Execution de SonarScanner Local..." -ForegroundColor Yellow

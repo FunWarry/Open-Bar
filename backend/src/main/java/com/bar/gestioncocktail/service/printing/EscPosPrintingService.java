@@ -26,11 +26,13 @@ public class EscPosPrintingService {
 
     private static final Logger log = LoggerFactory.getLogger(EscPosPrintingService.class);
     private static final int DEFAULT_TIMEOUT_MS = 2500;
+    private static final String CASH_DESK_IP_NOT_CONFIGURED = "Cash desk printer IP is not configured";
 
     private final AppSettingsService appSettingsService;
     private final EstablishmentConfigService establishmentConfigService;
     private final CommandeRepository commandeRepository;
     private final FactureRepository factureRepository;
+    private final com.bar.gestioncocktail.repository.DailyCashClosureRepository dailyCashClosureRepository;
     private final EscPosFormatter escPosFormatter;
     private final EscPosSocketClient socketClient;
 
@@ -41,6 +43,7 @@ public class EscPosPrintingService {
      * @param establishmentConfigService Legal establishment configuration service
      * @param commandeRepository Order repository
      * @param factureRepository Invoice repository
+     * @param dailyCashClosureRepository Daily cash register closure repository
      * @param escPosFormatter ESC/POS binary command stream formatter
      * @param socketClient TCP raw socket client
      */
@@ -49,12 +52,14 @@ public class EscPosPrintingService {
             EstablishmentConfigService establishmentConfigService,
             CommandeRepository commandeRepository,
             FactureRepository factureRepository,
+            com.bar.gestioncocktail.repository.DailyCashClosureRepository dailyCashClosureRepository,
             EscPosFormatter escPosFormatter,
             EscPosSocketClient socketClient) {
         this.appSettingsService = appSettingsService;
         this.establishmentConfigService = establishmentConfigService;
         this.commandeRepository = commandeRepository;
         this.factureRepository = factureRepository;
+        this.dailyCashClosureRepository = dailyCashClosureRepository;
         this.escPosFormatter = escPosFormatter;
         this.socketClient = socketClient;
     }
@@ -198,11 +203,34 @@ public class EscPosPrintingService {
         String cashDeskIp = settings.getCashDeskPrinterIp();
 
         if (cashDeskIp == null || cashDeskIp.isBlank()) {
-            return new PrintResultDTO(false, PrinterRole.CASH_DESK.name(), null, port, "Cash desk printer IP is not configured", 0);
+            return new PrintResultDTO(false, PrinterRole.CASH_DESK.name(), null, port, CASH_DESK_IP_NOT_CONFIGURED, 0);
         }
 
         EstablishmentConfig legalConfig = establishmentConfigService.getConfig();
         byte[] data = escPosFormatter.formatInvoiceReceipt(facture, legalConfig, settings, openCashDrawer);
+        return sendSafely(cashDeskIp, port, data, PrinterRole.CASH_DESK);
+    }
+
+    /**
+     * Prints an official Z-report register closure ticket on the cash desk printer.
+     *
+     * @param closureId Identifier of the daily cash closure
+     * @return Execution result report
+     */
+    public PrintResultDTO printZReportTicket(Long closureId) {
+        DailyCashClosure closure = dailyCashClosureRepository.findById(closureId)
+                .orElseThrow(() -> new ResourceNotFoundException("Daily cash closure not found with ID: " + closureId));
+
+        AppSettings settings = appSettingsService.getSettings();
+        int port = settings.getPrinterPort() != null ? settings.getPrinterPort() : 9100;
+        String cashDeskIp = settings.getCashDeskPrinterIp();
+
+        if (cashDeskIp == null || cashDeskIp.isBlank()) {
+            return new PrintResultDTO(false, PrinterRole.CASH_DESK.name(), null, port, CASH_DESK_IP_NOT_CONFIGURED, 0);
+        }
+
+        EstablishmentConfig legalConfig = establishmentConfigService.getConfig();
+        byte[] data = escPosFormatter.formatZReportTicket(closure, legalConfig, settings);
         return sendSafely(cashDeskIp, port, data, PrinterRole.CASH_DESK);
     }
 
@@ -217,7 +245,7 @@ public class EscPosPrintingService {
         String cashDeskIp = settings.getCashDeskPrinterIp();
 
         if (cashDeskIp == null || cashDeskIp.isBlank()) {
-            return new PrintResultDTO(false, PrinterRole.CASH_DESK.name(), null, port, "Cash desk printer IP is not configured", 0);
+            return new PrintResultDTO(false, PrinterRole.CASH_DESK.name(), null, port, CASH_DESK_IP_NOT_CONFIGURED, 0);
         }
 
         byte[] data = escPosFormatter.formatCashDrawerKick();

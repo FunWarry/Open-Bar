@@ -92,6 +92,7 @@ public class SampleDataSeederService {
     private final org.springframework.core.env.Environment environment;
     private final HappyHourRuleRepository happyHourRuleRepository;
     private final StockMovementRepository stockMovementRepository;
+    private final DailyCashClosureRepository dailyCashClosureRepository;
     private final ObjectMapper objectMapper;
 
     /**
@@ -126,7 +127,8 @@ public class SampleDataSeederService {
             CocktailDataSeederService cocktailDataSeederService,
             org.springframework.core.env.Environment environment,
             HappyHourRuleRepository happyHourRuleRepository,
-            @org.springframework.beans.factory.annotation.Autowired(required = false) StockMovementRepository stockMovementRepository) {
+            @org.springframework.beans.factory.annotation.Autowired(required = false) StockMovementRepository stockMovementRepository,
+            @org.springframework.beans.factory.annotation.Autowired(required = false) DailyCashClosureRepository dailyCashClosureRepository) {
         this.userRepository = userRepository;
         this.tableRepository = tableRepository;
         this.zoneRepository = zoneRepository;
@@ -155,6 +157,7 @@ public class SampleDataSeederService {
         this.environment = environment;
         this.happyHourRuleRepository = happyHourRuleRepository;
         this.stockMovementRepository = stockMovementRepository;
+        this.dailyCashClosureRepository = dailyCashClosureRepository;
         this.objectMapper = new ObjectMapper();
     }
 
@@ -408,6 +411,7 @@ public class SampleDataSeederService {
             safelyInTransaction(() -> seedInvoicesFromJson(root.get("invoices"), tablesMap), "seedInvoices");
             safelyInTransaction(() -> seedAvoirsCreditFromJson(root.get("avoirs_credit")), "seedAvoirsCredit");
             safelyInTransaction(() -> seedStockMovementsFromJson(root.get("stock_movements"), usersMap), "seedStockMovements");
+            safelyInTransaction(() -> seedDailyCashClosuresFromJson(root.get("daily_cash_closures"), usersMap), "seedDailyCashClosures");
 
         } catch (Exception e) {
             log.error("Failed to seed demo dataset from JSON file '{}'", DATASET_PATH, e);
@@ -1398,5 +1402,84 @@ public class SampleDataSeederService {
         }
         BigDecimal unitPrice = ing.getPrixUnitaire() != null ? ing.getPrixUnitaire() : BigDecimal.ZERO;
         return qty.multiply(unitPrice).setScale(2, RoundingMode.HALF_UP);
+    }
+
+    private void seedDailyCashClosuresFromJson(JsonNode closuresNode, Map<String, User> usersMap) {
+        if (closuresNode == null || !closuresNode.isArray() || dailyCashClosureRepository == null || dailyCashClosureRepository.count() > 0) {
+            return;
+        }
+
+        for (JsonNode cNode : closuresNode) {
+            buildDailyCashClosureFromNode(cNode, usersMap).ifPresent(dailyCashClosureRepository::save);
+        }
+        log.info("Seeded daily cash closures from demo dataset.");
+    }
+
+    private Optional<DailyCashClosure> buildDailyCashClosureFromNode(JsonNode cNode, Map<String, User> usersMap) {
+        String closureNumber = cNode.get("closureNumber").asText();
+        int daysAgo = cNode.has("daysAgo") ? cNode.get("daysAgo").asInt() : 1;
+        LocalDate closureDate = LocalDate.now(timeService.getZoneId()).minusDays(daysAgo);
+
+        BigDecimal openingFloat = new BigDecimal(cNode.get("openingFloat").asText());
+        BigDecimal theoreticalCash = new BigDecimal(cNode.get("theoreticalCash").asText());
+        BigDecimal countedCash = new BigDecimal(cNode.get("countedCash").asText());
+        BigDecimal cashDiscrepancy = new BigDecimal(cNode.get("cashDiscrepancy").asText());
+        BigDecimal totalRevenueHT = new BigDecimal(cNode.get("totalRevenueHT").asText());
+        BigDecimal totalRevenueTTC = new BigDecimal(cNode.get("totalRevenueTTC").asText());
+
+        String closedByUsername = cNode.has("closedByUsername") ? cNode.get("closedByUsername").asText() : null;
+        User closedBy = closedByUsername != null ? usersMap.get(closedByUsername) : null;
+        String discrepancyReason = cNode.has("discrepancyReason") && !cNode.get("discrepancyReason").isNull()
+                ? cNode.get("discrepancyReason").asText() : null;
+
+        String paymentMethodsJson = cNode.has("paymentMethods") ? cNode.get("paymentMethods").toString() : "[]";
+        String vatBreakdownJson = cNode.has("vatBreakdown") ? cNode.get("vatBreakdown").toString() : "[]";
+        String countingBreakdownJson = cNode.has("countingBreakdown") ? cNode.get("countingBreakdown").toString() : "{}";
+
+        DailyCashClosure closure = new DailyCashClosure();
+        closure.setClosureNumber(closureNumber);
+        closure.setClosureDate(closureDate);
+        closure.setOpeningFloat(openingFloat);
+        closure.setTheoreticalCash(theoreticalCash);
+        closure.setCountedCash(countedCash);
+        closure.setCashDiscrepancy(cashDiscrepancy);
+        closure.setTotalRevenueHT(totalRevenueHT);
+        closure.setTotalRevenueTTC(totalRevenueTTC);
+        closure.setClosedBy(closedBy);
+        closure.setDiscrepancyReason(discrepancyReason);
+        closure.setPaymentMethodsJson(paymentMethodsJson);
+        closure.setVatBreakdownJson(vatBreakdownJson);
+        closure.setCountingBreakdownJson(countingBreakdownJson);
+
+        String operator = closedBy != null ? closedBy.getUsername() : "SYSTEM";
+        closure.setSha256Hash(computeClosureSeal(closure, operator));
+        return Optional.of(closure);
+    }
+
+    private String computeClosureSeal(DailyCashClosure closure, String operator) {
+        String payload = String.format("%s|%s|%s|%s|%s|%s|%s|%s|%s",
+                closure.getClosureNumber(),
+                closure.getClosureDate(),
+                closure.getTotalRevenueTTC() != null ? closure.getTotalRevenueTTC().setScale(2) : "0.00",
+                closure.getTotalRevenueHT() != null ? closure.getTotalRevenueHT().setScale(2) : "0.00",
+                closure.getOpeningFloat() != null ? closure.getOpeningFloat().setScale(2) : "0.00",
+                closure.getTheoreticalCash() != null ? closure.getTheoreticalCash().setScale(2) : "0.00",
+                closure.getCountedCash() != null ? closure.getCountedCash().setScale(2) : "0.00",
+                closure.getCashDiscrepancy() != null ? closure.getCashDiscrepancy().setScale(2) : "0.00",
+                operator != null ? operator : "SYSTEM");
+
+        try {
+            java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
+            byte[] hashBytes = digest.digest(payload.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : hashBytes) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) hexString.append('0');
+                hexString.append(hex);
+            }
+            return hexString.toString();
+        } catch (Exception e) {
+            return "DEFAULT_SEAL_HASH";
+        }
     }
 }

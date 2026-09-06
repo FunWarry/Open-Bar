@@ -41,6 +41,9 @@ class EscPosPrintingServiceTest {
     private FactureRepository factureRepository;
 
     @Mock
+    private com.bar.gestioncocktail.repository.DailyCashClosureRepository dailyCashClosureRepository;
+
+    @Mock
     private EscPosSocketClient socketClient;
 
     private EscPosFormatter formatter;
@@ -57,6 +60,7 @@ class EscPosPrintingServiceTest {
                 establishmentConfigService,
                 commandeRepository,
                 factureRepository,
+                dailyCashClosureRepository,
                 formatter,
                 socketClient
         );
@@ -291,6 +295,31 @@ class EscPosPrintingServiceTest {
 
         assertThat(result.success()).isFalse();
         assertThat(result.message()).contains("not configured");
+    }
+
+    @Test
+    @DisplayName("printZReportTicket dispatches successfully when closure exists and cash desk printer IP configured")
+    void printZReportTicket_success() throws IOException {
+        when(appSettingsService.getSettings()).thenReturn(settings);
+        when(establishmentConfigService.getConfig()).thenReturn(legalConfig);
+
+        DailyCashClosure closure = new DailyCashClosure();
+        closure.setId(100L);
+        closure.setClosureNumber("Z-2026-00001");
+        closure.setClosureDate(java.time.LocalDate.now());
+        closure.setTotalRevenueTTC(new BigDecimal("150.00"));
+        closure.setTotalRevenueHT(new BigDecimal("125.00"));
+        closure.setOpeningFloat(new BigDecimal("50.00"));
+        closure.setTheoreticalCash(new BigDecimal("100.00"));
+        closure.setCountedCash(new BigDecimal("100.00"));
+        closure.setCashDiscrepancy(BigDecimal.ZERO);
+        when(dailyCashClosureRepository.findById(100L)).thenReturn(Optional.of(closure));
+
+        PrintResultDTO result = printingService.printZReportTicket(100L);
+
+        assertThat(result.success()).isTrue();
+        assertThat(result.role()).isEqualTo(PrinterRole.CASH_DESK.name());
+        verify(socketClient).send(eq("192.168.1.103"), eq(9100), any(byte[].class), anyInt());
     }
 
     @Test

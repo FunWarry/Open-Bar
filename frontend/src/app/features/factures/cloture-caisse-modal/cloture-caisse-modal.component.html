@@ -1,0 +1,407 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="modal-toolbar">
+    <ion-title>
+      <div class="toolbar-title-box">
+        <ion-icon name="lock-closed-outline" class="title-icon"></ion-icon>
+        <span>{{ 'CLOTURE.MODAL_TITLE' | transloco }}</span>
+      </div>
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="dismiss(currentStep === 5)" data-testid="cloture-modal-close-btn">
+        <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+
+  <!-- Step Progress Indicator -->
+  @if (currentStep <= 4) {
+    <div class="step-stepper" data-testid="cloture-stepper">
+      <div class="step-node" [class.active]="currentStep === 1" [class.completed]="currentStep > 1">
+        <span class="step-num">1</span>
+        <span class="step-text">{{ 'CLOTURE.STEP_FLOAT' | transloco }}</span>
+      </div>
+      <div class="step-line" [class.active]="currentStep > 1"></div>
+      <div class="step-node" [class.active]="currentStep === 2" [class.completed]="currentStep > 2">
+        <span class="step-num">2</span>
+        <span class="step-text">{{ 'CLOTURE.STEP_COUNT' | transloco }}</span>
+      </div>
+      <div class="step-line" [class.active]="currentStep > 2"></div>
+      <div class="step-node" [class.active]="currentStep === 3" [class.completed]="currentStep > 3">
+        <span class="step-num">3</span>
+        <span class="step-text">{{ 'CLOTURE.STEP_DISCREPANCY' | transloco }}</span>
+      </div>
+      <div class="step-line" [class.active]="currentStep > 3"></div>
+      <div class="step-node" [class.active]="currentStep === 4">
+        <span class="step-num">4</span>
+        <span class="step-text">{{ 'CLOTURE.STEP_CONFIRM' | transloco }}</span>
+      </div>
+    </div>
+  }
+</ion-header>
+
+<ion-content class="ion-padding modal-content">
+  <!-- STEP 1: FOND DE CAISSE INITIAL -->
+  @if (currentStep === 1) {
+    <div class="step-container" data-testid="cloture-step-1">
+      <ion-card class="step-card">
+        <ion-card-header>
+          <ion-card-title class="card-step-title">
+            <ion-icon name="cash-outline"></ion-icon>
+            {{ 'CLOTURE.FLOAT_TITLE' | transloco }}
+          </ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <p class="step-desc">{{ 'CLOTURE.FLOAT_DESC' | transloco }}</p>
+
+          <div class="form-group float-input-group">
+            <label for="opening-float-input" class="input-label">
+              {{ 'CLOTURE.FLOAT_LABEL' | transloco }}
+            </label>
+            <div class="currency-input-wrapper">
+              <input
+                id="opening-float-input"
+                type="number"
+                step="0.01"
+                min="0"
+                [(ngModel)]="openingFloat"
+                class="large-amount-input"
+                data-testid="opening-float-input"
+              />
+              <span class="currency-suffix">€</span>
+            </div>
+          </div>
+
+          <div class="info-callout">
+            <ion-icon name="alert-circle-outline"></ion-icon>
+            <span>{{ 'CLOTURE.FLOAT_CALLOUT' | transloco }}</span>
+          </div>
+        </ion-card-content>
+      </ion-card>
+    </div>
+  }
+
+  <!-- STEP 2: COMPTAGE PHYSIQUE DES ESPÈCES -->
+  @if (currentStep === 2) {
+    <div class="step-container" data-testid="cloture-step-2">
+      <!-- Live Summary Header -->
+      <div class="live-counting-summary">
+        <div class="summary-kpi">
+          <span class="label">{{ 'CLOTURE.THEORETICAL_CASH' | transloco }}</span>
+          <span class="value">{{ theoreticalCash | appCurrency }}</span>
+          <span class="subtext">{{ 'CLOTURE.SALES_PLUS_FLOAT' | transloco }}</span>
+        </div>
+        <div class="summary-divider"></div>
+        <div class="summary-kpi">
+          <span class="label">{{ 'CLOTURE.PHYSICAL_COUNTED' | transloco }}</span>
+          <span class="value highlight">{{ countedCash | appCurrency }}</span>
+          <span class="subtext">{{ 'CLOTURE.COUNTED_TOTAL' | transloco }}</span>
+        </div>
+        <div class="summary-divider"></div>
+        <div class="summary-kpi">
+          <span class="label">{{ 'CLOTURE.DISCREPANCY' | transloco }}</span>
+          <span
+            class="value"
+            [class.text-success]="!hasDiscrepancy"
+            [class.text-warning]="cashDiscrepancy > 0"
+            [class.text-danger]="cashDiscrepancy < 0"
+            data-testid="live-discrepancy-value"
+          >
+            {{ cashDiscrepancy > 0 ? '+' : '' }}{{ cashDiscrepancy | appCurrency }}
+          </span>
+          <ion-badge
+            [color]="!hasDiscrepancy ? 'success' : cashDiscrepancy > 0 ? 'warning' : 'danger'"
+            class="discrepancy-badge"
+          >
+            {{ !hasDiscrepancy ? ('CLOTURE.BALANCED' | transloco) : cashDiscrepancy > 0 ? ('CLOTURE.SURPLUS' | transloco) : ('CLOTURE.DEFICIT' | transloco) }}
+          </ion-badge>
+        </div>
+      </div>
+
+      <!-- Denominations Grid -->
+      <div class="counting-grid">
+        <div class="denomination-section-title">
+          <ion-icon name="cash-outline"></ion-icon>
+          <span>{{ 'CLOTURE.BILLS_AND_COINS' | transloco }}</span>
+        </div>
+
+        <div class="denomination-list">
+          @for (d of denominations; track d.key) {
+            <div class="denom-row" [attr.data-testid]="'denom-row-' + d.key">
+              <div class="denom-badge-box">
+                <span class="denom-badge" [class.bill]="d.type === 'bill'" [class.coin]="d.type === 'coin'">
+                  {{ d.label }}
+                </span>
+              </div>
+
+              <div class="denom-stepper">
+                <button
+                  type="button"
+                  class="stepper-btn minus"
+                  (click)="adjustCount(d.key, -1)"
+                  [attr.data-testid]="'minus-btn-' + d.key"
+                >
+                  -
+                </button>
+                <input
+                  type="number"
+                  min="0"
+                  [value]="counting[d.key] || 0"
+                  (input)="onCountChange(d.key, $any($event.target).value)"
+                  class="denom-input"
+                  [attr.data-testid]="'denom-input-' + d.key"
+                />
+                <button
+                  type="button"
+                  class="stepper-btn plus"
+                  (click)="adjustCount(d.key, 1)"
+                  [attr.data-testid]="'plus-btn-' + d.key"
+                >
+                  +
+                </button>
+              </div>
+
+              <div class="denom-total">
+                <span>{{ ((counting[d.key] || 0) * d.value) | appCurrency }}</span>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- STEP 3: JUSTIFICATION DE L'ÉCART -->
+  @if (currentStep === 3) {
+    <div class="step-container" data-testid="cloture-step-3">
+      <ion-card class="step-card">
+        <ion-card-header>
+          <ion-card-title class="card-step-title">
+            <ion-icon name="alert-circle-outline"></ion-icon>
+            {{ 'CLOTURE.DISCREPANCY_TITLE' | transloco }}
+          </ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          @if (!hasDiscrepancy) {
+            <div class="perfect-balance-box" data-testid="perfect-balance-box">
+              <ion-icon name="checkmark-circle-outline" class="success-icon"></ion-icon>
+              <h3>{{ 'CLOTURE.PERFECT_BALANCE_TITLE' | transloco }}</h3>
+              <p>{{ 'CLOTURE.PERFECT_BALANCE_DESC' | transloco }}</p>
+            </div>
+          } @else {
+            <div class="discrepancy-warning-box" [class.deficit]="cashDiscrepancy < 0" [class.surplus]="cashDiscrepancy > 0">
+              <ion-icon name="warning-outline" class="warn-icon"></ion-icon>
+              <div class="warn-text">
+                <h4>
+                  {{ cashDiscrepancy > 0 ? ('CLOTURE.SURPLUS_DETECTED' | transloco) : ('CLOTURE.DEFICIT_DETECTED' | transloco) }}
+                  : {{ cashDiscrepancy > 0 ? '+' : '' }}{{ cashDiscrepancy | appCurrency }}
+                </h4>
+                <p>{{ 'CLOTURE.JUSTIFICATION_LEGAL_MANDATORY' | transloco }}</p>
+              </div>
+            </div>
+
+            <div class="form-group discrepancy-form">
+              <label for="discrepancy-reason-input" class="input-label">
+                {{ 'CLOTURE.JUSTIFICATION_LABEL' | transloco }} *
+              </label>
+              <textarea
+                id="discrepancy-reason-input"
+                rows="4"
+                [(ngModel)]="discrepancyReason"
+                class="discrepancy-textarea"
+                placeholder="{{ 'CLOTURE.JUSTIFICATION_PLACEHOLDER' | transloco }}"
+                data-testid="discrepancy-reason-input"
+              ></textarea>
+            </div>
+          }
+        </ion-card-content>
+      </ion-card>
+    </div>
+  }
+
+  <!-- STEP 4: CONFIRMATION ET SCELLEMENT -->
+  @if (currentStep === 4) {
+    <div class="step-container" data-testid="cloture-step-4">
+      <ion-card class="step-card">
+        <ion-card-header>
+          <ion-card-title class="card-step-title">
+            <ion-icon name="shield-checkmark-outline"></ion-icon>
+            {{ 'CLOTURE.CONFIRMATION_TITLE' | transloco }}
+          </ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <div class="recap-summary-table">
+            <div class="summary-row">
+              <span class="row-label">{{ 'CLOTURE.DATE_LABEL' | transloco }}</span>
+              <span class="row-val font-bold">{{ date }}</span>
+            </div>
+            <div class="summary-row">
+              <span class="row-label">{{ 'CLOTURE.FLOAT_LABEL' | transloco }}</span>
+              <span class="row-val">{{ openingFloat | appCurrency }}</span>
+            </div>
+            <div class="summary-row">
+              <span class="row-label">{{ 'CLOTURE.THEORETICAL_CASH' | transloco }}</span>
+              <span class="row-val">{{ theoreticalCash | appCurrency }}</span>
+            </div>
+            <div class="summary-row">
+              <span class="row-label">{{ 'CLOTURE.PHYSICAL_COUNTED' | transloco }}</span>
+              <span class="row-val font-bold">{{ countedCash | appCurrency }}</span>
+            </div>
+            <div class="summary-row highlight-row">
+              <span class="row-label">{{ 'CLOTURE.DISCREPANCY' | transloco }}</span>
+              <span
+                class="row-val font-bold"
+                [class.text-success]="!hasDiscrepancy"
+                [class.text-warning]="cashDiscrepancy > 0"
+                [class.text-danger]="cashDiscrepancy < 0"
+              >
+                {{ cashDiscrepancy > 0 ? '+' : '' }}{{ cashDiscrepancy | appCurrency }}
+              </span>
+            </div>
+            @if (hasDiscrepancy && discrepancyReason) {
+              <div class="summary-row reason-row">
+                <span class="row-label">{{ 'CLOTURE.JUSTIFICATION_SUMMARY' | transloco }}</span>
+                <span class="row-val note-val">{{ discrepancyReason }}</span>
+              </div>
+            }
+            <div class="summary-row total-revenue-row">
+              <span class="row-label">{{ 'CLOTURE.TOTAL_REVENUE_TTC' | transloco }}</span>
+              <span class="row-val primary-price">{{ (recap?.totalCaTtc || 0) | appCurrency }}</span>
+            </div>
+          </div>
+
+          <!-- Irreversible Warning Box -->
+          <div class="legal-lock-warning" data-testid="legal-lock-warning">
+            <ion-icon name="lock-closed-outline" class="lock-icon"></ion-icon>
+            <div class="lock-text">
+              <strong>{{ 'CLOTURE.LOCK_WARNING_TITLE' | transloco }}</strong>
+              <p>{{ 'CLOTURE.LOCK_WARNING_DESC' | transloco }}</p>
+            </div>
+          </div>
+        </ion-card-content>
+      </ion-card>
+    </div>
+  }
+
+  <!-- STEP 5: CERTIFICAT & EXPORTS (SUCCESS) -->
+  @if (currentStep === 5 && createdClosure) {
+    <div class="step-container success-container" data-testid="cloture-step-5">
+      <div class="success-banner">
+        <ion-icon name="shield-checkmark-outline" class="success-badge-icon"></ion-icon>
+        <h2>{{ 'CLOTURE.CERTIFIED_SUCCESS_TITLE' | transloco }}</h2>
+        <p class="closure-num-text">
+          {{ 'CLOTURE.CLOSURE_NUMBER' | transloco }} :
+          <span class="closure-number-badge">{{ createdClosure.closureNumber }}</span>
+        </p>
+      </div>
+
+      <!-- Hash Seal Box -->
+      <div class="hash-seal-box" data-testid="hash-seal-box">
+        <div class="hash-label-row">
+          <span>{{ 'CLOTURE.SHA256_SEAL' | transloco }}</span>
+          <button type="button" class="copy-hash-btn" (click)="copySealHash()" data-testid="copy-hash-btn">
+            <ion-icon name="copy-outline"></ion-icon>
+            <span>{{ 'CLOTURE.COPY' | transloco }}</span>
+          </button>
+        </div>
+        <div class="hash-string" data-testid="sha256-hash-display">
+          {{ createdClosure.sha256Hash }}
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="actions-grid">
+        <!-- Print 80mm ticket -->
+        <ion-button
+          color="primary"
+          expand="block"
+          (click)="printZReport()"
+          [disabled]="isPrinting"
+          class="action-btn"
+          data-testid="print-z-ticket-btn"
+        >
+          @if (isPrinting) {
+            <ion-spinner name="crescent" slot="start"></ion-spinner>
+          } @else {
+            <ion-icon name="print-outline" slot="start"></ion-icon>
+          }
+          {{ 'CLOTURE.PRINT_TICKET_Z' | transloco }}
+        </ion-button>
+
+        <!-- Download PDF A4 -->
+        <ion-button
+          color="secondary"
+          expand="block"
+          fill="outline"
+          (click)="downloadPdf()"
+          [disabled]="isDownloadingPdf"
+          class="action-btn"
+          data-testid="download-z-pdf-btn"
+        >
+          @if (isDownloadingPdf) {
+            <ion-spinner name="crescent" slot="start"></ion-spinner>
+          } @else {
+            <ion-icon name="download-outline" slot="start"></ion-icon>
+          }
+          {{ 'CLOTURE.DOWNLOAD_PDF' | transloco }}
+        </ion-button>
+
+        <!-- Export FEC -->
+        <ion-button
+          color="tertiary"
+          expand="block"
+          fill="outline"
+          (click)="downloadFec()"
+          [disabled]="isExportingFec"
+          class="action-btn"
+          data-testid="download-fec-btn"
+        >
+          @if (isExportingFec) {
+            <ion-spinner name="crescent" slot="start"></ion-spinner>
+          } @else {
+            <ion-icon name="document-text-outline" slot="start"></ion-icon>
+          }
+          {{ 'CLOTURE.EXPORT_FEC' | transloco }}
+        </ion-button>
+      </div>
+    </div>
+  }
+</ion-content>
+
+<!-- Modal Footer with navigation actions -->
+<ion-footer class="ion-no-border modal-footer">
+  <div class="footer-actions">
+    @if (currentStep > 1 && currentStep <= 4) {
+      <ion-button fill="outline" color="medium" (click)="goToPrevStep()" data-testid="cloture-prev-btn">
+        <ion-icon name="arrow-back-outline" slot="start"></ion-icon>
+        {{ 'COMMON.PREVIOUS' | transloco }}
+      </ion-button>
+    }
+
+    <div class="spacer"></div>
+
+    @if (currentStep < 4) {
+      <ion-button color="primary" (click)="goToNextStep()" data-testid="cloture-next-btn">
+        {{ 'COMMON.NEXT' | transloco }}
+        <ion-icon name="arrow-forward-outline" slot="end"></ion-icon>
+      </ion-button>
+    } @else if (currentStep === 4) {
+      <ion-button
+        color="danger"
+        (click)="confirmClosure()"
+        [disabled]="isSubmitting"
+        data-testid="cloture-confirm-btn"
+      >
+        @if (isSubmitting) {
+          <ion-spinner name="crescent" slot="start"></ion-spinner>
+        } @else {
+          <ion-icon name="lock-closed-outline" slot="start"></ion-icon>
+        }
+        {{ 'CLOTURE.CONFIRM_AND_LOCK' | transloco }}
+      </ion-button>
+    } @else if (currentStep === 5) {
+      <ion-button color="primary" expand="block" (click)="dismiss(true)" data-testid="cloture-finish-btn">
+        {{ 'COMMON.FINISH' | transloco }}
+      </ion-button>
+    }
+  </div>
+</ion-footer>

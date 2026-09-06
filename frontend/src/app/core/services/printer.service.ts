@@ -72,4 +72,14 @@ export class PrinterService {
   openCashDrawer(): Observable<PrintResult> {
     return this.http.post<PrintResult>(`${this.api}/cash-drawer/open`, {});
   }
+
+  /**
+   * Prints an official 80mm Z-report register closure receipt to the cash desk printer.
+   *
+   * @param closureId Identifier of the daily cash closure
+   * @returns Observable of print result report
+   */
+  printZReport(closureId: number): Observable<PrintResult> {
+    return this.http.post<PrintResult>(`${this.api}/z-report/${closureId}`, {});
+  }
 }

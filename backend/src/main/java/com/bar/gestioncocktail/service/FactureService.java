@@ -72,6 +72,7 @@ public class FactureService {
     private final TimeService timeService;
     private final FactureReglementRepository factureReglementRepository;
     private final HappyHourService happyHourService;
+    private final com.bar.gestioncocktail.repository.DailyCashClosureRepository dailyCashClosureRepository;
 
     @org.springframework.beans.factory.annotation.Autowired
     public FactureService(FactureRepository factureRepository, TableRepository tableRepository,
@@ -79,7 +80,8 @@ public class FactureService {
             UserRepository userRepository, EntityManager entityManager, AuditLogService auditLogService,
             AvoirCreditRepository avoirCreditRepository, TimeService timeService,
             FactureReglementRepository factureReglementRepository,
-            HappyHourService happyHourService) {
+            HappyHourService happyHourService,
+            com.bar.gestioncocktail.repository.DailyCashClosureRepository dailyCashClosureRepository) {
         this.factureRepository = factureRepository;
         this.tableRepository = tableRepository;
         this.commandeRepository = commandeRepository;
@@ -91,6 +93,18 @@ public class FactureService {
         this.timeService = timeService;
         this.factureReglementRepository = factureReglementRepository;
         this.happyHourService = happyHourService;
+        this.dailyCashClosureRepository = dailyCashClosureRepository;
+    }
+
+    public FactureService(FactureRepository factureRepository, TableRepository tableRepository,
+            CommandeRepository commandeRepository, ApplicationEventPublisher eventPublisher,
+            UserRepository userRepository, EntityManager entityManager, AuditLogService auditLogService,
+            AvoirCreditRepository avoirCreditRepository, TimeService timeService,
+            FactureReglementRepository factureReglementRepository,
+            HappyHourService happyHourService) {
+        this(factureRepository, tableRepository, commandeRepository, eventPublisher,
+                userRepository, entityManager, auditLogService, avoirCreditRepository,
+                timeService, factureReglementRepository, happyHourService, null);
     }
 
     public FactureService(FactureRepository factureRepository, TableRepository tableRepository,
@@ -100,11 +114,17 @@ public class FactureService {
             FactureReglementRepository factureReglementRepository) {
         this(factureRepository, tableRepository, commandeRepository, eventPublisher,
                 userRepository, entityManager, auditLogService, avoirCreditRepository,
-                timeService, factureReglementRepository, null);
+                timeService, factureReglementRepository, null, null);
     }
 
     public List<Facture> getAllFactures() {
         return factureRepository.findAll();
+    }
+
+    private void checkDateNotClosed(java.time.LocalDate date) {
+        if (dailyCashClosureRepository != null && date != null && dailyCashClosureRepository.existsByClosureDate(date)) {
+            throw new BusinessException("Cannot create, settle or modify invoices for a date whose register is already closed: " + date);
+        }
     }
 
     @Transactional(readOnly = true)
@@ -128,6 +148,7 @@ public class FactureService {
     @Transactional
     public Facture createFacture(Facture facture) {
         facture.setDateFacture(LocalDateTime.now(timeService.getZoneId()));
+        checkDateNotClosed(facture.getDateFacture().toLocalDate());
         int currentYear = Year.now(timeService.getZoneId()).getValue();
 
         // Sequentially format FAC-YYYY-NNNNN
@@ -231,6 +252,10 @@ public class FactureService {
     private Facture executeReglerFacture(Long id, String modePaiement, BigDecimal pourboire) {
         Facture facture = factureRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(NOT_FOUND_ID_PREFIX + id));
+        if (facture.getDateFacture() != null) {
+            checkDateNotClosed(facture.getDateFacture().toLocalDate());
+        }
+        checkDateNotClosed(java.time.LocalDate.now(timeService.getZoneId()));
 
         if (pourboire != null && pourboire.compareTo(BigDecimal.ZERO) > 0) {
             facture.setPourboire(pourboire);
@@ -332,6 +357,7 @@ public class FactureService {
      */
     @Transactional
     public FactureResponseDTO encaisserTable(Long tableId, EncaissementRequestDTO request) {
+        checkDateNotClosed(java.time.LocalDate.now(timeService.getZoneId()));
         TableEntity table = tableRepository.findById(tableId)
                 .orElseThrow(() -> new ResourceNotFoundException("Table not found with id: " + tableId));
 
@@ -762,6 +788,10 @@ public class FactureService {
     public com.bar.gestioncocktail.dto.FactureReglementDTO encaisserPart(Long factureId, com.bar.gestioncocktail.dto.EncaisserPartRequest request) {
         Facture facture = factureRepository.findById(factureId)
                 .orElseThrow(() -> new ResourceNotFoundException(NOT_FOUND_PREFIX + factureId));
+        if (facture.getDateFacture() != null) {
+            checkDateNotClosed(facture.getDateFacture().toLocalDate());
+        }
+        checkDateNotClosed(java.time.LocalDate.now(timeService.getZoneId()));
 
         com.bar.gestioncocktail.model.FactureReglement reglement = new com.bar.gestioncocktail.model.FactureReglement();
         reglement.setFacture(facture);
