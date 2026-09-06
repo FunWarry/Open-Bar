@@ -131,6 +131,98 @@ describe('DashboardBarmanService', () => {
     req.flush({ id: 10, statut: 'PRET' });
   });
 
+  it('transitionBatch() sends a POST to /api/commandes/batch/transition', () => {
+    const payload = { itemIds: [101, 102], cocktailId: 5, statut: 'EN_PREPARATION' };
+    service.transitionBatch(payload).subscribe(res => {
+      expect(res).toHaveSize(2);
+    });
+
+    const req = httpMock.expectOne(`${apiUrl}/commandes/batch/transition`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual(payload);
+    req.flush([{ id: 1, statut: 'EN_PREPARATION' }, { id: 2, statut: 'EN_PREPARATION' }]);
+  });
+
+  it('aggregateBatches() groups items by cocktail, aggregates quantities and tables, and scales ingredients', () => {
+    const orders: any[] = [
+      {
+        id: 1,
+        tableNom: 'Table 1',
+        tableNumero: 1,
+        statut: 'EN_ATTENTE',
+        items: [
+          {
+            id: 10,
+            cocktailId: 101,
+            cocktailNom: 'Mojito',
+            cocktailPhotoUrl: 'mojito.png',
+            quantite: 3,
+            prioritaire: false,
+            station: 'BAR',
+            ingredients: [
+              { ingredientId: 1, quantite: 50, uniteMesure: 'ml', ingredientNom: 'Rhum' },
+              { ingredientId: 2, quantite: 6, uniteMesure: 'feuilles', ingredientNom: 'Menthe' }
+            ]
+          }
+        ],
+        dateCommande: new Date(Date.now() - 5000),
+        prioritaire: false
+      },
+      {
+        id: 2,
+        tableNom: 'Table 2',
+        tableNumero: 2,
+        statut: 'EN_ATTENTE',
+        items: [
+          {
+            id: 20,
+            cocktailId: 101,
+            cocktailNom: 'Mojito',
+            cocktailPhotoUrl: 'mojito.png',
+            quantite: 2,
+            prioritaire: true,
+            notes: 'Sans glace',
+            station: 'BAR',
+            ingredients: [
+              { ingredientId: 1, quantite: 50, uniteMesure: 'ml', ingredientNom: 'Rhum' },
+              { ingredientId: 2, quantite: 6, uniteMesure: 'feuilles', ingredientNom: 'Menthe' }
+            ]
+          },
+          {
+            id: 21,
+            cocktailId: 102,
+            cocktailNom: 'Spritz',
+            quantite: 1,
+            prioritaire: false,
+            station: 'BAR'
+          }
+        ],
+        dateCommande: new Date(),
+        prioritaire: true
+      }
+    ];
+
+    const batches = service.aggregateBatches(orders, [], { stationFilter: 'BAR' });
+    expect(batches).toHaveSize(2);
+
+    const mojitoBatch = batches.find(b => b.cocktailNom === 'Mojito');
+    expect(mojitoBatch).toBeDefined();
+    expect(mojitoBatch?.totalQuantity).toBe(5);
+    expect(mojitoBatch?.pendingQuantity).toBe(5);
+    expect(mojitoBatch?.isUrgent).toBeTrue();
+    expect(mojitoBatch?.items.map(it => it.itemId)).toEqual([10, 20]);
+    expect(mojitoBatch?.tableSummaries).toEqual(['Table 1 (x3)', 'Table 2 (x2)']);
+
+    // Check scaled ingredients: 5 Mojitos -> 5 * 50 = 250ml Rhum, 5 * 6 = 30 feuilles Menthe
+    expect(mojitoBatch?.ingredients).toHaveSize(2);
+    const rhum = mojitoBatch?.ingredients.find(i => i.ingredientNom === 'Rhum');
+    expect(rhum?.totalQuantite).toBe(250);
+    expect(rhum?.uniteMesure).toBe('ml');
+
+    const menthe = mojitoBatch?.ingredients.find(i => i.ingredientNom === 'Menthe');
+    expect(menthe?.totalQuantite).toBe(30);
+  });
+
   it('getCommandesByStation() sends a GET to /api/commandes/station/{station}', () => {
     service.getCommandesByStation('KITCHEN').subscribe(data => {
       expect(data).toHaveSize(1);

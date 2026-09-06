@@ -1,5 +1,6 @@
 package com.bar.gestioncocktail.controller;
 
+import com.bar.gestioncocktail.dto.BatchTransitionRequestDTO;
 import com.bar.gestioncocktail.dto.CommandeItemRequestDTO;
 import com.bar.gestioncocktail.dto.CommandeRequestDTO;
 import com.bar.gestioncocktail.dto.CommandeResponseDTO;
@@ -291,5 +292,39 @@ class CommandeControllerTest {
     void updateItemStatutDirect_missingStatus_throwsBusinessException() {
         assertThatThrownBy(() -> commandeController.updateItemStatutDirect(99L, null, null))
                 .isInstanceOf(com.bar.gestioncocktail.exception.BusinessException.class);
+    }
+
+    @Test
+    @DisplayName("transitionBatch - with itemIds transitions multiple items and returns DTO list")
+    void transitionBatch_withItemIds_success() {
+        when(commandeService.transitionBatch(List.of(101L, 102L), null, CommandeStatut.EN_PREPARATION))
+                .thenReturn(List.of(commande));
+
+        BatchTransitionRequestDTO request = new BatchTransitionRequestDTO(
+                List.of(101L, 102L), null, CommandeStatut.EN_PREPARATION
+        );
+
+        ResponseEntity<List<CommandeResponseDTO>> response = commandeController.transitionBatch(request);
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getBody()).hasSize(1);
+        verify(commandeService).transitionBatch(List.of(101L, 102L), null, CommandeStatut.EN_PREPARATION);
+    }
+
+    @Test
+    @DisplayName("transitionBatch - with cocktailId transitions matching items")
+    void transitionBatch_withCocktailId_success() {
+        when(commandeService.transitionBatch(null, 50L, CommandeStatut.PRET))
+                .thenReturn(List.of(commande));
+
+        BatchTransitionRequestDTO request = new BatchTransitionRequestDTO(
+                null, 50L, CommandeStatut.PRET
+        );
+
+        ResponseEntity<List<CommandeResponseDTO>> response = commandeController.transitionBatch(request);
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getBody()).hasSize(1);
+        verify(commandeService).transitionBatch(null, 50L, CommandeStatut.PRET);
     }
 }

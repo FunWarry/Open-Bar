@@ -7,6 +7,7 @@ import { DashboardBarmanComponent } from '../../../app/features/dashboard-barman
 import { DashboardBarmanService } from '../../../app/features/dashboard-barman/services/dashboard-barman.service';
 import { NotificationService, AppNotification } from '../../../app/core/services/notification.service';
 import { CommandeView } from '../../../app/features/dashboard-barman/models/commande-view.model';
+import { CocktailBatchView } from '../../../app/features/dashboard-barman/models/batch-preparation.model';
 import { AppSettingsService } from '../../../app/core/services/app-settings.service';
 import { SoundService } from '../../../app/core/services/sound.service';
 import { WebSocketService } from '../../../app/core/services/websocket.service';
@@ -57,12 +58,16 @@ describe('DashboardBarmanComponent', () => {
       'getCocktailById',
       'getIngredients',
       'toggleCocktailDisponibilite',
-      'updateIngredientStock'
+      'updateIngredientStock',
+      'transitionBatch',
+      'aggregateBatches'
     ]);
     dashboardServiceSpy.getCommandesEnAttente.and.returnValue(of(mockCommandes));
     dashboardServiceSpy.getCommandesEnPreparation.and.returnValue(of([]));
     dashboardServiceSpy.getCommandesPret.and.returnValue(of([]));
     dashboardServiceSpy.changerStatut.and.returnValue(of(mockCommandes[0]));
+    dashboardServiceSpy.transitionBatch.and.returnValue(of([]));
+    dashboardServiceSpy.aggregateBatches.and.returnValue([]);
     dashboardServiceSpy.getCocktailById.and.returnValue(of({
       id: 101,
       nom: 'Mojito',
@@ -438,5 +443,141 @@ describe('DashboardBarmanComponent', () => {
     component.setStationFilter('KITCHEN');
     expect(component.filteredCommandesEnAttente).toHaveSize(1);
     expect(component.filteredCommandesEnAttente[0].id).toBe(12);
+  });
+
+  it('activeViewMode defaults to tickets and can be toggled to batch', () => {
+    expect(component.activeViewMode).toBe('tickets');
+    component.activeViewMode = 'batch';
+    expect(component.activeViewMode).toBe('batch');
+  });
+
+  it('pendingBatches and inProgressBatches delegate aggregation to dashboardService', () => {
+    const dummyBatch: CocktailBatchView = {
+      cocktailId: 101,
+      cocktailNom: 'Mojito',
+      totalQuantity: 4,
+      pendingQuantity: 4,
+      preparingQuantity: 0,
+      isUrgent: false,
+      earliestOrderDate: new Date(),
+      tableSummaries: ['Table 1 (x2)', 'Table 2 (x2)'],
+      items: [
+        { commandeId: 1, tableNom: 'Table 1', itemId: 10, quantite: 2, prioritaire: false },
+        { commandeId: 2, tableNom: 'Table 2', itemId: 20, quantite: 2, prioritaire: false }
+      ],
+      ingredients: [],
+      sampleItem: { id: 10, cocktailId: 101, cocktailNom: 'Mojito', quantite: 2, prioritaire: false },
+      sampleCommande: mockCommandes[0]
+    };
+
+    dashboardServiceSpy.aggregateBatches.and.returnValue([dummyBatch]);
+
+    expect(component.pendingBatches).toEqual([dummyBatch]);
+    expect(dashboardServiceSpy.aggregateBatches).toHaveBeenCalledWith(
+      component.commandesEnAttente,
+      component.commandesEnPreparation,
+      jasmine.objectContaining({ stationFilter: component.stationFilter })
+    );
+
+    expect(component.inProgressBatches).toEqual([]);
+  });
+
+  it('onStartBatch() transitions items to EN_PREPARATION, plays sound and reloads orders', fakeAsync(() => {
+    const dummyBatch: CocktailBatchView = {
+      cocktailId: 101,
+      cocktailNom: 'Mojito',
+      totalQuantity: 4,
+      pendingQuantity: 4,
+      preparingQuantity: 0,
+      isUrgent: false,
+      earliestOrderDate: new Date(),
+      tableSummaries: ['Table 1 (x2)', 'Table 2 (x2)'],
+      items: [
+        { commandeId: 1, tableNom: 'Table 1', itemId: 10, quantite: 2, prioritaire: false },
+        { commandeId: 2, tableNom: 'Table 2', itemId: 20, quantite: 2, prioritaire: false }
+      ],
+      ingredients: [],
+      sampleItem: { id: 10, cocktailId: 101, cocktailNom: 'Mojito', quantite: 2, prioritaire: false },
+      sampleCommande: mockCommandes[0]
+    };
+
+    spyOn(component, 'chargerCommandes');
+    dashboardServiceSpy.transitionBatch.and.returnValue(of(mockCommandes));
+
+    component.onStartBatch(dummyBatch);
+    tick();
+    flushMicrotasks();
+
+    expect(dashboardServiceSpy.transitionBatch).toHaveBeenCalledWith({
+      itemIds: [10, 20],
+      statut: 'EN_PREPARATION'
+    });
+    expect(component.chargerCommandes).toHaveBeenCalled();
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'primary' }));
+  }));
+
+  it('onCompleteBatch() transitions items to PRET, plays order ready sound and reloads orders', fakeAsync(() => {
+    const dummyBatch: CocktailBatchView = {
+      cocktailId: 101,
+      cocktailNom: 'Mojito',
+      totalQuantity: 4,
+      pendingQuantity: 0,
+      preparingQuantity: 4,
+      isUrgent: false,
+      earliestOrderDate: new Date(),
+      tableSummaries: ['Table 1 (x2)', 'Table 2 (x2)'],
+      items: [
+        { commandeId: 1, tableNom: 'Table 1', itemId: 10, quantite: 2, prioritaire: false },
+        { commandeId: 2, tableNom: 'Table 2', itemId: 20, quantite: 2, prioritaire: false }
+      ],
+      ingredients: [],
+      sampleItem: { id: 10, cocktailId: 101, cocktailNom: 'Mojito', quantite: 2, prioritaire: false },
+      sampleCommande: mockCommandes[0]
+    };
+
+    spyOn(component, 'chargerCommandes');
+    dashboardServiceSpy.transitionBatch.and.returnValue(of(mockCommandes));
+
+    component.onCompleteBatch(dummyBatch);
+    tick();
+    flushMicrotasks();
+
+    expect(dashboardServiceSpy.transitionBatch).toHaveBeenCalledWith({
+      itemIds: [10, 20],
+      statut: 'PRET'
+    });
+    expect(soundServiceSpy.playOrderReadySound).toHaveBeenCalled();
+    expect(component.chargerCommandes).toHaveBeenCalled();
+    expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'success' }));
+  }));
+
+  it('onOpenBatchRecipe() opens recipe side panel with scaled batch quantity', () => {
+    const dummyBatch: CocktailBatchView = {
+      cocktailId: 101,
+      cocktailNom: 'Mojito',
+      totalQuantity: 6,
+      pendingQuantity: 6,
+      preparingQuantity: 0,
+      isUrgent: false,
+      earliestOrderDate: new Date(),
+      tableSummaries: ['Table 1 (x6)'],
+      items: [
+        { commandeId: 1, tableNom: 'Table 1', itemId: 10, quantite: 6, prioritaire: false }
+      ],
+      ingredients: [],
+      sampleItem: { id: 10, cocktailId: 101, cocktailNom: 'Mojito', quantite: 2, prioritaire: false },
+      sampleCommande: mockCommandes[0]
+    };
+
+    spyOn(component, 'onShowRecipe');
+    component.onOpenBatchRecipe(dummyBatch);
+
+    expect(component.onShowRecipe).toHaveBeenCalledWith({
+      item: jasmine.objectContaining({
+        quantite: 6,
+        cocktailNom: 'Mojito'
+      }),
+      commande: dummyBatch.sampleCommande
+    });
   });
 });

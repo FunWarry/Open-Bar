@@ -1986,6 +1986,11 @@
       "notes": "Sans glaçons pour le Spritz - Alerte jaune (>3min)",
       "items": [
         {
+          "cocktailName": "Mojito",
+          "quantite": 3,
+          "prioritaire": false
+        },
+        {
           "cocktailName": "Aperol Spritz",
           "quantite": 2,
           "prioritaire": false
@@ -2007,6 +2012,11 @@
       "trackingToken": "TRK-ORD0003",
       "notes": "URGENT - Client pressé, alerte rouge critique (>10min)",
       "items": [
+        {
+          "cocktailName": "Mojito",
+          "quantite": 3,
+          "prioritaire": true
+        },
         {
           "cocktailName": "Cosmopolitan",
           "quantite": 3,
