@@ -206,6 +206,7 @@ public class SampleDataSeederService {
                 jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS warning_gross_margin_percentage DECIMAL(5,2) DEFAULT 50.00");
                 jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP");
                 jdbcTemplate.execute("ALTER TABLE establishment_config ADD COLUMN IF NOT EXISTS ticket_format VARCHAR(10) DEFAULT '80mm'");
+                jdbcTemplate.execute("ALTER TABLE commandes ADD COLUMN IF NOT EXISTS client_request_id VARCHAR(100) UNIQUE");
             }, "migrateLegacySchemas");
         }
     }
@@ -770,6 +771,7 @@ public class SampleDataSeederService {
         CommandeStatut statut = CommandeStatut.valueOf(oNode.get(KEY_STATUT).asText());
         int minutesAgo = oNode.get(KEY_MINUTES_AGO).asInt();
         String trackingToken = oNode.hasNonNull("trackingToken") ? oNode.get("trackingToken").asText() : null;
+        String clientRequestId = oNode.hasNonNull("clientRequestId") ? oNode.get("clientRequestId").asText() : null;
         String notes = oNode.hasNonNull(KEY_NOTES) ? oNode.get(KEY_NOTES).asText() : null;
 
         TableEntity table = tablesMap.get(tableNumero);
@@ -783,6 +785,7 @@ public class SampleDataSeederService {
         commande.setStatut(statut);
         commande.setDateCommande(orderTime);
         commande.setTrackingToken(trackingToken);
+        commande.setClientRequestId(clientRequestId);
         commande.setNotes(notes);
 
         applyOrderTimestamps(commande, statut, orderTime);

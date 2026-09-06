@@ -17,13 +17,14 @@ import {routes} from './app/app.routes';
 import {authReducer} from './app/core/store/auth.reducer';
 import {AuthEffects} from './app/core/store/auth.effects';
 import {authInterceptor} from './app/core/interceptors/auth.interceptor';
+import {offlineSyncInterceptor} from './app/core/interceptors/offline-sync.interceptor';
 import {errorInterceptor} from './app/core/interceptors/error.interceptor';
 import {TranslocoHttpLoader} from './app/core/transloco-loader';
 
 bootstrapApplication(AppComponent, {
   providers: [
     provideIonicAngular(),
-    provideHttpClient(withFetch(), withInterceptors([authInterceptor, errorInterceptor])),
+    provideHttpClient(withFetch(), withInterceptors([authInterceptor, offlineSyncInterceptor, errorInterceptor])),
     provideStore({auth: authReducer}),
     provideEffects([AuthEffects]),
     ...(isDevMode() ? [provideStoreDevtools({ maxAge: 25, logOnly: false })] : []),

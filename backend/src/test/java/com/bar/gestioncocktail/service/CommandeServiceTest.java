@@ -989,5 +989,75 @@ class CommandeServiceTest {
         assertThat(results).hasSize(1);
         assertThat(it.getStatut()).isEqualTo(CommandeStatut.LIVREE);
     }
+
+    // ─── createCommande with clientRequestId & embedded items (#361) ───────────
+
+    @Test
+    @DisplayName("createCommande - saves order with clientRequestId when not previously existing")
+    void createCommande_nominal_withClientRequestId_savesSuccessfully() {
+        Commande newCmd = new Commande();
+        newCmd.setClientRequestId("client-req-001");
+        when(commandeRepository.findByClientRequestId("client-req-001")).thenReturn(Optional.empty());
+
+        Commande saved = commandeService.createCommande(newCmd);
+
+        assertThat(saved).isNotNull();
+        assertThat(saved.getClientRequestId()).isEqualTo("client-req-001");
+        assertThat(saved.getStatut()).isEqualTo(CommandeStatut.EN_ATTENTE);
+        verify(commandeRepository).save(newCmd);
+    }
+
+    @Test
+    @DisplayName("createCommande - idempotency check returns existing order without creating duplicate")
+    void createCommande_idempotent_returnsExistingOrderWithoutDuplicate() {
+        Commande existing = new Commande();
+        existing.setId(42L);
+        existing.setClientRequestId("client-req-duplicate");
+        existing.setStatut(CommandeStatut.EN_PREPARATION);
+
+        when(commandeRepository.findByClientRequestId("client-req-duplicate")).thenReturn(Optional.of(existing));
+
+        Commande duplicateAttempt = new Commande();
+        duplicateAttempt.setClientRequestId("client-req-duplicate");
+
+        Commande result = commandeService.createCommande(duplicateAttempt);
+
+        assertThat(result).isSameAs(existing);
+        assertThat(result.getId()).isEqualTo(42L);
+        assertThat(result.getStatut()).isEqualTo(CommandeStatut.EN_PREPARATION);
+        verify(commandeRepository, never()).save(duplicateAttempt);
+    }
+
+    @Test
+    @DisplayName("createCommande - with embedded items sets up stations, links, and computes total")
+    void createCommande_withEmbeddedItems_initializesAndCalculatesTotal() {
+        Cocktail margarita = new Cocktail();
+        margarita.setId(10L);
+        margarita.setNom("Margarita");
+        margarita.setPrix(new BigDecimal("12.50"));
+        margarita.setStation(PreparationStation.BAR);
+        when(cocktailRepository.findById(10L)).thenReturn(Optional.of(margarita));
+
+        CommandeItem item1 = new CommandeItem();
+        item1.setCocktail(margarita);
+        item1.setQuantite(2);
+        item1.setPrixUnitaire(new BigDecimal("12.50"));
+
+        Commande cmdWithItems = new Commande();
+        cmdWithItems.setClientRequestId("client-req-items");
+        cmdWithItems.setItems(new ArrayList<>(List.of(item1)));
+
+        when(commandeRepository.findByClientRequestId("client-req-items")).thenReturn(Optional.empty());
+
+        Commande result = commandeService.createCommande(cmdWithItems);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getTotal()).isEqualByComparingTo(new BigDecimal("25.00"));
+        assertThat(result.getItems()).hasSize(1);
+        assertThat(result.getItems().get(0).getCommande()).isSameAs(result);
+        assertThat(result.getItems().get(0).getStation()).isEqualTo(PreparationStation.BAR);
+        assertThat(result.getItems().get(0).getStatut()).isEqualTo(CommandeStatut.EN_ATTENTE);
+        verify(commandeRepository).save(cmdWithItems);
+    }
 }
 

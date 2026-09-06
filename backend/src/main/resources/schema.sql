@@ -259,9 +259,12 @@ CREATE TABLE IF NOT EXISTS commandes (
     date_reglement TIMESTAMP,
     date_modification TIMESTAMP,
     prioritaire BOOLEAN DEFAULT false,
+    client_request_id VARCHAR(100) UNIQUE,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE INDEX IF NOT EXISTS idx_commandes_client_request_id ON commandes(client_request_id);
 
 CREATE TABLE IF NOT EXISTS commande_items (
     id BIGSERIAL PRIMARY KEY,

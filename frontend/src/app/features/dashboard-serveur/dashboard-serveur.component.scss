@@ -39,6 +39,94 @@ ion-content.dashboard-serveur-content {
   }
 }
 
+// ── Offline Queue & Network Indicator Banner (#361) ───────────
+.offline-banner {
+  background: var(--background-surface-1, #1a1a2e);
+  border: 1px solid var(--semantic-warning, #f0a33b);
+  border-radius: 14px;
+  padding: 10px 16px;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  animation: fadeIn 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+
+  &.offline {
+    border-color: var(--semantic-warning, #f0a33b);
+    background: rgba(240, 163, 59, 0.14);
+  }
+
+  &.syncing {
+    border-color: var(--semantic-info, #3880ff);
+    background: rgba(56, 128, 255, 0.14);
+  }
+
+  .offline-banner-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
+
+    .offline-icon {
+      font-size: 1.25rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .offline-text {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+
+      .offline-title {
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: var(--text-primary, #eceefb);
+      }
+
+      .offline-count-badge {
+        background: var(--semantic-warning, #f0a33b);
+        color: var(--background-bg-0, #0f0f1a);
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 12px;
+      }
+    }
+  }
+
+  .offline-sync-btn {
+    background: var(--primary, #6c7fe8);
+    color: var(--text-primary, #ffffff);
+    border: none;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s ease, transform 0.1s ease;
+    white-space: nowrap;
+
+    &:hover {
+      opacity: 0.9;
+    }
+
+    &:active {
+      transform: scale(0.97);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+}
+
 // ── Active Table Alerts Banner ──────────────────────────────────
 .active-calls-banner {
   background: rgba(229, 96, 79, 0.12);

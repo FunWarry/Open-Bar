@@ -2711,5 +2711,18 @@
     "COMPLETE_ORDER": "Complete kitchen ticket",
     "LOAD_ERROR": "Error loading kitchen tickets",
     "ITEM_STATUS_UPDATED": "Item status updated"
+  },
+  "OFFLINE": {
+    "STATUS_OFFLINE": "Offline mode",
+    "STATUS_ONLINE_SYNC_PENDING": "Pending synchronization",
+    "PENDING_COUNT": "{{count}} pending order",
+    "PENDING_COUNT_PLURAL": "{{count}} pending orders",
+    "SYNC_NOW_BTN": "Sync now",
+    "SYNCING_BTN": "Syncing...",
+    "ORDER_QUEUED_TOAST": "Offline mode: order saved locally",
+    "ORDER_QUEUED_ON_ERROR": "Connection lost: order queued for synchronization",
+    "SYNC_SUCCESS": "{{count}} offline order synchronized successfully!",
+    "SYNC_SUCCESS_PLURAL": "{{count}} offline orders synchronized successfully!",
+    "SYNC_ERROR": "Failed to synchronize some offline orders"
   }
 }

@@ -2711,5 +2711,18 @@
     "COMPLETE_ORDER": "Terminer le bon cuisine",
     "LOAD_ERROR": "Erreur lors du chargement des commandes cuisine",
     "ITEM_STATUS_UPDATED": "Statut de l'article mis à jour"
+  },
+  "OFFLINE": {
+    "STATUS_OFFLINE": "Mode hors-ligne",
+    "STATUS_ONLINE_SYNC_PENDING": "En attente de synchronisation",
+    "PENDING_COUNT": "{{count}} commande en attente",
+    "PENDING_COUNT_PLURAL": "{{count}} commandes en attente",
+    "SYNC_NOW_BTN": "Synchroniser",
+    "SYNCING_BTN": "Synchronisation...",
+    "ORDER_QUEUED_TOAST": "Mode hors-ligne : commande enregistrée localement",
+    "ORDER_QUEUED_ON_ERROR": "Connexion interrompue : commande mise en attente de synchronisation",
+    "SYNC_SUCCESS": "{{count}} commande hors-ligne synchronisée avec succès !",
+    "SYNC_SUCCESS_PLURAL": "{{count}} commandes hors-ligne synchronisées avec succès !",
+    "SYNC_ERROR": "Échec de synchronisation pour certaines commandes hors-ligne"
   }
 }

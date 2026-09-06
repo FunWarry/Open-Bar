@@ -4,6 +4,37 @@
       <ion-refresher-content></ion-refresher-content>
     </ion-refresher>
 
+    <!-- Offline Status & Background Sync Banner Bar (#361) -->
+    @if (!offlineService.isOnline() || offlineService.pendingCount() > 0) {
+      <div class="offline-banner" data-testid="offline-indicator-bar" [class.offline]="!offlineService.isOnline()" [class.syncing]="offlineService.isSyncing()">
+        <div class="offline-banner-content">
+          <span class="offline-icon" [attr.aria-label]="!offlineService.isOnline() ? 'Offline' : 'Sync pending'">
+            {{ !offlineService.isOnline() ? '📡' : '🔄' }}
+          </span>
+          <div class="offline-text">
+            <span class="offline-title">
+              {{ (!offlineService.isOnline() ? 'OFFLINE.STATUS_OFFLINE' : 'OFFLINE.STATUS_ONLINE_SYNC_PENDING') | transloco }}
+            </span>
+            @if (offlineService.pendingCount() > 0) {
+              <span class="offline-count-badge" data-testid="offline-pending-count">
+                {{ (offlineService.pendingCount() > 1 ? 'OFFLINE.PENDING_COUNT_PLURAL' : 'OFFLINE.PENDING_COUNT') | transloco: { count: offlineService.pendingCount() } }}
+              </span>
+            }
+          </div>
+        </div>
+        @if (offlineService.isOnline() && offlineService.pendingCount() > 0) {
+          <button
+            type="button"
+            class="offline-sync-btn"
+            data-testid="offline-sync-btn"
+            [disabled]="offlineService.isSyncing()"
+            (click)="onManualSync()">
+            {{ (offlineService.isSyncing() ? 'OFFLINE.SYNCING_BTN' : 'OFFLINE.SYNC_NOW_BTN') | transloco }}
+          </button>
+        }
+      </div>
+    }
+
   <!-- ONGLET 1 : TABLES SERVEUR -->
   <ng-container *ngIf="activeTab === 'tables'">
     <!-- Top Active Table Calls & Assistance Banner -->
