@@ -456,4 +456,48 @@ describe('AppSettingsPageComponent', () => {
     expect(onboardingServiceSpy.resetOnboarding).toHaveBeenCalledWith('ADMIN');
     expect(routerSpy.navigate).toHaveBeenCalledWith(['/onboarding']);
   });
+
+  it('should apply VAT presets correctly to the form', () => {
+    component.applyVatPreset(21);
+    expect(component.appSettingsForm.get('defaultVatRate')?.value).toBe(21);
+
+    component.applyVatPreset(0);
+    expect(component.appSettingsForm.get('defaultVatRate')?.value).toBe(0);
+  });
+
+  it('should compute simulated selling price HT, margin amount, percentage and badge', () => {
+    component.appSettingsForm.patchValue({
+      defaultVatRate: 20,
+      targetGrossMarginPercentage: 70,
+      warningGrossMarginPercentage: 50,
+    });
+
+    const simOptimal = component.simulateMargin(12, 2);
+    expect(simOptimal.prixHT).toBe(10);
+    expect(simOptimal.margeBrute).toBe(8);
+    expect(simOptimal.margePct).toBe(80);
+    expect(component.getMarginBadgeClass(simOptimal.margePct)).toBe('badge-optimal');
+
+    const simWarning = component.simulateMargin(12, 4.5);
+    expect(simWarning.margePct).toBe(55);
+    expect(component.getMarginBadgeClass(simWarning.margePct)).toBe('badge-warning');
+
+    const simCritical = component.simulateMargin(12, 6);
+    expect(simCritical.margePct).toBe(40);
+    expect(component.getMarginBadgeClass(simCritical.margePct)).toBe('badge-critical');
+  });
+
+  it('should validate warningGrossMarginPercentage is lower than targetGrossMarginPercentage', () => {
+    component.appSettingsForm.patchValue({
+      targetGrossMarginPercentage: 50,
+      warningGrossMarginPercentage: 60,
+    });
+    expect(component.appSettingsForm.errors?.['marginPriorityInvalid']).toBeTrue();
+
+    component.appSettingsForm.patchValue({
+      targetGrossMarginPercentage: 70,
+      warningGrossMarginPercentage: 50,
+    });
+    expect(component.appSettingsForm.errors?.['marginPriorityInvalid']).toBeUndefined();
+  });
 });

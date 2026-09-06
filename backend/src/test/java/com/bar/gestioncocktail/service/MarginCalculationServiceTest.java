@@ -1,6 +1,7 @@
 package com.bar.gestioncocktail.service;
 
 import com.bar.gestioncocktail.dto.CocktailMarginDTO;
+import com.bar.gestioncocktail.dto.CocktailVarianteMarginDTO;
 import com.bar.gestioncocktail.dto.DashboardMarginAnalyticsDTO;
 import com.bar.gestioncocktail.dto.ProfitableCocktailDTO;
 import com.bar.gestioncocktail.exception.ResourceNotFoundException;
@@ -39,6 +40,9 @@ class MarginCalculationServiceTest {
 
     @Mock
     private CommandeRepository commandeRepository;
+
+    @Mock
+    private AppSettingsService appSettingsService;
 
     @Spy
     private TimeService timeService = new TimeService(null);
@@ -313,5 +317,146 @@ class MarginCalculationServiceTest {
         assertThat(analytics.margeBruteJour()).isEqualByComparingTo(BigDecimal.ZERO);
         assertThat(analytics.tauxMargeBruteJour()).isEqualByComparingTo(BigDecimal.ZERO);
         assertThat(analytics.mostProfitableCocktails()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("calculateCocktailMargin - computes margins for cocktail and its variants")
+    void calculateCocktailMargin_withVariants_computesVariantCostsAndMargins() {
+        Cocktail margarita = new Cocktail();
+        margarita.setId(20L);
+        margarita.setNom("Margarita");
+        margarita.setPrix(new BigDecimal("10.00"));
+        margarita.setVatRate(VatRate.TWENTY);
+
+        CocktailIngredient ci = new CocktailIngredient();
+        ci.setId(201L);
+        ci.setCocktail(margarita);
+        ci.setIngredient(rum);
+        ci.setQuantite(new BigDecimal("5"));
+        ci.setUnite("cl");
+        margarita.setIngredients(List.of(ci));
+
+        CocktailVariante v1 = new CocktailVariante();
+        v1.setId(501L);
+        v1.setNom("Spicy");
+        v1.setPrixSupplement(new BigDecimal("1.50"));
+
+        CocktailVarianteIngredient cvi = new CocktailVarianteIngredient();
+        cvi.setId(601L);
+        cvi.setIngredient(mint);
+        cvi.setQuantite(new BigDecimal("2"));
+        cvi.setUnite(""); // blank unit to test fallback to ing.getUniteMesure()
+        v1.setIngredients(List.of(cvi));
+
+        CocktailVariante v2 = new CocktailVariante();
+        v2.setId(502L);
+        v2.setNom("Standard Large");
+        v2.setPrixSupplement(null); // test null supplement
+        v2.setIngredients(Collections.emptyList()); // test empty ingredients fallback to base cocktail recipe
+
+        margarita.setVariantes(List.of(v1, v2));
+
+        given(cocktailRepository.findById(20L)).willReturn(Optional.of(margarita));
+
+        CocktailMarginDTO marginDTO = marginCalculationService.getCocktailMargin(20L);
+
+        assertThat(marginDTO).isNotNull();
+        assertThat(marginDTO.variantes()).hasSize(2);
+
+        CocktailVarianteMarginDTO varDto1 = marginDTO.variantes().get(0);
+        assertThat(varDto1.nom()).isEqualTo("Spicy");
+        assertThat(varDto1.prixTTC()).isEqualByComparingTo(new BigDecimal("11.50"));
+        assertThat(varDto1.ingredients()).hasSize(1);
+
+        CocktailVarianteMarginDTO varDto2 = marginDTO.variantes().get(1);
+        assertThat(varDto2.nom()).isEqualTo("Standard Large");
+        assertThat(varDto2.prixTTC()).isEqualByComparingTo(new BigDecimal("10.00"));
+        assertThat(varDto2.recipeCost()).isEqualByComparingTo(marginDTO.recipeCost());
+    }
+
+    @Test
+    @DisplayName("getDashboardMarginAnalytics - computes orders containing variants and skips null references safely")
+    void getDashboardMarginAnalytics_ordersWithVariantsAndNulls() {
+        Commande cmd = new Commande();
+        cmd.setId(10L);
+        cmd.setDateCommande(LocalDateTime.now());
+        cmd.setStatut(CommandeStatut.REGLEE);
+
+        CocktailVariante v = new CocktailVariante();
+        v.setId(99L);
+        v.setNom("Extra");
+        v.setPrixSupplement(new BigDecimal("2.00"));
+        CocktailVarianteIngredient cvi = new CocktailVarianteIngredient();
+        cvi.setIngredient(rum);
+        cvi.setQuantite(new BigDecimal("2"));
+        cvi.setUnite("cl");
+        v.setIngredients(List.of(cvi));
+
+        CommandeItem itemWithVariant = new CommandeItem();
+        itemWithVariant.setCocktail(mojito);
+        itemWithVariant.setVariante(v);
+        itemWithVariant.setQuantite(2);
+        itemWithVariant.setPrixUnitaire(new BigDecimal("14.00"));
+
+        CommandeItem itemWithNullCocktail = new CommandeItem();
+        itemWithNullCocktail.setCocktail(null);
+
+        CommandeItem itemWithNullPrice = new CommandeItem();
+        itemWithNullPrice.setCocktail(mojito);
+        itemWithNullPrice.setPrixUnitaire(null);
+        itemWithNullPrice.setQuantite(1);
+
+        cmd.setItems(List.of(itemWithVariant, itemWithNullCocktail, itemWithNullPrice));
+
+        Commande emptyCmd = new Commande();
+        emptyCmd.setItems(null);
+
+        given(commandeRepository.findByStatutInAndDateCommandeAfter(any(), any()))
+                .willReturn(List.of(cmd, emptyCmd));
+        given(cocktailRepository.findAll()).willReturn(List.of(mojito));
+
+        DashboardMarginAnalyticsDTO analytics = marginCalculationService.getDashboardMarginAnalytics();
+
+        assertThat(analytics).isNotNull();
+        assertThat(analytics.chiffreAffairesJourTTC()).isEqualByComparingTo(new BigDecimal("28.00"));
+    }
+
+    @Test
+    @DisplayName("getEffectiveDefaultVatRate - retrieves configured rate or falls back")
+    void getEffectiveDefaultVatRate_withConfiguredRateAndFallback() {
+        AppSettings settings = new AppSettings();
+        settings.setDefaultVatRate(new BigDecimal("10.00"));
+        given(appSettingsService.getSettings()).willReturn(settings);
+
+        BigDecimal rate = marginCalculationService.getEffectiveDefaultVatRate();
+        assertThat(rate).isEqualByComparingTo(new BigDecimal("0.1000"));
+
+        // Fallback on exception
+        given(appSettingsService.getSettings()).willThrow(new RuntimeException("DB error"));
+        BigDecimal fallbackRate = marginCalculationService.getEffectiveDefaultVatRate();
+        assertThat(fallbackRate).isEqualByComparingTo(new BigDecimal("0.20"));
+    }
+
+    @Test
+    @DisplayName("computeSellingPriceHT and computeGrossMarginPercentage edge cases")
+    void calculations_edgeCases() {
+        assertThat(marginCalculationService.computeSellingPriceHT(null, VatRate.TWENTY))
+                .isEqualByComparingTo(BigDecimal.ZERO);
+        assertThat(marginCalculationService.computeSellingPriceHT(BigDecimal.ZERO, VatRate.TWENTY))
+                .isEqualByComparingTo(BigDecimal.ZERO);
+        assertThat(marginCalculationService.computeSellingPriceHT(new BigDecimal("12.00"), null))
+                .isEqualByComparingTo(new BigDecimal("10.00"));
+
+        assertThat(marginCalculationService.computeGrossMargin(null, new BigDecimal("5.00")))
+                .isEqualByComparingTo(BigDecimal.ZERO);
+        assertThat(marginCalculationService.computeGrossMargin(new BigDecimal("10.00"), null))
+                .isEqualByComparingTo(new BigDecimal("10.00"));
+
+        assertThat(marginCalculationService.computeGrossMarginPercentage(null, new BigDecimal("10.00")))
+                .isEqualByComparingTo(BigDecimal.ZERO);
+        assertThat(marginCalculationService.computeGrossMarginPercentage(new BigDecimal("5.00"), null))
+                .isEqualByComparingTo(BigDecimal.ZERO);
+        assertThat(marginCalculationService.computeGrossMarginPercentage(new BigDecimal("5.00"), BigDecimal.ZERO))
+                .isEqualByComparingTo(BigDecimal.ZERO);
     }
 }
