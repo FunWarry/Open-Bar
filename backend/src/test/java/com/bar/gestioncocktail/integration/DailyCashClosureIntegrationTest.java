@@ -50,7 +50,7 @@ class DailyCashClosureIntegrationTest extends BaseIntegrationTest {
                 targetDate,
                 new BigDecimal("150.00"),
                 new BigDecimal("150.00"),
-                Map.of("50e", 2, "20e", 2, "10e", 1),
+                java.util.Map.of("50e", 2, "20e", 2, "10e", 1),
                 null
         );
 
@@ -130,7 +130,7 @@ class DailyCashClosureIntegrationTest extends BaseIntegrationTest {
                 date,
                 new BigDecimal("100.00"),
                 new BigDecimal("80.00"), // 20€ discrepancy with null reason
-                Map.of(),
+                java.util.Map.of(),
                 null
         );
 
@@ -149,7 +149,7 @@ class DailyCashClosureIntegrationTest extends BaseIntegrationTest {
                 LocalDate.now().minusDays(25),
                 new BigDecimal("100.00"),
                 new BigDecimal("100.00"),
-                Map.of(),
+                java.util.Map.of(),
                 null
         );
 
