@@ -342,7 +342,8 @@
         "INGREDIENTS": "Ingrédients",
         "PROFILE": "Mon profil",
         "AUDIT_LOGS": "Journal d'audit",
-        "UNKNOWN": "OpenBar"
+        "UNKNOWN": "OpenBar",
+        "KITCHEN": "Écran Cuisine (KDS)"
       },
       "ROLE_LABELS": {
         "ADMIN": "Admin",
@@ -357,7 +358,8 @@
       "NAVIGATION": "Navigation",
       "MANAGEMENT": "Gestion & Admin",
       "USER_PROFILE": "Profil utilisateur"
-    }
+    },
+    "KITCHEN": "Écran Cuisine"
   },
   "PLAN_SALLE_PAGE": {
     "TITLE": "Plan de Salle",
@@ -2204,7 +2206,11 @@
     "NOTE_LABEL": "Note",
     "INSTRUCTIONS_LABEL": "INSTRUCTIONS :",
     "TOTAL_ITEMS_LABEL": "TOTAL ARTICLES :",
-    "SERVICE_COUNTER_BAR": "SERVICE COMPTOIR BAR"
+    "SERVICE_COUNTER_BAR": "SERVICE COMPTOIR BAR",
+    "STATUS_EN_ATTENTE": "En attente",
+    "STATUS_EN_PREPARATION": "En préparation",
+    "STATUS_PRET": "Prêt",
+    "STATUS_LIVREE": "Livré"
   },
   "MANAGER_DASHBOARD": {
     "TITLE": "Tableau de Bord Manager",
@@ -2564,5 +2570,34 @@
     "FRIDAY": "Vendredi",
     "SATURDAY": "Samedi",
     "SUNDAY": "Dimanche"
+  },
+  "STATIONS": {
+    "WORKSTATION": "Poste de préparation",
+    "SEARCH_WORKSTATION": "Rechercher un poste...",
+    "BAR": "Bar (Boissons)",
+    "KITCHEN": "Cuisine (Plats chauds)",
+    "SNACK": "Snack & Tapas",
+    "ALL": "Toutes les stations",
+    "BAR_ONLY": "Bar uniquement",
+    "KITCHEN_ONLY": "Cuisine uniquement"
+  },
+  "KDS": {
+    "KITCHEN_TITLE": "Écran Cuisine (KDS)",
+    "ORDERS_ACTIVE": "en cours",
+    "ITEMS_TO_COOK": "articles à préparer",
+    "FILTER_ACTIVE": "En cours",
+    "FILTER_READY": "Prêts",
+    "FILTER_ALL": "Tous",
+    "NO_ORDERS_TITLE": "Aucune commande en cuisine",
+    "NO_ORDERS_MESSAGE": "Les bons de commande cuisine et snack s'afficheront ici en direct.",
+    "TABLE": "Table",
+    "SERVER": "Serveur",
+    "START_PREPARATION": "Démarrer la préparation de cet article",
+    "START": "Lancer",
+    "MARK_ITEM_READY": "Marquer cet article prêt",
+    "READY": "Prêt",
+    "COMPLETE_ORDER": "Terminer le bon cuisine",
+    "LOAD_ERROR": "Erreur lors du chargement des commandes cuisine",
+    "ITEM_STATUS_UPDATED": "Statut de l'article mis à jour"
   }
 }

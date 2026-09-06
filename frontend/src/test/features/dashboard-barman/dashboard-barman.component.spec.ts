@@ -413,4 +413,30 @@ describe('DashboardBarmanComponent', () => {
     tick();
     expect(component.chargerCommandes).toHaveBeenCalled();
   }));
+
+  it('should filter orders by workstation station (ALL, BAR, KITCHEN)', () => {
+    const cmdBar: CommandeView = {
+      ...mockCommandes[0],
+      id: 11,
+      items: [{ id: 1, cocktailNom: 'Mojito', quantite: 1, prioritaire: false, station: 'BAR' }]
+    };
+    const cmdKitchen: CommandeView = {
+      ...mockCommandes[0],
+      id: 12,
+      items: [{ id: 2, cocktailNom: 'Planche', quantite: 1, prioritaire: false, station: 'KITCHEN' }]
+    };
+
+    component.commandesEnAttente = [cmdBar, cmdKitchen];
+
+    component.setStationFilter('ALL');
+    expect(component.filteredCommandesEnAttente).toHaveSize(2);
+
+    component.setStationFilter('BAR');
+    expect(component.filteredCommandesEnAttente).toHaveSize(1);
+    expect(component.filteredCommandesEnAttente[0].id).toBe(11);
+
+    component.setStationFilter('KITCHEN');
+    expect(component.filteredCommandesEnAttente).toHaveSize(1);
+    expect(component.filteredCommandesEnAttente[0].id).toBe(12);
+  });
 });

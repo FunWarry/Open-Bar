@@ -220,4 +220,76 @@ class CommandeControllerTest {
         assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
         verify(commandeService).setUrgent(10L, true);
     }
+
+    @Test
+    @DisplayName("updateItemStatut - updates item status and returns updated DTO")
+    void updateItemStatut_success() {
+        CommandeItem item = new CommandeItem();
+        item.setId(99L);
+        item.setStation(com.bar.gestioncocktail.model.PreparationStation.KITCHEN);
+        item.setStatut(CommandeStatut.PRET);
+        item.setQuantite(2);
+        item.setCommande(commande);
+        commande.setItems(List.of(item));
+
+        when(commandeService.updateItemStatut(10L, 99L, CommandeStatut.PRET)).thenReturn(commande);
+
+        ResponseEntity<CommandeResponseDTO> response =
+                commandeController.updateItemStatut(10L, 99L, Map.of("statut", (Object) "PRET"), null);
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getBody()).isNotNull();
+        verify(commandeService).updateItemStatut(10L, 99L, CommandeStatut.PRET);
+    }
+
+    @Test
+    @DisplayName("getCommandesByStation - retrieves orders for given preparation station")
+    void getCommandesByStation_success() {
+        when(commandeService.getCommandesByStation(com.bar.gestioncocktail.model.PreparationStation.KITCHEN)).thenReturn(List.of(commande));
+
+        ResponseEntity<List<CommandeResponseDTO>> response =
+                commandeController.getCommandesByStation(com.bar.gestioncocktail.model.PreparationStation.KITCHEN);
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getBody()).hasSize(1);
+        verify(commandeService).getCommandesByStation(com.bar.gestioncocktail.model.PreparationStation.KITCHEN);
+    }
+
+    @Test
+    @DisplayName("updateItemStatutDirect - updates status using query parameter")
+    void updateItemStatutDirect_param_success() {
+        when(commandeService.updateItemStatut(99L, CommandeStatut.PRET)).thenReturn(commande);
+
+        ResponseEntity<CommandeResponseDTO> response =
+                commandeController.updateItemStatutDirect(99L, null, CommandeStatut.PRET);
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        verify(commandeService).updateItemStatut(99L, CommandeStatut.PRET);
+    }
+
+    @Test
+    @DisplayName("updateItemStatutDirect - updates status using body map")
+    void updateItemStatutDirect_body_success() {
+        when(commandeService.updateItemStatut(99L, CommandeStatut.EN_PREPARATION)).thenReturn(commande);
+
+        ResponseEntity<CommandeResponseDTO> response =
+                commandeController.updateItemStatutDirect(99L, Map.of("statut", "EN_PREPARATION"), null);
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        verify(commandeService).updateItemStatut(99L, CommandeStatut.EN_PREPARATION);
+    }
+
+    @Test
+    @DisplayName("updateItemStatut - throws BusinessException when status missing")
+    void updateItemStatut_missingStatus_throwsBusinessException() {
+        assertThatThrownBy(() -> commandeController.updateItemStatut(10L, 99L, null, null))
+                .isInstanceOf(com.bar.gestioncocktail.exception.BusinessException.class);
+    }
+
+    @Test
+    @DisplayName("updateItemStatutDirect - throws BusinessException when status missing")
+    void updateItemStatutDirect_missingStatus_throwsBusinessException() {
+        assertThatThrownBy(() -> commandeController.updateItemStatutDirect(99L, null, null))
+                .isInstanceOf(com.bar.gestioncocktail.exception.BusinessException.class);
+    }
 }

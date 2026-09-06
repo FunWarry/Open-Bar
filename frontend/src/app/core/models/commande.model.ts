@@ -6,10 +6,14 @@ export type CommandeStatut =
   | 'REGLEE'
   | 'ANNULEE';
 
+export type PreparationStation = 'BAR' | 'KITCHEN' | 'SNACK';
+
 export interface CommandeItem {
   id: number;
   cocktailId: number;
   cocktailNom: string;
+  station?: PreparationStation;
+  statut?: CommandeStatut;
   varianteId?: number;
   varianteNom?: string;
   quantite: number;

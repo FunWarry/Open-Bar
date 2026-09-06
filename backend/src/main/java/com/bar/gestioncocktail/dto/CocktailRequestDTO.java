@@ -68,8 +68,37 @@ public record CocktailRequestDTO(
     BigDecimal alcoholLevel,
     Boolean isMocktail,
     Boolean isVegan,
-    Boolean isGlutenFree
+    Boolean isGlutenFree,
+    com.bar.gestioncocktail.model.PreparationStation station
 ) {
+    /**
+     * Backward-compatible 20-parameter constructor without station.
+     */
+    public CocktailRequestDTO(
+        String nom,
+        String description,
+        BigDecimal prix,
+        CocktailCategorie categorie,
+        Boolean disponible,
+        Boolean saisonnier,
+        LocalDateTime dateDebutSaison,
+        LocalDateTime dateFinSaison,
+        Integer moisDebut,
+        Integer moisFin,
+        String instructions,
+        String imageUrl,
+        List<CocktailRecipeStepRequestDTO> recipeSteps,
+        Long glasswareId,
+        List<CocktailVarianteRequestDTO> variantes,
+        Set<FlavorProfile> flavorProfiles,
+        BigDecimal alcoholLevel,
+        Boolean isMocktail,
+        Boolean isVegan,
+        Boolean isGlutenFree
+    ) {
+        this(nom, description, prix, categorie, disponible, saisonnier, dateDebutSaison, dateFinSaison, moisDebut, moisFin, instructions, imageUrl, recipeSteps, glasswareId, variantes, flavorProfiles, alcoholLevel, isMocktail, isVegan, isGlutenFree, com.bar.gestioncocktail.model.PreparationStation.BAR);
+    }
+
     /**
      * Backward-compatible 10-parameter constructor.
      */
@@ -85,7 +114,7 @@ public record CocktailRequestDTO(
         Integer moisDebut,
         Integer moisFin
     ) {
-        this(nom, description, prix, categorie, disponible, saisonnier, dateDebutSaison, dateFinSaison, moisDebut, moisFin, null, null, null, null, null, null, null, null, null, null);
+        this(nom, description, prix, categorie, disponible, saisonnier, dateDebutSaison, dateFinSaison, moisDebut, moisFin, null, null, null, null, null, null, null, null, null, null, com.bar.gestioncocktail.model.PreparationStation.BAR);
     }
 
     /**
@@ -180,6 +209,7 @@ public record CocktailRequestDTO(
         cocktail.setMocktail(Boolean.TRUE.equals(isMocktail));
         cocktail.setVegan(!Boolean.FALSE.equals(isVegan));
         cocktail.setGlutenFree(!Boolean.FALSE.equals(isGlutenFree));
+        cocktail.setStation(station != null ? station : com.bar.gestioncocktail.model.PreparationStation.BAR);
         return cocktail;
     }
 }

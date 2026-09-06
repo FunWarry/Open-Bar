@@ -77,6 +77,16 @@
               <span class="variant-tag">{{ item.varianteNom }}</span>
             }
 
+            @if (item.station && item.station !== 'BAR') {
+              <span class="station-chip station-chip--{{ item.station | lowercase }}">
+                {{ ('STATIONS.BADGE_' + item.station) | transloco }}
+              </span>
+            }
+
+            @if (item.statut === 'PRET') {
+              <span class="item-ready-chip" [title]="'KDS.READY' | transloco">✓</span>
+            }
+
             <button
               type="button"
               class="recipe-toggle-btn"

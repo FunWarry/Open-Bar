@@ -247,4 +247,25 @@ describe('CommandeService', () => {
     expect(req.request.method).toBe('PATCH');
     req.flush(mockCommande);
   });
+
+  // --- changerItemStatut & getByStation ---
+
+  it('changerItemStatut() calls PATCH /api/commandes/:id/items/:itemId/statut', () => {
+    service.changerItemStatut(1, 10, 'PRET').subscribe((result) => {
+      expect(result).toEqual(mockCommande);
+    });
+    const req = httpMock.expectOne(`${baseUrl}/1/items/10/statut`);
+    expect(req.request.method).toBe('PATCH');
+    expect(req.request.body).toEqual({ statut: 'PRET' });
+    req.flush(mockCommande);
+  });
+
+  it('getByStation() calls GET /api/commandes/station/:station', () => {
+    service.getByStation('KITCHEN').subscribe((result) => {
+      expect(result).toEqual([mockCommande]);
+    });
+    const req = httpMock.expectOne(`${baseUrl}/station/KITCHEN`);
+    expect(req.request.method).toBe('GET');
+    req.flush([mockCommande]);
+  });
 });

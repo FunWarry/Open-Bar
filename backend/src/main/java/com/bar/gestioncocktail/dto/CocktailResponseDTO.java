@@ -6,6 +6,7 @@ import com.bar.gestioncocktail.model.CocktailIngredient;
 import com.bar.gestioncocktail.model.FlavorProfile;
 import com.bar.gestioncocktail.model.VatRate;
 import com.bar.gestioncocktail.service.UnitConversionService;
+import com.bar.gestioncocktail.model.PreparationStation;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.math.BigDecimal;
@@ -43,6 +44,7 @@ import java.util.Set;
  * @param isMocktail True if drink is non-alcoholic mocktail
  * @param isVegan True if drink is vegan friendly
  * @param isGlutenFree True if drink is gluten-free
+ * @param station Workstation responsible for preparation (BAR, KITCHEN, SNACK)
  * @param recipeCost Total unit recipe cost of goods sold (COGS) in EUR
  * @param sellingPriceHT Selling price excluding VAT in EUR
  * @param grossMargin Gross profit margin amount in EUR
@@ -75,6 +77,7 @@ public record CocktailResponseDTO(
     boolean isMocktail,
     boolean isVegan,
     boolean isGlutenFree,
+    PreparationStation station,
     BigDecimal recipeCost,
     BigDecimal sellingPriceHT,
     BigDecimal grossMargin,
@@ -83,6 +86,51 @@ public record CocktailResponseDTO(
     LocalDateTime updatedAt
 ) {
     private static final MathContext MC = new MathContext(10, RoundingMode.HALF_UP);
+
+    /**
+     * Backward-compatible 29-parameter constructor without station.
+     */
+    public CocktailResponseDTO(
+        Long id,
+        String nom,
+        String description,
+        BigDecimal prix,
+        CocktailCategorie categorie,
+        boolean disponible,
+        boolean saisonnier,
+        LocalDateTime dateDebutSaison,
+        LocalDateTime dateFinSaison,
+        Integer moisDebut,
+        Integer moisFin,
+        boolean disponibleAujourdhui,
+        String instructions,
+        String imageUrl,
+        List<CocktailIngredientResponseDTO> ingredients,
+        List<CocktailVarianteResponseDTO> variantes,
+        List<CocktailRecipeStepResponseDTO> recipeSteps,
+        GlasswareResponseDTO glassware,
+        Set<FlavorProfile> flavorProfiles,
+        BigDecimal alcoholLevel,
+        boolean isMocktail,
+        boolean isVegan,
+        boolean isGlutenFree,
+        BigDecimal recipeCost,
+        BigDecimal sellingPriceHT,
+        BigDecimal grossMargin,
+        BigDecimal grossMarginPercentage,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
+    ) {
+        this(
+            id, nom, description, prix, categorie, disponible, saisonnier,
+            dateDebutSaison, dateFinSaison, moisDebut, moisFin, disponibleAujourdhui,
+            instructions, imageUrl, ingredients, variantes, recipeSteps, glassware,
+            flavorProfiles, alcoholLevel, isMocktail, isVegan, isGlutenFree,
+            PreparationStation.BAR,
+            recipeCost, sellingPriceHT, grossMargin, grossMarginPercentage,
+            createdAt, updatedAt
+        );
+    }
 
     /**
      * Backward-compatible 25-parameter constructor without margin fields.
@@ -119,6 +167,7 @@ public record CocktailResponseDTO(
             dateDebutSaison, dateFinSaison, moisDebut, moisFin, disponibleAujourdhui,
             instructions, imageUrl, ingredients, variantes, recipeSteps, glassware,
             flavorProfiles, alcoholLevel, isMocktail, isVegan, isGlutenFree,
+            PreparationStation.BAR,
             BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
             createdAt, updatedAt
         );
@@ -228,6 +277,7 @@ public record CocktailResponseDTO(
             c.isMocktail(),
             c.isVegan(),
             c.isGlutenFree(),
+            c.getStation() != null ? c.getStation() : PreparationStation.BAR,
             recipeCost,
             sellingPriceHT,
             grossMargin,

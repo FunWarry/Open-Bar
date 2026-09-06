@@ -39,6 +39,7 @@ export const SIDEBAR_NAV_ITEMS: NavItemDef[] = [
   { id: 'nav-serveur', route: '/serveur', icon: 'restaurant-outline', labelKey: 'NAV.SERVEUR', roles: ['SERVEUR', 'ADMIN', 'MANAGER'], section: 'main' },
   { id: 'nav-plan-salle', route: '/plan-salle', icon: 'grid-outline', labelKey: 'NAV.PLAN_SALLE', roles: ['MANAGER', 'ADMIN', 'SERVEUR'], section: 'main' },
   { id: 'nav-barman', route: '/barman', icon: 'beer-outline', labelKey: 'NAV.BARMAN', roles: ['BARMAN', 'ADMIN', 'MANAGER'], section: 'main' },
+  { id: 'nav-kitchen', route: '/kitchen', icon: 'restaurant-outline', labelKey: 'NAV.KITCHEN', roles: ['BARMAN', 'ADMIN', 'MANAGER', 'SERVEUR'], section: 'main' },
   { id: 'nav-manager', route: '/manager', icon: 'stats-chart-outline', labelKey: 'NAV.DASHBOARD', roles: ['MANAGER', 'ADMIN'], section: 'main' },
   { id: 'nav-employees', route: '/manager/employees', icon: 'people-outline', labelKey: 'NAV.EMPLOYEES', roles: ['MANAGER', 'ADMIN'], section: 'main' },
   { id: 'nav-schedule', route: '/manager/schedule', icon: 'calendar-outline', labelKey: 'NAV.SCHEDULE', roles: ['MANAGER', 'ADMIN'], section: 'main' },

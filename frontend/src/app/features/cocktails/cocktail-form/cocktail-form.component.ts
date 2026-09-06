@@ -58,6 +58,8 @@ import {
   cashOutline,
   calculatorOutline,
   statsChartOutline,
+  beerOutline,
+  pizzaOutline,
 } from 'ionicons/icons';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { of } from 'rxjs';
@@ -176,6 +178,13 @@ export class CocktailFormComponent implements OnInit {
     { value: 'SPECIAL', label: this.transloco.translate('COCKTAILS.CATEGORIES.SPECIAL'), icon: 'sparkles-outline' },
   ]);
 
+  // Workstation routing options for searchable combobox
+  stationOptions = computed<SearchableOption[]>(() => [
+    { value: 'BAR', label: this.transloco.translate('STATIONS.BAR'), icon: 'beer-outline' },
+    { value: 'KITCHEN', label: this.transloco.translate('STATIONS.KITCHEN'), icon: 'restaurant-outline' },
+    { value: 'SNACK', label: this.transloco.translate('STATIONS.SNACK'), icon: 'pizza-outline' },
+  ]);
+
   // Glassware options with live search, capacity badges and illustrations
   glasswareOptions = computed<SearchableOption[]>(() => {
     return this.glasswareList().map((g) => ({
@@ -292,6 +301,7 @@ export class CocktailFormComponent implements OnInit {
     isMocktail: [false],
     isVegan: [false],
     isGlutenFree: [false],
+    station: ['BAR', Validators.required],
     recipeSteps: this.fb.array([]),
     variantes: this.fb.array([]),
   });
@@ -428,6 +438,8 @@ export class CocktailFormComponent implements OnInit {
       cashOutline,
       calculatorOutline,
       statsChartOutline,
+      beerOutline,
+      pizzaOutline,
     });
   }
 
@@ -582,6 +594,7 @@ export class CocktailFormComponent implements OnInit {
             isMocktail: cocktail.isMocktail ?? false,
             isVegan: cocktail.isVegan ?? false,
             isGlutenFree: cocktail.isGlutenFree ?? false,
+            station: cocktail.station || 'BAR',
           });
 
           this.saisonnaliteState = {
@@ -1286,6 +1299,7 @@ export class CocktailFormComponent implements OnInit {
       categorie: formVal.category,
       glasswareId: formVal.glasswareId ? +formVal.glasswareId : null,
       instructions: formVal.instructions || null,
+      station: formVal.station || 'BAR',
       flavorProfiles: this.selectedFlavors(),
       alcoholLevel: formVal.alcoholLevel !== null && formVal.alcoholLevel !== '' ? +formVal.alcoholLevel : null,
       isMocktail: formVal.isMocktail ?? false,

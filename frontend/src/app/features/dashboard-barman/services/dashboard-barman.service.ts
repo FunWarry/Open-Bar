@@ -57,6 +57,28 @@ export class DashboardBarmanService {
   }
 
   /**
+   * Updates the workflow status of a specific order line item.
+   *
+   * @param commandeId Order unique identifier
+   * @param itemId Line item unique identifier
+   * @param statut Target status string (EN_PREPARATION, PRET, etc.)
+   * @returns Observable emitting the updated order view
+   */
+  changerItemStatut(commandeId: number, itemId: number, statut: string): Observable<CommandeView> {
+    return this.http.patch<CommandeView>(`${this.apiUrl}/${commandeId}/items/${itemId}/statut`, { statut });
+  }
+
+  /**
+   * Fetches active orders filtered by preparation workstation station.
+   *
+   * @param station Workstation station (BAR, KITCHEN, SNACK)
+   * @returns Observable emitting array of active order views
+   */
+  getCommandesByStation(station: string): Observable<CommandeView[]> {
+    return this.http.get<CommandeView[]>(`${this.apiUrl}/station/${station}`);
+  }
+
+  /**
    * Fetches all registered cocktails for quick availability management and recipes.
    *
    * @returns Observable emitting all cocktails.

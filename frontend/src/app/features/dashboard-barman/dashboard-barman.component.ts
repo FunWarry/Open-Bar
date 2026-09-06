@@ -35,7 +35,8 @@ import {
   refreshOutline,
   filterOutline,
   flameOutline,
-  printOutline
+  printOutline,
+  restaurantOutline
 } from 'ionicons/icons';
 import { CommandeCardComponent } from './components/commande-card/commande-card.component';
 import { NotificationService } from '../../core/services/notification.service';
@@ -97,6 +98,7 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
 
   searchQuery = '';
   urgentOnly = false;
+  stationFilter: 'ALL' | 'BAR' | 'KITCHEN' = 'ALL';
 
   isRecipePanelOpen = false;
   activeRecipeItem: CommandeItemView | null = null;
@@ -127,7 +129,8 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
       refreshOutline,
       filterOutline,
       flameOutline,
-      printOutline
+      printOutline,
+      restaurantOutline
     });
   }
 
@@ -314,6 +317,18 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
         if (!isUrgent) return false;
       }
 
+      // Station filter
+      if (this.stationFilter !== 'ALL') {
+        const hasStationItem = cmd.items?.some(item => {
+          const itemStation = item.station || 'BAR';
+          if (this.stationFilter === 'KITCHEN') {
+            return itemStation === 'KITCHEN' || itemStation === 'SNACK';
+          }
+          return itemStation === this.stationFilter;
+        });
+        if (!hasStationItem) return false;
+      }
+
       // Search term filter
       if (!q) return true;
 
@@ -365,6 +380,15 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
       cssClass: 'bar-ticket-modal-container'
     });
     await modal.present();
+  }
+
+  /**
+   * Sets the active preparation workstation filter (ALL, BAR, KITCHEN).
+   *
+   * @param filter Selected station filter
+   */
+  setStationFilter(filter: 'ALL' | 'BAR' | 'KITCHEN'): void {
+    this.stationFilter = filter;
   }
 
   /**

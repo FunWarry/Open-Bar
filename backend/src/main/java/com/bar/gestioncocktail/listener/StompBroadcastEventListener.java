@@ -13,6 +13,7 @@ import com.bar.gestioncocktail.event.TableDeletedEvent;
 import com.bar.gestioncocktail.event.TableLiberatedEvent;
 import com.bar.gestioncocktail.event.TableUpdatedEvent;
 import com.bar.gestioncocktail.model.Commande;
+import com.bar.gestioncocktail.model.PreparationStation;
 import com.bar.gestioncocktail.model.TableEntity;
 import com.bar.gestioncocktail.service.NotificationService.CommandeStatutNotification;
 import com.bar.gestioncocktail.service.NotificationService.StockAlerteNotification;
@@ -36,6 +37,9 @@ public class StompBroadcastEventListener {
     private static final String TOPIC_COMMANDES_PREFIX = "/topic/commandes/";
     private static final String TOPIC_COMMANDES_STATUT = "/topic/commandes/statut";
     private static final String TOPIC_BARMAN_COMMANDES = "/topic/barman/commandes";
+    private static final String TOPIC_PREPARATION_BAR = "/topic/preparation/bar";
+    private static final String TOPIC_PREPARATION_KITCHEN = "/topic/preparation/kitchen";
+    private static final String TOPIC_PREPARATION_SNACK = "/topic/preparation/snack";
     private static final String TOPIC_TABLES = "/topic/tables";
     private static final String TOPIC_TABLES_DELETE = "/topic/tables/delete";
     private static final String TOPIC_TABLES_SUPPRIME = "/topic/tables/supprime";
@@ -84,9 +88,8 @@ public class StompBroadcastEventListener {
         }
         try {
             if (event.commande() != null) {
+                broadcastOrder(event.commande());
                 CommandeResponseDTO dto = CommandeResponseDTO.from(event.commande());
-                messagingTemplate.convertAndSend(TOPIC_COMMANDES, dto);
-                messagingTemplate.convertAndSend(TOPIC_BARMAN_COMMANDES, dto);
                 messagingTemplate.convertAndSend(TOPIC_COMMANDES_PREFIX + event.commandeId(), dto);
             }
             messagingTemplate.convertAndSend(TOPIC_COMMANDES_STATUT,
@@ -238,6 +241,30 @@ public class StompBroadcastEventListener {
         messagingTemplate.convertAndSend(TOPIC_COMMANDES, dto);
         messagingTemplate.convertAndSend(TOPIC_COMMANDES_STATUT, dto);
         messagingTemplate.convertAndSend(TOPIC_BARMAN_COMMANDES, dto);
+
+        boolean hasBar = false;
+        boolean hasKitchen = false;
+        boolean hasSnack = false;
+        if (dto.items() != null) {
+            for (var item : dto.items()) {
+                if (item.station() == PreparationStation.BAR) {
+                    hasBar = true;
+                } else if (item.station() == PreparationStation.KITCHEN) {
+                    hasKitchen = true;
+                } else if (item.station() == PreparationStation.SNACK) {
+                    hasSnack = true;
+                }
+            }
+        }
+        if (hasBar) {
+            messagingTemplate.convertAndSend(TOPIC_PREPARATION_BAR, dto);
+        }
+        if (hasKitchen || hasSnack) {
+            messagingTemplate.convertAndSend(TOPIC_PREPARATION_KITCHEN, dto);
+        }
+        if (hasSnack) {
+            messagingTemplate.convertAndSend(TOPIC_PREPARATION_SNACK, dto);
+        }
     }
 
     private void broadcastTable(TableEntity table) {

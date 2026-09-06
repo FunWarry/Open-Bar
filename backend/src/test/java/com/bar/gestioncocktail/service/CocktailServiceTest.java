@@ -1029,5 +1029,29 @@ class CocktailServiceTest {
         assertThat(cocktail.isGlutenFree()).isTrue();
         assertThat(cocktail.isMocktail()).isFalse();
     }
+
+    @Test
+    @DisplayName("updateCocktailFromRequest - correctly updates preparation workstation station")
+    void updateCocktailFromRequest_updatesStation() {
+        when(cocktailRepository.findById(1L)).thenReturn(Optional.of(cocktail));
+        when(cocktailRepository.save(any(Cocktail.class))).thenAnswer(i -> i.getArgument(0));
+
+        CocktailRequestDTO request = new CocktailRequestDTO(
+            "Food Snack", "Tasty tapas", new BigDecimal("7.50"), CocktailCategorie.APERITIF,
+            true, false, null, null, null, null, null, null,
+            null, null, List.of(),
+            Set.of(),
+            BigDecimal.ZERO,
+            true,
+            true,
+            true,
+            com.bar.gestioncocktail.model.PreparationStation.SNACK
+        );
+
+        CocktailResponseDTO response = cocktailService.updateCocktailFromRequest(1L, request);
+
+        assertThat(response).isNotNull();
+        assertThat(cocktail.getStation()).isEqualTo(com.bar.gestioncocktail.model.PreparationStation.SNACK);
+    }
 }
 
