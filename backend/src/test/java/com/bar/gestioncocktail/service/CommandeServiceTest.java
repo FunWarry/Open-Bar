@@ -722,4 +722,93 @@ class CommandeServiceTest {
 
         assertThat(resultKitchen).containsExactly(cmdKitchen);
     }
+
+    @Test
+    @DisplayName("changerStatut - cascades status transitions to items correctly")
+    void changerStatut_cascadesOrderStatusToItems() {
+        Commande cmd = new Commande();
+        cmd.setId(70L);
+        cmd.setStatut(CommandeStatut.EN_ATTENTE);
+
+        CommandeItem item1 = new CommandeItem();
+        item1.setId(701L);
+        item1.setStatut(CommandeStatut.EN_ATTENTE);
+
+        CommandeItem item2 = new CommandeItem();
+        item2.setId(702L);
+        item2.setStatut(CommandeStatut.EN_PREPARATION);
+
+        cmd.setItems(new ArrayList<>(List.of(item1, item2)));
+
+        when(commandeRepository.findById(70L)).thenReturn(Optional.of(cmd));
+        when(commandeRepository.save(any(Commande.class))).thenAnswer(i -> i.getArgument(0));
+
+        // Test cascade to EN_PREPARATION
+        commandeService.changerStatut(70L, CommandeStatut.EN_PREPARATION);
+        assertThat(item1.getStatut()).isEqualTo(CommandeStatut.EN_PREPARATION);
+
+        // Test cascade to PRET
+        commandeService.changerStatut(70L, CommandeStatut.PRET);
+        assertThat(item1.getStatut()).isEqualTo(CommandeStatut.PRET);
+        assertThat(item2.getStatut()).isEqualTo(CommandeStatut.PRET);
+
+        // Test cascade to LIVREE
+        commandeService.changerStatut(70L, CommandeStatut.LIVREE);
+        assertThat(item1.getStatut()).isEqualTo(CommandeStatut.LIVREE);
+
+        // Test cascade to ANNULEE
+        commandeService.changerStatut(70L, CommandeStatut.ANNULEE);
+        assertThat(item1.getStatut()).isEqualTo(CommandeStatut.ANNULEE);
+    }
+
+    @Test
+    @DisplayName("updateItemStatut - order already delivered/settled/cancelled does not transition")
+    void updateItemStatut_orderAlreadyFinished_doesNotChangeStatus() {
+        Commande cmd = new Commande();
+        cmd.setId(80L);
+        cmd.setStatut(CommandeStatut.LIVREE);
+
+        CommandeItem item = new CommandeItem();
+        item.setId(801L);
+        item.setCommande(cmd);
+        item.setStatut(CommandeStatut.EN_ATTENTE);
+
+        cmd.setItems(new ArrayList<>(List.of(item)));
+
+        when(commandeRepository.findById(80L)).thenReturn(Optional.of(cmd));
+        when(commandeItemRepository.save(any(CommandeItem.class))).thenReturn(item);
+        when(commandeRepository.save(any(Commande.class))).thenReturn(cmd);
+
+        Commande result = commandeService.updateItemStatut(80L, 801L, CommandeStatut.PRET);
+
+        assertThat(result.getStatut()).isEqualTo(CommandeStatut.LIVREE);
+    }
+
+    @Test
+    @DisplayName("updateItemStatut - item missing from parent order throws ResourceNotFoundException")
+    void updateItemStatut_itemNotInOrder_throwsResourceNotFound() {
+        Commande cmd = new Commande();
+        cmd.setId(81L);
+        cmd.setItems(new ArrayList<>());
+
+        when(commandeRepository.findById(81L)).thenReturn(Optional.of(cmd));
+
+        assertThatThrownBy(() -> commandeService.updateItemStatut(81L, 999L, CommandeStatut.PRET))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Order item not found with id: 999");
+    }
+
+    @Test
+    @DisplayName("updateItemStatut - item without parent order throws ResourceNotFoundException")
+    void updateItemStatut_itemMissingParentOrder_throwsResourceNotFound() {
+        CommandeItem orphanItem = new CommandeItem();
+        orphanItem.setId(802L);
+        orphanItem.setCommande(null);
+
+        when(commandeItemRepository.findById(802L)).thenReturn(Optional.of(orphanItem));
+
+        assertThatThrownBy(() -> commandeService.updateItemStatut(802L, CommandeStatut.PRET))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Parent order not found for item: 802");
+    }
 }
