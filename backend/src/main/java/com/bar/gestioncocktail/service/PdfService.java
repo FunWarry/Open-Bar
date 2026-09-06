@@ -531,7 +531,7 @@ public class PdfService {
             PdfPTable vatTable = new PdfPTable(4);
             vatTable.setWidthPercentage(100);
             applyTableWidths(vatTable, new float[]{1.2f, 1.5f, 1.5f, 1.5f});
-            for (String h : new String[]{"Taux TVA", BASE_HT_HEADER, "Montant TVA", TOTAL_TTC_HEADER}) {
+            for (String h : new String[]{TAUX_TVA_HEADER, BASE_HT_HEADER, "Montant TVA", TOTAL_TTC_HEADER}) {
                 PdfPCell c = new PdfPCell(new Phrase(h, headerFont));
                 c.setBackgroundColor(SURFACE);
                 c.setPadding(4);

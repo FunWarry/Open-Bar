@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import {
   IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
   IonContent, IonFooter, IonCard, IonCardHeader, IonCardTitle, IonCardContent,
-  IonGrid, IonRow, IonCol, IonBadge, IonSpinner, ModalController, ToastController
+  IonBadge, IonSpinner, ModalController, ToastController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -76,9 +76,6 @@ export const EURO_DENOMINATIONS: CashDenomination[] = [
     IonCardHeader,
     IonCardTitle,
     IonCardContent,
-    IonGrid,
-    IonRow,
-    IonCol,
     IonBadge,
     IonSpinner
   ],

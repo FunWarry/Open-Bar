@@ -219,7 +219,7 @@ describe('FactureService', () => {
 
     service.getClotures().subscribe((res) => {
       expect(res).toEqual(mockClosures as any);
-      expect(res.length).toBe(2);
+      expect(res).toHaveSize(2);
     });
 
     const req = httpMock.expectOne(`${apiUrl}/clotures`);
