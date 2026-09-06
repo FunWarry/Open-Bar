@@ -31,7 +31,7 @@
     "@stomp/rx-stomp": "^2.4.0",
     "@stomp/stompjs": "^7.3.0",
     "idb": "^8.0.3",
-    "konva": "^10.3.0",
+    "konva": "^10.3.2",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.15.0"
