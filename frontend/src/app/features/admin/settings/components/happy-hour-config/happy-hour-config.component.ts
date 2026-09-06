@@ -128,6 +128,14 @@ export class HappyHourConfigComponent implements OnInit, OnDestroy {
 
   ruleForm!: FormGroup;
 
+  /** Options for discount type dropdown conforming to OpenBar design system */
+  readonly discountTypeOptions = computed<SearchableOption<DiscountType>[]>(() =>
+    this.discountTypes.map((dt) => ({
+      value: dt.value,
+      label: this.translocoService.translate(dt.labelKey),
+    }))
+  );
+
   /** Multi-select options for cocktails */
   readonly cocktailOptions = computed<SearchableOption<number>[]>(() =>
     this.cocktails().map((c) => ({
@@ -420,6 +428,13 @@ export class HappyHourConfigComponent implements OnInit, OnDestroy {
         return `${this.formatCurrency(value)}`;
       case 'FIXED_DISCOUNT':
         return `-${this.formatCurrency(value)}`;
+    }
+  }
+
+  onSimulationCocktailSelect(opt: SearchableOption<number> | null): void {
+    if (opt && opt.value !== null && opt.value !== undefined) {
+      this.simulationCocktailId.set(Number(opt.value));
+      this.runSimulation();
     }
   }
 

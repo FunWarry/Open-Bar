@@ -165,17 +165,15 @@
           <div class="simulator-form">
             <!-- Simulated Drink Picker -->
             <div class="sim-field">
-              <label class="field-label" for="select-simulator-cocktail">{{ 'SETTINGS.HAPPY_HOUR_SIMULATOR_COCKTAIL' | transloco }}</label>
-              <select
-                id="select-simulator-cocktail"
-                class="sim-select"
-                [ngModel]="simulationCocktailId()"
-                (ngModelChange)="onSimulationCocktailChange($event)"
-                data-testid="select-simulator-cocktail">
-                @for (c of cocktails(); track c.id) {
-                  <option [value]="c.id">{{ c.nom }} ({{ formatCurrency(c.prix) }})</option>
-                }
-              </select>
+              <span class="field-label">{{ 'SETTINGS.HAPPY_HOUR_SIMULATOR_COCKTAIL' | transloco }}</span>
+              <app-searchable-select
+                [options]="cocktailOptions()"
+                [value]="simulationCocktailId()"
+                (selectionChange)="onSimulationCocktailSelect($event)"
+                [clearable]="false"
+                [searchable]="true"
+                testId="select-simulator-cocktail">
+              </app-searchable-select>
             </div>
 
             <!-- Simulated Time -->
@@ -325,16 +323,14 @@
           <!-- Discount Strategy and Value -->
           <div class="form-row discount-row">
             <div class="form-group">
-              <label class="form-label" for="rule-discount-type">{{ 'SETTINGS.HAPPY_HOUR_DISCOUNT_TYPE' | transloco }} *</label>
-              <select
-                id="rule-discount-type"
-                class="form-select"
+              <span class="form-label">{{ 'SETTINGS.HAPPY_HOUR_DISCOUNT_TYPE' | transloco }} *</span>
+              <app-searchable-select
                 formControlName="discountType"
-                data-testid="select-rule-discount-type">
-                @for (dt of discountTypes; track dt.value) {
-                  <option [value]="dt.value">{{ dt.labelKey | transloco }}</option>
-                }
-              </select>
+                [options]="discountTypeOptions()"
+                [clearable]="false"
+                [enableSearch]="false"
+                testId="select-rule-discount-type">
+              </app-searchable-select>
             </div>
 
             <div class="form-group">
