@@ -305,6 +305,41 @@
                       </div>
                     </ion-card-content>
                   </ion-card>
+
+                  <!-- Carte Mises à Jour Système -->
+                  <ion-card class="settings-card updates-card" data-testid="settings-updates-card">
+                    <ion-card-header>
+                      <ion-card-title class="card-title">
+                        <ion-icon name="cloud-download-outline" class="title-icon"></ion-icon>
+                        {{ 'APP_SETTINGS_UPDATES.CARD_TITLE' | transloco }}
+                      </ion-card-title>
+                    </ion-card-header>
+                    <ion-card-content>
+                      <p class="settings-desc">{{ 'APP_SETTINGS_UPDATES.CARD_DESC' | transloco }}</p>
+                      <div class="system-version-info" style="display: flex; align-items: center; gap: 8px; margin: 12px 0;">
+                        <span class="version-label">{{ 'APP_SETTINGS_UPDATES.CURRENT_VERSION' | transloco }}</span>
+                        <ion-badge color="primary" data-testid="settings-system-version">v{{ currentAppVersion }}</ion-badge>
+                      </div>
+                      <div class="updates-action-row" style="margin-top: 12px;">
+                        <ion-button
+                          size="small"
+                          fill="outline"
+                          (click)="checkForUpdates()"
+                          (keyup.enter)="checkForUpdates()"
+                          [disabled]="isCheckingUpdates"
+                          data-testid="check-updates-btn"
+                        >
+                          <ion-icon name="refresh-outline" slot="start"></ion-icon>
+                          <span>{{ isCheckingUpdates ? ('APP_SETTINGS_UPDATES.CHECKING' | transloco) : ('APP_SETTINGS_UPDATES.CHECK_UPDATES_BTN' | transloco) }}</span>
+                        </ion-button>
+                      </div>
+                      @if (updateCheckMessage) {
+                        <p class="update-status-msg" [class.success]="updateCheckSuccess" [class.warning]="!updateCheckSuccess" data-testid="update-status-msg" style="margin-top: 10px; font-size: 0.85rem;">
+                          {{ updateCheckMessage }}
+                        </p>
+                      }
+                    </ion-card-content>
+                  </ion-card>
                 </ion-col>
 
                 <!-- Colonne Droite : Aperçu Ticket de Caisse Conforme Facturation -->

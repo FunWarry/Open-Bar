@@ -7,6 +7,7 @@ import { AppSettingsService } from './core/services/app-settings.service';
 import { NotificationService } from './core/services/notification.service';
 import { LanguageService } from './core/services/language.service';
 import { ThemeService } from './core/services/theme.service';
+import { AppUpdateService } from './core/services/app-update.service';
 import { filter, map, combineLatest, startWith, Observable } from 'rxjs';
 import { Store } from '@ngrx/store';
 import { selectIsAuthenticated } from './core/store/auth.selectors';
@@ -35,7 +36,8 @@ export class AppComponent implements OnInit {
     public readonly notifService: NotificationService,
     public readonly languageService: LanguageService,
     private readonly store: Store,
-    private readonly themeService: ThemeService
+    private readonly themeService: ThemeService,
+    private readonly appUpdateService: AppUpdateService
   ) {
     addIcons(allIcons);
     const isAuth$ = this.store.select(selectIsAuthenticated);
@@ -60,5 +62,6 @@ export class AppComponent implements OnInit {
     this.appSettingsService.getSettings().subscribe({
       error: () => { /* Réglages par défaut du design system conservés si l'API est indisponible */ },
     });
+    this.appUpdateService.initStartupCheck();
   }
 }
