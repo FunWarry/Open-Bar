@@ -449,6 +449,7 @@ Pour les fichiers scopés par feature (ex : `fr/commandes.json`), déclarer le s
 | Personnalisation Interactive Thème & Palettes HSL (#217) | — | ✅ | ✅ |
 | Vue Globale Stock Barman & Manager (#226) | ✅ | ✅ | ✅ |
 | Architecture Modulaire & Feature Flags Établissement (#405) | ✅ | ✅ | ✅ |
+| Harmonisation Header Barman & Segment Mode Rush (#420) | — | ✅ | ✅ |
 
 
 
