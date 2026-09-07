@@ -95,7 +95,7 @@ function handleRefresh(
   refreshDone$.next(null);
 
   return http.post<{ accessToken: string; refreshToken: string }>(
-    `${environment.apiUrl}/api/auth/refresh`,
+    `${environment.apiUrl}/auth/refresh`,
     { refreshToken }
   ).pipe(
     switchMap(tokens => {

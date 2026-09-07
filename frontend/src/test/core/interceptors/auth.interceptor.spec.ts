@@ -25,7 +25,7 @@ describe('authInterceptor', () => {
   let mockSelectAuthToken: MemoizedSelector<object, string | null>;
 
   const apiUrl = `${environment.apiUrl}/commandes`;
-  const authApiUrl = `${environment.apiUrl}/api/auth/refresh`;
+  const authApiUrl = `${environment.apiUrl}/auth/refresh`;
 
   function setup(token: string | null = null, refreshToken: string | null = null) {
     authService = jasmine.createSpyObj('AuthService', [
@@ -55,19 +55,20 @@ describe('authInterceptor', () => {
     TestBed.resetTestingModule();
   });
 
-  // ─── Ajout du header Authorization ───────────────────────────────────────────
+  // ─── Authorization Header Injection ───────────────────────────────────────────
 
-  it('ajoute Authorization header quand un token est present dans le store', () => {
-    setup('jwt-token-123');
+  it('adds Authorization header when an access token is present in the store', () => {
+    const mockAccessToken = 'mock-access-token';
+    setup(mockAccessToken);
 
     httpClient.get(apiUrl).subscribe();
 
     const req = httpMock.expectOne(apiUrl);
-    expect(req.request.headers.get('Authorization')).toBe('Bearer jwt-token-123');
+    expect(req.request.headers.get('Authorization')).toBe(`Bearer ${mockAccessToken}`);
     req.flush([]);
   });
 
-  it('ne pas ajouter Authorization header quand aucun token dans le store', () => {
+  it('does not add Authorization header when no token is present in the store', () => {
     setup(null);
 
     httpClient.get(apiUrl).subscribe();
@@ -79,8 +80,8 @@ describe('authInterceptor', () => {
 
   // ─── No interference on auth routes ──────────────────────────────────
 
-  it('laisse passer les erreurs 401 sur les routes /api/auth/ sans tenter un refresh', () => {
-    setup('some-token', null);
+  it('passes through 401 errors on auth routes without attempting token refresh', () => {
+    setup('mock-token', null);
 
     let errorCaught: HttpErrorResponse | undefined;
     httpClient.post(`${environment.apiUrl}/api/auth/login`, {}).subscribe({
@@ -96,38 +97,43 @@ describe('authInterceptor', () => {
     httpMock.expectNone(authApiUrl);
   });
 
-  // ─── Refresh token : flux nominal ────────────────────────────────────────────
+  // ─── Refresh token: nominal flow ────────────────────────────────────────────
 
-  it('rafraichit le token et rejoue la requete originale en cas de 401 avec refreshToken disponible', () => {
-    setup('expired-token', 'valid-refresh-token');
+  it('refreshes token and replays original request on 401 when refresh token is available', () => {
+    const expiredToken = 'mock-expired-token';
+    const validRefreshToken = 'mock-valid-refresh-token';
+    const newAccessToken = 'mock-new-access-token';
+    const newRefreshToken = 'mock-new-refresh-token';
+
+    setup(expiredToken, validRefreshToken);
 
     let responseData: unknown;
     httpClient.get(apiUrl).subscribe(data => { responseData = data; });
 
     // 1) Original request — responds 401
     const originalReq = httpMock.expectOne(apiUrl);
-    expect(originalReq.request.headers.get('Authorization')).toBe('Bearer expired-token');
+    expect(originalReq.request.headers.get('Authorization')).toBe(`Bearer ${expiredToken}`);
     originalReq.flush('Unauthorized', { status: 401, statusText: 'Unauthorized' });
 
     // 2) Refresh request
     const refreshReq = httpMock.expectOne(authApiUrl);
     expect(refreshReq.request.method).toBe('POST');
-    expect(refreshReq.request.body).toEqual({ refreshToken: 'valid-refresh-token' });
-    refreshReq.flush({ accessToken: 'new-access-token', refreshToken: 'new-refresh-token' });
+    expect(refreshReq.request.body).toEqual({ refreshToken: validRefreshToken });
+    refreshReq.flush({ accessToken: newAccessToken, refreshToken: newRefreshToken });
 
     // 3) Original request replayed with new token
     const replayedReq = httpMock.expectOne(apiUrl);
-    expect(replayedReq.request.headers.get('Authorization')).toBe('Bearer new-access-token');
+    expect(replayedReq.request.headers.get('Authorization')).toBe(`Bearer ${newAccessToken}`);
     replayedReq.flush([{ id: 1 }]);
 
-    expect(authService.storeTokens).toHaveBeenCalledWith('new-access-token', 'new-refresh-token');
+    expect(authService.storeTokens).toHaveBeenCalledWith(newAccessToken, newRefreshToken);
     expect(responseData).toEqual([{ id: 1 }]);
   });
 
   // ─── Refresh token: no refresh token stored -> logout ───────────────────
 
-  it('dispatche logout et propage une erreur quand aucun refreshToken nest disponible en cas de 401', () => {
-    setup('expired-token', null);
+  it('dispatches logout and propagates error when no refresh token is available on 401', () => {
+    setup('mock-expired-token', null);
     spyOn(store, 'dispatch');
 
     let errorCaught: Error | undefined;
@@ -146,8 +152,8 @@ describe('authInterceptor', () => {
 
   // ─── Refresh token: refresh failure -> logout ───────────────────────────────
 
-  it('dispatche logout et propage une erreur quand le endpoint de refresh repond 401', () => {
-    setup('expired-token', 'bad-refresh-token');
+  it('dispatches logout and propagates error when refresh endpoint responds 401', () => {
+    setup('mock-expired-token', 'mock-bad-refresh-token');
     spyOn(store, 'dispatch');
 
     let errorCaught: HttpErrorResponse | undefined;
@@ -170,8 +176,8 @@ describe('authInterceptor', () => {
 
   // ─── Non-401 errors propagated without refresh ───────────────────────────────────
 
-  it('propage les erreurs non-401 sans tenter de refresh', () => {
-    setup('valid-token', 'some-refresh-token');
+  it('propagates non-401 errors without attempting token refresh', () => {
+    setup('mock-valid-token', 'mock-some-refresh-token');
 
     let errorCaught: HttpErrorResponse | undefined;
     httpClient.get(apiUrl).subscribe({
@@ -188,8 +194,8 @@ describe('authInterceptor', () => {
 
   // ─── Successful request passed through ─────────────────────────────────────
 
-  it('laisse passer une reponse 200 sans modification', () => {
-    setup('valid-token');
+  it('passes through 200 response without modification', () => {
+    setup('mock-valid-token');
 
     let responseData: unknown;
     httpClient.get(apiUrl).subscribe(data => { responseData = data; });
@@ -201,3 +207,4 @@ describe('authInterceptor', () => {
     expect(responseData).toEqual([{ id: 1, nom: 'Mojito' }]);
   });
 });
+

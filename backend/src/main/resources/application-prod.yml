@@ -5,6 +5,17 @@ spring:
     username: ${DB_USER:postgres}
     password: ${POSTGRES_PASSWORD:postgres}
 
+  jpa:
+    properties:
+      hibernate:
+        format_sql: false
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
 openbar:
   cors:
     allowed-origin-patterns: ${OPENBAR_CORS_ALLOWED_ORIGINS:http://localhost:*,http://127.0.0.1:*,https://open-bar.freeboxos.fr,http://192.168.*:*,http://10.*:*,http://172.16.*:*}
