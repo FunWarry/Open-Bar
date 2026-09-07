@@ -279,9 +279,10 @@ Service frontend : `websocket.service.ts` — ✅ pleinement implémenté (RxSto
 | Documentation OpenAPI / JavaDoc / TSDoc (#192) | ✅ | ✅ | ✅ | — | — |
 | **Design system — tokens (couleurs/espacement/rayons)** | — | ✅ implémenté (#152) | ✅ | ✅ | — |
 | **Personnalisation admin (branding)** | ✅ | ✅ | ✅ | ✅ | — |
+| **Architecture modulaire & Feature flags (#405)** | ✅ | ✅ | ✅ | ✅ designé | — |
 
 > Légende tests : ✅ tests écrits et passants · ⚠️ tests partiels · ❌ aucun test · — non applicable
-> Dernière mise à jour : 15 août 2026 (PR #298 / Issue #292)
+> Dernière mise à jour : 7 septembre 2026 (Ticket #405 — Architecture modulaire & feature flags d'établissement)
 
 ---
 
@@ -801,6 +802,7 @@ Après une authentification réussie, l'utilisateur est redirigé directement ve
 18. ~~📦 **Ticket #Q — Barman Panel Stock Alignement** (Issue #238)~~ ✅ (Mergé PR #248)
 19. ~~👤 **Ticket #R — Profil Formulaire Pré-rempli NgRx** (Issue #239)~~ ✅ (Mergé PR #247)
 20. 🧪 **Issue #193 — Tests d'intégration Spring Boot (Testcontainers) et E2E Playwright** [OPEN]
+21. ~~🧩 **Ticket #405 — Architecture modulaire & feature flags d'établissement** (Issue #405)~~ ✅ (En cours de merge)
 
 ### Rappels plugin Figma
 

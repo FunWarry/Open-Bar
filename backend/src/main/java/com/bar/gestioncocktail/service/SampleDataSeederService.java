@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -85,7 +84,6 @@ public class SampleDataSeederService {
     private final TableCartItemRepository tableCartItemRepository;
     private final AppSettingsRepository appSettingsRepository;
     private final EstablishmentConfigRepository establishmentConfigRepository;
-    private final JdbcTemplate jdbcTemplate;
     private final PasswordEncoder passwordEncoder;
     private final TimeService timeService;
     private final PlatformTransactionManager transactionManager;
@@ -121,7 +119,6 @@ public class SampleDataSeederService {
             TableCartItemRepository tableCartItemRepository,
             AppSettingsRepository appSettingsRepository,
             EstablishmentConfigRepository establishmentConfigRepository,
-            JdbcTemplate jdbcTemplate,
             PasswordEncoder passwordEncoder,
             TimeService timeService,
             PlatformTransactionManager transactionManager,
@@ -150,7 +147,6 @@ public class SampleDataSeederService {
         this.tableCartItemRepository = tableCartItemRepository;
         this.appSettingsRepository = appSettingsRepository;
         this.establishmentConfigRepository = establishmentConfigRepository;
-        this.jdbcTemplate = jdbcTemplate;
         this.passwordEncoder = passwordEncoder;
         this.timeService = timeService;
         this.transactionManager = transactionManager;
@@ -168,7 +164,6 @@ public class SampleDataSeederService {
      */
     @PostConstruct
     public void seedDemoDataIfEmpty() {
-        migrateLegacySchemas();
         cleanPollutedTestData();
 
         if (!isTestProfileActive()) {
@@ -179,36 +174,6 @@ public class SampleDataSeederService {
         log.info("Starting complete demo dataset seeding from JSON asset '{}'...", DATASET_PATH);
         seedAllDemoData();
         log.info("Demo dataset seeding successfully finished.");
-    }
-
-    private void migrateLegacySchemas() {
-        if (jdbcTemplate != null) {
-            safelyInTransaction(() -> {
-                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS primary_color VARCHAR(7) DEFAULT '#6c7fe8'");
-                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS primary_color_strong VARCHAR(7) DEFAULT '#5a68d6'");
-                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS logo_url VARCHAR(2048)");
-                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS establishment_name VARCHAR(100) DEFAULT 'OpenBar'");
-                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS default_theme VARCHAR(20) DEFAULT 'DARK'");
-                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS currency_code VARCHAR(3) DEFAULT 'EUR'");
-                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS currency_symbol VARCHAR(10) DEFAULT '€'");
-                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS currency_position VARCHAR(10) DEFAULT 'AFTER'");
-                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS temps_alerte_warning_minutes INTEGER DEFAULT 3");
-                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS temps_alerte_commande_minutes INTEGER DEFAULT 5");
-                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS temps_alerte_critique_commande_minutes INTEGER DEFAULT 10");
-                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS client_base_url VARCHAR(500) DEFAULT 'https://openbar.lan'");
-                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS wifi_ssid VARCHAR(100)");
-                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS wifi_password VARCHAR(100)");
-                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS wifi_security VARCHAR(20) DEFAULT 'WPA'");
-                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS wifi_enabled BOOLEAN DEFAULT false");
-                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS table_session_validation_enabled BOOLEAN DEFAULT false");
-                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS default_vat_rate DECIMAL(5,2) DEFAULT 20.00");
-                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS target_gross_margin_percentage DECIMAL(5,2) DEFAULT 70.00");
-                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS warning_gross_margin_percentage DECIMAL(5,2) DEFAULT 50.00");
-                jdbcTemplate.execute("ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP");
-                jdbcTemplate.execute("ALTER TABLE establishment_config ADD COLUMN IF NOT EXISTS ticket_format VARCHAR(10) DEFAULT '80mm'");
-                jdbcTemplate.execute("ALTER TABLE commandes ADD COLUMN IF NOT EXISTS client_request_id VARCHAR(100) UNIQUE");
-            }, "migrateLegacySchemas");
-        }
     }
 
     /**
@@ -367,8 +332,6 @@ public class SampleDataSeederService {
     }
 
     public void seedAllDemoData() {
-        migrateLegacySchemas();
-
         if (cocktailDataSeederService != null && cocktailRepository.count() == 0) {
             log.info("Seeding cocktails prerequisite for demo dataset...");
             cocktailDataSeederService.seedCocktails(false);
@@ -1266,12 +1229,20 @@ public class SampleDataSeederService {
             appSettingsRepository.save(new AppSettings());
             log.info("Seeded default AppSettings singleton.");
         }
-        if (!establishmentConfigRepository.existsById(EstablishmentConfig.SINGLETON_ID)) {
-            EstablishmentConfig config = new EstablishmentConfig();
-            config.setId(EstablishmentConfig.SINGLETON_ID);
-            establishmentConfigRepository.save(config);
-            log.info("Seeded default EstablishmentConfig singleton.");
-        }
+        EstablishmentConfig config = establishmentConfigRepository.findById(EstablishmentConfig.SINGLETON_ID)
+                .orElseGet(() -> {
+                    EstablishmentConfig c = new EstablishmentConfig();
+                    c.setId(EstablishmentConfig.SINGLETON_ID);
+                    return c;
+                });
+        if (config.getModuleKitchenKdsEnabled() == null) config.setModuleKitchenKdsEnabled(true);
+        if (config.getModuleHappyHourEnabled() == null) config.setModuleHappyHourEnabled(true);
+        if (config.getModuleEmployeeManagementEnabled() == null) config.setModuleEmployeeManagementEnabled(true);
+        if (config.getModuleFloorPlanEnabled() == null) config.setModuleFloorPlanEnabled(true);
+        if (config.getModuleQrClientOrderingEnabled() == null) config.setModuleQrClientOrderingEnabled(true);
+        if (config.getModuleStockTrackingEnabled() == null) config.setModuleStockTrackingEnabled(true);
+        establishmentConfigRepository.save(config);
+        log.info("Seeded default EstablishmentConfig singleton with modular capabilities.");
     }
 
     private void seedHappyHourRulesFromJson(JsonNode rulesNode, List<Cocktail> cocktails) {

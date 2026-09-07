@@ -1,5 +1,7 @@
+import { EstablishmentModules } from './establishment-module.model';
+
 /**
- * Legal establishment configuration including SIRET, legal notices, and VAT rates.
+ * Legal establishment configuration including SIRET, legal notices, VAT rates, and modular features.
  */
 export interface EstablishmentConfig {
   id?: number;
@@ -21,6 +23,7 @@ export interface EstablishmentConfig {
   latePaymentRate: number;
   timeZone?: string;
   ticketFormat?: '80mm' | '58mm';
+  modules?: EstablishmentModules;
   createdAt?: string;
   updatedAt?: string;
 }

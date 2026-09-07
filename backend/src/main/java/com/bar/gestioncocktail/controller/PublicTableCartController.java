@@ -23,14 +23,19 @@ import org.springframework.web.bind.annotation.*;
 public class PublicTableCartController {
 
     private final TableCartService tableCartService;
+    private final com.bar.gestioncocktail.service.EstablishmentConfigService establishmentConfigService;
 
     /**
-     * Constructs the controller with the collaborative table cart service.
+     * Constructs the controller with the collaborative table cart service and establishment config service.
      *
-     * @param tableCartService Table cart service
+     * @param tableCartService          Table cart service
+     * @param establishmentConfigService Establishment config service
      */
-    public PublicTableCartController(TableCartService tableCartService) {
+    public PublicTableCartController(
+            TableCartService tableCartService,
+            com.bar.gestioncocktail.service.EstablishmentConfigService establishmentConfigService) {
         this.tableCartService = tableCartService;
+        this.establishmentConfigService = establishmentConfigService;
     }
 
     /**
@@ -64,6 +69,9 @@ public class PublicTableCartController {
     public ResponseEntity<TableCartResponseDTO> addItem(
             @Parameter(description = "Table identifier", example = "5") @PathVariable Long tableId,
             @Valid @RequestBody TableCartItemRequestDTO dto) {
+        if (!establishmentConfigService.isModuleEnabled(com.bar.gestioncocktail.model.EstablishmentModule.QR_CLIENT_ORDERING)) {
+            throw new com.bar.gestioncocktail.exception.BusinessException("Customer QR ordering is currently disabled for this establishment.");
+        }
         TableCartResponseDTO cart = tableCartService.addItem(tableId, dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(cart);
     }
@@ -140,6 +148,9 @@ public class PublicTableCartController {
     public ResponseEntity<PublicCommandeResponseDTO> submitCart(
             @Parameter(description = "Table identifier", example = "5") @PathVariable Long tableId,
             @Valid @RequestBody TableCartSubmitRequestDTO dto) {
+        if (!establishmentConfigService.isModuleEnabled(com.bar.gestioncocktail.model.EstablishmentModule.QR_CLIENT_ORDERING)) {
+            throw new com.bar.gestioncocktail.exception.BusinessException("Customer QR ordering is currently disabled for this establishment.");
+        }
         PublicCommandeResponseDTO order = tableCartService.submitCart(tableId, dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(order);
     }

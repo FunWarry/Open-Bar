@@ -37,6 +37,16 @@
     <button
       type="button"
       class="tab-btn"
+      [class.active]="activeTab === 'modules'"
+      (click)="selectTab('modules')"
+      data-testid="tab-modules">
+      <ion-icon name="apps-outline"></ion-icon>
+      <span>{{ 'SETTINGS.TAB_MODULES' | transloco }}</span>
+    </button>
+
+    <button
+      type="button"
+      class="tab-btn"
       [class.active]="activeTab === 'timers'"
       (click)="selectTab('timers')"
       data-testid="tab-timers">
@@ -64,25 +74,29 @@
       <span>{{ 'SETTINGS.TAB_THEME' | transloco }}</span>
     </button>
 
-    <button
-      type="button"
-      class="tab-btn"
-      [class.active]="activeTab === 'qr'"
-      (click)="selectTab('qr')"
-      data-testid="tab-qr">
-      <ion-icon name="qr-code-outline"></ion-icon>
-      <span>{{ 'SETTINGS.TAB_QR' | transloco }}</span>
-    </button>
+    @if (qrClientOrderingEnabled()) {
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="activeTab === 'qr'"
+        (click)="selectTab('qr')"
+        data-testid="tab-qr">
+        <ion-icon name="qr-code-outline"></ion-icon>
+        <span>{{ 'SETTINGS.TAB_QR' | transloco }}</span>
+      </button>
+    }
 
-    <button
-      type="button"
-      class="tab-btn"
-      [class.active]="activeTab === 'pricing'"
-      (click)="selectTab('pricing')"
-      data-testid="tab-pricing">
-      <ion-icon name="pricetag-outline"></ion-icon>
-      <span>{{ 'SETTINGS.TAB_PRICING' | transloco }}</span>
-    </button>
+    @if (happyHourEnabled()) {
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="activeTab === 'pricing'"
+        (click)="selectTab('pricing')"
+        data-testid="tab-pricing">
+        <ion-icon name="pricetag-outline"></ion-icon>
+        <span>{{ 'SETTINGS.TAB_PRICING' | transloco }}</span>
+      </button>
+    }
 
     <button
       type="button"
@@ -357,6 +371,171 @@
                         [establishmentConfig]="currentEtabConfig"
                         [ticketFormat]="etabForm.get('ticketFormat')?.value">
                       </app-ticket-receipt>
+                    </ion-card-content>
+                  </ion-card>
+                </ion-col>
+              </ion-row>
+            </ion-grid>
+          </form>
+        </section>
+      }
+
+      <!-- ========================================== -->
+      <!-- TAB: Architecture Modulaire & Capacités    -->
+      <!-- ========================================== -->
+      @if (activeTab === 'modules') {
+        <section class="tab-panel" data-testid="panel-modules">
+          <form [formGroup]="modulesForm" class="settings-form">
+            <ion-grid>
+              <ion-row>
+                <!-- Colonne Gauche : Presets & Configuration des 6 Modules -->
+                <ion-col size="12" sizeLg="8">
+                  <!-- Section Presets -->
+                  <ion-card class="settings-card" data-testid="card-module-presets">
+                    <ion-card-header>
+                      <ion-card-title class="card-title">
+                        <ion-icon name="sparkles-outline"></ion-icon>
+                        <span>{{ 'SETTINGS.MODULES_PRESETS_TITLE' | transloco }}</span>
+                      </ion-card-title>
+                      <p class="card-subtitle">{{ 'SETTINGS.MODULES_PRESETS_SUBTITLE' | transloco }}</p>
+                    </ion-card-header>
+                    <ion-card-content>
+                      <div class="cadence-presets-grid">
+                        @for (preset of modulePresets; track preset.type) {
+                          <button
+                            type="button"
+                            class="cadence-card"
+                            (click)="applyModulesPreset(preset.type)"
+                            [attr.data-testid]="'preset-module-' + preset.type.toLowerCase()">
+                            <span class="cadence-name">
+                              <ion-icon [name]="preset.icon" style="margin-right: 6px;"></ion-icon>
+                              {{ preset.labelKey | transloco }}
+                            </span>
+                            <span class="card-subtitle" style="font-size: 0.78rem; margin: 4px 0 0;">{{ preset.descKey | transloco }}</span>
+                          </button>
+                        }
+                      </div>
+                    </ion-card-content>
+                  </ion-card>
+
+                  <!-- Section Modules Toggles -->
+                  <ion-card class="settings-card" data-testid="card-modules-toggles">
+                    <ion-card-header>
+                      <ion-card-title class="card-title">
+                        <ion-icon name="apps-outline"></ion-icon>
+                        <span>{{ 'SETTINGS.MODULES_TITLE' | transloco }}</span>
+                      </ion-card-title>
+                      <p class="card-subtitle">{{ 'SETTINGS.MODULES_SUBTITLE' | transloco }}</p>
+                    </ion-card-header>
+                    <ion-card-content>
+                      <div class="thresholds-container">
+                        <!-- Module 1: CUISINE_KDS -->
+                        <div class="threshold-row" data-testid="module-row-cuisine-kds">
+                          <div class="threshold-header">
+                            <span class="threshold-title">
+                              <ion-icon name="restaurant-outline" style="margin-right: 8px; vertical-align: middle;"></ion-icon>
+                              {{ 'SETTINGS.MODULE_CUISINE_KDS_TITLE' | transloco }}
+                            </span>
+                            <ion-toggle formControlName="cuisineKds" data-testid="toggle-module-cuisine-kds"></ion-toggle>
+                          </div>
+                          <p class="threshold-desc">{{ 'SETTINGS.MODULE_CUISINE_KDS_DESC' | transloco }}</p>
+                        </div>
+
+                        <!-- Module 2: HAPPY_HOUR -->
+                        <div class="threshold-row" data-testid="module-row-happy-hour">
+                          <div class="threshold-header">
+                            <span class="threshold-title">
+                              <ion-icon name="pricetag-outline" style="margin-right: 8px; vertical-align: middle;"></ion-icon>
+                              {{ 'SETTINGS.MODULE_HAPPY_HOUR_TITLE' | transloco }}
+                            </span>
+                            <ion-toggle formControlName="happyHour" data-testid="toggle-module-happy-hour"></ion-toggle>
+                          </div>
+                          <p class="threshold-desc">{{ 'SETTINGS.MODULE_HAPPY_HOUR_DESC' | transloco }}</p>
+                        </div>
+
+                        <!-- Module 3: EMPLOYEE_MANAGEMENT -->
+                        <div class="threshold-row" data-testid="module-row-employee-management">
+                          <div class="threshold-header">
+                            <span class="threshold-title">
+                              <ion-icon name="people-outline" style="margin-right: 8px; vertical-align: middle;"></ion-icon>
+                              {{ 'SETTINGS.MODULE_EMPLOYEE_MANAGEMENT_TITLE' | transloco }}
+                            </span>
+                            <ion-toggle formControlName="employeeManagement" data-testid="toggle-module-employee-management"></ion-toggle>
+                          </div>
+                          <p class="threshold-desc">{{ 'SETTINGS.MODULE_EMPLOYEE_MANAGEMENT_DESC' | transloco }}</p>
+                        </div>
+
+                        <!-- Module 4: FLOOR_PLAN -->
+                        <div class="threshold-row" data-testid="module-row-floor-plan">
+                          <div class="threshold-header">
+                            <span class="threshold-title">
+                              <ion-icon name="grid-outline" style="margin-right: 8px; vertical-align: middle;"></ion-icon>
+                              {{ 'SETTINGS.MODULE_FLOOR_PLAN_TITLE' | transloco }}
+                            </span>
+                            <ion-toggle formControlName="floorPlan" data-testid="toggle-module-floor-plan"></ion-toggle>
+                          </div>
+                          <p class="threshold-desc">{{ 'SETTINGS.MODULE_FLOOR_PLAN_DESC' | transloco }}</p>
+                        </div>
+
+                        <!-- Module 5: QR_CLIENT_ORDERING -->
+                        <div class="threshold-row" data-testid="module-row-qr-client-ordering">
+                          <div class="threshold-header">
+                            <span class="threshold-title">
+                              <ion-icon name="qr-code-outline" style="margin-right: 8px; vertical-align: middle;"></ion-icon>
+                              {{ 'SETTINGS.MODULE_QR_CLIENT_ORDERING_TITLE' | transloco }}
+                            </span>
+                            <ion-toggle formControlName="qrClientOrdering" data-testid="toggle-module-qr-client-ordering"></ion-toggle>
+                          </div>
+                          <p class="threshold-desc">{{ 'SETTINGS.MODULE_QR_CLIENT_ORDERING_DESC' | transloco }}</p>
+                        </div>
+
+                        <!-- Module 6: STOCK_TRACKING -->
+                        <div class="threshold-row" data-testid="module-row-stock-tracking">
+                          <div class="threshold-header">
+                            <span class="threshold-title">
+                              <ion-icon name="nutrition-outline" style="margin-right: 8px; vertical-align: middle;"></ion-icon>
+                              {{ 'SETTINGS.MODULE_STOCK_TRACKING_TITLE' | transloco }}
+                            </span>
+                            <ion-toggle formControlName="stockTracking" data-testid="toggle-module-stock-tracking"></ion-toggle>
+                          </div>
+                          <p class="threshold-desc">{{ 'SETTINGS.MODULE_STOCK_TRACKING_DESC' | transloco }}</p>
+                        </div>
+                      </div>
+                    </ion-card-content>
+                  </ion-card>
+                </ion-col>
+
+                <!-- Colonne Droite : Statut & Actions Rapides -->
+                <ion-col size="12" sizeLg="4">
+                  <ion-card class="settings-card preview-sticky">
+                    <ion-card-header>
+                      <ion-card-title class="card-title">
+                        <ion-icon name="shield-checkmark-outline"></ion-icon>
+                        <span>{{ 'SETTINGS.MODULES_SAVE_BTN' | transloco }}</span>
+                      </ion-card-title>
+                      <p class="card-subtitle">{{ 'SETTINGS.MODULES_SUBTITLE' | transloco }}</p>
+                    </ion-card-header>
+                    <ion-card-content>
+                      <div class="action-buttons-stack" style="display: flex; flex-direction: column; gap: 12px;">
+                        <button
+                          type="button"
+                          class="action-btn-primary"
+                          (click)="saveModules()"
+                          [disabled]="!modulesForm.dirty || isSaving"
+                          data-testid="btn-save-modules">
+                          <ion-icon name="save-outline"></ion-icon>
+                          <span>{{ 'SETTINGS.MODULES_SAVE_BTN' | transloco }}</span>
+                        </button>
+                        <button
+                          type="button"
+                          class="action-btn-outline"
+                          (click)="resetModules()"
+                          [disabled]="!modulesForm.dirty || isSaving"
+                          data-testid="btn-reset-modules">
+                          <ion-icon name="refresh-outline"></ion-icon>
+                          <span>{{ 'SETTINGS.MODULES_RESET_BTN' | transloco }}</span>
+                        </button>
+                      </div>
                     </ion-card-content>
                   </ion-card>
                 </ion-col>

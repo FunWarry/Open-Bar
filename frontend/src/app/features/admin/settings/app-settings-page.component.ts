@@ -28,6 +28,7 @@ import {
   IonIcon,
   IonBadge,
   IonButton,
+  IonToggle,
   ToastController,
   AlertController,
 } from '@ionic/angular/standalone';
@@ -59,6 +60,12 @@ import {
   pricetagOutline,
   printOutline,
   hardwareChipOutline,
+  appsOutline,
+  restaurantOutline,
+  beerOutline,
+  peopleOutline,
+  gridOutline,
+  nutritionOutline,
 } from 'ionicons/icons';
 import { HappyHourConfigComponent } from './components/happy-hour-config/happy-hour-config.component';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
@@ -88,11 +95,17 @@ import { Facture } from '../../factures/models/facture.model';
 import { PrinterService } from '../../../core/services/printer.service';
 import { AppUpdateService } from '../../../core/services/app-update.service';
 import { PrinterRole } from '../../../core/models/printer.model';
+import {
+  EstablishmentModules,
+  ESTABLISHMENT_PRESETS,
+  EstablishmentPresetType,
+} from '../../../core/models/establishment-module.model';
+import { FeatureFlagService } from '../../../core/services/feature-flag.service';
 /**
  * Active configuration tab on the admin settings page.
  */
 
-export type SettingsTab = 'legal' | 'timers' | 'currency' | 'theme' | 'qr' | 'pricing' | 'printers';
+export type SettingsTab = 'legal' | 'modules' | 'timers' | 'currency' | 'theme' | 'qr' | 'pricing' | 'printers';
 
 const HEX_COLOR_PATTERN = /^#[0-9A-Fa-f]{6}$/;
 
@@ -191,6 +204,7 @@ export interface VatPreset {
     IonIcon,
     IonBadge,
     IonButton,
+    IonToggle,
     TranslocoPipe,
     ActionButtonComponent,
     RoleBadgeComponent,
@@ -207,6 +221,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
   private readonly router = inject(Router);
   private readonly etablissementService = inject(EtablissementService);
   private readonly appSettingsService = inject(AppSettingsService);
+  private readonly featureFlagService = inject(FeatureFlagService);
   private readonly themeService = inject(ThemeService);
   private readonly authService = inject(AuthService);
   private readonly onboardingService = inject(OnboardingService);
@@ -216,6 +231,9 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
   private readonly printerService = inject(PrinterService);
   private readonly appUpdateService = inject(AppUpdateService);
   private readonly destroy$ = new Subject<void>();
+
+  readonly happyHourEnabled = this.featureFlagService.happyHourEnabled;
+  readonly qrClientOrderingEnabled = this.featureFlagService.qrClientOrderingEnabled;
 
   currentAppVersion = this.appUpdateService.currentVersion;
   isCheckingUpdates = false;
@@ -278,12 +296,28 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
   etabForm!: FormGroup;
   appSettingsForm!: FormGroup;
   colorForm!: FormGroup;
+  modulesForm!: FormGroup;
 
   // Initial loaded states for reset
   initialEtabValue: Partial<EstablishmentConfig> = {};
   initialAppSettingsValue: Partial<AppSettings> = {};
+  initialModulesValue: EstablishmentModules = {
+    cuisineKds: true,
+    happyHour: true,
+    employeeManagement: true,
+    floorPlan: true,
+    qrClientOrdering: true,
+    stockTracking: true,
+  };
   initialThemeMode: AppTheme = 'dark';
   initialColors: CustomThemeColors = { ...DEFAULT_FIGMA_PALETTE };
+
+  readonly modulePresets: { type: Exclude<EstablishmentPresetType, 'CUSTOM'>; labelKey: string; icon: string; descKey: string }[] = [
+    { type: 'BAR', labelKey: 'SETTINGS.MODULES_PRESET_BAR', icon: 'beer-outline', descKey: 'SETTINGS.MODULES_PRESET_BAR_DESC' },
+    { type: 'RESTAURANT', labelKey: 'SETTINGS.MODULES_PRESET_RESTAURANT', icon: 'restaurant-outline', descKey: 'SETTINGS.MODULES_PRESET_RESTAURANT_DESC' },
+    { type: 'FOOD_TRUCK', labelKey: 'SETTINGS.MODULES_PRESET_FOOD_TRUCK', icon: 'rocket-outline', descKey: 'SETTINGS.MODULES_PRESET_FOOD_TRUCK_DESC' },
+    { type: 'NIGHTCLUB', labelKey: 'SETTINGS.MODULES_PRESET_NIGHTCLUB', icon: 'sparkles-outline', descKey: 'SETTINGS.MODULES_PRESET_NIGHTCLUB_DESC' },
+  ];
 
   // Active theme mode
   activeTheme: AppTheme = 'dark';
@@ -392,6 +426,12 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       printOutline,
       hardwareChipOutline,
       cloudDownloadOutline,
+      appsOutline,
+      restaurantOutline,
+      beerOutline,
+      peopleOutline,
+      gridOutline,
+      nutritionOutline,
     });
     this.initForms();
   }
@@ -432,9 +472,11 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
     this.initialThemeMode = this.activeTheme;
     this.initialColors = { ...this.themeService.currentCustomColors };
 
+    const validTabs = new Set<SettingsTab>(['legal', 'modules', 'timers', 'currency', 'theme', 'qr', 'pricing', 'printers']);
+
     if (this.route?.data) {
       this.route.data.pipe(takeUntil(this.destroy$)).subscribe(data => {
-        if (data?.['defaultTab'] && ['legal', 'timers', 'currency', 'theme', 'qr', 'pricing', 'printers'].includes(data['defaultTab'])) {
+        if (data?.['defaultTab'] && validTabs.has(data['defaultTab'] as SettingsTab)) {
           this.activeTab = data['defaultTab'] as SettingsTab;
         }
       });
@@ -442,7 +484,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
 
     if (this.route?.queryParams) {
       this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
-        if (params?.['tab'] && ['legal', 'timers', 'currency', 'theme', 'qr', 'pricing', 'printers'].includes(params['tab'])) {
+        if (params?.['tab'] && validTabs.has(params['tab'] as SettingsTab)) {
           this.activeTab = params['tab'] as SettingsTab;
         }
       });
@@ -474,7 +516,8 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
     return (
       (this.etabForm?.dirty ||
         this.appSettingsForm?.dirty ||
-        this.colorForm?.dirty) ??
+        this.colorForm?.dirty ||
+        this.modulesForm?.dirty) ??
       false
     );
   }
@@ -489,6 +532,15 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
   }
 
   private initForms(): void {
+    this.modulesForm = this.fb.group({
+      cuisineKds: [true],
+      happyHour: [true],
+      employeeManagement: [true],
+      floorPlan: [true],
+      qrClientOrdering: [true],
+      stockTracking: [true],
+    });
+
     this.etabForm = this.fb.group({
       legalName: ['', [Validators.required, Validators.maxLength(255)]],
       legalForm: ['SARL', [Validators.maxLength(50)]],
@@ -574,10 +626,11 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       etab: this.etablissementService.getConfig().pipe(catchError(() => of({} as EstablishmentConfig))),
       appSettings: this.appSettingsService.getSettings().pipe(catchError(() => of({} as AppSettings))),
       timezones: this.etablissementService.getTimeZones().pipe(catchError(() => of(['Europe/Paris', 'UTC']))),
+      modules: this.featureFlagService.loadModules().pipe(catchError(() => of(this.featureFlagService.modules()))),
     })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: ({ etab, appSettings, timezones }) => {
+        next: ({ etab, appSettings, timezones, modules }) => {
           if (timezones && timezones.length > 0) {
             this.timeZones = timezones;
           }
@@ -606,6 +659,12 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
             if (appSettings.primaryColor) {
               this.colorForm.patchValue({ primary: appSettings.primaryColor }, { emitEvent: false });
             }
+          }
+
+          if (modules) {
+            this.initialModulesValue = { ...modules };
+            this.modulesForm.patchValue(modules);
+            this.modulesForm.markAsPristine();
           }
 
           this.initialColors = { ...this.themeService.currentCustomColors };
@@ -911,6 +970,10 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       this.activeTheme = this.initialThemeMode;
       this.themeService.setTheme(this.initialThemeMode);
     }
+    if (this.initialModulesValue && this.modulesForm) {
+      this.modulesForm.patchValue(this.initialModulesValue);
+      this.modulesForm.markAsPristine();
+    }
   }
 
   saveAll(): void {
@@ -942,18 +1005,30 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       establishmentName: etabPayload.legalName || this.appSettingsForm.value.establishmentName || 'OpenBar',
     };
 
-    forkJoin({
+    const updatePayload: Record<string, any> = {
       etab: this.etablissementService.updateConfig(etabPayload),
       appSettings: this.appSettingsService.updateSettings(appSettingsPayload),
-    })
+    };
+
+    if (this.modulesForm?.dirty) {
+      updatePayload['modules'] = this.featureFlagService.updateModules(this.modulesForm.value);
+    }
+
+    forkJoin(updatePayload)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: ({ etab, appSettings }) => {
+        next: (res: any) => {
           this.isSaving = false;
-          this.initialEtabValue = { ...etab };
-          this.initialAppSettingsValue = { ...appSettings };
+          this.initialEtabValue = { ...res.etab };
+          this.initialAppSettingsValue = { ...res.appSettings };
           this.initialColors = { ...colors };
           this.initialThemeMode = this.activeTheme;
+
+          if (res.modules) {
+            this.initialModulesValue = { ...res.modules };
+            this.modulesForm.patchValue(res.modules);
+            this.modulesForm.markAsPristine();
+          }
 
           this.etabForm.markAsPristine();
           this.appSettingsForm.markAsPristine();
@@ -966,6 +1041,51 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
           this.showToast(this.translocoService.translate('SETTINGS.SAVE_ERROR'), 'danger');
         },
       });
+  }
+
+  /**
+   * Persists establishment modular capability switches via the REST API.
+   */
+  saveModules(): void {
+    if (this.modulesForm.invalid) return;
+    this.isSaving = true;
+    this.featureFlagService
+      .updateModules(this.modulesForm.value)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (updated) => {
+          this.isSaving = false;
+          this.initialModulesValue = { ...updated };
+          this.modulesForm.patchValue(updated);
+          this.modulesForm.markAsPristine();
+          this.showToast(this.translocoService.translate('SETTINGS.MODULES_SAVE_SUCCESS'), 'success');
+        },
+        error: () => {
+          this.isSaving = false;
+          this.showToast(this.translocoService.translate('SETTINGS.MODULES_SAVE_ERROR'), 'danger');
+        },
+      });
+  }
+
+  /**
+   * Resets modular capability form switches to their last confirmed saved state.
+   */
+  resetModules(): void {
+    this.modulesForm.patchValue(this.initialModulesValue);
+    this.modulesForm.markAsPristine();
+  }
+
+  /**
+   * Applies an establishment activity preset (e.g. BAR, RESTAURANT, FOOD_TRUCK, NIGHTCLUB).
+   *
+   * @param preset Preset key
+   */
+  applyModulesPreset(preset: Exclude<EstablishmentPresetType, 'CUSTOM'>): void {
+    const presetValues = ESTABLISHMENT_PRESETS[preset];
+    if (presetValues) {
+      this.modulesForm.patchValue(presetValues);
+      this.modulesForm.markAsDirty();
+    }
   }
 
   /**

@@ -2,24 +2,37 @@ package com.bar.gestioncocktail.service;
 
 import com.bar.gestioncocktail.dto.EstablishmentConfigDTO;
 import com.bar.gestioncocktail.dto.EstablishmentConfigUpdateRequest;
+import com.bar.gestioncocktail.dto.EstablishmentModulesDTO;
+import com.bar.gestioncocktail.dto.EstablishmentModulesUpdateRequest;
 import com.bar.gestioncocktail.exception.BusinessException;
 import com.bar.gestioncocktail.model.EstablishmentConfig;
+import com.bar.gestioncocktail.model.EstablishmentModule;
 import com.bar.gestioncocktail.repository.EstablishmentConfigRepository;
 import com.bar.gestioncocktail.util.SiretLuhnValidator;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Service for managing legal establishment configuration parameters.
+ * Service for managing legal establishment configuration parameters and modular capability flags.
  */
 @Service
 public class EstablishmentConfigService {
 
     private final EstablishmentConfigRepository establishmentConfigRepository;
+    private final NotificationService notificationService;
 
-    public EstablishmentConfigService(EstablishmentConfigRepository establishmentConfigRepository) {
+    /**
+     * Constructs EstablishmentConfigService with repository and real-time notification service.
+     *
+     * @param establishmentConfigRepository Repository for establishment config persistence
+     * @param notificationService           Service for STOMP WebSocket broadcasts
+     */
+    public EstablishmentConfigService(EstablishmentConfigRepository establishmentConfigRepository,
+                                      @Lazy NotificationService notificationService) {
         this.establishmentConfigRepository = establishmentConfigRepository;
+        this.notificationService = notificationService;
     }
 
     /**
@@ -63,6 +76,64 @@ public class EstablishmentConfigService {
     }
 
     /**
+     * Checks if a given capability module is currently enabled for the establishment.
+     *
+     * @param module Capability module to check
+     * @return True if enabled, false otherwise (defaults to true if module is null)
+     */
+    @Transactional(readOnly = true)
+    public boolean isModuleEnabled(EstablishmentModule module) {
+        if (module == null) {
+            return true;
+        }
+        return getConfigInternal().isModuleEnabled(module);
+    }
+
+    /**
+     * Asserts that a given capability module is enabled, otherwise throwing a {@link BusinessException}.
+     *
+     * @param module Module to verify
+     * @throws BusinessException if the capability module is disabled
+     */
+    @Transactional(readOnly = true)
+    public void checkModuleEnabled(EstablishmentModule module) {
+        if (module != null && !getConfigInternal().isModuleEnabled(module)) {
+            throw new BusinessException("Module '" + module + "' is currently disabled for this establishment");
+        }
+    }
+
+    /**
+     * Retrieves the current configuration status of all modular establishment capabilities.
+     *
+     * @return {@link EstablishmentModulesDTO}
+     */
+    @Transactional(readOnly = true)
+    public EstablishmentModulesDTO getModulesDTO() {
+        return EstablishmentModulesDTO.from(getConfigInternal());
+    }
+
+    /**
+     * Updates modular capabilities configuration and broadcasts the update over WebSocket.
+     *
+     * @param request Update payload with desired module states
+     * @return Updated modules DTO
+     */
+    @Transactional
+    public EstablishmentModulesDTO updateModules(EstablishmentModulesUpdateRequest request) {
+        if (request == null) {
+            return EstablishmentModulesDTO.from(getConfigInternal());
+        }
+        EstablishmentConfig config = getConfigInternal();
+        applyModuleUpdates(config, request);
+        EstablishmentConfig saved = establishmentConfigRepository.save(config);
+        EstablishmentModulesDTO modulesDTO = EstablishmentModulesDTO.from(saved);
+        if (notificationService != null) {
+            notificationService.notifierModulesMisAJour(modulesDTO);
+        }
+        return modulesDTO;
+    }
+
+    /**
      * Updates legal establishment configuration with Luhn validation on SIRET.
      *
      * @param request the request containing updated fields
@@ -78,7 +149,11 @@ public class EstablishmentConfigService {
         applyUpdates(config, request);
 
         EstablishmentConfig saved = establishmentConfigRepository.save(config);
-        return EstablishmentConfigDTO.from(saved);
+        EstablishmentConfigDTO dto = EstablishmentConfigDTO.from(saved);
+        if (request.modules() != null && notificationService != null) {
+            notificationService.notifierModulesMisAJour(dto.modules());
+        }
+        return dto;
     }
 
     private void applyUpdates(EstablishmentConfig config, EstablishmentConfigUpdateRequest request) {
@@ -86,6 +161,21 @@ public class EstablishmentConfigService {
         applyContactAndPolicyUpdates(config, request);
         applyTimeZoneUpdate(config, request.timeZone());
         applyTicketFormatUpdate(config, request.ticketFormat());
+        if (request.modules() != null) {
+            applyModuleUpdates(config, request.modules());
+        }
+    }
+
+    private void applyModuleUpdates(EstablishmentConfig config, EstablishmentModulesUpdateRequest request) {
+        if (request == null) {
+            return;
+        }
+        if (request.cuisineKds() != null) config.setModuleKitchenKdsEnabled(request.cuisineKds());
+        if (request.happyHour() != null) config.setModuleHappyHourEnabled(request.happyHour());
+        if (request.employeeManagement() != null) config.setModuleEmployeeManagementEnabled(request.employeeManagement());
+        if (request.floorPlan() != null) config.setModuleFloorPlanEnabled(request.floorPlan());
+        if (request.qrClientOrdering() != null) config.setModuleQrClientOrderingEnabled(request.qrClientOrdering());
+        if (request.stockTracking() != null) config.setModuleStockTrackingEnabled(request.stockTracking());
     }
 
     private void applyLegalInfoUpdates(EstablishmentConfig config, EstablishmentConfigUpdateRequest request) {

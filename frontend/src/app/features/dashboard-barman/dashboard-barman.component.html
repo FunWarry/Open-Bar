@@ -114,15 +114,17 @@
         <ion-label>{{ 'STATIONS.BAR' | transloco }}</ion-label>
       </ion-chip>
 
-      <ion-chip
-        tabindex="0"
-        [class.chip--active]="stationFilter === 'KITCHEN'"
-        (click)="setStationFilter('KITCHEN')"
-        (keyup.enter)="setStationFilter('KITCHEN')"
-        data-testid="chip-station-kitchen">
-        <ion-icon name="restaurant-outline"></ion-icon>
-        <ion-label>{{ 'STATIONS.KITCHEN' | transloco }}</ion-label>
-      </ion-chip>
+      @if (cuisineKdsEnabled()) {
+        <ion-chip
+          tabindex="0"
+          [class.chip--active]="stationFilter === 'KITCHEN'"
+          (click)="setStationFilter('KITCHEN')"
+          (keyup.enter)="setStationFilter('KITCHEN')"
+          data-testid="chip-station-kitchen">
+          <ion-icon name="restaurant-outline"></ion-icon>
+          <ion-label>{{ 'STATIONS.KITCHEN' | transloco }}</ion-label>
+        </ion-chip>
+      }
     </div>
   </div>
 </ion-header>

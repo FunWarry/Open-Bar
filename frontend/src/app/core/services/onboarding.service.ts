@@ -54,7 +54,16 @@ export class OnboardingService {
         illustrationEmoji: '⚙️',
         roleTarget: 'ADMIN',
         featureHighlightsKeys: ['ONBOARDING.ADMIN_SETUP_FEAT_1', 'ONBOARDING.ADMIN_SETUP_FEAT_2'],
-        routeAction: '/admin/etablissement'
+        routeAction: '/admin/settings?tab=legal'
+      },
+      {
+        id: 'admin_modules',
+        titleKey: 'ONBOARDING.ADMIN_MODULES_TITLE',
+        descriptionKey: 'ONBOARDING.ADMIN_MODULES_DESC',
+        illustrationEmoji: '🧩',
+        roleTarget: 'ADMIN',
+        featureHighlightsKeys: ['ONBOARDING.ADMIN_MODULES_FEAT_1', 'ONBOARDING.ADMIN_MODULES_FEAT_2'],
+        routeAction: '/admin/settings?tab=modules'
       }
     ],
     MANAGER: [

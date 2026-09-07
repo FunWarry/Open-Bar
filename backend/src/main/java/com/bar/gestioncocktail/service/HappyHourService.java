@@ -38,28 +38,32 @@ public class HappyHourService {
     private final CocktailVarianteRepository varianteRepository;
     private final TimeService timeService;
     private final AuditLogService auditLogService;
+    private final EstablishmentConfigService establishmentConfigService;
 
     /**
-     * Constructs the service with required repositories and audit dependencies.
+     * Constructs the service with required repositories, time service, audit, and establishment config.
      *
-     * @param ruleRepository     Happy hour rule repository
-     * @param cocktailRepository Cocktail entity repository
-     * @param varianteRepository Cocktail variant repository
-     * @param timeService        Application time management service
-     * @param auditLogService    Audit logging service
+     * @param ruleRepository             Happy hour rule repository
+     * @param cocktailRepository         Cocktail entity repository
+     * @param varianteRepository         Cocktail variant repository
+     * @param timeService                Application time management service
+     * @param auditLogService            Audit logging service
+     * @param establishmentConfigService Establishment configuration service
      */
     public HappyHourService(
             HappyHourRuleRepository ruleRepository,
             CocktailRepository cocktailRepository,
             CocktailVarianteRepository varianteRepository,
             TimeService timeService,
-            AuditLogService auditLogService
+            AuditLogService auditLogService,
+            EstablishmentConfigService establishmentConfigService
     ) {
         this.ruleRepository = ruleRepository;
         this.cocktailRepository = cocktailRepository;
         this.varianteRepository = varianteRepository;
         this.timeService = timeService;
         this.auditLogService = auditLogService;
+        this.establishmentConfigService = establishmentConfigService;
     }
 
     /**
@@ -199,6 +203,9 @@ public class HappyHourService {
         }
 
         BigDecimal basePrice = calculateBasePrice(cocktail, variante);
+        if (establishmentConfigService != null && !establishmentConfigService.isModuleEnabled(com.bar.gestioncocktail.model.EstablishmentModule.HAPPY_HOUR)) {
+            return basePrice;
+        }
         LocalDateTime evalTime = timestamp != null ? timestamp : timeService.now();
 
         List<HappyHourRule> activeRules = ruleRepository.findByActiveTrue();
@@ -236,29 +243,11 @@ public class HappyHourService {
         BigDecimal basePrice = calculateBasePrice(cocktail, variante);
         LocalDateTime evalTime = timestamp != null ? timestamp : timeService.now();
 
-        List<HappyHourRule> matchingRules = ruleRepository.findByActiveTrue().stream()
-                .filter(rule -> rule.isApplicableAt(evalTime))
-                .filter(rule -> rule.matchesCocktail(cocktail))
-                .toList();
-
-        if (matchingRules.isEmpty()) {
-            return new PricingPreviewResponseDTO(
-                    cocktail.getId(),
-                    cocktail.getNom(),
-                    variante != null ? variante.getId() : null,
-                    variante != null ? variante.getNom() : null,
-                    basePrice,
-                    basePrice,
-                    BigDecimal.ZERO,
-                    BigDecimal.ZERO,
-                    false,
-                    null,
-                    null,
-                    null,
-                    null,
-                    evalTime
-            );
+        if (isHappyHourDisabled() || getMatchingRules(cocktail, evalTime).isEmpty()) {
+            return buildNonDiscountedPreview(cocktail, variante, basePrice, evalTime);
         }
+
+        List<HappyHourRule> matchingRules = getMatchingRules(cocktail, evalTime);
 
         // Find winning rule providing the best discount (lowest price)
         HappyHourRule winningRule = matchingRules.stream()
@@ -324,5 +313,40 @@ public class HappyHourService {
                 && rule.getDiscountValue().compareTo(BigDecimal.valueOf(100)) > 0) {
             throw new BusinessException("Percentage discount cannot exceed 100%");
         }
+    }
+
+    private boolean isHappyHourDisabled() {
+        return establishmentConfigService != null
+                && !establishmentConfigService.isModuleEnabled(com.bar.gestioncocktail.model.EstablishmentModule.HAPPY_HOUR);
+    }
+
+    private List<HappyHourRule> getMatchingRules(Cocktail cocktail, LocalDateTime evalTime) {
+        return ruleRepository.findByActiveTrue().stream()
+                .filter(rule -> rule.isApplicableAt(evalTime))
+                .filter(rule -> rule.matchesCocktail(cocktail))
+                .toList();
+    }
+
+    private PricingPreviewResponseDTO buildNonDiscountedPreview(
+            Cocktail cocktail,
+            CocktailVariante variante,
+            BigDecimal basePrice,
+            LocalDateTime evalTime) {
+        return new PricingPreviewResponseDTO(
+                cocktail.getId(),
+                cocktail.getNom(),
+                variante != null ? variante.getId() : null,
+                variante != null ? variante.getNom() : null,
+                basePrice,
+                basePrice,
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
+                false,
+                null,
+                null,
+                null,
+                null,
+                evalTime
+        );
     }
 }

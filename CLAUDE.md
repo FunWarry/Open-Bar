@@ -218,8 +218,9 @@ Topics disponibles :
 - `/topic/commandes/{id}` — changement de statut
 - `/topic/tables` — occupation/libération
 - `/topic/stock/alerte` — stock faible
+- `/topic/establishment/modules` — synchronisation temps réel des feature flags / modules actifs
 
-Service frontend : `websocket.service.ts`
+Service frontend : `websocket.service.ts` / `feature-flag.service.ts`
 
 ## Conventions de code
 

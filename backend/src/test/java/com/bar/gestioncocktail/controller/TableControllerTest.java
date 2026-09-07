@@ -5,6 +5,9 @@ import com.bar.gestioncocktail.dto.TablePositionDTO;
 import com.bar.gestioncocktail.dto.TableRequestDTO;
 import com.bar.gestioncocktail.dto.TableResponseDTO;
 import com.bar.gestioncocktail.model.TableEntity;
+import com.bar.gestioncocktail.exception.BusinessException;
+import com.bar.gestioncocktail.model.EstablishmentModule;
+import com.bar.gestioncocktail.service.EstablishmentConfigService;
 import com.bar.gestioncocktail.service.TableService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -19,8 +22,10 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -29,6 +34,9 @@ class TableControllerTest {
 
     @Mock
     private TableService tableService;
+
+    @Mock
+    private EstablishmentConfigService establishmentConfigService;
 
     @InjectMocks
     private TableController tableController;
@@ -45,6 +53,27 @@ class TableControllerTest {
         table.setOccupee(false);
         table.setPlanX(100.0);
         table.setPlanY(200.0);
+        lenient().when(establishmentConfigService.isModuleEnabled(any())).thenReturn(true);
+    }
+
+    @Test
+    @DisplayName("getPlanSalle - returns empty list when FLOOR_PLAN module is disabled")
+    void getPlanSalle_disabledModule_returnsEmptyList() {
+        when(establishmentConfigService.isModuleEnabled(EstablishmentModule.FLOOR_PLAN)).thenReturn(false);
+
+        List<com.bar.gestioncocktail.dto.PlanSalleDTO> result = tableController.getPlanSalle();
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    @DisplayName("updatePosition - throws BusinessException when FLOOR_PLAN module is disabled")
+    void updatePosition_disabledModule_throwsBusinessException() {
+        when(establishmentConfigService.isModuleEnabled(EstablishmentModule.FLOOR_PLAN)).thenReturn(false);
+
+        assertThatThrownBy(() -> tableController.updatePosition(1L, 10.0, 20.0, 0.0, "CARRE"))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("Interactive floor plan is currently disabled");
     }
 
     @Test

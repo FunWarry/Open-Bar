@@ -10,6 +10,8 @@ import * as AuthActions from '../../../app/core/store/auth.actions';
 import { User } from '../../../app/core/models/user.model';
 import { getTranslocoTestingModule } from '../../transloco-testing.module';
 import { NavigationService } from '../../../app/core/services/navigation.service';
+import { FeatureFlagService } from '../../../app/core/services/feature-flag.service';
+import { EstablishmentModule } from '../../../app/core/models/establishment-module.model';
 
 describe('SidebarComponent', () => {
   let component: SidebarComponent;
@@ -17,6 +19,7 @@ describe('SidebarComponent', () => {
   let store: MockStore;
   let mockSelectCurrentUser: MemoizedSelector<any, User | null>;
   let mockNavigationService: jasmine.SpyObj<NavigationService>;
+  let mockFeatureFlagService: jasmine.SpyObj<FeatureFlagService>;
   let isSidebarCollapsedSignal: WritableSignal<boolean>;
 
   const initialState = {
@@ -64,6 +67,9 @@ describe('SidebarComponent', () => {
       isSidebarCollapsedSignal.update(v => !v);
     });
 
+    mockFeatureFlagService = jasmine.createSpyObj('FeatureFlagService', ['isModuleEnabled']);
+    mockFeatureFlagService.isModuleEnabled.and.returnValue(true);
+
     await TestBed.configureTestingModule({
       imports: [
         SidebarComponent,
@@ -74,6 +80,7 @@ describe('SidebarComponent', () => {
       providers: [
         provideMockStore({ initialState }),
         { provide: NavigationService, useValue: mockNavigationService },
+        { provide: FeatureFlagService, useValue: mockFeatureFlagService },
       ],
     }).compileComponents();
 
@@ -143,6 +150,12 @@ describe('SidebarComponent', () => {
       expect(adminItems.length).toBeGreaterThan(0);
       expect(adminItems.some(i => i.route === '/admin/audit-logs')).toBeTrue();
       expect(adminItems.some(i => i.route === '/ingredients')).toBeTrue();
+    });
+
+    it('should exclude module-guarded routes when capability is disabled', () => {
+      mockFeatureFlagService.isModuleEnabled.and.callFake((mod: EstablishmentModule) => mod !== EstablishmentModule.STOCK_TRACKING);
+      const adminItems = component.getNavItemsForUser(mockAdminUser, 'admin');
+      expect(adminItems.some(i => i.route === '/ingredients')).toBeFalse();
     });
 
     it('should exclude admin-only routes for SERVEUR role', () => {

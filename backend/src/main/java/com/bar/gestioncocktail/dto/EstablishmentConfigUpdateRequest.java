@@ -61,6 +61,8 @@ public record EstablishmentConfigUpdateRequest(
     String timeZone,
 
     @Pattern(regexp = "^(80mm|58mm)$", message = "Ticket format must be either 80mm or 58mm")
-    String ticketFormat
+    String ticketFormat,
+
+    EstablishmentModulesUpdateRequest modules
 ) {
 }

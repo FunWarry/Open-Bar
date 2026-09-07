@@ -33,6 +33,7 @@ public class StockMovementService {
     private final UserRepository userRepository;
     private final AuditLogService auditLogService;
     private final TimeService timeService;
+    private final EstablishmentConfigService establishmentConfigService;
 
     /**
      * Constructs the stock movement service with all required business dependencies.
@@ -43,6 +44,7 @@ public class StockMovementService {
      * @param userRepository Repository for user authentication lookups
      * @param auditLogService Service for persistent audit trail logging
      * @param timeService Service for deterministic timestamping
+     * @param establishmentConfigService Service for establishment configuration and module flags
      */
     public StockMovementService(
             StockMovementRepository stockMovementRepository,
@@ -50,13 +52,15 @@ public class StockMovementService {
             IngredientService ingredientService,
             UserRepository userRepository,
             AuditLogService auditLogService,
-            TimeService timeService) {
+            TimeService timeService,
+            EstablishmentConfigService establishmentConfigService) {
         this.stockMovementRepository = stockMovementRepository;
         this.ingredientRepository = ingredientRepository;
         this.ingredientService = ingredientService;
         this.userRepository = userRepository;
         this.auditLogService = auditLogService;
         this.timeService = timeService;
+        this.establishmentConfigService = establishmentConfigService;
     }
 
     /**
@@ -69,6 +73,9 @@ public class StockMovementService {
      * @return Persisted {@link StockMovement} entity
      */
     public StockMovement recordWaste(StockWasteRequestDTO request, String username, String ipAddress) {
+        if (establishmentConfigService != null && !establishmentConfigService.isModuleEnabled(com.bar.gestioncocktail.model.EstablishmentModule.STOCK_TRACKING)) {
+            throw new BusinessException("Inventory stock tracking is currently disabled for this establishment.");
+        }
         if (request == null) {
             throw new BusinessException("Waste declaration request cannot be null.");
         }
