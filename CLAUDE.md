@@ -8,13 +8,13 @@ Application de gestion de bar en temps réel : prise de commandes (serveurs), pr
 
 | Couche     | Techno                       | Version     |
 |------------|------------------------------|-------------|
-| Backend    | Spring Boot                  | **4.0.6**   |
+| Backend    | Spring Boot                  | **4.1.1**   |
 | Runtime    | Java                         | 22 (épinglé — Lombok incompatible JDK 23+) |
-| Doc API    | Springdoc OpenAPI (Swagger UI) | 2.8.9       |
+| Doc API    | Springdoc OpenAPI (Swagger UI) | 3.1.0       |
 | BDD        | PostgreSQL                   | —           |
 | ORM        | JPA / Hibernate + Lombok     | 1.18.34     |
-| Sécurité   | Spring Security + JWT custom | JJWT 0.12.6 |
-| Sanitisation| Jsoup (HTML / XSS clean)     | 1.18.3      |
+| Sécurité   | Spring Security + JWT custom | JJWT 0.13.0 |
+| Sanitisation| Jsoup (HTML / XSS clean)     | 1.23.2      |
 | Temps réel | WebSocket STOMP              | via Spring  |
 | PDF        | OpenPDF                      | 2.0.3       |
 | Frontend   | Angular                      | 20          |
