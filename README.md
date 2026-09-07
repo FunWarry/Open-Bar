@@ -1,63 +1,108 @@
-# 🍹 OpenBar
+<p align="center">
+  <img src="https://raw.githubusercontent.com/FunWarry/Open-Bar/dev/frontend/src/assets/icons/icon-192x192.png" alt="OpenBar Logo" width="96" height="96" style="border-radius: 20%;" />
+</p>
 
-> **L'application PWA tout-en-un de gestion de bar et d'établissement en temps réel, résiliente et 100% autonome en réseau local.**
+<h1 align="center">🍹 OpenBar</h1>
 
-[![CI](https://github.com/FunWarry/Open-Bar/actions/workflows/ci.yml/badge.svg)](https://github.com/FunWarry/Open-Bar/actions/workflows/ci.yml)
-[![SonarCloud Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=FunWarry_Open-Bar&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=FunWarry_Open-Bar)
-[![SonarCloud Coverage](https://sonarcloud.io/api/project_badges/measure?project=FunWarry_Open-Bar&metric=coverage)](https://sonarcloud.io/summary/new_code?id=FunWarry_Open-Bar)
-[![Version](https://img.shields.io/github/v/release/FunWarry/Open-Bar?color=blue&label=version)](https://github.com/FunWarry/Open-Bar/releases)
-[![Java 22](https://img.shields.io/badge/Java-22%20(pinned)-ED8B00?logo=openjdk&logoColor=white)](https://openjdk.org/projects/jdk/22/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.1.1-6DB33F?logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
-[![Angular](https://img.shields.io/badge/Angular-20-DD0031?logo=angular&logoColor=white)](https://angular.dev)
-[![Ionic](https://img.shields.io/badge/Ionic-8.8.11-3880FF?logo=ionic&logoColor=white)](https://ionicframework.com)
-[![i18n](https://img.shields.io/badge/i18n-Transloco-007ACC)](https://jsverse.github.io/transloco/)
-[![License: Source-Available](https://img.shields.io/badge/License-Source--Available-amber.svg)](#9-licence--conditions-légales)
-[![Kanban](https://img.shields.io/badge/GitHub-Kanban-blue?logo=github)](https://github.com/users/FunWarry/projects/3/views/1)
-[![Figma](https://img.shields.io/badge/Figma-Design%20System-F24E1E?logo=figma&logoColor=white)](https://www.figma.com/design/XSVwFk64kgtqgUN9n5qoMw)
-[![Swagger UI](https://img.shields.io/badge/OpenAPI-Swagger--UI-85EA2D?logo=swagger&logoColor=black)](http://localhost:8080/swagger-ui.html)
+<p align="center">
+  <strong>L'OS de gestion de bar et d'établissement nouvelle génération : temps réel, autonome en réseau local, sans abonnement cloud et taillé pour le rush.</strong>
+</p>
 
----
+<p align="center">
+  <a href="https://github.com/FunWarry/Open-Bar/actions/workflows/ci.yml"><img src="https://github.com/FunWarry/Open-Bar/actions/workflows/ci.yml/badge.svg" alt="CI Status" /></a>
+  <a href="https://sonarcloud.io/summary/new_code?id=FunWarry_Open-Bar"><img src="https://sonarcloud.io/api/project_badges/measure?project=FunWarry_Open-Bar&metric=alert_status" alt="SonarCloud Quality Gate" /></a>
+  <a href="https://sonarcloud.io/summary/new_code?id=FunWarry_Open-Bar"><img src="https://sonarcloud.io/api/project_badges/measure?project=FunWarry_Open-Bar&metric=coverage" alt="SonarCloud Coverage" /></a>
+  <a href="https://github.com/FunWarry/Open-Bar/releases"><img src="https://img.shields.io/github/v/release/FunWarry/Open-Bar?color=blue&label=version" alt="Version" /></a>
+  <a href="https://openjdk.org/projects/jdk/22/"><img src="https://img.shields.io/badge/Java-22%20(pinned)-ED8B00?logo=openjdk&logoColor=white" alt="Java 22" /></a>
+  <a href="https://spring.io/projects/spring-boot"><img src="https://img.shields.io/badge/Spring%20Boot-4.1.1-6DB33F?logo=springboot&logoColor=white" alt="Spring Boot 4.1.1" /></a>
+  <a href="https://angular.dev"><img src="https://img.shields.io/badge/Angular-20-DD0031?logo=angular&logoColor=white" alt="Angular 20" /></a>
+  <a href="https://ionicframework.com"><img src="https://img.shields.io/badge/Ionic-8.8.11-3880FF?logo=ionic&logoColor=white" alt="Ionic 8" /></a>
+  <a href="https://jsverse.github.io/transloco/"><img src="https://img.shields.io/badge/i18n-Transloco-007ACC" alt="Transloco" /></a>
+  <a href="#-licence--conditions-dexploitation"><img src="https://img.shields.io/badge/License-Source--Available-amber.svg" alt="License" /></a>
+</p>
 
-## 📑 Sommaire
-
-1. [Présentation & Proposition de Valeur](#1-présentation--proposition-de-valeur)
-2. [Aperçu Visuel & Showcase UI](#2-aperçu-visuel--showcase-ui)
-3. [Architecture Système & Stack Technique](#3-architecture-système--stack-technique)
-4. [Guide de Démarrage Rapide (Quickstart)](#4-guide-de-démarrage-rapide-quickstart)
-5. [Résilience, Sauvegardes & Sécurité](#5-résilience-sauvegardes--sécurité)
-6. [Architecture Modulaire & Configuration](#6-architecture-modulaire--configuration)
-7. [État d'Implémentation des Fonctionnalités](#7-état-dimplémentation-des-fonctionnalités)
-8. [Qualité du Code, Tests & Contribution](#8-qualité-du-code-tests--contribution)
-9. [Licence & Conditions Légales](#9-licence--conditions-légales)
-
----
-
-## 1. Présentation & Proposition de Valeur
-
-**OpenBar** digitalise et synchronise instantanément l'intégralité de la chaîne opérationnelle d'un établissement de restauration et de débits de boissons : **prise de commande → préparation comptoir & cuisine → service en salle → encaissement et clôture fiscale**.
-
-Conçu pour fonctionner sans aucune dépendance envers le cloud ou Internet, OpenBar est déployé en **Progressive Web App (PWA)** sur un serveur local embarqué (mini-PC ou Raspberry Pi 5). Tous les terminaux (smartphones des serveurs, tablettes de préparation, PC de supervision, téléphones des clients) communiquent via le réseau Wi-Fi local avec une latence quasi nulle grâce à **WebSocket STOMP**.
-
-### Cas d'Usage Adaptés
-
-| Établissement | Défi Adressé | Configuration Clé OpenBar |
-|---------------|--------------|----------------------------|
-| 🍸 **Bars à Cocktails & Bars à Bières** | Rushes intenses, fiches recettes complexes, ruptures de fûts/spiritueux | Mode *Rush Batching*, alertes sonores de retard, décompte de stock au centilitre, fiches recettes interactives |
-| 🍽️ **Brasseries & Restaurants** | Coordination salle / bar / cuisine, additions partagées complexes | Routage multi-postes KDS (*Bar* / *Cuisine* / *Snack*), split addition égalitaire et par article, clôture Z-Report |
-| 🚚 **Food-Trucks & Événements Éphémères** | Absence d'Internet fiable, espace réduit, autonomie maximale | Stack compacte sur Raspberry Pi 5 / batterie, commande client QR directe sans contact, mode 100% offline |
-| 🎵 **Clubs, Rooftops & Événements** | Musique forte, pénombre, files d'attente au comptoir | UI haut contraste avec thèmes adaptatifs sombres, commande et paiement autonome par QR code sur table |
+<p align="center">
+  <a href="#-pourquoi-openbar-"><strong>Pourquoi OpenBar ?</strong></a> •
+  <a href="#-ce-que-vous-pouvez-faire-avec-openbar"><strong>Ce qui est possible</strong></a> •
+  <a href="#-aperçu-des-4-interfaces-clés"><strong>Showcase UI</strong></a> •
+  <a href="#-architecture--fonctionnement-hors-ligne"><strong>Architecture</strong></a> •
+  <a href="#-démarrage-rapide-en-60-secondes"><strong>Quickstart</strong></a> •
+  <a href="docs/TECHNICAL_GUIDE.md"><strong>Guide Technique 📖</strong></a>
+</p>
 
 ---
 
-## 2. Aperçu Visuel & Showcase UI
+## 💡 Pourquoi OpenBar ?
 
-L'expérience OpenBar est découpée en 4 interfaces dédiées, calibrées sur-mesure pour chaque rôle opérationnel :
+Gérer un bar ou un restaurant pendant le coup de feu ne devrait pas être une épreuve de force contre la technologie. 
 
-### 📱 Vue Serveur : Fluidité en Salle & Prise de Commande Rapide
-- **Plan de salle 2D interactif (Konva.js)** : Rendu fluide à l'échelle 1px = 1cm, grille magnétique 50cm, contours lumineux d'état (libre, occupée, addition demandée, appel serveur).
-- **Prise de commande rapide** (`/serveur/nouvelle-commande/:tableId`) : Moteur de recherche instantané, filtres par famille de produits, exclusion dynamique des allergènes et calcul HT/TVA/TTC en temps réel.
-- **Expérience Mobile First** : Barre de navigation inférieure (*Bottom Navigation*), cartes de tables compactes (`MobileTableCard`) et tiroir de panier contextuel.
-- **Résilience Offline (IndexedDB)** : En cas de perte temporaire du signal Wi-Fi en terrasse, les commandes sont mises en file d'attente locale (`openbar-offline-db`) et synchronisées automatiquement dès reconnexion.
+Aujourd'hui, la majorité des exploitants sont confrontés à un triple dilemme :
+1. **Le piège du Cloud & des abonnements abusifs** : 60 € à 150 € par mois et par tablette, assortis de commissions prélevées sur chaque transaction. Des milliers d'euros perdus chaque année pour des fonctionnalités élémentaires.
+2. **La vulnérabilité face aux coupures Internet** : Quand la box Wi-Fi saute un vendredi soir à 22h, les logiciels SaaS cloud se bloquent. Impossible d'envoyer les bons, impossible d'encaisser, salle paralysée.
+3. **Le chaos opérationnel** : Des tickets papier perdus, des barmans qui crient au-dessus de la musique, des clients qui s'impatientent pour commander ou payer, et une gestion des stocks approximative qui ronge la marge.
+
+### La Vision OpenBar
+
+> **Reprendre le contrôle total de son établissement avec un système d'exploitation moderne, ultra-rapide, économique et 100% autonome.**
+
+- 🚫 **Zéro Dépendance Internet** : OpenBar tourne en local sur un simple mini-PC ou un Raspberry Pi 5. Le réseau Internet extérieur peut tomber, le bar continue de tourner à pleine vitesse.
+- ⚡ **Instantanéité Temps Réel (< 50ms)** : Grâce à WebSocket STOMP, une commande validée par un serveur en terrasse s'affiche immédiatement sur le Kanban du barman et sur l'écran KDS de la cuisine.
+- 💸 **Zéro Commission & Économies Massives** : Aucun abonnement mensuel obligatoire par terminal. Utilisez les tablettes, téléphones et imprimantes thermiques que vous possédez déjà.
+- 🎯 **Conçu par et pour le terrain** : Mode *Rush Batching* pour préparer 10 cocktails à la fois, division d'addition en 3 clics, plan de salle 2D magnétique et clôture de caisse conforme en fin de service.
+
+---
+
+## ✨ Ce que vous pouvez faire avec OpenBar
+
+OpenBar n'est pas une simple caisse enregistreuse : c'est un écosystème complet qui orchestre l'ensemble du flux de travail de votre établissement.
+
+```
+                  ┌────────────────────────────────────────┐
+                  │          🍹 OPENBAR ECOSYSTEM          │
+                  └────────────────────────────────────────┘
+                                      │
+         ┌────────────────────────────┼────────────────────────────┐
+         ▼                            ▼                            ▼
+  SALLE & TERRASSE             COMPTOIR & CUISINE           DIRECTION & GESTION
+  • Prise commande ultra-rapide • Kanban STOMP temps réel    • Cockpit KPIs & Marges COGS
+  • Plan 2D Konva.js magnétique • Mode "Rush Batching"       • Plannings & Replay temporel
+  • File d'attente offline IDB • Écran Cuisine KDS multi-postes • Clôture Z-Report fiscale
+  • Appel serveur & Addition   • Fiches recettes dépliables • Export comptable FEC (PCG)
+  • Commande QR sans appli     • Impression ESC/POS directe • Démarque & Déduction stock
+```
+
+### 1. Prise de Commande & Salle Réactive
+- **Plan de salle interactif en 2D** : Visualisez votre salle en direct avec des tables lumineuses magnétiques (1px = 1cm). Repérez d'un coup d'œil les tables libres, les commandes en préparation et les clients appelant le serveur.
+- **Prise de commande en quelques secondes** : Recherche prédictive, filtres par famille de boissons, exclusion instantanée des allergènes et calcul précis HT/TVA/TTC.
+- **Résilience hors-ligne totale (IndexedDB)** : En terrasse ou au sous-sol sans couverture Wi-Fi ? Les commandes sont stockées localement et synchronisées automatiquement dès le retour du signal.
+
+### 2. Barman & Cuisine : Domptez le Rush
+- **Kanban dynamique STOMP** : Fini les tickets papier volants. Les commandes s'organisent en colonnes interactives (`EN ATTENTE`, `EN COURS`, `PRÊT`) avec alertes sonores d'urgence dès qu'une commande dépasse le délai cible.
+- **Mode Rush Batching** : Le barman peut regrouper tous les cocktails identiques de commandes différentes (ex. 6 Mojitos et 4 Caipirinhas) pour les préparer en une seule passe avec les dosages groupés calculés automatiquement.
+- **Routage multi-postes & KDS Cuisine** : Les boissons partent sur l'écran du bar, les tapas et plats chauds sur l'écran de la cuisine (`/kitchen`), avec timers d'attente synchronisés.
+- **Impression directe sans pilote (ESC/POS)** : Sortie immédiate des bons de commande sur vos imprimantes thermiques de réseau local via socket TCP brut (port 9100).
+
+### 3. Expérience Client Digitale (QR Code Zéro Friction)
+- **Menu digital interactif sans téléchargement** : Le client scanne le QR code posé sur sa table avec son smartphone. La PWA s'ouvre directement dans le navigateur, sans installer d'application lourde.
+- **Panier collaboratif multi-convives** : Tous les invités d'une même table partagent le même panier en direct. Chacun ajoute ses consommations avec son prénom, et la commande globale part d'un seul clic.
+- **Moteur de recommandation gustative** : Filtres par profil aromatique (fruité, fumé, sec, épicé) et labels diététiques (mocktails sans alcool, vegan, sans gluten).
+- **Appel serveur & Demande d'addition** : Un bouton discret notifie la montre ou le smartphone du serveur pour éviter les gestes d'impatience en salle.
+
+### 4. Pilotage Financier, Équipes & Conformité Fiscale
+- **Marge brute & Coût de revient (COGS) en direct** : Suivez la rentabilité de chaque cocktail et plat au centilitre près. Recevez des alertes lorsque la marge descend sous votre seuil de rentabilité.
+- **Plannings d'équipe avec Time-Travel Replay** : Gérez les plannings et les shifts des employés avec un journal d'audit immuable permettant de reconstituer l'historique de l'équipe à n'importe quel instant T.
+- **Clôture de Caisse Quotidienne (Z-Report) & Conformité Fiscale** :
+  - Assistant de comptage des espèces avec calcul automatique des écarts.
+  - Scellement numérique certifié **SHA-256** (conforme CGI art. 286 / BOI-TVA-DECLA-30-10-30).
+  - Export comptable officiel **FEC** (Fichier des Écritures Comptables) directement importable par votre expert-comptable.
+- **Division d'addition chirurgicale** : Partage à parts égales ou paiement au verre/plat, pourboires, remises commerciales et impression de reçus thermiques ou factures PDF officielles A4.
+
+---
+
+## 🖥️ Aperçu des 4 Interfaces Clés
+
+### 📱 1. La Vue Serveur : Fluidité & Mobilité en Salle
+*Conçue pour une manipulation à une main sur smartphone ou tablette légère.*
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
@@ -75,14 +120,8 @@ L'expérience OpenBar est découpée en 4 interfaces dédiées, calibrées sur-m
 
 ---
 
-### 🍸 Vue Barman & Cuisine : Préparation Optimisée & KDS Temps Réel
-- **Kanban STOMP Réactif** : Visualisation en 3 colonnes (`EN_ATTENTE`, `EN_PREPARATION`, `PRET`) synchronisées en continu sans rechargement de page.
-- **Mode Rush Batching** : Regroupement automatique des verres identiques entre tickets actifs (ex. 8 Mojitos cumulés) avec calcul proportionnel des dosages ($N \times \text{ingrédients}$) et transition groupée en un clic.
-- **Fiches Recettes Dépliables** : Étapes de mixologie chronométrées, verrerie recommandée et suivi visuel des étapes.
-- **Alertes Sonores & Visuelles** : Web Audio API native alertant des retards de préparation avec badges clignotants d'urgence.
-- **Gestion des Ruptures à Chaud & Démarque** : Désactivation instantanée d'un cocktail en cours de service et saisie des pertes / casses (`StockMovement`).
-- **Écran Cuisine KDS Dédié** (`/kitchen`, `/kds`) : Filtrage sélectif par poste de préparation (`BAR`, `KITCHEN`, `SNACK`).
-- **Impression Tickets 80mm** : Sortie directe sur imprimante thermique réseau via socket ESC/POS.
+### 🍸 2. Le Dashboard Barman & KDS Cuisine
+*L'écran tactile du comptoir : visibilité instantanée, fiches recettes et cadence soutenue.*
 
 ```
 ┌─────────────────────────── KANBAN PRÉPARATION ─────────────────────────┐
@@ -99,355 +138,181 @@ L'expérience OpenBar est découpée en 4 interfaces dédiées, calibrées sur-m
 
 ---
 
-### 📊 Vue Manager & Direction : Pilotage Financier, Équipes & Conformité
-- **Cockpit Statistique & Marges en Direct** : Suivi du chiffre d'affaires, panier moyen, coût de revient (COGS) et alertes automatiques de marge brute cible.
-- **Gestion des Plannings & Shifts Employés** : Grille hebdomadaire, modèles de shifts préenregistrés, journal d'audit immuable et fonction *Time-Travel Replay* (reconstitution du planning à n'importe quel instant T).
-- **Clôture de Caisse Quotidienne (Z-Report)** : Assistant de comptage des espèces tiroir par dénomination, justification obligatoire des écarts de caisse, scellement numérique SHA-256 (conformité CGI art. 286 / BOI-TVA-DECLA-30-10-30) et export d'écritures comptables au format standard français **FEC**.
-- **Facturation Avancée** : Division d'addition (partage égalitaire ou par sélection d'articles), gestion des pourboires et remises commerciales, impression de reçus thermiques détaillés et téléchargement de factures A4 PDF conformes.
-- **Pilotage des Modules Fonctionnels** : Activation/désactivation à la volée des 6 modules de l'établissement avec préréglages instantanés (*Bar*, *Restaurant*, *Food-Truck*, *Nightclub*).
+### 📊 3. Le Cockpit Manager : Pilotage & Conformité
+*Le centre de commande du patron : rentabilité, équipes et clôtures fiscales sécurisées.*
+
+```
+┌─────────────────────────── TABLEAU DE BORD MANAGER ─────────────────────┐
+│ CHIFFRE D'AFFAIRES     MARGE BRUTE MOY.     PANIER MOYEN      Z-REPORT │
+│ 2 480,50 €             74,2 % (Objectif OK) 28,40 €           🟢 FERMÉ │
+├────────────────────────────────────────────────────────────────────────┤
+│ 📈 Top Cocktails du Jour : 1. Moscow Mule (42)  2. Spritz (38)  3. IPA │
+│ ⚠️ Alertes Stock : Sirop de fruit de la passion (< 15 cl restant)      │
+│ 📋 Actions Rapides : [Export FEC Comptable] [Imprimer Z] [Planning]   │
+└────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
-### 📲 Vue Client QR : Commande Autonome Sans Application Native
-- **Scan & Go Instantané** : Aucun téléchargement requis sur App Store / Play Store ; ouverture directe dans le navigateur mobile.
-- **Jetons de Session Éphémères Anti-Fraude** : Protection de l'accès à la table (`TableSession`) invalidée automatiquement à la libération de la table.
-- **Panier Collaboratif Multi-Convives en Temps Réel** : Tous les invités d'une même table voient et partagent le panier via STOMP (`/topic/tables/{id}/cart`) avec indication du prénom de chaque convive.
-- **Profils Gustatifs & Filtres Diététiques** : Moteur de recommandation interactif par profil (fruité, fumé, doux, sec, épicé) et filtres mocktails / sans gluten / vegan.
-- **Bouton d'Appel Serveur & Addition** : Alerte sonore et visuelle discrète envoyée en salle avec temporisation anti-spam de 60 secondes.
+### 📲 4. L'Interface Client QR Code
+*L'expérience autonome et conviviale directement sur les smartphones des clients.*
+
+```
+┌─────────────────────────── TABLE 4 : CHEZ MARCEL ──────────────────────┐
+│ 👋 Bienvenue ! Invités connectés : Sarah, Lucas, Alex                 │
+├────────────────────────────────────────────────────────────────────────┤
+│ 🛒 Panier Partagé de la Table :                                       │
+│ • Sarah : 1x Pornstar Martini (12,00 €)                                │
+│ • Lucas : 1x Bière Artisanale IPA (7,50 €)                            │
+│ • Alex  : 1x Mocktail Hibiscus Frais (6,50 €)                         │
+│                                                                        │
+│ SOUS-TOTAL TABLE : 26,00 €                                            │
+│ [➕ Ajouter un verre]   [🔔 Appeler le Serveur]   [🚀 ENVOYER COMMANDE]│
+└────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
-## 3. Architecture Système & Stack Technique
+## 🏗️ Architecture & Fonctionnement Hors-Ligne
 
-### Matrice des Technologies
-
-| Couche | Technologie | Version | Rôle & Justification |
-|--------|-------------|---------|-----------------------|
-| **Backend Runtime** | **Java** | **22 (épinglé)** | Performance élevée et LTS. Version strictement épinglée (compatibilité Lombok 1.18.34). |
-| **Backend Framework** | **Spring Boot** | **4.1.1** | Cœur applicatif, injection de dépendances, architecture événementielle découplée. |
-| **Sécurité & JWT** | **Spring Security + JJWT** | **0.13.0** | Authentification stateless JWT avec refresh tokens sécurisés. |
-| **Base de Données** | **PostgreSQL** | **15 / 16** | Persistance relationnelle ACID, schémas déclaratifs stricts (`schema.sql`). |
-| **Temps Réel** | **WebSocket STOMP** | via Spring | Synchronisation bidirectionnelle instantanée sur 11 topics spécialisés. |
-| **Impression Réseau** | **ESC/POS Socket Client** | Natif Java | Communication binaire directe sur port TCP 9100 avec imprimantes thermiques LAN. |
-| **Génération PDF** | **OpenPDF** | **2.0.3** | Factures A4 officielles, Z-Reports certifiés et chevalets de table pliables. |
-| **Génération QR Codes**| **ZXing** | **3.5.4** | Matrice QR vectorielle/PNG haute résolution pour tables et appairage Wi-Fi invité. |
-| **Frontend Framework** | **Angular** | **20** | Architecture moderne basée sur les composants *standalone*, signaux réactifs et lazy-loading. |
-| **Composants UI** | **Ionic** | **8.8.11** | Ergonomie mobile/tactile optimisée pour l'exploitation en salle et comptoir. |
-| **Internationalisation**| **Transloco** | **8.4.0** | 100% de l'interface traduisible avec parité stricte FR/EN (2 500+ clés). |
-| **Canvas 2D** | **Konva.js** | **10.3.2** | Plan de salle interactif haute performance avec magnétisme 50cm. |
-| **Stockage Offline** | **IndexedDB (`idb`)** | **8.0.3** | File d'attente locale des commandes serveur en cas de rupture de signal Wi-Fi. |
-| **Reverse Proxy & TLS**| **Nginx** | **Alpine** | Terminaison HTTPS locale (port 443), redirection 301 HTTP, en-têtes caméra WebRTC. |
-| **Sauvegarde BDD** | **Postgres-Backup-Local** | **15-alpine** | Snapshots quotidiens gzip avec rétention glissante (7j, 4s, 6m). |
-
----
-
-### Diagramme d'Architecture Système
+OpenBar a été pensé dès le premier jour pour fonctionner dans un **contexte réseau local sécurisé et isolé** :
 
 ```mermaid
-flowchart TB
-    subgraph ClientsLAN ["📱 Terminaux Réseau Local (Wi-Fi Bar)"]
-        Serveur["📱 Smartphone Serveur (PWA)\n• Prise de commande\n• Plan Konva 2D\n• File IndexedDB offline"]
-        Barman["🍸 Tablette Barman / KDS (PWA)\n• Kanban STOMP\n• Mode Rush\n• Recettes & alertes WebAudio"]
-        Manager["💻 Poste Manager / Admin (PWA)\n• Statistiques & Marges COGS\n• Shifts & Replay temporel\n• Z-Report & Export FEC"]
-        ClientQR["📲 Smartphone Client (Web PWA)\n• Panier collaboratif STOMP\n• Session anti-fraude\n• Appel serveur & Profils"]
+flowchart LR
+    subgraph Clients ["Terminaux Locaux (Wi-Fi de l'Établissement)"]
+        T1["📱 Smartphones Serveurs"]
+        T2["🍸 Tablettes Barman & KDS"]
+        T3["💻 Ordinateur Direction"]
+        T4["📲 Smartphones Clients (QR)"]
     end
 
-    subgraph HostServeur ["🖥️ Serveur Embarqué Local (Raspberry Pi 5 / Mini-PC)"]
-        subgraph NginxProxy ["🌐 Reverse Proxy Nginx (TLS / HTTPS)"]
-            Port443["Port :443 (HTTPS / TLS 1.3 - Certificats SAN locaux)"]
-            Port80["Port :80 (Redirection 301 automatique vers :443)"]
-            StaticApp["📦 Fichiers Statiques Angular 20 PWA\n(App Shell & Service Worker)"]
-        end
-
-        subgraph BackendApp ["☕ Backend Spring Boot 4.1.1 (JDK 22)"]
-            Controllers["REST Controllers (OpenAPI 3.1)"]
-            SecurityModule["Spring Security + JJWT 0.13.0"]
-            StompBroker["Broker WebSocket STOMP (:8080/ws)"]
-            EventBus["Bus d'Événements Découplé (@Async)"]
-            EscPosClient["Client Socket ESC/POS (TCP :9100)"]
-            PdfEngine["Moteur OpenPDF 2.0.3 & ZXing 3.5.4"]
-        end
-
-        subgraph StorageLayer ["💾 Données & Sauvegardes"]
-            PostgreSQL[("🐘 PostgreSQL\nBDD relationnelle ACID")]
-            BackupService["💾 Service Sauvegarde Automatique\n(Cron 03:00 quotidienne - Rétention 7j/4s/6m)"]
-            VolumeLogs["📋 Logs Centralisés & Rotation"]
-        end
+    subgraph ServeurLocal ["Serveur Embarqué Local (Raspberry Pi 5 / Mini-PC)"]
+        Nginx["🌐 Reverse Proxy Nginx\n(HTTPS :443 + HTTP :80 ➔ 301)"]
+        PWA["📦 Application Angular 20 PWA\n(Mise en cache Service Worker)"]
+        Backend["☕ API Spring Boot 4.1.1\n(WebSocket STOMP + Événements)"]
+        Postgres[("🐘 Base de Données PostgreSQL\n(Volume persistant sécurisé)")]
+        Backup["💾 Sauvegardes Quotidiennes\n(Cron 03h00 + Rétention 6 mois)"]
     end
 
-    subgraph HardwarePeripherals ["🖨️ Périphériques Réseau LAN"]
-        BarPrinter["🖨️ Imprimante Bar (ESC/POS :9100)"]
-        KitchenPrinter["🖨️ Imprimante Cuisine (ESC/POS :9100)"]
-        CashDeskPrinter["🖨️ Imprimante Caisse & Tiroir (ESC/POS :9100)"]
+    subgraph Peripheriques ["Périphériques Réseau"]
+        Printers["🖨️ Imprimantes Thermiques ESC/POS\n(Comptoir, Cuisine, Caisse :9100)"]
     end
 
-    ClientsLAN -->|"Requêtes HTTPS (:443) & WebSocket WSS"| Port443
-    Port80 -.->|"301 Permanent Redirect"| Port443
-    Port443 -->|"Distribution PWA"| StaticApp
-    Port443 -->|"Proxy inverse /api"| Controllers
-    Port443 -->|"Proxy inverse /ws"| StompBroker
-    
-    Controllers --> SecurityModule
-    Controllers --> EventBus
-    EventBus --> EscPosClient
-    Controllers --> PostgreSQL
-    
-    BackupService -.->|"Dump quotidien gzip"| PostgreSQL
-    EscPosClient -->|"Socket TCP brut"| HardwarePeripherals
+    Clients -->|"Wi-Fi Local (Zéro Internet requis)"| Nginx
+    Nginx --> PWA
+    Nginx --> Backend
+    Backend --> Postgres
+    Backend --> Printers
+    Postgres -.-> Backup
 ```
 
----
+### Un Système d'une Résilience Éprouvée
+- **HTTPS & Certificats Locaux** : Nginx assure la terminaison TLS sur le réseau local avec des certificats Subject Alternative Names (SAN), autorisant l'accès à la caméra du téléphone pour le scan QR et l'installation de la PWA.
+- **Sauvegardes automatiques quotidiennes** : Chaque nuit à 03:00, un instantané chiffré et compressé de la base de données est archivé avec une politique de rétention de 7 jours glissants, 4 semaines et 6 mois.
+- **Architecture modulaire à 6 blocs** : Activez ou désactivez les fonctionnalités selon votre profil (*Bar à cocktails*, *Restaurant gastronomique*, *Food-truck itinérant* ou *Clubbing*) grâce au sélecteur de modules en un clic.
 
-## 4. Guide de Démarrage Rapide (Quickstart)
-
-### Prérequis Système
-- **Java** : **JDK 22 strictement** (*ne pas utiliser JDK 23+ en raison des internals de compilation Lombok*). [SDKMAN!](https://sdkman.io/) recommandé (`sdk env install`).
-- **Node.js** : **Version 22 LTS+** et npm.
-- **Docker & Docker Compose** : Requis pour la base PostgreSQL et le déploiement conteneurisé.
-- **Git** : Cloner le dépôt localement.
+> 📚 **Besoin d'approfondir les aspects techniques ?**  
+> Consultez notre **[Guide Technique & Architecture Système](docs/TECHNICAL_GUIDE.md)** pour le détail des endpoints REST, du modèle relationnel complet, des topics STOMP et des procédures d'exploitation avancées.
 
 ---
 
-### Option A : Environnement de Développement Local
+## 🚀 Démarrage Rapide en 60 Secondes
 
-#### 1. Lancer la base de données PostgreSQL
+### Prérequis
+- [Docker & Docker Compose](https://docs.docker.com/get-docker/) installés sur votre machine ou serveur local.
+
+### 1. Cloner le projet et lancer la stack de production
 ```bash
-cd backend/src/main/resources
-docker compose up -d
+git clone https://github.com/FunWarry/Open-Bar.git
+cd Open-Bar
+
+# Lancer la stack complète (PostgreSQL, Spring Boot, Nginx TLS, Backups)
+docker compose -f docker-compose.prod.yml up -d
 ```
 
-#### 2. Démarrer le Backend Spring Boot
-```bash
-cd backend
-# Définir un secret JWT valide (minimum 32 caractères)
-export JWT_SECRET="une_cle_secrete_openbar_tres_longue_et_securisee_32ch"
+### 2. Accéder à l'application
+Ouvrez votre navigateur sur : **`https://localhost`** (ou `https://<IP_DE_VOTRE_MACHINE>`).
 
-# Lancer l'application
-mvn spring-boot:run
-```
-*Le backend démarre sur `http://localhost:8080`. L'interface interactive Swagger UI est accessible sur [`http://localhost:8080/swagger-ui.html`](http://localhost:8080/swagger-ui.html).*
+### 3. Comptes de démonstration prêts à l'emploi
 
-#### 3. Démarrer le Frontend Angular
-```bash
-cd frontend
-npm install
-npm start
-```
-*L'application web démarre sur `http://localhost:4200` (ou accessible sur votre réseau local via `http://<VOTRE_IP_LOCALE>:4200`).*
+| Rôle | Email de Connexion | Mot de Passe | Expérience Dédiée |
+|------|---------------------|--------------|-------------------|
+| **Admin** | `admin@openbar.lan` | `admin123` | Configuration globale & Modules (`/admin/settings`) |
+| **Manager** | `manager@openbar.lan` | `manager123` | Cockpit statistiques, Plannings & Clôtures (`/dashboard-manager`) |
+| **Serveur** | `serveur@openbar.lan` | `serveur123` | Plan de salle 2D & Prise de commandes (`/serveur`) |
+| **Barman** | `barman@openbar.lan` | `barman123` | Kanban de préparation & Mode Rush (`/barman`) |
 
-#### Comptes de Démonstration Préconfigurés
-
-| Rôle | Identifiant / Email | Mot de Passe | Écran d'Accueil |
-|------|---------------------|--------------|-----------------|
-| **ADMIN** | `admin@openbar.lan` | `admin123` | Paramètres & Administration (`/admin/settings`) |
-| **MANAGER** | `manager@openbar.lan` | `manager123` | Dashboard Supervision (`/dashboard-manager`) |
-| **SERVEUR** | `serveur@openbar.lan` | `serveur123` | Plan de Salle & Commandes (`/serveur`) |
-| **BARMAN** | `barman@openbar.lan` | `barman123` | Kanban de Préparation (`/barman`) |
+> 👨‍💻 **Pour le développement local pas-à-pas** (exécution manuelle Maven, Angular CLI et Swagger UI), reportez-vous à la section correspondante du **[Guide Technique](docs/TECHNICAL_GUIDE.md#4-guide-de-démarrage-rapide-quickstart)**.
 
 ---
 
-### Option B : Déploiement Embarqué en Production (Raspberry Pi 5 / Mini-PC)
+## 🗺️ Modules & Adaptabilité Métier
 
-La production fonctionne via un cluster Docker Compose autonome intégrant Nginx (avec terminaison TLS), Spring Boot, PostgreSQL et le conteneur de sauvegarde automatique.
+OpenBar s'adapte à tous les types d'établissements grâce à ses 6 capacités activables à la volée :
 
-#### 1. Préparer les variables d'environnement
-Créer un fichier `.env` à la racine :
-```env
-POSTGRES_PASSWORD=VotreMotDePasseBddUltraSecurise
-JWT_SECRET=VotreSecretJwtDeProductionMinimum32CaracteresTresLong
-TZ=Europe/Paris
-```
-
-#### 2. Générer les certificats TLS pour le réseau local
-Les navigateurs mobiles bloquent l'accès à la caméra (scan QR code) et l'enregistrement du Service Worker PWA sur les adresses IP non sécurisées. Générez un certificat local avec Subject Alternative Names (SAN) :
-
-```bash
-# Sous Linux / macOS :
-./scripts/generate-local-certs.sh
-
-# Sous Windows PowerShell :
-.\scripts\generate-local-certs.ps1
-```
-
-#### 3. Démarrer l'ensemble de la stack
-```bash
-docker compose -f docker-compose.prod.yml up -d --build
-```
-- **Application PWA sécurisée** : `https://openbar.lan` ou `https://<IP_SERVEUR>`
-- **Redirection automatique HTTP ➔ HTTPS** : Port 80 redirigé vers le port 443
-- **Installation sur smartphone/tablette** : Transférer `certs/openbar.crt` sur le terminal et l'ajouter aux autorités de confiance pour activer le scan caméra et le mode hors-ligne sans avertissement.
+| Module | Rôle Opérationnel | Bar | Brasserie | Food-Truck | Club |
+|---|---|:---:|:---:|:---:|:---:|
+| 🍳 **Cuisine & KDS** | Écran d'affichage cuisine et routage par poste de préparation | ❌ | ✅ | ❌ | ❌ |
+| 🎉 **Happy Hour** | Moteur de promotions et tarifications dynamiques horaires | ✅ | ✅ | ❌ | ✅ |
+| 👥 **Équipe & Shifts** | Plannings d'équipe, gestion des shifts et replay historique | ✅ | ✅ | ❌ | ✅ |
+| 🪑 **Plan de Salle** | Plan 2D Konva.js magnétique et affectation des tables | ✅ | ✅ | ❌ | ❌ |
+| 📲 **Commande QR** | Carte digitale client, panier collaboratif et appel serveur | ✅ | ✅ | ✅ | ✅ |
+| 📦 **Gestion Stocks** | Déduction automatique des doses et journal des pertes | ✅ | ✅ | ✅ | ✅ |
 
 ---
 
-## 5. Résilience, Sauvegardes & Sécurité
+## 📊 Tableau d'Avancement des Fonctionnalités
 
-### Stratégie de Sauvegarde & Rétention Automatique
+> **État officiel synchronisé avec les tests de la plateforme** (`.agents/knowledge/features-state.md`).
 
-Les données de votre établissement (commandes, factures scellées, stocks, employés) sont protégées par le conteneur `backup` intégré à `docker-compose.prod.yml` :
-- **Snapshot quotidien automatique** : Chaque nuit à **03:00** (`SCHEDULE: 0 3 * * *`).
-- **Compression gzip sécurisée** : Fichiers `.sql.gz` avec horodatage strict.
-- **Politique de rétention glissante** :
-  - `BACKUP_KEEP_DAYS: 7` (7 derniers jours conservés)
-  - `BACKUP_KEEP_WEEKS: 4` (4 dernières semaines conservées)
-  - `BACKUP_KEEP_MONTHS: 6` (6 derniers mois conservés)
-- **Persistance dédiée** : Stockage sur le volume Docker indépendant `openbar_backups`.
-
-### Commandes Manuelles de Sauvegarde & Restauration
-
-```bash
-# Sauvegarde manuelle instantanée
-./scripts/backup-db.sh           # Linux / macOS
-.\scripts\backup-db.ps1          # Windows PowerShell
-
-# Restauration / Disaster Recovery avec sauvegarde préalable automatique
-./scripts/restore-db.sh -f ./backups/openbar_backup_2026-09-07_030000.sql.gz
-.\scripts\restore-db.ps1 -File .\backups\openbar_backup_2026-09-07_030000.sql.gz
-```
-
-### Sécurité & Protection Réseau Local
-1. **Terminaison HTTPS Locale Obligatoire** : En-têtes `Permissions-Policy: camera=(self)` configurés dans Nginx pour déverrouiller `getUserMedia` sur Safari iOS et Chrome Android.
-2. **Assainissement des Entrées (Jsoup)** : Filtre anti-XSS systématique désinfectant tous les champs textuels des requêtes REST avant enregistrement en base.
-3. **Jetons de Session Éphémères Anti-Fraude** : Protection de l'API de commande publique empêchant les commandes pirates depuis l'extérieur de l'établissement.
-4. **Masquage des Erreurs Techniques** : Les traces de pile (*stack traces*) et détails de structure SQL sont systématiquement supprimés des réponses HTTP 500 en profil de production.
+| Fonctionnalité Majeure | Backend | Frontend | Tests & Qualité |
+|------------------------|:-------:|:--------:|:---------------:|
+| **Architecture Modulaire & Plugins (#405)** | ✅ | ✅ | ✅ Testcontainers + E2E Playwright |
+| **Vérification Automatique des Mises à Jour (#411)** | — | ✅ | ✅ Tests unitaires + E2E |
+| **Prise de Commande Offline & Sync d'Arrière-Plan (#361)**| ✅ | ✅ | ✅ Idempotence + IndexedDB |
+| **Clôture Caisse Z-Report & Export FEC PCG (#359)** | ✅ | ✅ | ✅ Scellement SHA-256 + PDF A4 |
+| **Impression Réseau Directe ESC/POS :9100 (#360)** | ✅ | ✅ | ✅ Socket TCP brut natif |
+| **Routage Multi-Postes & KDS Cuisine (#356)** | ✅ | ✅ | ✅ STOMP routing + timers |
+| **Suivi des Pertes, Casses & Démarque (#357)** | ✅ | ✅ | ✅ Valorisation financière |
+| **Suivi des Marges Brutes & Calcul COGS (#358)** | ✅ | ✅ | ✅ Multi-unités (L, CL, G...) |
+| **Moteur Happy Hour & Tarification Dynamique (#354)**| ✅ | ✅ | ✅ Déduction automatique |
+| **Panier Collaboratif Table Multi-Convives (#366)** | ✅ | ✅ | ✅ STOMP partagé + Auth invité |
+| **Sessions Éphémères Anti-Fraude QR (#365)** | ✅ | ✅ | ✅ Invalidation à la libération |
+| **Moteur de Recommandation & Profils Gustatifs (#367)**| ✅ | ✅ | ✅ Filtres allergènes & vegan |
+| **Appel Serveur & Demande d'Addition (#353)** | ✅ | ✅ | ✅ Cooldown 60s + alertes audio |
+| **Générateur QR Codes & Chevalets A4 (#364)** | ✅ | ✅ | ✅ ZXing + OpenPDF pliables |
+| **Mode Rush Batching Comptoir (#355)** | ✅ | ✅ | ✅ Dosages groupés automatisés |
+| **Plan de Salle 2D Haute Précision (#291/#297)** | ✅ | ✅ | ✅ Konva.js 50cm snap |
+| **Division d'Addition & Règlement Multi-Moyens** | ✅ | ✅ | ✅ Split égalitaire & au plat |
+| **Plannings Équipe & Replay Temporel (#285)** | ✅ | ✅ | ✅ Audit immuable à l'instant T |
 
 ---
 
-## 6. Architecture Modulaire & Configuration
+## 🛡️ Qualité, Tests & Engagement Technique
 
-OpenBar dispose d'une architecture de capacités modulaires activables à la carte selon les besoins spécifiques de chaque établissement :
-
-```mermaid
-graph TD
-    Establishment["🏬 Établissement OpenBar"] --> Presets{"🎯 Préréglages d'Activité"}
-    
-    Presets -->|Bar| M_BAR["Cocktails, Happy Hour, Stocks, Floor Plan"]
-    Presets -->|Restaurant| M_RESTO["Toutes les 6 capacités activées (KDS Cuisine inclus)"]
-    Presets -->|Food-Truck| M_TRUCK["Commande QR & Stocks (Zéro plan de salle, Zéro KDS)"]
-    Presets -->|Nightclub| M_CLUB["Happy Hour, Staff, Commande QR (Plan de salle désactivé)"]
-
-    subgraph Modules ["6 Modules Découplés"]
-        KDS["🍳 CUISINE_KDS : Écran d'affichage cuisine & routage postes"]
-        HH["🎉 HAPPY_HOUR : Moteur de remises & règles de tarification horaire"]
-        EMP["👥 EMPLOYEE_MANAGEMENT : Planning d'équipe, shifts & audit replay"]
-        PLAN["🪑 FLOOR_PLAN : Plan de salle interactif Konva 2D & vue salle"]
-        QR["📲 QR_CLIENT_ORDERING : Commande autonome & panier collaboratif"]
-        STK["📦 STOCK_TRACKING : Déduction automatique & démarque/pertes"]
-    end
-```
-
-### Assistant de Configuration Initiale (`/setup`)
-Au premier démarrage d'un établissement vierge, un parcours d'onboarding fluide guide le gestionnaire :
-1. Définition de l'identité commerciale, fiscale et légale (SIRET, RCS, taux de TVA applicables).
-2. Sélection du type d'établissement et préréglage des modules souhaités.
-3. Configuration de la devise, du symbole monétaire et de sa position (avant/après le montant).
-4. Saisie des identifiants Wi-Fi invité pour la génération automatique des chevalets de table avec QR code de connexion.
-5. Création du compte administrateur principal.
+OpenBar applique des standards d'ingénierie stricts pour garantir une fiabilité sans compromis sur le terrain :
+- **100% de documentation en Anglais** : JavaDoc sur tous les services et DTOs, TSDoc sur les composants Angular, OpenAPI 3.1 sur tous les contrôleurs REST.
+- **Zéro `@SuppressWarnings` toléré** : Toutes les alertes de linting et de sécurité sont traitées à la racine.
+- **Pyramide de tests complète** : Plus de 2 000 tests unitaires Frontend (Karma), 1 000 tests Backend (JUnit 5 / Mockito), tests d'intégration Testcontainers avec PostgreSQL isolé, et parcours complets E2E sous Playwright.
+- **Qualité SonarCloud Grade A** : Couverture supérieure à 80%, zéro vulnérabilité et zéro dette technique bloquante.
 
 ---
 
-## 7. État d'Implémentation des Fonctionnalités
-
-> **Synchronisé avec l'état réel du projet (`.agents/knowledge/features-state.md`)**  
-> *Légende :* ✅ Complètement implémenté et testé · 🔄 En cours · — Non applicable
-
-| Domaine / Fonctionnalité | Backend | Frontend | Tests | Description Synthétique |
-|---|:---:|:---:|:---:|---|
-| **Architecture Modulaire & Plugins (#405)** | ✅ | ✅ | ✅ | 6 capacités activables à la carte, presets d'établissement, guards de routes & synchronisation WebSocket. |
-| **Vérification Mises à Jour & Modal (#411)** | — | ✅ | ✅ | Détection automatique des releases GitHub officielles, modal de mise à niveau avec changelog et snooze 24h. |
-| **Prise de Commande Offline & Sync (#361)** | ✅ | ✅ | ✅ | File d'attente locale IndexedDB (`openbar-offline-db`), synchronisation automatique en arrière-plan et idempotence backend. |
-| **Clôture Caisse Z-Report & Export FEC (#359)** | ✅ | ✅ | ✅ | Assistant de comptage espèces, calcul d'écarts, scellement SHA-256, verrouillage fiscal des ventes et export FEC (PCG). |
-| **Impression Directe ESC/POS Réseau (#360)** | ✅ | ✅ | ✅ | Protocole binaire thermique natif sur port TCP 9100, routage par poste (Bar/Cuisine), cut papier et kick tiroir-caisse. |
-| **Routage Multi-Postes & KDS Cuisine (#356)** | ✅ | ✅ | ✅ | Affectation des items (`BAR`, `KITCHEN`, `SNACK`), synchronisation temps réel des statuts et écran KDS dédié (`/kitchen`). |
-| **Suivi des Pertes & Démarque de Stock (#357)** | ✅ | ✅ | ✅ | Journal d'audit des casses, péremptions, offerts et dégustations avec décompte automatique et valorisation financière. |
-| **Suivi des Marges Brutes & COGS (#358)** | ✅ | ✅ | ✅ | Moteur de conversion multi-unités (L, CL, ML, OZ, G, KG), calcul automatique du coût de revient et badges d'alerte de marge. |
-| **Moteur Happy Hour & Prix Dynamiques (#354)** | ✅ | ✅ | ✅ | Règles de réductions horaires (pourcentages, prix fixes, montants), gestion des créneaux de nuit et prévisualisation live. |
-| **Panier Collaboratif Table Client (#366)** | ✅ | ✅ | ✅ | Panier partagé en temps réel entre convives d'une table via STOMP (`/topic/tables/{id}/cart`) et commande groupée. |
-| **Sessions Éphémères & Anti-Fraude QR (#365)** | ✅ | ✅ | ✅ | Jetons de table temporaires invalidés à la libération de la table, protection contre les scans frauduleux hors-salle. |
-| **Filtres Gustatifs & Profils Cocktails (#367)** | ✅ | ✅ | ✅ | Profils de saveurs (fruité, fumé, épicé...), tags diététiques (vegan, mocktail, sans gluten) et barre de recommandation interactive. |
-| **Appel Serveur & Demande d'Addition (#353)** | ✅ | ✅ | ✅ | Bouton client avec cooldown de 60s, alertes sonores et visuelles sur le plan de salle avec acquittement en un clic. |
-| **Générateur QR Codes & Chevalets A4 (#364)** | ✅ | ✅ | ✅ | Export de chevalets de table pliables 2 faces, planches de stickers, QR commande et appairage Wi-Fi invité via ZXing/OpenPDF. |
-| **Mode Rush & Batches Comptoir (#355)** | ✅ | ✅ | ✅ | Regroupement des verres identiques entre commandes actives avec calcul des dosages groupés et validation en lot. |
-| **Plan de Salle Interactif Konva.js (#291/#297)**| ✅ | ✅ | ✅ | Canvas 2D haute précision, alignement magnétique, grille 50cm, multi-zones et protection hors mode édition. |
-| **Division d'Addition & Règlement Multi-Moyens**| ✅ | ✅ | ✅ | Split égalitaire avec suivi des parts restantes, split par sélection d'articles, pourboires, remises et reçus thermiques. |
-| **Planning Équipe, Shifts & Replay Temporel (#285)**| ✅ | ✅ | ✅ | Gestion des plannings employés, historique immuable et reconstitution du planning d'équipe à tout instant T. |
-| **Conformité Fiscale (SIRET / TVA / Mentions)** | ✅ | ✅ | ✅ | Validation de l'algorithme de Luhn sur SIRET, ventilation multi-taux TVA (20%, 10%, 5.5%), numérotation séquentielle CGI. |
-| **Thèmes Visuels Adaptatifs & Couleurs HSL (#217)**| — | ✅ | ✅ | Palette 100% basée sur variables CSS adaptatives (modes clair/sombre), zéro couleur en dur, studio de personnalisation. |
-| **Authentification JWT & Rotation Refresh Token** | ✅ | ✅ | ✅ | Sécurité stateless, rotation automatique des tokens, intercepteurs HTTP et guards par rôle (`ADMIN`, `MANAGER`, `SERVEUR`, `BARMAN`). |
-| **Reverse Proxy Nginx & Certificats TLS (#338)** | — | ✅ | ✅ | Terminaison TLS 1.2/1.3 locale, redirection HTTP 80 ➔ 443, scripts de génération SAN et validation automatique. |
-| **Sauvegardes PostgreSQL & Rétention (#337)** | ✅ | — | ✅ | Conteneur cron quotidien, rotation 7j/4s/6m, scripts CLI de snapshot et restauration de secours testés. |
-
----
-
-## 8. Qualité du Code, Tests & Contribution
-
-### Standards de Qualité Stricts
-- **Anglais Obligatoire Partout dans le Code** : 100% du code (JavaDoc, TSDoc, descriptions OpenAPI, noms de variables/fonctions, messages d'exceptions, libellés de tests) est rédigé en anglais.
-- **Zéro `@SuppressWarnings`** : Tout avertissement de linting ou de sécurité doit être résolu à la racine.
-- **100% de Parité Transloco** : Chaque chaîne visible par un utilisateur utilise Transloco (`fr.json` et `en.json` tenus en parité stricte).
-- **Zéro Couleur en Dur** : Toutes les règles CSS/SCSS s'appuient sur les tokens de design (`var(--background-bg-0)`, `var(--primary)`, etc.).
-
----
-
-### Pyramide de Tests Complète
-
-Le projet intègre une pyramide de tests automatisés validée à chaque commit :
-
-```
-             /\
-            /  \     Tests E2E Playwright (Chromium headless)
-           / E2E\    Navigation réelle, workflows complets, data-testid
-          /------\
-         /  Integ \  Tests d'Intégration Backend (Spring Boot + Testcontainers)
-        /  Tests   \ PostgreSQL isolé en conteneur éphémère
-       /------------\
-      /  Unitaires   \ Tests Unitaires Frontend (Karma / Jasmine) & Backend (JUnit 5 + Mockito)
-     /   & Non-Regr   \ Couverture nominale, cas d'erreurs et cas limites (>80% couverture)
-    /__________________\
-```
-
-#### Exécuter la suite de tests en local :
-```bash
-# 1. Tests unitaires Frontend (Karma)
-cd frontend && npx tsc --noEmit && npx ng test --watch=false --browsers=ChromeHeadless
-
-# 2. Tests E2E Frontend (Playwright)
-cd frontend && npm run test:e2e
-
-# 3. Tests Backend (Unitaires + Intégration Testcontainers)
-cd backend && mvn test
-
-# 4. Scan SonarCloud & Quality Gate local
-.\scripts\sonar-scan.ps1   # Windows PowerShell
-./scripts/sonar-scan.sh    # Linux / macOS
-```
-
----
-
-### Workflow de Contribution
-1. Chaque évolution ou correction de bug est rattachée à une issue sur le [Kanban GitHub](https://github.com/users/FunWarry/projects/3/views/1).
-2. Création d'une branche dédiée : `<type>/#<numero>-<description-kebab>` (ex. `feat/#361-offline-order-queue`).
-3. Commits atomiques respectant les [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `docs:`, `test:`, `refactor:`, `chore:`).
-4. Création d'une Pull Request ciblant la branche `dev`.
-5. Tous les checks d'intégration continue (GitHub Actions) et le Quality Gate SonarCloud doivent être validés à 100% en vert (`PASSED`) avant toute fusion en `merge commit`.
-
----
-
-## 9. Licence & Conditions Légales
+## ⚖️ Licence & Conditions d'Exploitation
 
 OpenBar est distribué sous licence **Source-Available Non-Commerciale**.
 
-### Conditions d'Utilisation :
-- **Usage Non-Commercial, Recherche & Éducation** : Le code source est librement consultable, modifiable et déployable à des fins d'apprentissage, d'audit technique, de recherche académique ou pour un usage strictement personnel et non lucratif.
-- **Exploitation Commerciale en Établissement** : Toute utilisation directe ou indirecte d'OpenBar dans le cadre de l'exploitation d'une activité commerciale lucrative (bar, café, restaurant, food-truck, discothèque, événement payant, prestation de service) requiert l'acquisition préalable d'une **Licence Commerciale d'Exploitation**.
+- **Usage Éducatif, Personnel & Recherche** : Le code source est librement consultable, modifiable et déployable gratuitement à des fins d'apprentissage, d'audit technique ou pour des projets strictement non lucratifs.
+- **Exploitation Commerciale en Établissement** : Toute utilisation d'OpenBar dans le cadre de l'exploitation d'une activité commerciale lucrative (bar, brasserie, restaurant, food-truck, boîte de nuit, festival payant) nécessite l'acquisition préalable d'une **Licence Commerciale d'Exploitation**.
 
-### Acquisition de Licence Commerciale & Support Professionnel :
-Pour toute demande de licence commerciale, d'assistance à l'installation sur site ou de développement de fonctionnalités spécifiques :
-- **Auteur & Contact** : Mathéo Gevraise ([@FunWarry](https://github.com/FunWarry))
-- **Dépôt Officiel** : [https://github.com/FunWarry/Open-Bar](https://github.com/FunWarry/Open-Bar)
-- **Suivi de Projet** : [Tableau de bord GitHub Projects](https://github.com/users/FunWarry/projects/3/views/1)
+### 💼 Obtenir une Licence Commerciale ou un Accompagnement
+Pour équiper votre établissement, bénéficier d'un accompagnement à l'installation sur matériel dédié ou demander des développements sur-mesure :
+- **Auteur & Lead Développeur** : Mathéo Gevraise ([@FunWarry](https://github.com/FunWarry))
+- **Dépôt GitHub** : [https://github.com/FunWarry/Open-Bar](https://github.com/FunWarry/Open-Bar)
+- **Kanban & Roadmap Publique** : [GitHub Projects OpenBar](https://github.com/users/FunWarry/projects/3/views/1)
 
 ---
 
 <p align="center">
-  Conçu avec passion pour l'art du cocktail et l'excellence du service en salle 🍸✨
+  <strong>OpenBar</strong> — Libérez vos équipes, sublimez vos cocktails et régalez vos clients. 🍸🚀
 </p>
