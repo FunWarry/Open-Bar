@@ -56,19 +56,36 @@ Aujourd'hui, la majorité des exploitants sont confrontés à un triple dilemme 
 
 OpenBar n'est pas une simple caisse enregistreuse : c'est un écosystème complet qui orchestre l'ensemble du flux de travail de votre établissement.
 
-```
-                  ┌────────────────────────────────────────┐
-                  │          🍹 OPENBAR ECOSYSTEM          │
-                  └────────────────────────────────────────┘
-                                      │
-         ┌────────────────────────────┼────────────────────────────┐
-         ▼                            ▼                            ▼
-  SALLE & TERRASSE             COMPTOIR & CUISINE           DIRECTION & GESTION
-  • Prise commande ultra-rapide • Kanban STOMP temps réel    • Cockpit KPIs & Marges COGS
-  • Plan 2D Konva.js magnétique • Mode "Rush Batching"       • Plannings & Replay temporel
-  • File d'attente offline IDB • Écran Cuisine KDS multi-postes • Clôture Z-Report fiscale
-  • Appel serveur & Addition   • Fiches recettes dépliables • Export comptable FEC (PCG)
-  • Commande QR sans appli     • Impression ESC/POS directe • Démarque & Déduction stock
+```mermaid
+flowchart TD
+    subgraph Core ["🍹 OPENBAR ECOSYSTEM"]
+        LocalHub["🖥️ Serveur Local Embarqué\n(Raspberry Pi 5 / Mini-PC)"]
+    end
+
+    subgraph Salle ["📱 SALLE & TERRASSE"]
+        S1["Plan 2D Konva.js Magnétique"]
+        S2["Prise de Commande Rapide"]
+        S3["File d'Attente Offline IndexedDB"]
+        S4["Appel Serveur & Addition Instantanée"]
+    end
+
+    subgraph Comptoir ["🍸 COMPTOIR & CUISINE"]
+        B1["Kanban STOMP Réactif Temps Réel"]
+        B2["Mode Rush Batching Multi-Tickets"]
+        B3["Écran KDS Cuisine Multi-Postes"]
+        B4["Impression ESC/POS Directe :9100"]
+    end
+
+    subgraph Direction ["📊 DIRECTION & FINANCE"]
+        M1["Cockpit KPIs & Marges COGS en Direct"]
+        M2["Plannings d'Équipe & Replay Temporel"]
+        M3["Clôture Fiscale Z-Report (CGI art. 286)"]
+        M4["Export Comptable Standard FEC (PCG)"]
+    end
+
+    LocalHub <-->|"WebSocket STOMP & REST"| Salle
+    LocalHub <-->|"WebSocket STOMP & KDS"| Comptoir
+    LocalHub <-->|"Analytics & Audit Log"| Direction
 ```
 
 ### 1. Prise de Commande & Salle Réactive
@@ -104,18 +121,25 @@ OpenBar n'est pas une simple caisse enregistreuse : c'est un écosystème comple
 ### 📱 1. La Vue Serveur : Fluidité & Mobilité en Salle
 *Conçue pour une manipulation à une main sur smartphone ou tablette légère.*
 
-```
-┌────────────────────────────────────────────────────────────────────────┐
-│ 🪑 SALLE PRINCIPALE                 [Zone: Terrasse ▼]  [🔍 Table / Commande] │
-├────────────────────────────────────────────────────────────────────────┤
-│  ┌──────────────┐   ┌──────────────┐   ┌──────────────┐                │
-│  │ Table 1 [4p] │   │ Table 2 [2p] │   │ Table 3 [6p] │   ⚡ APPEL    │
-│  │ 🟢 LIBRE     │   │ 🟡 PRÉPA     │   │ 🔴 ADDITION  │   SERVEUR      │
-│  │ --           │   │ 12m restantes│   │ 42,50 €      │   Table 3      │
-│  └──────────────┘   └──────────────┘   └──────────────┘   [ACQUITTER]  │
-│                                                                        │
-│  [➕ Nouvelle Commande]     [💳 Encaisser Table]     [🔀 Déplacer Table]│
-└────────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    subgraph PlanSalle ["🪑 PLAN DE SALLE 2D INTERACTIF"]
+        direction LR
+        T1["Table 1 [4p]\n🟢 LIBRE"]
+        T2["Table 2 [2p]\n🟡 EN PRÉPARATION\n⏱️ 12 min restantes"]
+        T3["Table 3 [6p]\n🔴 ADDITION DEMANDÉE\n💳 42,50 €"]
+        Appel["⚡ ALERTE APPEL SERVEUR\nTable 3 demande assistance\n[Acquitter en 1 clic]"]
+    end
+
+    subgraph ActionsServeur ["📱 ACTIONS RAPIDES & COMMANDES"]
+        direction LR
+        Act1["➕ Prise de Commande Rapide"]
+        Act2["💳 Encaissement & Split Addition"]
+        Act3["🔀 Déplacement / Transfert Table"]
+        Act4["📡 Résilience Offline (Sync auto IDB)"]
+    end
+
+    PlanSalle --> ActionsServeur
 ```
 
 ---
@@ -123,17 +147,28 @@ OpenBar n'est pas une simple caisse enregistreuse : c'est un écosystème comple
 ### 🍸 2. Le Dashboard Barman & KDS Cuisine
 *L'écran tactile du comptoir : visibilité instantanée, fiches recettes et cadence soutenue.*
 
-```
-┌─────────────────────────── KANBAN PRÉPARATION ─────────────────────────┐
-│ EN ATTENTE (3)            │ EN COURS (2)              │ PRÊT (1)       │
-├───────────────────────────┼───────────────────────────┼────────────────┤
-│ ⚡ URGENT [Table 4 - 08m] │ [Table 2 - 04m]           │ [Table 5]      │
-│ • 2x Old Fashioned        │ • 1x Negroni              │ • 1x Spritz    │
-│ • 1x Espresso Martini     │ • 1x Moscow Mule          │                │
-│ [RECETTE] [COMMENCER]     │ [TERMINER] [IMPRIMER]     │ [LIVRÉ]        │
-├───────────────────────────┴───────────────────────────┴────────────────┤
-│ 🔥 MODE RUSH ACTIF : 5x Mojito cumulés (Table 1, 4, 7) ➔ [PRÉPARER LOT]│
-└────────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart LR
+    subgraph Attente ["⏳ EN ATTENTE (3)"]
+        Cmd1["⚡ URGENT - Table 4 [08m]\n• 2x Old Fashioned\n• 1x Espresso Martini"]
+        Cmd2["Table 6 [03m]\n• 3x Bière IPA"]
+    end
+
+    subgraph EnCours ["🔥 EN COURS (2)"]
+        Cmd3["Table 2 [04m]\n• 1x Negroni\n• 1x Moscow Mule"]
+    end
+
+    subgraph Pret ["✅ PRÊT (1)"]
+        Cmd4["Table 5\n• 1x Spritz Saint-Germain\n[Prêt ➔ Notifier Serveur]"]
+    end
+
+    subgraph Rush ["🍸 MODE RUSH BATCHING AGRÉGÉ"]
+        Rush1["🔥 5x Mojito cumulés (Tables 1, 4, 7)\nDosage calculé : 30cl Rhum • 10cl Sucre • 50 feuilles\n[Valider la tournée groupée]"]
+    end
+
+    Attente -->|"Prendre en charge"| EnCours
+    EnCours -->|"Terminé & Alerte audio"| Pret
+    Attente -.->|"Agrégation Rush"| Rush
 ```
 
 ---
@@ -141,15 +176,25 @@ OpenBar n'est pas une simple caisse enregistreuse : c'est un écosystème comple
 ### 📊 3. Le Cockpit Manager : Pilotage & Conformité
 *Le centre de commande du patron : rentabilité, équipes et clôtures fiscales sécurisées.*
 
-```
-┌─────────────────────────── TABLEAU DE BORD MANAGER ─────────────────────┐
-│ CHIFFRE D'AFFAIRES     MARGE BRUTE MOY.     PANIER MOYEN      Z-REPORT │
-│ 2 480,50 €             74,2 % (Objectif OK) 28,40 €           🟢 FERMÉ │
-├────────────────────────────────────────────────────────────────────────┤
-│ 📈 Top Cocktails du Jour : 1. Moscow Mule (42)  2. Spritz (38)  3. IPA │
-│ ⚠️ Alertes Stock : Sirop de fruit de la passion (< 15 cl restant)      │
-│ 📋 Actions Rapides : [Export FEC Comptable] [Imprimer Z] [Planning]   │
-└────────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    subgraph KPIs ["📊 COCKPIT DE PILOTAGE EN DIRECT"]
+        direction LR
+        K1["💰 Chiffre d'Affaires\n2 480,50 €"]
+        K2["📈 Marge Brute COGS\n74,2 % (Objectif 70% OK)"]
+        K3["🧾 Panier Moyen\n28,40 €"]
+        K4["🔒 Clôture Caisse Z\n🟢 Clôturé & Scellé SHA-256"]
+    end
+
+    subgraph Pilotage ["⚙️ GESTION & CONFORMITÉ FISCALE"]
+        direction LR
+        P1["Top Cocktails : 1. Moscow Mule (42) • 2. Spritz (38)"]
+        P2["Alerte Stock : Sirop Passion (< 15cl)"]
+        P3["Export FEC & Z-Report A4 PDF"]
+        P4["Plannings Staff & Replay Temporel T"]
+    end
+
+    KPIs --> Pilotage
 ```
 
 ---
@@ -157,18 +202,21 @@ OpenBar n'est pas une simple caisse enregistreuse : c'est un écosystème comple
 ### 📲 4. L'Interface Client QR Code
 *L'expérience autonome et conviviale directement sur les smartphones des clients.*
 
-```
-┌─────────────────────────── TABLE 4 : CHEZ MARCEL ──────────────────────┐
-│ 👋 Bienvenue ! Invités connectés : Sarah, Lucas, Alex                 │
-├────────────────────────────────────────────────────────────────────────┤
-│ 🛒 Panier Partagé de la Table :                                       │
-│ • Sarah : 1x Pornstar Martini (12,00 €)                                │
-│ • Lucas : 1x Bière Artisanale IPA (7,50 €)                            │
-│ • Alex  : 1x Mocktail Hibiscus Frais (6,50 €)                         │
-│                                                                        │
-│ SOUS-TOTAL TABLE : 26,00 €                                            │
-│ [➕ Ajouter un verre]   [🔔 Appeler le Serveur]   [🚀 ENVOYER COMMANDE]│
-└────────────────────────────────────────────────────────────────────────┘
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Sarah as 📲 Sarah (Convive A)
+    actor Lucas as 📲 Lucas (Convive B)
+    participant STOMP as ⚡ WebSocket STOMP (/topic/tables/4/cart)
+    participant Bar as 🍸 Écran Barman / KDS
+
+    Note over Sarah,Lucas: Table 4 — Session éphémère sécurisée
+    Sarah->>STOMP: Ajoute 1x Pornstar Martini (12,00 €)
+    STOMP-->>Lucas: Synchro temps réel : 1 article au panier partagé
+    Lucas->>STOMP: Ajoute 1x Bière Artisanale IPA (7,50 €)
+    STOMP-->>Sarah: Synchro temps réel : Sous-total table = 19,50 €
+    Sarah->>STOMP: Valide la commande groupée
+    STOMP->>Bar: Ticket émis instantanément au comptoir
 ```
 
 ---
