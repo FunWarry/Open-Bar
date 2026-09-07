@@ -1,71 +1,74 @@
 <ion-header class="ion-no-border">
   <ion-toolbar class="barman-toolbar">
-    <ion-title>
-      <div class="toolbar-title-container">
-        <span class="toolbar-brand">{{ 'BARMAN_DASHBOARD.TITLE' | transloco }}</span>
+    <div class="barman-toolbar-inner">
+      <!-- Brand Title & Pending Orders Counter -->
+      <div class="toolbar-brand-group">
+        <h1 class="toolbar-brand">{{ 'BARMAN_DASHBOARD.TITLE' | transloco }}</h1>
         <span class="active-orders-counter" title="Commandes en cours de traitement">
           {{ totalActiveOrdersCount }} {{ 'BARMAN_DASHBOARD.PENDING_ORDERS' | transloco }}
         </span>
       </div>
-    </ion-title>
 
-    <!-- Toggle Vue Tickets / Mode Rush -->
-    <div class="header-center-segment">
-      <ion-segment
-        [(ngModel)]="activeViewMode"
-        mode="ios"
-        class="barman-view-segment"
-        data-testid="barman-view-mode-segment">
-        <ion-segment-button value="tickets" data-testid="segment-view-tickets">
-          <ion-icon name="list-outline"></ion-icon>
-          <ion-label>{{ 'BARMAN_DASHBOARD.VIEW_TICKETS' | transloco }}</ion-label>
-        </ion-segment-button>
-        <ion-segment-button value="batch" data-testid="segment-view-batch">
-          <ion-icon name="flash-outline"></ion-icon>
-          <ion-label>{{ 'BARMAN_DASHBOARD.VIEW_BATCH' | transloco }}</ion-label>
-          @if (totalBatchDrinksCount > 0) {
-            <ion-badge color="warning" class="segment-badge" data-testid="batch-count-badge">
-              {{ totalBatchDrinksCount }}
-            </ion-badge>
-          }
-        </ion-segment-button>
-      </ion-segment>
+      <!-- Toggle Vue Tickets / Mode Rush -->
+      <div class="header-center-segment">
+        <ion-segment
+          [(ngModel)]="activeViewMode"
+          mode="ios"
+          class="barman-view-segment"
+          data-testid="barman-view-mode-segment">
+          <ion-segment-button value="tickets" layout="icon-start" data-testid="segment-view-tickets">
+            <ion-icon name="list-outline"></ion-icon>
+            <ion-label>{{ 'BARMAN_DASHBOARD.VIEW_TICKETS' | transloco }}</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="batch" layout="icon-start" data-testid="segment-view-batch">
+            <ion-icon name="flash-outline"></ion-icon>
+            <ion-label class="batch-segment-label">
+              <span>{{ 'BARMAN_DASHBOARD.VIEW_BATCH' | transloco }}</span>
+              @if (totalBatchDrinksCount > 0) {
+                <span class="segment-badge" data-testid="batch-count-badge">
+                  {{ totalBatchDrinksCount }}
+                </span>
+              }
+            </ion-label>
+          </ion-segment-button>
+        </ion-segment>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="toolbar-actions">
+        <!-- Ruptures à chaud -->
+        <ion-button
+          class="header-action-btn btn-ruptures"
+          (click)="openRupturesModal()"
+          (keyup.enter)="openRupturesModal()"
+          [title]="'BARMAN_DASHBOARD.QUICK_STOCK_TOGGLES' | transloco"
+          data-testid="open-ruptures-btn">
+          <ion-icon slot="start" name="flame-outline"></ion-icon>
+          <span class="btn-text">{{ 'BARMAN_DASHBOARD.QUICK_STOCK_TOGGLES' | transloco }}</span>
+        </ion-button>
+
+        <!-- Refresh manuel -->
+        <ion-button
+          class="header-action-btn btn-refresh"
+          (click)="chargerCommandes()"
+          (keyup.enter)="chargerCommandes()"
+          [title]="'BARMAN_DASHBOARD.REFRESH_ORDERS_TOOLTIP' | transloco"
+          data-testid="refresh-orders-btn">
+          <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
+        </ion-button>
+      </div>
     </div>
-
-    <ion-buttons slot="end" class="toolbar-actions">
-      <!-- Ruptures à chaud -->
-      <ion-button
-        class="header-action-btn btn-ruptures"
-        (click)="openRupturesModal()"
-        (keyup.enter)="openRupturesModal()"
-        [title]="'BARMAN_DASHBOARD.QUICK_STOCK_TOGGLES' | transloco"
-        data-testid="open-ruptures-btn">
-        <ion-icon slot="start" name="flame-outline"></ion-icon>
-        <span class="btn-text">{{ 'BARMAN_DASHBOARD.QUICK_STOCK_TOGGLES' | transloco }}</span>
-      </ion-button>
-
-      <!-- Refresh manuel -->
-      <ion-button
-        class="header-action-btn"
-        (click)="chargerCommandes()"
-        (keyup.enter)="chargerCommandes()"
-        [title]="'BARMAN_DASHBOARD.REFRESH_ORDERS_TOOLTIP' | transloco"
-        data-testid="refresh-orders-btn">
-        <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
-      </ion-button>
-    </ion-buttons>
   </ion-toolbar>
 
   <!-- Barre de filtres et recherche -->
   <div class="barman-filter-bar">
     <div class="search-wrapper">
-      <ion-searchbar
+      <app-search-bar
         [(ngModel)]="searchQuery"
         [placeholder]="'BARMAN_DASHBOARD.SEARCH_PLACEHOLDER' | transloco"
-        mode="ios"
         [debounce]="150"
-        data-testid="barman-searchbar">
-      </ion-searchbar>
+        testId="barman-searchbar">
+      </app-search-bar>
     </div>
 
     <div class="chips-wrapper">
@@ -114,15 +117,17 @@
         <ion-label>{{ 'STATIONS.BAR' | transloco }}</ion-label>
       </ion-chip>
 
-      <ion-chip
-        tabindex="0"
-        [class.chip--active]="stationFilter === 'KITCHEN'"
-        (click)="setStationFilter('KITCHEN')"
-        (keyup.enter)="setStationFilter('KITCHEN')"
-        data-testid="chip-station-kitchen">
-        <ion-icon name="restaurant-outline"></ion-icon>
-        <ion-label>{{ 'STATIONS.KITCHEN' | transloco }}</ion-label>
-      </ion-chip>
+      @if (cuisineKdsEnabled()) {
+        <ion-chip
+          tabindex="0"
+          [class.chip--active]="stationFilter === 'KITCHEN'"
+          (click)="setStationFilter('KITCHEN')"
+          (keyup.enter)="setStationFilter('KITCHEN')"
+          data-testid="chip-station-kitchen">
+          <ion-icon name="restaurant-outline"></ion-icon>
+          <ion-label>{{ 'STATIONS.KITCHEN' | transloco }}</ion-label>
+        </ion-chip>
+      }
     </div>
   </div>
 </ion-header>
@@ -248,41 +253,53 @@
   } @else {
     <!-- RUSH / BATCHING PREPARATION MODE -->
     <div class="rush-mode-container" data-testid="rush-mode-container">
-      <!-- KPI Banner Rush Mode -->
+      <!-- KPI Hero Banner Rush Mode -->
       <div class="rush-stats-banner" data-testid="rush-stats-banner">
         <div class="rush-banner-main">
           <div class="rush-icon-badge">
-            <ion-icon name="flash-outline"></ion-icon>
+            <ion-icon name="sparkles-outline"></ion-icon>
           </div>
           <div class="rush-banner-titles">
             <h2 class="rush-title">{{ 'BARMAN_DASHBOARD.BATCH_MODE_TITLE' | transloco }}</h2>
             <p class="rush-subtitle">{{ 'BARMAN_DASHBOARD.BATCH_MODE_SUBTITLE' | transloco }}</p>
           </div>
         </div>
+
         <div class="rush-kpis">
-          <div class="rush-kpi-pill">
-            <span class="rush-kpi-label">{{ 'BARMAN_DASHBOARD.BATCH_TOTAL_DRINKS' | transloco }}</span>
+          <div class="rush-kpi-pill" [title]="'BARMAN_DASHBOARD.BATCH_TOTAL_DRINKS' | transloco">
+            <div class="rush-kpi-header">
+              <ion-icon name="wine-outline"></ion-icon>
+              <span class="rush-kpi-label">{{ 'BARMAN_DASHBOARD.BATCH_TOTAL_DRINKS' | transloco }}</span>
+            </div>
             <strong class="rush-kpi-val" data-testid="rush-kpi-total-drinks">{{ totalBatchDrinksCount }}</strong>
           </div>
-          <div class="rush-kpi-pill">
-            <span class="rush-kpi-label">{{ 'BARMAN_DASHBOARD.BATCH_DISTINCT_RECIPES' | transloco }}</span>
+
+          <div class="rush-kpi-pill" [title]="'BARMAN_DASHBOARD.BATCH_DISTINCT_RECIPES' | transloco">
+            <div class="rush-kpi-header">
+              <ion-icon name="layers-outline"></ion-icon>
+              <span class="rush-kpi-label">{{ 'BARMAN_DASHBOARD.BATCH_DISTINCT_RECIPES' | transloco }}</span>
+            </div>
             <strong class="rush-kpi-val" data-testid="rush-kpi-distinct-recipes">{{ distinctBatchRecipesCount }}</strong>
           </div>
+
           @if (urgentBatchesCount > 0) {
-            <div class="rush-kpi-pill rush-kpi-pill--urgent" data-testid="rush-kpi-urgent">
-              <span class="rush-kpi-label">{{ 'BARMAN_DASHBOARD.BATCH_URGENT_ALERT' | transloco }}</span>
+            <div class="rush-kpi-pill rush-kpi-pill--urgent" data-testid="rush-kpi-urgent" [title]="'BARMAN_DASHBOARD.BATCH_URGENT_ALERT' | transloco">
+              <div class="rush-kpi-header">
+                <ion-icon name="flash-outline"></ion-icon>
+                <span class="rush-kpi-label">{{ 'BARMAN_DASHBOARD.BATCH_URGENT_ALERT' | transloco }}</span>
+              </div>
               <strong class="rush-kpi-val">⚡ {{ urgentBatchesCount }}</strong>
             </div>
           }
         </div>
       </div>
 
-      <!-- Kanban 2 colonnes pour les Batches -->
+      <!-- Kanban 2 colonnes pour les Cocktails Groupés -->
       <ion-grid class="batch-kanban-grid" data-testid="batch-kanban-grid">
         <ion-row class="batch-kanban-row">
 
-          <!-- Colonne Batches en attente -->
-          <ion-col size="12" size-md="6" class="batch-col-wrapper">
+          <!-- Colonne Cocktails à préparer -->
+          <ion-col size="12" size-lg="6" class="batch-col-wrapper">
             <div class="batch-col batch-col--pending">
               <div class="batch-header batch-header--pending">
                 <div class="header-status">
@@ -301,25 +318,40 @@
                     [class.batch-card--urgent]="batch.isUrgent"
                     [attr.data-testid]="'batch-card-' + batch.cocktailNom">
 
+                    <!-- En-tête de la carte cocktail -->
                     <div class="batch-card-header">
-                      <div class="batch-card-title-group">
-                        <span class="batch-cocktail-name" data-testid="batch-cocktail-name">
-                          {{ batch.cocktailNom }}
-                        </span>
-                        @if (batch.isUrgent) {
-                          <span class="batch-urgent-pill" data-testid="batch-urgent-pill">
-                            ⚡ {{ 'BARMAN_DASHBOARD.FILTER_URGENT_ONLY' | transloco }}
-                          </span>
-                        }
+                      <div class="batch-card-visual">
+                        <ion-icon name="wine-outline"></ion-icon>
                       </div>
+
+                      <div class="batch-card-title-group">
+                        <div class="batch-card-title-row">
+                          <span class="batch-cocktail-name" data-testid="batch-cocktail-name">
+                            {{ batch.cocktailNom }}
+                          </span>
+                          @if (batch.isUrgent) {
+                            <span class="batch-urgent-pill" data-testid="batch-urgent-pill">
+                              ⚡ {{ 'BARMAN_DASHBOARD.BATCH_URGENT_BADGE' | transloco }}
+                            </span>
+                          }
+                        </div>
+                        <span class="batch-card-subtitle">
+                          {{ batch.tableSummaries.length }} table(s) en attente
+                        </span>
+                      </div>
+
                       <div class="batch-qty-badge" data-testid="batch-total-quantity">
-                        ⚡ x{{ batch.pendingQuantity }}
+                        <span class="qty-prefix">x</span><span class="qty-num">{{ batch.pendingQuantity }}</span>
+                        <span class="qty-unit">verres</span>
                       </div>
                     </div>
 
                     <!-- Répartition par table -->
                     <div class="batch-tables-distribution">
-                      <span class="batch-tables-title">{{ 'BARMAN_DASHBOARD.BATCH_TABLES_LABEL' | transloco }}</span>
+                      <span class="batch-tables-title">
+                        <ion-icon name="restaurant-outline"></ion-icon>
+                        {{ 'BARMAN_DASHBOARD.BATCH_TABLES_LABEL' | transloco }}
+                      </span>
                       <div class="batch-table-chips">
                         @for (summary of batch.tableSummaries; track summary) {
                           <span class="batch-table-tag" data-testid="batch-table-tag">{{ summary }}</span>
@@ -331,12 +363,14 @@
                     @if (batch.ingredients && batch.ingredients.length > 0) {
                       <div class="batch-ingredients-preview" data-testid="batch-ingredients-preview">
                         <span class="batch-ing-preview-title">
+                          <ion-icon name="sparkles-outline"></ion-icon>
                           {{ 'BARMAN_DASHBOARD.BATCH_SCALED_DOSAGE_PREVIEW' | transloco: { qty: batch.pendingQuantity } }} :
                         </span>
                         <div class="batch-ing-pills">
                           @for (ing of batch.ingredients; track ing.ingredientNom) {
                             <span class="batch-ing-pill">
-                              <strong>{{ ing.ingredientNom }}</strong>: {{ ing.unitQuantite * batch.pendingQuantity }} {{ ing.uniteMesure }}
+                              <span class="ing-name">{{ ing.ingredientNom }}</span>
+                              <strong class="ing-qty">{{ ing.unitQuantite * batch.pendingQuantity }} {{ ing.uniteMesure }}</strong>
                             </span>
                           }
                         </div>
@@ -357,30 +391,45 @@
                         {{ 'BARMAN_DASHBOARD.RECIPE_SHEET' | transloco }}
                       </ion-button>
 
-                      <ion-button
-                        size="small"
-                        class="btn-batch-advance"
-                        color="primary"
-                        (click)="onStartBatch(batch)"
-                        (keyup.enter)="onStartBatch(batch)"
-                        [attr.data-testid]="'batch-start-btn-' + batch.cocktailNom">
-                        <ion-icon slot="start" name="flash-outline"></ion-icon>
-                        {{ 'BARMAN_DASHBOARD.BATCH_START_PREP' | transloco }} (x{{ batch.pendingQuantity }})
-                      </ion-button>
+                      <div class="btn-group-right">
+                        <ion-button
+                          size="small"
+                          class="btn-batch-advance"
+                          (click)="onStartBatch(batch)"
+                          (keyup.enter)="onStartBatch(batch)"
+                          [attr.data-testid]="'batch-start-btn-' + batch.cocktailNom">
+                          <ion-icon slot="start" name="flash-outline"></ion-icon>
+                          {{ 'BARMAN_DASHBOARD.BATCH_START_PREP' | transloco }} (x{{ batch.pendingQuantity }})
+                        </ion-button>
+
+                        <ion-button
+                          size="small"
+                          class="btn-batch-quick-ready"
+                          (click)="onCompleteBatch(batch)"
+                          (keyup.enter)="onCompleteBatch(batch)"
+                          [title]="'BARMAN_DASHBOARD.BATCH_MARK_READY' | transloco"
+                          [attr.data-testid]="'batch-quick-ready-btn-' + batch.cocktailNom">
+                          <ion-icon slot="start" name="checkmark-done-outline"></ion-icon>
+                          {{ 'BARMAN_DASHBOARD.BATCH_QUICK_READY' | transloco }}
+                        </ion-button>
+                      </div>
                     </div>
                   </div>
                 } @empty {
-                  <app-empty-state
-                    [title]="'BARMAN_DASHBOARD.BATCH_NO_PENDING' | transloco"
-                    icon="checkmark-done-outline">
-                  </app-empty-state>
+                  <div class="batch-empty-inline" data-testid="batch-empty-pending">
+                    <div class="empty-icon-box success">
+                      <ion-icon name="checkmark-done-outline"></ion-icon>
+                    </div>
+                    <h4 class="empty-title">{{ 'BARMAN_DASHBOARD.BATCH_NO_PENDING' | transloco }}</h4>
+                    <p class="empty-desc">Toutes les commandes de cocktails sont en cours ou déjà prêtes.</p>
+                  </div>
                 }
               </div>
             </div>
           </ion-col>
 
-          <!-- Colonne Batches en cours de mixage -->
-          <ion-col size="12" size-md="6" class="batch-col-wrapper">
+          <!-- Colonne Cocktails en cours de mixage -->
+          <ion-col size="12" size-lg="6" class="batch-col-wrapper">
             <div class="batch-col batch-col--inprogress">
               <div class="batch-header batch-header--inprogress">
                 <div class="header-status">
@@ -399,25 +448,40 @@
                     [class.batch-card--urgent]="batch.isUrgent"
                     [attr.data-testid]="'batch-card-prep-' + batch.cocktailNom">
 
+                    <!-- En-tête de la carte cocktail -->
                     <div class="batch-card-header">
-                      <div class="batch-card-title-group">
-                        <span class="batch-cocktail-name">
-                          {{ batch.cocktailNom }}
-                        </span>
-                        @if (batch.isUrgent) {
-                          <span class="batch-urgent-pill">
-                            ⚡ {{ 'BARMAN_DASHBOARD.FILTER_URGENT_ONLY' | transloco }}
-                          </span>
-                        }
+                      <div class="batch-card-visual inprogress">
+                        <ion-icon name="time-outline"></ion-icon>
                       </div>
+
+                      <div class="batch-card-title-group">
+                        <div class="batch-card-title-row">
+                          <span class="batch-cocktail-name">
+                            {{ batch.cocktailNom }}
+                          </span>
+                          @if (batch.isUrgent) {
+                            <span class="batch-urgent-pill">
+                              ⚡ {{ 'BARMAN_DASHBOARD.BATCH_URGENT_BADGE' | transloco }}
+                            </span>
+                          }
+                        </div>
+                        <span class="batch-card-subtitle">
+                          En préparation au comptoir • {{ batch.tableSummaries.length }} table(s)
+                        </span>
+                      </div>
+
                       <div class="batch-qty-badge badge--inprogress">
-                        🍹 x{{ batch.preparingQuantity }}
+                        <span class="qty-prefix">x</span><span class="qty-num">{{ batch.preparingQuantity }}</span>
+                        <span class="qty-unit">verres</span>
                       </div>
                     </div>
 
                     <!-- Répartition par table -->
                     <div class="batch-tables-distribution">
-                      <span class="batch-tables-title">{{ 'BARMAN_DASHBOARD.BATCH_TABLES_LABEL' | transloco }}</span>
+                      <span class="batch-tables-title">
+                        <ion-icon name="restaurant-outline"></ion-icon>
+                        {{ 'BARMAN_DASHBOARD.BATCH_TABLES_LABEL' | transloco }}
+                      </span>
                       <div class="batch-table-chips">
                         @for (summary of batch.tableSummaries; track summary) {
                           <span class="batch-table-tag">{{ summary }}</span>
@@ -429,12 +493,14 @@
                     @if (batch.ingredients && batch.ingredients.length > 0) {
                       <div class="batch-ingredients-preview">
                         <span class="batch-ing-preview-title">
+                          <ion-icon name="sparkles-outline"></ion-icon>
                           {{ 'BARMAN_DASHBOARD.BATCH_SCALED_DOSAGE_PREVIEW' | transloco: { qty: batch.preparingQuantity } }} :
                         </span>
                         <div class="batch-ing-pills">
                           @for (ing of batch.ingredients; track ing.ingredientNom) {
                             <span class="batch-ing-pill">
-                              <strong>{{ ing.ingredientNom }}</strong>: {{ ing.unitQuantite * batch.preparingQuantity }} {{ ing.uniteMesure }}
+                              <span class="ing-name">{{ ing.ingredientNom }}</span>
+                              <strong class="ing-qty">{{ ing.unitQuantite * batch.preparingQuantity }} {{ ing.uniteMesure }}</strong>
                             </span>
                           }
                         </div>
@@ -458,7 +524,6 @@
                       <ion-button
                         size="small"
                         class="btn-batch-complete"
-                        color="success"
                         (click)="onCompleteBatch(batch)"
                         (keyup.enter)="onCompleteBatch(batch)"
                         [attr.data-testid]="'batch-complete-btn-' + batch.cocktailNom">
@@ -468,10 +533,13 @@
                     </div>
                   </div>
                 } @empty {
-                  <app-empty-state
-                    [title]="'BARMAN_DASHBOARD.BATCH_NO_IN_PROGRESS' | transloco"
-                    icon="wine-outline">
-                  </app-empty-state>
+                  <div class="batch-empty-inline" data-testid="batch-empty-inprogress">
+                    <div class="empty-icon-box">
+                      <ion-icon name="wine-outline"></ion-icon>
+                    </div>
+                    <h4 class="empty-title">{{ 'BARMAN_DASHBOARD.BATCH_NO_IN_PROGRESS' | transloco }}</h4>
+                    <p class="empty-desc">{{ 'BARMAN_DASHBOARD.BATCH_IN_PROGRESS_HINT' | transloco }}</p>
+                  </div>
                 }
               </div>
             </div>

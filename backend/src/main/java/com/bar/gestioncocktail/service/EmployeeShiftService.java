@@ -26,20 +26,24 @@ public class EmployeeShiftService {
     private final EmployeeShiftRepository shiftRepository;
     private final UserRepository userRepository;
     private final ShiftAuditService shiftAuditService;
+    private final EstablishmentConfigService establishmentConfigService;
 
     /**
-     * Constructs the shift service with required repositories and audit service.
+     * Constructs the shift service with required repositories, audit service, and establishment config service.
      *
      * @param shiftRepository Repository for shift persistence
      * @param userRepository Repository for user lookup
      * @param shiftAuditService Service for recording shift audit logs
+     * @param establishmentConfigService Service managing establishment module configuration
      */
     public EmployeeShiftService(EmployeeShiftRepository shiftRepository,
                                 UserRepository userRepository,
-                                ShiftAuditService shiftAuditService) {
+                                ShiftAuditService shiftAuditService,
+                                EstablishmentConfigService establishmentConfigService) {
         this.shiftRepository = shiftRepository;
         this.userRepository = userRepository;
         this.shiftAuditService = shiftAuditService;
+        this.establishmentConfigService = establishmentConfigService;
     }
 
     /**
@@ -105,6 +109,9 @@ public class EmployeeShiftService {
      */
     @Transactional
     public EmployeeShift createShift(EmployeeShiftRequestDTO request) {
+        if (establishmentConfigService != null && !establishmentConfigService.isModuleEnabled(com.bar.gestioncocktail.model.EstablishmentModule.EMPLOYEE_MANAGEMENT)) {
+            throw new com.bar.gestioncocktail.exception.BusinessException("Employee management module is currently disabled for this establishment.");
+        }
         User user = userRepository.findById(request.userId())
             .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + request.userId()));
 

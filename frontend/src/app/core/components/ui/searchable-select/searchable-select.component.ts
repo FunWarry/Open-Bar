@@ -27,6 +27,9 @@ import {
 import { BaseControlValueAccessor } from '../base-control-value-accessor';
 import { environment } from '../../../../../environments/environment';
 
+/**
+ * Represents a selectable item in the searchable select combobox.
+ */
 export interface SearchableOption<T = any> {
   value: T;
   label: string;
@@ -124,9 +127,9 @@ export class SearchableSelectComponent extends BaseControlValueAccessor<any> imp
   @Input() testId = 'searchable-select';
 
   /** Message displayed when no results match the search query. */
-  @Input() emptyMessage = 'Aucun élément trouvé';
+  @Input() emptyMessage = 'No items found';
 
-  /** Optional action button text at bottom of dropdown (e.g. "+ Nouveau modèle"). */
+  /** Optional action button text at bottom of dropdown (e.g. "+ New template"). */
   @Input() actionButtonLabel?: string;
 
   /** Optional action button icon. */

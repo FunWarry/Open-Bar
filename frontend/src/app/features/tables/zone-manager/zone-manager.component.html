@@ -62,22 +62,11 @@
 
     <!-- ── Search & Filter Bar ─────────────────────────────────────────── -->
     <div class="search-and-filters-panel">
-      <div class="search-input-box">
-        <label for="zone-search-input" class="visually-hidden">
-          {{ (activeTab === 'zones' ? 'ZONE_MANAGER.SEARCH_ZONES' : 'ZONE_MANAGER.SEARCH_ETAGES') | transloco }}
-        </label>
-        <ion-icon name="search-outline" class="search-icon"></ion-icon>
-        <input
-          id="zone-search-input"
-          type="text"
-          class="custom-search-field"
-          [(ngModel)]="searchQuery"
-          [placeholder]="(activeTab === 'zones' ? 'ZONE_MANAGER.SEARCH_ZONES' : 'ZONE_MANAGER.SEARCH_ETAGES') | transloco"
-          data-testid="zone-search-input" />
-        <button *ngIf="searchQuery" class="clear-search-btn" (click)="searchQuery = ''" type="button">
-          <ion-icon name="close-outline"></ion-icon>
-        </button>
-      </div>
+      <app-search-bar
+        [(ngModel)]="searchQuery"
+        [placeholder]="(activeTab === 'zones' ? 'ZONE_MANAGER.SEARCH_ZONES' : 'ZONE_MANAGER.SEARCH_ETAGES') | transloco"
+        testId="zone-search-input">
+      </app-search-bar>
 
       <!-- Quick floor chips filter when in Zones tab -->
       <div *ngIf="activeTab === 'zones' && etages.length > 0" class="floor-filter-chips">

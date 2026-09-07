@@ -40,6 +40,7 @@ import { TablePosition, ZoneArea } from '../plan-salle/models/table-position.mod
 import { PlanSalleService } from '../plan-salle/services/plan-salle.service';
 import { Commande } from '../../core/models/commande.model';
 import { OfflineOrderService } from '../../core/services/offline-order.service';
+import { FeatureFlagService } from '../../core/services/feature-flag.service';
 
 import { Store } from '@ngrx/store';
 import { selectCurrentUser } from '../../core/store/auth.selectors';
@@ -59,6 +60,9 @@ import { BottomNavigationComponent, ServeurTab } from './components/bottom-navig
 import { ProductCardComponent, ProductItem } from './components/product-card/product-card.component';
 import { CartDrawerComponent } from './components/cart-drawer/cart-drawer.component';
 import { CartModel, CartItemModel } from './models/cart.model';
+/**
+ * View mode for the server dashboard (grid, list, kanban).
+ */
 
 export type DashboardViewMode = 'BY_ZONE' | 'BY_FLOOR' | 'GRID' | 'PLAN';
 export type DashboardSortOption = 'NUMBER_ASC' | 'NUMBER_DESC' | 'CAPACITY_ASC' | 'CAPACITY_DESC' | 'STATUS_OCCUPIED' | 'STATUS_FREE';
@@ -76,6 +80,7 @@ import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { CommandeListComponent } from '../commandes/commande-list/commande-list.component';
 
 import { SearchableSelectComponent, SearchableOption } from '../../core/components/ui/searchable-select/searchable-select.component';
+import { SearchBarComponent } from '../../core/components/ui/search-bar/search-bar.component';
 
 /**
  * Main dashboard component for waiters providing table list supervision,
@@ -98,6 +103,7 @@ import { SearchableSelectComponent, SearchableOption } from '../../core/componen
     CartDrawerComponent,
     CommandeListComponent,
     SearchableSelectComponent,
+    SearchBarComponent,
   ],
   templateUrl: './dashboard-serveur.component.html',
   styleUrls: ['./dashboard-serveur.component.scss'],
@@ -183,6 +189,8 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
   private readonly destroy$ = new Subject<void>();
   private readonly happyHourService = inject(HappyHourService, { optional: true });
   readonly offlineService = inject(OfflineOrderService);
+  private readonly featureFlagService = inject(FeatureFlagService);
+  readonly floorPlanEnabled = this.featureFlagService.floorPlanEnabled;
 
   constructor(
     private readonly service: DashboardServeurService,
@@ -595,7 +603,9 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
       this.selectedZones = [parsed['selectedZone']];
     }
     if (parsed['sortOption']) this.sortOption = parsed['sortOption'];
-    if (parsed['displayMode']) this.displayMode = parsed['displayMode'];
+    if (parsed['displayMode']) {
+      this.displayMode = (parsed['displayMode'] === 'PLAN' && !this.floorPlanEnabled()) ? 'BY_ZONE' : parsed['displayMode'];
+    }
   }
 
   private sauvegarderFiltres() {
@@ -615,7 +625,19 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
     }
   }
 
+  private cachedGroupedTables: GroupedTables[] = [];
+  private lastGroupedTablesInputKey = '';
+
   get groupedTables(): GroupedTables[] {
+    const tablesSignature = this.filteredTables
+      .map(t => t.id + ':' + t.occupee + ':' + t.zone + ':' + t.commandesActives.length)
+      .join(',');
+    const currentKey = `${this.displayMode}_${this.filteredTables.length}_${tablesSignature}`;
+    if (this.lastGroupedTablesInputKey === currentKey && this.cachedGroupedTables.length > 0) {
+      return this.cachedGroupedTables;
+    }
+    this.lastGroupedTablesInputKey = currentKey;
+
     if (this.displayMode === 'BY_FLOOR') {
       const map = new Map<string, TableView[]>();
       for (const table of this.filteredTables) {
@@ -624,7 +646,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
         if (!map.has(key)) map.set(key, []);
         map.get(key)!.push(table);
       }
-      return Array.from(map.entries()).map(([etageCode, tables]) => {
+      this.cachedGroupedTables = Array.from(map.entries()).map(([etageCode, tables]) => {
         const etageObj = this.etagesList.find(e => this.normalizeFloorCode(e.code) === etageCode);
         let title = etageCode;
         if (etageObj?.nom) {
@@ -640,6 +662,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
           occupiedCount: tables.filter(t => t.occupee).length,
         };
       });
+      return this.cachedGroupedTables;
     }
 
     // Default: BY_ZONE
@@ -649,7 +672,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(table);
     }
-    return Array.from(map.entries()).map(([zoneName, tables]) => {
+    this.cachedGroupedTables = Array.from(map.entries()).map(([zoneName, tables]) => {
       const zoneObj = this.zonesList.find(z => z.nom.toLowerCase() === zoneName.toLowerCase());
       const etageObj = zoneObj ? this.etagesList.find(e => this.normalizeFloorCode(e.code) === this.normalizeFloorCode(zoneObj.etage)) : undefined;
       return {
@@ -661,6 +684,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
         occupiedCount: tables.filter(t => t.occupee).length,
       };
     });
+    return this.cachedGroupedTables;
   }
 
   get countOccupees(): number {
@@ -789,6 +813,9 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
   }
 
   setDisplayMode(mode: DashboardViewMode) {
+    if (mode === 'PLAN' && !this.floorPlanEnabled()) {
+      mode = 'BY_ZONE';
+    }
     this.displayMode = mode;
     this.sauvegarderFiltres();
     this.filtrer();
@@ -1296,6 +1323,7 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
         const alertBadgeGroup = new Konva.Group({
           x: (W / 2) - 4,
           y: (-H / 2) + 4,
+          rotation: -rotation,
           name: 'alert-badge',
         });
         const badgeCircle = new Konva.Circle({
@@ -1308,10 +1336,13 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
         const badgeIcon = new Konva.Text({
           text: isBill ? '💳' : '🔔',
           fontSize: 12,
+          width: 24,
+          height: 24,
+          offsetX: 12,
+          offsetY: 12,
           align: 'center',
           verticalAlign: 'middle',
-          offsetX: 6,
-          offsetY: 6,
+          listening: false,
         });
         alertBadgeGroup.add(badgeCircle, badgeIcon);
 
@@ -1884,5 +1915,9 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
 
   trackById(_: number, item: { id: number }): number {
     return item.id;
+  }
+
+  trackByGroupKey(_: number, group: GroupedTables): string {
+    return group.key;
   }
 }

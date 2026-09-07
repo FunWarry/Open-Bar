@@ -1,3 +1,6 @@
+/**
+ * Order lifecycle status progression.
+ */
 export type CommandeStatut =
   | 'EN_ATTENTE'
   | 'EN_PREPARATION'

@@ -112,9 +112,16 @@ export class AppSettingsService {
 
   /**
    * Retrieves the current establishment settings from backend REST endpoint.
+   * If already loaded in memory and forceRefresh is false, returns cached snapshot immediately.
    * Updates internal reactive stream and applies branding tokens.
+   *
+   * @param forceRefresh Set to true to bypass in-memory snapshot and query backend directly
+   * @returns Observable emitting establishment settings
    */
-  getSettings(): Observable<AppSettings> {
+  getSettings(forceRefresh = false): Observable<AppSettings> {
+    if (!forceRefresh && this.currentSettings) {
+      return of(this.currentSettings);
+    }
     if (!this.http) {
       const fallback: AppSettings = this.currentSettings || {
         id: 1,
@@ -143,6 +150,7 @@ export class AppSettingsService {
       })
     );
   }
+
 
   /**
    * Updates establishment settings and operational alert thresholds.

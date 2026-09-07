@@ -7,6 +7,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+/**
+ * Spring Data JPA repository for cocktail recipe ingredient associations.
+ */
 
 @Repository
 public interface CocktailIngredientRepository extends JpaRepository<CocktailIngredient, Long> {

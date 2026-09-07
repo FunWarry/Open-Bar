@@ -35,13 +35,12 @@
   </div>
 
   <div class="search-container">
-    <ion-searchbar
+    <app-search-bar
       [(ngModel)]="searchQuery"
       [placeholder]="activeTab === 'cocktails' ? ('BARMAN_DASHBOARD.SEARCH_COCKTAIL_PLACEHOLDER' | transloco) : ('BARMAN_DASHBOARD.SEARCH_INGREDIENT_PLACEHOLDER' | transloco)"
-      mode="ios"
       [debounce]="200"
-      data-testid="ruptures-searchbar">
-    </ion-searchbar>
+      testId="ruptures-searchbar">
+    </app-search-bar>
   </div>
 </ion-header>
 

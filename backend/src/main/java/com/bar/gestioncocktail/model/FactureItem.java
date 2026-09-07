@@ -4,6 +4,9 @@ import jakarta.persistence.*;
 import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+/**
+ * JPA entity representing an individual billed item attached to an invoice.
+ */
 
 @Data
 @Entity

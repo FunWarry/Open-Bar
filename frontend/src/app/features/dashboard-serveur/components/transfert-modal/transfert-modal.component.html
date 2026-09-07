@@ -29,14 +29,14 @@
           </ion-label>
           <div slot="end">
             <ion-badge [color]="t.occupee ? 'warning' : 'success'">
-              {{ t.occupee ? 'Occupée' : 'Libre' }}
+              {{ (t.occupee ? 'TABLE_MODAL.STATUS_OCCUPIED' : 'TABLE_MODAL.STATUS_FREE') | transloco }}
             </ion-badge>
           </div>
           <ion-icon name="swap-horizontal-outline" slot="end" color="tertiary"></ion-icon>
         </ion-item>
       } @empty {
         <div class="empty-state">
-          <p>Aucune autre table disponible.</p>
+          <p>{{ 'SERVEUR.NO_OTHER_TABLE_AVAILABLE' | transloco }}</p>
         </div>
       }
     </ion-list>

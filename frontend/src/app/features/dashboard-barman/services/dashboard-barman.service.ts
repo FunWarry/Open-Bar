@@ -6,6 +6,9 @@ import { CommandeView, CommandeItemView } from '../models/commande-view.model';
 import { CocktailBatchView } from '../models/batch-preparation.model';
 import { Cocktail } from '../../../core/models/cocktail.model';
 import { Ingredient } from '../../../core/models/ingredient.model';
+/**
+ * Workstation filter for bartender orders.
+ */
 
 export type DashboardStationFilter = 'ALL' | 'BAR' | 'KITCHEN';
 
@@ -178,7 +181,11 @@ export class DashboardBarmanService {
       if (!cmd.items || cmd.items.length === 0) continue;
 
       const orderCreatedTime = cmd.dateCommande ? new Date(cmd.dateCommande).getTime() : now;
-      const isOrderUrgent = Boolean(cmd.prioritaire || (now - orderCreatedTime > alertThresholdMs));
+      const diff = now - orderCreatedTime;
+      const isOrderUrgent = Boolean(
+        cmd.prioritaire ||
+        (cmd.statut === 'EN_ATTENTE' && diff >= alertThresholdMs && diff < 2 * 60 * 60 * 1000)
+      );
       if (urgentOnly && !isOrderUrgent) continue;
 
       const tableName = cmd.tableNom || (cmd.tableNumero ? `Table ${cmd.tableNumero}` : `Commande #${cmd.id}`);

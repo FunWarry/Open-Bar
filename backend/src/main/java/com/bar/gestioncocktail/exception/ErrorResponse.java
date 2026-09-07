@@ -3,6 +3,9 @@ package com.bar.gestioncocktail.exception;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.time.Instant;
 import java.util.Map;
+/**
+ * Standardized error response payload returned by global exception handlers.
+ */
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ErrorResponse {

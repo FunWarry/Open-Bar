@@ -5,6 +5,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import java.util.List;
+/**
+ * Spring Data JPA repository for floor plan table entities.
+ */
 
 @Repository
 public interface TableRepository extends JpaRepository<TableEntity, Long> {

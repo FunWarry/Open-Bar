@@ -96,6 +96,11 @@ public class FactureService {
         this.happyHourService = happyHourService;
         this.dailyCashClosureRepository = dailyCashClosureRepository;
     }
+/**
+     * Retrieves all customer invoices in the system.
+     *
+     * @return List of all invoices
+     */
 
     public List<Facture> getAllFactures() {
         return factureRepository.findAll();
@@ -106,6 +111,12 @@ public class FactureService {
             throw new BusinessException("Cannot create, settle or modify invoices for a date whose register is already closed: " + date);
         }
     }
+/**
+     * Retrieves an invoice by its unique identifier.
+     *
+     * @param id Invoice identifier
+     * @return Optional containing the invoice if found
+     */
 
     @Transactional(readOnly = true)
     public Optional<Facture> getFactureById(Long id) {
@@ -116,14 +127,33 @@ public class FactureService {
             return f;
         });
     }
+/**
+     * Retrieves all invoices generated for a specific table.
+     *
+     * @param table Table entity
+     * @return List of invoices
+     */
 
     public List<Facture> getFacturesByTable(TableEntity table) {
         return factureRepository.findByTable(table);
     }
+/**
+     * Retrieves invoices emitted within a date interval.
+     *
+     * @param debut Start timestamp
+     * @param fin   End timestamp
+     * @return List of invoices
+     */
 
     public List<Facture> getFacturesByDate(LocalDateTime debut, LocalDateTime fin) {
         return factureRepository.findByDateFactureBetween(debut, fin);
     }
+/**
+     * Creates and persists a new invoice.
+     *
+     * @param facture Invoice entity to persist
+     * @return Persisted invoice entity
+     */
 
     @Transactional
     public Facture createFacture(Facture facture) {
@@ -169,6 +199,13 @@ public class FactureService {
 
         return factureRepository.save(facture);
     }
+/**
+     * Updates details of an existing invoice.
+     *
+     * @param id             Invoice identifier
+     * @param factureDetails Updated invoice data
+     * @return Updated invoice entity
+     */
 
     @Transactional
     public Facture updateFacture(Long id, Facture factureDetails) {
@@ -183,11 +220,23 @@ public class FactureService {
 
         return factureRepository.save(facture);
     }
+/**
+     * Deletes an unpaid invoice by its identifier.
+     *
+     * @param id Invoice identifier
+     */
 
     @Transactional
     public void deleteFacture(Long id) {
         factureRepository.deleteById(id);
     }
+/**
+     * Appends a billed item to an existing invoice.
+     *
+     * @param factureId Invoice identifier
+     * @param item      Invoice item to append
+     * @return Updated invoice entity
+     */
 
     @Transactional
     public Facture ajouterItem(Long factureId, FactureItem item) {
@@ -200,6 +249,13 @@ public class FactureService {
 
         return factureRepository.save(facture);
     }
+/**
+     * Removes a billed item from an existing invoice.
+     *
+     * @param factureId Invoice identifier
+     * @param itemId    Invoice item identifier to remove
+     * @return Updated invoice entity
+     */
 
     @Transactional
     public Facture retirerItem(Long factureId, Long itemId) {
@@ -218,11 +274,25 @@ public class FactureService {
 
         return factureRepository.save(facture);
     }
+/**
+     * Settles and closes an invoice with a chosen payment method and optional tip.
+     *
+     * @param id           Invoice identifier
+     * @param modePaiement Payment method used
+     * @return Settled invoice entity
+     */
 
     @Transactional
     public Facture reglerFacture(Long id, String modePaiement) {
         return executeReglerFacture(id, modePaiement, null);
     }
+/**
+     * Settles and closes an invoice with a chosen payment method and optional tip.
+     *
+     * @param id           Invoice identifier
+     * @param modePaiement Payment method used
+     * @return Settled invoice entity
+     */
 
     @Transactional
     public Facture reglerFacture(Long id, String modePaiement, BigDecimal pourboire) {
@@ -594,22 +664,54 @@ public class FactureService {
         }
         return null;
     }
+/**
+     * Retrieves all settled (paid) invoices.
+     *
+     * @return List of paid invoices
+     */
 
     public List<Facture> getFacturesReglees() {
         return factureRepository.findByReglee(true);
     }
+/**
+     * Retrieves invoices by creation/emission date range.
+     *
+     * @param debut Start timestamp
+     * @param fin   End timestamp
+     * @return List of invoices
+     */
 
     public List<Facture> getFacturesByDateEmission(LocalDateTime debut, LocalDateTime fin) {
         return factureRepository.findByDateFactureBetween(debut, fin);
     }
+/**
+     * Retrieves invoices settled within a payment date range.
+     *
+     * @param debut Start timestamp
+     * @param fin   End timestamp
+     * @return List of invoices
+     */
 
     public List<Facture> getFacturesByDateReglement(LocalDateTime debut, LocalDateTime fin) {
         return factureRepository.findByDateReglementBetween(debut, fin);
     }
+/**
+     * Retrieves invoices settled via a specific payment mode.
+     *
+     * @param modePaiement Payment mode identifier
+     * @return List of matching invoices
+     */
 
     public List<Facture> getFacturesByModePaiement(String modePaiement) {
         return factureRepository.findByModePaiement(modePaiement);
     }
+/**
+     * Attaches a tip amount to an invoice and recalculates total TTC.
+     *
+     * @param facture   Invoice entity
+     * @param pourboire Tip amount
+     * @return Updated invoice entity
+     */
 
     public void ajouterPourboire(Facture facture, BigDecimal pourboire) {
         facture.setPourboire(pourboire);
@@ -863,6 +965,12 @@ public class FactureService {
                 .map(com.bar.gestioncocktail.dto.FactureReglementDTO::from)
                 .toList();
     }
+/**
+     * Merges multiple open invoices into a single target invoice.
+     *
+     * @param request Merge request payload
+     * @return Merged invoice response DTO
+     */
 
     @Transactional
     public Facture fusionnerFactures(MergeFacturesRequestDTO request) {

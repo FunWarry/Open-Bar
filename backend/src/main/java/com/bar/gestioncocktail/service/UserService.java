@@ -16,6 +16,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+/**
+ * Service managing user accounts, authentication credentials, and assigned role authorizations.
+ */
 
 @Service
 @Transactional
@@ -29,6 +32,13 @@ public class UserService implements UserDetailsService {
         this.passwordEncoder = passwordEncoder;
         this.timeService = timeService;
     }
+/**
+     * Loads user details by username for Spring Security authentication.
+     *
+     * @param username Username to authenticate
+     * @return UserDetails principal
+     * @throws org.springframework.security.core.userdetails.UsernameNotFoundException if user is not found
+     */
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -42,6 +52,12 @@ public class UserService implements UserDetailsService {
             ))
             .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
     }
+/**
+     * Encrypts password and persists a new user account.
+     *
+     * @param user User entity to persist
+     * @return Persisted user entity
+     */
 
     public User createUser(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
@@ -49,6 +65,13 @@ public class UserService implements UserDetailsService {
         user.setUpdatedAt(timeService.now());
         return userRepository.save(user);
     }
+/**
+     * Updates an existing user account.
+     *
+     * @param id          User identifier
+     * @param updatedData Updated user properties
+     * @return Updated user entity
+     */
 
     public User updateUser(Long id, User updatedData) {
         User existing = userRepository.findById(id)
@@ -75,30 +98,72 @@ public class UserService implements UserDetailsService {
         existing.setUpdatedAt(timeService.now());
         return userRepository.save(existing);
     }
+/**
+     * Deletes a user account by its identifier.
+     *
+     * @param id User identifier
+     */
 
     public void deleteUser(Long id) {
         userRepository.deleteById(id);
     }
+/**
+     * Retrieves a user account by its identifier.
+     *
+     * @param id User identifier
+     * @return Optional containing user if found
+     */
 
     public Optional<User> getUserById(Long id) {
         return userRepository.findById(id);
     }
+/**
+     * Retrieves a user account by username.
+     *
+     * @param username Username to look up
+     * @return Optional containing user if found
+     */
 
     public Optional<User> getUserByUsername(String username) {
         return userRepository.findByUsername(username);
     }
+/**
+     * Retrieves all users possessing a specific role.
+     *
+     * @param role User authorization role
+     * @return List of matching users
+     */
 
     public List<User> getUsersByRole(UserRole role) {
         return userRepository.findByRolesContaining(role);
     }
+/**
+     * Checks whether a username is already taken.
+     *
+     * @param username Username to check
+     * @return {@code true} if username exists
+     */
 
     public boolean existsByUsername(String username) {
         return userRepository.existsByUsername(username);
     }
+/**
+     * Checks whether an email address is already registered.
+     *
+     * @param email Email address to check
+     * @return {@code true} if email exists
+     */
 
     public boolean existsByEmail(String email) {
         return userRepository.existsByEmail(email);
     }
+/**
+     * Changes and encodes a user password.
+     *
+     * @param user        User entity to update
+     * @param newPassword Raw new password
+     * @return Updated user entity
+     */
 
     public void changePassword(User user, String newPassword) {
         user.setPassword(passwordEncoder.encode(newPassword));

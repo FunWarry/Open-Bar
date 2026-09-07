@@ -3,6 +3,9 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { User } from '../models/user.model';
+/**
+ * Generic paginated response wrapper for collections.
+ */
 
 export interface PageResponse<T> {
   content: T[];

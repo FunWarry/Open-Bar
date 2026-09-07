@@ -52,17 +52,17 @@ test.describe('Daily Cash Register Closure (Ticket Z) E2E Flow', () => {
     // Verify recap date picker and KPIs are loaded
     await expect(page.locator('[data-testid="recap-date-picker"]')).toBeVisible();
 
-    // Locate and click the "Clôturer la caisse (Ticket Z)" CTA button
+    // Locate and click the "Close register (Z-Report)" CTA button
     const openModalBtn = page.locator('[data-testid="open-cloture-modal-btn"]');
     await expect(openModalBtn).toBeVisible();
     await openModalBtn.click();
 
-    // Step 1: Fond de caisse initial
+    // Step 1: Initial cash drawer opening float
     await expect(page.locator('[data-testid="cloture-step-1"]')).toBeVisible();
     await expect(page.locator('[data-testid="opening-float-input"]')).toBeVisible();
     await page.click('[data-testid="cloture-next-btn"]');
 
-    // Step 2: Comptage physique des espèces
+    // Step 2: Physical cash count
     await expect(page.locator('[data-testid="cloture-step-2"]')).toBeVisible();
     await expect(page.locator('[data-testid="live-discrepancy-value"]')).toBeVisible();
 
@@ -74,22 +74,22 @@ test.describe('Daily Cash Register Closure (Ticket Z) E2E Flow', () => {
     }
     await page.click('[data-testid="cloture-next-btn"]');
 
-    // Step 3: Justification de l'écart
+    // Step 3: Discrepancy justification
     await expect(page.locator('[data-testid="cloture-step-3"]')).toBeVisible();
     const reasonInput = page.locator('[data-testid="discrepancy-reason-input"]');
     if (await reasonInput.isVisible()) {
-      await reasonInput.fill('Ajustement comptage monnaie');
+      await reasonInput.fill('Cash drawer count adjustment');
     }
     await page.click('[data-testid="cloture-next-btn"]');
 
-    // Step 4: Récapitulatif et avertissement légal
+    // Step 4: Summary and legal lock warning
     await expect(page.locator('[data-testid="cloture-step-4"]')).toBeVisible();
     await expect(page.locator('[data-testid="legal-lock-warning"]')).toBeVisible();
 
     // Confirm closure
     await page.click('[data-testid="cloture-confirm-btn"]');
 
-    // Step 5: Certificat officiel & scellement SHA-256
+    // Step 5: Official certificate & SHA-256 digital sealing
     await expect(page.locator('[data-testid="cloture-step-5"]')).toBeVisible();
     await expect(page.locator('[data-testid="sha256-hash-display"]')).toBeVisible();
     await expect(page.locator('[data-testid="print-z-ticket-btn"]')).toBeVisible();

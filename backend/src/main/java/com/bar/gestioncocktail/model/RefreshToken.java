@@ -3,6 +3,9 @@ package com.bar.gestioncocktail.model;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.Instant;
+/**
+ * JPA entity representing a persistent JWT refresh token associated with a user.
+ */
 
 @Data
 @Entity

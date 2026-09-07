@@ -50,6 +50,9 @@ import { EmployeeShift, EmployeeShiftRequest, TypePoste } from '../../core/model
 
 import { FormsModule } from '@angular/forms';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
+/**
+ * Shift schedule modification diff status.
+ */
 
 export type DiffStatus = 'ADDED' | 'MODIFIED' | 'DELETED' | 'UNCHANGED';
 

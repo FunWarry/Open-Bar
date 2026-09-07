@@ -1,3 +1,6 @@
+/**
+ * Application user profile and authorization role details.
+ */
 export interface User {
   id: number;
   email: string;

@@ -2,6 +2,7 @@ package com.bar.gestioncocktail.controller;
 
 import com.bar.gestioncocktail.dto.EstablishmentConfigDTO;
 import com.bar.gestioncocktail.dto.EstablishmentConfigUpdateRequest;
+import com.bar.gestioncocktail.dto.EstablishmentModulesDTO;
 import com.bar.gestioncocktail.service.EstablishmentConfigService;
 import com.bar.gestioncocktail.service.TimeService;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,7 +45,7 @@ class EstablishmentConfigControllerTest {
             "FR12732829320", "5630Z", new BigDecimal("10000"), "Adresse",
             "France", "fr",
             "0102030405", "email@bar.fr", "Immediate", "None", new BigDecimal("0.12"),
-            "SYSTEM", "80mm", LocalDateTime.now(), LocalDateTime.now()
+            "SYSTEM", "80mm", EstablishmentModulesDTO.defaultEnabled(), LocalDateTime.now(), LocalDateTime.now()
         );
     }
 
@@ -79,7 +80,7 @@ class EstablishmentConfigControllerTest {
             "FR12732829320", "5630Z", new BigDecimal("20000"), "Nouvelle adresse",
             "France", "fr",
             "0600000000", "contact@openbar.fr", "30 jours", "Pénalités", new BigDecimal("0.15"),
-            "Europe/Paris", "80mm"
+            "Europe/Paris", "80mm", null
         );
 
         when(service.updateConfig(any(EstablishmentConfigUpdateRequest.class))).thenReturn(dto);

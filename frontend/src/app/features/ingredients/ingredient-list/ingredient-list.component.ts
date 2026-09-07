@@ -7,7 +7,7 @@ import { selectIsAdmin, selectCanEditIngredient } from '../../../core/store/auth
 import {
   IonContent, IonCard, IonCardHeader, IonCardContent,
   IonList, IonItem, IonLabel, IonBadge, IonIcon, IonButton, IonButtons,
-  IonRefresher, IonRefresherContent, IonSpinner, IonSearchbar,
+  IonRefresher, IonRefresherContent, IonSpinner,
   IonGrid, IonRow, IonCol, IonProgressBar,
   ToastController, ModalController,
 } from '@ionic/angular/standalone';
@@ -29,7 +29,11 @@ import { Ingredient } from '../../../core/models/ingredient.model';
 import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
 import { IngredientFormComponent } from '../ingredient-form/ingredient-form.component';
 import { StockWasteModalComponent } from '../stock-waste-modal/stock-waste-modal.component';
+import { SearchBarComponent } from '../../../core/components/ui/search-bar/search-bar.component';
 import { SearchableSelectComponent, SearchableOption } from '../../../core/components/ui/searchable-select/searchable-select.component';
+/**
+ * Sorting options for inventory ingredient list.
+ */
 
 export type StockSortOption =
   | 'NAME_ASC'
@@ -65,7 +69,7 @@ export interface IngredientCategoryGroup {
     CommonModule, FormsModule, AsyncPipe, TranslocoModule,
     IonContent, IonCard, IonCardHeader, IonCardContent,
     IonList, IonItem, IonLabel, IonBadge, IonIcon, IonButton, IonButtons,
-    IonRefresher, IonRefresherContent, IonSpinner, IonSearchbar,
+    IonRefresher, IonRefresherContent, IonSpinner, SearchBarComponent,
     IonGrid, IonRow, IonCol, IonProgressBar,
     SearchableSelectComponent,
   ],

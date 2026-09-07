@@ -1,3 +1,6 @@
+/**
+ * Default UI color themes supported by the application design system.
+ */
 export type DefaultTheme = 'DARK' | 'LIGHT';
 export type CurrencyPosition = 'BEFORE' | 'AFTER';
 export type WifiSecurityType = 'WPA' | 'WEP' | 'nopass';

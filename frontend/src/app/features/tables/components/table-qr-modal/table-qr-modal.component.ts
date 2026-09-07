@@ -15,6 +15,9 @@ import { TableBar } from '../../../../core/models/table.model';
 import { TableService } from '../../../../core/services/table.service';
 import { AppSettingsService } from '../../../../core/services/app-settings.service';
 import { AppSettings } from '../../../../core/models/app-settings.model';
+/**
+ * Modal display mode for table QR code generation.
+ */
 
 export type QrModalMode = 'ORDER' | 'WIFI';
 

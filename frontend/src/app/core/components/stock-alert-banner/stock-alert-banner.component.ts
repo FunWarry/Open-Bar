@@ -5,6 +5,9 @@ import { takeUntil } from 'rxjs/operators';
 import { NotificationService, AppNotification } from '../../services/notification.service';
 import { TranslocoPipe } from '@jsverse/transloco';
 
+/**
+ * Top alert banner notifying staff in real time when ingredients reach critical low-stock levels.
+ */
 @Component({
   selector: 'app-stock-alert-banner',
   standalone: true,

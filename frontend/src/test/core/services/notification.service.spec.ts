@@ -369,7 +369,7 @@ describe('NotificationService', () => {
   }));
 
   // -------------------------------------------------------------------------
-  // Data des notifications — champs attendus
+  // Notification payload data — expected fields
   // -------------------------------------------------------------------------
 
   it('each notification has an id, timestamp and lue = false by default', fakeAsync(() => {

@@ -23,17 +23,9 @@
 }
 
 .search-container {
-  padding: 0 12px 8px;
+  padding: 0 12px 10px;
   background: var(--background-surface-1);
   border-bottom: 1px solid var(--border-medium);
-
-  ion-searchbar {
-    --background: var(--background-surface-2);
-    --color: var(--text-primary);
-    --placeholder-color: var(--text-muted);
-    --icon-color: var(--text-secondary);
-    padding: 0;
-  }
 }
 
 .ruptures-content {

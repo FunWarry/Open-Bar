@@ -20,7 +20,7 @@ public enum RecipeStepActionType {
     TOP_UP,
     /** Placing decorative garnish (citrus wheel, twist, mint bouquet). */
     GARNISH,
-    /** Electric blending (frozen cocktails, frappés). */
+    /** Electric blending (frozen cocktails, blended drinks). */
     BLEND,
     /** Expressing citrus oils or flaming peel over the drink. */
     FLAME,

@@ -73,7 +73,7 @@ describe('AuthService', () => {
     });
 
     expect(errorMessage).toBe('An operation is already in progress');
-    // Flush first pour que afterEach verify() ne se plaigne pas
+    // Flush first so that afterEach verify() does not fail
     req.flush(mockAuthResponse);
   });
 

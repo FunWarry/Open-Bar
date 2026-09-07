@@ -106,17 +106,9 @@
   flex-wrap: wrap;
 }
 
-ion-searchbar {
-  --background: var(--background-surface-2);
-  --color: var(--text-primary);
-  --placeholder-color: var(--text-muted);
-  --icon-color: var(--text-muted);
-  --border-radius: 10px;
-  padding: 0;
+app-search-bar {
   flex: 1;
   min-width: 280px;
-  border: 1px solid var(--border-medium);
-  border-radius: 10px;
 }
 
 .toggle-served-container {

@@ -14,6 +14,24 @@
   transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
   box-shadow: var(--shadow-sm, 0 2px 6px rgba(0, 0, 0, 0.15));
 
+  // Bridge translateY(-3px) to prevent mouse hover edge oscillation
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: -6px;
+    border-radius: inherit;
+    pointer-events: auto;
+    z-index: 0;
+  }
+
+  > * {
+    position: relative;
+    z-index: 1;
+  }
+
   &:hover,
   &:focus-visible {
     border-color: var(--primary, #6c7fe8);
@@ -113,6 +131,13 @@
 
     .call-icon {
       font-size: 1rem;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
       &.pulse {
         animation: pulse-icon 1.2s infinite ease-in-out;
       }

@@ -569,19 +569,6 @@ ion-content.factures-content {
 .search-box {
   flex: 1;
   min-width: 260px;
-
-  ion-searchbar {
-    --background: var(--background-surface-2, #21263f);
-    --color: var(--text-primary, #eceefb);
-    --placeholder-color: var(--text-muted, #7e87a8);
-    --icon-color: var(--primary, #6c7fe8);
-    --clear-button-color: var(--text-muted, #7e87a8);
-    --border-radius: var(--radius-md, 10px);
-    --box-shadow: none;
-    padding: 0;
-    min-height: 40px;
-    height: 40px;
-  }
 }
 
 .filter-chips-group {

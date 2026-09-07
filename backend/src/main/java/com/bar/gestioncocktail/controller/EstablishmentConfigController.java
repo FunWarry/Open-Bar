@@ -57,5 +57,21 @@ public class EstablishmentConfigController {
     public ResponseEntity<EstablishmentConfigDTO> updateConfig(@Valid @RequestBody EstablishmentConfigUpdateRequest request) {
         return ResponseEntity.ok(establishmentConfigService.updateConfig(request));
     }
+
+    @Operation(summary = "Get establishment modular capabilities", description = "Retrieves active module flags for this establishment.")
+    @ApiResponse(responseCode = "200", description = "Modules configuration retrieved successfully")
+    @GetMapping("/modules")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    public ResponseEntity<com.bar.gestioncocktail.dto.EstablishmentModulesDTO> getModules() {
+        return ResponseEntity.ok(establishmentConfigService.getModulesDTO());
+    }
+
+    @Operation(summary = "Update establishment modular capabilities", description = "Updates active module flags for this establishment.")
+    @ApiResponse(responseCode = "200", description = "Modules configuration updated successfully")
+    @PutMapping("/modules")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    public ResponseEntity<com.bar.gestioncocktail.dto.EstablishmentModulesDTO> updateModules(@Valid @RequestBody com.bar.gestioncocktail.dto.EstablishmentModulesUpdateRequest request) {
+        return ResponseEntity.ok(establishmentConfigService.updateModules(request));
+    }
 }
 

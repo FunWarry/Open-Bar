@@ -82,13 +82,15 @@ public class SecurityConfig {
                                     "/api/client/**",
                                     "/api/public/**",
                                     "/v3/api-docs/**",
+                                    "/api-docs/**",
+                                    "/api-docs",
                                     "/swagger-ui/**",
                                     "/swagger-ui.html",
                                     "/uploads/**",
                                     "/actuator/health",
                                     "/actuator/info")
                             .permitAll()
-                            .requestMatchers(HttpMethod.GET, "/api/cocktails", "/api/cocktails/**")
+                            .requestMatchers(HttpMethod.GET, "/api/cocktails", "/api/cocktails/**", "/api/establishment/modules")
                             .permitAll()
                             .anyRequest().authenticated())
                     .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)

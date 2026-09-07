@@ -1155,5 +1155,17 @@ describe('DashboardServeurComponent', () => {
       const banner = fixture.nativeElement.querySelector('[data-testid="offline-indicator-bar"]');
       expect(banner).toBeTruthy();
     });
+
+    it('setDisplayMode sets mode to BY_ZONE when floorPlanEnabled is false and mode is PLAN', () => {
+      spyOn(component, 'floorPlanEnabled').and.returnValue(false);
+      component.setDisplayMode('PLAN');
+      expect(component.displayMode).toBe('BY_ZONE');
+    });
+
+    it('setDisplayMode sets mode to PLAN when floorPlanEnabled is true', () => {
+      spyOn(component, 'floorPlanEnabled').and.returnValue(true);
+      component.setDisplayMode('PLAN');
+      expect(component.displayMode).toBe('PLAN');
+    });
   });
 });

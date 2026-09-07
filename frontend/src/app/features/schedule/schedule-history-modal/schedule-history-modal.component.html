@@ -52,12 +52,11 @@
       </div>
 
       <div class="search-field">
-        <ion-searchbar
+        <app-search-bar
           [(ngModel)]="searchQuery"
           [placeholder]="'SHIFTS.AUDIT.SEARCH_PLACEHOLDER' | transloco"
-          class="custom-searchbar"
-          data-testid="audit-searchbar">
-        </ion-searchbar>
+          testId="audit-searchbar">
+        </app-search-bar>
       </div>
     </div>
 

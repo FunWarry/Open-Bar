@@ -13,8 +13,8 @@ spring:
     show-sql: off
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
+        default_batch_fetch_size: 50
   security:
     jwt:
       secret: "${JWT_SECRET:test_openbar_default_secret_key_minimum_32_chars_long}"

@@ -24,6 +24,9 @@ import { EstablishmentConfig } from '../../../core/models/establishment-config.m
 import { EtablissementService } from '../../../core/services/etablissement.service';
 import { environment } from '../../../../environments/environment';
 
+/**
+ * Detailed view component for customer invoices and receipt printing.
+ */
 @Component({
   selector: 'app-facture-detail',
   standalone: true,

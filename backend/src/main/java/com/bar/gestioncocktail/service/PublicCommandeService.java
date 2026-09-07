@@ -18,6 +18,9 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+/**
+ * Service managing patron self-ordering via QR code scans and ephemeral order tracking.
+ */
 
 @Service
 @Transactional
@@ -74,6 +77,12 @@ public class PublicCommandeService {
         this(commandeRepository, tableRepository, cocktailRepository, varianteRepository,
                 eventPublisher, timeService, null, null);
     }
+/**
+     * Validates and processes a patron self-order submitted via QR code scan.
+     *
+     * @param dto Public order request payload
+     * @return Created order response DTO
+     */
 
     public PublicCommandeResponseDTO creerCommandePublique(PublicCommandeRequestDTO dto) {
         if (tableSessionService != null && !tableSessionService.isSessionValidForOrder(dto.getTableId(), dto.getSessionToken())) {
@@ -169,6 +178,12 @@ public class PublicCommandeService {
             tableRepository.save(table);
         }
     }
+/**
+     * Retrieves order tracking information using an ephemeral tracking token.
+     *
+     * @param trackingToken Ephemeral customer tracking token
+     * @return Order response DTO
+     */
 
     @Transactional(readOnly = true)
     public PublicCommandeResponseDTO getCommandeParTrackingToken(String trackingToken) {

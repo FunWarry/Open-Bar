@@ -6,6 +6,9 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import {addIcons} from 'ionicons';
 import {trash} from 'ionicons/icons';
 
+/**
+ * Confirmation dialog modal for deleting a user account.
+ */
 @Component({
   selector: 'app-delete-user-dialog',
   templateUrl: './delete-user-dialog.component.html',

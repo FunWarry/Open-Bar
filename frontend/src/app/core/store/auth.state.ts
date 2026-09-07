@@ -1,4 +1,7 @@
 import {User} from '../models/user.model';
+/**
+ * NgRx state slice for authentication and current active session.
+ */
 
 export interface AuthState {
   user: User | null;

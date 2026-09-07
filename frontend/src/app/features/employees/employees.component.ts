@@ -8,7 +8,6 @@ import {
   IonCardTitle,
   IonCardSubtitle,
   IonCardContent,
-  IonInput,
   IonSelect,
   IonSelectOption,
   IonList,
@@ -25,6 +24,7 @@ import { EmployeeShift } from '../../core/models/shift.model';
 import { UserService } from '../../core/services/user.service';
 import { ShiftService } from '../../core/services/shift.service';
 import { EmployeeShiftModalComponent } from './employee-shift-modal/employee-shift-modal.component';
+import { SearchBarComponent } from '../../core/components/ui/search-bar/search-bar.component';
 
 interface EmployeeSummary {
   user: User;
@@ -46,12 +46,12 @@ interface EmployeeSummary {
     FormsModule,
     RouterModule,
     TranslocoModule,
+    SearchBarComponent,
     IonCard,
     IonCardHeader,
     IonCardTitle,
     IonCardSubtitle,
     IonCardContent,
-    IonInput,
     IonSelect,
     IonSelectOption,
     IonList,

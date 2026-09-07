@@ -4,6 +4,9 @@ import jakarta.persistence.*;
 import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+/**
+ * JPA entity linking a cocktail recipe to an ingredient with measured proportions.
+ */
 
 @Data
 @Entity

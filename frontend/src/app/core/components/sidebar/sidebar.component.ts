@@ -16,6 +16,8 @@ import { selectCurrentUser } from '../../store/auth.selectors';
 import * as AuthActions from '../../store/auth.actions';
 import { User } from '../../models/user.model';
 import { NavigationService } from '../../services/navigation.service';
+import { FeatureFlagService } from '../../services/feature-flag.service';
+import { EstablishmentModule } from '../../models/establishment-module.model';
 
 /** Interface representing a single navigation item in the sidebar. */
 export interface NavItemDef {
@@ -29,6 +31,8 @@ export interface NavItemDef {
   labelKey: string;
   /** Optional array of roles permitted to see this item (empty or undefined = accessible to all authenticated). */
   roles?: string[];
+  /** Optional modular capability required to view this item. */
+  requiredModule?: EstablishmentModule;
   /** Group section in the sidebar menu. */
   section: 'main' | 'admin';
 }
@@ -37,17 +41,17 @@ export interface NavItemDef {
 export const SIDEBAR_NAV_ITEMS: NavItemDef[] = [
   { id: 'nav-home', route: '/app-home', icon: 'home-outline', labelKey: 'NAV.HOME', section: 'main' },
   { id: 'nav-serveur', route: '/serveur', icon: 'restaurant-outline', labelKey: 'NAV.SERVEUR', roles: ['SERVEUR', 'ADMIN', 'MANAGER'], section: 'main' },
-  { id: 'nav-plan-salle', route: '/plan-salle', icon: 'grid-outline', labelKey: 'NAV.PLAN_SALLE', roles: ['MANAGER', 'ADMIN', 'SERVEUR'], section: 'main' },
+  { id: 'nav-plan-salle', route: '/plan-salle', icon: 'grid-outline', labelKey: 'NAV.PLAN_SALLE', roles: ['MANAGER', 'ADMIN', 'SERVEUR'], requiredModule: EstablishmentModule.FLOOR_PLAN, section: 'main' },
   { id: 'nav-barman', route: '/barman', icon: 'beer-outline', labelKey: 'NAV.BARMAN', roles: ['BARMAN', 'ADMIN', 'MANAGER'], section: 'main' },
-  { id: 'nav-kitchen', route: '/kitchen', icon: 'restaurant-outline', labelKey: 'NAV.KITCHEN', roles: ['BARMAN', 'ADMIN', 'MANAGER', 'SERVEUR'], section: 'main' },
+  { id: 'nav-kitchen', route: '/kitchen', icon: 'restaurant-outline', labelKey: 'NAV.KITCHEN', roles: ['BARMAN', 'ADMIN', 'MANAGER', 'SERVEUR'], requiredModule: EstablishmentModule.CUISINE_KDS, section: 'main' },
   { id: 'nav-manager', route: '/manager', icon: 'stats-chart-outline', labelKey: 'NAV.DASHBOARD', roles: ['MANAGER', 'ADMIN'], section: 'main' },
-  { id: 'nav-employees', route: '/manager/employees', icon: 'people-outline', labelKey: 'NAV.EMPLOYEES', roles: ['MANAGER', 'ADMIN'], section: 'main' },
-  { id: 'nav-schedule', route: '/manager/schedule', icon: 'calendar-outline', labelKey: 'NAV.SCHEDULE', roles: ['MANAGER', 'ADMIN'], section: 'main' },
+  { id: 'nav-employees', route: '/manager/employees', icon: 'people-outline', labelKey: 'NAV.EMPLOYEES', roles: ['MANAGER', 'ADMIN'], requiredModule: EstablishmentModule.EMPLOYEE_MANAGEMENT, section: 'main' },
+  { id: 'nav-schedule', route: '/manager/schedule', icon: 'calendar-outline', labelKey: 'NAV.SCHEDULE', roles: ['MANAGER', 'ADMIN'], requiredModule: EstablishmentModule.EMPLOYEE_MANAGEMENT, section: 'main' },
   { id: 'nav-cocktails', route: '/cocktails', icon: 'wine-outline', labelKey: 'NAV.COCKTAILS', section: 'main' },
   { id: 'nav-commandes', route: '/commandes', icon: 'receipt-outline', labelKey: 'NAV.COMMANDES', section: 'main' },
   { id: 'nav-tables', route: '/tables', icon: 'restaurant-outline', labelKey: 'NAV.TABLES', section: 'main' },
   { id: 'nav-factures', route: '/factures', icon: 'card-outline', labelKey: 'NAV.FACTURES', roles: ['MANAGER', 'ADMIN', 'SERVEUR'], section: 'main' },
-  { id: 'nav-ingredients', route: '/ingredients', icon: 'nutrition-outline', labelKey: 'NAV.INGREDIENTS', roles: ['ADMIN', 'MANAGER', 'BARMAN'], section: 'admin' },
+  { id: 'nav-ingredients', route: '/ingredients', icon: 'nutrition-outline', labelKey: 'NAV.INGREDIENTS', roles: ['ADMIN', 'MANAGER', 'BARMAN'], requiredModule: EstablishmentModule.STOCK_TRACKING, section: 'admin' },
   { id: 'nav-users', route: '/admin/users', icon: 'people-outline', labelKey: 'NAV.USERS', roles: ['ADMIN'], section: 'admin' },
   { id: 'nav-admin', route: '/admin', icon: 'settings-outline', labelKey: 'NAV.ADMIN', roles: ['ADMIN'], section: 'admin' },
   { id: 'nav-audit-logs', route: '/admin/audit-logs', icon: 'document-text-outline', labelKey: 'NAV.AUDIT_LOGS', roles: ['ADMIN'], section: 'admin' },
@@ -96,6 +100,7 @@ export class SidebarComponent implements OnDestroy {
   constructor(
     private readonly store: Store,
     public readonly navigationService: NavigationService,
+    private readonly featureFlagService: FeatureFlagService,
   ) {
     addIcons({
       homeOutline, restaurantOutline, gridOutline, beerOutline,
@@ -118,7 +123,8 @@ export class SidebarComponent implements OnDestroy {
   }
 
   /**
-   * Filters the list of navigation items according to the authenticated user's assigned roles.
+   * Filters the list of navigation items according to the authenticated user's assigned roles
+   * and establishment active modular capabilities.
    *
    * @param user - The authenticated user or null.
    * @param section - The section group ('main' or 'admin').
@@ -128,6 +134,9 @@ export class SidebarComponent implements OnDestroy {
     if (!user) return [];
     return SIDEBAR_NAV_ITEMS.filter(item => {
       if (item.section !== section) return false;
+      if (item.requiredModule && !this.featureFlagService.isModuleEnabled(item.requiredModule)) {
+        return false;
+      }
       if (!item.roles || item.roles.length === 0) return true;
       return item.roles.some(role => user.roles?.includes(role));
     });

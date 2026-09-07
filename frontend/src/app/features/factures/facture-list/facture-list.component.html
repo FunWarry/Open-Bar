@@ -233,13 +233,11 @@
     <section class="filter-controls-card" data-testid="factures-filter-bar">
       <!-- Search Input -->
       <div class="search-box">
-        <ion-searchbar
+        <app-search-bar
           [(ngModel)]="searchTerm"
-          placeholder="{{ t('FACTURES.SEARCH_PLACEHOLDER') }}"
-          animated="true"
-          showClearButton="always"
-          data-testid="factures-searchbar">
-        </ion-searchbar>
+          [placeholder]="t('FACTURES.SEARCH_PLACEHOLDER')"
+          testId="factures-searchbar">
+        </app-search-bar>
       </div>
 
       <!-- Status Filter Chips -->

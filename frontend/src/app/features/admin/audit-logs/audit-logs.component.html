@@ -178,27 +178,13 @@
             <ion-icon name="search-outline"></ion-icon>
             <span>{{ 'AUDIT_LOGS.SEARCH_PLACEHOLDER' | transloco }}</span>
           </label>
-          <div class="search-input-wrapper">
-            <ion-icon name="search-outline" class="search-icon"></ion-icon>
-            <input
-              id="audit-search-input"
-              type="text"
-              class="custom-search-input"
-              [placeholder]="'AUDIT_LOGS.SEARCH_PLACEHOLDER' | transloco"
-              [ngModel]="searchQuery()"
-              (ngModelChange)="searchQuery.set($event); currentPage.set(1)"
-              data-testid="audit-search-input"
-              autocomplete="off" />
-            @if (searchQuery()) {
-              <button
-                type="button"
-                class="search-clear-btn"
-                (click)="searchQuery.set(''); currentPage.set(1)"
-                [attr.aria-label]="'AUDIT_LOGS.CLEAR_SEARCH' | transloco">
-                <ion-icon name="close-circle-outline"></ion-icon>
-              </button>
-            }
-          </div>
+          <app-search-bar
+            [ngModel]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event); currentPage.set(1)"
+            (cleared)="searchQuery.set(''); currentPage.set(1)"
+            [placeholder]="'AUDIT_LOGS.SEARCH_PLACEHOLDER' | transloco"
+            testId="audit-search-input">
+          </app-search-bar>
         </div>
 
         <!-- Action Dropdown -->

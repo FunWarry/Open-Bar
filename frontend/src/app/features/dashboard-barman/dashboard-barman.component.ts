@@ -8,8 +8,6 @@ import {
   IonContent,
   IonHeader,
   IonToolbar,
-  IonTitle,
-  IonButtons,
   IonButton,
   IonIcon,
   IonRefresher,
@@ -17,7 +15,6 @@ import {
   IonGrid,
   IonRow,
   IonCol,
-  IonSearchbar,
   IonChip,
   IonLabel,
   IonBadge,
@@ -45,6 +42,7 @@ import {
   checkmarkCircleOutline,
   eyeOutline
 } from 'ionicons/icons';
+import { SearchBarComponent } from '../../core/components/ui/search-bar/search-bar.component';
 import { CommandeCardComponent } from './components/commande-card/commande-card.component';
 import { NotificationService } from '../../core/services/notification.service';
 import { DashboardBarmanService } from './services/dashboard-barman.service';
@@ -59,6 +57,7 @@ import { BarTicketPrintComponent } from './components/bar-ticket-print/bar-ticke
 import { RecipeSidePanelComponent } from './components/recipe-side-panel/recipe-side-panel.component';
 import { Cocktail } from '../../core/models/cocktail.model';
 import { WebSocketService } from '../../core/services/websocket.service';
+import { FeatureFlagService } from '../../core/services/feature-flag.service';
 
 /**
  * Dashboard Barman Component managing the real-time preparation Kanban board.
@@ -76,8 +75,6 @@ import { WebSocketService } from '../../core/services/websocket.service';
     IonContent,
     IonHeader,
     IonToolbar,
-    IonTitle,
-    IonButtons,
     IonButton,
     IonIcon,
     IonRefresher,
@@ -85,7 +82,7 @@ import { WebSocketService } from '../../core/services/websocket.service';
     IonGrid,
     IonRow,
     IonCol,
-    IonSearchbar,
+    SearchBarComponent,
     IonChip,
     IonLabel,
     IonBadge,
@@ -123,11 +120,13 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
   private readonly modalCtrl = inject(ModalController);
   private readonly notificationService = inject(NotificationService);
   private readonly settingsService = inject(AppSettingsService);
+  private readonly featureFlagService = inject(FeatureFlagService);
   private readonly soundService = inject(SoundService);
   private readonly transloco = inject(TranslocoService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly wsService = inject(WebSocketService);
 
+  readonly cuisineKdsEnabled = this.featureFlagService.cuisineKdsEnabled;
   activeViewMode: 'tickets' | 'batch' = 'tickets';
 
   constructor() {
@@ -171,11 +170,12 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
   get urgentOrdersCount(): number {
     const now = Date.now();
     const alertThresholdMs = (this.tempsAlerteCommandeMinutes || 5) * 60 * 1000;
+    const maxActiveWindowMs = 2 * 60 * 60 * 1000;
     return this.commandesEnAttente.filter(cmd => {
       if (cmd.prioritaire) return true;
       if (!cmd.dateCommande) return false;
-      const created = new Date(cmd.dateCommande).getTime();
-      return now - created > alertThresholdMs;
+      const diff = now - new Date(cmd.dateCommande).getTime();
+      return diff >= alertThresholdMs && diff < maxActiveWindowMs;
     }).length;
   }
 
@@ -380,9 +380,13 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
     return commandes.filter(cmd => {
       // Urgent filter
       if (this.urgentOnly) {
-        const isUrgent =
-          cmd.prioritaire ||
-          (cmd.dateCommande && now - new Date(cmd.dateCommande).getTime() > alertThresholdMs);
+        const isPrioritaire = Boolean(cmd.prioritaire);
+        const diff = cmd.dateCommande ? now - new Date(cmd.dateCommande).getTime() : 0;
+        const isPendingDelayed =
+          cmd.statut === 'EN_ATTENTE' &&
+          diff >= alertThresholdMs &&
+          diff < 2 * 60 * 60 * 1000;
+        const isUrgent = isPrioritaire || isPendingDelayed;
         if (!isUrgent) return false;
       }
 

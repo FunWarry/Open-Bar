@@ -66,6 +66,7 @@ Suivre les conventions de `openbar-dev`.
 - **Documentation code OBLIGATOIRE** sur chaque composant/service/DTO/controller/guard/interceptor/store créé ou modifié.
 - **TOUTE la documentation (JavaDoc, TSDoc, annotations OpenAPI) DOIT ÊTRE RÉDIGÉE EN ANGLAIS**.
 - **INTERDICTION d'utiliser `@SuppressWarnings`** : résoudre directement les problèmes de code.
+- **Vérification et réutilisation de composants UI OBLIGATOIRE** : avant de coder ou modifier un élément d'interface (search bar, dropdown filtrable, modal, badge, boutons, chips), inspecter systématiquement `frontend/src/app/core/components/ui/` pour réutiliser les composants existants (`SearchBarComponent`, `SearchableSelectComponent`, `InputFieldComponent`, etc.). Si un pattern récurrent apparaît ou peut être factorisé de manière rentable, le transformer en composant UI autonome pour garantir 100% de réutilisabilité et d'uniformité visuelle et technique.
 
 **Commits atomiques en conventional commits :**
 

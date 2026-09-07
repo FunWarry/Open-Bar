@@ -28,6 +28,7 @@ public record EstablishmentConfigDTO(
     BigDecimal latePaymentRate,
     String timeZone,
     String ticketFormat,
+    EstablishmentModulesDTO modules,
     LocalDateTime createdAt,
     LocalDateTime updatedAt
 ) {
@@ -61,6 +62,7 @@ public record EstablishmentConfigDTO(
             config.getLatePaymentRate(),
             config.getTimeZone(),
             config.getTicketFormat(),
+            EstablishmentModulesDTO.from(config),
             config.getCreatedAt(),
             config.getUpdatedAt()
         );

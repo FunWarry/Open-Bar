@@ -14,7 +14,6 @@ import {
   IonSegment,
   IonSegmentButton,
   IonLabel,
-  IonSearchbar,
   IonList,
   IonItem,
   IonToggle,
@@ -40,6 +39,7 @@ import { DashboardBarmanService } from '../../services/dashboard-barman.service'
 import { Cocktail } from '../../../../core/models/cocktail.model';
 import { Ingredient } from '../../../../core/models/ingredient.model';
 import { StockWasteModalComponent } from '../../../ingredients/stock-waste-modal/stock-waste-modal.component';
+import { SearchBarComponent } from '../../../../core/components/ui/search-bar/search-bar.component';
 
 /**
  * Modal component allowing barmen to instantly toggle cocktails and ingredients out of stock
@@ -63,7 +63,7 @@ import { StockWasteModalComponent } from '../../../ingredients/stock-waste-modal
     IonSegment,
     IonSegmentButton,
     IonLabel,
-    IonSearchbar,
+    SearchBarComponent,
     IonList,
     IonItem,
     IonToggle,

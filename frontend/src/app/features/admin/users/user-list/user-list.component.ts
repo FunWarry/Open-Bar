@@ -15,8 +15,7 @@ import {
   IonButton,
   IonSpinner,
   IonSelect,
-  IonSelectOption,
-  IonInput
+  IonSelectOption
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -27,6 +26,7 @@ import { User } from '../../../../core/models/user.model';
 import { UserService } from '../../../../core/services/user.service';
 import { UserDialogComponent } from '../user-dialog/user-dialog.component';
 import { DeleteUserDialogComponent } from '../delete-user-dialog/delete-user-dialog.component';
+import { SearchBarComponent } from '../../../../core/components/ui/search-bar/search-bar.component';
 
 import { TranslocoPipe } from '@jsverse/transloco';
 
@@ -41,6 +41,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
   imports: [
     CommonModule,
     FormsModule,
+    SearchBarComponent,
     IonCard,
     IonCardHeader,
     IonCardTitle,
@@ -53,7 +54,6 @@ import { TranslocoPipe } from '@jsverse/transloco';
     IonSpinner,
     IonSelect,
     IonSelectOption,
-    IonInput,
     TranslocoPipe
   ]
 })

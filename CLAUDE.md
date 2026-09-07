@@ -8,13 +8,13 @@ Application de gestion de bar en temps réel : prise de commandes (serveurs), pr
 
 | Couche     | Techno                       | Version     |
 |------------|------------------------------|-------------|
-| Backend    | Spring Boot                  | **4.0.6**   |
+| Backend    | Spring Boot                  | **4.1.1**   |
 | Runtime    | Java                         | 22 (épinglé — Lombok incompatible JDK 23+) |
-| Doc API    | Springdoc OpenAPI (Swagger UI) | 2.8.9       |
+| Doc API    | Springdoc OpenAPI (Swagger UI) | 3.1.0       |
 | BDD        | PostgreSQL                   | —           |
 | ORM        | JPA / Hibernate + Lombok     | 1.18.34     |
-| Sécurité   | Spring Security + JWT custom | JJWT 0.12.6 |
-| Sanitisation| Jsoup (HTML / XSS clean)     | 1.18.3      |
+| Sécurité   | Spring Security + JWT custom | JJWT 0.13.0 |
+| Sanitisation| Jsoup (HTML / XSS clean)     | 1.23.2      |
 | Temps réel | WebSocket STOMP              | via Spring  |
 | PDF        | OpenPDF                      | 2.0.3       |
 | Frontend   | Angular                      | 20          |
@@ -218,8 +218,9 @@ Topics disponibles :
 - `/topic/commandes/{id}` — changement de statut
 - `/topic/tables` — occupation/libération
 - `/topic/stock/alerte` — stock faible
+- `/topic/establishment/modules` — synchronisation temps réel des feature flags / modules actifs
 
-Service frontend : `websocket.service.ts`
+Service frontend : `websocket.service.ts` / `feature-flag.service.ts`
 
 ## Conventions de code
 
@@ -447,6 +448,8 @@ Pour les fichiers scopés par feature (ex : `fr/commandes.json`), déclarer le s
 | Harmonisation Vues Applicatives Figma (#211) | — | ✅ | ✅ |
 | Personnalisation Interactive Thème & Palettes HSL (#217) | — | ✅ | ✅ |
 | Vue Globale Stock Barman & Manager (#226) | ✅ | ✅ | ✅ |
+| Architecture Modulaire & Feature Flags Établissement (#405) | ✅ | ✅ | ✅ |
+| Harmonisation Header Barman & Segment Mode Rush (#420) | — | ✅ | ✅ |
 
 
 

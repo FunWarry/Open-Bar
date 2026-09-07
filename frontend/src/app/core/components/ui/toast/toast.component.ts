@@ -6,6 +6,9 @@ import {
   checkmarkCircleOutline, alertCircleOutline, warningOutline,
   informationCircleOutline, closeOutline
 } from 'ionicons/icons';
+/**
+ * Toast notification severity level.
+ */
 
 export type ToastSeverity = 'success' | 'warning' | 'danger' | 'info';
 

@@ -75,22 +75,11 @@
 
       <div class="filter-section">
         <!-- Searchbar -->
-        <div class="search-input-wrapper">
-          <ion-icon name="search" class="search-icon"></ion-icon>
-          <input
-            id="cocktail-search-input"
-            type="text"
-            class="cocktail-search-input"
-            [(ngModel)]="searchQuery"
-            [placeholder]="'COCKTAILS.SEARCH_PLACEHOLDER' | transloco"
-            [attr.aria-label]="'COCKTAILS.SEARCH_PLACEHOLDER' | transloco"
-            data-testid="cocktail-searchbar" />
-          @if (searchQuery) {
-            <button type="button" class="search-clear-btn" (click)="searchQuery = ''" aria-label="Effacer la recherche">
-              <ion-icon name="close-circle-outline"></ion-icon>
-            </button>
-          }
-        </div>
+        <app-search-bar
+          [(ngModel)]="searchQuery"
+          [placeholder]="'COCKTAILS.SEARCH_PLACEHOLDER' | transloco"
+          testId="cocktail-searchbar">
+        </app-search-bar>
 
         <!-- Figma Category Dot Filter Pills -->
         <div class="category-pills-row">

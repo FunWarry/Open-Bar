@@ -1,0 +1,33 @@
+<div
+  class="search-bar-container search-input-wrapper"
+  [class.shape-pill]="shape === 'pill'"
+  [class.shape-rounded]="shape === 'rounded'"
+  [class.is-disabled]="disabled">
+  <ion-icon name="search" class="search-icon" aria-hidden="true"></ion-icon>
+  <label [for]="inputId" class="visually-hidden">{{ ariaLabel || placeholder }}</label>
+  <input
+    [id]="inputId"
+    type="text"
+    role="searchbox"
+    class="search-input"
+    [placeholder]="placeholder"
+    [value]="value || ''"
+    [disabled]="disabled"
+    [attr.aria-label]="ariaLabel || placeholder"
+    [attr.data-testid]="testId"
+    (input)="onInputChange($event)"
+    (blur)="onBlur()" />
+  @if (clearable && value) {
+    <button
+      type="button"
+      class="clear-btn search-clear-btn"
+      (click)="clear()"
+      (keyup.enter)="clear()"
+      [disabled]="disabled"
+      [attr.data-testid]="testId + '-clear-btn'"
+      aria-label="Effacer la recherche"
+      title="Effacer la recherche">
+      <ion-icon name="close-circle-outline" aria-hidden="true"></ion-icon>
+    </button>
+  }
+</div>

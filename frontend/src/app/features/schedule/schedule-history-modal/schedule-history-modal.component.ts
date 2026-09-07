@@ -8,7 +8,6 @@ import {
   IonIcon,
   IonContent,
   IonSpinner,
-  IonSearchbar,
   ModalController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -34,6 +33,7 @@ import { EmployeeShift, ShiftAuditAction, ShiftAuditLog } from '../../../core/mo
 import { User } from '../../../core/models/user.model';
 import { UserService } from '../../../core/services/user.service';
 import { SearchableSelectComponent, SearchableOption } from '../../../core/components/ui/searchable-select/searchable-select.component';
+import { SearchBarComponent } from '../../../core/components/ui/search-bar/search-bar.component';
 
 /**
  * Modal displaying the weekly immutable audit log of employee shift modifications.
@@ -48,13 +48,13 @@ import { SearchableSelectComponent, SearchableOption } from '../../../core/compo
     FormsModule,
     TranslocoModule,
     SearchableSelectComponent,
+    SearchBarComponent,
     IonHeader,
     IonToolbar,
     IonButtons,
     IonIcon,
     IonContent,
     IonSpinner,
-    IonSearchbar
   ],
   templateUrl: './schedule-history-modal.component.html',
   styleUrls: ['./schedule-history-modal.component.scss']

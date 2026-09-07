@@ -1,4 +1,7 @@
 package com.bar.gestioncocktail.dto;
+/**
+ * Data transfer object representing the complete interactive floor plan layout with zones and tables.
+ */
 
 public record PlanSalleDTO(
     Long tableId,

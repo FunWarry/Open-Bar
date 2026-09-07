@@ -25,12 +25,11 @@
   <ng-container *ngIf="!isLoading">
     <!-- Search & Filter Controls -->
     <div class="search-filter-section" data-testid="search-filter-section">
-      <ion-searchbar
+      <app-search-bar
         [(ngModel)]="searchQuery"
         [placeholder]="'SERVEUR.SEARCH_PLACEHOLDER' | transloco"
-        class="custom-searchbar"
-        data-testid="cocktail-searchbar">
-      </ion-searchbar>
+        testId="cocktail-searchbar">
+      </app-search-bar>
 
       <!-- Category Filter Chips -->
       <div class="category-chips-scroll" data-testid="category-chips-scroll">

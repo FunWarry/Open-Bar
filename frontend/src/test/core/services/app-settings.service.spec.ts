@@ -73,6 +73,18 @@ describe('AppSettingsService', () => {
     expect(document.documentElement.style.getPropertyValue('--primary-strong')).toBe('#5a68d6');
   });
 
+  it('serves getSettings from memory cache on subsequent calls without additional HTTP request', () => {
+    service.getSettings().subscribe();
+    const req1 = httpMock.expectOne(baseUrl);
+    req1.flush(mockSettings);
+
+    service.getSettings().subscribe(res => {
+      expect(res).toEqual(mockSettings);
+    });
+    httpMock.expectNone(baseUrl);
+  });
+
+
   it('applyTokens() calculates --ion-color-primary-rgb from primaryColor for Ionic effects consistency', () => {
     service.applyTokens({ primaryColor: '#ff0000', primaryColorStrong: '#cc0000' });
     expect(document.documentElement.style.getPropertyValue('--ion-color-primary-rgb')).toBe('255, 0, 0');

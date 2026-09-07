@@ -12,7 +12,7 @@ import java.math.BigDecimal;
 /**
  * Request DTO for creating or updating a glassware type.
  *
- * @param nom Glassware name (e.g. "Verre Tumbler", "Coupe à Cocktail")
+ * @param nom Glassware name (e.g. "Tumbler Glass", "Cocktail Coupe")
  * @param contenanceCl Capacity in centiliters (e.g. 35.0)
  * @param imageUrl Relative or absolute image path
  * @param description Optional description or recommended uses
@@ -22,7 +22,7 @@ import java.math.BigDecimal;
 public record GlasswareRequestDTO(
     @NotBlank(message = "Glassware name is required")
     @Size(max = 100, message = "Name cannot exceed 100 characters")
-    @Schema(description = "Glassware name", example = "Verre Tumbler")
+    @Schema(description = "Glassware name", example = "Tumbler Glass")
     String nom,
 
     @NotNull(message = "Capacity in cl is required")

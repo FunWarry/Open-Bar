@@ -28,14 +28,19 @@ import java.util.List;
 public class TableController {
 
     private final TableService tableService;
+    private final com.bar.gestioncocktail.service.EstablishmentConfigService establishmentConfigService;
 
     /**
-     * Constructs the controller with the table service dependency.
+     * Constructs the controller with the table service and establishment config service.
      *
      * @param tableService Service managing table business logic
+     * @param establishmentConfigService Service managing establishment config and module flags
      */
-    public TableController(TableService tableService) {
+    public TableController(
+            TableService tableService,
+            com.bar.gestioncocktail.service.EstablishmentConfigService establishmentConfigService) {
         this.tableService = tableService;
+        this.establishmentConfigService = establishmentConfigService;
     }
 
     /**
@@ -205,6 +210,9 @@ public class TableController {
     @Operation(summary = "Get interactive floor plan with Konva.js coordinates")
     @ApiResponse(responseCode = "200", description = "Floor plan retrieved with coordinates")
     public List<PlanSalleDTO> getPlanSalle() {
+        if (!establishmentConfigService.isModuleEnabled(com.bar.gestioncocktail.model.EstablishmentModule.FLOOR_PLAN)) {
+            return List.of();
+        }
         return tableService.getAllTablesAvecPositions()
             .stream().map(PlanSalleDTO::from).toList();
     }
@@ -229,6 +237,9 @@ public class TableController {
         @RequestParam Double y,
         @RequestParam(required = false) Double rotation,
         @RequestParam(required = false) String forme) {
+        if (!establishmentConfigService.isModuleEnabled(com.bar.gestioncocktail.model.EstablishmentModule.FLOOR_PLAN)) {
+            throw new com.bar.gestioncocktail.exception.BusinessException("Interactive floor plan is currently disabled for this establishment.");
+        }
         return ResponseEntity.ok(TableResponseDTO.from(
             tableService.updatePosition(id, x, y, rotation, forme)));
     }
@@ -244,6 +255,9 @@ public class TableController {
     @Operation(summary = "Batch save floor plan table positions (drag & drop batch)")
     @ApiResponse(responseCode = "200", description = "Positions saved")
     public ResponseEntity<Void> updatePositionsBatch(@RequestBody List<TablePositionDTO> positions) {
+        if (!establishmentConfigService.isModuleEnabled(com.bar.gestioncocktail.model.EstablishmentModule.FLOOR_PLAN)) {
+            throw new com.bar.gestioncocktail.exception.BusinessException("Interactive floor plan is currently disabled for this establishment.");
+        }
         tableService.updatePositionsBatch(positions);
         return ResponseEntity.ok().build();
     }

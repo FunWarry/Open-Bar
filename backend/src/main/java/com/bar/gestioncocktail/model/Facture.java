@@ -6,6 +6,9 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+/**
+ * JPA entity representing a customer invoice, payment settlement, and legal receipt.
+ */
 
 @Data
 @Entity

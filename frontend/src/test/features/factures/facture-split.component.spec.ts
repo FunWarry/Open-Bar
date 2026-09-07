@@ -163,7 +163,7 @@ describe('FactureSplitComponent', () => {
     });
   });
 
-  // ── Mode par article ──────────────────────────────────────────────────────────
+  // ── Split by item mode ──────────────────────────────────────────────────────────
 
   describe('addConvive()', () => {
     it('should add a new empty convive', () => {
@@ -190,7 +190,7 @@ describe('FactureSplitComponent', () => {
     it('should unassign items belonging to the removed convive', () => {
       component.convives = [{ nom: 'Alice' }, { nom: 'Bob' }, { nom: 'Charlie' }];
       component.itemAssignments = { 10: 1, 11: 2 };
-      component.removeConvive(1); // supprime Bob
+      component.removeConvive(1); // removes Bob
       expect(component.itemAssignments[10]).toBeUndefined();
       expect(component.itemAssignments[11]).toBe(1); // Charlie shifted from 2->1
     });

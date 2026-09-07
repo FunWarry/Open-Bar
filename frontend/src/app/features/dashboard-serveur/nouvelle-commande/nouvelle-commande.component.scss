@@ -60,15 +60,8 @@
   background: var(--background-surface-1, #16192b);
   border-bottom: 1px solid var(--border-medium, #2a2e4d);
 
-  .custom-searchbar {
-    --background: var(--background-surface-2, #21263f);
-    --color: var(--text-primary, #eceefb);
-    --placeholder-color: var(--text-muted, #717baa);
-    --icon-color: var(--text-secondary, #a4add0);
-    --clear-button-color: var(--text-secondary, #a4add0);
-    --box-shadow: none;
-    --border-radius: 10px;
-    padding: 0;
+  app-search-bar {
+    display: block;
     margin-bottom: var(--space-3, 12px);
   }
 

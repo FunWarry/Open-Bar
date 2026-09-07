@@ -1,9 +1,10 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
-import { ToastController, AlertController } from '@ionic/angular/standalone';
+import { ToastController, AlertController, ModalController } from '@ionic/angular/standalone';
 import { TranslocoTestingModule } from '@jsverse/transloco';
 import { AppSettingsPageComponent } from '../../../../app/features/admin/settings/app-settings-page.component';
+import { LegalComponent } from '../../../../app/features/legal/legal.component';
 import { EtablissementService } from '../../../../app/core/services/etablissement.service';
 import { EstablishmentConfig } from '../../../../app/core/models/establishment-config.model';
 import { AppSettingsService } from '../../../../app/core/services/app-settings.service';
@@ -14,12 +15,15 @@ import { AppUpdateService } from '../../../../app/core/services/app-update.servi
 
 import { AuthService } from '../../../../app/core/services/auth.service';
 import { OnboardingService } from '../../../../app/core/services/onboarding.service';
+import { FeatureFlagService } from '../../../../app/core/services/feature-flag.service';
+import { ESTABLISHMENT_PRESETS } from '../../../../app/core/models/establishment-module.model';
 
 describe('AppSettingsPageComponent', () => {
   let component: AppSettingsPageComponent;
   let fixture: ComponentFixture<AppSettingsPageComponent>;
   let etabServiceSpy: jasmine.SpyObj<EtablissementService>;
   let appSettingsServiceSpy: jasmine.SpyObj<AppSettingsService>;
+  let featureFlagServiceSpy: jasmine.SpyObj<FeatureFlagService>;
   let themeServiceSpy: jasmine.SpyObj<ThemeService>;
   let printerServiceSpy: jasmine.SpyObj<PrinterService>;
   let appUpdateServiceSpy: jasmine.SpyObj<AppUpdateService>;
@@ -27,6 +31,7 @@ describe('AppSettingsPageComponent', () => {
   let onboardingServiceSpy: jasmine.SpyObj<OnboardingService>;
   let toastCtrlSpy: jasmine.SpyObj<ToastController>;
   let alertCtrlSpy: jasmine.SpyObj<AlertController>;
+  let modalCtrlSpy: jasmine.SpyObj<ModalController>;
   let routerSpy: jasmine.SpyObj<Router>;
 
   const mockEtab: EstablishmentConfig = {
@@ -133,6 +138,9 @@ describe('AppSettingsPageComponent', () => {
 
     alertCtrlSpy = jasmine.createSpyObj('AlertController', ['create']);
     alertCtrlSpy.create.and.returnValue(Promise.resolve({ present: () => Promise.resolve() } as any));
+
+    modalCtrlSpy = jasmine.createSpyObj('ModalController', ['create']);
+    modalCtrlSpy.create.and.returnValue(Promise.resolve({ present: () => Promise.resolve() } as any));
     
     routerSpy = jasmine.createSpyObj('Router', ['navigate']);
 
@@ -140,6 +148,32 @@ describe('AppSettingsPageComponent', () => {
     authServiceSpy.getStoredUser.and.returnValue({ id: 1, roles: ['ROLE_ADMIN'] } as any);
 
     onboardingServiceSpy = jasmine.createSpyObj('OnboardingService', ['resetOnboarding']);
+
+    featureFlagServiceSpy = jasmine.createSpyObj('FeatureFlagService', [
+      'loadModules',
+      'updateModules',
+      'isModuleEnabled',
+    ], {
+      modules: () => ({
+        cuisineKds: true,
+        happyHour: true,
+        employeeManagement: true,
+        floorPlan: true,
+        qrClientOrdering: true,
+        stockTracking: true,
+      }),
+      happyHourEnabled: () => true,
+      qrClientOrderingEnabled: () => true,
+    });
+    featureFlagServiceSpy.loadModules.and.returnValue(of({
+      cuisineKds: true,
+      happyHour: true,
+      employeeManagement: true,
+      floorPlan: true,
+      qrClientOrdering: true,
+      stockTracking: true,
+    }));
+    featureFlagServiceSpy.updateModules.and.callFake((val: any) => of(val));
 
     await TestBed.configureTestingModule({
       imports: [
@@ -158,6 +192,7 @@ describe('AppSettingsPageComponent', () => {
       providers: [
         { provide: EtablissementService, useValue: etabServiceSpy },
         { provide: AppSettingsService, useValue: appSettingsServiceSpy },
+        { provide: FeatureFlagService, useValue: featureFlagServiceSpy },
         { provide: PrinterService, useValue: printerServiceSpy },
         { provide: AppUpdateService, useValue: appUpdateServiceSpy },
         { provide: ThemeService, useValue: themeServiceSpy },
@@ -165,6 +200,7 @@ describe('AppSettingsPageComponent', () => {
         { provide: OnboardingService, useValue: onboardingServiceSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
         { provide: AlertController, useValue: alertCtrlSpy },
+        { provide: ModalController, useValue: modalCtrlSpy },
         { provide: Router, useValue: routerSpy },
         {
           provide: ActivatedRoute,
@@ -675,6 +711,100 @@ describe('AppSettingsPageComponent', () => {
 
       expect(component.updateCheckSuccess).toBeFalse();
       expect(component.updateCheckMessage).toBeTruthy();
+    });
+  });
+
+  describe('Modules Configuration Tab', () => {
+    it('should select modules tab and initialize modules form', () => {
+      component.selectTab('modules');
+      expect(component.activeTab).toBe('modules');
+      expect(component.modulesForm).toBeTruthy();
+      expect(component.modulesForm.get('cuisineKds')?.value).toBeTrue();
+    });
+
+    it('should apply modules presets correctly', () => {
+      component.applyModulesPreset('BAR');
+      expect(component.modulesForm.get('cuisineKds')?.value).toBeFalse();
+      expect(component.modulesForm.get('happyHour')?.value).toBeTrue();
+      expect(component.modulesForm.dirty).toBeTrue();
+
+      component.applyModulesPreset('FOOD_TRUCK');
+      expect(component.modulesForm.get('floorPlan')?.value).toBeFalse();
+      expect(component.modulesForm.get('happyHour')?.value).toBeFalse();
+
+      component.applyModulesPreset('RESTAURANT');
+      expect(component.modulesForm.get('cuisineKds')?.value).toBeTrue();
+      expect(component.modulesForm.get('floorPlan')?.value).toBeTrue();
+
+      component.applyModulesPreset('NIGHTCLUB');
+      expect(component.modulesForm.get('cuisineKds')?.value).toBeFalse();
+      expect(component.modulesForm.get('happyHour')?.value).toBeTrue();
+    });
+
+    it('should save modules independently via saveModules()', () => {
+      component.applyModulesPreset('FOOD_TRUCK');
+      component.saveModules();
+
+      expect(featureFlagServiceSpy.updateModules).toHaveBeenCalled();
+      expect(component.modulesForm.pristine).toBeTrue();
+    });
+
+    it('should handle saveModules() error gracefully', () => {
+      featureFlagServiceSpy.updateModules.and.returnValue(throwError(() => new Error('Save error')));
+      component.applyModulesPreset('FOOD_TRUCK');
+      component.saveModules();
+
+      expect(component.isSaving).toBeFalse();
+      expect(toastCtrlSpy.create).toHaveBeenCalled();
+    });
+
+    it('should include modules in saveAll() when modulesForm is dirty', () => {
+      component.applyModulesPreset('FOOD_TRUCK');
+      component.saveAll();
+
+      expect(featureFlagServiceSpy.updateModules).toHaveBeenCalled();
+      expect(component.modulesForm.pristine).toBeTrue();
+    });
+
+    it('should reset modules when discardChanges() is called', () => {
+      component.initialModulesValue = {
+        cuisineKds: true,
+        happyHour: true,
+        employeeManagement: true,
+        floorPlan: true,
+        qrClientOrdering: true,
+        stockTracking: true,
+      };
+      component.applyModulesPreset('FOOD_TRUCK');
+      expect(component.modulesForm.dirty).toBeTrue();
+
+      component.discardChanges();
+      expect(component.modulesForm.get('cuisineKds')?.value).toBeTrue();
+      expect(component.modulesForm.pristine).toBeTrue();
+    });
+  });
+
+  describe('Legal & Licensing', () => {
+    it('should open legal modal when openLegalModal is called', async () => {
+      await component.openLegalModal('license');
+      expect(modalCtrlSpy.create).toHaveBeenCalledWith({
+        component: LegalComponent,
+        componentProps: {
+          initialTab: 'license',
+          isModal: true,
+        },
+      });
+    });
+
+    it('should open legal modal with default terms tab when tab is omitted', async () => {
+      await component.openLegalModal();
+      expect(modalCtrlSpy.create).toHaveBeenCalledWith({
+        component: LegalComponent,
+        componentProps: {
+          initialTab: 'terms',
+          isModal: true,
+        },
+      });
     });
   });
 });

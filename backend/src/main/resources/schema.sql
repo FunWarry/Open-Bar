@@ -97,6 +97,9 @@ CREATE TABLE IF NOT EXISTS cocktail_ingredients (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE INDEX IF NOT EXISTS idx_cocktail_ingredients_cocktail_id ON cocktail_ingredients(cocktail_id);
+CREATE INDEX IF NOT EXISTS idx_cocktail_ingredients_ingredient_id ON cocktail_ingredients(ingredient_id);
+
 CREATE TABLE IF NOT EXISTS cocktail_variantes (
     id BIGSERIAL PRIMARY KEY,
     cocktail_id BIGINT REFERENCES cocktails(id) ON DELETE CASCADE,
@@ -110,6 +113,8 @@ CREATE TABLE IF NOT EXISTS cocktail_variantes (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE INDEX IF NOT EXISTS idx_cocktail_variantes_cocktail_id ON cocktail_variantes(cocktail_id);
 
 CREATE TABLE IF NOT EXISTS cocktail_variante_ingredients (
     id BIGSERIAL PRIMARY KEY,
@@ -150,6 +155,8 @@ CREATE TABLE IF NOT EXISTS cocktail_recipe_steps (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE INDEX IF NOT EXISTS idx_cocktail_recipe_steps_cocktail_id ON cocktail_recipe_steps(cocktail_id);
 
 -- 4. Floor Plan, Floors, Zones & Tables
 CREATE TABLE IF NOT EXISTS etages (
@@ -265,6 +272,9 @@ CREATE TABLE IF NOT EXISTS commandes (
 );
 
 CREATE INDEX IF NOT EXISTS idx_commandes_client_request_id ON commandes(client_request_id);
+CREATE INDEX IF NOT EXISTS idx_commandes_statut ON commandes(statut);
+CREATE INDEX IF NOT EXISTS idx_commandes_table_id ON commandes(table_id);
+CREATE INDEX IF NOT EXISTS idx_commandes_date_commande ON commandes(date_commande);
 
 CREATE TABLE IF NOT EXISTS commande_items (
     id BIGSERIAL PRIMARY KEY,
@@ -280,6 +290,11 @@ CREATE TABLE IF NOT EXISTS commande_items (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE INDEX IF NOT EXISTS idx_commande_items_station ON commande_items(station);
+CREATE INDEX IF NOT EXISTS idx_commande_items_statut ON commande_items(statut);
+CREATE INDEX IF NOT EXISTS idx_commande_items_commande_id ON commande_items(commande_id);
+CREATE INDEX IF NOT EXISTS idx_commande_items_cocktail_id ON commande_items(cocktail_id);
 
 -- 6. Billing, Invoices, Items & Credit Notes
 CREATE TABLE IF NOT EXISTS factures (
@@ -306,6 +321,10 @@ CREATE TABLE IF NOT EXISTS factures (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE INDEX IF NOT EXISTS idx_factures_table_id ON factures(table_id);
+CREATE INDEX IF NOT EXISTS idx_factures_reglee ON factures(reglee);
+CREATE INDEX IF NOT EXISTS idx_factures_date_facture ON factures(date_facture);
+
 CREATE TABLE IF NOT EXISTS facture_items (
     id BIGSERIAL PRIMARY KEY,
     facture_id BIGINT REFERENCES factures(id) ON DELETE CASCADE,
@@ -319,6 +338,8 @@ CREATE TABLE IF NOT EXISTS facture_items (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE INDEX IF NOT EXISTS idx_facture_items_facture_id ON facture_items(facture_id);
 
 CREATE TABLE IF NOT EXISTS facture_reglements (
     id BIGSERIAL PRIMARY KEY,
@@ -414,6 +435,12 @@ CREATE TABLE IF NOT EXISTS establishment_config (
     late_payment_rate DECIMAL(5,4),
     time_zone VARCHAR(50),
     ticket_format VARCHAR(10),
+    module_kitchen_kds_enabled BOOLEAN DEFAULT true,
+    module_happy_hour_enabled BOOLEAN DEFAULT true,
+    module_employee_management_enabled BOOLEAN DEFAULT true,
+    module_floor_plan_enabled BOOLEAN DEFAULT true,
+    module_qr_client_ordering_enabled BOOLEAN DEFAULT true,
+    module_stock_tracking_enabled BOOLEAN DEFAULT true,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -529,22 +556,7 @@ CREATE TABLE IF NOT EXISTS stock_movements (
 CREATE INDEX IF NOT EXISTS idx_stock_movements_ingredient ON stock_movements(ingredient_id);
 CREATE INDEX IF NOT EXISTS idx_stock_movements_recorded_at ON stock_movements(recorded_at);
 
--- 12. KDS Workstation Routing & Item Status Tracking
-ALTER TABLE cocktails ADD COLUMN IF NOT EXISTS station VARCHAR(30) DEFAULT 'BAR';
-ALTER TABLE commande_items ADD COLUMN IF NOT EXISTS notes TEXT;
-ALTER TABLE commande_items ADD COLUMN IF NOT EXISTS station VARCHAR(30) DEFAULT 'BAR';
-ALTER TABLE commande_items ADD COLUMN IF NOT EXISTS statut VARCHAR(30);
-CREATE INDEX IF NOT EXISTS idx_commande_items_station ON commande_items(station);
-CREATE INDEX IF NOT EXISTS idx_commande_items_statut ON commande_items(statut);
-
--- 13. Direct ESC/POS Network Socket Printing Configuration
-ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS bar_printer_ip VARCHAR(100);
-ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS kitchen_printer_ip VARCHAR(100);
-ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS cash_desk_printer_ip VARCHAR(100);
-ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS printer_port INTEGER DEFAULT 9100;
-ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS direct_printing_enabled BOOLEAN DEFAULT false;
-
--- 14. Daily Cash Register Closure (Z-Report) & Reconciliation
+-- 12. Daily Cash Register Closure (Z-Report) & Reconciliation
 CREATE TABLE IF NOT EXISTS daily_cash_closures (
     id BIGSERIAL PRIMARY KEY,
     closure_number VARCHAR(50) NOT NULL UNIQUE,
