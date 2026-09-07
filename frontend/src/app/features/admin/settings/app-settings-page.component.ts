@@ -31,6 +31,7 @@ import {
   IonToggle,
   ToastController,
   AlertController,
+  ModalController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -66,8 +67,11 @@ import {
   peopleOutline,
   gridOutline,
   nutritionOutline,
+  documentTextOutline,
+  briefcaseOutline,
 } from 'ionicons/icons';
 import { HappyHourConfigComponent } from './components/happy-hour-config/happy-hour-config.component';
+import { LegalComponent, LegalTab } from '../../legal/legal.component';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { Subject, forkJoin, of } from 'rxjs';
 import { takeUntil, catchError } from 'rxjs/operators';
@@ -227,6 +231,7 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
   private readonly onboardingService = inject(OnboardingService);
   private readonly toastCtrl = inject(ToastController);
   private readonly alertCtrl = inject(AlertController);
+  private readonly modalCtrl = inject(ModalController);
   private readonly translocoService = inject(TranslocoService);
   private readonly printerService = inject(PrinterService);
   private readonly appUpdateService = inject(AppUpdateService);
@@ -432,6 +437,8 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       peopleOutline,
       gridOutline,
       nutritionOutline,
+      documentTextOutline,
+      briefcaseOutline,
     });
     this.initForms();
   }
@@ -1213,5 +1220,21 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       position: 'bottom',
     });
     await toast.present();
+  }
+
+  /**
+   * Opens the legal viewer modal with terms of service, license, compliance, or commercial offers.
+   *
+   * @param tab Target legal tab to display ('terms' | 'license' | 'compliance' | 'commercial')
+   */
+  async openLegalModal(tab: LegalTab = 'terms'): Promise<void> {
+    const modal = await this.modalCtrl.create({
+      component: LegalComponent,
+      componentProps: {
+        initialTab: tab,
+        isModal: true,
+      },
+    });
+    await modal.present();
   }
 }

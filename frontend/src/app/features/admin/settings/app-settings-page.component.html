@@ -354,6 +354,62 @@
                       }
                     </ion-card-content>
                   </ion-card>
+
+                  <!-- Carte Licence & Mentions Juridiques -->
+                  <ion-card class="settings-card license-card" data-testid="settings-license-card">
+                    <ion-card-header>
+                      <ion-card-title class="card-title">
+                        <ion-icon name="shield-checkmark-outline" class="title-icon"></ion-icon>
+                        {{ 'SETTINGS.LICENSE_CARD_TITLE' | transloco }}
+                      </ion-card-title>
+                    </ion-card-header>
+                    <ion-card-content>
+                      <p class="settings-desc">{{ 'SETTINGS.LICENSE_CARD_DESC' | transloco }}</p>
+                      <div class="license-badge-info" style="display: flex; align-items: center; gap: 8px; margin: 12px 0;">
+                        <span class="license-status-label">{{ 'SETTINGS.LICENSE_STATUS_LABEL' | transloco }}</span>
+                        <ion-badge color="primary" data-testid="settings-license-status-badge">Source-Available v1.0</ion-badge>
+                      </div>
+                      <div class="legal-action-buttons" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px;">
+                        <ion-button
+                          size="small"
+                          fill="outline"
+                          (click)="openLegalModal('terms')"
+                          (keyup.enter)="openLegalModal('terms')"
+                          data-testid="btn-view-terms">
+                          <ion-icon name="document-text-outline" slot="start"></ion-icon>
+                          <span>{{ 'SETTINGS.BTN_VIEW_TERMS' | transloco }}</span>
+                        </ion-button>
+                        <ion-button
+                          size="small"
+                          fill="outline"
+                          (click)="openLegalModal('license')"
+                          (keyup.enter)="openLegalModal('license')"
+                          data-testid="btn-view-license">
+                          <ion-icon name="shield-checkmark-outline" slot="start"></ion-icon>
+                          <span>{{ 'SETTINGS.BTN_VIEW_LICENSE' | transloco }}</span>
+                        </ion-button>
+                        <ion-button
+                          size="small"
+                          fill="outline"
+                          (click)="openLegalModal('compliance')"
+                          (keyup.enter)="openLegalModal('compliance')"
+                          data-testid="btn-view-compliance">
+                          <ion-icon name="receipt-outline" slot="start"></ion-icon>
+                          <span>{{ 'SETTINGS.BTN_VIEW_COMPLIANCE' | transloco }}</span>
+                        </ion-button>
+                        <ion-button
+                          size="small"
+                          fill="solid"
+                          color="primary"
+                          (click)="openLegalModal('commercial')"
+                          (keyup.enter)="openLegalModal('commercial')"
+                          data-testid="btn-view-commercial">
+                          <ion-icon name="briefcase-outline" slot="start"></ion-icon>
+                          <span>{{ 'SETTINGS.BTN_COMMERCIAL_OFFERS' | transloco }}</span>
+                        </ion-button>
+                      </div>
+                    </ion-card-content>
+                  </ion-card>
                 </ion-col>
 
                 <!-- Colonne Droite : Aperçu Ticket de Caisse Conforme Facturation -->

@@ -1,0 +1,297 @@
+<ion-header class="ion-no-border legal-header">
+  <ion-toolbar class="legal-toolbar">
+    <div class="toolbar-content-wrapper">
+      <div class="title-with-badge">
+        <ion-icon name="shield-checkmark-outline" class="header-icon"></ion-icon>
+        <ion-title>{{ 'LEGAL.PAGE_TITLE' | transloco }}</ion-title>
+        <ion-badge color="primary" class="version-badge">v1.0</ion-badge>
+      </div>
+      <ion-buttons slot="end">
+        <ion-button
+          fill="clear"
+          (click)="close()"
+          (keyup.enter)="close()"
+          [attr.aria-label]="'COMMON.CLOSE' | transloco"
+          data-testid="btn-close-legal"
+          class="close-btn">
+          <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+    </div>
+  </ion-toolbar>
+
+  <!-- Legal Navigation Tabs -->
+  <div class="legal-tabs-bar" data-testid="legal-tabs-bar">
+    <button
+      type="button"
+      class="legal-tab-btn"
+      [class.active]="activeTab === 'terms'"
+      (click)="selectTab('terms')"
+      data-testid="legal-tab-terms">
+      <ion-icon name="document-text-outline"></ion-icon>
+      <span>{{ 'LEGAL.TAB_TERMS' | transloco }}</span>
+    </button>
+    <button
+      type="button"
+      class="legal-tab-btn"
+      [class.active]="activeTab === 'license'"
+      (click)="selectTab('license')"
+      data-testid="legal-tab-license">
+      <ion-icon name="shield-checkmark-outline"></ion-icon>
+      <span>{{ 'LEGAL.TAB_LICENSE' | transloco }}</span>
+    </button>
+    <button
+      type="button"
+      class="legal-tab-btn"
+      [class.active]="activeTab === 'compliance'"
+      (click)="selectTab('compliance')"
+      data-testid="legal-tab-compliance">
+      <ion-icon name="receipt-outline"></ion-icon>
+      <span>{{ 'LEGAL.TAB_COMPLIANCE' | transloco }}</span>
+    </button>
+    <button
+      type="button"
+      class="legal-tab-btn"
+      [class.active]="activeTab === 'commercial'"
+      (click)="selectTab('commercial')"
+      data-testid="legal-tab-commercial">
+      <ion-icon name="briefcase-outline"></ion-icon>
+      <span>{{ 'LEGAL.TAB_COMMERCIAL' | transloco }}</span>
+    </button>
+  </div>
+</ion-header>
+
+<ion-content class="legal-content" [fullscreen]="true">
+  <div class="legal-container">
+
+    <!-- ========================================== -->
+    <!-- TAB 1: TERMS OF SERVICE (CGU)              -->
+    <!-- ========================================== -->
+    @if (activeTab === 'terms') {
+      <div class="legal-panel" data-testid="legal-panel-terms">
+        <div class="panel-hero">
+          <h1 class="hero-title">{{ 'LEGAL.TERMS_TITLE' | transloco }}</h1>
+          <p class="hero-subtitle">{{ 'LEGAL.TERMS_SUBTITLE' | transloco }}</p>
+          <div class="hero-meta">
+            <span class="meta-item">
+              <ion-icon name="checkmark-circle-outline"></ion-icon>
+              {{ 'LEGAL.TERMS_UPDATED' | transloco }}
+            </span>
+            <span class="meta-item">
+              <ion-icon name="server-outline"></ion-icon>
+              {{ 'LEGAL.TERMS_SCOPE_LAN' | transloco }}
+            </span>
+          </div>
+        </div>
+
+        <ion-card class="legal-card">
+          <ion-card-content>
+            <section class="legal-section">
+              <h2 class="section-title">1. {{ 'LEGAL.TERMS_SEC1_TITLE' | transloco }}</h2>
+              <p class="section-text">{{ 'LEGAL.TERMS_SEC1_DESC' | transloco }}</p>
+            </section>
+
+            <section class="legal-section">
+              <h2 class="section-title">2. {{ 'LEGAL.TERMS_SEC2_TITLE' | transloco }}</h2>
+              <p class="section-text">{{ 'LEGAL.TERMS_SEC2_DESC' | transloco }}</p>
+              <div class="alert-box alert-warning">
+                <ion-icon name="alert-circle-outline"></ion-icon>
+                <div class="alert-content">
+                  <strong>{{ 'LEGAL.WARNING_COMMERCIAL_TITLE' | transloco }}</strong>
+                  <p>{{ 'LEGAL.WARNING_COMMERCIAL_DESC' | transloco }}</p>
+                </div>
+              </div>
+            </section>
+
+            <section class="legal-section">
+              <h2 class="section-title">3. {{ 'LEGAL.TERMS_SEC3_TITLE' | transloco }}</h2>
+              <p class="section-text">{{ 'LEGAL.TERMS_SEC3_DESC' | transloco }}</p>
+              <p class="section-subtext">{{ 'LEGAL.TERMS_SEC3_DETAIL' | transloco }}</p>
+            </section>
+
+            <section class="legal-section">
+              <h2 class="section-title">4. {{ 'LEGAL.TERMS_SEC4_TITLE' | transloco }}</h2>
+              <p class="section-text">{{ 'LEGAL.TERMS_SEC4_DESC' | transloco }}</p>
+              <ul class="legal-list">
+                <li>{{ 'LEGAL.TERMS_SEC4_POINT1' | transloco }}</li>
+                <li>{{ 'LEGAL.TERMS_SEC4_POINT2' | transloco }}</li>
+                <li>{{ 'LEGAL.TERMS_SEC4_POINT3' | transloco }}</li>
+              </ul>
+            </section>
+          </ion-card-content>
+        </ion-card>
+      </div>
+    }
+
+    <!-- ========================================== -->
+    <!-- TAB 2: LICENSE (SOURCE-AVAILABLE v1.0)     -->
+    <!-- ========================================== -->
+    @if (activeTab === 'license') {
+      <div class="legal-panel" data-testid="legal-panel-license">
+        <div class="panel-hero">
+          <div class="license-badge-row">
+            <span class="license-type-tag">{{ 'LEGAL.LICENSE_TAG' | transloco }}</span>
+            <span class="copyright-tag">© 2024-2026 Mathéo Gevraise</span>
+          </div>
+          <h1 class="hero-title">{{ 'LEGAL.LICENSE_TITLE' | transloco }}</h1>
+          <p class="hero-subtitle">{{ 'LEGAL.LICENSE_SUBTITLE' | transloco }}</p>
+        </div>
+
+        <ion-card class="legal-card">
+          <ion-card-content>
+            <section class="legal-section">
+              <h2 class="section-title">{{ 'LEGAL.LICENSE_GRANT_TITLE' | transloco }}</h2>
+              <p class="section-text">{{ 'LEGAL.LICENSE_GRANT_DESC' | transloco }}</p>
+              <div class="rights-grid">
+                <div class="right-box allowed">
+                  <div class="box-header">
+                    <ion-icon name="checkmark-circle-outline"></ion-icon>
+                    <span>{{ 'LEGAL.RIGHTS_ALLOWED_TITLE' | transloco }}</span>
+                  </div>
+                  <ul>
+                    <li>{{ 'LEGAL.RIGHTS_ALLOWED_1' | transloco }}</li>
+                    <li>{{ 'LEGAL.RIGHTS_ALLOWED_2' | transloco }}</li>
+                    <li>{{ 'LEGAL.RIGHTS_ALLOWED_3' | transloco }}</li>
+                    <li>{{ 'LEGAL.RIGHTS_ALLOWED_4' | transloco }}</li>
+                  </ul>
+                </div>
+                <div class="right-box prohibited">
+                  <div class="box-header">
+                    <ion-icon name="close-outline"></ion-icon>
+                    <span>{{ 'LEGAL.RIGHTS_PROHIBITED_TITLE' | transloco }}</span>
+                  </div>
+                  <ul>
+                    <li>{{ 'LEGAL.RIGHTS_PROHIBITED_1' | transloco }}</li>
+                    <li>{{ 'LEGAL.RIGHTS_PROHIBITED_2' | transloco }}</li>
+                    <li>{{ 'LEGAL.RIGHTS_PROHIBITED_3' | transloco }}</li>
+                    <li>{{ 'LEGAL.RIGHTS_PROHIBITED_4' | transloco }}</li>
+                  </ul>
+                </div>
+              </div>
+            </section>
+
+            <section class="legal-section">
+              <h2 class="section-title">{{ 'LEGAL.AUTHOR_RESERVED_TITLE' | transloco }}</h2>
+              <p class="section-text">{{ 'LEGAL.AUTHOR_RESERVED_DESC' | transloco }}</p>
+            </section>
+          </ion-card-content>
+        </ion-card>
+      </div>
+    }
+
+    <!-- ========================================== -->
+    <!-- TAB 3: FISCAL & GDPR COMPLIANCE            -->
+    <!-- ========================================== -->
+    @if (activeTab === 'compliance') {
+      <div class="legal-panel" data-testid="legal-panel-compliance">
+        <div class="panel-hero">
+          <h1 class="hero-title">{{ 'LEGAL.COMPLIANCE_TITLE' | transloco }}</h1>
+          <p class="hero-subtitle">{{ 'LEGAL.COMPLIANCE_SUBTITLE' | transloco }}</p>
+        </div>
+
+        <ion-card class="legal-card">
+          <ion-card-content>
+            <section class="legal-section">
+              <h2 class="section-title">
+                <ion-icon name="receipt-outline" class="section-icon"></ion-icon>
+                {{ 'LEGAL.FISCAL_TITLE' | transloco }}
+              </h2>
+              <p class="section-text">{{ 'LEGAL.FISCAL_DESC1' | transloco }}</p>
+              <p class="section-text">{{ 'LEGAL.FISCAL_DESC2' | transloco }}</p>
+              <div class="alert-box alert-info">
+                <ion-icon name="shield-checkmark-outline"></ion-icon>
+                <div class="alert-content">
+                  <strong>{{ 'LEGAL.FISCAL_OPERATOR_RESPONSIBILITY_TITLE' | transloco }}</strong>
+                  <p>{{ 'LEGAL.FISCAL_OPERATOR_RESPONSIBILITY_DESC' | transloco }}</p>
+                </div>
+              </div>
+            </section>
+
+            <section class="legal-section">
+              <h2 class="section-title">
+                <ion-icon name="lock-closed-outline" class="section-icon"></ion-icon>
+                {{ 'LEGAL.GDPR_TITLE' | transloco }}
+              </h2>
+              <p class="section-text">{{ 'LEGAL.GDPR_DESC1' | transloco }}</p>
+              <div class="compliance-highlights">
+                <div class="highlight-item">
+                  <ion-icon name="server-outline"></ion-icon>
+                  <div>
+                    <strong>{{ 'LEGAL.GDPR_LOCAL_TITLE' | transloco }}</strong>
+                    <p>{{ 'LEGAL.GDPR_LOCAL_DESC' | transloco }}</p>
+                  </div>
+                </div>
+                <div class="highlight-item">
+                  <ion-icon name="shield-checkmark-outline"></ion-icon>
+                  <div>
+                    <strong>{{ 'LEGAL.GDPR_ZERO_TELEMETRY_TITLE' | transloco }}</strong>
+                    <p>{{ 'LEGAL.GDPR_ZERO_TELEMETRY_DESC' | transloco }}</p>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </ion-card-content>
+        </ion-card>
+      </div>
+    }
+
+    <!-- ========================================== -->
+    <!-- TAB 4: COMMERCIAL LICENSING & APPLIANCES   -->
+    <!-- ========================================== -->
+    @if (activeTab === 'commercial') {
+      <div class="legal-panel" data-testid="legal-panel-commercial">
+        <div class="panel-hero">
+          <h1 class="hero-title">{{ 'LEGAL.COMMERCIAL_TITLE' | transloco }}</h1>
+          <p class="hero-subtitle">{{ 'LEGAL.COMMERCIAL_SUBTITLE' | transloco }}</p>
+        </div>
+
+        <div class="commercial-offers-grid">
+          <ion-card class="offer-card">
+            <ion-card-content>
+              <div class="offer-header">
+                <ion-icon name="briefcase-outline" class="offer-icon"></ion-icon>
+                <h3 class="offer-name">{{ 'LEGAL.OFFER_POS_TITLE' | transloco }}</h3>
+              </div>
+              <p class="offer-desc">{{ 'LEGAL.OFFER_POS_DESC' | transloco }}</p>
+              <ul class="offer-features">
+                <li><ion-icon name="checkmark-circle-outline"></ion-icon> {{ 'LEGAL.OFFER_POS_F1' | transloco }}</li>
+                <li><ion-icon name="checkmark-circle-outline"></ion-icon> {{ 'LEGAL.OFFER_POS_F2' | transloco }}</li>
+                <li><ion-icon name="checkmark-circle-outline"></ion-icon> {{ 'LEGAL.OFFER_POS_F3' | transloco }}</li>
+              </ul>
+            </ion-card-content>
+          </ion-card>
+
+          <ion-card class="offer-card highlighted">
+            <ion-card-content>
+              <div class="offer-badge">{{ 'LEGAL.RECOMMENDED_TAG' | transloco }}</div>
+              <div class="offer-header">
+                <ion-icon name="hardware-chip-outline" class="offer-icon"></ion-icon>
+                <h3 class="offer-name">{{ 'LEGAL.OFFER_HW_TITLE' | transloco }}</h3>
+              </div>
+              <p class="offer-desc">{{ 'LEGAL.OFFER_HW_DESC' | transloco }}</p>
+              <ul class="offer-features">
+                <li><ion-icon name="checkmark-circle-outline"></ion-icon> {{ 'LEGAL.OFFER_HW_F1' | transloco }}</li>
+                <li><ion-icon name="checkmark-circle-outline"></ion-icon> {{ 'LEGAL.OFFER_HW_F2' | transloco }}</li>
+                <li><ion-icon name="checkmark-circle-outline"></ion-icon> {{ 'LEGAL.OFFER_HW_F3' | transloco }}</li>
+              </ul>
+            </ion-card-content>
+          </ion-card>
+        </div>
+
+        <ion-card class="legal-card contact-card">
+          <ion-card-content>
+            <h3 class="contact-title">{{ 'LEGAL.CONTACT_TITLE' | transloco }}</h3>
+            <p class="contact-subtitle">{{ 'LEGAL.CONTACT_DESC' | transloco }}</p>
+            <div class="contact-links">
+              <a href="https://github.com/FunWarry/Open-Bar" target="_blank" rel="noopener noreferrer" class="contact-btn">
+                <ion-icon name="logo-github"></ion-icon>
+                <span>GitHub: @FunWarry/Open-Bar</span>
+              </a>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </div>
+    }
+
+  </div>
+</ion-content>
