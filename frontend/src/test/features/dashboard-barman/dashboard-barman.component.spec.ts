@@ -1,4 +1,4 @@
-import { TestBed, fakeAsync, tick, flushMicrotasks } from '@angular/core/testing';
+import { TestBed, ComponentFixture, fakeAsync, tick, flushMicrotasks } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { IonicModule } from '@ionic/angular';
 import { ToastController, ModalController } from '@ionic/angular/standalone';
@@ -16,6 +16,7 @@ import { getTranslocoTestingModule } from '../../transloco-testing.module';
 
 describe('DashboardBarmanComponent', () => {
   let component: DashboardBarmanComponent;
+  let fixture: ComponentFixture<DashboardBarmanComponent>;
   let dashboardServiceSpy: jasmine.SpyObj<DashboardBarmanService>;
   let notificationServiceSpy: jasmine.SpyObj<NotificationService>;
   let wsServiceSpy: jasmine.SpyObj<WebSocketService>;
@@ -147,7 +148,7 @@ describe('DashboardBarmanComponent', () => {
       ]
     }).compileComponents();
 
-    const fixture = TestBed.createComponent(DashboardBarmanComponent);
+    fixture = TestBed.createComponent(DashboardBarmanComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
@@ -683,5 +684,37 @@ describe('DashboardBarmanComponent', () => {
 
     expect(toastCtrlSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({ color: 'danger' }));
   }));
+
+  describe('Header Toolbar & Segment Layout Non-Regression (#420)', () => {
+    it('should render segment buttons with layout icon-start and proper test attributes', () => {
+      fixture.detectChanges();
+      const compiled = fixture.nativeElement as HTMLElement;
+      const ticketsBtn = compiled.querySelector('ion-segment-button[data-testid="segment-view-tickets"]');
+      const batchBtn = compiled.querySelector('ion-segment-button[data-testid="segment-view-batch"]');
+
+      expect(ticketsBtn).toBeTruthy();
+      expect(ticketsBtn?.getAttribute('layout')).toBe('icon-start');
+      expect(batchBtn).toBeTruthy();
+      expect(batchBtn?.getAttribute('layout')).toBe('icon-start');
+    });
+
+    it('should style refresh button with btn-refresh class', () => {
+      fixture.detectChanges();
+      const compiled = fixture.nativeElement as HTMLElement;
+      const refreshBtn = compiled.querySelector('ion-button[data-testid="refresh-orders-btn"]');
+      expect(refreshBtn).toBeTruthy();
+      expect(refreshBtn?.classList.contains('btn-refresh')).toBeTrue();
+    });
+
+    it('should render batch badge inside batch-segment-label when batch drinks exist', () => {
+      spyOnProperty(component, 'totalBatchDrinksCount', 'get').and.returnValue(5);
+      fixture.detectChanges();
+      const compiled = fixture.nativeElement as HTMLElement;
+      const badge = compiled.querySelector('[data-testid="batch-count-badge"]');
+      expect(badge).toBeTruthy();
+      expect(badge?.classList.contains('segment-badge')).toBeTrue();
+      expect(badge?.textContent?.trim()).toBe('5');
+    });
+  });
 });
 

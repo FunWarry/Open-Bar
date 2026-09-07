@@ -16,18 +16,20 @@
         mode="ios"
         class="barman-view-segment"
         data-testid="barman-view-mode-segment">
-        <ion-segment-button value="tickets" data-testid="segment-view-tickets">
+        <ion-segment-button value="tickets" layout="icon-start" data-testid="segment-view-tickets">
           <ion-icon name="list-outline"></ion-icon>
           <ion-label>{{ 'BARMAN_DASHBOARD.VIEW_TICKETS' | transloco }}</ion-label>
         </ion-segment-button>
-        <ion-segment-button value="batch" data-testid="segment-view-batch">
+        <ion-segment-button value="batch" layout="icon-start" data-testid="segment-view-batch">
           <ion-icon name="flash-outline"></ion-icon>
-          <ion-label>{{ 'BARMAN_DASHBOARD.VIEW_BATCH' | transloco }}</ion-label>
-          @if (totalBatchDrinksCount > 0) {
-            <ion-badge color="warning" class="segment-badge" data-testid="batch-count-badge">
-              {{ totalBatchDrinksCount }}
-            </ion-badge>
-          }
+          <ion-label class="batch-segment-label">
+            <span>{{ 'BARMAN_DASHBOARD.VIEW_BATCH' | transloco }}</span>
+            @if (totalBatchDrinksCount > 0) {
+              <span class="segment-badge" data-testid="batch-count-badge">
+                {{ totalBatchDrinksCount }}
+              </span>
+            }
+          </ion-label>
         </ion-segment-button>
       </ion-segment>
     </div>
@@ -46,7 +48,7 @@
 
       <!-- Refresh manuel -->
       <ion-button
-        class="header-action-btn"
+        class="header-action-btn btn-refresh"
         (click)="chargerCommandes()"
         (keyup.enter)="chargerCommandes()"
         [title]="'BARMAN_DASHBOARD.REFRESH_ORDERS_TOOLTIP' | transloco"
