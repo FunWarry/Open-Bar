@@ -50,6 +50,7 @@ import {
   SearchableSelectComponent,
   SearchableOption
 } from '../../../core/components/ui/searchable-select/searchable-select.component';
+import { SearchBarComponent } from '../../../core/components/ui/search-bar/search-bar.component';
 
 /**
  * Quick category filter type.
@@ -76,8 +77,9 @@ export type AuditDateFilter = 'ALL' | 'TODAY' | 'WEEK' | 'MONTH';
     RouterModule,
     TranslocoPipe,
     SearchableSelectComponent,
+    SearchBarComponent,
     IonIcon,
-    IonSpinner
+    IonSpinner,
   ]
 })
 export class AuditLogsComponent implements OnInit {

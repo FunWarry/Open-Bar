@@ -10,7 +10,7 @@ import {
   IonCard, IonCardContent,
   IonButton, IonIcon, IonBadge, IonChip, IonSpinner,
   IonFooter, IonToolbar as IonFooterToolbar,
-  IonSearchbar, IonSelect, IonSelectOption,
+  IonSelect, IonSelectOption,
   ToastController, ModalController,
 } from '@ionic/angular/standalone';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
@@ -31,6 +31,7 @@ import {
   VarianteModalComponent,
   VarianteSelectionResult,
 } from '../variante-modal/variante-modal.component';
+import { SearchBarComponent } from '../../../core/components/ui/search-bar/search-bar.component';
 
 /**
  * A single item in the local order cart.
@@ -73,7 +74,7 @@ export interface CartItem {
     IonCard, IonCardContent,
     IonButton, IonIcon, IonBadge, IonChip, IonSpinner,
     IonFooter, IonFooterToolbar,
-    IonSearchbar, IonSelect, IonSelectOption,
+    SearchBarComponent, IonSelect, IonSelectOption,
   ],
   templateUrl: './nouvelle-commande.component.html',
   styleUrls: ['./nouvelle-commande.component.scss'],

@@ -27,14 +27,6 @@
   .search-box {
     flex: 1;
     min-width: 260px;
-
-    ion-input {
-      --border-color: var(--border-medium);
-      --border-radius: var(--radius-md, 10px);
-      --background: var(--background-surface-2);
-      --color: var(--text-primary);
-      --placeholder-color: var(--text-muted);
-    }
   }
 
   .role-filter {

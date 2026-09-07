@@ -8,7 +8,7 @@ import {
   IonContent, IonCard, IonCardHeader, IonCardContent,
   IonList, IonItem, IonLabel, IonBadge, IonIcon, IonButton, IonButtons,
   IonRefresher, IonRefresherContent, IonSegment, IonSegmentButton,
-  IonSpinner, IonSearchbar, IonToggle, IonChip, ToastController, ModalController,
+  IonSpinner, IonToggle, IonChip, ToastController, ModalController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -17,6 +17,7 @@ import {
   searchOutline, refreshOutline,
 } from 'ionicons/icons';
 import { CurrencyPipe, DatePipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { CommandeService } from '../../../core/services/commande.service';
 import { Commande, CommandeStatut } from '../../../core/models/commande.model';
@@ -26,6 +27,7 @@ import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
 
 import { CommandeCardComponent } from '../commande-card/commande-card.component';
 import { CommandeDetailModalComponent } from '../commande-detail-modal/commande-detail-modal.component';
+import { SearchBarComponent } from '../../../core/components/ui/search-bar/search-bar.component';
 
 /**
  * Component responsible for managing and displaying active orders in real time.
@@ -43,8 +45,8 @@ import { CommandeDetailModalComponent } from '../commande-detail-modal/commande-
     IonContent, IonCard, IonCardHeader, IonCardContent,
     IonList, IonItem, IonLabel, IonBadge, IonIcon, IonButton, IonButtons,
     IonRefresher, IonRefresherContent, IonSegment, IonSegmentButton,
-    IonSpinner, IonSearchbar, IonToggle, IonChip,
-    CurrencyPipe, DatePipe, TranslocoPipe, CommandeCardComponent,
+    IonSpinner, SearchBarComponent, IonToggle, IonChip,
+    FormsModule, CurrencyPipe, DatePipe, TranslocoPipe, CommandeCardComponent,
   ],
 })
 export class CommandeListComponent implements OnInit, OnDestroy {
@@ -199,7 +201,7 @@ export class CommandeListComponent implements OnInit, OnDestroy {
    * Handles search query changes from the searchbar.
    */
   onSearchChange(event: any): void {
-    this.searchQuery = event.detail.value ?? '';
+    this.searchQuery = typeof event === 'string' ? event : (event?.detail?.value ?? event?.target?.value ?? '');
     this.appliquerFiltre();
   }
 

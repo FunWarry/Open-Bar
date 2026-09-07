@@ -143,25 +143,6 @@
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
-
-    .custom-searchbar {
-      --background: var(--background-surface-2);
-      --color: var(--text-primary);
-      --placeholder-color: var(--text-muted);
-      --icon-color: var(--text-muted);
-      --border-radius: 8px;
-      --box-shadow: none;
-      border: 1px solid var(--border-medium);
-      border-radius: 8px;
-      padding: 0;
-      height: 42px;
-      transition: border-color 0.2s ease;
-
-      &:hover,
-      &:focus-within {
-        border-color: var(--primary);
-      }
-    }
   }
 }
 

@@ -7,7 +7,7 @@ import { takeUntil, finalize } from 'rxjs/operators';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { AppCurrencyPipe } from '../../../core/pipes/app-currency.pipe';
 import {
-  IonContent, IonSearchbar, IonButton,
+  IonContent, IonButton,
   IonRefresher, IonRefresherContent, IonIcon, IonSpinner, IonProgressBar, ToastController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -25,6 +25,7 @@ import { FactureService } from '../services/facture.service';
 import { Facture } from '../models/facture.model';
 import { environment } from '../../../../environments/environment';
 import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
+import { SearchBarComponent } from '../../../core/components/ui/search-bar/search-bar.component';
 import { SearchableSelectComponent, SearchableOption } from '../../../core/components/ui/searchable-select/searchable-select.component';
 /**
  * Filter options for invoice list queries.
@@ -63,8 +64,8 @@ export function getIsoWeekString(d: Date = new Date()): string {
   if (target.getDay() !== 4) {
     target.setMonth(0, 1 + ((4 - target.getDay() + 7) % 7));
   }
-  const weekNum = 1 + Math.ceil((firstThursday - target.valueOf()) / 604800000);
-  return `${y}-W${String(weekNum).padStart(2, '0')}`;
+  const weekNumber = 1 + Math.ceil((firstThursday - target.valueOf()) / 604800000);
+  return `${y}-W${String(weekNumber).padStart(2, '0')}`;
 }
 
 /**
@@ -74,6 +75,11 @@ export function getMonthString(d: Date = new Date()): string {
   const opDayStr = getOperationalDayString(d);
   return opDayStr.substring(0, 7);
 }
+
+/**
+ * Alias for getMonthString.
+ */
+export const getOperationalMonthString = getMonthString;
 
 /**
  * Modern Standalone Component for displaying, searching, filtering, and managing invoices.
@@ -86,7 +92,7 @@ export function getMonthString(d: Date = new Date()): string {
   imports: [
     CommonModule, RouterLink, FormsModule, AppCurrencyPipe, DatePipe,
     TranslocoModule,
-    IonContent, IonSearchbar, IonButton,
+    IonContent, SearchBarComponent, IonButton,
     IonRefresher, IonRefresherContent, IonIcon, IonSpinner, IonProgressBar,
     SearchableSelectComponent
   ],

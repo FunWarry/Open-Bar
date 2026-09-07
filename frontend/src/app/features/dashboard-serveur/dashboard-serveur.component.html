@@ -72,28 +72,13 @@
     <div class="controls-card">
       <!-- LIGNE SUPERIEURE : SEARCHBAR & PILLULES STATUT -->
       <div class="controls-row-top">
-        <div class="search-input-box">
-          <ion-icon name="search-outline" class="search-icon" aria-hidden="true"></ion-icon>
-          <label for="serveur-table-search-input" class="visually-hidden">{{ 'SERVEUR.SEARCH_TABLE_PLACEHOLDER' | transloco }}</label>
-          <input
-            id="serveur-table-search-input"
-            type="text"
-            class="custom-search-field"
-            [placeholder]="'SERVEUR.SEARCH_TABLE_PLACEHOLDER' | transloco"
-            [value]="searchTerm"
-            (input)="onSearchChange($event)"
-            data-testid="serveur-table-searchbar" />
-          @if (searchTerm) {
-            <button
-              type="button"
-              class="clear-search-btn"
-              (click)="clearSearch()"
-              aria-label="Effacer"
-              title="Effacer">
-              <ion-icon name="close-circle-outline"></ion-icon>
-            </button>
-          }
-        </div>
+        <app-search-bar
+          [(ngModel)]="searchTerm"
+          (searchChange)="onSearchChange($event)"
+          (cleared)="clearSearch()"
+          [placeholder]="'SERVEUR.SEARCH_TABLE_PLACEHOLDER' | transloco"
+          testId="serveur-table-searchbar">
+        </app-search-bar>
 
         <div class="status-segment-wrapper">
           <span class="count-pill" [title]="'SERVEUR.TABLES_COUNT' | transloco">
@@ -218,7 +203,7 @@
 
     <!-- MODE 1 : GROUPÉ PAR ZONE (BY_ZONE) -->
     <ng-container *ngIf="displayMode === 'BY_ZONE'">
-      <div class="zone-section-group" *ngFor="let group of groupedTables">
+      <div class="zone-section-group" *ngFor="let group of groupedTables; trackBy: trackByGroupKey">
         <div class="zone-section-header">
           <div class="section-title-group">
             <ion-icon name="layers-outline"></ion-icon>
@@ -251,7 +236,7 @@
 
     <!-- MODE 2 : GROUPÉ PAR ÉTAGE (BY_FLOOR) -->
     <ng-container *ngIf="displayMode === 'BY_FLOOR'">
-      <div class="zone-section-group" *ngFor="let group of groupedTables">
+      <div class="zone-section-group" *ngFor="let group of groupedTables; trackBy: trackByGroupKey">
         <div class="zone-section-header">
           <div class="section-title-group">
             <ion-icon name="business-outline"></ion-icon>
@@ -403,28 +388,11 @@
       <div class="products-section">
         <!-- Barre de filtres Cocktails (style page Cocktail) -->
         <div class="cocktail-filters-card">
-          <!-- Searchbar -->
-          <div class="search-input-box">
-            <ion-icon name="search-outline" class="search-icon" aria-hidden="true"></ion-icon>
-            <label for="serveur-product-search-input" class="visually-hidden">{{ 'SERVEUR.SEARCH_COCKTAIL_PLACEHOLDER' | transloco }}</label>
-            <input
-              id="serveur-product-search-input"
-              type="text"
-              class="custom-search-field"
-              [(ngModel)]="productSearchQuery"
-              [placeholder]="'SERVEUR.SEARCH_COCKTAIL_PLACEHOLDER' | transloco"
-              data-testid="product-searchbar" />
-            @if (productSearchQuery) {
-              <button
-                type="button"
-                class="clear-search-btn"
-                (click)="productSearchQuery = ''"
-                aria-label="Effacer"
-                title="Effacer">
-                <ion-icon name="close-circle-outline"></ion-icon>
-              </button>
-            }
-          </div>
+          <app-search-bar
+            [(ngModel)]="productSearchQuery"
+            [placeholder]="'SERVEUR.SEARCH_COCKTAIL_PLACEHOLDER' | transloco"
+            testId="product-searchbar">
+          </app-search-bar>
 
           <!-- Category Dot Filter Pills -->
           <div class="category-pills-row">

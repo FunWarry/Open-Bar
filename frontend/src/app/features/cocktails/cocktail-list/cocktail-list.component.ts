@@ -24,6 +24,7 @@ import { CocktailService } from '../../../core/services/cocktail.service';
 import { WebSocketService } from '../../../core/services/websocket.service';
 import { AppSettingsService } from '../../../core/services/app-settings.service';
 import { Cocktail, CocktailFacets, FlavorProfile } from '../../../core/models/cocktail.model';
+import { SearchBarComponent } from '../../../core/components/ui/search-bar/search-bar.component';
 import { CocktailMatcherBarComponent, CocktailMatcherFilters } from '../../../core/components/ui/cocktail-matcher-bar/cocktail-matcher-bar.component';
 import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
 import { getMarginBadgeClass } from '../../../core/utils/margin-calculation.util';
@@ -57,6 +58,7 @@ export interface AllergenOption {
     IonRefresher, IonRefresherContent,
     IonSpinner, IonThumbnail, IonGrid, IonRow, IonCol,
     CocktailMatcherBarComponent,
+    SearchBarComponent
   ],
 })
 export class CocktailListComponent implements OnInit, OnDestroy {

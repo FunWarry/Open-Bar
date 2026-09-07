@@ -8,8 +8,6 @@ import {
   IonContent,
   IonHeader,
   IonToolbar,
-  IonTitle,
-  IonButtons,
   IonButton,
   IonIcon,
   IonRefresher,
@@ -17,7 +15,6 @@ import {
   IonGrid,
   IonRow,
   IonCol,
-  IonSearchbar,
   IonChip,
   IonLabel,
   IonBadge,
@@ -45,6 +42,7 @@ import {
   checkmarkCircleOutline,
   eyeOutline
 } from 'ionicons/icons';
+import { SearchBarComponent } from '../../core/components/ui/search-bar/search-bar.component';
 import { CommandeCardComponent } from './components/commande-card/commande-card.component';
 import { NotificationService } from '../../core/services/notification.service';
 import { DashboardBarmanService } from './services/dashboard-barman.service';
@@ -77,8 +75,6 @@ import { FeatureFlagService } from '../../core/services/feature-flag.service';
     IonContent,
     IonHeader,
     IonToolbar,
-    IonTitle,
-    IonButtons,
     IonButton,
     IonIcon,
     IonRefresher,
@@ -86,7 +82,7 @@ import { FeatureFlagService } from '../../core/services/feature-flag.service';
     IonGrid,
     IonRow,
     IonCol,
-    IonSearchbar,
+    SearchBarComponent,
     IonChip,
     IonLabel,
     IonBadge,
@@ -174,11 +170,12 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
   get urgentOrdersCount(): number {
     const now = Date.now();
     const alertThresholdMs = (this.tempsAlerteCommandeMinutes || 5) * 60 * 1000;
+    const maxActiveWindowMs = 2 * 60 * 60 * 1000;
     return this.commandesEnAttente.filter(cmd => {
       if (cmd.prioritaire) return true;
       if (!cmd.dateCommande) return false;
-      const created = new Date(cmd.dateCommande).getTime();
-      return now - created > alertThresholdMs;
+      const diff = now - new Date(cmd.dateCommande).getTime();
+      return diff >= alertThresholdMs && diff < maxActiveWindowMs;
     }).length;
   }
 
@@ -383,9 +380,13 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
     return commandes.filter(cmd => {
       // Urgent filter
       if (this.urgentOnly) {
-        const isUrgent =
-          cmd.prioritaire ||
-          (cmd.dateCommande && now - new Date(cmd.dateCommande).getTime() > alertThresholdMs);
+        const isPrioritaire = Boolean(cmd.prioritaire);
+        const diff = cmd.dateCommande ? now - new Date(cmd.dateCommande).getTime() : 0;
+        const isPendingDelayed =
+          cmd.statut === 'EN_ATTENTE' &&
+          diff >= alertThresholdMs &&
+          diff < 2 * 60 * 60 * 1000;
+        const isUrgent = isPrioritaire || isPendingDelayed;
         if (!isUrgent) return false;
       }
 

@@ -80,14 +80,13 @@
     <div class="controls-card">
       <div class="controls-row-top">
         <!-- Searchbar -->
-        <ion-searchbar
-          class="custom-searchbar"
+        <app-search-bar
+          [(ngModel)]="searchTerm"
+          (searchChange)="onSearchChange($event)"
           [placeholder]="'TABLES.FILTERS.SEARCH_PLACEHOLDER' | transloco"
-          [value]="searchTerm"
-          (ionInput)="onSearchChange($event)"
-          data-testid="table-search-input"
           [debounce]="200"
-        ></ion-searchbar>
+          testId="table-search-input">
+        </app-search-bar>
 
         <!-- Status Filter Segment -->
         <div class="status-segment-wrapper">

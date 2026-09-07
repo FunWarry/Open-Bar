@@ -6,7 +6,7 @@ import { takeUntil, finalize } from 'rxjs/operators';
 import { selectIsAdmin } from '../../../core/store/auth.selectors';
 import {
   IonContent, IonIcon, IonButton,
-  IonRefresher, IonRefresherContent, IonSpinner, IonSearchbar,
+  IonRefresher, IonRefresherContent, IonSpinner,
   ToastController, ModalController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -30,6 +30,7 @@ import { TableFormComponent } from '../table-form/table-form.component';
 import { TableQrBatchPrintModalComponent } from '../components/table-qr-batch-print-modal/table-qr-batch-print-modal.component';
 import { ConfirmDeleteModalComponent } from '../../../core/components/ui/confirm-delete-modal/confirm-delete-modal.component';
 import { safeCompleteRefresher } from '../../../core/utils/refresher-utils';
+import { SearchBarComponent } from '../../../core/components/ui/search-bar/search-bar.component';
 import { SearchableSelectComponent, SearchableOption } from '../../../core/components/ui/searchable-select/searchable-select.component';
 /**
  * Sorting options for table list overview.
@@ -67,7 +68,7 @@ export interface GroupedTables {
   imports: [
     CommonModule, FormsModule,
     IonContent, IonIcon, IonButton,
-    IonRefresher, IonRefresherContent, IonSpinner, IonSearchbar,
+    IonRefresher, IonRefresherContent, IonSpinner, SearchBarComponent,
     AsyncPipe, NgTemplateOutlet, TranslocoPipe,
     SearchableSelectComponent,
   ],
@@ -393,7 +394,7 @@ export class TableListComponent implements OnInit, OnDestroy {
   // --- Filter event handlers ---
 
   onSearchChange(event: any): void {
-    this.searchTerm = event.detail.value || '';
+    this.searchTerm = typeof event === 'string' ? event : (event?.detail?.value ?? event?.target?.value ?? '');
   }
 
   onEtageFilterChange(event: Event): void {

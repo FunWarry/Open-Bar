@@ -41,13 +41,13 @@
       </div>
 
       <div class="search-filter-row">
-        <ion-searchbar
+        <app-search-bar
+          [(ngModel)]="searchQuery"
+          (searchChange)="onSearchChange($event)"
           [placeholder]="'COMMANDES.SEARCH_PLACEHOLDER' | transloco"
-          [value]="searchQuery"
-          (ionInput)="onSearchChange($event)"
-          debounce="200"
-          data-testid="input-search-commandes">
-        </ion-searchbar>
+          [debounce]="200"
+          testId="input-search-commandes">
+        </app-search-bar>
 
         <div class="toggle-served-container">
           <ion-toggle

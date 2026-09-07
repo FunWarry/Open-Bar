@@ -36,6 +36,7 @@ import { ZoneBar, ZoneService } from '../../../core/services/zone.service';
 import { EtageBar, EtageService } from '../../../core/services/etage.service';
 import { InputFieldComponent } from '../../../core/components/ui/input-field/input-field.component';
 import { SearchableSelectComponent, SearchableOption } from '../../../core/components/ui/searchable-select/searchable-select.component';
+import { SearchBarComponent } from '../../../core/components/ui/search-bar/search-bar.component';
 import { ConfirmDeleteModalComponent } from '../../../core/components/ui/confirm-delete-modal/confirm-delete-modal.component';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { forkJoin } from 'rxjs';
@@ -64,6 +65,7 @@ import { forkJoin } from 'rxjs';
     IonLabel,
     InputFieldComponent,
     SearchableSelectComponent,
+    SearchBarComponent,
     TranslocoPipe
   ]
 })

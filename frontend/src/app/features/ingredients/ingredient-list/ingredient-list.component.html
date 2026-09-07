@@ -37,9 +37,12 @@
     <div class="controls-card">
       <!-- Top Row: Searchbar + Status Pills -->
       <div class="controls-row-top">
-        <ion-searchbar class="custom-searchbar" [placeholder]="'STOCK.SEARCH_PLACEHOLDER' | transloco"
-          [(ngModel)]="searchQuery" data-testid="stock-searchbar" [debounce]="200">
-        </ion-searchbar>
+        <app-search-bar
+          [(ngModel)]="searchQuery"
+          [placeholder]="'STOCK.SEARCH_PLACEHOLDER' | transloco"
+          [debounce]="200"
+          testId="stock-searchbar">
+        </app-search-bar>
 
         <!-- Status Filter Segment Pills -->
         <div class="status-segment-wrapper">

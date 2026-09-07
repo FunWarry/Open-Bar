@@ -1,6 +1,14 @@
 // Modal Transfert de commande
 // Adaptive Theme colors using CSS variables from variables.css (Rule #9)
 
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
 .modal-toolbar {
   --background: var(--background-surface-1, #16192b);
   --color: var(--text-primary, #eceefb);

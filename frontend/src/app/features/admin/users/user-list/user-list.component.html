@@ -12,15 +12,12 @@
       <!-- Filtres et Recherche -->
       <div class="filter-toolbar ion-margin-top">
         <div class="search-box">
-          <ion-input
+          <app-search-bar
             [(ngModel)]="searchQuery"
-            (ionInput)="onSearchChange()"
+            (searchChange)="onSearchChange()"
             [placeholder]="'USERS.SEARCH_PLACEHOLDER' | transloco"
-            fill="outline"
-            class="search-input"
-            data-testid="user-search-input">
-            <ion-icon name="search-outline" slot="start"></ion-icon>
-          </ion-input>
+            testId="user-search-input">
+          </app-search-bar>
         </div>
 
         <div class="role-filter">

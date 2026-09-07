@@ -173,6 +173,13 @@
 
     .alert-icon {
       font-size: 1.2rem;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      flex-shrink: 0;
       &.pulse {
         animation: pulse-icon 1.2s infinite ease-in-out;
       }
@@ -329,9 +336,10 @@
   gap: 8px;
 
   .order-id-badge {
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 800;
     color: var(--text-primary, #eceefb);
+    line-height: 1.2;
 
     .id-hash {
       color: var(--primary, #6c7fe8);
@@ -339,14 +347,59 @@
   }
 
   .order-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
     margin-right: auto;
-    margin-left: 6px;
+    margin-left: 8px;
 
     ion-badge {
       font-size: 11px;
-      font-weight: 600;
-      padding: 3px 8px;
-      border-radius: 6px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: var(--radius-pill, 999px);
+      letter-spacing: 0.3px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      border: 1px solid transparent;
+
+      &[color="warning"] {
+        background: var(--status-waiting-15, rgba(244, 165, 42, 0.15)) !important;
+        color: var(--semantic-warning, #f4a52a) !important;
+        border-color: rgba(244, 165, 42, 0.35) !important;
+      }
+
+      &[color="primary"] {
+        background: var(--status-inprogress-15, rgba(43, 168, 232, 0.15)) !important;
+        color: var(--semantic-info, #2ba8e8) !important;
+        border-color: rgba(43, 168, 232, 0.35) !important;
+      }
+
+      &[color="success"] {
+        background: var(--status-ready-15, rgba(47, 191, 107, 0.15)) !important;
+        color: var(--semantic-success, #2fbf6b) !important;
+        border-color: rgba(47, 191, 107, 0.35) !important;
+      }
+
+      &[color="medium"] {
+        background: var(--background-surface-3, #2a3050) !important;
+        color: var(--text-secondary, #a4add0) !important;
+        border-color: var(--border-medium, #2a2e4d) !important;
+      }
+
+      &[color="danger"] {
+        background: var(--status-canceled-15, rgba(229, 96, 79, 0.15)) !important;
+        color: var(--semantic-danger, #e5604f) !important;
+        border-color: rgba(229, 96, 79, 0.35) !important;
+      }
+
+      &.urgent-badge {
+        background: var(--status-canceled-15, rgba(229, 96, 79, 0.18)) !important;
+        color: var(--semantic-danger, #e5604f) !important;
+        border: 1px solid var(--semantic-danger, #e5604f) !important;
+        box-shadow: 0 0 8px rgba(229, 96, 79, 0.25);
+      }
     }
   }
 
@@ -361,6 +414,9 @@
   font-size: 12px;
   color: var(--text-secondary, #a4add0);
   font-weight: 500;
+  margin-top: -2px;
+  margin-bottom: 2px;
+  padding-left: 2px;
 }
 
 .order-items-lines {
