@@ -86,4 +86,33 @@ describe('LegalComponent', () => {
     const commercialPanel = fixture.nativeElement.querySelector('[data-testid="legal-panel-commercial"]');
     expect(commercialPanel).toBeTruthy();
   });
+
+  it('should initialize activeTab from valid query parameter', () => {
+    const route = TestBed.inject(ActivatedRoute);
+    (route.snapshot as any).queryParams = { tab: 'commercial' };
+    component.ngOnInit();
+    expect(component.activeTab).toBe('commercial');
+  });
+
+  it('should ignore invalid query parameter tab on ngOnInit', () => {
+    const route = TestBed.inject(ActivatedRoute);
+    (route.snapshot as any).queryParams = { tab: 'invalid-tab' };
+    component.activeTab = 'terms';
+    component.ngOnInit();
+    expect(component.activeTab).toBe('terms');
+  });
+
+  it('should dismiss modal when isModal is false but topModal is present', async () => {
+    component.isModal = false;
+    modalControllerSpy.getTop.and.returnValue(Promise.resolve({} as any));
+    await component.close();
+    expect(modalControllerSpy.dismiss).toHaveBeenCalledWith(null, 'close');
+  });
+
+  it('should fallback to location back if modalController dismiss throws', async () => {
+    component.isModal = true;
+    modalControllerSpy.dismiss.and.returnValue(Promise.reject(new Error('Dismiss failed')));
+    await component.close();
+    expect(locationSpy.back).toHaveBeenCalled();
+  });
 });

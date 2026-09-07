@@ -156,4 +156,21 @@ describe('SetupComponent', () => {
     });
     expect(modalSpy.present).toHaveBeenCalled();
   });
+
+  it('opens legal modal with default terms tab when tab is omitted', async () => {
+    const dummyEvent = new MouseEvent('click');
+    spyOn(dummyEvent, 'preventDefault');
+    spyOn(dummyEvent, 'stopPropagation');
+
+    await component.openLegalModal(dummyEvent);
+
+    expect(modalControllerSpy.create).toHaveBeenCalledWith({
+      component: LegalComponent,
+      componentProps: {
+        initialTab: 'terms',
+        isModal: true
+      }
+    });
+    expect(modalSpy.present).toHaveBeenCalled();
+  });
 });

@@ -795,6 +795,17 @@ describe('AppSettingsPageComponent', () => {
         },
       });
     });
+
+    it('should open legal modal with default terms tab when tab is omitted', async () => {
+      await component.openLegalModal();
+      expect(modalCtrlSpy.create).toHaveBeenCalledWith({
+        component: LegalComponent,
+        componentProps: {
+          initialTab: 'terms',
+          isModal: true,
+        },
+      });
+    });
   });
 });
 
