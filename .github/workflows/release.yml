@@ -69,7 +69,11 @@ jobs:
             IS_PRERELEASE="true"
           else
             NEW_TAG="v${NEW_VERSION}"
-            IS_PRERELEASE="false"
+            if [ "$MAJOR" -eq 0 ]; then
+              IS_PRERELEASE="true"
+            else
+              IS_PRERELEASE="false"
+            fi
           fi
 
           echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
