@@ -135,4 +135,65 @@ describe('FeatureFlagService', () => {
     expect(service.qrClientOrderingEnabled()).toBeFalse();
     expect(service.stockTrackingEnabled()).toBeFalse();
   });
+
+  it('should toggle all module types via setModule', () => {
+    const modulesToTest = [
+      EstablishmentModule.CUISINE_KDS,
+      EstablishmentModule.EMPLOYEE_MANAGEMENT,
+      EstablishmentModule.FLOOR_PLAN,
+      EstablishmentModule.QR_CLIENT_ORDERING,
+      EstablishmentModule.STOCK_TRACKING,
+    ];
+
+    for (const mod of modulesToTest) {
+      service.setModule(mod, false).subscribe();
+      const req = httpMock.expectOne(apiUrl);
+      expect(req.request.method).toBe('PUT');
+      req.flush({ ...customModules, [mod]: false });
+    }
+  });
+
+  it('should apply other presets: RESTAURANT, FOOD_TRUCK, NIGHTCLUB', () => {
+    for (const preset of ['RESTAURANT', 'FOOD_TRUCK', 'NIGHTCLUB'] as const) {
+      const expected = ESTABLISHMENT_PRESETS[preset];
+      service.applyPreset(preset).subscribe(res => {
+        expect(res).toEqual(expected);
+      });
+      const req = httpMock.expectOne(apiUrl);
+      req.flush(expected);
+    }
+  });
+
+  it('should return current modules when applying unknown preset', () => {
+    service.applyPreset('UNKNOWN' as any).subscribe(res => {
+      expect(res).toEqual(service.modules());
+    });
+    httpMock.expectNone(apiUrl);
+  });
+
+  it('should handle WebSocket direct object and invalid json gracefully', () => {
+    // Direct object
+    const directObj = { ...customModules, cuisineKds: false };
+    wsSubject.next({ body: directObj });
+    expect(service.cuisineKdsEnabled()).toBeFalse();
+
+    // Invalid JSON string - should catch error without throwing
+    expect(() => {
+      wsSubject.next({ body: '{invalid json' });
+    }).not.toThrow();
+  });
+
+  it('should fallback to defaults when loadModules fails', () => {
+    service.loadModules().subscribe(res => {
+      expect(res).toBeTruthy();
+      expect(service.isLoaded()).toBeTrue();
+    });
+
+    const req = httpMock.expectOne(apiUrl);
+    req.error(new ProgressEvent('error'));
+  });
+
+  it('should return true for unknown module in isModuleEnabled', () => {
+    expect(service.isModuleEnabled('UNKNOWN_MODULE' as any)).toBeTrue();
+  });
 });

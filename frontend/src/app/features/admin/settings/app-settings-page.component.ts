@@ -970,6 +970,10 @@ export class AppSettingsPageComponent implements OnInit, OnDestroy, HasPendingCh
       this.activeTheme = this.initialThemeMode;
       this.themeService.setTheme(this.initialThemeMode);
     }
+    if (this.initialModulesValue && this.modulesForm) {
+      this.modulesForm.patchValue(this.initialModulesValue);
+      this.modulesForm.markAsPristine();
+    }
   }
 
   saveAll(): void {

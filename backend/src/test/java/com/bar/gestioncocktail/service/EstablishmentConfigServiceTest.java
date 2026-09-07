@@ -4,6 +4,7 @@ import com.bar.gestioncocktail.dto.EstablishmentConfigDTO;
 import com.bar.gestioncocktail.dto.EstablishmentConfigUpdateRequest;
 import com.bar.gestioncocktail.exception.BusinessException;
 import com.bar.gestioncocktail.model.EstablishmentConfig;
+import com.bar.gestioncocktail.model.EstablishmentModule;
 import com.bar.gestioncocktail.repository.EstablishmentConfigRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -152,5 +153,45 @@ class EstablishmentConfigServiceTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getSiret()).isEqualTo("73282932000074");
+    }
+
+    @Test
+    void updateModules_avecNullRequest_retourneModulesActuelsSansSauvegarde() {
+        when(repository.findById(1L)).thenReturn(Optional.of(config));
+
+        var result = service.updateModules(null);
+
+        assertThat(result).isNotNull();
+        assertThat(result.cuisineKds()).isTrue();
+    }
+
+    @Test
+    void isModuleEnabled_verifieTousLesModules() {
+        when(repository.findById(1L)).thenReturn(Optional.of(config));
+
+        assertThat(service.isModuleEnabled(EstablishmentModule.CUISINE_KDS)).isTrue();
+        assertThat(service.isModuleEnabled(EstablishmentModule.HAPPY_HOUR)).isTrue();
+        assertThat(service.isModuleEnabled(EstablishmentModule.EMPLOYEE_MANAGEMENT)).isTrue();
+        assertThat(service.isModuleEnabled(EstablishmentModule.FLOOR_PLAN)).isTrue();
+        assertThat(service.isModuleEnabled(EstablishmentModule.QR_CLIENT_ORDERING)).isTrue();
+        assertThat(service.isModuleEnabled(EstablishmentModule.STOCK_TRACKING)).isTrue();
+        assertThat(service.isModuleEnabled(null)).isTrue();
+
+        config.setModuleKitchenKdsEnabled(false);
+        assertThat(service.isModuleEnabled(EstablishmentModule.CUISINE_KDS)).isFalse();
+    }
+
+    @Test
+    void checkModuleEnabled_lanceBusinessExceptionSiDesactive() {
+        config.setModuleFloorPlanEnabled(false);
+        when(repository.findById(1L)).thenReturn(Optional.of(config));
+
+        assertThatThrownBy(() -> service.checkModuleEnabled(EstablishmentModule.FLOOR_PLAN))
+            .isInstanceOf(BusinessException.class)
+            .hasMessageContaining("FLOOR_PLAN");
+
+        // When enabled, must not throw
+        config.setModuleHappyHourEnabled(true);
+        service.checkModuleEnabled(EstablishmentModule.HAPPY_HOUR);
     }
 }

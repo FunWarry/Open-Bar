@@ -90,6 +90,19 @@ public class EstablishmentConfigService {
     }
 
     /**
+     * Asserts that a given capability module is enabled, otherwise throwing a {@link BusinessException}.
+     *
+     * @param module Module to verify
+     * @throws BusinessException if the capability module is disabled
+     */
+    @Transactional(readOnly = true)
+    public void checkModuleEnabled(EstablishmentModule module) {
+        if (module != null && !getConfigInternal().isModuleEnabled(module)) {
+            throw new BusinessException("Module '" + module + "' is currently disabled for this establishment");
+        }
+    }
+
+    /**
      * Retrieves the current configuration status of all modular establishment capabilities.
      *
      * @return {@link EstablishmentModulesDTO}
