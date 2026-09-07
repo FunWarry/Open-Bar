@@ -46,4 +46,46 @@ describe('SetupService', () => {
     expect(req.request.body).toEqual(request);
     req.flush(mockResponse);
   });
+
+  it('caches initialized status and returns it without issuing another HTTP request', () => {
+    const initializedStatus: SetupStatus = { initialized: true, userCount: 1 };
+
+    // First call triggers HTTP GET
+    service.getStatus().subscribe(res => expect(res).toEqual(initializedStatus));
+    const req = httpMock.expectOne(`${baseUrl}/status`);
+    req.flush(initializedStatus);
+
+    // Second call should return cached status without issuing another request
+    service.getStatus().subscribe(res => expect(res).toEqual(initializedStatus));
+    httpMock.expectNone(`${baseUrl}/status`);
+  });
+
+  it('bypasses cache when forceRefresh is set to true', () => {
+    const initialStatus: SetupStatus = { initialized: true, userCount: 1 };
+    const updatedStatus: SetupStatus = { initialized: true, userCount: 2 };
+
+    service.getStatus().subscribe();
+    const req1 = httpMock.expectOne(`${baseUrl}/status`);
+    req1.flush(initialStatus);
+
+    // Force refresh triggers a new HTTP call
+    service.getStatus(true).subscribe(res => expect(res).toEqual(updatedStatus));
+    const req2 = httpMock.expectOne(`${baseUrl}/status`);
+    req2.flush(updatedStatus);
+  });
+
+  it('clears cache when clearCache() is invoked', () => {
+    const status: SetupStatus = { initialized: true, userCount: 1 };
+
+    service.getStatus().subscribe();
+    const req1 = httpMock.expectOne(`${baseUrl}/status`);
+    req1.flush(status);
+
+    service.clearCache();
+
+    service.getStatus().subscribe(res => expect(res).toEqual(status));
+    const req2 = httpMock.expectOne(`${baseUrl}/status`);
+    req2.flush(status);
+  });
 });
+
