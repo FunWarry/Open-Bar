@@ -112,3 +112,40 @@
 .actions-row {
   margin-top: var(--space-2, 8px);
 }
+
+.terms-acceptance-box {
+  margin: var(--space-2, 8px) 0;
+  padding: 12px 14px;
+  background: var(--background-surface-2, rgba(33, 38, 63, 0.5));
+  border: 1px solid var(--border-medium, #2e3450);
+  border-radius: var(--radius-md, 8px);
+}
+
+.terms-checkbox {
+  --size: 18px;
+  --checkbox-background: var(--background-surface-1, #1a1a2e);
+  --border-color: var(--border-medium, #2e3450);
+  --border-color-checked: var(--primary, #6c7fe8);
+  --checkmark-color: #ffffff;
+  width: 100%;
+}
+
+.terms-label {
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text-secondary, #a4add0);
+  margin-left: 8px;
+}
+
+.legal-link {
+  color: var(--primary, #6c7fe8);
+  text-decoration: underline;
+  cursor: pointer;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.legal-link:hover {
+  color: var(--primary-strong, #5a68d6);
+}
+

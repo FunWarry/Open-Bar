@@ -22,6 +22,30 @@ export const routes: Routes = [
     canActivate: [SetupGuard]
   },
   {
+    path: 'legal',
+    loadComponent: () => import('./features/legal/legal.component').then(m => m.LegalComponent)
+  },
+  {
+    path: 'cgu',
+    redirectTo: '/legal',
+    pathMatch: 'full'
+  },
+  {
+    path: 'terms',
+    redirectTo: '/legal',
+    pathMatch: 'full'
+  },
+  {
+    path: 'licence',
+    redirectTo: '/legal',
+    pathMatch: 'full'
+  },
+  {
+    path: 'license',
+    redirectTo: '/legal',
+    pathMatch: 'full'
+  },
+  {
     path: 'app-home',
     loadComponent: () => import('./features/home/home.component').then(m => m.HomeComponent),
     canActivate: [AuthGuard]
