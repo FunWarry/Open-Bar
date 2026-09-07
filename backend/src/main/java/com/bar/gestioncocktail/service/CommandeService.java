@@ -64,8 +64,8 @@ public class CommandeService {
     private final ApplicationEventPublisher eventPublisher;
     private final TimeService timeService;
     private final HappyHourService happyHourService;
+    private final EstablishmentConfigService establishmentConfigService;
 
-    @org.springframework.beans.factory.annotation.Autowired
     public CommandeService(
             CommandeRepository commandeRepository,
             CommandeItemRepository commandeItemRepository,
@@ -76,7 +76,8 @@ public class CommandeService {
             CocktailIngredientRepository cocktailIngredientRepository,
             ApplicationEventPublisher eventPublisher,
             TimeService timeService,
-            HappyHourService happyHourService) {
+            HappyHourService happyHourService,
+            EstablishmentConfigService establishmentConfigService) {
         this.commandeRepository = commandeRepository;
         this.commandeItemRepository = commandeItemRepository;
         this.ingredientRepository = ingredientRepository;
@@ -87,6 +88,7 @@ public class CommandeService {
         this.eventPublisher = eventPublisher;
         this.timeService = timeService;
         this.happyHourService = happyHourService;
+        this.establishmentConfigService = establishmentConfigService;
     }
 /**
      * Retrieves all orders registered in the system.
@@ -572,36 +574,43 @@ public class CommandeService {
     }
 
     private void destockerIngredients(Commande commande) {
+        if (establishmentConfigService != null && !establishmentConfigService.isModuleEnabled(com.bar.gestioncocktail.model.EstablishmentModule.STOCK_TRACKING)) {
+            return;
+        }
         Map<Long, BigDecimal> quantitesParIngredient = calculerQuantitesIngredients(commande);
         Map<Long, Ingredient> ingredientsMap = mepIngredients(commande);
 
         for (Map.Entry<Long, BigDecimal> entry : quantitesParIngredient.entrySet()) {
-            Ingredient ingredient = ingredientsMap.get(entry.getKey());
-            if (ingredient == null) {
-                ingredient = ingredientRepository.findById(entry.getKey()).orElse(null);
-            }
-            if (ingredient == null) {
-                continue;
-            }
-            BigDecimal currentStock = ingredient.getQuantiteStock() != null ? ingredient.getQuantiteStock()
-                    : BigDecimal.ZERO;
-            BigDecimal rawNouveauStock = currentStock.subtract(entry.getValue());
-            boolean stockNegatif = rawNouveauStock.compareTo(BigDecimal.ZERO) < 0;
-            BigDecimal nouveauStock = rawNouveauStock.max(BigDecimal.ZERO);
-            ingredient.setQuantiteStock(nouveauStock);
-            ingredient.setUpdatedAt(timeService.now());
-            ingredientRepository.save(ingredient);
-            if (ingredient.getSeuilAlerte() != null
-                    && (nouveauStock.compareTo(ingredient.getSeuilAlerte()) <= 0 || stockNegatif)
-                    && eventPublisher != null) {
-                try {
-                    eventPublisher.publishEvent(new StockAlertEvent(
-                            ingredient.getId(),
-                            ingredient.getNom(),
-                            nouveauStock.doubleValue()));
-                } catch (Exception ex) {
-                    log.warn("Failed to publish StockAlertEvent: {}", ex.getMessage());
-                }
+            destockerSingleIngredient(entry.getKey(), entry.getValue(), ingredientsMap);
+        }
+    }
+
+    private void destockerSingleIngredient(Long ingredientId, BigDecimal quantityNeeded, Map<Long, Ingredient> ingredientsMap) {
+        Ingredient ingredient = ingredientsMap.get(ingredientId);
+        if (ingredient == null) {
+            ingredient = ingredientRepository.findById(ingredientId).orElse(null);
+        }
+        if (ingredient == null) {
+            return;
+        }
+        BigDecimal currentStock = ingredient.getQuantiteStock() != null ? ingredient.getQuantiteStock() : BigDecimal.ZERO;
+        BigDecimal rawNouveauStock = currentStock.subtract(quantityNeeded);
+        boolean stockNegatif = rawNouveauStock.compareTo(BigDecimal.ZERO) < 0;
+        BigDecimal nouveauStock = rawNouveauStock.max(BigDecimal.ZERO);
+        ingredient.setQuantiteStock(nouveauStock);
+        ingredient.setUpdatedAt(timeService.now());
+        ingredientRepository.save(ingredient);
+
+        if (ingredient.getSeuilAlerte() != null
+                && (nouveauStock.compareTo(ingredient.getSeuilAlerte()) <= 0 || stockNegatif)
+                && eventPublisher != null) {
+            try {
+                eventPublisher.publishEvent(new StockAlertEvent(
+                        ingredient.getId(),
+                        ingredient.getNom(),
+                        nouveauStock.doubleValue()));
+            } catch (Exception ex) {
+                log.warn("Failed to publish StockAlertEvent: {}", ex.getMessage());
             }
         }
     }

@@ -54,6 +54,9 @@ class StockMovementServiceTest {
     @Mock
     private TimeService timeService;
 
+    @Mock
+    private EstablishmentConfigService establishmentConfigService;
+
     private StockMovementService stockMovementService;
 
     private Ingredient sampleIngredient;
@@ -68,8 +71,10 @@ class StockMovementServiceTest {
                 ingredientService,
                 userRepository,
                 auditLogService,
-                timeService
+                timeService,
+                establishmentConfigService
         );
+        org.mockito.Mockito.lenient().when(establishmentConfigService.isModuleEnabled(any())).thenReturn(true);
 
         sampleIngredient = new Ingredient();
         sampleIngredient.setId(10L);

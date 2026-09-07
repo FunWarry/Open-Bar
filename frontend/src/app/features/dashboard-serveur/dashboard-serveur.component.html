@@ -203,6 +203,7 @@
           </button>
 
           <button
+            *ngIf="floorPlanEnabled()"
             type="button"
             class="view-toggle-btn"
             [class.active]="displayMode === 'PLAN'"

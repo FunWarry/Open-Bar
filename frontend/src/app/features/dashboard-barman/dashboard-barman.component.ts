@@ -59,6 +59,7 @@ import { BarTicketPrintComponent } from './components/bar-ticket-print/bar-ticke
 import { RecipeSidePanelComponent } from './components/recipe-side-panel/recipe-side-panel.component';
 import { Cocktail } from '../../core/models/cocktail.model';
 import { WebSocketService } from '../../core/services/websocket.service';
+import { FeatureFlagService } from '../../core/services/feature-flag.service';
 
 /**
  * Dashboard Barman Component managing the real-time preparation Kanban board.
@@ -123,11 +124,13 @@ export class DashboardBarmanComponent implements OnInit, OnDestroy {
   private readonly modalCtrl = inject(ModalController);
   private readonly notificationService = inject(NotificationService);
   private readonly settingsService = inject(AppSettingsService);
+  private readonly featureFlagService = inject(FeatureFlagService);
   private readonly soundService = inject(SoundService);
   private readonly transloco = inject(TranslocoService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly wsService = inject(WebSocketService);
 
+  readonly cuisineKdsEnabled = this.featureFlagService.cuisineKdsEnabled;
   activeViewMode: 'tickets' | 'batch' = 'tickets';
 
   constructor() {

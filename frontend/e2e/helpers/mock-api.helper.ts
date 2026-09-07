@@ -1058,6 +1058,96 @@ export async function setupMockApi(page: Page): Promise<void> {
       ]),
     });
   });
+
+  let currentModules = {
+    cuisineKds: true,
+    happyHour: true,
+    employeeManagement: true,
+    floorPlan: true,
+    qrClientOrdering: true,
+    stockTracking: true,
+  };
+
+  await page.route('**/api/establishment/modules**', async (route) => {
+    if (route.request().method() === 'PUT') {
+      const body = route.request().postDataJSON() || {};
+      currentModules = { ...currentModules, ...body };
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(currentModules),
+      });
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(currentModules),
+    });
+  });
+
+  await page.route('**/api/admin/establishment**', async (route) => {
+    if (route.request().url().includes('/timezones')) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(['Europe/Paris', 'UTC']),
+      });
+      return;
+    }
+    if (route.request().method() === 'PUT') {
+      const body = route.request().postDataJSON() || {};
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          legalName: body.legalName || 'OpenBar SARL',
+          legalForm: body.legalForm || 'SARL',
+          capitalSocial: body.capitalSocial || 10000,
+          siret: body.siret || '73282932000074',
+          tvaNumber: body.tvaNumber || 'FR12123456789',
+          rcsCity: body.rcsCity || 'Paris',
+          rcsNumber: body.rcsNumber || 'B 123 456 789',
+          codeApe: body.codeApe || '5630Z',
+          address: body.address || '12 Rue du Bar, 75001 Paris',
+          country: body.country || 'France',
+          language: body.language || 'fr',
+          phone: body.phone || '+33123456789',
+          email: body.email || 'contact@openbar.local',
+          paymentTerms: body.paymentTerms || 'Paiement immédiat à réception',
+          discountPolicy: body.discountPolicy || 'Aucun escompte pour paiement anticipé',
+          latePaymentRate: body.latePaymentRate || 0.12,
+          ticketFormat: body.ticketFormat || '80mm',
+          timeZone: body.timeZone || 'Europe/Paris',
+        }),
+      });
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        legalName: 'OpenBar SARL',
+        legalForm: 'SARL',
+        capitalSocial: 10000,
+        siret: '73282932000074',
+        tvaNumber: 'FR12123456789',
+        rcsCity: 'Paris',
+        rcsNumber: 'B 123 456 789',
+        codeApe: '5630Z',
+        address: '12 Rue du Bar, 75001 Paris',
+        country: 'France',
+        language: 'fr',
+        phone: '+33123456789',
+        email: 'contact@openbar.local',
+        paymentTerms: 'Paiement immédiat à réception',
+        discountPolicy: 'Aucun escompte pour paiement anticipé',
+        latePaymentRate: 0.12,
+        ticketFormat: '80mm',
+        timeZone: 'Europe/Paris',
+      }),
+    });
+  });
 }
 
 

@@ -88,7 +88,7 @@ public class SecurityConfig {
                                     "/actuator/health",
                                     "/actuator/info")
                             .permitAll()
-                            .requestMatchers(HttpMethod.GET, "/api/cocktails", "/api/cocktails/**")
+                            .requestMatchers(HttpMethod.GET, "/api/cocktails", "/api/cocktails/**", "/api/establishment/modules")
                             .permitAll()
                             .anyRequest().authenticated())
                     .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)

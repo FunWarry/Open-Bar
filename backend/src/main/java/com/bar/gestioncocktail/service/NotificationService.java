@@ -25,6 +25,7 @@ public class NotificationService {
     private static final String TOPIC_COCKTAILS_SUPPRIME = "/topic/cocktails/supprime";
     private static final String TOPIC_SERVEUR_APPELS = "/topic/serveur/appels";
     private static final String TOPIC_SERVEUR_APPELS_ACQUITTE = "/topic/serveur/appels/acquitte";
+    private static final String TOPIC_ESTABLISHMENT_MODULES = "/topic/establishment/modules";
 
     private final SimpMessagingTemplate messagingTemplate;
 
@@ -165,6 +166,15 @@ public class NotificationService {
     public void notifierParametresMisAJour(Object settings) {
         messagingTemplate.convertAndSend("/topic/app-settings", settings);
         messagingTemplate.convertAndSend("/topic/settings", settings);
+    }
+
+    /**
+     * Broadcasts updated establishment capabilities / modules configuration over WebSocket topic.
+     *
+     * @param modules Updated establishment modules DTO
+     */
+    public void notifierModulesMisAJour(com.bar.gestioncocktail.dto.EstablishmentModulesDTO modules) {
+        messagingTemplate.convertAndSend(TOPIC_ESTABLISHMENT_MODULES, modules);
     }
 
     /**

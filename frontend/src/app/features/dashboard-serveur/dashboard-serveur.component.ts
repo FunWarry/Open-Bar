@@ -40,6 +40,7 @@ import { TablePosition, ZoneArea } from '../plan-salle/models/table-position.mod
 import { PlanSalleService } from '../plan-salle/services/plan-salle.service';
 import { Commande } from '../../core/models/commande.model';
 import { OfflineOrderService } from '../../core/services/offline-order.service';
+import { FeatureFlagService } from '../../core/services/feature-flag.service';
 
 import { Store } from '@ngrx/store';
 import { selectCurrentUser } from '../../core/store/auth.selectors';
@@ -186,6 +187,8 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
   private readonly destroy$ = new Subject<void>();
   private readonly happyHourService = inject(HappyHourService, { optional: true });
   readonly offlineService = inject(OfflineOrderService);
+  private readonly featureFlagService = inject(FeatureFlagService);
+  readonly floorPlanEnabled = this.featureFlagService.floorPlanEnabled;
 
   constructor(
     private readonly service: DashboardServeurService,
@@ -598,7 +601,9 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
       this.selectedZones = [parsed['selectedZone']];
     }
     if (parsed['sortOption']) this.sortOption = parsed['sortOption'];
-    if (parsed['displayMode']) this.displayMode = parsed['displayMode'];
+    if (parsed['displayMode']) {
+      this.displayMode = (parsed['displayMode'] === 'PLAN' && !this.floorPlanEnabled()) ? 'BY_ZONE' : parsed['displayMode'];
+    }
   }
 
   private sauvegarderFiltres() {
@@ -792,6 +797,9 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
   }
 
   setDisplayMode(mode: DashboardViewMode) {
+    if (mode === 'PLAN' && !this.floorPlanEnabled()) {
+      mode = 'BY_ZONE';
+    }
     this.displayMode = mode;
     this.sauvegarderFiltres();
     this.filtrer();

@@ -209,6 +209,34 @@ flowchart LR
 | `/topic/preparation/bar` | Order routed to bar workstation |
 | `/topic/preparation/kitchen` | Order routed to kitchen workstation |
 | `/topic/preparation/snack` | Order routed to snack workstation |
+| `/topic/establishment/modules` | Real-time establishment modular capabilities synchronization |
+
+---
+
+## Modular Capability Flags & Feature Switches (#405)
+
+Establishment features are decoupled into 6 switchable capabilities:
+
+| Capability | Module Enum | Controlled Areas & Endpoints |
+|---|---|---|
+| **Kitchen Display (KDS)** | `CUISINE_KDS` | `/kitchen`, workstation routing chips (`BAR`/`KITCHEN`/`SNACK`), preparation screen |
+| **Happy Hour & Pricing** | `HAPPY_HOUR` | `/manager/pricing`, `/admin/pricing`, promotional price calculation on orders/cart |
+| **Employee Management** | `EMPLOYEE_MANAGEMENT` | `/manager/employees`, `/manager/schedule`, `/manager/shift-presets`, shifts API |
+| **2D Floor Plan** | `FLOOR_PLAN` | `/plan-salle`, Konva 2D interactive plan editor, server plan display mode |
+| **Patron QR Ordering** | `QR_CLIENT_ORDERING` | `/client/commande`, `/client/table/:token`, collaborative table cart, QR endpoints |
+| **Stock Tracking** | `STOCK_TRACKING` | `/ingredients`, stock decrement on prep, shrinkage/waste logging, ruptures modal |
+
+### Establishment Presets
+- **BAR**: CUISINE_KDS ❌, HAPPY_HOUR ✅, EMPLOYEE_MANAGEMENT ✅, FLOOR_PLAN ✅, QR_CLIENT_ORDERING ✅, STOCK_TRACKING ✅
+- **RESTAURANT**: All 6 capabilities enabled ✅
+- **FOOD_TRUCK**: CUISINE_KDS ❌, HAPPY_HOUR ❌, EMPLOYEE_MANAGEMENT ❌, FLOOR_PLAN ❌, QR_CLIENT_ORDERING ✅, STOCK_TRACKING ✅
+- **NIGHTCLUB**: CUISINE_KDS ❌, HAPPY_HOUR ✅, EMPLOYEE_MANAGEMENT ✅, FLOOR_PLAN ❌, QR_CLIENT_ORDERING ✅, STOCK_TRACKING ✅
+
+### Enforcing Mechanisms
+- **Backend Service Guards**: Explicit `BusinessException` thrown if disabled module endpoint is invoked.
+- **Frontend `ModuleGuard`**: Route activation guard redirecting disabled features to `/app-home`.
+- **Sidebar Filtering**: Nav items dynamically hidden when `featureFlagService.isModuleEnabled()` is false.
+- **REST & WebSocket**: `GET /api/establishment/modules` (public), `PUT /api/establishment/modules` (Admin/Manager), STOMP `/topic/establishment/modules`.
 
 ---
 

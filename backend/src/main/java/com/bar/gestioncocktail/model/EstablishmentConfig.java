@@ -100,11 +100,69 @@ public class EstablishmentConfig {
     @Column(name = "ticket_format", length = 10)
     private String ticketFormat = "80mm";
 
+    @Column(name = "module_kitchen_kds_enabled")
+    private Boolean moduleKitchenKdsEnabled = true;
+
+    @Column(name = "module_happy_hour_enabled")
+    private Boolean moduleHappyHourEnabled = true;
+
+    @Column(name = "module_employee_management_enabled")
+    private Boolean moduleEmployeeManagementEnabled = true;
+
+    @Column(name = "module_floor_plan_enabled")
+    private Boolean moduleFloorPlanEnabled = true;
+
+    @Column(name = "module_qr_client_ordering_enabled")
+    private Boolean moduleQrClientOrderingEnabled = true;
+
+    @Column(name = "module_stock_tracking_enabled")
+    private Boolean moduleStockTrackingEnabled = true;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+    /**
+     * Checks whether a specific establishment module is currently active.
+     *
+     * @param module The module capability to check
+     * @return True if enabled, false otherwise (defaults to true if null)
+     */
+    public boolean isModuleEnabled(EstablishmentModule module) {
+        if (module == null) {
+            return true;
+        }
+        return switch (module) {
+            case CUISINE_KDS -> Boolean.TRUE.equals(this.moduleKitchenKdsEnabled);
+            case HAPPY_HOUR -> Boolean.TRUE.equals(this.moduleHappyHourEnabled);
+            case EMPLOYEE_MANAGEMENT -> Boolean.TRUE.equals(this.moduleEmployeeManagementEnabled);
+            case FLOOR_PLAN -> Boolean.TRUE.equals(this.moduleFloorPlanEnabled);
+            case QR_CLIENT_ORDERING -> Boolean.TRUE.equals(this.moduleQrClientOrderingEnabled);
+            case STOCK_TRACKING -> Boolean.TRUE.equals(this.moduleStockTrackingEnabled);
+        };
+    }
+
+    /**
+     * Sets the active status for a specific establishment capability module.
+     *
+     * @param module  The target module
+     * @param enabled Desired status
+     */
+    public void setModuleEnabled(EstablishmentModule module, boolean enabled) {
+        if (module == null) {
+            return;
+        }
+        switch (module) {
+            case CUISINE_KDS -> this.moduleKitchenKdsEnabled = enabled;
+            case HAPPY_HOUR -> this.moduleHappyHourEnabled = enabled;
+            case EMPLOYEE_MANAGEMENT -> this.moduleEmployeeManagementEnabled = enabled;
+            case FLOOR_PLAN -> this.moduleFloorPlanEnabled = enabled;
+            case QR_CLIENT_ORDERING -> this.moduleQrClientOrderingEnabled = enabled;
+            case STOCK_TRACKING -> this.moduleStockTrackingEnabled = enabled;
+        }
+    }
 
     @PrePersist
     protected void onCreate() {

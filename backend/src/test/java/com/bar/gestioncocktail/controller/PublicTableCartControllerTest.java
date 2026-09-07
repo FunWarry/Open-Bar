@@ -1,7 +1,9 @@
 package com.bar.gestioncocktail.controller;
 
 import com.bar.gestioncocktail.dto.*;
+import com.bar.gestioncocktail.service.EstablishmentConfigService;
 import com.bar.gestioncocktail.service.TableCartService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,6 +19,8 @@ import java.time.Month;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -29,10 +33,18 @@ class PublicTableCartControllerTest {
     @Mock
     private TableCartService tableCartService;
 
+    @Mock
+    private EstablishmentConfigService establishmentConfigService;
+
     @InjectMocks
     private PublicTableCartController controller;
 
     private final LocalDateTime fixedNow = LocalDateTime.of(2026, Month.SEPTEMBER, 5, 19, 0, 0);
+
+    @BeforeEach
+    void setUp() {
+        lenient().when(establishmentConfigService.isModuleEnabled(any())).thenReturn(true);
+    }
 
     @Test
     @DisplayName("getCart: returns 200 with current cart state")
