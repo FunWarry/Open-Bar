@@ -6,41 +6,55 @@
         <strong class="table-label">{{ order.tableNom || ('Table ' + order.tableNumero) }}</strong>
       </div>
       <div class="header-badges">
-        <span class="wait-time-badge" [ngClass]="waitTimeSeverity" *ngIf="order.dateCommande" [title]="'Temps d\'attente : ' + waitTimeLabel">
-          <ion-icon name="timer-outline"></ion-icon>
-          <span>{{ waitTimeLabel }}</span>
-        </span>
+        @if (order.dateCommande) {
+          <span class="wait-time-badge" [ngClass]="waitTimeSeverity" [title]="'Temps d\'attente : ' + waitTimeLabel">
+            <ion-icon name="timer-outline"></ion-icon>
+            <span>{{ waitTimeLabel }}</span>
+          </span>
+        }
         <span class="order-id">#{{ order.id }}</span>
       </div>
     </div>
 
     <!-- Items Preview List -->
-    <div class="mini-card__items" *ngIf="order.items && order.items.length > 0">
-      <div class="item-row" *ngFor="let item of order.items">
-        <span class="item-qty">{{ item.quantite }}x</span>
-        <span class="item-name">{{ item.cocktailNom }}</span>
+    @if (order.items && order.items.length > 0) {
+      <div class="mini-card__items">
+        @for (item of order.items; track item) {
+          <div class="item-row">
+            <span class="item-qty">{{ item.quantite }}x</span>
+            <span class="item-name">{{ item.cocktailNom }}</span>
+          </div>
+        }
       </div>
-    </div>
+    }
 
     <!-- Notes snippet if any -->
-    <div class="mini-card__notes" *ngIf="order.notes">
-      <ion-icon name="document-text-outline"></ion-icon>
-      <span class="notes-text">{{ order.notes }}</span>
-    </div>
+    @if (order.notes) {
+      <div class="mini-card__notes">
+        <ion-icon name="document-text-outline"></ion-icon>
+        <span class="notes-text">{{ order.notes }}</span>
+      </div>
+    }
 
     <!-- Footer: Server, Time & Total -->
     <div class="mini-card__footer">
       <div class="footer-left">
-        <span class="server-badge" *ngIf="order.serveurUsername">
-          <ion-icon name="person-outline"></ion-icon>
-          {{ order.serveurUsername }}
-        </span>
-        <span class="time-badge" *ngIf="formattedTime">
-          <ion-icon name="time-outline"></ion-icon>
-          {{ formattedTime }}
-        </span>
+        @if (order.serveurUsername) {
+          <span class="server-badge">
+            <ion-icon name="person-outline"></ion-icon>
+            {{ order.serveurUsername }}
+          </span>
+        }
+        @if (formattedTime) {
+          <span class="time-badge">
+            <ion-icon name="time-outline"></ion-icon>
+            {{ formattedTime }}
+          </span>
+        }
       </div>
-      <span class="total-badge" *ngIf="order.total">{{ formatCurrency(order.total) }}</span>
+      @if (order.total) {
+        <span class="total-badge">{{ formatCurrency(order.total) }}</span>
+      }
     </div>
   </ion-card-content>
 </ion-card>

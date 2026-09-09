@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, inject } from '@angular/core';
-import { CommonModule, Location } from '@angular/common';
+import { Location } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import {
   IonHeader,
@@ -45,7 +45,6 @@ export type LegalTab = 'terms' | 'license' | 'compliance' | 'commercial';
   selector: 'app-legal',
   standalone: true,
   imports: [
-    CommonModule,
     IonHeader,
     IonToolbar,
     IonTitle,
@@ -56,8 +55,8 @@ export type LegalTab = 'terms' | 'license' | 'compliance' | 'commercial';
     IonBadge,
     IonCard,
     IonCardContent,
-    TranslocoPipe,
-  ],
+    TranslocoPipe
+],
   templateUrl: './legal.component.html',
   styleUrls: ['./legal.component.scss'],
 })

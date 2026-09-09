@@ -1,6 +1,6 @@
 import {Component} from '@angular/core';
 import {IonSpinner} from '@ionic/angular/standalone';
-import {NgIf} from '@angular/common';
+
 
 /**
  * Theme-adaptive loading indicator component for asynchronous operations.
@@ -10,7 +10,7 @@ import {NgIf} from '@angular/common';
   templateUrl: './loading-spinner.component.html',
   styleUrls: ['./loading-spinner.component.css'],
   standalone: true,
-  imports: [IonSpinner, NgIf]
+  imports: [IonSpinner]
 })
 export class LoadingSpinnerComponent {
   isLoading = false;

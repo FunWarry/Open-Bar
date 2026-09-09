@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import {
   IonIcon, IonSpinner, ModalController, ToastController
@@ -31,12 +31,11 @@ export type TableQrLayout = 'STAND' | 'CARD' | 'STICKER';
   styleUrls: ['./table-qr-batch-print-modal.component.scss'],
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     IonIcon,
     IonSpinner,
     TranslocoPipe
-  ]
+]
 })
 export class TableQrBatchPrintModalComponent implements OnInit {
   @Input() tables: TableBar[] = [];

@@ -1,5 +1,5 @@
 import { Component, Input, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { IonIcon, ModalController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -47,10 +47,9 @@ export interface ConfirmModalResult {
   styleUrls: ['./confirm-modal.component.scss'],
   standalone: true,
   imports: [
-    CommonModule,
     IonIcon,
     TranslocoPipe
-  ]
+]
 })
 export class ConfirmModalComponent {
   private readonly modalCtrl = inject(ModalController);

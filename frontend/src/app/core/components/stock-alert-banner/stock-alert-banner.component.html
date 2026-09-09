@@ -1,10 +1,13 @@
-<div class="alerts-container" *ngIf="stockAlerts.length > 0">
-  <div
-    *ngFor="let alert of stockAlerts"
-    class="stock-alert-banner"
-    [class.alert--critical]="isCritical(alert)"
-    [class.alert--warning]="!isCritical(alert)">
-    <span class="alert-message">{{ alert.message }}</span>
-    <button class="alert-dismiss" (click)="dismissAlert(alert.id)" [attr.aria-label]="'COMMON.CLOSE' | transloco">×</button>
+@if (stockAlerts.length > 0) {
+  <div class="alerts-container">
+    @for (alert of stockAlerts; track alert) {
+      <div
+        class="stock-alert-banner"
+        [class.alert--critical]="isCritical(alert)"
+        [class.alert--warning]="!isCritical(alert)">
+        <span class="alert-message">{{ alert.message }}</span>
+        <button class="alert-dismiss" (click)="dismissAlert(alert.id)" [attr.aria-label]="'COMMON.CLOSE' | transloco">×</button>
+      </div>
+    }
   </div>
-</div>
+}

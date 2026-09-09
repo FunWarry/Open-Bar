@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
 import {
   ModalController,
@@ -50,7 +50,6 @@ import { forkJoin } from 'rxjs';
   styleUrls: ['./zone-manager.component.css'],
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     ReactiveFormsModule,
     IonContent,
@@ -67,7 +66,7 @@ import { forkJoin } from 'rxjs';
     SearchableSelectComponent,
     SearchBarComponent,
     TranslocoPipe
-  ]
+]
 })
 export class ZoneManagerComponent implements OnInit {
   activeTab: 'zones' | 'etages' = 'zones';

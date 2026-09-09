@@ -1,5 +1,5 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import {
@@ -52,7 +52,6 @@ import { ShiftService } from '../../core/services/shift.service';
   styleUrls: ['./shift-presets-config.component.scss'],
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     RouterModule,
     TranslocoModule,
@@ -70,7 +69,7 @@ import { ShiftService } from '../../core/services/shift.service';
     IonBadge,
     IonSpinner,
     IonButtons
-  ]
+]
 })
 export class ShiftPresetsConfigComponent implements OnInit {
   private readonly shiftService = inject(ShiftService);

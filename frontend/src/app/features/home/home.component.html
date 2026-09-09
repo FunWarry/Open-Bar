@@ -2,67 +2,79 @@
   <div class="ambient-glow glow-1"></div>
   <div class="ambient-glow glow-2"></div>
 
-  <div class="welcome-header" *ngIf="currentUser$ | async as user">
-    <div class="user-info">
-      <h1 class="welcome-title">{{ 'HOME.WELCOME' | transloco:{ username: user.username } }}</h1>
-      <p class="welcome-subtitle">{{ 'HOME.SUBTITLE' | transloco }}</p>
+  @if (currentUser$ | async; as user) {
+    <div class="welcome-header">
+      <div class="user-info">
+        <h1 class="welcome-title">{{ 'HOME.WELCOME' | transloco:{ username: user.username } }}</h1>
+        <p class="welcome-subtitle">{{ 'HOME.SUBTITLE' | transloco }}</p>
+      </div>
+      <div class="roles-badges">
+        @for (role of user.roles; track role) {
+          <app-role-badge [role]="role"></app-role-badge>
+        }
+      </div>
     </div>
-    <div class="roles-badges">
-      <app-role-badge *ngFor="let role of user.roles" [role]="role"></app-role-badge>
-    </div>
-  </div>
+  }
 
   <div class="navigation-grid">
     <!-- Vue Barman -->
-    <div class="nav-card barman-card" *ngIf="(isBarman$ | async) || (isAdmin$ | async)">
-      <div class="card-badge" data-role="barman">BARMAN</div>
-      <div class="card-icon">🍹</div>
-      <h2 class="card-title">{{ 'HOME.BARMAN_TITLE' | transloco }}</h2>
-      <p class="card-desc">{{ 'HOME.BARMAN_DESC' | transloco }}</p>
-      <app-action-button variant="primary" (btnClick)="navigateTo('/barman')">
-        {{ 'HOME.ACCESS_BAR' | transloco }}
-      </app-action-button>
-    </div>
+    @if ((isBarman$ | async) || (isAdmin$ | async)) {
+      <div class="nav-card barman-card">
+        <div class="card-badge" data-role="barman">BARMAN</div>
+        <div class="card-icon">🍹</div>
+        <h2 class="card-title">{{ 'HOME.BARMAN_TITLE' | transloco }}</h2>
+        <p class="card-desc">{{ 'HOME.BARMAN_DESC' | transloco }}</p>
+        <app-action-button variant="primary" (btnClick)="navigateTo('/barman')">
+          {{ 'HOME.ACCESS_BAR' | transloco }}
+        </app-action-button>
+      </div>
+    }
 
     <!-- Vue Serveur -->
-    <div class="nav-card serveur-card" *ngIf="(isServeur$ | async) || (isAdmin$ | async)">
-      <div class="card-badge" data-role="serveur">SERVEUR</div>
-      <div class="card-icon">👋</div>
-      <h2 class="card-title">{{ 'HOME.SERVEUR_TITLE' | transloco }}</h2>
-      <p class="card-desc">{{ 'HOME.SERVEUR_DESC' | transloco }}</p>
-      <app-action-button variant="primary" (btnClick)="navigateTo('/serveur')">
-        {{ 'HOME.ACCESS_SERVICE' | transloco }}
-      </app-action-button>
-    </div>
+    @if ((isServeur$ | async) || (isAdmin$ | async)) {
+      <div class="nav-card serveur-card">
+        <div class="card-badge" data-role="serveur">SERVEUR</div>
+        <div class="card-icon">👋</div>
+        <h2 class="card-title">{{ 'HOME.SERVEUR_TITLE' | transloco }}</h2>
+        <p class="card-desc">{{ 'HOME.SERVEUR_DESC' | transloco }}</p>
+        <app-action-button variant="primary" (btnClick)="navigateTo('/serveur')">
+          {{ 'HOME.ACCESS_SERVICE' | transloco }}
+        </app-action-button>
+      </div>
+    }
 
     <!-- Vue Manager -->
-    <div class="nav-card manager-card" *ngIf="(isManager$ | async) || (isAdmin$ | async)">
-      <div class="card-badge" data-role="manager">MANAGER</div>
-      <div class="card-icon">🗺️</div>
-      <h2 class="card-title">{{ 'HOME.MANAGER_TITLE' | transloco }}</h2>
-      <p class="card-desc">{{ 'HOME.MANAGER_DESC' | transloco }}</p>
-      <div class="card-actions">
-        <app-action-button variant="primary" (btnClick)="navigateTo('/manager')">
-          {{ 'HOME.DASHBOARD_MANAGER' | transloco }}
-        </app-action-button>
-        <app-action-button variant="secondary" (btnClick)="navigateTo('/plan-salle')">
-          {{ 'HOME.FLOOR_PLAN' | transloco }}
-        </app-action-button>
+    @if ((isManager$ | async) || (isAdmin$ | async)) {
+      <div class="nav-card manager-card">
+        <div class="card-badge" data-role="manager">MANAGER</div>
+        <div class="card-icon">🗺️</div>
+        <h2 class="card-title">{{ 'HOME.MANAGER_TITLE' | transloco }}</h2>
+        <p class="card-desc">{{ 'HOME.MANAGER_DESC' | transloco }}</p>
+        <div class="card-actions">
+          <app-action-button variant="primary" (btnClick)="navigateTo('/manager')">
+            {{ 'HOME.DASHBOARD_MANAGER' | transloco }}
+          </app-action-button>
+          <app-action-button variant="secondary" (btnClick)="navigateTo('/plan-salle')">
+            {{ 'HOME.FLOOR_PLAN' | transloco }}
+          </app-action-button>
+        </div>
       </div>
-    </div>
+    }
 
     <!-- Administration -->
-    <div class="nav-card admin-card" *ngIf="isAdmin$ | async">
-      <div class="card-badge" data-role="admin">ADMIN</div>
-      <div class="card-icon">⚙️</div>
-      <h2 class="card-title">{{ 'HOME.ADMIN_TITLE' | transloco }}</h2>
-      <p class="card-desc">{{ 'HOME.ADMIN_DESC' | transloco }}</p>
-      <div class="card-actions">
-        <app-action-button variant="primary" (btnClick)="navigateTo('/admin')">
-          {{ 'HOME.ACCESS_ADMIN' | transloco }}
-        </app-action-button>
+    @if (isAdmin$ | async) {
+      <div class="nav-card admin-card">
+        <div class="card-badge" data-role="admin">ADMIN</div>
+        <div class="card-icon">⚙️</div>
+        <h2 class="card-title">{{ 'HOME.ADMIN_TITLE' | transloco }}</h2>
+        <p class="card-desc">{{ 'HOME.ADMIN_DESC' | transloco }}</p>
+        <div class="card-actions">
+          <app-action-button variant="primary" (btnClick)="navigateTo('/admin')">
+            {{ 'HOME.ACCESS_ADMIN' | transloco }}
+          </app-action-button>
+        </div>
       </div>
-    </div>
+    }
   </div>
 
   <!-- Section Accès rapide commun -->

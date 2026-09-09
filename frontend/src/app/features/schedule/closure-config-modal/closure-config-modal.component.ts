@@ -1,5 +1,5 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import {
   IonHeader,
@@ -37,7 +37,6 @@ interface WeeklyDayOption {
   selector: 'app-closure-config-modal',
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     TranslocoModule,
     IonHeader,
@@ -54,7 +53,7 @@ interface WeeklyDayOption {
     IonInput,
     IonToggle,
     IonBadge
-  ],
+],
   templateUrl: './closure-config-modal.component.html',
   styleUrls: ['./closure-config-modal.component.css']
 })

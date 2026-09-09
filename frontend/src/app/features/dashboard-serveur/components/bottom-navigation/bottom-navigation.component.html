@@ -15,7 +15,9 @@
     (click)="onSelect('commande')">
     <div class="icon-wrap">
       <ion-icon name="cart-outline"></ion-icon>
-      <span class="badge" *ngIf="cartBadgeCount > 0" [attr.data-testid]="'cart-badge-count'">{{ cartBadgeCount }}</span>
+      @if (cartBadgeCount > 0) {
+        <span class="badge" [attr.data-testid]="'cart-badge-count'">{{ cartBadgeCount }}</span>
+      }
     </div>
     <span>{{ 'SERVEUR_MOBILE.NAV.COMMANDE' | transloco }}</span>
   </button>
@@ -27,7 +29,9 @@
     (click)="onSelect('suivi')">
     <div class="icon-wrap">
       <ion-icon name="list-outline"></ion-icon>
-      <span class="badge warning" *ngIf="pendingOrdersCount > 0" [attr.data-testid]="'pending-badge-count'">{{ pendingOrdersCount }}</span>
+      @if (pendingOrdersCount > 0) {
+        <span class="badge warning" [attr.data-testid]="'pending-badge-count'">{{ pendingOrdersCount }}</span>
+      }
     </div>
     <span>{{ 'SERVEUR_MOBILE.NAV.SUIVI' | transloco }}</span>
   </button>

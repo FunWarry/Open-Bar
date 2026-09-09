@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, OnDestroy, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { IonIcon, IonSpinner, ModalController, ToastController } from '@ionic/angular/standalone';
@@ -31,11 +31,10 @@ export type QrModalMode = 'ORDER' | 'WIFI';
   styleUrls: ['./table-qr-modal.component.scss'],
   standalone: true,
   imports: [
-    CommonModule,
     IonIcon,
     IonSpinner,
     TranslocoPipe
-  ]
+]
 })
 export class TableQrModalComponent implements OnInit, OnDestroy {
   @Input() table!: TableBar;

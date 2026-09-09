@@ -69,24 +69,27 @@
       </app-search-bar>
 
       <!-- Quick floor chips filter when in Zones tab -->
-      <div *ngIf="activeTab === 'zones' && etages.length > 0" class="floor-filter-chips">
-        <button
-          type="button"
-          class="floor-chip"
-          [class.active]="selectedFloorFilter === 'ALL'"
-          (click)="setFloorFilter('ALL')">
-          {{ 'ZONE_MANAGER.ALL_FLOORS' | transloco }}
-        </button>
-        <button
-          *ngFor="let etage of etages"
-          type="button"
-          class="floor-chip"
-          [class.active]="selectedFloorFilter === etage.code"
-          (click)="setFloorFilter(etage.code)">
-          <ion-icon name="business-outline"></ion-icon>
-          <span>{{ etage.nom }}</span>
-        </button>
-      </div>
+      @if (activeTab === 'zones' && etages.length > 0) {
+        <div class="floor-filter-chips">
+          <button
+            type="button"
+            class="floor-chip"
+            [class.active]="selectedFloorFilter === 'ALL'"
+            (click)="setFloorFilter('ALL')">
+            {{ 'ZONE_MANAGER.ALL_FLOORS' | transloco }}
+          </button>
+          @for (etage of etages; track etage) {
+            <button
+              type="button"
+              class="floor-chip"
+              [class.active]="selectedFloorFilter === etage.code"
+              (click)="setFloorFilter(etage.code)">
+              <ion-icon name="business-outline"></ion-icon>
+              <span>{{ etage.nom }}</span>
+            </button>
+          }
+        </div>
+      }
     </div>
 
     <!-- ═══════════════════════════════════════════════════════════════════ -->
@@ -301,15 +304,21 @@
                     <!-- Associated zones summary -->
                     <div class="associated-zones-row">
                       <ion-icon name="location-outline" class="associated-icon"></ion-icon>
-                      <span *ngIf="getZonesForEtage(etage.code).length > 0" class="associated-zones-text">
-                        <span class="zones-count-highlight">{{ getZonesForEtage(etage.code).length }} {{ 'ZONE_MANAGER.TABS.ZONES' | transloco }} : </span>
-                        <span *ngFor="let z of getZonesForEtage(etage.code); let isLast = last" class="zone-pill-mini">
-                          {{ z.nom }}{{ isLast ? '' : ', ' }}
+                      @if (getZonesForEtage(etage.code).length > 0) {
+                        <span class="associated-zones-text">
+                          <span class="zones-count-highlight">{{ getZonesForEtage(etage.code).length }} {{ 'ZONE_MANAGER.TABS.ZONES' | transloco }} : </span>
+                          @for (z of getZonesForEtage(etage.code); track z; let isLast = $last) {
+                            <span class="zone-pill-mini">
+                              {{ z.nom }}{{ isLast ? '' : ', ' }}
+                            </span>
+                          }
                         </span>
-                      </span>
-                      <span *ngIf="getZonesForEtage(etage.code).length === 0" class="no-zones-text">
-                        {{ 'ZONE_MANAGER.NO_ASSOCIATED_ZONES' | transloco }}
-                      </span>
+                      }
+                      @if (getZonesForEtage(etage.code).length === 0) {
+                        <span class="no-zones-text">
+                          {{ 'ZONE_MANAGER.NO_ASSOCIATED_ZONES' | transloco }}
+                        </span>
+                      }
                     </div>
                   </div>
                 </div>

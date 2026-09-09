@@ -133,14 +133,14 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
   selectedAllergens: string[] = [];
   canSeeLowStock = false;
 
-  readonly availableAllergens = [
-    { key: 'LAIT', label: 'Sans Lait / Lactose', icon: 'nutrition-outline', keywords: ['lait', 'creme', 'crème', 'cream', 'beurre', 'lactose', 'baileys', 'yaourt', 'fromage'] },
-    { key: 'GLUTEN', label: 'Sans Gluten', icon: 'leaf-outline', keywords: ['biere', 'bière', 'beer', 'whisky', 'whiskey', 'orge', 'seigle', 'ble', 'blé', 'gluten'] },
-    { key: 'OEUF', label: 'Sans Œufs', icon: 'egg-outline', keywords: ['oeuf', 'œuf', 'egg', 'albumine'] },
-    { key: 'FRUITS_A_COQUE', label: 'Sans Fruits à coque', icon: 'nutrition-outline', keywords: ['amande', 'almond', 'amaretto', 'noisette', 'hazelnut', 'noix', 'walnut', 'pistache', 'pistachio', 'cashew', 'anacarde'] },
-    { key: 'ARACHIDE', label: 'Sans Arachides', icon: 'nutrition-outline', keywords: ['arachide', 'peanut', 'cacahuete', 'cacahuète'] },
-    { key: 'SULFITES', label: 'Sans Sulfites', icon: 'wine-outline', keywords: ['vin', 'wine', 'champagne', 'prosecco', 'vermouth', 'sulfite', 'sulfites', 'cidre', 'cider', 'aperol', 'campari'] },
-    { key: 'SOJA', label: 'Sans Soja', icon: 'leaf-outline', keywords: ['soja', 'soy', 'tofu'] },
+  readonly availableAllergens: readonly { key: string; labelKey: string; icon: string }[] = [
+    { key: 'LAIT', labelKey: 'COCKTAILS.ALLERGENS.LAIT', icon: 'nutrition-outline' },
+    { key: 'GLUTEN', labelKey: 'COCKTAILS.ALLERGENS.GLUTEN', icon: 'leaf-outline' },
+    { key: 'OEUF', labelKey: 'COCKTAILS.ALLERGENS.OEUF', icon: 'egg-outline' },
+    { key: 'FRUITS_A_COQUE', labelKey: 'COCKTAILS.ALLERGENS.FRUITS_A_COQUE', icon: 'nutrition-outline' },
+    { key: 'ARACHIDE', labelKey: 'COCKTAILS.ALLERGENS.ARACHIDE', icon: 'nutrition-outline' },
+    { key: 'SULFITES', labelKey: 'COCKTAILS.ALLERGENS.SULFITES', icon: 'wine-outline' },
+    { key: 'SOJA', labelKey: 'COCKTAILS.ALLERGENS.SOJA', icon: 'leaf-outline' },
   ];
 
   cart: CartModel = { tableId: null, items: [] };
@@ -1603,15 +1603,17 @@ export class DashboardServeurComponent implements OnInit, AfterViewInit, OnDestr
   }
 
   getProductAllergens(product: ProductItem): string[] {
-    const textToSearch = [
-      product.nom,
-      product.description || '',
-      ...(product.ingredients ? product.ingredients.map((i: any) => i.ingredientNom) : [])
-    ].join(' ').toLowerCase();
-
-    return this.availableAllergens
-      .filter(allergen => allergen.keywords.some(kw => textToSearch.includes(kw)))
-      .map(allergen => allergen.key);
+    const allergens = new Set<string>();
+    if (product.ingredients && Array.isArray(product.ingredients)) {
+      for (const ing of product.ingredients as any[]) {
+        if (ing && typeof ing === 'object' && ing.allergens && Array.isArray(ing.allergens)) {
+          for (const a of ing.allergens) {
+            allergens.add(a);
+          }
+        }
+      }
+    }
+    return Array.from(allergens);
   }
 
   toggleAllergenFilter(allergenKey: string): void {

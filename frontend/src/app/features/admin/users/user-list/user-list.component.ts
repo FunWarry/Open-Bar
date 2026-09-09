@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import {
   ModalController,
@@ -39,7 +39,6 @@ import { TranslocoPipe } from '@jsverse/transloco';
   styleUrl: './user-list.component.css',
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     SearchBarComponent,
     IonCard,
@@ -55,7 +54,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
     IonSelect,
     IonSelectOption,
     TranslocoPipe
-  ]
+]
 })
 export class UserListComponent implements OnInit {
   users: User[] = [];

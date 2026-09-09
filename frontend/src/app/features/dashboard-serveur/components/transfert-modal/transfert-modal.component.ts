@@ -1,5 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import {
   ModalController,
   IonHeader, IonToolbar, IonTitle, IonButtons, IonButton,
@@ -18,11 +18,20 @@ import { TranslocoPipe } from '@jsverse/transloco';
   selector: 'app-transfert-modal',
   standalone: true,
   imports: [
-    CommonModule,
-    IonHeader, IonToolbar, IonTitle, IonButtons, IonButton,
-    IonContent, IonList, IonItem, IonLabel, IonBadge, IonIcon, IonSpinner,
-    TranslocoPipe,
-  ],
+    IonHeader,
+    IonToolbar,
+    IonTitle,
+    IonButtons,
+    IonButton,
+    IonContent,
+    IonList,
+    IonItem,
+    IonLabel,
+    IonBadge,
+    IonIcon,
+    IonSpinner,
+    TranslocoPipe
+],
   templateUrl: './transfert-modal.component.html',
   styleUrls: ['./transfert-modal.component.scss'],
 })
