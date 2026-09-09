@@ -1744,7 +1744,13 @@
     "WASTE_AUDIT_REPORTED_BY": "Reported By",
     "WASTE_AUDIT_RECENT": "Recent Loss Declarations",
     "WASTE_AUDIT_FILTER_ALL": "All reasons",
-    "WASTE_AUDIT_BREAKDOWN": "Financial Breakdown by Reason"
+    "WASTE_AUDIT_BREAKDOWN": "Financial Breakdown by Reason",
+    "WASTE_AUDIT_TOTAL_LOSS_SUBTEXT": "Cumulative purchase cost excl. VAT",
+    "WASTE_AUDIT_TOTAL_COUNT_SUBTEXT": "Logged declarations",
+    "WASTE_AUDIT_TOTAL_QTY_SUBTEXT": "Items / volumes written off",
+    "WASTE_AUDIT_BY_REASON": "By reason",
+    "WASTE_AUDIT_RECENT_COUNT": "{{count}} recent",
+    "WASTE_AUDIT_EMPTY_TITLE": "No waste recorded"
   },
   "RECAP": {
     "TITLE": "Daily Closing Sales Summary",
@@ -2404,7 +2410,11 @@
     "LOADING_STATS": "Loading metrics...",
     "ERROR_STATS": "Unable to load manager dashboard statistics",
     "RETRY": "Retry",
-    "TIMERS_ACTIVE_THRESHOLDS": "Configured Active Thresholds"
+    "TIMERS_ACTIVE_THRESHOLDS": "Configured Active Thresholds",
+    "DELIVERED_COUNT": "{{count}} delivered",
+    "TOTAL_ORDERS_COUNT": "{{count}} total",
+    "COCKTAILS_COUNT": "{{count}} cocktail(s)",
+    "ACTIVE_ORDERS_COUNT": "{{count}} active"
   },
   "FACTURE": {
     "MODE_CARTE": "Credit card",
@@ -2766,7 +2776,18 @@
     "MARGIN_EMPTY_PROFITABLE": "No sales recorded yet today",
     "MARGIN_PRICE": "Price:",
     "MARGIN_COST": "Cost:",
-    "MARGIN_MARGIN": "Margin:"
+    "MARGIN_MARGIN": "Margin:",
+    "MARGIN_FINANCIAL_HEALTH": "Financial Health & Profitability",
+    "MARGIN_FINANCIAL_HEALTH_HINT": "Live tracking of recipe cost and gross margin",
+    "MARGIN_RATE": "Margin rate",
+    "MARGIN_GROSS_MARGIN": "Gross margin",
+    "MARGIN_COGS_TODAY": "Today's Cost of Goods (COGS)",
+    "MARGIN_COGS_HINT": "Total cost of ingredients consumed",
+    "MARGIN_GROSS_MARGIN_TODAY": "Today's Gross Margin",
+    "MARGIN_AVERAGE_MARGIN_RATE": "Average Margin Rate",
+    "MARGIN_STATUS_OPTIMAL": "Optimal (≥ {{rate}}%)",
+    "MARGIN_STATUS_MEDIUM": "Moderate",
+    "MARGIN_STATUS_CRITICAL": "Critical"
   },
   "PRICING": {
     "HAPPY_HOUR_BADGE": "Happy Hour",

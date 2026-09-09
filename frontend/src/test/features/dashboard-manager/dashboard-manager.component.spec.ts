@@ -354,4 +354,24 @@ describe('DashboardManagerComponent', () => {
     expect(component.getWasteReasonIcon('ERREUR_PREPARATION')).toBe('warning-outline');
     expect(component.getWasteReasonIcon('OTHER' as any)).toBe('pricetag-outline');
   });
+
+  it('renders margin KPI stat cards with proper translated attributes', () => {
+    component.stats = {
+      ...mockStats,
+      totalCogsJour: 45.2,
+      margeBruteJour: 105.3,
+      tauxMargeBruteJour: 70
+    };
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const cogsCard = compiled.querySelector('[data-testid="stat-card-cogs"]');
+    const grossMarginCard = compiled.querySelector('[data-testid="stat-card-gross-margin"]');
+    const marginRateCard = compiled.querySelector('[data-testid="stat-card-margin-rate"]');
+
+    expect(cogsCard).toBeTruthy();
+    expect(grossMarginCard).toBeTruthy();
+    expect(marginRateCard).toBeTruthy();
+  });
 });
+

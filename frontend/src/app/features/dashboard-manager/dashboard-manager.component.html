@@ -191,7 +191,7 @@
               [value]="activeOrdersCount"
               icon="receipt-outline"
               color="primary"
-              [trend]="stats.commandesTotales + ' au total'"
+              [trend]="'MANAGER_DASHBOARD.TOTAL_ORDERS_COUNT' | transloco: { count: stats.commandesTotales }"
               trendDirection="neutral"
               testId="stat-card-orders">
             </app-stat-card>
@@ -214,7 +214,7 @@
               [value]="occupancyRate + '%'"
               icon="restaurant-outline"
               color="warning"
-              [trend]="stats.tablesOccupees + ' / ' + stats.tablesTotales + ' tables'"
+              [trend]="'MANAGER_DASHBOARD.TABLES_OCCUPIED_FORMAT' | transloco: { occupied: stats.tablesOccupees, total: stats.tablesTotales }"
               trendDirection="neutral"
               testId="stat-card-occupancy">
             </app-stat-card>
@@ -226,7 +226,7 @@
               [value]="deliveryRate + '%'"
               icon="checkmark-circle-outline"
               color="tertiary"
-              [trend]="stats.commandesLivrees + ' livrée(s)'"
+              [trend]="'MANAGER_DASHBOARD.DELIVERED_COUNT' | transloco: { count: stats.commandesLivrees }"
               trendDirection="up"
               testId="stat-card-delivery-rate">
             </app-stat-card>
@@ -265,7 +265,7 @@
               [value]="(stats.tauxMargeBruteJour || 0) + '%'"
               icon="trending-up-outline"
               [color]="(stats.tauxMargeBruteJour || 0) >= targetMargin ? 'success' : ((stats.tauxMargeBruteJour || 0) >= warningMargin ? 'warning' : 'danger')"
-              [trend]="(stats.tauxMargeBruteJour || 0) >= targetMargin ? 'Optimal (>= ' + targetMargin + '%)' : ((stats.tauxMargeBruteJour || 0) >= warningMargin ? 'Moyen' : 'Critique')"
+              [trend]="(stats.tauxMargeBruteJour || 0) >= targetMargin ? ('ANALYTICS.MARGIN_STATUS_OPTIMAL' | transloco: { rate: targetMargin }) : ((stats.tauxMargeBruteJour || 0) >= warningMargin ? ('ANALYTICS.MARGIN_STATUS_MEDIUM' | transloco) : ('ANALYTICS.MARGIN_STATUS_CRITICAL' | transloco))"
               [trendDirection]="(stats.tauxMargeBruteJour || 0) >= targetMargin ? 'up' : 'down'"
               testId="stat-card-margin-rate">
             </app-stat-card>
@@ -284,7 +284,7 @@
                 </div>
                 <ion-card-title>{{ 'MANAGER_DASHBOARD.TOP_COCKTAILS_TITLE' | transloco }}</ion-card-title>
               </div>
-              <span class="analytics-count-badge">{{ stats.topCocktails.length }} cocktail(s)</span>
+              <span class="analytics-count-badge">{{ 'MANAGER_DASHBOARD.COCKTAILS_COUNT' | transloco: { count: stats.topCocktails.length } }}</span>
             </div>
           </ion-card-header>
           <ion-card-content>
@@ -396,7 +396,7 @@
                 <ion-card-title>{{ 'ANALYTICS.MARGIN_MOST_PROFITABLE' | transloco }}</ion-card-title>
               </div>
               @if (stats.mostProfitableCocktails) {
-                <span class="analytics-count-badge">{{ stats.mostProfitableCocktails.length }} cocktail(s)</span>
+                <span class="analytics-count-badge">{{ 'MANAGER_DASHBOARD.COCKTAILS_COUNT' | transloco: { count: stats.mostProfitableCocktails.length } }}</span>
               }
             </div>
           </ion-card-header>
@@ -479,7 +479,7 @@
                 <strong class="kpi-value danger" data-testid="waste-stat-total-loss">
                   {{ (wasteSummary?.totalLossValue || 0) | appCurrency }}
                 </strong>
-                <span class="kpi-subtext">Coût d'achat cumulé HT</span>
+                <span class="kpi-subtext">{{ 'STOCK.WASTE_AUDIT_TOTAL_LOSS_SUBTEXT' | transloco }}</span>
               </div>
             </div>
             <div class="waste-kpi-card count-kpi">
@@ -489,7 +489,7 @@
               <div class="kpi-body">
                 <span class="kpi-label">{{ 'STOCK.WASTE_AUDIT_TOTAL_COUNT' | transloco }}</span>
                 <strong class="kpi-value">{{ wasteSummary?.totalMovements || 0 }}</strong>
-                <span class="kpi-subtext">Déclarations enregistrées</span>
+                <span class="kpi-subtext">{{ 'STOCK.WASTE_AUDIT_TOTAL_COUNT_SUBTEXT' | transloco }}</span>
               </div>
             </div>
             <div class="waste-kpi-card qty-kpi">
@@ -501,7 +501,7 @@
                 <strong class="kpi-value" data-testid="waste-stat-total-qty">
                   {{ wasteSummary?.totalQuantityLost || 0 }}
                 </strong>
-                <span class="kpi-subtext">Unités / volumes sortis</span>
+                <span class="kpi-subtext">{{ 'STOCK.WASTE_AUDIT_TOTAL_QTY_SUBTEXT' | transloco }}</span>
               </div>
             </div>
           </div>
@@ -511,7 +511,7 @@
             <div class="waste-breakdown-col">
               <div class="sub-section-header">
                 <h4 class="sub-section-title">{{ 'STOCK.WASTE_AUDIT_BREAKDOWN' | transloco }}</h4>
-                <span class="sub-section-tag">Par motif</span>
+                <span class="sub-section-tag">{{ 'STOCK.WASTE_AUDIT_BY_REASON' | transloco }}</span>
               </div>
               <div class="reason-breakdown-list">
                 @for (r of wasteReasons; track r) {
@@ -558,7 +558,7 @@
                 <h4 class="sub-section-title">{{ 'STOCK.WASTE_AUDIT_RECENT' | transloco }}</h4>
                 @if (recentWasteMovements.length > 0) {
                   <span class="sub-section-tag">
-                    {{ recentWasteMovements.length }} récents
+                    {{ 'STOCK.WASTE_AUDIT_RECENT_COUNT' | transloco: { count: recentWasteMovements.length } }}
                   </span>
                 }
               </div>
@@ -615,7 +615,7 @@
                   <div class="empty-icon-bubble">
                     <ion-icon name="checkmark-circle-outline"></ion-icon>
                   </div>
-                  <h5 class="empty-title">Aucune perte enregistrée</h5>
+                  <h5 class="empty-title">{{ 'STOCK.WASTE_AUDIT_EMPTY_TITLE' | transloco }}</h5>
                   <p class="empty-subtitle">{{ 'STOCK.WASTE_AUDIT_EMPTY' | transloco }}</p>
                 </div>
               }
@@ -645,7 +645,7 @@
                 <ion-icon slot="start" [name]="showDelivered ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
                 {{ (showDelivered ? 'MANAGER_DASHBOARD.HIDE_DELIVERED' : 'MANAGER_DASHBOARD.SHOW_DELIVERED') | transloco }}
               </ion-button>
-              <span class="kanban-active-count-pill">{{ ongoingOrders.length }} active(s)</span>
+              <span class="kanban-active-count-pill">{{ 'MANAGER_DASHBOARD.ACTIVE_ORDERS_COUNT' | transloco: { count: ongoingOrders.length } }}</span>
             </div>
           </div>
         </ion-card-header>
