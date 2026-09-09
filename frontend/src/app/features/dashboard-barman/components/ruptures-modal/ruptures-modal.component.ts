@@ -138,6 +138,13 @@ export class RupturesModalComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Resets the search query when switching between tabs to display the complete list.
+   */
+  onTabChange(): void {
+    this.searchQuery = '';
+  }
+
+  /**
    * Filtered cocktails based on the current search input.
    */
   get filteredCocktails(): Cocktail[] {

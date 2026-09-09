@@ -2252,6 +2252,8 @@
     "SEARCH_INGREDIENT_PLACEHOLDER": "Search ingredient...",
     "STATUS_AVAILABLE": "Available",
     "STATUS_OUT_OF_STOCK": "Out of stock",
+    "STOCK_OUT_TAG": "OUT OF STOCK",
+    "STOCK_LOW_TAG": "LOW",
     "COCKTAIL_AVAILABLE": "{{name}} is now available!",
     "COCKTAIL_OUT_OF_STOCK": "{{name}} is now marked out of stock!",
     "STOCK_UPDATED": "Stock for {{name}} updated ({{stock}} {{unit}})",

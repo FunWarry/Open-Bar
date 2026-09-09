@@ -2252,6 +2252,8 @@
     "SEARCH_INGREDIENT_PLACEHOLDER": "Rechercher un ingrédient...",
     "STATUS_AVAILABLE": "Disponible",
     "STATUS_OUT_OF_STOCK": "En rupture",
+    "STOCK_OUT_TAG": "RUPTURE",
+    "STOCK_LOW_TAG": "FAIBLE",
     "COCKTAIL_AVAILABLE": "{{name}} est à nouveau disponible !",
     "COCKTAIL_OUT_OF_STOCK": "{{name}} est passé en rupture !",
     "STOCK_UPDATED": "Stock de {{name}} mis à jour ({{stock}} {{unit}})",
