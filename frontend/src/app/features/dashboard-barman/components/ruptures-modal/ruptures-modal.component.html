@@ -18,7 +18,7 @@
   </ion-toolbar>
 
   <div class="segment-container">
-    <ion-segment [(ngModel)]="activeTab" mode="ios">
+    <ion-segment [(ngModel)]="activeTab" (ionChange)="onTabChange()" mode="ios">
       <ion-segment-button value="cocktails" data-testid="segment-cocktails">
         <ion-label>
           <ion-icon name="wine-outline"></ion-icon>
@@ -104,9 +104,9 @@
               <div class="item-title-row">
                 <span class="item-title">{{ ingredient.nom }}</span>
                 @if ((ingredient.quantiteStock || 0) === 0) {
-                  <span class="stock-badge zero">0 {{ ingredient.uniteMesure }} (RUPTURE)</span>
+                  <span class="stock-badge zero">0 {{ ingredient.uniteMesure }} ({{ 'BARMAN_DASHBOARD.STOCK_OUT_TAG' | transloco }})</span>
                 } @else if ((ingredient.quantiteStock || 0) <= (ingredient.seuilAlerte || 0)) {
-                  <span class="stock-badge low">{{ ingredient.quantiteStock }} {{ ingredient.uniteMesure }} (FAIBLE)</span>
+                  <span class="stock-badge low">{{ ingredient.quantiteStock }} {{ ingredient.uniteMesure }} ({{ 'BARMAN_DASHBOARD.STOCK_LOW_TAG' | transloco }})</span>
                 } @else {
                   <span class="stock-badge normal">{{ ingredient.quantiteStock }} {{ ingredient.uniteMesure }}</span>
                 }

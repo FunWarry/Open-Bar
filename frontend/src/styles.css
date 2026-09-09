@@ -758,7 +758,6 @@ ion-modal.modal-sm,
 ion-modal.openbar-modal-sm,
 ion-modal.confirm-modal-dialog,
 ion-modal.confirm-delete-modal-dialog,
-ion-modal.ruptures-modal-container,
 ion-modal.delete-modal {
   --width: min(460px, 92vw);
   --height: auto;
@@ -769,6 +768,12 @@ ion-modal.bar-ticket-modal-container {
   --width: min(440px, 92vw);
   --height: min(540px, 80vh);
   --max-height: 80vh;
+}
+
+ion-modal.ruptures-modal-container {
+  --width: min(640px, 94vw);
+  --height: min(660px, 82vh);
+  --max-height: 85vh;
 }
 
 ion-modal.modal-md,

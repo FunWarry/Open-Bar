@@ -48,4 +48,42 @@ test.describe('Barman Kanban E2E Flow', () => {
       await closeBtn.click();
     }
   });
+
+  test('should open quick stock / ruptures modal and verify content is visible with non-zero height', async ({ page }) => {
+    await page.goto('/barman');
+    await expect(page.locator('ion-content').first()).toBeVisible();
+
+    // Click on "Ruptures à chaud" button
+    const rupturesBtn = page.locator('[data-testid="open-ruptures-btn"]');
+    await expect(rupturesBtn).toBeVisible({ timeout: 5000 });
+    await rupturesBtn.click();
+
+    // Verify modal is visible
+    const modal = page.locator('ion-modal.ruptures-modal-container');
+    await expect(modal).toBeVisible({ timeout: 5000 });
+
+    // Verify segments exist and content inside modal is rendered (not collapsed to 0)
+    const cocktailsSegment = page.locator('[data-testid="segment-cocktails"]');
+    await expect(cocktailsSegment).toBeVisible();
+
+    const searchBar = page.locator('[data-testid="ruptures-searchbar"]');
+    await expect(searchBar).toBeVisible();
+
+    // Verify the scrollable content inside the modal has non-zero height
+    const rupturesContent = page.locator('ion-modal.ruptures-modal-container ion-content');
+    await expect(rupturesContent).toBeVisible();
+    const boundingBox = await rupturesContent.boundingBox();
+    expect(boundingBox).toBeTruthy();
+    expect(boundingBox!.height).toBeGreaterThan(100);
+
+    // Switch to ingredients tab
+    const ingredientsSegment = page.locator('[data-testid="segment-ingredients"]');
+    await ingredientsSegment.click();
+    await expect(ingredientsSegment).toBeVisible();
+
+    // Close modal
+    const closeBtn = page.locator('ion-modal.ruptures-modal-container ion-buttons ion-button');
+    await closeBtn.click();
+    await expect(modal).not.toBeVisible();
+  });
 });

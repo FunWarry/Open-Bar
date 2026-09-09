@@ -136,6 +136,12 @@ describe('RupturesModalComponent', () => {
     expect(component.filteredIngredients[0].nom).toBe('Fresh Mint');
   });
 
+  it('clears searchQuery when switching tabs via onTabChange()', () => {
+    component.searchQuery = 'mojito';
+    component.onTabChange();
+    expect(component.searchQuery).toBe('');
+  });
+
   it('toggleCocktail() bascule la disponibilite et displays a toast', () => {
     const cocktail = component.cocktails[0];
     component.toggleCocktail(cocktail);
