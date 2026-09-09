@@ -214,4 +214,72 @@ describe('StockWasteModalComponent', () => {
     setupComponent();
     expect(component.isLoadingIngredients).toBeFalse();
   });
+
+  describe('StockWasteModalComponent extended UX features', () => {
+    it('ingredientOptions should format options with danger badge when stock <= threshold', () => {
+      setupComponent();
+      const options = component.ingredientOptions;
+      expect(options).toHaveSize(2);
+
+      // mockIngredient has stock 50, seuil 10 -> neutral
+      const rh = options.find(o => o.value === 10);
+      expect(rh?.badgeType).toBe('neutral');
+
+      // Menthe has stock 15, seuil 5 -> neutral. If seuil is 20 -> danger
+      component.availableIngredients[1].seuilAlerte = 20;
+      const menthe = component.ingredientOptions.find(o => o.value === 20);
+      expect(menthe?.badgeType).toBe('danger');
+    });
+
+    it('selectReason should update waste reason', () => {
+      setupComponent({ ingredient: mockIngredient });
+      component.selectReason('PEREMPTION');
+      expect(component.reason).toBe('PEREMPTION');
+    });
+
+    it('setQuantityPercentage should calculate quantity based on stock percentage', () => {
+      setupComponent({ ingredient: mockIngredient }); // stock = 50
+      component.setQuantityPercentage(50);
+      expect(component.quantity).toBe(25);
+
+      component.setQuantityPercentage(25);
+      expect(component.quantity).toBe(12.5);
+
+      component.setQuantityPercentage(100);
+      expect(component.quantity).toBe(50);
+    });
+
+    it('setQuantityPercentage should do nothing if no ingredient is selected or stock is 0', () => {
+      setupComponent();
+      component.selectedIngredient = null;
+      component.setQuantityPercentage(50);
+      expect(component.quantity).toBeNull();
+
+      component.selectedIngredient = { ...mockIngredient, quantiteStock: 0 };
+      component.setQuantityPercentage(50);
+      expect(component.quantity).toBeNull();
+    });
+
+    it('remainingStock should return 0 if no ingredient is selected', () => {
+      setupComponent();
+      component.selectedIngredient = null;
+      expect(component.remainingStock).toBe(0);
+    });
+
+    it('remainingStock should compute remaining stock correctly and clamp to 0', () => {
+      setupComponent({ ingredient: mockIngredient }); // stock = 50
+      component.quantity = 15;
+      expect(component.remainingStock).toBe(35);
+
+      component.quantity = 60;
+      expect(component.remainingStock).toBe(0);
+    });
+
+    it('onIngredientChange should accept direct number id', () => {
+      setupComponent();
+      component.onIngredientChange(20);
+      expect(component.selectedIngredientId).toBe(20);
+      expect(component.selectedIngredient?.nom).toBe('Menthe Fraîche');
+    });
+  });
 });

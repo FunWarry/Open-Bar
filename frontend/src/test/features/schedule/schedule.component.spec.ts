@@ -868,6 +868,46 @@ describe('ScheduleComponent', () => {
       }));
     });
 
+    it('openActionSheet() should configure Modifier le créneau button handler when shift exists', async () => {
+      const emp: any = { employeeId: 7, name: 'Emma L.' };
+      const shift: any = { date: '2026-08-11', isClosed: false, rawShift: { id: 42 } };
+      spyOn(component, 'openEditShiftModal');
+
+      const mockActionSheet = {
+        present: jasmine.createSpy('present').and.returnValue(Promise.resolve())
+      };
+      mockActionSheetCtrl.create.and.returnValue(Promise.resolve(mockActionSheet as any));
+
+      await component.openActionSheet(emp, shift);
+
+      const createArgs = mockActionSheetCtrl.create.calls.mostRecent().args[0] as any;
+      const modifyBtn = createArgs?.buttons?.find((b: any) => b.text === 'Modifier le créneau');
+      expect(modifyBtn).toBeDefined();
+
+      modifyBtn?.handler?.();
+      expect(component.openEditShiftModal).toHaveBeenCalledWith(emp, shift);
+    });
+
+    it('openActionSheet() should configure Nouveau créneau button handler when cell is empty', async () => {
+      const emp: any = { employeeId: 7, name: 'Emma L.' };
+      const emptyShift: any = { date: '2026-08-11', isClosed: false, rawShift: null };
+      spyOn(component, 'openCreateShiftModal');
+
+      const mockActionSheet = {
+        present: jasmine.createSpy('present').and.returnValue(Promise.resolve())
+      };
+      mockActionSheetCtrl.create.and.returnValue(Promise.resolve(mockActionSheet as any));
+
+      await component.openActionSheet(emp, emptyShift);
+
+      const createArgs = mockActionSheetCtrl.create.calls.mostRecent().args[0] as any;
+      const newBtn = createArgs?.buttons?.find((b: any) => b.text === 'Nouveau créneau');
+      expect(newBtn).toBeDefined();
+
+      newBtn?.handler?.();
+      expect(component.openCreateShiftModal).toHaveBeenCalledWith(emp, '2026-08-11');
+    });
+
     it('loadSchedule() should set loading=false on error', fakeAsync(() => {
       mockPublicationService.getPublication.and.returnValue(of(null));
       mockScheduleService.getWeekSchedule.and.returnValue(throwError(() => new Error('Network error')));
