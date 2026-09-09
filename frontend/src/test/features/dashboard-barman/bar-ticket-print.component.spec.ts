@@ -86,19 +86,44 @@ describe('BarTicketPrintComponent', () => {
     expect(component.establishmentName).toBe('Le Bar Basque');
   });
 
-  it('calcule le nombre total d articles correctement', () => {
+  it('should calculate total items count correctly', () => {
     expect(component.totalItemsCount).toBe(3);
   });
 
+  it('should render thermal receipt with paper tear edges and action buttons', () => {
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('.paper-receipt-container')).toBeTruthy();
+    expect(compiled.querySelector('.paper-tear-top')).toBeTruthy();
+    expect(compiled.querySelector('.paper-tear-bottom')).toBeTruthy();
+    expect(compiled.querySelector('[data-testid="thermal-receipt-80mm"]')).toBeTruthy();
+    expect(compiled.querySelector('[data-testid="btn-close-ticket-modal"]')).toBeTruthy();
+    expect(compiled.querySelector('[data-testid="btn-direct-escpos-print"]')).toBeTruthy();
+    expect(compiled.querySelector('[data-testid="confirm-print-btn"]')).toBeTruthy();
+  });
+
   it('printTicket() triggers thermal ticket print', () => {
-    spyOn(document.body, 'appendChild').and.callThrough();
+    spyOn(document.body, 'appendChild').and.returnValue({} as any);
     component.printTicket();
     expect(document.body.appendChild).toHaveBeenCalled();
   });
 
-  it('dismiss() ferme la modale', () => {
+  it('should dismiss modal on dismiss()', () => {
     component.dismiss();
     expect(modalCtrlSpy.dismiss).toHaveBeenCalled();
+  });
+
+  it('should trigger dismiss when clicking cancel button in template', () => {
+    spyOn(component, 'dismiss');
+    const cancelBtn = fixture.nativeElement.querySelector('[data-testid="btn-close-ticket-modal"]') as HTMLElement;
+    cancelBtn.click();
+    expect(component.dismiss).toHaveBeenCalled();
+  });
+
+  it('should trigger printTicket when clicking confirm print button in template', () => {
+    spyOn(component, 'printTicket');
+    const printBtn = fixture.nativeElement.querySelector('[data-testid="confirm-print-btn"]') as HTMLElement;
+    printBtn.click();
+    expect(component.printTicket).toHaveBeenCalled();
   });
 
   it('printDirectEscPos() dispatches order to ESC/POS printers and presents toast', fakeAsync(() => {

@@ -1744,7 +1744,13 @@
     "WASTE_AUDIT_REPORTED_BY": "Déclaré par",
     "WASTE_AUDIT_RECENT": "Dernières déclarations de perte",
     "WASTE_AUDIT_FILTER_ALL": "Tous les motifs",
-    "WASTE_AUDIT_BREAKDOWN": "Répartition financière par motif"
+    "WASTE_AUDIT_BREAKDOWN": "Répartition financière par motif",
+    "WASTE_AUDIT_TOTAL_LOSS_SUBTEXT": "Coût d'achat cumulé HT",
+    "WASTE_AUDIT_TOTAL_COUNT_SUBTEXT": "Déclarations enregistrées",
+    "WASTE_AUDIT_TOTAL_QTY_SUBTEXT": "Unités / volumes sortis",
+    "WASTE_AUDIT_BY_REASON": "Par motif",
+    "WASTE_AUDIT_RECENT_COUNT": "{{count}} récents",
+    "WASTE_AUDIT_EMPTY_TITLE": "Aucune perte enregistrée"
   },
   "RECAP": {
     "TITLE": "Récapitulatif de Caisse",
@@ -2284,6 +2290,7 @@
     },
     "BAR_TICKET_PREVIEW": "Aperçu Bon de Préparation",
     "PRINT_TICKET": "Imprimer Ticket (80mm)",
+    "PRINT_BUTTON": "Imprimer Ticket (80mm)",
     "DIRECT_ESCPOS_PRINT": "Impression directe (ESC/POS)",
     "DIRECT_PRINT_SUCCESS": "Commande #{{id}} envoyée avec succès à l'imprimante thermique",
     "DIRECT_PRINT_FAILED": "Erreur d'impression directe : {{error}}",
@@ -2403,7 +2410,11 @@
     "LOADING_STATS": "Chargement des métriques...",
     "ERROR_STATS": "Impossible de charger les statistiques du tableau de bord",
     "RETRY": "Réessayer",
-    "TIMERS_ACTIVE_THRESHOLDS": "Seuils Actifs Configurés"
+    "TIMERS_ACTIVE_THRESHOLDS": "Seuils Actifs Configurés",
+    "DELIVERED_COUNT": "{{count}} livrée(s)",
+    "TOTAL_ORDERS_COUNT": "{{count}} au total",
+    "COCKTAILS_COUNT": "{{count}} cocktail(s)",
+    "ACTIVE_ORDERS_COUNT": "{{count}} active(s)"
   },
   "FACTURE": {
     "MODE_CARTE": "Carte bancaire",
@@ -2765,7 +2776,18 @@
     "MARGIN_EMPTY_PROFITABLE": "Aucune vente enregistrée pour le moment aujourd'hui",
     "MARGIN_PRICE": "Prix :",
     "MARGIN_COST": "Coût :",
-    "MARGIN_MARGIN": "Marge :"
+    "MARGIN_MARGIN": "Marge :",
+    "MARGIN_FINANCIAL_HEALTH": "Santé Financière & Rentabilité",
+    "MARGIN_FINANCIAL_HEALTH_HINT": "Suivi en direct du coût de revient et de la marge brute dégagée",
+    "MARGIN_RATE": "Taux de marge",
+    "MARGIN_GROSS_MARGIN": "Marge brute",
+    "MARGIN_COGS_TODAY": "Coût Marchandises (COGS) Jour",
+    "MARGIN_COGS_HINT": "Coût total des ingrédients consommés",
+    "MARGIN_GROSS_MARGIN_TODAY": "Marge Brute du Jour",
+    "MARGIN_AVERAGE_MARGIN_RATE": "Taux de Marge Moyen",
+    "MARGIN_STATUS_OPTIMAL": "Optimal (≥ {{rate}}%)",
+    "MARGIN_STATUS_MEDIUM": "Moyen",
+    "MARGIN_STATUS_CRITICAL": "Critique"
   },
   "PRICING": {
     "HAPPY_HOUR_BADGE": "Happy Hour",
