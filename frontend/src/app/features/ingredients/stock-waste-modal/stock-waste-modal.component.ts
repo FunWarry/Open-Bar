@@ -1,10 +1,9 @@
 import { Component, OnInit, inject, Input } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import {
   IonHeader, IonToolbar, IonTitle, IonButtons, IonButton,
-  IonContent, IonItem, IonInput, IonSelect, IonSelectOption,
-  IonTextarea, IonIcon, IonBadge, IonSpinner,
+  IonContent, IonInput, IonTextarea, IonIcon, IonSpinner,
   ModalController, ToastController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -16,14 +15,32 @@ import {
   trashOutline,
   pricetagOutline,
   checkmarkCircleOutline,
-  chatboxEllipsesOutline
+  chatboxEllipsesOutline,
+  timeOutline,
+  giftOutline,
+  peopleOutline,
+  calculatorOutline,
+  scaleOutline,
+  cashOutline,
+  sparklesOutline
 } from 'ionicons/icons';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { AppCurrencyPipe } from '../../../core/pipes/app-currency.pipe';
+import { SearchableSelectComponent, SearchableOption } from '../../../core/components/ui/searchable-select/searchable-select.component';
 import { Ingredient } from '../../../core/models/ingredient.model';
 import { IngredientService } from '../../../core/services/ingredient.service';
 import { StockWasteService } from '../../../core/services/stock-waste.service';
 import { StockWasteReason } from '../../../core/models/stock-waste.model';
+
+/**
+ * Metadata definition for stock waste reasons with visual icons and theme badges.
+ */
+export interface WasteReasonOption {
+  value: StockWasteReason;
+  labelKey: string;
+  icon: string;
+  badgeColor: string;
+}
 
 /**
  * Modal component allowing barmen and managers to declare stock shrinkage, breakage,
@@ -34,25 +51,21 @@ import { StockWasteReason } from '../../../core/models/stock-waste.model';
   selector: 'app-stock-waste-modal',
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     TranslocoModule,
     AppCurrencyPipe,
+    SearchableSelectComponent,
     IonHeader,
     IonToolbar,
     IonTitle,
     IonButtons,
     IonButton,
     IonContent,
-    IonItem,
     IonInput,
-    IonSelect,
-    IonSelectOption,
     IonTextarea,
     IonIcon,
-    IonBadge,
     IonSpinner
-  ],
+],
   templateUrl: './stock-waste-modal.component.html',
   styleUrls: ['./stock-waste-modal.component.scss']
 })
@@ -79,6 +92,15 @@ export class StockWasteModalComponent implements OnInit {
     { value: 'ERREUR_PREPARATION', labelKey: 'STOCK.WASTE_REASON_ERREUR_PREPARATION' },
   ];
 
+  /** Visual reason options with dedicated icons and color accents. */
+  readonly reasonOptions: WasteReasonOption[] = [
+    { value: 'CASSE', labelKey: 'STOCK.WASTE_REASON_CASSE', icon: 'wine-outline', badgeColor: 'danger' },
+    { value: 'PEREMPTION', labelKey: 'STOCK.WASTE_REASON_PEREMPTION', icon: 'time-outline', badgeColor: 'warning' },
+    { value: 'OFFERT_PATRON', labelKey: 'STOCK.WASTE_REASON_OFFERT_PATRON', icon: 'gift-outline', badgeColor: 'tertiary' },
+    { value: 'DEGUSTATION_STAFF', labelKey: 'STOCK.WASTE_REASON_DEGUSTATION_STAFF', icon: 'people-outline', badgeColor: 'primary' },
+    { value: 'ERREUR_PREPARATION', labelKey: 'STOCK.WASTE_REASON_ERREUR_PREPARATION', icon: 'warning-outline', badgeColor: 'medium' }
+  ];
+
   private readonly ingredientService = inject(IngredientService);
   private readonly stockWasteService = inject(StockWasteService);
   private readonly modalCtrl = inject(ModalController);
@@ -94,7 +116,14 @@ export class StockWasteModalComponent implements OnInit {
       trashOutline,
       pricetagOutline,
       checkmarkCircleOutline,
-      chatboxEllipsesOutline
+      chatboxEllipsesOutline,
+      timeOutline,
+      giftOutline,
+      peopleOutline,
+      calculatorOutline,
+      scaleOutline,
+      cashOutline,
+      sparklesOutline
     });
   }
 
@@ -105,6 +134,45 @@ export class StockWasteModalComponent implements OnInit {
     } else {
       this.loadIngredients();
     }
+  }
+
+  /**
+   * Searchable options list for ingredient selection.
+   */
+  get ingredientOptions(): SearchableOption<number>[] {
+    return this.availableIngredients.map(ing => ({
+      value: ing.id,
+      label: ing.nom,
+      subLabel: `${this.transloco.translate('STOCK.WASTE_CURRENT_STOCK', { stock: ing.quantiteStock, unit: ing.uniteMesure })}`,
+      badge: `${ing.quantiteStock} ${ing.uniteMesure}`,
+      badgeType: ing.quantiteStock <= (ing.seuilAlerte ?? 0) ? 'danger' : 'neutral',
+      icon: 'wine-outline'
+    }));
+  }
+
+  /**
+   * Sets reason of the shrinkage.
+   */
+  selectReason(r: StockWasteReason): void {
+    this.reason = r;
+  }
+
+  /**
+   * Fills quantity based on a percentage of current stock (e.g. 25%, 50%, 100%).
+   */
+  setQuantityPercentage(percentage: number): void {
+    if (!this.selectedIngredient || this.currentStock <= 0) return;
+    const raw = (this.currentStock * percentage) / 100;
+    this.quantity = Math.round(raw * 100) / 100;
+  }
+
+  /**
+   * Computes expected remaining stock inventory after declared waste.
+   */
+  get remainingStock(): number {
+    if (!this.selectedIngredient) return 0;
+    const qty = this.quantity ?? 0;
+    return Math.max(0, Math.round((this.currentStock - qty) * 100) / 100);
   }
 
   /**
@@ -132,12 +200,12 @@ export class StockWasteModalComponent implements OnInit {
   }
 
   /**
-   * Handles user selection of an ingredient from the dropdown.
+   * Handles user selection of an ingredient from the dropdown or searchable select.
    *
-   * @param event The select change event
+   * @param event The select change event or direct ingredient id
    */
   onIngredientChange(event: any): void {
-    const id = event.detail?.value ?? this.selectedIngredientId;
+    const id = (event && typeof event === 'object' && 'detail' in event) ? event.detail?.value : event;
     this.selectedIngredientId = id ? Number(id) : null;
     this.selectedIngredient = this.availableIngredients.find(i => i.id === this.selectedIngredientId) ?? null;
   }

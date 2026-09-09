@@ -354,6 +354,102 @@ describe('EmployeeShiftModalComponent', () => {
       expect(mockModalCtrl.create).not.toHaveBeenCalled();
     });
   });
+
+  describe('openInEditMode behavior', () => {
+    it('should open edit form directly when openInEditMode and initialShift are passed', () => {
+      component.openInEditMode = true;
+      component.initialShift = sampleShift;
+      component.ngOnInit();
+
+      expect(component.showForm).toBeTrue();
+      expect(component.editingShiftId).toBe(10);
+      expect(component.formDate).toBe('2026-08-10');
+      expect(component.formHeureDebut).toBe('08:00');
+      expect(component.formHeureFin).toBe('16:00');
+    });
+
+    it('should open edit form when openInEditMode is true and initialShiftId is passed without initialShift', () => {
+      component.openInEditMode = true;
+      component.initialShift = null;
+      component.initialShiftId = 10;
+      component.ngOnInit();
+
+      expect(component.showForm).toBeTrue();
+      expect(component.editingShiftId).toBe(10);
+      expect(component.formDate).toBe('2026-08-10');
+    });
+
+    it('closeForm() should dismiss modal when openInEditMode is true', () => {
+      component.openInEditMode = true;
+      component.closeForm();
+      expect(mockModalCtrl.dismiss).toHaveBeenCalled();
+    });
+
+    it('deleteCurrentEditingShift() should do nothing when editingShiftId is null', async () => {
+      component.editingShiftId = null;
+      spyOn(component, 'confirmDeleteShift');
+      await component.deleteCurrentEditingShift();
+      expect(component.confirmDeleteShift).not.toHaveBeenCalled();
+    });
+
+    it('deleteCurrentEditingShift() should call confirmDeleteShift with current shift', async () => {
+      component.editingShiftId = 10;
+      component.shifts = [sampleShift];
+      spyOn(component, 'confirmDeleteShift').and.returnValue(Promise.resolve());
+      await component.deleteCurrentEditingShift();
+      expect(component.confirmDeleteShift).toHaveBeenCalledWith(sampleShift);
+    });
+
+    it('saveShift() in openInEditMode should update shift and dismiss modal', () => {
+      component.openInEditMode = true;
+      component.editingShiftId = 10;
+      component.formDate = '2026-08-10';
+      component.formHeureDebut = '08:00';
+      component.formHeureFin = '16:00';
+      component.formTypeShift = 'MATIN';
+      component.formTypePoste = 'BARMAN';
+
+      mockShiftService.updateShift.and.returnValue(of(sampleShift));
+
+      component.saveShift();
+
+      expect(mockShiftService.updateShift).toHaveBeenCalled();
+      expect(mockModalCtrl.dismiss).toHaveBeenCalled();
+    });
+
+    it('saveShift() in openInCreateMode should create shift and dismiss modal', () => {
+      component.openInCreateMode = true;
+      component.isManagerOrAdmin = true;
+      component.editingShiftId = null;
+      component.formDate = '2026-08-10';
+      component.formHeureDebut = '08:00';
+      component.formHeureFin = '16:00';
+      component.formTypeShift = 'MATIN';
+      component.formTypePoste = 'BARMAN';
+
+      mockShiftService.createShift.and.returnValue(of(sampleShift));
+
+      component.saveShift();
+
+      expect(mockShiftService.createShift).toHaveBeenCalled();
+      expect(mockModalCtrl.dismiss).toHaveBeenCalled();
+    });
+
+    it('confirmDeleteShift in openInEditMode should delete and dismiss modal', async () => {
+      component.openInEditMode = true;
+      const deleteModal = {
+        present: jasmine.createSpy('present').and.returnValue(Promise.resolve()),
+        onDidDismiss: jasmine.createSpy('onDidDismiss').and.returnValue(Promise.resolve({ data: { confirmed: true } }))
+      };
+      mockModalCtrl.create.and.returnValue(Promise.resolve(deleteModal as any));
+      mockShiftService.deleteShift.and.returnValue(of(void 0));
+
+      await component.confirmDeleteShift(sampleShift);
+
+      expect(mockShiftService.deleteShift).toHaveBeenCalledWith(10);
+      expect(mockModalCtrl.dismiss).toHaveBeenCalled();
+    });
+  });
 });
 
 

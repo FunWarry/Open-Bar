@@ -266,7 +266,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
    * state, preventing the race condition where the comparison button would disappear
    * when switching weeks.
    */
-  loadSchedule(): void {
+  loadSchedule(autoOpenComparison = false): void {
     this.loading = true;
     const weekStartISO = this.formatDateIso(this.currentWeekStart);
 
@@ -281,7 +281,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
           this.publication = publication;
           this.isPublished = publication !== null;
           this.loading = false;
-          this.calculateScheduleDifferences();
+          this.calculateScheduleDifferences(autoOpenComparison);
         },
         error: () => {
           this.loading = false;
@@ -313,8 +313,10 @@ export class ScheduleComponent implements OnInit, OnDestroy {
 
   /**
    * Recalculates diffs between current schedule shifts and the published snapshot.
+   *
+   * @param autoOpenComparison Whether to automatically activate comparison mode if diffs are detected
    */
-  calculateScheduleDifferences(): void {
+  calculateScheduleDifferences(autoOpenComparison = false): void {
     this.cellDiffMap.clear();
     this.diffAddedCount = 0;
     this.diffModifiedCount = 0;
@@ -346,6 +348,9 @@ export class ScheduleComponent implements OnInit, OnDestroy {
     }
 
     this.hasUnpublishedChanges = this.totalDiffCount > 0;
+    if (autoOpenComparison && this.hasUnpublishedChanges) {
+      this.isComparisonMode = true;
+    }
   }
 
   private normalizeDate(dStr: any): string {
@@ -662,6 +667,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
                 // 2. Now update publication state — both sides are in sync
                 this.publication = pub;
                 this.isPublished = true;
+                this.isComparisonMode = false;
                 this.hasUnpublishedChanges = false;
                 this.cellDiffMap.clear();
                 this.diffAddedCount = 0;
@@ -699,6 +705,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
   }
 
   prevWeek(): void {
+    this.isComparisonMode = false;
     const d = new Date(this.currentWeekStart);
     d.setDate(d.getDate() - 7);
     this.currentWeekStart = d;
@@ -706,6 +713,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
   }
 
   nextWeek(): void {
+    this.isComparisonMode = false;
     const d = new Date(this.currentWeekStart);
     d.setDate(d.getDate() + 7);
     this.currentWeekStart = d;
@@ -713,6 +721,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
   }
 
   goToCurrentWeek(): void {
+    this.isComparisonMode = false;
     this.currentWeekStart = this.scheduleService.getMonday(new Date());
     this.loadSchedule();
   }
@@ -1069,7 +1078,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
     this.loading = true;
     forkJoin(requests).subscribe({
       next: async () => {
-        this.loadSchedule();
+        this.loadSchedule(true);
         const toast = await this.toastCtrl.create({
           message: `${requests.length} créneaux dupliqués avec succès`,
           duration: 2500,
@@ -1175,8 +1184,8 @@ export class ScheduleComponent implements OnInit, OnDestroy {
       // Empty cell: open creation form pre-filled with the employee and date
       this.openCreateShiftModal(emp, shift.date);
     } else {
-      // Cell with shift: open list/edit modal for this employee
-      this.openEmployeeModalForUser(emp.employeeId);
+      // Cell with shift: open edit modal directly for this shift
+      this.openEditShiftModal(emp, shift);
     }
   }
 
@@ -1211,7 +1220,33 @@ export class ScheduleComponent implements OnInit, OnDestroy {
     });
     await modal.present();
     await modal.onWillDismiss();
-    this.loadSchedule();
+    this.loadSchedule(true);
+  }
+
+  /**
+   * Opens the shift edit form modal directly pre-filled with the selected shift.
+   *
+   * @param emp - The employee schedule row.
+   * @param shift - The shift cell to edit.
+   */
+  async openEditShiftModal(emp: EmployeeScheduleRow, shift: ShiftCell): Promise<void> {
+    const userObj = await firstValueFrom(this.userService.getUserById(emp.employeeId));
+    if (!userObj) return;
+
+    const modal = await this.modalCtrl.create({
+      component: EmployeeShiftModalComponent,
+      componentProps: {
+        employee: userObj,
+        initialDate: shift.date,
+        initialShift: shift.rawShift,
+        initialShiftId: shift.rawShift?.id,
+        openInEditMode: true
+      },
+      cssClass: 'employee-shift-modal-container'
+    });
+    await modal.present();
+    await modal.onWillDismiss();
+    this.loadSchedule(true);
   }
 
   /**
@@ -1257,7 +1292,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
       next: async () => {
         this.selectedShiftIds.clear();
         this.isDeleteMode = false;
-        this.loadSchedule();
+        this.loadSchedule(true);
         const toast = await this.toastCtrl.create({
           message: this.translocoService.translate('SHIFTS.BULK_DELETE.SUCCESS', { count: ids.length }),
           duration: 2500,
@@ -1268,7 +1303,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
       error: async (err) => {
         console.error('Erreur bulk delete:', err);
         this.loading = false;
-        this.loadSchedule();
+        this.loadSchedule(true);
         const toast = await this.toastCtrl.create({
           message: this.translocoService.translate('COMMON.ERROR'),
           duration: 3000,
@@ -1293,6 +1328,13 @@ export class ScheduleComponent implements OnInit, OnDestroy {
     if (shift.rawShift?.id) {
       const shiftId = shift.rawShift.id;
       buttons.push(
+        {
+          text: 'Modifier le créneau',
+          icon: 'create-outline',
+          handler: () => {
+            this.openEditShiftModal(emp, shift);
+          }
+        },
         {
           text: 'Dupliquer sur le jour suivant',
           icon: 'copy-outline',
@@ -1351,7 +1393,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
         text: 'Nouveau créneau',
         icon: 'add-outline',
         handler: () => {
-          this.openEmployeeModalForUser(emp.employeeId);
+          this.openCreateShiftModal(emp, shift.date);
         }
       });
     }
@@ -1433,7 +1475,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
 
     action$.subscribe({
       next: async () => {
-        this.loadSchedule();
+        this.loadSchedule(true);
         const toast = await this.toastCtrl.create({
           message: `Créneau collé pour ${emp.name} le ${targetCell.date}`,
           duration: 2500,
@@ -1483,7 +1525,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
 
     this.shiftService.createShift(req).subscribe({
       next: async () => {
-        this.loadSchedule();
+        this.loadSchedule(true);
         const toast = await this.toastCtrl.create({
           message: `Créneau dupliqué au ${nextDateIso}`,
           duration: 2500,
@@ -1534,7 +1576,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
     if (data?.confirmed) {
       this.shiftService.deleteShift(shiftId).subscribe({
         next: async () => {
-          this.loadSchedule();
+          this.loadSchedule(true);
           const toast = await this.toastCtrl.create({
             message: this.translocoService.translate('SHIFTS.DELETE_SUCCESS'),
             duration: 2500,
@@ -1567,7 +1609,7 @@ export class ScheduleComponent implements OnInit, OnDestroy {
     });
     await modal.present();
     await modal.onWillDismiss();
-    this.loadSchedule();
+    this.loadSchedule(true);
   }
 
   async openClosureConfigModal(): Promise<void> {
