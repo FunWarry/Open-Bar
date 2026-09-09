@@ -23,4 +23,7 @@ public interface CocktailRepository extends JpaRepository<Cocktail, Long> {
 
     @org.springframework.data.jpa.repository.Query("SELECT DISTINCT c FROM Cocktail c LEFT JOIN FETCH c.recipeSteps WHERE LOWER(c.nom) = LOWER(:nom)")
     java.util.Optional<Cocktail> findByNomIgnoreCaseWithRecipeSteps(@org.springframework.data.repository.query.Param("nom") String nom);
+
+    @org.springframework.data.jpa.repository.Query("SELECT DISTINCT c FROM Cocktail c LEFT JOIN c.ingredients ci LEFT JOIN c.variantes cv LEFT JOIN cv.ingredients cvi WHERE ci.ingredient.id = :ingredientId OR cvi.ingredient.id = :ingredientId")
+    List<Cocktail> findByIngredientId(@org.springframework.data.repository.query.Param("ingredientId") Long ingredientId);
 } 

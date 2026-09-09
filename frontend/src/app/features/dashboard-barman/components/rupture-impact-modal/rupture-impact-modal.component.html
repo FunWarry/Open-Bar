@@ -1,0 +1,167 @@
+<ion-header class="modal-header">
+  <ion-toolbar>
+    <ion-title>
+      <div class="header-title-wrapper">
+        <ion-icon name="warning-outline" class="warning-icon"></ion-icon>
+        <span>{{ 'BARMAN_DASHBOARD.RUPTURE_IMPACT.TITLE' | transloco }}</span>
+      </div>
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="dismiss()" (keyup.enter)="dismiss()" data-testid="rupture-impact-close-btn" [attr.aria-label]="'COMMON.CLOSE' | transloco">
+        <ion-icon name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="rupture-impact-content ion-padding">
+  <!-- Ingredient Summary Banner -->
+  <div class="ingredient-summary-card">
+    <div class="summary-top">
+      <div class="ingredient-badge-info">
+        <span class="ingredient-name" data-testid="rupture-impact-ingredient-nom">{{ ingredient.nom }}</span>
+        @if (ingredient.uniteMesure) {
+          <span class="ingredient-unit">({{ ingredient.uniteMesure }})</span>
+        }
+      </div>
+      <ion-badge color="danger" class="stock-badge" data-testid="rupture-impact-stock-badge">
+        {{ 'BARMAN_DASHBOARD.STOCK_OUT_TAG' | transloco }}
+      </ion-badge>
+    </div>
+
+    <p class="summary-description">
+      @if (source === 'automatic') {
+        {{ 'BARMAN_DASHBOARD.RUPTURE_IMPACT.AUTO_MSG' | transloco }}
+      } @else {
+        {{ 'BARMAN_DASHBOARD.RUPTURE_IMPACT.MANUAL_MSG' | transloco }}
+      }
+    </p>
+  </div>
+
+  <!-- Physical Restock Quick Action -->
+  <div class="quick-restock-box">
+    <div class="restock-header">
+      <ion-icon name="refresh-outline" class="restock-icon"></ion-icon>
+      <div>
+        <h4 class="restock-title">{{ 'BARMAN_DASHBOARD.RUPTURE_IMPACT.RESTOCK_TITLE' | transloco }}</h4>
+        <p class="restock-subtitle">{{ 'BARMAN_DASHBOARD.RUPTURE_IMPACT.RESTOCK_DESC' | transloco }}</p>
+      </div>
+    </div>
+
+    <div class="restock-form">
+      <label for="quickRestockInput" class="sr-only">{{ 'BARMAN_DASHBOARD.RUPTURE_IMPACT.RESTOCK_TITLE' | transloco }}</label>
+      <input
+        id="quickRestockInput"
+        type="number"
+        min="1"
+        step="any"
+        class="restock-input"
+        [(ngModel)]="quickRestockQty"
+        [placeholder]="'BARMAN_DASHBOARD.RUPTURE_IMPACT.RESTOCK_PLACEHOLDER' | transloco"
+        data-testid="rupture-quick-restock-input"
+      />
+      <ion-button
+        fill="solid"
+        color="success"
+        size="small"
+        class="restock-btn"
+        (click)="applyQuickRestock()"
+        (keyup.enter)="applyQuickRestock()"
+        [disabled]="isProcessing || !quickRestockQty || quickRestockQty <= 0"
+        data-testid="rupture-quick-restock-btn"
+      >
+        <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
+        {{ 'BARMAN_DASHBOARD.RUPTURE_IMPACT.RESTOCK_ACTION' | transloco }}
+      </ion-button>
+    </div>
+  </div>
+
+  <!-- Associated Cocktails Section -->
+  <div class="cocktails-section">
+    <div class="section-header">
+      <div class="section-title">
+        <ion-icon name="wine-outline"></ion-icon>
+        <h3>{{ 'BARMAN_DASHBOARD.RUPTURE_IMPACT.AFFECTED_COCKTAILS' | transloco }} ({{ affectedCocktails.length }})</h3>
+      </div>
+      @if (affectedCocktails.length > 0) {
+        <div class="selection-actions">
+          <button type="button" class="text-action-btn" (click)="selectAll()" data-testid="rupture-select-all-btn">
+            {{ 'BARMAN_DASHBOARD.RUPTURE_IMPACT.SELECT_ALL' | transloco }}
+          </button>
+          <span class="action-separator">·</span>
+          <button type="button" class="text-action-btn" (click)="deselectAll()" data-testid="rupture-deselect-all-btn">
+            {{ 'BARMAN_DASHBOARD.RUPTURE_IMPACT.DESELECT_ALL' | transloco }}
+          </button>
+        </div>
+      }
+    </div>
+
+    @if (isLoadingCocktails) {
+      <div class="loading-state">
+        <ion-spinner name="crescent"></ion-spinner>
+        <span>{{ 'COMMON.LOADING' | transloco }}</span>
+      </div>
+    } @else if (affectedCocktails.length === 0) {
+      <div class="empty-state" data-testid="rupture-no-cocktails">
+        <p>{{ 'BARMAN_DASHBOARD.RUPTURE_IMPACT.NO_COCKTAILS' | transloco }}</p>
+      </div>
+    } @else {
+      <ion-list class="cocktails-list">
+        @for (cocktail of affectedCocktails; track cocktail.id) {
+          <ion-item class="cocktail-item" [class.is-selected]="isSelected(cocktail.id)">
+            <ion-checkbox
+              slot="start"
+              [checked]="isSelected(cocktail.id)"
+              (ionChange)="toggleCocktailSelection(cocktail.id)"
+              [attr.data-testid]="'rupture-cocktail-checkbox-' + cocktail.id"
+            ></ion-checkbox>
+            <ion-label class="cocktail-info">
+              <div class="cocktail-header">
+                <span class="cocktail-name">{{ cocktail.nom }}</span>
+                <span class="cocktail-category">{{ cocktail.categorie }}</span>
+              </div>
+            </ion-label>
+            <div slot="end" class="cocktail-status">
+              @if (cocktail.disponible === false) {
+                <ion-badge color="medium">{{ 'BARMAN_DASHBOARD.RUPTURE_IMPACT.ALREADY_OUT' | transloco }}</ion-badge>
+              } @else {
+                <ion-badge color="success">{{ 'COCKTAILS.AVAILABLE' | transloco }}</ion-badge>
+              }
+            </div>
+          </ion-item>
+        }
+      </ion-list>
+    }
+  </div>
+</ion-content>
+
+<ion-footer class="modal-footer">
+  <div class="footer-actions">
+    <ion-button
+      fill="clear"
+      color="medium"
+      class="action-btn secondary-action"
+      (click)="keepCocktailsAvailable()"
+      (keyup.enter)="keepCocktailsAvailable()"
+      [disabled]="isProcessing"
+      data-testid="rupture-keep-cocktails-btn"
+    >
+      {{ 'BARMAN_DASHBOARD.RUPTURE_IMPACT.KEEP_COCKTAILS' | transloco }}
+    </ion-button>
+
+    <ion-button
+      fill="solid"
+      color="danger"
+      class="action-btn primary-action"
+      (click)="confirmCascade()"
+      (keyup.enter)="confirmCascade()"
+      [disabled]="isProcessing"
+      data-testid="rupture-confirm-cascade-btn"
+    >
+      @if (isProcessing) {
+        <ion-spinner name="crescent" slot="start"></ion-spinner>
+      }
+      {{ 'BARMAN_DASHBOARD.RUPTURE_IMPACT.CONFIRM_CASCADE' | transloco: { count: selectedCocktailIds.size } }}
+    </ion-button>
+  </div>
+</ion-footer>
