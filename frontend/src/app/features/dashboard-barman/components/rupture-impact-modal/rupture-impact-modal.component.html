@@ -138,7 +138,7 @@
 <ion-footer class="modal-footer">
   <div class="footer-actions">
     <ion-button
-      fill="clear"
+      fill="outline"
       color="medium"
       class="action-btn secondary-action"
       (click)="keepCocktailsAvailable()"
@@ -146,6 +146,7 @@
       [disabled]="isProcessing"
       data-testid="rupture-keep-cocktails-btn"
     >
+      <ion-icon slot="start" name="arrow-undo-outline"></ion-icon>
       {{ 'BARMAN_DASHBOARD.RUPTURE_IMPACT.KEEP_COCKTAILS' | transloco }}
     </ion-button>
 
@@ -160,6 +161,8 @@
     >
       @if (isProcessing) {
         <ion-spinner name="crescent" slot="start"></ion-spinner>
+      } @else {
+        <ion-icon slot="start" name="alert-circle-outline"></ion-icon>
       }
       {{ 'BARMAN_DASHBOARD.RUPTURE_IMPACT.CONFIRM_CASCADE' | transloco: { count: selectedCocktailIds.size } }}
     </ion-button>

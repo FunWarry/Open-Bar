@@ -755,6 +755,12 @@ describe('DashboardBarmanComponent', () => {
       expect(modalCtrlSpy.create).toHaveBeenCalled();
       expect(component.activeCriticalStockAlert).toBeNull();
     });
+
+    it('should do nothing in openCriticalStockImpactModal when activeCriticalStockAlert is null', async () => {
+      component.activeCriticalStockAlert = null;
+      await component.openCriticalStockImpactModal();
+      expect(modalCtrlSpy.create).not.toHaveBeenCalled();
+    });
   });
 });
 

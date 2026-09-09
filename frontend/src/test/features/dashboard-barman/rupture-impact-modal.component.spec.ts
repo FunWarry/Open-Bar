@@ -178,4 +178,80 @@ describe('RuptureImpactModalComponent', () => {
 
     expect(toastCtrlSpy.create).toHaveBeenCalled();
   });
+
+  it('should dismiss with cancel if stock is already zero when keepCocktailsAvailable is called', () => {
+    component.ingredient.quantiteStock = 0;
+    component.keepCocktailsAvailable();
+
+    expect(dashboardServiceSpy.updateIngredientStock).not.toHaveBeenCalled();
+    expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith({ action: 'cancel' });
+  });
+
+  it('should handle error when keepCocktailsAvailable fails to update ingredient stock', fakeAsync(() => {
+    component.ingredient.quantiteStock = 10;
+    dashboardServiceSpy.updateIngredientStock.and.returnValue(throwError(() => new Error('Server error')));
+
+    component.keepCocktailsAvailable();
+    tick();
+
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
+  }));
+
+  it('should dismiss with ingredient_only when confirmCascade has no selected cocktails', fakeAsync(() => {
+    component.ingredient.quantiteStock = 10;
+    component.selectedCocktailIds = new Set<number>();
+
+    component.confirmCascade();
+    tick();
+
+    expect(dashboardServiceSpy.updateIngredientStock).toHaveBeenCalledWith(1, 0);
+    expect(dashboardServiceSpy.setCocktailsDisponibiliteBatch).not.toHaveBeenCalled();
+    expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith({ action: 'ingredient_only' });
+  }));
+
+  it('should directly execute batch cascade without stock update when stock is already zero', fakeAsync(() => {
+    component.ingredient.quantiteStock = 0;
+    component.affectedCocktails = [...mockCocktails];
+    component.selectedCocktailIds = new Set([1]);
+
+    component.confirmCascade();
+    tick();
+
+    expect(dashboardServiceSpy.updateIngredientStock).not.toHaveBeenCalled();
+    expect(dashboardServiceSpy.setCocktailsDisponibiliteBatch).toHaveBeenCalledWith([1], false);
+    expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith({ action: 'cascaded', cocktailIds: [1] });
+  }));
+
+  it('should handle error when updateIngredientStock fails during confirmCascade', fakeAsync(() => {
+    component.ingredient.quantiteStock = 10;
+    component.selectedCocktailIds = new Set([1]);
+    dashboardServiceSpy.updateIngredientStock.and.returnValue(throwError(() => new Error('Update error')));
+
+    component.confirmCascade();
+    tick();
+
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
+    expect(dashboardServiceSpy.setCocktailsDisponibiliteBatch).not.toHaveBeenCalled();
+  }));
+
+  it('should handle error when setCocktailsDisponibiliteBatch fails during confirmCascade', fakeAsync(() => {
+    component.ingredient.quantiteStock = 0;
+    component.selectedCocktailIds = new Set([1]);
+    dashboardServiceSpy.setCocktailsDisponibiliteBatch.and.returnValue(throwError(() => new Error('Batch error')));
+
+    component.confirmCascade();
+    tick();
+
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
+  }));
+
+  it('should handle error when applyQuickRestock fails', fakeAsync(() => {
+    component.quickRestockQty = 10;
+    dashboardServiceSpy.updateIngredientStock.and.returnValue(throwError(() => new Error('Restock error')));
+
+    component.applyQuickRestock();
+    tick();
+
+    expect(toastCtrlSpy.create).toHaveBeenCalled();
+  }));
 });

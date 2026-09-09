@@ -1298,5 +1298,15 @@ class CocktailServiceTest {
         verify(cocktailRepository, never()).findAllById(any());
         verify(cocktailRepository, never()).saveAll(any());
     }
+
+    @Test
+    @DisplayName("setDisponibiliteBatch - null input returns empty without updating")
+    void setDisponibiliteBatchWhenNullInputReturnsEmpty() {
+        List<Cocktail> result = cocktailService.setDisponibiliteBatch(null, false);
+
+        assertThat(result).isEmpty();
+        verify(cocktailRepository, never()).findAllById(any());
+        verify(cocktailRepository, never()).saveAll(any());
+    }
 }
 

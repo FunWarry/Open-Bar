@@ -296,7 +296,23 @@
     }
 
     .secondary-action {
-      font-weight: 500;
+      --background: var(--background-surface-2);
+      --border-color: var(--border-medium);
+      --border-style: solid;
+      --border-width: 1px;
+      --color: var(--text-primary);
+      font-weight: 600;
+      transition: all 0.2s ease;
+
+      &:hover {
+        --background: var(--background-surface-3, rgba(255, 255, 255, 0.08));
+        --border-color: var(--text-muted);
+      }
+
+      ion-icon {
+        font-size: 1.1rem;
+        margin-right: 6px;
+      }
     }
   }
 }
