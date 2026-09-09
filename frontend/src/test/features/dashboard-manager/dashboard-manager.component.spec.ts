@@ -345,4 +345,13 @@ describe('DashboardManagerComponent', () => {
     expect(component.recentWasteMovements).toEqual([]);
     expect(component.getReasonCount('CASSE')).toBe(0);
   });
+
+  it('getWasteReasonIcon returns appropriate icons for all waste reasons', () => {
+    expect(component.getWasteReasonIcon('CASSE')).toBe('wine-outline');
+    expect(component.getWasteReasonIcon('PEREMPTION')).toBe('time-outline');
+    expect(component.getWasteReasonIcon('OFFERT_PATRON')).toBe('gift-outline');
+    expect(component.getWasteReasonIcon('DEGUSTATION_STAFF')).toBe('people-outline');
+    expect(component.getWasteReasonIcon('ERREUR_PREPARATION')).toBe('warning-outline');
+    expect(component.getWasteReasonIcon('OTHER' as any)).toBe('pricetag-outline');
+  });
 });

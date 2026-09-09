@@ -254,9 +254,6 @@ export class EmployeeShiftModalComponent implements OnInit, OnDestroy {
       else if (this.employee.roles.includes('SERVEUR')) this.formTypePoste = 'SERVEUR';
     }
 
-    this.loadPresets();
-    this.loadShifts();
-
     // If opened directly in edit mode with a shift provided
     if (this.openInEditMode) {
       if (this.initialShift) {
@@ -271,6 +268,9 @@ export class EmployeeShiftModalComponent implements OnInit, OnDestroy {
       this.showForm = true;
       this.editingShiftId = null;
     }
+
+    this.loadPresets();
+    this.loadShifts();
   }
 
   ngOnDestroy(): void {
